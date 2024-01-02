@@ -583,6 +583,16 @@ func (c *clientImpl) UpdateSchedule(
 	return c.client.UpdateSchedule(ctx, request, opts...)
 }
 
+func (c *clientImpl) UpdateWithStartWorkflowExecution(
+	ctx context.Context,
+	request *workflowservice.UpdateWithStartWorkflowExecutionRequest,
+	opts ...grpc.CallOption,
+) (*workflowservice.UpdateWithStartWorkflowExecutionResponse, error) {
+	ctx, cancel := c.createContext(ctx)
+	defer cancel()
+	return c.client.UpdateWithStartWorkflowExecution(ctx, request, opts...)
+}
+
 func (c *clientImpl) UpdateWorkerBuildIdCompatibility(
 	ctx context.Context,
 	request *workflowservice.UpdateWorkerBuildIdCompatibilityRequest,

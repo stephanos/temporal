@@ -91,6 +91,7 @@ const (
 	HistoryService_ImportWorkflowExecution_FullMethodName                = "/temporal.server.api.historyservice.v1.HistoryService/ImportWorkflowExecution"
 	HistoryService_DeleteWorkflowVisibilityRecord_FullMethodName         = "/temporal.server.api.historyservice.v1.HistoryService/DeleteWorkflowVisibilityRecord"
 	HistoryService_UpdateWorkflowExecution_FullMethodName                = "/temporal.server.api.historyservice.v1.HistoryService/UpdateWorkflowExecution"
+	HistoryService_UpdateWithStartWorkflowExecution_FullMethodName       = "/temporal.server.api.historyservice.v1.HistoryService/UpdateWithStartWorkflowExecution"
 	HistoryService_PollWorkflowExecutionUpdate_FullMethodName            = "/temporal.server.api.historyservice.v1.HistoryService/PollWorkflowExecutionUpdate"
 	HistoryService_StreamWorkflowReplicationMessages_FullMethodName      = "/temporal.server.api.historyservice.v1.HistoryService/StreamWorkflowReplicationMessages"
 	HistoryService_GetWorkflowExecutionHistory_FullMethodName            = "/temporal.server.api.historyservice.v1.HistoryService/GetWorkflowExecutionHistory"
@@ -283,6 +284,14 @@ type HistoryServiceClient interface {
 	//
 	//	aip.dev/not-precedent: This service does not follow the update method API --)
 	UpdateWorkflowExecution(ctx context.Context, in *UpdateWorkflowExecutionRequest, opts ...grpc.CallOption) (*UpdateWorkflowExecutionResponse, error)
+	// (-- api-linter: core::0134=disabled
+	//
+	//	aip.dev/not-precedent: This service does not follow the update method API --)
+	//
+	// (-- api-linter: core::0136::prepositions=disabled
+	//
+	//	aip.dev/not-precedent:  Method names should not include prepositions ("with") --)
+	UpdateWithStartWorkflowExecution(ctx context.Context, in *UpdateWithStartWorkflowExecutionRequest, opts ...grpc.CallOption) (*UpdateWithStartWorkflowExecutionResponse, error)
 	// (-- api-linter: core::0134=disabled
 	//
 	//	aip.dev/not-precedent: This service does not follow the update method API --)
@@ -755,6 +764,15 @@ func (c *historyServiceClient) UpdateWorkflowExecution(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *historyServiceClient) UpdateWithStartWorkflowExecution(ctx context.Context, in *UpdateWithStartWorkflowExecutionRequest, opts ...grpc.CallOption) (*UpdateWithStartWorkflowExecutionResponse, error) {
+	out := new(UpdateWithStartWorkflowExecutionResponse)
+	err := c.cc.Invoke(ctx, HistoryService_UpdateWithStartWorkflowExecution_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *historyServiceClient) PollWorkflowExecutionUpdate(ctx context.Context, in *PollWorkflowExecutionUpdateRequest, opts ...grpc.CallOption) (*PollWorkflowExecutionUpdateResponse, error) {
 	out := new(PollWorkflowExecutionUpdateResponse)
 	err := c.cc.Invoke(ctx, HistoryService_PollWorkflowExecutionUpdate_FullMethodName, in, out, opts...)
@@ -1050,6 +1068,14 @@ type HistoryServiceServer interface {
 	// (-- api-linter: core::0134=disabled
 	//
 	//	aip.dev/not-precedent: This service does not follow the update method API --)
+	//
+	// (-- api-linter: core::0136::prepositions=disabled
+	//
+	//	aip.dev/not-precedent:  Method names should not include prepositions ("with") --)
+	UpdateWithStartWorkflowExecution(context.Context, *UpdateWithStartWorkflowExecutionRequest) (*UpdateWithStartWorkflowExecutionResponse, error)
+	// (-- api-linter: core::0134=disabled
+	//
+	//	aip.dev/not-precedent: This service does not follow the update method API --)
 	PollWorkflowExecutionUpdate(context.Context, *PollWorkflowExecutionUpdateRequest) (*PollWorkflowExecutionUpdateResponse, error)
 	StreamWorkflowReplicationMessages(HistoryService_StreamWorkflowReplicationMessagesServer) error
 	GetWorkflowExecutionHistory(context.Context, *GetWorkflowExecutionHistoryRequest) (*GetWorkflowExecutionHistoryResponse, error)
@@ -1221,6 +1247,9 @@ func (UnimplementedHistoryServiceServer) DeleteWorkflowVisibilityRecord(context.
 }
 func (UnimplementedHistoryServiceServer) UpdateWorkflowExecution(context.Context, *UpdateWorkflowExecutionRequest) (*UpdateWorkflowExecutionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateWorkflowExecution not implemented")
+}
+func (UnimplementedHistoryServiceServer) UpdateWithStartWorkflowExecution(context.Context, *UpdateWithStartWorkflowExecutionRequest) (*UpdateWithStartWorkflowExecutionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateWithStartWorkflowExecution not implemented")
 }
 func (UnimplementedHistoryServiceServer) PollWorkflowExecutionUpdate(context.Context, *PollWorkflowExecutionUpdateRequest) (*PollWorkflowExecutionUpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PollWorkflowExecutionUpdate not implemented")
@@ -2147,6 +2176,24 @@ func _HistoryService_UpdateWorkflowExecution_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HistoryService_UpdateWithStartWorkflowExecution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateWithStartWorkflowExecutionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HistoryServiceServer).UpdateWithStartWorkflowExecution(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HistoryService_UpdateWithStartWorkflowExecution_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HistoryServiceServer).UpdateWithStartWorkflowExecution(ctx, req.(*UpdateWithStartWorkflowExecutionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _HistoryService_PollWorkflowExecutionUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PollWorkflowExecutionUpdateRequest)
 	if err := dec(in); err != nil {
@@ -2537,6 +2584,10 @@ var HistoryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateWorkflowExecution",
 			Handler:    _HistoryService_UpdateWorkflowExecution_Handler,
+		},
+		{
+			MethodName: "UpdateWithStartWorkflowExecution",
+			Handler:    _HistoryService_UpdateWithStartWorkflowExecution_Handler,
 		},
 		{
 			MethodName: "PollWorkflowExecutionUpdate",

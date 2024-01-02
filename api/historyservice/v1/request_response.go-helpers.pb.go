@@ -3766,6 +3766,80 @@ func (this *UpdateWorkflowExecutionResponse) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type UpdateWithStartWorkflowExecutionRequest to the protobuf v3 wire format
+func (val *UpdateWithStartWorkflowExecutionRequest) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type UpdateWithStartWorkflowExecutionRequest from the protobuf v3 wire format
+func (val *UpdateWithStartWorkflowExecutionRequest) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *UpdateWithStartWorkflowExecutionRequest) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two UpdateWithStartWorkflowExecutionRequest values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *UpdateWithStartWorkflowExecutionRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *UpdateWithStartWorkflowExecutionRequest
+	switch t := that.(type) {
+	case *UpdateWithStartWorkflowExecutionRequest:
+		that1 = t
+	case UpdateWithStartWorkflowExecutionRequest:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type UpdateWithStartWorkflowExecutionResponse to the protobuf v3 wire format
+func (val *UpdateWithStartWorkflowExecutionResponse) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type UpdateWithStartWorkflowExecutionResponse from the protobuf v3 wire format
+func (val *UpdateWithStartWorkflowExecutionResponse) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *UpdateWithStartWorkflowExecutionResponse) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two UpdateWithStartWorkflowExecutionResponse values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *UpdateWithStartWorkflowExecutionResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *UpdateWithStartWorkflowExecutionResponse
+	switch t := that.(type) {
+	case *UpdateWithStartWorkflowExecutionResponse:
+		that1 = t
+	case UpdateWithStartWorkflowExecutionResponse:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type StreamWorkflowReplicationMessagesRequest to the protobuf v3 wire format
 func (val *StreamWorkflowReplicationMessagesRequest) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

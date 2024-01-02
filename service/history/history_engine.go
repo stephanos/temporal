@@ -32,6 +32,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	commonpb "go.temporal.io/api/common/v1"
 	historypb "go.temporal.io/api/history/v1"
+	"go.temporal.io/server/service/history/api/updatewithstartworkflow"
 
 	historyspb "go.temporal.io/server/api/history/v1"
 	workflowpb "go.temporal.io/server/api/workflow/v1"
@@ -575,6 +576,13 @@ func (e *historyEngineImpl) UpdateWorkflowExecution(
 	req *historyservice.UpdateWorkflowExecutionRequest,
 ) (*historyservice.UpdateWorkflowExecutionResponse, error) {
 	return updateworkflow.Invoke(ctx, req, e.shardContext, e.workflowConsistencyChecker, e.matchingClient)
+}
+
+func (e *historyEngineImpl) UpdateWithStartWorkflowExecution(
+	ctx context.Context,
+	req *historyservice.UpdateWithStartWorkflowExecutionRequest,
+) (*historyservice.UpdateWithStartWorkflowExecutionResponse, error) {
+	return updatewithstartworkflow.Invoke(ctx, req, e.shardContext, e.workflowConsistencyChecker)
 }
 
 func (e *historyEngineImpl) PollWorkflowExecutionUpdate(

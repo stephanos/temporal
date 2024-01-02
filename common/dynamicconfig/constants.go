@@ -379,6 +379,9 @@ const (
 	// lifecycle stage. Default value is `false`.
 	FrontendEnableUpdateWorkflowExecutionAsyncAccepted = "frontend.enableUpdateWorkflowExecutionAsyncAccepted"
 
+	// FrontendEnableUpdateWithStartWorkflowExecution enables UpdateWithStartWorkflowExecution API in the frontend.
+	FrontendEnableUpdateWithStartWorkflowExecution = "frontend.enableUpdateWithStartWorkflowExecution"
+
 	// FrontendEnableWorkerVersioningDataAPIs enables worker versioning data read / write APIs.
 	FrontendEnableWorkerVersioningDataAPIs = "frontend.workerVersioningDataAPIs"
 	// FrontendEnableWorkerVersioningWorkflowAPIs enables worker versioning in workflow progress APIs.

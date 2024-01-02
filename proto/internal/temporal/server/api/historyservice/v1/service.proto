@@ -302,6 +302,13 @@ service HistoryService {
 
     // (-- api-linter: core::0134=disabled
     //     aip.dev/not-precedent: This service does not follow the update method API --)
+    // (-- api-linter: core::0136::prepositions=disabled
+    //     aip.dev/not-precedent:  Method names should not include prepositions ("with") --)
+    rpc UpdateWithStartWorkflowExecution(UpdateWithStartWorkflowExecutionRequest) returns (UpdateWithStartWorkflowExecutionResponse) {
+    }
+
+    // (-- api-linter: core::0134=disabled
+    //     aip.dev/not-precedent: This service does not follow the update method API --)
     rpc PollWorkflowExecutionUpdate(PollWorkflowExecutionUpdateRequest) returns (PollWorkflowExecutionUpdateResponse){
     }
 

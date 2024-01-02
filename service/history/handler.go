@@ -1944,6 +1944,35 @@ func (h *Handler) UpdateWorkflowExecution(
 	return engine.UpdateWorkflowExecution(ctx, request)
 }
 
+func (h *Handler) UpdateWithStartWorkflowExecution(
+	ctx context.Context,
+	request *historyservice.UpdateWithStartWorkflowExecutionRequest,
+) (_ *historyservice.UpdateWithStartWorkflowExecutionResponse, retError error) {
+	defer metrics.CapturePanic(h.logger, h.metricsHandler, &retError)
+	h.startWG.Wait()
+
+	if h.isStopped() {
+		return nil, errShuttingDown
+	}
+
+	shardContext, err := h.controller.GetShardByNamespaceWorkflow(
+		namespace.ID(request.GetNamespaceId()),
+		request.GetRequest().GetStartRequest().GetWorkflowId(),
+	)
+	if err != nil {
+		return nil, h.convertError(err)
+	}
+
+	engine, err := shardContext.GetEngine(ctx)
+	if err != nil {
+		return nil, h.convertError(err)
+	}
+
+	// TODO: handle concurrent requests like SignalWithStartWorkflowExecution
+
+	return engine.UpdateWithStartWorkflowExecution(ctx, request)
+}
+
 func (h *Handler) PollWorkflowExecutionUpdate(
 	ctx context.Context,
 	request *historyservice.PollWorkflowExecutionUpdateRequest,

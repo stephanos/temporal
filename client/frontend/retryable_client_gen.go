@@ -860,6 +860,21 @@ func (c *retryableClient) UpdateSchedule(
 	return resp, err
 }
 
+func (c *retryableClient) UpdateWithStartWorkflowExecution(
+	ctx context.Context,
+	request *workflowservice.UpdateWithStartWorkflowExecutionRequest,
+	opts ...grpc.CallOption,
+) (*workflowservice.UpdateWithStartWorkflowExecutionResponse, error) {
+	var resp *workflowservice.UpdateWithStartWorkflowExecutionResponse
+	op := func(ctx context.Context) error {
+		var err error
+		resp, err = c.client.UpdateWithStartWorkflowExecution(ctx, request, opts...)
+		return err
+	}
+	err := backoff.ThrottleRetryContext(ctx, op, c.policy, c.isRetryable)
+	return resp, err
+}
+
 func (c *retryableClient) UpdateWorkerBuildIdCompatibility(
 	ctx context.Context,
 	request *workflowservice.UpdateWorkerBuildIdCompatibilityRequest,

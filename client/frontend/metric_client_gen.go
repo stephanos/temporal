@@ -803,6 +803,20 @@ func (c *metricClient) UpdateSchedule(
 	return c.client.UpdateSchedule(ctx, request, opts...)
 }
 
+func (c *metricClient) UpdateWithStartWorkflowExecution(
+	ctx context.Context,
+	request *workflowservice.UpdateWithStartWorkflowExecutionRequest,
+	opts ...grpc.CallOption,
+) (_ *workflowservice.UpdateWithStartWorkflowExecutionResponse, retError error) {
+
+	metricsHandler, startTime := c.startMetricsRecording(ctx, "FrontendClientUpdateWithStartWorkflowExecution")
+	defer func() {
+		c.finishMetricsRecording(metricsHandler, startTime, retError)
+	}()
+
+	return c.client.UpdateWithStartWorkflowExecution(ctx, request, opts...)
+}
+
 func (c *metricClient) UpdateWorkerBuildIdCompatibility(
 	ctx context.Context,
 	request *workflowservice.UpdateWorkerBuildIdCompatibilityRequest,

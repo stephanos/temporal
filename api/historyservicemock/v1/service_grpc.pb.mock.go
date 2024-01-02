@@ -1181,6 +1181,26 @@ func (mr *MockHistoryServiceClientMockRecorder) TerminateWorkflowExecution(ctx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TerminateWorkflowExecution", reflect.TypeOf((*MockHistoryServiceClient)(nil).TerminateWorkflowExecution), varargs...)
 }
 
+// UpdateWithStartWorkflowExecution mocks base method.
+func (m *MockHistoryServiceClient) UpdateWithStartWorkflowExecution(ctx context.Context, in *historyservice.UpdateWithStartWorkflowExecutionRequest, opts ...grpc.CallOption) (*historyservice.UpdateWithStartWorkflowExecutionResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateWithStartWorkflowExecution", varargs...)
+	ret0, _ := ret[0].(*historyservice.UpdateWithStartWorkflowExecutionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWithStartWorkflowExecution indicates an expected call of UpdateWithStartWorkflowExecution.
+func (mr *MockHistoryServiceClientMockRecorder) UpdateWithStartWorkflowExecution(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithStartWorkflowExecution", reflect.TypeOf((*MockHistoryServiceClient)(nil).UpdateWithStartWorkflowExecution), varargs...)
+}
+
 // UpdateWorkflowExecution mocks base method.
 func (m *MockHistoryServiceClient) UpdateWorkflowExecution(ctx context.Context, in *historyservice.UpdateWorkflowExecutionRequest, opts ...grpc.CallOption) (*historyservice.UpdateWorkflowExecutionResponse, error) {
 	m.ctrl.T.Helper()
@@ -2238,6 +2258,21 @@ func (m *MockHistoryServiceServer) TerminateWorkflowExecution(arg0 context.Conte
 func (mr *MockHistoryServiceServerMockRecorder) TerminateWorkflowExecution(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TerminateWorkflowExecution", reflect.TypeOf((*MockHistoryServiceServer)(nil).TerminateWorkflowExecution), arg0, arg1)
+}
+
+// UpdateWithStartWorkflowExecution mocks base method.
+func (m *MockHistoryServiceServer) UpdateWithStartWorkflowExecution(arg0 context.Context, arg1 *historyservice.UpdateWithStartWorkflowExecutionRequest) (*historyservice.UpdateWithStartWorkflowExecutionResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWithStartWorkflowExecution", arg0, arg1)
+	ret0, _ := ret[0].(*historyservice.UpdateWithStartWorkflowExecutionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWithStartWorkflowExecution indicates an expected call of UpdateWithStartWorkflowExecution.
+func (mr *MockHistoryServiceServerMockRecorder) UpdateWithStartWorkflowExecution(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithStartWorkflowExecution", reflect.TypeOf((*MockHistoryServiceServer)(nil).UpdateWithStartWorkflowExecution), arg0, arg1)
 }
 
 // UpdateWorkflowExecution mocks base method.

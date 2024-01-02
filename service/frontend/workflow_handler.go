@@ -3180,6 +3180,41 @@ func (wh *WorkflowHandler) UpdateWorkflowExecution(
 	return histResp.GetResponse(), err
 }
 
+func (wh *WorkflowHandler) UpdateWithStartWorkflowExecution(
+	ctx context.Context,
+	request *workflowservice.UpdateWithStartWorkflowExecutionRequest,
+) (_ *workflowservice.UpdateWithStartWorkflowExecutionResponse, retError error) {
+	defer log.CapturePanic(wh.logger, &retError)
+
+	if request == nil {
+		return nil, errRequestNotSet
+	}
+
+	// TODO: all the validation
+
+	if request.GetWaitPolicy() == nil {
+		request.WaitPolicy = &updatepb.WaitPolicy{}
+	}
+	enums.SetDefaultUpdateWorkflowExecutionLifecycleStage(&request.GetWaitPolicy().LifecycleStage)
+
+	nsID, err := wh.namespaceRegistry.GetNamespaceID(namespace.Name(request.GetNamespace()))
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: enable
+	//if !wh.config.EnableUpdateWithStartWorkflowExecution(request.Namespace) {
+	//	return nil, errUpdateWithStartWorkflowExecutionAPINotAllowed
+	//}
+
+	histResp, err := wh.historyClient.UpdateWithStartWorkflowExecution(ctx, &historyservice.UpdateWithStartWorkflowExecutionRequest{
+		NamespaceId: nsID.String(),
+		Request:     request,
+	})
+
+	return histResp.GetResponse(), err
+}
+
 func (wh *WorkflowHandler) PollWorkflowExecutionUpdate(
 	ctx context.Context,
 	request *workflowservice.PollWorkflowExecutionUpdateRequest,
