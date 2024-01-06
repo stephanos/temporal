@@ -32,8 +32,7 @@ func Invoke(
 	}
 
 	var currentWorkflowContext api.WorkflowContext
-	wfKey := definition.NewWorkflowKey(
-		namespaceEntry.ID().String(), req.Request.StartRequest.WorkflowId, "")
+	wfKey := definition.NewWorkflowKey(namespaceEntry.ID().String(), req.Request.StartRequest.WorkflowId, "")
 	currentWorkflowContext, err = workflowConsistencyChecker.GetWorkflowContext(
 		ctx, nil, api.BypassMutableStateConsistencyPredicate, wfKey, workflow.LockPriorityHigh)
 	switch err.(type) {
