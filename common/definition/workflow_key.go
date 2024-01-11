@@ -46,6 +46,7 @@ func NewWorkflowKey(
 	}
 }
 
+// @SB TODO why are there both public properties and public methods?
 func (k *WorkflowKey) GetNamespaceID() string {
 	return k.NamespaceID
 }

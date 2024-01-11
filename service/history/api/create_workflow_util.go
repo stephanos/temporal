@@ -63,6 +63,7 @@ func NewWorkflowWithSignal(
 	startRequest *historyservice.StartWorkflowExecutionRequest,
 	signalWithStartRequest *workflowservice.SignalWithStartWorkflowExecutionRequest,
 ) (WorkflowContext, error) {
+	// @SB creates new (in-memory) MutableState (but already persists History Tree in the database)
 	newMutableState, err := CreateMutableState(
 		ctx,
 		shard,
@@ -75,6 +76,7 @@ func NewWorkflowWithSignal(
 		return nil, err
 	}
 
+	// @SB adds `EVENT_TYPE_WORKFLOW_EXECUTION_STARTED` event
 	startEvent, err := newMutableState.AddWorkflowExecutionStartedEvent(
 		&commonpb.WorkflowExecution{
 			WorkflowId: workflowID,
@@ -86,6 +88,7 @@ func NewWorkflowWithSignal(
 		return nil, err
 	}
 
+	// @SB check is here because this function is also used by the plain Start Workflow API
 	if signalWithStartRequest != nil {
 		if signalWithStartRequest.GetRequestId() != "" {
 			newMutableState.AddSignalRequested(signalWithStartRequest.GetRequestId())
@@ -100,19 +103,21 @@ func NewWorkflowWithSignal(
 			return nil, err
 		}
 	}
+
 	requestEagerExecution := startRequest.StartRequest.GetRequestEagerExecution()
-	// Generate first workflow task event if not child WF and no first workflow task backoff
+
+	// @SB generate Workflow Task and store it in MS, and maybe generate transfer task
 	scheduledEventID, err := GenerateFirstWorkflowTask(
 		newMutableState,
 		startRequest.ParentExecutionInfo,
 		startEvent,
-		requestEagerExecution,
+		requestEagerExecution, // @SB if true, doesn't generate transfer task
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// If first workflow task should back off (e.g. cron or workflow retry) a workflow task will not be scheduled.
+	// @SB add event `EVENT_TYPE_WORKFLOW_TASK_STARTED`
 	if requestEagerExecution && newMutableState.HasPendingWorkflowTask() {
 		_, _, err = newMutableState.AddWorkflowTaskStartedEvent(
 			scheduledEventID,
@@ -126,6 +131,7 @@ func NewWorkflowWithSignal(
 		}
 	}
 
+	// @SB create new workflow.Context
 	newWorkflowContext := workflow.NewContext(
 		shard.GetConfig(),
 		definition.NewWorkflowKey(
@@ -137,6 +143,9 @@ func NewWorkflowWithSignal(
 		shard.GetThrottledLogger(),
 		shard.GetMetricsHandler(),
 	)
+	newWorkflowContext.MutableState = newMutableState // @SB TODO why wouldn't you want to set that by default?
+
+	// @SB wrap WorkflowContext with MS
 	return NewWorkflowContext(newWorkflowContext, wcache.NoopReleaseFn, newMutableState), nil
 }
 
@@ -155,6 +164,7 @@ func CreateMutableState(
 		namespaceEntry,
 		shard.GetTimeSource().Now(),
 	)
+	// @SB this creates a new History Tree in the database
 	if err := newMutableState.SetHistoryTree(ctx, executionTimeout, runTimeout, runID); err != nil {
 		return nil, err
 	}

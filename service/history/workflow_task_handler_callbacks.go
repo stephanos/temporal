@@ -943,6 +943,7 @@ func (handler *workflowTaskHandlerCallbacksImpl) createRecordWorkflowTaskStarted
 	// deliver those updates failed, got timed out, or got lost.
 	// Resend these updates if this is not a heartbeat WT (includeAlreadySent = !wtHeartbeat).
 	// Heartbeat WT delivers only new updates that come while this WT was running (similar to queries and buffered events).
+	fmt.Println("Task Messages:", len(response.Messages))
 	response.Messages = updateRegistry.Send(ctx, !wtHeartbeat, workflowTask.StartedEventID, workflow.WithEffects(effect.Immediate(ctx), ms))
 
 	if workflowTask.Type == enumsspb.WORKFLOW_TASK_TYPE_SPECULATIVE && len(response.GetMessages()) == 0 {

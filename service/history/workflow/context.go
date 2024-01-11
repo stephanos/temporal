@@ -172,6 +172,9 @@ func NewContext(
 	throttledLogger log.ThrottledLogger,
 	metricsHandler metrics.Handler,
 ) *ContextImpl {
+	if workflowKey.WorkflowID == "WORKFLOW-ID" {
+		fmt.Println("NewContext", workflowKey.WorkflowID)
+	}
 	return &ContextImpl{
 		workflowKey:     workflowKey,
 		logger:          logger,

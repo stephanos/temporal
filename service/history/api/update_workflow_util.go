@@ -103,6 +103,7 @@ func UpdateWorkflowWithNew(
 			return err
 		}
 
+		// @SB TODO: what does `WithNew` mean here? And `Active`? (active cluster?)
 		updateErr = workflowContext.GetContext().UpdateWorkflowExecutionWithNewAsActive(
 			ctx,
 			shardContext,
@@ -110,6 +111,7 @@ func UpdateWorkflowWithNew(
 			newMutableState,
 		)
 	} else {
+		// @SB TODO what is this for?
 		updateErr = workflowContext.GetContext().UpdateWorkflowExecutionAsActive(ctx, shardContext)
 	}
 

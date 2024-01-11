@@ -28,6 +28,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 	"time"
 	"unicode/utf8"
@@ -238,6 +239,9 @@ func (c *CacheImpl) getOrCreateWorkflowExecutionInternal(
 			return nil, nil, err
 		}
 		workflowCtx = elem.(workflow.Context)
+	}
+	if execution.GetWorkflowId() == "WORKFLOW-ID" {
+		fmt.Println("getOrCreateWorkflowExecutionInternal", execution.GetWorkflowId(), "hit", cacheHit)
 	}
 	// TODO This will create a closure on every request.
 	//  Consider revisiting this if it causes too much GC activity

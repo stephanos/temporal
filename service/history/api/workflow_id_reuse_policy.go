@@ -43,7 +43,7 @@ import (
 // for the previous execution.
 func ApplyWorkflowIDReusePolicy(
 	prevStartRequestID,
-	prevRunID string,
+	prevRunID string, // @SB call all these currentXYZ ?
 	prevState enumsspb.WorkflowExecutionState,
 	prevStatus enumspb.WorkflowExecutionStatus,
 	workflowID string,

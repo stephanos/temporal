@@ -2,6 +2,7 @@ package updatewithstartworkflow
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	commonpb "go.temporal.io/api/common/v1"
@@ -13,6 +14,7 @@ import (
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/definition"
 	"go.temporal.io/server/common/namespace"
+	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/internal/effect"
 	"go.temporal.io/server/service/history/api"
 	"go.temporal.io/server/service/history/shard"
@@ -31,8 +33,11 @@ func Invoke(
 		return nil, err
 	}
 
+	// @SB find current WorkflowContext, if there is already one,
+	// by using Workflow ID and Namespace ID in database query
 	var currentWorkflowContext api.WorkflowContext
-	wfKey := definition.NewWorkflowKey(namespaceEntry.ID().String(), req.Request.StartRequest.WorkflowId, "")
+	wfID := req.Request.StartRequest.WorkflowId
+	wfKey := definition.NewWorkflowKey(string(namespaceEntry.ID()), wfID, "")
 	currentWorkflowContext, err = workflowConsistencyChecker.GetWorkflowContext(
 		ctx, nil, api.BypassMutableStateConsistencyPredicate, wfKey, workflow.LockPriorityHigh)
 	switch err.(type) {
@@ -49,26 +54,69 @@ func Invoke(
 		return nil, err
 	}
 
-	updateState, err := updateWorkflow(ctx, shard, req, newWorkflowContext)
-	if err != nil {
+	// @SB this is dumb; but that's one way to get the context into the Workflow Cache
+	//ctx, err = workflowConsistencyChecker.GetWorkflowContext(
+	//	ctx,
+	//	nil,
+	//	api.BypassMutableStateConsistencyPredicate,
+	//	newWorkflowContext.GetWorkflowKey(),
+	//	workflow.LockPriorityHigh,
+	//)
+
+	// TODO: ApplyWorkflowIDReusePolicy()
+	// TODO: CreateWorkflowCASPredicate
+
+	var updateState *update.Update
+	if err = api.GetAndUpdateWorkflowWithNew(
+		ctx,
+		nil,
+		api.BypassMutableStateConsistencyPredicate,
+		newWorkflowContext.GetWorkflowKey(),
+		func(inner api.WorkflowContext) (*api.UpdateWorkflowAction, error) {
+			// TODO: this is incomplete; eg no Speculative WorkflowTask
+
+			ms := inner.GetMutableState()
+			updateReq := req.GetRequest().GetUpdate()
+			updateID := updateReq.GetMeta().GetUpdateId()
+			updateReg := inner.GetUpdateRegistry(ctx)
+
+			var err error
+			if updateState, _, err = updateReg.FindOrCreate(ctx, updateID); err != nil {
+				return nil, err
+			}
+
+			if err = updateState.OnMessage(ctx, updateReq, workflow.WithEffects(effect.Immediate(ctx), ms)); err != nil {
+				return nil, err
+			}
+
+			return &api.UpdateWorkflowAction{
+				Noop:               false,
+				CreateWorkflowTask: true,
+			}, nil
+		},
+		nil,
+		shard,
+		workflowConsistencyChecker,
+	); err != nil {
 		return nil, err
 	}
 
+	// @SB copied from bottom of UpdateWorkflow
 	serverTimeout := shard.GetConfig().LongPollExpirationInterval(namespaceEntry.Name().String())
 	waitStage := req.GetRequest().GetWaitPolicy().GetLifecycleStage()
-	// If the long-poll times out due to serverTimeout then return a non-error empty response.
 	status, err := updateState.WaitLifecycleStage(ctx, waitStage, serverTimeout)
 	if err != nil {
 		return nil, err
 	}
 
+	wfKey = newWorkflowContext.GetMutableState().GetWorkflowKey()
 	return &historyservice.UpdateWithStartWorkflowExecutionResponse{
 		Response: &workflowservice.UpdateWithStartWorkflowExecutionResponse{
 			UpdateResponse: &workflowservice.UpdateWorkflowExecutionResponse{
 				UpdateRef: &updatepb.UpdateRef{
 					WorkflowExecution: &commonpb.WorkflowExecution{
-						WorkflowId: wfKey.WorkflowID,
-						RunId:      wfKey.RunID,
+						WorkflowId: wfKey.GetWorkflowID(),
+						RunId:      wfKey.GetRunID(),
 					},
 					UpdateId: req.GetRequest().GetUpdate().GetMeta().GetUpdateId(),
 				},
@@ -86,6 +134,7 @@ func getOrCreateWorkflow(
 	namespaceEntry *namespace.Namespace,
 	currentWorkflowContext api.WorkflowContext,
 ) (api.WorkflowContext, error) {
+	// @SB creates a StartWorkflowExecutionRequest (for History)
 	startReq := common.CreateHistoryStartWorkflowRequest(
 		namespaceEntry.ID().String(),
 		&workflowservice.StartWorkflowExecutionRequest{
@@ -125,52 +174,47 @@ func getOrCreateWorkflow(
 	}
 
 	runID := uuid.New().String()
-	newWorkflowContext, err := api.NewWorkflowWithSignal(
+	newWorkflowContext, err := api.NewWorkflowWithSignal( // @SB TODO I don't like that name
 		ctx, shard, namespaceEntry, req.Request.StartRequest.WorkflowId, runID, startReq, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return newWorkflowContext, nil
-}
+	wfSnapshot, newWorkflowEventsSeq, err := newWorkflowContext.GetMutableState().CloseTransactionAsSnapshot(
+		workflow.TransactionPolicyActive,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(newWorkflowEventsSeq) != 1 {
+		return nil, serviceerror.NewInternal("unable to create 1st event batch")
+	}
 
-func updateWorkflow(
-	ctx context.Context,
-	shard shard.Context,
-	req *historyservice.UpdateWithStartWorkflowExecutionRequest,
-	currentWorkflowContext api.WorkflowContext,
-) (*update.Update, error) {
-	// TODO: ApplyWorkflowIDReusePolicy()
-	// TODO: CreateWorkflowCASPredicate
+	// TODO: NewWorkflowVersionCheck? casPredicate?
+	// (see startAndSignalWithoutCurrentWorkflow)
 
-	var updateState *update.Update
-	err := api.UpdateWorkflowWithNew(
-		shard, ctx, currentWorkflowContext,
-		func(inner api.WorkflowContext) (*api.UpdateWorkflowAction, error) {
-			// TODO: this is incomplete
-			ms := currentWorkflowContext.GetMutableState()
-			updateReq := req.GetRequest().GetUpdate()
-			updateID := updateReq.GetMeta().GetUpdateId()
-
-			updateReg := currentWorkflowContext.GetUpdateRegistry(ctx)
-
-			var err error
-			if updateState, _, err = updateReg.FindOrCreate(ctx, updateID); err != nil {
-				return nil, err
-			}
-			if err := updateState.OnMessage(ctx, updateReq, workflow.WithEffects(effect.Immediate(ctx), ms)); err != nil {
-				return nil, err
-			}
-
-			return &api.UpdateWorkflowAction{
-				Noop:               false,
-				CreateWorkflowTask: true,
-			}, nil
-		},
-		func() (workflow.Context, workflow.MutableState, error) {
-			return currentWorkflowContext.GetContext(), currentWorkflowContext.GetMutableState(), nil
-		},
+	createMode := persistence.CreateWorkflowModeBrandNew
+	prevRunID := ""
+	err = newWorkflowContext.GetContext().CreateWorkflowExecution(
+		ctx,
+		shard,
+		createMode,
+		prevRunID,
+		int64(0),
+		newWorkflowContext.GetMutableState(),
+		wfSnapshot,
+		newWorkflowEventsSeq,
 	)
 
-	return updateState, err
+	var failedErr *persistence.CurrentWorkflowConditionFailedError
+	switch {
+	case errors.As(err, &failedErr):
+		// @SB TODO is this needed?
+		//if failedErr.RequestID == requestID {
+		//	return failedErr.RunID, nil
+		//}
+		return nil, failedErr
+	default:
+		return newWorkflowContext, err
+	}
 }

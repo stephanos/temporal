@@ -50,6 +50,8 @@ func Invoke(
 	}
 	namespaceID := namespaceEntry.ID()
 
+	// @SB find current WorkflowContext, if there is already one,
+	// by using Workflow ID and Namespace ID in database query
 	var currentWorkflowContext api.WorkflowContext
 	currentWorkflowContext, err = workflowConsistencyChecker.GetWorkflowContext(
 		ctx,
@@ -71,18 +73,24 @@ func Invoke(
 		return nil, err
 	}
 
-	// Start workflow and signal
+	// @SB take the Start-specific parameters and turn them into a StartRequest message
 	startRequest := ConvertToStartRequest(
 		namespaceID,
 		signalWithStartRequest.SignalWithStartRequest,
 		shard.GetTimeSource().Now(),
 	)
 	request := startRequest.StartRequest
-	api.OverrideStartWorkflowExecutionRequest(request, metrics.HistorySignalWithStartWorkflowExecutionScope, shard, shard.GetMetricsHandler())
+
+	// @SB TODO why is this *here*?
+	api.OverrideStartWorkflowExecutionRequest(
+		request, metrics.HistorySignalWithStartWorkflowExecutionScope, shard, shard.GetMetricsHandler())
+
+	// @SB I suppose this couldn't be performed on because the Frontend didn't have a StartRequest message
 	err = api.ValidateStartWorkflowExecutionRequest(ctx, request, shard, namespaceEntry, "SignalWithStartWorkflowExecution")
 	if err != nil {
 		return nil, err
 	}
+
 	runID, err := SignalWithStartWorkflow(
 		ctx,
 		shard,
@@ -94,6 +102,7 @@ func Invoke(
 	if err != nil {
 		return nil, err
 	}
+
 	return &historyservice.SignalWithStartWorkflowExecutionResponse{
 		RunId: runID,
 	}, nil

@@ -323,6 +323,7 @@ func (c *WorkflowConsistencyCheckerImpl) getCurrentRunID(
 		defer release(retErr)
 	}
 
+	// @SB fetches current Execution for given workflow ID
 	resp, err := c.shardContext.GetCurrentExecution(
 		ctx,
 		&persistence.GetCurrentExecutionRequest{

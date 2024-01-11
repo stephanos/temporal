@@ -50,6 +50,7 @@ func RandomShardInfo(
 	shardID int32,
 	rangeID int64,
 ) *persistencespb.ShardInfo {
+
 	var shardInfo persistencespb.ShardInfo
 	_ = gofakeit.Struct(&shardInfo)
 	shardInfo.ShardId = shardID
@@ -249,6 +250,7 @@ func RandomSignalInfo() *persistencespb.SignalInfo {
 }
 
 func RandomHistoryEvent() *historypb.HistoryEvent {
+	gofakeit.Seed(0)
 	var historyEvent historypb.HistoryEvent
 	_ = gofakeit.Struct(&historyEvent)
 	return &historyEvent
@@ -273,7 +275,7 @@ func RandomStringPayloadMap() map[string]*commonpb.Payload {
 
 func RandomPayload() *commonpb.Payload {
 	var payload commonpb.Payload
-	_ = gofakeit.Struct(&payload)
+	_ = gofakeit.New(0).Struct(&payload)
 	return &payload
 }
 

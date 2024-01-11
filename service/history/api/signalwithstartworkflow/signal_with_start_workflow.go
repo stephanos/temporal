@@ -50,11 +50,12 @@ func SignalWithStartWorkflow(
 	signalWithStartRequest *workflowservice.SignalWithStartWorkflowExecutionRequest,
 ) (string, error) {
 
+	// @SB note the WorkflowIdReusePolicy check!
 	if currentWorkflowContext != nil &&
 		currentWorkflowContext.GetMutableState().IsWorkflowExecutionRunning() &&
 		signalWithStartRequest.WorkflowIdReusePolicy != enumspb.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING {
 
-		// current workflow exists & running
+		// @SB when Workflow is running
 		if err := signalWorkflow(
 			ctx,
 			shard,
@@ -66,6 +67,7 @@ func SignalWithStartWorkflow(
 		return currentWorkflowContext.GetWorkflowKey().RunID, nil
 	}
 
+	// @SB when Workflow is not running OR has to be terminated first
 	return startAndSignalWorkflow(
 		ctx,
 		shard,
@@ -86,7 +88,8 @@ func startAndSignalWorkflow(
 ) (string, error) {
 	workflowID := signalWithStartRequest.GetWorkflowId()
 	runID := uuid.New().String()
-	// TODO(bergundy): Support eager workflow task
+
+	// @SB create new WorkflowContext - current one *might* exist OR might need to be re-created
 	newWorkflowContext, err := api.NewWorkflowWithSignal(
 		ctx,
 		shard,
@@ -99,6 +102,8 @@ func startAndSignalWorkflow(
 	if err != nil {
 		return "", err
 	}
+
+	// @SB check if Signal is valid
 	if err := api.ValidateSignal(
 		ctx,
 		shard,
@@ -109,6 +114,7 @@ func startAndSignalWorkflow(
 		return "", err
 	}
 
+	// @SB figure out if we have a Workflow (that we need to stop) or not
 	casPredicate, currentWorkflowMutationFn, err := startAndSignalWorkflowActionFn(
 		currentWorkflowContext,
 		signalWithStartRequest.WorkflowIdReusePolicy,
@@ -118,6 +124,7 @@ func startAndSignalWorkflow(
 		return "", err
 	}
 
+	// @SB if there is a Workflow - we need to mutate it before doing Signal-With-Start
 	if currentWorkflowMutationFn != nil {
 		if err := startAndSignalWithCurrentWorkflow(
 			ctx,
@@ -131,6 +138,7 @@ func startAndSignalWorkflow(
 		return runID, nil
 	}
 
+	// @SB if there is no Workflow, we go straight to Signal-With-Start
 	return startAndSignalWithoutCurrentWorkflow(
 		ctx,
 		shard,
@@ -149,6 +157,7 @@ func startAndSignalWorkflowActionFn(
 		return nil, nil, nil
 	}
 
+	// @SB figure out what to do with the current Workflow, if there is one, based on the Reuse Policy
 	currentExecutionState := currentWorkflowContext.GetMutableState().GetExecutionState()
 	currentExecutionUpdateAction, err := api.ApplyWorkflowIDReusePolicy(
 		currentExecutionState.CreateRequestId,
@@ -166,6 +175,7 @@ func startAndSignalWorkflowActionFn(
 		return nil, currentExecutionUpdateAction, nil
 	}
 
+	// @SB this happens when previous Workflow run is complete AND the Reuse Policy doesn't require any action
 	currentLastWriteVersion, err := currentWorkflowContext.GetMutableState().GetLastWriteVersion()
 	if err != nil {
 		return nil, nil, err
@@ -207,6 +217,8 @@ func startAndSignalWithoutCurrentWorkflow(
 	newWorkflowContext api.WorkflowContext,
 	requestID string,
 ) (string, error) {
+	// @SB TODO: why is this here?
+	// from Alex: persists MS to database ("transaction" = everything in MS), more accurate: "Save"
 	newWorkflow, newWorkflowEventsSeq, err := newWorkflowContext.GetMutableState().CloseTransactionAsSnapshot(
 		workflow.TransactionPolicyActive,
 	)
@@ -228,6 +240,7 @@ func startAndSignalWithoutCurrentWorkflow(
 			return "", err
 		}
 	}
+	// @SB update CurrentWorkflowExecution "pointer"?
 	err = newWorkflowContext.GetContext().CreateWorkflowExecution(
 		ctx,
 		shardContext,
@@ -241,6 +254,7 @@ func startAndSignalWithoutCurrentWorkflow(
 	switch failedErr := err.(type) {
 	case nil:
 		return newWorkflowContext.GetWorkflowKey().RunID, nil
+	// @SB TODO why is this here; this function is `WithoutCurrentWorkflow`?
 	case *persistence.CurrentWorkflowConditionFailedError:
 		if failedErr.RequestID == requestID {
 			return failedErr.RunID, nil
@@ -258,6 +272,7 @@ func signalWorkflow(
 	request *workflowservice.SignalWithStartWorkflowExecutionRequest,
 ) error {
 	mutableState := workflowContext.GetMutableState()
+
 	if err := api.ValidateSignal(
 		ctx,
 		shardContext,
