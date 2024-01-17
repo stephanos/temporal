@@ -541,6 +541,10 @@ update-dependencies:
 update-third-party-deps:
 	@GOOS=linux GOARCH=amd64 go list -deps $(FUNCTIONAL_TEST_ROOT) | sort -u | grep '^[a-z]\+\.[a-z.]\+/' | grep -v go.temporal.io > develop/buildkite/third_party_deps.txt
 
+DIAGRAMS := $(wildcard ./docs/diagrams/*.d2)
+docs-diagrams:
+	$(foreach DIAGRAM, $(DIAGRAMS), d2 --layout elk --theme 300 --dark-theme 200 $(DIAGRAM) $(NEWLINE))
+
 go-generate:
 	@printf $(COLOR) "Process go:generate directives..."
 	@go generate ./...
