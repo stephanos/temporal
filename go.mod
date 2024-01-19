@@ -149,6 +149,6 @@ require (
 	modernc.org/token v1.1.0 // indirect
 )
 
-replace go.temporal.io/api => /Users/stephan/Workspace/api-go
+replace go.temporal.io/api => /Users/stephan/Workspace/update-with-start/api-go
 
-replace go.temporal.io/sdk => /Users/stephan/Workspace/sdk-go
+replace go.temporal.io/sdk => /Users/stephan/Workspace/update-with-start/sdk-go
