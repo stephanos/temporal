@@ -1,6 +1,6 @@
 [submodule "proto/api"]
 	path = proto/api
-	url = /Users/stephan/Workspace/api
+	url = /Users/stephan/Workspace/update-with-start/api
 	branch = update-with-start
 [submodule "develop/docker-compose/grafana/provisioning/temporalio-dashboards"]
 	path = develop/docker-compose/grafana/provisioning/temporalio-dashboards
