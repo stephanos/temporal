@@ -58,6 +58,7 @@ const (
 	eagerStartDeniedReasonDynamicConfigDisabled    eagerStartDeniedReason = "dynamic_config_disabled"
 	eagerStartDeniedReasonFirstWorkflowTaskBackoff eagerStartDeniedReason = "first_workflow_task_backoff"
 	eagerStartDeniedReasonTaskAlreadyDispatched    eagerStartDeniedReason = "task_already_dispatched"
+	eagerStartDeniedReasonPostStartOperation       eagerStartDeniedReason = "post_start_operation"
 )
 
 // Starter starts a new workflow execution.
@@ -68,6 +69,7 @@ type Starter struct {
 	visibilityManager          manager.VisibilityManager
 	request                    *historyservice.StartWorkflowExecutionRequest
 	namespace                  *namespace.Namespace
+	operationsHandler          OperationHandler
 }
 
 // creationParams is a container for all information obtained from creating the uncommitted execution.
@@ -89,12 +91,19 @@ type mutableStateInfo struct {
 	workflowTask *workflow.WorkflowTaskInfo
 }
 
+type OperationHandler func(
+	workflowContext api.WorkflowContext,
+	op *workflowservice.PostStartOperationRequest,
+	response *historyservice.StartWorkflowExecutionResponse,
+) (*workflowservice.PostStartResultResponse, error)
+
 // NewStarter creates a new starter, fails if getting the active namespace fails.
 func NewStarter(
 	shardContext shard.Context,
 	workflowConsistencyChecker api.WorkflowConsistencyChecker,
 	tokenSerializer common.TaskTokenSerializer,
 	visibilityManager manager.VisibilityManager,
+	operationsHandler OperationHandler,
 	request *historyservice.StartWorkflowExecutionRequest,
 ) (*Starter, error) {
 	namespaceEntry, err := api.GetActiveNamespace(shardContext, namespace.ID(request.GetNamespaceId()))
@@ -108,6 +117,7 @@ func NewStarter(
 		visibilityManager:          visibilityManager,
 		request:                    request,
 		namespace:                  namespaceEntry,
+		operationsHandler:          operationsHandler,
 	}, nil
 }
 
@@ -137,6 +147,11 @@ func (s *Starter) prepare(ctx context.Context) error {
 		}
 		if s.request.FirstWorkflowTaskBackoff != nil && s.request.FirstWorkflowTaskBackoff.AsDuration() > 0 {
 			s.recordEagerDenied(eagerStartDeniedReasonFirstWorkflowTaskBackoff)
+			request.RequestEagerExecution = false
+		}
+		if s.request.StartRequest.PostStartOperations != nil && len(s.request.StartRequest.PostStartOperations.Operations) > 0 {
+			// restriction can/will be lifted in the future
+			s.recordEagerDenied(eagerStartDeniedReasonPostStartOperation)
 			request.RequestEagerExecution = false
 		}
 	}
@@ -179,20 +194,68 @@ func (s *Starter) Invoke(
 	if err != nil {
 		return nil, err
 	}
-	defer func() { currentRelease(retError) }()
+	defer func() { currentRelease(retError) }() // TODO: possible bug? `retError` is never set
 
-	err = s.createBrandNew(ctx, creationParams)
-	if err == nil {
-		return s.generateResponse(creationParams.runID, creationParams.workflowTaskInfo, extractHistoryEvents(creationParams.workflowEventBatches))
-	}
 	var currentWorkflowConditionFailedError *persistence.CurrentWorkflowConditionFailedError
-	if !errors.As(err, &currentWorkflowConditionFailedError) ||
-		len(currentWorkflowConditionFailedError.RunID) == 0 {
+	var response *historyservice.StartWorkflowExecutionResponse
+	err = s.createBrandNew(ctx, creationParams)
+	switch {
+	case err == nil:
+		response, err = s.generateResponse(
+			creationParams.runID,
+			creationParams.workflowTaskInfo,
+			extractHistoryEvents(creationParams.workflowEventBatches),
+		)
+	case errors.As(err, &currentWorkflowConditionFailedError) && currentWorkflowConditionFailedError.RunID != "":
+		// TODO: verify
+		// TODO: don't fail depending on PostStartOperationsMode
+
+		// Need to handle conflict with pre-existing Workflow.
+		// NOTE: The history and mutable state we generated above should be deleted by a background process.
+		response, err = s.handleConflict(
+			ctx,
+			creationParams,
+			currentWorkflowConditionFailedError,
+		)
+	default:
+		// an internal error occurred; propagate it to caller
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	// The history and mutable state we generated above should be deleted by a background process.
-	return s.handleConflict(ctx, creationParams, currentWorkflowConditionFailedError)
+	err = s.postStartOperations(creationParams.workflowContext, request.GetPostStartOperations(), response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, err
+}
+
+func (s *Starter) postStartOperations(
+	workflowContext api.WorkflowContext,
+	ops *workflowservice.PostStartOperationRequests,
+	response *historyservice.StartWorkflowExecutionResponse,
+) error {
+	if ops != nil {
+		if s.operationsHandler == nil {
+			return serviceerror.NewInternal("cannot run post-start operations: no handler") // TODO: better error
+		}
+
+		response.PostStartResponses = &workflowservice.PostStartResultResponses{
+			Responses: make([]*workflowservice.PostStartResultResponse, len(ops.Operations)),
+		}
+
+		for i, op := range ops.Operations {
+			var err error
+			response.PostStartResponses.Responses[i], err = s.operationsHandler(workflowContext, op, response)
+			// TODO: how to handle err? it probably shouldn't fail the Workflow itself?
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Starter) lockCurrentWorkflowExecution(

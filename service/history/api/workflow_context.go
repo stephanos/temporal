@@ -73,7 +73,6 @@ func NewWorkflowContext(
 	releaseFn wcache.ReleaseCacheFunc,
 	mutableState workflow.MutableState,
 ) *WorkflowContextImpl {
-
 	return &WorkflowContextImpl{
 		context:      context,
 		releaseFn:    releaseFn,

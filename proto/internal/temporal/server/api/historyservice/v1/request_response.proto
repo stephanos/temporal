@@ -73,6 +73,7 @@ message StartWorkflowExecutionResponse {
     temporal.server.api.clock.v1.VectorClock clock = 2;
     // Set if request_eager_execution is set on the start request 
     temporal.api.workflowservice.v1.PollWorkflowTaskQueueResponse eager_workflow_task = 3;
+    temporal.api.workflowservice.v1.PostStartResultResponses post_start_responses = 4;
 }
 
 message GetMutableStateRequest {

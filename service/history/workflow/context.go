@@ -172,7 +172,7 @@ func NewContext(
 	throttledLogger log.ThrottledLogger,
 	metricsHandler metrics.Handler,
 ) *ContextImpl {
-	return &ContextImpl{
+	c := &ContextImpl{
 		workflowKey:     workflowKey,
 		logger:          logger,
 		throttledLogger: throttledLogger,
@@ -180,6 +180,7 @@ func NewContext(
 		config:          config,
 		mutex:           locks.NewPriorityMutex(),
 	}
+	return c
 }
 
 func (c *ContextImpl) Lock(

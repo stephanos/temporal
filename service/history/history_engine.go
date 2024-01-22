@@ -26,12 +26,14 @@ package history
 
 import (
 	"context"
+	"errors"
 	"sync/atomic"
 	"time"
 
 	"go.opentelemetry.io/otel/trace"
 	commonpb "go.temporal.io/api/common/v1"
 	historypb "go.temporal.io/api/history/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/service/history/api/getworkflowexecutionrawhistory"
 
 	historyspb "go.temporal.io/server/api/history/v1"
@@ -365,11 +367,40 @@ func (e *historyEngineImpl) StartWorkflowExecution(
 	ctx context.Context,
 	startRequest *historyservice.StartWorkflowExecutionRequest,
 ) (resp *historyservice.StartWorkflowExecutionResponse, retError error) {
+
+	postStartOperationsFunc := func(
+		workflowContext api.WorkflowContext,
+		op *workflowservice.PostStartOperationRequest,
+		response *historyservice.StartWorkflowExecutionResponse,
+	) (*workflowservice.PostStartResultResponse, error) {
+		if upd := op.GetUpdateRequest(); upd != nil {
+			updRequest := &historyservice.UpdateWorkflowExecutionRequest{
+				NamespaceId: startRequest.NamespaceId,
+				Request:     upd,
+			}
+			updResponse, err := updateworkflow.Invoke(
+				ctx,
+				updRequest,
+				e.shardContext,
+				e.workflowConsistencyChecker,
+				e.matchingClient,
+			)
+			if err != nil {
+				return nil, err
+			}
+			return &workflowservice.PostStartResultResponse{
+				Response: &workflowservice.PostStartResultResponse_UpdateResponse{UpdateResponse: updResponse.Response},
+			}, nil
+		}
+		return nil, errors.New("unknown post-start operation") // TODO: better error
+	}
+
 	starter, err := startworkflow.NewStarter(
 		e.shardContext,
 		e.workflowConsistencyChecker,
 		e.tokenSerializer,
 		e.persistenceVisibilityMgr,
+		postStartOperationsFunc,
 		startRequest,
 	)
 	if err != nil {

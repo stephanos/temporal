@@ -137,6 +137,7 @@ func NewWorkflowWithSignal(
 		shard.GetThrottledLogger(),
 		shard.GetMetricsHandler(),
 	)
+	newWorkflowContext.MutableState = newMutableState // TODO ???
 	return NewWorkflowContext(newWorkflowContext, wcache.NoopReleaseFn, newMutableState), nil
 }
 
