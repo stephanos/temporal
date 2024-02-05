@@ -1,0 +1,24 @@
+direction: right
+
+Wrapper: {
+	label: ""
+	style.fill: transparent
+
+	Loop: {
+		style.text-transform: lowercase
+
+		Server -> Worker
+		Worker -> Server
+	}
+	Starter -> Loop.Server
+	Starter <- Loop.Server
+}
+
+scenarios: {
+	step1: {
+		Starter.style.opacity: 0
+	}
+	step2: {
+		Wrapper.Starter.style.opacity: 1
+	}
+}

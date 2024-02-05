@@ -1,0 +1,16 @@
+direction: right
+
+Wrapper: {
+    label: ""
+    style.fill: transparent
+
+    Loop: {
+        label: "loop"
+        style.text-transform: lowercase
+
+        Server -> Worker
+        Worker -> Server
+    }
+    Starter -> Loop.Server
+    Starter <- Loop.Server
+}
