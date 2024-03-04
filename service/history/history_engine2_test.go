@@ -59,6 +59,7 @@ import (
 	"go.temporal.io/server/common/persistence/visibility/manager"
 	"go.temporal.io/server/common/primitives/timestamp"
 	serviceerrors "go.temporal.io/server/common/serviceerror"
+	test "go.temporal.io/server/common/testing"
 	"go.temporal.io/server/service/history/api"
 	"go.temporal.io/server/service/history/configs"
 	"go.temporal.io/server/service/history/consts"
@@ -1320,7 +1321,7 @@ func (s *engine2Suite) TestStartWorkflowExecution_NotRunning_PrevSuccess() {
 
 	s.mockExecutionMgr.EXPECT().CreateWorkflowExecution(
 		gomock.Any(),
-		newCreateWorkflowExecutionRequestMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
+		test.NewCustomMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
 			return request.Mode == persistence.CreateWorkflowModeBrandNew
 		}),
 	).Return(nil, &persistence.CurrentWorkflowConditionFailedError{
@@ -1336,7 +1337,7 @@ func (s *engine2Suite) TestStartWorkflowExecution_NotRunning_PrevSuccess() {
 		if !expecedErrs[index] {
 			s.mockExecutionMgr.EXPECT().CreateWorkflowExecution(
 				gomock.Any(),
-				newCreateWorkflowExecutionRequestMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
+				test.NewCustomMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
 					return request.Mode == persistence.CreateWorkflowModeUpdateCurrent &&
 						request.PreviousRunID == runID &&
 						request.PreviousLastWriteVersion == lastWriteVersion
@@ -1400,7 +1401,7 @@ func (s *engine2Suite) TestStartWorkflowExecution_NotRunning_PrevFail() {
 
 		s.mockExecutionMgr.EXPECT().CreateWorkflowExecution(
 			gomock.Any(),
-			newCreateWorkflowExecutionRequestMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
+			test.NewCustomMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
 				return request.Mode == persistence.CreateWorkflowModeBrandNew
 			}),
 		).Return(nil, &persistence.CurrentWorkflowConditionFailedError{
@@ -1417,7 +1418,7 @@ func (s *engine2Suite) TestStartWorkflowExecution_NotRunning_PrevFail() {
 			if !expecedErrs[j] {
 				s.mockExecutionMgr.EXPECT().CreateWorkflowExecution(
 					gomock.Any(),
-					newCreateWorkflowExecutionRequestMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
+					test.NewCustomMatcher(func(request *persistence.CreateWorkflowExecutionRequest) bool {
 						return request.Mode == persistence.CreateWorkflowModeUpdateCurrent &&
 							request.PreviousRunID == runIDs[i] &&
 							request.PreviousLastWriteVersion == lastWriteVersion
@@ -2139,26 +2140,4 @@ func (s *engine2Suite) getMutableState(namespaceID namespace.ID, we *commonpb.Wo
 	defer release(nil)
 
 	return weContext.(*workflow.ContextImpl).MutableState
-}
-
-type createWorkflowExecutionRequestMatcher struct {
-	f func(request *persistence.CreateWorkflowExecutionRequest) bool
-}
-
-func newCreateWorkflowExecutionRequestMatcher(f func(request *persistence.CreateWorkflowExecutionRequest) bool) gomock.Matcher {
-	return &createWorkflowExecutionRequestMatcher{
-		f: f,
-	}
-}
-
-func (m *createWorkflowExecutionRequestMatcher) Matches(x interface{}) bool {
-	request, ok := x.(*persistence.CreateWorkflowExecutionRequest)
-	if !ok {
-		return false
-	}
-	return m.f(request)
-}
-
-func (m *createWorkflowExecutionRequestMatcher) String() string {
-	return "CreateWorkflowExecutionRequest match condition"
 }
