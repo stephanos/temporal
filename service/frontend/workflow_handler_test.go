@@ -2738,3 +2738,187 @@ func (s *workflowHandlerSuite) Test_ValidateTaskQueue() {
 	s.Error(err)
 	s.Contains(err.Error(), "is not a valid UTF-8 string")
 }
+
+func (s *workflowHandlerSuite) TestExecuteMultiOperation() {
+	ctx := context.Background()
+	config := s.newConfig()
+	config.EnableExecuteMultiOperation = func(string) bool { return true }
+	wh := s.getWorkflowHandler(config)
+
+	s.mockResource.NamespaceCache.EXPECT().
+		GetNamespaceID(namespace.Name("test-ns")).Return(namespace.ID("test-ns-id"), nil).AnyTimes()
+
+	newStartOp := func(op *workflowservice.StartWorkflowExecutionRequest) *workflowservice.ExecuteMultiOperationRequest_Operation {
+		return &workflowservice.ExecuteMultiOperationRequest_Operation{
+			Operation: &workflowservice.ExecuteMultiOperationRequest_Operation_StartWorkflow{
+				StartWorkflow: op,
+			},
+		}
+	}
+	newUpdateOp := func(op *workflowservice.UpdateWorkflowExecutionRequest) *workflowservice.ExecuteMultiOperationRequest_Operation {
+		return &workflowservice.ExecuteMultiOperationRequest_Operation{
+			Operation: &workflowservice.ExecuteMultiOperationRequest_Operation_UpdateWorkflow{
+				UpdateWorkflow: op,
+			},
+		}
+	}
+
+	// NOTE: functional tests are testing the happy case
+
+	s.Run("operations list that is not [Start, Update] is invalid", func() {
+		// empty list
+		resp, err := wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+		})
+
+		s.Nil(resp)
+		s.Equal(errMultiOpNotStartAndUpdate, err)
+
+		// 1 item
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace:  "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{newStartOp(nil)},
+		})
+
+		s.Nil(resp)
+		s.Equal(errMultiOpNotStartAndUpdate, err)
+
+		// 3 items
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(nil), newStartOp(nil), newStartOp(nil),
+			},
+		})
+
+		s.Nil(resp)
+		s.Equal(errMultiOpNotStartAndUpdate, err)
+
+		// 2 undefined operations
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				{},
+				{},
+			},
+		})
+
+		// 2 Starts
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(nil), newStartOp(nil),
+			},
+		})
+
+		s.Nil(resp)
+		s.Equal(errMultiOpNotStartAndUpdate, err)
+
+		// 2 Updates
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newUpdateOp(nil), newUpdateOp(nil),
+			},
+		})
+
+		s.Nil(resp)
+		s.Equal(errMultiOpNotStartAndUpdate, err)
+	})
+
+	assertMultiOpsErr := func(expectedErrs []error, actual error) {
+		s.Equal("MultiOperation could not be executed.", actual.Error())
+		s.EqualValues(expectedErrs, actual.(*MultiOperationExecutionError).errs)
+	}
+
+	s.Run("operation without workflow ID is invalid", func() {
+		// both empty
+		resp, err := wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(&workflowservice.StartWorkflowExecutionRequest{}),
+				newUpdateOp(&workflowservice.UpdateWorkflowExecutionRequest{}),
+			},
+		})
+
+		s.Nil(resp)
+		assertMultiOpsErr([]error{errMultiOpWorkflowIdMissing, errMultiOpWorkflowIdMissing}, err)
+
+		// Start empty
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(&workflowservice.StartWorkflowExecutionRequest{}),
+				newUpdateOp(&workflowservice.UpdateWorkflowExecutionRequest{
+					WorkflowExecution: &commonpb.WorkflowExecution{WorkflowId: "WF-ID"},
+				}),
+			},
+		})
+
+		s.Nil(resp)
+		assertMultiOpsErr([]error{errMultiOpWorkflowIdMissing, &MultiOperationAborted{}}, err)
+
+		// Update empty
+		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(&workflowservice.StartWorkflowExecutionRequest{WorkflowId: "WF-ID"}),
+				newUpdateOp(&workflowservice.UpdateWorkflowExecutionRequest{}),
+			},
+		})
+
+		s.Nil(resp)
+		assertMultiOpsErr([]error{&MultiOperationAborted{}, errMultiOpWorkflowIdMissing}, err)
+	})
+
+	s.Run("operation with different workflow ID as previous operation is invalid", func() {
+		resp, err := wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(&workflowservice.StartWorkflowExecutionRequest{WorkflowId: "foo"}),
+				newUpdateOp(&workflowservice.UpdateWorkflowExecutionRequest{
+					WorkflowExecution: &commonpb.WorkflowExecution{WorkflowId: "bar"},
+				}),
+			},
+		})
+
+		s.Nil(resp)
+		assertMultiOpsErr([]error{&MultiOperationAborted{}, errMultiOpWorkflowIdInconsistent}, err)
+	})
+
+	s.Run("Start operation with `cron_schedule` is invalid", func() {
+		resp, err := wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(&workflowservice.StartWorkflowExecutionRequest{
+					WorkflowId:   "foo",
+					CronSchedule: "<cron-schedule>",
+				}),
+				newUpdateOp(&workflowservice.UpdateWorkflowExecutionRequest{
+					WorkflowExecution: &commonpb.WorkflowExecution{WorkflowId: "bar"},
+				}),
+			},
+		})
+
+		s.Nil(resp)
+		assertMultiOpsErr([]error{errMultiOpStartCronSchedule, &MultiOperationAborted{}}, err)
+	})
+
+	s.Run("Start operation with `request_eager_execution` is invalid", func() {
+		resp, err := wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
+			Namespace: "test-ns",
+			Operations: []*workflowservice.ExecuteMultiOperationRequest_Operation{
+				newStartOp(&workflowservice.StartWorkflowExecutionRequest{
+					WorkflowId:            "foo",
+					RequestEagerExecution: true,
+				}),
+				newUpdateOp(&workflowservice.UpdateWorkflowExecutionRequest{
+					WorkflowExecution: &commonpb.WorkflowExecution{WorkflowId: "bar"},
+				}),
+			},
+		})
+
+		s.Nil(resp)
+		assertMultiOpsErr([]error{errMultiOpEagerWorkflow, &MultiOperationAborted{}}, err)
+	})
+}

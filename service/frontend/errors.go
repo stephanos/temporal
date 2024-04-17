@@ -24,7 +24,15 @@
 
 package frontend
 
-import "go.temporal.io/api/serviceerror"
+import (
+	"errors"
+
+	failurepb "go.temporal.io/api/failure/v1"
+	"go.temporal.io/api/serviceerror"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/protoadapt"
+)
 
 var (
 	errInvalidTaskToken                                   = serviceerror.NewInvalidArgument("Invalid TaskToken.")
@@ -87,7 +95,11 @@ var (
 	errUseEnhancedDescribeOnStickyQueue                   = serviceerror.NewInvalidArgument("Enhanced DescribeTaskQueue is not valid for a sticky queue, use api_mode=UNSPECIFIED or a normal queue.")
 	errUseEnhancedDescribeOnNonRootQueue                  = serviceerror.NewInvalidArgument("Enhanced DescribeTaskQueue is not valid for non-root queue partitions, use api_mode=UNSPECIFIED or a normal queue root name.")
 	errTaskQueuePartitionInvalid                          = serviceerror.NewInvalidArgument("Task Queue Partition invalid, use a different Task Queue or Task Queue Type")
-	errMissingOperations                                  = serviceerror.NewInvalidArgument("Missing operations.")
+	errMultiOpWorkflowIdMissing                           = serviceerror.NewInvalidArgument("WorkflowId is not set on operation.")
+	errMultiOpWorkflowIdInconsistent                      = serviceerror.NewInvalidArgument("WorkflowId is not consistent with previous operation(s).")
+	errMultiOpStartCronSchedule                           = serviceerror.NewInvalidArgument("CronSchedule is not allowed.")
+	errMultiOpEagerWorkflow                               = serviceerror.NewInvalidArgument("RequestEagerExecution is not supported.")
+	errMultiOpNotStartAndUpdate                           = serviceerror.NewInvalidArgument("Operations have to be exactly [Start, Update].")
 
 	errUpdateMetaNotSet       = serviceerror.NewInvalidArgument("Update meta is not set on request.")
 	errUpdateInputNotSet      = serviceerror.NewInvalidArgument("Update input is not set on request.")
@@ -136,3 +148,62 @@ var (
 
 	errListHistoryTasksNotAllowed = serviceerror.NewPermissionDenied("ListHistoryTasks feature is disabled on this cluster.", "")
 )
+
+// TODO: copied from `api-go` to make this PR compile
+
+var errMultiOperationAborted = MultiOperationAborted{}
+
+type MultiOperationAborted struct{}
+
+// NewMultiOperationAbortedError returns MultiOperationAborted.
+func NewMultiOperationAbortedError() error {
+	return errMultiOperationAborted
+}
+
+func (e MultiOperationAborted) Error() string {
+	return "Operation was aborted."
+}
+
+func (e MultiOperationAborted) Status() *status.Status {
+	st := status.New(codes.Aborted, e.Error())
+	st, _ = st.WithDetails(&failurepb.MultiOperationExecutionAborted{})
+	return st
+}
+
+type MultiOperationExecutionError struct {
+	errs []error
+}
+
+// NewMultiOperationExecutionError returns a new MultiOperationExecutionError.
+func NewMultiOperationExecutionError(errs []error) error {
+	return &MultiOperationExecutionError{errs}
+}
+
+func (e *MultiOperationExecutionError) Error() string {
+	return "MultiOperation could not be executed."
+}
+
+func (e *MultiOperationExecutionError) Status() *status.Status {
+	var code *codes.Code
+	var statuses []protoadapt.MessageV1
+
+	for _, err := range e.errs {
+		st := serviceerror.ToStatus(err)
+		// the first non-OK and non-Aborted code becomes the code for the entire Status
+		if code == nil && st.Code() != codes.OK && !errors.Is(err, errMultiOperationAborted) {
+			c := st.Code()
+			code = &c
+		}
+		statuses = append(statuses, st.Proto())
+	}
+
+	// this should never happen, but it's better to set it to `Aborted` than to panic
+	if code == nil {
+		c := codes.Aborted
+		code = &c
+	}
+
+	st := status.New(*code, e.Error())
+	st, _ = st.WithDetails(statuses...)
+	return st
+}
