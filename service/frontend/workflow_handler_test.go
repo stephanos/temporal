@@ -2803,6 +2803,9 @@ func (s *workflowHandlerSuite) TestExecuteMultiOperation() {
 			},
 		})
 
+		s.Nil(resp)
+		s.Equal(errMultiOpNotStartAndUpdate, err)
+
 		// 2 Starts
 		resp, err = wh.ExecuteMultiOperation(ctx, &workflowservice.ExecuteMultiOperationRequest{
 			Namespace: "test-ns",
