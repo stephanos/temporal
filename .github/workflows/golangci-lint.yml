@@ -23,6 +23,7 @@ jobs:
           # When updating the version, update the update-linters target in Makefile as well.
           version: v1.57.2
           args: --verbose --timeout 10m --fix=false --new-from-rev=HEAD~ --config=.golangci.yml
+          skip-pkg-cache: true
 
       - name: check-is-dirty
         run: |
