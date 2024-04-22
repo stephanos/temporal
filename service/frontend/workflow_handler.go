@@ -506,7 +506,7 @@ func (wh *WorkflowHandler) ExecuteMultiOperation(
 		return nil, errMultiOpNotStartAndUpdate
 	}
 
-	historyReq, err := convertToHistoryMultiOperationRequest(namespaceID, request)
+	historyReq, err := wh.convertToHistoryMultiOperationRequest(namespaceID, request)
 	if err != nil {
 		return nil, err
 	}
@@ -523,7 +523,7 @@ func (wh *WorkflowHandler) ExecuteMultiOperation(
 	return response, nil
 }
 
-func convertToHistoryMultiOperationRequest(
+func (wh *WorkflowHandler) convertToHistoryMultiOperationRequest(
 	namespaceID namespace.ID,
 	request *workflowservice.ExecuteMultiOperationRequest,
 ) (*historyservice.ExecuteMultiOperationRequest, error) {
@@ -534,7 +534,7 @@ func convertToHistoryMultiOperationRequest(
 	errs := make([]error, len(request.Operations))
 
 	for i, op := range request.Operations {
-		convertedOp, opWorkflowID, err := convertToHistoryMultiOperationItem(namespaceID, op)
+		convertedOp, opWorkflowID, err := wh.convertToHistoryMultiOperationItem(namespaceID, op)
 		if err != nil {
 			hasError = true
 		} else {
@@ -542,9 +542,6 @@ func convertToHistoryMultiOperationRequest(
 			err = &MultiOperationAborted{}
 
 			switch {
-			case opWorkflowID == "":
-				err = errMultiOpWorkflowIdMissing
-				hasError = true
 			case lastWorkflowID == "":
 				lastWorkflowID = opWorkflowID
 			case lastWorkflowID != opWorkflowID:
@@ -567,7 +564,7 @@ func convertToHistoryMultiOperationRequest(
 	}, nil
 }
 
-func convertToHistoryMultiOperationItem(
+func (wh *WorkflowHandler) convertToHistoryMultiOperationItem(
 	namespaceID namespace.ID,
 	op *workflowservice.ExecuteMultiOperationRequest_Operation,
 ) (*historyservice.ExecuteMultiOperationRequest_Operation, string, error) {
@@ -575,14 +572,16 @@ func convertToHistoryMultiOperationItem(
 	var opReq *historyservice.ExecuteMultiOperationRequest_Operation
 
 	if startReq := op.GetStartWorkflow(); startReq != nil {
+		var err error
+		if startReq, err = wh.prepareStartWorkflowRequest(startReq); err != nil {
+			return nil, "", err
+		}
 		if len(startReq.CronSchedule) > 0 {
 			return nil, "", errMultiOpStartCronSchedule
 		}
 		if startReq.RequestEagerExecution {
 			return nil, "", errMultiOpEagerWorkflow
 		}
-
-		// TODO: validate Start
 
 		workflowId = startReq.WorkflowId
 		opReq = &historyservice.ExecuteMultiOperationRequest_Operation{
@@ -597,12 +596,11 @@ func convertToHistoryMultiOperationItem(
 			},
 		}
 	} else if updateReq := op.GetUpdateWorkflow(); updateReq != nil {
-		// TODO: validate Update
-
-		if updateReq.WorkflowExecution != nil {
-			workflowId = updateReq.WorkflowExecution.WorkflowId
+		if err := wh.prepareUpdateWorkflowRequest(updateReq); err != nil {
+			return nil, "", err
 		}
 
+		workflowId = updateReq.WorkflowExecution.WorkflowId
 		opReq = &historyservice.ExecuteMultiOperationRequest_Operation{
 			Operation: &historyservice.ExecuteMultiOperationRequest_Operation_UpdateWorkflow{
 				UpdateWorkflow: &historyservice.UpdateWorkflowExecutionRequest{
