@@ -31,7 +31,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pborman/uuid"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -40,6 +39,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/common/testing/testvars"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -49,27 +49,12 @@ import (
 )
 
 func (s *FunctionalSuite) TestWorkflowTimeout() {
+	tv := testvars.New(s.T().Name())
 	startTime := time.Now().UTC()
 
-	id := "functional-workflow-timeout"
-	wt := "functional-workflow-timeout-type"
-	tl := "functional-workflow-timeout-taskqueue"
-	identity := "worker1"
-
-	request := &workflowservice.StartWorkflowExecutionRequest{
-		RequestId:           uuid.New(),
-		Namespace:           s.namespace,
-		WorkflowId:          id,
-		WorkflowType:        &commonpb.WorkflowType{Name: wt},
-		TaskQueue:           &taskqueuepb.TaskQueue{Name: tl, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
-		Input:               nil,
-		WorkflowRunTimeout:  durationpb.New(1 * time.Second),
-		WorkflowTaskTimeout: durationpb.New(1 * time.Second),
-		Identity:            identity,
-	}
-
-	we, err0 := s.engine.StartWorkflowExecution(NewContext(), request)
-	s.NoError(err0)
+	request := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
+	we, err := s.engine.StartWorkflowExecution(NewContext(), request)
+	s.NoError(err)
 
 	s.Logger.Info("StartWorkflowExecution", tag.WorkflowRunID(we.RunId))
 
@@ -79,7 +64,7 @@ func (s *FunctionalSuite) TestWorkflowTimeout() {
 GetHistoryLoop:
 	for i := 0; i < 10; i++ {
 		historyEvents = s.getHistory(s.namespace, &commonpb.WorkflowExecution{
-			WorkflowId: id,
+			WorkflowId: request.WorkflowId,
 			RunId:      we.RunId,
 		})
 
@@ -110,7 +95,7 @@ ListClosedLoop:
 			MaximumPageSize: 100,
 			StartTimeFilter: startFilter,
 			Filters: &workflowservice.ListClosedWorkflowExecutionsRequest_ExecutionFilter{ExecutionFilter: &filterpb.WorkflowExecutionFilter{
-				WorkflowId: id,
+				WorkflowId: request.WorkflowId,
 			}},
 		})
 		s.NoError(err3)
@@ -126,31 +111,15 @@ ListClosedLoop:
 }
 
 func (s *FunctionalSuite) TestWorkflowTaskFailed() {
-	id := "functional-workflowtask-failed-test"
-	wt := "functional-workflowtask-failed-test-type"
-	tl := "functional-workflowtask-failed-test-taskqueue"
-	identity := "worker1"
-	activityName := "activity_type1"
+	tv := testvars.New(s.T().Name())
+	request := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
 
-	// Start workflow execution
-	request := &workflowservice.StartWorkflowExecutionRequest{
-		RequestId:           uuid.New(),
-		Namespace:           s.namespace,
-		WorkflowId:          id,
-		WorkflowType:        &commonpb.WorkflowType{Name: wt},
-		TaskQueue:           &taskqueuepb.TaskQueue{Name: tl, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
-		Input:               nil,
-		WorkflowRunTimeout:  durationpb.New(100 * time.Second),
-		WorkflowTaskTimeout: durationpb.New(10 * time.Second),
-		Identity:            identity,
-	}
-
-	we, err0 := s.engine.StartWorkflowExecution(NewContext(), request)
-	s.NoError(err0)
+	we, err := s.engine.StartWorkflowExecution(NewContext(), request)
+	s.NoError(err)
 	s.Logger.Info("StartWorkflowExecution", tag.WorkflowRunID(we.RunId))
 
 	workflowExecution := &commonpb.WorkflowExecution{
-		WorkflowId: id,
+		WorkflowId: request.WorkflowId,
 		RunId:      we.RunId,
 	}
 
@@ -177,9 +146,9 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 
 		// Send signals during workflow task
 		if sendSignal {
-			s.NoError(s.sendSignal(s.namespace, workflowExecution, "signalC", nil, identity))
-			s.NoError(s.sendSignal(s.namespace, workflowExecution, "signalD", nil, identity))
-			s.NoError(s.sendSignal(s.namespace, workflowExecution, "signalE", nil, identity))
+			s.NoError(s.sendSignal(s.namespace, workflowExecution, "signalC", nil, request.Identity))
+			s.NoError(s.sendSignal(s.namespace, workflowExecution, "signalD", nil, request.Identity))
+			s.NoError(s.sendSignal(s.namespace, workflowExecution, "signalE", nil, request.Identity))
 			sendSignal = false
 		}
 
@@ -192,8 +161,8 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 				CommandType: enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK,
 				Attributes: &commandpb.Command_ScheduleActivityTaskCommandAttributes{ScheduleActivityTaskCommandAttributes: &commandpb.ScheduleActivityTaskCommandAttributes{
 					ActivityId:             convert.Int32ToString(1),
-					ActivityType:           &commonpb.ActivityType{Name: activityName},
-					TaskQueue:              &taskqueuepb.TaskQueue{Name: tl, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
+					ActivityType:           &commonpb.ActivityType{Name: tv.ActivityID()},
+					TaskQueue:              &taskqueuepb.TaskQueue{Name: tv.ActivityName(), Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
 					Input:                  payloads.EncodeBytes(buf.Bytes()),
 					ScheduleToCloseTimeout: durationpb.New(100 * time.Second),
 					ScheduleToStartTimeout: durationpb.New(2 * time.Second),
@@ -224,15 +193,14 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 
 	// activity handler
 	atHandler := func(task *workflowservice.PollActivityTaskQueueResponse) (*commonpb.Payloads, bool, error) {
-
 		return payloads.EncodeString("Activity Result"), false, nil
 	}
 
 	poller := &TaskPoller{
 		Engine:              s.engine,
 		Namespace:           s.namespace,
-		TaskQueue:           &taskqueuepb.TaskQueue{Name: tl, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
-		Identity:            identity,
+		TaskQueue:           &taskqueuepb.TaskQueue{Name: tv.ActivityName(), Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
+		Identity:            request.Identity,
 		WorkflowTaskHandler: wtHandler,
 		ActivityTaskHandler: atHandler,
 		Logger:              s.Logger,
@@ -240,7 +208,7 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 	}
 
 	// Make first workflow task to schedule activity
-	_, err := poller.PollAndProcessWorkflowTask()
+	_, err = poller.PollAndProcessWorkflowTask()
 	s.Logger.Info("PollAndProcessWorkflowTask", tag.Error(err))
 	s.NoError(err)
 
@@ -255,7 +223,7 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 		s.NoError(err)
 	}
 
-	err = s.sendSignal(s.namespace, workflowExecution, "signalA", nil, identity)
+	err = s.sendSignal(s.namespace, workflowExecution, "signalA", nil, request.Identity)
 	s.NoError(err, "failed to send signal to execution")
 
 	// process signal
@@ -265,7 +233,7 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 	s.Equal(1, signalCount)
 
 	// send another signal to trigger workflow task
-	err = s.sendSignal(s.namespace, workflowExecution, "signalB", nil, identity)
+	err = s.sendSignal(s.namespace, workflowExecution, "signalB", nil, request.Identity)
 	s.NoError(err, "failed to send signal to execution")
 
 	// fail workflow task 2 more times
@@ -333,24 +301,11 @@ func (s *FunctionalSuite) TestWorkflowTaskFailed() {
 }
 
 func (s *FunctionalSuite) TestRespondWorkflowTaskCompleted_ReturnsErrorIfInvalidArgument() {
-	id := "functional-respond-workflow-task-completed-test"
-	wt := "functional-respond-workflow-task-completed-test-type"
-	tq := "functional-respond-workflow-task-completed-test-taskqueue"
-	identity := "worker1"
+	tv := testvars.New(s.T().Name())
 
-	request := &workflowservice.StartWorkflowExecutionRequest{
-		RequestId:          uuid.New(),
-		Namespace:          s.namespace,
-		WorkflowId:         id,
-		WorkflowType:       &commonpb.WorkflowType{Name: wt},
-		TaskQueue:          &taskqueuepb.TaskQueue{Name: tq, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
-		Input:              nil,
-		WorkflowRunTimeout: durationpb.New(100 * time.Second),
-		Identity:           identity,
-	}
-
-	we0, err0 := s.engine.StartWorkflowExecution(NewContext(), request)
-	s.NoError(err0)
+	request := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
+	we0, err := s.engine.StartWorkflowExecution(NewContext(), request)
+	s.NoError(err)
 	s.NotNil(we0)
 
 	wtHandler := func(task *workflowservice.PollWorkflowTaskQueueResponse) ([]*commandpb.Command, error) {
@@ -370,21 +325,21 @@ func (s *FunctionalSuite) TestRespondWorkflowTaskCompleted_ReturnsErrorIfInvalid
 	poller := &TaskPoller{
 		Engine:              s.engine,
 		Namespace:           s.namespace,
-		TaskQueue:           &taskqueuepb.TaskQueue{Name: tq, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
-		Identity:            identity,
+		TaskQueue:           tv.TaskQueue(),
+		Identity:            request.Identity,
 		WorkflowTaskHandler: wtHandler,
 		ActivityTaskHandler: nil,
 		Logger:              s.Logger,
 		T:                   s.T(),
 	}
 
-	_, err := poller.PollAndProcessWorkflowTask()
+	_, err = poller.PollAndProcessWorkflowTask()
 	s.Error(err)
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 	s.Equal("BadRecordMarkerAttributes: MarkerName is not set on RecordMarkerCommand.", err.Error())
 
 	historyEvents := s.getHistory(s.namespace, &commonpb.WorkflowExecution{
-		WorkflowId: id,
+		WorkflowId: request.WorkflowId,
 		RunId:      we0.GetRunId(),
 	})
 	s.EqualHistoryEvents(`

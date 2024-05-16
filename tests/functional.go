@@ -36,6 +36,7 @@ import (
 	"go.temporal.io/server/common/payloads"
 	"go.temporal.io/server/common/testing/historyrequire"
 	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/common/testing/temporalapi"
 	"go.temporal.io/server/common/testing/updateutils"
 )
 
@@ -44,6 +45,7 @@ type (
 		// override suite.Suite.Assertions with require.Assertions; this means that s.NotNil(nil) will stop the test,
 		// not merely log an error
 		*require.Assertions
+		temporalapi.ApiUtils
 		protorequire.ProtoAssertions
 		historyrequire.HistoryRequire
 		updateutils.UpdateUtils

@@ -208,6 +208,10 @@ func (tv *TestVars) ActivityID(key ...string) string {
 	return tv.getOrCreate("activity_id", key).(string)
 }
 
+func (tv *TestVars) ActivityName(key ...string) string {
+	return tv.getOrCreate("activity_name", key).(string)
+}
+
 func (tv *TestVars) WithActivityID(activityID string, key ...string) *TestVars {
 	return tv.cloneSet("activity_id", key, activityID)
 }

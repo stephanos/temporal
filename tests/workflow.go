@@ -1063,16 +1063,6 @@ func (s *FunctionalSuite) TestExecuteMultiOperation() {
 			return resp, err
 		}
 
-		startWorkflowReq := func(tv *testvars.TestVars) *workflowservice.StartWorkflowExecutionRequest {
-			return &workflowservice.StartWorkflowExecutionRequest{
-				Namespace:    s.namespace,
-				WorkflowId:   tv.WorkflowID(),
-				WorkflowType: tv.WorkflowType(),
-				TaskQueue:    tv.TaskQueue(),
-				Identity:     tv.WorkerIdentity(),
-			}
-		}
-
 		updateWorkflowReq := func(tv *testvars.TestVars) *workflowservice.UpdateWorkflowExecutionRequest {
 			return &workflowservice.UpdateWorkflowExecutionRequest{
 				Namespace: s.namespace,
@@ -1088,7 +1078,9 @@ func (s *FunctionalSuite) TestExecuteMultiOperation() {
 		s.Run("workflow is not running", func() {
 			tv := testvars.New(s.T().Name())
 
-			_, err := runUpdateWithStart(tv, startWorkflowReq(tv), updateWorkflowReq(tv))
+			startRequest := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
+			_, err := runUpdateWithStart(tv, startRequest, updateWorkflowReq(tv))
+
 			s.NoError(err)
 		})
 
@@ -1097,10 +1089,10 @@ func (s *FunctionalSuite) TestExecuteMultiOperation() {
 			s.Run("workflow id reuse policy use-existing: only send update", func() {
 				tv := testvars.New(s.T().Name())
 
-				_, err := s.engine.StartWorkflowExecution(NewContext(), startWorkflowReq(tv))
+				_, err := s.engine.StartWorkflowExecution(NewContext(), s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace))
 				s.NoError(err)
 
-				req := startWorkflowReq(tv)
+				req := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
 				req.WorkflowIdConflictPolicy = enumspb.WORKFLOW_ID_CONFLICT_POLICY_USE_EXISTING
 				_, err = runUpdateWithStart(tv, req, updateWorkflowReq(tv))
 
@@ -1110,12 +1102,12 @@ func (s *FunctionalSuite) TestExecuteMultiOperation() {
 			s.Run("workflow id reuse policy terminate-existing: terminate workflow first, then start and update", func() {
 				tv := testvars.New(s.T().Name())
 
-				initReq := startWorkflowReq(tv)
+				initReq := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
 				initReq.TaskQueue.Name = initReq.TaskQueue.Name + "-init" // avoid race condition with poller
 				initWF, err := s.engine.StartWorkflowExecution(NewContext(), initReq)
 				s.NoError(err)
 
-				req := startWorkflowReq(tv)
+				req := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
 				req.WorkflowIdConflictPolicy = enumspb.WORKFLOW_ID_CONFLICT_POLICY_TERMINATE_EXISTING
 				_, err = runUpdateWithStart(tv, req, updateWorkflowReq(tv))
 
@@ -1134,10 +1126,10 @@ func (s *FunctionalSuite) TestExecuteMultiOperation() {
 			s.Run("workflow id reuse policy fail: abort multi operation", func() {
 				tv := testvars.New(s.T().Name())
 
-				_, err := s.engine.StartWorkflowExecution(NewContext(), startWorkflowReq(tv))
+				_, err := s.engine.StartWorkflowExecution(NewContext(), s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace))
 				s.NoError(err)
 
-				req := startWorkflowReq(tv)
+				req := s.ValidStartWorkflowExecutionRequestWithNamespace(tv, s.namespace)
 				req.WorkflowIdConflictPolicy = enumspb.WORKFLOW_ID_CONFLICT_POLICY_FAIL
 				_, err = runUpdateWithStart(tv, req, updateWorkflowReq(tv))
 
