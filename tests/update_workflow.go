@@ -41,6 +41,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	updatepb "go.temporal.io/api/update/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/common/testing/temporalapi"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"go.temporal.io/server/common/dynamicconfig"
@@ -57,14 +58,7 @@ import (
 
 func (s *FunctionalSuite) startWorkflow(tv *testvars.TestVars) *testvars.TestVars {
 	s.T().Helper()
-	request := &workflowservice.StartWorkflowExecutionRequest{
-		RequestId:    tv.Any().String(),
-		Namespace:    s.namespace,
-		WorkflowId:   tv.WorkflowID(),
-		WorkflowType: tv.WorkflowType(),
-		TaskQueue:    tv.TaskQueue(),
-	}
-
+	request := temporalapi.StartWorkflowRequest(tv).Namespace(s.namespace).Build()
 	startResp, err := s.engine.StartWorkflowExecution(NewContext(), request)
 	s.NoError(err)
 

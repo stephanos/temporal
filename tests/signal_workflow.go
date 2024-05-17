@@ -41,6 +41,8 @@ import (
 	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	. "go.temporal.io/server/common/testing/temporalapi"
+	"go.temporal.io/server/common/testing/testvars"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -53,51 +55,28 @@ import (
 )
 
 func (s *FunctionalSuite) TestSignalWorkflow() {
-	id := "functional-signal-workflow-test"
-	wt := "functional-signal-workflow-test-type"
+	tv := testvars.New(s.T().Name())
+	id := tv.WorkflowID()
 	tl := "functional-signal-workflow-test-taskqueue"
-	identity := "worker1"
 	activityName := "activity_type1"
-
-	workflowType := &commonpb.WorkflowType{Name: wt}
-
-	taskQueue := &taskqueuepb.TaskQueue{Name: tl, Kind: enumspb.TASK_QUEUE_KIND_NORMAL}
 
 	// Send a signal to non-exist workflow
 	header := &commonpb.Header{
 		Fields: map[string]*commonpb.Payload{"signal header key": payload.EncodeString("signal header value")},
 	}
-	_, err0 := s.engine.SignalWorkflowExecution(NewContext(), &workflowservice.SignalWorkflowExecutionRequest{
-		Namespace: s.namespace,
-		WorkflowExecution: &commonpb.WorkflowExecution{
-			WorkflowId: id,
-			RunId:      uuid.New(),
-		},
-		SignalName: "failed signal",
-		Input:      nil,
-		Identity:   identity,
-		Header:     header,
-	})
+	_, err0 := s.engine.SignalWorkflowExecution(
+		NewContext(),
+		SignalWorkflowRequest(tv).Namespace(s.namespace).SignalName("failed signal").Header(header).Build())
 	s.NotNil(err0)
 	s.IsType(&serviceerror.NotFound{}, err0)
 
 	// Start workflow execution
-	request := &workflowservice.StartWorkflowExecutionRequest{
-		RequestId:           uuid.New(),
-		Namespace:           s.namespace,
-		WorkflowId:          id,
-		WorkflowType:        workflowType,
-		TaskQueue:           taskQueue,
-		Input:               nil,
-		WorkflowRunTimeout:  durationpb.New(100 * time.Second),
-		WorkflowTaskTimeout: durationpb.New(1 * time.Second),
-		Identity:            identity,
-	}
-
-	we, err0 := s.engine.StartWorkflowExecution(NewContext(), request)
+	resp, err0 := s.engine.StartWorkflowExecution(
+		NewContext(),
+		StartWorkflowRequest(tv).Namespace(s.namespace).Build())
 	s.NoError(err0)
 
-	s.Logger.Info("StartWorkflowExecution", tag.WorkflowRunID(we.RunId))
+	s.Logger.Info("StartWorkflowExecution", tag.WorkflowRunID(resp.RunId))
 
 	// workflow logic
 	workflowComplete := false
@@ -105,7 +84,6 @@ func (s *FunctionalSuite) TestSignalWorkflow() {
 	activityData := int32(1)
 	var signalEvent *historypb.HistoryEvent
 	wtHandler := func(task *workflowservice.PollWorkflowTaskQueueResponse) ([]*commandpb.Command, error) {
-
 		if !activityScheduled {
 			activityScheduled = true
 			buf := new(bytes.Buffer)
@@ -144,15 +122,14 @@ func (s *FunctionalSuite) TestSignalWorkflow() {
 
 	// activity handler
 	atHandler := func(task *workflowservice.PollActivityTaskQueueResponse) (*commonpb.Payloads, bool, error) {
-
 		return payloads.EncodeString("Activity Result"), false, nil
 	}
 
 	poller := &TaskPoller{
 		Engine:              s.engine,
 		Namespace:           s.namespace,
-		TaskQueue:           taskQueue,
-		Identity:            identity,
+		TaskQueue:           tv.TaskQueue(),
+		Identity:            tv.WorkerIdentity(),
 		WorkflowTaskHandler: wtHandler,
 		ActivityTaskHandler: atHandler,
 		Logger:              s.Logger,
@@ -167,17 +144,11 @@ func (s *FunctionalSuite) TestSignalWorkflow() {
 	// Send first signal using RunID
 	signalName := "my signal"
 	signalInput := payloads.EncodeString("my signal input")
-	_, err = s.engine.SignalWorkflowExecution(NewContext(), &workflowservice.SignalWorkflowExecutionRequest{
-		Namespace: s.namespace,
-		WorkflowExecution: &commonpb.WorkflowExecution{
-			WorkflowId: id,
-			RunId:      we.RunId,
-		},
-		SignalName: signalName,
-		Input:      signalInput,
-		Identity:   identity,
-		Header:     header,
-	})
+	we := &commonpb.WorkflowExecution{WorkflowId: tv.WorkflowID(), RunId: resp.RunId}
+	signalReq := SignalWorkflowRequest(tv).Namespace(s.namespace).WorkflowExecution(we).SignalName(signalName).Input(signalInput).Header(header)
+	_, err = s.engine.SignalWorkflowExecution(
+		NewContext(),
+		signalReq.Build())
 	s.NoError(err)
 
 	// Process signal in workflow
@@ -189,21 +160,14 @@ func (s *FunctionalSuite) TestSignalWorkflow() {
 	s.True(signalEvent != nil)
 	s.Equal(signalName, signalEvent.GetWorkflowExecutionSignaledEventAttributes().SignalName)
 	s.ProtoEqual(signalInput, signalEvent.GetWorkflowExecutionSignaledEventAttributes().Input)
-	s.Equal(identity, signalEvent.GetWorkflowExecutionSignaledEventAttributes().Identity)
+	s.Equal(tv.WorkerIdentity(), signalEvent.GetWorkflowExecutionSignaledEventAttributes().Identity)
 	s.ProtoEqual(header, signalEvent.GetWorkflowExecutionSignaledEventAttributes().Header)
 
 	// Send another signal without RunID
 	signalName = "another signal"
 	signalInput = payloads.EncodeString("another signal input")
-	_, err = s.engine.SignalWorkflowExecution(NewContext(), &workflowservice.SignalWorkflowExecutionRequest{
-		Namespace: s.namespace,
-		WorkflowExecution: &commonpb.WorkflowExecution{
-			WorkflowId: id,
-		},
-		SignalName: signalName,
-		Input:      signalInput,
-		Identity:   identity,
-	})
+	we = &commonpb.WorkflowExecution{WorkflowId: tv.WorkflowID()}
+	_, err = s.engine.SignalWorkflowExecution(NewContext(), signalReq.WorkflowExecution(we).SignalName(signalName).Input(signalInput).Build())
 	s.NoError(err)
 
 	// Process signal in workflow
@@ -215,7 +179,7 @@ func (s *FunctionalSuite) TestSignalWorkflow() {
 	s.True(signalEvent != nil)
 	s.Equal(signalName, signalEvent.GetWorkflowExecutionSignaledEventAttributes().SignalName)
 	s.ProtoEqual(signalInput, signalEvent.GetWorkflowExecutionSignaledEventAttributes().Input)
-	s.Equal(identity, signalEvent.GetWorkflowExecutionSignaledEventAttributes().Identity)
+	s.Equal(tv.WorkerIdentity(), signalEvent.GetWorkflowExecutionSignaledEventAttributes().Identity)
 
 	// Terminate workflow execution
 	_, err = s.engine.TerminateWorkflowExecution(NewContext(), &workflowservice.TerminateWorkflowExecutionRequest{
@@ -225,21 +189,15 @@ func (s *FunctionalSuite) TestSignalWorkflow() {
 		},
 		Reason:   "test signal",
 		Details:  nil,
-		Identity: identity,
+		Identity: tv.WorkerIdentity(),
 	})
 	s.NoError(err)
 
 	// Send signal to terminated workflow
-	_, err = s.engine.SignalWorkflowExecution(NewContext(), &workflowservice.SignalWorkflowExecutionRequest{
-		Namespace: s.namespace,
-		WorkflowExecution: &commonpb.WorkflowExecution{
-			WorkflowId: id,
-			RunId:      we.RunId,
-		},
-		SignalName: "failed signal 1",
-		Input:      nil,
-		Identity:   identity,
-	})
+	we = &commonpb.WorkflowExecution{WorkflowId: tv.WorkflowID()}
+	_, err = s.engine.SignalWorkflowExecution(
+		NewContext(),
+		SignalWorkflowRequest(tv).Namespace(s.namespace).WorkflowExecution(we).Build())
 	s.NotNil(err)
 	s.IsType(&serviceerror.NotFound{}, err)
 }
