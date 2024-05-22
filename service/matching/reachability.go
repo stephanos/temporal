@@ -27,11 +27,12 @@ package matching
 import (
 	"context"
 	"fmt"
-	"go.temporal.io/server/common/log"
-	"go.temporal.io/server/common/log/tag"
 	"slices"
 	"strings"
 	"time"
+
+	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
 
 	"github.com/temporalio/sqlparser"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -316,8 +317,8 @@ In-memory Reachability Cache of Visibility Queries and Results
 */
 
 type reachabilityCache struct {
-	openWFCache    cache.Cache
-	closedWFCache  cache.Cache // these are separate due to allow for different TTL
+	openWFCache    cache.Cache[manager.CountWorkflowExecutionsRequest]
+	closedWFCache  cache.Cache[manager.CountWorkflowExecutionsRequest] // these are separate due to allow for different TTL
 	metricsHandler metrics.Handler
 	visibilityMgr  manager.VisibilityManager
 }
@@ -329,8 +330,10 @@ func newReachabilityCache(
 	reachabilityCacheClosedWFExecutionTTL time.Duration,
 ) reachabilityCache {
 	return reachabilityCache{
-		openWFCache:    cache.New(reachabilityCacheMaxSize, &cache.Options{TTL: reachabilityCacheOpenWFExecutionTTL}, handler),
-		closedWFCache:  cache.New(reachabilityCacheMaxSize, &cache.Options{TTL: reachabilityCacheClosedWFExecutionTTL}, handler),
+		openWFCache: cache.New[manager.CountWorkflowExecutionsRequest](
+			reachabilityCacheMaxSize, &cache.Options{TTL: reachabilityCacheOpenWFExecutionTTL}, handler),
+		closedWFCache: cache.New[manager.CountWorkflowExecutionsRequest](
+			reachabilityCacheMaxSize, &cache.Options{TTL: reachabilityCacheClosedWFExecutionTTL}, handler),
 		metricsHandler: handler,
 		visibilityMgr:  visibilityMgr,
 	}

@@ -31,6 +31,7 @@ import (
 
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
+
 	"go.temporal.io/server/common/clock"
 	"go.temporal.io/server/common/metrics"
 )
@@ -50,10 +51,10 @@ const emptyEntrySize = 0
 
 // lru is a concurrent fixed size cache that evicts elements in lru order
 type (
-	lru struct {
+	lru[K Key, V Value] struct {
 		mut            sync.Mutex
 		byAccess       *list.List
-		byKey          map[interface{}]*list.Element
+		byKey          map[K]*list.Element
 		maxSize        int
 		currSize       int
 		pinnedSize     int
@@ -63,41 +64,41 @@ type (
 		metricsHandler metrics.Handler
 	}
 
-	iteratorImpl struct {
-		lru        *lru
+	iteratorImpl[K Key, V Value] struct {
+		lru        *lru[K, V]
 		createTime time.Time
 		nextItem   *list.Element
 	}
 
-	entryImpl struct {
-		key        interface{}
+	entryImpl[K Key, V Value] struct {
+		key        K
 		createTime time.Time
-		value      interface{}
+		value      *V
 		refCount   int
 		size       int
 	}
 )
 
 // Close closes the iterator
-func (it *iteratorImpl) Close() {
+func (it *iteratorImpl[K, V]) Close() {
 	it.lru.mut.Unlock()
 }
 
 // HasNext return true if there is more items to be returned
-func (it *iteratorImpl) HasNext() bool {
+func (it *iteratorImpl[K, V]) HasNext() bool {
 	return it.nextItem != nil
 }
 
 // Next return the next item
-func (it *iteratorImpl) Next() Entry {
+func (it *iteratorImpl[K, V]) Next() Entry {
 	if it.nextItem == nil {
 		panic("LRU cache iterator Next called when there is no next item")
 	}
 
-	entry := it.nextItem.Value.(*entryImpl)
+	entry := it.nextItem.Value.(*entryImpl[K, V])
 	it.nextItem = it.nextItem.Next()
 	// make a copy of the entry so there will be no concurrent access to this entry
-	entry = &entryImpl{
+	entry = &entryImpl[K, V]{
 		key:        entry.key,
 		value:      entry.value,
 		size:       entry.size,
@@ -107,9 +108,9 @@ func (it *iteratorImpl) Next() Entry {
 	return entry
 }
 
-func (it *iteratorImpl) prepareNext() {
+func (it *iteratorImpl[K, V]) prepareNext() {
 	for it.nextItem != nil {
-		entry := it.nextItem.Value.(*entryImpl)
+		entry := it.nextItem.Value.(*entryImpl[K, V])
 		if it.lru.isEntryExpired(entry, it.createTime) {
 			nextItem := it.nextItem.Next()
 			it.lru.deleteInternal(it.nextItem)
@@ -123,9 +124,9 @@ func (it *iteratorImpl) prepareNext() {
 // Iterator returns an iterator to the map. This map
 // does not use re-entrant locks, so access or modification
 // to the map during iteration can cause a dead lock.
-func (c *lru) Iterator() Iterator {
+func (c *lru[K, V]) Iterator() Iterator {
 	c.mut.Lock()
-	iterator := &iteratorImpl{
+	iterator := &iteratorImpl[K, V]{
 		lru:        c,
 		createTime: c.timeSource.Now().UTC(),
 		nextItem:   c.byAccess.Front(),
@@ -134,24 +135,24 @@ func (c *lru) Iterator() Iterator {
 	return iterator
 }
 
-func (entry *entryImpl) Key() interface{} {
+func (entry *entryImpl[K, V]) Key() interface{} {
 	return entry.key
 }
 
-func (entry *entryImpl) Value() interface{} {
+func (entry *entryImpl[K, V]) Value() interface{} {
 	return entry.value
 }
 
-func (entry *entryImpl) Size() int {
+func (entry *entryImpl[K, V]) Size() int {
 	return entry.size
 }
 
-func (entry *entryImpl) CreateTime() time.Time {
+func (entry *entryImpl[K, V]) CreateTime() time.Time {
 	return entry.createTime
 }
 
 // New creates a new cache with the given options
-func New(maxSize int, opts *Options, handler metrics.Handler) Cache {
+func New[K Key, V Value](maxSize int, opts *Options, handler metrics.Handler) Cache[K, V] {
 	if opts == nil {
 		opts = &Options{}
 	}
@@ -162,9 +163,9 @@ func New(maxSize int, opts *Options, handler metrics.Handler) Cache {
 
 	metrics.CacheSize.With(handler).Record(float64(maxSize))
 	metrics.CacheTtl.With(handler).Record(opts.TTL)
-	return &lru{
+	return &lru[K, V]{
 		byAccess:       list.New(),
-		byKey:          make(map[interface{}]*list.Element),
+		byKey:          make(map[K]*list.Element),
 		ttl:            opts.TTL,
 		maxSize:        maxSize,
 		currSize:       0,
@@ -176,12 +177,12 @@ func New(maxSize int, opts *Options, handler metrics.Handler) Cache {
 
 // NewLRU creates a new LRU cache of the given size, setting initial capacity
 // to the max size
-func NewLRU(maxSize int, handler metrics.Handler) Cache {
-	return New(maxSize, nil, handler)
+func NewLRU[K Key, V Value](maxSize int, handler metrics.Handler) Cache[K, V] {
+	return New[K, V](maxSize, nil, handler)
 }
 
 // Get retrieves the value stored under the given key
-func (c *lru) Get(key interface{}) interface{} {
+func (c *lru[K, V]) Get(key K) *V {
 	if c.maxSize == 0 { //
 		return nil
 	}
@@ -193,7 +194,7 @@ func (c *lru) Get(key interface{}) interface{} {
 		return nil
 	}
 
-	entry := element.Value.(*entryImpl)
+	entry := element.Value.(*entryImpl[K, V])
 
 	metrics.CacheEntryAgeOnGet.With(c.metricsHandler).Record(c.timeSource.Now().UTC().Sub(entry.createTime))
 
@@ -209,7 +210,7 @@ func (c *lru) Get(key interface{}) interface{} {
 }
 
 // Put puts a new value associated with a given key, returning the existing value (if present)
-func (c *lru) Put(key interface{}, value interface{}) interface{} {
+func (c *lru[K, V]) Put(key K, value V) V {
 	if c.pin {
 		panic("Cannot use Put API in Pin mode. Use Delete and PutIfNotExist if necessary")
 	}
@@ -218,7 +219,7 @@ func (c *lru) Put(key interface{}, value interface{}) interface{} {
 }
 
 // PutIfNotExist puts a value associated with a given key if it does not exist
-func (c *lru) PutIfNotExist(key interface{}, value interface{}) (interface{}, error) {
+func (c *lru[K, V]) PutIfNotExist(key K, value V) (*V, error) {
 	existing, err := c.putInternal(key, value, false)
 	if err != nil {
 		return nil, err
@@ -226,14 +227,14 @@ func (c *lru) PutIfNotExist(key interface{}, value interface{}) (interface{}, er
 
 	if existing == nil {
 		// This is a new value
-		return value, err
+		return &value, err
 	}
 
 	return existing, err
 }
 
 // Delete deletes a key, value pair associated with a key
-func (c *lru) Delete(key interface{}) {
+func (c *lru[K, V]) Delete(key K) {
 	if c.maxSize == 0 {
 		return
 	}
@@ -247,7 +248,7 @@ func (c *lru) Delete(key interface{}) {
 }
 
 // Release decrements the ref count of a pinned element.
-func (c *lru) Release(key interface{}) {
+func (c *lru[K, V]) Release(key K) {
 	if c.maxSize == 0 || !c.pin {
 		return
 	}
@@ -258,7 +259,7 @@ func (c *lru) Release(key interface{}) {
 	if !ok {
 		return
 	}
-	entry := elt.Value.(*entryImpl)
+	entry := elt.Value.(*entryImpl[K, V])
 	entry.refCount--
 	if entry.refCount == 0 {
 		c.pinnedSize -= entry.Size()
@@ -278,7 +279,7 @@ func (c *lru) Release(key interface{}) {
 // the size of all entries in the cache. And the entry size is calculated by the size of the value.
 // The size of the value is calculated implementing the Sizeable interface. If the value does not implement
 // the Sizeable interface, the size is 1.
-func (c *lru) Size() int {
+func (c *lru[K, V]) Size() int {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -287,7 +288,7 @@ func (c *lru) Size() int {
 
 // Put puts a new value associated with a given key, returning the existing value (if present)
 // allowUpdate flag is used to control overwrite behavior if the value exists.
-func (c *lru) putInternal(key interface{}, value interface{}, allowUpdate bool) (interface{}, error) {
+func (c *lru[K, V]) putInternal(key K, value V, allowUpdate bool) (*V, error) {
 	if c.maxSize == 0 {
 		return nil, nil
 	}
@@ -302,7 +303,7 @@ func (c *lru) putInternal(key interface{}, value interface{}, allowUpdate bool) 
 	elt := c.byKey[key]
 	// If the entry exists, check if it has expired or update the value
 	if elt != nil {
-		existingEntry := elt.Value.(*entryImpl)
+		existingEntry := elt.Value.(*entryImpl[K, V])
 		if !c.isEntryExpired(existingEntry, time.Now().UTC()) {
 			existingVal := existingEntry.value
 			if allowUpdate {
@@ -319,7 +320,7 @@ func (c *lru) putInternal(key interface{}, value interface{}, allowUpdate bool) 
 						return nil, ErrCacheFull
 					}
 				}
-				existingEntry.value = value
+				existingEntry.value = &value
 				existingEntry.size = newEntrySize
 				c.currSize = newCacheSize
 				metrics.CacheUsage.With(c.metricsHandler).Record(float64(c.currSize))
@@ -343,7 +344,7 @@ func (c *lru) putInternal(key interface{}, value interface{}, allowUpdate bool) 
 		return nil, ErrCacheFull
 	}
 
-	entry := &entryImpl{
+	entry := &entryImpl[K, V]{
 		key:   key,
 		value: value,
 		size:  newEntrySize,
@@ -358,12 +359,12 @@ func (c *lru) putInternal(key interface{}, value interface{}, allowUpdate bool) 
 	return nil, nil
 }
 
-func (c *lru) calculateNewCacheSize(newEntrySize int, existingEntrySize int) int {
+func (c *lru[K, V]) calculateNewCacheSize(newEntrySize int, existingEntrySize int) int {
 	return c.currSize - existingEntrySize + newEntrySize
 }
 
-func (c *lru) deleteInternal(element *list.Element) {
-	entry := c.byAccess.Remove(element).(*entryImpl)
+func (c *lru[K, V]) deleteInternal(element *list.Element) {
+	entry := c.byAccess.Remove(element).(*entryImpl[K, V])
 	c.currSize -= entry.Size()
 	metrics.CacheUsage.With(c.metricsHandler).Record(float64(c.currSize))
 	metrics.CacheEntryAgeOnEviction.With(c.metricsHandler).Record(c.timeSource.Now().UTC().Sub(entry.createTime))
@@ -371,13 +372,13 @@ func (c *lru) deleteInternal(element *list.Element) {
 }
 
 // tryEvictUntilCacheSizeUnderLimit tries to evict entries until c.currSize is less than c.maxSize.
-func (c *lru) tryEvictUntilCacheSizeUnderLimit() {
+func (c *lru[K, V]) tryEvictUntilCacheSizeUnderLimit() {
 	c.tryEvictUntilEnoughSpaceWithSkipEntry(0, nil)
 }
 
 // tryEvictUntilEnoughSpaceWithSkipEntry try to evict entries until there is enough space for the new entry without
 // evicting the existing entry. the existing entry is skipped because it is being updated.
-func (c *lru) tryEvictUntilEnoughSpaceWithSkipEntry(newEntrySize int, existingEntry *entryImpl) {
+func (c *lru[K, V]) tryEvictUntilEnoughSpaceWithSkipEntry(newEntrySize int, existingEntry *entryImpl[K, V]) {
 	element := c.byAccess.Back()
 	existingEntrySize := 0
 	if existingEntry != nil {
@@ -385,7 +386,7 @@ func (c *lru) tryEvictUntilEnoughSpaceWithSkipEntry(newEntrySize int, existingEn
 	}
 
 	for c.calculateNewCacheSize(newEntrySize, existingEntrySize) > c.maxSize && element != nil {
-		entry := element.Value.(*entryImpl)
+		entry := element.Value.(*entryImpl[K, V])
 		if existingEntry != nil && entry.key == existingEntry.key {
 			element = element.Prev()
 			continue
@@ -394,7 +395,7 @@ func (c *lru) tryEvictUntilEnoughSpaceWithSkipEntry(newEntrySize int, existingEn
 	}
 }
 
-func (c *lru) tryEvictAndGetPreviousElement(entry *entryImpl, element *list.Element) *list.Element {
+func (c *lru[K, V]) tryEvictAndGetPreviousElement(entry *entryImpl[K, V], element *list.Element) *list.Element {
 	if entry.refCount == 0 {
 		elementPrev := element.Prev()
 		// currSize will be updated within deleteInternal
@@ -406,17 +407,17 @@ func (c *lru) tryEvictAndGetPreviousElement(entry *entryImpl, element *list.Elem
 	return element.Prev()
 }
 
-func (c *lru) isEntryExpired(entry *entryImpl, currentTime time.Time) bool {
+func (c *lru[K, V]) isEntryExpired(entry *entryImpl[K, V], currentTime time.Time) bool {
 	return entry.refCount == 0 && !entry.createTime.IsZero() && currentTime.After(entry.createTime.Add(c.ttl))
 }
 
-func (c *lru) updateEntryTTL(entry *entryImpl) {
+func (c *lru[K, V]) updateEntryTTL(entry *entryImpl[K, V]) {
 	if c.ttl != 0 {
 		entry.createTime = c.timeSource.Now().UTC()
 	}
 }
 
-func (c *lru) updateEntryRefCount(entry *entryImpl) {
+func (c *lru[K, V]) updateEntryRefCount(entry *entryImpl[K, V]) {
 	if c.pin {
 		entry.refCount++
 		if entry.refCount == 1 {

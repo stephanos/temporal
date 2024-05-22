@@ -50,22 +50,13 @@ type (
 		VersionHistoryItems []*historyspb.VersionHistoryItem
 		EventBlob           *commonpb.DataBlob
 	}
-
-	XDCCache interface {
-		Put(key XDCCacheKey, value XDCCacheValue)
-		Get(key XDCCacheKey) (XDCCacheValue, bool)
-	}
-
-	XDCCacheImpl struct {
-		cache cache.Cache
-	}
+	XDCCache cache.Cache[XDCCacheKey, XDCCacheValue]
 )
 
 const (
 	xdcMinCacheSize = 64 * 1024 // 64KB
 )
 
-var _ XDCCache = (*XDCCacheImpl)(nil)
 var _ cache.SizeGetter = XDCCacheValue{}
 
 func NewXDCCacheKey(
@@ -105,33 +96,32 @@ func (v XDCCacheValue) CacheSize() int {
 func NewEventsBlobCache(
 	maxBytes int,
 	ttl time.Duration,
-) *XDCCacheImpl {
-	return &XDCCacheImpl{
-		cache: cache.New(
-			max(xdcMinCacheSize, maxBytes),
-			&cache.Options{
-				TTL: ttl,
-				Pin: false,
-			},
-			metrics.NoopMetricsHandler,
-		),
-	}
+) XDCCache {
+	return cache.New[XDCCacheKey, XDCCacheValue](
+		max(xdcMinCacheSize, maxBytes),
+		&cache.Options{
+			TTL: ttl,
+			Pin: false,
+		},
+		metrics.NoopMetricsHandler,
+	)
 }
 
-func (e *XDCCacheImpl) Put(
-	key XDCCacheKey,
-	value XDCCacheValue,
-) {
-	e.cache.Put(key, value)
-}
-
-func (e *XDCCacheImpl) Get(key XDCCacheKey) (XDCCacheValue, bool) {
-	value := e.cache.Get(key)
-	if value == nil {
-		return XDCCacheValue{}, false
-	}
-	return value.(XDCCacheValue), true
-}
+// TODO
+//func (e *XDCCacheImpl) Put(
+//	key XDCCacheKey,
+//	value XDCCacheValue,
+//) {
+//	e.cache.Put(key, value)
+//}
+//
+//func (e *XDCCacheImpl) Get(key XDCCacheKey) (XDCCacheValue, bool) {
+//	value := e.cache.Get(key)
+//	if value == nil {
+//		return XDCCacheValue{}, false
+//	}
+//	return value.(XDCCacheValue), true
+//}
 
 func GetXDCCacheValue(
 	executionInfo *persistencepb.WorkflowExecutionInfo,

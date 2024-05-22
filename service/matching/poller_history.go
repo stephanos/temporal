@@ -50,7 +50,7 @@ type (
 type pollerHistory struct {
 	// poller ID -> pollerInfo
 	// pollers map[pollerID]pollerInfo
-	history cache.Cache
+	history cache.Cache[pollerIdentity]
 }
 
 func newPollerHistory() *pollerHistory {
@@ -60,7 +60,7 @@ func newPollerHistory() *pollerHistory {
 	}
 
 	return &pollerHistory{
-		history: cache.New(pollerHistoryInitMaxSize, opts, metrics.NoopMetricsHandler),
+		history: cache.New[pollerIdentity](pollerHistoryInitMaxSize, opts, metrics.NoopMetricsHandler),
 	}
 }
 

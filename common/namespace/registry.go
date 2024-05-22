@@ -35,6 +35,7 @@ import (
 	"golang.org/x/exp/maps"
 
 	"go.temporal.io/api/serviceerror"
+
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/cache"
 	"go.temporal.io/server/common/clock"
@@ -172,8 +173,8 @@ type (
 
 		// cacheLock protects cachNameToID, cacheByID and stateChangeCallbacks.
 		cacheLock                     sync.RWMutex
-		cacheNameToID                 cache.Cache
-		cacheByID                     cache.Cache
+		cacheNameToID                 cache.Cache[Name, ID]
+		cacheByID                     cache.Cache[ID, *Namespace]
 		stateChangeCallbacks          map[any]StateChangeCallbackFn
 		stateChangedDuringReadthrough []*Namespace
 
@@ -184,7 +185,7 @@ type (
 		readthroughLock sync.Mutex
 		// readthroughNotFoundCache stores namespaces that missed the above caches
 		// AND was not found when reading through to the persistence layer
-		readthroughNotFoundCache cache.Cache
+		readthroughNotFoundCache cache.Cache[string, struct{}]
 
 		// Temporary solution to force read search attributes from persistence
 		forceSearchAttributesCacheRefreshOnRead dynamicconfig.BoolPropertyFn
@@ -208,11 +209,11 @@ func NewRegistry(
 		clock:                    clock.NewRealTimeSource(),
 		metricsHandler:           metricsHandler.WithTags(metrics.OperationTag(metrics.NamespaceCacheScope)),
 		logger:                   logger,
-		cacheNameToID:            cache.New(cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler),
-		cacheByID:                cache.New(cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler),
+		cacheNameToID:            cache.New[Name, ID](cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler),
+		cacheByID:                cache.New[ID, *Namespace](cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler),
 		refreshInterval:          refreshInterval,
 		stateChangeCallbacks:     make(map[any]StateChangeCallbackFn),
-		readthroughNotFoundCache: cache.New(cacheMaxSize, &readthroughNotFoundCacheOpts, metrics.NoopMetricsHandler),
+		readthroughNotFoundCache: cache.New[string, struct{}](cacheMaxSize, &readthroughNotFoundCacheOpts, metrics.NoopMetricsHandler),
 
 		forceSearchAttributesCacheRefreshOnRead: forceSearchAttributesCacheRefreshOnRead,
 	}
@@ -465,8 +466,8 @@ func (r *registry) refreshNamespaces(ctx context.Context) error {
 	}
 
 	// Make a copy of the existing namespace cache (excluding deleted), so we can calculate diff and do "compare and swap".
-	newCacheNameToID := cache.New(cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler)
-	newCacheByID := cache.New(cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler)
+	newCacheNameToID := cache.New[Name, ID](cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler)
+	newCacheByID := cache.New[ID, *Namespace](cacheMaxSize, &cacheOpts, metrics.NoopMetricsHandler)
 	var deletedEntries []*Namespace
 	for _, namespace := range r.getAllNamespace() {
 		if _, namespaceExistsDb := namespaceIDsDb[namespace.ID()]; !namespaceExistsDb {
@@ -511,7 +512,7 @@ func (r *registry) refreshNamespaces(ctx context.Context) error {
 }
 
 func (r *registry) updateIDToNamespaceCache(
-	cacheByID cache.Cache,
+	cacheByID cache.Cache[ID, *Namespace],
 	id ID,
 	newNS *Namespace,
 ) (oldNS *Namespace) {
@@ -526,7 +527,7 @@ func (r *registry) updateIDToNamespaceCache(
 func (r *registry) getNamespace(name Name) (*Namespace, error) {
 	r.cacheLock.RLock()
 	defer r.cacheLock.RUnlock()
-	if id, ok := r.cacheNameToID.Get(name).(ID); ok {
+	if id, ok := r.cacheNameToID.Get(name); ok {
 		return r.getNamespaceByIDLocked(id)
 	}
 	return nil, serviceerror.NewNamespaceNotFound(name.String())

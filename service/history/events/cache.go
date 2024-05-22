@@ -59,7 +59,7 @@ type (
 	}
 
 	CacheImpl struct {
-		cache.Cache
+		cache.Cache[EventKey]
 		executionManager persistence.ExecutionManager
 		metricsHandler   metrics.Handler
 		logger           log.Logger
@@ -110,7 +110,7 @@ func newEventsCache(
 
 	taggedMetricHandler := metricsHandler.WithTags(metrics.StringTag(metrics.CacheTypeTagName, metrics.EventsCacheTypeTagValue))
 	return &CacheImpl{
-		Cache:            cache.New(maxSize, opts, taggedMetricHandler),
+		Cache:            cache.New[EventKey](maxSize, opts, taggedMetricHandler),
 		executionManager: executionManager,
 		metricsHandler:   taggedMetricHandler,
 		logger:           logger,

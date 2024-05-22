@@ -34,60 +34,60 @@ var (
 )
 
 type (
-	simple struct {
+	simple[K Key, V Value] struct {
 		sync.RWMutex
-		accessMap   map[interface{}]*list.Element
+		accessMap   map[K]*list.Element
 		iterateList *list.List
 		rmFunc      RemovedFunc
 	}
 
-	simpleItr struct {
-		simple   *simple
+	simpleItr[K Key, V Value] struct {
+		simple   *simple[K, V]
 		nextItem *list.Element
 	}
 
-	simpleEntry struct {
-		key   interface{}
-		value interface{}
+	simpleEntry[K Key, V Value] struct {
+		key   K
+		value V
 	}
 )
 
 // Close closes the iterator
-func (it *simpleItr) Close() {
+func (it *simpleItr[K, V]) Close() {
 	it.simple.RUnlock()
 }
 
 // HasNext return true if there is more items to be returned
-func (it *simpleItr) HasNext() bool {
+func (it *simpleItr[K, V]) HasNext() bool {
 	return it.nextItem != nil
 }
 
 // Next returns the next item
-func (it *simpleItr) Next() Entry {
+func (it *simpleItr[K, V]) Next() Entry {
 	if it.nextItem == nil {
 		panic("Simple cache iterator Next called when there is no next item")
 	}
 
-	entry := it.nextItem.Value.(*simpleEntry)
+	entry := it.nextItem.Value.(*simpleEntry[K, V])
 	it.nextItem = it.nextItem.Next()
 	// make a copy of the entry so there will be no concurrent access to this entry
-	entry = &simpleEntry{
+	entry = &simpleEntry[K, V]{
 		key:   entry.key,
 		value: entry.value,
 	}
 	return entry
 }
 
-func (e *simpleEntry) Key() interface{} {
+func (e *simpleEntry[K, V]) Key() interface{} {
 	return e.key
 }
 
-func (e *simpleEntry) Value() interface{} {
+func (e *simpleEntry[K, V]) Value() interface{} {
 	return e.value
 }
 
 // CreateTime is not implemented for simple cache entries
-func (e *simpleEntry) CreateTime() time.Time {
+func (e *simpleEntry[K, V]) CreateTime() time.Time {
 	return DummyCreateTime
 }
 
@@ -96,19 +96,19 @@ func (e *simpleEntry) CreateTime() time.Time {
 // Simple cache also does not have the concept of pinning that LRU cache has.
 // Internally simple cache uses a RWMutex instead of the exclusive Mutex that LRU cache uses.
 // The RWMutex makes simple cache readable by many threads without introducing lock contention.
-func NewSimple(opts *SimpleOptions) Cache {
+func NewSimple[K Key, V Value](opts *SimpleOptions) Cache[K, V] {
 	if opts == nil {
 		opts = &SimpleOptions{}
 	}
-	return &simple{
+	return &simple[K, V]{
 		iterateList: list.New(),
-		accessMap:   make(map[interface{}]*list.Element),
+		accessMap:   make(map[K]*list.Element),
 		rmFunc:      opts.RemovedFunc,
 	}
 }
 
 // Get retrieves the value stored under the given key
-func (c *simple) Get(key interface{}) interface{} {
+func (c *simple[K, V]) Get(key K) interface{} {
 	c.RLock()
 	defer c.RUnlock()
 
@@ -116,11 +116,11 @@ func (c *simple) Get(key interface{}) interface{} {
 	if element == nil {
 		return nil
 	}
-	return element.Value.(*simpleEntry).Value()
+	return element.Value.(*simpleEntry[K, V]).Value()
 }
 
 // Put puts a new value associated with a given key, returning the existing value (if present).
-func (c *simple) Put(key interface{}, value interface{}) interface{} {
+func (c *simple[K, V]) Put(key K, value V) interface{} {
 	c.Lock()
 	defer c.Unlock()
 	existing := c.putInternal(key, value, true)
@@ -128,7 +128,7 @@ func (c *simple) Put(key interface{}, value interface{}) interface{} {
 }
 
 // PutIfNotExist puts a value associated with a given key if it does not exist
-func (c *simple) PutIfNotExist(key interface{}, value interface{}) (interface{}, error) {
+func (c *simple[K, V]) PutIfNotExist(key K, value V) (interface{}, error) {
 	c.Lock()
 	defer c.Unlock()
 	existing := c.putInternal(key, value, false)
@@ -140,7 +140,7 @@ func (c *simple) PutIfNotExist(key interface{}, value interface{}) (interface{},
 }
 
 // Delete deletes a key, value pair associated with a key
-func (c *simple) Delete(key interface{}) {
+func (c *simple[K, V]) Delete(key K) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -148,7 +148,7 @@ func (c *simple) Delete(key interface{}) {
 	if element == nil {
 		return
 	}
-	entry := c.iterateList.Remove(element).(*simpleEntry)
+	entry := c.iterateList.Remove(element).(*simpleEntry[K, V])
 	if c.rmFunc != nil {
 		go c.rmFunc(entry.value)
 	}
@@ -156,36 +156,36 @@ func (c *simple) Delete(key interface{}) {
 }
 
 // Release does nothing for simple cache
-func (c *simple) Release(_ interface{}) {}
+func (c *simple[K, V]) Release(_ K) {}
 
 // Size returns the number of entries currently in the cache
-func (c *simple) Size() int {
+func (c *simple[K, V]) Size() int {
 	c.RLock()
 	defer c.RUnlock()
 
 	return len(c.accessMap)
 }
 
-func (c *simple) Iterator() Iterator {
+func (c *simple[K, V]) Iterator() Iterator {
 	c.RLock()
-	iterator := &simpleItr{
+	iterator := &simpleItr[K, V]{
 		simple:   c,
 		nextItem: c.iterateList.Front(),
 	}
 	return iterator
 }
 
-func (c *simple) putInternal(key interface{}, value interface{}, allowUpdate bool) interface{} {
+func (c *simple[K, V]) putInternal(key K, value V, allowUpdate bool) interface{} {
 	elt := c.accessMap[key]
 	if elt != nil {
-		entry := elt.Value.(*simpleEntry)
+		entry := elt.Value.(*simpleEntry[K, V])
 		existing := entry.value
 		if allowUpdate {
 			entry.value = value
 		}
 		return existing
 	}
-	entry := &simpleEntry{
+	entry := &simpleEntry[K, V]{
 		key:   key,
 		value: value,
 	}

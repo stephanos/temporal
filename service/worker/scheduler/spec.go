@@ -59,7 +59,7 @@ type (
 		// equivalent value for the same location name. This isn't strictly true, for example if
 		// the time zone database is changed while the process is running. To handle that, we
 		// expire entries after a day. Note that we cache negative results also.
-		locationCache cache.Cache
+		locationCache cache.Cache[string]
 	}
 
 	locationAndError struct {
@@ -70,7 +70,7 @@ type (
 
 func NewSpecBuilder() *SpecBuilder {
 	return &SpecBuilder{
-		locationCache: cache.New(1000,
+		locationCache: cache.New[string](1000,
 			&cache.Options{
 				TTL: 24 * time.Hour,
 			},
