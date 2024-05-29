@@ -106,18 +106,6 @@ func New(id string, opts ...updateOpt) *Update {
 	return upd
 }
 
-func withCompletionCallback(cb func()) updateOpt {
-	return func(u *Update) {
-		u.onComplete = cb
-	}
-}
-
-func withInstrumentation(i *instrumentation) updateOpt {
-	return func(u *Update) {
-		u.instrumentation = i
-	}
-}
-
 func newAdmitted(id string, request *anypb.Any, opts ...updateOpt) *Update {
 	upd := &Update{
 		id:              id,
@@ -169,6 +157,18 @@ func newCompleted(
 		opt(upd)
 	}
 	return upd
+}
+
+func withCompletionCallback(cb func()) updateOpt {
+	return func(u *Update) {
+		u.onComplete = cb
+	}
+}
+
+func withInstrumentation(i *instrumentation) updateOpt {
+	return func(u *Update) {
+		u.instrumentation = i
+	}
 }
 
 // WaitLifecycleStage waits until the Update has reached waitStage or a timeout.
