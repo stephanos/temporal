@@ -2637,25 +2637,6 @@ func (s *FunctionalSuite) TestUpdateWorkflow_SpeculativeWorkflowTask_StartToClos
 	s.Error(err)
 	s.Equal("Workflow task not found.", err.Error())
 
-	// ensure correct metrics were recorded
-	snap := capture.Snapshot()
-
-	var speculativeWorkflowTaskTimeoutTasks int
-	for _, m := range snap[metrics.TaskRequests.Name()] {
-		if m.Tags[metrics.OperationTagName] == metrics.TaskTypeTimerActiveTaskSpeculativeWorkflowTaskTimeout {
-			speculativeWorkflowTaskTimeoutTasks += 1
-		}
-	}
-	s.Equal(1, speculativeWorkflowTaskTimeoutTasks, "expected 1 speculative workflow task timeout task to be created")
-
-	var speculativeStartToCloseTimeouts int
-	for _, m := range snap[metrics.StartToCloseTimeoutCounter.Name()] {
-		if m.Tags[metrics.OperationTagName] == metrics.TaskTypeTimerActiveTaskSpeculativeWorkflowTaskTimeout {
-			speculativeStartToCloseTimeouts += 1
-		}
-	}
-	s.Equal(1, speculativeStartToCloseTimeouts, "expected 1 timeout of a speculative workflow task timeout task")
-
 	// New normal WT was created on server after speculative WT has timed out.
 	// It will accept and complete update first and workflow itself with the same WT.
 	res, err := poller.PollAndProcessWorkflowTask(WithoutRetries)
@@ -2685,6 +2666,25 @@ func (s *FunctionalSuite) TestUpdateWorkflow_SpeculativeWorkflowTask_StartToClos
  11 WorkflowExecutionUpdateAccepted {"AcceptedRequestSequencingEventId": 8} // WTScheduled event which delivered update to the worker.
  12 WorkflowExecutionUpdateCompleted {"AcceptedEventId": 11} 
  13 WorkflowExecutionCompleted`, events)
+
+	// ensure correct metrics were recorded
+	snap := capture.Snapshot()
+
+	var speculativeWorkflowTaskTimeoutTasks int
+	for _, m := range snap[metrics.TaskRequests.Name()] {
+		if m.Tags[metrics.OperationTagName] == metrics.TaskTypeTimerActiveTaskSpeculativeWorkflowTaskTimeout {
+			speculativeWorkflowTaskTimeoutTasks += 1
+		}
+	}
+	s.Equal(1, speculativeWorkflowTaskTimeoutTasks, "expected 1 speculative workflow task timeout task to be created")
+
+	var speculativeStartToCloseTimeouts int
+	for _, m := range snap[metrics.StartToCloseTimeoutCounter.Name()] {
+		if m.Tags[metrics.OperationTagName] == metrics.TaskTypeTimerActiveTaskSpeculativeWorkflowTaskTimeout {
+			speculativeStartToCloseTimeouts += 1
+		}
+	}
+	s.Equal(1, speculativeStartToCloseTimeouts, "expected 1 timeout of a speculative workflow task timeout task")
 }
 
 func (s *FunctionalSuite) TestUpdateWorkflow_SpeculativeWorkflowTask_ScheduleToStartTimeout() {
