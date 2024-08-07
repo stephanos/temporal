@@ -1,0 +1,86 @@
+# https://d2lang.com
+# Generate SVG by running `make` inside of `docs/`.
+
+Wrapper: {
+    grid-rows: 1
+    vertical-gap: 0
+    horizontal-gap: 40
+
+    style.opacity: 0
+    label: ""
+
+    UserHosted: {
+        grid-rows: 2
+        vertical-gap: 120
+        horizontal-gap: 30
+
+        label: "User-hosted processes"
+        style.font-size: 25
+        style.stroke-width: 0
+
+        Client: {
+            label: "User Application\n\n(e.g. Backend, CLI, Web UI)"
+            style.multiple: true
+        }
+        Worker: {
+            label: "Temporal Worker"
+            style.multiple: true
+        }
+    }
+
+    Cluster: {
+        grid-columns: 2
+        vertical-gap: 60
+        horizontal-gap: 20
+
+        style.stroke-width: 0
+
+        Server: {
+            grid-columns: 2
+            vertical-gap: 70
+            horizontal-gap: 40
+
+            label: "Temporal Server"
+            style.font-size: 25
+            style.stroke-width: 0
+
+            Frontend: {
+                style.multiple: true
+            }
+            History: {
+                style.bold: true
+                style.multiple: true
+
+                Shard: {
+                    style.multiple: true
+                }
+            }
+            Matching: {
+                style.multiple: true
+            }
+        }
+
+        Database: {
+            grid-rows: 2
+            vertical-gap: 100
+            horizontal-gap: 25
+
+            label: ""
+            style.stroke-width: 0
+
+            Persistence: {
+                style.border-radius: 100
+            }
+            Visibility: {
+                style.border-radius: 100
+            }
+        }
+    }
+}
+
+Wrapper.UserHosted.Client -> Wrapper.Cluster.Server.Frontend
+Wrapper.UserHosted.Worker -> Wrapper.Cluster.Server.Frontend
+Wrapper.Cluster.Server.Frontend -> Wrapper.Cluster.Server.Matching
+Wrapper.Cluster.Server.Frontend -> Wrapper.Cluster.Server.History
+Wrapper.Cluster.Server.History -> Wrapper.Cluster.Server.Matching
+Wrapper.Cluster.Server.Matching -> Wrapper.Cluster.Server.History
