@@ -87,6 +87,10 @@ func NewZapLogger(zl *zap.Logger) *zapLogger {
 
 // BuildZapLogger builds and returns a new zap.Logger for this logging configuration
 func BuildZapLogger(cfg Config) *zap.Logger {
+	// When in-code assertions are enabled, always put the logger into development mode so that
+	// calls to `DPanic` will panic (instead of logging an error).
+	cfg.Development = assert.WithAssertions
+
 	return buildZapLogger(cfg, true)
 }
 

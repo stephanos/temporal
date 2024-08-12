@@ -54,7 +54,7 @@ func TestFoo(t *testing.T) {
             },
         },
     }
-
+	
 	req2 := &workflowservice.UpdateWorkflowExecutionRequest{
         Namespace:         tv2.NamespaceName().String(),
         WorkflowExecution: tv2.WorkflowExecution(),
@@ -81,3 +81,9 @@ or if there's no SDK support for that API available yet.
 You'll find a fully initialized task poller in any functional test suite, look for `s.TaskPoller`.
 
 _NOTE: The previous `testcore.TaskPoller` has been deprecated and should not be used in new code._
+
+### assertions
+
+The `go.temporal.io/server/common/assert` package provides in-code assertions that are disabled
+by default. It is recommended to enable them during development/testing to catch any potential
+issues early. To enable them, use the `-tags=with_assertions` build tag.

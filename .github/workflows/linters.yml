@@ -109,14 +109,29 @@ jobs:
             exit 1
           fi
 
+  lint-assertions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+
+      - name: check-assertions-disabled
+        run: |
+          make check-assertions-disabled
+
   linters-succeed:
     name: All Linters Succeed
     needs:
       - lint-api
       - lint-protos
       - lint-actions
-      - fmt-imports
-      - golangci
+      - lint-assertions
     runs-on: ubuntu-latest
     if: always()
     env:
