@@ -34,10 +34,11 @@ import (
 	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/pborman/uuid"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/fx"
+
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
-	"go.uber.org/fx"
 
 	enumsspb "go.temporal.io/server/api/enums/v1"
 	"go.temporal.io/server/api/historyservice/v1"

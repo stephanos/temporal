@@ -41,17 +41,11 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
 
-	"go.temporal.io/server/common/definition"
-
-	"go.temporal.io/server/common/tasktoken"
-	"go.temporal.io/server/internal/effect"
-	"go.temporal.io/server/internal/protocol"
-	"go.temporal.io/server/service/history/workflow/update"
-
 	"go.temporal.io/server/api/historyservice/v1"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/backoff"
 	"go.temporal.io/server/common/collection"
+	"go.temporal.io/server/common/definition"
 	"go.temporal.io/server/common/enums"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
@@ -60,9 +54,13 @@ import (
 	"go.temporal.io/server/common/payload"
 	"go.temporal.io/server/common/payloads"
 	"go.temporal.io/server/common/searchattribute"
+	"go.temporal.io/server/common/tasktoken"
+	"go.temporal.io/server/internal/effect"
+	"go.temporal.io/server/internal/protocol"
 	"go.temporal.io/server/service/history/configs"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
+	"go.temporal.io/server/service/history/workflow/update"
 )
 
 const (

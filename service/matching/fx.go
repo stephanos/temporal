@@ -27,7 +27,6 @@ package matching
 import (
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
-
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"go.temporal.io/server/common"

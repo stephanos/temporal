@@ -30,8 +30,9 @@ import (
 	"strconv"
 
 	"github.com/dgryski/go-farm"
-	historypb "go.temporal.io/api/history/v1"
 	"go.uber.org/fx"
+
+	historypb "go.temporal.io/api/history/v1"
 
 	historyspb "go.temporal.io/server/api/history/v1"
 	"go.temporal.io/server/client"

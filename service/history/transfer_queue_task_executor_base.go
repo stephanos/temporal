@@ -28,11 +28,12 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/protobuf/types/known/durationpb"
+
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	"go.temporal.io/server/api/matchingservice/v1"
 	taskqueuespb "go.temporal.io/server/api/taskqueue/v1"

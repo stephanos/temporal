@@ -35,11 +35,15 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/durationpb"
+
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/worker"
+
 	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/api/matchingservicemock/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
@@ -51,8 +55,6 @@ import (
 	"go.temporal.io/server/common/persistence/visibility/manager"
 	"go.temporal.io/server/common/quotas"
 	"go.temporal.io/server/common/worker_versioning"
-	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func Test_findBuildIdsToRemove_AcceptsNilVersioningData(t *testing.T) {
