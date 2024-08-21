@@ -28,11 +28,12 @@ import (
 	"context"
 
 	historypb "go.temporal.io/api/history/v1"
+	"go.uber.org/fx"
+
 	historyspb "go.temporal.io/server/api/history/v1"
 	"go.temporal.io/server/common/definition"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/service/history/replication/eventhandler"
-	"go.uber.org/fx"
 
 	"go.temporal.io/server/client"
 	"go.temporal.io/server/common/log"

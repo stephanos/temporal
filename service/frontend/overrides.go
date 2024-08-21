@@ -29,6 +29,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"go.temporal.io/api/workflowservice/v1"
+
 	"go.temporal.io/server/common/headers"
 )
 

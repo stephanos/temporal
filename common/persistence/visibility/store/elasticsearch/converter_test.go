@@ -34,6 +34,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	enumspb "go.temporal.io/api/enums/v1"
+
 	"go.temporal.io/server/common/persistence/visibility/store/query"
 	"go.temporal.io/server/common/searchattribute"
 )

@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"go.temporal.io/server/common/clock"
 )
 

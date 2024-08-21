@@ -27,9 +27,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/rpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"go.temporal.io/server/common/rpc"
 )
 
 func TestRequestIssues(t *testing.T) {

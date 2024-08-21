@@ -28,8 +28,9 @@ import (
 	"errors"
 	"time"
 
-	"go.temporal.io/server/common/primitives/timestamp"
 	"google.golang.org/protobuf/types/known/durationpb"
+
+	"go.temporal.io/server/common/primitives/timestamp"
 )
 
 const (

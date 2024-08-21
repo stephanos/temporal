@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+
 	"go.temporal.io/server/common/config"
 	"go.temporal.io/server/common/persistence/schema"
 	"go.temporal.io/server/common/persistence/sql/sqlplugin"

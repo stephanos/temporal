@@ -26,6 +26,7 @@ package cassandra
 
 import (
 	"github.com/gocql/gocql"
+
 	"go.temporal.io/server/common/config"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/metrics"

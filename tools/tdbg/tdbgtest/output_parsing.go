@@ -29,8 +29,9 @@ import (
 	"io"
 
 	"go.temporal.io/api/temporalproto"
-	"go.temporal.io/server/tools/tdbg"
 	"google.golang.org/protobuf/proto"
+
+	"go.temporal.io/server/tools/tdbg"
 )
 
 type (

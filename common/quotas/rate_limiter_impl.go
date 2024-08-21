@@ -28,8 +28,9 @@ import (
 	"sync"
 	"time"
 
-	"go.temporal.io/server/common/clock"
 	"golang.org/x/time/rate"
+
+	"go.temporal.io/server/common/clock"
 )
 
 type (

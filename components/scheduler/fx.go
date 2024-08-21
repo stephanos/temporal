@@ -23,8 +23,9 @@
 package scheduler
 
 import (
-	"go.temporal.io/server/service/worker/scheduler"
 	"go.uber.org/fx"
+
+	"go.temporal.io/server/service/worker/scheduler"
 )
 
 var Module = fx.Module(

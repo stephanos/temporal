@@ -28,7 +28,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"time"
 
 	commonpb "go.temporal.io/api/common/v1"

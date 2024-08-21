@@ -29,9 +29,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	protocolpb "go.temporal.io/api/protocol/v1"
-	"go.temporal.io/server/internal/protocol"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	"go.temporal.io/server/internal/protocol"
 )
 
 func TestNilSafety(t *testing.T) {

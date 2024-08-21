@@ -30,10 +30,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/log/tag"
-	"go.temporal.io/server/common/quotas"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"go.temporal.io/server/common/log/tag"
+	"go.temporal.io/server/common/quotas"
 )
 
 type writeBuffer struct {

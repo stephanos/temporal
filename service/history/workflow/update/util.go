@@ -29,10 +29,11 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/api/serviceerror"
+	"google.golang.org/protobuf/proto"
+
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
-	"google.golang.org/protobuf/proto"
 )
 
 const libraryName = "go.temporal.io/service/history/workflow/update"

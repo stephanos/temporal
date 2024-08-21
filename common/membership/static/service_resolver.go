@@ -28,6 +28,7 @@ import (
 	"sync"
 
 	"github.com/dgryski/go-farm"
+
 	"go.temporal.io/server/common/membership"
 )
 

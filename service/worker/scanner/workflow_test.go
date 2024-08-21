@@ -34,6 +34,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
+
 	"go.temporal.io/server/common/primitives"
 
 	"go.temporal.io/sdk/testsuite"

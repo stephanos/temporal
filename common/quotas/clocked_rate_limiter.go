@@ -30,8 +30,9 @@ import (
 	"fmt"
 	"time"
 
-	"go.temporal.io/server/common/clock"
 	"golang.org/x/time/rate"
+
+	"go.temporal.io/server/common/clock"
 )
 
 // ClockedRateLimiter wraps a rate.Limiter with a clock.TimeSource. It is used to ensure that the rate limiter respects

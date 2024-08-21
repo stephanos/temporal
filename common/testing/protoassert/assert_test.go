@@ -29,6 +29,7 @@ import (
 
 	commonpb "go.temporal.io/api/common/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
+
 	"go.temporal.io/server/common/testing/protoassert"
 )
 

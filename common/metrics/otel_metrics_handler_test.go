@@ -39,6 +39,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	sdkmetrics "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
 	"go.temporal.io/server/common/log/tag"
 
 	"go.temporal.io/server/common/log"

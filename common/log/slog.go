@@ -30,9 +30,10 @@ import (
 	"context"
 	"log/slog"
 
-	"go.temporal.io/server/common/log/tag"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"go.temporal.io/server/common/log/tag"
 )
 
 type handler struct {

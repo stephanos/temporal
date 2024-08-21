@@ -29,8 +29,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/telemetry"
 	"gopkg.in/yaml.v3"
+
+	"go.temporal.io/server/common/telemetry"
 )
 
 var basicOTLPTraceOnlyConfig = `

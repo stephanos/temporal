@@ -32,8 +32,9 @@ import (
 	"time"
 
 	schedpb "go.temporal.io/api/schedule/v1"
-	"go.temporal.io/server/common/primitives/timestamp"
 	"google.golang.org/protobuf/types/known/durationpb"
+
+	"go.temporal.io/server/common/primitives/timestamp"
 )
 
 type (

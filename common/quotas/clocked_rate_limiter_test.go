@@ -30,9 +30,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/time/rate"
+
 	"go.temporal.io/server/common/clock"
 	"go.temporal.io/server/common/quotas"
-	"golang.org/x/time/rate"
 )
 
 func TestClockedRateLimiter_Allow_NoQuota(t *testing.T) {

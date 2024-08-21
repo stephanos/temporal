@@ -35,9 +35,10 @@ import (
 	sdkclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
-	"go.temporal.io/server/api/adminservice/v1"
 	"go.uber.org/atomic"
 	"go.uber.org/fx"
+
+	"go.temporal.io/server/api/adminservice/v1"
 
 	enumspb "go.temporal.io/server/api/enums/v1"
 	"go.temporal.io/server/api/historyservice/v1"

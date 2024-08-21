@@ -31,10 +31,11 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
-	commonnexus "go.temporal.io/server/common/nexus"
-	"go.temporal.io/server/service/history/hsm"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/service/history/hsm"
 )
 
 func handleSuccessfulOperationResult(

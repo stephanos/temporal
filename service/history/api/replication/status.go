@@ -27,10 +27,11 @@ package replication
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"go.temporal.io/server/api/historyservice/v1"
 	"go.temporal.io/server/service/history/replication"
 	"go.temporal.io/server/service/history/shard"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func GetStatus(
