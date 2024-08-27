@@ -1116,6 +1116,21 @@ func (s *FunctionalSuite) TestExecuteMultiOperation() {
 				s.False(resp.Responses[0].GetStartWorkflow().Started)
 			})
 
+			s.Run("workflow id conflict policy use-existing & start delay: only send update", func() {
+				tv := testvars.New(s.T())
+
+				req := startWorkflowReq(tv)
+				req.WorkflowStartDelay = timestamp.DurationFromSeconds(10)
+				resp1, err := s.client.StartWorkflowExecution(NewContext(), req)
+				s.NoError(err)
+				s.True(resp1.Started)
+
+				req.WorkflowIdConflictPolicy = enumspb.WORKFLOW_ID_CONFLICT_POLICY_USE_EXISTING
+				resp2, err := runUpdateWithStart(tv, req, updateWorkflowReq(tv))
+				s.NoError(err)
+				s.False(resp2.Responses[0].GetStartWorkflow().Started)
+			})
+
 			s.Run("workflow id conflict policy terminate-existing: terminate workflow first, then start and update", func() {
 				tv := testvars.New(s.T())
 
