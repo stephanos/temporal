@@ -54,6 +54,7 @@ import (
 	"go.temporal.io/server/common/testing/testvars"
 	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"pgregory.net/rapid"
 )
 
 type UpdateWorkflowSuite struct {
@@ -5337,6 +5338,88 @@ func (s *UpdateWorkflowSuite) TestUpdateWithStart() {
 		s.Len(errs, 2)
 		s.Equal("Operation was aborted.", errs[0].Error())
 		s.Contains(errs[1].Error(), "limit on number of total updates has been reached")
+	})
+
+	s.Run("properties", func() {
+		rapid.Check(s.T(), func(t *rapid.T) {
+			tv := testvars.New(s.T())
+
+			var alreadyStartedErr *serviceerror.WorkflowExecutionAlreadyStarted
+			genConflictPolicy := rapid.SampledFrom([]enumspb.WorkflowIdConflictPolicy{
+				enumspb.WORKFLOW_ID_CONFLICT_POLICY_TERMINATE_EXISTING,
+				enumspb.WORKFLOW_ID_CONFLICT_POLICY_USE_EXISTING,
+				enumspb.WORKFLOW_ID_CONFLICT_POLICY_FAIL,
+			})
+
+			var running bool
+			t.Repeat(map[string]func(*rapid.T){
+				"start workflow": func(t *rapid.T) {
+					startReq := startWorkflowReq(tv)
+					startReq.WorkflowIdConflictPolicy = rapid.OneOf(genConflictPolicy).Draw(t, "conflict policy")
+					_, err := s.FrontendClient().StartWorkflowExecution(testcore.NewContext(), startReq)
+					switch {
+					case errors.As(err, &alreadyStartedErr):
+						if startReq.WorkflowIdConflictPolicy != enumspb.WORKFLOW_ID_CONFLICT_POLICY_FAIL {
+							t.Fatalf("received unexpected error: %v", err)
+						}
+					case err != nil:
+						t.Fatalf("received unexpected error: %v", err)
+					}
+					running = true
+				},
+
+				"update-with-start": func(t *rapid.T) {
+					//startReq := startWorkflowReq(tv)
+					//startReq.WorkflowIdConflictPolicy = enumspb.WORKFLOW_ID_CONFLICT_POLICY_USE_EXISTING
+					//updateReq := s.updateWorkflowRequest(tv,
+					//	&updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED}, "1")
+					//uwsCh := sendUpdateWithStart(testcore.NewContext(), startReq, updateReq)
+					//
+					//_, err := s.TaskPoller.PollAndHandleWorkflowTask(tv,
+					//	func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
+					//		return &workflowservice.RespondWorkflowTaskCompletedRequest{
+					//			Messages: s.UpdateAcceptCompleteMessages(tv, task.Messages[0], "1"),
+					//		}, nil
+					//	})
+					//s.NoError(err)
+				},
+
+				"update workflow": func(t *rapid.T) {
+					if !running {
+						t.Skip("workflow is not running")
+					}
+					// TODO
+				},
+
+				"complete workflow": func(t *rapid.T) {
+					if !running {
+						t.Skip("workflow is not running")
+					}
+				},
+
+				"terminate workflow": func(t *rapid.T) {
+					if !running {
+						t.Skip("workflow is not running")
+					}
+
+					_, err := s.FrontendClient().TerminateWorkflowExecution(testcore.NewContext(),
+						&workflowservice.TerminateWorkflowExecutionRequest{
+							Namespace:         s.Namespace(),
+							WorkflowExecution: tv.WorkflowExecution(),
+							Reason:            tv.Any().String(),
+						})
+					s.NoError(err)
+				},
+
+				//updateReq := s.updateWorkflowRequest(tv,
+				//	&updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED}, "1")
+
+				// "Check" step. This is run after every other action. No side effects!
+				"": func(t *rapid.T) {
+					// TODO
+				},
+			})
+		})
 	})
 }
 
