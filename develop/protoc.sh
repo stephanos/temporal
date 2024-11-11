@@ -11,11 +11,14 @@ color "Generating protos..."
 
 rm -rf "$new" && mkdir -p "$new"
 
+echo $(pwd)
+
 $PROTOGEN \
   --descriptor_set_in="$API_BINPB" \
   --root="$PROTO_ROOT"/internal \
   --rewrite-enum=BuildId_State:BuildId \
   --output="$new" \
+  -I ./proto/protovalidate \
   -p go-grpc_out=paths=source_relative:"$new" \
   -p go-helpers_out=paths=source_relative:"$new"
 
