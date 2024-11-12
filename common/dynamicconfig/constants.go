@@ -169,7 +169,7 @@ for signal / start / signal with start API if namespace is not active`,
 	)
 	ForceSearchAttributesCacheRefreshOnRead = NewGlobalBoolSetting(
 		"system.forceSearchAttributesCacheRefreshOnRead",
-		false,
+		true,
 		`ForceSearchAttributesCacheRefreshOnRead forces refreshing search attributes cache on a read operation, so we always
 get the latest data from DB. This effectively bypasses cache value and is used to facilitate testing of changes in
 search attributes. This should not be turned on in production.`,
