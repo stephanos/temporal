@@ -27,6 +27,7 @@ package recordworkflowtaskstarted
 import (
 	"context"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	querypb "go.temporal.io/api/query/v1"
@@ -270,6 +271,7 @@ func setHistoryForRecordWfTaskStartedResp(
 		persistenceVisibilityMgr,
 	)
 	if err != nil {
+		assert.Sometimes(true, "GetHistory call failed", map[string]any{})
 		return err
 	}
 

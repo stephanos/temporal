@@ -30,6 +30,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"go.opentelemetry.io/otel/trace"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -215,6 +216,7 @@ func (c *ContextImpl) IsDirty() bool {
 }
 
 func (c *ContextImpl) Clear() {
+	assert.Sometimes(true, "Workflow context cleared", map[string]any{"key": c.workflowKey})
 	metrics.WorkflowContextCleared.With(c.metricsHandler).Record(1)
 	if c.MutableState != nil {
 		c.MutableState.GetQueryRegistry().Clear()

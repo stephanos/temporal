@@ -28,6 +28,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -200,6 +201,8 @@ func (u *Updater) ApplyRequest(
 		// This means that a normal WFT was created despite a speculative WFT having been requested. It implies that
 		// there were buffered events. But because there was no pending WFT, there can't be buffered events. Therefore
 		// this should never happen.
+		assert.Unreachable("Workflow task state is inconsistent: WFT type is not speculative",
+			map[string]any{"newWorkflowTask.Type": newWorkflowTask.Type})
 		return nil, consts.ErrWorkflowTaskStateInconsistent
 	}
 
