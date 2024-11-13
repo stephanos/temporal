@@ -27,6 +27,7 @@ package update
 import (
 	"fmt"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/server/common/log"
@@ -98,6 +99,11 @@ func (i *instrumentation) countSentAgain() {
 }
 
 func (i *instrumentation) invalidStateTransition(updateID string, msg proto.Message, state state) {
+	assert.Unreachable("invalid Update state transition attempted", map[string]any{
+		"update-id": updateID,
+		"message":   fmt.Sprintf("%T", msg),
+		"state":     state.String(),
+	})
 	i.oneOf(metrics.InvalidStateTransitionWorkflowExecutionUpdateCounter.Name())
 	i.log.Error("invalid state transition attempted",
 		tag.NewStringTag("update-id", updateID),

@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/gocql/gocql"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -42,6 +43,10 @@ func ConvertError(
 ) error {
 	if err == nil {
 		return nil
+	}
+
+	if strings.Contains(err.Error(), "no such table") {
+		assert.Unreachable("no such table", map[string]any{})
 	}
 
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, gocql.ErrTimeoutNoResponse) || errors.Is(err, gocql.ErrConnectionClosed) {

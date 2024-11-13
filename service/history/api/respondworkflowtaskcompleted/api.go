@@ -28,6 +28,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -186,6 +187,8 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 			// This is NOT 100% bulletproof solution because this write operation may also fail.
 			// TODO: remove this call when GetWorkflowExecutionHistory includes speculative WFT events.
 			if clearStickyErr := handler.clearStickyTaskQueue(ctx, workflowLease.GetContext()); clearStickyErr != nil {
+				assert.Sometimes(true, "Failed to clear stickiness after speculative workflow task failed to complete",
+					map[string]any{"retError": retError, "clearStickyErr": clearStickyErr})
 				handler.logger.Error("Failed to clear stickiness after speculative workflow task failed to complete.",
 					tag.NewErrorTag("clear-sticky-error", clearStickyErr),
 					tag.Error(retError),
@@ -206,11 +209,12 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		currentWorkflowTask == nil ||
 		currentWorkflowTask.StartedEventID == common.EmptyEventID ||
 		(token.StartedEventId != common.EmptyEventID && token.StartedEventId != currentWorkflowTask.StartedEventID) ||
-		(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime)) ||
+		(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime)) || // TODO: previous bug
 		currentWorkflowTask.Attempt != token.Attempt ||
 		(token.Version != common.EmptyVersion && token.Version != currentWorkflowTask.Version) {
 		// Mutable state wasn't changed yet and doesn't have to be cleared.
 		releaseLeaseWithError = false
+		assert.Sometimes(true, "Workflow task not found", nil)
 		return nil, serviceerror.NewNotFound("Workflow task not found.")
 	}
 
@@ -245,12 +249,17 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		// about the way this function exits so while we have this defer here
 		// there is _also_ code to call effects.Cancel at key points.
 		if retError != nil {
+			assert.Sometimes(true, "effects rolled back",
+				map[string]any{"retError": retError})
 			handler.logger.Info("Cancel effects due to error.",
 				tag.Error(retError),
 				tag.WorkflowID(token.GetWorkflowId()),
 				tag.WorkflowRunID(token.GetRunId()),
 				tag.WorkflowNamespaceID(namespaceEntry.ID().String()))
 			effects.Cancel(ctx)
+		} else {
+			// TODO: bug .apply()
+			// https://github.com/temporalio/temporal/pull/5349
 		}
 	}()
 
@@ -601,6 +610,8 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 	}
 
 	if updateErr != nil {
+		assert.Sometimes(true, "update error in respondworkflowtaskcompleted",
+			map[string]any{"updateErr": updateErr})
 		effects.Cancel(ctx)
 		if persistence.IsConflictErr(updateErr) {
 			metrics.ConcurrencyUpdateFailureCounter.With(handler.metricsHandler).Record(
@@ -654,6 +665,8 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		// the registry only has: Updates received while this WFT was running (new Updates).
 		hasNewRun := newMutableState != nil
 		if hasNewRun {
+			assert.Sometimes(true, "completed workflow has new run",
+				map[string]any{"updateErr": updateErr})
 			// If a new run was created (e.g. ContinueAsNew, Retry, Cron), then Updates that were
 			// received while this WFT was running are aborted with a retryable error.
 			// Then, the SDK will retry the API call and the Update will land on the new run.
@@ -703,6 +716,8 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 	if wtFailedCause != nil {
 		// Mutable state was already persisted and doesn't need to be cleared although error is returned to the worker.
 		releaseLeaseWithError = false
+		assert.Sometimes(true, "workflow task failed",
+			map[string]any{"wtFailedCause": wtFailedCause})
 		return nil, serviceerror.NewInvalidArgument(wtFailedCause.Message())
 	}
 

@@ -27,8 +27,10 @@ package persistence
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
@@ -1316,6 +1318,9 @@ func updateErrorMetric(handler metrics.Handler, logger log.Logger, operation str
 			metrics.PersistenceErrResourceExhaustedCounter.With(handler).Record(
 				1, metrics.ResourceExhaustedCauseTag(err.Cause), metrics.ResourceExhaustedScopeTag(err.Scope))
 		default:
+			if strings.Contains(err.Error(), "no such table") {
+				assert.Unreachable("no such table", map[string]any{})
+			}
 			logger.Error("Operation failed with internal error.", tag.Error(err), tag.ErrorType(err), tag.Operation(operation))
 			metrics.PersistenceFailures.With(handler).Record(1)
 		}
