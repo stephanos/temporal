@@ -27,6 +27,7 @@ package update
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	enumspb "go.temporal.io/api/enums/v1"
@@ -178,6 +179,7 @@ func (u *Update) WaitLifecycleStage(
 	if u.outcome.Ready() || waitStage == enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED {
 		outcome, err := u.outcome.Get(stCtx)
 		if err == nil {
+			fmt.Printf("waiter (completed): update %s completed\n", u.id)
 			return statusCompleted(outcome), nil
 		}
 
@@ -188,11 +190,13 @@ func (u *Update) WaitLifecycleStage(
 			//   abort waiting for COMPLETED stage and check if Update has reached ACCEPTED stage.
 			// All other errors are returned to the caller.
 			if !errors.Is(err, registryClearedErr) {
+				fmt.Printf("waiter (completed): update %s err: %v\n", u.id, err.Error())
 				return nil, err
 			}
 		}
 
 		if ctx.Err() != nil {
+			fmt.Printf("waiter (completed): update %s context deadline expiry\n", u.id)
 			// Handle root context deadline expiry as normal error which is returned to the caller.
 			metrics.WorkflowExecutionUpdateClientTimeout.With(u.instrumentation.metrics).Record(1)
 			return nil, ctx.Err()
@@ -209,6 +213,7 @@ func (u *Update) WaitLifecycleStage(
 		rejection, err := u.accepted.Get(stCtx)
 		if err == nil {
 			if rejection != nil {
+				fmt.Printf("waiter (accepted): update %s rejected\n", u.id)
 				return statusRejected(rejection), nil
 			}
 			// Even if only ACCEPTED stage was requested, check if Update was completed on the same WFT,
@@ -217,12 +222,14 @@ func (u *Update) WaitLifecycleStage(
 				var outcome *updatepb.Outcome
 				outcome, err = u.outcome.Get(stCtx)
 				if err == nil {
+					fmt.Printf("waiter (accepted): update %s completed\n", u.id)
 					return statusCompleted(outcome), nil
 				}
 				// If outcome future returned an error, then ACCEPTED is the most advanced stage reached,
 				// and it should be returned to the caller (because it was requested).
 				// This can happen when Workflow completes after accepting but not completing Update.
 			}
+			fmt.Printf("waiter (accepted): update %s accepted\n", u.id)
 			return statusAccepted(), nil
 		}
 
@@ -235,12 +242,15 @@ func (u *Update) WaitLifecycleStage(
 			// or SDK, or user client). This will recreate Update in the Registry.
 			// All other errors are returned to the caller.
 			if !errors.Is(err, registryClearedErr) {
+				fmt.Printf("waiter (accepted): update %s err: %v\n", u.id, err.Error())
 				return nil, err
 			}
+			fmt.Printf("waiter (accepted): update %s registryClearedErr\n", u.id)
 			return nil, WorkflowUpdateAbortedErr
 		}
 
 		if ctx.Err() != nil {
+			fmt.Printf("waiter (accepted): update %s context deadline expiry\n", u.id)
 			// Handle root context deadline expiry as normal error which is returned to the caller.
 			metrics.WorkflowExecutionUpdateClientTimeout.With(u.instrumentation.metrics).Record(1)
 			return nil, ctx.Err()
@@ -249,12 +259,14 @@ func (u *Update) WaitLifecycleStage(
 
 	// If waitStage=COMPLETED or ACCEPTED and neither has been reached before the softTimeout has expired.
 	if stCtx.Err() != nil {
+		fmt.Printf("waiter: update %s server timeout\n", u.id)
 		metrics.WorkflowExecutionUpdateServerTimeout.With(u.instrumentation.metrics).Record(1)
 		return statusAdmitted(), nil
 	}
 
 	// Only get here if waitStage=ADMITTED or UNSPECIFIED and neither ACCEPTED nor COMPLETED are reached.
 	// Return ADMITTED (as the most advanced stage reached) and empty outcome.
+	fmt.Printf("waiter: update %s context deadline expiry\n", u.id)
 	return statusAdmitted(), nil
 }
 

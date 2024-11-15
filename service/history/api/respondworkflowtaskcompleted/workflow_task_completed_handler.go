@@ -387,8 +387,6 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 		if upd == nil {
 			upd, err = handler.updateRegistry.TryResurrect(ctx, message)
 			if err != nil {
-				assert.Unreachable(enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE.String(),
-					map[string]any{"error": err})
 				return handler.failWorkflowTaskOnInvalidArgument(
 					enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE, err)
 			}
@@ -440,8 +438,8 @@ func (handler *workflowTaskCompletedHandler) handleCommandProtocolMessage(
 	if msg, ok := msgs.Take(attr.MessageId); ok {
 		return handler.handleMessage(ctx, msg)
 	}
-	assert.Unreachable(enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE.String(),
-		map[string]any{"ProtocolMessageCommand referenced absent message ID %s": attr.MessageId})
+	assert.Unreachable("ProtocolMessageCommand referenced absent message ID",
+		map[string]any{"ID": attr.MessageId})
 	return handler.failWorkflowTask(
 		enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE,
 		serviceerror.NewInvalidArgument(fmt.Sprintf("ProtocolMessageCommand referenced absent message ID %s", attr.MessageId)),
