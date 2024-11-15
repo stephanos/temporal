@@ -27,6 +27,7 @@ package update
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	enumspb "go.temporal.io/api/enums/v1"
@@ -178,11 +179,13 @@ func (u *Update) WaitLifecycleStage(
 	if u.outcome.Ready() || waitStage == enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED {
 		outcome, err := u.outcome.Get(stCtx)
 		if err == nil {
+			fmt.Printf("waiter (completed): update %s completed\n", u.id)
 			return statusCompleted(outcome), nil
 		}
 
 		// If err is coming from user context (user deadline exceeded), then return it to the caller.
 		if errors.Is(err, ctx.Err()) {
+			fmt.Printf("waiter (completed): update %s context deadline expiry\n", u.id)
 			metrics.WorkflowExecutionUpdateClientTimeout.With(u.instrumentation.metrics).Record(1)
 			return nil, ctx.Err()
 		}
@@ -192,6 +195,7 @@ func (u *Update) WaitLifecycleStage(
 		// If err is not registryClearedErr and is not coming from stCtx,
 		// then it means that the error is from the future itself and needs to be returned to the caller.
 		if !errors.Is(err, registryClearedErr) && !errors.Is(err, stCtx.Err()) {
+			fmt.Printf("waiter (completed): update %s err: %v\n", u.id, err.Error())
 			return nil, err
 		}
 
@@ -206,6 +210,7 @@ func (u *Update) WaitLifecycleStage(
 		rejection, err := u.accepted.Get(stCtx)
 		if err == nil {
 			if rejection != nil {
+				fmt.Printf("waiter (accepted): update %s rejected\n", u.id)
 				return statusRejected(rejection), nil
 			}
 			// Even if only ACCEPTED stage was requested, check if Update was completed on the same WFT,
@@ -214,17 +219,20 @@ func (u *Update) WaitLifecycleStage(
 				var outcome *updatepb.Outcome
 				outcome, err = u.outcome.Get(stCtx)
 				if err == nil {
+					fmt.Printf("waiter (accepted): update %s completed\n", u.id)
 					return statusCompleted(outcome), nil
 				}
 				// If outcome future returned an error, then ACCEPTED is the most advanced stage reached,
 				// and it should be returned to the caller (because it was requested).
 				// This can happen when Workflow completes after accepting but not completing Update.
 			}
+			fmt.Printf("waiter (accepted): update %s accepted\n", u.id)
 			return statusAccepted(), nil
 		}
 
 		// If err is coming from user context (user deadline exceeded), then return it to the caller.
 		if errors.Is(err, ctx.Err()) {
+			fmt.Printf("waiter (accepted): update %s context deadline expiry\n", u.id)
 			metrics.WorkflowExecutionUpdateClientTimeout.With(u.instrumentation.metrics).Record(1)
 			return nil, ctx.Err()
 		}
@@ -234,12 +242,14 @@ func (u *Update) WaitLifecycleStage(
 		// This error will be retried (by history service handler, or history service client in frontend,
 		// or SDK, or user client). This will recreate Update in the Registry.
 		if errors.Is(err, registryClearedErr) {
+			fmt.Printf("waiter (accepted): update %s registryClearedErr\n", u.id)
 			return nil, WorkflowUpdateAbortedErr
 		}
 
 		// If err is not coming from stCtx,
 		// then it means that the error is from the future itself and needs to be returned to the caller.
 		if !errors.Is(err, stCtx.Err()) {
+			fmt.Printf("waiter (accepted): update %s err: %v\n", u.id, err.Error())
 			return nil, err
 		}
 	}
