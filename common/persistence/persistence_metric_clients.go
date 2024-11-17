@@ -1295,6 +1295,10 @@ func (p *metricEmitter) recordRequestMetrics(operation string, caller string, la
 
 func updateErrorMetric(handler metrics.Handler, logger log.Logger, operation string, err error) {
 	if err != nil {
+		if strings.Contains(err.Error(), "no such table") {
+			assert.Unreachable("no such table", map[string]any{})
+		}
+
 		metrics.PersistenceErrorWithType.With(handler).Record(1, metrics.ServiceErrorTypeTag(err))
 		if common.IsContextCanceledErr(err) {
 			// no-op
@@ -1318,9 +1322,6 @@ func updateErrorMetric(handler metrics.Handler, logger log.Logger, operation str
 			metrics.PersistenceErrResourceExhaustedCounter.With(handler).Record(
 				1, metrics.ResourceExhaustedCauseTag(err.Cause), metrics.ResourceExhaustedScopeTag(err.Scope))
 		default:
-			if strings.Contains(err.Error(), "no such table") {
-				assert.Unreachable("no such table", map[string]any{})
-			}
 			logger.Error("Operation failed with internal error.", tag.Error(err), tag.ErrorType(err), tag.Operation(operation))
 			metrics.PersistenceFailures.With(handler).Record(1)
 		}
