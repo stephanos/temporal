@@ -251,8 +251,9 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 				tag.WorkflowNamespaceID(namespaceEntry.ID().String()))
 			effects.Cancel(ctx)
 		} else {
-			// TODO: bug .apply()
+			// Antithesis repro bug:
 			// https://github.com/temporalio/temporal/pull/5349
+			effects.Apply(ctx)
 		}
 	}()
 
@@ -644,7 +645,9 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 
 	// If mutable state was persisted successfully (or persistence was skipped),
 	// then effects needs to be applied immediately to keep registry and mutable state in sync.
-	effects.Apply(ctx)
+	// Antithesis repro bug:
+	// https://github.com/temporalio/temporal/pull/5349
+	//effects.Apply(ctx)
 
 	if !ms.IsWorkflowExecutionRunning() {
 		// NOTE: It is important to call this *after* applying effects to be sure there are no pending effects.
