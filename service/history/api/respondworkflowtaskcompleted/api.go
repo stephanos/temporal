@@ -209,7 +209,7 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		currentWorkflowTask == nil ||
 		currentWorkflowTask.StartedEventID == common.EmptyEventID ||
 		(token.StartedEventId != common.EmptyEventID && token.StartedEventId != currentWorkflowTask.StartedEventID) ||
-		(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime)) || // TODO: previous bug
+		//(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime)) || // Antithesis: previous bug
 		currentWorkflowTask.Attempt != token.Attempt ||
 		(token.Version != common.EmptyVersion && token.Version != currentWorkflowTask.Version) {
 		// Mutable state wasn't changed yet and doesn't have to be cleared.
