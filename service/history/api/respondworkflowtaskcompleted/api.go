@@ -215,6 +215,8 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		// Mutable state wasn't changed yet and doesn't have to be cleared.
 		releaseLeaseWithError = false
 		assert.Sometimes(true, "Workflow task not found", nil)
+		assert.Sometimes(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime),
+			"Workflow task not found: wrong start time", map[string]any{})
 		return nil, serviceerror.NewNotFound("Workflow task not found.")
 	}
 
