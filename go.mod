@@ -9,6 +9,7 @@ retract (
 
 require (
 	cloud.google.com/go/storage v1.41.0
+	github.com/antithesishq/antithesis-sdk-go v0.4.2
 	github.com/aws/aws-sdk-go v1.53.15
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cactus/go-statsd-client/v5 v5.1.0
@@ -85,7 +86,6 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	cloud.google.com/go/iam v1.1.8 // indirect
-	github.com/antithesishq/antithesis-sdk-go v0.4.2 // indirect
 	github.com/apache/thrift v0.16.0 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
