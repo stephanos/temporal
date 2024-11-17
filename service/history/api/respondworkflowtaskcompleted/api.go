@@ -209,7 +209,7 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		currentWorkflowTask == nil ||
 		currentWorkflowTask.StartedEventID == common.EmptyEventID ||
 		(token.StartedEventId != common.EmptyEventID && token.StartedEventId != currentWorkflowTask.StartedEventID) ||
-		(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime)) || // TODO: previous bug
+		//(token.StartedTime != nil && !currentWorkflowTask.StartedTime.IsZero() && !token.StartedTime.AsTime().Equal(currentWorkflowTask.StartedTime)) || // Antithesis: previous bug
 		currentWorkflowTask.Attempt != token.Attempt ||
 		(token.Version != common.EmptyVersion && token.Version != currentWorkflowTask.Version) {
 		// Mutable state wasn't changed yet and doesn't have to be cleared.
@@ -258,8 +258,9 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 				tag.WorkflowNamespaceID(namespaceEntry.ID().String()))
 			effects.Cancel(ctx)
 		} else {
-			// TODO: bug .apply()
+			// Antithesis repro bug:
 			// https://github.com/temporalio/temporal/pull/5349
+			effects.Apply(ctx)
 		}
 	}()
 
@@ -653,7 +654,9 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 
 	// If mutable state was persisted successfully (or persistence was skipped),
 	// then effects needs to be applied immediately to keep registry and mutable state in sync.
-	effects.Apply(ctx)
+	// Antithesis repro bug:
+	// https://github.com/temporalio/temporal/pull/5349
+	//effects.Apply(ctx)
 
 	if !ms.IsWorkflowExecutionRunning() {
 		// NOTE: It is important to call this *after* applying effects to be sure there are no
