@@ -37,6 +37,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/gorilla/mux"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
@@ -229,6 +230,7 @@ func (h *completionHandler) CompleteOperation(ctx context.Context, r *nexus.Comp
 		}
 	default:
 		// The Nexus SDK ensures this never happens but just in case...
+		assert.Unreachable("[OSS] Nexus invalid completion state", map[string]any{"error": err, "state": r.State})
 		logger.Error("invalid operation state in completion request", tag.NewStringTag("state", string(r.State)), tag.Error(err))
 		return nexus.HandlerErrorf(nexus.HandlerErrorTypeBadRequest, "invalid completion state")
 	}

@@ -32,6 +32,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/google/uuid"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -528,6 +529,9 @@ func (s *scheduler) getNextTimeV2(cacheBase, after time.Time) GetNextTimeResult 
 	}
 
 	// This should never happen unless there's a bug.
+	assert.Unreachable("[OSS] getNextTimeV2: time not found in cache", map[string]any{
+		"after": after,
+	})
 	s.logger.Error("getNextTimeV2: time not found in cache", "after", after)
 	return GetNextTimeResult{}
 }

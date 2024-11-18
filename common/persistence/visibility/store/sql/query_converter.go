@@ -31,6 +31,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/temporalio/sqlparser"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/server/common/namespace"
@@ -484,6 +485,9 @@ func (c *QueryConverter) convertColName(exprRef *sqlparser.Expr) (*saColName, er
 	saType, err := c.saTypeMap.GetType(saFieldName)
 	if err != nil {
 		// This should never happen since it came from mapping.
+		assert.Unreachable("[OSS] column name is not a valid search attribute", map[string]any{
+			"error": query.InvalidExpressionErrMessage, "saAlias": saAlias,
+		})
 		return nil, query.NewConverterError(
 			"%s: column name '%s' is not a valid search attribute",
 			query.InvalidExpressionErrMessage,

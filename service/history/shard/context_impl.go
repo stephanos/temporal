@@ -34,6 +34,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/pborman/uuid"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
@@ -1665,6 +1666,7 @@ func (s *ContextImpl) transition(request contextRequest) error {
 				// transition to Stopping/Stopped, engineFuture cannot be Set.
 				if s.engineFuture.Ready() {
 					// defensive check, this should never happen
+					assert.Unreachable("[OSS] transition to acquired with engine set twice", map[string]any{})
 					s.contextTaggedLogger.Warn("transition to acquired with engine set twice")
 					return errInvalidTransition
 				}

@@ -1296,7 +1296,7 @@ func (p *metricEmitter) recordRequestMetrics(operation string, caller string, la
 func updateErrorMetric(handler metrics.Handler, logger log.Logger, operation string, err error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "no such table") {
-			assert.Unreachable("no such table", map[string]any{})
+			assert.Unreachable("[OSS] no such table", map[string]any{})
 		}
 
 		metrics.PersistenceErrorWithType.With(handler).Record(1, metrics.ServiceErrorTypeTag(err))

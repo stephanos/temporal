@@ -32,6 +32,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/backoff"
 	"go.temporal.io/server/common/clock"
@@ -449,6 +450,7 @@ func (r *ReaderImpl) loadAndSubmitTasks() {
 		}
 
 		// this should never happen
+		assert.Unreachable("[OSS] Queue reader rate limiter burst size is smaller than required token count", map[string]any{})
 		r.logger.Error("Queue reader rate limiter burst size is smaller than required token count")
 	}
 

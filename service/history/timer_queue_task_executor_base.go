@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	enumsspb "go.temporal.io/server/api/enums/v1"
@@ -137,6 +138,7 @@ func (t *timerQueueTaskExecutorBase) executeDeleteHistoryEventTask(
 		// If workflow is running then just ignore DeleteHistoryEventTask timer task.
 		// This should almost never happen because DeleteHistoryEventTask is created only for closed workflows.
 		// But cross DC replication can resurrect workflow and therefore DeleteHistoryEventTask should be ignored.
+		assert.Sometimes(true, "[OSS] ignore DeleteHistoryEventTask timer task", map[string]any{})
 		return nil
 	}
 

@@ -99,7 +99,7 @@ func (i *instrumentation) countSentAgain() {
 }
 
 func (i *instrumentation) invalidStateTransition(updateID string, msg proto.Message, state state) {
-	assert.Unreachable("invalid Update state transition attempted", map[string]any{
+	assert.Unreachable("[OSS] invalid Update state transition attempted", map[string]any{
 		"update-id": updateID,
 		"message":   fmt.Sprintf("%T", msg),
 		"state":     state.String(),

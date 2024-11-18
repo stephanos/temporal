@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/server/common/clock"
@@ -323,6 +324,7 @@ func (c *lru) putInternal(key interface{}, value interface{}, allowUpdate bool) 
 					// calculate again after eviction
 					newCacheSize = c.calculateNewCacheSize(newEntrySize, existingEntry.Size())
 					if newCacheSize > c.maxSize {
+						assert.Unreachable("[OSS] cache full", map[string]any{})
 						// This should never happen since allowUpdate is always **true** for non-pinned cache,
 						// and if all entries are not pinned(ref==0), then the cache should never be full as long as
 						// new entry's size is less than max size.

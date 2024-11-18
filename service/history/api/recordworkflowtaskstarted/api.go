@@ -108,6 +108,9 @@ func Invoke(
 			if workflowTask.Type != enumsspb.WORKFLOW_TASK_TYPE_SPECULATIVE && !transientWFT &&
 				scheduledEventID >= mutableState.GetNextEventID() {
 
+				assert.Unreachable("[OSS] ErrStaleState", map[string]any{
+					"scheduledEventID": scheduledEventID, "mutableState.GetNextEventID": mutableState.GetNextEventID(),
+				})
 				metrics.StaleMutableStateCounter.With(metricsScope).Record(1)
 				return nil, consts.ErrStaleState
 			}

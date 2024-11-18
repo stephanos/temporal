@@ -29,6 +29,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 )
 
 // typedError is an error that has a type name.
@@ -88,5 +90,6 @@ func ErrorType(err error) string {
 	// This should never happen, but it could if the error is non-nil, the error does not implement TypedError, and
 	// there is no non-wrapper error in the error tree. For example, if there is a bug in `errors.Join()` where it
 	// accepts an empty slice of errors, then this function will return "unknown" for that error.
+	assert.Unreachable("[OSS] unknown error type", map[string]any{"error": err})
 	return "unknown"
 }
