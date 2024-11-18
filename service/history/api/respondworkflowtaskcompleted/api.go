@@ -27,6 +27,7 @@ package respondworkflowtaskcompleted
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
 
 	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
@@ -139,6 +140,11 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 	token, err0 := handler.tokenSerializer.Deserialize(request.TaskToken)
 	if err0 != nil {
 		return nil, consts.ErrDeserializingToken
+	}
+
+	if rand.Int32N(100) == 0 {
+		assert.Sometimes(true, "WorkflowTaskCompletedHandler random crash", map[string]any{})
+		panic("Antithesis: WorkflowTaskCompletedHandler random crash")
 	}
 
 	workflowLease, err := handler.workflowConsistencyChecker.GetWorkflowLeaseWithConsistencyCheck(
