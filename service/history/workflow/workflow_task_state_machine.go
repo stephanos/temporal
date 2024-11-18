@@ -31,6 +31,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	failurepb "go.temporal.io/api/failure/v1"
@@ -1253,6 +1254,8 @@ func (m *workflowTaskStateMachine) convertSpeculativeWorkflowTaskToNormal() erro
 		return nil
 	}
 
+	assert.Sometimes(true, "[OSS] convertSpeculativeWorkflowTaskToNormal", map[string]any{})
+
 	// Workflow task can't be persisted as Speculative, because when it is completed,
 	// it gets deleted from memory only but not from the database.
 	// If execution info in mutable state has speculative workflow task, then
@@ -1284,6 +1287,7 @@ func (m *workflowTaskStateMachine) convertSpeculativeWorkflowTaskToNormal() erro
 	)
 
 	if scheduledEvent.EventId != wt.ScheduledEventID {
+		assert.Unreachable("[OSS] scheduled event Id for normal workflow task doesn't match the one from speculative workflow task", map[string]any{})
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, scheduled event Id: %d for normal workflow task doesn't match the one from speculative workflow task: %d", scheduledEvent.EventId, wt.ScheduledEventID))
 	}
 

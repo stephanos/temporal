@@ -35,6 +35,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/pborman/uuid"
 	commonpb "go.temporal.io/api/common/v1"
@@ -584,6 +585,7 @@ pollLoop:
 		}
 		if task.isStarted() {
 			// tasks received from remote are already started. So, simply forward the response
+			assert.Sometimes(true, "[OSS] Workflow tasks received from remote are already started", map[string]any{})
 			return task.pollWorkflowTaskQueueResponse(), nil
 		}
 
@@ -817,6 +819,7 @@ pollLoop:
 
 		if task.isStarted() {
 			// tasks received from remote are already started. So, simply forward the response
+			assert.Sometimes(true, "[OSS] Activity tasks received from remote are already started", map[string]any{})
 			return task.pollActivityTaskQueueResponse(), nil
 		}
 		requestClone := request
@@ -1915,6 +1918,7 @@ pollLoop:
 
 		if task.isStarted() {
 			// tasks received from remote are already started. So, simply forward the response
+			assert.Sometimes(true, "[OSS] Nexus tasks received from remote are already started", map[string]any{})
 			return task.pollNexusTaskQueueResponse(), nil
 		}
 

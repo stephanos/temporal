@@ -33,6 +33,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	enumsspb "go.temporal.io/server/api/enums/v1"
 	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/common/metrics"
@@ -270,6 +271,7 @@ func syncOfferTask[T any](
 			<-task.responseC
 			return t, nil
 		case token := <-fwdrTokenC:
+			assert.Sometimes(true, "[OSS] task forward", map[string]any{})
 			resp, err := forwardFunc(ctx, task)
 			token.release()
 			if err == nil {

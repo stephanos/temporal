@@ -35,6 +35,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/pborman/uuid"
 	commandpb "go.temporal.io/api/command/v1"
@@ -2875,6 +2876,7 @@ func (ms *MutableStateImpl) ApplyWorkflowTaskCompletedEvent(
 func (ms *MutableStateImpl) AddWorkflowTaskTimedOutEvent(
 	workflowTask *WorkflowTaskInfo,
 ) (*historypb.HistoryEvent, error) {
+	assert.Sometimes(true, "[OSS] add workflow task timeout", map[string]any{})
 	opTag := tag.WorkflowActionWorkflowTaskTimedOut
 	if err := ms.checkMutability(opTag); err != nil {
 		return nil, err
@@ -3296,6 +3298,7 @@ func (ms *MutableStateImpl) AddActivityTaskTimedOutEvent(
 	timeoutFailure *failurepb.Failure,
 	retryState enumspb.RetryState,
 ) (*historypb.HistoryEvent, error) {
+	assert.Sometimes(true, "[OSS] add activity task timeout", map[string]any{})
 	opTag := tag.WorkflowActionActivityTaskTimedOut
 	if err := ms.checkMutability(opTag); err != nil {
 		return nil, err
@@ -6104,6 +6107,11 @@ func (ms *MutableStateImpl) closeTransactionPrepareEvents(
 	if err != nil {
 		return nil, nil, nil, false, err
 	}
+
+	assert.Sometimes(historyMutation.MemBufferBatch != nil && len(historyMutation.MemBufferBatch) > 0,
+		"[OSS] store buffered events", map[string]any{
+			"count": len(historyMutation.MemBufferBatch),
+		})
 
 	// TODO @wxing1292 need more refactoring to make the logic clean
 	ms.bufferEventsInDB = historyMutation.MemBufferBatch
