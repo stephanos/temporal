@@ -319,7 +319,7 @@ func setHistoryForRecordWfTaskStartedResp(
 		persistenceVisibilityMgr,
 	)
 	if err != nil {
-		assert.Sometimes(true, "GetHistory call failed", map[string]any{})
+		assert.Sometimes(true, "[OSS] GetHistory call failed", map[string]any{})
 		return err
 	}
 

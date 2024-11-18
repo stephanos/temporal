@@ -216,7 +216,7 @@ func (c *ContextImpl) IsDirty() bool {
 }
 
 func (c *ContextImpl) Clear() {
-	assert.Sometimes(true, "Workflow context cleared", map[string]any{"key": c.workflowKey})
+	assert.Sometimes(true, "[OSS] Workflow context cleared", map[string]any{"key": c.workflowKey})
 	metrics.WorkflowContextCleared.With(c.metricsHandler).Record(1)
 	if c.MutableState != nil {
 		c.MutableState.GetQueryRegistry().Clear()
