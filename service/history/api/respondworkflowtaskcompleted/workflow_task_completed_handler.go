@@ -395,7 +395,7 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 		}
 
 		if err := upd.OnProtocolMessage(message, workflow.WithEffects(handler.effects, handler.mutableState)); err != nil {
-			assert.Sometimes(true, "[OSS] OnProtocolMessage error", map[string]any{"error": err.Error()})
+			assert.Sometimes(true, "[OSS] OnProtocolMessage error", map[string]any{"error": err})
 			return handler.failWorkflowTaskOnInvalidArgument(
 				enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE, err)
 		}
