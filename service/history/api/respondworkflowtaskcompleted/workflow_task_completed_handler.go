@@ -395,13 +395,14 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 		}
 
 		if err := upd.OnProtocolMessage(message, workflow.WithEffects(handler.effects, handler.mutableState)); err != nil {
-			assert.Sometimes(true, "[OSS] OnProtocolMessage error", map[string]any{"error": err})
+			assert.Unreachable("[OSS] OnProtocolMessage error", map[string]any{
+				"error": err,
+			})
 			return handler.failWorkflowTaskOnInvalidArgument(
 				enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE, err)
 		}
 	default:
 		assert.Unreachable("[OSS] unsupported protocol type", map[string]any{"protocolType": protocolType})
-
 		return handler.failWorkflowTask(
 			enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE,
 			serviceerror.NewInvalidArgument(fmt.Sprintf("unsupported protocol type %s", protocolType)))
