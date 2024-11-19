@@ -31,6 +31,7 @@ import (
 	"testing"
 	"time"
 
+	antiassert "github.com/antithesishq/antithesis-sdk-go/assert"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -532,6 +533,8 @@ func newTestUnversionedPhysicalQueueKey(namespaceId string, name string, taskTyp
 
 func TestUserData_Propagation(t *testing.T) {
 	t.Parallel()
+
+	antiassert.Sometimes(true, "TestUserData_Propagation", map[string]any{})
 
 	const N = 20
 
