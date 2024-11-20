@@ -27,9 +27,9 @@ package respondworkflowtaskcompleted
 import (
 	"context"
 	"fmt"
-	"math/rand/v2"
 
 	"github.com/antithesishq/antithesis-sdk-go/assert"
+	"github.com/antithesishq/antithesis-sdk-go/random"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -142,7 +142,7 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 		return nil, consts.ErrDeserializingToken
 	}
 
-	if rand.Int32N(100) == 0 {
+	if random.GetRandom()%100 == 0 {
 		assert.Sometimes(true, "[OSS] WorkflowTaskCompletedHandler random crash", map[string]any{})
 		panic("Antithesis: WorkflowTaskCompletedHandler random crash")
 	}
