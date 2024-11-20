@@ -362,7 +362,7 @@ func (handler *workflowTaskCompletedHandler) handleCommand(
 func (handler *workflowTaskCompletedHandler) handleMessage(
 	ctx context.Context,
 	message *protocolpb.Message,
-) error {
+) (retError error) {
 	protocolType, msgType, err := protocol.Identify(message)
 	if err != nil {
 		return serviceerror.NewInvalidArgument(err.Error())
@@ -388,7 +388,10 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 		}
 		if upd == nil {
 			// Update was not found in the registry and can't be resurrected.
-			assert.Sometimes(true, "[OSS] update wasn't found on the server", map[string]any{"id": message.ProtocolInstanceId})
+			assert.Sometimes(true, "[OSS] update wasn't found on the server", map[string]any{
+				"id":       message.ProtocolInstanceId,
+				"workflow": handler.mutableState.GetExecutionInfo().WorkflowId,
+			})
 			return handler.failWorkflowTask(
 				enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE,
 				serviceerror.NewNotFound(fmt.Sprintf("update %s wasn't found on the server. This is most likely a transient error which will be resolved automatically by retries", message.ProtocolInstanceId)))
@@ -396,13 +399,17 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 
 		if err := upd.OnProtocolMessage(message, workflow.WithEffects(handler.effects, handler.mutableState)); err != nil {
 			assert.Unreachable("[OSS] OnProtocolMessage error", map[string]any{
-				"error": err,
+				"error":    err,
+				"workflow": handler.mutableState.GetExecutionInfo().WorkflowId,
 			})
 			return handler.failWorkflowTaskOnInvalidArgument(
 				enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE, err)
 		}
 	default:
-		assert.Unreachable("[OSS] unsupported protocol type", map[string]any{"protocolType": protocolType})
+		assert.Unreachable("[OSS] unsupported protocol type", map[string]any{
+			"protocolType": protocolType,
+			"workflow":     handler.mutableState.GetExecutionInfo().WorkflowId,
+		})
 		return handler.failWorkflowTask(
 			enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE,
 			serviceerror.NewInvalidArgument(fmt.Sprintf("unsupported protocol type %s", protocolType)))
