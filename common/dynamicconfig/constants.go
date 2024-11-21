@@ -861,7 +861,7 @@ and deployment interaction in matching and history.`,
 	)
 	EnableNexus = NewGlobalBoolSetting(
 		"system.enableNexus",
-		false,
+		true,
 		`EnableNexus toggles all Nexus functionality on the server. Note that toggling this requires restarting
 server hosts for it to take effect.`,
 	)
