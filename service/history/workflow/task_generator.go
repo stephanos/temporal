@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/antithesishq/antithesis-sdk-go/assert"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/serviceerror"
@@ -416,9 +417,13 @@ func (r *TaskGeneratorImpl) GenerateScheduleWorkflowTaskTasks(
 	workflowTask := r.mutableState.GetWorkflowTaskByID(
 		workflowTaskScheduledEventID,
 	)
+	assert.Always(workflowTask != nil, "[OSS] GenerateScheduleWorkflowTaskTasks", map[string]any{})
 	if workflowTask == nil {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, cannot get pending workflow task: %v", workflowTaskScheduledEventID))
 	}
+	assert.Always(workflowTask.Type != enumsspb.WORKFLOW_TASK_TYPE_SPECULATIVE, "[OSS] GenerateScheduleWorkflowTaskTasks", map[string]any{
+		"workflowTask.Type": workflowTask.Type,
+	})
 	if workflowTask.Type == enumsspb.WORKFLOW_TASK_TYPE_SPECULATIVE {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, GenerateScheduleSpeculativeWorkflowTaskTasks must be called for speculative workflow task: %v", workflowTaskScheduledEventID))
 	}
@@ -508,6 +513,7 @@ func (r *TaskGeneratorImpl) GenerateStartWorkflowTaskTasks(
 	workflowTask := r.mutableState.GetWorkflowTaskByID(
 		workflowTaskScheduledEventID,
 	)
+	assert.Always(workflowTask != nil, "[OSS] GenerateStartWorkflowTaskTasks", map[string]any{})
 	if workflowTask == nil {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, cannot get pending workflow task: %v", workflowTaskScheduledEventID))
 	}
@@ -537,6 +543,7 @@ func (r *TaskGeneratorImpl) GenerateActivityTasks(
 	activityScheduledEventID int64,
 ) error {
 	activityInfo, ok := r.mutableState.GetActivityInfo(activityScheduledEventID)
+	assert.Always(ok, "[OSS] GenerateActivityTasks", map[string]any{})
 	if !ok {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, cannot get pending activity: %v", activityScheduledEventID))
 	}
@@ -573,6 +580,7 @@ func (r *TaskGeneratorImpl) GenerateChildWorkflowTasks(
 	childWorkflowScheduledEventID := event.GetEventId()
 
 	childWorkflowInfo, ok := r.mutableState.GetChildExecutionInfo(childWorkflowScheduledEventID)
+	assert.Always(ok, "[OSS] GenerateChildWorkflowTasks", map[string]any{})
 	if !ok {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, cannot get pending child workflow: %v", childWorkflowScheduledEventID))
 	}
@@ -606,6 +614,7 @@ func (r *TaskGeneratorImpl) GenerateRequestCancelExternalTasks(
 	targetChildOnly := attr.GetChildWorkflowOnly()
 
 	_, ok := r.mutableState.GetRequestCancelInfo(scheduledEventID)
+	assert.Always(ok, "[OSS] GenerateRequestCancelExternalTasks", map[string]any{})
 	if !ok {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, cannot get pending request cancel external workflow: %v", scheduledEventID))
 	}
@@ -641,6 +650,7 @@ func (r *TaskGeneratorImpl) GenerateSignalExternalTasks(
 	targetChildOnly := attr.GetChildWorkflowOnly()
 
 	_, ok := r.mutableState.GetSignalInfo(scheduledEventID)
+	assert.Always(ok, "[OSS] GenerateSignalExternalTasks", map[string]any{})
 	if !ok {
 		return serviceerror.NewInternal(fmt.Sprintf("it could be a bug, cannot get pending signal external workflow: %v", scheduledEventID))
 	}
