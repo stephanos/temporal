@@ -47,6 +47,7 @@ import (
 )
 
 var (
+	Hook              = func(wfID string) {}
 	multiOpAbortedErr = serviceerror.NewMultiOperationAborted("Operation was aborted.")
 )
 
@@ -195,6 +196,8 @@ func Invoke(
 		}
 	}
 
+	Hook(startReq.StartRequest.WorkflowId)
+
 	// workflow hasn't been started yet: start and then apply update
 	resp, err := startAndUpdateWorkflow(ctx, starter, updater)
 	var noStartErr *noStartError
@@ -208,6 +211,8 @@ func Invoke(
 		//
 		// The best way forward is to exit and retry from the top.
 		// By returning an Unavailable service error, the entire MultiOperation will be retried.
+		metrics.UpdateWithStartWorkflowStartConflict.With(shardContext.GetMetricsHandler()).Record(1,
+			metrics.StringTag("start_outcome", noStartErr.StartOutcome.String()))
 		return nil, newMultiOpError(serviceerror.NewUnavailable(err.Error()), multiOpAbortedErr)
 	}
 	return resp, err
@@ -271,18 +276,15 @@ func startAndUpdateWorkflow(
 	updater *updateworkflow.Updater,
 ) (*historyservice.ExecuteMultiOperationResponse, error) {
 	startResp, startOutcome, err := starter.Invoke(ctx)
-
-	switch startOutcome {
-	case startworkflow.StartErr:
+	if err != nil {
 		// An update error occurred.
 		if errors.As(err, &updateError{}) {
 			return nil, newMultiOpError(multiOpAbortedErr, err)
 		}
 		// A start error occurred.
 		return nil, newMultiOpError(err, multiOpAbortedErr)
-	case startworkflow.StartNew:
-		// The workflow was started, as expected.
-	case startworkflow.StartDeduped, startworkflow.StartReused:
+	}
+	if startOutcome != startworkflow.StartNew {
 		// The workflow was not started.
 		// Aborting since the update has not been applied.
 		return nil, &noStartError{startOutcome}

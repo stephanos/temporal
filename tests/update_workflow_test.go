@@ -52,6 +52,7 @@ import (
 	"go.temporal.io/server/common/testing/protoutils"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testvars"
+	"go.temporal.io/server/service/history/api/multioperation"
 	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
@@ -5249,6 +5250,76 @@ func (s *UpdateWorkflowSuite) TestUpdateWithStart() {
 		s.Len(errs, 2)
 		s.Equal("Operation was aborted.", errs[0].Error())
 		s.Contains(errs[1].Error(), "limit on number of total updates has been reached")
+	})
+
+	s.Run("start conflict: use-existing", func() {
+		capture := s.GetTestCluster().Host().CaptureMetricsHandler().StartCapture()
+		defer s.GetTestCluster().Host().CaptureMetricsHandler().StopCapture(capture)
+
+		tv := testvars.New(s.T())
+
+		startReq := startWorkflowReq(tv)
+		startReq.WorkflowIdConflictPolicy = enumspb.WORKFLOW_ID_CONFLICT_POLICY_USE_EXISTING
+		updateReq := s.updateWorkflowRequest(tv,
+			&updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED}, "1")
+
+		multioperation.Hook = func(workflowID string) {
+			_, err := s.FrontendClient().StartWorkflowExecution(testcore.NewContext(), startReq)
+			s.NoError(err)
+		}
+
+		uwsCh := sendUpdateWithStart(testcore.NewContext(), startReq, updateReq)
+
+		_, err := s.TaskPoller.PollAndHandleWorkflowTask(tv,
+			func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
+				reply := &workflowservice.RespondWorkflowTaskCompletedRequest{}
+				if len(task.Messages) > 0 {
+					reply.Messages = s.UpdateAcceptCompleteMessages(tv, task.Messages[0], "1")
+				}
+				return reply, nil
+			})
+		s.NoError(err)
+
+		<-uwsCh
+
+		metric := capture.Snapshot()[metrics.UpdateWithStartWorkflowStartConflict.Name()]
+		s.Len(metric, 1)
+		s.Equal(metric[0].Tags["start_outcome"], "StartReused")
+	})
+
+	s.Run("start conflict: dedup", func() {
+		capture := s.GetTestCluster().Host().CaptureMetricsHandler().StartCapture()
+		defer s.GetTestCluster().Host().CaptureMetricsHandler().StopCapture(capture)
+
+		tv := testvars.New(s.T())
+
+		startReq := startWorkflowReq(tv)
+		startReq.RequestId = "request_id"
+		updateReq := s.updateWorkflowRequest(tv,
+			&updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED}, "1")
+
+		multioperation.Hook = func(workflowID string) {
+			_, err := s.FrontendClient().StartWorkflowExecution(testcore.NewContext(), startReq)
+			s.NoError(err)
+		}
+
+		uwsCh := sendUpdateWithStart(testcore.NewContext(), startReq, updateReq)
+
+		_, err := s.TaskPoller.PollAndHandleWorkflowTask(tv,
+			func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
+				reply := &workflowservice.RespondWorkflowTaskCompletedRequest{}
+				if len(task.Messages) > 0 {
+					reply.Messages = s.UpdateAcceptCompleteMessages(tv, task.Messages[0], "1")
+				}
+				return reply, nil
+			})
+		s.NoError(err)
+
+		<-uwsCh
+
+		metric := capture.Snapshot()[metrics.UpdateWithStartWorkflowStartConflict.Name()]
+		s.Len(metric, 1)
+		s.Equal(metric[0].Tags["start_outcome"], "StartDeduped")
 	})
 }
 
