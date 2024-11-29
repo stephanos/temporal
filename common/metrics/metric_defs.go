@@ -837,6 +837,7 @@ var (
 	WorkflowExecutionUpdateServerTimeout                 = NewCounterDef("workflow_update_server_timeout")
 	SpeculativeWorkflowTaskCommits                       = NewCounterDef("speculative_workflow_task_commits")
 	SpeculativeWorkflowTaskRollbacks                     = NewCounterDef("speculative_workflow_task_rollbacks")
+	UpdateWithStartWorkflowStartConflict                 = NewCounterDef("update_with_start_workflow_start_conflict")
 
 	ActivityEagerExecutionCounter = NewCounterDef("activity_eager_execution")
 	// WorkflowEagerExecutionCounter is emitted any time eager workflow start is requested.
