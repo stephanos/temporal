@@ -157,6 +157,8 @@ func Invoke(
 		}
 	}
 
+	// Trying to see if the workflow is already running.
+	// TBD
 	currentWorkflowLease, err := workflowConsistencyChecker.GetWorkflowLease(
 		ctx,
 		nil,
@@ -170,22 +172,22 @@ func Invoke(
 		return nil, newMultiOpError(err, multiOpAbortedErr)
 	}
 
-	// workflow was already started, ...
+	// Workflow was already started, ...
 	if currentWorkflowLease != nil && currentWorkflowLease.GetMutableState().IsWorkflowExecutionRunning() {
 		switch conflictPolicy {
 		case enumspb.WORKFLOW_ID_CONFLICT_POLICY_USE_EXISTING:
-			// ... skip the start and only send the update
+			// ... skip the start and only send the update.
 			// NOTE: currentWorkflowLease will be released by the function
 			return updateWorkflow(ctx, shardContext, currentWorkflowLease, updater)
 
 		case enumspb.WORKFLOW_ID_CONFLICT_POLICY_FAIL:
-			// ... if same request ID, just send update
+			// ... if same request ID, just send update.
 			// NOTE: currentWorkflowLease will be released by the function
 			if dedup(startReq, currentWorkflowLease) {
 				return updateWorkflow(ctx, shardContext, currentWorkflowLease, updater)
 			}
 
-			// ... otherwise, abort the entire operation
+			// ... otherwise, abort the entire operation.
 			currentWorkflowLease.GetReleaseFn()(nil) // nil since nothing was modified
 			wfKey := currentWorkflowLease.GetContext().GetWorkflowKey()
 			err = serviceerror.NewWorkflowExecutionAlreadyStarted(
@@ -196,6 +198,7 @@ func Invoke(
 			return nil, newMultiOpError(err, multiOpAbortedErr)
 
 		case enumspb.WORKFLOW_ID_CONFLICT_POLICY_TERMINATE_EXISTING:
+			// ... termination and start were deduped; only send the update
 			return updateWorkflow(ctx, shardContext, currentWorkflowLease, updater)
 
 		case enumspb.WORKFLOW_ID_CONFLICT_POLICY_UNSPECIFIED:
@@ -205,7 +208,7 @@ func Invoke(
 		}
 	}
 
-	// workflow hasn't been started yet: start and then apply update
+	// Workflow hasn't been started yet: start and then apply update.
 	resp, err := startAndUpdateWorkflow(ctx, starter, updater)
 	var noStartErr *noStartError
 	if errors.As(err, &noStartErr) {
@@ -229,7 +232,7 @@ func updateWorkflow(
 	currentWorkflowLease api.WorkflowLease,
 	updater *updateworkflow.Updater,
 ) (*historyservice.ExecuteMultiOperationResponse, error) {
-	// apply update to workflow
+	// Apply the update to the workflow.
 	err := api.UpdateWorkflowWithNew(
 		shardContext,
 		ctx,
@@ -242,17 +245,17 @@ func updateWorkflow(
 		nil,
 	)
 
-	// release lock since all changes to workflow have been completed now
+	// Release the lock since all changes to workflow have been completed now.
 	currentWorkflowLease.GetReleaseFn()(err)
 
 	if err != nil {
-		return nil, newMultiOpError(multiOpAbortedErr, err)
+		return nil, newMultiOpError(nil, err)
 	}
 
-	// wait for the update to complete
+	// Wait for the update to return.
 	updateResp, err := updater.OnSuccess(ctx)
 	if err != nil {
-		return nil, newMultiOpError(multiOpAbortedErr, err)
+		return nil, newMultiOpError(nil, err)
 	}
 
 	return &historyservice.ExecuteMultiOperationResponse{
@@ -295,7 +298,7 @@ func startAndUpdateWorkflow(
 		return nil, &noStartError{startOutcome}
 	}
 
-	// wait for the update to complete
+	// Wait for the update to return.
 	updateResp, err := updater.OnSuccess(ctx)
 	if err != nil {
 		return nil, newMultiOpError(nil, err) // `nil` for start since it succeeded
