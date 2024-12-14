@@ -52,3 +52,9 @@ history.enableWorkflowExecutionTimeoutTimer:
   - value: true
 history.hostLevelCacheMaxSize:
   - value: 8192
+history.shardUpdateMinInterval:
+  - value: 1s
+history.enableTransitionHistory:
+  - value: true
+frontend.enableUpdateWorkflowExecution:
+  - value: true

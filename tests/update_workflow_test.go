@@ -80,7 +80,7 @@ func (s *UpdateWorkflowSuite) sendUpdateNoError(tv *testvars.TestVars, updateID 
 
 func (s *UpdateWorkflowSuite) sendUpdateNoErrorWaitPolicyAccepted(tv *testvars.TestVars, updateID string) <-chan *workflowservice.UpdateWorkflowExecutionResponse {
 	s.T().Helper()
-	return s.sendUpdateNoErrorInternal(tv, updateID, &updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_ACCEPTED})
+	return s.sendUpdateNoErrorInternal(tv, updateID, &updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED})
 }
 
 func (s *UpdateWorkflowSuite) pollUpdate(tv *testvars.TestVars, updateID string, waitPolicy *updatepb.WaitPolicy) (*workflowservice.PollWorkflowExecutionUpdateResponse, error) {
@@ -4770,6 +4770,51 @@ func (s *UpdateWorkflowSuite) TestUpdateWorkflow_WaitAccepted_GotCompleted() {
 	5 WorkflowExecutionUpdateAccepted
 	6 WorkflowExecutionUpdateCompleted
 	`, s.GetHistory(s.Namespace(), tv.WorkflowExecution()))
+}
+
+func (s *UpdateWorkflowSuite) TestUpdateWorkflow_BREAK() {
+	tv := s.startWorkflow(testvars.New(s.T()))
+	_, err := s.TaskPoller.PollAndHandleWorkflowTask(tv, taskpoller.DrainWorkflowTask)
+	s.NoError(err)
+
+	for i := 0; i < 100; i += 1 {
+		updateId := strconv.Itoa(i)
+		fmt.Println(updateId)
+
+		updateResultCh := s.sendUpdate(testcore.NewContext(), tv, updateId)
+
+		//s.SdkClient().UpdateWorkflow(ctx, sdkclient.UpdateWorkflowOptions{
+		//	UpdateID:     tv.UpdateID(),
+		//	WorkflowID:   tv.WorkflowID(),
+		//	RunID:        tv.RunID(),
+		//	UpdateName:   tv.HandlerName(),
+		//	Args:         []interface{}{arg},
+		//	WaitForStage: sdkclient.WorkflowUpdateStageAccepted,
+		//})
+
+		//var message *protocolpb.Message
+		//_, err = s.TaskPoller.PollAndHandleWorkflowTask(tv,
+		//	func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
+		//		message = task.Messages[0]
+		//		return &workflowservice.RespondWorkflowTaskCompletedRequest{
+		//			Messages: s.UpdateAcceptMessages(tv, message, updateId),
+		//		}, nil
+		//	})
+		//s.NoError(err)
+		//
+		//err = s.SendSignal(s.Namespace(), tv.WorkflowExecution(), tv.Any().String(), tv.Any().Payloads(), tv.Any().String())
+		//s.NoError(err)
+		//
+		//_, err = s.TaskPoller.PollAndHandleWorkflowTask(tv,
+		//	func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
+		//		return &workflowservice.RespondWorkflowTaskCompletedRequest{
+		//			Messages: s.UpdateCompleteMessages(tv, message, updateId),
+		//		}, nil
+		//	})
+		//s.NoError(err)
+
+		<-updateResultCh
+	}
 }
 
 func (s *UpdateWorkflowSuite) TestUpdateWorkflow_ContinueAsNew_UpdateIsNotCarriedOver() {

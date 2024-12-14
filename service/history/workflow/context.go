@@ -957,6 +957,12 @@ func (c *ContextImpl) RefreshTasks(
 }
 
 func (c *ContextImpl) UpdateRegistry(ctx context.Context) update.Registry {
+	//if c.updateRegistry != nil && rand.IntN(100)%100 < 20 {
+	//	fmt.Println("INJECT CLEAR!")
+	//	c.updateRegistry.Clear()
+	//	c.updateRegistry = nil
+	//}
+
 	if c.updateRegistry != nil && c.updateRegistry.FailoverVersion() != c.MutableState.GetCurrentVersion() {
 		c.updateRegistry.Clear()
 		c.updateRegistry = nil

@@ -78,6 +78,12 @@ services:
   temporal-ui:
     image: temporalio/ui:2.26.2
     container_name: temporal-dev-ui
+  temporal-ui-b:
+    image: temporalio/ui:2.26.2
+    container_name: temporal-dev-ui-b
+  temporal-ui-c:
+    image: temporalio/ui:2.26.2
+    container_name: temporal-dev-ui-c
 
 networks:
   temporal-dev-network:

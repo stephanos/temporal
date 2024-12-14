@@ -40,6 +40,7 @@ import (
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/future"
 	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/utf8validator"
 	"go.temporal.io/server/internal/effect"
@@ -140,6 +141,7 @@ func WithTotalLimit(f func() int) Option {
 // WithLogger sets the log.Logger to be used by Registry and its Updates.
 func WithLogger(l log.Logger) Option {
 	return func(r *registry) {
+		// 		r.instrumentation.log = log.NewTestLogger()
 		r.instrumentation.log = l
 	}
 }
@@ -185,27 +187,35 @@ func NewRegistry(
 			// UpdateAdmitted event in history; and when there is an UpdateAdmitted event in history, we will not
 			// attempt to write the request payload to the UpdateAccepted event, since the request payload is
 			// already present in the UpdateAdmitted event.
-			r.updates[updID] = newAdmitted(
+			newUpdate := newAdmitted(
 				updID,
 				nil,
 				r.remover(updID),
 				withInstrumentation(&r.instrumentation),
 			)
+			r.instrumentation.loadingFromState(updID, newUpdate.state)
+			r.updates[updID] = newUpdate
 		} else if acc := updInfo.GetAcceptance(); acc != nil {
-			u := newAccepted(
+			newUpdate := newAccepted(
 				updID,
 				acc.EventId,
 				r.remover(updID),
 				withInstrumentation(&r.instrumentation),
 			)
+			r.instrumentation.loadingFromState(updID, newUpdate.state)
+			r.instrumentation.log.Info(
+				"acceptedEventID set on load",
+				tag.NewStringTag("update-id", updID),
+				tag.NewInt64("acceptedEventID", newUpdate.acceptedEventID))
 			if !r.store.IsWorkflowExecutionRunning() {
 				// If the Workflow is completed, accepted Update will never be completed
 				// and therefore must be aborted.
 				// The corresponding error or failure will be returned as an Update result.
-				u.abort(AbortReasonWorkflowCompleted, effect.Immediate(context.Background()))
+				newUpdate.abort(AbortReasonWorkflowCompleted, effect.Immediate(context.Background()))
 			}
-			r.updates[updID] = u
+			r.updates[updID] = newUpdate
 		} else if updInfo.GetCompletion() != nil {
+			r.instrumentation.loadingFromState(updID, stateCompleted)
 			r.completedCount++
 		}
 	})
@@ -221,6 +231,9 @@ func (r *registry) FindOrCreate(ctx context.Context, id string) (*Update, bool, 
 	}
 	upd := New(id, r.remover(id), withInstrumentation(&r.instrumentation))
 	r.updates[id] = upd
+	r.instrumentation.log.Info("new update admitted",
+		tag.NewStringTag("update-id", upd.id),
+		tag.NewStringTag("state", upd.state.String()))
 	return upd, false, nil
 }
 
@@ -269,6 +282,9 @@ func (r *registry) TryResurrect(_ context.Context, acptOrRejMsg *protocolpb.Mess
 		r.remover(updateID),
 		withInstrumentation(&r.instrumentation),
 	)
+	r.instrumentation.log.Info("update resurrected",
+		tag.NewStringTag("update-id", updateID),
+		tag.NewStringTag("state", upd.state.String()))
 	r.updates[updateID] = upd
 
 	return upd, nil

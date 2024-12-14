@@ -97,6 +97,12 @@ func (i *instrumentation) countSentAgain() {
 	i.oneOf(metrics.WorkflowExecutionUpdateSentToWorkerAgain.Name())
 }
 
+func (i *instrumentation) loadingFromState(updateID string, state state) {
+	i.log.Info("update loading from store",
+		tag.NewStringTag("update-id", updateID),
+		tag.NewStringTag("state", state.String()))
+}
+
 func (i *instrumentation) invalidStateTransition(updateID string, msg proto.Message, state state) {
 	i.oneOf(metrics.InvalidStateTransitionWorkflowExecutionUpdateCounter.Name())
 	i.log.Error("invalid state transition attempted",
@@ -114,7 +120,7 @@ func (i *instrumentation) oneOf(counterName string) {
 }
 
 func (i *instrumentation) stateChange(updateID string, from, to state) {
-	i.log.Debug("update state change",
+	i.log.Info("update state change",
 		tag.NewStringTag("update-id", updateID),
 		tag.NewStringTag("from-state", from.String()),
 		tag.NewStringTag("to-state", to.String()),

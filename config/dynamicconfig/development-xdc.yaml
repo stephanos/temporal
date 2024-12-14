@@ -38,7 +38,7 @@ frontend.workerVersioningWorkflowAPIs:
   - value: true
 system.enableNexus:
   # enableNexus also controls transition history which can't be enabled now
-  - value: false 
+  - value: true
 component.nexusoperations.callback.endpoint.template:
   - value: http://localhost:7243/api/v1/namespaces/{{.NamespaceName}}/nexus/callback
 component.callbacks.allowedAddresses:
@@ -50,4 +50,10 @@ matching.queryWorkflowTaskTimeoutLogRate:
 history.ReplicationEnableUpdateWithNewTaskMerge:
   - value: true
 history.enableWorkflowExecutionTimeoutTimer:
+  - value: true
+history.shardUpdateMinInterval:
+  - value: 1s
+history.enableTransitionHistory:
+  - value: true
+frontend.enableUpdateWorkflowExecution:
   - value: true

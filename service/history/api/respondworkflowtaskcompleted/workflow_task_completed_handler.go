@@ -60,6 +60,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
 	"go.temporal.io/server/service/history/workflow/update"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -366,6 +367,12 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 	if err != nil {
 		return serviceerror.NewInvalidArgument(err.Error())
 	}
+
+	updateId := message.ProtocolInstanceId
+	messageJson, _ := protojson.Marshal(message)
+	handler.logger.Info("incoming message",
+		tag.NewStringTag("message", string(messageJson)))
+
 	if err := handler.sizeLimitChecker.checkIfPayloadSizeExceedsLimit(
 		// TODO (alex-update): Should use MessageTypeTag here but then it needs to be another metric name too.
 		metrics.CommandTypeTag(msgType.String()),
@@ -377,7 +384,7 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 
 	switch protocolType {
 	case update.ProtocolV1:
-		upd := handler.updateRegistry.Find(ctx, message.ProtocolInstanceId)
+		upd := handler.updateRegistry.Find(ctx, updateId)
 		if upd == nil {
 			upd, err = handler.updateRegistry.TryResurrect(ctx, message)
 			if err != nil {
@@ -389,7 +396,7 @@ func (handler *workflowTaskCompletedHandler) handleMessage(
 			// Update was not found in the registry and can't be resurrected.
 			return handler.failWorkflowTask(
 				enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_UPDATE_WORKFLOW_EXECUTION_MESSAGE,
-				serviceerror.NewNotFound(fmt.Sprintf("update %s wasn't found on the server. This is most likely a transient error which will be resolved automatically by retries", message.ProtocolInstanceId)))
+				serviceerror.NewNotFound(fmt.Sprintf("update %s wasn't found on the server. This is most likely a transient error which will be resolved automatically by retries", updateId)))
 		}
 
 		if err := upd.OnProtocolMessage(message, workflow.WithEffects(handler.effects, handler.mutableState)); err != nil {

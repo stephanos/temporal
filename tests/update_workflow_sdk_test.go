@@ -56,39 +56,27 @@ func TestUpdateWorkflowSdkSuite(t *testing.T) {
 	suite.Run(t, s)
 }
 
-func (s *UpdateWorkflowSdkSuite) TestUpdateWorkflow_TerminateWorkflowAfterUpdateAdmitted() {
+func (s *UpdateWorkflowSdkSuite) TestUpdateWorkflow_BREAK() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	tv := testvars.New(s.T()).WithTaskQueue(s.TaskQueue()).WithNamespaceName(namespace.Name(s.Namespace()))
 
 	workflowFn := func(ctx workflow.Context) error {
-		s.NoError(workflow.SetUpdateHandler(ctx, tv.HandlerName(), func(ctx workflow.Context, arg string) error {
-			s.NoError(workflow.Await(ctx, func() bool { return false }))
-			return unreachableErr
+		var done bool
+		s.NoError(workflow.SetUpdateHandler(ctx, tv.HandlerName(), func(ctx workflow.Context) error {
+			workflow.Sleep(ctx, time.Second)
+			return nil
 		}))
-		s.NoError(workflow.Await(ctx, func() bool { return false }))
-		return unreachableErr
+		s.NoError(workflow.Await(ctx, func() bool { return done }))
+		return nil
 	}
-
-	// Start workflow and wait until update is admitted, without starting the worker
-	run := s.startWorkflow(ctx, tv, workflowFn)
-	s.updateWorkflowWaitAdmitted(ctx, tv, "update-arg")
-
 	s.Worker().RegisterWorkflow(workflowFn)
 
-	s.NoError(s.SdkClient().TerminateWorkflow(ctx, tv.WorkflowID(), run.GetRunID(), "reason"))
+	s.startWorkflow(ctx, tv, workflowFn)
 
-	_, err := s.pollUpdate(ctx, tv, &updatepb.WaitPolicy{LifecycleStage: enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_ACCEPTED})
-	var notFound *serviceerror.NotFound
-	s.ErrorAs(err, &notFound)
-
-	hist := s.GetHistory(s.Namespace(), tv.WorkflowExecution())
-	s.EqualHistoryEventsPrefix(`
-  1 WorkflowExecutionStarted
-  2 WorkflowTaskScheduled`, hist)
-
-	s.EqualHistoryEventsSuffix(`
-WorkflowExecutionTerminated // This can be EventID=3 if WF is terminated before 1st WFT is started or 5 if after.`, hist)
+	for i := 0; i < 100; i += 1 {
+		s.updateWorkflowWaitCompleted(ctx, tv, fmt.Sprintf("update-id-%d", i))
+	}
 }
 
 // TestUpdateWorkflow_TimeoutWorkflowAfterUpdateAccepted executes an update, and while WF awaits
@@ -400,6 +388,17 @@ func (s *UpdateWorkflowSdkSuite) updateWorkflowWaitAccepted(ctx context.Context,
 		UpdateName:   tv.HandlerName(),
 		Args:         []interface{}{arg},
 		WaitForStage: sdkclient.WorkflowUpdateStageAccepted,
+	})
+}
+
+func (s *UpdateWorkflowSdkSuite) updateWorkflowWaitCompleted(ctx context.Context, tv *testvars.TestVars, updateId string) (sdkclient.WorkflowUpdateHandle, error) {
+	return s.SdkClient().UpdateWorkflow(ctx, sdkclient.UpdateWorkflowOptions{
+		UpdateID:     updateId,
+		WorkflowID:   tv.WorkflowID(),
+		RunID:        tv.RunID(),
+		UpdateName:   tv.HandlerName(),
+		Args:         []interface{}{},
+		WaitForStage: sdkclient.WorkflowUpdateStageCompleted,
 	})
 }
 

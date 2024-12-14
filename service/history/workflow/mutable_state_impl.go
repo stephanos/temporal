@@ -4233,6 +4233,10 @@ func (ms *MutableStateImpl) AddWorkflowExecutionUpdateAdmittedEvent(request *upd
 		return nil, err
 	}
 	event, batchId := ms.hBuilder.AddWorkflowExecutionUpdateAdmittedEvent(request, origin)
+	ms.logger.Info("AddWorkflowExecutionUpdateAdmittedEvent",
+		tag.NewStringTag("update-id", event.GetWorkflowExecutionUpdateAdmittedEventAttributes().GetRequest().GetMeta().GetUpdateId()),
+		tag.NewStringTag("origin", origin.String()),
+		tag.NewInt64("event-id", event.EventId))
 	if err := ms.ApplyWorkflowExecutionUpdateAdmittedEvent(event, batchId); err != nil {
 		return nil, err
 	}
@@ -4259,6 +4263,9 @@ func (ms *MutableStateImpl) ApplyWorkflowExecutionUpdateAdmittedEvent(event *his
 			},
 		},
 	}
+	ms.logger.Info("ApplyWorkflowExecutionUpdateAdmittedEvent",
+		tag.NewStringTag("update-id", updateID),
+		tag.NewInt64("event-id", event.EventId))
 	if _, ok := ms.executionInfo.UpdateInfos[updateID]; ok {
 		return serviceerror.NewInternal(fmt.Sprintf("Update ID %s is already present in mutable state", updateID))
 	}
@@ -4277,11 +4284,22 @@ func (ms *MutableStateImpl) AddWorkflowExecutionUpdateAcceptedEvent(
 	acceptedRequestMessageId string,
 	acceptedRequestSequencingEventId int64,
 	acceptedRequest *updatepb.Request,
-) (*historypb.HistoryEvent, error) {
+) (event *historypb.HistoryEvent, retErr error) {
+	defer func() {
+		var eventId int64
+		if event != nil {
+			eventId = event.GetEventId()
+		}
+		ms.logger.Info("Called AddWorkflowExecutionUpdateAcceptedEvent",
+			tag.NewInt64("event-id", eventId),
+			tag.NewStringTag("update-id", protocolInstanceID),
+			tag.NewErrorTag("error", retErr))
+	}()
+
 	if err := ms.checkMutability(tag.WorkflowActionUpdateAccepted); err != nil {
 		return nil, err
 	}
-	event := ms.hBuilder.AddWorkflowExecutionUpdateAcceptedEvent(protocolInstanceID, acceptedRequestMessageId, acceptedRequestSequencingEventId, acceptedRequest)
+	event = ms.hBuilder.AddWorkflowExecutionUpdateAcceptedEvent(protocolInstanceID, acceptedRequestMessageId, acceptedRequestSequencingEventId, acceptedRequest)
 	if err := ms.ApplyWorkflowExecutionUpdateAcceptedEvent(event); err != nil {
 		return nil, err
 	}
@@ -4290,7 +4308,14 @@ func (ms *MutableStateImpl) AddWorkflowExecutionUpdateAcceptedEvent(
 
 func (ms *MutableStateImpl) ApplyWorkflowExecutionUpdateAcceptedEvent(
 	event *historypb.HistoryEvent,
-) error {
+) (retErr error) {
+	var updateID string
+	defer func() {
+		ms.logger.Info("Called ApplyWorkflowExecutionUpdateAcceptedEvent",
+			tag.NewStringTag("update-id", updateID),
+			tag.NewErrorTag("error", retErr))
+	}()
+
 	attrs := event.GetWorkflowExecutionUpdateAcceptedEventAttributes()
 	if attrs == nil {
 		return serviceerror.NewInternal("wrong event type in call to ApplyWorkflowExecutionUpdateAcceptedEvent")
@@ -4298,7 +4323,14 @@ func (ms *MutableStateImpl) ApplyWorkflowExecutionUpdateAcceptedEvent(
 	if ms.executionInfo.UpdateInfos == nil {
 		ms.executionInfo.UpdateInfos = make(map[string]*persistencespb.UpdateInfo, 1)
 	}
-	updateID := attrs.GetAcceptedRequest().GetMeta().GetUpdateId()
+
+	updateID = attrs.GetProtocolInstanceId() // TODO: is this validated?
+
+	// TODO: can be nil!
+	//updateID = attrs.GetAcceptedRequest().GetMeta().GetUpdateId()
+
+	// TODO: assert not nil
+
 	var sizeDelta int
 	if ui, ok := ms.executionInfo.UpdateInfos[updateID]; ok {
 		sizeBefore := ui.Size()
@@ -4306,6 +4338,9 @@ func (ms *MutableStateImpl) ApplyWorkflowExecutionUpdateAcceptedEvent(
 			Acceptance: &persistencespb.UpdateAcceptanceInfo{EventId: event.EventId},
 		}
 		sizeDelta = ui.Size() - sizeBefore
+		ms.logger.Info("ApplyWorkflowExecutionUpdateAcceptedEvent [update]",
+			tag.NewStringTag("update-id", updateID),
+			tag.NewInt64("event-id", event.EventId))
 	} else {
 		ui := persistencespb.UpdateInfo{
 			Value: &persistencespb.UpdateInfo_Acceptance{
@@ -4315,6 +4350,9 @@ func (ms *MutableStateImpl) ApplyWorkflowExecutionUpdateAcceptedEvent(
 		ms.executionInfo.UpdateInfos[updateID] = &ui
 		ms.executionInfo.UpdateCount++
 		sizeDelta = ui.Size() + len(updateID)
+		ms.logger.Info("ApplyWorkflowExecutionUpdateAcceptedEvent [add]",
+			tag.NewStringTag("update-id", updateID),
+			tag.NewInt64("event-id", event.EventId))
 	}
 	ms.approximateSize += sizeDelta
 	ms.updateInfoUpdated[updateID] = struct{}{}
@@ -4366,6 +4404,9 @@ func (ms *MutableStateImpl) ApplyWorkflowExecutionUpdateCompletedEvent(
 	ms.approximateSize += sizeDelta
 	ms.updateInfoUpdated[updateID] = struct{}{}
 	ms.writeEventToCache(event)
+	ms.logger.Info("ApplyWorkflowExecutionUpdateCompletedEvent",
+		tag.NewStringTag("update-id", updateID),
+		tag.NewInt64("event-id", event.EventId))
 	return nil
 }
 
@@ -7095,8 +7136,9 @@ func (ms *MutableStateImpl) applyUpdatesToUpdateInfos(
 	}
 	if isSnapshot {
 		for updateID := range ms.executionInfo.UpdateInfos {
-			if _, ok := updatedUpdateInfos[updateID]; !ok {
+			if upd, ok := updatedUpdateInfos[updateID]; !ok {
 				ms.approximateSize -= ms.executionInfo.UpdateInfos[updateID].Size() + len(updateID)
+				ms.printUpdateInfos("update info deleted", updateID, upd)
 				delete(ms.executionInfo.UpdateInfos, updateID)
 			}
 		}
@@ -7104,6 +7146,7 @@ func (ms *MutableStateImpl) applyUpdatesToUpdateInfos(
 
 	for updateID, ui := range updatedUpdateInfos {
 		if existing, ok := ms.executionInfo.UpdateInfos[updateID]; ok {
+			ms.printUpdateInfos("update info before update", updateID, existing)
 			if CompareVersionedTransition(existing.GetLastUpdateVersionedTransition(), ui.GetLastUpdateVersionedTransition()) == 0 {
 				continue
 			}
@@ -7112,7 +7155,24 @@ func (ms *MutableStateImpl) applyUpdatesToUpdateInfos(
 			ms.executionInfo.UpdateCount++
 		}
 		ms.executionInfo.UpdateInfos[updateID] = ui
+		ms.printUpdateInfos("update info after update", updateID, ms.executionInfo.UpdateInfos[updateID])
 		ms.approximateSize += ui.Size() + len(updateID)
+	}
+}
+
+func (ms *MutableStateImpl) printUpdateInfos(msg string, updateId string, upd *persistencespb.UpdateInfo) {
+	if upd.GetAdmission() != nil {
+		ms.logger.Info("update info is admitted: "+msg,
+			tag.NewStringTag("update-id", updateId),
+			tag.NewInt64("event-id", upd.GetAdmission().GetHistoryPointer().GetEventId()))
+	} else if acc := upd.GetAcceptance(); acc != nil {
+		ms.logger.Info("update info is acceptance: "+msg,
+			tag.NewStringTag("update-id", updateId),
+			tag.NewInt64("event-id", upd.GetAcceptance().GetEventId()))
+	} else if upd.GetCompletion() != nil {
+		ms.logger.Info("update info is completed: "+msg,
+			tag.NewStringTag("update-id", updateId),
+			tag.NewInt64("event-id", upd.GetCompletion().GetEventId()))
 	}
 }
 

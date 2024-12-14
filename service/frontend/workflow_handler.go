@@ -94,6 +94,7 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -747,6 +748,21 @@ func (wh *WorkflowHandler) GetWorkflowExecutionHistory(ctx context.Context, requ
 	if err != nil {
 		return nil, err
 	}
+	for _, evt := range response.Response.History.Events {
+		evtJson, _ := protojson.Marshal(evt)
+		if e := evt.GetWorkflowExecutionUpdateAcceptedEventAttributes(); e != nil {
+			wh.logger.Info("outgoing event: accepted",
+				tag.NewStringTag("evt", string(evtJson)))
+		}
+		if e := evt.GetWorkflowExecutionUpdateAdmittedEventAttributes(); e != nil {
+			wh.logger.Info("outgoing event: admitted",
+				tag.NewStringTag("evt", string(evtJson)))
+		}
+		if e := evt.GetWorkflowExecutionUpdateCompletedEventAttributes(); e != nil {
+			wh.logger.Info("outgoing event: completed",
+				tag.NewStringTag("evt", string(evtJson)))
+		}
+	}
 	return response.Response, nil
 }
 
@@ -884,6 +900,29 @@ func (wh *WorkflowHandler) PollWorkflowTaskQueue(ctx context.Context, request *w
 		return nil, err
 	}
 
+	defer func() {
+		for _, msg := range matchingResp.Messages {
+			messageJson, _ := protojson.Marshal(msg)
+			wh.logger.Info("outgoing message (poll)",
+				tag.NewStringTag("message", string(messageJson)))
+		}
+		for _, evt := range matchingResp.History.Events {
+			evtJson, _ := protojson.Marshal(evt)
+			if e := evt.GetWorkflowExecutionUpdateAcceptedEventAttributes(); e != nil {
+				wh.logger.Info("outgoing event: accepted",
+					tag.NewStringTag("evt", string(evtJson)))
+			}
+			if e := evt.GetWorkflowExecutionUpdateAdmittedEventAttributes(); e != nil {
+				wh.logger.Info("outgoing event: admitted",
+					tag.NewStringTag("evt", string(evtJson)))
+			}
+			if e := evt.GetWorkflowExecutionUpdateCompletedEventAttributes(); e != nil {
+				wh.logger.Info("outgoing event: completed",
+					tag.NewStringTag("evt", string(evtJson)))
+			}
+		}
+	}()
+
 	return &workflowservice.PollWorkflowTaskQueueResponse{
 		TaskToken:                  matchingResp.TaskToken,
 		WorkflowExecution:          matchingResp.WorkflowExecution,
@@ -954,6 +993,31 @@ func (wh *WorkflowHandler) RespondWorkflowTaskCompleted(
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if response.NewWorkflowTask != nil {
+			for _, msg := range response.NewWorkflowTask.Messages {
+				messageJson, _ := protojson.Marshal(msg)
+				wh.logger.Info("outgoing message (respond)",
+					tag.NewStringTag("message", string(messageJson)))
+			}
+			for _, evt := range response.NewWorkflowTask.History.Events {
+				evtJson, _ := protojson.Marshal(evt)
+				if e := evt.GetWorkflowExecutionUpdateAcceptedEventAttributes(); e != nil {
+					wh.logger.Info("outgoing event: accepted",
+						tag.NewStringTag("evt", string(evtJson)))
+				}
+				if e := evt.GetWorkflowExecutionUpdateAdmittedEventAttributes(); e != nil {
+					wh.logger.Info("outgoing event: admitted",
+						tag.NewStringTag("evt", string(evtJson)))
+				}
+				if e := evt.GetWorkflowExecutionUpdateCompletedEventAttributes(); e != nil {
+					wh.logger.Info("outgoing event: completed",
+						tag.NewStringTag("evt", string(evtJson)))
+				}
+			}
+		}
+	}()
 
 	return &workflowservice.RespondWorkflowTaskCompletedResponse{
 		WorkflowTask:        response.NewWorkflowTask,

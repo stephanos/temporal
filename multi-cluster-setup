@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+tctl --ad 127.0.0.1:7233 adm cl upsert-remote-cluster --frontend_address "localhost:8233"
+tctl --ad 127.0.0.1:8233 adm cl upsert-remote-cluster --frontend_address "localhost:7233"
+
+sleep 60;
+
+tctl --ad localhost:7233 --ns default namespace register \
+	--ac 'cluster-a' \
+	--cl 'cluster-a' 'cluster-b' \
+	--gd true \
+	--retention 1
+
+sleep 1
+
+tctl --ad 127.0.0.1:7233 admin cl asa --name CustomKeywordField --type Keyword
+tctl --ad 127.0.0.1:8233 admin cl asa --name CustomKeywordField --type Keyword

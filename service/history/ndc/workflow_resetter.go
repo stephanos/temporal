@@ -857,6 +857,7 @@ func reapplyEvents(
 			// If the Update with the same UpdateId is already present in the target branch (Find returns non-nil),
 			// it is skipped and not reapplied.
 			if targetBranchUpdateRegistry != nil && targetBranchUpdateRegistry.Find(ctx, attr.ProtocolInstanceId) != nil {
+				fmt.Println("targetBranchUpdateRegistry != nil")
 				continue
 			}
 			request := attr.GetAcceptedRequest()

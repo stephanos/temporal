@@ -36,6 +36,7 @@ import (
 	updatepb "go.temporal.io/api/update/v1"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/future"
+	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/utf8validator"
 	"go.temporal.io/server/internal/effect"
@@ -266,6 +267,10 @@ func (u *Update) abort(
 	if u.state.Matches(terminalStates) {
 		return
 	}
+
+	u.instrumentation.log.Info("update aborted",
+		tag.NewStringTag("update-id", u.id),
+		tag.NewStringTag("reason", reason.String()))
 
 	u.instrumentation.countAborted()
 	prevState := u.setState(stateProvisionallyAborted)
@@ -513,6 +518,10 @@ func (u *Update) onAcceptanceMsg(
 	}
 	// utf8validator: we just marshaled u.request ourself earlier, so we don't need to validate it for utf8 strings here
 
+	u.instrumentation.log.Info("Calling AddWorkflowExecutionUpdateAcceptedEvent",
+		tag.NewStringTag("update-id", u.id),
+		tag.NewInt64("acpt.AcceptedRequestSequencingEventId", acpt.AcceptedRequestSequencingEventId))
+
 	event, err := eventStore.AddWorkflowExecutionUpdateAcceptedEvent(
 		u.id,
 		u.outgoingMessageID(),
@@ -522,6 +531,9 @@ func (u *Update) onAcceptanceMsg(
 		return err
 	}
 	u.acceptedEventID = event.EventId
+	u.instrumentation.log.Info("acceptedEventID set from message",
+		tag.NewStringTag("update-id", u.id),
+		tag.NewInt64("acceptedEventID", u.acceptedEventID))
 
 	prevState := u.setState(stateProvisionallyAccepted)
 	eventStore.OnAfterCommit(func(context.Context) {
