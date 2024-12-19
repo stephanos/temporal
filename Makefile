@@ -552,10 +552,6 @@ stop-dependencies-cdc:
 
 start: start-sqlite
 
-start-grafana-tempo:
-	docker compose $(DOCKER_COMPOSE_FILES) up -d tempo
-	printf $(COLOR) "Grafana Tempo available at http://localhost:3000"
-
 start-cass-es: temporal-server
 	./temporal-server --env development-cass-es --allow-no-auth start
 

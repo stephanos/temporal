@@ -14,11 +14,12 @@ itself](https://github.com/open-telemetry/opentelemetry-specification/blob/main/
 
 ## Quickstart
 
-1. Run `make start-grafana-tempo` (or use a different OTEL tool like Jaeger)
-2. Start the server using `make OTEL=true start` (or any other start command)
+1. Run `make start-dependencies` (which starts Grafana Tempo)
+2. Start the server using `make OTEL=true start` (or any other start-x command)
 3. Visit http://localhost:3000/explore and select "Tempo" from the datasource dropdown.
 
-tip: use [TraceQL](https://grafana.com/docs/tempo/latest/traceql/) `{ .temporalWorkflowID =~ "<ID or partial ID>" }` to find your traces
+tip: use [TraceQL](https://grafana.com/docs/tempo/latest/traceql/)
+`{ .temporalWorkflowID =~ "<WF-ID>.*" }` to find the traces for your workflow 
 
 ## Configuring
 
