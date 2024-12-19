@@ -484,7 +484,6 @@ func (c *TemporalImpl) startHistory() {
 			fx.Provide(c.GetTaskCategoryRegistry),
 			temporal.TraceExportModule,
 			temporal.ServiceTracingModule,
-
 			history.QueueModule,
 			history.Module,
 			replication.Module,
