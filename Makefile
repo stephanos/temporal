@@ -279,7 +279,7 @@ $(INTERNAL_BINPB): $(API_BINPB) $(PROTO_FILES)
 	@printf $(COLOR) "Generate proto image..."
 	@protoc --descriptor_set_in=$(API_BINPB) -I=$(PROTO_ROOT)/internal $(PROTO_FILES) -o $@
 
-protoc: $(PROTOGEN) $(MOCKGEN) $(GOIMPORTS) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(PROTOC_GEN_GO_HELPERS) $(API_BINPB)
+protoc: $(PROTOGEN) $(MOCKGEN) $(GOIMPORTS) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(PROTOC_GEN_GO_HELPERS) $(API_BINPB) protoc-gen-d2
 	@env \
 		PROTOGEN=$(PROTOGEN) MOCKGEN=$(MOCKGEN) GOIMPORTS=$(GOIMPORTS) \
 		API_BINPB=$(API_BINPB) PROTO_ROOT=$(PROTO_ROOT) PROTO_OUT=$(PROTO_OUT) \
@@ -317,6 +317,10 @@ tdbg: $(ALL_SRC)
 temporal-cassandra-tool: $(ALL_SRC)
 	@printf $(COLOR) "Build temporal-cassandra-tool with CGO_ENABLED=$(CGO_ENABLED) for $(GOOS)/$(GOARCH)..."
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_TAG_FLAG) -o temporal-cassandra-tool ./cmd/tools/cassandra
+
+protoc-gen-d2: $(ALL_SRC)
+	@printf $(COLOR) "Build protoc-gen-d2"
+	@cd tools/protoc-gen-d2 && go build -o ../../.bin/protoc-gen-d2
 
 temporal-sql-tool: $(ALL_SRC)
 	@printf $(COLOR) "Build temporal-sql-tool with CGO_ENABLED=$(CGO_ENABLED) for $(GOOS)/$(GOARCH)..."

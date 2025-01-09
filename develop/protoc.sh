@@ -7,6 +7,15 @@ color() { printf "\e[1;36m%s\e[0m\n" "$*"; }
 api=$PROTO_OUT
 new=$api.new
 
+color "Generating protos diagrams..."
+
+protoc \
+  --descriptor_set_in="$API_BINPB" \
+  --plugin=protoc-gen-d2=.bin/protoc-gen-d2 \
+  --d2_out="docs/api" \
+  -I"$PROTO_ROOT"/internal \
+  $(find "$PROTO_ROOT" -name "*.proto")
+
 color "Generating protos..."
 
 rm -rf "$new" && mkdir -p "$new"
