@@ -50,6 +50,7 @@ import (
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
+	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/worker_versioning"
 	"go.temporal.io/server/service/worker/deployment"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -219,10 +220,13 @@ var (
 
 func newPhysicalTaskQueueManager(
 	partitionMgr *taskQueuePartitionManagerImpl,
+	namespaceRegistry namespace.Registry,
+	matchingRawClient matchingservice.MatchingServiceClient,
+	clusterMeta cluster.Metadata,
+	taskManager persistence.TaskManager,
 	queue *PhysicalTaskQueueKey,
 	opts ...taskQueueManagerOpt,
 ) (*physicalTaskQueueManagerImpl, error) {
-	e := partitionMgr.engine
 	config := partitionMgr.config
 	buildIdTagValue := queue.Version().MetricsTagValue()
 	logger := log.With(partitionMgr.logger, tag.WorkerBuildId(buildIdTagValue))
@@ -234,9 +238,9 @@ func newPhysicalTaskQueueManager(
 	pqMgr := &physicalTaskQueueManagerImpl{
 		status:                     common.DaemonStatusInitialized,
 		partitionMgr:               partitionMgr,
-		namespaceRegistry:          e.namespaceRegistry,
-		matchingClient:             e.matchingRawClient,
-		clusterMeta:                e.clusterMeta,
+		namespaceRegistry:          namespaceRegistry,
+		matchingClient:             matchingRawClient,
+		clusterMeta:                clusterMeta,
 		queue:                      queue,
 		logger:                     logger,
 		throttledLogger:            throttledLogger,
@@ -257,10 +261,10 @@ func newPhysicalTaskQueueManager(
 	pqMgr.backlogMgr = newBacklogManager(
 		pqMgr,
 		config,
-		e.taskManager,
+		taskManager,
 		logger,
 		throttledLogger,
-		e.matchingRawClient,
+		matchingRawClient,
 		taggedMetricsHandler,
 		partitionMgr.callerInfoContext,
 	)
@@ -269,7 +273,7 @@ func newPhysicalTaskQueueManager(
 	var err error
 	if !queue.Partition().IsRoot() && queue.Partition().Kind() != enumspb.TASK_QUEUE_KIND_STICKY {
 		// Every DB Queue needs its own forwarder so that the throttles do not interfere
-		fwdr, err = newForwarder(&config.forwarderConfig, queue, e.matchingRawClient)
+		fwdr, err = newForwarder(&config.forwarderConfig, queue, matchingRawClient)
 		if err != nil {
 			return nil, err
 		}

@@ -39,11 +39,14 @@ import (
 	"go.temporal.io/server/api/matchingservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	taskqueuespb "go.temporal.io/server/api/taskqueue/v1"
+	"go.temporal.io/server/common/cluster"
 	"go.temporal.io/server/common/headers"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
+	"go.temporal.io/server/common/persistence"
+	"go.temporal.io/server/common/resource"
 	serviceerrors "go.temporal.io/server/common/serviceerror"
 	"go.temporal.io/server/common/tqid"
 	"go.temporal.io/server/common/worker_versioning"
@@ -62,10 +65,14 @@ type (
 	//  - This behavior is subject to optimizations in the future: for versioned queues, keeping the default queue
 	//    loaded all the time may be suboptimal.
 	taskQueuePartitionManagerImpl struct {
-		engine    *matchingEngineImpl
-		partition tqid.Partition
-		ns        *namespace.Namespace
-		config    *taskQueueConfig
+		partition         tqid.Partition
+		ns                *namespace.Namespace
+		config            *taskQueueConfig
+		engine            *matchingEngineImpl
+		namespaceRegistry namespace.Registry
+		matchingRawClient resource.MatchingRawClient
+		clusterMeta       cluster.Metadata
+		taskManager       persistence.TaskManager
 		// this is the default (unversioned) DB queue. As of now, some of the matters related to the whole TQ partition
 		// is delegated to the defaultQueue.
 		defaultQueue physicalTaskQueueManager
@@ -104,17 +111,34 @@ func newTaskQueuePartitionManager(
 		throttledLogger:             throttledLogger,
 		matchingClient:              e.matchingRawClient,
 		metricsHandler:              metricsHandler,
+		namespaceRegistry:           e.namespaceRegistry,
+		matchingRawClient:           e.matchingRawClient,
+		clusterMeta:                 e.clusterMeta,
+		taskManager:                 e.taskManager,
 		versionedQueues:             make(map[PhysicalTaskQueueVersion]physicalTaskQueueManager),
 		userDataManager:             userDataManager,
 		cachedPhysicalInfoByBuildId: nil,
 	}
 
-	defaultQ, err := newPhysicalTaskQueueManager(pm, UnversionedQueueKey(partition))
+	defaultQ, err := pm.newPhysicalTaskQueueManager(UnversionedQueueKey(partition))
 	if err != nil {
 		return nil, err
 	}
 	pm.defaultQueue = defaultQ
 	return pm, nil
+}
+
+func (pm *taskQueuePartitionManagerImpl) newPhysicalTaskQueueManager(
+	queue *PhysicalTaskQueueKey,
+) (physicalTaskQueueManager, error) {
+	return newPhysicalTaskQueueManager(
+		pm,
+		pm.namespaceRegistry,
+		pm.matchingRawClient,
+		pm.clusterMeta,
+		pm.taskManager,
+		queue,
+	)
 }
 
 func (pm *taskQueuePartitionManagerImpl) Start() {
@@ -708,7 +732,7 @@ func (pm *taskQueuePartitionManagerImpl) getVersionedQueueNoWait(
 			} else {
 				dbq = VersionSetQueueKey(pm.partition, versionSet)
 			}
-			vq, err = newPhysicalTaskQueueManager(pm, dbq)
+			vq, err = pm.newPhysicalTaskQueueManager(dbq)
 			if err != nil {
 				pm.versionedQueuesLock.Unlock()
 				return nil, err

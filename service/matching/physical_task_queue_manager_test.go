@@ -285,7 +285,13 @@ func createTestTaskQueueManagerWithConfig(
 	onFatalErr := func(unloadCause) { t.Fatal("user data manager called onFatalErr") }
 	userDataManager := newUserDataManager(me.taskManager, me.matchingRawClient, onFatalErr, partition, tqConfig, me.logger, me.namespaceRegistry)
 	pm := createTestTaskQueuePartitionManager(ns, partition, tqConfig, me, userDataManager)
-	tlMgr, err := newPhysicalTaskQueueManager(pm, testOpts.dbq, opts...)
+	tlMgr, err := newPhysicalTaskQueueManager(pm,
+		pm.namespaceRegistry,
+		pm.matchingRawClient,
+		pm.clusterMeta,
+		pm.taskManager,
+		testOpts.dbq,
+		opts...)
 	pm.defaultQueue = tlMgr
 	if err != nil {
 		return nil, err
