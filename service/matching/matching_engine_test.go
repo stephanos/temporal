@@ -450,13 +450,13 @@ func (s *matchingEngineSuite) TestOnlyUnloadMatchingInstance() {
 		uuid.New(),
 		"makeToast",
 		enumspb.TASK_QUEUE_TYPE_ACTIVITY)
-	tqm, _, err := s.matchingEngine.getTaskQueuePartitionManager(context.Background(), prtn, true, loadCauseUnspecified)
+	tqm, _, err := s.matchingEngine.physicalTaskQueueManagerPool.getOrCreate(context.Background(), s.matchingEngine, prtn, true, loadCauseUnspecified)
 	s.Require().NoError(err)
 
 	tqm2 := s.newPartitionManager(prtn, s.matchingEngine.config)
 
 	// try to unload a different tqm instance with the same taskqueue ID
-	s.matchingEngine.unloadTaskQueuePartition(tqm2, unloadCauseUnspecified)
+	s.matchingEngine.physicalTaskQueueManagerPool.unload(tqm2, unloadCauseUnspecified)
 
 	got, _, err := s.matchingEngine.getTaskQueuePartitionManager(context.Background(), prtn, true, loadCauseUnspecified)
 	s.Require().NoError(err)
@@ -466,7 +466,7 @@ func (s *matchingEngineSuite) TestOnlyUnloadMatchingInstance() {
 	// this time unload the right tqm
 	s.matchingEngine.unloadTaskQueuePartition(tqm, unloadCauseUnspecified)
 
-	got, _, err = s.matchingEngine.getTaskQueuePartitionManager(context.Background(), prtn, true, loadCauseUnspecified)
+	got, _, err = s.matchingEngine.physicalTaskQueueManagerPool.getOrCreate(context.Background(), s.matchingEngine, prtn, true, loadCauseUnspecified)
 	s.Require().NoError(err)
 	s.Require().NotSame(tqm, got,
 		"Unload call with matching incarnation should have caused unload")

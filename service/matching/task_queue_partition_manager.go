@@ -634,7 +634,7 @@ func (pm *taskQueuePartitionManagerImpl) unloadPhysicalQueue(unloadedDbq physica
 }
 
 func (pm *taskQueuePartitionManagerImpl) unloadFromEngine(unloadCause unloadCause) {
-	pm.engine.unloadTaskQueuePartition(pm, unloadCause)
+	pm.unload(pm, unloadCause)
 }
 
 func (pm *taskQueuePartitionManagerImpl) getPhysicalQueue(ctx context.Context, buildId string) (physicalTaskQueueManager, error) {
