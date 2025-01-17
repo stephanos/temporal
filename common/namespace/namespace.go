@@ -37,6 +37,7 @@ import (
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
+	"go.temporal.io/server/common/namespace/nsreplication"
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/util"
 )
@@ -139,8 +140,8 @@ func FromAdminClientApiResponse(response *adminservice.GetNamespaceResponse) *Na
 	replicationConfig := &persistencespb.NamespaceReplicationConfig{
 		ActiveClusterName: response.GetReplicationConfig().GetActiveClusterName(),
 		State:             response.GetReplicationConfig().GetState(),
-		Clusters:          ConvertClusterReplicationConfigFromProto(response.GetReplicationConfig().GetClusters()),
-		FailoverHistory:   convertFailoverHistoryToPersistenceProto(response.GetFailoverHistory()),
+		Clusters:          nsreplication.ConvertClusterReplicationConfigFromProto(response.GetReplicationConfig().GetClusters()),
+		FailoverHistory:   nsreplication.ConvertFailoverHistoryToPersistenceProto(response.GetFailoverHistory()),
 	}
 	return &Namespace{
 		info:              info,

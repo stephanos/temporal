@@ -31,7 +31,7 @@
 //
 
 // Package namespace is a generated GoMock package.
-package namespace
+package nsreplication
 
 import (
 	context "context"
@@ -41,7 +41,7 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockReplicationTaskExecutor is a mock of ReplicationTaskExecutor interface.
+// MockReplicationTaskExecutor is a mock of TaskExecutor interface.
 type MockReplicationTaskExecutor struct {
 	ctrl     *gomock.Controller
 	recorder *MockReplicationTaskExecutorMockRecorder

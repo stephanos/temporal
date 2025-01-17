@@ -31,7 +31,7 @@
 //
 
 // Package namespace is a generated GoMock package.
-package namespace
+package nsdlq
 
 import (
 	context "context"
@@ -41,7 +41,7 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockDLQMessageHandler is a mock of DLQMessageHandler interface.
+// MockDLQMessageHandler is a mock of MessageHandler interface.
 type MockDLQMessageHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockDLQMessageHandlerMockRecorder
