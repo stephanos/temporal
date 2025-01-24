@@ -46,7 +46,6 @@ import (
 	deletemanager "go.temporal.io/server/service/history/deletemanager"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
@@ -78,7 +77,6 @@ type (
 		taskExecutors        map[string]TaskExecutor
 		shard                shard.Context
 		deleteManager        deletemanager.DeleteManager
-		workflowCache        wcache.Cache
 		resender             xdc.NDCHistoryResender
 		taskExecutorProvider TaskExecutorProvider
 		logger               log.Logger
@@ -88,14 +86,12 @@ type (
 func NewLazyDLQHandler(
 	shard shard.Context,
 	deleteManager deletemanager.DeleteManager,
-	workflowCache wcache.Cache,
 	clientBean client.Bean,
 	taskExecutorProvider TaskExecutorProvider,
 ) DLQHandler {
 	return newDLQHandler(
 		shard,
 		deleteManager,
-		workflowCache,
 		clientBean,
 		make(map[string]TaskExecutor),
 		taskExecutorProvider,
@@ -105,7 +101,6 @@ func NewLazyDLQHandler(
 func newDLQHandler(
 	shard shard.Context,
 	deleteManager deletemanager.DeleteManager,
-	workflowCache wcache.Cache,
 	clientBean client.Bean,
 	taskExecutors map[string]TaskExecutor,
 	taskExecutorProvider TaskExecutorProvider,
@@ -118,7 +113,6 @@ func newDLQHandler(
 	return &dlqHandlerImpl{
 		shard:         shard,
 		deleteManager: deleteManager,
-		workflowCache: workflowCache,
 		resender: xdc.NewNDCHistoryResender(
 			shard.GetNamespaceRegistry(),
 			clientBean,
@@ -381,7 +375,6 @@ func (r *dlqHandlerImpl) getOrCreateTaskExecutor(clusterName string) (TaskExecut
 		Shard:           r.shard,
 		HistoryResender: r.resender,
 		DeleteManager:   r.deleteManager,
-		WorkflowCache:   r.workflowCache,
 	})
 	r.taskExecutors[clusterName] = taskExecutor
 	return taskExecutor, nil

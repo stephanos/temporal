@@ -41,7 +41,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/fx"
 )
 
@@ -55,9 +55,7 @@ type (
 		EventNotifier                   events.Notifier
 		Config                          *configs.Config
 		RawMatchingClient               resource.MatchingRawClient
-		WorkflowCache                   wcache.Cache
 		ReplicationProgressCache        replication.ProgressCache
-		NewCacheFn                      wcache.NewCacheFn
 		EventSerializer                 serialization.Serializer
 		QueueFactories                  []QueueFactory `group:"queueFactory"`
 		ReplicationTaskFetcherFactory   replication.TaskFetcherFactory
@@ -80,14 +78,14 @@ type (
 func (f *historyEngineFactory) CreateEngine(
 	shard shard.Context,
 ) shard.Engine {
-	var wfCache wcache.Cache
-	if shard.GetConfig().EnableHostLevelHistoryCache() {
-		wfCache = f.WorkflowCache
-	} else {
-		wfCache = f.NewCacheFn(shard.GetConfig(), shard.GetLogger(), shard.GetMetricsHandler())
-	}
+	//var wfCache wcache.Cache
+	//if shard.GetConfig().EnableHostLevelHistoryCache() {
+	//	wfCache = f.WorkflowCache
+	//} else {
+	//	wfCache = f.NewCacheFn(shard.GetConfig(), shard.GetLogger(), shard.GetMetricsHandler())
+	//}
 
-	workflowConsistencyChecker := api.NewWorkflowConsistencyChecker(shard, wfCache)
+	workflowConsistencyChecker := api.NewWorkflowConsistencyChecker(shard)
 	return NewEngineWithShardContext(
 		shard,
 		f.ClientBean,
@@ -96,7 +94,6 @@ func (f *historyEngineFactory) CreateEngine(
 		f.EventNotifier,
 		f.Config,
 		f.RawMatchingClient,
-		wfCache,
 		f.ReplicationProgressCache,
 		f.EventSerializer,
 		f.QueueFactories,

@@ -28,7 +28,6 @@ import (
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/service/history/consts"
-	"go.temporal.io/server/service/history/queues"
 )
 
 var (
@@ -97,9 +96,10 @@ func TransitionHistoryStalenessCheck(
 	history []*persistencespb.VersionedTransition,
 	refVersionedTransition *persistencespb.VersionedTransition,
 ) error {
-	if len(history) == 0 {
-		return queues.NewUnprocessableTaskError("state has empty transition history")
-	}
+	// TODO: need to fix this, removes dependency on `queues`
+	//if len(history) == 0 {
+	//	return queues.NewUnprocessableTaskError("state has empty transition history")
+	//}
 	idx, min, max := transitionHistoryRangeForVersion(history, refVersionedTransition.NamespaceFailoverVersion)
 	if idx == -1 {
 		lastItem := history[len(history)-1]

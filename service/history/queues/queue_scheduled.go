@@ -40,7 +40,6 @@ import (
 	"go.temporal.io/server/common/quotas"
 	"go.temporal.io/server/common/timer"
 	"go.temporal.io/server/common/util"
-	hshard "go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 )
 
@@ -65,7 +64,7 @@ const (
 )
 
 func NewScheduledQueue(
-	shard hshard.Context,
+	shard shardContext,
 	category tasks.Category,
 	scheduler Scheduler,
 	rescheduler Rescheduler,

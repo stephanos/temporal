@@ -31,7 +31,6 @@ import (
 	"go.temporal.io/server/service/history/consts"
 	"go.temporal.io/server/service/history/queues"
 	"go.temporal.io/server/service/history/shard"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type outboundQueueActiveTaskExecutor struct {
@@ -42,14 +41,12 @@ var _ queues.Executor = &outboundQueueActiveTaskExecutor{}
 
 func newOutboundQueueActiveTaskExecutor(
 	shardCtx shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 	metricsHandler metrics.Handler,
 ) *outboundQueueActiveTaskExecutor {
 	return &outboundQueueActiveTaskExecutor{
 		stateMachineEnvironment: stateMachineEnvironment{
 			shardContext: shardCtx,
-			cache:        workflowCache,
 			logger:       logger,
 			metricsHandler: metricsHandler.WithTags(
 				metrics.OperationTag(metrics.OperationOutboundQueueProcessorScope),

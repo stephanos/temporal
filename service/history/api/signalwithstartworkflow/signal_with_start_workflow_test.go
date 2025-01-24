@@ -43,7 +43,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 )
 
@@ -110,7 +110,7 @@ func (s *signalWithStartWorkflowSuite) TestSignalWorkflow_WorkflowCloseAttempted
 	ctx := context.Background()
 	currentWorkflowLease := api.NewWorkflowLease(
 		s.currentContext,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 		s.currentMutableState,
 	)
 	request := s.randomRequest()
@@ -131,7 +131,7 @@ func (s *signalWithStartWorkflowSuite) TestSignalWorkflow_Dedup() {
 	ctx := context.Background()
 	currentWorkflowLease := api.NewWorkflowLease(
 		s.currentContext,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 		s.currentMutableState,
 	)
 	request := s.randomRequest()
@@ -152,7 +152,7 @@ func (s *signalWithStartWorkflowSuite) TestSignalWorkflow_NewWorkflowTask() {
 	ctx := context.Background()
 	currentWorkflowLease := api.NewWorkflowLease(
 		s.currentContext,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 		s.currentMutableState,
 	)
 	request := s.randomRequest()
@@ -185,7 +185,7 @@ func (s *signalWithStartWorkflowSuite) TestSignalWorkflow_NoNewWorkflowTask() {
 	ctx := context.Background()
 	currentWorkflowLease := api.NewWorkflowLease(
 		s.currentContext,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 		s.currentMutableState,
 	)
 	request := s.randomRequest()

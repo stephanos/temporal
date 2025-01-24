@@ -40,7 +40,6 @@ import (
 	clock "go.temporal.io/server/api/clock/v1"
 	definition "go.temporal.io/server/common/definition"
 	locks "go.temporal.io/server/common/locks"
-	cache "go.temporal.io/server/service/history/workflow/cache"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -80,20 +79,6 @@ func (m *MockWorkflowConsistencyChecker) GetCurrentRunID(ctx context.Context, na
 func (mr *MockWorkflowConsistencyCheckerMockRecorder) GetCurrentRunID(ctx, namespaceID, workflowID, lockPriority any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentRunID", reflect.TypeOf((*MockWorkflowConsistencyChecker)(nil).GetCurrentRunID), ctx, namespaceID, workflowID, lockPriority)
-}
-
-// GetWorkflowCache mocks base method.
-func (m *MockWorkflowConsistencyChecker) GetWorkflowCache() cache.Cache {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWorkflowCache")
-	ret0, _ := ret[0].(cache.Cache)
-	return ret0
-}
-
-// GetWorkflowCache indicates an expected call of GetWorkflowCache.
-func (mr *MockWorkflowConsistencyCheckerMockRecorder) GetWorkflowCache() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflowCache", reflect.TypeOf((*MockWorkflowConsistencyChecker)(nil).GetWorkflowCache))
 }
 
 // GetWorkflowLease mocks base method.

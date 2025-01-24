@@ -68,7 +68,7 @@ import (
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -1978,7 +1978,7 @@ func (s *timerQueueActiveTaskExecutorSuite) TestExecuteStateMachineTimerTask_Exe
 	mockCache := wcache.NewMockCache(s.controller)
 	mockCache.EXPECT().GetOrCreateWorkflowExecution(
 		gomock.Any(), s.mockShard, tests.NamespaceID, we, locks.PriorityLow,
-	).Return(wfCtx, wcache.NoopReleaseFn, nil)
+	).Return(wfCtx, shard.NoopReleaseFn, nil)
 
 	task := &tasks.StateMachineTimerTask{
 		WorkflowKey:         tests.WorkflowKey,

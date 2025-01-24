@@ -49,7 +49,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -71,7 +70,6 @@ type (
 
 func newTimerQueueTaskExecutorBase(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	deleteManager deletemanager.DeleteManager,
 	matchingRawClient resource.MatchingRawClient,
 	logger log.Logger,
@@ -82,7 +80,6 @@ func newTimerQueueTaskExecutorBase(
 	return &timerQueueTaskExecutorBase{
 		stateMachineEnvironment: stateMachineEnvironment{
 			shardContext:   shardContext,
-			cache:          workflowCache,
 			logger:         logger,
 			metricsHandler: metricsHandler,
 		},
@@ -107,9 +104,8 @@ func (t *timerQueueTaskExecutorBase) executeDeleteHistoryEventTask(
 		RunId:      task.GetRunID(),
 	}
 
-	weContext, release, err := t.cache.GetOrCreateWorkflowExecution(
+	weContext, release, err := t.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		t.shardContext,
 		namespace.ID(task.GetNamespaceID()),
 		workflowExecution,
 		locks.PriorityLow,

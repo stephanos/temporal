@@ -42,7 +42,6 @@ import (
 	"go.temporal.io/server/service/history/ndc"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
@@ -72,12 +71,11 @@ var _ workflowRebuilder = (*workflowRebuilderImpl)(nil)
 
 func NewWorkflowRebuilder(
 	shard shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 ) *workflowRebuilderImpl {
 	return &workflowRebuilderImpl{
 		shard:                      shard,
-		workflowConsistencyChecker: api.NewWorkflowConsistencyChecker(shard, workflowCache),
+		workflowConsistencyChecker: api.NewWorkflowConsistencyChecker(shard),
 		transaction:                workflow.NewTransaction(shard),
 		logger:                     logger,
 	}
@@ -88,14 +86,12 @@ func (r *workflowRebuilderImpl) rebuild(
 	workflowKey definition.WorkflowKey,
 ) (retError error) {
 
-	wfCache := r.workflowConsistencyChecker.GetWorkflowCache()
 	rebuildSpec, err := r.getRebuildSpecFromMutableState(ctx, &workflowKey)
 	if err != nil {
 		return err
 	}
-	wfContext, releaseFn, err := wfCache.GetOrCreateWorkflowExecution(
+	wfContext, releaseFn, err := r.shard.GetOrCreateWorkflowExecution(
 		ctx,
-		r.shard,
 		namespace.ID(workflowKey.NamespaceID),
 		&commonpb.WorkflowExecution{
 			WorkflowId: workflowKey.WorkflowID,

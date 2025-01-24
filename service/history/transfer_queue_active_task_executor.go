@@ -65,7 +65,7 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.temporal.io/server/service/worker/parentclosepolicy"
 )
 
@@ -80,7 +80,6 @@ type (
 
 func newTransferQueueActiveTaskExecutor(
 	shard shard.Context,
-	workflowCache wcache.Cache,
 	sdkClientFactory sdk.ClientFactory,
 	logger log.Logger,
 	metricProvider metrics.Handler,
@@ -92,7 +91,6 @@ func newTransferQueueActiveTaskExecutor(
 	return &transferQueueActiveTaskExecutor{
 		transferQueueTaskExecutorBase: newTransferQueueTaskExecutorBase(
 			shard,
-			workflowCache,
 			logger,
 			metricProvider,
 			historyRawClient,
@@ -101,7 +99,6 @@ func newTransferQueueActiveTaskExecutor(
 		),
 		workflowResetter: ndc.NewWorkflowResetter(
 			shard,
-			workflowCache,
 			logger,
 		),
 		parentClosePolicyClient: parentclosepolicy.NewClient(
@@ -183,7 +180,7 @@ func (t *transferQueueActiveTaskExecutor) processActivityTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -232,7 +229,7 @@ func (t *transferQueueActiveTaskExecutor) processWorkflowTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, transferTask)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, transferTask)
 	if err != nil {
 		return err
 	}
@@ -312,7 +309,7 @@ func (t *transferQueueActiveTaskExecutor) processCloseExecution(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -436,7 +433,7 @@ func (t *transferQueueActiveTaskExecutor) processCancelExecution(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -556,7 +553,7 @@ func (t *transferQueueActiveTaskExecutor) processSignalExecution(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -709,7 +706,7 @@ func (t *transferQueueActiveTaskExecutor) processStartChildExecution(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -993,7 +990,6 @@ func (t *transferQueueActiveTaskExecutor) verifyChildWorkflow(
 	wfContext, release, err := getWorkflowExecutionContext(
 		ctx,
 		t.shardContext,
-		t.cache,
 		wfKey,
 		locks.PriorityLow,
 	)
@@ -1022,7 +1018,7 @@ func (t *transferQueueActiveTaskExecutor) processResetWorkflow(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	currentContext, currentRelease, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	currentContext, currentRelease, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -1099,7 +1095,7 @@ func (t *transferQueueActiveTaskExecutor) processResetWorkflow(
 
 	var baseContext workflow.Context
 	var baseMutableState workflow.MutableState
-	var baseRelease wcache.ReleaseCacheFunc
+	var baseRelease shard.ReleaseCacheFunc
 	if resetPoint.GetRunId() == executionState.RunId {
 		baseContext = currentContext
 		baseMutableState = currentMutableState
@@ -1108,7 +1104,6 @@ func (t *transferQueueActiveTaskExecutor) processResetWorkflow(
 		baseContext, baseRelease, err = getWorkflowExecutionContext(
 			ctx,
 			t.shardContext,
-			t.cache,
 			definition.NewWorkflowKey(task.NamespaceID, task.WorkflowID, resetPoint.GetRunId()),
 			locks.PriorityLow,
 		)
@@ -1549,7 +1544,7 @@ func (t *transferQueueActiveTaskExecutor) resetWorkflow(
 		t.shardContext.GetClusterMetadata(),
 		baseContext,
 		baseMutableState,
-		wcache.NoopReleaseFn, // this is fine since caller will defer on release
+		shard.NoopReleaseFn, // this is fine since caller will defer on release
 	)
 	err = t.workflowResetter.ResetWorkflow(
 		resetWorkflowCtx,
@@ -1567,7 +1562,7 @@ func (t *transferQueueActiveTaskExecutor) resetWorkflow(
 			t.shardContext.GetClusterMetadata(),
 			currentContext,
 			currentMutableState,
-			wcache.NoopReleaseFn, // this is fine since caller will defer on release
+			shard.NoopReleaseFn, // this is fine since caller will defer on release
 		),
 		reason,
 		nil,

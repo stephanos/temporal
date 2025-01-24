@@ -37,7 +37,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/fx"
 )
 
@@ -124,9 +124,9 @@ func newQueueFactoryBase(params ArchivalQueueFactoryParams) QueueFactoryBase {
 // CreateQueue creates a new archival queue for the given shard.
 func (f *archivalQueueFactory) CreateQueue(
 	shard shard.Context,
-	workflowCache wcache.Cache,
+
 ) queues.Queue {
-	executor := f.newArchivalTaskExecutor(shard, workflowCache)
+	executor := f.newArchivalTaskExecutor(shard)
 	if f.ExecutorWrapper != nil {
 		executor = f.ExecutorWrapper.Wrap(executor)
 	}
@@ -134,11 +134,10 @@ func (f *archivalQueueFactory) CreateQueue(
 }
 
 // newArchivalTaskExecutor creates a new archival task executor for the given shard.
-func (f *archivalQueueFactory) newArchivalTaskExecutor(shard shard.Context, workflowCache wcache.Cache) queues.Executor {
+func (f *archivalQueueFactory) newArchivalTaskExecutor(shard shard.Context) queues.Executor {
 	return NewArchivalQueueTaskExecutor(
 		f.Archiver,
 		shard,
-		workflowCache,
 		f.RelocatableAttributesFetcher,
 		f.MetricsHandler,
 		log.With(shard.GetLogger(), tag.ComponentArchivalQueue),

@@ -52,7 +52,7 @@ import (
 	deletemanager "go.temporal.io/server/service/history/deletemanager"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

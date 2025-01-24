@@ -41,7 +41,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	"go.temporal.io/server/service/history/workflow/cache"
 )
 
 func updateIndependentActivityBuildId(
@@ -50,7 +49,6 @@ func updateIndependentActivityBuildId(
 	buildId string,
 	shardContext shard.Context,
 	transactionPolicy workflow.TransactionPolicy,
-	workflowCache cache.Cache,
 	metricsHandler metrics.Handler,
 	logger log.Logger,
 ) (retErr error) {
@@ -75,7 +73,7 @@ func updateIndependentActivityBuildId(
 	// - assignment rules are added for the Task Queue (i.e. worker versioning is enabled)
 	// - sync-match did not happen for this task
 	// - the activity is on a different task queue (or otherwise asked to be independently assigned to a build ID)
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, shardContext, workflowCache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -147,7 +145,6 @@ func initializeWorkflowAssignedBuildId(
 	buildId string,
 	shardContext shard.Context,
 	transactionPolicy workflow.TransactionPolicy,
-	workflowCache cache.Cache,
 	metricsHandler metrics.Handler,
 	logger log.Logger,
 ) (retErr error) {
@@ -173,7 +170,7 @@ func initializeWorkflowAssignedBuildId(
 	// - sync-match did not happen for this task
 	// - this is the first workflow task of the execution
 	// - the workflow has not inherited a build ID (for child WF or CaN)
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, shardContext, workflowCache, transferTask)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, shardContext, transferTask)
 	if err != nil {
 		return err
 	}

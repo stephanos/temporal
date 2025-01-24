@@ -62,7 +62,6 @@ import (
 	"go.temporal.io/server/service/history/historybuilder"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
@@ -81,7 +80,6 @@ type (
 	WorkflowStateReplicatorImpl struct {
 		shardContext      shard.Context
 		namespaceRegistry namespace.Registry
-		workflowCache     wcache.Cache
 		clusterMetadata   cluster.Metadata
 		executionMgr      persistence.ExecutionManager
 		historySerializer serialization.Serializer
@@ -93,7 +91,6 @@ type (
 
 func NewWorkflowStateReplicator(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	eventsReapplier EventsReapplier,
 	eventSerializer serialization.Serializer,
 	logger log.Logger,
@@ -103,11 +100,10 @@ func NewWorkflowStateReplicator(
 	return &WorkflowStateReplicatorImpl{
 		shardContext:      shardContext,
 		namespaceRegistry: shardContext.GetNamespaceRegistry(),
-		workflowCache:     workflowCache,
 		clusterMetadata:   shardContext.GetClusterMetadata(),
 		executionMgr:      shardContext.GetExecutionManager(),
 		historySerializer: eventSerializer,
-		transactionMgr:    NewTransactionManager(shardContext, workflowCache, eventsReapplier, logger, false),
+		transactionMgr:    NewTransactionManager(shardContext, eventsReapplier, logger, false),
 		logger:            logger,
 		taskRefresher:     workflow.NewTaskRefresher(shardContext),
 	}
@@ -126,16 +122,10 @@ func (r *WorkflowStateReplicatorImpl) SyncWorkflowState(
 		return serviceerror.NewInternal("Replicate non completed workflow state is not supported.")
 	}
 
-	wfCtx, releaseFn, err := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		namespaceID,
-		&commonpb.WorkflowExecution{
-			WorkflowId: wid,
-			RunId:      rid,
-		},
-		locks.PriorityLow,
-	)
+	wfCtx, releaseFn, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, &commonpb.WorkflowExecution{
+		WorkflowId: wid,
+		RunId:      rid,
+	}, locks.PriorityLow)
 	if err != nil {
 		return err
 	}
@@ -235,16 +225,10 @@ func (r *WorkflowStateReplicatorImpl) ReplicateVersionedTransition(
 	wid := executionInfo.GetWorkflowId()
 	rid := executionState.GetRunId()
 
-	wfCtx, releaseFn, err := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		namespaceID,
-		&commonpb.WorkflowExecution{
-			WorkflowId: wid,
-			RunId:      rid,
-		},
-		locks.PriorityLow,
-	)
+	wfCtx, releaseFn, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, &commonpb.WorkflowExecution{
+		WorkflowId: wid,
+		RunId:      rid,
+	}, locks.PriorityLow)
 	if err != nil {
 		return err
 	}
@@ -340,7 +324,7 @@ func (r *WorkflowStateReplicatorImpl) applyMutation(
 	runID string,
 	wfCtx workflow.Context,
 	localMutableState workflow.MutableState,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	versionedTransition *replicationspb.VersionedTransitionArtifact,
 	sourceClusterName string,
 ) error {
@@ -426,7 +410,7 @@ func (r *WorkflowStateReplicatorImpl) applySnapshot(
 	workflowID string,
 	runID string,
 	wfCtx workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	localMutableState workflow.MutableState,
 	versionedTransition *replicationspb.VersionedTransitionArtifact,
 	sourceClusterName string,
@@ -623,7 +607,7 @@ func (r *WorkflowStateReplicatorImpl) getNewRunWorkflow(
 		r.clusterMetadata,
 		newContext,
 		newMutableState,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 	), nil
 }
 
@@ -908,7 +892,7 @@ func (r *WorkflowStateReplicatorImpl) applySnapshotWhenWorkflowNotExist(
 	workflowID string,
 	runID string,
 	wfCtx workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	sourceMutableState *persistencespb.WorkflowMutableState,
 	sourceCluster string,
 	newRunInfo *replicationspb.NewRunInfo,
@@ -1030,16 +1014,10 @@ func (r *WorkflowStateReplicatorImpl) createNewRunWorkflow(
 	originalMutableState workflow.MutableState,
 	isStateBased bool,
 ) error {
-	newRunWfContext, newRunReleaseFn, newRunErr := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		namespaceID,
-		&commonpb.WorkflowExecution{
-			WorkflowId: workflowID,
-			RunId:      newRunInfo.GetRunId(),
-		},
-		locks.PriorityHigh,
-	)
+	newRunWfContext, newRunReleaseFn, newRunErr := r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, &commonpb.WorkflowExecution{
+		WorkflowId: workflowID,
+		RunId:      newRunInfo.GetRunId(),
+	}, locks.PriorityHigh)
 	if newRunErr != nil {
 		return newRunErr
 	}
@@ -1099,16 +1077,10 @@ func (r *WorkflowStateReplicatorImpl) backfillHistory(
 	if runID != originalRunID {
 		// At this point, it already acquired the workflow lock on the run ID.
 		// Get the lock of root run id to make sure no concurrent backfill history across multiple runs.
-		_, rootRunReleaseFn, err := r.workflowCache.GetOrCreateWorkflowExecution(
-			ctx,
-			r.shardContext,
-			namespaceID,
-			&commonpb.WorkflowExecution{
-				WorkflowId: workflowID,
-				RunId:      originalRunID,
-			},
-			locks.PriorityLow,
-		)
+		_, rootRunReleaseFn, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, &commonpb.WorkflowExecution{
+			WorkflowId: workflowID,
+			RunId:      originalRunID,
+		}, locks.PriorityLow)
 		if err != nil {
 			return common.EmptyEventTaskID, err
 		}

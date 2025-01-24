@@ -45,7 +45,6 @@ import (
 	"go.temporal.io/server/common/worker_versioning"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -163,7 +162,7 @@ func NewWorkflowLeaseAndContext(
 			shardCtx.GetThrottledLogger(),
 			shardCtx.GetMetricsHandler(),
 		),
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 		ms,
 	), nil
 }

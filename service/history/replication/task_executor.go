@@ -45,7 +45,6 @@ import (
 	"go.temporal.io/server/common/xdc"
 	"go.temporal.io/server/service/history/deletemanager"
 	"go.temporal.io/server/service/history/shard"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
@@ -58,7 +57,6 @@ type (
 		Shard           shard.Context
 		HistoryResender xdc.NDCHistoryResender
 		DeleteManager   deletemanager.DeleteManager
-		WorkflowCache   wcache.Cache
 	}
 
 	TaskExecutorProvider func(params TaskExecutorParams) TaskExecutor
@@ -70,7 +68,6 @@ type (
 		namespaceRegistry  namespace.Registry
 		nDCHistoryResender xdc.NDCHistoryResender
 		deleteManager      deletemanager.DeleteManager
-		workflowCache      wcache.Cache
 		metricsHandler     metrics.Handler
 		logger             log.Logger
 	}
@@ -83,7 +80,6 @@ func NewTaskExecutor(
 	shardContext shard.Context,
 	nDCHistoryResender xdc.NDCHistoryResender,
 	deleteManager deletemanager.DeleteManager,
-	workflowCache wcache.Cache,
 ) TaskExecutor {
 	return &taskExecutorImpl{
 		currentCluster:     shardContext.GetClusterMetadata().GetCurrentClusterName(),
@@ -92,7 +88,6 @@ func NewTaskExecutor(
 		namespaceRegistry:  shardContext.GetNamespaceRegistry(),
 		nDCHistoryResender: nDCHistoryResender,
 		deleteManager:      deleteManager,
-		workflowCache:      workflowCache,
 		metricsHandler:     shardContext.GetMetricsHandler(),
 		logger:             shardContext.GetLogger(),
 	}
@@ -408,7 +403,7 @@ func (e *taskExecutorImpl) cleanupWorkflowExecution(ctx context.Context, namespa
 		WorkflowId: workflowID,
 		RunId:      runID,
 	}
-	wfCtx, releaseFn, err := e.workflowCache.GetOrCreateWorkflowExecution(ctx, e.shardContext, nsID, &ex, locks.PriorityLow)
+	wfCtx, releaseFn, err := e.shardContext.GetOrCreateWorkflowExecution(ctx, nsID, &ex, locks.PriorityLow)
 	if err != nil {
 		return err
 	}

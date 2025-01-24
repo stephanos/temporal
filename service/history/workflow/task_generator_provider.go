@@ -24,10 +24,6 @@
 
 package workflow
 
-import (
-	"go.temporal.io/server/service/history/shard"
-)
-
 var (
 	// This is set as a global to avoid plumbing through many layers. The default
 	// implementation has no state so this is safe even though it bypasses DI.
@@ -42,7 +38,7 @@ var (
 
 type (
 	TaskGeneratorProvider interface {
-		NewTaskGenerator(shard.Context, MutableState) TaskGenerator
+		NewTaskGenerator(shardContext, MutableState) TaskGenerator
 	}
 
 	taskGeneratorProviderImpl struct{}
@@ -60,7 +56,7 @@ func GetTaskGeneratorProvider() TaskGeneratorProvider {
 }
 
 func (p *taskGeneratorProviderImpl) NewTaskGenerator(
-	shard shard.Context,
+	shard shardContext,
 	mutableState MutableState,
 ) TaskGenerator {
 	return NewTaskGenerator(

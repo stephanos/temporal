@@ -132,7 +132,6 @@ func replicationTaskExecutorProvider() TaskExecutorProvider {
 			params.Shard,
 			params.HistoryResender,
 			params.DeleteManager,
-			params.WorkflowCache,
 		)
 	}
 }

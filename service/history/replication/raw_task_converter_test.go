@@ -57,7 +57,7 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -83,13 +83,13 @@ type (
 		runID           string
 		workflowContext *workflow.MockContext
 		mutableState    *workflow.MockMutableState
-		releaseFn       wcache.ReleaseCacheFunc
+		releaseFn       shard.ReleaseCacheFunc
 		lockReleased    bool
 
 		newRunID           string
 		newWorkflowContext *workflow.MockContext
 		newMutableState    *workflow.MockMutableState
-		newReleaseFn       wcache.ReleaseCacheFunc
+		newReleaseFn       shard.ReleaseCacheFunc
 
 		replicationMultipleBatches bool
 	}

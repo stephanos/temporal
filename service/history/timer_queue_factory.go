@@ -36,7 +36,7 @@ import (
 	"go.temporal.io/server/service/history/queues"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/fx"
 )
 
@@ -93,7 +93,6 @@ func NewTimerQueueFactory(
 
 func (f *timerQueueFactory) CreateQueue(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 ) queues.Queue {
 	logger := log.With(shardContext.GetLogger(), tag.ComponentTimerQueue)
 	metricsHandler := f.MetricsHandler.WithTags(metrics.OperationTag(metrics.OperationTimerQueueProcessorScope))
@@ -101,7 +100,6 @@ func (f *timerQueueFactory) CreateQueue(
 	currentClusterName := f.ClusterMetadata.GetCurrentClusterName()
 	workflowDeleteManager := deletemanager.NewDeleteManager(
 		shardContext,
-		workflowCache,
 		f.Config,
 		shardContext.GetTimeSource(),
 		f.VisibilityManager,
@@ -133,7 +131,6 @@ func (f *timerQueueFactory) CreateQueue(
 
 	activeExecutor := newTimerQueueActiveTaskExecutor(
 		shardContext,
-		workflowCache,
 		workflowDeleteManager,
 		logger,
 		f.MetricsHandler,
@@ -143,7 +140,6 @@ func (f *timerQueueFactory) CreateQueue(
 
 	standbyExecutor := newTimerQueueStandbyTaskExecutor(
 		shardContext,
-		workflowCache,
 		workflowDeleteManager,
 		f.MatchingRawClient,
 		logger,

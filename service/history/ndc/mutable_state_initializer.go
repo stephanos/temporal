@@ -43,7 +43,7 @@ import (
 	"go.temporal.io/server/common/utf8validator"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"google.golang.org/protobuf/proto"
 )
 
@@ -73,20 +73,17 @@ type (
 	MutableStateInitializerImpl struct {
 		shardContext   shard.Context
 		namespaceCache namespace.Registry
-		workflowCache  wcache.Cache
 		logger         log.Logger
 	}
 )
 
 func NewMutableStateInitializer(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 ) *MutableStateInitializerImpl {
 	return &MutableStateInitializerImpl{
 		shardContext:   shardContext,
 		namespaceCache: shardContext.GetNamespaceRegistry(),
-		workflowCache:  workflowCache,
 		logger:         logger,
 	}
 }
@@ -111,9 +108,8 @@ func (r *MutableStateInitializerImpl) InitializeFromDB(
 	namespaceEntry *namespace.Namespace,
 	workflowKey definition.WorkflowKey,
 ) (Workflow, MutableStateInitializationSpec, error) {
-	wfContext, releaseFn, err := r.workflowCache.GetOrCreateWorkflowExecution(
+	wfContext, releaseFn, err := r.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		r.shardContext,
 		namespace.ID(workflowKey.NamespaceID),
 		&commonpb.WorkflowExecution{
 			WorkflowId: workflowKey.WorkflowID,
@@ -204,7 +200,7 @@ func (r *MutableStateInitializerImpl) InitializeFromToken(
 			r.shardContext.GetClusterMetadata(),
 			wfContext,
 			mutableState,
-			wcache.NoopReleaseFn,
+			shard.NoopReleaseFn,
 		), MutableStateInitializationSpec{
 			ExistsInDB:      existsInDB,
 			IsBrandNew:      false,

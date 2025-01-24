@@ -22,9 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//go:generate mockgen -copyright_file ../../../../LICENSE -package $GOPACKAGE -source $GOFILE -destination cache_mock.go
+//go:generate mockgen -copyright_file ../../../LICENSE -package $GOPACKAGE -source $GOFILE -destination cache_mock.go
 
-package cache
+package shard
 
 import (
 	"context"
@@ -47,7 +47,6 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/service/history/configs"
 	"go.temporal.io/server/service/history/consts"
-	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
 )
 
@@ -57,24 +56,6 @@ type (
 	// If there is any error when using the mutable state (e.g. mutable state is mutated and dirty), call release with
 	// the error so the in-memory copy will be thrown away.
 	ReleaseCacheFunc func(err error)
-
-	Cache interface {
-		GetOrCreateCurrentWorkflowExecution(
-			ctx context.Context,
-			shardContext shard.Context,
-			namespaceID namespace.ID,
-			workflowID string,
-			lockPriority locks.Priority,
-		) (ReleaseCacheFunc, error)
-
-		GetOrCreateWorkflowExecution(
-			ctx context.Context,
-			shardContext shard.Context,
-			namespaceID namespace.ID,
-			execution *commonpb.WorkflowExecution,
-			lockPriority locks.Priority,
-		) (workflow.Context, ReleaseCacheFunc, error)
-	}
 
 	cacheImpl struct {
 		cache.Cache
@@ -89,7 +70,7 @@ type (
 		finalizer *finalizer.Finalizer
 	}
 
-	NewCacheFn func(config *configs.Config, logger log.Logger, handler metrics.Handler) Cache
+	NewCacheFn func(config *configs.Config, logger log.Logger, handler metrics.Handler) cacheImpl
 
 	Key struct {
 		// Those are exported because some unit tests uses the cache directly.
@@ -114,7 +95,7 @@ func NewHostLevelCache(
 	config *configs.Config,
 	logger log.Logger,
 	handler metrics.Handler,
-) Cache {
+) *cacheImpl {
 	maxSize := config.HistoryHostLevelCacheMaxSize()
 	if config.HistoryCacheLimitSizeBased {
 		maxSize = config.HistoryHostLevelCacheMaxSizeBytes()
@@ -132,7 +113,7 @@ func NewShardLevelCache(
 	config *configs.Config,
 	logger log.Logger,
 	handler metrics.Handler,
-) Cache {
+) *cacheImpl {
 	maxSize := config.HistoryShardLevelCacheMaxSize()
 	if config.HistoryCacheLimitSizeBased {
 		maxSize = config.HistoryShardLevelCacheMaxSizeBytes()
@@ -152,7 +133,7 @@ func newCache(
 	nonUserContextLockTimeout time.Duration,
 	logger log.Logger,
 	handler metrics.Handler,
-) Cache {
+) *cacheImpl {
 	opts := &cache.Options{
 		TTL: ttl,
 		Pin: true,
@@ -203,7 +184,7 @@ func newCache(
 
 func (c *cacheImpl) GetOrCreateCurrentWorkflowExecution(
 	ctx context.Context,
-	shardContext shard.Context,
+	shardContext Context,
 	namespaceID namespace.ID,
 	workflowID string,
 	lockPriority locks.Priority,
@@ -246,7 +227,7 @@ func (c *cacheImpl) GetOrCreateCurrentWorkflowExecution(
 
 func (c *cacheImpl) GetOrCreateWorkflowExecution(
 	ctx context.Context,
-	shardContext shard.Context,
+	shardContext Context,
 	namespaceID namespace.ID,
 	execution *commonpb.WorkflowExecution,
 	lockPriority locks.Priority,
@@ -283,7 +264,7 @@ func (c *cacheImpl) GetOrCreateWorkflowExecution(
 
 func (c *cacheImpl) getOrCreateWorkflowExecutionInternal(
 	ctx context.Context,
-	shardContext shard.Context,
+	shardContext Context,
 	namespaceID namespace.ID,
 	execution *commonpb.WorkflowExecution,
 	handler metrics.Handler,
@@ -366,7 +347,7 @@ func (c *cacheImpl) lockWorkflowExecution(
 
 func (c *cacheImpl) makeReleaseFunc(
 	cacheKey Key,
-	shardContext shard.Context,
+	shardContext Context,
 	context workflow.Context,
 	forceClearContext bool,
 	handler metrics.Handler,
@@ -414,7 +395,7 @@ func (c *cacheImpl) makeReleaseFunc(
 
 func (c *cacheImpl) validateWorkflowExecutionInfo(
 	ctx context.Context,
-	shardContext shard.Context,
+	shardContext Context,
 	namespaceID namespace.ID,
 	execution *commonpb.WorkflowExecution,
 	lockPriority locks.Priority,
@@ -462,8 +443,8 @@ func (c *cacheImpl) validateWorkflowID(
 
 func GetCurrentRunID(
 	ctx context.Context,
-	shardContext shard.Context,
-	workflowCache Cache,
+	shardContext Context,
+	workflowCache *cacheImpl,
 	namespaceID string,
 	workflowID string,
 	lockPriority locks.Priority,

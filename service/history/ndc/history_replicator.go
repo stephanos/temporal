@@ -50,7 +50,6 @@ import (
 	serviceerrors "go.temporal.io/server/common/serviceerror"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 const (
@@ -122,7 +121,6 @@ type (
 		historySerializer serialization.Serializer
 		metricsHandler    metrics.Handler
 		namespaceRegistry namespace.Registry
-		workflowCache     wcache.Cache
 		eventsReapplier   EventsReapplier
 		transactionMgr    TransactionManager
 		logger            log.Logger
@@ -141,21 +139,19 @@ var errPanic = serviceerror.NewInternal("encountered panic")
 
 func NewHistoryReplicator(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	eventsReapplier EventsReapplier,
 	eventSerializer serialization.Serializer,
 	logger log.Logger,
 ) *HistoryReplicatorImpl {
 
 	logger = log.With(logger, tag.ComponentHistoryReplicator)
-	transactionMgr := NewTransactionManager(shardContext, workflowCache, eventsReapplier, logger, false)
+	transactionMgr := NewTransactionManager(shardContext, eventsReapplier, logger, false)
 	replicator := &HistoryReplicatorImpl{
 		shardContext:      shardContext,
 		clusterMetadata:   shardContext.GetClusterMetadata(),
 		historySerializer: eventSerializer,
 		metricsHandler:    shardContext.GetMetricsHandler(),
 		namespaceRegistry: shardContext.GetNamespaceRegistry(),
-		workflowCache:     workflowCache,
 		transactionMgr:    transactionMgr,
 		eventsReapplier:   eventsReapplier,
 		logger:            logger,
@@ -253,15 +249,9 @@ func (r *HistoryReplicatorImpl) BackfillHistoryEvents(
 func (r *HistoryReplicatorImpl) doApplyBackfillEvents(
 	ctx context.Context,
 	task replicationTask,
-	action func(context.Context, workflow.MutableState, workflow.Context, wcache.ReleaseCacheFunc, replicationTask) error,
+	action func(context.Context, workflow.MutableState, workflow.Context, shard.ReleaseCacheFunc, replicationTask) error,
 ) (retError error) {
-	wfContext, releaseFn, err := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		task.getNamespaceID(),
-		task.getExecution(),
-		locks.PriorityLow,
-	)
+	wfContext, releaseFn, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, task.getNamespaceID(), task.getExecution(), locks.PriorityLow)
 	if err != nil {
 		return err
 	}
@@ -295,7 +285,7 @@ func (r *HistoryReplicatorImpl) applyBackfillEvents(
 	ctx context.Context,
 	mutableState workflow.MutableState,
 	wfContext workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) (retError error) {
 	versionedTransition := task.getVersionedTransition()
@@ -368,7 +358,7 @@ func (r *HistoryReplicatorImpl) applyBackfillEvents(
 func (r *HistoryReplicatorImpl) applyBackfillEventsWithNew(
 	ctx context.Context,
 	wfContext workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) (retError error) {
 	wfContext.Clear()
@@ -402,7 +392,7 @@ func (r *HistoryReplicatorImpl) applyBackfillEventsWithoutNew(
 	wfContext workflow.Context,
 	mutableState workflow.MutableState,
 	branchIndex int32,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) (retError error) {
 	return r.applyNonStartEventsToNonCurrentBranchWithoutContinueAsNew(
@@ -448,13 +438,7 @@ func (r *HistoryReplicatorImpl) doApplyEvents(
 	task replicationTask,
 ) (retError error) {
 
-	wfContext, releaseFn, err := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		task.getNamespaceID(),
-		task.getExecution(),
-		locks.PriorityHigh,
-	)
+	wfContext, releaseFn, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, task.getNamespaceID(), task.getExecution(), locks.PriorityHigh)
 	if err != nil {
 		// for get workflow execution context, with valid run id
 		// err will not be of type EntityNotExistsError
@@ -530,7 +514,7 @@ func (r *HistoryReplicatorImpl) doApplyEvents(
 func (r *HistoryReplicatorImpl) applyStartEvents(
 	ctx context.Context,
 	wfContext workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) error {
 	namespaceEntry, err := r.namespaceRegistry.GetNamespaceByID(task.getNamespaceID())
@@ -586,7 +570,7 @@ func (r *HistoryReplicatorImpl) applyNonStartEventsToCurrentBranch(
 	wfContext workflow.Context,
 	mutableState workflow.MutableState,
 	isRebuilt bool,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) error {
 	mutableState, newMutableState, err := r.mutableStateMapper.ApplyEvents(ctx, wfContext, mutableState, task)
@@ -620,7 +604,7 @@ func (r *HistoryReplicatorImpl) applyNonStartEventsToCurrentBranch(
 			r.clusterMetadata,
 			newContext,
 			newMutableState,
-			wcache.NoopReleaseFn,
+			shard.NoopReleaseFn,
 		)
 	}
 
@@ -646,7 +630,7 @@ func (r *HistoryReplicatorImpl) applyNonStartEventsToNonCurrentBranch(
 	wfContext workflow.Context,
 	mutableState workflow.MutableState,
 	branchIndex int32,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) error {
 
@@ -674,7 +658,7 @@ func (r *HistoryReplicatorImpl) applyNonStartEventsToNonCurrentBranchWithoutCont
 	wfContext workflow.Context,
 	mutableState workflow.MutableState,
 	branchIndex int32,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) error {
 
@@ -730,7 +714,7 @@ func (r *HistoryReplicatorImpl) applyNonStartEventsToNonCurrentBranchWithoutCont
 func (r *HistoryReplicatorImpl) applyNonStartEventsToNonCurrentBranchWithContinueAsNew(
 	ctx context.Context,
 	wfContext workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	task replicationTask,
 ) error {
 
@@ -854,7 +838,7 @@ func (r *HistoryReplicatorImpl) applyNonStartEventsResetWorkflow(
 		r.clusterMetadata,
 		wfContext,
 		mutableState,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 	)
 
 	err = r.transactionMgr.CreateWorkflow(

@@ -22,31 +22,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cache
+package queues
 
 import (
-	"go.temporal.io/server/service/history/workflow"
+	"context"
+
+	persistencespb "go.temporal.io/server/api/persistence/v1"
+	"go.temporal.io/server/common/clock"
+	"go.temporal.io/server/common/persistence"
+	"go.temporal.io/server/service/history/tasks"
 )
 
-// GetMutableState returns the MutableState for the given key from the cache.
-// Exported for testing purposes.
-func GetMutableState(cache Cache, key Key) workflow.MutableState {
-	return getWorkflowContext(cache, key).(*workflow.ContextImpl).MutableState
-}
-
-// PutContextIfNotExist puts the given workflow Context into the cache, if it doens't already exist.
-// Exported for testing purposes.
-func PutContextIfNotExist(cache Cache, key Key, value workflow.Context) error {
-	_, err := cache.(*cacheImpl).PutIfNotExist(key, &cacheItem{wfContext: value})
-	return err
-}
-
-// ClearMutableState clears cached mutable state for the given key to
-// force a reload from persistence on the next access.
-func ClearMutableState(cache Cache, key Key) {
-	getWorkflowContext(cache, key).Clear()
-}
-
-func getWorkflowContext(cache Cache, key Key) workflow.Context {
-	return cache.(*cacheImpl).Get(key).(*cacheItem).wfContext
+type shardContext interface {
+	GetShardID() int32
+	GetHistoryTasks(ctx context.Context, request *persistence.GetHistoryTasksRequest) (*persistence.GetHistoryTasksResponse, error)
+	GetQueueState(category tasks.Category) (*persistencespb.QueueState, bool)
+	GetTimeSource() clock.TimeSource
+	GetQueueExclusiveHighReadWatermark(category tasks.Category) tasks.Key
+	GetRangeID() int64
+	GetExecutionManager() persistence.ExecutionManager
+	SetQueueState(category tasks.Category, tasksCompleted int, state *persistencespb.QueueState) error
 }

@@ -76,6 +76,7 @@ import (
 	"go.temporal.io/server/service/history/hsm"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/vclock"
+	"go.temporal.io/server/service/history/workflow"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -550,7 +551,7 @@ func (s *ContextImpl) AddTasks(
 	defer s.ioSemaphoreRelease()
 
 	err = s.addTasksSemaphoreAcquired(ctx, request)
-	if OperationPossiblySucceeded(err) {
+	if workflow.OperationPossiblySucceeded(err) {
 		engine.NotifyNewTasks(request.Tasks)
 	}
 	return err
@@ -1051,7 +1052,7 @@ func (s *ContextImpl) DeleteWorkflowExecution(
 					Tasks: newTasks,
 				}
 				err := s.addTasksSemaphoreAcquired(ctx, addTasksRequest)
-				if OperationPossiblySucceeded(err) {
+				if workflow.OperationPossiblySucceeded(err) {
 					engine.NotifyNewTasks(newTasks)
 				}
 				if err != nil {
@@ -2283,25 +2284,6 @@ func (s *ContextImpl) newShardClosedErrorWithShardID() *persistence.ShardOwnersh
 	}
 }
 
-func OperationPossiblySucceeded(err error) bool {
-	switch err.(type) {
-	case *persistence.CurrentWorkflowConditionFailedError,
-		*persistence.WorkflowConditionFailedError,
-		*persistence.ConditionFailedError,
-		*persistence.ShardOwnershipLostError,
-		*persistence.InvalidPersistenceRequestError,
-		*persistence.TransactionSizeLimitError,
-		*persistence.AppendHistoryTimeoutError, // this means task operations is not started
-		*serviceerror.ResourceExhausted,
-		*serviceerror.NotFound,
-		*serviceerror.NamespaceNotFound:
-		// Persistence failure that means that write was definitely not committed.
-		return false
-	default:
-		return true
-	}
-}
-
 func trimShardInfo(
 	allClusterInfo map[string]cluster.ClusterInformation,
 	shardInfo *persistencespb.ShardInfo,
@@ -2331,4 +2313,123 @@ func clusterNameInfoFromClusterID(
 		}
 	}
 	return "", cluster.ClusterInformation{}, false
+}
+
+func (c *ContextImpl) NotifyWorkflowSnapshotTasks(
+	workflowSnapshot *persistence.WorkflowSnapshot,
+) {
+	// TODO
+	engine, _ := c.GetEngine(context.Background())
+	if workflowSnapshot == nil {
+		return
+	}
+	engine.NotifyNewTasks(workflowSnapshot.Tasks)
+}
+
+func (c *ContextImpl) NotifyWorkflowMutationTasks(
+	workflowMutation *persistence.WorkflowMutation,
+) {
+	// TODO
+	engine, _ := c.GetEngine(context.Background())
+
+	if workflowMutation == nil {
+		return
+	}
+	engine.NotifyNewTasks(workflowMutation.Tasks)
+}
+
+func (c *ContextImpl) NotifyNewHistorySnapshotEvent(
+	workflowSnapshot *persistence.WorkflowSnapshot,
+) error {
+
+	// TODO
+	engine, _ := c.GetEngine(context.Background())
+
+	if workflowSnapshot == nil {
+		return nil
+	}
+
+	executionInfo := workflowSnapshot.ExecutionInfo
+	executionState := workflowSnapshot.ExecutionState
+
+	namespaceID := executionInfo.NamespaceId
+	workflowID := executionInfo.WorkflowId
+	runID := executionState.RunId
+	workflowState := executionState.State
+	workflowStatus := executionState.Status
+	lastFirstEventID := executionInfo.LastFirstEventId
+	lastFirstEventTxnID := executionInfo.LastFirstEventTxnId
+	lastWorkflowTaskStartEventID := executionInfo.LastCompletedWorkflowTaskStartedEventId
+	nextEventID := workflowSnapshot.NextEventID
+
+	engine.NotifyNewHistoryEvent(events.NewNotification(
+		namespaceID,
+		&commonpb.WorkflowExecution{
+			WorkflowId: workflowID,
+			RunId:      runID,
+		},
+		lastFirstEventID,
+		lastFirstEventTxnID,
+		nextEventID,
+		lastWorkflowTaskStartEventID,
+		workflowState,
+		workflowStatus,
+		executionInfo.VersionHistories,
+	))
+	return nil
+}
+
+func (c *ContextImpl) NotifyNewHistoryMutationEvent(
+	workflowMutation *persistence.WorkflowMutation,
+) error {
+	// TODO
+	engine, _ := c.GetEngine(context.Background())
+
+	if workflowMutation == nil {
+		return nil
+	}
+
+	executionInfo := workflowMutation.ExecutionInfo
+	executionState := workflowMutation.ExecutionState
+
+	namespaceID := executionInfo.NamespaceId
+	workflowID := executionInfo.WorkflowId
+	runID := executionState.RunId
+	workflowState := executionState.State
+	workflowStatus := executionState.Status
+	lastFirstEventID := executionInfo.LastFirstEventId
+	lastFirstEventTxnID := executionInfo.LastFirstEventTxnId
+	lastWorkflowTaskStartEventID := executionInfo.LastCompletedWorkflowTaskStartedEventId
+	nextEventID := workflowMutation.NextEventID
+
+	engine.NotifyNewHistoryEvent(events.NewNotification(
+		namespaceID,
+		&commonpb.WorkflowExecution{
+			WorkflowId: workflowID,
+			RunId:      runID,
+		},
+		lastFirstEventID,
+		lastFirstEventTxnID,
+		nextEventID,
+		lastWorkflowTaskStartEventID,
+		workflowState,
+		workflowStatus,
+		executionInfo.VersionHistories,
+	))
+	return nil
+}
+
+func (s *ContextImpl) GetOrCreateCurrentWorkflowExecution(ctx context.Context, namespaceID namespace.ID, workflowID string, lockPriority locks.Priority) (ReleaseCacheFunc, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *ContextImpl) GetOrCreateWorkflowExecution(ctx context.Context, namespaceID namespace.ID, execution *commonpb.WorkflowExecution, lockPriority locks.Priority) (workflow.Context, ReleaseCacheFunc, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *ContextImpl) GetCurrentRunID(ctx context.Context, namespaceID string, workflowID string, lockPriority locks.Priority) (runID string, retErr error) {
+	//TODO implement me
+	panic("implement me")
 }

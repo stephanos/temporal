@@ -36,7 +36,6 @@ import (
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/quotas"
-	hshard "go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 )
 
@@ -51,7 +50,7 @@ type (
 )
 
 func NewImmediateQueue(
-	shard hshard.Context,
+	shard shardContext,
 	category tasks.Category,
 	scheduler Scheduler,
 	rescheduler Rescheduler,

@@ -69,7 +69,7 @@ type (
 		*require.Assertions
 
 		controller           *gomock.Controller
-		mockShard            *shard.ContextTest
+		mockShard            *shardContextTest
 		mockEventsCache      *events.MockCache
 		mockNamespaceCache   *namespace.MockRegistry
 		mockTaskGenerator    *MockTaskGenerator
@@ -2171,7 +2171,7 @@ func (s *stateBuilderSuite) TestApplyEvents_HSMRegistry() {
 }
 
 func (p *testTaskGeneratorProvider) NewTaskGenerator(
-	shardContext shard.Context,
+	shardContext shardContext,
 	mutableState MutableState,
 ) TaskGenerator {
 	if mutableState == p.mockMutableState {

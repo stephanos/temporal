@@ -335,7 +335,7 @@ func (r *TaskGeneratorImpl) GenerateDirtySubStateMachineTasks(
 
 // GenerateDeleteHistoryEventTask adds a task to delete all history events for a workflow execution.
 // This method only adds the task to the mutable state object in memory; it does not write the task to the database.
-// You must call shard.Context#AddTasks to notify the history engine of this task.
+// You must call shardContext#AddTasks to notify the history engine of this task.
 func (r *TaskGeneratorImpl) GenerateDeleteHistoryEventTask(closeTime time.Time) error {
 	retention, err := r.getRetention()
 	if err != nil {

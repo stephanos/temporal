@@ -44,7 +44,6 @@ import (
 	"go.temporal.io/server/common/persistence/versionhistory"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 // NOTE: terminology
@@ -151,7 +150,6 @@ type (
 	transactionMgrImpl struct {
 		shardContext      shard.Context
 		namespaceRegistry namespace.Registry
-		workflowCache     wcache.Cache
 		clusterMetadata   cluster.Metadata
 		executionManager  persistence.ExecutionManager
 		serializer        serialization.Serializer
@@ -169,7 +167,6 @@ var _ TransactionManager = (*transactionMgrImpl)(nil)
 
 func NewTransactionManager(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	eventsReapplier EventsReapplier,
 	logger log.Logger,
 	bypassVersionSemanticsCheck bool,
@@ -178,14 +175,12 @@ func NewTransactionManager(
 	transactionMgr := &transactionMgrImpl{
 		shardContext:      shardContext,
 		namespaceRegistry: shardContext.GetNamespaceRegistry(),
-		workflowCache:     workflowCache,
 		clusterMetadata:   shardContext.GetClusterMetadata(),
 		executionManager:  shardContext.GetExecutionManager(),
 		serializer:        shardContext.GetPayloadSerializer(),
 		metricsHandler:    shardContext.GetMetricsHandler(),
 		workflowResetter: NewWorkflowResetter(
 			shardContext,
-			workflowCache,
 			logger,
 		),
 		eventsReapplier: eventsReapplier,
@@ -442,16 +437,10 @@ func (r *transactionMgrImpl) LoadWorkflow(
 	runID string,
 ) (Workflow, error) {
 
-	weContext, release, err := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		namespaceID,
-		&commonpb.WorkflowExecution{
-			WorkflowId: workflowID,
-			RunId:      runID,
-		},
-		locks.PriorityHigh,
-	)
+	weContext, release, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, &commonpb.WorkflowExecution{
+		WorkflowId: workflowID,
+		RunId:      runID,
+	}, locks.PriorityHigh)
 	if err != nil {
 		return nil, err
 	}

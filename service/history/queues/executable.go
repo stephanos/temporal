@@ -51,11 +51,12 @@ import (
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
+	"go.temporal.io/server/common/persistence"
+	serviceerrors "go.temporal.io/server/common/serviceerror"
 	ctasks "go.temporal.io/server/common/tasks"
 	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/util"
 	"go.temporal.io/server/service/history/consts"
-	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 )
 
@@ -746,7 +747,7 @@ func (e *executableImpl) shouldResubmitOnNack(attempt int, err error) bool {
 		return false
 	}
 
-	if shard.IsShardOwnershipLostError(err) {
+	if isShardOwnershipLostError(err) {
 		return false
 	}
 
@@ -917,4 +918,16 @@ func (e *DestinationDownError) Error() string {
 
 func (e *DestinationDownError) Unwrap() error {
 	return e.err
+}
+
+// TODO: find better place
+func isShardOwnershipLostError(err error) bool {
+	switch err.(type) {
+	case *persistence.ShardOwnershipLostError:
+		return true
+	case *serviceerrors.ShardOwnershipLost:
+		return true
+	}
+
+	return false
 }

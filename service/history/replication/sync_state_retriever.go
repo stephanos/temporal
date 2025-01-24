@@ -49,7 +49,6 @@ import (
 	"go.temporal.io/server/service/history/hsm"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 const (
@@ -78,13 +77,12 @@ type (
 			mutableState workflow.MutableState,
 			targetVersionedTransition *persistencespb.VersionedTransition,
 			targetVersionHistories [][]*historyspb.VersionHistoryItem,
-			releaseFunc wcache.ReleaseCacheFunc,
+			releaseFunc shard.ReleaseCacheFunc,
 		) (*SyncStateResult, error)
 	}
 
 	SyncStateRetrieverImpl struct {
 		shardContext               shard.Context
-		workflowCache              wcache.Cache
 		workflowConsistencyChecker api.WorkflowConsistencyChecker
 		eventBlobCache             persistence.XDCCache
 		logger                     log.Logger
@@ -96,14 +94,12 @@ type (
 
 func NewSyncStateRetriever(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	workflowConsistencyChecker api.WorkflowConsistencyChecker,
 	eventBlobCache persistence.XDCCache,
 	logger log.Logger,
 ) *SyncStateRetrieverImpl {
 	return &SyncStateRetrieverImpl{
 		shardContext:               shardContext,
-		workflowCache:              workflowCache,
 		workflowConsistencyChecker: workflowConsistencyChecker,
 		eventBlobCache:             eventBlobCache,
 		logger:                     logger,
@@ -172,7 +168,7 @@ func (s *SyncStateRetrieverImpl) GetSyncWorkflowStateArtifactFromMutableState(
 	mu workflow.MutableState,
 	targetCurrentVersionedTransition *persistencespb.VersionedTransition,
 	targetVersionHistories [][]*historyspb.VersionHistoryItem,
-	releaseFunc wcache.ReleaseCacheFunc,
+	releaseFunc shard.ReleaseCacheFunc,
 ) (_ *SyncStateResult, retError error) {
 	return s.getSyncStateResult(ctx, namespaceID, execution, mu, targetCurrentVersionedTransition, targetVersionHistories, releaseFunc)
 }
@@ -184,7 +180,7 @@ func (s *SyncStateRetrieverImpl) getSyncStateResult(
 	mutableState workflow.MutableState,
 	targetCurrentVersionedTransition *persistencespb.VersionedTransition,
 	targetVersionHistories [][]*historyspb.VersionHistoryItem,
-	cacheReleaseFunc wcache.ReleaseCacheFunc,
+	cacheReleaseFunc shard.ReleaseCacheFunc,
 ) (_ *SyncStateResult, retError error) {
 	shouldReturnMutation := func() bool {
 		if targetCurrentVersionedTransition == nil {
@@ -281,9 +277,8 @@ func (s *SyncStateRetrieverImpl) getSyncStateResult(
 }
 
 func (s *SyncStateRetrieverImpl) getNewRunInfo(ctx context.Context, namespaceId namespace.ID, execution *commonpb.WorkflowExecution, newRunId string) (_ *replicationspb.NewRunInfo, retError error) {
-	wfCtx, releaseFunc, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	wfCtx, releaseFunc, err := s.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		s.shardContext,
 		namespaceId,
 		&commonpb.WorkflowExecution{
 			WorkflowId: execution.WorkflowId,

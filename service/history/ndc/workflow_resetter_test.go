@@ -61,7 +61,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -148,7 +148,7 @@ func (s *workflowResetterSuite) TestPersistToDB_CurrentTerminated() {
 	currentReleaseCalled := false
 	currentContext := workflow.NewMockContext(s.controller)
 	currentMutableState := workflow.NewMockMutableState(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetContext().Return(currentContext).AnyTimes()
 	currentWorkflow.EXPECT().GetMutableState().Return(currentMutableState).AnyTimes()
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
@@ -182,7 +182,7 @@ func (s *workflowResetterSuite) TestPersistToDB_CurrentTerminated() {
 	resetReleaseCalled := false
 	resetContext := workflow.NewMockContext(s.controller)
 	resetMutableState := workflow.NewMockMutableState(s.controller)
-	var tarGetReleaseFn wcache.ReleaseCacheFunc = func(error) { resetReleaseCalled = true }
+	var tarGetReleaseFn shard.ReleaseCacheFunc = func(error) { resetReleaseCalled = true }
 	resetWorkflow.EXPECT().GetContext().Return(resetContext).AnyTimes()
 	resetWorkflow.EXPECT().GetMutableState().Return(resetMutableState).AnyTimes()
 	resetWorkflow.EXPECT().GetReleaseFn().Return(tarGetReleaseFn).AnyTimes()
@@ -235,7 +235,7 @@ func (s *workflowResetterSuite) TestPersistToDB_CurrentNotTerminated() {
 	currentReleaseCalled := false
 	currentContext := workflow.NewMockContext(s.controller)
 	currentMutableState := workflow.NewMockMutableState(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetContext().Return(currentContext).AnyTimes()
 	currentWorkflow.EXPECT().GetMutableState().Return(currentMutableState).AnyTimes()
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
@@ -253,7 +253,7 @@ func (s *workflowResetterSuite) TestPersistToDB_CurrentNotTerminated() {
 	resetContext := workflow.NewMockContext(s.controller)
 	resetMutableState := workflow.NewMockMutableState(s.controller)
 	resetMutableState.EXPECT().GetCurrentVersion().Return(int64(0)).AnyTimes()
-	var tarGetReleaseFn wcache.ReleaseCacheFunc = func(error) { resetReleaseCalled = true }
+	var tarGetReleaseFn shard.ReleaseCacheFunc = func(error) { resetReleaseCalled = true }
 	resetWorkflow.EXPECT().GetContext().Return(resetContext).AnyTimes()
 	resetWorkflow.EXPECT().GetMutableState().Return(resetMutableState).AnyTimes()
 	resetWorkflow.EXPECT().GetReleaseFn().Return(tarGetReleaseFn).AnyTimes()

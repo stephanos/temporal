@@ -49,7 +49,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 const (
@@ -70,22 +69,19 @@ type (
 	}
 
 	ActivityStateReplicatorImpl struct {
-		shardContext  shard.Context
-		workflowCache wcache.Cache
-		logger        log.Logger
+		shardContext shard.Context
+		logger       log.Logger
 	}
 )
 
 func NewActivityStateReplicator(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 ) *ActivityStateReplicatorImpl {
 
 	return &ActivityStateReplicatorImpl{
-		shardContext:  shardContext,
-		workflowCache: workflowCache,
-		logger:        log.With(logger, tag.ComponentActivityStateReplicator),
+		shardContext: shardContext,
+		logger:       log.With(logger, tag.ComponentActivityStateReplicator),
 	}
 }
 
@@ -105,9 +101,8 @@ func (r *ActivityStateReplicatorImpl) SyncActivityState(
 		RunId:      request.RunId,
 	}
 
-	executionContext, release, err := r.workflowCache.GetOrCreateWorkflowExecution(
+	executionContext, release, err := r.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		r.shardContext,
 		namespaceID,
 		&execution,
 		locks.PriorityHigh,
@@ -206,13 +201,7 @@ func (r *ActivityStateReplicatorImpl) SyncActivitiesState(
 		RunId:      request.RunId,
 	}
 
-	executionContext, release, err := r.workflowCache.GetOrCreateWorkflowExecution(
-		ctx,
-		r.shardContext,
-		namespaceID,
-		execution,
-		locks.PriorityHigh,
-	)
+	executionContext, release, err := r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, execution, locks.PriorityHigh)
 	if err != nil {
 		// for get workflow execution context, with valid run id
 		// err will not be of type EntityNotExistsError

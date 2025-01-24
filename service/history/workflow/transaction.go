@@ -57,6 +57,7 @@ type (
 
 		UpdateWorkflowExecution(
 			ctx context.Context,
+			context2 shardContext,
 			updateMode persistence.UpdateWorkflowMode,
 			currentWorkflowFailoverVersion int64,
 			currentWorkflowMutation *persistence.WorkflowMutation,

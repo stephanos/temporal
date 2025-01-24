@@ -53,7 +53,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 )
 
@@ -438,8 +438,8 @@ func (s *workflowSuite) setupWorkflowContext(mutableState *workflow.MockMutableS
 func (s *workflowSuite) setupCache() *wcache.MockCache {
 	workflowCache := wcache.NewMockCache(s.controller)
 	workflowCache.EXPECT().GetOrCreateWorkflowExecution(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), locks.PriorityHigh).
-		Return(s.workflowContext, wcache.NoopReleaseFn, nil).AnyTimes()
-	workflowCache.EXPECT().GetOrCreateCurrentWorkflowExecution(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), locks.PriorityHigh).Return(wcache.NoopReleaseFn, nil).AnyTimes()
+		Return(s.workflowContext, shard.NoopReleaseFn, nil).AnyTimes()
+	workflowCache.EXPECT().GetOrCreateCurrentWorkflowExecution(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), locks.PriorityHigh).Return(shard.NoopReleaseFn, nil).AnyTimes()
 	return workflowCache
 }
 

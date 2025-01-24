@@ -48,6 +48,7 @@ import (
 	cluster "go.temporal.io/server/common/cluster"
 	definition "go.temporal.io/server/common/definition"
 	finalizer "go.temporal.io/server/common/finalizer"
+	locks "go.temporal.io/server/common/locks"
 	log "go.temporal.io/server/common/log"
 	metrics "go.temporal.io/server/common/metrics"
 	namespace "go.temporal.io/server/common/namespace"
@@ -59,6 +60,7 @@ import (
 	events "go.temporal.io/server/service/history/events"
 	hsm "go.temporal.io/server/service/history/hsm"
 	tasks "go.temporal.io/server/service/history/tasks"
+	workflow "go.temporal.io/server/service/history/workflow"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -287,6 +289,21 @@ func (mr *MockContextMockRecorder) GetCurrentExecution(ctx, request any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentExecution", reflect.TypeOf((*MockContext)(nil).GetCurrentExecution), ctx, request)
 }
 
+// GetCurrentRunID mocks base method.
+func (m *MockContext) GetCurrentRunID(ctx context.Context, namespaceID, workflowID string, lockPriority locks.Priority) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentRunID", ctx, namespaceID, workflowID, lockPriority)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCurrentRunID indicates an expected call of GetCurrentRunID.
+func (mr *MockContextMockRecorder) GetCurrentRunID(ctx, namespaceID, workflowID, lockPriority any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentRunID", reflect.TypeOf((*MockContext)(nil).GetCurrentRunID), ctx, namespaceID, workflowID, lockPriority)
+}
+
 // GetCurrentTime mocks base method.
 func (m *MockContext) GetCurrentTime(cluster string) time.Time {
 	m.ctrl.T.Helper()
@@ -427,6 +444,37 @@ func (m *MockContext) GetNamespaceRegistry() namespace.Registry {
 func (mr *MockContextMockRecorder) GetNamespaceRegistry() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceRegistry", reflect.TypeOf((*MockContext)(nil).GetNamespaceRegistry))
+}
+
+// GetOrCreateCurrentWorkflowExecution mocks base method.
+func (m *MockContext) GetOrCreateCurrentWorkflowExecution(ctx context.Context, namespaceID namespace.ID, workflowID string, lockPriority locks.Priority) (ReleaseCacheFunc, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrCreateCurrentWorkflowExecution", ctx, namespaceID, workflowID, lockPriority)
+	ret0, _ := ret[0].(ReleaseCacheFunc)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrCreateCurrentWorkflowExecution indicates an expected call of GetOrCreateCurrentWorkflowExecution.
+func (mr *MockContextMockRecorder) GetOrCreateCurrentWorkflowExecution(ctx, namespaceID, workflowID, lockPriority any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreateCurrentWorkflowExecution", reflect.TypeOf((*MockContext)(nil).GetOrCreateCurrentWorkflowExecution), ctx, namespaceID, workflowID, lockPriority)
+}
+
+// GetOrCreateWorkflowExecution mocks base method.
+func (m *MockContext) GetOrCreateWorkflowExecution(ctx context.Context, namespaceID namespace.ID, execution *common.WorkflowExecution, lockPriority locks.Priority) (workflow.Context, ReleaseCacheFunc, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrCreateWorkflowExecution", ctx, namespaceID, execution, lockPriority)
+	ret0, _ := ret[0].(workflow.Context)
+	ret1, _ := ret[1].(ReleaseCacheFunc)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOrCreateWorkflowExecution indicates an expected call of GetOrCreateWorkflowExecution.
+func (mr *MockContextMockRecorder) GetOrCreateWorkflowExecution(ctx, namespaceID, execution, lockPriority any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreateWorkflowExecution", reflect.TypeOf((*MockContext)(nil).GetOrCreateWorkflowExecution), ctx, namespaceID, execution, lockPriority)
 }
 
 // GetOwner mocks base method.
@@ -643,6 +691,58 @@ func (m *MockContext) NewVectorClock() (*clock.VectorClock, error) {
 func (mr *MockContextMockRecorder) NewVectorClock() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewVectorClock", reflect.TypeOf((*MockContext)(nil).NewVectorClock))
+}
+
+// NotifyNewHistoryMutationEvent mocks base method.
+func (m *MockContext) NotifyNewHistoryMutationEvent(mutation *persistence0.WorkflowMutation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyNewHistoryMutationEvent", mutation)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyNewHistoryMutationEvent indicates an expected call of NotifyNewHistoryMutationEvent.
+func (mr *MockContextMockRecorder) NotifyNewHistoryMutationEvent(mutation any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyNewHistoryMutationEvent", reflect.TypeOf((*MockContext)(nil).NotifyNewHistoryMutationEvent), mutation)
+}
+
+// NotifyNewHistorySnapshotEvent mocks base method.
+func (m *MockContext) NotifyNewHistorySnapshotEvent(snapshot *persistence0.WorkflowSnapshot) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyNewHistorySnapshotEvent", snapshot)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyNewHistorySnapshotEvent indicates an expected call of NotifyNewHistorySnapshotEvent.
+func (mr *MockContextMockRecorder) NotifyNewHistorySnapshotEvent(snapshot any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyNewHistorySnapshotEvent", reflect.TypeOf((*MockContext)(nil).NotifyNewHistorySnapshotEvent), snapshot)
+}
+
+// NotifyWorkflowMutationTasks mocks base method.
+func (m *MockContext) NotifyWorkflowMutationTasks(mutation *persistence0.WorkflowMutation) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyWorkflowMutationTasks", mutation)
+}
+
+// NotifyWorkflowMutationTasks indicates an expected call of NotifyWorkflowMutationTasks.
+func (mr *MockContextMockRecorder) NotifyWorkflowMutationTasks(mutation any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWorkflowMutationTasks", reflect.TypeOf((*MockContext)(nil).NotifyWorkflowMutationTasks), mutation)
+}
+
+// NotifyWorkflowSnapshotTasks mocks base method.
+func (m *MockContext) NotifyWorkflowSnapshotTasks(snapshot *persistence0.WorkflowSnapshot) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyWorkflowSnapshotTasks", snapshot)
+}
+
+// NotifyWorkflowSnapshotTasks indicates an expected call of NotifyWorkflowSnapshotTasks.
+func (mr *MockContextMockRecorder) NotifyWorkflowSnapshotTasks(snapshot any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWorkflowSnapshotTasks", reflect.TypeOf((*MockContext)(nil).NotifyWorkflowSnapshotTasks), snapshot)
 }
 
 // SetCurrentTime mocks base method.
@@ -1030,6 +1130,21 @@ func (mr *MockControllableContextMockRecorder) GetCurrentExecution(ctx, request 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentExecution", reflect.TypeOf((*MockControllableContext)(nil).GetCurrentExecution), ctx, request)
 }
 
+// GetCurrentRunID mocks base method.
+func (m *MockControllableContext) GetCurrentRunID(ctx context.Context, namespaceID, workflowID string, lockPriority locks.Priority) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentRunID", ctx, namespaceID, workflowID, lockPriority)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCurrentRunID indicates an expected call of GetCurrentRunID.
+func (mr *MockControllableContextMockRecorder) GetCurrentRunID(ctx, namespaceID, workflowID, lockPriority any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentRunID", reflect.TypeOf((*MockControllableContext)(nil).GetCurrentRunID), ctx, namespaceID, workflowID, lockPriority)
+}
+
 // GetCurrentTime mocks base method.
 func (m *MockControllableContext) GetCurrentTime(cluster string) time.Time {
 	m.ctrl.T.Helper()
@@ -1170,6 +1285,37 @@ func (m *MockControllableContext) GetNamespaceRegistry() namespace.Registry {
 func (mr *MockControllableContextMockRecorder) GetNamespaceRegistry() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceRegistry", reflect.TypeOf((*MockControllableContext)(nil).GetNamespaceRegistry))
+}
+
+// GetOrCreateCurrentWorkflowExecution mocks base method.
+func (m *MockControllableContext) GetOrCreateCurrentWorkflowExecution(ctx context.Context, namespaceID namespace.ID, workflowID string, lockPriority locks.Priority) (ReleaseCacheFunc, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrCreateCurrentWorkflowExecution", ctx, namespaceID, workflowID, lockPriority)
+	ret0, _ := ret[0].(ReleaseCacheFunc)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrCreateCurrentWorkflowExecution indicates an expected call of GetOrCreateCurrentWorkflowExecution.
+func (mr *MockControllableContextMockRecorder) GetOrCreateCurrentWorkflowExecution(ctx, namespaceID, workflowID, lockPriority any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreateCurrentWorkflowExecution", reflect.TypeOf((*MockControllableContext)(nil).GetOrCreateCurrentWorkflowExecution), ctx, namespaceID, workflowID, lockPriority)
+}
+
+// GetOrCreateWorkflowExecution mocks base method.
+func (m *MockControllableContext) GetOrCreateWorkflowExecution(ctx context.Context, namespaceID namespace.ID, execution *common.WorkflowExecution, lockPriority locks.Priority) (workflow.Context, ReleaseCacheFunc, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrCreateWorkflowExecution", ctx, namespaceID, execution, lockPriority)
+	ret0, _ := ret[0].(workflow.Context)
+	ret1, _ := ret[1].(ReleaseCacheFunc)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOrCreateWorkflowExecution indicates an expected call of GetOrCreateWorkflowExecution.
+func (mr *MockControllableContextMockRecorder) GetOrCreateWorkflowExecution(ctx, namespaceID, execution, lockPriority any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreateWorkflowExecution", reflect.TypeOf((*MockControllableContext)(nil).GetOrCreateWorkflowExecution), ctx, namespaceID, execution, lockPriority)
 }
 
 // GetOwner mocks base method.
@@ -1414,6 +1560,58 @@ func (m *MockControllableContext) NewVectorClock() (*clock.VectorClock, error) {
 func (mr *MockControllableContextMockRecorder) NewVectorClock() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewVectorClock", reflect.TypeOf((*MockControllableContext)(nil).NewVectorClock))
+}
+
+// NotifyNewHistoryMutationEvent mocks base method.
+func (m *MockControllableContext) NotifyNewHistoryMutationEvent(mutation *persistence0.WorkflowMutation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyNewHistoryMutationEvent", mutation)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyNewHistoryMutationEvent indicates an expected call of NotifyNewHistoryMutationEvent.
+func (mr *MockControllableContextMockRecorder) NotifyNewHistoryMutationEvent(mutation any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyNewHistoryMutationEvent", reflect.TypeOf((*MockControllableContext)(nil).NotifyNewHistoryMutationEvent), mutation)
+}
+
+// NotifyNewHistorySnapshotEvent mocks base method.
+func (m *MockControllableContext) NotifyNewHistorySnapshotEvent(snapshot *persistence0.WorkflowSnapshot) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyNewHistorySnapshotEvent", snapshot)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyNewHistorySnapshotEvent indicates an expected call of NotifyNewHistorySnapshotEvent.
+func (mr *MockControllableContextMockRecorder) NotifyNewHistorySnapshotEvent(snapshot any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyNewHistorySnapshotEvent", reflect.TypeOf((*MockControllableContext)(nil).NotifyNewHistorySnapshotEvent), snapshot)
+}
+
+// NotifyWorkflowMutationTasks mocks base method.
+func (m *MockControllableContext) NotifyWorkflowMutationTasks(mutation *persistence0.WorkflowMutation) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyWorkflowMutationTasks", mutation)
+}
+
+// NotifyWorkflowMutationTasks indicates an expected call of NotifyWorkflowMutationTasks.
+func (mr *MockControllableContextMockRecorder) NotifyWorkflowMutationTasks(mutation any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWorkflowMutationTasks", reflect.TypeOf((*MockControllableContext)(nil).NotifyWorkflowMutationTasks), mutation)
+}
+
+// NotifyWorkflowSnapshotTasks mocks base method.
+func (m *MockControllableContext) NotifyWorkflowSnapshotTasks(snapshot *persistence0.WorkflowSnapshot) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyWorkflowSnapshotTasks", snapshot)
+}
+
+// NotifyWorkflowSnapshotTasks indicates an expected call of NotifyWorkflowSnapshotTasks.
+func (mr *MockControllableContextMockRecorder) NotifyWorkflowSnapshotTasks(snapshot any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWorkflowSnapshotTasks", reflect.TypeOf((*MockControllableContext)(nil).NotifyWorkflowSnapshotTasks), snapshot)
 }
 
 // SetCurrentTime mocks base method.

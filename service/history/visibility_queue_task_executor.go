@@ -44,13 +44,11 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
 	visibilityQueueTaskExecutor struct {
 		shardContext   shard.Context
-		cache          wcache.Cache
 		logger         log.Logger
 		metricProvider metrics.Handler
 		visibilityMgr  manager.VisibilityManager
@@ -65,7 +63,6 @@ var errUnknownVisibilityTask = serviceerror.NewInternal("unknown visibility task
 
 func newVisibilityQueueTaskExecutor(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	visibilityMgr manager.VisibilityManager,
 	logger log.Logger,
 	metricProvider metrics.Handler,
@@ -75,7 +72,6 @@ func newVisibilityQueueTaskExecutor(
 ) queues.Executor {
 	return &visibilityQueueTaskExecutor{
 		shardContext:   shardContext,
-		cache:          workflowCache,
 		logger:         logger,
 		metricProvider: metricProvider,
 		visibilityMgr:  visibilityMgr,
@@ -151,7 +147,7 @@ func (t *visibilityQueueTaskExecutor) processStartExecution(
 		return err
 	}
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -204,7 +200,7 @@ func (t *visibilityQueueTaskExecutor) processUpsertExecution(
 		return err
 	}
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -246,7 +242,7 @@ func (t *visibilityQueueTaskExecutor) processCloseExecution(
 		return err
 	}
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -435,7 +431,7 @@ func (t *visibilityQueueTaskExecutor) cleanupExecutionInfo(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}

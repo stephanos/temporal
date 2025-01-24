@@ -49,7 +49,7 @@ import (
 	"go.temporal.io/server/service/history/configs"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -83,7 +83,6 @@ type (
 		currentClusterName                   string
 		shardContext                         shard.Context
 		config                               *configs.Config
-		workflowCache                        wcache.Cache
 		eventBlobCache                       persistence.XDCCache
 		replicationProgressCache             ProgressCache
 		executionMgr                         persistence.ExecutionManager
@@ -112,7 +111,6 @@ var (
 
 func NewAckManager(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	eventBlobCache persistence.XDCCache,
 	replicationProgressCache ProgressCache,
 	executionMgr persistence.ExecutionManager,
@@ -131,7 +129,6 @@ func NewAckManager(
 		currentClusterName:                   currentClusterName,
 		shardContext:                         shardContext,
 		config:                               shardContext.GetConfig(),
-		workflowCache:                        workflowCache,
 		eventBlobCache:                       eventBlobCache,
 		replicationProgressCache:             replicationProgressCache,
 		executionMgr:                         executionMgr,
@@ -139,7 +136,7 @@ func NewAckManager(
 		logger:                               log.With(logger, tag.ComponentReplicatorQueue),
 		retryPolicy:                          retryPolicy,
 		namespaceRegistry:                    shardContext.GetNamespaceRegistry(),
-		syncVersionedTransitionTaskConverter: newSyncVersionedTransitionTaskConverter(shardContext, workflowCache, eventBlobCache, replicationProgressCache, executionMgr, syncStateRetriever, logger),
+		syncVersionedTransitionTaskConverter: newSyncVersionedTransitionTaskConverter(shardContext, eventBlobCache, replicationProgressCache, executionMgr, syncStateRetriever, logger),
 		pageSize:                             config.ReplicatorProcessorFetchTasksBatchSize,
 		maxSkipTaskCount:                     config.ReplicatorProcessorMaxSkipTaskCount,
 
@@ -435,14 +432,12 @@ func (p *ackMgrImpl) ConvertTask(
 			ctx,
 			p.shardContext,
 			task,
-			p.workflowCache,
 		)
 	case *tasks.SyncWorkflowStateTask:
 		return convertWorkflowStateReplicationTask(
 			ctx,
 			p.shardContext,
 			task,
-			p.workflowCache,
 		)
 	case *tasks.HistoryReplicationTask:
 		return convertHistoryReplicationTask(
@@ -450,7 +445,6 @@ func (p *ackMgrImpl) ConvertTask(
 			p.shardContext,
 			task,
 			p.shardContext.GetShardID(),
-			p.workflowCache,
 			p.eventBlobCache,
 			p.executionMgr,
 			p.logger,
@@ -461,7 +455,6 @@ func (p *ackMgrImpl) ConvertTask(
 			ctx,
 			p.shardContext,
 			task,
-			p.workflowCache,
 		)
 	default:
 		return nil, errUnknownReplicationTask

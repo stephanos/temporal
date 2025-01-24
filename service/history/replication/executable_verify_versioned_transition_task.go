@@ -225,9 +225,8 @@ func (e *ExecutableVerifyVersionedTransitionTask) getMutableState(ctx context.Co
 	if err != nil {
 		return nil, err
 	}
-	wfContext, release, err := e.WorkflowCache.GetOrCreateWorkflowExecution(
+	wfContext, release, err := shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		shardContext,
 		namespace.ID(e.NamespaceID),
 		&commonpb.WorkflowExecution{
 			WorkflowId: e.WorkflowID,

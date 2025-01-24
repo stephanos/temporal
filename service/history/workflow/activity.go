@@ -35,7 +35,6 @@ import (
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/service/history/consts"
-	"go.temporal.io/server/service/history/shard"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -96,7 +95,7 @@ func UpdateActivityInfoForRetries(
 
 func GetPendingActivityInfo(
 	ctx context.Context, // only used as a passthrough to GetActivityType
-	shardContext shard.Context,
+	shardContext shardContext,
 	mutableState MutableState,
 	ai *persistencespb.ActivityInfo,
 ) (*workflowpb.PendingActivityInfo, error) {
@@ -215,7 +214,7 @@ func PauseActivityById(mutableState MutableState, activityId string) error {
 }
 
 func ResetActivityById(
-	shardContext shard.Context,
+	shardContext shardContext,
 	mutableState MutableState,
 	activityId string,
 	scheduleNewRun bool,
@@ -254,7 +253,7 @@ func ResetActivityById(
 }
 
 func UnpauseActivityWithResume(
-	shardContext shard.Context,
+	shardContext shardContext,
 	mutableState MutableState,
 	ai *persistencespb.ActivityInfo,
 	scheduleNewRun bool,
@@ -283,7 +282,7 @@ func UnpauseActivityWithResume(
 }
 
 func UnpauseActivityWithReset(
-	shardContext shard.Context,
+	shardContext shardContext,
 	mutableState MutableState,
 	ai *persistencespb.ActivityInfo,
 	scheduleNewRun bool,

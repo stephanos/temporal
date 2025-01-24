@@ -25,20 +25,20 @@
 package api
 
 import (
+	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type WorkflowLease interface {
 	GetContext() workflow.Context
 	GetMutableState() workflow.MutableState
-	GetReleaseFn() wcache.ReleaseCacheFunc
+	GetReleaseFn() shard.ReleaseCacheFunc
 }
 
 type workflowLease struct {
 	context      workflow.Context
 	mutableState workflow.MutableState
-	releaseFn    wcache.ReleaseCacheFunc
+	releaseFn    shard.ReleaseCacheFunc
 }
 
 type UpdateWorkflowAction struct {
@@ -67,7 +67,7 @@ var _ WorkflowLease = (*workflowLease)(nil)
 
 func NewWorkflowLease(
 	context workflow.Context,
-	releaseFn wcache.ReleaseCacheFunc,
+	releaseFn shard.ReleaseCacheFunc,
 	mutableState workflow.MutableState,
 ) WorkflowLease {
 	return &workflowLease{
@@ -85,6 +85,6 @@ func (w *workflowLease) GetMutableState() workflow.MutableState {
 	return w.mutableState
 }
 
-func (w *workflowLease) GetReleaseFn() wcache.ReleaseCacheFunc {
+func (w *workflowLease) GetReleaseFn() shard.ReleaseCacheFunc {
 	return w.releaseFn
 }

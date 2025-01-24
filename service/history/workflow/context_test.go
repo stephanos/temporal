@@ -56,7 +56,7 @@ type (
 		suite.Suite
 		*require.Assertions
 
-		mockShard *shard.ContextTest
+		mockShard *shardContextTest
 
 		workflowContext *ContextImpl
 	}
@@ -498,14 +498,14 @@ func (s *contextSuite) TestRefreshTask() {
 	testCases := []struct {
 		name                  string
 		persistedMutableState func() *persistencespb.WorkflowMutableState
-		setupMock             func(mockShard *shard.ContextTest)
+		setupMock             func(mockShard *shardContextTest)
 	}{
 		{
 			name: "open workflow",
 			persistedMutableState: func() *persistencespb.WorkflowMutableState {
 				return common.CloneProto(baseMutableState)
 			},
-			setupMock: func(mockShard *shard.ContextTest) {
+			setupMock: func(mockShard *shardContextTest) {
 				mockShard.MockEventsCache.EXPECT().GetEvent(
 					gomock.Any(),
 					mockShard.GetShardID(),
@@ -544,7 +544,7 @@ func (s *contextSuite) TestRefreshTask() {
 				base.ExecutionInfo.CloseTime = timestamppb.New(now.Add(time.Second))
 				return base
 			},
-			setupMock: func(mockShard *shard.ContextTest) {
+			setupMock: func(mockShard *shardContextTest) {
 				mockShard.Resource.ExecutionMgr.EXPECT().SetWorkflowExecution(gomock.Any(), gomock.Any()).DoAndReturn(
 					func(_ context.Context, request *persistence.SetWorkflowExecutionRequest) (*persistence.SetWorkflowExecutionResponse, error) {
 						s.NotEmpty(request.SetWorkflowSnapshot.Tasks)
@@ -559,7 +559,7 @@ func (s *contextSuite) TestRefreshTask() {
 				base.ExecutionState.State = enumsspb.WORKFLOW_EXECUTION_STATE_ZOMBIE
 				return base
 			},
-			setupMock: func(mockShard *shard.ContextTest) {
+			setupMock: func(mockShard *shardContextTest) {
 				mockShard.MockEventsCache.EXPECT().GetEvent(
 					gomock.Any(),
 					mockShard.GetShardID(),

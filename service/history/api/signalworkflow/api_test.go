@@ -46,7 +46,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 )
 
@@ -108,7 +108,7 @@ func (s *signalWorkflowSuite) SetupTest() {
 
 	s.workflowCache = wcache.NewMockCache(s.controller)
 	s.workflowCache.EXPECT().GetOrCreateWorkflowExecution(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), locks.PriorityHigh).
-		Return(s.currentContext, wcache.NoopReleaseFn, nil).AnyTimes()
+		Return(s.currentContext, shard.NoopReleaseFn, nil).AnyTimes()
 
 	s.workflowConsistencyChecker = api.NewWorkflowConsistencyChecker(
 		s.shardContext,

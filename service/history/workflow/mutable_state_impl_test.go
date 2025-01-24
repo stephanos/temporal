@@ -91,7 +91,7 @@ type (
 
 		controller      *gomock.Controller
 		mockConfig      *configs.Config
-		mockShard       *shard.ContextTest
+		mockShard       *shardContextTest
 		mockEventsCache *events.MockCache
 
 		namespaceEntry *namespace.Namespace

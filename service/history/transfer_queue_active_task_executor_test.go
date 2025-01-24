@@ -81,7 +81,7 @@ import (
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.temporal.io/server/service/worker/parentclosepolicy"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc"
@@ -2698,7 +2698,7 @@ func (s *transferQueueActiveTaskExecutorSuite) TestPendingCloseExecutionTasks() 
 
 			mockWorkflowCache.EXPECT().GetOrCreateWorkflowExecution(gomock.Any(), mockShard, gomock.Any(), gomock.Any(),
 				gomock.Any(),
-			).Return(mockWorkflowContext, wcache.ReleaseCacheFunc(func(err error) {
+			).Return(mockWorkflowContext, shard.ReleaseCacheFunc(func(err error) {
 			}), nil)
 
 			mockClusterMetadata := cluster.NewMockMetadata(ctrl)

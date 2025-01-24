@@ -89,7 +89,7 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -687,7 +687,7 @@ func (s *engineSuite) TestQueryWorkflow_ConsistentQueryBufferFull() {
 	gweResponse := &persistence.GetWorkflowExecutionResponse{State: wfMs}
 	s.mockExecutionMgr.EXPECT().GetWorkflowExecution(gomock.Any(), gomock.Any()).Return(gweResponse, nil)
 
-	ctx, release, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	ctx, release, err := s.shardContext.GetOrCreateWorkflowExecution(
 		context.Background(),
 		s.mockShard,
 		tests.NamespaceID,
@@ -4485,7 +4485,7 @@ func (s *engineSuite) TestRequestCancel_RespondWorkflowTaskCompleted_SuccessWith
 
 	// load mutable state such that it already exists in memory when respond workflow task is called
 	// this enables us to set query registry on it
-	ctx, release, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	ctx, release, err := s.shardContext.GetOrCreateWorkflowExecution(
 		context.Background(),
 		s.mockShard,
 		tests.NamespaceID,
@@ -6255,7 +6255,7 @@ func (s *engineSuite) Test_SetRequestDefaultValueAndGetTargetVersionHistory_NonC
 }
 
 func (s *engineSuite) getMutableState(testNamespaceID namespace.ID, we *commonpb.WorkflowExecution) workflow.MutableState {
-	context, release, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	context, release, err := s.shardContext.GetOrCreateWorkflowExecution(
 		context.Background(),
 		s.mockShard,
 		tests.NamespaceID,

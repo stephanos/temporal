@@ -50,7 +50,6 @@ import (
 	"go.temporal.io/server/service/history/consts"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	"go.temporal.io/server/service/history/workflow/cache"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -235,10 +234,9 @@ func (s *Starter) Invoke(
 
 func (s *Starter) lockCurrentWorkflowExecution(
 	ctx context.Context,
-) (cache.ReleaseCacheFunc, error) {
-	currentRelease, err := s.workflowConsistencyChecker.GetWorkflowCache().GetOrCreateCurrentWorkflowExecution(
+) (shard.ReleaseCacheFunc, error) {
+	currentRelease, err := s.shardContext.GetOrCreateCurrentWorkflowExecution(
 		ctx,
-		s.shardContext,
 		s.namespace.ID(),
 		s.request.StartRequest.WorkflowId,
 		locks.PriorityHigh,
@@ -552,9 +550,8 @@ func (s *Starter) respondToRetriedRequest(
 // workflow cache and managing the cache lease.
 func (s *Starter) getMutableStateInfo(ctx context.Context, runID string) (_ *mutableStateInfo, retErr error) {
 	// We technically never want to create a new execution but in practice this should not happen.
-	workflowContext, releaseFn, err := s.workflowConsistencyChecker.GetWorkflowCache().GetOrCreateWorkflowExecution(
+	workflowContext, releaseFn, err := s.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		s.shardContext,
 		s.namespace.ID(),
 		&commonpb.WorkflowExecution{WorkflowId: s.request.StartRequest.WorkflowId, RunId: runID},
 		locks.PriorityHigh,

@@ -51,7 +51,7 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -65,7 +65,6 @@ type (
 
 func newTimerQueueStandbyTaskExecutor(
 	shard shard.Context,
-	workflowCache wcache.Cache,
 	workflowDeleteManager deletemanager.DeleteManager,
 	matchingRawClient resource.MatchingRawClient,
 	logger log.Logger,
@@ -77,7 +76,6 @@ func newTimerQueueStandbyTaskExecutor(
 	return &timerQueueStandbyTaskExecutor{
 		timerQueueTaskExecutorBase: newTimerQueueTaskExecutorBase(
 			shard,
-			workflowCache,
 			workflowDeleteManager,
 			matchingRawClient,
 			logger,
@@ -575,7 +573,7 @@ func (t *timerQueueStandbyTaskExecutor) processTimer(
 		return nil
 	}
 
-	executionContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, timerTask)
+	executionContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, timerTask)
 	if err != nil {
 		return err
 	}
@@ -651,7 +649,6 @@ func (t *timerQueueStandbyTaskExecutor) pushActivity(
 		resp.AssignedBuildId,
 		t.shardContext,
 		workflow.TransactionPolicyPassive,
-		t.cache,
 		t.metricsHandler,
 		t.logger,
 	)

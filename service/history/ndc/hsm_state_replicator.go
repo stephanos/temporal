@@ -43,7 +43,6 @@ import (
 	"go.temporal.io/server/service/history/hsm"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
@@ -55,22 +54,19 @@ type (
 	}
 
 	HSMStateReplicatorImpl struct {
-		shardContext  shard.Context
-		workflowCache wcache.Cache
-		logger        log.Logger
+		shardContext shard.Context
+		logger       log.Logger
 	}
 )
 
 func NewHSMStateReplicator(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 ) *HSMStateReplicatorImpl {
 
 	return &HSMStateReplicatorImpl{
-		shardContext:  shardContext,
-		workflowCache: workflowCache,
-		logger:        log.With(logger, tag.ComponentHSMStateReplicator),
+		shardContext: shardContext,
+		logger:       log.With(logger, tag.ComponentHSMStateReplicator),
 	}
 }
 
@@ -89,9 +85,8 @@ func (r *HSMStateReplicatorImpl) SyncHSMState(
 		return err
 	}
 
-	workflowContext, release, err := r.workflowCache.GetOrCreateWorkflowExecution(
+	workflowContext, release, err := r.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		r.shardContext,
 		namespaceID,
 		execution,
 		locks.PriorityHigh,

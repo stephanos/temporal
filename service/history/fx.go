@@ -60,7 +60,6 @@ import (
 	"go.temporal.io/server/service/history/replication"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	"go.temporal.io/server/service/history/workflow/cache"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -72,7 +71,6 @@ var Module = fx.Options(
 	workflow.Module,
 	shard.Module,
 	events.Module,
-	cache.Module,
 	archival.Module,
 	dynamicconfig.Module,
 	fx.Provide(ConfigProvider), // might be worth just using provider for configs.Config directly

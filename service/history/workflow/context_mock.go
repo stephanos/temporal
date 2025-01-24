@@ -41,7 +41,6 @@ import (
 	definition "go.temporal.io/server/common/definition"
 	locks "go.temporal.io/server/common/locks"
 	persistence0 "go.temporal.io/server/common/persistence"
-	shard "go.temporal.io/server/service/history/shard"
 	update "go.temporal.io/server/service/history/workflow/update"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -82,7 +81,7 @@ func (mr *MockContextMockRecorder) Clear() *gomock.Call {
 }
 
 // ConflictResolveWorkflowExecution mocks base method.
-func (m *MockContext) ConflictResolveWorkflowExecution(ctx context.Context, shardContext shard.Context, conflictResolveMode persistence0.ConflictResolveWorkflowMode, resetMutableState MutableState, newContext Context, newMutableState MutableState, currentContext Context, currentMutableState MutableState, resetWorkflowTransactionPolicy TransactionPolicy, newWorkflowTransactionPolicy, currentTransactionPolicy *TransactionPolicy) error {
+func (m *MockContext) ConflictResolveWorkflowExecution(ctx context.Context, shardContext shardContext, conflictResolveMode persistence0.ConflictResolveWorkflowMode, resetMutableState MutableState, newContext Context, newMutableState MutableState, currentContext Context, currentMutableState MutableState, resetWorkflowTransactionPolicy TransactionPolicy, newWorkflowTransactionPolicy, currentTransactionPolicy *TransactionPolicy) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConflictResolveWorkflowExecution", ctx, shardContext, conflictResolveMode, resetMutableState, newContext, newMutableState, currentContext, currentMutableState, resetWorkflowTransactionPolicy, newWorkflowTransactionPolicy, currentTransactionPolicy)
 	ret0, _ := ret[0].(error)
@@ -96,7 +95,7 @@ func (mr *MockContextMockRecorder) ConflictResolveWorkflowExecution(ctx, shardCo
 }
 
 // CreateWorkflowExecution mocks base method.
-func (m *MockContext) CreateWorkflowExecution(ctx context.Context, shardContext shard.Context, createMode persistence0.CreateWorkflowMode, prevRunID string, prevLastWriteVersion int64, newMutableState MutableState, newWorkflow *persistence0.WorkflowSnapshot, newWorkflowEvents []*persistence0.WorkflowEvents) error {
+func (m *MockContext) CreateWorkflowExecution(ctx context.Context, shardContext shardContext, createMode persistence0.CreateWorkflowMode, prevRunID string, prevLastWriteVersion int64, newMutableState MutableState, newWorkflow *persistence0.WorkflowSnapshot, newWorkflowEvents []*persistence0.WorkflowEvents) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateWorkflowExecution", ctx, shardContext, createMode, prevRunID, prevLastWriteVersion, newMutableState, newWorkflow, newWorkflowEvents)
 	ret0, _ := ret[0].(error)
@@ -138,7 +137,7 @@ func (mr *MockContextMockRecorder) IsDirty() *gomock.Call {
 }
 
 // LoadExecutionStats mocks base method.
-func (m *MockContext) LoadExecutionStats(ctx context.Context, shardContext shard.Context) (*persistence.ExecutionStats, error) {
+func (m *MockContext) LoadExecutionStats(ctx context.Context, shardContext shardContext) (*persistence.ExecutionStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadExecutionStats", ctx, shardContext)
 	ret0, _ := ret[0].(*persistence.ExecutionStats)
@@ -153,7 +152,7 @@ func (mr *MockContextMockRecorder) LoadExecutionStats(ctx, shardContext any) *go
 }
 
 // LoadMutableState mocks base method.
-func (m *MockContext) LoadMutableState(ctx context.Context, shardContext shard.Context) (MutableState, error) {
+func (m *MockContext) LoadMutableState(ctx context.Context, shardContext shardContext) (MutableState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadMutableState", ctx, shardContext)
 	ret0, _ := ret[0].(MutableState)
@@ -182,7 +181,7 @@ func (mr *MockContextMockRecorder) Lock(ctx, lockPriority any) *gomock.Call {
 }
 
 // PersistWorkflowEvents mocks base method.
-func (m *MockContext) PersistWorkflowEvents(ctx context.Context, shardContext shard.Context, workflowEventsSlice ...*persistence0.WorkflowEvents) (int64, error) {
+func (m *MockContext) PersistWorkflowEvents(ctx context.Context, shardContext shardContext, workflowEventsSlice ...*persistence0.WorkflowEvents) (int64, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, shardContext}
 	for _, a := range workflowEventsSlice {
@@ -202,7 +201,7 @@ func (mr *MockContextMockRecorder) PersistWorkflowEvents(ctx, shardContext any, 
 }
 
 // ReapplyEvents mocks base method.
-func (m *MockContext) ReapplyEvents(ctx context.Context, shardContext shard.Context, eventBatches []*persistence0.WorkflowEvents) error {
+func (m *MockContext) ReapplyEvents(ctx context.Context, shardContext shardContext, eventBatches []*persistence0.WorkflowEvents) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReapplyEvents", ctx, shardContext, eventBatches)
 	ret0, _ := ret[0].(error)
@@ -216,7 +215,7 @@ func (mr *MockContextMockRecorder) ReapplyEvents(ctx, shardContext, eventBatches
 }
 
 // RefreshTasks mocks base method.
-func (m *MockContext) RefreshTasks(ctx context.Context, shardContext shard.Context) error {
+func (m *MockContext) RefreshTasks(ctx context.Context, shardContext shardContext) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshTasks", ctx, shardContext)
 	ret0, _ := ret[0].(error)
@@ -230,7 +229,7 @@ func (mr *MockContextMockRecorder) RefreshTasks(ctx, shardContext any) *gomock.C
 }
 
 // SetWorkflowExecution mocks base method.
-func (m *MockContext) SetWorkflowExecution(ctx context.Context, shardContext shard.Context) error {
+func (m *MockContext) SetWorkflowExecution(ctx context.Context, shardContext shardContext) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetWorkflowExecution", ctx, shardContext)
 	ret0, _ := ret[0].(error)
@@ -244,7 +243,7 @@ func (mr *MockContextMockRecorder) SetWorkflowExecution(ctx, shardContext any) *
 }
 
 // SubmitClosedWorkflowSnapshot mocks base method.
-func (m *MockContext) SubmitClosedWorkflowSnapshot(ctx context.Context, shardContext shard.Context, transactionPolicy TransactionPolicy) error {
+func (m *MockContext) SubmitClosedWorkflowSnapshot(ctx context.Context, shardContext shardContext, transactionPolicy TransactionPolicy) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubmitClosedWorkflowSnapshot", ctx, shardContext, transactionPolicy)
 	ret0, _ := ret[0].(error)
@@ -284,7 +283,7 @@ func (mr *MockContextMockRecorder) UpdateRegistry(ctx any) *gomock.Call {
 }
 
 // UpdateWorkflowExecutionAsActive mocks base method.
-func (m *MockContext) UpdateWorkflowExecutionAsActive(ctx context.Context, shardContext shard.Context) error {
+func (m *MockContext) UpdateWorkflowExecutionAsActive(ctx context.Context, shardContext shardContext) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWorkflowExecutionAsActive", ctx, shardContext)
 	ret0, _ := ret[0].(error)
@@ -298,7 +297,7 @@ func (mr *MockContextMockRecorder) UpdateWorkflowExecutionAsActive(ctx, shardCon
 }
 
 // UpdateWorkflowExecutionAsPassive mocks base method.
-func (m *MockContext) UpdateWorkflowExecutionAsPassive(ctx context.Context, shardContext shard.Context) error {
+func (m *MockContext) UpdateWorkflowExecutionAsPassive(ctx context.Context, shardContext shardContext) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWorkflowExecutionAsPassive", ctx, shardContext)
 	ret0, _ := ret[0].(error)
@@ -312,7 +311,7 @@ func (mr *MockContextMockRecorder) UpdateWorkflowExecutionAsPassive(ctx, shardCo
 }
 
 // UpdateWorkflowExecutionWithNew mocks base method.
-func (m *MockContext) UpdateWorkflowExecutionWithNew(ctx context.Context, shardContext shard.Context, updateMode persistence0.UpdateWorkflowMode, newContext Context, newMutableState MutableState, updateWorkflowTransactionPolicy TransactionPolicy, newWorkflowTransactionPolicy *TransactionPolicy) error {
+func (m *MockContext) UpdateWorkflowExecutionWithNew(ctx context.Context, shardContext shardContext, updateMode persistence0.UpdateWorkflowMode, newContext Context, newMutableState MutableState, updateWorkflowTransactionPolicy TransactionPolicy, newWorkflowTransactionPolicy *TransactionPolicy) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWorkflowExecutionWithNew", ctx, shardContext, updateMode, newContext, newMutableState, updateWorkflowTransactionPolicy, newWorkflowTransactionPolicy)
 	ret0, _ := ret[0].(error)
@@ -326,7 +325,7 @@ func (mr *MockContextMockRecorder) UpdateWorkflowExecutionWithNew(ctx, shardCont
 }
 
 // UpdateWorkflowExecutionWithNewAsActive mocks base method.
-func (m *MockContext) UpdateWorkflowExecutionWithNewAsActive(ctx context.Context, shardContext shard.Context, newContext Context, newMutableState MutableState) error {
+func (m *MockContext) UpdateWorkflowExecutionWithNewAsActive(ctx context.Context, shardContext shardContext, newContext Context, newMutableState MutableState) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWorkflowExecutionWithNewAsActive", ctx, shardContext, newContext, newMutableState)
 	ret0, _ := ret[0].(error)
@@ -340,7 +339,7 @@ func (mr *MockContextMockRecorder) UpdateWorkflowExecutionWithNewAsActive(ctx, s
 }
 
 // UpdateWorkflowExecutionWithNewAsPassive mocks base method.
-func (m *MockContext) UpdateWorkflowExecutionWithNewAsPassive(ctx context.Context, shardContext shard.Context, newContext Context, newMutableState MutableState) error {
+func (m *MockContext) UpdateWorkflowExecutionWithNewAsPassive(ctx context.Context, shardContext shardContext, newContext Context, newMutableState MutableState) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWorkflowExecutionWithNewAsPassive", ctx, shardContext, newContext, newMutableState)
 	ret0, _ := ret[0].(error)

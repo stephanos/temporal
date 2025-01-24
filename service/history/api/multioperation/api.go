@@ -197,9 +197,8 @@ func (mo *multiOp) workflowLeaseCallback(
 			// early error response that aborts the entire MultiOperation request. And it allows for a simple retry, too -
 			// whereas if the cache write happened and failed *after* a successful persistence write,
 			// it would leave behind a started workflow that will never receive the update.
-			workflowContext, releaseFunc, err := mo.consistencyChecker.GetWorkflowCache().GetOrCreateWorkflowExecution(
+			workflowContext, releaseFunc, err := mo.shardContext.GetOrCreateWorkflowExecution(
 				ctx,
-				shardContext,
 				ms.GetNamespaceEntry().ID(),
 				&commonpb.WorkflowExecution{WorkflowId: ms.GetExecutionInfo().WorkflowId, RunId: ms.GetExecutionState().RunId},
 				locks.PriorityHigh,

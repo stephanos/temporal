@@ -40,14 +40,12 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
 	MutableStateConsistencyPredicate func(mutableState workflow.MutableState) bool
 
 	WorkflowConsistencyChecker interface {
-		GetWorkflowCache() wcache.Cache
 		GetCurrentRunID(
 			ctx context.Context,
 			namespaceID string,
@@ -71,23 +69,16 @@ type (
 	}
 
 	WorkflowConsistencyCheckerImpl struct {
-		shardContext  shard.Context
-		workflowCache wcache.Cache
+		shardContext shard.Context
 	}
 )
 
 func NewWorkflowConsistencyChecker(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 ) *WorkflowConsistencyCheckerImpl {
 	return &WorkflowConsistencyCheckerImpl{
-		shardContext:  shardContext,
-		workflowCache: workflowCache,
+		shardContext: shardContext,
 	}
-}
-
-func (c *WorkflowConsistencyCheckerImpl) GetWorkflowCache() wcache.Cache {
-	return c.workflowCache
 }
 
 func (c *WorkflowConsistencyCheckerImpl) GetCurrentRunID(
@@ -96,10 +87,8 @@ func (c *WorkflowConsistencyCheckerImpl) GetCurrentRunID(
 	workflowID string,
 	lockPriority locks.Priority,
 ) (runID string, retErr error) {
-	return wcache.GetCurrentRunID(
+	return c.shardContext.GetCurrentRunID(
 		ctx,
-		c.shardContext,
-		c.workflowCache,
 		namespaceID,
 		workflowID,
 		lockPriority,
@@ -231,9 +220,8 @@ func (c *WorkflowConsistencyCheckerImpl) getWorkflowLease(
 	lockPriority locks.Priority,
 ) (WorkflowLease, error) {
 
-	wfContext, release, err := c.workflowCache.GetOrCreateWorkflowExecution(
+	wfContext, release, err := c.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		c.shardContext,
 		namespace.ID(workflowKey.NamespaceID),
 		&commonpb.WorkflowExecution{
 			WorkflowId: workflowKey.WorkflowID,

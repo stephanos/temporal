@@ -114,7 +114,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 type (
@@ -155,7 +154,6 @@ type (
 		tracer                     trace.Tracer
 		taskCategoryRegistry       tasks.TaskCategoryRegistry
 		commandHandlerRegistry     *workflow.CommandHandlerRegistry
-		workflowCache              wcache.Cache
 		replicationProgressCache   replication.ProgressCache
 		syncStateRetriever         replication.SyncStateRetriever
 		outboundQueueCBPool        *circuitbreakerpool.OutboundQueueCircuitBreakerPool
@@ -172,7 +170,6 @@ func NewEngineWithShardContext(
 	eventNotifier events.Notifier,
 	config *configs.Config,
 	rawMatchingClient matchingservice.MatchingServiceClient,
-	workflowCache wcache.Cache,
 	replicationProgressCache replication.ProgressCache,
 	eventSerializer serialization.Serializer,
 	queueProcessorFactories []QueueFactory,
@@ -195,14 +192,12 @@ func NewEngineWithShardContext(
 
 	workflowDeleteManager := deletemanager.NewDeleteManager(
 		shard,
-		workflowCache,
 		config,
 		shard.GetTimeSource(),
 		persistenceVisibilityMgr,
 	)
 	syncStateRetriever := replication.NewSyncStateRetriever(
 		shard,
-		workflowCache,
 		workflowConsistencyChecker,
 		eventBlobCache,
 		shard.GetLogger(),
@@ -232,7 +227,6 @@ func NewEngineWithShardContext(
 		tracer:                     tracerProvider.Tracer(consts.LibraryName),
 		taskCategoryRegistry:       taskCategoryRegistry,
 		commandHandlerRegistry:     commandHandlerRegistry,
-		workflowCache:              workflowCache,
 		replicationProgressCache:   replicationProgressCache,
 		syncStateRetriever:         syncStateRetriever,
 		outboundQueueCBPool:        outboundQueueCBPool,
@@ -241,7 +235,7 @@ func NewEngineWithShardContext(
 
 	historyEngImpl.queueProcessors = make(map[tasks.Category]queues.Queue)
 	for _, factory := range queueProcessorFactories {
-		processor := factory.CreateQueue(shard, workflowCache)
+		processor := factory.CreateQueue(shard)
 		historyEngImpl.queueProcessors[processor.Category()] = processor
 	}
 
@@ -250,7 +244,6 @@ func NewEngineWithShardContext(
 	if shard.GetClusterMetadata().IsGlobalNamespaceEnabled() {
 		historyEngImpl.replicationAckMgr = replication.NewAckManager(
 			shard,
-			workflowCache,
 			eventBlobCache,
 			replicationProgressCache,
 			executionManager,
@@ -259,42 +252,35 @@ func NewEngineWithShardContext(
 		)
 		historyEngImpl.nDCHistoryReplicator = ndc.NewHistoryReplicator(
 			shard,
-			workflowCache,
 			historyEngImpl.eventsReapplier,
 			eventSerializer,
 			logger,
 		)
 		historyEngImpl.nDCHistoryImporter = ndc.NewHistoryImporter(
 			shard,
-			workflowCache,
 			logger,
 		)
 		historyEngImpl.nDCActivityStateReplicator = ndc.NewActivityStateReplicator(
 			shard,
-			workflowCache,
 			logger,
 		)
 		historyEngImpl.nDCWorkflowStateReplicator = ndc.NewWorkflowStateReplicator(
 			shard,
-			workflowCache,
 			historyEngImpl.eventsReapplier,
 			eventSerializer,
 			logger,
 		)
 		historyEngImpl.nDCHSMStateReplicator = ndc.NewHSMStateReplicator(
 			shard,
-			workflowCache,
 			logger,
 		)
 	}
 	historyEngImpl.workflowRebuilder = NewWorkflowRebuilder(
 		shard,
-		workflowCache,
 		logger,
 	)
 	historyEngImpl.workflowResetter = ndc.NewWorkflowResetter(
 		shard,
-		workflowCache,
 		logger,
 	)
 
@@ -315,7 +301,6 @@ func NewEngineWithShardContext(
 	historyEngImpl.replicationDLQHandler = replication.NewLazyDLQHandler(
 		shard,
 		workflowDeleteManager,
-		workflowCache,
 		clientBean,
 		replicationTaskExecutorProvider,
 	)
@@ -323,7 +308,6 @@ func NewEngineWithShardContext(
 		config,
 		shard,
 		historyEngImpl,
-		workflowCache,
 		workflowDeleteManager,
 		clientBean,
 		eventSerializer,
@@ -1065,7 +1049,6 @@ func (e *historyEngineImpl) StateMachineEnvironment(
 ) hsm.Environment {
 	return &stateMachineEnvironment{
 		shardContext:   e.shardContext,
-		cache:          e.workflowCache,
 		metricsHandler: e.metricsHandler.WithTags(operationTag),
 		logger:         e.logger,
 	}

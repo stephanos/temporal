@@ -38,6 +38,7 @@ import (
 	"go.temporal.io/server/common/cluster"
 	"go.temporal.io/server/common/definition"
 	"go.temporal.io/server/common/finalizer"
+	"go.temporal.io/server/common/locks"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
@@ -49,6 +50,7 @@ import (
 	"go.temporal.io/server/service/history/events"
 	"go.temporal.io/server/service/history/hsm"
 	"go.temporal.io/server/service/history/tasks"
+	"go.temporal.io/server/service/history/workflow"
 )
 
 //go:generate mockgen -copyright_file ../../../LICENSE -package $GOPACKAGE -source $GOFILE -destination context_mock.go
@@ -94,6 +96,10 @@ type (
 		GetReplicatorDLQAckLevel(sourceCluster string) int64
 		UpdateReplicatorDLQAckLevel(sourCluster string, ackLevel int64) error
 
+		GetOrCreateCurrentWorkflowExecution(ctx context.Context, namespaceID namespace.ID, workflowID string, lockPriority locks.Priority) (ReleaseCacheFunc, error)
+		GetOrCreateWorkflowExecution(ctx context.Context, namespaceID namespace.ID, execution *commonpb.WorkflowExecution, lockPriority locks.Priority) (workflow.Context, ReleaseCacheFunc, error)
+		GetCurrentRunID(ctx context.Context, namespaceID string, workflowID string, lockPriority locks.Priority) (runID string, retErr error)
+
 		UpdateRemoteClusterInfo(cluster string, ackTaskID int64, ackTimestamp time.Time)
 		UpdateRemoteReaderInfo(readerID int64, ackTaskID int64, ackTimestamp time.Time) error
 
@@ -123,6 +129,11 @@ type (
 
 		StateMachineRegistry() *hsm.Registry
 		GetFinalizer() *finalizer.Finalizer
+
+		NotifyWorkflowMutationTasks(mutation *persistence.WorkflowMutation)
+		NotifyWorkflowSnapshotTasks(snapshot *persistence.WorkflowSnapshot)
+		NotifyNewHistoryMutationEvent(mutation *persistence.WorkflowMutation) error
+		NotifyNewHistorySnapshotEvent(snapshot *persistence.WorkflowSnapshot) error
 	}
 
 	// A ControllableContext is a Context plus other methods needed by

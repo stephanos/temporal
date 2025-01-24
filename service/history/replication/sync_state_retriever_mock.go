@@ -40,8 +40,8 @@ import (
 	common "go.temporal.io/api/common/v1"
 	history "go.temporal.io/server/api/history/v1"
 	persistence "go.temporal.io/server/api/persistence/v1"
+	shard "go.temporal.io/server/service/history/shard"
 	workflow "go.temporal.io/server/service/history/workflow"
-	cache "go.temporal.io/server/service/history/workflow/cache"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -84,7 +84,7 @@ func (mr *MockSyncStateRetrieverMockRecorder) GetSyncWorkflowStateArtifact(ctx, 
 }
 
 // GetSyncWorkflowStateArtifactFromMutableState mocks base method.
-func (m *MockSyncStateRetriever) GetSyncWorkflowStateArtifactFromMutableState(ctx context.Context, namespaceID string, execution *common.WorkflowExecution, mutableState workflow.MutableState, targetVersionedTransition *persistence.VersionedTransition, targetVersionHistories [][]*history.VersionHistoryItem, releaseFunc cache.ReleaseCacheFunc) (*SyncStateResult, error) {
+func (m *MockSyncStateRetriever) GetSyncWorkflowStateArtifactFromMutableState(ctx context.Context, namespaceID string, execution *common.WorkflowExecution, mutableState workflow.MutableState, targetVersionedTransition *persistence.VersionedTransition, targetVersionHistories [][]*history.VersionHistoryItem, releaseFunc shard.ReleaseCacheFunc) (*SyncStateResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSyncWorkflowStateArtifactFromMutableState", ctx, namespaceID, execution, mutableState, targetVersionedTransition, targetVersionHistories, releaseFunc)
 	ret0, _ := ret[0].(*SyncStateResult)

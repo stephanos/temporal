@@ -42,7 +42,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 func taskWorkflowKey(task tasks.Task) definition.WorkflowKey {
@@ -52,13 +51,11 @@ func taskWorkflowKey(task tasks.Task) definition.WorkflowKey {
 func getWorkflowExecutionContextForTask(
 	ctx context.Context,
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	task tasks.Task,
-) (workflow.Context, wcache.ReleaseCacheFunc, error) {
+) (workflow.Context, shard.ReleaseCacheFunc, error) {
 	return getWorkflowExecutionContext(
 		ctx,
 		shardContext,
-		workflowCache,
 		taskWorkflowKey(task),
 		locks.PriorityLow,
 	)
@@ -67,15 +64,13 @@ func getWorkflowExecutionContextForTask(
 func getWorkflowExecutionContext(
 	ctx context.Context,
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	key definition.WorkflowKey,
 	lockPriority locks.Priority,
-) (workflow.Context, wcache.ReleaseCacheFunc, error) {
+) (workflow.Context, shard.ReleaseCacheFunc, error) {
 	if key.GetRunID() == "" {
 		return getCurrentWorkflowExecutionContext(
 			ctx,
 			shardContext,
-			workflowCache,
 			key.NamespaceID,
 			key.WorkflowID,
 			lockPriority,
@@ -89,9 +84,8 @@ func getWorkflowExecutionContext(
 	}
 	// workflowCache will automatically use short context timeout when
 	// locking workflow for all background calls, we don't need a separate context here
-	weContext, release, err := workflowCache.GetOrCreateWorkflowExecution(
+	weContext, release, err := shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		shardContext,
 		namespaceID,
 		execution,
 		lockPriority,
@@ -106,15 +100,12 @@ func getWorkflowExecutionContext(
 func getCurrentWorkflowExecutionContext(
 	ctx context.Context,
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	namespaceID string,
 	workflowID string,
 	lockPriority locks.Priority,
-) (workflow.Context, wcache.ReleaseCacheFunc, error) {
-	currentRunID, err := wcache.GetCurrentRunID(
+) (workflow.Context, shard.ReleaseCacheFunc, error) {
+	currentRunID, err := shardContext.GetCurrentRunID(
 		ctx,
-		shardContext,
-		workflowCache,
 		namespaceID,
 		workflowID,
 		lockPriority,
@@ -126,7 +117,6 @@ func getCurrentWorkflowExecutionContext(
 	wfContext, release, err := getWorkflowExecutionContext(
 		ctx,
 		shardContext,
-		workflowCache,
 		definition.NewWorkflowKey(namespaceID, workflowID, currentRunID),
 		lockPriority,
 	)
@@ -147,10 +137,8 @@ func getCurrentWorkflowExecutionContext(
 	// for close workflow we need to check if it is still the current run
 	// since it's possible that the workflowID has a newer run before it's locked
 
-	currentRunID, err = wcache.GetCurrentRunID(
+	currentRunID, err = shardContext.GetCurrentRunID(
 		ctx,
-		shardContext,
-		workflowCache,
 		namespaceID,
 		workflowID,
 		lockPriority,
@@ -173,7 +161,6 @@ func getCurrentWorkflowExecutionContext(
 // stateMachineEnvironment provides basic functionality for state machine task execution and handling of API requests.
 type stateMachineEnvironment struct {
 	shardContext   shard.Context
-	cache          wcache.Cache
 	metricsHandler metrics.Handler
 	logger         log.Logger
 }
@@ -328,8 +315,8 @@ func (e *stateMachineEnvironment) getValidatedMutableState(
 	ctx context.Context,
 	key definition.WorkflowKey,
 	validate func(workflowContext workflow.Context, ms workflow.MutableState, potentialStaleState bool) error,
-) (workflow.Context, wcache.ReleaseCacheFunc, workflow.MutableState, error) {
-	wfCtx, release, err := getWorkflowExecutionContext(ctx, e.shardContext, e.cache, key, locks.PriorityLow)
+) (workflow.Context, shard.ReleaseCacheFunc, workflow.MutableState, error) {
+	wfCtx, release, err := getWorkflowExecutionContext(ctx, e.shardContext, key, locks.PriorityLow)
 	if err != nil {
 		return nil, nil, nil, err
 	}

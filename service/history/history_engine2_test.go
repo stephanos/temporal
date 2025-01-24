@@ -79,7 +79,7 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -616,7 +616,7 @@ func (s *engine2Suite) TestRecordWorkflowTaskStartedSuccess() {
 
 	// load mutable state such that it already exists in memory when respond workflow task is called
 	// this enables us to set query registry on it
-	ctx, release, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	ctx, release, err := s.shardContext.GetOrCreateWorkflowExecution(
 		metrics.AddMetricsContext(context.Background()),
 		s.mockShard,
 		tests.NamespaceID,
@@ -2269,7 +2269,7 @@ func (s *engine2Suite) TestRefreshWorkflowTasks() {
 }
 
 func (s *engine2Suite) getMutableState(namespaceID namespace.ID, we *commonpb.WorkflowExecution) workflow.MutableState {
-	weContext, release, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	weContext, release, err := s.shardContext.GetOrCreateWorkflowExecution(
 		metrics.AddMetricsContext(context.Background()),
 		s.mockShard,
 		namespaceID,

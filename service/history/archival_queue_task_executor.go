@@ -42,7 +42,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	"go.temporal.io/server/service/history/workflow/cache"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -54,7 +53,6 @@ import (
 func NewArchivalQueueTaskExecutor(
 	archiver archival.Archiver,
 	shardContext shard.Context,
-	workflowCache cache.Cache,
 	relocatableAttributesFetcher workflow.RelocatableAttributesFetcher,
 	metricsHandler metrics.Handler,
 	logger log.Logger,
@@ -62,7 +60,6 @@ func NewArchivalQueueTaskExecutor(
 	return &archivalQueueTaskExecutor{
 		archiver:                     archiver,
 		shardContext:                 shardContext,
-		workflowCache:                workflowCache,
 		relocatableAttributesFetcher: relocatableAttributesFetcher,
 		metricsHandler:               metricsHandler,
 		logger:                       logger,
@@ -73,7 +70,6 @@ func NewArchivalQueueTaskExecutor(
 type archivalQueueTaskExecutor struct {
 	archiver                     archival.Archiver
 	shardContext                 shard.Context
-	workflowCache                cache.Cache
 	metricsHandler               metrics.Handler
 	logger                       log.Logger
 	relocatableAttributesFetcher workflow.RelocatableAttributesFetcher
@@ -287,7 +283,7 @@ type lockedMutableState struct {
 	CloseVersion int64
 	// Release is a function that releases the context of the mutable state. This function should be called when
 	// you are done with the mutable state.
-	Release cache.ReleaseCacheFunc
+	Release shard.ReleaseCacheFunc
 }
 
 // newLockedMutableState returns a new lockedMutableState with the given mutable state,
@@ -295,7 +291,7 @@ type lockedMutableState struct {
 func newLockedMutableState(
 	mutableState workflow.MutableState,
 	closeVersion int64,
-	releaseFunc cache.ReleaseCacheFunc,
+	releaseFunc shard.ReleaseCacheFunc,
 ) *lockedMutableState {
 	return &lockedMutableState{
 		MutableState: mutableState,
@@ -319,7 +315,7 @@ func (e *archivalQueueTaskExecutor) loadAndVersionCheckMutableState(
 	logger log.Logger,
 	task *tasks.ArchiveExecutionTask,
 ) (lockedMutableState *lockedMutableState, err error) {
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, e.shardContext, e.workflowCache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, e.shardContext, task)
 	if err != nil {
 		return nil, err
 	}

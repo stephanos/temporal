@@ -36,7 +36,7 @@ import (
 	"go.temporal.io/server/service/history/hsm"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 )
 
@@ -88,7 +88,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -96,7 +96,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
@@ -163,7 +163,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -171,7 +171,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
@@ -180,7 +180,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	currentWorkflow := NewMockWorkflow(s.controller)
 	currentContext := workflow.NewMockContext(s.controller)
 	currentMutableState := workflow.NewMockMutableState(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetContext().Return(currentContext).AnyTimes()
 	currentWorkflow.EXPECT().GetMutableState().Return(currentMutableState).AnyTimes()
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
@@ -239,7 +239,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -247,7 +247,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
@@ -256,7 +256,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	currentWorkflow := NewMockWorkflow(s.controller)
 	currentContext := workflow.NewMockContext(s.controller)
 	currentMutableState := workflow.NewMockMutableState(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetContext().Return(currentContext).AnyTimes()
 	currentWorkflow.EXPECT().GetMutableState().Return(currentMutableState).AnyTimes()
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
@@ -316,7 +316,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -324,13 +324,13 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
 
 	currentWorkflow := NewMockWorkflow(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
 
 	targetMutableState.EXPECT().IsCurrentWorkflowGuaranteed().Return(false).AnyTimes()
@@ -391,7 +391,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -399,13 +399,13 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
 
 	currentWorkflow := NewMockWorkflow(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
 
 	targetMutableState.EXPECT().IsCurrentWorkflowGuaranteed().Return(false).AnyTimes()
@@ -463,7 +463,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -471,7 +471,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
@@ -523,7 +523,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -531,7 +531,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
@@ -540,7 +540,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	currentWorkflow := NewMockWorkflow(s.controller)
 	currentContext := workflow.NewMockContext(s.controller)
 	currentMutableState := workflow.NewMockMutableState(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetContext().Return(currentContext).AnyTimes()
 	currentWorkflow.EXPECT().GetMutableState().Return(currentMutableState).AnyTimes()
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
@@ -599,7 +599,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -607,13 +607,13 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
 
 	currentWorkflow := NewMockWorkflow(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
 
 	targetMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
@@ -677,7 +677,7 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	targetWorkflow := NewMockWorkflow(s.controller)
 	targetContext := workflow.NewMockContext(s.controller)
 	targetMutableState := workflow.NewMockMutableState(s.controller)
-	var targetReleaseFn wcache.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
+	var targetReleaseFn shard.ReleaseCacheFunc = func(error) { targetReleaseCalled = true }
 	targetWorkflow.EXPECT().GetContext().Return(targetContext).AnyTimes()
 	targetWorkflow.EXPECT().GetMutableState().Return(targetMutableState).AnyTimes()
 	targetWorkflow.EXPECT().GetReleaseFn().Return(targetReleaseFn).AnyTimes()
@@ -685,13 +685,13 @@ func (s *transactionMgrForExistingWorkflowSuite) TestDispatchForExistingWorkflow
 	newWorkflow := NewMockWorkflow(s.controller)
 	newContext := workflow.NewMockContext(s.controller)
 	newMutableState := workflow.NewMockMutableState(s.controller)
-	var newReleaseFn wcache.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
+	var newReleaseFn shard.ReleaseCacheFunc = func(error) { newReleaseCalled = true }
 	newWorkflow.EXPECT().GetContext().Return(newContext).AnyTimes()
 	newWorkflow.EXPECT().GetMutableState().Return(newMutableState).AnyTimes()
 	newWorkflow.EXPECT().GetReleaseFn().Return(newReleaseFn).AnyTimes()
 
 	currentWorkflow := NewMockWorkflow(s.controller)
-	var currentReleaseFn wcache.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
+	var currentReleaseFn shard.ReleaseCacheFunc = func(error) { currentReleaseCalled = true }
 	currentWorkflow.EXPECT().GetReleaseFn().Return(currentReleaseFn).AnyTimes()
 
 	targetMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{

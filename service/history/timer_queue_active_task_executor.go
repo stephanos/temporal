@@ -55,7 +55,6 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 	"go.temporal.io/server/service/history/workflow/update"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
@@ -68,7 +67,6 @@ type (
 
 func newTimerQueueActiveTaskExecutor(
 	shard shard.Context,
-	workflowCache wcache.Cache,
 	workflowDeleteManager deletemanager.DeleteManager,
 	logger log.Logger,
 	metricProvider metrics.Handler,
@@ -78,7 +76,6 @@ func newTimerQueueActiveTaskExecutor(
 	return &timerQueueActiveTaskExecutor{
 		timerQueueTaskExecutorBase: newTimerQueueTaskExecutorBase(
 			shard,
-			workflowCache,
 			workflowDeleteManager,
 			matchingRawClient,
 			logger,
@@ -155,7 +152,7 @@ func (t *timerQueueActiveTaskExecutor) executeUserTimerTimeoutTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -215,7 +212,7 @@ func (t *timerQueueActiveTaskExecutor) executeActivityTimeoutTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -354,7 +351,7 @@ func (t *timerQueueActiveTaskExecutor) executeWorkflowTaskTimeoutTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -436,7 +433,7 @@ func (t *timerQueueActiveTaskExecutor) executeWorkflowBackoffTimerTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -496,7 +493,7 @@ func (t *timerQueueActiveTaskExecutor) executeActivityRetryTimerTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -587,7 +584,6 @@ func (t *timerQueueActiveTaskExecutor) executeActivityRetryTimerTask(
 		resp.AssignedBuildId,
 		t.shardContext,
 		workflow.TransactionPolicyActive,
-		t.cache,
 		t.metricsHandler,
 		t.logger,
 	)
@@ -600,7 +596,7 @@ func (t *timerQueueActiveTaskExecutor) executeWorkflowRunTimeoutTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -751,7 +747,7 @@ func (t *timerQueueActiveTaskExecutor) executeWorkflowExecutionTimeoutTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}
@@ -789,7 +785,7 @@ func (t *timerQueueActiveTaskExecutor) executeStateMachineTimerTask(
 	ctx, cancel := context.WithTimeout(ctx, taskTimeout)
 	defer cancel()
 
-	wfCtx, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, task)
+	wfCtx, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, task)
 	if err != nil {
 		return err
 	}

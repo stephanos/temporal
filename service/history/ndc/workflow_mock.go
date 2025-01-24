@@ -36,8 +36,8 @@ package ndc
 import (
 	reflect "reflect"
 
+	shard "go.temporal.io/server/service/history/shard"
 	workflow "go.temporal.io/server/service/history/workflow"
-	cache "go.temporal.io/server/service/history/workflow/cache"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -107,10 +107,10 @@ func (mr *MockWorkflowMockRecorder) GetMutableState() *gomock.Call {
 }
 
 // GetReleaseFn mocks base method.
-func (m *MockWorkflow) GetReleaseFn() cache.ReleaseCacheFunc {
+func (m *MockWorkflow) GetReleaseFn() shard.ReleaseCacheFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetReleaseFn")
-	ret0, _ := ret[0].(cache.ReleaseCacheFunc)
+	ret0, _ := ret[0].(shard.ReleaseCacheFunc)
 	return ret0
 }
 

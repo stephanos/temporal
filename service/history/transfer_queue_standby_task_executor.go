@@ -49,7 +49,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 const (
@@ -73,7 +72,7 @@ type (
 
 func newTransferQueueStandbyTaskExecutor(
 	shard shard.Context,
-	workflowCache wcache.Cache,
+
 	logger log.Logger,
 	metricProvider metrics.Handler,
 	clusterName string,
@@ -85,7 +84,6 @@ func newTransferQueueStandbyTaskExecutor(
 	return &transferQueueStandbyTaskExecutor{
 		transferQueueTaskExecutorBase: newTransferQueueTaskExecutorBase(
 			shard,
-			workflowCache,
 			logger,
 			metricProvider,
 			historyRawClient,
@@ -481,7 +479,7 @@ func (t *transferQueueStandbyTaskExecutor) processTransfer(
 		return nil
 	}
 
-	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, t.cache, taskInfo)
+	weContext, release, err := getWorkflowExecutionContextForTask(ctx, t.shardContext, taskInfo)
 	if err != nil {
 		return err
 	}

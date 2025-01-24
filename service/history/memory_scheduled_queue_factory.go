@@ -37,7 +37,7 @@ import (
 	"go.temporal.io/server/service/history/configs"
 	"go.temporal.io/server/service/history/queues"
 	"go.temporal.io/server/service/history/shard"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/fx"
 )
 
@@ -108,14 +108,12 @@ func (f *memoryScheduledQueueFactory) Stop() {
 
 func (f *memoryScheduledQueueFactory) CreateQueue(
 	shardCtx shard.Context,
-	workflowCache wcache.Cache,
 ) queues.Queue {
 
 	// Reuse TimerQueueActiveTaskExecutor only to executeWorkflowTaskTimeoutTask.
 	// Unused dependencies are nil.
 	speculativeWorkflowTaskTimeoutExecutor := newTimerQueueActiveTaskExecutor(
 		shardCtx,
-		workflowCache,
 		nil,
 		f.logger,
 		f.metricsHandler,

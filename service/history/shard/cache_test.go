@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cache
+package shard
 
 import (
 	"context"
@@ -48,7 +48,6 @@ import (
 	"go.temporal.io/server/common/metrics/metricstest"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/persistence"
-	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
 	"go.uber.org/mock/gomock"
@@ -60,7 +59,7 @@ type (
 		*require.Assertions
 
 		controller *gomock.Controller
-		mockShard  *shard.ContextTest
+		mockShard  *ContextTest
 
 		cache Cache
 	}
@@ -82,7 +81,7 @@ func (s *workflowCacheSuite) SetupTest() {
 	s.Assertions = require.New(s.T())
 
 	s.controller = gomock.NewController(s.T())
-	s.mockShard = shard.NewTestContext(
+	s.mockShard = NewTestContext(
 		s.controller,
 		&persistencespb.ShardInfo{
 			ShardId: 0,
@@ -582,7 +581,7 @@ func (s *workflowCacheSuite) TestCacheImpl_RejectsRequestWhenAtLimitSimple() {
 	config := tests.NewDynamicConfig()
 	config.HistoryCacheLimitSizeBased = true
 	config.HistoryHostLevelCacheMaxSizeBytes = dynamicconfig.GetIntPropertyFn(1000)
-	mockShard := shard.NewTestContext(
+	mockShard := NewTestContext(
 		s.controller,
 		&persistencespb.ShardInfo{
 			ShardId: 0,
@@ -648,7 +647,7 @@ func (s *workflowCacheSuite) TestCacheImpl_RejectsRequestWhenAtLimitMultiple() {
 	config := tests.NewDynamicConfig()
 	config.HistoryCacheLimitSizeBased = true
 	config.HistoryHostLevelCacheMaxSizeBytes = dynamicconfig.GetIntPropertyFn(1000)
-	mockShard := shard.NewTestContext(
+	mockShard := NewTestContext(
 		s.controller,
 		&persistencespb.ShardInfo{
 			ShardId: 0,
@@ -785,7 +784,7 @@ func (s *workflowCacheSuite) TestCacheImpl_CheckCacheLimitSizeBasedFlag() {
 	// HistoryCacheLimitSizeBased is set to false. Cache limit should be based on entry count.
 	config.HistoryCacheLimitSizeBased = false
 	config.HistoryHostLevelCacheMaxSize = dynamicconfig.GetIntPropertyFn(1)
-	mockShard := shard.NewTestContext(
+	mockShard := NewTestContext(
 		s.controller,
 		&persistencespb.ShardInfo{
 			ShardId: 0,

@@ -33,7 +33,7 @@ import (
 	"go.temporal.io/server/service/history/queues"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/fx"
 )
 
@@ -89,7 +89,6 @@ func NewVisibilityQueueFactory(
 
 func (f *visibilityQueueFactory) CreateQueue(
 	shard shard.Context,
-	workflowCache wcache.Cache,
 ) queues.Queue {
 	logger := log.With(shard.GetLogger(), tag.ComponentVisibilityQueue)
 	metricsHandler := f.MetricsHandler.WithTags(metrics.OperationTag(metrics.OperationVisibilityQueueProcessorScope))
@@ -120,7 +119,6 @@ func (f *visibilityQueueFactory) CreateQueue(
 
 	executor := newVisibilityQueueTaskExecutor(
 		shard,
-		workflowCache,
 		f.VisibilityMgr,
 		logger,
 		f.MetricsHandler,

@@ -54,7 +54,7 @@ import (
 	"go.temporal.io/server/service/history/hsm"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.temporal.io/server/service/history/workflow/update"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -88,7 +88,6 @@ type (
 		namespaceRegistry namespace.Registry
 		clusterMetadata   cluster.Metadata
 		executionMgr      persistence.ExecutionManager
-		workflowCache     wcache.Cache
 		stateRebuilder    StateRebuilder
 		transaction       workflow.Transaction
 		logger            log.Logger
@@ -99,7 +98,6 @@ var _ WorkflowResetter = (*workflowResetterImpl)(nil)
 
 func NewWorkflowResetter(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 ) *workflowResetterImpl {
 	return &workflowResetterImpl{
@@ -107,7 +105,6 @@ func NewWorkflowResetter(
 		namespaceRegistry: shardContext.GetNamespaceRegistry(),
 		clusterMetadata:   shardContext.GetClusterMetadata(),
 		executionMgr:      shardContext.GetExecutionManager(),
-		workflowCache:     workflowCache,
 		stateRebuilder:    NewStateRebuilder(shardContext, logger),
 		transaction:       workflow.NewTransaction(shardContext),
 		logger:            logger,
@@ -369,6 +366,7 @@ func (r *workflowResetterImpl) persistToDB(
 
 		if _, _, err := r.transaction.UpdateWorkflowExecution(
 			ctx,
+			r.shardContext,
 			persistence.UpdateWorkflowModeUpdateCurrent,
 			currentWorkflow.GetMutableState().GetCurrentVersion(),
 			currentWorkflowMutation,
@@ -491,7 +489,7 @@ func (r *workflowResetterImpl) replayResetWorkflow(
 		r.clusterMetadata,
 		resetContext,
 		resetMutableState,
-		wcache.NoopReleaseFn,
+		shard.NoopReleaseFn,
 	), nil
 }
 
@@ -675,17 +673,11 @@ func (r *workflowResetterImpl) reapplyContinueAsNewWorkflowEvents(
 		if runID == currentWorkflow.GetMutableState().GetWorkflowKey().RunID {
 			wfCtx = currentWorkflow.GetContext()
 		} else {
-			var release wcache.ReleaseCacheFunc
-			wfCtx, release, err = r.workflowCache.GetOrCreateWorkflowExecution(
-				ctx,
-				r.shardContext,
-				namespaceID,
-				&commonpb.WorkflowExecution{
-					WorkflowId: workflowID,
-					RunId:      runID,
-				},
-				locks.PriorityHigh,
-			)
+			var release shard.ReleaseCacheFunc
+			wfCtx, release, err = r.shardContext.GetOrCreateWorkflowExecution(ctx, namespaceID, &commonpb.WorkflowExecution{
+				WorkflowId: workflowID,
+				RunId:      runID,
+			}, locks.PriorityHigh)
 			if err != nil {
 				return 0, nil, err
 			}

@@ -151,7 +151,6 @@ func Invoke(
 	allowResetWithPendingChildren := shard.GetConfig().AllowResetWithPendingChildren(namespaceEntry.Name().String())
 	if err := ndc.NewWorkflowResetter(
 		shard,
-		workflowConsistencyChecker.GetWorkflowCache(),
 		shard.GetLogger(),
 	).ResetWorkflow(
 		ctx,

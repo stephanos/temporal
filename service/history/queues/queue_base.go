@@ -41,7 +41,6 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/predicates"
 	"go.temporal.io/server/common/quotas"
-	hshard "go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
 )
 
@@ -75,7 +74,7 @@ type (
 	}
 
 	queueBase struct {
-		shard hshard.Context
+		shard shardContext
 
 		status     int32
 		shutdownCh chan struct{}
@@ -122,7 +121,7 @@ type (
 )
 
 func newQueueBase(
-	shard hshard.Context,
+	shard shardContext,
 	category tasks.Category,
 	paginationFnProvider PaginationFnProvider,
 	scheduler Scheduler,

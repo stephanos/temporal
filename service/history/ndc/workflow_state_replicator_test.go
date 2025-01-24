@@ -58,7 +58,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/proto"
 )
@@ -190,7 +190,7 @@ func (s *workflowReplicatorSuite) Test_ApplyWorkflowState_BrandNew() {
 		namespace.ID(namespaceID),
 		we,
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil).Times(1)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil).Times(1)
 
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(nil, serviceerror.NewNotFound("ms not found"))
 	mockWeCtx.EXPECT().CreateWorkflowExecution(
@@ -297,7 +297,7 @@ func (s *workflowReplicatorSuite) Test_ApplyWorkflowState_Ancestors() {
 		namespace.ID(namespaceID),
 		we,
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil).Times(1)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil).Times(1)
 	s.mockWorkflowCache.EXPECT().GetOrCreateWorkflowExecution(
 		gomock.Any(),
 		s.mockShard,
@@ -307,7 +307,7 @@ func (s *workflowReplicatorSuite) Test_ApplyWorkflowState_Ancestors() {
 			RunId:      branchInfo.GetTreeId(),
 		},
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil).Times(1)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil).Times(1)
 
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(nil, serviceerror.NewNotFound("ms not found"))
 	mockWeCtx.EXPECT().CreateWorkflowExecution(
@@ -482,7 +482,7 @@ func (s *workflowReplicatorSuite) Test_ApplyWorkflowState_ExistWorkflow_Resend()
 		namespace.ID(namespaceID),
 		we,
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil)
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(mockMutableState, nil)
 	mockMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
 		VersionHistories: &historyspb.VersionHistories{
@@ -563,7 +563,7 @@ func (s *workflowReplicatorSuite) Test_ApplyWorkflowState_ExistWorkflow_SyncHSM(
 		namespace.ID(namespaceID),
 		we,
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil)
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(mockMutableState, nil)
 	mockMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
 		VersionHistories: versionHistories,
@@ -676,7 +676,7 @@ func (s *workflowReplicatorSuite) Test_ReplicateVersionedTransition_SameBranch_S
 			RunId:      s.runID,
 		},
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil)
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(mockMutableState, nil)
 	mockMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
 		VersionHistories: versionHistories,
@@ -765,7 +765,7 @@ func (s *workflowReplicatorSuite) Test_ReplicateVersionedTransition_DifferentBra
 			RunId:      s.runID,
 		},
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil)
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(mockMutableState, nil)
 	mockMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
 		VersionHistories: versionHistories,
@@ -851,7 +851,7 @@ func (s *workflowReplicatorSuite) Test_ReplicateVersionedTransition_SameBranch_S
 			RunId:      s.runID,
 		},
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil)
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(mockMutableState, nil)
 	mockMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
 		VersionHistories: versionHistories,
@@ -942,7 +942,7 @@ func (s *workflowReplicatorSuite) Test_ReplicateVersionedTransition_MutationProv
 			RunId:      s.runID,
 		},
 		locks.PriorityLow,
-	).Return(mockWeCtx, wcache.NoopReleaseFn, nil)
+	).Return(mockWeCtx, shard.NoopReleaseFn, nil)
 	mockWeCtx.EXPECT().LoadMutableState(gomock.Any(), s.mockShard).Return(mockMutableState, nil)
 	mockMutableState.EXPECT().GetExecutionInfo().Return(&persistencespb.WorkflowExecutionInfo{
 		VersionHistories: versionHistories,

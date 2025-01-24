@@ -67,7 +67,7 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.temporal.io/server/service/history/workflow/update"
 	"go.uber.org/mock/gomock"
 )
@@ -562,7 +562,7 @@ func (s *WorkflowTaskCompletedHandlerSuite) createStartedWorkflow(tv *testvars.T
 		}).AnyTimes()
 
 	// Create WF context in the cache and load MS for it.
-	wfContext, release, err := s.workflowCache.GetOrCreateWorkflowExecution(
+	wfContext, release, err := s.shardContext.GetOrCreateWorkflowExecution(
 		metrics.AddMetricsContext(context.Background()),
 		s.mockShard,
 		tv.NamespaceID(),

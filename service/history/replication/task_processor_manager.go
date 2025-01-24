@@ -50,7 +50,6 @@ import (
 	"go.temporal.io/server/service/history/deletemanager"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
 
 const (
@@ -67,7 +66,6 @@ type (
 		shard                         shard.Context
 		status                        int32
 		replicationTaskFetcherFactory TaskFetcherFactory
-		workflowCache                 wcache.Cache
 		resender                      xdc.NDCHistoryResender
 		taskExecutorProvider          TaskExecutorProvider
 		taskPollerManager             pollerManager
@@ -87,7 +85,6 @@ func NewTaskProcessorManager(
 	config *configs.Config,
 	shard shard.Context,
 	engine shard.Engine,
-	workflowCache wcache.Cache,
 	workflowDeleteManager deletemanager.DeleteManager,
 	clientBean client.Bean,
 	eventSerializer serialization.Serializer,
@@ -104,7 +101,6 @@ func NewTaskProcessorManager(
 		shard:                         shard,
 		status:                        common.DaemonStatusInitialized,
 		replicationTaskFetcherFactory: replicationTaskFetcherFactory,
-		workflowCache:                 workflowCache,
 		resender: xdc.NewNDCHistoryResender(
 			shard.GetNamespaceRegistry(),
 			clientBean,
@@ -247,7 +243,6 @@ func (r *taskProcessorManagerImpl) handleClusterMetadataUpdate(
 					Shard:           r.shard,
 					HistoryResender: r.resender,
 					DeleteManager:   r.deleteMgr,
-					WorkflowCache:   r.workflowCache,
 				}),
 				r.eventSerializer,
 				r.dlqWriter,

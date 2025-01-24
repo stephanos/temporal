@@ -52,7 +52,7 @@ import (
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/history/vclock"
 	"go.temporal.io/server/service/history/workflow"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -70,7 +70,6 @@ type (
 		currentClusterName       string
 		shardContext             shard.Context
 		registry                 namespace.Registry
-		cache                    wcache.Cache
 		logger                   log.Logger
 		metricHandler            metrics.Handler
 		historyRawClient         resource.HistoryRawClient
@@ -84,7 +83,6 @@ type (
 
 func newTransferQueueTaskExecutorBase(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 	logger log.Logger,
 	metricHandler metrics.Handler,
 	historyRawClient resource.HistoryRawClient,
@@ -95,7 +93,6 @@ func newTransferQueueTaskExecutorBase(
 		currentClusterName:       shardContext.GetClusterMetadata().GetCurrentClusterName(),
 		shardContext:             shardContext,
 		registry:                 shardContext.GetNamespaceRegistry(),
-		cache:                    workflowCache,
 		logger:                   logger,
 		metricHandler:            metricHandler,
 		historyRawClient:         historyRawClient,
@@ -105,7 +102,6 @@ func newTransferQueueTaskExecutorBase(
 		visibilityManager:        visibilityManager,
 		workflowDeleteManager: deletemanager.NewDeleteManager(
 			shardContext,
-			workflowCache,
 			shardContext.GetConfig(),
 			shardContext.GetTimeSource(),
 			visibilityManager,
@@ -157,7 +153,6 @@ func (t *transferQueueTaskExecutorBase) pushActivity(
 		resp.AssignedBuildId,
 		t.shardContext,
 		transactionPolicy,
-		t.cache,
 		t.metricHandler,
 		t.logger,
 	)
@@ -208,7 +203,6 @@ func (t *transferQueueTaskExecutorBase) pushWorkflowTask(
 		resp.AssignedBuildId,
 		t.shardContext,
 		transactionPolicy,
-		t.cache,
 		t.metricHandler,
 		t.logger,
 	)
@@ -237,9 +231,8 @@ func (t *transferQueueTaskExecutorBase) deleteExecution(
 		RunId:      task.GetRunID(),
 	}
 
-	weCtx, release, err := t.cache.GetOrCreateWorkflowExecution(
+	weCtx, release, err := t.shardContext.GetOrCreateWorkflowExecution(
 		ctx,
-		t.shardContext,
 		namespace.ID(task.GetNamespaceID()),
 		&workflowExecution,
 		locks.PriorityLow,

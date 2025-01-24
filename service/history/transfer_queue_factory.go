@@ -36,7 +36,7 @@ import (
 	"go.temporal.io/server/service/history/queues"
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tasks"
-	wcache "go.temporal.io/server/service/history/workflow/cache"
+
 	"go.uber.org/fx"
 )
 
@@ -96,7 +96,6 @@ func NewTransferQueueFactory(
 
 func (f *transferQueueFactory) CreateQueue(
 	shardContext shard.Context,
-	workflowCache wcache.Cache,
 ) queues.Queue {
 	logger := log.With(shardContext.GetLogger(), tag.ComponentTransferQueue)
 	metricsHandler := f.MetricsHandler.WithTags(metrics.OperationTag(metrics.OperationTransferQueueProcessorScope))
@@ -129,7 +128,6 @@ func (f *transferQueueFactory) CreateQueue(
 
 	activeExecutor := newTransferQueueActiveTaskExecutor(
 		shardContext,
-		workflowCache,
 		f.SdkClientFactory,
 		logger,
 		f.MetricsHandler,
@@ -141,7 +139,6 @@ func (f *transferQueueFactory) CreateQueue(
 
 	standbyExecutor := newTransferQueueStandbyTaskExecutor(
 		shardContext,
-		workflowCache,
 		logger,
 		f.MetricsHandler,
 		currentClusterName,

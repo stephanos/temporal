@@ -58,7 +58,7 @@ type (
 		*require.Assertions
 
 		controller            *gomock.Controller
-		mockShard             *shard.ContextTest
+		mockShard             *shardContextTest
 		mockNamespaceRegistry *namespace.MockRegistry
 		mockTaskGenerator     *MockTaskGenerator
 
@@ -1099,7 +1099,7 @@ func newMockTaskGeneratorProvider(
 }
 
 func (m *mockTaskGeneratorProvider) NewTaskGenerator(
-	_ shard.Context,
+	_ shardContext,
 	_ MutableState,
 ) TaskGenerator {
 	return m.mockTaskGenerator

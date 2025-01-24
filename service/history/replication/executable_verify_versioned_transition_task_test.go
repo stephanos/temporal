@@ -51,7 +51,6 @@ import (
 	"go.temporal.io/server/service/history/shard"
 	"go.temporal.io/server/service/history/tests"
 	"go.temporal.io/server/service/history/workflow"
-	"go.temporal.io/server/service/history/workflow/cache"
 	"go.uber.org/mock/gomock"
 )
 
