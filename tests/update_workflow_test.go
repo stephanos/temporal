@@ -47,12 +47,14 @@ import (
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/metrics/metricstest"
+	"go.temporal.io/server/common/testing/propcheck"
 	"go.temporal.io/server/common/testing/protoutils"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testvars"
 	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"pgregory.net/rapid"
 )
 
 type UpdateWorkflowSuite struct {
@@ -5414,6 +5416,28 @@ func (s *UpdateWorkflowSuite) TestUpdateWithStart() {
 		case <-ctx.Done():
 			s.Fail("timed out waiting for update")
 		}
+	})
+
+	s.Run("properties", func() {
+		rapid.Check(s.T(), func(t *rapid.T) {
+			propcheck.Check(
+				t,
+				[]*propcheck.Init{
+					propcheck.NewInit(testcore.NamespaceName, s.Namespace().String()),
+					propcheck.NewInit(testcore.FrontendClient, s.FrontendClient()),
+				},
+				// TODO: ability to tweak pre/post-conditions and change inputs
+				[]*propcheck.Transition{
+					testcore.WorkflowStart,
+					testcore.WorkflowComplete,
+					testcore.WorkflowTerminate,
+				},
+				[]*propcheck.Prop{
+					testcore.WorkflowStateProp,
+				},
+				// TODO: example tests / minimum expectation
+			)
+		})
 	})
 }
 
