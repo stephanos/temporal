@@ -47,7 +47,7 @@ import (
 )
 
 const (
-	debugModeEnvVar = "TEMPORAL_OTEL_DEBUG"
+	DebugModeEnvVar = "TEMPORAL_OTEL_DEBUG"
 
 	// the following defaults were taken from the grpc docs as of grpc v1.46.
 	// they are not available programmatically
@@ -431,7 +431,7 @@ func (e *exporter) UnmarshalYAML(n *yaml.Node) error {
 }
 
 func DebugMode() bool {
-	isDebug, err := strconv.ParseBool(os.Getenv(debugModeEnvVar))
+	isDebug, err := strconv.ParseBool(os.Getenv(DebugModeEnvVar))
 	if err != nil {
 		return false
 	}

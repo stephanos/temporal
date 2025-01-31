@@ -95,8 +95,8 @@ func Test_ServerStatsHandler(t *testing.T) {
 	})
 
 	t.Run("annotate span with request/response payload in debug mode", func(t *testing.T) {
-		os.Setenv("TEMPORAL_OTEL_DEBUG", "true")
-		defer os.Unsetenv("TEMPORAL_OTEL_DEBUG")
+		os.Setenv(telemetry.DebugModeEnvVar, "true")
+		defer os.Unsetenv(telemetry.DebugModeEnvVar)
 
 		spanAttrsByKey := makeRequest(nil)
 
@@ -107,8 +107,8 @@ func Test_ServerStatsHandler(t *testing.T) {
 	})
 
 	t.Run("annotate span with response error payload in debug mode", func(t *testing.T) {
-		os.Setenv("TEMPORAL_OTEL_DEBUG", "true")
-		defer os.Unsetenv("TEMPORAL_OTEL_DEBUG")
+		os.Setenv(telemetry.DebugModeEnvVar, "true")
+		defer os.Unsetenv(telemetry.DebugModeEnvVar)
 
 		spanAttrsByKey := makeRequest(status.Errorf(codes.Internal, "Something went wrong"))
 

@@ -253,7 +253,7 @@ func (c *WorkflowConsistencyCheckerImpl) getWorkflowLease(
 
 	// if consistencyPredicate is nill we assume it is not needed
 	if consistencyPredicate == nil || consistencyPredicate(mutableState) {
-		return NewWorkflowLease(wfContext, release, mutableState), nil
+		return NewWorkflowLease(ctx, wfContext, release, mutableState), nil
 	}
 	wfContext.Clear()
 
@@ -262,5 +262,5 @@ func (c *WorkflowConsistencyCheckerImpl) getWorkflowLease(
 		release(err)
 		return nil, err
 	}
-	return NewWorkflowLease(wfContext, release, mutableState), nil
+	return NewWorkflowLease(ctx, wfContext, release, mutableState), nil
 }

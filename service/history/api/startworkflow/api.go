@@ -198,7 +198,7 @@ func (s *Starter) Invoke(
 		return nil, StartErr, err
 	}
 
-	creationParams, err := s.prepareNewWorkflow(request.GetWorkflowId())
+	creationParams, err := s.prepareNewWorkflow(ctx, request.GetWorkflowId())
 	if err != nil {
 		return nil, StartErr, err
 	}
@@ -251,7 +251,10 @@ func (s *Starter) lockCurrentWorkflowExecution(
 
 // prepareNewWorkflow creates a new workflow context, and closes its mutable state transaction as snapshot.
 // It returns the creationContext which can later be used to insert into the executions table.
-func (s *Starter) prepareNewWorkflow(workflowID string) (*creationParams, error) {
+func (s *Starter) prepareNewWorkflow(
+	ctx context.Context,
+	workflowID string,
+) (*creationParams, error) {
 	runID := primitives.NewUUID().String()
 	mutableState, err := api.NewWorkflowWithSignal(
 		s.shardContext,
@@ -265,7 +268,7 @@ func (s *Starter) prepareNewWorkflow(workflowID string) (*creationParams, error)
 		return nil, err
 	}
 
-	workflowLease, err := s.createOrUpdateLeaseFn(nil, s.shardContext, mutableState)
+	workflowLease, err := s.createOrUpdateLeaseFn(ctx, nil, s.shardContext, mutableState)
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +355,7 @@ func (s *Starter) createAsCurrent(
 ) error {
 	// TODO(stephanos): remove this hack
 	// This is here for Update-with-Start to reapply the Update after it was aborted previously.
-	if _, err := s.createOrUpdateLeaseFn(creationParams.workflowLease, s.shardContext, nil); err != nil {
+	if _, err := s.createOrUpdateLeaseFn(ctx, creationParams.workflowLease, s.shardContext, nil); err != nil {
 		return err
 	}
 	return creationParams.workflowLease.GetContext().CreateWorkflowExecution(
@@ -456,7 +459,7 @@ func (s *Starter) resolveDuplicateWorkflowID(
 				return nil, nil, err
 			}
 
-			workflowLease, err = s.createOrUpdateLeaseFn(nil, s.shardContext, newMutableState)
+			workflowLease, err = s.createOrUpdateLeaseFn(ctx, nil, s.shardContext, newMutableState)
 			if err != nil {
 				return nil, nil, err
 			}

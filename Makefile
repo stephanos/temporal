@@ -77,6 +77,7 @@ ifeq ($(OTEL),true)
 	export OTEL_BSP_SCHEDULE_DELAY=0
 	export OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
 	export OTEL_TRACES_EXPORTER=otlp
+	export OTEL_TRACES_SAMPLER=always_off
 	export TEMPORAL_OTEL_DEBUG=true
 endif
 

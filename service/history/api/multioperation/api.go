@@ -111,7 +111,7 @@ func Invoke(
 		tokenSerializer,
 		visibilityManager,
 		startReq,
-		mo.workflowLeaseCallback(ctx),
+		mo.workflowLeaseCallback(),
 	)
 	if err != nil {
 		return nil, newMultiOpError(err, multiOpAbortedErr)
@@ -179,10 +179,9 @@ func (mo *multiOp) Invoke(ctx context.Context) (*historyservice.ExecuteMultiOper
 	return resp, err
 }
 
-func (mo *multiOp) workflowLeaseCallback(
-	ctx context.Context,
-) api.CreateOrUpdateLeaseFunc {
+func (mo *multiOp) workflowLeaseCallback() api.CreateOrUpdateLeaseFunc {
 	return func(
+		ctx context.Context,
 		existingLease api.WorkflowLease,
 		shardContext shard.Context,
 		ms workflow.MutableState,
@@ -207,7 +206,7 @@ func (mo *multiOp) workflowLeaseCallback(
 			if err != nil {
 				return nil, err
 			}
-			res = api.NewWorkflowLease(workflowContext, releaseFunc, ms)
+			res = api.NewWorkflowLease(ctx, workflowContext, releaseFunc, ms)
 		} else {
 			// TODO(stephanos): remove this hack
 			// If the lease already exists, but the update needs to be re-applied since it was aborted due to a conflict.

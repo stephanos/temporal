@@ -25,6 +25,10 @@
 package api
 
 import (
+	"context"
+
+	"go.opentelemetry.io/otel/trace"
+	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/service/history/workflow"
 	wcache "go.temporal.io/server/service/history/workflow/cache"
 )
@@ -36,9 +40,10 @@ type WorkflowLease interface {
 }
 
 type workflowLease struct {
-	context      workflow.Context
-	mutableState workflow.MutableState
-	releaseFn    wcache.ReleaseCacheFunc
+	ctx             context.Context
+	workflowContext workflow.Context
+	mutableState    workflow.MutableState
+	releaseFn       wcache.ReleaseCacheFunc
 }
 
 type UpdateWorkflowAction struct {
@@ -66,19 +71,34 @@ type UpdateWorkflowActionFunc func(WorkflowLease) (*UpdateWorkflowAction, error)
 var _ WorkflowLease = (*workflowLease)(nil)
 
 func NewWorkflowLease(
-	context workflow.Context,
+	ctx context.Context,
+	workflowContext workflow.Context,
 	releaseFn wcache.ReleaseCacheFunc,
 	mutableState workflow.MutableState,
 ) WorkflowLease {
+	span := trace.SpanFromContext(ctx)
+	if span.IsRecording() {
+		origReturnReleaseFn := releaseFn
+		releaseFn = func(err error) {
+			if err == nil {
+				telemetry.DebugSnapshot(span, "mutablestate", mutableState)
+			} else {
+				span.RecordError(err)
+			}
+			origReturnReleaseFn(err)
+		}
+	}
+
 	return &workflowLease{
-		context:      context,
-		releaseFn:    releaseFn,
-		mutableState: mutableState,
+		ctx:             ctx,
+		workflowContext: workflowContext,
+		releaseFn:       releaseFn,
+		mutableState:    mutableState,
 	}
 }
 
 func (w *workflowLease) GetContext() workflow.Context {
-	return w.context
+	return w.workflowContext
 }
 
 func (w *workflowLease) GetMutableState() workflow.MutableState {
