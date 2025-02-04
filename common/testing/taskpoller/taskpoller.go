@@ -31,18 +31,17 @@ import (
 	"time"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
-	nexuspb "go.temporal.io/api/nexus/v1"
-
 	enumspb "go.temporal.io/api/enums/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	historypb "go.temporal.io/api/history/v1"
+	nexuspb "go.temporal.io/api/nexus/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/debug"
 	"go.temporal.io/server/common/payloads"
 	"go.temporal.io/server/common/rpc"
-	"go.temporal.io/server/common/testing/testvars"
 )
 
 type (
@@ -67,10 +66,14 @@ type (
 		pollNexusTaskRequest *workflowservice.PollNexusTaskQueueRequest
 	}
 	options struct {
-		tv      *testvars.TestVars
+		tc      TaskContext
 		timeout time.Duration
 	}
-	optionFunc func(*options)
+	optionFunc  func(*options)
+	TaskContext interface {
+		TaskQueue() *taskqueuepb.TaskQueue
+		WorkerIdentity() string
+	}
 )
 
 var (
@@ -79,10 +82,11 @@ var (
 		return &workflowservice.RespondWorkflowTaskCompletedRequest{}, nil
 	}
 	// CompleteActivityTask returns a RespondActivityTaskCompletedRequest with an auto-generated `Result` from `tv.Any().Payloads()`.
-	CompleteActivityTask = func(tv *testvars.TestVars) func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error) {
+	CompleteActivityTask = func(tv TaskContext) func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error) {
 		return func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error) {
 			return &workflowservice.RespondActivityTaskCompletedRequest{
-				Result: tv.Any().Payloads(),
+				// TODO
+				//Result: tv.Any().Payloads(),
 			}, nil
 		}
 	}
@@ -127,7 +131,7 @@ func (p *TaskPoller) PollNexusTask(
 // Returning an error from `handler` fails the task.
 // If no task is available, it returns `NoWorkflowTaskAvailable`.
 func (p *TaskPoller) PollAndHandleWorkflowTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	handler func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error),
 	opts ...optionFunc,
 ) (*workflowservice.RespondWorkflowTaskCompletedResponse, error) {
@@ -142,7 +146,7 @@ func (p *TaskPoller) PollAndHandleWorkflowTask(
 // Returning an error from `handler` fails the task.
 // If no task is available, it returns `NoWorkflowTaskAvailable`.
 func (p *workflowTaskPoller) HandleTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	handler func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error),
 	opts ...optionFunc,
 ) (*workflowservice.RespondWorkflowTaskCompletedResponse, error) {
@@ -164,10 +168,10 @@ func (p *nexusTaskPoller) pollTask(
 		req.Namespace = p.namespace
 	}
 	if req.TaskQueue == nil {
-		req.TaskQueue = opts.tv.TaskQueue()
+		req.TaskQueue = opts.tc.TaskQueue()
 	}
 	if req.Identity == "" {
-		req.Identity = opts.tv.WorkerIdentity()
+		req.Identity = opts.tc.WorkerIdentity()
 	}
 	resp, err := p.client.PollNexusTaskQueue(ctx, req)
 	if err != nil {
@@ -229,7 +233,7 @@ func (p *nexusTaskPoller) respondNexusTaskCompleted(
 		reply.TaskToken = task.TaskToken
 	}
 	if reply.Identity == "" {
-		reply.Identity = opts.tv.WorkerIdentity()
+		reply.Identity = opts.tc.WorkerIdentity()
 	}
 	reply.Response = &nexuspb.Response{}
 
@@ -247,7 +251,7 @@ func (p *nexusTaskPoller) respondNexusTaskFailed(
 		&workflowservice.RespondNexusTaskFailedRequest{
 			Namespace: p.namespace,
 			TaskToken: taskToken,
-			Identity:  opts.tv.WorkerIdentity(),
+			Identity:  opts.tc.WorkerIdentity(),
 			Error: &nexuspb.HandlerError{
 				ErrorType: string(nexus.HandlerErrorTypeInternal),
 			},
@@ -256,7 +260,7 @@ func (p *nexusTaskPoller) respondNexusTaskFailed(
 }
 
 func (p *nexusTaskPoller) HandleTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	handler func(task *workflowservice.PollNexusTaskQueueResponse) (*workflowservice.RespondNexusTaskCompletedRequest, error),
 	opts ...optionFunc,
 ) (*workflowservice.RespondNexusTaskCompletedResponse, error) {
@@ -272,7 +276,7 @@ func (p *nexusTaskPoller) HandleTask(
 // Any unspecified but required request and response fields are automatically generated using `tv`.
 // Returning an error from `handler` fails the task.
 func (p *TaskPoller) HandleWorkflowTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	task *workflowservice.PollWorkflowTaskQueueResponse,
 	handler func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error),
 	opts ...optionFunc,
@@ -298,7 +302,7 @@ func (p *TaskPoller) PollActivityTask(
 // Returning an error from `handler` fails the task.
 // If no task is available, it returns `NoActivityTaskAvailable`.
 func (p *TaskPoller) PollAndHandleActivityTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	handler func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error),
 	opts ...optionFunc,
 ) (*workflowservice.RespondActivityTaskCompletedResponse, error) {
@@ -312,7 +316,7 @@ func (p *TaskPoller) PollAndHandleActivityTask(
 // Any unspecified but required request and response fields are automatically generated using `tv`.
 // Returning an error from `handler` fails the task.
 func (p *TaskPoller) HandleActivityTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	task *workflowservice.PollActivityTaskQueueResponse,
 	handler func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error),
 	opts ...optionFunc,
@@ -331,7 +335,7 @@ func (p *TaskPoller) HandleActivityTask(
 // Returning an error from `handler` fails the task.
 // If no task is available, it returns `NoActivityTaskAvailable`.
 func (p *activityTaskPoller) HandleTask(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	handler func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error),
 	opts ...optionFunc,
 ) (*workflowservice.RespondActivityTaskCompletedResponse, error) {
@@ -354,10 +358,10 @@ func (p *workflowTaskPoller) pollTask(
 		req.Namespace = p.namespace
 	}
 	if req.TaskQueue == nil {
-		req.TaskQueue = opts.tv.TaskQueue()
+		req.TaskQueue = opts.tc.TaskQueue()
 	}
 	if req.Identity == "" {
-		req.Identity = opts.tv.WorkerIdentity()
+		req.Identity = opts.tc.WorkerIdentity()
 	}
 	resp, err := p.client.PollWorkflowTaskQueue(ctx, req)
 	if err != nil {
@@ -398,7 +402,7 @@ func (p *workflowTaskPoller) pollTask(
 }
 
 func (p *workflowTaskPoller) HandleLegacyQuery(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	handler func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondQueryTaskCompletedRequest, error),
 	opts ...optionFunc,
 ) (*workflowservice.RespondQueryTaskCompletedResponse, error) {
@@ -533,7 +537,7 @@ func (p *workflowTaskPoller) respondTaskCompleted(
 		reply.TaskToken = task.TaskToken
 	}
 	if reply.Identity == "" {
-		reply.Identity = opts.tv.WorkerIdentity()
+		reply.Identity = opts.tc.WorkerIdentity()
 	}
 
 	return p.client.RespondWorkflowTaskCompleted(ctx, reply)
@@ -553,7 +557,7 @@ func (p *workflowTaskPoller) respondTaskFailed(
 			TaskToken: taskToken,
 			Cause:     enumspb.WORKFLOW_TASK_FAILED_CAUSE_WORKFLOW_WORKER_UNHANDLED_FAILURE,
 			Failure:   temporal.GetDefaultFailureConverter().ErrorToFailure(taskErr),
-			Identity:  opts.tv.WorkerIdentity(),
+			Identity:  opts.tc.WorkerIdentity(),
 		})
 	return err
 }
@@ -569,10 +573,10 @@ func (p *activityTaskPoller) pollActivityTask(
 		req.Namespace = p.namespace
 	}
 	if req.TaskQueue == nil {
-		req.TaskQueue = opts.tv.TaskQueue()
+		req.TaskQueue = opts.tc.TaskQueue()
 	}
 	if req.Identity == "" {
-		req.Identity = opts.tv.WorkerIdentity()
+		req.Identity = opts.tc.WorkerIdentity()
 	}
 	resp, err := p.client.PollActivityTaskQueue(ctx, req)
 	if err != nil {
@@ -636,7 +640,7 @@ func (p *activityTaskPoller) respondTaskCompleted(
 		reply.TaskToken = task.TaskToken
 	}
 	if reply.Identity == "" {
-		reply.Identity = opts.tv.WorkerIdentity()
+		reply.Identity = opts.tc.WorkerIdentity()
 	}
 
 	return p.client.RespondActivityTaskCompleted(ctx, reply)
@@ -655,16 +659,16 @@ func (p *activityTaskPoller) respondTaskFailed(
 			Namespace: p.namespace,
 			TaskToken: task.TaskToken,
 			Failure:   temporal.GetDefaultFailureConverter().ErrorToFailure(taskErr),
-			Identity:  opts.tv.WorkerIdentity(),
+			Identity:  opts.tc.WorkerIdentity(),
 		})
 	return err
 }
 
 func newOptions(
-	tv *testvars.TestVars,
+	tv TaskContext,
 	opts []optionFunc,
 ) *options {
-	res := &options{tv: tv}
+	res := &options{tc: tv}
 
 	// default options
 	WithTimeout(21 * time.Second)(res) // Server logs warning if long poll is less than 20s
