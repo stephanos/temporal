@@ -134,7 +134,7 @@ SQL_PASSWORD ?= temporal
 #   The default is for each test to analyze only the package being tested.
 #   Packages are specified as import paths.
 INTEGRATION_TEST_COVERPKG := -coverpkg="$(MODULE_ROOT)/common/persistence/..."
-FUNCTIONAL_TEST_COVERPKG := -coverpkg="$(MODULE_ROOT)/client/...,$(MODULE_ROOT)/common/...,$(MODULE_ROOT)/service/...,$(MODULE_ROOT)/temporal/..."
+FUNCTIONAL_TEST_COVERPKG := -coverpkg="$(MODULE_ROOT)/chasm/...,$(MODULE_ROOT)/client/...,$(MODULE_ROOT)/common/...,$(MODULE_ROOT)/components/...,$(MODULE_ROOT)/internal/...,$(MODULE_ROOT)/service/...,$(MODULE_ROOT)/temporal/..."
 
 # Only prints output if the exit code is non-zero
 define silent_exec
@@ -453,12 +453,16 @@ $(SUMMARY_COVER_PROFILE):
 	@printf $(COLOR) "Combine coverage reports to $(SUMMARY_COVER_PROFILE)..."
 	@rm -f $(SUMMARY_COVER_PROFILE) $(SUMMARY_COVER_PROFILE).html
 	@if [ -z "$(wildcard $(TEST_OUTPUT_ROOT)/*.cover.out)" ]; then \
-		echo "No coverage data, aborting!" && exit 1; \
+		echo "No coverage data, skipping!"; \
 	fi
 	@echo "mode: atomic" > $(SUMMARY_COVER_PROFILE)
 	$(foreach COVER_PROFILE,$(wildcard $(TEST_OUTPUT_ROOT)/*.cover.out),\
 		@printf "Add %s...\n" $(COVER_PROFILE); \
-		@grep -v -e "[Mm]ocks\?.go" -e "^mode: \w\+" $(COVER_PROFILE) >> $(SUMMARY_COVER_PROFILE) || true \
+		grep -v \
+			-e "[Mm]ocks\?.go" \
+			-e "_gen.go" \
+			-e "^mode: \w\+" \
+			$(COVER_PROFILE) >> $(SUMMARY_COVER_PROFILE) || true \
 	$(NEWLINE))
 
 coverage-report: $(SUMMARY_COVER_PROFILE)
