@@ -90,10 +90,10 @@ var reasonStateMatrix = map[reasonState]failureError{
 
 	// If Workflow is starting new run, then all Updates are aborted with retryable ErrWorkflowClosing error.
 	// Internal retries will send them to the new run.
-	reasonState{r: AbortReasonWorkflowContinuing, st: stateCreated}:               {f: nil, err: consts.ErrWorkflowClosing},
-	reasonState{r: AbortReasonWorkflowContinuing, st: stateProvisionallyAdmitted}: {f: nil, err: consts.ErrWorkflowClosing},
-	reasonState{r: AbortReasonWorkflowContinuing, st: stateAdmitted}:              {f: nil, err: consts.ErrWorkflowClosing},
-	reasonState{r: AbortReasonWorkflowContinuing, st: stateSent}:                  {f: nil, err: consts.ErrWorkflowClosing},
+	reasonState{r: AbortReasonWorkflowContinuing, st: stateCreated}:               {f: nil, err: consts.ErrWorkflowClosingRetry},
+	reasonState{r: AbortReasonWorkflowContinuing, st: stateProvisionallyAdmitted}: {f: nil, err: consts.ErrWorkflowClosingRetry},
+	reasonState{r: AbortReasonWorkflowContinuing, st: stateAdmitted}:              {f: nil, err: consts.ErrWorkflowClosingRetry},
+	reasonState{r: AbortReasonWorkflowContinuing, st: stateSent}:                  {f: nil, err: consts.ErrWorkflowClosingRetry},
 	// Accepted Update can't be applied to the new run, and must be failed same way as if Workflow is completed.
 	reasonState{r: AbortReasonWorkflowContinuing, st: stateProvisionallyAccepted}:               {f: acceptedUpdateCompletedWorkflowFailure, err: nil},
 	reasonState{r: AbortReasonWorkflowContinuing, st: stateAccepted}:                            {f: acceptedUpdateCompletedWorkflowFailure, err: nil},

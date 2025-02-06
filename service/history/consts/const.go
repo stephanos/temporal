@@ -89,6 +89,10 @@ var (
 		Scope:   enumspb.RESOURCE_EXHAUSTED_SCOPE_NAMESPACE,
 		Message: "workflow operation can not be applied because workflow is closing",
 	}
+	// TODO
+	ErrWorkflowClosingRetry = &serviceerror.Unavailable{
+		Message: "workflow operation can not be applied because workflow is closing",
+	}
 	// ErrEventsAterWorkflowFinish is the error indicating server error trying to write events after workflow finish event
 	ErrEventsAterWorkflowFinish = serviceerror.NewInternal("error validating last event being workflow finish event")
 	// ErrQueryEnteredInvalidState is error indicating query entered invalid state
