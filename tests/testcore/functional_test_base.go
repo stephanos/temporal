@@ -44,6 +44,7 @@ import (
 	namespacepb "go.temporal.io/api/namespace/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/acceptance/propmodel2"
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
@@ -53,9 +54,11 @@ import (
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/payloads"
 	"go.temporal.io/server/common/persistence"
+	"go.temporal.io/server/common/persistence/intercept"
 	"go.temporal.io/server/common/persistence/visibility"
 	"go.temporal.io/server/common/primitives"
 	"go.temporal.io/server/common/primitives/timestamp"
+	proptest "go.temporal.io/server/common/proptest2"
 	"go.temporal.io/server/common/rpc"
 	"go.temporal.io/server/common/testing/historyrequire"
 	"go.temporal.io/server/common/testing/protorequire"
@@ -63,6 +66,7 @@ import (
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/environment"
 	"go.uber.org/fx"
+	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 )
 
@@ -91,12 +95,17 @@ type (
 		namespaceID namespace.ID
 		// TODO (alex): rename to externalNamespace
 		foreignNamespace namespace.Name
+
+		env    *proptest.Env
+		Server *propmodel.Cluster
 	}
 	// TestClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	TestClusterParams struct {
 		ServiceOptions         map[primitives.ServiceName][]fx.Option
 		DynamicConfigOverrides map[dynamicconfig.Key]any
 		ArchivalEnabled        bool
+		AdditionalInterceptors []grpc.UnaryServerInterceptor
+		PersistenceInterceptor intercept.PersistenceInterceptor
 	}
 	TestClusterOption func(params *TestClusterParams)
 )
@@ -115,6 +124,18 @@ type (
 func WithFxOptionsForService(serviceName primitives.ServiceName, options ...fx.Option) TestClusterOption {
 	return func(params *TestClusterParams) {
 		params.ServiceOptions[serviceName] = append(params.ServiceOptions[serviceName], options...)
+	}
+}
+
+func WithAdditionalGrpcInterceptors(interceptors ...grpc.UnaryServerInterceptor) TestClusterOption {
+	return func(params *TestClusterParams) {
+		params.AdditionalInterceptors = interceptors
+	}
+}
+
+func WithPersistenceInterceptor(interceptor intercept.PersistenceInterceptor) TestClusterOption {
+	return func(params *TestClusterParams) {
+		params.PersistenceInterceptor = interceptor
 	}
 }
 
@@ -175,7 +196,12 @@ func (s *FunctionalTestBase) FrontendGRPCAddress() string {
 }
 
 func (s *FunctionalTestBase) SetupSuite() {
-	s.SetupSuiteWithDefaultCluster()
+	s.env = proptest.NewEnv(s.T())
+	s.Server = propmodel.NewCluster(s.env, "main")
+	s.SetupSuiteWithDefaultCluster(
+		WithAdditionalGrpcInterceptors(s.Server.Interceptor()),
+		WithPersistenceInterceptor(propmodel.GetPersistence(s.Server).Interceptor()),
+	)
 }
 
 func (s *FunctionalTestBase) TearDownSuite() {
@@ -191,7 +217,7 @@ func (s *FunctionalTestBase) SetupSuiteWithDefaultCluster(options ...TestCluster
 func (s *FunctionalTestBase) SetupSuiteWithCluster(clusterConfigFile string, options ...TestClusterOption) {
 	params := ApplyTestClusterOptions(options)
 
-	// Logger might be already set by the test suite.
+	// logger might be already set by the test suite.
 	if s.Logger == nil {
 		s.Logger = log.NewTestLogger()
 	}
@@ -210,6 +236,8 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(clusterConfigFile string, opt
 		s.testClusterConfig.DynamicConfigOverrides[dynamicconfig.SecondaryVisibilityWritingMode.Key()] = visibility.SecondaryVisibilityWritingModeDual
 	}
 
+	s.testClusterConfig.AdditionalInterceptors = params.AdditionalInterceptors
+	s.testClusterConfig.PersistenceInterceptor = params.PersistenceInterceptor
 	s.testClusterConfig.ServiceFxOptions = params.ServiceOptions
 	s.testClusterConfig.EnableMetricsCapture = true
 	s.testClusterConfig.EnableArchival = params.ArchivalEnabled
@@ -403,6 +431,7 @@ func (s *FunctionalTestBase) RegisterNamespace(
 		tag.WorkflowNamespace(nsName.String()),
 		tag.WorkflowNamespaceID(nsID.String()),
 	)
+	s.Server.ImportNamespace(namespaceRequest)
 	return nsID, nil
 }
 
