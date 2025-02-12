@@ -150,6 +150,7 @@ type (
 		scheduleSpecBuilder                           *scheduler.SpecBuilder
 		outstandingPollers                            collection.SyncMap[string, collection.SyncMap[string, context.CancelFunc]]
 		httpEnabled                                   bool
+		hostInfoProvider                              membership.HostInfoProvider
 	}
 )
 
@@ -177,6 +178,7 @@ func NewWorkflowHandler(
 	healthServer *health.Server,
 	timeSource clock.TimeSource,
 	membershipMonitor membership.Monitor,
+	hostInfoProvider membership.HostInfoProvider,
 	healthInterceptor *interceptor.HealthInterceptor,
 	scheduleSpecBuilder *scheduler.SpecBuilder,
 	httpEnabled bool,
@@ -209,6 +211,7 @@ func NewWorkflowHandler(
 		deploymentStoreClient:    deploymentStoreClient,
 		workerDeploymentClient:   workerDeploymentClient,
 		archiverProvider:         archiverProvider,
+		hostInfoProvider:         hostInfoProvider,
 		payloadSerializer:        payloadSerializer,
 		namespaceRegistry:        namespaceRegistry,
 		saProvider:               saProvider,
@@ -285,6 +288,10 @@ func (wh *WorkflowHandler) Stop() {
 		wh.healthServer.SetServingStatus(WorkflowServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
 		wh.healthInterceptor.SetHealthy(false)
 	}
+}
+
+func (wh *WorkflowHandler) Identity() string {
+	return wh.hostInfoProvider.HostInfo().Identity()
 }
 
 // GetConfig return config

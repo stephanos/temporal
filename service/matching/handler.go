@@ -62,6 +62,7 @@ type (
 		startWG           sync.WaitGroup
 		throttledLogger   log.Logger
 		namespaceRegistry namespace.Registry
+		hostInfoProvider  membership.HostInfoProvider
 	}
 )
 
@@ -94,10 +95,11 @@ func NewHandler(
 	testHooks testhooks.TestHooks,
 ) *Handler {
 	handler := &Handler{
-		config:          config,
-		metricsHandler:  metricsHandler,
-		logger:          logger,
-		throttledLogger: throttledLogger,
+		config:           config,
+		metricsHandler:   metricsHandler,
+		logger:           logger,
+		throttledLogger:  throttledLogger,
+		hostInfoProvider: hostInfoProvider,
 		engine: NewEngine(
 			taskManager,
 			historyClient,
@@ -135,6 +137,10 @@ func (h *Handler) Start() {
 // Stop stops the handler
 func (h *Handler) Stop() {
 	h.engine.Stop()
+}
+
+func (h *Handler) Identity() string {
+	return h.hostInfoProvider.HostInfo().Identity()
 }
 
 func (h *Handler) opMetricsHandler(
