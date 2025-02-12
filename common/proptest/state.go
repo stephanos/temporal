@@ -22,30 +22,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
-
-type ServiceName string
-
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
-)
+package proptest
 
 var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
-	}
+	initState = &State{Label: "init-state"}
+	anyState  = &State{Label: "any-state"}
 )
+
+type (
+	State struct {
+		Label string
+	}
+	stateOpt func(*State)
+)
+
+func NewState(
+	label string,
+	opts ...stateOpt,
+) *State {
+	s := &State{Label: label}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+func (s *State) String() string {
+	return s.Label
+}

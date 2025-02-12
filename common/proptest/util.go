@@ -22,30 +22,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package proptest
 
-type ServiceName string
+import (
+	"context"
+	"fmt"
+	"reflect"
+	"time"
 
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+	"go.temporal.io/server/common/debug"
+	"go.temporal.io/server/common/rpc"
 )
 
-var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
+type (
+	ID       = string // TOOD: remove `=`
+	Identity interface {
+		ID() ID
+	}
+	TypeOf interface {
+		typeOf() string
 	}
 )
+
+// TODO: remove
+func NewContext() context.Context {
+	ctx, _ := rpc.NewContextWithTimeoutAndVersionHeaders(90 * time.Second * debug.TimeoutMultiplier)
+	return ctx
+}
+
+func getTypeName[T any]() string {
+	ty := reflect.TypeOf((*T)(nil)).Elem()
+	return typeToStr(ty, ty)
+}
+
+func typeToStr(val any, ty reflect.Type) string {
+	if ty == nil {
+		panic(fmt.Sprintf("type of %T is nil", ty))
+	}
+	if ty.Kind() == reflect.Ptr {
+		ty = ty.Elem()
+	}
+	name := ty.String()
+	if name == "" {
+		panic(fmt.Sprintf("type of %T has empty name", val))
+	}
+	return name
+}

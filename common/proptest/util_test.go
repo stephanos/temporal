@@ -22,30 +22,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package proptest
 
-type ServiceName string
+import (
+	"testing"
 
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+	"github.com/stretchr/testify/require"
 )
 
-var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
-	}
+type (
+	Struct    struct{}
+	Interface interface{}
 )
+
+func TestGetTypeName(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "int", getTypeName[int]())
+	require.Equal(t, "proptest.Struct", getTypeName[Struct]())
+	require.Equal(t, "proptest.Struct", getTypeName[*Struct]())
+	require.Equal(t, "proptest.Interface", getTypeName[Interface]())
+}

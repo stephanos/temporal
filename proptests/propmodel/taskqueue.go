@@ -22,30 +22,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package propmodel
 
-type ServiceName string
-
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+import (
+	. "go.temporal.io/server/common/proptest"
 )
 
+type TaskQueue Model[TaskQueue]
+
 var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
-	}
+	// ==== ModelType
+
+	taskQueueModel = NewModelType[TaskQueue]()
+
+	// ==== States
+
+	stateTaskQueueCreated = NewState("Created")
+
+	// ==== Events
+
+	// ==== Observers
+
+	//taskQueue.Observe()
+
+	// ==== Variables
+
+	TaskQueueName = NewVar[string]("TaskQueueName", Default(GenId("tq")))
 )

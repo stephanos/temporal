@@ -22,30 +22,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package proptest
 
-type ServiceName string
-
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+import (
+	"testing"
 )
 
-var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
+func NewExampleRun(
+	t *testing.T,
+	modelTypes []ModelType[any],
+) Run {
+	r := &run{
+		testingT: t,
+		logger:   newLogger(t),
 	}
-)
+
+	for _, modelType := range modelTypes {
+		r.addModelType(modelType)
+	}
+
+	return r
+}

@@ -22,30 +22,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package propmodel
 
-type ServiceName string
-
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+import (
+	"go.temporal.io/api/workflowservice/v1"
+	. "go.temporal.io/server/common/proptest"
+	"go.temporal.io/server/common/proptest/require"
 )
 
+type Namespace Model[Namespace]
+
 var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
-	}
+	// ==== ModelType
+
+	namespaceModel = NewModelType[Namespace]()
+
+	// ==== States
+
+	stateNamespaceRegistering = NewState("Registering")
+	stateNamespaceRegistered  = NewState("Registered")
+
+	// ==== Events
+
+	RegisteringNamespace = NewInitHandler("Registering",
+		func(ns Namespace, req *workflowservice.RegisterNamespaceRequest) ID {
+			require.Zero(ns, req)
+			require.NotZero(ns, req)
+			NamespaceName.Set(ns, req.Namespace)
+			return req.Namespace
+		})
+
+	RegisteredNamespace = NewSignalHandler("Registered",
+		[]*State{stateNamespaceRegistering},
+		func(ns Namespace, resp *workflowservice.RegisterNamespaceResponse) {
+			// TODO
+		})
+
+	// ==== Variables
+
+	NamespaceName = NewVar[string]("NamespaceName")
 )

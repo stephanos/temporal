@@ -62,7 +62,9 @@ import (
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/environment"
+	"go.temporal.io/server/proptests/propmodel2"
 	"go.uber.org/fx"
+	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 )
 
@@ -91,12 +93,16 @@ type (
 		namespaceID namespace.ID
 		// TODO (alex): rename to externalNamespace
 		foreignNamespace namespace.Name
+
+		env *propmodel.Env
+		srv *propmodel.Server
 	}
 	// TestClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	TestClusterParams struct {
 		ServiceOptions         map[primitives.ServiceName][]fx.Option
 		DynamicConfigOverrides map[dynamicconfig.Key]any
 		ArchivalEnabled        bool
+		AdditionalInterceptors []grpc.UnaryServerInterceptor
 	}
 	TestClusterOption func(params *TestClusterParams)
 )
@@ -115,6 +121,12 @@ type (
 func WithFxOptionsForService(serviceName primitives.ServiceName, options ...fx.Option) TestClusterOption {
 	return func(params *TestClusterParams) {
 		params.ServiceOptions[serviceName] = append(params.ServiceOptions[serviceName], options...)
+	}
+}
+
+func WithAdditionalGrpcInterceptors(interceptors ...grpc.UnaryServerInterceptor) TestClusterOption {
+	return func(params *TestClusterParams) {
+		params.AdditionalInterceptors = interceptors
 	}
 }
 
@@ -175,7 +187,9 @@ func (s *FunctionalTestBase) FrontendGRPCAddress() string {
 }
 
 func (s *FunctionalTestBase) SetupSuite() {
-	s.SetupSuiteWithDefaultCluster()
+	s.env = propmodel.NewEnv(s.T())
+	s.srv = propmodel.NewServer(s.env)
+	s.SetupSuiteWithDefaultCluster(WithAdditionalGrpcInterceptors(s.srv.Interceptor()))
 }
 
 func (s *FunctionalTestBase) TearDownSuite() {
@@ -210,6 +224,7 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(clusterConfigFile string, opt
 		s.testClusterConfig.DynamicConfigOverrides[dynamicconfig.SecondaryVisibilityWritingMode.Key()] = visibility.SecondaryVisibilityWritingModeDual
 	}
 
+	s.testClusterConfig.AdditionalInterceptors = params.AdditionalInterceptors
 	s.testClusterConfig.ServiceFxOptions = params.ServiceOptions
 	s.testClusterConfig.EnableMetricsCapture = true
 	s.testClusterConfig.EnableArchival = params.ArchivalEnabled

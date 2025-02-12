@@ -22,30 +22,51 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package proptest
 
-type ServiceName string
-
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+import (
+	"reflect"
+	"testing"
 )
 
-var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
+type (
+	Spec interface {
+		Setup(Run)
+		Teardown(Run)
 	}
+	specSettings struct {
+	}
+	specOption func(*specSettings)
 )
+
+//	func WithTimeout(t time.Duration) specOption {
+//		return func(s *specSettings) {
+//			s.timeout = t
+//		}
+//	}
+
+func RunExample[T Spec](t *testing.T, fn func(T), opts ...specOption) {
+	var spec T
+	specVal := reflect.New(reflect.TypeOf(spec).Elem())
+	spec = specVal.Interface().(T)
+
+	r := NewExampleRun(t, nil)
+	spec.Setup(r)
+	fn(spec)
+	r.Finish(t.Name())
+	spec.Teardown(r)
+}
+
+//func RunCodegen[T *specCtx](t *testing.T, opts ...specOption) {
+//	s := newSpecCtx("example", opts...)
+//	s.run = NewCodegen(t)
+//
+//	if setup, ok := s.(SpecSetup); ok {
+//		setup.Setup()
+//	}
+//	//s.fn(env)
+//	s.run.Finish(s.label)
+//	if setup, ok := s.(SpecTeardown); ok {
+//		setup.Teardown()
+//	}
+//}

@@ -22,30 +22,56 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package primitives
+package propmodel
 
-type ServiceName string
+import (
+	"context"
 
-// These constants represent service roles
-const (
-	AllServices             ServiceName = "all"
-	FrontendService         ServiceName = "frontend"
-	InternalFrontendService ServiceName = "internal-frontend"
-	HistoryService          ServiceName = "history"
-	MatchingService         ServiceName = "matching"
-	WorkerService           ServiceName = "worker"
-	ServerService           ServiceName = "server"
-	UnitTestService         ServiceName = "unittest"
+	"github.com/pborman/uuid"
+	. "go.temporal.io/server/common/proptest"
+	"google.golang.org/grpc"
 )
 
-var (
-	Services = []ServiceName{
-		AllServices,
-		FrontendService,
-		InternalFrontendService,
-		HistoryService,
-		MatchingService,
-		WorkerService,
-		ServerService,
+var _ grpc.UnaryServerInterceptor = (*TestServerInterceptor)(nil).Intercept
+
+type TestServerInterceptor struct {
+	run Run
+}
+
+func NewPropTestInterceptor(
+	run Run,
+) *TestServerInterceptor {
+	return &TestServerInterceptor{
+		run: run,
 	}
-)
+}
+
+func (i *TestServerInterceptor) Intercept(
+	ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (any, error) {
+	ctx = context.WithValue(ctx, ServerRequestID{}, uuid.New())
+	mdl := Get[Server](i.run) // TODO: use "ID"
+
+	reqObj := &ServerRequest{
+		Ctx:        ctx,
+		Request:    req,
+		FullMethod: info.FullMethod,
+	}
+	if respObj, ok := Update[*ServerResponse](mdl, reqObj); ok {
+		return respObj.Response, respObj.Error
+	}
+
+	resp, err := handler(ctx, req)
+	respObj := &ServerResponse{
+		ServerRequest: reqObj,
+		Response:      resp,
+		Error:         err,
+	}
+	if respObj, ok := Update[*ServerResponse](mdl, respObj); ok {
+		return respObj.Response, respObj.Error
+	}
+	return resp, err
+}

@@ -69,6 +69,7 @@ import (
 	"go.temporal.io/server/tests/testutils"
 	"go.uber.org/fx"
 	"go.uber.org/multierr"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -112,6 +113,7 @@ type (
 
 		DeprecatedFrontendAddress string `yaml:"frontendAddress"`
 		DeprecatedClusterNo       int    `yaml:"clusterno"`
+		AdditionalInterceptors    []grpc.UnaryServerInterceptor
 	}
 
 	TestClusterFactory interface {
@@ -124,8 +126,8 @@ type (
 )
 
 const (
-	httpProtocol transferProtocol = "http"
-	grpcProtocol transferProtocol = "grpc"
+	HTTPProtocol transferProtocol = "http"
+	GRPCProtocol transferProtocol = "grpc"
 )
 
 func (a *ArchiverBase) Metadata() archiver.ArchivalMetadata {
@@ -211,13 +213,13 @@ func newClusterWithPersistenceTestBaseFactory(t *testing.T, clusterConfig *TestC
 
 	// allocate ports
 	hostsByProtocolByService := map[transferProtocol]map[primitives.ServiceName]static.Hosts{
-		grpcProtocol: {
+		GRPCProtocol: {
 			primitives.FrontendService: {All: makeAddresses(clusterConfig.FrontendConfig.NumFrontendHosts)},
 			primitives.MatchingService: {All: makeAddresses(clusterConfig.MatchingConfig.NumMatchingHosts)},
 			primitives.HistoryService:  {All: makeAddresses(clusterConfig.HistoryConfig.NumHistoryHosts)},
 			primitives.WorkerService:   {All: makeAddresses(clusterConfig.WorkerConfig.NumWorkers)},
 		},
-		httpProtocol: {
+		HTTPProtocol: {
 			primitives.FrontendService: {All: makeAddresses(clusterConfig.FrontendConfig.NumFrontendHosts)},
 		},
 	}
@@ -225,8 +227,8 @@ func newClusterWithPersistenceTestBaseFactory(t *testing.T, clusterConfig *TestC
 	if len(clusterConfig.ClusterMetadata.ClusterInformation) > 0 {
 		// set self-address for current cluster
 		ci := clusterConfig.ClusterMetadata.ClusterInformation[clusterConfig.ClusterMetadata.CurrentClusterName]
-		ci.RPCAddress = hostsByProtocolByService[grpcProtocol][primitives.FrontendService].All[0]
-		ci.HTTPAddress = hostsByProtocolByService[httpProtocol][primitives.FrontendService].All[0]
+		ci.RPCAddress = hostsByProtocolByService[GRPCProtocol][primitives.FrontendService].All[0]
+		ci.HTTPAddress = hostsByProtocolByService[HTTPProtocol][primitives.FrontendService].All[0]
 		clusterConfig.ClusterMetadata.ClusterInformation[clusterConfig.ClusterMetadata.CurrentClusterName] = ci
 	}
 
@@ -356,6 +358,7 @@ func newClusterWithPersistenceTestBaseFactory(t *testing.T, clusterConfig *TestC
 		ServiceFxOptions:                 clusterConfig.ServiceFxOptions,
 		TaskCategoryRegistry:             taskCategoryRegistry,
 		HostsByProtocolByService:         hostsByProtocolByService,
+		AdditionalInterceptors:           clusterConfig.AdditionalInterceptors,
 	}
 
 	if clusterConfig.EnableMetricsCapture {
