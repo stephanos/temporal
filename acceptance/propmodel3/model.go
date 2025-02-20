@@ -53,7 +53,7 @@ type (
 		varTypes                 map[reflect.Type]struct{}
 		modelTypes               map[reflect.Type]struct{}
 		modelsByID               map[absoluteID]modelWrapper
-		modelsByParentID         map[absoluteID][]modelWrapper
+		modelsByParentID         map[absoluteID]map[relativeID]modelWrapper
 		propsByModelAndName      map[reflect.Type]map[string]reflect.Method
 		varsByModelAndType       map[reflect.Type]map[reflect.Type]*variable[any]
 		observersByModelAndInput map[reflect.Type]map[reflect.Type]reflect.Method
@@ -120,7 +120,7 @@ func NewEnv(t *testing.T) *Env {
 		varTypes:                 make(map[reflect.Type]struct{}),
 		modelTypes:               make(map[reflect.Type]struct{}),
 		modelsByID:               make(map[absoluteID]modelWrapper),
-		modelsByParentID:         make(map[absoluteID][]modelWrapper),
+		modelsByParentID:         make(map[absoluteID]map[relativeID]modelWrapper),
 		propsByModelAndName:      make(map[reflect.Type]map[string]reflect.Method),
 		varsByModelAndType:       make(map[reflect.Type]map[reflect.Type]*variable[any]),
 		observersByModelAndInput: make(map[reflect.Type]map[reflect.Type]reflect.Method),
@@ -130,7 +130,10 @@ func NewEnv(t *testing.T) *Env {
 func (e *Env) Send(payload any) {
 	payloadVal := reflect.ValueOf(payload)
 
-	// send to all observers of all models to find new models
+	// first, propagate to all models
+	e.propagate(payloadVal, Root{e})
+
+	// then, send to all observers of all models to find new models
 	var newModels []modelWrapper
 	for mdlType := range e.modelTypes {
 		mdl := e.newMdl(mdlType)
@@ -143,27 +146,39 @@ func (e *Env) Send(payload any) {
 		}
 	}
 
-	// dedupe
+	// filter out existing models
 	for _, mdl := range newModels {
 		if !mdl.isInitialised() {
+			// never initialised
 			continue
 		}
+
 		absID := makeAbsoluteID(mdl.getParentID(), mdl.getID())
 		if _, ok := e.modelsByID[absID]; ok {
+			// already exists
 			continue
 		}
-		e.modelsByID[absID] = mdl
-	}
 
-	// propagate to all models
-	e.propagate(payloadVal, Root{e})
+		e.modelsByID[absID] = mdl
+		if _, ok := e.modelsByParentID[mdl.getParentID()]; !ok {
+			e.modelsByParentID[mdl.getParentID()] = make(map[relativeID]modelWrapper)
+		}
+		e.modelsByParentID[mdl.getParentID()][mdl.getID()] = mdl
+	}
 }
 
-func (e *Env) propagate(payload reflect.Value, parent modelWrapper) {
-	//absID := makeAbsoluteID(parent, "") // TODO: absolute ID
-	//for _, child := range e.modelsByParentID[absID] {
-	//
-	//}
+func (e *Env) propagate(payload reflect.Value, mdl modelWrapper) {
+	absID := makeAbsoluteID(mdl.getParentID(), mdl.getID())
+	for _, child := range e.modelsByParentID[absID] {
+		childVal := reflect.ValueOf(child.getModel())
+		for _, observer := range e.observersByModelAndInput[child.getModel().typeOf] {
+			if observer.Type.In(1) == payload.Type() {
+				if observer.Func.Call([]reflect.Value{childVal, payload})[0].Bool() {
+					e.propagate(payload, child)
+				}
+			}
+		}
+	}
 }
 
 func (e *Env) newMdl(mdl reflect.Type) reflect.Value {
