@@ -22,19 +22,51 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"reflect"
+	"testing"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	Spec interface {
+		Setup(Run)
+		Teardown(Run)
 	}
+	specSettings struct {
+	}
+	specOption func(*specSettings)
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+//	func WithTimeout(t time.Duration) specOption {
+//		return func(s *specSettings) {
+//			s.timeout = t
+//		}
+//	}
+
+func RunExample[T Spec](t *testing.T, fn func(T), opts ...specOption) {
+	var spec T
+	specVal := reflect.New(reflect.TypeOf(spec).Elem())
+	spec = specVal.Interface().(T)
+
+	r := NewExampleRun(t, nil)
+	spec.Setup(r)
+	fn(spec)
+	r.Finish(t.Name())
+	spec.Teardown(r)
 }
+
+//func RunCodegen[T *specCtx](t *testing.T, opts ...specOption) {
+//	s := newSpecCtx("example", opts...)
+//	s.run = NewCodegen(t)
+//
+//	if setup, ok := s.(SpecSetup); ok {
+//		setup.Setup()
+//	}
+//	//s.fn(env)
+//	s.run.Finish(s.label)
+//	if setup, ok := s.(SpecTeardown); ok {
+//		setup.Teardown()
+//	}
+//}

@@ -25,21 +25,64 @@
 package proptest
 
 import (
+	"fmt"
 	"reflect"
 
-	"github.com/fatih/color"
+	. "go.temporal.io/server/common/proptest/internal"
 )
 
-var (
-	boldStr      = color.New(color.Bold).SprintFunc()
-	underlineStr = color.New(color.Underline).SprintFunc()
-	redStr       = color.New(color.FgRed).SprintFunc()
+type (
+	varTag[T any] interface{} // for compile-type safety only
 )
 
-func init() {
-	color.NoColor = false
+func MustGet[T any](mw modelWrapper) T {
+	mdl := mw.getModel()
+	v, ok := get[T](mdl)
+	if !ok {
+		mdl.getEnv().Fatal(fmt.Sprintf("%v has no var %v", mdl.str(), reflect.TypeFor[T]()))
+	}
+	return v
 }
 
-func qualifiedTypeName(t reflect.Type) string {
-	return t.PkgPath() + "." + t.Name()
+func get[T any](m *internalModel) (T, bool) {
+	var zero T
+	val, ok := getVar[T](m).Get()
+	if !ok {
+		return zero, false
+	}
+	return val.(T), true
+}
+
+func getVar[T any](m *internalModel) *Variable {
+	return getVarByType(m, reflect.TypeFor[T]())
+}
+
+func getVarByType(m *internalModel, vType VarType) *Variable {
+	env := m.getEnv()
+	if _, ok := env.varIdx[m.getID()]; !ok {
+		return &Variable{TypeOf: vType}
+	}
+	v, ok := env.varIdx[m.getID()][vType]
+	if !ok {
+		return &Variable{TypeOf: vType}
+	}
+	return v
+}
+
+func set[T any](m *internalModel, val T) {
+	setVarByType(m, reflect.TypeFor[T](), val)
+}
+
+func setVarByType(m *internalModel, vType reflect.Type, val any) {
+	env := m.getEnv()
+	mdlID := m.getID()
+	if _, ok := env.varIdx[mdlID]; !ok {
+		env.varIdx[mdlID] = make(map[VarType]*Variable)
+	}
+	v, ok := env.varIdx[mdlID][vType]
+	if !ok {
+		v = &Variable{TypeOf: vType}
+		env.varIdx[mdlID][vType] = v
+	}
+	v.Set(val, env.currentTick)
 }

@@ -22,19 +22,46 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"context"
+	"fmt"
+	"reflect"
+	"time"
+
+	"go.temporal.io/server/common/debug"
+	"go.temporal.io/server/common/rpc"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	ID     = string // TOOD: remove `=`
+	TypeOf interface {
+		typeOf() string
 	}
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+// TODO: remove
+func NewContext() context.Context {
+	ctx, _ := rpc.NewContextWithTimeoutAndVersionHeaders(90 * time.Second * debug.TimeoutMultiplier)
+	return ctx
+}
+
+func getTypeName[T any]() string {
+	ty := reflect.TypeOf((*T)(nil)).Elem()
+	return typeToStr(ty, ty)
+}
+
+func typeToStr(val any, ty reflect.Type) string {
+	if ty == nil {
+		panic(fmt.Sprintf("type of %T is nil", ty))
+	}
+	if ty.Kind() == reflect.Ptr {
+		ty = ty.Elem()
+	}
+	name := ty.String()
+	if name == "" {
+		panic(fmt.Sprintf("type of %T has empty name", val))
+	}
+	return name
 }

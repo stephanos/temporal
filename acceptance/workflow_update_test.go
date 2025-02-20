@@ -27,9 +27,15 @@ package acceptance
 import (
 	"testing"
 
-	"go.temporal.io/sdk/workflow"
+	. "go.temporal.io/api/workflowservice/v1"
 	. "go.temporal.io/server/acceptance/propmodel"
+	. "go.temporal.io/server/common/proptest"
 )
+
+func TestSomething(t *testing.T) {
+	env := InitEnv(t)
+	Make[UpdateWorkflowExecutionRequest](env)
+}
 
 //type UpdateSpec struct {
 //	server Handle[Server]
@@ -87,27 +93,27 @@ import (
 //		env.worker.TickWorkflow()
 //	})
 
-var WorkflowWithUpdateHandlerDef = WorkflowDefinition{
-	Type: "workflowFn",
-	Func: func(ctx workflow.Context) error {
-		var unblocked bool
-		if err := workflow.SetUpdateHandler(ctx,
-			"updateHandler",
-			func(ctx workflow.Context, arg string) error {
-				unblocked = true
-				return nil
-			},
-		); err != nil {
-			return err
-		}
-		return workflow.Await(ctx, func() bool { return unblocked })
-	},
-}
+//var WorkflowWithUpdateHandlerDef = WorkflowDefinition{
+//	Type: "workflowFn",
+//	Func: func(ctx workflow.Context) error {
+//		var unblocked bool
+//		if err := workflow.SetUpdateHandler(ctx,
+//			"updateHandler",
+//			func(ctx workflow.Context, arg string) error {
+//				unblocked = true
+//				return nil
+//			},
+//		); err != nil {
+//			return err
+//		}
+//		return workflow.Await(ctx, func() bool { return unblocked })
+//	},
+//}
 
 // TODO: fuzzer "driver"
-func TestFuzz(t *testing.T) {
-	// TODO
-}
+//func TestFuzz(t *testing.T) {
+//	// TODO
+//}
 
 //func TestGenerate(t *testing.T) {
 //	r := NewCodegenRun("workflow_update_gen_test.go", "proptests")

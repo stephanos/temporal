@@ -25,55 +25,54 @@
 package proptest
 
 import (
-	"fmt"
 	"testing"
 )
 
 type (
-	Logger interface {
-		Debugf(string, ...any)
-		Infof(string, ...any)
-		Errorf(string, ...any)
-		Fatalf(string, ...any)
+	logger interface {
+		Debug(string)
+		Info(string)
+		Fatal(string)
 	}
-	logger struct {
+	testLogger struct {
 		t testing.TB
 	}
 	noopLogger struct{}
 )
 
-func newLogger(t testing.TB) *logger {
-	return &logger{t: t}
+func newTestLogger(t testing.TB) *testLogger {
+	return &testLogger{t: t}
 }
 
-func (l *logger) Debug(msg string, args ...any) {
-	l.t.Logf("%v", fmt.Sprintf(msg, args...))
+func (l *testLogger) Debug(msg string) {
+	l.t.Helper()
+	// TODO
 }
 
-func (l *logger) Info(msg string, args ...any) {
-	l.t.Logf("%v", fmt.Sprintf(msg, args...))
+func (l *testLogger) Info(msg string) {
+	l.t.Helper()
+	l.t.Log(msg + "\n")
 }
 
-func (l *logger) Error(msg string, args ...any) {
-	l.t.Errorf("🔴 %v", fmt.Sprintf(msg, args...))
+func (l *testLogger) Fatal(msg string) {
+	l.t.Helper()
+	msg = "💥 " + redStr(msg)
+	l.t.Log(msg + "\n")
+	panic(msg) // `Fatalf` doesn't seem to stop the test execution
 }
 
-func (l *logger) Fatal(msg string, args ...any) {
-	l.t.Fatalf("💥 %v", fmt.Sprintf(msg, args...))
-}
-
-func (n *noopLogger) Debug(msg string, args ...any) {
+func (n *noopLogger) Debug(msg string) {
 	// noop
 }
 
-func (n *noopLogger) Info(msg string, args ...any) {
+func (n *noopLogger) Info(msg string) {
 	// noop
 }
 
-func (n *noopLogger) Error(msg string, args ...any) {
+func (n *noopLogger) Error(msg string) {
 	// noop
 }
 
-func (n *noopLogger) Fatal(msg string, args ...any) {
+func (n *noopLogger) Fatal(msg string) {
 	// noop
 }

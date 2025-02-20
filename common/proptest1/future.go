@@ -22,19 +22,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"time"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	Future[V any] interface {
+		ID() ID
+		Await() V
+	}
+	future struct {
+	}
+	futureOpt struct {
+		apply func(*future)
 	}
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func Timeout(duration time.Duration) *futureOpt {
+	return &futureOpt{
+		apply: func(f *future) {
+			// TODO
+		},
+	}
 }

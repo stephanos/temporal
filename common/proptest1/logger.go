@@ -22,19 +22,58 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"fmt"
+	"testing"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	Logger interface {
+		Debugf(string, ...any)
+		Infof(string, ...any)
+		Errorf(string, ...any)
+		Fatalf(string, ...any)
 	}
+	logger struct {
+		t testing.TB
+	}
+	noopLogger struct{}
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func newLogger(t testing.TB) *logger {
+	return &logger{t: t}
+}
+
+func (l *logger) Debug(msg string, args ...any) {
+	l.t.Logf("%v", fmt.Sprintf(msg, args...))
+}
+
+func (l *logger) Info(msg string, args ...any) {
+	l.t.Logf("%v", fmt.Sprintf(msg, args...))
+}
+
+func (l *logger) Error(msg string, args ...any) {
+	l.t.Errorf("🔴 %v", fmt.Sprintf(msg, args...))
+}
+
+func (l *logger) Fatal(msg string, args ...any) {
+	l.t.Fatalf("💥 %v", fmt.Sprintf(msg, args...))
+}
+
+func (n *noopLogger) Debug(msg string, args ...any) {
+	// noop
+}
+
+func (n *noopLogger) Info(msg string, args ...any) {
+	// noop
+}
+
+func (n *noopLogger) Error(msg string, args ...any) {
+	// noop
+}
+
+func (n *noopLogger) Fatal(msg string, args ...any) {
+	// noop
 }

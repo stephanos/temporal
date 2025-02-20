@@ -29,12 +29,17 @@ import (
 )
 
 type (
-	Client struct {
-		Model[Client]
+	Cluster struct {
+		Model[Cluster]
 		Root Scope[Root]
 	}
+	clusterStarted string
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func NewCluster(env *Env, name string) {
+	env.Send(clusterStarted(name))
+}
+
+func (c *Cluster) ID() ID {
+	return "main"
 }

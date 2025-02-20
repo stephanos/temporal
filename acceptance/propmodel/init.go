@@ -25,15 +25,16 @@
 package propmodel
 
 import (
-	"go.temporal.io/server/common/proptest"
+	"testing"
+
+	. "go.temporal.io/server/common/proptest"
 )
 
-var Models = []proptest.ModelType[any]{
-	clientModel,
-	serverModel,
-	namespaceModel,
-	taskQueueModel,
-	workflowUpdateModel,
-	workflowRunModel,
-	workerModel,
+func InitEnv(t *testing.T) *Env {
+	env := NewEnv(t)
+	RegisterModel[Cluster](env)
+	RegisterModel[Namespace](env)
+	RegisterModel[Workflow](env)
+	RegisterModel[WorkflowUpdate](env)
+	return env
 }

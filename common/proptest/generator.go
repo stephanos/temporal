@@ -33,18 +33,19 @@ import (
 )
 
 type (
-	Generator[T any] struct {
+	Gen[V varTag[V]] struct {
 		label    string
-		gen      *rapid.Generator[T]
-		variants []T
+		gen      *rapid.Generator[V]
+		variants []V
 	}
-	seeder interface {
+	ActionGen[V varTag[V]] interface{}
+	seeder                 interface {
 		Seed() int
 	}
 )
 
-func Just[T any](val T) *Generator[T] {
-	return &Generator[T]{
+func Just[T any](val T) *Gen[T] {
+	return &Gen[T]{
 		label: "just",
 		gen:   rapid.Just(val),
 	}
@@ -61,38 +62,34 @@ func GenRange(s seeder, min, max int) iter.Seq[int] {
 	}
 }
 
-func GenInt(min, max int) *Generator[int] {
-	return &Generator[int]{
+func GenInt(min, max int) *Gen[int] {
+	return &Gen[int]{
 		label: fmt.Sprintf("%d,%d", min, max),
 		gen:   rapid.IntRange(min, max),
 	}
 }
 
-func GenId(prefix string) *Generator[string] {
-	return &Generator[string]{
+func GenId(prefix string) *Gen[string] {
+	return &Gen[string]{
 		label: prefix,
 		gen: rapid.Custom(func(t *rapid.T) string {
 			return prefix + "-" + rapid.StringOfN(rapid.RuneFrom(nil, unicode.ASCII_Hex_Digit), 12, 12, -1).Draw(t, "")
 		})}
 }
 
-func GenPick[T any](variants []T) *Generator[T] {
-	return &Generator[T]{
-		label:    getTypeName[T](),
-		gen:      rapid.SampledFrom(variants),
-		variants: variants,
-	}
-}
+//func GenPick[T any](variants []T) *Gen[T] {
+//	return &Gen[T]{
+//		label:    getTypeName[T](),
+//		gen:      rapid.SampledFrom(variants),
+//		variants: variants,
+//	}
+//}
 
-func (g *Generator[T]) String() string {
-	return fmt.Sprintf("Gen[%s]", g.label)
-}
-
-func (g *Generator[T]) Next(s seeder) T {
+func (g *Gen[T]) Next(s seeder) T {
 	return g.gen.Example(s.Seed())
 }
 
-func (g *Generator[T]) Variants() []any {
+func (g *Gen[T]) Variants() []any {
 	var variants []any
 	for _, v := range g.variants {
 		variants = append(variants, v)

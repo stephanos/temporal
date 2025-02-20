@@ -25,40 +25,22 @@
 package propmodel
 
 import (
-	"go.temporal.io/api/workflowservice/v1"
 	. "go.temporal.io/server/common/proptest"
-	"go.temporal.io/server/common/proptest/require"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type Namespace Model[Namespace]
+type Namespace struct {
+	Model[Namespace]
+	Cluster Scope[Cluster]
+}
 
-var (
-	// ==== ModelType
-
-	namespaceModel = NewModelType[Namespace]()
-
-	// ==== States
-
-	stateNamespaceRegistering = NewState("Registering")
-	stateNamespaceRegistered  = NewState("Registered")
-
-	// ==== Events
-
-	RegisteringNamespace = NewInitHandler("Registering",
-		func(ns Namespace, req *workflowservice.RegisterNamespaceRequest) ID {
-			require.Zero(ns, req)
-			require.NotZero(ns, req)
-			NamespaceName.Set(ns, req.Namespace)
-			return req.Namespace
-		})
-
-	RegisteredNamespace = NewSignalHandler("Registered",
-		[]*State{stateNamespaceRegistering},
-		func(ns Namespace, resp *workflowservice.RegisterNamespaceResponse) {
-			// TODO
-		})
-
-	// ==== Variables
-
-	NamespaceName = NewVar[string]("NamespaceName")
-)
+func (n *Namespace) Id(
+	msg proto.Message,
+) ID {
+	namespace := findProtoValueByNameType[string](msg, "namespace", protoreflect.StringKind)
+	if namespace == "temporal-system" {
+		return ""
+	}
+	return ID(namespace)
+}

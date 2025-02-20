@@ -22,19 +22,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
-import (
-	. "go.temporal.io/server/common/proptest"
+var (
+	initState = &State{Label: "init-state"}
+	anyState  = &State{Label: "any-state"}
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	State struct {
+		Label string
 	}
+	stateOpt func(*State)
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func NewState(
+	label string,
+	opts ...stateOpt,
+) *State {
+	s := &State{Label: label}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+func (s *State) String() string {
+	return s.Label
 }

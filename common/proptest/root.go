@@ -22,19 +22,56 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"reflect"
 )
 
-type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
-	}
+var (
+	root                 = Root{env: nil}
+	rootID       modelID = -1
+	rootScope            = scope{id: "", typeOf: reflect.TypeFor[Root]()}
+	rootType             = reflect.TypeFor[Root]()
+	rootTypeName         = qualifiedTypeName(rootType)
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+type Root struct {
+	env *Env
+}
+
+func (r Root) getDomainID() ID {
+	return "/"
+}
+
+func (r Root) getEnv() *Env {
+	return r.env
+}
+
+func (r Root) getScope() scope {
+	return rootScope
+}
+
+func (r Root) setModel(*internalModel) {
+	panic("not supported")
+}
+
+func (r Root) str() string {
+	return "Root()"
+}
+
+func (r Root) getModel() *internalModel {
+	return nil
+}
+
+func (r Root) getType() wrapperType {
+	return reflect.TypeOf(r)
+}
+
+func (r Root) getID() modelID {
+	return rootID
+}
+
+func (r Root) GetID() string {
+	panic("not supported")
 }

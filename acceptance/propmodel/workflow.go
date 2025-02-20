@@ -25,16 +25,50 @@
 package propmodel
 
 import (
+	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
 	. "go.temporal.io/server/common/proptest"
+	"go.temporal.io/server/common/rpc/interceptor/logtags"
+	"go.temporal.io/server/common/tasktoken"
+	"google.golang.org/protobuf/proto"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	Workflow struct {
+		Model[Workflow]
+		Namespace Scope[Namespace]
+
+		tags *logtags.WorkflowTags
 	}
+	RunID string
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func (w *Workflow) Id(
+	req proto.Message,
+	requestPath requestPath,
+) (
+	workflowID ID,
+	runID RunID,
+) {
+	return w.extractID(req, requestPath)
+}
+
+func (w *Workflow) extractID(
+	msg proto.Message,
+	requestPath requestPath,
+) (ID, RunID) {
+	if w.tags == nil {
+		w.tags = logtags.NewWorkflowTags(tasktoken.NewSerializer(), log.NewTestLogger())
+	}
+	var runID RunID
+	var workflowID ID
+	for _, logTag := range w.tags.Extract(msg, string(requestPath)) {
+		switch logTag.Key() {
+		case tag.WorkflowIDKey:
+			workflowID = ID(logTag.Value().(string))
+		case tag.WorkflowRunIDKey:
+			runID = RunID(logTag.Value().(string))
+		}
+	}
+	return workflowID, runID
 }

@@ -22,19 +22,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
-	}
+	Struct    struct{}
+	Interface interface{}
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func TestGetTypeName(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "int", getTypeName[int]())
+	require.Equal(t, "proptest.Struct", getTypeName[Struct]())
+	require.Equal(t, "proptest.Struct", getTypeName[*Struct]())
+	require.Equal(t, "proptest.Interface", getTypeName[Interface]())
 }

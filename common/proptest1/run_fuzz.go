@@ -22,19 +22,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"testing"
+
+	"pgregory.net/rapid"
 )
 
-type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+func NewFuzzRun(testingT *testing.T, rapidT *rapid.T) Run {
+	return &run{
+		testingT: testingT,
+		rapidT:   rapidT,
 	}
-)
-
-func (c *Client) ID() ID {
-	panic("implement me")
 }

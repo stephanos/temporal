@@ -22,19 +22,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest1
 
 import (
-	. "go.temporal.io/server/common/proptest"
+	"testing"
 )
 
-type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+func NewExampleRun(
+	t *testing.T,
+	modelTypes []ModelType[any],
+) Run {
+	r := &run{
+		testingT: t,
+		logger:   newLogger(t),
 	}
-)
 
-func (c *Client) ID() ID {
-	panic("implement me")
+	for _, modelType := range modelTypes {
+		r.addModelType(modelType)
+	}
+
+	return r
 }

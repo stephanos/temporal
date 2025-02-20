@@ -22,19 +22,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
-
-import (
-	. "go.temporal.io/server/common/proptest"
-)
+package proptest1
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	Transition interface {
+		From() *State
+		To() *State
+		Event() string
+		Invoke(any, any)
 	}
+	transition[M Model[M], I EventInput, O EventOutput] struct {
+		from  *State
+		event *EventHandler[M, I, O]
+		to    *State
+	}
+	transitionOpt[M Model[M], I EventInput, O EventOutput] func(*transition[M, I, O])
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func NewTransition[M Model[M], I EventInput, O EventOutput](
+	from *State,
+	event *EventHandler[M, I, O],
+	to *State,
+	opts ...transitionOpt[M, I, O],
+) Transition {
+	t := &transition[M, I, O]{from: from, event: event, to: to}
+	for _, opt := range opts {
+		opt(t)
+	}
+	return t
+}
+
+func (t transition[M, I, O]) From() *State {
+	return t.from
+}
+
+func (t transition[M, I, O]) To() *State {
+	return t.to
+}
+
+func (t transition[M, I, O]) Event() string {
+	return t.event.label
+}
+
+func (t transition[M, I, O]) Invoke(m any, input any) {
+	typedInput := input.(I)
+	typedModel := m.(M)
+	t.event.callback(typedModel, typedInput)
 }

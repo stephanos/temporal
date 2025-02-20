@@ -44,7 +44,7 @@ import (
 	namespacepb "go.temporal.io/api/namespace/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/acceptance/propmodel2"
+	"go.temporal.io/server/acceptance/propmodel"
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
@@ -58,7 +58,7 @@ import (
 	"go.temporal.io/server/common/persistence/visibility"
 	"go.temporal.io/server/common/primitives"
 	"go.temporal.io/server/common/primitives/timestamp"
-	proptest "go.temporal.io/server/common/proptest2"
+	proptest "go.temporal.io/server/common/proptest"
 	"go.temporal.io/server/common/rpc"
 	"go.temporal.io/server/common/testing/historyrequire"
 	"go.temporal.io/server/common/testing/protorequire"
@@ -96,8 +96,8 @@ type (
 		// TODO (alex): rename to externalNamespace
 		foreignNamespace namespace.Name
 
-		env    *proptest.Env
-		Server *propmodel.Cluster
+		env     *proptest.Env
+		Cluster *propmodel.Cluster
 	}
 	// TestClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	TestClusterParams struct {
@@ -196,11 +196,12 @@ func (s *FunctionalTestBase) FrontendGRPCAddress() string {
 }
 
 func (s *FunctionalTestBase) SetupSuite() {
-	s.env = proptest.NewEnv(s.T())
-	s.Server = propmodel.NewCluster(s.env, "main")
+	s.env = propmodel.InitEnv(s.T())
+	propmodel.NewCluster(s.env, "main")
 	s.SetupSuiteWithDefaultCluster(
-		WithAdditionalGrpcInterceptors(s.Server.Interceptor()),
-		WithPersistenceInterceptor(propmodel.GetPersistence(s.Server).Interceptor()),
+		WithAdditionalGrpcInterceptors(propmodel.NewMonitor(s.env).Interceptor()),
+
+		//WithPersistenceInterceptor(propmodel.GetPersistence(s.Server).Interceptor()),
 	)
 }
 
@@ -431,7 +432,8 @@ func (s *FunctionalTestBase) RegisterNamespace(
 		tag.WorkflowNamespace(nsName.String()),
 		tag.WorkflowNamespaceID(nsID.String()),
 	)
-	s.Server.ImportNamespace(namespaceRequest)
+	// TODO
+	//s.Cluster.OnImportNamespace(namespaceRequest)
 	return nsID, nil
 }
 

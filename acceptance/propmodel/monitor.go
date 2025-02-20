@@ -25,16 +25,47 @@
 package propmodel
 
 import (
+	"context"
+
+	"github.com/pborman/uuid"
 	. "go.temporal.io/server/common/proptest"
+	"google.golang.org/grpc"
 )
 
 type (
-	Client struct {
-		Model[Client]
-		Root Scope[Root]
+	Monitor struct {
+		env *Env
 	}
+	requestID   ID
+	requestPath string
+	responseErr error
 )
 
-func (c *Client) ID() ID {
-	panic("implement me")
+func NewMonitor(env *Env) *Monitor {
+	return &Monitor{
+		env: env,
+	}
+}
+
+func (i *Monitor) Interceptor() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (any, error) {
+		reqID := requestID(uuid.New())
+
+		// process request event
+		i.env.Send(reqID, req, requestPath(info.FullMethod))
+
+		// process request
+		resp, err := handler(ctx, req)
+
+		// process response event
+		// NOTE: the `req` is not provided again to make only the response observers match
+		i.env.Send(reqID, requestPath(info.FullMethod), resp, responseErr(err))
+
+		return resp, err
+	}
 }
