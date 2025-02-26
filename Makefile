@@ -78,6 +78,7 @@ ifeq ($(OTEL),true)
 	export OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
 	export OTEL_TRACES_EXPORTER=otlp
 	export TEMPORAL_OTEL_DEBUG=true
+	export OTEL_TRACES_SAMPLER=always_on
 endif
 
 MODULE_ROOT := $(lastword $(shell grep -e "^module " go.mod))
