@@ -22,35 +22,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//go:build with_assertions
-
-package assert
+// Package assertdev implements in-code assertions.
+//
+// By default, assertions are disabled. Use build `-tags=with_assertions` to enable them.
+// When disabled, all assertion calls will be stripped from the build by the Go compiler.
+// Assertions should only be enabled during development and testing; not in production.
+//
+// Example:
+// assert.MustD(object.state == "ready", "object is not ready: %v", object.state)
+//
+// Best practices:
+// - use assertions to check for programming errors and internal invariants
+// - assertions are *not* a substitute for proper error handling, validation or control flow
+// - assertions *must* be side-effect free
+// - do not use assertions with closures, defer, recover, select, etc. as they won't be inlined then
+package assertdev
 
 import (
-	"fmt"
+	logger "go.temporal.io/server/common/log"
 )
 
-var WithAssertions = true
-
-// Should asserts a condition is true, or panics if not.
-// In development/testing, it will panic. In production, it will not do anything.
-// See package documentation for more details.
-func Should(cond bool, msg string) {
-	if !cond {
-		panic(fmt.Sprintf(format, args...))
-	}
-}
-
-func Must(condition bool, logger *log.Logger, msg string) {
-	if !WithAssertions {
-		return
-	}
-	if !condition {
-		message := fmt.Sprintf(format, args...)
-		if logger == nil {
-			logger = DefaultLogger
-		}
-		logger.Printf("Assertion failed: %s", message)
-		// Optionally, you could also call panic(message) here if you want to halt execution.
-	}
-}
+var (
+	// defaultLogger is used when no custom logger is provided.
+	defaultLogger = logger.NewZapLogger(
+		logger.BuildZapLogger(
+			logger.Config{
+				Format: "console",
+			}))
+)

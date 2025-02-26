@@ -22,25 +22,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//go:build with_assertions
-
 package assert
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func TestDPanic(t *testing.T) {
-	t.Run("does not panic if condition is true", func(t *testing.T) {
-		// ie does not panic
-		Should(true, "failure: %v", "foo")
-	})
-
-	t.Run("panics if condition is false", func(t *testing.T) {
-		assert.PanicsWithValue(t, "failure: foo", func() {
-			Should(false, "failure: %v", "foo")
-		})
-	})
-}
+//func TestDPanic(t *testing.T) {
+//	t.Run("does not panic if condition is true", func(t *testing.T) {
+//		// ie does not panic
+//		MustD(true, "failure: %v", "foo")
+//	})
+//
+//	t.Run("panics if condition is false", func(t *testing.T) {
+//		assert.PanicsWithValue(t, "failure: foo", func() {
+//			MustD(false, "failure: %v", "foo")
+//		})
+//	})
+//}

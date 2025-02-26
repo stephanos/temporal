@@ -22,18 +22,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package assert implements in-code assertions.
-//
-// By default, assertions are disabled. Use build `-tags=with_assertions` to enable them.
-// When disabled, all assertion calls will be stripped from the build by the Go compiler.
-// Assertions should only be enabled during development and testing; not in production.
-//
-// Example:
-// assert.Should(object.state == "ready", "object is not ready: %v", object.state)
-//
-// Best practices:
-// - use assertions to check for programming errors and internal invariants
-// - assertions are *not* a substitute for proper error handling, validation or control flow
-// - assertions *must* be side-effect free
-// - do not use assertions with closures, defer, recover, select, etc. as they won't be inlined then
-package assert
+//go:build !test_dep
+
+package assertdev
+
+import (
+	logger "go.temporal.io/server/common/log"
+)
+
+// That asserts a condition is true, or panics if not.
+// See package documentation for more details.
+func That(cond bool, msg string) {
+	// empty so that the Go compiler can inline and ultimately remove this function call altogether
+}
+
+// ThatL asserts a condition is true, or panics if not.
+// See package documentation for more details.
+func ThatL(logger logger.Logger, cond bool, msg string) {
+	// empty so that the Go compiler can inline and ultimately remove this function call altogether
+}

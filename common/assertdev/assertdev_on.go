@@ -22,15 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//go:build !with_assertions
+//go:build test_dep
 
-package assert
+package assertdev
 
-var WithAssertions = false
+import (
+	logger "go.temporal.io/server/common/log"
+)
 
-// Should asserts a condition is true, or panics if not.
-// In development/testing, it will panic. In production, it will not do anything.
+// That asserts a condition is true, or panics if not.
 // See package documentation for more details.
-func Should(cond bool, msgf string, args ...any) {
-	// empty so that the Go compiler can inline and ultimately remove this function call alltogther
+func That(condition bool, msg string) {
+	ThatL(defaultLogger, condition, msg)
+}
+
+// ThatL asserts a condition is true, or panics if not.
+func ThatL(logger logger.SkipLogger, cond bool, msg string) {
+	if !cond {
+		logger.Skip(2).Panic(fmt.Sprintf("assertion failed: %v", msg))
+	}
 }
