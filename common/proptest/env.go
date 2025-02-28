@@ -37,10 +37,10 @@ import (
 )
 
 var (
-	Rule             = expect.NewRule
 	All              = expect.All
 	Any              = expect.Any
 	Either           = expect.Either
+	Rule             = expect.NewRule
 	scopeTypePattern = regexp.MustCompile(`Scope\[(.*)]`)
 )
 
@@ -107,6 +107,8 @@ func RegisterModel[T any, M Model[T]](
 		}
 	}
 
+	// TODO: init SM
+
 	// need pointer type for methods
 	ptrModelType := reflect.TypeFor[*T]()
 	if ptrModelType.NumMethod() == 0 {
@@ -157,7 +159,7 @@ func Make[T any](e *Env) T {
 	panic("not implemented")
 }
 
-func (e *Env) Send(payloads ...any) []error {
+func (e *Env) Send(payloads ...any) expect.Report {
 	e.lock.Lock()
 	defer func() {
 		e.currentTick += 1
@@ -179,7 +181,7 @@ func (e *Env) Send(payloads ...any) []error {
 		if child == nil {
 			// create new children
 			for _, mdlType := range e.mdlChildTypes[parent.getType()] {
-				newChild := newModel(e, mdlType)
+				newChild := newModel(e, mdlType) // TODO: use tmp ID instead
 				cleanup := func() {
 					delete(e.varIdx, newChild.getID())
 				}
@@ -234,10 +236,10 @@ func (e *Env) Send(payloads ...any) []error {
 	})
 
 	// verify spec
-	var res []error
+	var res expect.Report
 	e.walk(func(_, child modelWrapper) (cont bool) {
 		if child != nil {
-			res = append(res, verifySpecs(child)...)
+			res.Merge(verifySpecs(child))
 		}
 		return true
 	})

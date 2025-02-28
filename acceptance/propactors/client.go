@@ -22,19 +22,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package propactors
 
-import (
-	"testing"
-
-	. "go.temporal.io/server/common/proptest"
+type (
+	Client struct {
+		//Actor[Client]
+	}
 )
-
-func InitEnv(t *testing.T) *Env {
-	env := NewEnv(t)
-	RegisterModel[Cluster](env)
-	RegisterModel[Namespace](env)
-	RegisterModel[Workflow](env)
-	RegisterModel[WorkflowUpdate](env)
-	return env
-}

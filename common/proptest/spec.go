@@ -22,54 +22,63 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
+package proptest
 
 import (
-	"go.temporal.io/server/common/log"
-	"go.temporal.io/server/common/log/tag"
-	. "go.temporal.io/server/common/proptest"
-	"go.temporal.io/server/common/rpc/interceptor/logtags"
-	"go.temporal.io/server/common/tasktoken"
-	"google.golang.org/protobuf/proto"
+	"testing"
+
+	"go.temporal.io/server/common/proptest/expect"
 )
 
 type (
-	Workflow struct {
-		Model[Workflow]
-		Namespace Scope[Namespace]
-
-		tags *logtags.WorkflowTags
+	Spec interface {
+		Setup(Env)
+		Teardown(Env)
 	}
-	RunID       string
-	LatestRunID bool
+	specSettings struct {
+	}
+	specOption func(*specSettings)
 )
 
-func (w *Workflow) Id(
-	req proto.Message,
-	requestPath requestPath,
-) (
-	workflowID ID,
-	runID RunID,
-) {
-	return w.extractID(req, requestPath)
+//	func WithTimeout(t time.Duration) specOption {
+//		return func(s *specSettings) {
+//			s.timeout = t
+//		}
+//	}
+
+func RunExample[T Spec](t *testing.T, fn func(T), opts ...specOption) {
+	//var spec T
+	//specVal := reflect.New(reflect.TypeOf(spec).Elem())
+	//spec = specVal.Interface().(T)
+	//r := NewExampleRun(t, nil)
+	//spec.Setup(r)
+	//fn(spec)
+	//r.Finish(t.Name())
+	//spec.Teardown(r)
 }
 
-func (w *Workflow) extractID(
-	msg proto.Message,
-	requestPath requestPath,
-) (ID, RunID) {
-	if w.tags == nil {
-		w.tags = logtags.NewWorkflowTags(tasktoken.NewSerializer(), log.NewTestLogger())
+//func RunCodegen[T *specCtx](t *testing.T, opts ...specOption) {
+//	s := newSpecCtx("example", opts...)
+//	s.run = NewCodegen(t)
+//
+//	if setup, ok := s.(SpecSetup); ok {
+//		setup.Setup()
+//	}
+//	//s.fn(env)
+//	s.run.Finish(s.label)
+//	if setup, ok := s.(SpecTeardown); ok {
+//		setup.Teardown()
+//	}
+//}
+
+func verifySpecs(mw modelWrapper) expect.Report {
+	mdl := mw.getModel()
+	env := mdl.env
+	ctx := &evalContext{mw: mw}
+
+	var res expect.Report
+	for _, rule := range env.ruleIdx[mw.getType()] {
+		res.Merge(rule.Eval(ctx))
 	}
-	var runID RunID
-	var workflowID ID
-	for _, logTag := range w.tags.Extract(msg, string(requestPath)) {
-		switch logTag.Key() {
-		case tag.WorkflowIDKey:
-			workflowID = ID(logTag.Value().(string))
-		case tag.WorkflowRunIDKey:
-			runID = RunID(logTag.Value().(string))
-		}
-	}
-	return workflowID, runID
+	return res
 }

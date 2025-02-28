@@ -29,6 +29,11 @@ import (
 	"reflect"
 )
 
+var (
+	Ignored ID = ""
+	Unknown ID = ""
+)
+
 type (
 	Model[T any] struct {
 		*internalModel
@@ -37,6 +42,7 @@ type (
 		id     modelID
 		env    *Env
 		typeOf wrapperType
+		sm     *StateMachine
 	}
 	wrapperType  = reflect.Type
 	modelWrapper interface { // API for the user-defined struct
@@ -97,10 +103,13 @@ func (m *internalModel) getType() wrapperType {
 func (m *internalModel) getDomainID() ID {
 	v := getVar[ID](m)
 	if v == nil {
-		m.getEnv().Fatal(fmt.Sprintf("%q is missing a domain ID", m.typeOf))
-		panic("unreachable")
+		return Unknown
 	}
-	return v.Current().(ID)
+	current := v.Current()
+	if current == nil {
+		return Unknown
+	}
+	return current.(ID)
 }
 
 func (m *internalModel) GetID() string {

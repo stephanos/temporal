@@ -57,10 +57,10 @@ func TestSend(t *testing.T) {
 	RegisterModel[Foo](env)
 	RegisterModel[FooBar](env)
 
-	errs := env.Send(request[string]{id: "a", data: "hello"})
-	require.Len(t, errs, 2)
-	require.ErrorContains(t, errs[0], "check for 'proptest.LastRespData' failed: 'Should not be zero, but was '")
-	require.ErrorContains(t, errs[1], "check for 'proptest.CompletedConversation' failed: 'Should be true'")
+	report := env.Send(request[string]{id: "a", data: "hello"})
+	require.Equal(t, 2, report.Len())
+	require.ErrorContains(t, report, "check for [proptest.LastRespData] failed: 'Should not be zero, but was '")
+	require.ErrorContains(t, report, "check for [proptest.CompletedConversation] failed: 'Should be true'")
 
 	models := 0
 	env.walk(func(_, mw modelWrapper) bool {
@@ -80,8 +80,8 @@ func TestSend(t *testing.T) {
 	})
 	require.Equal(t, 2, models)
 
-	errs = env.Send(request[string]{id: "a", data: "hello"}) // should not change anything
-	require.Len(t, errs, 2)
+	report = env.Send(request[string]{id: "a", data: "hello"}) // should not change anything
+	require.Equal(t, 2, report.Len())
 
 	models = 0
 	env.walk(func(_, mw modelWrapper) bool {
@@ -101,8 +101,8 @@ func TestSend(t *testing.T) {
 	})
 	require.Equal(t, 2, models)
 
-	errs = env.Send(request[string]{id: "a", data: "hello"}, response[string]{data: "hola"})
-	require.Empty(t, errs)
+	report = env.Send(request[string]{id: "a", data: "hello"}, response[string]{data: "hola"})
+	require.Equal(t, 0, report.Len())
 
 	models = 0
 	env.walk(func(_, mw modelWrapper) bool {

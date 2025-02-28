@@ -27,59 +27,56 @@ package acceptance
 import (
 	"testing"
 
-	. "go.temporal.io/api/workflowservice/v1"
-	. "go.temporal.io/server/acceptance/propmodel"
 	. "go.temporal.io/server/common/proptest"
 )
 
-func TestSomething(t *testing.T) {
-	env := InitEnv(t)
-	Make[UpdateWorkflowExecutionRequest](env)
+type UpdateSpec struct {
+	//server Handle[Server]
+	//client Handle[Client]
+	//worker Handle[Worker]
+	//ns     Handle[Namespace]
+	//tq     Handle[TaskQueue]
 }
 
-//type UpdateSpec struct {
-//	server Handle[Server]
-//	client Handle[Client]
-//	worker Handle[Worker]
-//	ns     Handle[Namespace]
-//	tq     Handle[TaskQueue]
-//}
-//
-//func (s *UpdateSpec) Setup(run Run) {
-//	s.server = StartLocalServer()
-//	s.client = StartSDKClient()
-//	s.worker = StartSDKWorker()
-//	//AwaitAll(s.server, s.client, s.worker)
-//
-//	//ns := RegisterNamespace(r, NamespaceName.Val(s.Namespace().String()))
-//	//tq := NewTaskQueue(ns)
-//	//UpdateWithStartSpec.Example(&UpdateSpec{
-//	//	Env:    env,
-//	//	Run:    r,
-//	//	ns:     ns,
-//	//	tq:     tq,
-//	//	s:      NewCluster(r),
-//	//	client: NewSDKClient(ns, ServerAddr.Val(s.FrontendGRPCAddress())),
-//	//	worker: NewSDKWorker(ns, ServerAddr.Val(s.FrontendGRPCAddress()), WorkflowDef.Val(WorkflowWithUpdateHandlerDef)),
-//	//})
-//}
-//
-//func (s *UpdateSpec) Teardown(run Run) {}
-//
-//func TestStartAndUpdate(t *testing.T) {
-//	RunExample[*UpdateSpec](t, func(spec *UpdateSpec) {
-//		// TODO: can I learn from formal verification here?
-//		//wf := StartWorkflow(
-//		//	//env.tq,
-//		//	WorkflowDef.Val(WorkflowWithUpdateHandlerDef))
-//		//env.worker.TickWorkflow()
-//		//up := StartWorkflowUpdate(wf)
-//		//env.worker.TickWorkflow()
-//		//up.Await()
-//		//up.UpdateWorkflow()
-//		//wf.Await() // waits for any terminal state by default
-//	})
-//}
+func (s *UpdateSpec) Setup() {
+	//s.server = StartLocalServer()
+	//s.client = StartSDKClient()
+	//s.worker = StartSDKWorker()
+	//AwaitAll(s.server, s.client, s.worker)
+
+	//ns := RegisterNamespace(r, NamespaceName.Val(s.Namespace().String()))
+	//tq := NewTaskQueue(ns)
+	//UpdateWithStartSpec.Example(&UpdateSpec{
+	//	Env:    env,
+	//	Run:    r,
+	//	ns:     ns,
+	//	tq:     tq,
+	//	s:      NewCluster(r),
+	//	client: NewSDKClient(ns, ServerAddr.Val(s.FrontendGRPCAddress())),
+	//	worker: NewSDKWorker(ns, ServerAddr.Val(s.FrontendGRPCAddress()), WorkflowDef.Val(WorkflowWithUpdateHandlerDef)),
+	//})
+}
+
+func (s *UpdateSpec) Teardown(env *Env) {}
+
+func TestUpdateSpec(t *testing.T) {
+	t.Parallel()
+
+	//RunExample[*UpdateSpec](t, func(spec *UpdateSpec) {
+	//	env := InitEnv(t)
+	//	Make[UpdateWorkflowExecutionRequest](env)
+	//	// TODO: can I learn from formal verification here?
+	//	//wf := StartWorkflow(
+	//	//	//env.tq,
+	//	//	WorkflowDef.Val(WorkflowWithUpdateHandlerDef))
+	//	//env.worker.TickWorkflow()
+	//	//up := StartWorkflowUpdate(wf)
+	//	//env.worker.TickWorkflow()
+	//	//up.Await()
+	//	//up.UpdateWorkflow()
+	//	//wf.Await() // waits for any terminal state by default
+	//})
+}
 
 //TestUpdateWorkflow_TimeoutWithRetryAfterUpdateAdmitted = newSpecCtx(
 //	"UpdateWithStartSpec",

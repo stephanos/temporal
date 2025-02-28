@@ -1,0 +1,13 @@
+init -> active: UpdateWorkflowExecutionRequest
+init -> closed.invalid: UpdateWorkflowExecutionRequest
+init -> dupe: UpdateWorkflowExecutionRequest
+active -> closed.completed
+active -> closed.aborted
+closed.completed -> archived
+
+active.created -> active.admitted: PollWorkflowTaskQueueRequest
+active.admitted -> active.sent: PollWorkflowTaskQueueResponse
+active.sent -> active.accepted: RespondWorkflowTaskCompletedRequest
+
+# ---
+# Poll is a separate state machine

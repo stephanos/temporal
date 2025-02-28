@@ -25,188 +25,26 @@
 package expect
 
 import (
-	"fmt"
 	"reflect"
-	"regexp"
-	"strings"
-	time "time"
+	"time"
 
-	"github.com/stretchr/testify/assert"
 	. "go.temporal.io/server/common/proptest/internal"
 )
 
-var (
-	varRef        = varRefType{}
-	errorRegex    = regexp.MustCompile(`Error:\s+(.*)`)
-	messagesRegex = regexp.MustCompile(`Messages:\s+(.*)`)
-)
-
-const (
-	and logicOperator = iota
-	or
-)
-
-const (
-	setOnce temporalOperator = iota
-)
-
-type (
-	Rule interface {
-		Eval(EvalContext) []error
-	}
-	EvalContext interface {
-		Resolve(VarType) *Variable
-	}
-	errorCatcher struct {
-		lastErr ruleErr
-	}
-	logicOperator    int
-	temporalOperator int
-	requireRule      struct {
-		name    string
-		args    []any
-		varType VarType
-	}
-	rootRule struct {
-		description string
-		rule        Rule
-	}
-	logicRule struct {
-		op    logicOperator
-		rules []Rule
-	}
-	temporalRule struct {
-		op      temporalOperator
-		varType VarType
-	}
-	ruleErr struct {
-		assertMsg string
-		userMsg   string
-		vType     VarType
-	}
-	varRefType struct{}
-)
-
-func NewRule(description string, rule Rule) Rule {
-	return rootRule{description: description, rule: rule}
-}
-
-func All(one, two Rule, rules ...Rule) Rule {
-	return logicRule{op: and, rules: append([]Rule{one, two}, rules...)}
-}
-
-func Any(one, two Rule, rules ...Rule) Rule {
-	return logicRule{op: or, rules: append([]Rule{one, two}, rules...)}
-}
-
-func Either(one, two Rule) Rule {
-	return logicRule{op: or, rules: append([]Rule{one, two})}
-}
-
-func SetOnceEventually[T any]() Rule {
-	return temporalRule{op: setOnce, varType: reflect.TypeFor[T]()}
-}
-
 func require[T any](name string, args ...any) Rule {
 	return &requireRule{
-		name:    name,
-		args:    args,
-		varType: reflect.TypeFor[T](),
+		name:     name,
+		args:     args,
+		varTypes: []VarType{reflect.TypeFor[T]()},
 	}
 }
 
-func (r rootRule) Eval(context EvalContext) []error {
-	return r.rule.Eval(context)
-}
-
-func (l logicRule) Eval(ctx EvalContext) []error {
-	var res []error
-	for _, rule := range l.rules {
-		// always evaluate all rules even if the operator is `and`
-		res = append(res, rule.Eval(ctx)...)
+func require2[T1, T2 any](name string, args ...any) Rule {
+	return &requireRule{
+		name:     name,
+		args:     args,
+		varTypes: []VarType{reflect.TypeFor[T1](), reflect.TypeFor[T2]()},
 	}
-
-	switch l.op {
-	case and:
-		return res
-	case or:
-		if len(l.rules) > len(res) {
-			// at least one didn't fail
-			return nil
-		}
-	default:
-		panic(fmt.Sprintf("unsupported temporal operator: %v", l.op))
-	}
-
-	return res
-}
-
-func (t temporalRule) Eval(ctx EvalContext) []error {
-	variable := ctx.Resolve(t.varType)
-	switch t.op {
-	case setOnce:
-		if len(variable.Versions) > 1 {
-			return []error{ruleErr{
-				assertMsg: "variable was set more than once",
-				vType:     t.varType,
-			}}
-		}
-		return nil
-	default:
-		panic(fmt.Sprintf("unsupported temporal operator: %v", t.op))
-	}
-}
-
-func (r requireRule) Eval(ctx EvalContext) []error {
-	errCatcher := errorCatcher{}
-	assertion := assert.New(&errCatcher)
-
-	var reflectArgs []reflect.Value
-	for _, arg := range r.args {
-		if arg == varRef {
-			variable := ctx.Resolve(r.varType)
-			current := reflect.ValueOf(variable.CurrentOrDefault())
-			switch current.Kind() { // TODO: exhaustive?
-			case reflect.Bool:
-				current = reflect.ValueOf(current.Bool())
-			case reflect.Int, reflect.Int32, reflect.Int64:
-				current = reflect.ValueOf(current.Int())
-			case reflect.Float32, reflect.Float64:
-				current = reflect.ValueOf(current.Float())
-			case reflect.String:
-				current = reflect.ValueOf(current.String())
-			default:
-				// do nothing
-			}
-			reflectArgs = append(reflectArgs, current)
-		} else {
-			reflectArgs = append(reflectArgs, reflect.ValueOf(arg))
-		}
-	}
-
-	if !reflect.ValueOf(assertion).MethodByName(r.name).Call(reflectArgs)[0].Bool() {
-		err := errCatcher.lastErr
-		err.vType = r.varType
-		return []error{err}
-	}
-	return nil
-}
-
-func (s *errorCatcher) Errorf(format string, args ...interface{}) {
-	msg := strings.ReplaceAll(fmt.Sprintf(format, args...), "\t", " ")
-	assertMsg := errorRegex.FindStringSubmatch(msg)[1]
-	userMsg := messagesRegex.FindStringSubmatch(msg)[1]
-	if userMsg == "[]" {
-		userMsg = ""
-	}
-	s.lastErr = ruleErr{
-		assertMsg: assertMsg,
-		userMsg:   userMsg,
-	}
-}
-
-func (r ruleErr) Error() string {
-	return fmt.Sprintf("check for '%v' failed: '%s'", r.vType, r.assertMsg)
 }
 
 // Contains asserts that the specified string, list(array, slice...) or map contains the
@@ -263,14 +101,25 @@ func Emptyf[T any](msg string, args ...any) Rule {
 	return require[T]("Emptyf", varRef, msg, args)
 }
 
-// Equal asserts that two objects are equal.
+// Equal asserts that two variables are equal.
 //
-//	a.Equal(123, 123)
+//	a.Equal[Var1, Var2]()
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-func Equal[T any](expected any, msgAndArgs ...any) Rule {
+func Equal[T1 any, T2 any](msgAndArgs ...any) Rule {
+	return require2[T1, T2]("Equal", varRef, varRef, msgAndArgs)
+}
+
+// Equals asserts that two objects are equal.
+//
+//	a.Equals(123, 123)
+//
+// Pointer variable equality is determined based on the equality of the
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
+func Equals[T any](expected any, msgAndArgs ...any) Rule {
 	return require[T]("Equal", expected, varRef, msgAndArgs)
 }
 
@@ -947,26 +796,6 @@ func Positive[T any](msgAndArgs ...any) Rule {
 //	a.Positivef(1.23, "error message %s", "formatted")
 func Positivef[T any](msg string, args ...any) Rule {
 	return require[T]("Positivef", varRef, msg, args)
-}
-
-// Same asserts that two pointers reference the same object.
-//
-//	a.Same(ptr1, ptr2)
-//
-// Both arguments must be pointer variables. Pointer variable sameness is
-// determined based on the equality of both type and value.
-func Same[T any](expected any, msgAndArgs ...any) Rule {
-	return require[T]("Same", expected, varRef, msgAndArgs)
-}
-
-// Samef asserts that two pointers reference the same object.
-//
-//	a.Samef(ptr1, ptr2, "error message %s", "formatted")
-//
-// Both arguments must be pointer variables. Pointer variable sameness is
-// determined based on the equality of both type and value.
-func Samef[T any](expected any, msg string, args ...any) Rule {
-	return require[T]("Samef", expected, varRef, msg, args)
 }
 
 // Subset asserts that the specified list(array, slice...) or map contains all

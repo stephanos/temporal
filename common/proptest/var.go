@@ -59,13 +59,17 @@ func getVar[T any](m *internalModel) *Variable {
 
 func getVarByType(m *internalModel, vType VarType) *Variable {
 	env := m.getEnv()
-	if _, ok := env.varIdx[m.getID()]; !ok {
+	mdlID := m.getID()
+
+	if _, ok := env.varIdx[mdlID]; !ok {
 		return &Variable{TypeOf: vType}
 	}
-	v, ok := env.varIdx[m.getID()][vType]
+
+	v, ok := env.varIdx[mdlID][vType]
 	if !ok {
 		return &Variable{TypeOf: vType}
 	}
+
 	return v
 }
 
@@ -76,13 +80,16 @@ func set[T any](m *internalModel, val T) {
 func setVarByType(m *internalModel, vType reflect.Type, val any) {
 	env := m.getEnv()
 	mdlID := m.getID()
+
 	if _, ok := env.varIdx[mdlID]; !ok {
 		env.varIdx[mdlID] = make(map[VarType]*Variable)
 	}
+
 	v, ok := env.varIdx[mdlID][vType]
 	if !ok {
 		v = &Variable{TypeOf: vType}
 		env.varIdx[mdlID][vType] = v
 	}
+
 	v.Set(val, env.currentTick)
 }

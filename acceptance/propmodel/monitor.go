@@ -26,8 +26,10 @@ package propmodel
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pborman/uuid"
+	"go.temporal.io/server/common/persistence/intercept"
 	. "go.temporal.io/server/common/proptest"
 	"google.golang.org/grpc"
 )
@@ -47,7 +49,7 @@ func NewMonitor(env *Env) *Monitor {
 	}
 }
 
-func (i *Monitor) Interceptor() grpc.UnaryServerInterceptor {
+func (m *Monitor) GrpcInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -57,15 +59,46 @@ func (i *Monitor) Interceptor() grpc.UnaryServerInterceptor {
 		reqID := requestID(uuid.New())
 
 		// process request event
-		i.env.Send(reqID, req, requestPath(info.FullMethod))
+		report := m.env.Send(reqID, req, requestPath(info.FullMethod))
+		if !report.Empty() {
+			m.env.Fatal(fmt.Sprintf("%v", report))
+		}
 
 		// process request
 		resp, err := handler(ctx, req)
 
 		// process response event
 		// NOTE: the `req` is not provided again to make only the response observers match
-		i.env.Send(reqID, requestPath(info.FullMethod), resp, responseErr(err))
+		report = m.env.Send(reqID, requestPath(info.FullMethod), resp, responseErr(err))
+		if !report.Empty() {
+			m.env.Fatal(fmt.Sprintf("%v", report))
+		}
 
 		return resp, err
+	}
+}
+
+func (m *Monitor) PersistenceInterceptor() intercept.PersistenceInterceptor {
+	return func(method string, fn func() (any, error), params ...any) error {
+		reqID := requestID(uuid.New())
+
+		// process persistence event
+		sendArgs := append([]any{reqID}, params...)
+		report := m.env.Send(sendArgs...)
+		if !report.Empty() {
+			m.env.Fatal(fmt.Sprintf("%v", report))
+		}
+
+		// process request
+		resp, err := fn()
+
+		// process response event
+		sendArgs = append(sendArgs, resp, responseErr(err))
+		report = m.env.Send(sendArgs...)
+		if !report.Empty() {
+			m.env.Fatal(fmt.Sprintf("%v", report))
+		}
+
+		return err
 	}
 }

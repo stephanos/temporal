@@ -53,7 +53,7 @@ func Just[T any](val T) *Gen[T] {
 
 func GenRange(s seeder, min, max int) iter.Seq[int] {
 	return func(yield func(int) bool) {
-		times := GenInt(min, max).Next(s)
+		times := GenInt(min, max).Next()
 		for i := 0; i < times; i++ {
 			if !yield(i) {
 				return
@@ -85,8 +85,10 @@ func GenId(prefix string) *Gen[string] {
 //	}
 //}
 
-func (g *Gen[T]) Next(s seeder) T {
-	return g.gen.Example(s.Seed())
+func (g *Gen[T]) Next() T {
+	panic("not implemented")
+	//s seeder
+	//return g.gen.Example(s.Seed())
 }
 
 func (g *Gen[T]) Variants() []any {

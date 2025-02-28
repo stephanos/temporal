@@ -37,6 +37,10 @@ const (
 	identityCallback              = iota
 )
 
+var (
+	idType = reflect.TypeOf(ID(""))
+)
+
 type (
 	callback struct {
 		method   reflect.Method
@@ -111,6 +115,20 @@ func invokeObserverCallback(
 	invokeAndApplyVars(mw, cb, cbArgs)
 }
 
+func invokeVariableCallback(mw modelWrapper) {
+	mdl := mw.getModel()
+	env := mdl.env
+
+	for _, cb := range env.callbackIdx[mw.getType()][variableCallback] {
+		var args []reflect.Value
+		for _, inType := range cb.inTypes {
+			v := getVarByType(mdl, inType)
+			args = append(args, reflect.ValueOf(v.CurrentOrDefault()))
+		}
+		invokeAndApplyVars(mw, cb, args)
+	}
+}
+
 func findBestMatch(
 	callbacks []*callback,
 	args map[reflect.Type]reflect.Value,
@@ -149,43 +167,24 @@ func findBestMatch(
 	return bestMatch, matches[bestMatch]
 }
 
-func invokeVariableCallback(mw modelWrapper) {
-	mdl := mw.getModel()
-	env := mdl.env
-
-	for _, cb := range env.callbackIdx[mw.getType()][variableCallback] {
-		var args []reflect.Value
-		for _, inType := range cb.inTypes {
-			v := getVarByType(mdl, inType)
-			args = append(args, reflect.ValueOf(v.CurrentOrDefault()))
-		}
-		invokeAndApplyVars(mw, cb, args)
-	}
-}
-
-// TODO: cache spec
-func verifySpecs(mw modelWrapper) []error {
-	mdl := mw.getModel()
-	env := mdl.env
-	ctx := &evalContext{mw: mw}
-	var res []error
-	for _, rule := range env.ruleIdx[mw.getType()] {
-		res = append(res, rule.Eval(ctx)...)
-	}
-	return res
-}
-
 func invokeAndApplyVars(
 	mw modelWrapper,
 	cb *callback,
 	cbArgs []reflect.Value,
 ) {
+	mdl := mw.getModel()
+
 	res := cb.method.Func.Call(append(
 		[]reflect.Value{reflect.ValueOf(mw)},
 		cbArgs...,
 	))
 	for i, outType := range cb.outTypes {
-		setVarByType(mw.getModel(), outType, res[i].Interface())
+		val := res[i].Interface()
+		if outType == idType && (val == Unknown || val == Ignored) {
+			// ignore empty IDs
+			continue
+		}
+		setVarByType(mdl, outType, val)
 	}
 }
 

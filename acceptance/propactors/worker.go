@@ -22,54 +22,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package propmodel
-
-import (
-	"go.temporal.io/server/common/log"
-	"go.temporal.io/server/common/log/tag"
-	. "go.temporal.io/server/common/proptest"
-	"go.temporal.io/server/common/rpc/interceptor/logtags"
-	"go.temporal.io/server/common/tasktoken"
-	"google.golang.org/protobuf/proto"
-)
+package propactors
 
 type (
-	Workflow struct {
-		Model[Workflow]
-		Namespace Scope[Namespace]
-
-		tags *logtags.WorkflowTags
+	Worker struct {
+		//Actor[Worker]
 	}
-	RunID       string
-	LatestRunID bool
 )
-
-func (w *Workflow) Id(
-	req proto.Message,
-	requestPath requestPath,
-) (
-	workflowID ID,
-	runID RunID,
-) {
-	return w.extractID(req, requestPath)
-}
-
-func (w *Workflow) extractID(
-	msg proto.Message,
-	requestPath requestPath,
-) (ID, RunID) {
-	if w.tags == nil {
-		w.tags = logtags.NewWorkflowTags(tasktoken.NewSerializer(), log.NewTestLogger())
-	}
-	var runID RunID
-	var workflowID ID
-	for _, logTag := range w.tags.Extract(msg, string(requestPath)) {
-		switch logTag.Key() {
-		case tag.WorkflowIDKey:
-			workflowID = ID(logTag.Value().(string))
-		case tag.WorkflowRunIDKey:
-			runID = RunID(logTag.Value().(string))
-		}
-	}
-	return workflowID, runID
-}

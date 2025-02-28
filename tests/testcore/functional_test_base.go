@@ -44,6 +44,7 @@ import (
 	namespacepb "go.temporal.io/api/namespace/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/acceptance"
 	"go.temporal.io/server/acceptance/propmodel"
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
@@ -196,12 +197,12 @@ func (s *FunctionalTestBase) FrontendGRPCAddress() string {
 }
 
 func (s *FunctionalTestBase) SetupSuite() {
-	s.env = propmodel.InitEnv(s.T())
+	s.env = acceptance.InitEnv(s.T())
 	propmodel.NewCluster(s.env, "main")
+	monitor := propmodel.NewMonitor(s.env)
 	s.SetupSuiteWithDefaultCluster(
-		WithAdditionalGrpcInterceptors(propmodel.NewMonitor(s.env).Interceptor()),
-
-		//WithPersistenceInterceptor(propmodel.GetPersistence(s.Server).Interceptor()),
+		WithAdditionalGrpcInterceptors(monitor.GrpcInterceptor()),
+		WithPersistenceInterceptor(monitor.PersistenceInterceptor()),
 	)
 }
 
@@ -432,8 +433,7 @@ func (s *FunctionalTestBase) RegisterNamespace(
 		tag.WorkflowNamespace(nsName.String()),
 		tag.WorkflowNamespaceID(nsID.String()),
 	)
-	// TODO
-	//s.Cluster.OnImportNamespace(namespaceRequest)
+	propmodel.ImportNamespace(s.env, namespaceRequest)
 	return nsID, nil
 }
 

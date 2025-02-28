@@ -97,6 +97,8 @@ func toValue[T any](v protoreflect.Value) T {
 		return any(v.Float()).(T)
 	case bool:
 		return any(v.Bool()).(T)
+	case []uint8:
+		return any(v.Bytes()).(T)
 	default:
 		panic(fmt.Sprintf("unsupported type %T", res))
 	}

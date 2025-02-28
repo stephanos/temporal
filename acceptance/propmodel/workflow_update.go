@@ -27,13 +27,12 @@ package propmodel
 import (
 	commonpb "go.temporal.io/api/common/v1"
 	. "go.temporal.io/api/enums/v1"
+	enumspb "go.temporal.io/api/enums/v1"
 	updatepb "go.temporal.io/api/update/v1"
 	. "go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/common/payloads"
 	. "go.temporal.io/server/common/proptest"
 	"go.temporal.io/server/common/proptest/expect"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // TODO props:
@@ -66,37 +65,63 @@ import (
 //   history
 // - (need different generators for "with RunID" and "without RunID"
 
+// https://github.com/Dicklesworthstone/introduction_to_temporal_logic
+
+// Next
+// Until
+// Eventually
+// Always
+// expect.After(expect.NotZero[ExecuteOutcome], expect.Zero[ExecuteOutcome()),
+
 type (
 	WorkflowUpdate struct {
 		Model[WorkflowUpdate]
 		Workflow Scope[Workflow]
 	}
+
 	UpdateHandler  string
 	WaitStage      UpdateWorkflowExecutionLifecycleStage
 	ExecuteOutcome *updatepb.Outcome
 	PollOutcome    *updatepb.Outcome
 )
 
-var (
-	SingleOutcome = Rule(
-		"Update Outcomes never change",
-		All(
-			expect.SetOnceEventually[ExecuteOutcome](),
-			expect.SetOnceEventually[PollOutcome](),
-		),
-	)
-	//SameOutcome = Rule(
-	//	"Update Outcomes from execution and polling must only be set once",
-	//)
-)
-
 func (u *WorkflowUpdate) Id(
 	msg proto.Message,
 ) ID {
-	// TODO: UpdateID is not required by the client to set, need to figure out what to do if it's not set
-	updateID := findProtoValueByNameType[string](msg, "update_id", protoreflect.StringKind)
-	return ID(updateID)
+	switch t := msg.(type) {
+	case *UpdateWorkflowExecutionRequest:
+		return ID(t.GetRequest().GetMeta().GetUpdateId())
+	case *UpdateWorkflowExecutionResponse:
+		return ID(t.GetUpdateRef().UpdateId)
+	case *PollWorkflowExecutionUpdateResponse:
+		return ID(t.GetUpdateRef().UpdateId)
+	case *PollWorkflowTaskQueueResponse:
+		// TODO: only scan unprocessed messages
+		for _, msg := range t.GetMessages() {
+			if id := u.GetID(); id == msg.GetProtocolInstanceId() {
+				return ID(id)
+			}
+		}
+		// TODO: scan history events
+	case *RespondWorkflowTaskCompletedRequest:
+		for _, msg := range t.GetMessages() {
+			if id := u.GetID(); id == msg.GetProtocolInstanceId() {
+				return ID(id)
+			}
+		}
+	case *RespondWorkflowTaskFailedRequest:
+		// TODO
+	}
+	return ""
 }
+
+// TODO: for identifying the update when there's multiple
+//func (u *WorkflowUpdate) Id(
+//	identity ID,
+//	msg proto.Message,
+//) bool {
+//	return false
+//}
 
 func (u *WorkflowUpdate) OnExecuteRequest(
 	req *UpdateWorkflowExecutionRequest,
@@ -125,36 +150,92 @@ func (u *WorkflowUpdate) OnPollResponse(
 	return
 }
 
-func (u *WorkflowUpdate) Verify() expect.Rule {
-	return SingleOutcome
+func (u *WorkflowUpdate) OnWorkflowTaskPoll(
+	resp *PollWorkflowTaskQueueResponse,
+) (
+	waitStage WaitStage,
+) {
+	return
+}
+
+func (u *WorkflowUpdate) OnWorkflowTaskCompleted(
+	req *RespondWorkflowTaskCompletedRequest,
+) (
+	waitStage WaitStage,
+) {
+	return
+}
+
+//func (u *WorkflowUpdate) State() *StateMachine {
+//	return NewStateMachine().
+//		Add(StateDraft.SubState("Running"))
+//}
+
+// TODO: we need a state machine that is based on a variable (and nothing more; if it needs more data, use a struct)
+// then rules/states can have names that can be referenced by other state machines to "tie in";
+// for example, the outcome state machine might reference the lifecycle state machine using "guards"/"preconditions"
+func (u *WorkflowUpdate) VerifyOutcomes() expect.Rule {
+	return expect.NewRule()
 }
 
 func GenWorkflowUpdateRequest(
-	env *Env,
 	client Scope[Client],
 	namespace Scope[Namespace],
 	workflow Scope[Workflow],
+	useLatestRunID Gen[LatestRunID],
 	waitStage Gen[WaitStage],
 	updateID Gen[ID],
 	updateHandler Gen[UpdateHandler],
+	payload Gen[Payloads],
+	header Gen[Header],
 ) ActionGen[*UpdateWorkflowExecutionRequest] {
+	var runID string
+	if !useLatestRunID.Next() {
+		runID = string(MustGet[RunID](workflow))
+	}
+
 	return &UpdateWorkflowExecutionRequest{
 		Namespace: namespace.GetID(),
 		WorkflowExecution: &commonpb.WorkflowExecution{
 			WorkflowId: workflow.GetID(),
-			RunId:      string(MustGet[RunID](workflow)),
+			RunId:      runID,
 		},
-		//WaitPolicy: &updatepb.WaitPolicy{LifecycleStage: waitStage.Next()},
+		WaitPolicy: &updatepb.WaitPolicy{
+			LifecycleStage: enumspb.UpdateWorkflowExecutionLifecycleStage(waitStage.Next()),
+		},
 		Request: &updatepb.Request{
 			Meta: &updatepb.Meta{
-				UpdateId: string(updateID.Next(env)),
+				UpdateId: string(updateID.Next()),
 				Identity: client.GetID(),
 			},
 			Input: &updatepb.Input{
-				Name: string(updateHandler.Next(env)),
-				//Header:
-				Args: payloads.EncodeString("args-value-of-" + string(updateID.Next(env))),
+				Name:   string(updateHandler.Next()),
+				Header: header.Next(),
+				Args:   payload.Next(),
 			},
+		},
+	}
+}
+
+func GenWorkflowPollRequest(
+	client Scope[Client],
+	namespace Scope[Namespace],
+	workflow Scope[Workflow],
+	workflowUpdate Scope[WorkflowUpdate],
+	waitStage Gen[WaitStage],
+) ActionGen[*PollWorkflowExecutionUpdateRequest] {
+	return &PollWorkflowExecutionUpdateRequest{
+		Namespace: namespace.GetID(),
+		UpdateRef: &updatepb.UpdateRef{
+			WorkflowExecution: &commonpb.WorkflowExecution{
+				WorkflowId: workflow.GetID(),
+				RunId:      string(MustGet[RunID](workflow)),
+			},
+			UpdateId: workflowUpdate.GetID(),
+		},
+		Identity: client.GetID(),
+		WaitPolicy: &updatepb.WaitPolicy{
+			LifecycleStage: enumspb.UpdateWorkflowExecutionLifecycleStage(waitStage.Next()),
 		},
 	}
 }

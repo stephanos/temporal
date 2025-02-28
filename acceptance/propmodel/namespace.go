@@ -25,22 +25,80 @@
 package propmodel
 
 import (
+	"go.temporal.io/server/common/persistence"
 	. "go.temporal.io/server/common/proptest"
+	"go.temporal.io/server/common/tasktoken"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type Namespace struct {
-	Model[Namespace]
-	Cluster Scope[Cluster]
+var (
+	tokenSerializer = tasktoken.NewSerializer()
+)
+
+type (
+	Namespace struct {
+		Model[Namespace]
+		Cluster Scope[Cluster]
+
+		internalID string
+	}
+
+	NamespaceID string
+)
+
+func ImportNamespace(
+	env *Env,
+	request *persistence.CreateNamespaceRequest,
+) {
+	env.Send(request)
 }
 
-func (n *Namespace) Id(
+// TODO: some responses don't contain the necessary info anymore; still need the request here, too
+func (n *Namespace) IdGRPC(
+	// TODO: allow using any variable as a parameter?
 	msg proto.Message,
 ) ID {
-	namespace := findProtoValueByNameType[string](msg, "namespace", protoreflect.StringKind)
-	if namespace == "temporal-system" {
-		return ""
+	// try finding the namespace name
+	nsName := findProtoValueByNameType[string](msg, "namespace", protoreflect.StringKind)
+	if nsName == "temporal-system" {
+		return Ignored
 	}
-	return ID(namespace)
+	if nsName != "" {
+		return ID(nsName)
+	}
+
+	// try finding the namespace id (only works for existing models)
+	if currentID := n.GetID(); currentID != "" {
+		// TODO: wrangle the existing routing code to be reusable here
+		nsID := findProtoValueByNameType[string](msg, "namespace_id", protoreflect.StringKind)
+		if nsID == "" {
+			taskToken := findProtoValueByNameType[[]byte](msg, "task_token", protoreflect.BytesKind)
+			if taskToken != nil {
+				t, _ := tokenSerializer.Deserialize(taskToken)
+				nsID = t.GetNamespaceId()
+			}
+		}
+		if n.internalID == nsID {
+			return ID(currentID)
+		}
+	}
+
+	return Unknown
+}
+
+func (n *Namespace) IdPersistence(
+	req *persistence.CreateNamespaceRequest,
+) ID {
+	return ID(req.Namespace.Info.Name)
+}
+
+func (n *Namespace) OnCreateRequest(
+	req *persistence.CreateNamespaceRequest,
+) (
+	nsID NamespaceID,
+) {
+	n.internalID = req.Namespace.Info.Id
+	nsID = NamespaceID(n.internalID)
+	return
 }
