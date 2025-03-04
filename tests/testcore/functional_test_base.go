@@ -270,7 +270,6 @@ func (s *FunctionalTestBase) initAssertions() {
 	s.ProtoAssertions = protorequire.New(s.T())
 	s.HistoryRequire = historyrequire.New(s.T())
 	s.UpdateUtils = updateutils.New(s.T())
-	s.checkNoUnexpectedErrorLogs() // should have already been called in TearDownTest, but just in case
 }
 
 // checkTestShard supports test sharding based on environment variables.
@@ -365,6 +364,10 @@ func (s *FunctionalTestBase) TearDownCluster() {
 }
 
 func (s *FunctionalTestBase) TearDownTest() {
+	s.checkNoUnexpectedErrorLogs()
+}
+
+func (s *FunctionalTestBase) TearDownSubTest() {
 	s.checkNoUnexpectedErrorLogs()
 }
 
