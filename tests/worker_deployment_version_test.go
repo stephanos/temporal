@@ -109,10 +109,10 @@ func (s *DeploymentVersionSuite) SetupTest() {
 }
 
 func (s *DeploymentVersionSuite) TearDownTest() {
-	s.FunctionalTestBase.TearDownTest()
 	if s.sdkClient != nil {
 		s.sdkClient.Close()
 	}
+	s.FunctionalTestBase.TearDownTest()
 }
 
 // pollFromDeployment calls PollWorkflowTaskQueue to start deployment related workflows
