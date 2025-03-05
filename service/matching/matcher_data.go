@@ -234,6 +234,7 @@ func (t *taskPQ) ForEachTask(pred func(*internalTask) bool, post func(*internalT
 
 type matcherData struct {
 	config *taskQueueConfig
+	logger log.Logger
 
 	lock sync.Mutex // covers everything below, and all fields in any waitableMatchResult
 
@@ -245,7 +246,6 @@ type matcherData struct {
 	pollers pollerPQ
 	tasks   taskPQ
 
-	logger     log.Logger
 	lastPoller time.Time // most recent poll start time
 }
 
