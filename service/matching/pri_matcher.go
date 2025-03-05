@@ -257,7 +257,7 @@ func (tm *priTaskMatcher) validateTasksOnRoot(lim quotas.RateLimiter, retrier ba
 		task := res.task
 		softassert.That(tm.logger, task.forwardCtx == nil, "expected non-forwarded task")
 		softassert.That(tm.logger, !task.isSyncMatchTask(), "expected non-sync match task")
-		softassert.That(tm.logger, task.source == enumsspb.TASK_SOURCE_DB_BACKLOG, "expected backlog task, but was: %v", task.source.String())
+		softassert.That(tm.logger, task.source == enumsspb.TASK_SOURCE_DB_BACKLOG, "expected backlog task")
 
 		maybeValid := tm.validator == nil || tm.validator.maybeValidate(task.event.AllocatedTaskInfo, tm.partition.TaskType())
 		if !maybeValid {
