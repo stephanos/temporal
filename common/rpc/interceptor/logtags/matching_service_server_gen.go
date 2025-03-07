@@ -95,6 +95,10 @@ func (wt *WorkflowTags) extractFromMatchingServiceServerMessage(message any) []t
 		return nil
 	case *matchingservice.GetBuildIdTaskQueueMappingResponse:
 		return nil
+	case *matchingservice.GetDeploymentStatsRequest:
+		return nil
+	case *matchingservice.GetDeploymentStatsResponse:
+		return nil
 	case *matchingservice.GetTaskQueueUserDataRequest:
 		return nil
 	case *matchingservice.GetTaskQueueUserDataResponse:

@@ -1,0 +1,55 @@
+// The MIT License
+//
+// Copyright (c) 2019 Temporal Technologies, Inc.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+syntax = "proto3";
+
+package temporal.server.api.workflowservice.v1;
+option go_package = "go.temporal.io/server/api/workflowservice/v1;workflowservice";
+
+message GetDeploymentStatsRequest {
+    string namespace_id = 1;
+
+    // Name of the deployment to return stats for.
+    // If empty, the deployment version needs to be provided.
+    string deployment_name = 2;
+
+    // Deployment version to return stats for.
+    // If empty, the deployment name needs to be provided and
+    // the current version will be queried.
+    string deployment_version = 3;
+}
+
+message GetDeploymentStatsResponse {
+    // An unsorted list of stats for each task queue in the deployment version.
+    repeated DetailedTaskQueueStats task_queue_stats = 1;
+
+    // TODO: aggregated backlog
+}
+
+message DetailedTaskQueueStats {
+//    temporal.api.taskqueue.v1.TaskQueue task_queue = 1;
+//    temporal.api.enums.v1.TaskQueueType task_queue_type = 2;
+//    temporal.api.taskqueue.v1.TaskQueueStats total_stats = 3;
+//    // A map of stats per priority. Keys are from 1 to n, where the upper limit
+//    // is defined by the server configuration.
+//    map<int32, temporal.api.taskqueue.v1.TaskQueueStats> priority_stats = 4;
+}

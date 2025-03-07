@@ -128,6 +128,9 @@ service MatchingService {
     // This request should always be routed to the node holding the root partition of the workflow task queue.
     rpc SyncDeploymentUserData (SyncDeploymentUserDataRequest) returns (SyncDeploymentUserDataResponse) {}
 
+    // TODO
+    rpc GetDeploymentStats (GetDeploymentStatsRequest) returns (GetDeploymentStatsResponse) {}
+
     // Apply a user data replication event.
     rpc ApplyTaskQueueUserDataReplicationEvent (ApplyTaskQueueUserDataReplicationEventRequest) returns (ApplyTaskQueueUserDataReplicationEventResponse) {}
 

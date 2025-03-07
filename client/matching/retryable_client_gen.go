@@ -245,6 +245,21 @@ func (c *retryableClient) GetBuildIdTaskQueueMapping(
 	return resp, err
 }
 
+func (c *retryableClient) GetDeploymentStats(
+	ctx context.Context,
+	request *matchingservice.GetDeploymentStatsRequest,
+	opts ...grpc.CallOption,
+) (*matchingservice.GetDeploymentStatsResponse, error) {
+	var resp *matchingservice.GetDeploymentStatsResponse
+	op := func(ctx context.Context) error {
+		var err error
+		resp, err = c.client.GetDeploymentStats(ctx, request, opts...)
+		return err
+	}
+	err := backoff.ThrottleRetryContext(ctx, op, c.policy, c.isRetryable)
+	return resp, err
+}
+
 func (c *retryableClient) GetTaskQueueUserData(
 	ctx context.Context,
 	request *matchingservice.GetTaskQueueUserDataRequest,

@@ -209,6 +209,14 @@ func (h *Handler) AddWorkflowTask(
 	return &matchingservice.AddWorkflowTaskResponse{AssignedBuildId: assignedBuildId}, err
 }
 
+func (h *Handler) GetDeploymentStats(
+	ctx context.Context,
+	request *matchingservice.GetDeploymentStatsRequest,
+) (_ *matchingservice.GetDeploymentStatsResponse, retError error) {
+	defer log.CapturePanic(h.logger, &retError)
+	return nil, nil
+}
+
 // PollActivityTaskQueue - long poll for an activity task.
 func (h *Handler) PollActivityTaskQueue(
 	ctx context.Context,

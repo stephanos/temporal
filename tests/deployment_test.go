@@ -1388,6 +1388,10 @@ func (s *DeploymentSuite) TestSetCurrent_UpdateMetadata() {
 	s.Equal(`"val4"`, payload.ToString(cur.CurrentDeploymentInfo.Metadata["key4"]))
 }
 
+func (s *DeploymentSuite) TestDeploymentStats() {
+
+}
+
 // Name is used by testvars. We use a shorten test name in variables so that physical task queue IDs
 // do not grow larger that DB column limit (currently as low as 272 chars).
 func (s *DeploymentSuite) Name() string {

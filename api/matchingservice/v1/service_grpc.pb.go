@@ -62,6 +62,7 @@ const (
 	MatchingService_UpdateWorkerVersioningRules_FullMethodName            = "/temporal.server.api.matchingservice.v1.MatchingService/UpdateWorkerVersioningRules"
 	MatchingService_GetWorkerVersioningRules_FullMethodName               = "/temporal.server.api.matchingservice.v1.MatchingService/GetWorkerVersioningRules"
 	MatchingService_SyncDeploymentUserData_FullMethodName                 = "/temporal.server.api.matchingservice.v1.MatchingService/SyncDeploymentUserData"
+	MatchingService_GetDeploymentStats_FullMethodName                     = "/temporal.server.api.matchingservice.v1.MatchingService/GetDeploymentStats"
 	MatchingService_ApplyTaskQueueUserDataReplicationEvent_FullMethodName = "/temporal.server.api.matchingservice.v1.MatchingService/ApplyTaskQueueUserDataReplicationEvent"
 	MatchingService_GetBuildIdTaskQueueMapping_FullMethodName             = "/temporal.server.api.matchingservice.v1.MatchingService/GetBuildIdTaskQueueMapping"
 	MatchingService_ForceLoadTaskQueuePartition_FullMethodName            = "/temporal.server.api.matchingservice.v1.MatchingService/ForceLoadTaskQueuePartition"
@@ -150,6 +151,8 @@ type MatchingServiceClient interface {
 	GetWorkerVersioningRules(ctx context.Context, in *GetWorkerVersioningRulesRequest, opts ...grpc.CallOption) (*GetWorkerVersioningRulesResponse, error)
 	// This request should always be routed to the node holding the root partition of the workflow task queue.
 	SyncDeploymentUserData(ctx context.Context, in *SyncDeploymentUserDataRequest, opts ...grpc.CallOption) (*SyncDeploymentUserDataResponse, error)
+	// TODO
+	GetDeploymentStats(ctx context.Context, in *GetDeploymentStatsRequest, opts ...grpc.CallOption) (*GetDeploymentStatsResponse, error)
 	// Apply a user data replication event.
 	ApplyTaskQueueUserDataReplicationEvent(ctx context.Context, in *ApplyTaskQueueUserDataReplicationEventRequest, opts ...grpc.CallOption) (*ApplyTaskQueueUserDataReplicationEventResponse, error)
 	// Gets all task queue names mapped to a given build ID
@@ -403,6 +406,15 @@ func (c *matchingServiceClient) SyncDeploymentUserData(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *matchingServiceClient) GetDeploymentStats(ctx context.Context, in *GetDeploymentStatsRequest, opts ...grpc.CallOption) (*GetDeploymentStatsResponse, error) {
+	out := new(GetDeploymentStatsResponse)
+	err := c.cc.Invoke(ctx, MatchingService_GetDeploymentStats_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *matchingServiceClient) ApplyTaskQueueUserDataReplicationEvent(ctx context.Context, in *ApplyTaskQueueUserDataReplicationEventRequest, opts ...grpc.CallOption) (*ApplyTaskQueueUserDataReplicationEventResponse, error) {
 	out := new(ApplyTaskQueueUserDataReplicationEventResponse)
 	err := c.cc.Invoke(ctx, MatchingService_ApplyTaskQueueUserDataReplicationEvent_FullMethodName, in, out, opts...)
@@ -585,6 +597,8 @@ type MatchingServiceServer interface {
 	GetWorkerVersioningRules(context.Context, *GetWorkerVersioningRulesRequest) (*GetWorkerVersioningRulesResponse, error)
 	// This request should always be routed to the node holding the root partition of the workflow task queue.
 	SyncDeploymentUserData(context.Context, *SyncDeploymentUserDataRequest) (*SyncDeploymentUserDataResponse, error)
+	// TODO
+	GetDeploymentStats(context.Context, *GetDeploymentStatsRequest) (*GetDeploymentStatsResponse, error)
 	// Apply a user data replication event.
 	ApplyTaskQueueUserDataReplicationEvent(context.Context, *ApplyTaskQueueUserDataReplicationEventRequest) (*ApplyTaskQueueUserDataReplicationEventResponse, error)
 	// Gets all task queue names mapped to a given build ID
@@ -714,6 +728,9 @@ func (UnimplementedMatchingServiceServer) GetWorkerVersioningRules(context.Conte
 }
 func (UnimplementedMatchingServiceServer) SyncDeploymentUserData(context.Context, *SyncDeploymentUserDataRequest) (*SyncDeploymentUserDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncDeploymentUserData not implemented")
+}
+func (UnimplementedMatchingServiceServer) GetDeploymentStats(context.Context, *GetDeploymentStatsRequest) (*GetDeploymentStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeploymentStats not implemented")
 }
 func (UnimplementedMatchingServiceServer) ApplyTaskQueueUserDataReplicationEvent(context.Context, *ApplyTaskQueueUserDataReplicationEventRequest) (*ApplyTaskQueueUserDataReplicationEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplyTaskQueueUserDataReplicationEvent not implemented")
@@ -1124,6 +1141,24 @@ func _MatchingService_SyncDeploymentUserData_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MatchingService_GetDeploymentStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeploymentStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MatchingServiceServer).GetDeploymentStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MatchingService_GetDeploymentStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MatchingServiceServer).GetDeploymentStats(ctx, req.(*GetDeploymentStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MatchingService_ApplyTaskQueueUserDataReplicationEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplyTaskQueueUserDataReplicationEventRequest)
 	if err := dec(in); err != nil {
@@ -1426,6 +1461,10 @@ var MatchingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncDeploymentUserData",
 			Handler:    _MatchingService_SyncDeploymentUserData_Handler,
+		},
+		{
+			MethodName: "GetDeploymentStats",
+			Handler:    _MatchingService_GetDeploymentStats_Handler,
 		},
 		{
 			MethodName: "ApplyTaskQueueUserDataReplicationEvent",

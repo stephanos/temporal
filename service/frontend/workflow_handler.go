@@ -53,6 +53,7 @@ import (
 	"go.temporal.io/server/api/matchingservice/v1"
 	schedulespb "go.temporal.io/server/api/schedule/v1"
 	taskqueuespb "go.temporal.io/server/api/taskqueue/v1"
+	workflowservice2 "go.temporal.io/server/api/workflowservice/v1"
 	"go.temporal.io/server/client/frontend"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/archiver"
@@ -119,6 +120,7 @@ type (
 	// WorkflowHandler - gRPC handler interface for workflowservice
 	WorkflowHandler struct {
 		workflowservice.UnimplementedWorkflowServiceServer
+		workflowservice2.UnimplementedWorkflowIncubationServiceServer
 		status int32
 
 		tokenSerializer                               *tasktoken.Serializer
