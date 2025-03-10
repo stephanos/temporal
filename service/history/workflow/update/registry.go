@@ -42,8 +42,13 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/telemetry"
+	"go.temporal.io/server/common/testing/testmarker"
 	"go.temporal.io/server/internal/effect"
 	"google.golang.org/protobuf/types/known/anypb"
+)
+
+var (
+	WorkflowUpdateResurrected = testmarker.New("WorkflowUpdateResurrected")
 )
 
 type (
@@ -293,6 +298,7 @@ func (r *registry) TryResurrect(_ context.Context, acptOrRejMsg *protocolpb.Mess
 		withInstrumentation(&r.instrumentation),
 	)
 	r.updates[updateID] = upd
+	r.instrumentation.markResurrected()
 
 	return upd, nil
 }

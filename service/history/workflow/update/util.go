@@ -109,6 +109,10 @@ func (i *instrumentation) countSentAgain() {
 	i.oneOf(metrics.WorkflowExecutionUpdateSentToWorkerAgain.Name())
 }
 
+func (i *instrumentation) markResurrected() {
+	WorkflowUpdateResurrected.Hit(i.log)
+}
+
 func (i *instrumentation) invalidStateTransition(updateID string, msg proto.Message, state state) {
 	i.oneOf(metrics.InvalidStateTransitionWorkflowExecutionUpdateCounter.Name())
 	i.log.Error("invalid state transition attempted",
