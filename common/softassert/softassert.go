@@ -46,3 +46,8 @@ func That(logger log.Logger, condition bool, msg string) bool {
 	}
 	return condition
 }
+
+func Fail(logger log.Logger, msg string, tags ...tag.Tag) {
+	// By using the same prefix for all assertions, they can be reliably found in logs.
+	logger.Error("failed assertion: "+msg, append(tags, tag.FailedAssertion)...)
+}

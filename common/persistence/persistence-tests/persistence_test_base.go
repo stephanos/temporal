@@ -222,6 +222,7 @@ func (s *TestBase) Setup(clusterMetadataConfig *cluster.Config) {
 		s.Logger,
 		metrics.NoopMetricsHandler,
 		s.TracerProvider,
+		nil,
 	)
 	factory := client.NewFactory(
 		dataStoreFactory,

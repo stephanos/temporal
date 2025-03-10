@@ -44,6 +44,8 @@ import (
 	namespacepb "go.temporal.io/api/namespace/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/acceptance"
+	"go.temporal.io/server/acceptance/propmodel"
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
@@ -53,9 +55,11 @@ import (
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/payloads"
 	"go.temporal.io/server/common/persistence"
+	"go.temporal.io/server/common/persistence/intercept"
 	"go.temporal.io/server/common/persistence/visibility"
 	"go.temporal.io/server/common/primitives"
 	"go.temporal.io/server/common/primitives/timestamp"
+	proptest "go.temporal.io/server/common/proptest"
 	"go.temporal.io/server/common/rpc"
 	"go.temporal.io/server/common/testing/historyrequire"
 	"go.temporal.io/server/common/testing/protorequire"
@@ -64,6 +68,7 @@ import (
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/environment"
 	"go.uber.org/fx"
+	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 )
 
@@ -92,12 +97,17 @@ type (
 		namespaceID namespace.ID
 		// TODO (alex): rename to externalNamespace
 		foreignNamespace namespace.Name
+
+		env     *proptest.Env
+		Cluster *propmodel.Cluster
 	}
 	// TestClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	TestClusterParams struct {
 		ServiceOptions         map[primitives.ServiceName][]fx.Option
 		DynamicConfigOverrides map[dynamicconfig.Key]any
 		ArchivalEnabled        bool
+		AdditionalInterceptors []grpc.UnaryServerInterceptor
+		PersistenceInterceptor intercept.PersistenceInterceptor
 	}
 	TestClusterOption func(params *TestClusterParams)
 )
@@ -116,6 +126,18 @@ type (
 func WithFxOptionsForService(serviceName primitives.ServiceName, options ...fx.Option) TestClusterOption {
 	return func(params *TestClusterParams) {
 		params.ServiceOptions[serviceName] = append(params.ServiceOptions[serviceName], options...)
+	}
+}
+
+func WithAdditionalGrpcInterceptors(interceptors ...grpc.UnaryServerInterceptor) TestClusterOption {
+	return func(params *TestClusterParams) {
+		params.AdditionalInterceptors = interceptors
+	}
+}
+
+func WithPersistenceInterceptor(interceptor intercept.PersistenceInterceptor) TestClusterOption {
+	return func(params *TestClusterParams) {
+		params.PersistenceInterceptor = interceptor
 	}
 }
 
@@ -176,7 +198,25 @@ func (s *FunctionalTestBase) FrontendGRPCAddress() string {
 }
 
 func (s *FunctionalTestBase) SetupSuite() {
-	s.SetupSuiteWithDefaultCluster()
+	// NOTE: A suite might set its own logger. Example: AcquireShardSuiteBase.
+	if s.Logger == nil {
+		tl := testlogger.NewTestLogger(s.T(), testlogger.FailOnExpectedErrorOnly)
+		// Instead of panic'ing immediately, TearDownTest will check if the test logger failed
+		// after each test completed. This is better since otherwise is would fail inside
+		// the server and not the test, creating a lot of noise and possibly stuck tests.
+		testlogger.DontPanicOnError(tl)
+		// Fail test when an assertion fails (see `softassert` package).
+		tl.Expect(testlogger.Error, ".*", tag.FailedAssertion)
+		s.Logger = tl
+	}
+
+	s.env = acceptance.InitEnv(s.Logger)
+	propmodel.NewCluster(s.env, "main")
+	monitor := propmodel.NewMonitor(s.env)
+	s.SetupSuiteWithDefaultCluster(
+		WithAdditionalGrpcInterceptors(monitor.GrpcInterceptor()),
+		WithPersistenceInterceptor(monitor.PersistenceInterceptor()),
+	)
 }
 
 func (s *FunctionalTestBase) TearDownSuite() {
@@ -199,18 +239,6 @@ func (s *FunctionalTestBase) SetupSuiteWithDefaultCluster(options ...TestCluster
 func (s *FunctionalTestBase) SetupSuiteWithCluster(clusterConfigFile string, options ...TestClusterOption) {
 	params := ApplyTestClusterOptions(options)
 
-	// NOTE: A suite might set its own logger. Example: AcquireShardSuiteBase.
-	if s.Logger == nil {
-		tl := testlogger.NewTestLogger(s.T(), testlogger.FailOnExpectedErrorOnly)
-		// Instead of panic'ing immediately, TearDownTest will check if the test logger failed
-		// after each test completed. This is better since otherwise is would fail inside
-		// the server and not the test, creating a lot of noise and possibly stuck tests.
-		testlogger.DontPanicOnError(tl)
-		// Fail test when an assertion fails (see `softassert` package).
-		tl.Expect(testlogger.Error, ".*", tag.FailedAssertion)
-		s.Logger = tl
-	}
-
 	// Setup test cluster.
 	var err error
 	s.testClusterConfig, err = readTestClusterConfig(clusterConfigFile)
@@ -228,6 +256,8 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(clusterConfigFile string, opt
 	// TODO (prathyush): remove this after setting it to true by default.
 	s.testClusterConfig.DynamicConfigOverrides[dynamicconfig.SendRawHistoryBetweenInternalServices.Key()] = true
 
+	s.testClusterConfig.AdditionalInterceptors = params.AdditionalInterceptors
+	s.testClusterConfig.PersistenceInterceptor = params.PersistenceInterceptor
 	s.testClusterConfig.ServiceFxOptions = params.ServiceOptions
 	s.testClusterConfig.EnableMetricsCapture = true
 	s.testClusterConfig.EnableArchival = params.ArchivalEnabled
@@ -441,6 +471,7 @@ func (s *FunctionalTestBase) RegisterNamespace(
 		tag.WorkflowNamespace(nsName.String()),
 		tag.WorkflowNamespaceID(nsID.String()),
 	)
+	propmodel.ImportNamespace(s.env, namespaceRequest)
 	return nsID, nil
 }
 
