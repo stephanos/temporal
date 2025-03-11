@@ -45,6 +45,7 @@ import (
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	sdkclient "go.temporal.io/sdk/client"
+	workflowserviceinc "go.temporal.io/server/api/workflowservice/v1"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/payload"
 	"go.temporal.io/server/common/testing/testvars"
@@ -1386,6 +1387,19 @@ func (s *DeploymentSuite) TestSetCurrent_UpdateMetadata() {
 	s.Nil(cur.CurrentDeploymentInfo.Metadata["key2"])
 	s.Equal(`"val3"`, payload.ToString(cur.CurrentDeploymentInfo.Metadata["key3"]))
 	s.Equal(`"val4"`, payload.ToString(cur.CurrentDeploymentInfo.Metadata["key4"]))
+}
+
+func (s *DeploymentSuite) TestDeploymentStats() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, err := s.FrontendIncClient().GetDeploymentStats(ctx, &workflowserviceinc.GetDeploymentStatsRequest{
+		Namespace:      s.Namespace().String(),
+		DeploymentName: "",
+	})
+	s.NoError(err)
+
+	// TODO
 }
 
 // Name is used by testvars. We use a shorten test name in variables so that physical task queue IDs

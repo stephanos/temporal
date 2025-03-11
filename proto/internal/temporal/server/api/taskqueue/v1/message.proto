@@ -120,3 +120,7 @@ message TaskForwardInfo {
     // Deprecated. [cleanup-old-wv]
     string dispatch_version_set = 5;
 }
+
+message DetailedTaskQueueStats {
+    int64 backlog_count_hint = 1;
+}

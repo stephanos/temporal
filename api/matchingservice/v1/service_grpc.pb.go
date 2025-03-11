@@ -62,6 +62,8 @@ const (
 	MatchingService_UpdateWorkerVersioningRules_FullMethodName            = "/temporal.server.api.matchingservice.v1.MatchingService/UpdateWorkerVersioningRules"
 	MatchingService_GetWorkerVersioningRules_FullMethodName               = "/temporal.server.api.matchingservice.v1.MatchingService/GetWorkerVersioningRules"
 	MatchingService_SyncDeploymentUserData_FullMethodName                 = "/temporal.server.api.matchingservice.v1.MatchingService/SyncDeploymentUserData"
+	MatchingService_GetTaskQueueStats_FullMethodName                      = "/temporal.server.api.matchingservice.v1.MatchingService/GetTaskQueueStats"
+	MatchingService_GetTaskQueuePartitionStats_FullMethodName             = "/temporal.server.api.matchingservice.v1.MatchingService/GetTaskQueuePartitionStats"
 	MatchingService_ApplyTaskQueueUserDataReplicationEvent_FullMethodName = "/temporal.server.api.matchingservice.v1.MatchingService/ApplyTaskQueueUserDataReplicationEvent"
 	MatchingService_GetBuildIdTaskQueueMapping_FullMethodName             = "/temporal.server.api.matchingservice.v1.MatchingService/GetBuildIdTaskQueueMapping"
 	MatchingService_ForceLoadTaskQueuePartition_FullMethodName            = "/temporal.server.api.matchingservice.v1.MatchingService/ForceLoadTaskQueuePartition"
@@ -150,6 +152,10 @@ type MatchingServiceClient interface {
 	GetWorkerVersioningRules(ctx context.Context, in *GetWorkerVersioningRulesRequest, opts ...grpc.CallOption) (*GetWorkerVersioningRulesResponse, error)
 	// This request should always be routed to the node holding the root partition of the workflow task queue.
 	SyncDeploymentUserData(ctx context.Context, in *SyncDeploymentUserDataRequest, opts ...grpc.CallOption) (*SyncDeploymentUserDataResponse, error)
+	// TODO
+	GetTaskQueueStats(ctx context.Context, in *GetTaskQueueStatsRequest, opts ...grpc.CallOption) (*GetTaskQueueStatsResponse, error)
+	// TODO
+	GetTaskQueuePartitionStats(ctx context.Context, in *GetTaskQueuePartitionStatsRequest, opts ...grpc.CallOption) (*GetTaskQueuePartitionStatsResponse, error)
 	// Apply a user data replication event.
 	ApplyTaskQueueUserDataReplicationEvent(ctx context.Context, in *ApplyTaskQueueUserDataReplicationEventRequest, opts ...grpc.CallOption) (*ApplyTaskQueueUserDataReplicationEventResponse, error)
 	// Gets all task queue names mapped to a given build ID
@@ -403,6 +409,24 @@ func (c *matchingServiceClient) SyncDeploymentUserData(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *matchingServiceClient) GetTaskQueueStats(ctx context.Context, in *GetTaskQueueStatsRequest, opts ...grpc.CallOption) (*GetTaskQueueStatsResponse, error) {
+	out := new(GetTaskQueueStatsResponse)
+	err := c.cc.Invoke(ctx, MatchingService_GetTaskQueueStats_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *matchingServiceClient) GetTaskQueuePartitionStats(ctx context.Context, in *GetTaskQueuePartitionStatsRequest, opts ...grpc.CallOption) (*GetTaskQueuePartitionStatsResponse, error) {
+	out := new(GetTaskQueuePartitionStatsResponse)
+	err := c.cc.Invoke(ctx, MatchingService_GetTaskQueuePartitionStats_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *matchingServiceClient) ApplyTaskQueueUserDataReplicationEvent(ctx context.Context, in *ApplyTaskQueueUserDataReplicationEventRequest, opts ...grpc.CallOption) (*ApplyTaskQueueUserDataReplicationEventResponse, error) {
 	out := new(ApplyTaskQueueUserDataReplicationEventResponse)
 	err := c.cc.Invoke(ctx, MatchingService_ApplyTaskQueueUserDataReplicationEvent_FullMethodName, in, out, opts...)
@@ -585,6 +609,10 @@ type MatchingServiceServer interface {
 	GetWorkerVersioningRules(context.Context, *GetWorkerVersioningRulesRequest) (*GetWorkerVersioningRulesResponse, error)
 	// This request should always be routed to the node holding the root partition of the workflow task queue.
 	SyncDeploymentUserData(context.Context, *SyncDeploymentUserDataRequest) (*SyncDeploymentUserDataResponse, error)
+	// TODO
+	GetTaskQueueStats(context.Context, *GetTaskQueueStatsRequest) (*GetTaskQueueStatsResponse, error)
+	// TODO
+	GetTaskQueuePartitionStats(context.Context, *GetTaskQueuePartitionStatsRequest) (*GetTaskQueuePartitionStatsResponse, error)
 	// Apply a user data replication event.
 	ApplyTaskQueueUserDataReplicationEvent(context.Context, *ApplyTaskQueueUserDataReplicationEventRequest) (*ApplyTaskQueueUserDataReplicationEventResponse, error)
 	// Gets all task queue names mapped to a given build ID
@@ -714,6 +742,12 @@ func (UnimplementedMatchingServiceServer) GetWorkerVersioningRules(context.Conte
 }
 func (UnimplementedMatchingServiceServer) SyncDeploymentUserData(context.Context, *SyncDeploymentUserDataRequest) (*SyncDeploymentUserDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncDeploymentUserData not implemented")
+}
+func (UnimplementedMatchingServiceServer) GetTaskQueueStats(context.Context, *GetTaskQueueStatsRequest) (*GetTaskQueueStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTaskQueueStats not implemented")
+}
+func (UnimplementedMatchingServiceServer) GetTaskQueuePartitionStats(context.Context, *GetTaskQueuePartitionStatsRequest) (*GetTaskQueuePartitionStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTaskQueuePartitionStats not implemented")
 }
 func (UnimplementedMatchingServiceServer) ApplyTaskQueueUserDataReplicationEvent(context.Context, *ApplyTaskQueueUserDataReplicationEventRequest) (*ApplyTaskQueueUserDataReplicationEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplyTaskQueueUserDataReplicationEvent not implemented")
@@ -1124,6 +1158,42 @@ func _MatchingService_SyncDeploymentUserData_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MatchingService_GetTaskQueueStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskQueueStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MatchingServiceServer).GetTaskQueueStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MatchingService_GetTaskQueueStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MatchingServiceServer).GetTaskQueueStats(ctx, req.(*GetTaskQueueStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MatchingService_GetTaskQueuePartitionStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskQueuePartitionStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MatchingServiceServer).GetTaskQueuePartitionStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MatchingService_GetTaskQueuePartitionStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MatchingServiceServer).GetTaskQueuePartitionStats(ctx, req.(*GetTaskQueuePartitionStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MatchingService_ApplyTaskQueueUserDataReplicationEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplyTaskQueueUserDataReplicationEventRequest)
 	if err := dec(in); err != nil {
@@ -1426,6 +1496,14 @@ var MatchingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncDeploymentUserData",
 			Handler:    _MatchingService_SyncDeploymentUserData_Handler,
+		},
+		{
+			MethodName: "GetTaskQueueStats",
+			Handler:    _MatchingService_GetTaskQueueStats_Handler,
+		},
+		{
+			MethodName: "GetTaskQueuePartitionStats",
+			Handler:    _MatchingService_GetTaskQueuePartitionStats_Handler,
 		},
 		{
 			MethodName: "ApplyTaskQueueUserDataReplicationEvent",
