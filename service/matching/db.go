@@ -256,7 +256,9 @@ func (db *taskQueueDB) OldUpdateState(
 		PrevRangeID:   db.rangeID,
 	})
 	if err == nil {
+		db.logger.Info("[pri] before OldUpdateState", tag.NewInt("subqueue", subqueueZero), tag.AckLevel(db.subqueues[subqueueZero].AckLevel))
 		db.subqueues[subqueueZero].AckLevel = ackLevel
+		db.logger.Info("[pri] after OldUpdateState", tag.NewInt("subqueue", subqueueZero), tag.AckLevel(db.subqueues[subqueueZero].AckLevel))
 	}
 	db.emitBacklogGauges()
 	return err
@@ -284,7 +286,9 @@ func (db *taskQueueDB) updateAckLevelAndCount(subqueue int, ackLevel int64, delt
 
 	db.lastChange = time.Now()
 	if ackLevel < db.subqueues[subqueue].AckLevel {
-		db.logger.DPanic("bug: ack level should not move backwards!")
+		db.logger.DPanic(
+			fmt.Sprintf("[pri] bug: ack level should not move backwards %v vs %v", ackLevel, db.subqueues[subqueue].AckLevel),
+			tag.NewInt("subqueue", subqueue))
 	}
 	db.subqueues[subqueue].AckLevel = ackLevel
 
@@ -548,8 +552,10 @@ func (db *taskQueueDB) ensureDefaultSubqueuesLocked(
 		// If we are transitioning from no-subqueues to subqueues, initialize subqueue 0 with
 		// the ack level and approx count from TaskQueueInfo.
 		if len(subqueues) == 1 {
+			db.logger.Info("[pri] before ensureDefaultSubqueuesLocked", tag.NewInt("subqueue", subqueueZero), tag.AckLevel(db.subqueues[subqueueZero].AckLevel))
 			subqueues[subqueueZero].AckLevel = initAckLevel
 			subqueues[subqueueZero].ApproximateBacklogCount = initApproxCount
+			db.logger.Info("[pri] before ensureDefaultSubqueuesLocked", tag.NewInt("subqueue", subqueueZero), tag.AckLevel(db.subqueues[subqueueZero].AckLevel))
 		}
 	}
 	return subqueues
@@ -562,6 +568,7 @@ func (db *taskQueueDB) newSubqueueLocked(key *persistencespb.SubqueueKey) *dbSub
 	s := &dbSubqueue{maxReadLevel: initAckLevel}
 	s.Key = key
 	s.AckLevel = initAckLevel
+	db.logger.Info("[pri] newSubqueue", tag.NewInt("subqueue", subqueueZero), tag.AckLevel(s.AckLevel))
 	return s
 }
 

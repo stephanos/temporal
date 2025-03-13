@@ -92,6 +92,7 @@ func newPriTaskReader(
 	subqueue int,
 	initialAckLevel int64,
 ) *priTaskReader {
+	backlogMgr.logger.Info("[pri] init reader", tag.NewInt("subqueue", subqueue), tag.AckLevel(initialAckLevel))
 	return &priTaskReader{
 		backlogMgr: backlogMgr,
 		subqueue:   subqueue,
@@ -162,8 +163,10 @@ func (tr *priTaskReader) completeTask(task *internalTask, res taskResponse) {
 
 	tr.backlogAge.record(task.event.AllocatedTaskInfo.Data.CreateTime, -1)
 
+	tr.logger.Info("[pri] before completeTask", tag.NewInt("subqueue", tr.subqueue), tag.TaskID(task.event.TaskId), tag.AckLevel(tr.ackLevel))
 	numAcked := tr.ackTaskLocked(task.event.TaskId)
 	newAckLevel := tr.ackLevel
+	tr.logger.Info("[pri] after completeTask", tag.NewInt("subqueue", tr.subqueue), tag.TaskID(task.event.TaskId), tag.AckLevel(tr.ackLevel))
 
 	tr.maybeGCLocked()
 
@@ -210,7 +213,9 @@ Loop:
 			tr.retrier.Reset()
 
 			if len(batch.tasks) == 0 {
+				tr.logger.Info("[pri] before setReadLevelAfterGap", tag.NewInt("subqueue", tr.subqueue), tag.AckLevel(tr.ackLevel))
 				tr.setReadLevelAfterGap(batch.readLevel)
+				tr.logger.Info("[pri] after setReadLevelAfterGap", tag.NewInt("subqueue", tr.subqueue), tag.AckLevel(tr.ackLevel))
 				if !batch.isReadBatchDone {
 					tr.SignalTaskLoading()
 				}
@@ -461,6 +466,7 @@ func (tr *priTaskReader) ackTaskLocked(taskId int64) int64 {
 			break
 		}
 		tr.ackLevel = minId.(int64) // nolint:revive
+		tr.logger.Info("[pri] also ack", tag.NewInt("subqueue", tr.subqueue), tag.AckLevel(tr.ackLevel))
 		tr.outstandingTasks.Remove(minId)
 		numAcked += 1
 	}
