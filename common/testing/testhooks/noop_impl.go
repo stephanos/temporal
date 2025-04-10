@@ -20,14 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//go:build !test_dep
-
 package testhooks
 
 import "go.uber.org/fx"
 
-var Module = fx.Options(
-	fx.Provide(func() (_ TestHooks) { return }),
+var NoopModule = fx.Options(
+	fx.Provide(func() (_ TestHooks) { return NoopTestHooks{} }),
 )
 
 type (
@@ -37,20 +35,17 @@ type (
 	// TestHooks are an inherently unclean way of writing tests. They require mixing test-only
 	// concerns into production code. In general you should prefer other ways of writing tests
 	// wherever possible, and only use TestHooks sparingly, as a last resort.
-	TestHooks struct{}
+	NoopTestHooks struct{}
 )
 
-// Get gets the value of a test hook. In production mode it always returns the zero value and
-// false, which hopefully the compiler will inline and remove the hook as dead code.
-//
-// TestHooks should be used very sparingly, see comment on TestHooks.
-func Get[T any](_ TestHooks, key Key) (T, bool) {
-	var zero T
-	return zero, false
+func (n NoopTestHooks) get(key Key) (any, bool) {
+	return nil, false
 }
 
-// Call calls a func() hook if present.
-//
-// TestHooks should be used very sparingly, see comment on TestHooks.
-func Call(_ TestHooks, key Key) {
+func (n NoopTestHooks) set(key Key, a any) {
+	panic("not supported") // must fail to notice that test is using wrong testhooks impl
+}
+
+func (n NoopTestHooks) del(key Key) {
+	panic("not supported") // must fail to notice that test is using wrong testhooks impl
 }

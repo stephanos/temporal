@@ -129,7 +129,7 @@ var Module = fx.Options(
 	fx.Provide(health.NewServer),
 	deadlock.Module,
 	config.Module,
-	testhooks.Module,
+	testhooks.NoopModule,
 	fx.Provide(commonnexus.NewLoggedHTTPClientTraceProvider),
 )
 
