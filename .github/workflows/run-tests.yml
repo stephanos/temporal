@@ -413,7 +413,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: ${{ fromJson(needs.set-up-single-test.outputs.runs_on) }}
         shard_index: ${{ fromJson(needs.set-up-single-test.outputs.shard_indices) }}
         name:
           - cass_es
@@ -428,27 +427,33 @@ jobs:
             persistence_driver: cassandra
             containers: [cassandra, elasticsearch]
             es_version: v7
+            runs-on: ubuntu-latest-16-cores
           - name: cass_es8
             persistence_type: nosql
             persistence_driver: cassandra
             containers: [cassandra, elasticsearch8]
             es_version: v8
+            runs-on: ubuntu-latest-16-cores
           - name: sqlite
             persistence_type: sql
             persistence_driver: sqlite
             containers: []
+            runs-on: ubuntu-latest
           - name: mysql8
             persistence_type: sql
             persistence_driver: mysql8
             containers: [mysql]
+            runs-on: ubuntu-latest
           - name: postgres12
             persistence_type: sql
             persistence_driver: postgres12
             containers: [postgresql]
+            runs-on: ubuntu-latest
           - name: postgres12_pgx
             persistence_type: sql
             persistence_driver: postgres12_pgx
             containers: [postgresql]
+            runs-on: ubuntu-latest
     runs-on: ${{ matrix.runs-on }}
     env:
       TEST_TOTAL_SHARDS: ${{ needs.set-up-single-test.outputs.total_shards }}
@@ -579,27 +584,32 @@ jobs:
             persistence_driver: elasticsearch
             parallel_flags: ""
             containers: [cassandra, elasticsearch]
+            runs-on: ubuntu-latest-16-cores
           - name: cass_es8
             persistence_type: nosql
             persistence_driver: elasticsearch
             parallel_flags: ""
             containers: [cassandra, elasticsearch8]
+            runs-on: ubuntu-latest-16-cores
           - name: mysql8
             persistence_type: sql
             persistence_driver: mysql8
             parallel_flags: ""
             containers: [mysql]
+            runs-on: ubuntu-latest
           - name: postgres12
             persistence_type: sql
             persistence_driver: postgres12
             parallel_flags: "-parallel=2" # reduce parallelism for postgres
             containers: [postgresql]
+            runs-on: ubuntu-latest
           - name: postgres12_pgx
             persistence_type: sql
             persistence_driver: postgres12_pgx
             parallel_flags: "-parallel=2" # reduce parallelism for postgres
             containers: [postgresql]
-    runs-on: ubuntu-latest
+            runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     env:
       PERSISTENCE_TYPE: ${{ matrix.persistence_type }}
       PERSISTENCE_DRIVER: ${{ matrix.persistence_driver }}
@@ -722,24 +732,29 @@ jobs:
             persistence_driver: elasticsearch
             containers: [cassandra, elasticsearch]
             es_version: v7
+            runs-on: ubuntu-latest
           - name: cass_es8
             persistence_type: nosql
             persistence_driver: elasticsearch
             containers: [cassandra, elasticsearch8]
             es_version: v8
+            runs-on: ubuntu-latest
           - name: mysql8
             persistence_type: sql
             persistence_driver: mysql8
             containers: [mysql]
+            runs-on: ubuntu-latest
           - name: postgres12
             persistence_type: sql
             persistence_driver: postgres12
             containers: [postgresql]
+            runs-on: ubuntu-latest
           - name: postgres12_pgx
             persistence_type: sql
             persistence_driver: postgres12_pgx
             containers: [postgresql]
-    runs-on: ubuntu-latest
+            runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     env:
       PERSISTENCE_TYPE: ${{ matrix.persistence_type }}
       PERSISTENCE_DRIVER: ${{ matrix.persistence_driver }}
