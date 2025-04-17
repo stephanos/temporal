@@ -199,6 +199,8 @@ func newPhysicalTaskQueueManager(
 	})
 	pqMgr.cancelSub = cancelSub
 
+	// TODO: handle config.EnableFairness change
+
 	if newMatcher {
 		pqMgr.backlogMgr = newPriBacklogManager(
 			tqCtx,

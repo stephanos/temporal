@@ -215,6 +215,7 @@ var _ Engine = (*matchingEngineImpl)(nil) // Asserts that interface is indeed im
 // NewEngine creates an instance of matching engine
 func NewEngine(
 	taskManager persistence.TaskManager,
+	taskFairnessManager persistence.TaskFairnessManager,
 	historyClient resource.HistoryClient,
 	matchingRawClient resource.MatchingRawClient,
 	deploymentStoreClient deployment.DeploymentStoreClient, // [wv-cleanup-pre-release]

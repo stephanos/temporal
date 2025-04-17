@@ -97,6 +97,15 @@ func (f *Factory) NewTaskStore() (p.TaskStore, error) {
 	return newTaskPersistence(conn, f.cfg.TaskScanPartitions, f.logger)
 }
 
+// NewTaskFairnessStore returns a new task store
+func (f *Factory) NewTaskFairnessStore() (p.TaskStore, error) {
+	conn, err := f.mainDBConn.Get()
+	if err != nil {
+		return nil, err
+	}
+	return newTaskPersistence(conn, f.cfg.TaskScanPartitions, f.logger)
+}
+
 // NewShardStore returns a new shard store
 func (f *Factory) NewShardStore() (p.ShardStore, error) {
 	conn, err := f.mainDBConn.Get()
