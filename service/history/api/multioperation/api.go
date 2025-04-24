@@ -38,6 +38,7 @@ import (
 	"go.temporal.io/server/common/locks"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/persistence/visibility/manager"
+	"go.temporal.io/server/common/softassert"
 	"go.temporal.io/server/common/tasktoken"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/service/history/api"
@@ -128,40 +129,56 @@ func Invoke(
 }
 
 func (mo *multiOp) Invoke(ctx context.Context) (*historyservice.ExecuteMultiOperationResponse, error) {
-	// For workflow id conflict policy terminate-existing, always attempt a start
-	// since that works when the workflow is already running *and* when it's not running.
 	conflictPolicy := mo.startReq.StartRequest.WorkflowIdConflictPolicy
-	if conflictPolicy == enumspb.WORKFLOW_ID_CONFLICT_POLICY_TERMINATE_EXISTING {
-		resp, err := mo.startAndUpdateWorkflow(ctx)
-		var noStartErr *noStartError
-		switch {
-		case errors.As(err, &noStartErr):
-			// The start request was deduped, no termination is needed.
-			// Continue below by only sending the update.
-		case err != nil:
-			return nil, err
-		default:
-			return resp, nil
-		}
-	}
 
-	runningWorkflowLease, err := mo.getRunningWorkflowLease(ctx)
+	workflowLease, err := mo.getWorkflowLease(ctx)
 	if err != nil {
 		return nil, err
 	}
+	if workflowLease == nil {
+		// Workflow was not started yet. Will try to start it below.
+	} else if workflowLease.GetMutableState().IsWorkflowExecutionRunning() {
+		// Workflow is still running.
+		if conflictPolicy != enumspb.WORKFLOW_ID_CONFLICT_POLICY_TERMINATE_EXISTING {
+			// Attempt to terminate the workflow.
+			resp, err := mo.startAndUpdateWorkflow(ctx)
+			var noStartErr *noStartError
+			switch {
+			case errors.As(err, &noStartErr):
+				// The start request was deduped, no termination is needed.
+				// Continue below to send the update.
+			case err != nil:
+				return nil, err
+			default:
+				return resp, nil
+			}
+		}
 
-	// Workflow was already started ...
-	if runningWorkflowLease != nil {
-		if err = mo.allowUpdateWorkflow(ctx, runningWorkflowLease, conflictPolicy); err != nil {
-			runningWorkflowLease.GetReleaseFn()(nil) // nil since nothing was modified
+		// Send the update directly.
+		if err = mo.allowUpdateRunningWorkflow(workflowLease, conflictPolicy); err != nil {
+			workflowLease.GetReleaseFn()(nil) // nil since nothing was modified
 			return nil, err
 		}
-		return mo.updateWorkflow(ctx, runningWorkflowLease)
+		return mo.updateWorkflow(ctx, workflowLease)
+	} else if outcome, err := workflowLease.GetMutableState().GetUpdateOutcome(ctx, mo.updateReq.Request.Request.Meta.GetUpdateId()); err == nil {
+		// Workflow is not running anymore and the update already completed - return the outcome.
+		workflowKey := workflowLease.GetContext().GetWorkflowKey()
+		workflowLease.GetReleaseFn()(nil)
+		startResp := &historyservice.StartWorkflowExecutionResponse{
+			RunId:   workflowKey.RunID,
+			Started: false, // set explicitly for emphasis
+			// TODO: Running: false,
+		}
+		updateResp := mo.updater.CreateResponse(workflowKey, outcome, enumspb.UPDATE_WORKFLOW_EXECUTION_LIFECYCLE_STAGE_COMPLETED)
+		return makeResponse(startResp, updateResp), nil
+	} else {
+		// Workflow is closed. Will try to start it below.
+		workflowLease.GetReleaseFn()(nil)
 	}
 
 	testhooks.Call(mo.testHooks, testhooks.UpdateWithStartInBetweenLockAndStart)
 
-	// Workflow hasn't been started yet ...
+	// Workflow hasn't been started at all - or is closed.
 	resp, err := mo.startAndUpdateWorkflow(ctx)
 	var noStartErr *noStartError
 	if errors.As(err, &noStartErr) {
@@ -230,7 +247,7 @@ func (mo *multiOp) workflowLeaseCallback(
 	}
 }
 
-func (mo *multiOp) getRunningWorkflowLease(ctx context.Context) (api.WorkflowLease, error) {
+func (mo *multiOp) getWorkflowLease(ctx context.Context) (api.WorkflowLease, error) {
 	runningWorkflowLease, err := mo.consistencyChecker.GetWorkflowLease(
 		ctx,
 		nil,
@@ -244,21 +261,10 @@ func (mo *multiOp) getRunningWorkflowLease(ctx context.Context) (api.WorkflowLea
 	if err != nil {
 		return nil, newMultiOpError(err, multiOpAbortedErr)
 	}
-
-	if runningWorkflowLease == nil {
-		return nil, nil
-	}
-
-	if !runningWorkflowLease.GetMutableState().IsWorkflowExecutionRunning() {
-		runningWorkflowLease.GetReleaseFn()(nil)
-		return nil, nil
-	}
-
 	return runningWorkflowLease, nil
 }
 
-func (mo *multiOp) allowUpdateWorkflow(
-	ctx context.Context,
+func (mo *multiOp) allowUpdateRunningWorkflow(
 	currentWorkflowLease api.WorkflowLease,
 	conflictPolicy enumspb.WorkflowIdConflictPolicy,
 ) error {
@@ -283,7 +289,8 @@ func (mo *multiOp) allowUpdateWorkflow(
 		return newMultiOpError(err, multiOpAbortedErr)
 
 	case enumspb.WORKFLOW_ID_CONFLICT_POLICY_TERMINATE_EXISTING:
-		// Allow sending the update since the termination was deduped earlier.
+		softassert.Fail(mo.shardContext.GetLogger(),
+			"workflow id conflict policy terminate existing should not be used here")
 		return nil
 
 	case enumspb.WORKFLOW_ID_CONFLICT_POLICY_UNSPECIFIED:
