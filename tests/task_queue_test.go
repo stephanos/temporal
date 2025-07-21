@@ -7,17 +7,20 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/sdk/activity"
 	sdkclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/testing/testvars"
 	"go.temporal.io/server/tests/testcore"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type TaskQueueSuite struct {
@@ -209,8 +212,8 @@ func (s *TaskQueueSuite) TestTaskQueueAPIRateLimitOverridesWorkerLimit() {
 	s.NoError(err)
 
 	// Start `taskCount` number of workflows, each of which will schedule one activity task.
-	activity := func(context.Context) error {
-		// last activity run at
+	activityFunc := func(context.Context) error {
+		// TODO: last activity run at
 		fmt.Printf("Activity in progress : %s", time.Now().String())
 		return nil
 	}
@@ -219,7 +222,7 @@ func (s *TaskQueueSuite) TestTaskQueueAPIRateLimitOverridesWorkerLimit() {
 			StartToCloseTimeout: 5 * time.Second,
 		}
 		ctx = workflow.WithActivityOptions(ctx, ao)
-		return workflow.ExecuteActivity(ctx, activity).Get(ctx, nil)
+		return workflow.ExecuteActivity(ctx, "activityFunc").Get(ctx, nil)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), drainTimeout*2)
@@ -231,24 +234,39 @@ func (s *TaskQueueSuite) TestTaskQueueAPIRateLimitOverridesWorkerLimit() {
 			ID:        fmt.Sprintf("wf-%d", i),
 		}, workflowFn)
 		s.NoError(err)
+
+		_, err = s.TaskPoller().PollAndHandleWorkflowTask(tv,
+			func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
+				return &workflowservice.RespondWorkflowTaskCompletedRequest{
+					Commands: []*commandpb.Command{
+						{
+							CommandType: enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK,
+							Attributes: &commandpb.Command_ScheduleActivityTaskCommandAttributes{
+								ScheduleActivityTaskCommandAttributes: &commandpb.ScheduleActivityTaskCommandAttributes{
+									ActivityId:          tv.ActivityID(),
+									ActivityType:        &commonpb.ActivityType{Name: "activityFunc"},
+									TaskQueue:           &taskqueuepb.TaskQueue{Name: tv.TaskQueue().GetName(), Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
+									StartToCloseTimeout: durationpb.New(5 * time.Second),
+								},
+							},
+						},
+					},
+				}, nil
+			})
+		s.NoError(err)
 	}
+
+	s.Eventually(func() bool {
+		fmt.Printf("Backlog before rps in effect")
+		return s.retrieveBacklogCount(ctx, tv, sdkclient.TaskQueueTypeActivity) == taskCount
+	}, drainTimeout*2, 100*time.Millisecond)
 
 	// Start worker with `workerRPS` which needs to be overriden.
 	w := worker.New(s.SdkClient(), tv.TaskQueue().GetName(), worker.Options{
 		TaskQueueActivitiesPerSecond: workerRPS,
 	})
-	s.Eventually(func() bool {
-		fmt.Printf("Backlog fo workflow task queue")
-		return s.retrieveBacklogCount(ctx, tv, sdkclient.TaskQueueTypeWorkflow) == taskCount
-	}, drainTimeout*2, 100*time.Millisecond)
-	fmt.Printf("******")
-	w.RegisterWorkflow(workflowFn)
+	w.RegisterActivityWithOptions(activityFunc, activity.RegisterOptions{Name: "activityFunc"})
 	s.NoError(w.Start())
-	s.Eventually(func() bool {
-		fmt.Printf("Backlog before rps in effect")
-		return s.retrieveBacklogCount(ctx, tv, sdkclient.TaskQueueTypeActivity) == taskCount
-	}, drainTimeout*2, 100*time.Millisecond)
-	w.RegisterActivity(activity)
 	defer w.Stop()
 
 	// Determine the time taken for the backlog to drain
