@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"testing"
 	"time"
 
 	"github.com/dgryski/go-farm"
@@ -156,6 +157,15 @@ func WithNumHistoryShards(n int32) TestClusterOption {
 	}
 }
 
+func (s *FunctionalTestBase) Clone(t *testing.T) *FunctionalTestBase {
+	res := &FunctionalTestBase{
+		testCluster: s.testCluster,
+		Logger:      s.Logger,
+	}
+	res.SetT(t)
+	return res
+}
+
 func (s *FunctionalTestBase) GetTestCluster() *TestCluster {
 	return s.testCluster
 }
@@ -288,7 +298,7 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 func (s *FunctionalTestBase) SetupTest() {
 	s.checkTestShard()
 	s.initAssertions()
-	s.setupSdk()
+	//s.setupSdk() TODO: don't do this for every suite even if it doens't use the SDK
 	s.taskPoller = taskpoller.New(s.T(), s.FrontendClient(), s.Namespace().String())
 
 	// Annotate gRPC requests with the test name for OTEL tracing.
