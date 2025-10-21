@@ -33,6 +33,11 @@ type (
 		wrapped stats.Handler
 		tags    *logtags.WorkflowTags
 	}
+
+	customClientStatsHandler struct {
+		isDebug bool
+		wrapped stats.Handler
+	}
 )
 
 // NewServerStatsHandler creates a new gRPC stats handler that tracks each request with an encapsulating span
@@ -68,9 +73,11 @@ func NewClientStatsHandler(
 		return nil
 	}
 
-	return otelgrpc.NewClientHandler(
-		otelgrpc.WithPropagators(tmp),
-		otelgrpc.WithTracerProvider(tp),
+	return newCustomClientStatsHandler(
+		otelgrpc.NewClientHandler(
+			otelgrpc.WithPropagators(tmp),
+			otelgrpc.WithTracerProvider(tp),
+		),
 	)
 }
 
@@ -194,4 +201,64 @@ func (c *customServerStatsHandler) HandleConn(ctx context.Context, stat stats.Co
 func isEnabled(tp trace.TracerProvider) bool {
 	_, isNoop := tp.(otelnoop.TracerProvider)
 	return !isNoop
+}
+
+func newCustomClientStatsHandler(handler stats.Handler) *customClientStatsHandler {
+	return &customClientStatsHandler{
+		wrapped: handler,
+		isDebug: DebugMode(),
+	}
+}
+
+func (c *customClientStatsHandler) TagRPC(ctx context.Context, info *stats.RPCTagInfo) context.Context {
+	return c.wrapped.TagRPC(ctx, info)
+}
+
+func (c *customClientStatsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
+	// Handle client-side RPC stats similar to server-side
+	switch s := stat.(type) {
+	case *stats.OutPayload:
+		// Client sending request
+		if c.isDebug {
+			span := trace.SpanFromContext(ctx)
+			//revive:disable-next-line:unchecked-type-assertion
+			reqMsg := s.Payload.(proto.Message)
+			payload, _ := protojson.Marshal(reqMsg)
+			msgType := string(proto.MessageName(reqMsg).Name())
+			span.SetAttributes(attribute.Key("rpc.request.payload").String(string(payload)))
+			span.SetAttributes(attribute.Key("rpc.request.type").String(msgType))
+		}
+	case *stats.InPayload:
+		// Client receiving response
+		if c.isDebug {
+			span := trace.SpanFromContext(ctx)
+			//revive:disable-next-line:unchecked-type-assertion
+			respMsg := s.Payload.(proto.Message)
+			payload, _ := protojson.Marshal(respMsg)
+			msgType := string(proto.MessageName(respMsg).Name())
+			span.SetAttributes(attribute.Key("rpc.response.payload").String(string(payload)))
+			span.SetAttributes(attribute.Key("rpc.response.type").String(msgType))
+		}
+	case *stats.End:
+		// Annotate with gRPC error payload
+		if c.isDebug {
+			span := trace.SpanFromContext(ctx)
+			//revive:disable-next-line:unchecked-type-assertion
+			statusErr, ok := status.FromError(s.Error)
+			if ok && statusErr != nil {
+				payload, _ := protojson.Marshal(statusErr.Proto())
+				span.SetAttributes(attribute.Key("rpc.response.error").String(string(payload)))
+			}
+		}
+	}
+
+	c.wrapped.HandleRPC(ctx, stat)
+}
+
+func (c *customClientStatsHandler) TagConn(ctx context.Context, info *stats.ConnTagInfo) context.Context {
+	return c.wrapped.TagConn(ctx, info)
+}
+
+func (c *customClientStatsHandler) HandleConn(ctx context.Context, stat stats.ConnStats) {
+	c.wrapped.HandleConn(ctx, stat)
 }
