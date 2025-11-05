@@ -117,3 +117,57 @@ func (s *LostTaskTestSuite) TestLostTaskDetection() {
 	})
 	s.NoError(err)
 }
+
+// TestStuckWorkflowDetection verifies that umpire detects when a workflow is started but never completes.
+// This test simulates a scenario where:
+// 1. A workflow is started
+// 2. The workflow never receives a RespondWorkflowTaskCompleted response
+// 3. Umpire detects the workflow is stuck in the "started" state
+func (s *LostTaskTestSuite) TestStuckWorkflowDetection() {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// Start a workflow without any workers and without completing it
+	workflowID := "umpire-stuck-workflow-test"
+	workflowType := "TestWorkflow"
+	taskQueue := s.TaskQueue()
+
+	startResp, err := s.FrontendClient().StartWorkflowExecution(ctx, &workflowservice.StartWorkflowExecutionRequest{
+		Namespace:    s.Namespace().String(),
+		WorkflowId:   workflowID,
+		WorkflowType: &commonpb.WorkflowType{Name: workflowType},
+		TaskQueue:    &taskqueuepb.TaskQueue{Name: taskQueue},
+	})
+	s.NoError(err)
+	s.T().Logf("Workflow started: %s/%s on task queue %s", workflowID, startResp.GetRunId(), taskQueue)
+
+	// Wait for umpire to detect the stuck workflow
+	// The model checks for workflows that were started but never completed
+	s.T().Logf("Waiting for umpire to detect stuck workflow...")
+
+	s.Eventually(func() bool {
+		violations := s.GetUmpire().Check(ctx)
+		if len(violations) > 0 {
+			s.T().Logf("Umpire detected %d violation(s):", len(violations))
+			for _, v := range violations {
+				s.T().Logf("  [%s] %s - Tags: %v", v.Model, v.Message, v.Tags)
+				if v.Model == "stuckworkflow" {
+					return true
+				}
+			}
+		}
+		s.T().Logf("Umpire Check returned 0 stuck workflow violations, waiting...")
+		return false
+	}, 60*time.Second, 1*time.Second, "Expected umpire to detect stuck workflow")
+
+	// Clean up
+	_, err = s.FrontendClient().TerminateWorkflowExecution(ctx, &workflowservice.TerminateWorkflowExecutionRequest{
+		Namespace: s.Namespace().String(),
+		WorkflowExecution: &commonpb.WorkflowExecution{
+			WorkflowId: workflowID,
+			RunId:      startResp.GetRunId(),
+		},
+		Reason: "test cleanup",
+	})
+	s.NoError(err)
+}

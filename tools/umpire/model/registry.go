@@ -57,6 +57,7 @@ func NewRegistry() *Registry {
 		registry: make(map[string]Factory),
 	}
 	r.Register("losttask", func() Model { return &LostTaskModel{} })
+	r.Register("stuckworkflow", func() Model { return &StuckWorkflowModel{} })
 	return r
 }
 

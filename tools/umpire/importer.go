@@ -30,6 +30,8 @@ func NewImporter() *Importer {
 	imp.parsers["temporal.server.api.matchingservice.v1.MatchingService/PollWorkflowTaskQueue"] = &event.PollWorkflowTaskEvent{}
 	imp.parsers["temporal.server.api.matchingservice.v1.MatchingService/AddActivityTask"] = &event.AddActivityTaskEvent{}
 	imp.parsers["temporal.server.api.matchingservice.v1.MatchingService/PollActivityTaskQueue"] = &event.PollActivityTaskEvent{}
+	imp.parsers["temporal.server.api.historyservice.v1.HistoryService/StartWorkflowExecution"] = &event.StartWorkflowEvent{}
+	imp.parsers["temporal.server.api.historyservice.v1.HistoryService/RespondWorkflowTaskCompleted"] = &event.RespondWorkflowTaskCompletedEvent{}
 
 	return imp
 }
