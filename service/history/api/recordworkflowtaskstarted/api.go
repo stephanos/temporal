@@ -65,7 +65,6 @@ func Invoke(
 		antithesisBugLikelihood = int32(n)
 	}
 	r := rand.Int31n(antithesisBugLikelihood)
-	fmt.Println("simulating a bug?", r)
 	if r == 1 {
 		fmt.Println("simulating a bug")
 		return nil, serviceerrors.NewObsoleteMatchingTask("simulating a bug")
