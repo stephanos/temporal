@@ -3,6 +3,10 @@ package recordworkflowtaskstarted
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/rand"
+	"os"
+	"strconv"
 
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -51,6 +55,21 @@ func Invoke(
 
 	var workflowKey definition.WorkflowKey
 	var resp *historyservice.RecordWorkflowTaskStartedResponseWithRawHistory
+
+	antithesisBugLikelihood := int32(100)
+	if s, ok := os.LookupEnv("ANTITHESIS_BUG_LIKELIHOOD"); ok {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			return nil, err
+		}
+		antithesisBugLikelihood = int32(n)
+	}
+	r := rand.Int31n(antithesisBugLikelihood)
+	fmt.Println("simulating a bug?", r)
+	if r == 1 {
+		fmt.Println("simulating a bug")
+		return nil, serviceerrors.NewObsoleteMatchingTask("simulating a bug")
+	}
 
 	err = api.GetAndUpdateWorkflowWithNew(
 		ctx,
