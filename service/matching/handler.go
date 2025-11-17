@@ -2,6 +2,9 @@ package matching
 
 import (
 	"context"
+	"math/rand"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,6 +16,7 @@ import (
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/cluster"
 	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/membership"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
@@ -192,6 +196,24 @@ func (h *Handler) AddWorkflowTask(
 
 	if request.GetForwardInfo() != nil {
 		h.reportForwardedPerTaskQueueCounter(opMetrics, namespace.ID(request.GetNamespaceId()))
+	}
+
+	antithesisBugLikelihood := int32(100)
+	if s, ok := os.LookupEnv("ANTITHESIS_BUG_LIKELIHOOD"); ok {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			return nil, err
+		}
+		antithesisBugLikelihood = int32(n)
+	}
+	r := rand.Int31n(antithesisBugLikelihood)
+	if r == 1 {
+		h.logger.Warn("simulating a bug: drop workflow task",
+			tag.WorkflowNamespaceID(request.GetNamespaceId()),
+			tag.WorkflowTaskQueueName(request.GetTaskQueue().GetName()),
+			tag.WorkflowID(request.Execution.GetWorkflowId()),
+			tag.WorkflowRunID(request.Execution.GetRunId()))
+		return &matchingservice.AddWorkflowTaskResponse{}, nil
 	}
 
 	assignedBuildId, syncMatch, err := h.engine.AddWorkflowTask(ctx, request)
