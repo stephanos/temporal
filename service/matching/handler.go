@@ -20,7 +20,7 @@ import (
 	"go.temporal.io/server/common/persistence/visibility/manager"
 	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/common/searchattribute"
-	"go.temporal.io/server/common/testing/pitcher"
+	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/tqid"
 	"go.temporal.io/server/service/matching/workers"
@@ -167,7 +167,7 @@ func (h *Handler) AddActivityTask(
 
 	// Pitcher intercept for fault injection in tests
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "matchingservice.AddActivityTask"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -200,7 +200,7 @@ func (h *Handler) AddWorkflowTask(
 
 	// Pitcher intercept for fault injection in tests
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "matchingservice.AddWorkflowTask"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -233,7 +233,7 @@ func (h *Handler) PollActivityTaskQueue(
 
 	// Pitcher intercept for fault injection in tests
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "matchingservice.PollActivityTaskQueue"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -269,7 +269,7 @@ func (h *Handler) PollWorkflowTaskQueue(
 
 	// Pitcher intercept for fault injection in tests
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "matchingservice.PollWorkflowTaskQueue"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}

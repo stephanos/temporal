@@ -41,7 +41,6 @@ import (
 	"go.temporal.io/server/common/rpc"
 	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/testing/historyrequire"
-	"go.temporal.io/server/common/testing/pitcher"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testhooks"
@@ -49,7 +48,9 @@ import (
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
-	"go.temporal.io/server/tools/umpire"
+	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/tools/catch/scout"
+	"go.temporal.io/server/tools/catch/umpire"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -234,8 +235,10 @@ func (s *FunctionalTestBase) GetUmpire() *umpire.Umpire {
 	return s.umpire
 }
 
-func (s *FunctionalTestBase) ConfigurePitcher(target string, config pitcher.PitchConfig) {
-	s.GetTestCluster().Pitcher().Configure(target, config)
+// ConfigurePitcher configures fault injection for a specific RPC method.
+// The targetType should be a proto message type (e.g., &matchingservice.AddWorkflowTaskRequest{}).
+func (s *FunctionalTestBase) ConfigurePitcher(targetType any, config pitcher.PlayConfig) {
+	s.GetTestCluster().Pitcher().Configure(targetType, config)
 }
 
 func (s *FunctionalTestBase) SetupSuite() {
@@ -302,8 +305,8 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 	})
 	s.Require().NoError(err)
 
-	// Create an umpire span exporter and add it to the test cluster config.
-	umpireExporter := umpire.NewSpanExporter(s.umpire)
+	// Create a scout span exporter that reports to the umpire.
+	umpireExporter := scout.NewSpanExporter(s.umpire)
 	if s.testClusterConfig.SpanExporters == nil {
 		s.testClusterConfig.SpanExporters = make(map[telemetry.SpanExporterType]sdktrace.SpanExporter)
 	}

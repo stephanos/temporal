@@ -42,7 +42,7 @@ import (
 	"go.temporal.io/server/common/searchattribute"
 	serviceerrors "go.temporal.io/server/common/serviceerror"
 	"go.temporal.io/server/common/tasktoken"
-	"go.temporal.io/server/common/testing/pitcher"
+	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/service/history/api"
 	"go.temporal.io/server/service/history/api/deletedlqtasks"
@@ -528,7 +528,7 @@ func (h *Handler) RespondWorkflowTaskCompleted(ctx context.Context, request *his
 
 	// Pitcher intercept for fault injection in tests
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "historyservice.RespondWorkflowTaskCompleted"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -623,7 +623,7 @@ func (h *Handler) StartWorkflowExecution(ctx context.Context, request *historyse
 
 	// Pitcher intercept for fault injection in tests
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "historyservice.StartWorkflowExecution"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}

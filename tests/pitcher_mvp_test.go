@@ -31,7 +31,7 @@ import (
 	sdkclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
-	"go.temporal.io/server/common/testing/pitcher"
+	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/tests/testcore"
 )
 
@@ -49,11 +49,10 @@ func (s *PitcherMVPSuite) TestPitcherIntegration() {
 	defer cancel()
 
 	// Configure pitcher: fail first AddWorkflowTask call
-	s.ConfigurePitcher("matchingservice.AddWorkflowTask", pitcher.PitchConfig{
-		Action: "fail",
-		Count:  1, // Only inject once
-		Params: map[string]any{
-			"error": pitcher.ErrorResourceExhausted,
+	s.ConfigurePitcher("matchingservice.AddWorkflowTask", pitcher.PlayConfig{
+		Play: pitcher.FailPlay(pitcher.ErrorResourceExhausted),
+		Match: &pitcher.MatchCriteria{
+			// No criteria means match first request
 		},
 	})
 

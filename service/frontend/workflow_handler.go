@@ -64,7 +64,7 @@ import (
 	"go.temporal.io/server/common/rpc/interceptor"
 	"go.temporal.io/server/common/sdk"
 	"go.temporal.io/server/common/searchattribute"
-	"go.temporal.io/server/common/testing/pitcher"
+	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/common/tasktoken"
 	"go.temporal.io/server/common/tqid"
 	"go.temporal.io/server/common/util"
@@ -388,7 +388,7 @@ func (wh *WorkflowHandler) StartWorkflowExecution(
 	defer log.CapturePanic(wh.logger, &retError)
 
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "workflowservice.StartWorkflowExecution"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -1907,7 +1907,7 @@ func (wh *WorkflowHandler) RequestCancelWorkflowExecution(ctx context.Context, r
 	defer log.CapturePanic(wh.logger, &retError)
 
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "workflowservice.RequestCancelWorkflowExecution"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -1946,7 +1946,7 @@ func (wh *WorkflowHandler) SignalWorkflowExecution(ctx context.Context, request 
 	defer log.CapturePanic(wh.logger, &retError)
 
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "workflowservice.SignalWorkflowExecution"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -2165,7 +2165,7 @@ func (wh *WorkflowHandler) TerminateWorkflowExecution(ctx context.Context, reque
 	defer log.CapturePanic(wh.logger, &retError)
 
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "workflowservice.TerminateWorkflowExecution"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}
@@ -2778,7 +2778,7 @@ func (wh *WorkflowHandler) QueryWorkflow(ctx context.Context, request *workflows
 	defer log.CapturePanic(wh.logger, &retError)
 
 	if p := pitcher.Get(); p != nil {
-		if err := p.Throw(ctx, "workflowservice.QueryWorkflow"); err != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
 			return nil, err
 		}
 	}

@@ -53,7 +53,7 @@ import (
 	"go.temporal.io/server/common/searchattribute"
 	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/testing/grpcinject"
-	"go.temporal.io/server/common/testing/pitcher"
+	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/service/frontend"
 	"go.temporal.io/server/service/history"
@@ -982,7 +982,7 @@ func (c *TemporalImpl) overrideDynamicConfig(t *testing.T, name dynamicconfig.Ke
 }
 
 func (c *TemporalImpl) injectHook(t *testing.T, key testhooks.Key, value any) func() {
-	cleanup := testhooks.Set(c.testHooks, key, value)
+	cleanup := testhooks.Set[any](c.testHooks, key, value)
 	t.Cleanup(cleanup)
 	return cleanup
 }
