@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/server/common/persistence/visibility/manager"
 	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/common/searchattribute"
+	"go.temporal.io/server/tools/umpire/pitcher"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/tqid"
 	"go.temporal.io/server/service/matching/workers"
@@ -42,6 +43,7 @@ type (
 		throttledLogger   log.Logger
 		namespaceRegistry namespace.Registry
 		workersRegistry   workers.Registry
+		hostInfoProvider  membership.HostInfoProvider
 	}
 
 	HandlerParams struct {
@@ -84,10 +86,11 @@ func NewHandler(
 	params HandlerParams,
 ) *Handler {
 	handler := &Handler{
-		config:          params.Config,
-		metricsHandler:  params.MetricsHandler,
-		logger:          params.Logger,
-		throttledLogger: params.ThrottledLogger,
+		config:           params.Config,
+		metricsHandler:   params.MetricsHandler,
+		logger:           params.Logger,
+		throttledLogger:  params.ThrottledLogger,
+		hostInfoProvider: params.HostInfoProvider,
 		engine: NewEngine(
 			params.TaskManager,
 			params.FairTaskManager,
@@ -131,6 +134,10 @@ func (h *Handler) Stop() {
 	h.engine.Stop()
 }
 
+func (h *Handler) Identity() string {
+	return h.hostInfoProvider.HostInfo().Identity()
+}
+
 func (h *Handler) opMetricsHandler(
 	namespaceID string,
 	taskQueue *taskqueuepb.TaskQueue,
@@ -154,6 +161,14 @@ func (h *Handler) AddActivityTask(
 	request *matchingservice.AddActivityTaskRequest,
 ) (_ *matchingservice.AddActivityTaskResponse, retError error) {
 	defer log.CapturePanic(h.logger, &retError)
+
+	// Pitcher intercept for fault injection in tests
+	if p := pitcher.Get(); p != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
+			return nil, err
+		}
+	}
+
 	startT := time.Now().UTC()
 	opMetrics := h.opMetricsHandler(
 		request.GetNamespaceId(),
@@ -179,6 +194,14 @@ func (h *Handler) AddWorkflowTask(
 	request *matchingservice.AddWorkflowTaskRequest,
 ) (_ *matchingservice.AddWorkflowTaskResponse, retError error) {
 	defer log.CapturePanic(h.logger, &retError)
+
+	// Pitcher intercept for fault injection in tests
+	if p := pitcher.Get(); p != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
+			return nil, err
+		}
+	}
+
 	startT := time.Now().UTC()
 	opMetrics := h.opMetricsHandler(
 		request.GetNamespaceId(),
@@ -204,6 +227,14 @@ func (h *Handler) PollActivityTaskQueue(
 	request *matchingservice.PollActivityTaskQueueRequest,
 ) (_ *matchingservice.PollActivityTaskQueueResponse, retError error) {
 	defer log.CapturePanic(h.logger, &retError)
+
+	// Pitcher intercept for fault injection in tests
+	if p := pitcher.Get(); p != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
+			return nil, err
+		}
+	}
+
 	opMetrics := h.opMetricsHandler(
 		request.GetNamespaceId(),
 		request.GetPollRequest().GetTaskQueue(),
@@ -232,6 +263,14 @@ func (h *Handler) PollWorkflowTaskQueue(
 	request *matchingservice.PollWorkflowTaskQueueRequest,
 ) (_ *matchingservice.PollWorkflowTaskQueueResponse, retError error) {
 	defer log.CapturePanic(h.logger, &retError)
+
+	// Pitcher intercept for fault injection in tests
+	if p := pitcher.Get(); p != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
+			return nil, err
+		}
+	}
+
 	opMetrics := h.opMetricsHandler(
 		request.GetNamespaceId(),
 		request.GetPollRequest().GetTaskQueue(),

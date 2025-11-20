@@ -42,6 +42,7 @@ import (
 	"go.temporal.io/server/common/searchattribute"
 	serviceerrors "go.temporal.io/server/common/serviceerror"
 	"go.temporal.io/server/common/tasktoken"
+	"go.temporal.io/server/tools/umpire/pitcher"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/service/history/api"
 	"go.temporal.io/server/service/history/api/deletedlqtasks"
@@ -192,6 +193,10 @@ func (h *Handler) Stop() {
 	h.controller.Stop()
 	h.eventNotifier.Stop()
 	h.dlqMetricsEmitter.Stop()
+}
+
+func (h *Handler) Identity() string {
+	return h.hostInfoProvider.HostInfo().Identity()
 }
 
 func (h *Handler) isStopped() bool {
@@ -524,6 +529,13 @@ func (h *Handler) RespondActivityTaskCanceled(ctx context.Context, request *hist
 func (h *Handler) RespondWorkflowTaskCompleted(ctx context.Context, request *historyservice.RespondWorkflowTaskCompletedRequest) (_ *historyservice.RespondWorkflowTaskCompletedResponse, retError error) {
 	defer metrics.CapturePanic(h.logger, h.metricsHandler, &retError)
 
+	// Pitcher intercept for fault injection in tests
+	if p := pitcher.Get(); p != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
+			return nil, err
+		}
+	}
+
 	namespaceID := namespace.ID(request.GetNamespaceId())
 	if namespaceID == "" {
 		return nil, h.convertError(errNamespaceNotSet)
@@ -611,6 +623,13 @@ func (h *Handler) RespondWorkflowTaskFailed(ctx context.Context, request *histor
 // StartWorkflowExecution - creates a new workflow execution
 func (h *Handler) StartWorkflowExecution(ctx context.Context, request *historyservice.StartWorkflowExecutionRequest) (_ *historyservice.StartWorkflowExecutionResponse, retError error) {
 	defer metrics.CapturePanic(h.logger, h.metricsHandler, &retError)
+
+	// Pitcher intercept for fault injection in tests
+	if p := pitcher.Get(); p != nil {
+		if _, err := p.MakePlay(ctx, request, request); err != nil {
+			return nil, err
+		}
+	}
 
 	namespaceID := namespace.ID(request.GetNamespaceId())
 	if namespaceID == "" {
