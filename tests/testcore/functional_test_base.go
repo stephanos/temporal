@@ -48,6 +48,7 @@ import (
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
+	catchpkg "go.temporal.io/server/common/testing/catch"
 	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/tools/catch/scout"
 	"go.temporal.io/server/tools/catch/umpire"
@@ -232,6 +233,7 @@ func (s *FunctionalTestBase) TaskPoller() *taskpoller.TaskPoller {
 }
 
 func (s *FunctionalTestBase) GetUmpire() *umpire.Umpire {
+	// Umpire is always initialized in SetupSuiteWithCluster
 	return s.umpire
 }
 
@@ -271,6 +273,23 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 		s.Logger = tl
 	}
 
+	// Initialize umpire for telemetry verification BEFORE creating interceptors.
+	// All registered models are enabled.
+	var err error
+	s.umpire, err = umpire.New(umpire.Config{
+		Logger: s.Logger,
+	})
+	s.Require().NoError(err)
+
+	// Set the global umpire so the gRPC interceptor can record moves
+	umpire.Set(s.umpire)
+
+	// Build interceptor list - always include catch interceptor
+	// NOTE: Must be after umpire.Set() so the interceptor can access the global umpire
+	additionalInterceptors := make([]grpc.UnaryServerInterceptor, 0, len(params.AdditionalInterceptors)+1)
+	additionalInterceptors = append(additionalInterceptors, catchpkg.UnaryServerInterceptor())
+	additionalInterceptors = append(additionalInterceptors, params.AdditionalInterceptors...)
+
 	s.testClusterConfig = &TestClusterConfig{
 		FaultInjection: params.FaultInjectionConfig,
 		HistoryConfig: HistoryConfig{
@@ -281,7 +300,7 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 		EnableMetricsCapture:   true,
 		EnableArchival:         params.ArchivalEnabled,
 		EnableMTLS:             params.EnableMTLS,
-		AdditionalInterceptors: params.AdditionalInterceptors,
+		AdditionalInterceptors: additionalInterceptors,
 		PersistenceInterceptor: params.PersistenceInterceptor,
 	}
 
@@ -296,14 +315,6 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 			telemetry.OtelTracesOtlpExporterType: s.otelExporter,
 		}
 	}
-
-	// Initialize umpire for telemetry verification.
-	// All registered models are enabled.
-	var err error
-	s.umpire, err = umpire.New(umpire.Config{
-		Logger: s.Logger,
-	})
-	s.Require().NoError(err)
 
 	// Create a scout span exporter that reports to the umpire.
 	umpireExporter := scout.NewSpanExporter(s.umpire)
@@ -459,10 +470,7 @@ func (s *FunctionalTestBase) exportOTELTraces() {
 }
 
 func (s *FunctionalTestBase) checkWatchdog() {
-	if s.umpire == nil {
-		return
-	}
-
+	// Umpire is always initialized in SetupSuiteWithCluster
 	// Run a final check to verify all telemetry invariants.
 	violations := s.umpire.Check(context.Background())
 	if len(violations) > 0 {
@@ -496,6 +504,9 @@ func (s *FunctionalTestBase) TearDownTest() {
 	if pitcher := s.GetTestCluster().Pitcher(); pitcher != nil {
 		pitcher.Reset()
 	}
+
+	// Clear global umpire
+	umpire.Set(nil)
 
 	s.exportOTELTraces()
 	s.checkWatchdog()

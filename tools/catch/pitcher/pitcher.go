@@ -36,6 +36,7 @@ import (
 	"sync"
 	"time"
 
+	sdkclient "go.temporal.io/sdk/client"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -57,8 +58,22 @@ type Pitcher interface {
 	// Game configures which plays to make where using MatchCriteria.
 	Configure(targetType any, config PlayConfig)
 
+	// Execute runs a complete scenario play.
+	// It sets up all faults, starts the workflow, and executes pitches sequentially.
+	Execute(ctx context.Context, play *ScenarioPlay) (WorkflowRun, error)
+
 	// Reset clears all configurations.
 	Reset()
+}
+
+// WorkflowRun represents a running workflow execution
+type WorkflowRun interface {
+	// GetID returns the workflow ID
+	GetID() string
+	// GetRunID returns the workflow run ID
+	GetRunID() string
+	// Get waits for the workflow to complete and returns the result
+	Get(ctx context.Context, valuePtr interface{}) error
 }
 
 // PlayConfig defines when to make a play.
@@ -327,6 +342,83 @@ func (p *pitcherImpl) Reset() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.configs = make(map[string][]*playState)
+}
+
+// Execute runs a complete scenario play by executing all pitches sequentially.
+// Phase 1: Setup all faults
+// Phase 2: Start workflow (if StartWorkflowPitch exists)
+// Phase 3: Execute remaining pitches sequentially
+func (p *pitcherImpl) Execute(ctx context.Context, play *ScenarioPlay) (WorkflowRun, error) {
+	if play == nil {
+		return nil, fmt.Errorf("scenario play cannot be nil")
+	}
+
+	var workflowRun sdkclient.WorkflowRun
+
+	// Phase 1: Setup all faults first
+	for _, pitch := range play.Pitches {
+		if faultPitch, ok := pitch.(*FaultPitch); ok {
+			// Configure the fault for this target type
+			p.Configure(faultPitch.Target, PlayConfig{
+				Play:  faultPitch.Fault,
+				Match: faultPitch.Match,
+			})
+		}
+	}
+
+	// Phase 2: Start workflow
+	for _, pitch := range play.Pitches {
+		if startPitch, ok := pitch.(*StartWorkflowPitch); ok {
+			var err error
+			workflowRun, err = startPitch.Client.ExecuteWorkflow(
+				ctx,
+				startPitch.Options,
+				startPitch.Workflow,
+				startPitch.WorkflowInput,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to start workflow: %w", err)
+			}
+			break // Only one workflow start per play
+		}
+	}
+
+	// Phase 3: Execute remaining pitches (client actions, server actions)
+	for _, pitch := range play.Pitches {
+		switch p := pitch.(type) {
+		case *ClientActionPitch:
+			// Execute client action
+			// TODO: Implement client action execution
+			_ = p
+		case *ServerActionPitch:
+			// Server actions are handled by the interceptor
+			// TODO: Implement manual gRPC advancement
+			_ = p
+		}
+	}
+
+	if workflowRun == nil {
+		return nil, fmt.Errorf("no workflow was started in the scenario")
+	}
+
+	return &workflowRunWrapper{run: workflowRun}, nil
+}
+
+// workflowRunWrapper wraps sdk client WorkflowRun to implement our WorkflowRun interface
+type workflowRunWrapper struct {
+	run sdkclient.WorkflowRun
+}
+
+func (w *workflowRunWrapper) GetID() string {
+	return w.run.GetID()
+}
+
+func (w *workflowRunWrapper) GetRunID() string {
+	return w.run.GetRunID()
+}
+
+func (w *workflowRunWrapper) Get(ctx context.Context, valuePtr interface{}) error {
+	return w.run.Get(ctx, valuePtr)
 }
 
 // parseErrorCode converts string error codes to gRPC codes

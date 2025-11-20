@@ -1,0 +1,195 @@
+// The MIT License
+//
+// Copyright (c) 2025 Temporal Technologies Inc.  All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+package catch
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+	"go.temporal.io/api/workflowservice/v1"
+	sdkclient "go.temporal.io/sdk/client"
+	"google.golang.org/protobuf/types/known/durationpb"
+	catchpkg "go.temporal.io/server/common/testing/catch"
+	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
+	"go.temporal.io/server/common/namespace"
+	"go.temporal.io/server/common/testing/testlogger"
+	"go.temporal.io/server/tests/testcore"
+	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/tools/catch/umpire"
+	"google.golang.org/grpc"
+)
+
+// TestSuite provides test infrastructure for CATCH tests
+type TestSuite struct {
+	t               testing.TB
+	logger          log.Logger
+	testCluster     *testcore.TestCluster
+	namespace       namespace.Name
+	sdkClient       sdkclient.Client
+	pitcher         pitcher.Pitcher
+	umpire          *umpire.Umpire
+}
+
+// NewTestSuite creates a new CATCH test suite
+func NewTestSuite(t testing.TB) *TestSuite {
+	return &TestSuite{
+		t: t,
+	}
+}
+
+// Setup initializes the test cluster and components
+func (s *TestSuite) Setup() {
+	t, ok := s.t.(*testing.T)
+	if !ok {
+		// If not *testing.T, try to extract it from testing.TB
+		panic("TestSuite requires *testing.T")
+	}
+
+	// Create logger
+	tl := testlogger.NewTestLogger(s.t, testlogger.FailOnExpectedErrorOnly)
+	testlogger.DontFailOnError(tl)
+	tl.Expect(testlogger.Error, ".*", tag.FailedAssertion)
+	s.logger = tl
+
+	// Initialize umpire first
+	var err error
+	s.umpire, err = umpire.New(umpire.Config{
+		Logger: s.logger,
+	})
+	require.NoError(s.t, err)
+
+	// Set global umpire so interceptor can access it
+	umpire.Set(s.umpire)
+
+	// Create test cluster with pitcher enabled and catch interceptor
+	clusterConfig := &testcore.TestClusterConfig{
+		HistoryConfig: testcore.HistoryConfig{
+			NumHistoryShards: 4,
+		},
+		EnableMetricsCapture: true,
+		// Add catch interceptor to record moves
+		AdditionalInterceptors: []grpc.UnaryServerInterceptor{
+			catchpkg.UnaryServerInterceptor(),
+		},
+	}
+
+	testClusterFactory := testcore.NewTestClusterFactory()
+	s.testCluster, err = testClusterFactory.NewCluster(t, clusterConfig, s.logger)
+	require.NoError(s.t, err)
+
+	// Get pitcher from test cluster
+	s.pitcher = s.testCluster.Pitcher()
+
+	// Register namespace using FrontendClient
+	s.namespace = namespace.Name(testcore.RandomizeStr("catch-test-ns"))
+	_, err = s.testCluster.FrontendClient().RegisterNamespace(context.Background(), &workflowservice.RegisterNamespaceRequest{
+		Namespace:                        string(s.namespace),
+		WorkflowExecutionRetentionPeriod: durationpb.New(24 * time.Hour),
+	})
+	require.NoError(s.t, err)
+
+	// Create SDK client
+	s.sdkClient, err = sdkclient.Dial(sdkclient.Options{
+		HostPort:  s.testCluster.Host().FrontendGRPCAddress(),
+		Namespace: string(s.namespace),
+		Logger:    log.NewSdkLogger(s.logger),
+	})
+	require.NoError(s.t, err)
+
+	// Setup cleanup
+	s.t.Cleanup(func() {
+		s.Teardown()
+	})
+}
+
+// Teardown cleans up test resources
+func (s *TestSuite) Teardown() {
+	// Clear global umpire
+	umpire.Set(nil)
+
+	// Reset pitcher
+	if s.pitcher != nil {
+		s.pitcher.Reset()
+	}
+
+	// Close SDK client
+	if s.sdkClient != nil {
+		s.sdkClient.Close()
+	}
+
+	// Close umpire
+	if s.umpire != nil {
+		s.umpire.Close()
+	}
+
+	// Tear down test cluster
+	if s.testCluster != nil {
+		s.testCluster.TearDownCluster()
+	}
+}
+
+// Logger returns the test logger
+func (s *TestSuite) Logger() log.Logger {
+	return s.logger
+}
+
+// TestCluster returns the test cluster
+func (s *TestSuite) TestCluster() *testcore.TestCluster {
+	return s.testCluster
+}
+
+// Namespace returns the test namespace
+func (s *TestSuite) Namespace() namespace.Name {
+	return s.namespace
+}
+
+// SdkClient returns the SDK client
+func (s *TestSuite) SdkClient() sdkclient.Client {
+	return s.sdkClient
+}
+
+// Pitcher returns the pitcher for fault injection
+func (s *TestSuite) Pitcher() pitcher.Pitcher {
+	return s.pitcher
+}
+
+// Umpire returns the umpire for verification
+func (s *TestSuite) Umpire() *umpire.Umpire {
+	return s.umpire
+}
+
+// TaskQueue returns a random task queue name
+func (s *TestSuite) TaskQueue() string {
+	return testcore.RandomizeStr("catch-tq")
+}
+
+// Run executes a test scenario
+func (s *TestSuite) Run(t *testing.T, name string, fn func(ctx context.Context, t *testing.T, s *TestSuite)) {
+	t.Run(name, func(t *testing.T) {
+		ctx := context.Background()
+		fn(ctx, t, s)
+	})
+}

@@ -27,10 +27,12 @@ import (
 
 	"google.golang.org/grpc"
 	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/tools/catch/umpire"
 )
 
-// UnaryServerInterceptor returns a gRPC unary interceptor that injects faults via the global pitcher.
-// This interceptor should be installed in the test cluster to enable fault injection for all RPC methods.
+// UnaryServerInterceptor returns a gRPC unary interceptor that injects faults via the global pitcher
+// and records moves via the global umpire.
+// This interceptor should be installed in the test cluster to enable fault injection and move tracking.
 func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -38,7 +40,13 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		// Check if pitcher is configured
+		// Record the move in the scorebook (if umpire is configured)
+		u := umpire.Get()
+		if u != nil {
+			u.RecordMove(ctx, info.FullMethod, req)
+		}
+
+		// Check if pitcher is configured for fault injection
 		p := pitcher.Get()
 		if p == nil {
 			// No pitcher configured, pass through
@@ -49,7 +57,6 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		playMade, err := p.MakePlay(ctx, req, req)
 		if err != nil {
 			// Play was made (fault injected), return the error
-			// TODO: Send playMade to scorebook for recording
 			_ = playMade
 			return nil, err
 		}

@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 
 // Package kitchensink provides Omes kitchensink workflow for CATCH testing
-package kitchensink
+package catch
 
 import (
 	"go.temporal.io/sdk/activity"

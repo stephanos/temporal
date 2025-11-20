@@ -3,6 +3,7 @@ package umpire
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -12,6 +13,13 @@ import (
 	"go.temporal.io/server/tools/catch/rulebook"
 	rulebooktypes "go.temporal.io/server/tools/catch/rulebook/types"
 	"go.temporal.io/server/tools/catch/scorebook"
+	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+)
+
+// Global umpire instance (only active in tests)
+var (
+	globalUmpire *Umpire
+	umpireMu     sync.RWMutex
 )
 
 // Umpire provides an in-memory telemetry verification engine that can be
@@ -23,6 +31,7 @@ type Umpire struct {
 	registry      *roster.Registry
 	importer      *scorebook.Importer
 	modelRegistry *rulebook.Registry
+	moveHistory   *scorebook.MoveHistory
 }
 
 // Config holds configuration for an Umpire instance.
@@ -49,6 +58,9 @@ func New(cfg Config) (*Umpire, error) {
 	// Initialize importer.
 	importer := scorebook.NewImporter()
 
+	// Initialize move history for test queries.
+	moveHistory := scorebook.NewMoveHistory()
+
 	// Initialize model registry.
 	modelRegistry := rulebook.NewRegistry()
 
@@ -69,6 +81,7 @@ func New(cfg Config) (*Umpire, error) {
 		registry:      registry,
 		importer:      importer,
 		modelRegistry: modelRegistry,
+		moveHistory:   moveHistory,
 	}, nil
 }
 
@@ -93,6 +106,8 @@ func (w *Umpire) Close() error {
 
 // AddTraces adds a batch of traces to the umpire. It converts spans to events
 // and routes them to entities.
+// NOTE: RPC calls are now recorded directly via the gRPC interceptor (RecordMove).
+// This method is primarily for non-RPC OTEL events like "workflow locked/unlocked".
 func (w *Umpire) AddTraces(ctx context.Context, td ptrace.Traces) error {
 	// Create an iterator that yields all spans in the trace batch.
 	spanIter := func(yield func(ptrace.Span) bool) {
@@ -123,6 +138,10 @@ func (w *Umpire) AddTraces(ctx context.Context, td ptrace.Traces) error {
 	events := w.importer.ImportSpans(spanIter)
 	w.logger.Debug("umpire: imported events", tag.NewInt("numEvents", len(events)))
 
+	// NOTE: We don't add RPC moves to history here anymore - they're recorded
+	// directly by the gRPC interceptor via RecordMove for immediate availability.
+	// OTEL events are still routed to entities for verification models.
+
 	// Route events to entities.
 	if err := w.registry.RouteEvents(ctx, events); err != nil {
 		w.logger.Warn("umpire: failed to route events", tag.Error(err))
@@ -135,4 +154,48 @@ func (w *Umpire) AddTraces(ctx context.Context, td ptrace.Traces) error {
 // This should be called explicitly from tests to verify invariants.
 func (w *Umpire) Check(ctx context.Context) []rulebook.Violation {
 	return w.modelRegistry.Check(ctx)
+}
+
+// MoveHistory returns the move history for querying.
+func (w *Umpire) MoveHistory() *scorebook.MoveHistory {
+	return w.moveHistory
+}
+
+// RecordMove records a move from a gRPC interceptor.
+// This is the primary way moves are recorded - directly from gRPC calls.
+// The method parameter should be the full gRPC method name (e.g., "/temporal.api.matchingservice.v1.MatchingService/AddWorkflowTask").
+func (w *Umpire) RecordMove(ctx context.Context, method string, request any) {
+	// Convert the gRPC request to a move
+	move := w.importer.ImportRequest(method, request)
+	if move == nil {
+		// No parser for this request type, skip
+		w.logger.Debug("umpire: no parser for gRPC method", tag.NewStringTag("method", method))
+		return
+	}
+
+	w.logger.Debug("umpire: recorded move from gRPC",
+		tag.NewStringTag("method", method),
+		tag.NewStringTag("moveType", move.MoveType()))
+
+	// Add to move history for test querying
+	w.moveHistory.Add(move)
+
+	// Route to entities for verification models
+	if err := w.registry.RouteEvents(ctx, []scorebooktypes.Move{move}); err != nil {
+		w.logger.Warn("umpire: failed to route move from gRPC", tag.Error(err))
+	}
+}
+
+// Get returns the global umpire (nil if not in test mode)
+func Get() *Umpire {
+	umpireMu.RLock()
+	defer umpireMu.RUnlock()
+	return globalUmpire
+}
+
+// Set configures the global umpire (test setup only)
+func Set(u *Umpire) {
+	umpireMu.Lock()
+	defer umpireMu.Unlock()
+	globalUmpire = u
 }
