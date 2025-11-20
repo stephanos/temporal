@@ -62,7 +62,8 @@ var Module = fx.Options(
 	fx.Provide(HealthSignalAggregatorProvider),
 	fx.Provide(HealthCheckInterceptorProvider),
 	fx.Provide(chasm.ChasmRequestInterceptorProvider),
-	fx.Provide(HistoryAdditionalInterceptorsProvider),
+	// HistoryAdditionalInterceptorsProvider is NOT provided here to avoid conflicts with test fx.Decorate
+	// Tests will add these interceptors via fx.Decorate; production should add via customInterceptors
 	fx.Provide(service.GrpcServerOptionsProvider),
 	fx.Provide(ESProcessorConfigProvider),
 	fx.Provide(VisibilityManagerProvider),

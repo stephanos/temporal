@@ -249,6 +249,10 @@ func (adh *AdminHandler) Stop() {
 	}
 }
 
+func (adh *AdminHandler) Identity() string {
+	return adh.hostInfoProvider.HostInfo().Identity()
+}
+
 func (adh *AdminHandler) DeepHealthCheck(
 	ctx context.Context,
 	_ *adminservice.DeepHealthCheckRequest,
