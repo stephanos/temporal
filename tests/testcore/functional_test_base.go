@@ -51,6 +51,7 @@ import (
 	"go.temporal.io/server/common/testing/catch"
 	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/tools/catch/rulebook"
+	"go.temporal.io/server/tools/catch/umpire"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -231,12 +232,16 @@ func (s *FunctionalTestBase) TaskPoller() *taskpoller.TaskPoller {
 	return s.taskPoller
 }
 
-func (s *FunctionalTestBase) GetUmpire() interface{} {
+func (s *FunctionalTestBase) GetUmpire() *umpire.Umpire {
 	// Umpire is always initialized in SetupSuiteWithCluster via Catch
-	if s.catch != nil {
-		return s.catch.Umpire()
+	if s.catch == nil {
+		panic("CATCH system not initialized - did you forget to call SetupSuite()?")
 	}
-	return nil
+	ump := s.catch.Umpire()
+	if ump == nil {
+		panic("Umpire not initialized - ensure EnableUmpire is true in CATCH config")
+	}
+	return ump
 }
 
 // ConfigurePitcher configures fault injection for a specific RPC method.
