@@ -163,18 +163,16 @@ func (w *Umpire) Scorebook() *scorebook.Scorebook {
 
 // RecordMove records a move from a gRPC interceptor.
 // This is the primary way moves are recorded - directly from gRPC calls.
-// The method parameter should be the full gRPC method name (e.g., "/temporal.api.matchingservice.v1.MatchingService/AddWorkflowTask").
-func (w *Umpire) RecordMove(ctx context.Context, method string, request any) {
+func (w *Umpire) RecordMove(ctx context.Context, request any) {
 	// Convert the gRPC request to a move
-	move := w.importer.ImportRequest(method, request)
+	move := w.importer.ImportRequest(request)
 	if move == nil {
 		// No parser for this request type, skip
-		w.logger.Debug("umpire: no parser for gRPC method", tag.NewStringTag("method", method))
+		w.logger.Debug("umpire: no parser for gRPC request type")
 		return
 	}
 
 	w.logger.Debug("umpire: recorded move from gRPC",
-		tag.NewStringTag("method", method),
 		tag.NewStringTag("moveType", move.MoveType()))
 
 	// Add to scorebook for test querying

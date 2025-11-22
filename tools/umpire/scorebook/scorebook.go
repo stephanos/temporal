@@ -1,15 +1,15 @@
 package scorebook
 
 import (
-	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/umpire/scorebook/types"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	moves "go.temporal.io/server/tools/umpire/scorebook/moves"
-	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/api/historyservice/v1"
+	"go.temporal.io/server/api/matchingservice/v1"
+	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	moves "go.temporal.io/server/tools/umpire/scorebook/moves"
+	"go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // SpanIterator is a function that yields spans one at a time.
@@ -73,64 +73,26 @@ func (imp *Importer) ImportSpans(iter SpanIterator) []types.Move {
 
 // ImportRequest converts a gRPC request directly to a move.
 // This is used by the gRPC interceptor to record moves synchronously.
-// The method parameter should be the full gRPC method name (e.g., "/temporal.api.matchingservice.v1.MatchingService/AddWorkflowTask").
-// Returns nil if no parser is registered for this method.
-func (imp *Importer) ImportRequest(method string, request any) types.Move {
-	// Convert gRPC method format to span name format
-	// "/temporal.api.matchingservice.v1.MatchingService/AddWorkflowTask"
-	// -> "temporal.server.api.matchingservice.v1.MatchingService/AddWorkflowTask"
-	spanName := convertGRPCMethodToSpanName(method)
-
-	// Create move directly from the request
-	return createMoveFromRequest(spanName, request)
-}
-
-// convertGRPCMethodToSpanName converts a gRPC method name to the span name format.
-// gRPC format: "/temporal.server.api.matchingservice.v1.MatchingService/AddWorkflowTask"
-// Span format: "temporal.server.api.matchingservice.v1.MatchingService/AddWorkflowTask"
-func convertGRPCMethodToSpanName(method string) string {
-	// Remove leading "/"
-	return strings.TrimPrefix(method, "/")
-}
-
-// createMoveFromRequest creates a move from a gRPC request.
-// This is a type switch based on the request type.
-func createMoveFromRequest(spanName string, request any) types.Move {
+// Returns nil if the request type is not recognized.
+func (imp *Importer) ImportRequest(request any) types.Move {
 	now := time.Now()
 
-	switch spanName {
-	case "temporal.server.api.matchingservice.v1.MatchingService/AddWorkflowTask":
-		if req, ok := request.(*matchingservice.AddWorkflowTaskRequest); ok {
-			return createAddWorkflowTaskMove(req, now)
-		}
-
-	case "temporal.server.api.matchingservice.v1.MatchingService/PollWorkflowTaskQueue":
-		if req, ok := request.(*matchingservice.PollWorkflowTaskQueueRequest); ok {
-			return createPollWorkflowTaskMove(req, now)
-		}
-
-	case "temporal.server.api.matchingservice.v1.MatchingService/AddActivityTask":
-		if req, ok := request.(*matchingservice.AddActivityTaskRequest); ok {
-			return createAddActivityTaskMove(req, now)
-		}
-
-	case "temporal.server.api.matchingservice.v1.MatchingService/PollActivityTaskQueue":
-		if req, ok := request.(*matchingservice.PollActivityTaskQueueRequest); ok {
-			return createPollActivityTaskMove(req, now)
-		}
-
-	case "temporal.server.api.historyservice.v1.HistoryService/StartWorkflowExecution":
-		if req, ok := request.(*historyservice.StartWorkflowExecutionRequest); ok {
-			return createStartWorkflowMove(req, now)
-		}
-
-	case "temporal.server.api.historyservice.v1.HistoryService/RespondWorkflowTaskCompleted":
-		if req, ok := request.(*historyservice.RespondWorkflowTaskCompletedRequest); ok {
-			return createRespondWorkflowTaskCompletedMove(req, now)
-		}
+	switch req := request.(type) {
+	case *matchingservice.AddWorkflowTaskRequest:
+		return createAddWorkflowTaskMove(req, now)
+	case *matchingservice.PollWorkflowTaskQueueRequest:
+		return createPollWorkflowTaskMove(req, now)
+	case *matchingservice.AddActivityTaskRequest:
+		return createAddActivityTaskMove(req, now)
+	case *matchingservice.PollActivityTaskQueueRequest:
+		return createPollActivityTaskMove(req, now)
+	case *historyservice.StartWorkflowExecutionRequest:
+		return createStartWorkflowMove(req, now)
+	case *historyservice.RespondWorkflowTaskCompletedRequest:
+		return createRespondWorkflowTaskCompletedMove(req, now)
+	default:
+		return nil
 	}
-
-	return nil
 }
 
 // Helper functions to create moves from requests
@@ -142,9 +104,9 @@ func createAddWorkflowTaskMove(req *matchingservice.AddWorkflowTaskRequest, time
 
 	var ident *rostertypes.Identity
 	if req.Execution != nil && req.Execution.WorkflowId != "" && req.Execution.RunId != "" {
-		workflowTaskID := rostertypes.NewEntityIDFromType("WorkflowTask",
+		workflowTaskID := rostertypes.NewEntityIDFromType(&entities.WorkflowTask{},
 			req.TaskQueue.Name+":"+req.Execution.WorkflowId+":"+req.Execution.RunId)
-		taskQueueID := rostertypes.NewEntityIDFromType("TaskQueue", req.TaskQueue.Name)
+		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, req.TaskQueue.Name)
 		ident = &rostertypes.Identity{
 			EntityID: workflowTaskID,
 			ParentID: &taskQueueID,
@@ -164,7 +126,7 @@ func createPollWorkflowTaskMove(req *matchingservice.PollWorkflowTaskQueueReques
 	}
 
 	taskQueue := req.PollRequest.TaskQueue.Name
-	taskQueueID := rostertypes.NewEntityIDFromType("TaskQueue", taskQueue)
+	taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, taskQueue)
 	ident := &rostertypes.Identity{
 		EntityID: taskQueueID,
 	}
@@ -185,9 +147,9 @@ func createAddActivityTaskMove(req *matchingservice.AddActivityTaskRequest, time
 
 	var ident *rostertypes.Identity
 	if req.Execution != nil && req.Execution.WorkflowId != "" && req.Execution.RunId != "" {
-		activityTaskID := rostertypes.NewEntityIDFromType("ActivityTask",
+		activityTaskID := rostertypes.NewEntityIDFromType(&entities.ActivityTask{},
 			req.TaskQueue.Name+":"+req.Execution.WorkflowId+":"+req.Execution.RunId)
-		taskQueueID := rostertypes.NewEntityIDFromType("TaskQueue", req.TaskQueue.Name)
+		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, req.TaskQueue.Name)
 		ident = &rostertypes.Identity{
 			EntityID: activityTaskID,
 			ParentID: &taskQueueID,
@@ -207,7 +169,7 @@ func createPollActivityTaskMove(req *matchingservice.PollActivityTaskQueueReques
 	}
 
 	taskQueue := req.PollRequest.TaskQueue.Name
-	taskQueueID := rostertypes.NewEntityIDFromType("TaskQueue", taskQueue)
+	taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, taskQueue)
 	ident := &rostertypes.Identity{
 		EntityID: taskQueueID,
 	}
@@ -226,7 +188,7 @@ func createStartWorkflowMove(req *historyservice.StartWorkflowExecutionRequest, 
 		return nil
 	}
 
-	workflowID := rostertypes.NewEntityIDFromType("Workflow", req.StartRequest.WorkflowId)
+	workflowID := rostertypes.NewEntityIDFromType(&entities.Workflow{}, req.StartRequest.WorkflowId)
 	ident := &rostertypes.Identity{
 		EntityID: workflowID,
 	}
