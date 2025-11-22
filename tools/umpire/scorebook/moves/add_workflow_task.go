@@ -1,19 +1,16 @@
 package moves
 
 import (
-	"time"
+	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // AddWorkflowTask represents a workflow task being added to matching.
 type AddWorkflowTask struct {
-	Request   *matchingservice.AddWorkflowTaskRequest
-	Timestamp time.Time
-	Identity  *rostertypes.Identity
+	Request  *matchingservice.AddWorkflowTaskRequest
+	Identity *rostertypes.Identity
 }
 
 func (e *AddWorkflowTask) MoveType() string {
@@ -24,33 +21,20 @@ func (e *AddWorkflowTask) TargetEntity() *rostertypes.Identity {
 	return e.Identity
 }
 
-// Parse parses an AddWorkflowTask from an OTLP span.
-// Returns nil if the span doesn't contain the required attributes.
-func (e *AddWorkflowTask) Parse(span ptrace.Span) scorebooktypes.Move {
-	var req matchingservice.AddWorkflowTaskRequest
-	if !GetRequestPayload(span, &req) {
-		return nil
+// Parse parses an AddWorkflowTask from a gRPC request, mutating the receiver.
+// Returns nil on success, error on failure.
+func (e *AddWorkflowTask) Parse(input any) error {
+	req, ok := input.(*matchingservice.AddWorkflowTaskRequest)
+	if !ok || req == nil {
+		return fmt.Errorf("invalid input type for AddWorkflowTask")
 	}
 
 	if req.TaskQueue == nil || req.TaskQueue.Name == "" {
-		return nil
+		return fmt.Errorf("missing required fields in AddWorkflowTaskRequest")
 	}
 
-	// Compute identity from the request fields
-	var ident *rostertypes.Identity
-	if req.Execution != nil && req.Execution.WorkflowId != "" && req.Execution.RunId != "" {
-		workflowTaskID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowTaskType,
-			req.TaskQueue.Name+":"+req.Execution.WorkflowId+":"+req.Execution.RunId)
-		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, req.TaskQueue.Name)
-		ident = &rostertypes.Identity{
-			EntityID: workflowTaskID,
-			ParentID: &taskQueueID,
-		}
-	}
+	e.Request = req
+	// e.Identity should already be set by the router
 
-	return &AddWorkflowTask{
-		Request:   &req,
-		Timestamp: span.StartTimestamp().AsTime(),
-		Identity:  ident,
-	}
+	return nil
 }

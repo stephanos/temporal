@@ -1,20 +1,17 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
-	"time"
+	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/historyservice/v1"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
 // RespondWorkflowTaskCompleted represents a workflow task completion response.
 type RespondWorkflowTaskCompleted struct {
-	Request   *historyservice.RespondWorkflowTaskCompletedRequest
-	Response  *historyservice.RespondWorkflowTaskCompletedResponse
-	Timestamp time.Time
-	Identity  *rostertypes.Identity
+	Request  *historyservice.RespondWorkflowTaskCompletedRequest
+	Response *historyservice.RespondWorkflowTaskCompletedResponse
+	Identity *rostertypes.Identity
 }
 
 func (e *RespondWorkflowTaskCompleted) MoveType() string {
@@ -25,32 +22,21 @@ func (e *RespondWorkflowTaskCompleted) TargetEntity() *rostertypes.Identity {
 	return e.Identity
 }
 
-// Parse parses a RespondWorkflowTaskCompleted from an OTLP span.
-// Returns nil if the span doesn't contain the required attributes.
-func (e *RespondWorkflowTaskCompleted) Parse(span ptrace.Span) scorebooktypes.Move {
-	var req historyservice.RespondWorkflowTaskCompletedRequest
-	if !GetRequestPayload(span, &req) {
-		return nil
+// Parse parses a RespondWorkflowTaskCompleted from a gRPC request, mutating the receiver.
+// Returns nil on success, error on failure.
+func (e *RespondWorkflowTaskCompleted) Parse(input any) error {
+	req, ok := input.(*historyservice.RespondWorkflowTaskCompletedRequest)
+	if !ok || req == nil {
+		return fmt.Errorf("invalid input type for RespondWorkflowTaskCompleted")
 	}
 
 	if req.CompleteRequest == nil {
-		return nil
+		return fmt.Errorf("missing required fields in RespondWorkflowTaskCompletedRequest")
 	}
 
-	// Try to get response payload
-	var resp historyservice.RespondWorkflowTaskCompletedResponse
-	_ = GetResponsePayload(span, &resp)
+	e.Request = req
+	e.Response = nil // Response not available at parse time
+	// e.Identity should already be set by the router
 
-	// The task completion doesn't directly contain the workflow ID,
-	// but the event system will route it to the appropriate Workflow entity
-	// based on what entities exist. For now, return nil identity which means
-	// this event won't be automatically routed - models will need to handle it.
-	var ident *rostertypes.Identity
-
-	return &RespondWorkflowTaskCompleted{
-		Request:   &req,
-		Response:  &resp,
-		Timestamp: span.StartTimestamp().AsTime(),
-		Identity:  ident,
-	}
+	return nil
 }

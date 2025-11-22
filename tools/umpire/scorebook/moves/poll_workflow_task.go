@@ -1,19 +1,16 @@
 package moves
 
 import (
-	"time"
+	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // PollWorkflowTask represents a workflow task being polled.
 type PollWorkflowTask struct {
 	Request      *matchingservice.PollWorkflowTaskQueueRequest
 	Response     *matchingservice.PollWorkflowTaskQueueResponse
-	Timestamp    time.Time
 	Identity     *rostertypes.Identity
 	TaskReturned bool
 }
@@ -26,52 +23,22 @@ func (e *PollWorkflowTask) TargetEntity() *rostertypes.Identity {
 	return e.Identity
 }
 
-// Parse parses a PollWorkflowTask from an OTLP span.
-// Returns nil if the span doesn't contain the required attributes.
-func (e *PollWorkflowTask) Parse(span ptrace.Span) scorebooktypes.Move {
-	var req matchingservice.PollWorkflowTaskQueueRequest
-	if !GetRequestPayload(span, &req) {
-		return nil
+// Parse parses a PollWorkflowTask from a gRPC request, mutating the receiver.
+// Returns nil on success, error on failure.
+func (e *PollWorkflowTask) Parse(input any) error {
+	req, ok := input.(*matchingservice.PollWorkflowTaskQueueRequest)
+	if !ok || req == nil {
+		return fmt.Errorf("invalid input type for PollWorkflowTask")
 	}
 
 	if req.PollRequest == nil || req.PollRequest.TaskQueue == nil || req.PollRequest.TaskQueue.Name == "" {
-		return nil
+		return fmt.Errorf("missing required fields in PollWorkflowTaskQueueRequest")
 	}
 
-	taskQueue := req.PollRequest.TaskQueue.Name
+	e.Request = req
+	e.Response = nil // Response not available at parse time
+	e.TaskReturned = false
+	// e.Identity should already be set by the router
 
-	// Parse response to check if poll returned a task
-	var resp matchingservice.PollWorkflowTaskQueueResponse
-	taskReturned := GetResponsePayload(span, &resp) &&
-		span.Status().Code() != ptrace.StatusCodeError &&
-		len(resp.TaskToken) > 0
-
-	// Compute identity
-	var ident *rostertypes.Identity
-	if taskReturned && resp.WorkflowExecution != nil &&
-		resp.WorkflowExecution.WorkflowId != "" && resp.WorkflowExecution.RunId != "" {
-		// Poll returned a task - target is the WorkflowTask
-		workflowTaskID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowTaskType,
-			taskQueue+":"+resp.WorkflowExecution.WorkflowId+":"+resp.WorkflowExecution.RunId)
-		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
-		ident = &rostertypes.Identity{
-			EntityID: workflowTaskID,
-			ParentID: &taskQueueID,
-		}
-	} else {
-		// Empty poll - target is the TaskQueue
-		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
-		ident = &rostertypes.Identity{
-			EntityID: taskQueueID,
-			ParentID: nil,
-		}
-	}
-
-	return &PollWorkflowTask{
-		Request:      &req,
-		Response:     &resp,
-		Timestamp:    span.StartTimestamp().AsTime(),
-		Identity:     ident,
-		TaskReturned: taskReturned,
-	}
+	return nil
 }

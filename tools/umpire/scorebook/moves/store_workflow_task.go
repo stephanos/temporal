@@ -1,10 +1,8 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
-	"time"
+	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
@@ -13,7 +11,6 @@ import (
 // persisted to the database. The task is no longer in the matching service
 // but still exists in persistence.
 type StoreWorkflowTask struct {
-	Timestamp  time.Time
 	TaskQueue  string
 	Identity   *rostertypes.Identity
 	WorkflowID string
@@ -28,11 +25,11 @@ func (e *StoreWorkflowTask) TargetEntity() *rostertypes.Identity {
 	return e.Identity
 }
 
-// Parse parses a StoreWorkflowTask from an OTLP span.
-// Returns nil if the span doesn't contain the required attributes.
-func (e *StoreWorkflowTask) Parse(span ptrace.Span) scorebooktypes.Move {
-	// StoreWorkflowTask is not directly generated from OTLP spans
+// Parse parses a StoreWorkflowTask from input, mutating the receiver.
+// Returns nil on success, error on failure.
+// StoreWorkflowTask is not directly generated from gRPC requests.
+func (e *StoreWorkflowTask) Parse(input any) error {
+	// StoreWorkflowTask is not directly generated from gRPC requests
 	// It would need to be generated from admin API calls or other sources
-	// For now, return nil
-	return nil
+	return fmt.Errorf("StoreWorkflowTask cannot be parsed from gRPC requests")
 }

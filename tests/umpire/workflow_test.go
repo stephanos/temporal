@@ -14,7 +14,6 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/tools/umpire/pitcher"
-	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 

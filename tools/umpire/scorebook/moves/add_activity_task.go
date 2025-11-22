@@ -2,19 +2,15 @@ package moves
 
 import (
 	"fmt"
-	"time"
 
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // AddActivityTask represents an activity task being added to matching.
 type AddActivityTask struct {
-	Request   *matchingservice.AddActivityTaskRequest
-	Timestamp time.Time
-	Identity  *rostertypes.Identity
+	Request  *matchingservice.AddActivityTaskRequest
+	Identity *rostertypes.Identity
 }
 
 func (e *AddActivityTask) MoveType() string {
@@ -25,32 +21,20 @@ func (e *AddActivityTask) TargetEntity() *rostertypes.Identity {
 	return e.Identity
 }
 
-// Parse parses an AddActivityTask from an OTLP span.
-// Returns nil if the span doesn't contain the required attributes.
-func (e *AddActivityTask) Parse(span ptrace.Span) scorebooktypes.Move {
-	var req matchingservice.AddActivityTaskRequest
-	if !GetRequestPayload(span, &req) {
-		return nil
+// Parse parses an AddActivityTask from a gRPC request, mutating the receiver.
+// Returns nil on success, error on failure.
+func (e *AddActivityTask) Parse(input any) error {
+	req, ok := input.(*matchingservice.AddActivityTaskRequest)
+	if !ok || req == nil {
+		return fmt.Errorf("invalid input type for AddActivityTask")
 	}
 
 	if req.TaskQueue == nil || req.TaskQueue.Name == "" {
-		return nil
+		return fmt.Errorf("missing required fields in AddActivityTaskRequest")
 	}
 
-	// Compute identity - use scheduledEventID as activityID since ActivityID isn't in the request
-	activityID := fmt.Sprintf("%d", req.ScheduledEventId)
-	var ident *rostertypes.Identity
-	if activityID != "" {
-		activityTaskID := rostertypes.NewEntityIDFromType(rostertypes.ActivityTaskType, req.TaskQueue.Name+":"+activityID)
-		ident = &rostertypes.Identity{
-			EntityID: activityTaskID,
-			ParentID: nil,
-		}
-	}
+	e.Request = req
+	// e.Identity should already be set by the router
 
-	return &AddActivityTask{
-		Request:   &req,
-		Timestamp: span.StartTimestamp().AsTime(),
-		Identity:  ident,
-	}
+	return nil
 }
