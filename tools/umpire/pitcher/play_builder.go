@@ -30,7 +30,7 @@ const (
 
 // FaultPitch injects a fault with specific matching criteria
 type FaultPitch struct {
-	Target string         // The target type (e.g., "*matchingservice.AddWorkflowTaskRequest")
+	Target any            // The target type (e.g., &matchingservice.AddWorkflowTaskRequest{})
 	Fault  Play           // The fault to inject (delay, fail, etc.)
 	Match  *MatchCriteria // When to inject this fault
 }
@@ -86,8 +86,9 @@ func NewPlayBuilder() *PlayBuilder {
 	}
 }
 
-// WithFault adds a fault pitch to the play
-func (b *PlayBuilder) WithFault(target string, fault Play, match *MatchCriteria) *PlayBuilder {
+// WithFault adds a fault pitch to the play.
+// The target should be a typed instance of the request (e.g., &matchingservice.AddWorkflowTaskRequest{})
+func (b *PlayBuilder) WithFault(target any, fault Play, match *MatchCriteria) *PlayBuilder {
 	b.pitches = append(b.pitches, &FaultPitch{
 		Target: target,
 		Fault:  fault,

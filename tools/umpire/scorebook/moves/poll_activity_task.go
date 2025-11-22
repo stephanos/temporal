@@ -1,12 +1,12 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
 // PollActivityTask represents an activity task being polled.

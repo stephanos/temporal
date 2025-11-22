@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
-	"go.temporal.io/server/tools/catch/roster/entities"
-	"go.temporal.io/server/tools/catch/rulebook/rules"
-	rulebooktypes "go.temporal.io/server/tools/catch/rulebook/types"
+	"go.temporal.io/server/tools/umpire/roster/entities"
+	"go.temporal.io/server/tools/umpire/rulebook/rules"
+	rulebooktypes "go.temporal.io/server/tools/umpire/rulebook/types"
 )
 
 func TestLostTaskModel_NoIssues(t *testing.T) {

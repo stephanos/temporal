@@ -3,10 +3,10 @@ package entities
 import (
 	"time"
 
-	"go.temporal.io/server/tools/catch/roster"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
-	"go.temporal.io/server/tools/catch/scorebook/moves"
-	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+	"go.temporal.io/server/tools/umpire/roster"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	"go.temporal.io/server/tools/umpire/scorebook/moves"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 var _ roster.Entity = (*TaskQueue)(nil)

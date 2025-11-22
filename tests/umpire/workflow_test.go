@@ -7,52 +7,54 @@ import (
 
 	"github.com/pborman/uuid"
 	"github.com/stretchr/testify/require"
+	omeskitchensink "github.com/temporalio/omes/loadgen/kitchensink"
+	enumspb "go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
-	"go.temporal.io/sdk/workflow"
-	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/api/matchingservice/v1"
+	"go.temporal.io/server/tools/umpire/pitcher"
+	"go.temporal.io/server/tools/umpire/roster/entities"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
-
-// SimpleWorkflow is a basic workflow for testing
-func SimpleWorkflow(ctx workflow.Context) error {
-	// Execute a simple activity
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		StartToCloseTimeout: 5 * time.Second,
-	})
-	err := workflow.ExecuteActivity(ctx, SimpleActivity).Get(ctx, nil)
-	return err
-}
-
-// SimpleActivity is a basic activity for testing
-func SimpleActivity(ctx context.Context) error {
-	return nil
-}
 
 func TestWorkflow(t *testing.T) {
 	ts := NewTestSuite(t)
 	ts.Setup()
 
-	ts.Run(t, "SimpleWorkflow", func(ctx context.Context, t *testing.T, s *TestSuite) {
+	ts.Run(t, "KitchenSinkWorkflow", func(ctx context.Context, t *testing.T, s *TestSuite) {
 		// Register workflow and start worker
 		taskQueue := s.TaskQueue()
 		w := worker.New(s.SdkClient(), taskQueue, worker.Options{})
-		w.RegisterWorkflow(SimpleWorkflow)
-		w.RegisterActivity(SimpleActivity)
+		RegisterWorkflows(w)
 		require.NoError(t, w.Start())
 		defer w.Stop()
 
 		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
 
-		// Build the play scenario
+		// Build the play scenario with KitchenSinkWorkflow
+		workflowInput := &omeskitchensink.WorkflowInput{
+			InitialActions: []*omeskitchensink.ActionSet{
+				{
+					Actions: []*omeskitchensink.Action{
+						{
+							Variant: &omeskitchensink.Action_ReturnResult{
+								ReturnResult: &omeskitchensink.ReturnResultAction{},
+							},
+						},
+					},
+				},
+			},
+		}
 		play := pitcher.NewPlayBuilder().
 			WithStartWorkflow(
 				s.SdkClient(),
 				client.StartWorkflowOptions{
 					TaskQueue: taskQueue,
 				},
-				SimpleWorkflow,
-				nil,
+				KitchenSinkWorkflow,
+				workflowInput,
 			).
 			Build()
 
@@ -69,8 +71,7 @@ func TestWorkflow(t *testing.T) {
 		// Register workflow and start worker
 		taskQueue := s.TaskQueue()
 		w := worker.New(s.SdkClient(), taskQueue, worker.Options{})
-		w.RegisterWorkflow(SimpleWorkflow)
-		w.RegisterActivity(SimpleActivity)
+		RegisterWorkflows(w)
 		require.NoError(t, w.Start())
 		defer w.Stop()
 
@@ -80,13 +81,28 @@ func TestWorkflow(t *testing.T) {
 		// Generate unique workflow ID for matching
 		workflowID := "test-workflow-" + uuid.New()
 
-		// Build the play scenario with fault injection
+		// Build the play scenario with fault injection using KitchenSinkWorkflow
+		workflowInput := &omeskitchensink.WorkflowInput{
+			InitialActions: []*omeskitchensink.ActionSet{
+				{
+					Actions: []*omeskitchensink.Action{
+						{
+							Variant: &omeskitchensink.Action_ReturnResult{
+								ReturnResult: &omeskitchensink.ReturnResultAction{},
+							},
+						},
+					},
+				},
+			},
+		}
 		play := pitcher.NewPlayBuilder().
 			WithFault(
-				"*matchingservice.AddWorkflowTaskRequest",
-				pitcher.FailPlay(pitcher.ErrorResourceExhausted),
+				&matchingservice.AddWorkflowTaskRequest{},
+				pitcher.FailPlay(serviceerror.NewResourceExhausted(enumspb.RESOURCE_EXHAUSTED_CAUSE_SYSTEM_OVERLOADED, "pitcher fault injection")),
 				&pitcher.MatchCriteria{
-					WorkflowID: workflowID,
+					Entities: []rostertypes.EntityID{
+						rostertypes.NewEntityIDFromType(entities.WorkflowType, workflowID),
+					},
 				},
 			).
 			WithStartWorkflow(
@@ -95,8 +111,8 @@ func TestWorkflow(t *testing.T) {
 					ID:        workflowID,
 					TaskQueue: taskQueue,
 				},
-				SimpleWorkflow,
-				nil,
+				KitchenSinkWorkflow,
+				workflowInput,
 			).
 			Build()
 

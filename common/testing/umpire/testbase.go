@@ -6,7 +6,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/telemetry"
-	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/tools/umpire/pitcher"
 )
 
 // TestBase provides CATCH integration for test suites.

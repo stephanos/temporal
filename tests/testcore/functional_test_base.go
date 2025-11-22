@@ -48,10 +48,10 @@ import (
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
-	"go.temporal.io/server/common/testing/catch"
-	"go.temporal.io/server/tools/catch/pitcher"
-	"go.temporal.io/server/tools/catch/rulebook"
-	"go.temporal.io/server/tools/catch/umpire"
+	"go.temporal.io/server/common/testing/umpire"
+	"go.temporal.io/server/tools/umpire/pitcher"
+	"go.temporal.io/server/tools/umpire/rulebook"
+	umpirelib "go.temporal.io/server/tools/umpire/umpire"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -74,7 +74,7 @@ type (
 
 		Logger       log.Logger
 		otelExporter *testtelemetry.MemoryExporter
-		catch        *catch.Catch
+		catch        *umpire.Catch
 
 		testCluster *TestCluster
 		// TODO (alex): this doesn't have to be a separate field. All usages can be replaced with values from testCluster itself.
@@ -232,7 +232,7 @@ func (s *FunctionalTestBase) TaskPoller() *taskpoller.TaskPoller {
 	return s.taskPoller
 }
 
-func (s *FunctionalTestBase) GetUmpire() *umpire.Umpire {
+func (s *FunctionalTestBase) GetUmpire() *umpirelib.Umpire {
 	// Umpire is always initialized in SetupSuiteWithCluster via Catch
 	if s.catch == nil {
 		panic("CATCH system not initialized - did you forget to call SetupSuite()?")
@@ -282,7 +282,7 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 
 	// Initialize CATCH system for telemetry verification BEFORE creating interceptors.
 	var err error
-	s.catch, err = catch.New(catch.Config{
+	s.catch, err = umpire.New(umpire.Config{
 		Logger:        s.Logger,
 		EnableScout:   true,
 		EnableUmpire:  true,
@@ -293,7 +293,7 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 	// Build interceptor list - always include catch interceptor
 	// NOTE: Catch handles setting global umpire and pitcher internally
 	additionalInterceptors := make([]grpc.UnaryServerInterceptor, 0, len(params.AdditionalInterceptors)+1)
-	additionalInterceptors = append(additionalInterceptors, catch.UnaryServerInterceptor())
+	additionalInterceptors = append(additionalInterceptors, umpire.UnaryServerInterceptor())
 	additionalInterceptors = append(additionalInterceptors, params.AdditionalInterceptors...)
 
 	s.testClusterConfig = &TestClusterConfig{
@@ -489,7 +489,7 @@ func (s *FunctionalTestBase) checkWatchdog() {
 			s.Require().Empty(violations, "Umpire detected %d violation(s)", len(violations))
 		}
 
-		// Shutdown catch.
+		// Shutdown umpire.
 		if err := s.catch.Shutdown(context.Background()); err != nil {
 			s.T().Logf("catch shutdown error: %v", err)
 		}

@@ -4,12 +4,12 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/catch/scorebook/types"
+	"go.temporal.io/server/tools/umpire/scorebook/types"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	moves "go.temporal.io/server/tools/catch/scorebook/moves"
+	moves "go.temporal.io/server/tools/umpire/scorebook/moves"
 	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/api/historyservice/v1"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
 // SpanIterator is a function that yields spans one at a time.

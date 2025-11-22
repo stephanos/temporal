@@ -3,38 +3,38 @@ package scorebook
 import (
 	"sync"
 
-	"go.temporal.io/server/tools/catch/scorebook/types"
+	"go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
-// MoveHistory keeps track of all moves for querying during tests.
-type MoveHistory struct {
+// Scorebook keeps track of all moves for querying during tests.
+type Scorebook struct {
 	mu    sync.RWMutex
 	moves []types.Move
 }
 
-// NewMoveHistory creates a new move history tracker.
-func NewMoveHistory() *MoveHistory {
-	return &MoveHistory{
+// NewScorebook creates a new scorebook tracker.
+func NewScorebook() *Scorebook {
+	return &Scorebook{
 		moves: make([]types.Move, 0),
 	}
 }
 
-// Add records a move in the history.
-func (h *MoveHistory) Add(move types.Move) {
+// Add records a move in the scorebook.
+func (h *Scorebook) Add(move types.Move) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.moves = append(h.moves, move)
 }
 
-// AddAll records multiple moves in the history.
-func (h *MoveHistory) AddAll(moves []types.Move) {
+// AddAll records multiple moves in the scorebook.
+func (h *Scorebook) AddAll(moves []types.Move) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.moves = append(h.moves, moves...)
 }
 
 // QueryByWorkflowID returns all moves for a specific workflow ID.
-func (h *MoveHistory) QueryByWorkflowID(workflowID string) []types.Move {
+func (h *Scorebook) QueryByWorkflowID(workflowID string) []types.Move {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -50,7 +50,7 @@ func (h *MoveHistory) QueryByWorkflowID(workflowID string) []types.Move {
 }
 
 // QueryByType returns all moves of a specific type.
-func (h *MoveHistory) QueryByType(moveType string) []types.Move {
+func (h *Scorebook) QueryByType(moveType string) []types.Move {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -64,7 +64,7 @@ func (h *MoveHistory) QueryByType(moveType string) []types.Move {
 }
 
 // QueryByWorkflowIDAndType returns moves matching both workflow ID and type.
-func (h *MoveHistory) QueryByWorkflowIDAndType(workflowID string, moveType string) []types.Move {
+func (h *Scorebook) QueryByWorkflowIDAndType(workflowID string, moveType string) []types.Move {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -77,8 +77,8 @@ func (h *MoveHistory) QueryByWorkflowIDAndType(workflowID string, moveType strin
 	return result
 }
 
-// All returns all moves in the history.
-func (h *MoveHistory) All() []types.Move {
+// All returns all moves in the scorebook.
+func (h *Scorebook) All() []types.Move {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -87,8 +87,8 @@ func (h *MoveHistory) All() []types.Move {
 	return result
 }
 
-// Clear removes all moves from history.
-func (h *MoveHistory) Clear() {
+// Clear removes all moves from scorebook.
+func (h *Scorebook) Clear() {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.moves = make([]types.Move, 0)

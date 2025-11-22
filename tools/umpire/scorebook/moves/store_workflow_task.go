@@ -1,11 +1,11 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
 // StoreWorkflowTask represents a workflow task being stored to persistence.

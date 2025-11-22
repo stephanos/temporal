@@ -9,8 +9,8 @@ import (
 	"github.com/tidwall/buntdb"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
-	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // Entity is the interface that all entities must implement.

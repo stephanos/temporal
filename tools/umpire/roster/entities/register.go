@@ -1,8 +1,8 @@
 package entities
 
 import (
-	"go.temporal.io/server/tools/catch/roster"
-	"go.temporal.io/server/tools/catch/scorebook/moves"
+	"go.temporal.io/server/tools/umpire/roster"
+	"go.temporal.io/server/tools/umpire/scorebook/moves"
 )
 
 // RegisterDefaultEntities registers the default entity types with a registry.

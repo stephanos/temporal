@@ -11,11 +11,11 @@ import (
 	workflowpb "go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/common/log"
-	"go.temporal.io/server/tools/catch/roster"
-	"go.temporal.io/server/tools/catch/roster/entities"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
-	"go.temporal.io/server/tools/catch/scorebook/moves"
-	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+	"go.temporal.io/server/tools/umpire/roster"
+	"go.temporal.io/server/tools/umpire/roster/entities"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	"go.temporal.io/server/tools/umpire/scorebook/moves"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // TestLostTaskUnit verifies the unit-level behavior of lost task detection.

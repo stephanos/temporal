@@ -1,7 +1,7 @@
 package types
 
 import (
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
 // MoveIterator is a function that yields moves one at a time.

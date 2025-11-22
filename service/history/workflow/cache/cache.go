@@ -23,10 +23,10 @@ import (
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/persistence"
-	"go.temporal.io/server/common/testing/catch"
+	"go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/service/history/configs"
-	"go.temporal.io/server/tools/catch/roster/entities"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
+	"go.temporal.io/server/tools/umpire/roster/entities"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	"go.temporal.io/server/service/history/consts"
 	historyi "go.temporal.io/server/service/history/interfaces"
 	"go.temporal.io/server/service/history/workflow"
@@ -327,10 +327,10 @@ func (c *cacheImpl) lockWorkflowExecution(
 	workflowEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowType, wfKey.WorkflowID)
 	workflowExecutionEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowExecutionType, wfKey.RunID)
 	namespaceEntityID := rostertypes.NewEntityIDFromType(entities.NamespaceType, wfKey.NamespaceID)
-	ctx, span := catch.Instrument(ctx, "workflow.cache.lock.acquire",
-		catch.EntityTag(workflowEntityID),
-		catch.EntityTag(workflowExecutionEntityID),
-		catch.EntityTag(namespaceEntityID),
+	ctx, span := umpire.Instrument(ctx, "workflow.cache.lock.acquire",
+		umpire.EntityTag(workflowEntityID),
+		umpire.EntityTag(workflowExecutionEntityID),
+		umpire.EntityTag(namespaceEntityID),
 		attribute.String("lock.type", lockPriorityStr),
 	)
 	defer span.End()
@@ -355,8 +355,8 @@ func (c *cacheImpl) lockWorkflowExecution(
 
 	if err := workflowCtx.Lock(ctx, lockPriority); err != nil {
 		// ctx is done before lock can be acquired
-		catch.RecordError(ctx, err,
-			catch.EntityTag(workflowEntityID),
+		umpire.RecordError(ctx, err,
+			umpire.EntityTag(workflowEntityID),
 		)
 		c.Release(cacheKey)
 		return consts.ErrResourceExhaustedBusyWorkflow
@@ -383,8 +383,8 @@ func (c *cacheImpl) makeReleaseFunc(
 				// Record lock release event before panic
 				wfKey := wfContext.GetWorkflowKey()
 				workflowEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowType, wfKey.WorkflowID)
-				catch.RecordEvent(context.Background(), "workflow.cache.lock.released",
-					catch.EntityTag(workflowEntityID),
+				umpire.RecordEvent(context.Background(), "workflow.cache.lock.released",
+					umpire.EntityTag(workflowEntityID),
 					attribute.String("release.reason", "panic"),
 				)
 				wfContext.Clear()
@@ -396,8 +396,8 @@ func (c *cacheImpl) makeReleaseFunc(
 				workflowEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowType, wfKey.WorkflowID)
 				if err != nil || forceClearContext {
 					// TODO see issue #668, there are certain type or errors which can bypass the clear
-					catch.RecordEvent(context.Background(), "workflow.cache.lock.released",
-						catch.EntityTag(workflowEntityID),
+					umpire.RecordEvent(context.Background(), "workflow.cache.lock.released",
+						umpire.EntityTag(workflowEntityID),
 						attribute.String("release.reason", "error_or_force_clear"),
 						attribute.Bool("has.error", err != nil),
 					)
@@ -407,8 +407,8 @@ func (c *cacheImpl) makeReleaseFunc(
 				} else {
 					isDirty := wfContext.IsDirty()
 					if isDirty {
-						catch.RecordEvent(context.Background(), "workflow.cache.lock.released",
-							catch.EntityTag(workflowEntityID),
+						umpire.RecordEvent(context.Background(), "workflow.cache.lock.released",
+							umpire.EntityTag(workflowEntityID),
 							attribute.String("release.reason", "dirty_state"),
 							attribute.Bool("is.dirty", true),
 						)
@@ -420,8 +420,8 @@ func (c *cacheImpl) makeReleaseFunc(
 							tag.WorkflowRunID(wfContext.GetWorkflowKey().RunID),
 						)
 					} else {
-						catch.RecordEvent(context.Background(), "workflow.cache.lock.released",
-							catch.EntityTag(workflowEntityID),
+						umpire.RecordEvent(context.Background(), "workflow.cache.lock.released",
+							umpire.EntityTag(workflowEntityID),
 							attribute.String("release.reason", "normal"),
 						)
 					}

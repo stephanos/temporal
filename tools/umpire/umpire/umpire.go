@@ -9,11 +9,11 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
-	"go.temporal.io/server/tools/catch/roster"
-	"go.temporal.io/server/tools/catch/rulebook"
-	rulebooktypes "go.temporal.io/server/tools/catch/rulebook/types"
-	"go.temporal.io/server/tools/catch/scorebook"
-	scorebooktypes "go.temporal.io/server/tools/catch/scorebook/types"
+	"go.temporal.io/server/tools/umpire/roster"
+	"go.temporal.io/server/tools/umpire/rulebook"
+	rulebooktypes "go.temporal.io/server/tools/umpire/rulebook/types"
+	"go.temporal.io/server/tools/umpire/scorebook"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // Global umpire instance (only active in tests)
@@ -31,7 +31,7 @@ type Umpire struct {
 	registry      *roster.Registry
 	importer      *scorebook.Importer
 	modelRegistry *rulebook.Registry
-	moveHistory   *scorebook.MoveHistory
+	scorebook     *scorebook.Scorebook
 }
 
 // Config holds configuration for an Umpire instance.
@@ -58,8 +58,8 @@ func New(cfg Config) (*Umpire, error) {
 	// Initialize importer.
 	importer := scorebook.NewImporter()
 
-	// Initialize move history for test queries.
-	moveHistory := scorebook.NewMoveHistory()
+	// Initialize scorebook for test queries.
+	sb := scorebook.NewScorebook()
 
 	// Initialize model registry.
 	modelRegistry := rulebook.NewRegistry()
@@ -81,7 +81,7 @@ func New(cfg Config) (*Umpire, error) {
 		registry:      registry,
 		importer:      importer,
 		modelRegistry: modelRegistry,
-		moveHistory:   moveHistory,
+		scorebook:     sb,
 	}, nil
 }
 
@@ -156,9 +156,9 @@ func (w *Umpire) Check(ctx context.Context) []rulebook.Violation {
 	return w.modelRegistry.Check(ctx)
 }
 
-// Scorebook returns the scorebook (move history) for querying moves in tests.
-func (w *Umpire) Scorebook() *scorebook.MoveHistory {
-	return w.moveHistory
+// Scorebook returns the scorebook for querying moves in tests.
+func (w *Umpire) Scorebook() *scorebook.Scorebook {
+	return w.scorebook
 }
 
 // RecordMove records a move from a gRPC interceptor.
@@ -177,8 +177,8 @@ func (w *Umpire) RecordMove(ctx context.Context, method string, request any) {
 		tag.NewStringTag("method", method),
 		tag.NewStringTag("moveType", move.MoveType()))
 
-	// Add to move history for test querying
-	w.moveHistory.Add(move)
+	// Add to scorebook for test querying
+	w.scorebook.Add(move)
 
 	// Route to entities for verification models
 	if err := w.registry.RouteEvents(ctx, []scorebooktypes.Move{move}); err != nil {

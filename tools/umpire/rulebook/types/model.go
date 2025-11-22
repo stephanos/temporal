@@ -2,7 +2,7 @@ package types
 
 import (
 	"go.temporal.io/server/common/log"
-	rostertypes "go.temporal.io/server/tools/catch/roster/types"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 )
 
 // EntityRegistry is the interface for querying entities.

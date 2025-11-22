@@ -53,7 +53,7 @@ import (
 	"go.temporal.io/server/common/searchattribute"
 	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/testing/grpcinject"
-	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/tools/umpire/pitcher"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/service/frontend"
 	"go.temporal.io/server/service/history"

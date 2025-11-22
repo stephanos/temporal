@@ -66,10 +66,11 @@ func DelayPlay(duration time.Duration, jitter float64) Play {
 	})
 }
 
-// FailPlay creates a fail play
-func FailPlay(errorCode string) Play {
+// FailPlay creates a fail play that returns the specified error.
+// The err parameter should be a serviceerror instance (e.g., serviceerror.NewResourceExhausted("message"))
+func FailPlay(err error) Play {
 	return NewPlay(PlayFail, map[string]any{
-		ParamError: errorCode,
+		ParamError: err,
 	})
 }
 

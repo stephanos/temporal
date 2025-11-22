@@ -3,8 +3,8 @@ package umpire
 import (
 	"context"
 
-	"go.temporal.io/server/tools/catch/pitcher"
-	"go.temporal.io/server/tools/catch/umpire"
+	"go.temporal.io/server/tools/umpire/pitcher"
+	"go.temporal.io/server/tools/umpire/umpire"
 	"google.golang.org/grpc"
 )
 

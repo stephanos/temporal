@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/api/serviceerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -25,7 +26,7 @@ func TestPitcher_FailAction(t *testing.T) {
 	ctx := context.Background()
 
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(ErrorResourceExhausted),
+		Play:  FailPlay(serviceerror.NewResourceExhausted("test error")),
 		Match: nil, // match any
 	})
 

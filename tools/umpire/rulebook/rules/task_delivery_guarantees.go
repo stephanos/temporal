@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	entity "go.temporal.io/server/tools/catch/roster/entities"
-	"go.temporal.io/server/tools/catch/rulebook"
-	rulebooktypes "go.temporal.io/server/tools/catch/rulebook/types"
+	entity "go.temporal.io/server/tools/umpire/roster/entities"
+	"go.temporal.io/server/tools/umpire/rulebook"
+	rulebooktypes "go.temporal.io/server/tools/umpire/rulebook/types"
 
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"

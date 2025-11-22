@@ -1,9 +1,9 @@
 package rules
 
 import (
-	"go.temporal.io/server/tools/catch/rulebook"
-	rulebooktypes "go.temporal.io/server/tools/catch/rulebook/types"
-	entity "go.temporal.io/server/tools/catch/roster/entities"
+	"go.temporal.io/server/tools/umpire/rulebook"
+	rulebooktypes "go.temporal.io/server/tools/umpire/rulebook/types"
+	entity "go.temporal.io/server/tools/umpire/roster/entities"
 	"context"
 	"errors"
 	"fmt"

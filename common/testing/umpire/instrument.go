@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"go.temporal.io/server/tools/catch/roster/types"
+	"go.temporal.io/server/tools/umpire/roster/types"
 )
 
 const (

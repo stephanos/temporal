@@ -10,7 +10,7 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tools/catch/pitcher"
+	"go.temporal.io/server/tools/umpire/pitcher"
 )
 
 type PitcherMVPSuite struct {

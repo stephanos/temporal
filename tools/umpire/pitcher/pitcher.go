@@ -15,6 +15,7 @@ import (
 	"time"
 
 	sdkclient "go.temporal.io/sdk/client"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -69,23 +70,12 @@ type PlayConfig struct {
 }
 
 // MatchCriteria defines conditions that must be met for a play to apply.
-// All specified criteria must match (AND logic).
+// If the request matches any of the specified entity IDs, the criteria matches.
 type MatchCriteria struct {
-	// WorkflowID filters by workflow ID
-	WorkflowID string
-
-	// NamespaceID filters by namespace ID
-	NamespaceID string
-
-	// TaskQueue filters by task queue name
-	TaskQueue string
-
-	// RunID filters by workflow run ID
-	RunID string
-
-	// Custom allows arbitrary matching logic via key-value pairs.
-	// The interceptor can check request fields against these values.
-	Custom map[string]any
+	// Entities is a list of entity IDs to match against.
+	// If any entity ID in the list matches the request, the criteria matches (OR logic).
+	// Empty list means match all requests.
+	Entities []rostertypes.EntityID
 }
 
 // Common error codes for fault injection
@@ -207,22 +197,18 @@ func (p *pitcherImpl) matchesCriteria(criteria *MatchCriteria, request any) bool
 		return true
 	}
 
-	// If all criteria fields are empty, match anything
-	if criteria.WorkflowID == "" &&
-		criteria.NamespaceID == "" &&
-		criteria.TaskQueue == "" &&
-		criteria.RunID == "" &&
-		len(criteria.Custom) == 0 {
+	// If entities list is empty, match anything
+	if len(criteria.Entities) == 0 {
 		return true
 	}
 
-	// TODO: Implement matching logic based on request type.
-	// The interceptor will need to extract entity fields from the gRPC request
-	// and compare against these criteria.
+	// TODO: Implement matching logic based on request type and entity IDs.
+	// The interceptor will need to extract entity IDs from the gRPC request
+	// and compare against the Entities list.
 	// For example:
-	// - Extract WorkflowID from StartWorkflowExecutionRequest
-	// - Extract TaskQueue from PollWorkflowTaskQueueRequest
-	// - Extract NamespaceID from various requests
+	// - Extract WorkflowID from request and create EntityID for Workflow entity
+	// - Extract TaskQueue from request and create EntityID for TaskQueue entity
+	// - Compare extracted EntityIDs against criteria.Entities list
 	// This will be implemented when we add typed interceptors.
 	return false
 }
@@ -255,18 +241,12 @@ func (p *pitcherImpl) executePlay(ctx context.Context, target string, config Pla
 
 // executeFail returns a gRPC error
 func (p *pitcherImpl) executeFail(pl Play) error {
-	errorCode, ok := pl.Params[ParamError].(string)
-	if !ok {
-		errorCode = ErrorInternal
+	// If an error instance is provided (e.g., serviceerror), return it directly
+	if err, ok := pl.Params[ParamError].(error); ok {
+		return err
 	}
-
-	code := parseErrorCode(errorCode)
-	message := fmt.Sprintf("pitcher made play: %s", errorCode)
-	if msg, ok := pl.Params["message"].(string); ok {
-		message = msg
-	}
-
-	return status.Error(code, message)
+	// Fallback if no error is specified
+	return status.Error(codes.Internal, "pitcher made play: no error specified")
 }
 
 // executeDelay sleeps for the configured duration
