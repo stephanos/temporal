@@ -45,8 +45,8 @@ func TestLostTaskUnit(t *testing.T) {
 	runID := "test-run-1"
 
 	// Create identities
-	workflowTaskID := rostertypes.NewEntityIDFromType(&WorkflowTask{}, taskQueue+":"+workflowID+":"+runID)
-	taskQueueID := rostertypes.NewEntityIDFromType(&TaskQueue{}, taskQueue)
+	workflowTaskID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowTaskType, taskQueue+":"+workflowID+":"+runID)
+	taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 	taskIdentity := &rostertypes.Identity{
 		EntityID: workflowTaskID,
 		ParentID: &taskQueueID,
@@ -127,7 +127,7 @@ func TestTaskQueueTracksEmptyPolls(t *testing.T) {
 	entities.RegisterDefaultEntities(registry)
 
 	taskQueue := "test-queue"
-	taskQueueID := rostertypes.NewEntityIDFromType(&TaskQueue{}, taskQueue)
+	taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 	taskQueueIdentity := &rostertypes.Identity{
 		EntityID: taskQueueID,
 		ParentID: nil,
@@ -175,8 +175,8 @@ func TestWorkflowTaskStoreTransition(t *testing.T) {
 	workflowID := "test-workflow"
 	runID := "test-run"
 
-	workflowTaskID := rostertypes.NewEntityIDFromType(&WorkflowTask{}, taskQueue+":"+workflowID+":"+runID)
-	taskQueueID := rostertypes.NewEntityIDFromType(&TaskQueue{}, taskQueue)
+	workflowTaskID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowTaskType, taskQueue+":"+workflowID+":"+runID)
+	taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 	taskIdentity := &rostertypes.Identity{
 		EntityID: workflowTaskID,
 		ParentID: &taskQueueID,

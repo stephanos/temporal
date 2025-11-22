@@ -14,8 +14,8 @@ import (
 	catchpkg "go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/tests/testcore"
+	"go.temporal.io/server/tools/umpire"
 	"go.temporal.io/server/tools/umpire/pitcher"
-	"go.temporal.io/server/tools/umpire/umpire"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/durationpb"
 )

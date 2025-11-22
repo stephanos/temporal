@@ -5,7 +5,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
-	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
@@ -51,15 +50,15 @@ func (e *PollActivityTask) Parse(span ptrace.Span) scorebooktypes.Move {
 	var ident *rostertypes.Identity
 	if taskReturned && resp.ActivityId != "" {
 		// Use ActivityId from response
-		activityTaskID := rostertypes.NewEntityIDFromType(&entities.ActivityTask{}, taskQueue+":"+resp.ActivityId)
-		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, taskQueue)
+		activityTaskID := rostertypes.NewEntityIDFromType(rostertypes.ActivityTaskType, taskQueue+":"+resp.ActivityId)
+		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 		ident = &rostertypes.Identity{
 			EntityID: activityTaskID,
 			ParentID: &taskQueueID,
 		}
 	} else if taskReturned {
 		// Empty poll or no ActivityId - target is the TaskQueue
-		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, taskQueue)
+		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 		ident = &rostertypes.Identity{
 			EntityID: taskQueueID,
 			ParentID: nil,

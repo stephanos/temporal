@@ -14,8 +14,6 @@ import (
 
 var _ roster.Entity = (*WorkflowExecution)(nil)
 
-// WorkflowExecutionType is the entity type for workflow executions (runs).
-const WorkflowExecutionType rostertypes.EntityType = "WorkflowExecution"
 
 // WorkflowExecution represents a specific workflow execution (run).
 // A workflow can have multiple executions (runs) due to continue-as-new or retries.
@@ -45,7 +43,7 @@ func NewWorkflowExecution() *WorkflowExecution {
 }
 
 func (we *WorkflowExecution) Type() rostertypes.EntityType {
-	return WorkflowExecutionType
+	return rostertypes.WorkflowExecutionType
 }
 
 func (we *WorkflowExecution) OnEvent(identity *rostertypes.Identity, iter scorebooktypes.MoveIterator) error {

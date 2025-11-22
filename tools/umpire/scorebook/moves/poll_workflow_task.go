@@ -5,7 +5,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
-	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
@@ -52,16 +51,16 @@ func (e *PollWorkflowTask) Parse(span ptrace.Span) scorebooktypes.Move {
 	if taskReturned && resp.WorkflowExecution != nil &&
 		resp.WorkflowExecution.WorkflowId != "" && resp.WorkflowExecution.RunId != "" {
 		// Poll returned a task - target is the WorkflowTask
-		workflowTaskID := rostertypes.NewEntityIDFromType(&entities.WorkflowTask{},
+		workflowTaskID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowTaskType,
 			taskQueue+":"+resp.WorkflowExecution.WorkflowId+":"+resp.WorkflowExecution.RunId)
-		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, taskQueue)
+		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 		ident = &rostertypes.Identity{
 			EntityID: workflowTaskID,
 			ParentID: &taskQueueID,
 		}
 	} else {
 		// Empty poll - target is the TaskQueue
-		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, taskQueue)
+		taskQueueID := rostertypes.NewEntityIDFromType(rostertypes.TaskQueueType, taskQueue)
 		ident = &rostertypes.Identity{
 			EntityID: taskQueueID,
 			ParentID: nil,

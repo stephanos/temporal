@@ -3,8 +3,8 @@ package umpire
 import (
 	"context"
 
+	"go.temporal.io/server/tools/umpire"
 	"go.temporal.io/server/tools/umpire/pitcher"
-	"go.temporal.io/server/tools/umpire/umpire"
 	"google.golang.org/grpc"
 )
 
@@ -21,7 +21,7 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		// Record the move in the scorebook (if umpire is configured)
 		u := umpire.Get()
 		if u != nil {
-			u.RecordMove(ctx, info.FullMethod, req)
+			u.RecordMove(ctx, req)
 		}
 
 		// Check if pitcher is configured for fault injection

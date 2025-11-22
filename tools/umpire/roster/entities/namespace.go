@@ -11,8 +11,6 @@ import (
 
 var _ roster.Entity = (*Namespace)(nil)
 
-// NamespaceType is the entity type for namespaces.
-const NamespaceType rostertypes.EntityType = "Namespace"
 
 // Namespace represents a Temporal namespace entity.
 // Locking is handled by the registry - individual methods should not lock.
@@ -28,7 +26,7 @@ func NewNamespace() *Namespace {
 }
 
 func (ns *Namespace) Type() rostertypes.EntityType {
-	return NamespaceType
+	return rostertypes.NamespaceType
 }
 
 func (ns *Namespace) OnEvent(_ *rostertypes.Identity, iter scorebooktypes.MoveIterator) error {

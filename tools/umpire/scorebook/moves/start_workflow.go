@@ -5,7 +5,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/historyservice/v1"
-	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
@@ -41,8 +40,7 @@ func (e *StartWorkflow) Parse(span ptrace.Span) scorebooktypes.Move {
 	workflowID := req.StartRequest.WorkflowId
 
 	// Create identity for this workflow
-	workflowEntityID := rostertypes.NewEntityIDFromType(&entities.Workflow{},
-		workflowID)
+	workflowEntityID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowType, workflowID)
 	ident := &rostertypes.Identity{
 		EntityID: workflowEntityID,
 		ParentID: nil,

@@ -14,8 +14,6 @@ import (
 
 var _ roster.Entity = (*WorkflowTask)(nil)
 
-// WorkflowTaskType is the entity type for workflow tasks.
-const WorkflowTaskType rostertypes.EntityType = "WorkflowTask"
 
 // WorkflowTask represents a workflow task entity.
 // Locking is handled by the registry - individual methods should not lock.
@@ -45,7 +43,7 @@ func NewWorkflowTask() *WorkflowTask {
 }
 
 func (wt *WorkflowTask) Type() rostertypes.EntityType {
-	return WorkflowTaskType
+	return rostertypes.WorkflowTaskType
 }
 
 func (wt *WorkflowTask) OnEvent(_ *rostertypes.Identity, iter scorebooktypes.MoveIterator) error {

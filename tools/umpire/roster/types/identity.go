@@ -10,6 +10,17 @@ type TypedEntity interface {
 // Each entity defines its type as a constant.
 type EntityType string
 
+// Common entity type constants
+// These are defined here to avoid import cycles between moves and entities.
+const (
+	ActivityTaskType     EntityType = "ActivityTask"
+	TaskQueueType        EntityType = "TaskQueue"
+	WorkflowType         EntityType = "Workflow"
+	WorkflowTaskType     EntityType = "WorkflowTask"
+	WorkflowExecutionType EntityType = "WorkflowExecution"
+	NamespaceType        EntityType = "Namespace"
+)
+
 // EntityID uniquely identifies an entity within its type.
 type EntityID struct {
 	// Type is the entity type
@@ -27,13 +38,12 @@ func NewEntityID(e TypedEntity, id string) EntityID {
 	}
 }
 
-// NewEntityIDFromType creates an EntityID from a typed entity reference.
-// The entityRef parameter is used only to get the entity type via its Type() method.
-// Use this when you don't have a populated entity instance available (e.g., in instrumentation).
-// Example: NewEntityIDFromType(&entities.Workflow{}, "workflow-123")
-func NewEntityIDFromType(entityRef TypedEntity, id string) EntityID {
+// NewEntityIDFromType creates an EntityID from an entity type and ID string.
+// Use this when you know the entity type constant (e.g., entities.WorkflowType).
+// Example: NewEntityIDFromType(entities.WorkflowType, "workflow-123")
+func NewEntityIDFromType(entityType EntityType, id string) EntityID {
 	return EntityID{
-		Type: entityRef.Type(),
+		Type: entityType,
 		ID:   id,
 	}
 }

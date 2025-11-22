@@ -7,9 +7,9 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/telemetry"
+	"go.temporal.io/server/tools/umpire"
 	"go.temporal.io/server/tools/umpire/catcher"
 	"go.temporal.io/server/tools/umpire/pitcher"
-	"go.temporal.io/server/tools/umpire/umpire"
 )
 
 // Catch is the complete CATCH system that brings together:
