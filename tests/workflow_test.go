@@ -87,14 +87,12 @@ func (s *WorkflowTestSuite) TestStartWorkflowExecution() {
   1 WorkflowExecutionStarted {"Attempt":1,"WorkflowTaskTimeout":{"Nanos":0,"Seconds":10}}
   2 WorkflowTaskScheduled`, historyEvents)
 
-		// Verify moves were recorded via move history
-		moveHistory := s.GetUmpire().MoveHistory()
-		startWorkflowMoves := moveHistory.QueryByWorkflowIDAndType(request.WorkflowId, "StartWorkflowExecution")
-		// Log the move count for debugging
-		s.T().Logf("Total StartWorkflowExecution moves captured: %d", len(startWorkflowMoves))
-		// TODO: Enable assertion once gRPC interceptor is properly configured to record moves
-		// s.GreaterOrEqual(len(startWorkflowMoves), 1,
-		//	"Expected at least 1 StartWorkflowExecution move to be recorded")
+		// Verify moves were recorded via scorebook
+		scorebook := s.GetUmpire().Scorebook()
+		startWorkflowMoves := scorebook.QueryByWorkflowIDAndType(request.WorkflowId, "StartWorkflow")
+		s.T().Logf("Total StartWorkflow moves captured: %d", len(startWorkflowMoves))
+		s.GreaterOrEqual(len(startWorkflowMoves), 1,
+			"Expected at least 1 StartWorkflow move to be recorded")
 	})
 
 	s.Run("start twice - same request", func() {
@@ -940,13 +938,11 @@ func (s *WorkflowTestSuite) TestTerminateWorkflow() {
 	})
 	s.NoError(err)
 
-	// Verify moves were recorded via move history
-	moveHistory := s.GetUmpire().MoveHistory()
-	terminateMoves := moveHistory.QueryByWorkflowIDAndType(tv.WorkflowID(), "TerminateWorkflowExecution")
-	s.T().Logf("Total TerminateWorkflowExecution moves captured: %d", len(terminateMoves))
-	// TODO: Enable assertion once gRPC interceptor is properly configured to record moves
-	// s.GreaterOrEqual(len(terminateMoves), 1,
-	//	"Expected at least 1 TerminateWorkflowExecution move to be recorded")
+	// Verify moves were recorded via scorebook
+	// Note: TerminateWorkflow move type not yet implemented in scorebook
+	scorebook := s.GetUmpire().Scorebook()
+	allMoves := scorebook.QueryByWorkflowID(tv.WorkflowID())
+	s.T().Logf("Total moves captured for workflow: %d", len(allMoves))
 
 	var historyEvents []*historypb.HistoryEvent
 GetHistoryLoop:
@@ -1102,23 +1098,22 @@ func (s *WorkflowTestSuite) TestSequentialWorkflow() {
 	s.NoError(err)
 	s.True(workflowComplete)
 
-	// Verify moves were recorded via move history
-	moveHistory := s.GetUmpire().MoveHistory()
+	// Verify moves were recorded via scorebook
+	scorebook := s.GetUmpire().Scorebook()
 
 	// Check workflow task moves
-	workflowTaskMoves := moveHistory.QueryByWorkflowIDAndType(tv.WorkflowID(), "PollWorkflowTaskQueue")
-	s.T().Logf("Total PollWorkflowTaskQueue moves captured: %d", len(workflowTaskMoves))
+	workflowTaskMoves := scorebook.QueryByWorkflowIDAndType(tv.WorkflowID(), "PollWorkflowTask")
+	s.T().Logf("Total PollWorkflowTask moves captured: %d", len(workflowTaskMoves))
 
 	// Check activity task moves
-	activityTaskMoves := moveHistory.QueryByWorkflowIDAndType(tv.WorkflowID(), "PollActivityTaskQueue")
-	s.T().Logf("Total PollActivityTaskQueue moves captured: %d", len(activityTaskMoves))
+	activityTaskMoves := scorebook.QueryByWorkflowIDAndType(tv.WorkflowID(), "PollActivityTask")
+	s.T().Logf("Total PollActivityTask moves captured: %d", len(activityTaskMoves))
 
 	// Check all moves for this workflow
-	allWorkflowMoves := moveHistory.QueryByWorkflowID(tv.WorkflowID())
+	allWorkflowMoves := scorebook.QueryByWorkflowID(tv.WorkflowID())
 	s.T().Logf("Total moves captured for workflow: %d", len(allWorkflowMoves))
-	// TODO: Enable assertion once gRPC interceptor is properly configured to record moves
-	// s.GreaterOrEqual(len(allWorkflowMoves), 1,
-	//	"Expected at least 1 move to be recorded for this workflow")
+	s.GreaterOrEqual(len(allWorkflowMoves), 1,
+		"Expected at least 1 move to be recorded for this workflow")
 }
 
 func (s *WorkflowTestSuite) TestCompleteWorkflowTaskAndCreateNewOne() {

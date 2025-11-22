@@ -156,8 +156,8 @@ func (w *Umpire) Check(ctx context.Context) []rulebook.Violation {
 	return w.modelRegistry.Check(ctx)
 }
 
-// MoveHistory returns the move history for querying.
-func (w *Umpire) MoveHistory() *scorebook.MoveHistory {
+// Scorebook returns the scorebook (move history) for querying moves in tests.
+func (w *Umpire) Scorebook() *scorebook.MoveHistory {
 	return w.moveHistory
 }
 

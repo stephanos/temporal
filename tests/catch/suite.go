@@ -1,25 +1,3 @@
-// The MIT License
-//
-// Copyright (c) 2025 Temporal Technologies Inc.  All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 package catch
 
 import (
@@ -30,27 +8,27 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/workflowservice/v1"
 	sdkclient "go.temporal.io/sdk/client"
-	"google.golang.org/protobuf/types/known/durationpb"
-	catchpkg "go.temporal.io/server/common/testing/catch"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
+	catchpkg "go.temporal.io/server/common/testing/catch"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tools/catch/pitcher"
 	"go.temporal.io/server/tools/catch/umpire"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // TestSuite provides test infrastructure for CATCH tests
 type TestSuite struct {
-	t               testing.TB
-	logger          log.Logger
-	testCluster     *testcore.TestCluster
-	namespace       namespace.Name
-	sdkClient       sdkclient.Client
-	pitcher         pitcher.Pitcher
-	umpire          *umpire.Umpire
+	t           testing.TB
+	logger      log.Logger
+	testCluster *testcore.TestCluster
+	namespace   namespace.Name
+	sdkClient   sdkclient.Client
+	pitcher     pitcher.Pitcher
+	umpire      *umpire.Umpire
 }
 
 // NewTestSuite creates a new CATCH test suite
