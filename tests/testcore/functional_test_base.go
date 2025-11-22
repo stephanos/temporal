@@ -48,10 +48,9 @@ import (
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
-	catchpkg "go.temporal.io/server/common/testing/catch"
+	"go.temporal.io/server/common/testing/catch"
 	"go.temporal.io/server/tools/catch/pitcher"
-	"go.temporal.io/server/tools/catch/scout"
-	"go.temporal.io/server/tools/catch/umpire"
+	"go.temporal.io/server/tools/catch/rulebook"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -74,7 +73,7 @@ type (
 
 		Logger       log.Logger
 		otelExporter *testtelemetry.MemoryExporter
-		umpire       *umpire.Umpire
+		catch        *catch.Catch
 
 		testCluster *TestCluster
 		// TODO (alex): this doesn't have to be a separate field. All usages can be replaced with values from testCluster itself.
@@ -232,9 +231,12 @@ func (s *FunctionalTestBase) TaskPoller() *taskpoller.TaskPoller {
 	return s.taskPoller
 }
 
-func (s *FunctionalTestBase) GetUmpire() *umpire.Umpire {
-	// Umpire is always initialized in SetupSuiteWithCluster
-	return s.umpire
+func (s *FunctionalTestBase) GetUmpire() interface{} {
+	// Umpire is always initialized in SetupSuiteWithCluster via Catch
+	if s.catch != nil {
+		return s.catch.Umpire()
+	}
+	return nil
 }
 
 // ConfigurePitcher configures fault injection for a specific RPC method.
@@ -273,21 +275,20 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 		s.Logger = tl
 	}
 
-	// Initialize umpire for telemetry verification BEFORE creating interceptors.
-	// All registered models are enabled.
+	// Initialize CATCH system for telemetry verification BEFORE creating interceptors.
 	var err error
-	s.umpire, err = umpire.New(umpire.Config{
-		Logger: s.Logger,
+	s.catch, err = catch.New(catch.Config{
+		Logger:        s.Logger,
+		EnableScout:   true,
+		EnableUmpire:  true,
+		EnablePitcher: true,
 	})
 	s.Require().NoError(err)
 
-	// Set the global umpire so the gRPC interceptor can record moves
-	umpire.Set(s.umpire)
-
 	// Build interceptor list - always include catch interceptor
-	// NOTE: Must be after umpire.Set() so the interceptor can access the global umpire
+	// NOTE: Catch handles setting global umpire and pitcher internally
 	additionalInterceptors := make([]grpc.UnaryServerInterceptor, 0, len(params.AdditionalInterceptors)+1)
-	additionalInterceptors = append(additionalInterceptors, catchpkg.UnaryServerInterceptor())
+	additionalInterceptors = append(additionalInterceptors, catch.UnaryServerInterceptor())
 	additionalInterceptors = append(additionalInterceptors, params.AdditionalInterceptors...)
 
 	s.testClusterConfig = &TestClusterConfig{
@@ -316,16 +317,14 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 		}
 	}
 
-	// Create a scout span exporter that reports to the umpire.
-	umpireExporter := scout.NewSpanExporter(s.umpire)
+	// Add CATCH span exporter for observability
 	if s.testClusterConfig.SpanExporters == nil {
 		s.testClusterConfig.SpanExporters = make(map[telemetry.SpanExporterType]sdktrace.SpanExporter)
 	}
-	// Use a dedicated exporter type for umpire, or multiplex with the existing one.
-	// For now, we'll add it as a separate exporter type.
+	// Multiplex catch exporter with existing exporters
 	s.testClusterConfig.SpanExporters[telemetry.OtelTracesOtlpExporterType] = testtelemetry.NewMultiExporter(
 		s.testClusterConfig.SpanExporters[telemetry.OtelTracesOtlpExporterType],
-		umpireExporter,
+		s.catch.SpanExporter(),
 	)
 
 	testClusterFactory := NewTestClusterFactory()
@@ -470,21 +469,25 @@ func (s *FunctionalTestBase) exportOTELTraces() {
 }
 
 func (s *FunctionalTestBase) checkWatchdog() {
-	// Umpire is always initialized in SetupSuiteWithCluster
+	// CATCH is always initialized in SetupSuiteWithCluster
 	// Run a final check to verify all telemetry invariants.
-	violations := s.umpire.Check(context.Background())
-	if len(violations) > 0 {
-		s.T().Logf("Umpire detected %d violation(s):", len(violations))
-		for _, v := range violations {
-			s.T().Logf("  [%s] %s: %v", v.Model, v.Message, v.Tags)
+	if s.catch != nil {
+		violations := s.catch.Check(context.Background())
+		if len(violations) > 0 {
+			s.T().Logf("Umpire detected %d violation(s):", len(violations))
+			for _, vi := range violations {
+				if v, ok := vi.(rulebook.Violation); ok {
+					s.T().Logf("  [%s] %s: %v", v.Model, v.Message, v.Tags)
+				}
+			}
+			// Fail the test when violations are detected
+			s.Require().Empty(violations, "Umpire detected %d violation(s)", len(violations))
 		}
-		// Fail the test when violations are detected
-		s.Require().Empty(violations, "Umpire detected %d violation(s)", len(violations))
-	}
 
-	// Close the umpire.
-	if err := s.umpire.Close(); err != nil {
-		s.T().Logf("umpire close error: %v", err)
+		// Shutdown catch.
+		if err := s.catch.Shutdown(context.Background()); err != nil {
+			s.T().Logf("catch shutdown error: %v", err)
+		}
 	}
 }
 
@@ -500,13 +503,10 @@ func (s *FunctionalTestBase) TearDownCluster() {
 
 // **IMPORTANT**: When overridding this, make sure to invoke `s.FunctionalTestBase.TearDownTest()`.
 func (s *FunctionalTestBase) TearDownTest() {
-	// Reset pitcher state between tests
-	if pitcher := s.GetTestCluster().Pitcher(); pitcher != nil {
-		pitcher.Reset()
+	// Reset CATCH state between tests
+	if s.catch != nil {
+		s.catch.Reset()
 	}
-
-	// Clear global umpire
-	umpire.Set(nil)
 
 	s.exportOTELTraces()
 	s.checkWatchdog()

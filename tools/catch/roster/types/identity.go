@@ -3,14 +3,12 @@ package types
 // TypedEntity represents any entity that has a type.
 // This interface is satisfied by the entity.Entity interface.
 type TypedEntity interface {
-	Type() string
+	Type() EntityType
 }
 
-// EntityType represents an entity type with a name.
-type EntityType struct {
-	// Name is the entity type name (e.g., "WorkflowTask", "ActivityTask")
-	Name string
-}
+// EntityType is a strongly-typed entity type identifier.
+// Each entity defines its type as a constant.
+type EntityType string
 
 // EntityID uniquely identifies an entity within its type.
 type EntityID struct {
@@ -24,17 +22,16 @@ type EntityID struct {
 // This ensures type-safety by deriving the type from the entity itself.
 func NewEntityID(e TypedEntity, id string) EntityID {
 	return EntityID{
-		Type: EntityType{Name: e.Type()},
+		Type: e.Type(),
 		ID:   id,
 	}
 }
 
-// NewEntityIDFromType creates an EntityID from a type name.
-// Use this only when you don't have an entity instance available (e.g., in event routing).
-// Prefer NewEntityID when possible for better type-safety.
-func NewEntityIDFromType(typeName string, id string) EntityID {
+// NewEntityIDFromType creates an EntityID from a type constant.
+// Use this when you don't have an entity instance available (e.g., in instrumentation).
+func NewEntityIDFromType(entityType EntityType, id string) EntityID {
 	return EntityID{
-		Type: EntityType{Name: typeName},
+		Type: entityType,
 		ID:   id,
 	}
 }

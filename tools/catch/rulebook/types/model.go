@@ -2,6 +2,7 @@ package types
 
 import (
 	"go.temporal.io/server/common/log"
+	rostertypes "go.temporal.io/server/tools/catch/roster/types"
 )
 
 // EntityRegistry is the interface for querying entities.
@@ -9,7 +10,7 @@ import (
 type EntityRegistry interface {
 	// QueryEntities returns all entities of the given type.
 	// The entityRef parameter is used only to get the entity type via its Type() method.
-	QueryEntities(entityRef interface{ Type() string }) []interface{}
+	QueryEntities(entityRef interface{ Type() rostertypes.EntityType }) []interface{}
 }
 
 // Deps bundles dependencies provided to models at initialization.

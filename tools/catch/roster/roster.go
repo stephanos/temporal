@@ -15,17 +15,12 @@ import (
 
 // Entity is the interface that all entities must implement.
 type Entity interface {
-	// Type returns the entity type identifier (e.g., "WorkflowTask")
-	Type() string
+	// Type returns the entity type identifier
+	Type() rostertypes.EntityType
 
 	// OnEvent receives the entity's identity and a batch of events via an iterator.
 	// The entity should update its internal state based on the events.
 	OnEvent(identity *rostertypes.Identity, iter scorebooktypes.MoveIterator) error
-
-	// Verify checks if the entity is in a valid state.
-	// This is called after the entity receives events.
-	// It should return an error or use softassert to report issues.
-	Verify() error
 }
 
 // Factory creates a new entity instance.
@@ -82,12 +77,12 @@ func (r *Registry) RegisterEntity(entityRef Entity, factory Factory, subscribesT
 	defer r.mu.Unlock()
 
 	entityType := entityRef.Type()
-	r.factories[entityType] = factory
+	r.factories[string(entityType)] = factory
 
 	// Register subscriptions
 	for _, mv := range subscribesTo {
 		moveType := mv.MoveType()
-		r.subscriptions[moveType] = append(r.subscriptions[moveType], entityType)
+		r.subscriptions[moveType] = append(r.subscriptions[moveType], string(entityType))
 	}
 }
 
@@ -143,16 +138,7 @@ func (r *Registry) RouteEvents(ctx context.Context, events []scorebooktypes.Move
 		// Deliver events with identity
 		if err := entity.OnEvent(entityIdentity, iter); err != nil {
 			r.logger.Warn("registry: entity OnEvent error",
-				tag.NewStringTag("entityType", entity.Type()),
-				tag.Error(err))
-		}
-	}
-
-	// Verify all changed entities
-	for _, entity := range changedEntities {
-		if err := entity.Verify(); err != nil {
-			r.logger.Warn("registry: entity verify error",
-				tag.NewStringTag("entityType", entity.Type()),
+				tag.NewStringTag("entityType", string(entity.Type())),
 				tag.Error(err))
 		}
 	}
@@ -162,7 +148,7 @@ func (r *Registry) RouteEvents(ctx context.Context, events []scorebooktypes.Move
 		entityIdentity := entityIdentities[entityKey]
 		if err := r.saveEntity(entity, entityIdentity); err != nil {
 			r.logger.Warn("registry: failed to save entity",
-				tag.NewStringTag("entityType", entity.Type()),
+				tag.NewStringTag("entityType", string(entity.Type())),
 				tag.Error(err))
 		}
 	}
@@ -205,9 +191,9 @@ func (r *Registry) getOrCreateEntity(ident *rostertypes.Identity) (Entity, error
 	}
 
 	// Create new entity
-	factory, exists := r.factories[ident.EntityID.Type.Name]
+	factory, exists := r.factories[string(ident.EntityID.Type)]
 	if !exists {
-		return nil, fmt.Errorf("no factory registered for entity type: %s", ident.EntityID.Type.Name)
+		return nil, fmt.Errorf("no factory registered for entity type: %s", ident.EntityID.Type)
 	}
 
 	entity := factory()
@@ -226,7 +212,7 @@ func (r *Registry) getOrCreateEntity(ident *rostertypes.Identity) (Entity, error
 
 // QueryEntities returns all entities of a given type.
 // The entityRef parameter is used only to get the entity type via its Type() method.
-func (r *Registry) QueryEntities(entityRef interface{ Type() string }) []interface{} {
+func (r *Registry) QueryEntities(entityRef interface{ Type() rostertypes.EntityType }) []interface{} {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -245,9 +231,9 @@ func identityKey(ident *rostertypes.Identity) string {
 	if ident == nil {
 		return ""
 	}
-	key := fmt.Sprintf("%s:%s", ident.EntityID.Type.Name, ident.EntityID.ID)
+	key := fmt.Sprintf("%s:%s", ident.EntityID.Type, ident.EntityID.ID)
 	if ident.ParentID != nil {
-		key = fmt.Sprintf("%s@%s:%s", key, ident.ParentID.Type.Name, ident.ParentID.ID)
+		key = fmt.Sprintf("%s@%s:%s", key, ident.ParentID.Type, ident.ParentID.ID)
 	}
 	return key
 }
@@ -257,7 +243,7 @@ func entityIDKey(id *rostertypes.EntityID) string {
 	if id == nil {
 		return ""
 	}
-	return fmt.Sprintf("%s:%s", id.Type.Name, id.ID)
+	return fmt.Sprintf("%s:%s", id.Type, id.ID)
 }
 
 // Close closes the registry and its underlying database.

@@ -11,6 +11,9 @@ import (
 
 var _ roster.Entity = (*TaskQueue)(nil)
 
+// TaskQueueType is the entity type for task queues.
+const TaskQueueType rostertypes.EntityType = "TaskQueue"
+
 // TaskQueue represents a task queue entity.
 // Locking is handled by the registry - individual methods should not lock.
 type TaskQueue struct {
@@ -23,8 +26,8 @@ func NewTaskQueue() *TaskQueue {
 	return &TaskQueue{}
 }
 
-func (tq *TaskQueue) Type() string {
-	return "TaskQueue"
+func (tq *TaskQueue) Type() rostertypes.EntityType {
+	return TaskQueueType
 }
 
 func (tq *TaskQueue) OnEvent(_ *rostertypes.Identity, iter scorebooktypes.MoveIterator) error {
@@ -41,9 +44,5 @@ func (tq *TaskQueue) OnEvent(_ *rostertypes.Identity, iter scorebooktypes.MoveIt
 		}
 		return true
 	})
-	return nil
-}
-
-func (tq *TaskQueue) Verify() error {
 	return nil
 }

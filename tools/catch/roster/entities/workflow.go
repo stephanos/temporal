@@ -14,6 +14,9 @@ import (
 
 var _ roster.Entity = (*Workflow)(nil)
 
+// WorkflowType is the entity type for workflows.
+const WorkflowType rostertypes.EntityType = "Workflow"
+
 // Workflow represents a workflow execution entity.
 // Tracks whether a workflow has been started and whether task completion was received.
 // Locking is handled by the registry - individual methods should not lock.
@@ -40,8 +43,8 @@ func NewWorkflow() *Workflow {
 	return wf
 }
 
-func (wf *Workflow) Type() string {
-	return "Workflow"
+func (wf *Workflow) Type() rostertypes.EntityType {
+	return WorkflowType
 }
 
 func (wf *Workflow) OnEvent(_ *rostertypes.Identity, iter scorebooktypes.MoveIterator) error {
@@ -70,10 +73,6 @@ func (wf *Workflow) OnEvent(_ *rostertypes.Identity, iter scorebooktypes.MoveIte
 		return true
 	})
 
-	return nil
-}
-
-func (wf *Workflow) Verify() error {
 	return nil
 }
 

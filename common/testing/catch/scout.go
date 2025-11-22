@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package scout
+package catch
 
 import (
 	"context"
@@ -33,7 +33,7 @@ import (
 )
 
 // TraceHandler receives traces reported by the scout.
-// Scout doesn't know who implements this - could be scorebook, umpire, etc.
+// Scout doesn't know who implements this - could be scorebook, umpire, catcher, etc.
 type TraceHandler interface {
 	AddTraces(ctx context.Context, traces ptrace.Traces) error
 }
