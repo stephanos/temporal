@@ -1,12 +1,13 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/historyservice/v1"
+	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // StartWorkflow represents a workflow being started.
@@ -40,7 +41,7 @@ func (e *StartWorkflow) Parse(span ptrace.Span) scorebooktypes.Move {
 	workflowID := req.StartRequest.WorkflowId
 
 	// Create identity for this workflow
-	workflowEntityID := rostertypes.NewEntityIDFromType("Workflow",
+	workflowEntityID := rostertypes.NewEntityIDFromType(&entities.Workflow{},
 		workflowID)
 	ident := &rostertypes.Identity{
 		EntityID: workflowEntityID,

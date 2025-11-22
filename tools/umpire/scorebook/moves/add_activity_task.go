@@ -1,13 +1,14 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 	"fmt"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
+	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // AddActivityTask represents an activity task being added to matching.
@@ -41,7 +42,7 @@ func (e *AddActivityTask) Parse(span ptrace.Span) scorebooktypes.Move {
 	activityID := fmt.Sprintf("%d", req.ScheduledEventId)
 	var ident *rostertypes.Identity
 	if activityID != "" {
-		activityTaskID := rostertypes.NewEntityIDFromType("ActivityTask", req.TaskQueue.Name+":"+activityID)
+		activityTaskID := rostertypes.NewEntityIDFromType(&entities.ActivityTask{}, req.TaskQueue.Name+":"+activityID)
 		ident = &rostertypes.Identity{
 			EntityID: activityTaskID,
 			ParentID: nil,
