@@ -25,7 +25,6 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/service/history/configs"
-	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	"go.temporal.io/server/service/history/consts"
 	historyi "go.temporal.io/server/service/history/interfaces"
@@ -324,9 +323,9 @@ func (c *cacheImpl) lockWorkflowExecution(
 		lockPriorityStr = "high"
 	}
 	// Create entity IDs using typed constants
-	workflowEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowType, wfKey.WorkflowID)
-	workflowExecutionEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowExecutionType, wfKey.RunID)
-	namespaceEntityID := rostertypes.NewEntityIDFromType(entities.NamespaceType, wfKey.NamespaceID)
+	workflowEntityID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowType, wfKey.WorkflowID)
+	workflowExecutionEntityID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowExecutionType, wfKey.RunID)
+	namespaceEntityID := rostertypes.NewEntityIDFromType(rostertypes.NamespaceType, wfKey.NamespaceID)
 	ctx, span := umpire.Instrument(ctx, "workflow.cache.lock.acquire",
 		umpire.EntityTag(workflowEntityID),
 		umpire.EntityTag(workflowExecutionEntityID),
@@ -382,7 +381,7 @@ func (c *cacheImpl) makeReleaseFunc(
 			if rec := recover(); rec != nil {
 				// Record lock release event before panic
 				wfKey := wfContext.GetWorkflowKey()
-				workflowEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowType, wfKey.WorkflowID)
+				workflowEntityID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowType, wfKey.WorkflowID)
 				umpire.RecordEvent(context.Background(), "workflow.cache.lock.released",
 					umpire.EntityTag(workflowEntityID),
 					attribute.String("release.reason", "panic"),
@@ -393,7 +392,7 @@ func (c *cacheImpl) makeReleaseFunc(
 				panic(rec)
 			} else {
 				wfKey := wfContext.GetWorkflowKey()
-				workflowEntityID := rostertypes.NewEntityIDFromType(entities.WorkflowType, wfKey.WorkflowID)
+				workflowEntityID := rostertypes.NewEntityIDFromType(rostertypes.WorkflowType, wfKey.WorkflowID)
 				if err != nil || forceClearContext {
 					// TODO see issue #668, there are certain type or errors which can bypass the clear
 					umpire.RecordEvent(context.Background(), "workflow.cache.lock.released",

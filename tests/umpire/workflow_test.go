@@ -101,7 +101,7 @@ func TestWorkflow(t *testing.T) {
 				pitcher.FailPlay(serviceerror.NewResourceExhausted(enumspb.RESOURCE_EXHAUSTED_CAUSE_SYSTEM_OVERLOADED, "pitcher fault injection")),
 				&pitcher.MatchCriteria{
 					Entities: []rostertypes.EntityID{
-						rostertypes.NewEntityIDFromType(&entities.Workflow{}, workflowID),
+						rostertypes.NewEntityIDFromType(rostertypes.WorkflowType, workflowID),
 					},
 				},
 			).
