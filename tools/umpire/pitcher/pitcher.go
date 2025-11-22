@@ -241,8 +241,16 @@ func (p *pitcherImpl) executePlay(ctx context.Context, target string, config Pla
 
 // executeFail returns a gRPC error
 func (p *pitcherImpl) executeFail(pl Play) error {
-	// If an error instance is provided (e.g., serviceerror), return it directly
+	// If an error instance is provided (e.g., serviceerror), convert it to gRPC status
 	if err, ok := pl.Params[ParamError].(error); ok {
+		// Check if error has a Status() method (serviceerror types)
+		type statusProvider interface {
+			Status() *status.Status
+		}
+		if sp, ok := err.(statusProvider); ok {
+			return sp.Status().Err()
+		}
+		// Otherwise return as-is
 		return err
 	}
 	// Fallback if no error is specified

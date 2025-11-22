@@ -63,8 +63,9 @@ func (p *StartWorkflowPitch) Type() PitchType { return PitchTypeStartWorkflow }
 
 // ClientActionPitch performs a client action during workflow execution
 type ClientActionPitch struct {
-	// Action is the client action to perform (signal, update, cancel, etc.)
-	Action any
+	// ActionSet is the client action set to perform (signal, update, query, etc.)
+	// Uses omes kitchensink ClientActionSet which contains ClientActions
+	ActionSet *omeskitchensink.ClientActionSet
 }
 
 func (p *ClientActionPitch) Type() PitchType { return PitchTypeClientAction }
@@ -134,10 +135,12 @@ func (b *PlayBuilder) WithStartWorkflow(client sdkclient.Client, options sdkclie
 	return b
 }
 
-// WithClientAction adds a client action pitch
-func (b *PlayBuilder) WithClientAction(action any) *PlayBuilder {
+// WithClientAction adds a client action pitch.
+// The actionSet should be an omes kitchensink ClientActionSet containing
+// actions like DoSignal, DoQuery, DoUpdate, etc.
+func (b *PlayBuilder) WithClientAction(actionSet *omeskitchensink.ClientActionSet) *PlayBuilder {
 	b.pitches = append(b.pitches, &ClientActionPitch{
-		Action: action,
+		ActionSet: actionSet,
 	})
 	return b
 }

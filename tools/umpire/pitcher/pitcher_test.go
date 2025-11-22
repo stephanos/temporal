@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,7 +27,7 @@ func TestPitcher_FailAction(t *testing.T) {
 	ctx := context.Background()
 
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(serviceerror.NewResourceExhausted("test error")),
+		Play:  FailPlay(serviceerror.NewResourceExhausted(enumspb.RESOURCE_EXHAUSTED_CAUSE_SYSTEM_OVERLOADED, "test error")),
 		Match: nil, // match any
 	})
 
@@ -43,7 +44,7 @@ func TestPitcher_FailActionDefaultError(t *testing.T) {
 	ctx := context.Background()
 
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(ErrorInternal),
+		Play:  FailPlay(serviceerror.NewInternal("test internal error")),
 		Match: nil,
 	})
 
@@ -96,7 +97,7 @@ func TestPitcher_OneTimeUse(t *testing.T) {
 
 	// Configure a single play
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(ErrorUnavailable),
+		Play:  FailPlay(serviceerror.NewUnavailable("test unavailable error")),
 		Match: nil,
 	})
 
@@ -115,11 +116,11 @@ func TestPitcher_MultiplePlays(t *testing.T) {
 
 	// Configure two plays for the same target
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(ErrorUnavailable),
+		Play:  FailPlay(serviceerror.NewUnavailable("test unavailable error")),
 		Match: nil,
 	})
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(ErrorInternal),
+		Play:  FailPlay(serviceerror.NewInternal("test internal error")),
 		Match: nil,
 	})
 
@@ -145,7 +146,7 @@ func TestPitcher_Reset(t *testing.T) {
 	ctx := context.Background()
 
 	p.Configure("test.target", PlayConfig{
-		Play:  FailPlay(ErrorInternal),
+		Play:  FailPlay(serviceerror.NewInternal("test internal error")),
 		Match: nil,
 	})
 

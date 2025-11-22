@@ -27,11 +27,13 @@ func NewEntityID(e TypedEntity, id string) EntityID {
 	}
 }
 
-// NewEntityIDFromType creates an EntityID from a type constant.
-// Use this when you don't have an entity instance available (e.g., in instrumentation).
-func NewEntityIDFromType(entityType EntityType, id string) EntityID {
+// NewEntityIDFromType creates an EntityID from a typed entity reference.
+// The entityRef parameter is used only to get the entity type via its Type() method.
+// Use this when you don't have a populated entity instance available (e.g., in instrumentation).
+// Example: NewEntityIDFromType(&entities.Workflow{}, "workflow-123")
+func NewEntityIDFromType(entityRef TypedEntity, id string) EntityID {
 	return EntityID{
-		Type: entityType,
+		Type: entityRef.Type(),
 		ID:   id,
 	}
 }

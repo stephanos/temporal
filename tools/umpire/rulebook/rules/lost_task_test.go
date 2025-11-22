@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/tools/umpire/roster/entities"
+	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
 	"go.temporal.io/server/tools/umpire/rulebook/rules"
 	rulebooktypes "go.temporal.io/server/tools/umpire/rulebook/types"
 )
@@ -184,7 +185,7 @@ type mockEntityRegistry struct {
 	entities []interface{}
 }
 
-func (m *mockEntityRegistry) QueryEntities(_ interface{ Type() string }) []interface{} {
+func (m *mockEntityRegistry) QueryEntities(_ interface{ Type() rostertypes.EntityType }) []interface{} {
 	return m.entities
 }
 

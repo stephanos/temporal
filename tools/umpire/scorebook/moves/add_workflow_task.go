@@ -1,12 +1,13 @@
 package moves
 
 import (
-	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.temporal.io/server/api/matchingservice/v1"
+	"go.temporal.io/server/tools/umpire/roster/entities"
 	rostertypes "go.temporal.io/server/tools/umpire/roster/types"
+	scorebooktypes "go.temporal.io/server/tools/umpire/scorebook/types"
 )
 
 // AddWorkflowTask represents a workflow task being added to matching.
@@ -39,9 +40,9 @@ func (e *AddWorkflowTask) Parse(span ptrace.Span) scorebooktypes.Move {
 	// Compute identity from the request fields
 	var ident *rostertypes.Identity
 	if req.Execution != nil && req.Execution.WorkflowId != "" && req.Execution.RunId != "" {
-		workflowTaskID := rostertypes.NewEntityIDFromType("WorkflowTask",
+		workflowTaskID := rostertypes.NewEntityIDFromType(&entities.WorkflowTask{},
 			req.TaskQueue.Name+":"+req.Execution.WorkflowId+":"+req.Execution.RunId)
-		taskQueueID := rostertypes.NewEntityIDFromType("TaskQueue", req.TaskQueue.Name)
+		taskQueueID := rostertypes.NewEntityIDFromType(&entities.TaskQueue{}, req.TaskQueue.Name)
 		ident = &rostertypes.Identity{
 			EntityID: workflowTaskID,
 			ParentID: &taskQueueID,
