@@ -57,6 +57,7 @@ type (
 
 	// TestCluster is a testcore struct for functional tests
 	TestCluster struct {
+		t            *testing.T
 		testBase     *persistencetests.TestBase
 		archiverBase *ArchiverBase
 		host         *TemporalImpl
@@ -369,7 +370,7 @@ func newClusterWithPersistenceTestBaseFactory(t *testing.T, clusterConfig *TestC
 		return nil, err
 	}
 
-	return &TestCluster{testBase: testBase, archiverBase: archiverBase, host: cluster}, nil
+	return &TestCluster{t: t, testBase: testBase, archiverBase: archiverBase, host: cluster}, nil
 }
 
 func setupIndex(esConfig *esclient.Config, logger log.Logger) error {

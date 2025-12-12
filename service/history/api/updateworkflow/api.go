@@ -280,6 +280,7 @@ func (u *Updater) addWorkflowTaskToMatching(ctx context.Context) error {
 		VersionDirective:       u.directive,
 		Priority:               u.priority,
 		Stamp:                  u.workflowTaskStamp,
+		Speculative:            true,
 	})
 	if err != nil {
 		return err
