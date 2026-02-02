@@ -16,6 +16,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/chasm"
+	chasmcommand "go.temporal.io/server/chasm/lib/workflow/command"
 	testlib "go.temporal.io/server/chasm/lib/tests"
 	chasmcommand "go.temporal.io/server/chasm/lib/workflow/command"
 	"go.temporal.io/server/common/dynamicconfig"
