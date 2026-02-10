@@ -1,6 +1,8 @@
 package chasm
 
 import (
+	"time"
+
 	"go.temporal.io/server/common/nexus/nexusrpc"
 )
 
@@ -17,6 +19,11 @@ func NewMSPointer(backend NodeBackend) MSPointer {
 	return MSPointer{
 		backend: backend,
 	}
+}
+
+// WorkflowRunTimeout returns the workflow run timeout duration. Returns 0 if no timeout is set.
+func (m MSPointer) WorkflowRunTimeout() time.Duration {
+	return m.backend.GetExecutionInfo().GetWorkflowRunTimeout().AsDuration()
 }
 
 // GetNexusCompletion retrieves the Nexus operation completion data for the given request ID from the underlying mutable state.
