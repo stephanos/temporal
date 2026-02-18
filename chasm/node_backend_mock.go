@@ -28,7 +28,7 @@ type MockNodeBackend struct {
 	HandleGetWorkflowKey             func() definition.WorkflowKey
 	HandleUpdateWorkflowStateStatus  func(state enumsspb.WorkflowExecutionState, status enumspb.WorkflowExecutionStatus) (bool, error)
 	HandleIsWorkflow                 func() bool
-	HandleGetNexusCompletion         func(ctx context.Context, requestID string) (nexusrpc.OperationCompletion, error)
+	HandleGetNexusCompletion         func(ctx context.Context, requestID string) (nexusrpc.CompleteOperationOptions, error)
 	HandleAddHistoryEvent            func(t enumspb.EventType, setAttributes func(*historypb.HistoryEvent)) *historypb.HistoryEvent
 	HandleGetNamespaceEntry          func() *namespace.Namespace
 
@@ -46,14 +46,14 @@ func (m *MockNodeBackend) GetExecutionState() *persistencespb.WorkflowExecutionS
 	if m.HandleGetExecutionState != nil {
 		return m.HandleGetExecutionState()
 	}
-	return nil
+	return &persistencespb.WorkflowExecutionState{}
 }
 
 func (m *MockNodeBackend) GetExecutionInfo() *persistencespb.WorkflowExecutionInfo {
 	if m.HandleGetExecutionInfo != nil {
 		return m.HandleGetExecutionInfo()
 	}
-	return nil
+	return &persistencespb.WorkflowExecutionInfo{}
 }
 
 func (m *MockNodeBackend) GetCurrentVersion() int64 {
@@ -168,11 +168,11 @@ func (m *MockNodeBackend) IsWorkflow() bool {
 func (m *MockNodeBackend) GetNexusCompletion(
 	ctx context.Context,
 	requestID string,
-) (nexusrpc.OperationCompletion, error) {
+) (nexusrpc.CompleteOperationOptions, error) {
 	if m.HandleGetNexusCompletion != nil {
 		return m.HandleGetNexusCompletion(ctx, requestID)
 	}
-	return nil, nil
+	return nexusrpc.CompleteOperationOptions{}, nil
 }
 
 func (m *MockNodeBackend) AddHistoryEvent(t enumspb.EventType, setAttributes func(*historypb.HistoryEvent)) *historypb.HistoryEvent {

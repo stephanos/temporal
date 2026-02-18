@@ -83,6 +83,7 @@ type (
 		commandHandlerRegistry *workflow.CommandHandlerRegistry
 		chasmCommandRegistry   *chasmcommand.Registry
 		matchingClient         matchingservice.MatchingServiceClient
+		versionMembershipCache worker_versioning.VersionMembershipCache
 	}
 
 	workflowTaskFailedCause struct {
@@ -123,6 +124,7 @@ func newWorkflowTaskCompletedHandler(
 	commandHandlerRegistry *workflow.CommandHandlerRegistry,
 	chasmCommandRegistry *chasmcommand.Registry,
 	matchingClient matchingservice.MatchingServiceClient,
+	versionMembershipCache worker_versioning.VersionMembershipCache,
 ) *workflowTaskCompletedHandler {
 	return &workflowTaskCompletedHandler{
 		identity:                identity,
@@ -156,6 +158,7 @@ func newWorkflowTaskCompletedHandler(
 		commandHandlerRegistry: commandHandlerRegistry,
 		chasmCommandRegistry:   chasmCommandRegistry,
 		matchingClient:         matchingClient,
+		versionMembershipCache: versionMembershipCache,
 	}
 }
 
@@ -325,13 +328,13 @@ func (handler *workflowTaskCompletedHandler) handleCommand(
 	default:
 		var commandHandler chasmcommand.Handler
 		var chasmCtx chasm.MutableContext
-		var wf *chasmworkflow.Workflow
+		var chasmWorkflow *chasmworkflow.Workflow
 
 		// TODO: need to handle migration between HSM and CHASM
 
 		if handler.mutableState.ChasmEnabled() {
 			// Use CHASM command handler.
-			wf, chasmCtx, err = handler.mutableState.ChasmWorkflowComponent(ctx)
+			chasmWorkflow, chasmCtx, err = handler.mutableState.ChasmWorkflowComponent(ctx)
 			if err != nil {
 				return nil, err
 			}
@@ -356,7 +359,7 @@ func (handler *workflowTaskCompletedHandler) handleCommand(
 
 		// Invoke command handler.
 		validator := commandValidator{sizeChecker: handler.sizeLimitChecker, commandType: command.GetCommandType()}
-		err = commandHandler(chasmCtx, wf, validator, command, chasmcommand.HandlerOptions{
+		err = commandHandler(chasmCtx, chasmWorkflow, validator, command, chasmcommand.HandlerOptions{
 			WorkflowTaskCompletedEventID: handler.workflowTaskCompletedID,
 		})
 		var failWFTErr chasmcommand.FailWorkflowTaskError
@@ -1062,7 +1065,7 @@ func (handler *workflowTaskCompletedHandler) handleCommandContinueAsNewWorkflow(
 		handler.workflowTaskCompletedID,
 		parentNamespace,
 		attr,
-		worker_versioning.GetIsWFTaskQueueInVersionDetector(handler.matchingClient),
+		worker_versioning.GetIsWFTaskQueueInVersionDetector(handler.matchingClient, handler.versionMembershipCache),
 	)
 	if err != nil {
 		return nil, err

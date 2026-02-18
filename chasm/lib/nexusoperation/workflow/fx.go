@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"go.temporal.io/server/chasm"
 	"go.temporal.io/server/chasm/lib/nexusoperation"
 	"go.temporal.io/server/chasm/lib/workflow/command"
 	commonnexus "go.temporal.io/server/common/nexus"
@@ -13,6 +14,7 @@ type registerParams struct {
 	Registry         *command.Registry
 	Config           *nexusoperation.Config
 	EndpointRegistry commonnexus.EndpointRegistry `optional:"true"`
+	ChasmRegistry    *chasm.Registry
 }
 
 var Module = fx.Module(
@@ -22,6 +24,6 @@ var Module = fx.Module(
 		if p.EndpointRegistry == nil {
 			return nil
 		}
-		return registerCommandHandlers(p.Registry, p.Config, p.EndpointRegistry)
+		return registerCommandHandlers(p.Registry, p.Config, p.EndpointRegistry, p.ChasmRegistry.NexusEndpointProcessor)
 	}),
 )

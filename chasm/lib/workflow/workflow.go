@@ -142,7 +142,7 @@ func (w *Workflow) PendingNexusOperationCount() int {
 func (w *Workflow) GetNexusCompletion(
 	ctx chasm.Context,
 	requestID string,
-) (nexusrpc.OperationCompletion, error) {
+) (nexusrpc.CompleteOperationOptions, error) {
 	// Retrieve the completion data from the underlying mutable state via MSPointer
 	return w.MSPointer.GetNexusCompletion(ctx, requestID)
 }

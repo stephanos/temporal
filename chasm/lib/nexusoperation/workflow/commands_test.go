@@ -23,6 +23,7 @@ import (
 	"go.temporal.io/server/chasm/lib/workflow/command"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/namespace"
+	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/service/history/tests"
 	"google.golang.org/protobuf/proto"
@@ -73,7 +74,7 @@ func newTestContext(t *testing.T, cfg *nexusoperation.Config) testContext {
 		},
 	}
 	chReg := command.NewRegistry()
-	require.NoError(t, registerCommandHandlers(chReg, cfg, endpointReg))
+	require.NoError(t, registerCommandHandlers(chReg, cfg, endpointReg, chasm.NewNexusEndpointProcessor()))
 
 	execInfo := &persistencespb.WorkflowExecutionInfo{}
 	backend := &chasm.MockNodeBackend{
@@ -586,6 +587,44 @@ func TestHandleScheduleCommand(t *testing.T) {
 		require.Equal(t, int64(1), ref.EventBatchId) // WorkflowTaskCompletedEventID
 		require.EqualExportedValues(t, userMetadata, event.UserMetadata)
 	})
+
+	t.Run("__temporal_system endpoint does not accept headers", func(t *testing.T) {
+		tcx := newTestContext(t, defaultConfig)
+		err := tcx.scheduleHandler(tcx.chasmCtx, tcx.wf, commandValidator{maxPayloadSize: 1}, &commandpb.Command{
+			Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{
+				ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+					Endpoint:    commonnexus.SystemEndpoint,
+					Service:     "service",
+					Operation:   "op",
+					NexusHeader: map[string]string{"key": "value"},
+				},
+			},
+		}, command.HandlerOptions{WorkflowTaskCompletedEventID: 1})
+		var failWFTErr command.FailWorkflowTaskError
+		require.ErrorAs(t, err, &failWFTErr)
+		require.False(t, failWFTErr.TerminateWorkflow)
+		require.Equal(t, enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_SCHEDULE_NEXUS_OPERATION_ATTRIBUTES, failWFTErr.Cause)
+		require.Empty(t, tcx.history.Events)
+	})
+
+	t.Run("__temporal_system endpoint is validated", func(t *testing.T) {
+		tcx := newTestContext(t, defaultConfig)
+		err := tcx.scheduleHandler(tcx.chasmCtx, tcx.wf, commandValidator{maxPayloadSize: 1}, &commandpb.Command{
+			Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{
+				ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+					Endpoint:  commonnexus.SystemEndpoint,
+					Service:   "service",
+					Operation: "op",
+				},
+			},
+		}, command.HandlerOptions{WorkflowTaskCompletedEventID: 1})
+		var failWFTErr command.FailWorkflowTaskError
+		require.ErrorAs(t, err, &failWFTErr)
+		require.False(t, failWFTErr.TerminateWorkflow)
+		require.Equal(t, enumspb.WORKFLOW_TASK_FAILED_CAUSE_BAD_SCHEDULE_NEXUS_OPERATION_ATTRIBUTES, failWFTErr.Cause)
+		require.Contains(t, failWFTErr.Message, "not found")
+		require.Empty(t, tcx.history.Events)
+	})
 }
 
 func TestHandleCancelCommand(t *testing.T) {
@@ -870,6 +909,8 @@ func TestOperationNodeDeletionOnTerminalEvents(t *testing.T) {
 				a.ScheduledEventId = scheduledEvent.EventId
 			case *historypb.NexusOperationTimedOutEventAttributes:
 				a.ScheduledEventId = scheduledEvent.EventId
+			default:
+				t.Fatalf("unexpected event attribute type: %T", tc.eventAttr)
 			}
 
 			applyTerminalEventAndAssertDeletion(t, tcx, scheduledEvent.EventId, tc.eventType, tc.eventAttr)

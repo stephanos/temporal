@@ -129,6 +129,7 @@ func TestCommandProtocolMessage(t *testing.T) {
 			nil,
 			out.chasmCommandRegistry,
 			nil,
+			nil,
 		)
 	}
 

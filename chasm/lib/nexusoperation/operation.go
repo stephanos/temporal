@@ -8,9 +8,7 @@ import (
 var _ chasm.Component = (*Operation)(nil)
 var _ chasm.StateMachine[nexusoperationpb.OperationStatus] = (*Operation)(nil)
 
-type OperationStore interface {
-	// TODO
-}
+type OperationStore any
 
 type Operation struct {
 	chasm.UnimplementedComponent
