@@ -247,10 +247,6 @@ func (ch *commandHandler) handleScheduleCommand(
 		Attempt:                1,
 	})
 
-	if err := nexusoperation.TransitionScheduled.Apply(op, chasmCtx, nexusoperation.EventScheduled{}); err != nil {
-		return err
-	}
-
 	key := strconv.FormatInt(event.GetEventId(), 10)
 	wf.AddNexusOperation(chasmCtx, key, op)
 
