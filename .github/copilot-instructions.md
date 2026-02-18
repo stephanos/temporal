@@ -19,13 +19,13 @@ Apply these patterns when reviewing PRs or suggesting code changes.
 - Avoid stuttering: don't use `ActivityStatus` in package `activity`, just `Status`
 - Use `ok` boolean pattern instead of nil checks where idiomatic
 
-## 3. Test Suite Correctness
+## 3. Testify Suite Correctness
 
 - Never use `s.T()` in subtests - use the subtest's `t` parameter
 - Never use suite assertion methods (`s.NoError`, `s.Equal`) from goroutines - causes panics
 - Use `EventuallyWithT` when you need assertions inside eventually blocks, and use that block's `t`
 - Use `require.ErrorAs(t, err, &specificErr)` for specific error type checks
-- Don't use `assert` when you need to stop execution - use `require`
+- Prefer `require` over `assert` - it's rarely useful to continue a test after a failed assertion
 - Add comments explaining why `Eventually` is needed (e.g., eventual consistency)
 
 ## 4. Inline Code / Avoid Abstractions
@@ -42,14 +42,12 @@ Apply these patterns when reviewing PRs or suggesting code changes.
 - Use standard error types (`InvalidArgument`, `NotFound`, `FailedPrecondition`) over custom error types
 - Mark errors as non-retryable when task shouldn't retry in queue
 - Wrap errors with context when there's something interesting or informative to add, e.g. `fmt.Errorf("multi-operation part 2: %w", err)`
-- Use early returns over nested if/else blocks
 - Don't panic in library code - return errors and let caller decide
 - Validate early in handlers, not deep in business logic
 
 ## 6. Consistency with Codebase
 
 - Follow existing patterns: "We have been passing through the frontend request in other libraries. Let's keep the same pattern here"
-- Don't separate temporal/non-temporal imports with blank lines (team decision)
 - Use existing utilities before creating new ones
 - Follow CLI documentation conventions (capitalize proper nouns)
 - Match existing metric tag formats (CONSTANT_CASE for enum values)
