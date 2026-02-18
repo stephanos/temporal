@@ -241,6 +241,8 @@ func (ch *commandHandler) handleScheduleCommand(
 		Service:                attrs.Service,
 		Operation:              attrs.Operation,
 		ScheduledTime:          scheduledTime,
+		ScheduleToStartTimeout: attrs.ScheduleToStartTimeout,
+		StartToCloseTimeout:    attrs.StartToCloseTimeout,
 		ScheduleToCloseTimeout: attrs.ScheduleToCloseTimeout,
 		RequestId:              requestID,
 		ScheduledEventToken:    eventToken,
