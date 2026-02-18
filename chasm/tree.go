@@ -405,7 +405,7 @@ func (n *Node) Component(
 		return nil, errComponentNotFound
 	}
 
-	validationContext := NewContext(chasmContext.GetContext(), node)
+	validationContext := NewContext(chasmContext.getContext(), node)
 	if err := node.prepareComponentValue(validationContext); err != nil {
 		return nil, err
 	}
@@ -442,7 +442,7 @@ func (n *Node) Component(
 // the case of a newly created node, a detached node, or an OperationIntentObserve
 // intent, the check is skipped.
 func (n *Node) validateAccess(ctx Context) error {
-	intent := operationIntentFromContext(ctx.GetContext())
+	intent := operationIntentFromContext(ctx.getContext())
 	if intent != OperationIntentProgress {
 		// Read-only operations are always allowed.
 		return nil

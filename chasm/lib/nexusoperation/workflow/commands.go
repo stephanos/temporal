@@ -76,7 +76,7 @@ func (ch *commandHandler) handleScheduleCommand(
 	}
 
 	var endpointID string
-	endpoint, err := ch.endpointRegistry.GetByName(chasmCtx.GetContext(), ns.ID(), attrs.Endpoint)
+	endpoint, err := chasmCtx.EndpointByName(ch.endpointRegistry, attrs.Endpoint)
 	if err != nil {
 		if errors.As(err, new(*serviceerror.NotFound)) {
 			return command.FailWorkflowTaskError{

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
@@ -19,10 +20,25 @@ type MockContext struct {
 	HandleStateTransitionCount func() int64
 	HandleLibrary              func(name string) (Library, bool)
 	HandleNamespaceEntry       func() *namespace.Namespace
+	HandleEndpointByName       func(EndpointRegistry, string) (*persistencespb.NexusEndpointEntry, error)
 }
 
-func (c *MockContext) GetContext() context.Context {
+func (c *MockContext) getContext() context.Context {
 	return nil
+}
+
+func (c *MockContext) EndpointByName(reg EndpointRegistry, name string) (*persistencespb.NexusEndpointEntry, error) {
+	if c.HandleEndpointByName != nil {
+		return c.HandleEndpointByName(reg, name)
+	}
+	if reg != nil {
+		nsID := namespace.ID("")
+		if ns := c.NamespaceEntry(); ns != nil {
+			nsID = ns.ID()
+		}
+		return reg.GetByName(context.Background(), nsID, name)
+	}
+	return nil, nil
 }
 
 func (c *MockContext) Now(cmp Component) time.Time {

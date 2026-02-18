@@ -69,7 +69,6 @@ func newTestContext(t *testing.T, cfg *nexusoperation.Config) testContext {
 			} else if endpointName != "endpoint" {
 				return nil, serviceerror.NewNotFound("endpoint not found")
 			}
-			// Only the ID is taken here.
 			return &persistencespb.NexusEndpointEntry{Id: "endpoint-id"}, nil
 		},
 	}

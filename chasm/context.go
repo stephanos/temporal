@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/namespace"
 )
@@ -29,14 +30,20 @@ type Context interface {
 	Logger() log.Logger
 	// NamespaceEntry returns the namespace entry for the execution.
 	NamespaceEntry() *namespace.Namespace
+	// EndpointByName resolves a nexus endpoint entry.
+	EndpointByName(reg EndpointRegistry, endpointName string) (*persistencespb.NexusEndpointEntry, error)
 
 	// Intent() OperationIntent
 	// ComponentOptions(Component) []ComponentOption
 
-	// GetContext returns the underlying context.Context for use in I/O operations (e.g., RPC calls).
-	GetContext() context.Context
+	// getContext returns the underlying context.Context for use in I/O operations (e.g., RPC calls).
+	getContext() context.Context
 
 	structuredRef(Component) (ComponentRef, error)
+}
+
+type EndpointRegistry interface {
+	GetByName(ctx context.Context, namespaceID namespace.ID, endpointName string) (*persistencespb.NexusEndpointEntry, error)
 }
 
 type MutableContext interface {
@@ -138,8 +145,12 @@ func (c *immutableCtx) NamespaceEntry() *namespace.Namespace {
 	return c.root.backend.GetNamespaceEntry()
 }
 
-func (c *immutableCtx) GetContext() context.Context {
+func (c *immutableCtx) getContext() context.Context {
 	return c.ctx
+}
+
+func (c *immutableCtx) EndpointByName(reg EndpointRegistry, name string) (*persistencespb.NexusEndpointEntry, error) {
+	return reg.GetByName(c.ctx, c.NamespaceEntry().ID(), name)
 }
 
 // NewMutableContext creates a new MutableContext from an existing Context and root Node.
