@@ -77,7 +77,7 @@ Uses Go's len() function on header keys and values to determine the total size.`
 
 var UseSystemCallbackURL = dynamicconfig.NewGlobalBoolSetting(
 	"component.nexusoperations.useSystemCallbackURL",
-	false,
+	true,
 	`UseSystemCallbackURL is a global feature toggle that controls how the executor generates
 	callback URLs for worker targets in Nexus Operations.When set to true,
 	the executor will use the fixed system callback URL ("temporal://system") for all worker targets,

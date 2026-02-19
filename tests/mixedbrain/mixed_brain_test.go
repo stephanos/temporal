@@ -75,23 +75,18 @@ func TestMixedBrain(t *testing.T) {
 	generateConfig(t, configCurrent, portsCurrent, portsCurrent, tmpDir, dynConfigPath)
 	generateConfig(t, configRelease, portsRelease, portsCurrent, tmpDir, dynConfigPath)
 
+	// Start current server first and wait for it to initialize the database schema
+	// before starting the release server. SQLite schema setup takes an exclusive lock
+	// that would cause SQLITE_BUSY if both servers start simultaneously.
 	procCurrent := startServerProcess(t, "current", currentBinary, configCurrent, filepath.Join(logRoot, "mixedbrain_process-current.log"))
-	procRelease := startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
 	t.Cleanup(procCurrent.stop)
-	t.Cleanup(procRelease.stop)
+	waitForServerHealth(t, portsCurrent.frontendAddr(), 30*time.Second)
+	t.Log("Current server is healthy")
 
-	t.Run("wait-healthy", func(t *testing.T) {
-		t.Run("current", func(t *testing.T) {
-			t.Parallel()
-			waitForServerHealth(t, portsCurrent.frontendAddr(), 30*time.Second)
-			t.Log("Current server is healthy")
-		})
-		t.Run("release", func(t *testing.T) {
-			t.Parallel()
-			waitForServerHealth(t, portsRelease.frontendAddr(), 30*time.Second)
-			t.Log("Release server is healthy")
-		})
-	})
+	procRelease := startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
+	t.Cleanup(procRelease.stop)
+	waitForServerHealth(t, portsRelease.frontendAddr(), 30*time.Second)
+	t.Log("Release server is healthy")
 	if t.Failed() {
 		return
 	}
