@@ -637,7 +637,7 @@ jobs:
           f=.testoutput/mixedbrain_process-release.log
           [ -f "$f" ] && echo "=== $f ===" && cat "$f"
 
-      - name: Print omes logs
+      - name: Print Omes logs
         if: failure()
         run: |
           f=.testoutput/mixedbrain_omes.log
