@@ -560,7 +560,7 @@ func TestProcessInvocationTask(t *testing.T) {
 					metrics.FailureSourceTag("_unknown_"))
 			}
 
-			endpointReg := nexustest.FakeEndpointRegistry{
+			endpointReg := nexustest.FakeRegistry{
 				OnGetByID: func(ctx context.Context, endpointID string) (*persistencespb.NexusEndpointEntry, error) {
 					require.Equal(t, "endpoint-id", endpointID)
 					if tc.endpointNotFound {
@@ -995,7 +995,7 @@ func TestProcessCancelationTask(t *testing.T) {
 					metrics.OutcomeTag(tc.expectedMetricOutcome),
 					metrics.FailureSourceTag("_unknown_"))
 			}
-			endpointReg := nexustest.FakeEndpointRegistry{
+			endpointReg := nexustest.FakeRegistry{
 				OnGetByID: func(ctx context.Context, endpointID string) (*persistencespb.NexusEndpointEntry, error) {
 					require.Equal(t, "endpoint-id", endpointID)
 					if tc.endpointNotFound {
@@ -1102,7 +1102,7 @@ func TestProcessCancelationTask_OperationCompleted(t *testing.T) {
 			},
 		},
 		NamespaceRegistry: namespaceRegistry,
-		EndpointRegistry: nexustest.FakeEndpointRegistry{
+		EndpointRegistry: nexustest.FakeRegistry{
 			OnGetByID: func(ctx context.Context, endpointID string) (*persistencespb.NexusEndpointEntry, error) {
 				return endpointEntry, nil
 			},

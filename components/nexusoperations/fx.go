@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/metrics"
 	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/nexus/nexusendpoint"
 	"go.temporal.io/server/common/nexus/nexusrpc"
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/resource"
@@ -26,8 +27,8 @@ var Module = fx.Module(
 	fx.Provide(ClientProviderFactory),
 	fx.Provide(DefaultNexusTransportProvider),
 	fx.Provide(CallbackTokenGeneratorProvider),
-	fx.Provide(EndpointRegistryProvider),
-	fx.Invoke(EndpointRegistryLifetimeHooks),
+	fx.Provide(RegistryProvider),
+	fx.Invoke(RegistryLifetimeHooks),
 	fx.Invoke(RegisterStateMachines),
 	fx.Invoke(RegisterTaskSerializers),
 	fx.Invoke(RegisterEventDefinitions),
@@ -36,15 +37,15 @@ var Module = fx.Module(
 
 const NexusCallbackSourceHeader = "Nexus-Callback-Source"
 
-func EndpointRegistryProvider(
+func RegistryProvider(
 	matchingClient resource.MatchingClient,
 	endpointManager persistence.NexusEndpointManager,
 	dc *dynamicconfig.Collection,
 	logger log.Logger,
 	metricsHandler metrics.Handler,
-) commonnexus.EndpointRegistry {
-	registryConfig := commonnexus.NewEndpointRegistryConfig(dc)
-	return commonnexus.NewEndpointRegistry(
+) nexusendpoint.Registry {
+	registryConfig := nexusendpoint.NewRegistryConfig(dc)
+	return nexusendpoint.NewRegistry(
 		registryConfig,
 		matchingClient,
 		endpointManager,
@@ -53,7 +54,7 @@ func EndpointRegistryProvider(
 	)
 }
 
-func EndpointRegistryLifetimeHooks(lc fx.Lifecycle, registry commonnexus.EndpointRegistry) {
+func RegistryLifetimeHooks(lc fx.Lifecycle, registry nexusendpoint.Registry) {
 	lc.Append(fx.StartStopHook(registry.StartLifecycle, registry.StopLifecycle))
 }
 

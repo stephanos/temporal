@@ -1,4 +1,4 @@
-package nexus
+package nexusendpoint
 
 import (
 	"context"
@@ -27,7 +27,7 @@ import (
 )
 
 type testMocks struct {
-	config         *EndpointRegistryConfig
+	config         *RegistryConfig
 	matchingClient *matchingservicemock.MockMatchingServiceClient
 	persistence    *persistence.MockNexusEndpointManager
 }
@@ -55,7 +55,7 @@ func TestGet(t *testing.T) {
 		return &matchingservice.ListNexusEndpointsResponse{TableVersion: int64(1)}, nil
 	}).AnyTimes()
 
-	reg := NewEndpointRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+	reg := NewRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
 	reg.StartLifecycle()
 	defer reg.StopLifecycle()
 
@@ -100,7 +100,7 @@ func TestGetNotFound(t *testing.T) {
 	sentinelErr := errors.New("sentinel")
 	mocks.persistence.EXPECT().GetNexusEndpoint(gomock.Any(), gomock.Any()).Return(nil, sentinelErr)
 
-	reg := NewEndpointRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+	reg := NewRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
 	reg.StartLifecycle()
 	defer reg.StopLifecycle()
 
@@ -143,7 +143,7 @@ func TestInitializationFallback(t *testing.T) {
 		Entries:       []*persistencespb.NexusEndpointEntry{testEndpoint},
 	}, nil)
 
-	reg := NewEndpointRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+	reg := NewRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
 	reg.StartLifecycle()
 	defer reg.StopLifecycle()
 
@@ -170,7 +170,7 @@ func TestEnableDisableEnable(t *testing.T) {
 	}
 
 	// start disabled
-	reg := NewEndpointRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+	reg := NewRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
 	reg.StartLifecycle()
 	defer reg.StopLifecycle()
 
@@ -296,7 +296,7 @@ func TestTableVersionErrorResetsMatchingPagination(t *testing.T) {
 		return &matchingservice.ListNexusEndpointsResponse{TableVersion: int64(1)}, nil
 	}).MaxTimes(1)
 
-	reg := NewEndpointRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+	reg := NewRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
 	reg.StartLifecycle()
 	defer reg.StopLifecycle()
 
@@ -363,7 +363,7 @@ func TestTableVersionErrorResetsPersistencePagination(t *testing.T) {
 		NextPageToken: nil,
 	}, nil)
 
-	reg := NewEndpointRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+	reg := NewRegistry(mocks.config, mocks.matchingClient, mocks.persistence, log.NewNoopLogger(), metrics.NoopMetricsHandler)
 	reg.StartLifecycle()
 	defer reg.StopLifecycle()
 
@@ -382,7 +382,7 @@ func TestTableVersionErrorResetsPersistencePagination(t *testing.T) {
 
 func newTestMocks(t *testing.T) *testMocks {
 	ctrl := gomock.NewController(t)
-	testConfig := NewEndpointRegistryConfig(dynamicconfig.NewNoopCollection())
+	testConfig := NewRegistryConfig(dynamicconfig.NewNoopCollection())
 	testConfig.refreshEnabled = func(func(bool)) (bool, func()) {
 		return true, func() {}
 	}

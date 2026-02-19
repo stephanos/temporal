@@ -28,6 +28,7 @@ import (
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
 	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/nexus/nexusendpoint"
 	"go.temporal.io/server/common/nexus/nexusrpc"
 	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/service/history/consts"
@@ -62,7 +63,7 @@ type TaskExecutorOptions struct {
 	Logger                 log.Logger
 	CallbackTokenGenerator *commonnexus.CallbackTokenGenerator
 	ClientProvider         ClientProvider
-	EndpointRegistry       commonnexus.EndpointRegistry
+	EndpointRegistry       nexusendpoint.Registry
 	HTTPTraceProvider      commonnexus.HTTPClientTraceProvider
 	HistoryClient          resource.HistoryClient
 	ChasmRegistry          *chasm.Registry

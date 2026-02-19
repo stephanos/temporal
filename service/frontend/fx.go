@@ -24,6 +24,7 @@ import (
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/nexus/nexusendpoint"
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/persistence/serialization"
 	"go.temporal.io/server/common/persistence/visibility"
@@ -109,9 +110,9 @@ var Module = fx.Options(
 	fx.Provide(HTTPAPIServerProvider),
 	fx.Provide(NewServiceProvider),
 	fx.Provide(NexusEndpointClientProvider),
-	fx.Provide(NexusEndpointRegistryProvider),
+	fx.Provide(NexusRegistryProvider),
 	fx.Invoke(ServiceLifetimeHooks),
-	fx.Invoke(EndpointRegistryLifetimeHooks),
+	fx.Invoke(RegistryLifetimeHooks),
 	fx.Provide(schedulerpb.NewSchedulerServiceLayeredClient),
 	nexusfrontend.Module,
 	activity.FrontendModule,
@@ -837,7 +838,7 @@ func RegisterNexusHTTPHandler(
 	clusterMetadata cluster.Metadata,
 	clientCache *cluster.FrontendHTTPClientCache,
 	namespaceRegistry namespace.Registry,
-	endpointRegistry nexus.EndpointRegistry,
+	endpointRegistry nexusendpoint.Registry,
 	authInterceptor *authorization.Interceptor,
 	telemetryInterceptor *interceptor.TelemetryInterceptor,
 	requestErrorHandler *interceptor.RequestErrorHandler,
@@ -951,15 +952,15 @@ func NexusEndpointClientProvider(
 	)
 }
 
-func NexusEndpointRegistryProvider(
+func NexusRegistryProvider(
 	matchingClient resource.MatchingClient,
 	nexusEndpointManager persistence.NexusEndpointManager,
 	dc *dynamicconfig.Collection,
 	logger log.Logger,
 	metricsHandler metrics.Handler,
-) nexus.EndpointRegistry {
-	registryConfig := nexus.NewEndpointRegistryConfig(dc)
-	return nexus.NewEndpointRegistry(
+) nexusendpoint.Registry {
+	registryConfig := nexusendpoint.NewRegistryConfig(dc)
+	return nexusendpoint.NewRegistry(
 		registryConfig,
 		matchingClient,
 		nexusEndpointManager,
@@ -968,7 +969,7 @@ func NexusEndpointRegistryProvider(
 	)
 }
 
-func EndpointRegistryLifetimeHooks(lc fx.Lifecycle, registry nexus.EndpointRegistry) {
+func RegistryLifetimeHooks(lc fx.Lifecycle, registry nexusendpoint.Registry) {
 	lc.Append(fx.StartStopHook(registry.StartLifecycle, registry.StopLifecycle))
 }
 

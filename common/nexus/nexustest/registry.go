@@ -5,7 +5,7 @@ import (
 
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common/namespace"
-	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/nexus/nexusendpoint"
 )
 
 type FakeEndpointRegistry struct {
@@ -29,4 +29,4 @@ func (f FakeEndpointRegistry) StopLifecycle() {
 	panic("unimplemented")
 }
 
-var _ commonnexus.EndpointRegistry = FakeEndpointRegistry{}
+var _ nexusendpoint.Registry = FakeEndpointRegistry{}

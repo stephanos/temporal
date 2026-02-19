@@ -1,4 +1,4 @@
-package nexus
+package nexusendpoint
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 )
 
 type (
-	EndpointRegistryConfig struct {
+	RegistryConfig struct {
 		refreshEnabled         dynamicconfig.TypedSubscribable[bool]
 		refreshLongPollTimeout dynamicconfig.DurationPropertyFn
 		refreshPageSize        dynamicconfig.IntPropertyFn
@@ -35,7 +35,7 @@ type (
 		readThroughCacheTTL    dynamicconfig.DurationPropertyFn
 	}
 
-	EndpointRegistry interface {
+	Registry interface {
 		// GetByName returns an endpoint entry for the endpoint name for a caller from the given namespace ID.
 		// Note that the default implementation is global to the cluster and can ignore the namespace ID param.
 		GetByName(ctx context.Context, namespaceID namespace.ID, endpointName string) (*persistencespb.NexusEndpointEntry, error)
@@ -44,11 +44,11 @@ type (
 		StopLifecycle()
 	}
 
-	// EndpointRegistryImpl manages a cached view of Nexus endpoints.
+	// RegistryImpl manages a cached view of Nexus endpoints.
 	// Endpoints are lazily-loaded into memory on the first read. Thereafter, endpoint data is kept up to date by
 	// background long polling on matching service ListNexusEndpoints.
-	EndpointRegistryImpl struct {
-		config *EndpointRegistryConfig
+	RegistryImpl struct {
+		config *RegistryConfig
 
 		dataReady atomic.Pointer[dataReady]
 
@@ -74,8 +74,8 @@ type (
 
 var ErrNexusDisabled = serviceerror.NewFailedPrecondition("nexus is disabled")
 
-func NewEndpointRegistryConfig(dc *dynamicconfig.Collection) *EndpointRegistryConfig {
-	config := &EndpointRegistryConfig{
+func NewRegistryConfig(dc *dynamicconfig.Collection) *RegistryConfig {
+	config := &RegistryConfig{
 		refreshEnabled:         dynamicconfig.EnableNexus.Subscribe(dc),
 		refreshLongPollTimeout: dynamicconfig.RefreshNexusEndpointsLongPollTimeout.Get(dc),
 		refreshPageSize:        dynamicconfig.NexusEndpointListDefaultPageSize.Get(dc),
@@ -87,14 +87,14 @@ func NewEndpointRegistryConfig(dc *dynamicconfig.Collection) *EndpointRegistryCo
 	return config
 }
 
-func NewEndpointRegistry(
-	config *EndpointRegistryConfig,
+func NewRegistry(
+	config *RegistryConfig,
 	matchingClient matchingservice.MatchingServiceClient,
 	persistence p.NexusEndpointManager,
 	logger log.Logger,
 	metricsHandler metrics.Handler,
-) *EndpointRegistryImpl {
-	return &EndpointRegistryImpl{
+) *RegistryImpl {
+	return &RegistryImpl{
 		config:          config,
 		endpointsByID:   make(map[string]*persistencespb.NexusEndpointEntry),
 		endpointsByName: make(map[string]*persistencespb.NexusEndpointEntry),
@@ -109,7 +109,7 @@ func NewEndpointRegistry(
 
 // StartLifecycle starts this component. It should only be invoked by an fx lifecycle hook.
 // Should not be called multiple times or concurrently with StopLifecycle()
-func (r *EndpointRegistryImpl) StartLifecycle() {
+func (r *RegistryImpl) StartLifecycle() {
 	initial, cancel := r.config.refreshEnabled(r.setEnabled)
 	r.cancelDcSub = cancel
 	r.setEnabled(initial)
@@ -117,12 +117,12 @@ func (r *EndpointRegistryImpl) StartLifecycle() {
 
 // StopLifecycle stops this component. It should only be invoked by an fx lifecycle hook.
 // Should not be called multiple times or concurrently with StartLifecycle()
-func (r *EndpointRegistryImpl) StopLifecycle() {
+func (r *RegistryImpl) StopLifecycle() {
 	r.cancelDcSub()
 	r.setEnabled(false)
 }
 
-func (r *EndpointRegistryImpl) setEnabled(enabled bool) {
+func (r *RegistryImpl) setEnabled(enabled bool) {
 	oldReady := r.dataReady.Load()
 	if oldReady == nil && enabled {
 		backgroundCtx := headers.SetCallerInfo(
@@ -151,7 +151,7 @@ func (r *EndpointRegistryImpl) setEnabled(enabled bool) {
 	}
 }
 
-func (r *EndpointRegistryImpl) GetByName(ctx context.Context, _ namespace.ID, endpointName string) (*persistencespb.NexusEndpointEntry, error) {
+func (r *RegistryImpl) GetByName(ctx context.Context, _ namespace.ID, endpointName string) (*persistencespb.NexusEndpointEntry, error) {
 	if err := r.waitUntilInitialized(ctx); err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (r *EndpointRegistryImpl) GetByName(ctx context.Context, _ namespace.ID, en
 	return endpoint, nil
 }
 
-func (r *EndpointRegistryImpl) GetByID(ctx context.Context, id string) (*persistencespb.NexusEndpointEntry, error) {
+func (r *RegistryImpl) GetByID(ctx context.Context, id string) (*persistencespb.NexusEndpointEntry, error) {
 	if err := r.waitUntilInitialized(ctx); err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (r *EndpointRegistryImpl) GetByID(ctx context.Context, id string) (*persist
 	return endpoint, nil
 }
 
-func (r *EndpointRegistryImpl) waitUntilInitialized(ctx context.Context) error {
+func (r *RegistryImpl) waitUntilInitialized(ctx context.Context) error {
 	dataReady := r.dataReady.Load()
 	if dataReady == nil {
 		return ErrNexusDisabled
@@ -208,7 +208,7 @@ func (r *EndpointRegistryImpl) waitUntilInitialized(ctx context.Context) error {
 	}
 }
 
-func (r *EndpointRegistryImpl) refreshEndpointsLoop(ctx context.Context, dataReady *dataReady) error {
+func (r *RegistryImpl) refreshEndpointsLoop(ctx context.Context, dataReady *dataReady) error {
 	hasLoadedEndpointData := false
 
 	for ctx.Err() == nil {
@@ -256,7 +256,7 @@ func (r *EndpointRegistryImpl) refreshEndpointsLoop(ctx context.Context, dataRea
 
 // loadEndpoints initializes the in-memory view of endpoints data.
 // It first tries to load from matching service and falls back to querying persistence directly if matching is unavailable.
-func (r *EndpointRegistryImpl) loadEndpoints(ctx context.Context) error {
+func (r *RegistryImpl) loadEndpoints(ctx context.Context) error {
 	tableVersion, endpoints, err := r.getAllEndpointsMatchingWithPersistenceFallback(ctx)
 	if err != nil {
 		return err
@@ -278,7 +278,7 @@ func (r *EndpointRegistryImpl) loadEndpoints(ctx context.Context) error {
 }
 
 // refreshEndpoints sends long-poll requests to matching to check for any updates to endpoint data.
-func (r *EndpointRegistryImpl) refreshEndpoints(ctx context.Context) error {
+func (r *RegistryImpl) refreshEndpoints(ctx context.Context) error {
 	r.dataLock.RLock()
 	currentTableVersion := r.tableVersion
 	r.dataLock.RUnlock()
@@ -352,7 +352,7 @@ func (r *EndpointRegistryImpl) refreshEndpoints(ctx context.Context) error {
 	return nil
 }
 
-func (r *EndpointRegistryImpl) getAllEndpointsMatchingWithPersistenceFallback(ctx context.Context) (int64, []*persistencespb.NexusEndpointEntry, error) {
+func (r *RegistryImpl) getAllEndpointsMatchingWithPersistenceFallback(ctx context.Context) (int64, []*persistencespb.NexusEndpointEntry, error) {
 	tableVersion, endpoints, err := r.getAllEndpointsMatching(ctx)
 	if err != nil {
 		// Fallback to persistence on matching error during initial load.
@@ -363,7 +363,7 @@ func (r *EndpointRegistryImpl) getAllEndpointsMatchingWithPersistenceFallback(ct
 }
 
 // getAllEndpointsMatching paginates over all endpoints returned by matching. It always does a simple get.
-func (r *EndpointRegistryImpl) getAllEndpointsMatching(ctx context.Context) (int64, []*persistencespb.NexusEndpointEntry, error) {
+func (r *RegistryImpl) getAllEndpointsMatching(ctx context.Context) (int64, []*persistencespb.NexusEndpointEntry, error) {
 	return r.getAllEndpoints(ctx, func(currentTableVersion int64, currentPageToken []byte) (int64, []byte, []*persistencespb.NexusEndpointEntry, error) {
 		resp, err := r.matchingClient.ListNexusEndpoints(ctx, &matchingservice.ListNexusEndpointsRequest{
 			NextPageToken:         currentPageToken,
@@ -380,7 +380,7 @@ func (r *EndpointRegistryImpl) getAllEndpointsMatching(ctx context.Context) (int
 
 // getAllEndpointsPersistence paginates over all endpoints returned by persistence.
 // Should only be used as a fall-back if matching service is unavailable during initial load.
-func (r *EndpointRegistryImpl) getAllEndpointsPersistence(ctx context.Context) (int64, []*persistencespb.NexusEndpointEntry, error) {
+func (r *RegistryImpl) getAllEndpointsPersistence(ctx context.Context) (int64, []*persistencespb.NexusEndpointEntry, error) {
 	return r.getAllEndpoints(ctx, func(currentTableVersion int64, currentPageToken []byte) (int64, []byte, []*persistencespb.NexusEndpointEntry, error) {
 		resp, err := r.persistence.ListNexusEndpoints(ctx, &p.ListNexusEndpointsRequest{
 			LastKnownTableVersion: currentTableVersion,
@@ -396,7 +396,7 @@ func (r *EndpointRegistryImpl) getAllEndpointsPersistence(ctx context.Context) (
 
 // getAllEndpointsPersistence paginates over all endpoints returned by persistence.
 // Should only be used as a fall-back if matching service is unavailable during initial load.
-func (r *EndpointRegistryImpl) getAllEndpoints(ctx context.Context, getter func(int64, []byte) (int64, []byte, []*persistencespb.NexusEndpointEntry, error)) (int64, []*persistencespb.NexusEndpointEntry, error) {
+func (r *RegistryImpl) getAllEndpoints(ctx context.Context, getter func(int64, []byte) (int64, []byte, []*persistencespb.NexusEndpointEntry, error)) (int64, []*persistencespb.NexusEndpointEntry, error) {
 	var currentPageToken []byte
 
 	currentTableVersion := int64(0)

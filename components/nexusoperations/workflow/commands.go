@@ -16,6 +16,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/server/chasm"
 	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/nexus/nexusendpoint"
 	"go.temporal.io/server/common/primitives/timestamp"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/service/history/hsm"
@@ -26,7 +27,7 @@ import (
 
 type commandHandler struct {
 	config           *nexusoperations.Config
-	endpointRegistry commonnexus.EndpointRegistry
+	endpointRegistry nexusendpoint.Registry
 	nexusProcessor   *chasm.NexusEndpointProcessor
 }
 
@@ -328,7 +329,7 @@ func (ch *commandHandler) HandleCancelCommand(
 func RegisterCommandHandlers(
 	reg *workflow.CommandHandlerRegistry,
 	chasmRegistry *chasm.Registry,
-	endpointRegistry commonnexus.EndpointRegistry,
+	endpointRegistry nexusendpoint.Registry,
 	config *nexusoperations.Config,
 ) error {
 	h := commandHandler{

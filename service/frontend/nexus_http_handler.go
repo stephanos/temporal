@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/namespace"
 	commonnexus "go.temporal.io/server/common/nexus"
+	"go.temporal.io/server/common/nexus/nexusendpoint"
 	"go.temporal.io/server/common/nexus/nexusrpc"
 	"go.temporal.io/server/common/routing"
 	"go.temporal.io/server/common/rpc"
@@ -36,7 +37,7 @@ type NexusHTTPHandler struct {
 	base                                 nexusrpc.BaseHTTPHandler
 	logger                               log.Logger
 	nexusHandler                         http.Handler
-	enpointRegistry                      commonnexus.EndpointRegistry
+	enpointRegistry                      nexusendpoint.Registry
 	namespaceRegistry                    namespace.Registry
 	preprocessErrorCounter               metrics.CounterFunc
 	auth                                 *authorization.Interceptor
@@ -54,7 +55,7 @@ func NewNexusHTTPHandler(
 	clusterMetadata cluster.Metadata,
 	clientCache *cluster.FrontendHTTPClientCache,
 	namespaceRegistry namespace.Registry,
-	endpointRegistry commonnexus.EndpointRegistry,
+	endpointRegistry nexusendpoint.Registry,
 	authInterceptor *authorization.Interceptor,
 	telemetryInterceptor *interceptor.TelemetryInterceptor,
 	requestErrorHandler *interceptor.RequestErrorHandler,
