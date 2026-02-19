@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
 
 jobs:
@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: false
 
       # TODO: add `--delete` to actually remove branches
       - name: find stale branches

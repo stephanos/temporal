@@ -11,7 +11,7 @@
 #   2. It is associated with an open or draft PR
 #   3. Its last commit is newer than the age threshold
 #
-# Requires: gh (GitHub CLI), authenticated with repo scope.
+# Requires: git with remote origin, gh (GitHub CLI) for PR checks.
 #
 # Usage:
 #   ./find_stale_branches.sh [--delete] [--age-days N]
@@ -41,35 +41,16 @@ if [[ -z "$REPO" ]]; then
   REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 fi
 
-owner="${REPO%%/*}"
-name="${REPO##*/}"
-
-default_branch="$(gh api "repos/${REPO}" -q .default_branch)"
-
-# Fetch all branches with last commit dates in a single paginated GraphQL query.
-# shellcheck disable=SC2016
-branch_data="$(gh api graphql --paginate -f query='
-  query($owner: String!, $name: String!, $endCursor: String) {
-    repository(owner: $owner, name: $name) {
-      refs(refPrefix: "refs/heads/", first: 100, after: $endCursor) {
-        pageInfo { hasNextPage endCursor }
-        nodes {
-          name
-          target {
-            ... on Commit {
-              committedDate
-            }
-          }
-        }
-      }
-    }
-  }
-' -f owner="$owner" -f name="$name" \
-  -q '.data.repository.refs.nodes[] | [.name, (.target.committedDate // "")] | @tsv')"
+ref_fmt='%(refname:lstrip=3)%09%(committerdate:iso-strict)'
+branch_data="$(git branch -r --format="$ref_fmt")"
 
 pr_branch_list="$(gh pr list --repo "$REPO" --state open --json headRefName -q '.[].headRefName' | sort -u)"
 
-cutoff="$(date -u -d "-${AGE_DAYS} days" '+%Y-%m-%dT%H:%M:%SZ')"
+if date -u -d "-1 days" '+%s' &>/dev/null; then
+  cutoff="$(date -u -d "-${AGE_DAYS} days" '+%Y-%m-%dT%H:%M:%SZ')"
+else
+  cutoff="$(date -u -v-"${AGE_DAYS}"d '+%Y-%m-%dT%H:%M:%SZ')"
+fi
 
 echo "Repo:    $REPO"
 echo "Cutoff:  $cutoff ($AGE_DAYS days)"
@@ -82,9 +63,10 @@ to_delete=()
 skipped=0
 while IFS=$'\t' read -r branch last_commit_date; do
   [[ -z "$branch" ]] && continue
+  [[ "$branch" == "HEAD" ]] && continue
 
   # Rule 1: skip protected branches.
-  if [[ "$branch" == "$default_branch" ]] || [[ "$branch" =~ ^(release|cloud)/ ]]; then
+  if [[ "$branch" == "main" ]] || [[ "$branch" =~ ^(release|cloud)/ ]]; then
     continue
   fi
 
@@ -135,7 +117,7 @@ deleted=0
 for branch in "${to_delete[@]}"; do
   echo "DELETE: $branch"
   # TODO: uncomment to enable deletion
-  # gh api --method DELETE "repos/${REPO}/git/refs/heads/${branch}" --silent
+  # git push origin --delete "$branch"
   deleted=$((deleted + 1))
 done
 
