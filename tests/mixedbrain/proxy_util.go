@@ -2,7 +2,6 @@ package mixedbrain
 
 import (
 	"io"
-	"math/rand/v2"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -12,12 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// frontendProxy is a TCP proxy that distributes connections randomly across
-// multiple frontend backends, ensuring Omes exercises both servers equally.
+// frontendProxy is a TCP proxy that distributes connections round-robin across
+// multiple frontend backends, ensuring Omes exercises both servers.
 type frontendProxy struct {
 	listener  net.Listener
 	backends  []string
 	connCount []atomic.Int64
+	next      atomic.Int64
 	wg        sync.WaitGroup
 }
 
@@ -50,7 +50,7 @@ func (p *frontendProxy) serve() {
 		if err != nil {
 			return
 		}
-		idx := rand.IntN(len(p.backends))
+		idx := int(p.next.Add(1)-1) % len(p.backends)
 		p.connCount[idx].Add(1)
 		p.wg.Add(1)
 		go func() {
@@ -66,10 +66,10 @@ func (p *frontendProxy) proxyConn(client net.Conn, backend string) {
 		_ = client.Close()
 		return
 	}
-	go func() {
+	p.wg.Go(func() {
 		_, _ = io.Copy(server, client)
 		_ = server.Close()
-	}()
+	})
 	_, _ = io.Copy(client, server)
 	_ = client.Close()
 }

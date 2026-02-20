@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -18,7 +19,6 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slices"
 )
 
 const (
@@ -46,18 +46,18 @@ func buildCurrentServer(t *testing.T, outputPath string) {
 	require.NoError(t, err, "build current binary failed:\n%s", out)
 }
 
-// downloadAndBuildLatestServer finds the highest semver release tag and downloads
+// downloadAndBuildReleaseServer finds the highest semver release tag and downloads
 // the pre-built binary. We use semver sorting instead of GitHub's "latest" release
 // API because the latter returns the most recently published release, not the
 // highest version (e.g. a v1.25.3 patch published after v1.26.0 would be "latest").
-func downloadAndBuildLatestServer(t *testing.T, outputPath string) {
+func downloadAndBuildReleaseServer(t *testing.T, outputPath string) {
 	t.Helper()
 
 	t.Log("Resolving release tags...")
 	var versions semver.Versions
 	require.EventuallyWithT(t, func(collect *assert.CollectT) {
-		out, err := exec.CommandContext(t.Context(), "git", "ls-remote", "--tags", "--refs", "https://github.com/temporalio/temporal.git").Output()
-		require.NoError(collect, err)
+		out, err := exec.CommandContext(t.Context(), "git", "ls-remote", "--tags", "--refs", "https://github.com/temporalio/temporal.git").CombinedOutput()
+		require.NoError(collect, err, "git ls-remote failed:\n%s", out)
 
 		versions = nil
 		for _, line := range strings.Split(string(out), "\n") {
@@ -84,15 +84,26 @@ func downloadAndBuildLatestServer(t *testing.T, outputPath string) {
 		archiveName := fmt.Sprintf("temporal_%s_%s_%s.tar.gz", version, runtime.GOOS, runtime.GOARCH)
 		downloadURL := fmt.Sprintf("https://github.com/temporalio/temporal/releases/download/v%s/%s", version, archiveName)
 
-		resp, err := http.Head(downloadURL)
-		if err != nil || resp.StatusCode != http.StatusOK {
+		var statusCode int
+		t.Logf("Checking GitHub for release asset %s", version)
+		require.EventuallyWithT(t, func(collect *assert.CollectT) {
+			headReq, err := http.NewRequestWithContext(t.Context(), http.MethodHead, downloadURL, nil)
+			require.NoError(collect, err)
+
+			resp, err := http.DefaultClient.Do(headReq)
+			require.NoError(collect, err, "HEAD request for v%s failed", version)
+			_ = resp.Body.Close()
+
+			statusCode = resp.StatusCode
+			require.True(collect,
+				statusCode == http.StatusOK || statusCode == http.StatusNotFound,
+				"HEAD for v%s returned %d", version, statusCode)
+		}, retryTimeout, 2*time.Second, "check release asset for v%s", version)
+
+		if statusCode == http.StatusNotFound {
 			t.Logf("No release asset for v%s, trying next...", version)
-			if resp != nil {
-				_ = resp.Body.Close()
-			}
 			continue
 		}
-		_ = resp.Body.Close()
 
 		t.Logf("Downloading %s (v%s)...", archiveName, version)
 		archivePath = filepath.Join(filepath.Dir(outputPath), archiveName)

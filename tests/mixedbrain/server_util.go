@@ -2,11 +2,9 @@ package mixedbrain
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"syscall"
 	"testing"
@@ -17,188 +15,11 @@ import (
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/api/adminservice/v1"
-	"go.temporal.io/server/common/testing/freeport"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"gopkg.in/yaml.v3"
 )
-
-type portSet struct {
-	FrontendGRPC       int
-	FrontendMembership int
-	FrontendHTTP       int
-	HistoryGRPC        int
-	HistoryMembership  int
-	MatchingGRPC       int
-	MatchingMembership int
-	WorkerGRPC         int
-	WorkerMembership   int
-	PProf              int
-	Metrics            int
-}
-
-func allocatePortSet() portSet {
-	return portSet{
-		FrontendGRPC:       freeport.MustGetFreePort(),
-		FrontendMembership: freeport.MustGetFreePort(),
-		FrontendHTTP:       freeport.MustGetFreePort(),
-		HistoryGRPC:        freeport.MustGetFreePort(),
-		HistoryMembership:  freeport.MustGetFreePort(),
-		MatchingGRPC:       freeport.MustGetFreePort(),
-		MatchingMembership: freeport.MustGetFreePort(),
-		WorkerGRPC:         freeport.MustGetFreePort(),
-		WorkerMembership:   freeport.MustGetFreePort(),
-		PProf:              freeport.MustGetFreePort(),
-		Metrics:            freeport.MustGetFreePort(),
-	}
-}
-
-func (p portSet) frontendAddr() string {
-	return fmt.Sprintf("127.0.0.1:%d", p.FrontendGRPC)
-}
-
-func (p portSet) membershipPorts() []int {
-	return []int{
-		p.FrontendMembership,
-		p.HistoryMembership,
-		p.MatchingMembership,
-		p.WorkerMembership,
-	}
-}
-
-func generateConfig(t *testing.T, configDir string, ports portSet, frontendPorts portSet, dbDir string, dynConfigPath string) {
-	t.Helper()
-
-	require.NoError(t, os.MkdirAll(configDir, 0755))
-
-	defaultDBPath := filepath.Join(dbDir, "temporal_default.db")
-	visibilityDBPath := filepath.Join(dbDir, "temporal_visibility.db")
-
-	config := map[string]any{
-		"log": map[string]any{
-			"stdout": true,
-			"level":  "info",
-		},
-		"persistence": map[string]any{
-			"defaultStore":     "sqlite-default",
-			"visibilityStore":  "sqlite-visibility",
-			"numHistoryShards": 1,
-			"datastores": map[string]any{
-				"sqlite-default": map[string]any{
-					"sql": map[string]any{
-						"pluginName":      "sqlite",
-						"databaseName":    defaultDBPath,
-						"connectAddr":     "localhost",
-						"connectProtocol": "tcp",
-						"connectAttributes": map[string]string{
-							"cache":        "private",
-							"setup":        "true",
-							"journal_mode": "wal",
-							"synchronous":  "2",
-							"busy_timeout": "10000",
-						},
-						"maxConns":     1,
-						"maxIdleConns": 1,
-					},
-				},
-				"sqlite-visibility": map[string]any{
-					"sql": map[string]any{
-						"pluginName":      "sqlite",
-						"databaseName":    visibilityDBPath,
-						"connectAddr":     "localhost",
-						"connectProtocol": "tcp",
-						"connectAttributes": map[string]string{
-							"cache":        "private",
-							"setup":        "true",
-							"journal_mode": "wal",
-							"synchronous":  "2",
-							"busy_timeout": "10000",
-						},
-						"maxConns":     1,
-						"maxIdleConns": 1,
-					},
-				},
-			},
-		},
-		"global": map[string]any{
-			"membership": map[string]any{
-				"maxJoinDuration":  "30s",
-				"broadcastAddress": "127.0.0.1",
-			},
-			"pprof": map[string]any{
-				"port": ports.PProf,
-			},
-			"metrics": map[string]any{
-				"prometheus": map[string]any{
-					"framework":     "tally",
-					"timerType":     "histogram",
-					"listenAddress": fmt.Sprintf("127.0.0.1:%d", ports.Metrics),
-				},
-			},
-		},
-		"services": map[string]any{
-			"frontend": map[string]any{
-				"rpc": map[string]any{
-					"grpcPort":        ports.FrontendGRPC,
-					"membershipPort":  ports.FrontendMembership,
-					"bindOnLocalHost": true,
-					"httpPort":        ports.FrontendHTTP,
-				},
-			},
-			"matching": map[string]any{
-				"rpc": map[string]any{
-					"grpcPort":        ports.MatchingGRPC,
-					"membershipPort":  ports.MatchingMembership,
-					"bindOnLocalHost": true,
-				},
-			},
-			"history": map[string]any{
-				"rpc": map[string]any{
-					"grpcPort":        ports.HistoryGRPC,
-					"membershipPort":  ports.HistoryMembership,
-					"bindOnLocalHost": true,
-				},
-			},
-			"worker": map[string]any{
-				"rpc": map[string]any{
-					"grpcPort":        ports.WorkerGRPC,
-					"membershipPort":  ports.WorkerMembership,
-					"bindOnLocalHost": true,
-				},
-			},
-		},
-		"clusterMetadata": map[string]any{
-			"enableGlobalNamespace":    false,
-			"failoverVersionIncrement": 10,
-			"masterClusterName":        "active",
-			"currentClusterName":       "active",
-			"clusterInformation": map[string]any{
-				"active": map[string]any{
-					"enabled":                true,
-					"initialFailoverVersion": 1,
-					"rpcName":                "frontend",
-					"rpcAddress":             fmt.Sprintf("localhost:%d", frontendPorts.FrontendGRPC),
-					"httpAddress":            fmt.Sprintf("localhost:%d", frontendPorts.FrontendHTTP),
-				},
-			},
-		},
-		"dcRedirectionPolicy": map[string]any{
-			"policy": "noop",
-		},
-		"dynamicConfigClient": map[string]any{
-			"filepath":     dynConfigPath,
-			"pollInterval": "10s",
-		},
-	}
-
-	data, err := yaml.Marshal(config)
-	require.NoError(t, err)
-
-	err = os.WriteFile(filepath.Join(configDir, "development.yaml"), data, 0644)
-	require.NoError(t, err)
-}
 
 type serverProcess struct {
 	name    string
@@ -254,6 +75,7 @@ func (p *serverProcess) requireAlive(t *testing.T) {
 	t.Helper()
 	select {
 	case err := <-p.done:
+		p.done <- err // put back so stop() doesn't deadlock
 		t.Fatalf("%s exited unexpectedly: %v (logs: %s)", p.name, err, p.logPath)
 	default:
 	}
@@ -286,7 +108,7 @@ func registerDefaultNamespace(t *testing.T, conn *grpc.ClientConn) {
 		}
 		st, ok := status.FromError(err)
 		return ok && st.Code() == codes.AlreadyExists
-	}, 30*time.Second, time.Second, "failed to register default namespace")
+	}, retryTimeout, time.Second, "failed to register default namespace")
 }
 
 func createNexusEndpoint(t *testing.T, conn *grpc.ClientConn, endpointName, namespace, taskQueue string) {
@@ -313,11 +135,12 @@ func createNexusEndpoint(t *testing.T, conn *grpc.ClientConn, endpointName, name
 		}
 		st, ok := status.FromError(err)
 		return ok && st.Code() == codes.AlreadyExists
-	}, 30*time.Second, time.Second, "failed to create nexus endpoint %s", endpointName)
+	}, retryTimeout, time.Second, "failed to create nexus endpoint %s", endpointName)
 }
 
-// waitForClusterFormation waits until the server sees all membership ports
-// from all provided port sets in its rings, confirming the servers discovered each other.
+// waitForClusterFormation waits until the server's reachable members include
+// all membership ports from all provided port sets, confirming the servers
+// discovered each other. Reachable members use raw ringpop addresses (membership ports).
 func waitForClusterFormation(t *testing.T, conn *grpc.ClientConn, timeout time.Duration, portSets ...portSet) {
 	t.Helper()
 
@@ -334,18 +157,22 @@ func waitForClusterFormation(t *testing.T, conn *grpc.ClientConn, timeout time.D
 		}
 
 		seen := map[int]bool{}
-		for _, ring := range membership.GetRings() {
-			for _, member := range ring.GetMembers() {
-				_, portStr, _ := net.SplitHostPort(member.GetIdentity())
-				port, _ := strconv.Atoi(portStr)
-				seen[port] = true
+		for _, member := range membership.GetReachableMembers() {
+			_, portStr, err := net.SplitHostPort(member)
+			if err != nil {
+				continue
 			}
+			port, err := strconv.Atoi(portStr)
+			if err != nil {
+				continue
+			}
+			seen[port] = true
 		}
 
 		for _, ps := range portSets {
 			for _, port := range ps.membershipPorts() {
 				if !seen[port] {
-					t.Logf("Waiting for cluster formation: port %d not yet connected", port)
+					t.Logf("Waiting for cluster formation: port %d not yet visible", port)
 					return false
 				}
 			}
