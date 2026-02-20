@@ -82,13 +82,9 @@ func TestMixedBrain(t *testing.T) {
 
 	procCurrent := startServerProcess(t, "current", currentBinary, configCurrent, filepath.Join(logRoot, "mixedbrain_process-current.log"))
 	t.Cleanup(procCurrent.stop)
-	waitForServerHealth(t, portsCurrent.frontendAddr(), 30*time.Second)
-	t.Log("Current server is healthy")
 
 	procRelease := startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
 	t.Cleanup(procRelease.stop)
-	waitForServerHealth(t, portsRelease.frontendAddr(), 30*time.Second)
-	t.Log("Release server is healthy")
 
 	conn, err := grpc.NewClient(portsCurrent.frontendAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)

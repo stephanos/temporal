@@ -81,18 +81,6 @@ func (p *serverProcess) requireAlive(t *testing.T) {
 	}
 }
 
-func waitForServerHealth(t *testing.T, addr string, timeout time.Duration) {
-	t.Helper()
-	require.Eventually(t, func() bool {
-		conn, err := net.DialTimeout("tcp", addr, time.Second)
-		if err != nil {
-			return false
-		}
-		_ = conn.Close()
-		return true
-	}, timeout, 500*time.Millisecond, "server at %s did not become healthy within %v", addr, timeout)
-}
-
 func registerDefaultNamespace(t *testing.T, conn *grpc.ClientConn) {
 	t.Helper()
 
