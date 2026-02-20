@@ -125,8 +125,7 @@ _NOTE_: The previous `testcore.TaskPoller` has been deprecated and should not be
 ### testhooks package
 
 The `testhooks` package injects test-specific behavior into production code paths that are otherwise
-difficult to test. This is a **last resort** - prefer mocking, dependency injection, or gRPC fault
-injection when possible.
+difficult to test. This is a **last resort** - prefer mocking and dependency injection when possible.
 
 **Example:**
 
