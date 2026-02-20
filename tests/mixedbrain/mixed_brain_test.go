@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func testDuration() time.Duration {
@@ -91,11 +93,18 @@ func TestMixedBrain(t *testing.T) {
 		return
 	}
 
-	registerDefaultNamespace(t, portsCurrent.frontendAddr())
+	conn, err := grpc.NewClient(portsCurrent.frontendAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+
+	waitForClusterFormation(t, conn, 30*time.Second, portsCurrent, portsRelease)
+	t.Log("Cluster formed with both servers")
+
+	registerDefaultNamespace(t, conn)
 
 	runID := fmt.Sprintf("mixed-brain-%d", time.Now().Unix())
 	nexusEndpoint := "mixed-brain-nexus"
-	createNexusEndpoint(t, portsCurrent.frontendAddr(), nexusEndpoint, "default", "omes-"+runID)
+	createNexusEndpoint(t, conn, nexusEndpoint, "default", "omes-"+runID)
 
 	proxy := startFrontendProxy(t, portsCurrent.frontendAddr(), portsRelease.frontendAddr())
 	t.Cleanup(proxy.stop)

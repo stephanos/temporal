@@ -13,7 +13,7 @@ import (
 )
 
 // frontendProxy is a TCP proxy that distributes connections randomly across
-// multiple frontend backends, ensuring omes exercises both server versions.
+// multiple frontend backends, ensuring Omes exercises both servers equally.
 type frontendProxy struct {
 	listener  net.Listener
 	backends  []string

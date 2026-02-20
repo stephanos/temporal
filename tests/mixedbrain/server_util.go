@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"testing"
 	"time"
@@ -15,10 +16,10 @@ import (
 	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/api/adminservice/v1"
 	"go.temporal.io/server/common/testing/freeport"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"gopkg.in/yaml.v3"
@@ -56,6 +57,15 @@ func allocatePortSet() portSet {
 
 func (p portSet) frontendAddr() string {
 	return fmt.Sprintf("127.0.0.1:%d", p.FrontendGRPC)
+}
+
+func (p portSet) membershipPorts() []int {
+	return []int{
+		p.FrontendMembership,
+		p.HistoryMembership,
+		p.MatchingMembership,
+		p.WorkerMembership,
+	}
 }
 
 func generateConfig(t *testing.T, configDir string, ports portSet, frontendPorts portSet, dbDir string, dynConfigPath string) {
@@ -261,17 +271,13 @@ func waitForServerHealth(t *testing.T, addr string, timeout time.Duration) {
 	}, timeout, 500*time.Millisecond, "server at %s did not become healthy within %v", addr, timeout)
 }
 
-func registerDefaultNamespace(t *testing.T, grpcAddr string) {
+func registerDefaultNamespace(t *testing.T, conn *grpc.ClientConn) {
 	t.Helper()
-
-	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	defer func() { _ = conn.Close() }()
 
 	client := workflowservice.NewWorkflowServiceClient(conn)
 
 	require.Eventually(t, func() bool {
-		_, err = client.RegisterNamespace(t.Context(), &workflowservice.RegisterNamespaceRequest{
+		_, err := client.RegisterNamespace(t.Context(), &workflowservice.RegisterNamespaceRequest{
 			Namespace:                        "default",
 			WorkflowExecutionRetentionPeriod: durationpb.New(24 * time.Hour),
 		})
@@ -280,20 +286,16 @@ func registerDefaultNamespace(t *testing.T, grpcAddr string) {
 		}
 		st, ok := status.FromError(err)
 		return ok && st.Code() == codes.AlreadyExists
-	}, 30*time.Second, time.Second, "failed to register default namespace at %s", grpcAddr)
+	}, 30*time.Second, time.Second, "failed to register default namespace")
 }
 
-func createNexusEndpoint(t *testing.T, grpcAddr, endpointName, namespace, taskQueue string) {
+func createNexusEndpoint(t *testing.T, conn *grpc.ClientConn, endpointName, namespace, taskQueue string) {
 	t.Helper()
-
-	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	defer func() { _ = conn.Close() }()
 
 	client := operatorservice.NewOperatorServiceClient(conn)
 
 	require.Eventually(t, func() bool {
-		_, err = client.CreateNexusEndpoint(t.Context(), &operatorservice.CreateNexusEndpointRequest{
+		_, err := client.CreateNexusEndpoint(t.Context(), &operatorservice.CreateNexusEndpointRequest{
 			Spec: &nexuspb.EndpointSpec{
 				Name: endpointName,
 				Target: &nexuspb.EndpointTarget{
@@ -311,5 +313,43 @@ func createNexusEndpoint(t *testing.T, grpcAddr, endpointName, namespace, taskQu
 		}
 		st, ok := status.FromError(err)
 		return ok && st.Code() == codes.AlreadyExists
-	}, 30*time.Second, time.Second, "failed to create nexus endpoint %s at %s", endpointName, grpcAddr)
+	}, 30*time.Second, time.Second, "failed to create nexus endpoint %s", endpointName)
+}
+
+// waitForClusterFormation waits until the server sees all membership ports
+// from all provided port sets in its rings, confirming the servers discovered each other.
+func waitForClusterFormation(t *testing.T, conn *grpc.ClientConn, timeout time.Duration, portSets ...portSet) {
+	t.Helper()
+
+	client := adminservice.NewAdminServiceClient(conn)
+
+	require.Eventually(t, func() bool {
+		resp, err := client.DescribeCluster(t.Context(), &adminservice.DescribeClusterRequest{})
+		if err != nil {
+			return false
+		}
+		membership := resp.GetMembershipInfo()
+		if membership == nil {
+			return false
+		}
+
+		seen := map[int]bool{}
+		for _, ring := range membership.GetRings() {
+			for _, member := range ring.GetMembers() {
+				_, portStr, _ := net.SplitHostPort(member.GetIdentity())
+				port, _ := strconv.Atoi(portStr)
+				seen[port] = true
+			}
+		}
+
+		for _, ps := range portSets {
+			for _, port := range ps.membershipPorts() {
+				if !seen[port] {
+					t.Logf("Waiting for cluster formation: port %d not yet connected", port)
+					return false
+				}
+			}
+		}
+		return true
+	}, timeout, time.Second, "cluster did not form within %v", timeout)
 }
