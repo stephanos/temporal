@@ -53,7 +53,7 @@ func TestMixedBrain(t *testing.T) {
 	t.Run("setup", func(t *testing.T) {
 		t.Run("build current server", func(t *testing.T) {
 			t.Parallel()
-			buildCurrentServer(t, currentBinary)
+			buildServer(t, sourceRoot(), currentBinary)
 		})
 		t.Run("download and build release server", func(t *testing.T) {
 			t.Parallel()
