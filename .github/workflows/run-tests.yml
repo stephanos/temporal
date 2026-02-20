@@ -626,13 +626,13 @@ jobs:
         run: if [ -f /tmp/memory_snapshot.txt ]; then cat /tmp/memory_snapshot.txt; fi
 
       - name: Print current server logs
-        if: failure()
+        if: always()
         run: |
           f=.testoutput/mixedbrain_process-current.log
           [ -f "$f" ] && echo "=== $f ===" && cat "$f"
 
       - name: Print release server logs
-        if: failure()
+        if: always()
         run: |
           f=.testoutput/mixedbrain_process-release.log
           [ -f "$f" ] && echo "=== $f ===" && cat "$f"
