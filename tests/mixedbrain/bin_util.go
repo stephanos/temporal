@@ -19,6 +19,8 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.temporal.io/server/common/headers"
 )
 
 const (
@@ -46,14 +48,19 @@ func buildCurrentServer(t *testing.T, outputPath string) {
 	require.NoError(t, err, "build current binary failed:\n%s", out)
 }
 
-// downloadAndBuildReleaseServer finds the highest semver release tag and downloads
-// the pre-built binary. We use semver sorting instead of GitHub's "latest" release
-// API because the latter returns the most recently published release, not the
-// highest version (e.g. a v1.25.3 patch published after v1.26.0 would be "latest").
+// downloadAndBuildReleaseServer finds the highest patch of the previous minor version
+// and downloads the pre-built binary. For example, if ServerVersion is 1.31.x, it
+// will look for the highest 1.30.x tag.
 func downloadAndBuildReleaseServer(t *testing.T, outputPath string) {
 	t.Helper()
 
-	t.Log("Resolving release tags...")
+	current, err := semver.Parse(headers.ServerVersion)
+	require.NoError(t, err, "parse ServerVersion %q", headers.ServerVersion)
+	require.Greater(t, current.Minor, uint64(0), "ServerVersion minor must be > 0")
+	targetMajor := current.Major
+	targetMinor := current.Minor - 1
+
+	t.Logf("Looking for highest v%d.%d.x release tag...", targetMajor, targetMinor)
 	var versions semver.Versions
 	require.EventuallyWithT(t, func(collect *assert.CollectT) {
 		out, err := exec.CommandContext(t.Context(), "git", "ls-remote", "--tags", "--refs", "https://github.com/temporalio/temporal.git").CombinedOutput()
@@ -70,13 +77,15 @@ func downloadAndBuildReleaseServer(t *testing.T, outputPath string) {
 			if err != nil || len(v.Pre) > 0 {
 				continue
 			}
-			versions = append(versions, v)
+			if v.Major == targetMajor && v.Minor == targetMinor {
+				versions = append(versions, v)
+			}
 		}
-		require.NotEmpty(collect, versions, "no valid release tags found")
+		require.NotEmpty(collect, versions, "no v%d.%d.x release tags found", targetMajor, targetMinor)
 	}, retryTimeout, 2*time.Second, "fetch release tags")
 
 	slices.SortFunc(versions, func(a, b semver.Version) int { return b.Compare(a) })
-	t.Logf("Found %d release tags, highest: v%s", len(versions), versions[0])
+	t.Logf("Found %d tags for v%d.%d.x, highest: v%s", len(versions), targetMajor, targetMinor, versions[0])
 
 	var archivePath string
 	for _, v := range versions {
@@ -124,7 +133,7 @@ func downloadAndBuildReleaseServer(t *testing.T, outputPath string) {
 		}, retryTimeout, 2*time.Second, "download release binary")
 		break
 	}
-	require.NotEmpty(t, archivePath, "no downloadable release found for %s/%s", runtime.GOOS, runtime.GOARCH)
+	require.NotEmpty(t, archivePath, "no downloadable release asset for v%d.%d.x on %s/%s", targetMajor, targetMinor, runtime.GOOS, runtime.GOARCH)
 
 	t.Log("Extracting server binary...")
 	f, err := os.Open(archivePath)
