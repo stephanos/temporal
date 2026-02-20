@@ -52,11 +52,11 @@ func TestMixedBrain(t *testing.T) {
 	t.Run("setup", func(t *testing.T) {
 		t.Run("build-current", func(t *testing.T) {
 			t.Parallel()
-			buildCurrentBinary(t, currentBinary)
+			buildCurrentServer(t, currentBinary)
 		})
 		t.Run("download-release", func(t *testing.T) {
 			t.Parallel()
-			downloadLatestRelease(t, releaseBinary)
+			downloadAndBuildLatestServer(t, releaseBinary)
 		})
 		t.Run("build-omes", func(t *testing.T) {
 			t.Parallel()
@@ -116,10 +116,10 @@ func TestMixedBrain(t *testing.T) {
 
 func runOmes(t *testing.T, binary, serverAddr, logPath string, duration time.Duration, runID, nexusEndpoint string) {
 	t.Helper()
-	t.Logf("Running omes throughput_stress for %v against %s", duration, serverAddr)
+	t.Logf("Running Omes throughput_stress for %v against %s", duration, serverAddr)
 
 	// Omes registers search attributes on startup.
-	// Retry if omes fails due to search attribute not being ready yet.
+	// Retry if Omes fails due to search attribute not being ready yet.
 	require.Eventually(t, func() bool {
 		logFile, err := os.Create(logPath)
 		if err != nil {
@@ -143,10 +143,10 @@ func runOmes(t *testing.T, binary, serverAddr, logPath string, duration time.Dur
 		err = cmd.Run()
 		_ = logFile.Close()
 		if err != nil && strings.Contains(buf.String(), "no mapping defined for search attribute") {
-			t.Log("Omes failed due to search attribute not ready, retrying...")
+			t.Log("Omes failed due to search attributes not ready, retrying...")
 			return false
 		}
-		require.NoError(t, err, "omes scenario failed, check %s", logPath)
+		require.NoError(t, err, "Omes scenario failed, check %s", logPath)
 		return true
-	}, duration+2*time.Minute, 5*time.Second, "omes scenario failed to start")
+	}, duration+2*time.Minute, 5*time.Second, "Omes scenario failed to start")
 }
