@@ -18,6 +18,8 @@ import (
 	updatepb "go.temporal.io/api/update/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/api/adminservice/v1"
+	"go.temporal.io/server/api/matchingservice/v1"
+	taskqueuespb "go.temporal.io/server/api/taskqueue/v1"
 	"go.temporal.io/server/chasm"
 	"go.temporal.io/server/common"
 	"go.temporal.io/server/common/dynamicconfig"
@@ -1403,18 +1405,19 @@ func TestWorkflowUpdateSuite(t *testing.T) {
 			})
 		s.NoError(err)
 
-		// Poll the sticky queue to register a poller in matching's partition manager.
-		// Without this, the PM won't exist and StickyWorkerUnavailable can't be triggered.
-		// Timeout must be > MinLongPollTimeout (2s) for frontend to accept the poll,
-		// plus > returnEmptyTaskTimeBudget (1s) for matching to register the poller.
-		_, err = s.TaskPoller().
-			PollWorkflowTask(&workflowservice.PollWorkflowTaskQueueRequest{TaskQueue: s.Tv().StickyTaskQueue()}).
-			HandleTask(s.Tv(), taskpoller.DrainWorkflowTask, taskpoller.WithTimeout(4*time.Second))
-		s.ErrorIs(err, taskpoller.NoWorkflowTaskAvailable)
-
-		// Wait for stickyPollerUnavailableWindow (10s) to expire so the poller
-		// registered above becomes stale and matching returns StickyWorkerUnavailable.
-		time.Sleep(10*time.Second + 100*time.Millisecond) //nolint:forbidigo
+		// Force-unload the sticky queue partition so that matching returns
+		// StickyWorkerUnavailable immediately (pm == nil) without waiting
+		// for the 10s stickyPollerUnavailableWindow to expire.
+		_, err = s.GetTestCluster().MatchingClient().ForceUnloadTaskQueuePartition(
+			testcore.NewContext(),
+			&matchingservice.ForceUnloadTaskQueuePartitionRequest{
+				NamespaceId: s.NamespaceID().String(),
+				TaskQueuePartition: &taskqueuespb.TaskQueuePartition{
+					TaskQueue:     s.Tv().StickyTaskQueue().Name,
+					TaskQueueType: enumspb.TASK_QUEUE_TYPE_WORKFLOW,
+				},
+			})
+		s.NoError(err)
 
 		// Now send an update. It should try sticky task queue first, get StickyWorkerUnavailable,
 		// and fall back to the normal task queue.
