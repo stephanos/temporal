@@ -638,7 +638,7 @@ jobs:
           [ -f "$f" ] && echo "=== $f ===" && cat "$f"
 
       - name: Print Omes logs
-        if: failure()
+        if: always()
         run: |
           f=.testoutput/mixedbrain_omes.log
           [ -f "$f" ] && echo "=== $f ===" && cat "$f"
