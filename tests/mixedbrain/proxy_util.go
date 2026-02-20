@@ -5,6 +5,7 @@ import (
 	"math/rand/v2"
 	"net"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,9 +15,10 @@ import (
 // frontendProxy is a TCP proxy that distributes connections randomly across
 // multiple frontend backends, ensuring omes exercises both server versions.
 type frontendProxy struct {
-	listener net.Listener
-	backends []string
-	wg       sync.WaitGroup
+	listener  net.Listener
+	backends  []string
+	connCount []atomic.Int64
+	wg        sync.WaitGroup
 }
 
 func startFrontendProxy(t *testing.T, backends ...string) *frontendProxy {
@@ -25,8 +27,9 @@ func startFrontendProxy(t *testing.T, backends ...string) *frontendProxy {
 	require.NoError(t, err)
 
 	p := &frontendProxy{
-		listener: listener,
-		backends: backends,
+		listener:  listener,
+		backends:  backends,
+		connCount: make([]atomic.Int64, len(backends)),
 	}
 	go p.serve()
 	return p
@@ -47,11 +50,12 @@ func (p *frontendProxy) serve() {
 		if err != nil {
 			return
 		}
-		backend := p.backends[rand.IntN(len(p.backends))]
+		idx := rand.IntN(len(p.backends))
+		p.connCount[idx].Add(1)
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()
-			p.proxyConn(conn, backend)
+			p.proxyConn(conn, p.backends[idx])
 		}()
 	}
 }

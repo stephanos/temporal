@@ -105,6 +105,12 @@ func TestMixedBrain(t *testing.T) {
 	procCurrent.requireAlive(t)
 	procRelease.requireAlive(t)
 
+	for i, backend := range []string{"current", "release"} {
+		count := proxy.connCount[i].Load()
+		t.Logf("Proxy connections to %s: %d", backend, count)
+		require.Positive(t, count, "expected proxy to route traffic to %s server", backend)
+	}
+
 	t.Log("Mixed brain test passed")
 }
 
