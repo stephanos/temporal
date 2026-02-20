@@ -83,17 +83,18 @@ func TestMixedBrain(t *testing.T) {
 	procCurrent := startServerProcess(t, "current", currentBinary, configCurrent, filepath.Join(logRoot, "mixedbrain_process-current.log"))
 	t.Cleanup(procCurrent.stop)
 
-	procRelease := startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
-	t.Cleanup(procRelease.stop)
-
 	conn, err := grpc.NewClient(portsCurrent.frontendAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	defer func() { _ = conn.Close() }()
 
+	// This ensures the current server is fully booted before starting the release server.
+	registerDefaultNamespace(t, conn)
+
+	procRelease := startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
+	t.Cleanup(procRelease.stop)
+
 	waitForClusterFormation(t, conn, 90*time.Second, portsCurrent, portsRelease)
 	t.Log("Cluster formed with both servers")
-
-	registerDefaultNamespace(t, conn)
 
 	runID := fmt.Sprintf("mixed-brain-%d", time.Now().Unix())
 	nexusEndpoint := "mixed-brain-nexus"
