@@ -80,41 +80,66 @@ func TestMixedBrain(t *testing.T) {
 	configCurrent := generateConfig(t, tmpDir, portsCurrent, portsCurrent)
 	configRelease := generateConfig(t, tmpDir, portsRelease, portsCurrent)
 
-	procCurrent := startServerProcess(t, "current", currentBinary, configCurrent, filepath.Join(logRoot, "mixedbrain_process-current.log"))
-	t.Cleanup(procCurrent.stop)
-
-	conn, err := grpc.NewClient(portsCurrent.frontendAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	defer func() { _ = conn.Close() }()
-
-	// This ensures the current server is fully booted before starting the release server.
-	registerDefaultNamespace(t, conn)
-
-	procRelease := startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
-	t.Cleanup(procRelease.stop)
-
-	waitForClusterFormation(t, conn, 90*time.Second, portsCurrent, portsRelease)
-	t.Log("Cluster formed with both servers")
-
+	var procCurrent, procRelease *serverProcess
+	var conn *grpc.ClientConn
+	var proxy *frontendProxy
 	runID := fmt.Sprintf("mixed-brain-%d", time.Now().Unix())
 	nexusEndpoint := "mixed-brain-nexus"
-	createNexusEndpoint(t, conn, nexusEndpoint, "default", "omes-"+runID)
 
-	proxy := startFrontendProxy(t, portsCurrent.frontendAddr(), portsRelease.frontendAddr())
-	t.Cleanup(proxy.stop)
+	t.Run("start current server", func(st *testing.T) {
+		// Server processes use the parent t so their context survives this sub-test.
+		procCurrent = startServerProcess(t, "current", currentBinary, configCurrent, filepath.Join(logRoot, "mixedbrain_process-current.log"))
 
-	runOmes(t, omesBinary, proxy.addr(), filepath.Join(logRoot, "mixedbrain_omes.log"), testDuration(), runID, nexusEndpoint)
+		var err error
+		conn, err = grpc.NewClient(portsCurrent.frontendAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		require.NoError(st, err)
 
-	procCurrent.requireAlive(t)
-	procRelease.requireAlive(t)
+		// This ensures the current server is fully booted before starting the release server.
+		registerDefaultNamespace(st, conn)
+	})
+	if t.Failed() {
+		return
+	}
+	t.Cleanup(procCurrent.stop)
+	defer func() { _ = conn.Close() }()
 
-	for i, backend := range []string{"current", "release"} {
-		count := proxy.connCount[i].Load()
-		t.Logf("Proxy connections to %s: %d", backend, count)
-		require.Positive(t, count, "expected proxy to route traffic to %s server", backend)
+	t.Run("start release server", func(_ *testing.T) {
+		procRelease = startServerProcess(t, "release", releaseBinary, configRelease, filepath.Join(logRoot, "mixedbrain_process-release.log"))
+	})
+	if t.Failed() {
+		return
+	}
+	t.Cleanup(procRelease.stop)
+
+	t.Run("form cluster", func(st *testing.T) {
+		waitForClusterFormation(st, conn, 90*time.Second, portsCurrent, portsRelease)
+	})
+	if t.Failed() {
+		return
 	}
 
-	t.Log("Mixed brain test passed")
+	t.Run("run omes", func(st *testing.T) {
+		createNexusEndpoint(st, conn, nexusEndpoint, "default", "omes-"+runID)
+
+		proxy = startFrontendProxy(st, portsCurrent.frontendAddr(), portsRelease.frontendAddr())
+
+		runOmes(st, omesBinary, proxy.addr(), filepath.Join(logRoot, "mixedbrain_omes.log"), testDuration(), runID, nexusEndpoint)
+	})
+	if t.Failed() {
+		return
+	}
+	t.Cleanup(proxy.stop)
+
+	t.Run("verify", func(st *testing.T) {
+		procCurrent.requireAlive(st)
+		procRelease.requireAlive(st)
+
+		for i, backend := range []string{"current", "release"} {
+			count := proxy.connCount[i].Load()
+			st.Logf("Proxy connections to %s: %d", backend, count)
+			require.Positive(st, count, "expected proxy to route traffic to %s server", backend)
+		}
+	})
 }
 
 // runOmes runs Omes throughput stress scenario.
