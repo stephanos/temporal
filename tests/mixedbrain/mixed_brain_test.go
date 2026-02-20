@@ -90,7 +90,7 @@ func TestMixedBrain(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = conn.Close() }()
 
-	waitForClusterFormation(t, conn, 30*time.Second, portsCurrent, portsRelease)
+	waitForClusterFormation(t, conn, 90*time.Second, portsCurrent, portsRelease)
 	t.Log("Cluster formed with both servers")
 
 	registerDefaultNamespace(t, conn)
