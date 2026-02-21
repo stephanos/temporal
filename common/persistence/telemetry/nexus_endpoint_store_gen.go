@@ -55,6 +55,7 @@ func (d telemetryNexusEndpointStore) CreateOrUpdateNexusEndpoint(ctx context.Con
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.NexusEndpointStore.CreateOrUpdateNexusEndpoint(ctx, request)
 	if err != nil {
@@ -90,6 +91,7 @@ func (d telemetryNexusEndpointStore) DeleteNexusEndpoint(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.NexusEndpointStore.DeleteNexusEndpoint(ctx, request)
 	if err != nil {
@@ -125,6 +127,7 @@ func (d telemetryNexusEndpointStore) GetNexusEndpoint(ctx context.Context, reque
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.NexusEndpointStore.GetNexusEndpoint(ctx, request)
 	if err != nil {
@@ -167,6 +170,7 @@ func (d telemetryNexusEndpointStore) ListNexusEndpoints(ctx context.Context, req
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.NexusEndpointStore.ListNexusEndpoints(ctx, request)
 	if err != nil {

@@ -55,6 +55,7 @@ func (d telemetryQueueV2) CreateQueue(ctx context.Context, request *_sourcePersi
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.QueueV2.CreateQueue(ctx, request)
 	if err != nil {
@@ -97,6 +98,7 @@ func (d telemetryQueueV2) EnqueueMessage(ctx context.Context, request *_sourcePe
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.QueueV2.EnqueueMessage(ctx, request)
 	if err != nil {
@@ -139,6 +141,7 @@ func (d telemetryQueueV2) ListQueues(ctx context.Context, request *_sourcePersis
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.QueueV2.ListQueues(ctx, request)
 	if err != nil {
@@ -181,6 +184,7 @@ func (d telemetryQueueV2) RangeDeleteMessages(ctx context.Context, request *_sou
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.QueueV2.RangeDeleteMessages(ctx, request)
 	if err != nil {
@@ -223,6 +227,7 @@ func (d telemetryQueueV2) ReadMessages(ctx context.Context, request *_sourcePers
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.QueueV2.ReadMessages(ctx, request)
 	if err != nil {

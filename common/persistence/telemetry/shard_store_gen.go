@@ -55,6 +55,7 @@ func (d telemetryMetadataStore) CreateNamespace(ctx context.Context, request *_s
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	cp1, err = d.MetadataStore.CreateNamespace(ctx, request)
 	if err != nil {
@@ -97,6 +98,7 @@ func (d telemetryMetadataStore) DeleteNamespace(ctx context.Context, request *_s
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.MetadataStore.DeleteNamespace(ctx, request)
 	if err != nil {
@@ -132,6 +134,7 @@ func (d telemetryMetadataStore) DeleteNamespaceByName(ctx context.Context, reque
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.MetadataStore.DeleteNamespaceByName(ctx, request)
 	if err != nil {
@@ -202,6 +205,7 @@ func (d telemetryMetadataStore) GetNamespace(ctx context.Context, request *_sour
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.MetadataStore.GetNamespace(ctx, request)
 	if err != nil {
@@ -244,6 +248,7 @@ func (d telemetryMetadataStore) ListNamespaces(ctx context.Context, request *_so
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.MetadataStore.ListNamespaces(ctx, request)
 	if err != nil {
@@ -286,6 +291,7 @@ func (d telemetryMetadataStore) RenameNamespace(ctx context.Context, request *_s
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.MetadataStore.RenameNamespace(ctx, request)
 	if err != nil {
@@ -321,6 +327,7 @@ func (d telemetryMetadataStore) UpdateNamespace(ctx context.Context, request *_s
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.MetadataStore.UpdateNamespace(ctx, request)
 	if err != nil {

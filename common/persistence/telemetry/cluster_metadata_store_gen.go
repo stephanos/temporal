@@ -55,6 +55,7 @@ func (d telemetryClusterMetadataStore) DeleteClusterMetadata(ctx context.Context
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ClusterMetadataStore.DeleteClusterMetadata(ctx, request)
 	if err != nil {
@@ -90,6 +91,7 @@ func (d telemetryClusterMetadataStore) GetClusterMembers(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	gp1, err = d.ClusterMetadataStore.GetClusterMembers(ctx, request)
 	if err != nil {
@@ -132,6 +134,7 @@ func (d telemetryClusterMetadataStore) GetClusterMetadata(ctx context.Context, r
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ClusterMetadataStore.GetClusterMetadata(ctx, request)
 	if err != nil {
@@ -174,6 +177,7 @@ func (d telemetryClusterMetadataStore) ListClusterMetadata(ctx context.Context, 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ClusterMetadataStore.ListClusterMetadata(ctx, request)
 	if err != nil {
@@ -216,6 +220,7 @@ func (d telemetryClusterMetadataStore) PruneClusterMembership(ctx context.Contex
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ClusterMetadataStore.PruneClusterMembership(ctx, request)
 	if err != nil {
@@ -251,6 +256,7 @@ func (d telemetryClusterMetadataStore) SaveClusterMetadata(ctx context.Context, 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	b1, err = d.ClusterMetadataStore.SaveClusterMetadata(ctx, request)
 	if err != nil {
@@ -293,6 +299,7 @@ func (d telemetryClusterMetadataStore) UpsertClusterMembership(ctx context.Conte
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ClusterMetadataStore.UpsertClusterMembership(ctx, request)
 	if err != nil {

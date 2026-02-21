@@ -35,6 +35,7 @@ func Test_ServerStatsHandler(t *testing.T) {
 		})
 		otelStatsHandler.HandleRPC(ctx, &stats.InPayload{
 			Payload: &workflowservice.TerminateWorkflowExecutionRequest{
+				Namespace: "NS",
 				WorkflowExecution: &commonpb.WorkflowExecution{
 					WorkflowId: "WF-ID",
 					RunId:      "RUN-ID",
@@ -59,9 +60,10 @@ func Test_ServerStatsHandler(t *testing.T) {
 		return attrByKey
 	}
 
-	t.Run("annotate span with workflow tags", func(t *testing.T) {
+	t.Run("annotate span with namespace and workflow tags", func(t *testing.T) {
 		spanAttrsByKey := makeRequest(nil)
 
+		require.Equal(t, "NS", spanAttrsByKey["temporalNamespace"].Value.AsString())
 		require.Equal(t, "WF-ID", spanAttrsByKey["temporalWorkflowID"].Value.AsString())
 		require.Equal(t, "RUN-ID", spanAttrsByKey["temporalRunID"].Value.AsString())
 
@@ -77,7 +79,7 @@ func Test_ServerStatsHandler(t *testing.T) {
 		spanAttrsByKey := makeRequest(nil)
 
 		require.Equal(t,
-			`{"workflowExecution":{"workflowId":"WF-ID","runId":"RUN-ID"}}`,
+			`{"namespace":"NS","workflowExecution":{"workflowId":"WF-ID","runId":"RUN-ID"}}`,
 			toStr(t, spanAttrsByKey["rpc.request.payload"].Value))
 		require.Equal(t, "{}", spanAttrsByKey["rpc.response.payload"].Value.AsString())
 	})

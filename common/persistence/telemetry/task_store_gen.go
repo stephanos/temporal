@@ -55,6 +55,7 @@ func (d telemetryTaskStore) CompleteTasksLessThan(ctx context.Context, request *
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	i1, err = d.TaskStore.CompleteTasksLessThan(ctx, request)
 	if err != nil {
@@ -97,6 +98,7 @@ func (d telemetryTaskStore) CountTaskQueuesByBuildId(ctx context.Context, reques
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	i1, err = d.TaskStore.CountTaskQueuesByBuildId(ctx, request)
 	if err != nil {
@@ -139,6 +141,7 @@ func (d telemetryTaskStore) CreateTaskQueue(ctx context.Context, request *_sourc
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.TaskStore.CreateTaskQueue(ctx, request)
 	if err != nil {
@@ -174,6 +177,7 @@ func (d telemetryTaskStore) CreateTasks(ctx context.Context, request *_sourcePer
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	cp1, err = d.TaskStore.CreateTasks(ctx, request)
 	if err != nil {
@@ -216,6 +220,7 @@ func (d telemetryTaskStore) DeleteTaskQueue(ctx context.Context, request *_sourc
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.TaskStore.DeleteTaskQueue(ctx, request)
 	if err != nil {
@@ -251,6 +256,7 @@ func (d telemetryTaskStore) GetTaskQueue(ctx context.Context, request *_sourcePe
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.TaskStore.GetTaskQueue(ctx, request)
 	if err != nil {
@@ -293,6 +299,7 @@ func (d telemetryTaskStore) GetTaskQueueUserData(ctx context.Context, request *_
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.TaskStore.GetTaskQueueUserData(ctx, request)
 	if err != nil {
@@ -335,6 +342,7 @@ func (d telemetryTaskStore) GetTaskQueuesByBuildId(ctx context.Context, request 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	sa1, err = d.TaskStore.GetTaskQueuesByBuildId(ctx, request)
 	if err != nil {
@@ -377,6 +385,7 @@ func (d telemetryTaskStore) GetTasks(ctx context.Context, request *_sourcePersis
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.TaskStore.GetTasks(ctx, request)
 	if err != nil {
@@ -419,6 +428,7 @@ func (d telemetryTaskStore) ListTaskQueue(ctx context.Context, request *_sourceP
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.TaskStore.ListTaskQueue(ctx, request)
 	if err != nil {
@@ -461,6 +471,7 @@ func (d telemetryTaskStore) ListTaskQueueUserDataEntries(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.TaskStore.ListTaskQueueUserDataEntries(ctx, request)
 	if err != nil {
@@ -503,6 +514,7 @@ func (d telemetryTaskStore) UpdateTaskQueue(ctx context.Context, request *_sourc
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	up1, err = d.TaskStore.UpdateTaskQueue(ctx, request)
 	if err != nil {
@@ -545,6 +557,7 @@ func (d telemetryTaskStore) UpdateTaskQueueUserData(ctx context.Context, request
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.TaskStore.UpdateTaskQueueUserData(ctx, request)
 	if err != nil {

@@ -56,6 +56,7 @@ func (d telemetryQueue) DeleteMessageFromDLQ(ctx context.Context, messageID int6
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, messageID)
 
 	err = d.Queue.DeleteMessageFromDLQ(ctx, messageID)
 	if err != nil {
@@ -91,6 +92,7 @@ func (d telemetryQueue) DeleteMessagesBefore(ctx context.Context, messageID int6
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, messageID)
 
 	err = d.Queue.DeleteMessagesBefore(ctx, messageID)
 	if err != nil {
@@ -126,6 +128,7 @@ func (d telemetryQueue) EnqueueMessage(ctx context.Context, blob *commonpb.DataB
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, blob)
 
 	err = d.Queue.EnqueueMessage(ctx, blob)
 	if err != nil {
@@ -161,6 +164,7 @@ func (d telemetryQueue) EnqueueMessageToDLQ(ctx context.Context, blob *commonpb.
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, blob)
 
 	i1, err = d.Queue.EnqueueMessageToDLQ(ctx, blob)
 	if err != nil {
@@ -273,6 +277,7 @@ func (d telemetryQueue) Init(ctx context.Context, blob *commonpb.DataBlob) (err 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, blob)
 
 	err = d.Queue.Init(ctx, blob)
 	if err != nil {
@@ -308,6 +313,7 @@ func (d telemetryQueue) RangeDeleteMessagesFromDLQ(ctx context.Context, firstMes
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, firstMessageID)
 
 	err = d.Queue.RangeDeleteMessagesFromDLQ(ctx, firstMessageID, lastMessageID)
 	if err != nil {
@@ -343,6 +349,7 @@ func (d telemetryQueue) ReadMessages(ctx context.Context, lastMessageID int64, m
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, lastMessageID)
 
 	qpa1, err = d.Queue.ReadMessages(ctx, lastMessageID, maxCount)
 	if err != nil {
@@ -385,6 +392,7 @@ func (d telemetryQueue) ReadMessagesFromDLQ(ctx context.Context, firstMessageID 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, firstMessageID)
 
 	qpa1, ba1, err = d.Queue.ReadMessagesFromDLQ(ctx, firstMessageID, lastMessageID, pageSize, pageToken)
 	if err != nil {
@@ -427,6 +435,7 @@ func (d telemetryQueue) UpdateAckLevel(ctx context.Context, metadata *_sourcePer
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, metadata)
 
 	err = d.Queue.UpdateAckLevel(ctx, metadata)
 	if err != nil {
@@ -462,6 +471,7 @@ func (d telemetryQueue) UpdateDLQAckLevel(ctx context.Context, metadata *_source
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, metadata)
 
 	err = d.Queue.UpdateDLQAckLevel(ctx, metadata)
 	if err != nil {

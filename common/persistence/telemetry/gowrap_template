@@ -40,6 +40,10 @@ func new{{upFirst $decorator}} (
                 span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
             }
 
+            {{- if (gt (len $method.Params) 1) }}
+            annotateSpanWithNamespaceID(span, {{ (index $method.Params 1).Name }})
+            {{- end }}
+
             {{$method.ResultsNames}} = d.{{$.Interface.Name}}.{{$method.Call}}
             {{- if $method.ReturnsError}}
             if err != nil {

@@ -55,6 +55,7 @@ func (d telemetryExecutionStore) AddHistoryTasks(ctx context.Context, request *_
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.AddHistoryTasks(ctx, request)
 	if err != nil {
@@ -90,6 +91,7 @@ func (d telemetryExecutionStore) AppendHistoryNodes(ctx context.Context, request
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.AppendHistoryNodes(ctx, request)
 	if err != nil {
@@ -125,6 +127,7 @@ func (d telemetryExecutionStore) CompleteHistoryTask(ctx context.Context, reques
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.CompleteHistoryTask(ctx, request)
 	if err != nil {
@@ -160,6 +163,7 @@ func (d telemetryExecutionStore) ConflictResolveWorkflowExecution(ctx context.Co
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.ConflictResolveWorkflowExecution(ctx, request)
 	if err != nil {
@@ -195,6 +199,7 @@ func (d telemetryExecutionStore) CreateWorkflowExecution(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.CreateWorkflowExecution(ctx, request)
 	if err != nil {
@@ -237,6 +242,7 @@ func (d telemetryExecutionStore) DeleteCurrentWorkflowExecution(ctx context.Cont
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.DeleteCurrentWorkflowExecution(ctx, request)
 	if err != nil {
@@ -272,6 +278,7 @@ func (d telemetryExecutionStore) DeleteHistoryBranch(ctx context.Context, reques
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.DeleteHistoryBranch(ctx, request)
 	if err != nil {
@@ -307,6 +314,7 @@ func (d telemetryExecutionStore) DeleteHistoryNodes(ctx context.Context, request
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.DeleteHistoryNodes(ctx, request)
 	if err != nil {
@@ -342,6 +350,7 @@ func (d telemetryExecutionStore) DeleteReplicationTaskFromDLQ(ctx context.Contex
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.DeleteReplicationTaskFromDLQ(ctx, request)
 	if err != nil {
@@ -377,6 +386,7 @@ func (d telemetryExecutionStore) DeleteWorkflowExecution(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.DeleteWorkflowExecution(ctx, request)
 	if err != nil {
@@ -412,6 +422,7 @@ func (d telemetryExecutionStore) ForkHistoryBranch(ctx context.Context, request 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.ForkHistoryBranch(ctx, request)
 	if err != nil {
@@ -447,6 +458,7 @@ func (d telemetryExecutionStore) GetAllHistoryTreeBranches(ctx context.Context, 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.GetAllHistoryTreeBranches(ctx, request)
 	if err != nil {
@@ -489,6 +501,7 @@ func (d telemetryExecutionStore) GetCurrentExecution(ctx context.Context, reques
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.GetCurrentExecution(ctx, request)
 	if err != nil {
@@ -531,6 +544,7 @@ func (d telemetryExecutionStore) GetHistoryTasks(ctx context.Context, request *_
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.GetHistoryTasks(ctx, request)
 	if err != nil {
@@ -573,6 +587,7 @@ func (d telemetryExecutionStore) GetHistoryTreeContainingBranch(ctx context.Cont
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.GetHistoryTreeContainingBranch(ctx, request)
 	if err != nil {
@@ -615,6 +630,7 @@ func (d telemetryExecutionStore) GetReplicationTasksFromDLQ(ctx context.Context,
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.GetReplicationTasksFromDLQ(ctx, request)
 	if err != nil {
@@ -657,6 +673,7 @@ func (d telemetryExecutionStore) GetWorkflowExecution(ctx context.Context, reque
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.GetWorkflowExecution(ctx, request)
 	if err != nil {
@@ -699,6 +716,7 @@ func (d telemetryExecutionStore) IsReplicationDLQEmpty(ctx context.Context, requ
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	b1, err = d.ExecutionStore.IsReplicationDLQEmpty(ctx, request)
 	if err != nil {
@@ -741,6 +759,7 @@ func (d telemetryExecutionStore) ListConcreteExecutions(ctx context.Context, req
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.ListConcreteExecutions(ctx, request)
 	if err != nil {
@@ -783,6 +802,7 @@ func (d telemetryExecutionStore) PutReplicationTaskToDLQ(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.PutReplicationTaskToDLQ(ctx, request)
 	if err != nil {
@@ -818,6 +838,7 @@ func (d telemetryExecutionStore) RangeCompleteHistoryTasks(ctx context.Context, 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.RangeCompleteHistoryTasks(ctx, request)
 	if err != nil {
@@ -853,6 +874,7 @@ func (d telemetryExecutionStore) RangeDeleteReplicationTaskFromDLQ(ctx context.C
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.RangeDeleteReplicationTaskFromDLQ(ctx, request)
 	if err != nil {
@@ -888,6 +910,7 @@ func (d telemetryExecutionStore) ReadHistoryBranch(ctx context.Context, request 
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ExecutionStore.ReadHistoryBranch(ctx, request)
 	if err != nil {
@@ -930,6 +953,7 @@ func (d telemetryExecutionStore) SetWorkflowExecution(ctx context.Context, reque
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.SetWorkflowExecution(ctx, request)
 	if err != nil {
@@ -965,6 +989,7 @@ func (d telemetryExecutionStore) UpdateWorkflowExecution(ctx context.Context, re
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ExecutionStore.UpdateWorkflowExecution(ctx, request)
 	if err != nil {

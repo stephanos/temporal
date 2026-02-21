@@ -55,6 +55,7 @@ func (d telemetryShardStore) AssertShardOwnership(ctx context.Context, request *
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ShardStore.AssertShardOwnership(ctx, request)
 	if err != nil {
@@ -90,6 +91,7 @@ func (d telemetryShardStore) GetOrCreateShard(ctx context.Context, request *_sou
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	ip1, err = d.ShardStore.GetOrCreateShard(ctx, request)
 	if err != nil {
@@ -132,6 +134,7 @@ func (d telemetryShardStore) UpdateShard(ctx context.Context, request *_sourcePe
 		span.SetAttributes(attribute.String("deadline", deadline.Format(time.RFC3339Nano)))
 		span.SetAttributes(attribute.String("timeout", time.Until(deadline).String()))
 	}
+	annotateSpanWithNamespaceID(span, request)
 
 	err = d.ShardStore.UpdateShard(ctx, request)
 	if err != nil {
