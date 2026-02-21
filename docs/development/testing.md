@@ -134,7 +134,7 @@ another request could create the same workflow first. The `UpdateWithStartInBetw
 hook lets tests inject a callback at this exact point, making it possible to reliably test
 conflict handling.
 
-_NOTE_: Tests using testhooks must be run with `-tags=test_dep`.
+_NOTE: Tests using testhooks must be run with `-tags=test_dep`._
 
 ### softassert package
 
