@@ -12,4 +12,10 @@ const (
 
 	WorkflowIDKey    = "temporalWorkflowID"
 	WorkflowRunIDKey = "temporalRunID"
+
+	NexusNamespaceKey = "temporalNexusNamespace"
+	NexusEndpointKey  = "temporalNexusEndpoint"
+	NexusServiceKey   = "temporalNexusService"
+	NexusOperationKey = "temporalNexusOperation"
+	NexusLinksKey     = "temporalNexusLinks"
 )
