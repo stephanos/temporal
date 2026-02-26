@@ -1,6 +1,6 @@
 <div class="title-block" style="text-align: center;" align="center">
 
-# Temporal—durable execution platform
+# TEMPORAL—DURABLE EXECUTION PLATFORM
 
 <p><img title="temporal logo" src="https://avatars.githubusercontent.com/u/56493103?s=320" width="320" height="320"></p>
 
@@ -10,71 +10,71 @@
 [![Community](https://img.shields.io/static/v1?label=community&message=get%20help&color=informational)](https://community.temporal.io)
 [![Go Report Card](https://goreportcard.com/badge/github.com/temporalio/temporal)](https://goreportcard.com/report/github.com/temporalio/temporal)
 
-**[Introduction](#introduction) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
-**[Getting Started](#getting-started) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
-**[Contributing](#contributing) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
-**[Temporal Docs](https://docs.temporal.io/) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
-**[Temporal 101](https://learn.temporal.io/courses/temporal_101/)**
+**[INTRODUCTION](#introduction) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
+**[GETTING STARTED](#getting-started) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
+**[CONTRIBUTING](#contributing) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
+**[TEMPORAL DOCS](https://docs.temporal.io/) &nbsp;&nbsp;&bull;&nbsp;&nbsp;**
+**[TEMPORAL 101](https://learn.temporal.io/courses/temporal_101/)**
 
 </div>
 
-## Introduction
+## INTRODUCTION
 
-Temporal is a durable execution platform that enables developers to build scalable applications without sacrificing productivity or reliability.
-The Temporal server executes units of application logic called Workflows in a resilient manner that automatically handles intermittent failures, and retries failed operations.
+TEMPORAL IS A DURABLE EXECUTION PLATFORM THAT ENABLES DEVELOPERS TO BUILD SCALABLE APPLICATIONS WITHOUT SACRIFICING PRODUCTIVITY OR RELIABILITY.
+THE TEMPORAL SERVER EXECUTES UNITS OF APPLICATION LOGIC CALLED WORKFLOWS IN A RESILIENT MANNER THAT AUTOMATICALLY HANDLES INTERMITTENT FAILURES, AND RETRIES FAILED OPERATIONS.
 
-Temporal is a mature technology that originated as a fork of Uber's Cadence.
-It is developed by [Temporal Technologies](https://temporal.io/), a startup by the creators of Cadence.
+TEMPORAL IS A MATURE TECHNOLOGY THAT ORIGINATED AS A FORK OF UBER'S CADENCE.
+IT IS DEVELOPED BY [TEMPORAL TECHNOLOGIES](https://temporal.io/), A STARTUP BY THE CREATORS OF CADENCE.
 
-[![image](https://github.com/temporalio/temporal/assets/251288/693d18b5-01de-4a3b-b47b-96347b84f610)](https://youtu.be/wIpz4ioK0gI 'Getting to know Temporal')
+[![image](https://github.com/temporalio/temporal/assets/251288/693d18b5-01de-4a3b-b47b-96347b84f610)](https://youtu.be/wIpz4ioK0gI 'GETTING TO KNOW TEMPORAL')
 
-## Getting Started
+## GETTING STARTED
 
-### Download and Start Temporal Server Locally
+### DOWNLOAD AND START TEMPORAL SERVER LOCALLY
 
-Execute the following commands to start a pre-built image along with all the dependencies.
+EXECUTE THE FOLLOWING COMMANDS TO START A PRE-BUILT IMAGE ALONG WITH ALL THE DEPENDENCIES.
 
 ```bash
 brew install temporal
 temporal server start-dev
 ```
 
-Refer to [Temporal CLI](https://docs.temporal.io/cli/#installation) documentation for more installation options.
+REFER TO [TEMPORAL CLI](https://docs.temporal.io/cli/#installation) DOCUMENTATION FOR MORE INSTALLATION OPTIONS.
 
-### Run the Samples
+### RUN THE SAMPLES
 
-Clone or download samples for [Go](https://github.com/temporalio/samples-go) or [Java](https://github.com/temporalio/samples-java) and run them with the local Temporal server.
-We have a number of [HelloWorld type scenarios](https://github.com/temporalio/samples-java#helloworld) available, as well as more advanced ones. Note that the sets of samples are currently different between Go and Java.
+CLONE OR DOWNLOAD SAMPLES FOR [GO](https://github.com/temporalio/samples-go) OR [JAVA](https://github.com/temporalio/samples-java) AND RUN THEM WITH THE LOCAL TEMPORAL SERVER.
+WE HAVE A NUMBER OF [HELLOWORLD TYPE SCENARIOS](https://github.com/temporalio/samples-java#helloworld) AVAILABLE, AS WELL AS MORE ADVANCED ONES. NOTE THAT THE SETS OF SAMPLES ARE CURRENTLY DIFFERENT BETWEEN GO AND JAVA.
 
-### Use CLI
+### USE CLI
 
-Use [Temporal CLI](https://docs.temporal.io/cli/) to interact with the running Temporal server.
+USE [TEMPORAL CLI](https://docs.temporal.io/cli/) TO INTERACT WITH THE RUNNING TEMPORAL SERVER.
 
 ```bash
 temporal operator namespace list
 temporal workflow list
 ```
 
-### Use Temporal Web UI
+### USE TEMPORAL WEB UI
 
-Try [Temporal Web UI](https://docs.temporal.io/web-ui) by opening [http://localhost:8233](http://localhost:8233) for viewing your sample workflows executing on Temporal.
+TRY [TEMPORAL WEB UI](https://docs.temporal.io/web-ui) BY OPENING [http://localhost:8233](http://localhost:8233) FOR VIEWING YOUR SAMPLE WORKFLOWS EXECUTING ON TEMPORAL.
 
-## Repository
+## REPOSITORY
 
-This repository contains the source code of the Temporal server. To implement Workflows, Activities and Workers, use one of the [supported languages](https://docs.temporal.io/dev-guide/).
+THIS REPOSITORY CONTAINS THE SOURCE CODE OF THE TEMPORAL SERVER. TO IMPLEMENT WORKFLOWS, ACTIVITIES AND WORKERS, USE ONE OF THE [SUPPORTED LANGUAGES](https://docs.temporal.io/dev-guide/).
 
-## Contributing
+## CONTRIBUTING
 
-We'd love your help in making Temporal great.
+WE'D LOVE YOUR HELP IN MAKING TEMPORAL GREAT.
 
-Helpful links to get started:
+HELPFUL LINKS TO GET STARTED:
 
-- [work on or propose a new feature](https://github.com/temporalio/proposals)
-- [learn about the Temporal Server architecture](./docs/architecture/README.md)
-- [learn how to build and run the Temporal Server locally](./CONTRIBUTING.md)
-- [learn about Temporal Server testing tools and best practices](./docs/development/testing.md)
-- join the Temporal community [forum](https://community.temporal.io) and [Slack](https://t.mp/slack)
+- [WORK ON OR PROPOSE A NEW FEATURE](https://github.com/temporalio/proposals)
+- [LEARN ABOUT THE TEMPORAL SERVER ARCHITECTURE](./docs/architecture/README.md)
+- [LEARN HOW TO BUILD AND RUN THE TEMPORAL SERVER LOCALLY](./CONTRIBUTING.md)
+- [LEARN ABOUT TEMPORAL SERVER TESTING TOOLS AND BEST PRACTICES](./docs/development/testing.md)
+- JOIN THE TEMPORAL COMMUNITY [FORUM](https://community.temporal.io) AND [SLACK](https://t.mp/slack)
 
-## License
+## LICENSE
 
-[MIT License](https://github.com/temporalio/temporal/blob/main/LICENSE)
+[MIT LICENSE](https://github.com/temporalio/temporal/blob/main/LICENSE)
