@@ -270,7 +270,7 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	}
 
 	// Obtain the test cluster from the router.
-	base := testClusterRouter.get(t, clusterRequest{
+	base := getTestClusterRouter().get(t, clusterRequest{
 		dedicated:         options.dedicatedCluster,
 		needWorkerService: options.needWorkerService,
 		dedicatedReason:   options.dedicatedReason,
@@ -365,7 +365,7 @@ func (e *TestEnv) InjectHook(hook testhooks.Hook) (cleanup func()) {
 	case testhooks.ScopeNamespace:
 		scope = e.nsID
 	case testhooks.ScopeGlobal:
-		if e.isShared && !testClusterRouter.hasSuiteScoped(e.t) {
+		if e.isShared && !getTestClusterRouter().hasSuiteScoped(e.t) {
 			e.t.Fatal("InjectHook: global hooks require a dedicated cluster; use testcore.WithDedicatedCluster()")
 		}
 		e.dedicatedGuard.record("global hook injected")
