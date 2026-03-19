@@ -45,6 +45,7 @@ import (
 	"go.temporal.io/server/temporal/environment"
 	"go.temporal.io/server/tests/testutils"
 	"go.uber.org/multierr"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -58,27 +59,31 @@ type (
 
 	// TestClusterConfig are config for a test cluster
 	TestClusterConfig struct {
-		IsMasterCluster           bool
-		ClusterMetadata           cluster.Config
-		Persistence               persistencetests.TestBaseOptions
-		FrontendConfig            FrontendConfig
-		HistoryConfig             HistoryConfig
-		MatchingConfig            MatchingConfig
-		WorkerConfig              WorkerConfig
-		ESConfig                  *esclient.Config
-		MockAdminClient           map[string]adminservice.AdminServiceClient
-		FaultInjection            *config.FaultInjection
-		DCRedirectionPolicy       config.DCRedirectionPolicy
-		DynamicConfigOverrides    map[dynamicconfig.Key]any
-		EnableMTLS                bool
-		EnableMetricsCapture      bool
-		EnableHistoryTaskRecorder bool
-		EnableReplicationRecorder bool
-		EnableArchival            bool
-		SpanExporters             map[telemetry.SpanExporterType]sdktrace.SpanExporter
-		TokenProvider             auth.TokenProvider
-		TLSConfigProvider         *encryption.FixedTLSConfigProvider
-		AdditionalServerOptions   []temporal.ServerOption
+		EnableArchival                  bool
+		IsMasterCluster                 bool
+		ClusterMetadata                 cluster.Config
+		Persistence                     persistencetests.TestBaseOptions
+		FrontendConfig                  FrontendConfig
+		HistoryConfig                   HistoryConfig
+		MatchingConfig                  MatchingConfig
+		WorkerConfig                    WorkerConfig
+		ESConfig                        *esclient.Config
+		MockAdminClient                 map[string]adminservice.AdminServiceClient
+		FaultInjection                  *config.FaultInjection
+		DCRedirectionPolicy             config.DCRedirectionPolicy
+		DynamicConfigOverrides          map[dynamicconfig.Key]any
+		EnableMTLS                      bool
+		EnableMetricsCapture            bool
+		EnableHistoryTaskRecorder       bool
+		SpanExporters                   map[telemetry.SpanExporterType]sdktrace.SpanExporter
+		SpanProcessors                  []sdktrace.SpanProcessor
+		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
+		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
+		// ServiceFxOptions can be populated using WithFxOptionsForService.
+		ServiceFxOptions       map[primitives.ServiceName][]fx.Option
+		AdditionalInterceptors []grpc.UnaryServerInterceptor
+		TokenProvider          auth.TokenProvider
+		TLSConfigProvider      *encryption.FixedTLSConfigProvider
 	}
 
 	TestClusterFactory interface {
@@ -278,13 +283,39 @@ func newClusterWithPersistenceTestBaseFactory(
 		}
 	}
 
-	persistenceConfig := copyPersistenceConfig(pConfig)
-	if clusterConfig.ESConfig != nil {
-		esDataStoreName := "es-visibility"
-		persistenceConfig.VisibilityStore = esDataStoreName
-		persistenceConfig.DataStores[esDataStoreName] = config.DataStore{
-			Elasticsearch: clusterConfig.ESConfig,
-		}
+	temporalParams := &temporalParams{
+		clusterMetadataConfig:            clusterMetadataConfig,
+		persistenceConfig:                pConfig,
+		metadataMgr:                      testBase.MetadataManager,
+		clusterMetadataManager:           testBase.ClusterMetadataManager,
+		shardMgr:                         testBase.ShardMgr,
+		executionManager:                 testBase.ExecutionManager,
+		namespaceReplicationQueue:        testBase.NamespaceReplicationQueue,
+		abstractDataStoreFactory:         testBase.AbstractDataStoreFactory,
+		visibilityStoreFactory:           testBase.VisibilityStoreFactory,
+		taskMgr:                          testBase.TaskMgr,
+		logger:                           logger,
+		esConfig:                         clusterConfig.ESConfig,
+		esClient:                         esClient,
+		archiverMetadata:                 archiverMetadata,
+		archiverProvider:                 archiverProvider,
+		frontendConfig:                   clusterConfig.FrontendConfig,
+		historyConfig:                    clusterConfig.HistoryConfig,
+		matchingConfig:                   clusterConfig.MatchingConfig,
+		workerConfig:                     clusterConfig.WorkerConfig,
+		mockAdminClient:                  clusterConfig.MockAdminClient,
+		namespaceReplicationTaskExecutor: nsreplication.NewTaskExecutor(clusterConfig.ClusterMetadata.CurrentClusterName, testBase.MetadataManager, nsreplication.NewNoopDataMerger(), nsreplication.NewDefaultAdmitter(), logger, testhooks.TestHooks{}),
+		dcRedirectionPolicy:              clusterConfig.DCRedirectionPolicy,
+		dynamicConfigOverrides:           clusterConfig.DynamicConfigOverrides,
+		tlsConfigProvider:                tlsConfigProvider,
+		serviceFxOptions:                 clusterConfig.ServiceFxOptions,
+		taskCategoryRegistry:             temporal.TaskCategoryRegistryProvider(archiverMetadata),
+		hostsByProtocolByService:         hostsByProtocolByService,
+		spanExporters:                    clusterConfig.SpanExporters,
+		spanProcessors:                   clusterConfig.SpanProcessors,
+		additionalInterceptors:           clusterConfig.AdditionalInterceptors,
+		tokenProvider:                    clusterConfig.TokenProvider,
+		enableHistoryTaskRecorder:        clusterConfig.EnableHistoryTaskRecorder,
 	}
 
 	serverConfig := &config.Config{
