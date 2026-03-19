@@ -25,35 +25,37 @@ func TestServerStatsHandler(t *testing.T) {
 	t.Run("annotate span with workflow tags", func(t *testing.T) {
 		t.Parallel()
 
-		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
+		spanAttrs := captureTerminateWorkflowAttributes(t, nil)
 
-		require.Equal(t, "WF-ID", spanAttrsByKey["temporalWorkflowID"].Value.AsString())
-		require.Equal(t, "RUN-ID", spanAttrsByKey["temporalRunID"].Value.AsString())
+		require.NotContains(t, spanAttrs.main, "temporalWorkflowID")
+		require.NotContains(t, spanAttrs.main, "temporalRunID")
+		require.Equal(t, "WF-ID", spanAttrs.request["temporalWorkflowID"].Value.AsString())
+		require.Equal(t, "RUN-ID", spanAttrs.request["temporalRunID"].Value.AsString())
 
 		// ensure no debug attributes are present
-		require.NotContains(t, spanAttrsByKey, "rpc.request.payload")
-		require.NotContains(t, spanAttrsByKey, "rpc.response.payload")
+		require.NotContains(t, spanAttrs.request, "rpc.request.payload")
+		require.NotContains(t, spanAttrs.main, "rpc.response.payload")
 	})
 
 	t.Run("annotate span with request/response payload in debug mode", func(t *testing.T) {
 		t.Setenv("TEMPORAL_OTEL_DEBUG", "true")
 
-		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
+		spanAttrs := captureTerminateWorkflowAttributes(t, nil)
 
 		require.JSONEq(t,
 			`{"workflowExecution":{"workflowId":"WF-ID","runId":"RUN-ID"}}`,
-			toStr(t, spanAttrsByKey["rpc.request.payload"].Value))
-		require.Equal(t, "{}", spanAttrsByKey["rpc.response.payload"].Value.AsString())
+			toStr(t, spanAttrs.request["rpc.request.payload"].Value))
+		require.Equal(t, "{}", spanAttrs.main["rpc.response.payload"].Value.AsString())
 	})
 
 	t.Run("annotate span with response error payload in debug mode", func(t *testing.T) {
 		t.Setenv("TEMPORAL_OTEL_DEBUG", "true")
 
-		spanAttrsByKey := captureTerminateWorkflowAttributes(t, status.Errorf(codes.Internal, "Something went wrong"))
+		spanAttrs := captureTerminateWorkflowAttributes(t, status.Errorf(codes.Internal, "Something went wrong"))
 
 		require.JSONEq(t,
 			`{"code":13,"message":"Something went wrong"}`,
-			toStr(t, spanAttrsByKey["rpc.response.error"].Value))
+			toStr(t, spanAttrs.main["rpc.response.error"].Value))
 	})
 
 	t.Run("skip if noop trace provider", func(t *testing.T) {
@@ -187,7 +189,7 @@ func TestServerStatsHandler(t *testing.T) {
 				}
 
 				attrs := captureServerRPCAttributes(t, tc.method, payloadStats, &stats.End{})
-				workerTaskID, ok := attrs[telemetry.WorkerTaskIDKey]
+				workerTaskID, ok := attrs.all[telemetry.WorkerTaskIDKey]
 				require.True(t, ok)
 				require.Equal(t, tc.workerTaskID, workerTaskID.Value.AsString())
 			})
@@ -208,7 +210,7 @@ func TestClientStatsHandler(t *testing.T) {
 	})
 }
 
-func captureTerminateWorkflowAttributes(t *testing.T, responseErr error) map[string]attribute.KeyValue {
+func captureTerminateWorkflowAttributes(t *testing.T, responseErr error) serverSpanAttributes {
 	t.Helper()
 
 	rpcStats := []stats.RPCStats{&stats.InPayload{
@@ -230,7 +232,15 @@ func captureTerminateWorkflowAttributes(t *testing.T, responseErr error) map[str
 	return captureServerRPCAttributes(t, "TerminateWorkflowExecution", rpcStats...)
 }
 
-func captureServerRPCAttributes(t *testing.T, method string, rpcStats ...stats.RPCStats) map[string]attribute.KeyValue {
+// serverSpanAttributes holds the attributes of the spans one RPC exports: the main server
+// span, and the short-lived "<method>/request" span carrying the request-side annotations.
+type serverSpanAttributes struct {
+	main    map[string]attribute.KeyValue
+	request map[string]attribute.KeyValue
+	all     map[string]attribute.KeyValue
+}
+
+func captureServerRPCAttributes(t *testing.T, method string, rpcStats ...stats.RPCStats) serverSpanAttributes {
 	t.Helper()
 
 	exporter := tracetest.NewInMemoryExporter()
@@ -243,13 +253,21 @@ func captureServerRPCAttributes(t *testing.T, method string, rpcStats ...stats.R
 		handler.HandleRPC(ctx, rpcStat)
 	}
 
-	exportedSpans := exporter.GetSpans()
-	require.Len(t, exportedSpans, 1)
-	attrByKey := map[string]attribute.KeyValue{}
-	for _, a := range exportedSpans[0].Attributes {
-		attrByKey[string(a.Key)] = a
+	result := serverSpanAttributes{all: map[string]attribute.KeyValue{}}
+	for _, span := range exporter.GetSpans() {
+		attrByKey := map[string]attribute.KeyValue{}
+		for _, a := range span.Attributes {
+			attrByKey[string(a.Key)] = a
+			result.all[string(a.Key)] = a
+		}
+		if span.Name == api.WorkflowServicePrefix+method+"/request" {
+			result.request = attrByKey
+		} else {
+			result.main = attrByKey
+		}
 	}
-	return attrByKey
+	require.NotNil(t, result.main)
+	return result
 }
 
 func toStr(t *testing.T, v attribute.Value) string {

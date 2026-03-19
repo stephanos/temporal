@@ -45,6 +45,7 @@ import (
 	"go.temporal.io/server/temporal/environment"
 	"go.temporal.io/server/tests/testutils"
 	"go.uber.org/multierr"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -58,27 +59,33 @@ type (
 
 	// TestClusterConfig are config for a test cluster
 	TestClusterConfig struct {
-		IsMasterCluster           bool
-		ClusterMetadata           cluster.Config
-		Persistence               persistencetests.TestBaseOptions
-		FrontendConfig            FrontendConfig
-		HistoryConfig             HistoryConfig
-		MatchingConfig            MatchingConfig
-		WorkerConfig              WorkerConfig
-		ESConfig                  *esclient.Config
-		MockAdminClient           map[string]adminservice.AdminServiceClient
-		FaultInjection            *config.FaultInjection
-		DCRedirectionPolicy       config.DCRedirectionPolicy
-		DynamicConfigOverrides    map[dynamicconfig.Key]any
-		EnableMTLS                bool
-		EnableMetricsCapture      bool
-		EnableHistoryTaskRecorder bool
-		EnableReplicationRecorder bool
-		EnableArchival            bool
-		SpanExporters             map[telemetry.SpanExporterType]sdktrace.SpanExporter
-		TokenProvider             auth.TokenProvider
-		TLSConfigProvider         *encryption.FixedTLSConfigProvider
-		AdditionalServerOptions   []temporal.ServerOption
+		IsMasterCluster                 bool
+		ClusterMetadata                 cluster.Config
+		Persistence                     persistencetests.TestBaseOptions
+		FrontendConfig                  FrontendConfig
+		HistoryConfig                   HistoryConfig
+		MatchingConfig                  MatchingConfig
+		WorkerConfig                    WorkerConfig
+		ESConfig                        *esclient.Config
+		MockAdminClient                 map[string]adminservice.AdminServiceClient
+		FaultInjection                  *config.FaultInjection
+		DCRedirectionPolicy             config.DCRedirectionPolicy
+		DynamicConfigOverrides          map[dynamicconfig.Key]any
+		EnableMTLS                      bool
+		EnableMetricsCapture            bool
+		EnableHistoryTaskRecorder       bool
+		EnableReplicationRecorder       bool
+		EnableArchival                  bool
+		SpanExporters                   map[telemetry.SpanExporterType]sdktrace.SpanExporter
+		TokenProvider                   auth.TokenProvider
+		TLSConfigProvider               *encryption.FixedTLSConfigProvider
+		AdditionalServerOptions         []temporal.ServerOption
+		SpanProcessors                  []sdktrace.SpanProcessor
+		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
+		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
+		// ServiceFxOptions can be populated using WithFxOptionsForService.
+		ServiceFxOptions       map[primitives.ServiceName][]fx.Option
+		AdditionalInterceptors []grpc.UnaryServerInterceptor
 	}
 
 	TestClusterFactory interface {
@@ -329,6 +336,8 @@ func newClusterWithPersistenceTestBaseFactory(
 		TokenProvider:             clusterConfig.TokenProvider,
 		CaptureMetricsHandler:     captureMetricsHandler,
 		EnableHistoryTaskRecorder: clusterConfig.EnableHistoryTaskRecorder,
+		SpanProcessors:            clusterConfig.SpanProcessors,
+		AdditionalInterceptors:    clusterConfig.AdditionalInterceptors,
 		EnableReplicationRecorder: clusterConfig.EnableReplicationRecorder,
 		WorkerConfig:              clusterConfig.WorkerConfig,
 		AdditionalServerOptions:   clusterConfig.AdditionalServerOptions,

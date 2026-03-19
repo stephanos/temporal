@@ -47,6 +47,8 @@ import (
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/service/history/hsm/nexusoperations"
 	"go.temporal.io/server/temporal"
+	umpiretest "go.temporal.io/server/tests/umpire"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -66,6 +68,7 @@ type (
 
 		Logger       log.Logger
 		otelExporter *testtelemetry.MemoryExporter
+		umpire       *umpiretest.Umpire
 
 		t *sharedClusterT // proxy T backing Logger; tracks active tests and cluster poison state
 
@@ -92,20 +95,23 @@ type (
 	}
 	// testClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	testClusterParams struct {
-		DCRedirectionPolicy       config.DCRedirectionPolicy
-		DynamicConfigOverrides    map[dynamicconfig.Key]any
-		EnableMTLS                bool
-		EnableWorkerService       bool
-		FaultInjectionConfig      *config.FaultInjection
-		NumHistoryShards          int32
-		Logger                    log.Logger
-		SharedCluster             bool
-		EnableHistoryTaskRecorder bool
-		EnableReplicationRecorder bool
-		EnableArchival            bool
-		SpanExporter              sdktrace.SpanExporter
-		AdditionalServerOptions   []temporal.ServerOption
-		Persistence               persistencetests.TestBaseOptions
+		DCRedirectionPolicy             config.DCRedirectionPolicy
+		DynamicConfigOverrides          map[dynamicconfig.Key]any
+		EnableMTLS                      bool
+		EnableWorkerService             bool
+		FaultInjectionConfig            *config.FaultInjection
+		NumHistoryShards                int32
+		Logger                          log.Logger
+		SharedCluster                   bool
+		EnableHistoryTaskRecorder       bool
+		EnableReplicationRecorder       bool
+		EnableArchival                  bool
+		SpanExporter                    sdktrace.SpanExporter
+		AdditionalServerOptions         []temporal.ServerOption
+		Persistence                     persistencetests.TestBaseOptions
+		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
+		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
+		AdditionalInterceptors          []grpc.UnaryServerInterceptor
 	}
 	TestClusterOption func(params *testClusterParams)
 )
@@ -195,6 +201,24 @@ func WithSharedCluster() TestClusterOption {
 	}
 }
 
+func WithCustomHistoryArchiverFactory(factory provider.CustomHistoryArchiverFactory) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.CustomHistoryArchiverFactory = factory
+	}
+}
+
+func WithCustomVisibilityArchiverFactory(factory provider.CustomVisibilityArchiverFactory) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.CustomVisibilityArchiverFactory = factory
+	}
+}
+
+func WithAdditionalGrpcInterceptors(interceptors ...grpc.UnaryServerInterceptor) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.AdditionalInterceptors = append(params.AdditionalInterceptors, interceptors...)
+	}
+}
+
 func (s *FunctionalTestBase) GetTestCluster() *TestCluster {
 	return s.testCluster
 }
@@ -255,6 +279,20 @@ func (s *FunctionalTestBase) TaskPoller() *taskpoller.TaskPoller {
 	return s.taskPoller
 }
 
+func (s *FunctionalTestBase) GetUmpire() *umpiretest.Umpire {
+	if s.umpire == nil {
+		panic("Umpire not initialized - did you forget to call SetupSuite()?")
+	}
+	return s.umpire
+}
+
+// RequireRulePassed asserts that the given rule evaluated the entity identified
+// by entityKey and found no violation.
+func (s *FunctionalTestBase) RequireRulePassed(rule interface{ Name() string }, entityKey string) {
+	s.T().Helper()
+	s.GetUmpire().RequireRulePassed(s.T(), rule, entityKey)
+}
+
 func (s *FunctionalTestBase) SetupSuite() {
 	s.SetupSuiteWithCluster()
 }
@@ -303,21 +341,32 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		s.Logger = tl
 	}
 
+	var err error
+	s.umpire, err = umpiretest.NewUmpire(s.Logger)
+	s.Require().NoError(err)
+
+	additionalInterceptors := make([]grpc.UnaryServerInterceptor, 0, len(params.AdditionalInterceptors)+1)
+	additionalInterceptors = append(additionalInterceptors, umpiretest.NewUnaryServerInterceptor(s.umpire, nil))
+	additionalInterceptors = append(additionalInterceptors, params.AdditionalInterceptors...)
+
 	s.testClusterConfig = &TestClusterConfig{
 		FaultInjection: params.FaultInjectionConfig,
 		Persistence:    params.Persistence,
 		HistoryConfig: HistoryConfig{
 			NumHistoryShards: cmp.Or(params.NumHistoryShards, 4),
 		},
-		DCRedirectionPolicy:       params.DCRedirectionPolicy,
-		DynamicConfigOverrides:    params.DynamicConfigOverrides,
-		EnableMetricsCapture:      true,
-		EnableMTLS:                params.EnableMTLS,
-		EnableHistoryTaskRecorder: params.EnableHistoryTaskRecorder,
-		EnableReplicationRecorder: params.EnableReplicationRecorder,
-		EnableArchival:            params.EnableArchival,
-		AdditionalServerOptions:   params.AdditionalServerOptions,
-		WorkerConfig:              WorkerConfig{DisableWorker: !params.EnableWorkerService},
+		DCRedirectionPolicy:             params.DCRedirectionPolicy,
+		DynamicConfigOverrides:          params.DynamicConfigOverrides,
+		EnableMetricsCapture:            true,
+		EnableMTLS:                      params.EnableMTLS,
+		EnableHistoryTaskRecorder:       params.EnableHistoryTaskRecorder,
+		EnableReplicationRecorder:       params.EnableReplicationRecorder,
+		EnableArchival:                  params.EnableArchival,
+		AdditionalServerOptions:         params.AdditionalServerOptions,
+		CustomHistoryArchiverFactory:    params.CustomHistoryArchiverFactory,
+		CustomVisibilityArchiverFactory: params.CustomVisibilityArchiverFactory,
+		AdditionalInterceptors:          additionalInterceptors,
+		WorkerConfig:                    WorkerConfig{DisableWorker: !params.EnableWorkerService},
 	}
 	if params.SpanExporter != nil {
 		setSpanExporter(s.testClusterConfig, "test", params.SpanExporter)
@@ -339,7 +388,8 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		setSpanExporter(s.testClusterConfig, telemetry.OtelTracesOtlpExporterType, s.otelExporter)
 	}
 
-	var err error
+	s.testClusterConfig.SpanProcessors = append(s.testClusterConfig.SpanProcessors, s.umpire)
+
 	testClusterFactory := NewTestClusterFactory()
 	s.testCluster, err = testClusterFactory.NewCluster(s.T(), s.testClusterConfig, s.Logger)
 	s.Require().NoError(err)
@@ -486,6 +536,11 @@ func (s *FunctionalTestBase) tearDownTestCluster() error {
 // **IMPORTANT**: When overridding this, make sure to invoke `s.FunctionalTestBase.TearDownTest()`.
 func (s *FunctionalTestBase) TearDownTest() {
 	s.exportOTELTraces()
+	if s.umpire != nil {
+		if err := s.umpire.Shutdown(context.Background()); err != nil {
+			s.T().Logf("umpire shutdown error: %v", err)
+		}
+	}
 	s.tearDownSdk()
 }
 

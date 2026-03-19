@@ -27,6 +27,7 @@ import (
 	"go.temporal.io/server/common/metrics/metricstest"
 	"go.temporal.io/server/common/persistence"
 	persistenceClient "go.temporal.io/server/common/persistence/client"
+	"go.temporal.io/server/common/persistence/intercept"
 	"go.temporal.io/server/common/persistence/visibility"
 	"go.temporal.io/server/common/primitives"
 	"go.temporal.io/server/common/resolver"
@@ -71,9 +72,11 @@ type (
 		grpcFaultGenerator        *grpcfaults.CallbackGenerator
 		httpFaultGenerator        *httpfaults.CallbackGenerator
 
-		callbackLock sync.RWMutex
-		onGetClaims  func(*authorization.AuthInfo) (*authorization.Claims, error)
-		onAuthorize  func(context.Context, *authorization.Claims, *authorization.CallTarget) (authorization.Result, error)
+		callbackLock           sync.RWMutex
+		onGetClaims            func(*authorization.AuthInfo) (*authorization.Claims, error)
+		onAuthorize            func(context.Context, *authorization.Claims, *authorization.CallTarget) (authorization.Result, error)
+		spanProcessors         []sdktrace.SpanProcessor
+		additionalInterceptors []grpc.UnaryServerInterceptor
 	}
 
 	// FrontendConfig is the config for the frontend service
@@ -115,6 +118,8 @@ type (
 		EnableHistoryTaskRecorder bool
 		EnableReplicationRecorder bool
 		AdditionalServerOptions   []temporal.ServerOption
+		SpanProcessors            []sdktrace.SpanProcessor
+		AdditionalInterceptors    []grpc.UnaryServerInterceptor
 	}
 )
 
@@ -134,6 +139,8 @@ func newTemporal(t *testing.T, params *temporalParams) *temporalImpl {
 		hostsByProtocolByService:  params.HostsByProtocolByService,
 		workerConfig:              params.WorkerConfig,
 		replicationStreamRecorder: NewReplicationStreamRecorder(),
+		spanProcessors:            params.SpanProcessors,
+		additionalInterceptors:    params.AdditionalInterceptors,
 	}
 	impl.grpcFaultGenerator = grpcfaultstest.NewCallbackGenerator(impl.testHooks)
 	impl.httpFaultGenerator = httpfaultstest.NewCallbackGenerator(impl.testHooks)

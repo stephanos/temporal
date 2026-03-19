@@ -1,5 +1,7 @@
 package telemetry
 
+import "go.opentelemetry.io/otel/attribute"
+
 const (
 	ComponentPersistence     = "persistence"
 	ComponentQueueArchival   = "queue.archival"
@@ -20,5 +22,17 @@ const (
 	NexusRequestIDKey = "nexus.request_id"
 	NexusServiceKey   = "nexus.service"
 
-	WorkerTaskIDKey = "worker_task.id"
+	WorkerTaskIDKey               = "worker_task.id"
+	AttrWorkflowID  attribute.Key = "workflow.id"
+	AttrRunID       attribute.Key = "workflow.run_id"
+	AttrNamespaceID attribute.Key = "namespace.id"
+	AttrTaskQueue   attribute.Key = "task.queue"
+	AttrUpdateID    attribute.Key = "update.id"
+	AttrAbortReason attribute.Key = "abort.reason"
+
+	EventSpeculativeWorkflowTaskScheduled = "SpeculativeWorkflowTaskScheduled"
+	EventWorkflowTaskStored               = "WorkflowTaskStored"
+	EventWorkflowTaskDiscarded            = "WorkflowTaskDiscarded"
+	EventWorkflowUpdateAborted            = "WorkflowUpdateAborted"
+	EventWorkflowTerminated               = "WorkflowTerminated"
 )
