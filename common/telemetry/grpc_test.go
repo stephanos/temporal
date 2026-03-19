@@ -21,39 +21,89 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func TestServerStatsHandler(t *testing.T) {
+func Test_ServerStatsHandler(t *testing.T) {
+	type serverStatsResult struct {
+		mainSpanAttrs    map[string]attribute.KeyValue
+		requestSpanAttrs map[string]attribute.KeyValue
+	}
+
+	makeRequest := func(responseErr error) serverStatsResult {
+		t.Helper()
+
+		exporter := tracetest.NewInMemoryExporter()
+		tp := trace.NewTracerProvider(trace.WithSyncer(exporter))
+		tmp := propagation.TraceContext{}
+		otelStatsHandler := telemetry.NewServerStatsHandler(tp, tmp, nil)
+
+		ctx := otelStatsHandler.TagRPC(context.Background(), &stats.RPCTagInfo{
+			FullMethodName: api.WorkflowServicePrefix,
+		})
+		otelStatsHandler.HandleRPC(ctx, &stats.InPayload{
+			Payload: &workflowservice.TerminateWorkflowExecutionRequest{
+				WorkflowExecution: &commonpb.WorkflowExecution{
+					WorkflowId: "WF-ID",
+					RunId:      "RUN-ID",
+				},
+			},
+		})
+		if responseErr == nil {
+			otelStatsHandler.HandleRPC(ctx, &stats.OutPayload{
+				Payload: &workflowservice.TerminateWorkflowExecutionResponse{},
+			})
+		}
+		otelStatsHandler.HandleRPC(ctx, &stats.End{
+			Error: responseErr,
+		})
+
+		result := serverStatsResult{}
+		for _, span := range exporter.GetSpans() {
+			attrByKey := map[string]attribute.KeyValue{}
+			for _, a := range span.Attributes {
+				attrByKey[string(a.Key)] = a
+			}
+			if span.Name == api.WorkflowServicePrefix+"/request" {
+				result.requestSpanAttrs = attrByKey
+			} else {
+				result.mainSpanAttrs = attrByKey
+			}
+		}
+		require.NotNil(t, result.mainSpanAttrs)
+		require.NotNil(t, result.requestSpanAttrs)
+		return result
+	}
+
 	t.Run("annotate span with workflow tags", func(t *testing.T) {
-		t.Parallel()
+		result := makeRequest(nil)
 
-		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
-
-		require.Equal(t, "WF-ID", spanAttrsByKey["temporalWorkflowID"].Value.AsString())
-		require.Equal(t, "RUN-ID", spanAttrsByKey["temporalRunID"].Value.AsString())
+		require.NotContains(t, result.mainSpanAttrs, "temporalWorkflowID")
+		require.NotContains(t, result.mainSpanAttrs, "temporalRunID")
+		require.Equal(t, "WF-ID", result.requestSpanAttrs["temporalWorkflowID"].Value.AsString())
+		require.Equal(t, "RUN-ID", result.requestSpanAttrs["temporalRunID"].Value.AsString())
 
 		// ensure no debug attributes are present
-		require.NotContains(t, spanAttrsByKey, "rpc.request.payload")
-		require.NotContains(t, spanAttrsByKey, "rpc.response.payload")
+		require.NotContains(t, result.requestSpanAttrs, "rpc.request.payload")
+		require.NotContains(t, result.mainSpanAttrs, "rpc.response.payload")
 	})
 
 	t.Run("annotate span with request/response payload in debug mode", func(t *testing.T) {
 		t.Setenv("TEMPORAL_OTEL_DEBUG", "true")
 
-		spanAttrsByKey := captureTerminateWorkflowAttributes(t, nil)
+		result := makeRequest(nil)
 
 		require.JSONEq(t,
 			`{"workflowExecution":{"workflowId":"WF-ID","runId":"RUN-ID"}}`,
-			toStr(t, spanAttrsByKey["rpc.request.payload"].Value))
-		require.Equal(t, "{}", spanAttrsByKey["rpc.response.payload"].Value.AsString())
+			toStr(t, result.requestSpanAttrs["rpc.request.payload"].Value))
+		require.Equal(t, "{}", result.mainSpanAttrs["rpc.response.payload"].Value.AsString())
 	})
 
 	t.Run("annotate span with response error payload in debug mode", func(t *testing.T) {
 		t.Setenv("TEMPORAL_OTEL_DEBUG", "true")
 
-		spanAttrsByKey := captureTerminateWorkflowAttributes(t, status.Errorf(codes.Internal, "Something went wrong"))
+		result := makeRequest(status.Errorf(codes.Internal, "Something went wrong"))
 
 		require.JSONEq(t,
 			`{"code":13,"message":"Something went wrong"}`,
-			toStr(t, spanAttrsByKey["rpc.response.error"].Value))
+			toStr(t, result.mainSpanAttrs["rpc.response.error"].Value))
 	})
 
 	t.Run("skip if noop trace provider", func(t *testing.T) {

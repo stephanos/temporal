@@ -11,6 +11,7 @@ tests/.gomad-run/
 .DS_Store
 .coverage
 .testoutput
+testdata/
 
 *.out
 *.test
