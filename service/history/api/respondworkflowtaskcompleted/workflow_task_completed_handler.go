@@ -853,6 +853,7 @@ func (handler *workflowTaskCompletedHandler) handleCommandCompleteWorkflow(
 		trace.WithAttributes(
 			telemetry.AttrWorkflowID.String(wfKey.WorkflowID),
 			telemetry.AttrRunID.String(wfKey.RunID),
+			telemetry.AttrNamespaceID.String(wfKey.NamespaceID),
 		),
 	)
 
