@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	deploymentpb "go.temporal.io/api/deployment/v1"
@@ -39,6 +40,7 @@ import (
 	"go.temporal.io/server/common/protocol"
 	"go.temporal.io/server/common/searchattribute"
 	"go.temporal.io/server/common/tasktoken"
+	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/worker_versioning"
 	"go.temporal.io/server/service/history/api"
 	"go.temporal.io/server/service/history/configs"
@@ -887,6 +889,16 @@ func (handler *workflowTaskCompletedHandler) handleCommandCompleteWorkflow(
 	if err != nil {
 		return nil, err
 	}
+
+	// Emit an OTEL span event so the umpire test observer can transition the
+	// Workflow entity to a completed state.
+	wfKey := handler.mutableState.GetWorkflowKey()
+	trace.SpanFromContext(ctx).AddEvent(telemetry.EventWorkflowExecutionCompleted,
+		trace.WithAttributes(
+			telemetry.AttrWorkflowID.String(wfKey.WorkflowID),
+			telemetry.AttrRunID.String(wfKey.RunID),
+		),
+	)
 
 	// Check if this workflow has a cron schedule
 	if cronBackoff != backoff.NoBackoff {
