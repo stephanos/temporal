@@ -223,7 +223,9 @@ $(LOCALBIN):
 LINT_CODE_TARGETS ?= ./...
 GOLANGCI_LINT_BASE_REV ?= $(MAIN_BRANCH)
 GOLANGCI_LINT_FIX ?= true
-GOLANGCI_LINT_VERSION := v2.13.0
+# Bumped from v2.9.0 for Go 1.27 support (generic methods); built under the rc2
+# toolchain pinned above. Revisit alongside the temporary GOTOOLCHAIN pin.
+GOLANGCI_LINT_VERSION := v2.12.2
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
