@@ -43,7 +43,7 @@ import (
 	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/common/rpc"
 	"go.temporal.io/server/common/rpc/encryption"
-	"go.temporal.io/server/common/rpc/grpcfaults"
+	"go.temporal.io/server/common/rpc/faultinjection"
 	"go.temporal.io/server/common/rpc/interceptor"
 	"go.temporal.io/server/common/sdk"
 	"go.temporal.io/server/common/searchattribute"
@@ -330,8 +330,7 @@ func GrpcServerOptionsProvider(
 		// TODO: Deprecate WithChainedFrontendGrpcInterceptors and provide a inner custom interceptor
 		unaryInterceptors = append(unaryInterceptors, customInterceptors...)
 	}
-	faultGenerator := grpcfaultstest.NewGenerator(testHooks)
-	if faultInterceptor := grpcfaults.UnaryServerInterceptor(faultGenerator); faultInterceptor != nil {
+	if faultInterceptor := faultinjection.GRPCUnaryServerInterceptor(testHooks); faultInterceptor != nil {
 		unaryInterceptors = append(unaryInterceptors, faultInterceptor)
 	}
 	// retry interceptor should be the most inner interceptor

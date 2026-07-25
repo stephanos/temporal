@@ -33,10 +33,9 @@ import (
 	"go.temporal.io/server/common/resolver"
 	"go.temporal.io/server/common/rpc/auth"
 	"go.temporal.io/server/common/rpc/encryption"
-	"go.temporal.io/server/common/rpc/grpcfaults"
-	"go.temporal.io/server/common/rpc/httpfaults"
-	"go.temporal.io/server/common/testing/grpcfaultstest"
-	"go.temporal.io/server/common/testing/httpfaultstest"
+	rpcfaultinjection "go.temporal.io/server/common/rpc/faultinjection"
+	"go.temporal.io/server/common/searchattribute"
+	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/service/history/hsm/nexusoperations"
 	"go.temporal.io/server/temporal"
@@ -69,6 +68,7 @@ type (
 
 		replicationStreamRecorder *ReplicationStreamRecorder
 		historyTaskRecorder       *HistoryTaskRecorder
+		faultInjector             *rpcfaultinjection.RPCFaultGenerator
 		spanExporters             map[telemetry.SpanExporterType]sdktrace.SpanExporter
 		spanProcessors            []sdktrace.SpanProcessor
 		additionalInterceptors    []grpc.UnaryServerInterceptor
@@ -178,59 +178,9 @@ func newTemporal(t *testing.T, params *temporalParams) *temporalImpl {
 		additionalInterceptors:           params.additionalInterceptors,
 		tokenProvider:                    params.tokenProvider,
 		enableHistoryTaskRecorder:        params.enableHistoryTaskRecorder,
+		faultInjector:                    rpcfaultinjection.NewRPCFaultGenerator(),
 	}
-	impl.grpcFaultGenerator = grpcfaultstest.NewCallbackGenerator(impl.testHooks)
-	impl.httpFaultGenerator = httpfaultstest.NewCallbackGenerator(impl.testHooks)
-
-	// Base options are independent of which services this test cluster starts.
-	// [Start] adds the per-service config and static host map.
-	baseServerOptions := []temporal.ServerOption{
-		temporal.WithLogger(impl.logger),
-		temporal.WithNamespaceLogger(impl.logger),
-		temporal.WithDynamicConfigClient(impl.dcClient),
-		temporal.WithCustomDataStoreFactory(params.AbstractDataStoreFactory),
-		temporal.WithCustomVisibilityStoreFactory(params.VisibilityStoreFactory),
-		temporal.WithClientFactoryProvider(&clientFactoryProvider{
-			config:          params.Config.ClusterMetadata,
-			mockAdminClient: params.MockAdminClient,
-		}),
-		temporal.WithTestHooks(impl.testHooks),
-		temporal.WithAuthorizer(impl),
-		temporal.WithClaimMapper(func(*config.Config) authorization.ClaimMapper { return impl }),
-		temporal.WithAudienceGetter(func(*config.Config) authorization.JWTAudienceMapper { return nil }),
-		temporal.WithSearchAttributesMapper(nil),
-		temporal.WithPersistenceServiceResolver(resolver.NewNoopResolver()),
-		temporal.WithCustomMetricsHandler(impl.GetMetricsHandler()),
-	}
-	if params.TLSConfigProvider != nil {
-		baseServerOptions = append(baseServerOptions, temporal.WithTLSConfigFactory(params.TLSConfigProvider))
-	}
-	if params.TokenProvider != nil {
-		baseServerOptions = append(baseServerOptions, temporal.WithTokenProvider(params.TokenProvider))
-	}
-	if params.EnableReplicationRecorder {
-		baseServerOptions = append(baseServerOptions, temporal.WithAdditionalStreamInterceptors(
-			impl.replicationStreamRecorder.StreamServerInterceptor(params.Config.ClusterMetadata.CurrentClusterName),
-		))
-	}
-	if params.EnableHistoryTaskRecorder {
-		base := temporal.PersistenceFactoryProvider()
-		// Only history gets the recording wrapper; other services keep the production factory.
-		baseServerOptions = append(baseServerOptions, temporal.WithPersistenceFactoryProvider(func(params persistenceClient.NewFactoryParams) persistenceClient.Factory {
-			factory := base(params)
-			if params.ServiceName != primitives.HistoryService {
-				return factory
-			}
-			return &historyTaskRecordingPersistenceFactory{
-				Factory: factory,
-				logger:  params.Logger,
-				setRecorder: func(recorder *HistoryTaskRecorder) {
-					impl.historyTaskRecorder = recorder
-				},
-			}
-		}))
-	}
-	impl.baseServerOptions = append(baseServerOptions, params.AdditionalServerOptions...)
+	testhooks.Set(impl.testHooks, testhooks.RPCFaultGenerator, impl.faultInjector.Generate, testhooks.GlobalScope)
 
 	impl.clients = newClients(
 		impl.logger,
@@ -738,8 +688,17 @@ func (c *temporalImpl) GetHistoryTaskRecorder() *HistoryTaskRecorder {
 	return c.historyTaskRecorder
 }
 
-func (c *temporalImpl) GetGRPCFaultGenerator() *grpcfaults.CallbackGenerator {
-	return c.grpcFaultGenerator
+func (c *temporalImpl) GetFaultInjector() *rpcfaultinjection.RPCFaultGenerator {
+	return c.faultInjector
+}
+
+func (c *temporalImpl) GetTLSConfigProvider() encryption.TLSConfigProvider {
+	// If we just return this directly, the interface will be non-nil but the
+	// pointer will be nil
+	if c.tlsConfigProvider != nil {
+		return c.tlsConfigProvider
+	}
+	return nil
 }
 
 func (c *temporalImpl) GetHTTPFaultGenerator() *httpfaults.CallbackGenerator {
