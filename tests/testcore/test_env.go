@@ -506,78 +506,16 @@ func (e *TestEnv) Tv() *testvars.TestVars {
 	return e.tv
 }
 
-// InjectRequestFault registers a pre-handler gRPC fault injection scoped to this test's namespace.
+// InjectRPCFault registers a fault injection scoped to this test's namespace.
 // Requests match either the namespace ID or name filter, depending on which
 // namespace field they expose. Requests without either field are ignored.
 // Returns a cleanup function that disables the fault.
-func (e *TestEnv) InjectRequestFault(fault RequestFault) func() {
-	scope := grpcfaults.Scope{
-		NamespaceID:   e.nsID,
-		NamespaceName: e.nsName,
-	}
-	tracker := newFaultTracker(e.t)
-	unregister := e.GetTestCluster().Host().GetGRPCFaultGenerator().RegisterRequestCallback(scope, func(_ context.Context, _ string, req any) *grpcfaults.Outcome {
-		if injectedErr := fault(req); injectedErr != nil {
-			tracker.markFired(req)
-			return &grpcfaults.Outcome{Error: injectedErr}
-		}
-		return nil
-	})
-	return tracker.attach(unregister)
-}
-
-// InjectResponseFault registers a post-handler gRPC fault injection scoped to this test's namespace.
-// Requests match either the namespace ID or name filter, depending on which
-// namespace field they expose. Requests without either field are ignored.
-// Returns a cleanup function that disables the fault.
-func (e *TestEnv) InjectResponseFault(fault ResponseFault) func() {
-	scope := grpcfaults.Scope{
-		NamespaceID:   e.nsID,
-		NamespaceName: e.nsName,
-	}
-	tracker := newFaultTracker(e.t)
-	unregister := e.GetTestCluster().Host().GetGRPCFaultGenerator().RegisterResponseCallback(scope, func(_ context.Context, _ string, req, resp any, err error) *grpcfaults.Outcome {
-		if injectedErr := fault(req, resp, err); injectedErr != nil {
-			tracker.markFired(req)
-			return &grpcfaults.Outcome{Error: injectedErr}
-		}
-		return nil
-	})
-	return tracker.attach(unregister)
-}
-
-// InjectHTTPRequestFault registers a fault for HTTP requests in this namespace.
-func (e *TestEnv) InjectHTTPRequestFault(fault HTTPRequestFault) func() {
-	scope := httpfaults.Scope{
-		NamespaceID:   e.nsID,
-		NamespaceName: e.nsName,
-	}
-	tracker := newFaultTracker(e.t)
-	unregister := e.GetTestCluster().Host().GetHTTPFaultGenerator().RegisterRequestCallback(scope, func(ctx context.Context, _ string, req *httpfaults.Request) *httpfaults.Outcome {
-		if outcome := fault(ctx, req.Raw); outcome != nil {
-			tracker.markFired(req.Raw)
-			return outcome
-		}
-		return nil
-	})
-	return tracker.attach(unregister)
-}
-
-// InjectHTTPResponseFault registers a fault for HTTP results in this namespace.
-func (e *TestEnv) InjectHTTPResponseFault(fault HTTPResponseFault) func() {
-	scope := httpfaults.Scope{
-		NamespaceID:   e.nsID,
-		NamespaceName: e.nsName,
-	}
-	tracker := newFaultTracker(e.t)
-	unregister := e.GetTestCluster().Host().GetHTTPFaultGenerator().RegisterResponseCallback(scope, func(ctx context.Context, _ string, req *httpfaults.Request, resp *http.Response, callErr error) *httpfaults.Outcome {
-		if outcome := fault(ctx, req.Raw, resp, callErr); outcome != nil {
-			tracker.markFired(req.Raw)
-			return outcome
-		}
-		return nil
-	})
-	return tracker.attach(unregister)
+func (e *TestEnv) InjectRPCFault(fault RPCFault, opts ...RPCFaultOption) func() {
+	opts = append([]RPCFaultOption{
+		WithNamespaceID(e.nsID.String()),
+		WithNamespaceName(e.nsName.String()),
+	}, opts...)
+	return InjectRPCFault(e.t, e.GetTestCluster(), fault, opts...)
 }
 
 // Context returns the test-level timeout context with RPC version headers already included.
