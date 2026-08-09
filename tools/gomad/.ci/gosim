@@ -1,3 +1,0 @@
-#!/bin/sh
-# gosim is shorthand for running cmd/gosim:
-go run github.com/jellevandenhooff/gosim/cmd/gosim "$@"
