@@ -7,10 +7,10 @@
 package reflect
 
 import (
-	"reflect" //gosim:notranslate
+	"reflect" //gomad:notranslate
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 type wrapKind byte
@@ -99,10 +99,10 @@ func MakeChan(typ Type, buffer int) Value {
 	panic("missing")
 }
 
-func getDecriptor(typ Type) gosimruntime.ReflectMapType {
+func getDecriptor(typ Type) gomadruntime.ReflectMapType {
 	implPtrTyp := typ.(*typeImpl).inner.Field(0).Type
 	zeroImplPtr := reflect.Zero(implPtrTyp)
-	mapInterface := zeroImplPtr.Interface().(gosimruntime.ReflectMap)
+	mapInterface := zeroImplPtr.Interface().(gomadruntime.ReflectMap)
 	return mapInterface.Type()
 }
 
@@ -301,7 +301,7 @@ func (v Value) MapKeys() []Value {
 }
 
 type MapIter struct {
-	inner gosimruntime.ReflectMapIter
+	inner gomadruntime.ReflectMapIter
 }
 
 func (iter *MapIter) Key() Value {
@@ -345,7 +345,7 @@ func (iter *MapIter) Reset(v Value) {
 
 	switch v.kind {
 	case wrappedMap:
-		inner := v.Field(0).Interface().(gosimruntime.ReflectMap).Iter()
+		inner := v.Field(0).Interface().(gomadruntime.ReflectMap).Iter()
 		iter.inner = inner
 	default:
 		var iter reflect.MapIter
@@ -354,8 +354,8 @@ func (iter *MapIter) Reset(v Value) {
 	}
 }
 
-func getMapInterface(v Value) gosimruntime.ReflectMap {
-	return v.Field(0).Interface().(gosimruntime.ReflectMap)
+func getMapInterface(v Value) gomadruntime.ReflectMap {
+	return v.Field(0).Interface().(gomadruntime.ReflectMap)
 }
 
 func (v Value) MapRange() *MapIter {

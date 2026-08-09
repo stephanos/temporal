@@ -3,7 +3,7 @@ package translate
 import (
 	"testing"
 
-	simreflect "github.com/jellevandenhooff/gosim/internal/reflect"
+	simreflect "github.com/temporalio/gomad/internal/reflect"
 )
 
 func TestGo126TypeAssert(t *testing.T) {

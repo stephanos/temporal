@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 func TestMetaRandDifferentBySeed(t *testing.T) {

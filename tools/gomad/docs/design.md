@@ -1,59 +1,59 @@
 # Goals
 
-The goal of Gosim is to make writing correct systems code in Go easier and more
-fun. To accomplish that goal Gosim is designed to:
+The goal of Gomad is to make writing correct systems code in Go easier and more
+fun. To accomplish that goal Gomad is designed to:
 
-- Fit in with Go. Testing with Gosim should be like normal testing. Its APIs
+- Fit in with Go. Testing with Gomad should be like normal testing. Its APIs
 follow the conventions from `go test` and the `testing` packages.
 
-- Give fast feedback. Gosim should work well with a frequent `gosim test`
+- Give fast feedback. Gomad should work well with a frequent `gomad test`
 workflow.
 
-- Work with the Go ecosystem. Gosim should not require applications to be
+- Work with the Go ecosystem. Gomad should not require applications to be
 rewritten in a different style, and should support commonly used packages like
 gRPC.
 
-- Be understandable. Gosim's simulation is involved with many moving pieces.
+- Be understandable. Gomad's simulation is involved with many moving pieces.
 Those should be as debuggable as possible for when things go wrong.
 
-# How Gosim works
+# How Gomad works
 
-Gosim runs Go code in a simulated environment. Gosim includes its own
+Gomad runs Go code in a simulated environment. Gomad includes its own
 lightweight simulated Go runtime and implementations of Linux system calls
-backed by a network and disk simulation. Gosim's implementation consists of
+backed by a network and disk simulation. Gomad's implementation consists of
 three layers:
 
-The first layer is Gosim's simulated Go runtime which implements the basic
+The first layer is Gomad's simulated Go runtime which implements the basic
 features of the Go language and runtime: goroutines, time, maps, and
 synchronization with channels and semaphores.  The simulated runtime provides
-determinism and complete control over scheduling and time. This lets Gosim
-accelerate time when goroutines are paused. Gosim translates standard Go code to
+determinism and complete control over scheduling and time. This lets Gomad
+accelerate time when goroutines are paused. Gomad translates standard Go code to
 call into its runtime, and then compiles the translated code using the standard
 Go compiler. This translation replaces eg. `go foo()` with
-`gosimruntime.Go(foo)`.
+`gomadruntime.Go(foo)`.
 
 The second layer is a set of hooks in the Go standard library to call into
-Gosim's runtime instead of the normal runtime. This makes the standard
-`sync.Mutex` or `time.AfterFunc` call into `gosimruntime` instead of the normal
+Gomad's runtime instead of the normal runtime. This makes the standard
+`sync.Mutex` or `time.AfterFunc` call into `gomadruntime` instead of the normal
 Go runtime.
 
-The final layer is Gosim's simulated operating system. Gosim simulates Linux
+The final layer is Gomad's simulated operating system. Gomad simulates Linux
 system calls with its fake operating system. This fake operating system is
-written in standard Go and runs on Gosim's runtime. All system calls in the
-standard library are replaced to call into Gosim's OS, so that
+written in standard Go and runs on Gomad's runtime. All system calls in the
+standard library are replaced to call into Gomad's OS, so that
 `os.Open` eventually calls `simulation.LinuxOS.SysOpenat`.
 
-Gosim exposes a high-level API in the `gosim` package that lets tests create
+Gomad exposes a high-level API in the `gomad` package that lets tests create
 simulated machines, crash them, disconnect them, and more, to verify that
 applications can handle those scenarios.
 
-To run the tests Gosim includes a CLI `gosim` with a `gosim test` command that
-translates a package, runs its with Gosim's runtime and OS, and prints
+To run the tests Gomad includes a CLI `gomad` with a `gomad test` command that
+translates a package, runs its with Gomad's runtime and OS, and prints
 the result as if it were a normal `go test`.
 
 ## The deterministic runtime
 
-Gosim's deterministic runtime runs goroutines in a controlled way using
+Gomad's deterministic runtime runs goroutines in a controlled way using
 cooperative scheduling. Only one goroutine runs at a time and at every
 synchronization point the goroutine calls into the scheduler to consider
 switching to another goroutine. This scheduling decision is made using a
@@ -61,27 +61,27 @@ deterministic random number generator, and if a program is run again it will
 make the exact same scheduling decisions.
 
 Behind the scenes, each simulated goroutine is implemented using a coroutine
-(using the API underlying `iter.Pull`). This lets Gosim quickly switch between
+(using the API underlying `iter.Pull`). This lets Gomad quickly switch between
 goroutines.
 
 Besides the non-deterministic concurrency primitives, Go also exposes
-non-determinism in the `rand` package and with `map` iteration order. Gosim
+non-determinism in the `rand` package and with `map` iteration order. Gomad
 replaces the randomness in `rand` with its own seeded random number generator,
 and provides a `map` that has varying yet deterministic iteration order.
 
-Not all sources of non-determinism are controlled by Gosim. For example, memory
+Not all sources of non-determinism are controlled by Gomad. For example, memory
 allocation will give different pointers. Code that behaves non-deterministically
-can be flagged by Gosim's tracing mechanism, which calculates a running hash
+can be flagged by Gomad's tracing mechanism, which calculates a running hash
 over all events like spawning goroutines, context switches, etc.
 
 The implementation of the runtime is in the
-[github.com/jellevandenhooff/gosim/gosimruntime](../gosimruntime/) package.
+[github.com/temporalio/gomad/gomadruntime](../gomadruntime/) package.
 
 ## Simulated time
 
-To simulate time Gosim tracks the state of every goroutine. If all goroutines
-are waiting for time to advance, Gosim advances the clock to the next earlier
-timestamp that any goroutine is waiting for. This simulated time lets Gosim run
+To simulate time Gomad tracks the state of every goroutine. If all goroutines
+are waiting for time to advance, Gomad advances the clock to the next earlier
+timestamp that any goroutine is waiting for. This simulated time lets Gomad run
 programs that wait for a long simulated time in less real time.
 
 For example, consider the program
@@ -106,13 +106,13 @@ wg.Wait()
 At the start of this program, the main goroutine and the two spawned goroutines
 will all be waiting. The main goroutine is waiting on `wg.Wait()`, B is waiting
 on `<-ch`, and A is waiting on `time.Sleep(time.Hour)`. When running this code,
-the Gosim runtime will see all goroutines paused and advance time by one hour.
+the Gomad runtime will see all goroutines paused and advance time by one hour.
 Then A will close the channel, B will awaken and call `time.Sleep(time.Minute)`,
 time will be advanced again, etc.
 
 ## The translator
 
-To make existing Go programs use the deterministic runtime, Gosim translates
+To make existing Go programs use the deterministic runtime, Gomad translates
 existing code to call into its own runtime. The translator works at the AST
 level and replaces all interactions with channels, maps, and goroutines with
 calls to its own runtime. For example, it rewrites
@@ -126,7 +126,7 @@ go func() {
 to
 
 ```go
-gosimruntime.Go(func() {
+gomadruntime.Go(func() {
     log.Println("hello!")
 })
 ```
@@ -144,25 +144,25 @@ log.Println(m[1])
 to
 
 ```go
-m = gosimruntime.MapLiteral[int, string]{
+m = gomadruntime.MapLiteral[int, string]{
     {K: 1, V: "ok"},
     {K: 2, V: "bar"},
 }.Build()
 log.Println(m.Get(1))
 ```
 
-After translating, Gosim compiles the translated code using the
+After translating, Gomad compiles the translated code using the
 standard Go compiler, and it can be debugged or instrumented with
 standard Go tools like `go tool pprof` or `delve`.
 
 The translator runs on almost all code, including the standard library.  Only
-the `gosimruntime` packages remains untranslated. Translated code can access
-non-translated code by annotating an import with `//gosim:notranslate`.  This
-lets, for example, Gosim's wrapper `reflect` package access the underlying real
+the `gomadruntime` packages remains untranslated. Translated code can access
+non-translated code by annotating an import with `//gomad:notranslate`.  This
+lets, for example, Gomad's wrapper `reflect` package access the underlying real
 `reflect` package.
 
-The github.com/jellevandenhooff/gosim/internal/translator package implements the
-translator. It is exposed through the Gosim CLI.
+The github.com/temporalio/gomad/internal/translator package implements the
+translator. It is exposed through the Gomad CLI.
 
 An alternative design could have modified the Go runtime or compiler to instead
 compile standard Go programs into a deterministic version, but the runtime and
@@ -172,7 +172,7 @@ custom compiler.
 
 ## Standard library hooks
 
-Gosim translates not only application code to be tested, but also
+Gomad translates not only application code to be tested, but also
 the entire Go standard library. The interface between the Go standard
 library and the runtime library is a (relatively) small set of functions,
 such as
@@ -181,33 +181,33 @@ such as
 func newTimer(when, period int64, f func(arg any, seq uintptr, delay int64), arg any, c *hchan) *timeTimer
 ```
 
-which lives in `runtime/time.go`. For all such functions Gosim has hooks in the
-package github.com/jellevandenhooff/gosim/internals/hooks/go123. The hooks are
+which lives in `runtime/time.go`. For all such functions Gomad has hooks in the
+package github.com/temporalio/gomad/internals/hooks/go123. The hooks are
 Go version specific because there are no API stability guarantees for these
-low-level unexported runtime functions. The hooks in Gosim are implemented as
-calls to the gosimruntime package.
+low-level unexported runtime functions. The hooks in Gomad are implemented as
+calls to the gomadruntime package.
 
 By translating the entire go standard library, applications should notice
 as few differences between reality and simulation.
 
-An alternative design (and an earlier version of Gosim) instead replaced
+An alternative design (and an earlier version of Gomad) instead replaced
 higher-level functions like `os.OpenFile` with simulated or mocked versions.
 However, implementing all functions used by programs in a faithful way is very
-difficult. Although the internal API that Gosim now replaces does not have
+difficult. Although the internal API that Gomad now replaces does not have
 stability guarantees, it is much smaller than the entire standard library.
 
-Gosim wraps the `reflect` package with its own version to hide the differences
-between the built-in `map` and Gosim's `gosimruntime.Map`.
+Gomad wraps the `reflect` package with its own version to hide the differences
+between the built-in `map` and Gomad's `gomadruntime.Map`.
 
 ## Globals and machines
 
-Gosims runs multiple simulated machines in own go process, each with their own
+Gomads runs multiple simulated machines in own go process, each with their own
 copy of global variables. This duplication is necessary because there are quite
 a few important global variables, such as the `net/http` connection pool, that
 make no sense to share between machines.
 
 The translator replaces all accesses to such variables to call into a special
-gosimruntime call
+gomadruntime call
 
 ```go
 var global string
@@ -225,7 +225,7 @@ type Globals struct {
 }
 
 func G() *Globals {
-    // call to gosimruntime to get an appropriate pointer
+    // call to gomadruntime to get an appropriate pointer
 }
 
 func Get() string {
@@ -233,12 +233,12 @@ func Get() string {
 }
 ```
 
-This lets gosim faithfully simulate multiple go processes in a single go process.
+This lets gomad faithfully simulate multiple go processes in a single go process.
 
-Whenever gosim starts a new simulated machine, it allocates and initializes all
+Whenever gomad starts a new simulated machine, it allocates and initializes all
 global variables by calling each package's `init()` functions. Some globals are
 large, take a long time to initialize, and are never modified afterwards; for
-example, the unicode tables. As an optimization, Gosim allocates and
+example, the unicode tables. As an optimization, Gomad allocates and
 initializes them only once.
 
 Communication between machines is tricky. Because each machine has its own
@@ -257,14 +257,14 @@ seems high, although I have not benchmarked this.
 
 ## The system call interface
 
-Gosim simulates the operating system as an independent simulated go process.
+Gomad simulates the operating system as an independent simulated go process.
 The operating system has a model of a network, filesystem, etc., all stored as
-Go structs, etc. The programs that Gosim tests call into this using its syscall
+Go structs, etc. The programs that Gomad tests call into this using its syscall
 interface defined in
-github.com/jellevandenhooff/gosim/internal/simulation/syscallabi.Syscall.
-This is a RPC-like mechanism that works safely between Gosim's simulated machines.
+github.com/temporalio/gomad/internal/simulation/syscallabi.Syscall.
+This is a RPC-like mechanism that works safely between Gomad's simulated machines.
 
-At a code level, Gosim's translator replaces the wrapper functions in the
+At a code level, Gomad's translator replaces the wrapper functions in the
 `syscall` package that call `syscall6` with its own wrapper functions that
 call into its `syscallabi` package. The `gensyscall` tool generates these
 wrapper functions, as well as a dispatcher and interface to be implemented
@@ -306,7 +306,7 @@ func Syscall_pread(fd int, p []byte, offset int64) (n int, err error) {
 and finally linked into the rewritten standard library with a linkname
 
 ```go
-//go:linkname pread translated/github.com/jellevandenhooff/gosim/internal_/hooks/go123.Syscall_pread
+//go:linkname pread translated/github.com/temporalio/gomad/internal_/hooks/go123.Syscall_pread
 func pread(fd int, p []byte, offset int64) (n int, err error)
 ```
 
@@ -314,34 +314,34 @@ The translator uses a linkname to prevent cycles in the import graph.
 
 ## The simulated operating system
 
-Gosim's simulated network implements a TCP API by sending TCP-like packets over
+Gomad's simulated network implements a TCP API by sending TCP-like packets over
 a virtual network. Each link on the network can have configurable latency, or
 be temporarily disabled, to simulate challenging network conditions. The
 simulated network implements this with normal Go timers, arranging for each
 packet to be delivered at the correct time.
 
-Gosim's simulated filesystem implements a Posix-style filesystem API,
+Gomad's simulated filesystem implements a Posix-style filesystem API,
 with read, write, and fsync calls. The simulated filesystem tracks
 in-flight writes so that it can simulate machine crashes with all
 the tricky behavior that Linux can portray.
 
-## The gosim API for tested programs
+## The gomad API for tested programs
 
-Gosim's implementation is spread among a number of internal packages.  To
+Gomad's implementation is spread among a number of internal packages.  To
 provide a consistent API to handle machines, the simulated network, etc.  the
-[github.com/jellevandenhooff/gosim package](..) provides a high-level API to
+[github.com/temporalio/gomad package](..) provides a high-level API to
 create new machines, manipulate the network, etc. Behind the scenes these are
 implemented as custom system calls to the simulated operating system.
 
-## The gosim CLI and integration with Go tests
+## The gomad CLI and integration with Go tests
 
-Gosim aspires to be as easy to use as the standard Go tooling. To run a test
-using Gosim, ideally all that you need to do is replace `> go test` with
-`> gosim test` on the command line. In practice, `gosim` becomes
-`go run github.com/jellevandenhooff/gosim/cmd/gosim`
+Gomad aspires to be as easy to use as the standard Go tooling. To run a test
+using Gomad, ideally all that you need to do is replace `> go test` with
+`> gomad test` on the command line. In practice, `gomad` becomes
+`go run github.com/temporalio/gomad/cmd/gomad`
 but otherwise the tool exposes flags like `go test`.
 
-When running such a test, `gosim` first translates the code, caching
+When running such a test, `gomad` first translates the code, caching
 packages to not retranslate eg. the standard library, and then invokes
 `go test` on the translated code.
 
@@ -352,12 +352,12 @@ will run the same (given the same seed).
 
 ## Logging and formatting
 
-To make logs from multiple machines and goroutines readable, Gosim annotates all
+To make logs from multiple machines and goroutines readable, Gomad annotates all
 logs with their source machine, goroutine, and timestamp. To implement this,
-Gosim uses a JSON-formatting `log/slog` handler in each machine that includes
+Gomad uses a JSON-formatting `log/slog` handler in each machine that includes
 the current machine and goroutine as extra fields. The default `log` handler
 writes to the same `log/slog` handler, and all logging code in the `testing`
-package is modified as well. The `gosim` CLI by default parses the JSON logs and
+package is modified as well. The `gomad` CLI by default parses the JSON logs and
 pretty-prints them. Behind the scenes all logs are JSON so they can be parsed by
 metatesting code.
 
@@ -370,39 +370,39 @@ A simplified log line in JSON might look like
 and gets formatted as
 
 ```
-    1 main/4     14:10:03.000 INF behavior/log_gosim_test.go:53 > hello info foo=bar
+    1 main/4     14:10:03.000 INF behavior/log_gomad_test.go:53 > hello info foo=bar
 ```
 
 ## Metatesting
 
-A larger module might want to run Gosim tests as parts of its normal `go test`
-suite. With the [github.com/jellevandenhooff/gosim/metatesting](../metatesting)
-package, normal tests can invoke Gosim tests with varying seeds and inspecting
-their logs. Such tests can check that the Gosim tests are deterministic, or that
+A larger module might want to run Gomad tests as parts of its normal `go test`
+suite. With the [github.com/temporalio/gomad/metatesting](../metatesting)
+package, normal tests can invoke Gomad tests with varying seeds and inspecting
+their logs. Such tests can check that the Gomad tests are deterministic, or that
 programs behave as expected by reading their logs.
 
-A future goal of metatesting is to fuzz Gosim tests by controlling seeds and
+A future goal of metatesting is to fuzz Gomad tests by controlling seeds and
 randomness and seeing how they behave.
 
 ## Race detection
 
-To help find concurrency bugs Gosim works with the built-in Go race detector.
-Since Gosim translates Go code to call into own runtime and then runs it with
+To help find concurrency bugs Gomad works with the built-in Go race detector.
+Since Gomad translates Go code to call into own runtime and then runs it with
 the standard Go compiler, it can use the built-in race detector with only minor
 special handling.
 
 The Go compiler will insert all standard race detector read and write calls,
 notifying when a goroutine accesses potentially shared memory. This does not
-require any extra work. Gosim's runtime is instrumented to call into the race
+require any extra work. Gomad's runtime is instrumented to call into the race
 detector whenever it creates a happens-before dependency, for example in its
 channel and semapahore code.
 
-For gosim's simulation to correctly explore all behavior, it is important that
+For gomad's simulation to correctly explore all behavior, it is important that
 goroutines do not influence eachother between the synchronization points where
-Gosim explicitly controls the scheduler. This is exactly what the race detector
+Gomad explicitly controls the scheduler. This is exactly what the race detector
 verifies.
 
-Gosim's internal runtime state (the structs in the `gosimruntime` package) are
+Gomad's internal runtime state (the structs in the `gomadruntime` package) are
 always accessed from a single system goroutine so that accesses do not race.
 Whenever a userspace goroutine needs to modify this state (eg. to spawn a new
 goroutine), it performs an upcall that temporarily switches to the system
@@ -412,21 +412,21 @@ Functions implementing concurrency primitives, eg. channel reads, do no always
 switch back to the system goroutine. Those functions are all marked
 `//go:norace` to not trigger the race detector.
 
-To test the race detector, gosim includes a copy of (most of) the race detector
+To test the race detector, gomad includes a copy of (most of) the race detector
 tests from the go toolchain.
 
 ## Controlled non-determinism
 
-Gosim has an escape hatch to allow local non-determinism that has no externally
+Gomad has an escape hatch to allow local non-determinism that has no externally
 visible side-effects. An example of this is the type cache used in the
-`encoding/json` package. Gosim allows this type cache to be shared between
-machines (and even between Gosim tests) to speed up `encoding/json` code.
+`encoding/json` package. Gomad allows this type cache to be shared between
+machines (and even between Gomad tests) to speed up `encoding/json` code.
 Rebuilding type descriptors for every test would be wasteful and does not
 explore interesting behavior, so caching the type descriptors is appealing.
 However, since this caching logic writes to a shared map and synchronizes access
-using a mutex, it does trigger Gosim's non-determinism detector.
+using a mutex, it does trigger Gomad's non-determinism detector.
 
-A solution to this is the `gosimruntime.BeginControlledNondeterminism` call
+A solution to this is the `gomadruntime.BeginControlledNondeterminism` call
 which enters a code region that cannot yield nor consume randomness. In essence,
 it promises that the non-determinism in that section will not impact other code
 and pauses trace recording. If later code does get impacted hopefully the trace
@@ -444,7 +444,7 @@ distributed systems, and [Elle](https://github.com/jepsen-io/elle), to then
 validate the behavior of those systems, Jepsen has found many bugs.
 
 Jepsen works with existing systems and runs them on actual cloud servers,
-messing with the actual network. Gosim aims to have less overhead and complexity
+messing with the actual network. Gomad aims to have less overhead and complexity
 by simulating the servers and network instead.
 
 ## Simulation testing
@@ -488,7 +488,7 @@ Another framework for Rust is [Tokio's Turmoil](https://github.com/tokio-rs/turm
 and intercepts at the Tokio library level. Programs must use Tokio to test with
 Turmoil.
 
-Gosim's approach for simulating a distributed system at the system call level is
+Gomad's approach for simulating a distributed system at the system call level is
 remeniscent of the papers
 ["Efficient System-Enforced Deterministic Parallelism"](https://dedis.cs.yale.edu/2010/det/papers/osdi10.pdf)
 or
@@ -501,9 +501,9 @@ VOPR simulates at a state-machine level and is tightly coupled to TigerBeetle.
 
 ## Bug finding in concurrent code
 
-Gosim's scheduler could be used to test low-level concurrent or lock-free code.
+Gomad's scheduler could be used to test low-level concurrent or lock-free code.
 The package does not include support, but the approach of carefully scheduling
-goroutines at every synchronization point is supported by Gosim's runtime.
+goroutines at every synchronization point is supported by Gomad's runtime.
 
 The [Loom model checker](https://github.com/tokio-rs/loom) for Rust, now part of
 Tokio, was used by AWS in validating a Rust service as described in their paper
@@ -515,9 +515,9 @@ PCT algorithm originally described in
 
 ## Testing filesystem code
 
-Gosim's filesystem simulation with fine-grained fsync support is reminiscent
+Gomad's filesystem simulation with fine-grained fsync support is reminiscent
 of [Alice (Application-Level Intelligent Crash Explorer)](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf).
-Like Alice, Gosim's filesystem splits file system system calls into smaller
+Like Alice, Gomad's filesystem splits file system system calls into smaller
 operations that can individually be persisted or lost on crash, and can test
 that an application can handle those scenarios.
 

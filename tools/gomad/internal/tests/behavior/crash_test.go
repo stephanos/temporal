@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -16,18 +16,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jellevandenhooff/gosim"
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 func TestCrashTimer(t *testing.T) {
 	var before, after atomic.Bool
 
 	// token to allow machine to read before, after
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 
-	m1 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m1 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		// test a timer can fire
 		time.AfterFunc(1*time.Second, func() {
 			before.Store(true)
@@ -35,8 +35,8 @@ func TestCrashTimer(t *testing.T) {
 		select {}
 	})
 
-	m2 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m2 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		// test a crashed timer does not fire
 		time.AfterFunc(5*time.Second, func() {
 			after.Store(true)
@@ -64,7 +64,7 @@ func TestCrashTimersComplicatedHeap(t *testing.T) {
 		timers = append(timers, time.NewTimer(time.Duration(i+1)*time.Second))
 	}
 
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		var timers []*time.Timer
 		for i := 0; i < 10; i++ {
 			timers = append(timers, time.NewTimer(time.Duration(i+1)*time.Second))
@@ -87,17 +87,17 @@ func TestCrashSleep(t *testing.T) {
 	var before, after atomic.Bool
 
 	// token to allow machine to read before, after
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 
-	m1 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m1 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		// test Sleep works
 		time.Sleep(1 * time.Second)
 		before.Store(true)
 	})
 
-	m2 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m2 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		// test a crashed Sleep stops
 		time.Sleep(5 * time.Second)
 		after.Store(true)
@@ -122,37 +122,37 @@ func TestCrashSemaphore(t *testing.T) {
 	var sema uint32
 
 	// token to allow machine to read before, after, sema
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 
-	m1 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m1 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 
 		// test that we can acquire the semaphore
-		gosimruntime.Semacquire(&sema, false)
+		gomadruntime.Semacquire(&sema, false)
 		before.Store(true)
 	})
 
-	m2 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m2 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 
 		// test that an acquire can be crashed
 		time.Sleep(2 * time.Second)
-		gosimruntime.Semacquire(&sema, false)
+		gomadruntime.Semacquire(&sema, false)
 		after.Store(true)
 	})
 
 	time.Sleep(1 * time.Second)
 	// release for m1
-	gosimruntime.Semrelease(&sema)
+	gomadruntime.Semrelease(&sema)
 
 	time.Sleep(3 * time.Second)
 	m1.Crash()
 	m2.Crash()
 
 	// after crash make sure sema still works
-	gosimruntime.Semrelease(&sema)
+	gomadruntime.Semrelease(&sema)
 	time.Sleep(time.Second)
-	gosimruntime.Semacquire(&sema, false)
+	gomadruntime.Semacquire(&sema, false)
 
 	if !before.Load() {
 		t.Error("expected before")
@@ -166,7 +166,7 @@ func TestCrashChan(t *testing.T) {
 	ch1 := make(chan int, 1)
 	ch2 := make(chan int, 1)
 
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		// make sure we can recv and send channels
 		ch2 <- <-ch1 + 1
 		// then hang
@@ -198,7 +198,7 @@ func TestCrashSelect(t *testing.T) {
 	ch1 := make(chan int, 1)
 	ch2 := make(chan int, 0)
 
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		// make sure that select works
 		select {
 		case x := <-ch1:
@@ -237,14 +237,14 @@ func TestCrashSyscall(t *testing.T) {
 	var before, after, finally atomic.Bool
 
 	// sleeper is a helper machine that will successfully stop
-	sleeper := gosim.NewSimpleMachine(func() {
+	sleeper := gomad.NewSimpleMachine(func() {
 		time.Sleep(5 * time.Second)
 	})
 
 	// working machine
-	gosimruntime.TestRaceToken.Release()
-	waiter := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Release()
+	waiter := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		// wait for sleeper, flag success
 		sleeper.Wait()
 		before.Store(true)
@@ -253,9 +253,9 @@ func TestCrashSyscall(t *testing.T) {
 		finally.Store(true)
 	})
 
-	gosimruntime.TestRaceToken.Release()
-	crasher := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Release()
+	crasher := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		// wait for waiter, but will get crashed before it's done
 		waiter.Wait()
 		after.Store(true)
@@ -302,10 +302,10 @@ func TestCrashStressLightly(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			var before, after atomic.Bool
-			gosimruntime.TestRaceToken.Release()
+			gomadruntime.TestRaceToken.Release()
 			// spawn a new machine that we will run for a bit and then crash
-			m := gosim.NewSimpleMachine(func() {
-				gosimruntime.TestRaceToken.Acquire()
+			m := gomad.NewSimpleMachine(func() {
+				gomadruntime.TestRaceToken.Acquire()
 				// another goroutine for good measure
 				go func() {
 					// sleep a bit
@@ -385,7 +385,7 @@ func EchoServer() {
 
 func TestCrashServerTCPConnBreaks(t *testing.T) {
 	// run echo server
-	m := gosim.NewMachine(gosim.MachineConfig{
+	m := gomad.NewMachine(gomad.MachineConfig{
 		Label:    "a",
 		Addr:     netip.AddrFrom4([4]byte{10, 0, 0, 1}),
 		MainFunc: EchoServer,
@@ -452,12 +452,12 @@ func EchoClient() {
 func TestCrashClientTCPConnBreaks(t *testing.T) {
 	// run echo server
 	var done atomic.Bool
-	gosimruntime.TestRaceToken.Release()
-	gosim.NewMachine(gosim.MachineConfig{
+	gomadruntime.TestRaceToken.Release()
+	gomad.NewMachine(gomad.MachineConfig{
 		Label: "a",
 		Addr:  netip.AddrFrom4([4]byte{10, 0, 0, 1}),
 		MainFunc: func() {
-			gosimruntime.TestRaceToken.Acquire()
+			gomadruntime.TestRaceToken.Acquire()
 
 			l, err := net.Listen("tcp", "10.0.0.1:8080") // XXX: need to specify IP? wtf?
 			if err != nil {
@@ -494,7 +494,7 @@ func TestCrashClientTCPConnBreaks(t *testing.T) {
 	// let it start listening
 	time.Sleep(time.Second)
 
-	client := gosim.NewSimpleMachine(EchoClient)
+	client := gomad.NewSimpleMachine(EchoClient)
 
 	// let it connect and do the echo
 	time.Sleep(time.Second)
@@ -514,9 +514,9 @@ var crashTestGlobal int
 
 func TestCrashRestartGlobals(t *testing.T) {
 	var first atomic.Bool
-	gosimruntime.TestRaceToken.Release()
-	m := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Release()
+	m := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		if crashTestGlobal != 0 {
 			t.Error("expect 0")
 		}
@@ -532,9 +532,9 @@ func TestCrashRestartGlobals(t *testing.T) {
 		t.Error("expected first")
 	}
 	var second atomic.Bool
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 	m.SetMainFunc(func() {
-		gosimruntime.TestRaceToken.Acquire()
+		gomadruntime.TestRaceToken.Acquire()
 		if crashTestGlobal != 0 {
 			t.Error("expect 0")
 		}
@@ -553,9 +553,9 @@ func TestCrashRestartGlobals(t *testing.T) {
 
 func TestCrashRestartPendingDisk(t *testing.T) {
 	var first atomic.Bool
-	gosimruntime.TestRaceToken.Release()
-	m := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Release()
+	m := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		a, err := os.OpenFile("a", os.O_CREATE|os.O_WRONLY, 0o600)
 		if err != nil {
 			t.Fatal(err)
@@ -580,16 +580,16 @@ func TestCrashRestartPendingDisk(t *testing.T) {
 			t.Fatal(err)
 		}
 		first.Store(true)
-		gosim.CurrentMachine().Crash()
+		gomad.CurrentMachine().Crash()
 	})
 	m.Wait()
 	if !first.Load() {
 		t.Error("expected first")
 	}
 	var second atomic.Bool
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 	m.SetMainFunc(func() {
-		gosimruntime.TestRaceToken.Acquire()
+		gomadruntime.TestRaceToken.Acquire()
 		contents, err := os.ReadFile("a")
 		if err != nil {
 			t.Fatal(err)
@@ -633,7 +633,7 @@ func checkEcho(t *testing.T) {
 
 func TestCrashRestartNetwork(t *testing.T) {
 	// run echo server
-	m := gosim.NewMachine(gosim.MachineConfig{
+	m := gomad.NewMachine(gomad.MachineConfig{
 		Label:    "a",
 		Addr:     netip.AddrFrom4([4]byte{10, 0, 0, 1}),
 		MainFunc: EchoServer,
@@ -680,12 +680,12 @@ func TestCrashRestartNetwork(t *testing.T) {
 }
 
 func TestCrashRestartFilesystemPartialInner(t *testing.T) {
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		if err := os.WriteFile("foo", []byte("hello"), 0o644); err != nil {
 			// XXX: could this be log.Fatal?
 			t.Fatal(err)
 		}
-		gosim.CurrentMachine().Crash()
+		gomad.CurrentMachine().Crash()
 	})
 	m.Wait()
 	// now see what we wrote to disk. see details below on scenarios.
@@ -706,10 +706,10 @@ func TestCrashRestartFilesystemPartialInner(t *testing.T) {
 
 func TestCrashRestartBootProgram(t *testing.T) {
 	var done atomic.Bool
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 
-	m := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
+	m := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
 		done.Store(true)
 	})
 
@@ -730,11 +730,11 @@ func TestCrashRestartBootProgram(t *testing.T) {
 
 func TestCrashRestartNewBootProgram(t *testing.T) {
 	var done atomic.Bool
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 
-	m := gosim.NewSimpleMachine(func() {
-		gosim.CurrentMachine().SetMainFunc(func() {
-			gosimruntime.TestRaceToken.Acquire()
+	m := gomad.NewSimpleMachine(func() {
+		gomad.CurrentMachine().SetMainFunc(func() {
+			gomadruntime.TestRaceToken.Acquire()
 			done.Store(true)
 		})
 	})

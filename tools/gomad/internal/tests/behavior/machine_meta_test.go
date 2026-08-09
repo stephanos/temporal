@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 func TestMachineCrashRuns(t *testing.T) {

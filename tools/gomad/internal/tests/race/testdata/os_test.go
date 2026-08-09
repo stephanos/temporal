@@ -1,4 +1,4 @@
-//go:build sim && skip
+//go:build gomad && skip
 
 package race_test
 
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim/internal/simulation/bridge"
+	"github.com/temporalio/gomad/internal/simulation/bridge"
 )
 
 // TODO: needs to be updated for syscallabi

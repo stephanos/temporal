@@ -6,7 +6,7 @@ import (
 	"unsafe"
 	_ "unsafe"
 
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 type coro struct{}

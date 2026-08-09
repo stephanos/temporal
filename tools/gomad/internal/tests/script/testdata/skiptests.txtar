@@ -1,9 +1,9 @@
 # This tests verifies that broken tests in dependencies are ignored.
 
-exec gosim test -v .
+exec gomad test -v .
 stdout Hello
 
-! exec gosim test -v ./bad
+! exec gomad test -v ./bad
 stderr badmarkerhere
 
 -- ok_test.go --

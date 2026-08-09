@@ -1,28 +1,28 @@
-package gosim
+package gomad
 
 import (
 	"time"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/simulation"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/simulation"
 )
 
-// IsSim returns if the program is running inside of a gosim simulation.
+// IsSim returns if the program is running inside of a gomad simulation.
 //
-// To include or exclude code or tests only if running inside of a gosim the
-// gosim tool also supports a build tag. Use the `//go:build sim` build
+// To include or exclude code or tests only if running inside of a gomad the
+// gomad tool also supports a build tag. Use the `//go:build gomad` build
 // constraint at the top of a go file to only include it in simulated builds or
-// `//go:build !sim` to exclude it from simulated from builds.
+// `//go:build !gomad` to exclude it from simulated from builds.
 func IsSim() bool {
-	return gosimruntime.IsSim()
+	return gomadruntime.IsSim()
 }
 
 // Yield yields the processor, allowing other goroutines to run. Similar to
-// [runtime.Gosched] but for gosim's scheduler.
+// [runtime.Gosched] but for gomad's scheduler.
 //
 // TODO: Replace with runtime.Gosched() instead?
 func Yield() {
-	gosimruntime.Yield()
+	gomadruntime.Yield()
 }
 
 /*

@@ -1,31 +1,31 @@
 package go123
 
 import (
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 func Sync_runtime_Semacquire(addr *uint32) {
-	gosimruntime.Semacquire(addr, false)
+	gomadruntime.Semacquire(addr, false)
 }
 
 func Sync_runtime_SemacquireWaitGroup(addr *uint32, synctestDurable bool) {
-	gosimruntime.Semacquire(addr, false)
+	gomadruntime.Semacquire(addr, false)
 }
 
 func Sync_runtime_Semrelease(addr *uint32, handoff bool, skipframes int) {
-	gosimruntime.Semrelease(addr)
+	gomadruntime.Semrelease(addr)
 }
 
 func Sync_runtime_SemacquireMutex(addr *uint32, lifo bool, skipframes int) {
-	gosimruntime.Semacquire(addr, lifo)
+	gomadruntime.Semacquire(addr, lifo)
 }
 
 func Sync_runtime_SemacquireRWMutexR(addr *uint32, lifo bool, skipframes int) {
-	gosimruntime.Semacquire(addr, lifo)
+	gomadruntime.Semacquire(addr, lifo)
 }
 
 func Sync_runtime_SemacquireRWMutex(addr *uint32, lifo bool, skipframes int) {
-	gosimruntime.Semacquire(addr, lifo)
+	gomadruntime.Semacquire(addr, lifo)
 }
 
 func Sync_runtime_registerPoolCleanup(cleanup func()) {
@@ -43,7 +43,7 @@ func Sync_runtime_procUnpin() {
 }
 
 func Sync_runtime_nanotime() int64 {
-	return gosimruntime.Nanotime()
+	return gomadruntime.Nanotime()
 }
 
 // Active spinning runtime support.
@@ -60,23 +60,23 @@ func Sync_runtime_doSpin() {
 //go:norace
 func Sync_runtime_LoadAcquintptr(ptr *uintptr) uintptr {
 	// XXX
-	if gosimruntime.AtomicYield {
-		gosimruntime.Yield()
+	if gomadruntime.AtomicYield {
+		gomadruntime.Yield()
 	}
 	return *ptr
 }
 
 //go:norace
 func Sync_runtime_StoreReluintptr(ptr *uintptr, val uintptr) uintptr {
-	if gosimruntime.AtomicYield {
-		gosimruntime.Yield()
+	if gomadruntime.AtomicYield {
+		gomadruntime.Yield()
 	}
 	*ptr = val
 	return 0 // XXX?
 }
 
 type NotifyList struct {
-	inner gosimruntime.NotifyList
+	inner gomadruntime.NotifyList
 }
 
 func Sync_runtime_notifyListAdd(l *NotifyList) uint32 {
@@ -101,7 +101,7 @@ func Sync_runtime_notifyListCheck(size uintptr) {
 }
 
 func Sync_runtime_randn(n uint32) uint32 {
-	return gosimruntime.Fastrandn(n)
+	return gomadruntime.Fastrandn(n)
 }
 
 func Sync_throw(str string) {

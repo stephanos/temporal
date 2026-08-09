@@ -3,21 +3,21 @@
 package go123
 
 import (
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/simulation"
-	"github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/simulation"
+	"github.com/temporalio/gomad/internal/simulation/syscallabi"
 )
 
 func InternalPoll_runtimeNano() int64 {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func InternalPoll_runtime_Semacquire(addr *uint32) {
-	gosimruntime.Semacquire(addr, false)
+	gomadruntime.Semacquire(addr, false)
 }
 
 func InternalPoll_runtime_Semrelease(addr *uint32) {
-	gosimruntime.Semrelease(addr)
+	gomadruntime.Semrelease(addr)
 }
 
 func InternalPoll_runtime_pollServerInit() {
@@ -25,7 +25,7 @@ func InternalPoll_runtime_pollServerInit() {
 }
 
 func InternalPoll_runtime_isPollServerDescriptor(fd uintptr) bool {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 // FIXME: returning a pointer here is very suspect, these are uintptrs on the

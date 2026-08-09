@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -8,18 +8,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jellevandenhooff/gosim"
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 func TestMachineCrash(t *testing.T) {
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		// sleep a second in both the machine and with the crash call to make
 		// sure they start "at the same time". all global initialization code
 		// runs before.
 		time.Sleep(time.Second)
 		for i := 1; i <= 3; i++ {
-			gosimruntime.Yield()
+			gomadruntime.Yield()
 			slog.Info("output", "n", i)
 		}
 	})
@@ -28,13 +28,13 @@ func TestMachineCrash(t *testing.T) {
 }
 
 func TestMachineGo(t *testing.T) {
-	global := gosim.CurrentMachine()
+	global := gomad.CurrentMachine()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if global != gosim.CurrentMachine() {
+		if global != gomad.CurrentMachine() {
 			t.Error("expected current machine to stay same")
 		}
 	}()
@@ -45,7 +45,7 @@ func TestMachineGo(t *testing.T) {
 			go func() {
 				go func() {
 					defer wg.Done()
-					if global != gosim.CurrentMachine() {
+					if global != gomad.CurrentMachine() {
 						t.Error("expected current machine to stay same")
 					}
 				}()
@@ -54,8 +54,8 @@ func TestMachineGo(t *testing.T) {
 	}()
 
 	wg.Add(1)
-	gosim.NewSimpleMachine(func() {
-		inner := gosim.CurrentMachine()
+	gomad.NewSimpleMachine(func() {
+		inner := gomad.CurrentMachine()
 		if inner == global {
 			t.Error("expected global to be different from inner")
 		}
@@ -64,7 +64,7 @@ func TestMachineGo(t *testing.T) {
 		go func() {
 			defer close(done)
 			defer wg.Done()
-			if inner != gosim.CurrentMachine() {
+			if inner != gomad.CurrentMachine() {
 				t.Error("expected current machine to stay same")
 			}
 		}()
@@ -78,40 +78,40 @@ func TestMachineGo(t *testing.T) {
 }
 
 func TestMachineCurrent(t *testing.T) {
-	global := gosim.CurrentMachine()
+	global := gomad.CurrentMachine()
 
-	if global != gosim.CurrentMachine() {
+	if global != gomad.CurrentMachine() {
 		t.Error("expected current machine to stay same")
 	}
 
-	var inner gosim.Machine
-	gosimruntime.TestRaceToken.Release()
-	m := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
-		inner = gosim.CurrentMachine()
+	var inner gomad.Machine
+	gomadruntime.TestRaceToken.Release()
+	m := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
+		inner = gomad.CurrentMachine()
 		// if inner == nil {
 		// t.Error("expected non-nil inner")
 		// }
-		if inner != gosim.CurrentMachine() {
+		if inner != gomad.CurrentMachine() {
 			t.Error("expected current machine to stay same")
 		}
 		if inner == global {
 			t.Error("expected different global and inner")
 		}
-		gosimruntime.TestRaceToken.Release()
+		gomadruntime.TestRaceToken.Release()
 	})
 	m.Wait()
-	gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Acquire()
 	if inner != m {
 		t.Error("expected inner to match m")
 	}
 
-	var inner2 gosim.Machine
-	gosimruntime.TestRaceToken.Release()
-	m2 := gosim.NewSimpleMachine(func() {
-		gosimruntime.TestRaceToken.Acquire()
-		inner2 = gosim.CurrentMachine()
-		if inner2 != gosim.CurrentMachine() {
+	var inner2 gomad.Machine
+	gomadruntime.TestRaceToken.Release()
+	m2 := gomad.NewSimpleMachine(func() {
+		gomadruntime.TestRaceToken.Acquire()
+		inner2 = gomad.CurrentMachine()
+		if inner2 != gomad.CurrentMachine() {
 			t.Error("expected current machine to stay same")
 		}
 		// if inner2 == nil {
@@ -120,24 +120,24 @@ func TestMachineCurrent(t *testing.T) {
 		if inner2 == global {
 			t.Error("expected different global and inner2")
 		}
-		gosimruntime.TestRaceToken.Release()
+		gomadruntime.TestRaceToken.Release()
 	})
 	m2.Wait()
-	gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Acquire()
 	if inner2 != m2 {
 		t.Error("expected inner2 to match m2")
 	}
 
-	var inner3 gosim.Machine
+	var inner3 gomad.Machine
 	m2.SetMainFunc(func() {
-		gosimruntime.TestRaceToken.Acquire()
-		inner3 = gosim.CurrentMachine()
-		gosimruntime.TestRaceToken.Release()
+		gomadruntime.TestRaceToken.Acquire()
+		inner3 = gomad.CurrentMachine()
+		gomadruntime.TestRaceToken.Release()
 	})
-	gosimruntime.TestRaceToken.Release()
+	gomadruntime.TestRaceToken.Release()
 	m2.Restart()
 	m2.Wait()
-	gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Acquire()
 	if inner3 != m2 {
 		t.Error("expected current machine to stay same")
 	}
@@ -146,11 +146,11 @@ func TestMachineCurrent(t *testing.T) {
 func TestMachineTimer(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	gosim.NewSimpleMachine(func() {
-		inner := gosim.CurrentMachine()
+	gomad.NewSimpleMachine(func() {
+		inner := gomad.CurrentMachine()
 		go func() {
 			time.AfterFunc(time.Second, func() {
-				if gosim.CurrentMachine() != inner {
+				if gomad.CurrentMachine() != inner {
 					t.Error("expected timer machine to match inner")
 				}
 				wg.Done()
@@ -159,11 +159,11 @@ func TestMachineTimer(t *testing.T) {
 		select {}
 	})
 
-	global := gosim.CurrentMachine()
+	global := gomad.CurrentMachine()
 	wg.Add(1)
 	go func() {
 		time.AfterFunc(time.Second, func() {
-			if gosim.CurrentMachine() != global {
+			if gomad.CurrentMachine() != global {
 				t.Error("expected timer machine to match global")
 			}
 			wg.Done()
@@ -186,7 +186,7 @@ func TestMachineGlobals(t *testing.T) {
 	}
 	testGlobal = 1
 
-	gosim.NewSimpleMachine(func() {
+	gomad.NewSimpleMachine(func() {
 		if testGlobal != 3 {
 			t.Error("expected 3")
 		}
@@ -199,7 +199,7 @@ func TestMachineGlobals(t *testing.T) {
 }
 
 func TestMachineLabel(t *testing.T) {
-	m := gosim.NewMachine(gosim.MachineConfig{
+	m := gomad.NewMachine(gomad.MachineConfig{
 		Label:    "hello",
 		MainFunc: func() {},
 	})

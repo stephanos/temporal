@@ -9,7 +9,7 @@ package race_test
 // XXX: broken
 /*
 func TestNoRaceIOFile(t *testing.T) {
-	if !gosimruntime.IsDetgo() {
+	if !gomadruntime.IsDetgo() {
 		setupRealDisk(s)
 	}
 	x := 0
