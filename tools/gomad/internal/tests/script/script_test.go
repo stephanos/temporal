@@ -10,7 +10,7 @@ import (
 	"github.com/rogpeppe/go-internal/gotooltest"
 	"github.com/rogpeppe/go-internal/testscript"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
+	"github.com/temporalio/gomad/internal/gomadtool"
 )
 
 func TestScript(t *testing.T) {
@@ -19,13 +19,13 @@ func TestScript(t *testing.T) {
 	}
 	gotooltest.Setup(&p)
 
-	curModDir, err := gosimtool.FindGoModDir()
+	curModDir, err := gomadtool.FindGoModDir()
 	if err != nil {
 		t.Fatal(err)
 	}
-	extractedModDir := filepath.Join(curModDir, gosimtool.OutputDirectory, "scripttest", "mod")
+	extractedModDir := filepath.Join(curModDir, gomadtool.OutputDirectory, "scripttest", "mod")
 
-	// add test dependencies to the copied gosim module
+	// add test dependencies to the copied gomad module
 	if err := filepath.Walk(extractedModDir, func(path string, info fs.FileInfo, err error) error {
 		return nil
 	}); err != nil {
@@ -35,8 +35,8 @@ func TestScript(t *testing.T) {
 	origSetup := p.Setup
 	p.Setup = func(e *testscript.Env) error {
 		// put a fake go.mod in the work directory
-		// this include a copy of the gosim module (not the entire module because we want to minimize test dependencies)
-		if err := gosimtool.MakeGoModForTest(extractedModDir, e.WorkDir, []string{
+		// this include a copy of the gomad module (not the entire module because we want to minimize test dependencies)
+		if err := gomadtool.MakeGoModForTest(extractedModDir, e.WorkDir, []string{
 			"github.com/dave/dst",
 			"github.com/google/go-cmp",
 			"github.com/mattn/go-isatty",
@@ -51,7 +51,7 @@ func TestScript(t *testing.T) {
 		}
 
 		// add /bin to PATH in tests
-		binDir := filepath.Join(curModDir, gosimtool.OutputDirectory, "scripttest", "bin")
+		binDir := filepath.Join(curModDir, gomadtool.OutputDirectory, "scripttest", "bin")
 		// add dependencies on /bin
 		if err := filepath.Walk(binDir, func(path string, info fs.FileInfo, err error) error {
 			return nil
@@ -59,10 +59,10 @@ func TestScript(t *testing.T) {
 			log.Fatal(err)
 		}
 		e.Setenv("PATH", binDir+string(filepath.ListSeparator)+e.Getenv("PATH"))
-		e.Setenv("GOSIMTOOL", filepath.Join(binDir, "gosim"))
+		e.Setenv("GOMADTOOL", filepath.Join(binDir, "gomad"))
 
 		// allow the module to access our shared cache
-		e.Vars = append(e.Vars, "GOSIMCACHE="+filepath.Join(curModDir, gosimtool.OutputDirectory))
+		e.Vars = append(e.Vars, "GOMADCACHE="+filepath.Join(curModDir, gomadtool.OutputDirectory))
 
 		if origSetup != nil {
 			return origSetup(e)

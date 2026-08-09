@@ -1,12 +1,12 @@
-# Gosim: Simulation testing for Go
-[![Go Reference](https://pkg.go.dev/badge/github.com/jellevandenhooff/gosim.svg)](https://pkg.go.dev/github.com/jellevandenhooff/gosim)
+# Gomad: Simulation testing for Go
+[![Go Reference](https://pkg.go.dev/badge/github.com/temporalio/gomad.svg)](https://pkg.go.dev/github.com/temporalio/gomad)
 
-Gosim is a simulation testing framework that aims to make it easier to write
-reliable distributed systems code in go. Gosim takes standard go programs and
+Gomad is a simulation testing framework that aims to make it easier to write
+reliable distributed systems code in go. Gomad takes standard go programs and
 tests and runs them with a simulated network, filesystem, multiple machines, and
 more.
 
-In Gosim's simulated environment you can run an entire distributed system in a
+In Gomad's simulated environment you can run an entire distributed system in a
 single go process, without having to set up any real servers. The simulation can
 also introduce all kinds of problems, such as flaky networks, restarting
 machines, or lost writes on a filesystem, to test that the program survive those
@@ -16,24 +16,24 @@ An interesting and entertaining introduction to simulation testing is the talk
 [Testing Distributed Systems w/ Deterministic Simulation from Strangeloop
 2014](https://www.youtube.com/watch?v=4fFDFbi3toc).
 
-Gosim is an experimental project. Feedback, suggestions, and ideas are all very
+Gomad is an experimental project. Feedback, suggestions, and ideas are all very
 welcome. The underlying design feels quite solid, but the implemented and
 simulated APIs are still limited: files and directories work, but no permissions
 or links; TCP works, but not UDP; IP addresses work, but not hostnames. The API
 can and will change. Now that those warnings are out of the way, please take a
-look at what gosim can do.
+look at what gomad can do.
 
-# Using Gosim
+# Using Gomad
 
-## From go test to gosim test
-Gosim tests standard go code and is used just like another go package. To get
-started with `gosim`, you need to import it in your module:
+## From go test to gomad test
+Gomad tests standard go code and is used just like another go package. To get
+started with `gomad`, you need to import it in your module:
 ```
 > mkdir example && cd example
 > go mod init example
-> go get github.com/jellevandenhooff/gosim
+> go get github.com/temporalio/gomad
 ```
-To test code with Gosim, write a small a test in a file `simple_test.go` and then run
+To test code with Gomad, write a small a test in a file `simple_test.go` and then run
 it using `go test`:
 ```go
 package examples_test
@@ -42,65 +42,65 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
-func TestGosim(t *testing.T) {
-	t.Logf("Are we in the Matrix? %v", gosim.IsSim())
+func TestGomad(t *testing.T) {
+	t.Logf("Are we in the Matrix? %v", gomad.IsSim())
 	t.Logf("Random: %d", rand.Int())
 }
 ```
 ```
-> go test -v -count=1 -run TestGosim
-=== RUN   TestGosim
+> go test -v -count=1 -run TestGomad
+=== RUN   TestGomad
     simple_test.go:11: Are we in the Matrix? false
     simple_test.go:12: Random: 1225418128470362734
---- PASS: TestGosim (0.00s)
+--- PASS: TestGomad (0.00s)
 PASS
 ok  	example	0.216s
 ```
-The test prints that Gosim is not enabled, and each time the test runs the random number is different.
+The test prints that Gomad is not enabled, and each time the test runs the random number is different.
 
-To run this test with `gosim` instead, replace `go test` with
-`go run github.com/jellevandenhooff/gosim/cmd/gosim test`:
+To run this test with `gomad` instead, replace `go test` with
+`go run github.com/temporalio/gomad/cmd/gomad test`:
 ```
-> go run github.com/jellevandenhooff/gosim/cmd/gosim test -v -run TestGosim
-=== RUN   TestGosim (seed 1)
+> go run github.com/temporalio/gomad/cmd/gomad test -v -run TestGomad
+=== RUN   TestGomad (seed 1)
     1 main/4     14:10:03.000 INF examples/simple_test.go:12 > Are we in the Matrix? true method=t.Logf
     2 main/4     14:10:03.000 INF examples/simple_test.go:13 > Random: 811966193383742320 method=t.Logf
---- PASS: TestGosim (0.00s simulated)
+--- PASS: TestGomad (0.00s simulated)
 ok  	translated/example	0.204s
 ```
-The `gosim test` command has flags similar to `go test`. The test output is
+The `gomad test` command has flags similar to `go test`. The test output is
 more involved than a normal `go test`. Every log line includes the simulated
 machine and the goroutine that invoked the log to help debug tests running on
 multiple machines.
 
 The `=== RUN` line includes the test's seed. Each time this test runs with the
 same seed it will output the same random number. To test with different seeds,
-you can pass ranges of seeds to `gosim test`:
+you can pass ranges of seeds to `gomad test`:
 ```
-go run github.com/jellevandenhooff/gosim/cmd/gosim test -v -seeds=1-3 -run=TestGosim .
-=== RUN   TestGosim (seed 1)
+go run github.com/temporalio/gomad/cmd/gomad test -v -seeds=1-3 -run=TestGomad .
+=== RUN   TestGomad (seed 1)
     1 main/4     14:10:03.000 INF examples/simple_test.go:12 > Are we in the Matrix? true method=t.Logf
     2 main/4     14:10:03.000 INF examples/simple_test.go:13 > Random: 811966193383742320 method=t.Logf
---- PASS: TestGosim (0.00s simulated)
-=== RUN   TestGosim (seed 2)
+--- PASS: TestGomad (0.00s simulated)
+=== RUN   TestGomad (seed 2)
     1 main/4     14:10:03.000 INF examples/simple_test.go:12 > Are we in the Matrix? true method=t.Logf
     2 main/4     14:10:03.000 INF examples/simple_test.go:13 > Random: 5374891573232646577 method=t.Logf
---- PASS: TestGosim (0.00s simulated)
-=== RUN   TestGosim (seed 3)
+--- PASS: TestGomad (0.00s simulated)
+=== RUN   TestGomad (seed 3)
     1 main/4     14:10:03.000 INF examples/simple_test.go:12 > Are we in the Matrix? true method=t.Logf
     2 main/4     14:10:03.000 INF examples/simple_test.go:13 > Random: 3226404213937589817 method=t.Logf
---- PASS: TestGosim (0.00s simulated)
-ok  	translated/github.com/jellevandenhooff/gosim/examples	0.254s
+--- PASS: TestGomad (0.00s simulated)
+ok  	translated/github.com/temporalio/gomad/examples	0.254s
 ```
 
-If running `gosim` fails with errors about missing `go.sum` entries, run
+If running `gomad` fails with errors about missing `go.sum` entries, run
 `go mod tidy` to update your `go.sum` file.
 
 ## Simulation
-Tests running in Gosim run inside Gosim's simulation environment. In the
+Tests running in Gomad run inside Gomad's simulation environment. In the
 simulation, tests can create simulated machines that can talk to each other
 over a simulated network, crash and restart machine, introduce latency,
 and more. The following longer example shows some of those features:
@@ -116,7 +116,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
 var count = 0
@@ -151,7 +151,7 @@ func request() {
 
 func TestMachines(t *testing.T) {
 	// run the server
-	serverMachine := gosim.NewMachine(gosim.MachineConfig{
+	serverMachine := gomad.NewMachine(gomad.MachineConfig{
 		Label:    "server",
 		Addr:     netip.MustParseAddr("10.0.0.1"),
 		MainFunc: server,
@@ -175,19 +175,19 @@ func TestMachines(t *testing.T) {
 
 	// add some latency
 	log.Println("adding latency")
-	gosim.SetDelay("10.0.0.1", "11.0.0.1", time.Second)
+	gomad.SetDelay("10.0.0.1", "11.0.0.1", time.Second)
 
 	// make another request to see the latency
 	request()
 }
 ```
-This example contains a HTTP server running on its own gosim machine, and a
+This example contains a HTTP server running on its own gomad machine, and a
 client that makes several requests to the server. Then the client
 messes with the server, restarting it and adding latency. Let's see
 what happens this test is run:
 <!-- TODO: two machines and a bug? -->
 ```
-> go run github.com/jellevandenhooff/gosim/cmd/gosim test -v -run TestMachines
+> go run github.com/temporalio/gomad/cmd/gomad test -v -run TestMachines
 === RUN   TestMachines (seed 1)
     1 server/5   14:10:03.000 INF example/machines_test.go:17 > starting server
     2 main/4     14:10:04.000 INF example/machines_test.go:27 > making a request
@@ -229,50 +229,50 @@ changes after the restart, and the goroutine handling the requests on the server
 changes. The simulated TCP connection breaks when the machine crashes and the
 `net/http` client makes a new connection afterwards.
 
-After the restart, the client calls a Gosim API to add latency to the simulated network
+After the restart, the client calls a Gomad API to add latency to the simulated network
 at step 13. The earlier requests all got sent and received at the same timestamp,
 such as on steps 10, 11, and 12 all at 14:10:05. The request after adding
 latency is sent at 14:10:05 on step 14 and received a second later at 14:10:06
 on step 15. This is the added latency in action.
 
 Even though the test takes over 4 simulated seconds, running the tests takes
-less than a second. Simulated time can be sped up when Gosim knows that all
+less than a second. Simulated time can be sped up when Gomad knows that all
 goroutines are waiting for time advance. With simulated time, tests can use
 realistic latency and timeouts without development time becoming slow.
 
 ## Debugging
-Gosim's simulation is deterministic, which means that running a test twice
+Gomad's simulation is deterministic, which means that running a test twice
 will result in the exact same behavior, from randomly generated numbers
 to goroutine concurrency interleavings. That is useful because it means that
 if we see an interesting log after running the program but do not fully
 understand why that log printed a certain value, we can re-run the program
 and see exactly what happened at the moment of printing.
 
-The numbers at the start of each log are Gosim's step numbers. Take step 11 from
+The numbers at the start of each log are Gomad's step numbers. Take step 11 from
 the log above, from the line "got a request ...". We can debug the state of the
-program at the time the log was printed with `gosim debug`:
+program at the time the log was printed with `gomad debug`:
 ```
-> go run github.com/jellevandenhooff/gosim/cmd/gosim debug -package=. -test=TestMachines -step=11
+> go run github.com/temporalio/gomad/cmd/gomad debug -package=. -test=TestMachines -step=11
 ...
-    26:	func (w gosimSlogHandler) Handle(ctx context.Context, r slog.Record) error {
-    27:		r.AddAttrs(slog.Int("goroutine", gosimruntime.GetGoroutine()))
-=>  28:		r.AddAttrs(slog.Int("step", gosimruntime.Step()))
+    26:	func (w gomadSlogHandler) Handle(ctx context.Context, r slog.Record) error {
+    27:		r.AddAttrs(slog.Int("goroutine", gomadruntime.GetGoroutine()))
+=>  28:		r.AddAttrs(slog.Int("step", gomadruntime.Step()))
     29:		return w.inner.Handle(ctx, r)
     30:	}
 ...
 ```
-The `gosim debug` command runs the requested test inside of the Delve go
+The `gomad debug` command runs the requested test inside of the Delve go
 debugger and stops the test at the requested step. The debugger here puts us in
-Gosim's `log/slog` handler which calls `gosimruntime.Step()` and includes the
+Gomad's `log/slog` handler which calls `gomadruntime.Step()` and includes the
 step number.
 
 Now we can debug the program as a standard Go program. To see what was happening
 in the HTTP handler that called print, we run backtrace
 ```
 (dlv) bt
- 0  0x000000010129e7ac in translated/github.com/jellevandenhooff/gosim/internal_/simulation.gosimSlogHandler.Handle
-    at ./github.com/jellevandenhooff/gosim/internal_/simulation/userspace.go:28
- 1  0x00000001012a5e24 in translated/github.com/jellevandenhooff/gosim/internal_/simulation.(*gosimSlogHandler).Handle
+ 0  0x000000010129e7ac in translated/github.com/temporalio/gomad/internal_/simulation.gomadSlogHandler.Handle
+    at ./github.com/temporalio/gomad/internal_/simulation/userspace.go:28
+ 1  0x00000001012a5e24 in translated/github.com/temporalio/gomad/internal_/simulation.(*gomadSlogHandler).Handle
     at <autogenerated>:1
  2  0x0000000101283d68 in translated/log/slog.(*handlerWriter).Write
     at ./log/slog/logger.go:99
@@ -287,7 +287,7 @@ in the HTTP handler that called print, we run backtrace
 and then select the HTTP handler's stack frame that called `log.Printf`
 ```
 (dlv) frame 5
-> translated/github.com/jellevandenhooff/gosim/internal_/simulation.gosimSlogHandler.Handle() ./github.com/jellevandenhooff/gosim/internal_/simulation/userspace.go:28 (PC: 0x1029ce45c)
+> translated/github.com/temporalio/gomad/internal_/simulation.gomadSlogHandler.Handle() ./github.com/temporalio/gomad/internal_/simulation/userspace.go:28 (PC: 0x1029ce45c)
 Frame 5: ./example/machines_test.go:19 (PC: 102d3decc)
     14:	)
     15:
@@ -308,11 +308,11 @@ Now we can inspect the state of memory to see details that the log line might ha
 ```
 
 ## Tracing system calls
-Gosim's simulation is at the system call level. To see why a program behaved
-the way it did, Gosim can output detailed logs of all system calls with the
+Gomad's simulation is at the system call level. To see why a program behaved
+the way it did, Gomad can output detailed logs of all system calls with the
 `-simtrace=syscall` flag:
 ```
-> go run github.com/jellevandenhooff/gosim/cmd/gosim test -v -simtrace=syscall -run TestMachines
+> go run github.com/temporalio/gomad/cmd/gomad test -v -simtrace=syscall -run TestMachines
 === RUN   TestMachines (seed 1)
     1 server/5   14:10:03.000 INF examples/machines_test.go:19 > starting server
     2 server/5   14:10:03.000 INF simulation/os_linux_.go:88 > call SysSocket flags=SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC net=AF_INET proto=IPPROTO_IP traceKind=syscall
@@ -343,33 +343,33 @@ Here you can see on step 60 the HTTP GET request being written by the client, an
 
 # API and documentation
 
-A description of Gosim's architecture and design decisions is in
+A description of Gomad's architecture and design decisions is in
 [docs/design.md](docs/design.md).
 
-Gosim's public packages are:
+Gomad's public packages are:
 
-- [github.com/jellevandenhooff/gosim](./): the core API for creating machines
+- [github.com/temporalio/gomad](./): the core API for creating machines
   and manipulating the simulation environment
 
-- [github.com/jellevandenhooff/gosim/cmd/gosim](./cmd/gosim): the CLI for
-  running Gosim tests
+- [github.com/temporalio/gomad/cmd/gomad](./cmd/gomad): the CLI for
+  running Gomad tests
 
-- [github.com/jellevandenhooff/gosim/metatesting](./metatesting/): a package
-  for running Gosim tests inside of normal go test.
+- [github.com/temporalio/gomad/metatesting](./metatesting/): a package
+  for running Gomad tests inside of normal go test.
 
-- [github.com/jellevandenhooff/gosim/nemesis](./nemesis/): a package, still
+- [github.com/temporalio/gomad/nemesis](./nemesis/): a package, still
   sparse, to introduce chaos into simulations
 
 # Development
 
-Gosim and its tools are tested using the `./test.sh` script, which invokes the
-tests defined in `./Taskfile.yml`. These test the Gosim tooling as well as the
+Gomad and its tools are tested using the `./test.sh` script, which invokes the
+tests defined in `./Taskfile.yml`. These test the Gomad tooling as well as the
 behavior of simulated code. Ideally tests verify that the simulation behaves
 like reality: The tests for the filesystem in
-[github.com/jellevandenhooff/gosim/internal/tests/behavior/disk_test.go](./internal/tests/behavior/disk_test.go)
+[github.com/temporalio/gomad/internal/tests/behavior/disk_test.go](./internal/tests/behavior/disk_test.go)
 are run in both simulated and non-simulated builds.
 
-Gosim simulates Linux, but should work on macOS, Linux, and Windows (not tested
+Gomad simulates Linux, but should work on macOS, Linux, and Windows (not tested
 on Windows) running on either arm64 or amd64. To test that code works on Linux
 amd64 and arm64, there are scripts `.ci/crossarch-tests/test-amd64.sh` and
 `.ci/crossarch-tests/test-arm64.sh` that run the tests using Docker. A Github

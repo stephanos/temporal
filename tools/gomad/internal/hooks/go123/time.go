@@ -4,12 +4,12 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 func Time_now() (sec int64, nsec int32, mono int64) {
-	now := gosimruntime.Nanotime()
+	now := gomadruntime.Nanotime()
 
 	// TODO: somehow avoid this division?
 	sec = now / 1e9
@@ -20,15 +20,15 @@ func Time_now() (sec int64, nsec int32, mono int64) {
 }
 
 func Time_runtimeNano() int64 {
-	return gosimruntime.Nanotime()
+	return gomadruntime.Nanotime()
 }
 
 func Time_Sleep(duration time.Duration) {
-	gosimruntime.Sleep(int64(duration))
+	gomadruntime.Sleep(int64(duration))
 }
 
 //go:norace
-func fireRuntimeTimer(t *gosimruntime.Timer) {
+func fireRuntimeTimer(t *gomadruntime.Timer) {
 	rt := t.Arg.(*timeTimer)
 	machine := t.Machine
 
@@ -38,7 +38,7 @@ func fireRuntimeTimer(t *gosimruntime.Timer) {
 
 	// TODO: only Go here in race mode; otherwise (always?) try to reuse some
 	// outer (per-machine?) goroutine
-	gosimruntime.GoFromTimerHandler(func() {
+	gomadruntime.GoFromTimerHandler(func() {
 		// TODO: in mean mode, insert delay here?
 		if race.Enabled {
 			race.Acquire(unsafe.Pointer(rt))
@@ -63,7 +63,7 @@ type timeTimer struct {
 }
 
 type timer struct {
-	pp     *gosimruntime.Timer // repurposed pp
+	pp     *gomadruntime.Timer // repurposed pp
 	when   int64
 	period int64
 	f      func(arg any, seq uintptr, delta int64) // NOTE: must not be closure
@@ -89,7 +89,7 @@ func Time_newTimer(when, period int64, f func(any, uintptr, int64), arg any, cp 
 	t.arg = arg
 	t.seq = 0
 
-	t.pp = gosimruntime.NewTimer(fireRuntimeTimer, t, gosimruntime.CurrentMachine(), t.when)
+	t.pp = gomadruntime.NewTimer(fireRuntimeTimer, t, gomadruntime.CurrentMachine(), t.when)
 
 	return t
 }

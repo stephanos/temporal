@@ -1,32 +1,32 @@
 package go123
 
-import "github.com/jellevandenhooff/gosim/gosimruntime"
+import "github.com/temporalio/gomad/gomadruntime"
 
 func Os_runtime_args() []string {
 	// TODO: make this configurable / fetch this from the machine API?
-	return []string{"gosimapp"}
+	return []string{"gomadapp"}
 }
 
 func Os_sigpipe() {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func Os_runtime_beforeExit(exitCode int) {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func Os_runtime_rand() uint64 {
-	return gosimruntime.Fastrand64()
+	return gomadruntime.Fastrand64()
 }
 
 func Os_checkClonePidfd() {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func Os_ignoreSIGSYS() {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func Os_restoreSIGSYS() {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }

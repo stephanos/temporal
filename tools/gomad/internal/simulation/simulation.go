@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/simulation/fs"
-	"github.com/jellevandenhooff/gosim/internal/simulation/network"
-	"github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/simulation/fs"
+	"github.com/temporalio/gomad/internal/simulation/network"
+	"github.com/temporalio/gomad/internal/simulation/syscallabi"
 )
 
 type Machine struct {
@@ -23,10 +23,10 @@ type Machine struct {
 	filesystem *fs.Filesystem
 	netstack   *network.Stack
 
-	gosimOS *GosimOS
+	gomadOS *GomadOS
 	linuxOS *LinuxOS
 
-	runtimeMachine *gosimruntime.Machine
+	runtimeMachine *gomadruntime.Machine
 
 	waiters []*syscallabi.Syscall
 
@@ -81,20 +81,20 @@ func (s *Simulation) newMachine(label string, addr netip.Addr, filesystem *fs.Fi
 }
 
 func (s *Simulation) startMachine(machine *Machine) {
-	machine.runtimeMachine = gosimruntime.NewMachine(machine.label)
+	machine.runtimeMachine = gomadruntime.NewMachine(machine.label)
 
 	machine.netstack = network.NewStack()
 	s.network.AttachStack(machine.addr, machine.netstack)
 
 	machine.linuxOS = NewLinuxOS(s, machine, s.dispatcher)
-	machine.gosimOS = NewGosimOS(s, s.dispatcher)
+	machine.gomadOS = NewGomadOS(s, s.dispatcher)
 
 	linuxOS := machine.linuxOS
-	gosimOS := machine.gosimOS
+	gomadOS := machine.gomadOS
 	bootProgram := machine.bootProgram
 
-	gosimruntime.GoWithMachine(func() {
-		setupUserspace(gosimOS, linuxOS, machine.id, machine.label)
+	gomadruntime.GoWithMachine(func() {
+		setupUserspace(gomadOS, linuxOS, machine.id, machine.label)
 		bootProgram()
 		// not using defer because we want an unhandled panic to bubble up; Stop
 		// prevents all code from running afterwards
@@ -111,7 +111,7 @@ func (s *Simulation) stopMachine(machine *Machine, graceful bool) {
 	// first, stop all the work the machine is currently doing. this atomically
 	// stops all goroutines, unhooks all selects, and prevents any future timers
 	// from firing.
-	gosimruntime.StopMachine(machine.runtimeMachine)
+	gomadruntime.StopMachine(machine.runtimeMachine)
 
 	// then, wait for current syscalls to finish and prevent all work on any
 	// pending future syscalls.
@@ -119,7 +119,7 @@ func (s *Simulation) stopMachine(machine *Machine, graceful bool) {
 	machine.linuxOS = nil
 
 	// TODO: add shutdown? or share?
-	machine.gosimOS = nil
+	machine.gomadOS = nil
 
 	// make sure the network stack won't do anything in the future
 	// graceful shutdown also sends close packets
@@ -149,7 +149,7 @@ func (s *Simulation) stopMachine(machine *Machine, graceful bool) {
 	if machine == s.main {
 		// XXX: should we distinguish a test ending with a clean return vs
 		// shutdown being called on the machine?
-		gosimruntime.SetAbortError(gosimruntime.ErrMainReturned)
+		gomadruntime.SetAbortError(gomadruntime.ErrMainReturned)
 	}
 }
 
@@ -158,7 +158,7 @@ func Runtime(fun func()) {
 
 	timeoutTimer := time.AfterFunc(defaultTimeout, func() {
 		slog.Error("test timeout")
-		gosimruntime.SetAbortError(gosimruntime.ErrTimeout)
+		gomadruntime.SetAbortError(gomadruntime.ErrTimeout)
 	})
 
 	dispatcher := syscallabi.NewDispatcher()

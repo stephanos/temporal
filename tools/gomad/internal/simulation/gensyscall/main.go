@@ -5,7 +5,7 @@
 // This file is based on
 // https://cs.opensource.google/go/x/sys/+/refs/tags/v0.26.0:unix/mksyscall.go
 
-// This program generates wrappers for system calls in gosim to ergonomically
+// This program generates wrappers for system calls in gomad to ergonomically
 // invoke them, implement them, and hook them in the go standard library.
 package main
 
@@ -26,8 +26,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
-	"github.com/jellevandenhooff/gosim/internal/translate"
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/translate"
 )
 
 // findAndReadSources looks up the paths of files in go packages path using `go
@@ -449,7 +449,7 @@ package `+version+`
 import (
 	"unsafe"
 
-	"`+gosimtool.Module+`/internal/simulation"
+	"`+gomadtool.Module+`/internal/simulation"
 )
 
 // prevent unused imports
@@ -471,9 +471,9 @@ func writeSyscalls(outputPath string, syscalls []syscallInfo, sysnums map[string
 	osImplName := "linuxOS"
 	osIfaceName := "linuxOSIface"
 	if isMachine {
-		osTypeName = "GosimOS"
-		osImplName = "gosimOS"
-		osIfaceName = "gosimOSIface"
+		osTypeName = "GomadOS"
+		osImplName = "gomadOS"
+		osIfaceName = "gomadOSIface"
 	}
 
 	callers := newOutputSorter()
@@ -577,7 +577,7 @@ func writeSyscalls(outputPath string, syscalls []syscallInfo, sysnums map[string
 		var invokeLog, retLog string
 		if !isMachine {
 			invokeLog = "\tif logSyscalls {\n" +
-				"\t\tsyscall.Step = gosimruntime.Step()\n" +
+				"\t\tsyscall.Step = gomadruntime.Step()\n" +
 				fmt.Sprintf("\t\tsyscallLogger.LogEntry%s(%s)\n", ifaceName, strings.Join(dispatchArgs, ", ")) +
 				"\t}\n"
 			retLog = "\tif logSyscalls {\n" +
@@ -632,9 +632,9 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"`+gosimtool.Module+`/gosimruntime"
-	"`+gosimtool.Module+`/internal/simulation/fs"
-	"`+gosimtool.Module+`/internal/simulation/syscallabi"
+	"`+gomadtool.Module+`/gomadruntime"
+	"`+gomadtool.Module+`/internal/simulation/fs"
+	"`+gomadtool.Module+`/internal/simulation/syscallabi"
 )
 
 // prevent unused imports
@@ -645,7 +645,7 @@ var (
 	_ syscall.Errno
 	_ fs.InodeInfo
 	_ unix.Errno
-	_ = gosimruntime.GOOS
+	_ = gomadruntime.GOOS
 )
 
 // %s is the interface *%s must implement to work
@@ -831,7 +831,7 @@ func SyscallName(trap uintptr) string {
 }
 
 func main() {
-	rootDir, err := gosimtool.FindGoModDir()
+	rootDir, err := gomadtool.FindGoModDir()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -874,5 +874,5 @@ func main() {
 		writeSyscalls(path.Join(rootDir, "internal/simulation/linux_gen_"+arch+".go"), deduped, sysnums, false)
 	}
 
-	writeSyscalls(path.Join(rootDir, "internal/simulation/gosim_gen.go"), machineCalls, nil, true)
+	writeSyscalls(path.Join(rootDir, "internal/simulation/gomad_gen.go"), machineCalls, nil, true)
 }

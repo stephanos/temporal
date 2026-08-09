@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package race_test
 
@@ -7,7 +7,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 //go:norace

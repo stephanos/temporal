@@ -127,11 +127,11 @@ func (t *packageTranslator) makeMetaTestFile(pkgName string, tests []packageSele
 					List: []dst.Stmt{
 						&dst.ExprStmt{
 							X: &dst.CallExpr{
-								Fun: &dst.Ident{Path: t.replacedPkgs[gosimruntimePackage], Name: "SetAllTests"},
+								Fun: &dst.Ident{Path: t.replacedPkgs[gomadruntimePackage], Name: "SetAllTests"},
 								Args: []dst.Expr{
 									&dst.CompositeLit{
 										Type: &dst.ArrayType{
-											Elt: &dst.Ident{Path: t.replacedPkgs[gosimruntimePackage], Name: "Test"},
+											Elt: &dst.Ident{Path: t.replacedPkgs[gomadruntimePackage], Name: "Test"},
 										},
 										Elts: elts,
 									},

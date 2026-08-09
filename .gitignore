@@ -50,4 +50,3 @@ tests/.gomad-run/
 
 # Ignoring AI agent files
 .agents/
-.gosim/

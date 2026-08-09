@@ -7,13 +7,13 @@ import (
 	"unsafe"
 
 	"github.com/dave/dst"
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	go123 "github.com/jellevandenhooff/gosim/internal/hooks/go123"
+	"github.com/temporalio/gomad/gomadruntime"
+	go123 "github.com/temporalio/gomad/internal/hooks/go123"
 )
 
-type go126NamedMap gosimruntime.Map[string, int]
+type go126NamedMap gomadruntime.Map[string, int]
 
-func acceptGo126MapType[M gosimruntime.MapType[string, int]](M) {}
+func acceptGo126MapType[M gomadruntime.MapType[string, int]](M) {}
 
 func TestGo126FIPSPackagesKeepAssembly(t *testing.T) {
 	packages := []string{
@@ -165,7 +165,7 @@ func TestGo126WeakPointerAdaptersRetainIdentity(t *testing.T) {
 
 func TestGo126RuntimeMapConstantUsesSimulationRuntime(t *testing.T) {
 	source := packageSelector{Pkg: "internal/runtime/maps", Selector: "Use64BitHash"}
-	want := packageSelector{Pkg: gosimruntimePackage, Selector: "Use64BitHash"}
+	want := packageSelector{Pkg: gomadruntimePackage, Selector: "Use64BitHash"}
 	if got := replacements[source]; got != want {
 		t.Fatalf("Go 1.26 runtime map replacement = %#v, want %#v", got, want)
 	}
@@ -181,12 +181,12 @@ func TestGo126ConstantTimeBoolConversion(t *testing.T) {
 }
 
 func TestGo126HashTrieMapUsesSimulationTypeOperations(t *testing.T) {
-	simulatedMap := gosimruntime.NewMap[string, any]()
-	hasher := gosimruntime.MapHasher(simulatedMap)
+	simulatedMap := gomadruntime.NewMap[string, any]()
+	hasher := gomadruntime.MapHasher(simulatedMap)
 	if got := hasher(nil, 17); got != 17 {
 		t.Fatalf("map hash = %d, want seed 17", got)
 	}
-	equal := gosimruntime.MapValueEqual(simulatedMap)
+	equal := gomadruntime.MapValueEqual(simulatedMap)
 	left, right := any("value"), any("value")
 	if !equal(unsafe.Pointer(&left), unsafe.Pointer(&right)) {
 		t.Fatal("equal map values were reported unequal")
@@ -196,7 +196,7 @@ func TestGo126HashTrieMapUsesSimulationTypeOperations(t *testing.T) {
 func TestGo126HashTrieMapSelectorsAreRewritten(t *testing.T) {
 	translator := packageTranslator{
 		pkgPath:      "internal/sync",
-		replacedPkgs: map[string]string{gosimruntimePackage: "translated/gosimruntime"},
+		replacedPkgs: map[string]string{gomadruntimePackage: "translated/gomadruntime"},
 	}
 	tests := []struct {
 		name string
@@ -228,7 +228,7 @@ func TestGo126HashTrieMapSelectorsAreRewritten(t *testing.T) {
 				t.Fatalf("replacement type = %T, want *dst.CallExpr", replacement)
 			}
 			fun, ok := call.Fun.(*dst.Ident)
-			if !ok || fun.Name != test.want || fun.Path != "translated/gosimruntime" {
+			if !ok || fun.Name != test.want || fun.Path != "translated/gomadruntime" {
 				t.Fatalf("replacement function = %#v, want %s", call.Fun, test.want)
 			}
 		})

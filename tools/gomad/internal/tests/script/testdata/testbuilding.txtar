@@ -1,53 +1,53 @@
 # This tests verifies the metatest test binary building and caching logic.
 
 # Inner test should work
-exec gosim test -v .
-stdout 'inside gosim hello'
+exec gomad test -v .
+stdout 'inside gomad hello'
 
 # Cached metatest fails without binary
 ! exec go test -v .
-stdout 'Could not find pre-built gosim test binary'
+stdout 'Could not find pre-built gomad test binary'
 
 # Uncached metatest works
 exec go test -v -count=1 .
 stdout 'looks like an uncached test run.*build-tests'
-stdout 'inside gosim hello'
+stdout 'inside gomad hello'
 
 # Build binary
-exec gosim build-tests .
+exec gomad build-tests .
 
 # Cached metatest now works
 exec go test -v .
-stdout 'Using pre-built gosim test binary'
-stdout 'inside gosim hello'
+stdout 'Using pre-built gomad test binary'
+stdout 'inside gomad hello'
 
 # Uncached metatest still works
 exec go test -v -count=1 .
 stdout 'looks like an uncached test run.*build-tests'
-stdout 'inside gosim hello'
+stdout 'inside gomad hello'
 
 # Touch input file
 exec touch test_test.go
 
 # Cached metatest no longer works
 ! exec go test -v .
-stdout 'Using pre-built gosim test binary'
+stdout 'Using pre-built gomad test binary'
 stdout 'changed'
 
 # Uncached metatest still works
 exec go test -v -count=1 .
 stdout 'looks like an uncached test run.*build-tests'
-stdout 'inside gosim hello'
+stdout 'inside gomad hello'
 
 -- metatest_test.go --
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
 import (
 	"testing"
 
-    "github.com/jellevandenhooff/gosim/metatesting"
+    "github.com/temporalio/gomad/metatesting"
 )
 
 func TestSelf(t *testing.T) {
@@ -62,7 +62,7 @@ func TestSelf(t *testing.T) {
 }
 
 -- test_test.go --
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -71,5 +71,5 @@ import (
 )
 
 func TestHello(t *testing.T) {
-    t.Log("inside gosim hello")
+    t.Log("inside gomad hello")
 }

@@ -17,14 +17,14 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/gosimlog"
-	"github.com/jellevandenhooff/gosim/internal/simulation/fs"
-	"github.com/jellevandenhooff/gosim/internal/simulation/network"
-	"github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/gomadlog"
+	"github.com/temporalio/gomad/internal/simulation/fs"
+	"github.com/temporalio/gomad/internal/simulation/network"
+	"github.com/temporalio/gomad/internal/simulation/syscallabi"
 )
 
-// LinuxOS implements gosim's versions of Linux system calls.
+// LinuxOS implements gomad's versions of Linux system calls.
 type LinuxOS struct {
 	dispatcher syscallabi.Dispatcher
 
@@ -146,13 +146,13 @@ func (l *LinuxOS) logfFor(invocation *syscallabi.Syscall, format string, args ..
 
 	/*
 		r := slog.NewRecord(time.Now(), slog.LevelInfo, msg, invocation.PC)
-		r.Add("machine", l.machine.label, "goroutine", invocation.Goroutine, "step", gosimruntime.Step(), "traceKind", "syscall")
-		if gosimruntime.TraceStack.Enabled() {
+		r.Add("machine", l.machine.label, "goroutine", invocation.Goroutine, "step", gomadruntime.Step(), "traceKind", "syscall")
+		if gomadruntime.TraceStack.Enabled() {
 			// TODO: log invocation from its goroutine instead and skip this trickery?
 			// TODO: stick stacktrace on invocation instead?
 			var pcs [128]uintptr
-			n := gosimruntime.GetStacktraceFor(invocation.Goroutine, pcs[:])
-			r.AddAttrs(gosimlog.StackFor(pcs[:n], invocation.PC))
+			n := gomadruntime.GetStacktraceFor(invocation.Goroutine, pcs[:])
+			r.AddAttrs(gomadlog.StackFor(pcs[:n], invocation.PC))
 		}
 
 		l.simulation.rawLogger.Handler().Handle(context.TODO(), r)
@@ -364,8 +364,8 @@ func (l *LinuxOS) SysOpenat(dirfd int, path string, flags int, mode uint32, invo
 	return fd, nil
 }
 
-var openatFlags = &gosimlog.BitflagFormatter{
-	Choices: []gosimlog.BitflagChoice{
+var openatFlags = &gomadlog.BitflagFormatter{
+	Choices: []gomadlog.BitflagChoice{
 		{
 			Mask: 0x3,
 			Values: map[int]string{
@@ -375,7 +375,7 @@ var openatFlags = &gosimlog.BitflagFormatter{
 			},
 		},
 	},
-	Flags: []gosimlog.BitflagValue{
+	Flags: []gomadlog.BitflagValue{
 		{
 			Value: syscall.O_TRUNC,
 			Name:  "O_TRUNC",
@@ -519,8 +519,8 @@ type Dentry struct {
 	Name   string
 }
 
-var dtType = &gosimlog.BitflagFormatter{
-	Choices: []gosimlog.BitflagChoice{
+var dtType = &gomadlog.BitflagFormatter{
+	Choices: []gomadlog.BitflagChoice{
 		{
 			Mask: 0xf,
 			Values: map[int]string{
@@ -569,7 +569,7 @@ func (l *LinuxOS) SysWrite(fd int, data syscallabi.ByteSliceView, invocation *sy
 		}
 
 		l.simulation.rawLogger.Info(
-			string(buf), "method", source, "machine", l.machine.label, "goroutine", invocation.Goroutine, "step", gosimruntime.Step())
+			string(buf), "method", source, "machine", l.machine.label, "goroutine", invocation.Goroutine, "step", gomadruntime.Step())
 
 		// slog.Info(string(buf), "method", source, "from", l.machine.label)
 		return data.Len(), nil
@@ -718,8 +718,8 @@ func (l *LinuxOS) SysFallocate(fd int, mode uint32, off int64, len int64, invoca
 	return nil
 }
 
-var lseekWhence = &gosimlog.BitflagFormatter{
-	Choices: []gosimlog.BitflagChoice{
+var lseekWhence = &gomadlog.BitflagFormatter{
+	Choices: []gomadlog.BitflagChoice{
 		{
 			Mask: 0x3,
 			Values: map[int]string{
@@ -998,8 +998,8 @@ func (l *LinuxOS) SysNewfstatat(dirfd int, path string, statBuf syscallabi.Value
 	return l.SysFstatat(dirfd, path, statBuf, flags, invocation)
 }
 
-var unlinkatFlags = &gosimlog.BitflagFormatter{
-	Flags: []gosimlog.BitflagValue{
+var unlinkatFlags = &gomadlog.BitflagFormatter{
+	Flags: []gomadlog.BitflagValue{
 		{
 			Value: _AT_REMOVEDIR,
 			Name:  "AT_REMOVEDIR",
@@ -1143,8 +1143,8 @@ func (l *LinuxOS) SysSocket(net, flags, proto int, invocation *syscallabi.Syscal
 	return fd, nil
 }
 
-var socketNet = &gosimlog.BitflagFormatter{
-	Choices: []gosimlog.BitflagChoice{
+var socketNet = &gomadlog.BitflagFormatter{
+	Choices: []gomadlog.BitflagChoice{
 		{
 			Mask: 0xff,
 			Values: map[int]string{
@@ -1154,8 +1154,8 @@ var socketNet = &gosimlog.BitflagFormatter{
 	},
 }
 
-var socketFlags = &gosimlog.BitflagFormatter{
-	Choices: []gosimlog.BitflagChoice{
+var socketFlags = &gomadlog.BitflagFormatter{
+	Choices: []gomadlog.BitflagChoice{
 		{
 			Mask: 0xf,
 			Values: map[int]string{
@@ -1164,7 +1164,7 @@ var socketFlags = &gosimlog.BitflagFormatter{
 			},
 		},
 	},
-	Flags: []gosimlog.BitflagValue{
+	Flags: []gomadlog.BitflagValue{
 		{
 			Value: syscall.SOCK_NONBLOCK,
 			Name:  "SOCK_NONBLOCK",
@@ -1176,8 +1176,8 @@ var socketFlags = &gosimlog.BitflagFormatter{
 	},
 }
 
-var socketProto = &gosimlog.BitflagFormatter{
-	Choices: []gosimlog.BitflagChoice{
+var socketProto = &gomadlog.BitflagFormatter{
+	Choices: []gomadlog.BitflagChoice{
 		{
 			Mask: 0xff,
 			Values: map[int]string{
@@ -1702,7 +1702,7 @@ func (l *LinuxOS) SysGetrandom(ptr syscallabi.ByteSliceView, flags int, invocati
 	n := 0
 	for ptr.Len() > 0 {
 		var buf [8]byte
-		binary.LittleEndian.PutUint64(buf[:], gosimruntime.Fastrand64())
+		binary.LittleEndian.PutUint64(buf[:], gomadruntime.Fastrand64())
 		m := ptr.Write(buf[:])
 		ptr = ptr.SliceFrom(m)
 		n += m

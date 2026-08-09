@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
@@ -11,9 +11,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimlog"
-	"github.com/jellevandenhooff/gosim/internal/race"
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/internal/gomadlog"
+	"github.com/temporalio/gomad/internal/race"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 func parseLog(t *testing.T, log []byte) []map[string]any {
@@ -125,7 +125,7 @@ func TestLogDuringInit(t *testing.T) {
 	}
 }
 
-func formatLogsWithExtra(logs []*gosimlog.Log) []string {
+func formatLogsWithExtra(logs []*gomadlog.Log) []string {
 	// TODO: share this code with prettylog somehow?
 	var lines []string
 	for _, log := range logs {
@@ -170,7 +170,7 @@ func TestLogTraceSyscall(t *testing.T) {
 	}
 
 	// TODO: support snapshotting these logs?
-	if diff := cmp.Diff(formatLogsWithExtra(gosimlog.ParseLog(run.LogOutput)), []string{
+	if diff := cmp.Diff(formatLogsWithExtra(gomadlog.ParseLog(run.LogOutput)), []string{
 		"1 main/4 INFO unsupported syscall unknown (9999) 0 0 0 0 0 0",
 		`2 main/4 INFO call SysOpenat dirfd="AT_FDCWD" path="hello" flags="O_WRONLY|O_TRUNC|O_CREAT|O_CLOEXEC" mode="0o644"`,
 		"3 main/4 INFO ret  SysOpenat fd=5 err=null",
@@ -190,7 +190,7 @@ type MsgAndStack struct {
 	Stack []string
 }
 
-func extractStacksUntilTest(logs []*gosimlog.Log) []MsgAndStack {
+func extractStacksUntilTest(logs []*gomadlog.Log) []MsgAndStack {
 	var all []MsgAndStack
 	for _, log := range logs {
 		msg := log.Msg
@@ -224,7 +224,7 @@ func TestLogTraceStacks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if diff := cmp.Diff(extractStacksUntilTest(gosimlog.ParseLog(run.LogOutput)), []MsgAndStack{
+	if diff := cmp.Diff(extractStacksUntilTest(gomadlog.ParseLog(run.LogOutput)), []MsgAndStack{
 		{
 			Msg: "hello from log",
 		},
@@ -254,7 +254,7 @@ func TestLogTraceStacks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if diff := cmp.Diff(extractStacksUntilTest(gosimlog.ParseLog(run.LogOutput)), []MsgAndStack{
+	if diff := cmp.Diff(extractStacksUntilTest(gomadlog.ParseLog(run.LogOutput)), []MsgAndStack{
 		{
 			Msg:   "hello from log",
 			Stack: []string{"ImplTestLogTraceStacks"},
@@ -292,7 +292,7 @@ func TestLogBacktraceFor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if diff := cmp.Diff(extractStacksUntilTest(gosimlog.ParseLog(run.LogOutput)), []MsgAndStack{
+	if diff := cmp.Diff(extractStacksUntilTest(gomadlog.ParseLog(run.LogOutput)), []MsgAndStack{
 		{
 			Msg:   "g0",
 			Stack: []string{"GetStacktraceFor", "ImplTestLogBacktraceFor"},

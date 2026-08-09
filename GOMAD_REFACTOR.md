@@ -2,7 +2,7 @@
 
 ## Scope
 
-This roadmap covers the runtime-simulation implementation imported from gosim
+This roadmap covers the runtime-simulation implementation imported from gomad
 and now located in [`tools/gomad`](tools/gomad). It addresses file and package
 structure, naming, dependency ownership, test organization, and the boundary
 between translated code and the simulator runtime.
@@ -35,20 +35,19 @@ deepening existing modules before creating more packages.
 
 ## Recommended decisions
 
-### 1. Keep the upstream engine isolated behind a GoMaD-facing boundary
+### 1. Keep the engine isolated behind a GoMaD-facing boundary
 
-Keep the nested module described by
-[`tools/gomad/UPSTREAM.md`](tools/gomad/UPSTREAM.md) so simulator, translator,
-SQLite, and testing dependencies do not enter Temporal's main module. Preserve
-upstream-facing internal names where doing so materially reduces refresh
-conflicts, but expose a coherent GoMaD command and repository integration.
+Keep the nested module so simulator, translator, SQLite, and testing
+dependencies remain isolated from most of Temporal's main module. Use GoMaD
+names consistently across the nested module, command, and repository
+integration.
 
 The immediate target should be:
 
 - `tools/gomad_old` remains the legacy implementation;
 - the repository-facing command and build-tag path select the runtime simulator;
 - the user-facing executable is `gomad`;
-- Gosim-prefixed internal names are either intentionally documented as upstream
+- Gomad-prefixed internal names are either intentionally documented as upstream
   engine names or renamed together in a later, atomic fork decision.
 
 Do not leave two commands claiming to be GoMaD or perform a piecemeal module,
@@ -65,7 +64,7 @@ translated output.
 
 ### 3. Split files before splitting core packages
 
-`gosimruntime`, `internal/simulation`, and `internal/translate` are tightly
+`gomadruntime`, `internal/simulation`, and `internal/translate` are tightly
 coupled internally. First expose their existing responsibilities as focused
 files and narrow helpers. Introduce new package boundaries only after those
 dependencies are visible and can be moved without cycles.
@@ -103,7 +102,7 @@ Do not split copied standard-library files merely because they are large.
 | RF-205 | P2       | S/M    | RF-004         | Split CLI subcommands and centralize Go command construction.                       |
 | RF-206 | P2       | M      | RF-201         | Split network packets, listeners, buffers, and streams.                             |
 | RF-301 | P2       | L      | RF-202, RF-204 | Introduce a narrow translated-code runtime ABI.                                     |
-| RF-302 | P2       | M      | RF-004         | Replace the `internal/gosimtool` grab bag with owned modules.                       |
+| RF-302 | P2       | M      | RF-004         | Replace the `internal/gomadtool` grab bag with owned modules.                       |
 | RF-303 | P2       | M      | None           | Consolidate trace parsing around one typed event schema.                            |
 | RF-304 | P2       | M      | RF-202         | Share the metatest subprocess protocol and implement runner cleanup.                |
 | RF-401 | P1       | S      | None           | Remove inert tests, obsolete commented implementations, and private dead symbols.   |
@@ -168,7 +167,7 @@ The boundary should own:
 ### RF-004: make naming intentional
 
 Use `gomad` consistently for user-facing command names and Temporal integration.
-Document internal Gosim names as upstream engine names until an explicit fork
+Document internal Gomad names as upstream engine names until an explicit fork
 decision justifies an atomic rename. If a full rename is chosen later, change
 the module path, root package, runtime imports, command, cache directory,
 environment variables, directives, generated files, scripts, and goldens in
@@ -253,7 +252,7 @@ package.
 
 ### RF-202: simulator runtime
 
-Split `gosimruntime/runtime.go` into:
+Split `gomadruntime/runtime.go` into:
 
 - `errors.go`;
 - `machine.go`;
@@ -273,7 +272,7 @@ I/O, crash persistence, and mmap files. Keep `chunkedfile.go` and
 `pendingops.go` separate; they already provide deep, independently testable
 modules.
 
-Move the map-reflection adapter from the tail of `gosimruntime/map.go` to
+Move the map-reflection adapter from the tail of `gomadruntime/map.go` to
 `reflect_map.go` without changing packages.
 
 ### RF-204: translator pipeline
@@ -318,7 +317,7 @@ implementation behind internal packages only when doing so does not create
 cycles. Treat ABI changes as cache-version changes and add translator/runtime
 compatibility tests.
 
-### RF-302: dismantle `internal/gosimtool`
+### RF-302: dismantle `internal/gomadtool`
 
 Move responsibilities to owners instead of creating another generic utility
 package:
@@ -354,7 +353,7 @@ Exit criteria for Phase 4:
 Verified private candidates with no callers include:
 
 - `wrappedChan` in `internal/reflect/value.go`;
-- `(*fnv64).Sum` in `gosimruntime/fnv64.go`;
+- `(*fnv64).Sum` in `gomadruntime/fnv64.go`;
 - `logInitialized` in `internal/simulation/userspace.go`;
 - `Stack.Endpoint` in `internal/simulation/network/stack.go`;
 - `NewEmptyFilesystem` and the no-op `Filesystem.Release`.
@@ -371,7 +370,7 @@ Remove abandoned commented-out implementations in a dedicated cleanup while
 preserving explanatory, compatibility, and provenance comments. The largest
 blocks are in `net_test.go` and `disk_crash_test.go`.
 
-The ignored `.gosim` directory is generated cache state, not source. It may be
+The ignored `.gomad` directory is generated cache state, not source. It may be
 deleted locally when reclaiming space but should not become a tracked cleanup
 change.
 
@@ -427,9 +426,9 @@ renames independently of any product-wide rebrand:
 | `internal/translate/cache.go`  | `cache_codec.go` or `package_cache.go` |
 | `internal/testing/missing.go`  | `unsupported.go`                       |
 | `internal/reflect/no.go`       | `unsupported_linknames.go`             |
-| `internal/simulation/gosim.go` | `control.go`                           |
-| `internal/gosimlog/main.go`    | `event.go` or `record.go`              |
-| `internal/gosimviewer/main.go` | `server.go`                            |
+| `internal/simulation/gomad.go` | `control.go`                           |
+| `internal/gomadlog/main.go`    | `event.go` or `record.go`              |
+| `internal/gomadviewer/main.go` | `server.go`                            |
 | `getDecriptor`                 | `getDescriptor`                        |
 | `ErrPaniced` / `parkPaniced`   | `ErrPanicked` / `parkPanicked`         |
 
@@ -476,8 +475,8 @@ own acceptance evidence.
 
 ## Risk controls
 
-- **Upstream refresh:** keep mechanical renames separate from semantic ports and
-  record local compatibility changes in `UPSTREAM.md`.
+- **Hard cutover:** keep mechanical renames separate from semantic ports and do
+  not retain compatibility aliases for the previous package or command names.
 - **Generated code:** regenerate whenever hook paths, syscall interfaces, or
   `//go:generate` inputs change; review generated diffs separately.
 - **Translated caches:** version or invalidate caches when imports, runtime ABI,
@@ -501,11 +500,11 @@ acceptance sequence at phase boundaries:
 ```text
 go mod tidy
 go list -tags=test_dep ./...
-go build -tags=test_dep -o .gosim/gosimtool ./cmd/gosim
-go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gosimruntime
-.gosim/gosimtool prepare-selftest
-.gosim/gosimtool test ./internal/tests/behavior ./nemesis
-.gosim/gosimtool test -race ./internal/tests/behavior ./nemesis
+go build -tags=test_dep -o .gomad/gomadtool ./cmd/gomad
+go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gomadruntime
+.gomad/gomadtool prepare-selftest
+.gomad/gomadtool test ./internal/tests/behavior ./nemesis
+.gomad/gomadtool test -race ./internal/tests/behavior ./nemesis
 ```
 
 Use the repository's `make lint-code` gate after changes connect the nested tool

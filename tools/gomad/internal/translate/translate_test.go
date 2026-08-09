@@ -18,7 +18,7 @@ import (
 	gocmp "github.com/google/go-cmp/cmp"
 	"golang.org/x/tools/txtar"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
+	"github.com/temporalio/gomad/internal/gomadtool"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 	useworkdir = flag.Bool("useworkdir", false, "write in testdata/workdir instead of tempdir")
 )
 
-// TestTranslate runs gosim translate on all go files specified in testdata/.
+// TestTranslate runs gomad translate on all go files specified in testdata/.
 //
 // Each file in testdata that ends in .translate.txt is a directory that will be
 // translated.  All files in all directories are put in one module and
@@ -35,7 +35,7 @@ var (
 // The expected output of the translation is stored with the testdata/ (next to
 // each input file) and checked or rewritten depending on the -rewrite flag.
 //
-// TODO: this test relies on a compiled and up-to-date gosim binary from the
+// TODO: this test relies on a compiled and up-to-date gomad binary from the
 // script test... this is brittle and will be a pain at some point...
 func TestTranslate(t *testing.T) {
 	entries, err := os.ReadDir("./testdata")
@@ -62,14 +62,14 @@ func TestTranslate(t *testing.T) {
 		workDir = t.TempDir()
 	}
 
-	curModDir, err := gosimtool.FindGoModDir()
+	curModDir, err := gomadtool.FindGoModDir()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	extractedModDir := filepath.Join(curModDir, gosimtool.OutputDirectory, "scripttest", "mod")
+	extractedModDir := filepath.Join(curModDir, gomadtool.OutputDirectory, "scripttest", "mod")
 
-	// add test dependencies to the copied gosim module
+	// add test dependencies to the copied gomad module
 	if err := filepath.Walk(extractedModDir, func(path string, info fs.FileInfo, err error) error {
 		return nil
 	}); err != nil {
@@ -77,7 +77,7 @@ func TestTranslate(t *testing.T) {
 	}
 
 	// put a fake go.mod in the work directory
-	if err := gosimtool.MakeGoModForTest(extractedModDir, workDir, []string{
+	if err := gomadtool.MakeGoModForTest(extractedModDir, workDir, []string{
 		"github.com/dave/dst",
 		"github.com/google/go-cmp",
 		"github.com/mattn/go-isatty",
@@ -92,8 +92,8 @@ func TestTranslate(t *testing.T) {
 	}
 
 	// TODO: dedup this code with scripttest, somehow
-	binPath := filepath.Join(curModDir, gosimtool.OutputDirectory, "scripttest", "bin", "gosim")
-	envVars := append(os.Environ(), "GOSIMCACHE="+filepath.Join(curModDir, gosimtool.OutputDirectory))
+	binPath := filepath.Join(curModDir, gomadtool.OutputDirectory, "scripttest", "bin", "gomad")
+	envVars := append(os.Environ(), "GOMADCACHE="+filepath.Join(curModDir, gomadtool.OutputDirectory))
 
 	// parse all inputs and write them to work directory
 	archiveByPackage := make(map[string]*txtar.Archive)
@@ -153,13 +153,13 @@ func TestTranslate(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	cfg := gosimtool.BuildConfig{
+	cfg := gomadtool.BuildConfig{
 		GOOS: "linux",
 		// TODO: varying the architecture for snapshots is fine as long as we don't translate arch-specific stuff; cross-arch tests should catch problems...
 		GOARCH: runtime.GOARCH,
 		Race:   false,
 	}
-	outputPath := filepath.Join(workDir, gosimtool.OutputDirectory, "translated", cfg.AsDirname(), "test")
+	outputPath := filepath.Join(workDir, gomadtool.OutputDirectory, "translated", cfg.AsDirname(), "test")
 
 	// read all output files
 	if err := filepath.WalkDir(outputPath, func(path string, d fs.DirEntry, _ error) error {
@@ -221,7 +221,7 @@ func TestTranslate(t *testing.T) {
 }
 
 func TestRenameFile(t *testing.T) {
-	cfg := gosimtool.BuildConfig{
+	cfg := gomadtool.BuildConfig{
 		GOOS:   "linux",
 		GOARCH: "amd64",
 	}

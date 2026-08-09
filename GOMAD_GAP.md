@@ -1,8 +1,8 @@
 # GOMAD runtime-simulation gaps
 
-[`GOSIM.md`](GOSIM.md) explains gosim's intended boundary well, but it does not
+[`GOMAD.md`](GOMAD.md) explains gomad's intended boundary well, but it does not
 fully describe the implementation risk inside that boundary. The missing point
-is that gosim is not simply a mocked Go runtime. It is a hybrid of AST
+is that gomad is not simply a mocked Go runtime. It is a hybrid of AST
 translation, Go-version-specific standard-library hooks, a custom deterministic
 runtime, and a simulated Linux syscall layer.
 
@@ -11,14 +11,13 @@ The public standard-library implementation is reused more often than in an API
 mocking system, but the simulator is only as complete as its translator, hook
 table, runtime primitives, and syscall model together.
 
-This document focuses on the gosim runtime-simulation strategy at the imported
-`ffd3a613` snapshot. After the repository rename, that implementation lives in
-`tools/gomad`; the previous AST-rewrite implementation lives in
+This document focuses on the runtime-simulation strategy in `tools/gomad`; the
+previous AST-rewrite implementation lives in
 `tools/gomad_old` and appears below only as a source of reusable test ideas.
 
 ## The actual interception stack
 
-| Layer | What gosim replaces | Main correctness risk |
+| Layer | What gomad replaces | Main correctness risk |
 | --- | --- | --- |
 | AST translator | Goroutines, channels, maps, `select`, package globals, imports, initialization, and selected linknames | Missed syntax, incorrect type rewriting, or an escape into untranslated code |
 | Runtime hooks | Unexported functions used by `sync`, `time`, `net`, `os`, atomics, polling, and other standard-library packages | Every Go release may change an unstable internal signature or invariant |
@@ -106,7 +105,7 @@ The normal translation path skips `runtime`, `errors`, `reflect`, `unsafe`,
 `testing`, runtime profiling/metrics/coverage packages, and other selected
 packages. It also preserves assembly for a package allowlist
 ([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L27-L80)).
-Imports can opt out through `//gosim:notranslate`
+Imports can opt out through `//gomad:notranslate`
 ([`internal/translate/translate.go`](tools/gomad/internal/translate/translate.go#L577-L609)).
 
 Some escapes are necessary, but the snapshot does not produce a single artifact
@@ -121,7 +120,7 @@ This is the largest trust gap in the runtime-mock strategy. The boundary is
 distributed across translation tables, hook files, source annotations, and
 generated syscall code rather than exposed as a fail-closed manifest.
 
-There is also a security implication: gosim is not a sandbox. `unsafe` and
+There is also a security implication: gomad is not a sandbox. `unsafe` and
 several runtime packages remain native, and individual imports can deliberately
 opt out of translation
 ([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L27-L57),
@@ -132,9 +131,9 @@ permissions.
 
 ### 3. Built-in maps and channels are still replaced types — Critical
 
-Gosim keeps the standard-library implementation above many runtime hooks, but it
+Gomad keeps the standard-library implementation above many runtime hooks, but it
 does not keep native Go maps and channels. The translator changes their types and
-operations to gosim runtime types
+operations to gomad runtime types
 ([`docs/design.md`](tools/gomad/docs/design.md#L113-L152),
 [`internal/translate/translate.go`](tools/gomad/internal/translate/translate.go#L536-L564)).
 It consequently needs a custom `reflect` layer to hide those differences
@@ -159,7 +158,7 @@ The scheduler chooses a runnable simulated goroutine and lets it run until it
 yields, blocks through a modeled primitive, finishes, or panics. The runtime
 itself notes that uninstrumented synchronization or a spin can hang a step and
 that a per-step wall-clock timeout is missing
-([`gosimruntime/runtime.go`](tools/gomad/gosimruntime/runtime.go#L234-L275)).
+([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L234-L275)).
 
 Runtime hooks reduce this risk by moving standard synchronization and polling
 onto the simulated scheduler, but they cannot automatically preempt:
@@ -174,7 +173,7 @@ responsible goroutine and native stack, not left to a whole-test timeout.
 
 ### 5. Per-machine global isolation is conditional — Critical
 
-Gosim rewrites package globals into per-machine containers and re-runs package
+Gomad rewrites package globals into per-machine containers and re-runs package
 initializers when a machine starts. This is essential to its process model, not a
 minor runtime feature
 ([`docs/design.md`](tools/gomad/docs/design.md#L202-L242),
@@ -209,7 +208,7 @@ At the OS boundary, unknown raw syscalls are logged and return `ENOSYS`
 ([`internal/simulation/os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L162-L175)).
 Package loading forces Linux, the host architecture, the `sim` build tag, and
 `CGO_ENABLED=0`
-([`cmd/gosim/main.go`](tools/gomad/cmd/gosim/main.go#L155-L159),
+([`cmd/gomad/main.go`](tools/gomad/cmd/gomad/main.go#L155-L159),
 [`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L120-L136)).
 
 These are hard compatibility limits. Every target workload needs an executed
@@ -220,7 +219,7 @@ panic, or unreachable.
 
 The runtime uses one clock for all machines. The source explicitly leaves
 per-machine clock offsets and broken clocks as future work
-([`gosimruntime/time.go`](tools/gomad/gosimruntime/time.go#L1-L35)). The current
+([`gomadruntime/time.go`](tools/gomad/gomadruntime/time.go#L1-L35)). The current
 model can accelerate time and order timers deterministically, but it cannot
 model:
 
@@ -256,7 +255,7 @@ validation.
 
 The checksum records scheduler picks and results, log writes, goroutine creation,
 run boundaries, and clock advancement
-([`gosimruntime/checksum.go`](tools/gomad/gosimruntime/checksum.go#L23-L35)). It
+([`gomadruntime/checksum.go`](tools/gomad/gomadruntime/checksum.go#L23-L35)). It
 does not directly hash arbitrary heap state, syscall results, filesystem state,
 network packets, global values, or race edges.
 
@@ -274,22 +273,22 @@ results.
 ### 10. Schedule exploration is reproducible but not systematic — Medium
 
 The scheduler uses a seeded random choice among runnable goroutines
-([`gosimruntime/runtime.go`](tools/gomad/gosimruntime/runtime.go#L257-L275)). Seed
+([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L257-L275)). Seed
 ranges replay or vary that choice, but there is no coverage metric, state-space
 reduction, schedule bounding, shrinking, or PCT-style guarantee. The design
 mentions PCT only as related work
 ([`docs/design.md`](tools/gomad/docs/design.md#L502-L514)).
 
-Deterministic replay and exploration quality are separate properties. Gosim has
+Deterministic replay and exploration quality are separate properties. Gomad has
 the first; the snapshot does not define the second beyond randomized seeds.
 
 ### 11. The replacement `testing` runtime is incomplete — Medium
 
-Because translated tests need simulator-owned execution, gosim carries a copied
+Because translated tests need simulator-owned execution, gomad carries a copied
 `testing` implementation. The runner supports only a small subset of standard
 test flags and rejects other supplied `-test.*` flags
-([`gosimruntime/testmain.go`](tools/gomad/gosimruntime/testmain.go#L59-L71),
-[`gosimruntime/testmain.go`](tools/gomad/gosimruntime/testmain.go#L111-L122)).
+([`gomadruntime/testmain.go`](tools/gomad/gomadruntime/testmain.go#L59-L71),
+[`gomadruntime/testmain.go`](tools/gomad/gomadruntime/testmain.go#L111-L122)).
 Coverage, benchmarks, examples, and several entry points are unimplemented
 ([`internal/testing/missing.go`](tools/gomad/internal/testing/missing.go#L1-L45));
 `T.TempDir` and `T.Setenv` panic
@@ -323,14 +322,14 @@ Without that report, users discover compatibility by translation failure,
 The runtime-simulation implementation has a large test corpus, but raw counts
 are misleading: many cases are subtests, some sources are selected by build
 constraints, the race corpus dominates the number of top-level tests, and a
-test run generates another translated tree under `.gosim`. The useful inventory
+test run generates another translated tree under `.gomad`. The useful inventory
 is by responsibility:
 
 | Suite | Relative breadth | What it establishes |
 | --- | --- | --- |
 | `internal/tests/behavior` | Broad | Language, globals, time, network, filesystem, crash, logging, and library behavior |
 | `internal/tests/race` | Broad, dominated by copied race cases | Race-detector behavior across channels, maps, synchronization, time, I/O, and atomics |
-| `gosimruntime` | Narrow direct unit suite | Map, timer-heap, random, and scheduler cleanup properties |
+| `gomadruntime` | Narrow direct unit suite | Map, timer-heap, random, and scheduler cleanup properties |
 | `internal/translate` | Golden and compatibility suite | Translation output, filename handling, caching, and Go-version-specific behavior |
 | Script, metatesting, nemesis, and examples | Small end-to-end suite | CLI behavior, repeated execution, fault injection, and representative workloads |
 
@@ -366,14 +365,14 @@ error.
 The copied race corpus is also run under only the default seed, despite a TODO
 calling for multiple seeds
 ([`race_test.go`](tools/gomad/internal/tests/race/race_test.go#L42-L49),
-[`testmain.go`](tools/gomad/gosimruntime/testmain.go#L99-L102)). The largest
+[`testmain.go`](tools/gomad/gomadruntime/testmain.go#L99-L102)). The largest
 concurrency corpus therefore checks many primitives but explores only one
 simulated schedule per test.
 
 ### 14. The simulator and metatest protocol are process-global — Medium
 
 The runtime rejects a second active simulator in the same process
-([`gosimruntime/runtime.go`](tools/gomad/gosimruntime/runtime.go#L52-L73)). The
+([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L52-L73)). The
 metatest layer reuses one child process and one JSON encoder/decoder per package,
 but explicitly lacks synchronization for concurrent `Run` calls and leaves
 runner shutdown commented out
@@ -390,10 +389,10 @@ same-seed isolation tests.
 
 ### 15. GC, finalizer, and object-lifetime semantics are not modeled — Medium
 
-Calls to `runtime.SetFinalizer` are rewritten to gosim, where the implementation
+Calls to `runtime.SetFinalizer` are rewritten to gomad, where the implementation
 is an unconditional no-op
 ([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L96-L104),
-[`gosimruntime/runtime.go`](tools/gomad/gosimruntime/runtime.go#L937-L942)). The
+[`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L937-L942)). The
 host GC still manages physical memory, but its timing is outside the simulated
 schedule and cannot create deterministic cleanup or memory-pressure events.
 
@@ -417,7 +416,7 @@ The iterator also reads the live pending-operation graph without cloning it
 
 Each yielded crash state creates and starts another machine; machines are added
 to `machinesById` and are never removed, while filesystem `Release` is empty
-([`gosim.go`](tools/gomad/internal/simulation/gosim.go#L62-L92),
+([`gomad.go`](tools/gomad/internal/simulation/gomad.go#L62-L92),
 [`simulation.go`](tools/gomad/internal/simulation/simulation.go#L54-L80),
 [`filesystem.go`](tools/gomad/internal/simulation/fs/filesystem.go#L504-L506)).
 The iterator itself runs in a goroutine with its stop method commented out, so
@@ -436,11 +435,11 @@ Expose explored/pruned/retained state counts in test output.
 
 The machine-creation path discards `netip.ParseAddr` errors; an invalid supplied
 address becomes an automatically allocated address
-([`gosim.go`](tools/gomad/internal/simulation/gosim.go#L45-L59),
+([`gomad.go`](tools/gomad/internal/simulation/gomad.go#L45-L59),
 [`simulation.go`](tools/gomad/internal/simulation/simulation.go#L62-L64)). More
 directly, `MachineSetSometimesCrashOnSync` ignores its Boolean argument and
 always enables crashing, so passing `false` cannot disable the fault
-([`gosim.go`](tools/gomad/internal/simulation/gosim.go#L180-L189)). Machine
+([`gomad.go`](tools/gomad/internal/simulation/gomad.go#L180-L189)). Machine
 lookups also assume every ID exists instead of returning a typed stale/unknown
 handle error.
 
@@ -458,7 +457,7 @@ restart transitions.
 
 The clock advances only when no simulated goroutine is runnable and a timer is
 waiting
-([`gosimruntime/runtime.go`](tools/gomad/gosimruntime/runtime.go#L245-L259)).
+([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L245-L259)).
 Terminating CPU work therefore consumes zero simulated time, filesystem calls
 apply synchronously without a configurable latency, and the network exposes a
 constant delay rather than bandwidth or queue-service costs. This is separate
@@ -472,20 +471,20 @@ current model.
 **Opportunity:** define the intended performance boundary explicitly. If these
 failures are in scope, add deterministic operation-cost hooks, disk latency,
 bandwidth/queue limits, and resource budgets; otherwise require complementary
-load and fault-injection tests outside gosim.
+load and fault-injection tests outside gomad.
 
 ### 19. Atomic operations are not scheduling points — High
 
 Every `sync/atomic` hook calls `maybeAtomicYield`, but yielding is disabled by
 the compile-time `AtomicYield = false` constant
 ([`sync_atomic.go`](tools/gomad/internal/hooks/go123/sync_atomic.go#L11-L24),
-[`sema.go`](tools/gomad/gosimruntime/sema.go#L153-L159)). Runtime acquire/release
+[`sema.go`](tools/gomad/gomadruntime/sema.go#L153-L159)). Runtime acquire/release
 helpers and `procPin`/`procUnpin` similarly avoid a scheduling choice
 ([`sync.go`](tools/gomad/internal/hooks/go123/sync.go#L31-L75)).
 
 As a result, a lock-free loop or atomic state machine can run from one unrelated
 yield point to the next as one scheduler step. The execution may be a legal Go
-schedule, but gosim will not explore the interleavings at the atomic operations
+schedule, but gomad will not explore the interleavings at the atomic operations
 where lock-free bugs usually occur; a CAS retry loop can also become the
 uninterruptible-spin failure from gap 4.
 
@@ -542,7 +541,7 @@ for peer timeouts, keepalive failure, and retry behavior.
 
 ### 22. Normal machine return can hide abandoned work and durability bugs — High
 
-When a machine's main function returns, gosim performs a graceful stop: it
+When a machine's main function returns, gomad performs a graceful stop: it
 first aborts every remaining goroutine and timer, then closes network streams
 and copies the entire in-memory filesystem to persisted state
 ([`machine.go`](tools/gomad/machine.go#L19-L25),
@@ -550,8 +549,8 @@ and copies the entire in-memory filesystem to persisted state
 [`filesystem.go`](tools/gomad/internal/simulation/fs/filesystem.go#L508-L519)).
 The top-level runtime also converts `ErrMainReturned` to success and only leaves
 an `AssertAllDone`-style quiescence check as a TODO
-([`runtime.go`](tools/gomad/gosimruntime/runtime.go#L390-L393),
-[`runtime.go`](tools/gomad/gosimruntime/runtime.go#L1046-L1047)).
+([`runtime.go`](tools/gomad/gomadruntime/runtime.go#L390-L393),
+[`runtime.go`](tools/gomad/gomadruntime/runtime.go#L1046-L1047)).
 
 A server test can consequently report success while background work is still
 blocked or runnable, defers are skipped, resources remain open, and writes that
@@ -569,8 +568,8 @@ chosen durability action in the trace.
 
 Environment variables live on the scheduler and every machine reads the same
 slice
-([`runtime.go`](tools/gomad/gosimruntime/runtime.go#L92-L143),
-[`runtime.go`](tools/gomad/gosimruntime/runtime.go#L996-L999)). `MachineConfig`
+([`runtime.go`](tools/gomad/gomadruntime/runtime.go#L92-L143),
+[`runtime.go`](tools/gomad/gomadruntime/runtime.go#L996-L999)). `MachineConfig`
 has no environment field, and runtime `setenv`, `unsetenv`, and `clearenv` hooks
 panic as unimplemented
 ([`machine.go`](tools/gomad/machine.go#L46-L57),
@@ -594,7 +593,7 @@ including positional I/O
 [`os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L673-L678),
 [`os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L812-L851)). The
 JSON trace file is created with mode `0644`
-([`testmain.go`](tools/gomad/gosimruntime/testmain.go#L141-L166)).
+([`testmain.go`](tools/gomad/gomadruntime/testmain.go#L141-L166)).
 
 Enabling a diagnostic trace can therefore copy credentials, tokens, request
 bodies, and stored records into world-readable local files or retained CI
@@ -624,7 +623,7 @@ rewrite strategy rather than runtime-simulation behavior.
 | P1 | Timer scheduling | Concurrent timers completing in deadline order, a timer firing without a receiver, and `time.Tick` ([`timer_test.go`](tools/gomad_old/api/lib/timer_test.go#L39-L73), [`ticker_test.go`](tools/gomad_old/api/lib/ticker_test.go#L124-L139)) | Keep only behavior guaranteed by Go. Revalidate `Timer.Stop` and `Timer.Reset` return values against the target Go release instead of copying old mock assumptions. |
 | P1 | WaitGroup and closed-channel oracles | Empty WaitGroup, fanout, send-on-closed, and double-close cases ([`waitgroup_test.go`](tools/gomad_old/api/lib/waitgroup_test.go#L39-L123), [`channel_test.go`](tools/gomad_old/api/lang/channel_test.go#L243-L263)) | Prefer the fanout composition; negative-counter behavior already appears in the race corpus. Assert panic type/occurrence, not simulator-specific message text or channel IDs. |
 | P2 | Maps, randomness, context, reflection, and basic goroutines | Little incremental coverage | Do not port wholesale. Current map, random, context, reflection, and goroutine coverage is already broader; add only a same-seed/different-seed map-iteration meta-test if raw iteration order needs an explicit contract. |
-| Conditional | Concurrent simulations | Same-seed isolation across concurrent simulator instances ([`concurrent_test.go`](tools/gomad_old/runtime/concurrent_test.go#L12-L47)) | This is an acceptance test only if in-process concurrency becomes a goal. The current runtime explicitly permits only one active simulator per process ([`runtime.go`](tools/gomad/gosimruntime/runtime.go#L52-L73)); otherwise add a test that documents that restriction. |
+| Conditional | Concurrent simulations | Same-seed isolation across concurrent simulator instances ([`concurrent_test.go`](tools/gomad_old/runtime/concurrent_test.go#L12-L47)) | This is an acceptance test only if in-process concurrency becomes a goal. The current runtime explicitly permits only one active simulator per process ([`runtime.go`](tools/gomad/gomadruntime/runtime.go#L52-L73)); otherwise add a test that documents that restriction. |
 | Not applicable | Checkpoint/restore | Execution replay, branching, channel-buffer restore, and DRNG restore tests | Runtime simulation exposes machine crash/restart, not execution snapshots. These tests require a new checkpoint feature and should not be presented as crash fidelity tests. |
 
 The donor tests must not be copied verbatim. In particular:
@@ -668,7 +667,7 @@ Source inspection cannot answer:
 
 ## Minimum acceptance bar
 
-Before treating gosim as a usable runtime-mock platform for a new codebase, the
+Before treating gomad as a usable runtime-mock platform for a new codebase, the
 following should pass:
 
 1. **Exact-version port:** all hook and linkname entries compile and have direct
@@ -704,7 +703,7 @@ following should pass:
     bounded, and the race corpus runs across multiple schedule seeds.
 
 The core conclusion is narrower than "mock the runtime and inherit standard
-library fidelity." Gosim moves much of the semantic burden below public APIs,
+library fidelity." Gomad moves much of the semantic burden below public APIs,
 which is a strong design, but it then assumes responsibility for the language
 rewrite, per-machine global model, unstable runtime hooks, and Linux syscall
 semantics. Those are the gaps that must be closed or made explicit.

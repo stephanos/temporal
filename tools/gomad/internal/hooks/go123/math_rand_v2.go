@@ -1,7 +1,7 @@
 package go123
 
-import "github.com/jellevandenhooff/gosim/gosimruntime"
+import "github.com/temporalio/gomad/gomadruntime"
 
 func MathRandV2_runtime_rand() uint64 {
-	return gosimruntime.Fastrand64()
+	return gomadruntime.Fastrand64()
 }

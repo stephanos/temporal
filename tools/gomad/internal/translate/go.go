@@ -67,7 +67,7 @@ func (t *packageTranslator) rewriteGo(c *dstutil.Cursor) {
 //			}
 //		}
 //	}
-//	gosimruntime.Go(Bind1_1(foo)(10))
+//	gomadruntime.Go(Bind1_1(foo)(10))
 //
 // This trick is necessary because Go() only accepts func() arguments. Each
 // converted package includes all the Bind used in that that package. bindspec

@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 // TODO: clean/change this API?
@@ -23,8 +23,8 @@ type PollDesc struct {
 
 	mu sync.Mutex
 
-	readable gosimruntime.Uint32Futex
-	writable gosimruntime.Uint32Futex
+	readable gomadruntime.Uint32Futex
+	writable gomadruntime.Uint32Futex
 
 	readTimer   *time.Timer
 	readTimeout time.Time

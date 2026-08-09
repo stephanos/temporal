@@ -1,4 +1,4 @@
-module github.com/jellevandenhooff/gosim
+module github.com/temporalio/gomad
 
 go 1.26.0
 

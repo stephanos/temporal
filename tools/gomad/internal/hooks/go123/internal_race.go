@@ -3,7 +3,7 @@ package go123
 import (
 	"unsafe"
 
-	simrace "github.com/jellevandenhooff/gosim/internal/race"
+	simrace "github.com/temporalio/gomad/internal/race"
 )
 
 func InternalRace_Acquire(addr unsafe.Pointer) {

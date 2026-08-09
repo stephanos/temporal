@@ -21,11 +21,11 @@ import (
 	"github.com/dave/dst/dstutil"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
+	"github.com/temporalio/gomad/internal/gomadtool"
 )
 
 type translatePackageArgs struct {
-	cfg                gosimtool.BuildConfig
+	cfg                gomadtool.BuildConfig
 	pkg                *packages.Package
 	hooksPackage       string
 	packageNames       map[string]string
@@ -88,7 +88,7 @@ func filterTestFiles(files []*ast.File, fset *token.FileSet) []*ast.File {
 // constraint (see https://pkg.go.dev/cmd/go#hdr-Build_constraints). If that is
 // the case, neuter the constraint by adding a "_" to the name. We no longer
 // need the constraint because all translated code is compiled together.
-func renameFile(cfg gosimtool.BuildConfig, filePath string) string {
+func renameFile(cfg gomadtool.BuildConfig, filePath string) string {
 	dotIdx := strings.LastIndex(filePath, ".")
 	withoutDot := filePath[:dotIdx]
 	ext := filePath[dotIdx:]
@@ -165,7 +165,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := writer.stage(pathForFile(outputPackage, "gosim_meta_test.go"), bytes); err != nil {
+		if err := writer.stage(pathForFile(outputPackage, "gomad_meta_test.go"), bytes); err != nil {
 			log.Fatal(err)
 		}
 		return &TranslatePackageResult{TranslatedFiles: writer.extract()}
@@ -345,9 +345,9 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 	}
 
 	if globalsName, ok := map[packageKind]string{
-		PackageKindBase:    "gosim_globals.go",
-		PackageKindForTest: "gosim_globals_for_test.go",
-		PackageKindTests:   "gosim_globals_test.go",
+		PackageKindBase:    "gomad_globals.go",
+		PackageKindForTest: "gomad_globals_for_test.go",
+		PackageKindTests:   "gomad_globals_test.go",
 	}[kind]; ok {
 		// write a globals.go, if applicable
 		if len(translator.collect.globalFields) > 0 || len(translator.collect.inits) > 0 || len(translator.collect.bindspecs) > 0 || len(translator.collect.sharedGlobalFields) > 0 || len(translator.collect.maps) > 0 {
@@ -382,7 +382,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 		}
 	}
 
-	// write a gosimaliashack.go file if needed
+	// write a gomadaliashack.go file if needed
 	if kind == PackageKindBase {
 		// XXX: compute these automatically?
 		if vars, ok := PublicExportHacks[args.pkg.PkgPath]; ok {
@@ -394,7 +394,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 			if err != nil {
 				log.Fatal(err)
 			}
-			if err := writer.stage(pathForFile(outputPackage, "gosimaliashack.go"), bytes); err != nil {
+			if err := writer.stage(pathForFile(outputPackage, "gomadaliashack.go"), bytes); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -509,7 +509,7 @@ func shouldMarkSyncFuncsNorace(pkgPath string) bool {
 func (t *packageTranslator) newRuntimeSelector(name string) *dst.Ident {
 	return &dst.Ident{
 		Name: name,
-		Path: t.replacedPkgs[gosimruntimePackage],
+		Path: t.replacedPkgs[gomadruntimePackage],
 	}
 }
 
@@ -521,10 +521,10 @@ func (t *packageTranslator) preApply(c *dstutil.Cursor) bool {
 	if f, ok := c.Node().(*dst.File); ok {
 		for i, dec := range f.Decs.Start {
 			if strings.HasPrefix(dec, "//go:build") {
-				f.Decs.Start[i] = "//" // "//gosim filtered: " + dec
+				f.Decs.Start[i] = "//" // "//gomad filtered: " + dec
 			}
 			if strings.HasPrefix(dec, "// +build") {
-				f.Decs.Start[i] = "//" // "//gosim filtered: " + dec
+				f.Decs.Start[i] = "//" // "//gomad filtered: " + dec
 			}
 		}
 	}
@@ -593,7 +593,7 @@ func (t *packageTranslator) translateFile(dstFile *dst.File) (*dst.File, error) 
 		for _, spec := range genDecl.Specs {
 			importSpec := spec.(*dst.ImportSpec)
 			decs := importSpec.Decs.End.All()
-			if len(decs) >= 1 && decs[0] == "//gosim:notranslate" {
+			if len(decs) >= 1 && decs[0] == "//gomad:notranslate" {
 				unquoted, err := strconv.Unquote(importSpec.Path.Value)
 				if err != nil {
 					return nil, err
@@ -667,7 +667,7 @@ func makePublicExportHackFile(pkgName string, names []string) (*dst.File, error)
 	var specs []dst.Spec
 	for _, name := range names {
 		specs = append(specs, &dst.TypeSpec{
-			Name:   dst.NewIdent("GosimPublicExportHack" + name),
+			Name:   dst.NewIdent("GomadPublicExportHack" + name),
 			Assign: true,
 			Type:   dst.NewIdent(name),
 		})

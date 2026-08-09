@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
 /*
@@ -21,25 +21,25 @@ import (
 func Nemesis(n int) {
 	// figure out how many steps we are running (external argument?)
 	for i := 0; i < n; i++ {
-		gosim.Yield()
+		gomad.Yield()
 	}
-	other := gosimruntime.PickRandomOtherGoroutine() // XXX: make this pick a runnable goroutine instead?
-	gosimruntime.PauseGoroutine(other)
+	other := gomadruntime.PickRandomOtherGoroutine() // XXX: make this pick a runnable goroutine instead?
+	gomadruntime.PauseGoroutine(other)
 	// XXX: what if other has stopped here? make sure it doesn't break
 	// slog.Info("sleeping goroutine", "id", g.ID, "selected", g.selected)
 	time.Sleep(time.Second)
-	gosimruntime.ResumeGoroutine(other)
+	gomadruntime.ResumeGoroutine(other)
 
 	// sleep for rand(steps)... or, call Yield N times
-	// pause random goroutine gosimruntime.PickRandomOtherGoroutine()
-	// sleep (clock) for 1s gosimruntime.PauseGoroutine
-	// unpause that goroutine gosimruntime.ContinueGoroutine
+	// pause random goroutine gomadruntime.PickRandomOtherGoroutine()
+	// sleep (clock) for 1s gomadruntime.PauseGoroutine
+	// unpause that goroutine gomadruntime.ContinueGoroutine
 }
 
-func Restarter(n int, machines []gosim.Machine) {
+func Restarter(n int, machines []gomad.Machine) {
 	// XXX: figure out which machines exist and are reasonable candidates?
 	for i := 0; i < n; i++ {
-		gosim.Yield()
+		gomad.Yield()
 	}
 	i := rand.Intn(len(machines))
 	m := machines[i]
@@ -95,7 +95,7 @@ func (p PartitionMachines) Run() {
 
 	for _, a := range a {
 		for _, b := range b {
-			gosim.SetConnected(a, b, false)
+			gomad.SetConnected(a, b, false)
 		}
 	}
 
@@ -105,7 +105,7 @@ func (p PartitionMachines) Run() {
 
 	for _, a := range a {
 		for _, b := range b {
-			gosim.SetConnected(a, b, true)
+			gomad.SetConnected(a, b, true)
 		}
 	}
 }
@@ -113,7 +113,7 @@ func (p PartitionMachines) Run() {
 // RestartRandomly restarts one randomly chosen machine.
 type RestartRandomly struct {
 	// Machines to choose from for restarting
-	Machines []gosim.Machine
+	Machines []gomad.Machine
 	// Time to wait between crashing machine and starting again
 	Downtime time.Duration
 }

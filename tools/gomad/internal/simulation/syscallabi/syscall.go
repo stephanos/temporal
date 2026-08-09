@@ -4,8 +4,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 // Marked go:norace so simulation can read Goroutine.
@@ -17,10 +17,10 @@ func allocGoroutine(goroutineId int) unsafe.Pointer {
 	})
 }
 
-// Setup configures the gosim runtime to allocate a Syscall struct
+// Setup configures the gomad runtime to allocate a Syscall struct
 // for each goroutine.
 func Setup() {
-	gosimruntime.SetSyscallAllocator(allocGoroutine)
+	gomadruntime.SetSyscallAllocator(allocGoroutine)
 }
 
 // GetGoroutineLocalSyscall returns the per-goroutine pre-allocated
@@ -33,7 +33,7 @@ func Setup() {
 //
 //go:norace
 func GetGoroutineLocalSyscall() *Syscall {
-	syscall := (*Syscall)(gosimruntime.GetGoroutineLocalSyscall())
+	syscall := (*Syscall)(gomadruntime.GetGoroutineLocalSyscall())
 
 	var pc [1]uintptr
 	runtime.Callers(3, pc[:])
@@ -42,7 +42,7 @@ func GetGoroutineLocalSyscall() *Syscall {
 	return syscall
 }
 
-// Syscall holds the arguments and return values of gosim syscalls.
+// Syscall holds the arguments and return values of gomad syscalls.
 //
 // Syscalls are calls from user code to high-level system calls in the os
 // package. To prevent allocations, each goroutine has a single Syscall that
@@ -69,12 +69,12 @@ type Syscall struct {
 
 // Wait waits for the system call to be completed.
 func (u *Syscall) Wait() {
-	gosimruntime.Semacquire(&u.Sema, false)
+	gomadruntime.Semacquire(&u.Sema, false)
 }
 
 // Complete marks the system call completed and lets Wait return.
 func (u *Syscall) Complete() {
-	gosimruntime.Semrelease(&u.Sema)
+	gomadruntime.Semrelease(&u.Sema)
 }
 
 // The Dispatcher is the bridge between user space code and OS code. User space

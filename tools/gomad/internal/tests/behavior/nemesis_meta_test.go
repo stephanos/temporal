@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 

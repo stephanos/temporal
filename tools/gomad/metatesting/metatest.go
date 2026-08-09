@@ -15,13 +15,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
-	"github.com/jellevandenhooff/gosim/internal/prettylog"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/prettylog"
 )
 
-// The structs below are copied from gosimruntime.runConfig and
-// gosimruntime.runResult. Keep in sync.
+// The structs below are copied from gomadruntime.runConfig and
+// gomadruntime.runResult. Keep in sync.
 // They are copied to give a nice documentation view without refering to
 // internal types.
 
@@ -42,10 +42,10 @@ type RunResult struct {
 	Err       string // TODO: reconsider this type?
 }
 
-// A MetaT runs gosim tests for a given package. It can run tests with various
+// A MetaT runs gomad tests for a given package. It can run tests with various
 // flags and returns their results.
 //
-// Behind the scenes a MetaT executes and controls a gosim test binary.
+// Behind the scenes a MetaT executes and controls a gomad test binary.
 type MetaT struct {
 	cmd *exec.Cmd
 
@@ -89,7 +89,7 @@ func newRunner(path string) (*MetaT, error) {
 		return nil, err
 	}
 
-	// TODO: Do not discard, and disable the formatted output print in gosimruntime instead
+	// TODO: Do not discard, and disable the formatted output print in gomadruntime instead
 	// TODO: Prefix output to help identify stray logging?
 	cmd.Stderr = &prefixer{out: os.Stderr, prefix: "metatest binary: "}
 
@@ -163,7 +163,7 @@ func (r *MetaT) Run(t *testing.T, config *RunConfig) (*RunResult, error) {
 
 	b := new(bytes.Buffer)
 
-	// TODO: include "gosim test ..." line?
+	// TODO: include "gomad test ..." line?
 	fmt.Fprintf(b, "\n> running %s [seed=%d]\n", config.Test, config.Seed)
 
 	if err := r.w.Encode(config); err != nil {
@@ -200,8 +200,8 @@ var (
 
 // ForOtherPackage retursn a *MetaT for the specified package.
 func ForOtherPackage(t *testing.T, pkg string) *MetaT {
-	if gosimruntime.IsSim() {
-		t.Fatalf("metatest cannot be used from within gosim")
+	if gomadruntime.IsSim() {
+		t.Fatalf("metatest cannot be used from within gomad")
 	}
 
 	runnerMapMu.Lock()
@@ -212,7 +212,7 @@ func ForOtherPackage(t *testing.T, pkg string) *MetaT {
 		return runner
 	}
 
-	path := gosimtool.GetPathForPrecompiledTestBinary(t, pkg)
+	path := gomadtool.GetPathForPrecompiledTestBinary(t, pkg)
 	runner, err := newRunner(path)
 	if err != nil {
 		t.Fatalf("failed to run test binary: %s", err)
@@ -228,7 +228,7 @@ func getCurrentPackageFromWorkingdir() string {
 	// the current package's source code. Walk upwards to find
 	// the go.mod file, and then combine the module path
 	// with the relative path to the working directory.
-	goModPath, modFile, err := gosimtool.FindGoMod()
+	goModPath, modFile, err := gomadtool.FindGoMod()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -249,8 +249,8 @@ func getCurrentPackageFromWorkingdir() string {
 // package, so if a test changes directories ForCurrentPackage will not work
 // correctly.
 func ForCurrentPackage(t *testing.T) *MetaT {
-	if gosimruntime.IsSim() {
-		t.Fatalf("metatest cannot be used from within gosim")
+	if gomadruntime.IsSim() {
+		t.Fatalf("metatest cannot be used from within gomad")
 	}
 
 	return ForOtherPackage(t, getCurrentPackageFromWorkingdir())
@@ -376,7 +376,7 @@ type SimConfig struct {
 	// xxx: time limit here? steps limit?
 }
 
-func RunNestedTest(t *testing.T, config SimConfig, test Test) []gosimruntime.RunResult {
+func RunNestedTest(t *testing.T, config SimConfig, test Test) []gomadruntime.RunResult {
 	if config.CheckDeterminismRuns > 0 && !config.EnableTracer {
 		// XXX: automatically set flag?
 		panic("must enable tracer when checking determinism")
@@ -389,7 +389,7 @@ func RunNestedTest(t *testing.T, config SimConfig, test Test) []gosimruntime.Run
 	// dontReportFail := config.DontReportFail || s.dontReportFail
 	dontReportFail := config.DontReportFail
 
-	var results []gosimruntime.RunResult
+	var results []gomadruntime.RunResult
 	maybeRunInSubtest(t, config.SimSubtest, test.Name, func(t *testing.T) {
 		for _, seed := range config.Seeds {
 			maybeRunInSubtest(t, config.SeedSubtests, fmt.Sprintf("seed-%d", seed), func(t *testing.T) {

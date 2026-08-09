@@ -2,7 +2,7 @@ package reflect
 
 import (
 	"iter"
-	stdreflect "reflect" //gosim:notranslate
+	stdreflect "reflect" //gomad:notranslate
 )
 
 func TypeAssert[T any](v Value) (T, bool) {

@@ -1,11 +1,11 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
 import (
 	"testing"
 
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 func TestMetaDeterministic(t *testing.T) {
@@ -18,7 +18,7 @@ func TestMetaSeeds(t *testing.T) {
 	metatesting.CheckSeeds(t, mt, 5)
 }
 
-func TestGosim(t *testing.T) {
+func TestGomad(t *testing.T) {
 	runner := metatesting.ForCurrentPackage(t)
 	runner.RunAllTests(t)
 }

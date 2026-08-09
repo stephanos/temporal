@@ -6,7 +6,7 @@ package coro
 // functions calls from inside the coroutine that execute on the stack outside
 // the coroutine.
 //
-// Upcalls are used by the gosim runtime to have a single outside goroutine
+// Upcalls are used by the gomad runtime to have a single outside goroutine
 // modify scheduler (and other) state without triggering the race detector.
 // Whenever user code, for example, spawns a new goroutine which modifies
 // shared scheduler state, it does that with Upcall.

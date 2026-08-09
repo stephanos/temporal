@@ -3,7 +3,7 @@ package go123
 import (
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 func InternalSynctest_Run(f func()) {
@@ -11,7 +11,7 @@ func InternalSynctest_Run(f func()) {
 }
 
 func InternalSynctest_Wait() {
-	gosimruntime.Yield()
+	gomadruntime.Yield()
 }
 
 func InternalSynctest_IsInBubble() bool {

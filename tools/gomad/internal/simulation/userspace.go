@@ -7,15 +7,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/gosimlog"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/gomadlog"
 )
 
 // Per-machine globals initialized in setupUserspace:
 
 var (
 	linuxOS          *LinuxOS
-	gosimOS          *GosimOS // XXX: elsewhere? in machine itself?
+	gomadOS          *GomadOS // XXX: elsewhere? in machine itself?
 	currentMachineID int
 )
 
@@ -23,16 +23,16 @@ func CurrentMachineID() int {
 	return currentMachineID
 }
 
-type gosimSlogHandler struct {
+type gomadSlogHandler struct {
 	inner slog.Handler
 }
 
-func (w gosimSlogHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (w gomadSlogHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return w.inner.Enabled(ctx, level)
 }
 
-func (w gosimSlogHandler) Handle(ctx context.Context, r slog.Record) error {
-	r.AddAttrs(slog.Int("goroutine", gosimruntime.GetGoroutine()))
+func (w gomadSlogHandler) Handle(ctx context.Context, r slog.Record) error {
+	r.AddAttrs(slog.Int("goroutine", gomadruntime.GetGoroutine()))
 	hasStep := false
 	for attr := range r.Attrs {
 		if attr.Key == "step" {
@@ -40,30 +40,30 @@ func (w gosimSlogHandler) Handle(ctx context.Context, r slog.Record) error {
 		}
 	}
 	if !hasStep {
-		r.AddAttrs(slog.Int("step", gosimruntime.Step()))
+		r.AddAttrs(slog.Int("step", gomadruntime.Step()))
 	}
-	if gosimruntime.TraceStack.Enabled() {
-		r.AddAttrs(gosimlog.Stack(0, r.PC))
+	if gomadruntime.TraceStack.Enabled() {
+		r.AddAttrs(gomadlog.Stack(0, r.PC))
 	}
 	return w.inner.Handle(ctx, r)
 }
 
-func (w gosimSlogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return gosimSlogHandler{
+func (w gomadSlogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return gomadSlogHandler{
 		inner: w.inner.WithAttrs(attrs),
 	}
 }
 
-func (w gosimSlogHandler) WithGroup(name string) slog.Handler {
-	return gosimSlogHandler{
+func (w gomadSlogHandler) WithGroup(name string) slog.Handler {
+	return gomadSlogHandler{
 		inner: w.inner.WithGroup(name),
 	}
 }
 
-type gosimLogWriter struct{}
+type gomadLogWriter struct{}
 
-func (w gosimLogWriter) Write(b []byte) (n int, err error) {
-	gosimruntime.WriteLog(b)
+func (w gomadLogWriter) Write(b []byte) (n int, err error) {
+	gomadruntime.WriteLog(b)
 	return len(b), nil
 }
 
@@ -74,7 +74,7 @@ var (
 
 func makeBaseSlogHandler() slog.Handler {
 	var level slog.Level
-	if err := level.UnmarshalText([]byte(os.Getenv("GOSIM_LOG_LEVEL"))); err != nil {
+	if err := level.UnmarshalText([]byte(os.Getenv("GOMAD_LOG_LEVEL"))); err != nil {
 		panic(err)
 	}
 
@@ -82,7 +82,7 @@ func makeBaseSlogHandler() slog.Handler {
 		Level:     level,
 		AddSource: true,
 	}
-	return slog.NewJSONHandler(gosimLogWriter{}, &ho)
+	return slog.NewJSONHandler(gomadLogWriter{}, &ho)
 }
 
 func setupSlog(machineLabel string) {
@@ -105,20 +105,20 @@ func setupSlog(machineLabel string) {
 	// set short file flag so that we'll capture source info. see slog.SetDefault internals
 	// XXX: test this?
 	log.SetFlags(log.Lshortfile)
-	slog.SetDefault(slog.New(gosimSlogHandler{inner: handler}).With("machine", machineLabel))
+	slog.SetDefault(slog.New(gomadSlogHandler{inner: handler}).With("machine", machineLabel))
 
 	logInitialized = true
-	logSyscalls = gosimruntime.TraceSyscall.Enabled()
+	logSyscalls = gomadruntime.TraceSyscall.Enabled()
 }
 
-func setupUserspace(gosimOS_ *GosimOS, linuxOS_ *LinuxOS, machineID int, label string) {
-	// initialize gosimOS etc. before invoking initializers so that init() calls
+func setupUserspace(gomadOS_ *GomadOS, linuxOS_ *LinuxOS, machineID int, label string) {
+	// initialize gomadOS etc. before invoking initializers so that init() calls
 	// can make syscalls, see TestSyscallsDuringInit.
-	gosimOS = gosimOS_
+	gomadOS = gomadOS_
 	linuxOS = linuxOS_
 	currentMachineID = machineID
 
-	gosimruntime.InitGlobals(false, false)
+	gomadruntime.InitGlobals(false, false)
 
 	// setupSlog only works once globals are initialized.  logs during init are
 	// printed to stdout/stderr, see TestLogDuringInit.

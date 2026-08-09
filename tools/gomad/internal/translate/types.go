@@ -53,7 +53,7 @@ func (t *packageTranslator) makeTypeExpr(typ types.Type) dst.Expr {
 			if slices.Index(PublicExportHacks[path], id.Name) == -1 {
 				log.Fatalf("need public export hack for %s.%s", path, id.Name)
 			}
-			id.Name = "GosimPublicExportHack" + id.Name
+			id.Name = "GomadPublicExportHack" + id.Name
 		}
 
 		res := dst.Expr(id)
@@ -88,7 +88,7 @@ func (t *packageTranslator) makeTypeExpr(typ types.Type) dst.Expr {
 			if slices.Index(PublicExportHacks[path], id.Name) == -1 {
 				log.Fatalf("need public export hack for %s.%s", path, id.Name)
 			}
-			id.Name = "GosimPublicExportHack" + id.Name
+			id.Name = "GomadPublicExportHack" + id.Name
 		}
 
 		res := dst.Expr(id)
@@ -259,7 +259,7 @@ func (t *packageTranslator) makeTypeExpr(typ types.Type) dst.Expr {
 //
 // Here, the spec allows assigning a value of unnamed type map[string]string{}
 // to the variable foo of type Values. This is an implicit conversion of a
-// map[string]string into a Values. For gosim this causes a problem because the
+// map[string]string into a Values. For gomad this causes a problem because the
 // translated type of map[string]string is a named type Map[string, string]
 // which cannot be converted to a Values without an explicit conversion.
 //

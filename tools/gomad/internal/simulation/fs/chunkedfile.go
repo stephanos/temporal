@@ -4,7 +4,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+	"github.com/temporalio/gomad/internal/simulation/syscallabi"
 )
 
 // A chunkedFile is the backing storage for files. It supports efficient reads

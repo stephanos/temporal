@@ -55,6 +55,7 @@ require (
 	github.com/sony/gobreaker v1.0.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
+	github.com/temporalio/gomad v0.0.0
 	github.com/temporalio/ringpop-go v0.1.0
 	github.com/temporalio/sqlparser v0.1.0
 	github.com/temporalio/tchannel-go v1.22.1
@@ -88,7 +89,7 @@ require (
 	golang.org/x/sync v0.22.0
 	golang.org/x/text v0.40.0
 	golang.org/x/time v0.15.0
-	golang.org/x/tools v0.44.0
+	golang.org/x/tools v0.47.0
 	google.golang.org/api v0.276.0
 	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
@@ -101,6 +102,7 @@ require (
 	github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
+	github.com/dave/dst v0.27.3 // indirect
 	github.com/go-openapi/swag/cmdutils v0.26.0 // indirect
 	github.com/go-openapi/swag/conv v0.26.0 // indirect
 	github.com/go-openapi/swag/fileutils v0.26.0 // indirect
@@ -113,7 +115,8 @@ require (
 	github.com/go-openapi/swag/typeutils v0.26.0 // indirect
 	github.com/go-openapi/swag/yamlutils v0.26.0 // indirect
 	github.com/hashicorp/go-version v1.9.0 // indirect
-	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/mattn/go-sqlite3 v1.14.24 // indirect
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	go.opentelemetry.io/collector/featuregate v1.56.0 // indirect
 	golang.org/x/perf v0.0.0-20260709024250-82a0b07e230d // indirect
 )
@@ -248,3 +251,5 @@ require (
 )
 
 tool golang.org/x/perf/cmd/benchstat
+
+replace github.com/temporalio/gomad => ./tools/gomad

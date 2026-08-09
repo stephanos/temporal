@@ -6,7 +6,7 @@
 
 package simulation
 
-import "github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+import "github.com/temporalio/gomad/internal/simulation/syscallabi"
 
 type LinuxOS struct{}
 

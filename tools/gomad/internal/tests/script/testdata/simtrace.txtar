@@ -1,9 +1,9 @@
-# running gosim with -simtrace
-exec gosim test -run TestSyscall -simtrace= -v .
+# running gomad with -simtrace
+exec gomad test -run TestSyscall -simtrace= -v .
 ! stdout 'SysOpenat'
 ! stdout 'SysWrite'
 
-exec gosim test -run TestSyscall -simtrace=syscall -v .
+exec gomad test -run TestSyscall -simtrace=syscall -v .
 stdout 'SysOpenat.*hello'
 stdout 'SysWrite.*world'
 

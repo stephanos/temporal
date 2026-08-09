@@ -1,6 +1,6 @@
 package reflect
 
-import "reflect" //gosim:notranslate
+import "reflect" //gomad:notranslate
 
 func MakeFunc(typ Type, fn func(args []Value) (results []Value)) Value {
 	wrapped := func(args []reflect.Value) (results []reflect.Value) {

@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -32,14 +32,14 @@ func TestNemesisCrashInner(t *testing.T) {
 	slog.Info("start", "now", time.Now().Unix())
 	f := func() {
 		for i := 0; i < 5; i++ {
-			gosim.Yield()
+			gomad.Yield()
 		}
 		slog.Info("hello", "now", time.Now().Unix())
-		// slog.Info("hello", "id", gosimruntime.CurrentMachine()) // logs current machine ID, reboot iteration?
+		// slog.Info("hello", "id", gomadruntime.CurrentMachine()) // logs current machine ID, reboot iteration?
 		// time.Sleep(time.Second)
 	}
-	m := gosim.NewSimpleMachine(f)
-	go nemesis.Restarter(0, []gosim.Machine{m})
+	m := gomad.NewSimpleMachine(f)
+	go nemesis.Restarter(0, []gomad.Machine{m})
 	// let test do its thing
 	time.Sleep(time.Minute)
 }

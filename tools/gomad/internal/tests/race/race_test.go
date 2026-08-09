@@ -16,8 +16,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 // copied and modified from go:
@@ -45,7 +45,7 @@ func TestRaceSim(t *testing.T) {
 		t.Skip("race.Enabled is false")
 	}
 
-	path := gosimtool.GetPathForPrecompiledTestBinary(t, gosimtool.Module+"/internal/tests/race/testdata")
+	path := gomadtool.GetPathForPrecompiledTestBinary(t, gomadtool.Module+"/internal/tests/race/testdata")
 	checkTests(t, exec.Command(path, "-test.v"))
 }
 
@@ -54,13 +54,13 @@ func TestRaceOriginal(t *testing.T) {
 		t.Skip("race.Enabled is false")
 	}
 
-	modDir, err := gosimtool.FindGoModDir()
+	modDir, err := gomadtool.FindGoModDir()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// TODO: get this from some shared package instead
-	path := filepath.Join(modDir, gosimtool.OutputDirectory, "racetest", "testdata.test")
+	path := filepath.Join(modDir, gomadtool.OutputDirectory, "racetest", "testdata.test")
 
 	checkTests(t, exec.Command(path, "-test.v"))
 }
