@@ -1,6 +1,6 @@
 package go123
 
-import "github.com/jellevandenhooff/gosim/gosimruntime"
+import "github.com/temporalio/gomad/gomadruntime"
 
 var cryptoInternalFips140Indicators = map[int]uint8{}
 
@@ -9,23 +9,23 @@ func CryptoInternalFips140_fatal(message string) {
 }
 
 func CryptoInternalFips140_getIndicator() uint8 {
-	return cryptoInternalFips140Indicators[gosimruntime.GetGoroutine()]
+	return cryptoInternalFips140Indicators[gomadruntime.GetGoroutine()]
 }
 
 func CryptoInternalFips140_setIndicator(indicator uint8) {
-	cryptoInternalFips140Indicators[gosimruntime.GetGoroutine()] = indicator
+	cryptoInternalFips140Indicators[gomadruntime.GetGoroutine()] = indicator
 }
 
 var cryptoFips140Bypass = map[int]bool{}
 
 func CryptoFips140_setBypass() {
-	cryptoFips140Bypass[gosimruntime.GetGoroutine()] = true
+	cryptoFips140Bypass[gomadruntime.GetGoroutine()] = true
 }
 
 func CryptoFips140_isBypassed() bool {
-	return cryptoFips140Bypass[gosimruntime.GetGoroutine()]
+	return cryptoFips140Bypass[gomadruntime.GetGoroutine()]
 }
 
 func CryptoFips140_unsetBypass() {
-	delete(cryptoFips140Bypass, gosimruntime.GetGoroutine())
+	delete(cryptoFips140Bypass, gomadruntime.GetGoroutine())
 }

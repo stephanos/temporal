@@ -3,8 +3,8 @@ version: '3'
 output: prefixed
 
 vars:
-  # GOSIM: go run github.com/jellevandenhooff/gosim/cmd/gosim
-  GOSIM: $(pwd)/.gosim/gosimtool
+  # GOMAD: go run github.com/temporalio/gomad/cmd/gomad
+  GOMAD: $(pwd)/.gomad/gomadtool
   SIMPACKAGES: ./internal/tests/behavior ./nemesis
 
 tasks:
@@ -20,34 +20,34 @@ tasks:
     cmds:
       - go generate ./...
 
-  gosim-tool:
+  gomad-tool:
     run: once
     cmds:
-      - mkdir -p ./.gosim && go build -o ./.gosim/gosimtool ./cmd/gosim
+      - mkdir -p ./.gomad && go build -o ./.gomad/gomadtool ./cmd/gomad
 
-  gosim-prepare-selftest:
+  gomad-prepare-selftest:
     run: once
     cmds:
-      - "{{.GOSIM}} prepare-selftest"
+      - "{{.GOMAD}} prepare-selftest"
     deps:
-      - gosim-tool
+      - gomad-tool
 
   go-test:
     cmds:
-      - "{{.GOSIM}} build-tests {{.SIMPACKAGES}}"
+      - "{{.GOMAD}} build-tests {{.SIMPACKAGES}}"
       - go test -ldflags=-checklinkname=0 -tags=linkname ./...
     deps:
-      - gosim-tool
-      - gosim-prepare-selftest
+      - gomad-tool
+      - gomad-prepare-selftest
 
   go-race-test:
     cmds:
-      - "{{.GOSIM}} build-tests -race {{.SIMPACKAGES}} ./internal/tests/race/testdata"
+      - "{{.GOMAD}} build-tests -race {{.SIMPACKAGES}} ./internal/tests/race/testdata"
       # todo: get rid of this janky thing???
       - go test -ldflags=-checklinkname=0 -tags=linkname -race ./...
     deps:
-      - gosim-tool
-      - gosim-prepare-selftest
+      - gomad-tool
+      - gomad-prepare-selftest
 
   test:
     deps:

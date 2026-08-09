@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -14,9 +14,9 @@ import (
 	zapslog "github.com/tommoulard/zap-slog"
 	"go.uber.org/zap"
 
-	"github.com/jellevandenhooff/gosim"
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/gosimlog"
+	"github.com/temporalio/gomad"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/gomadlog"
 )
 
 func TestLogSLog(t *testing.T) {
@@ -28,7 +28,7 @@ func TestLogMachineGoroutineTime(t *testing.T) {
 
 	log.Printf("hi %s", "there")
 	go func() {
-		gosim.NewMachine(gosim.MachineConfig{
+		gomad.NewMachine(gomad.MachineConfig{
 			Label: "inside",
 			MainFunc: func() {
 				time.Sleep(10 * time.Second)
@@ -63,7 +63,7 @@ func TestLogForPrettyTest(t *testing.T) {
 	start := time.Now()
 	time.Sleep(20 * time.Second)
 
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		slog.Info("warn", "ok", "now", "delay", time.Since(start))
 		log.Println("before")
 		panic("help")
@@ -73,7 +73,7 @@ func TestLogForPrettyTest(t *testing.T) {
 }
 
 func init() {
-	// logs during init will print to stdout/stderr bypassing the gosim handler
+	// logs during init will print to stdout/stderr bypassing the gomad handler
 	if os.Getenv("LOGDURINGINIT") == "1" {
 		fmt.Println("hello")
 		slog.Info("help")
@@ -84,7 +84,7 @@ func TestLogDuringInit(t *testing.T) {
 	// logs in above init() should print once for main
 
 	// logs should print for this machine also
-	gosim.NewMachine(gosim.MachineConfig{
+	gomad.NewMachine(gomad.MachineConfig{
 		Label:    "logm",
 		MainFunc: func() {},
 	}).Wait()
@@ -140,22 +140,22 @@ func testBacktraceForA() {
 }
 
 func TestLogBacktraceFor(t *testing.T) {
-	g0 := gosimruntime.GetGoroutine()
+	g0 := gomadruntime.GetGoroutine()
 	var g1 int
 
 	go func() {
-		g1 = gosimruntime.GetGoroutine()
-		gosimruntime.TestRaceToken.Release()
+		g1 = gomadruntime.GetGoroutine()
+		gomadruntime.TestRaceToken.Release()
 		testBacktraceForA()
 	}()
 
 	time.Sleep(time.Second)
-	gosimruntime.TestRaceToken.Acquire()
+	gomadruntime.TestRaceToken.Acquire()
 
 	var pcs [128]uintptr
-	n := gosimruntime.GetStacktraceFor(g0, pcs[:])
-	slog.Info("g0", gosimlog.StackFor(pcs[:n], 0))
+	n := gomadruntime.GetStacktraceFor(g0, pcs[:])
+	slog.Info("g0", gomadlog.StackFor(pcs[:n], 0))
 
-	n = gosimruntime.GetStacktraceFor(g1, pcs[:])
-	slog.Info("g1", gosimlog.StackFor(pcs[:n], 0))
+	n = gomadruntime.GetStacktraceFor(g1, pcs[:])
+	slog.Info("g1", gomadlog.StackFor(pcs[:n], 0))
 }

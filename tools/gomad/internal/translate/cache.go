@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
-	"github.com/jellevandenhooff/gosim/internal/translate/cache"
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/translate/cache"
 )
 
 type Hash [32]byte
@@ -65,7 +65,7 @@ func (h *Hasher) Sum256() Hash {
 	return sha256.Sum256(h.buffer.Bytes())
 }
 
-func computeTranslateToolHash(cfg gosimtool.BuildConfig) Hash {
+func computeTranslateToolHash(cfg gomadtool.BuildConfig) Hash {
 	h := NewHasher()
 	h.addString("runner")
 	h.addString(cfg.AsDirname())

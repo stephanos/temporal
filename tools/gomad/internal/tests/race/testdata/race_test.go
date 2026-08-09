@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
 func TestRaceSimple(t *testing.T) {
@@ -87,5 +87,5 @@ func TestNoRaceLotsOfGo(t *testing.T) {
 // XXX: filesystem works and does not cause edges (maybe?)
 
 func TestNoRaceIsDetgo(t *testing.T) {
-	gosim.IsSim()
+	gomad.IsSim()
 }

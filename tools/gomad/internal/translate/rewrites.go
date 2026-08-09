@@ -178,8 +178,8 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 						decl.Decs.Start[i] = strings.Join(parts, " ")
 					} else if t.acceptedLinknames[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}] == (packageSelector{Pkg: pkg, Selector: name}) {
 						slog.Debug("keeping linkname", "pkg", t.pkgPath, "name", decl.Name.Name, "targetPkg", pkg, "targetName", name)
-					} else if strings.HasPrefix(pkg, "gosimnotranslate/") {
-						parts[2] = fmt.Sprintf("%s.%s", strings.TrimPrefix(pkg, "gosimnotranslate/"), name)
+					} else if strings.HasPrefix(pkg, "gomadnotranslate/") {
+						parts[2] = fmt.Sprintf("%s.%s", strings.TrimPrefix(pkg, "gomadnotranslate/"), name)
 						decl.Decs.Start[i] = strings.Join(parts, " ")
 					} else {
 						// TODO: make this fail the build?
@@ -250,7 +250,7 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 func removeLinknames(commentLines []string) {
 	for i, line := range commentLines {
 		if strings.HasPrefix(line, "//go:linkname") {
-			commentLines[i] = "// gosim removed: " + line
+			commentLines[i] = "// gomad removed: " + line
 		}
 	}
 }

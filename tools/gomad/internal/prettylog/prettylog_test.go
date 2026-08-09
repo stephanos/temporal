@@ -11,9 +11,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
-	"github.com/jellevandenhooff/gosim/internal/prettylog"
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/prettylog"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 var (
@@ -43,7 +43,7 @@ func TestPrettyLog(t *testing.T) {
 	}
 
 	if *rewriteInput {
-		mt := metatesting.ForOtherPackage(t, gosimtool.Module+"/internal/tests/behavior")
+		mt := metatesting.ForOtherPackage(t, gomadtool.Module+"/internal/tests/behavior")
 		out, err := mt.Run(t, &metatesting.RunConfig{
 			Test:     "TestLogForPrettyTest",
 			ExtraEnv: []string{"TESTINGFAIL=1"},

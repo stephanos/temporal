@@ -69,7 +69,7 @@ func (t *packageTranslator) rewriteInit(c *dstutil.Cursor) {
 	if t.forTest {
 		forTest = "fortest"
 	}
-	name := fmt.Sprintf("gosiminit%s%d", forTest, idx)
+	name := fmt.Sprintf("gomadinit%s%d", forTest, idx)
 	t.collect.inits = append(t.collect.inits, name)
 
 	decl.Name = dst.NewIdent(name)

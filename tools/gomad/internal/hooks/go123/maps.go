@@ -1,9 +1,9 @@
 package go123
 
 import (
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 func Maps_clone(m any) any {
-	return gosimruntime.CloneMap(m)
+	return gomadruntime.CloneMap(m)
 }

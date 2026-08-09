@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 func TestTFatalAborts(t *testing.T) {
@@ -26,7 +26,7 @@ func TestTFatalAborts(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrTestFailed.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrTestFailed.Error() { // XXX: janky
 		t.Error("expected test failed err")
 	}
 
@@ -53,7 +53,7 @@ func TestPanicAbortsOther(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrPaniced.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrPaniced.Error() { // XXX: janky
 		t.Error("expected paniced err")
 	}
 
@@ -80,7 +80,7 @@ func TestPanic(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrPaniced.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrPaniced.Error() { // XXX: janky
 		t.Error("expected paniced err")
 	}
 
@@ -107,7 +107,7 @@ func TestPanicInsideMachine(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrPaniced.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrPaniced.Error() { // XXX: janky
 		t.Error("expected paniced err")
 	}
 
@@ -134,7 +134,7 @@ func TestTErrorDoesNotAbort(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrTestFailed.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrTestFailed.Error() { // XXX: janky
 		t.Error("expected test failed err")
 	}
 
@@ -163,7 +163,7 @@ func TestSimulationTimeout(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrTimeout.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrTimeout.Error() { // XXX: janky
 		t.Error("expected timeout")
 	}
 
@@ -200,7 +200,7 @@ func TestSimulationTimeoutOverride(t *testing.T) {
 	if !run.Failed {
 		t.Error("expected failure")
 	}
-	if run.Err != gosimruntime.ErrTimeout.Error() { // XXX: janky
+	if run.Err != gomadruntime.ErrTimeout.Error() { // XXX: janky
 		t.Error("expected timeout")
 	}
 

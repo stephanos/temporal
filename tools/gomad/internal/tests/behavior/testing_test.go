@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior
 
@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
 // TODO: t.Fail, t.FailNow, log.Fatal, fmt.Print, slog.Log, os.Exit
@@ -57,7 +57,7 @@ func TestPanicInsideMachine(t *testing.T) {
 		t.Skip()
 	}
 
-	m := gosim.NewSimpleMachine(func() {
+	m := gomad.NewSimpleMachine(func() {
 		log.Println("before")
 		panic("help")
 		log.Println("after")
@@ -87,15 +87,15 @@ func TestTErrorDoesNotAbort(t *testing.T) {
 /*
 // TODO: Port
 func TestNestedNondeterminismLog(t *testing.T) {
-	config := gosim.SimConfig{
+	config := gomad.SimConfig{
 		Seeds:            []int64{1},
 		DontReportFail:   true,
 		CaptureLog:       true,
 		LogLevelOverride: "INFO",
 	}
 
-	result := gosim.RunNestedTest(t, config, gosim.Test{Test: func(t *testing.T) {
-		config := gosim.SimConfig{
+	result := gomad.RunNestedTest(t, config, gomad.Test{Test: func(t *testing.T) {
+		config := gomad.SimConfig{
 			Seeds:                []int64{1},
 			EnableTracer:         true,
 			CheckDeterminismRuns: 1,
@@ -103,8 +103,8 @@ func TestNestedNondeterminismLog(t *testing.T) {
 			LogLevelOverride:     "INFO",
 		}
 
-		result := gosim.RunNestedTest(t, config, gosim.Test{Test: func(t *testing.T) {
-			t.Log(gosimruntime.Nondeterministic())
+		result := gomad.RunNestedTest(t, config, gomad.Test{Test: func(t *testing.T) {
+			t.Log(gomadruntime.Nondeterministic())
 		}})
 
 		if len(result) != 2 {
@@ -122,7 +122,7 @@ func TestNestedNondeterminismLog(t *testing.T) {
 		t.Error("expected failure")
 	}
 
-	if diff := cmp.Diff(gosim.SimplifyParsedLog(gosim.ParseLog(result[0].LogOutput)), []string{
+	if diff := cmp.Diff(gomad.SimplifyParsedLog(gomad.ParseLog(result[0].LogOutput)), []string{
 		"ERROR traces differ: non-determinism found",
 		"ERROR logs differ: non-determinism found",
 	}); diff != "" {
@@ -131,22 +131,22 @@ func TestNestedNondeterminismLog(t *testing.T) {
 }
 
 func TestNondeterminism(t *testing.T) {
-	if gosimruntime.Nondeterministic()%2 == 0 {
+	if gomadruntime.Nondeterministic()%2 == 0 {
 		go func() {
 		}()
 	}
 }
 
 func TestNestedNondeterminismTrace(t *testing.T) {
-	config := gosim.SimConfig{
+	config := gomad.SimConfig{
 		Seeds:            []int64{1},
 		DontReportFail:   true,
 		CaptureLog:       true,
 		LogLevelOverride: "INFO",
 	}
 
-	result := gosim.RunNestedTest(t, config, gosim.Test{Test: func(t *testing.T) {
-		config := gosim.SimConfig{
+	result := gomad.RunNestedTest(t, config, gomad.Test{Test: func(t *testing.T) {
+		config := gomad.SimConfig{
 			Seeds:                []int64{1},
 			EnableTracer:         true,
 			CheckDeterminismRuns: 1,
@@ -154,8 +154,8 @@ func TestNestedNondeterminismTrace(t *testing.T) {
 			LogLevelOverride:     "INFO",
 		}
 
-		result := gosim.RunNestedTest(t, config, gosim.Test{Test: func(t *testing.T) {
-			if gosimruntime.Nondeterministic()%2 == 0 {
+		result := gomad.RunNestedTest(t, config, gomad.Test{Test: func(t *testing.T) {
+			if gomadruntime.Nondeterministic()%2 == 0 {
 				go func() {
 				}()
 			}
@@ -179,7 +179,7 @@ func TestNestedNondeterminismTrace(t *testing.T) {
 		t.Error("expected no error")
 	}
 
-	if diff := cmp.Diff(gosim.SimplifyParsedLog(gosim.ParseLog(result[0].LogOutput)), []string{
+	if diff := cmp.Diff(gomad.SimplifyParsedLog(gomad.ParseLog(result[0].LogOutput)), []string{
 		"ERROR traces differ: non-determinism found",
 	}); diff != "" {
 		t.Error(diff)
@@ -223,7 +223,7 @@ func TestCleanup(t *testing.T) {
 }
 
 func TestIsSim(t *testing.T) {
-	if !gosim.IsSim() {
+	if !gomad.IsSim() {
 		t.Error("should be sim")
 	}
 }
@@ -231,12 +231,12 @@ func TestIsSim(t *testing.T) {
 /*
 // TODO: Port
 func TestDeadlock(t *testing.T) {
-	c := gosim.SimConfig{
+	c := gomad.SimConfig{
 		Seeds:          []int64{1},
 		DontReportFail: true,
 	}
 
-	result := gosim.RunNestedTest(t, c, gosim.Test{Test: func(t *testing.T) {
+	result := gomad.RunNestedTest(t, c, gomad.Test{Test: func(t *testing.T) {
 		var mu1, mu2 sync.Mutex
 
 		go func() {
@@ -253,7 +253,7 @@ func TestDeadlock(t *testing.T) {
 	if !result[0].Failed {
 		t.Error("need fail")
 	}
-	if result[0].Err != gosimruntime.ErrTimeout {
+	if result[0].Err != gomadruntime.ErrTimeout {
 		t.Error(result[0].Err)
 	}
 }
@@ -283,7 +283,7 @@ func TestSimulationTimeoutOverride(t *testing.T) {
 		t.Skip()
 	}
 
-	gosim.SetSimulationTimeout(5 * time.Minute)
+	gomad.SetSimulationTimeout(5 * time.Minute)
 
 	log.Println("before")
 	start := time.Now()
