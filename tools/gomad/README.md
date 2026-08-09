@@ -362,10 +362,11 @@ Gomad's public packages are:
 
 # Development
 
-Gomad and its tools are tested using the `./test.sh` script, which invokes the
-tests defined in `./Taskfile.yml`. These test the Gomad tooling as well as the
-behavior of simulated code. Ideally tests verify that the simulation behaves
-like reality: The tests for the filesystem in
+Gomad and its tools are tested using the `./test.sh` script. It builds the Gomad
+tool, prepares the self-test environment, and runs the normal and race suites.
+These test the Gomad tooling as well as the behavior of simulated code. Ideally
+tests verify that the simulation behaves like reality: The tests for the
+filesystem in
 [github.com/temporalio/gomad/internal/tests/behavior/disk_test.go](./internal/tests/behavior/disk_test.go)
 are run in both simulated and non-simulated builds.
 

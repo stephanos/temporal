@@ -21,7 +21,6 @@ import (
 	_ "github.com/temporalio/gomad/internal/testing"
 
 	// Tools used by gomad. For this repository.
-	_ "github.com/go-task/task/v3/cmd/task"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "mvdan.cc/gofumpt"
 )
