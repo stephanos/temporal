@@ -79,14 +79,15 @@ workloads, detectability, and whether the failure is silent:
 
 ### 1. The Go-version port is a semantic port, not a dependency update — High
 
-The snapshot declares Go 1.23.2
-([`go.mod`](tools/gomad/go.mod#L1-L4)) and names its hook package `go123`. The
-hooks target unexported standard-library/runtime symbols, whose signatures have
-no compatibility guarantee
+The nested module declares Go 1.26.0
+([`go.mod`](tools/gomad/go.mod#L1-L4)) and routes hooks through the stable
+`internal/stdlib/hooks` package. Release-specific translator policy lives in
+[`policy_go126.go`](tools/gomad/internal/translate/policy_go126.go), but the
+hooks still target unexported standard-library/runtime symbols, whose signatures
+have no compatibility guarantee
 ([`docs/design.md`](tools/gomad/docs/design.md#L173-L188)). The translator also
-contains Go-1.23-specific hook, accepted-linkname, assembly, and package-skip
-tables
-([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L27-L109)).
+contains Go-1.26-specific hook, accepted-linkname, assembly, and package-skip
+tables.
 
 A port must validate more than compilation:
 
@@ -200,15 +201,15 @@ Missing safeguards include:
 Several hook packages intentionally panic for unsupported operations, including
 parts of `runtime/debug`, `runtime/trace`, internal ABI/CPU helpers, `os`,
 `syscall`, polling, and `x/sys/unix`
-([`internal/hooks/go123/runtime_debug.go`](tools/gomad/internal/hooks/go123/runtime_debug.go#L1-L42),
-[`internal/hooks/go123/runtime_trace.go`](tools/gomad/internal/hooks/go123/runtime_trace.go#L1-L16),
-[`internal/hooks/go123/syscall.go`](tools/gomad/internal/hooks/go123/syscall.go#L1-L88)).
+([`internal/stdlib/hooks/runtime_debug.go`](tools/gomad/internal/stdlib/hooks/runtime_debug.go#L1-L42),
+[`internal/stdlib/hooks/runtime_trace.go`](tools/gomad/internal/stdlib/hooks/runtime_trace.go#L1-L16),
+[`internal/stdlib/hooks/syscall.go`](tools/gomad/internal/stdlib/hooks/syscall.go#L1-L88)).
 
 At the OS boundary, unknown raw syscalls are logged and return `ENOSYS`
 ([`internal/simulation/os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L162-L175)).
-Package loading forces Linux, the host architecture, the `sim` build tag, and
+Package loading forces Linux, the host architecture, the `gomad` build tag, and
 `CGO_ENABLED=0`
-([`cmd/gomad/main.go`](tools/gomad/cmd/gomad/main.go#L155-L159),
+([`gomadmain/main.go`](tools/gomad/gomadmain/main.go#L155-L159),
 [`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L120-L136)).
 
 These are hard compatibility limits. Every target workload needs an executed
@@ -477,10 +478,10 @@ load and fault-injection tests outside gomad.
 
 Every `sync/atomic` hook calls `maybeAtomicYield`, but yielding is disabled by
 the compile-time `AtomicYield = false` constant
-([`sync_atomic.go`](tools/gomad/internal/hooks/go123/sync_atomic.go#L11-L24),
+([`sync_atomic.go`](tools/gomad/internal/stdlib/hooks/sync_atomic.go#L11-L24),
 [`sema.go`](tools/gomad/gomadruntime/sema.go#L153-L159)). Runtime acquire/release
 helpers and `procPin`/`procUnpin` similarly avoid a scheduling choice
-([`sync.go`](tools/gomad/internal/hooks/go123/sync.go#L31-L75)).
+([`sync.go`](tools/gomad/internal/stdlib/hooks/sync.go#L31-L75)).
 
 As a result, a lock-free loop or atomic state machine can run from one unrelated
 yield point to the next as one scheduler step. The execution may be a legal Go
@@ -573,7 +574,7 @@ slice
 has no environment field, and runtime `setenv`, `unsetenv`, and `clearenv` hooks
 panic as unimplemented
 ([`machine.go`](tools/gomad/machine.go#L46-L57),
-[`syscall.go`](tools/gomad/internal/hooks/go123/syscall.go#L47-L57)).
+[`syscall.go`](tools/gomad/internal/stdlib/hooks/syscall.go#L47-L57)).
 
 Tests cannot model a cluster whose nodes have different feature flags,
 credentials, regions, or rolling configuration. Code that mutates its

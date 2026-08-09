@@ -40,51 +40,6 @@ func collectGlobalsAndTests(files []*dst.File, astMap decorator.AstMap, pkgPath 
 	return c
 }
 
-var globalsDontTranslateGo123 = map[packageSelector]bool{
-	{Pkg: "crypto/sha512", Selector: "_K"}:                  true,
-	{Pkg: "crypto/internal/fips140/sha256", Selector: "_K"}: true,
-	{Pkg: "crypto/internal/fips140/sha512", Selector: "_K"}: true,
-	// {pkg: "sync/atomic", selector: "firstStoreInProgress"}: true, // no way... universe strikes once again
-	{Pkg: "encoding/json", Selector: "fieldCache"}:   true,
-	{Pkg: "encoding/json", Selector: "encoderCache"}: true,
-	// this would be nice but breaks determinism because sometimes the cache works.......
-	// XXX: register all types in our own registry, warm up the cache?
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "decomps"}:          true,
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "nfcValues"}:        true,
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "nfcIndex"}:         true,
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "nfcSparseValues"}:  true,
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "nfkcValues"}:       true,
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "nfkcIndex"}:        true,
-	{Pkg: "vendor/golang.org/x/text/unicode/norm", Selector: "nfkcSparseValues"}: true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "decomps"}:                 true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "nfcValues"}:               true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "nfcIndex"}:                true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "nfcSparseValues"}:         true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "nfkcValues"}:              true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "nfkcIndex"}:               true,
-	{Pkg: "golang.org/x/text/unicode/norm", Selector: "nfkcSparseValues"}:        true,
-	{Pkg: "vendor/golang.org/x/text/unicode/bidi", Selector: "bidiValues"}:       true,
-	{Pkg: "vendor/golang.org/x/text/unicode/bidi", Selector: "bidiIndex"}:        true,
-	{Pkg: "golang.org/x/text/unicode/bidi", Selector: "bidiValues"}:              true,
-	{Pkg: "golang.org/x/text/unicode/bidi", Selector: "bidiIndex"}:               true,
-	{Pkg: "vendor/golang.org/x/net/idna", Selector: "idnaValues"}:                true,
-	{Pkg: "vendor/golang.org/x/net/idna", Selector: "idnaIndex"}:                 true,
-	{Pkg: "vendor/golang.org/x/net/idna", Selector: "idnaSparseValues"}:          true,
-	{Pkg: "golang.org/x/net/idna", Selector: "idnaValues"}:                       true,
-	{Pkg: "golang.org/x/net/idna", Selector: "idnaIndex"}:                        true,
-	{Pkg: "golang.org/x/net/idna", Selector: "idnaSparseValues"}:                 true,
-	{Pkg: reflectPackage, Selector: "mapInterfaceType"}:                          true,
-	{Pkg: reflectPackage, Selector: "jankHashMap"}:                               true,
-
-	// xxx amd64 asm
-	{Pkg: "crypto/sha256", Selector: "useSHA"}:                                true,
-	{Pkg: "crypto/sha256", Selector: "useAVX2"}:                               true,
-	{Pkg: "vendor/golang.org/x/crypto/chacha20poly1305", Selector: "useAVX2"}: true,
-	{Pkg: "crypto/internal/bigmod", Selector: "supportADX"}:                   true,
-
-	{Pkg: "github.com/cespare/xxhash/v2", Selector: "primes"}: true,
-}
-
 func (t *globalsCollector) collectGlobalsDecl(genDecl *dst.GenDecl) {
 	if genDecl.Tok != token.VAR {
 		return

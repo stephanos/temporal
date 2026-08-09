@@ -27,7 +27,7 @@ helpful error message. A simple way to run tests is to use a script that invoke
 'gomad build-tests' before running 'go test':
 
 	# build gomad test binaries
-	go run github.com/temporalio/gomad/cmd/gomad build-tests pkgA pkgA/pkgB
+	gomad build-tests pkgA pkgA/pkgB
 	# then run tests
 	go test ./...
 
