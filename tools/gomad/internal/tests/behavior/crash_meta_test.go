@@ -1,4 +1,4 @@
-//go:build !sim
+//go:build !gomad
 
 package behavior_test
 
@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim/metatesting"
+	"github.com/temporalio/gomad/metatesting"
 )
 
 func TestCrashRestartFilesystemPartial(t *testing.T) {
@@ -14,7 +14,7 @@ func TestCrashRestartFilesystemPartial(t *testing.T) {
 	mt := metatesting.ForCurrentPackage(t)
 	for seed := int64(0); seed < 100; seed++ {
 		// XXX: this testing API is clunky...
-		// config := gosim.ConfigWithNSeeds(100)
+		// config := gomad.ConfigWithNSeeds(100)
 		// config.CaptureLog = true
 		// XXX: i don't like this log level override anymore
 		// config.LogLevelOverride = "INFO"

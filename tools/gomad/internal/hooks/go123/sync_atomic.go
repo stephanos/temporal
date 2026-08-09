@@ -1,16 +1,16 @@
 package go123
 
 import (
-	"sync/atomic" //gosim:notranslate
+	"sync/atomic" //gomad:notranslate
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 func maybeAtomicYield() {
-	if gosimruntime.AtomicYield {
-		gosimruntime.Yield()
+	if gomadruntime.AtomicYield {
+		gomadruntime.Yield()
 	}
 }
 

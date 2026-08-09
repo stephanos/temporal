@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+	"github.com/temporalio/gomad/internal/simulation/syscallabi"
 )
 
 type PacketKind byte
@@ -326,7 +326,7 @@ func (n *Stack) closeStream(stream *Stream, sendClose bool) error {
 		panic(stream)
 	}
 
-	// fmt.Fprintf(gosimruntime.LogOut, "close stream\n")
+	// fmt.Fprintf(gomadruntime.LogOut, "close stream\n")
 
 	if sendClose {
 		n.endpoint.Send(allocPacket(PacketKindStreamClose, stream.id))
@@ -474,7 +474,7 @@ func (n *Stack) resetAckFailedTimerLocked(s *Stream) {
 				return
 			}
 
-			// fmt.Fprintf(gosimruntime.LogOut, "ack failed\n")
+			// fmt.Fprintf(gomadruntime.LogOut, "ack failed\n")
 
 			// fail no matter the ack pos; for keep alives we have ackpos ==
 			// sendpos. when we do get the data, this timer is stopped, so this

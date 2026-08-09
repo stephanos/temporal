@@ -5,11 +5,11 @@
 // Based on
 // https://go.googlesource.com/go/+/refs/heads/master/src/testing/testing.go
 
-// TODO: support gosim test [-v]
-// TODO: decide what to do with non-testing.T logs in gosim CLI
+// TODO: support gomad test [-v]
+// TODO: decide what to do with non-testing.T logs in gomad CLI
 
-// TODO: support gosim test -list
-// TODO: support gosim test success/fail counts?
+// TODO: support gomad test -list
+// TODO: support gomad test success/fail counts?
 
 // TODO: somehow translate testing package instead of this copy-paste mess?
 
@@ -27,14 +27,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
-	"github.com/jellevandenhooff/gosim/internal/race"
+	"github.com/temporalio/gomad/gomadruntime"
+	"github.com/temporalio/gomad/internal/race"
 )
 
 type writer struct{}
 
 func (w writer) Write(p []byte) (n int, err error) {
-	gosimruntime.WriteLog(p)
+	gomadruntime.WriteLog(p)
 	return len(p), nil
 }
 
@@ -316,7 +316,7 @@ func (c *common) FailNow() {
 	runtime.Goexit()
 
 	// XXX: this is interesting... do we abort here or all the way up? do we make t.Run() mandatory
-	// gosimruntime.SetAbortError(gosimruntime.ErrAborted)
+	// gomadruntime.SetAbortError(gomadruntime.ErrAborted)
 }
 
 func (c *common) log(level slog.Level, msg string, attrs ...slog.Attr) {
@@ -884,7 +884,7 @@ func (t *T) Run(name string, f func(t *T)) bool {
 	// t.w = indenter{&t.common}
 
 	if t.chatty != nil {
-		t.chatty.Updatef(t.name, "=== RUN   %s (seed %d)\n", t.name, gosimruntime.Seed())
+		t.chatty.Updatef(t.name, "=== RUN   %s (seed %d)\n", t.name, gomadruntime.Seed())
 	}
 	running.Store(t.name, highPrecisionTimeNow())
 
@@ -1005,7 +1005,7 @@ func runTests(match string, skip string, tests []InternalTest) (ran, ok bool) {
 	return ran, ok
 }
 
-func Entrypoint(match string, skip string, tests []gosimruntime.Test) bool {
+func Entrypoint(match string, skip string, tests []gomadruntime.Test) bool {
 	var parsedTests []InternalTest
 	for _, test := range tests {
 		parsedTests = append(parsedTests, InternalTest{

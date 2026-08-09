@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package examples_test
 
@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
 var count = 0
@@ -46,7 +46,7 @@ func request() {
 
 func TestMachines(t *testing.T) {
 	// run the server
-	serverMachine := gosim.NewMachine(gosim.MachineConfig{
+	serverMachine := gomad.NewMachine(gomad.MachineConfig{
 		Label:    "server",
 		Addr:     netip.MustParseAddr("10.0.0.1"),
 		MainFunc: server,
@@ -70,7 +70,7 @@ func TestMachines(t *testing.T) {
 
 	// add some latency
 	log.Println("adding latency")
-	gosim.SetDelay("10.0.0.1", "11.0.0.1", time.Second)
+	gomad.SetDelay("10.0.0.1", "11.0.0.1", time.Second)
 
 	// make another request to see the latency
 	request()

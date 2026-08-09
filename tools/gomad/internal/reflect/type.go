@@ -7,16 +7,16 @@
 package reflect
 
 import (
-	"reflect" //gosim:notranslate
-	"sync"    //gosim:notranslate
+	"reflect" //gomad:notranslate
+	"sync"    //gomad:notranslate
 
-	"github.com/jellevandenhooff/gosim/gosimruntime"
+	"github.com/temporalio/gomad/gomadruntime"
 )
 
 func makeMapType() reflect.Type {
 	// TODO: this is in a function instead of inlined because translate does not
 	// handle the reflect notranslate well otherwise.
-	return reflect.TypeFor[gosimruntime.ReflectMap]()
+	return reflect.TypeFor[gomadruntime.ReflectMap]()
 }
 
 var mapInterfaceType reflect.Type = makeMapType()
@@ -80,8 +80,8 @@ type typeImpl struct {
 var jankHashMap sync.Map
 
 func wrapType(typ reflect.Type) Type {
-	gosimruntime.BeginControlledNondeterminism()
-	defer gosimruntime.EndControlledNondeterminism()
+	gomadruntime.BeginControlledNondeterminism()
+	defer gomadruntime.EndControlledNondeterminism()
 
 	// XXX: prevent allocations here, cache?
 	if typ == nil {

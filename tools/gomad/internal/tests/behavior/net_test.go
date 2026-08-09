@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -19,8 +19,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/jellevandenhooff/gosim"
-	"github.com/jellevandenhooff/gosim/internal/tests/testpb"
+	"github.com/temporalio/gomad"
+	"github.com/temporalio/gomad/internal/tests/testpb"
 )
 
 // TODO: at the end of each machine, also check that there are no more running goroutines/events/...?
@@ -33,7 +33,7 @@ var (
 )
 
 func TestNetTcpDial(t *testing.T) {
-	a := gosim.NewMachine(gosim.MachineConfig{
+	a := gomad.NewMachine(gomad.MachineConfig{
 		Label: "a",
 		Addr:  netip.MustParseAddr(aAddr),
 		MainFunc: func() {
@@ -86,7 +86,7 @@ func TestNetTcpDial(t *testing.T) {
 		},
 	})
 
-	b := gosim.NewMachine(gosim.MachineConfig{
+	b := gomad.NewMachine(gomad.MachineConfig{
 		Label: "b",
 		Addr:  netip.MustParseAddr(bAddr),
 		MainFunc: func() {
@@ -137,7 +137,7 @@ func TestNetTcpDial(t *testing.T) {
 }
 
 func TestNetTcpDisconnectBasic(t *testing.T) {
-	a := gosim.NewMachine(gosim.MachineConfig{
+	a := gomad.NewMachine(gomad.MachineConfig{
 		Label: "a",
 		Addr:  netip.MustParseAddr(aAddr),
 		MainFunc: func() {
@@ -176,7 +176,7 @@ func TestNetTcpDisconnectBasic(t *testing.T) {
 			}
 		},
 	})
-	b := gosim.NewMachine(gosim.MachineConfig{
+	b := gomad.NewMachine(gomad.MachineConfig{
 		Label: "b",
 		Addr:  netip.MustParseAddr(bAddr),
 		MainFunc: func() {
@@ -208,7 +208,7 @@ func TestNetTcpDisconnectBasic(t *testing.T) {
 			}
 			time.Sleep(10 * time.Millisecond)
 
-			gosim.SetConnected(aAddr, bAddr, false)
+			gomad.SetConnected(aAddr, bAddr, false)
 
 			// reading buffered data works
 			resp = make([]byte, 5)
@@ -247,7 +247,7 @@ func TestNetTcpDisconnectBasic(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			gosim.SetConnected(aAddr, bAddr, true)
+			gomad.SetConnected(aAddr, bAddr, true)
 
 			// new connection works again
 			conn, err = net.Dial("tcp", aAddr+":1234")
@@ -274,7 +274,7 @@ func TestNetTcpDisconnectBasic(t *testing.T) {
 }
 
 func TestNetTcpHttp(t *testing.T) {
-	a := gosim.NewMachine(gosim.MachineConfig{
+	a := gomad.NewMachine(gomad.MachineConfig{
 		Label: "a",
 		Addr:  netip.MustParseAddr(aAddr),
 		MainFunc: func() {
@@ -302,7 +302,7 @@ func TestNetTcpHttp(t *testing.T) {
 		},
 	})
 
-	b := gosim.NewMachine(gosim.MachineConfig{
+	b := gomad.NewMachine(gomad.MachineConfig{
 		Label: "b",
 		Addr:  netip.MustParseAddr(bAddr),
 		MainFunc: func() {
@@ -340,7 +340,7 @@ func (s *testServer) Echo(ctx context.Context, req *testpb.EchoRequest) (*testpb
 }
 
 func TestNetTcpGrpc(t *testing.T) {
-	a := gosim.NewMachine(gosim.MachineConfig{
+	a := gomad.NewMachine(gomad.MachineConfig{
 		Label: "a",
 		Addr:  netip.MustParseAddr(aAddr),
 		MainFunc: func() {
@@ -363,7 +363,7 @@ func TestNetTcpGrpc(t *testing.T) {
 		},
 	})
 
-	b := gosim.NewMachine(gosim.MachineConfig{
+	b := gomad.NewMachine(gomad.MachineConfig{
 		Label: "b",
 		Addr:  netip.MustParseAddr(bAddr),
 		MainFunc: func() {
@@ -398,17 +398,17 @@ func TestNetTcpGrpc(t *testing.T) {
 
 /*
 func TestNetBasic(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		if err := gosim.Send(bAddr, []byte("hello")); err != nil {
+		if err := gomad.Send(bAddr, []byte("hello")); err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	b.Run(func() {
-		data, from, err := gosim.Receive()
+		data, from, err := gomad.Receive()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -427,16 +427,16 @@ func TestNetBasic(t *testing.T) {
 }
 
 func TestNetPingPong(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
 		for i := 0; i < 10; i++ {
-			if err := gosim.Send(bAddr, []byte("ping")); err != nil {
+			if err := gomad.Send(bAddr, []byte("ping")); err != nil {
 				t.Fatal(err)
 			}
 
-			data, from, err := gosim.Receive()
+			data, from, err := gomad.Receive()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -453,7 +453,7 @@ func TestNetPingPong(t *testing.T) {
 
 	b.Run(func() {
 		for i := 0; i < 10; i++ {
-			data, from, err := gosim.Receive()
+			data, from, err := gomad.Receive()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -465,7 +465,7 @@ func TestNetPingPong(t *testing.T) {
 			if from != aAddr {
 				t.Fatal(from)
 			}
-			if err := gosim.Send(aAddr, []byte("pong")); err != nil {
+			if err := gomad.Send(aAddr, []byte("pong")); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -476,18 +476,18 @@ func TestNetPingPong(t *testing.T) {
 }
 
 func TestNetChain(t *testing.T) {
-	var machines []*gosim.Machine
+	var machines []*gomad.Machine
 
 	addr := func(i int) netip.Addr {
 		return netip.AddrFrom4([4]byte{10, 1, 0, 1 + byte(i)})
 	}
 
 	for i := 0; i < 10; i++ {
-		machines = append(machines, gosim.NewMachineWithLabel(fmt.Sprint(i), addr(i), func() {}))
+		machines = append(machines, gomad.NewMachineWithLabel(fmt.Sprint(i), addr(i), func() {}))
 	}
 
 	machines[0].Run(func() {
-		if err := gosim.Send(addr(1), []byte("ping from 0")); err != nil {
+		if err := gomad.Send(addr(1), []byte("ping from 0")); err != nil {
 			t.Fatal(err)
 		}
 	})
@@ -495,7 +495,7 @@ func TestNetChain(t *testing.T) {
 	for i := 1; i < 9; i++ {
 		i := i
 		machines[i].Run(func() {
-			data, from, err := gosim.Receive()
+			data, from, err := gomad.Receive()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -508,14 +508,14 @@ func TestNetChain(t *testing.T) {
 				t.Fatal(from)
 			}
 
-			if err := gosim.Send(addr(i+1), []byte("ping from "+fmt.Sprint(i))); err != nil {
+			if err := gomad.Send(addr(i+1), []byte("ping from "+fmt.Sprint(i))); err != nil {
 				t.Fatal(err)
 			}
 		})
 	}
 
 	machines[9].Run(func() {
-		data, from, err := gosim.Receive()
+		data, from, err := gomad.Receive()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -535,12 +535,12 @@ func TestNetChain(t *testing.T) {
 }
 
 func TestNetAsync(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
 		go func() {
-			data, from, err := gosim.Receive()
+			data, from, err := gomad.Receive()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -556,13 +556,13 @@ func TestNetAsync(t *testing.T) {
 
 		time.Sleep(time.Second)
 
-		if err := gosim.Send(bAddr, []byte("hello")); err != nil {
+		if err := gomad.Send(bAddr, []byte("hello")); err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	b.Run(func() {
-		data, from, err := gosim.Receive()
+		data, from, err := gomad.Receive()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -575,7 +575,7 @@ func TestNetAsync(t *testing.T) {
 			t.Fatal(from)
 		}
 
-		if err := gosim.Send(aAddr, []byte("goodbye")); err != nil {
+		if err := gomad.Send(aAddr, []byte("goodbye")); err != nil {
 			t.Fatal(err)
 		}
 	})
@@ -588,12 +588,12 @@ func TestNetAsync(t *testing.T) {
 /*
 
 func TestDoubleListen(t *testing.T) {
-	listener, err := gosim.OpenListener(80)
+	listener, err := gomad.OpenListener(80)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := gosim.OpenListener(80); err == nil || err.Error() != gosim.ErrPortAlreadyInUse.Error() {
+	if _, err := gomad.OpenListener(80); err == nil || err.Error() != gomad.ErrPortAlreadyInUse.Error() {
 		t.Fatal(err)
 	}
 
@@ -601,7 +601,7 @@ func TestDoubleListen(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	listener2, err := gosim.OpenListener(80)
+	listener2, err := gomad.OpenListener(80)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -612,11 +612,11 @@ func TestDoubleListen(t *testing.T) {
 }
 
 func TestNetStreamOpenClose(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -642,7 +642,7 @@ func TestNetStreamOpenClose(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -651,7 +651,7 @@ func TestNetStreamOpenClose(t *testing.T) {
 			t.Fatal(stream.Peer())
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})
@@ -661,11 +661,11 @@ func TestNetStreamOpenClose(t *testing.T) {
 }
 
 func TestNetStreamData(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -700,7 +700,7 @@ func TestNetStreamData(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -718,7 +718,7 @@ func TestNetStreamData(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})
@@ -728,11 +728,11 @@ func TestNetStreamData(t *testing.T) {
 }
 
 func TestNetStreamBackpressure(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -778,7 +778,7 @@ func TestNetStreamBackpressure(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -800,7 +800,7 @@ func TestNetStreamBackpressure(t *testing.T) {
 		for {
 			resp, err := stream.Recv()
 			if err != nil {
-				if err.Error() == gosim.ErrStreamClosed.Error() {
+				if err.Error() == gomad.ErrStreamClosed.Error() {
 					break
 				}
 				t.Fatal(err)
@@ -816,11 +816,11 @@ func TestNetStreamBackpressure(t *testing.T) {
 }
 
 func TestNetStreamBlockRecvThenSend(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -865,7 +865,7 @@ func TestNetStreamBlockRecvThenSend(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -883,7 +883,7 @@ func TestNetStreamBlockRecvThenSend(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})
@@ -893,11 +893,11 @@ func TestNetStreamBlockRecvThenSend(t *testing.T) {
 }
 
 func TestNetStreamBlockSendThenRecv(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -953,7 +953,7 @@ func TestNetStreamBlockSendThenRecv(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -975,7 +975,7 @@ func TestNetStreamBlockSendThenRecv(t *testing.T) {
 		for {
 			resp, err := stream.Recv()
 			if err != nil {
-				if err.Error() == gosim.ErrStreamClosed.Error() {
+				if err.Error() == gomad.ErrStreamClosed.Error() {
 					break
 				}
 				t.Fatal(err)
@@ -991,11 +991,11 @@ func TestNetStreamBlockSendThenRecv(t *testing.T) {
 }
 
 func TestNetStreamCloseListenerClosesStream(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1010,12 +1010,12 @@ func TestNetStreamCloseListenerClosesStream(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})
@@ -1025,11 +1025,11 @@ func TestNetStreamCloseListenerClosesStream(t *testing.T) {
 }
 
 func TestNetStreamCloseListenerSide(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1051,12 +1051,12 @@ func TestNetStreamCloseListenerSide(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})
@@ -1066,11 +1066,11 @@ func TestNetStreamCloseListenerSide(t *testing.T) {
 }
 
 func TestNetStreamCloseDialSide(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1080,7 +1080,7 @@ func TestNetStreamCloseDialSide(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 
@@ -1092,7 +1092,7 @@ func TestNetStreamCloseDialSide(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1107,14 +1107,14 @@ func TestNetStreamCloseDialSide(t *testing.T) {
 }
 
 func TestNetStreamTwoClientsQueue(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	bs := []*gosim.Machine{
-		gosim.NewMachineWithLabel("b1", bAddr, func() {}),
-		gosim.NewMachineWithLabel("b2", bAddr.Next(), func() {}),
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	bs := []*gomad.Machine{
+		gomad.NewMachineWithLabel("b1", bAddr, func() {}),
+		gomad.NewMachineWithLabel("b2", bAddr.Next(), func() {}),
 	}
 
 	a.Run(func() {
-		listener, err := gosim.OpenListener(80)
+		listener, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1169,7 +1169,7 @@ func TestNetStreamTwoClientsQueue(t *testing.T) {
 			// make sure it's listening??
 			time.Sleep(100 * time.Millisecond)
 
-			stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+			stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1187,7 +1187,7 @@ func TestNetStreamTwoClientsQueue(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+			if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 				t.Fatal(err)
 			}
 		})
@@ -1200,11 +1200,11 @@ func TestNetStreamTwoClientsQueue(t *testing.T) {
 }
 
 func TestNetStreamListenerOverflow(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		_, err := gosim.OpenListener(80)
+		_, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1216,7 +1216,7 @@ func TestNetStreamListenerOverflow(t *testing.T) {
 		time.Sleep(time.Second)
 
 		var mu sync.Mutex
-		var streams []*gosim.Stream
+		var streams []*gomad.Stream
 		var done bool
 
 		for {
@@ -1228,7 +1228,7 @@ func TestNetStreamListenerOverflow(t *testing.T) {
 			mu.Unlock()
 
 			go func() {
-				stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 80))
+				stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 80))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -1242,7 +1242,7 @@ func TestNetStreamListenerOverflow(t *testing.T) {
 				mu.Unlock()
 
 				if _, err := stream.Recv(); err != nil {
-					if err.Error() == gosim.ErrStreamClosed.Error() {
+					if err.Error() == gomad.ErrStreamClosed.Error() {
 						mu.Lock()
 						done = true
 						for _, stream := range streams {
@@ -1262,11 +1262,11 @@ func TestNetStreamListenerOverflow(t *testing.T) {
 }
 
 func TestNetStreamWrongPort(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		_, err := gosim.OpenListener(80)
+		_, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1277,12 +1277,12 @@ func TestNetStreamWrongPort(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(aAddr, 81))
+		stream, err := gomad.Dial(netip.AddrPortFrom(aAddr, 81))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})
@@ -1292,11 +1292,11 @@ func TestNetStreamWrongPort(t *testing.T) {
 }
 
 func TestNetStreamWrongHost(t *testing.T) {
-	a := gosim.NewMachineWithLabel("a", aAddr, func() {})
-	b := gosim.NewMachineWithLabel("b", bAddr, func() {})
+	a := gomad.NewMachineWithLabel("a", aAddr, func() {})
+	b := gomad.NewMachineWithLabel("b", bAddr, func() {})
 
 	a.Run(func() {
-		_, err := gosim.OpenListener(80)
+		_, err := gomad.OpenListener(80)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1307,12 +1307,12 @@ func TestNetStreamWrongHost(t *testing.T) {
 	b.Run(func() {
 		time.Sleep(time.Second)
 
-		stream, err := gosim.Dial(netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 2, 3, 4}), 80))
+		stream, err := gomad.Dial(netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 2, 3, 4}), 80))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := stream.Recv(); err == nil || err.Error() != gosim.ErrStreamClosed.Error() {
+		if _, err := stream.Recv(); err == nil || err.Error() != gomad.ErrStreamClosed.Error() {
 			t.Fatal(err)
 		}
 	})

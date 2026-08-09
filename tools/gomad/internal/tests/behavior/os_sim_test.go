@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
 func TestMachineHostname(t *testing.T) {
@@ -19,7 +19,7 @@ func TestMachineHostname(t *testing.T) {
 		t.Errorf("bad name %q, expected %q", name, expected)
 	}
 
-	m := gosim.NewMachine(gosim.MachineConfig{
+	m := gomad.NewMachine(gomad.MachineConfig{
 		Label: "hello123",
 		MainFunc: func() {
 			name, err := os.Hostname()
@@ -56,7 +56,7 @@ func TestSyscallsDuringInit(t *testing.T) {
 		t.Errorf("bad name %q, expected %q", globalHostname, expected)
 	}
 
-	m := gosim.NewMachine(gosim.MachineConfig{
+	m := gomad.NewMachine(gomad.MachineConfig{
 		Label: "hello123",
 		MainFunc: func() {
 			expected := "hello123"

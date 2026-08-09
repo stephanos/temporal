@@ -18,8 +18,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/jellevandenhooff/gosim/internal/gosimtool"
-	"github.com/jellevandenhooff/gosim/internal/translate/cache"
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/translate/cache"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -50,9 +50,9 @@ var skippedPackagesGo123 = map[string]bool{
 	"testing":                     true,
 	"testing/internal/testdeps":   true,
 	"internal/reflectlite":        true,
-	gosimruntimePackage:           true,
-	gosimruntimePackage + "_test": true, // eh
-	gosimruntimePackage + ".test": true, // eh
+	gomadruntimePackage:           true,
+	gomadruntimePackage + "_test": true, // eh
+	gomadruntimePackage + ".test": true, // eh
 	// reflectPackage: true,
 }
 
@@ -95,20 +95,20 @@ var PublicExportHacks = map[string][]string{
 
 // XXX: replace the package instead
 var replacements = map[packageSelector]packageSelector{
-	{Pkg: "runtime", Selector: "SetFinalizer"}:               {Pkg: gosimruntimePackage, Selector: "SetFinalizer"},
-	{Pkg: "runtime", Selector: "GOOS"}:                       {Pkg: gosimruntimePackage, Selector: "GOOS"},
-	{Pkg: "runtime", Selector: "Gosched"}:                    {Pkg: gosimruntimePackage, Selector: "Yield"},
-	{Pkg: "internal/runtime/maps", Selector: "Use64BitHash"}: {Pkg: gosimruntimePackage, Selector: "Use64BitHash"},
+	{Pkg: "runtime", Selector: "SetFinalizer"}:               {Pkg: gomadruntimePackage, Selector: "SetFinalizer"},
+	{Pkg: "runtime", Selector: "GOOS"}:                       {Pkg: gomadruntimePackage, Selector: "GOOS"},
+	{Pkg: "runtime", Selector: "Gosched"}:                    {Pkg: gomadruntimePackage, Selector: "Yield"},
+	{Pkg: "internal/runtime/maps", Selector: "Use64BitHash"}: {Pkg: gomadruntimePackage, Selector: "Use64BitHash"},
 }
 
-const gosimModPath = gosimtool.Module
+const gomadModPath = gomadtool.Module
 
 const (
-	gosimruntimePackage = gosimModPath + "/gosimruntime"
-	hooksGo123Package   = gosimModPath + "/internal/hooks/go123"
-	reflectPackage      = gosimModPath + "/internal/reflect"
-	simulationPackage   = gosimModPath + "/internal/simulation"
-	testingPackage      = gosimModPath + "/internal/testing"
+	gomadruntimePackage = gomadModPath + "/gomadruntime"
+	hooksGo123Package   = gomadModPath + "/internal/hooks/go123"
+	reflectPackage      = gomadModPath + "/internal/reflect"
+	simulationPackage   = gomadModPath + "/internal/simulation"
+	testingPackage      = gomadModPath + "/internal/testing"
 )
 
 var TranslatedRuntimePackages = []string{
@@ -126,7 +126,7 @@ const (
 		packages.NeedTypesInfo | packages.NeedFiles | packages.NeedImports
 )
 
-func loadPackages(patterns []string, b gosimtool.BuildConfig, mode packages.LoadMode, tests bool) ([]*packages.Package, error) {
+func loadPackages(patterns []string, b gomadtool.BuildConfig, mode packages.LoadMode, tests bool) ([]*packages.Package, error) {
 	cfg := &packages.Config{
 		Mode:  mode,
 		Tests: tests,
@@ -135,7 +135,7 @@ func loadPackages(patterns []string, b gosimtool.BuildConfig, mode packages.Load
 
 	// apply build config to packages config
 	// TODO: build tags plan (rename files, force GOOS and GOARCH)
-	tags := []string{"sim"}
+	tags := []string{"gomad"}
 	if b.Race {
 		tags = append(tags, "race")
 	}
@@ -180,12 +180,12 @@ func loadPackages(patterns []string, b gosimtool.BuildConfig, mode packages.Load
 // When we reload packages here we explicitly list all packages we want to load,
 // including dependencies whose tests we do not care about. To not load tests
 // for those we make to calls to loadPackages, one with and one without tests.
-func reloadUncachedPackages(listedPkgs []*packages.Package, uncachedPackages map[string]struct{}, cfg gosimtool.BuildConfig) map[string]*packages.Package {
+func reloadUncachedPackages(listedPkgs []*packages.Package, uncachedPackages map[string]struct{}, cfg gomadtool.BuildConfig) map[string]*packages.Package {
 	// determine packages we want to load tests for based on
 	// the original command line arguments
 	listedPkgPaths := make(map[string]struct{})
 	for _, pkg := range listedPkgs {
-		if fromGosim := slices.Contains(TranslatedRuntimePackages, pkg.PkgPath); fromGosim {
+		if fromGomad := slices.Contains(TranslatedRuntimePackages, pkg.PkgPath); fromGomad {
 			continue
 		}
 		listedPkgPaths[pkg.PkgPath] = struct{}{}
@@ -283,19 +283,19 @@ func collectImports(roots []*packages.Package, skip map[string]bool) []*packages
 }
 
 func writeGoModFile(modDir string, modFile *modfile.File, writer *outputWriter) {
-	isGosim := modFile.Module.Mod.Path == gosimModPath
+	isGomad := modFile.Module.Mod.Path == gomadModPath
 	// take the existing go.mod and make it work for a sub-directory containing
 	// a module translated
 	if err := modFile.AddModuleStmt("translated"); err != nil {
 		log.Fatal(err)
 	}
 
-	if isGosim {
-		// special case running translate in the gosim module
-		if err := modFile.AddRequire(gosimModPath, "v0.0.0"); err != nil {
+	if isGomad {
+		// special case running translate in the gomad module
+		if err := modFile.AddRequire(gomadModPath, "v0.0.0"); err != nil {
 			log.Fatal(err)
 		}
-		if err := modFile.AddReplace(gosimModPath, "", "../../../", ""); err != nil {
+		if err := modFile.AddReplace(gomadModPath, "", "../../../", ""); err != nil {
 			log.Fatal(err)
 		}
 	} else {
@@ -331,19 +331,19 @@ func writeGoModFile(modDir string, modFile *modfile.File, writer *outputWriter) 
 
 type TranslateInput struct {
 	Packages []string
-	Cfg      gosimtool.BuildConfig
+	Cfg      gomadtool.BuildConfig
 }
 
-func Translate(input *TranslateInput) (*gosimtool.TranslateOutput, error) {
+func Translate(input *TranslateInput) (*gomadtool.TranslateOutput, error) {
 	// XXX: dedup?
-	modDir, err := gosimtool.FindGoModDir()
+	modDir, err := gomadtool.FindGoModDir()
 	if err != nil {
 		log.Fatal(err)
 	}
-	rootOutputDir := path.Join(modDir, gosimtool.OutputDirectory, "translated", input.Cfg.AsDirname())
+	rootOutputDir := path.Join(modDir, gomadtool.OutputDirectory, "translated", input.Cfg.AsDirname())
 
-	cacheDir := path.Join(modDir, gosimtool.OutputDirectory)
-	if override := os.Getenv("GOSIMCACHE"); override != "" {
+	cacheDir := path.Join(modDir, gomadtool.OutputDirectory)
+	if override := os.Getenv("GOMADCACHE"); override != "" {
 		cacheDir = override
 	}
 
@@ -377,7 +377,7 @@ func buildReplacePackagesAndPackageNames(convertPkgs, allPkgs []*packages.Packag
 	replacedPkgs = make(map[string]string)
 	for _, pkg := range convertPkgs {
 		inputPackage := pkg.PkgPath
-		outputPackage := "translated/" + gosimtool.ReplaceSpecialPackages(pkg.PkgPath)
+		outputPackage := "translated/" + gomadtool.ReplaceSpecialPackages(pkg.PkgPath)
 		replacedPkgs[inputPackage] = outputPackage
 		packageNames[outputPackage] = packageNames[inputPackage]
 	}
@@ -388,26 +388,26 @@ func buildReplacePackagesAndPackageNames(convertPkgs, allPkgs []*packages.Packag
 	replacedPkgs["testing"] = replacedPkgs[testingPackage]
 
 	// handle the linkname in the os package
-	replacedPkgs["net"] = "translated/" + gosimtool.ReplaceSpecialPackages("net")
+	replacedPkgs["net"] = "translated/" + gomadtool.ReplaceSpecialPackages("net")
 
 	// not replaced, but need to know for rewrites
-	replacedPkgs[gosimruntimePackage] = gosimruntimePackage
+	replacedPkgs[gomadruntimePackage] = gomadruntimePackage
 	return
 }
 
-func checkGosimDep(modFile *modfile.File) {
-	// work in the gosim module
-	if isGosim := modFile.Module.Mod.Path == gosimModPath; isGosim {
+func checkGomadDep(modFile *modfile.File) {
+	// work in the gomad module
+	if isGomad := modFile.Module.Mod.Path == gomadModPath; isGomad {
 		return
 	}
 	for _, req := range modFile.Require {
 		// work if there is an explicit dependency
-		if req.Mod.Path == gosimModPath {
+		if req.Mod.Path == gomadModPath {
 			return
 		}
 	}
 	// complain otherwise
-	log.Fatalf("current module does not depend on %v, try running init", gosimModPath)
+	log.Fatalf("current module does not depend on %v, try running init", gomadModPath)
 }
 
 func checkSingleModule(modPath string, pkgs []*packages.Package) {
@@ -426,7 +426,7 @@ func checkSingleModule(modPath string, pkgs []*packages.Package) {
 	}
 }
 
-func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir string, cfg gosimtool.BuildConfig) (*gosimtool.TranslateOutput, error) {
+func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir string, cfg gomadtool.BuildConfig) (*gomadtool.TranslateOutput, error) {
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
@@ -446,13 +446,13 @@ func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir 
 		log.Fatal("no packages")
 	}
 
-	modPath, modFile, err := gosimtool.FindGoMod()
+	modPath, modFile, err := gomadtool.FindGoMod()
 	if err != nil {
 		log.Fatal(err)
 	}
 	modDir := path.Dir(modPath)
 
-	checkGosimDep(modFile)
+	checkGomadDep(modFile)
 	checkSingleModule(modPath, listedPkgs)
 
 	allPkgs := collectImports(listedPkgs, nil)
@@ -567,7 +567,7 @@ func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir 
 		if kind != PackageKindBase {
 			continue
 		}
-		if fromGosim := slices.Contains(TranslatedRuntimePackages, pkg.PkgPath); fromGosim {
+		if fromGomad := slices.Contains(TranslatedRuntimePackages, pkg.PkgPath); fromGomad {
 			continue
 		}
 		out = append(out, replacedPkgs[pkg.PkgPath])
@@ -590,7 +590,7 @@ func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir 
 		deps[replacedPkgs[path]] = times
 	}
 
-	return &gosimtool.TranslateOutput{
+	return &gomadtool.TranslateOutput{
 		RootOutputDir: rootOutputDir,
 		Packages:      out,
 		Deps:          deps,
@@ -646,7 +646,7 @@ func loadModTimes(files []string, cache map[string]time.Time) (map[string]time.T
 // - only run once for all testdata?
 
 // Cmd
-// - nicer flags for gosim test
+// - nicer flags for gomad test
 
 // TODO: hash more singletons?
 // - env vars? anything influencing go packages?

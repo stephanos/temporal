@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/jellevandenhooff/gosim/internal/simulation/syscallabi"
+	"github.com/temporalio/gomad/internal/simulation/syscallabi"
 )
 
 // A Mmap tracks an open mmap for a given file. Mmaps are implemented by keeping

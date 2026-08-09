@@ -4,10 +4,10 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/jellevandenhooff/gosim"
+	"github.com/temporalio/gomad"
 )
 
-func TestGosim(t *testing.T) {
-	t.Logf("Are we in the Matrix? %v", gosim.IsSim())
+func TestGomad(t *testing.T) {
+	t.Logf("Are we in the Matrix? %v", gomad.IsSim())
 	t.Logf("Random: %d", rand.Int())
 }

@@ -1,11 +1,11 @@
-package gosim
+package gomad
 
 import (
 	"iter"
 	"net/netip"
 
-	"github.com/jellevandenhooff/gosim/internal/simulation"
-	"github.com/jellevandenhooff/gosim/internal/simulation/fs"
+	"github.com/temporalio/gomad/internal/simulation"
+	"github.com/temporalio/gomad/internal/simulation/fs"
 )
 
 // A Machine represents a simulated machine. Each machine has its own disk,

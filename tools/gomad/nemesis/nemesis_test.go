@@ -1,4 +1,4 @@
-//go:build sim
+//go:build gomad
 
 package nemesis_test
 
@@ -14,8 +14,8 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/jellevandenhooff/gosim"
-	"github.com/jellevandenhooff/gosim/nemesis"
+	"github.com/temporalio/gomad"
+	"github.com/temporalio/gomad/nemesis"
 )
 
 func makeAddresses() []string {
@@ -54,7 +54,7 @@ func pingerMain() {
 
 	// figure out our own address
 	// TODO: make another API work
-	addr := gosim.CurrentMachine().Label()
+	addr := gomad.CurrentMachine().Label()
 
 	// run http server
 	// TODO: make ":80" without addr work
@@ -85,9 +85,9 @@ func TestPartition(t *testing.T) {
 	addrs := makeAddresses()
 
 	// run ping on several machines
-	var machines []gosim.Machine
+	var machines []gomad.Machine
 	for _, addr := range addrs {
-		m := gosim.NewMachine(gosim.MachineConfig{
+		m := gomad.NewMachine(gomad.MachineConfig{
 			Label:    addr, // fmt.Sprintf("server-%d", i),
 			Addr:     netip.MustParseAddr(addr),
 			MainFunc: pingerMain,

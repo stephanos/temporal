@@ -1,8 +1,8 @@
 package go123
 
 import (
-	"bytes"   //gosim:notranslate
-	"strings" //gosim:notranslate
+	"bytes"   //gomad:notranslate
+	"strings" //gomad:notranslate
 	"unsafe"
 )
 
@@ -39,11 +39,11 @@ func InternalBytealg_CountString(s string, c byte) int {
 }
 
 func InternalBytealg_abigen_runtime_memequal(a, b unsafe.Pointer, size uintptr) bool {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func InternalBytealg_abigen_runtime_memequal_varlen(a, b unsafe.Pointer) bool {
-	panic("gosim not implemented")
+	panic("gomad not implemented")
 }
 
 func InternalBytealg_Index(a, b []byte) int {

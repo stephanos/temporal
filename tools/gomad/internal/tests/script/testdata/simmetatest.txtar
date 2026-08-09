@@ -1,9 +1,9 @@
-# running gosim
-! exec gosim test -run=Other -v .
-stdout 'metatest cannot be used from within gosim'
+# running gomad
+! exec gomad test -run=Other -v .
+stdout 'metatest cannot be used from within gomad'
 
-! exec gosim test -run=Self -v .
-stdout 'metatest cannot be used from within gosim'
+! exec gomad test -run=Self -v .
+stdout 'metatest cannot be used from within gomad'
 
 -- machinecrash_test.go --
 package behavior_test
@@ -11,7 +11,7 @@ package behavior_test
 import (
 	"testing"
 
-    "github.com/jellevandenhooff/gosim/metatesting"
+    "github.com/temporalio/gomad/metatesting"
 )
 
 func TestSelf(t *testing.T) {

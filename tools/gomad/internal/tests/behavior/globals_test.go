@@ -1,12 +1,12 @@
-//go:build sim
+//go:build gomad
 
 package behavior_test
 
 import (
 	"testing"
 
-	"github.com/jellevandenhooff/gosim"
-	"github.com/jellevandenhooff/gosim/internal/tests/behavior"
+	"github.com/temporalio/gomad"
+	"github.com/temporalio/gomad/internal/tests/behavior"
 )
 
 var sharedGlobal = 10
@@ -14,7 +14,7 @@ var sharedGlobal = 10
 func TestGlobalNotShared(t *testing.T) {
 	// TODO: Ensure we run this test multiple times to proof we reset globals?
 	for i := 0; i < 2; i++ {
-		gosim.NewSimpleMachine(func() {
+		gomad.NewSimpleMachine(func() {
 			if sharedGlobal != 10 {
 				t.Errorf("expected 10, got %d", sharedGlobal)
 			}
