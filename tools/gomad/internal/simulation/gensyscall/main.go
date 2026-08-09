@@ -398,11 +398,7 @@ func maybeMapType(usecase Usecase, typ string) string {
 	return known
 }
 
-func uppercase(s string) string {
-	return strings.ToUpper(s[0:1]) + s[1:]
-}
-
-func writeProxies(rootDir string, pkgs []string, syscalls []syscallInfo, version string, arch string) {
+func writeProxies(rootDir string, pkgs []string, syscalls []syscallInfo, arch string) {
 	proxyTexts := make(map[string]*outputSorter)
 	for _, pkg := range pkgs {
 		proxyTexts[pkg] = newOutputSorter()
@@ -435,16 +431,16 @@ func writeProxies(rootDir string, pkgs []string, syscalls []syscallInfo, version
 			fmt.Sprintf("\treturn simulation.Syscall%s(%s)\n", ifaceName, strings.Join(proxyCallArgs, ", ")) +
 			"}\n\n"
 		proxyTexts[pkg].append(funcName, proxyText)
-		translateText := fmt.Sprintf("\t{Pkg: %s, Selector: %s}: {Pkg: hooks%sPackage},\n", strconv.Quote(pkg), strconv.Quote(funcName), uppercase(version))
+		translateText := fmt.Sprintf("\t{Pkg: %s, Selector: %s}: {Pkg: stdlibHooksPackage},\n", strconv.Quote(pkg), strconv.Quote(funcName))
 		translateTexts.append(pkg+" "+funcName, translateText)
 	}
 	for _, pkg := range pkgs {
 		file := strings.Replace(pkg, ".", "", -1)
 		file = strings.Replace(file, "/", "_", -1)
-		path := path.Join(rootDir, "internal/hooks/"+version, file+"_gen_"+arch+".go")
+		path := path.Join(rootDir, "internal/stdlib/hooks", file+"_gen_"+arch+".go")
 
 		writeFormattedGoFile(path, `//go:build linux
-package `+version+`
+package hooks
 
 import (
 	"unsafe"
@@ -457,10 +453,10 @@ var _ unsafe.Pointer
 
 `+proxyTexts[pkg].output())
 	}
-	writeFormattedGoFile(path.Join(rootDir, "internal/translate/hooks_"+version+"_"+arch+"_gen.go"), `package translate
+	writeFormattedGoFile(path.Join(rootDir, "internal/translate/stdlib_hooks_"+arch+"_gen.go"), `package translate
 
 func init() {
-	hooksGensyscall`+uppercase(version)+`ByArch["`+arch+`"] = map[packageSelector]packageSelector{
+	generatedStdlibHooksByArch["`+arch+`"] = map[packageSelector]packageSelector{
 `+translateTexts.output()+`}
 }
 `)
@@ -853,7 +849,7 @@ func main() {
 			"golang.org/x/sys/unix/zsysnum_linux_" + arch + ".go",
 		})
 
-		writeProxies(rootDir, pkgs, syscalls, "go123", arch)
+		writeProxies(rootDir, pkgs, syscalls, arch)
 		deduped := dedupSyscalls(syscalls)
 
 		deduped = append(deduped, []syscallInfo{

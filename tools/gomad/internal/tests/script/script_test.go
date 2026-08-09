@@ -45,7 +45,6 @@ func TestScript(t *testing.T) {
 			"golang.org/x/sync",
 			"golang.org/x/sys",
 			"golang.org/x/tools",
-			"mvdan.cc/gofumpt",
 		}); err != nil {
 			return err
 		}

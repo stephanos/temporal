@@ -182,10 +182,11 @@ func newTimer(when, period int64, f func(arg any, seq uintptr, delay int64), arg
 ```
 
 which lives in `runtime/time.go`. For all such functions Gomad has hooks in the
-package github.com/temporalio/gomad/internals/hooks/go123. The hooks are
-Go version specific because there are no API stability guarantees for these
-low-level unexported runtime functions. The hooks in Gomad are implemented as
-calls to the gomadruntime package.
+package github.com/temporalio/gomad/internal/stdlib/hooks. The package path is
+stable, while its compatibility policy and adaptations are Go version specific
+because there are no API stability guarantees for these low-level unexported
+runtime functions. The hooks in Gomad are implemented as calls to the
+gomadruntime package.
 
 By translating the entire go standard library, applications should notice
 as few differences between reality and simulation.
@@ -306,7 +307,7 @@ func Syscall_pread(fd int, p []byte, offset int64) (n int, err error) {
 and finally linked into the rewritten standard library with a linkname
 
 ```go
-//go:linkname pread translated/github.com/temporalio/gomad/internal_/hooks/go123.Syscall_pread
+//go:linkname pread translated/github.com/temporalio/gomad/internal_/stdlib/hooks.Syscall_pread
 func pread(fd int, p []byte, offset int64) (n int, err error)
 ```
 
@@ -337,9 +338,8 @@ implemented as custom system calls to the simulated operating system.
 
 Gomad aspires to be as easy to use as the standard Go tooling. To run a test
 using Gomad, ideally all that you need to do is replace `> go test` with
-`> gomad test` on the command line. In practice, `gomad` becomes
-`go run github.com/temporalio/gomad/cmd/gomad`
-but otherwise the tool exposes flags like `go test`.
+`> gomad test` on the command line. The executable is built from
+`cmd/tools/gomad` in the Temporal repository and exposes flags like `go test`.
 
 When running such a test, `gomad` first translates the code, caching
 packages to not retranslate eg. the standard library, and then invokes

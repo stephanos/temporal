@@ -36,6 +36,25 @@ func commandName(cmd string) string {
 	return fmt.Sprintf("%s %s", path.Base(os.Args[0]), cmd)
 }
 
+type buildOptions struct {
+	race bool
+	tags string
+}
+
+func (o *buildOptions) register(flags *flag.FlagSet) {
+	flags.BoolVar(&o.race, "race", false, "build in -race mode")
+	flags.StringVar(&o.tags, "tags", "", "comma-separated list of additional build tags")
+}
+
+func (o buildOptions) apply(cfg *gomadtool.BuildConfig) {
+	cfg.Race = o.race
+	cfg.UserTags = gomadtool.ParseBuildTags(o.tags)
+}
+
+func translatedBuildFlags(cfg gomadtool.BuildConfig) []string {
+	return []string{"-ldflags=-checklinkname=0", "-tags=" + cfg.BuildTags()}
+}
+
 func configureGoBuildCache(cmd string) error {
 	switch cmd {
 	case "translate", "test", "build-tests", "debug", "prepare-selftest":
@@ -185,10 +204,11 @@ func Main() {
 	switch cmd {
 	case "translate":
 		translateflags := flag.NewFlagSet(commandName("translate"), flag.ExitOnError)
-		race := translateflags.Bool("race", false, "build in -race mode")
+		var build buildOptions
+		build.register(translateflags)
 		translateflags.Parse(cmdArgs)
 
-		cfg.Race = *race
+		build.apply(&cfg)
 
 		_, err := translate.Translate(&translate.TranslateInput{
 			Packages: translateflags.Args(),
@@ -201,7 +221,8 @@ func Main() {
 	case "test":
 		testflags := flag.NewFlagSet(commandName("test"), flag.ExitOnError)
 		verbose := testflags.Bool("v", false, "verbose output")
-		race := testflags.Bool("race", false, "build in -race mode")
+		var build buildOptions
+		build.register(testflags)
 		run := testflags.String("run", "", "tests to run (as in go test -run)")
 		logformat := testflags.String("logformat", "pretty", "gomad log formatting: raw|indented|pretty")
 		simtrace := testflags.String("simtrace", "", "set of a comma-separated traces to enable")
@@ -209,7 +230,7 @@ func Main() {
 		seeds := testflags.String("seeds", "1", "a comma separated list of seeds and ranges to run, such as 1,2,10-100,99")
 		testflags.Parse(cmdArgs)
 
-		cfg.Race = *race
+		build.apply(&cfg)
 
 		packages := testflags.Args()
 		if len(packages) == 0 {
@@ -227,12 +248,12 @@ func Main() {
 		name := "go"
 		args := []string{"test"}
 
-		// TODO: only for go1.23?
-		args = append(args, "-ldflags=-checklinkname=0", "-tags=linkname")
+		// Translated standard-library packages retain runtime linknames.
+		args = append(args, translatedBuildFlags(cfg)...)
 		if *verbose {
 			args = append(args, "-v")
 		}
-		if *race {
+		if build.race {
 			args = append(args, "-race")
 		}
 		args = append(args, "-trimpath")
@@ -282,10 +303,11 @@ func Main() {
 		}
 
 		testflags := flag.NewFlagSet(commandName("build-tests"), flag.ExitOnError)
-		race := testflags.Bool("race", false, "build in -race mode")
+		var build buildOptions
+		build.register(testflags)
 		testflags.Parse(cmdArgs)
 
-		cfg.Race = *race
+		build.apply(&cfg)
 
 		output, err := translate.Translate(&translate.TranslateInput{
 			Packages: testflags.Args(),
@@ -328,11 +350,11 @@ func Main() {
 				}
 			}
 
-			// TODO: only for go1.23?
+			// Translated standard-library packages retain runtime linknames.
 			name := "go"
 			args := []string{"test"}
-			args = append(args, "-ldflags=-checklinkname=0", "-tags=linkname")
-			if *race {
+			args = append(args, translatedBuildFlags(cfg)...)
+			if build.race {
 				args = append(args, "-race")
 			}
 			args = append(args, "-trimpath")
@@ -393,7 +415,8 @@ func Main() {
 		// TODO: for -headless, use delve api to send initial continue?
 
 		debugflags := flag.NewFlagSet(commandName("debug"), flag.ExitOnError)
-		race := debugflags.Bool("race", false, "build in -race mode")
+		var build buildOptions
+		build.register(debugflags)
 		pkg := debugflags.String("package", "", "package path to debug")
 		test := debugflags.String("test", "", "full test name to debug")
 		seed := debugflags.Int("seed", 1, "seed to debug")
@@ -406,7 +429,7 @@ func Main() {
 			log.Fatal(err)
 		}
 
-		cfg.Race = *race
+		build.apply(&cfg)
 
 		output, err := translate.Translate(&translate.TranslateInput{
 			Packages: []string{*pkg},
@@ -432,7 +455,7 @@ stepout`)
 		flags := []string{
 			"test",
 			translated,
-			"--build-flags=-ldflags=-checklinkname=0 -tags=linkname",
+			"--build-flags=" + strings.Join(translatedBuildFlags(cfg), " "),
 			// TODO: does this actually set linkname?
 			// TODO: pass on -race
 		}
