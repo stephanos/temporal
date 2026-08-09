@@ -182,6 +182,18 @@ func GetNewPackageName(pkg string) string {
 	return "translated/" + ReplaceSpecialPackages(pkg)
 }
 
+func findGomadExecutable() (string, error) {
+	if name := os.Getenv("GOMADTOOL"); name != "" {
+		return name, nil
+	}
+
+	name, err := exec.LookPath("gomad")
+	if err != nil {
+		return "", fmt.Errorf("find gomad executable: set GOMADTOOL or install it with `go install ./cmd/tools/gomad`: %w", err)
+	}
+	return name, nil
+}
+
 var (
 	buildOnceMu sync.Mutex
 	buildOnce   = make(map[string]*sync.Once)
@@ -202,15 +214,11 @@ func GetPathForPrecompiledTestBinary(t *testing.T, pkg string) string {
 
 		didBuild = true
 		once.Do(func() {
-			var name string
-			var flags []string
-			if prebuilt, ok := os.LookupEnv("GOMADTOOL"); ok {
-				name = prebuilt
-			} else {
-				name = "go"
-				flags = []string{"run", Module + "/cmd/gomad"}
+			name, err := findGomadExecutable()
+			if err != nil {
+				t.Fatal(err)
 			}
-			flags = append(flags, "build-tests")
+			flags := []string{"build-tests"}
 			if race.Enabled {
 				flags = append(flags, "-race")
 			}
@@ -243,8 +251,8 @@ func GetPathForPrecompiledTestBinary(t *testing.T, pkg string) string {
 	if _, err := os.Stat(path); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("Could not find pre-built gomad test binary for package %q. Pre-building is necessary to support the go test cache. "+
-				"Pre-build the test binary using `go run %s/cmd/gomad build-tests %s` or "+
-				"run `go test` with `-count=1` to disable the go test cache and build during the test.", pkg, Module, pkg)
+				"Pre-build the test binary using `gomad build-tests %s` or "+
+				"run `go test` with `-count=1` to disable the go test cache and build during the test.", pkg, pkg)
 		}
 	}
 
