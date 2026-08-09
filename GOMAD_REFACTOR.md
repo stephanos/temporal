@@ -20,18 +20,18 @@ deepening existing modules before creating more packages.
 
 ## Priority and effort
 
-| Level | Meaning |
-| --- | --- |
-| **P0** | Blocks a coherent GoMaD adoption path or makes compatibility results misleading. |
-| **P1** | High-value maintenance or correctness work that should precede feature expansion. |
+| Level  | Meaning                                                                             |
+| ------ | ----------------------------------------------------------------------------------- |
+| **P0** | Blocks a coherent GoMaD adoption path or makes compatibility results misleading.    |
+| **P1** | High-value maintenance or correctness work that should precede feature expansion.   |
 | **P2** | Structural improvement that becomes valuable after the P0/P1 boundaries are stable. |
-| **P3** | Optional cleanup with limited architectural impact. |
+| **P3** | Optional cleanup with limited architectural impact.                                 |
 
-| Effort | Meaning |
-| --- | --- |
-| **S** | Localized deletion, rename, documentation, or helper extraction. |
-| **M** | Multi-file refactor within an existing package or a bounded caller migration. |
-| **L** | Cross-package or translated-ABI change requiring regeneration and broad testing. |
+| Effort | Meaning                                                                          |
+| ------ | -------------------------------------------------------------------------------- |
+| **S**  | Localized deletion, rename, documentation, or helper extraction.                 |
+| **M**  | Multi-file refactor within an existing package or a bounded caller migration.    |
+| **L**  | Cross-package or translated-ABI change requiring regeneration and broad testing. |
 
 ## Recommended decisions
 
@@ -87,28 +87,28 @@ Do not split copied standard-library files merely because they are large.
 
 ## Roadmap summary
 
-| ID | Priority | Effort | Depends on | Outcome |
-| --- | --- | --- | --- | --- |
-| RF-001 | P0 | S | None | Remove the Bolt and etcd examples and their exclusive dependency graph. |
-| RF-002 | P0 | S/M | None | Fix or delete the misleading cross-architecture test harness. |
-| RF-003 | P0 | M | None | Wire the repository GoMaD command and tests to the runtime implementation. |
-| RF-004 | P0 | M | RF-003 | Establish and document the GoMaD-facing identity boundary. |
-| RF-101 | P0 | L | RF-004 | Replace the stale `go123` package path with a stable stdlib boundary. |
-| RF-102 | P1 | M | RF-101 | Consolidate hook, linkname, assembly, skip, and target-version policy. |
-| RF-103 | P1 | S | RF-101 | Pin copied standard-library source provenance to an exact Go revision. |
-| RF-201 | P1 | M | RF-004 | Split Linux syscall implementation by subsystem. |
-| RF-202 | P1 | M | RF-004 | Split scheduler/runtime implementation by responsibility. |
-| RF-203 | P1 | M | None | Split filesystem state, namespace, I/O, crash, and mmap responsibilities. |
-| RF-204 | P1 | M | RF-101 | Turn translation orchestration and rewrite ordering into explicit stages. |
-| RF-205 | P2 | S/M | RF-004 | Split CLI subcommands and centralize Go command construction. |
-| RF-206 | P2 | M | RF-201 | Split network packets, listeners, buffers, and streams. |
-| RF-301 | P2 | L | RF-202, RF-204 | Introduce a narrow translated-code runtime ABI. |
-| RF-302 | P2 | M | RF-004 | Replace the `internal/gosimtool` grab bag with owned modules. |
-| RF-303 | P2 | M | None | Consolidate trace parsing around one typed event schema. |
-| RF-304 | P2 | M | RF-202 | Share the metatest subprocess protocol and implement runner cleanup. |
-| RF-401 | P1 | S | None | Remove inert tests, obsolete commented implementations, and private dead symbols. |
-| RF-402 | P1 | M | RF-201–RF-204 | Split behavioral tests by capability and failure mode. |
-| RF-403 | P0 | M/L | RF-003 | Add coverage gates for translator, runtime, syscall, crash, and determinism claims. |
+| ID     | Priority | Effort | Depends on     | Outcome                                                                             |
+| ------ | -------- | ------ | -------------- | ----------------------------------------------------------------------------------- |
+| RF-001 | P0       | S      | None           | Remove the Bolt and etcd examples and their exclusive dependency graph.             |
+| RF-002 | P0       | S/M    | None           | Fix or delete the misleading cross-architecture test harness.                       |
+| RF-003 | P0       | M      | None           | Wire the repository GoMaD command and tests to the runtime implementation.          |
+| RF-004 | P0       | M      | RF-003         | Establish and document the GoMaD-facing identity boundary.                          |
+| RF-101 | P0       | L      | RF-004         | Replace the stale `go123` package path with a stable stdlib boundary.               |
+| RF-102 | P1       | M      | RF-101         | Consolidate hook, linkname, assembly, skip, and target-version policy.              |
+| RF-103 | P1       | S      | RF-101         | Pin copied standard-library source provenance to an exact Go revision.              |
+| RF-201 | P1       | M      | RF-004         | Split Linux syscall implementation by subsystem.                                    |
+| RF-202 | P1       | M      | RF-004         | Split scheduler/runtime implementation by responsibility.                           |
+| RF-203 | P1       | M      | None           | Split filesystem state, namespace, I/O, crash, and mmap responsibilities.           |
+| RF-204 | P1       | M      | RF-101         | Turn translation orchestration and rewrite ordering into explicit stages.           |
+| RF-205 | P2       | S/M    | RF-004         | Split CLI subcommands and centralize Go command construction.                       |
+| RF-206 | P2       | M      | RF-201         | Split network packets, listeners, buffers, and streams.                             |
+| RF-301 | P2       | L      | RF-202, RF-204 | Introduce a narrow translated-code runtime ABI.                                     |
+| RF-302 | P2       | M      | RF-004         | Replace the `internal/gosimtool` grab bag with owned modules.                       |
+| RF-303 | P2       | M      | None           | Consolidate trace parsing around one typed event schema.                            |
+| RF-304 | P2       | M      | RF-202         | Share the metatest subprocess protocol and implement runner cleanup.                |
+| RF-401 | P1       | S      | None           | Remove inert tests, obsolete commented implementations, and private dead symbols.   |
+| RF-402 | P1       | M      | RF-201–RF-204  | Split behavioral tests by capability and failure mode.                              |
+| RF-403 | P0       | M/L    | RF-003         | Add coverage gates for translator, runtime, syscall, crash, and determinism claims. |
 
 ## Phase 0: dependency and CI hygiene
 
@@ -146,24 +146,7 @@ Verification:
 
 ### RF-002: repair the architecture test claim
 
-[`docker-compose.yml`](tools/gomad/.ci/crossarch-tests/docker-compose.yml)
-labels one service ARM64 but sets `platform: linux/amd64` for both services.
-[`Dockerfile.test`](tools/gomad/.ci/crossarch-tests/Dockerfile.test) uses Go
-1.23 while the nested module declares Go 1.26.
-
-Choose one supported path:
-
-1. update the image and run genuine amd64/arm64 jobs in active CI; or
-2. delete `.ci/crossarch-tests` and remove its README claim.
-
-The first option is recommended because architecture-specific generated hooks
-and syscall proxies remain part of the product.
-
-Exit criteria for Phase 0:
-
-- the core module no longer carries Bolt/etcd dependencies;
-- every documented CI path is executable and tests the architecture it names;
-- module and README dependency descriptions agree with the source tree.
+DONE
 
 ## Phase 1: adoption and identity
 
@@ -436,19 +419,19 @@ Exit criteria for Phase 5:
 After the identity and stdlib decisions are settled, apply these local clarity
 renames independently of any product-wide rebrand:
 
-| Current | Recommended |
-| --- | --- |
-| `internal/translate/main.go` | `pipeline.go` |
-| `internal/translate/go.go` | `goroutine_rewrite.go` |
-| `internal/translate/tests.go` | `test_rewrite.go` |
-| `internal/translate/cache.go` | `cache_codec.go` or `package_cache.go` |
-| `internal/testing/missing.go` | `unsupported.go` |
-| `internal/reflect/no.go` | `unsupported_linknames.go` |
-| `internal/simulation/gosim.go` | `control.go` |
-| `internal/gosimlog/main.go` | `event.go` or `record.go` |
-| `internal/gosimviewer/main.go` | `server.go` |
-| `getDecriptor` | `getDescriptor` |
-| `ErrPaniced` / `parkPaniced` | `ErrPanicked` / `parkPanicked` |
+| Current                        | Recommended                            |
+| ------------------------------ | -------------------------------------- |
+| `internal/translate/main.go`   | `pipeline.go`                          |
+| `internal/translate/go.go`     | `goroutine_rewrite.go`                 |
+| `internal/translate/tests.go`  | `test_rewrite.go`                      |
+| `internal/translate/cache.go`  | `cache_codec.go` or `package_cache.go` |
+| `internal/testing/missing.go`  | `unsupported.go`                       |
+| `internal/reflect/no.go`       | `unsupported_linknames.go`             |
+| `internal/simulation/gosim.go` | `control.go`                           |
+| `internal/gosimlog/main.go`    | `event.go` or `record.go`              |
+| `internal/gosimviewer/main.go` | `server.go`                            |
+| `getDecriptor`                 | `getDescriptor`                        |
+| `ErrPaniced` / `parkPaniced`   | `ErrPanicked` / `parkPanicked`         |
 
 Retain a deprecated alias for an exported typo when translated artifacts or
 external consumers may still reference it.
