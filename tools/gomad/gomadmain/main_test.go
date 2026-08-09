@@ -1,6 +1,10 @@
 package gomadmain
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -34,4 +38,112 @@ func TestGroup(t *testing.T) {
 	}); diff != "" {
 		t.Error(diff)
 	}
+}
+
+func TestConfigureGoBuildCacheDefault(t *testing.T) {
+	unsetenv(t, "GOCACHE")
+	modDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(modDir, "go.mod"), []byte("module test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	workDir := filepath.Join(modDir, "subdir")
+	if err := os.Mkdir(workDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(workDir)
+
+	if err := configureGoBuildCache("test"); err != nil {
+		t.Fatal(err)
+	}
+
+	want := filepath.Join(modDir, ".gomad", "go-build")
+	if got := os.Getenv("GOCACHE"); got != want {
+		t.Fatalf("GOCACHE = %q, want %q", got, want)
+	}
+	output, err := exec.Command("go", "env", "GOCACHE").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(string(output)); got != want {
+		t.Fatalf("child GOCACHE = %q, want %q", got, want)
+	}
+}
+
+func TestConfigureGoBuildCachePreservesExplicitValue(t *testing.T) {
+	want := filepath.Join(t.TempDir(), "custom-cache")
+	t.Setenv("GOCACHE", want)
+	t.Chdir(t.TempDir())
+
+	if err := configureGoBuildCache("test"); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := os.Getenv("GOCACHE"); got != want {
+		t.Fatalf("GOCACHE = %q, want %q", got, want)
+	}
+}
+
+func TestConfigureGoBuildCacheRequiresModule(t *testing.T) {
+	unsetenv(t, "GOCACHE")
+	t.Chdir(t.TempDir())
+
+	if err := configureGoBuildCache("test"); err == nil {
+		t.Fatal("configureGoBuildCache() succeeded outside a Go module")
+	}
+	if _, ok := os.LookupEnv("GOCACHE"); ok {
+		t.Fatal("configureGoBuildCache() set GOCACHE after failing")
+	}
+}
+
+func TestConfigureGoBuildCacheCommands(t *testing.T) {
+	modDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(modDir, "go.mod"), []byte("module test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(modDir)
+	want := filepath.Join(modDir, ".gomad", "go-build")
+
+	for _, command := range []string{"translate", "test", "build-tests", "debug", "prepare-selftest"} {
+		t.Run(command, func(t *testing.T) {
+			unsetenv(t, "GOCACHE")
+			if err := configureGoBuildCache(command); err != nil {
+				t.Fatal(err)
+			}
+			if got := os.Getenv("GOCACHE"); got != want {
+				t.Fatalf("GOCACHE = %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestConfigureGoBuildCacheIgnoresNonBuildCommands(t *testing.T) {
+	unsetenv(t, "GOCACHE")
+	t.Chdir(t.TempDir())
+
+	for _, command := range []string{"viewer", "help"} {
+		if err := configureGoBuildCache(command); err != nil {
+			t.Fatalf("configureGoBuildCache(%q) failed: %v", command, err)
+		}
+	}
+	if _, ok := os.LookupEnv("GOCACHE"); ok {
+		t.Fatal("configureGoBuildCache() set GOCACHE for a non-build command")
+	}
+}
+
+func unsetenv(t *testing.T, key string) {
+	t.Helper()
+
+	value, ok := os.LookupEnv(key)
+	if err := os.Unsetenv(key); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if ok {
+			if err := os.Setenv(key, value); err != nil {
+				t.Error(err)
+			}
+		} else if err := os.Unsetenv(key); err != nil {
+			t.Error(err)
+		}
+	})
 }
