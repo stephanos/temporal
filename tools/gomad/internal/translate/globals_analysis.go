@@ -41,7 +41,9 @@ func collectGlobalsAndTests(files []*dst.File, astMap decorator.AstMap, pkgPath 
 }
 
 var globalsDontTranslateGo123 = map[packageSelector]bool{
-	{Pkg: "crypto/sha512", Selector: "_K"}: true,
+	{Pkg: "crypto/sha512", Selector: "_K"}:                  true,
+	{Pkg: "crypto/internal/fips140/sha256", Selector: "_K"}: true,
+	{Pkg: "crypto/internal/fips140/sha512", Selector: "_K"}: true,
 	// {pkg: "sync/atomic", selector: "firstStoreInProgress"}: true, // no way... universe strikes once again
 	{Pkg: "encoding/json", Selector: "fieldCache"}:   true,
 	{Pkg: "encoding/json", Selector: "encoderCache"}: true,

@@ -1,33 +1,45 @@
-# GoMaD compared with gosim
+# Gosim adoption for Temporal
 
-This document compares the GoMaD implementation on this branch with
+This document records the decision to adopt gosim and retire the original
+Temporal-specific GoMaD implementation. It compares the abandoned
+implementation, preserved under [`tools/gomad_old`](tools/gomad_old), with
 [`jellevandenhooff/gosim`](https://github.com/jellevandenhooff/gosim) at commit
 [`ffd3a613`](https://github.com/jellevandenhooff/gosim/tree/ffd3a613542675755e4cbf8186b5edaf404ed95c).
 Both projects are experimental deterministic simulation systems for ordinary Go
-code, but they choose different simulation boundaries.
+code, but they choose different simulation boundaries. The imported and Go
+1.26-ported gosim source lives under [`tools/gomad`](tools/gomad).
+
+> **Decision:** stop developing and integrating `tools/gomad_old`. All new
+> deterministic-simulation work will improve the gosim-derived engine in
+> `tools/gomad` and integrate that engine with Temporal. The legacy source is
+> historical reference only and should receive no features or compatibility
+> fixes.
 
 The shortest useful summary is:
 
-> GoMaD replaces selected Go language and library operations so Temporal's
-> in-process test cluster can run under a deterministic scheduler. Gosim
-> replaces the Go runtime/standard-library boundary and Linux syscalls so one
-> process can contain multiple simulated machines with realistic network,
+> Legacy GoMaD replaces selected Go language and library operations so
+> Temporal's in-process test cluster can run under a deterministic scheduler.
+> Gosim replaces the Go runtime/standard-library boundary and Linux syscalls so
+> one process can contain multiple simulated machines with realistic network,
 > filesystem, and crash behavior.
 
-Neither boundary is universally better. GoMaD is closer to the current
-Temporal repository and cheaper to specialize. Gosim provides a deeper and
-more coherent model of distributed hosts, but would require substantial
-version and dependency integration before it could run this Temporal tree.
+The legacy approach reached Temporal sooner, but its growing collection of
+high-level substitutes and native escape hatches is not the foundation we want
+to maintain. Gosim's deeper runtime/syscall boundary, multi-machine model,
+faultable network, and crash-aware disk are a better fit for Temporal's
+distributed-systems failure modes. The remaining work is therefore gosim
+compatibility and Temporal integration, not further comparison between two
+active implementations.
 
 ## Side-by-side
 
-| Dimension | GoMaD | gosim |
+| Dimension | Legacy GoMaD (abandoned) | gosim (active) |
 | --- | --- | --- |
 | Primary scope | Temporal-specific, in-tree functional and concurrency testing | General-purpose distributed-systems simulation for Go |
 | Source integration | `go test` with a `gomad` build-tagged `TestMain` | A dedicated `gosim test` CLI modeled after `go test` |
-| Translation boundary | Test package and non-stdlib dependencies; selected calls are rewritten to GoMaD APIs | Nearly all program, dependency, and standard-library code is translated |
+| Translation boundary | Test package and non-stdlib dependencies; selected calls are rewritten to legacy simulation APIs | Nearly all program, dependency, and standard-library code is translated |
 | Runtime integration | Higher-level replacements for language constructs and library APIs | A lightweight runtime plus Go-version-specific hooks for unexported standard-library/runtime entry points |
-| Simulated unit | One GoMaD simulator running an in-process Temporal test cluster | Multiple simulated machines, each with its own globals, disk, network stack, and lifecycle |
+| Simulated unit | One simulator running an in-process Temporal test cluster | Multiple simulated machines, each with its own globals, disk, network stack, and lifecycle |
 | Goroutine implementation | One native goroutine per simulated goroutine, controlled by scheduler handshakes | Coroutines based on the mechanism behind `iter.Pull` |
 | Scheduling and time | Seeded cooperative scheduler; jumps to the next timed event | Seeded cooperative scheduler; jumps when all goroutines are waiting for time |
 | Network | In-memory TCP connection pairs and selected HTTP/gRPC substitutes | A virtual TCP network with per-link delay and connectivity control |
@@ -57,31 +69,32 @@ That shared choice has two important consequences:
    determinism, block the cooperative scheduler, or make simulation semantics
    diverge from production.
 
-The main architectural disagreement is where to make that boundary manageable.
+The historical architectural disagreement was where to make that boundary
+manageable. The project has chosen gosim's lower boundary.
 
-## GoMaD: virtualize the APIs Temporal uses
+## Legacy GoMaD: virtualize the APIs Temporal uses
 
-GoMaD does not translate the Go standard library as a whole. It rewrites
+Legacy GoMaD does not translate the Go standard library as a whole. It rewrites
 language operations and selected package references, supplies cooperative
 implementations of common APIs, copies a few library packages where necessary,
 and leaves other dependency families on their real implementations. Its
-[transformer configuration](tools/gomad/transformer/transform.go) contains
+[transformer configuration](tools/gomad_old/transformer/transform.go) contains
 Temporal-specific gRPC/HTTP rules and a growing skip list for dependency
 boundaries that otherwise produce incompatible Go types.
 
-This makes GoMaD comparatively adaptable to the source tree in front of it.
-When Temporal needs a particular behavior, the project can add a focused shim,
-fake, or overlay without first implementing a complete host. It also lets the
-framework follow the repository's current Go toolchain and dependency versions.
+This made legacy GoMaD comparatively adaptable to the source tree in front of
+it. When Temporal needed a particular behavior, the project could add a focused
+shim, fake, or overlay without first implementing a complete host. It also let
+the framework follow the repository's Go toolchain and dependency versions.
 
 The trade-off is a broad semantic surface. Reimplementing `context`, `sync`,
 timers, networking, HTTP, SQL, gRPC, OS calls, and their interactions at a high
 level is difficult. A real API may compile against a fake but behave
 differently around cancellation, buffering, connection lifecycle, errors, or
 resource cleanup. Package skips can also let native behavior back into the
-simulation. GoMaD mitigates these problems with stuck detection and an optional
-two-process determinism check, but those mechanisms detect symptoms rather
-than prove semantic equivalence.
+simulation. Legacy GoMaD mitigates these problems with stuck detection and an
+optional two-process determinism check, but those mechanisms detect symptoms
+rather than prove semantic equivalence.
 
 ## Gosim: virtualize below the standard library
 
@@ -102,11 +115,12 @@ recovery states.
 
 The cost moves into lower-level compatibility. Gosim has hooks for unexported
 Go runtime and standard-library functions, plus architecture-specific syscall
-bindings. The compared revision declares Go 1.23.2 and contains `go123` hooks;
-this Temporal branch declares Go 1.26.3. It is therefore reasonable to expect a
-Go-version port before evaluating Temporal itself. Translating the full
-standard library and a dependency graph as large and type-sensitive as
-Temporal's would also be a substantial compatibility exercise.
+bindings. The compared revision declared Go 1.23.2 and contained `go123` hooks.
+The local port now passes gosim's translated behavior and nemesis suites on Go
+1.26.1, but the amount of compatibility code required confirms that each Go
+release is a meaningful maintenance event. Translating a dependency graph as
+large and type-sensitive as Temporal's remains a substantial compatibility
+exercise.
 
 Gosim's deeper boundary is not complete emulation. Its own
 [`README`](https://github.com/jellevandenhooff/gosim/blob/ffd3a613542675755e4cbf8186b5edaf404ed95c/README.md)
@@ -116,7 +130,7 @@ database, telemetry, and networking dependencies.
 
 ## Different notions of a distributed system
 
-The current GoMaD world is effectively one simulated host. Temporal frontend,
+The legacy GoMaD world is effectively one simulated host. Temporal frontend,
 history, matching, worker, persistence, and clients can run concurrently, but
 they share the same simulation state and do not acquire independent process
 globals or host lifecycles. In-process TCP and fake gRPC are primarily
@@ -125,24 +139,24 @@ coordination mechanisms; they are not faultable network links.
 Gosim makes machines first-class. Package globals are rewritten into
 per-machine storage and reinitialized on restart. Machines communicate through
 the simulated OS, which can delay or disconnect network links. This model can
-ask questions GoMaD currently cannot express directly:
+ask questions legacy GoMaD cannot express directly:
 
 - What happens when one Temporal node crashes without running deferred cleanup?
 - Does a connection fail and recover correctly across a partition?
 - Which writes survive a crash around `fsync`?
 - Does a restarted process reconstruct correct state from disk and peers?
 
-Conversely, the extra fidelity is unnecessary when the bug is an ordering
-inside one in-process test cluster. For that class of problem, GoMaD's direct
-integration has a much shorter path to useful coverage.
+For an ordering bug inside one process, gosim can run a single simulated
+machine. We will support that simpler case within the same engine instead of
+maintaining a second scheduler and transformation stack.
 
 ## Determinism and debugging
 
-GoMaD's verification mode runs two OS processes in lockstep with the same seed
-and compares their output after every scheduler step. This is simple and useful
-for the Temporal code already emitting diagnostic logs. Its blind spot is
-unlogged state: two runs can diverge internally and converge on the same output,
-or only reveal the difference much later.
+Legacy GoMaD's verification mode runs two OS processes in lockstep with the
+same seed and compares their output after every scheduler step. This is simple
+and useful for the Temporal code already emitting diagnostic logs. Its blind
+spot is unlogged state: two runs can diverge internally and converge on the
+same output, or only reveal the difference much later.
 
 Gosim computes a running checksum over scheduling decisions and selected
 runtime events. Its metatesting layer can rerun a seed and compare the checksum
@@ -152,28 +166,21 @@ events by step; can trace syscalls; and can launch Delve stopped at a chosen
 step. This is a stronger debugging product around the simulator, not only a
 stronger simulation model.
 
-GoMaD has one feature that gosim does not expose at the compared revision:
-checkpoint-and-restore. GoMaD can record selected simulation operations and
-replay to a checkpoint before exploring a continuation. That can eventually
-reduce the cost of exploring deep Temporal scenarios. Today it is narrower than
-a machine or process snapshot, so it should not be used to infer that arbitrary
-Temporal heap state and side effects have been rolled back.
+Legacy GoMaD has one feature that gosim does not expose at the compared
+revision: checkpoint-and-restore. It can record selected simulation operations
+and replay to a checkpoint before exploring a continuation. That can eventually
+reduce the cost of exploring deep Temporal scenarios. Today it is narrower
+than a machine or process snapshot, so it should not be used to infer that
+arbitrary Temporal heap state and side effects have been rolled back.
+
+Checkpointing is not a reason to retain the legacy engine. If exploration cost
+later justifies it, checkpointing should be designed against gosim's machine,
+runtime, network, and disk state rather than porting the legacy operation-log
+prototype.
 
 ## Fit for Temporal
 
-### Where GoMaD has the advantage
-
-- It already lives in the Temporal module and targets its current tests,
-  dependencies, generated code, and toolchain.
-- Its integration can be improved incrementally as specific Temporal tests
-  expose unsupported operations.
-- It is well aligned with schedule, timer, channel, and in-process RPC bugs.
-- Seed replay and accelerated time can add value before full distributed-host
-  simulation exists.
-- The checkpoint prototype provides a path toward branching long-running
-  scenarios.
-
-### Where gosim has the advantage
+### Why gosim is the chosen foundation
 
 - Its machine/OS boundary is a better conceptual model for a distributed
   database and durable-execution server.
@@ -187,13 +194,33 @@ Temporal heap state and side effects have been rolled back.
   ever-growing collection of high-level substitutes once the Go-version port
   is paid for.
 
-### Adoption risks for gosim in this repository
+The legacy implementation's advantage was existing Temporal integration, not a
+better simulation boundary. We will rebuild the useful integration ergonomics
+on gosim rather than continue maintaining high-level replacements for Go and
+third-party APIs.
 
-Before gosim could replace GoMaD for Temporal, an engineering spike would need
-to answer at least:
+### What will not be carried forward
 
-1. Can its Go 1.23 runtime hooks be ported to the repository's Go version and
-   kept current at an acceptable cost?
+- No new features, Go-version fixes, overlays, or API shims will be added to
+  `tools/gomad_old`.
+- Temporal tests will not be split permanently between two deterministic
+  schedulers.
+- Legacy fake HTTP, gRPC, SQL, filesystem, and synchronization behavior will
+  not be ported when the translated standard library or simulated OS can supply
+  the behavior.
+- The legacy checkpoint prototype will not constrain gosim's runtime or machine
+  design.
+
+The old source may be consulted for Temporal-specific build, test-selection,
+and lifecycle requirements. Once those requirements are represented in the
+gosim integration, `tools/gomad_old` can be deleted.
+
+### Integration questions and backlog
+
+Improving gosim for Temporal must answer:
+
+1. Can the local Go 1.26 runtime-hook port be kept current at an acceptable
+   cost as Go's unexported internals continue to change?
 2. Can the complete Temporal dependency graph be translated without breaking
    generated protobufs, reflection, unsafe code, gRPC/telemetry type identity,
    or build constraints?
@@ -203,158 +230,138 @@ to answer at least:
    and file semantics are absent?
 5. What is the transform, compile, memory, and execution cost for a Temporal
    functional test at this scale?
-6. Can existing test-cluster lifecycle code be mapped cleanly onto gosim
-   machines without maintaining a second architecture solely for tests?
+6. How should existing test-cluster lifecycle code map onto gosim machines and
+   fault scenarios?
 
-These are integration questions, not evidence that the gosim architecture is
-wrong. They explain why its greater modeled fidelity does not translate into a
-drop-in replacement.
+These questions define the implementation backlog. They are not gates for
+resuming legacy GoMaD work and do not imply that both engines remain active.
 
-## Go 1.26 import experiment
+## Go 1.26 foundation
 
 The pinned gosim source is imported as a nested module under
 [`tools/gomad`](tools/gomad), with provenance recorded in
-[`UPSTREAM.md`](tools/gomad/UPSTREAM.md). The experiment used Go 1.26.3 on
-Darwin/ARM64. Gosim's `go.mod` still declares Go 1.23.2 because changing that
-line would overstate compatibility: ordinary runtime code and translated
-standard-library code have different results.
+[`UPSTREAM.md`](tools/gomad/UPSTREAM.md). The port was verified with Go 1.26.1
+on Darwin/ARM64, and the nested module now declares Go 1.26.0.
 
-The coroutine/runtime unit target passes when invoked with gosim's required
-linkname settings:
+The port passes the runtime unit target, translator tests, self-translation,
+the translated behavior and nemesis suites, and those translated suites under
+the race detector. The principal acceptance commands are:
 
 ```text
 go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gosimruntime
+.gosim/gosimtool prepare-selftest
+.gosim/gosimtool test ./internal/tests/behavior ./nemesis
+.gosim/gosimtool test -race ./internal/tests/behavior ./nemesis
 ```
 
-The translated self-test build does not yet pass:
+The compatibility layer covers the Go 1.26 changes that crossed gosim's
+translation boundary:
 
-```text
-.gosim/gosimtool build-tests ./internal/tests/behavior ./nemesis
-```
+- moved and added runtime/syscall entry points, ARM64 CPU probes, DIT and caller
+  intrinsics, wait-group semaphores, environment clearing, and `vgetrandom`;
+- Go 1.26 FIPS packages and assembly boundaries, including indicator and bypass
+  state plus constant-time helpers;
+- `reflect.TypeAssert`, `Value.Seq`, and `Value.Seq2` for translated maps;
+- named-map generic constraints and Go 1.26's `internal/sync.HashTrieMap`;
+- `internal/race`, `internal/synctest`, `weak`, and new time runtime hooks; and
+- the Linux `O_DIRECTORY` behavior exercised by crash/disk tests.
 
-The first failures were mechanical Go standard-library moves and additions.
-The local experiment added adapters for:
+Some adapters intentionally choose deterministic approximations where Go does
+not expose a stable contract. Weak pointers retain identity, synctest bubble
+bookkeeping is not modeled, FIPS state is simulation-goroutine-local rather
+than a complete runtime clone, race adapters lose some object/PC fidelity, and
+the internal hash-trie adapter uses a collision-correct constant hash that can
+degrade to linear behavior. These are explicit limitations, not unverified
+escape hatches in the acceptance suites.
 
-- `internal/runtime/syscall/linux.Syscall6`, moved from
-  `internal/runtime/syscall`;
-- the ARM64 CPU `getpfr0` probe and DIT helpers;
-- the new `internal/runtime/sys` caller intrinsics;
-- FIPS `subtle.xorBytes`;
-- `sync.runtime_SemacquireWaitGroup`; and
-- `syscall.runtimeClearenv`.
+The port establishes the baseline for further work: gosim can run on Go 1.26,
+including translated and race-tested behavior. It was not a one-line toolchain
+bump, so compatibility with unexported standard-library organization, runtime
+linknames, and architecture-specific assembly must remain an explicit,
+continuously tested maintenance area.
 
-After those adapters, translation reaches new FIPS SHA-256 and SHA-512 assembly
-entry points (`blockSHA2` and `blockSHA512`) and stops, depending on which
-package is translated first. It also reports new runtime-linkname surfaces in
-`crypto/subtle`, `weak`, `internal/synctest`, `internal/sync`,
-`internal/runtime/maps`, `internal/syscall/unix`, and `time`. Some are aliases
-to existing gosim behavior, but others need an explicit decision about weak
-pointers, synctest bubbles, runtime map internals, FIPS state, assembly
-fallbacks, or simulated time semantics.
+## How we should improve gosim
 
-The result is clear enough for planning: gosim's core runtime can compile and
-run on Go 1.26, but its source translator is not an easy Go-version bump. Its
-low-level boundary buys a coherent simulation model at the cost of tracking
-unexported standard-library organization and runtime linknames. A real port
-should be treated as a dedicated compatibility project with translated
-behavior and race suites as its acceptance tests.
-
-## What GoMaD should take from gosim
-
-GoMaD should copy gosim's high-leverage runtime and developer-experience ideas,
-not its entire standard-library translation boundary. That preserves GoMaD's
-main advantage—being easy to evolve with Temporal—while improving the parts
-where gosim is observably stronger.
+The goal is now to deepen one engine, not copy selected gosim ideas into legacy
+GoMaD. Gosim already provides checksums, structured logs, metatesting,
+race-detector integration, coroutines, machines, faultable networking, and a
+crash-aware disk. Work should close semantic and integration gaps around that
+foundation.
 
 ### Easier
 
-- Add metatest helpers that rerun a seed and automatically compare checksums
-  and logs, following
-  [`metatesting/metatest.go`](tools/gomad/metatesting/metatest.go). This turns
-  determinism verification into a normal test assertion instead of a special
-  manual mode.
-- Make seed ranges, exact-seed replay, and test selection first-class in one
-  runner. Gosim's [`cmd/gosim`](tools/gomad/cmd/gosim/main.go) is a useful UX
-  reference, but GoMaD can keep its simpler `go test` integration.
-- Emit one copy-pasteable reproduction command whenever a run fails, including
-  the seed and any step or trace filters.
+- Provide a Temporal-facing command that owns translation, package selection,
+  seed ranges, race mode, and artifact paths without exposing `.gosim`
+  internals.
+- Emit one copy-pasteable reproduction command for every failure, including
+  package, test, seed, step, and trace settings.
+- Add reusable fixtures for starting a Temporal service set as gosim machines
+  and applying common crash, restart, delay, and partition scenarios.
+- Turn unsupported translation, linkname, and syscall boundaries into concise
+  diagnostics that identify the missing adapter and source operation.
 
 ### Better
 
-- Hash scheduler decisions and externally visible simulation events using a
-  running execution checksum like
-  [`gosimruntime/checksum.go`](tools/gomad/gosimruntime/checksum.go). Logs should
-  remain diagnostic output, not the definition of determinism.
-- Give every event stable simulated-time, step, goroutine, and eventual-machine
-  fields, borrowing the structured logging model in
-  [`gosimruntime/log.go`](tools/gomad/gosimruntime/log.go). The same event stream
-  should drive traces, checksums, and deadlock reports.
-- Add explicit race-detector acquire/release edges for simulated channels,
-  semaphores, timers, and network delivery, using
-  [`gosimruntime/raceutil_race.go`](tools/gomad/gosimruntime/raceutil_race.go)
-  as the reference.
-- Define faults as composable scenarios—partition, delay, crash, restart—rather
-  than accumulating call-site failpoints. Gosim's
-  [`Machine`](tools/gomad/machine.go) and [`nemesis`](tools/gomad/nemesis)
-  packages show the shape of that API.
+- Replace the Go 1.26 compatibility approximations for weak pointers,
+  synctest, FIPS state, race metadata, and `internal/sync` hashing where
+  Temporal or differential tests demonstrate observable differences.
+- Add differential tests that run focused standard-library behaviors natively
+  and under gosim, then compare values, errors, logs, and lifecycle effects.
+- Audit Temporal's dependency graph for native escape hatches, unsafe code,
+  CGO, syscalls, DNS, TLS, and filesystem semantics before widening test
+  coverage.
+- Model a minimal multi-node Temporal topology with independent globals,
+  network identities, crash/restart lifecycles, and persistence state.
+- Keep execution checksums and race-detector edges comprehensive as new runtime,
+  network, disk, and synchronization operations are added.
 
 ### Simpler
 
-- Use a single typed event record as the contract between scheduling,
-  checksumming, tracing, replay, and debugging. This removes parallel ad hoc
-  logging protocols.
-- Maintain an auditable inventory of native escape hatches and skipped
-  packages. Every escape should say which nondeterminism or blocking behavior
-  remains possible.
-- Keep per-machine state behind one deep lifecycle interface if multi-process
-  simulation is added. Do not expose machine bookkeeping throughout Temporal
-  tests.
-- Do not copy gosim's `go123` hook table or full standard-library translation
-  yet. The Go 1.26 experiment demonstrates that this would make GoMaD harder,
-  not simpler, before Temporal needs disk-crash and host-lifecycle fidelity.
+- Keep Go-version-specific hooks isolated in one compatibility layer with a
+  documented mapping from every unexported Go symbol to its gosim behavior.
+- Maintain one upstream provenance record and a reviewable local patch series
+  so future gosim refreshes do not require rediscovering the fork's intent.
+- Put Temporal lifecycle adaptation behind a small, testable machine-cluster
+  interface instead of spreading gosim bookkeeping through functional tests.
+- Maintain an auditable inventory of untranslated code and native escape
+  hatches, including the nondeterminism each escape can introduce.
+- Do not resurrect legacy high-level fakes or keep dual execution paths for
+  cases that can be expressed through gosim's standard library and OS model.
 
 ### Faster
 
-- Use a checksum in ordinary runs and reserve dual-process lockstep for focused
-  validation. That avoids paying for two processes on every exploratory seed
-  while retaining a stronger diagnostic mode.
-- Cache transformations by tool version, source, imports, build tags, and
-  architecture, as gosim does in
-  [`internal/translate/cache.go`](tools/gomad/internal/translate/cache.go).
-- Shard seed ranges across test workers and stop each shard on its first useful
-  failure.
-- Benchmark gosim's coroutine implementation in
-  [`internal/coro`](tools/gomad/internal/coro) behind GoMaD's scheduler
-  abstraction. Adopt it only if native-goroutine overhead is material; its
-  runtime linknames add version risk.
+- Extend the existing translation cache in
+  [`internal/translate/cache.go`](tools/gomad/internal/translate/cache.go) with
+  measurements and precise invalidation for the Temporal dependency graph.
+- Shard seed ranges across workers, retain the first useful failure per shard,
+  and make replay independent of worker count.
+- Profile translation, compilation, simulation memory, and steps per second on
+  a representative Temporal scenario before optimizing the runtime.
+- Replace the collision-correct constant hash in the Go 1.26
+  `internal/sync.HashTrieMap` adapter before it becomes a workload bottleneck.
+- Reuse prepared translated standard-library and dependency artifacts across
+  Temporal test packages when their inputs are identical.
 
-The recommended order is: execution checksum and typed traces first,
-metatesting and reproduction UX second, race annotations third, then a small
-multi-machine fault prototype. Coroutine replacement and full syscall/disk
-simulation should remain evidence-driven follow-ups.
+The recommended order is: preserve the green Go 1.26 compatibility baseline;
+remove correctness-risk approximations that affect Temporal; run one minimal
+Temporal service scenario; add reproduction and fault-scenario ergonomics;
+then optimize from measured translation and execution profiles.
 
 ## Practical conclusion
 
-For near-term work on the current Temporal tree, GoMaD is the more direct path
-to deterministic scheduling and simulated-time coverage. Gosim is the stronger
-reference architecture for the longer-term goal of testing Temporal as a set
-of independently crashable machines with faultable networks and durable disks.
+There is one forward path: improve the Go 1.26 gosim fork in `tools/gomad` and
+integrate Temporal with it. `tools/gomad_old` is abandoned, read-only reference
+material; it should not influence prioritization through its lower short-term
+integration cost.
 
-A useful strategy is therefore not to treat the projects as mutually
-exclusive. GoMaD can continue validating whether deterministic simulation
-finds valuable Temporal bugs, while adopting ideas that do not require gosim's
-entire runtime boundary:
+All new simulation tests should use gosim's scheduler, machine model, network,
+and disk. Single-process interleaving tests should run as a one-machine gosim
+scenario; distributed failure tests should add machines and explicit faults.
+This keeps scheduling, reproduction, tracing, race semantics, and failure
+models consistent across the test portfolio.
 
-- Record an execution checksum instead of relying only on log equality.
-- Add structured machine/goroutine/step metadata and step-oriented debugging.
-- Make the boundary between simulated and native code explicit and auditable.
-- Integrate race-detector happens-before annotations.
-- Define first-class fault scenarios before accumulating ad hoc failpoints.
-- Treat a multi-node/multi-machine model as a distinct future layer rather than
-  implying it through in-process RPC fakes.
-
-If the primary requirement becomes crash consistency, network partitions, or
-node lifecycle fidelity, gosim deserves a focused porting prototype. If the
-primary requirement remains reproducible interleavings in Temporal's existing
-functional tests, improving GoMaD's coverage and determinism diagnostics is the
-lower-complexity investment.
+The next milestone is not another framework comparison. It is one minimal,
+reproducible Temporal scenario running under gosim on Go 1.26, followed by an
+inventory of the exact translation, syscall, dependency, and lifecycle gaps
+blocking a representative multi-node scenario. Once the remaining useful
+integration knowledge has been extracted, the legacy source can be removed.

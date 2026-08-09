@@ -496,10 +496,14 @@ func (t *packageTranslator) markSyncFuncsNorace(c *dstutil.Cursor) {
 		return
 	}
 
-	if t.pkgPath == "sync" {
+	if shouldMarkSyncFuncsNorace(t.pkgPath) {
 		// XXX: jank mark all funcs norace in "sync" package
 		decl.Decs.Start = append(decl.Decs.Start, "//go:norace")
 	}
+}
+
+func shouldMarkSyncFuncsNorace(pkgPath string) bool {
+	return pkgPath == "sync" || pkgPath == "internal/sync"
 }
 
 func (t *packageTranslator) newRuntimeSelector(name string) *dst.Ident {
@@ -530,6 +534,7 @@ func (t *packageTranslator) preApply(c *dstutil.Cursor) bool {
 	t.rewriteImport(c)
 	t.rewriteNotifyListHack(c)
 	t.rewriteJsonGlobalsHack(c)
+	t.rewriteGo126HashTrieMap(c)
 
 	// TODO: think about and make this ordering less brittle
 
