@@ -29,6 +29,21 @@ func RewriteSelector(pkg, selector string) string {
 	return rewritten.String()
 }
 
+func hookSelector(source, target packageSelector) string {
+	if target.Selector != "" {
+		return target.Selector
+	}
+	return RewriteSelector(source.Pkg, source.Selector)
+}
+
+func (t *packageTranslator) hookForFunc(decl *dst.FuncDecl) (packageSelector, bool) {
+	if decl.Recv != nil {
+		return packageSelector{}, false
+	}
+	hook, ok := t.hooks[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}]
+	return hook, ok
+}
+
 func (t *packageTranslator) rewriteImport(c *dstutil.Cursor) {
 	node := c.Node()
 
@@ -136,7 +151,7 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 		if strings.HasPrefix(val, "//go:linkname") {
 			hasLinkname = true
 
-			if _, ok := t.hooks[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}]; ok {
+			if _, ok := t.hookForFunc(decl); ok {
 				decl.Decs.Start[i] = "//"
 				hasLinkname = false
 				continue
@@ -144,7 +159,7 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 
 			parts := strings.Split(val, " ")
 
-			if len(parts) == 2 && decl.Body == nil {
+			if len(parts) == 2 && decl.Body == nil && !acceptedNoBodyGo123Linknames[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}] {
 				// TODO: make this fail the build?
 				slog.Error("unknown linkname with no body", "pkg", t.pkgPath, "name", decl.Name.Name)
 			}
@@ -176,7 +191,7 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 	}
 
 	if decl.Body != nil {
-		if _, ok := t.hooks[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}]; ok {
+		if _, ok := t.hookForFunc(decl); ok {
 			// take over!
 			decl.Body = nil
 		}
@@ -193,8 +208,9 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 		// XXX: detect all these not implemented ones? output them?
 		// XXX: something similar for... other "bad" calls?
 
-		if linkTo, ok := t.hooks[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}]; ok {
-			selector := RewriteSelector(t.pkgPath, decl.Name.Name)
+		if linkTo, ok := t.hookForFunc(decl); ok {
+			source := packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}
+			selector := hookSelector(source, linkTo)
 
 			pkg := linkTo.Pkg
 			if replaced, ok := t.replacedPkgs[pkg]; ok {

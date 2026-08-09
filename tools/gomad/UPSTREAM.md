@@ -14,23 +14,37 @@ dependencies to the Temporal server module.
 Local compatibility changes should be kept small and documented here so a
 future upstream refresh can distinguish them from the imported snapshot.
 
-## Go 1.26 compatibility experiment
+## Go 1.26 compatibility
 
-The imported module still declares Go 1.23.2. With Go 1.26.3 on Darwin/ARM64,
-the gosim runtime unit target passes with the required `linkname` build tag and
-linker flag, but translated self-tests do not yet build.
+The nested module declares Go 1.26.0. The local port is verified with Go 1.26.1
+on Darwin/ARM64 against gosim's runtime, translator, translated behavior,
+nemesis, and race-detector suites.
 
-Local adapters currently cover:
+Local compatibility changes cover:
 
-- `internal/runtime/syscall/linux.Syscall6`;
-- `internal/cpu.getpfr0`;
-- `internal/runtime/sys` DIT and caller intrinsics;
-- `crypto/internal/fips140/subtle.xorBytes`;
-- `sync.runtime_SemacquireWaitGroup`; and
-- `syscall.runtimeClearenv`.
+- moved and added runtime/syscall entry points, ARM64 CPU probes, DIT and caller
+  intrinsics, wait-group semaphores, environment clearing, and `vgetrandom`;
+- Go 1.26 FIPS packages and assembly boundaries, including per-simulation
+  indicator/bypass state and constant-time helpers;
+- `reflect.TypeAssert`, `Value.Seq`, and `Value.Seq2` for translated maps;
+- named-map generic constraints and Go 1.26's `internal/sync.HashTrieMap`;
+- `internal/race`, `internal/synctest`, `weak`, and new time runtime hooks; and
+- Linux `O_DIRECTORY` support required by the crash/disk tests.
 
-The remaining hard failures include the FIPS SHA-256 and SHA-512 assembly entry
-points `blockSHA2` and `blockSHA512`. Translation also discovers new linkname
-surfaces in `crypto/subtle`, `weak`, `internal/synctest`, `internal/sync`,
-`internal/runtime/maps`, `internal/syscall/unix`, and `time`. This is a partial
-porting experiment, not a Go 1.26-compatible gosim release.
+The principal acceptance commands, run from this directory, are:
+
+```text
+go build -tags=test_dep -o .gosim/gosimtool ./cmd/gosim
+go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gosimruntime
+.gosim/gosimtool prepare-selftest
+.gosim/gosimtool test ./internal/tests/behavior ./nemesis
+.gosim/gosimtool test -race ./internal/tests/behavior ./nemesis
+```
+
+The port has deliberate compatibility approximations. Weak pointers keep a
+strong reference, `internal/synctest` bubble bookkeeping is not modeled, FIPS
+state is not a complete clone of the Go runtime's state model, the internal
+race adapters lose some object/PC fidelity, and the `internal/sync` hash-trie
+adapter uses a constant hash. The latter is collision-correct but can degrade
+to linear performance. These choices should be revisited if production code
+depends on the omitted semantics or profiles show the hash trie as a hotspot.

@@ -27,7 +27,7 @@ package main
 import (
 	"path/filepath"
 
-	sim_ctrl "go.temporal.io/server/tools/gomad/ctrl"
+	sim_ctrl "go.temporal.io/server/tools/gomad_old/ctrl"
 )
 
 var outDir = filepath.Join("..", "gomad-run")

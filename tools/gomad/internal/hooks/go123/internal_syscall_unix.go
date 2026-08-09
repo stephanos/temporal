@@ -19,3 +19,7 @@ func InternalSyscallUnix_Unlinkat(dirfd int, path string, flags int) error {
 func InternalSyscallUnix_Openat(dirfd int, path string, flags int, perm uint32) (int, error) {
 	return Syscall_openat(dirfd, path, flags, perm)
 }
+
+func InternalSyscallUnix_vgetrandom([]byte, uint32) (ret int, supported bool) {
+	return 0, false
+}

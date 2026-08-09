@@ -59,6 +59,14 @@ var skippedPackagesGo123 = map[string]bool{
 var keepAsmPackagesGo123 = map[string]bool{
 	"crypto/aes":                                   true,
 	"crypto/internal/boring/sig":                   true,
+	"crypto/internal/fips140/aes":                  true,
+	"crypto/internal/fips140/aes/gcm":              true,
+	"crypto/internal/fips140/bigmod":               true,
+	"crypto/internal/fips140/edwards25519/field":   true,
+	"crypto/internal/fips140/nistec":               true,
+	"crypto/internal/fips140/sha256":               true,
+	"crypto/internal/fips140/sha3":                 true,
+	"crypto/internal/fips140/sha512":               true,
 	"crypto/internal/nistec":                       true,
 	"crypto/md5":                                   true,
 	"crypto/sha1":                                  true,
@@ -87,9 +95,10 @@ var PublicExportHacks = map[string][]string{
 
 // XXX: replace the package instead
 var replacements = map[packageSelector]packageSelector{
-	{Pkg: "runtime", Selector: "SetFinalizer"}: {Pkg: gosimruntimePackage, Selector: "SetFinalizer"},
-	{Pkg: "runtime", Selector: "GOOS"}:         {Pkg: gosimruntimePackage, Selector: "GOOS"},
-	{Pkg: "runtime", Selector: "Gosched"}:      {Pkg: gosimruntimePackage, Selector: "Yield"},
+	{Pkg: "runtime", Selector: "SetFinalizer"}:               {Pkg: gosimruntimePackage, Selector: "SetFinalizer"},
+	{Pkg: "runtime", Selector: "GOOS"}:                       {Pkg: gosimruntimePackage, Selector: "GOOS"},
+	{Pkg: "runtime", Selector: "Gosched"}:                    {Pkg: gosimruntimePackage, Selector: "Yield"},
+	{Pkg: "internal/runtime/maps", Selector: "Use64BitHash"}: {Pkg: gosimruntimePackage, Selector: "Use64BitHash"},
 }
 
 const gosimModPath = gosimtool.Module

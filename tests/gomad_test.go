@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	sim_ctrl "go.temporal.io/server/tools/gomad/ctrl"
+	sim_ctrl "go.temporal.io/server/tools/gomad_old/ctrl"
 )
 
 func TestMain(m *testing.M) {
