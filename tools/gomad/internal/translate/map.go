@@ -298,7 +298,7 @@ func (t *packageTranslator) rewriteMapType(c *dstutil.Cursor) {
 	if unary, ok := c.Node().(*dst.UnaryExpr); ok && unary.Op == token.TILDE {
 		if mapType, ok := unary.X.(*dst.MapType); ok {
 			c.Replace(&dst.IndexListExpr{
-				X: t.newRuntimeSelector("Map"),
+				X: t.newRuntimeSelector("MapType"),
 				Indices: []dst.Expr{
 					mapType.Key,
 					t.apply(mapType.Value).(dst.Expr),
