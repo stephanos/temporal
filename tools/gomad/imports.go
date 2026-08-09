@@ -11,16 +11,12 @@ package gomad
 // are multiple go.mod because we run on multiple versions?
 
 import (
-	// Allow running the CLI.
-	_ "github.com/temporalio/gomad/cmd/gomad"
-
 	// Packages listed in internal/translate.TranslatedRuntimePackages.
-	_ "github.com/temporalio/gomad/internal/hooks/go123"
 	_ "github.com/temporalio/gomad/internal/reflect"
 	_ "github.com/temporalio/gomad/internal/simulation"
+	_ "github.com/temporalio/gomad/internal/stdlib/hooks"
 	_ "github.com/temporalio/gomad/internal/testing"
 
 	// Tools used by gomad. For this repository.
 	_ "golang.org/x/tools/cmd/goimports"
-	_ "mvdan.cc/gofumpt"
 )

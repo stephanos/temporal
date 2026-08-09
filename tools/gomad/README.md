@@ -26,6 +26,11 @@ look at what gomad can do.
 # Using Gomad
 
 ## From go test to gomad test
+Build the `gomad` executable from the Temporal repository root:
+```
+> go install ./cmd/tools/gomad
+```
+
 Gomad tests standard go code and is used just like another go package. To get
 started with `gomad`, you need to import it in your module:
 ```
@@ -61,10 +66,9 @@ ok  	example	0.216s
 ```
 The test prints that Gomad is not enabled, and each time the test runs the random number is different.
 
-To run this test with `gomad` instead, replace `go test` with
-`go run github.com/temporalio/gomad/cmd/gomad test`:
+To run this test with `gomad` instead, replace `go test` with `gomad test`:
 ```
-> go run github.com/temporalio/gomad/cmd/gomad test -v -run TestGomad
+> gomad test -v -run TestGomad
 === RUN   TestGomad (seed 1)
     1 main/4     14:10:03.000 INF examples/simple_test.go:12 > Are we in the Matrix? true method=t.Logf
     2 main/4     14:10:03.000 INF examples/simple_test.go:13 > Random: 811966193383742320 method=t.Logf
@@ -76,11 +80,15 @@ more involved than a normal `go test`. Every log line includes the simulated
 machine and the goroutine that invoked the log to help debug tests running on
 multiple machines.
 
+Pass project-specific build tags with `-tags`, for example
+`gomad test -tags=test_dep ./...`. Gomad configures its implementation tags
+automatically.
+
 The `=== RUN` line includes the test's seed. Each time this test runs with the
 same seed it will output the same random number. To test with different seeds,
 you can pass ranges of seeds to `gomad test`:
 ```
-go run github.com/temporalio/gomad/cmd/gomad test -v -seeds=1-3 -run=TestGomad .
+gomad test -v -seeds=1-3 -run=TestGomad .
 === RUN   TestGomad (seed 1)
     1 main/4     14:10:03.000 INF examples/simple_test.go:12 > Are we in the Matrix? true method=t.Logf
     2 main/4     14:10:03.000 INF examples/simple_test.go:13 > Random: 811966193383742320 method=t.Logf
@@ -187,7 +195,7 @@ messes with the server, restarting it and adding latency. Let's see
 what happens this test is run:
 <!-- TODO: two machines and a bug? -->
 ```
-> go run github.com/temporalio/gomad/cmd/gomad test -v -run TestMachines
+> gomad test -v -run TestMachines
 === RUN   TestMachines (seed 1)
     1 server/5   14:10:03.000 INF example/machines_test.go:17 > starting server
     2 main/4     14:10:04.000 INF example/machines_test.go:27 > making a request
@@ -252,7 +260,7 @@ The numbers at the start of each log are Gomad's step numbers. Take step 11 from
 the log above, from the line "got a request ...". We can debug the state of the
 program at the time the log was printed with `gomad debug`:
 ```
-> go run github.com/temporalio/gomad/cmd/gomad debug -package=. -test=TestMachines -step=11
+> gomad debug -package=. -test=TestMachines -step=11
 ...
     26:	func (w gomadSlogHandler) Handle(ctx context.Context, r slog.Record) error {
     27:		r.AddAttrs(slog.Int("goroutine", gomadruntime.GetGoroutine()))
@@ -312,7 +320,7 @@ Gomad's simulation is at the system call level. To see why a program behaved
 the way it did, Gomad can output detailed logs of all system calls with the
 `-simtrace=syscall` flag:
 ```
-> go run github.com/temporalio/gomad/cmd/gomad test -v -simtrace=syscall -run TestMachines
+> gomad test -v -simtrace=syscall -run TestMachines
 === RUN   TestMachines (seed 1)
     1 server/5   14:10:03.000 INF examples/machines_test.go:19 > starting server
     2 server/5   14:10:03.000 INF simulation/os_linux_.go:88 > call SysSocket flags=SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC net=AF_INET proto=IPPROTO_IP traceKind=syscall
@@ -351,14 +359,14 @@ Gomad's public packages are:
 - [github.com/temporalio/gomad](./): the core API for creating machines
   and manipulating the simulation environment
 
-- [github.com/temporalio/gomad/cmd/gomad](./cmd/gomad): the CLI for
-  running Gomad tests
-
 - [github.com/temporalio/gomad/metatesting](./metatesting/): a package
   for running Gomad tests inside of normal go test.
 
 - [github.com/temporalio/gomad/nemesis](./nemesis/): a package, still
   sparse, to introduce chaos into simulations
+
+The CLI for running Gomad tests is the Temporal repository command at
+[`cmd/tools/gomad`](../../cmd/tools/gomad).
 
 # Development
 
