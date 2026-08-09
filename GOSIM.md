@@ -33,7 +33,7 @@ version and dependency integration before it could run this Temporal tree.
 | Network | In-memory TCP connection pairs and selected HTTP/gRPC substitutes | A virtual TCP network with per-link delay and connectivity control |
 | Filesystem | In-memory `afero` filesystem; no durability model | POSIX-style simulated filesystem with `fsync`, in-flight writes, crash loss, and recovery-state exploration |
 | Failure injection | Scheduling variation and simulated time; failpoint rewriting exists, but there is no first-class host/network fault API comparable to gosim | Machine crash/restart, partial disk persistence, partitions, delays, and a small `nemesis` package |
-| Nondeterminism detection | Optional lockstep dual-process execution that compares logs at each scheduler step | Event checksums/traces plus metatests that compare checksums, traces, and logs across runs |
+| Nondeterminism detection | Optional lockstep dual-process execution that compares logs at each scheduler step | Execution checksums plus metatests that compare checksums and logs across runs |
 | Reproduction | Printed seed and `-gomad.seed` | Printed seed, seed ranges, and replay through the gosim CLI |
 | Debugging | Scheduler logs, source locations, native stack dump, deadlock diagnostics | Structured step logs, syscall tracing, stack capture, and Delve-at-step debugging |
 | Race detector | Not a documented integration contract | Explicitly integrates the standard Go race detector with simulated happens-before edges |
@@ -144,12 +144,13 @@ for the Temporal code already emitting diagnostic logs. Its blind spot is
 unlogged state: two runs can diverge internally and converge on the same output,
 or only reveal the difference much later.
 
-Gosim computes a running checksum over scheduling decisions and other runtime
-events. Its metatesting layer can rerun a seed and compare the checksum, trace,
+Gosim computes a running checksum over scheduling decisions and selected
+runtime events. Its metatesting layer can rerun a seed and compare the checksum
 and logs, providing a more direct signal that execution diverged. Gosim also
-associates logs with machine, goroutine, simulated time, and step; can trace
-syscalls; and can launch Delve stopped at a chosen step. This is a stronger
-debugging product around the simulator, not only a stronger simulation model.
+associates logs with machine, goroutine, and simulated time; numbers checksum
+events by step; can trace syscalls; and can launch Delve stopped at a chosen
+step. This is a stronger debugging product around the simulator, not only a
+stronger simulation model.
 
 GoMaD has one feature that gosim does not expose at the compared revision:
 checkpoint-and-restore. GoMaD can record selected simulation operations and
@@ -208,6 +209,129 @@ to answer at least:
 These are integration questions, not evidence that the gosim architecture is
 wrong. They explain why its greater modeled fidelity does not translate into a
 drop-in replacement.
+
+## Go 1.26 import experiment
+
+The pinned gosim source is imported as a nested module under
+[`tools/gomad`](tools/gomad), with provenance recorded in
+[`UPSTREAM.md`](tools/gomad/UPSTREAM.md). The experiment used Go 1.26.3 on
+Darwin/ARM64. Gosim's `go.mod` still declares Go 1.23.2 because changing that
+line would overstate compatibility: ordinary runtime code and translated
+standard-library code have different results.
+
+The coroutine/runtime unit target passes when invoked with gosim's required
+linkname settings:
+
+```text
+go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gosimruntime
+```
+
+The translated self-test build does not yet pass:
+
+```text
+.gosim/gosimtool build-tests ./internal/tests/behavior ./nemesis
+```
+
+The first failures were mechanical Go standard-library moves and additions.
+The local experiment added adapters for:
+
+- `internal/runtime/syscall/linux.Syscall6`, moved from
+  `internal/runtime/syscall`;
+- the ARM64 CPU `getpfr0` probe and DIT helpers;
+- the new `internal/runtime/sys` caller intrinsics;
+- FIPS `subtle.xorBytes`;
+- `sync.runtime_SemacquireWaitGroup`; and
+- `syscall.runtimeClearenv`.
+
+After those adapters, translation reaches new FIPS SHA-256 and SHA-512 assembly
+entry points (`blockSHA2` and `blockSHA512`) and stops, depending on which
+package is translated first. It also reports new runtime-linkname surfaces in
+`crypto/subtle`, `weak`, `internal/synctest`, `internal/sync`,
+`internal/runtime/maps`, `internal/syscall/unix`, and `time`. Some are aliases
+to existing gosim behavior, but others need an explicit decision about weak
+pointers, synctest bubbles, runtime map internals, FIPS state, assembly
+fallbacks, or simulated time semantics.
+
+The result is clear enough for planning: gosim's core runtime can compile and
+run on Go 1.26, but its source translator is not an easy Go-version bump. Its
+low-level boundary buys a coherent simulation model at the cost of tracking
+unexported standard-library organization and runtime linknames. A real port
+should be treated as a dedicated compatibility project with translated
+behavior and race suites as its acceptance tests.
+
+## What GoMaD should take from gosim
+
+GoMaD should copy gosim's high-leverage runtime and developer-experience ideas,
+not its entire standard-library translation boundary. That preserves GoMaD's
+main advantage—being easy to evolve with Temporal—while improving the parts
+where gosim is observably stronger.
+
+### Easier
+
+- Add metatest helpers that rerun a seed and automatically compare checksums
+  and logs, following
+  [`metatesting/metatest.go`](tools/gomad/metatesting/metatest.go). This turns
+  determinism verification into a normal test assertion instead of a special
+  manual mode.
+- Make seed ranges, exact-seed replay, and test selection first-class in one
+  runner. Gosim's [`cmd/gosim`](tools/gomad/cmd/gosim/main.go) is a useful UX
+  reference, but GoMaD can keep its simpler `go test` integration.
+- Emit one copy-pasteable reproduction command whenever a run fails, including
+  the seed and any step or trace filters.
+
+### Better
+
+- Hash scheduler decisions and externally visible simulation events using a
+  running execution checksum like
+  [`gosimruntime/checksum.go`](tools/gomad/gosimruntime/checksum.go). Logs should
+  remain diagnostic output, not the definition of determinism.
+- Give every event stable simulated-time, step, goroutine, and eventual-machine
+  fields, borrowing the structured logging model in
+  [`gosimruntime/log.go`](tools/gomad/gosimruntime/log.go). The same event stream
+  should drive traces, checksums, and deadlock reports.
+- Add explicit race-detector acquire/release edges for simulated channels,
+  semaphores, timers, and network delivery, using
+  [`gosimruntime/raceutil_race.go`](tools/gomad/gosimruntime/raceutil_race.go)
+  as the reference.
+- Define faults as composable scenarios—partition, delay, crash, restart—rather
+  than accumulating call-site failpoints. Gosim's
+  [`Machine`](tools/gomad/machine.go) and [`nemesis`](tools/gomad/nemesis)
+  packages show the shape of that API.
+
+### Simpler
+
+- Use a single typed event record as the contract between scheduling,
+  checksumming, tracing, replay, and debugging. This removes parallel ad hoc
+  logging protocols.
+- Maintain an auditable inventory of native escape hatches and skipped
+  packages. Every escape should say which nondeterminism or blocking behavior
+  remains possible.
+- Keep per-machine state behind one deep lifecycle interface if multi-process
+  simulation is added. Do not expose machine bookkeeping throughout Temporal
+  tests.
+- Do not copy gosim's `go123` hook table or full standard-library translation
+  yet. The Go 1.26 experiment demonstrates that this would make GoMaD harder,
+  not simpler, before Temporal needs disk-crash and host-lifecycle fidelity.
+
+### Faster
+
+- Use a checksum in ordinary runs and reserve dual-process lockstep for focused
+  validation. That avoids paying for two processes on every exploratory seed
+  while retaining a stronger diagnostic mode.
+- Cache transformations by tool version, source, imports, build tags, and
+  architecture, as gosim does in
+  [`internal/translate/cache.go`](tools/gomad/internal/translate/cache.go).
+- Shard seed ranges across test workers and stop each shard on its first useful
+  failure.
+- Benchmark gosim's coroutine implementation in
+  [`internal/coro`](tools/gomad/internal/coro) behind GoMaD's scheduler
+  abstraction. Adopt it only if native-goroutine overhead is material; its
+  runtime linknames add version risk.
+
+The recommended order is: execution checksum and typed traces first,
+metatesting and reproduction UX second, race annotations third, then a small
+multi-machine fault prototype. Coroutine replacement and full syscall/disk
+simulation should remain evidence-driven follow-ups.
 
 ## Practical conclusion
 
