@@ -341,16 +341,6 @@ the way it did, Gosim can output detailed logs of all system calls with the
 ```
 Here you can see on step 60 the HTTP GET request being written by the client, and then on step 64 being read by the server.
 
-## Examples
-
-Gosim can run some sizeable real-world code. In this repository
-there are examples for:
-
-- [examples/bolt](./examples/bolt/): reading and writing a [Bolt](https://github.com/etcd-io/bbolt) database
-
-- [examples/etcd](./examples/etcd/): running a 3-node [Etcd](https://github.com/etcd-io/etcd) cluster and partitioning the
-  nodes
-
 # API and documentation
 
 A description of Gosim's architecture and design decisions is in
@@ -384,4 +374,3 @@ on Windows) running on either arm64 or amd64. To test that code works on Linux
 amd64 and arm64, there are scripts `.ci/crossarch-tests/test-amd64.sh` and
 `.ci/crossarch-tests/test-arm64.sh` that run the tests using Docker. A Github
 Action runs the tests on Linux amd64.
-
