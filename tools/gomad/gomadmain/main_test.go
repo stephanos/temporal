@@ -1,6 +1,7 @@
 package gomadmain
 
 import (
+	"flag"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -8,7 +9,37 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/temporalio/gomad/internal/gomadtool"
 )
+
+func TestBuildOptionsApplyUserTags(t *testing.T) {
+	flags := flag.NewFlagSet("test", flag.ContinueOnError)
+	var options buildOptions
+	options.register(flags)
+	if err := flags.Parse([]string{"-race", "-tags=test_dep,integration"}); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := gomadtool.BuildConfig{}
+	options.apply(&cfg)
+	if diff := cmp.Diff("gomad,test_dep,integration,race", cfg.PackageTags()); diff != "" {
+		t.Errorf("configured package tags mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestTranslatedBuildFlagsIncludeUserTags(t *testing.T) {
+	cfg := gomadtool.BuildConfig{
+		UserTags: gomadtool.ParseBuildTags("test_dep,integration"),
+	}
+
+	if diff := cmp.Diff([]string{
+		"-ldflags=-checklinkname=0",
+		"-tags=linkname,test_dep,integration",
+	}, translatedBuildFlags(cfg)); diff != "" {
+		t.Errorf("translatedBuildFlags() mismatch (-want +got):\n%s", diff)
+	}
+}
 
 func TestGroup(t *testing.T) {
 	grouped := batchPackagesWithDifferentNames([]string{

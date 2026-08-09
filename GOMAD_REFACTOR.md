@@ -498,9 +498,10 @@ Run focused checks after each roadmap item, followed by the nested-module
 acceptance sequence at phase boundaries:
 
 ```text
+go build -tags=test_dep -o tools/gomad/.gomad/gomadtool ./cmd/tools/gomad
+cd tools/gomad
 go mod tidy
 go list -tags=test_dep ./...
-go build -tags=test_dep -o .gomad/gomadtool ./cmd/gomad
 go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gomadruntime
 .gomad/gomadtool prepare-selftest
 .gomad/gomadtool test ./internal/tests/behavior ./nemesis

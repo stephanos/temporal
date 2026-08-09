@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	gocmp "github.com/google/go-cmp/cmp"
+	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/txtar"
 
 	"github.com/temporalio/gomad/internal/gomadtool"
@@ -25,6 +26,44 @@ var (
 	rewrite    = flag.Bool("rewrite", false, "rewrite golden outputs")
 	useworkdir = flag.Bool("useworkdir", false, "write in testdata/workdir instead of tempdir")
 )
+
+func TestLoadPackagesUsesUserTags(t *testing.T) {
+	workDir := t.TempDir()
+	files := map[string]string{
+		"go.mod":   "module test\n\ngo 1.26.0\n",
+		"base.go":  "package tagged\n",
+		"gomad.go": "//go:build gomad\n\npackage tagged\n",
+		"user.go":  "//go:build test_dep\n\npackage tagged\n",
+		"other.go": "//go:build other\n\npackage tagged\n",
+	}
+	for name, contents := range files {
+		if err := os.WriteFile(filepath.Join(workDir, name), []byte(contents), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Chdir(workDir)
+
+	loaded, err := loadPackages([]string{"."}, gomadtool.BuildConfig{
+		GOOS:     "linux",
+		GOARCH:   runtime.GOARCH,
+		UserTags: gomadtool.ParseBuildTags("test_dep"),
+	}, packages.NeedFiles, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(loaded) != 1 {
+		t.Fatalf("loadPackages() returned %d packages, want 1", len(loaded))
+	}
+
+	got := make([]string, 0, len(loaded[0].GoFiles))
+	for _, file := range loaded[0].GoFiles {
+		got = append(got, filepath.Base(file))
+	}
+	slices.Sort(got)
+	if diff := gocmp.Diff([]string{"base.go", "gomad.go", "user.go"}, got); diff != "" {
+		t.Errorf("loaded files mismatch (-want +got):\n%s", diff)
+	}
+}
 
 // TestTranslate runs gomad translate on all go files specified in testdata/.
 //
@@ -86,7 +125,6 @@ func TestTranslate(t *testing.T) {
 		"golang.org/x/sync",
 		"golang.org/x/sys",
 		"golang.org/x/tools",
-		"mvdan.cc/gofumpt",
 	}); err != nil {
 		t.Fatal(err)
 	}

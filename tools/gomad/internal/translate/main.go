@@ -24,69 +24,6 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
-var skippedPackagesGo123 = map[string]bool{
-	"runtime": true, // XXX wait what
-	"errors":  true,
-	"reflect": true,
-	// "strings": true,
-	"strconv": true,
-	// embed: true, // this will also have io.EOF problems... unless we can just use the original there please???
-	// XXX: for all unconverted packages, figure out all references to converted packages, and have a plan.
-	"embed":    true, // XXX can we link back to the original here somehow???
-	"math":     true,
-	"math/big": true,
-
-	"unsafe": true,
-
-	"runtime/coverage": true, // XXX for now
-	"runtime/metrics":  true, // XXX for now
-	"runtime/pprof":    true, // XXX for now
-
-	// XXX: rewrite internal/cpu to golang.org/x/sys/cpu?
-	"vendor/golang.org/x/sys/cpu": true, // XXX for now
-
-	"unique": true, // XXX: yes
-
-	"testing":                     true,
-	"testing/internal/testdeps":   true,
-	"internal/reflectlite":        true,
-	gomadruntimePackage:           true,
-	gomadruntimePackage + "_test": true, // eh
-	gomadruntimePackage + ".test": true, // eh
-	// reflectPackage: true,
-}
-
-var keepAsmPackagesGo123 = map[string]bool{
-	"crypto/aes":                                   true,
-	"crypto/internal/boring/sig":                   true,
-	"crypto/internal/fips140/aes":                  true,
-	"crypto/internal/fips140/aes/gcm":              true,
-	"crypto/internal/fips140/bigmod":               true,
-	"crypto/internal/fips140/edwards25519/field":   true,
-	"crypto/internal/fips140/nistec":               true,
-	"crypto/internal/fips140/sha256":               true,
-	"crypto/internal/fips140/sha3":                 true,
-	"crypto/internal/fips140/sha512":               true,
-	"crypto/internal/nistec":                       true,
-	"crypto/md5":                                   true,
-	"crypto/sha1":                                  true,
-	"crypto/sha256":                                true,
-	"crypto/sha512":                                true,
-	"crypto/subtle":                                true,
-	"crypto/internal/bigmod":                       true,
-	"crypto/internal/edwards25519/field":           true,
-	"vendor/golang.org/x/crypto/chacha20":          true,
-	"vendor/golang.org/x/crypto/internal/poly1305": true,
-	"vendor/golang.org/x/crypto/chacha20poly1305":  true,
-	"vendor/golang.org/x/crypto/sha3":              true,
-	"hash/crc32":                                   true,
-
-	"net/url":  true, // XXX: linkname setpath nonsense
-	"net/http": true, // XXX: linkname roundtrip nonsense
-
-	"github.com/cespare/xxhash/v2": true,
-}
-
 var PublicExportHacks = map[string][]string{
 	"encoding/binary":                  {"littleEndian"},
 	"internal/poll":                    {"errNetClosing"},
@@ -105,14 +42,14 @@ const gomadModPath = gomadtool.Module
 
 const (
 	gomadruntimePackage = gomadModPath + "/gomadruntime"
-	hooksGo123Package   = gomadModPath + "/internal/hooks/go123"
+	stdlibHooksPackage  = gomadModPath + "/internal/stdlib/hooks"
 	reflectPackage      = gomadModPath + "/internal/reflect"
 	simulationPackage   = gomadModPath + "/internal/simulation"
 	testingPackage      = gomadModPath + "/internal/testing"
 )
 
 var TranslatedRuntimePackages = []string{
-	hooksGo123Package,
+	stdlibHooksPackage,
 	reflectPackage,
 	simulationPackage,
 	testingPackage,
@@ -135,13 +72,9 @@ func loadPackages(patterns []string, b gomadtool.BuildConfig, mode packages.Load
 
 	// apply build config to packages config
 	// TODO: build tags plan (rename files, force GOOS and GOARCH)
-	tags := []string{"gomad"}
-	if b.Race {
-		tags = append(tags, "race")
-	}
 	// TODO: if we support varying GOARCH here, we should select the arch-specific hooks at runtime...
 	env := append(os.Environ(), "GOOS="+b.GOOS, "GOARCH="+b.GOARCH, "CGO_ENABLED=0")
-	cfg.BuildFlags = []string{"-tags", strings.Join(tags, ",")}
+	cfg.BuildFlags = []string{"-tags", b.PackageTags()}
 	cfg.Env = env
 
 	// load packages
@@ -456,7 +389,7 @@ func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir 
 	checkSingleModule(modPath, listedPkgs)
 
 	allPkgs := collectImports(listedPkgs, nil)
-	convertPkgs := collectImports(listedPkgs, skippedPackagesGo123)
+	convertPkgs := collectImports(listedPkgs, activeStdlibPolicy.skippedPackages)
 
 	packageGraph := newDepGraph()
 	basePkgs := make(map[string]*packages.Package)
@@ -529,7 +462,7 @@ func translatePackages(cache *cache.Cache, listPatterns []string, rootOutputDir 
 			cfg:                cfg,
 			pkg:                pkgById[pkgId],
 			replacedPkgs:       replacedPkgs,
-			hooksPackage:       hooksGo123Package,
+			hooksPackage:       stdlibHooksPackage,
 			packageNames:       packageNames,
 			importResults:      localResults,
 			pkgWithTypesAndAst: pkgsWithTypesAndAst[pkgId],

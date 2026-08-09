@@ -69,6 +69,8 @@ func computeTranslateToolHash(cfg gomadtool.BuildConfig) Hash {
 	h := NewHasher()
 	h.addString("runner")
 	h.addString(cfg.AsDirname())
+	h.addString(cfg.PackageTags())
+	h.addString(activeStdlibPolicy.targetGoVersion)
 	binaryPath, err := os.Executable()
 	if err != nil {
 		log.Fatal(err)

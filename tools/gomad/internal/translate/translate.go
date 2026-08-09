@@ -231,7 +231,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 
 	var results TranslatePackageResult
 
-	globals := collectGlobalsAndTests(dstFiles, dec.Ast, args.pkg.PkgPath, args.pkg.TypesInfo, globalsDontTranslateGo123)
+	globals := collectGlobalsAndTests(dstFiles, dec.Ast, args.pkg.PkgPath, args.pkg.TypesInfo, activeStdlibPolicy.globalsDontTranslate)
 	globalInfo := &PackageGlobalInfo{
 		Container:   make(map[string]string),
 		ShouldShare: make(map[string]bool),
@@ -306,8 +306,8 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 
 	allGlobals.merge(args.pkg.PkgPath, globalInfo)
 
-	hooks := maps.Clone(hooksGo123)
-	maps.Copy(hooks, hooksGensyscallGo123ByArch[args.cfg.GOARCH])
+	hooks := maps.Clone(activeStdlibPolicy.hooks)
+	maps.Copy(hooks, activeStdlibPolicy.hooksByArch[args.cfg.GOARCH])
 
 	translator := &packageTranslator{
 		typesInfo:           args.pkg.TypesInfo,
@@ -324,8 +324,8 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 			maps:      ssaGlobals.readonlyMaps,
 		},
 		hooks:             hooks,
-		acceptedLinknames: acceptedgo123Linknames,
-		keepAsmPkgs:       keepAsmPackagesGo123,
+		acceptedLinknames: activeStdlibPolicy.acceptedLinknames,
+		keepAsmPkgs:       activeStdlibPolicy.keepAsmPackages,
 	}
 
 	// translate package files

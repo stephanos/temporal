@@ -250,6 +250,8 @@ the translated behavior and nemesis suites, and those translated suites under
 the race detector. The principal acceptance commands are:
 
 ```text
+go build -tags=test_dep -o tools/gomad/.gomad/gomadtool ./cmd/tools/gomad
+cd tools/gomad
 go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gomadruntime
 .gomad/gomadtool prepare-selftest
 .gomad/gomadtool test ./internal/tests/behavior ./nemesis

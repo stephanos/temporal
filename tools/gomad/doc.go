@@ -22,11 +22,10 @@ test' command:
 	# run an normal test
 	go test -run TestName -v ./path/to/pkg
 	# run a gomad test
-	go run github.com/temporalio/gomad/cmd/gomad test -run TestName -v ./path/to/pkg
+	gomad test -run TestName -v ./path/to/pkg
 
-For more information on the 'gomad' command see its documentation at
-[github.com/temporalio/gomad/cmd/gomad].  To run Gomad tests from within a
-Go test, use the
+The 'gomad' executable is built from cmd/tools/gomad in the Temporal repository.
+To run Gomad tests from within a Go test, use the
 [github.com/temporalio/gomad/metatesting] package.
 
 # Gomad simulation

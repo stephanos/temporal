@@ -16,7 +16,6 @@ require (
 	golang.org/x/tools v0.27.0
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
-	mvdan.cc/gofumpt v0.7.0
 	pgregory.net/rapid v1.1.1-0.20240401182707-34cb5b24e44b
 )
 

@@ -13,7 +13,7 @@ The commands are:
 
 The 'translate' command:
 
-Usage: gomad translate [-race] [packages]
+Usage: gomad translate [-race] [-tags=tag,list] [packages]
 
 The translate command translates packages without running the resulting code.
 The output will be placed in <module root>/.gomad/translated. Translation
@@ -30,9 +30,12 @@ linux, and the GOARCH is the one used to compile translate.
 
 The -race flag translates all code with the race build tag set.
 
+The -tags flag adds project-specific build tags. Gomad applies its required
+implementation tags automatically.
+
 The 'test' command:
 
-Usage: gomad test [-race] [-run=...] [-seeds=...] [-v] [packages]
+Usage: gomad test [-race] [-tags=tag,list] [-run=...] [-seeds=...] [-v] [packages]
 
 The test command translates and runs tests for the specified packages.  It first
 invokes translate, and then invokes 'go test' on the translated code, passing
@@ -43,7 +46,7 @@ list of seeds and ranges, such as -seeds=1,2,5-10. The default is -seeds=1.
 
 The 'debug' command:
 
-Usage: gomad debug [-race] [-headless] -package=[package] -test=[test] [-seed=...] -step=[step]
+Usage: gomad debug [-race] [-tags=tag,list] [-headless] -package=[package] -test=[test] [-seed=...] -step=[step]
 
 The debug command translates and runs a specific test using the delve debugger.
 It first invokes translate, and then runs 'dlv test' on the specific test. The
@@ -56,7 +59,7 @@ external interface like an IDE.
 
 The 'build-tests' command:
 
-Usage: gomad build-tests [-race] [packages]
+Usage: gomad build-tests [-race] [-tags=tag,list] [packages]
 
 The build-tests command translates and then builds tests for use with the
 metatesting package. Metatesting in a cached go test run requires pre-building

@@ -8,7 +8,7 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/temporalio/gomad/gomadruntime"
-	go123 "github.com/temporalio/gomad/internal/hooks/go123"
+	stdlibhooks "github.com/temporalio/gomad/internal/stdlib/hooks"
 )
 
 type go126NamedMap gomadruntime.Map[string, int]
@@ -27,7 +27,7 @@ func TestGo126FIPSPackagesKeepAssembly(t *testing.T) {
 		"crypto/internal/fips140/sha512",
 	}
 	for _, pkg := range packages {
-		if !keepAsmPackagesGo123[pkg] {
+		if !go126KeepAsmPackages[pkg] {
 			t.Errorf("Go 1.26 FIPS package %q does not retain its assembly implementation", pkg)
 		}
 	}
@@ -39,7 +39,7 @@ func TestGo126MapTypeAcceptsNamedMaps(t *testing.T) {
 
 func TestGo126HookSelectorCanReuseAdapter(t *testing.T) {
 	source := packageSelector{Pkg: "internal/sync", Selector: "runtime_nanotime"}
-	target := packageSelector{Pkg: hooksGo123Package, Selector: "Sync_runtime_nanotime"}
+	target := packageSelector{Pkg: stdlibHooksPackage, Selector: "Sync_runtime_nanotime"}
 	if got := hookSelector(source, target); got != target.Selector {
 		t.Fatalf("hook selector = %q, want %q", got, target.Selector)
 	}
@@ -57,12 +57,12 @@ func TestGo126InternalSyncHooksReuseSyncAdapters(t *testing.T) {
 		"fatal":                   "Sync_fatal",
 	}
 	for source, target := range expected {
-		got, ok := hooksGo123[packageSelector{Pkg: "internal/sync", Selector: source}]
+		got, ok := go126Hooks[packageSelector{Pkg: "internal/sync", Selector: source}]
 		if !ok {
 			t.Errorf("Go 1.26 internal/sync hook %q is missing", source)
 			continue
 		}
-		if got != (packageSelector{Pkg: hooksGo123Package, Selector: target}) {
+		if got != (packageSelector{Pkg: stdlibHooksPackage, Selector: target}) {
 			t.Errorf("Go 1.26 internal/sync hook %q = %#v, want adapter %q", source, got, target)
 		}
 	}
@@ -112,12 +112,12 @@ func TestGo126RuntimeHooks(t *testing.T) {
 		{Pkg: "golang.org/x/sys/unix", Selector: "vgetrandom"}:         "InternalSyscallUnix_vgetrandom",
 	}
 	for source, target := range expected {
-		got, ok := hooksGo123[source]
+		got, ok := go126Hooks[source]
 		if !ok {
 			t.Errorf("Go 1.26 runtime hook %#v is missing", source)
 			continue
 		}
-		if got != (packageSelector{Pkg: hooksGo123Package, Selector: target}) {
+		if got != (packageSelector{Pkg: stdlibHooksPackage, Selector: target}) {
 			t.Errorf("Go 1.26 runtime hook %#v = %#v, want adapter %q", source, got, target)
 		}
 	}
@@ -127,7 +127,7 @@ func TestGo126HooksDoNotReplaceMethods(t *testing.T) {
 	translator := packageTranslator{
 		pkgPath: "internal/synctest",
 		hooks: map[packageSelector]packageSelector{
-			{Pkg: "internal/synctest", Selector: "Run"}: {Pkg: hooksGo123Package},
+			{Pkg: "internal/synctest", Selector: "Run"}: {Pkg: stdlibHooksPackage},
 		},
 	}
 	method := &dst.FuncDecl{
@@ -145,7 +145,7 @@ func TestGo126AssemblyGlobalsRemainPackageSymbols(t *testing.T) {
 		{Pkg: "crypto/internal/fips140/sha512", Selector: "_K"},
 	}
 	for _, global := range globals {
-		if !globalsDontTranslateGo123[global] {
+		if !go126GlobalsDontTranslate[global] {
 			t.Errorf("Go 1.26 assembly global %#v is not shared", global)
 		}
 	}
@@ -154,11 +154,11 @@ func TestGo126AssemblyGlobalsRemainPackageSymbols(t *testing.T) {
 func TestGo126WeakPointerAdaptersRetainIdentity(t *testing.T) {
 	value := 42
 	pointer := unsafe.Pointer(&value)
-	weak := go123.Weak_runtime_registerWeakPointer(pointer)
+	weak := stdlibhooks.Weak_runtime_registerWeakPointer(pointer)
 	if weak != pointer {
 		t.Fatalf("registered weak pointer = %p, want %p", weak, pointer)
 	}
-	if strong := go123.Weak_runtime_makeStrongFromWeak(weak); strong != pointer {
+	if strong := stdlibhooks.Weak_runtime_makeStrongFromWeak(weak); strong != pointer {
 		t.Fatalf("strong pointer = %p, want %p", strong, pointer)
 	}
 }
@@ -172,10 +172,10 @@ func TestGo126RuntimeMapConstantUsesSimulationRuntime(t *testing.T) {
 }
 
 func TestGo126ConstantTimeBoolConversion(t *testing.T) {
-	if got := go123.CryptoInternalConstanttime_boolToUint8(false); got != 0 {
+	if got := stdlibhooks.CryptoInternalConstanttime_boolToUint8(false); got != 0 {
 		t.Fatalf("false converted to %d, want 0", got)
 	}
-	if got := go123.CryptoInternalConstanttime_boolToUint8(true); got != 1 {
+	if got := stdlibhooks.CryptoInternalConstanttime_boolToUint8(true); got != 1 {
 		t.Fatalf("true converted to %d, want 1", got)
 	}
 }
@@ -265,7 +265,7 @@ func TestGo126AcceptedRuntimeLinknames(t *testing.T) {
 		{Pkg: "internal/runtime/maps", Selector: "newobject"},
 	}
 	for _, linkname := range noBody {
-		if !acceptedNoBodyGo123Linknames[linkname] {
+		if !go126AcceptedNoBodyLinknames[linkname] {
 			t.Errorf("Go 1.26 runtime-provided linkname %#v is not accepted", linkname)
 		}
 	}
@@ -291,7 +291,7 @@ func TestGo126AcceptedRuntimeLinknames(t *testing.T) {
 	}
 	for _, name := range runtimeMaps {
 		want := packageSelector{Pkg: "runtime", Selector: strings.TrimPrefix(name, "runtime_")}
-		got := acceptedgo123Linknames[packageSelector{Pkg: "internal/runtime/maps", Selector: name}]
+		got := go126AcceptedLinknames[packageSelector{Pkg: "internal/runtime/maps", Selector: name}]
 		if got != want {
 			t.Errorf("Go 1.26 runtime map linkname %q = %#v, want %#v", name, got, want)
 		}

@@ -1,0 +1,19 @@
+# User tags are additive to GoMaD's internal tags.
+exec gomad test -tags=test_dep -run TestTagged -v .
+stdout 'user tag selected'
+
+-- selected.go --
+//go:build test_dep
+
+package tagged
+
+const selected = "user tag selected"
+
+-- selected_test.go --
+package tagged
+
+import "testing"
+
+func TestTagged(t *testing.T) {
+	t.Log(selected)
+}

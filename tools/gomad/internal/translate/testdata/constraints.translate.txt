@@ -21,14 +21,14 @@ import (
 	testing_original "testing"
 
 	"github.com/temporalio/gomad/gomadruntime"
-	"translated/github.com/temporalio/gomad/internal_/hooks/go123"
+	"translated/github.com/temporalio/gomad/internal_/stdlib/hooks"
 )
 
 func init() {
 	gomadruntime.SetAllTests([]gomadruntime.Test{})
 }
 func TestMain(m *testing_original.M) {
-	gomadruntime.TestMain(go123.Runtime())
+	gomadruntime.TestMain(hooks.Runtime())
 }
 -- hello_linux.go --
 package basicgomad

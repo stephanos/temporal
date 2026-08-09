@@ -46,7 +46,7 @@ import (
 	"translated/test/test"
 
 	"github.com/temporalio/gomad/gomadruntime"
-	"translated/github.com/temporalio/gomad/internal_/hooks/go123"
+	"translated/github.com/temporalio/gomad/internal_/stdlib/hooks"
 )
 
 func init() {
@@ -55,5 +55,5 @@ func init() {
 	})
 }
 func TestMain(m *testing_original.M) {
-	gomadruntime.TestMain(go123.Runtime())
+	gomadruntime.TestMain(hooks.Runtime())
 }

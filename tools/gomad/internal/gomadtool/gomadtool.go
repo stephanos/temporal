@@ -25,9 +25,10 @@ const (
 )
 
 type BuildConfig struct {
-	GOOS   string
-	GOARCH string
-	Race   bool
+	GOOS     string
+	GOARCH   string
+	Race     bool
+	UserTags []string
 }
 
 func (b BuildConfig) AsDirname() string {
@@ -36,6 +37,40 @@ func (b BuildConfig) AsDirname() string {
 		name += "_race"
 	}
 	return name
+}
+
+func ParseBuildTags(tags string) []string {
+	return uniqueBuildTags(strings.Split(tags, ","))
+}
+
+func (b BuildConfig) PackageTags() string {
+	tags := append([]string{"gomad"}, b.UserTags...)
+	if b.Race {
+		tags = append(tags, "race")
+	}
+	return strings.Join(uniqueBuildTags(tags), ",")
+}
+
+func (b BuildConfig) BuildTags() string {
+	tags := append([]string{"linkname"}, b.UserTags...)
+	return strings.Join(uniqueBuildTags(tags), ",")
+}
+
+func uniqueBuildTags(tags []string) []string {
+	unique := make([]string, 0, len(tags))
+	seen := make(map[string]struct{}, len(tags))
+	for _, tag := range tags {
+		tag = strings.TrimSpace(tag)
+		if tag == "" {
+			continue
+		}
+		if _, ok := seen[tag]; ok {
+			continue
+		}
+		seen[tag] = struct{}{}
+		unique = append(unique, tag)
+	}
+	return unique
 }
 
 type TranslateOutput struct {
