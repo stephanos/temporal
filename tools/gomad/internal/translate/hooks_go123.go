@@ -1,7 +1,10 @@
 package translate
 
 var hooksGo123 = map[packageSelector]packageSelector{
-	{Pkg: "crypto/internal/fips140/subtle", Selector: "xorBytes"}: {Pkg: hooksGo123Package},
+	{Pkg: "crypto/internal/constanttime", Selector: "boolToUint8"}: {Pkg: hooksGo123Package, Selector: "CryptoInternalConstanttime_boolToUint8"},
+	{Pkg: "crypto/internal/fips140/subtle", Selector: "xorBytes"}:  {Pkg: hooksGo123Package},
+	{Pkg: "crypto/subtle", Selector: "setDITEnabled"}:              {Pkg: hooksGo123Package, Selector: "InternalRuntimeSys_EnableDIT"},
+	{Pkg: "crypto/subtle", Selector: "setDITDisabled"}:             {Pkg: hooksGo123Package, Selector: "InternalRuntimeSys_DisableDIT"},
 
 	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscall"}:        {Pkg: hooksGo123Package},
 	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscall6"}:       {Pkg: hooksGo123Package},
@@ -9,6 +12,7 @@ var hooksGo123 = map[packageSelector]packageSelector{
 	{Pkg: "golang.org/x/sys/unix", Selector: "Syscall"}:           {Pkg: hooksGo123Package},
 	{Pkg: "golang.org/x/sys/unix", Selector: "Syscall6"}:          {Pkg: hooksGo123Package},
 	{Pkg: "golang.org/x/sys/unix", Selector: "SyscallNoError"}:    {Pkg: hooksGo123Package},
+	{Pkg: "golang.org/x/sys/unix", Selector: "vgetrandom"}:        {Pkg: hooksGo123Package, Selector: "InternalSyscallUnix_vgetrandom"},
 
 	// amd64 only?
 	{Pkg: "golang.org/x/sys/unix", Selector: "gettimeofday"}: {Pkg: hooksGo123Package},
@@ -70,10 +74,45 @@ var hooksGo123 = map[packageSelector]packageSelector{
 	{Pkg: "internal/runtime/sys", Selector: "GetCallerSP"}:        {Pkg: hooksGo123Package},
 	{Pkg: "internal/runtime/sys", Selector: "GetClosurePtr"}:      {Pkg: hooksGo123Package},
 
-	{Pkg: "internal/syscall/unix", Selector: "GetRandom"}: {Pkg: hooksGo123Package},
-	{Pkg: "internal/syscall/unix", Selector: "fcntl"}:     {Pkg: hooksGo123Package},
-	{Pkg: "internal/syscall/unix", Selector: "Openat"}:    {Pkg: hooksGo123Package},
-	{Pkg: "internal/syscall/unix", Selector: "Unlinkat"}:  {Pkg: hooksGo123Package},
+	{Pkg: "internal/race", Selector: "Acquire"}:       {Pkg: hooksGo123Package, Selector: "InternalRace_Acquire"},
+	{Pkg: "internal/race", Selector: "Release"}:       {Pkg: hooksGo123Package, Selector: "InternalRace_Release"},
+	{Pkg: "internal/race", Selector: "ReleaseMerge"}:  {Pkg: hooksGo123Package, Selector: "InternalRace_ReleaseMerge"},
+	{Pkg: "internal/race", Selector: "Disable"}:       {Pkg: hooksGo123Package, Selector: "InternalRace_Disable"},
+	{Pkg: "internal/race", Selector: "Enable"}:        {Pkg: hooksGo123Package, Selector: "InternalRace_Enable"},
+	{Pkg: "internal/race", Selector: "Read"}:          {Pkg: hooksGo123Package, Selector: "InternalRace_Read"},
+	{Pkg: "internal/race", Selector: "ReadPC"}:        {Pkg: hooksGo123Package, Selector: "InternalRace_ReadPC"},
+	{Pkg: "internal/race", Selector: "ReadObjectPC"}:  {Pkg: hooksGo123Package, Selector: "InternalRace_ReadObjectPC"},
+	{Pkg: "internal/race", Selector: "Write"}:         {Pkg: hooksGo123Package, Selector: "InternalRace_Write"},
+	{Pkg: "internal/race", Selector: "WritePC"}:       {Pkg: hooksGo123Package, Selector: "InternalRace_WritePC"},
+	{Pkg: "internal/race", Selector: "WriteObjectPC"}: {Pkg: hooksGo123Package, Selector: "InternalRace_WriteObjectPC"},
+	{Pkg: "internal/race", Selector: "ReadRange"}:     {Pkg: hooksGo123Package, Selector: "InternalRace_ReadRange"},
+	{Pkg: "internal/race", Selector: "WriteRange"}:    {Pkg: hooksGo123Package, Selector: "InternalRace_WriteRange"},
+	{Pkg: "internal/race", Selector: "Errors"}:        {Pkg: hooksGo123Package, Selector: "InternalRace_Errors"},
+
+	{Pkg: "internal/synctest", Selector: "Run"}:          {Pkg: hooksGo123Package, Selector: "InternalSynctest_Run"},
+	{Pkg: "internal/synctest", Selector: "Wait"}:         {Pkg: hooksGo123Package, Selector: "InternalSynctest_Wait"},
+	{Pkg: "internal/synctest", Selector: "IsInBubble"}:   {Pkg: hooksGo123Package, Selector: "InternalSynctest_IsInBubble"},
+	{Pkg: "internal/synctest", Selector: "associate"}:    {Pkg: hooksGo123Package, Selector: "InternalSynctest_associate"},
+	{Pkg: "internal/synctest", Selector: "disassociate"}: {Pkg: hooksGo123Package, Selector: "InternalSynctest_disassociate"},
+	{Pkg: "internal/synctest", Selector: "isAssociated"}: {Pkg: hooksGo123Package, Selector: "InternalSynctest_isAssociated"},
+	{Pkg: "internal/synctest", Selector: "acquire"}:      {Pkg: hooksGo123Package, Selector: "InternalSynctest_acquire"},
+	{Pkg: "internal/synctest", Selector: "release"}:      {Pkg: hooksGo123Package, Selector: "InternalSynctest_release"},
+	{Pkg: "internal/synctest", Selector: "inBubble"}:     {Pkg: hooksGo123Package, Selector: "InternalSynctest_inBubble"},
+
+	{Pkg: "internal/sync", Selector: "runtime_rand"}:            {Pkg: hooksGo123Package, Selector: "HashMaphash_runtime_rand"},
+	{Pkg: "internal/sync", Selector: "runtime_SemacquireMutex"}: {Pkg: hooksGo123Package, Selector: "Sync_runtime_SemacquireMutex"},
+	{Pkg: "internal/sync", Selector: "runtime_Semrelease"}:      {Pkg: hooksGo123Package, Selector: "Sync_runtime_Semrelease"},
+	{Pkg: "internal/sync", Selector: "runtime_canSpin"}:         {Pkg: hooksGo123Package, Selector: "Sync_runtime_canSpin"},
+	{Pkg: "internal/sync", Selector: "runtime_doSpin"}:          {Pkg: hooksGo123Package, Selector: "Sync_runtime_doSpin"},
+	{Pkg: "internal/sync", Selector: "runtime_nanotime"}:        {Pkg: hooksGo123Package, Selector: "Sync_runtime_nanotime"},
+	{Pkg: "internal/sync", Selector: "throw"}:                   {Pkg: hooksGo123Package, Selector: "Sync_throw"},
+	{Pkg: "internal/sync", Selector: "fatal"}:                   {Pkg: hooksGo123Package, Selector: "Sync_fatal"},
+
+	{Pkg: "internal/syscall/unix", Selector: "GetRandom"}:  {Pkg: hooksGo123Package},
+	{Pkg: "internal/syscall/unix", Selector: "fcntl"}:      {Pkg: hooksGo123Package},
+	{Pkg: "internal/syscall/unix", Selector: "Openat"}:     {Pkg: hooksGo123Package},
+	{Pkg: "internal/syscall/unix", Selector: "Unlinkat"}:   {Pkg: hooksGo123Package},
+	{Pkg: "internal/syscall/unix", Selector: "vgetrandom"}: {Pkg: hooksGo123Package, Selector: "InternalSyscallUnix_vgetrandom"},
 
 	{Pkg: "iter", Selector: "coroswitch"}: {Pkg: hooksGo123Package},
 	{Pkg: "iter", Selector: "newcoro"}:    {Pkg: hooksGo123Package},
@@ -214,10 +253,54 @@ var hooksGo123 = map[packageSelector]packageSelector{
 	{Pkg: "time", Selector: "resetTimer"}:  {Pkg: hooksGo123Package},
 	{Pkg: "time", Selector: "runtimeNano"}: {Pkg: hooksGo123Package},
 	{Pkg: "time", Selector: "stopTimer"}:   {Pkg: hooksGo123Package},
+	{Pkg: "time", Selector: "runtimeNow"}:  {Pkg: hooksGo123Package, Selector: "Time_now"},
+	{Pkg: "time", Selector: "runtimeIsBubbled"}: {
+		Pkg: hooksGo123Package, Selector: "InternalSynctest_IsInBubble",
+	},
+
+	{Pkg: "weak", Selector: "runtime_registerWeakPointer"}: {Pkg: hooksGo123Package, Selector: "Weak_runtime_registerWeakPointer"},
+	{Pkg: "weak", Selector: "runtime_makeStrongFromWeak"}:  {Pkg: hooksGo123Package, Selector: "Weak_runtime_makeStrongFromWeak"},
+
+	{Pkg: "crypto/internal/fips140", Selector: "fatal"}:        {Pkg: hooksGo123Package, Selector: "CryptoInternalFips140_fatal"},
+	{Pkg: "crypto/internal/fips140", Selector: "getIndicator"}: {Pkg: hooksGo123Package, Selector: "CryptoInternalFips140_getIndicator"},
+	{Pkg: "crypto/internal/fips140", Selector: "setIndicator"}: {Pkg: hooksGo123Package, Selector: "CryptoInternalFips140_setIndicator"},
+	{Pkg: "crypto/fips140", Selector: "setBypass"}:             {Pkg: hooksGo123Package, Selector: "CryptoFips140_setBypass"},
+	{Pkg: "crypto/fips140", Selector: "isBypassed"}:            {Pkg: hooksGo123Package, Selector: "CryptoFips140_isBypassed"},
+	{Pkg: "crypto/fips140", Selector: "unsetBypass"}:           {Pkg: hooksGo123Package, Selector: "CryptoFips140_unsetBypass"},
+	{Pkg: "crypto/internal/sysrand", Selector: "fatal"}:        {Pkg: hooksGo123Package, Selector: "Sync_fatal"},
+	{Pkg: "crypto/rand", Selector: "fatal"}:                    {Pkg: hooksGo123Package, Selector: "Sync_fatal"},
 }
 
 var hooksGensyscallGo123ByArch = map[string]map[packageSelector]packageSelector{}
 
 var acceptedgo123Linknames = map[packageSelector]packageSelector{
-	{Pkg: "hash/maphash", Selector: "runtime_memhash"}: {Pkg: "runtime", Selector: "memhash"},
+	{Pkg: "hash/maphash", Selector: "runtime_memhash"}:                      {Pkg: "runtime", Selector: "memhash"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess1"}:          {Pkg: "runtime", Selector: "mapaccess1"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess2"}:          {Pkg: "runtime", Selector: "mapaccess2"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapassign"}:           {Pkg: "runtime", Selector: "mapassign"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess1_fast32"}:   {Pkg: "runtime", Selector: "mapaccess1_fast32"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess2_fast32"}:   {Pkg: "runtime", Selector: "mapaccess2_fast32"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapassign_fast32"}:    {Pkg: "runtime", Selector: "mapassign_fast32"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapassign_fast32ptr"}: {Pkg: "runtime", Selector: "mapassign_fast32ptr"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapdelete_fast32"}:    {Pkg: "runtime", Selector: "mapdelete_fast32"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess1_fast64"}:   {Pkg: "runtime", Selector: "mapaccess1_fast64"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess2_fast64"}:   {Pkg: "runtime", Selector: "mapaccess2_fast64"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapassign_fast64"}:    {Pkg: "runtime", Selector: "mapassign_fast64"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapassign_fast64ptr"}: {Pkg: "runtime", Selector: "mapassign_fast64ptr"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapdelete_fast64"}:    {Pkg: "runtime", Selector: "mapdelete_fast64"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess1_faststr"}:  {Pkg: "runtime", Selector: "mapaccess1_faststr"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapaccess2_faststr"}:  {Pkg: "runtime", Selector: "mapaccess2_faststr"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapassign_faststr"}:   {Pkg: "runtime", Selector: "mapassign_faststr"},
+	{Pkg: "internal/runtime/maps", Selector: "runtime_mapdelete_faststr"}:   {Pkg: "runtime", Selector: "mapdelete_faststr"},
+}
+
+var acceptedNoBodyGo123Linknames = map[packageSelector]bool{
+	{Pkg: "crypto/internal/fips140hash", Selector: "sha3Unwrap"}: true,
+	{Pkg: "internal/runtime/maps", Selector: "typeString"}:       true,
+	{Pkg: "internal/runtime/maps", Selector: "fatal"}:            true,
+	{Pkg: "internal/runtime/maps", Selector: "rand"}:             true,
+	{Pkg: "internal/runtime/maps", Selector: "typedmemmove"}:     true,
+	{Pkg: "internal/runtime/maps", Selector: "typedmemclr"}:      true,
+	{Pkg: "internal/runtime/maps", Selector: "newarray"}:         true,
+	{Pkg: "internal/runtime/maps", Selector: "newobject"}:        true,
 }

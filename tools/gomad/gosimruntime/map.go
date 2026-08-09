@@ -10,6 +10,9 @@ import (
 
 const checkMap = false
 
+// Use64BitHash reports the hash width used by the supported simulation targets.
+const Use64BitHash = true
+
 // Map implements go's builtin map API with deterministic yet varying iteration
 // order.
 //
@@ -20,6 +23,26 @@ const checkMap = false
 // builtin map.
 type Map[K comparable, V any] struct {
 	Impl *mapImpl[K, V]
+}
+
+// MapType is the transformed equivalent of a ~map[K]V constraint.
+type MapType[K comparable, V any] interface {
+	~struct{ Impl *mapImpl[K, V] }
+}
+
+func MapHasher[K comparable, V any](Map[K, V]) func(unsafe.Pointer, uintptr) uintptr {
+	return func(_ unsafe.Pointer, seed uintptr) uintptr {
+		return seed
+	}
+}
+
+func MapValueEqual[K comparable, V any](Map[K, V]) func(unsafe.Pointer, unsafe.Pointer) bool {
+	if !reflect.TypeFor[V]().Comparable() {
+		return nil
+	}
+	return func(left, right unsafe.Pointer) bool {
+		return any(*(*V)(left)) == any(*(*V)(right))
+	}
 }
 
 type mapElem[K comparable, V any] struct {

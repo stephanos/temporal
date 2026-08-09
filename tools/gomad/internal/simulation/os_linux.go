@@ -322,7 +322,7 @@ func (l *LinuxOS) SysOpenat(dirfd int, path string, flags int, mode uint32, invo
 	// TODO: check mode
 
 	const flagSupported = os.O_RDONLY | os.O_WRONLY | os.O_RDWR |
-		os.O_CREATE | os.O_EXCL | os.O_TRUNC
+		os.O_CREATE | os.O_EXCL | os.O_TRUNC | syscall.O_DIRECTORY
 
 	if flags&(^flagSupported) != 0 {
 		return 0, syscall.EINVAL // XXX?
