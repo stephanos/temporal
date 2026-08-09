@@ -36,6 +36,26 @@ func commandName(cmd string) string {
 	return fmt.Sprintf("%s %s", path.Base(os.Args[0]), cmd)
 }
 
+func configureGoBuildCache(cmd string) error {
+	switch cmd {
+	case "translate", "test", "build-tests", "debug", "prepare-selftest":
+	default:
+		return nil
+	}
+	if _, ok := os.LookupEnv("GOCACHE"); ok {
+		return nil
+	}
+
+	modDir, err := gomadtool.FindGoModDir()
+	if err != nil {
+		return fmt.Errorf("find module root for Go build cache: %w", err)
+	}
+	if err := os.Setenv("GOCACHE", filepath.Join(modDir, gomadtool.OutputDirectory, "go-build")); err != nil {
+		return fmt.Errorf("set GOCACHE: %w", err)
+	}
+	return nil
+}
+
 func packageName(pkgPath string) string {
 	return pkgPath[strings.LastIndex(pkgPath, "/")+1:]
 }
@@ -151,6 +171,10 @@ func Main() {
 	}
 	cmd := flag.Args()[0]
 	cmdArgs := flag.Args()[1:]
+
+	if err := configureGoBuildCache(cmd); err != nil {
+		log.Fatal(err)
+	}
 
 	cfg := gomadtool.BuildConfig{
 		GOOS:   "linux",
