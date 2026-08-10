@@ -263,7 +263,7 @@ func (s *FunctionalTestBase) TearDownSuite() {
 
 func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption) {
 	// Reserve a slot from the dedicated test cluster pool.
-	getTestClusterRouter().dedicated.reserveSlot(s.T())
+	testClusterRouter.dedicated.reserveSlot(s.T())
 	s.setupCluster(options...)
 	clusterRequest{
 		kind:              clusterKindDedicated,
@@ -529,20 +529,6 @@ func (s *FunctionalTestBase) RegisterNamespace(
 
 	if err != nil {
 		return namespace.EmptyID, err
-	}
-
-	// Eagerly refresh namespace registries so the new namespace is visible
-	// immediately, without waiting for the background polling timer to fire.
-	// Under GoMaD the background polling timer may not fire between namespace
-	// creation and the first test RPC.
-	for i, reg := range s.testCluster.host.NamespaceRegistries() {
-		if _, refreshErr := reg.RefreshNamespaceById(nsID); refreshErr != nil {
-			s.Logger.Error("Failed to refresh namespace registry",
-				tag.WorkflowNamespaceID(nsID.String()),
-				tag.NewAnyTag("registry_index", i),
-				tag.Error(refreshErr),
-			)
-		}
 	}
 
 	namespaceCacheDeadline := time.Now().Add(5 * NamespaceCacheRefreshInterval)
