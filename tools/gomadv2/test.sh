@@ -9,7 +9,7 @@ if [[ -n "$unformatted" ]]; then
 fi
 
 mkdir -p .gomad
-go -C ../.. build -tags=test_dep -o tools/gomadv2/.gomad/gomadtool ./cmd/tools/gomad
+go build -tags=test_dep -o .gomad/gomadtool ./cmd/gomad
 .gomad/gomadtool prepare-selftest
 
 .gomad/gomadtool build-tests -tags=test_dep ./internal/tests/behavior ./nemesis

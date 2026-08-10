@@ -151,12 +151,13 @@ DONE
 
 ### RF-003: connect the new engine to the repository entry point
 
-The repository command at `cmd/tools/gomad` and the `gomad`-tagged tests still
-select the previous AST implementation. Define one adoption path that builds
-and invokes the nested runtime implementation, then rename legacy entry points
-to `gomad_old` where they must remain temporarily.
+DONE
 
-The boundary should own:
+The nested module owns the command at `tools/gomadv2/cmd/gomad`, and the
+`gomad`-tagged tests select the nested runtime implementation. The previous AST
+implementation remains under `tools/gomadv1` as legacy reference material.
+
+The boundary owns:
 
 - command-line compatibility required by Temporal CI;
 - propagation of seeds and simulator arguments;
@@ -496,8 +497,8 @@ Run focused checks after each roadmap item, followed by the nested-module
 acceptance sequence at phase boundaries:
 
 ```text
-go build -tags=test_dep -o tools/gomadv2/.gomad/gomadtool ./cmd/tools/gomad
 cd tools/gomadv2
+go build -tags=test_dep -o .gomad/gomadtool ./cmd/gomad
 go mod tidy
 go list -tags=test_dep ./...
 go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gomadruntime

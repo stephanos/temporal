@@ -339,7 +339,7 @@ implemented as custom system calls to the simulated operating system.
 Gomad aspires to be as easy to use as the standard Go tooling. To run a test
 using Gomad, ideally all that you need to do is replace `> go test` with
 `> gomad test` on the command line. The executable is built from
-`cmd/tools/gomad` in the Temporal repository and exposes flags like `go test`.
+`cmd/gomad` in this module and exposes flags like `go test`.
 
 When running such a test, `gomad` first translates the code, caching
 packages to not retranslate eg. the standard library, and then invokes

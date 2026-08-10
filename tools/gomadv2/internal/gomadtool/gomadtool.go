@@ -224,7 +224,7 @@ func findGomadExecutable() (string, error) {
 
 	name, err := exec.LookPath("gomad")
 	if err != nil {
-		return "", fmt.Errorf("find gomad executable: set GOMADTOOL or install it with `go install ./cmd/tools/gomad`: %w", err)
+		return "", fmt.Errorf("find gomad executable: set GOMADTOOL or install it with `go install github.com/temporalio/gomad/cmd/gomad@latest`: %w", err)
 	}
 	return name, nil
 }
