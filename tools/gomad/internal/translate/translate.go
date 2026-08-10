@@ -50,6 +50,7 @@ func (gi *GlobalInfo) merge(pkg string, globals *PackageGlobalInfo) {
 	// they even show up here anyway? you can't import them.
 	if existing, ok := gi.ByPackage[pkg]; ok {
 		maps.Copy(existing.Container, globals.Container)
+		maps.Copy(existing.ShouldShare, globals.ShouldShare)
 		maps.Copy(existing.Rewritten, globals.Rewritten)
 	} else {
 		gi.ByPackage[pkg] = &PackageGlobalInfo{
