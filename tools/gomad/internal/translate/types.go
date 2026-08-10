@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/dave/dst"
+	"github.com/dave/dst/dstutil"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 )
@@ -270,22 +271,26 @@ func (t *packageTranslator) makeTypeExpr(typ types.Type) dst.Expr {
 //
 // Issue https://github.com/golang/go/issues/47151 tracks adding this
 // functionality to the go/types package.
-func buildImplicitConversions(pkg *packages.Package) map[ast.Expr]types.Type {
+func buildImplicitConversions(pkg *packages.Package) (map[ast.Expr]types.Type, map[ast.Expr][]types.Type) {
 	builder := &implicitConversionsBuilder{
-		conversions: make(map[ast.Expr]types.Type),
-		typesInfo:   pkg.TypesInfo,
-		sigstack:    nil,
-		cursig:      nil,
+		conversions:             make(map[ast.Expr]types.Type),
+		multiValueReturnTargets: make(map[ast.Expr][]types.Type),
+		typesInfo:               pkg.TypesInfo,
+		sigstack:                nil,
+		cursig:                  nil,
 	}
 	for _, file := range pkg.Syntax {
 		astutil.Apply(file, builder.before, builder.after)
 	}
-	return builder.conversions
+	return builder.conversions, builder.multiValueReturnTargets
 }
 
 type implicitConversionsBuilder struct {
 	// conversions is the computed conversions map
 	conversions map[ast.Expr]types.Type
+	// multiValueReturnTargets contains target result types for multi-value calls
+	// whose translated map or channel values need explicit conversions.
+	multiValueReturnTargets map[ast.Expr][]types.Type
 
 	typesInfo *types.Info
 
@@ -483,6 +488,21 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 		}
 
 	case *ast.ReturnStmt:
+		if len(node.Results) == 1 && b.cursig.Results().Len() > 1 {
+			expr := node.Results[0]
+			if tuple, ok := b.typesInfo.Types[expr].Type.(*types.Tuple); ok && tuple.Len() == b.cursig.Results().Len() {
+				targets := make([]types.Type, tuple.Len())
+				needsConversion := false
+				for i := range tuple.Len() {
+					targets[i] = b.cursig.Results().At(i).Type()
+					needsConversion = needsConversion || needsTranslatedImplicitConversion(tuple.At(i).Type(), targets[i])
+				}
+				if needsConversion {
+					b.multiValueReturnTargets[expr] = targets
+				}
+			}
+		}
+
 		// XXX: gotta check len because of returning multiple
 		if len(node.Results) > 0 && len(node.Results) == b.cursig.Results().Len() {
 			for i, expr := range node.Results {
@@ -498,6 +518,76 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 		}
 	}
 	return true
+}
+
+func needsTranslatedImplicitConversion(actual, target types.Type) bool {
+	if types.Identical(actual, target) {
+		return false
+	}
+	_, actualMap := isTypMapType(actual)
+	_, targetMap := isTypMapType(target)
+	if actualMap && targetMap {
+		return true
+	}
+	_, actualChan := isTypChanType(actual)
+	_, targetChan := isTypChanType(target)
+	return actualChan && targetChan
+}
+
+func (t *packageTranslator) rewriteMultiValueReturn(c *dstutil.Cursor) {
+	returnStmt, ok := c.Node().(*dst.ReturnStmt)
+	if !ok || len(returnStmt.Results) != 1 {
+		return
+	}
+	astReturnStmt, ok := t.astMap.Nodes[returnStmt].(*ast.ReturnStmt)
+	if !ok || len(astReturnStmt.Results) != 1 {
+		return
+	}
+	astExpr := astReturnStmt.Results[0]
+	targets, ok := t.multiValueReturnTargets[astExpr]
+	if !ok {
+		return
+	}
+	actuals, ok := t.typesInfo.Types[astExpr].Type.(*types.Tuple)
+	if !ok || actuals.Len() != len(targets) {
+		return
+	}
+	originalCall := returnStmt.Results[0]
+
+	lhs := make([]dst.Expr, len(targets))
+	results := make([]dst.Expr, len(targets))
+	resultFields := make([]*dst.Field, len(targets))
+	for i, target := range targets {
+		name := "gomadReturn" + strconv.Itoa(i)
+		lhs[i] = dst.NewIdent(name)
+		result := dst.Expr(dst.NewIdent(name))
+		if needsTranslatedImplicitConversion(actuals.At(i).Type(), target) {
+			result = &dst.CallExpr{
+				Fun:  t.makeTypeExpr(target),
+				Args: []dst.Expr{result},
+			}
+		}
+		results[i] = result
+		resultFields[i] = &dst.Field{Type: t.makeTypeExpr(target)}
+	}
+
+	returnStmt.Results[0] = &dst.CallExpr{
+		Fun: &dst.FuncLit{
+			Type: &dst.FuncType{
+				Func:    true,
+				Params:  &dst.FieldList{},
+				Results: &dst.FieldList{List: resultFields},
+			},
+			Body: &dst.BlockStmt{List: []dst.Stmt{
+				&dst.AssignStmt{
+					Lhs: lhs,
+					Tok: token.DEFINE,
+					Rhs: []dst.Expr{originalCall},
+				},
+				&dst.ReturnStmt{Results: results},
+			}},
+		},
+	}
 }
 
 func (b *implicitConversionsBuilder) after(c *astutil.Cursor) bool {
