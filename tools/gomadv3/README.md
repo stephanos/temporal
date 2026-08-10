@@ -60,5 +60,18 @@ Run source validation and the black-box suite with:
 make -C tools/gomadv3 test
 ```
 
+The suite compares disabled `go run` and `go test` behavior with a local stock
+Go 1.26.4 toolchain, audits integer, string, floating-point, complex,
+interface, array, and struct map keys across seeds, and repeats prebuilt map
+and scheduler fixtures under distinct retained allocation layouts and bounded
+unrelated CPU load. Set `GOMADV3_STOCK_GO` when the stock Go executable cannot
+be resolved from the module-selected toolchain in `PATH`; the test never
+downloads one.
+
+The address-only check disables automatic GC so retained padding changes the
+tested layout without adding GC activity that consumes the shared seeded
+runtime stream. The ordinary repeatability and host-load checks retain the
+default GC behavior.
+
 Generated source, binaries, downloads, and toolchain builds remain under
 `tools/gomadv3/.toolchain` and are not committed.
