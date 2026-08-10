@@ -292,8 +292,8 @@ analysis used by map and channel rewriting.
 
 ### RF-205 and RF-206: secondary hotspots
 
-- split CLI subcommands into `runTranslate`, `runTest`, `runBuildTests`,
-  `runViewer`, and `runDebug` files;
+- split CLI subcommands into `runTranslate`, `runTest`, `runBuildTests`, and
+  `runDebug` files;
 - centralize translated `go test` flag construction across CLI and self-tests;
 - split network packet, listener, buffer, and stream responsibilities;
 - split syscall generator parsing, model, proxy generation, dispatch generation,
@@ -330,9 +330,8 @@ package:
 
 ### RF-303: unify trace events
 
-Create one typed event schema and JSONL decoder. Keep terminal pretty-printing,
-viewer handlers, and metatesting assertions as separate consumers. Do not merge
-the viewer and terminal renderer packages simply to reduce package count.
+Create one typed event schema and JSONL decoder. Keep terminal pretty-printing
+and metatesting assertions as separate consumers.
 
 ### RF-304: share the metatest protocol
 
@@ -428,7 +427,6 @@ renames independently of any product-wide rebrand:
 | `internal/reflect/no.go`       | `unsupported_linknames.go`             |
 | `internal/simulation/gomad.go` | `control.go`                           |
 | `internal/gomadlog/main.go`    | `event.go` or `record.go`              |
-| `internal/gomadviewer/main.go` | `server.go`                            |
 | `getDecriptor`                 | `getDescriptor`                        |
 | `ErrPaniced` / `parkPaniced`   | `ErrPanicked` / `parkPanicked`         |
 
@@ -452,7 +450,7 @@ Keep these package boundaries:
 - `internal/coro` and `internal/race`;
 - `internal/translate/cache`;
 - `metatesting` and `nemesis` outside the root API;
-- viewer and terminal trace rendering as separate consumers;
+- terminal trace rendering and metatesting log assertions as separate consumers;
 - small source-package-oriented hook files;
 - checked-in generated syscall, protobuf, and stringer outputs.
 

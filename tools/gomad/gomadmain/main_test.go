@@ -151,10 +151,8 @@ func TestConfigureGoBuildCacheIgnoresNonBuildCommands(t *testing.T) {
 	unsetenv(t, "GOCACHE")
 	t.Chdir(t.TempDir())
 
-	for _, command := range []string{"viewer", "help"} {
-		if err := configureGoBuildCache(command); err != nil {
-			t.Fatalf("configureGoBuildCache(%q) failed: %v", command, err)
-		}
+	if err := configureGoBuildCache("help"); err != nil {
+		t.Fatalf("configureGoBuildCache(%q) failed: %v", "help", err)
 	}
 	if _, ok := os.LookupEnv("GOCACHE"); ok {
 		t.Fatal("configureGoBuildCache() set GOCACHE for a non-build command")
