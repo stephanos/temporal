@@ -33,6 +33,12 @@ func TestGo126FIPSPackagesKeepAssembly(t *testing.T) {
 	}
 }
 
+func TestGo126SnappyKeepsAssembly(t *testing.T) {
+	if !go126KeepAsmPackages["github.com/golang/snappy"] {
+		t.Error("Go 1.26 Snappy package does not retain its assembly implementation")
+	}
+}
+
 func TestGo126MapTypeAcceptsNamedMaps(t *testing.T) {
 	acceptGo126MapType(go126NamedMap{})
 }
