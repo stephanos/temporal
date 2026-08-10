@@ -11,6 +11,7 @@ import (
 	"github.com/dave/dst"
 	"github.com/temporalio/gomad/gomadruntime"
 	stdlibhooks "github.com/temporalio/gomad/internal/stdlib/hooks"
+	simtesting "github.com/temporalio/gomad/internal/testing"
 )
 
 type go126NamedMap gomadruntime.Map[string, int]
@@ -57,6 +58,13 @@ func TestGo126EmbedAndFSRemainCompatible(t *testing.T) {
 		if !go126SkippedPackages[pkg] {
 			t.Errorf("Go 1.26 package %q is translated across the embed.FS interface boundary", pkg)
 		}
+	}
+}
+
+func TestGo126SimulatedTestingContext(t *testing.T) {
+	simulated := &simtesting.T{}
+	if simulated.Context() == nil {
+		t.Fatal("Context returned nil")
 	}
 }
 
