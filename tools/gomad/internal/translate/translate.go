@@ -109,6 +109,65 @@ func lexicalDefinitionNames(file *ast.File, info *types.Info) map[string]struct{
 	return names
 }
 
+func localTypeShadowRenames(pkg *packages.Package) map[types.Object]string {
+	packageTypes := make(map[string]struct{})
+	for _, name := range pkg.Types.Scope().Names() {
+		if _, ok := pkg.Types.Scope().Lookup(name).(*types.TypeName); ok {
+			packageTypes[name] = struct{}{}
+		}
+	}
+
+	occupied := make(map[string]struct{})
+	for _, file := range pkg.Syntax {
+		ast.Inspect(file, func(node ast.Node) bool {
+			if ident, ok := node.(*ast.Ident); ok {
+				occupied[ident.Name] = struct{}{}
+			}
+			return true
+		})
+	}
+
+	renamed := make(map[types.Object]string)
+	for _, file := range pkg.Syntax {
+		ast.Inspect(file, func(node ast.Node) bool {
+			ident, ok := node.(*ast.Ident)
+			if !ok {
+				return true
+			}
+			if _, ok := packageTypes[ident.Name]; !ok {
+				return true
+			}
+
+			object := pkg.TypesInfo.Defs[ident]
+			if object == nil || object.Parent() == pkg.Types.Scope() {
+				return true
+			}
+			switch object := object.(type) {
+			case *types.Var:
+				if object.IsField() {
+					return true
+				}
+			case *types.Const:
+			default:
+				return true
+			}
+
+			base := ident.Name + "_gomad"
+			name := base
+			for suffix := 1; ; suffix++ {
+				if _, exists := occupied[name]; !exists {
+					break
+				}
+				name = base + strconv.Itoa(suffix)
+			}
+			renamed[object] = name
+			occupied[name] = struct{}{}
+			return true
+		})
+	}
+	return renamed
+}
+
 func importAliasesAvoidingLexicalNames(file *dst.File, lexicalNames map[string]struct{}, packageNames map[string]string) map[string]string {
 	paths := make(map[string]struct{})
 	dst.Inspect(file, func(node dst.Node) bool {
@@ -398,16 +457,17 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 	maps.Copy(hooks, activeStdlibPolicy.hooksByArch[args.cfg.GOARCH])
 
 	translator := &packageTranslator{
-		typesInfo:           args.pkg.TypesInfo,
-		astMap:              dec.Map.Ast,
-		dstMap:              dec.Map.Dst,
-		replacedPkgs:        localReplacedPkgs,
-		pkgPath:             args.pkg.PkgPath,
-		implicitConversions: implicitConversions,
-		multiValueTargets:   multiValueTargets,
-		globalInfo:          allGlobals,
-		testFuncs:           testFuncs,
-		forTest:             forTest,
+		typesInfo:              args.pkg.TypesInfo,
+		astMap:                 dec.Map.Ast,
+		dstMap:                 dec.Map.Dst,
+		replacedPkgs:           localReplacedPkgs,
+		pkgPath:                args.pkg.PkgPath,
+		implicitConversions:    implicitConversions,
+		multiValueTargets:      multiValueTargets,
+		localTypeShadowRenames: localTypeShadowRenames(args.pkg),
+		globalInfo:             allGlobals,
+		testFuncs:              testFuncs,
+		forTest:                forTest,
 		collect: translateCollect{
 			bindspecs: make(map[bindspec]struct{}),
 			maps:      ssaGlobals.readonlyMaps,
@@ -523,9 +583,10 @@ type packageTranslator struct {
 	acceptedLinknames map[packageSelector]packageSelector
 	keepAsmPkgs       map[string]bool
 
-	collect             translateCollect
-	implicitConversions map[ast.Expr]types.Type
-	multiValueTargets   map[ast.Expr][]types.Type
+	collect                translateCollect
+	implicitConversions    map[ast.Expr]types.Type
+	multiValueTargets      map[ast.Expr][]types.Type
+	localTypeShadowRenames map[types.Object]string
 
 	globalInfo *GlobalInfo
 
