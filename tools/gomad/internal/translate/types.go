@@ -273,24 +273,24 @@ func (t *packageTranslator) makeTypeExpr(typ types.Type) dst.Expr {
 // functionality to the go/types package.
 func buildImplicitConversions(pkg *packages.Package) (map[ast.Expr]types.Type, map[ast.Expr][]types.Type) {
 	builder := &implicitConversionsBuilder{
-		conversions:             make(map[ast.Expr]types.Type),
-		multiValueReturnTargets: make(map[ast.Expr][]types.Type),
-		typesInfo:               pkg.TypesInfo,
-		sigstack:                nil,
-		cursig:                  nil,
+		conversions:       make(map[ast.Expr]types.Type),
+		multiValueTargets: make(map[ast.Expr][]types.Type),
+		typesInfo:         pkg.TypesInfo,
+		sigstack:          nil,
+		cursig:            nil,
 	}
 	for _, file := range pkg.Syntax {
 		astutil.Apply(file, builder.before, builder.after)
 	}
-	return builder.conversions, builder.multiValueReturnTargets
+	return builder.conversions, builder.multiValueTargets
 }
 
 type implicitConversionsBuilder struct {
 	// conversions is the computed conversions map
 	conversions map[ast.Expr]types.Type
-	// multiValueReturnTargets contains target result types for multi-value calls
+	// multiValueTargets contains target result types for multi-value calls
 	// whose translated map or channel values need explicit conversions.
-	multiValueReturnTargets map[ast.Expr][]types.Type
+	multiValueTargets map[ast.Expr][]types.Type
 
 	typesInfo *types.Info
 
@@ -437,6 +437,25 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 		}
 
 	case *ast.AssignStmt:
+		if len(node.Rhs) == 1 && len(node.Lhs) > 1 {
+			expr := node.Rhs[0]
+			if tuple, ok := b.typesInfo.Types[expr].Type.(*types.Tuple); ok && tuple.Len() == len(node.Lhs) {
+				targets := make([]types.Type, tuple.Len())
+				for i, lhs := range node.Lhs {
+					targets[i] = b.typesInfo.Types[lhs].Type
+					if targets[i] == nil {
+						if ident, ok := lhs.(*ast.Ident); ok && b.typesInfo.Defs[ident] != nil {
+							targets[i] = b.typesInfo.Defs[ident].Type()
+						}
+					}
+					if targets[i] == nil {
+						targets[i] = tuple.At(i).Type()
+					}
+				}
+				b.recordMultiValueTargets(expr, tuple, targets)
+			}
+		}
+
 		// xxx: this can happen if we have a call
 		if len(node.Lhs) != len(node.Rhs) {
 			break
@@ -492,14 +511,10 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 			expr := node.Results[0]
 			if tuple, ok := b.typesInfo.Types[expr].Type.(*types.Tuple); ok && tuple.Len() == b.cursig.Results().Len() {
 				targets := make([]types.Type, tuple.Len())
-				needsConversion := false
 				for i := range tuple.Len() {
 					targets[i] = b.cursig.Results().At(i).Type()
-					needsConversion = needsConversion || needsTranslatedImplicitConversion(tuple.At(i).Type(), targets[i])
 				}
-				if needsConversion {
-					b.multiValueReturnTargets[expr] = targets
-				}
+				b.recordMultiValueTargets(expr, tuple, targets)
 			}
 		}
 
@@ -520,6 +535,15 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 	return true
 }
 
+func (b *implicitConversionsBuilder) recordMultiValueTargets(expr ast.Expr, actuals *types.Tuple, targets []types.Type) {
+	for i, target := range targets {
+		if needsTranslatedImplicitConversion(actuals.At(i).Type(), target) {
+			b.multiValueTargets[expr] = targets
+			return
+		}
+	}
+}
+
 func needsTranslatedImplicitConversion(actual, target types.Type) bool {
 	if types.Identical(actual, target) {
 		return false
@@ -534,25 +558,15 @@ func needsTranslatedImplicitConversion(actual, target types.Type) bool {
 	return actualChan && targetChan
 }
 
-func (t *packageTranslator) rewriteMultiValueReturn(c *dstutil.Cursor) {
-	returnStmt, ok := c.Node().(*dst.ReturnStmt)
-	if !ok || len(returnStmt.Results) != 1 {
-		return
-	}
-	astReturnStmt, ok := t.astMap.Nodes[returnStmt].(*ast.ReturnStmt)
-	if !ok || len(astReturnStmt.Results) != 1 {
-		return
-	}
-	astExpr := astReturnStmt.Results[0]
-	targets, ok := t.multiValueReturnTargets[astExpr]
+func (t *packageTranslator) multiValueConversion(originalCall dst.Expr, astExpr ast.Expr) dst.Expr {
+	targets, ok := t.multiValueTargets[astExpr]
 	if !ok {
-		return
+		return originalCall
 	}
 	actuals, ok := t.typesInfo.Types[astExpr].Type.(*types.Tuple)
 	if !ok || actuals.Len() != len(targets) {
-		return
+		return originalCall
 	}
-	originalCall := returnStmt.Results[0]
 
 	lhs := make([]dst.Expr, len(targets))
 	results := make([]dst.Expr, len(targets))
@@ -571,7 +585,7 @@ func (t *packageTranslator) rewriteMultiValueReturn(c *dstutil.Cursor) {
 		resultFields[i] = &dst.Field{Type: t.makeTypeExpr(target)}
 	}
 
-	returnStmt.Results[0] = &dst.CallExpr{
+	return &dst.CallExpr{
 		Fun: &dst.FuncLit{
 			Type: &dst.FuncType{
 				Func:    true,
@@ -587,6 +601,29 @@ func (t *packageTranslator) rewriteMultiValueReturn(c *dstutil.Cursor) {
 				&dst.ReturnStmt{Results: results},
 			}},
 		},
+	}
+}
+
+func (t *packageTranslator) rewriteMultiValueConversions(c *dstutil.Cursor) {
+	switch node := c.Node().(type) {
+	case *dst.ReturnStmt:
+		if len(node.Results) != 1 {
+			return
+		}
+		astNode, ok := t.astMap.Nodes[node].(*ast.ReturnStmt)
+		if !ok || len(astNode.Results) != 1 {
+			return
+		}
+		node.Results[0] = t.multiValueConversion(node.Results[0], astNode.Results[0])
+	case *dst.AssignStmt:
+		if len(node.Rhs) != 1 || len(node.Lhs) <= 1 {
+			return
+		}
+		astNode, ok := t.astMap.Nodes[node].(*ast.AssignStmt)
+		if !ok || len(astNode.Rhs) != 1 {
+			return
+		}
+		node.Rhs[0] = t.multiValueConversion(node.Rhs[0], astNode.Rhs[0])
 	}
 }
 
