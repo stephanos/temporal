@@ -1038,6 +1038,17 @@ func takeany(x any) {
 
 type Named map[string]string
 
+type ShadowedNamed map[string]string
+
+type MapHolder struct {
+	value ShadowedNamed
+}
+
+func MapLocalTypeShadow(holder *MapHolder) {
+	ShadowedNamed := map[string]string{}
+	holder.value = ShadowedNamed
+}
+
 func Mapconversions() {
 	takeany(map[string]string{"foo": "bar"})
 	var x map[string]string
@@ -1062,6 +1073,17 @@ func takeany(x any) {
 }
 
 type Named gomadruntime.Map[string, string]
+
+type ShadowedNamed gomadruntime.Map[string, string]
+
+type MapHolder struct {
+	value ShadowedNamed
+}
+
+func MapLocalTypeShadow(holder *MapHolder) {
+	ShadowedNamed_gomad := gomadruntime.MapLiteral([]gomadruntime.KV[string, string]{})
+	holder.value = ShadowedNamed(ShadowedNamed_gomad)
+}
 
 func Mapconversions() {
 	takeany(gomadruntime.MapLiteral([]gomadruntime.KV[string, string]{{K: "foo", V: "bar"}}))

@@ -2,6 +2,7 @@ package translate
 
 import (
 	"fmt"
+	"go/ast"
 	"go/token"
 	"log/slog"
 	"os"
@@ -129,6 +130,11 @@ func (t *packageTranslator) rewriteIdentImpl(ident *dst.Ident) {
 
 func (t *packageTranslator) rewriteIdent(c *dstutil.Cursor) {
 	if ident, ok := c.Node().(*dst.Ident); ok {
+		if astIdent, ok := t.astMap.Nodes[ident].(*ast.Ident); ok {
+			if name, ok := t.localTypeShadowRenames[t.typesInfo.ObjectOf(astIdent)]; ok {
+				ident.Name = name
+			}
+		}
 		t.rewriteIdentImpl(ident)
 	}
 }
