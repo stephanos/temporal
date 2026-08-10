@@ -242,7 +242,7 @@ func Chantypename() {
 	var ch2 gomadruntime.Chan[Ch]
 	ch2.Send(Ch(ch))
 
-	var ch3 Ch = ch
+	var ch3 Ch = Ch(ch)
 
 	// all chan ops
 	gomadruntime.ExtractChan(ch3).Recv()            // recv
@@ -408,11 +408,12 @@ func double() (string, string) {
 }
 
 var (
-	a, b           string = double()
-	c, d                  = 2, 3.0
-	_, interesting        = double()
-	_                     = 3.0
-	_                     = compute()
+	a, b           string         = double()
+	c, d                          = 2, 3.0
+	_, interesting                = double()
+	_                             = 3.0
+	_                             = compute()
+	_              map[int]string = nil
 )
 
 var _ = 10
@@ -652,6 +653,7 @@ func initializers(initializeShared bool) {
 	_, G().interesting = double()
 	_ = 3.0
 	_ = compute()
+	_ = gomadruntime.NilMap[int, string]()
 	_ = 10
 	gomadinit0()
 	gomadinit1()
