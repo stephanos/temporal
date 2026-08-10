@@ -63,6 +63,7 @@ func fmtDuration(d time.Duration) string {
 
 type TB interface {
 	Cleanup(func())
+	Context() context.Context
 	Error(args ...any)
 	Errorf(format string, args ...any)
 	Fail()
@@ -397,6 +398,10 @@ func (c *common) SkipNow() {
 
 func (c *common) Name() string {
 	return c.name
+}
+
+func (c *common) Context() context.Context {
+	return context.Background()
 }
 
 // XXX: copied from standard library... think about correctness?
