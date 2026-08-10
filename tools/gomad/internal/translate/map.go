@@ -469,6 +469,10 @@ func (t *packageTranslator) rewriteMapAssign(c *dstutil.Cursor) {
 		return
 	}
 
+	if c.Index() < 0 && t.rewriteNestedMapMultiAssign(c, assignStmt) {
+		return
+	}
+
 	// m[x], m[y], a, b =
 	for i, lhs := range assignStmt.Lhs {
 		x, index, ok := t.mapIndexForRewrite(lhs)
@@ -516,4 +520,62 @@ func (t *packageTranslator) rewriteMapAssign(c *dstutil.Cursor) {
 			},
 		})
 	}
+}
+
+func (t *packageTranslator) rewriteNestedMapMultiAssign(c *dstutil.Cursor, assignStmt *dst.AssignStmt) bool {
+	var declarations []dst.Stmt
+	var assignments []dst.Stmt
+	for i, lhs := range assignStmt.Lhs {
+		x, index, ok := t.mapIndexForRewrite(lhs)
+		if !ok {
+			continue
+		}
+
+		if assignStmt.Tok != token.ASSIGN {
+			panic("non-name on left side of := ?")
+		}
+
+		indexExpr := lhs.(*dst.IndexExpr)
+		mapType, _ := t.isMapType(indexExpr.X)
+		tmp := "val" + t.suffix()
+		declarations = append(declarations, &dst.DeclStmt{
+			Decl: &dst.GenDecl{
+				Tok: token.VAR,
+				Specs: []dst.Spec{
+					&dst.ValueSpec{
+						Names: []*dst.Ident{dst.NewIdent(tmp)},
+						Type:  t.makeTypeExpr(mapType.Type.Elem()),
+					},
+				},
+			},
+		})
+		assignStmt.Lhs[i] = dst.NewIdent(tmp)
+		assignments = append(assignments, &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun: &dst.SelectorExpr{
+					X:   x,
+					Sel: dst.NewIdent("Set"),
+				},
+				Args: []dst.Expr{index, dst.NewIdent(tmp)},
+			},
+		})
+	}
+	if len(assignments) == 0 {
+		return false
+	}
+
+	decs := assignStmt.Decs.NodeDecs
+	assignStmt.Decs.NodeDecs = dst.NodeDecs{}
+	body := append(declarations, assignStmt)
+	body = append(body, assignments...)
+	c.Replace(&dst.ExprStmt{
+		Decs: dst.ExprStmtDecorations{NodeDecs: decs},
+		X: &dst.CallExpr{
+			Fun: &dst.FuncLit{
+				Type: &dst.FuncType{},
+				Body: &dst.BlockStmt{List: body},
+			},
+		},
+	})
+	return true
 }
