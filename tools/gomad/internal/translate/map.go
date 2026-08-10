@@ -189,9 +189,36 @@ func (t *packageTranslator) rewriteMapLiteral(c *dstutil.Cursor) {
 	if !ok {
 		return
 	}
-	typ, ok := t.isMapType(compositeLit)
+	rewritten, ok := t.mapLiteral(compositeLit)
 	if !ok {
 		return
+	}
+	c.Replace(rewritten)
+}
+
+func (t *packageTranslator) rewriteMapLiteralAddress(c *dstutil.Cursor) {
+	unaryExpr, ok := c.Node().(*dst.UnaryExpr)
+	if !ok || unaryExpr.Op != token.AND {
+		return
+	}
+	compositeLit, ok := unaryExpr.X.(*dst.CompositeLit)
+	if !ok {
+		return
+	}
+	rewritten, ok := t.mapLiteral(compositeLit)
+	if !ok {
+		return
+	}
+	c.Replace(&dst.CallExpr{
+		Fun:  t.newRuntimeSelector("Pointer"),
+		Args: []dst.Expr{rewritten},
+	})
+}
+
+func (t *packageTranslator) mapLiteral(compositeLit *dst.CompositeLit) (dst.Expr, bool) {
+	typ, ok := t.isMapType(compositeLit)
+	if !ok {
+		return nil, false
 	}
 
 	var pairs []dst.Expr
@@ -242,7 +269,7 @@ func (t *packageTranslator) rewriteMapLiteral(c *dstutil.Cursor) {
 		})
 	}
 
-	c.Replace(t.maybeConvertMapType(&dst.CallExpr{
+	return t.maybeConvertMapType(&dst.CallExpr{
 		Fun: t.newRuntimeSelector("MapLiteral"),
 		Args: []dst.Expr{
 			&dst.CompositeLit{
@@ -258,7 +285,7 @@ func (t *packageTranslator) rewriteMapLiteral(c *dstutil.Cursor) {
 				Elts: pairs,
 			},
 		},
-	}, typ))
+	}, typ), true
 }
 
 func (t *packageTranslator) rewriteMapImplicitConversion(c *dstutil.Cursor) {
