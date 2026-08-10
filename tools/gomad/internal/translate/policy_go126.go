@@ -28,6 +28,7 @@ var go126SkippedPackages = map[string]bool{
 	"runtime/coverage": true, // XXX for now
 	"runtime/metrics":  true, // XXX for now
 	"runtime/pprof":    true, // XXX for now
+	"runtime/trace":    true, // XXX for now
 
 	// XXX: rewrite internal/cpu to golang.org/x/sys/cpu?
 	"vendor/golang.org/x/sys/cpu": true, // XXX for now
@@ -121,7 +122,8 @@ var go126GlobalsDontTranslate = map[packageSelector]bool{
 	{Pkg: "vendor/golang.org/x/crypto/chacha20poly1305", Selector: "useAVX2"}: true,
 	{Pkg: "crypto/internal/bigmod", Selector: "supportADX"}:                   true,
 
-	{Pkg: "github.com/cespare/xxhash/v2", Selector: "primes"}: true,
+	{Pkg: "github.com/cespare/xxhash/v2", Selector: "primes"}:                       true,
+	{Pkg: "github.com/klauspost/compress/zstd/internal/xxhash", Selector: "primes"}: true,
 }
 
 var go126Hooks = map[packageSelector]packageSelector{
@@ -130,13 +132,15 @@ var go126Hooks = map[packageSelector]packageSelector{
 	{Pkg: "crypto/subtle", Selector: "setDITEnabled"}:              {Pkg: stdlibHooksPackage, Selector: "InternalRuntimeSys_EnableDIT"},
 	{Pkg: "crypto/subtle", Selector: "setDITDisabled"}:             {Pkg: stdlibHooksPackage, Selector: "InternalRuntimeSys_DisableDIT"},
 
-	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscall"}:        {Pkg: stdlibHooksPackage},
-	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscall6"}:       {Pkg: stdlibHooksPackage},
-	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscallNoError"}: {Pkg: stdlibHooksPackage},
-	{Pkg: "golang.org/x/sys/unix", Selector: "Syscall"}:           {Pkg: stdlibHooksPackage},
-	{Pkg: "golang.org/x/sys/unix", Selector: "Syscall6"}:          {Pkg: stdlibHooksPackage},
-	{Pkg: "golang.org/x/sys/unix", Selector: "SyscallNoError"}:    {Pkg: stdlibHooksPackage},
-	{Pkg: "golang.org/x/sys/unix", Selector: "vgetrandom"}:        {Pkg: stdlibHooksPackage, Selector: "InternalSyscallUnix_vgetrandom"},
+	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscall"}:                    {Pkg: stdlibHooksPackage},
+	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscall6"}:                   {Pkg: stdlibHooksPackage},
+	{Pkg: "golang.org/x/sys/unix", Selector: "RawSyscallNoError"}:             {Pkg: stdlibHooksPackage},
+	{Pkg: "golang.org/x/sys/unix", Selector: "Syscall"}:                       {Pkg: stdlibHooksPackage},
+	{Pkg: "golang.org/x/sys/unix", Selector: "Syscall6"}:                      {Pkg: stdlibHooksPackage},
+	{Pkg: "golang.org/x/sys/unix", Selector: "SyscallNoError"}:                {Pkg: stdlibHooksPackage},
+	{Pkg: "golang.org/x/sys/unix", Selector: "vgetrandom"}:                    {Pkg: stdlibHooksPackage, Selector: "InternalSyscallUnix_vgetrandom"},
+	{Pkg: "golang.org/x/net/internal/socket", Selector: "syscall_getsockopt"}: {Pkg: stdlibHooksPackage, Selector: "Syscall_getsockopt"},
+	{Pkg: "golang.org/x/net/internal/socket", Selector: "syscall_setsockopt"}: {Pkg: stdlibHooksPackage, Selector: "Syscall_setsockopt"},
 
 	// amd64 only?
 	{Pkg: "golang.org/x/sys/unix", Selector: "gettimeofday"}: {Pkg: stdlibHooksPackage},
