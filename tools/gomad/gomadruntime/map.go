@@ -101,6 +101,11 @@ func MapLiteral[K comparable, V any](pairs []KV[K, V]) Map[K, V] {
 	return m
 }
 
+// Pointer preserves addressability when a composite literal is lowered to a function call.
+func Pointer[T any](value T) *T {
+	return &value
+}
+
 func (m Map[K, V]) Clear() {
 	clear(m.Impl.underlying)
 	for i := range m.Impl.small {
