@@ -311,6 +311,17 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 		b.sigstack = append(b.sigstack, sig)
 		b.cursig = sig
 
+	case *ast.ValueSpec:
+		if node.Type == nil || len(node.Names) != len(node.Values) {
+			break
+		}
+		target := b.typesInfo.Types[node.Type].Type
+		for _, value := range node.Values {
+			if valueType := b.typesInfo.Types[value].Type; !types.Identical(valueType, target) {
+				b.conversions[value] = target
+			}
+		}
+
 	case *ast.CompositeLit:
 		if struc, ok := b.typesInfo.Types[node].Type.Underlying().(*types.Struct); ok {
 			for idx, elt := range node.Elts {
