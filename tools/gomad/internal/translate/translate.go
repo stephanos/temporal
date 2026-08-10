@@ -541,6 +541,7 @@ func (t *packageTranslator) preApply(c *dstutil.Cursor) bool {
 	// converisons, nil
 	t.rewriteMapImplicitConversion(c)
 	t.rewriteMapNil(c)
+	t.rewriteMapLiteralAddress(c)
 	t.rewriteMapLiteral(c)
 	t.rewriteChanImplicitConversion(c)
 	t.rewriteChanNil(c)
