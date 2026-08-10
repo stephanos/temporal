@@ -8,6 +8,7 @@ type stdlibCompatibilityPolicy struct {
 	keepAsmPackages         map[string]bool
 	acceptedLinknames       map[packageSelector]packageSelector
 	acceptedNoBodyLinknames map[packageSelector]bool
+	noBodyLinknameTargets   map[packageSelector]packageSelector
 	globalsDontTranslate    map[packageSelector]bool
 }
 
