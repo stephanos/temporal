@@ -65,6 +65,14 @@ func TestLoadPackagesUsesUserTags(t *testing.T) {
 	}
 }
 
+func TestEncodingBinaryEndianTypesCanCrossPackageBoundary(t *testing.T) {
+	for _, name := range []string{"bigEndian", "littleEndian"} {
+		if !slices.Contains(PublicExportHacks["encoding/binary"], name) {
+			t.Errorf("encoding/binary.%s is not exported for translated type reconstruction", name)
+		}
+	}
+}
+
 // TestTranslate runs gomad translate on all go files specified in testdata/.
 //
 // Each file in testdata that ends in .translate.txt is a directory that will be
