@@ -484,6 +484,21 @@ a package by supplying only `GOMADSEED` to the corresponding Make target.
 
 ## Verification
 
+The checked-in v3 suite implements the following verification details:
+
+- special map-key coverage includes 32-bit and 64-bit integers, strings,
+  floating-point and complex values including NaNs, empty and non-empty
+  interfaces, arrays, and structs; every family must repeat for one seed and
+  show ordering diversity across seeds `0` through `31`;
+- disabled `go run` and a stable prefixed `go test` result are compared with a
+  local stock Go 1.26.4 toolchain, with no toolchain download during the test;
+- a prebuilt map fixture retains bounded allocation padding and proves that
+  different reported layouts preserve the same logical output; this isolated
+  address check uses `GOGC=off` because crossing an automatic-GC threshold is
+  a separate shared-random-stream input; and
+- prebuilt map and scheduler fixtures retain exact same-seed output while
+  bounded unrelated CPU-burning processes are alive.
+
 ### Disabled-mode compatibility
 
 - Build and run the upstream Go runtime tests with `GOMADSEED` absent.
