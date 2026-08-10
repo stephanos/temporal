@@ -26,9 +26,9 @@ look at what gomad can do.
 # Using Gomad
 
 ## From go test to gomad test
-Build the `gomad` executable from the Temporal repository root:
+Build the `gomad` executable from this module directory:
 ```
-> go install ./cmd/tools/gomad
+> go install ./cmd/gomad
 ```
 
 Gomad tests standard go code and is used just like another go package. To get
@@ -365,8 +365,7 @@ Gomad's public packages are:
 - [github.com/temporalio/gomad/nemesis](./nemesis/): a package, still
   sparse, to introduce chaos into simulations
 
-The CLI for running Gomad tests is the Temporal repository command at
-[`cmd/tools/gomad`](../../cmd/tools/gomad).
+The CLI for running Gomad tests is at [`cmd/gomad`](cmd/gomad).
 
 # Development
 
