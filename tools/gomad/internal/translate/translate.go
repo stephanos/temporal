@@ -287,6 +287,10 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 
 	// handle standard library vendored packages
 	localReplacedPkgs := maps.Clone(args.replacedPkgs)
+	if _, importsEmbed := args.pkg.Imports["embed"]; importsEmbed {
+		// The compiler-provided embed.FS uses the original io/fs types.
+		delete(localReplacedPkgs, "io/fs")
+	}
 	for path, dep := range args.pkg.Imports {
 		if path != dep.PkgPath {
 			if args.pkg.Module != nil {
