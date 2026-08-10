@@ -80,6 +80,87 @@ func filterTestFiles(files []*ast.File, fset *token.FileSet) []*ast.File {
 	return filtered
 }
 
+func lexicalDefinitionNames(file *ast.File, info *types.Info) map[string]struct{} {
+	names := make(map[string]struct{})
+	ast.Inspect(file, func(node ast.Node) bool {
+		ident, ok := node.(*ast.Ident)
+		if !ok || ident.Name == "_" {
+			return true
+		}
+
+		object := info.Defs[ident]
+		switch object := object.(type) {
+		case nil, *types.PkgName, *types.Label:
+			return true
+		case *types.Var:
+			if object.IsField() {
+				return true
+			}
+		case *types.Func:
+			signature, ok := object.Type().(*types.Signature)
+			if ok && signature.Recv() != nil {
+				return true
+			}
+		}
+
+		names[ident.Name] = struct{}{}
+		return true
+	})
+	return names
+}
+
+func importAliasesAvoidingLexicalNames(file *dst.File, lexicalNames map[string]struct{}, packageNames map[string]string) map[string]string {
+	paths := make(map[string]struct{})
+	dst.Inspect(file, func(node dst.Node) bool {
+		ident, ok := node.(*dst.Ident)
+		if ok && ident.Path != "" {
+			paths[ident.Path] = struct{}{}
+		}
+		return true
+	})
+
+	explicitAliases := make(map[string]string)
+	for _, importSpec := range file.Imports {
+		if importSpec.Name == nil {
+			continue
+		}
+		importPath, err := strconv.Unquote(importSpec.Path.Value)
+		if err != nil {
+			continue
+		}
+		explicitAliases[importPath] = importSpec.Name.Name
+	}
+
+	orderedPaths := slices.Collect(maps.Keys(paths))
+	slices.Sort(orderedPaths)
+	occupied := maps.Clone(lexicalNames)
+	aliases := make(map[string]string)
+	for _, importPath := range orderedPaths {
+		preferred := packageNames[importPath]
+		if explicit, ok := explicitAliases[importPath]; ok {
+			preferred = explicit
+		}
+		if preferred == "" || preferred == "." || preferred == "_" {
+			continue
+		}
+
+		alias := preferred
+		if _, conflict := occupied[alias]; conflict {
+			base := preferred + "_gomad"
+			alias = base
+			for suffix := 1; ; suffix++ {
+				if _, conflict := occupied[alias]; !conflict {
+					break
+				}
+				alias = base + strconv.Itoa(suffix)
+			}
+			aliases[importPath] = alias
+		}
+		occupied[alias] = struct{}{}
+	}
+	return aliases
+}
+
 // renameFile removes any implied build constraints from filenames that might
 // not be satisfied.
 //
@@ -205,6 +286,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 
 	var dstFiles []*dst.File
 	dstFilePaths := make(map[*dst.File]string)
+	lexicalNamesByFilePath := make(map[string]map[string]struct{})
 
 	collectedAliases := make(map[string]string)
 
@@ -217,6 +299,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 		}
 		dstFiles = append(dstFiles, dstFile)
 		dstFilePaths[dstFile] = filePath
+		lexicalNamesByFilePath[filePath] = lexicalDefinitionNames(file, args.pkg.TypesInfo)
 
 		for _, imp := range dstFile.Imports {
 			if imp.Name != nil && imp.Name.Name != "_" && imp.Name.Name != "." {
@@ -339,7 +422,8 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 		if err != nil {
 			log.Fatal("translate", filePath, err)
 		}
-		bytes, err := dstFileToBytes(file, args.packageNames, nil, "main")
+		aliases := importAliasesAvoidingLexicalNames(file, lexicalNamesByFilePath[filePath], args.packageNames)
+		bytes, err := dstFileToBytes(file, args.packageNames, aliases, "main")
 		if err != nil {
 			log.Fatal(err)
 		}
