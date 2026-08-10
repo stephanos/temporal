@@ -167,9 +167,14 @@ func (t *packageTranslator) rewriteStdlibEmptyAndLinkname(c *dstutil.Cursor) {
 
 			parts := strings.Split(val, " ")
 
-			if len(parts) == 2 && decl.Body == nil && !activeStdlibPolicy.acceptedNoBodyLinknames[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}] {
-				// TODO: make this fail the build?
-				slog.Error("unknown linkname with no body", "pkg", t.pkgPath, "name", decl.Name.Name)
+			if len(parts) == 2 && decl.Body == nil {
+				if activeStdlibPolicy.acceptedNoBodyLinknames[packageSelector{Pkg: t.pkgPath, Selector: decl.Name.Name}] {
+					decl.Decs.Start[i] = fmt.Sprintf("//go:linkname %s %s.%s", parts[1], t.pkgPath, parts[1])
+					t.needsUnsafe = true
+				} else {
+					// TODO: make this fail the build?
+					slog.Error("unknown linkname with no body", "pkg", t.pkgPath, "name", decl.Name.Name)
+				}
 			}
 
 			if len(parts) == 3 {
