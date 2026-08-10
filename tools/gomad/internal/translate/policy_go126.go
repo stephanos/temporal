@@ -8,6 +8,7 @@ var go126CompatibilityPolicy = stdlibCompatibilityPolicy{
 	keepAsmPackages:         go126KeepAsmPackages,
 	acceptedLinknames:       go126AcceptedLinknames,
 	acceptedNoBodyLinknames: go126AcceptedNoBodyLinknames,
+	noBodyLinknameTargets:   go126NoBodyLinknameTargets,
 	globalsDontTranslate:    go126GlobalsDontTranslate,
 }
 
@@ -420,14 +421,21 @@ var go126AcceptedLinknames = map[packageSelector]packageSelector{
 }
 
 var go126AcceptedNoBodyLinknames = map[packageSelector]bool{
-	{Pkg: "crypto/internal/fips140hash", Selector: "sha3Unwrap"}:         true,
-	{Pkg: "internal/runtime/maps", Selector: "typeString"}:               true,
-	{Pkg: "internal/runtime/maps", Selector: "fatal"}:                    true,
-	{Pkg: "internal/runtime/maps", Selector: "rand"}:                     true,
-	{Pkg: "internal/runtime/maps", Selector: "typedmemmove"}:             true,
-	{Pkg: "internal/runtime/maps", Selector: "typedmemclr"}:              true,
-	{Pkg: "internal/runtime/maps", Selector: "newarray"}:                 true,
-	{Pkg: "internal/runtime/maps", Selector: "newobject"}:                true,
-	{Pkg: "runtime/trace", Selector: "runtime_readTrace"}:                true,
-	{Pkg: "runtime/trace", Selector: "runtime_traceClockUnitsPerSecond"}: true,
+	{Pkg: "crypto/internal/fips140hash", Selector: "sha3Unwrap"}: true,
+	{Pkg: "internal/runtime/maps", Selector: "typeString"}:       true,
+	{Pkg: "internal/runtime/maps", Selector: "fatal"}:            true,
+	{Pkg: "internal/runtime/maps", Selector: "rand"}:             true,
+	{Pkg: "internal/runtime/maps", Selector: "typedmemmove"}:     true,
+	{Pkg: "internal/runtime/maps", Selector: "typedmemclr"}:      true,
+	{Pkg: "internal/runtime/maps", Selector: "newarray"}:         true,
+	{Pkg: "internal/runtime/maps", Selector: "newobject"}:        true,
+}
+
+var go126NoBodyLinknameTargets = map[packageSelector]packageSelector{
+	{Pkg: "runtime/trace", Selector: "runtime_readTrace"}: {
+		Pkg: "runtime/trace", Selector: "runtime_readTrace",
+	},
+	{Pkg: "runtime/trace", Selector: "runtime_traceClockUnitsPerSecond"}: {
+		Pkg: "runtime/trace", Selector: "runtime_traceClockUnitsPerSecond",
+	},
 }
