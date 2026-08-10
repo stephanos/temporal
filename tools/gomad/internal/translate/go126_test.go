@@ -69,8 +69,8 @@ func TestGo126RuntimeTraceKeepsTranslatedContextTypes(t *testing.T) {
 	}
 	for _, name := range []string{"runtime_readTrace", "runtime_traceClockUnitsPerSecond"} {
 		linkname := packageSelector{Pkg: "runtime/trace", Selector: name}
-		if !go126AcceptedNoBodyLinknames[linkname] {
-			t.Errorf("Go 1.26 runtime-provided linkname %#v is not accepted", linkname)
+		if target := go126NoBodyLinknameTargets[linkname]; target != linkname {
+			t.Errorf("Go 1.26 runtime-provided linkname %#v targets %#v", linkname, target)
 		}
 	}
 }
@@ -93,6 +93,26 @@ func TestGo126RuntimeTraceLinknameTargetsOriginalPackage(t *testing.T) {
 	}, nil)
 
 	want := "//go:linkname " + name + " runtime/trace." + name
+	if got := strings.Join(decl.Decs.Start, "\n"); got != want {
+		t.Fatalf("translated linkname = %q, want %q", got, want)
+	}
+}
+
+func TestGo126TranslatedNoBodyLinknameKeepsTranslatedProvider(t *testing.T) {
+	const name = "sha3Unwrap"
+	decl := &dst.FuncDecl{
+		Name: dst.NewIdent(name),
+		Type: &dst.FuncType{Params: &dst.FieldList{}},
+		Decs: dst.FuncDeclDecorations{NodeDecs: dst.NodeDecs{Start: []string{"//go:linkname " + name}}},
+	}
+	file := &dst.File{Name: dst.NewIdent("fips140hash"), Decls: []dst.Decl{decl}}
+	translator := packageTranslator{pkgPath: "crypto/internal/fips140hash"}
+	dstutil.Apply(file, func(cursor *dstutil.Cursor) bool {
+		translator.rewriteStdlibEmptyAndLinkname(cursor)
+		return true
+	}, nil)
+
+	want := "//go:linkname " + name
 	if got := strings.Join(decl.Decs.Start, "\n"); got != want {
 		t.Fatalf("translated linkname = %q, want %q", got, want)
 	}
