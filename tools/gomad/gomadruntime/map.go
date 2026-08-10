@@ -75,6 +75,17 @@ func NewMap[K comparable, V any]() Map[K, V] {
 	}
 }
 
+type integer interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
+}
+
+func NewMapWithSize[K comparable, V any, S integer](size S) Map[K, V] {
+	if size < 0 {
+		panic("make map: size out of range")
+	}
+	return NewMap[K, V]()
+}
+
 func NilMap[K comparable, V any]() Map[K, V] {
 	return Map[K, V]{}
 }
