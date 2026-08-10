@@ -98,7 +98,9 @@ func (t *packageTranslator) rewriteIdentImpl(ident *dst.Ident) {
 		if replaced, ok := t.replacedPkgs[ident.Path]; ok {
 			if ident.Path == "testing" {
 				if _, ok := t.astMap.Nodes[ident]; !ok {
-					// XXX: hack job to skip newly created idents
+					// XXX: hack job for newly created idents, which have no AST mapping.
+					ident.Path = replaced
+					ident.Obj = nil
 					return
 				}
 			}
