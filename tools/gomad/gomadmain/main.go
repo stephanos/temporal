@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/temporalio/gomad/internal/gomadtool"
-	"github.com/temporalio/gomad/internal/gomadviewer"
 	"github.com/temporalio/gomad/internal/translate"
 )
 
@@ -226,7 +225,6 @@ func Main() {
 		run := testflags.String("run", "", "tests to run (as in go test -run)")
 		logformat := testflags.String("logformat", "pretty", "gomad log formatting: raw|indented|pretty")
 		simtrace := testflags.String("simtrace", "", "set of a comma-separated traces to enable")
-		jsonlogout := testflags.String("jsonlogout", "", "path to a file to write json log to, for use with viewer")
 		seeds := testflags.String("seeds", "1", "a comma separated list of seeds and ranges to run, such as 1,2,10-100,99")
 		testflags.Parse(cmdArgs)
 
@@ -267,14 +265,6 @@ func Main() {
 		}
 		if *simtrace != "" {
 			args = append(args, "-simtrace", *simtrace)
-		}
-		// TODO: make this output somehow work per test
-		if *jsonlogout != "" {
-			abs, err := filepath.Abs(*jsonlogout)
-			if err != nil {
-				log.Fatalf("making jsonlogout absolute: %s", err)
-			}
-			args = append(args, "-jsonlogout", abs)
 		}
 		if *seeds != "" {
 			args = append(args, "-seeds", *seeds)
@@ -399,15 +389,6 @@ func Main() {
 				}
 			}
 		}
-
-	case "viewer":
-		// TODO: document viewer
-		viewerflags := flag.NewFlagSet(commandName("viewer"), flag.ExitOnError)
-		// TODO: make this log viewing experience nicer
-		log := viewerflags.String("log", "", "path to logs from jsonlogout")
-		viewerflags.Parse(cmdArgs)
-
-		gomadviewer.Viewer(*log)
 
 	case "debug":
 		// TODO: make -headless flag write launch configuration?

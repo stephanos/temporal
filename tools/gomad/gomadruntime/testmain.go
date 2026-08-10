@@ -100,9 +100,6 @@ func TestMain(rt Runtime) {
 	simtrace := flag.String("simtrace", "", "set of comma-separated traces to enable")
 	seedsStr := flag.String("seeds", "1", "comma-separated list of seeds and ranges")
 
-	// TODO: make this flag beter; it won't work with multiple test runs?
-	jsonlogout := flag.String("jsonlogout", "", "path to a file to write json log to, for use with viewer")
-
 	flag.Parse()
 
 	rt.Setup()
@@ -138,15 +135,6 @@ func TestMain(rt Runtime) {
 
 		outerOk := true
 
-		var jsonout *os.File
-		if *jsonlogout != "" {
-			var err error
-			jsonout, err = os.OpenFile(*jsonlogout, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-			if err != nil {
-				log.Fatalf("error opening jsonlogout: %s", err)
-			}
-		}
-
 		for _, seedRange := range seeds {
 			for seed := seedRange.start; seed <= seedRange.end; seed++ {
 				// TODO: filter list of tests outside since each run call has quite some overhead
@@ -161,22 +149,10 @@ func TestMain(rt Runtime) {
 						}
 					}, int64(seed), enableTracer, captureLog, logLevelOverride, makeConsoleLogger(os.Stderr), []string{})
 
-					if jsonout != nil {
-						if _, err := jsonout.Write(result.LogOutput); err != nil {
-							log.Fatalf("error writing jsonout: %s", err)
-						}
-					}
-
 					if result.Failed {
 						outerOk = false
 					}
 				}
-			}
-		}
-
-		if jsonout != nil {
-			if err := jsonout.Close(); err != nil {
-				log.Fatalf("error closing jsonout: %s", err)
 			}
 		}
 
