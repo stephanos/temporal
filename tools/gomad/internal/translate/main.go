@@ -25,7 +25,7 @@ import (
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 var PublicExportHacks = map[string][]string{
-	"encoding/binary":                  {"littleEndian"},
+	"encoding/binary":                  {"bigEndian", "littleEndian"},
 	"internal/poll":                    {"errNetClosing"},
 	"github.com/golang/protobuf/proto": {"enumsByName"},
 }
