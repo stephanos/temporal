@@ -20,13 +20,16 @@ func (t *packageTranslator) rewriteGo(c *dstutil.Cursor) {
 			panic("help")
 		}
 
-		simple := funcType.(*types.Signature).Params().Len() == 0 && funcType.(*types.Signature).Results().Len() == 0
+		sig, ok := funcType.Underlying().(*types.Signature)
+		if !ok {
+			panic(fmt.Sprintf("go statement target has non-function type %s", funcType))
+		}
+		simple := sig.Params().Len() == 0 && sig.Results().Len() == 0
 
 		if simple {
 			// go func() { ... } ()
 			fun = t.apply(goStmt.Call.Fun).(dst.Expr)
 		} else {
-			sig := funcType.(*types.Signature)
 			args := sig.Params().Len()
 			variable := sig.Variadic()
 			ret := sig.Results().Len()
