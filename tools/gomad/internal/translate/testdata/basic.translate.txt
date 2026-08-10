@@ -931,6 +931,8 @@ type StructWithMap struct {
 func Map() {
 	var m map[int]string
 	m = make(map[int]string)
+	var size int32 = 2
+	m = make(map[int]string, size)
 
 	m = map[int]string{1: "ok", 2: "bar"}
 
@@ -984,6 +986,8 @@ type StructWithMap struct {
 func Map() {
 	var m gomadruntime.Map[int, string]
 	m = gomadruntime.NewMap[int, string]()
+	var size int32 = 2
+	m = gomadruntime.NewMapWithSize[int, string](size)
 
 	m = gomadruntime.MapLiteral([]gomadruntime.KV[int, string]{{K: 1, V: "ok"}, {K: 2, V: "bar"}})
 
