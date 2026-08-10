@@ -37,6 +37,9 @@ func TestGo126ThirdPartyPackagesKeepAssembly(t *testing.T) {
 	packages := []string{
 		"github.com/golang/snappy",
 		"github.com/klauspost/compress/zstd/internal/xxhash",
+		"golang.org/x/crypto/chacha20",
+		"golang.org/x/crypto/chacha20poly1305",
+		"golang.org/x/crypto/internal/poly1305",
 	}
 	for _, pkg := range packages {
 		if !go126KeepAsmPackages[pkg] {

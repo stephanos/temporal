@@ -65,6 +65,9 @@ var go126KeepAsmPackages = map[string]bool{
 	"vendor/golang.org/x/crypto/chacha20":          true,
 	"vendor/golang.org/x/crypto/internal/poly1305": true,
 	"vendor/golang.org/x/crypto/chacha20poly1305":  true,
+	"golang.org/x/crypto/chacha20":                 true,
+	"golang.org/x/crypto/internal/poly1305":        true,
+	"golang.org/x/crypto/chacha20poly1305":         true,
 	"vendor/golang.org/x/crypto/sha3":              true,
 	"hash/crc32":                                   true,
 
