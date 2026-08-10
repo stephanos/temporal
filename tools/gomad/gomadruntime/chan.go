@@ -144,7 +144,7 @@ type Chan[V any] struct {
 }
 
 //go:norace
-func NewChan[V any](capacity int) Chan[V] {
+func NewChan[V any, S integer](capacity S) Chan[V] {
 	var buf []V
 	if capacity != 0 {
 		buf = make([]V, capacity)
