@@ -33,9 +33,15 @@ func TestGo126FIPSPackagesKeepAssembly(t *testing.T) {
 	}
 }
 
-func TestGo126SnappyKeepsAssembly(t *testing.T) {
-	if !go126KeepAsmPackages["github.com/golang/snappy"] {
-		t.Error("Go 1.26 Snappy package does not retain its assembly implementation")
+func TestGo126ThirdPartyPackagesKeepAssembly(t *testing.T) {
+	packages := []string{
+		"github.com/golang/snappy",
+		"github.com/klauspost/compress/zstd/internal/xxhash",
+	}
+	for _, pkg := range packages {
+		if !go126KeepAsmPackages[pkg] {
+			t.Errorf("Go 1.26 package %q does not retain its assembly implementation", pkg)
+		}
 	}
 }
 
