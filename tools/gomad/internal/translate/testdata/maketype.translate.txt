@@ -43,6 +43,16 @@ var builtin int
 
 type Named int
 
+type GenericMap[T comparable] map[T]int
+
+func (m GenericMap[T]) Get(key T) int {
+	return m[key]
+}
+
+func PreserveGenericMapType[T comparable](m GenericMap[T]) GenericMap[T] {
+	return m
+}
+
 var named Named
 
 var ptr *int
@@ -81,6 +91,16 @@ package basicgomad
 import "github.com/temporalio/gomad/gomadruntime"
 
 type Named int
+
+type GenericMap[T comparable] gomadruntime.Map[T, int]
+
+func (m GenericMap[T]) Get(key T) int {
+	return gomadruntime.ExtractMap(m).Get(key)
+}
+
+func PreserveGenericMapType[T comparable](m GenericMap[T]) GenericMap[T] {
+	return m
+}
 
 func Typeparam[T any]() gomadruntime.Map[int, T] {
 	return gomadruntime.NilMap[int, T]()

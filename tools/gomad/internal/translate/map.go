@@ -89,6 +89,11 @@ func (t *packageTranslator) mapIndexForRewrite(node dst.Node) (dst.Expr, dst.Exp
 	}
 	expr = dstutil.Unparen(expr)
 	if indexExpr, ok := expr.(*dst.IndexExpr); ok {
+		astExpr, ok := t.astMap.Nodes[indexExpr].(ast.Expr)
+		if ok && t.typesInfo.Types[astExpr].IsType() {
+			return nil, nil, false
+		}
+
 		mp, ok := t.mapForRewrite(indexExpr.X)
 		if !ok {
 			return nil, nil, false
