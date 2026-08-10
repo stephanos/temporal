@@ -6,15 +6,15 @@ seeded scheduler, virtual time, simulated machines, networks, filesystems, and
 process crashes so failures can be reproduced from their seed.
 
 This document records the decision to use the current GoMaD engine under
-[`tools/gomad`](tools/gomad) and retire the original Temporal-specific
-implementation preserved under [`tools/gomad_old`](tools/gomad_old). The two
+[`tools/gomadv2`](tools/gomadv2) and retire the original Temporal-specific
+implementation preserved under [`tools/gomadv1`](tools/gomadv1). The two
 implementations choose different simulation boundaries. The current engine is
 a Go 1.26 nested module whose source is distributed under the included
-[`LICENSE`](tools/gomad/LICENSE).
+[`LICENSE`](tools/gomadv2/LICENSE).
 
-> **Decision:** stop developing and integrating `tools/gomad_old`. All new
+> **Decision:** stop developing and integrating `tools/gomadv1`. All new
 > deterministic-simulation work will improve the gomad-derived engine in
-> `tools/gomad` and integrate that engine with Temporal. The legacy source is
+> `tools/gomadv2` and integrate that engine with Temporal. The legacy source is
 > historical reference only and should receive no features or compatibility
 > fixes.
 
@@ -81,7 +81,7 @@ Legacy GoMaD does not translate the Go standard library as a whole. It rewrites
 language operations and selected package references, supplies cooperative
 implementations of common APIs, copies a few library packages where necessary,
 and leaves other dependency families on their real implementations. Its
-[transformer configuration](tools/gomad_old/transformer/transform.go) contains
+[transformer configuration](tools/gomadv1/transformer/transform.go) contains
 Temporal-specific gRPC/HTTP rules and a growing skip list for dependency
 boundaries that otherwise produce incompatible Go types.
 
@@ -106,13 +106,13 @@ translates the standard library and redirects its internal runtime hooks and
 Linux syscalls into a simulated runtime and OS. The ordinary `net/http`,
 `os.File`, or `sync.Mutex` implementation therefore remains in use above that
 boundary. The architecture is described in
-[`docs/design.md`](tools/gomad/docs/design.md).
+[`docs/design.md`](tools/gomadv2/docs/design.md).
 
 This is a deeper module: a relatively small runtime/syscall interface supports
 many higher-level packages without separately faking each one. It enables a
 coherent machine abstraction, where every machine has isolated package
 globals, its own network stack and disk, and a crash/restart lifecycle. The
-[`Machine` API](tools/gomad/machine.go)
+[`Machine` API](tools/gomadv2/machine.go)
 can model graceful stops, hard crashes, partial persistence, and repeated disk
 recovery states.
 
@@ -126,7 +126,7 @@ large and type-sensitive as Temporal's remains a substantial compatibility
 exercise.
 
 Gomad's deeper boundary is not complete emulation. Its own
-[`README`](tools/gomad/README.md)
+[`README`](tools/gomadv2/README.md)
 calls the project experimental and lists gaps such as UDP, hostnames, file
 permissions, and links. Those gaps matter for a server with broad platform,
 database, telemetry, and networking dependencies.
@@ -205,7 +205,7 @@ third-party APIs.
 ### What will not be carried forward
 
 - No new features, Go-version fixes, overlays, or API shims will be added to
-  `tools/gomad_old`.
+  `tools/gomadv1`.
 - Temporal tests will not be split permanently between two deterministic
   schedulers.
 - Legacy fake HTTP, gRPC, SQL, filesystem, and synchronization behavior will
@@ -216,7 +216,7 @@ third-party APIs.
 
 The old source may be consulted for Temporal-specific build, test-selection,
 and lifecycle requirements. Once those requirements are represented in the
-gomad integration, `tools/gomad_old` can be deleted.
+gomad integration, `tools/gomadv1` can be deleted.
 
 ### Integration questions and backlog
 
@@ -242,7 +242,7 @@ resuming legacy GoMaD work and do not imply that both engines remain active.
 ## Go 1.26 foundation
 
 The current source is maintained as a nested module under
-[`tools/gomad`](tools/gomad). The port was verified with Go 1.26.1 on
+[`tools/gomadv2`](tools/gomadv2). The port was verified with Go 1.26.1 on
 Darwin/ARM64, and the nested module declares Go 1.26.0.
 
 The port passes the runtime unit target, translator tests, self-translation,
@@ -250,8 +250,8 @@ the translated behavior and nemesis suites, and those translated suites under
 the race detector. The principal acceptance commands are:
 
 ```text
-go build -tags=test_dep -o tools/gomad/.gomad/gomadtool ./cmd/tools/gomad
-cd tools/gomad
+go build -tags=test_dep -o tools/gomadv2/.gomad/gomadtool ./cmd/tools/gomad
+cd tools/gomadv2
 go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gomadruntime
 .gomad/gomadtool prepare-selftest
 .gomad/gomadtool test ./internal/tests/behavior ./nemesis
@@ -335,7 +335,7 @@ foundation.
 ### Faster
 
 - Extend the existing translation cache in
-  [`internal/translate/cache.go`](tools/gomad/internal/translate/cache.go) with
+  [`internal/translate/cache.go`](tools/gomadv2/internal/translate/cache.go) with
   measurements and precise invalidation for the Temporal dependency graph.
 - Shard seed ranges across workers, retain the first useful failure per shard,
   and make replay independent of worker count.
@@ -353,8 +353,8 @@ then optimize from measured translation and execution profiles.
 
 ## Practical conclusion
 
-There is one forward path: improve the Go 1.26 gomad fork in `tools/gomad` and
-integrate Temporal with it. `tools/gomad_old` is abandoned, read-only reference
+There is one forward path: improve the Go 1.26 gomad fork in `tools/gomadv2` and
+integrate Temporal with it. `tools/gomadv1` is abandoned, read-only reference
 material; it should not influence prioritization through its lower short-term
 integration cost.
 

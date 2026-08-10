@@ -3,11 +3,11 @@
 ## Scope
 
 This roadmap covers the runtime-simulation implementation imported from gomad
-and now located in [`tools/gomad`](tools/gomad). It addresses file and package
+and now located in [`tools/gomadv2`](tools/gomadv2). It addresses file and package
 structure, naming, dependency ownership, test organization, and the boundary
 between translated code and the simulator runtime.
 
-The previous AST-rewrite implementation in `tools/gomad_old` is outside the
+The previous AST-rewrite implementation in `tools/gomadv1` is outside the
 design scope. Its tests may be used as a one-time source of missing scenarios,
 but its package structure is not a target architecture for the new GoMaD.
 
@@ -44,7 +44,7 @@ integration.
 
 The immediate target should be:
 
-- `tools/gomad_old` remains the legacy implementation;
+- `tools/gomadv1` remains the legacy implementation;
 - the repository-facing command and build-tag path select the runtime simulator;
 - the user-facing executable is `gomad`;
 - Gomad-prefixed internal names are either intentionally documented as upstream
@@ -55,7 +55,7 @@ package, cache, environment-variable, and directive rename.
 
 ### 2. Make standard-library compatibility version-neutral at the package level
 
-Rename [`internal/hooks/go123`](tools/gomad/internal/hooks/go123) to a stable
+Rename [`internal/hooks/go123`](tools/gomadv2/internal/hooks/go123) to a stable
 boundary such as `internal/stdlib/hooks`. Put release-specific policy in files
 such as `policy_go126.go` and keep truly version-specific adaptations in
 `go126.go` files. Supporting a new Go release should change one explicit
@@ -117,9 +117,9 @@ Status: approved for implementation after review of this roadmap.
 
 Delete:
 
-- `tools/gomad/examples/bolt`;
-- `tools/gomad/examples/etcd`;
-- the corresponding entries in `tools/gomad/README.md`.
+- `tools/gomadv2/examples/bolt`;
+- `tools/gomadv2/examples/etcd`;
+- the corresponding entries in `tools/gomadv2/README.md`.
 
 Remove from the nested module:
 
@@ -133,7 +133,7 @@ Remove from the nested module:
 
 Run `go mod tidy` rather than manually guessing the transitive dependency set.
 Retain `go.uber.org/zap`: it is also used by the behavior logging tests. Retain
-the small examples in `tools/gomad/examples`; they exercise the public API
+the small examples in `tools/gomadv2/examples`; they exercise the public API
 without dominating the module graph.
 
 Verification:
@@ -383,7 +383,7 @@ After removing obsolete blocks, split large suites by modeled capability:
 - scheduler lifecycle, panic, deadlock, and crash behavior.
 
 Use native differential tests where the same contract should match ordinary Go
-or Linux. Borrow scenarios from `tools/gomad_old` only when they test a runtime
+or Linux. Borrow scenarios from `tools/gomadv1` only when they test a runtime
 claim that the new implementation also makes; port the scenario to the new
 public API rather than importing old test helpers.
 
@@ -496,8 +496,8 @@ Run focused checks after each roadmap item, followed by the nested-module
 acceptance sequence at phase boundaries:
 
 ```text
-go build -tags=test_dep -o tools/gomad/.gomad/gomadtool ./cmd/tools/gomad
-cd tools/gomad
+go build -tags=test_dep -o tools/gomadv2/.gomad/gomadtool ./cmd/tools/gomad
+cd tools/gomadv2
 go mod tidy
 go list -tags=test_dep ./...
 go test -ldflags=-checklinkname=0 -tags=linkname,test_dep ./gomadruntime

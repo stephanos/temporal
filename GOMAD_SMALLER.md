@@ -2,8 +2,8 @@
 
 ## Scope
 
-This review covers handwritten code under `tools/gomad`. Generated translation
-output under `tools/gomad/.gomad` is excluded. The goal is to remove locally
+This review covers handwritten code under `tools/gomadv2`. Generated translation
+output under `tools/gomadv2/.gomad` is excluded. The goal is to remove locally
 maintained mechanisms when an already-used library provides the same semantics,
 without weakening Gomad's determinism or crash-simulation behavior.
 
@@ -26,9 +26,9 @@ simulation semantics.
 
 The current cache is split across:
 
-- `tools/gomad/internal/translate/cache/cache.go`, which implements a SQLite
+- `tools/gomadv2/internal/translate/cache/cache.go`, which implements a SQLite
   key/value store, locking, access timestamps, and eviction;
-- `tools/gomad/internal/translate/cache.go`, which implements content hashing
+- `tools/gomadv2/internal/translate/cache.go`, which implements content hashing
   and adapts translated package results to the cache; and
 - `github.com/mattn/go-sqlite3`, which makes the Gomad tool itself depend on
   CGO.
@@ -64,7 +64,7 @@ cross-process coordination without maintaining another locking layer.
 
 ## 2. Use `packages.Visit` for import graphs
 
-`tools/gomad/internal/translate/main.go` contains two recursive import-graph
+`tools/gomadv2/internal/translate/main.go` contains two recursive import-graph
 walkers:
 
 - `collectImports`; and
@@ -82,7 +82,7 @@ behavioral change rather than a purely mechanical reduction.
 
 ## 3. Format console logs at the `slog.Handler` boundary
 
-`tools/gomad/internal/prettylog/prettylog.go` is a 415-line JSON-to-console
+`tools/gomadv2/internal/prettylog/prettylog.go` is a 415-line JSON-to-console
 formatter based on zerolog. Gomad currently serializes each `slog.Record` as
 JSON, then parses the JSON back into a map to print it.
 
@@ -103,7 +103,7 @@ contract. Do not accept this reduction solely on line count.
 
 ## 4. Translate the standard `testing` package
 
-The files under `tools/gomad/internal/testing` contain roughly 1,430 lines copied
+The files under `tools/gomadv2/internal/testing` contain roughly 1,430 lines copied
 or adapted from Go's `testing` package. The active compatibility policy skips
 `testing` and `testing/internal/testdeps`, and the implementation already notes
 that translating `testing` would avoid the copy.
@@ -147,7 +147,7 @@ library change, the unused `workQueue.deps` field can be removed.
 
 ## 6. Use `hash/fnv` for checksums
 
-`tools/gomad/gomadruntime/fnv64.go` implements FNV-1 locally. `hash/fnv.New64`
+`tools/gomadv2/gomadruntime/fnv64.go` implements FNV-1 locally. `hash/fnv.New64`
 provides the same algorithm and exposes `Sum64`. Gomad would retain only the
 integer-to-byte encoding helper because that encoding is part of the checksum
 contract.
@@ -159,7 +159,7 @@ byte-for-byte identical.
 
 ## Generator cleanup
 
-`tools/gomad/internal/simulation/gensyscall/main.go` can use
+`tools/gomadv2/internal/simulation/gensyscall/main.go` can use
 `golang.org/x/tools/go/packages` instead of invoking and decoding `go list`
 itself. This removes some process and JSON plumbing.
 

@@ -11,9 +11,9 @@ The public standard-library implementation is reused more often than in an API
 mocking system, but the simulator is only as complete as its translator, hook
 table, runtime primitives, and syscall model together.
 
-This document focuses on the runtime-simulation strategy in `tools/gomad`; the
+This document focuses on the runtime-simulation strategy in `tools/gomadv2`; the
 previous AST-rewrite implementation lives in
-`tools/gomad_old` and appears below only as a source of reusable test ideas.
+`tools/gomadv1` and appears below only as a source of reusable test ideas.
 
 ## The actual interception stack
 
@@ -26,12 +26,12 @@ previous AST-rewrite implementation lives in
 
 The translator explicitly rewrites map and channel types and operations,
 goroutine starts, package globals, and package initialization
-([`internal/translate/translate.go`](tools/gomad/internal/translate/translate.go#L512-L574),
-[`internal/translate/globals.go`](tools/gomad/internal/translate/globals.go#L78-L169)).
+([`internal/translate/translate.go`](tools/gomadv2/internal/translate/translate.go#L512-L574),
+[`internal/translate/globals.go`](tools/gomadv2/internal/translate/globals.go#L78-L169)).
 The standard-library boundary is then connected to versioned hooks and the
 syscall ABI
-([`docs/design.md`](tools/gomad/docs/design.md#L173-L200),
-[`docs/design.md`](tools/gomad/docs/design.md#L258-L310)).
+([`docs/design.md`](tools/gomadv2/docs/design.md#L173-L200),
+[`docs/design.md`](tools/gomadv2/docs/design.md#L258-L310)).
 
 The architecture is therefore deeper than high-level API mocks, but it is not a
 small or singular mock boundary.
@@ -80,12 +80,12 @@ workloads, detectability, and whether the failure is silent:
 ### 1. The Go-version port is a semantic port, not a dependency update — High
 
 The nested module declares Go 1.26.0
-([`go.mod`](tools/gomad/go.mod#L1-L4)) and routes hooks through the stable
+([`go.mod`](tools/gomadv2/go.mod#L1-L4)) and routes hooks through the stable
 `internal/stdlib/hooks` package. Release-specific translator policy lives in
-[`policy_go126.go`](tools/gomad/internal/translate/policy_go126.go), but the
+[`policy_go126.go`](tools/gomadv2/internal/translate/policy_go126.go), but the
 hooks still target unexported standard-library/runtime symbols, whose signatures
 have no compatibility guarantee
-([`docs/design.md`](tools/gomad/docs/design.md#L173-L188)). The translator also
+([`docs/design.md`](tools/gomadv2/docs/design.md#L173-L188)). The translator also
 contains Go-1.26-specific hook, accepted-linkname, assembly, and package-skip
 tables.
 
@@ -105,9 +105,9 @@ build can still hide semantic drift.
 The normal translation path skips `runtime`, `errors`, `reflect`, `unsafe`,
 `testing`, runtime profiling/metrics/coverage packages, and other selected
 packages. It also preserves assembly for a package allowlist
-([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L27-L80)).
+([`internal/translate/main.go`](tools/gomadv2/internal/translate/main.go#L27-L80)).
 Imports can opt out through `//gomad:notranslate`
-([`internal/translate/translate.go`](tools/gomad/internal/translate/translate.go#L577-L609)).
+([`internal/translate/translate.go`](tools/gomadv2/internal/translate/translate.go#L577-L609)).
 
 Some escapes are necessary, but the snapshot does not produce a single artifact
 that answers:
@@ -124,8 +124,8 @@ generated syscall code rather than exposed as a fail-closed manifest.
 There is also a security implication: gomad is not a sandbox. `unsafe` and
 several runtime packages remain native, and individual imports can deliberately
 opt out of translation
-([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L27-L57),
-[`internal/translate/translate.go`](tools/gomad/internal/translate/translate.go#L577-L609)).
+([`internal/translate/main.go`](tools/gomadv2/internal/translate/main.go#L27-L57),
+[`internal/translate/translate.go`](tools/gomadv2/internal/translate/translate.go#L577-L609)).
 It is therefore a correctness harness for trusted code, not an isolation
 boundary for untrusted workloads; native escapes run with the host process's
 permissions.
@@ -135,10 +135,10 @@ permissions.
 Gomad keeps the standard-library implementation above many runtime hooks, but it
 does not keep native Go maps and channels. The translator changes their types and
 operations to gomad runtime types
-([`docs/design.md`](tools/gomad/docs/design.md#L113-L152),
-[`internal/translate/translate.go`](tools/gomad/internal/translate/translate.go#L536-L564)).
+([`docs/design.md`](tools/gomadv2/docs/design.md#L113-L152),
+[`internal/translate/translate.go`](tools/gomadv2/internal/translate/translate.go#L536-L564)).
 It consequently needs a custom `reflect` layer to hide those differences
-([`docs/design.md`](tools/gomad/docs/design.md#L193-L200)).
+([`docs/design.md`](tools/gomadv2/docs/design.md#L193-L200)).
 
 That leaves a difficult conformance surface around:
 
@@ -150,8 +150,8 @@ That leaves a difficult conformance surface around:
 
 The source contains unimplemented or panic paths in the reflection wrapper, so
 reflection compatibility is not complete
-([`internal/reflect/value.go`](tools/gomad/internal/reflect/value.go#L80-L120),
-[`internal/reflect/type.go`](tools/gomad/internal/reflect/type.go#L370-L405)).
+([`internal/reflect/value.go`](tools/gomadv2/internal/reflect/value.go#L80-L120),
+[`internal/reflect/type.go`](tools/gomadv2/internal/reflect/type.go#L370-L405)).
 
 ### 4. Cooperative scheduling cannot control code between yield points — High
 
@@ -159,7 +159,7 @@ The scheduler chooses a runnable simulated goroutine and lets it run until it
 yields, blocks through a modeled primitive, finishes, or panics. The runtime
 itself notes that uninstrumented synchronization or a spin can hang a step and
 that a per-step wall-clock timeout is missing
-([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L234-L275)).
+([`gomadruntime/runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L234-L275)).
 
 Runtime hooks reduce this risk by moving standard synchronization and polling
 onto the simulated scheduler, but they cannot automatically preempt:
@@ -177,16 +177,16 @@ responsible goroutine and native stack, not left to a whole-test timeout.
 Gomad rewrites package globals into per-machine containers and re-runs package
 initializers when a machine starts. This is essential to its process model, not a
 minor runtime feature
-([`docs/design.md`](tools/gomad/docs/design.md#L202-L242),
-[`internal/translate/globals.go`](tools/gomad/internal/translate/globals.go#L216-L276)).
+([`docs/design.md`](tools/gomadv2/docs/design.md#L202-L242),
+[`internal/translate/globals.go`](tools/gomadv2/internal/translate/globals.go#L216-L276)).
 
 The implementation deliberately shares globals classified as immutable to avoid
 reinitialization cost. The design also warns that sharing objects between
 machines can break identity assumptions, including sentinel errors
-([`docs/design.md`](tools/gomad/docs/design.md#L238-L252)). Controlled
+([`docs/design.md`](tools/gomadv2/docs/design.md#L238-L252)). Controlled
 nondeterminism similarly relies on a promise that shared caching cannot affect
 observable execution
-([`docs/design.md`](tools/gomad/docs/design.md#L418-L434)).
+([`docs/design.md`](tools/gomadv2/docs/design.md#L418-L434)).
 
 Missing safeguards include:
 
@@ -201,16 +201,16 @@ Missing safeguards include:
 Several hook packages intentionally panic for unsupported operations, including
 parts of `runtime/debug`, `runtime/trace`, internal ABI/CPU helpers, `os`,
 `syscall`, polling, and `x/sys/unix`
-([`internal/stdlib/hooks/runtime_debug.go`](tools/gomad/internal/stdlib/hooks/runtime_debug.go#L1-L42),
-[`internal/stdlib/hooks/runtime_trace.go`](tools/gomad/internal/stdlib/hooks/runtime_trace.go#L1-L16),
-[`internal/stdlib/hooks/syscall.go`](tools/gomad/internal/stdlib/hooks/syscall.go#L1-L88)).
+([`internal/stdlib/hooks/runtime_debug.go`](tools/gomadv2/internal/stdlib/hooks/runtime_debug.go#L1-L42),
+[`internal/stdlib/hooks/runtime_trace.go`](tools/gomadv2/internal/stdlib/hooks/runtime_trace.go#L1-L16),
+[`internal/stdlib/hooks/syscall.go`](tools/gomadv2/internal/stdlib/hooks/syscall.go#L1-L88)).
 
 At the OS boundary, unknown raw syscalls are logged and return `ENOSYS`
-([`internal/simulation/os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L162-L175)).
+([`internal/simulation/os_linux.go`](tools/gomadv2/internal/simulation/os_linux.go#L162-L175)).
 Package loading forces Linux, the host architecture, the `gomad` build tag, and
 `CGO_ENABLED=0`
-([`gomadmain/main.go`](tools/gomad/gomadmain/main.go#L155-L159),
-[`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L120-L136)).
+([`gomadmain/main.go`](tools/gomadv2/gomadmain/main.go#L155-L159),
+[`internal/translate/main.go`](tools/gomadv2/internal/translate/main.go#L120-L136)).
 
 These are hard compatibility limits. Every target workload needs an executed
 inventory of hooks and syscalls classified as simulated, native, `ENOSYS`,
@@ -220,7 +220,7 @@ panic, or unreachable.
 
 The runtime uses one clock for all machines. The source explicitly leaves
 per-machine clock offsets and broken clocks as future work
-([`gomadruntime/time.go`](tools/gomad/gomadruntime/time.go#L1-L35)). The current
+([`gomadruntime/time.go`](tools/gomadv2/gomadruntime/time.go#L1-L35)). The current
 model can accelerate time and order timers deterministically, but it cannot
 model:
 
@@ -235,17 +235,17 @@ This is a runtime-model gap rather than a network or filesystem omission.
 
 The network model provides IPv4 TCP-like streams, symmetric connectivity, and
 constant symmetric delay. IPv4-only addressing is explicit in the machine API
-([`machine.go`](tools/gomad/machine.go#L46-L57)); connectivity and delay are
+([`machine.go`](tools/gomadv2/machine.go#L46-L57)); connectivity and delay are
 applied in both directions
-([`internal/simulation/network/net.go`](tools/gomad/internal/simulation/network/net.go#L130-L153)).
+([`internal/simulation/network/net.go`](tools/gomadv2/internal/simulation/network/net.go#L130-L153)).
 The README records that UDP and hostname resolution are absent
-([`README.md`](tools/gomad/README.md#L19-L24)).
+([`README.md`](tools/gomadv2/README.md#L19-L24)).
 
 The filesystem models valuable write ordering and `fsync` behavior, but it is
 still a subset of Linux file semantics. The public crash API applies partial
 disk persistence during restart and notes that the choice should move to the
 crash operation
-([`machine.go`](tools/gomad/machine.go#L95-L116)).
+([`machine.go`](tools/gomadv2/machine.go#L95-L116)).
 
 Reusing the real `net`, `os`, and `net/http` source improves consistency above
 the boundary. It does not make the syscall results kernel-equivalent. Network,
@@ -256,14 +256,14 @@ validation.
 
 The checksum records scheduler picks and results, log writes, goroutine creation,
 run boundaries, and clock advancement
-([`gomadruntime/checksum.go`](tools/gomad/gomadruntime/checksum.go#L23-L35)). It
+([`gomadruntime/checksum.go`](tools/gomadv2/gomadruntime/checksum.go#L23-L35)). It
 does not directly hash arbitrary heap state, syscall results, filesystem state,
 network packets, global values, or race edges.
 
 The active metatesting API compares checksum and log output; its result has no
 separate trace field
-([`metatesting/metatest.go`](tools/gomad/metatesting/metatest.go#L28-L43),
-[`metatesting/metatest.go`](tools/gomad/metatesting/metatest.go#L259-L290)). Equal
+([`metatesting/metatest.go`](tools/gomadv2/metatesting/metatest.go#L28-L43),
+[`metatesting/metatest.go`](tools/gomadv2/metatesting/metatest.go#L259-L290)). Equal
 checksums are therefore a useful execution fingerprint, not proof that the whole
 runtime and OS state were equal.
 
@@ -274,11 +274,11 @@ results.
 ### 10. Schedule exploration is reproducible but not systematic — Medium
 
 The scheduler uses a seeded random choice among runnable goroutines
-([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L257-L275)). Seed
+([`gomadruntime/runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L257-L275)). Seed
 ranges replay or vary that choice, but there is no coverage metric, state-space
 reduction, schedule bounding, shrinking, or PCT-style guarantee. The design
 mentions PCT only as related work
-([`docs/design.md`](tools/gomad/docs/design.md#L502-L514)).
+([`docs/design.md`](tools/gomadv2/docs/design.md#L502-L514)).
 
 Deterministic replay and exploration quality are separate properties. Gomad has
 the first; the snapshot does not define the second beyond randomized seeds.
@@ -288,16 +288,16 @@ the first; the snapshot does not define the second beyond randomized seeds.
 Because translated tests need simulator-owned execution, gomad carries a copied
 `testing` implementation. The runner supports only a small subset of standard
 test flags and rejects other supplied `-test.*` flags
-([`gomadruntime/testmain.go`](tools/gomad/gomadruntime/testmain.go#L59-L71),
-[`gomadruntime/testmain.go`](tools/gomad/gomadruntime/testmain.go#L111-L122)).
+([`gomadruntime/testmain.go`](tools/gomadv2/gomadruntime/testmain.go#L59-L71),
+[`gomadruntime/testmain.go`](tools/gomadv2/gomadruntime/testmain.go#L111-L122)).
 Coverage, benchmarks, examples, and several entry points are unimplemented
-([`internal/testing/missing.go`](tools/gomad/internal/testing/missing.go#L1-L45));
+([`internal/testing/missing.go`](tools/gomadv2/internal/testing/missing.go#L1-L45));
 `T.TempDir` and `T.Setenv` panic
-([`internal/testing/testing.go`](tools/gomad/internal/testing/testing.go#L642-L706)).
+([`internal/testing/testing.go`](tools/gomadv2/internal/testing/testing.go#L642-L706)).
 
 Metatesting requires prebuilt test binaries for cached runs and lists fuzzing and
 parallelism as future work
-([`metatesting/doc.go`](tools/gomad/metatesting/doc.go#L14-L44)). This expands the
+([`metatesting/doc.go`](tools/gomadv2/metatesting/doc.go#L14-L44)). This expands the
 Go-version maintenance surface beyond runtime hooks and affects normal CI use.
 
 ### 12. There is no compatibility or fidelity report — High
@@ -338,46 +338,46 @@ The scenario coverage is strongest for rewritten maps and channels, timers,
 TCP/HTTP/gRPC, disk/crash behavior, and race edges. The behavior suite is much
 thinner for synchronization: its only direct functional test combines a mutex
 and WaitGroup, logs the schedule, and contains no behavioral assertion
-([`sync_test.go`](tools/gomad/internal/tests/behavior/sync_test.go#L10-L30)). The
+([`sync_test.go`](tools/gomadv2/internal/tests/behavior/sync_test.go#L10-L30)). The
 OS behavior tests cover only PID and hostname
-([`os_test.go`](tools/gomad/internal/tests/behavior/os_test.go#L8-L20)), and the
+([`os_test.go`](tools/gomadv2/internal/tests/behavior/os_test.go#L8-L20)), and the
 network suite still records missing nonexistent-destination and buffer-overflow
 cases
-([`net_test.go`](tools/gomad/internal/tests/behavior/net_test.go#L26-L28)).
+([`net_test.go`](tools/gomadv2/internal/tests/behavior/net_test.go#L26-L28)).
 
 Every behavior test is replayed twice with seed 1 and compared by checksum and
 log output, then exercised with five seeds
-([`meta_test.go`](tools/gomad/internal/tests/behavior/meta_test.go#L11-L18),
-[`metatest.go`](tools/gomad/metatesting/metatest.go#L259-L317)). This is useful
+([`meta_test.go`](tools/gomadv2/internal/tests/behavior/meta_test.go#L11-L18),
+[`metatest.go`](tools/gomadv2/metatesting/metatest.go#L259-L317)). This is useful
 determinism and scenario exploration, but it is not a code-coverage metric or a
 native-versus-simulated oracle. The replacement `testing` package leaves
 `CoverMode`, `Coverage`, and `RegisterCover` unimplemented
-([`missing.go`](tools/gomad/internal/testing/missing.go#L7-L25)), and there is no
+([`missing.go`](tools/gomadv2/internal/testing/missing.go#L7-L25)), and there is no
 checked-in coverage profile or boundary-coverage report. A large test count
 therefore does not show which translator, hook, runtime, or syscall paths remain
 untouched.
 
 The seed harness also has a concrete correctness bug: `CheckSeeds` accepts a
 `numSeeds` argument but ignores it and always runs five seeds
-([`metatest.go`](tools/gomad/metatesting/metatest.go#L295-L317)). A caller can
+([`metatest.go`](tools/gomadv2/metatesting/metatest.go#L295-L317)). A caller can
 therefore request broader exploration and receive less coverage without an
 error.
 
 The copied race corpus is also run under only the default seed, despite a TODO
 calling for multiple seeds
-([`race_test.go`](tools/gomad/internal/tests/race/race_test.go#L42-L49),
-[`testmain.go`](tools/gomad/gomadruntime/testmain.go#L99-L102)). The largest
+([`race_test.go`](tools/gomadv2/internal/tests/race/race_test.go#L42-L49),
+[`testmain.go`](tools/gomadv2/gomadruntime/testmain.go#L99-L102)). The largest
 concurrency corpus therefore checks many primitives but explores only one
 simulated schedule per test.
 
 ### 14. The simulator and metatest protocol are process-global — Medium
 
 The runtime rejects a second active simulator in the same process
-([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L52-L73)). The
+([`gomadruntime/runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L52-L73)). The
 metatest layer reuses one child process and one JSON encoder/decoder per package,
 but explicitly lacks synchronization for concurrent `Run` calls and leaves
 runner shutdown commented out
-([`metatesting/metatest.go`](tools/gomad/metatesting/metatest.go#L127-L162)).
+([`metatesting/metatest.go`](tools/gomadv2/metatesting/metatest.go#L127-L162)).
 
 This prevents safe `t.Parallel` execution, concurrent seed workers, and
 in-process embedding. Accidental concurrency can panic the runtime or interleave
@@ -392,8 +392,8 @@ same-seed isolation tests.
 
 Calls to `runtime.SetFinalizer` are rewritten to gomad, where the implementation
 is an unconditional no-op
-([`internal/translate/main.go`](tools/gomad/internal/translate/main.go#L96-L104),
-[`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L937-L942)). The
+([`internal/translate/main.go`](tools/gomadv2/internal/translate/main.go#L96-L104),
+[`gomadruntime/runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L937-L942)). The
 host GC still manages physical memory, but its timing is outside the simulated
 schedule and cannot create deterministic cleanup or memory-pressure events.
 
@@ -411,19 +411,19 @@ mirror the host collector implicitly.
 `IterDiskCrashStates` recursively explores the include/exclude choice for each
 pending filesystem operation, with dependency pruning but no state budget,
 sampling policy, deduplication, or shrinker
-([`pendingops.go`](tools/gomad/internal/simulation/fs/pendingops.go#L306-L373)).
+([`pendingops.go`](tools/gomadv2/internal/simulation/fs/pendingops.go#L306-L373)).
 The iterator also reads the live pending-operation graph without cloning it
-([`pendingops.go`](tools/gomad/internal/simulation/fs/pendingops.go#L306-L310)).
+([`pendingops.go`](tools/gomadv2/internal/simulation/fs/pendingops.go#L306-L310)).
 
 Each yielded crash state creates and starts another machine; machines are added
 to `machinesById` and are never removed, while filesystem `Release` is empty
-([`gomad.go`](tools/gomad/internal/simulation/gomad.go#L62-L92),
-[`simulation.go`](tools/gomad/internal/simulation/simulation.go#L54-L80),
-[`filesystem.go`](tools/gomad/internal/simulation/fs/filesystem.go#L504-L506)).
+([`gomad.go`](tools/gomadv2/internal/simulation/gomad.go#L62-L92),
+[`simulation.go`](tools/gomadv2/internal/simulation/simulation.go#L54-L80),
+[`filesystem.go`](tools/gomadv2/internal/simulation/fs/filesystem.go#L504-L506)).
 The iterator itself runs in a goroutine with its stop method commented out, so
 breaking out of iteration early can leave it blocked indefinitely
-([`filesystem.go`](tools/gomad/internal/simulation/fs/filesystem.go#L471-L502),
-[`filesystem.go`](tools/gomad/internal/simulation/fs/filesystem.go#L545-L568)).
+([`filesystem.go`](tools/gomadv2/internal/simulation/fs/filesystem.go#L471-L502),
+[`filesystem.go`](tools/gomadv2/internal/simulation/fs/filesystem.go#L545-L568)).
 For a realistic write set, enumeration can grow exponentially while retaining
 machines, disks, goroutines, and associated runtime state.
 
@@ -436,11 +436,11 @@ Expose explored/pruned/retained state counts in test output.
 
 The machine-creation path discards `netip.ParseAddr` errors; an invalid supplied
 address becomes an automatically allocated address
-([`gomad.go`](tools/gomad/internal/simulation/gomad.go#L45-L59),
-[`simulation.go`](tools/gomad/internal/simulation/simulation.go#L62-L64)). More
+([`gomad.go`](tools/gomadv2/internal/simulation/gomad.go#L45-L59),
+[`simulation.go`](tools/gomadv2/internal/simulation/simulation.go#L62-L64)). More
 directly, `MachineSetSometimesCrashOnSync` ignores its Boolean argument and
 always enables crashing, so passing `false` cannot disable the fault
-([`gomad.go`](tools/gomad/internal/simulation/gomad.go#L180-L189)). Machine
+([`gomad.go`](tools/gomadv2/internal/simulation/gomad.go#L180-L189)). Machine
 lookups also assume every ID exists instead of returning a typed stale/unknown
 handle error.
 
@@ -458,7 +458,7 @@ restart transitions.
 
 The clock advances only when no simulated goroutine is runnable and a timer is
 waiting
-([`gomadruntime/runtime.go`](tools/gomad/gomadruntime/runtime.go#L245-L259)).
+([`gomadruntime/runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L245-L259)).
 Terminating CPU work therefore consumes zero simulated time, filesystem calls
 apply synchronously without a configurable latency, and the network exposes a
 constant delay rather than bandwidth or queue-service costs. This is separate
@@ -478,10 +478,10 @@ load and fault-injection tests outside gomad.
 
 Every `sync/atomic` hook calls `maybeAtomicYield`, but yielding is disabled by
 the compile-time `AtomicYield = false` constant
-([`sync_atomic.go`](tools/gomad/internal/stdlib/hooks/sync_atomic.go#L11-L24),
-[`sema.go`](tools/gomad/gomadruntime/sema.go#L153-L159)). Runtime acquire/release
+([`sync_atomic.go`](tools/gomadv2/internal/stdlib/hooks/sync_atomic.go#L11-L24),
+[`sema.go`](tools/gomadv2/gomadruntime/sema.go#L153-L159)). Runtime acquire/release
 helpers and `procPin`/`procUnpin` similarly avoid a scheduling choice
-([`sync.go`](tools/gomad/internal/stdlib/hooks/sync.go#L31-L75)).
+([`sync.go`](tools/gomadv2/internal/stdlib/hooks/sync.go#L31-L75)).
 
 As a result, a lock-free loop or atomic state machine can run from one unrelated
 yield point to the next as one scheduler step. The execution may be a legal Go
@@ -499,14 +499,14 @@ scheduling-point coverage separately from runnable-goroutine seed coverage.
 Network connection identity contains only source/destination addresses and
 ports. The implementation explicitly notes that it lacks an extra connection
 generation or TCP sequence mechanism for delayed packets across machine restart
-([`stack.go`](tools/gomad/internal/simulation/network/stack.go#L24-L34)). Each
+([`stack.go`](tools/gomadv2/internal/simulation/network/stack.go#L24-L34)). Each
 restart creates a fresh network stack whose ephemeral port counter starts again
 at 10000
-([`simulation.go`](tools/gomad/internal/simulation/simulation.go#L83-L90),
-[`stack.go`](tools/gomad/internal/simulation/network/stack.go#L114-L127)), while
+([`simulation.go`](tools/gomadv2/internal/simulation/simulation.go#L83-L90),
+[`stack.go`](tools/gomadv2/internal/simulation/network/stack.go#L114-L127)), while
 queued packets are delivered to whichever stack currently owns the destination
 address
-([`net.go`](tools/gomad/internal/simulation/network/net.go#L200-L226)).
+([`net.go`](tools/gomadv2/internal/simulation/network/net.go#L200-L226)).
 
 A delayed pre-crash packet can therefore reach the post-restart stack and, if
 the address/port tuple has been reused, be interpreted as part of a new
@@ -524,11 +524,11 @@ data cannot enter the new stream.
 The public API promises that `Crash` does not properly close open network
 connections, and the lifecycle correctly passes `graceful=false` into network
 shutdown
-([`machine.go`](tools/gomad/machine.go#L69-L78),
-[`simulation.go`](tools/gomad/internal/simulation/simulation.go#L124-L130)).
+([`machine.go`](tools/gomadv2/machine.go#L69-L78),
+[`simulation.go`](tools/gomadv2/internal/simulation/simulation.go#L124-L130)).
 However, `Stack.Shutdown` ignores that argument and sends a stream-close packet
 for every connection regardless
-([`stack.go`](tools/gomad/internal/simulation/network/stack.go#L74-L103)).
+([`stack.go`](tools/gomadv2/internal/simulation/network/stack.go#L74-L103)).
 
 Peers therefore observe a clean close after a crash instead of a half-open
 connection that fails through retransmission, keepalive, or an application
@@ -545,13 +545,13 @@ for peer timeouts, keepalive failure, and retry behavior.
 When a machine's main function returns, gomad performs a graceful stop: it
 first aborts every remaining goroutine and timer, then closes network streams
 and copies the entire in-memory filesystem to persisted state
-([`machine.go`](tools/gomad/machine.go#L19-L25),
-[`simulation.go`](tools/gomad/internal/simulation/simulation.go#L96-L135),
-[`filesystem.go`](tools/gomad/internal/simulation/fs/filesystem.go#L508-L519)).
+([`machine.go`](tools/gomadv2/machine.go#L19-L25),
+[`simulation.go`](tools/gomadv2/internal/simulation/simulation.go#L96-L135),
+[`filesystem.go`](tools/gomadv2/internal/simulation/fs/filesystem.go#L508-L519)).
 The top-level runtime also converts `ErrMainReturned` to success and only leaves
 an `AssertAllDone`-style quiescence check as a TODO
-([`runtime.go`](tools/gomad/gomadruntime/runtime.go#L390-L393),
-[`runtime.go`](tools/gomad/gomadruntime/runtime.go#L1046-L1047)).
+([`runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L390-L393),
+[`runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L1046-L1047)).
 
 A server test can consequently report success while background work is still
 blocked or runnable, defers are skipped, resources remain open, and writes that
@@ -569,12 +569,12 @@ chosen durability action in the trace.
 
 Environment variables live on the scheduler and every machine reads the same
 slice
-([`runtime.go`](tools/gomad/gomadruntime/runtime.go#L92-L143),
-[`runtime.go`](tools/gomad/gomadruntime/runtime.go#L996-L999)). `MachineConfig`
+([`runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L92-L143),
+[`runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L996-L999)). `MachineConfig`
 has no environment field, and runtime `setenv`, `unsetenv`, and `clearenv` hooks
 panic as unimplemented
-([`machine.go`](tools/gomad/machine.go#L46-L57),
-[`syscall.go`](tools/gomad/internal/stdlib/hooks/syscall.go#L47-L57)).
+([`machine.go`](tools/gomadv2/machine.go#L46-L57),
+[`syscall.go`](tools/gomadv2/internal/stdlib/hooks/syscall.go#L47-L57)).
 
 Tests cannot model a cluster whose nodes have different feature flags,
 credentials, regions, or rolling configuration. Code that mutates its
@@ -589,12 +589,12 @@ values. Test heterogeneous nodes and restart behavior.
 
 The syscall logger encodes complete read and write buffers as base64 attributes,
 including positional I/O
-([`os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L96-L98),
-[`os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L618-L624),
-[`os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L673-L678),
-[`os_linux.go`](tools/gomad/internal/simulation/os_linux.go#L812-L851)). The
+([`os_linux.go`](tools/gomadv2/internal/simulation/os_linux.go#L96-L98),
+[`os_linux.go`](tools/gomadv2/internal/simulation/os_linux.go#L618-L624),
+[`os_linux.go`](tools/gomadv2/internal/simulation/os_linux.go#L673-L678),
+[`os_linux.go`](tools/gomadv2/internal/simulation/os_linux.go#L812-L851)). The
 JSON trace file is created with mode `0644`
-([`testmain.go`](tools/gomad/gomadruntime/testmain.go#L141-L166)).
+([`testmain.go`](tools/gomadv2/gomadruntime/testmain.go#L141-L166)).
 
 Enabling a diagnostic trace can therefore copy credentials, tokens, request
 bodies, and stored records into world-readable local files or retained CI
@@ -606,7 +606,7 @@ explicit option for raw payloads; support field- and buffer-level redaction;
 create local trace files as `0600`; and document artifact retention and secret
 scanning expectations.
 
-## Reusing tests from `tools/gomad_old`
+## Reusing tests from `tools/gomadv1`
 
 The legacy suite is useful as a list of semantic contracts, not as a harness to
 copy. Runtime-simulation tests should use ordinary Go syntax so the current
@@ -618,27 +618,27 @@ rewrite strategy rather than runtime-simulation behavior.
 
 | Priority | Area | What can be borrowed | Required adaptation |
 | --- | --- | --- | --- |
-| P0 | Channels and `select` | Duplicate receive cases for one channel, multiple send cases, close waking multiple waiters, receive-until-close, and dynamically setting a channel to nil ([`select_test.go`](tools/gomad_old/api/lang/select_test.go#L113-L199), [`select_test.go`](tools/gomad_old/api/lang/select_test.go#L255-L337), [`channel_test.go`](tools/gomad_old/api/lang/channel_test.go#L191-L231)) | Express with native channels, `select`, and completion channels or WaitGroups. These cover TODOs still present in the current channel suite. |
-| P0 | `sync` functional semantics | `TryLock`, reader/writer exclusion, `Cond.Signal`, `Cond.Broadcast`, `Once`, `OnceFunc`, `OnceValue`, and `OnceValues` ([`sync_test.go`](tools/gomad_old/api/lib/sync_test.go#L145-L382)) | Use stock `sync` types and make the Once cases concurrent. Repair the donor defects described below. |
-| P0 | Network failure and gRPC cancellation | Dialing without a listener and unary interceptor/context scenarios ([`net_test.go`](tools/gomad_old/api/lib/net_test.go#L80-L84), [`fakegrpc_test.go`](tools/gomad_old/api/ext-lib/fakegprc/fakegrpc_test.go#L26-L57)) | Use native `net` and the existing real gRPC-over-simulated-TCP fixture. Assert error class rather than the old fake-network string, and delay the handler so the deadline actually expires. |
-| P1 | Timer scheduling | Concurrent timers completing in deadline order, a timer firing without a receiver, and `time.Tick` ([`timer_test.go`](tools/gomad_old/api/lib/timer_test.go#L39-L73), [`ticker_test.go`](tools/gomad_old/api/lib/ticker_test.go#L124-L139)) | Keep only behavior guaranteed by Go. Revalidate `Timer.Stop` and `Timer.Reset` return values against the target Go release instead of copying old mock assumptions. |
-| P1 | WaitGroup and closed-channel oracles | Empty WaitGroup, fanout, send-on-closed, and double-close cases ([`waitgroup_test.go`](tools/gomad_old/api/lib/waitgroup_test.go#L39-L123), [`channel_test.go`](tools/gomad_old/api/lang/channel_test.go#L243-L263)) | Prefer the fanout composition; negative-counter behavior already appears in the race corpus. Assert panic type/occurrence, not simulator-specific message text or channel IDs. |
+| P0 | Channels and `select` | Duplicate receive cases for one channel, multiple send cases, close waking multiple waiters, receive-until-close, and dynamically setting a channel to nil ([`select_test.go`](tools/gomadv1/api/lang/select_test.go#L113-L199), [`select_test.go`](tools/gomadv1/api/lang/select_test.go#L255-L337), [`channel_test.go`](tools/gomadv1/api/lang/channel_test.go#L191-L231)) | Express with native channels, `select`, and completion channels or WaitGroups. These cover TODOs still present in the current channel suite. |
+| P0 | `sync` functional semantics | `TryLock`, reader/writer exclusion, `Cond.Signal`, `Cond.Broadcast`, `Once`, `OnceFunc`, `OnceValue`, and `OnceValues` ([`sync_test.go`](tools/gomadv1/api/lib/sync_test.go#L145-L382)) | Use stock `sync` types and make the Once cases concurrent. Repair the donor defects described below. |
+| P0 | Network failure and gRPC cancellation | Dialing without a listener and unary interceptor/context scenarios ([`net_test.go`](tools/gomadv1/api/lib/net_test.go#L80-L84), [`fakegrpc_test.go`](tools/gomadv1/api/ext-lib/fakegprc/fakegrpc_test.go#L26-L57)) | Use native `net` and the existing real gRPC-over-simulated-TCP fixture. Assert error class rather than the old fake-network string, and delay the handler so the deadline actually expires. |
+| P1 | Timer scheduling | Concurrent timers completing in deadline order, a timer firing without a receiver, and `time.Tick` ([`timer_test.go`](tools/gomadv1/api/lib/timer_test.go#L39-L73), [`ticker_test.go`](tools/gomadv1/api/lib/ticker_test.go#L124-L139)) | Keep only behavior guaranteed by Go. Revalidate `Timer.Stop` and `Timer.Reset` return values against the target Go release instead of copying old mock assumptions. |
+| P1 | WaitGroup and closed-channel oracles | Empty WaitGroup, fanout, send-on-closed, and double-close cases ([`waitgroup_test.go`](tools/gomadv1/api/lib/waitgroup_test.go#L39-L123), [`channel_test.go`](tools/gomadv1/api/lang/channel_test.go#L243-L263)) | Prefer the fanout composition; negative-counter behavior already appears in the race corpus. Assert panic type/occurrence, not simulator-specific message text or channel IDs. |
 | P2 | Maps, randomness, context, reflection, and basic goroutines | Little incremental coverage | Do not port wholesale. Current map, random, context, reflection, and goroutine coverage is already broader; add only a same-seed/different-seed map-iteration meta-test if raw iteration order needs an explicit contract. |
-| Conditional | Concurrent simulations | Same-seed isolation across concurrent simulator instances ([`concurrent_test.go`](tools/gomad_old/runtime/concurrent_test.go#L12-L47)) | This is an acceptance test only if in-process concurrency becomes a goal. The current runtime explicitly permits only one active simulator per process ([`runtime.go`](tools/gomad/gomadruntime/runtime.go#L52-L73)); otherwise add a test that documents that restriction. |
+| Conditional | Concurrent simulations | Same-seed isolation across concurrent simulator instances ([`concurrent_test.go`](tools/gomadv1/runtime/concurrent_test.go#L12-L47)) | This is an acceptance test only if in-process concurrency becomes a goal. The current runtime explicitly permits only one active simulator per process ([`runtime.go`](tools/gomadv2/gomadruntime/runtime.go#L52-L73)); otherwise add a test that documents that restriction. |
 | Not applicable | Checkpoint/restore | Execution replay, branching, channel-buffer restore, and DRNG restore tests | Runtime simulation exposes machine crash/restart, not execution snapshots. These tests require a new checkpoint feature and should not be presented as crash fidelity tests. |
 
 The donor tests must not be copied verbatim. In particular:
 
 - its nil-channel send and receive tests expect panics, while Go and the current
   runtime correctly require blocking
-  ([`channel_test.go`](tools/gomad_old/api/lang/channel_test.go#L233-L241),
-  [`channel_test.go`](tools/gomad_old/api/lang/channel_test.go#L275-L283));
+  ([`channel_test.go`](tools/gomadv1/api/lang/channel_test.go#L233-L241),
+  [`channel_test.go`](tools/gomadv1/api/lang/channel_test.go#L275-L283));
 - its basic locker test creates a different mutex in each goroutine, so it does
   not test mutual exclusion
-  ([`sync_test.go`](tools/gomad_old/api/lib/sync_test.go#L46-L66));
+  ([`sync_test.go`](tools/gomadv1/api/lib/sync_test.go#L46-L66));
 - its `Cond.Broadcast` condition is `counter == counter`, which is always true,
   so no goroutine waits
-  ([`sync_test.go`](tools/gomad_old/api/lib/sync_test.go#L293-L319)); and
+  ([`sync_test.go`](tools/gomadv1/api/lib/sync_test.go#L293-L319)); and
 - several cases append to shared slices from multiple goroutines or assert a
   scheduler order that the Go specification does not guarantee.
 
