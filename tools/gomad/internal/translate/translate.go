@@ -313,6 +313,7 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 	testFuncs := make(map[string]bool)
 
 	var results TranslatePackageResult
+	implicitConversions, multiValueReturnTargets := buildImplicitConversions(args.pkg)
 
 	globals := collectGlobalsAndTests(dstFiles, dec.Ast, args.pkg.PkgPath, args.pkg.TypesInfo, activeStdlibPolicy.globalsDontTranslate)
 	globalInfo := &PackageGlobalInfo{
@@ -397,15 +398,16 @@ func translatePackage(args *translatePackageArgs) *TranslatePackageResult {
 	maps.Copy(hooks, activeStdlibPolicy.hooksByArch[args.cfg.GOARCH])
 
 	translator := &packageTranslator{
-		typesInfo:           args.pkg.TypesInfo,
-		astMap:              dec.Map.Ast,
-		dstMap:              dec.Map.Dst,
-		replacedPkgs:        localReplacedPkgs,
-		pkgPath:             args.pkg.PkgPath,
-		implicitConversions: buildImplicitConversions(args.pkg),
-		globalInfo:          allGlobals,
-		testFuncs:           testFuncs,
-		forTest:             forTest,
+		typesInfo:               args.pkg.TypesInfo,
+		astMap:                  dec.Map.Ast,
+		dstMap:                  dec.Map.Dst,
+		replacedPkgs:            localReplacedPkgs,
+		pkgPath:                 args.pkg.PkgPath,
+		implicitConversions:     implicitConversions,
+		multiValueReturnTargets: multiValueReturnTargets,
+		globalInfo:              allGlobals,
+		testFuncs:               testFuncs,
+		forTest:                 forTest,
 		collect: translateCollect{
 			bindspecs: make(map[bindspec]struct{}),
 			maps:      ssaGlobals.readonlyMaps,
@@ -521,8 +523,9 @@ type packageTranslator struct {
 	acceptedLinknames map[packageSelector]packageSelector
 	keepAsmPkgs       map[string]bool
 
-	collect             translateCollect
-	implicitConversions map[ast.Expr]types.Type
+	collect                 translateCollect
+	implicitConversions     map[ast.Expr]types.Type
+	multiValueReturnTargets map[ast.Expr][]types.Type
 
 	globalInfo *GlobalInfo
 
@@ -627,6 +630,7 @@ func (t *packageTranslator) preApply(c *dstutil.Cursor) bool {
 	// TODO: think about and make this ordering less brittle
 
 	// converisons, nil
+	t.rewriteMultiValueReturn(c)
 	t.rewriteMapImplicitConversion(c)
 	t.rewriteMapNil(c)
 	t.rewriteMapLiteralAddress(c)
