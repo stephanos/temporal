@@ -7,6 +7,7 @@
 package reflect
 
 import (
+	"iter"
 	"reflect" //gomad:notranslate
 	"sync"    //gomad:notranslate
 
@@ -25,6 +26,7 @@ type Type interface {
 	Align() int
 	FieldAlign() int
 	Method(int) Method
+	Methods() iter.Seq[Method]
 	MethodByName(string) (Method, bool)
 	NumMethod() int
 	Name() string
@@ -41,16 +43,19 @@ type Type interface {
 	IsVariadic() bool
 	Elem() Type
 	Field(i int) StructField
+	Fields() iter.Seq[StructField]
 	FieldByIndex(index []int) StructField
 	FieldByName(name string) (StructField, bool)
 	FieldByNameFunc(match func(string) bool) (StructField, bool)
 	In(i int) Type
+	Ins() iter.Seq[Type]
 	Key() Type
 	Len() int
 	NumField() int
 	NumIn() int
 	NumOut() int
 	Out(i int) Type
+	Outs() iter.Seq[Type]
 	OverflowComplex(x complex128) bool
 	OverflowFloat(x float64) bool
 	OverflowInt(x int64) bool
