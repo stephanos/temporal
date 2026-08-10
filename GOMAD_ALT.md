@@ -2,9 +2,9 @@
 
 ## Decision
 
-Build `tools/gomadv3` around a small patch to the Go 1.26.4 runtime. Do not
-translate source, patch the compiler, replace native Go types, or simulate the
-standard library in this phase.
+Build `tools/gomadv3` around a small patch and source overlay for the Go 1.26.4
+runtime. Do not translate source, patch the compiler, replace native Go types,
+or simulate the standard library in this phase.
 
 The result is a private Go toolchain whose `go run` and `go test` commands work
 normally. Deterministic runtime behavior is activated only when `GOMADSEED` is
@@ -58,10 +58,11 @@ The first prototype has strict production-patch boundaries:
 - keep all v3 behavior tests outside the upstream Go patch.
 
 The intended production files are `src/runtime/gomad.go`,
-`src/runtime/rand.go`, and `src/runtime/proc.go`. Additional runtime changes are
-not a normal implementation detail. Preserve the failing black-box test and
-review whether the determinism claim should be narrowed before expanding the
-patch.
+`src/runtime/rand.go`, and `src/runtime/proc.go`. The net-new `gomad.go` lives
+in the source overlay; the patch modifies only upstream files. Additional
+runtime changes are not a normal implementation detail. Preserve the failing
+black-box test and review whether the determinism claim should be narrowed
+before expanding this surface.
 
 Apply these rules in order:
 
@@ -201,8 +202,12 @@ existing callers.
 
 Call `gomadInit` immediately before the existing `randinit` call. In
 deterministic mode, `randinit` initializes the existing global generator from
-`gomadSeed` instead of host entropy. Leave `mrandinit` unchanged: it already
-derives each M's state from that global generator.
+`gomadSeed` instead of host entropy. Minimized scheduler tests showed that
+runtime startup timing otherwise changes per-M state and the initial
+scheduler tick before user initialization. In deterministic mode, seed every
+M directly from `gomadSeed`, reinitialize M0 and reset its scheduler tick just
+before user package initialization, and disable the system monitor. Keep the
+upstream `mrandinit` and system-monitor behavior unchanged when Gomad is off.
 
 A shared runtime stream means an additional random-consuming operation can
 change later scheduling choices. That is acceptable for the first contract:
@@ -226,6 +231,11 @@ algorithm. If the existing randomized path is repeatable but produces
 insufficient schedule diversity, the only permitted first extension is a small
 seeded choice within the existing local `runqget` representation in
 `src/runtime/proc.go`. That extension requires a failing diversity test first.
+
+Staged channel and mutex waiters provided that failing test: all seeds retained
+FIFO arrival order. In deterministic one-P mode, `runqget` therefore chooses a
+seeded offset from the existing local queue and fills that slot from the head.
+The upstream concurrent-consumer path remains unchanged.
 
 Do not add compiler checkpoints. Scheduling remains cooperative at the runtime
 points already present in Go 1.26.4: blocking, channel operations, semaphore
@@ -292,16 +302,17 @@ fallback is to disable automatic GC for small deterministic tests and document
 the heap limit. A deterministic allocation-count GC trigger is a later runtime
 extension, not part of the first patch.
 
-## Expected Go patch surface
+## Expected Go source surface
 
-Keep the patch reviewable as a single patch file against upstream `go1.26.4`.
-The expected starting surface is:
+Keep upstream modifications reviewable as a single patch file against
+`go1.26.4`, and keep net-new runtime files in the checked-in overlay. The
+expected starting surface is:
 
-| Go source file | Purpose |
-| --- | --- |
-| `src/runtime/gomad.go` | Activation and seed parsing |
-| `src/runtime/rand.go` | Seed existing global and per-M random state |
-| `src/runtime/proc.go` | Enforce one P and enable existing scheduler randomization |
+| Artifact | Go source file | Purpose |
+| --- | --- | --- |
+| Overlay | `src/runtime/gomad.go` | Activation and seed parsing |
+| Patch | `src/runtime/rand.go` | Seed existing global and per-M random state |
+| Patch | `src/runtime/proc.go` | Enforce one P and enable existing scheduler randomization |
 
 The expected patch contains no changes to `select.go`, `sema.go`, channel code,
 `internal/runtime/maps`, GC, `cmd/compile`, `cmd/go`, public packages, platform
@@ -313,10 +324,10 @@ Any additional production hunk requires a concrete minimized failure, an
 explanation of why the existing seeded runtime path cannot fix it, and explicit
 review of the expanded maintenance cost.
 
-`tools/gomadv3/test.sh` must enforce the prohibited-area rules from the patch
-itself before building. CI fails if `go1.26.4.patch` touches a prohibited area,
-contains generated output, or no longer applies exactly to pristine Go 1.26.4
-source.
+`tools/gomadv3/test.sh` must enforce the prohibited-area rules for both source
+inputs before building. CI fails if `go1.26.4.patch` or `overlay` touches a
+prohibited area or contains generated output, or if the patch no longer applies
+exactly to pristine Go 1.26.4 source.
 
 ## `tools/gomadv3` layout
 
@@ -325,16 +336,21 @@ tools/gomadv3/
   README.md
   Makefile
   build.sh
+  go.mod
   go1.26.4.patch
+  overlay/
+    src/runtime/gomad.go
   test.sh
   testdata/
   .toolchain/       # generated and ignored
 ```
 
-- `go1.26.4.patch` is the only source of changes to Go.
+- `go1.26.4.patch` contains modifications to upstream runtime files; `overlay`
+  contains net-new runtime source.
 - `build.sh` downloads or reuses the official Go 1.26.4 source archive,
-  verifies its checksum, applies the patch to a fresh tree, and runs
-  `src/make.bash` with an installed bootstrap Go.
+  verifies its checksum, rejects overlay collisions, copies the overlay and
+  applies the patch to a fresh tree, and runs `src/make.bash` with an installed
+  bootstrap Go.
 - `tools/gomadv3/Makefile` turns those steps into file dependencies and stamp
   files.
 - `.toolchain/bin/go` is the stable path used by the root Makefile.
@@ -349,6 +365,7 @@ include:
 - Go version;
 - source archive checksum;
 - patch checksum;
+- overlay path-and-content checksum;
 - host OS and architecture; and
 - bootstrap Go version.
 
@@ -410,10 +427,12 @@ Exit criterion: `make gomadv3-go` produces a verified custom
 
 ### Phase 2: Activation and deterministic randomness
 
-- Add `src/runtime/gomad.go` through the patch.
+- Add `src/runtime/gomad.go` through the source overlay.
 - Parse `GOMADSEED` early enough to affect runtime and map initialization.
 - Enforce one P and disabled async preemption only when active.
 - Seed the existing global and per-M runtime random state; add no new PRNG.
+- Reset M0 scheduler state before user initialization and disable the runtime
+  system monitor only when active.
 - Test missing, zero, maximum, malformed, and overflowing seeds.
 - Keep these new tests in `tools/gomadv3/testdata` and run the unmodified
   upstream runtime suite with `GOMADSEED` absent.
@@ -427,8 +446,8 @@ sequences.
 - Reuse the existing `randomizeScheduler` mechanism in deterministic mode.
 - Let it consume the seeded existing `randn` path.
 - Verify goroutine spawn, yield, block, ready, close, and exit behavior.
-- Add a direct `runqget` choice only if a failing black-box test proves the
-  existing mechanism provides insufficient seed diversity.
+- Use the direct `runqget` choice justified by the staged-waiter diversity
+  failure, without changing the upstream multi-P path.
 - Add a watchdog test proving that a CPU-bound goroutine is an explicit scope
   limitation rather than a claimed explored schedule.
 

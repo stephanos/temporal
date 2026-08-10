@@ -1,0 +1,99 @@
+diff --git a/src/runtime/proc.go b/src/runtime/proc.go
+--- a/src/runtime/proc.go
++++ b/src/runtime/proc.go
+@@ -246,6 +246,10 @@ func main() {
+ 		cgocall(_cgo_notify_runtime_init_done, nil)
+ 	}
+ 
++	if gomadEnabled {
++		gomadStartUserCode(mp)
++	}
++
+ 	// Run the initializing tasks. Depending on build mode this
+ 	// list can arrive a few different ways, but it will always
+ 	// contain the init tasks computed by the linker for all the
+@@ -873,6 +877,7 @@ func schedinit() {
+ 	ticks.init() // run as early as possible
+ 	moduledataverify()
+ 	stackinit()
++	gomadInit()
+ 	randinit() // must run before mallocinit, alginit, mcommoninit
+ 	mallocinit()
+ 	cpuinit(godebug) // must run before alginit
+@@ -919,7 +924,10 @@ func schedinit() {
+ 	lock(&sched.lock)
+ 	sched.lastpoll.Store(nanotime())
+ 	var procs int32
+-	if n, err := strconv.ParseInt(gogetenv("GOMAXPROCS"), 10, 32); err == nil && n > 0 {
++	if gomadEnabled {
++		procs = 1
++		sched.customGOMAXPROCS = true
++	} else if n, err := strconv.ParseInt(gogetenv("GOMAXPROCS"), 10, 32); err == nil && n > 0 {
+ 		procs = int32(n)
+ 		sched.customGOMAXPROCS = true
+ 	} else {
+@@ -6478,7 +6486,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+ // haveSysmon indicates whether there is sysmon thread support.
+ //
+ // No threads on wasm yet, so no sysmon.
+-const haveSysmon = GOARCH != "wasm"
++var haveSysmon = GOARCH != "wasm"
+ 
+ // Always runs without a P, so write barriers are not allowed.
+ //
+@@ -7468,7 +7476,7 @@ func runqempty(pp *p) bool {
+ // With the randomness here, as long as the tests pass
+ // consistently with -race, they shouldn't have latent scheduling
+ // assumptions.
+-const randomizeScheduler = raceenabled
++var randomizeScheduler = raceenabled
+ 
+ // runqput tries to put g on the local runnable queue.
+ // If next is false, runqput adds g to the tail of the runnable queue.
+@@ -7604,6 +7612,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+ 	if next != 0 && pp.runnext.cas(next, 0) {
+ 		return next.ptr(), true
+ 	}
+ 
++	if gomadEnabled && gomaxprocs == 1 {
++		h := atomic.LoadAcq(&pp.runqhead)
++		t := pp.runqtail
++		if t-h > 1 {
++			offset := randn(t - h)
++			index := (h + offset) % uint32(len(pp.runq))
++			gp := pp.runq[index].ptr()
++			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
++			atomic.StoreRel(&pp.runqhead, h+1)
++			return gp, false
++		}
++	}
++
+ 	for {
+ 		h := atomic.LoadAcq(&pp.runqhead) // load-acquire, synchronize with other consumers
+diff --git a/src/runtime/rand.go b/src/runtime/rand.go
+--- a/src/runtime/rand.go
++++ b/src/runtime/rand.go
+@@ -42,7 +42,9 @@ func randinit() {
+ 	}
+ 
+ 	seed := &globalRand.seed
+-	if len(startupRand) >= 16 &&
++	if gomadEnabled {
++		byteorder.BEPutUint64(seed[:], gomadSeed)
++	} else if len(startupRand) >= 16 &&
+ 		// Check that at least the first two words of startupRand weren't
+ 		// cleared by any libc initialization.
+ 		!allZero(startupRand[:8]) && !allZero(startupRand[8:16]) {
+@@ -186,6 +188,12 @@ func maps_rand() uint64 {
+ 
+ // mrandinit initializes the random state of an m.
+ func mrandinit(mp *m) {
++	if gomadEnabled {
++		mp.chacha8.Init64([4]uint64{gomadSeed})
++		mp.cheaprand = gomadSeed
++		return
++	}
++
+ 	var seed [4]uint64
+ 	for i := range seed {
+ 		seed[i] = bootstrapRand()
