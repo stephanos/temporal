@@ -20,6 +20,7 @@ var go126SkippedPackages = map[string]bool{
 	// embed: true, // this will also have io.EOF problems... unless we can just use the original there please???
 	// XXX: for all unconverted packages, figure out all references to converted packages, and have a plan.
 	"embed":    true, // XXX can we link back to the original here somehow???
+	"io/fs":    true,
 	"math":     true,
 	"math/big": true,
 

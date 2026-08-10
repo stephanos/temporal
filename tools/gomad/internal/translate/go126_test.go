@@ -1,7 +1,9 @@
 package translate
 
 import (
+	"embed"
 	"go/token"
+	"io/fs"
 	"strings"
 	"testing"
 	"unsafe"
@@ -44,6 +46,16 @@ func TestGo126ThirdPartyPackagesKeepAssembly(t *testing.T) {
 	for _, pkg := range packages {
 		if !go126KeepAsmPackages[pkg] {
 			t.Errorf("Go 1.26 package %q does not retain its assembly implementation", pkg)
+		}
+	}
+}
+
+func TestGo126EmbedAndFSRemainCompatible(t *testing.T) {
+	var readFileFS fs.ReadFileFS = embed.FS{}
+	_ = readFileFS
+	for _, pkg := range []string{"embed", "io/fs"} {
+		if !go126SkippedPackages[pkg] {
+			t.Errorf("Go 1.26 package %q is translated across the embed.FS interface boundary", pkg)
 		}
 	}
 }
