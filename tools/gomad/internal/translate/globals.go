@@ -257,7 +257,13 @@ func makeDetgoGlobalsFile(t *packageTranslator, pkgName string, forTest bool) (*
 			}
 		}
 
-		rhs := t.apply(t.dstMap.Nodes[initializer.Rhs]).(dst.Expr) // hmm
+		rhsNode, ok := t.dstMap.Nodes[initializer.Rhs]
+		if !ok {
+			// A ForTest package includes base files in its type information, but
+			// those files are translated by the base package instead.
+			continue
+		}
+		rhs := t.apply(rhsNode).(dst.Expr) // hmm
 
 		if shouldShare {
 			if lastIfSmt == nil {
