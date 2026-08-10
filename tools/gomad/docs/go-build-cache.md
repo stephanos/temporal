@@ -29,8 +29,8 @@ build cache as follows:
 3. Let package loading and child processes inherit the resulting environment.
 
 The configuration applies to `translate`, `test`, `build-tests`, `debug`, and
-`prepare-selftest`. Commands that do not perform Go build work, including help
-and `viewer`, must continue to work outside a Go module.
+`prepare-selftest`. Commands that do not perform Go build work, including help,
+must continue to work outside a Go module.
 
 The CLI owns this policy at one boundary. Individual package-loading and command
 execution sites do not accept or construct separate cache settings. This avoids
@@ -71,9 +71,9 @@ Unit tests cover:
 - a child Go process observes the configured value; and
 - failure to locate a module is returned clearly.
 
-Command-level coverage verifies that help and `viewer` do not require a module,
-while each build-oriented command configures the cache before its first package
-load or subprocess.
+Command-level coverage verifies that help does not require a module, while each
+build-oriented command configures the cache before its first package load or
+subprocess.
 
 ## Trade-offs and Failure Modes
 
