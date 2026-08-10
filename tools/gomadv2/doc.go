@@ -24,7 +24,7 @@ test' command:
 	# run a gomad test
 	gomad test -run TestName -v ./path/to/pkg
 
-The 'gomad' executable is built from cmd/tools/gomad in the Temporal repository.
+The 'gomad' executable is built from cmd/gomad in this module.
 To run Gomad tests from within a Go test, use the
 [github.com/temporalio/gomad/metatesting] package.
 
