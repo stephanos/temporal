@@ -405,6 +405,28 @@ func (b *implicitConversionsBuilder) before(c *astutil.Cursor) bool {
 				b.conversions[node.Args[0]] = x
 			}
 		} else if sig, ok := tv.Type.Underlying().(*types.Signature); ok {
+			if len(node.Args) == 1 {
+				expr := node.Args[0]
+				if tuple, ok := b.typesInfo.Types[expr].Type.(*types.Tuple); ok {
+					targets := make([]types.Type, tuple.Len())
+					matches := !sig.Variadic() && tuple.Len() == sig.Params().Len()
+					if sig.Variadic() && tuple.Len() >= sig.Params().Len()-1 {
+						matches = true
+					}
+					if matches {
+						for i := range tuple.Len() {
+							if sig.Variadic() && i >= sig.Params().Len()-1 {
+								targets[i] = sig.Params().At(sig.Params().Len() - 1).Type().(*types.Slice).Elem()
+							} else {
+								targets[i] = sig.Params().At(i).Type()
+							}
+						}
+						b.recordMultiValueTargets(expr, tuple, targets)
+						break
+					}
+				}
+			}
+
 			// this breaks for a type Foo func() type-cast?!?!!??!
 			for i, y := range node.Args {
 				var x types.Type
@@ -624,6 +646,15 @@ func (t *packageTranslator) rewriteMultiValueConversions(c *dstutil.Cursor) {
 			return
 		}
 		node.Rhs[0] = t.multiValueConversion(node.Rhs[0], astNode.Rhs[0])
+	case *dst.CallExpr:
+		if len(node.Args) != 1 {
+			return
+		}
+		astNode, ok := t.astMap.Nodes[node].(*ast.CallExpr)
+		if !ok || len(astNode.Args) != 1 {
+			return
+		}
+		node.Args[0] = t.multiValueConversion(node.Args[0], astNode.Args[0])
 	}
 }
 
