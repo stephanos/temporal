@@ -71,8 +71,9 @@ var go126KeepAsmPackages = map[string]bool{
 	"net/url":  true, // XXX: linkname setpath nonsense
 	"net/http": true, // XXX: linkname roundtrip nonsense
 
-	"github.com/cespare/xxhash/v2": true,
-	"github.com/golang/snappy":     true,
+	"github.com/cespare/xxhash/v2":                       true,
+	"github.com/golang/snappy":                           true,
+	"github.com/klauspost/compress/zstd/internal/xxhash": true,
 }
 
 var go126GlobalsDontTranslate = map[packageSelector]bool{
