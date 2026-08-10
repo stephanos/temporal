@@ -54,10 +54,11 @@ func TestGo126ThirdPartyPackagesKeepAssembly(t *testing.T) {
 func TestGo126EmbedAndFSRemainCompatible(t *testing.T) {
 	var readFileFS fs.ReadFileFS = embed.FS{}
 	_ = readFileFS
-	for _, pkg := range []string{"embed", "io/fs"} {
-		if !go126SkippedPackages[pkg] {
-			t.Errorf("Go 1.26 package %q is translated across the embed.FS interface boundary", pkg)
-		}
+	if !go126SkippedPackages["embed"] {
+		t.Error("Go 1.26 package embed is translated")
+	}
+	if go126SkippedPackages["io/fs"] {
+		t.Error("Go 1.26 package io/fs is skipped globally")
 	}
 }
 
