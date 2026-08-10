@@ -152,15 +152,21 @@ func (t *packageTranslator) rewriteMapClear(c *dstutil.Cursor) {
 func (t *packageTranslator) rewriteMakeMap(c *dstutil.Cursor) {
 	if makeExpr, ok := c.Node().(*dst.CallExpr); ok && t.isNamedBuiltIn(makeExpr.Fun, "make") {
 		if typ, ok := t.isMapType(makeExpr); ok {
+			name := "NewMap"
+			var args []dst.Expr
+			if len(makeExpr.Args) == 2 {
+				name = "NewMapWithSize"
+				args = []dst.Expr{makeExpr.Args[1]}
+			}
 			c.Replace(t.maybeConvertMapType(&dst.CallExpr{
 				Fun: &dst.IndexListExpr{
-					X: t.newRuntimeSelector("NewMap"),
+					X: t.newRuntimeSelector(name),
 					Indices: []dst.Expr{
 						t.makeTypeExpr(typ.Type.Key()),
 						t.makeTypeExpr(typ.Type.Elem()),
 					},
 				},
-				Args: []dst.Expr{},
+				Args: args,
 			}, typ))
 		}
 	}
