@@ -62,6 +62,12 @@ func TestGo126EmbedAndFSRemainCompatible(t *testing.T) {
 	}
 }
 
+func TestGo126RuntimeTraceUsesOriginalPackage(t *testing.T) {
+	if !go126SkippedPackages["runtime/trace"] {
+		t.Error("Go 1.26 package runtime/trace is translated")
+	}
+}
+
 func TestGo126SimulatedTestingContext(t *testing.T) {
 	simulated := &simtesting.T{}
 	if simulated.Context() == nil {
@@ -179,10 +185,29 @@ func TestGo126AssemblyGlobalsRemainPackageSymbols(t *testing.T) {
 	globals := []packageSelector{
 		{Pkg: "crypto/internal/fips140/sha256", Selector: "_K"},
 		{Pkg: "crypto/internal/fips140/sha512", Selector: "_K"},
+		{Pkg: "github.com/cespare/xxhash/v2", Selector: "primes"},
+		{Pkg: "github.com/klauspost/compress/zstd/internal/xxhash", Selector: "primes"},
 	}
 	for _, global := range globals {
 		if !go126GlobalsDontTranslate[global] {
 			t.Errorf("Go 1.26 assembly global %#v is not shared", global)
+		}
+	}
+}
+
+func TestGo126XNetSocketSyscallsUseSimulationHooks(t *testing.T) {
+	expected := map[string]string{
+		"syscall_getsockopt": "Syscall_getsockopt",
+		"syscall_setsockopt": "Syscall_setsockopt",
+	}
+	for source, target := range expected {
+		got, ok := go126Hooks[packageSelector{Pkg: "golang.org/x/net/internal/socket", Selector: source}]
+		if !ok {
+			t.Errorf("Go 1.26 x/net socket hook %q is missing", source)
+			continue
+		}
+		if got != (packageSelector{Pkg: stdlibHooksPackage, Selector: target}) {
+			t.Errorf("Go 1.26 x/net socket hook %q = %#v, want adapter %q", source, got, target)
 		}
 	}
 }
