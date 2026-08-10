@@ -25,7 +25,13 @@ import (
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 var PublicExportHacks = map[string][]string{
-	"encoding/binary":                  {"bigEndian", "littleEndian"},
+	"encoding/binary": {"bigEndian", "littleEndian"},
+	"go.temporal.io/server/common/metrics": {
+		"counterDefinition",
+		"gaugeDefinition",
+		"histogramDefinition",
+		"timerDefinition",
+	},
 	"internal/poll":                    {"errNetClosing"},
 	"github.com/golang/protobuf/proto": {"enumsByName"},
 }

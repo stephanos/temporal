@@ -73,6 +73,14 @@ func TestEncodingBinaryEndianTypesCanCrossPackageBoundary(t *testing.T) {
 	}
 }
 
+func TestTemporalMetricDefinitionTypesCanCrossPackageBoundary(t *testing.T) {
+	for _, name := range []string{"counterDefinition", "gaugeDefinition", "histogramDefinition", "timerDefinition"} {
+		if !slices.Contains(PublicExportHacks["go.temporal.io/server/common/metrics"], name) {
+			t.Errorf("metrics.%s is not exported for translated type reconstruction", name)
+		}
+	}
+}
+
 // TestTranslate runs gomad translate on all go files specified in testdata/.
 //
 // Each file in testdata that ends in .translate.txt is a directory that will be
