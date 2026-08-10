@@ -535,6 +535,8 @@ func Go() {
 
 	go func(x time.Duration) {
 	}(100)
+
+	go panic("boom")
 }
 
 func GoNamed(f NamedGoFunc) {
@@ -572,6 +574,7 @@ func Go() {
 	})(nil, y))
 	gomadruntime.Go(Bind1_0(func(x time.Duration) {
 	})(100))
+	gomadruntime.Go(Bind1_0(func(v1 interface{}) { panic(v1) })("boom"))
 }
 
 func GoNamed(f NamedGoFunc) { gomadruntime.Go(Bind1_0(f)(1)) }

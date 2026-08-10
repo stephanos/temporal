@@ -13,8 +13,6 @@ import (
 func (t *packageTranslator) rewriteGo(c *dstutil.Cursor) {
 	// go stmts
 	if goStmt, ok := c.Node().(*dst.GoStmt); ok {
-		var fun dst.Expr
-
 		funcType, ok := t.getType(goStmt.Call.Fun)
 		if !ok {
 			panic("help")
@@ -24,15 +22,22 @@ func (t *packageTranslator) rewriteGo(c *dstutil.Cursor) {
 		if !ok {
 			panic(fmt.Sprintf("go statement target has non-function type %s", funcType))
 		}
+
+		var fun dst.Expr
+		callTarget := t.apply(goStmt.Call.Fun).(dst.Expr)
+		ret := sig.Results().Len()
+		if t.isBuiltIn(goStmt.Call.Fun) {
+			callTarget = t.makeGoBuiltinWrapper(callTarget, sig)
+			ret = 0
+		}
 		simple := sig.Params().Len() == 0 && sig.Results().Len() == 0
 
 		if simple {
 			// go func() { ... } ()
-			fun = t.apply(goStmt.Call.Fun).(dst.Expr)
+			fun = callTarget
 		} else {
 			args := sig.Params().Len()
 			variable := sig.Variadic()
-			ret := sig.Results().Len()
 
 			bs := bindspec{args: args, variable: variable, ret: ret}
 			t.collect.bindspecs[bs] = struct{}{}
@@ -42,7 +47,7 @@ func (t *packageTranslator) rewriteGo(c *dstutil.Cursor) {
 					Fun: &dst.Ident{
 						Name: bs.Name(),
 					},
-					Args: []dst.Expr{t.apply(goStmt.Call.Fun).(dst.Expr)},
+					Args: []dst.Expr{callTarget},
 				},
 				Args: goStmt.Call.Args,
 			}
@@ -54,6 +59,34 @@ func (t *packageTranslator) rewriteGo(c *dstutil.Cursor) {
 				Args: []dst.Expr{fun},
 			},
 		})
+	}
+}
+
+func (t *packageTranslator) makeGoBuiltinWrapper(fun dst.Expr, sig *types.Signature) dst.Expr {
+	var params []*dst.Field
+	var args []dst.Expr
+	for i := range sig.Params().Len() {
+		name := fmt.Sprintf("v%d", i+1)
+		paramType := t.makeTypeExpr(sig.Params().At(i).Type())
+		if sig.Variadic() && i == sig.Params().Len()-1 {
+			paramType = &dst.Ellipsis{Elt: t.makeTypeExpr(sig.Params().At(i).Type().(*types.Slice).Elem())}
+		}
+		params = append(params, &dst.Field{
+			Names: []*dst.Ident{dst.NewIdent(name)},
+			Type:  paramType,
+		})
+		args = append(args, dst.NewIdent(name))
+	}
+
+	return &dst.FuncLit{
+		Type: &dst.FuncType{Params: &dst.FieldList{List: params}},
+		Body: &dst.BlockStmt{List: []dst.Stmt{
+			&dst.ExprStmt{X: &dst.CallExpr{
+				Fun:      fun,
+				Args:     args,
+				Ellipsis: sig.Variadic(),
+			}},
+		}},
 	}
 }
 
