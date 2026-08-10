@@ -28,7 +28,6 @@ var go126SkippedPackages = map[string]bool{
 	"runtime/coverage": true, // XXX for now
 	"runtime/metrics":  true, // XXX for now
 	"runtime/pprof":    true, // XXX for now
-	"runtime/trace":    true, // XXX for now
 
 	// XXX: rewrite internal/cpu to golang.org/x/sys/cpu?
 	"vendor/golang.org/x/sys/cpu": true, // XXX for now
@@ -421,12 +420,14 @@ var go126AcceptedLinknames = map[packageSelector]packageSelector{
 }
 
 var go126AcceptedNoBodyLinknames = map[packageSelector]bool{
-	{Pkg: "crypto/internal/fips140hash", Selector: "sha3Unwrap"}: true,
-	{Pkg: "internal/runtime/maps", Selector: "typeString"}:       true,
-	{Pkg: "internal/runtime/maps", Selector: "fatal"}:            true,
-	{Pkg: "internal/runtime/maps", Selector: "rand"}:             true,
-	{Pkg: "internal/runtime/maps", Selector: "typedmemmove"}:     true,
-	{Pkg: "internal/runtime/maps", Selector: "typedmemclr"}:      true,
-	{Pkg: "internal/runtime/maps", Selector: "newarray"}:         true,
-	{Pkg: "internal/runtime/maps", Selector: "newobject"}:        true,
+	{Pkg: "crypto/internal/fips140hash", Selector: "sha3Unwrap"}:         true,
+	{Pkg: "internal/runtime/maps", Selector: "typeString"}:               true,
+	{Pkg: "internal/runtime/maps", Selector: "fatal"}:                    true,
+	{Pkg: "internal/runtime/maps", Selector: "rand"}:                     true,
+	{Pkg: "internal/runtime/maps", Selector: "typedmemmove"}:             true,
+	{Pkg: "internal/runtime/maps", Selector: "typedmemclr"}:              true,
+	{Pkg: "internal/runtime/maps", Selector: "newarray"}:                 true,
+	{Pkg: "internal/runtime/maps", Selector: "newobject"}:                true,
+	{Pkg: "runtime/trace", Selector: "runtime_readTrace"}:                true,
+	{Pkg: "runtime/trace", Selector: "runtime_traceClockUnitsPerSecond"}: true,
 }

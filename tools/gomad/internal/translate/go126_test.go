@@ -9,6 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/dave/dst"
+	"github.com/dave/dst/dstutil"
 	"github.com/temporalio/gomad/gomadruntime"
 	stdlibhooks "github.com/temporalio/gomad/internal/stdlib/hooks"
 	simtesting "github.com/temporalio/gomad/internal/testing"
@@ -62,9 +63,38 @@ func TestGo126EmbedAndFSRemainCompatible(t *testing.T) {
 	}
 }
 
-func TestGo126RuntimeTraceUsesOriginalPackage(t *testing.T) {
-	if !go126SkippedPackages["runtime/trace"] {
-		t.Error("Go 1.26 package runtime/trace is translated")
+func TestGo126RuntimeTraceKeepsTranslatedContextTypes(t *testing.T) {
+	if go126SkippedPackages["runtime/trace"] {
+		t.Error("Go 1.26 package runtime/trace is skipped")
+	}
+	for _, name := range []string{"runtime_readTrace", "runtime_traceClockUnitsPerSecond"} {
+		linkname := packageSelector{Pkg: "runtime/trace", Selector: name}
+		if !go126AcceptedNoBodyLinknames[linkname] {
+			t.Errorf("Go 1.26 runtime-provided linkname %#v is not accepted", linkname)
+		}
+	}
+}
+
+func TestGo126RuntimeTraceLinknameTargetsOriginalPackage(t *testing.T) {
+	const name = "runtime_traceClockUnitsPerSecond"
+	decl := &dst.FuncDecl{
+		Name: dst.NewIdent(name),
+		Type: &dst.FuncType{Params: &dst.FieldList{}},
+		Decs: dst.FuncDeclDecorations{NodeDecs: dst.NodeDecs{Start: []string{"//go:linkname " + name}}},
+	}
+	file := &dst.File{Name: dst.NewIdent("trace"), Decls: []dst.Decl{decl}}
+	translator := packageTranslator{
+		pkgPath:      "runtime/trace",
+		replacedPkgs: map[string]string{"runtime/trace": "translated/runtime/trace"},
+	}
+	dstutil.Apply(file, func(cursor *dstutil.Cursor) bool {
+		translator.rewriteStdlibEmptyAndLinkname(cursor)
+		return true
+	}, nil)
+
+	want := "//go:linkname " + name + " runtime/trace." + name
+	if got := strings.Join(decl.Decs.Start, "\n"); got != want {
+		t.Fatalf("translated linkname = %q, want %q", got, want)
 	}
 }
 
