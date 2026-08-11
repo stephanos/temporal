@@ -7,6 +7,8 @@ package runtime
 var gomadEnabled bool
 var gomadSeed uint64
 
+const gomadInitialTime = 946684800000000000
+
 func gomadInit() {
 	value, present := gomadSeedEnv()
 	if !present {
@@ -21,6 +23,7 @@ func gomadInit() {
 
 	gomadEnabled = true
 	gomadSeed = seed
+	faketime = gomadInitialTime
 	debug.asyncpreemptoff = 1
 	haveSysmon = false
 	randomizeScheduler = true
