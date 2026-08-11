@@ -4,13 +4,14 @@
 
 Gomad v3 establishes a narrow runtime contract: with deterministic external
 inputs, a fixed patched Go 1.26.4 toolchain, program, architecture, and seed
-produce repeatable runtime-controlled scheduling, `select`, map, and proven
-synchronization choices.
+produce repeatable runtime-controlled scheduling, `select`, map, proven
+synchronization choices, and native Go time behavior.
 
 This document begins after that experiment. It outlines the work required to
 turn the runtime primitive into a useful deterministic execution environment
 and exploration workflow. It does not repeat v3 testing gaps; those are tracked
-in `GOMAD_TESTS.md`.
+in `GOMADv3_TESTS.md`. The implemented native clock contract is documented in
+`GOMADv3_CLOCK.md`.
 
 ## Starting assumptions
 
@@ -18,6 +19,8 @@ in `GOMAD_TESTS.md`.
 - `GOMADSEED` remains the runtime activation switch.
 - Programs continue to use one P and native Go goroutines, channels, maps, and
   synchronization.
+- Standard Go time uses the process virtual clock. Native timers advance it at
+  runtime-proven quiescence, and explicit synctest bubbles retain precedence.
 - The production Go patch remains small. External behavior belongs outside the
   runtime unless a minimized failure proves that an external solution cannot
   satisfy the contract.
@@ -34,8 +37,8 @@ interfaces:
 1. **Runner** launches one isolated child per seed, enforces limits, and writes
    reproducibility artifacts.
 2. **World** owns deterministic external state and an ordered event queue.
-3. **Adapters** implement time, filesystem, network, and process boundaries
-   against the World rather than the host.
+3. **Adapters** implement filesystem, network, and process boundaries against
+   the World rather than the host.
 4. **Record** stores the versioned inputs and decisions needed to reproduce or
    replay a failure.
 
@@ -54,22 +57,24 @@ seed + command + world snapshot
     result + record + diagnostics
 ```
 
-This boundary keeps host timing and readiness out of runtime decisions without
-requiring the Go runtime to simulate operating systems or public packages.
+This boundary keeps host readiness out of runtime decisions without requiring
+the Go runtime to simulate operating systems or public packages. The native
+timer heap remains the only clock queue until a concrete external adapter
+requires a minimal quiescence-coordination hook.
 
 ## Workstream 1: deterministic external event model
 
 ### Goal
 
 Define how external events become runnable work without using host completion
-order as an input. This is the foundation for virtual time and all I/O
-adapters.
+order as an input. This is the foundation for all I/O adapters and their future
+coordination with the native virtual clock.
 
 ### Work
 
-- Inventory external boundaries used by candidate Temporal tests: clocks,
-  timers, filesystem access, sockets, DNS, subprocesses, signals, environment,
-  and entropy.
+- Inventory external boundaries used by candidate Temporal tests: filesystem
+  access, sockets, DNS, subprocesses, signals, environment, entropy, and their
+  interactions with native clock deadlines.
 - Classify each boundary as deterministic input, simulated state, explicitly
   unsupported behavior, or an operation that must occur outside the
   deterministic region.
@@ -102,40 +107,48 @@ adapters.
 - The model identifies where runtime readiness begins without adding a runtime
   hook prematurely.
 
-## Workstream 2: virtual time
+## Workstream 2: native-clock and World coordination
+
+### Status
+
+Native virtual time is implemented. `GOMADv3_CLOCK.md` records the fixed
+initial instant, runtime quiescence protocol, native timer semantics,
+equal-deadline ordering, `go test` behavior, process boundary, and unsupported
+host-I/O contract. Do not add a second World timer queue for native Go time.
 
 ### Goal
 
-Remove wall-clock timing and host timer delivery from supported deterministic
-tests.
+Integrate future deterministic external events with the existing process clock
+without allowing either source to advance independently.
 
 ### Work
 
-- Add a virtual clock to the World with explicit current time.
-- Model one-shot timers, sleeps, deadlines, tickers, stop, reset, and
-  cancellation.
-- Order simultaneous deadlines deterministically through the shared event
-  model.
-- Advance time only through an explicit driver operation or a proven
-  quiescence protocol. Do not poll wall time to decide when to advance.
-- Define overflow, zero-duration, negative-duration, and far-future behavior.
-- Provide adapter interfaces that application code can receive through normal
-  dependency injection before considering standard-library interception.
+- Pilot one deterministic external adapter before adding a runtime hook.
+- At runtime-proven quiescence, compare the earliest native timer with the
+  earliest World event and advance one shared logical instant.
+- Make every native and World event at that instant eligible before scheduling
+  runnable work.
+- Keep World tie-break randomness domain-separated from the runtime's private
+  timer and scheduler stream.
+- Preserve the implemented overflow, zero-duration, negative-duration,
+  stop/reset, ticker, context, and nested-synctest behavior.
 
 ### Trade-off
 
-Explicit clock injection requires application seams but keeps the runtime patch
-small and the time model independently testable. Intercepting `time` or runtime
-timers would support more unmodified programs, but it couples Gomad to unstable
-runtime timer internals and should require a concrete adoption blocker.
+The evidence-backed runtime exception provides transparent time for unmodified
+programs at the cost of auditing pinned Go timer internals on every upgrade.
+World remains independently testable and owns only external events until a
+concrete adapter proves coordination is necessary.
 
 ### Exit criteria
 
-- Timer-heavy tests complete without sleeping or reading host time.
-- Same-time timer races repeat for a seed and vary across seeds only where the
-  model permits a choice.
-- Advancing virtual time cannot skip runnable deterministic work.
-- Deadlock and “no future events” are distinguishable outcomes.
+- A native timer and World event competing at the same instant are both
+  eligible before scheduling resumes.
+- A runnable goroutine prevents both native and World time advancement.
+- Same-time cross-domain races repeat for a seed and vary only where the model
+  permits a choice.
+- Native deadlock, no future World events, and wall-watchdog timeout remain
+  distinguishable outcomes.
 
 ## Workstream 3: deterministic external adapters
 

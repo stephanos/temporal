@@ -88,12 +88,31 @@ if ! grep -Fq 'gomadv3 process failed: false timeout seed=13 mode=unit iteration
 	fail 'checked runner false-timeout diagnostic omitted run metadata'
 fi
 
+bounded_output_dir="$test_tmp/bounded-output"
+gomad_run_checked 5 0 'bounded output seed=17 mode=unit iteration=6' "$bounded_output_dir" -- \
+	perl -e 'print "o" x (2 * 1024 * 1024); print STDERR "e" x (2 * 1024 * 1024)'
+if [[ $(wc -c <"$bounded_output_dir/stdout") -ne 1048576 ]] || \
+	[[ $(wc -c <"$bounded_output_dir/stderr") -ne 1048576 ]]; then
+	fail 'checked runner did not enforce its per-stream output bound'
+fi
+require_file "$bounded_output_dir/output-truncated" '1'
+
+bounded_timeout_dir="$test_tmp/bounded-timeout"
+gomad_run_checked 1 124 'bounded timeout seed=19 mode=unit iteration=7' "$bounded_timeout_dir" -- \
+	perl -e '$| = 1; print "o" x (2 * 1024 * 1024); print STDERR "e" x (2 * 1024 * 1024); sleep 30'
+if [[ $(wc -c <"$bounded_timeout_dir/stdout") -ne 1048576 ]] || \
+	[[ $(wc -c <"$bounded_timeout_dir/stderr") -ne 1048576 ]]; then
+	fail 'checked runner did not preserve its output bound on timeout'
+fi
+require_file "$bounded_timeout_dir/timed-out" '1'
+require_file "$bounded_timeout_dir/output-truncated" '1'
+
 parallel_success_dir="$test_tmp/parallel-success"
 parallel_failure_dir="$test_tmp/parallel-failure"
-gomad_run_checked 5 0 'parallel success seed=3 mode=unit iteration=6' "$parallel_success_dir" -- \
+gomad_run_checked 5 0 'parallel success seed=3 mode=unit iteration=8' "$parallel_success_dir" -- \
 	bash -c 'printf "parallel success\n"' &
 parallel_success_pid=$!
-gomad_run_checked 5 0 'parallel failure seed=5 mode=unit iteration=7' "$parallel_failure_dir" -- \
+gomad_run_checked 5 0 'parallel failure seed=5 mode=unit iteration=9' "$parallel_failure_dir" -- \
 	bash -c 'exit 23' 2>"$test_tmp/parallel-failure-diagnostic" &
 parallel_failure_pid=$!
 if ! wait "$parallel_success_pid"; then
@@ -104,5 +123,46 @@ if wait "$parallel_failure_pid"; then
 fi
 require_file "$parallel_success_dir/status" '0'
 require_file "$parallel_failure_dir/status" '23'
+
+exec_wrapper="$script_dir/exec.sh"
+
+missing_seed_dir="$test_tmp/missing-seed"
+gomad_run_checked 5 125 'exec wrapper seed=unset mode=missing-seed iteration=0' "$missing_seed_dir" -- \
+	env -u GOMADV3_CHILD_SEED "$exec_wrapper" true
+if ! grep -Fq 'gomadv3 exec: GOMADV3_CHILD_SEED is required' "$missing_seed_dir/stderr"; then
+	fail 'exec wrapper missing-seed diagnostic is absent'
+fi
+
+missing_command_dir="$test_tmp/missing-command"
+gomad_run_checked 5 125 'exec wrapper seed=1 mode=missing-command iteration=0' "$missing_command_dir" -- \
+	env GOMADV3_CHILD_SEED=1 "$exec_wrapper"
+if ! grep -Fq 'gomadv3 exec: target command is required' "$missing_command_dir/stderr"; then
+	fail 'exec wrapper missing-command diagnostic is absent'
+fi
+
+arguments_dir="$test_tmp/arguments"
+gomad_run_checked 5 0 'exec wrapper seed=max mode=arguments iteration=0' "$arguments_dir" -- \
+	env GOMADSEED=inherited GOMADV3_CHILD_SEED=18446744073709551615 "$exec_wrapper" \
+	bash -c 'printf "seed=%s child=%s arg1=%s arg2=%s\n" "$GOMADSEED" "${GOMADV3_CHILD_SEED-unset}" "$1" "$2"' \
+	bash 'two words' '*'
+require_file "$arguments_dir/stdout" 'seed=18446744073709551615 child=unset arg1=two words arg2=*'
+
+empty_seed_dir="$test_tmp/empty-seed"
+gomad_run_checked 5 0 'exec wrapper seed=empty mode=transfer iteration=0' "$empty_seed_dir" -- \
+	env GOMADV3_CHILD_SEED= "$exec_wrapper" bash -c 'printf "<%s>\n" "$GOMADSEED"'
+require_file "$empty_seed_dir/stdout" '<>'
+
+malformed_seed_dir="$test_tmp/malformed-seed"
+gomad_run_checked 5 0 'exec wrapper seed=malformed mode=transfer iteration=0' "$malformed_seed_dir" -- \
+	env GOMADV3_CHILD_SEED=not-a-seed "$exec_wrapper" bash -c 'printf "%s\n" "$GOMADSEED"'
+require_file "$malformed_seed_dir/stdout" 'not-a-seed'
+
+target_status_dir="$test_tmp/target-status"
+gomad_run_checked 5 37 'exec wrapper seed=0 mode=target-status iteration=0' "$target_status_dir" -- \
+	env GOMADV3_CHILD_SEED=0 "$exec_wrapper" bash -c 'exit 37'
+
+target_signal_dir="$test_tmp/target-signal"
+gomad_run_checked 5 143 'exec wrapper seed=1 mode=target-signal iteration=0' "$target_signal_dir" -- \
+	env GOMADV3_CHILD_SEED=1 "$exec_wrapper" bash -c 'kill -TERM $$'
 
 printf 'gomadv3 checked runner tests passed\n'

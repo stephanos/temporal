@@ -22,6 +22,24 @@ The deterministic region must not consume host I/O or host readiness. Virtual
 time does not attempt to make filesystem, network, DNS, process, signal, cgo,
 or other external operations deterministic.
 
+## Implementation status
+
+Implemented on 2026-08-10. The runtime overlay activates the fixed process
+clock and rejects cgo/external linking, while the Go patch routes wall and
+monotonic reads through it, marks external links reliably, handles saturated
+deadlines, and seeds equal-deadline timer insertion and rearm ordering. The root
+run/test targets now keep `cmd/go` outside Gomad and activate only target
+binaries through `tools/gomadv3/exec.sh`.
+
+The checked-in suite covers direct binaries, `go run`, `go test`, logical test
+timeouts, native timer and context behavior, ticker coalescing, simultaneous
+deadlines, nested `testing/synctest`, runnable non-progress, unsupported
+blocking netpoll I/O, deterministic deadlock, bounded output, and
+cgo/external-link rejection. Focused upstream `runtime`, `time`, and
+`testing/synctest` suites run with Gomad disabled. The
+unchanged `./common/timer` and `./common/testing/testcontext` Temporal packages
+also pass through `gomadv3-test`.
+
 ## Goals
 
 - Run unmodified Go binaries and unmodified `go test` packages under virtual
@@ -111,6 +129,8 @@ make all timers at that instant eligible
   sleeps, controller goroutine, or application handshake is added.
 - Existing `timeSleepUntil` scans the native per-P timer heaps and supplies the
   earliest future deadline.
+- Gomad distinguishes an empty timer set from a saturated `maxWhen` deadline,
+  so the latter can advance without changing the upstream disabled path.
 - Existing faketime scheduler branches avoid waiting for host netpoll before
   the quiescence check.
 - The clock jumps directly to the next deadline; it does not tick through
@@ -118,9 +138,9 @@ make all timers at that instant eligible
 - A goroutine that is runnable, including a busy loop or `select` with a
   `default` polling branch, prevents time from advancing. The external Runner's
   real-time watchdog terminates such a process.
-- An unsupported host read that happens to complete is not made deterministic
-  or automatically detected by this clock change. An unsupported read that
-  blocks cannot be treated as quiescence and is terminated by the wall watchdog.
+- An unsupported host read that happens to complete is not made deterministic.
+  While Go netpoll has waiters, Gomad does not treat the process as timer-only
+  quiescence; a blocked read is terminated by the wall watchdog.
 - If the program is blocked with no future timer, the normal deterministic
   deadlock failure remains distinguishable from a wall-watchdog timeout.
 
@@ -197,9 +217,11 @@ prebuilt binary remains
 `GOMADSEED=<seed> ./binary ...`.
 
 Set `CGO_ENABLED=0` for target compilation and reject enabled-mode cgo at runtime
-as a defense in depth. Upstream's faketime test documents that external linking
-and cgo bypass the `checkdead` advancement assumption. A stable early error is
-better than a hang or partially deterministic execution.
+as a defense in depth. The custom linker marks external links for the runtime,
+including Darwin/amd64 links that do not load `runtime/cgo`. Upstream's faketime
+test documents that external linking and cgo bypass the `checkdead` advancement
+assumption. A stable early error is better than a hang or partially
+deterministic execution.
 
 The supported deterministic program consumes no host input or readiness.
 Stdout/stderr may be captured only as non-semantic diagnostics: program choices
@@ -213,23 +235,23 @@ work and is not claimed by this clock feature.
 - `tools/gomadv3/README.md:3` — v3 is already an opt-in patched Go 1.26.4 toolchain that preserves native `go run`, `go test`, goroutines, channels, `select`, maps, and sync.
 - `tools/gomadv3/README.md:32` — `GOMADSEED` is the single activation gate; enabled mode forces initial `GOMAXPROCS=1`, disables async preemption, and seeds runtime choice paths before user initialization.
 - `tools/gomadv3/README.md:38` — the current repeatability contract is fixed toolchain/arch/program/seed plus deterministic external inputs, with host timers and host I/O readiness outside the contract.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time_nofake.go:11` — the normal runtime build already has a process-global `faketime` variable where zero means “off,” making the dormant path compatible with opt-in activation.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time_fake.go:16` — the `faketime` build-tag variant demonstrates process-global simulated time, `nanotime`, `time.now`, and stdout/stderr playback framing.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/proc.go:3739` — `findRunnable` already treats faketime specially by polling netpoll without wall delay and stopping the M so `checkdead` can advance time.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/proc.go:6437` — `checkdead` already jumps `faketime` to the next timer wake, obtains an idle P/M, and wakes timer work instead of declaring deadlock.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:1319` — `timeSleepUntil` already scans all P timer heaps for the next timer deadline used by sysmon and `checkdead`.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time_test.go:19` — upstream's faketime test builds a dedicated test program with `-tags=faketime` and notes that advancement depends on `checkdead` and internal linking.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/testdata/testfaketime/faketime.go:16` — the test fixture shows process-global faketime ordering stdout/stderr frames and advancing through `time.Sleep`.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/proc.go:179` — `runtime.main` locks the main goroutine to the main OS thread through initialization and later calls `main_main` directly.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/synctest.go:170` — synctest creates a bubble by spawning the function as a new goroutine, which is heavier than activating process-global faketime for the already-running program.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/testing/synctest/synctest.go:274` — public `synctest.Test` executes a function in a new bubble and must not itself be called from within a bubble.
+- `go1.26.4/src/runtime/time_nofake.go:11` — the normal runtime build already has a process-global `faketime` variable where zero means “off,” making the dormant path compatible with opt-in activation.
+- `go1.26.4/src/runtime/time_fake.go:16` — the `faketime` build-tag variant demonstrates process-global simulated time, `nanotime`, `time.now`, and stdout/stderr playback framing.
+- `go1.26.4/src/runtime/proc.go:3739` — `findRunnable` already treats faketime specially by polling netpoll without wall delay and stopping the M so `checkdead` can advance time.
+- `go1.26.4/src/runtime/proc.go:6437` — `checkdead` already jumps `faketime` to the next timer wake, obtains an idle P/M, and wakes timer work instead of declaring deadlock.
+- `go1.26.4/src/runtime/time.go:1319` — `timeSleepUntil` already scans all P timer heaps for the next timer deadline used by sysmon and `checkdead`.
+- `go1.26.4/src/runtime/time_test.go:19` — upstream's faketime test builds a dedicated test program with `-tags=faketime` and notes that advancement depends on `checkdead` and internal linking.
+- `go1.26.4/src/runtime/testdata/testfaketime/faketime.go:16` — the test fixture shows process-global faketime ordering stdout/stderr frames and advancing through `time.Sleep`.
+- `go1.26.4/src/runtime/proc.go:179` — `runtime.main` locks the main goroutine to the main OS thread through initialization and later calls `main_main` directly.
+- `go1.26.4/src/runtime/synctest.go:170` — synctest creates a bubble by spawning the function as a new goroutine, which is heavier than activating process-global faketime for the already-running program.
+- `go1.26.4/src/testing/synctest/synctest.go:274` — public `synctest.Test` executes a function in a new bubble and must not itself be called from within a bubble.
 - `service/worker/pernamespaceworker_test.go:52` — Temporal tests already use `testing/synctest`, so a process-wide Gomad bubble would conflict with existing nested synctest tests.
 - `service/matching/workers/registry_impl_test.go:427` — existing tests rely on `synctest.Test` around real `time.NewTicker`/`time.Sleep` behavior.
 - `common/testing/testcontext/context_test.go:21` — existing test helpers already use `synctest.Test` for virtual-time context deadlines.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:167` — fake timers with identical deadlines are ordered by a per-timer random value, which aligns with Gomad's seeded tie-breaking needs.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:16` — synctest bubble fake clocks still take precedence for bubbled goroutines, making synctest compatible nested prior art.
-- `GOMAD_NEXT.md:31` — the post-v3 design is already organized around Runner, World, Adapters, and Record as deep modules with small interfaces.
-- `GOMAD_NEXT.md:140` — deterministic adapters already define the no-host-I/O boundary for filesystem, persistence, network, processes, environment, and entropy.
+- `go1.26.4/src/runtime/time.go:167` — fake timers with identical deadlines are ordered by a per-timer random value, which aligns with Gomad's seeded tie-breaking needs.
+- `go1.26.4/src/runtime/time.go:16` — synctest bubble fake clocks still take precedence for bubbled goroutines, making synctest compatible nested prior art.
+- `GOMADv3_NEXT.md:31` — the post-v3 design is already organized around Runner, World, Adapters, and Record as deep modules with small interfaces.
+- `GOMADv3_NEXT.md:140` — deterministic adapters already define the no-host-I/O boundary for filesystem, persistence, network, processes, environment, and entropy.
 - `tools/gomadv2/doc.go:50` — gomadv2 achieved transparent standard-library behavior through runtime/syscall-level Linux emulation, which is broader than the lighter v3 faketime substrate.
 - `common/clock/event_time_source.go:11` — Temporal already has a synchronous fake `TimeSource` for DI-backed tests, but it is not transparent for unmodified binaries.
 - `service/history/workflow/timeskipping.go:211` — workflow time skipping already wraps mutable state's `TimeSource` with a live virtual-time offset.
@@ -237,17 +259,17 @@ work and is not claimed by this clock feature.
 ### Reusable Utilities
 - `tools/gomadv3/overlay/src/runtime/gomad.go:10` — `gomadInit` — owns seed parsing, feature activation, async preemption disabling, sysmon disabling, and scheduler randomization.
 - `tools/gomadv3/overlay/src/runtime/gomad.go:29` — `gomadStartUserCode` — resets per-M seeded randomness and scheduler tick state immediately before user code.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time_nofake.go:15` — `faketime` — dormant process-global nanosecond clock whose zero value keeps normal runtime behavior.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time_nofake.go:32` — `nanotime` — normal wrapper around `nanotime1`; the smallest activation surface for process-global faketime is here and `time_runtimeNow`.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time_fake.go:40` — `time_now` — build-tag prior art for returning process-global faketime through `time.Now`.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/proc.go:6375` — `checkdead` — existing quiescence point that advances process faketime to the next timer rather than sleeping on host time.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/proc.go:3397` — `findRunnable` — existing scheduler path whose faketime branch prevents host netpoll delay from deciding timer progress.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:1322` — `timeSleepUntil` — shared next-deadline scanner for process faketime advancement.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:167` — `timerWhen.less` — existing equal-deadline fake-timer randomization hook.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:389` — `newTimer` — runtime allocation path for `time.Timer`/`time.Ticker`; already marks synctest timers fake when created inside a bubble.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/time.go:1009` — `(*timers).check` — shared timer runner that can run ready timers from either normal P timers or synctest bubble timers.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/synctest.go:170` — `synctestRun` — compatible nested prior art for isolated bubble fake time, not the preferred whole-process substrate.
-- `tools/gomadv3/.toolchain/builds/4822b298c353414f97066f9682106eae323d1461bba730c77b9b27daf617e5f7/src/runtime/synctest.go:282` — `synctestWait` — runtime implementation of durable-blocking wait for existing tests that explicitly enter synctest.
+- `go1.26.4/src/runtime/time_nofake.go:15` — `faketime` — dormant process-global nanosecond clock whose zero value keeps normal runtime behavior.
+- `go1.26.4/src/runtime/time_nofake.go:32` — `nanotime` — normal wrapper around `nanotime1`; the smallest activation surface for process-global faketime is here and `time_runtimeNow`.
+- `go1.26.4/src/runtime/time_fake.go:40` — `time_now` — build-tag prior art for returning process-global faketime through `time.Now`.
+- `go1.26.4/src/runtime/proc.go:6375` — `checkdead` — existing quiescence point that advances process faketime to the next timer rather than sleeping on host time.
+- `go1.26.4/src/runtime/proc.go:3397` — `findRunnable` — existing scheduler path whose faketime branch prevents host netpoll delay from deciding timer progress.
+- `go1.26.4/src/runtime/time.go:1322` — `timeSleepUntil` — shared next-deadline scanner for process faketime advancement.
+- `go1.26.4/src/runtime/time.go:167` — `timerWhen.less` — existing equal-deadline fake-timer randomization hook.
+- `go1.26.4/src/runtime/time.go:389` — `newTimer` — runtime allocation path for `time.Timer`/`time.Ticker`; already marks synctest timers fake when created inside a bubble.
+- `go1.26.4/src/runtime/time.go:1009` — `(*timers).check` — shared timer runner that can run ready timers from either normal P timers or synctest bubble timers.
+- `go1.26.4/src/runtime/synctest.go:170` — `synctestRun` — compatible nested prior art for isolated bubble fake time, not the preferred whole-process substrate.
+- `go1.26.4/src/runtime/synctest.go:282` — `synctestWait` — runtime implementation of durable-blocking wait for existing tests that explicitly enter synctest.
 - `tools/gomadv3/testlib.sh:3` — `gomad_run_checked` — runs child processes with stdout/stderr/status capture, process-group timeout, and diagnostic reporting.
 - `tools/gomadv3/build.sh:191` — `publish_toolchain` — publishes a stable `.toolchain/bin/go` launcher keyed to the immutable patched build.
 - `tools/gomadv3/test.sh:34` — `validate_runtime_path` — enforces the small runtime-patch/overlay surface that can still include top-level `runtime/time*.go` files.
@@ -257,21 +279,21 @@ work and is not claimed by this clock feature.
 - `service/history/workflow/timeskipping.go:432` — `findNextSkipTarget` — existing Temporal logic for selecting the earliest future virtual-time target.
 
 ### Convention Anchors
-- Dirty-state awareness: current design inputs include modified `tools/gomadv3/Makefile` and `tools/gomadv3/test.sh`, plus untracked `GOMAD_NEXT.md`, `GOMAD_TESTS.md`, `tools/gomadv3/testlib.sh`, and `tools/gomadv3/testlib_test.sh`.
+- At design time, the inputs included the then-uncommitted v3 runtime and test harness changes now recorded in this branch.
 - Process-global faketime over process-wide bubble: `runtime/time_nofake.go:15`, `runtime/proc.go:6437`, and `runtime/time.go:1319` provide a lighter virtual-time substrate that preserves normal process/main structure.
 - Dormant means not yet active: `runtime/time_nofake.go:32` still returns host `nanotime1` in the normal build, while `runtime/time_fake.go:40` shows the build-tag version's `time.now` behavior.
 - Main-thread/init preservation: `runtime/proc.go:179` locks `runtime.main` to the main OS thread through init, and `runtime/proc.go:293` calls `main_main` directly; a whole-process synctest wrapper would not match this shape.
 - Synctest compatibility: existing Temporal tests call `testing/synctest`, and `testing/synctest/synctest.go:279` forbids calling `synctest.Test` from inside another bubble.
 - Small patch discipline: `tools/gomadv3/test.sh:34` limits patch/overlay files to top-level `src/runtime/*.go` and excludes channel, select, sema, GC, netpoll, OS, signal, platform, generated, and binary areas.
 - Activation compatibility: `tools/gomadv3/README.md:32`, `tools/gomadv3/test.sh:473`, and `tools/gomadv3/test.sh:660` keep disabled mode stock-compatible and enabled mode solely `GOMADSEED`-gated.
-- Separate-process exploration: `tools/gomadv3/README.md:50`, `GOMAD_NEXT.md:199`, and `tools/gomadv3/test.sh:741` all assume one P per process and parallelism by running multiple child processes.
-- No host I/O in deterministic region: `tools/gomadv3/README.md:43`, `GOMAD_NEXT.md:144`, `GOMAD_NEXT.md:157`, and `testing/synctest/synctest.go:86` all draw the same boundary: host clock/file/socket/DNS/process readiness is not deterministic input.
+- Separate-process exploration: `tools/gomadv3/README.md`, `GOMADv3_NEXT.md`, and `tools/gomadv3/test.sh` all assume one P per process and parallelism by running multiple child processes.
+- No host I/O in deterministic region: `tools/gomadv3/README.md`, `GOMADv3_NEXT.md`, and `testing/synctest/synctest.go` all draw the same boundary: host file/socket/DNS/process readiness is not deterministic input.
 - Faketime output framing is optional prior art: `runtime/time_fake.go:45` frames stdout/stderr for playground playback, but v3 already captures child stdout/stderr in the Runner harness.
 - Internal-linking/cgo constraint: `runtime/time_test.go:24` documents that faketime advancement depends on `checkdead`, and v3 already keeps cgo outside the deterministic contract.
-- External-choice stream separation: `GOMAD_NEXT.md:86` keeps World tie-break randomness separate from the runtime's private stream, while `runtime/time.go:739` shows synctest fake timer ties currently consume `cheaprand`.
+- External-choice stream separation: `GOMADv3_NEXT.md` keeps World tie-break randomness separate from the runtime's private stream, while `runtime/time.go` shows synctest fake timer ties consume `cheaprand`.
 - Temporal seam convention: `common/clock/time_source.go:9` and `service/history/workflow/timeskipping.go:211` support DI-backed pilots, but transparent unmodified binaries require runtime/stdlib time interception.
-- Prior-art boundary: `tools/gomadv2/doc.go:50` achieved transparent standard-library behavior through Linux syscall emulation, while `GOMAD_NEXT.md:57` keeps v3/post-v3 external behavior outside the Go runtime where possible.
-- Test harness convention: `GOMAD_TESTS.md:22` and `tools/gomadv3/testlib.sh:3` keep behavior fixtures outside the patch/overlay and require bounded, status-checked child execution.
+- Prior-art boundary: `tools/gomadv2/doc.go:50` achieved transparent standard-library behavior through Linux syscall emulation, while `GOMADv3_NEXT.md` keeps post-v3 external behavior outside the Go runtime where possible.
+- Test harness convention: `GOMADv3_TESTS.md` and `tools/gomadv3/testlib.sh` keep behavior fixtures outside the patch/overlay and require bounded, status-checked child execution.
 
 ### Proposed Alignment
 Use the dormant process-global faketime path as the primary lightweight virtual-time substrate: Gomad mode can activate `faketime` and route runtime/time reads through it, letting existing `checkdead` plus `timeSleepUntil` advance standard `time` timers when the process is quiescent without running `main` inside a synctest bubble. Keep `testing/synctest` as compatible nested prior art for tests that explicitly opt into bubbles, and reuse its seeded equal-deadline fake-timer randomization where simultaneous Gomad deadlines need a runtime tie-break. Continue to put filesystem, network, process, environment, entropy, and persistence readiness behind World/adapters/records so process faketime solves transparent time only, not host I/O.
@@ -392,14 +414,14 @@ can be shown to cover all standard time behavior.
 | File | Purpose |
 | --- | --- |
 | `tools/gomadv3/overlay/src/runtime/gomad.go` | Activate the fixed process clock under the existing seed gate and reject cgo |
-| `tools/gomadv3/go1.26.4.patch` | Patch `runtime/time_nofake.go` clock reads and `runtime/time.go` wall time/timer tie ordering |
+| `tools/gomadv3/go1.26.4.patch` | Patch runtime clock reads, quiescence, timer tie ordering, and the linker external-mode marker |
 | `tools/gomadv3/exec.sh` | Transfer the child-only seed to a binary or generated test binary without activating `cmd/go` |
 | `Makefile` | Use `-exec`, unset parent `GOMADSEED`, disable cgo, set UTC, and preserve `test_dep` |
 | `tools/gomadv3/test.sh` | Add bounded enabled/disabled black-box clock coverage |
 | `tools/gomadv3/testlib.sh` and `testlib_test.sh` | Reuse and test process-group wall-time containment and wrapper behavior |
 | `tools/gomadv3/testdata/clock*` | Keep behavioral fixtures outside the runtime patch/overlay |
 | `tools/gomadv3/README.md` | Publish the supported clock contract and failure boundary |
-| `GOMAD_NEXT.md` and `GOMAD_ALT.md` | Record the evidence-backed runtime exception and link to this plan |
+| `GOMADv3_NEXT.md` and `GOMADv3_TESTS.md` | Record the evidence-backed runtime exception and updated test boundary |
 
 No production Temporal package or `common/clock` file is expected to change.
 
@@ -513,8 +535,8 @@ signal behavior.
 
 Update `tools/gomadv3/test.sh` to:
 
-- validate that the expanded patch still touches only allowed top-level runtime
-  files and that disabled source remains upstream-compatible;
+- validate that the expanded patch touches only the allowed top-level runtime
+  files and linker marker site and that disabled source remains upstream-compatible;
 - run the clock fixtures in enabled and disabled modes;
 - compare many fresh processes for same-seed equality;
 - require at least one legitimate simultaneous-timer ordering difference across
@@ -535,7 +557,7 @@ Update `tools/gomadv3/README.md`:
   causing virtual time to advance;
 - retain the fixed-toolchain/program/architecture/seed reproducibility boundary.
 
-Update `GOMAD_NEXT.md` and `GOMAD_ALT.md` only where their architectural status
+Update `GOMADv3_NEXT.md` and `GOMADv3_TESTS.md` only where their architectural status
 would otherwise become false: transparent time is an evidence-backed exception
 to the earlier dependency-injection preference, while World remains the future
 owner of external events. Avoid duplicating this complete clock contract there;
@@ -671,9 +693,9 @@ tests. The implementation phase should finish with, in increasing scope:
 ```sh
 make -C tools/gomadv3 test-harness
 make -C tools/gomadv3 test
-GOMADSEED=1 make gomadv3-run GOMADV3_RUN=./tools/gomadv3/testdata/clock
-GOMADSEED=1 make gomadv3-test GOMADV3_PACKAGES=./tools/gomadv3/testdata/clock_gotest
+GOMADSEED=1 make gomadv3-run GOMADV3_RUN=./tools/gomadv3/testdata/clock/main.go GOMADV3_ARGS=initial
 GOMADSEED=1 make gomadv3-test GOMADV3_PACKAGES=./common/timer
+GOMADSEED=1 make gomadv3-test GOMADV3_PACKAGES=./common/testing/testcontext
 make fmt-imports
 make lint-code
 ```
@@ -698,6 +720,7 @@ part of `tools/gomadv3/test`.
 - `cmd/go` never enters deterministic mode; only the target does.
 - Unsupported cgo/linking and invalid configuration fail early and stably.
 - Disabled mode matches the stock Go 1.26.4 clock behavior.
-- The runtime patch remains within the existing validated top-level runtime
-  surface, and no third-party library or application clock rewrite is added.
+- The patch remains within the validated top-level runtime surface plus the
+  single linker marker site, and no third-party library or application clock
+  rewrite is added.
 - The toolchain suite, unchanged Temporal pilots, formatting, and linting pass.

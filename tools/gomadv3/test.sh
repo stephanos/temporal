@@ -5,9 +5,11 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$script_dir/testlib.sh"
 go_bin="$script_dir/.toolchain/bin/go"
+exec_wrapper="$script_dir/exec.sh"
 patch_file=${GOMADV3_PATCH_FILE:-"$script_dir/go1.26.4.patch"}
 overlay_dir=${GOMADV3_OVERLAY_DIR:-"$script_dir/overlay"}
 testdata_dir="$script_dir/testdata"
+repo_root=$(cd "$script_dir/../.." && pwd)
 
 sorted_files() {
 	local root=$1
@@ -61,6 +63,13 @@ validate_runtime_path() {
 	fi
 }
 
+validate_patch_path() {
+	if [[ $1 == src/cmd/link/internal/ld/lib.go ]]; then
+		return
+	fi
+	validate_runtime_path "$1"
+}
+
 validate_patch() {
 	if [[ ! -s "$patch_file" ]]; then
 		printf 'gomadv3 patch is missing: %s\n' "$patch_file" >&2
@@ -80,13 +89,13 @@ validate_patch() {
 		($1 == "---" || $1 == "+++") && $2 == "/dev/null" { found = 1 }
 		END { exit !found }
 	' "$patch_file"; then
-		printf 'gomadv3 patch may only modify existing runtime files\n' >&2
+		printf 'gomadv3 patch may only modify existing allowed files\n' >&2
 		exit 1
 	fi
 
 	local path
 	while IFS= read -r path; do
-		validate_runtime_path "$path"
+		validate_patch_path "$path"
 	done < <(awk '
 		$1 == "diff" && $2 == "--git" {
 			print substr($3, 3)
@@ -148,6 +157,10 @@ fi
 
 if [[ ! -x "$go_bin" ]]; then
 	printf 'gomadv3 toolchain is missing: run make -C %s toolchain\n' "$script_dir" >&2
+	exit 1
+fi
+if [[ ! -x "$exec_wrapper" ]]; then
+	printf 'gomadv3 exec wrapper is missing or not executable: %s\n' "$exec_wrapper" >&2
 	exit 1
 fi
 
@@ -228,6 +241,28 @@ gomad_run_checked 60 1 'builder seed=unset mode=invalid-patch iteration=0' "$bad
 if [[ $(checked_output 10 'go-env seed=unset mode=after-invalid-patch iteration=0' -- \
 	"$go_bin" env GOROOT) != "$expected_goroot" ]]; then
 	printf 'failed gomadv3 build replaced the stable toolchain\n' >&2
+	exit 1
+fi
+
+nonapplying_patch="$test_tmp/nonapplying.patch"
+printf '%s\n' \
+	'diff --git a/src/runtime/proc.go b/src/runtime/proc.go' \
+	'--- a/src/runtime/proc.go' \
+	'+++ b/src/runtime/proc.go' \
+	'@@ -1 +1 @@' \
+	'-this context does not exist in Go 1.26.4' \
+	'+this replacement must never apply' >"$nonapplying_patch"
+failing_build_result="$test_tmp/failing-build"
+gomad_run_checked 60 1 'builder seed=unset mode=toolchain-failure iteration=0' "$failing_build_result" -- \
+	env GOMADV3_PATCH_FILE="$nonapplying_patch" "$script_dir/build.sh"
+if ! grep -Eq 'gomadv3 toolchain build failed \(key [0-9a-f]{64}\)' \
+	"$failing_build_result/stdout" "$failing_build_result/stderr"; then
+	printf 'gomadv3 toolchain failure omitted its immutable build key\n' >&2
+	exit 1
+fi
+if [[ $(checked_output 10 'go-env seed=unset mode=after-toolchain-failure iteration=0' -- \
+	"$go_bin" env GOROOT) != "$expected_goroot" ]]; then
+	printf 'failed gomadv3 toolchain build replaced the stable toolchain\n' >&2
 	exit 1
 fi
 
@@ -359,8 +394,8 @@ run_enabled() {
 	local mode=${3:-enabled}
 	local iteration=${4:-0}
 	checked_output 60 "$package seed=$seed mode=$mode iteration=$iteration" -- \
-		env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" \
-		"$go_bin" -C "$testdata_dir" run "$package"
+		env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$seed" \
+		"$go_bin" -C "$testdata_dir" run -exec "$exec_wrapper" "$package"
 }
 
 require_repeatable() {
@@ -466,8 +501,21 @@ run_seeded_go_test() {
 	local mode=$2
 	local iteration=$3
 	checked_output 60 "gotest seed=$seed mode=$mode iteration=$iteration" -- \
-		env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" \
-		"$go_bin" -C "$testdata_dir" test -count=1 -tags=test_dep -v ./gotest
+		env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$seed" \
+		"$go_bin" -C "$testdata_dir" test -exec "$exec_wrapper" -count=1 -tags=test_dep -v ./gotest
+}
+
+benchmark_median_ns() {
+	awk '$1 ~ /^BenchmarkDisabledClockNow/ {
+		for (i = 1; i < NF; i++) {
+			if ($(i + 1) == "ns/op") print $i
+		}
+	}' | sort -n | awk '
+		{ values[NR] = $1 }
+		END {
+			if (NR != 7) exit 1
+			print values[4]
+		}'
 }
 
 require_stock_compatibility() {
@@ -544,6 +592,27 @@ require_stock_compatibility() {
 	if [[ "$custom_line" != "$stock_line" ]]; then
 		printf 'disabled go test output differs from stock Go 1.26.4\n' >&2
 		diff -u <(printf '%s\n' "$stock_line") <(printf '%s\n' "$custom_line") || true
+		exit 1
+	fi
+
+	local custom_benchmark stock_benchmark custom_ns stock_ns
+	custom_benchmark=$(checked_output 60 'clock-bench seed=unset mode=custom iteration=0' -- \
+		env -u GOMADSEED GODEBUG= GOMAXPROCS=1 GOTOOLCHAIN=local GOWORK=off \
+		"$go_bin" -C "$testdata_dir" test -run '^$' -bench '^BenchmarkDisabledClockNow$' \
+		-benchtime=100ms -count=7 -cpu=1 ./clock_bench)
+	stock_benchmark=$(checked_output 60 'clock-bench seed=unset mode=stock iteration=0' -- \
+		env -u GOMADSEED GODEBUG= GOMAXPROCS=1 GOTOOLCHAIN=local GOWORK=off \
+		"$stock_go" -C "$testdata_dir" test -run '^$' -bench '^BenchmarkDisabledClockNow$' \
+		-benchtime=100ms -count=7 -cpu=1 ./clock_bench)
+	custom_ns=$(benchmark_median_ns <<<"$custom_benchmark")
+	stock_ns=$(benchmark_median_ns <<<"$stock_benchmark")
+	if ! awk -v custom="$custom_ns" -v stock="$stock_ns" 'BEGIN {
+		limit = stock * 2
+		if (limit < stock + 10) limit = stock + 10
+		exit !(custom <= limit)
+	}'; then
+		printf 'disabled clock read regression: custom median %s ns/op, stock median %s ns/op\n' \
+			"$custom_ns" "$stock_ns" >&2
 		exit 1
 	fi
 }
@@ -657,6 +726,92 @@ require_host_load() {
 	fi
 }
 
+run_clock_direct() {
+	local seed=$1
+	local binary=$2
+	local mode=$3
+	local iteration=$4
+	checked_output 5 "clock seed=$seed mode=$mode iteration=$iteration" -- \
+		env GOMADSEED="$seed" TZ=UTC "$binary" "$mode"
+}
+
+require_clock_race_output() {
+	local output=$1
+	local count=$2
+	local actual_ids expected_ids
+	actual_ids=$(mktemp "$test_tmp/clock-race-actual.XXXXXX")
+	expected_ids=$(mktemp "$test_tmp/clock-race-expected.XXXXXX")
+	tr -d '[]' <<<"$output" | tr ' ' '\n' | sed '/^$/d' | sort -n >"$actual_ids"
+	awk -v count="$count" 'BEGIN { for (i = 0; i < count; i++) print i }' >"$expected_ids"
+	if ! cmp -s "$actual_ids" "$expected_ids"; then
+		printf 'simultaneous clock timers did not each complete exactly once: %s\n' "$output" >&2
+		exit 1
+	fi
+}
+
+require_clock_behavior() {
+	local clock=$1
+	local race=$2
+	local spin=$3
+	local deadlock=$4
+	local blocking_io=$5
+	local mode output expected run seed race_mode race_count
+
+	for mode in initial sleep runnable timers contexts edges; do
+		output=$(run_clock_direct 1 "$clock" "$mode" 0)
+		if [[ "$output" != "clock $mode ok" ]]; then
+			printf 'clock mode %s emitted unexpected output: %q\n' "$mode" "$output" >&2
+			exit 1
+		fi
+	done
+
+	for race_mode in new active-reset stopped-reset contexts tickers; do
+		race_count=24
+		if [[ $race_mode == tickers ]]; then
+			race_count=48
+		fi
+		expected=$(run_clock_direct 1 "$race" "$race_mode" 0)
+		require_clock_race_output "$expected" "$race_count"
+		for run in {1..19}; do
+			output=$(run_clock_direct 1 "$race" "$race_mode" "$run")
+			if [[ "$output" != "$expected" ]]; then
+				printf 'same-seed %s timer order diverged on run %d\n' "$race_mode" "$run" >&2
+				diff -u <(printf '%s\n' "$expected") <(printf '%s\n' "$output") || true
+				exit 1
+			fi
+		done
+
+		local race_outputs="$test_tmp/clock-race-outputs-$race_mode"
+		: >"$race_outputs"
+		for seed in {0..15}; do
+			output=$(run_clock_direct "$seed" "$race" "$race_mode" "$seed")
+			require_clock_race_output "$output" "$race_count"
+			printf '%s\n' "$output" | shasum -a 256 >>"$race_outputs"
+		done
+		if [[ $(sort -u "$race_outputs" | wc -l) -le 1 ]]; then
+			printf 'different seeds produced no %s timer-order diversity\n' "$race_mode" >&2
+			exit 1
+		fi
+	done
+
+	local spin_result
+	for mode in loop select; do
+		spin_result="$test_tmp/clock-spin-result-$mode"
+		gomad_run_checked 2 124 "clock seed=1 mode=spin-$mode iteration=0" "$spin_result" -- \
+			env GOMADSEED=1 TZ=UTC "$spin" "$mode"
+	done
+	local io_result="$test_tmp/clock-io-result"
+	gomad_run_checked 2 124 'clock seed=1 mode=blocking-io iteration=0' "$io_result" -- \
+		env GOMADSEED=1 TZ=UTC "$blocking_io"
+	local deadlock_result="$test_tmp/clock-deadlock-result"
+	gomad_run_checked 2 2 'clock seed=1 mode=deadlock iteration=0' "$deadlock_result" -- \
+		env GOMADSEED=1 TZ=UTC "$deadlock"
+	if ! grep -Fq 'fatal error: all goroutines are asleep - deadlock!' "$deadlock_result/stderr"; then
+		printf 'clock deadlock emitted an unexpected diagnostic\n' >&2
+		exit 1
+	fi
+}
+
 disabled_output=$(checked_output 60 'activation seed=unset mode=disabled iteration=0' -- \
 	env -u GOMADSEED GOMAXPROCS=2 "$go_bin" -C "$testdata_dir" run ./activation)
 [[ "$disabled_output" == $'init GOMAXPROCS=2\nmain GOMAXPROCS=2' ]]
@@ -671,6 +826,112 @@ checked_output 60 'scheduler seed=unset mode=build iteration=0' -- \
 activation_bin="$test_tmp/activation"
 checked_output 60 'activation seed=unset mode=build iteration=0' -- \
 	env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$activation_bin" ./activation >/dev/null
+clock_bin="$test_tmp/clock"
+checked_output 60 'clock seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 "$go_bin" -C "$testdata_dir" build -o "$clock_bin" ./clock >/dev/null
+clock_race_bin="$test_tmp/clock-race"
+checked_output 60 'clock-race seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 "$go_bin" -C "$testdata_dir" build -o "$clock_race_bin" ./clock_race >/dev/null
+clock_spin_bin="$test_tmp/clock-spin"
+checked_output 60 'clock-spin seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 "$go_bin" -C "$testdata_dir" build -o "$clock_spin_bin" ./clock_spin >/dev/null
+clock_deadlock_bin="$test_tmp/clock-deadlock"
+checked_output 60 'clock-deadlock seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 "$go_bin" -C "$testdata_dir" build -o "$clock_deadlock_bin" ./clock_deadlock >/dev/null
+clock_io_bin="$test_tmp/clock-io"
+checked_output 60 'clock-io seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 "$go_bin" -C "$testdata_dir" build -o "$clock_io_bin" ./clock_io >/dev/null
+
+disabled_clock=$(checked_output 5 'clock seed=unset mode=disabled iteration=0' -- \
+	env -u GOMADSEED TZ=UTC "$clock_bin" disabled)
+[[ "$disabled_clock" == 'clock disabled ok' ]]
+require_clock_behavior "$clock_bin" "$clock_race_bin" "$clock_spin_bin" "$clock_deadlock_bin" "$clock_io_bin"
+for seed in 0 18446744073709551615; do
+	boundary_clock=$(run_clock_direct "$seed" "$clock_bin" initial 0)
+	[[ "$boundary_clock" == 'clock initial ok' ]]
+done
+
+clock_run=$(checked_output 60 'clock seed=1 mode=go-run iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED=1 \
+	"$go_bin" -C "$testdata_dir" run -exec "$exec_wrapper" ./clock initial)
+[[ "$clock_run" == 'clock initial ok' ]]
+
+clock_gotest_output=$(checked_output 60 'clock-gotest seed=1 mode=go-test iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED=1 \
+	"$go_bin" -C "$testdata_dir" test -v -exec "$exec_wrapper" -count=1 -tags=test_dep \
+	-timeout=48h ./clock_gotest)
+if [[ $clock_gotest_output != *'--- PASS: TestVirtualClockAndDeadline (86400.00s)'* ]] || \
+	[[ $clock_gotest_output != *'--- PASS: TestSecondVirtualClockTest (21600.00s)'* ]]; then
+	printf 'go test did not report repeatable logical durations for both tests\n' >&2
+	exit 1
+fi
+checked_output 60 'clock-synctest seed=1 mode=go-test iteration=0' -- \
+	env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED=1 \
+	"$go_bin" -C "$testdata_dir" test -exec "$exec_wrapper" -count=1 -tags=test_dep \
+	-timeout=48h ./clock_synctest >/dev/null
+
+logical_timeout_result="$test_tmp/clock-logical-timeout"
+gomad_run_checked 5 1 'clock-gotest seed=1 mode=logical-timeout iteration=0' "$logical_timeout_result" -- \
+	env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED=1 GOMADV3_TEST_LOGICAL_TIMEOUT=1 \
+	"$go_bin" -C "$testdata_dir" test -exec "$exec_wrapper" -count=1 -tags=test_dep \
+	-timeout=1h -run '^TestLogicalTimeout$' ./clock_gotest
+if [[ $(<"$logical_timeout_result/timed-out") != 0 ]] || \
+	! grep -Fq 'panic: test timed out after 1h0m0s' \
+	"$logical_timeout_result/stdout" "$logical_timeout_result/stderr"; then
+	printf 'logical go test timeout was not distinct from the wall watchdog\n' >&2
+	exit 1
+fi
+
+cc=$(env -u GOMADSEED "$go_bin" env CC)
+cc_command=${cc%% *}
+if command -v "$cc_command" >/dev/null 2>&1; then
+	clock_cgo_bin="$test_tmp/clock-cgo"
+	checked_output 60 'clock-cgo seed=unset mode=build iteration=0' -- \
+		env -u GOMADSEED CGO_ENABLED=1 "$go_bin" -C "$testdata_dir" build -o "$clock_cgo_bin" ./clock_cgo >/dev/null
+	clock_cgo_disabled=$(checked_output 5 'clock-cgo seed=unset mode=disabled iteration=0' -- \
+		env -u GOMADSEED "$clock_cgo_bin")
+	[[ $clock_cgo_disabled == 42 ]]
+	clock_cgo_result="$test_tmp/clock-cgo-result"
+	gomad_run_checked 5 2 'clock-cgo seed=1 mode=enabled iteration=0' "$clock_cgo_result" -- \
+		env GOMADSEED=1 TZ=UTC "$clock_cgo_bin"
+	if [[ $(<"$clock_cgo_result/stderr") != 'runtime: GOMADSEED does not support cgo or external linking' ]]; then
+		printf 'enabled cgo binary emitted an unexpected diagnostic\n' >&2
+		exit 1
+	fi
+
+	clock_external_bin="$test_tmp/clock-external"
+	checked_output 60 'clock-external seed=unset mode=build iteration=0' -- \
+		env -u GOMADSEED CGO_ENABLED=1 "$go_bin" -C "$testdata_dir" build \
+		-ldflags=-linkmode=external -o "$clock_external_bin" ./clock >/dev/null
+	clock_external_disabled=$(checked_output 5 'clock-external seed=unset mode=disabled iteration=0' -- \
+		env -u GOMADSEED TZ=UTC "$clock_external_bin" disabled)
+	[[ $clock_external_disabled == 'clock disabled ok' ]]
+	clock_external_result="$test_tmp/clock-external-result"
+	gomad_run_checked 5 2 'clock-external seed=1 mode=enabled iteration=0' "$clock_external_result" -- \
+		env GOMADSEED=1 TZ=UTC "$clock_external_bin" initial
+	if [[ $(<"$clock_external_result/stderr") != 'runtime: GOMADSEED does not support cgo or external linking' ]]; then
+		printf 'enabled externally linked binary emitted an unexpected diagnostic\n' >&2
+		exit 1
+	fi
+
+	if [[ $(env -u GOMADSEED "$go_bin" env GOOS) == darwin ]]; then
+		clock_external_amd64_bin="$test_tmp/clock-external-amd64"
+		checked_output 60 'clock-external-amd64 seed=unset mode=build iteration=0' -- \
+			env -u GOMADSEED GOARCH=amd64 CGO_ENABLED=1 "$go_bin" -C "$testdata_dir" build \
+			-ldflags=-linkmode=external -o "$clock_external_amd64_bin" ./clock >/dev/null
+		clock_external_amd64_disabled=$(checked_output 5 \
+			'clock-external-amd64 seed=unset mode=disabled iteration=0' -- \
+			env -u GOMADSEED TZ=UTC "$clock_external_amd64_bin" disabled)
+		[[ $clock_external_amd64_disabled == 'clock disabled ok' ]]
+		clock_external_amd64_result="$test_tmp/clock-external-amd64-result"
+		gomad_run_checked 5 2 'clock-external-amd64 seed=1 mode=enabled iteration=0' \
+			"$clock_external_amd64_result" -- env GOMADSEED=1 TZ=UTC "$clock_external_amd64_bin" initial
+		if [[ $(<"$clock_external_amd64_result/stderr") != 'runtime: GOMADSEED does not support cgo or external linking' ]]; then
+			printf 'enabled Darwin/amd64 externally linked binary emitted an unexpected diagnostic\n' >&2
+			exit 1
+		fi
+	fi
+fi
 require_invalid_map_padding "$maps_bin" ""
 require_invalid_map_padding "$maps_bin" invalid
 require_invalid_map_padding "$maps_bin" 4194305
@@ -680,7 +941,8 @@ require_map_families
 
 for seed in 0 1 18446744073709551615; do
 	enabled_output=$(checked_output 60 "activation seed=$seed mode=enabled iteration=0" -- \
-		env GODEBUG= GOMAXPROCS=8 GOMADSEED="$seed" "$go_bin" -C "$testdata_dir" run ./activation)
+		env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$seed" \
+		"$go_bin" -C "$testdata_dir" run -exec "$exec_wrapper" ./activation)
 	[[ "$enabled_output" == $'init GOMAXPROCS=1\nmain GOMAXPROCS=1' ]]
 done
 
@@ -778,11 +1040,11 @@ done
 cold_cache="$test_tmp/go-cache"
 mkdir -p "$cold_cache"
 cold_output=$(checked_output 60 'scheduler seed=1 mode=cold-cache iteration=0' -- \
-	env GOCACHE="$cold_cache" GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
-	"$go_bin" -C "$testdata_dir" run ./scheduler)
+	env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOCACHE="$cold_cache" GOMADV3_CHILD_SEED=1 \
+	"$go_bin" -C "$testdata_dir" run -exec "$exec_wrapper" ./scheduler)
 warm_output=$(checked_output 60 'scheduler seed=1 mode=warm-cache iteration=0' -- \
-	env GOCACHE="$cold_cache" GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
-	"$go_bin" -C "$testdata_dir" run ./scheduler)
+	env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOCACHE="$cold_cache" GOMADV3_CHILD_SEED=1 \
+	"$go_bin" -C "$testdata_dir" run -exec "$exec_wrapper" ./scheduler)
 [[ "$cold_output" == "$warm_output" ]]
 
 disabled_maps="$test_tmp/disabled-maps"
@@ -813,10 +1075,70 @@ for seed in 0 1 18446744073709551615; do
 	done
 done
 
+public_missing_seed_result="$test_tmp/public-missing-seed"
+gomad_run_checked 10 2 'public-gomadv3-run seed=unset mode=validation iteration=0' \
+	"$public_missing_seed_result" -- make --no-print-directory -C "$repo_root" gomadv3-run
+if ! grep -Fq 'GOMADSEED is required: make gomadv3-run' \
+	"$public_missing_seed_result/stdout" "$public_missing_seed_result/stderr"; then
+	printf 'public gomadv3-run missing-seed diagnostic is absent\n' >&2
+	exit 1
+fi
+
+public_missing_run_result="$test_tmp/public-missing-run"
+gomad_run_checked 10 2 'public-gomadv3-run seed=1 mode=validation iteration=0' \
+	"$public_missing_run_result" -- make --no-print-directory -C "$repo_root" gomadv3-run GOMADSEED=1
+if ! grep -Fq 'GOMADV3_RUN is required: make gomadv3-run' \
+	"$public_missing_run_result/stdout" "$public_missing_run_result/stderr"; then
+	printf 'public gomadv3-run missing-target diagnostic is absent\n' >&2
+	exit 1
+fi
+
+public_missing_packages_result="$test_tmp/public-missing-packages"
+gomad_run_checked 10 2 'public-gomadv3-test seed=1 mode=validation iteration=0' \
+	"$public_missing_packages_result" -- make --no-print-directory -C "$repo_root" gomadv3-test GOMADSEED=1
+if ! grep -Fq 'GOMADV3_PACKAGES is required: make gomadv3-test' \
+	"$public_missing_packages_result/stdout" "$public_missing_packages_result/stderr"; then
+	printf 'public gomadv3-test missing-packages diagnostic is absent\n' >&2
+	exit 1
+fi
+
+public_run=$(checked_output 120 'public-gomadv3-run seed=103 mode=clock iteration=0' -- \
+	make --no-print-directory -C "$repo_root" gomadv3-run GOMADSEED=103 \
+	GOMADV3_RUN=./tools/gomadv3/testdata/clock/main.go GOMADV3_ARGS=initial)
+if [[ "${public_run##*$'\n'}" != 'clock initial ok' ]]; then
+	printf 'public gomadv3-run emitted unexpected output: %q\n' "$public_run" >&2
+	exit 1
+fi
+
+public_seed_one=$(checked_output 120 'public-gomadv3-test seed=101 mode=fresh-process iteration=0' -- \
+	make --no-print-directory -C "$repo_root" gomadv3-test GOMADSEED=101 \
+	GOMADV3_PACKAGES=./tools/gomadv3roottestdata/tagged GOMADV3_ARGS=-run=TestTargetRequiresTestDep)
+public_seed_two=$(checked_output 120 'public-gomadv3-test seed=102 mode=fresh-process iteration=0' -- \
+	make --no-print-directory -C "$repo_root" gomadv3-test GOMADSEED=102 \
+	GOMADV3_PACKAGES=./tools/gomadv3roottestdata/tagged GOMADV3_ARGS=-run=TestTargetRequiresTestDep)
+if [[ $public_seed_one == *'(cached)'* ]] || [[ $public_seed_two == *'(cached)'* ]]; then
+	printf 'public gomadv3-test reused a cached result across seeds\n' >&2
+	exit 1
+fi
+if [[ $public_seed_one == *'[no test files]'* ]] || [[ $public_seed_two == *'[no test files]'* ]]; then
+	printf 'public gomadv3-test omitted the test_dep build tag\n' >&2
+	exit 1
+fi
+
+public_empty_seed_result="$test_tmp/public-empty-seed"
+gomad_run_checked 120 2 'public-gomadv3-test seed=empty mode=validation iteration=0' \
+	"$public_empty_seed_result" -- make --no-print-directory -C "$repo_root" gomadv3-test GOMADSEED= \
+	GOMADV3_PACKAGES=./tools/gomadv3roottestdata/tagged GOMADV3_ARGS=-run=TestTargetRequiresTestDep
+if ! grep -Fq 'runtime: invalid GOMADSEED' \
+	"$public_empty_seed_result/stdout" "$public_empty_seed_result/stderr"; then
+	printf 'public gomadv3-test did not leave empty-seed validation to the runtime\n' >&2
+	exit 1
+fi
+
 upstream_goroot="$test_tmp/upstream-go"
 ln -s "$actual_goroot" "$upstream_goroot"
-checked_output 600 'upstream-runtime seed=unset mode=disabled iteration=0' -- \
+checked_output 600 'upstream-clock seed=unset mode=disabled iteration=0' -- \
 	env -u GOMADSEED -u GO111MODULE -u GODEBUG -u GOWORK \
-	"$upstream_goroot/bin/go" -C "$upstream_goroot/src" test -tags=test_dep runtime
+	"$upstream_goroot/bin/go" -C "$upstream_goroot/src" test -tags=test_dep runtime time testing/synctest
 
 printf 'gomadv3 black-box tests passed\n'

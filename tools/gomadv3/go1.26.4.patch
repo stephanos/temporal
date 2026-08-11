@@ -1,3 +1,19 @@
+diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
+--- a/src/cmd/link/internal/ld/lib.go
++++ b/src/cmd/link/internal/ld/lib.go
+@@ -813,6 +813,12 @@ func (ctxt *Link) linksetup() {
+ 		sb.SetType(sym.SNOPTRDATA)
+ 		sb.AddUint8(1)
+ 	}
++	if ctxt.LinkMode == LinkExternal {
++		symIdx := ctxt.loader.LookupOrCreateSym("runtime.gomadExternal", 0)
++		sb := ctxt.loader.MakeSymbolUpdater(symIdx)
++		sb.SetType(sym.SNOPTRDATA)
++		sb.AddUint8(1)
++	}
+ 
+ 	// Recalculate pe parameters now that we have ctxt.LinkMode set.
+ 	if ctxt.HeadType == objabi.Hwindows {
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
@@ -32,7 +48,19 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -6478,7 +6486,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+@@ -6429,7 +6437,10 @@ func checkdead() {
+ 
+ 	// Maybe jump time forward for playground.
+ 	if faketime != 0 {
+-		if when := timeSleepUntil(); when < maxWhen {
++		if gomadEnabled && netpollAnyWaiters() {
++			return
++		}
++		if when, ok := timeSleepUntil(); when < maxWhen || gomadEnabled && ok {
+ 			faketime = when
+ 
+ 			// Start an M to steal the timer.
+@@ -6478,7 +6489,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -41,7 +69,16 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -7468,7 +7476,7 @@ func runqempty(pp *p) bool {
+@@ -6525,7 +6536,7 @@ func sysmon() {
+ 			lock(&sched.lock)
+ 			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
+ 				syscallWake := false
+-				next := timeSleepUntil()
++				next, _ := timeSleepUntil()
+ 				if next > now {
+ 					sched.sysmonwait.Store(true)
+ 					unlock(&sched.lock)
+@@ -7468,7 +7479,7 @@ func runqempty(pp *p) bool {
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -50,7 +87,7 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7604,6 +7612,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7604,6 +7615,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  	if next != 0 && pp.runnext.cas(next, 0) {
  		return next.ptr(), true
  	}
@@ -110,6 +147,74 @@ diff --git a/src/runtime/time.go b/src/runtime/time.go
  	return time_now()
  }
  
+@@ -61,6 +64,7 @@ type timer struct {
+ 	isFake bool         // timer is using fake time; immutable; can be read without lock
+ 
+ 	blocked uint32 // number of goroutines blocked on timer's channel
++	// Gomad timers also set rand even though they are not synctest timers.
+ 	rand    uint32 // randomizes order of timers at same instant; only set when isFake
+ 
+ 	// Timer wakes up at when, and then at when+period, ... (period > 0 only)
+@@ -303,6 +307,10 @@ func (t *timer) updateHeap() (updated bool) {
+ 
+ 	if t.state&timerModified != 0 {
+ 		// Update ts.heap[0].when and move within heap.
++		if gomadEnabled && !t.isFake {
++			// Timer comparisons read rand while holding ts.mu.
++			t.rand = cheaprand()
++		}
+ 		t.state &^= timerModified
+ 		ts.heap[0].when = t.when
+ 		ts.siftDown(0)
+@@ -736,10 +744,11 @@ func (t *timer) maybeAdd() {
+ 	when := int64(0)
+ 	wake := false
+ 	if t.needsAdd() {
+-		if t.isFake {
++		if t.isFake || gomadEnabled {
+ 			// Re-randomize timer order.
+ 			// We could do this for all timers, but unbubbled timers are highly
+ 			// unlikely to have the same when.
++			// Gomad's unbubbled timers use virtual time, so equal deadlines are common.
+ 			t.rand = cheaprand()
+ 		}
+ 		t.state |= timerHeaped
+@@ -958,6 +967,10 @@ func (ts *timers) adjust(now int64, force bool) {
+ 			changed = true
+ 
+ 		case t.state&timerModified != 0:
++			if gomadEnabled && !t.isFake {
++				// Timer comparisons read rand while holding ts.mu.
++				t.rand = cheaprand()
++			}
+ 			tw.when = t.when
+ 			t.state &^= timerModified
+ 			changed = true
+@@ -1319,7 +1332,8 @@ func (ts *timers) updateMinWhenModified(when int64) {
+ // timeSleepUntil returns the time when the next timer should fire. Returns
+ // maxWhen if there are no timers.
+ // This is only called by sysmon and checkdead.
+-func timeSleepUntil() int64 {
++func timeSleepUntil() (int64, bool) {
+ 	next := int64(maxWhen)
++	found := false
+ 
+ 	// Prevent allp slice changes. This is like retake.
+@@ -1332,11 +1346,12 @@ func timeSleepUntil() int64 {
+ 		}
+ 
+ 		if w := pp.timers.wakeTime(); w != 0 {
++			found = true
+ 			next = min(next, w)
+ 		}
+ 	}
+ 	unlock(&allpLock)
+ 
+-	return next
++	return next, found
+ }
+ 
+ const timerHeapN = 4
 diff --git a/src/runtime/time_nofake.go b/src/runtime/time_nofake.go
 --- a/src/runtime/time_nofake.go
 +++ b/src/runtime/time_nofake.go
