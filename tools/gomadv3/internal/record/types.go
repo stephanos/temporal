@@ -28,6 +28,7 @@ type Manifest struct {
 	Runner           Runner        `json:"runner"`
 	Toolchain        Toolchain     `json:"toolchain"`
 	Target           Target        `json:"target"`
+	IOProfile        IOProfile     `json:"io_profile"`
 	Environment      []Environment `json:"environment"`
 	Limits           Limits        `json:"limits"`
 	World            World         `json:"world"`
@@ -35,6 +36,22 @@ type Manifest struct {
 	Streams          Streams       `json:"streams"`
 	Files            []File        `json:"files"`
 	Host             Host          `json:"host"`
+}
+
+type IOProfile struct {
+	Name                 string        `json:"name"`
+	ImplementationSHA256 SHA256        `json:"implementation_sha256"`
+	Inventory            string        `json:"inventory"`
+	InventorySHA256      SHA256        `json:"inventory_sha256"`
+	Transcript           *IOTranscript `json:"transcript,omitempty"`
+}
+
+type IOTranscript struct {
+	Schema  string       `json:"schema"`
+	File    string       `json:"file"`
+	SHA256  SHA256       `json:"sha256"`
+	Bytes   Uint64String `json:"bytes"`
+	Records Uint64String `json:"records"`
 }
 
 type Runner struct {
@@ -85,6 +102,7 @@ type Limits struct {
 	TerminateGraceNanos  Uint64String `json:"terminate_grace_nanos"`
 	OutputBytes          Uint64String `json:"output_bytes"`
 	WorldTransitionBytes Uint64String `json:"world_transition_bytes"`
+	IOTranscriptBytes    Uint64String `json:"io_transcript_bytes"`
 }
 
 type World struct {

@@ -14,6 +14,28 @@ diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
  
  	// Recalculate pe parameters now that we have ctxt.LinkMode set.
  	if ctxt.HeadType == objabi.Hwindows {
+diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
+--- a/src/crypto/rand/rand.go
++++ b/src/crypto/rand/rand.go
+@@ -11,6 +11,7 @@ package rand
+ import (
+ 	"crypto/internal/boring"
+ 	"crypto/internal/fips140/drbg"
+ 	"crypto/internal/rand"
++	"internal/gomadio"
+ 	"io"
+ 	_ "unsafe"
+@@ -34,4 +35,10 @@ import (
+ var Reader io.Reader = rand.Reader
++
++func init() {
++	if gomadio.Enabled() {
++		Reader = gomadio.RandomReader()
++	}
++}
+ 
+ // fatal is [runtime.fatal], pushed via linkname.
+ //
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
@@ -228,3 +250,487 @@ diff --git a/src/runtime/time_nofake.go b/src/runtime/time_nofake.go
  	return nanotime1()
  }
  
+diff --git a/src/net/net.go b/src/net/net.go
+--- a/src/net/net.go
++++ b/src/net/net.go
+@@ -99,6 +99,7 @@
+ import (
+ 	"context"
+ 	"errors"
++	"internal/gomadio"
+ 	"internal/poll"
+ 	"io"
+ 	"os"
+@@ -193,6 +194,13 @@
+ 	if !c.ok() {
+ 		return 0, syscall.EINVAL
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		n, err := connection.Read(b)
++		if err != nil && err != io.EOF {
++			err = &OpError{Op: "read", Net: "tcp", Source: gomadTCPAddr(connection.LocalAddress()), Addr: gomadTCPAddr(connection.RemoteAddress()), Err: err}
++		}
++		return n, err
++	}
+ 	n, err := c.fd.Read(b)
+ 	if err != nil && err != io.EOF {
+ 		err = &OpError{Op: "read", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
+@@ -205,6 +213,13 @@
+ 	if !c.ok() {
+ 		return 0, syscall.EINVAL
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		n, err := connection.Write(b)
++		if err != nil {
++			err = &OpError{Op: "write", Net: "tcp", Source: gomadTCPAddr(connection.LocalAddress()), Addr: gomadTCPAddr(connection.RemoteAddress()), Err: err}
++		}
++		return n, err
++	}
+ 	n, err := c.fd.Write(b)
+ 	if err != nil {
+ 		err = &OpError{Op: "write", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
+@@ -217,6 +232,9 @@
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		return connection.Close()
++	}
+ 	err := c.fd.Close()
+ 	if err != nil {
+ 		err = &OpError{Op: "close", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
+@@ -230,6 +248,9 @@
+ func (c *conn) LocalAddr() Addr {
+ 	if !c.ok() {
+ 		return nil
++	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		return gomadTCPAddr(connection.LocalAddress())
+ 	}
+ 	return c.fd.laddr
+ }
+@@ -241,6 +262,9 @@
+ 	if !c.ok() {
+ 		return nil
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		return gomadTCPAddr(connection.RemoteAddress())
++	}
+ 	return c.fd.raddr
+ }
+ 
+@@ -249,6 +273,9 @@
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		return connection.SetDeadline(t)
++	}
+ 	if err := c.fd.SetDeadline(t); err != nil {
+ 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
+ 	}
+@@ -260,6 +287,9 @@
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		return connection.SetReadDeadline(t)
++	}
+ 	if err := c.fd.SetReadDeadline(t); err != nil {
+ 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
+ 	}
+@@ -271,6 +301,9 @@
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if connection := gomadConnection(c.fd); connection != nil {
++		return connection.SetWriteDeadline(t)
++	}
+ 	if err := c.fd.SetWriteDeadline(t); err != nil {
+ 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
+ 	}
+@@ -283,6 +316,9 @@
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if gomadConnection(c.fd) != nil {
++		return nil
++	}
+ 	if err := setReadBuffer(c.fd, bytes); err != nil {
+ 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
+ 	}
+@@ -294,6 +330,9 @@
+ func (c *conn) SetWriteBuffer(bytes int) error {
+ 	if !c.ok() {
+ 		return syscall.EINVAL
++	}
++	if gomadConnection(c.fd) != nil {
++		return nil
+ 	}
+ 	if err := setWriteBuffer(c.fd, bytes); err != nil {
+ 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
+@@ -312,6 +351,9 @@
+ // On Windows, the returned os.File's file descriptor is not usable
+ // on other processes.
+ func (c *conn) File() (f *os.File, err error) {
++	if gomadConnection(c.fd) != nil {
++		return nil, gomadio.ErrUnsupported
++	}
+ 	f, err = c.fd.dup()
+ 	if err != nil {
+ 		err = &OpError{Op: "file", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
+diff --git a/src/net/tcpsock.go b/src/net/tcpsock.go
+--- a/src/net/tcpsock.go
++++ b/src/net/tcpsock.go
+@@ -6,6 +6,7 @@
+ 
+ import (
+ 	"context"
++	"internal/gomadio"
+ 	"internal/strconv"
+ 	"io"
+ 	"net/netip"
+@@ -151,6 +152,9 @@
+ // SyscallConn returns a raw network connection.
+ // This implements the [syscall.Conn] interface.
+ func (c *TCPConn) SyscallConn() (syscall.RawConn, error) {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return nil, gomadio.ErrUnsupported
++	}
+ 	if !c.ok() {
+ 		return nil, syscall.EINVAL
+ 	}
+@@ -184,6 +188,11 @@
+ // CloseRead shuts down the reading side of the TCP connection.
+ // Most callers should just use Close.
+ func (c *TCPConn) CloseRead() error {
++	if c != nil {
++		if connection := gomadConnection(c.fd); connection != nil {
++			return connection.CloseRead()
++		}
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+@@ -196,6 +205,11 @@
+ // CloseWrite shuts down the writing side of the TCP connection.
+ // Most callers should just use Close.
+ func (c *TCPConn) CloseWrite() error {
++	if c != nil {
++		if connection := gomadConnection(c.fd); connection != nil {
++			return connection.CloseWrite()
++		}
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+@@ -220,6 +234,9 @@
+ // On some operating systems after sec seconds have elapsed any remaining
+ // unsent data may be discarded.
+ func (c *TCPConn) SetLinger(sec int) error {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return nil
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+@@ -232,6 +249,9 @@
+ // SetKeepAlive sets whether the operating system should send
+ // keep-alive messages on the connection.
+ func (c *TCPConn) SetKeepAlive(keepalive bool) error {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return nil
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+@@ -247,6 +267,9 @@
+ // Note that calling this method on Windows prior to Windows 10 version 1709
+ // will reset the KeepAliveInterval to the default system value, which is normally 1 second.
+ func (c *TCPConn) SetKeepAlivePeriod(d time.Duration) error {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return nil
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+@@ -261,6 +284,9 @@
+ // algorithm).  The default is true (no delay), meaning that data is
+ // sent as soon as possible after a Write.
+ func (c *TCPConn) SetNoDelay(noDelay bool) error {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return nil
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+@@ -280,6 +306,9 @@
+ // On Linux, more conditions are verified on kernels >= v5.16, improving
+ // the results.
+ func (c *TCPConn) MultipathTCP() (bool, error) {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return false, nil
++	}
+ 	if !c.ok() {
+ 		return false, syscall.EINVAL
+ 	}
+@@ -319,6 +348,19 @@
+ }
+ 
+ func dialTCP(ctx context.Context, dialer *Dialer, network string, laddr, raddr *TCPAddr) (*TCPConn, error) {
++	if gomadIOEnabled() {
++		if raddr == nil {
++			return nil, &OpError{Op: "dial", Net: network, Source: laddr.opAddr(), Addr: nil, Err: errMissingAddress}
++		}
++		if laddr != nil && laddr.Port != 0 || len(raddr.IP) != 0 && !raddr.IP.IsUnspecified() && !raddr.IP.IsLoopback() {
++			return nil, &OpError{Op: "dial", Net: network, Source: laddr.opAddr(), Addr: raddr, Err: gomadio.ErrUnsupported}
++		}
++		connection, err := gomadDialTCP(ctx, network, raddr.Port)
++		if err != nil {
++			return nil, &OpError{Op: "dial", Net: network, Source: laddr.opAddr(), Addr: raddr, Err: err}
++		}
++		return connection, nil
++	}
+ 	switch network {
+ 	case "tcp", "tcp4", "tcp6":
+ 	default:
+@@ -359,6 +401,9 @@
+ // The returned RawConn only supports calling Control. Read and
+ // Write return an error.
+ func (l *TCPListener) SyscallConn() (syscall.RawConn, error) {
++	if l != nil && gomadListener(l.fd) != nil {
++		return nil, gomadio.ErrUnsupported
++	}
+ 	if !l.ok() {
+ 		return nil, syscall.EINVAL
+ 	}
+@@ -371,6 +416,13 @@
+ 	if !l.ok() {
+ 		return nil, syscall.EINVAL
+ 	}
++	if listener := gomadListener(l.fd); listener != nil {
++		connection, err := listener.Accept()
++		if err != nil {
++			return nil, &OpError{Op: "accept", Net: "tcp", Source: nil, Addr: gomadTCPAddr(listener.Address()), Err: err}
++		}
++		return gomadTCPConn(connection), nil
++	}
+ 	c, err := l.accept()
+ 	if err != nil {
+ 		return nil, &OpError{Op: "accept", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
+@@ -384,6 +436,9 @@
+ 	if !l.ok() {
+ 		return nil, syscall.EINVAL
+ 	}
++	if listener := gomadListener(l.fd); listener != nil {
++		return l.AcceptTCP()
++	}
+ 	c, err := l.accept()
+ 	if err != nil {
+ 		return nil, &OpError{Op: "accept", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
+@@ -397,6 +452,9 @@
+ 	if !l.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if listener := gomadListener(l.fd); listener != nil {
++		return listener.Close()
++	}
+ 	if err := l.close(); err != nil {
+ 		return &OpError{Op: "close", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
+ 	}
+@@ -406,7 +464,14 @@
+ // Addr returns the listener's network address, a [*TCPAddr].
+ // The Addr returned is shared by all invocations of Addr, so
+ // do not modify it.
+-func (l *TCPListener) Addr() Addr { return l.fd.laddr }
++func (l *TCPListener) Addr() Addr {
++	if l != nil {
++		if listener := gomadListener(l.fd); listener != nil {
++			return gomadTCPAddr(listener.Address())
++		}
++	}
++	return l.fd.laddr
++}
+ 
+ // SetDeadline sets the deadline associated with the listener.
+ // A zero time value disables the deadline.
+@@ -414,6 +479,9 @@
+ 	if !l.ok() {
+ 		return syscall.EINVAL
+ 	}
++	if listener := gomadListener(l.fd); listener != nil {
++		return listener.SetDeadline(t)
++	}
+ 	return l.fd.SetDeadline(t)
+ }
+ 
+@@ -431,6 +499,9 @@
+ 	if !l.ok() {
+ 		return nil, syscall.EINVAL
+ 	}
++	if gomadListener(l.fd) != nil {
++		return nil, gomadio.ErrUnsupported
++	}
+ 	f, err = l.file()
+ 	if err != nil {
+ 		return nil, &OpError{Op: "file", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
+@@ -456,6 +527,16 @@
+ 	if laddr == nil {
+ 		laddr = &TCPAddr{}
+ 	}
++	if gomadIOEnabled() {
++		if len(laddr.IP) != 0 && !laddr.IP.IsUnspecified() && !laddr.IP.IsLoopback() {
++			return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: gomadio.ErrUnsupported}
++		}
++		listener, err := gomadListenTCP(network, laddr.Port)
++		if err != nil {
++			return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: err}
++		}
++		return listener, nil
++	}
+ 	sl := &sysListener{network: network, address: laddr.String()}
+ 	var (
+ 		ln  *TCPListener
+diff --git a/src/net/tcpsock_unix.go b/src/net/tcpsock_unix.go
+--- a/src/net/tcpsock_unix.go
++++ b/src/net/tcpsock_unix.go
+@@ -10,6 +10,9 @@
+ 
+ // SetKeepAliveConfig configures keep-alive messages sent by the operating system.
+ func (c *TCPConn) SetKeepAliveConfig(config KeepAliveConfig) error {
++	if c != nil && gomadConnection(c.fd) != nil {
++		return nil
++	}
+ 	if !c.ok() {
+ 		return syscall.EINVAL
+ 	}
+diff --git a/src/net/dial.go b/src/net/dial.go
+--- a/src/net/dial.go
++++ b/src/net/dial.go
+@@ -8,6 +8,7 @@
+ 	"context"
+ 	"internal/bytealg"
+ 	"internal/godebug"
++	"internal/gomadio"
+ 	"internal/nettrace"
+ 	"net/netip"
+ 	"syscall"
+@@ -526,6 +527,17 @@
+ func (d *Dialer) DialContext(ctx context.Context, network, address string) (Conn, error) {
+ 	ctx, cancel := d.dialCtx(ctx)
+ 	defer cancel()
++	if gomadIOEnabled() {
++		remoteAddress, err := gomadParseTCPAddress(network, address, false)
++		if err != nil {
++			return nil, &OpError{Op: "dial", Net: network, Source: d.LocalAddr, Addr: nil, Err: err}
++		}
++		localAddress, ok := d.LocalAddr.(*TCPAddr)
++		if d.LocalAddr != nil && !ok {
++			return nil, &OpError{Op: "dial", Net: network, Source: d.LocalAddr, Addr: remoteAddress, Err: gomadio.ErrUnsupported}
++		}
++		return dialTCP(ctx, d, network, localAddress, remoteAddress)
++	}
+ 
+ 	// Shadow the nettrace (if any) during resolve so Connect events don't fire for DNS lookups.
+ 	resolveCtx := ctx
+@@ -872,6 +884,13 @@
+ // The ctx argument is used while resolving the address on which to listen;
+ // it does not affect the returned Listener.
+ func (lc *ListenConfig) Listen(ctx context.Context, network, address string) (Listener, error) {
++	if gomadIOEnabled() {
++		localAddress, err := gomadParseTCPAddress(network, address, true)
++		if err != nil {
++			return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: nil, Err: err}
++		}
++		return ListenTCP(network, localAddress)
++	}
+ 	addrs, err := DefaultResolver.resolveAddrList(ctx, "listen", network, address, nil)
+ 	if err != nil {
+ 		return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: nil, Err: err}
+diff --git a/src/os/sys.go b/src/os/sys.go
+--- a/src/os/sys.go
++++ b/src/os/sys.go
+@@ -6,5 +6,8 @@
+ 
+ // Hostname returns the host name reported by the kernel.
+ func Hostname() (name string, err error) {
++	if gomadIOEnabled() {
++		return gomadHostname()
++	}
+ 	return hostname()
+ }
+diff --git a/src/os/file.go b/src/os/file.go
+--- a/src/os/file.go
++++ b/src/os/file.go
+@@ -325,6 +325,9 @@
+ // bits (before umask).
+ // If there is an error, it will be of type [*PathError].
+ func Mkdir(name string, perm FileMode) error {
++	if gomadIOEnabled() {
++		return gomadMkdir(name, perm)
++	}
+ 	longName := fixLongPath(name)
+ 	e := ignoringEINTR(func() error {
+ 		return syscall.Mkdir(longName, syscallMode(perm))
+diff --git a/src/os/path.go b/src/os/path.go
+--- a/src/os/path.go
++++ b/src/os/path.go
+@@ -17,6 +17,9 @@
+ // If path is already a directory, MkdirAll does nothing
+ // and returns nil.
+ func MkdirAll(path string, perm FileMode) error {
++	if gomadIOEnabled() {
++		return gomadMkdirAll(path, perm)
++	}
+ 	// Fast path: if we can tell whether path is a directory or file, stop with success or error.
+ 	dir, err := Stat(path)
+ 	if err == nil {
+diff --git a/src/os/stat.go b/src/os/stat.go
+--- a/src/os/stat.go
++++ b/src/os/stat.go
+@@ -9,6 +9,9 @@
+ // Stat returns a [FileInfo] describing the named file.
+ // If there is an error, it will be of type [*PathError].
+ func Stat(name string) (FileInfo, error) {
++	if gomadIOEnabled() {
++		return gomadStat(name)
++	}
+ 	testlog.Stat(name)
+ 	return statNolog(name)
+ }
+diff --git a/src/testing/testing.go b/src/testing/testing.go
+--- a/src/testing/testing.go
++++ b/src/testing/testing.go
+@@ -405,6 +405,7 @@ import (
+ 	"errors"
+ 	"flag"
+ 	"fmt"
++	"internal/gomadtrace"
+ 	"internal/race"
+ 	"io"
+ 	"math/rand"
+@@ -1972,6 +1973,9 @@ func tRunner(t *T, fn func(t *T)) {
+ 			for _, sub := range t.sub {
+ 				<-sub.signal
+ 			}
++			if t.parent == nil {
++				gomadtrace.TestingComplete()
++			}
+ 
+			// Run any cleanup callbacks, marking the test as running
+			// in case the cleanup hangs.
+@@ -2031,6 +2035,9 @@ func tRunner(t *T, fn func(t *T)) {
+ 	t.start = highPrecisionTimeNow()
+ 	t.resetRaces()
+ 	fn(t)
++	if t.parent != nil && t.parent.parent == nil {
++		gomadtrace.TestingComplete()
++	}
+ 
+ 	// code beyond here will not be executed when FailNow is invoked
+ 	t.mu.Lock()
+@@ -2341,3 +2348,4 @@ func (m *M) Run() (code int) {
+ 	defer func() {
+ 		code = m.exitCode
++		gomadtrace.TestingComplete()
+ 	}()

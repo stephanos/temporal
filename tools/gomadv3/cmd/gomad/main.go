@@ -124,6 +124,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	onFailure := flags.String("on-failure", string(runner.PolicyFirst), "first, budget, or all")
 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
+	ioProfile := flags.String("io-profile", "", "deterministic application I/O profile")
 	outputLimit := byteSize(8 << 20)
 	worldLimit := byteSize(64 << 20)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
@@ -153,7 +154,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.Config{
 		Seeds: *seeds, Parallel: *parallel, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		Artifacts: *artifacts, Environment: environment, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		Artifacts: *artifacts, Environment: environment, IOProfile: *ioProfile, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain,
