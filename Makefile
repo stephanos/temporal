@@ -162,10 +162,13 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomadv3-go gomadv3-run gomadv3-test
+.PHONY: gomadv3-go gomadv3-runner gomadv3-run gomadv3-test
 
 gomadv3-go:
 	@$(MAKE) -C tools/gomadv3 toolchain
+
+gomadv3-runner:
+	@$(MAKE) -C tools/gomadv3 runner
 
 gomadv3-run:
 	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomadv3-run GOMADSEED=<uint64> GOMADV3_RUN=<package>" >&2; exit 1; }

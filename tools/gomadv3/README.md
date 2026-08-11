@@ -22,6 +22,30 @@ The Make targets remove `GOMADSEED` from the custom `go` process and use Go's
 binary. Direct execution of a prebuilt binary remains
 `GOMADSEED=<seed> ./binary`.
 
+Build the bounded multi-seed Runner:
+
+```sh
+make gomadv3-runner
+```
+
+Explore `go run`, `go test`, or a prepared executable target, then replay a
+retained failure exactly or verify its immutable inputs without executing it:
+
+```sh
+tools/gomadv3/.bin/gomad explore --seeds 0-999 go-run ./cmd/example -- arg
+tools/gomadv3/.bin/gomad explore --seeds 0,7,42 go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad explore --seeds 0-99 exec --provenance ./example.provenance.json -- ./example arg
+tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/failures/sha256-*
+tools/gomadv3/.bin/gomad replay --verify-only .gomad/artifacts/v1/run-*/failures/sha256-*
+```
+
+The Runner prepares one immutable target, launches every seed in a fresh
+contained process and work directory, enforces wall deadlines, computes full
+stream hashes while retaining bounded output, and publishes canonical,
+content-addressed artifacts. Arguments following `--` use an argv-safe
+interface. Trusted tooling preparing an `exec` target must generate the typed
+provenance consumed by the Runner; an arbitrary binary is rejected.
+
 `GOMADV3_RUN`, `GOMADV3_PACKAGES`, and `GOMADV3_ARGS` are trusted Make recipe
 shell fragments, not an argv-safe public interface. Shell metacharacters and
 values that require quoting must be quoted for both Make and the recipe shell.
@@ -84,12 +108,37 @@ hash-randomization defense and must not be enabled in production. Each process
 uses one P, so run different seeds in separate processes for parallelism. The
 shared runtime random state also means program changes can change later choices.
 
+## World
+
+`world` is a pure in-memory model for deterministic events outside the Go
+runtime. It performs no host I/O, starts no goroutines, invokes no callbacks,
+and requires no runtime hook. Callers register requests, mark them ready, and
+explicitly quiesce to choose and deliver ready events.
+
+`world/mailbox` is the initial explicit adapter. It demonstrates lifecycle,
+snapshot/restore, and replay without giving World ownership of application
+state. `internal/worldrecord` composes World semantic records with the Runner's
+raw process record while keeping those identities separate. A target connects
+its World with `world/child.Open`, takes the session-owned World returned by
+`Session.World`, performs all modeled work, and calls
+`Session.Finish` after that work has stopped, or `Session.FinishError` for a
+typed World error. The trusted bootstrap validates replay input before target
+activation; `Open` installs that recorded initial World rather than accepting a
+target-created substitute and returns it through `Session.World` before modeled work.
+The session writes one bounded record with a structured idle, deadlock,
+capacity, invalid-input, or replay-divergence terminal result through inherited
+descriptors only at the process boundary, so host pipe readiness cannot affect
+event ordering. Connected replay requires the executing child to emit the same
+semantic bundle and fails closed if it is missing or divergent.
+
 ## Development
 
 Run source validation and the black-box suite with:
 
 ```sh
 make -C tools/gomadv3 test
+make -C tools/gomadv3 runner-test
+make -C tools/gomadv3 world-test
 ```
 
 The suite compares disabled `go run` and `go test` behavior with a local stock
