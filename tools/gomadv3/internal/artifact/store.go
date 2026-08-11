@@ -23,11 +23,12 @@ type Store struct {
 }
 
 type Input struct {
-	Manifest   record.Manifest
-	TargetPath string
-	Stdout     []byte
-	Stderr     []byte
-	World      record.WorldPayloads
+	Manifest     record.Manifest
+	TargetPath   string
+	Stdout       []byte
+	Stderr       []byte
+	IOTranscript []byte
+	World        record.WorldPayloads
 }
 
 type Artifact struct {
@@ -68,6 +69,9 @@ func (store Store) Publish(input Input) (Artifact, error) {
 	manifest.Target.File = "target"
 	manifest.Streams.Stdout.File = "stdout"
 	manifest.Streams.Stderr.File = "stderr"
+	if manifest.IOProfile.Transcript != nil {
+		manifest.IOProfile.Transcript.File = "io/transcript.bin"
+	}
 	manifest.Files = nil
 
 	targetFile, err := copyPayload(ctx, input.TargetPath, filepath.Join(staging, manifest.Target.File), manifest.Target.File, 0o700)
@@ -89,6 +93,21 @@ func (store Store) Publish(input Input) (Artifact, error) {
 	}
 	manifest.Streams.Stdout.RetainedSHA256 = stdoutFile.SHA256
 	manifest.Streams.Stderr.RetainedSHA256 = stderrFile.SHA256
+	files := []record.File{targetFile, stdoutFile, stderrFile}
+	if manifest.IOProfile.Transcript != nil {
+		transcript := manifest.IOProfile.Transcript
+		transcriptFile, err := writePayload(ctx, filepath.Join(staging, filepath.FromSlash(transcript.File)), transcript.File, input.IOTranscript, 0o600)
+		if err != nil {
+			return Artifact{}, err
+		}
+		if transcriptFile.SHA256 != transcript.SHA256 || transcriptFile.Size != transcript.Bytes {
+			return Artifact{}, errors.New("I/O transcript identity changed during publication")
+		}
+		files = append(files, transcriptFile)
+		if err := syncDirectoryContext(ctx, filepath.Join(staging, "io")); err != nil {
+			return Artifact{}, fmt.Errorf("sync I/O artifact directory: %w", err)
+		}
+	}
 
 	worldDirectory := filepath.Join(staging, "world")
 	if err := os.Mkdir(worldDirectory, 0o700); err != nil {
@@ -106,7 +125,6 @@ func (store Store) Publish(input Input) (Artifact, error) {
 		{path: manifest.World.Transitions.File, data: input.World.Transitions, hash: &manifest.World.Transitions.RawSHA256},
 		{path: manifest.World.Final.File, data: input.World.Final, hash: &manifest.World.Final.RawSHA256},
 	}
-	files := []record.File{targetFile, stdoutFile, stderrFile}
 	for _, payload := range worldFiles {
 		file, writeErr := writePayload(ctx, filepath.Join(staging, filepath.FromSlash(payload.path)), payload.path, payload.data, 0o600)
 		if writeErr != nil {

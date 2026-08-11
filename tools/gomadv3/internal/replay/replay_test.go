@@ -90,6 +90,14 @@ func TestReplayReportsFirstObservableDivergence(t *testing.T) {
 	}
 }
 
+func TestReplayReportsIOTranscriptOrdinalBeforeOutcome(t *testing.T) {
+	ordinal := uint64(4)
+	observed := process.Result{IOTranscript: process.IOTranscript{ReplayDivergence: &ordinal}}
+	if divergence := firstDivergence(record.Manifest{}, observed, nil); divergence != "io_profile.transcript.ordinal[4]" {
+		t.Fatalf("firstDivergence() = %q", divergence)
+	}
+}
+
 func TestReplayRejectsUnexpectedWorldRecord(t *testing.T) {
 	artifactPath, expected := replayArtifact(t)
 	core, err := world.New(world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 10, MaxPayloadBytes: 1024, MaxStringBytes: 64}})

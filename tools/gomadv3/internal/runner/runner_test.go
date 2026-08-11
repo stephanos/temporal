@@ -80,6 +80,38 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 	}
 }
 
+func TestRunResolvesRelativeArtifactRootBeforeTargetPreparation(t *testing.T) {
+	workingDirectory := t.TempDir()
+	originalDirectory, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(workingDirectory); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(originalDirectory); err != nil {
+			t.Error(err)
+		}
+	})
+	preparer := newFakePreparer(t)
+	executor := &fakeExecutor{}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config.Artifacts = "artifacts"
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(summary.BatchPath) {
+		t.Fatalf("batch path = %q, want absolute path", summary.BatchPath)
+	}
+	for _, directory := range executor.directories() {
+		if !filepath.IsAbs(directory) {
+			t.Fatalf("target working directory = %q, want absolute path", directory)
+		}
+	}
+}
+
 func TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem(t *testing.T) {
 	preparer := newFakePreparer(t)
 	executor := newFirstFailureExecutor(3)
@@ -239,6 +271,33 @@ func TestRunRejectsPreparedTargetMutationBeforeFailurePublication(t *testing.T) 
 	}
 }
 
+func TestRunRejectsIOProfileWhenPreparedTargetDoesNotMatch(t *testing.T) {
+	preparer := newFakePreparer(t)
+	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
+	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
+	config.Environment = nil
+	config.Target = target.Spec{
+		Kind: target.KindGoTest, Source: "./tests", Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"},
+	}
+	_, err := Run(context.Background(), config)
+	if err == nil || !strings.Contains(err.Error(), "requires a go-test target") {
+		t.Fatalf("Run() error = %v", err)
+	}
+}
+
+func TestValidateConfigRejectsUnknownIOProfileAndProfileEnvironment(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyFirst, 1)
+	config.IOProfile = "unknown/v1"
+	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "unknown I/O profile") {
+		t.Fatalf("validateConfig(unknown profile) error = %v", err)
+	}
+
+	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
+	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "does not accept target environment") {
+		t.Fatalf("validateConfig(profile environment) error = %v", err)
+	}
+}
+
 func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 	for name, environment := range map[string][]string{
 		"reserved":  {"GOMAXPROCS=2"},
@@ -327,6 +386,21 @@ func TestClassifyStableTargetDiagnostics(t *testing.T) {
 				t.Fatalf("outcome = %#v", outcome)
 			}
 		})
+	}
+}
+
+func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
+	preparer := newFakePreparer(t)
+	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
+	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
+	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
+		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
+	}, classifiedOutcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if manifest.IOProfile.Name != config.IOProfile || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
+		t.Fatalf("manifest I/O profile = %#v", manifest.IOProfile)
 	}
 }
 

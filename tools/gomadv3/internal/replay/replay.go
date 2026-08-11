@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
@@ -32,6 +33,7 @@ type Config struct {
 	VerifyOnly        bool
 	ToolchainRoot     string
 	SupervisorCommand []string
+	BootstrapCommand  []string
 	Executor          Executor
 }
 
@@ -123,13 +125,38 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 			return Result{}, fmt.Errorf("read replay initial World snapshot: %w", err)
 		}
 	}
+	var ioConfig []byte
+	var ioTranscriptLimit uint64
+	var expectedIOTranscript []byte
+	if manifest.IOProfile.Name != "" {
+		profile, profileErr := ioprofile.Resolve(manifest.IOProfile.Name)
+		if profileErr != nil {
+			return Result{}, profileErr
+		}
+		if string(profile.Inventory) != manifest.IOProfile.Inventory || profile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 {
+			return Result{}, errors.New("recorded I/O profile identity does not match this Runner")
+		}
+		ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
+		if err != nil {
+			return Result{}, err
+		}
+		ioTranscriptLimit = uint64(manifest.Limits.IOTranscriptBytes)
+		if manifest.IOProfile.Transcript == nil {
+			return Result{}, errors.New("recorded I/O profile has no complete transcript")
+		}
+		expectedIOTranscript, err = artifact.ReadPayload(opened, manifest.IOProfile.Transcript.File, ioTranscriptLimit)
+		if err != nil {
+			return Result{}, fmt.Errorf("read expected I/O transcript: %w", err)
+		}
+	}
 	observed, err := executor.Run(ctx, process.Request{
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
-		BootstrapCommand: []string{config.SupervisorCommand[0], "__target_bootstrap"},
+		BootstrapCommand: replayBootstrapCommand(config),
 		Args:             append([]string(nil), manifest.Target.Argv[1:]...), Argv0: manifest.Target.Argv[0], Dir: workDirectory, Env: environment,
 		RunTimeout: runTimeout, TerminateGrace: terminateGrace, OutputLimit: uint64(manifest.Limits.OutputBytes),
 		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		WorldSeed: uint64(manifest.Seed), ExpectedWorldInitial: expectedWorldInitial,
+		IOConfig: ioConfig, IOTranscriptLimit: ioTranscriptLimit, IOReplay: manifest.IOProfile.Name != "", ExpectedIOTranscript: expectedIOTranscript,
 	})
 	if err != nil {
 		return Result{}, fmt.Errorf("execute replay target: %w", err)
@@ -151,6 +178,13 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	return result, nil
 }
 
+func replayBootstrapCommand(config Config) []string {
+	if len(config.BootstrapCommand) != 0 {
+		return append([]string(nil), config.BootstrapCommand...)
+	}
+	return []string{config.SupervisorCommand[0], "__target_bootstrap"}
+}
+
 func preflight(config Config) (opened artifact.Artifact, retErr error) {
 	if config.ArtifactPath == "" {
 		return artifact.Artifact{}, fmt.Errorf("artifact path is required")
@@ -165,6 +199,15 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 		}
 	}()
 	manifest := opened.Manifest
+	if manifest.IOProfile.Name != "" {
+		profile, profileErr := ioprofile.Resolve(manifest.IOProfile.Name)
+		if profileErr != nil {
+			return artifact.Artifact{}, profileErr
+		}
+		if string(profile.Inventory) != manifest.IOProfile.Inventory || profile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 {
+			return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
+		}
+	}
 	if manifest.ReplayMode != record.ReplayExact && manifest.ReplayMode != record.ReplayDiagnostic {
 		return artifact.Artifact{}, fmt.Errorf("artifact replay mode %q cannot be executed", manifest.ReplayMode)
 	}
@@ -254,6 +297,9 @@ func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
 }
 
 func firstDivergence(manifest record.Manifest, observed process.Result, observedWorld *worldrecord.Bundle) string {
+	if observed.IOTranscript.ReplayDivergence != nil {
+		return fmt.Sprintf("io_profile.transcript.ordinal[%d]", *observed.IOTranscript.ReplayDivergence)
+	}
 	expected := manifest.Outcome
 	if expected.Termination == "timeout" {
 		if !observed.WatchdogTimeout {
@@ -276,6 +322,19 @@ func firstDivergence(manifest record.Manifest, observed process.Result, observed
 	}
 	if sha256Record(observed.Stderr.FullSHA256) != manifest.Streams.Stderr.FullSHA256 {
 		return "stderr.full_sha256"
+	}
+	if manifest.IOProfile.Transcript != nil {
+		if !observed.IOTranscript.Complete {
+			return "io_profile.transcript.complete"
+		}
+		if sha256Record(observed.IOTranscript.SHA256) != manifest.IOProfile.Transcript.SHA256 {
+			return "io_profile.transcript.sha256"
+		}
+		if record.Uint64String(observed.IOTranscript.Records) != manifest.IOProfile.Transcript.Records {
+			return "io_profile.transcript.records"
+		}
+	} else if observed.IOTranscript.Complete {
+		return "io_profile.transcript"
 	}
 	if manifest.World.Initial.Schema == "gomadv3.world.snapshot/v1" {
 		if observedWorld == nil {

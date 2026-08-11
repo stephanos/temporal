@@ -2,12 +2,16 @@ package process
 
 import (
 	"context"
+	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
 	"time"
 )
 
 type Termination string
+
+const maximumIOConfigBytes = 4096
 
 const (
 	TerminationExit   Termination = "exit"
@@ -29,6 +33,10 @@ type Request struct {
 	WorldTransitionLimit uint64
 	WorldSeed            uint64
 	ExpectedWorldInitial []byte
+	IOConfig             []byte
+	IOTranscriptLimit    uint64
+	IOReplay             bool
+	ExpectedIOTranscript []byte
 	StdoutHead           io.Writer
 	StderrHead           io.Writer
 }
@@ -46,6 +54,15 @@ type Result struct {
 	PGID            int
 	GroupGone       bool
 	WorldRecord     []byte
+	IOTranscript    IOTranscript
+}
+
+type IOTranscript struct {
+	Bytes            []byte
+	SHA256           [sha256.Size]byte
+	Records          uint64
+	Complete         bool
+	ReplayDivergence *uint64
 }
 
 func validateRequest(request Request) error {
@@ -75,6 +92,24 @@ func validateRequest(request Request) error {
 	}
 	if request.WorldRecordLimit == 0 || request.WorldTransitionLimit == 0 {
 		return fmt.Errorf("World record and transition limits must be positive")
+	}
+	if len(request.IOConfig) > maximumIOConfigBytes {
+		return errors.New("I/O configuration exceeds its bound")
+	}
+	if len(request.IOConfig) == 0 && request.IOTranscriptLimit != 0 {
+		return errors.New("I/O transcript limit requires an I/O configuration")
+	}
+	if request.IOTranscriptLimit > maximumIOTranscriptBytes {
+		return errors.New("I/O transcript limit exceeds its bound")
+	}
+	if request.IOReplay && request.IOTranscriptLimit == 0 {
+		return errors.New("I/O replay requires a transcript")
+	}
+	if !request.IOReplay && len(request.ExpectedIOTranscript) != 0 {
+		return errors.New("expected I/O transcript requires replay mode")
+	}
+	if len(request.ExpectedIOTranscript)%ioTranscriptRecordBytes != 0 || uint64(len(request.ExpectedIOTranscript)) > request.IOTranscriptLimit-ioTranscriptHeaderBytes {
+		return fmt.Errorf("invalid expected I/O transcript length %d", len(request.ExpectedIOTranscript))
 	}
 	return nil
 }

@@ -57,6 +57,33 @@ func TestFinalizeManifestSeparatesRunAndFailureIdentity(t *testing.T) {
 	}
 }
 
+func TestFinalizeManifestBindsIOProfileInventory(t *testing.T) {
+	firstInput := manifestFixture()
+	firstInput.IOProfile = IOProfile{
+		Name:                 "profile/v1",
+		ImplementationSHA256: HashBytes([]byte("implementation")),
+		Inventory:            `{"schema":"inventory/v1"}`,
+		InventorySHA256:      HashBytes([]byte(`{"schema":"inventory/v1"}`)),
+	}
+	firstInput.Environment = append(firstInput.Environment, Environment{Name: "GOMADV3_IO_PROFILE", Value: firstInput.IOProfile.Name})
+	sort.Slice(firstInput.Environment, func(i, j int) bool { return firstInput.Environment[i].Name < firstInput.Environment[j].Name })
+	first, _ := finalizedManifest(t, firstInput)
+
+	changedInput := firstInput
+	changedInput.IOProfile.Inventory = `{"schema":"inventory/v2"}`
+	changedInput.IOProfile.InventorySHA256 = HashBytes([]byte(changedInput.IOProfile.Inventory))
+	changed, _ := finalizedManifest(t, changedInput)
+	if first.RecordHash == changed.RecordHash {
+		t.Fatal("record hash omitted I/O profile inventory")
+	}
+
+	invalid := firstInput
+	invalid.IOProfile.InventorySHA256 = HashBytes([]byte("stale"))
+	if _, _, err := FinalizeManifest(invalid); err == nil || !strings.Contains(err.Error(), "inventory hash") {
+		t.Fatalf("FinalizeManifest(stale inventory hash) error = %v", err)
+	}
+}
+
 func TestIdentityProjectionsExcludeArtifactPaths(t *testing.T) {
 	first := manifestFixture()
 	second := manifestFixture()

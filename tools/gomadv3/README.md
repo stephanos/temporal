@@ -46,6 +46,44 @@ content-addressed artifacts. Arguments following `--` use an argv-safe
 interface. Trusted tooling preparing an `exec` target must generate the typed
 provenance consumed by the Runner; an arbitrary binary is rejected.
 
+### Temporal activity batch-cancel profile
+
+The `temporal-activity-api-batch-cancel/v1` profile runs the existing Temporal
+suite without changing its test, shared test infrastructure, or production
+code. It is intentionally restricted to Go 1.26.4 on `darwin/arm64`, the exact
+`./tests` package, the `test_dep` build tag, and the complete suite selector:
+
+```sh
+tools/gomadv3/.bin/gomad explore \
+  --io-profile temporal-activity-api-batch-cancel/v1 \
+  --seeds 7 --parallel 1 --run-timeout 2m --overall-timeout 5m \
+  --artifacts .gomad/qualify/seed-7 \
+  go-test ./tests -- '-test.run=^TestActivityAPIBatchCancelClientTestSuite$'
+```
+
+For this profile, Gomad replaces the reached loopback TCP operations, minimal
+directory metadata, hostname, and entropy stream with process-local in-memory
+implementations. A generated build overlay redirects the pinned
+`modernc.org/sqlite` VFS time and entropy sites without editing the module
+cache. Entropy is fixed by the profile and independent of `GOMADSEED`; that
+seed controls scheduling only.
+
+Every modeled operation is appended to a bounded shared-memory transcript.
+Failure artifacts retain the canonical transcript, and replay supplies it to
+the target through a read-only shared-memory region so divergence stops at the
+first mismatching ordinal:
+
+```sh
+tools/gomadv3/.bin/gomad replay ARTIFACT_DIR
+tools/gomadv3/.bin/gomad replay --verify-only ARTIFACT_DIR
+```
+
+Unsupported calls entering an inventoried shim fail closed before host I/O.
+This target-specific profile is not an OS sandbox: trusted target code must not
+bypass the reviewed boundaries with a direct raw syscall. DNS, non-loopback
+sockets, arbitrary files, subprocesses, cgo, plugins, and external linking are
+outside its supported contract.
+
 `GOMADV3_RUN`, `GOMADV3_PACKAGES`, and `GOMADV3_ARGS` are trusted Make recipe
 shell fragments, not an argv-safe public interface. Shell metacharacters and
 values that require quoting must be quoted for both Make and the recipe shell.

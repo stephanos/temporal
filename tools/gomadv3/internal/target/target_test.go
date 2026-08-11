@@ -3,6 +3,7 @@ package target
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,6 +62,57 @@ func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 	}
 }
 
+func TestPrepareGoRunUsesBuildOverlay(t *testing.T) {
+	module := writeModule(t, map[string]string{
+		"go.mod":  "module example.com/overlay\n\ngo 1.26.4\n",
+		"main.go": "package main\nimport \"fmt\"\nfunc main() { fmt.Println(\"original\") }\n",
+	})
+	replacement := filepath.Join(t.TempDir(), "main.go")
+	if err := os.WriteFile(replacement, []byte("package main\nimport \"fmt\"\nfunc main() { fmt.Println(\"overlay\") }\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	original, err := filepath.EvalSymlinks(filepath.Join(module, "main.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	replacement, err = filepath.EvalSymlinks(replacement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	overlay := filepath.Join(t.TempDir(), "overlay.json")
+	encoded, err := json.Marshal(map[string]any{"Replace": map[string]string{original: replacement}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(overlay, encoded, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := Prepare(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t), BuildOverlay: overlay,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	output, err := exec.Command(prepared.Path).CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(output) != "overlay\n" {
+		t.Fatalf("output = %q", output)
+	}
+}
+
+func TestReadModuleCacheUsesPinnedToolchain(t *testing.T) {
+	moduleCache, err := ReadModuleCache(context.Background(), toolchainRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(moduleCache)
+	if err != nil || !info.IsDir() || !filepath.IsAbs(moduleCache) {
+		t.Fatalf("module cache = %q, info = %#v, error = %v", moduleCache, info, err)
+	}
+}
+
 func TestPrepareGoTestAlwaysAddsTestDependencyTag(t *testing.T) {
 	module := writeModule(t, map[string]string{
 		"go.mod": "module example.com/targettest\n\ngo 1.26.4\n",
@@ -109,6 +161,7 @@ func TestPrepareScrubsDeterministicActivationFromBuild(t *testing.T) {
 	})
 	t.Setenv("GOMADSEED", "malformed-build-seed")
 	t.Setenv("GOMADV3_CHILD_SEED", "malformed-child-seed")
+	t.Setenv("GOROOT", filepath.Join(t.TempDir(), "missing-goroot"))
 	t.Setenv("GOWORK", filepath.Join(t.TempDir(), "missing.work"))
 	_, err := Prepare(context.Background(), Spec{
 		Kind:            KindGoRun,
