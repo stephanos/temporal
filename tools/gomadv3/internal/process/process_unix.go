@@ -28,6 +28,9 @@ const (
 	requestFD
 	worldRecordFD
 	targetIdentityFD
+	ioTranscriptFD
+	ioTerminalFD
+	ioExpectedFD
 )
 
 const (
@@ -37,6 +40,9 @@ const (
 	bootstrapWorldConfigFD
 	bootstrapWorldRecordFD
 	bootstrapIdentityFD
+	bootstrapIOTranscriptFD
+	bootstrapIOTerminalFD
+	bootstrapIOExpectedFD
 )
 
 type targetIdentity struct {
@@ -57,14 +63,20 @@ type supervisorRequest struct {
 	WorldTransitionLimit uint64        `json:"world_transition_limit"`
 	WorldSeed            uint64        `json:"world_seed"`
 	ExpectedWorldInitial []byte        `json:"expected_world_initial"`
+	IOConfig             []byte        `json:"io_config"`
+	IOTranscriptLimit    uint64        `json:"io_transcript_limit"`
+	IOReplay             bool          `json:"io_replay"`
 }
 
 type targetBootstrapRequest struct {
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
-	Argv0   string   `json:"argv0"`
-	Dir     string   `json:"dir"`
-	Env     []string `json:"env"`
+	Command           string   `json:"command"`
+	Args              []string `json:"args"`
+	Argv0             string   `json:"argv0"`
+	Dir               string   `json:"dir"`
+	Env               []string `json:"env"`
+	IOConfig          []byte   `json:"io_config"`
+	IOTranscriptLimit uint64   `json:"io_transcript_limit"`
+	IOReplay          bool     `json:"io_replay"`
 }
 
 type supervisorReport struct {
@@ -80,7 +92,7 @@ type supervisorReport struct {
 	Error           string      `json:"error,omitempty"`
 }
 
-func Run(ctx context.Context, request Request) (Result, error) {
+func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if err := validateRequest(request); err != nil {
 		return Result{}, err
 	}
@@ -101,6 +113,16 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	worldCapture, err := NewOutputCapture(request.WorldRecordLimit)
 	if err != nil {
 		return Result{}, fmt.Errorf("create World record capture: %w", err)
+	}
+	var ioBacking *ioTranscriptBacking
+	if request.IOTranscriptLimit != 0 {
+		ioBacking, err = newIOTranscriptBacking(request.IOTranscriptLimit, request.IOReplay, request.ExpectedIOTranscript)
+		if err != nil {
+			return Result{}, err
+		}
+		defer func() {
+			retErr = errors.Join(retErr, ioBacking.close())
+		}()
 	}
 
 	controlRead, controlWrite, err := os.Pipe()
@@ -149,6 +171,9 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	command := exec.Command(request.SupervisorCommand[0], request.SupervisorCommand[1:]...)
 	command.Env = append(os.Environ(), "GOMADV3_PROCESS_SUPERVISOR=1")
 	command.ExtraFiles = []*os.File{controlRead, reportWrite, stdoutWrite, stderrWrite, requestRead, worldWrite, identityWrite}
+	if ioBacking != nil {
+		command.ExtraFiles = append(command.ExtraFiles, ioBacking.file, ioBacking.terminalWrite, ioBacking.expected)
+	}
 	if err := command.Start(); err != nil {
 		return Result{}, fmt.Errorf("start supervisor: %w", err)
 	}
@@ -156,6 +181,18 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		controlRead.Close(), reportWrite.Close(), stdoutWrite.Close(), stderrWrite.Close(), requestRead.Close(), worldWrite.Close(), identityWrite.Close(),
 	); closeErr != nil {
 		return Result{}, errors.Join(fmt.Errorf("close inherited supervisor pipe ends: %w", closeErr), cleanupEarlySupervisor(command, controlWrite, reportRead, nil, deadline))
+	}
+	var ioTerminal <-chan []byte
+	if ioBacking != nil {
+		if err := closeFile(&ioBacking.terminalWrite); err != nil {
+			return Result{}, errors.Join(fmt.Errorf("close inherited I/O terminal writer: %w", err), cleanupEarlySupervisor(command, controlWrite, reportRead, nil, deadline))
+		}
+		terminal := make(chan []byte, 1)
+		go func() {
+			bytes, _ := io.ReadAll(io.LimitReader(ioBacking.terminalRead, ioTerminalBytes+1))
+			terminal <- bytes
+		}()
+		ioTerminal = terminal
 	}
 	identities := make(chan targetIdentity, 1)
 	go func() { identities <- readTargetIdentity(identityRead) }()
@@ -177,6 +214,9 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		WorldTransitionLimit: request.WorldTransitionLimit,
 		WorldSeed:            request.WorldSeed,
 		ExpectedWorldInitial: append([]byte(nil), request.ExpectedWorldInitial...),
+		IOConfig:             append([]byte(nil), request.IOConfig...),
+		IOTranscriptLimit:    request.IOTranscriptLimit,
+		IOReplay:             request.IOReplay,
 	}
 	if err := json.NewEncoder(requestWrite).Encode(wireRequest); err != nil {
 		cleanupErr := cleanupEarlySupervisor(command, controlWrite, reportRead, identities, deadline)
@@ -335,11 +375,19 @@ func Run(ctx context.Context, request Request) (Result, error) {
 			return Result{}, errors.Join(fmt.Errorf("capture target %s: %w", captured.name, captured.err), groupCleanupErr)
 		}
 	}
-	result := Result{
+	result = Result{
 		Captured:    true,
 		Stdout:      stdoutCapture.Result(),
 		Stderr:      stderrCapture.Result(),
 		WorldRecord: worldCapture.Result().Bytes,
+	}
+	if ioBacking != nil {
+		terminal := <-ioTerminal
+		transcript, transcriptErr := ioBacking.result(terminal)
+		if transcriptErr != nil {
+			return result, transcriptErr
+		}
+		result.IOTranscript = transcript
 	}
 	if started != nil {
 		result.PID = started.PID
@@ -472,11 +520,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
+	var ioTranscript, ioTerminal, ioExpected *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected))
 	}()
 
 	var request supervisorRequest
@@ -485,6 +534,14 @@ func SupervisorMain() (retErr error) {
 	}
 	if request.RunTimeout <= 0 || request.TerminateGrace < 0 || request.TerminateGrace > request.RunTimeout {
 		return fmt.Errorf("invalid supervisor deadline")
+	}
+	if request.IOTranscriptLimit != 0 {
+		ioTranscript = os.NewFile(ioTranscriptFD, "target-io-transcript")
+		ioTerminal = os.NewFile(ioTerminalFD, "target-io-terminal")
+		ioExpected = os.NewFile(ioExpectedFD, "target-io-expected")
+		if ioTranscript == nil || ioTerminal == nil || ioExpected == nil {
+			return errors.New("I/O transcript file descriptors are unavailable")
+		}
 	}
 	deadline := startedAt.Add(request.RunTimeout)
 	if len(request.ExpectedWorldInitial) != 0 {
@@ -530,6 +587,9 @@ func SupervisorMain() (retErr error) {
 		return errors.Join(err, bootstrapRead.Close(), bootstrapWrite.Close(), activationRead.Close(), activationWrite.Close(), readinessRead.Close(), readinessWrite.Close(), configRead.Close(), configWrite.Close())
 	}
 	target.ExtraFiles = []*os.File{bootstrapRead, activationRead, readinessWrite, configRead, worldRecord, identity}
+	if ioTranscript != nil {
+		target.ExtraFiles = append(target.ExtraFiles, ioTranscript, ioTerminal, ioExpected)
+	}
 	target.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err := target.Start(); err != nil {
 		return errors.Join(fmt.Errorf("start target bootstrap: %w", err), bootstrapRead.Close(), bootstrapWrite.Close(), activationRead.Close(), activationWrite.Close(), readinessRead.Close(), readinessWrite.Close(), configRead.Close(), configWrite.Close())
@@ -543,10 +603,10 @@ func SupervisorMain() (retErr error) {
 	if err := encoder.Encode(supervisorReport{Kind: "started", PID: pid, PGID: targetPGID}); err != nil {
 		return errors.Join(fmt.Errorf("report target start: %w", err), bootstrapRead.Close(), bootstrapWrite.Close(), activationRead.Close(), activationWrite.Close(), readinessRead.Close(), readinessWrite.Close(), configRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	if closeErr := errors.Join(bootstrapRead.Close(), activationRead.Close(), readinessWrite.Close(), configRead.Close(), closeOpenFile(&worldRecord)); closeErr != nil {
+	if closeErr := errors.Join(bootstrapRead.Close(), activationRead.Close(), readinessWrite.Close(), configRead.Close(), closeOpenFile(&worldRecord), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected)); closeErr != nil {
 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env}
+	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay}
 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}

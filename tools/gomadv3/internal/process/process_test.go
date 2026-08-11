@@ -3,6 +3,7 @@ package process
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -46,6 +47,41 @@ func TestRunCapturesTargetExitAndBothStreams(t *testing.T) {
 	}
 	if result.PID <= 0 || result.PGID != result.PID || !result.GroupGone {
 		t.Fatalf("process identity = pid %d pgid %d gone %v", result.PID, result.PGID, result.GroupGone)
+	}
+}
+
+func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
+	result, err := Run(context.Background(), Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=io-config"}, IOConfig: []byte("profile-frame"),
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Termination != TerminationExit || result.ExitCode != 0 || string(result.Stdout.Bytes) != "profile-frame" {
+		t.Fatalf("result = %#v, stdout = %q", result, result.Stdout.Bytes)
+	}
+}
+
+func TestValidateRequestRejectsExpectedIOTranscriptOutsideReplay(t *testing.T) {
+	request := Request{
+		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
+		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		IOConfig: []byte("profile-frame"), IOTranscriptLimit: 1 << 20,
+	}
+	request.ExpectedIOTranscript = make([]byte, ioTranscriptRecordBytes)
+	if err := validateRequest(request); err == nil || !strings.Contains(err.Error(), "requires replay mode") {
+		t.Fatalf("validateRequest() error = %v", err)
+	}
+	request.IOReplay = true
+	request.ExpectedIOTranscript = make([]byte, ioTranscriptRecordBytes-1)
+	if err := validateRequest(request); err == nil || !strings.Contains(err.Error(), "invalid expected I/O transcript length") {
+		t.Fatalf("validateRequest() error = %v", err)
 	}
 }
 
@@ -291,6 +327,18 @@ func TestTargetHelper(t *testing.T) {
 		}
 		if _, err := os.Stderr.Write(make([]byte, 1<<20)); err != nil {
 			os.Exit(9)
+		}
+		os.Exit(0)
+	case "io-config":
+		configuration := os.NewFile(5, "gomadv3-io-config")
+		if configuration == nil {
+			os.Exit(21)
+		}
+		if _, err := io.Copy(os.Stdout, configuration); err != nil {
+			os.Exit(22)
+		}
+		if err := configuration.Close(); err != nil {
+			os.Exit(23)
 		}
 		os.Exit(0)
 	case "spawn-child":

@@ -41,6 +41,8 @@ type Spec struct {
 	WorkingDir      string
 	PreparationRoot string
 	ToolchainRoot   string
+	BuildOverlay    string
+	BuildModFile    string
 }
 
 type ToolchainIdentity struct {
@@ -227,6 +229,32 @@ func ReadToolchainIdentity(root string) (ToolchainIdentity, error) {
 	}, nil
 }
 
+func ReadModuleCache(ctx context.Context, root string) (string, error) {
+	goCommand, err := filepath.Abs(filepath.Join(root, "bin", "go"))
+	if err != nil {
+		return "", fmt.Errorf("resolve pinned Go command: %w", err)
+	}
+	command := exec.CommandContext(ctx, goCommand, "env", "GOMODCACHE")
+	command.Env = preparationEnvironment()
+	output, err := command.Output()
+	if err != nil {
+		return "", fmt.Errorf("query pinned module cache: %w", err)
+	}
+	path := strings.TrimSuffix(string(output), "\n")
+	if path == "" || strings.Contains(path, "\n") || !filepath.IsAbs(path) {
+		return "", fmt.Errorf("pinned Go command returned invalid module cache %q", output)
+	}
+	path, err = filepath.EvalSymlinks(path)
+	if err != nil {
+		return "", fmt.Errorf("resolve pinned module cache: %w", err)
+	}
+	info, err := os.Stat(path)
+	if err != nil || !info.IsDir() {
+		return "", errors.New("pinned module cache is not a directory")
+	}
+	return path, nil
+}
+
 func WriteProvenance(path string, provenance Provenance) error {
 	wire := provenanceWire{
 		Schema:        provenanceSchema,
@@ -339,6 +367,12 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 		arguments = append(arguments, "test", "-c")
 	}
 	arguments = append(arguments, "-trimpath", "-o", targetPath)
+	if spec.BuildOverlay != "" {
+		arguments = append(arguments, "-overlay", spec.BuildOverlay)
+	}
+	if spec.BuildModFile != "" {
+		arguments = append(arguments, "-modfile", spec.BuildModFile)
+	}
 	if len(tags) > 0 {
 		arguments = append(arguments, "-tags", strings.Join(tags, ","))
 	}
@@ -418,7 +452,7 @@ func normalizeBuildTags(kind Kind, supplied []string) ([]string, error) {
 func preparationEnvironment() []string {
 	reserved := map[string]struct{}{
 		"CGO_ENABLED": {}, "GOMADSEED": {}, "GOMADV3_CHILD_SEED": {},
-		"GOENV": {}, "GOEXPERIMENT": {}, "GOFLAGS": {}, "GOTOOLCHAIN": {}, "GOWORK": {}, "TZ": {},
+		"GOENV": {}, "GOEXPERIMENT": {}, "GOFLAGS": {}, "GOROOT": {}, "GOTOOLCHAIN": {}, "GOWORK": {}, "TZ": {},
 	}
 	environment := make([]string, 0, len(os.Environ())+5)
 	for _, entry := range os.Environ() {

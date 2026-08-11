@@ -17,9 +17,16 @@ import (
 const (
 	targetWorldConfigFD = 3 + iota
 	targetWorldRecordFD
+	targetIOConfigFD
+	targetIOTranscriptFD
+	targetIOTerminalFD
+	targetIOExpectedFD
 )
 
-func BootstrapMain() error {
+func BootstrapMain() (retErr error) {
+	defer func() {
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD))
+	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
 		return errors.Join(err, closeDescriptors(bootstrapRequestFD, bootstrapActivationFD, bootstrapReadinessFD, bootstrapWorldConfigFD, bootstrapWorldRecordFD, bootstrapIdentityFD))
@@ -42,6 +49,9 @@ func BootstrapMain() error {
 	}
 	if request.Command == "" || request.Argv0 == "" || request.Dir == "" {
 		return errors.Join(fmt.Errorf("target bootstrap request is incomplete"), closeDescriptors(bootstrapActivationFD, bootstrapReadinessFD, bootstrapWorldConfigFD, bootstrapWorldRecordFD))
+	}
+	if len(request.IOConfig) > maximumIOConfigBytes {
+		return errors.Join(errors.New("target I/O configuration exceeds its bound"), closeDescriptors(bootstrapActivationFD, bootstrapReadinessFD, bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
 	written, err := syscall.Write(bootstrapReadinessFD, []byte{1})
 	if err != nil {
@@ -76,6 +86,14 @@ func BootstrapMain() error {
 	if err := closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD); err != nil {
 		return fmt.Errorf("close target bootstrap descriptors: %w", err)
 	}
+	if err := installIOConfig(request.IOConfig); err != nil {
+		return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD))
+	}
+	if request.IOTranscriptLimit != 0 {
+		if err := installIOTranscript(); err != nil {
+			return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD, targetIOConfigFD))
+		}
+	}
 	if err := os.Chdir(request.Dir); err != nil {
 		return fmt.Errorf("change target working directory: %w", err)
 	}
@@ -83,6 +101,46 @@ func BootstrapMain() error {
 	argv[0] = request.Argv0
 	argv = append(argv, request.Args...)
 	return syscall.Exec(request.Command, argv, request.Env)
+}
+
+func installIOTranscript() error {
+	if err := syscall.Dup2(bootstrapIOTranscriptFD, targetIOTranscriptFD); err != nil {
+		return fmt.Errorf("install target I/O transcript descriptor: %w", err)
+	}
+	if err := syscall.Dup2(bootstrapIOTerminalFD, targetIOTerminalFD); err != nil {
+		return errors.Join(fmt.Errorf("install target I/O terminal descriptor: %w", err), closeDescriptors(targetIOTranscriptFD))
+	}
+	if err := syscall.Dup2(bootstrapIOExpectedFD, targetIOExpectedFD); err != nil {
+		return errors.Join(fmt.Errorf("install target expected I/O transcript descriptor: %w", err), closeDescriptors(targetIOTranscriptFD, targetIOTerminalFD))
+	}
+	return closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD)
+}
+
+func installIOConfig(configuration []byte) error {
+	var descriptors [2]int
+	if err := syscall.Pipe(descriptors[:]); err != nil {
+		return fmt.Errorf("create target I/O configuration pipe: %w", err)
+	}
+	readDescriptor, writeDescriptor := descriptors[0], descriptors[1]
+	if len(configuration) != 0 {
+		written, err := syscall.Write(writeDescriptor, configuration)
+		if err != nil || written != len(configuration) {
+			return errors.Join(fmt.Errorf("write target I/O configuration: wrote %d: %w", written, err), closeDescriptors(readDescriptor, writeDescriptor))
+		}
+	}
+	if err := syscall.Close(writeDescriptor); err != nil {
+		return errors.Join(fmt.Errorf("close target I/O configuration writer: %w", err), closeDescriptors(readDescriptor))
+	}
+	if readDescriptor == targetIOConfigFD {
+		return nil
+	}
+	if err := syscall.Dup2(readDescriptor, targetIOConfigFD); err != nil {
+		return errors.Join(fmt.Errorf("install target I/O configuration descriptor: %w", err), closeDescriptors(readDescriptor))
+	}
+	if err := syscall.Close(readDescriptor); err != nil {
+		return errors.Join(fmt.Errorf("close target I/O configuration reader: %w", err), closeDescriptors(targetIOConfigFD))
+	}
+	return nil
 }
 
 func reportTargetIdentity() error {

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
@@ -61,6 +62,7 @@ type Config struct {
 	WorldTransitionLimit uint64
 	Artifacts            string
 	Environment          []string
+	IOProfile            string
 	Target               target.Spec
 	SupervisorCommand    []string
 	CoordinatorCommand   []string
@@ -83,14 +85,16 @@ type Summary struct {
 }
 
 type RunSummary struct {
-	SelectionOrdinal record.Uint64String `json:"selection_ordinal"`
-	Seed             record.Uint64String `json:"seed"`
-	Domain           string              `json:"domain"`
-	Reason           string              `json:"reason"`
-	Termination      string              `json:"termination"`
-	FailureSignature *record.SHA256      `json:"failure_signature"`
-	Artifact         *string             `json:"artifact"`
-	ElapsedNanos     record.Uint64String `json:"elapsed_nanos"`
+	SelectionOrdinal    record.Uint64String  `json:"selection_ordinal"`
+	Seed                record.Uint64String  `json:"seed"`
+	Domain              string               `json:"domain"`
+	Reason              string               `json:"reason"`
+	Termination         string               `json:"termination"`
+	FailureSignature    *record.SHA256       `json:"failure_signature"`
+	Artifact            *string              `json:"artifact"`
+	ElapsedNanos        record.Uint64String  `json:"elapsed_nanos"`
+	IOTranscriptSHA256  *record.SHA256       `json:"io_transcript_sha256"`
+	IOTranscriptRecords *record.Uint64String `json:"io_transcript_records"`
 }
 
 type HostError struct {
@@ -180,6 +184,10 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	if err != nil {
 		return Summary{}, err
 	}
+	config.Artifacts, err = filepath.Abs(config.Artifacts)
+	if err != nil {
+		return Summary{}, &HostError{Reason: "artifact_setup", Err: fmt.Errorf("resolve artifact root: %w", err)}
+	}
 	overallCtx, overallCancel := context.WithTimeout(ctx, config.OverallTimeout)
 	defer overallCancel()
 	runID, err := newRunID()
@@ -233,6 +241,24 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	}
 	config.Target.PreparationRoot = preparationRoot
 	preparer := config.Preparer
+	var selectedProfile *ioprofile.Profile
+	if config.IOProfile != "" {
+		profile, profileErr := ioprofile.Resolve(config.IOProfile)
+		if profileErr != nil {
+			return summary, profileErr
+		}
+		selectedProfile = &profile
+		if preparer == nil {
+			moduleCache, cacheErr := target.ReadModuleCache(overallCtx, config.Target.ToolchainRoot)
+			if cacheErr != nil {
+				return summary, cacheErr
+			}
+			config.Target, _, profileErr = profile.PrepareBuildOverlay(config.Target, moduleCache)
+			if profileErr != nil {
+				return summary, profileErr
+			}
+		}
+	}
 	if preparer == nil {
 		preparer = targetPreparer{}
 	}
@@ -246,6 +272,14 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			err = errors.Join(err, partialErr)
 		}
 		return summary, &HostError{Reason: reason, Err: err}
+	}
+	if selectedProfile != nil {
+		if profileErr := selectedProfile.ValidatePreparedTarget(config.Target, prepared, config.Environment); profileErr != nil {
+			return summary, profileErr
+		}
+		if !selectedProfile.Ready {
+			return summary, fmt.Errorf("I/O profile %q is not yet executable", selectedProfile.Name)
+		}
 	}
 	if err := os.RemoveAll(preparationPartial); err != nil {
 		return summary, &HostError{Reason: "partial_cleanup", Err: err}
@@ -294,10 +328,13 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			Domain: "runner", Reason: reason, Termination: "none",
 			ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone,
 		}
-		manifest := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest)
+		manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest)
+		if err != nil {
+			return fmt.Errorf("construct Runner failure manifest: %w", err)
+		}
 		published, err := store.Publish(artifact.Input{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, World: worldBundle.Payloads,
 		})
 		if err != nil {
 			return fmt.Errorf("publish Runner failure artifact: %w", err)
@@ -332,7 +369,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 
 	launch := func(job runJob) {
 		active++
-		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, batchPath, job, completions)
+		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, selectedProfile, batchPath, job, completions)
 	}
 	for active > 0 || !exhausted && !stopped {
 		for active < config.Parallel && !exhausted && !stopped && overallCtx.Err() == nil {
@@ -466,6 +503,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 				SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
 				Domain: "success", Reason: outcome.Reason, Termination: "exit", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 			}
+			setRunTranscript(&run, completion.result.IOTranscript)
 			if err := appendRun(runsWriter, runsFile, run); err != nil && hostFailure == nil {
 				hostFailure = &HostError{Reason: "runs_append", Err: err}
 				stopped = true
@@ -475,10 +513,18 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			continue
 		}
 
-		manifest := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest)
+		manifest, manifestErr := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest)
+		if manifestErr != nil {
+			if hostFailure == nil {
+				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
+				stopped = true
+				activeCancel()
+			}
+			continue
+		}
 		published, publishErr := store.Publish(artifact.Input{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, World: worldBundle.Payloads,
 		})
 		if publishErr != nil {
 			if hostFailure == nil {
@@ -517,6 +563,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, FailureSignature: &signature,
 			Artifact: &artifactRelative, ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 		}
+		setRunTranscript(&run, completion.result.IOTranscript)
 		if err := appendRun(runsWriter, runsFile, run); err != nil && hostFailure == nil {
 			hostFailure = &HostError{Reason: "runs_append", Err: err}
 			stopped = true
@@ -642,16 +689,29 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 	if config.Executor == nil && len(config.SupervisorCommand) == 0 {
 		return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
 	}
+	if config.IOProfile != "" {
+		profile, err := ioprofile.Resolve(config.IOProfile)
+		if err != nil {
+			return SeedSelection{}, nil, err
+		}
+		if len(config.Environment) != 0 {
+			return SeedSelection{}, nil, fmt.Errorf("I/O profile %q does not accept target environment additions", profile.Name)
+		}
+	}
 	environment, err := parseEnvironment(config.Environment)
 	if err != nil {
 		return SeedSelection{}, nil, err
+	}
+	if config.IOProfile != "" {
+		environment = append(environment, record.Environment{Name: "GOMADV3_IO_PROFILE", Value: config.IOProfile})
+		sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
 	}
 	return selection, environment, nil
 }
 
 func parseEnvironment(entries []string) ([]record.Environment, error) {
 	reserved := map[string]struct{}{
-		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))
@@ -674,7 +734,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config Config, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, batchPath string, job runJob, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config Config, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile *ioprofile.Profile, batchPath string, job runJob, completions chan<- runCompletion) {
 	startedAt := time.Now().UTC()
 	partial := filepath.Join(batchPath, ".partial", fmt.Sprintf("%020d-%d", job.ordinal, job.seed))
 	completion := runCompletion{job: job, startedAt: startedAt, partial: partial}
@@ -718,15 +778,28 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 	}
 	environment := environmentForSeed(baseEnvironment, job.seed)
 	arguments := append([]string(nil), prepared.Argv[1:]...)
-	completion.result, completion.err = executor.Run(ctx, process.Request{
-		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
-		BootstrapCommand: []string{config.SupervisorCommand[0], "__target_bootstrap"},
-		Dir:              filepath.Join(partial, "work"), Env: environmentStrings(environment), RunTimeout: config.RunTimeout,
-		TerminateGrace: config.TerminateGrace, OutputLimit: config.OutputLimit,
-		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: config.WorldTransitionLimit,
-		WorldSeed:  job.seed,
-		StdoutHead: stdoutHead, StderrHead: stderrHead,
-	})
+	var ioConfig []byte
+	if profile != nil {
+		ioConfig, completion.err = profile.BootstrapFrame(prepared, config.RunnerBuild, job.seed)
+	}
+	if completion.err == nil {
+		completion.result, completion.err = executor.Run(ctx, process.Request{
+			SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
+			BootstrapCommand: []string{config.SupervisorCommand[0], "__target_bootstrap"},
+			Dir:              filepath.Join(partial, "work"), Env: environmentStrings(environment), RunTimeout: config.RunTimeout,
+			TerminateGrace: config.TerminateGrace, OutputLimit: config.OutputLimit,
+			WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: config.WorldTransitionLimit,
+			WorldSeed: job.seed,
+			IOConfig:  append([]byte(nil), ioConfig...),
+			IOTranscriptLimit: func() uint64 {
+				if len(ioConfig) != 0 {
+					return 64 << 20
+				}
+				return 0
+			}(),
+			StdoutHead: stdoutHead, StderrHead: stderrHead,
+		})
+	}
 	if partialErr := writePartial(partial, job, "exited"); partialErr != nil {
 		completion.err = errors.Join(completion.err, partialErr)
 	}
@@ -831,7 +904,23 @@ func worldFailureReason(kind string) string {
 	}
 }
 
-func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome classifiedOutcome, runID string, recordedWorld record.World) record.Manifest {
+func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome classifiedOutcome, runID string, recordedWorld record.World) (record.Manifest, error) {
+	recordedProfile := record.IOProfile{}
+	if config.IOProfile != "" {
+		profile, err := ioprofile.Resolve(config.IOProfile)
+		if err != nil {
+			return record.Manifest{}, err
+		}
+		recordedProfile = record.IOProfile{
+			Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, Inventory: string(profile.Inventory), InventorySHA256: profile.InventorySHA256,
+		}
+		if completion.result.IOTranscript.Complete {
+			recordedProfile.Transcript = &record.IOTranscript{
+				Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: sha256Record(completion.result.IOTranscript.SHA256),
+				Bytes: record.Uint64String(len(completion.result.IOTranscript.Bytes)), Records: record.Uint64String(completion.result.IOTranscript.Records),
+			}
+		}
+	}
 	return record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: outcome.ArtifactKind, CreatedAt: completion.finishedAt.Format(time.RFC3339Nano), BatchID: runID,
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed), ReplayMode: outcome.ReplayMode,
@@ -841,17 +930,34 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 			Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), BuildInfo: prepared.BuildInfo,
 		},
+		IOProfile:   recordedProfile,
 		Environment: environmentForSeed(baseEnvironment, completion.job.seed),
 		Limits: record.Limits{
 			RunTimeoutNanos: record.Uint64String(config.RunTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout),
 			TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),
 			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
+			IOTranscriptBytes: func() record.Uint64String {
+				if config.IOProfile != "" {
+					return 64 << 20
+				}
+				return 0
+			}(),
 		},
 		World:   recordedWorld,
 		Outcome: record.Outcome{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline},
 		Streams: record.Streams{Stdout: streamRecord(completion.result.Stdout), Stderr: streamRecord(completion.result.Stderr)},
 		Host:    record.Host{StartedAt: completion.startedAt.Format(time.RFC3339Nano), FinishedAt: completion.finishedAt.Format(time.RFC3339Nano), ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt)},
+	}, nil
+}
+
+func setRunTranscript(run *RunSummary, transcript process.IOTranscript) {
+	if !transcript.Complete {
+		return
 	}
+	digest := sha256Record(transcript.SHA256)
+	records := record.Uint64String(transcript.Records)
+	run.IOTranscriptSHA256 = &digest
+	run.IOTranscriptRecords = &records
 }
 
 func streamRecord(output process.Output) record.Stream {

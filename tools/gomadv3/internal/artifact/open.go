@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -137,7 +138,7 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 			return fmt.Errorf("artifact entry %s is a symbolic link", relative)
 		}
 		if entry.IsDir() {
-			if relative != "world" {
+			if !listedDirectory(relative, expected) {
 				return fmt.Errorf("artifact contains unlisted directory %s", relative)
 			}
 			info, infoErr := root.Lstat(relative)
@@ -170,6 +171,16 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 		seen[filepath.FromSlash(relative)] = true
 	}
 	return nil
+}
+
+func listedDirectory(directory string, expected map[string]record.File) bool {
+	prefix := filepath.FromSlash(directory) + string(filepath.Separator)
+	for path := range expected {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, error) {
