@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"path"
 	"regexp"
@@ -142,7 +143,10 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	if err := validateTarget(manifest.Target); err != nil {
 		return err
 	}
-	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed)); err != nil {
+	if err := validateIOProfile(manifest.IOProfile); err != nil {
+		return err
+	}
+	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name); err != nil {
 		return err
 	}
 	if manifest.Limits.RunTimeoutNanos == 0 || manifest.Limits.OverallTimeoutNanos == 0 || manifest.Limits.OutputBytes == 0 || manifest.Limits.WorldTransitionBytes == 0 {
@@ -173,6 +177,15 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	if err := validateStream(files, "stderr", manifest.Streams.Stderr); err != nil {
 		return err
 	}
+	if manifest.IOProfile.Transcript != nil {
+		transcript := manifest.IOProfile.Transcript
+		if err := validateFileReference(files, transcript.File, transcript.SHA256, transcript.Bytes); err != nil {
+			return fmt.Errorf("I/O transcript file: %w", err)
+		}
+		if transcript.Bytes > manifest.Limits.IOTranscriptBytes {
+			return errors.New("I/O transcript file exceeds the recorded limit")
+		}
+	}
 	if err := validateFileReference(files, manifest.World.Initial.File, manifest.World.Initial.RawSHA256, files[manifest.World.Initial.File].Size); err != nil {
 		return fmt.Errorf("initial World file: %w", err)
 	}
@@ -190,6 +203,44 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	}
 	if _, err := time.Parse(time.RFC3339Nano, manifest.Host.FinishedAt); err != nil {
 		return fmt.Errorf("invalid host finish time: %w", err)
+	}
+	return nil
+}
+
+func validateIOProfile(profile IOProfile) error {
+	if profile.Name == "" {
+		if profile.ImplementationSHA256 != "" || profile.Inventory != "" || profile.InventorySHA256 != "" || profile.Transcript != nil {
+			return errors.New("incomplete I/O profile identity")
+		}
+		return nil
+	}
+	if err := validateSHA256(profile.ImplementationSHA256); err != nil {
+		return fmt.Errorf("invalid I/O profile implementation hash: %w", err)
+	}
+	if err := validateSHA256(profile.InventorySHA256); err != nil {
+		return fmt.Errorf("invalid I/O profile inventory hash: %w", err)
+	}
+	if HashBytes([]byte(profile.Inventory)) != profile.InventorySHA256 {
+		return errors.New("I/O profile inventory hash does not match its bytes")
+	}
+	var decoded any
+	if err := StrictDecode([]byte(profile.Inventory), &decoded); err != nil {
+		return fmt.Errorf("decode I/O profile inventory: %w", err)
+	}
+	canonical, err := CanonicalJSON(decoded)
+	if err != nil {
+		return fmt.Errorf("canonicalize I/O profile inventory: %w", err)
+	}
+	if !bytes.Equal(canonical, []byte(profile.Inventory)) {
+		return errors.New("I/O profile inventory is not canonical")
+	}
+	if profile.Transcript != nil {
+		if profile.Transcript.Schema != "gomadv3.io-transcript/v1" || profile.Transcript.File != "io/transcript.bin" {
+			return errors.New("invalid I/O transcript identity")
+		}
+		if err := validateSHA256(profile.Transcript.SHA256); err != nil {
+			return fmt.Errorf("invalid I/O transcript hash: %w", err)
+		}
 	}
 	return nil
 }
@@ -233,7 +284,7 @@ func validateTarget(target Target) error {
 	return nil
 }
 
-func validateEnvironment(environment []Environment, seed uint64) error {
+func validateEnvironment(environment []Environment, seed uint64, ioProfile string) error {
 	reserved := map[string]struct{}{
 		"GOMADV3_CHILD_SEED": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LIBPATH": {}, "SHLIB_PATH": {},
@@ -241,6 +292,8 @@ func validateEnvironment(environment []Environment, seed uint64) error {
 	previous := ""
 	foundSeed := false
 	foundTimezone := false
+	foundIOProfile := false
+	hasIOProfile := false
 	for index, entry := range environment {
 		if !environmentNamePattern.MatchString(entry.Name) || strings.IndexByte(entry.Value, 0) >= 0 {
 			return fmt.Errorf("invalid environment entry %q", entry.Name)
@@ -255,12 +308,18 @@ func validateEnvironment(environment []Environment, seed uint64) error {
 		switch entry.Name {
 		case "GOMADSEED":
 			foundSeed = entry.Value == fmt.Sprintf("%d", seed)
+		case "GOMADV3_IO_PROFILE":
+			hasIOProfile = true
+			foundIOProfile = ioProfile != "" && entry.Value == ioProfile
 		case "TZ":
 			foundTimezone = entry.Value == "UTC"
 		}
 	}
 	if !foundSeed || !foundTimezone {
 		return fmt.Errorf("environment must contain the recorded GOMADSEED and TZ=UTC")
+	}
+	if hasIOProfile != (ioProfile != "") || hasIOProfile && !foundIOProfile {
+		return errors.New("environment must match the recorded I/O profile")
 	}
 	return nil
 }
@@ -447,27 +506,29 @@ func sortedBuildSettings(settings []BuildSetting) bool {
 }
 
 type recordProjection struct {
-	SchemaVersion uint32            `json:"schema_version"`
-	Runner        Runner            `json:"runner"`
-	Toolchain     Toolchain         `json:"toolchain"`
-	Target        targetProjection  `json:"target"`
-	Environment   []Environment     `json:"environment"`
-	Limits        Limits            `json:"limits"`
-	Seed          Uint64String      `json:"seed"`
-	World         worldProjection   `json:"world"`
-	Outcome       outcomeProjection `json:"outcome"`
-	Streams       streamsProjection `json:"streams"`
+	SchemaVersion uint32              `json:"schema_version"`
+	Runner        Runner              `json:"runner"`
+	Toolchain     Toolchain           `json:"toolchain"`
+	Target        targetProjection    `json:"target"`
+	IOProfile     ioProfileProjection `json:"io_profile"`
+	Environment   []Environment       `json:"environment"`
+	Limits        Limits              `json:"limits"`
+	Seed          Uint64String        `json:"seed"`
+	World         worldProjection     `json:"world"`
+	Outcome       outcomeProjection   `json:"outcome"`
+	Streams       streamsProjection   `json:"streams"`
 }
 
 type failureProjection struct {
-	SchemaVersion uint32            `json:"schema_version"`
-	Toolchain     Toolchain         `json:"toolchain"`
-	Target        targetProjection  `json:"target"`
-	Environment   []Environment     `json:"environment"`
-	World         worldProjection   `json:"world"`
-	Outcome       outcomeProjection `json:"outcome"`
-	StdoutSHA256  SHA256            `json:"stdout_sha256"`
-	StderrSHA256  SHA256            `json:"stderr_sha256"`
+	SchemaVersion uint32              `json:"schema_version"`
+	Toolchain     Toolchain           `json:"toolchain"`
+	Target        targetProjection    `json:"target"`
+	IOProfile     ioProfileProjection `json:"io_profile"`
+	Environment   []Environment       `json:"environment"`
+	World         worldProjection     `json:"world"`
+	Outcome       outcomeProjection   `json:"outcome"`
+	StdoutSHA256  SHA256              `json:"stdout_sha256"`
+	StderrSHA256  SHA256              `json:"stderr_sha256"`
 }
 
 type targetProjection struct {
@@ -477,6 +538,21 @@ type targetProjection struct {
 	Argv      []string     `json:"argv"`
 	BuildTags []string     `json:"build_tags"`
 	BuildInfo BuildInfo    `json:"build_info"`
+}
+
+type ioProfileProjection struct {
+	Name                 string                  `json:"name"`
+	ImplementationSHA256 SHA256                  `json:"implementation_sha256"`
+	Inventory            string                  `json:"inventory"`
+	InventorySHA256      SHA256                  `json:"inventory_sha256"`
+	Transcript           *ioTranscriptProjection `json:"transcript,omitempty"`
+}
+
+type ioTranscriptProjection struct {
+	Schema  string       `json:"schema"`
+	SHA256  SHA256       `json:"sha256"`
+	Bytes   Uint64String `json:"bytes"`
+	Records Uint64String `json:"records"`
 }
 
 type outcomeProjection struct {
@@ -529,6 +605,7 @@ func recordProjectionOf(manifest Manifest) recordProjection {
 		Runner:        manifest.Runner,
 		Toolchain:     manifest.Toolchain,
 		Target:        projectTarget(manifest.Target),
+		IOProfile:     projectIOProfile(manifest.IOProfile),
 		Environment:   manifest.Environment,
 		Limits:        manifest.Limits,
 		Seed:          manifest.Seed,
@@ -549,12 +626,25 @@ func failureProjectionOf(manifest Manifest) failureProjection {
 		SchemaVersion: manifest.SchemaVersion,
 		Toolchain:     manifest.Toolchain,
 		Target:        projectTarget(manifest.Target),
+		IOProfile:     projectIOProfile(manifest.IOProfile),
 		Environment:   environment,
 		World:         projectWorld(manifest.World),
 		Outcome:       projectOutcome(manifest.Outcome),
 		StdoutSHA256:  manifest.Streams.Stdout.FullSHA256,
 		StderrSHA256:  manifest.Streams.Stderr.FullSHA256,
 	}
+}
+
+func projectIOProfile(profile IOProfile) ioProfileProjection {
+	projected := ioProfileProjection{
+		Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, Inventory: profile.Inventory, InventorySHA256: profile.InventorySHA256,
+	}
+	if profile.Transcript != nil {
+		projected.Transcript = &ioTranscriptProjection{
+			Schema: profile.Transcript.Schema, SHA256: profile.Transcript.SHA256, Bytes: profile.Transcript.Bytes, Records: profile.Transcript.Records,
+		}
+	}
+	return projected
 }
 
 func projectTarget(target Target) targetProjection {
