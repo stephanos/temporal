@@ -1,8 +1,9 @@
 # GOMAD runtime-simulation gaps
 
-[`GOMAD.md`](GOMAD.md) explains gomad's intended boundary well, but it does not
-fully describe the implementation risk inside that boundary. The missing point
-is that gomad is not simply a mocked Go runtime. It is a hybrid of AST
+[`GOMADv2_REFACTOR.md`](GOMADv2_REFACTOR.md) describes the boundary between
+translated code and the simulator runtime, but it does not fully describe the
+implementation risk inside that boundary. The missing point is that gomad is
+not simply a mocked Go runtime. It is a hybrid of AST
 translation, Go-version-specific standard-library hooks, a custom deterministic
 runtime, and a simulated Linux syscall layer.
 
