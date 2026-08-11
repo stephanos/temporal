@@ -3,6 +3,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$script_dir/testlib.sh"
 go_bin="$script_dir/.toolchain/bin/go"
 patch_file=${GOMADV3_PATCH_FILE:-"$script_dir/go1.26.4.patch"}
 overlay_dir=${GOMADV3_OVERLAY_DIR:-"$script_dir/overlay"}
@@ -152,7 +153,11 @@ fi
 
 build_key=$(<"$script_dir/.toolchain/build-key")
 expected_goroot="$script_dir/.toolchain/builds/$build_key"
-actual_goroot=$("$go_bin" env GOROOT)
+initial_goroot_result=$(mktemp -d)
+gomad_run_checked 10 0 'go-env seed=unset mode=initial-goroot iteration=0' "$initial_goroot_result" -- \
+	"$go_bin" env GOROOT
+actual_goroot=$(<"$initial_goroot_result/stdout")
+rm -rf "$initial_goroot_result"
 if [[ "$actual_goroot" != "$expected_goroot" ]]; then
 	printf 'gomadv3 stable path is stale: expected %s, got %s\n' "$expected_goroot" "$actual_goroot" >&2
 	exit 1
@@ -198,16 +203,30 @@ cleanup() {
 }
 
 trap cleanup EXIT
+
+checked_output() {
+	local seconds=$1
+	local label=$2
+	shift 2
+	local result_dir
+	result_dir=$(mktemp -d "$test_tmp/process.XXXXXX")
+	gomad_run_checked "$seconds" 0 "$label" "$result_dir" "$@"
+	if [[ -s "$result_dir/stderr" ]]; then
+		while IFS= read -r line || [[ -n "$line" ]]; do
+			printf '%s\n' "$line" >&2
+		done <"$result_dir/stderr"
+	fi
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		printf '%s\n' "$line"
+	done <"$result_dir/stdout"
+}
+
 printf 'not a patch\n' >"$bad_patch"
-set +e
-GOMADV3_PATCH_FILE="$bad_patch" "$script_dir/build.sh" >/dev/null 2>&1
-failed_build_status=$?
-set -e
-if [[ $failed_build_status -eq 0 ]]; then
-	printf 'gomadv3 builder accepted an invalid patch\n' >&2
-	exit 1
-fi
-if [[ $("$go_bin" env GOROOT) != "$expected_goroot" ]]; then
+bad_patch_result="$test_tmp/bad-patch"
+gomad_run_checked 60 1 'builder seed=unset mode=invalid-patch iteration=0' "$bad_patch_result" -- \
+	env GOMADV3_PATCH_FILE="$bad_patch" "$script_dir/build.sh"
+if [[ $(checked_output 10 'go-env seed=unset mode=after-invalid-patch iteration=0' -- \
+	"$go_bin" env GOROOT) != "$expected_goroot" ]]; then
 	printf 'failed gomadv3 build replaced the stable toolchain\n' >&2
 	exit 1
 fi
@@ -216,23 +235,18 @@ require_rejected_overlay() {
 	local overlay=$1
 	local reason=$2
 	local expected=$3
-	local status
-	set +e
-	GOMADV3_OVERLAY_DIR="$overlay" "$script_dir/build.sh" >"$test_tmp/rejected-overlay.output" 2>&1
-	status=$?
-	set -e
-	if [[ $status -eq 0 ]]; then
-		printf 'gomadv3 builder accepted %s overlay\n' "$reason" >&2
-		exit 1
-	fi
-	if ! grep -Fq "$expected" "$test_tmp/rejected-overlay.output"; then
+	local result_dir="$test_tmp/rejected-overlay-$reason"
+	gomad_run_checked 60 1 "builder seed=unset mode=rejected-$reason-overlay iteration=0" "$result_dir" -- \
+		env GOMADV3_OVERLAY_DIR="$overlay" "$script_dir/build.sh"
+	if ! grep -Fq "$expected" "$result_dir/stdout" "$result_dir/stderr"; then
 		printf 'gomadv3 builder rejected %s overlay for an unexpected reason:\n' "$reason" >&2
 		while IFS= read -r line; do
 			printf '%s\n' "$line" >&2
-		done <"$test_tmp/rejected-overlay.output"
+		done <"$result_dir/stderr"
 		exit 1
 	fi
-	if [[ $("$go_bin" env GOROOT) != "$expected_goroot" ]]; then
+	if [[ $(checked_output 10 "go-env seed=unset mode=after-rejected-$reason-overlay iteration=0" -- \
+		"$go_bin" env GOROOT) != "$expected_goroot" ]]; then
 		printf 'rejected %s overlay replaced stable toolchain\n' "$reason" >&2
 		exit 1
 	fi
@@ -286,21 +300,30 @@ stale_lock="$script_dir/.toolchain/locks/$build_key"
 mkdir "$stale_lock"
 printf '999999\n' >"$stale_lock/owner.stale-test"
 
-"$script_dir/build.sh" >"$test_tmp/build.first" &
+first_build_result="$test_tmp/build-first"
+second_build_result="$test_tmp/build-second"
+gomad_run_checked 60 0 'builder seed=unset mode=concurrent-cached iteration=first' "$first_build_result" -- \
+	"$script_dir/build.sh" &
 first_build=$!
-"$script_dir/build.sh" >"$test_tmp/build.second" &
+gomad_run_checked 60 0 'builder seed=unset mode=concurrent-cached iteration=second' "$second_build_result" -- \
+	"$script_dir/build.sh" &
 second_build=$!
-set +e
-wait "$first_build"
-first_build_status=$?
-wait "$second_build"
-second_build_status=$?
-set -e
+if wait "$first_build"; then
+	first_build_status=0
+else
+	first_build_status=$?
+fi
+if wait "$second_build"; then
+	second_build_status=0
+else
+	second_build_status=$?
+fi
 if [[ $first_build_status -ne 0 || $second_build_status -ne 0 ]]; then
 	printf 'concurrent gomadv3 cached builds failed: %d, %d\n' "$first_build_status" "$second_build_status" >&2
 	exit 1
 fi
-if [[ $("$go_bin" env GOROOT) != "$expected_goroot" ]]; then
+if [[ $(checked_output 10 'go-env seed=unset mode=after-concurrent-cached iteration=0' -- \
+	"$go_bin" env GOROOT) != "$expected_goroot" ]]; then
 	printf 'concurrent gomadv3 builds replaced the stable toolchain\n' >&2
 	exit 1
 fi
@@ -333,7 +356,10 @@ fi
 run_enabled() {
 	local seed=$1
 	local package=$2
-	env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" \
+	local mode=${3:-enabled}
+	local iteration=${4:-0}
+	checked_output 60 "$package seed=$seed mode=$mode iteration=$iteration" -- \
+		env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" \
 		"$go_bin" -C "$testdata_dir" run "$package"
 }
 
@@ -342,10 +368,10 @@ require_repeatable() {
 	local seed=$2
 	local runs=${3:-100}
 	local expected
-	expected=$(run_enabled "$seed" "$package")
+	expected=$(run_enabled "$seed" "$package" repeatable 0)
 	for ((run = 1; run < runs; run++)); do
 		local actual
-		actual=$(run_enabled "$seed" "$package")
+		actual=$(run_enabled "$seed" "$package" repeatable "$run")
 		if [[ "$actual" != "$expected" ]]; then
 			printf 'same-seed output diverged for %s seed %s on run %d\n' "$package" "$seed" "$run" >&2
 			if [[ "$package" == ./maps ]]; then
@@ -371,7 +397,7 @@ require_diverse() {
 	outputs=$(mktemp)
 	trap 'rm -f "$outputs"' RETURN
 	for seed in {0..31}; do
-		run_enabled "$seed" "$package" | shasum -a 256 >>"$outputs"
+		run_enabled "$seed" "$package" diverse "$seed" | shasum -a 256 >>"$outputs"
 	done
 	if [[ $(sort -u "$outputs" | wc -l) -le 1 ]]; then
 		printf 'different seeds produced no diversity for %s\n' "$package" >&2
@@ -398,7 +424,7 @@ require_map_families() {
 	local family_dir="$test_tmp/map-families"
 	mkdir -p "$family_dir"
 	for seed in {0..31}; do
-		output=$(run_enabled "$seed" ./maps)
+		output=$(run_enabled "$seed" ./maps map-families "$seed")
 		for family in "${map_family_labels[@]}"; do
 			line=$(grep "^$family:" <<<"$output" || true)
 			if [[ -z "$line" ]]; then
@@ -421,55 +447,38 @@ require_map_families() {
 }
 
 require_invalid_seed() {
-	local seed=$1
-	local output
-	local status
-	set +e
-	output=$(env GOMADSEED="$seed" "$go_bin" -C "$testdata_dir" run ./activation 2>&1)
-	status=$?
-	set -e
-	if [[ $status -eq 0 || "$output" != *"invalid GOMADSEED"* ]]; then
-		printf 'expected GOMADSEED=%q to fail before init, status=%d output=%s\n' "$seed" "$status" "$output" >&2
+	local binary=$1
+	local seed=$2
+	local case_name=$3
+	local result_dir
+	result_dir=$(mktemp -d "$test_tmp/invalid-seed.XXXXXX")
+	gomad_run_checked 10 2 "activation seed=$case_name mode=invalid-direct iteration=0" "$result_dir" -- \
+		env GOMADSEED="$seed" "$binary"
+	printf 'runtime: invalid GOMADSEED\n' >"$result_dir/expected-stderr"
+	if [[ -s "$result_dir/stdout" ]] || ! cmp -s "$result_dir/expected-stderr" "$result_dir/stderr"; then
+		printf 'invalid GOMADSEED=%q reached user initialization or emitted an unexpected diagnostic\n' "$seed" >&2
 		exit 1
 	fi
 }
 
-run_with_timeout() {
-	local seconds=$1
-	shift
-	perl -e '
-		my $seconds = shift @ARGV;
-		my $pid = fork();
-		die "fork failed: $!\n" unless defined $pid;
-		if ($pid == 0) {
-			exec @ARGV;
-			exit 127;
-		}
-		$SIG{ALRM} = sub {
-			kill 9, $pid;
-			waitpid $pid, 0;
-			exit 124;
-		};
-		alarm $seconds;
-		waitpid $pid, 0;
-		my $status = $?;
-		alarm 0;
-		exit(($status & 127) ? 128 + ($status & 127) : $status >> 8);
-	' "$seconds" "$@"
+run_seeded_go_test() {
+	local seed=$1
+	local mode=$2
+	local iteration=$3
+	checked_output 60 "gotest seed=$seed mode=$mode iteration=$iteration" -- \
+		env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" \
+		"$go_bin" -C "$testdata_dir" test -count=1 -tags=test_dep -v ./gotest
 }
 
 require_stock_compatibility() {
 	local stock_go=${GOMADV3_STOCK_GO:-}
 	if [[ -z "$stock_go" ]]; then
-		local stock_launcher stock_root stock_root_status
+		local stock_launcher stock_root
 		stock_launcher=$(command -v go || true)
 		if [[ -n "$stock_launcher" ]]; then
-			set +e
-			stock_root=$(env -u GOMADSEED GONOSUMDB='*' GOPROXY=off \
-				"$stock_launcher" -C "$testdata_dir" env GOROOT 2>/dev/null)
-			stock_root_status=$?
-			set -e
-			if [[ $stock_root_status -eq 0 ]]; then
+			if stock_root=$(checked_output 10 'stock-go seed=unset mode=resolve iteration=0' -- \
+				env -u GOMADSEED GONOSUMDB='*' GOPROXY=off \
+				"$stock_launcher" -C "$testdata_dir" env GOROOT 2>/dev/null); then
 				stock_go="$stock_root/bin/go"
 			fi
 		fi
@@ -479,18 +488,16 @@ require_stock_compatibility() {
 		exit 1
 	fi
 
-	local stock_version stock_version_status stock_root stock_root_status
-	set +e
-	stock_version=$(env -u GOMADSEED GOTOOLCHAIN=local "$stock_go" version 2>&1)
-	stock_version_status=$?
-	stock_root=$(env -u GOMADSEED GOTOOLCHAIN=local "$stock_go" env GOROOT 2>&1)
-	stock_root_status=$?
-	set -e
-	if [[ $stock_version_status -ne 0 || "$stock_version" != "go version go1.26.4 "* ]]; then
+	local stock_version stock_root
+	stock_version=$(checked_output 10 'stock-go seed=unset mode=version iteration=0' -- \
+		env -u GOMADSEED GOTOOLCHAIN=local "$stock_go" version)
+	stock_root=$(checked_output 10 'stock-go seed=unset mode=goroot iteration=0' -- \
+		env -u GOMADSEED GOTOOLCHAIN=local "$stock_go" env GOROOT)
+	if [[ "$stock_version" != "go version go1.26.4 "* ]]; then
 		printf 'stock Go must report go1.26.4; %s reported: %s\n' "$stock_go" "$stock_version" >&2
 		exit 1
 	fi
-	if [[ $stock_root_status -ne 0 || ! -d "$stock_root" ]]; then
+	if [[ ! -d "$stock_root" ]]; then
 		printf 'stock Go reported an invalid GOROOT: %s\n' "$stock_root" >&2
 		exit 1
 	fi
@@ -502,40 +509,26 @@ require_stock_compatibility() {
 		exit 1
 	fi
 
-	local custom_output stock_output custom_status stock_status
-	set +e
-	custom_output=$(env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
-		"$go_bin" -C "$testdata_dir" run ./activation 2>&1)
-	custom_status=$?
-	stock_output=$(env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
-		"$stock_go" -C "$testdata_dir" run ./activation 2>&1)
-	stock_status=$?
-	set -e
-	if [[ $custom_status -ne 0 || $stock_status -ne 0 ]]; then
-		printf 'disabled go run comparison failed: custom status=%d, stock status=%d\n' "$custom_status" "$stock_status" >&2
-		printf 'custom output: %s\nstock output: %s\n' "$custom_output" "$stock_output" >&2
-		exit 1
-	fi
+	local custom_output stock_output
+	custom_output=$(checked_output 60 'activation seed=unset mode=custom-compatibility iteration=0' -- \
+		env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
+		"$go_bin" -C "$testdata_dir" run ./activation)
+	stock_output=$(checked_output 60 'activation seed=unset mode=stock-compatibility iteration=0' -- \
+		env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
+		"$stock_go" -C "$testdata_dir" run ./activation)
 	if [[ "$custom_output" != "$stock_output" ]]; then
 		printf 'disabled go run output differs from stock Go 1.26.4\n' >&2
 		diff -u <(printf '%s\n' "$stock_output") <(printf '%s\n' "$custom_output") || true
 		exit 1
 	fi
 
-	local custom_test stock_test custom_test_status stock_test_status
-	set +e
-	custom_test=$(env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
-		"$go_bin" -C "$testdata_dir" test -count=1 -tags=test_dep -run '^TestDisabledCompatibility$' -v ./gotest 2>&1)
-	custom_test_status=$?
-	stock_test=$(env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
-		"$stock_go" -C "$testdata_dir" test -count=1 -tags=test_dep -run '^TestDisabledCompatibility$' -v ./gotest 2>&1)
-	stock_test_status=$?
-	set -e
-	if [[ $custom_test_status -ne 0 || $stock_test_status -ne 0 ]]; then
-		printf 'disabled go test comparison failed: custom status=%d, stock status=%d\n' "$custom_test_status" "$stock_test_status" >&2
-		printf 'custom output: %s\nstock output: %s\n' "$custom_test" "$stock_test" >&2
-		exit 1
-	fi
+	local custom_test stock_test
+	custom_test=$(checked_output 60 'gotest seed=unset mode=custom-compatibility iteration=0' -- \
+		env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
+		"$go_bin" -C "$testdata_dir" test -count=1 -tags=test_dep -run '^TestDisabledCompatibility$' -v ./gotest)
+	stock_test=$(checked_output 60 'gotest seed=unset mode=stock-compatibility iteration=0' -- \
+		env -u GOMADSEED GODEBUG= GOMAXPROCS=2 GOTOOLCHAIN=local GOWORK=off \
+		"$stock_go" -C "$testdata_dir" test -count=1 -tags=test_dep -run '^TestDisabledCompatibility$' -v ./gotest)
 
 	local custom_line stock_line
 	custom_line=$(grep '^GOMADV3_COMPAT ' <<<"$custom_test" || true)
@@ -559,18 +552,11 @@ require_address_perturbation() {
 	local binary=$1
 	local addresses="$test_tmp/map-addresses"
 	local expected_payload=
-	local padding output status marker marker_line payload
+	local padding output marker marker_line payload
 	for padding in 0 1048576 4194304; do
-		set +e
-		output=$(env GODEBUG=asyncpreemptoff=1 GOGC=off GOMADSEED=1 GOMADV3_MAP_PADDING="$padding" \
-			GOMAXPROCS=1 "$binary" 2>&1)
-		status=$?
-		set -e
-		if [[ $status -ne 0 ]]; then
-			printf 'map address perturbation failed for padding %s with status %d: %s\n' \
-				"$padding" "$status" "$output" >&2
-			exit 1
-		fi
+		output=$(checked_output 10 "maps seed=1 mode=address-padding iteration=$padding" -- \
+			env GODEBUG=asyncpreemptoff=1 GOGC=off GOMADSEED=1 GOMADV3_MAP_PADDING="$padding" \
+			GOMAXPROCS=1 "$binary")
 		marker_line=$(grep '^GOMADV3_MAP_ADDRESS ' <<<"$output" || true)
 		if [[ $(grep -c '^GOMADV3_MAP_ADDRESS ' <<<"$output") -ne 1 ]]; then
 			printf 'map address perturbation emitted no unique marker for padding %s\n' "$padding" >&2
@@ -605,14 +591,14 @@ require_address_perturbation() {
 require_invalid_map_padding() {
 	local binary=$1
 	local padding=$2
-	local output status
-	set +e
-	output=$(env GODEBUG=asyncpreemptoff=1 GOGC=off GOMADSEED=1 GOMADV3_MAP_PADDING="$padding" \
-		GOMAXPROCS=1 "$binary" 2>&1)
-	status=$?
-	set -e
-	if [[ $status -eq 0 || "$output" != *"GOMADV3_MAP_PADDING must be a decimal byte count up to 4194304"* ]]; then
-		printf 'invalid map padding %q returned status %d with output: %s\n' "$padding" "$status" "$output" >&2
+	local result_dir
+	result_dir=$(mktemp -d "$test_tmp/invalid-padding.XXXXXX")
+	gomad_run_checked 10 2 "maps seed=1 mode=invalid-padding iteration=$padding" "$result_dir" -- \
+		env GODEBUG=asyncpreemptoff=1 GOGC=off GOMADSEED=1 GOMADV3_MAP_PADDING="$padding" \
+		GOMAXPROCS=1 "$binary"
+	if [[ -s "$result_dir/stdout" ]] || \
+		! grep -Fq 'GOMADV3_MAP_PADDING must be a decimal byte count up to 4194304' "$result_dir/stderr"; then
+		printf 'invalid map padding %q emitted an unexpected diagnostic\n' "$padding" >&2
 		exit 1
 	fi
 }
@@ -634,20 +620,8 @@ start_load_workers() {
 run_host_fixture() {
 	local label=$1
 	local binary=$2
-	local output status
-	set +e
-	output=$(run_with_timeout 10 env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 "$binary" 2>&1)
-	status=$?
-	set -e
-	if [[ $status -ne 0 ]]; then
-		if [[ $status -eq 124 ]]; then
-			printf '%s timed out\n' "$label" >&2
-		else
-			printf '%s failed with status %d: %s\n' "$label" "$status" "$output" >&2
-		fi
-		return 1
-	fi
-	printf '%s\n' "$output"
+	checked_output 10 "$label seed=1 mode=host-load iteration=0" -- \
+		env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 "$binary"
 }
 
 require_host_load() {
@@ -683,14 +657,20 @@ require_host_load() {
 	fi
 }
 
-disabled_output=$(env -u GOMADSEED GOMAXPROCS=2 "$go_bin" -C "$testdata_dir" run ./activation)
+disabled_output=$(checked_output 60 'activation seed=unset mode=disabled iteration=0' -- \
+	env -u GOMADSEED GOMAXPROCS=2 "$go_bin" -C "$testdata_dir" run ./activation)
 [[ "$disabled_output" == $'init GOMAXPROCS=2\nmain GOMAXPROCS=2' ]]
 
 require_stock_compatibility
 maps_bin="$test_tmp/maps"
-env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$maps_bin" ./maps
+checked_output 60 'maps seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$maps_bin" ./maps >/dev/null
 scheduler_bin="$test_tmp/scheduler"
-env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$scheduler_bin" ./scheduler
+checked_output 60 'scheduler seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$scheduler_bin" ./scheduler >/dev/null
+activation_bin="$test_tmp/activation"
+checked_output 60 'activation seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$activation_bin" ./activation >/dev/null
 require_invalid_map_padding "$maps_bin" ""
 require_invalid_map_padding "$maps_bin" invalid
 require_invalid_map_padding "$maps_bin" 4194305
@@ -699,58 +679,116 @@ require_host_load "$scheduler_bin" "$maps_bin"
 require_map_families
 
 for seed in 0 1 18446744073709551615; do
-	enabled_output=$(env GODEBUG= GOMAXPROCS=8 GOMADSEED="$seed" "$go_bin" -C "$testdata_dir" run ./activation)
+	enabled_output=$(checked_output 60 "activation seed=$seed mode=enabled iteration=0" -- \
+		env GODEBUG= GOMAXPROCS=8 GOMADSEED="$seed" "$go_bin" -C "$testdata_dir" run ./activation)
 	[[ "$enabled_output" == $'init GOMAXPROCS=1\nmain GOMAXPROCS=1' ]]
 done
 
-require_invalid_seed ""
-require_invalid_seed invalid
-require_invalid_seed 18446744073709551616
+require_invalid_seed "$activation_bin" "" empty
+require_invalid_seed "$activation_bin" +1 signed-plus
+require_invalid_seed "$activation_bin" -1 signed-minus
+require_invalid_seed "$activation_bin" ' 1' leading-whitespace
+require_invalid_seed "$activation_bin" '1 ' trailing-whitespace
+require_invalid_seed "$activation_bin" invalid nondecimal
+require_invalid_seed "$activation_bin" 0x1 hexadecimal
+require_invalid_seed "$activation_bin" 18446744073709551616 overflow
 
-expected_random=$'0a7525e1e05ff5fe ffb8ed0e\n122dfc0fe2d508a6 1b002cf4\nd12bfa4e65a4f412 2bddb89d\ne130e2e2979e3a1e 24a3f658\nd7e2a1a8cc5a63ee b168521b\n477215d4f3636667 9d887e07\n20b3cd5be81d313a f76e0a45\n1520901c1d837c7b d6ac53c6'
-actual_random=$(run_enabled 1 ./random)
-if [[ "$actual_random" != "$expected_random" ]]; then
-	printf 'seed 1 runtime random sequence changed\n' >&2
-	diff -u <(printf '%s\n' "$expected_random") <(printf '%s\n' "$actual_random") || true
+expected_random_zero=$'42858c8d3684a3ab 13ba4308\ne37def6894a9b8dc faacc42f\n1258fdc0c30e842c 8871e035\n705ca128e8a3ce43 84701fe1\naaa2f9593b7f9ace 4d86810d\n970e0f67cb28ebe3 fe3c55ac\n8f0ff2dc88e11b18 97da657a\n04177c781f00d1d8 75f83aac'
+expected_random_one=$'0a7525e1e05ff5fe ffb8ed0e\n122dfc0fe2d508a6 1b002cf4\nd12bfa4e65a4f412 2bddb89d\ne130e2e2979e3a1e 24a3f658\nd7e2a1a8cc5a63ee b168521b\n477215d4f3636667 9d887e07\n20b3cd5be81d313a f76e0a45\n1520901c1d837c7b d6ac53c6'
+expected_random_max=$'1379b87ad079f58d f0765bd2\n7a5d8fac1db30ab8 5a58fb67\n45c649f20122f008 68a40bcf\n21c1008dd25f9540 960744fd\n177eff4fa69422e6 adcab8c7\n5990197d4f3fe43e 5ee02cd4\nf72ecd324682e4fc 3807bdb1\n03bfda70f7ac74f6 72fcc884'
+random_outputs=()
+for seed in 0 1 18446744073709551615; do
+	case "$seed" in
+		0) expected_random=$expected_random_zero ;;
+		1) expected_random=$expected_random_one ;;
+		18446744073709551615) expected_random=$expected_random_max ;;
+	esac
+	actual_random=$(run_enabled "$seed" ./random golden-random 0)
+	if [[ "$actual_random" != "$expected_random" ]]; then
+		printf 'seed %s runtime random sequence changed\n' "$seed" >&2
+		diff -u <(printf '%s\n' "$expected_random") <(printf '%s\n' "$actual_random") || true
+		exit 1
+	fi
+	random_outputs+=("$actual_random")
+done
+if [[ "${random_outputs[0]}" == "${random_outputs[1]}" || \
+	"${random_outputs[0]}" == "${random_outputs[2]}" || \
+	"${random_outputs[1]}" == "${random_outputs[2]}" ]]; then
+	printf 'boundary seeds alias another pinned runtime random sequence\n' >&2
 	exit 1
 fi
 
-for package in ./random ./scheduler_min ./scheduler ./select ./maps ./channels ./sync; do
-	require_repeatable "$package" 1
+for seed in 0 1 18446744073709551615; do
+	for package in ./random ./scheduler_min ./scheduler ./select ./maps ./channels ./sync; do
+		require_repeatable "$package" "$seed"
+	done
 done
 
 for package in ./scheduler ./select ./channels ./sync; do
 	require_diverse "$package"
 done
 
-expected_direct=$(env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 "$scheduler_bin")
-for ((run = 1; run < 100; run++)); do
-	actual_direct=$(env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 "$scheduler_bin")
-	[[ "$actual_direct" == "$expected_direct" ]]
+for seed in 0 1 18446744073709551615; do
+	expected_direct=$(checked_output 10 "scheduler seed=$seed mode=direct iteration=0" -- \
+		env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" "$scheduler_bin")
+	for ((run = 1; run < 100; run++)); do
+		actual_direct=$(checked_output 10 "scheduler seed=$seed mode=direct iteration=$run" -- \
+			env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$seed" "$scheduler_bin")
+		[[ "$actual_direct" == "$expected_direct" ]]
+	done
 done
 
 parallel_dir="$test_tmp/parallel"
 mkdir -p "$parallel_dir"
+parallel_pids=()
+parallel_labels=()
+parallel_errors=()
 for seed in 3 7 11 19; do
-	run_enabled "$seed" ./scheduler >"$parallel_dir/$seed.first" &
-	run_enabled "$seed" ./scheduler >"$parallel_dir/$seed.second" &
+	for run_label in first second; do
+		run_enabled "$seed" ./scheduler parallel "$run_label" \
+			>"$parallel_dir/$seed.$run_label" 2>"$parallel_dir/$seed.$run_label.stderr" &
+		parallel_pids+=("$!")
+		parallel_labels+=("scheduler seed=$seed mode=parallel iteration=$run_label")
+		parallel_errors+=("$parallel_dir/$seed.$run_label.stderr")
+	done
 done
-wait
+parallel_failed=false
+for index in "${!parallel_pids[@]}"; do
+	if wait "${parallel_pids[index]}"; then
+		parallel_status=0
+	else
+		parallel_status=$?
+	fi
+	if [[ $parallel_status -ne 0 ]]; then
+		printf 'parallel gomadv3 child failed: %s: status %d\n' \
+			"${parallel_labels[index]}" "$parallel_status" >&2
+		while IFS= read -r line || [[ -n "$line" ]]; do
+			printf '%s\n' "$line" >&2
+		done <"${parallel_errors[index]}"
+		parallel_failed=true
+	fi
+done
+if [[ $parallel_failed == true ]]; then
+	exit 1
+fi
 for seed in 3 7 11 19; do
 	cmp "$parallel_dir/$seed.first" "$parallel_dir/$seed.second"
 done
 
 cold_cache="$test_tmp/go-cache"
 mkdir -p "$cold_cache"
-cold_output=$(env GOCACHE="$cold_cache" GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
+cold_output=$(checked_output 60 'scheduler seed=1 mode=cold-cache iteration=0' -- \
+	env GOCACHE="$cold_cache" GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
 	"$go_bin" -C "$testdata_dir" run ./scheduler)
-warm_output=$(env GOCACHE="$cold_cache" GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
+warm_output=$(checked_output 60 'scheduler seed=1 mode=warm-cache iteration=0' -- \
+	env GOCACHE="$cold_cache" GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
 	"$go_bin" -C "$testdata_dir" run ./scheduler)
 [[ "$cold_output" == "$warm_output" ]]
 
 disabled_maps="$test_tmp/disabled-maps"
 for run in {1..16}; do
-	env -u GOMADSEED "$go_bin" -C "$testdata_dir" run ./maps | shasum -a 256 >>"$disabled_maps"
+	checked_output 60 "maps seed=unset mode=disabled iteration=$run" -- \
+		env -u GOMADSEED "$go_bin" -C "$testdata_dir" run ./maps | shasum -a 256 >>"$disabled_maps"
 done
 if [[ $(sort -u "$disabled_maps" | wc -l) -le 1 ]]; then
 	printf 'disabled gomadv3 unexpectedly fixed map iteration order\n' >&2
@@ -758,29 +796,27 @@ if [[ $(sort -u "$disabled_maps" | wc -l) -le 1 ]]; then
 fi
 
 preemption_bin="$test_tmp/preemption"
-env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$preemption_bin" ./preemption
-disabled_preemption=$(run_with_timeout 5 env -u GOMADSEED GOMAXPROCS=1 "$preemption_bin")
+checked_output 60 'preemption seed=unset mode=build iteration=0' -- \
+	env -u GOMADSEED "$go_bin" -C "$testdata_dir" build -o "$preemption_bin" ./preemption >/dev/null
+disabled_preemption=$(checked_output 5 'preemption seed=unset mode=disabled iteration=0' -- \
+	env -u GOMADSEED GOMAXPROCS=1 "$preemption_bin")
 [[ "$disabled_preemption" == "async preemption enabled" ]]
-set +e
-run_with_timeout 2 env GODEBUG= GOMAXPROCS=1 GOMADSEED=1 "$preemption_bin" >/dev/null 2>&1
-enabled_preemption_status=$?
-set -e
-if [[ $enabled_preemption_status -ne 124 ]]; then
-	printf 'gomadv3 deterministic preemption watchdog returned status %d, want 124\n' "$enabled_preemption_status" >&2
-	exit 1
-fi
+enabled_preemption_dir=$(mktemp -d "$test_tmp/preemption-enabled.XXXXXX")
+gomad_run_checked 2 124 'preemption seed=1 mode=enabled iteration=0' "$enabled_preemption_dir" -- \
+	env GODEBUG= GOMAXPROCS=1 GOMADSEED=1 "$preemption_bin"
 
-expected_test=$(env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
-	"$go_bin" -C "$testdata_dir" test -count=1 -tags=test_dep -v ./gotest)
-for ((run = 1; run < 100; run++)); do
-	actual_test=$(env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED=1 \
-		"$go_bin" -C "$testdata_dir" test -count=1 -tags=test_dep -v ./gotest)
-	[[ "$actual_test" == "$expected_test" ]]
+for seed in 0 1 18446744073709551615; do
+	expected_test=$(run_seeded_go_test "$seed" repeatable 0)
+	for ((run = 1; run < 100; run++)); do
+		actual_test=$(run_seeded_go_test "$seed" repeatable "$run")
+		[[ "$actual_test" == "$expected_test" ]]
+	done
 done
 
 upstream_goroot="$test_tmp/upstream-go"
 ln -s "$actual_goroot" "$upstream_goroot"
-env -u GOMADSEED -u GO111MODULE -u GODEBUG -u GOWORK \
+checked_output 600 'upstream-runtime seed=unset mode=disabled iteration=0' -- \
+	env -u GOMADSEED -u GO111MODULE -u GODEBUG -u GOWORK \
 	"$upstream_goroot/bin/go" -C "$upstream_goroot/src" test -tags=test_dep runtime
 
 printf 'gomadv3 black-box tests passed\n'
