@@ -94,6 +94,32 @@ diff --git a/src/runtime/rand.go b/src/runtime/rand.go
 +		return
 +	}
 +
- 	var seed [4]uint64
- 	for i := range seed {
- 		seed[i] = bootstrapRand()
+	var seed [4]uint64
+	for i := range seed {
+		seed[i] = bootstrapRand()
+diff --git a/src/runtime/time.go b/src/runtime/time.go
+--- a/src/runtime/time.go
++++ b/src/runtime/time.go
+@@ -28,6 +28,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
+ 		// Simplest is to omit the monotonic time within a bubble.
+ 		return sec, nsec, 0
+ 	}
++	if gomadEnabled {
++		return faketime / 1e9, int32(faketime % 1e9), faketime
++	}
+ 	return time_now()
+ }
+ 
+diff --git a/src/runtime/time_nofake.go b/src/runtime/time_nofake.go
+--- a/src/runtime/time_nofake.go
++++ b/src/runtime/time_nofake.go
+@@ -30,6 +30,9 @@ var faketime int64
+ //go:linkname nanotime
+ //go:nosplit
+ func nanotime() int64 {
++	if gomadEnabled {
++		return faketime
++	}
+ 	return nanotime1()
+ }
+ 
