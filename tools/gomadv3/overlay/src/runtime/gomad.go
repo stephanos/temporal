@@ -6,6 +6,7 @@ package runtime
 
 var gomadEnabled bool
 var gomadSeed uint64
+var gomadExternal bool
 
 const gomadInitialTime = 946684800000000000
 
@@ -18,6 +19,10 @@ func gomadInit() {
 	seed, ok := gomadParseSeed(value)
 	if !ok {
 		print("runtime: invalid GOMADSEED\n")
+		exit(2)
+	}
+	if iscgo || gomadExternal {
+		print("runtime: GOMADSEED does not support cgo or external linking\n")
 		exit(2)
 	}
 

@@ -168,18 +168,18 @@ gomadv3-go:
 	@$(MAKE) -C tools/gomadv3 toolchain
 
 gomadv3-run:
-	@test -n "$(GOMADSEED)" || { echo "GOMADSEED is required: make gomadv3-run GOMADSEED=<uint64> GOMADV3_RUN=<package>" >&2; exit 1; }
+	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomadv3-run GOMADSEED=<uint64> GOMADV3_RUN=<package>" >&2; exit 1; }
 	@test -n "$(GOMADV3_RUN)" || { echo "GOMADV3_RUN is required: make gomadv3-run GOMADSEED=<uint64> GOMADV3_RUN=<package>" >&2; exit 1; }
 	@$(MAKE) gomadv3-go
-	@env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$(GOMADSEED)" \
-		$(GOMADV3_GO) run $(GOMADV3_RUN) $(GOMADV3_ARGS)
+	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$(GOMADSEED)" \
+		$(GOMADV3_GO) run -exec "$(ROOT)/tools/gomadv3/exec.sh" $(GOMADV3_RUN) $(GOMADV3_ARGS)
 
 gomadv3-test:
-	@test -n "$(GOMADSEED)" || { echo "GOMADSEED is required: make gomadv3-test GOMADSEED=<uint64> GOMADV3_PACKAGES=<packages>" >&2; exit 1; }
+	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomadv3-test GOMADSEED=<uint64> GOMADV3_PACKAGES=<packages>" >&2; exit 1; }
 	@test -n "$(GOMADV3_PACKAGES)" || { echo "GOMADV3_PACKAGES is required: make gomadv3-test GOMADSEED=<uint64> GOMADV3_PACKAGES=<packages>" >&2; exit 1; }
 	@$(MAKE) gomadv3-go
-	@env GODEBUG=asyncpreemptoff=1 GOMAXPROCS=1 GOMADSEED="$(GOMADSEED)" \
-		$(GOMADV3_GO) test -tags test_dep $(GOMADV3_PACKAGES) $(GOMADV3_ARGS)
+	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$(GOMADSEED)" \
+		$(GOMADV3_GO) test -exec "$(ROOT)/tools/gomadv3/exec.sh" -count=1 -tags test_dep $(GOMADV3_PACKAGES) $(GOMADV3_ARGS)
 
 clean-tools:
 	@printf $(COLOR) "Delete tools..."

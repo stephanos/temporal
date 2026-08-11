@@ -13,6 +13,7 @@ work_dir=
 lock_path=
 lock_owner_file=
 owns_lock=false
+build_key=
 go_version=go1.26.4
 archive_name="$go_version.src.tar.gz"
 archive_url="https://go.dev/dl/$archive_name"
@@ -23,6 +24,8 @@ build_bash=$BASH
 build_bash_version=$BASH_VERSION
 
 cleanup() {
+	local status=$?
+	trap - EXIT
 	if [[ -n "$download_tmp" ]]; then
 		rm -f "$download_tmp"
 	fi
@@ -42,6 +45,10 @@ cleanup() {
 		rm -f "$lock_owner_file"
 		rmdir "$lock_path" 2>/dev/null || true
 	fi
+	if [[ $status -ne 0 && -n "$build_key" ]]; then
+		printf 'gomadv3 toolchain build failed (key %s)\n' "$build_key" >&2
+	fi
+	exit "$status"
 }
 
 trap cleanup EXIT

@@ -6,16 +6,21 @@ Gomad v3 demonstrates its core runtime hypothesis: for deterministic external
 inputs, a fixed Go 1.26.4 toolchain, program, architecture, and `GOMADSEED`
 produce repeatable runtime-controlled choices. The current suite provides
 strong coverage for small scheduling, `select`, map, channel, synchronization,
-`go run`, and `go test` fixtures. Every schedulable child is bounded by a
-process-tree watchdog, invalid seeds are checked in a prebuilt binary, and
-seeds `0`, `1`, and maximum `uint64` receive full repeatability coverage.
+native virtual time, `go run`, and `go test` fixtures. Clock coverage includes
+native timer/context semantics, logical test timeouts, nested synctest,
+same-deadline channel/callback/context/reset/ticker races, saturated deadlines,
+non-progress, netpoll blocking, deadlock, and cgo/external-link rejection.
+Every schedulable child is bounded by a process-tree watchdog, invalid seeds are
+checked in a prebuilt binary, output is capped while both streams are drained,
+and seeds `0`, `1`, and maximum `uint64` receive full repeatability coverage.
 
 This document records the remaining test gaps. A gap is not evidence that the
 implementation is wrong; it identifies behavior whose failure would not be
 reliably detected by the checked-in suite.
 
-Post-v3 capabilities are deliberately excluded. See `GOMAD_NEXT.md` for that
-roadmap and `GOMAD_ALT.md` for the v3 contract.
+Deterministic external adapters and exploration capabilities remain excluded.
+See `GOMADv3_NEXT.md` for that roadmap, `GOMADv3_CLOCK.md` for the clock
+contract, and `tools/gomadv3/README.md` for the current runtime contract.
 
 ## Testing principles
 
@@ -77,7 +82,8 @@ Acceptance criteria:
 - logical results and scheduling output repeat for the same seed;
 - different seeds retain schedule diversity;
 - the workload repeats under bounded unrelated host CPU load; and
-- finalizers, host timers, and memory-pressure-dependent `GOMEMLIMIT` behavior
+- finalizers, host readiness, and memory-pressure-dependent `GOMEMLIMIT`
+  behavior
   remain outside the claim.
 
 ### Test valid build-key invalidation
@@ -140,10 +146,11 @@ added after the Linux job is stable. Windows must remain excluded.
 
 ### Broaden disabled-mode upstream compatibility
 
-The suite currently runs the upstream runtime package tests with
-`GOMADSEED` absent and compares representative custom and stock commands. It
-does not run upstream compiler, linker, `cmd/go`, or wider standard-library
-tests through the custom distribution.
+The suite currently runs focused upstream `runtime`, `time`, and
+`testing/synctest` package tests with `GOMADSEED` absent and compares
+representative custom and stock commands. It does not run upstream compiler,
+linker, `cmd/go`, or wider standard-library tests through the custom
+distribution.
 
 Use `go tool dist test -list` from the pinned Go 1.26.4 tree to select explicit
 disabled-mode shards for the runtime, compiler, linker, `cmd/go`, and standard
@@ -209,7 +216,7 @@ repeatability and applicable diversity independently for:
 
 Extend the regular-memory audit to 8-bit, 16-bit, and variable-length key
 layouts if v3 intends to claim every runtime hashing path rather than only the
-families listed in `GOMAD_ALT.md`.
+families currently exercised by `tools/gomadv3/testdata/maps`.
 
 ### Isolate synchronization choices from scheduler arrival order
 
@@ -250,20 +257,6 @@ Run disabled fixtures with `GOMAXPROCS=1` and
 `GODEBUG=asyncpreemptoff=1` together while leaving `GOMADSEED` absent. The
 supporting settings have their ordinary upstream effects, but map entropy and
 Gomad scheduler randomization must remain disabled.
-
-### Exercise the root Make targets
-
-Add automated cases for:
-
-- missing `GOMADSEED`;
-- missing `GOMADV3_RUN` and `GOMADV3_PACKAGES`;
-- successful `gomadv3-go`, `gomadv3-run`, and `gomadv3-test` invocations;
-- argument forwarding through `GOMADV3_ARGS`;
-- use of the stable custom Go launcher; and
-- inclusion of `-tags test_dep` for tests.
-
-The success cases should use small fixtures and should not rebuild the
-toolchain independently for every assertion.
 
 ### Test stock-toolchain resolution failures
 
