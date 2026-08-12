@@ -9,11 +9,11 @@ import (
 )
 
 func TestResolvePublicProfile(t *testing.T) {
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if profile.Name != TemporalActivityAPIBatchCancel {
+	if profile.Name != Deterministic {
 		t.Fatalf("profile name = %q", profile.Name)
 	}
 	if len(profile.Inventory) == 0 || profile.InventorySHA256 == "" || profile.ImplementationSHA256 == "" {
@@ -21,6 +21,21 @@ func TestResolvePublicProfile(t *testing.T) {
 	}
 	if _, err := Resolve("unknown/v1"); err == nil || !strings.Contains(err.Error(), "unknown I/O profile") {
 		t.Fatalf("Resolve(unknown) error = %v", err)
+	}
+}
+
+func TestDeterministicProfileAcceptsArbitraryTargetArguments(t *testing.T) {
+	profile, err := Resolve(Deterministic)
+	if err != nil {
+		t.Fatal(err)
+	}
+	argument := "-test.run=^TestUnrelatedSuite$"
+	err = profile.ValidatePreparedTarget(target.Spec{Kind: target.KindGoTest, Source: "./tests", Args: []string{argument}}, target.Prepared{
+		Kind: target.KindGoTest, Source: "./tests", Argv: []string{"gomadv3-target", argument}, BuildTags: []string{"test_dep"},
+		BuildInfo: record.BuildInfo{Path: "go.temporal.io/server/tests.test"}, GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

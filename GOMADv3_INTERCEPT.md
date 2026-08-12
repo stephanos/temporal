@@ -320,6 +320,312 @@ Easier to edit than patches but still fork upstream source and obscure the
 actual delta. The compiler pass should be prototyped before adopting any
 whole-file replacement for an eligible entry-point file.
 
+## Implementation details
+
+### Compiler integration point
+
+The only upstream compiler-pipeline change should be an import and one call in
+`cmd/compile/internal/gc/main.go`:
+
+```go
+import "cmd/compile/internal/gomadintercept"
+
+// Parse and typecheck input.
+noder.LoadPackage(flag.Args())
+
+// Keep the existing package-main path normalization here.
+
+gomadintercept.Apply(typecheck.Target)
+```
+
+The call belongs after `noder.LoadPackage` and the existing package-path
+normalization, but before coverage fixups, PGO loading, bloop, devirtualization,
+inlining, and wrapper generation. At that point:
+
+- every source declaration has a typed `*ir.Func` in
+  `typecheck.Target.Funcs`;
+- receiver, parameter, and result identities are available;
+- the original body has not been copied into inline bodies; and
+- method-value, interface, and ABI wrappers have not yet been generated.
+
+The prologue has no source-level coverage counter of its own, but inserting it
+before coverage fixups keeps it visible to the rest of the ordinary front end
+and optimization pipeline. No later phase needs Gomad-specific logic. `Apply`
+returns immediately for packages with no manifest entries.
+
+The additive compiler package should be split by responsibility:
+
+```text
+overlay/src/cmd/compile/internal/gomadintercept/
+  intercept.go       package gate, matching, accounting, diagnostics
+  signature.go       target/hook compatibility checks
+  prologue.go        typed-IR construction
+  spec_go126.go      the Go 1.26.4 manifest
+```
+
+Keep these files free of imports from `gc`, `noder`, `inline`, `walk`, or
+`ssagen`. Depending only on `base`, `ir`, `typecheck`, `types`, and `src` keeps
+the module below the pipeline that invokes it and avoids an import cycle.
+
+### Concrete manifest representation
+
+The reviewable manifest can retain source-like receiver names, but the
+implementation should make pointer shape explicit instead of parsing a type
+string repeatedly:
+
+```go
+type receiverSpec struct {
+    Name    string
+    Pointer bool
+}
+
+type spec struct {
+    PackagePath string
+    Receiver    *receiverSpec
+    Function    string
+    Hook        string
+}
+```
+
+A nil receiver identifies a package function. For a method, resolution first
+finds the receiver's named type in `types.LocalPkg`, applies the declared
+pointer shape, and then compares the resulting compiler type with
+`fn.Type().Recv().Type` using `types.IdenticalStrict`. It should not compare
+formatted type strings. The method symbol can then be verified with
+`ir.MethodSym(resolvedReceiver, types.LocalPkg.Lookup(spec.Function))`.
+
+Manifest initialization must reject duplicate keys before inspecting the
+package. The stable key is:
+
+```text
+<package path>\x00<receiver kind>\x00<receiver name>\x00<function name>
+```
+
+Specs are sorted by that key for matching, diagnostics, and reporting. Source
+order must not affect compiler output. Hook names should start with
+`gomadIntercept`; lower-level helpers such as `gomadFileRead` remain free to
+use their current result ordering and can be wrapped by an adapter.
+
+### Target and hook resolution
+
+`Apply` performs these steps for the current package:
+
+1. Select specs whose `PackagePath` equals `types.LocalPkg.Path`. If none
+   match, return without scanning function bodies.
+2. Index `target.Funcs` once. Ignore closures and compiler-generated functions;
+   wrappers do not exist yet at this pipeline point.
+3. Resolve each target by package symbol, receiver identity, and function name.
+   Require exactly one match.
+4. Resolve the hook through `types.LocalPkg.Lookup(spec.Hook).Def`. Require an
+   `*ir.Name` whose `Func` is non-nil, has no receiver, and has a Go body.
+5. Validate every selected spec before mutating any body.
+6. If validation produced any errors, emit them in manifest-key order and call
+   `base.ExitIfErrors`; never leave a partially instrumented package in the
+   pipeline.
+7. Synthesize all prologues and prepend each one exactly once.
+
+Separating validation from mutation is important. Otherwise a malformed later
+entry could leave earlier functions modified while compiler error recovery
+continues through optimization.
+
+The target is rejected when `fn.Body == nil`, when its signature has shape
+types (`fn.Type().HasShape()`), or when it is a wrapper or closure. An empty Go
+body is valid; it is distinct from a nil body. Hooks are also excluded from
+target matching so a mistaken manifest cannot instrument its own adapter.
+
+### Exact signature validation
+
+Let the target signature be:
+
+```text
+func ([receiver]) (P0, ... Pn) (R0, ... Rm)
+```
+
+The hook must be a non-method function with this signature:
+
+```text
+func ([receiver,] P0, ... Pn) (R0, ... Rm, bool)
+```
+
+Validation is structural and positional:
+
+- the hook has no receiver;
+- its parameter count is the target parameter count plus one for a method;
+- the first method-hook parameter is strictly identical to the target receiver;
+- each remaining parameter is strictly identical to the corresponding target
+  parameter;
+- target and hook are either both variadic or both non-variadic;
+- the hook has exactly one more result than the target;
+- each leading hook result is strictly identical to the corresponding target
+  result; and
+- the final result is the predeclared `bool` type.
+
+Parameter and result names do not participate. Named types are not accepted
+merely because their underlying types match. This deliberately rejects, for
+example, `int` in place of `time.Duration`, or `net.Conn` in place of
+`*net.TCPConn`.
+
+Diagnostics should include the manifest key, the expected hook signature, and
+the actual signature. Examples:
+
+```text
+gomad intercept os.(*File).Read: hook gomadInterceptFileRead result 2: got error, want bool
+gomad intercept net.(*TCPConn).Write: target not found in Go 1.26.4
+```
+
+### Typed-IR prologue construction
+
+For each validated target, construct the equivalent of a normal typed Go
+statement; do not manufacture SSA or edit linker symbols. The implementation
+outline is:
+
+```go
+func prepend(target, hook *ir.Func) {
+    pos := target.Pos()
+    previous := ir.CurFunc
+    ir.CurFunc = target
+    defer func() { ir.CurFunc = previous }()
+
+    args := targetArguments(target)
+    call := typecheck.Call(pos, hook.Nname, args, target.Type().IsVariadic())
+
+    results := make([]ir.Node, hook.Type().NumResults())
+    for i, field := range hook.Type().Results() {
+        results[i] = typecheck.TempAt(pos, target, field.Type)
+    }
+
+    assign := ir.NewAssignListStmt(pos, ir.OAS2, results, []ir.Node{call})
+    assign = typecheck.Stmt(assign).(*ir.AssignListStmt)
+
+    handled := results[len(results)-1]
+    ret := typecheck.Stmt(ir.NewReturnStmt(pos, results[:len(results)-1]))
+    branch := typecheck.Stmt(ir.NewIfStmt(pos, handled, []ir.Node{ret}, nil))
+    target.Body.Prepend(assign, branch)
+}
+```
+
+`targetArguments` returns the receiver parameter first, when present, followed
+by the declared parameters. It obtains each node from the signature field's
+`Nname`; it must fail rather than synthesize a zero value if a parameter node
+is unexpectedly absent. For a variadic target the hook call uses `IsDDD=true`,
+so the already-materialized variadic slice is forwarded with `...` semantics.
+
+Use `typecheck.TempAt` so temporaries are registered in `target.Dcl` and receive
+the correct compiler-local type and escape metadata. Typecheck the assignment,
+return, and branch while `ir.CurFunc` is the target. Use the target's source
+position rather than `base.AutogeneratedPos`, so a compiler failure or stack
+trace identifies the intercepted definition. Do not set `Likely`, alter
+pragmas, or change the target's inline eligibility.
+
+This construction also handles zero-result functions: the hook call is
+assigned to one boolean temporary and the handled branch contains a bare
+return. Named target results are not assigned directly, so a false hook result
+cannot mutate them before the upstream body runs.
+
+### Same-package hook adapters
+
+Compiler hooks should be thin adapters around the existing `gomad*` helpers.
+The adapter owns all behavior that currently surrounds a patch insertion point:
+
+- disabled/profile gating;
+- determining whether the receiver or path belongs to Gomad;
+- upstream argument and receiver validation that must happen before handling;
+- `PathError` or `OpError` construction and error wrapping;
+- non-nil empty-slice guarantees; and
+- conversion from an existing helper's result order to “original results,
+  handled”.
+
+For example, `os.(*File).Read` should use an adapter shaped like:
+
+```go
+func gomadInterceptFileRead(file *File, destination []byte) (int, error, bool) {
+    if !gomadIOEnabled() {
+        return 0, nil, false
+    }
+    if err := file.checkValid("read"); err != nil {
+        return 0, err, true
+    }
+    read, err, handled := gomadFileRead(file, destination)
+    if !handled {
+        return 0, nil, false
+    }
+    return read, file.wrapErr("read", err), true
+}
+```
+
+This is illustrative; the migrated adapter must use the then-current helper
+and preserve its exact semantics. In particular, `ReadAt` must preserve the
+negative-offset error before modeled I/O, directory methods must normalize nil
+slices, and network adapters must construct the same `OpError` values as the
+current hunks.
+
+The disabled check in every adapter must be side-effect free. Returning
+`handled=false` may inspect already-initialized classification state and take a
+read lock, but it must not initialize Gomad state, consume broker input, record
+a trace event, mutate modeled state, or dereference an invalid receiver. Once
+an adapter determines that an object is modeled, it should return
+`handled=true` for both success and failure; an error must never fall through
+to host I/O.
+
+There is no hidden “call original” trampoline. An adapter must not call its own
+intercepted target on the same modeled object. Calling a different intercepted
+API is allowed only when the nested operation is intentional and covered by a
+test.
+
+### Build and audit integration
+
+`validate_overlay` must allow only these new compiler paths in addition to the
+existing allowlist:
+
+```text
+src/cmd/compile/internal/gomadintercept/*.go
+```
+
+The `gc/main.go` edit remains in `go1.26.4.patch` because overlays may only add
+files. `validate_patch_path` must therefore allow that exact compiler file; it
+must not allow arbitrary `cmd/compile` changes. The overlay hash already walks
+all files, so the compiler module and manifest automatically affect
+`overlay_sha256` and the immutable toolchain build key.
+
+When the compiler's existing verbose flag is enabled, `Apply` should emit one
+stable line per applied spec after all validation succeeds:
+
+```text
+gomad intercept applied: os.(*File).Read -> os.gomadInterceptFileRead
+```
+
+The toolchain validation test should rebuild the affected standard packages
+with cache disabled and compiler `-v` enabled, filter and sort these lines, and
+compare them with an independently checked-in golden list. This catches a
+package-path typo that per-package accounting alone could miss. Normal compiler
+invocations emit nothing.
+
+### Migration mechanics
+
+Migrate one target atomically in this order:
+
+1. Add the same-package adapter and its manifest entry.
+2. Build the toolchain and prove the compiler reports exactly one application.
+3. Run handled, fallthrough, disabled, and invocation-form tests while the old
+   hunk is still present only if double interception is impossible; otherwise
+   use a temporary patch variant for the transition test.
+4. Remove the old patch hunk.
+5. Rebuild from a clean immutable key and rerun the same tests.
+6. Compare the materialized upstream file with pristine Go 1.26.4 and confirm
+   that only unrelated, intentionally retained hunks remain.
+
+Never publish a state in which both mechanisms can handle the same call. The
+final patch-hunk removal and manifest addition belong to one reviewable change,
+even if a temporary local build is used to prove equivalence.
+
+Compiler-failure tests should create temporary overlay variants rather than
+weakening the production manifest. At minimum, rename a hook, change one
+parameter, change one result, change a receiver pointer shape, and name a
+missing target; each `build.sh` invocation must fail before updating
+`.toolchain/build-key`. Behavioral tests then exercise the real manifest using
+the existing `tools/gomadv3/testdata` programs with both ordinary optimization
+and `-gcflags=all=-l`.
+
 ## Implementation plan
 
 ### Phase 0: establish a trustworthy baseline

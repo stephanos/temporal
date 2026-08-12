@@ -6,9 +6,9 @@ package os
 
 import (
 	"encoding/binary"
+	"internal/gomadfs"
 	"internal/gomadtrace"
 	"io"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -22,20 +22,7 @@ func gomadIOEnabled() bool {
 	return gomadProfileEnabled()
 }
 
-var gomadFilesystem = struct {
-	sync.RWMutex
-	directories map[string]FileMode
-}{}
-
 var gomadFilesystemOnce sync.Once
-
-type gomadOpenHandle struct {
-	sync.Mutex
-	entry           gomadMountEntry
-	offset          int64
-	directoryOffset int
-	closed          bool
-}
 
 const (
 	gomadMountRequestDescriptor  = 9
@@ -83,34 +70,39 @@ var gomadMountClient struct {
 
 var gomadOpenHandles = struct {
 	sync.RWMutex
-	handles map[*file]*gomadOpenHandle
-}{handles: make(map[*file]*gomadOpenHandle)}
+	handles map[*file]*gomadfs.Handle
+}{handles: make(map[*file]*gomadfs.Handle)}
 
 func gomadInitializeFilesystem() {
 	gomadFilesystemOnce.Do(func() {
-		gomadFilesystem.directories = map[string]FileMode{"/": 0o755}
+		gomadfs.Default.SetLoader(gomadLoadMount)
 	})
+}
+
+func gomadLoadMount(path string) (gomadfs.Entry, gomadfs.MountStatus, error) {
+	entry, status, err := gomadMountLookup(path)
+	if err == syscall.EBADF {
+		return gomadfs.Entry{}, gomadfs.MountUnmounted, nil
+	}
+	if err != nil {
+		return gomadfs.Entry{}, 0, err
+	}
+	converted := gomadfs.Entry{Mode: entry.mode, Kind: gomadfs.Kind(entry.kind), Data: entry.data, Children: make([]gomadfs.Child, 0, len(entry.children))}
+	for _, child := range entry.children {
+		converted.Children = append(converted.Children, gomadfs.Child{Name: child.name, Mode: child.mode, Kind: gomadfs.Kind(child.kind)})
+	}
+	return converted, gomadfs.MountStatus(status), nil
 }
 
 func gomadMkdir(name string, perm FileMode) error {
 	gomadInitializeFilesystem()
-	path, _, err := gomadNormalizePath(name)
-	if err != nil || path == "/" {
-		return gomadPathError("os.mkdir", "mkdir", name, syscall.EINVAL)
+	path, _, normalizeErr := gomadNormalizePath(name)
+	if normalizeErr != nil {
+		return gomadPathError("os.mkdir", "mkdir", name, normalizeErr)
 	}
-	parent := path[:strings.LastIndexByte(path, '/')]
-	if parent == "" {
-		parent = "/"
+	if err := gomadfs.Default.Mkdir(path, uint32(perm)); err != nil {
+		return gomadPathError("os.mkdir", "mkdir", path, err)
 	}
-	gomadFilesystem.Lock()
-	defer gomadFilesystem.Unlock()
-	if _, found := gomadFilesystem.directories[path]; found {
-		return gomadPathError("os.mkdir", "mkdir", path, syscall.EEXIST)
-	}
-	if _, found := gomadFilesystem.directories[parent]; !found {
-		return gomadPathError("os.mkdir", "mkdir", path, syscall.ENOENT)
-	}
-	gomadFilesystem.directories[path] = perm & ModePerm
 	gomadRecordPath("os.mkdir", path, uint64(perm&ModePerm), nil)
 	return nil
 }
@@ -121,17 +113,8 @@ func gomadMkdirAll(name string, perm FileMode) error {
 	if err != nil {
 		return gomadPathError("os.mkdirall", "mkdir", name, syscall.EINVAL)
 	}
-	gomadFilesystem.Lock()
-	defer gomadFilesystem.Unlock()
-	current := ""
-	for _, component := range strings.Split(strings.TrimPrefix(path, "/"), "/") {
-		if component == "" {
-			continue
-		}
-		current += "/" + component
-		if _, found := gomadFilesystem.directories[current]; !found {
-			gomadFilesystem.directories[current] = perm & ModePerm
-		}
+	if err := gomadfs.Default.MkdirAll(path, uint32(perm)); err != nil {
+		return gomadPathError("os.mkdirall", "mkdir", path, err)
 	}
 	gomadRecordPath("os.mkdirall", path, uint64(perm&ModePerm), nil)
 	return nil
@@ -143,53 +126,38 @@ func gomadStat(name string) (FileInfo, error) {
 	if err != nil {
 		return nil, gomadPathError("os.stat", "stat", name, syscall.EINVAL)
 	}
-	if info, handled, err := gomadMountStat(path, base); handled {
-		return info, err
+	entry, err := gomadfs.Default.Stat(path)
+	if err != nil {
+		return nil, gomadPathError("os.stat", "stat", path, err)
 	}
-	gomadFilesystem.RLock()
-	mode, found := gomadFilesystem.directories[path]
-	gomadFilesystem.RUnlock()
-	if !found {
-		return nil, gomadPathError("os.stat", "stat", path, syscall.ENOENT)
+	mode := FileMode(entry.Mode)
+	if entry.Kind == gomadfs.KindDirectory {
+		mode |= ModeDir
 	}
 	gomadRecordPath("os.stat", path, uint64(mode|ModeDir), nil)
-	return gomadFileInfo{name: base, mode: mode | ModeDir, directory: true}, nil
+	return gomadFileInfo{name: base, size: int64(len(entry.Data)), mode: mode, directory: entry.Kind == gomadfs.KindDirectory}, nil
 }
 
 func gomadOpenFile(name string, flag int, perm FileMode) (*File, bool, error) {
+	gomadInitializeFilesystem()
 	path, _, err := gomadNormalizePath(name)
 	if err != nil {
 		return nil, true, gomadPathError("os.mount.open", "open", name, syscall.EINVAL)
 	}
-	entry, status, err := gomadMountLookup(path)
-	if err == syscall.EBADF {
-		return nil, false, nil
-	}
+	access := flag & (O_WRONLY | O_RDWR)
+	handle, err := gomadfs.Default.Open(path, gomadfs.OpenFlags{
+		Read: access != O_WRONLY, Write: access != 0, Append: flag&O_APPEND != 0,
+		Create: flag&O_CREATE != 0, Exclusive: flag&O_EXCL != 0, Truncate: flag&O_TRUNC != 0,
+	}, uint32(perm))
 	if err != nil {
-		panic("gomadv3: read-only mount broker failure")
-	}
-	if status == gomadMountStatusUnmounted {
-		if flag&(O_WRONLY|O_RDWR|O_APPEND|O_CREATE|O_EXCL|O_TRUNC) != 0 {
-			return nil, false, nil
-		}
-		return nil, true, gomadPathError("os.mount.open", "open", path, syscall.ENOENT)
-	}
-	if flag&(O_WRONLY|O_RDWR|O_APPEND|O_CREATE|O_EXCL|O_TRUNC) != 0 {
-		return nil, true, gomadPathError("os.mount.open", "open", path, syscall.EROFS)
-	}
-	if status == gomadMountStatusNotExist {
-		return nil, true, gomadPathError("os.mount.open", "open", path, syscall.ENOENT)
-	}
-	if status != gomadMountStatusOK {
-		panic("gomadv3: invalid read-only mount status")
+		return nil, true, gomadPathError("os.open", "open", path, err)
 	}
 	file := &File{file: &file{name: name}}
-	handle := &gomadOpenHandle{entry: entry}
 	gomadOpenHandles.Lock()
 	gomadOpenHandles.handles[file.file] = handle
 	gomadOpenHandles.Unlock()
 	gomadtrace.Init()
-	gomadtrace.Record("os.mount.open", []byte(path), entry.data, uint64(len(entry.data)), 0, 0, 0)
+	gomadtrace.Record("os.open", []byte(path), nil, uint64(flag), 0, 0, 0)
 	return file, true, nil
 }
 
@@ -218,7 +186,7 @@ func gomadMountFileInfo(name string, entry gomadMountEntry) gomadFileInfo {
 	return gomadFileInfo{name: name, size: int64(len(entry.data)), mode: mode, directory: directory}
 }
 
-func gomadHandle(file *File) *gomadOpenHandle {
+func gomadHandle(file *File) *gomadfs.Handle {
 	if file == nil || file.file == nil {
 		return nil
 	}
@@ -233,20 +201,8 @@ func gomadFileRead(file *File, destination []byte) (int, error, bool) {
 	if handle == nil {
 		return 0, nil, false
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return 0, ErrClosed, true
-	}
-	if handle.entry.kind != gomadMountKindFile {
-		return 0, syscall.EISDIR, true
-	}
-	if handle.offset >= int64(len(handle.entry.data)) {
-		return 0, io.EOF, true
-	}
-	read := copy(destination, handle.entry.data[handle.offset:])
-	handle.offset += int64(read)
-	return read, nil, true
+	read, err := handle.Read(destination)
+	return read, err, true
 }
 
 func gomadFileReadAt(file *File, destination []byte, offset int64) (int, error, bool) {
@@ -254,25 +210,8 @@ func gomadFileReadAt(file *File, destination []byte, offset int64) (int, error, 
 	if handle == nil {
 		return 0, nil, false
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return 0, ErrClosed, true
-	}
-	if offset < 0 {
-		return 0, syscall.EINVAL, true
-	}
-	if handle.entry.kind != gomadMountKindFile {
-		return 0, syscall.EISDIR, true
-	}
-	if offset >= int64(len(handle.entry.data)) {
-		return 0, io.EOF, true
-	}
-	read := copy(destination, handle.entry.data[offset:])
-	if read != len(destination) {
-		return read, io.EOF, true
-	}
-	return read, nil, true
+	read, err := handle.ReadAt(destination, offset)
+	return read, err, true
 }
 
 func gomadFileSeek(file *File, offset int64, whence int) (int64, error, bool) {
@@ -280,40 +219,26 @@ func gomadFileSeek(file *File, offset int64, whence int) (int64, error, bool) {
 	if handle == nil {
 		return 0, nil, false
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return 0, ErrClosed, true
-	}
-	var next int64
-	switch whence {
-	case io.SeekStart:
-		next = offset
-	case io.SeekCurrent:
-		next = handle.offset + offset
-	case io.SeekEnd:
-		next = int64(len(handle.entry.data)) + offset
-	default:
-		return 0, syscall.EINVAL, true
-	}
-	if next < 0 {
-		return 0, syscall.EINVAL, true
-	}
-	handle.offset = next
-	return next, nil, true
+	next, err := handle.Seek(offset, whence)
+	return next, err, true
 }
 
-func gomadFileWrite(file *File) (bool, error) {
+func gomadFileWrite(file *File, source []byte) (int, error, bool) {
 	handle := gomadHandle(file)
 	if handle == nil {
-		return false, nil
+		return 0, nil, false
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return true, ErrClosed
+	written, err := handle.Write(source)
+	return written, err, true
+}
+
+func gomadFileWriteAt(file *File, source []byte, offset int64) (int, error, bool) {
+	handle := gomadHandle(file)
+	if handle == nil {
+		return 0, nil, false
 	}
-	return true, syscall.EROFS
+	written, err := handle.WriteAt(source, offset)
+	return written, err, true
 }
 
 func gomadFileClose(file *File) (bool, error) {
@@ -321,13 +246,7 @@ func gomadFileClose(file *File) (bool, error) {
 	if handle == nil {
 		return false, nil
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return true, ErrClosed
-	}
-	handle.closed = true
-	return true, nil
+	return true, handle.Close()
 }
 
 func gomadFileStat(file *File) (FileInfo, bool, error) {
@@ -335,13 +254,15 @@ func gomadFileStat(file *File) (FileInfo, bool, error) {
 	if handle == nil {
 		return nil, false, nil
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return nil, true, ErrClosed
+	entry, err := handle.Stat()
+	if err != nil {
+		return nil, true, err
 	}
-	_, base, _ := gomadNormalizePath(file.name)
-	return gomadMountFileInfo(base, handle.entry), true, nil
+	mode := FileMode(entry.Mode)
+	if entry.Kind == gomadfs.KindDirectory {
+		mode |= ModeDir
+	}
+	return gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: mode, directory: entry.Kind == gomadfs.KindDirectory}, true, nil
 }
 
 func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirEntry, []FileInfo, error, bool) {
@@ -349,34 +270,20 @@ func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirE
 	if handle == nil {
 		return nil, nil, nil, nil, false
 	}
-	handle.Lock()
-	defer handle.Unlock()
-	if handle.closed {
-		return nil, nil, nil, ErrClosed, true
+	entries, err := handle.ReadDir(count)
+	if err != nil {
+		return nil, nil, nil, err, true
 	}
-	if handle.entry.kind != gomadMountKindDirectory {
-		return nil, nil, nil, syscall.ENOTDIR, true
-	}
-	remaining := len(handle.entry.children) - handle.directoryOffset
-	if remaining == 0 {
-		if count > 0 {
-			return nil, nil, nil, io.EOF, true
+	names := make([]string, 0, len(entries))
+	dirents := make([]DirEntry, 0, len(entries))
+	infos := make([]FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		fileMode := FileMode(entry.Mode)
+		if entry.Kind == gomadfs.KindDirectory {
+			fileMode |= ModeDir
 		}
-		return nil, nil, nil, nil, true
-	}
-	take := remaining
-	if count > 0 && count < take {
-		take = count
-	}
-	children := handle.entry.children[handle.directoryOffset : handle.directoryOffset+take]
-	handle.directoryOffset += take
-	names := make([]string, 0, take)
-	dirents := make([]DirEntry, 0, take)
-	infos := make([]FileInfo, 0, take)
-	for _, child := range children {
-		entry := gomadMountEntry{mode: child.mode, kind: child.kind}
-		info := gomadMountFileInfo(child.name, entry)
-		names = append(names, child.name)
+		info := gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: fileMode, directory: entry.Kind == gomadfs.KindDirectory}
+		names = append(names, entry.Name)
 		dirents = append(dirents, gomadDirEntry{info: info})
 		infos = append(infos, info)
 	}
@@ -388,6 +295,22 @@ func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirE
 	default:
 		return nil, nil, infos, nil, true
 	}
+}
+
+func gomadRename(oldName, newName string) error {
+	gomadInitializeFilesystem()
+	if err := gomadfs.Default.Rename(oldName, newName); err != nil {
+		return &LinkError{Op: "rename", Old: oldName, New: newName, Err: err}
+	}
+	return nil
+}
+
+func gomadRemove(name string) error {
+	gomadInitializeFilesystem()
+	if err := gomadfs.Default.Remove(name); err != nil {
+		return &PathError{Op: "remove", Path: name, Err: err}
+	}
+	return nil
 }
 
 func gomadHostname() (string, error) {
@@ -419,26 +342,7 @@ func gomadRecordPath(operation, path string, count uint64, err error) {
 }
 
 func gomadNormalizePath(name string) (string, string, error) {
-	if name == "" || strings.IndexByte(name, 0) >= 0 {
-		return "", "", syscall.EINVAL
-	}
-	components := make([]string, 0, strings.Count(name, "/")+1)
-	for _, component := range strings.Split(name, "/") {
-		switch component {
-		case "", ".":
-		case "..":
-			if len(components) == 0 {
-				return "", "", syscall.EINVAL
-			}
-			components = components[:len(components)-1]
-		default:
-			components = append(components, component)
-		}
-	}
-	if len(components) == 0 {
-		return "/", "/", nil
-	}
-	return "/" + strings.Join(components, "/"), components[len(components)-1], nil
+	return gomadfs.Normalize(name)
 }
 
 func gomadMountLookup(path string) (gomadMountEntry, uint16, error) {
