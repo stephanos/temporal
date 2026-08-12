@@ -275,6 +275,7 @@ func TestRunRejectsIOProfileWhenPreparedTargetDoesNotMatch(t *testing.T) {
 	preparer := newFakePreparer(t)
 	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
 	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
+	config.RunnerBuild = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 	config.Environment = nil
 	config.Target = target.Spec{
 		Kind: target.KindGoTest, Source: "./tests", Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"},
@@ -295,6 +296,36 @@ func TestValidateConfigRejectsUnknownIOProfileAndProfileEnvironment(t *testing.T
 	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
 	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "does not accept target environment") {
 		t.Fatalf("validateConfig(profile environment) error = %v", err)
+	}
+}
+
+func TestValidateConfigRequiresProfileForReadOnlyMounts(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyFirst, 1)
+	config.Environment = nil
+	config.IOROMounts = []string{t.TempDir() + "=schema"}
+	config.Target.WorkingDir = t.TempDir()
+	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "require an I/O profile") {
+		t.Fatalf("validateConfig() error = %v", err)
+	}
+}
+
+func TestRunPassesCanonicalReadOnlyMountsToExecutor(t *testing.T) {
+	source := t.TempDir()
+	executor := &fakeExecutor{}
+	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+	config.Environment = nil
+	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
+	config.RunnerBuild = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+	config.IOROMounts = []string{source + "=schema"}
+	config.Target = target.Spec{
+		Kind: target.KindGoTest, Source: "./tests", Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"}, WorkingDir: t.TempDir(),
+	}
+	config.Preparer = profileFakePreparer(t, "-test.run=^TestActivityAPIBatchCancelClientTestSuite$")
+	if _, err := Run(context.Background(), config); err != nil {
+		t.Fatal(err)
+	}
+	if len(executor.requests) != 1 || len(executor.requests[0].IOROMounts) != 1 || executor.requests[0].IOROMounts[0].Source != source || executor.requests[0].IOROMounts[0].Target != "/schema" {
+		t.Fatalf("executor mounts = %#v", executor.requests)
 	}
 }
 
@@ -395,7 +426,7 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
 	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
-	}, classifiedOutcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{})
+	}, classifiedOutcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -546,6 +577,17 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 		GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e",
 		TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}}
+}
+
+func profileFakePreparer(t *testing.T, argument string) *fakePreparer {
+	t.Helper()
+	preparer := newFakePreparer(t)
+	preparer.prepared.Kind = target.KindGoTest
+	preparer.prepared.Source = "./tests"
+	preparer.prepared.Argv = []string{"gomadv3-target", argument}
+	preparer.prepared.BuildTags = []string{"test_dep"}
+	preparer.prepared.BuildInfo.Path = "go.temporal.io/server/tests.test"
+	return preparer
 }
 
 func (preparer *fakePreparer) Prepare(_ context.Context, spec target.Spec) (target.Prepared, error) {

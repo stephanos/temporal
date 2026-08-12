@@ -39,11 +39,12 @@ type Manifest struct {
 }
 
 type IOProfile struct {
-	Name                 string        `json:"name"`
-	ImplementationSHA256 SHA256        `json:"implementation_sha256"`
-	Inventory            string        `json:"inventory"`
-	InventorySHA256      SHA256        `json:"inventory_sha256"`
-	Transcript           *IOTranscript `json:"transcript,omitempty"`
+	Name                 string          `json:"name"`
+	ImplementationSHA256 SHA256          `json:"implementation_sha256"`
+	Inventory            string          `json:"inventory"`
+	InventorySHA256      SHA256          `json:"inventory_sha256"`
+	Transcript           *IOTranscript   `json:"transcript,omitempty"`
+	ReadOnlyMounts       *ReadOnlyMounts `json:"read_only_mounts,omitempty"`
 }
 
 type IOTranscript struct {
@@ -52,6 +53,51 @@ type IOTranscript struct {
 	SHA256  SHA256       `json:"sha256"`
 	Bytes   Uint64String `json:"bytes"`
 	Records Uint64String `json:"records"`
+}
+
+type ReadOnlyMounts struct {
+	Schema     string              `json:"schema"`
+	File       string              `json:"file"`
+	SHA256     SHA256              `json:"sha256"`
+	Bytes      Uint64String        `json:"bytes"`
+	Entries    Uint64String        `json:"entries"`
+	TotalBytes Uint64String        `json:"total_bytes"`
+	Mappings   []string            `json:"mappings"`
+	Limits     ReadOnlyMountLimits `json:"limits"`
+}
+
+type ReadOnlyMountLimits struct {
+	PathBytes        Uint64String `json:"path_bytes"`
+	Requests         Uint64String `json:"requests"`
+	Files            Uint64String `json:"files"`
+	DirectoryEntries Uint64String `json:"directory_entries"`
+	SingleFileBytes  Uint64String `json:"single_file_bytes"`
+	TotalBytes       Uint64String `json:"total_bytes"`
+}
+
+type ReadOnlyMountDescriptor struct {
+	Schema     string               `json:"schema"`
+	Mappings   []string             `json:"mappings"`
+	Limits     ReadOnlyMountLimits  `json:"limits"`
+	Requests   Uint64String         `json:"requests"`
+	TotalBytes Uint64String         `json:"total_bytes"`
+	Entries    []ReadOnlyMountEntry `json:"entries"`
+}
+
+type ReadOnlyMountEntry struct {
+	Path     string               `json:"path"`
+	Mode     string               `json:"mode"`
+	Kind     string               `json:"kind"`
+	Size     Uint64String         `json:"size"`
+	SHA256   SHA256               `json:"sha256,omitempty"`
+	Payload  string               `json:"payload,omitempty"`
+	Children []ReadOnlyMountChild `json:"children"`
+}
+
+type ReadOnlyMountChild struct {
+	Name string `json:"name"`
+	Mode string `json:"mode"`
+	Kind string `json:"kind"`
 }
 
 type Runner struct {

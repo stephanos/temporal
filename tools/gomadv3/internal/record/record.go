@@ -186,6 +186,12 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 			return errors.New("I/O transcript file exceeds the recorded limit")
 		}
 	}
+	if manifest.IOProfile.ReadOnlyMounts != nil {
+		mounts := manifest.IOProfile.ReadOnlyMounts
+		if err := validateFileReference(files, mounts.File, mounts.SHA256, mounts.Bytes); err != nil {
+			return fmt.Errorf("read-only mount descriptor file: %w", err)
+		}
+	}
 	if err := validateFileReference(files, manifest.World.Initial.File, manifest.World.Initial.RawSHA256, files[manifest.World.Initial.File].Size); err != nil {
 		return fmt.Errorf("initial World file: %w", err)
 	}
@@ -209,7 +215,7 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 
 func validateIOProfile(profile IOProfile) error {
 	if profile.Name == "" {
-		if profile.ImplementationSHA256 != "" || profile.Inventory != "" || profile.InventorySHA256 != "" || profile.Transcript != nil {
+		if profile.ImplementationSHA256 != "" || profile.Inventory != "" || profile.InventorySHA256 != "" || profile.Transcript != nil || profile.ReadOnlyMounts != nil {
 			return errors.New("incomplete I/O profile identity")
 		}
 		return nil
@@ -240,6 +246,24 @@ func validateIOProfile(profile IOProfile) error {
 		}
 		if err := validateSHA256(profile.Transcript.SHA256); err != nil {
 			return fmt.Errorf("invalid I/O transcript hash: %w", err)
+		}
+	}
+	if mounts := profile.ReadOnlyMounts; mounts != nil {
+		if mounts.Schema != "gomadv3.io-read-only-mounts/v1" || mounts.File != "io/mounts.json" || len(mounts.Mappings) == 0 {
+			return errors.New("invalid read-only mount identity")
+		}
+		if err := validateSHA256(mounts.SHA256); err != nil {
+			return fmt.Errorf("invalid read-only mount descriptor hash: %w", err)
+		}
+		if mounts.Bytes == 0 || mounts.Limits.PathBytes == 0 || mounts.Limits.Requests == 0 || mounts.Limits.Files == 0 || mounts.Limits.DirectoryEntries == 0 || mounts.Limits.SingleFileBytes == 0 || mounts.Limits.TotalBytes == 0 || mounts.Limits.SingleFileBytes > mounts.Limits.TotalBytes || mounts.TotalBytes > mounts.Limits.TotalBytes {
+			return errors.New("invalid read-only mount limits")
+		}
+		previous := ""
+		for index, target := range mounts.Mappings {
+			if target == "/" || !strings.HasPrefix(target, "/") || path.Clean(target) != target || index > 0 && (target <= previous || strings.HasPrefix(target, previous+"/") || strings.HasPrefix(previous, target+"/")) {
+				return errors.New("read-only mount mappings must be absolute, sorted, unique, and non-overlapping")
+			}
+			previous = target
 		}
 	}
 	return nil
@@ -541,11 +565,12 @@ type targetProjection struct {
 }
 
 type ioProfileProjection struct {
-	Name                 string                  `json:"name"`
-	ImplementationSHA256 SHA256                  `json:"implementation_sha256"`
-	Inventory            string                  `json:"inventory"`
-	InventorySHA256      SHA256                  `json:"inventory_sha256"`
-	Transcript           *ioTranscriptProjection `json:"transcript,omitempty"`
+	Name                 string                   `json:"name"`
+	ImplementationSHA256 SHA256                   `json:"implementation_sha256"`
+	Inventory            string                   `json:"inventory"`
+	InventorySHA256      SHA256                   `json:"inventory_sha256"`
+	Transcript           *ioTranscriptProjection  `json:"transcript,omitempty"`
+	ReadOnlyMounts       *readOnlyMountProjection `json:"read_only_mounts,omitempty"`
 }
 
 type ioTranscriptProjection struct {
@@ -553,6 +578,16 @@ type ioTranscriptProjection struct {
 	SHA256  SHA256       `json:"sha256"`
 	Bytes   Uint64String `json:"bytes"`
 	Records Uint64String `json:"records"`
+}
+
+type readOnlyMountProjection struct {
+	Schema     string              `json:"schema"`
+	SHA256     SHA256              `json:"sha256"`
+	Bytes      Uint64String        `json:"bytes"`
+	Entries    Uint64String        `json:"entries"`
+	TotalBytes Uint64String        `json:"total_bytes"`
+	Mappings   []string            `json:"mappings"`
+	Limits     ReadOnlyMountLimits `json:"limits"`
 }
 
 type outcomeProjection struct {
@@ -642,6 +677,13 @@ func projectIOProfile(profile IOProfile) ioProfileProjection {
 	if profile.Transcript != nil {
 		projected.Transcript = &ioTranscriptProjection{
 			Schema: profile.Transcript.Schema, SHA256: profile.Transcript.SHA256, Bytes: profile.Transcript.Bytes, Records: profile.Transcript.Records,
+		}
+	}
+	if profile.ReadOnlyMounts != nil {
+		mounts := profile.ReadOnlyMounts
+		projected.ReadOnlyMounts = &readOnlyMountProjection{
+			Schema: mounts.Schema, SHA256: mounts.SHA256, Bytes: mounts.Bytes, Entries: mounts.Entries,
+			TotalBytes: mounts.TotalBytes, Mappings: append([]string(nil), mounts.Mappings...), Limits: mounts.Limits,
 		}
 	}
 	return projected

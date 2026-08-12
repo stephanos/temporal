@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/process"
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
@@ -30,6 +31,8 @@ type coordinatorConfig struct {
 	Artifacts            string
 	Environment          []string
 	IOProfile            string
+	IOROMounts           []string
+	IOROMountLimits      romount.Limits
 	Target               target.Spec
 	SupervisorCommand    []string
 	RunnerBuild          string
@@ -58,6 +61,7 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
 		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, Artifacts: config.Artifacts,
 		Environment: append([]string(nil), config.Environment...), IOProfile: config.IOProfile, Target: config.Target,
+		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
 	}
 	request, err := json.Marshal(wire)
@@ -146,6 +150,7 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
 		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, Artifacts: wire.Artifacts,
 		Environment: wire.Environment, IOProfile: wire.IOProfile, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
+		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
 	}
 	summary, runErr := runLocal(context.Background(), config)
 	response := coordinatorResponse{Summary: summary}

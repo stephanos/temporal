@@ -28,7 +28,7 @@ type Bootstrap struct {
 }
 
 func (profile Profile) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error) {
-	if profile.Name != TemporalActivityAPIBatchCancel {
+	if _, found := profileArgument(profile.Name); !found {
 		return nil, fmt.Errorf("unknown I/O profile %q", profile.Name)
 	}
 	resolved, err := Resolve(profile.Name)
@@ -78,17 +78,24 @@ func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
 		offset += sha256.Size
 	}
 	seed := binary.BigEndian.Uint64(frame[offset : offset+8])
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
-	if err != nil {
-		return Bootstrap{}, err
-	}
-	if record.SHA256(digests[0]) != profile.InventorySHA256 || record.SHA256(digests[1]) != profile.ImplementationSHA256 {
+	profile, found := profileForIdentity(record.SHA256(digests[0]), record.SHA256(digests[1]))
+	if !found {
 		return Bootstrap{}, errors.New("I/O profile bootstrap frame identity mismatch")
 	}
 	return Bootstrap{
 		Profile: profile.Name, InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1]),
 		TargetSHA256: digests[2], RunnerSHA256: digests[3], ArgvSHA256: record.SHA256(digests[4]), Seed: seed,
 	}, nil
+}
+
+func profileForIdentity(inventory, implementation record.SHA256) (Profile, bool) {
+	for _, name := range []string{TemporalActivityAPIBatchCancel, TemporalActivityAPIBatchSecurity} {
+		profile, err := Resolve(name)
+		if err == nil && profile.InventorySHA256 == inventory && profile.ImplementationSHA256 == implementation {
+			return profile, true
+		}
+	}
+	return Profile{}, false
 }
 
 func parseSHA256(value string) ([]byte, error) {

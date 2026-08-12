@@ -1,26 +1,16 @@
-# Gomad v3 Testing Gaps
+# Gomad v3 testing backlog
 
 ## Purpose
 
-Gomad v3 demonstrates its core runtime hypothesis: for deterministic external
-inputs, a fixed Go 1.26.4 toolchain, program, architecture, and `GOMADSEED`
-produce repeatable runtime-controlled choices. The current suite provides
-strong coverage for small scheduling, `select`, map, channel, synchronization,
-native virtual time, `go run`, and `go test` fixtures. Clock coverage includes
-native timer/context semantics, logical test timeouts, nested synctest,
-same-deadline channel/callback/context/reset/ticker races, saturated deadlines,
-non-progress, netpoll blocking, deadlock, and cgo/external-link rejection.
-Every schedulable child is bounded by a process-tree watchdog, invalid seeds are
-checked in a prebuilt binary, output is capped while both streams are drained,
-and seeds `0`, `1`, and maximum `uint64` receive full repeatability coverage.
+Gomad has broad fixture coverage for runtime scheduling, `select`, maps,
+channels, synchronization, native virtual time, process containment, and exact
+replay. This document tracks runtime and toolchain behavior whose failure would
+not yet be reliably detected by the checked-in suite.
 
-This document records the remaining test gaps. A gap is not evidence that the
-implementation is wrong; it identifies behavior whose failure would not be
-reliably detected by the checked-in suite.
-
-Deterministic external adapters and exploration capabilities remain excluded.
-See `GOMADv3_NEXT.md` for that roadmap, `GOMADv3_CLOCK.md` for the clock
-contract, and `tools/gomadv3/README.md` for the current runtime contract.
+A gap is not evidence that the implementation is wrong. The
+[architecture](../ARCHITECTURE.md) records the design rationale, the
+[roadmap](roadmap.md) tracks capability work, and the [README](../README.md) is
+authoritative for the current supported contract.
 
 ## Testing principles
 
@@ -251,12 +241,16 @@ Add exact-diagnostic cases for:
 
 Every rejected input must leave the stable toolchain and build key unchanged.
 
-### Prove `GOMADSEED` is the only feature gate
+### Prove activation remains explicit
 
 Run disabled fixtures with `GOMAXPROCS=1` and
 `GODEBUG=asyncpreemptoff=1` together while leaving `GOMADSEED` absent. The
 supporting settings have their ordinary upstream effects, but map entropy and
 Gomad scheduler randomization must remain disabled.
+
+Separately prove that `GOMADV3_IO_PROFILE` cannot activate without a valid
+Runner-supplied bootstrap configuration and that direct `GOMADSEED` activation
+cannot acquire an I/O profile accidentally.
 
 ### Test stock-toolchain resolution failures
 
@@ -299,8 +293,8 @@ tools/gomadv3 test` command remains the complete local gate.
 4. Exercise root Make targets and pruning.
 5. Add Linux/amd64 CI and broader disabled upstream shards.
 
-The harness now reliably reports hangs and child failures before the larger
-stress and build-lifecycle suites depend on it.
+The larger stress and build-lifecycle suites depend on the harness continuing
+to report hangs and child failures reliably.
 
 ## Completion criteria
 

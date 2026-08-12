@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 )
 
 type Store struct {
@@ -23,12 +24,13 @@ type Store struct {
 }
 
 type Input struct {
-	Manifest     record.Manifest
-	TargetPath   string
-	Stdout       []byte
-	Stderr       []byte
-	IOTranscript []byte
-	World        record.WorldPayloads
+	Manifest       record.Manifest
+	TargetPath     string
+	Stdout         []byte
+	Stderr         []byte
+	IOTranscript   []byte
+	ReadOnlyMounts *romount.ArtifactRecord
+	World          record.WorldPayloads
 }
 
 type Artifact struct {
@@ -104,6 +106,44 @@ func (store Store) Publish(input Input) (Artifact, error) {
 			return Artifact{}, errors.New("I/O transcript identity changed during publication")
 		}
 		files = append(files, transcriptFile)
+	}
+	if manifest.IOProfile.ReadOnlyMounts != nil {
+		if input.ReadOnlyMounts == nil {
+			return Artifact{}, errors.New("read-only mount artifact payload is required")
+		}
+		manifestBytes, err := record.CanonicalJSON(manifest.IOProfile.ReadOnlyMounts)
+		if err != nil {
+			return Artifact{}, fmt.Errorf("encode manifest read-only mount identity: %w", err)
+		}
+		inputBytes, err := record.CanonicalJSON(input.ReadOnlyMounts.Manifest)
+		if err != nil || !bytes.Equal(manifestBytes, inputBytes) {
+			return Artifact{}, errors.Join(errors.New("read-only mount artifact identity changed during publication"), err)
+		}
+		mounts := manifest.IOProfile.ReadOnlyMounts
+		descriptorFile, err := writePayload(ctx, filepath.Join(staging, filepath.FromSlash(mounts.File)), mounts.File, input.ReadOnlyMounts.Descriptor, 0o600)
+		if err != nil {
+			return Artifact{}, err
+		}
+		if descriptorFile.SHA256 != mounts.SHA256 || descriptorFile.Size != mounts.Bytes {
+			return Artifact{}, errors.New("read-only mount descriptor identity changed during publication")
+		}
+		files = append(files, descriptorFile)
+		payloadPaths := make([]string, 0, len(input.ReadOnlyMounts.Payloads))
+		for payloadPath := range input.ReadOnlyMounts.Payloads {
+			payloadPaths = append(payloadPaths, payloadPath)
+		}
+		sort.Strings(payloadPaths)
+		for _, payloadPath := range payloadPaths {
+			payloadFile, err := writePayload(ctx, filepath.Join(staging, filepath.FromSlash(payloadPath)), payloadPath, input.ReadOnlyMounts.Payloads[payloadPath], 0o600)
+			if err != nil {
+				return Artifact{}, err
+			}
+			files = append(files, payloadFile)
+		}
+	} else if input.ReadOnlyMounts != nil {
+		return Artifact{}, errors.New("unexpected read-only mount artifact payload")
+	}
+	if manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
 		if err := syncDirectoryContext(ctx, filepath.Join(staging, "io")); err != nil {
 			return Artifact{}, fmt.Errorf("sync I/O artifact directory: %w", err)
 		}

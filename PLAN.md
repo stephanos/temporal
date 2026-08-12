@@ -206,10 +206,9 @@ DNS, non-loopback sockets, packet/Unix sockets, arbitrary files, external databa
 
 ## Context Files
 
-- `GOMADv3_CLOCK.md` — native virtual time, quiescence, and host-I/O boundary.
-- `GOMADv3_WORLD.md` — adapter ownership, fail-closed behavior, evidence, and replay.
-- `GOMADv3_RUNNER.md` — target preparation, bootstrap, artifacts, and replay.
-- `GOMADv3_NEXT.md` — transparent Temporal-pilot success criteria.
+- `tools/gomadv3/ARCHITECTURE.md` — clock, World, Runner, artifact, and replay decisions.
+- `tools/gomadv3/docs/roadmap.md` — remaining adapter, coordination, and Temporal qualification work.
+- `tools/gomadv3/docs/2026-08-11-functional-suite-sweep.md` — observed functional-suite blockers.
 - `tools/gomadv3/README.md` — current activation and Runner contract.
 - `tools/gomadv3/test.sh` — patch/overlay validation and custom-toolchain fixtures.
 - `tools/gomadv3/build.sh` — immutable toolchain construction.

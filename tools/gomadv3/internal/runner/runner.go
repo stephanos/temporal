@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 	"go.temporal.io/server/tools/gomadv3/internal/worldrecord"
 	"go.temporal.io/server/tools/gomadv3/world"
@@ -63,6 +64,8 @@ type Config struct {
 	Artifacts            string
 	Environment          []string
 	IOProfile            string
+	IOROMounts           []string
+	IOROMountLimits      romount.Limits
 	Target               target.Spec
 	SupervisorCommand    []string
 	CoordinatorCommand   []string
@@ -187,6 +190,13 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	config.Artifacts, err = filepath.Abs(config.Artifacts)
 	if err != nil {
 		return Summary{}, &HostError{Reason: "artifact_setup", Err: fmt.Errorf("resolve artifact root: %w", err)}
+	}
+	readOnlyMounts, err := romount.ParseMappings(config.IOROMounts, config.Target.WorkingDir)
+	if err != nil {
+		return Summary{}, err
+	}
+	if len(readOnlyMounts) != 0 && config.IOROMountLimits == (romount.Limits{}) {
+		config.IOROMountLimits = romount.DefaultLimits()
 	}
 	overallCtx, overallCancel := context.WithTimeout(ctx, config.OverallTimeout)
 	defer overallCancel()
@@ -328,13 +338,17 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			Domain: "runner", Reason: reason, Termination: "none",
 			ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone,
 		}
-		manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest)
+		mountArtifact, err := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+		if err != nil {
+			return fmt.Errorf("construct read-only mount artifact: %w", err)
+		}
+		manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 		if err != nil {
 			return fmt.Errorf("construct Runner failure manifest: %w", err)
 		}
 		published, err := store.Publish(artifact.Input{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
 		if err != nil {
 			return fmt.Errorf("publish Runner failure artifact: %w", err)
@@ -369,7 +383,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 
 	launch := func(job runJob) {
 		active++
-		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, selectedProfile, batchPath, job, completions)
+		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, selectedProfile, readOnlyMounts, batchPath, job, completions)
 	}
 	for active > 0 || !exhausted && !stopped {
 		for active < config.Parallel && !exhausted && !stopped && overallCtx.Err() == nil {
@@ -513,7 +527,16 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			continue
 		}
 
-		manifest, manifestErr := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest)
+		mountArtifact, manifestErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+		if manifestErr != nil {
+			if hostFailure == nil {
+				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
+				stopped = true
+				activeCancel()
+			}
+			continue
+		}
+		manifest, manifestErr := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 		if manifestErr != nil {
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
@@ -524,7 +547,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		published, publishErr := store.Publish(artifact.Input{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
 		if publishErr != nil {
 			if hostFailure == nil {
@@ -698,6 +721,24 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 			return SeedSelection{}, nil, fmt.Errorf("I/O profile %q does not accept target environment additions", profile.Name)
 		}
 	}
+	if len(config.IOROMounts) != 0 && config.IOProfile == "" {
+		return SeedSelection{}, nil, fmt.Errorf("read-only mounts require an I/O profile")
+	}
+	if len(config.IOROMounts) != 0 {
+		if config.Target.WorkingDir == "" {
+			return SeedSelection{}, nil, fmt.Errorf("read-only mounts require a target working directory")
+		}
+		if _, err := romount.ParseMappings(config.IOROMounts, config.Target.WorkingDir); err != nil {
+			return SeedSelection{}, nil, err
+		}
+		limits := config.IOROMountLimits
+		if limits == (romount.Limits{}) {
+			limits = romount.DefaultLimits()
+		}
+		if _, err := romount.Prepare(nil, limits); err != nil {
+			return SeedSelection{}, nil, err
+		}
+	}
 	environment, err := parseEnvironment(config.Environment)
 	if err != nil {
 		return SeedSelection{}, nil, err
@@ -734,7 +775,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config Config, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile *ioprofile.Profile, batchPath string, job runJob, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config Config, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile *ioprofile.Profile, readOnlyMounts []romount.Mapping, batchPath string, job runJob, completions chan<- runCompletion) {
 	startedAt := time.Now().UTC()
 	partial := filepath.Join(batchPath, ".partial", fmt.Sprintf("%020d-%d", job.ordinal, job.seed))
 	completion := runCompletion{job: job, startedAt: startedAt, partial: partial}
@@ -789,8 +830,10 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 			Dir:              filepath.Join(partial, "work"), Env: environmentStrings(environment), RunTimeout: config.RunTimeout,
 			TerminateGrace: config.TerminateGrace, OutputLimit: config.OutputLimit,
 			WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: config.WorldTransitionLimit,
-			WorldSeed: job.seed,
-			IOConfig:  append([]byte(nil), ioConfig...),
+			WorldSeed:       job.seed,
+			IOConfig:        append([]byte(nil), ioConfig...),
+			IOROMounts:      append([]romount.Mapping(nil), readOnlyMounts...),
+			IOROMountLimits: config.IOROMountLimits,
 			IOTranscriptLimit: func() uint64 {
 				if len(ioConfig) != 0 {
 					return 64 << 20
@@ -904,7 +947,7 @@ func worldFailureReason(kind string) string {
 	}
 }
 
-func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome classifiedOutcome, runID string, recordedWorld record.World) (record.Manifest, error) {
+func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome classifiedOutcome, runID string, recordedWorld record.World, mountArtifact *romount.ArtifactRecord) (record.Manifest, error) {
 	recordedProfile := record.IOProfile{}
 	if config.IOProfile != "" {
 		profile, err := ioprofile.Resolve(config.IOProfile)
@@ -919,6 +962,9 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 				Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: sha256Record(completion.result.IOTranscript.SHA256),
 				Bytes: record.Uint64String(len(completion.result.IOTranscript.Bytes)), Records: record.Uint64String(completion.result.IOTranscript.Records),
 			}
+		}
+		if mountArtifact != nil {
+			recordedProfile.ReadOnlyMounts = &mountArtifact.Manifest
 		}
 	}
 	return record.Manifest{
@@ -948,6 +994,17 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 		Streams: record.Streams{Stdout: streamRecord(completion.result.Stdout), Stderr: streamRecord(completion.result.Stderr)},
 		Host:    record.Host{StartedAt: completion.startedAt.Format(time.RFC3339Nano), FinishedAt: completion.finishedAt.Format(time.RFC3339Nano), ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt)},
 	}, nil
+}
+
+func mountArtifactForRun(mappings []romount.Mapping, limits romount.Limits, snapshot romount.Snapshot) (*romount.ArtifactRecord, error) {
+	if len(mappings) == 0 {
+		return nil, nil
+	}
+	encoded, err := romount.EncodeArtifact(mappings, limits, snapshot)
+	if err != nil {
+		return nil, err
+	}
+	return &encoded, nil
 }
 
 func setRunTranscript(run *RunSummary, transcript process.IOTranscript) {

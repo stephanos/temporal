@@ -21,11 +21,13 @@ const (
 	targetIOTranscriptFD
 	targetIOTerminalFD
 	targetIOExpectedFD
+	targetIOROMountRequestFD
+	targetIOROMountResponseFD
 )
 
 func BootstrapMain() (retErr error) {
 	defer func() {
-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD))
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD))
 	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
@@ -94,6 +96,11 @@ func BootstrapMain() (retErr error) {
 			return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD, targetIOConfigFD))
 		}
 	}
+	if request.IOROMounts {
+		if err := installIOROMounts(); err != nil {
+			return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD, targetIOConfigFD, targetIOTranscriptFD, targetIOTerminalFD, targetIOExpectedFD))
+		}
+	}
 	if err := os.Chdir(request.Dir); err != nil {
 		return fmt.Errorf("change target working directory: %w", err)
 	}
@@ -101,6 +108,16 @@ func BootstrapMain() (retErr error) {
 	argv[0] = request.Argv0
 	argv = append(argv, request.Args...)
 	return syscall.Exec(request.Command, argv, request.Env)
+}
+
+func installIOROMounts() error {
+	if err := syscall.Dup2(bootstrapIOROMountRequestFD, targetIOROMountRequestFD); err != nil {
+		return fmt.Errorf("install target read-only mount request descriptor: %w", err)
+	}
+	if err := syscall.Dup2(bootstrapIOROMountResponseFD, targetIOROMountResponseFD); err != nil {
+		return errors.Join(fmt.Errorf("install target read-only mount response descriptor: %w", err), closeDescriptors(targetIOROMountRequestFD))
+	}
+	return closeDescriptors(bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD)
 }
 
 func installIOTranscript() error {

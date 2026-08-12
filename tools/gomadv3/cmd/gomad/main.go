@@ -131,8 +131,10 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	var environment stringList
 	var buildTags stringList
+	var ioROMounts stringList
 	flags.Var(&environment, "env", "target NAME=VALUE")
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
+	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
@@ -154,7 +156,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.Config{
 		Seeds: *seeds, Parallel: *parallel, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		Artifacts: *artifacts, Environment: environment, IOProfile: *ioProfile, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		Artifacts: *artifacts, Environment: environment, IOProfile: *ioProfile, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain,

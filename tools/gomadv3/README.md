@@ -84,6 +84,28 @@ bypass the reviewed boundaries with a direct raw syscall. DNS, non-loopback
 sockets, arbitrary files, subprocesses, cgo, plugins, and external linking are
 outside its supported contract.
 
+### Lazy read-only inputs
+
+An I/O profile can expose an explicit host directory through a repeatable lazy
+read-only mount. The Runner captures only entries first observed by the target,
+serves subsequent reads from memory, and stores captured inputs in retained
+failure artifacts so exact replay does not reopen the host directory:
+
+```sh
+tools/gomadv3/.bin/gomad explore \
+  --io-profile temporal-activity-api-batch-security/v1 \
+  --io-ro-mount ./schema/sqlite/v3=go.temporal.io/server/schema/sqlite/v3 \
+  --seeds 7 --parallel 1 --run-timeout 4m --overall-timeout 8m \
+  --artifacts .gomad/batch-security \
+  go-test ./tests -- '-test.run=^TestActivityAPIBatchSecurityTestSuite$'
+```
+
+Mount sources are resolved relative to the Runner working directory; target
+destinations are normalized into its virtual absolute namespace and may not
+overlap. Symlinks, hard-linked files, special entries, unstable captures, and
+capacity overflow fail closed. Write-capable opens within mounts return
+`EROFS`, and reads outside declared mounts do not fall through to host files.
+
 `GOMADV3_RUN`, `GOMADV3_PACKAGES`, and `GOMADV3_ARGS` are trusted Make recipe
 shell fragments, not an argv-safe public interface. Shell metacharacters and
 values that require quoting must be quoted for both Make and the recipe shell.
@@ -100,11 +122,13 @@ architecture, C/C++ tool, and compiler/linker tuning is cleared before
 
 ## Contract
 
-When `GOMADSEED` is absent, the toolchain follows the upstream runtime paths.
-When it is present, the runtime parses it as a `uint64`, forces the initial
+A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed
+I/O profile activates through `GOMADV3_IO_PROFILE` plus an identity-bound
+inherited bootstrap frame that supplies the seed. When neither path is present,
+the toolchain follows the upstream runtime paths. Activation forces the initial
 `GOMAXPROCS` to one, disables asynchronous preemption, and seeds existing
 runtime choice paths. Seed `0` is valid; empty, malformed, and overflowing
-values fail before user initialization.
+direct seed values fail before user initialization.
 
 Enabled targets start at midnight UTC on 2000-01-01. Standard `time.Now`,
 monotonic elapsed time, sleeps, timers, tickers, callbacks, and context
@@ -137,9 +161,10 @@ virtual-time advancement. Unsupported blocking I/O is likewise bounded by the
 external wall watchdog rather than treated as a clock event. Calling
 `runtime.GOMAXPROCS` to raise the value after startup is unsupported.
 
-The checked runner retains at most 1 MiB from each child output stream while
-continuing to drain both streams. Every result directory records
-`output-truncated` separately from `timed-out` and the child `status`.
+The shell test harness retains at most 1 MiB from each child output stream while
+continuing to drain both streams. Every harness result directory records
+`output-truncated` separately from `timed-out` and the child `status`. The Gomad
+Runner has a separate configurable per-stream limit that defaults to 8 MiB.
 
 The mode is intended only for trusted tests. Deterministic map seeds remove a
 hash-randomization defense and must not be enabled in production. Each process
@@ -168,6 +193,16 @@ capacity, invalid-input, or replay-divergence terminal result through inherited
 descriptors only at the process boundary, so host pipe readiness cannot affect
 event ordering. Connected replay requires the executing child to emit the same
 semantic bundle and fails closed if it is missing or divergent.
+
+## Design and roadmap
+
+- [Architecture](ARCHITECTURE.md) records the durable runtime, Runner, World,
+  artifact, replay, and I/O-profile decisions.
+- [Roadmap](docs/roadmap.md) tracks remaining capability work.
+- [Testing backlog](docs/testing-backlog.md) tracks runtime and toolchain
+  coverage gaps.
+- [Functional-suite sweep](docs/2026-08-11-functional-suite-sweep.md) records
+  the current unchanged-Temporal integration evidence.
 
 ## Development
 
