@@ -29,7 +29,8 @@ Runner ---- prepares and supervises one target process per seed
 These boundaries intentionally do not collapse into one controller:
 
 - the runtime owns goroutine scheduling, native timers, maps, and synchronization;
-- Runner owns host process lifetime, resource bounds, and artifact publication;
+- Runner owns host process lifetime, resource bounds, scheduling, and failure policy;
+- Artifact owns durable batch journaling and artifact publication;
 - Record owns raw bytes, hashes, and the outer replay envelope;
 - World owns external-event identities, ordering, state, and semantic digests;
 - each adapter owns its domain semantics; and
@@ -130,6 +131,21 @@ Runner drains stdout and stderr concurrently, hashes every byte, and retains a
 bounded head and tail. Output timing and host completion order are diagnostics
 and never enter runtime or World decisions.
 
+`process.Request` groups World and deterministic-I/O inputs as typed execution
+capabilities. On Unix, one process-owned launch-resource plan creates the pipes
+and backings, fixes every stage's descriptor numbers and inheritance order, and
+defines which ends close after each process start. The supervisor and bootstrap
+remain separate containment stages; neither caller reconstructs `ExtraFiles` or
+the final `dup2` layout independently.
+
+World transport remains enabled for every Runner-managed target. Although the
+launch plan now represents World explicitly, making its descriptors optional is
+deferred until external targets have been audited for calls to
+`world/child.Open` and migrated to an explicit declaration. Until then, an empty
+child record continues to become the canonical `none` World record. This keeps
+the descriptor refactor compatible rather than silently disconnecting an
+existing World-aware target.
+
 ## Records, artifacts, and replay
 
 Record defines the outer versioned envelope and canonical identities. It treats
@@ -147,6 +163,11 @@ durability operations, and a no-replace rename. A manifest is written last.
 Interrupted work may leave explicit partial diagnostics but can never appear as
 a complete replayable artifact. Existing content-addressed artifacts are reused
 only after complete validation.
+
+Artifact's `BatchJournal` owns the durable batch state machine: preparation and
+per-run partial directories, append-and-sync of `runs.jsonl`, final batch hash
+and `batch.json` publication, and partial cleanup. Runner advances semantic run
+states but does not implement filesystem publication primitives.
 
 Replay performs all identity and payload validation before starting the stored
 target. It never rebuilds from source, substitutes a local binary, silently
@@ -233,6 +254,12 @@ dependency closure. Standard-library shims and generated overlays replace only
 the inventoried operations needed by that target, bind their implementation and
 inventory identities into the artifact, and fail closed at unsupported reviewed
 entry points.
+
+Public profiles resolve through an immutable registry. Each opaque profile spec
+owns its name, target contract, canonical inventory and identities, and
+build-overlay policy; callers cannot mutate shared registry bytes. Profiles that
+share the current deterministic implementation reuse that implementation seam
+without introducing a plugin interface.
 
 Modeled I/O is appended to a bounded deterministic transcript. Replay supplies
 the recorded transcript and stops at the first mismatching operation. Host data

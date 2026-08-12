@@ -21,29 +21,45 @@ const (
 )
 
 type Request struct {
-	SupervisorCommand    []string
-	BootstrapCommand     []string
-	Command              string
-	Args                 []string
-	Argv0                string
-	Dir                  string
-	Env                  []string
-	RunTimeout           time.Duration
-	TerminateGrace       time.Duration
-	OutputLimit          uint64
-	WorldRecordLimit     uint64
-	WorldTransitionLimit uint64
-	WorldSeed            uint64
-	ExpectedWorldInitial []byte
-	IOConfig             []byte
-	IOTranscriptLimit    uint64
-	IOReplay             bool
-	ExpectedIOTranscript []byte
-	IOROMounts           []romount.Mapping
-	IOROMountLimits      romount.Limits
-	IOROMountReplay      *romount.Snapshot
-	StdoutHead           io.Writer
-	StderrHead           io.Writer
+	SupervisorCommand []string
+	BootstrapCommand  []string
+	Command           string
+	Args              []string
+	Argv0             string
+	Dir               string
+	Env               []string
+	RunTimeout        time.Duration
+	TerminateGrace    time.Duration
+	OutputLimit       uint64
+	StdoutHead        io.Writer
+	StderrHead        io.Writer
+	World             WorldCapability
+	IO                *IOCapability
+}
+
+type WorldCapability struct {
+	RecordLimit     uint64
+	TransitionLimit uint64
+	Seed            uint64
+	ExpectedInitial []byte
+}
+
+type IOCapability struct {
+	Config        []byte
+	Transcript    *IOTranscriptCapability
+	ReadOnlyMount *ReadOnlyMountCapability
+}
+
+type IOTranscriptCapability struct {
+	Limit    uint64
+	Replay   bool
+	Expected []byte
+}
+
+type ReadOnlyMountCapability struct {
+	Mappings []romount.Mapping
+	Limits   romount.Limits
+	Replay   *romount.Snapshot
 }
 
 type Result struct {
@@ -96,36 +112,45 @@ func validateRequest(request Request) error {
 	if request.OutputLimit == 0 {
 		return fmt.Errorf("output limit must be positive")
 	}
-	if request.WorldRecordLimit == 0 || request.WorldTransitionLimit == 0 {
+	if request.World.RecordLimit == 0 || request.World.TransitionLimit == 0 {
 		return fmt.Errorf("World record and transition limits must be positive")
 	}
-	if len(request.IOConfig) > maximumIOConfigBytes {
+	if request.IO == nil {
+		return nil
+	}
+	ioCapability := request.IO
+	if len(ioCapability.Config) > maximumIOConfigBytes {
 		return errors.New("I/O configuration exceeds its bound")
 	}
-	if len(request.IOConfig) == 0 && request.IOTranscriptLimit != 0 {
-		return errors.New("I/O transcript limit requires an I/O configuration")
-	}
-	if request.IOTranscriptLimit > maximumIOTranscriptBytes {
-		return errors.New("I/O transcript limit exceeds its bound")
-	}
-	if request.IOReplay && request.IOTranscriptLimit == 0 {
-		return errors.New("I/O replay requires a transcript")
-	}
-	if len(request.IOROMounts) != 0 || request.IOROMountLimits != (romount.Limits{}) {
-		if len(request.IOConfig) == 0 || request.IOTranscriptLimit == 0 {
+	if ioCapability.Transcript == nil {
+		if ioCapability.ReadOnlyMount != nil {
 			return errors.New("read-only mount broker requires a deterministic I/O transcript")
 		}
-		if request.IOROMountLimits == (romount.Limits{}) {
+		return nil
+	}
+	transcript := ioCapability.Transcript
+	if len(ioCapability.Config) == 0 && transcript.Limit != 0 {
+		return errors.New("I/O transcript limit requires an I/O configuration")
+	}
+	if transcript.Limit > maximumIOTranscriptBytes {
+		return errors.New("I/O transcript limit exceeds its bound")
+	}
+	if transcript.Replay && transcript.Limit == 0 {
+		return errors.New("I/O replay requires a transcript")
+	}
+	if mounts := ioCapability.ReadOnlyMount; mounts != nil {
+		if len(ioCapability.Config) == 0 || transcript.Limit == 0 {
+			return errors.New("read-only mount broker requires a deterministic I/O transcript")
+		}
+		if mounts.Limits == (romount.Limits{}) {
 			return errors.New("read-only mount broker requires limits")
 		}
-	} else if request.IOROMountReplay != nil {
-		return errors.New("read-only mount replay requires mappings")
 	}
-	if !request.IOReplay && len(request.ExpectedIOTranscript) != 0 {
+	if !transcript.Replay && len(transcript.Expected) != 0 {
 		return errors.New("expected I/O transcript requires replay mode")
 	}
-	if len(request.ExpectedIOTranscript)%ioTranscriptRecordBytes != 0 || uint64(len(request.ExpectedIOTranscript)) > request.IOTranscriptLimit-ioTranscriptHeaderBytes {
-		return fmt.Errorf("invalid expected I/O transcript length %d", len(request.ExpectedIOTranscript))
+	if len(transcript.Expected)%ioTranscriptRecordBytes != 0 || uint64(len(transcript.Expected)) > transcript.Limit-ioTranscriptHeaderBytes {
+		return fmt.Errorf("invalid expected I/O transcript length %d", len(transcript.Expected))
 	}
 	return nil
 }

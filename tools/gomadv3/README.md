@@ -231,9 +231,16 @@ Run source validation and the black-box suite with:
 
 ```sh
 make -C tools/gomadv3 test
+make -C tools/gomadv3 test-builder
+make -C tools/gomadv3 test-runtime
+make -C tools/gomadv3 test-upstream
 make -C tools/gomadv3 runner-test
 make -C tools/gomadv3 world-test
 ```
+
+`test` retains the full gate and runs the builder, runtime, and upstream tiers
+in that order. The focused targets reproduce the corresponding portion without
+weakening the full gate.
 
 The suite compares disabled `go run` and `go test` behavior with a local stock
 Go 1.26.4 toolchain; benchmarks disabled clock reads against that toolchain;

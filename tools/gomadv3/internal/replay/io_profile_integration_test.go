@@ -37,14 +37,14 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	environment := []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name, "TZ=UTC"}
+	environment := []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "TZ=UTC"}
 	observed, err := process.Run(context.Background(), process.Request{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: environment,
 		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20, WorldSeed: 7,
-		IOConfig: frame, IOTranscriptLimit: 64 << 20,
+		World: process.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+		IO:    &process.IOCapability{Config: frame, Transcript: &process.IOTranscriptCapability{Limit: 64 << 20}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -64,10 +64,10 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 			Argv: prepared.Argv, BuildTags: prepared.BuildTags, BuildInfo: prepared.BuildInfo,
 		},
 		IOProfile: record.IOProfile{
-			Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, Inventory: string(profile.Inventory), InventorySHA256: profile.InventorySHA256,
+			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),
 			Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 		},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			RunTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
@@ -121,13 +121,14 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	}
 	mappings := []romount.Mapping{{Source: source, Target: "/mounted"}}
 	limits := romount.DefaultLimits()
-	environment := []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name, "TZ=UTC"}
+	environment := []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "TZ=UTC"}
 	observed, err := process.Run(context.Background(), process.Request{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment,
 		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20, WorldSeed: 7,
-		IOConfig: frame, IOTranscriptLimit: 64 << 20, IOROMounts: mappings, IOROMountLimits: limits,
+		World: process.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+		IO: &process.IOCapability{Config: frame, Transcript: &process.IOTranscriptCapability{Limit: 64 << 20},
+			ReadOnlyMount: &process.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -151,11 +152,11 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 			Argv: prepared.Argv, BuildTags: prepared.BuildTags, BuildInfo: prepared.BuildInfo,
 		},
 		IOProfile: record.IOProfile{
-			Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, Inventory: string(profile.Inventory), InventorySHA256: profile.InventorySHA256,
+			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),
 			Transcript:     &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 			ReadOnlyMounts: &mountArtifact.Manifest,
 		},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			RunTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,

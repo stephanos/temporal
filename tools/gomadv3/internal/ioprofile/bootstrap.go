@@ -1,7 +1,6 @@
 package ioprofile
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -25,22 +24,16 @@ type Bootstrap struct {
 	Seed                 uint64
 }
 
-func (profile Profile) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error) {
-	if profile.Name != Deterministic {
-		return nil, fmt.Errorf("unknown I/O profile %q", profile.Name)
-	}
-	resolved, err := Resolve(profile.Name)
+func (profile ProfileSpec) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error) {
+	definition, err := profile.validated()
 	if err != nil {
 		return nil, err
-	}
-	if !bytes.Equal(profile.Inventory, resolved.Inventory) || profile.InventorySHA256 != resolved.InventorySHA256 || profile.ImplementationSHA256 != resolved.ImplementationSHA256 {
-		return nil, fmt.Errorf("I/O profile %q identity is invalid", profile.Name)
 	}
 	argv, err := record.CanonicalJSON(prepared.Argv)
 	if err != nil {
 		return nil, fmt.Errorf("encode target argv identity: %w", err)
 	}
-	digests := []string{string(profile.InventorySHA256), string(profile.ImplementationSHA256), prepared.SHA256, runnerSHA256, string(record.HashBytes(argv))}
+	digests := []string{string(definition.inventorySHA256), string(definition.implementationSHA256), prepared.SHA256, runnerSHA256, string(record.HashBytes(argv))}
 	wire := iowire.Bootstrap{Seed: seed}
 	destinations := []*[sha256.Size]byte{&wire.InventoryHash, &wire.ImplementationHash, &wire.TargetHash, &wire.RunnerHash, &wire.ArgvHash}
 	for index, value := range digests {
@@ -68,19 +61,18 @@ func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
 		return Bootstrap{}, errors.New("I/O profile bootstrap frame identity mismatch")
 	}
 	return Bootstrap{
-		Profile: profile.Name, InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1]),
+		Profile: profile.Name(), InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1]),
 		TargetSHA256: digests[2], RunnerSHA256: digests[3], ArgvSHA256: record.SHA256(digests[4]), Seed: decoded.Seed,
 	}, nil
 }
 
-func profileForIdentity(inventory, implementation record.SHA256) (Profile, bool) {
-	for _, name := range []string{Deterministic} {
-		profile, err := Resolve(name)
-		if err == nil && profile.InventorySHA256 == inventory && profile.ImplementationSHA256 == implementation {
+func profileForIdentity(inventory, implementation record.SHA256) (ProfileSpec, bool) {
+	for _, profile := range profileRegistry {
+		if profile.InventorySHA256() == inventory && profile.ImplementationSHA256() == implementation {
 			return profile, true
 		}
 	}
-	return Profile{}, false
+	return ProfileSpec{}, false
 }
 
 func parseSHA256(value string) ([]byte, error) {

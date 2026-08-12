@@ -676,26 +676,33 @@ func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirE
 		gomadRecordFile("os.readdir", handle.Path(), gomadInt64Argument(int64(count)), nil, 0, err)
 		return nil, nil, nil, err, true
 	}
-	names := make([]string, 0, len(entries))
-	dirents := make([]DirEntry, 0, len(entries))
-	infos := make([]FileInfo, 0, len(entries))
-	for _, entry := range entries {
-		fileMode := FileMode(entry.Mode)
-		if entry.Kind == gomadfs.KindDirectory {
-			fileMode |= ModeDir
-		}
-		info := gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: fileMode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory}
-		names = append(names, entry.Name)
-		dirents = append(dirents, gomadDirEntry{info: info})
-		infos = append(infos, info)
-	}
 	gomadRecordFile("os.readdir", handle.Path(), gomadInt64Argument(int64(count)), nil, uint64(len(entries)), nil)
 	switch mode {
 	case readdirName:
+		names := make([]string, 0, len(entries))
+		for _, entry := range entries {
+			names = append(names, entry.Name)
+		}
 		return names, nil, nil, nil, true
 	case readdirDirEntry:
+		dirents := make([]DirEntry, 0, len(entries))
+		for _, entry := range entries {
+			fileMode := FileMode(entry.Mode)
+			if entry.Kind == gomadfs.KindDirectory {
+				fileMode |= ModeDir
+			}
+			dirents = append(dirents, gomadDirEntry{info: gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: fileMode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory}})
+		}
 		return nil, dirents, nil, nil, true
 	default:
+		infos := make([]FileInfo, 0, len(entries))
+		for _, entry := range entries {
+			fileMode := FileMode(entry.Mode)
+			if entry.Kind == gomadfs.KindDirectory {
+				fileMode |= ModeDir
+			}
+			infos = append(infos, gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: fileMode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory})
+		}
 		return nil, nil, infos, nil, true
 	}
 }

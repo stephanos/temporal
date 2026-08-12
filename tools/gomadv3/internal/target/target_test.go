@@ -8,12 +8,33 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
+
+func TestProjectBuildInfoCanonicalizesModuleAndSettings(t *testing.T) {
+	info := &debug.BuildInfo{
+		GoVersion: "go1.26.4",
+		Path:      "example.com/target",
+		Main:      debug.Module{Path: "example.com/main", Version: "v1.2.3"},
+		Settings: []debug.BuildSetting{
+			{Key: "zeta", Value: "last"},
+			{Key: "alpha", Value: "first"},
+		},
+	}
+	want := record.BuildInfo{
+		GoVersion: "go1.26.4", Path: "example.com/target", MainModule: "example.com/main@v1.2.3",
+		Settings: []record.BuildSetting{{Key: "alpha", Value: "first"}, {Key: "zeta", Value: "last"}},
+	}
+	if got := ProjectBuildInfo(info); !reflect.DeepEqual(got, want) {
+		t.Fatalf("ProjectBuildInfo() = %#v, want %#v", got, want)
+	}
+}
 
 func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 	module := writeModule(t, map[string]string{

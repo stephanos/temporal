@@ -2,9 +2,7 @@ package replay
 
 import (
 	"context"
-	"crypto/sha256"
 	"debug/buildinfo"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
@@ -12,11 +10,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
-	"sort"
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
+	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
@@ -137,7 +135,7 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		if profileErr != nil {
 			return Result{}, profileErr
 		}
-		if string(profile.Inventory) != manifest.IOProfile.Inventory || profile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 {
+		if string(profile.Inventory()) != manifest.IOProfile.Inventory || profile.InventorySHA256() != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256() != manifest.IOProfile.ImplementationSHA256 {
 			return Result{}, errors.New("recorded I/O profile identity does not match this Runner")
 		}
 		ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
@@ -168,15 +166,26 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 			return Result{}, fmt.Errorf("read expected I/O transcript: %w", err)
 		}
 	}
+	var ioCapability *process.IOCapability
+	if manifest.IOProfile.Name != "" {
+		ioCapability = &process.IOCapability{
+			Config:     ioConfig,
+			Transcript: &process.IOTranscriptCapability{Limit: ioTranscriptLimit, Replay: true, Expected: expectedIOTranscript},
+			ReadOnlyMount: &process.ReadOnlyMountCapability{
+				Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
+			},
+		}
+	}
 	observed, err := executor.Run(ctx, process.Request{
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
 		BootstrapCommand: replayBootstrapCommand(config),
 		Args:             append([]string(nil), manifest.Target.Argv[1:]...), Argv0: manifest.Target.Argv[0], Dir: workDirectory, Env: environment,
 		RunTimeout: runTimeout, TerminateGrace: terminateGrace, OutputLimit: uint64(manifest.Limits.OutputBytes),
-		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
-		WorldSeed: uint64(manifest.Seed), ExpectedWorldInitial: expectedWorldInitial,
-		IOConfig: ioConfig, IOTranscriptLimit: ioTranscriptLimit, IOReplay: manifest.IOProfile.Name != "", ExpectedIOTranscript: expectedIOTranscript,
-		IOROMounts: readOnlyMounts, IOROMountLimits: readOnlyMountLimits, IOROMountReplay: readOnlyMountSnapshot,
+		World: process.WorldCapability{
+			RecordLimit: world.MaximumRecordingBytes, TransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
+			Seed: uint64(manifest.Seed), ExpectedInitial: expectedWorldInitial,
+		},
+		IO: ioCapability,
 	})
 	if err != nil {
 		return Result{}, fmt.Errorf("execute replay target: %w", err)
@@ -224,7 +233,7 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 		if profileErr != nil {
 			return artifact.Artifact{}, profileErr
 		}
-		if string(profile.Inventory) != manifest.IOProfile.Inventory || profile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 {
+		if string(profile.Inventory()) != manifest.IOProfile.Inventory || profile.InventorySHA256() != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256() != manifest.IOProfile.ImplementationSHA256 {
 			return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
 		}
 	}
@@ -312,7 +321,7 @@ func validateTargetBuildInfo(path string, expected record.BuildInfo) error {
 }
 
 func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
-	actual := projectBuildInfo(info)
+	actual := target.ProjectBuildInfo(info)
 	expectedBytes, err := record.CanonicalJSON(expected)
 	if err != nil {
 		return fmt.Errorf("encode recorded target build info: %w", err)
@@ -348,17 +357,17 @@ func firstDivergence(manifest record.Manifest, observed process.Result, observed
 	if actualReason(observed, observedWorld) != expected.Reason {
 		return "outcome.reason"
 	}
-	if sha256Record(observed.Stdout.FullSHA256) != manifest.Streams.Stdout.FullSHA256 {
+	if record.SHA256FromSum(observed.Stdout.FullSHA256) != manifest.Streams.Stdout.FullSHA256 {
 		return "stdout.full_sha256"
 	}
-	if sha256Record(observed.Stderr.FullSHA256) != manifest.Streams.Stderr.FullSHA256 {
+	if record.SHA256FromSum(observed.Stderr.FullSHA256) != manifest.Streams.Stderr.FullSHA256 {
 		return "stderr.full_sha256"
 	}
 	if manifest.IOProfile.Transcript != nil {
 		if !observed.IOTranscript.Complete {
 			return "io_profile.transcript.complete"
 		}
-		if sha256Record(observed.IOTranscript.SHA256) != manifest.IOProfile.Transcript.SHA256 {
+		if record.SHA256FromSum(observed.IOTranscript.SHA256) != manifest.IOProfile.Transcript.SHA256 {
 			return "io_profile.transcript.sha256"
 		}
 		if record.Uint64String(observed.IOTranscript.Records) != manifest.IOProfile.Transcript.Records {
@@ -402,47 +411,11 @@ func firstDivergence(manifest record.Manifest, observed process.Result, observed
 }
 
 func actualReason(result process.Result, observedWorld *worldrecord.Bundle) string {
-	if result.WatchdogTimeout {
-		return "watchdog_timeout"
-	}
+	terminal := record.WorldTerminal{}
 	if observedWorld != nil {
-		if reason := worldFailureReason(observedWorld.Manifest.Terminal.Kind); reason != "" {
-			return reason
-		}
+		terminal = observedWorld.Manifest.Terminal
 	}
-	if result.Termination == process.TerminationSignal {
-		return "external_signal"
-	}
-	diagnostic := string(result.Stderr.Bytes)
-	switch {
-	case len(diagnostic) >= len("runtime: GOMADSEED does not support cgo or external linking") && diagnostic[:len("runtime: GOMADSEED does not support cgo or external linking")] == "runtime: GOMADSEED does not support cgo or external linking":
-		return "unsupported_deterministic_mode"
-	case len(diagnostic) >= len("fatal error: all goroutines are asleep - deadlock!") && diagnostic[:len("fatal error: all goroutines are asleep - deadlock!")] == "fatal error: all goroutines are asleep - deadlock!":
-		return "deterministic_deadlock"
-	case len(diagnostic) >= len("panic: test timed out after") && diagnostic[:len("panic: test timed out after")] == "panic: test timed out after":
-		return "logical_test_timeout"
-	case len(diagnostic) >= len("panic:") && diagnostic[:len("panic:")] == "panic:":
-		return "panic_or_runtime_fatal"
-	case len(diagnostic) >= len("fatal error:") && diagnostic[:len("fatal error:")] == "fatal error:":
-		return "panic_or_runtime_fatal"
-	default:
-		return "nonzero_exit"
-	}
-}
-
-func worldFailureReason(kind string) string {
-	switch world.TerminalKind(kind) {
-	case world.TerminalDeadlock:
-		return "world_deadlock"
-	case world.TerminalCapacity:
-		return "world_capacity"
-	case world.TerminalReplayDivergence:
-		return "world_replay_divergence"
-	case world.TerminalInvalidInput:
-		return "world_invalid_input"
-	default:
-		return ""
-	}
+	return executionoutcome.Classify(result, false, terminal).Reason
 }
 
 func duration(value record.Uint64String) (time.Duration, error) {
@@ -450,21 +423,4 @@ func duration(value record.Uint64String) (time.Duration, error) {
 		return 0, fmt.Errorf("recorded duration exceeds host representation")
 	}
 	return time.Duration(value), nil
-}
-
-func sha256Record(value [sha256.Size]byte) record.SHA256 {
-	return record.SHA256("sha256:" + hex.EncodeToString(value[:]))
-}
-
-func projectBuildInfo(info *debug.BuildInfo) record.BuildInfo {
-	settings := make([]record.BuildSetting, len(info.Settings))
-	for index, setting := range info.Settings {
-		settings[index] = record.BuildSetting{Key: setting.Key, Value: setting.Value}
-	}
-	sort.Slice(settings, func(i, j int) bool { return settings[i].Key < settings[j].Key })
-	mainModule := info.Main.Path
-	if info.Main.Version != "" && info.Main.Version != "(devel)" {
-		mainModule += "@" + info.Main.Version
-	}
-	return record.BuildInfo{GoVersion: info.GoVersion, Path: info.Path, MainModule: mainModule, Settings: settings}
 }
