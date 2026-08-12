@@ -114,6 +114,19 @@ Same-key builds use an atomic owner lock, and ambient Go experiment,
 architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMADV3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
+The cross-process deterministic-I/O layouts are declared in
+`tools/gomadv3/protocol/iowire.json`. After changing that schema or its
+templates, regenerate and verify both dependency-free endpoint codecs with:
+
+```sh
+make -C tools/gomadv3 generate
+make -C tools/gomadv3 validate
+```
+
+Generated host and overlay tests consume the same golden vectors. The normal
+Gomad v3 test target also tests the overlay codec and typed mount client inside
+the patched toolchain.
+
 ## Contract
 
 A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed

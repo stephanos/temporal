@@ -3,19 +3,17 @@ package ioprofile
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
-const bootstrapFrameBytes = 212
-
-var bootstrapMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'I', 'O', 1}
+const bootstrapFrameBytes = iowire.BootstrapFrameBytes
 
 type Bootstrap struct {
 	Profile              string
@@ -43,48 +41,35 @@ func (profile Profile) BootstrapFrame(prepared target.Prepared, runnerSHA256 str
 		return nil, fmt.Errorf("encode target argv identity: %w", err)
 	}
 	digests := []string{string(profile.InventorySHA256), string(profile.ImplementationSHA256), prepared.SHA256, runnerSHA256, string(record.HashBytes(argv))}
-	frame := make([]byte, bootstrapFrameBytes)
-	copy(frame[:8], bootstrapMagic[:])
-	binary.BigEndian.PutUint16(frame[8:10], 1)
-	binary.BigEndian.PutUint16(frame[10:12], 1)
-	offset := 12
-	for _, value := range digests {
+	wire := iowire.Bootstrap{Seed: seed}
+	destinations := []*[sha256.Size]byte{&wire.InventoryHash, &wire.ImplementationHash, &wire.TargetHash, &wire.RunnerHash, &wire.ArgvHash}
+	for index, value := range digests {
 		decoded, decodeErr := parseSHA256(value)
 		if decodeErr != nil {
 			return nil, decodeErr
 		}
-		copy(frame[offset:offset+sha256.Size], decoded)
-		offset += sha256.Size
+		copy(destinations[index][:], decoded)
 	}
-	binary.BigEndian.PutUint64(frame[offset:offset+8], seed)
-	offset += 8
-	checksum := sha256.Sum256(frame[:offset])
-	copy(frame[offset:], checksum[:])
-	return frame, nil
+	frame := iowire.EncodeBootstrap(wire)
+	return frame[:], nil
 }
 
 func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
-	if len(frame) != bootstrapFrameBytes || !bytes.Equal(frame[:8], bootstrapMagic[:]) || binary.BigEndian.Uint16(frame[8:10]) != 1 || binary.BigEndian.Uint16(frame[10:12]) != 1 {
-		return Bootstrap{}, errors.New("invalid I/O profile bootstrap frame")
+	decoded, err := iowire.DecodeBootstrap(frame)
+	if err != nil {
+		return Bootstrap{}, fmt.Errorf("decode I/O profile bootstrap frame: %w", err)
 	}
-	checksum := sha256.Sum256(frame[:bootstrapFrameBytes-sha256.Size])
-	if !bytes.Equal(checksum[:], frame[bootstrapFrameBytes-sha256.Size:]) {
-		return Bootstrap{}, errors.New("I/O profile bootstrap frame checksum mismatch")
+	digests := make([]string, 0, 5)
+	for _, digest := range [][sha256.Size]byte{decoded.InventoryHash, decoded.ImplementationHash, decoded.TargetHash, decoded.RunnerHash, decoded.ArgvHash} {
+		digests = append(digests, "sha256:"+hex.EncodeToString(digest[:]))
 	}
-	digests := make([]string, 5)
-	offset := 12
-	for index := range digests {
-		digests[index] = "sha256:" + hex.EncodeToString(frame[offset:offset+sha256.Size])
-		offset += sha256.Size
-	}
-	seed := binary.BigEndian.Uint64(frame[offset : offset+8])
 	profile, found := profileForIdentity(record.SHA256(digests[0]), record.SHA256(digests[1]))
 	if !found {
 		return Bootstrap{}, errors.New("I/O profile bootstrap frame identity mismatch")
 	}
 	return Bootstrap{
 		Profile: profile.Name, InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1]),
-		TargetSHA256: digests[2], RunnerSHA256: digests[3], ArgvSHA256: record.SHA256(digests[4]), Seed: seed,
+		TargetSHA256: digests[2], RunnerSHA256: digests[3], ArgvSHA256: record.SHA256(digests[4]), Seed: decoded.Seed,
 	}, nil
 }
 

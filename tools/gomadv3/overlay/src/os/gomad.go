@@ -6,13 +6,15 @@ package os
 
 import (
 	"encoding/binary"
-	"internal/gomadfs"
-	"internal/gomadtrace"
 	"io"
 	"sync"
 	"syscall"
 	"time"
 	_ "unsafe"
+
+	"internal/gomadfs"
+	"internal/gomadio/mount"
+	"internal/gomadtrace"
 )
 
 //go:linkname gomadProfileEnabled runtime.gomadIOProfileEnabled
@@ -27,50 +29,6 @@ func gomadIOEnabled() bool {
 
 var gomadFilesystemOnce sync.Once
 
-const (
-	gomadMountRequestDescriptor  = 9
-	gomadMountResponseDescriptor = 10
-	gomadMountRequestHeader      = 24
-	gomadMountResponseHeader     = 40
-	gomadMountPathBytes          = 4096
-	gomadMountFileBytes          = 16 << 20
-	gomadMountDirectoryEntries   = 100_000
-)
-
-const (
-	gomadMountStatusOK uint16 = iota
-	gomadMountStatusUnmounted
-	gomadMountStatusNotExist
-)
-
-const (
-	gomadMountKindFile uint8 = iota + 1
-	gomadMountKindDirectory
-)
-
-var (
-	gomadMountRequestMagic  = [8]byte{'G', 'O', 'M', 'A', 'D', 'R', 'O', 1}
-	gomadMountResponseMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'R', 'S', 1}
-)
-
-type gomadMountChild struct {
-	name string
-	mode uint32
-	kind uint8
-}
-
-type gomadMountEntry struct {
-	mode     uint32
-	kind     uint8
-	data     []byte
-	children []gomadMountChild
-}
-
-var gomadMountClient struct {
-	sync.Mutex
-	ordinal uint64
-}
-
 var gomadOpenHandles = struct {
 	sync.RWMutex
 	handles map[*file]*gomadfs.Handle
@@ -84,16 +42,16 @@ func gomadInitializeFilesystem() {
 }
 
 func gomadLoadMount(path string) (gomadfs.Entry, gomadfs.MountStatus, error) {
-	entry, status, err := gomadMountLookup(path)
+	entry, status, err := mount.Default.Lookup(path)
 	if err == syscall.EBADF {
 		return gomadfs.Entry{}, gomadfs.MountUnmounted, nil
 	}
 	if err != nil {
 		return gomadfs.Entry{}, 0, err
 	}
-	converted := gomadfs.Entry{Mode: entry.mode, Kind: gomadfs.Kind(entry.kind), Data: entry.data, Children: make([]gomadfs.Child, 0, len(entry.children))}
-	for _, child := range entry.children {
-		converted.Children = append(converted.Children, gomadfs.Child{Name: child.name, Mode: child.mode, Kind: gomadfs.Kind(child.kind)})
+	converted := gomadfs.Entry{Mode: entry.Mode, Kind: gomadfs.Kind(entry.Kind), Data: entry.Data, Children: make([]gomadfs.Child, 0, len(entry.Children))}
+	for _, child := range entry.Children {
+		converted.Children = append(converted.Children, gomadfs.Child{Name: child.Name, Mode: child.Mode, Kind: gomadfs.Kind(child.Kind)})
 	}
 	return converted, gomadfs.MountStatus(status), nil
 }
@@ -165,31 +123,6 @@ func gomadOpenFile(name string, flag int, perm FileMode) (*File, bool, error) {
 		gomadtrace.Record("os.open", []byte(path), nil, uint64(flag), 0, 0, 0)
 	}
 	return file, true, nil
-}
-
-func gomadMountStat(path, base string) (FileInfo, bool, error) {
-	entry, status, err := gomadMountLookup(path)
-	if err == syscall.EBADF || status == gomadMountStatusUnmounted {
-		return nil, false, nil
-	}
-	if err != nil {
-		panic("gomadv3: read-only mount broker failure")
-	}
-	if status == gomadMountStatusNotExist {
-		return nil, true, gomadPathError("os.mount.stat", "stat", path, syscall.ENOENT)
-	}
-	info := gomadMountFileInfo(base, entry)
-	gomadRecordPath("os.mount.stat", path, uint64(info.mode), nil)
-	return info, true, nil
-}
-
-func gomadMountFileInfo(name string, entry gomadMountEntry) gomadFileInfo {
-	mode := FileMode(entry.mode)
-	directory := entry.kind == gomadMountKindDirectory
-	if directory {
-		mode |= ModeDir
-	}
-	return gomadFileInfo{name: name, size: int64(len(entry.data)), mode: mode, directory: directory}
 }
 
 func gomadHandle(file *File) *gomadfs.Handle {
@@ -509,91 +442,6 @@ func gomadTwoInt64Arguments(first, second int64) []byte {
 func gomadNormalizePath(name string) (string, string, error) {
 	gomadInitializeFilesystem()
 	return gomadfs.Default.Resolve(name)
-}
-
-func gomadMountLookup(path string) (gomadMountEntry, uint16, error) {
-	gomadMountClient.Lock()
-	defer gomadMountClient.Unlock()
-	if len(path) > gomadMountPathBytes {
-		return gomadMountEntry{}, 0, syscall.ENAMETOOLONG
-	}
-	ordinal := gomadMountClient.ordinal
-	var request [gomadMountRequestHeader]byte
-	copy(request[:8], gomadMountRequestMagic[:])
-	binary.BigEndian.PutUint16(request[8:10], 1)
-	binary.BigEndian.PutUint16(request[10:12], 1)
-	binary.BigEndian.PutUint64(request[12:20], ordinal)
-	binary.BigEndian.PutUint32(request[20:24], uint32(len(path)))
-	if err := gomadWriteMountBytes(gomadMountRequestDescriptor, request[:]); err != nil {
-		return gomadMountEntry{}, 0, err
-	}
-	if err := gomadWriteMountBytes(gomadMountRequestDescriptor, []byte(path)); err != nil {
-		return gomadMountEntry{}, 0, err
-	}
-	var response [gomadMountResponseHeader]byte
-	if err := gomadReadMountBytes(gomadMountResponseDescriptor, response[:]); err != nil {
-		return gomadMountEntry{}, 0, err
-	}
-	if string(response[:8]) != string(gomadMountResponseMagic[:]) || binary.BigEndian.Uint16(response[8:10]) != 1 || binary.BigEndian.Uint64(response[12:20]) != ordinal {
-		return gomadMountEntry{}, 0, syscall.EPROTO
-	}
-	gomadMountClient.ordinal++
-	status := binary.BigEndian.Uint16(response[10:12])
-	entry := gomadMountEntry{kind: response[20], mode: binary.BigEndian.Uint32(response[24:28])}
-	dataBytes := binary.BigEndian.Uint64(response[28:36])
-	children := binary.BigEndian.Uint32(response[36:40])
-	if dataBytes > gomadMountFileBytes || children > gomadMountDirectoryEntries {
-		return gomadMountEntry{}, 0, syscall.EOVERFLOW
-	}
-	entry.data = make([]byte, int(dataBytes))
-	if err := gomadReadMountBytes(gomadMountResponseDescriptor, entry.data); err != nil {
-		return gomadMountEntry{}, 0, err
-	}
-	entry.children = make([]gomadMountChild, 0, children)
-	for range children {
-		var header [8]byte
-		if err := gomadReadMountBytes(gomadMountResponseDescriptor, header[:]); err != nil {
-			return gomadMountEntry{}, 0, err
-		}
-		nameBytes := binary.BigEndian.Uint16(header[:2])
-		if nameBytes > gomadMountPathBytes {
-			return gomadMountEntry{}, 0, syscall.EOVERFLOW
-		}
-		name := make([]byte, nameBytes)
-		if err := gomadReadMountBytes(gomadMountResponseDescriptor, name); err != nil {
-			return gomadMountEntry{}, 0, err
-		}
-		entry.children = append(entry.children, gomadMountChild{name: string(name), kind: header[2], mode: binary.BigEndian.Uint32(header[4:8])})
-	}
-	return entry, status, nil
-}
-
-func gomadWriteMountBytes(descriptor int, data []byte) error {
-	for len(data) != 0 {
-		written, err := syscall.Write(descriptor, data)
-		if err != nil {
-			return err
-		}
-		if written == 0 {
-			return io.ErrShortWrite
-		}
-		data = data[written:]
-	}
-	return nil
-}
-
-func gomadReadMountBytes(descriptor int, data []byte) error {
-	for len(data) != 0 {
-		read, err := syscall.Read(descriptor, data)
-		if err != nil {
-			return err
-		}
-		if read == 0 {
-			return io.ErrUnexpectedEOF
-		}
-		data = data[read:]
-	}
-	return nil
 }
 
 type gomadFileInfo struct {

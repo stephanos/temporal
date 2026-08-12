@@ -3,7 +3,6 @@ package process
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -17,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/world"
 	worldchild "go.temporal.io/server/tools/gomadv3/world/child"
@@ -490,20 +490,12 @@ func TestTargetHelper(t *testing.T) {
 }
 
 func writeEmptyIOTranscriptTerminal() error {
-	terminal := make([]byte, ioTerminalBytes)
-	copy(terminal[:8], ioTerminalMagic[:])
-	binary.BigEndian.PutUint32(terminal[8:12], 1)
-	terminal[12] = 1
-	binary.BigEndian.PutUint64(terminal[24:32], ioTranscriptHeaderBytes)
-	digest := sha256.Sum256(nil)
-	copy(terminal[32:64], digest[:])
-	checksum := sha256.Sum256(terminal[:72])
-	copy(terminal[72:], checksum[:])
+	terminal := iowire.EncodeTerminal(iowire.Terminal{State: iowire.TerminalComplete, MappingBytes: iowire.TranscriptHeaderBytes, PayloadHash: sha256.Sum256(nil)})
 	file := os.NewFile(7, "gomadv3-io-terminal")
 	if file == nil {
 		return errors.New("terminal descriptor unavailable")
 	}
-	if _, err := file.Write(terminal); err != nil {
+	if _, err := file.Write(terminal[:]); err != nil {
 		return err
 	}
 	return file.Close()

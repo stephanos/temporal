@@ -5,19 +5,18 @@
 package gomadio
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"io"
 	"sync"
 	_ "unsafe"
+
+	"internal/gomadwire"
 )
 
 const (
-	configBytes = 212
+	configBytes = gomadwire.BootstrapFrameBytes
 )
-
-var configMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'I', 'O', 1}
 
 var enabled bool
 
@@ -30,12 +29,11 @@ func init() {
 		return
 	}
 	configuration := runtimeConfigFrame()
-	if configuration == nil || !bytes.Equal(configuration[:8], configMagic[:]) || binary.BigEndian.Uint16(configuration[8:10]) != 1 || binary.BigEndian.Uint16(configuration[10:12]) != 1 {
+	if configuration == nil {
 		panic("gomadv3: invalid I/O configuration")
 	}
-	checksum := sha256.Sum256(configuration[:configBytes-sha256.Size])
-	if !bytes.Equal(checksum[:], configuration[configBytes-sha256.Size:]) {
-		panic("gomadv3: invalid I/O configuration checksum")
+	if _, err := gomadwire.DecodeBootstrap(configuration[:]); err != nil {
+		panic("gomadv3: invalid I/O configuration")
 	}
 	initTranscript()
 	enabled = true
