@@ -34,7 +34,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 	if !strings.Contains(string(symbols), "runtime.gomadIOConfigFrame") {
 		t.Fatalf("prepared target omitted the Gomad runtime configuration frame (toolchain=%s build=%s target=%s runtime=%v gomadio=%v GOROOT=%q)", toolchainRoot, prepared.BuildKey, prepared.Path, strings.Contains(string(symbols), "runtime.gomadInit"), strings.Contains(string(symbols), "internal/gomadio"), os.Getenv("GOROOT"))
 	}
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}

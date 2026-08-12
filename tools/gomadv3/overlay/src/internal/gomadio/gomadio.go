@@ -10,8 +10,7 @@ import (
 	"encoding/binary"
 	"io"
 	"sync"
-	"time"
-	"unsafe"
+	_ "unsafe"
 )
 
 const (
@@ -23,7 +22,7 @@ var configMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'I', 'O', 1}
 var enabled bool
 
 var entropy = entropyReader{
-	key: sha256.Sum256([]byte("gomadv3.io-profile/temporal-activity-api-batch-cancel/v1\x00entropy/v1")),
+	key: sha256.Sum256([]byte("gomadv3-deterministic/v1\x00entropy/v1")),
 }
 
 func init() {
@@ -55,27 +54,6 @@ func Enabled() bool {
 
 func RandomReader() io.Reader {
 	return &entropy
-}
-
-//go:linkname SQLiteRandomness
-func SQLiteRandomness(address uintptr, size int32) int32 {
-	if !enabled || size < 0 {
-		return 0
-	}
-	buffer := unsafe.Slice((*byte)(unsafe.Pointer(address)), int(size))
-	if _, err := entropy.Read(buffer); err != nil {
-		return 0
-	}
-	return size
-}
-
-//go:linkname SQLiteCurrentTime
-func SQLiteCurrentTime() int64 {
-	const unixEpoch = int64(24405875) * int64(8640000)
-	value := unixEpoch + time.Now().UnixMilli()
-	argument := uint64Argument(uint64(value))
-	record("sqlite.time", argument[:], nil, 0, 0, 0, 0)
-	return value
 }
 
 type entropyReader struct {

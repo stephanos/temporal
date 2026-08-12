@@ -23,7 +23,7 @@ func TestProfileTCPUsesInMemoryLoopback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}

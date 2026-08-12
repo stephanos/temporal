@@ -63,6 +63,11 @@ func gomadIOProfileEnabled() bool {
 	return gomadIOProfile
 }
 
+//go:linkname gomadDeterministicEnabled
+func gomadDeterministicEnabled() bool {
+	return gomadEnabled
+}
+
 //go:linkname gomadIOConfigFrame
 func gomadIOConfigFrame() *[212]byte {
 	return &gomadConfig
