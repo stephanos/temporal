@@ -61,6 +61,7 @@ type ReadOnlyMounts struct {
 	SHA256     SHA256              `json:"sha256"`
 	Bytes      Uint64String        `json:"bytes"`
 	Entries    Uint64String        `json:"entries"`
+	NotExist   Uint64String        `json:"not_exist,omitempty"`
 	TotalBytes Uint64String        `json:"total_bytes"`
 	Mappings   []string            `json:"mappings"`
 	Limits     ReadOnlyMountLimits `json:"limits"`
@@ -81,6 +82,7 @@ type ReadOnlyMountDescriptor struct {
 	Limits     ReadOnlyMountLimits  `json:"limits"`
 	Requests   Uint64String         `json:"requests"`
 	TotalBytes Uint64String         `json:"total_bytes"`
+	NotExist   []string             `json:"not_exist,omitempty"`
 	Entries    []ReadOnlyMountEntry `json:"entries"`
 }
 
