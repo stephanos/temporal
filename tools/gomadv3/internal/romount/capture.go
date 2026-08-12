@@ -54,6 +54,7 @@ type Entry struct {
 
 type Snapshot struct {
 	Entries    []Entry
+	NotExist   []string
 	Requests   uint64
 	TotalBytes uint64
 }
@@ -68,6 +69,7 @@ type Broker struct {
 	mappings         []preparedMapping
 	limits           Limits
 	entries          map[string]Entry
+	notExist         map[string]struct{}
 	requests         uint64
 	totalBytes       uint64
 	directoryEntries uint64
@@ -79,7 +81,7 @@ func Prepare(mappings []Mapping, limits Limits) (*Broker, error) {
 	if err := validateLimits(limits); err != nil {
 		return nil, err
 	}
-	broker := &Broker{limits: limits, entries: make(map[string]Entry), mappings: make([]preparedMapping, 0, len(mappings))}
+	broker := &Broker{limits: limits, entries: make(map[string]Entry), notExist: make(map[string]struct{}), mappings: make([]preparedMapping, 0, len(mappings))}
 	for _, mapping := range mappings {
 		root, err := os.OpenRoot(mapping.Source)
 		if err != nil {
@@ -96,7 +98,7 @@ func PrepareReplay(mappings []Mapping, limits Limits, snapshot Snapshot) (*Broke
 		return nil, err
 	}
 	broker := &Broker{
-		limits: limits, entries: make(map[string]Entry, len(snapshot.Entries)), mappings: make([]preparedMapping, len(mappings)), replay: true,
+		limits: limits, entries: make(map[string]Entry, len(snapshot.Entries)), notExist: make(map[string]struct{}, len(snapshot.NotExist)), mappings: make([]preparedMapping, len(mappings)), replay: true,
 	}
 	for index, mapping := range mappings {
 		broker.mappings[index] = preparedMapping{mapping: mapping}
@@ -108,6 +110,15 @@ func PrepareReplay(mappings []Mapping, limits Limits, snapshot Snapshot) (*Broke
 		broker.entries[entry.Path] = cloneEntry(entry)
 		broker.totalBytes += uint64(len(entry.Data))
 		broker.directoryEntries += uint64(len(entry.Children))
+	}
+	for _, name := range snapshot.NotExist {
+		if _, found := broker.notExist[name]; found || !withinTargets(name, mappingTargets(mappings)) {
+			return nil, fmt.Errorf("invalid replay missing read-only mount path %q", name)
+		}
+		if _, found := broker.entries[name]; found {
+			return nil, fmt.Errorf("conflicting replay read-only mount path %q", name)
+		}
+		broker.notExist[name] = struct{}{}
 	}
 	if broker.totalBytes != snapshot.TotalBytes || uint64(len(broker.entries)) > limits.Files || broker.directoryEntries > limits.DirectoryEntries {
 		return nil, errors.New("invalid replay read-only mount snapshot totals")
@@ -142,6 +153,9 @@ func (broker *Broker) Lookup(name string) (Entry, error) {
 	if entry, found := broker.entries[normalized]; found {
 		return cloneEntry(entry), nil
 	}
+	if _, found := broker.notExist[normalized]; found {
+		return Entry{}, os.ErrNotExist
+	}
 	mapping, relative, found := broker.resolve(normalized)
 	if !found {
 		return Entry{}, os.ErrNotExist
@@ -151,6 +165,9 @@ func (broker *Broker) Lookup(name string) (Entry, error) {
 	}
 	entry, err := broker.capture(mapping, normalized, relative)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			broker.notExist[normalized] = struct{}{}
+		}
 		return Entry{}, err
 	}
 	broker.entries[normalized] = entry
@@ -303,7 +320,12 @@ func (broker *Broker) Captured() Snapshot {
 		paths = append(paths, path)
 	}
 	sort.Strings(paths)
-	snapshot := Snapshot{Entries: make([]Entry, 0, len(paths)), Requests: broker.requests, TotalBytes: broker.totalBytes}
+	missing := make([]string, 0, len(broker.notExist))
+	for name := range broker.notExist {
+		missing = append(missing, name)
+	}
+	sort.Strings(missing)
+	snapshot := Snapshot{Entries: make([]Entry, 0, len(paths)), NotExist: missing, Requests: broker.requests, TotalBytes: broker.totalBytes}
 	for _, path := range paths {
 		snapshot.Entries = append(snapshot.Entries, cloneEntry(broker.entries[path]))
 	}

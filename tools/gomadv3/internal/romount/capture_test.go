@@ -43,6 +43,25 @@ func TestCaptureCachesRegularFileContents(t *testing.T) {
 	}
 }
 
+func TestCaptureCachesMissingMountedPath(t *testing.T) {
+	source := t.TempDir()
+	broker, err := Prepare([]Mapping{{Source: source, Target: "/schema"}}, DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = broker.Close() })
+
+	for range 2 {
+		if _, err := broker.Lookup("/schema/missing.sql"); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("Lookup() error = %v", err)
+		}
+	}
+	snapshot := broker.Captured()
+	if len(snapshot.NotExist) != 1 || snapshot.NotExist[0] != "/schema/missing.sql" || snapshot.Requests != 2 {
+		t.Fatalf("Captured() = %#v", snapshot)
+	}
+}
+
 func TestCaptureReturnsSortedDirectoryEntries(t *testing.T) {
 	source := t.TempDir()
 	for _, name := range []string{"z", "a"} {

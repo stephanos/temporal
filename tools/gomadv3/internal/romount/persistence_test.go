@@ -11,6 +11,7 @@ func TestArtifactRoundTripBuildsHostIndependentReplay(t *testing.T) {
 	mappings := []Mapping{{Source: "/host/schema", Target: "/schema"}}
 	snapshot := Snapshot{
 		Requests: 3, TotalBytes: 4,
+		NotExist: []string{"/schema/missing"},
 		Entries: []Entry{
 			{Path: "/schema", Mode: 0o755, Kind: KindDirectory, Children: []Child{{Name: "file", Mode: 0o640, Kind: KindFile}}},
 			{Path: "/schema/file", Mode: 0o640, Kind: KindFile, Data: []byte("data")},
@@ -44,6 +45,9 @@ func TestArtifactRoundTripBuildsHostIndependentReplay(t *testing.T) {
 	}
 	if _, err := broker.Lookup("/schema/uncaptured"); !errors.Is(err, ErrReplayDivergence) {
 		t.Fatalf("uncaptured Lookup() error = %v", err)
+	}
+	if _, err := broker.Lookup("/schema/missing"); !errors.Is(err, os.ErrNotExist) || errors.Is(err, ErrReplayDivergence) {
+		t.Fatalf("captured missing Lookup() error = %v", err)
 	}
 }
 
