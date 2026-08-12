@@ -165,4 +165,30 @@ target_signal_dir="$test_tmp/target-signal"
 gomad_run_checked 5 143 'exec wrapper seed=1 mode=target-signal iteration=0' "$target_signal_dir" -- \
 	env GOMADV3_CHILD_SEED=1 "$exec_wrapper" bash -c 'kill -TERM $$'
 
+malformed_patch="$test_tmp/malformed.patch"
+printf '%s\n' \
+	'diff --git a/src/runtime/proc.go b/src/runtime/proc.go' \
+	'--- a/src/runtime/proc.go' \
+	'+++ b/src/runtime/proc.go' \
+	'@@ -1 +1 @@' \
+	'this context line has no unified-diff prefix' >"$malformed_patch"
+if GOMADV3_PATCH_FILE="$malformed_patch" "$script_dir/test.sh" validate \
+	>"$test_tmp/malformed-patch-stdout" 2>"$test_tmp/malformed-patch-stderr"; then
+	fail 'gomadv3 patch validation accepted malformed unified-diff syntax'
+fi
+if ! grep -Fq 'gomadv3 patch is malformed' "$test_tmp/malformed-patch-stderr"; then
+	fail 'gomadv3 malformed-patch diagnostic is absent'
+fi
+
+wrong_version_root="$test_tmp/wrong-version-go"
+mkdir -p "$wrong_version_root"
+printf 'go1.26.3\n' >"$wrong_version_root/VERSION"
+if "$script_dir/regenerate-patch.sh" "$wrong_version_root" \
+	>"$test_tmp/regenerate-wrong-version-stdout" 2>"$test_tmp/regenerate-wrong-version-stderr"; then
+	fail 'gomadv3 patch regeneration accepted the wrong Go version'
+fi
+if ! grep -Fq 'gomadv3 patch candidate must be go1.26.4' "$test_tmp/regenerate-wrong-version-stderr"; then
+	fail 'gomadv3 patch regeneration wrong-version diagnostic is absent'
+fi
+
 printf 'gomadv3 checked runner tests passed\n'

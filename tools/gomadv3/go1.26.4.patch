@@ -1,7 +1,28 @@
+diff --git a/src/cmd/compile/internal/gc/main.go b/src/cmd/compile/internal/gc/main.go
+index afa1650..ac74321 100644
+--- a/src/cmd/compile/internal/gc/main.go
++++ b/src/cmd/compile/internal/gc/main.go
+@@ -13,6 +13,7 @@ import (
+ 	"cmd/compile/internal/deadlocals"
+ 	"cmd/compile/internal/dwarfgen"
+ 	"cmd/compile/internal/escape"
++	"cmd/compile/internal/gomadintercept"
+ 	"cmd/compile/internal/inline"
+ 	"cmd/compile/internal/inline/interleaved"
+ 	"cmd/compile/internal/ir"
+@@ -223,6 +224,7 @@ func Main(archInit func(*ssagen.ArchInfo)) {
+ 		types.LocalPkg.Path = "main"
+ 		types.LocalPkg.Prefix = "main"
+ 	}
++	gomadintercept.Apply(typecheck.Target)
+ 
+ 	dwarfgen.RecordPackageName()
+ 
 diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
+index 1427f9c..9bfdf52 100644
 --- a/src/cmd/link/internal/ld/lib.go
 +++ b/src/cmd/link/internal/ld/lib.go
-@@ -813,6 +813,12 @@ func (ctxt *Link) linksetup() {
+@@ -816,6 +816,12 @@ func (ctxt *Link) linksetup() {
  		sb.SetType(sym.SNOPTRDATA)
  		sb.AddUint8(1)
  	}
@@ -15,28 +36,32 @@ diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
  	// Recalculate pe parameters now that we have ctxt.LinkMode set.
  	if ctxt.HeadType == objabi.Hwindows {
 diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
+index 018fe01..f99542c 100644
 --- a/src/crypto/rand/rand.go
 +++ b/src/crypto/rand/rand.go
-@@ -11,6 +11,7 @@ package rand
- import (
+@@ -10,6 +10,7 @@ import (
  	"crypto/internal/boring"
  	"crypto/internal/fips140/drbg"
  	"crypto/internal/rand"
 +	"internal/gomadio"
  	"io"
  	_ "unsafe"
-@@ -34,4 +35,10 @@ import (
+ 
+@@ -33,6 +34,12 @@ import (
+ // Deterministric Random Bit Generator (DRBG).
  var Reader io.Reader = rand.Reader
-+
+ 
 +func init() {
 +	if gomadio.Enabled() {
 +		Reader = gomadio.RandomReader()
 +	}
 +}
- 
++
  // fatal is [runtime.fatal], pushed via linkname.
  //
+ //go:linkname fatal
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
+index 005c875..aab7526 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -246,6 +246,10 @@ func main() {
@@ -70,7 +95,7 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -6429,7 +6437,10 @@ func checkdead() {
+@@ -6428,7 +6436,10 @@ func checkdead() {
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
@@ -109,8 +134,7 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7604,6 +7615,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
- 	if next != 0 && pp.runnext.cas(next, 0) {
+@@ -7605,6 +7616,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -129,7 +153,9 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
 +
  	for {
  		h := atomic.LoadAcq(&pp.runqhead) // load-acquire, synchronize with other consumers
+ 		t := pp.runqtail
 diff --git a/src/runtime/rand.go b/src/runtime/rand.go
+index 1739e9f..68ab02a 100644
 --- a/src/runtime/rand.go
 +++ b/src/runtime/rand.go
 @@ -42,7 +42,9 @@ func randinit() {
@@ -153,13 +179,14 @@ diff --git a/src/runtime/rand.go b/src/runtime/rand.go
 +		return
 +	}
 +
-	var seed [4]uint64
-	for i := range seed {
-		seed[i] = bootstrapRand()
+ 	var seed [4]uint64
+ 	for i := range seed {
+ 		seed[i] = bootstrapRand()
 diff --git a/src/runtime/time.go b/src/runtime/time.go
+index 81a4c6b..1612f32 100644
 --- a/src/runtime/time.go
 +++ b/src/runtime/time.go
-@@ -28,6 +28,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
+@@ -26,6 +26,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
  		// Simplest is to omit the monotonic time within a bubble.
  		return sec, nsec, 0
  	}
@@ -169,15 +196,17 @@ diff --git a/src/runtime/time.go b/src/runtime/time.go
  	return time_now()
  }
  
-@@ -61,6 +64,7 @@ type timer struct {
+@@ -62,7 +65,8 @@ type timer struct {
  	isFake bool         // timer is using fake time; immutable; can be read without lock
  
  	blocked uint32 // number of goroutines blocked on timer's channel
+-	rand    uint32 // randomizes order of timers at same instant; only set when isFake
 +	// Gomad timers also set rand even though they are not synctest timers.
- 	rand    uint32 // randomizes order of timers at same instant; only set when isFake
++	rand uint32 // randomizes order of timers at same instant; only set when isFake
  
  	// Timer wakes up at when, and then at when+period, ... (period > 0 only)
-@@ -303,6 +307,10 @@ func (t *timer) updateHeap() (updated bool) {
+ 	// each time calling f(arg, seq, delay) in the timer goroutine, so f must be
+@@ -302,6 +306,10 @@ func (t *timer) updateHeap() (updated bool) {
  
  	if t.state&timerModified != 0 {
  		// Update ts.heap[0].when and move within heap.
@@ -201,7 +230,7 @@ diff --git a/src/runtime/time.go b/src/runtime/time.go
  			t.rand = cheaprand()
  		}
  		t.state |= timerHeaped
-@@ -958,6 +967,10 @@ func (ts *timers) adjust(now int64, force bool) {
+@@ -959,6 +968,10 @@ func (ts *timers) adjust(now int64, force bool) {
  			changed = true
  
  		case t.state&timerModified != 0:
@@ -212,7 +241,7 @@ diff --git a/src/runtime/time.go b/src/runtime/time.go
  			tw.when = t.when
  			t.state &^= timerModified
  			changed = true
-@@ -1319,7 +1332,8 @@ func (ts *timers) updateMinWhenModified(when int64) {
+@@ -1319,8 +1332,9 @@ func (ts *timers) updateMinWhenModified(when int64) {
  // timeSleepUntil returns the time when the next timer should fire. Returns
  // maxWhen if there are no timers.
  // This is only called by sysmon and checkdead.
@@ -222,7 +251,8 @@ diff --git a/src/runtime/time.go b/src/runtime/time.go
 +	found := false
  
  	// Prevent allp slice changes. This is like retake.
-@@ -1332,11 +1346,12 @@ func timeSleepUntil() int64 {
+ 	lock(&allpLock)
+@@ -1332,12 +1346,13 @@ func timeSleepUntil() int64 {
  		}
  
  		if w := pp.timers.wakeTime(); w != 0 {
@@ -238,6 +268,7 @@ diff --git a/src/runtime/time.go b/src/runtime/time.go
  
  const timerHeapN = 4
 diff --git a/src/runtime/time_nofake.go b/src/runtime/time_nofake.go
+index 130ff12..ac39381 100644
 --- a/src/runtime/time_nofake.go
 +++ b/src/runtime/time_nofake.go
 @@ -30,6 +30,9 @@ var faketime int64
@@ -250,757 +281,11 @@ diff --git a/src/runtime/time_nofake.go b/src/runtime/time_nofake.go
  	return nanotime1()
  }
  
-diff --git a/src/net/net.go b/src/net/net.go
---- a/src/net/net.go
-+++ b/src/net/net.go
-@@ -99,6 +99,7 @@
- import (
- 	"context"
- 	"errors"
-+	"internal/gomadio"
- 	"internal/poll"
- 	"io"
- 	"os"
-@@ -193,6 +194,13 @@
- 	if !c.ok() {
- 		return 0, syscall.EINVAL
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		n, err := connection.Read(b)
-+		if err != nil && err != io.EOF {
-+			err = &OpError{Op: "read", Net: "tcp", Source: gomadTCPAddr(connection.LocalAddress()), Addr: gomadTCPAddr(connection.RemoteAddress()), Err: err}
-+		}
-+		return n, err
-+	}
- 	n, err := c.fd.Read(b)
- 	if err != nil && err != io.EOF {
- 		err = &OpError{Op: "read", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
-@@ -205,6 +213,13 @@
- 	if !c.ok() {
- 		return 0, syscall.EINVAL
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		n, err := connection.Write(b)
-+		if err != nil {
-+			err = &OpError{Op: "write", Net: "tcp", Source: gomadTCPAddr(connection.LocalAddress()), Addr: gomadTCPAddr(connection.RemoteAddress()), Err: err}
-+		}
-+		return n, err
-+	}
- 	n, err := c.fd.Write(b)
- 	if err != nil {
- 		err = &OpError{Op: "write", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
-@@ -217,6 +232,9 @@
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		return connection.Close()
-+	}
- 	err := c.fd.Close()
- 	if err != nil {
- 		err = &OpError{Op: "close", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
-@@ -230,6 +248,9 @@
- func (c *conn) LocalAddr() Addr {
- 	if !c.ok() {
- 		return nil
-+	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		return gomadTCPAddr(connection.LocalAddress())
- 	}
- 	return c.fd.laddr
- }
-@@ -241,6 +262,9 @@
- 	if !c.ok() {
- 		return nil
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		return gomadTCPAddr(connection.RemoteAddress())
-+	}
- 	return c.fd.raddr
- }
- 
-@@ -249,6 +273,9 @@
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		return connection.SetDeadline(t)
-+	}
- 	if err := c.fd.SetDeadline(t); err != nil {
- 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
- 	}
-@@ -260,6 +287,9 @@
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		return connection.SetReadDeadline(t)
-+	}
- 	if err := c.fd.SetReadDeadline(t); err != nil {
- 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
- 	}
-@@ -271,6 +301,9 @@
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-+	if connection := gomadConnection(c.fd); connection != nil {
-+		return connection.SetWriteDeadline(t)
-+	}
- 	if err := c.fd.SetWriteDeadline(t); err != nil {
- 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
- 	}
-@@ -283,6 +316,9 @@
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-+	if gomadConnection(c.fd) != nil {
-+		return nil
-+	}
- 	if err := setReadBuffer(c.fd, bytes); err != nil {
- 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
- 	}
-@@ -294,6 +330,9 @@
- func (c *conn) SetWriteBuffer(bytes int) error {
- 	if !c.ok() {
- 		return syscall.EINVAL
-+	}
-+	if gomadConnection(c.fd) != nil {
-+		return nil
- 	}
- 	if err := setWriteBuffer(c.fd, bytes); err != nil {
- 		return &OpError{Op: "set", Net: c.fd.net, Source: nil, Addr: c.fd.laddr, Err: err}
-@@ -312,6 +351,9 @@
- // On Windows, the returned os.File's file descriptor is not usable
- // on other processes.
- func (c *conn) File() (f *os.File, err error) {
-+	if gomadConnection(c.fd) != nil {
-+		return nil, gomadio.ErrUnsupported
-+	}
- 	f, err = c.fd.dup()
- 	if err != nil {
- 		err = &OpError{Op: "file", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
-diff --git a/src/net/tcpsock.go b/src/net/tcpsock.go
---- a/src/net/tcpsock.go
-+++ b/src/net/tcpsock.go
-@@ -6,6 +6,7 @@
- 
- import (
- 	"context"
-+	"internal/gomadio"
- 	"internal/strconv"
- 	"io"
- 	"net/netip"
-@@ -151,6 +152,9 @@
- // SyscallConn returns a raw network connection.
- // This implements the [syscall.Conn] interface.
- func (c *TCPConn) SyscallConn() (syscall.RawConn, error) {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return nil, gomadio.ErrUnsupported
-+	}
- 	if !c.ok() {
- 		return nil, syscall.EINVAL
- 	}
-@@ -184,6 +188,11 @@
- // CloseRead shuts down the reading side of the TCP connection.
- // Most callers should just use Close.
- func (c *TCPConn) CloseRead() error {
-+	if c != nil {
-+		if connection := gomadConnection(c.fd); connection != nil {
-+			return connection.CloseRead()
-+		}
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-@@ -196,6 +205,11 @@
- // CloseWrite shuts down the writing side of the TCP connection.
- // Most callers should just use Close.
- func (c *TCPConn) CloseWrite() error {
-+	if c != nil {
-+		if connection := gomadConnection(c.fd); connection != nil {
-+			return connection.CloseWrite()
-+		}
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-@@ -220,6 +234,9 @@
- // On some operating systems after sec seconds have elapsed any remaining
- // unsent data may be discarded.
- func (c *TCPConn) SetLinger(sec int) error {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return nil
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-@@ -232,6 +249,9 @@
- // SetKeepAlive sets whether the operating system should send
- // keep-alive messages on the connection.
- func (c *TCPConn) SetKeepAlive(keepalive bool) error {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return nil
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-@@ -247,6 +267,9 @@
- // Note that calling this method on Windows prior to Windows 10 version 1709
- // will reset the KeepAliveInterval to the default system value, which is normally 1 second.
- func (c *TCPConn) SetKeepAlivePeriod(d time.Duration) error {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return nil
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-@@ -261,6 +284,9 @@
- // algorithm).  The default is true (no delay), meaning that data is
- // sent as soon as possible after a Write.
- func (c *TCPConn) SetNoDelay(noDelay bool) error {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return nil
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-@@ -280,6 +306,9 @@
- // On Linux, more conditions are verified on kernels >= v5.16, improving
- // the results.
- func (c *TCPConn) MultipathTCP() (bool, error) {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return false, nil
-+	}
- 	if !c.ok() {
- 		return false, syscall.EINVAL
- 	}
-@@ -319,6 +348,19 @@
- }
- 
- func dialTCP(ctx context.Context, dialer *Dialer, network string, laddr, raddr *TCPAddr) (*TCPConn, error) {
-+	if gomadIOEnabled() {
-+		if raddr == nil {
-+			return nil, &OpError{Op: "dial", Net: network, Source: laddr.opAddr(), Addr: nil, Err: errMissingAddress}
-+		}
-+		if laddr != nil && laddr.Port != 0 || len(raddr.IP) != 0 && !raddr.IP.IsUnspecified() && !raddr.IP.IsLoopback() {
-+			return nil, &OpError{Op: "dial", Net: network, Source: laddr.opAddr(), Addr: raddr, Err: gomadio.ErrUnsupported}
-+		}
-+		connection, err := gomadDialTCP(ctx, network, raddr.Port)
-+		if err != nil {
-+			return nil, &OpError{Op: "dial", Net: network, Source: laddr.opAddr(), Addr: raddr, Err: err}
-+		}
-+		return connection, nil
-+	}
- 	switch network {
- 	case "tcp", "tcp4", "tcp6":
- 	default:
-@@ -359,6 +401,9 @@
- // The returned RawConn only supports calling Control. Read and
- // Write return an error.
- func (l *TCPListener) SyscallConn() (syscall.RawConn, error) {
-+	if l != nil && gomadListener(l.fd) != nil {
-+		return nil, gomadio.ErrUnsupported
-+	}
- 	if !l.ok() {
- 		return nil, syscall.EINVAL
- 	}
-@@ -371,6 +416,13 @@
- 	if !l.ok() {
- 		return nil, syscall.EINVAL
- 	}
-+	if listener := gomadListener(l.fd); listener != nil {
-+		connection, err := listener.Accept()
-+		if err != nil {
-+			return nil, &OpError{Op: "accept", Net: "tcp", Source: nil, Addr: gomadTCPAddr(listener.Address()), Err: err}
-+		}
-+		return gomadTCPConn(connection), nil
-+	}
- 	c, err := l.accept()
- 	if err != nil {
- 		return nil, &OpError{Op: "accept", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
-@@ -384,6 +436,9 @@
- 	if !l.ok() {
- 		return nil, syscall.EINVAL
- 	}
-+	if listener := gomadListener(l.fd); listener != nil {
-+		return l.AcceptTCP()
-+	}
- 	c, err := l.accept()
- 	if err != nil {
- 		return nil, &OpError{Op: "accept", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
-@@ -397,6 +452,9 @@
- 	if !l.ok() {
- 		return syscall.EINVAL
- 	}
-+	if listener := gomadListener(l.fd); listener != nil {
-+		return listener.Close()
-+	}
- 	if err := l.close(); err != nil {
- 		return &OpError{Op: "close", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
- 	}
-@@ -406,7 +464,14 @@
- // Addr returns the listener's network address, a [*TCPAddr].
- // The Addr returned is shared by all invocations of Addr, so
- // do not modify it.
--func (l *TCPListener) Addr() Addr { return l.fd.laddr }
-+func (l *TCPListener) Addr() Addr {
-+	if l != nil {
-+		if listener := gomadListener(l.fd); listener != nil {
-+			return gomadTCPAddr(listener.Address())
-+		}
-+	}
-+	return l.fd.laddr
-+}
- 
- // SetDeadline sets the deadline associated with the listener.
- // A zero time value disables the deadline.
-@@ -414,6 +479,9 @@
- 	if !l.ok() {
- 		return syscall.EINVAL
- 	}
-+	if listener := gomadListener(l.fd); listener != nil {
-+		return listener.SetDeadline(t)
-+	}
- 	return l.fd.SetDeadline(t)
- }
- 
-@@ -431,6 +499,9 @@
- 	if !l.ok() {
- 		return nil, syscall.EINVAL
- 	}
-+	if gomadListener(l.fd) != nil {
-+		return nil, gomadio.ErrUnsupported
-+	}
- 	f, err = l.file()
- 	if err != nil {
- 		return nil, &OpError{Op: "file", Net: l.fd.net, Source: nil, Addr: l.fd.laddr, Err: err}
-@@ -456,6 +527,16 @@
- 	if laddr == nil {
- 		laddr = &TCPAddr{}
- 	}
-+	if gomadIOEnabled() {
-+		if len(laddr.IP) != 0 && !laddr.IP.IsUnspecified() && !laddr.IP.IsLoopback() {
-+			return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: gomadio.ErrUnsupported}
-+		}
-+		listener, err := gomadListenTCP(network, laddr.Port)
-+		if err != nil {
-+			return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: err}
-+		}
-+		return listener, nil
-+	}
- 	sl := &sysListener{network: network, address: laddr.String()}
- 	var (
- 		ln  *TCPListener
-diff --git a/src/net/tcpsock_unix.go b/src/net/tcpsock_unix.go
---- a/src/net/tcpsock_unix.go
-+++ b/src/net/tcpsock_unix.go
-@@ -10,6 +10,9 @@
- 
- // SetKeepAliveConfig configures keep-alive messages sent by the operating system.
- func (c *TCPConn) SetKeepAliveConfig(config KeepAliveConfig) error {
-+	if c != nil && gomadConnection(c.fd) != nil {
-+		return nil
-+	}
- 	if !c.ok() {
- 		return syscall.EINVAL
- 	}
-diff --git a/src/net/dial.go b/src/net/dial.go
---- a/src/net/dial.go
-+++ b/src/net/dial.go
-@@ -8,6 +8,7 @@
- 	"context"
- 	"internal/bytealg"
- 	"internal/godebug"
-+	"internal/gomadio"
- 	"internal/nettrace"
- 	"net/netip"
- 	"syscall"
-@@ -526,6 +527,17 @@
- func (d *Dialer) DialContext(ctx context.Context, network, address string) (Conn, error) {
- 	ctx, cancel := d.dialCtx(ctx)
- 	defer cancel()
-+	if gomadIOEnabled() {
-+		remoteAddress, err := gomadParseTCPAddress(network, address, false)
-+		if err != nil {
-+			return nil, &OpError{Op: "dial", Net: network, Source: d.LocalAddr, Addr: nil, Err: err}
-+		}
-+		localAddress, ok := d.LocalAddr.(*TCPAddr)
-+		if d.LocalAddr != nil && !ok {
-+			return nil, &OpError{Op: "dial", Net: network, Source: d.LocalAddr, Addr: remoteAddress, Err: gomadio.ErrUnsupported}
-+		}
-+		return dialTCP(ctx, d, network, localAddress, remoteAddress)
-+	}
- 
- 	// Shadow the nettrace (if any) during resolve so Connect events don't fire for DNS lookups.
- 	resolveCtx := ctx
-@@ -872,6 +884,13 @@
- // The ctx argument is used while resolving the address on which to listen;
- // it does not affect the returned Listener.
- func (lc *ListenConfig) Listen(ctx context.Context, network, address string) (Listener, error) {
-+	if gomadIOEnabled() {
-+		localAddress, err := gomadParseTCPAddress(network, address, true)
-+		if err != nil {
-+			return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: nil, Err: err}
-+		}
-+		return ListenTCP(network, localAddress)
-+	}
- 	addrs, err := DefaultResolver.resolveAddrList(ctx, "listen", network, address, nil)
- 	if err != nil {
- 		return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: nil, Err: err}
-diff --git a/src/os/sys.go b/src/os/sys.go
---- a/src/os/sys.go
-+++ b/src/os/sys.go
-@@ -6,5 +6,8 @@
- 
- // Hostname returns the host name reported by the kernel.
- func Hostname() (name string, err error) {
-+	if gomadIOEnabled() {
-+		return gomadHostname()
-+	}
- 	return hostname()
- }
-diff --git a/src/os/file.go b/src/os/file.go
---- a/src/os/file.go
-+++ b/src/os/file.go
-@@ -140,6 +140,9 @@ func (f *File) Read(b []byte) (n int, err error) {
- 	if err := f.checkValid("read"); err != nil {
- 		return 0, err
- 	}
-+	if n, err, handled := gomadFileRead(f, b); handled {
-+		return n, f.wrapErr("read", err)
-+	}
- 	n, e := f.read(b)
- 	return n, f.wrapErr("read", e)
- }
-@@ -157,6 +160,9 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
- 	if off < 0 {
- 		return 0, &PathError{Op: "readat", Path: f.name, Err: errors.New("negative offset")}
- 	}
-+	if n, err, handled := gomadFileReadAt(f, b, off); handled {
-+		return n, f.wrapErr("read", err)
-+	}
- 
- 	for len(b) > 0 {
- 		m, e := f.pread(b, off)
-@@ -212,6 +218,9 @@ func (f *File) Write(b []byte) (n int, err error) {
- 	if err := f.checkValid("write"); err != nil {
- 		return 0, err
- 	}
-+	if n, err, handled := gomadFileWrite(f, b); handled {
-+		return n, f.wrapErr("write", err)
-+	}
- 	n, e := f.write(b)
- 	if n < 0 {
- 		n = 0
-@@ -236,6 +245,9 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
- 	if err := f.checkValid("write"); err != nil {
- 		return 0, err
- 	}
-+	if n, err, handled := gomadFileWriteAt(f, b, off); handled {
-+		return n, f.wrapErr("write", err)
-+	}
- 	if f.appendMode {
- 		return 0, errWriteAtInAppendMode
- 	}
-@@ -304,6 +316,9 @@ func (f *File) Seek(offset int64, whence int) (ret int64, err error) {
- 	if err := f.checkValid("seek"); err != nil {
- 		return 0, err
- 	}
-+	if offset, err, handled := gomadFileSeek(f, offset, whence); handled {
-+		return offset, f.wrapErr("seek", err)
-+	}
- 	r, e := f.seek(offset, whence)
- 	if e == nil && f.dirinfo.Load() != nil && r != 0 {
- 		e = syscall.EISDIR
-@@ -325,6 +343,9 @@
- // bits (before umask).
- // If there is an error, it will be of type [*PathError].
- func Mkdir(name string, perm FileMode) error {
-+	if gomadIOEnabled() {
-+		return gomadMkdir(name, perm)
-+	}
- 	longName := fixLongPath(name)
- 	e := ignoringEINTR(func() error {
-		return syscall.Mkdir(longName, syscallMode(perm))
-@@ -379,3 +400,6 @@ func Chdir(dir string) error {
-+	if gomadIOEnabled() {
-+		return gomadChdir(dir)
-+	}
- 	if e := syscall.Chdir(dir); e != nil {
- 		testlog.Open(dir) // observe likely non-existent directory
- 		return &PathError{Op: "chdir", Path: dir, Err: e}
-@@ -408,6 +429,9 @@ func OpenFile(name string, flag int, perm FileMode) (*File, error) {
- // methods on the returned File can be used for I/O.
- // If there is an error, it will be of type [*PathError].
- func OpenFile(name string, flag int, perm FileMode) (*File, error) {
-+	if gomadIOEnabled() {
-+		if file, handled, err := gomadOpenFile(name, flag, perm); handled { return file, err }
-+	}
- 	testlog.Open(name)
-	f, err := openFileNolog(name, flag, perm)
-	if err != nil {
-@@ -458,2 +482,5 @@ func Rename(oldpath, newpath string) error {
-+	if gomadIOEnabled() {
-+		return gomadRename(oldpath, newpath)
-+	}
- 	return rename(oldpath, newpath)
- }
-@@ -470,2 +497,5 @@ func Readlink(name string) (string, error) {
-+	if gomadIOEnabled() {
-+		return "", gomadUnsupportedPath("readlink", name)
-+	}
- 	return readlink(name)
- }
-@@ -641,11 +671,21 @@
- //
- // On Plan 9, the mode's permission bits, [ModeAppend], [ModeExclusive],
- // and [ModeTemporary] are used.
--func Chmod(name string, mode FileMode) error { return chmod(name, mode) }
-+func Chmod(name string, mode FileMode) error {
-+	if gomadIOEnabled() {
-+		return gomadChmod(name, mode)
-+	}
-+	return chmod(name, mode)
-+}
- 
- // Chmod changes the mode of the file to mode.
- // If there is an error, it will be of type [*PathError].
--func (f *File) Chmod(mode FileMode) error { return f.chmod(mode) }
-+func (f *File) Chmod(mode FileMode) error {
-+	if handled, err := gomadFileChmod(f, mode); handled {
-+		return f.wrapErr("chmod", err)
-+	}
-+	return f.chmod(mode)
-+}
- 
- // SetDeadline sets the read and write deadlines for a File.
- // It is equivalent to calling both SetReadDeadline and SetWriteDeadline.
-diff --git a/src/os/file_posix.go b/src/os/file_posix.go
---- a/src/os/file_posix.go
-+++ b/src/os/file_posix.go
-@@ -20,5 +20,8 @@ func (f *File) Close() error {
- 	if f == nil {
- 		return ErrInvalid
- 	}
-+	if handled, err := gomadFileClose(f); handled {
-+		return f.wrapErr("close", err)
-+	}
- 	return f.file.close()
- }
-@@ -108,3 +111,6 @@ func Chown(name string, uid, gid int) error {
-+	if gomadIOEnabled() {
-+		return gomadUnsupportedPath("chown", name)
-+	}
- 	e := ignoringEINTR(func() error {
- 		return syscall.Chown(name, uid, gid)
- 	})
-@@ -124,3 +130,6 @@ func Lchown(name string, uid, gid int) error {
-+	if gomadIOEnabled() {
-+		return gomadUnsupportedPath("lchown", name)
-+	}
- 	e := ignoringEINTR(func() error {
- 		return syscall.Lchown(name, uid, gid)
- 	})
-@@ -140,6 +149,9 @@ func (f *File) Chown(uid, gid int) error {
- 	if err := f.checkValid("chown"); err != nil {
- 		return err
- 	}
-+	if gomadFileUnsupported(f) {
-+		return f.wrapErr("chown", syscall.ENOTSUP)
-+	}
- 	if e := f.pfd.Fchown(uid, gid); e != nil {
- 		return f.wrapErr("chown", e)
- 	}
-@@ -152,6 +155,7 @@ func (f *File) Truncate(size int64) error {
- 	if err := f.checkValid("truncate"); err != nil {
- 		return err
- 	}
-+	if handled, err := gomadFileTruncate(f, size); handled { return f.wrapErr("truncate", err) }
- 	if e := f.pfd.Ftruncate(size); e != nil {
- 		return f.wrapErr("truncate", e)
- 	}
-@@ -165,6 +169,7 @@ func (f *File) Sync() error {
- 	if err := f.checkValid("sync"); err != nil {
- 		return err
- 	}
-+	if handled, err := gomadFileSync(f); handled { return f.wrapErr("sync", err) }
- 	if e := f.pfd.Fsync(); e != nil {
- 		return f.wrapErr("sync", e)
- 	}
-@@ -184,3 +197,6 @@ func Chtimes(name string, atime time.Time, mtime time.Time) error {
-+	if gomadIOEnabled() {
-+		return gomadChtimes(name, mtime)
-+	}
- 	utimes := chtimesUtimes(atime, mtime)
- 	if e := syscall.UtimesNano(fixLongPath(name), utimes[0:]); e != nil {
- 		return &PathError{Op: "chtimes", Path: name, Err: e}
-@@ -210,6 +226,9 @@ func (f *File) Chdir() error {
- 	if err := f.checkValid("chdir"); err != nil {
- 		return err
- 	}
-+	if handled, err := gomadFileChdir(f); handled {
-+		return f.wrapErr("chdir", err)
-+	}
- 	if e := f.pfd.Fchdir(); e != nil {
- 		return f.wrapErr("chdir", e)
- 	}
-diff --git a/src/os/file_unix.go b/src/os/file_unix.go
---- a/src/os/file_unix.go
-+++ b/src/os/file_unix.go
-@@ -343,4 +343,7 @@
- // If the file is a symbolic link, it changes the size of the link's target.
- // If there is an error, it will be of type [*PathError].
- func Truncate(name string, size int64) error {
-+	if gomadIOEnabled() {
-+		return gomadTruncate(name, size)
-+	}
- 	e := ignoringEINTR(func() error {
-@@ -357,4 +363,7 @@
- func Remove(name string) error {
-+	if gomadIOEnabled() {
-+		return gomadRemove(name)
-+	}
- 	// System call interface forces us to know
- 	// whether name is a file or directory.
- 	// Try both: it is cheaper on average than
-@@ -407,3 +413,6 @@ func Link(oldname, newname string) error {
-+	if gomadIOEnabled() {
-+		return gomadUnsupportedLink("link", oldname, newname)
-+	}
- 	e := ignoringEINTR(func() error {
- 		return syscall.Link(oldname, newname)
- 	})
-@@ -421,3 +430,6 @@ func Symlink(oldname, newname string) error {
-+	if gomadIOEnabled() {
-+		return gomadUnsupportedLink("symlink", oldname, newname)
-+	}
- 	e := ignoringEINTR(func() error {
- 		return syscall.Symlink(oldname, newname)
- 	})
-diff --git a/src/os/dir.go b/src/os/dir.go
---- a/src/os/dir.go
-+++ b/src/os/dir.go
-@@ -41,6 +41,14 @@ func (f *File) Readdir(n int) ([]FileInfo, error) {
- 	if f == nil {
- 		return nil, ErrInvalid
- 	}
-+	if _, _, infos, err, handled := gomadFileReaddir(f, n, readdirFileInfo); handled {
-+		if infos == nil {
-+			// Readdir has historically always returned a non-nil empty slice, never nil,
-+			// even on error (except misuse with nil receiver above).
-+			infos = []FileInfo{}
-+		}
-+		return infos, err
-+	}
- 	_, _, infos, err := f.readdir(n, readdirFileInfo)
- 	if infos == nil {
- 		// Readdir has historically always returned a non-nil empty slice, never nil,
-@@ -70,6 +78,14 @@ func (f *File) Readdirnames(n int) (names []string, err error) {
- 	if f == nil {
- 		return nil, ErrInvalid
- 	}
-+	if names, _, _, err, handled := gomadFileReaddir(f, n, readdirName); handled {
-+		if names == nil {
-+			// Readdirnames has historically always returned a non-nil empty slice, never nil,
-+			// even on error (except misuse with nil receiver above).
-+			names = []string{}
-+		}
-+		return names, err
-+	}
- 	names, _, _, err = f.readdir(n, readdirName)
- 	if names == nil {
- 		// Readdirnames has historically always returned a non-nil empty slice, never nil,
-@@ -98,6 +114,10 @@ func (f *File) ReadDir(n int) ([]DirEntry, error) {
- 	if f == nil {
- 		return nil, ErrInvalid
- 	}
-+	if _, dirents, _, err, handled := gomadFileReaddir(f, n, readdirDirEntry); handled {
-+		if dirents == nil { dirents = []DirEntry{} }
-+		return dirents, err
-+	}
- 	_, dirents, _, err := f.readdir(n, readdirDirEntry)
- 	if dirents == nil {
- 		// Match Readdir and Readdirnames: don't return nil slices.
-@@ -119,6 +139,9 @@ func (f *File) ReadDir(n int) ([]DirEntry, error) {
- // ReadDir returns the entries it was able to read before the error,
- // along with the error.
- func ReadDir(name string) ([]DirEntry, error) {
-+	if gomadIOEnabled() {
-+		if file, handled, err := gomadOpenFile(name, O_RDONLY, 0); handled { if err != nil { return nil, err }; defer file.Close(); return file.ReadDir(-1) }
-+	}
- 	f, err := openDir(name)
- 	if err != nil {
- 		return nil, err
-diff --git a/src/os/stat_unix.go b/src/os/stat_unix.go
---- a/src/os/stat_unix.go
-+++ b/src/os/stat_unix.go
-@@ -16,6 +16,9 @@ func (f *File) Stat() (FileInfo, error) {
- 	if f == nil {
- 		return nil, ErrInvalid
- 	}
-+	if info, handled, err := gomadFileStat(f); handled {
-+		return info, f.wrapErr("stat", err)
-+	}
- 	var fs fileStat
- 	err := f.pfd.Fstat(&fs.sys)
- 	if err != nil {
-diff --git a/src/os/path.go b/src/os/path.go
---- a/src/os/path.go
-+++ b/src/os/path.go
-@@ -17,6 +17,9 @@
- // If path is already a directory, MkdirAll does nothing
- // and returns nil.
- func MkdirAll(path string, perm FileMode) error {
-+	if gomadIOEnabled() {
-+		return gomadMkdirAll(path, perm)
-+	}
- 	// Fast path: if we can tell whether path is a directory or file, stop with success or error.
- 	dir, err := Stat(path)
- 	if err == nil {
-@@ -76,2 +79,5 @@ func RemoveAll(path string) error {
-+	if gomadIOEnabled() {
-+		return gomadRemoveAll(path)
-+	}
- 	return removeAll(path)
- }
-diff --git a/src/os/stat.go b/src/os/stat.go
---- a/src/os/stat.go
-+++ b/src/os/stat.go
-@@ -9,6 +9,9 @@
- // Stat returns a [FileInfo] describing the named file.
- // If there is an error, it will be of type [*PathError].
- func Stat(name string) (FileInfo, error) {
-+	if gomadIOEnabled() {
-+		return gomadStat(name)
-+	}
- 	testlog.Stat(name)
- 	return statNolog(name)
- }
-@@ -27,3 +30,6 @@ func Lstat(name string) (FileInfo, error) {
-+	if gomadIOEnabled() {
-+		return gomadStat(name)
-+	}
- 	testlog.Stat(name)
- 	return lstatNolog(name)
- }
-diff --git a/src/os/getwd.go b/src/os/getwd.go
---- a/src/os/getwd.go
-+++ b/src/os/getwd.go
-@@ -24,7 +24,10 @@
- // On Unix platforms, if the environment variable PWD
- // provides an absolute name, and it is a name of the
- // current directory, it is returned.
- func Getwd() (dir string, err error) {
-+	if gomadIOEnabled() {
-+		return gomadGetwd(), nil
-+	}
- 	if runtime.GOOS == "windows" || runtime.GOOS == "plan9" {
- 		// Use syscall.Getwd directly for
- 		//   - plan9: see reasons in CL 89575;
 diff --git a/src/testing/testing.go b/src/testing/testing.go
+index 34b45b4..a81f5dc 100644
 --- a/src/testing/testing.go
 +++ b/src/testing/testing.go
-@@ -405,6 +405,7 @@ import (
+@@ -404,6 +404,7 @@ import (
  	"errors"
  	"flag"
  	"fmt"
@@ -1008,7 +293,7 @@ diff --git a/src/testing/testing.go b/src/testing/testing.go
  	"internal/race"
  	"io"
  	"math/rand"
-@@ -1972,6 +1973,9 @@ func tRunner(t *T, fn func(t *T)) {
+@@ -1992,6 +1993,9 @@ func tRunner(t *T, fn func(t *T)) {
  			for _, sub := range t.sub {
  				<-sub.signal
  			}
@@ -1016,9 +301,9 @@ diff --git a/src/testing/testing.go b/src/testing/testing.go
 +				gomadtrace.TestingComplete()
 +			}
  
-			// Run any cleanup callbacks, marking the test as running
-			// in case the cleanup hangs.
-@@ -2031,6 +2035,9 @@ func tRunner(t *T, fn func(t *T)) {
+ 			// Run any cleanup callbacks, marking the test as running
+ 			// in case the cleanup hangs.
+@@ -2034,6 +2038,9 @@ func tRunner(t *T, fn func(t *T)) {
  	t.start = highPrecisionTimeNow()
  	t.resetRaces()
  	fn(t)
@@ -1028,8 +313,11 @@ diff --git a/src/testing/testing.go b/src/testing/testing.go
  
  	// code beyond here will not be executed when FailNow is invoked
  	t.mu.Lock()
-@@ -2341,3 +2348,4 @@ func (m *M) Run() (code int) {
+@@ -2340,6 +2347,7 @@ var (
+ func (m *M) Run() (code int) {
  	defer func() {
  		code = m.exitCode
 +		gomadtrace.TestingComplete()
  	}()
+ 
+ 	// Count the number of calls to m.Run.

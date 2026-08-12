@@ -6,6 +6,7 @@ package os
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 	"sync"
 	"syscall"
@@ -25,6 +26,341 @@ func gomadDeterministicEnabled() bool
 
 func gomadIOEnabled() bool {
 	return gomadDeterministicEnabled()
+}
+
+func gomadInterceptFileReaddir(file *File, count int) ([]FileInfo, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	if file == nil {
+		return nil, ErrInvalid, true
+	}
+	_, _, infos, err, handled := gomadFileReaddir(file, count, readdirFileInfo)
+	if !handled {
+		return nil, nil, false
+	}
+	if infos == nil {
+		infos = []FileInfo{}
+	}
+	return infos, err, true
+}
+
+func gomadInterceptFileReaddirnames(file *File, count int) ([]string, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	if file == nil {
+		return nil, ErrInvalid, true
+	}
+	names, _, _, err, handled := gomadFileReaddir(file, count, readdirName)
+	if !handled {
+		return nil, nil, false
+	}
+	if names == nil {
+		names = []string{}
+	}
+	return names, err, true
+}
+
+func gomadInterceptFileReadDir(file *File, count int) ([]DirEntry, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	if file == nil {
+		return nil, ErrInvalid, true
+	}
+	_, entries, _, err, handled := gomadFileReaddir(file, count, readdirDirEntry)
+	if !handled {
+		return nil, nil, false
+	}
+	if entries == nil {
+		entries = []DirEntry{}
+	}
+	return entries, err, true
+}
+
+func gomadInterceptReadDir(name string) ([]DirEntry, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	file, handled, err := gomadOpenFile(name, O_RDONLY, 0)
+	if !handled {
+		return nil, nil, false
+	}
+	if err != nil {
+		return nil, err, true
+	}
+	defer file.Close()
+	entries, err := file.ReadDir(-1)
+	return entries, err, true
+}
+
+func gomadInterceptFileReadAt(file *File, destination []byte, offset int64) (int, error, bool) {
+	if !gomadIOEnabled() {
+		return 0, nil, false
+	}
+	if err := file.checkValid("read"); err != nil {
+		return 0, err, true
+	}
+	if offset < 0 {
+		return 0, &PathError{Op: "readat", Path: file.name, Err: errors.New("negative offset")}, true
+	}
+	read, err, handled := gomadFileReadAt(file, destination, offset)
+	if !handled {
+		return 0, nil, false
+	}
+	return read, file.wrapErr("read", err), true
+}
+
+func gomadInterceptFileWrite(file *File, source []byte) (int, error, bool) {
+	if !gomadIOEnabled() {
+		return 0, nil, false
+	}
+	if err := file.checkValid("write"); err != nil {
+		return 0, err, true
+	}
+	written, err, handled := gomadFileWrite(file, source)
+	if !handled {
+		return 0, nil, false
+	}
+	return written, file.wrapErr("write", err), true
+}
+
+func gomadInterceptFileWriteAt(file *File, source []byte, offset int64) (int, error, bool) {
+	if !gomadIOEnabled() {
+		return 0, nil, false
+	}
+	if err := file.checkValid("write"); err != nil {
+		return 0, err, true
+	}
+	written, err, handled := gomadFileWriteAt(file, source, offset)
+	if !handled {
+		return 0, nil, false
+	}
+	return written, file.wrapErr("write", err), true
+}
+
+func gomadInterceptFileSeek(file *File, offset int64, whence int) (int64, error, bool) {
+	if !gomadIOEnabled() {
+		return 0, nil, false
+	}
+	if err := file.checkValid("seek"); err != nil {
+		return 0, err, true
+	}
+	next, err, handled := gomadFileSeek(file, offset, whence)
+	if !handled {
+		return 0, nil, false
+	}
+	return next, file.wrapErr("seek", err), true
+}
+
+func gomadInterceptMkdir(name string, perm FileMode) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadMkdir(name, perm), true
+}
+
+func gomadInterceptChdir(name string) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadChdir(name), true
+}
+
+func gomadInterceptRename(oldName, newName string) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadRename(oldName, newName), true
+}
+
+func gomadInterceptReadlink(name string) (string, error, bool) {
+	if !gomadIOEnabled() {
+		return "", nil, false
+	}
+	return "", gomadUnsupportedPath("readlink", name), true
+}
+
+func gomadInterceptChmod(name string, mode FileMode) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadChmod(name, mode), true
+}
+
+func gomadInterceptFileChmod(file *File, mode FileMode) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	handled, err := gomadFileChmod(file, mode)
+	if !handled {
+		return nil, false
+	}
+	return file.wrapErr("chmod", err), true
+}
+
+func gomadInterceptChown(name string, _, _ int) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadUnsupportedPath("chown", name), true
+}
+
+func gomadInterceptLchown(name string, _, _ int) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadUnsupportedPath("lchown", name), true
+}
+
+func gomadInterceptFileChown(file *File, _, _ int) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	if err := file.checkValid("chown"); err != nil {
+		return err, true
+	}
+	if gomadFileUnsupported(file) {
+		return file.wrapErr("chown", syscall.ENOTSUP), true
+	}
+	return nil, false
+}
+
+func gomadInterceptFileTruncate(file *File, size int64) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	if err := file.checkValid("truncate"); err != nil {
+		return err, true
+	}
+	handled, err := gomadFileTruncate(file, size)
+	if !handled {
+		return nil, false
+	}
+	return file.wrapErr("truncate", err), true
+}
+
+func gomadInterceptFileSync(file *File) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	if err := file.checkValid("sync"); err != nil {
+		return err, true
+	}
+	handled, err := gomadFileSync(file)
+	if !handled {
+		return nil, false
+	}
+	return file.wrapErr("sync", err), true
+}
+
+func gomadInterceptChtimes(name string, _ time.Time, modified time.Time) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadChtimes(name, modified), true
+}
+
+func gomadInterceptFileChdir(file *File) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	if err := file.checkValid("chdir"); err != nil {
+		return err, true
+	}
+	handled, err := gomadFileChdir(file)
+	if !handled {
+		return nil, false
+	}
+	return file.wrapErr("chdir", err), true
+}
+
+func gomadInterceptTruncate(name string, size int64) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadTruncate(name, size), true
+}
+
+func gomadInterceptRemove(name string) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadRemove(name), true
+}
+
+func gomadInterceptLink(oldName, newName string) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadUnsupportedLink("link", oldName, newName), true
+}
+
+func gomadInterceptSymlink(oldName, newName string) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadUnsupportedLink("symlink", oldName, newName), true
+}
+
+func gomadInterceptGetwd() (string, error, bool) {
+	if !gomadIOEnabled() {
+		return "", nil, false
+	}
+	return gomadGetwd(), nil, true
+}
+
+func gomadInterceptMkdirAll(name string, perm FileMode) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadMkdirAll(name, perm), true
+}
+
+func gomadInterceptRemoveAll(name string) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	return gomadRemoveAll(name), true
+}
+
+func gomadInterceptStat(name string) (FileInfo, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	info, err := gomadStat(name)
+	return info, err, true
+}
+
+func gomadInterceptLstat(name string) (FileInfo, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	info, err := gomadStat(name)
+	return info, err, true
+}
+
+func gomadInterceptFileStat(file *File) (FileInfo, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	if file == nil {
+		return nil, ErrInvalid, true
+	}
+	info, handled, err := gomadFileStat(file)
+	if !handled {
+		return nil, nil, false
+	}
+	return info, file.wrapErr("stat", err), true
+}
+
+func gomadInterceptHostname() (string, error, bool) {
+	if !gomadIOEnabled() {
+		return "", nil, false
+	}
+	name, err := gomadHostname()
+	return name, err, true
 }
 
 var gomadFilesystemOnce sync.Once
@@ -125,6 +461,14 @@ func gomadOpenFile(name string, flag int, perm FileMode) (*File, bool, error) {
 	return file, true, nil
 }
 
+func gomadInterceptOpenFile(name string, flag int, perm FileMode) (*File, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	file, handled, err := gomadOpenFile(name, flag, perm)
+	return file, err, handled
+}
+
 func gomadHandle(file *File) *gomadfs.Handle {
 	if file == nil || file.file == nil {
 		return nil
@@ -143,6 +487,20 @@ func gomadFileRead(file *File, destination []byte) (int, error, bool) {
 	read, err := handle.Read(destination)
 	gomadRecordFile("os.read", handle.Path(), nil, destination[:read], uint64(read), err)
 	return read, err, true
+}
+
+func gomadInterceptFileRead(file *File, destination []byte) (int, error, bool) {
+	if !gomadIOEnabled() {
+		return 0, nil, false
+	}
+	if err := file.checkValid("read"); err != nil {
+		return 0, err, true
+	}
+	read, err, handled := gomadFileRead(file, destination)
+	if !handled {
+		return 0, nil, false
+	}
+	return read, file.wrapErr("read", err), true
 }
 
 func gomadFileReadAt(file *File, destination []byte, offset int64) (int, error, bool) {
@@ -274,6 +632,20 @@ func gomadFileClose(file *File) (bool, error) {
 	err := handle.Close()
 	gomadRecordFile("os.close", path, nil, nil, 0, err)
 	return true, err
+}
+
+func gomadInterceptFileClose(file *File) (error, bool) {
+	if !gomadIOEnabled() {
+		return nil, false
+	}
+	if file == nil {
+		return ErrInvalid, true
+	}
+	handled, err := gomadFileClose(file)
+	if !handled {
+		return nil, false
+	}
+	return file.wrapErr("close", err), true
 }
 
 func gomadFileStat(file *File) (FileInfo, bool, error) {
