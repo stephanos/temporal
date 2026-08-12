@@ -1,26 +1,20 @@
 package process
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+
+	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 )
 
 const (
 	maximumIOTranscriptBytes = 64 << 20
-	ioTranscriptHeaderBytes  = 64
-	ioTranscriptRecordBytes  = 128
-	ioTerminalBytes          = 104
-)
-
-var (
-	ioTranscriptMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'R', 1}
-	ioExpectedMagic   = [8]byte{'G', 'O', 'M', 'A', 'D', 'X', 'T', 1}
-	ioTerminalMagic   = [8]byte{'G', 'O', 'M', 'A', 'D', 'I', 'T', 1}
+	ioTranscriptHeaderBytes  = iowire.TranscriptHeaderBytes
+	ioTranscriptRecordBytes  = iowire.TranscriptRecordBytes
+	ioTerminalBytes          = iowire.TerminalFrameBytes
 )
 
 type ioTranscriptBacking struct {
@@ -51,12 +45,8 @@ func newIOTranscriptBacking(limit uint64, replay bool, expected []byte) (_ *ioTr
 	if err := file.Truncate(int64(limit)); err != nil {
 		return nil, fmt.Errorf("size I/O transcript backing: %w", err)
 	}
-	header := make([]byte, ioTranscriptHeaderBytes)
-	copy(header[:8], ioTranscriptMagic[:])
-	binary.BigEndian.PutUint32(header[8:12], 1)
-	binary.BigEndian.PutUint64(header[16:24], limit)
-	binary.BigEndian.PutUint64(header[24:32], ioTranscriptHeaderBytes)
-	if _, err := file.WriteAt(header, 0); err != nil {
+	header := iowire.EncodeProducedTranscriptHeader(limit)
+	if _, err := file.WriteAt(header[:], 0); err != nil {
 		return nil, fmt.Errorf("initialize I/O transcript backing: %w", err)
 	}
 	expectedFile, err := newExpectedIOTranscriptBacking(limit, replay, expected)
@@ -86,17 +76,11 @@ func newExpectedIOTranscriptBacking(limit uint64, replay bool, expected []byte) 
 	if err := file.Truncate(int64(limit)); err != nil {
 		return nil, fmt.Errorf("size expected I/O transcript backing: %w", err)
 	}
-	header := make([]byte, ioTranscriptHeaderBytes)
-	copy(header[:8], ioExpectedMagic[:])
-	binary.BigEndian.PutUint32(header[8:12], 1)
-	if replay {
-		header[12] = 1
+	header, err := iowire.EncodeExpectedTranscriptHeader(replay, expected)
+	if err != nil {
+		return nil, err
 	}
-	binary.BigEndian.PutUint64(header[16:24], uint64(len(expected)))
-	binary.BigEndian.PutUint64(header[24:32], uint64(len(expected))/ioTranscriptRecordBytes)
-	digest := sha256.Sum256(expected)
-	copy(header[32:64], digest[:])
-	if _, err := file.WriteAt(header, 0); err != nil {
+	if _, err := file.WriteAt(header[:], 0); err != nil {
 		return nil, fmt.Errorf("initialize expected I/O transcript backing: %w", err)
 	}
 	if len(expected) != 0 {
@@ -115,19 +99,16 @@ func (backing *ioTranscriptBacking) close() error {
 }
 
 func (backing *ioTranscriptBacking) result(terminal []byte) (IOTranscript, error) {
-	if len(terminal) != ioTerminalBytes || !bytes.Equal(terminal[:8], ioTerminalMagic[:]) || binary.BigEndian.Uint32(terminal[8:12]) != 1 {
-		return IOTranscript{}, errors.New("invalid I/O terminal frame")
+	decoded, err := iowire.DecodeTerminal(terminal)
+	if err != nil {
+		return IOTranscript{}, err
 	}
-	checksum := sha256.Sum256(terminal[:72])
-	if !bytes.Equal(checksum[:], terminal[72:]) {
-		return IOTranscript{}, errors.New("I/O terminal frame checksum mismatch")
-	}
-	records := binary.BigEndian.Uint64(terminal[16:24])
-	length := binary.BigEndian.Uint64(terminal[24:32])
+	records := decoded.Records
+	length := decoded.MappingBytes
 	if length < ioTranscriptHeaderBytes || length > backing.limit {
 		return IOTranscript{}, fmt.Errorf("invalid I/O transcript length %d", length)
 	}
-	if terminal[12] != 1 && terminal[12] != 3 {
+	if decoded.State != iowire.TerminalComplete && decoded.State != iowire.TerminalReplayDivergence {
 		return IOTranscript{}, errors.New("I/O transcript did not complete")
 	}
 	payload := make([]byte, length-ioTranscriptHeaderBytes)
@@ -135,12 +116,12 @@ func (backing *ioTranscriptBacking) result(terminal []byte) (IOTranscript, error
 		return IOTranscript{}, fmt.Errorf("read I/O transcript: %w", err)
 	}
 	digest := sha256.Sum256(payload)
-	if !bytes.Equal(digest[:], terminal[32:64]) {
+	if digest != decoded.PayloadHash {
 		return IOTranscript{}, errors.New("I/O transcript digest mismatch")
 	}
 	result := IOTranscript{Bytes: payload, SHA256: digest, Records: records, Complete: true}
-	if terminal[12] == 3 {
-		ordinal := binary.BigEndian.Uint64(terminal[64:72])
+	if decoded.State == iowire.TerminalReplayDivergence {
+		ordinal := decoded.DivergentOrdinal
 		result.ReplayDivergence = &ordinal
 	}
 	return result, nil

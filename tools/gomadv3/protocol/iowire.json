@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "bootstrap": {
+    "magic": "GOMADIO\u0001",
+    "kind": 1,
+    "frame_bytes": 212,
+    "checksum_offset": 180
+  },
+  "transcript": {
+    "produced_magic": "GOMADTR\u0001",
+    "expected_magic": "GOMADXT\u0001",
+    "header_bytes": 64,
+    "record_bytes": 128,
+    "operation_bytes": 22
+  },
+  "terminal": {
+    "magic": "GOMADIT\u0001",
+    "states": {
+      "complete": 1,
+      "overflow": 2,
+      "replay_divergence": 3
+    },
+    "frame_bytes": 104,
+    "checksum_offset": 72
+  },
+  "mount": {
+    "request_magic": "GOMADRO\u0001",
+    "response_magic": "GOMADRS\u0001",
+    "lookup_operation": 1,
+    "statuses": {
+      "ok": 0,
+      "unmounted": 1,
+      "not_exist": 2
+    },
+    "kinds": {
+      "file": 1,
+      "directory": 2
+    },
+    "request_header_bytes": 24,
+    "response_header_bytes": 40,
+    "child_header_bytes": 8
+  },
+  "golden": {
+    "bootstrap": "474f4d4144494f0100010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007977b6e7b5904901d39146556858a4a77fbfe83d304ee7bf2ece30ba30fe91fb9",
+    "mount_request": "474f4d4144524f01000100010000000000000004000000022f78",
+    "mount_response": "474f4d414452530100010000000000000000000401000000000001a00000000000000002000000006f6b"
+  }
+}

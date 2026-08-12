@@ -1,8 +1,13 @@
-.PHONY: runner runner-test world-test toolchain validate test-harness test
+.PHONY: generate runner runner-test overlay-test world-test toolchain validate test-harness test
 
 OVERLAY_FILES := $(shell find overlay -type f)
+IOWIRE_INPUTS := protocol/iowire.json protocol/iowire.go.tmpl protocol/iowire_test.go.tmpl $(shell find internal/protocolgen -type f)
+IOWIRE_OUTPUTS := internal/iowire/wire_generated.go internal/iowire/wire_generated_test.go overlay/src/internal/gomadwire/wire_generated.go overlay/src/internal/gomadwire/wire_generated_test.go
 
-toolchain: validate build.sh go1.26.4.patch $(OVERLAY_FILES)
+generate: $(IOWIRE_INPUTS)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/protocolgen
+
+toolchain: validate build.sh go1.26.4.patch $(OVERLAY_FILES) $(IOWIRE_OUTPUTS)
 	./build.sh
 
 runner: toolchain
@@ -13,14 +18,18 @@ runner: toolchain
 runner-test: toolchain
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/... ./internal/... ./world/...
 
+overlay-test: toolchain
+	.toolchain/bin/go test -tags test_dep internal/gomadwire internal/gomadio/mount
+
 world-test:
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
 
 validate:
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/protocolgen -check
 	./test.sh validate
 
 test-harness:
 	bash ./testlib_test.sh
 
-test: test-harness runner-test world-test
+test: test-harness runner-test overlay-test world-test
 	./test.sh
