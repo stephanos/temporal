@@ -30,7 +30,7 @@ type BuildOverlay struct {
 }
 
 func (profile Profile) PrepareBuildOverlay(spec target.Spec, moduleCache string) (target.Spec, BuildOverlay, error) {
-	if profile.Name != TemporalActivityAPIBatchCancel {
+	if _, found := profileArgument(profile.Name); !found {
 		return target.Spec{}, BuildOverlay{}, fmt.Errorf("unknown I/O profile %q", profile.Name)
 	}
 	if moduleCache == "" || spec.PreparationRoot == "" {
@@ -93,10 +93,47 @@ func (profile Profile) PrepareBuildOverlay(spec target.Spec, moduleCache string)
 		return target.Spec{}, BuildOverlay{}, err
 	}
 	spec.BuildModFile = modFilePath
+	if profile.Name == TemporalActivityAPIBatchSecurity {
+		spec.BuildOverlay, err = prepareTemporalSQLiteOverlay(root, workingDirectory)
+		if err != nil {
+			return target.Spec{}, BuildOverlay{}, err
+		}
+	}
 	return spec, BuildOverlay{
 		Path: modFilePath, Source: source, Replacement: replacement, SourceSHA256: sqliteSourceSHA256,
 		ReplacementSHA256: digestBytes(replacementContents),
 	}, nil
+}
+
+func prepareTemporalSQLiteOverlay(root, workingDirectory string) (string, error) {
+	source := filepath.Join(workingDirectory, "tests", "testcore", "functional_test_base.go")
+	contents, err := os.ReadFile(source)
+	if err != nil {
+		return "", fmt.Errorf("read Temporal SQLite profile source: %w", err)
+	}
+	const original = `		// Use file-based SQLite for shared clusters to support parallel test access.
+		return *persistencetests.GetSQLiteFileTestClusterOption()`
+	const replacement = `		// Use named in-memory SQLite for Gomad; schema contents still come from the explicit read-only mount.
+		options := *persistencetests.GetSQLiteMemoryTestClusterOption()
+		options.SchemaDir = "schema/sqlite/v3"
+		return options`
+	if bytes.Count(contents, []byte(original)) != 1 {
+		return "", errors.New("Temporal SQLite profile rewrite anchor mismatch")
+	}
+	replacementContents := bytes.Replace(contents, []byte(original), []byte(replacement), 1)
+	replacementPath := filepath.Join(root, "temporal", "tests", "testcore", "functional_test_base.go")
+	if err := os.MkdirAll(filepath.Dir(replacementPath), 0o700); err != nil {
+		return "", fmt.Errorf("create Temporal SQLite overlay directory: %w", err)
+	}
+	if err := writeExclusive(replacementPath, replacementContents); err != nil {
+		return "", err
+	}
+	overlayPath := filepath.Join(root, "overlay.json")
+	overlayJSON := []byte(fmt.Sprintf("{\"Replace\":{%q:%q}}", source, replacementPath))
+	if err := writeExclusive(overlayPath, overlayJSON); err != nil {
+		return "", err
+	}
+	return overlayPath, nil
 }
 
 func copySQLiteModule(source, destination string, replacement []byte) (string, error) {

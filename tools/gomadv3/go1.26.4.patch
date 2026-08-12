@@ -662,7 +662,57 @@ diff --git a/src/os/sys.go b/src/os/sys.go
 diff --git a/src/os/file.go b/src/os/file.go
 --- a/src/os/file.go
 +++ b/src/os/file.go
-@@ -325,6 +325,9 @@
+@@ -140,6 +140,9 @@ func (f *File) Read(b []byte) (n int, err error) {
+ 	if err := f.checkValid("read"); err != nil {
+ 		return 0, err
+ 	}
++	if n, err, handled := gomadFileRead(f, b); handled {
++		return n, f.wrapErr("read", err)
++	}
+ 	n, e := f.read(b)
+ 	return n, f.wrapErr("read", e)
+ }
+@@ -157,6 +160,9 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
+ 	if off < 0 {
+ 		return 0, &PathError{Op: "readat", Path: f.name, Err: errors.New("negative offset")}
+ 	}
++	if n, err, handled := gomadFileReadAt(f, b, off); handled {
++		return n, f.wrapErr("read", err)
++	}
+ 
+ 	for len(b) > 0 {
+ 		m, e := f.pread(b, off)
+@@ -212,6 +218,9 @@ func (f *File) Write(b []byte) (n int, err error) {
+ 	if err := f.checkValid("write"); err != nil {
+ 		return 0, err
+ 	}
++	if handled, err := gomadFileWrite(f); handled {
++		return 0, f.wrapErr("write", err)
++	}
+ 	n, e := f.write(b)
+ 	if n < 0 {
+ 		n = 0
+@@ -236,6 +245,9 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
+ 	if err := f.checkValid("write"); err != nil {
+ 		return 0, err
+ 	}
++	if handled, err := gomadFileWrite(f); handled {
++		return 0, f.wrapErr("write", err)
++	}
+ 	if f.appendMode {
+ 		return 0, errWriteAtInAppendMode
+ 	}
+@@ -304,6 +316,9 @@ func (f *File) Seek(offset int64, whence int) (ret int64, err error) {
+ 	if err := f.checkValid("seek"); err != nil {
+ 		return 0, err
+ 	}
++	if offset, err, handled := gomadFileSeek(f, offset, whence); handled {
++		return offset, f.wrapErr("seek", err)
++	}
+ 	r, e := f.seek(offset, whence)
+ 	if e == nil && f.dirinfo.Load() != nil && r != 0 {
+ 		e = syscall.EISDIR
+@@ -325,6 +343,9 @@
  // bits (before umask).
  // If there is an error, it will be of type [*PathError].
  func Mkdir(name string, perm FileMode) error {
@@ -671,7 +721,96 @@ diff --git a/src/os/file.go b/src/os/file.go
 +	}
  	longName := fixLongPath(name)
  	e := ignoringEINTR(func() error {
- 		return syscall.Mkdir(longName, syscallMode(perm))
+		return syscall.Mkdir(longName, syscallMode(perm))
+@@ -408,6 +429,9 @@ func OpenFile(name string, flag int, perm FileMode) (*File, error) {
+ // methods on the returned File can be used for I/O.
+ // If there is an error, it will be of type [*PathError].
+ func OpenFile(name string, flag int, perm FileMode) (*File, error) {
++	if gomadIOEnabled() {
++		if file, handled, err := gomadOpenFile(name, flag, perm); handled { return file, err }
++	}
+ 	testlog.Open(name)
+ 	f, err := openFileNolog(name, flag, perm)
+ 	if err != nil {
+diff --git a/src/os/file_posix.go b/src/os/file_posix.go
+--- a/src/os/file_posix.go
++++ b/src/os/file_posix.go
+@@ -20,5 +20,8 @@ func (f *File) Close() error {
+ 	if f == nil {
+ 		return ErrInvalid
+ 	}
++	if handled, err := gomadFileClose(f); handled {
++		return f.wrapErr("close", err)
++	}
+ 	return f.file.close()
+ }
+diff --git a/src/os/dir.go b/src/os/dir.go
+--- a/src/os/dir.go
++++ b/src/os/dir.go
+@@ -41,6 +41,14 @@ func (f *File) Readdir(n int) ([]FileInfo, error) {
+ 	if f == nil {
+ 		return nil, ErrInvalid
+ 	}
++	if _, _, infos, err, handled := gomadFileReaddir(f, n, readdirFileInfo); handled {
++		if infos == nil {
++			// Readdir has historically always returned a non-nil empty slice, never nil,
++			// even on error (except misuse with nil receiver above).
++			infos = []FileInfo{}
++		}
++		return infos, err
++	}
+ 	_, _, infos, err := f.readdir(n, readdirFileInfo)
+ 	if infos == nil {
+ 		// Readdir has historically always returned a non-nil empty slice, never nil,
+@@ -70,6 +78,14 @@ func (f *File) Readdirnames(n int) (names []string, err error) {
+ 	if f == nil {
+ 		return nil, ErrInvalid
+ 	}
++	if names, _, _, err, handled := gomadFileReaddir(f, n, readdirName); handled {
++		if names == nil {
++			// Readdirnames has historically always returned a non-nil empty slice, never nil,
++			// even on error (except misuse with nil receiver above).
++			names = []string{}
++		}
++		return names, err
++	}
+ 	names, _, _, err = f.readdir(n, readdirName)
+ 	if names == nil {
+ 		// Readdirnames has historically always returned a non-nil empty slice, never nil,
+@@ -98,6 +114,10 @@ func (f *File) ReadDir(n int) ([]DirEntry, error) {
+ 	if f == nil {
+ 		return nil, ErrInvalid
+ 	}
++	if _, dirents, _, err, handled := gomadFileReaddir(f, n, readdirDirEntry); handled {
++		if dirents == nil { dirents = []DirEntry{} }
++		return dirents, err
++	}
+ 	_, dirents, _, err := f.readdir(n, readdirDirEntry)
+ 	if dirents == nil {
+ 		// Match Readdir and Readdirnames: don't return nil slices.
+@@ -119,6 +139,9 @@ func (f *File) ReadDir(n int) ([]DirEntry, error) {
+ // ReadDir returns the entries it was able to read before the error,
+ // along with the error.
+ func ReadDir(name string) ([]DirEntry, error) {
++	if gomadIOEnabled() {
++		if file, handled, err := gomadOpenFile(name, O_RDONLY, 0); handled { if err != nil { return nil, err }; defer file.Close(); return file.ReadDir(-1) }
++	}
+ 	f, err := openDir(name)
+ 	if err != nil {
+ 		return nil, err
+diff --git a/src/os/stat_unix.go b/src/os/stat_unix.go
+--- a/src/os/stat_unix.go
++++ b/src/os/stat_unix.go
+@@ -16,6 +16,9 @@ func (f *File) Stat() (FileInfo, error) {
+ 	if f == nil {
+ 		return nil, ErrInvalid
+ 	}
++	if info, handled, err := gomadFileStat(f); handled {
++		return info, f.wrapErr("stat", err)
++	}
+ 	var fs fileStat
+ 	err := f.pfd.Fstat(&fs.sys)
+ 	if err != nil {
 diff --git a/src/os/path.go b/src/os/path.go
 --- a/src/os/path.go
 +++ b/src/os/path.go
