@@ -1,7 +1,6 @@
 package ioprofile
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -15,12 +14,25 @@ const (
 	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v1"
 )
 
-type Profile struct {
-	Name                 string
-	Ready                bool
-	Inventory            []byte
-	InventorySHA256      record.SHA256
-	ImplementationSHA256 record.SHA256
+type TargetContract struct {
+	GoVersion string
+	GOOS      string
+	GOARCH    string
+}
+
+type ProfileSpec struct {
+	definition *profileDefinition
+}
+
+type profileDefinition struct {
+	name                  string
+	target                TargetContract
+	inventory             []byte
+	inventorySHA256       record.SHA256
+	implementationFamily  string
+	implementationVersion string
+	implementationSHA256  record.SHA256
+	prepareBuildOverlay   func(target.Spec, string) (target.Spec, BuildOverlay, error)
 }
 
 type inventory struct {
@@ -37,12 +49,21 @@ type inventoryEntry struct {
 	Operations  []string `json:"operations"`
 }
 
-func Resolve(name string) (Profile, error) {
-	if name != Deterministic {
-		return Profile{}, fmt.Errorf("unknown I/O profile %q", name)
-	}
+var deterministicProfile = mustProfileSpec(profileDefinition{
+	name:                  Deterministic,
+	target:                TargetContract{GoVersion: "go1.26.4", GOOS: "darwin", GOARCH: "arm64"},
+	implementationFamily:  "gomadv3.deterministic-io/v1",
+	implementationVersion: deterministicImplementationVersion,
+	prepareBuildOverlay:   prepareDeterministicBuildOverlay,
+})
+
+var profileRegistry = []ProfileSpec{deterministicProfile}
+
+var profilesByName = map[string]ProfileSpec{Deterministic: deterministicProfile}
+
+func mustProfileSpec(definition profileDefinition) ProfileSpec {
 	encoded, err := record.CanonicalJSON(inventory{
-		Schema: "gomadv3.io-inventory/v1", Profile: Deterministic, Platform: "darwin/arm64",
+		Schema: "gomadv3.io-inventory/v1", Profile: definition.name, Platform: definition.target.GOOS + "/" + definition.target.GOARCH,
 		Entries: []inventoryEntry{
 			{Boundary: "crypto/rand", Disposition: "in-memory", Operations: []string{"Reader.Read", "Read"}},
 			{Boundary: "filesystem", Disposition: "in-memory", Operations: []string{"open", "read", "write", "stat", "rename", "remove", "mkdir"}},
@@ -54,23 +75,74 @@ func Resolve(name string) (Profile, error) {
 		ReservedFDs: []string{"bootstrap", "expected-transcript", "io-config", "io-terminal", "stderr", "stdout", "transcript", "world-config", "world-record", "read-only-mount-request", "read-only-mount-response"},
 	})
 	if err != nil {
-		return Profile{}, fmt.Errorf("encode deterministic I/O inventory: %w", err)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
 	}
-	inventoryDigest := digest(encoded)
-	implementationDigest := digest([]byte(deterministicImplementationVersion + "\x00" + string(inventoryDigest)))
-	return Profile{Name: Deterministic, Ready: true, Inventory: encoded, InventorySHA256: inventoryDigest, ImplementationSHA256: implementationDigest}, nil
+	definition.inventory = encoded
+	definition.inventorySHA256 = digest(encoded)
+	definition.implementationSHA256 = digest([]byte(definition.implementationVersion + "\x00" + string(definition.inventorySHA256)))
+	return ProfileSpec{definition: &definition}
 }
 
-func Default() Profile {
-	profile, err := Resolve(Deterministic)
-	if err != nil {
-		panic(err)
+func Resolve(name string) (ProfileSpec, error) {
+	profile, found := profilesByName[name]
+	if !found {
+		return ProfileSpec{}, fmt.Errorf("unknown I/O profile %q", name)
 	}
-	return profile
+	return profile, nil
 }
 
-func (profile Profile) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error {
-	resolved, err := Resolve(profile.Name)
+func Default() ProfileSpec {
+	return deterministicProfile
+}
+
+func (profile ProfileSpec) Name() string {
+	if profile.definition == nil {
+		return ""
+	}
+	return profile.definition.name
+}
+
+func (profile ProfileSpec) Inventory() []byte {
+	if profile.definition == nil {
+		return nil
+	}
+	return append([]byte(nil), profile.definition.inventory...)
+}
+
+func (profile ProfileSpec) InventorySHA256() record.SHA256 {
+	if profile.definition == nil {
+		return ""
+	}
+	return profile.definition.inventorySHA256
+}
+
+func (profile ProfileSpec) ImplementationSHA256() record.SHA256 {
+	if profile.definition == nil {
+		return ""
+	}
+	return profile.definition.implementationSHA256
+}
+
+func (profile ProfileSpec) TargetContract() TargetContract {
+	if profile.definition == nil {
+		return TargetContract{}
+	}
+	return profile.definition.target
+}
+
+func (profile ProfileSpec) validated() (*profileDefinition, error) {
+	if profile.definition == nil {
+		return nil, fmt.Errorf("invalid I/O profile specification")
+	}
+	registered, found := profilesByName[profile.definition.name]
+	if !found || registered.definition != profile.definition {
+		return nil, fmt.Errorf("invalid I/O profile specification")
+	}
+	return profile.definition, nil
+}
+
+func (profile ProfileSpec) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error {
+	definition, err := profile.validated()
 	if err != nil {
 		return err
 	}
@@ -80,11 +152,8 @@ func (profile Profile) ValidatePreparedTarget(spec target.Spec, prepared target.
 	if len(prepared.Argv) == 0 || prepared.Argv[0] != "gomadv3-target" || !equalStrings(spec.Args, prepared.Argv[1:]) {
 		return fmt.Errorf("deterministic I/O target arguments do not match their build specification")
 	}
-	if prepared.GoVersion != "go1.26.4" || prepared.TargetGOOS != "darwin" || prepared.TargetGOARCH != "arm64" {
+	if prepared.GoVersion != definition.target.GoVersion || prepared.TargetGOOS != definition.target.GOOS || prepared.TargetGOARCH != definition.target.GOARCH {
 		return fmt.Errorf("deterministic I/O requires Go 1.26.4 on darwin/arm64")
-	}
-	if !bytes.Equal(profile.Inventory, resolved.Inventory) || profile.InventorySHA256 != resolved.InventorySHA256 || profile.ImplementationSHA256 != resolved.ImplementationSHA256 {
-		return fmt.Errorf("deterministic I/O identity is invalid")
 	}
 	return nil
 }

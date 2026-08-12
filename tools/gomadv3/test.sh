@@ -193,9 +193,37 @@ validate_overlay() {
 
 validate_patch
 validate_overlay
-if [[ ${1:-} == validate ]]; then
+
+list_tiers() {
+	case "$1" in
+		test-builder | test-runtime | test-upstream)
+			printf '%s\n' "$1"
+			;;
+		test)
+			printf '%s\n' test-builder test-runtime test-upstream
+			;;
+		*)
+			printf 'unknown gomadv3 test mode: %s\n' "$1" >&2
+			return 2
+			;;
+	esac
+}
+
+mode=${1:-test}
+if [[ $mode == --list-tiers ]]; then
+	list_tiers "${2:-test}"
 	exit 0
 fi
+if [[ $mode == validate ]]; then
+	exit 0
+fi
+case "$mode" in
+	test | test-builder | test-runtime | test-upstream) ;;
+	*)
+		printf 'unknown gomadv3 test mode: %s\n' "$mode" >&2
+		exit 2
+		;;
+esac
 
 if [[ ! -x "$go_bin" ]]; then
 	printf 'gomadv3 toolchain is missing: run make -C %s toolchain\n' "$script_dir" >&2
@@ -276,7 +304,8 @@ checked_output() {
 	done <"$result_dir/stdout"
 }
 
-printf 'not a patch\n' >"$bad_patch"
+test_builder() {
+	printf 'not a patch\n' >"$bad_patch"
 bad_patch_result="$test_tmp/bad-patch"
 gomad_run_checked 60 1 'builder seed=unset mode=invalid-patch iteration=0' "$bad_patch_result" -- \
 	env GOMADV3_PATCH_FILE="$bad_patch" "$script_dir/build.sh"
@@ -429,6 +458,7 @@ if GOMADV3_PATCH_FILE="$new_file_patch" "$script_dir/test.sh" validate >/dev/nul
 	printf 'gomadv3 patch validation accepted a new runtime file\n' >&2
 	exit 1
 fi
+}
 
 run_enabled() {
 	local seed=$1
@@ -854,7 +884,8 @@ require_clock_behavior() {
 	fi
 }
 
-disabled_output=$(checked_output 60 'activation seed=unset mode=disabled iteration=0' -- \
+test_runtime() {
+	disabled_output=$(checked_output 60 'activation seed=unset mode=disabled iteration=0' -- \
 	env -u GOMADSEED GOMAXPROCS=2 "$go_bin" -C "$testdata_dir" run ./activation)
 [[ "$disabled_output" == $'init GOMAXPROCS=2\nmain GOMAXPROCS=2' ]]
 
@@ -1116,8 +1147,10 @@ for seed in 0 1 18446744073709551615; do
 		[[ "$actual_test" == "$expected_test" ]]
 	done
 done
+}
 
-public_missing_seed_result="$test_tmp/public-missing-seed"
+test_upstream() {
+	public_missing_seed_result="$test_tmp/public-missing-seed"
 gomad_run_checked 10 2 'public-gomadv3-run seed=unset mode=validation iteration=0' \
 	"$public_missing_seed_result" -- make --no-print-directory -C "$repo_root" gomadv3-run
 if ! grep -Fq 'GOMADSEED is required: make gomadv3-run' \
@@ -1182,5 +1215,14 @@ ln -s "$actual_goroot" "$upstream_goroot"
 checked_output 600 'upstream-clock seed=unset mode=disabled iteration=0' -- \
 	env -u GOMADSEED -u GO111MODULE -u GODEBUG -u GOWORK \
 	"$upstream_goroot/bin/go" -C "$upstream_goroot/src" test -tags=test_dep runtime time testing/synctest
+}
+
+while IFS= read -r tier; do
+	case "$tier" in
+		test-builder) test_builder ;;
+		test-runtime) test_runtime ;;
+		test-upstream) test_upstream ;;
+	esac
+done < <(list_tiers "$mode")
 
 printf 'gomadv3 black-box tests passed\n'

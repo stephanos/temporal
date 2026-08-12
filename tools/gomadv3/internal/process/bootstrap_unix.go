@@ -14,17 +14,6 @@ import (
 	"syscall"
 )
 
-const (
-	targetWorldConfigFD = 3 + iota
-	targetWorldRecordFD
-	targetIOConfigFD
-	targetIOTranscriptFD
-	targetIOTerminalFD
-	targetIOExpectedFD
-	targetIOROMountRequestFD
-	targetIOROMountResponseFD
-)
-
 func BootstrapMain() (retErr error) {
 	defer func() {
 		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD))
@@ -79,27 +68,12 @@ func BootstrapMain() (retErr error) {
 	if err := syscall.Close(bootstrapActivationFD); err != nil {
 		return errors.Join(fmt.Errorf("close target activation: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
-	if err := syscall.Dup2(bootstrapWorldConfigFD, targetWorldConfigFD); err != nil {
-		return errors.Join(fmt.Errorf("install target World configuration descriptor: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
-	}
-	if err := syscall.Dup2(bootstrapWorldRecordFD, targetWorldRecordFD); err != nil {
-		return errors.Join(fmt.Errorf("install target World record descriptor: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD, targetWorldConfigFD))
-	}
-	if err := closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD); err != nil {
-		return fmt.Errorf("close target bootstrap descriptors: %w", err)
+	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts}
+	if err := installTargetStage(capabilities); err != nil {
+		return err
 	}
 	if err := installIOConfig(request.IOConfig); err != nil {
 		return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD))
-	}
-	if request.IOTranscriptLimit != 0 {
-		if err := installIOTranscript(); err != nil {
-			return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD, targetIOConfigFD))
-		}
-	}
-	if request.IOROMounts {
-		if err := installIOROMounts(); err != nil {
-			return errors.Join(err, closeDescriptors(targetWorldConfigFD, targetWorldRecordFD, targetIOConfigFD, targetIOTranscriptFD, targetIOTerminalFD, targetIOExpectedFD))
-		}
 	}
 	if err := os.Chdir(request.Dir); err != nil {
 		return fmt.Errorf("change target working directory: %w", err)
@@ -108,29 +82,6 @@ func BootstrapMain() (retErr error) {
 	argv[0] = request.Argv0
 	argv = append(argv, request.Args...)
 	return syscall.Exec(request.Command, argv, request.Env)
-}
-
-func installIOROMounts() error {
-	if err := syscall.Dup2(bootstrapIOROMountRequestFD, targetIOROMountRequestFD); err != nil {
-		return fmt.Errorf("install target read-only mount request descriptor: %w", err)
-	}
-	if err := syscall.Dup2(bootstrapIOROMountResponseFD, targetIOROMountResponseFD); err != nil {
-		return errors.Join(fmt.Errorf("install target read-only mount response descriptor: %w", err), closeDescriptors(targetIOROMountRequestFD))
-	}
-	return closeDescriptors(bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD)
-}
-
-func installIOTranscript() error {
-	if err := syscall.Dup2(bootstrapIOTranscriptFD, targetIOTranscriptFD); err != nil {
-		return fmt.Errorf("install target I/O transcript descriptor: %w", err)
-	}
-	if err := syscall.Dup2(bootstrapIOTerminalFD, targetIOTerminalFD); err != nil {
-		return errors.Join(fmt.Errorf("install target I/O terminal descriptor: %w", err), closeDescriptors(targetIOTranscriptFD))
-	}
-	if err := syscall.Dup2(bootstrapIOExpectedFD, targetIOExpectedFD); err != nil {
-		return errors.Join(fmt.Errorf("install target expected I/O transcript descriptor: %w", err), closeDescriptors(targetIOTranscriptFD, targetIOTerminalFD))
-	}
-	return closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD)
 }
 
 func installIOConfig(configuration []byte) error {
