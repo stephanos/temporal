@@ -70,7 +70,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 		t.Fatalf("target environments = %v", got)
 	} else {
 		for _, environment := range got {
-			if len(environment) != 3 || environment[1] != "MODE=test" || environment[2] != "TZ=UTC" || !strings.HasPrefix(environment[0], "GOMADSEED=") {
+			if len(environment) != 4 || environment[1] != "GOMADV3_IO_PROFILE=gomadv3-deterministic/v1" || environment[2] != "MODE=test" || environment[3] != "TZ=UTC" || !strings.HasPrefix(environment[0], "GOMADSEED=") {
 				t.Fatalf("target environment = %v", environment)
 			}
 		}
@@ -271,41 +271,13 @@ func TestRunRejectsPreparedTargetMutationBeforeFailurePublication(t *testing.T) 
 	}
 }
 
-func TestRunRejectsIOProfileWhenPreparedTargetDoesNotMatch(t *testing.T) {
-	preparer := newFakePreparer(t)
-	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
-	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
-	config.RunnerBuild = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
-	config.Environment = nil
-	config.Target = target.Spec{
-		Kind: target.KindGoTest, Source: "./tests", Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"},
-	}
-	_, err := Run(context.Background(), config)
-	if err == nil || !strings.Contains(err.Error(), "requires a go-test target") {
-		t.Fatalf("Run() error = %v", err)
-	}
-}
-
-func TestValidateConfigRejectsUnknownIOProfileAndProfileEnvironment(t *testing.T) {
-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyFirst, 1)
-	config.IOProfile = "unknown/v1"
-	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "unknown I/O profile") {
-		t.Fatalf("validateConfig(unknown profile) error = %v", err)
-	}
-
-	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
-	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "does not accept target environment") {
-		t.Fatalf("validateConfig(profile environment) error = %v", err)
-	}
-}
-
-func TestValidateConfigRequiresProfileForReadOnlyMounts(t *testing.T) {
+func TestValidateConfigAcceptsReadOnlyMountsWithoutProfile(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyFirst, 1)
 	config.Environment = nil
 	config.IOROMounts = []string{t.TempDir() + "=schema"}
 	config.Target.WorkingDir = t.TempDir()
-	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "require an I/O profile") {
-		t.Fatalf("validateConfig() error = %v", err)
+	if _, _, err := validateConfig(config); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -314,7 +286,6 @@ func TestRunPassesCanonicalReadOnlyMountsToExecutor(t *testing.T) {
 	executor := &fakeExecutor{}
 	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
 	config.Environment = nil
-	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
 	config.RunnerBuild = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 	config.IOROMounts = []string{source + "=schema"}
 	config.Target = target.Spec{
@@ -423,14 +394,13 @@ func TestClassifyStableTargetDiagnostics(t *testing.T) {
 func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	preparer := newFakePreparer(t)
 	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
-	config.IOProfile = "temporal-activity-api-batch-cancel/v1"
 	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
 	}, classifiedOutcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if manifest.IOProfile.Name != config.IOProfile || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
+	if manifest.IOProfile.Name != "gomadv3-deterministic/v1" || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
 		t.Fatalf("manifest I/O profile = %#v", manifest.IOProfile)
 	}
 }
@@ -727,7 +697,7 @@ func testConfig(t *testing.T, preparer Preparer, executor Executor, seeds string
 		Seeds: seeds, Parallel: parallel, RunTimeout: time.Second, OverallTimeout: 10 * time.Second, TerminateGrace: 100 * time.Millisecond,
 		OnFailure: policy, FailureBudget: 1, OutputLimit: 64, WorldTransitionLimit: 64, Artifacts: t.TempDir(),
 		Environment: []string{"MODE=test"}, Target: target.Spec{Kind: target.KindGoRun, Source: "."}, SupervisorCommand: []string{"unused"},
-		RunnerBuild: "test", Preparer: preparer, Executor: executor,
+		RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000", Preparer: preparer, Executor: executor,
 	}
 }
 

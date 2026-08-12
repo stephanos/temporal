@@ -111,12 +111,12 @@ func validateRequest(request Request) error {
 	if request.IOReplay && request.IOTranscriptLimit == 0 {
 		return errors.New("I/O replay requires a transcript")
 	}
-	if len(request.IOROMounts) != 0 {
+	if len(request.IOROMounts) != 0 || request.IOROMountLimits != (romount.Limits{}) {
 		if len(request.IOConfig) == 0 || request.IOTranscriptLimit == 0 {
-			return errors.New("read-only mounts require an I/O profile transcript")
+			return errors.New("read-only mount broker requires a deterministic I/O transcript")
 		}
 		if request.IOROMountLimits == (romount.Limits{}) {
-			return errors.New("read-only mounts require limits")
+			return errors.New("read-only mount broker requires limits")
 		}
 	} else if request.IOROMountReplay != nil {
 		return errors.New("read-only mount replay requires mappings")

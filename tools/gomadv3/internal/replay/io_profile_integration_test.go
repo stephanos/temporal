@@ -28,7 +28,7 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := ioprofile.Resolve(ioprofile.TemporalActivityAPIBatchCancel)
+	profile, err := ioprofile.Resolve(ioprofile.Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := ioprofile.Resolve(ioprofile.TemporalActivityAPIBatchCancel)
+	profile, err := ioprofile.Resolve(ioprofile.Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}

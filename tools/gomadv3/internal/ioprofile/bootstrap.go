@@ -28,7 +28,7 @@ type Bootstrap struct {
 }
 
 func (profile Profile) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error) {
-	if _, found := profileArgument(profile.Name); !found {
+	if profile.Name != Deterministic {
 		return nil, fmt.Errorf("unknown I/O profile %q", profile.Name)
 	}
 	resolved, err := Resolve(profile.Name)
@@ -89,7 +89,7 @@ func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
 }
 
 func profileForIdentity(inventory, implementation record.SHA256) (Profile, bool) {
-	for _, name := range []string{TemporalActivityAPIBatchCancel, TemporalActivityAPIBatchSecurity} {
+	for _, name := range []string{Deterministic} {
 		profile, err := Resolve(name)
 		if err == nil && profile.InventorySHA256 == inventory && profile.ImplementationSHA256 == implementation {
 			return profile, true

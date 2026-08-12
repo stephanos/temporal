@@ -722,6 +722,13 @@ diff --git a/src/os/file.go b/src/os/file.go
  	longName := fixLongPath(name)
  	e := ignoringEINTR(func() error {
 		return syscall.Mkdir(longName, syscallMode(perm))
+@@ -379,3 +400,6 @@ func Chdir(dir string) error {
++	if gomadIOEnabled() {
++		return gomadChdir(dir)
++	}
+ 	if e := syscall.Chdir(dir); e != nil {
+ 		testlog.Open(dir) // observe likely non-existent directory
+ 		return &PathError{Op: "chdir", Path: dir, Err: e}
 @@ -408,6 +429,9 @@ func OpenFile(name string, flag int, perm FileMode) (*File, error) {
  // methods on the returned File can be used for I/O.
  // If there is an error, it will be of type [*PathError].
@@ -738,6 +745,36 @@ diff --git a/src/os/file.go b/src/os/file.go
 +	}
  	return rename(oldpath, newpath)
  }
+@@ -470,2 +497,5 @@ func Readlink(name string) (string, error) {
++	if gomadIOEnabled() {
++		return "", gomadUnsupportedPath("readlink", name)
++	}
+ 	return readlink(name)
+ }
+@@ -641,11 +671,21 @@
+ //
+ // On Plan 9, the mode's permission bits, [ModeAppend], [ModeExclusive],
+ // and [ModeTemporary] are used.
+-func Chmod(name string, mode FileMode) error { return chmod(name, mode) }
++func Chmod(name string, mode FileMode) error {
++	if gomadIOEnabled() {
++		return gomadChmod(name, mode)
++	}
++	return chmod(name, mode)
++}
+ 
+ // Chmod changes the mode of the file to mode.
+ // If there is an error, it will be of type [*PathError].
+-func (f *File) Chmod(mode FileMode) error { return f.chmod(mode) }
++func (f *File) Chmod(mode FileMode) error {
++	if handled, err := gomadFileChmod(f, mode); handled {
++		return f.wrapErr("chmod", err)
++	}
++	return f.chmod(mode)
++}
+ 
+ // SetDeadline sets the read and write deadlines for a File.
+ // It is equivalent to calling both SetReadDeadline and SetWriteDeadline.
 diff --git a/src/os/file_posix.go b/src/os/file_posix.go
 --- a/src/os/file_posix.go
 +++ b/src/os/file_posix.go
@@ -750,10 +787,75 @@ diff --git a/src/os/file_posix.go b/src/os/file_posix.go
 +	}
  	return f.file.close()
  }
+@@ -108,3 +111,6 @@ func Chown(name string, uid, gid int) error {
++	if gomadIOEnabled() {
++		return gomadUnsupportedPath("chown", name)
++	}
+ 	e := ignoringEINTR(func() error {
+ 		return syscall.Chown(name, uid, gid)
+ 	})
+@@ -124,3 +130,6 @@ func Lchown(name string, uid, gid int) error {
++	if gomadIOEnabled() {
++		return gomadUnsupportedPath("lchown", name)
++	}
+ 	e := ignoringEINTR(func() error {
+ 		return syscall.Lchown(name, uid, gid)
+ 	})
+@@ -140,6 +149,9 @@ func (f *File) Chown(uid, gid int) error {
+ 	if err := f.checkValid("chown"); err != nil {
+ 		return err
+ 	}
++	if gomadFileUnsupported(f) {
++		return f.wrapErr("chown", syscall.ENOTSUP)
++	}
+ 	if e := f.pfd.Fchown(uid, gid); e != nil {
+ 		return f.wrapErr("chown", e)
+ 	}
+@@ -152,6 +155,7 @@ func (f *File) Truncate(size int64) error {
+ 	if err := f.checkValid("truncate"); err != nil {
+ 		return err
+ 	}
++	if handled, err := gomadFileTruncate(f, size); handled { return f.wrapErr("truncate", err) }
+ 	if e := f.pfd.Ftruncate(size); e != nil {
+ 		return f.wrapErr("truncate", e)
+ 	}
+@@ -165,6 +169,7 @@ func (f *File) Sync() error {
+ 	if err := f.checkValid("sync"); err != nil {
+ 		return err
+ 	}
++	if handled, err := gomadFileSync(f); handled { return f.wrapErr("sync", err) }
+ 	if e := f.pfd.Fsync(); e != nil {
+ 		return f.wrapErr("sync", e)
+ 	}
+@@ -184,3 +197,6 @@ func Chtimes(name string, atime time.Time, mtime time.Time) error {
++	if gomadIOEnabled() {
++		return gomadChtimes(name, mtime)
++	}
+ 	utimes := chtimesUtimes(atime, mtime)
+ 	if e := syscall.UtimesNano(fixLongPath(name), utimes[0:]); e != nil {
+ 		return &PathError{Op: "chtimes", Path: name, Err: e}
+@@ -210,6 +226,9 @@ func (f *File) Chdir() error {
+ 	if err := f.checkValid("chdir"); err != nil {
+ 		return err
+ 	}
++	if handled, err := gomadFileChdir(f); handled {
++		return f.wrapErr("chdir", err)
++	}
+ 	if e := f.pfd.Fchdir(); e != nil {
+ 		return f.wrapErr("chdir", e)
+ 	}
 diff --git a/src/os/file_unix.go b/src/os/file_unix.go
 --- a/src/os/file_unix.go
 +++ b/src/os/file_unix.go
-@@ -357,4 +357,7 @@
+@@ -343,4 +343,7 @@
+ // If the file is a symbolic link, it changes the size of the link's target.
+ // If there is an error, it will be of type [*PathError].
+ func Truncate(name string, size int64) error {
++	if gomadIOEnabled() {
++		return gomadTruncate(name, size)
++	}
+ 	e := ignoringEINTR(func() error {
+@@ -357,4 +363,7 @@
  func Remove(name string) error {
 +	if gomadIOEnabled() {
 +		return gomadRemove(name)
@@ -761,6 +863,20 @@ diff --git a/src/os/file_unix.go b/src/os/file_unix.go
  	// System call interface forces us to know
  	// whether name is a file or directory.
  	// Try both: it is cheaper on average than
+@@ -407,3 +413,6 @@ func Link(oldname, newname string) error {
++	if gomadIOEnabled() {
++		return gomadUnsupportedLink("link", oldname, newname)
++	}
+ 	e := ignoringEINTR(func() error {
+ 		return syscall.Link(oldname, newname)
+ 	})
+@@ -421,3 +430,6 @@ func Symlink(oldname, newname string) error {
++	if gomadIOEnabled() {
++		return gomadUnsupportedLink("symlink", oldname, newname)
++	}
+ 	e := ignoringEINTR(func() error {
+ 		return syscall.Symlink(oldname, newname)
+ 	})
 diff --git a/src/os/dir.go b/src/os/dir.go
 --- a/src/os/dir.go
 +++ b/src/os/dir.go
@@ -841,6 +957,12 @@ diff --git a/src/os/path.go b/src/os/path.go
  	// Fast path: if we can tell whether path is a directory or file, stop with success or error.
  	dir, err := Stat(path)
  	if err == nil {
+@@ -76,2 +79,5 @@ func RemoveAll(path string) error {
++	if gomadIOEnabled() {
++		return gomadRemoveAll(path)
++	}
+ 	return removeAll(path)
+ }
 diff --git a/src/os/stat.go b/src/os/stat.go
 --- a/src/os/stat.go
 +++ b/src/os/stat.go
@@ -854,6 +976,27 @@ diff --git a/src/os/stat.go b/src/os/stat.go
  	testlog.Stat(name)
  	return statNolog(name)
  }
+@@ -27,3 +30,6 @@ func Lstat(name string) (FileInfo, error) {
++	if gomadIOEnabled() {
++		return gomadStat(name)
++	}
+ 	testlog.Stat(name)
+ 	return lstatNolog(name)
+ }
+diff --git a/src/os/getwd.go b/src/os/getwd.go
+--- a/src/os/getwd.go
++++ b/src/os/getwd.go
+@@ -24,7 +24,10 @@
+ // On Unix platforms, if the environment variable PWD
+ // provides an absolute name, and it is a name of the
+ // current directory, it is returned.
+ func Getwd() (dir string, err error) {
++	if gomadIOEnabled() {
++		return gomadGetwd(), nil
++	}
+ 	if runtime.GOOS == "windows" || runtime.GOOS == "plan9" {
+ 		// Use syscall.Getwd directly for
+ 		//   - plan9: see reasons in CL 89575;
 diff --git a/src/testing/testing.go b/src/testing/testing.go
 --- a/src/testing/testing.go
 +++ b/src/testing/testing.go

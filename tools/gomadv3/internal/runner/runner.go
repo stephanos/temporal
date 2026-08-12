@@ -63,7 +63,6 @@ type Config struct {
 	WorldTransitionLimit uint64
 	Artifacts            string
 	Environment          []string
-	IOProfile            string
 	IOROMounts           []string
 	IOROMountLimits      romount.Limits
 	Target               target.Spec
@@ -195,7 +194,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	if err != nil {
 		return Summary{}, err
 	}
-	if len(readOnlyMounts) != 0 && config.IOROMountLimits == (romount.Limits{}) {
+	if config.IOROMountLimits == (romount.Limits{}) {
 		config.IOROMountLimits = romount.DefaultLimits()
 	}
 	overallCtx, overallCancel := context.WithTimeout(ctx, config.OverallTimeout)
@@ -251,22 +250,16 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	}
 	config.Target.PreparationRoot = preparationRoot
 	preparer := config.Preparer
-	var selectedProfile *ioprofile.Profile
-	if config.IOProfile != "" {
-		profile, profileErr := ioprofile.Resolve(config.IOProfile)
+	selectedProfile := ioprofile.Default()
+	if preparer == nil {
+		moduleCache, cacheErr := target.ReadModuleCache(overallCtx, config.Target.ToolchainRoot)
+		if cacheErr != nil {
+			return summary, cacheErr
+		}
+		var profileErr error
+		config.Target, _, profileErr = selectedProfile.PrepareBuildOverlay(config.Target, moduleCache)
 		if profileErr != nil {
 			return summary, profileErr
-		}
-		selectedProfile = &profile
-		if preparer == nil {
-			moduleCache, cacheErr := target.ReadModuleCache(overallCtx, config.Target.ToolchainRoot)
-			if cacheErr != nil {
-				return summary, cacheErr
-			}
-			config.Target, _, profileErr = profile.PrepareBuildOverlay(config.Target, moduleCache)
-			if profileErr != nil {
-				return summary, profileErr
-			}
 		}
 	}
 	if preparer == nil {
@@ -283,13 +276,11 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		return summary, &HostError{Reason: reason, Err: err}
 	}
-	if selectedProfile != nil {
-		if profileErr := selectedProfile.ValidatePreparedTarget(config.Target, prepared, config.Environment); profileErr != nil {
-			return summary, profileErr
-		}
-		if !selectedProfile.Ready {
-			return summary, fmt.Errorf("I/O profile %q is not yet executable", selectedProfile.Name)
-		}
+	if profileErr := selectedProfile.ValidatePreparedTarget(config.Target, prepared, config.Environment); profileErr != nil {
+		return summary, profileErr
+	}
+	if !selectedProfile.Ready {
+		return summary, fmt.Errorf("deterministic I/O is not yet executable")
 	}
 	if err := os.RemoveAll(preparationPartial); err != nil {
 		return summary, &HostError{Reason: "partial_cleanup", Err: err}
@@ -383,7 +374,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 
 	launch := func(job runJob) {
 		active++
-		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, selectedProfile, readOnlyMounts, batchPath, job, completions)
+		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, &selectedProfile, readOnlyMounts, batchPath, job, completions)
 	}
 	for active > 0 || !exhausted && !stopped {
 		for active < config.Parallel && !exhausted && !stopped && overallCtx.Err() == nil {
@@ -712,18 +703,6 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 	if config.Executor == nil && len(config.SupervisorCommand) == 0 {
 		return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
 	}
-	if config.IOProfile != "" {
-		profile, err := ioprofile.Resolve(config.IOProfile)
-		if err != nil {
-			return SeedSelection{}, nil, err
-		}
-		if len(config.Environment) != 0 {
-			return SeedSelection{}, nil, fmt.Errorf("I/O profile %q does not accept target environment additions", profile.Name)
-		}
-	}
-	if len(config.IOROMounts) != 0 && config.IOProfile == "" {
-		return SeedSelection{}, nil, fmt.Errorf("read-only mounts require an I/O profile")
-	}
 	if len(config.IOROMounts) != 0 {
 		if config.Target.WorkingDir == "" {
 			return SeedSelection{}, nil, fmt.Errorf("read-only mounts require a target working directory")
@@ -743,10 +722,8 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
-	if config.IOProfile != "" {
-		environment = append(environment, record.Environment{Name: "GOMADV3_IO_PROFILE", Value: config.IOProfile})
-		sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
-	}
+	environment = append(environment, record.Environment{Name: "GOMADV3_IO_PROFILE", Value: ioprofile.Deterministic})
+	sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
 	return selection, environment, nil
 }
 
@@ -820,9 +797,7 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 	environment := environmentForSeed(baseEnvironment, job.seed)
 	arguments := append([]string(nil), prepared.Argv[1:]...)
 	var ioConfig []byte
-	if profile != nil {
-		ioConfig, completion.err = profile.BootstrapFrame(prepared, config.RunnerBuild, job.seed)
-	}
+	ioConfig, completion.err = profile.BootstrapFrame(prepared, config.RunnerBuild, job.seed)
 	if completion.err == nil {
 		completion.result, completion.err = executor.Run(ctx, process.Request{
 			SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
@@ -830,17 +805,12 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 			Dir:              filepath.Join(partial, "work"), Env: environmentStrings(environment), RunTimeout: config.RunTimeout,
 			TerminateGrace: config.TerminateGrace, OutputLimit: config.OutputLimit,
 			WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: config.WorldTransitionLimit,
-			WorldSeed:       job.seed,
-			IOConfig:        append([]byte(nil), ioConfig...),
-			IOROMounts:      append([]romount.Mapping(nil), readOnlyMounts...),
-			IOROMountLimits: config.IOROMountLimits,
-			IOTranscriptLimit: func() uint64 {
-				if len(ioConfig) != 0 {
-					return 64 << 20
-				}
-				return 0
-			}(),
-			StdoutHead: stdoutHead, StderrHead: stderrHead,
+			WorldSeed:         job.seed,
+			IOConfig:          append([]byte(nil), ioConfig...),
+			IOROMounts:        append([]romount.Mapping(nil), readOnlyMounts...),
+			IOROMountLimits:   config.IOROMountLimits,
+			IOTranscriptLimit: 64 << 20,
+			StdoutHead:        stdoutHead, StderrHead: stderrHead,
 		})
 	}
 	if partialErr := writePartial(partial, job, "exited"); partialErr != nil {
@@ -948,24 +918,16 @@ func worldFailureReason(kind string) string {
 }
 
 func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome classifiedOutcome, runID string, recordedWorld record.World, mountArtifact *romount.ArtifactRecord) (record.Manifest, error) {
-	recordedProfile := record.IOProfile{}
-	if config.IOProfile != "" {
-		profile, err := ioprofile.Resolve(config.IOProfile)
-		if err != nil {
-			return record.Manifest{}, err
+	profile := ioprofile.Default()
+	recordedProfile := record.IOProfile{Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, Inventory: string(profile.Inventory), InventorySHA256: profile.InventorySHA256}
+	if completion.result.IOTranscript.Complete {
+		recordedProfile.Transcript = &record.IOTranscript{
+			Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: sha256Record(completion.result.IOTranscript.SHA256),
+			Bytes: record.Uint64String(len(completion.result.IOTranscript.Bytes)), Records: record.Uint64String(completion.result.IOTranscript.Records),
 		}
-		recordedProfile = record.IOProfile{
-			Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, Inventory: string(profile.Inventory), InventorySHA256: profile.InventorySHA256,
-		}
-		if completion.result.IOTranscript.Complete {
-			recordedProfile.Transcript = &record.IOTranscript{
-				Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: sha256Record(completion.result.IOTranscript.SHA256),
-				Bytes: record.Uint64String(len(completion.result.IOTranscript.Bytes)), Records: record.Uint64String(completion.result.IOTranscript.Records),
-			}
-		}
-		if mountArtifact != nil {
-			recordedProfile.ReadOnlyMounts = &mountArtifact.Manifest
-		}
+	}
+	if mountArtifact != nil {
+		recordedProfile.ReadOnlyMounts = &mountArtifact.Manifest
 	}
 	return record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: outcome.ArtifactKind, CreatedAt: completion.finishedAt.Format(time.RFC3339Nano), BatchID: runID,
@@ -982,12 +944,7 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 			RunTimeoutNanos: record.Uint64String(config.RunTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout),
 			TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),
 			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
-			IOTranscriptBytes: func() record.Uint64String {
-				if config.IOProfile != "" {
-					return 64 << 20
-				}
-				return 0
-			}(),
+			IOTranscriptBytes:    64 << 20,
 		},
 		World:   recordedWorld,
 		Outcome: record.Outcome{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline},

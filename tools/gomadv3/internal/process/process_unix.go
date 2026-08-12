@@ -133,7 +133,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	}
 	var readOnlyMountBroker *romount.Broker
 	var mountRequestRead, mountRequestWrite, mountResponseRead, mountResponseWrite *os.File
-	if len(request.IOROMounts) != 0 {
+	if len(request.IOROMounts) != 0 || request.IOROMountLimits != (romount.Limits{}) {
 		if request.IOROMountReplay == nil {
 			readOnlyMountBroker, err = romount.Prepare(request.IOROMounts, request.IOROMountLimits)
 		} else {
