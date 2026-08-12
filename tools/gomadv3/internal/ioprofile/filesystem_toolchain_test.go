@@ -50,6 +50,9 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 	if _, err = os.Stat(filepath.Join(runDirectory, "workspace")); !os.IsNotExist(err) {
 		t.Fatalf("profile created host filesystem state: %v", err)
 	}
+	if _, err = os.Stat(filepath.Join(runDirectory, "renamed")); !os.IsNotExist(err) {
+		t.Fatalf("profile created host file state: %v", err)
+	}
 }
 
 func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {

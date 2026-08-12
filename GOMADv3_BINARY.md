@@ -42,6 +42,291 @@ The fact that these protocols use `binary.BigEndian` does not make them the same
 kind of interface. Some are wire protocols, some are shared-memory layouts, and
 some are merely canonical inputs to a hash function.
 
+## Current implementation map
+
+The host-side implementations are split by protocol ownership rather than by
+encoding mechanism:
+
+| Protocol | Runner-side implementation | Target-side implementation |
+|---|---|---|
+| I/O bootstrap | `tools/gomadv3/internal/ioprofile/bootstrap.go` | `tools/gomadv3/overlay/src/runtime/gomad.go` and `tools/gomadv3/overlay/src/internal/gomadio/gomadio.go` |
+| I/O transcript and terminal | `tools/gomadv3/internal/process/iotranscript.go` | `tools/gomadv3/overlay/src/internal/gomadtrace/trace.go` |
+| Read-only mount lookup | `tools/gomadv3/internal/romount/wire.go` | `tools/gomadv3/overlay/src/os/gomad.go` |
+| World child configuration | `tools/gomadv3/internal/worldpipe/config.go` | `tools/gomadv3/world/child/child.go` |
+| World recording envelope | `tools/gomadv3/world/recording.go` and `tools/gomadv3/internal/worldrecord/worldrecord.go` | `tools/gomadv3/world/child/child.go` |
+| World semantic identities | `tools/gomadv3/world/snapshot.go` and `tools/gomadv3/world/replay.go` | In-process only |
+| World choice ranks | `tools/gomadv3/world/choice.go` | In-process only |
+
+The bootstrap executable renumbers inherited descriptors immediately before
+`exec` of the prepared target. The patched process therefore observes this fixed
+descriptor set:
+
+| Descriptor | Target access | Contents |
+|---:|---|---|
+| 3 | Read | World child configuration |
+| 4 | Write | World recording envelope |
+| 5 | Read, then close | I/O bootstrap frame |
+| 6 | Read/write mapping | Produced I/O transcript |
+| 7 | Write once | I/O terminal frame |
+| 8 | Read-only mapping | Expected replay transcript |
+| 9 | Write | Read-only mount requests |
+| 10 | Read | Read-only mount responses |
+
+Descriptor 5 is always installed, using an empty pipe when no I/O profile is
+active. Descriptors 6 through 8 require transcript recording, and descriptors 9
+and 10 require read-only mounts. Descriptor numbers are private launch ABI, not
+values that profile operations or World adapters should expose.
+
+## Implemented layouts
+
+All multi-byte integers below are unsigned big-endian values. Reserved bytes are
+currently written as zero.
+
+### I/O bootstrap frame
+
+`Profile.BootstrapFrame` produces exactly 212 bytes:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADIO\x01` |
+| 8 | 2 | Format version, currently 1 |
+| 10 | 2 | Frame kind, currently 1 |
+| 12 | 32 | Raw SHA-256 of the profile inventory |
+| 44 | 32 | Raw SHA-256 of the profile implementation |
+| 76 | 32 | Raw SHA-256 of the prepared target |
+| 108 | 32 | Raw SHA-256 of the Runner build |
+| 140 | 32 | Raw SHA-256 of canonical target `argv` JSON |
+| 172 | 8 | Schedule and deterministic-I/O seed |
+| 180 | 32 | SHA-256 of bytes `[0:180]` |
+
+The profile name is not carried as text. Host decoding resolves it from the
+inventory and implementation digest pair. Encoding first re-resolves the named
+profile and rejects stale inventory or implementation identities.
+
+The supervisor sends this frame to the bootstrap executable inside its bounded
+JSON control request. After activation, the bootstrap executable places the
+frame alone in a new pipe, installs its read end as descriptor 5, and executes
+the target. The patched runtime reads exactly 212 bytes before package
+initialization, closes descriptor 5, and extracts the seed. `internal/gomadio`
+then verifies the complete-frame checksum before enabling modeled I/O.
+
+### Produced and expected I/O transcript mappings
+
+The active overlay fixes both mappings at 64 MiB. A produced mapping begins with
+a 64-byte header:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADTR\x01` |
+| 8 | 4 | Format version, currently 1 |
+| 12 | 4 | Reserved |
+| 16 | 8 | Mapping capacity |
+| 24 | 8 | Next record offset, initially 64 |
+| 32 | 8 | Published record count, initially 0 |
+| 40 | 24 | Reserved |
+
+Runner creates, unlinks, sizes, and initializes the backing file before launch.
+The target maps it with read/write `MAP_SHARED`. Publication is serialized by the
+transcript mutex: the target copies a complete record first, then advances the
+next offset and record count in the header while still holding the lock.
+
+The expected replay mapping uses a related 64-byte header:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADXT\x01` |
+| 8 | 4 | Format version, currently 1 |
+| 12 | 1 | Replay-enabled flag |
+| 13 | 3 | Reserved |
+| 16 | 8 | Expected payload bytes |
+| 24 | 8 | Expected record count |
+| 32 | 32 | SHA-256 of the expected records |
+
+Expected records start at offset 64. The target maps this file read-only,
+requires a whole number of records, checks count and payload length agree, and
+verifies the payload digest before recording its first operation.
+
+Each transcript record is 128 bytes:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Zero-based ordinal |
+| 8 | 2 | Operation-name byte length, at most 22 |
+| 10 | 22 | Operation name followed by zero padding |
+| 32 | 32 | SHA-256 of canonical operation arguments |
+| 64 | 32 | SHA-256 of observed or produced contents |
+| 96 | 8 | Operation-specific byte or item count |
+| 104 | 4 | Stable result class |
+| 108 | 4 | Reserved |
+| 112 | 8 | Deterministic entropy position before the operation |
+| 120 | 8 | Deterministic entropy position after the operation |
+
+Replay compares each newly encoded 128-byte record directly with the expected
+record at the same ordinal. An extra or unequal record freezes the transcript at
+that ordinal. Finalization also detects a missing suffix by comparing the final
+record count with the expected count.
+
+### I/O terminal frame
+
+The target's exit hook freezes the mapping and writes one 104-byte frame to
+descriptor 7:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADIT\x01` |
+| 8 | 4 | Format version, currently 1 |
+| 12 | 1 | State: 1 complete, 2 overflow, 3 replay divergence |
+| 13 | 3 | Reserved |
+| 16 | 8 | Record count |
+| 24 | 8 | Mapping length including its 64-byte header |
+| 32 | 32 | SHA-256 of the produced record bytes |
+| 64 | 8 | First divergent ordinal when state is 3 |
+| 72 | 32 | SHA-256 of bytes `[0:72]` |
+
+The exit hook runs on normal exit and runtime failure paths that execute exit
+hooks, and finalization is idempotent. Transcript overflow and an immediate
+replay mismatch terminate the target with exit code 125 after attempting to
+publish the terminal frame.
+Runner reads at most 105 bytes from the pipe, thereby rejecting both truncation
+and trailing bytes. It accepts complete and divergence frames, verifies the
+checksum, bounds the reported length, re-reads exactly the published payload,
+and checks its digest. Overflow is reported as an incomplete transcript.
+
+### Read-only mount request and response
+
+The patched `os` client serializes lookups under one mutex, so there is at most
+one request in flight. The request header is 24 bytes followed by the normalized
+absolute target path:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADRO\x01` |
+| 8 | 2 | Format version, currently 1 |
+| 10 | 2 | Operation, currently 1 for lookup |
+| 12 | 8 | Zero-based request ordinal |
+| 20 | 4 | Path byte length |
+
+The response header is 40 bytes, followed first by file contents and then by
+zero or more directory children:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADRS\x01` |
+| 8 | 2 | Format version, currently 1 |
+| 10 | 2 | Status: 0 OK, 1 unmounted, 2 not found |
+| 12 | 8 | Echoed request ordinal |
+| 20 | 1 | Entry kind: 1 regular file, 2 directory |
+| 21 | 3 | Reserved |
+| 24 | 4 | Permission bits |
+| 28 | 8 | Content byte length |
+| 36 | 4 | Directory-child count |
+
+Each child is an 8-byte header followed by its name: a two-byte name length, a
+one-byte kind, one reserved byte, and four permission bytes. The host enum also
+defines status 3 for an error response, but the current broker does not emit it
+and the patched `os` client does not accept it. The default broker limits are 4
+KiB per path, 100,000 requests, 10,000 captured entries, 100,000 aggregate
+directory entries, 16 MiB per regular file, and 64 MiB of aggregate file data.
+The overlay independently fixes the path, single-file, and directory entry bounds
+to their default values.
+
+The broker requires consecutive ordinals and checks the path bound before
+allocation. It opens each source with `os.OpenRoot`, rejects symbolic links,
+hard-linked regular files, and unsupported entry kinds, and verifies identity,
+mode, size, and modification time around capture. Successful and missing mounted
+lookups are cached. Directory children and the persisted snapshot are sorted.
+During replay the broker has no host roots; a lookup absent from the captured
+entry and missing-path sets returns `ErrReplayDivergence` and stops the protocol
+instead of consulting the host.
+
+### World child configuration
+
+The World configuration on descriptor 3 has a 32-byte header followed by an
+optional expected initial snapshot:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 8 | Magic `GOMADWC\x02` |
+| 8 | 8 | Positive transition-byte limit |
+| 16 | 8 | World seed |
+| 24 | 8 | Expected-initial-snapshot byte length |
+
+The expected snapshot is bounded at 64 MiB. The supervisor validates it as a
+canonical World snapshot and checks its seed before target activation. The child
+checks the same seed against the canonical decimal `GOMADSEED` environment
+value. In replay it restores that snapshot; otherwise it verifies that the
+application-supplied World has the configured seed.
+
+### World recording envelope
+
+Opening a World child session immediately writes the eight-byte magic
+`GOMADW2\x00` to descriptor 4. This makes a child that opens a session but fails
+before `Finish` distinguishable from one that never connected. Successful finish
+appends the rest of this envelope:
+
+```text
+magic
+u64 initial snapshot bytes | canonical initial snapshot JSON
+u64 final snapshot bytes   | canonical final snapshot JSON
+u64 terminal bytes         | canonical terminal JSON
+```
+
+Each snapshot is bounded at 64 MiB, the terminal is bounded at 1 MiB, and the
+whole envelope is bounded at `2*64 MiB + 1 MiB + 40` bytes. Decoding rejects
+unknown fields, trailing data, noncanonical JSON, invalid World state digests,
+invalid transition history, and a terminal result inconsistent with the final
+quiescence transition.
+
+The envelope does not duplicate the transition delta. The final snapshot already
+contains the complete transition history. `internal/worldrecord` verifies that
+the initial history is an exact prefix of the final history, restores and replays
+the delta, and then emits the durable initial snapshot, JSON-lines transition
+delta, and final snapshot artifacts with their raw and semantic digests.
+
+### World canonical hash input
+
+World hashes use a separate in-process byte grammar. `uint32` and `uint64` are
+fixed-width big-endian values; signed integers use their two's-complement bit
+pattern as `uint64`; and strings and byte slices are encoded as an eight-byte
+length followed by their bytes. Lists prefix their element count.
+State and transcript hashes have distinct NUL-terminated domain prefixes:
+
+- `gomadv3/world/state/v1\x00` covers the schema, configuration, logical time,
+  next identifiers, payload accounting, requests, events, transitions, and
+  transcript digest;
+- `gomadv3/world/transcript/v1\x00` chains the previous digest with the next
+  semantic transition; and
+- `gomadv3/world/seed/v1\x00` derives a choice key from the seed.
+
+Equivalent-event ranking computes
+`HMAC-SHA256(key, domain || class-length || class || event-id)`, where `key` is
+the SHA-256 seed derivation and the ranking domain is
+`gomadv3/world/equivalent-event-order/v1\x00`. The event queue compares the
+32-byte ranks lexicographically only after deterministic time, priority,
+resource, operation, and equivalence-class fields compare equal. Request ID is
+the final tie-breaker.
+
+### Implementation status relative to this decision
+
+The layouts above are implemented, but the encapsulation and generation work
+described later in this document is not yet complete:
+
+- transcript constants and SHA-256 logic are duplicated between
+  `internal/process` and the patched `internal/gomadtrace` package;
+- mount headers and constants are duplicated between `internal/romount` and the
+  patched `os` package rather than generated from one definition;
+- the target mount client still owns framing, descriptor I/O, response
+  allocation, ordinals, and entry decoding directly inside `os`; and
+- current decoders do not uniformly reject nonzero reserved bytes or validate
+  every status and entry-kind enum at the codec boundary.
+
+Toolchain integration tests exercise both sides together, while focused host
+tests cover bootstrap mutation, transcript terminal validation, mount ordering
+and bounds, World configuration framing, and World recording round trips. There
+is not yet a generated cross-endpoint golden-vector suite. The module extraction,
+schema generation, stricter boundary validation, and golden/fuzz coverage below
+therefore remain follow-up work rather than descriptions of the current tree.
+
 ## Why the I/O transcript uses shared memory
 
 The I/O transcript records operations performed inside an exact transparent I/O

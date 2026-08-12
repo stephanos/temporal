@@ -73,7 +73,7 @@ validate_patch_path() {
 	if [[ $1 == src/net/dial.go || $1 == src/net/net.go || $1 == src/net/tcpsock.go || $1 == src/net/tcpsock_unix.go ]]; then
 		return
 	fi
-	if [[ $1 == src/os/dir.go || $1 == src/os/file.go || $1 == src/os/file_posix.go || $1 == src/os/path.go || $1 == src/os/stat.go || $1 == src/os/stat_unix.go || $1 == src/os/sys.go ]]; then
+	if [[ $1 == src/os/dir.go || $1 == src/os/file.go || $1 == src/os/file_posix.go || $1 == src/os/file_unix.go || $1 == src/os/path.go || $1 == src/os/stat.go || $1 == src/os/stat_unix.go || $1 == src/os/sys.go ]]; then
 		return
 	fi
 	if [[ $1 == src/testing/testing.go ]]; then
@@ -145,7 +145,7 @@ validate_overlay() {
 	while IFS= read -r -d '' file; do
 		count=$((count + 1))
 		path=${file#"$overlay_dir"/}
-		if [[ $path != src/internal/gomadio/gomadio.go && $path != src/internal/gomadio/network.go && $path != src/internal/gomadio/transcript.go && $path != src/internal/gomadtrace/trace.go && $path != src/net/gomad.go && $path != src/os/gomad.go ]]; then
+		if [[ $path != src/internal/gomadfs/fs.go && $path != src/internal/gomadio/gomadio.go && $path != src/internal/gomadio/network.go && $path != src/internal/gomadio/transcript.go && $path != src/internal/gomadtrace/trace.go && $path != src/net/gomad.go && $path != src/os/gomad.go ]]; then
 			validate_runtime_path "$path"
 		fi
 		if od -An -tx1 "$file" | awk '{ for (i = 1; i <= NF; i++) if ($i == "00") found = 1 } END { exit !found }'; then
