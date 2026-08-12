@@ -3,6 +3,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$script_dir/toolchain-version.sh"
 toolchain_dir="$script_dir/.toolchain"
 patch_file=${GOMADV3_PATCH_FILE:-"$script_dir/go1.26.4.patch"}
 overlay_dir=${GOMADV3_OVERLAY_DIR:-"$script_dir/overlay"}
@@ -14,10 +15,6 @@ lock_path=
 lock_owner_file=
 owns_lock=false
 build_key=
-go_version=go1.26.4
-archive_name="$go_version.src.tar.gz"
-archive_url="https://go.dev/dl/$archive_name"
-archive_sha256=4f668a32fbfc1132e6a881fb968c2f1dada631492a339211735fbb255a42602d
 build_environment=canonical-v4
 build_path=/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin
 build_bash=$BASH
@@ -242,16 +239,13 @@ while IFS= read -r -d '' source; do
 		exit 1
 	fi
 done < <(sorted_files "$overlay_snapshot")
+"$script_dir/materialize-patch.sh" "$work_dir/go" "$patch_snapshot"
 while IFS= read -r -d '' source; do
 	relative=${source#"$overlay_snapshot"/}
 	destination="$work_dir/go/$relative"
 	mkdir -p "$(dirname "$destination")"
 	cp "$source" "$destination"
 done < <(sorted_files "$overlay_snapshot")
-(
-	cd "$work_dir/go"
-	patch --batch -p1 -F 0 <"$patch_snapshot"
-)
 (
 	cd "$work_dir/go/src"
 	env -i \
