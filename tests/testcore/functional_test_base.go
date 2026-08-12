@@ -49,7 +49,7 @@ import (
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tests/umpirev1"
+	"go.temporal.io/server/tests/umpire2"
 	"google.golang.org/grpc"
 )
 
@@ -357,9 +357,7 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 	// Access it via GetMonitor().
 	monitorFactory := params.UmpireMonitorFactory
 	if monitorFactory == nil {
-		monitorFactory = func(logger log.Logger) (testmonitor.Monitor, error) {
-			return umpirev1.NewMonitor(logger)
-		}
+		monitorFactory = defaultUmpireMonitorFactory
 	}
 	s.monitor, err = monitorFactory(s.Logger)
 	s.Require().NoError(err)
@@ -420,11 +418,8 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 	s.Require().NoError(err)
 }
 
-func setSpanExporter(clusterConfig *TestClusterConfig, exporterType telemetry.SpanExporterType, exporter sdktrace.SpanExporter) {
-	if clusterConfig.SpanExporters == nil {
-		clusterConfig.SpanExporters = make(map[telemetry.SpanExporterType]sdktrace.SpanExporter)
-	}
-	clusterConfig.SpanExporters[exporterType] = exporter
+func defaultUmpireMonitorFactory(logger log.Logger) (testmonitor.Monitor, error) {
+	return umpire2.NewMonitor(logger)
 }
 
 func sharedClusterPersistence(defaults persistencetests.TestBaseOptions) persistencetests.TestBaseOptions {
