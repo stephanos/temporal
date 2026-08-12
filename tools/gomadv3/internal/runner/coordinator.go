@@ -30,7 +30,6 @@ type coordinatorConfig struct {
 	WorldTransitionLimit uint64
 	Artifacts            string
 	Environment          []string
-	IOProfile            string
 	IOROMounts           []string
 	IOROMountLimits      romount.Limits
 	Target               target.Spec
@@ -60,7 +59,7 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 		Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
 		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, Artifacts: config.Artifacts,
-		Environment: append([]string(nil), config.Environment...), IOProfile: config.IOProfile, Target: config.Target,
+		Environment: append([]string(nil), config.Environment...), Target: config.Target,
 		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
 	}
@@ -149,7 +148,7 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 		Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
 		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, Artifacts: wire.Artifacts,
-		Environment: wire.Environment, IOProfile: wire.IOProfile, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
+		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
 		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
 	}
 	summary, runErr := runLocal(context.Background(), config)

@@ -3,6 +3,7 @@ package ioprofile
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -24,7 +25,7 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,6 +56,33 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 	}
 }
 
+func TestDirectSeedFilesystemStartsEmpty(t *testing.T) {
+	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", ".toolchain"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := target.Prepare(context.Background(), target.Spec{
+		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "testdata"),
+		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	hostFile := filepath.Join(t.TempDir(), "host-file")
+	if err := os.WriteFile(hostFile, []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command(prepared.Path)
+	command.Env = []string{"GOMADSEED=7", "GOMADV3_HOST_ESCAPE=" + hostFile, "TZ=UTC"}
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("run direct-seed target: %v: %s", err, output)
+	}
+	if string(output) != "isolated\n" {
+		t.Fatalf("output = %q", output)
+	}
+}
+
 func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", ".toolchain"))
 	if err != nil {
@@ -67,7 +95,7 @@ func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}

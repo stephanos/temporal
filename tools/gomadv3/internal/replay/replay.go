@@ -148,6 +148,7 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		if manifest.IOProfile.Transcript == nil {
 			return Result{}, errors.New("recorded I/O profile has no complete transcript")
 		}
+		readOnlyMountLimits = romount.DefaultLimits()
 		if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 			descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
 			if readErr != nil {

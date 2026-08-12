@@ -93,6 +93,24 @@ func TestRunInstallsReadOnlyMountBrokerDescriptors(t *testing.T) {
 	}
 }
 
+func TestRunInstallsEmptyReadOnlyMountBrokerDescriptors(t *testing.T) {
+	result, err := Run(context.Background(), Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=io-ro-mount-unmounted"}, IOConfig: []byte("profile-frame"), IOTranscriptLimit: 1 << 20,
+		IOROMountLimits: romount.DefaultLimits(),
+		RunTimeout:      5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.ExitCode != 0 || string(result.Stdout.Bytes) != "unmounted" || len(result.IOROMounts.Entries) != 0 {
+		t.Fatalf("result = %#v", result)
+	}
+}
+
 func TestValidateRequestRejectsExpectedIOTranscriptOutsideReplay(t *testing.T) {
 	request := Request{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
@@ -382,6 +400,23 @@ func TestTargetHelper(t *testing.T) {
 		}
 		if err := writeEmptyIOTranscriptTerminal(); err != nil {
 			os.Exit(27)
+		}
+		os.Exit(0)
+	case "io-ro-mount-unmounted":
+		request := os.NewFile(9, "gomadv3-io-ro-mount-request")
+		response := os.NewFile(10, "gomadv3-io-ro-mount-response")
+		if request == nil || response == nil || romount.WriteLookupRequest(request, 0, "/outside") != nil {
+			os.Exit(28)
+		}
+		entry, err := romount.ReadResponse(response, romount.DefaultLimits())
+		if err != nil || entry.Status != romount.StatusUnmounted {
+			os.Exit(29)
+		}
+		if _, err := os.Stdout.WriteString("unmounted"); err != nil {
+			os.Exit(30)
+		}
+		if err := writeEmptyIOTranscriptTerminal(); err != nil {
+			os.Exit(31)
 		}
 		os.Exit(0)
 	case "spawn-child":

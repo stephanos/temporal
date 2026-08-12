@@ -32,13 +32,13 @@ func TestProfileRunsUnchangedTemporalActivityBatchCancelSuite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}
 	spec, _, err := profile.PrepareBuildOverlay(target.Spec{
 		Kind: target.KindGoTest, Source: "./tests", WorkingDir: repositoryRoot,
-		Args: []string{targetArgument}, BuildTags: []string{"test_dep"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
+		Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"}, BuildTags: []string{"test_dep"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	}, strings.TrimSpace(string(moduleCacheBytes)))
 	if err != nil {
 		t.Fatal(err)
