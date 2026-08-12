@@ -38,5 +38,35 @@ func main() {
 	if err = os.MkdirAll("../escape", 0o755); err == nil {
 		panic("path traversal was accepted")
 	}
+	file, err := os.OpenFile("workspace/state", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0o640)
+	if err != nil {
+		panic(err)
+	}
+	if written, writeErr := file.Write([]byte("state")); writeErr != nil || written != 5 {
+		panic(fmt.Sprintf("write = %d, %v", written, writeErr))
+	}
+	if _, err = file.Seek(0, 0); err != nil {
+		panic(err)
+	}
+	contents := make([]byte, 5)
+	if read, readErr := file.Read(contents); readErr != nil || read != 5 || string(contents) != "state" {
+		panic(fmt.Sprintf("read = %d, %q, %v", read, contents, readErr))
+	}
+	if err = file.Close(); err != nil {
+		panic(err)
+	}
+	if err = os.Rename("workspace/state", "workspace/renamed"); err != nil {
+		panic(err)
+	}
+	contents, err = os.ReadFile("workspace/renamed")
+	if err != nil || string(contents) != "state" {
+		panic(fmt.Sprintf("ReadFile = %q, %v", contents, err))
+	}
+	if err = os.Remove("workspace/renamed"); err != nil {
+		panic(err)
+	}
+	if _, err = os.Stat("workspace/renamed"); !errors.Is(err, fs.ErrNotExist) {
+		panic(fmt.Sprintf("removed stat error = %v", err))
+	}
 	fmt.Println("ok")
 }

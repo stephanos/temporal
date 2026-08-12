@@ -686,8 +686,8 @@ diff --git a/src/os/file.go b/src/os/file.go
  	if err := f.checkValid("write"); err != nil {
  		return 0, err
  	}
-+	if handled, err := gomadFileWrite(f); handled {
-+		return 0, f.wrapErr("write", err)
++	if n, err, handled := gomadFileWrite(f, b); handled {
++		return n, f.wrapErr("write", err)
 +	}
  	n, e := f.write(b)
  	if n < 0 {
@@ -696,8 +696,8 @@ diff --git a/src/os/file.go b/src/os/file.go
  	if err := f.checkValid("write"); err != nil {
  		return 0, err
  	}
-+	if handled, err := gomadFileWrite(f); handled {
-+		return 0, f.wrapErr("write", err)
++	if n, err, handled := gomadFileWriteAt(f, b, off); handled {
++		return n, f.wrapErr("write", err)
 +	}
  	if f.appendMode {
  		return 0, errWriteAtInAppendMode
@@ -730,8 +730,14 @@ diff --git a/src/os/file.go b/src/os/file.go
 +		if file, handled, err := gomadOpenFile(name, flag, perm); handled { return file, err }
 +	}
  	testlog.Open(name)
- 	f, err := openFileNolog(name, flag, perm)
- 	if err != nil {
+	f, err := openFileNolog(name, flag, perm)
+	if err != nil {
+@@ -458,2 +482,5 @@ func Rename(oldpath, newpath string) error {
++	if gomadIOEnabled() {
++		return gomadRename(oldpath, newpath)
++	}
+ 	return rename(oldpath, newpath)
+ }
 diff --git a/src/os/file_posix.go b/src/os/file_posix.go
 --- a/src/os/file_posix.go
 +++ b/src/os/file_posix.go
@@ -744,6 +750,17 @@ diff --git a/src/os/file_posix.go b/src/os/file_posix.go
 +	}
  	return f.file.close()
  }
+diff --git a/src/os/file_unix.go b/src/os/file_unix.go
+--- a/src/os/file_unix.go
++++ b/src/os/file_unix.go
+@@ -357,4 +357,7 @@
+ func Remove(name string) error {
++	if gomadIOEnabled() {
++		return gomadRemove(name)
++	}
+ 	// System call interface forces us to know
+ 	// whether name is a file or directory.
+ 	// Try both: it is cheaper on average than
 diff --git a/src/os/dir.go b/src/os/dir.go
 --- a/src/os/dir.go
 +++ b/src/os/dir.go
