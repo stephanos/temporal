@@ -247,6 +247,29 @@ time coordination. This avoids imposing a speculative event scheduler on simple
 deterministic shims while preserving one World contract for adapters that do
 need those semantics.
 
+### Binary protocol ownership
+
+The deterministic-I/O protocols retain transports selected for their distinct
+runtime properties: fixed shared-memory transcript records, fixed bootstrap and
+terminal frames, and bounded synchronous pipes for lazy read-only mounts. World
+configuration and recording remain separately owned, explicit encodings; they
+are not part of a universal serialization layer.
+
+Cross-endpoint layouts are declared once in `protocol/iowire.json`. The protocol
+generator emits dependency-free typed codecs and the same golden, truncation,
+validation, allocation-bound, and fuzz tests for the Runner module and patched
+standard library. `make generate` updates checked-in output, while `make
+validate` rejects drift. Protocol changes require an explicit version and
+compatibility decision.
+
+Callers do not own offsets, byte order, magic, reserved bytes, or enum checks.
+Runner-side bootstrap, transcript, and mount packages use the generated host
+codec. In the target, `internal/gomadwire` owns the layouts,
+`internal/gomadtrace` owns typed transcript recording and replay, and the typed
+`internal/gomadio/mount` client owns descriptors, framing, bounds, serialization,
+and request ordinals below the `os` adapter. This keeps the patched dependency
+closure small while making malformed input fail before allocation or exposure.
+
 ## Failure domains
 
 Gomad keeps these outcomes distinct:
