@@ -3,9 +3,7 @@ package ioprofile
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -13,27 +11,25 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
-func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
+func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", ".toolchain"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	moduleCacheBytes, err := exec.Command(filepath.Join(toolchainRoot, "bin", "go"), "env", "GOMODCACHE").Output()
+	workingDirectory, err := filepath.Abs(filepath.Join("..", "..", "testdata", "libc_adapter"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
+	preparationRoot := t.TempDir()
+	moduleCache, err := target.ReadModuleCache(context.Background(), toolchainRoot)
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
+	profile := Default()
 	spec, _, err := profile.PrepareBuildOverlay(target.Spec{
-		Kind: target.KindGoRun, Source: "./tools/gomadv3/root_testdata/io_sqlite", WorkingDir: repositoryRoot,
-		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
-	}, strings.TrimSpace(string(moduleCacheBytes)))
+		Kind: target.KindGoRun, Source: ".", WorkingDir: workingDirectory,
+		PreparationRoot: preparationRoot, ToolchainRoot: toolchainRoot,
+	}, moduleCache)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,18 +41,23 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	runDirectory := t.TempDir()
 	result, err := process.Run(context.Background(), process.Request{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name, "GOMADSEED=7", "TZ=UTC"},
+		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: runDirectory,
+		Env:        []string{"GOMADV3_IO_PROFILE=" + profile.Name, "GOMADSEED=7", "TZ=UTC"},
 		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20, WorldSeed: 7, IOConfig: frame,
-		IOTranscriptLimit: 64 << 20,
+		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20, WorldSeed: 7,
+		IOConfig: frame, IOTranscriptLimit: 64 << 20,
 	})
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("process.Run() error = %v, result = %#v, stderr = %q", err, result, result.Stderr.Bytes)
 	}
-	if result.Termination != process.TerminationExit || result.ExitCode != 0 || string(result.Stdout.Bytes) != "42 2000-01-01 00:00:00\n" {
+	if result.Termination != process.TerminationExit || result.ExitCode != 0 || string(result.Stdout.Bytes) != "ok\n" {
 		t.Fatalf("result = %#v, stderr = %q", result, result.Stderr.Bytes)
+	}
+	if _, err := os.Stat(filepath.Join(runDirectory, "workspace")); !os.IsNotExist(err) {
+		t.Fatalf("libc adapter created host filesystem state: %v", err)
 	}
 }

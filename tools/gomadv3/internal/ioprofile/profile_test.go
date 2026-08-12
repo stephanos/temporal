@@ -39,47 +39,8 @@ func TestDeterministicProfileAcceptsArbitraryTargetArguments(t *testing.T) {
 	}
 }
 
-func TestResolveBatchSecurityProfileBindsExactSuite(t *testing.T) {
-	profile, err := Resolve(TemporalActivityAPIBatchSecurity)
-	if err != nil {
-		t.Fatal(err)
-	}
-	argument := "-test.run=^TestActivityAPIBatchSecurityTestSuite$"
-	err = profile.ValidatePreparedTarget(target.Spec{Kind: target.KindGoTest, Source: "./tests", Args: []string{argument}}, target.Prepared{
-		Kind: target.KindGoTest, Source: "./tests", Argv: []string{"gomadv3-target", argument}, BuildTags: []string{"test_dep"},
-		BuildInfo: record.BuildInfo{Path: "go.temporal.io/server/tests.test"}, GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
-	}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	cancel, err := Resolve(TemporalActivityAPIBatchCancel)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if profile.InventorySHA256 == cancel.InventorySHA256 || profile.ImplementationSHA256 == cancel.ImplementationSHA256 {
-		t.Fatal("batch-security profile reused the batch-cancel identity")
-	}
-}
-
-func TestValidatePreparedTargetAcceptsExactSuite(t *testing.T) {
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = profile.ValidatePreparedTarget(target.Spec{
-		Kind: target.KindGoTest, Source: "./tests", Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"},
-	}, target.Prepared{
-		Kind: target.KindGoTest, Source: "./tests", Argv: []string{"gomadv3-target", "-test.run=^TestActivityAPIBatchCancelClientTestSuite$"},
-		BuildTags: []string{"test_dep"}, BuildInfo: record.BuildInfo{Path: "go.temporal.io/server/tests.test"},
-		GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
-	}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestValidatePreparedTargetRejectsProfileExpansion(t *testing.T) {
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+func TestValidatePreparedTargetRejectsIdentityMismatch(t *testing.T) {
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,13 +57,10 @@ func TestValidatePreparedTargetRejectsProfileExpansion(t *testing.T) {
 		prepared    target.Prepared
 		environment []string
 	}{
-		"kind":          {spec: withKind(validSpec, target.KindGoRun), prepared: validPrepared},
-		"source":        {spec: withSource(validSpec, "go.temporal.io/server/tests"), prepared: validPrepared},
-		"argument":      {spec: withArgs(validSpec, "-test.run=^TestActivityAPIBatchCancelClientTestSuite$", "-test.count=1"), prepared: validPrepared},
-		"built package": {spec: validSpec, prepared: withBuildPath(validPrepared, "go.temporal.io/server/tests")},
-		"build tags":    {spec: validSpec, prepared: withBuildTags(validPrepared, "custom", "test_dep")},
-		"platform":      {spec: validSpec, prepared: withPlatform(validPrepared, "linux", "arm64")},
-		"environment":   {spec: validSpec, prepared: validPrepared, environment: []string{"MODE=test"}},
+		"kind":     {spec: withKind(validSpec, target.KindGoRun), prepared: validPrepared},
+		"source":   {spec: withSource(validSpec, "go.temporal.io/server/tests"), prepared: validPrepared},
+		"argument": {spec: withArgs(validSpec, "-test.run=^TestActivityAPIBatchCancelClientTestSuite$", "-test.count=1"), prepared: validPrepared},
+		"platform": {spec: validSpec, prepared: withPlatform(validPrepared, "linux", "arm64")},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -114,7 +72,7 @@ func TestValidatePreparedTargetRejectsProfileExpansion(t *testing.T) {
 }
 
 func TestBootstrapFrameBindsLaunchIdentity(t *testing.T) {
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(Deterministic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,16 +112,6 @@ func withSource(spec target.Spec, source string) target.Spec {
 func withArgs(spec target.Spec, arguments ...string) target.Spec {
 	spec.Args = arguments
 	return spec
-}
-
-func withBuildPath(prepared target.Prepared, path string) target.Prepared {
-	prepared.BuildInfo.Path = path
-	return prepared
-}
-
-func withBuildTags(prepared target.Prepared, tags ...string) target.Prepared {
-	prepared.BuildTags = tags
-	return prepared
 }
 
 func withPlatform(prepared target.Prepared, goos, goarch string) target.Prepared {

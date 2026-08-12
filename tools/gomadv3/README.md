@@ -46,27 +46,23 @@ content-addressed artifacts. Arguments following `--` use an argv-safe
 interface. Trusted tooling preparing an `exec` target must generate the typed
 provenance consumed by the Runner; an arbitrary binary is rejected.
 
-### Temporal activity batch-cancel profile
+### Deterministic I/O
 
-The `temporal-activity-api-batch-cancel/v1` profile runs the existing Temporal
-suite without changing its test, shared test infrastructure, or production
-code. It is intentionally restricted to Go 1.26.4 on `darwin/arm64`, the exact
-`./tests` package, the `test_dep` build tag, and the complete suite selector:
+Every Runner-managed target uses the versioned deterministic-I/O boundary by
+default. It is independent of the target package, arguments, and application:
 
 ```sh
 tools/gomadv3/.bin/gomad explore \
-  --io-profile temporal-activity-api-batch-cancel/v1 \
   --seeds 7 --parallel 1 --run-timeout 2m --overall-timeout 5m \
   --artifacts .gomad/qualify/seed-7 \
-  go-test ./tests -- '-test.run=^TestActivityAPIBatchCancelClientTestSuite$'
+  go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
-For this profile, Gomad replaces the reached loopback TCP operations, minimal
-directory metadata, hostname, and entropy stream with process-local in-memory
-implementations. A generated build overlay redirects the pinned
-`modernc.org/sqlite` VFS time and entropy sites without editing the module
-cache. Entropy is fixed by the profile and independent of `GOMADSEED`; that
-seed controls scheduling only.
+Gomad replaces supported loopback TCP operations, filesystem operations,
+hostname, and entropy with process-local in-memory implementations. A reviewed,
+version-pinned adapter redirects supported `modernc.org/libc` filesystem,
+entropy, and time operations to those same generic boundaries. Entropy is
+independent of `GOMADSEED`; that seed controls scheduling only.
 
 Every modeled operation is appended to a bounded shared-memory transcript.
 Failure artifacts retain the canonical transcript, and replay supplies it to
@@ -79,25 +75,23 @@ tools/gomadv3/.bin/gomad replay --verify-only ARTIFACT_DIR
 ```
 
 Unsupported calls entering an inventoried shim fail closed before host I/O.
-This target-specific profile is not an OS sandbox: trusted target code must not
-bypass the reviewed boundaries with a direct raw syscall. DNS, non-loopback
-sockets, arbitrary files, subprocesses, cgo, plugins, and external linking are
+This boundary is not an OS sandbox: trusted target code must not bypass the
+reviewed boundaries with a direct raw syscall. DNS, non-loopback sockets,
+subprocesses, cgo, plugins, external linking, and unrecognized native I/O are
 outside its supported contract.
 
 ### Lazy read-only inputs
 
-An I/O profile can expose an explicit host directory through a repeatable lazy
-read-only mount. The Runner captures only entries first observed by the target,
+The Runner can expose an explicit host directory through a repeatable lazy
+read-only mount. It captures only entries first observed by the target,
 serves subsequent reads from memory, and stores captured inputs in retained
 failure artifacts so exact replay does not reopen the host directory:
 
 ```sh
 tools/gomadv3/.bin/gomad explore \
-  --io-profile temporal-activity-api-batch-security/v1 \
-  --io-ro-mount ./schema/sqlite/v3=go.temporal.io/server/schema/sqlite/v3 \
-  --seeds 7 --parallel 1 --run-timeout 4m --overall-timeout 8m \
-  --artifacts .gomad/batch-security \
-  go-test ./tests -- '-test.run=^TestActivityAPIBatchSecurityTestSuite$'
+  --io-ro-mount ./fixtures=/fixtures \
+  --seeds 7 --parallel 1 \
+  go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
 Mount sources are resolved relative to the Runner working directory; target
@@ -123,8 +117,8 @@ architecture, C/C++ tool, and compiler/linker tuning is cleared before
 ## Contract
 
 A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed
-I/O profile activates through `GOMADV3_IO_PROFILE` plus an identity-bound
-inherited bootstrap frame that supplies the seed. When neither path is present,
+target activates deterministic I/O through an identity-bound inherited
+bootstrap frame and a private activation marker. When neither path is present,
 the toolchain follows the upstream runtime paths. Activation forces the initial
 `GOMAXPROCS` to one, disables asynchronous preemption, and seeds existing
 runtime choice paths. Seed `0` is valid; empty, malformed, and overflowing
@@ -197,7 +191,7 @@ semantic bundle and fails closed if it is missing or divergent.
 ## Design and roadmap
 
 - [Architecture](ARCHITECTURE.md) records the durable runtime, Runner, World,
-  artifact, replay, and I/O-profile decisions.
+  artifact, replay, and deterministic-I/O decisions.
 - [Roadmap](docs/roadmap.md) tracks remaining capability work.
 - [Testing backlog](docs/testing-backlog.md) tracks runtime and toolchain
   coverage gaps.
