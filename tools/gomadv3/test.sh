@@ -64,6 +64,9 @@ validate_runtime_path() {
 }
 
 validate_patch_path() {
+	if [[ $1 == src/cmd/compile/internal/gc/main.go ]]; then
+		return
+	fi
 	if [[ $1 == src/cmd/link/internal/ld/lib.go ]]; then
 		return
 	fi
@@ -85,6 +88,10 @@ validate_patch_path() {
 validate_patch() {
 	if [[ ! -s "$patch_file" ]]; then
 		printf 'gomadv3 patch is missing: %s\n' "$patch_file" >&2
+		exit 1
+	fi
+	if ! git apply --numstat <"$patch_file" >/dev/null 2>&1; then
+		printf 'gomadv3 patch is malformed\n' >&2
 		exit 1
 	fi
 
@@ -126,6 +133,29 @@ validate_patch() {
 	fi
 }
 
+validate_overlay_path() {
+	case "$1" in
+		src/cmd/compile/internal/gomadintercept/intercept.go | \
+			src/cmd/compile/internal/gomadintercept/spec_go126.go | \
+			src/internal/gomadfs/fs.go | \
+			src/internal/gomadfs/fs_test.go | \
+			src/internal/gomadio/gomadio.go | \
+			src/internal/gomadio/libc.go | \
+			src/internal/gomadio/network.go | \
+			src/internal/gomadio/transcript.go | \
+			src/internal/gomadio/mount/client.go | \
+			src/internal/gomadio/mount/client_test.go | \
+			src/internal/gomadtrace/trace.go | \
+			src/internal/gomadwire/wire_generated.go | \
+			src/internal/gomadwire/wire_generated_test.go | \
+			src/net/gomad.go | \
+			src/os/gomad.go)
+			return
+			;;
+	esac
+	validate_runtime_path "$1"
+}
+
 validate_overlay() {
 	if [[ ! -d "$overlay_dir" ]]; then
 		printf 'gomadv3 overlay is missing: %s\n' "$overlay_dir" >&2
@@ -145,9 +175,7 @@ validate_overlay() {
 	while IFS= read -r -d '' file; do
 		count=$((count + 1))
 		path=${file#"$overlay_dir"/}
-		if [[ $path != src/internal/gomadfs/fs.go && $path != src/internal/gomadfs/fs_test.go && $path != src/internal/gomadio/gomadio.go && $path != src/internal/gomadio/libc.go && $path != src/internal/gomadio/network.go && $path != src/internal/gomadio/transcript.go && $path != src/internal/gomadio/mount/client.go && $path != src/internal/gomadio/mount/client_test.go && $path != src/internal/gomadtrace/trace.go && $path != src/internal/gomadwire/wire_generated.go && $path != src/internal/gomadwire/wire_generated_test.go && $path != src/net/gomad.go && $path != src/os/gomad.go ]]; then
-			validate_runtime_path "$path"
-		fi
+		validate_overlay_path "$path"
 		if od -An -tx1 "$file" | awk '{ for (i = 1; i <= NF; i++) if ($i == "00") found = 1 } END { exit !found }'; then
 			printf 'gomadv3 overlay contains binary output: %s\n' "$path" >&2
 			exit 1

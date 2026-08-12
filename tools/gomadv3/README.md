@@ -64,6 +64,13 @@ version-pinned adapter redirects supported `modernc.org/libc` filesystem,
 entropy, and time operations to those same generic boundaries. Entropy is
 independent of `GOMADSEED`; that seed controls scheduling only.
 
+The version-pinned compiler inserts typed entry prologues into the selected
+`os` and `net` definitions before optimization. This keeps the standard names,
+method sets, interfaces, and call sites intact while routing every invocation
+form through additive same-package hooks. The compiler validates the complete
+manifest before rewriting a package and marks intercepted definitions
+non-inline so serialized pre-rewrite bodies cannot bypass the hook.
+
 Every modeled operation is appended to a bounded shared-memory transcript.
 Failure artifacts retain the canonical transcript, and replay supplies it to
 the target through a read-only shared-memory region so divergence stops at the
@@ -113,6 +120,13 @@ and architecture, bootstrap Go version, and canonical build environment.
 Same-key builds use an atomic owner lock, and ambient Go experiment,
 architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMADV3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
+
+To upgrade Go, update `toolchain-version.sh`, materialize the old patch against
+the new pinned source, update `spec_go126.go` (renamed for the new version), and
+regenerate the patch with `regenerate-patch.sh`. Then update the checked-in
+interception report and run `make -C tools/gomadv3 test`; missing definitions,
+signature drift, unexpected applied hooks, overlay collisions, and non-zero
+patch fuzz all fail the build.
 
 The cross-process deterministic-I/O layouts are declared in
 `tools/gomadv3/protocol/iowire.json`. After changing that schema or its
