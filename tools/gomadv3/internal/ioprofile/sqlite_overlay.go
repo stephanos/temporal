@@ -114,8 +114,11 @@ func prepareTemporalSQLiteOverlay(root, workingDirectory string) (string, error)
 	const original = `		// Use file-based SQLite for shared clusters to support parallel test access.
 		return *persistencetests.GetSQLiteFileTestClusterOption()`
 	const replacement = `		// Use named in-memory SQLite for Gomad; schema contents still come from the explicit read-only mount.
-		options := *persistencetests.GetSQLiteMemoryTestClusterOption()
+		options := *persistencetests.GetSQLiteFileTestClusterOption()
+		options.DBName = persistencetests.GenerateRandomDBName()
 		options.SchemaDir = "schema/sqlite/v3"
+		// DSN attributes are trimmed, while SQLite's embedded schema setup compares the raw value.
+		options.ConnectAttributes["mode"] = " memory"
 		return options`
 	if bytes.Count(contents, []byte(original)) != 1 {
 		return "", errors.New("Temporal SQLite profile rewrite anchor mismatch")
