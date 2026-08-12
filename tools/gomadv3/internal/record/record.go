@@ -585,6 +585,7 @@ type readOnlyMountProjection struct {
 	SHA256     SHA256              `json:"sha256"`
 	Bytes      Uint64String        `json:"bytes"`
 	Entries    Uint64String        `json:"entries"`
+	NotExist   Uint64String        `json:"not_exist,omitempty"`
 	TotalBytes Uint64String        `json:"total_bytes"`
 	Mappings   []string            `json:"mappings"`
 	Limits     ReadOnlyMountLimits `json:"limits"`
@@ -683,7 +684,7 @@ func projectIOProfile(profile IOProfile) ioProfileProjection {
 		mounts := profile.ReadOnlyMounts
 		projected.ReadOnlyMounts = &readOnlyMountProjection{
 			Schema: mounts.Schema, SHA256: mounts.SHA256, Bytes: mounts.Bytes, Entries: mounts.Entries,
-			TotalBytes: mounts.TotalBytes, Mappings: append([]string(nil), mounts.Mappings...), Limits: mounts.Limits,
+			NotExist: mounts.NotExist, TotalBytes: mounts.TotalBytes, Mappings: append([]string(nil), mounts.Mappings...), Limits: mounts.Limits,
 		}
 	}
 	return projected

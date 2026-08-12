@@ -14,7 +14,7 @@ const (
 	TemporalActivityAPIBatchCancel   = "temporal-activity-api-batch-cancel/v1"
 	TemporalActivityAPIBatchSecurity = "temporal-activity-api-batch-security/v1"
 	cancelImplementationVersion      = "gomadv3.io-profile/temporal-activity-api-batch-cancel/v1/implementation-v3"
-	securityImplementationVersion    = "gomadv3.io-profile/temporal-activity-api-batch-security/v1/implementation-v1"
+	securityImplementationVersion    = "gomadv3.io-profile/temporal-activity-api-batch-security/v1/implementation-v2"
 	targetArgument                   = "-test.run=^TestActivityAPIBatchCancelClientTestSuite$"
 	securityTargetArgument           = "-test.run=^TestActivityAPIBatchSecurityTestSuite$"
 )

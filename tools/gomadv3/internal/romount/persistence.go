@@ -29,10 +29,13 @@ func EncodeArtifact(mappings []Mapping, limits Limits, snapshot Snapshot) (Artif
 	targets := mappingTargets(mappings)
 	entries := append([]Entry(nil), snapshot.Entries...)
 	sort.Slice(entries, func(left, right int) bool { return entries[left].Path < entries[right].Path })
+	notExist := append([]string(nil), snapshot.NotExist...)
+	sort.Strings(notExist)
 	descriptor := record.ReadOnlyMountDescriptor{
 		Schema: "gomadv3.io-read-only-mounts/v1", Mappings: targets, Limits: recordLimits(limits),
 		Requests: record.Uint64String(snapshot.Requests), TotalBytes: record.Uint64String(snapshot.TotalBytes),
-		Entries: make([]record.ReadOnlyMountEntry, 0, len(entries)),
+		NotExist: notExist,
+		Entries:  make([]record.ReadOnlyMountEntry, 0, len(entries)),
 	}
 	payloads := make(map[string][]byte)
 	var totalBytes uint64
@@ -71,6 +74,18 @@ func EncodeArtifact(mappings []Mapping, limits Limits, snapshot Snapshot) (Artif
 		}
 		descriptor.Entries = append(descriptor.Entries, encoded)
 	}
+	previous = ""
+	for index, name := range descriptor.NotExist {
+		if index > 0 && name == previous || !withinTargets(name, targets) {
+			return ArtifactRecord{}, fmt.Errorf("missing read-only mount paths must be sorted, unique, and mapped")
+		}
+		previous = name
+		for _, entry := range entries {
+			if entry.Path == name {
+				return ArtifactRecord{}, fmt.Errorf("conflicting captured read-only mount path %q", name)
+			}
+		}
+	}
 	if totalBytes != snapshot.TotalBytes {
 		return ArtifactRecord{}, fmt.Errorf("captured read-only mount byte count is %d, want %d", totalBytes, snapshot.TotalBytes)
 	}
@@ -81,7 +96,7 @@ func EncodeArtifact(mappings []Mapping, limits Limits, snapshot Snapshot) (Artif
 	return ArtifactRecord{
 		Manifest: record.ReadOnlyMounts{
 			Schema: descriptor.Schema, File: descriptorPath, SHA256: record.HashBytes(encoded), Bytes: record.Uint64String(len(encoded)),
-			Entries: record.Uint64String(len(descriptor.Entries)), TotalBytes: descriptor.TotalBytes, Mappings: targets, Limits: descriptor.Limits,
+			Entries: record.Uint64String(len(descriptor.Entries)), NotExist: record.Uint64String(len(descriptor.NotExist)), TotalBytes: descriptor.TotalBytes, Mappings: targets, Limits: descriptor.Limits,
 		},
 		Descriptor: encoded, Payloads: payloads,
 	}, nil
@@ -106,7 +121,7 @@ func DecodeArtifact(manifest record.ReadOnlyMounts, descriptorBytes []byte, read
 	if err != nil {
 		return nil, Limits{}, Snapshot{}, err
 	}
-	if descriptor.Schema != manifest.Schema || !equalTargets(descriptor.Mappings, manifest.Mappings) || descriptor.Limits != manifest.Limits || record.Uint64String(len(descriptor.Entries)) != manifest.Entries || descriptor.TotalBytes != manifest.TotalBytes {
+	if descriptor.Schema != manifest.Schema || !equalTargets(descriptor.Mappings, manifest.Mappings) || descriptor.Limits != manifest.Limits || record.Uint64String(len(descriptor.Entries)) != manifest.Entries || record.Uint64String(len(descriptor.NotExist)) != manifest.NotExist || descriptor.TotalBytes != manifest.TotalBytes {
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("read-only mount descriptor does not match its manifest")
 	}
 	if !sortedTargets(descriptor.Mappings) {
@@ -116,14 +131,26 @@ func DecodeArtifact(manifest record.ReadOnlyMounts, descriptorBytes []byte, read
 	for index, target := range descriptor.Mappings {
 		mappings[index] = Mapping{Target: target}
 	}
-	snapshot := Snapshot{Requests: uint64(descriptor.Requests), TotalBytes: uint64(descriptor.TotalBytes), Entries: make([]Entry, 0, len(descriptor.Entries))}
-	var totalBytes uint64
+	snapshot := Snapshot{Requests: uint64(descriptor.Requests), TotalBytes: uint64(descriptor.TotalBytes), NotExist: append([]string(nil), descriptor.NotExist...), Entries: make([]Entry, 0, len(descriptor.Entries))}
 	previous := ""
+	for index, name := range snapshot.NotExist {
+		if index > 0 && name <= previous || !withinTargets(name, descriptor.Mappings) {
+			return nil, Limits{}, Snapshot{}, fmt.Errorf("missing read-only mount paths must be sorted, unique, and mapped")
+		}
+		previous = name
+	}
+	var totalBytes uint64
+	previous = ""
 	for index, encoded := range descriptor.Entries {
 		if index > 0 && encoded.Path <= previous || !withinTargets(encoded.Path, descriptor.Mappings) {
 			return nil, Limits{}, Snapshot{}, fmt.Errorf("read-only mount entries must be sorted, unique, and mapped")
 		}
 		previous = encoded.Path
+		for _, missing := range snapshot.NotExist {
+			if missing == encoded.Path {
+				return nil, Limits{}, Snapshot{}, fmt.Errorf("conflicting captured read-only mount path %q", encoded.Path)
+			}
+		}
 		mode, err := parseEntryMode(encoded.Mode)
 		if err != nil {
 			return nil, Limits{}, Snapshot{}, err
