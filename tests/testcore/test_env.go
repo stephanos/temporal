@@ -30,15 +30,17 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
+	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
+	"go.temporal.io/server/common/rpc/faultinjection"
 	"go.temporal.io/server/common/rpc/grpcfaults"
 	"go.temporal.io/server/common/rpc/httpfaults"
-	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testvars"
 	"go.temporal.io/server/temporal"
+	testmonitor "go.temporal.io/server/tests/testcore/monitor"
 )
 
 // shardSalt is used to distribute functional tests across shards.
@@ -126,6 +128,20 @@ func WithSpanExporter(exporter sdktrace.SpanExporter) TestOption {
 		o.dedicatedCluster = true
 		o.clusterOptions = append(o.clusterOptions, withSpanExporter(exporter))
 		o.dedicatedReason = "span exporter configured"
+	}
+}
+
+// WithUmpireMonitorFactory selects the Monitor implementation for a dedicated test cluster.
+func WithUmpireMonitorFactory[T testmonitor.Monitor](factory func(log.Logger) (T, error)) TestOption {
+	if factory == nil {
+		panic("Umpire monitor factory is required")
+	}
+	return func(o *testOptions) {
+		o.dedicatedCluster = true
+		o.dedicatedReason = "custom Umpire monitor used"
+		o.clusterOptions = append(o.clusterOptions, withUmpireMonitorFactory(func(logger log.Logger) (testmonitor.Monitor, error) {
+			return factory(logger)
+		}))
 	}
 }
 
@@ -419,6 +435,11 @@ func (e *TestEnv) Namespace() namespace.Name {
 
 func (e *TestEnv) NamespaceID() namespace.ID {
 	return e.nsID
+}
+
+// GetFaultInjector returns the cluster's RPC fault generator.
+func (e *TestEnv) GetFaultInjector() *faultinjection.RPCFaultGenerator {
+	return e.cluster.Host().GetFaultInjector()
 }
 
 // InjectHook sets a test hook inside the cluster.
