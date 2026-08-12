@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/safefile"
 )
 
 const maximumManifestBytes = 16 << 20
@@ -261,35 +262,15 @@ func listedFile(opened Artifact, relativePath string) *record.File {
 }
 
 func readValidatedFile(root *os.Root, path string, mode os.FileMode, maximum uint64) ([]byte, error) {
-	info, err := root.Lstat(path)
+	file, info, err := safefile.OpenRoot(root, path)
 	if err != nil {
 		return nil, err
-	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		return nil, fmt.Errorf("%s is a symbolic link", filepath.Base(path))
-	}
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("%s is not a regular file", filepath.Base(path))
 	}
 	if info.Mode().Perm() != mode {
-		return nil, fmt.Errorf("%s mode is %#o, want %#o", filepath.Base(path), info.Mode().Perm(), mode)
+		return nil, errors.Join(fmt.Errorf("%s mode is %#o, want %#o", filepath.Base(path), info.Mode().Perm(), mode), file.Close())
 	}
 	if info.Size() < 0 || uint64(info.Size()) > maximum {
-		return nil, fmt.Errorf("%s size exceeds its bound", filepath.Base(path))
-	}
-	if err := validateLinkCount(info); err != nil {
-		return nil, err
-	}
-	file, err := root.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	openedInfo, err := file.Stat()
-	if err != nil || !os.SameFile(info, openedInfo) || openedInfo.Mode() != info.Mode() || openedInfo.Size() != info.Size() {
-		return nil, errors.Join(fmt.Errorf("%s changed while opening", filepath.Base(path)), err, file.Close())
-	}
-	if err := validateLinkCount(openedInfo); err != nil {
-		return nil, errors.Join(err, file.Close())
+		return nil, errors.Join(fmt.Errorf("%s size exceeds its bound", filepath.Base(path)), file.Close())
 	}
 	reader := &io.LimitedReader{R: file, N: int64(maximum)}
 	data, err := io.ReadAll(reader)
@@ -324,29 +305,12 @@ func hashValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSiz
 }
 
 func openValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSize uint64) (*os.File, os.FileInfo, error) {
-	info, err := root.Lstat(path)
+	file, info, err := safefile.OpenRoot(root, path)
 	if err != nil {
 		return nil, nil, err
-	}
-	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
-		return nil, nil, fmt.Errorf("%s is not a regular file", filepath.Base(path))
 	}
 	if info.Mode().Perm() != mode || info.Size() < 0 || uint64(info.Size()) != expectedSize {
-		return nil, nil, fmt.Errorf("%s metadata does not match its manifest", filepath.Base(path))
+		return nil, nil, errors.Join(fmt.Errorf("%s metadata does not match its manifest", filepath.Base(path)), file.Close())
 	}
-	if err := validateLinkCount(info); err != nil {
-		return nil, nil, err
-	}
-	file, err := root.Open(path)
-	if err != nil {
-		return nil, nil, err
-	}
-	openedInfo, err := file.Stat()
-	if err != nil || !os.SameFile(info, openedInfo) || openedInfo.Mode() != info.Mode() || openedInfo.Size() != info.Size() {
-		return nil, nil, errors.Join(fmt.Errorf("%s changed while opening", filepath.Base(path)), err, file.Close())
-	}
-	if err := validateLinkCount(openedInfo); err != nil {
-		return nil, nil, errors.Join(err, file.Close())
-	}
-	return file, openedInfo, nil
+	return file, info, nil
 }

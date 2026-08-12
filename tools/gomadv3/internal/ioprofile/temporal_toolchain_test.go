@@ -56,10 +56,10 @@ func TestProfileRunsUnchangedTemporalActivityBatchCancelSuite(t *testing.T) {
 		results[index], err = process.Run(context.Background(), process.Request{
 			SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 			BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-			Command:           prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name, "GOMADSEED=7", "TZ=UTC"},
+			Command:           prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 			RunTimeout: 2 * time.Minute, TerminateGrace: 2 * time.Second, OutputLimit: 1 << 20,
-			WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20, WorldSeed: 7, IOConfig: frame,
-			IOTranscriptLimit: 64 << 20,
+			World: process.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+			IO:    &process.IOCapability{Config: frame, Transcript: &process.IOTranscriptCapability{Limit: 64 << 20}},
 		})
 		if err != nil {
 			t.Fatal(err)

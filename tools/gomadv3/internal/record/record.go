@@ -17,6 +17,10 @@ var environmentNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func HashBytes(data []byte) SHA256 {
 	digest := sha256.Sum256(data)
+	return SHA256FromSum(digest)
+}
+
+func SHA256FromSum(digest [sha256.Size]byte) SHA256 {
 	return SHA256("sha256:" + hex.EncodeToString(digest[:]))
 }
 

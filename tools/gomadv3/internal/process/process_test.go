@@ -24,18 +24,17 @@ import (
 
 func TestRunCapturesTargetExitAndBothStreams(t *testing.T) {
 	result, err := Run(context.Background(), Request{
-		SupervisorCommand:    []string{os.Args[0], "-test.run=TestSupervisorHelper"},
-		BootstrapCommand:     []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:              os.Args[0],
-		Args:                 []string{"-test.run=TestTargetHelper"},
-		Argv0:                "gomadv3-target",
-		Dir:                  t.TempDir(),
-		Env:                  []string{"GOMADV3_PROCESS_HELPER=output"},
-		RunTimeout:           5 * time.Second,
-		TerminateGrace:       time.Second,
-		OutputLimit:          64,
-		WorldRecordLimit:     1 << 20,
-		WorldTransitionLimit: 1 << 20,
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0],
+		Args:              []string{"-test.run=TestTargetHelper"},
+		Argv0:             "gomadv3-target",
+		Dir:               t.TempDir(),
+		Env:               []string{"GOMADV3_PROCESS_HELPER=output"},
+		RunTimeout:        5 * time.Second,
+		TerminateGrace:    time.Second,
+		OutputLimit:       64,
+		World:             WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -59,9 +58,9 @@ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=io-config"}, IOConfig: []byte("profile-frame"),
+		Env: []string{"GOMADV3_PROCESS_HELPER=io-config"}, IO: &IOCapability{Config: []byte("profile-frame")},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -80,10 +79,12 @@ func TestRunInstallsReadOnlyMountBrokerDescriptors(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=io-ro-mount"}, IOConfig: []byte("profile-frame"), IOTranscriptLimit: 1 << 20,
-		IOROMounts: []romount.Mapping{{Source: source, Target: "/mounted"}}, IOROMountLimits: romount.DefaultLimits(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=io-ro-mount"}, IO: &IOCapability{
+			Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20},
+			ReadOnlyMount: &ReadOnlyMountCapability{Mappings: []romount.Mapping{{Source: source, Target: "/mounted"}}, Limits: romount.DefaultLimits()},
+		},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -98,10 +99,12 @@ func TestRunInstallsEmptyReadOnlyMountBrokerDescriptors(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=io-ro-mount-unmounted"}, IOConfig: []byte("profile-frame"), IOTranscriptLimit: 1 << 20,
-		IOROMountLimits: romount.DefaultLimits(),
-		RunTimeout:      5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		Env: []string{"GOMADV3_PROCESS_HELPER=io-ro-mount-unmounted"}, IO: &IOCapability{
+			Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20},
+			ReadOnlyMount: &ReadOnlyMountCapability{Limits: romount.DefaultLimits()},
+		},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -115,34 +118,54 @@ func TestValidateRequestRejectsExpectedIOTranscriptOutsideReplay(t *testing.T) {
 	request := Request{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
 		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
-		IOConfig: []byte("profile-frame"), IOTranscriptLimit: 1 << 20,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+		IO:    &IOCapability{Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20}},
 	}
-	request.ExpectedIOTranscript = make([]byte, ioTranscriptRecordBytes)
+	request.IO.Transcript.Expected = make([]byte, ioTranscriptRecordBytes)
 	if err := validateRequest(request); err == nil || !strings.Contains(err.Error(), "requires replay mode") {
 		t.Fatalf("validateRequest() error = %v", err)
 	}
-	request.IOReplay = true
-	request.ExpectedIOTranscript = make([]byte, ioTranscriptRecordBytes-1)
+	request.IO.Transcript.Replay = true
+	request.IO.Transcript.Expected = make([]byte, ioTranscriptRecordBytes-1)
 	if err := validateRequest(request); err == nil || !strings.Contains(err.Error(), "invalid expected I/O transcript length") {
 		t.Fatalf("validateRequest() error = %v", err)
 	}
 }
 
+func TestValidateRequestAcceptsNestedExecutionCapabilities(t *testing.T) {
+	request := Request{
+		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
+		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+		IO: &IOCapability{
+			Config:        []byte("profile-frame"),
+			Transcript:    &IOTranscriptCapability{Limit: 1 << 20},
+			ReadOnlyMount: &ReadOnlyMountCapability{Limits: romount.DefaultLimits()},
+		},
+	}
+	if err := validateRequest(request); err != nil {
+		t.Fatal(err)
+	}
+	request.IO.ReadOnlyMount = nil
+	request.IO.Transcript = nil
+	if err := validateRequest(request); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestRunTimesOutAndRemovesTermIgnoringProcessGroup(t *testing.T) {
 	result, err := Run(context.Background(), Request{
-		SupervisorCommand:    []string{os.Args[0], "-test.run=TestSupervisorHelper"},
-		BootstrapCommand:     []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:              "/bin/sh",
-		Args:                 []string{"-c", `trap '' TERM; (trap '' TERM; while :; do :; done) & while :; do :; done`},
-		Argv0:                "gomadv3-target",
-		Dir:                  t.TempDir(),
-		Env:                  []string{"TZ=UTC"},
-		RunTimeout:           750 * time.Millisecond,
-		TerminateGrace:       250 * time.Millisecond,
-		OutputLimit:          64,
-		WorldRecordLimit:     1 << 20,
-		WorldTransitionLimit: 1 << 20,
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           "/bin/sh",
+		Args:              []string{"-c", `trap '' TERM; (trap '' TERM; while :; do :; done) & while :; do :; done`},
+		Argv0:             "gomadv3-target",
+		Dir:               t.TempDir(),
+		Env:               []string{"TZ=UTC"},
+		RunTimeout:        750 * time.Millisecond,
+		TerminateGrace:    250 * time.Millisecond,
+		OutputLimit:       64,
+		World:             WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -164,20 +187,19 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 	}
 	defer stderrHead.Close()
 	result, err := Run(context.Background(), Request{
-		SupervisorCommand:    []string{os.Args[0], "-test.run=TestSupervisorHelper"},
-		BootstrapCommand:     []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:              os.Args[0],
-		Args:                 []string{"-test.run=TestTargetHelper"},
-		Argv0:                "gomadv3-target",
-		Dir:                  t.TempDir(),
-		Env:                  []string{"GOMADV3_PROCESS_HELPER=flood"},
-		RunTimeout:           5 * time.Second,
-		TerminateGrace:       time.Second,
-		OutputLimit:          128,
-		WorldRecordLimit:     1 << 20,
-		WorldTransitionLimit: 1 << 20,
-		StdoutHead:           stdoutHead,
-		StderrHead:           stderrHead,
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0],
+		Args:              []string{"-test.run=TestTargetHelper"},
+		Argv0:             "gomadv3-target",
+		Dir:               t.TempDir(),
+		Env:               []string{"GOMADV3_PROCESS_HELPER=flood"},
+		RunTimeout:        5 * time.Second,
+		TerminateGrace:    time.Second,
+		OutputLimit:       128,
+		World:             WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+		StdoutHead:        stdoutHead,
+		StderrHead:        stderrHead,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -211,7 +233,7 @@ func TestRunBoundsUnresponsiveSupervisor(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADV3_PROCESS_HELPER=output"}, RunTimeout: 300 * time.Millisecond, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err == nil || !strings.Contains(err.Error(), "supervisor") {
 		t.Fatalf("Run() error = %v", err)
@@ -231,7 +253,7 @@ func TestRunGivesDescendantsGraceAfterLeaderExit(t *testing.T) {
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: directory,
 		Env:        []string{"GOMADV3_PROCESS_HELPER=spawn-child", "GOMADV3_HELPER_EXE=" + os.Args[0], "GOMADV3_READY_PATH=" + readyPath, "GOMADV3_GRACEFUL_PATH=" + gracefulPath},
 		RunTimeout: 3 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -250,8 +272,7 @@ func TestRunCapturesWorldRecordFromExecutingChild(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=9", "GOMADV3_PROCESS_HELPER=world-record"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: 1 << 20,
-		WorldSeed: 9,
+		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -271,8 +292,7 @@ func TestRunPreservesPrematureWorldProducerMarker(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=9", "GOMADV3_PROCESS_HELPER=world-open-only"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: 1 << 20,
-		WorldSeed: 9,
+		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -291,8 +311,7 @@ func TestRunPreservesWorldSeedMismatchMarker(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=8", "GOMADV3_PROCESS_HELPER=world-record"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: 1 << 20,
-		WorldSeed: 8,
+		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 8},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -320,7 +339,7 @@ func TestRunInstallsWorldInitialReplayInputBeforeModeledWork(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=9", "GOMADV3_PROCESS_HELPER=world-record"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
-		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: 1 << 20, WorldSeed: 9, ExpectedWorldInitial: expectedInitial,
+		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9, ExpectedInitial: expectedInitial},
 	})
 	if err != nil {
 		t.Fatal(err)

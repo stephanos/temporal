@@ -32,10 +32,15 @@ type BuildOverlay struct {
 	ReplacementSHA256 string
 }
 
-func (profile Profile) PrepareBuildOverlay(spec target.Spec, moduleCache string) (target.Spec, BuildOverlay, error) {
-	if _, err := Resolve(profile.Name); err != nil {
+func (profile ProfileSpec) PrepareBuildOverlay(spec target.Spec, moduleCache string) (target.Spec, BuildOverlay, error) {
+	definition, err := profile.validated()
+	if err != nil {
 		return target.Spec{}, BuildOverlay{}, err
 	}
+	return definition.prepareBuildOverlay(spec, moduleCache)
+}
+
+func prepareDeterministicBuildOverlay(spec target.Spec, moduleCache string) (target.Spec, BuildOverlay, error) {
 	workingDirectory, err := filepath.Abs(spec.WorkingDir)
 	if err != nil {
 		return target.Spec{}, BuildOverlay{}, fmt.Errorf("resolve target working directory: %w", err)
