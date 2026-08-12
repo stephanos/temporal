@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
@@ -295,7 +296,7 @@ func TestRunPassesCanonicalReadOnlyMountsToExecutor(t *testing.T) {
 	if _, err := Run(context.Background(), config); err != nil {
 		t.Fatal(err)
 	}
-	if len(executor.requests) != 1 || len(executor.requests[0].IOROMounts) != 1 || executor.requests[0].IOROMounts[0].Source != source || executor.requests[0].IOROMounts[0].Target != "/schema" {
+	if len(executor.requests) != 1 || executor.requests[0].IO == nil || executor.requests[0].IO.ReadOnlyMount == nil || len(executor.requests[0].IO.ReadOnlyMount.Mappings) != 1 || executor.requests[0].IO.ReadOnlyMount.Mappings[0].Source != source || executor.requests[0].IO.ReadOnlyMount.Mappings[0].Target != "/schema" {
 		t.Fatalf("executor mounts = %#v", executor.requests)
 	}
 }
@@ -383,7 +384,7 @@ func TestClassifyStableTargetDiagnostics(t *testing.T) {
 		"unsupported_deterministic_mode": "runtime: GOMADSEED does not support cgo or external linking\n",
 	} {
 		t.Run(name, func(t *testing.T) {
-			outcome := classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
+			outcome := executionoutcome.Classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
 			if outcome.Domain != "target" || outcome.Reason != name {
 				t.Fatalf("outcome = %#v", outcome)
 			}
@@ -396,7 +397,7 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
 	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
-	}, classifiedOutcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
+	}, executionoutcome.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +411,7 @@ func TestClassifyStructuredWorldFailures(t *testing.T) {
 		"deadlock": "world_deadlock", "capacity": "world_capacity", "replay-divergence": "world_replay_divergence", "invalid-input": "world_invalid_input",
 	} {
 		t.Run(kind, func(t *testing.T) {
-			outcome := classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
+			outcome := executionoutcome.Classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
 			if outcome.Domain != "target" || outcome.Reason != reason || outcome.Termination != "exit" || outcome.ExitCode == nil || *outcome.ExitCode != 0 {
 				t.Fatalf("classify() = %#v", outcome)
 			}

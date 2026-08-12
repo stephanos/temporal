@@ -18,6 +18,7 @@ import (
 	"unicode"
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/safefile"
 )
 
 type Kind string
@@ -149,7 +150,7 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 		if infoErr != nil {
 			return Prepared{}, fmt.Errorf("read prepared target build info: %w", infoErr)
 		}
-		buildInfo = projectBuildInfo(info)
+		buildInfo = ProjectBuildInfo(info)
 	}
 	prepared = Prepared{
 		Path:         targetPath,
@@ -331,7 +332,7 @@ func prepareExec(spec Spec, identity ToolchainIdentity, targetPath string) (reco
 	if err != nil {
 		return record.BuildInfo{}, fmt.Errorf("read prepared exec target build info: %w", err)
 	}
-	actualBuildInfo := projectBuildInfo(info)
+	actualBuildInfo := ProjectBuildInfo(info)
 	recordedBuildInfo, err := record.CanonicalJSON(provenance.BuildInfo)
 	if err != nil {
 		return record.BuildInfo{}, fmt.Errorf("encode provenance build info: %w", err)
@@ -508,7 +509,7 @@ func validateDeterministicBuildInfo(info record.BuildInfo) error {
 	return nil
 }
 
-func projectBuildInfo(info *debug.BuildInfo) record.BuildInfo {
+func ProjectBuildInfo(info *debug.BuildInfo) record.BuildInfo {
 	settings := make([]record.BuildSetting, len(info.Settings))
 	for index, setting := range info.Settings {
 		settings[index] = record.BuildSetting{Key: setting.Key, Value: setting.Value}
@@ -522,21 +523,17 @@ func projectBuildInfo(info *debug.BuildInfo) record.BuildInfo {
 }
 
 func hashRegularFile(path string) (string, uint64, error) {
-	info, err := os.Lstat(path)
+	file, info, err := safefile.OpenPath(path)
 	if err != nil {
-		return "", 0, err
-	}
-	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
-		return "", 0, fmt.Errorf("%s is not a regular executable", path)
-	}
-	if err := validateLinkCount(info); err != nil {
-		return "", 0, err
-	}
-	file, err := openNoFollow(path)
-	if err != nil {
+		if errors.Is(err, safefile.ErrSymbolicLink) {
+			return "", 0, fmt.Errorf("%s is not a regular executable", path)
+		}
 		return "", 0, err
 	}
 	defer file.Close()
+	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
+		return "", 0, fmt.Errorf("%s is not a regular executable", path)
+	}
 	hasher := sha256.New()
 	size, err := io.Copy(hasher, file)
 	if err != nil {
@@ -549,21 +546,17 @@ func hashRegularFile(path string) (string, uint64, error) {
 }
 
 func copyRegularFile(source, destination string) error {
-	info, err := os.Lstat(source)
+	input, info, err := safefile.OpenPath(source)
 	if err != nil {
+		if errors.Is(err, safefile.ErrSymbolicLink) {
+			return fmt.Errorf("exec target is not a regular executable")
+		}
 		return fmt.Errorf("stat exec target: %w", err)
 	}
+	defer input.Close()
 	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
 		return fmt.Errorf("exec target is not a regular executable")
 	}
-	if err := validateLinkCount(info); err != nil {
-		return err
-	}
-	input, err := openNoFollow(source)
-	if err != nil {
-		return fmt.Errorf("open exec target: %w", err)
-	}
-	defer input.Close()
 	output, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o700)
 	if err != nil {
 		return fmt.Errorf("create prepared exec target: %w", err)
@@ -583,24 +576,17 @@ func copyRegularFile(source, destination string) error {
 }
 
 func readBoundedRegularFile(path string, maximum uint64) ([]byte, error) {
-	info, err := os.Lstat(path)
+	file, info, err := safefile.OpenPath(path)
 	if err != nil {
-		return nil, err
-	}
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("%s is not a regular file", path)
-	}
-	if err := validateLinkCount(info); err != nil {
-		return nil, err
-	}
-	if info.Size() < 0 || uint64(info.Size()) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	file, err := openNoFollow(path)
-	if err != nil {
+		if errors.Is(err, safefile.ErrSymbolicLink) {
+			return nil, fmt.Errorf("%s is not a regular file", path)
+		}
 		return nil, err
 	}
 	defer file.Close()
+	if info.Size() < 0 || uint64(info.Size()) > maximum {
+		return nil, fmt.Errorf("%s exceeds its size bound", path)
+	}
 	data, err := io.ReadAll(io.LimitReader(file, int64(maximum)+1))
 	if err != nil {
 		return nil, err

@@ -2,10 +2,18 @@ package record
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"sort"
 	"strings"
 	"testing"
 )
+
+func TestSHA256FromSumUsesCanonicalIdentity(t *testing.T) {
+	sum := sha256.Sum256([]byte("payload"))
+	if got, want := SHA256FromSum(sum), SHA256("sha256:239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5"); got != want {
+		t.Fatalf("SHA256FromSum() = %q, want %q", got, want)
+	}
+}
 
 func TestDomainHashUsesNamedNULTerminatedDomain(t *testing.T) {
 	if got, want := DomainHash("gomadv3-run-record-v1", []byte("payload")), SHA256("sha256:087406f9758d2fbb56f25c4a24ef6fbc9986ba6108814b05105ae598447940a5"); got != want {

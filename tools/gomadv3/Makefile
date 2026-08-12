@@ -1,4 +1,4 @@
-.PHONY: generate intercept-test patch-test runner runner-test overlay-test world-test toolchain validate test-harness test
+.PHONY: generate intercept-test patch-test runner runner-test overlay-test world-test toolchain validate test-harness test-builder test-runtime test-upstream test
 
 OVERLAY_FILES := $(shell find overlay -type f)
 IOWIRE_INPUTS := protocol/iowire.json protocol/iowire.go.tmpl protocol/iowire_test.go.tmpl $(shell find internal/protocolgen -type f)
@@ -40,6 +40,16 @@ validate:
 
 test-harness:
 	bash ./testlib_test.sh
+	bash ./test_modes_test.sh
+
+test-builder: toolchain
+	./test.sh test-builder
+
+test-runtime: toolchain
+	./test.sh test-runtime
+
+test-upstream: toolchain
+	./test.sh test-upstream
 
 test: test-harness patch-test intercept-test runner-test overlay-test world-test
 	./test.sh
