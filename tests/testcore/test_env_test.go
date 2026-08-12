@@ -1,13 +1,14 @@
 package testcore
 
 import (
+	"errors"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
+	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/testing/parallelsuite"
-	"go.temporal.io/server/common/testing/testlogger"
+	testmonitor "go.temporal.io/server/tests/testcore/monitor"
 )
 
 func TestWithInMemorySQLitePersistence(t *testing.T) {
@@ -65,37 +66,24 @@ func (s *TestEnvSuite) TestDedicatedClusterGuard_ConcurrentRecord() {
 	s.NoError(guard.validate())
 }
 
-func (s *TestEnvSuite) TestStartNamespaceLogCapture() {
-	testLogger := testlogger.NewTestLogger(s.T(), testlogger.FailOnExpectedErrorOnly)
-	env := &TestEnv{
-		FunctionalTestBase: &FunctionalTestBase{externalNamespace: namespace.Name("external")},
-		Logger:             testLogger,
-		nsName:             namespace.Name("primary"),
-		nsID:               namespace.ID("primary-id"),
-		t:                  s.T(),
+func TestUmpireMonitorFactoryRequiresDedicatedCluster(t *testing.T) {
+	wantErr := errors.New("factory failed")
+	var calls int
+	factory := func(log.Logger) (testmonitor.Monitor, error) {
+		calls++
+		return nil, wantErr
 	}
+	var options testOptions
 
-	capture := env.StartNamespaceLogCapture()
+	WithUmpireMonitorFactory(factory)(&options)
 
-	testLogger.Info("primary name", tag.WorkflowNamespace("primary"))
-	testLogger.Info("primary ID", tag.WorkflowNamespaceID("primary-id"))
-	testLogger.Info("external name", tag.WorkflowNamespace("external"))
-	testLogger.Info("unrelated name", tag.WorkflowNamespace("unrelated"))
-	testLogger.Info("unrelated ID", tag.WorkflowNamespaceID("unrelated-id"))
-
-	testLogger.Info("target only", tag.NexusEndpointTargetNamespaceID("primary-id"))
-	testLogger.Info("unscoped")
-
-	s.ElementsMatch([]testlogger.CapturedLog{
-		{
-			Level:   testlogger.Info,
-			Message: "primary name",
-			Tags:    []tag.Tag{tag.WorkflowNamespace("primary")},
-		},
-		{
-			Level:   testlogger.Info,
-			Message: "primary ID",
-			Tags:    []tag.Tag{tag.WorkflowNamespaceID("primary-id")},
-		},
-	}, capture.Snapshot())
+	require.True(t, options.dedicatedCluster)
+	require.Equal(t, "custom Umpire monitor used", options.dedicatedReason)
+	require.Len(t, options.clusterOptions, 1)
+	params := ApplyTestClusterOptions(options.clusterOptions)
+	require.NotNil(t, params.UmpireMonitorFactory)
+	monitor, err := params.UmpireMonitorFactory(nil)
+	require.Nil(t, monitor)
+	require.ErrorIs(t, err, wantErr)
+	require.Equal(t, 1, calls)
 }
