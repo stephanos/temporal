@@ -73,7 +73,7 @@ validate_patch_path() {
 	if [[ $1 == src/net/dial.go || $1 == src/net/net.go || $1 == src/net/tcpsock.go || $1 == src/net/tcpsock_unix.go ]]; then
 		return
 	fi
-	if [[ $1 == src/os/file.go || $1 == src/os/path.go || $1 == src/os/stat.go || $1 == src/os/sys.go ]]; then
+	if [[ $1 == src/os/dir.go || $1 == src/os/file.go || $1 == src/os/file_posix.go || $1 == src/os/path.go || $1 == src/os/stat.go || $1 == src/os/stat_unix.go || $1 == src/os/sys.go ]]; then
 		return
 	fi
 	if [[ $1 == src/testing/testing.go ]]; then

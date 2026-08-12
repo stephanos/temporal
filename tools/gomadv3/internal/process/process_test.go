@@ -2,6 +2,9 @@ package process
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/world"
 	worldchild "go.temporal.io/server/tools/gomadv3/world/child"
 )
@@ -64,6 +68,28 @@ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
 	}
 	if result.Termination != TerminationExit || result.ExitCode != 0 || string(result.Stdout.Bytes) != "profile-frame" {
 		t.Fatalf("result = %#v, stdout = %q", result, result.Stdout.Bytes)
+	}
+}
+
+func TestRunInstallsReadOnlyMountBrokerDescriptors(t *testing.T) {
+	source := t.TempDir()
+	if err := os.WriteFile(filepath.Join(source, "file"), []byte("contents"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	result, err := Run(context.Background(), Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=io-ro-mount"}, IOConfig: []byte("profile-frame"), IOTranscriptLimit: 1 << 20,
+		IOROMounts: []romount.Mapping{{Source: source, Target: "/mounted"}}, IOROMountLimits: romount.DefaultLimits(),
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		WorldRecordLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.ExitCode != 0 || string(result.Stdout.Bytes) != "contents" || len(result.IOROMounts.Entries) != 1 {
+		t.Fatalf("result = %#v", result)
 	}
 }
 
@@ -341,6 +367,23 @@ func TestTargetHelper(t *testing.T) {
 			os.Exit(23)
 		}
 		os.Exit(0)
+	case "io-ro-mount":
+		request := os.NewFile(9, "gomadv3-io-ro-mount-request")
+		response := os.NewFile(10, "gomadv3-io-ro-mount-response")
+		if request == nil || response == nil || romount.WriteLookupRequest(request, 0, "/mounted/file") != nil {
+			os.Exit(24)
+		}
+		entry, err := romount.ReadResponse(response, romount.DefaultLimits())
+		if err != nil || entry.Status != romount.StatusOK {
+			os.Exit(25)
+		}
+		if _, err := os.Stdout.Write(entry.Entry.Data); err != nil {
+			os.Exit(26)
+		}
+		if err := writeEmptyIOTranscriptTerminal(); err != nil {
+			os.Exit(27)
+		}
+		os.Exit(0)
 	case "spawn-child":
 		command := exec.Command(os.Getenv("GOMADV3_HELPER_EXE"), "-test.run=TestTargetHelper")
 		command.Env = []string{
@@ -409,6 +452,26 @@ func TestTargetHelper(t *testing.T) {
 	default:
 		t.Skip("target subprocess only")
 	}
+}
+
+func writeEmptyIOTranscriptTerminal() error {
+	terminal := make([]byte, ioTerminalBytes)
+	copy(terminal[:8], ioTerminalMagic[:])
+	binary.BigEndian.PutUint32(terminal[8:12], 1)
+	terminal[12] = 1
+	binary.BigEndian.PutUint64(terminal[24:32], ioTranscriptHeaderBytes)
+	digest := sha256.Sum256(nil)
+	copy(terminal[32:64], digest[:])
+	checksum := sha256.Sum256(terminal[:72])
+	copy(terminal[72:], checksum[:])
+	file := os.NewFile(7, "gomadv3-io-terminal")
+	if file == nil {
+		return errors.New("terminal descriptor unavailable")
+	}
+	if _, err := file.Write(terminal); err != nil {
+		return err
+	}
+	return file.Close()
 }
 
 func TestUnresponsiveSupervisorHelper(t *testing.T) {

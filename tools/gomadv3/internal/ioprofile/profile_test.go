@@ -24,6 +24,28 @@ func TestResolvePublicProfile(t *testing.T) {
 	}
 }
 
+func TestResolveBatchSecurityProfileBindsExactSuite(t *testing.T) {
+	profile, err := Resolve(TemporalActivityAPIBatchSecurity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	argument := "-test.run=^TestActivityAPIBatchSecurityTestSuite$"
+	err = profile.ValidatePreparedTarget(target.Spec{Kind: target.KindGoTest, Source: "./tests", Args: []string{argument}}, target.Prepared{
+		Kind: target.KindGoTest, Source: "./tests", Argv: []string{"gomadv3-target", argument}, BuildTags: []string{"test_dep"},
+		BuildInfo: record.BuildInfo{Path: "go.temporal.io/server/tests.test"}, GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cancel, err := Resolve(TemporalActivityAPIBatchCancel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if profile.InventorySHA256 == cancel.InventorySHA256 || profile.ImplementationSHA256 == cancel.ImplementationSHA256 {
+		t.Fatal("batch-security profile reused the batch-cancel identity")
+	}
+}
+
 func TestValidatePreparedTargetAcceptsExactSuite(t *testing.T) {
 	profile, err := Resolve(TemporalActivityAPIBatchCancel)
 	if err != nil {

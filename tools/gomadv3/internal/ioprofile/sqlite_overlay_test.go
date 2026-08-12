@@ -23,7 +23,7 @@ func TestProfilePreparesPinnedSQLiteOverlay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(TemporalActivityAPIBatchCancel)
+	profile, err := Resolve(TemporalActivityAPIBatchSecurity)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestProfilePreparesPinnedSQLiteOverlay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if spec.BuildModFile != overlay.Path || spec.BuildOverlay != "" || overlay.SourceSHA256 != "sha256:49e9d6f24ca24c12a0cd99593655d5236eaf88214d7b1e0fc94a5262c44e5180" {
+	if spec.BuildModFile != overlay.Path || spec.BuildOverlay == "" || overlay.SourceSHA256 != "sha256:49e9d6f24ca24c12a0cd99593655d5236eaf88214d7b1e0fc94a5262c44e5180" {
 		t.Fatalf("overlay = %#v, spec = %#v", overlay, spec)
 	}
 	replacement, err := os.ReadFile(overlay.Replacement)
@@ -50,5 +50,12 @@ func TestProfilePreparesPinnedSQLiteOverlay(t *testing.T) {
 	digest := sha256.Sum256(replacement)
 	if overlay.ReplacementSHA256 != fmt.Sprintf("sha256:%x", digest) {
 		t.Fatalf("replacement digest = %q", overlay.ReplacementSHA256)
+	}
+	overlayBytes, err := os.ReadFile(spec.BuildOverlay)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(overlayBytes), "functional_test_base.go") {
+		t.Fatalf("Temporal overlay = %s", overlayBytes)
 	}
 }

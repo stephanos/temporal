@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/internal/worldpipe"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -31,6 +32,8 @@ const (
 	ioTranscriptFD
 	ioTerminalFD
 	ioExpectedFD
+	ioROMountRequestFD
+	ioROMountResponseFD
 )
 
 const (
@@ -43,6 +46,8 @@ const (
 	bootstrapIOTranscriptFD
 	bootstrapIOTerminalFD
 	bootstrapIOExpectedFD
+	bootstrapIOROMountRequestFD
+	bootstrapIOROMountResponseFD
 )
 
 type targetIdentity struct {
@@ -66,6 +71,7 @@ type supervisorRequest struct {
 	IOConfig             []byte        `json:"io_config"`
 	IOTranscriptLimit    uint64        `json:"io_transcript_limit"`
 	IOReplay             bool          `json:"io_replay"`
+	IOROMounts           bool          `json:"io_ro_mounts"`
 }
 
 type targetBootstrapRequest struct {
@@ -77,6 +83,7 @@ type targetBootstrapRequest struct {
 	IOConfig          []byte   `json:"io_config"`
 	IOTranscriptLimit uint64   `json:"io_transcript_limit"`
 	IOReplay          bool     `json:"io_replay"`
+	IOROMounts        bool     `json:"io_ro_mounts"`
 }
 
 type supervisorReport struct {
@@ -123,6 +130,31 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		defer func() {
 			retErr = errors.Join(retErr, ioBacking.close())
 		}()
+	}
+	var readOnlyMountBroker *romount.Broker
+	var mountRequestRead, mountRequestWrite, mountResponseRead, mountResponseWrite *os.File
+	if len(request.IOROMounts) != 0 {
+		if request.IOROMountReplay == nil {
+			readOnlyMountBroker, err = romount.Prepare(request.IOROMounts, request.IOROMountLimits)
+		} else {
+			readOnlyMountBroker, err = romount.PrepareReplay(request.IOROMounts, request.IOROMountLimits, *request.IOROMountReplay)
+		}
+		if err != nil {
+			return Result{}, fmt.Errorf("prepare read-only mounts: %w", err)
+		}
+		defer func() { retErr = errors.Join(retErr, readOnlyMountBroker.Close()) }()
+		mountRequestRead, mountRequestWrite, err = os.Pipe()
+		if err != nil {
+			return Result{}, fmt.Errorf("create read-only mount request pipe: %w", err)
+		}
+		defer mountRequestRead.Close()
+		defer mountRequestWrite.Close()
+		mountResponseRead, mountResponseWrite, err = os.Pipe()
+		if err != nil {
+			return Result{}, fmt.Errorf("create read-only mount response pipe: %w", err)
+		}
+		defer mountResponseRead.Close()
+		defer mountResponseWrite.Close()
 	}
 
 	controlRead, controlWrite, err := os.Pipe()
@@ -174,11 +206,15 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if ioBacking != nil {
 		command.ExtraFiles = append(command.ExtraFiles, ioBacking.file, ioBacking.terminalWrite, ioBacking.expected)
 	}
+	if readOnlyMountBroker != nil {
+		command.ExtraFiles = append(command.ExtraFiles, mountRequestWrite, mountResponseRead)
+	}
 	if err := command.Start(); err != nil {
 		return Result{}, fmt.Errorf("start supervisor: %w", err)
 	}
 	if closeErr := errors.Join(
 		controlRead.Close(), reportWrite.Close(), stdoutWrite.Close(), stderrWrite.Close(), requestRead.Close(), worldWrite.Close(), identityWrite.Close(),
+		closeOpenFile(&mountRequestWrite), closeOpenFile(&mountResponseRead),
 	); closeErr != nil {
 		return Result{}, errors.Join(fmt.Errorf("close inherited supervisor pipe ends: %w", closeErr), cleanupEarlySupervisor(command, controlWrite, reportRead, nil, deadline))
 	}
@@ -217,6 +253,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		IOConfig:             append([]byte(nil), request.IOConfig...),
 		IOTranscriptLimit:    request.IOTranscriptLimit,
 		IOReplay:             request.IOReplay,
+		IOROMounts:           readOnlyMountBroker != nil,
 	}
 	if err := json.NewEncoder(requestWrite).Encode(wireRequest); err != nil {
 		cleanupErr := cleanupEarlySupervisor(command, controlWrite, reportRead, identities, deadline)
@@ -225,6 +262,12 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if err := requestWrite.Close(); err != nil {
 		cleanupErr := cleanupEarlySupervisor(command, controlWrite, reportRead, identities, deadline)
 		return Result{}, errors.Join(fmt.Errorf("close supervisor request: %w", err), cleanupErr)
+	}
+	var mountServed <-chan error
+	if readOnlyMountBroker != nil {
+		served := make(chan error, 1)
+		go func() { served <- readOnlyMountBroker.Serve(mountRequestRead, mountResponseWrite) }()
+		mountServed = served
 	}
 
 	type captureResult struct {
@@ -389,6 +432,18 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}
 		result.IOTranscript = transcript
 	}
+	if readOnlyMountBroker != nil {
+		if err := mountRequestRead.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close read-only mount request reader: %w", err)
+		}
+		if err := mountResponseWrite.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close read-only mount response writer: %w", err)
+		}
+		if serveErr := <-mountServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) {
+			return result, fmt.Errorf("serve read-only mounts: %w", serveErr)
+		}
+		result.IOROMounts = readOnlyMountBroker.Captured()
+	}
 	if started != nil {
 		result.PID = started.PID
 		result.PGID = started.PGID
@@ -520,12 +575,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
-	var ioTranscript, ioTerminal, ioExpected *os.File
+	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse))
 	}()
 
 	var request supervisorRequest
@@ -541,6 +596,13 @@ func SupervisorMain() (retErr error) {
 		ioExpected = os.NewFile(ioExpectedFD, "target-io-expected")
 		if ioTranscript == nil || ioTerminal == nil || ioExpected == nil {
 			return errors.New("I/O transcript file descriptors are unavailable")
+		}
+	}
+	if request.IOROMounts {
+		ioROMountRequest = os.NewFile(ioROMountRequestFD, "target-io-ro-mount-request")
+		ioROMountResponse = os.NewFile(ioROMountResponseFD, "target-io-ro-mount-response")
+		if ioROMountRequest == nil || ioROMountResponse == nil {
+			return errors.New("read-only mount file descriptors are unavailable")
 		}
 	}
 	deadline := startedAt.Add(request.RunTimeout)
@@ -590,6 +652,9 @@ func SupervisorMain() (retErr error) {
 	if ioTranscript != nil {
 		target.ExtraFiles = append(target.ExtraFiles, ioTranscript, ioTerminal, ioExpected)
 	}
+	if ioROMountRequest != nil {
+		target.ExtraFiles = append(target.ExtraFiles, ioROMountRequest, ioROMountResponse)
+	}
 	target.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err := target.Start(); err != nil {
 		return errors.Join(fmt.Errorf("start target bootstrap: %w", err), bootstrapRead.Close(), bootstrapWrite.Close(), activationRead.Close(), activationWrite.Close(), readinessRead.Close(), readinessWrite.Close(), configRead.Close(), configWrite.Close())
@@ -603,10 +668,10 @@ func SupervisorMain() (retErr error) {
 	if err := encoder.Encode(supervisorReport{Kind: "started", PID: pid, PGID: targetPGID}); err != nil {
 		return errors.Join(fmt.Errorf("report target start: %w", err), bootstrapRead.Close(), bootstrapWrite.Close(), activationRead.Close(), activationWrite.Close(), readinessRead.Close(), readinessWrite.Close(), configRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	if closeErr := errors.Join(bootstrapRead.Close(), activationRead.Close(), readinessWrite.Close(), configRead.Close(), closeOpenFile(&worldRecord), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected)); closeErr != nil {
+	if closeErr := errors.Join(bootstrapRead.Close(), activationRead.Close(), readinessWrite.Close(), configRead.Close(), closeOpenFile(&worldRecord), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse)); closeErr != nil {
 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay}
+	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts}
 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}

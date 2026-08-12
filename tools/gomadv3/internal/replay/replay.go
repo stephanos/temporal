@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 	"go.temporal.io/server/tools/gomadv3/internal/worldrecord"
 	"go.temporal.io/server/tools/gomadv3/world"
@@ -128,6 +129,9 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	var ioConfig []byte
 	var ioTranscriptLimit uint64
 	var expectedIOTranscript []byte
+	var readOnlyMounts []romount.Mapping
+	var readOnlyMountLimits romount.Limits
+	var readOnlyMountSnapshot *romount.Snapshot
 	if manifest.IOProfile.Name != "" {
 		profile, profileErr := ioprofile.Resolve(manifest.IOProfile.Name)
 		if profileErr != nil {
@@ -144,6 +148,20 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		if manifest.IOProfile.Transcript == nil {
 			return Result{}, errors.New("recorded I/O profile has no complete transcript")
 		}
+		if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
+			descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
+			if readErr != nil {
+				return Result{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
+			}
+			var snapshot romount.Snapshot
+			readOnlyMounts, readOnlyMountLimits, snapshot, readErr = romount.DecodeArtifact(*mounts, descriptor, func(name string, maximum uint64) ([]byte, error) {
+				return artifact.ReadPayload(opened, name, maximum)
+			})
+			if readErr != nil {
+				return Result{}, fmt.Errorf("decode read-only mount artifact: %w", readErr)
+			}
+			readOnlyMountSnapshot = &snapshot
+		}
 		expectedIOTranscript, err = artifact.ReadPayload(opened, manifest.IOProfile.Transcript.File, ioTranscriptLimit)
 		if err != nil {
 			return Result{}, fmt.Errorf("read expected I/O transcript: %w", err)
@@ -157,6 +175,7 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		WorldRecordLimit: world.MaximumRecordingBytes, WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		WorldSeed: uint64(manifest.Seed), ExpectedWorldInitial: expectedWorldInitial,
 		IOConfig: ioConfig, IOTranscriptLimit: ioTranscriptLimit, IOReplay: manifest.IOProfile.Name != "", ExpectedIOTranscript: expectedIOTranscript,
+		IOROMounts: readOnlyMounts, IOROMountLimits: readOnlyMountLimits, IOROMountReplay: readOnlyMountSnapshot,
 	})
 	if err != nil {
 		return Result{}, fmt.Errorf("execute replay target: %w", err)
@@ -206,6 +225,17 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 		}
 		if string(profile.Inventory) != manifest.IOProfile.Inventory || profile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 {
 			return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
+		}
+	}
+	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
+		descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
+		if readErr != nil {
+			return artifact.Artifact{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
+		}
+		if _, _, _, readErr = romount.DecodeArtifact(*mounts, descriptor, func(name string, maximum uint64) ([]byte, error) {
+			return artifact.ReadPayload(opened, name, maximum)
+		}); readErr != nil {
+			return artifact.Artifact{}, fmt.Errorf("validate read-only mount artifact: %w", readErr)
 		}
 	}
 	if manifest.ReplayMode != record.ReplayExact && manifest.ReplayMode != record.ReplayDiagnostic {

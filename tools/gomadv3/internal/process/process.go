@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"go.temporal.io/server/tools/gomadv3/internal/romount"
 )
 
 type Termination string
@@ -37,6 +39,9 @@ type Request struct {
 	IOTranscriptLimit    uint64
 	IOReplay             bool
 	ExpectedIOTranscript []byte
+	IOROMounts           []romount.Mapping
+	IOROMountLimits      romount.Limits
+	IOROMountReplay      *romount.Snapshot
 	StdoutHead           io.Writer
 	StderrHead           io.Writer
 }
@@ -55,6 +60,7 @@ type Result struct {
 	GroupGone       bool
 	WorldRecord     []byte
 	IOTranscript    IOTranscript
+	IOROMounts      romount.Snapshot
 }
 
 type IOTranscript struct {
@@ -104,6 +110,16 @@ func validateRequest(request Request) error {
 	}
 	if request.IOReplay && request.IOTranscriptLimit == 0 {
 		return errors.New("I/O replay requires a transcript")
+	}
+	if len(request.IOROMounts) != 0 {
+		if len(request.IOConfig) == 0 || request.IOTranscriptLimit == 0 {
+			return errors.New("read-only mounts require an I/O profile transcript")
+		}
+		if request.IOROMountLimits == (romount.Limits{}) {
+			return errors.New("read-only mounts require limits")
+		}
+	} else if request.IOROMountReplay != nil {
+		return errors.New("read-only mount replay requires mappings")
 	}
 	if !request.IOReplay && len(request.ExpectedIOTranscript) != 0 {
 		return errors.New("expected I/O transcript requires replay mode")
