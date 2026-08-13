@@ -69,14 +69,8 @@ func runEvidence(
 		Schema:      RunEvidenceSchema,
 		Seed:        record.Uint64String(completion.job.seed),
 		RunnerBuild: config.RunnerBuild,
-		Toolchain: record.Toolchain{
-			GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey,
-			TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH,
-		},
-		Target: record.Target{
-			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
-			Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), Adapters: cloneAdapters(prepared.Adapters), Compatibility: cloneCompatibility(prepared.Compatibility), BuildInfo: cloneBuildInfo(prepared.BuildInfo),
-		},
+		Toolchain:   prepared.RecordToolchain(),
+		Target:      prepared.RecordTarget(),
 		IOProfile: IOProfileEvidence{
 			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), InventorySHA256: profile.InventorySHA256(),
 		},

@@ -507,6 +507,29 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	}
 }
 
+func TestPreparedRecordProjectionDefensivelyCopiesIdentity(t *testing.T) {
+	prepared := Prepared{
+		Kind: KindGoTest, Source: "./pkg", SHA256: string(record.HashBytes([]byte("target"))), Size: 6,
+		Argv: []string{"target", "argument"}, BuildTags: []string{"tag"},
+		Adapters: []record.TargetAdapter{{Module: "adapter"}}, Compatibility: []record.CompatibilityPack{{ID: "pack"}},
+		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "setting", Value: "value"}}},
+		GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64",
+	}
+	targetRecord := prepared.RecordTarget()
+	toolchainRecord := prepared.RecordToolchain()
+	prepared.Argv[0] = "changed"
+	prepared.BuildTags[0] = "changed"
+	prepared.Adapters[0].Module = "changed"
+	prepared.Compatibility[0].ID = "changed"
+	prepared.BuildInfo.Settings[0].Value = "changed"
+	if targetRecord.Kind != "go-test" || targetRecord.Argv[0] != "target" || targetRecord.BuildTags[0] != "tag" || targetRecord.Adapters[0].Module != "adapter" || targetRecord.Compatibility[0].ID != "pack" || targetRecord.BuildInfo.Settings[0].Value != "value" {
+		t.Fatalf("RecordTarget() = %#v", targetRecord)
+	}
+	if toolchainRecord.GoVersion != "go1.26.4" || toolchainRecord.BuildKey != strings.Repeat("a", 64) || toolchainRecord.TargetGOOS != "darwin" || toolchainRecord.TargetGOARCH != "arm64" {
+		t.Fatalf("RecordToolchain() = %#v", toolchainRecord)
+	}
+}
+
 func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 	base := provenanceWire{
 		Schema: provenanceSchema, SchemaVersion: 2, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
