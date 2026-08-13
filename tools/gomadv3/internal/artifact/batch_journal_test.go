@@ -34,7 +34,7 @@ func TestBatchJournalPublishesTheCanonicalBatchLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	partialPath := filepath.Join(run.Path(), "partial.json")
-	assertFileContents(t, partialPath, `{"schema_version":1,"seed":"7","selection_ordinal":"0","state":"staging"}`)
+	assertFileContents(t, partialPath, `{"schema_version":2,"seed":"7","selection_ordinal":"0","state":"staging"}`)
 	if err := run.Transition(RunStarting); err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestBatchJournalPublishesTheCanonicalBatchLifecycle(t *testing.T) {
 	}
 	const wantRuns = "{\"artifact\":null,\"domain\":\"success\",\"elapsed_nanos\":\"5\",\"failure_signature\":null,\"io_transcript_records\":null,\"io_transcript_sha256\":null,\"reason\":\"success\",\"seed\":\"7\",\"selection_ordinal\":\"0\",\"termination\":\"exit\"}\n"
 	assertFileContents(t, filepath.Join(journal.Path(), "runs.jsonl"), wantRuns)
-	const wantBatch = `{"attempted":"1","cancelled":"0","distinct_failures":"0","failure_signatures":[],"failures":"0","run_id":"run-fixed","runs_sha256":"sha256:52c0817ad9d6287383d15753b8c4ff3a4b5c2c805bf742d83bdb06c1d9ef8d44","schema":"gomadv3.batch/v1","schema_version":1,"selection":"7","selection_count":"1","stop_reason":"seeds_exhausted","succeeded":"1","watchdogs":"0"}`
+	const wantBatch = `{"attempted":"1","cancelled":"0","distinct_failures":"0","failure_signatures":[],"failures":"0","run_id":"run-fixed","runs_sha256":"sha256:52c0817ad9d6287383d15753b8c4ff3a4b5c2c805bf742d83bdb06c1d9ef8d44","schema":"gomadv3.batch/v1","schema_version":2,"selection":"7","selection_count":"1","stop_reason":"seeds_exhausted","succeeded":"1","watchdogs":"0"}`
 	assertFileContents(t, filepath.Join(journal.Path(), "batch.json"), wantBatch)
 	for _, removed := range []string{journal.PreparedPath(), filepath.Join(journal.Path(), ".partial", "batch"), run.Path()} {
 		if _, err := os.Stat(removed); !os.IsNotExist(err) {
@@ -240,7 +240,7 @@ func testBatchPlan(journal *BatchJournal, digest record.SHA256, size uint64) Bat
 		RunnerBuild: string(record.HashBytes([]byte("runner"))), Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Prepared: PreparedTargetPlan{
 			Path:   ".prepared/build/target",
-			Target: record.Target{Kind: "go-test", Source: "./pkg", SHA256: digest, Size: record.Uint64String(size), Argv: []string{"gomadv3-target"}, BuildTags: []string{"test_dep"}},
+			Target: record.Target{Kind: "go-test", Source: "./pkg", SHA256: digest, Size: record.Uint64String(size), Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}},
 		},
 		IOProfile:   IOProfilePlan{Name: "gomadv3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("io")), InventorySHA256: record.HashBytes([]byte("inventory"))},
 		Environment: []record.Environment{{Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}},
@@ -291,7 +291,7 @@ func TestBatchJournalPreservesExplicitFailureState(t *testing.T) {
 	if err := journal.FailPreparation("target_preparation", failure); err != nil {
 		t.Fatal(err)
 	}
-	const wantFailure = `{"detail":"build failed","reason":"target_preparation","schema_version":1,"state":"failed"}`
+	const wantFailure = `{"detail":"build failed","reason":"target_preparation","schema_version":2,"state":"failed"}`
 	assertFileContents(t, filepath.Join(journal.Path(), ".partial", "preparation", "partial.json"), wantFailure)
 	if err := journal.Fail("target_preparation", failure); err != nil {
 		t.Fatal(err)

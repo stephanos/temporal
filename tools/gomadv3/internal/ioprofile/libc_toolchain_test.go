@@ -26,7 +26,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 		t.Fatal(err)
 	}
 	profile := Default()
-	spec, _, err := profile.PrepareBuildOverlay(target.Spec{
+	spec, adapters, err := profile.PrepareBuildAdapters(target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: workingDirectory,
 		PreparationRoot: preparationRoot, ToolchainRoot: toolchainRoot,
 	}, moduleCache)
@@ -37,6 +37,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	prepared.Adapters = RecordAdapters(adapters)
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)

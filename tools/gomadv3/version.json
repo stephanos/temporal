@@ -43,6 +43,7 @@
     "src/internal/gomadwire/wire_generated.go",
     "src/internal/gomadwire/wire_generated_test.go",
     "src/net/gomad.go",
+    "src/net/gomad_unsupported_generated.go",
     "src/os/gomad.go",
     "src/runtime/gomad.go"
   ]

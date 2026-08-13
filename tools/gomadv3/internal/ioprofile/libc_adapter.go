@@ -3,6 +3,7 @@ package ioprofile
 import (
 	"bytes"
 	"crypto/sha256"
+	_ "embed"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -14,135 +15,47 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/internal/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
 
 const (
-	libcModulePath        = "modernc.org/libc"
-	libcModuleVersion     = gomadversion.ModerncLibcVersion
-	libcDarwinSHA256      = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
-	libcDarwinArm64SHA256 = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
-	libcUnixSHA256        = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
-	maximumModuleFiles    = 5000
-	maximumModuleBytes    = 512 << 20
+	libcModulePath         = "modernc.org/libc"
+	libcDarwinSHA256       = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
+	libcDarwinArm64SHA256  = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
+	libcUnixSHA256         = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
+	gomadLibcAdapterSHA256 = "sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c"
+	maximumModuleFiles     = 5000
+	maximumModuleBytes     = 512 << 20
 )
 
-type BuildOverlay struct {
-	Path              string
-	Source            string
-	Replacement       string
-	SourceSHA256      string
-	ReplacementSHA256 string
-}
-
-func (profile ProfileSpec) PrepareBuildOverlay(spec target.Spec, moduleCache string) (target.Spec, BuildOverlay, error) {
-	definition, err := profile.validated()
+func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
+	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "libc@"+identity.Version))
 	if err != nil {
-		return target.Spec{}, BuildOverlay{}, err
-	}
-	return definition.prepareBuildOverlay(spec, moduleCache)
-}
-
-func prepareDeterministicBuildOverlay(spec target.Spec, moduleCache string) (target.Spec, BuildOverlay, error) {
-	workingDirectory, err := filepath.Abs(spec.WorkingDir)
-	if err != nil {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("resolve target working directory: %w", err)
-	}
-	moduleFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.mod"))
-	if err != nil {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("read target module file: %w", err)
-	}
-	detected, err := detectLibcVersion(moduleFile)
-	if err != nil {
-		return target.Spec{}, BuildOverlay{}, err
-	}
-	if detected == "" {
-		return spec, BuildOverlay{}, nil
-	}
-	if detected != libcModuleVersion {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("unsupported %s version %q", libcModulePath, detected)
-	}
-	if moduleCache == "" || spec.PreparationRoot == "" {
-		return target.Spec{}, BuildOverlay{}, errors.New("deterministic I/O build adapter requires module cache and preparation root")
-	}
-	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "libc@"+libcModuleVersion))
-	if err != nil {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("resolve pinned modernc libc module: %w", err)
+		return adapterPreparation{}, fmt.Errorf("resolve pinned modernc libc module: %w", err)
 	}
 	rewrites, source, err := rewriteLibcModule(moduleSource)
 	if err != nil {
-		return target.Spec{}, BuildOverlay{}, err
+		return adapterPreparation{}, err
 	}
-	preparationRoot, err := filepath.Abs(spec.PreparationRoot)
-	if err != nil {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("resolve deterministic I/O preparation root: %w", err)
-	}
-	root := filepath.Join(preparationRoot, ".io-adapter")
-	if err := os.Mkdir(root, 0o700); err != nil {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("create deterministic I/O adapter directory: %w", err)
-	}
-	moduleReplacement := filepath.Join(root, "libc")
+	moduleReplacement := filepath.Join(root, "modernc-libc")
 	replacement, err := copyLibcModule(moduleSource, moduleReplacement, rewrites)
 	if err != nil {
-		return target.Spec{}, BuildOverlay{}, err
+		return adapterPreparation{}, err
 	}
-	if bytes.Contains(moduleFile, []byte("replace "+libcModulePath)) {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("target module already replaces %s", libcModulePath)
-	}
-	moduleFile = append(moduleFile, []byte("\nreplace "+libcModulePath+" => "+moduleReplacement+"\n")...)
-	modFilePath := filepath.Join(root, "gomad.mod")
-	if err := writeExclusive(modFilePath, moduleFile); err != nil {
-		return target.Spec{}, BuildOverlay{}, err
-	}
-	sumFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.sum"))
-	if err != nil {
-		return target.Spec{}, BuildOverlay{}, fmt.Errorf("read target module sums: %w", err)
-	}
-	if err := writeExclusive(filepath.Join(root, "gomad.sum"), sumFile); err != nil {
-		return target.Spec{}, BuildOverlay{}, err
-	}
-	spec.BuildModFile = modFilePath
-	return spec, BuildOverlay{
-		Path: modFilePath, Source: source, Replacement: replacement, SourceSHA256: libcDarwinSHA256,
-		ReplacementSHA256: digestBytes(rewrites["libc_darwin.go"]),
+	return adapterPreparation{
+		replacement: moduleReplacement,
+		evidence: BuildAdapter{
+			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
+			Source: source, Replacement: replacement, SourceSHA256: libcDarwinSHA256,
+			ReplacementSHA256: digestBytes(rewrites["libc_darwin.go"]),
+		},
 	}, nil
 }
 
-func detectLibcVersion(contents []byte) (string, error) {
-	inRequireBlock := false
-	for _, line := range strings.Split(string(contents), "\n") {
-		line = strings.TrimSpace(strings.SplitN(line, "//", 2)[0])
-		fields := strings.Fields(line)
-		if len(fields) == 0 {
-			continue
-		}
-		if fields[0] == "replace" && len(fields) > 1 && fields[1] == libcModulePath {
-			return "", fmt.Errorf("target module already replaces %s", libcModulePath)
-		}
-		if fields[0] == "require" {
-			if len(fields) == 2 && fields[1] == "(" {
-				inRequireBlock = true
-				continue
-			}
-			if len(fields) >= 3 && fields[1] == libcModulePath {
-				return fields[2], nil
-			}
-		}
-		if inRequireBlock {
-			if fields[0] == ")" {
-				inRequireBlock = false
-				continue
-			}
-			if len(fields) >= 2 && fields[0] == libcModulePath {
-				return fields[1], nil
-			}
-		}
-	}
-	return "", nil
-}
-
 func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
+	if digestBytes([]byte(gomadLibcAdapterSource)) != gomadLibcAdapterSHA256 {
+		return nil, "", errors.New("modernc libc adapter template identity mismatch")
+	}
 	identities := map[string]string{
 		"libc_darwin.go":       libcDarwinSHA256,
 		"libc_darwin_arm64.go": libcDarwinArm64SHA256,
@@ -386,202 +299,5 @@ func digestBytes(contents []byte) string {
 	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
-const gomadLibcAdapterSource = `// Copyright 2026 The Libc Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-//go:build darwin
-
-package libc
-
-import (
-	"syscall"
-	"unsafe"
-
-	"golang.org/x/sys/unix"
-	"modernc.org/libc/fcntl"
-)
-
-//go:linkname gomadLibcEnabled internal/gomadio.Enabled
-func gomadLibcEnabled() bool
-
-//go:linkname gomadLibcOpen internal/gomadio.LibcOpen
-func gomadLibcOpen(string, int, uint32) (int32, syscall.Errno)
-
-//go:linkname gomadLibcClose internal/gomadio.LibcClose
-func gomadLibcClose(int32) syscall.Errno
-
-//go:linkname gomadLibcRead internal/gomadio.LibcRead
-func gomadLibcRead(int32, uintptr, uint64, int64, bool) (int64, syscall.Errno)
-
-//go:linkname gomadLibcWrite internal/gomadio.LibcWrite
-func gomadLibcWrite(int32, uintptr, uint64, int64, bool) (int64, syscall.Errno)
-
-//go:linkname gomadLibcSeek internal/gomadio.LibcSeek
-func gomadLibcSeek(int32, int64, int) (int64, syscall.Errno)
-
-//go:linkname gomadLibcTruncate internal/gomadio.LibcTruncate
-func gomadLibcTruncate(int32, int64) syscall.Errno
-
-//go:linkname gomadLibcSync internal/gomadio.LibcSync
-func gomadLibcSync(int32) syscall.Errno
-
-//go:linkname gomadLibcRemove internal/gomadio.LibcRemove
-func gomadLibcRemove(string) syscall.Errno
-
-//go:linkname gomadLibcRename internal/gomadio.LibcRename
-func gomadLibcRename(string, string) syscall.Errno
-
-//go:linkname gomadLibcMkdir internal/gomadio.LibcMkdir
-func gomadLibcMkdir(string, uint32) syscall.Errno
-
-//go:linkname gomadLibcAccess internal/gomadio.LibcAccess
-func gomadLibcAccess(string) syscall.Errno
-
-//go:linkname gomadLibcStat internal/gomadio.LibcStat
-func gomadLibcStat(string, int32) (uint32, int64, syscall.Errno)
-
-//go:linkname gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor
-func gomadLibcIsDescriptor(int32) bool
-
-//go:linkname gomadLibcNow internal/gomadio.LibcNow
-func gomadLibcNow() (int64, int64)
-
-func gomadErrno(t *TLS, errno syscall.Errno) int32 {
-	if errno == 0 { return 0 }
-	t.setErrno(errno)
-	return -1
-}
-
-func gomadOpen(t *TLS, name string, flags int32, mode uint32) int32 {
-	fd, errno := gomadLibcOpen(name, int(flags), mode)
-	if errno != 0 { return gomadErrno(t, errno) }
-	return fd
-}
-
-func gomadClose(t *TLS, fd int32) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	return gomadErrno(t, gomadLibcClose(fd)), true
-}
-
-func gomadRead(t *TLS, fd int32, address uintptr, size uint64, offset int64, positional bool) (int64, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
-	result, errno := gomadLibcRead(fd, address, size, offset, positional)
-	if errno != 0 { return int64(gomadErrno(t, errno)), true }
-	return result, true
-}
-
-func gomadWrite(t *TLS, fd int32, address uintptr, size uint64, offset int64, positional bool) (int64, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
-	result, errno := gomadLibcWrite(fd, address, size, offset, positional)
-	if errno != 0 { return int64(gomadErrno(t, errno)), true }
-	return result, true
-}
-
-func gomadSeek(t *TLS, fd int32, offset int64, whence int32) (int64, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
-	result, errno := gomadLibcSeek(fd, offset, int(whence))
-	if errno != 0 { return int64(gomadErrno(t, errno)), true }
-	return result, true
-}
-
-func gomadTruncate(t *TLS, fd int32, size int64) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	return gomadErrno(t, gomadLibcTruncate(fd, size)), true
-}
-
-func gomadSync(t *TLS, fd int32) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	return gomadErrno(t, gomadLibcSync(fd)), true
-}
-
-func gomadGetcwd(t *TLS, address uintptr, size uint64) (uintptr, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if size < 2 || address == 0 { gomadErrno(t, syscall.ERANGE); return 0, true }
-	buffer := unsafe.Slice((*byte)(unsafe.Pointer(address)), int(size))
-	buffer[0], buffer[1] = '/', 0
-	return address, true
-}
-
-func gomadStatPath(t *TLS, name string, address uintptr) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	return gomadFillStat(t, name, -1, address), true
-}
-
-func gomadStatDescriptor(t *TLS, fd int32, address uintptr) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	return gomadFillStat(t, "", fd, address), true
-}
-
-func gomadFillStat(t *TLS, name string, fd int32, address uintptr) int32 {
-	mode, size, errno := gomadLibcStat(name, fd)
-	if errno != 0 { return gomadErrno(t, errno) }
-	if address == 0 { return gomadErrno(t, syscall.EFAULT) }
-	*(*unix.Stat_t)(unsafe.Pointer(address)) = unix.Stat_t{Mode: uint16(mode), Nlink: 1, Size: size, Blocks: (size + 511) / 512, Blksize: 4096}
-	return 0
-}
-
-func gomadStatfs(t *TLS, fd int32, address uintptr) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	return gomadFillStatfs(t, address), true
-}
-
-func gomadStatfsPath(t *TLS, name string, address uintptr) int32 {
-	if errno := gomadLibcAccess(name); errno != 0 { return gomadErrno(t, errno) }
-	return gomadFillStatfs(t, address)
-}
-
-func gomadFillStatfs(t *TLS, address uintptr) int32 {
-	if address == 0 { return gomadErrno(t, syscall.EFAULT) }
-	*(*unix.Statfs_t)(unsafe.Pointer(address)) = unix.Statfs_t{Bsize: 4096, Iosize: 4096, Blocks: 1 << 30, Bfree: 1 << 29, Bavail: 1 << 29, Files: 1 << 30, Ffree: 1 << 29}
-	return 0
-}
-
-func gomadMkdir(t *TLS, name string, mode uint32) int32 { return gomadErrno(t, gomadLibcMkdir(name, mode)) }
-func gomadRemove(t *TLS, name string) (result int32) { return gomadErrno(t, gomadLibcRemove(name)) }
-func gomadRename(t *TLS, oldName, newName string) int32 { return gomadErrno(t, gomadLibcRename(oldName, newName)) }
-func gomadAccess(t *TLS, name string) int32 { return gomadErrno(t, gomadLibcAccess(name)) }
-
-func gomadDescriptorNoop(t *TLS, fd int32) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	return 0, true
-}
-
-func gomadFcntl(t *TLS, fd, cmd int32, args uintptr) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
-	switch cmd {
-	case fcntl.F_GETLK:
-		lock := *(*uintptr)(unsafe.Pointer(args))
-		(*unix.Flock_t)(unsafe.Pointer(lock)).Type = fcntl.F_UNLCK
-		return 0, true
-	case fcntl.F_SETLK, fcntl.F_SETLKW, fcntl.F_GETFL, fcntl.F_FULLFSYNC, fcntl.F_SETFD, fcntl.F_SETFL:
-		return 0, true
-	default:
-		return gomadErrno(t, syscall.ENOTSUP), true
-	}
-}
-
-func gomadMmap(t *TLS, fd int32) (uintptr, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	gomadErrno(t, syscall.ENODEV)
-	return ^uintptr(0), true
-}
-
-func gomadGettimeofday(t *TLS, tv, tz uintptr) (int32, bool) {
-	if !gomadLibcEnabled() { return 0, false }
-	if tz != 0 || tv == 0 { return gomadErrno(t, syscall.EINVAL), true }
-	seconds, microseconds := gomadLibcNow()
-	*(*unix.Timeval)(unsafe.Pointer(tv)) = unix.Timeval{Sec: seconds, Usec: int32(microseconds)}
-	return 0, true
-}
-`
+//go:embed adapterdata/modernc_libc_darwin.go.tmpl
+var gomadLibcAdapterSource string

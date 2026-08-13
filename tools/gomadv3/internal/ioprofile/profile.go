@@ -7,6 +7,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
+	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
 
 const (
@@ -32,7 +33,7 @@ type profileDefinition struct {
 	implementationFamily  string
 	implementationVersion string
 	implementationSHA256  record.SHA256
-	prepareBuildOverlay   func(target.Spec, string) (target.Spec, BuildOverlay, error)
+	adapters              adapterRegistry
 }
 
 type inventory struct {
@@ -51,30 +52,37 @@ type inventoryEntry struct {
 	Operations  []string `json:"operations"`
 }
 
+var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adapterImplementation{{
+	module: libcModulePath,
+	inventory: inventoryEntry{
+		Boundary: libcModulePath, Disposition: "target-adapter", Operations: []string{"filesystem", "entropy", "time"},
+	},
+	prepare: prepareModerncLibc,
+}})
+
 var deterministicProfile = mustProfileSpec(profileDefinition{
 	name:                  Deterministic,
 	target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: generatedBoundaryGOOS, GOARCH: generatedBoundaryGOARCH},
 	implementationFamily:  "gomadv3.deterministic-io/v1",
 	implementationVersion: deterministicImplementationVersion,
-	prepareBuildOverlay:   prepareDeterministicBuildOverlay,
+	adapters:              deterministicAdapters,
 })
 
-var profileRegistry = []ProfileSpec{deterministicProfile}
-
-var profilesByName = map[string]ProfileSpec{Deterministic: deterministicProfile}
-
 func mustProfileSpec(definition profileDefinition) ProfileSpec {
+	entries := []inventoryEntry{
+		{Boundary: "crypto/rand", Disposition: "in-memory", Operations: []string{"Reader.Read", "Read"}},
+		{Boundary: "filesystem", Disposition: "in-memory", Operations: []string{"open", "read", "write", "stat", "rename", "remove", "mkdir"}},
+		{Boundary: "io-transcript", Disposition: "shared-memory", Operations: []string{"expected-replay", "record", "terminal"}},
+	}
+	entries = append(entries, definition.adapters.inventory()...)
+	entries = append(entries,
+		inventoryEntry{Boundary: "net", Disposition: "in-memory", Operations: []string{"Dial", "DialTCP", "Dialer.DialContext", "Listen", "ListenConfig.Listen", "ListenTCP"}},
+		inventoryEntry{Boundary: "os.read-only-mount", Disposition: "lazy-in-memory", Operations: []string{"open", "read", "stat", "readdir"}},
+	)
 	encoded, err := record.CanonicalJSON(inventory{
 		Schema: "gomadv3.io-inventory/v1", Profile: definition.name, Platform: definition.target.GOOS + "/" + definition.target.GOARCH,
 		BoundaryManifestVersion: generatedBoundaryManifestVersion, BoundaryManifestSHA256: record.SHA256(generatedBoundaryManifestSHA256),
-		Entries: []inventoryEntry{
-			{Boundary: "crypto/rand", Disposition: "in-memory", Operations: []string{"Reader.Read", "Read"}},
-			{Boundary: "filesystem", Disposition: "in-memory", Operations: []string{"open", "read", "write", "stat", "rename", "remove", "mkdir"}},
-			{Boundary: "io-transcript", Disposition: "shared-memory", Operations: []string{"expected-replay", "record", "terminal"}},
-			{Boundary: "modernc.org/libc", Disposition: "target-adapter", Operations: []string{"filesystem", "entropy", "time"}},
-			{Boundary: "net", Disposition: "in-memory", Operations: []string{"Dial", "DialTCP", "Dialer.DialContext", "Listen", "ListenConfig.Listen", "ListenTCP"}},
-			{Boundary: "os.read-only-mount", Disposition: "lazy-in-memory", Operations: []string{"open", "read", "stat", "readdir"}},
-		},
+		Entries:     entries,
 		ReservedFDs: []string{"bootstrap", "expected-transcript", "io-config", "io-terminal", "stderr", "stdout", "transcript", "world-config", "world-record", "read-only-mount-request", "read-only-mount-response"},
 	})
 	if err != nil {
@@ -84,14 +92,6 @@ func mustProfileSpec(definition profileDefinition) ProfileSpec {
 	definition.inventorySHA256 = digest(encoded)
 	definition.implementationSHA256 = digest([]byte(definition.implementationVersion + "\x00" + string(definition.inventorySHA256)))
 	return ProfileSpec{definition: &definition}
-}
-
-func Resolve(name string) (ProfileSpec, error) {
-	profile, found := profilesByName[name]
-	if !found {
-		return ProfileSpec{}, fmt.Errorf("unknown I/O profile %q", name)
-	}
-	return profile, nil
 }
 
 func Default() ProfileSpec {
@@ -134,11 +134,7 @@ func (profile ProfileSpec) TargetContract() TargetContract {
 }
 
 func (profile ProfileSpec) validated() (*profileDefinition, error) {
-	if profile.definition == nil {
-		return nil, fmt.Errorf("invalid I/O profile specification")
-	}
-	registered, found := profilesByName[profile.definition.name]
-	if !found || registered.definition != profile.definition {
+	if profile.definition == nil || profile.definition != deterministicProfile.definition {
 		return nil, fmt.Errorf("invalid I/O profile specification")
 	}
 	return profile.definition, nil
@@ -157,6 +153,9 @@ func (profile ProfileSpec) ValidatePreparedTarget(spec target.Spec, prepared tar
 	}
 	if prepared.GoVersion != definition.target.GoVersion || prepared.TargetGOOS != definition.target.GOOS || prepared.TargetGOARCH != definition.target.GOARCH {
 		return fmt.Errorf("deterministic I/O requires Go 1.26.4 on darwin/arm64")
+	}
+	if err := profile.VerifyAdapters(prepared.Adapters); err != nil {
+		return fmt.Errorf("deterministic I/O target adapters: %w", err)
 	}
 	return nil
 }

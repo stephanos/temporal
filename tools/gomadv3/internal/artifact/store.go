@@ -22,7 +22,15 @@ type Store struct {
 	Root         string
 	Context      context.Context
 	MaximumBytes uint64
+	Key          StoreKey
 }
+
+type StoreKey uint8
+
+const (
+	StoreKeyFailureSignature StoreKey = iota
+	StoreKeyRecord
+)
 
 type Input struct {
 	Manifest       record.Manifest
@@ -210,7 +218,11 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 		return Artifact{}, fmt.Errorf("sync artifact staging directory: %w", err)
 	}
 
-	finalPath := filepath.Join(store.Root, signatureDirectory(manifest.Outcome.FailureSignature, false))
+	identity, err := storeIdentity(store.Key, manifest)
+	if err != nil {
+		return Artifact{}, err
+	}
+	finalPath := filepath.Join(store.Root, identityDirectory(identity, false))
 	for {
 		if err := ctx.Err(); err != nil {
 			return Artifact{}, err
@@ -224,7 +236,11 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 		if openErr != nil {
 			return Artifact{}, fmt.Errorf("existing artifact %s failed validation: %w", finalPath, openErr)
 		}
-		if existing.Manifest.Outcome.FailureSignature == manifest.Outcome.FailureSignature {
+		existingIdentity, identityErr := storeIdentity(store.Key, existing.Manifest)
+		if identityErr != nil {
+			return Artifact{}, errors.Join(identityErr, existing.Close())
+		}
+		if existingIdentity == identity {
 			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest, StoredBytes: existing.StoredBytes}
 			if closeErr := existing.Close(); closeErr != nil {
 				return Artifact{}, fmt.Errorf("close existing artifact: %w", closeErr)
@@ -237,7 +253,7 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 		if closeErr := existing.Close(); closeErr != nil {
 			return Artifact{}, fmt.Errorf("close colliding artifact: %w", closeErr)
 		}
-		completePath := filepath.Join(store.Root, signatureDirectory(manifest.Outcome.FailureSignature, true))
+		completePath := filepath.Join(store.Root, identityDirectory(identity, true))
 		if finalPath == completePath {
 			return Artifact{}, fmt.Errorf("artifact signature collision at %s", finalPath)
 		}
@@ -260,8 +276,19 @@ func artifactStoredBytes(manifest record.Manifest, manifestBytes uint64) (uint64
 	return total, nil
 }
 
-func signatureDirectory(signature record.SHA256, complete bool) string {
-	hex := strings.TrimPrefix(string(signature), "sha256:")
+func storeIdentity(key StoreKey, manifest record.Manifest) (record.SHA256, error) {
+	switch key {
+	case StoreKeyFailureSignature:
+		return manifest.Outcome.FailureSignature, nil
+	case StoreKeyRecord:
+		return manifest.RecordHash, nil
+	default:
+		return "", fmt.Errorf("unknown artifact store key %d", key)
+	}
+}
+
+func identityDirectory(identity record.SHA256, complete bool) string {
+	hex := strings.TrimPrefix(string(identity), "sha256:")
 	if !complete && len(hex) >= 32 {
 		hex = hex[:32]
 	}

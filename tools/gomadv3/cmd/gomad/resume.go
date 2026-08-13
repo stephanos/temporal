@@ -13,7 +13,7 @@ import (
 )
 
 type resumeDependencies struct {
-	identity func() (string, string, string, error)
+	identity func(string) (string, string, string, error)
 	run      func(context.Context, runner.Config) (runner.Summary, error)
 }
 
@@ -25,6 +25,7 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	flags := flag.NewFlagSet("gomad resume", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -45,7 +46,7 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		}
 		return 2
 	}
-	toolchain, executable, runnerBuild, err := dependencies.identity()
+	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)

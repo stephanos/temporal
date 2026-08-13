@@ -67,14 +67,6 @@ func TestFinalizeManifestSeparatesRunAndFailureIdentity(t *testing.T) {
 
 func TestFinalizeManifestBindsIOProfileInventory(t *testing.T) {
 	firstInput := manifestFixture()
-	firstInput.IOProfile = IOProfile{
-		Name:                 "profile/v1",
-		ImplementationSHA256: HashBytes([]byte("implementation")),
-		Inventory:            `{"schema":"inventory/v1"}`,
-		InventorySHA256:      HashBytes([]byte(`{"schema":"inventory/v1"}`)),
-	}
-	firstInput.Environment = append(firstInput.Environment, Environment{Name: "GOMADV3_IO_PROFILE", Value: firstInput.IOProfile.Name})
-	sort.Slice(firstInput.Environment, func(i, j int) bool { return firstInput.Environment[i].Name < firstInput.Environment[j].Name })
 	first, _ := finalizedManifest(t, firstInput)
 
 	changedInput := firstInput
@@ -89,6 +81,51 @@ func TestFinalizeManifestBindsIOProfileInventory(t *testing.T) {
 	invalid.IOProfile.InventorySHA256 = HashBytes([]byte("stale"))
 	if _, _, err := FinalizeManifest(invalid); err == nil || !strings.Contains(err.Error(), "inventory hash") {
 		t.Fatalf("FinalizeManifest(stale inventory hash) error = %v", err)
+	}
+}
+
+func TestFinalizeManifestRejectsProfilelessSchemaV2(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.IOProfile = IOProfile{}
+	manifest.Environment = []Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}}
+	if _, _, err := FinalizeManifest(manifest); err == nil || !strings.Contains(err.Error(), "I/O profile identity is required") {
+		t.Fatalf("FinalizeManifest(profileless schema v2) error = %v", err)
+	}
+}
+
+func TestFinalizeManifestBindsCompatibilityPacks(t *testing.T) {
+	firstInput := manifestFixture()
+	first, _ := finalizedManifest(t, firstInput)
+
+	changedInput := manifestFixture()
+	changedInput.Target.Compatibility[0].SHA256 = HashBytes([]byte("changed compatibility pack"))
+	changed, _ := finalizedManifest(t, changedInput)
+	if first.RecordHash == changed.RecordHash || first.Outcome.FailureSignature == changed.Outcome.FailureSignature {
+		t.Fatal("record identities omitted the compatibility pack")
+	}
+
+	invalid := manifestFixture()
+	invalid.Target.Compatibility[0].SHA256 = "sha256:invalid"
+	if _, _, err := FinalizeManifest(invalid); err == nil || !strings.Contains(err.Error(), "compatibility") {
+		t.Fatalf("FinalizeManifest(invalid compatibility pack) error = %v", err)
+	}
+}
+
+func TestFinalizeManifestBindsSelectedAdapters(t *testing.T) {
+	firstInput := manifestFixture()
+	first, _ := finalizedManifest(t, firstInput)
+
+	changedInput := manifestFixture()
+	changedInput.Target.Adapters[0].Version = "v1.72.4"
+	changed, _ := finalizedManifest(t, changedInput)
+	if first.RecordHash == changed.RecordHash || first.Outcome.FailureSignature == changed.Outcome.FailureSignature {
+		t.Fatal("record identities omitted the selected adapter")
+	}
+
+	invalid := manifestFixture()
+	invalid.Target.Adapters = nil
+	if _, _, err := FinalizeManifest(invalid); err == nil || !strings.Contains(err.Error(), "adapter") {
+		t.Fatalf("FinalizeManifest(null adapters) error = %v", err)
 	}
 }
 
@@ -225,7 +262,7 @@ func manifestFixture() Manifest {
 		Seed:             7,
 		ReplayMode:       ReplayExact,
 		Runner: Runner{
-			RecordContract: "gomadv3.run-record/v1",
+			RecordContract: RecordContract,
 			RunnerBuild:    "runner-build",
 			HostOS:         "darwin",
 			HostArch:       "arm64",
@@ -237,16 +274,24 @@ func manifestFixture() Manifest {
 			TargetGOARCH: "arm64",
 		},
 		Target: Target{
-			Kind:      "go-test",
-			Source:    "./common/timer",
-			File:      "target",
-			SHA256:    HashBytes(targetBytes),
-			Size:      Uint64String(len(targetBytes)),
-			Argv:      []string{"gomadv3-target", "-test.run=TestGate"},
-			BuildTags: []string{"test_dep"},
-			BuildInfo: BuildInfo{GoVersion: "go1.26.4", Path: "go.temporal.io/server/common/timer.test"},
+			Kind:          "go-test",
+			Source:        "./pkg",
+			File:          "target",
+			SHA256:        HashBytes(targetBytes),
+			Size:          Uint64String(len(targetBytes)),
+			Argv:          []string{"gomadv3-target", "-test.run=TestGate"},
+			BuildTags:     []string{"gomad_fixture"},
+			Adapters:      []TargetAdapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:adapter"}},
+			Compatibility: []CompatibilityPack{{ID: "reflect2-go126", SHA256: HashBytes([]byte("compatibility pack"))}},
+			BuildInfo:     BuildInfo{GoVersion: "go1.26.4", Path: "example.test/project/pkg.test"},
 		},
-		Environment: []Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		IOProfile: IOProfile{
+			Name:                 "gomadv3-deterministic/v1",
+			ImplementationSHA256: HashBytes([]byte("implementation")),
+			Inventory:            `{"schema":"inventory/v1"}`,
+			InventorySHA256:      HashBytes([]byte(`{"schema":"inventory/v1"}`)),
+		},
+		Environment: []Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}},
 		Limits: Limits{
 			RunTimeoutNanos:      Uint64String(30_000_000_000),
 			OverallTimeoutNanos:  Uint64String(600_000_000_000),

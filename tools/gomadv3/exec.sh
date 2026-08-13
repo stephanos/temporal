@@ -1,12 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-set -euo pipefail
+set -eu
 
-if [[ ${GOMADV3_CHILD_SEED+x} != x ]]; then
+if [ "${GOMADV3_CHILD_SEED+x}" != x ]; then
 	printf 'gomadv3 exec: GOMADV3_CHILD_SEED is required\n' >&2
 	exit 125
 fi
-if (($# == 0)); then
+if [ "$#" -eq 0 ]; then
 	printf 'gomadv3 exec: target command is required\n' >&2
 	exit 125
 fi

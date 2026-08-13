@@ -51,11 +51,14 @@ func resumeConfiguration(request Config, plan artifact.BatchPlan) (Config, SeedS
 	prepared := target.Prepared{
 		Path: filepath.Join(request.ResumeBatch, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
 		SHA256: string(plan.Prepared.Target.SHA256), Size: uint64(plan.Prepared.Target.Size), Argv: append([]string(nil), plan.Prepared.Target.Argv...),
-		BuildTags: append([]string(nil), plan.Prepared.Target.BuildTags...), BuildInfo: cloneBuildInfo(plan.Prepared.Target.BuildInfo),
+		BuildTags: append([]string(nil), plan.Prepared.Target.BuildTags...), Adapters: cloneAdapters(plan.Prepared.Target.Adapters), Compatibility: cloneCompatibility(plan.Prepared.Target.Compatibility), BuildInfo: cloneBuildInfo(plan.Prepared.Target.BuildInfo),
 		GoVersion: plan.Toolchain.GoVersion, BuildKey: plan.Toolchain.BuildKey, TargetGOOS: plan.Toolchain.TargetGOOS, TargetGOARCH: plan.Toolchain.TargetGOARCH,
 	}
 	if err := prepared.Verify(); err != nil {
 		return Config{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+	}
+	if err := ioprofile.Default().VerifyAdapters(prepared.Adapters); err != nil {
+		return Config{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
 	}
 	if request.Executor == nil {
 		identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
@@ -73,7 +76,12 @@ func resumeConfiguration(request Config, plan artifact.BatchPlan) (Config, SeedS
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
-		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor,
+		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor, Replayer: request.Replayer,
+	}
+	if plan.Guidance != nil {
+		config.Guide = true
+		config.Corpus = plan.Guidance.Corpus
+		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
 	}
 	return config, selection, append([]record.Environment(nil), plan.Environment...), mounts, prepared, nil
 }
@@ -85,27 +93,6 @@ func equalBatchPlans(left, right artifact.BatchPlan) (bool, error) {
 	}
 	rightBytes, err := record.CanonicalJSON(right)
 	return bytes.Equal(leftBytes, rightBytes), err
-}
-
-type pendingJobs struct {
-	seeds     *SeedIterator
-	ordinal   uint64
-	completed map[uint64]struct{}
-}
-
-func (jobs *pendingJobs) Next() (runJob, bool) {
-	for {
-		seed, ok := jobs.seeds.Next()
-		if !ok {
-			return runJob{}, false
-		}
-		job := runJob{ordinal: jobs.ordinal, seed: seed}
-		jobs.ordinal++
-		if _, found := jobs.completed[job.ordinal]; found {
-			continue
-		}
-		return job, true
-	}
 }
 
 func restoreResumeSummary(batchPath string, selection SeedSelection, runs []artifact.RunRecord) (Summary, map[record.SHA256]string, map[string]struct{}, map[uint64]struct{}, error) {
@@ -151,22 +138,6 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []arti
 	}
 	summary.DistinctFailures = uint64(len(distinct))
 	return summary, distinct, probes, completed, nil
-}
-
-func resumeAlreadyStopped(config Config, summary *Summary) bool {
-	switch config.OnFailure {
-	case PolicyFirst:
-		if summary.Failures != 0 {
-			summary.StopReason = StopFirstFailure
-			return true
-		}
-	case PolicyBudget:
-		if summary.DistinctFailures >= config.FailureBudget {
-			summary.StopReason = StopFailureBudget
-			return true
-		}
-	}
-	return false
 }
 
 func sortedProbeList(probes map[string]struct{}) []string {

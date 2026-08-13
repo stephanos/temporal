@@ -23,15 +23,12 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	toolchain := toolchainRoot(t)
 	prepared, err := target.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoTest, Source: "./io_failure", WorkingDir: filepath.Join("..", "..", "testdata"),
-		Args: []string{"-test.run=^TestDeterministicIOFailure$"}, BuildTags: []string{"test_dep"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
+		Args: []string{"-test.run=^TestDeterministicIOFailure$"}, BuildTags: []string{"gomad_fixture"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := ioprofile.Resolve(ioprofile.Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
+	profile := ioprofile.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
 	if err != nil {
@@ -57,11 +54,11 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	manifest := record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-11T12:00:00Z", BatchID: "io-replay-test",
 		SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
-		Runner:    record.Runner{RecordContract: "gomadv3.run-record/v1", RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 		Toolchain: record.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
 		Target: record.Target{
 			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
-			Argv: prepared.Argv, BuildTags: prepared.BuildTags, BuildInfo: prepared.BuildInfo,
+			Argv: prepared.Argv, BuildTags: prepared.BuildTags, Adapters: prepared.Adapters, Compatibility: prepared.Compatibility, BuildInfo: prepared.BuildInfo,
 		},
 		IOProfile: record.IOProfile{
 			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),
@@ -106,10 +103,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := ioprofile.Resolve(ioprofile.Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
+	profile := ioprofile.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
 	if err != nil {
@@ -145,11 +139,11 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	manifest := record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-12T12:00:00Z", BatchID: "mount-replay-test",
 		SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
-		Runner:    record.Runner{RecordContract: "gomadv3.run-record/v1", RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 		Toolchain: record.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
 		Target: record.Target{
 			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
-			Argv: prepared.Argv, BuildTags: prepared.BuildTags, BuildInfo: prepared.BuildInfo,
+			Argv: prepared.Argv, BuildTags: prepared.BuildTags, Adapters: prepared.Adapters, Compatibility: prepared.Compatibility, BuildInfo: prepared.BuildInfo,
 		},
 		IOProfile: record.IOProfile{
 			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),

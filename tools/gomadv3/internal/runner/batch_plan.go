@@ -29,7 +29,7 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 	for index, mount := range mounts {
 		mountValues[index] = mount.Source + "=" + strings.TrimPrefix(mount.Target, "/")
 	}
-	return artifact.BatchPlan{
+	plan := artifact.BatchPlan{
 		Schema: artifact.BatchPlanSchema, Selection: config.Seeds, SelectionCount: record.Uint64String(selectionCount), Parallel: record.Uint64String(config.Parallel),
 		RunTimeoutNanos: record.Uint64String(config.RunTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout), TerminateGraceNanos: record.Uint64String(config.TerminateGrace),
 		OnFailure: string(config.OnFailure), FailureBudget: record.Uint64String(config.FailureBudget), OutputBytes: record.Uint64String(config.OutputLimit), WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
@@ -39,14 +39,18 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 			Path: preparedPath,
 			Target: record.Target{
 				Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
-				Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), BuildInfo: cloneBuildInfo(prepared.BuildInfo),
+				Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), Adapters: cloneAdapters(prepared.Adapters), Compatibility: cloneCompatibility(prepared.Compatibility), BuildInfo: cloneBuildInfo(prepared.BuildInfo),
 			},
 		},
 		IOProfile:   artifact.IOProfilePlan{Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), InventorySHA256: profile.InventorySHA256()},
 		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: romount.RecordLimits(config.IOROMountLimits),
 		Coverage: string(normalizedCoverage(config.Coverage)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
-	}, nil
+	}
+	if config.Guide {
+		plan.Guidance = &artifact.GuidancePlan{Corpus: config.Corpus, SnapshotSHA256: config.GuideSnapshotSHA256}
+	}
+	return plan, nil
 }
 
 func normalizedCoverage(mode CoverageMode) CoverageMode {

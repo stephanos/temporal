@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
@@ -39,7 +40,7 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 	if !result.Match || result.Divergence != "" || executor.calls != 1 {
 		t.Fatalf("replay result = %#v, calls = %d", result, executor.calls)
 	}
-	if executor.request.Command == filepath.Join(movedPath, "target") || filepath.Base(executor.request.Command) != "target" || filepath.Dir(executor.request.Command) != executor.request.Dir || executor.request.Env[0] != "GOMADSEED=7" || executor.request.Env[1] != "TZ=UTC" {
+	if executor.request.Command == filepath.Join(movedPath, "target") || filepath.Base(executor.request.Command) != "target" || filepath.Dir(executor.request.Command) != executor.request.Dir || executor.request.Env[0] != "GOMADSEED=7" || executor.request.Env[1] != "GOMADV3_IO_PROFILE=gomadv3-deterministic/v1" || executor.request.Env[2] != "TZ=UTC" {
 		t.Fatalf("replay request = %#v", executor.request)
 	}
 }
@@ -55,6 +56,19 @@ func TestReplayVerifyOnlyDoesNotStartTarget(t *testing.T) {
 	}
 	if !result.Verified || result.Match || executor.calls != 0 {
 		t.Fatalf("verify result = %#v, calls = %d", result, executor.calls)
+	}
+}
+
+func TestReplayRejectsUnavailableCompatibilityPackBeforeTargetStart(t *testing.T) {
+	artifactPath, _ := publishReplayArtifactWithCompatibility(t, []record.CompatibilityPack{{
+		ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
+	}})
+	executor := &fakeReplayExecutor{}
+	_, err := Replay(context.Background(), Config{
+		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if err == nil || executor.calls != 0 {
+		t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
 	}
 }
 
@@ -177,6 +191,14 @@ func replayArtifact(t *testing.T) (string, process.Result) {
 }
 
 func publishReplayArtifact(t *testing.T, connected *worldrecord.Bundle) (string, process.Result) {
+	return publishReplayArtifactWithWorldAndCompatibility(t, connected, []record.CompatibilityPack{})
+}
+
+func publishReplayArtifactWithCompatibility(t *testing.T, compatibility []record.CompatibilityPack) (string, process.Result) {
+	return publishReplayArtifactWithWorldAndCompatibility(t, nil, compatibility)
+}
+
+func publishReplayArtifactWithWorldAndCompatibility(t *testing.T, connected *worldrecord.Bundle, compatibility []record.CompatibilityPack) (string, process.Result) {
 	t.Helper()
 	targetPath, err := os.Executable()
 	if err != nil {
@@ -196,6 +218,9 @@ func publishReplayArtifact(t *testing.T, connected *worldrecord.Bundle) (string,
 	}
 	stdout := replayOutput("recorded stdout")
 	stderr := replayOutput("recorded stderr")
+	ioTranscript := []byte{}
+	ioTranscriptSHA256 := sha256.Sum256(ioTranscript)
+	profile := ioprofile.Default()
 	exitCode := record.Uint64String(2)
 	recordedWorld, payloads := record.NoneWorld()
 	if connected != nil {
@@ -206,26 +231,30 @@ func publishReplayArtifact(t *testing.T, connected *worldrecord.Bundle) (string,
 		Manifest: record.Manifest{
 			SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-10T12:00:00Z", BatchID: "replay-test",
 			SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
-			Runner:    record.Runner{RecordContract: "gomadv3.run-record/v1", RunnerBuild: "test", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 			Toolchain: record.Toolchain{GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH},
 			Target: record.Target{
 				Kind: "go-test", Source: "replay fixture", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)),
-				Argv: []string{"gomadv3-target", "-test.run=none"}, BuildTags: []string{"test_dep"}, BuildInfo: projectTestBuildInfo(build),
+				Argv: []string{"gomadv3-target", "-test.run=none"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: compatibility, BuildInfo: projectTestBuildInfo(build),
 			},
-			Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
-			Limits:      record.Limits{RunTimeoutNanos: record.Uint64String(time.Second), OverallTimeoutNanos: record.Uint64String(10 * time.Second), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 64, WorldTransitionBytes: 1 << 20},
+			IOProfile: record.IOProfile{
+				Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),
+				Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: record.SHA256FromSum(ioTranscriptSHA256)},
+			},
+			Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+			Limits:      record.Limits{RunTimeoutNanos: record.Uint64String(time.Second), OverallTimeoutNanos: record.Uint64String(10 * time.Second), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 64, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 1 << 20},
 			World:       recordedWorld,
 			Outcome:     record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
 			Streams:     record.Streams{Stdout: replayStream(stdout), Stderr: replayStream(stderr)},
 			Host:        record.Host{StartedAt: "2026-08-10T12:00:00Z", FinishedAt: "2026-08-10T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
 		},
-		TargetPath: targetPath, Stdout: stdout.Bytes, Stderr: stderr.Bytes, World: payloads,
+		TargetPath: targetPath, Stdout: stdout.Bytes, Stderr: stderr.Bytes, IOTranscript: ioTranscript, World: payloads,
 	}
 	published, err := (artifact.Store{Root: t.TempDir()}).Publish(input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := process.Result{Termination: process.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr}
+	result := process.Result{Termination: process.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: process.IOTranscript{SHA256: ioTranscriptSHA256, Complete: true}}
 	if connected != nil {
 		initial, decodeErr := world.DecodeSnapshot(connected.Payloads.Initial)
 		if decodeErr != nil {

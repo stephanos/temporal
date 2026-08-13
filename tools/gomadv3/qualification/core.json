@@ -1,0 +1,69 @@
+{
+  "schema": "gomadv3.qualification-set/v1",
+  "name": "gomadv3-core",
+  "seed": 17,
+  "repeat": 2,
+  "run_timeout": "2m",
+  "overall_timeout": "5m",
+  "terminate_grace": "2s",
+  "output_bytes": 8388608,
+  "world_transition_bytes": 67108864,
+  "suites": [
+    {
+      "name": "concurrency-state-invariant",
+      "package": "./basic/concurrency",
+      "test": "TestConcurrentTransfersPreserveBalance",
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "name": "filesystem-transaction",
+      "package": "./basic/filesystem",
+      "test": "TestFileLifecyclePreservesContentsAndMetadata",
+      "required_probes": [
+        "stdlib.os.openfile",
+        "stdlib.os.rename"
+      ],
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "name": "loopback-tcp-roundtrip",
+      "package": "./basic/network",
+      "test": "TestLoopbackRoundTripPreservesMessage",
+      "required_probes": [
+        "stdlib.net.dialtcp",
+        "stdlib.net.listentcp",
+        "stdlib.net.tcplistener.accepttcp"
+      ],
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "name": "modernc-libc-boundary",
+      "package": "./thirdparty/libc",
+      "test": "TestLibcFileBoundaryPreservesContents",
+      "required_probes": [
+        "stdlib.os.file.read",
+        "stdlib.os.file.write"
+      ],
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "name": "sqlite-transaction",
+      "package": "./thirdparty/persistence",
+      "test": "TestSQLiteCommitAndRollbackPreserveState",
+      "required_probes": [
+        "stdlib.os.getpid"
+      ],
+      "expectation": {
+        "classification": "qualified"
+      }
+    }
+  ]
+}

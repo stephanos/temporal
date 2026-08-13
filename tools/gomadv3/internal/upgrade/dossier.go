@@ -11,17 +11,20 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/commandrun"
 	"go.temporal.io/server/tools/gomadv3/internal/qualificationset"
 	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
 
 const maximumGateOutput = 16 << 20
+const maximumGateDuration = 30 * time.Minute
+const gateTerminationGrace = 2 * time.Second
 
 type Options struct {
 	Root             string
@@ -110,27 +113,21 @@ type CorpusEvidence struct {
 }
 
 type boundaryManifest struct {
-	ManifestVersion string              `json:"manifest_version"`
-	Intercepts      []boundaryIntercept `json:"intercepts"`
+	ManifestVersion string
+	Metadata        json.RawMessage
+	Entries         map[string]json.RawMessage
 }
 
-type boundaryIntercept struct {
-	Package             string            `json:"package"`
-	Receiver            *boundaryReceiver `json:"receiver,omitempty"`
-	Symbol              string            `json:"symbol"`
-	Signature           string            `json:"signature"`
-	Source              string            `json:"source,omitempty"`
-	DeclarationSHA256   string            `json:"declaration_sha256,omitempty"`
-	PackageSHA256       string            `json:"package_sha256,omitempty"`
-	Operation           string            `json:"operation,omitempty"`
-	Probe               string            `json:"probe,omitempty"`
-	Disposition         string            `json:"disposition,omitempty"`
-	Hook                string            `json:"hook"`
-	DelegatedBoundary   string            `json:"delegated_boundary,omitempty"`
-	Adapters            []string          `json:"adapters,omitempty"`
-	ConformanceFixtures []string          `json:"conformance_fixtures,omitempty"`
-	NegativeFixtures    []string          `json:"negative_fixtures,omitempty"`
-	EscapeFixtures      []string          `json:"escape_fixtures,omitempty"`
+type boundaryDocument struct {
+	ManifestVersion string            `json:"manifest_version"`
+	HookPolicies    []json.RawMessage `json:"hook_policies"`
+	Intercepts      []json.RawMessage `json:"intercepts"`
+}
+
+type boundaryInterceptIdentity struct {
+	Package  string            `json:"package"`
+	Receiver *boundaryReceiver `json:"receiver,omitempty"`
+	Symbol   string            `json:"symbol"`
 }
 
 type boundaryReceiver struct {
@@ -213,7 +210,7 @@ func Run(ctx context.Context, options Options) error {
 			break
 		}
 	}
-	dossier.Qualified = dossier.Host.Supported && gateFailure == nil
+	dossier.Qualified = dossier.Host.Supported && gateFailure == nil && dossier.RetainedCorpus.Status == "checked"
 	if err := publish(options.Output, dossier); err != nil {
 		return err
 	}
@@ -223,37 +220,48 @@ func Run(ctx context.Context, options Options) error {
 	if !dossier.Host.Supported {
 		return fmt.Errorf("qualification host %s is unsupported", hostPlatform)
 	}
+	if dossier.RetainedCorpus.Status != "checked" {
+		return errors.New("a checked core qualification corpus is required")
+	}
 	return nil
 }
 
 func runGate(ctx context.Context, root string, gate Gate, output io.Writer) (GateResult, error) {
-	command := exec.CommandContext(ctx, gate.Command[0], gate.Command[1:]...)
-	command.Dir = root
-	buffer := &boundedBuffer{maximum: maximumGateOutput}
-	command.Stdout = buffer
-	command.Stderr = buffer
-	err := command.Run()
-	if output != nil && buffer.Len() != 0 {
-		_, _ = output.Write(buffer.Bytes())
+	executed, err := commandrun.Run(ctx, commandrun.Request{
+		Command: gate.Command, Dir: root, Env: os.Environ(), Timeout: maximumGateDuration,
+		TerminateGrace: gateTerminationGrace, OutputLimit: maximumGateOutput,
+	})
+	combined := make([]byte, 0, len(executed.Stdout.Bytes)+len(executed.Stderr.Bytes))
+	combined = append(combined, executed.Stdout.Bytes...)
+	combined = append(combined, executed.Stderr.Bytes...)
+	if output != nil && len(combined) != 0 {
+		_, _ = output.Write(combined)
 	}
 	result := GateResult{
-		Name: gate.Name, Command: append([]string(nil), gate.Command...), Output: buffer.String(),
-		OutputSHA256: digest(buffer.Bytes()), OutputTruncated: buffer.truncated,
+		Name: gate.Name, Command: append([]string(nil), gate.Command...), Output: string(combined),
+		OutputSHA256: digest(combined), OutputTruncated: executed.Stdout.Truncated || executed.Stderr.Truncated,
 	}
-	if err == nil {
+	if err == nil && !executed.WatchdogTimeout && !executed.Cancelled && executed.Termination == commandrun.TerminationExit && executed.ExitCode == 0 {
 		result.Status = "passed"
 		return result, nil
 	}
 	result.Status = "failed"
 	result.ExitCode = -1
-	var exitError *exec.ExitError
-	if errors.As(err, &exitError) {
-		result.ExitCode = exitError.ExitCode()
+	if executed.Termination == commandrun.TerminationExit {
+		result.ExitCode = executed.ExitCode
 	}
-	if ctx.Err() != nil {
-		return result, ctx.Err()
+	switch {
+	case err != nil:
+		return result, err
+	case executed.WatchdogTimeout:
+		return result, context.DeadlineExceeded
+	case executed.Cancelled:
+		return result, context.Canceled
+	case executed.Termination == commandrun.TerminationSignal:
+		return result, fmt.Errorf("command terminated by signal %s", executed.Signal)
+	default:
+		return result, fmt.Errorf("command exited with status %d", executed.ExitCode)
 	}
-	return result, err
 }
 
 func compareBoundaries(baseline, current []byte) (BoundaryDiff, error) {
@@ -271,17 +279,15 @@ func compareBoundaries(baseline, current []byte) (BoundaryDiff, error) {
 	}
 	result.Status = "compared"
 	result.BaselineVersion = baselineManifest.ManifestVersion
-	oldEntries := indexBoundaryEntries(baselineManifest.Intercepts)
-	newEntries := indexBoundaryEntries(currentManifest.Intercepts)
+	oldEntries := baselineManifest.Entries
+	newEntries := currentManifest.Entries
 	for target, oldEntry := range oldEntries {
 		newEntry, found := newEntries[target]
 		if !found {
 			result.Removed = append(result.Removed, target)
 			continue
 		}
-		oldJSON, _ := json.Marshal(oldEntry)
-		newJSON, _ := json.Marshal(newEntry)
-		if !bytes.Equal(oldJSON, newJSON) {
+		if !bytes.Equal(oldEntry, newEntry) {
 			result.Changed = append(result.Changed, target)
 		}
 	}
@@ -290,6 +296,9 @@ func compareBoundaries(baseline, current []byte) (BoundaryDiff, error) {
 			result.Added = append(result.Added, target)
 		}
 	}
+	if !bytes.Equal(baselineManifest.Metadata, currentManifest.Metadata) {
+		result.Changed = append(result.Changed, "manifest")
+	}
 	slices.Sort(result.Added)
 	slices.Sort(result.Removed)
 	slices.Sort(result.Changed)
@@ -297,25 +306,82 @@ func compareBoundaries(baseline, current []byte) (BoundaryDiff, error) {
 }
 
 func decodeBoundary(name string, contents []byte) (boundaryManifest, error) {
-	var manifest boundaryManifest
-	if err := json.Unmarshal(contents, &manifest); err != nil {
+	var document boundaryDocument
+	if err := json.Unmarshal(contents, &document); err != nil {
 		return boundaryManifest{}, fmt.Errorf("decode %s boundary manifest: %w", name, err)
 	}
-	if manifest.ManifestVersion == "" {
+	if document.ManifestVersion == "" {
 		return boundaryManifest{}, fmt.Errorf("%s boundary manifest has no version", name)
 	}
-	return manifest, nil
-}
-
-func indexBoundaryEntries(entries []boundaryIntercept) map[string]boundaryIntercept {
-	result := make(map[string]boundaryIntercept, len(entries))
-	for _, entry := range entries {
-		result[entry.Package+"."+boundaryTarget(entry)] = entry
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(contents, &fields); err != nil {
+		return boundaryManifest{}, fmt.Errorf("decode %s boundary manifest fields: %w", name, err)
 	}
-	return result
+	delete(fields, "manifest_version")
+	delete(fields, "hook_policies")
+	delete(fields, "intercepts")
+	metadata, err := canonicalBoundaryJSON(fields)
+	if err != nil {
+		return boundaryManifest{}, fmt.Errorf("canonicalize %s boundary manifest: %w", name, err)
+	}
+	entries := make(map[string]json.RawMessage, len(document.HookPolicies)+len(document.Intercepts))
+	for _, raw := range document.Intercepts {
+		var identity boundaryInterceptIdentity
+		if err := json.Unmarshal(raw, &identity); err != nil {
+			return boundaryManifest{}, fmt.Errorf("decode %s boundary intercept identity: %w", name, err)
+		}
+		if identity.Package == "" || identity.Symbol == "" {
+			return boundaryManifest{}, fmt.Errorf("%s boundary manifest has an incomplete intercept identity", name)
+		}
+		key := identity.Package + "." + boundaryTarget(identity)
+		if err := addBoundaryEntry(entries, key, raw); err != nil {
+			return boundaryManifest{}, fmt.Errorf("%s boundary manifest: %w", name, err)
+		}
+	}
+	for _, raw := range document.HookPolicies {
+		var identity struct {
+			ID string `json:"id"`
+		}
+		if err := json.Unmarshal(raw, &identity); err != nil {
+			return boundaryManifest{}, fmt.Errorf("decode %s hook policy identity: %w", name, err)
+		}
+		if identity.ID == "" {
+			return boundaryManifest{}, fmt.Errorf("%s boundary manifest has an incomplete hook policy identity", name)
+		}
+		if err := addBoundaryEntry(entries, "hook-policy:"+identity.ID, raw); err != nil {
+			return boundaryManifest{}, fmt.Errorf("%s boundary manifest: %w", name, err)
+		}
+	}
+	return boundaryManifest{ManifestVersion: document.ManifestVersion, Metadata: metadata, Entries: entries}, nil
 }
 
-func boundaryTarget(entry boundaryIntercept) string {
+func addBoundaryEntry(entries map[string]json.RawMessage, key string, raw json.RawMessage) error {
+	if _, duplicate := entries[key]; duplicate {
+		return fmt.Errorf("duplicate boundary entry %s", key)
+	}
+	canonical, err := canonicalBoundaryJSON(raw)
+	if err != nil {
+		return fmt.Errorf("canonicalize boundary entry %s: %w", key, err)
+	}
+	entries[key] = canonical
+	return nil
+}
+
+func canonicalBoundaryJSON(value any) (json.RawMessage, error) {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.UseNumber()
+	var decoded any
+	if err := decoder.Decode(&decoded); err != nil {
+		return nil, err
+	}
+	return json.Marshal(decoded)
+}
+
+func boundaryTarget(entry boundaryInterceptIdentity) string {
 	if entry.Receiver == nil {
 		return entry.Symbol
 	}
@@ -382,6 +448,9 @@ func loadCorpus(root, path string) (CorpusEvidence, error) {
 	if !report.Qualified {
 		return CorpusEvidence{}, errors.New("retained qualification set is not qualified")
 	}
+	if report.Name != "gomadv3-core" {
+		return CorpusEvidence{}, fmt.Errorf("retained qualification set %q is not the required gomadv3-core corpus", report.Name)
+	}
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return CorpusEvidence{}, fmt.Errorf("read retained corpus report: %w", err)
@@ -424,25 +493,4 @@ func publish(path string, dossier Dossier) error {
 func digest(contents []byte) string {
 	value := sha256.Sum256(contents)
 	return fmt.Sprintf("sha256:%x", value)
-}
-
-type boundedBuffer struct {
-	bytes.Buffer
-	maximum   int
-	truncated bool
-}
-
-func (buffer *boundedBuffer) Write(contents []byte) (int, error) {
-	accepted := contents
-	remaining := buffer.maximum - buffer.Len()
-	if remaining <= 0 {
-		buffer.truncated = true
-		return len(contents), nil
-	}
-	if len(accepted) > remaining {
-		accepted = accepted[:remaining]
-		buffer.truncated = true
-	}
-	_, err := buffer.Buffer.Write(accepted)
-	return len(contents), err
 }
