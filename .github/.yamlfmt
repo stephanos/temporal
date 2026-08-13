@@ -9,6 +9,8 @@ exclude:
   - common/config/config_template_embedded.yaml
   - config/docker.yaml
   - docker/config_template.yaml
+  # Generated Gomad GOROOTs
+  - tools/gomadv3/.toolchain
 
 formatter:
   # allow newlines

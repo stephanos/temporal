@@ -42,7 +42,7 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, text := range []string{"gomadOpen", "gomadRead", "gomadWrite"} {
+	for _, text := range []string{"gomadOpen", "gomadRead", "gomadWrite", "gomad: unsupported modernc libc host capability: Xsocket"} {
 		if !strings.Contains(string(replacement), text) {
 			t.Errorf("replacement omitted %q", text)
 		}

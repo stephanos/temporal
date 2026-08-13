@@ -29,9 +29,9 @@ const (
 	KindGoTest Kind = "go-test"
 )
 
-const provenanceSchema = "gomadv3.exec-provenance/v1"
+const provenanceSchema = "gomadv3.exec-provenance/v2"
 
-const maximumProvenanceBytes = 1 << 20
+const maximumProvenanceBytes = 16 << 20
 
 type Spec struct {
 	Kind            Kind
@@ -69,26 +69,28 @@ type Prepared struct {
 }
 
 type Provenance struct {
-	SchemaVersion int
-	GoVersion     string
-	BuildKey      string
-	TargetGOOS    string
-	TargetGOARCH  string
-	BinarySHA256  string
-	BinarySize    uint64
-	BuildInfo     record.BuildInfo
+	SchemaVersion     int
+	GoVersion         string
+	BuildKey          string
+	TargetGOOS        string
+	TargetGOARCH      string
+	BinarySHA256      string
+	BinarySize        uint64
+	BuildInfo         record.BuildInfo
+	CapabilityClosure CapabilityClosure
 }
 
 type provenanceWire struct {
-	Schema        string              `json:"schema"`
-	SchemaVersion int                 `json:"schema_version"`
-	GoVersion     string              `json:"go_version"`
-	BuildKey      string              `json:"build_key"`
-	TargetGOOS    string              `json:"target_goos"`
-	TargetGOARCH  string              `json:"target_goarch"`
-	BinarySHA256  string              `json:"binary_sha256"`
-	BinarySize    record.Uint64String `json:"binary_size"`
-	BuildInfo     record.BuildInfo    `json:"build_info"`
+	Schema            string              `json:"schema"`
+	SchemaVersion     int                 `json:"schema_version"`
+	GoVersion         string              `json:"go_version"`
+	BuildKey          string              `json:"build_key"`
+	TargetGOOS        string              `json:"target_goos"`
+	TargetGOARCH      string              `json:"target_goarch"`
+	BinarySHA256      string              `json:"binary_sha256"`
+	BinarySize        record.Uint64String `json:"binary_size"`
+	BuildInfo         record.BuildInfo    `json:"build_info"`
+	CapabilityClosure CapabilityClosure   `json:"capability_closure"`
 }
 
 func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
@@ -129,7 +131,7 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 	buildInfo := record.BuildInfo{}
 	switch spec.Kind {
 	case KindExec:
-		buildInfo, err = prepareExec(spec, identity, targetPath)
+		buildInfo, err = prepareExec(ctx, spec, identity, targetPath)
 	case KindGoRun, KindGoTest:
 		buildInfo, err = prepareGo(ctx, spec, tags, targetPath)
 	default:
@@ -258,15 +260,16 @@ func ReadModuleCache(ctx context.Context, root string) (string, error) {
 
 func WriteProvenance(path string, provenance Provenance) error {
 	wire := provenanceWire{
-		Schema:        provenanceSchema,
-		SchemaVersion: provenance.SchemaVersion,
-		GoVersion:     provenance.GoVersion,
-		BuildKey:      provenance.BuildKey,
-		TargetGOOS:    provenance.TargetGOOS,
-		TargetGOARCH:  provenance.TargetGOARCH,
-		BinarySHA256:  provenance.BinarySHA256,
-		BinarySize:    record.Uint64String(provenance.BinarySize),
-		BuildInfo:     provenance.BuildInfo,
+		Schema:            provenanceSchema,
+		SchemaVersion:     provenance.SchemaVersion,
+		GoVersion:         provenance.GoVersion,
+		BuildKey:          provenance.BuildKey,
+		TargetGOOS:        provenance.TargetGOOS,
+		TargetGOARCH:      provenance.TargetGOARCH,
+		BinarySHA256:      provenance.BinarySHA256,
+		BinarySize:        record.Uint64String(provenance.BinarySize),
+		BuildInfo:         provenance.BuildInfo,
+		CapabilityClosure: provenance.CapabilityClosure,
 	}
 	if err := validateProvenance(wire); err != nil {
 		return err
@@ -293,7 +296,7 @@ func WriteProvenance(path string, provenance Provenance) error {
 	return nil
 }
 
-func prepareExec(spec Spec, identity ToolchainIdentity, targetPath string) (record.BuildInfo, error) {
+func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, targetPath string) (record.BuildInfo, error) {
 	if spec.Source == "" || spec.Provenance == "" {
 		return record.BuildInfo{}, fmt.Errorf("exec target and provenance are required")
 	}
@@ -318,6 +321,9 @@ func prepareExec(spec Spec, identity ToolchainIdentity, targetPath string) (reco
 	if provenance.GoVersion != identity.GoVersion || provenance.BuildKey != identity.BuildKey || provenance.TargetGOOS != identity.TargetGOOS || provenance.TargetGOARCH != identity.TargetGOARCH {
 		return record.BuildInfo{}, fmt.Errorf("exec provenance does not match pinned toolchain")
 	}
+	if err := validateExecStandardPackages(ctx, filepath.Join(spec.ToolchainRoot, "bin", "go"), provenance.CapabilityClosure); err != nil {
+		return record.BuildInfo{}, err
+	}
 	if err := copyRegularFile(spec.Source, targetPath); err != nil {
 		return record.BuildInfo{}, err
 	}
@@ -331,6 +337,9 @@ func prepareExec(spec Spec, identity ToolchainIdentity, targetPath string) (reco
 	info, err := buildinfo.ReadFile(targetPath)
 	if err != nil {
 		return record.BuildInfo{}, fmt.Errorf("read prepared exec target build info: %w", err)
+	}
+	if err := validateExecCapabilityModules(info, provenance.CapabilityClosure); err != nil {
+		return record.BuildInfo{}, err
 	}
 	actualBuildInfo := ProjectBuildInfo(info)
 	recordedBuildInfo, err := record.CanonicalJSON(provenance.BuildInfo)
@@ -348,6 +357,71 @@ func prepareExec(spec Spec, identity ToolchainIdentity, targetPath string) (reco
 		return record.BuildInfo{}, fmt.Errorf("snapshot exec provenance: %w", err)
 	}
 	return provenance.BuildInfo, nil
+}
+
+func validateExecCapabilityModules(info *debug.BuildInfo, closure CapabilityClosure) error {
+	mainModules := make(map[string]struct{})
+	reviewed := make(map[string]struct{})
+	for _, pkg := range closure.Packages {
+		if pkg.Module == nil {
+			continue
+		}
+		if pkg.Module.Main {
+			mainModules[pkg.Module.Path] = struct{}{}
+			continue
+		}
+		reviewed[capabilityModuleIdentity(pkg.Module)] = struct{}{}
+	}
+	if len(mainModules) != 1 {
+		return fmt.Errorf("exec provenance capability closure must identify one main module")
+	}
+	if _, found := mainModules[info.Main.Path]; !found {
+		return fmt.Errorf("exec target main module does not match capability closure")
+	}
+	actual := make(map[string]struct{}, len(info.Deps))
+	for _, module := range info.Deps {
+		actual[debugModuleIdentity(module)] = struct{}{}
+	}
+	if !sameStringSet(reviewed, actual) {
+		return fmt.Errorf("exec target module dependencies do not match capability closure")
+	}
+	return nil
+}
+
+func capabilityModuleIdentity(module *CapabilityModule) string {
+	replacement := ""
+	if module.Replacement != nil {
+		if module.Replacement.Local {
+			replacement = "local"
+		} else {
+			replacement = module.Replacement.Path + "\x00" + module.Replacement.Version + "\x00" + module.Replacement.Sum
+		}
+	}
+	return module.Path + "\x00" + module.Version + "\x00" + module.Sum + "\x00" + replacement
+}
+
+func debugModuleIdentity(module *debug.Module) string {
+	replacement := ""
+	if module.Replace != nil {
+		if module.Replace.Version == "" && module.Replace.Sum == "" {
+			replacement = "local"
+		} else {
+			replacement = module.Replace.Path + "\x00" + module.Replace.Version + "\x00" + module.Replace.Sum
+		}
+	}
+	return module.Path + "\x00" + module.Version + "\x00" + module.Sum + "\x00" + replacement
+}
+
+func sameStringSet(left, right map[string]struct{}) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for value := range left {
+		if _, found := right[value]; !found {
+			return false
+		}
+	}
+	return true
 }
 
 func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string) (record.BuildInfo, error) {
@@ -379,6 +453,9 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 	}
 	commandDirectory, packageArgument, err := resolveBuildContext(spec.WorkingDir, spec.Source)
 	if err != nil {
+		return record.BuildInfo{}, err
+	}
+	if err := validateGoCapabilityClosure(ctx, goCommand, spec, tags, commandDirectory, packageArgument); err != nil {
 		return record.BuildInfo{}, err
 	}
 	arguments = append(arguments, packageArgument)
@@ -467,7 +544,7 @@ func preparationEnvironment() []string {
 }
 
 func validateProvenance(provenance provenanceWire) error {
-	if provenance.Schema != provenanceSchema || provenance.SchemaVersion != 1 {
+	if provenance.Schema != provenanceSchema || provenance.SchemaVersion != 2 {
 		return fmt.Errorf("unsupported exec provenance schema")
 	}
 	if provenance.GoVersion == "" || provenance.BuildKey == "" || provenance.TargetGOOS == "" || provenance.TargetGOARCH == "" || provenance.BuildInfo.GoVersion == "" || provenance.BuildInfo.Path == "" {
@@ -481,6 +558,9 @@ func validateProvenance(provenance provenanceWire) error {
 	}
 	if err := validateDeterministicBuildInfo(provenance.BuildInfo); err != nil {
 		return err
+	}
+	if err := validateCapabilityReview(provenance.CapabilityClosure); err != nil {
+		return fmt.Errorf("exec provenance capability closure: %w", err)
 	}
 	return nil
 }

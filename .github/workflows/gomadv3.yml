@@ -1,0 +1,70 @@
+name: Gomad v3
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/gomadv3.yml"
+      - "GOMADv3_TODO.md"
+      - "Makefile"
+      - "go.mod"
+      - "go.sum"
+      - "tools/gomadv3/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/gomadv3.yml"
+      - "GOMADv3_TODO.md"
+      - "Makefile"
+      - "go.mod"
+      - "go.sum"
+      - "tools/gomadv3/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gomadv3-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  complete-gate:
+    runs-on: macos-14
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
+
+      - name: Verify qualified host
+        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = darwin/arm64
+
+      - name: Requalify representative Temporal workloads
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+        run: make -C tools/gomadv3 qualification-set
+
+      - name: Produce checked upgrade qualification dossier
+        env:
+          GOMADV3_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          GOMADV3_CORPUS_REPORT: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '.toolchain/qualification-set.json' || '' }}
+        run: make -C tools/gomadv3 upgrade-dossier
+
+      - name: Upload upgrade qualification dossier
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: gomadv3-qualification-${{ github.run_id }}
+          path: |
+            tools/gomadv3/.toolchain/upgrade-dossier.json
+            tools/gomadv3/.toolchain/qualification-set.json
+            tools/gomadv3/.toolchain/qualification
+          if-no-files-found: error
+          retention-days: 90

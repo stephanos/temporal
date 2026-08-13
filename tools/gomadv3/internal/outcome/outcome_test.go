@@ -11,6 +11,7 @@ import (
 
 func TestClassifyOwnsRecordingAndReplaySemantics(t *testing.T) {
 	exitTwo := record.Uint64String(2)
+	exitZero := record.Uint64String(0)
 	signal := "SIGTERM"
 	deadline := "run_timeout"
 	tests := map[string]struct {
@@ -33,7 +34,7 @@ func TestClassifyOwnsRecordingAndReplaySemantics(t *testing.T) {
 		},
 		"success": {
 			result: process.Result{Termination: process.TerminationExit}, terminal: record.WorldTerminal{Kind: "none"},
-			want: Classification{Domain: "success", Reason: "success", Termination: "exit"},
+			want: Classification{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitZero, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact},
 		},
 		"signal": {
 			result: process.Result{Termination: process.TerminationSignal, Signal: signal},

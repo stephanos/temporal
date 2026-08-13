@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"syscall"
+	"strings"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 	if err != nil || len(entries) != 2 || entries[0].Name() != "empty" || entries[1].Name() != "schema.sql" {
 		panic(fmt.Sprintf("ReadDir = %#v, %v", entries, err))
 	}
-	if _, err := os.OpenFile("mounted/schema.sql", os.O_WRONLY, 0); !errors.Is(err, syscall.EROFS) {
+	if _, err := os.OpenFile("mounted/schema.sql", os.O_WRONLY, 0); err == nil || !strings.Contains(err.Error(), "read-only file system") {
 		panic(fmt.Sprintf("write open error = %v", err))
 	}
 	if _, err := os.ReadFile("undeclared"); !errors.Is(err, fs.ErrNotExist) {

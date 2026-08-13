@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "go_version": "go1.26.4",
+  "archive": {
+    "name": "go1.26.4.src.tar.gz",
+    "url": "https://go.dev/dl/go1.26.4.src.tar.gz",
+    "sha256": "4f668a32fbfc1132e6a881fb968c2f1dada631492a339211735fbb255a42602d"
+  },
+  "supported_platforms": [
+    "darwin/arm64"
+  ],
+  "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
+  "patch": "go1.26.4.patch",
+  "adapters": [
+    {
+      "module": "modernc.org/libc",
+      "version": "v1.72.3",
+      "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="
+    }
+  ],
+  "patch_allowlist": [
+    "src/cmd/compile/internal/gc/main.go",
+    "src/cmd/link/internal/ld/lib.go",
+    "src/crypto/rand/rand.go",
+    "src/runtime/proc.go",
+    "src/runtime/rand.go",
+    "src/runtime/time.go",
+    "src/runtime/time_nofake.go",
+    "src/testing/testing.go"
+  ],
+  "overlay_allowlist": [
+    "src/cmd/compile/internal/gomadintercept/intercept.go",
+    "src/cmd/compile/internal/gomadintercept/spec_go126.go",
+    "src/internal/gomadfs/fs.go",
+    "src/internal/gomadfs/fs_test.go",
+    "src/internal/gomadio/gomadio.go",
+    "src/internal/gomadio/libc.go",
+    "src/internal/gomadio/mount/client.go",
+    "src/internal/gomadio/mount/client_test.go",
+    "src/internal/gomadio/network.go",
+    "src/internal/gomadio/transcript.go",
+    "src/internal/gomadtrace/trace.go",
+    "src/internal/gomadwire/wire_generated.go",
+    "src/internal/gomadwire/wire_generated_test.go",
+    "src/net/gomad.go",
+    "src/os/gomad.go",
+    "src/runtime/gomad.go"
+  ]
+}

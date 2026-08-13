@@ -55,7 +55,23 @@ func main() {
 	if result := libc.Xgettimeofday(tls, uintptr(unsafe.Pointer(&timeval[0])), 0); result != 0 {
 		panic(fmt.Sprintf("gettimeofday = %d", result))
 	}
+	if result := libc.Xclose(tls, 42); result != -1 {
+		panic(fmt.Sprintf("unknown close = %d", result))
+	}
+	if result := libc.Xmmap(tls, 0, 4096, 0, 0, -1, 0); result != ^uintptr(0) {
+		panic(fmt.Sprintf("anonymous mmap = %d", result))
+	}
+	requireUnsupported(func() { libc.Xsocket(tls, 2, 1, 0) })
 	fmt.Println("ok")
+}
+
+func requireUnsupported(action func()) {
+	defer func() {
+		if recovered := recover(); recovered != "gomad: unsupported modernc libc host capability: Xsocket" {
+			panic(fmt.Sprintf("unsupported libc call = %v", recovered))
+		}
+	}()
+	action()
 }
 
 func cString(value string) uintptr {

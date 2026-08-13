@@ -21,7 +21,7 @@ if [[ ! -d "$candidate_root" || "$candidate_version" != "$go_version" ]]; then
 fi
 
 candidate_root=$(cd "$candidate_root" && pwd -P)
-patch_output=${GOMADV3_PATCH_OUTPUT:-"$script_dir/go1.26.4.patch"}
+patch_output=${GOMADV3_PATCH_OUTPUT:-"$script_dir/$patch_name"}
 toolchain_dir="$script_dir/.toolchain"
 archive_dir="$toolchain_dir/downloads"
 archive_path="$archive_dir/$archive_name"

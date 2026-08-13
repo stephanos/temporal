@@ -7,7 +7,9 @@ package net
 import (
 	"context"
 	"internal/gomadio"
+	"internal/gomadtrace"
 	"io"
+	"net/netip"
 	"os"
 	"strconv"
 	"sync"
@@ -23,6 +25,10 @@ var gomadNetState = struct {
 
 func gomadIOEnabled() bool {
 	return gomadio.Enabled()
+}
+
+func gomadObserveBoundary(id uint64) {
+	gomadtrace.ObserveBoundary(id)
 }
 
 func gomadInterceptDialContext(dialer *Dialer, ctx context.Context, network, address string) (Conn, error, bool) {
@@ -55,13 +61,282 @@ func gomadInterceptListen(config *ListenConfig, ctx context.Context, network, ad
 	return listener, err, true
 }
 
+func gomadInterceptListenPacket(_ *ListenConfig, _ context.Context, _, _ string) (PacketConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialIP(_ string, _, _ *IPAddr) (*IPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptListenIP(_ string, _ *IPAddr) (*IPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialUDP(_ string, _, _ *UDPAddr) (*UDPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptListenUDP(_ string, _ *UDPAddr) (*UDPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialUnix(_ string, _, _ *UnixAddr) (*UnixConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialerDialIP(_ *Dialer, _ context.Context, _ string, _, _ netip.Addr) (*IPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialerDialTCP(_ *Dialer, _ context.Context, _ string, _, _ netip.AddrPort) (*TCPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialerDialUDP(_ *Dialer, _ context.Context, _ string, _, _ netip.AddrPort) (*UDPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptDialerDialUnix(_ *Dialer, _ context.Context, _ string, _, _ *UnixAddr) (*UnixConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptFileConn(_ *os.File) (Conn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptFileListener(_ *os.File) (Listener, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptFilePacketConn(_ *os.File) (PacketConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptInterfaces() ([]Interface, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptInterfaceAddrs() ([]Addr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptInterfaceByIndex(_ int) (*Interface, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptInterfaceByName(_ string) (*Interface, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptInterfaceAddrsMethod(_ *Interface) ([]Addr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptInterfaceMulticastAddrs(_ *Interface) ([]Addr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptListenMulticastUDP(_ string, _ *Interface, _ *UDPAddr) (*UDPConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolveIPAddr(_, _ string) (*IPAddr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolveTCPAddr(_, _ string) (*TCPAddr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolveUDPAddr(_, _ string) (*UDPAddr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolveUnixAddr(_, _ string) (*UnixAddr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptListenUnix(_ string, _ *UnixAddr) (*UnixListener, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptListenUnixgram(_ string, _ *UnixAddr) (*UnixConn, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupHost(_ *Resolver, _ context.Context, _ string) ([]string, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupIP(_ *Resolver, _ context.Context, _, _ string) ([]IP, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupIPAddr(_ *Resolver, _ context.Context, _ string) ([]IPAddr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupNetIP(_ *Resolver, _ context.Context, _, _ string) ([]netip.Addr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupPort(_ *Resolver, _ context.Context, _, _ string) (int, error, bool) {
+	if !gomadIOEnabled() {
+		return 0, nil, false
+	}
+	return 0, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupCNAME(_ *Resolver, _ context.Context, _ string) (string, error, bool) {
+	if !gomadIOEnabled() {
+		return "", nil, false
+	}
+	return "", gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupSRV(_ *Resolver, _ context.Context, _, _, _ string) (string, []*SRV, error, bool) {
+	if !gomadIOEnabled() {
+		return "", nil, nil, false
+	}
+	return "", nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupMX(_ *Resolver, _ context.Context, _ string) ([]*MX, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupNS(_ *Resolver, _ context.Context, _ string) ([]*NS, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupTXT(_ *Resolver, _ context.Context, _ string) ([]string, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptLookupTXT(_ string) ([]string, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupAddr(_ *Resolver, _ context.Context, _ string) ([]string, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
 func gomadInterceptConnRead(conn *conn, buffer []byte) (int, error, bool) {
 	if !conn.ok() {
 		return 0, syscall.EINVAL, true
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return 0, nil, false
+		if !gomadIOEnabled() {
+			return 0, nil, false
+		}
+		return 0, gomadio.ErrUnsupported, true
 	}
 	read, err := connection.Read(buffer)
 	if err != nil && err != io.EOF {
@@ -76,7 +351,10 @@ func gomadInterceptConnWrite(conn *conn, buffer []byte) (int, error, bool) {
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return 0, nil, false
+		if !gomadIOEnabled() {
+			return 0, nil, false
+		}
+		return 0, gomadio.ErrUnsupported, true
 	}
 	written, err := connection.Write(buffer)
 	if err != nil {
@@ -91,7 +369,10 @@ func gomadInterceptConnClose(conn *conn) (error, bool) {
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return connection.Close(), true
 }
@@ -102,7 +383,7 @@ func gomadInterceptConnLocalAddr(conn *conn) (Addr, bool) {
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		return nil, gomadIOEnabled()
 	}
 	return gomadTCPAddr(connection.LocalAddress()), true
 }
@@ -113,7 +394,7 @@ func gomadInterceptConnRemoteAddr(conn *conn) (Addr, bool) {
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		return nil, gomadIOEnabled()
 	}
 	return gomadTCPAddr(connection.RemoteAddress()), true
 }
@@ -124,7 +405,10 @@ func gomadInterceptConnSetDeadline(conn *conn, deadline time.Time) (error, bool)
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return connection.SetDeadline(deadline), true
 }
@@ -135,7 +419,10 @@ func gomadInterceptConnSetReadDeadline(conn *conn, deadline time.Time) (error, b
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return connection.SetReadDeadline(deadline), true
 }
@@ -146,7 +433,10 @@ func gomadInterceptConnSetWriteDeadline(conn *conn, deadline time.Time) (error, 
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return connection.SetWriteDeadline(deadline), true
 }
@@ -156,7 +446,10 @@ func gomadInterceptConnSetReadBuffer(conn *conn, _ int) (error, bool) {
 		return syscall.EINVAL, true
 	}
 	if gomadConnection(conn.fd) == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return nil, true
 }
@@ -166,21 +459,30 @@ func gomadInterceptConnSetWriteBuffer(conn *conn, _ int) (error, bool) {
 		return syscall.EINVAL, true
 	}
 	if gomadConnection(conn.fd) == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return nil, true
 }
 
 func gomadInterceptConnFile(conn *conn) (*os.File, error, bool) {
 	if gomadConnection(conn.fd) == nil {
-		return nil, nil, false
+		if !gomadIOEnabled() {
+			return nil, nil, false
+		}
+		return nil, gomadio.ErrUnsupported, true
 	}
 	return nil, gomadio.ErrUnsupported, true
 }
 
 func gomadInterceptTCPConnSyscallConn(conn *TCPConn) (syscall.RawConn, error, bool) {
 	if conn == nil || gomadConnection(conn.fd) == nil {
-		return nil, nil, false
+		if !gomadIOEnabled() {
+			return nil, nil, false
+		}
+		return nil, gomadio.ErrUnsupported, true
 	}
 	return nil, gomadio.ErrUnsupported, true
 }
@@ -191,7 +493,10 @@ func gomadInterceptTCPConnCloseRead(conn *TCPConn) (error, bool) {
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return connection.CloseRead(), true
 }
@@ -202,14 +507,20 @@ func gomadInterceptTCPConnCloseWrite(conn *TCPConn) (error, bool) {
 	}
 	connection := gomadConnection(conn.fd)
 	if connection == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return connection.CloseWrite(), true
 }
 
 func gomadInterceptTCPConnOption(conn *TCPConn) (error, bool) {
 	if conn == nil || gomadConnection(conn.fd) == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return nil, true
 }
@@ -232,7 +543,10 @@ func gomadInterceptTCPConnSetNoDelay(conn *TCPConn, _ bool) (error, bool) {
 
 func gomadInterceptTCPConnMultipathTCP(conn *TCPConn) (bool, error, bool) {
 	if conn == nil || gomadConnection(conn.fd) == nil {
-		return false, nil, false
+		if !gomadIOEnabled() {
+			return false, nil, false
+		}
+		return false, gomadio.ErrUnsupported, true
 	}
 	return false, nil, true
 }
@@ -256,7 +570,10 @@ func gomadInterceptDialTCP(ctx context.Context, _ *Dialer, network string, local
 
 func gomadInterceptTCPListenerSyscallConn(listener *TCPListener) (syscall.RawConn, error, bool) {
 	if listener == nil || gomadListener(listener.fd) == nil {
-		return nil, nil, false
+		if !gomadIOEnabled() {
+			return nil, nil, false
+		}
+		return nil, gomadio.ErrUnsupported, true
 	}
 	return nil, gomadio.ErrUnsupported, true
 }
@@ -267,7 +584,10 @@ func gomadInterceptTCPListenerAcceptTCP(listener *TCPListener) (*TCPConn, error,
 	}
 	modeled := gomadListener(listener.fd)
 	if modeled == nil {
-		return nil, nil, false
+		if !gomadIOEnabled() {
+			return nil, nil, false
+		}
+		return nil, gomadio.ErrUnsupported, true
 	}
 	connection, err := modeled.Accept()
 	if err != nil {
@@ -281,7 +601,10 @@ func gomadInterceptTCPListenerAccept(listener *TCPListener) (Conn, error, bool) 
 		return nil, syscall.EINVAL, true
 	}
 	if gomadListener(listener.fd) == nil {
-		return nil, nil, false
+		if !gomadIOEnabled() {
+			return nil, nil, false
+		}
+		return nil, gomadio.ErrUnsupported, true
 	}
 	connection, err := listener.AcceptTCP()
 	return connection, err, true
@@ -293,7 +616,10 @@ func gomadInterceptTCPListenerClose(listener *TCPListener) (error, bool) {
 	}
 	modeled := gomadListener(listener.fd)
 	if modeled == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return modeled.Close(), true
 }
@@ -304,7 +630,7 @@ func gomadInterceptTCPListenerAddr(listener *TCPListener) (Addr, bool) {
 	}
 	modeled := gomadListener(listener.fd)
 	if modeled == nil {
-		return nil, false
+		return nil, gomadIOEnabled()
 	}
 	return gomadTCPAddr(modeled.Address()), true
 }
@@ -315,7 +641,10 @@ func gomadInterceptTCPListenerSetDeadline(listener *TCPListener, deadline time.T
 	}
 	modeled := gomadListener(listener.fd)
 	if modeled == nil {
-		return nil, false
+		if !gomadIOEnabled() {
+			return nil, false
+		}
+		return gomadio.ErrUnsupported, true
 	}
 	return modeled.SetDeadline(deadline), true
 }
@@ -325,7 +654,10 @@ func gomadInterceptTCPListenerFile(listener *TCPListener) (*os.File, error, bool
 		return nil, syscall.EINVAL, true
 	}
 	if gomadListener(listener.fd) == nil {
-		return nil, nil, false
+		if !gomadIOEnabled() {
+			return nil, nil, false
+		}
+		return nil, gomadio.ErrUnsupported, true
 	}
 	return nil, gomadio.ErrUnsupported, true
 }

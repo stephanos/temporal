@@ -19,8 +19,9 @@ import (
 )
 
 type Store struct {
-	Root    string
-	Context context.Context
+	Root         string
+	Context      context.Context
+	MaximumBytes uint64
 }
 
 type Input struct {
@@ -34,12 +35,22 @@ type Input struct {
 }
 
 type Artifact struct {
-	Path     string
-	Manifest record.Manifest
-	root     *os.Root
+	Path        string
+	Manifest    record.Manifest
+	StoredBytes uint64
+	root        *os.Root
 }
 
-func (store Store) Publish(input Input) (Artifact, error) {
+type CapacityError struct {
+	Required uint64
+	Maximum  uint64
+}
+
+func (err *CapacityError) Error() string {
+	return fmt.Sprintf("artifact requires %d bytes, exceeding the %d-byte capacity", err.Required, err.Maximum)
+}
+
+func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 	ctx := store.Context
 	if ctx == nil {
 		ctx = context.Background()
@@ -63,6 +74,9 @@ func (store Store) Publish(input Input) (Artifact, error) {
 	if err != nil {
 		return Artifact{}, fmt.Errorf("create artifact staging directory: %w", err)
 	}
+	defer func() {
+		retErr = errors.Join(retErr, os.RemoveAll(staging))
+	}()
 	if err := os.Chmod(staging, 0o700); err != nil {
 		return Artifact{}, fmt.Errorf("make artifact staging directory private: %w", err)
 	}
@@ -182,6 +196,13 @@ func (store Store) Publish(input Input) (Artifact, error) {
 	if err != nil {
 		return Artifact{}, fmt.Errorf("finalize artifact manifest: %w", err)
 	}
+	storedBytes, err := artifactStoredBytes(manifest, uint64(len(manifestBytes)))
+	if err != nil {
+		return Artifact{}, err
+	}
+	if store.MaximumBytes != 0 && storedBytes > store.MaximumBytes {
+		return Artifact{}, &CapacityError{Required: storedBytes, Maximum: store.MaximumBytes}
+	}
 	if _, err := writePayload(ctx, filepath.Join(staging, "manifest.json"), "manifest.json", manifestBytes, 0o600); err != nil {
 		return Artifact{}, err
 	}
@@ -204,7 +225,7 @@ func (store Store) Publish(input Input) (Artifact, error) {
 			return Artifact{}, fmt.Errorf("existing artifact %s failed validation: %w", finalPath, openErr)
 		}
 		if existing.Manifest.Outcome.FailureSignature == manifest.Outcome.FailureSignature {
-			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest}
+			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest, StoredBytes: existing.StoredBytes}
 			if closeErr := existing.Close(); closeErr != nil {
 				return Artifact{}, fmt.Errorf("close existing artifact: %w", closeErr)
 			}
@@ -225,7 +246,18 @@ func (store Store) Publish(input Input) (Artifact, error) {
 	if err := syncDirectoryContext(ctx, store.Root); err != nil {
 		return Artifact{}, fmt.Errorf("sync artifact store: %w", err)
 	}
-	return Artifact{Path: finalPath, Manifest: manifest}, nil
+	return Artifact{Path: finalPath, Manifest: manifest, StoredBytes: storedBytes}, nil
+}
+
+func artifactStoredBytes(manifest record.Manifest, manifestBytes uint64) (uint64, error) {
+	total := manifestBytes
+	for _, file := range manifest.Files {
+		if uint64(file.Size) > ^uint64(0)-total {
+			return 0, errors.New("artifact byte count overflows uint64")
+		}
+		total += uint64(file.Size)
+	}
+	return total, nil
 }
 
 func signatureDirectory(signature record.SHA256, complete bool) string {

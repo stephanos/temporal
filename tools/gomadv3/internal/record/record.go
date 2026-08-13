@@ -275,6 +275,10 @@ func validateIOProfile(profile IOProfile) error {
 
 func validateArtifactReplay(artifactKind, replayMode, outcomeDomain string) error {
 	switch artifactKind {
+	case ArtifactSuccess:
+		if replayMode != ReplayExact || outcomeDomain != "success" {
+			return fmt.Errorf("successful run requires exact replay and success outcome")
+		}
 	case ArtifactTargetFailure:
 		if replayMode != ReplayExact || outcomeDomain != "target" {
 			return fmt.Errorf("target failure requires exact replay and target outcome")

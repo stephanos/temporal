@@ -32,7 +32,7 @@ func EncodeArtifact(mappings []Mapping, limits Limits, snapshot Snapshot) (Artif
 	notExist := append([]string(nil), snapshot.NotExist...)
 	sort.Strings(notExist)
 	descriptor := record.ReadOnlyMountDescriptor{
-		Schema: "gomadv3.io-read-only-mounts/v1", Mappings: targets, Limits: recordLimits(limits),
+		Schema: "gomadv3.io-read-only-mounts/v1", Mappings: targets, Limits: RecordLimits(limits),
 		Requests: record.Uint64String(snapshot.Requests), TotalBytes: record.Uint64String(snapshot.TotalBytes),
 		NotExist: notExist,
 		Entries:  make([]record.ReadOnlyMountEntry, 0, len(entries)),
@@ -117,7 +117,7 @@ func DecodeArtifact(manifest record.ReadOnlyMounts, descriptorBytes []byte, read
 	if err != nil || !bytes.Equal(canonical, descriptorBytes) {
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("read-only mount descriptor is not canonical")
 	}
-	limits, err := decodeLimits(descriptor.Limits)
+	limits, err := DecodeLimits(descriptor.Limits)
 	if err != nil {
 		return nil, Limits{}, Snapshot{}, err
 	}
@@ -215,14 +215,14 @@ func mappingTargets(mappings []Mapping) []string {
 	return targets
 }
 
-func recordLimits(limits Limits) record.ReadOnlyMountLimits {
+func RecordLimits(limits Limits) record.ReadOnlyMountLimits {
 	return record.ReadOnlyMountLimits{
 		PathBytes: record.Uint64String(limits.PathBytes), Requests: record.Uint64String(limits.Requests), Files: record.Uint64String(limits.Files),
 		DirectoryEntries: record.Uint64String(limits.DirectoryEntries), SingleFileBytes: record.Uint64String(limits.SingleFileBytes), TotalBytes: record.Uint64String(limits.TotalBytes),
 	}
 }
 
-func decodeLimits(limits record.ReadOnlyMountLimits) (Limits, error) {
+func DecodeLimits(limits record.ReadOnlyMountLimits) (Limits, error) {
 	decoded := Limits{
 		PathBytes: uint64(limits.PathBytes), Requests: uint64(limits.Requests), Files: uint64(limits.Files), DirectoryEntries: uint64(limits.DirectoryEntries),
 		SingleFileBytes: uint64(limits.SingleFileBytes), TotalBytes: uint64(limits.TotalBytes),
