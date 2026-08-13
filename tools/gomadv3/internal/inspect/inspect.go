@@ -40,13 +40,15 @@ type ArtifactReport struct {
 }
 
 type TargetReport struct {
-	Kind      string           `json:"kind"`
-	Source    string           `json:"source"`
-	SHA256    record.SHA256    `json:"sha256"`
-	Size      uint64           `json:"size"`
-	Argv      []string         `json:"argv"`
-	BuildTags []string         `json:"build_tags"`
-	BuildInfo record.BuildInfo `json:"build_info"`
+	Kind          string                     `json:"kind"`
+	Source        string                     `json:"source"`
+	SHA256        record.SHA256              `json:"sha256"`
+	Size          uint64                     `json:"size"`
+	Argv          []string                   `json:"argv"`
+	BuildTags     []string                   `json:"build_tags"`
+	Adapters      []record.TargetAdapter     `json:"adapters"`
+	Compatibility []record.CompatibilityPack `json:"compatibility"`
+	BuildInfo     record.BuildInfo           `json:"build_info"`
 }
 
 type OutcomeReport struct {
@@ -185,7 +187,7 @@ func projectArtifact(manifest record.Manifest, path string) ArtifactReport {
 		ReplayCommand: "gomad replay " + commandline.QuoteArgument(path), Runner: manifest.Runner, Toolchain: manifest.Toolchain,
 		Target: TargetReport{
 			Kind: manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
-			Argv: append([]string(nil), manifest.Target.Argv...), BuildTags: append([]string(nil), manifest.Target.BuildTags...), BuildInfo: manifest.Target.BuildInfo,
+			Argv: append([]string(nil), manifest.Target.Argv...), BuildTags: append([]string(nil), manifest.Target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), manifest.Target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), manifest.Target.Compatibility...), BuildInfo: manifest.Target.BuildInfo,
 		},
 		Outcome: projectOutcome(manifest.Outcome), FirstDivergence: firstDivergence(manifest),
 		Stdout: projectStream(manifest.Streams.Stdout), Stderr: projectStream(manifest.Streams.Stderr),

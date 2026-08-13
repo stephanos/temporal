@@ -17,6 +17,8 @@ The system has four ownership boundaries:
 ```text
 Runner ---- prepares and supervises one target process per seed
   |
+  +---- Guide ---- bounded semantic corpus and seed selection
+  |
   +---- Record/Artifact ---- identity, persistence, and replay envelope
   |
   +---- target process ---- runtime choices and native virtual time
@@ -30,12 +32,20 @@ These boundaries intentionally do not collapse into one controller:
 
 - the runtime owns goroutine scheduling, native timers, maps, and synchronization;
 - Runner owns host process lifetime, resource bounds, scheduling, and failure policy;
+- Guide owns corpus identity, semantic prioritization, and atomic corpus updates;
 - Artifact owns durable batch journaling and artifact publication;
 - Record owns raw bytes, hashes, and the outer replay envelope;
 - World owns external-event identities, ordering, state, and semantic digests;
 - each adapter owns its domain semantics; and
 - deterministic I/O owns the reviewed transparent boundary for every
   Runner-managed target on one qualified toolchain and platform.
+
+Within Runner, the seed campaign is a pure control state machine over pending
+ordinals, parallel slots, aggregate counters, resume state, and failure-policy
+stops. The orchestration loop owns process launches and hands completed results
+to artifact publication; the campaign never prepares targets or writes files.
+Parallel results enter semantic publication in selection-ordinal order, so host
+completion timing cannot change the batch journal or guided corpus.
 
 The mode is for trusted tests. The process boundary and fail-closed shims reduce
 accidental host dependence; they are not an operating-system sandbox against a
@@ -152,7 +162,10 @@ capabilities. On Unix, one process-owned launch-resource plan creates the pipes
 and backings, fixes every stage's descriptor numbers and inheritance order, and
 defines which ends close after each process start. The supervisor and bootstrap
 remain separate containment stages; neither caller reconstructs `ExtraFiles` or
-the final `dup2` layout independently.
+the final `dup2` layout independently. Host launch orchestration and output
+collection live in `process_unix.go`; supervisor activation, process-group
+termination, reaping, and cleanup live in `supervisor_unix.go` while sharing
+that unchanged launch plan.
 
 World transport remains enabled for every Runner-managed target. Although the
 launch plan now represents World explicitly, making its descriptors optional is
@@ -167,12 +180,22 @@ existing World-aware target.
 Record defines the outer versioned envelope and canonical identities. It treats
 World snapshots, transitions, adapter data, and I/O transcripts as validated
 payloads owned by their respective modules rather than reimplementing their
-semantics.
+semantics. `record.go` owns the public hashing and manifest finalization entry
+points, `validation.go` owns envelope validation, and `identity.go` owns the
+record and failure identity projections. These remain files in one package so
+the internal split does not add forwarding APIs.
 
 Record and failure hashes exclude diagnostic host timestamps and paths. Failure
 signatures also exclude the seed so byte-equivalent observations from different
 seeds can be grouped. Full stream hashes, not retained output fragments, enter
 the identity.
+
+Manifest schema v2 keeps its existing JSON shape but requires the universal
+deterministic-I/O identity and matching `GOMADV3_IO_PROFILE` environment entry
+for every artifact. Previously accepted profile-less v2 data is treated as an
+incomplete artifact and rejected rather than migrated or replayed through host
+I/O. Artifacts emitted with the deterministic-I/O identity retain their schema
+and identity compatibility.
 
 Artifact publication uses private staging, bounded files, content hashes,
 durability operations, and a no-replace rename. A manifest is written last.
@@ -190,6 +213,49 @@ target. It never rebuilds from source, substitutes a local binary, silently
 migrates a schema, or falls back to live host input. Exact replay compares the
 new semantic result with the artifact. Watchdog replay remains diagnostic
 because host elapsed time is not deterministic.
+
+### Guided semantic exploration
+
+Guide is a deep module around a private bounded corpus. Runner opens it only
+after preparing the target, then selects the complete batch from that one
+immutable snapshot. Rarity within higher-value semantic domains orders retained
+seeds; no more than three quarters of a batch may come from the corpus, leaving
+at least `ceil(count/4)` requested seeds unguided. The recorded batch plan binds
+the snapshot hash and final mixed selection. Resume uses that selection without
+consulting a later snapshot for scheduling.
+
+A corpus identity binds the execution-relevant target projection, toolchain,
+generated boundary manifest, semantic probe instrumentation, manifest schema,
+and record contract. Each entry binds its seed and record hash to the retained
+exact-replay artifact, payload size, I/O transcript, World inputs and
+transitions, read-only mounts, semantic coverage, novelty reasons, and verified
+matching replay. Opening validates the complete index and every referenced
+artifact before exposing any seeds. One nonblocking filesystem lock permits a
+single writer, and fixed limits of 1,024 entries and 1 GiB keep validation and
+selection bounded.
+
+Candidate artifacts are durably content-addressed before replay. Only an
+interesting candidate whose exact replay verifies and matches can enter a new
+canonical index written by file sync, rename, and directory sync. A crash may
+therefore leave an unreferenced immutable case but cannot claim its coverage;
+the next open removes such cases. Parallel candidates merge in selection order.
+
+Features use stable failure identities, abstract World state changes and
+transition outcomes, operation and transition pairs, I/O names and results,
+and generated boundary-probe IDs. World features omit seeds, sequence and
+request/event identities, logical times, resource keys, and payloads. The
+feature schema and probe instrumentation jointly enter the corpus identity.
+Observation consumes neither runtime randomness nor host time. Reproducible
+failures outrank invariant and terminal states, World and I/O outcomes,
+operation pairs, and boundary probes; payload size breaks remaining ties and
+rewards smaller reproductions. Code-edge coverage remains a separate,
+lower-priority input for a future independent producer rather than changing the
+versioned semantic-probe contract.
+
+The first guidance stage deliberately reuses realized seeds and captured
+transcripts. World scenario, fault, and input generation is gated on evidence
+that seed guidance improves exploration, and forced runtime choices require a
+minimized failure that retained seeds and transcripts cannot reproduce.
 
 ## World
 
@@ -291,10 +357,18 @@ before hook dispatch. The generated semantic-canary test runs the filesystem
 and network fixtures and fails if any manifest hook is unobserved, while the
 fixtures independently assert the modeled result or stable rejection.
 
+The manifest also generates uniform denial hooks only when an interception
+names a complete hook policy. That policy fixes disabled execution as an
+upstream fallback, transcript observation as the compiler probe, zero result
+values, the exact unsupported error, and error wrapping. Stateful denials and
+modeled operations remain handwritten; adding `disposition: deny` alone never
+opts a hook into generation.
+
 The implementation retains one immutable internal profile specification because
 bootstrap frames and existing artifact schemas need a stable name, target
-contract, inventory, identities, and build-overlay policy. It is not a public
-registry or extension mechanism. Foreign-runtime adapters form a separate,
+contract, inventory, identities, and build-overlay policy. It has no name-based
+selection path and is not a public registry or extension mechanism.
+Foreign-runtime adapters form a separate,
 closed, version-pinned registry selected from target build metadata. The current
 `modernc.org/libc` adapter is generic to that reviewed dependency version; it is
 not keyed to SQLite, Temporal, or an individual test.
@@ -320,7 +394,12 @@ semantics, deterministic timestamps, stable directory order, mount
 immutability, and explicit capacity accounting behind a small operation
 interface. Gomad does not use Afero here: Afero imports `os`, cannot sit below a
 patched `os` package without a cycle, and does not cover unchanged libc callers
-or Gomad's transcript, replay, and capacity contracts.
+or Gomad's transcript, replay, and capacity contracts. The mount loader accepts
+the generated mount wire value types directly, so `os` does not copy every
+field between identical transport and filesystem structures. The `os` adapter
+also owns one `gomadfs.Entry`-to-`FileInfo` projection shared by path stat,
+handle stat, and directory reads; the filesystem keeps its richer stat result
+and operation semantics private.
 
 Explicit read-only mounts are the only brokered host filesystem input. A
 Runner-owned broker pins each approved root, resolves descendants without
@@ -370,12 +449,30 @@ Gomad keeps these outcomes distinct:
 No error path silently falls back to host time, host readiness, live replay
 input, an approximate schema, or an unbounded allocation.
 
+## Host tooling boundary
+
+Host policy is split into deep, typed modules: source archives, patch sets,
+toolchain publication, command supervision, bounded output capture, and the
+black-box test campaign each expose a narrow Go interface. `internal/hosttool`
+is their command adapter; Make retains stable target names but does not own
+lifecycle or result-classification policy. The test driver records one bounded
+case result per external command and keeps equality, diversity, diagnostics,
+timeouts, and mandatory semantic markers as distinct oracles.
+
+Shell is limited to reviewed argv and platform boundaries. The build, patch,
+and test scripts are compatibility shims; `exec.sh` and
+`compiler_test_exec.sh` adapt upstream Go hooks; `clock_audit_test.sh` owns the
+Darwin DTrace invocation. A Go-owned content check rejects new script owners,
+Bash outside the explicit platform adapter, and Perl policy. Platform-neutral
+host-tool tests run on Linux, while runtime qualification remains exclusively
+the complete `darwin/arm64` gate.
+
 ## Maintenance gates
 
 `version.json` is the canonical release descriptor. It owns the Go archive and
 digest, supported platforms, patch name, boundary-manifest version, adapter
-versions, and exact patch/overlay source sets. Generation produces its shell,
-Make, Go, and human-guide consumers; validation requires the allowlists to equal
+versions, and exact patch/overlay source sets. Generation produces its Make,
+Go, and human-guide consumers; validation requires the allowlists to equal
 the actual patch and overlay tree rather than merely containing them.
 
 The runtime patch and transparent I/O overlays are pinned implementation costs.
@@ -387,7 +484,9 @@ in one JSON dossier. The supported-host gate must also rerun the
 positive-controlled host-clock trace because dynamic imports and probe names are
 platform implementation details. The dossier is published on failure and
 uploaded by CI, so a rejected upgrade retains its first failing gate and bounded
-output.
+output. Boundary comparison canonicalizes complete manifest metadata, intercepts,
+and hook policies so a field unknown to an older comparator cannot disappear
+from upgrade evidence.
 
 Broader runtime or compiler changes require a minimized real workload showing
 that Runner, World, adapters, and records cannot satisfy the contract. Runtime

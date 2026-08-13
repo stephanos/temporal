@@ -93,7 +93,7 @@ func writeManifest(t *testing.T, root, classification string) string {
 		"run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
 		"output_bytes": 1024, "world_transition_bytes": 2048,
 		"suites": []any{map[string]any{
-			"name": "activity-batch", "package": "./tests", "test": "TestActivityAPIBatchCancelClientTestSuite",
+			"name": "fixture-case", "package": "./pkg", "test": "TestScenario",
 			"expectation": expectation,
 		}},
 	}

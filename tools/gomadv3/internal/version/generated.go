@@ -2,12 +2,27 @@
 
 package version
 
+type AdapterIdentity struct {
+	Module  string
+	Version string
+	Sum     string
+}
+
 const (
 	GoVersion               = "go1.26.4"
 	BoundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
 	PatchFile               = "go1.26.4.patch"
-	ModerncLibcVersion      = "v1.72.3"
-	ModerncLibcSum          = "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="
 )
 
 var SupportedPlatforms = [...]string{"darwin/arm64"}
+
+var Adapters = [...]AdapterIdentity{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}}
+
+func AdapterByModule(module string) (AdapterIdentity, bool) {
+	for _, adapter := range Adapters {
+		if adapter.Module == module {
+			return adapter, true
+		}
+	}
+	return AdapterIdentity{}, false
+}

@@ -83,6 +83,26 @@ func TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes(t *testing.T) 
 	}
 }
 
+func TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus(t *testing.T) {
+	for _, test := range []struct {
+		guide, coverageSet bool
+		corpus, coverage   string
+		want               string
+		wantError          bool
+	}{
+		{guide: true, corpus: "/corpus", coverage: "none", want: "semantic"},
+		{guide: true, corpus: "/corpus", coverage: "semantic", coverageSet: true, want: "semantic"},
+		{guide: true, coverage: "none", wantError: true},
+		{corpus: "/corpus", coverage: "none", wantError: true},
+		{guide: true, corpus: "/corpus", coverage: "none", coverageSet: true, wantError: true},
+	} {
+		got, err := resolveExploreGuidance(test.guide, test.corpus, test.coverage, test.coverageSet)
+		if (err != nil) != test.wantError || got != test.want {
+			t.Fatalf("resolveExploreGuidance(%t, %q, %q, %t) = %q, %v", test.guide, test.corpus, test.coverage, test.coverageSet, got, err)
+		}
+	}
+}
+
 func TestRunRejectsUnknownCommandWithUsageStatus(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if status := run([]string{"unknown"}, &stdout, &stderr); status != 2 {
@@ -107,7 +127,7 @@ func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {
 	if status != 0 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
-	for _, value := range []string{`"schema":"gomadv3.doctor/v1"`, `"available":true`, `"boundary_manifest_version":`, `"build_command":`} {
+	for _, value := range []string{`"schema":"gomadv3.doctor/v3"`, `"available":true`, `"boundary_manifest_version":`, `"adapters":[`, `"installation_source":"adjacent"`, `"repair_instruction":`} {
 		if !strings.Contains(stdout.String(), value) {
 			t.Fatalf("doctor JSON = %q, missing %q", stdout.String(), value)
 		}
@@ -125,7 +145,7 @@ func TestRunDoctorReportsRepairCommandWhenToolchainIsMissing(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runDoctor([]string{"--artifacts", filepath.Join(root, "artifacts")}, &stdout, &stderr, executable)
-	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), "available=false") || !strings.Contains(stdout.String(), "make -C "+root+" runner") {
+	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), "available=false") || !strings.Contains(stdout.String(), "set GOMADV3_TOOLCHAIN_DIR") {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
 }
@@ -253,6 +273,24 @@ func TestExploreReporterReportsRetainedSuccessfulRuns(t *testing.T) {
 	}
 }
 
+func TestExploreReporterReportsGuidedCorpusUpdates(t *testing.T) {
+	for _, jsonOutput := range []bool{false, true} {
+		var stdout, stderr bytes.Buffer
+		reporter := newExploreReporter(jsonOutput, &stdout, &stderr)
+		if err := reporter.Result(runner.Summary{
+			BatchPath: "/batch", SelectionCount: 4, Attempted: 4, Succeeded: 4, StopReason: runner.StopSeedsExhausted,
+			CorpusPath: "/corpus", CorpusEntries: 12, CorpusAdded: 2,
+		}); err != nil {
+			t.Fatal(err)
+		}
+		for _, want := range []string{"/corpus", "12", "2"} {
+			if !strings.Contains(stdout.String(), want) {
+				t.Fatalf("json=%t output = %q, missing %q", jsonOutput, stdout.String(), want)
+			}
+		}
+	}
+}
+
 func TestRunExploreReportsFlagErrorsAsJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	status := runExplore([]string{"--json", "--parallel", "invalid"}, &stdout, &stderr)
@@ -270,8 +308,12 @@ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
 	var calls int
 	var configs []runner.Config
 	var retained qualify.Report
+	var resolvedToolchainRoot string
 	dependencies := qualifyDependencies{
-		identity:         func() (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+		identity: func(explicitToolchainRoot string) (string, string, string, error) {
+			resolvedToolchainRoot = explicitToolchainRoot
+			return "/toolchain", "/bin/gomad", "sha256:runner", nil
+		},
 		workingDirectory: func() (string, error) { return "/workspace", nil },
 		run: func(_ context.Context, config runner.Config) (runner.Summary, error) {
 			calls++
@@ -290,14 +332,14 @@ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifyWith([]string{
-		"--json", "--seed", "7", "--repeat", "2", "--artifacts", "/artifacts", "--require-probe", "stdlib.os.openfile",
-		"go-test", "./common/clock", "--", "-test.run=TestClock",
+		"--json", "--seed", "7", "--repeat", "2", "--artifacts", "/artifacts", "--toolchain-root", "/bundle/toolchain", "--require-probe", "stdlib.os.openfile",
+		"go-test", "./pkg", "--", "-test.run=TestScenario",
 	}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || calls != 2 || !retained.Qualified {
+	if status != 0 || stderr.Len() != 0 || calls != 2 || !retained.Qualified || resolvedToolchainRoot != "/bundle/toolchain" {
 		t.Fatalf("status=%d calls=%d report=%#v stdout=%q stderr=%q", status, calls, retained, stdout.String(), stderr.String())
 	}
 	for _, config := range configs {
-		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemantic || !config.CollectRunEvidence || config.Target.Source != "./common/clock" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
+		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemantic || !config.CollectRunEvidence || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
 			t.Fatalf("config = %#v", config)
 		}
 	}
@@ -383,16 +425,20 @@ func TestRunQualifyRejectsUnboundedRepeat(t *testing.T) {
 
 func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
 	var got runner.Config
+	var resolvedToolchainRoot string
 	dependencies := resumeDependencies{
-		identity: func() (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+		identity: func(explicitToolchainRoot string) (string, string, string, error) {
+			resolvedToolchainRoot = explicitToolchainRoot
+			return "/toolchain", "/bin/gomad", "sha256:runner", nil
+		},
 		run: func(_ context.Context, config runner.Config) (runner.Summary, error) {
 			got = config
 			return runner.Summary{BatchPath: "/artifacts/v1/run-partial", SelectionCount: 3, Attempted: 3, Succeeded: 3, StopReason: runner.StopSeedsExhausted}, nil
 		},
 	}
 	var stdout, stderr bytes.Buffer
-	status := runResumeWith([]string{"--json", "/artifacts/v1/run-partial"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || got.ResumeBatch != "/artifacts/v1/run-partial" || got.RunnerBuild != "sha256:runner" || got.Target.ToolchainRoot != "/toolchain" || len(got.CoordinatorCommand) != 2 {
+	status := runResumeWith([]string{"--json", "--toolchain-root", "/bundle/toolchain", "/artifacts/v1/run-partial"}, &stdout, &stderr, dependencies)
+	if status != 0 || stderr.Len() != 0 || resolvedToolchainRoot != "/bundle/toolchain" || got.ResumeBatch != "/artifacts/v1/run-partial" || got.RunnerBuild != "sha256:runner" || got.Target.ToolchainRoot != "/toolchain" || len(got.CoordinatorCommand) != 2 {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, got, stdout.String(), stderr.String())
 	}
 	for _, want := range []string{`"schema":"gomadv3.explore-event/v1"`, `"type":"result"`, `"classification":"success"`, `"batch_path":"/artifacts/v1/run-partial"`} {
@@ -404,7 +450,7 @@ func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
 
 func TestRunResumeClassifiesInvalidJournalAsInputError(t *testing.T) {
 	dependencies := resumeDependencies{
-		identity: func() (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+		identity: func(string) (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
 		run: func(context.Context, runner.Config) (runner.Summary, error) {
 			return runner.Summary{}, &runner.HostError{Reason: "resume_setup", Err: errors.New("batch plan changed")}
 		},
@@ -419,7 +465,7 @@ func TestRunResumeClassifiesInvalidJournalAsInputError(t *testing.T) {
 func qualificationDependencies(t *testing.T) qualifyDependencies {
 	t.Helper()
 	return qualifyDependencies{
-		identity:         func() (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+		identity:         func(string) (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
 		workingDirectory: func() (string, error) { return "/workspace", nil },
 		run: func(context.Context, runner.Config) (runner.Summary, error) {
 			t.Fatal("qualification runner is not configured")
@@ -440,7 +486,7 @@ func qualificationEvidence(seed uint64) runner.RunEvidence {
 	return runner.RunEvidence{
 		Schema: runner.RunEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomadv3-target"}, BuildTags: []string{"test_dep"}},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}},
 		IOProfile:   runner.IOProfileEvidence{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprintf("%d", seed)}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     runner.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,

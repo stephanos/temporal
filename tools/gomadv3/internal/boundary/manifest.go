@@ -7,9 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go/ast"
 	"go/format"
+	"go/parser"
+	"go/token"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -17,6 +21,8 @@ import (
 )
 
 const manifestPath = "boundary/manifest.json"
+
+const compilerTestManifestPath = "boundary/compiler-tests.json"
 
 const maximumSemanticProbes = 256
 
@@ -31,9 +37,15 @@ type manifest struct {
 	ManifestVersion    string              `json:"manifest_version"`
 	GoVersion          string              `json:"go_version"`
 	Platforms          []string            `json:"platforms"`
+	HookPolicies       []hookPolicy        `json:"hook_policies,omitempty"`
 	Intercepts         []intercept         `json:"intercepts"`
 	ReviewedCandidates []reviewedCandidate `json:"reviewed_candidates"`
-	CompilerTests      []compilerTest      `json:"compiler_tests"`
+}
+
+type compilerTestManifest struct {
+	SchemaVersion uint           `json:"schema_version"`
+	GoVersion     string         `json:"go_version"`
+	Tests         []compilerTest `json:"tests"`
 }
 
 type reviewedCandidate struct {
@@ -45,6 +57,24 @@ type reviewedCandidate struct {
 type receiver struct {
 	Name    string `json:"name"`
 	Pointer bool   `json:"pointer"`
+}
+
+type hookPolicy struct {
+	ID               string       `json:"id"`
+	Package          string       `json:"package"`
+	Output           string       `json:"output"`
+	Imports          []hookImport `json:"imports"`
+	Enabled          string       `json:"enabled"`
+	DisabledFallback string       `json:"disabled_fallback"`
+	Transcript       string       `json:"transcript"`
+	ResultValues     string       `json:"result_values"`
+	UnsupportedError string       `json:"unsupported_error"`
+	ErrorWrapping    string       `json:"error_wrapping"`
+}
+
+type hookImport struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
 }
 
 type intercept struct {
@@ -59,6 +89,7 @@ type intercept struct {
 	Probe               string    `json:"probe"`
 	Disposition         string    `json:"disposition"`
 	Hook                string    `json:"hook"`
+	HookPolicy          string    `json:"hook_policy,omitempty"`
 	DelegatedBoundary   string    `json:"delegated_boundary"`
 	Adapters            []string  `json:"adapters"`
 	ConformanceFixtures []string  `json:"conformance_fixtures"`
@@ -73,6 +104,13 @@ type compilerTest struct {
 	Symbol            string    `json:"symbol"`
 	Hook              string    `json:"hook"`
 	DeclarationSHA256 string    `json:"declaration_sha256,omitempty"`
+	Diagnostic        string    `json:"diagnostic,omitempty"`
+}
+
+type CompilerTestCase struct {
+	Case       string
+	Package    string
+	Diagnostic string
 }
 
 type artifact struct {
@@ -107,6 +145,97 @@ func Generate(root string, check bool) error {
 	return nil
 }
 
+// CheckCompilerTests validates the conformance-only compiler interception
+// manifest against the production boundary's pinned Go version.
+func CheckCompilerTests(root string) error {
+	definition, err := load(filepath.Join(root, filepath.FromSlash(manifestPath)))
+	if err != nil {
+		return err
+	}
+	_, err = loadCompilerTests(filepath.Join(root, filepath.FromSlash(compilerTestManifestPath)), definition.GoVersion)
+	return err
+}
+
+func CompilerTestCases(root string) ([]CompilerTestCase, error) {
+	definition, err := load(filepath.Join(root, filepath.FromSlash(manifestPath)))
+	if err != nil {
+		return nil, err
+	}
+	tests, err := loadCompilerTests(filepath.Join(root, filepath.FromSlash(compilerTestManifestPath)), definition.GoVersion)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]CompilerTestCase, len(tests))
+	for index, test := range tests {
+		result[index] = CompilerTestCase{Case: test.Case, Package: test.Package, Diagnostic: test.Diagnostic}
+	}
+	return result, nil
+}
+
+// GenerateCompilerTestOverlay emits an overlay for building a compiler that
+// contains conformance-only interception entries. The installed production
+// spec must match the current boundary manifest before it can be replaced.
+func GenerateCompilerTestOverlay(root, goroot, output string) error {
+	definition, err := load(filepath.Join(root, filepath.FromSlash(manifestPath)))
+	if err != nil {
+		return err
+	}
+	tests, err := loadCompilerTests(filepath.Join(root, filepath.FromSlash(compilerTestManifestPath)), definition.GoVersion)
+	if err != nil {
+		return err
+	}
+	identity, err := manifestIdentity(definition)
+	if err != nil {
+		return err
+	}
+	productionSpec, err := renderCompilerSpec(definition, nil, identity)
+	if err != nil {
+		return err
+	}
+	relativeSpecPath, err := compilerSpecPath(definition.GoVersion)
+	if err != nil {
+		return err
+	}
+	installedSpecPath := filepath.Join(goroot, filepath.FromSlash(strings.TrimPrefix(relativeSpecPath, "overlay/")))
+	installedSpec, err := os.ReadFile(installedSpecPath)
+	if err != nil {
+		return fmt.Errorf("read installed production compiler spec: %w", err)
+	}
+	if !bytes.Equal(installedSpec, productionSpec) {
+		return errors.New("installed production compiler spec does not match the boundary manifest")
+	}
+	testSpec, err := renderCompilerSpec(definition, tests, identity)
+	if err != nil {
+		return err
+	}
+	output, err = filepath.Abs(output)
+	if err != nil {
+		return fmt.Errorf("resolve compiler test overlay directory: %w", err)
+	}
+	if output == string(filepath.Separator) {
+		return errors.New("compiler test overlay directory cannot be the filesystem root")
+	}
+	if err := os.MkdirAll(output, 0o700); err != nil {
+		return fmt.Errorf("create compiler test overlay directory: %w", err)
+	}
+	info, err := os.Lstat(output)
+	if err != nil || !info.IsDir() {
+		return fmt.Errorf("compiler test overlay path is not a directory: %s", output)
+	}
+	testSpecPath := filepath.Join(output, filepath.Base(relativeSpecPath))
+	if err := writeAtomic(testSpecPath, testSpec); err != nil {
+		return err
+	}
+	overlay, err := json.MarshalIndent(struct {
+		Replace map[string]string `json:"Replace"`
+	}{Replace: map[string]string{installedSpecPath: testSpecPath}}, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode compiler test overlay: %w", err)
+	}
+	overlay = append(overlay, '\n')
+	return writeAtomic(filepath.Join(output, "overlay.json"), overlay)
+}
+
 func load(path string) (manifest, error) {
 	definition, err := decode(path)
 	if err != nil {
@@ -133,6 +262,43 @@ func decode(path string) (manifest, error) {
 		return manifest{}, errors.New("boundary manifest has trailing data")
 	}
 	return definition, nil
+}
+
+func loadCompilerTests(path, goVersion string) ([]compilerTest, error) {
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read compiler test manifest: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var definition compilerTestManifest
+	if err := decoder.Decode(&definition); err != nil {
+		return nil, fmt.Errorf("decode compiler test manifest: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return nil, errors.New("compiler test manifest has trailing data")
+	}
+	if definition.SchemaVersion != 1 {
+		return nil, fmt.Errorf("compiler test manifest schema version %d is unsupported", definition.SchemaVersion)
+	}
+	if definition.GoVersion != goVersion {
+		return nil, fmt.Errorf("compiler test manifest Go version %q does not match %q", definition.GoVersion, goVersion)
+	}
+	if len(definition.Tests) == 0 {
+		return nil, errors.New("compiler test manifest has no tests")
+	}
+	for index, fixture := range definition.Tests {
+		if fixture.Case == "" || fixture.Package == "" || fixture.Symbol == "" || fixture.Hook == "" {
+			return nil, fmt.Errorf("compiler test manifest entry %d is incomplete", index+1)
+		}
+		if err := validateReceiver(fixture.Receiver); err != nil {
+			return nil, fmt.Errorf("compiler test manifest entry %d: %w", index+1, err)
+		}
+		if fixture.DeclarationSHA256 != "" && !sha256Pattern.MatchString(fixture.DeclarationSHA256) {
+			return nil, fmt.Errorf("compiler test manifest entry %d has an invalid declaration fingerprint", index+1)
+		}
+	}
+	return append([]compilerTest(nil), definition.Tests...), nil
 }
 
 func validate(definition manifest) error {
@@ -165,8 +331,25 @@ func validate(definition manifest) error {
 		return fmt.Errorf("boundary manifest has %d interceptions, maximum is %d", len(definition.Intercepts), maximumSemanticProbes)
 	}
 	seenTargets := make(map[string]struct{}, len(definition.Intercepts))
+	policiesByID := make(map[string]hookPolicy, len(definition.HookPolicies))
+	policyUses := make(map[string]int, len(definition.HookPolicies))
+	seenOutputs := make(map[string]struct{}, len(definition.HookPolicies))
+	for index, policy := range definition.HookPolicies {
+		if err := validateHookPolicy(policy); err != nil {
+			return fmt.Errorf("boundary manifest hook policy %d: %w", index+1, err)
+		}
+		if _, duplicate := policiesByID[policy.ID]; duplicate {
+			return fmt.Errorf("boundary manifest hook policy is duplicated: %s", policy.ID)
+		}
+		if _, duplicate := seenOutputs[policy.Output]; duplicate {
+			return fmt.Errorf("boundary manifest hook policy output is duplicated: %s", policy.Output)
+		}
+		policiesByID[policy.ID] = policy
+		seenOutputs[policy.Output] = struct{}{}
+	}
 	seenProbes := make(map[string]struct{}, len(definition.Intercepts))
 	seenProbeIDs := make(map[uint64]string, len(definition.Intercepts))
+	seenHooks := make(map[string]struct{}, len(definition.Intercepts))
 	entriesByProbe := make(map[string]intercept, len(definition.Intercepts))
 	for index, entry := range definition.Intercepts {
 		if err := validateIntercept(entry); err != nil {
@@ -177,6 +360,23 @@ func validate(definition manifest) error {
 			return fmt.Errorf("boundary manifest target is duplicated: %s", target)
 		}
 		seenTargets[target] = struct{}{}
+		if _, duplicate := seenHooks[entry.Hook]; duplicate {
+			return fmt.Errorf("boundary manifest hook is duplicated: %s", entry.Hook)
+		}
+		seenHooks[entry.Hook] = struct{}{}
+		if entry.HookPolicy != "" {
+			policy, found := policiesByID[entry.HookPolicy]
+			if !found {
+				return fmt.Errorf("boundary manifest interception %s has an unknown hook policy %q", target, entry.HookPolicy)
+			}
+			if entry.Disposition != "deny" || entry.Package != policy.Package {
+				return fmt.Errorf("boundary manifest interception %s is incompatible with hook policy %q", target, entry.HookPolicy)
+			}
+			if _, _, err := hookSignature(entry); err != nil {
+				return fmt.Errorf("boundary manifest interception %s cannot generate its hook: %w", target, err)
+			}
+			policyUses[entry.HookPolicy]++
+		}
 		if _, duplicate := seenProbes[entry.Probe]; duplicate {
 			return fmt.Errorf("boundary manifest probe is duplicated: %s", entry.Probe)
 		}
@@ -190,6 +390,11 @@ func validate(definition manifest) error {
 		}
 		seenProbeIDs[id] = entry.Probe
 		entriesByProbe[entry.Probe] = entry
+	}
+	for _, policy := range definition.HookPolicies {
+		if policyUses[policy.ID] == 0 {
+			return fmt.Errorf("boundary manifest hook policy %q is unused", policy.ID)
+		}
 	}
 	for _, entry := range definition.Intercepts {
 		if err := validateDelegateChain(entry, entriesByProbe); err != nil {
@@ -226,16 +431,31 @@ func validate(definition manifest) error {
 			return fmt.Errorf("boundary manifest reviewed candidate %s has invalid disposition %q", candidate.Target, candidate.Disposition)
 		}
 	}
-	for index, fixture := range definition.CompilerTests {
-		if fixture.Case == "" || fixture.Package == "" || fixture.Symbol == "" || fixture.Hook == "" {
-			return fmt.Errorf("boundary manifest compiler test %d is incomplete", index+1)
+	return nil
+}
+
+func validateHookPolicy(policy hookPolicy) error {
+	if policy.ID == "" || policy.Package == "" || policy.Output == "" {
+		return errors.New("ID, package, and output are required")
+	}
+	prefix := "overlay/src/" + policy.Package + "/"
+	if !strings.HasPrefix(policy.Output, prefix) || filepath.ToSlash(filepath.Clean(policy.Output)) != policy.Output || !strings.HasSuffix(policy.Output, ".go") {
+		return fmt.Errorf("output must be a Go file below %s", prefix)
+	}
+	previous := ""
+	for _, imported := range policy.Imports {
+		if imported.Name == "" || imported.Path == "" || imported.Name <= previous {
+			return errors.New("imports must have names and paths and be sorted by unique name")
 		}
-		if err := validateReceiver(fixture.Receiver); err != nil {
-			return fmt.Errorf("boundary manifest compiler test %d: %w", index+1, err)
+		previous = imported.Name
+	}
+	for name, expression := range map[string]string{"enabled expression": policy.Enabled, "unsupported error": policy.UnsupportedError} {
+		if _, err := parser.ParseExpr(expression); err != nil {
+			return fmt.Errorf("invalid %s: %w", name, err)
 		}
-		if fixture.DeclarationSHA256 != "" && !sha256Pattern.MatchString(fixture.DeclarationSHA256) {
-			return fmt.Errorf("boundary manifest compiler test %d has an invalid declaration fingerprint", index+1)
-		}
+	}
+	if policy.DisabledFallback != "upstream" || policy.Transcript != "compiler-probe" || policy.ResultValues != "zero" || policy.ErrorWrapping != "none" {
+		return errors.New("only upstream fallback, compiler-probe transcripts, zero results, and unwrapped errors can be generated")
 	}
 	return nil
 }
@@ -307,13 +527,15 @@ func validateReceiver(value *receiver) error {
 }
 
 func render(definition manifest) ([]artifact, error) {
-	version := goVersionPattern.FindStringSubmatch(definition.GoVersion)
-	specPath := fmt.Sprintf("overlay/src/cmd/compile/internal/gomadintercept/spec_go%s%s.go", version[1], version[2])
+	specPath, err := compilerSpecPath(definition.GoVersion)
+	if err != nil {
+		return nil, err
+	}
 	identity, err := manifestIdentity(definition)
 	if err != nil {
 		return nil, err
 	}
-	spec, err := renderCompilerSpec(definition, identity)
+	spec, err := renderCompilerSpec(definition, nil, identity)
 	if err != nil {
 		return nil, err
 	}
@@ -322,15 +544,138 @@ func render(definition manifest) ([]artifact, error) {
 		return nil, err
 	}
 	platformName := strings.ReplaceAll(strings.Join(definition.Platforms, "+"), "/", "-")
-	return []artifact{
+	artifacts := []artifact{
 		{path: specPath, content: spec},
 		{path: "expected-intercepts-" + definition.GoVersion + ".txt", content: renderExpectedReport(definition)},
 		{path: filepath.ToSlash(filepath.Join("boundary", definition.GoVersion+"-"+platformName+".md")), content: renderInventory(definition, identity)},
 		{path: "internal/ioprofile/boundary_generated.go", content: hostIdentity},
-	}, nil
+	}
+	for _, policy := range definition.HookPolicies {
+		generated, renderErr := renderHookPolicy(policy, definition.Intercepts)
+		if renderErr != nil {
+			return nil, renderErr
+		}
+		artifacts = append(artifacts, artifact{path: policy.Output, content: generated})
+	}
+	return artifacts, nil
 }
 
-func renderCompilerSpec(definition manifest, identity string) ([]byte, error) {
+func renderHookPolicy(policy hookPolicy, intercepts []intercept) ([]byte, error) {
+	var source strings.Builder
+	source.WriteString("// Copyright 2026 The Go Authors. All rights reserved.\n")
+	source.WriteString("// Use of this source code is governed by a BSD-style\n")
+	source.WriteString("// license that can be found in the LICENSE file.\n\n")
+	source.WriteString("// Code generated by internal/boundarygen. DO NOT EDIT.\n\n")
+	fmt.Fprintf(&source, "package %s\n\n", policy.Package)
+	if len(policy.Imports) != 0 {
+		source.WriteString("import (\n")
+		for _, imported := range policy.Imports {
+			if imported.Name == path.Base(imported.Path) {
+				fmt.Fprintf(&source, "\t%q\n", imported.Path)
+			} else {
+				fmt.Fprintf(&source, "\t%s %q\n", imported.Name, imported.Path)
+			}
+		}
+		source.WriteString(")\n\n")
+	}
+	for _, entry := range intercepts {
+		if entry.HookPolicy != policy.ID {
+			continue
+		}
+		parameters, results, err := hookSignature(entry)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(&source, "func %s(%s) (%s, bool) {\n", entry.Hook, strings.Join(parameters, ", "), strings.Join(results, ", "))
+		for index, result := range results[:len(results)-1] {
+			fmt.Fprintf(&source, "\tvar result%d %s\n", index, result)
+		}
+		disabled := make([]string, 0, len(results)+1)
+		unsupported := make([]string, 0, len(results)+1)
+		for index := range results[:len(results)-1] {
+			disabled = append(disabled, fmt.Sprintf("result%d", index))
+			unsupported = append(unsupported, fmt.Sprintf("result%d", index))
+		}
+		disabled = append(disabled, "nil", "false")
+		unsupported = append(unsupported, policy.UnsupportedError, "true")
+		fmt.Fprintf(&source, "\tif !%s {\n\t\treturn %s\n\t}\n", policy.Enabled, strings.Join(disabled, ", "))
+		fmt.Fprintf(&source, "\treturn %s\n}\n\n", strings.Join(unsupported, ", "))
+	}
+	formatted, err := format.Source([]byte(source.String()))
+	if err != nil {
+		return nil, fmt.Errorf("format generated hook policy %s: %w", policy.ID, err)
+	}
+	return formatted, nil
+}
+
+func hookSignature(entry intercept) ([]string, []string, error) {
+	expression, err := parser.ParseExpr(entry.Signature)
+	if err != nil {
+		return nil, nil, fmt.Errorf("parse signature: %w", err)
+	}
+	function, ok := expression.(*ast.FuncType)
+	if !ok {
+		return nil, nil, errors.New("signature is not a function")
+	}
+	parameters, err := fieldTypes(function.Params)
+	if err != nil {
+		return nil, nil, err
+	}
+	if entry.Receiver != nil {
+		receiverType := entry.Receiver.Name
+		if entry.Receiver.Pointer {
+			receiverType = "*" + receiverType
+		}
+		parameters = append([]string{receiverType}, parameters...)
+	}
+	for index := range parameters {
+		parameters[index] = "_ " + parameters[index]
+	}
+	results, err := fieldTypes(function.Results)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(results) == 0 || results[len(results)-1] != "error" {
+		return nil, nil, errors.New("generated denial hook must return one final error")
+	}
+	for _, result := range results[:len(results)-1] {
+		if result == "error" {
+			return nil, nil, errors.New("generated denial hook has more than one error result")
+		}
+	}
+	return parameters, results, nil
+}
+
+func fieldTypes(fields *ast.FieldList) ([]string, error) {
+	if fields == nil {
+		return nil, nil
+	}
+	types := make([]string, 0, fields.NumFields())
+	for _, field := range fields.List {
+		var encoded bytes.Buffer
+		if err := format.Node(&encoded, token.NewFileSet(), field.Type); err != nil {
+			return nil, fmt.Errorf("format signature type: %w", err)
+		}
+		count := len(field.Names)
+		if count == 0 {
+			count = 1
+		}
+		for range count {
+			types = append(types, encoded.String())
+		}
+	}
+	return types, nil
+}
+
+func compilerSpecPath(goVersion string) (string, error) {
+	version := goVersionPattern.FindStringSubmatch(goVersion)
+	if version == nil {
+		return "", fmt.Errorf("cannot derive compiler spec path from Go version %q", goVersion)
+	}
+	return fmt.Sprintf("overlay/src/cmd/compile/internal/gomadintercept/spec_go%s%s.go", version[1], version[2]), nil
+}
+
+func renderCompilerSpec(definition manifest, tests []compilerTest, identity string) ([]byte, error) {
 	var source strings.Builder
 	source.WriteString("// Copyright 2026 The Go Authors. All rights reserved.\n")
 	source.WriteString("// Use of this source code is governed by a BSD-style\n")
@@ -349,7 +694,7 @@ func renderCompilerSpec(definition manifest, identity string) ([]byte, error) {
 	for _, entry := range definition.Intercepts {
 		writeSpec(&source, entry.Package, entry.Receiver, entry.Symbol, entry.Hook, entry.DeclarationSHA256, boundaryProbeID(entry.Probe))
 	}
-	for _, fixture := range definition.CompilerTests {
+	for _, fixture := range tests {
 		writeSpec(&source, fixture.Package, fixture.Receiver, fixture.Symbol, fixture.Hook, fixture.DeclarationSHA256, 0)
 	}
 	source.WriteString("}\n")
@@ -388,12 +733,12 @@ func renderInventory(definition manifest, identity string) []byte {
 	var output strings.Builder
 	fmt.Fprintf(&output, "# Gomad deterministic boundary: %s\n\n", definition.ManifestVersion)
 	fmt.Fprintf(&output, "Generated from [`manifest.json`](manifest.json) for Go %s on %s. Manifest identity: `%s`. Do not edit this inventory directly.\n\n", definition.GoVersion, strings.Join(definition.Platforms, ", "), identity)
-	output.WriteString("| Target | Signature | Operation | Probe | Disposition | Hook | Adapters | Conformance | Negative | Escape |\n")
-	output.WriteString("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
+	output.WriteString("| Target | Signature | Operation | Probe | Disposition | Hook | Hook policy | Adapters | Conformance | Negative | Escape |\n")
+	output.WriteString("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n")
 	for _, entry := range definition.Intercepts {
 		values := []string{
 			entry.Package + "." + targetName(entry.Receiver, entry.Symbol), entry.Signature,
-			entry.Operation, entry.Probe, entry.Disposition, entry.Hook,
+			entry.Operation, entry.Probe, entry.Disposition, entry.Hook, entry.HookPolicy,
 			strings.Join(entry.Adapters, "<br>"), strings.Join(entry.ConformanceFixtures, "<br>"),
 			strings.Join(entry.NegativeFixtures, "<br>"), strings.Join(entry.EscapeFixtures, "<br>"),
 		}
@@ -451,8 +796,21 @@ func boundaryProbeID(probe string) uint64 {
 }
 
 func manifestIdentity(definition manifest) (string, error) {
-	identity := definition
-	identity.CompilerTests = nil
+	// Preserve the legacy null compiler_tests projection so moving the test
+	// corpus out of the production manifest does not rotate production identity.
+	identity := struct {
+		SchemaVersion      uint                `json:"schema_version"`
+		ManifestVersion    string              `json:"manifest_version"`
+		GoVersion          string              `json:"go_version"`
+		Platforms          []string            `json:"platforms"`
+		HookPolicies       []hookPolicy        `json:"hook_policies,omitempty"`
+		Intercepts         []intercept         `json:"intercepts"`
+		ReviewedCandidates []reviewedCandidate `json:"reviewed_candidates"`
+		CompilerTests      []compilerTest      `json:"compiler_tests"`
+	}{
+		SchemaVersion: definition.SchemaVersion, ManifestVersion: definition.ManifestVersion, GoVersion: definition.GoVersion,
+		Platforms: definition.Platforms, HookPolicies: definition.HookPolicies, Intercepts: definition.Intercepts, ReviewedCandidates: definition.ReviewedCandidates,
+	}
 	canonical, err := json.Marshal(identity)
 	if err != nil {
 		return "", fmt.Errorf("encode boundary manifest identity: %w", err)

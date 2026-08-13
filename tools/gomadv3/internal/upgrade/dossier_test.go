@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomadv3/internal/qualificationset"
+	"go.temporal.io/server/tools/gomadv3/internal/qualify"
 )
 
 func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
@@ -18,7 +21,7 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
 	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
 	err := Run(context.Background(), Options{
-		Root: root, Output: output, BaselineManifest: baseline,
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomadv3-core"),
 		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
 	})
 	if err != nil {
@@ -47,8 +50,31 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	if len(dossier.Gates) != 1 || dossier.Gates[0].Status != "passed" || dossier.Gates[0].Output != "gate passed\n" {
 		t.Fatalf("gate evidence = %#v", dossier.Gates)
 	}
-	if dossier.RetainedCorpus.Status != "not-configured" {
+	if dossier.RetainedCorpus.Status != "checked" || dossier.RetainedCorpus.SHA256 == "" {
 		t.Fatalf("retained corpus evidence = %#v", dossier.RetainedCorpus)
+	}
+}
+
+func TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing(t *testing.T) {
+	root := writeUpgradeFixture(t, false)
+	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
+	err := Run(context.Background(), Options{
+		Root: root, Output: output,
+		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
+	})
+	if err == nil || !strings.Contains(err.Error(), "corpus") {
+		t.Fatalf("Run() error = %v", err)
+	}
+	contents, readErr := os.ReadFile(output)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	var dossier Dossier
+	if unmarshalErr := json.Unmarshal(contents, &dossier); unmarshalErr != nil {
+		t.Fatal(unmarshalErr)
+	}
+	if dossier.Qualified || dossier.RetainedCorpus.Status != "not-configured" {
+		t.Fatalf("dossier = %#v", dossier)
 	}
 }
 
@@ -83,6 +109,29 @@ func TestRunRejectsOverlayCollisionBeforeGates(t *testing.T) {
 	}
 }
 
+func TestCompareBoundariesRetainsNewManifestAndEntryFields(t *testing.T) {
+	baseline := []byte(`{
+		"manifest_version":"v1",
+		"future_contract":"old",
+		"hook_policies":[{"id":"deny/v1","enabled":"old"}],
+		"intercepts":[{"package":"os","symbol":"OpenFile","future_field":"old"}]
+	}`)
+	current := []byte(`{
+		"manifest_version":"v1",
+		"future_contract":"new",
+		"hook_policies":[{"id":"deny/v1","enabled":"new"}],
+		"intercepts":[{"package":"os","symbol":"OpenFile","future_field":"new"}]
+	}`)
+	difference, err := compareBoundaries(baseline, current)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"hook-policy:deny/v1", "manifest", "os.OpenFile"}
+	if fmt.Sprint(difference.Changed) != fmt.Sprint(want) {
+		t.Fatalf("changed boundaries = %v, want %v", difference.Changed, want)
+	}
+}
+
 func TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "corpus.json")
@@ -92,6 +141,67 @@ func TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON(t *testing.T) {
 	if _, err := loadCorpus(root, path); err == nil || !strings.Contains(err.Error(), "qualification set") {
 		t.Fatalf("loadCorpus() error = %v", err)
 	}
+}
+
+func TestLoadCorpusRejectsQualifiedDownstreamSet(t *testing.T) {
+	root := t.TempDir()
+	path := writeQualifiedCorpus(t, root, "temporal-representative")
+	if _, err := loadCorpus(root, path); err == nil || !strings.Contains(err.Error(), "gomadv3-core") {
+		t.Fatalf("loadCorpus() error = %v", err)
+	}
+}
+
+func writeQualifiedCorpus(t *testing.T, root, name string) string {
+	t.Helper()
+	manifest := map[string]any{
+		"schema": qualificationset.ManifestSchema, "name": name, "seed": 7, "repeat": 2,
+		"run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
+		"output_bytes": 1024, "world_transition_bytes": 2048,
+		"suites": []any{map[string]any{
+			"name": "boundary", "package": "./pkg", "test": "TestBoundary",
+			"expectation": map[string]any{
+				"classification": "unsupported_target", "import_path": "example.com/escape", "capability": "imports os/exec",
+			},
+		}},
+	}
+	contents, err := json.Marshal(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifestPath := filepath.Join(root, "corpus-manifest.json")
+	if err = os.WriteFile(manifestPath, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	output := filepath.Join(root, ".toolchain", "corpus.json")
+	_, err = qualificationset.Run(context.Background(), qualificationset.Config{
+		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, ".toolchain", "corpus-artifacts"), OutputPath: output,
+		Execute: func(_ context.Context, command qualificationset.Command) qualificationset.CommandResult {
+			logicalCommand := append([]string{"gomad"}, command.Args...)
+			report, buildErr := qualify.BuildFailure(logicalCommand, 7, 2, nil, qualify.Failure{
+				Classification: "unsupported_target", Iteration: 1, Message: "unsupported boundary",
+				ImportPath: "example.com/escape", Capability: "imports os/exec",
+			})
+			if buildErr != nil {
+				t.Fatal(buildErr)
+			}
+			path, writeErr := qualify.Write(command.ArtifactRoot, report)
+			if writeErr != nil {
+				t.Fatal(writeErr)
+			}
+			event, marshalErr := json.Marshal(map[string]any{
+				"schema": "gomadv3.qualify-event/v1", "type": "result", "classification": "unsupported_target", "report_path": path, "report": report,
+			})
+			if marshalErr != nil {
+				t.Fatal(marshalErr)
+			}
+			return qualificationset.CommandResult{ExitCode: 2, Stdout: append(event, '\n')}
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return output
 }
 
 func writeUpgradeFixture(t *testing.T, collide bool) string {

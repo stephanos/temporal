@@ -10,15 +10,16 @@ import (
 func TestCheckReportsAvailableContract(t *testing.T) {
 	root, runner, artifacts := writeDoctorFixture(t, "darwin", "arm64")
 	report := Check(Config{
-		Root: root, RunnerPath: runner, ArtifactRoot: artifacts, HostOS: "darwin", HostArch: "arm64",
+		ToolchainRoot: filepath.Join(root, ".toolchain"), InstallationSource: "test", RepairInstruction: "repair test toolchain",
+		RunnerPath: runner, ArtifactRoot: artifacts, HostOS: "darwin", HostArch: "arm64",
 	})
 	if !report.Available || report.GoVersion != "go1.26.4" || report.ToolchainBuild != strings.Repeat("a", 64) {
 		t.Fatalf("report = %#v", report)
 	}
-	if report.RunnerBuild == "" || report.BoundaryManifestVersion == "" || report.Adapter.Module != "modernc.org/libc" || report.Adapter.Status != "compatible" {
+	if report.RunnerBuild == "" || report.BoundaryManifestVersion == "" || len(report.Adapters) != 1 || report.Adapters[0].Module != "modernc.org/libc" || report.Adapters[0].Status != "available" {
 		t.Fatalf("identity = %#v", report)
 	}
-	if report.ArtifactDirectory != artifacts || report.BuildCommand != "make -C "+root+" runner" || len(report.Checks) != 5 {
+	if report.ArtifactDirectory != artifacts || report.InstallationSource != "test" || report.RepairInstruction != "repair test toolchain" || len(report.Checks) != 5 {
 		t.Fatalf("diagnostics = %#v", report)
 	}
 	for _, check := range report.Checks {
@@ -38,13 +39,14 @@ func TestCheckExplainsMissingToolchain(t *testing.T) {
 		t.Fatal(err)
 	}
 	report := Check(Config{
-		Root: root, RunnerPath: runner, ArtifactRoot: filepath.Join(root, "artifacts"), HostOS: "darwin", HostArch: "arm64",
+		ToolchainRoot: filepath.Join(root, ".toolchain"), InstallationSource: "test", RepairInstruction: "repair test toolchain",
+		RunnerPath: runner, ArtifactRoot: filepath.Join(root, "artifacts"), HostOS: "darwin", HostArch: "arm64",
 	})
-	if report.Available || report.BuildCommand != "make -C "+root+" runner" {
+	if report.Available || report.RepairInstruction != "repair test toolchain" {
 		t.Fatalf("report = %#v", report)
 	}
 	toolchain := findCheck(t, report, "toolchain")
-	if toolchain.Status != "error" || !strings.Contains(toolchain.Detail, report.BuildCommand) {
+	if toolchain.Status != "error" || !strings.Contains(toolchain.Detail, report.RepairInstruction) {
 		t.Fatalf("toolchain check = %#v", toolchain)
 	}
 }
@@ -59,7 +61,8 @@ func TestCheckRejectsUnsupportedHostAndUnwritableArtifacts(t *testing.T) {
 		t.Fatal(err)
 	}
 	report := Check(Config{
-		Root: root, RunnerPath: runner, ArtifactRoot: filepath.Join(file, "child"), HostOS: "linux", HostArch: "arm64",
+		ToolchainRoot: filepath.Join(root, ".toolchain"), InstallationSource: "test", RepairInstruction: "repair test toolchain",
+		RunnerPath: runner, ArtifactRoot: filepath.Join(file, "child"), HostOS: "linux", HostArch: "arm64",
 	})
 	if report.Available || findCheck(t, report, "host").Status != "error" || findCheck(t, report, "artifacts").Status != "error" {
 		t.Fatalf("report = %#v", report)

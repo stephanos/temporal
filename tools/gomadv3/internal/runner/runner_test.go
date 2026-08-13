@@ -29,6 +29,7 @@ import (
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/replay"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -222,6 +223,116 @@ func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
 		if err := opened.Close(); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
+	executor := newOutOfOrderExecutor(t)
+	config := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 3)
+	config.Coverage = CoverageSemantic
+	config.KeepSuccesses = KeepSuccessesNovel
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	batch, err := artifact.OpenBatch(summary.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := []record.Uint64String{batch.Runs[0].Seed, batch.Runs[1].Seed, batch.Runs[2].Seed}; !slices.Equal(got, []record.Uint64String{1, 2, 3}) {
+		t.Fatalf("batch merge order = %v", got)
+	}
+	if batch.Runs[0].SuccessArtifact == nil || batch.Runs[1].SuccessArtifact != nil || batch.Runs[2].SuccessArtifact == nil {
+		t.Fatalf("ordered novelty retention = %#v", batch.Runs)
+	}
+}
+
+func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
+	corpus := filepath.Join(t.TempDir(), "corpus")
+	replayer := &matchingReplayer{}
+	firstExecutor := &fakeExecutor{result: func(seed uint64) process.Result {
+		result := processResult(0, "", "")
+		probe := "stdlib.os.openfile"
+		if seed%2 == 1 {
+			probe = "stdlib.net.dialtcp"
+		}
+		result.IOTranscript = semanticTranscript(t, probe)
+		return result
+	}}
+	firstConfig := testConfig(t, newFakePreparer(t), firstExecutor, "0-7", PolicyAll, 3)
+	firstConfig.Coverage = CoverageSemantic
+	firstConfig.Guide = true
+	firstConfig.Corpus = corpus
+	firstConfig.Replayer = replayer
+	first, err := Run(context.Background(), firstConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.CorpusAdded != 2 || first.CorpusEntries != 2 || replayer.calls != 2 {
+		t.Fatalf("first guided summary = %#v, replay calls = %d", first, replayer.calls)
+	}
+
+	secondExecutor := &fakeExecutor{result: firstExecutor.result}
+	secondConfig := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
+	secondConfig.Coverage = CoverageSemantic
+	secondConfig.Guide = true
+	secondConfig.Corpus = corpus
+	secondConfig.Replayer = replayer
+	second, err := Run(context.Background(), secondConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.CorpusAdded != 0 || second.CorpusEntries != 2 || replayer.calls != 2 {
+		t.Fatalf("second guided summary = %#v, replay calls = %d", second, replayer.calls)
+	}
+	batch, err := artifact.OpenBatch(second.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Record.Selection != "0,1,100-105" || batch.Record.SelectionCount != 8 {
+		t.Fatalf("guided batch selection = %q (%d)", batch.Record.Selection, batch.Record.SelectionCount)
+	}
+	seeds := make([]uint64, len(batch.Runs))
+	for index, run := range batch.Runs {
+		seeds[index] = uint64(run.Seed)
+	}
+	if !slices.Equal(seeds, []uint64{0, 1, 100, 101, 102, 103, 104, 105}) {
+		t.Fatalf("second guided seeds = %v", seeds)
+	}
+}
+
+func TestRunGuidanceRequiresCorpusAndSemanticCoverage(t *testing.T) {
+	for _, configure := range []func(*Config){
+		func(config *Config) { config.Corpus = "" },
+		func(config *Config) { config.Coverage = CoverageNone },
+	} {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+		config.Guide = true
+		config.Corpus = t.TempDir()
+		config.Coverage = CoverageSemantic
+		configure(&config)
+		if _, err := Run(context.Background(), config); err == nil {
+			t.Fatal("Run accepted invalid guided configuration")
+		}
+	}
+}
+
+func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+		return result
+	}}, "1", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.Guide = true
+	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+	config.SupervisorCommand = nil
+	_, err := Run(context.Background(), config)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "guided_corpus" {
+		t.Fatalf("Run() error = %v", err)
 	}
 }
 
@@ -565,9 +676,9 @@ func TestRunPassesCanonicalReadOnlyMountsToExecutor(t *testing.T) {
 	config.RunnerBuild = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 	config.IOROMounts = []string{source + "=schema"}
 	config.Target = target.Spec{
-		Kind: target.KindGoTest, Source: "./tests", Args: []string{"-test.run=^TestActivityAPIBatchCancelClientTestSuite$"}, WorkingDir: t.TempDir(),
+		Kind: target.KindGoTest, Source: "./pkg", Args: []string{"-test.run=^TestScenario$"}, WorkingDir: t.TempDir(),
 	}
-	config.Preparer = profileFakePreparer(t, "-test.run=^TestActivityAPIBatchCancelClientTestSuite$")
+	config.Preparer = profileFakePreparer(t, "-test.run=^TestScenario$")
 	if _, err := Run(context.Background(), config); err != nil {
 		t.Fatal(err)
 	}
@@ -658,6 +769,38 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 	}
 	if len(batch.Runs) != 3 || batch.Runs[0].Seed != 7 || batch.Runs[1].Seed != 8 || batch.Runs[2].Seed != 9 {
 		t.Fatalf("batch runs = %#v", batch.Runs)
+	}
+}
+
+func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
+	corpus := filepath.Join(t.TempDir(), "corpus")
+	replayer := &matchingReplayer{}
+	interrupted := &resumeInterruptExecutor{}
+	config := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
+	config.OverallTimeout = 300 * time.Millisecond
+	config.TerminateGrace = 10 * time.Millisecond
+	config.Coverage = CoverageSemantic
+	config.Guide = true
+	config.Corpus = corpus
+	config.Replayer = replayer
+	partial, err := Run(context.Background(), config)
+	if err == nil || partial.CorpusEntries != 1 {
+		t.Fatalf("interrupted guided summary = %#v, error = %v", partial, err)
+	}
+
+	resumedExecutor := &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		return result
+	}}
+	resumed, err := Run(context.Background(), Config{
+		ResumeBatch: partial.BatchPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor, Replayer: replayer,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if seeds := executorSeeds(resumedExecutor); !slices.Equal(seeds, []uint64{8}) || resumed.SelectionCount != 2 || resumed.CorpusEntries != 1 {
+		t.Fatalf("resumed guided seeds = %v, summary = %#v", executorSeeds(resumedExecutor), resumed)
 	}
 }
 
@@ -826,6 +969,41 @@ func TestIsolatedRunnerPreservesBoundedRunEvidence(t *testing.T) {
 	}
 }
 
+func TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput(t *testing.T) {
+	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestFastCoordinatorHelper"}
+	config.Progress = func(Progress) error {
+		deadline := time.Now().Add(100 * time.Millisecond)
+		for time.Now().Before(deadline) {
+			runtime.Gosched()
+		}
+		return nil
+	}
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Attempted != 1 || summary.Succeeded != 1 {
+		t.Fatalf("summary = %#v", summary)
+	}
+}
+
+func TestFastCoordinatorHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
+		t.Skip("coordinator subprocess only")
+	}
+	encoder := json.NewEncoder(os.Stdout)
+	progress := Progress{Phase: ProgressRunning, Attempted: 1, Running: 1}
+	if err := encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress}); err != nil {
+		t.Fatal(err)
+	}
+	response := coordinatorResponse{Summary: Summary{Attempted: 1, Succeeded: 1}}
+	if err := encoder.Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
+		t.Fatal(err)
+	}
+	os.Exit(0) //nolint:revive // This subprocess helper must exit before the parent test harness continues.
+}
+
 func TestUnsupportedTargetCoordinatorHelper(t *testing.T) {
 	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
@@ -977,7 +1155,7 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 	digest := sha256.Sum256(data)
 	return &fakePreparer{prepared: target.Prepared{
 		Path: path, Kind: target.KindGoRun, Source: ".", SHA256: fmt.Sprintf("sha256:%x", digest), Size: uint64(len(data)),
-		Argv: []string{"gomadv3-target"}, BuildTags: []string{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+		Argv: []string{"gomadv3-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 		GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e",
 		TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}}
@@ -987,10 +1165,10 @@ func profileFakePreparer(t *testing.T, argument string) *fakePreparer {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	preparer.prepared.Kind = target.KindGoTest
-	preparer.prepared.Source = "./tests"
+	preparer.prepared.Source = "./pkg"
 	preparer.prepared.Argv = []string{"gomadv3-target", argument}
-	preparer.prepared.BuildTags = []string{"test_dep"}
-	preparer.prepared.BuildInfo.Path = "go.temporal.io/server/tests.test"
+	preparer.prepared.BuildTags = []string{"gomad_fixture"}
+	preparer.prepared.BuildInfo.Path = "example.test/project/pkg.test"
 	return preparer
 }
 
@@ -1021,6 +1199,56 @@ type fakeExecutor struct {
 	maximumActive int
 	requests      []process.Request
 	result        func(uint64) process.Result
+}
+
+type outOfOrderExecutor struct {
+	t        *testing.T
+	later    chan struct{}
+	mu       sync.Mutex
+	finished int
+}
+
+type matchingReplayer struct {
+	calls int
+}
+
+func (replayer *matchingReplayer) Replay(_ context.Context, config replay.Config) (replay.Result, error) {
+	replayer.calls++
+	opened, err := artifact.Open(config.ArtifactPath)
+	if err != nil {
+		return replay.Result{}, err
+	}
+	defer opened.Close()
+	return replay.Result{Artifact: opened.Detached(), Verified: true, Match: true}, nil
+}
+
+func newOutOfOrderExecutor(t *testing.T) *outOfOrderExecutor {
+	return &outOfOrderExecutor{t: t, later: make(chan struct{})}
+}
+
+func (executor *outOfOrderExecutor) Run(ctx context.Context, request process.Request) (process.Result, error) {
+	seed := seedFromEnvironment(request.Env)
+	if seed == 1 {
+		select {
+		case <-executor.later:
+		case <-ctx.Done():
+			return process.Result{}, ctx.Err()
+		}
+	} else {
+		executor.mu.Lock()
+		executor.finished++
+		if executor.finished == 2 {
+			close(executor.later)
+		}
+		executor.mu.Unlock()
+	}
+	result := processResult(0, "", "")
+	probe := "stdlib.os.openfile"
+	if seed == 3 {
+		probe = "stdlib.net.dialtcp"
+	}
+	result.IOTranscript = semanticTranscript(executor.t, probe)
+	return result, nil
 }
 
 func (executor *fakeExecutor) Run(_ context.Context, request process.Request) (process.Result, error) {

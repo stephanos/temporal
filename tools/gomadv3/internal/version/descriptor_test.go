@@ -14,9 +14,8 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	shell := exec.Command("bash", "-c", `source "$1"; printf '%s|%s|%s|%s|%s\n' "$go_version" "$patch_name" "$adapter_modernc_org_libc_version" "${patch_allowed_paths[0]}" "${qualified_platforms[0]}"`, "bash", filepath.Join(root, "toolchain-version.sh"))
-	if output, err := shell.CombinedOutput(); err != nil || string(output) != "go1.26.4|go1.26.4.patch|v1.72.3|src/runtime/proc.go|darwin/arm64\n" {
-		t.Fatalf("generated shell output = %q, error = %v", output, err)
+	if _, err := os.Stat(filepath.Join(root, "toolchain-version.sh")); !os.IsNotExist(err) {
+		t.Fatalf("generated shell descriptor exists: %v", err)
 	}
 	makeConsumer := "include version_generated.mk\n\nprint:\n\t@printf '%s|%s|%s|%s\\n' '$(GOMADV3_GO_VERSION)' '$(GOMADV3_PATCH_FILE)' '$(GOMADV3_EXPECTED_INTERCEPTS)' '$(GOMADV3_BOUNDARY_REPORT)'\n"
 	if err := os.WriteFile(filepath.Join(root, "consumer.mk"), []byte(makeConsumer), 0o600); err != nil {
@@ -32,8 +31,9 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 import "testing"
 
 func TestGeneratedValues(t *testing.T) {
-	if GoVersion != "go1.26.4" || ModerncLibcVersion != "v1.72.3" || BoundaryManifestVersion != "go1.26.4-darwin-arm64-v1" {
-		t.Fatalf("generated values = %q, %q, %q", GoVersion, ModerncLibcVersion, BoundaryManifestVersion)
+	adapter, found := AdapterByModule("modernc.org/libc")
+	if GoVersion != "go1.26.4" || !found || adapter.Version != "v1.72.3" || BoundaryManifestVersion != "go1.26.4-darwin-arm64-v1" {
+		t.Fatalf("generated values = %q, %#v, %q", GoVersion, adapter, BoundaryManifestVersion)
 	}
 }
 `
@@ -53,8 +53,35 @@ func TestGeneratedValues(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "toolchain-version.sh"), []byte("stale\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := Generate(root, true); err == nil || !strings.Contains(err.Error(), "generated version artifact is stale: toolchain-version.sh") {
-		t.Fatalf("Generate(check) error = %v", err)
+	if err := Generate(root, true); err != nil {
+		t.Fatalf("Generate(check) considers the obsolete shell descriptor: %v", err)
+	}
+}
+
+func TestGenerateAllowsNoBuiltInAdapters(t *testing.T) {
+	root := writeDescriptorFixture(t, "go1.26.4-darwin-arm64-v1")
+	path := filepath.Join(root, descriptorPath)
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents = []byte(strings.Replace(string(contents), `"adapters": [{
+    "module": "modernc.org/libc",
+    "version": "v1.72.3",
+    "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="
+  }]`, `"adapters": []`, 1))
+	if err := os.WriteFile(path, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := Generate(root, false); err != nil {
+		t.Fatal(err)
+	}
+	generated, err := os.ReadFile(filepath.Join(root, "internal", "version", "generated.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(generated), "var Adapters = [...]AdapterIdentity{}") {
+		t.Fatalf("generated adapters = %s", generated)
 	}
 }
 

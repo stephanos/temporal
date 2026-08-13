@@ -7,7 +7,7 @@
 package gomadintercept
 
 const boundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
-const boundaryManifestSHA256 = "sha256:ae8153017485b5277251a541c79b24b894da6774c202f4a86b56e66617e115a2"
+const boundaryManifestSHA256 = "sha256:52d72583e74c8f355ac67b01bbab628f3fddd8c89a93cc82027beee7177948f0"
 
 func qualifiedPlatform(goos, goarch string) bool {
 	if goos == "darwin" && goarch == "arm64" {
@@ -146,17 +146,4 @@ var specs = []spec{
 	{PackagePath: "net", Function: "ResolveUDPAddr", Hook: "gomadInterceptResolveUDPAddr", DeclarationSHA256: "sha256:18a4b8ebc428ce5da73df6f5cfe1ebc90f12d3259f4efbb376e19fe4ee727af9", ProbeID: 8499455240667187949},
 	{PackagePath: "net", Function: "ResolveUnixAddr", Hook: "gomadInterceptResolveUnixAddr", DeclarationSHA256: "sha256:5952c0b3f400f1f9ff6b1719a77552501d7012eb7f8724e79d8bb04b749af75f", ProbeID: 7067227068300347083},
 	{PackagePath: "net", Function: "LookupTXT", Hook: "gomadInterceptLookupTXT", DeclarationSHA256: "sha256:425ac97775d55bcf644783d3dc3e620f744759b903923212ab770f7f62a7e7e1", ProbeID: 7734865029127557846},
-	{PackagePath: "gomadv3.test/intercept", Function: "Function", Hook: "gomadInterceptFunction"},
-	{PackagePath: "gomadv3.test/intercept", Function: "Notify", Hook: "gomadInterceptNotify"},
-	{PackagePath: "gomadv3.test/intercept", Receiver: &receiverSpec{Name: "Value", Pointer: true}, Function: "Add", Hook: "gomadInterceptValueAdd"},
-	{PackagePath: "gomadv3.test/interceptfail/missing_target", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/missing_hook", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/bad_parameter", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/bad_result", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/bad_handled", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/duplicate_target", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/duplicate_target", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/bodyless_target", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/variadic", Function: "Target", Hook: "Hook"},
-	{PackagePath: "gomadv3.test/interceptfail/body_mismatch", Function: "Target", Hook: "Hook", DeclarationSHA256: "sha256:0000000000000000000000000000000000000000000000000000000000000000"},
 }

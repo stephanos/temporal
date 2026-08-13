@@ -50,11 +50,11 @@ func TestFilesystemAccountsReleasedBytes(t *testing.T) {
 
 func TestFilesystemFailsMountedMutationsClosed(t *testing.T) {
 	filesystem := New()
-	filesystem.SetLoader(func(name string) (Entry, MountStatus, error) {
+	filesystem.SetLoader(func(name string) (LoadEntry, MountStatus, error) {
 		if name == "/mounted" {
-			return Entry{Name: "mounted", Mode: 0o755, Kind: KindDirectory}, MountOK, nil
+			return LoadEntry{Mode: 0o755, Kind: KindDirectory}, MountOK, nil
 		}
-		return Entry{}, MountUnmounted, nil
+		return LoadEntry{}, MountUnmounted, nil
 	})
 	if err := filesystem.Mkdir("/mounted/new", 0o700); !errors.Is(err, syscall.EROFS) {
 		t.Fatalf("Mkdir() error = %v", err)

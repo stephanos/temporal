@@ -490,19 +490,15 @@ func gomadInitializeFilesystem() {
 	})
 }
 
-func gomadLoadMount(path string) (gomadfs.Entry, gomadfs.MountStatus, error) {
+func gomadLoadMount(path string) (gomadfs.LoadEntry, gomadfs.MountStatus, error) {
 	entry, status, err := mount.Default.Lookup(path)
 	if err == syscall.EBADF {
-		return gomadfs.Entry{}, gomadfs.MountUnmounted, nil
+		return gomadfs.LoadEntry{}, gomadfs.MountUnmounted, nil
 	}
 	if err != nil {
-		return gomadfs.Entry{}, 0, err
+		return gomadfs.LoadEntry{}, 0, err
 	}
-	converted := gomadfs.Entry{Mode: entry.Mode, Kind: gomadfs.Kind(entry.Kind), Data: entry.Data, Children: make([]gomadfs.Child, 0, len(entry.Children))}
-	for _, child := range entry.Children {
-		converted.Children = append(converted.Children, gomadfs.Child{Name: child.Name, Mode: child.Mode, Kind: gomadfs.Kind(child.Kind)})
-	}
-	return converted, gomadfs.MountStatus(status), nil
+	return entry, status, nil
 }
 
 func gomadMkdir(name string, perm FileMode) error {
@@ -541,12 +537,10 @@ func gomadStat(name string) (FileInfo, error) {
 	if err != nil {
 		return nil, gomadPathError("os.stat", "stat", path, err)
 	}
-	mode := FileMode(entry.Mode)
-	if entry.Kind == gomadfs.KindDirectory {
-		mode |= ModeDir
-	}
-	gomadRecordPath("os.stat", path, uint64(mode|ModeDir), nil)
-	return gomadFileInfo{name: base, size: int64(len(entry.Data)), mode: mode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory}, nil
+	info := gomadFileInfoForEntry(entry)
+	gomadRecordPath("os.stat", path, uint64(info.mode|ModeDir), nil)
+	info.name = base
+	return info, nil
 }
 
 func gomadOpenFile(name string, flag int, perm FileMode) (*File, bool, error) {
@@ -908,12 +902,9 @@ func gomadFileStat(file *File) (FileInfo, bool, error) {
 		gomadRecordFile("os.fstat", handle.Path(), nil, nil, 0, err)
 		return nil, true, err
 	}
-	mode := FileMode(entry.Mode)
-	if entry.Kind == gomadfs.KindDirectory {
-		mode |= ModeDir
-	}
+	info := gomadFileInfoForEntry(entry)
 	gomadRecordFile("os.fstat", handle.Path(), nil, nil, uint64(len(entry.Data)), nil)
-	return gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: mode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory}, true, nil
+	return info, true, nil
 }
 
 func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirEntry, []FileInfo, error, bool) {
@@ -937,21 +928,13 @@ func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirE
 	case readdirDirEntry:
 		dirents := make([]DirEntry, 0, len(entries))
 		for _, entry := range entries {
-			fileMode := FileMode(entry.Mode)
-			if entry.Kind == gomadfs.KindDirectory {
-				fileMode |= ModeDir
-			}
-			dirents = append(dirents, gomadDirEntry{info: gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: fileMode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory}})
+			dirents = append(dirents, gomadDirEntry{info: gomadFileInfoForEntry(entry)})
 		}
 		return nil, dirents, nil, nil, true
 	default:
 		infos := make([]FileInfo, 0, len(entries))
 		for _, entry := range entries {
-			fileMode := FileMode(entry.Mode)
-			if entry.Kind == gomadfs.KindDirectory {
-				fileMode |= ModeDir
-			}
-			infos = append(infos, gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: fileMode, modTime: entry.ModTime, directory: entry.Kind == gomadfs.KindDirectory})
+			infos = append(infos, gomadFileInfoForEntry(entry))
 		}
 		return nil, nil, infos, nil, true
 	}
@@ -1079,6 +1062,15 @@ type gomadFileInfo struct {
 	mode      FileMode
 	modTime   int64
 	directory bool
+}
+
+func gomadFileInfoForEntry(entry gomadfs.Entry) gomadFileInfo {
+	directory := entry.Kind == gomadfs.KindDirectory
+	mode := FileMode(entry.Mode)
+	if directory {
+		mode |= ModeDir
+	}
+	return gomadFileInfo{name: entry.Name, size: int64(len(entry.Data)), mode: mode, modTime: entry.ModTime, directory: directory}
 }
 
 func (info gomadFileInfo) Name() string       { return info.name }

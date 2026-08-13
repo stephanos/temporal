@@ -135,6 +135,18 @@ func (journal *BatchJournal) SuccessesPath() string {
 	return filepath.Join(journal.path, "successes")
 }
 
+func (journal *BatchJournal) SetSelection(selection string, count uint64) error {
+	if selection == "" || count == 0 {
+		return errors.New("batch selection and count are required")
+	}
+	if journal.runsFile != nil || journal.published {
+		return errors.New("batch selection cannot change after runs start")
+	}
+	journal.config.Selection = selection
+	journal.config.SelectionCount = count
+	return nil
+}
+
 func (journal *BatchJournal) BeginPreparation() error {
 	if err := makePrivateDirectories(journal.PreparedPath()); err != nil {
 		return err

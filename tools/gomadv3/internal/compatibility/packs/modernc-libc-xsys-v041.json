@@ -1,0 +1,159 @@
+{
+  "schema": "gomadv3.compatibility-pack/v1",
+  "id": "modernc-libc-xsys-v041",
+  "activation": [
+    {
+      "path": "modernc.org/libc",
+      "version": "v1.72.3",
+      "sum": "",
+      "replacement": "local"
+    },
+    {
+      "path": "golang.org/x/sys",
+      "version": "v0.41.0",
+      "sum": "h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=",
+      "replacement": "none"
+    }
+  ],
+  "rules": [
+    {
+      "import_path": "github.com/mattn/go-isatty",
+      "module": {
+        "path": "github.com/mattn/go-isatty",
+        "version": "v0.0.20",
+        "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+        "replacement": "none"
+      },
+      "capabilities": [
+        "import:golang.org/x/sys/unix"
+      ],
+      "linknames": []
+    },
+    {
+      "import_path": "github.com/remyoudompheng/bigfft",
+      "module": {
+        "path": "github.com/remyoudompheng/bigfft",
+        "version": "v0.0.0-20230129092748-24d4a6f8daec",
+        "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+        "replacement": "none"
+      },
+      "capabilities": [],
+      "linknames": [
+        {
+          "source": "arith_decl.go",
+          "sha256": "sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87",
+          "directives": [
+            "addVV math/big.addVV",
+            "subVV math/big.subVV",
+            "addVW math/big.addVW",
+            "subVW math/big.subVW",
+            "shlVU math/big.shlVU",
+            "mulAddVWW math/big.mulAddVWW",
+            "addMulVVW math/big.addMulVVW"
+          ]
+        }
+      ]
+    },
+    {
+      "import_path": "golang.org/x/sys/unix",
+      "module": {
+        "path": "golang.org/x/sys",
+        "version": "v0.41.0",
+        "sum": "h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=",
+        "replacement": "none"
+      },
+      "capabilities": [
+        "foreign:assembly:asm_bsd_arm64.s",
+        "foreign:assembly:zsyscall_darwin_arm64.s",
+        "import:syscall"
+      ],
+      "linknames": [
+        {
+          "source": "auxv.go",
+          "sha256": "sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6",
+          "directives": [
+            "runtime_getAuxv runtime.getAuxv"
+          ]
+        },
+        {
+          "source": "syscall_darwin_libSystem.go",
+          "sha256": "sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557",
+          "directives": [
+            "syscall_syscall syscall.syscall",
+            "syscall_syscall6 syscall.syscall6",
+            "syscall_syscall6X syscall.syscall6X",
+            "syscall_syscall9 syscall.syscall9",
+            "syscall_rawSyscall syscall.rawSyscall",
+            "syscall_rawSyscall6 syscall.rawSyscall6",
+            "syscall_syscallPtr syscall.syscallPtr"
+          ]
+        }
+      ]
+    },
+    {
+      "import_path": "modernc.org/libc",
+      "module": {
+        "path": "modernc.org/libc",
+        "version": "v1.72.3",
+        "sum": "",
+        "replacement": "local"
+      },
+      "source_set_sha256": "sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749",
+      "capabilities": [
+        "import:golang.org/x/sys/unix",
+        "import:os/exec",
+        "import:os/signal",
+        "import:syscall"
+      ],
+      "linknames": [
+        {
+          "source": "gomad_darwin.go",
+          "sha256": "sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c",
+          "directives": [
+            "gomadLibcEnabled internal/gomadio.Enabled",
+            "gomadLibcOpen internal/gomadio.LibcOpen",
+            "gomadLibcClose internal/gomadio.LibcClose",
+            "gomadLibcRead internal/gomadio.LibcRead",
+            "gomadLibcWrite internal/gomadio.LibcWrite",
+            "gomadLibcSeek internal/gomadio.LibcSeek",
+            "gomadLibcTruncate internal/gomadio.LibcTruncate",
+            "gomadLibcSync internal/gomadio.LibcSync",
+            "gomadLibcRemove internal/gomadio.LibcRemove",
+            "gomadLibcRename internal/gomadio.LibcRename",
+            "gomadLibcMkdir internal/gomadio.LibcMkdir",
+            "gomadLibcAccess internal/gomadio.LibcAccess",
+            "gomadLibcStat internal/gomadio.LibcStat",
+            "gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor",
+            "gomadLibcNow internal/gomadio.LibcNow"
+          ]
+        }
+      ]
+    },
+    {
+      "import_path": "modernc.org/memory",
+      "module": {
+        "path": "modernc.org/memory",
+        "version": "v1.11.0",
+        "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=",
+        "replacement": "none"
+      },
+      "capabilities": [
+        "import:golang.org/x/sys/unix"
+      ],
+      "linknames": []
+    },
+    {
+      "import_path": "modernc.org/sqlite",
+      "module": {
+        "path": "modernc.org/sqlite",
+        "version": "v1.51.0",
+        "sum": "h1:aH/MMSoayAIhozZ7uJbVTT9QO/VhzBf0J9tymmmuC/U=",
+        "replacement": "none"
+      },
+      "capabilities": [
+        "import:golang.org/x/sys/unix"
+      ],
+      "linknames": []
+    }
+  ]
+}

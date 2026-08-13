@@ -10,28 +10,27 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	"internal/gomadwire"
 )
 
-type Kind uint8
+type Kind = gomadwire.MountKind
 
 const (
-	KindFile Kind = iota + 1
-	KindDirectory
+	KindFile      = gomadwire.MountKindFile
+	KindDirectory = gomadwire.MountKindDirectory
 )
 
-type MountStatus uint8
+type MountStatus = gomadwire.MountStatus
 
 const (
-	MountOK MountStatus = iota
-	MountUnmounted
-	MountNotExist
+	MountOK        = gomadwire.MountStatusOK
+	MountUnmounted = gomadwire.MountStatusUnmounted
+	MountNotExist  = gomadwire.MountStatusNotExist
 )
 
-type Child struct {
-	Name string
-	Mode uint32
-	Kind Kind
-}
+type Child = gomadwire.MountChild
+type LoadEntry = gomadwire.MountEntry
 
 type Entry struct {
 	Name     string
@@ -46,7 +45,7 @@ type OpenFlags struct {
 	Read, Write, Append, Create, Exclusive, Truncate bool
 }
 
-type Loader func(string) (Entry, MountStatus, error)
+type Loader func(string) (LoadEntry, MountStatus, error)
 
 type node struct {
 	mode     uint32

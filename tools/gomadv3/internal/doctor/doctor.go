@@ -5,24 +5,24 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/internal/commandline"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
 
-const reportSchema = "gomadv3.doctor/v1"
+const reportSchema = "gomadv3.doctor/v3"
 
 type Config struct {
-	Root         string
-	RunnerPath   string
-	ArtifactRoot string
-	HostOS       string
-	HostArch     string
+	ToolchainRoot      string
+	InstallationSource string
+	RepairInstruction  string
+	RunnerPath         string
+	ArtifactRoot       string
+	HostOS             string
+	HostArch           string
 }
 
 type Report struct {
@@ -36,9 +36,11 @@ type Report struct {
 	BoundaryManifestVersion string        `json:"boundary_manifest_version"`
 	IOInventorySHA256       record.SHA256 `json:"io_inventory_sha256"`
 	IOImplementationSHA256  record.SHA256 `json:"io_implementation_sha256"`
-	Adapter                 Adapter       `json:"adapter"`
+	Adapters                []Adapter     `json:"adapters"`
+	InstallationSource      string        `json:"installation_source"`
+	ToolchainRoot           string        `json:"toolchain_root"`
 	ArtifactDirectory       string        `json:"artifact_directory"`
-	BuildCommand            string        `json:"build_command"`
+	RepairInstruction       string        `json:"repair_instruction"`
 	Checks                  []CheckResult `json:"checks"`
 }
 
@@ -62,17 +64,22 @@ func Check(config Config) Report {
 		SupportedPlatforms:      append([]string(nil), gomadversion.SupportedPlatforms[:]...),
 		BoundaryManifestVersion: gomadversion.BoundaryManifestVersion,
 		IOInventorySHA256:       profile.InventorySHA256(), IOImplementationSHA256: profile.ImplementationSHA256(),
-		Adapter: Adapter{
-			Module: "modernc.org/libc", Version: gomadversion.ModerncLibcVersion, Sum: gomadversion.ModerncLibcSum, Status: "compatible",
-		},
-		ArtifactDirectory: config.ArtifactRoot,
-		BuildCommand:      "make -C " + commandline.QuoteArgument(config.Root) + " runner",
-		Checks:            make([]CheckResult, 0, 5),
+		Adapters:           []Adapter{},
+		InstallationSource: config.InstallationSource,
+		ToolchainRoot:      config.ToolchainRoot,
+		ArtifactDirectory:  config.ArtifactRoot,
+		RepairInstruction:  config.RepairInstruction,
+		Checks:             make([]CheckResult, 0, 4+len(profile.Adapters())),
+	}
+	for _, identity := range profile.Adapters() {
+		report.Adapters = append(report.Adapters, Adapter{
+			Module: identity.Module, Version: identity.Version, Sum: identity.Sum, Status: "available",
+		})
 	}
 	report.Checks = append(report.Checks, hostCheck(report.Host, report.SupportedPlatforms))
-	identity, err := target.ReadToolchainIdentity(filepath.Join(config.Root, ".toolchain"))
+	identity, err := target.ReadToolchainIdentity(config.ToolchainRoot)
 	if err != nil {
-		report.Checks = append(report.Checks, failedCheck("toolchain", err.Error()+"; run "+report.BuildCommand))
+		report.Checks = append(report.Checks, failedCheck("toolchain", err.Error()+"; "+report.RepairInstruction))
 	} else {
 		report.GoVersion = identity.GoVersion
 		report.ToolchainBuild = identity.BuildKey
@@ -80,12 +87,14 @@ func Check(config Config) Report {
 	}
 	runnerDigest, err := hashExecutable(config.RunnerPath)
 	if err != nil {
-		report.Checks = append(report.Checks, failedCheck("runner", err.Error()+"; run "+report.BuildCommand))
+		report.Checks = append(report.Checks, failedCheck("runner", err.Error()+"; reinstall the Gomad executable at "+config.RunnerPath))
 	} else {
 		report.RunnerBuild = runnerDigest
 		report.Checks = append(report.Checks, passedCheck("runner", string(runnerDigest)))
 	}
-	report.Checks = append(report.Checks, passedCheck("adapter", report.Adapter.Module+"@"+report.Adapter.Version+" "+report.Adapter.Sum))
+	for _, adapter := range report.Adapters {
+		report.Checks = append(report.Checks, passedCheck("adapter:"+adapter.Module, adapter.Module+"@"+adapter.Version+" "+adapter.Sum))
+	}
 	if err := checkArtifactDirectory(config.ArtifactRoot); err != nil {
 		report.Checks = append(report.Checks, failedCheck("artifacts", err.Error()))
 	} else {

@@ -20,13 +20,19 @@ func main() {
 func run(arguments []string, stdout, stderr io.Writer, runSet runSetFunc, loadManifest loadManifestFunc) int {
 	flags := flag.NewFlagSet("qualificationgen", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	manifest := flags.String("manifest", "qualification/temporal.json", "qualification set manifest")
+	manifest := flags.String("manifest", "", "qualification set manifest")
 	gomad := flags.String("gomad", ".bin/gomad", "gomad executable")
-	workingDirectory := flags.String("working-dir", "../..", "target repository working directory")
+	workingDirectory := flags.String("working-dir", "", "target repository working directory")
 	artifacts := flags.String("artifacts", ".toolchain/qualification", "qualification artifact root")
 	output := flags.String("output", ".toolchain/qualification-set.json", "aggregate qualification report")
 	check := flags.Bool("check", false, "validate the qualification set manifest without executing it")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 {
+		return 2
+	}
+	if *manifest == "" || *workingDirectory == "" {
+		if _, err := fmt.Fprintln(stderr, "qualification set requires explicit -manifest and -working-dir paths"); err != nil {
+			return 1
+		}
 		return 2
 	}
 	if *check {

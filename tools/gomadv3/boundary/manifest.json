@@ -5,6 +5,37 @@
   "platforms": [
     "darwin/arm64"
   ],
+  "hook_policies": [
+    {
+      "id": "net-unsupported/v1",
+      "package": "net",
+      "output": "overlay/src/net/gomad_unsupported_generated.go",
+      "imports": [
+        {
+          "name": "context",
+          "path": "context"
+        },
+        {
+          "name": "gomadio",
+          "path": "internal/gomadio"
+        },
+        {
+          "name": "netip",
+          "path": "net/netip"
+        },
+        {
+          "name": "os",
+          "path": "os"
+        }
+      ],
+      "enabled": "gomadIOEnabled()",
+      "disabled_fallback": "upstream",
+      "transcript": "compiler-probe",
+      "result_values": "zero",
+      "unsupported_error": "gomadio.ErrUnsupported",
+      "error_wrapping": "none"
+    }
+  ],
   "intercepts": [
     {
       "package": "os",
@@ -1755,6 +1786,7 @@
       "probe": "stdlib.net.dialip",
       "disposition": "deny",
       "hook": "gomadInterceptDialIP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1780,6 +1812,7 @@
       "probe": "stdlib.net.listenip",
       "disposition": "deny",
       "hook": "gomadInterceptListenIP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1805,6 +1838,7 @@
       "probe": "stdlib.net.dialudp",
       "disposition": "deny",
       "hook": "gomadInterceptDialUDP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1830,6 +1864,7 @@
       "probe": "stdlib.net.listenudp",
       "disposition": "deny",
       "hook": "gomadInterceptListenUDP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1855,6 +1890,7 @@
       "probe": "stdlib.net.dialunix",
       "disposition": "deny",
       "hook": "gomadInterceptDialUnix",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1880,6 +1916,7 @@
       "probe": "stdlib.net.listenunix",
       "disposition": "deny",
       "hook": "gomadInterceptListenUnix",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1905,6 +1942,7 @@
       "probe": "stdlib.net.listenunixgram",
       "disposition": "deny",
       "hook": "gomadInterceptListenUnixgram",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1934,6 +1972,7 @@
       "probe": "stdlib.net.listenconfig.listenpacket",
       "disposition": "deny",
       "hook": "gomadInterceptListenPacket",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1963,6 +2002,7 @@
       "probe": "stdlib.net.resolver.lookuphost",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupHost",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -1992,6 +2032,7 @@
       "probe": "stdlib.net.resolver.lookupip",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupIP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2021,6 +2062,7 @@
       "probe": "stdlib.net.resolver.lookupipaddr",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupIPAddr",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2050,6 +2092,7 @@
       "probe": "stdlib.net.resolver.lookupnetip",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupNetIP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2079,6 +2122,7 @@
       "probe": "stdlib.net.resolver.lookupport",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupPort",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2108,6 +2152,7 @@
       "probe": "stdlib.net.resolver.lookupcname",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupCNAME",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2137,6 +2182,7 @@
       "probe": "stdlib.net.resolver.lookupsrv",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupSRV",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2166,6 +2212,7 @@
       "probe": "stdlib.net.resolver.lookupmx",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupMX",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2195,6 +2242,7 @@
       "probe": "stdlib.net.resolver.lookupns",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupNS",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2224,6 +2272,7 @@
       "probe": "stdlib.net.resolver.lookuptxt",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupTXT",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2253,6 +2302,7 @@
       "probe": "stdlib.net.resolver.lookupaddr",
       "disposition": "deny",
       "hook": "gomadInterceptResolverLookupAddr",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2843,6 +2893,7 @@
       "probe": "stdlib.net.dialer.dialip",
       "disposition": "deny",
       "hook": "gomadInterceptDialerDialIP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2872,6 +2923,7 @@
       "probe": "stdlib.net.dialer.dialtcp",
       "disposition": "deny",
       "hook": "gomadInterceptDialerDialTCP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2901,6 +2953,7 @@
       "probe": "stdlib.net.dialer.dialudp",
       "disposition": "deny",
       "hook": "gomadInterceptDialerDialUDP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2930,6 +2983,7 @@
       "probe": "stdlib.net.dialer.dialunix",
       "disposition": "deny",
       "hook": "gomadInterceptDialerDialUnix",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2955,6 +3009,7 @@
       "probe": "stdlib.net.fileconn",
       "disposition": "deny",
       "hook": "gomadInterceptFileConn",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -2980,6 +3035,7 @@
       "probe": "stdlib.net.filelistener",
       "disposition": "deny",
       "hook": "gomadInterceptFileListener",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3005,6 +3061,7 @@
       "probe": "stdlib.net.filepacketconn",
       "disposition": "deny",
       "hook": "gomadInterceptFilePacketConn",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3030,6 +3087,7 @@
       "probe": "stdlib.net.interfaces",
       "disposition": "deny",
       "hook": "gomadInterceptInterfaces",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3055,6 +3113,7 @@
       "probe": "stdlib.net.interfaceaddrs",
       "disposition": "deny",
       "hook": "gomadInterceptInterfaceAddrs",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3080,6 +3139,7 @@
       "probe": "stdlib.net.interfacebyindex",
       "disposition": "deny",
       "hook": "gomadInterceptInterfaceByIndex",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3105,6 +3165,7 @@
       "probe": "stdlib.net.interfacebyname",
       "disposition": "deny",
       "hook": "gomadInterceptInterfaceByName",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3134,6 +3195,7 @@
       "probe": "stdlib.net.interface.addrs",
       "disposition": "deny",
       "hook": "gomadInterceptInterfaceAddrsMethod",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3163,6 +3225,7 @@
       "probe": "stdlib.net.interface.multicastaddrs",
       "disposition": "deny",
       "hook": "gomadInterceptInterfaceMulticastAddrs",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3188,6 +3251,7 @@
       "probe": "stdlib.net.listenmulticastudp",
       "disposition": "deny",
       "hook": "gomadInterceptListenMulticastUDP",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3213,6 +3277,7 @@
       "probe": "stdlib.net.resolveipaddr",
       "disposition": "deny",
       "hook": "gomadInterceptResolveIPAddr",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3238,6 +3303,7 @@
       "probe": "stdlib.net.resolvetcpaddr",
       "disposition": "deny",
       "hook": "gomadInterceptResolveTCPAddr",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3263,6 +3329,7 @@
       "probe": "stdlib.net.resolveudpaddr",
       "disposition": "deny",
       "hook": "gomadInterceptResolveUDPAddr",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3288,6 +3355,7 @@
       "probe": "stdlib.net.resolveunixaddr",
       "disposition": "deny",
       "hook": "gomadInterceptResolveUnixAddr",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3313,6 +3381,7 @@
       "probe": "stdlib.net.lookuptxt",
       "disposition": "deny",
       "hook": "gomadInterceptLookupTXT",
+      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -4100,91 +4169,6 @@
       "target": "runtime.time_runtimeNow",
       "disposition": "patch",
       "boundaries": []
-    }
-  ],
-  "compiler_tests": [
-    {
-      "case": "invocation-function",
-      "package": "gomadv3.test/intercept",
-      "symbol": "Function",
-      "hook": "gomadInterceptFunction"
-    },
-    {
-      "case": "invocation-notify",
-      "package": "gomadv3.test/intercept",
-      "symbol": "Notify",
-      "hook": "gomadInterceptNotify"
-    },
-    {
-      "case": "invocation-method",
-      "package": "gomadv3.test/intercept",
-      "receiver": {
-        "name": "Value",
-        "pointer": true
-      },
-      "symbol": "Add",
-      "hook": "gomadInterceptValueAdd"
-    },
-    {
-      "case": "missing_target",
-      "package": "gomadv3.test/interceptfail/missing_target",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "missing_hook",
-      "package": "gomadv3.test/interceptfail/missing_hook",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "bad_parameter",
-      "package": "gomadv3.test/interceptfail/bad_parameter",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "bad_result",
-      "package": "gomadv3.test/interceptfail/bad_result",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "bad_handled",
-      "package": "gomadv3.test/interceptfail/bad_handled",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "duplicate_target",
-      "package": "gomadv3.test/interceptfail/duplicate_target",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "duplicate_target",
-      "package": "gomadv3.test/interceptfail/duplicate_target",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "bodyless_target",
-      "package": "gomadv3.test/interceptfail/bodyless_target",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "variadic",
-      "package": "gomadv3.test/interceptfail/variadic",
-      "symbol": "Target",
-      "hook": "Hook"
-    },
-    {
-      "case": "body_mismatch",
-      "package": "gomadv3.test/interceptfail/body_mismatch",
-      "symbol": "Target",
-      "hook": "Hook",
-      "declaration_sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     }
   ]
 }

@@ -113,3 +113,22 @@ func MissingRequiredSemanticProbes(coverage SemanticCoverage, required []string)
 	sort.Strings(missing)
 	return missing, nil
 }
+
+func BoundaryManifestIdentity() (string, record.SHA256) {
+	return generatedBoundaryManifestVersion, record.SHA256(generatedBoundaryManifestSHA256)
+}
+
+func SemanticInstrumentationIdentity() record.SHA256 {
+	hasher := sha256.New()
+	_, _ = hasher.Write([]byte(SemanticCoverageSchema))
+	_, _ = hasher.Write([]byte{0})
+	var identifier [8]byte
+	for _, probe := range generatedBoundaryProbes {
+		binary.BigEndian.PutUint64(identifier[:], probe.ID)
+		_, _ = hasher.Write(identifier[:])
+		_, _ = hasher.Write([]byte{0})
+		_, _ = hasher.Write([]byte(probe.Name))
+		_, _ = hasher.Write([]byte{0})
+	}
+	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil)))
+}

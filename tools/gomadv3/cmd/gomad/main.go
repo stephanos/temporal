@@ -17,6 +17,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/internal/doctor"
 	gomadinspect "go.temporal.io/server/tools/gomadv3/internal/inspect"
+	"go.temporal.io/server/tools/gomadv3/internal/installation"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/replay"
@@ -217,6 +218,7 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 	flags := flag.NewFlagSet("gomad doctor", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root to verify")
+	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
@@ -235,9 +237,18 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
 		return 2
 	}
-	root := filepath.Dir(filepath.Dir(executable))
+	resolved, err := installation.Resolve(installation.Config{
+		Executable: executable, ExplicitToolchainRoot: *toolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMADV3_TOOLCHAIN_DIR"),
+	})
+	if err != nil {
+		if _, writeErr := fmt.Fprintf(stderr, "resolve Gomad installation: %v\n", err); writeErr != nil {
+			return 3
+		}
+		return 2
+	}
 	report := doctor.Check(doctor.Config{
-		Root: root, RunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
+		ToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,
+		RunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
 	})
 	if *jsonOutput {
 		encoded, marshalErr := json.Marshal(report)
@@ -251,7 +262,9 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 		for _, check := range report.Checks {
 			fmt.Fprintf(stdout, "%-10s %-5s %s\n", check.Name, check.Status, check.Detail)
 		}
-		fmt.Fprintf(stdout, "build: %s\n", report.BuildCommand)
+		if _, err := fmt.Fprintf(stdout, "installation: source=%s toolchain=%s\nrepair: %s\n", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {
+			return 3
+		}
 	}
 	if !report.Available {
 		return 1
@@ -271,8 +284,11 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	onFailure := flags.String("on-failure", string(runner.PolicyFirst), "first, budget, or all")
 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
+	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	coverage := flags.String("coverage", string(runner.CoverageNone), "none or semantic")
+	guide := flags.Bool("guide", false, "guide selection from a bounded semantic corpus")
+	corpus := flags.String("corpus", "", "guided semantic corpus directory")
 	keepSuccesses := flags.String("keep-successes", string(runner.KeepSuccessesNone), "none, novel, or all")
 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful runs")
 	outputLimit := byteSize(8 << 20)
@@ -302,13 +318,15 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	var seedsSet, countSet bool
+	var seedsSet, countSet, coverageSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
 		case "seeds":
 			seedsSet = true
 		case "count":
 			countSet = true
+		case "coverage":
+			coverageSet = true
 		}
 	})
 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
@@ -319,7 +337,15 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	coverageMode, err := resolveExploreCoverage(*coverage, requiredSemanticProbes)
+	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
+	if err != nil {
+		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
+	coverageMode, err := resolveExploreCoverage(resolvedCoverage, requiredSemanticProbes)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -342,7 +368,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 3
 	}
-	toolchain, executable, runnerBuild, err := localIdentity()
+	toolchain, executable, runnerBuild, err := localIdentity(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -355,6 +381,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
+		Guide: *guide, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
@@ -384,6 +411,22 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet bool) (string, error) {
+	if !enabled {
+		if corpus != "" {
+			return "", fmt.Errorf("--corpus requires --guide")
+		}
+		return coverage, nil
+	}
+	if corpus == "" {
+		return "", fmt.Errorf("--guide requires --corpus DIR")
+	}
+	if coverageSet && coverage != string(runner.CoverageSemantic) {
+		return "", fmt.Errorf("--guide requires --coverage=semantic")
+	}
+	return string(runner.CoverageSemantic), nil
 }
 
 func resolveExploreSeeds(seeds string, count uint64, seedsSet, countSet bool) (string, error) {
@@ -423,6 +466,7 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomad replay", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
+	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
@@ -430,7 +474,7 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	toolchain, executable, _, err := localIdentity()
+	toolchain, executable, _, err := localIdentity(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
@@ -503,7 +547,7 @@ func parseTarget(arguments []string) (targetInput, error) {
 	}
 }
 
-func localIdentity() (toolchainRoot, executable, runnerBuild string, err error) {
+func localIdentity(explicitToolchainRoot string) (toolchainRoot, executable, runnerBuild string, err error) {
 	executable, err = os.Executable()
 	if err != nil {
 		return "", "", "", fmt.Errorf("resolve gomad executable: %w", err)
@@ -512,7 +556,13 @@ func localIdentity() (toolchainRoot, executable, runnerBuild string, err error) 
 	if err != nil {
 		return "", "", "", fmt.Errorf("resolve gomad executable path: %w", err)
 	}
-	toolchainRoot = filepath.Join(filepath.Dir(filepath.Dir(executable)), ".toolchain")
+	resolved, err := installation.Resolve(installation.Config{
+		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMADV3_TOOLCHAIN_DIR"),
+	})
+	if err != nil {
+		return "", "", "", fmt.Errorf("resolve Gomad installation: %w", err)
+	}
+	toolchainRoot = resolved.ToolchainRoot
 	bytes, err := os.ReadFile(executable)
 	if err != nil {
 		return "", "", "", fmt.Errorf("hash gomad executable: %w", err)

@@ -162,7 +162,7 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomadv3 gomadv3-go gomadv3-runner gomadv3-run gomadv3-test
+.PHONY: gomadv3 gomadv3-go gomadv3-runner gomadv3-run gomadv3-test gomadv3-integration-test gomadv3-qualification
 
 gomadv3: gomadv3-runner
 
@@ -185,6 +185,16 @@ gomadv3-test:
 	@$(MAKE) gomadv3-go
 	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$(GOMADSEED)" \
 		$(GOMADV3_GO) test -exec "$(ROOT)/tools/gomadv3/exec.sh" -count=1 -tags test_dep $(GOMADV3_PACKAGES) $(GOMADV3_ARGS)
+
+gomadv3-integration-test: gomadv3-runner
+	@go test -tags test_dep,gomadv3_integration -count=1 ./tools/gomadv3integration
+
+gomadv3-qualification: gomadv3-runner
+	@$(MAKE) -C tools/gomadv3 qualification-set \
+		GOMADV3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomadv3integration/qualification/temporal.json" \
+		GOMADV3_QUALIFICATION_WORKDIR="$(ROOT)" \
+		GOMADV3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomadv3/.toolchain/temporal-qualification" \
+		GOMADV3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomadv3/.toolchain/temporal-qualification-set.json"
 
 clean-tools:
 	@printf $(COLOR) "Delete tools..."

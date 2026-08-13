@@ -2,8 +2,46 @@ package runner
 
 import (
 	"math"
+	"slices"
 	"testing"
 )
+
+func TestMixGuidedSelectionReservesOneQuarterForUnguidedSeeds(t *testing.T) {
+	selection, err := ParseSeeds("0-7")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mixed, err := mixGuidedSelection(selection, []uint64{100, 101, 102, 103, 104, 105, 106})
+	if err != nil {
+		t.Fatal(err)
+	}
+	iterator := mixed.Iterator()
+	var seeds []uint64
+	for {
+		seed, ok := iterator.Next()
+		if !ok {
+			break
+		}
+		seeds = append(seeds, seed)
+	}
+	if want := []uint64{100, 101, 102, 103, 104, 105, 0, 1}; !slices.Equal(seeds, want) || mixed.String() != "100,101,102,103,104,105,0-1" {
+		t.Fatalf("guided selection = %q %v, want %v", mixed.String(), seeds, want)
+	}
+}
+
+func TestMixGuidedSelectionSkipsCorpusSeedsInUnguidedPool(t *testing.T) {
+	selection, err := ParseSeeds("0-3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mixed, err := mixGuidedSelection(selection, []uint64{0, 10, 11})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := mixed.String(); got != "0,10,11,1" {
+		t.Fatalf("guided selection = %q", got)
+	}
+}
 
 func TestParseSeedsIteratesInInputOrder(t *testing.T) {
 	selection, err := ParseSeeds("7,0,11-13,18446744073709551615")

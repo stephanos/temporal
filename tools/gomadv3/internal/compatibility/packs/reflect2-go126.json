@@ -1,0 +1,62 @@
+{
+  "schema": "gomadv3.compatibility-pack/v1",
+  "id": "reflect2-go126",
+  "activation": [
+    {
+      "path": "github.com/modern-go/reflect2",
+      "version": "v1.0.3-0.20250322232337-35a7c28c31ee",
+      "sum": "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=",
+      "replacement": "none"
+    }
+  ],
+  "rules": [
+    {
+      "import_path": "github.com/modern-go/reflect2",
+      "module": {
+        "path": "github.com/modern-go/reflect2",
+        "version": "v1.0.3-0.20250322232337-35a7c28c31ee",
+        "sum": "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=",
+        "replacement": "none"
+      },
+      "capabilities": [],
+      "linknames": [
+        {
+          "source": "go_above_118.go",
+          "sha256": "sha256:b41d841d561da73b0ab54f9f2830d7f9437561b831faad1fa22f738ea99ad805",
+          "directives": [
+            "mapiterinit reflect.mapiterinit"
+          ]
+        },
+        {
+          "source": "go_above_19.go",
+          "sha256": "sha256:422e740515d8517cdc4d412e0fe0bf3d42f86909302ce3cf2df66a8800fd021f",
+          "directives": [
+            "resolveTypeOff reflect.resolveTypeOff",
+            "makemap reflect.makemap"
+          ]
+        },
+        {
+          "source": "type_map.go",
+          "sha256": "sha256:4fabf996f68479b1b4ab68741558fe85074c97ec4d576cd113c0383cf56286db",
+          "directives": [
+            "typelinks2 reflect.typelinks"
+          ]
+        },
+        {
+          "source": "unsafe_link.go",
+          "sha256": "sha256:f2ac5514fc2dc286e08f9c3655c32ec5821e262df610004161cb10dd27c08cde",
+          "directives": [
+            "unsafe_New reflect.unsafe_New",
+            "typedmemmove reflect.typedmemmove",
+            "unsafe_NewArray reflect.unsafe_NewArray",
+            "typedslicecopy reflect.typedslicecopy",
+            "mapassign reflect.mapassign",
+            "mapaccess reflect.mapaccess",
+            "mapiternext reflect.mapiternext",
+            "ifaceE2I reflect.ifaceE2I"
+          ]
+        }
+      ]
+    }
+  ]
+}

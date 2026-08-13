@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
@@ -85,6 +86,24 @@ func TestPublishReusesOnlyCompletelyMatchingArtifact(t *testing.T) {
 	}
 	if _, err := store.Publish(input); err == nil || !strings.Contains(err.Error(), "existing artifact") {
 		t.Fatalf("Publish() error = %v", err)
+	}
+}
+
+func TestPublishCanKeyCorpusCasesByRecordIdentity(t *testing.T) {
+	input := artifactInput(t)
+	store := Store{Root: t.TempDir(), Key: StoreKeyRecord}
+	first, err := store.Publish(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	input.Manifest.Seed = 8
+	input.Manifest.Environment[0].Value = "8"
+	second, err := store.Publish(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.Path == second.Path || first.Manifest.Outcome.FailureSignature != second.Manifest.Outcome.FailureSignature || first.Manifest.RecordHash == second.Manifest.RecordHash {
+		t.Fatalf("record-keyed artifacts = %#v and %#v", first, second)
 	}
 }
 
@@ -207,6 +226,7 @@ func artifactInput(t *testing.T) Input {
 	exitCode := record.Uint64String(2)
 	stdout := []byte("stdout")
 	stderr := []byte("stderr")
+	profile := ioprofile.Default()
 	return Input{
 		Manifest: record.Manifest{
 			SchemaVersion:    record.SchemaVersion,
@@ -216,13 +236,16 @@ func artifactInput(t *testing.T) Input {
 			SelectionOrdinal: 0,
 			Seed:             7,
 			ReplayMode:       record.ReplayExact,
-			Runner:           record.Runner{RecordContract: "gomadv3.run-record/v1", RunnerBuild: "test", HostOS: "darwin", HostArch: "arm64"},
+			Runner:           record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "darwin", HostArch: "arm64"},
 			Toolchain:        record.Toolchain{GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 			Target: record.Target{
 				Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomadv3-target"}, BuildTags: []string{},
-				BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+				Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 			},
-			Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+			IOProfile: record.IOProfile{
+				Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),
+			},
+			Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 			Limits: record.Limits{
 				RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64,
 			},

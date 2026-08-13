@@ -75,7 +75,7 @@ func runEvidence(
 		},
 		Target: record.Target{
 			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
-			Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), BuildInfo: cloneBuildInfo(prepared.BuildInfo),
+			Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), Adapters: cloneAdapters(prepared.Adapters), Compatibility: cloneCompatibility(prepared.Compatibility), BuildInfo: cloneBuildInfo(prepared.BuildInfo),
 		},
 		IOProfile: IOProfileEvidence{
 			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), InventorySHA256: profile.InventorySHA256(),
@@ -108,6 +108,14 @@ func runEvidence(
 func cloneBuildInfo(buildInfo record.BuildInfo) record.BuildInfo {
 	buildInfo.Settings = append([]record.BuildSetting(nil), buildInfo.Settings...)
 	return buildInfo
+}
+
+func cloneCompatibility(packs []record.CompatibilityPack) []record.CompatibilityPack {
+	return append([]record.CompatibilityPack{}, packs...)
+}
+
+func cloneAdapters(adapters []record.TargetAdapter) []record.TargetAdapter {
+	return append([]record.TargetAdapter{}, adapters...)
 }
 
 func cloneWorld(worldRecord record.World) record.World {

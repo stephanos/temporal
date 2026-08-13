@@ -23,7 +23,7 @@ const qualifyEventSchema = "gomadv3.qualify-event/v1"
 const maximumQualificationRepeats = 32
 
 type qualifyDependencies struct {
-	identity         func() (string, string, string, error)
+	identity         func(string) (string, string, string, error)
 	workingDirectory func() (string, error)
 	run              func(context.Context, runner.Config) (runner.Summary, error)
 	replay           func(context.Context, replay.Config) (replay.Result, error)
@@ -62,6 +62,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete qualification host deadline")
 	terminateGrace := flags.Duration("terminate-grace", 2*time.Second, "termination grace inside deadlines")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact and qualification report root")
+	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	outputLimit := byteSize(8 << 20)
 	worldLimit := byteSize(64 << 20)
@@ -102,7 +103,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	if err != nil {
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", fmt.Errorf("resolve working directory: %w", err), 3)
 	}
-	toolchain, executable, runnerBuild, err := dependencies.identity()
+	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
 	if err != nil {
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
 	}

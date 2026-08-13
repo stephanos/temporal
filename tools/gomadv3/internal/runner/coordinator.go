@@ -13,6 +13,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
+	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
@@ -43,6 +44,9 @@ type coordinatorConfig struct {
 	KeepSuccesses          KeepSuccesses
 	SuccessArtifactLimit   uint64
 	SuccessBytesLimit      uint64
+	Guide                  bool
+	Corpus                 string
+	GuideSnapshotSHA256    record.SHA256
 	ProgressInterval       time.Duration
 }
 
@@ -99,6 +103,7 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 		Coverage: config.Coverage, RequiredSemanticProbes: append([]string(nil), config.RequiredSemanticProbes...),
 		CollectRunEvidence: config.CollectRunEvidence,
 		KeepSuccesses:      config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
+		Guide: config.Guide, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
 		ProgressInterval: config.ProgressInterval,
 	}
 	request, err := json.Marshal(wire)
@@ -108,24 +113,29 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 	command := exec.Command(config.CoordinatorCommand[0], config.CoordinatorCommand[1:]...)
 	command.Env = append(os.Environ(), "GOMADV3_RUNNER_COORDINATOR=1")
 	command.Stdin = bytes.NewReader(request)
-	stdout, err := command.StdoutPipe()
-	if err != nil {
-		return Summary{}, &HostError{Reason: "coordinator_pipe", Err: err}
-	}
 	stderr, err := process.NewOutputCapture(4096)
 	if err != nil {
 		return Summary{}, &HostError{Reason: "coordinator_capture", Err: err}
 	}
+	stdout, stdoutWriter, err := os.Pipe()
+	if err != nil {
+		return Summary{}, &HostError{Reason: "coordinator_pipe", Err: err}
+	}
+	command.Stdout = stdoutWriter
 	command.Stderr = stderr
 	configureCoordinatorCommand(command)
 	if err := command.Start(); err != nil {
-		return Summary{}, &HostError{Reason: "coordinator_start", Err: err}
+		return Summary{}, &HostError{Reason: "coordinator_start", Err: errors.Join(err, stdout.Close(), stdoutWriter.Close())}
 	}
 	waited := make(chan error, 1)
 	go func() { waited <- command.Wait() }()
+	if err := stdoutWriter.Close(); err != nil {
+		return Summary{}, &HostError{Reason: "coordinator_pipe", Err: errors.Join(err, terminateCoordinator(command, waited, deadline))}
+	}
 	decoded := make(chan coordinatorDecodeResult, 1)
 	go func() {
 		response, decodeErr := decodeCoordinatorMessages(stdout, config.Progress)
+		decodeErr = errors.Join(decodeErr, stdout.Close())
 		decoded <- coordinatorDecodeResult{response: response, err: decodeErr}
 	}()
 	timer := time.NewTimer(max(time.Until(deadline)-reserve, 0))
@@ -275,6 +285,7 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 		Coverage:         wire.Coverage, RequiredSemanticProbes: wire.RequiredSemanticProbes,
 		CollectRunEvidence: wire.CollectRunEvidence,
 		KeepSuccesses:      wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
+		Guide: wire.Guide, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
 	}
 	encoder := json.NewEncoder(output)
 	config.Progress = func(progress Progress) error {

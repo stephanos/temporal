@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/commandrun"
 	"go.temporal.io/server/tools/gomadv3/internal/qualify"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -101,6 +101,8 @@ type Command struct {
 	Args         []string
 	Dir          string
 	ArtifactRoot string
+	Timeout      time.Duration
+	Grace        time.Duration
 }
 
 type CommandResult struct {
@@ -310,6 +312,8 @@ func validateExpectation(expectation Expectation) error {
 }
 
 func suiteCommand(config Config, manifest Manifest, suite Suite) Command {
+	overallTimeout, _ := time.ParseDuration(manifest.OverallTimeout)
+	terminateGrace, _ := time.ParseDuration(manifest.TerminateGrace)
 	args := []string{
 		"qualify", "--json", "--seed=" + strconv.FormatUint(manifest.Seed, 10), "--repeat=" + strconv.FormatUint(manifest.Repeat, 10),
 		"--run-timeout=" + manifest.RunTimeout, "--overall-timeout=" + manifest.OverallTimeout, "--terminate-grace=" + manifest.TerminateGrace,
@@ -329,28 +333,28 @@ func suiteCommand(config Config, manifest Manifest, suite Suite) Command {
 		args = append(args, "--require-probe="+value)
 	}
 	args = append(args, "go-test", suite.Package, "--", "-test.run=^"+regexp.QuoteMeta(suite.Test)+"$")
-	return Command{Executable: config.GomadPath, Args: args, Dir: config.WorkingDir, ArtifactRoot: config.ArtifactRoot}
+	return Command{
+		Executable: config.GomadPath, Args: args, Dir: config.WorkingDir, ArtifactRoot: config.ArtifactRoot,
+		Timeout: overallTimeout + terminateGrace + 10*time.Second, Grace: terminateGrace,
+	}
 }
 
 func executeCommand(ctx context.Context, command Command) CommandResult {
-	process := exec.CommandContext(ctx, command.Executable, command.Args...)
-	process.Dir = command.Dir
-	stdout := &boundedBuffer{maximum: maximumCommandOutputBytes}
-	stderr := &boundedBuffer{maximum: maximumCommandOutputBytes}
-	process.Stdout = stdout
-	process.Stderr = stderr
-	err := process.Run()
-	result := CommandResult{Stdout: stdout.Bytes(), Stderr: stderr.Bytes(), Err: err}
-	if err == nil {
-		return result
+	executed, err := commandrun.Run(ctx, commandrun.Request{
+		Command: append([]string{command.Executable}, command.Args...), Dir: command.Dir, Env: os.Environ(),
+		Timeout: command.Timeout, TerminateGrace: command.Grace, OutputLimit: maximumCommandOutputBytes,
+	})
+	result := CommandResult{ExitCode: executed.ExitCode, Stdout: executed.Stdout.Bytes, Stderr: executed.Stderr.Bytes, Err: err}
+	if executed.Termination == commandrun.TerminationSignal {
+		result.ExitCode = -1
 	}
-	result.ExitCode = -1
-	var exitError *exec.ExitError
-	if errors.As(err, &exitError) {
-		result.ExitCode = exitError.ExitCode()
-		result.Err = nil
+	if executed.WatchdogTimeout {
+		result.Err = errors.Join(result.Err, context.DeadlineExceeded)
 	}
-	if stdout.truncated || stderr.truncated {
+	if executed.Cancelled {
+		result.Err = errors.Join(result.Err, context.Canceled)
+	}
+	if executed.Stdout.Truncated || executed.Stderr.Truncated {
 		result.Err = errors.Join(result.Err, errors.New("qualification command output exceeded its bound"))
 	}
 	return result
@@ -496,7 +500,9 @@ func writeReport(path string, report SetReport) (retErr error) {
 	}
 	temporaryPath := temporary.Name()
 	defer func() {
-		retErr = errors.Join(retErr, os.Remove(temporaryPath))
+		if removeErr := os.Remove(temporaryPath); removeErr != nil && !os.IsNotExist(removeErr) {
+			retErr = errors.Join(retErr, removeErr)
+		}
 	}()
 	if err := temporary.Chmod(0o600); err != nil {
 		temporary.Close()
@@ -570,25 +576,4 @@ func sortedUnique(values []string) bool {
 		}
 	}
 	return true
-}
-
-type boundedBuffer struct {
-	bytes.Buffer
-	maximum   int
-	truncated bool
-}
-
-func (buffer *boundedBuffer) Write(contents []byte) (int, error) {
-	remaining := buffer.maximum - buffer.Len()
-	if remaining <= 0 {
-		buffer.truncated = true
-		return len(contents), nil
-	}
-	accepted := contents
-	if len(accepted) > remaining {
-		accepted = accepted[:remaining]
-		buffer.truncated = true
-	}
-	_, err := buffer.Buffer.Write(accepted)
-	return len(contents), err
 }

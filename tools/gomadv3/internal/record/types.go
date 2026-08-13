@@ -1,6 +1,8 @@
 package record
 
-const SchemaVersion uint32 = 1
+const SchemaVersion uint32 = 2
+
+const RecordContract = "gomadv3.run-record/v2"
 
 const (
 	ArtifactSuccess         = "gomadv3.success/v1"
@@ -118,14 +120,27 @@ type Toolchain struct {
 }
 
 type Target struct {
-	Kind      string       `json:"kind"`
-	Source    string       `json:"source"`
-	File      string       `json:"file"`
-	SHA256    SHA256       `json:"sha256"`
-	Size      Uint64String `json:"size"`
-	Argv      []string     `json:"argv"`
-	BuildTags []string     `json:"build_tags"`
-	BuildInfo BuildInfo    `json:"build_info"`
+	Kind          string              `json:"kind"`
+	Source        string              `json:"source"`
+	File          string              `json:"file"`
+	SHA256        SHA256              `json:"sha256"`
+	Size          Uint64String        `json:"size"`
+	Argv          []string            `json:"argv"`
+	BuildTags     []string            `json:"build_tags"`
+	Adapters      []TargetAdapter     `json:"adapters"`
+	Compatibility []CompatibilityPack `json:"compatibility"`
+	BuildInfo     BuildInfo           `json:"build_info"`
+}
+
+type TargetAdapter struct {
+	Module  string `json:"module"`
+	Version string `json:"version"`
+	Sum     string `json:"sum"`
+}
+
+type CompatibilityPack struct {
+	ID     string `json:"id"`
+	SHA256 SHA256 `json:"sha256"`
 }
 
 type BuildInfo struct {

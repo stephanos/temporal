@@ -13,7 +13,7 @@ Generated from [`../version.json`](../version.json). Do not edit this guide dire
 
 ## Qualification command
 
-Run from `tools/gomadv3` after updating `version.json`, the boundary manifest, patch, and overlays:
+Run from the Gomad source module root after updating `version.json`, the boundary manifest, patch, and overlays:
 
 ```sh
 make generate

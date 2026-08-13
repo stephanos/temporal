@@ -27,6 +27,11 @@ type IOProfilePlan struct {
 	InventorySHA256      record.SHA256 `json:"inventory_sha256"`
 }
 
+type GuidancePlan struct {
+	Corpus         string        `json:"corpus"`
+	SnapshotSHA256 record.SHA256 `json:"snapshot_sha256"`
+}
+
 type BatchPlan struct {
 	Schema                 string                     `json:"schema"`
 	Selection              string                     `json:"selection"`
@@ -51,6 +56,7 @@ type BatchPlan struct {
 	KeepSuccesses          string                     `json:"keep_successes"`
 	SuccessArtifactLimit   record.Uint64String        `json:"success_artifact_limit"`
 	SuccessBytesLimit      record.Uint64String        `json:"success_bytes_limit"`
+	Guidance               *GuidancePlan              `json:"guidance,omitempty"`
 }
 
 func (journal *BatchJournal) RecordPlan(plan BatchPlan) error {
@@ -179,6 +185,12 @@ func validateBatchPlan(plan BatchPlan) error {
 	if target.Kind == "" || target.Source == "" || !validRecordSHA256(target.SHA256) || target.Size == 0 || len(target.Argv) == 0 || target.Argv[0] == "" {
 		return fmt.Errorf("batch plan prepared target identity is invalid")
 	}
+	if err := record.ValidateCompatibilityPacks(target.Compatibility); err != nil {
+		return fmt.Errorf("batch plan prepared target: %w", err)
+	}
+	if err := record.ValidateTargetAdapters(target.Adapters); err != nil {
+		return fmt.Errorf("batch plan prepared target: %w", err)
+	}
 	if plan.IOProfile.Name == "" || !validRecordSHA256(plan.IOProfile.ImplementationSHA256) || !validRecordSHA256(plan.IOProfile.InventorySHA256) {
 		return fmt.Errorf("batch plan I/O profile identity is invalid")
 	}
@@ -208,6 +220,12 @@ func validateBatchPlan(plan BatchPlan) error {
 		}
 	default:
 		return fmt.Errorf("batch plan success retention policy is invalid")
+	}
+	if plan.Guidance != nil {
+		corpus := filepath.Clean(plan.Guidance.Corpus)
+		if !filepath.IsAbs(corpus) || corpus != plan.Guidance.Corpus || corpus == filepath.VolumeName(corpus)+string(filepath.Separator) || !validRecordSHA256(plan.Guidance.SnapshotSHA256) || plan.Coverage != "semantic" {
+			return fmt.Errorf("batch plan guidance identity is invalid")
+		}
 	}
 	return nil
 }
