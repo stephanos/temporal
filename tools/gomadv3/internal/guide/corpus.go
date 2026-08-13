@@ -65,14 +65,14 @@ func Open(ctx context.Context, path string, identity Identity) (_ *Corpus, retEr
 			retErr = errors.Join(retErr, corpus.Close())
 		}
 	}()
-	if err := os.MkdirAll(corpus.CasesPath(), 0o700); err != nil {
+	if err := os.MkdirAll(corpus.casesPath(), 0o700); err != nil {
 		return nil, fmt.Errorf("create guided corpus case store: %w", err)
 	}
-	casesInfo, err := os.Lstat(corpus.CasesPath())
+	casesInfo, err := os.Lstat(corpus.casesPath())
 	if err != nil || !casesInfo.IsDir() || casesInfo.Mode()&os.ModeSymlink != 0 {
 		return nil, errors.Join(errors.New("guided corpus case store must be a directory"), err)
 	}
-	if err := os.Chmod(corpus.CasesPath(), 0o700); err != nil {
+	if err := os.Chmod(corpus.casesPath(), 0o700); err != nil {
 		return nil, fmt.Errorf("make guided corpus case store private: %w", err)
 	}
 	corpus.snapshot, err = corpus.readSnapshot()
@@ -89,7 +89,7 @@ func (corpus *Corpus) Path() string {
 	return corpus.path
 }
 
-func (corpus *Corpus) CasesPath() string {
+func (corpus *Corpus) casesPath() string {
 	return filepath.Join(corpus.path, "cases")
 }
 
@@ -106,12 +106,12 @@ func (corpus *Corpus) Close() error {
 	return err
 }
 
-func (corpus *Corpus) Interesting(features []Feature, storedBytes uint64) bool {
+func (corpus *Corpus) interesting(features []Feature, storedBytes uint64) bool {
 	features = canonicalFeatures(features)
 	covered := featureSet(corpus.snapshot.Entries)
 	for _, feature := range features {
 		if _, found := covered[feature]; !found {
-			return storedBytes == 0 || storedBytes <= MaximumBytes
+			return storedBytes == 0 || storedBytes <= maximumBytes
 		}
 	}
 	for _, feature := range features {
@@ -127,7 +127,7 @@ func (corpus *Corpus) Interesting(features []Feature, storedBytes uint64) bool {
 	return false
 }
 
-func (corpus *Corpus) Merge(published artifact.Artifact, coverage ioprofile.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
+func (corpus *Corpus) merge(published artifact.Artifact, coverage ioprofile.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
 	if corpus == nil || corpus.lock == nil {
 		return false, errors.New("guided corpus is not open")
 	}
@@ -141,42 +141,16 @@ func (corpus *Corpus) Merge(published artifact.Artifact, coverage ioprofile.Sema
 	if err != nil {
 		return false, err
 	}
-	covered := featureSet(corpus.snapshot.Entries)
-	for _, feature := range entry.Features {
-		if _, found := covered[feature]; !found {
-			entry.NoveltyReasons = append(entry.NoveltyReasons, feature)
-		}
-	}
-	if len(entry.NoveltyReasons) == 0 {
-		for _, feature := range entry.Features {
-			if feature.Kind != FeatureFailure {
-				continue
-			}
-			for _, existing := range corpus.snapshot.Entries {
-				if containsFeature(existing.Features, feature) && entry.PayloadBytes < existing.PayloadBytes && featureSuperset(entry.Features, existing.Features) {
-					entry.NoveltyReasons = []Feature{{Kind: FeatureSmaller, Value: string(existing.RecordHash)}}
-					break
-				}
-			}
-		}
-	}
+	entry.NoveltyReasons = noveltyReasons(entry, corpus.snapshot.Entries)
 	if len(entry.NoveltyReasons) == 0 {
 		return false, corpus.removeUnreferencedCase(entry.Artifact)
 	}
-	entry.NoveltyReasons = canonicalFeatures(entry.NoveltyReasons)
 	if err := corpus.validateEntry(entry); err != nil {
 		return false, err
 	}
 	pool := append(cloneEntries(corpus.snapshot.Entries), entry)
 	selected := boundedEntries(pool)
-	retained := false
-	for _, candidate := range selected {
-		if candidate.RecordHash == entry.RecordHash {
-			retained = true
-			break
-		}
-	}
-	if !retained {
+	if !containsRecordHash(selected, entry.RecordHash) {
 		return false, corpus.removeUnreferencedCase(entry.Artifact)
 	}
 	next := Snapshot{Schema: CorpusSchema, Identity: corpus.identity, Generation: corpus.snapshot.Generation + 1, Entries: selected}
@@ -194,7 +168,40 @@ func (corpus *Corpus) Merge(published artifact.Artifact, coverage ioprofile.Sema
 	return true, nil
 }
 
-func (corpus *Corpus) Discard(published artifact.Artifact) error {
+func noveltyReasons(entry Entry, entries []Entry) []Feature {
+	covered := featureSet(entries)
+	reasons := make([]Feature, 0, len(entry.Features))
+	for _, feature := range entry.Features {
+		if _, found := covered[feature]; !found {
+			reasons = append(reasons, feature)
+		}
+	}
+	if len(reasons) != 0 {
+		return canonicalFeatures(reasons)
+	}
+	for _, feature := range entry.Features {
+		if feature.Kind != FeatureFailure {
+			continue
+		}
+		for _, existing := range entries {
+			if containsFeature(existing.Features, feature) && entry.PayloadBytes < existing.PayloadBytes && featureSuperset(entry.Features, existing.Features) {
+				return []Feature{{Kind: FeatureSmaller, Value: string(existing.RecordHash)}}
+			}
+		}
+	}
+	return []Feature{}
+}
+
+func containsRecordHash(entries []Entry, hash record.SHA256) bool {
+	for _, entry := range entries {
+		if entry.RecordHash == hash {
+			return true
+		}
+	}
+	return false
+}
+
+func (corpus *Corpus) discard(published artifact.Artifact) error {
 	if corpus == nil || corpus.lock == nil {
 		return errors.New("guided corpus is not open")
 	}
@@ -274,7 +281,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 	if snapshot.Identity != corpus.identity {
 		return Snapshot{}, errors.New("guided corpus identity does not match the prepared target and toolchain")
 	}
-	if len(snapshot.Entries) > MaximumEntries {
+	if len(snapshot.Entries) > maximumEntries {
 		return Snapshot{}, errors.New("guided corpus entry capacity is exceeded")
 	}
 	var total uint64
@@ -282,7 +289,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 		if err := corpus.validateEntry(entry); err != nil {
 			return Snapshot{}, err
 		}
-		if uint64(entry.StoredBytes) > MaximumBytes-total {
+		if uint64(entry.StoredBytes) > maximumBytes-total {
 			return Snapshot{}, errors.New("guided corpus byte capacity is exceeded")
 		}
 		total += uint64(entry.StoredBytes)
@@ -363,10 +370,10 @@ func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 func boundedEntries(entries []Entry) []Entry {
 	frequencies := featureFrequencies(entries)
 	sort.Slice(entries, func(i, j int) bool { return entryLess(entries[i], entries[j], frequencies) })
-	selected := make([]Entry, 0, min(len(entries), MaximumEntries))
+	selected := make([]Entry, 0, min(len(entries), maximumEntries))
 	var bytes uint64
 	for _, entry := range entries {
-		if len(selected) == MaximumEntries || uint64(entry.StoredBytes) > MaximumBytes-bytes {
+		if len(selected) == maximumEntries || uint64(entry.StoredBytes) > maximumBytes-bytes {
 			continue
 		}
 		selected = append(selected, entry)
@@ -479,7 +486,7 @@ func (corpus *Corpus) cleanupCases() error {
 	for _, entry := range corpus.snapshot.Entries {
 		referenced[filepath.Base(entry.Artifact)] = struct{}{}
 	}
-	entries, err := os.ReadDir(corpus.CasesPath())
+	entries, err := os.ReadDir(corpus.casesPath())
 	if err != nil {
 		return err
 	}
@@ -490,11 +497,11 @@ func (corpus *Corpus) cleanupCases() error {
 		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "sha256-") && !strings.HasPrefix(entry.Name(), ".publish-") {
 			return fmt.Errorf("guided corpus contains unexpected case entry %s", entry.Name())
 		}
-		if err := os.RemoveAll(filepath.Join(corpus.CasesPath(), entry.Name())); err != nil {
+		if err := os.RemoveAll(filepath.Join(corpus.casesPath(), entry.Name())); err != nil {
 			return fmt.Errorf("remove unreferenced guided case %s: %w", entry.Name(), err)
 		}
 	}
-	return syncDirectory(corpus.CasesPath())
+	return syncDirectory(corpus.casesPath())
 }
 
 func (corpus *Corpus) removeUnreferencedCase(relative string) error {
@@ -506,7 +513,7 @@ func (corpus *Corpus) removeUnreferencedCase(relative string) error {
 	if err := os.RemoveAll(filepath.Join(corpus.path, filepath.FromSlash(relative))); err != nil {
 		return err
 	}
-	return syncDirectory(corpus.CasesPath())
+	return syncDirectory(corpus.casesPath())
 }
 
 func writeAtomic(ctx context.Context, path string, contents []byte) (retErr error) {
