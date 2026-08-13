@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"text/template"
+
+	"go.temporal.io/server/tools/gomadv3/internal/safefile"
 )
 
 type schema struct {
@@ -110,8 +112,8 @@ func run(root string, check bool) error {
 			}
 			continue
 		}
-		if err := writeAtomic(path, generated); err != nil {
-			return err
+		if err := safefile.Replace(path, generated, 0o644); err != nil {
+			return fmt.Errorf("write generated I/O wire codec: %w", err)
 		}
 	}
 	return nil
@@ -207,31 +209,4 @@ func byteLiterals(value string) string {
 		result.WriteString(strconv.QuoteRune(rune(value[index])))
 	}
 	return result.String()
-}
-
-func writeAtomic(path string, content []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("create generated I/O wire directory: %w", err)
-	}
-	temporary, err := os.CreateTemp(filepath.Dir(path), ".iowire-*")
-	if err != nil {
-		return fmt.Errorf("create generated I/O wire file: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	defer func() { _ = os.Remove(temporaryPath) }()
-	if _, err := temporary.Write(content); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("write generated I/O wire file: %w", err)
-	}
-	if err := temporary.Chmod(0o644); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("set generated I/O wire mode: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close generated I/O wire file: %w", err)
-	}
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return fmt.Errorf("publish generated I/O wire file: %w", err)
-	}
-	return nil
 }

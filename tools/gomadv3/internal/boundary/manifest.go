@@ -18,6 +18,8 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"go.temporal.io/server/tools/gomadv3/internal/safefile"
 )
 
 const manifestPath = "boundary/manifest.json"
@@ -138,8 +140,8 @@ func Generate(root string, check bool) error {
 			}
 			continue
 		}
-		if err := writeAtomic(path, generated.content); err != nil {
-			return err
+		if err := safefile.Replace(path, generated.content, 0o644); err != nil {
+			return fmt.Errorf("write boundary artifact: %w", err)
 		}
 	}
 	return nil
@@ -223,8 +225,8 @@ func GenerateCompilerTestOverlay(root, goroot, output string) error {
 		return fmt.Errorf("compiler test overlay path is not a directory: %s", output)
 	}
 	testSpecPath := filepath.Join(output, filepath.Base(relativeSpecPath))
-	if err := writeAtomic(testSpecPath, testSpec); err != nil {
-		return err
+	if err := safefile.Replace(testSpecPath, testSpec, 0o644); err != nil {
+		return fmt.Errorf("write compiler test spec: %w", err)
 	}
 	overlay, err := json.MarshalIndent(struct {
 		Replace map[string]string `json:"Replace"`
@@ -233,7 +235,10 @@ func GenerateCompilerTestOverlay(root, goroot, output string) error {
 		return fmt.Errorf("encode compiler test overlay: %w", err)
 	}
 	overlay = append(overlay, '\n')
-	return writeAtomic(filepath.Join(output, "overlay.json"), overlay)
+	if err := safefile.Replace(filepath.Join(output, "overlay.json"), overlay, 0o644); err != nil {
+		return fmt.Errorf("write compiler test overlay: %w", err)
+	}
+	return nil
 }
 
 func load(path string) (manifest, error) {
@@ -828,31 +833,4 @@ func targetName(receiverValue *receiver, symbol string) string {
 		prefix = "*"
 	}
 	return fmt.Sprintf("(%s%s).%s", prefix, receiverValue.Name, symbol)
-}
-
-func writeAtomic(path string, content []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("create boundary artifact directory: %w", err)
-	}
-	temporary, err := os.CreateTemp(filepath.Dir(path), ".boundary-*")
-	if err != nil {
-		return fmt.Errorf("create boundary artifact: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	defer func() { _ = os.Remove(temporaryPath) }()
-	if _, err := temporary.Write(content); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("write boundary artifact: %w", err)
-	}
-	if err := temporary.Chmod(0o644); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("set boundary artifact mode: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close boundary artifact: %w", err)
-	}
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return fmt.Errorf("publish boundary artifact: %w", err)
-	}
-	return nil
 }
