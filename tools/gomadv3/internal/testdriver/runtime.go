@@ -342,7 +342,7 @@ func (campaign *runtimeCampaign) requireStockCompatibility() error {
 		if err == nil {
 			root, commandErr := campaign.command(
 				"stock-go-resolve", []string{launcher, "env", "GOROOT"}, campaign.testdata, 10*time.Second,
-				[]string{"GOMADSEED", "GONOSUMDB", "GOPROXY"}, "GONOSUMDB=*", "GOPROXY=off",
+				[]string{"GOMADSEED", "GONOPROXY", "GONOSUMDB", "GOPRIVATE", "GOPROXY", "GOSUMDB", "GOTOOLCHAIN"}, "GOTOOLCHAIN="+wantVersion,
 			)
 			if commandErr == nil {
 				stockGo = filepath.Join(commandOutput(root), "bin", "go")
