@@ -1616,7 +1616,8 @@ func (c *ContextImpl) forceTerminateWorkflow(
 		)
 	}
 
-	return ForceTerminateWorkflow(
+	return TerminateWorkflowWithContext(
+		ctx,
 		mutableState,
 		failureReason,
 		nil,
