@@ -20,9 +20,11 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	root := writeUpgradeFixture(t, false)
 	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
 	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
+	approvedDiff := boundaryApprovalFor(t, root, baseline)
 	err := Run(context.Background(), Options{
 		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomadv3-core"),
-		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
+		ApprovedBoundaryDiffSHA256: approvedDiff,
+		Gates:                      []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -35,7 +37,7 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	if err := json.Unmarshal(contents, &dossier); err != nil {
 		t.Fatal(err)
 	}
-	if dossier.Schema != "gomadv3.upgrade-dossier/v1" || !dossier.Qualified || dossier.Version.GoVersion != "go1.26.4" {
+	if dossier.Schema != "gomadv3.upgrade-dossier/v2" || !dossier.Qualified || !dossier.BoundaryApproved || dossier.Version.GoVersion != "go1.26.4" {
 		t.Fatalf("dossier identity = %#v", dossier)
 	}
 	if !strings.Contains(dossier.UpstreamPatch.Diff, "src/runtime/proc.go") || dossier.UpstreamPatch.SHA256 == "" {
@@ -43,6 +45,9 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	}
 	if len(dossier.BoundaryDiff.Added) != 1 || dossier.BoundaryDiff.Added[0] != "os.OpenFile" || len(dossier.BoundaryDiff.Removed) != 1 || dossier.BoundaryDiff.Removed[0] != "os.Open" {
 		t.Fatalf("boundary diff = %#v", dossier.BoundaryDiff)
+	}
+	if dossier.BoundaryDiff.SHA256 != approvedDiff || dossier.BoundaryApprovalSHA256 != approvedDiff {
+		t.Fatalf("boundary approval = %q for %#v", dossier.BoundaryApprovalSHA256, dossier.BoundaryDiff)
 	}
 	if !dossier.OverlayCollision.Checked || len(dossier.OverlayCollision.Collisions) != 0 {
 		t.Fatalf("overlay collision evidence = %#v", dossier.OverlayCollision)
@@ -52,6 +57,55 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	}
 	if dossier.RetainedCorpus.Status != "checked" || dossier.RetainedCorpus.SHA256 == "" {
 		t.Fatalf("retained corpus evidence = %#v", dossier.RetainedCorpus)
+	}
+}
+
+func TestRunDoesNotQualifyUnapprovedBoundaryChanges(t *testing.T) {
+	root := writeUpgradeFixture(t, false)
+	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
+	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
+	err := Run(context.Background(), Options{
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomadv3-core"),
+		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
+	})
+	if err == nil || !strings.Contains(err.Error(), "boundary changes require explicit approval") {
+		t.Fatalf("Run() error = %v", err)
+	}
+	contents, readErr := os.ReadFile(output)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	var public map[string]any
+	if unmarshalErr := json.Unmarshal(contents, &public); unmarshalErr != nil {
+		t.Fatal(unmarshalErr)
+	}
+	if public["qualified"] != false || public["boundary_changes_approved"] != false {
+		t.Fatalf("dossier approval evidence = %#v", public)
+	}
+}
+
+func TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff(t *testing.T) {
+	root := writeUpgradeFixture(t, false)
+	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
+	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
+	err := Run(context.Background(), Options{
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomadv3-core"),
+		ApprovedBoundaryDiffSHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Gates:                      []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
+	})
+	if err == nil || !strings.Contains(err.Error(), "boundary changes require explicit approval for sha256:") {
+		t.Fatalf("Run() error = %v", err)
+	}
+	contents, readErr := os.ReadFile(output)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	var dossier Dossier
+	if unmarshalErr := json.Unmarshal(contents, &dossier); unmarshalErr != nil {
+		t.Fatal(unmarshalErr)
+	}
+	if dossier.Qualified || dossier.BoundaryApproved || dossier.BoundaryApprovalSHA256 != "" || dossier.BoundaryDiff.SHA256 == "" {
+		t.Fatalf("dossier approval evidence = %#v", dossier)
 	}
 }
 
@@ -130,6 +184,19 @@ func TestCompareBoundariesRetainsNewManifestAndEntryFields(t *testing.T) {
 	if fmt.Sprint(difference.Changed) != fmt.Sprint(want) {
 		t.Fatalf("changed boundaries = %v, want %v", difference.Changed, want)
 	}
+	otherCurrent := []byte(`{
+		"manifest_version":"v1",
+		"future_contract":"new",
+		"hook_policies":[{"id":"deny/v1","enabled":"new"}],
+		"intercepts":[{"package":"os","symbol":"OpenFile","future_field":"another-new-value"}]
+	}`)
+	otherDifference, err := compareBoundaries(baseline, otherCurrent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fmt.Sprint(otherDifference.Changed) != fmt.Sprint(want) || otherDifference.SHA256 == difference.SHA256 {
+		t.Fatalf("boundary diff identities = %v/%v, SHA-256 = %q/%q", difference.Changed, otherDifference.Changed, difference.SHA256, otherDifference.SHA256)
+	}
 }
 
 func TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON(t *testing.T) {
@@ -202,6 +269,19 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 		t.Fatal(err)
 	}
 	return output
+}
+
+func boundaryApprovalFor(t *testing.T, root string, baseline []byte) string {
+	t.Helper()
+	current, err := os.ReadFile(filepath.Join(root, "boundary", "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	difference, err := compareBoundaries(baseline, current)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return difference.SHA256
 }
 
 func writeUpgradeFixture(t *testing.T, collide bool) string {

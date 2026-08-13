@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
 )
@@ -38,6 +39,7 @@ type Input struct {
 	Stdout         []byte
 	Stderr         []byte
 	IOTranscript   []byte
+	ChoiceTrace    []byte
 	ReadOnlyMounts *romount.ArtifactRecord
 	World          record.WorldPayloads
 }
@@ -69,8 +71,14 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 	if store.Root == "" {
 		return Artifact{}, fmt.Errorf("artifact store root is required")
 	}
+	if input.Manifest.SchemaVersion != record.SchemaVersion || input.Manifest.Runner.RecordContract != record.RecordContract {
+		return Artifact{}, fmt.Errorf("artifact publication requires the current run-record contract")
+	}
 	if input.Manifest.World.Initial.File != "world/snapshot.json" || input.Manifest.World.Transitions.File != "world/transitions.jsonl" || input.Manifest.World.Final.File != "world/final-snapshot.json" {
 		return Artifact{}, fmt.Errorf("World payload paths must use the canonical artifact layout")
+	}
+	if err := validateChoiceTracePayload(input.Manifest, input.ChoiceTrace); err != nil {
+		return Artifact{}, err
 	}
 	if err := os.MkdirAll(store.Root, 0o700); err != nil {
 		return Artifact{}, fmt.Errorf("create artifact store: %w", err)
@@ -95,6 +103,9 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 	manifest.Streams.Stderr.File = "stderr"
 	if manifest.IOProfile.Transcript != nil {
 		manifest.IOProfile.Transcript.File = "io/transcript.bin"
+	}
+	if manifest.ChoiceProfile != nil {
+		manifest.ChoiceProfile.Trace.File = "choices.bin"
 	}
 	manifest.Files = nil
 
@@ -128,6 +139,19 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 			return Artifact{}, errors.New("I/O transcript identity changed during publication")
 		}
 		files = append(files, transcriptFile)
+	}
+	if manifest.ChoiceProfile != nil {
+		trace := manifest.ChoiceProfile.Trace
+		traceFile, err := writePayload(ctx, filepath.Join(staging, trace.File), trace.File, input.ChoiceTrace, 0o600)
+		if err != nil {
+			return Artifact{}, err
+		}
+		if traceFile.SHA256 != trace.SHA256 || traceFile.Size != trace.Bytes {
+			return Artifact{}, errors.New("choice trace identity changed during publication")
+		}
+		files = append(files, traceFile)
+	} else if input.ChoiceTrace != nil {
+		return Artifact{}, errors.New("unexpected choice trace payload")
 	}
 	if manifest.IOProfile.ReadOnlyMounts != nil {
 		if input.ReadOnlyMounts == nil {
@@ -263,6 +287,48 @@ func (store Store) Publish(input Input) (_ Artifact, retErr error) {
 		return Artifact{}, fmt.Errorf("sync artifact store: %w", err)
 	}
 	return Artifact{Path: finalPath, Manifest: manifest, StoredBytes: storedBytes}, nil
+}
+
+func validateChoiceTracePayload(manifest record.Manifest, payload []byte) error {
+	if manifest.ChoiceProfile == nil {
+		if payload != nil {
+			return errors.New("unexpected choice trace payload")
+		}
+		return nil
+	}
+	trace := manifest.ChoiceProfile.Trace
+	implementation, err := choicewire.ImplementationIdentity(manifest.Toolchain.BuildKey)
+	if err != nil {
+		return fmt.Errorf("derive choice trace implementation identity: %w", err)
+	}
+	if manifest.ChoiceProfile.ImplementationSHA256 != record.SHA256FromSum(implementation) {
+		return errors.New("choice trace implementation identity does not match the pinned toolchain")
+	}
+	if record.HashBytes(payload) != trace.SHA256 || uint64(len(payload)) != uint64(trace.Bytes) {
+		return errors.New("choice trace identity changed during publication")
+	}
+	digest, err := trace.SHA256.Bytes()
+	if err != nil {
+		return fmt.Errorf("decode choice trace identity: %w", err)
+	}
+	targetIdentity, err := manifest.Target.SHA256.Bytes()
+	if err != nil {
+		return fmt.Errorf("decode choice trace target identity: %w", err)
+	}
+	terminalState := choicewire.TerminalComplete
+	if trace.TerminalState == "overflow" {
+		terminalState = choicewire.TerminalOverflow
+	}
+	projection, err := choicewire.Project(payload, choicewire.TerminalMetadata{
+		State: terminalState, Limit: uint64(trace.Limit), Records: uint64(trace.Records), SHA256: digest,
+	}, targetIdentity)
+	if err != nil {
+		return fmt.Errorf("validate choice trace payload: %w", err)
+	}
+	if projection.Summary.Branching != uint64(trace.BranchingRecords) {
+		return errors.New("choice trace branching count does not match its payload")
+	}
+	return nil
 }
 
 func artifactStoredBytes(manifest record.Manifest, manifestBytes uint64) (uint64, error) {

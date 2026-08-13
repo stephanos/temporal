@@ -12,6 +12,9 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/capabilityanalysis"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
+	"go.temporal.io/server/tools/gomadv3/internal/compatibility"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/qualify"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -103,6 +106,31 @@ func TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus(t *testi
 	}
 }
 
+func TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		enabled   bool
+		limit     byteSize
+		limitSet  bool
+		want      uint64
+		wantError bool
+	}{
+		{name: "disabled", limit: 8 << 20},
+		{name: "enabled default", enabled: true, limit: 8 << 20, want: 8 << 20},
+		{name: "enabled explicit", enabled: true, limit: 1 << 20, limitSet: true, want: 1 << 20},
+		{name: "bytes without choices", limit: 1 << 20, limitSet: true, wantError: true},
+		{name: "too small", enabled: true, limit: 1, limitSet: true, wantError: true},
+		{name: "too large", enabled: true, limit: 65 << 20, limitSet: true, wantError: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			observed, err := resolveChoiceTrace(test.enabled, test.limit, test.limitSet)
+			if (err != nil) != test.wantError || observed != test.want {
+				t.Fatalf("resolveChoiceTrace() = %d, %v, want %d error=%t", observed, err, test.want, test.wantError)
+			}
+		})
+	}
+}
+
 func TestRunRejectsUnknownCommandWithUsageStatus(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if status := run([]string{"unknown"}, &stdout, &stderr); status != 2 {
@@ -118,6 +146,150 @@ func TestParseTargetPreservesArgumentVector(t *testing.T) {
 	if spec.source != "./pkg" || len(spec.arguments) != 2 || spec.arguments[0] != "-test.run=Test Name" || spec.arguments[1] != "literal;$value" {
 		t.Fatalf("target = %#v", spec)
 	}
+}
+
+func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
+	dependencies := analyzeDependencies{
+		toolchain: func(string) (string, error) { return "/toolchain", nil },
+		identity: func(string) (target.ToolchainIdentity, error) {
+			return target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH}, nil
+		},
+		workingDirectory: func() (string, error) { return "/workspace", nil },
+		review: func(_ context.Context, spec target.Spec) (target.CapabilityReview, error) {
+			if spec.Kind != target.KindGoTest || spec.Source != "./pkg" || len(spec.Args) != 1 || spec.Args[0] != "-test.run=TestScenario" || len(spec.BuildTags) != 1 {
+				t.Fatalf("analysis spec = %#v", spec)
+			}
+			return target.CapabilityReview{}, nil
+		},
+		build: func(input capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Schema: capabilityanalysis.Schema, Classification: capabilityanalysis.ClassificationSupported, Packs: []compatibility.PackEvidence{}, Requirements: []ioprofile.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	status := runAnalyzeWith([]string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"}, &stdout, &stderr, dependencies)
+	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v1"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunAnalyzeMapsUnsupportedInvalidAndInfrastructureStatuses(t *testing.T) {
+	base := analyzeDependencies{
+		toolchain:        func(string) (string, error) { return "/toolchain", nil },
+		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+		workingDirectory: func() (string, error) { return "/workspace", nil },
+		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
+			return target.CapabilityReview{}, nil
+		},
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported, Blockers: []capabilityanalysis.Blocker{}}, nil
+		},
+	}
+	for _, test := range []struct {
+		name       string
+		arguments  []string
+		configure  func(*analyzeDependencies)
+		wantStatus int
+	}{
+		{name: "unsupported", arguments: []string{"go-run", "./pkg"}, wantStatus: 1},
+		{name: "opaque executable", arguments: []string{"exec", "--provenance", "p.json", "--", "binary"}, wantStatus: 2},
+		{name: "invalid package", arguments: []string{"go-run", "./missing"}, configure: func(dependencies *analyzeDependencies) {
+			dependencies.review = func(context.Context, target.Spec) (target.CapabilityReview, error) {
+				return target.CapabilityReview{}, &target.InvalidCapabilityReviewError{Err: errors.New("missing package")}
+			}
+		}, wantStatus: 2},
+		{name: "infrastructure", arguments: []string{"go-run", "./pkg"}, configure: func(dependencies *analyzeDependencies) {
+			dependencies.review = func(context.Context, target.Spec) (target.CapabilityReview, error) {
+				return target.CapabilityReview{}, errors.New("decode failed")
+			}
+		}, wantStatus: 3},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			dependencies := base
+			if test.configure != nil {
+				test.configure(&dependencies)
+			}
+			var stdout, stderr bytes.Buffer
+			if status := runAnalyzeWith(test.arguments, &stdout, &stderr, dependencies); status != test.wantStatus {
+				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/target\n\ngo 1.26.4\n\nrequire github.com/stretchr/testify v1.11.1\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\n\nimport _ \"github.com/stretchr/testify/require\"\n\nfunc main() {}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	toolchain, err := filepath.Abs("../../.toolchain")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dependencies := analyzeDependencies{
+		toolchain:        func(string) (string, error) { return toolchain, nil },
+		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+		workingDirectory: func() (string, error) { return directory, nil },
+		review:           target.ReviewCapabilities,
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			t.Fatal("analysis report was built after invalid read-only module resolution")
+			return capabilityanalysis.Report{}, nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	if status := runAnalyzeWith([]string{"go-run", "."}, &stdout, &stderr, dependencies); status != 2 || !strings.Contains(stderr.String(), "missing go.sum entry") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+	if _, statErr := os.Stat(filepath.Join(directory, "go.sum")); !os.IsNotExist(statErr) {
+		t.Fatalf("read-only analysis wrote go.sum: %v", statErr)
+	}
+}
+
+func TestRunAnalyzePreservesClassificationWhenCleanupFails(t *testing.T) {
+	dependencies := analyzeDependencies{
+		toolchain:        func(string) (string, error) { return "/toolchain", nil },
+		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+		workingDirectory: func() (string, error) { return "/workspace", nil },
+		prepare: func(_ context.Context, spec target.Spec) (target.Spec, []record.TargetAdapter, func() error, error) {
+			return spec, []record.TargetAdapter{}, func() error { return errors.New("cleanup failed") }, nil
+		},
+		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
+			return target.CapabilityReview{}, nil
+		},
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported}, nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 1 || !strings.Contains(stderr.String(), "cleanup failed") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunAnalyzeReportsOutputFailuresAsInfrastructure(t *testing.T) {
+	dependencies := analyzeDependencies{
+		toolchain:        func(string) (string, error) { return "/toolchain", nil },
+		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+		workingDirectory: func() (string, error) { return "/workspace", nil },
+		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
+			return target.CapabilityReview{}, nil
+		},
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
+		},
+	}
+	var stderr bytes.Buffer
+	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, failingWriter{}, &stderr, dependencies); status != 3 || !strings.Contains(stderr.String(), "write capability analysis") {
+		t.Fatalf("status=%d stderr=%q", status, stderr.String())
+	}
+}
+
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) {
+	return 0, errors.New("write failed")
 }
 
 func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {
@@ -196,6 +368,13 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRunInspectRejectsChoicesForBatch(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if status := runInspect([]string{"--choices", writeInspectBatchFixture(t)}, &stdout, &stderr); status != 2 || !strings.Contains(stderr.String(), "traced artifact") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }
 
@@ -332,14 +511,14 @@ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifyWith([]string{
-		"--json", "--seed", "7", "--repeat", "2", "--artifacts", "/artifacts", "--toolchain-root", "/bundle/toolchain", "--require-probe", "stdlib.os.openfile",
+		"--json", "--seed", "7", "--repeat", "2", "--artifacts", "/artifacts", "--toolchain-root", "/bundle/toolchain", "--require-probe", "stdlib.os.openfile", "--choices", "--choice-bytes", "1MiB",
 		"go-test", "./pkg", "--", "-test.run=TestScenario",
 	}, &stdout, &stderr, dependencies)
 	if status != 0 || stderr.Len() != 0 || calls != 2 || !retained.Qualified || resolvedToolchainRoot != "/bundle/toolchain" {
 		t.Fatalf("status=%d calls=%d report=%#v stdout=%q stderr=%q", status, calls, retained, stdout.String(), stderr.String())
 	}
 	for _, config := range configs {
-		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemantic || !config.CollectRunEvidence || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
+		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemantic || !config.CollectRunEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
 			t.Fatalf("config = %#v", config)
 		}
 	}
@@ -507,10 +686,11 @@ func TestExploreReporterHumanOutputIncludesProgressAndReplayCommands(t *testing.
 	if err := reporter.Result(runner.Summary{
 		BatchPath: "/batch", SelectionCount: 5, Attempted: 5, Succeeded: 4, Failures: 1, DistinctFailures: 1,
 		StopReason: runner.StopSeedsExhausted, Artifacts: []string{"/batch/failures/one"},
+		ChoiceTrace: &runner.ChoiceTraceSummary{Seed: 7, Profile: choicewire.Profile, Records: 3, BranchingRecords: 2, SHA256: record.HashBytes([]byte("choices")), TerminalState: "complete"},
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(stderr.String(), "attempted=2 running=2") || !strings.Contains(stdout.String(), "retained failure: /batch/failures/one") || !strings.Contains(stdout.String(), "gomad replay /batch/failures/one") {
+	if !strings.Contains(stderr.String(), "attempted=2 running=2") || !strings.Contains(stdout.String(), "retained failure: /batch/failures/one") || !strings.Contains(stdout.String(), "gomad replay /batch/failures/one") || !strings.Contains(stdout.String(), "choices-records=3 choices-branching=2") {
 		t.Fatalf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
 	}
 }
@@ -524,10 +704,23 @@ func TestClassifyExploreErrorDistinguishesInputTargetAndRunner(t *testing.T) {
 		{err: &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}, want: "unsupported_target"},
 		{err: &runner.HostError{Reason: "target_preparation", Err: &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}}, want: "unsupported_target"},
 		{err: &ioprofile.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}, want: "semantic_coverage_failure"},
+		{err: &runner.HostError{Reason: "cancelled", Err: context.Canceled}, want: "cancelled"},
+		{err: &runner.HostError{Reason: "overall_timeout", Err: context.DeadlineExceeded}, want: "overall_timeout"},
 		{err: &runner.HostError{Reason: "coordinator_exit", Err: os.ErrClosed}, want: "runner_failure"},
 	} {
 		if got := classifyExploreError(test.err); got != test.want {
 			t.Fatalf("classifyExploreError(%T) = %q, want %q", test.err, got, test.want)
+		}
+	}
+}
+
+func TestExploreErrorStatusDistinguishesUserAndOperationalFailures(t *testing.T) {
+	for classification, want := range map[string]int{
+		"invalid_input": 2, "unsupported_target": 2, "semantic_coverage_failure": 1,
+		"cancelled": 3, "overall_timeout": 3, "runner_failure": 3,
+	} {
+		if got := exploreErrorStatus(classification); got != want {
+			t.Fatalf("exploreErrorStatus(%q) = %d, want %d", classification, got, want)
 		}
 	}
 }

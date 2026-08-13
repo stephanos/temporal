@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "profile": "gomadv3-choice-trace/v1",
+  "trace": {
+    "magic": "GOMADCH\u0001",
+    "header_bytes": 64,
+    "record_bytes": 48
+  },
+  "terminal": {
+    "magic": "GOMADCT\u0001",
+    "states": {
+      "complete": 1,
+      "overflow": 2
+    },
+    "frame_bytes": 96,
+    "checksum_offset": 64
+  },
+  "kinds": {
+    "runnable": 1,
+    "select_poll": 2,
+    "select_result": 3
+  },
+  "flags": {
+    "decision": 1,
+    "observation": 2,
+    "site_missing": 4
+  }
+}

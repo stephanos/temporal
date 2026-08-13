@@ -74,7 +74,8 @@ jobs:
 
       - name: Produce checked upgrade qualification dossier
         env:
-          GOMADV3_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          GOMADV3_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256 }}
         run: make -C tools/gomadv3 upgrade-dossier
 
       - name: Upload upgrade qualification dossier

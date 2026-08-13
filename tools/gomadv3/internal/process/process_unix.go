@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
 )
 
@@ -33,10 +34,13 @@ type supervisorRequest struct {
 	WorldTransitionLimit uint64        `json:"world_transition_limit"`
 	WorldSeed            uint64        `json:"world_seed"`
 	ExpectedWorldInitial []byte        `json:"expected_world_initial"`
+	WorldReplayPlan      []byte        `json:"world_replay_plan"`
 	IOConfig             []byte        `json:"io_config"`
 	IOTranscriptLimit    uint64        `json:"io_transcript_limit"`
 	IOReplay             bool          `json:"io_replay"`
 	IOROMounts           bool          `json:"io_ro_mounts"`
+	ChoiceTrace          bool          `json:"choice_trace"`
+	ChoiceTraceLimit     uint64        `json:"choice_trace_limit"`
 }
 
 type targetBootstrapRequest struct {
@@ -49,6 +53,8 @@ type targetBootstrapRequest struct {
 	IOTranscriptLimit uint64   `json:"io_transcript_limit"`
 	IOReplay          bool     `json:"io_replay"`
 	IOROMounts        bool     `json:"io_ro_mounts"`
+	ChoiceTrace       bool     `json:"choice_trace"`
+	ChoiceTraceLimit  uint64   `json:"choice_trace_limit"`
 }
 
 type supervisorReport struct {
@@ -98,6 +104,14 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 			retErr = errors.Join(retErr, ioBacking.close())
 		}()
 	}
+	var choiceBacking *choiceTraceBacking
+	if request.Choice != nil {
+		choiceBacking, err = newChoiceTraceBacking(request.Choice.Limit)
+		if err != nil {
+			return Result{}, err
+		}
+		defer func() { retErr = errors.Join(retErr, choiceBacking.close()) }()
+	}
 	var readOnlyMountBroker *romount.Broker
 	if ioCapability != nil && ioCapability.ReadOnlyMount != nil {
 		mounts := ioCapability.ReadOnlyMount
@@ -111,7 +125,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}
 		defer func() { retErr = errors.Join(retErr, readOnlyMountBroker.Close()) }()
 	}
-	capabilities := launchCapabilities{ioTranscript: ioBacking != nil, readOnlyMount: readOnlyMountBroker != nil}
+	capabilities := launchCapabilities{ioTranscript: ioBacking != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceBacking != nil}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	var mountRequestRead, mountResponseWrite *os.File
@@ -158,6 +172,10 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		resources.bind(ioTerminalResource, &ioBacking.terminalWrite)
 		resources.bind(ioExpectedResource, &ioBacking.expected)
 	}
+	if choiceBacking != nil {
+		resources.bind(choiceTraceResource, &choiceBacking.file)
+		resources.bind(choiceTerminalResource, &choiceBacking.terminalWrite)
+	}
 
 	command := exec.Command(request.SupervisorCommand[0], request.SupervisorCommand[1:]...)
 	command.Env = append(os.Environ(), "GOMADV3_PROCESS_SUPERVISOR=1")
@@ -180,6 +198,15 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}()
 		ioTerminal = terminal
 	}
+	var choiceTerminal <-chan []byte
+	if choiceBacking != nil {
+		terminal := make(chan []byte, 1)
+		go func() {
+			bytes, _ := io.ReadAll(io.LimitReader(choiceBacking.terminalRead, choiceTerminalBytes+1))
+			terminal <- bytes
+		}()
+		choiceTerminal = terminal
+	}
 	identities := make(chan targetIdentity, 1)
 	go func() { identities <- readTargetIdentity(identityRead) }()
 	remaining := time.Until(deadline)
@@ -200,7 +227,12 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		WorldTransitionLimit: worldCapability.TransitionLimit,
 		WorldSeed:            worldCapability.Seed,
 		ExpectedWorldInitial: append([]byte(nil), worldCapability.ExpectedInitial...),
+		WorldReplayPlan:      append([]byte(nil), worldCapability.ReplayPlan...),
 		IOROMounts:           readOnlyMountBroker != nil,
+		ChoiceTrace:          choiceBacking != nil,
+	}
+	if request.Choice != nil {
+		wireRequest.ChoiceTraceLimit = request.Choice.Limit
 	}
 	if ioCapability != nil {
 		wireRequest.IOConfig = append([]byte(nil), ioCapability.Config...)
@@ -378,26 +410,6 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		Stderr:      stderrCapture.Result(),
 		WorldRecord: worldCapture.Result().Bytes,
 	}
-	if ioBacking != nil {
-		terminal := <-ioTerminal
-		transcript, transcriptErr := ioBacking.result(terminal)
-		if transcriptErr != nil {
-			return result, transcriptErr
-		}
-		result.IOTranscript = transcript
-	}
-	if readOnlyMountBroker != nil {
-		if err := mountRequestRead.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
-			return result, fmt.Errorf("close read-only mount request reader: %w", err)
-		}
-		if err := mountResponseWrite.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
-			return result, fmt.Errorf("close read-only mount response writer: %w", err)
-		}
-		if serveErr := <-mountServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) {
-			return result, fmt.Errorf("serve read-only mounts: %w", serveErr)
-		}
-		result.IOROMounts = readOnlyMountBroker.Captured()
-	}
 	if started != nil {
 		result.PID = started.PID
 		result.PGID = started.PGID
@@ -411,6 +423,36 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		result.PID = final.PID
 		result.PGID = final.PGID
 		result.GroupGone = final.GroupGone
+	}
+	if ioBacking != nil {
+		terminal := <-ioTerminal
+		transcript, transcriptErr := ioBacking.result(terminal)
+		if transcriptErr != nil {
+			return result, transcriptErr
+		}
+		result.IOTranscript = transcript
+	}
+	if choiceBacking != nil {
+		terminal := <-choiceTerminal
+		trace, traceErr := choiceBacking.result(terminal)
+		if traceErr == nil || errors.Is(traceErr, ErrChoiceTraceOverflow) {
+			result.ChoiceTrace = ChoiceTrace{Profile: choicewire.Profile, ImplementationSHA256: request.Choice.ImplementationSHA256, Limit: request.Choice.Limit, Trace: trace}
+		}
+		if traceErr != nil {
+			return result, traceErr
+		}
+	}
+	if readOnlyMountBroker != nil {
+		if err := mountRequestRead.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close read-only mount request reader: %w", err)
+		}
+		if err := mountResponseWrite.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close read-only mount response writer: %w", err)
+		}
+		if serveErr := <-mountServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) {
+			return result, fmt.Errorf("serve read-only mounts: %w", serveErr)
+		}
+		result.IOROMounts = readOnlyMountBroker.Captured()
 	}
 	if worldCapture.Result().Truncated {
 		return result, fmt.Errorf("World child record exceeded its configured bound")

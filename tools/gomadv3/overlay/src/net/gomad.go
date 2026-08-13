@@ -6,14 +6,15 @@ package net
 
 import (
 	"context"
-	"internal/gomadio"
-	"internal/gomadtrace"
 	"io"
 	"os"
 	"strconv"
 	"sync"
 	"syscall"
 	"time"
+
+	"internal/gomadio"
+	"internal/gomadtrace"
 )
 
 var gomadNetState = struct {
@@ -45,6 +46,9 @@ func gomadInterceptDialContext(dialer *Dialer, ctx context.Context, network, add
 		return nil, &OpError{Op: "dial", Net: network, Source: dialer.LocalAddr, Addr: remoteAddress, Err: gomadio.ErrUnsupported}, true
 	}
 	connection, err := dialTCP(ctx, dialer, network, localAddress, remoteAddress)
+	if err != nil {
+		return nil, err, true
+	}
 	return connection, err, true
 }
 

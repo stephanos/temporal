@@ -50,10 +50,13 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact and qualification report root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	outputLimit := byteSize(8 << 20)
 	worldLimit := byteSize(64 << 20)
+	choiceLimit := byteSize(8 << 20)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
+	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
 	var environment stringList
 	var buildTags stringList
 	var ioROMounts stringList
@@ -75,6 +78,16 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		return 2
 	}
 	reporter := newQualifyReporter(*jsonOutput, stdout, stderr)
+	choiceLimitSet := false
+	flags.Visit(func(visited *flag.Flag) {
+		if visited.Name == "choice-bytes" {
+			choiceLimitSet = true
+		}
+	})
+	resolvedChoiceLimit, err := resolveChoiceTrace(*choices, choiceLimit, choiceLimitSet)
+	if err != nil {
+		return reportQualifyInputError(reporter, stderr, err)
+	}
 	if *repeat < 2 || *repeat > maximumQualificationRepeats {
 		return reportQualifyInputError(reporter, stderr, fmt.Errorf("--repeat must be between 2 and %d", maximumQualificationRepeats))
 	}
@@ -97,7 +110,8 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	config := runner.Config{
 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
+		ChoiceTraceLimit: resolvedChoiceLimit,
+		Artifacts:        *artifacts, Environment: environment, IOROMounts: ioROMounts,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: runner.CoverageSemantic, RequiredSemanticProbes: requiredSemanticProbes, CollectRunEvidence: true,
 		Target: target.Spec{
@@ -115,6 +129,9 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		}
 		summary, runErr := dependencies.run(ctx, config)
 		if runErr != nil {
+			if summary.ChoiceTrace != nil && !*jsonOutput {
+				fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+			}
 			if summary.RunEvidence != nil {
 				runs = append(runs, qualificationRun(summary))
 			}
@@ -247,6 +264,10 @@ func (reporter *qualifyReporter) Result(report qualify.Report, path string) erro
 		return qualify.WriteResultEvent(reporter.stdout, report, path)
 	}
 	_, err := fmt.Fprintf(reporter.stdout, "gomad: qualification qualified=%t deterministic=%t target-success=%t seed=%d repeat=%d report=%s\n", report.Qualified, report.Deterministic, report.TargetSuccess, report.Seed, report.Repeat, path)
+	if err == nil && report.Evidence != nil && report.Evidence.Choices != nil {
+		choices := report.Evidence.Choices
+		_, err = fmt.Fprintf(reporter.stdout, "gomad: choices profile=%s records=%d branching=%d runnable=%d select-poll=%d select-result=%d sha256=%s terminal=%s\n", choices.Profile, choices.Records, choices.BranchingRecords, choices.Runnable, choices.SelectPoll, choices.SelectResult, choices.SHA256, choices.TerminalState)
+	}
 	if err == nil && report.FirstDivergence != "" {
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-divergence=%s\n", report.FirstDivergence)
 	}

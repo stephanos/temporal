@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -71,6 +73,50 @@ type templateData struct {
 	Schema     schema
 }
 
+type choiceSchema struct {
+	Version uint16 `json:"version"`
+	Profile string `json:"profile"`
+	Trace   struct {
+		Magic       string `json:"magic"`
+		HeaderBytes int    `json:"header_bytes"`
+		RecordBytes int    `json:"record_bytes"`
+	} `json:"trace"`
+	Terminal struct {
+		Magic  string `json:"magic"`
+		States struct {
+			Complete uint8 `json:"complete"`
+			Overflow uint8 `json:"overflow"`
+		} `json:"states"`
+		FrameBytes     int `json:"frame_bytes"`
+		ChecksumOffset int `json:"checksum_offset"`
+	} `json:"terminal"`
+	Kinds struct {
+		Runnable     uint8 `json:"runnable"`
+		SelectPoll   uint8 `json:"select_poll"`
+		SelectResult uint8 `json:"select_result"`
+	} `json:"kinds"`
+	Flags struct {
+		Decision    uint8 `json:"decision"`
+		Observation uint8 `json:"observation"`
+		SiteMissing uint8 `json:"site_missing"`
+	} `json:"flags"`
+}
+
+type choiceTemplateData struct {
+	Package              string
+	TestImport           string
+	Schema               choiceSchema
+	ImplementationDigest string
+}
+
+type choiceImplementationInputs struct {
+	Schema          []byte
+	CodecTemplate   []byte
+	RuntimeTemplate []byte
+	RuntimeOverlay  []byte
+	ToolchainPatch  []byte
+}
+
 type output struct {
 	Package    string
 	TestImport string
@@ -116,7 +162,114 @@ func run(root string, check bool) error {
 			return fmt.Errorf("write generated I/O wire codec: %w", err)
 		}
 	}
+	choiceDefinition, err := readChoiceSchema(filepath.Join(root, "protocol", "choicewire.json"))
+	if err != nil {
+		return err
+	}
+	identityInputs, err := readChoiceImplementationInputs(root)
+	if err != nil {
+		return err
+	}
+	implementationDigest := choiceImplementationIdentity(identityInputs)
+	choiceOutputs := []output{
+		{Package: "choicewire", Template: "choicewire.go.tmpl", Path: "internal/choicewire/wire_generated.go"},
+		{Package: "choicewire", Template: "choicewire_test.go.tmpl", Path: "internal/choicewire/wire_generated_test.go"},
+		{Package: "gomadchoicewire", Template: "choicewire.go.tmpl", Path: "overlay/src/internal/gomadchoicewire/wire_generated.go"},
+		{Package: "gomadchoicewire_test", TestImport: "internal/gomadchoicewire", Template: "choicewire_test.go.tmpl", Path: "overlay/src/internal/gomadchoicewire/wire_generated_test.go"},
+		{Package: "runtime", Template: "choicewire_runtime.go.tmpl", Path: "overlay/src/runtime/gomad_choicewire_generated.go"},
+	}
+	for _, target := range choiceOutputs {
+		generated, generateErr := generate(filepath.Join(root, "protocol", target.Template), choiceTemplateData{Package: target.Package, TestImport: target.TestImport, Schema: choiceDefinition, ImplementationDigest: string(implementationDigest[:])})
+		if generateErr != nil {
+			return generateErr
+		}
+		path := filepath.Join(root, filepath.FromSlash(target.Path))
+		if check {
+			current, readErr := os.ReadFile(path)
+			if readErr != nil || !bytes.Equal(current, generated) {
+				return fmt.Errorf("generated choice wire codec is stale: %s", target.Path)
+			}
+			continue
+		}
+		if err := safefile.Replace(path, generated, 0o644); err != nil {
+			return fmt.Errorf("write generated choice wire codec: %w", err)
+		}
+	}
 	return nil
+}
+
+func readChoiceImplementationInputs(root string) (choiceImplementationInputs, error) {
+	paths := []string{
+		"protocol/choicewire.json",
+		"protocol/choicewire.go.tmpl",
+		"protocol/choicewire_runtime.go.tmpl",
+		"overlay/src/runtime/gomad.go",
+		"go1.26.4.patch",
+	}
+	values := make([][]byte, len(paths))
+	for index, relative := range paths {
+		value, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(relative)))
+		if err != nil {
+			return choiceImplementationInputs{}, fmt.Errorf("read choice implementation input %s: %w", relative, err)
+		}
+		values[index] = value
+	}
+	return choiceImplementationInputs{Schema: values[0], CodecTemplate: values[1], RuntimeTemplate: values[2], RuntimeOverlay: values[3], ToolchainPatch: values[4]}, nil
+}
+
+func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Size]byte {
+	hasher := sha256.New()
+	_, _ = hasher.Write([]byte("gomadv3-choice-implementation-source-v1"))
+	for _, input := range [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch} {
+		var size [8]byte
+		binary.BigEndian.PutUint64(size[:], uint64(len(input)))
+		_, _ = hasher.Write(size[:])
+		_, _ = hasher.Write(input)
+	}
+	var result [sha256.Size]byte
+	copy(result[:], hasher.Sum(nil))
+	return result
+}
+
+func readChoiceSchema(path string) (choiceSchema, error) {
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		return choiceSchema{}, fmt.Errorf("read choice wire schema: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var definition choiceSchema
+	if err := decoder.Decode(&definition); err != nil {
+		return choiceSchema{}, fmt.Errorf("decode choice wire schema: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return choiceSchema{}, errors.New("choice wire schema has trailing data")
+	}
+	if len(definition.Trace.Magic) != 8 || len(definition.Terminal.Magic) != 8 {
+		return choiceSchema{}, errors.New("choice wire schema magic must have 8 bytes")
+	}
+	checks := []bool{
+		definition.Version != 0,
+		definition.Profile == "gomadv3-choice-trace/v1",
+		definition.Trace.HeaderBytes == 64,
+		definition.Trace.RecordBytes == 48,
+		definition.Terminal.States.Complete == 1,
+		definition.Terminal.States.Overflow == 2,
+		definition.Terminal.FrameBytes == 96,
+		definition.Terminal.ChecksumOffset == 64,
+		definition.Kinds.Runnable == 1,
+		definition.Kinds.SelectPoll == 2,
+		definition.Kinds.SelectResult == 3,
+		definition.Flags.Decision == 1,
+		definition.Flags.Observation == 2,
+		definition.Flags.SiteMissing == 4,
+	}
+	for _, valid := range checks {
+		if !valid {
+			return choiceSchema{}, errors.New("choice wire schema layout is unsupported by this generator")
+		}
+	}
+	return definition, nil
 }
 
 func readSchema(path string) (schema, error) {
@@ -180,7 +333,7 @@ func supportedSchema(definition schema) bool {
 	return true
 }
 
-func generate(path string, data templateData) ([]byte, error) {
+func generate(path string, data any) ([]byte, error) {
 	source, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read I/O wire template: %w", err)

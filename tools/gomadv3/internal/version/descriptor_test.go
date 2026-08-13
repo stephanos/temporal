@@ -13,6 +13,13 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
+	upgradeGuide, err := os.ReadFile(filepath.Join(root, upgradeGuideName(Descriptor{BoundaryManifestVersion: "go1.26.4-darwin-arm64-v1"})))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(upgradeGuide), "GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>") || !strings.Contains(string(upgradeGuide), "only after reviewing") {
+		t.Fatalf("generated upgrade guide omits explicit boundary approval: %s", upgradeGuide)
+	}
 
 	if _, err := os.Stat(filepath.Join(root, "toolchain-version.sh")); !os.IsNotExist(err) {
 		t.Fatalf("generated shell descriptor exists: %v", err)

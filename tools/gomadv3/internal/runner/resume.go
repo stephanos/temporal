@@ -78,6 +78,9 @@ func resumeConfiguration(request Config, plan artifact.BatchPlan) (Config, SeedS
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor, Replayer: request.Replayer,
 	}
+	if plan.ChoiceProfile != nil {
+		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
+	}
 	if plan.Guidance != nil {
 		config.Guide = true
 		config.Corpus = plan.Guidance.Corpus
