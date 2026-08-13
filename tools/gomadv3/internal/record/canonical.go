@@ -3,6 +3,7 @@ package record
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -91,6 +92,20 @@ func StrictDecode(data []byte, destination any) error {
 	return nil
 }
 
+func DecodeCanonicalJSON(data []byte, destination any) error {
+	if err := StrictDecode(data, destination); err != nil {
+		return err
+	}
+	canonical, err := CanonicalJSON(destination)
+	if err != nil {
+		return fmt.Errorf("canonicalize JSON: %w", err)
+	}
+	if !bytes.Equal(data, canonical) {
+		return errors.New("JSON is not canonical")
+	}
+	return nil
+}
+
 func CanonicalJSONLines(values []any) ([]byte, error) {
 	var output bytes.Buffer
 	for index, value := range values {
@@ -118,15 +133,8 @@ func StrictDecodeJSONLines[T any](data []byte) ([]T, error) {
 			return nil, fmt.Errorf("JSONL entry %d is empty", index)
 		}
 		var value T
-		if err := StrictDecode(line, &value); err != nil {
+		if err := DecodeCanonicalJSON(line, &value); err != nil {
 			return nil, fmt.Errorf("decode JSONL entry %d: %w", index, err)
-		}
-		canonical, err := CanonicalJSON(value)
-		if err != nil {
-			return nil, fmt.Errorf("canonicalize JSONL entry %d: %w", index, err)
-		}
-		if !bytes.Equal(line, canonical) {
-			return nil, fmt.Errorf("JSONL entry %d is not canonical", index)
 		}
 		values = append(values, value)
 	}
