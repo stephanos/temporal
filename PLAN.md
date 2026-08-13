@@ -5,7 +5,7 @@
 - [x] 3/10 — Centralize qualification event framing and classification in `qualify`.
 - [x] 4/10 — Centralize canonical SHA-256 identity parsing in `record`.
 - [x] 5/10 — Encapsulate guided candidate admission in `guide`.
-- [ ] 6/10
+- [x] 6/10 — Encapsulate source-backed build-key derivation in `buildkey`.
 - [ ] 7/10
 - [ ] 8/10
 - [ ] 9/10

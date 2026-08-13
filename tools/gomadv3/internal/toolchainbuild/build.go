@@ -365,17 +365,9 @@ func (snapshot inputSnapshot) remove() error {
 }
 
 func computeBuildKey(config Config, descriptor gomadversion.Descriptor, bootstrap bootstrapIdentity, snapshot inputSnapshot) (string, error) {
-	patchDigest, err := buildkey.FileDigest(snapshot.patch)
-	if err != nil {
-		return "", err
-	}
-	overlayDigest, err := buildkey.TreeDigest(snapshot.overlay)
-	if err != nil {
-		return "", err
-	}
-	return buildkey.Compute(buildkey.Input{
+	return buildkey.Derive(buildkey.Input{
 		GoVersion: descriptor.GoVersion, ArchiveSHA256: descriptor.Archive.SHA256,
-		PatchSHA256: patchDigest, OverlaySHA256: overlayDigest, HostOS: bootstrap.hostOS,
+		PatchPath: snapshot.patch, OverlayPath: snapshot.overlay, HostOS: bootstrap.hostOS,
 		HostArch: bootstrap.hostArch, BootstrapVersion: bootstrap.version, RecipeVersion: buildRecipeVersion,
 		BuildPath: config.BuildPath, BashPath: config.BuildBash, BashVersion: bootstrap.bashVersion,
 	})
