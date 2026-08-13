@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
@@ -20,11 +21,7 @@ type PreparedTargetPlan struct {
 	Target record.Target `json:"target"`
 }
 
-type IOProfilePlan struct {
-	Name                 string        `json:"name"`
-	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
-	InventorySHA256      record.SHA256 `json:"inventory_sha256"`
-}
+type IOProfilePlan = ioprofile.Identity
 
 type GuidancePlan struct {
 	Corpus         string        `json:"corpus"`
