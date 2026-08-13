@@ -275,8 +275,8 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		waits <- command.Wait()
 	}()
 	remaining = time.Until(deadline)
-	cleanupReserve := min(150*time.Millisecond, remaining/3)
-	parentTimeout := max(remaining-cleanupReserve, 0)
+	parentTimeout := max(supervisorTimeout(remaining), 0)
+	cleanupReserve := remaining - parentTimeout
 	parentTimer := time.NewTimer(parentTimeout)
 	defer parentTimer.Stop()
 	supervisorTimedOut := false

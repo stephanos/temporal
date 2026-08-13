@@ -376,7 +376,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		prepared, err = preparer.Prepare(overallCtx, config.Target)
 		if err != nil {
 			reason := "target_preparation"
-			if errors.Is(overallCtx.Err(), context.DeadlineExceeded) {
+			if overallCtx.Err() != nil {
 				reason = "overall_timeout"
 			}
 			if partialErr := journal.FailPreparation(reason, err); partialErr != nil {
