@@ -6,7 +6,7 @@
 - [x] 4/10 — Centralize canonical SHA-256 identity parsing in `record`.
 - [x] 5/10 — Encapsulate guided candidate admission in `guide`.
 - [x] 6/10 — Encapsulate source-backed build-key derivation in `buildkey`.
-- [ ] 7/10
+- [x] 7/10 — Centralize retained batch-evidence resolution in `artifact`.
 - [ ] 8/10
 - [ ] 9/10
 - [ ] 10/10
