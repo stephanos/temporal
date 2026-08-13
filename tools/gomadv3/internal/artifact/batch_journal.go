@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"go.temporal.io/server/tools/gomadv3/internal/filelock"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
@@ -60,7 +61,7 @@ type BatchJournal struct {
 	runsHasher hash.Hash
 	runsWriter io.Writer
 	published  bool
-	resumeLock *os.File
+	resumeLock *filelock.Lock
 }
 
 type RunState string

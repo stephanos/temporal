@@ -7,6 +7,6 @@
 - [x] 5/10 — Encapsulate guided candidate admission in `guide`.
 - [x] 6/10 — Encapsulate source-backed build-key derivation in `buildkey`.
 - [x] 7/10 — Centralize retained batch-evidence resolution in `artifact`.
-- [ ] 8/10
+- [x] 8/10 — Centralize advisory lock lifecycle in `filelock`.
 - [ ] 9/10
 - [ ] 10/10
