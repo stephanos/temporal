@@ -64,7 +64,18 @@ func Open(path string) (Artifact, error) {
 	if err != nil {
 		return Artifact{}, errors.Join(err, root.Close())
 	}
-	return Artifact{Path: path, Manifest: manifest, StoredBytes: storedBytes, root: root}, nil
+	opened := Artifact{Path: path, Manifest: manifest, StoredBytes: storedBytes, root: root}
+	if manifest.ChoiceProfile != nil {
+		trace := manifest.ChoiceProfile.Trace
+		payload, readErr := ReadPayload(opened, trace.File, uint64(trace.Limit))
+		if readErr != nil {
+			return Artifact{}, errors.Join(fmt.Errorf("read choice trace: %w", readErr), root.Close())
+		}
+		if traceErr := validateChoiceTracePayload(manifest, payload); traceErr != nil {
+			return Artifact{}, errors.Join(traceErr, root.Close())
+		}
+	}
+	return opened, nil
 }
 
 func (opened *Artifact) Close() error {

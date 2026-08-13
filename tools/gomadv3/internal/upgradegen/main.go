@@ -16,6 +16,7 @@ func main() {
 	root := flag.String("root", ".", "Gomad v3 module root")
 	output := flag.String("output", ".toolchain/upgrade-dossier.json", "qualification dossier output")
 	baselineRef := flag.String("baseline-ref", "", "Git revision containing the baseline boundary manifest")
+	approvedBoundaryDiff := flag.String("approve-boundary-diff", "", "approve the exact canonical boundary diff SHA-256")
 	corpusReport := flag.String("corpus-report", "", "retained-corpus qualification report")
 	flag.Parse()
 
@@ -50,7 +51,8 @@ func main() {
 	}
 	err = upgrade.Run(context.Background(), upgrade.Options{
 		Root: absoluteRoot, Output: outputPath, BaselineManifest: baseline,
-		CorpusReport: *corpusReport, Gates: gates, Writer: os.Stdout,
+		ApprovedBoundaryDiffSHA256: *approvedBoundaryDiff,
+		CorpusReport:               *corpusReport, Gates: gates, Writer: os.Stdout,
 	})
 	if err != nil {
 		fail(err)

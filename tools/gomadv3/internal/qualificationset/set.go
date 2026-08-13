@@ -18,7 +18,7 @@ import (
 )
 
 const ManifestSchema = "gomadv3.qualification-set/v1"
-const ReportSchema = "gomadv3.qualification-set-report/v1"
+const ReportSchema = "gomadv3.qualification-set-report/v2"
 
 const maximumCommandOutputBytes = 64 << 20
 const maximumManifestBytes = 1 << 20
@@ -60,14 +60,18 @@ type Expectation struct {
 }
 
 type SetReport struct {
-	Schema         string        `json:"schema"`
-	Name           string        `json:"name"`
-	Qualified      bool          `json:"qualified"`
-	Selected       uint64        `json:"selected"`
-	Completed      uint64        `json:"completed"`
-	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
-	Manifest       Manifest      `json:"manifest"`
-	Suites         []SuiteReport `json:"suites"`
+	Schema               string        `json:"schema"`
+	Name                 string        `json:"name"`
+	ExpectationsMet      bool          `json:"expectations_met"`
+	Selected             uint64        `json:"selected"`
+	Completed            uint64        `json:"completed"`
+	Supported            uint64        `json:"supported"`
+	Unsupported          uint64        `json:"unsupported"`
+	Failed               uint64        `json:"failed"`
+	InfrastructureErrors uint64        `json:"infrastructure_errors"`
+	ManifestSHA256       record.SHA256 `json:"manifest_sha256"`
+	Manifest             Manifest      `json:"manifest"`
+	Suites               []SuiteReport `json:"suites"`
 }
 
 type SuiteReport struct {
@@ -196,17 +200,28 @@ func Run(ctx context.Context, config Config) (SetReport, error) {
 			suiteReport.Report = opened
 			suiteReport.ExpectationMet = matchesExpectation(suite.Expectation, classification, opened, result.ExitCode)
 			report.Completed++
+			switch classificationBucket(classification) {
+			case qualificationSupported:
+				report.Supported++
+			case qualificationUnsupported:
+				report.Unsupported++
+			case qualificationFailed:
+				report.Failed++
+			default:
+				report.InfrastructureErrors++
+			}
 		}
 		if !suiteReport.ExpectationMet {
 			failed = append(failed, suite.Name)
 		}
 		report.Suites = append(report.Suites, suiteReport)
 	}
-	report.Qualified = report.Completed == report.Selected && len(failed) == 0
+	report.InfrastructureErrors += report.Selected - report.Completed
+	report.ExpectationsMet = report.Completed == report.Selected && len(failed) == 0
 	if err := writeReport(config.OutputPath, report); err != nil {
 		return report, err
 	}
-	if !report.Qualified {
+	if !report.ExpectationsMet {
 		return report, &ExpectationError{Suites: failed}
 	}
 	return report, nil
@@ -403,6 +418,28 @@ func matchesExpectation(expected Expectation, classification string, report qual
 	}
 }
 
+type qualificationBucket uint8
+
+const (
+	qualificationSupported qualificationBucket = iota
+	qualificationUnsupported
+	qualificationFailed
+	qualificationInfrastructure
+)
+
+func classificationBucket(classification string) qualificationBucket {
+	switch classification {
+	case "qualified":
+		return qualificationSupported
+	case "unsupported_target":
+		return qualificationUnsupported
+	case "target_failure", "nondeterministic", "replay_divergence", "semantic_coverage_failure":
+		return qualificationFailed
+	default:
+		return qualificationInfrastructure
+	}
+}
+
 func writeReport(path string, report SetReport) (retErr error) {
 	if err := validateSetReport(report); err != nil {
 		return err
@@ -465,7 +502,8 @@ func validateSetReport(report SetReport) error {
 		return errors.Join(errors.New("qualification set manifest digest is invalid"), err)
 	}
 	completed := uint64(0)
-	qualified := len(report.Suites) == int(report.Selected)
+	expectationsMet := len(report.Suites) == int(report.Selected)
+	var supported, unsupported, failed, infrastructure uint64
 	for index, suite := range report.Suites {
 		manifestSuite := report.Manifest.Suites[index]
 		if suite.Name != manifestSuite.Name || suite.Expected != manifestSuite.Expectation || len(suite.Command) == 0 || suite.Command[0] == "" {
@@ -484,10 +522,21 @@ func validateSetReport(report SetReport) error {
 			if record.HashBytes(contents) != suite.ReportSHA256 {
 				return fmt.Errorf("qualification set suite report %s digest is invalid", suite.Name)
 			}
+			switch classificationBucket(suite.Classification) {
+			case qualificationSupported:
+				supported++
+			case qualificationUnsupported:
+				unsupported++
+			case qualificationFailed:
+				failed++
+			default:
+				infrastructure++
+			}
 		}
-		qualified = qualified && suite.ExpectationMet
+		expectationsMet = expectationsMet && suite.ExpectationMet
 	}
-	if completed != report.Completed || report.Qualified != (qualified && completed == report.Selected) {
+	infrastructure += report.Selected - completed
+	if completed != report.Completed || supported != report.Supported || unsupported != report.Unsupported || failed != report.Failed || infrastructure != report.InfrastructureErrors || report.ExpectationsMet != (expectationsMet && completed == report.Selected) {
 		return errors.New("qualification set result is inconsistent")
 	}
 	return nil

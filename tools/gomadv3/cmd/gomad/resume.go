@@ -64,13 +64,7 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 			fmt.Fprintln(stderr, writeErr)
 			return 3
 		}
-		if classification == "invalid_input" || classification == "unsupported_target" {
-			return 2
-		}
-		if classification == "semantic_coverage_failure" {
-			return 1
-		}
-		return 3
+		return exploreErrorStatus(classification)
 	}
 	if err := reporter.Result(summary); err != nil {
 		fmt.Fprintln(stderr, err)

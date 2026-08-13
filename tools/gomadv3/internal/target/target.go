@@ -675,7 +675,7 @@ func copyRegularFile(source, destination string) error {
 	return nil
 }
 
-func readBoundedRegularFile(path string, maximum uint64) ([]byte, error) {
+func readBoundedRegularFile(path string, maximum uint64) (_ []byte, retErr error) {
 	file, info, err := safefile.OpenPath(path)
 	if err != nil {
 		if errors.Is(err, safefile.ErrSymbolicLink) {
@@ -683,7 +683,7 @@ func readBoundedRegularFile(path string, maximum uint64) ([]byte, error) {
 		}
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { retErr = errors.Join(retErr, file.Close()) }()
 	if info.Size() < 0 || uint64(info.Size()) > maximum {
 		return nil, fmt.Errorf("%s exceeds its size bound", path)
 	}

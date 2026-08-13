@@ -300,7 +300,9 @@ func renderUpgradeGuide(descriptor Descriptor) []byte {
 	output.WriteString("\n## Qualification command\n\n")
 	output.WriteString("Run from the Gomad source module root after updating `version.json`, the boundary manifest, patch, and overlays:\n\n")
 	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit>\n```\n\n")
-	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, optional retained-corpus report, and platform qualification. CI uploads this file on every run.\n")
+	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:\n\n")
+	output.WriteString("```sh\nmake upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit> GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>\n```\n\n")
+	output.WriteString("CI uploads the dossier on every run.\n")
 	return []byte(output.String())
 }
 

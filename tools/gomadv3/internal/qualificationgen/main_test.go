@@ -34,9 +34,9 @@ func TestRunPassesExplicitQualificationSetPaths(t *testing.T) {
 		"--artifacts=.toolchain/qualification", "--output=.toolchain/qualification-set.json",
 	}, &stdout, &stderr, func(_ context.Context, config qualificationset.Config) (qualificationset.SetReport, error) {
 		observed = config
-		return qualificationset.SetReport{Name: "example-corpus", Qualified: true, Selected: 5, Completed: 5}, nil
+		return qualificationset.SetReport{Name: "example-corpus", ExpectationsMet: true, Selected: 5, Completed: 5, Supported: 3, Unsupported: 2}, nil
 	}, qualificationset.LoadManifest)
-	if status != 0 || stderr.Len() != 0 || observed.ManifestPath != "qualification/core.json" || observed.GomadPath != ".bin/gomad" || observed.WorkingDir != "./consumer" || observed.ArtifactRoot != ".toolchain/qualification" || observed.OutputPath != ".toolchain/qualification-set.json" || stdout.String() == "" {
+	if status != 0 || stderr.Len() != 0 || observed.ManifestPath != "qualification/core.json" || observed.GomadPath != ".bin/gomad" || observed.WorkingDir != "./consumer" || observed.ArtifactRoot != ".toolchain/qualification" || observed.OutputPath != ".toolchain/qualification-set.json" || !strings.Contains(stdout.String(), "expectations-met=true supported=3 unsupported=2") {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }

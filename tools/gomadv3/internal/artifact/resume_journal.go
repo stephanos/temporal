@@ -79,7 +79,7 @@ func ResumeBatchJournal(ctx context.Context, path string) (_ *BatchJournal, _ Re
 		config: BatchConfig{
 			Root: filepath.Dir(filepath.Dir(path)), RunID: filepath.Base(path), Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount),
 		},
-		path: path, runsFile: runsFile, runsHasher: hasher, runsWriter: io.MultiWriter(runsFile, hasher), resumeLock: lock,
+		path: path, runsFile: runsFile, runsHasher: hasher, runsWriter: io.MultiWriter(runsFile, hasher), runsBytes: uint64(len(retainedBytes)), resumeLock: lock,
 	}
 	if err := journal.writeLifecycle(filepath.Join(path, ".partial", "batch"), "running", "", nil); err != nil {
 		journal.Close()
@@ -125,6 +125,9 @@ func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]R
 		}
 		if run.IOTranscriptSHA256 != nil && !validRecordSHA256(*run.IOTranscriptSHA256) {
 			return nil, fmt.Errorf("resumable run %d transcript digest is invalid", index+1)
+		}
+		if err := validateChoiceRunSummary(run); err != nil {
+			return nil, fmt.Errorf("resumable run %d: %w", index+1, err)
 		}
 		if err := validateSemanticProbeLists(run.SemanticProbes, run.NovelSemanticProbes); err != nil {
 			return nil, fmt.Errorf("resumable run %d: %w", index+1, err)
@@ -202,6 +205,9 @@ func validateResumeSuccessArtifact(batchPath string, plan BatchPlan, run RunReco
 	if manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || manifest.Target.SHA256 != plan.Prepared.Target.SHA256 || manifest.Target.Size != plan.Prepared.Target.Size {
 		return fmt.Errorf("retained success artifact target identity does not match its batch plan")
 	}
+	if !choiceProfileMatchesPlan(plan, manifest) {
+		return fmt.Errorf("retained success artifact choice profile does not match its batch plan")
+	}
 	return nil
 }
 
@@ -214,7 +220,19 @@ func validateResumeArtifact(batchPath string, plan BatchPlan, run RunRecord) err
 	if manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || manifest.Target.SHA256 != plan.Prepared.Target.SHA256 || manifest.Target.Size != plan.Prepared.Target.Size {
 		return fmt.Errorf("failure artifact target identity does not match its batch plan")
 	}
+	if !choiceProfileMatchesPlan(plan, manifest) {
+		return fmt.Errorf("failure artifact choice profile does not match its batch plan")
+	}
 	return nil
+}
+
+func choiceProfileMatchesPlan(plan BatchPlan, manifest record.Manifest) bool {
+	if plan.ChoiceProfile == nil || manifest.ChoiceProfile == nil {
+		return plan.ChoiceProfile == nil && manifest.ChoiceProfile == nil
+	}
+	return plan.ChoiceProfile.Name == manifest.ChoiceProfile.Name &&
+		plan.ChoiceProfile.ImplementationSHA256 == manifest.ChoiceProfile.ImplementationSHA256 &&
+		plan.ChoiceProfile.Limit == manifest.ChoiceProfile.Trace.Limit
 }
 
 func encodeRunRecords(runs []RunRecord) ([]byte, error) {

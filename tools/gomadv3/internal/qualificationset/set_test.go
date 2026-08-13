@@ -23,8 +23,22 @@ func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !report.Qualified || report.Completed != 1 || len(report.Suites) != 1 || !report.Suites[0].ExpectationMet || report.Suites[0].Classification != "unsupported_target" || report.Suites[0].Report.Failure == nil {
+	if !report.ExpectationsMet || report.Completed != 1 || report.Supported != 0 || report.Unsupported != 1 || report.Failed != 0 || report.InfrastructureErrors != 0 || len(report.Suites) != 1 || !report.Suites[0].ExpectationMet || report.Suites[0].Classification != "unsupported_target" || report.Suites[0].Report.Failure == nil {
 		t.Fatalf("qualification set report = %#v", report)
+	}
+	contents, err := os.ReadFile(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var public map[string]any
+	if err := json.Unmarshal(contents, &public); err != nil {
+		t.Fatal(err)
+	}
+	if public["schema"] != "gomadv3.qualification-set-report/v2" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
+		t.Fatalf("public qualification set report = %#v", public)
+	}
+	if _, found := public["qualified"]; found {
+		t.Fatalf("public qualification set report retains ambiguous qualified field: %#v", public)
 	}
 	opened, err := OpenReport(output)
 	if err != nil {
@@ -49,7 +63,23 @@ func TestRunRetainsAllEvidenceWhenAnExpectationChanges(t *testing.T) {
 		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: output, Execute: expectedBoundaryExecutor(t),
 	})
 	var mismatch *ExpectationError
-	if !errors.As(err, &mismatch) || report.Qualified || report.Completed != 1 || len(report.Suites) != 1 || report.Suites[0].ExpectationMet {
+	if !errors.As(err, &mismatch) || report.ExpectationsMet || report.Completed != 1 || len(report.Suites) != 1 || report.Suites[0].ExpectationMet {
+		t.Fatalf("qualification set report = %#v, error = %v", report, err)
+	}
+	if _, err := OpenReport(output); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRunCountsRetainedRunnerFailureAsInfrastructure(t *testing.T) {
+	root := t.TempDir()
+	output := filepath.Join(root, "set-report.json")
+	report, err := Run(context.Background(), Config{
+		ManifestPath: writeManifest(t, root, "qualified"), GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: output, Execute: failureExecutor(t, "runner_failure"),
+	})
+	var mismatch *ExpectationError
+	if !errors.As(err, &mismatch) || report.Completed != 1 || report.Supported != 0 || report.Unsupported != 0 || report.Failed != 0 || report.InfrastructureErrors != 1 {
 		t.Fatalf("qualification set report = %#v, error = %v", report, err)
 	}
 	if _, err := OpenReport(output); err != nil {
@@ -129,5 +159,27 @@ func expectedBoundaryExecutor(t *testing.T) ExecuteFunc {
 			t.Fatal(err)
 		}
 		return CommandResult{ExitCode: 2, Stdout: event.Bytes()}
+	}
+}
+
+func failureExecutor(t *testing.T, classification string) ExecuteFunc {
+	t.Helper()
+	return func(_ context.Context, command Command) CommandResult {
+		logicalCommand := append([]string{"gomad"}, command.Args...)
+		report, err := qualify.BuildFailure(logicalCommand, 7, 2, nil, qualify.Failure{
+			Classification: classification, Message: "runner failed", Iteration: 1,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		path, err := qualify.Write(command.ArtifactRoot, report)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var event bytes.Buffer
+		if err := qualify.WriteResultEvent(&event, report, path); err != nil {
+			t.Fatal(err)
+		}
+		return CommandResult{ExitCode: qualify.ExitStatus(classification), Stdout: event.Bytes()}
 	}
 }

@@ -1,29 +1,31 @@
 package record
 
 type recordProjection struct {
-	SchemaVersion uint32              `json:"schema_version"`
-	Runner        Runner              `json:"runner"`
-	Toolchain     Toolchain           `json:"toolchain"`
-	Target        targetProjection    `json:"target"`
-	IOProfile     ioProfileProjection `json:"io_profile"`
-	Environment   []Environment       `json:"environment"`
-	Limits        Limits              `json:"limits"`
-	Seed          Uint64String        `json:"seed"`
-	World         worldProjection     `json:"world"`
-	Outcome       outcomeProjection   `json:"outcome"`
-	Streams       streamsProjection   `json:"streams"`
+	SchemaVersion uint32                   `json:"schema_version"`
+	Runner        Runner                   `json:"runner"`
+	Toolchain     Toolchain                `json:"toolchain"`
+	Target        targetProjection         `json:"target"`
+	IOProfile     ioProfileProjection      `json:"io_profile"`
+	ChoiceProfile *choiceProfileProjection `json:"choice_profile,omitempty"`
+	Environment   []Environment            `json:"environment"`
+	Limits        Limits                   `json:"limits"`
+	Seed          Uint64String             `json:"seed"`
+	World         worldProjection          `json:"world"`
+	Outcome       outcomeProjection        `json:"outcome"`
+	Streams       streamsProjection        `json:"streams"`
 }
 
 type failureProjection struct {
-	SchemaVersion uint32              `json:"schema_version"`
-	Toolchain     Toolchain           `json:"toolchain"`
-	Target        targetProjection    `json:"target"`
-	IOProfile     ioProfileProjection `json:"io_profile"`
-	Environment   []Environment       `json:"environment"`
-	World         worldProjection     `json:"world"`
-	Outcome       outcomeProjection   `json:"outcome"`
-	StdoutSHA256  SHA256              `json:"stdout_sha256"`
-	StderrSHA256  SHA256              `json:"stderr_sha256"`
+	SchemaVersion uint32                   `json:"schema_version"`
+	Toolchain     Toolchain                `json:"toolchain"`
+	Target        targetProjection         `json:"target"`
+	IOProfile     ioProfileProjection      `json:"io_profile"`
+	ChoiceProfile *choiceProfileProjection `json:"choice_profile,omitempty"`
+	Environment   []Environment            `json:"environment"`
+	World         worldProjection          `json:"world"`
+	Outcome       outcomeProjection        `json:"outcome"`
+	StdoutSHA256  SHA256                   `json:"stdout_sha256"`
+	StderrSHA256  SHA256                   `json:"stderr_sha256"`
 }
 
 type targetProjection struct {
@@ -51,6 +53,22 @@ type ioTranscriptProjection struct {
 	SHA256  SHA256       `json:"sha256"`
 	Bytes   Uint64String `json:"bytes"`
 	Records Uint64String `json:"records"`
+}
+
+type choiceProfileProjection struct {
+	Name                 string                `json:"name"`
+	ImplementationSHA256 SHA256                `json:"implementation_sha256"`
+	Trace                choiceTraceProjection `json:"trace"`
+}
+
+type choiceTraceProjection struct {
+	Schema           string       `json:"schema"`
+	SHA256           SHA256       `json:"sha256"`
+	Bytes            Uint64String `json:"bytes"`
+	Records          Uint64String `json:"records"`
+	BranchingRecords Uint64String `json:"branching_records"`
+	TerminalState    string       `json:"terminal_state"`
+	Limit            Uint64String `json:"limit"`
 }
 
 type readOnlyMountProjection struct {
@@ -115,6 +133,7 @@ func recordProjectionOf(manifest Manifest) recordProjection {
 		Toolchain:     manifest.Toolchain,
 		Target:        projectTarget(manifest.Target),
 		IOProfile:     projectIOProfile(manifest.IOProfile),
+		ChoiceProfile: projectChoiceProfile(manifest.ChoiceProfile),
 		Environment:   manifest.Environment,
 		Limits:        manifest.Limits,
 		Seed:          manifest.Seed,
@@ -136,11 +155,26 @@ func failureProjectionOf(manifest Manifest) failureProjection {
 		Toolchain:     manifest.Toolchain,
 		Target:        projectTarget(manifest.Target),
 		IOProfile:     projectIOProfile(manifest.IOProfile),
+		ChoiceProfile: projectChoiceProfile(manifest.ChoiceProfile),
 		Environment:   environment,
 		World:         projectWorld(manifest.World),
 		Outcome:       projectOutcome(manifest.Outcome),
 		StdoutSHA256:  manifest.Streams.Stdout.FullSHA256,
 		StderrSHA256:  manifest.Streams.Stderr.FullSHA256,
+	}
+}
+
+func projectChoiceProfile(profile *ChoiceProfile) *choiceProfileProjection {
+	if profile == nil {
+		return nil
+	}
+	return &choiceProfileProjection{
+		Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256,
+		Trace: choiceTraceProjection{
+			Schema: profile.Trace.Schema, SHA256: profile.Trace.SHA256, Bytes: profile.Trace.Bytes,
+			Records: profile.Trace.Records, BranchingRecords: profile.Trace.BranchingRecords,
+			TerminalState: profile.Trace.TerminalState, Limit: profile.Trace.Limit,
+		},
 	}
 }
 

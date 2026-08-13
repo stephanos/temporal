@@ -21,6 +21,7 @@ const (
 type launchCapabilities struct {
 	ioTranscript  bool
 	readOnlyMount bool
+	choiceTrace   bool
 }
 
 type resourceName string
@@ -43,6 +44,8 @@ const (
 	ioExpectedResource        resourceName = "io-expected"
 	ioROMountRequestResource  resourceName = "io-ro-mount-request"
 	ioROMountResponseResource resourceName = "io-ro-mount-response"
+	choiceTraceResource       resourceName = "choice-trace"
+	choiceTerminalResource    resourceName = "choice-terminal"
 )
 
 const (
@@ -86,6 +89,7 @@ type descriptorSpec struct {
 	targetFD               int
 	ioTranscript           bool
 	readOnlyMount          bool
+	choiceTrace            bool
 	closeOnSupervisorStart bool
 	closeOnBootstrapStart  bool
 }
@@ -113,6 +117,8 @@ var launchDescriptorSpecs = []descriptorSpec{
 	{resource: ioExpectedResource, supervisorFD: ioExpectedFD, bootstrapFD: bootstrapIOExpectedFD, targetFD: targetIOExpectedFD, ioTranscript: true, closeOnBootstrapStart: true},
 	{resource: ioROMountRequestResource, supervisorFD: ioROMountRequestFD, bootstrapFD: bootstrapIOROMountRequestFD, targetFD: targetIOROMountRequestFD, readOnlyMount: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
 	{resource: ioROMountResponseResource, supervisorFD: ioROMountResponseFD, bootstrapFD: bootstrapIOROMountResponseFD, targetFD: targetIOROMountResponseFD, readOnlyMount: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
+	{resource: choiceTraceResource, choiceTrace: true, closeOnBootstrapStart: true},
+	{resource: choiceTerminalResource, choiceTrace: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
 }
 
 func descriptorLayout(stage launchStage, capabilities launchCapabilities) []descriptorBinding {
@@ -121,7 +127,10 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 	}
 	bindings := make([]descriptorBinding, 0, len(launchDescriptorSpecs))
 	for _, spec := range launchDescriptorSpecs {
-		if spec.ioTranscript && !capabilities.ioTranscript || spec.readOnlyMount && !capabilities.readOnlyMount {
+		if spec.choiceTrace {
+			continue
+		}
+		if spec.ioTranscript && !capabilities.ioTranscript || spec.readOnlyMount && !capabilities.readOnlyMount || spec.choiceTrace && !capabilities.choiceTrace {
 			continue
 		}
 		var descriptor int
@@ -138,6 +147,13 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 		}
 	}
 	sort.Slice(bindings, func(i, j int) bool { return bindings[i].fd < bindings[j].fd })
+	if capabilities.choiceTrace {
+		next := 3
+		if len(bindings) != 0 {
+			next = bindings[len(bindings)-1].fd + 1
+		}
+		bindings = append(bindings, descriptorBinding{resource: choiceTraceResource, fd: next}, descriptorBinding{resource: choiceTerminalResource, fd: next + 1})
+	}
 	return bindings
 }
 
@@ -239,19 +255,28 @@ func installTargetStage(capabilities launchCapabilities) error {
 		if binding.resource == ioConfigResource {
 			continue
 		}
-		spec := descriptorSpecFor(binding.resource)
-		if spec.bootstrapFD == 0 {
+		source := descriptorFor(bootstrapStage, capabilities, binding.resource)
+		if source == 0 {
 			return errors.Join(fmt.Errorf("descriptor resource %q has no bootstrap source", binding.resource), closeDescriptors(installed...))
 		}
-		if err := syscall.Dup2(spec.bootstrapFD, binding.fd); err != nil {
+		if err := syscall.Dup2(source, binding.fd); err != nil {
 			return errors.Join(fmt.Errorf("install target descriptor %q: %w", binding.resource, err), closeDescriptors(installed...))
 		}
 		installed = append(installed, binding.fd)
-		if spec.bootstrapFD != binding.fd {
-			if err := syscall.Close(spec.bootstrapFD); err != nil {
+		if source != binding.fd {
+			if err := syscall.Close(source); err != nil {
 				return errors.Join(fmt.Errorf("close target bootstrap descriptor %q: %w", binding.resource, err), closeDescriptors(installed...))
 			}
 		}
 	}
 	return nil
+}
+
+func descriptorFor(stage launchStage, capabilities launchCapabilities, resource resourceName) int {
+	for _, binding := range descriptorLayout(stage, capabilities) {
+		if binding.resource == resource {
+			return binding.fd
+		}
+	}
+	return 0
 }

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -22,6 +23,12 @@ type PreparedTargetPlan struct {
 }
 
 type IOProfilePlan = ioprofile.Identity
+
+type ChoiceProfilePlan struct {
+	Name                 string              `json:"name"`
+	ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
+	Limit                record.Uint64String `json:"limit"`
+}
 
 type GuidancePlan struct {
 	Corpus         string        `json:"corpus"`
@@ -44,6 +51,7 @@ type BatchPlan struct {
 	Toolchain              record.Toolchain           `json:"toolchain"`
 	Prepared               PreparedTargetPlan         `json:"prepared"`
 	IOProfile              IOProfilePlan              `json:"io_profile"`
+	ChoiceProfile          *ChoiceProfilePlan         `json:"choice_profile,omitempty"`
 	Environment            []record.Environment       `json:"environment"`
 	IOROMounts             []string                   `json:"io_ro_mounts"`
 	IOROMountLimits        record.ReadOnlyMountLimits `json:"io_ro_mount_limits"`
@@ -181,6 +189,12 @@ func validateBatchPlan(plan BatchPlan) error {
 	}
 	if plan.IOProfile.Name == "" || !validRecordSHA256(plan.IOProfile.ImplementationSHA256) || !validRecordSHA256(plan.IOProfile.InventorySHA256) {
 		return fmt.Errorf("batch plan I/O profile identity is invalid")
+	}
+	if choices := plan.ChoiceProfile; choices != nil {
+		implementation, err := choicewire.ImplementationIdentity(plan.Toolchain.BuildKey)
+		if err != nil || choices.Name != choicewire.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) || choices.Limit < choicewire.HeaderBytes+choicewire.RecordBytes || choices.Limit > 64<<20 {
+			return fmt.Errorf("batch plan choice profile identity is invalid")
+		}
 	}
 	if plan.Coverage != "none" && plan.Coverage != "semantic" || plan.Coverage == "none" && len(plan.RequiredSemanticProbes) != 0 {
 		return fmt.Errorf("batch plan coverage policy is invalid")

@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
-func TestResolveRetainedEvidenceValidatesRunIdentity(t *testing.T) {
+func TestResolveRetainedEvidenceAllowsSharedFailureIdentityWithinBatch(t *testing.T) {
 	root := t.TempDir()
 	published, err := (Store{Root: filepath.Join(root, "failures")}).Publish(artifactInput(t))
 	if err != nil {
@@ -21,7 +21,9 @@ func TestResolveRetainedEvidenceValidatesRunIdentity(t *testing.T) {
 	run := RunRecord{
 		SelectionOrdinal: published.Manifest.SelectionOrdinal,
 		Seed:             published.Manifest.Seed,
-		Domain:           "target",
+		Domain:           published.Manifest.Outcome.Domain,
+		Reason:           published.Manifest.Outcome.Reason,
+		Termination:      published.Manifest.Outcome.Termination,
 		FailureSignature: &signature,
 		Artifact:         &reference,
 	}
@@ -32,9 +34,26 @@ func TestResolveRetainedEvidenceValidatesRunIdentity(t *testing.T) {
 	if evidence.Path != published.Path || evidence.Manifest.RecordHash != published.Manifest.RecordHash || evidence.StoredBytes != published.StoredBytes {
 		t.Fatalf("retained evidence = %#v", evidence)
 	}
+	run.SelectionOrdinal++
 	run.Seed++
-	if _, err := ResolveRetainedEvidence(root, published.Manifest.BatchID, run); err == nil {
-		t.Fatal("ResolveRetainedEvidence() accepted a mismatched seed")
+	if _, err := ResolveRetainedEvidence(root, published.Manifest.BatchID, run); err != nil {
+		t.Fatalf("ResolveRetainedEvidence() rejected a shared failure: %v", err)
+	}
+	if _, err := ResolveRetainedEvidence(root, "different-batch", run); err == nil {
+		t.Fatal("ResolveRetainedEvidence() accepted a mismatched batch")
+	}
+	for name, mutate := range map[string]func(*RunRecord){
+		"domain":      func(run *RunRecord) { run.Domain = "watchdog" },
+		"reason":      func(run *RunRecord) { run.Reason = "signal" },
+		"termination": func(run *RunRecord) { run.Termination = "signal" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := run
+			mutate(&changed)
+			if _, err := ResolveRetainedEvidence(root, published.Manifest.BatchID, changed); err == nil {
+				t.Fatalf("ResolveRetainedEvidence() accepted changed %s", name)
+			}
+		})
 	}
 }
 

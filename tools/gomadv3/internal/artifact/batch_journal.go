@@ -37,20 +37,24 @@ type BatchSummary struct {
 }
 
 type RunRecord struct {
-	SelectionOrdinal     record.Uint64String  `json:"selection_ordinal"`
-	Seed                 record.Uint64String  `json:"seed"`
-	Domain               string               `json:"domain"`
-	Reason               string               `json:"reason"`
-	Termination          string               `json:"termination"`
-	FailureSignature     *record.SHA256       `json:"failure_signature"`
-	Artifact             *string              `json:"artifact"`
-	ElapsedNanos         record.Uint64String  `json:"elapsed_nanos"`
-	IOTranscriptSHA256   *record.SHA256       `json:"io_transcript_sha256"`
-	IOTranscriptRecords  *record.Uint64String `json:"io_transcript_records"`
-	SemanticProbes       []string             `json:"semantic_probes,omitempty"`
-	SuccessArtifact      *string              `json:"success_artifact,omitempty"`
-	SuccessArtifactBytes *record.Uint64String `json:"success_artifact_bytes,omitempty"`
-	NovelSemanticProbes  []string             `json:"novel_semantic_probes,omitempty"`
+	SelectionOrdinal            record.Uint64String  `json:"selection_ordinal"`
+	Seed                        record.Uint64String  `json:"seed"`
+	Domain                      string               `json:"domain"`
+	Reason                      string               `json:"reason"`
+	Termination                 string               `json:"termination"`
+	FailureSignature            *record.SHA256       `json:"failure_signature"`
+	Artifact                    *string              `json:"artifact"`
+	ElapsedNanos                record.Uint64String  `json:"elapsed_nanos"`
+	IOTranscriptSHA256          *record.SHA256       `json:"io_transcript_sha256"`
+	IOTranscriptRecords         *record.Uint64String `json:"io_transcript_records"`
+	ChoiceTraceSHA256           *record.SHA256       `json:"choice_trace_sha256,omitempty"`
+	ChoiceTraceRecords          *record.Uint64String `json:"choice_trace_records,omitempty"`
+	ChoiceTraceBranchingRecords *record.Uint64String `json:"choice_trace_branching_records,omitempty"`
+	ChoiceTraceTerminalState    *string              `json:"choice_trace_terminal_state,omitempty"`
+	SemanticProbes              []string             `json:"semantic_probes,omitempty"`
+	SuccessArtifact             *string              `json:"success_artifact,omitempty"`
+	SuccessArtifactBytes        *record.Uint64String `json:"success_artifact_bytes,omitempty"`
+	NovelSemanticProbes         []string             `json:"novel_semantic_probes,omitempty"`
 }
 
 type BatchJournal struct {
@@ -60,6 +64,7 @@ type BatchJournal struct {
 	runsFile   *os.File
 	runsHasher hash.Hash
 	runsWriter io.Writer
+	runsBytes  uint64
 	published  bool
 	resumeLock *filelock.Lock
 }
@@ -185,6 +190,7 @@ func (journal *BatchJournal) StartRuns() error {
 	journal.runsFile = file
 	journal.runsHasher = sha256.New()
 	journal.runsWriter = io.MultiWriter(file, journal.runsHasher)
+	journal.runsBytes = 0
 	return nil
 }
 
@@ -197,8 +203,16 @@ func (journal *BatchJournal) AppendRun(run RunRecord) error {
 		return err
 	}
 	encoded = append(encoded, '\n')
-	if _, err := journal.runsWriter.Write(encoded); err != nil {
+	if uint64(len(encoded)) > maximumRunsBytes-journal.runsBytes {
+		return fmt.Errorf("batch runs journal capacity of %d bytes would be exceeded", maximumRunsBytes)
+	}
+	written, err := journal.runsWriter.Write(encoded)
+	journal.runsBytes += uint64(written)
+	if err != nil {
 		return err
+	}
+	if written != len(encoded) {
+		return io.ErrShortWrite
 	}
 	return journal.runsFile.Sync()
 }
@@ -238,9 +252,6 @@ func (journal *BatchJournal) Publish(summary BatchSummary) error {
 	if err := journal.ctx.Err(); err != nil {
 		return err
 	}
-	if err := os.RemoveAll(journal.PreparedPath()); err != nil {
-		return err
-	}
 	failureSignatures := append([]record.SHA256(nil), summary.FailureSignatures...)
 	if failureSignatures == nil {
 		failureSignatures = []record.SHA256{}
@@ -265,6 +276,9 @@ func (journal *BatchJournal) Publish(summary BatchSummary) error {
 		return err
 	}
 	if err := journal.ctx.Err(); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(journal.PreparedPath()); err != nil {
 		return err
 	}
 	if err := os.RemoveAll(filepath.Join(journal.path, ".partial", "batch")); err != nil {

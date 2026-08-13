@@ -24,6 +24,7 @@
     "src/crypto/rand/rand.go",
     "src/runtime/proc.go",
     "src/runtime/rand.go",
+    "src/runtime/select.go",
     "src/runtime/time.go",
     "src/runtime/time_nofake.go",
     "src/testing/testing.go"
@@ -31,6 +32,8 @@
   "overlay_allowlist": [
     "src/cmd/compile/internal/gomadintercept/intercept.go",
     "src/cmd/compile/internal/gomadintercept/spec_go126.go",
+    "src/internal/gomadchoicewire/wire_generated.go",
+    "src/internal/gomadchoicewire/wire_generated_test.go",
     "src/internal/gomadfs/fs.go",
     "src/internal/gomadfs/fs_test.go",
     "src/internal/gomadio/gomadio.go",
@@ -45,6 +48,7 @@
     "src/net/gomad.go",
     "src/net/gomad_unsupported_generated.go",
     "src/os/gomad.go",
-    "src/runtime/gomad.go"
+    "src/runtime/gomad.go",
+    "src/runtime/gomad_choicewire_generated.go"
   ]
 }

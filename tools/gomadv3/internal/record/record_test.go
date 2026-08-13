@@ -355,3 +355,29 @@ func uint64StringPointer(value uint64) *Uint64String {
 	converted := Uint64String(value)
 	return &converted
 }
+
+func TestCurrentRecordContractIsSchemaV3(t *testing.T) {
+	if SchemaVersion != 3 || RecordContract != "gomadv3.run-record/v3" {
+		t.Fatalf("record contract = schema %d %q", SchemaVersion, RecordContract)
+	}
+}
+
+func TestDecodeManifestAcceptsLegacySchemaV2WithoutChoiceTrace(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.SchemaVersion = 2
+	manifest.Runner.RecordContract = "gomadv3.run-record/v2"
+	finalized, encoded, err := FinalizeManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeManifest(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.SchemaVersion != 2 || decoded.Runner.RecordContract != "gomadv3.run-record/v2" || decoded.ChoiceProfile != nil {
+		t.Fatalf("legacy manifest = %#v", decoded)
+	}
+	if decoded.RecordHash != finalized.RecordHash {
+		t.Fatalf("legacy record hash = %s, want %s", decoded.RecordHash, finalized.RecordHash)
+	}
+}

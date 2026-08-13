@@ -13,7 +13,7 @@ import (
 var environmentNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func validateManifest(manifest Manifest, requireIdentities bool) error {
-	if manifest.SchemaVersion != SchemaVersion {
+	if manifest.SchemaVersion != SchemaVersion && manifest.SchemaVersion != LegacySchemaVersion {
 		return fmt.Errorf("unsupported manifest schema version %d", manifest.SchemaVersion)
 	}
 	if err := validateArtifactReplay(manifest.ArtifactKind, manifest.ReplayMode, manifest.Outcome.Domain); err != nil {
@@ -33,7 +33,14 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 			return fmt.Errorf("invalid failure signature: %w", err)
 		}
 	}
-	if manifest.Runner.RecordContract != RecordContract || manifest.Runner.RunnerBuild == "" || manifest.Runner.HostOS == "" || manifest.Runner.HostArch == "" {
+	expectedContract := RecordContract
+	if manifest.SchemaVersion == LegacySchemaVersion {
+		expectedContract = LegacyRecordContract
+		if manifest.ChoiceProfile != nil || manifest.Limits.ChoiceTraceBytes != 0 {
+			return errors.New("schema v2 manifest cannot contain a choice trace")
+		}
+	}
+	if manifest.Runner.RecordContract != expectedContract || manifest.Runner.RunnerBuild == "" || manifest.Runner.HostOS == "" || manifest.Runner.HostArch == "" {
 		return fmt.Errorf("invalid Runner identity")
 	}
 	if manifest.Toolchain.GoVersion == "" || !isLowerHex(manifest.Toolchain.BuildKey, 64) || manifest.Toolchain.TargetGOOS == "" || manifest.Toolchain.TargetGOARCH == "" {
@@ -45,7 +52,14 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	if err := validateIOProfile(manifest.IOProfile); err != nil {
 		return err
 	}
-	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name); err != nil {
+	if err := validateChoiceProfile(manifest.ChoiceProfile, manifest.Limits.ChoiceTraceBytes, manifest.ArtifactKind, manifest.Outcome.Reason); err != nil {
+		return err
+	}
+	choiceProfile := ""
+	if manifest.ChoiceProfile != nil {
+		choiceProfile = manifest.ChoiceProfile.Name
+	}
+	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name, choiceProfile); err != nil {
 		return err
 	}
 	if manifest.Limits.RunTimeoutNanos == 0 || manifest.Limits.OverallTimeoutNanos == 0 || manifest.Limits.OutputBytes == 0 || manifest.Limits.WorldTransitionBytes == 0 {
@@ -91,6 +105,12 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 			return fmt.Errorf("read-only mount descriptor file: %w", err)
 		}
 	}
+	if manifest.ChoiceProfile != nil {
+		trace := manifest.ChoiceProfile.Trace
+		if err := validateFileReference(files, trace.File, trace.SHA256, trace.Bytes); err != nil {
+			return fmt.Errorf("choice trace file: %w", err)
+		}
+	}
 	if err := validateFileReference(files, manifest.World.Initial.File, manifest.World.Initial.RawSHA256, files[manifest.World.Initial.File].Size); err != nil {
 		return fmt.Errorf("initial World file: %w", err)
 	}
@@ -108,6 +128,40 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	}
 	if _, err := time.Parse(time.RFC3339Nano, manifest.Host.FinishedAt); err != nil {
 		return fmt.Errorf("invalid host finish time: %w", err)
+	}
+	return nil
+}
+
+func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactKind, outcomeReason string) error {
+	const choiceTraceHeaderBytes = 64
+	const choiceTraceRecordBytes = 48
+	if profile == nil {
+		if limit != 0 {
+			return errors.New("choice trace limit requires a choice profile")
+		}
+		return nil
+	}
+	trace := profile.Trace
+	if profile.Name != "gomadv3-choice-trace/v1" || trace.Schema != "gomadv3.choice-trace/v1" || trace.File != "choices.bin" {
+		return errors.New("invalid choice trace identity")
+	}
+	switch trace.TerminalState {
+	case "complete":
+	case "overflow":
+		if artifactKind != ArtifactRunnerFailure || outcomeReason != "choice_trace_overflow" {
+			return errors.New("choice trace overflow requires a matching Runner failure")
+		}
+	default:
+		return errors.New("invalid choice trace terminal state")
+	}
+	if err := validateSHA256(profile.ImplementationSHA256); err != nil {
+		return fmt.Errorf("invalid choice profile implementation hash: %w", err)
+	}
+	if err := validateSHA256(trace.SHA256); err != nil {
+		return fmt.Errorf("invalid choice trace hash: %w", err)
+	}
+	if limit < choiceTraceHeaderBytes+choiceTraceRecordBytes || trace.Limit != limit || trace.Bytes > limit-choiceTraceHeaderBytes || trace.Bytes%choiceTraceRecordBytes != 0 || trace.Records != trace.Bytes/choiceTraceRecordBytes || trace.BranchingRecords > trace.Records {
+		return errors.New("invalid choice trace limits or counts")
 	}
 	return nil
 }
@@ -239,7 +293,7 @@ func ValidateCompatibilityPacks(packs []CompatibilityPack) error {
 	return nil
 }
 
-func validateEnvironment(environment []Environment, seed uint64, ioProfile string) error {
+func validateEnvironment(environment []Environment, seed uint64, ioProfile, choiceProfile string) error {
 	reserved := map[string]struct{}{
 		"GOMADV3_CHILD_SEED": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LIBPATH": {}, "SHLIB_PATH": {},
@@ -249,6 +303,8 @@ func validateEnvironment(environment []Environment, seed uint64, ioProfile strin
 	foundTimezone := false
 	foundIOProfile := false
 	hasIOProfile := false
+	foundChoiceProfile := false
+	hasChoiceProfile := false
 	for index, entry := range environment {
 		if !environmentNamePattern.MatchString(entry.Name) || strings.IndexByte(entry.Value, 0) >= 0 {
 			return fmt.Errorf("invalid environment entry %q", entry.Name)
@@ -266,6 +322,9 @@ func validateEnvironment(environment []Environment, seed uint64, ioProfile strin
 		case "GOMADV3_IO_PROFILE":
 			hasIOProfile = true
 			foundIOProfile = ioProfile != "" && entry.Value == ioProfile
+		case "GOMADV3_CHOICE_PROFILE":
+			hasChoiceProfile = true
+			foundChoiceProfile = choiceProfile != "" && entry.Value == choiceProfile
 		case "TZ":
 			foundTimezone = entry.Value == "UTC"
 		}
@@ -275,6 +334,9 @@ func validateEnvironment(environment []Environment, seed uint64, ioProfile strin
 	}
 	if hasIOProfile != (ioProfile != "") || hasIOProfile && !foundIOProfile {
 		return errors.New("environment must match the recorded I/O profile")
+	}
+	if hasChoiceProfile != (choiceProfile != "") || hasChoiceProfile && !foundChoiceProfile {
+		return errors.New("environment must match the recorded choice profile")
 	}
 	return nil
 }

@@ -29,15 +29,20 @@ func ResolveRetainedEvidence(batchPath, batchID string, run RunRecord) (Retained
 		return RetainedEvidence{}, fmt.Errorf("close retained artifact: %w", err)
 	}
 	manifest := evidence.Manifest
-	if manifest.BatchID != batchID || manifest.SelectionOrdinal != run.SelectionOrdinal || manifest.Seed != run.Seed {
+	if manifest.BatchID != batchID {
 		return RetainedEvidence{}, retainedMismatchError(success)
 	}
 	if success {
-		if manifest.ArtifactKind != record.ArtifactSuccess || manifest.Outcome.Domain != "success" || evidence.StoredBytes != uint64(*run.SuccessArtifactBytes) {
+		if manifest.SelectionOrdinal != run.SelectionOrdinal || manifest.Seed != run.Seed || manifest.ArtifactKind != record.ArtifactSuccess || manifest.Outcome.Domain != "success" || evidence.StoredBytes != uint64(*run.SuccessArtifactBytes) {
 			return RetainedEvidence{}, retainedMismatchError(true)
 		}
-	} else if manifest.Outcome.FailureSignature != *run.FailureSignature {
-		return RetainedEvidence{}, retainedMismatchError(false)
+	} else {
+		if manifest.ArtifactKind != record.ArtifactTargetFailure && manifest.ArtifactKind != record.ArtifactWatchdogTimeout && manifest.ArtifactKind != record.ArtifactRunnerFailure {
+			return RetainedEvidence{}, retainedMismatchError(false)
+		}
+		if manifest.Outcome.FailureSignature != *run.FailureSignature || manifest.Outcome.Domain != run.Domain || manifest.Outcome.Reason != run.Reason || manifest.Outcome.Termination != run.Termination {
+			return RetainedEvidence{}, retainedMismatchError(false)
+		}
 	}
 	return evidence, nil
 }

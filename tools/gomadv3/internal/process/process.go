@@ -6,14 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
 )
 
 type Termination string
 
 const maximumIOConfigBytes = 4096
+
+const choiceProfileEnvironmentName = "GOMADV3_CHOICE_PROFILE"
+const choiceTraceFDEnvironmentName = "GOMADV3_CHOICE_TRACE_FD"
+const choiceTerminalFDEnvironmentName = "GOMADV3_CHOICE_TERMINAL_FD"
+const choiceTraceBytesEnvironmentName = "GOMADV3_CHOICE_TRACE_BYTES"
 
 const (
 	TerminationExit   Termination = "exit"
@@ -35,6 +42,7 @@ type Request struct {
 	StderrHead        io.Writer
 	World             WorldCapability
 	IO                *IOCapability
+	Choice            *ChoiceCapability
 }
 
 type WorldCapability struct {
@@ -42,6 +50,7 @@ type WorldCapability struct {
 	TransitionLimit uint64
 	Seed            uint64
 	ExpectedInitial []byte
+	ReplayPlan      []byte
 }
 
 type IOCapability struct {
@@ -62,6 +71,12 @@ type ReadOnlyMountCapability struct {
 	Replay   *romount.Snapshot
 }
 
+type ChoiceCapability struct {
+	Profile              string
+	ImplementationSHA256 [sha256.Size]byte
+	Limit                uint64
+}
+
 type Result struct {
 	Captured        bool
 	Termination     Termination
@@ -77,6 +92,7 @@ type Result struct {
 	WorldRecord     []byte
 	IOTranscript    IOTranscript
 	IOROMounts      romount.Snapshot
+	ChoiceTrace     ChoiceTrace
 }
 
 type IOTranscript struct {
@@ -85,6 +101,13 @@ type IOTranscript struct {
 	Records          uint64
 	Complete         bool
 	ReplayDivergence *uint64
+}
+
+type ChoiceTrace struct {
+	Profile              string
+	ImplementationSHA256 [sha256.Size]byte
+	Limit                uint64
+	Trace                choicewire.Trace
 }
 
 func validateRequest(request Request) error {
@@ -114,6 +137,23 @@ func validateRequest(request Request) error {
 	}
 	if request.World.RecordLimit == 0 || request.World.TransitionLimit == 0 {
 		return fmt.Errorf("World record and transition limits must be positive")
+	}
+	if len(request.World.ReplayPlan) != 0 && len(request.World.ExpectedInitial) == 0 {
+		return errors.New("world replay plan requires an expected initial snapshot")
+	}
+	if err := validateChoiceEnvironment(request.Env); err != nil {
+		return err
+	}
+	if choice := request.Choice; choice != nil {
+		if choice.Profile != choicewire.Profile {
+			return fmt.Errorf("unsupported choice trace profile %q", choice.Profile)
+		}
+		if choice.Limit < minimumChoiceTraceBytes || choice.Limit > maximumChoiceTraceBytes {
+			return fmt.Errorf("invalid choice trace limit %d", choice.Limit)
+		}
+		if choice.ImplementationSHA256 == ([sha256.Size]byte{}) {
+			return errors.New("choice trace implementation identity is required")
+		}
 	}
 	if request.IO == nil {
 		return nil
@@ -151,6 +191,16 @@ func validateRequest(request Request) error {
 	}
 	if len(transcript.Expected)%ioTranscriptRecordBytes != 0 || uint64(len(transcript.Expected)) > transcript.Limit-ioTranscriptHeaderBytes {
 		return fmt.Errorf("invalid expected I/O transcript length %d", len(transcript.Expected))
+	}
+	return nil
+}
+
+func validateChoiceEnvironment(environment []string) error {
+	for _, entry := range environment {
+		name, _, _ := strings.Cut(entry, "=")
+		if name == choiceProfileEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName {
+			return fmt.Errorf("target environment name %q is reserved", name)
+		}
 	}
 	return nil
 }

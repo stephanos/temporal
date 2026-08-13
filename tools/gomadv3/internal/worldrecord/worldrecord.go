@@ -126,7 +126,7 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 	if _, err := world.Restore(initial, &plan); err != nil {
 		return Bundle{}, fmt.Errorf("validate World transition continuation: %w", err)
 	}
-	if final.Replay.Expected != 0 && final.Replay.Cursor != final.Replay.Expected {
+	if final.Replay.Expected != 0 && final.Replay.Cursor != final.Replay.Expected && terminal.Kind != world.TerminalReplayDivergence {
 		return Bundle{}, fmt.Errorf("final World replay is incomplete")
 	}
 

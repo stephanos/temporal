@@ -80,9 +80,12 @@ tools/gomadv3/.bin/gomad explore --guide --corpus .gomad/corpus --count 1000 go-
 tools/gomadv3/.bin/gomad explore --seeds 0,7,42 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad explore --seeds 0-99 exec --provenance ./example.provenance.json -- ./example arg
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad analyze --format=json go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/run-INTERRUPTED
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/failures/sha256-*
+tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/run-*/failures/sha256-*
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/successes/sha256-*
 tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/failures/sha256-*
 tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/successes/sha256-*
@@ -94,6 +97,23 @@ including attempted, active, successful, failed, watchdog, replay-divergence,
 distinct-failure, retained-success, and retained-success byte counts. Its final
 result and every retained artifact path with a copy-paste replay command are
 written to stdout.
+
+Use `--choices` on `explore` or `qualify` to observe bounded runtime runnable
+and select decisions. `--choice-bytes` defaults to 8 MiB, is valid only with
+`--choices`, and is part of batch and artifact identity. The trace is
+observational: replay reruns the same profile and reports a final trace
+divergence; it does not force the recorded schedule. `inspect --choices`
+validates the retained payload and reports choice kinds, branching records,
+and target-specific site fingerprints.
+
+`gomad analyze` reviews a `go-run` or `go-test` target without compiling or
+executing it. The report uses the same fail-closed capability review and exact
+compatibility-pack decisions as target preparation, lists every blocker with a
+canonical shortest dependency path, and projects conservative deterministic
+I/O requirements. To keep reports path-free, arguments containing path
+separators are represented by stable SHA-256 identities. `--format=json` emits
+`gomadv3.capability-analysis/v1`. Status 0 means supported, 1 unsupported, 2
+invalid input or package configuration, and 3 analysis infrastructure failure.
 
 Add `--json` to emit newline-delimited `gomadv3.explore-event/v1` records on
 stdout and no routine output on stderr. Event types are `progress`, `result`,
@@ -344,8 +364,14 @@ host-clock audit, the checked `gomadv3-core` corpus, and platform qualification.
 The boundary diff compares canonical complete entries, including generated hook
 policies and fields introduced by a newer manifest, instead of projecting onto
 the fields known to the previous dossier implementation.
-A dossier cannot report `qualified=true` without that canonical corpus report.
-Supported-host CI uploads both the dossier and its retained core-corpus evidence
+A dossier cannot report `qualified=true` without that canonical corpus report,
+a baseline boundary manifest, and either an empty boundary diff or explicit
+approval. After reviewing a non-empty diff, rerun with
+`GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>` to
+record approval for that exact canonical diff. Supported-host CI reads the same
+value from the `GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256` repository variable, so
+an administrator can approve and rerun an intentional boundary-change check.
+CI uploads both the dossier and its retained core-corpus evidence
 on every run.
 
 The standard-library boundary is declared in

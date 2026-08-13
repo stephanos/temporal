@@ -29,12 +29,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
-	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse *os.File
+	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal))
 	}()
 
 	var request supervisorRequest
@@ -59,6 +59,14 @@ func SupervisorMain() (retErr error) {
 			return errors.New("read-only mount file descriptors are unavailable")
 		}
 	}
+	if request.ChoiceTrace {
+		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true}
+		choiceTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTraceResource)), "target-choice-trace")
+		choiceTerminal = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTerminalResource)), "target-choice-terminal")
+		if choiceTrace == nil || choiceTerminal == nil || request.ChoiceTraceLimit < minimumChoiceTraceBytes || request.ChoiceTraceLimit > maximumChoiceTraceBytes {
+			return errors.New("choice trace file descriptors are unavailable")
+		}
+	}
 	deadline := startedAt.Add(request.RunTimeout)
 	if len(request.ExpectedWorldInitial) != 0 {
 		initial, err := world.DecodeSnapshot(request.ExpectedWorldInitial)
@@ -78,7 +86,7 @@ func SupervisorMain() (retErr error) {
 	target.Env = append(os.Environ(), "GOMADV3_TARGET_BOOTSTRAP=1")
 	target.Stdout = stdout
 	target.Stderr = stderr
-	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil}
+	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	bootstrapWrite, err := resources.createPipe(bootstrapRequestResource, inheritRead, "target bootstrap request")
@@ -101,6 +109,7 @@ func SupervisorMain() (retErr error) {
 		TransitionLimit: request.WorldTransitionLimit,
 		Seed:            request.WorldSeed,
 		ExpectedInitial: request.ExpectedWorldInitial,
+		ReplayPlan:      request.WorldReplayPlan,
 	})
 	if err != nil {
 		return err
@@ -115,6 +124,10 @@ func SupervisorMain() (retErr error) {
 	if ioROMountRequest != nil {
 		resources.bind(ioROMountRequestResource, &ioROMountRequest)
 		resources.bind(ioROMountResponseResource, &ioROMountResponse)
+	}
+	if choiceTrace != nil {
+		resources.bind(choiceTraceResource, &choiceTrace)
+		resources.bind(choiceTerminalResource, &choiceTerminal)
 	}
 	target.ExtraFiles, err = resources.extraFiles(bootstrapStage)
 	if err != nil {
@@ -136,7 +149,7 @@ func SupervisorMain() (retErr error) {
 	if closeErr := resources.closeInherited(bootstrapStage); closeErr != nil {
 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts}
+	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit}
 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
@@ -504,13 +517,13 @@ func cleanupEarlySupervisor(command *exec.Cmd, control, report *os.File, identit
 			}
 		}
 	}
-	var startedPGID int
+	var trustedPGID int
 	if identities != nil {
 		identityTimer := time.NewTimer(max(time.Until(deadline)/2, 0))
 		select {
 		case identity := <-identities:
 			if identity.err == nil {
-				startedPGID = identity.pgid
+				trustedPGID = identity.pgid
 			}
 		case <-identityTimer.C:
 		}
@@ -531,25 +544,10 @@ func cleanupEarlySupervisor(command *exec.Cmd, control, report *os.File, identit
 				}
 				break
 			}
-			if decoded.Kind == "started" && startedPGID == 0 {
-				startedPGID = decoded.PGID
-			}
-		}
-	} else if startedPGID == 0 {
-		readBudget := min(5*time.Millisecond, max(time.Until(deadline)/2, 0))
-		if readBudget > 0 {
-			if err := report.SetReadDeadline(time.Now().Add(readBudget)); err != nil {
-				closeErr = errors.Join(closeErr, err)
-			} else {
-				var decoded supervisorReport
-				if err := json.NewDecoder(report).Decode(&decoded); err == nil && decoded.Kind == "started" {
-					startedPGID = decoded.PGID
-				}
-			}
 		}
 	}
-	if startedPGID != 0 {
-		closeErr = errors.Join(closeErr, killGroupBounded(startedPGID, deadline))
+	if trustedPGID != 0 {
+		closeErr = errors.Join(closeErr, killGroupBounded(trustedPGID, deadline))
 	}
 	return errors.Join(closeErr, waitErr)
 }
@@ -575,24 +573,11 @@ func cleanupTargetGroups(identity targetIdentity, reports []supervisorReport, de
 	return result
 }
 
-func targetCleanupPGIDs(identity targetIdentity, reports []supervisorReport) []int {
-	groups := make([]int, 0, len(reports)+1)
-	seen := make(map[int]struct{}, len(reports)+1)
-	if identity.err == nil && identity.pgid > 0 {
-		groups = append(groups, identity.pgid)
-		seen[identity.pgid] = struct{}{}
+func targetCleanupPGIDs(identity targetIdentity, _ []supervisorReport) []int {
+	if identity.err != nil || identity.pgid <= 0 {
+		return nil
 	}
-	for _, report := range reports {
-		if report.PGID <= 0 {
-			continue
-		}
-		if _, found := seen[report.PGID]; found {
-			continue
-		}
-		groups = append(groups, report.PGID)
-		seen[report.PGID] = struct{}{}
-	}
-	return groups
+	return []int{identity.pgid}
 }
 
 func waitForTerminated(command *exec.Cmd) error {

@@ -12,11 +12,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 )
 
 func BootstrapMain() (retErr error) {
 	defer func() {
-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD))
+		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true}
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource)))
 	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
@@ -40,6 +43,9 @@ func BootstrapMain() (retErr error) {
 	}
 	if request.Command == "" || request.Argv0 == "" || request.Dir == "" {
 		return errors.Join(fmt.Errorf("target bootstrap request is incomplete"), closeDescriptors(bootstrapActivationFD, bootstrapReadinessFD, bootstrapWorldConfigFD, bootstrapWorldRecordFD))
+	}
+	if err := validateChoiceEnvironment(request.Env); err != nil {
+		return errors.Join(err, closeDescriptors(bootstrapActivationFD, bootstrapReadinessFD, bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
 	if len(request.IOConfig) > maximumIOConfigBytes {
 		return errors.Join(errors.New("target I/O configuration exceeds its bound"), closeDescriptors(bootstrapActivationFD, bootstrapReadinessFD, bootstrapWorldConfigFD, bootstrapWorldRecordFD))
@@ -68,7 +74,7 @@ func BootstrapMain() (retErr error) {
 	if err := syscall.Close(bootstrapActivationFD); err != nil {
 		return errors.Join(fmt.Errorf("close target activation: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
-	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts}
+	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace}
 	if err := installTargetStage(capabilities); err != nil {
 		return err
 	}
@@ -81,6 +87,16 @@ func BootstrapMain() (retErr error) {
 	argv := make([]string, 1, len(request.Args)+1)
 	argv[0] = request.Argv0
 	argv = append(argv, request.Args...)
+	if request.ChoiceTrace {
+		choiceTraceFD := descriptorFor(targetStage, capabilities, choiceTraceResource)
+		choiceTerminalFD := descriptorFor(targetStage, capabilities, choiceTerminalResource)
+		request.Env = append(request.Env,
+			choiceProfileEnvironmentName+"="+choicewire.Profile,
+			fmt.Sprintf("%s=%d", choiceTraceFDEnvironmentName, choiceTraceFD),
+			fmt.Sprintf("%s=%d", choiceTerminalFDEnvironmentName, choiceTerminalFD),
+			fmt.Sprintf("%s=%d", choiceTraceBytesEnvironmentName, request.ChoiceTraceLimit),
+		)
+	}
 	return syscall.Exec(request.Command, argv, request.Env)
 }
 

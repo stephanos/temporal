@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/commandline"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -34,6 +35,7 @@ type ArtifactReport struct {
 	Outcome          OutcomeReport    `json:"outcome"`
 	FirstDivergence  string           `json:"first_divergence,omitempty"`
 	Transcript       *Transcript      `json:"transcript,omitempty"`
+	Choices          *Choices         `json:"choices,omitempty"`
 	CapturedMounts   *CapturedMounts  `json:"captured_mounts,omitempty"`
 	Stdout           StreamReport     `json:"stdout"`
 	Stderr           StreamReport     `json:"stderr"`
@@ -67,6 +69,29 @@ type Transcript struct {
 	SHA256  record.SHA256 `json:"sha256"`
 	Bytes   uint64        `json:"bytes"`
 	Records uint64        `json:"records"`
+}
+
+type Choices struct {
+	Schema               string        `json:"schema"`
+	Profile              string        `json:"profile"`
+	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
+	Limit                uint64        `json:"limit"`
+	PayloadBytes         uint64        `json:"payload_bytes"`
+	SHA256               record.SHA256 `json:"sha256"`
+	Records              uint64        `json:"records"`
+	BranchingRecords     uint64        `json:"branching_records"`
+	TerminalState        string        `json:"terminal_state"`
+	Runnable             uint64        `json:"runnable"`
+	SelectPoll           uint64        `json:"select_poll"`
+	SelectResult         uint64        `json:"select_result"`
+	Sites                []ChoiceSite  `json:"sites"`
+}
+
+type ChoiceSite struct {
+	Fingerprint         string `json:"fingerprint"`
+	Kind                string `json:"kind"`
+	Count               uint64 `json:"count"`
+	MaximumAlternatives uint32 `json:"maximum_alternatives"`
 }
 
 type CapturedMounts struct {
@@ -104,20 +129,24 @@ type BatchReport struct {
 }
 
 type BatchRun struct {
-	SelectionOrdinal     uint64         `json:"selection_ordinal"`
-	Seed                 uint64         `json:"seed"`
-	Domain               string         `json:"domain"`
-	Reason               string         `json:"reason"`
-	Termination          string         `json:"termination"`
-	ElapsedNanos         uint64         `json:"elapsed_nanos"`
-	FailureSignature     *record.SHA256 `json:"failure_signature,omitempty"`
-	Artifact             *string        `json:"artifact,omitempty"`
-	SuccessArtifact      *string        `json:"success_artifact,omitempty"`
-	SuccessArtifactBytes *uint64        `json:"success_artifact_bytes,omitempty"`
-	SemanticProbes       []string       `json:"semantic_probes,omitempty"`
-	NovelSemanticProbes  []string       `json:"novel_semantic_probes,omitempty"`
-	TranscriptSHA256     *record.SHA256 `json:"transcript_sha256,omitempty"`
-	TranscriptRecords    *uint64        `json:"transcript_records,omitempty"`
+	SelectionOrdinal            uint64         `json:"selection_ordinal"`
+	Seed                        uint64         `json:"seed"`
+	Domain                      string         `json:"domain"`
+	Reason                      string         `json:"reason"`
+	Termination                 string         `json:"termination"`
+	ElapsedNanos                uint64         `json:"elapsed_nanos"`
+	FailureSignature            *record.SHA256 `json:"failure_signature,omitempty"`
+	Artifact                    *string        `json:"artifact,omitempty"`
+	SuccessArtifact             *string        `json:"success_artifact,omitempty"`
+	SuccessArtifactBytes        *uint64        `json:"success_artifact_bytes,omitempty"`
+	SemanticProbes              []string       `json:"semantic_probes,omitempty"`
+	NovelSemanticProbes         []string       `json:"novel_semantic_probes,omitempty"`
+	TranscriptSHA256            *record.SHA256 `json:"transcript_sha256,omitempty"`
+	TranscriptRecords           *uint64        `json:"transcript_records,omitempty"`
+	ChoiceTraceSHA256           *record.SHA256 `json:"choice_trace_sha256,omitempty"`
+	ChoiceTraceRecords          *uint64        `json:"choice_trace_records,omitempty"`
+	ChoiceTraceBranchingRecords *uint64        `json:"choice_trace_branching_records,omitempty"`
+	ChoiceTraceTerminalState    *string        `json:"choice_trace_terminal_state,omitempty"`
 }
 
 type FailureArtifact struct {
@@ -134,6 +163,14 @@ type SuccessArtifact struct {
 }
 
 func Open(path string) (Report, error) {
+	return OpenWithOptions(path, Options{})
+}
+
+type Options struct {
+	Choices bool
+}
+
+func OpenWithOptions(path string, options Options) (Report, error) {
 	absolute, err := filepath.Abs(path)
 	if err != nil {
 		return Report{}, fmt.Errorf("resolve inspection path: %w", err)
@@ -156,17 +193,79 @@ func Open(path string) (Report, error) {
 		}
 		defer opened.Close()
 		projected := projectArtifact(opened.Manifest, absolute)
+		if options.Choices {
+			choices, projectErr := projectChoices(opened)
+			if projectErr != nil {
+				return Report{}, projectErr
+			}
+			projected.Choices = &choices
+		}
 		return Report{Schema: reportSchema, Kind: "artifact", Path: absolute, Artifact: &projected}, nil
 	}
 	opened, err := artifact.OpenBatch(absolute)
 	if err != nil {
 		return Report{}, err
 	}
+	if options.Choices {
+		return Report{}, fmt.Errorf("choice inspection requires a traced artifact")
+	}
 	projected, err := projectBatch(opened)
 	if err != nil {
 		return Report{}, err
 	}
 	return Report{Schema: reportSchema, Kind: "batch", Path: absolute, Batch: &projected}, nil
+}
+
+func projectChoices(opened artifact.Artifact) (Choices, error) {
+	profile := opened.Manifest.ChoiceProfile
+	if profile == nil {
+		return Choices{}, fmt.Errorf("artifact has no choice trace")
+	}
+	payload, err := artifact.ReadPayload(opened, profile.Trace.File, uint64(profile.Trace.Limit))
+	if err != nil {
+		return Choices{}, fmt.Errorf("read choice trace: %w", err)
+	}
+	targetIdentity, err := opened.Manifest.Target.SHA256.Bytes()
+	if err != nil {
+		return Choices{}, fmt.Errorf("decode target identity for choice trace: %w", err)
+	}
+	traceIdentity, err := profile.Trace.SHA256.Bytes()
+	if err != nil {
+		return Choices{}, fmt.Errorf("decode choice trace identity: %w", err)
+	}
+	terminalState := choicewire.TerminalComplete
+	if profile.Trace.TerminalState == "overflow" {
+		terminalState = choicewire.TerminalOverflow
+	}
+	projected, err := choicewire.Project(payload, choicewire.TerminalMetadata{
+		State: terminalState, Limit: uint64(profile.Trace.Limit), Records: uint64(profile.Trace.Records), SHA256: traceIdentity,
+	}, targetIdentity)
+	if err != nil {
+		return Choices{}, fmt.Errorf("validate choice trace: %w", err)
+	}
+	sites := make([]ChoiceSite, len(projected.Sites))
+	for index, site := range projected.Sites {
+		sites[index] = ChoiceSite{Fingerprint: site.Fingerprint, Kind: choiceKind(site.Kind), Count: site.Count, MaximumAlternatives: site.MaximumAlternatives}
+	}
+	return Choices{
+		Schema: "gomadv3.choice-inspection/v1", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
+		Limit: projected.Limit, PayloadBytes: projected.PayloadBytes, SHA256: record.SHA256FromSum(projected.SHA256), Records: projected.Summary.Records,
+		BranchingRecords: projected.Summary.Branching, TerminalState: profile.Trace.TerminalState, Runnable: projected.Summary.Runnable,
+		SelectPoll: projected.Summary.SelectPoll, SelectResult: projected.Summary.SelectResult, Sites: sites,
+	}, nil
+}
+
+func choiceKind(kind choicewire.Kind) string {
+	switch kind {
+	case choicewire.KindRunnable:
+		return "runnable"
+	case choicewire.KindSelectPoll:
+		return "select-poll"
+	case choicewire.KindSelectResult:
+		return "select-result"
+	default:
+		panic(fmt.Sprintf("unknown validated choice kind %d", kind))
+	}
 }
 
 func regularChild(root, name string) (bool, error) {
@@ -249,8 +348,9 @@ func projectBatch(opened artifact.Batch) (BatchReport, error) {
 		projected := BatchRun{
 			SelectionOrdinal: uint64(run.SelectionOrdinal), Seed: uint64(run.Seed), Domain: run.Domain, Reason: run.Reason,
 			Termination: run.Termination, ElapsedNanos: uint64(run.ElapsedNanos), FailureSignature: run.FailureSignature, Artifact: run.Artifact,
-			TranscriptSHA256: run.IOTranscriptSHA256,
-			SuccessArtifact:  run.SuccessArtifact, SemanticProbes: append([]string(nil), run.SemanticProbes...), NovelSemanticProbes: append([]string(nil), run.NovelSemanticProbes...),
+			TranscriptSHA256:  run.IOTranscriptSHA256,
+			ChoiceTraceSHA256: run.ChoiceTraceSHA256, ChoiceTraceTerminalState: run.ChoiceTraceTerminalState,
+			SuccessArtifact: run.SuccessArtifact, SemanticProbes: append([]string(nil), run.SemanticProbes...), NovelSemanticProbes: append([]string(nil), run.NovelSemanticProbes...),
 		}
 		if run.SuccessArtifactBytes != nil {
 			value := uint64(*run.SuccessArtifactBytes)
@@ -259,6 +359,14 @@ func projectBatch(opened artifact.Batch) (BatchReport, error) {
 		if run.IOTranscriptRecords != nil {
 			value := uint64(*run.IOTranscriptRecords)
 			projected.TranscriptRecords = &value
+		}
+		if run.ChoiceTraceRecords != nil {
+			value := uint64(*run.ChoiceTraceRecords)
+			projected.ChoiceTraceRecords = &value
+		}
+		if run.ChoiceTraceBranchingRecords != nil {
+			value := uint64(*run.ChoiceTraceBranchingRecords)
+			projected.ChoiceTraceBranchingRecords = &value
 		}
 		result.Runs = append(result.Runs, projected)
 		if run.SuccessArtifact != nil {

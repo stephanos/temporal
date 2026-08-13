@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
@@ -42,6 +43,15 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: romount.RecordLimits(config.IOROMountLimits),
 		Coverage: string(normalizedCoverage(config.Coverage)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
+	}
+	if config.ChoiceTraceLimit != 0 {
+		implementation, err := choicewire.ImplementationIdentity(prepared.BuildKey)
+		if err != nil {
+			return artifact.BatchPlan{}, fmt.Errorf("derive choice profile implementation identity: %w", err)
+		}
+		plan.ChoiceProfile = &artifact.ChoiceProfilePlan{
+			Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: record.Uint64String(config.ChoiceTraceLimit),
+		}
 	}
 	if config.Guide {
 		plan.Guidance = &artifact.GuidancePlan{Corpus: config.Corpus, SnapshotSHA256: config.GuideSnapshotSHA256}

@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	"go.temporal.io/server/tools/gomadv3/internal/romount"
 	"go.temporal.io/server/tools/gomadv3/world"
@@ -67,6 +68,45 @@ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
 	}
 	if result.Termination != TerminationExit || result.ExitCode != 0 || string(result.Stdout.Bytes) != "profile-frame" {
 		t.Fatalf("result = %#v, stdout = %q", result, result.Stdout.Bytes)
+	}
+}
+
+func TestRunTransportsCompleteChoiceTrace(t *testing.T) {
+	limit := uint64(1 << 20)
+	result, err := Run(context.Background(), Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.ExitCode != 0 || result.ChoiceTrace.Profile != choicewire.Profile || result.ChoiceTrace.Limit != limit || result.ChoiceTrace.Trace.Summary.Records == 0 || result.ChoiceTrace.Trace.Summary.Branching == 0 {
+		t.Fatalf("result = %#v", result)
+	}
+	if result.ChoiceTrace.ImplementationSHA256 != testChoiceImplementationSHA256 {
+		t.Fatalf("choice implementation identity = %x", result.ChoiceTrace.ImplementationSHA256)
+	}
+}
+
+func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
+	limit := uint64(MinimumChoiceTraceBytes)
+	result, err := Run(context.Background(), Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	})
+	if !errors.Is(err, ErrChoiceTraceOverflow) {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if result.Termination != TerminationExit || result.ExitCode != 0 || result.ChoiceTrace.Profile != choicewire.Profile || result.ChoiceTrace.Limit != limit || result.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalOverflow || result.ChoiceTrace.Trace.Summary.Records != 1 || len(result.ChoiceTrace.Trace.Bytes) != choicewire.RecordBytes {
+		t.Fatalf("overflow result = %#v", result)
 	}
 }
 
@@ -403,6 +443,8 @@ func TestTargetHelper(t *testing.T) {
 		if err := configuration.Close(); err != nil {
 			os.Exit(23)
 		}
+		os.Exit(0)
+	case "choice-trace":
 		os.Exit(0)
 	case "io-ro-mount":
 		request := os.NewFile(9, "gomadv3-io-ro-mount-request")

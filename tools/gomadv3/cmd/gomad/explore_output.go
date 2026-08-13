@@ -38,6 +38,7 @@ type exploreEvent struct {
 	RetainedSuccessBytes uint64                      `json:"retained_success_bytes,omitempty"`
 	StopReason           runner.StopReason           `json:"stop_reason,omitempty"`
 	SemanticCoverage     *ioprofile.SemanticCoverage `json:"semantic_coverage,omitempty"`
+	ChoiceTrace          *runner.ChoiceTraceSummary  `json:"choice_trace,omitempty"`
 	CorpusPath           string                      `json:"corpus_path,omitempty"`
 	CorpusEntries        uint64                      `json:"corpus_entries,omitempty"`
 	CorpusAdded          uint64                      `json:"corpus_added,omitempty"`
@@ -64,9 +65,10 @@ func (reporter *exploreReporter) Progress(progress runner.Progress) error {
 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
 			RetainedSuccesses: progress.RetainedSuccesses, RetainedSuccessBytes: progress.RetainedSuccessBytes,
 			CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
+			ChoiceTrace: progress.ChoiceTrace,
 		})
 	}
-	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.BatchPath)
+	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.BatchPath, formatChoiceTrace(progress.ChoiceTrace))
 	return err
 }
 
@@ -81,6 +83,7 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 			Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, Novelty: summary.DistinctFailures, StopReason: summary.StopReason,
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SemanticCoverage: summary.SemanticCoverage,
 			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
+			ChoiceTrace: summary.ChoiceTrace,
 		}); err != nil {
 			return err
 		}
@@ -100,7 +103,7 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 		}
 		return nil
 	}
-	if _, err := fmt.Fprintf(reporter.stdout, "gomad: classification=%s attempted=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s artifact=%s\n", classification, summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.ReplayDivergences, summary.DistinctFailures, summary.RetainedSuccesses, summary.RetainedSuccessBytes, summary.StopReason, summary.BatchPath); err != nil {
+	if _, err := fmt.Fprintf(reporter.stdout, "gomad: classification=%s attempted=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s artifact=%s%s\n", classification, summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.ReplayDivergences, summary.DistinctFailures, summary.RetainedSuccesses, summary.RetainedSuccessBytes, summary.StopReason, summary.BatchPath, formatChoiceTrace(summary.ChoiceTrace)); err != nil {
 		return err
 	}
 	for _, path := range summary.Artifacts {
@@ -124,6 +127,13 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 		}
 	}
 	return nil
+}
+
+func formatChoiceTrace(trace *runner.ChoiceTraceSummary) string {
+	if trace == nil {
+		return ""
+	}
+	return fmt.Sprintf(" choices-seed=%d choices-profile=%s choices-records=%d choices-branching=%d choices-runnable=%d choices-select-poll=%d choices-select-result=%d choices-sha256=%s choices-terminal=%s", trace.Seed, trace.Profile, trace.Records, trace.BranchingRecords, trace.Runnable, trace.SelectPoll, trace.SelectResult, trace.SHA256, trace.TerminalState)
 }
 
 func (reporter *exploreReporter) Error(classification string, err error) error {
@@ -159,9 +169,23 @@ func classifyExploreError(err error) string {
 	}
 	var hostError *runner.HostError
 	if errors.As(err, &hostError) {
+		if hostError.Reason == "cancelled" || hostError.Reason == "overall_timeout" {
+			return hostError.Reason
+		}
 		return "runner_failure"
 	}
 	return "invalid_input"
+}
+
+func exploreErrorStatus(classification string) int {
+	switch classification {
+	case "semantic_coverage_failure":
+		return 1
+	case "invalid_input", "unsupported_target":
+		return 2
+	default:
+		return 3
+	}
 }
 
 func classifyExploreSummary(summary runner.Summary) string {

@@ -119,6 +119,9 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 				return fmt.Errorf("batch run %d transcript digest is invalid", index+1)
 			}
 		}
+		if err := validateChoiceRunSummary(run); err != nil {
+			return fmt.Errorf("batch run %d: %w", index+1, err)
+		}
 		if err := validateSemanticProbeLists(run.SemanticProbes, run.NovelSemanticProbes); err != nil {
 			return fmt.Errorf("batch run %d: %w", index+1, err)
 		}
@@ -189,6 +192,33 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 		}
 	}
 	return nil
+}
+
+func validateChoiceRunSummary(run RunRecord) error {
+	present := 0
+	for _, value := range []bool{
+		run.ChoiceTraceSHA256 != nil,
+		run.ChoiceTraceRecords != nil,
+		run.ChoiceTraceBranchingRecords != nil,
+		run.ChoiceTraceTerminalState != nil,
+	} {
+		if value {
+			present++
+		}
+	}
+	if present == 0 {
+		return nil
+	}
+	if present != 4 {
+		return errors.New("choice trace identity is incomplete")
+	}
+	if !validRecordSHA256(*run.ChoiceTraceSHA256) || *run.ChoiceTraceBranchingRecords > *run.ChoiceTraceRecords {
+		return errors.New("choice trace summary is invalid")
+	}
+	if *run.ChoiceTraceTerminalState == "complete" || *run.ChoiceTraceTerminalState == "overflow" && run.Domain == "runner" && run.Reason == "choice_trace_overflow" {
+		return nil
+	}
+	return errors.New("choice trace summary is invalid")
 }
 
 func validArtifactReference(reference string) bool {

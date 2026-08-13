@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
@@ -119,15 +120,27 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	if err != nil {
 		return Result{}, err
 	}
-	environment := make([]string, len(manifest.Environment))
-	for index, entry := range manifest.Environment {
-		environment[index] = entry.Name + "=" + entry.Value
-	}
+	environment := replayEnvironment(manifest.Environment)
 	var expectedWorldInitial []byte
+	var worldReplayPlan []byte
 	if manifest.World.Initial.Schema == "gomadv3.world.snapshot/v1" {
-		expectedWorldInitial, err = artifact.ReadPayload(opened, manifest.World.Initial.File, world.MaximumSnapshotJSONBytes)
+		worldPayloads, readErr := readWorldPayloads(opened)
+		if readErr != nil {
+			return Result{}, fmt.Errorf("read replay World payloads: %w", readErr)
+		}
+		initial, final, validateErr := worldrecord.Validate(manifest.World, worldPayloads)
+		if validateErr != nil {
+			return Result{}, fmt.Errorf("validate replay World plan: %w", validateErr)
+		}
+		expectedWorldInitial = worldPayloads.Initial
+		worldReplayPlan, err = record.CanonicalJSON(world.ReplayPlan{
+			SchemaVersion: world.SchemaVersion,
+			InitialDigest: initial.StateDigest,
+			Transitions:   final.Transitions[len(initial.Transitions):],
+			FinalDigest:   final.StateDigest,
+		})
 		if err != nil {
-			return Result{}, fmt.Errorf("read replay initial World snapshot: %w", err)
+			return Result{}, fmt.Errorf("encode replay World plan: %w", err)
 		}
 	}
 	var ioConfig []byte
@@ -171,6 +184,14 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 			Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
 		},
 	}
+	var choiceCapability *process.ChoiceCapability
+	if choices := manifest.ChoiceProfile; choices != nil {
+		implementation, parseErr := choices.ImplementationSHA256.Bytes()
+		if parseErr != nil {
+			return Result{}, fmt.Errorf("decode choice profile implementation identity: %w", parseErr)
+		}
+		choiceCapability = &process.ChoiceCapability{Profile: choices.Name, ImplementationSHA256: implementation, Limit: uint64(choices.Trace.Limit)}
+	}
 	observed, err := executor.Run(ctx, process.Request{
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
 		BootstrapCommand: replayBootstrapCommand(config),
@@ -178,9 +199,9 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		RunTimeout: runTimeout, TerminateGrace: terminateGrace, OutputLimit: uint64(manifest.Limits.OutputBytes),
 		World: process.WorldCapability{
 			RecordLimit: world.MaximumRecordingBytes, TransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
-			Seed: uint64(manifest.Seed), ExpectedInitial: expectedWorldInitial,
+			Seed: uint64(manifest.Seed), ExpectedInitial: expectedWorldInitial, ReplayPlan: worldReplayPlan,
 		},
-		IO: ioCapability,
+		IO: ioCapability, Choice: choiceCapability,
 	})
 	if err != nil {
 		return Result{}, fmt.Errorf("execute replay target: %w", err)
@@ -191,6 +212,11 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		if worldErr != nil {
 			return Result{}, fmt.Errorf("decode replay World record: %w", worldErr)
 		}
+		if recording.Final.Replay.Expected != 0 && recording.Final.Replay.Cursor != recording.Final.Replay.Expected && recording.Terminal.Kind != world.TerminalReplayDivergence {
+			return Result{}, errors.New("validate replay World record: final World replay is incomplete")
+		}
+		recording.Initial.Replay = world.ReplayProgress{}
+		recording.Final.Replay = world.ReplayProgress{}
 		bundle, worldErr := worldrecord.ComposeRecording(recording, uint64(manifest.Limits.WorldTransitionBytes))
 		if worldErr != nil {
 			return Result{}, fmt.Errorf("validate replay World record: %w", worldErr)
@@ -200,6 +226,17 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	result.Divergence = firstDivergence(manifest, observed, observedWorld)
 	result.Match = result.Divergence == ""
 	return result, nil
+}
+
+func replayEnvironment(recorded []record.Environment) []string {
+	environment := make([]string, 0, len(recorded))
+	for _, entry := range recorded {
+		if entry.Name == "GOMADV3_CHOICE_PROFILE" {
+			continue
+		}
+		environment = append(environment, entry.Name+"="+entry.Value)
+	}
+	return environment
 }
 
 func replayBootstrapCommand(config Config) []string {
@@ -227,6 +264,9 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 	if !profile.MatchesRecord(manifest.IOProfile) {
 		return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
 	}
+	if manifest.ReplayMode != record.ReplayExact && manifest.ReplayMode != record.ReplayDiagnostic {
+		return artifact.Artifact{}, fmt.Errorf("artifact replay mode %q cannot be executed", manifest.ReplayMode)
+	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 		descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
@@ -238,8 +278,26 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 			return artifact.Artifact{}, fmt.Errorf("validate read-only mount artifact: %w", readErr)
 		}
 	}
-	if manifest.ReplayMode != record.ReplayExact && manifest.ReplayMode != record.ReplayDiagnostic {
-		return artifact.Artifact{}, fmt.Errorf("artifact replay mode %q cannot be executed", manifest.ReplayMode)
+	if choices := manifest.ChoiceProfile; choices != nil {
+		implementation, identityErr := choicewire.ImplementationIdentity(manifest.Toolchain.BuildKey)
+		if identityErr != nil || choices.Name != choicewire.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) {
+			return artifact.Artifact{}, errors.New("artifact choice profile identity does not match this Runner")
+		}
+		payload, readErr := artifact.ReadPayload(opened, choices.Trace.File, uint64(choices.Trace.Limit))
+		if readErr != nil {
+			return artifact.Artifact{}, fmt.Errorf("read choice trace: %w", readErr)
+		}
+		digest, digestErr := choices.Trace.SHA256.Bytes()
+		if digestErr != nil {
+			return artifact.Artifact{}, digestErr
+		}
+		targetDigest, targetErr := manifest.Target.SHA256.Bytes()
+		if targetErr != nil {
+			return artifact.Artifact{}, targetErr
+		}
+		if _, projectErr := choicewire.ProjectComplete(payload, choicewire.CompleteMetadata{Limit: uint64(choices.Trace.Limit), Records: uint64(choices.Trace.Records), SHA256: digest}, targetDigest); projectErr != nil {
+			return artifact.Artifact{}, fmt.Errorf("validate choice trace: %w", projectErr)
+		}
 	}
 	if manifest.Runner.HostOS != runtime.GOOS || manifest.Runner.HostArch != runtime.GOARCH || manifest.Toolchain.TargetGOOS != runtime.GOOS || manifest.Toolchain.TargetGOARCH != runtime.GOARCH {
 		return artifact.Artifact{}, fmt.Errorf("artifact platform does not match host %s/%s", runtime.GOOS, runtime.GOARCH)
@@ -365,6 +423,23 @@ func firstDivergence(manifest record.Manifest, observed process.Result, observed
 		}
 	} else if observed.IOTranscript.Complete {
 		return "io_profile.transcript"
+	}
+	if choices := manifest.ChoiceProfile; choices != nil {
+		trace := observed.ChoiceTrace
+		if trace.Profile != choices.Name || trace.Limit != uint64(choices.Trace.Limit) || trace.Trace.Summary.Terminal != choicewire.TerminalComplete {
+			return "choice_profile.trace.complete"
+		}
+		if record.SHA256FromSum(trace.Trace.SHA256) != choices.Trace.SHA256 {
+			return "choice_profile.trace.sha256"
+		}
+		if record.Uint64String(trace.Trace.Summary.Records) != choices.Trace.Records {
+			return "choice_profile.trace.records"
+		}
+		if record.Uint64String(trace.Trace.Summary.Branching) != choices.Trace.BranchingRecords {
+			return "choice_profile.trace.branching_records"
+		}
+	} else if observed.ChoiceTrace.Profile != "" {
+		return "choice_profile.trace"
 	}
 	if manifest.World.Initial.Schema == "gomadv3.world.snapshot/v1" {
 		if observedWorld == nil {

@@ -4,10 +4,12 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -62,6 +64,98 @@ func TestPublishWritesPrivateAtomicArtifactAndOpenValidatesIt(t *testing.T) {
 			t.Fatalf("%s mode = %#o, want %#o", path, info.Mode().Perm(), mode)
 		}
 	}
+}
+
+func TestPublishWritesAndValidatesChoiceTrace(t *testing.T) {
+	input := artifactInput(t)
+	trace := choiceTracePayload(t)
+	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
+		Name:                 choicewire.Profile,
+		ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
+		Trace: record.ChoiceTrace{
+			Schema: "gomadv3.choice-trace/v1", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: choicewire.HeaderBytes + choicewire.RecordBytes,
+		},
+	}
+	input.Manifest.Limits.ChoiceTraceBytes = choicewire.HeaderBytes + choicewire.RecordBytes
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.Profile})
+	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
+	input.ChoiceTrace = trace
+
+	published, err := (Store{Root: t.TempDir()}).Publish(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened, err := Open(published.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer opened.Close()
+	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.File != "choices.bin" {
+		t.Fatalf("choice profile = %#v", opened.Manifest.ChoiceProfile)
+	}
+	observed, err := ReadPayload(opened, "choices.bin", 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(observed) != string(trace) {
+		t.Fatalf("choice trace = %q", observed)
+	}
+}
+
+func TestPublishRejectsMalformedChoiceTraceWithMatchingIdentity(t *testing.T) {
+	input := artifactInput(t)
+	trace := make([]byte, choicewire.RecordBytes)
+	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
+		Name: choicewire.Profile, ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
+		Trace: record.ChoiceTrace{
+			Schema: "gomadv3.choice-trace/v1", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Records: 1, BranchingRecords: 0, TerminalState: "complete", Limit: choicewire.HeaderBytes + choicewire.RecordBytes,
+		},
+	}
+	input.Manifest.Limits.ChoiceTraceBytes = choicewire.HeaderBytes + choicewire.RecordBytes
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.Profile})
+	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
+	input.ChoiceTrace = trace
+
+	if _, err := (Store{Root: t.TempDir()}).Publish(input); err == nil || !strings.Contains(err.Error(), "validate choice trace payload") {
+		t.Fatalf("Publish() error = %v", err)
+	}
+}
+
+func TestPublishRejectsChangedChoiceTraceIdentity(t *testing.T) {
+	input := artifactInput(t)
+	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
+		Name: "gomadv3-choice-trace/v1", ImplementationSHA256: record.HashBytes([]byte("choice implementation")),
+		Trace: record.ChoiceTrace{Schema: "gomadv3.choice-trace/v1", SHA256: record.HashBytes([]byte("expected")), Bytes: 8, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 1 << 20},
+	}
+	input.Manifest.Limits.ChoiceTraceBytes = 1 << 20
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: "gomadv3-choice-trace/v1"})
+	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
+	input.ChoiceTrace = []byte("changed!")
+	if _, err := (Store{Root: t.TempDir()}).Publish(input); err == nil || !strings.Contains(err.Error(), "choice trace implementation identity") {
+		t.Fatalf("Publish() error = %v", err)
+	}
+}
+
+func choiceTracePayload(t *testing.T) []byte {
+	t.Helper()
+	recordBytes, err := choicewire.EncodeRecord(choicewire.Record{
+		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, Alternatives: 2, Selected: 1, SiteOffset: 7,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return recordBytes[:]
+}
+
+func choiceImplementationIdentity(t *testing.T, buildKey string) record.SHA256 {
+	t.Helper()
+	implementation, err := choicewire.ImplementationIdentity(buildKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return record.SHA256FromSum(implementation)
 }
 
 func TestPublishReusesOnlyCompletelyMatchingArtifact(t *testing.T) {

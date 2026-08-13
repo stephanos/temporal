@@ -27,12 +27,13 @@ const maximumGateDuration = 30 * time.Minute
 const gateTerminationGrace = 2 * time.Second
 
 type Options struct {
-	Root             string
-	Output           string
-	BaselineManifest []byte
-	CorpusReport     string
-	Gates            []Gate
-	Writer           io.Writer
+	Root                       string
+	Output                     string
+	BaselineManifest           []byte
+	ApprovedBoundaryDiffSHA256 string
+	CorpusReport               string
+	Gates                      []Gate
+	Writer                     io.Writer
 }
 
 type Gate struct {
@@ -41,17 +42,19 @@ type Gate struct {
 }
 
 type Dossier struct {
-	Schema               string                   `json:"schema"`
-	Qualified            bool                     `json:"qualified"`
-	Version              VersionEvidence          `json:"version"`
-	Host                 HostEvidence             `json:"host"`
-	UpstreamPatch        PatchEvidence            `json:"upstream_patch"`
-	BoundaryDiff         BoundaryDiff             `json:"boundary_manifest_diff"`
-	InterceptionReport   InterceptionEvidence     `json:"interception_report"`
-	OverlayCollision     OverlayCollisionEvidence `json:"overlay_collision_report"`
-	Gates                []GateResult             `json:"gates"`
-	RetainedCorpus       CorpusEvidence           `json:"retained_corpus"`
-	MandatoryProbePolicy string                   `json:"mandatory_probe_policy"`
+	Schema                 string                   `json:"schema"`
+	Qualified              bool                     `json:"qualified"`
+	BoundaryApproved       bool                     `json:"boundary_changes_approved"`
+	BoundaryApprovalSHA256 string                   `json:"boundary_approval_sha256,omitempty"`
+	Version                VersionEvidence          `json:"version"`
+	Host                   HostEvidence             `json:"host"`
+	UpstreamPatch          PatchEvidence            `json:"upstream_patch"`
+	BoundaryDiff           BoundaryDiff             `json:"boundary_manifest_diff"`
+	InterceptionReport     InterceptionEvidence     `json:"interception_report"`
+	OverlayCollision       OverlayCollisionEvidence `json:"overlay_collision_report"`
+	Gates                  []GateResult             `json:"gates"`
+	RetainedCorpus         CorpusEvidence           `json:"retained_corpus"`
+	MandatoryProbePolicy   string                   `json:"mandatory_probe_policy"`
 }
 
 type VersionEvidence struct {
@@ -75,6 +78,7 @@ type PatchEvidence struct {
 
 type BoundaryDiff struct {
 	Status          string   `json:"status"`
+	SHA256          string   `json:"sha256"`
 	BaselineVersion string   `json:"baseline_version,omitempty"`
 	CurrentVersion  string   `json:"current_version"`
 	Added           []string `json:"added"`
@@ -174,9 +178,17 @@ func Run(ctx context.Context, options Options) error {
 		return err
 	}
 	hostPlatform := runtime.GOOS + "/" + runtime.GOARCH
+	boundaryApprovalSHA256 := ""
+	boundaryApproved := difference.Status == "compared" && boundaryDiffEmpty(difference)
+	if difference.Status == "compared" && !boundaryDiffEmpty(difference) && options.ApprovedBoundaryDiffSHA256 == difference.SHA256 {
+		boundaryApproved = true
+		boundaryApprovalSHA256 = difference.SHA256
+	}
 	dossier := Dossier{
-		Schema:    "gomadv3.upgrade-dossier/v1",
-		Qualified: false,
+		Schema:                 "gomadv3.upgrade-dossier/v2",
+		Qualified:              false,
+		BoundaryApproved:       boundaryApproved,
+		BoundaryApprovalSHA256: boundaryApprovalSHA256,
 		Version: VersionEvidence{
 			GoVersion: descriptor.GoVersion, ArchiveSHA256: descriptor.Archive.SHA256,
 			BoundaryManifestVersion: descriptor.BoundaryManifestVersion, Patch: descriptor.Patch,
@@ -210,7 +222,7 @@ func Run(ctx context.Context, options Options) error {
 			break
 		}
 	}
-	dossier.Qualified = dossier.Host.Supported && gateFailure == nil && dossier.RetainedCorpus.Status == "checked"
+	dossier.Qualified = dossier.Host.Supported && gateFailure == nil && dossier.RetainedCorpus.Status == "checked" && dossier.BoundaryApproved
 	if err := publish(options.Output, dossier); err != nil {
 		return err
 	}
@@ -223,7 +235,17 @@ func Run(ctx context.Context, options Options) error {
 	if dossier.RetainedCorpus.Status != "checked" {
 		return errors.New("a checked core qualification corpus is required")
 	}
+	if difference.Status != "compared" {
+		return errors.New("a baseline boundary manifest is required")
+	}
+	if !dossier.BoundaryApproved {
+		return fmt.Errorf("boundary changes require explicit approval for %s", difference.SHA256)
+	}
 	return nil
+}
+
+func boundaryDiffEmpty(difference BoundaryDiff) bool {
+	return len(difference.Added) == 0 && len(difference.Removed) == 0 && len(difference.Changed) == 0
 }
 
 func runGate(ctx context.Context, root string, gate Gate, output io.Writer) (GateResult, error) {
@@ -271,7 +293,7 @@ func compareBoundaries(baseline, current []byte) (BoundaryDiff, error) {
 	}
 	result := BoundaryDiff{Status: "not-requested", CurrentVersion: currentManifest.ManifestVersion, Added: []string{}, Removed: []string{}, Changed: []string{}}
 	if len(baseline) == 0 {
-		return result, nil
+		return finalizeBoundaryDiff(result, nil, current)
 	}
 	baselineManifest, err := decodeBoundary("baseline", baseline)
 	if err != nil {
@@ -302,7 +324,35 @@ func compareBoundaries(baseline, current []byte) (BoundaryDiff, error) {
 	slices.Sort(result.Added)
 	slices.Sort(result.Removed)
 	slices.Sort(result.Changed)
-	return result, nil
+	return finalizeBoundaryDiff(result, baseline, current)
+}
+
+func finalizeBoundaryDiff(difference BoundaryDiff, baseline, current []byte) (BoundaryDiff, error) {
+	canonicalCurrent, err := canonicalBoundaryJSON(json.RawMessage(current))
+	if err != nil {
+		return BoundaryDiff{}, fmt.Errorf("canonicalize current boundary diff input: %w", err)
+	}
+	var canonicalBaseline json.RawMessage
+	if len(baseline) != 0 {
+		canonicalBaseline, err = canonicalBoundaryJSON(json.RawMessage(baseline))
+		if err != nil {
+			return BoundaryDiff{}, fmt.Errorf("canonicalize baseline boundary diff input: %w", err)
+		}
+	}
+	encoded, err := json.Marshal(struct {
+		Schema   string          `json:"schema"`
+		Status   string          `json:"status"`
+		Baseline json.RawMessage `json:"baseline,omitempty"`
+		Current  json.RawMessage `json:"current"`
+	}{
+		Schema: "gomadv3.boundary-diff/v1", Status: difference.Status,
+		Baseline: canonicalBaseline, Current: canonicalCurrent,
+	})
+	if err != nil {
+		return BoundaryDiff{}, fmt.Errorf("encode boundary diff identity: %w", err)
+	}
+	difference.SHA256 = digest(encoded)
+	return difference, nil
 }
 
 func decodeBoundary(name string, contents []byte) (boundaryManifest, error) {
@@ -445,8 +495,8 @@ func loadCorpus(root, path string) (CorpusEvidence, error) {
 	if err != nil {
 		return CorpusEvidence{}, fmt.Errorf("validate retained qualification set: %w", err)
 	}
-	if !report.Qualified {
-		return CorpusEvidence{}, errors.New("retained qualification set is not qualified")
+	if !report.ExpectationsMet {
+		return CorpusEvidence{}, errors.New("retained qualification set did not meet its expectations")
 	}
 	if report.Name != "gomadv3-core" {
 		return CorpusEvidence{}, fmt.Errorf("retained qualification set %q is not the required gomadv3-core corpus", report.Name)

@@ -3,6 +3,7 @@
 package process
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"os/exec"
@@ -94,6 +95,30 @@ func TestDescriptorPlanOwnsEveryStageLayout(t *testing.T) {
 			stage: targetStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true},
 			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {ioTranscriptResource, 6}, {ioTerminalResource, 7}, {ioExpectedResource, 8}, {ioROMountRequestResource, 9}, {ioROMountResponseResource, 10}},
 		},
+		"supervisor choices": {
+			stage: supervisorStage, caps: launchCapabilities{choiceTrace: true},
+			want: []descriptorBinding{{controlResource, 3}, {reportResource, 4}, {stdoutResource, 5}, {stderrResource, 6}, {supervisorRequestResource, 7}, {worldRecordResource, 8}, {identityResource, 9}, {choiceTraceResource, 10}, {choiceTerminalResource, 11}},
+		},
+		"bootstrap choices": {
+			stage: bootstrapStage, caps: launchCapabilities{choiceTrace: true},
+			want: []descriptorBinding{{bootstrapRequestResource, 3}, {activationResource, 4}, {readinessResource, 5}, {worldConfigResource, 6}, {worldRecordResource, 7}, {identityResource, 8}, {choiceTraceResource, 9}, {choiceTerminalResource, 10}},
+		},
+		"target choices": {
+			stage: targetStage, caps: launchCapabilities{choiceTrace: true},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {choiceTraceResource, 6}, {choiceTerminalResource, 7}},
+		},
+		"supervisor all capabilities": {
+			stage: supervisorStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
+			want: []descriptorBinding{{controlResource, 3}, {reportResource, 4}, {stdoutResource, 5}, {stderrResource, 6}, {supervisorRequestResource, 7}, {worldRecordResource, 8}, {identityResource, 9}, {ioTranscriptResource, 10}, {ioTerminalResource, 11}, {ioExpectedResource, 12}, {ioROMountRequestResource, 13}, {ioROMountResponseResource, 14}, {choiceTraceResource, 15}, {choiceTerminalResource, 16}},
+		},
+		"bootstrap all capabilities": {
+			stage: bootstrapStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
+			want: []descriptorBinding{{bootstrapRequestResource, 3}, {activationResource, 4}, {readinessResource, 5}, {worldConfigResource, 6}, {worldRecordResource, 7}, {identityResource, 8}, {ioTranscriptResource, 9}, {ioTerminalResource, 10}, {ioExpectedResource, 11}, {ioROMountRequestResource, 12}, {ioROMountResponseResource, 13}, {choiceTraceResource, 14}, {choiceTerminalResource, 15}},
+		},
+		"target all capabilities": {
+			stage: targetStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {ioTranscriptResource, 6}, {ioTerminalResource, 7}, {ioExpectedResource, 8}, {ioROMountRequestResource, 9}, {ioROMountResponseResource, 10}, {choiceTraceResource, 11}, {choiceTerminalResource, 12}},
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -120,8 +145,51 @@ func TestProtocolErrorCleanupRetainsTrustedTargetIdentity(t *testing.T) {
 		t.Fatalf("cleanup groups = %v, want [%d]", groups, identity.pgid)
 	}
 	groups = targetCleanupPGIDs(identity, []supervisorReport{{PID: 100, PGID: 100}, {PID: 200, PGID: 200}, {PID: 300, PGID: 300}, {PID: 200, PGID: 200}})
-	if len(groups) != 3 || groups[0] != 100 || groups[1] != 200 || groups[2] != 300 {
-		t.Fatalf("mismatched cleanup groups = %v, want [100 200 300]", groups)
+	if len(groups) != 1 || groups[0] != identity.pgid {
+		t.Fatalf("mismatched cleanup groups = %v, want [%d]", groups, identity.pgid)
+	}
+}
+
+func TestEarlySupervisorCleanupIgnoresUntrustedReportedTargetIdentity(t *testing.T) {
+	target := exec.Command("sh", "-c", "while :; do :; done")
+	target.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err := target.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := killReapTarget(target, target.Process.Pid, time.Now().Add(time.Second)); err != nil {
+			t.Errorf("clean target: %v", err)
+		}
+	}()
+	supervisor := exec.Command("sh", "-c", "exit 0")
+	if err := supervisor.Start(); err != nil {
+		t.Fatal(err)
+	}
+	controlRead, controlWrite, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = controlRead.Close() }()
+	reportRead, reportWrite, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = reportRead.Close() }()
+	if err := json.NewEncoder(reportWrite).Encode(supervisorReport{Kind: "started", PID: target.Process.Pid, PGID: target.Process.Pid}); err != nil {
+		t.Fatal(err)
+	}
+	if err := reportWrite.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := cleanupEarlySupervisor(supervisor, controlWrite, reportRead, nil, time.Now().Add(100*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	present, err := groupExists(target.Process.Pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !present {
+		t.Fatal("early supervisor cleanup signaled an untrusted reported target process group")
 	}
 }
 

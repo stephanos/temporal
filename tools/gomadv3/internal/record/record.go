@@ -87,12 +87,18 @@ func FinalizeManifest(input Manifest) (Manifest, []byte, error) {
 	if err != nil {
 		return Manifest{}, nil, fmt.Errorf("encode failure projection: %w", err)
 	}
-	input.Outcome.FailureSignature = DomainHash("gomadv3-failure-signature-v2", failureProjectionBytes)
+	failureDomain := "gomadv3-failure-signature-v3"
+	recordDomain := "gomadv3-run-record-v3"
+	if input.SchemaVersion == LegacySchemaVersion {
+		failureDomain = "gomadv3-failure-signature-v2"
+		recordDomain = "gomadv3-run-record-v2"
+	}
+	input.Outcome.FailureSignature = DomainHash(failureDomain, failureProjectionBytes)
 	recordProjectionBytes, err := CanonicalJSON(recordProjectionOf(input))
 	if err != nil {
 		return Manifest{}, nil, fmt.Errorf("encode record projection: %w", err)
 	}
-	input.RecordHash = DomainHash("gomadv3-run-record-v2", recordProjectionBytes)
+	input.RecordHash = DomainHash(recordDomain, recordProjectionBytes)
 	if err := validateManifest(input, true); err != nil {
 		return Manifest{}, nil, err
 	}

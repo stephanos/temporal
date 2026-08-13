@@ -24,6 +24,27 @@ type BuildAdapter struct {
 	ReplacementSHA256 string
 }
 
+type InvalidBuildAdapterConfigurationError struct {
+	Err error
+}
+
+func (err *InvalidBuildAdapterConfigurationError) Error() string {
+	return err.Err.Error()
+}
+
+func (err *InvalidBuildAdapterConfigurationError) Unwrap() error {
+	return err.Err
+}
+
+func IsInvalidBuildAdapterConfiguration(err error) bool {
+	var invalid *InvalidBuildAdapterConfigurationError
+	return errors.As(err, &invalid)
+}
+
+func invalidBuildAdapterConfiguration(err error) error {
+	return &InvalidBuildAdapterConfigurationError{Err: err}
+}
+
 type adapterPreparation struct {
 	replacement string
 	evidence    BuildAdapter
@@ -128,19 +149,19 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	}
 	moduleFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.mod"))
 	if err != nil {
-		return target.Spec{}, nil, fmt.Errorf("read target module file: %w", err)
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module file: %w", err))
 	}
 	selected := make([]adapterDefinition, 0, len(registry.definitions))
 	for _, definition := range registry.definitions {
 		version, detectErr := detectModuleVersion(moduleFile, definition.identity.Module)
 		if detectErr != nil {
-			return target.Spec{}, nil, detectErr
+			return target.Spec{}, nil, invalidBuildAdapterConfiguration(detectErr)
 		}
 		if version == "" {
 			continue
 		}
 		if version != definition.identity.Version {
-			return target.Spec{}, nil, fmt.Errorf("unsupported %s version %q", definition.identity.Module, version)
+			return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("unsupported %s version %q", definition.identity.Module, version))
 		}
 		selected = append(selected, definition)
 	}
@@ -151,7 +172,7 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 		return target.Spec{}, nil, errors.New("deterministic I/O build adapter requires module cache and preparation root")
 	}
 	if spec.BuildModFile != "" {
-		return target.Spec{}, nil, errors.New("deterministic I/O build adapters cannot replace an existing build modfile")
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(errors.New("deterministic I/O build adapters cannot replace an existing build modfile"))
 	}
 	preparationRoot, err := filepath.Abs(spec.PreparationRoot)
 	if err != nil {
@@ -176,7 +197,7 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	}
 	sumFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.sum"))
 	if err != nil {
-		return target.Spec{}, nil, fmt.Errorf("read target module sums: %w", err)
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module sums: %w", err))
 	}
 	if err := writeExclusive(filepath.Join(root, "gomad.sum"), sumFile); err != nil {
 		return target.Spec{}, nil, err

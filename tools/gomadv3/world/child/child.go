@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 
+	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/worldpipe"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -56,18 +57,10 @@ func Open(core *world.World) (*Session, error) {
 		return nil, errors.Join(fmt.Errorf("World seed does not match the canonical GOMADSEED input"), output.Close())
 	}
 	if len(childConfig.ExpectedInitial) != 0 {
-		initial, decodeErr := world.DecodeSnapshot(childConfig.ExpectedInitial)
-		if decodeErr != nil {
-			return nil, errors.Join(fmt.Errorf("decode trusted replay initial World snapshot: %w", decodeErr), output.Close())
+		core, err = restoreReplayWorld(childConfig, seed)
+		if err != nil {
+			return nil, errors.Join(err, output.Close())
 		}
-		restored, restoreErr := world.Restore(initial, nil)
-		if restoreErr != nil {
-			return nil, errors.Join(fmt.Errorf("restore trusted replay initial World snapshot: %w", restoreErr), output.Close())
-		}
-		if uint64(initial.Config.Seed) != seed {
-			return nil, errors.Join(fmt.Errorf("trusted replay initial World snapshot seed does not match GOMADSEED"), output.Close())
-		}
-		core = restored
 	} else if world.Seed(seed) != core.Seed() {
 		return nil, errors.Join(fmt.Errorf("World seed does not match the canonical GOMADSEED input"), output.Close())
 	}
@@ -76,6 +69,33 @@ func Open(core *world.World) (*Session, error) {
 		return nil, errors.Join(err, output.Close())
 	}
 	return &Session{recorder: recorder, output: output, core: core}, nil
+}
+
+func restoreReplayWorld(config worldpipe.Config, seed uint64) (*world.World, error) {
+	initial, err := world.DecodeSnapshot(config.ExpectedInitial)
+	if err != nil {
+		return nil, fmt.Errorf("decode trusted replay initial World snapshot: %w", err)
+	}
+	var restored *world.World
+	if len(config.ReplayPlan) != 0 {
+		var plan world.ReplayPlan
+		if err := record.DecodeCanonicalJSON(config.ReplayPlan, &plan); err != nil {
+			return nil, fmt.Errorf("decode trusted World replay plan: %w", err)
+		}
+		restored, err = world.Restore(initial, &plan)
+		if err != nil {
+			return nil, fmt.Errorf("restore trusted World replay plan: %w", err)
+		}
+	} else {
+		restored, err = world.Restore(initial, nil)
+		if err != nil {
+			return nil, fmt.Errorf("restore trusted replay initial World snapshot: %w", err)
+		}
+	}
+	if uint64(initial.Config.Seed) != seed {
+		return nil, errors.New("trusted replay initial World snapshot seed does not match GOMADSEED")
+	}
+	return restored, nil
 }
 
 func (session *Session) World() *world.World {

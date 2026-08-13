@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
@@ -369,6 +370,16 @@ func TestRunRequiresExplicitSuccessRetentionBounds(t *testing.T) {
 	}
 }
 
+func TestRunRequiresBoundedChoiceTraceCapacity(t *testing.T) {
+	for _, limit := range []uint64{1, (64 << 20) + 1} {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+		config.ChoiceTraceLimit = limit
+		if _, err := Run(context.Background(), config); err == nil || !strings.Contains(err.Error(), "choice trace") {
+			t.Fatalf("Run() with choice limit %d error = %v", limit, err)
+		}
+	}
+}
+
 func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 	config.KeepSuccesses = KeepSuccessesAll
@@ -687,12 +698,138 @@ func TestRunPassesCanonicalReadOnlyMountsToExecutor(t *testing.T) {
 	}
 }
 
+func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	preparer := newFakePreparer(t)
+	implementation, err := choicewire.ImplementationIdentity(preparer.prepared.BuildKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	executor := &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(1, "failure", "")
+		result.ChoiceTrace = process.ChoiceTrace{
+			Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit,
+			Trace: choicewire.Trace{SHA256: sha256.Sum256(nil), Summary: choicewire.Summary{Terminal: choicewire.TerminalComplete}},
+		}
+		return result
+	}}
+	config := testConfig(t, preparer, executor, "1", PolicyAll, 1)
+	config.ChoiceTraceLimit = limit
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(executor.requests) != 1 || executor.requests[0].Choice == nil || executor.requests[0].Choice.Profile != choicewire.Profile || executor.requests[0].Choice.ImplementationSHA256 != implementation || executor.requests[0].Choice.Limit != limit {
+		t.Fatalf("executor choice capability = %#v", executor.requests)
+	}
+	if summary.ChoiceTrace == nil || summary.ChoiceTrace.Profile != choicewire.Profile || summary.ChoiceTrace.TerminalState != "complete" {
+		t.Fatalf("choice summary = %#v", summary.ChoiceTrace)
+	}
+	opened, err := artifact.Open(summary.Artifacts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) {
+		t.Fatalf("artifact choice profile = %#v", opened.Manifest.ChoiceProfile)
+	}
+}
+
+func TestRunClassifiesInvalidChoiceTraceTerminalEvidence(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		err    error
+		reason string
+	}{
+		{name: "malformed", err: process.ErrChoiceTraceMalformed, reason: "choice_trace_malformed"},
+		{name: "unterminated", err: process.ErrChoiceTraceUnterminated, reason: "choice_trace_unterminated"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := testConfig(t, newFakePreparer(t), terminalErrorExecutor{err: test.err}, "1", PolicyAll, 1)
+			config.ChoiceTraceLimit = process.MinimumChoiceTraceBytes
+			_, err := Run(context.Background(), config)
+			var hostError *HostError
+			if !errors.As(err, &hostError) || hostError.Reason != test.reason {
+				t.Fatalf("Run() error = %v", err)
+			}
+		})
+	}
+}
+
+func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
+	preparer := newFakePreparer(t)
+	implementation, err := choicewire.ImplementationIdentity(preparer.prepared.BuildKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	recordBytes, err := choicewire.EncodeRecord(choicewire.Record{
+		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, Alternatives: 2, Selected: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload := recordBytes[:]
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	result := processResult(0, "", "")
+	result.ChoiceTrace = process.ChoiceTrace{
+		Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit,
+		Trace: choicewire.Trace{
+			Bytes: payload, SHA256: sha256.Sum256(payload),
+			Summary: choicewire.Summary{Records: 1, Branching: 1, Runnable: 1, Terminal: choicewire.TerminalOverflow},
+		},
+	}
+	config := testConfig(t, preparer, terminalErrorExecutor{result: result, err: process.ErrChoiceTraceOverflow}, "1", PolicyAll, 1)
+	config.ChoiceTraceLimit = limit
+	summary, err := Run(context.Background(), config)
+	var hostErr *HostError
+	if !errors.As(err, &hostErr) || hostErr.Reason != "choice_trace_overflow" {
+		t.Fatalf("Run() error = %#v", err)
+	}
+	if len(summary.Artifacts) != 1 || summary.ChoiceTrace == nil || summary.ChoiceTrace.TerminalState != "overflow" {
+		t.Fatalf("Run() summary = %#v", summary)
+	}
+	opened, err := artifact.Open(summary.Artifacts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if opened.Manifest.ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "choice_trace_overflow" || opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.TerminalState != "overflow" {
+		t.Fatalf("overflow manifest = %#v", opened.Manifest)
+	}
+
+	resumedExecutor := &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.ChoiceTrace = process.ChoiceTrace{
+			Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit,
+			Trace: choicewire.Trace{SHA256: sha256.Sum256(nil), Summary: choicewire.Summary{Terminal: choicewire.TerminalComplete}},
+		}
+		return result
+	}}
+	resumed, err := Run(context.Background(), Config{
+		ResumeBatch: summary.BatchPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if seeds := executorSeeds(resumedExecutor); !slices.Equal(seeds, []uint64{1}) || resumed.Succeeded != 1 {
+		t.Fatalf("resumed seeds = %v, summary = %#v", seeds, resumed)
+	}
+}
+
 func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 	for name, environment := range map[string][]string{
-		"reserved":  {"GOMAXPROCS=2"},
-		"duplicate": {"A=1", "A=2"},
-		"invalid":   {"NOT-VALID=1"},
-		"nul":       {"A=value\x00tail"},
+		"reserved":        {"GOMAXPROCS=2"},
+		"choice profile":  {"GOMADV3_CHOICE_PROFILE=injected"},
+		"choice trace fd": {"GOMADV3_CHOICE_TRACE_FD=9"},
+		"duplicate":       {"A=1", "A=2"},
+		"invalid":         {"NOT-VALID=1"},
+		"nul":             {"A=value\x00tail"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
@@ -704,17 +841,17 @@ func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 	}
 }
 
-func TestRunOverallTimeoutIsAHostFailure(t *testing.T) {
+func TestRunCancellationIsAHostFailure(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
 	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.Running == 1 })
 	config.TerminateGrace = 10 * time.Millisecond
 	summary, err := Run(ctx, config)
 	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
+	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
 		t.Fatalf("Run() error = %#v", err)
 	}
 	if summary.Failures != 0 || len(summary.Artifacts) != 0 {
-		t.Fatalf("overall timeout summary = %#v", summary)
+		t.Fatalf("cancelled summary = %#v", summary)
 	}
 	plan, planErr := artifact.ReadResumePlan(summary.BatchPath)
 	if planErr != nil {
@@ -728,7 +865,7 @@ func TestRunOverallTimeoutIsAHostFailure(t *testing.T) {
 		t.Fatal(readErr)
 	}
 	if len(partials) != 2 {
-		t.Fatalf("overall-timeout partials = %v, want batch and target", partials)
+		t.Fatalf("cancelled partials = %v, want batch and target", partials)
 	}
 	if _, err := os.Stat(filepath.Join(summary.BatchPath, ".partial", "batch", "partial.json")); err != nil {
 		t.Fatal(err)
@@ -743,7 +880,7 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 	config.TerminateGrace = 10 * time.Millisecond
 	partial, err := Run(ctx, config)
 	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
+	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" {
 		t.Fatalf("interrupted Run() error = %v", err)
 	}
 	if seeds := interrupted.seeds(); !slices.Equal(seeds, []uint64{7, 8}) {
@@ -859,7 +996,7 @@ func TestRunPreparationFailureLeavesExplicitPartial(t *testing.T) {
 	}
 }
 
-func TestRunPreparationOverallTimeoutIsClassifiedSeparately(t *testing.T) {
+func TestRunPreparationCancellationIsClassifiedSeparately(t *testing.T) {
 	started := make(chan struct{})
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -871,7 +1008,31 @@ func TestRunPreparationOverallTimeoutIsClassifiedSeparately(t *testing.T) {
 	config.TerminateGrace = 10 * time.Millisecond
 	summary, err := Run(ctx, config)
 	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
+	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
+		t.Fatalf("Run() error = %#v", err)
+	}
+	partial, readErr := os.ReadFile(filepath.Join(summary.BatchPath, ".partial", "preparation", "partial.json"))
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if !strings.Contains(string(partial), `"reason":"cancelled"`) {
+		t.Fatalf("preparation partial = %s", partial)
+	}
+}
+
+func TestRunPreparationOverallTimeoutIsClassifiedSeparately(t *testing.T) {
+	started := make(chan struct{})
+	deadline := &controlledDeadlineContext{Context: context.Background(), done: make(chan struct{})}
+	go func() {
+		<-started
+		close(deadline.done)
+	}()
+	config := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
+	config.OverallTimeout = time.Hour
+	config.TerminateGrace = 10 * time.Millisecond
+	summary, err := Run(deadline, config)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" || !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Run() error = %#v", err)
 	}
 	partial, readErr := os.ReadFile(filepath.Join(summary.BatchPath, ".partial", "preparation", "partial.json"))
@@ -941,6 +1102,47 @@ func TestIsolatedRunnerKillsAStuckCoordinatorInsideOverallDeadline(t *testing.T)
 	}
 }
 
+func TestIsolatedRunnerPreservesContextReasonAfterCoordinatorExit(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		cancel     bool
+		wantReason string
+	}{
+		{name: "cancelled", cancel: true, wantReason: "cancelled"},
+		{name: "deadline", wantReason: "overall_timeout"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			marker := filepath.Join(t.TempDir(), "coordinator-exited")
+			t.Setenv("GOMADV3_COORDINATOR_EXIT_MARKER", marker)
+			config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+			config.OverallTimeout = 250 * time.Millisecond
+			config.CoordinatorCommand = []string{os.Args[0], "-test.run=^TestExitedCoordinatorWithOpenStdoutHelper$"}
+			ctx := context.Background()
+			if test.cancel {
+				cancelCtx, cancel := context.WithCancel(ctx)
+				t.Cleanup(cancel)
+				ctx = cancelCtx
+				go func() {
+					for {
+						if _, err := os.Stat(marker); err == nil {
+							timer := time.NewTimer(50 * time.Millisecond)
+							<-timer.C
+							cancel()
+							return
+						}
+						runtime.Gosched()
+					}
+				}()
+			}
+			_, err := Run(ctx, config)
+			var hostError *HostError
+			if !errors.As(err, &hostError) || hostError.Reason != test.wantReason {
+				t.Fatalf("Run() error = %v", err)
+			}
+		})
+	}
+}
+
 func TestIsolatedRunnerPreservesUnsupportedTargetError(t *testing.T) {
 	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestUnsupportedTargetCoordinatorHelper"}
@@ -971,6 +1173,19 @@ func TestIsolatedRunnerPreservesBoundedRunEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	if summary.RunEvidence == nil || summary.RunEvidence.Schema != RunEvidenceSchema || summary.RunEvidence.Seed != 1 || summary.RunEvidence.Target.SHA256 != "sha256:target" {
+		t.Fatalf("summary = %#v", summary)
+	}
+}
+
+func TestIsolatedRunnerTransportsChoiceTraceConfiguration(t *testing.T) {
+	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
+	config.ChoiceTraceLimit = process.MinimumChoiceTraceBytes
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestChoiceTraceCoordinatorHelper"}
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.ChoiceTrace == nil || summary.ChoiceTrace.Limit != process.MinimumChoiceTraceBytes {
 		t.Fatalf("summary = %#v", summary)
 	}
 }
@@ -1051,6 +1266,21 @@ func TestRunEvidenceCoordinatorHelper(t *testing.T) {
 	os.Exit(0)
 }
 
+func TestChoiceTraceCoordinatorHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
+		t.Skip("coordinator subprocess only")
+	}
+	var wire coordinatorConfig
+	if err := json.NewDecoder(os.Stdin).Decode(&wire); err != nil {
+		t.Fatal(err)
+	}
+	response := coordinatorResponse{Summary: Summary{ChoiceTrace: &ChoiceTraceSummary{Limit: wire.ChoiceTraceLimit}}}
+	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
+		t.Fatal(err)
+	}
+	os.Exit(0)
+}
+
 func TestBlockingCoordinatorHelper(t *testing.T) {
 	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
@@ -1058,6 +1288,30 @@ func TestBlockingCoordinatorHelper(t *testing.T) {
 	for {
 		runtime.Gosched()
 	}
+}
+
+func TestExitedCoordinatorWithOpenStdoutHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
+		t.Skip("coordinator subprocess only")
+	}
+	command := exec.Command(os.Args[0], "-test.run=^TestCoordinatorStdoutDescendantHelper$")
+	command.Env = append(os.Environ(), "GOMADV3_COORDINATOR_STDOUT_DESCENDANT=1")
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	if err := command.Start(); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(os.Getenv("GOMADV3_COORDINATOR_EXIT_MARKER"), []byte("exiting"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	os.Exit(0) //nolint:revive // This subprocess helper must exit while its descendant retains stdout.
+}
+
+func TestCoordinatorStdoutDescendantHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_COORDINATOR_STDOUT_DESCENDANT") != "1" {
+		t.Skip("coordinator stdout descendant subprocess only")
+	}
+	<-time.After(10 * time.Second)
 }
 
 func TestIsolatedRunnerBoundsCoordinatorOutput(t *testing.T) {
@@ -1151,6 +1405,24 @@ func (preparer waitingPreparer) Prepare(ctx context.Context, _ target.Spec) (tar
 	return target.Prepared{}, ctx.Err()
 }
 
+type controlledDeadlineContext struct {
+	context.Context
+	done chan struct{}
+}
+
+func (ctx *controlledDeadlineContext) Done() <-chan struct{} {
+	return ctx.done
+}
+
+func (ctx *controlledDeadlineContext) Err() error {
+	select {
+	case <-ctx.done:
+		return context.DeadlineExceeded
+	default:
+		return nil
+	}
+}
+
 func newFakePreparer(t *testing.T) *fakePreparer {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "target")
@@ -1208,6 +1480,17 @@ type fakeExecutor struct {
 	maximumActive int
 	requests      []process.Request
 	result        func(uint64) process.Result
+}
+
+type terminalErrorExecutor struct {
+	result process.Result
+	err    error
+}
+
+func (executor terminalErrorExecutor) Run(context.Context, process.Request) (process.Result, error) {
+	result := executor.result
+	result.Captured = true
+	return result, executor.err
 }
 
 type outOfOrderExecutor struct {

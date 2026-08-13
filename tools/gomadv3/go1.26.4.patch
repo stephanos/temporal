@@ -61,7 +61,7 @@ index 018fe01..f99542c 100644
  //
  //go:linkname fatal
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index 005c875..aab7526 100644
+index 005c875..5d28580 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -246,6 +246,10 @@ func main() {
@@ -134,7 +134,7 @@ index 005c875..aab7526 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7605,6 +7616,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7605,6 +7616,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -143,6 +143,7 @@ index 005c875..aab7526 100644
 +		t := pp.runqtail
 +		if t-h > 1 {
 +			offset := randn(t - h)
++			gomadChoiceRecord(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, t-h, offset, 0)
 +			index := (h + offset) % uint32(len(pp.runq))
 +			gp := pp.runq[index].ptr()
 +			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
@@ -182,6 +183,51 @@ index 1739e9f..68ab02a 100644
  	var seed [4]uint64
  	for i := range seed {
  		seed[i] = bootstrapRand()
+diff --git a/src/runtime/select.go b/src/runtime/select.go
+index 553f696..702aecd 100644
+--- a/src/runtime/select.go
++++ b/src/runtime/select.go
+@@ -121,6 +121,7 @@ func block() {
+ // a value was received.
+ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, block bool) (int, bool) {
+ 	gp := getg()
++	choiceSite, choiceSiteFlags := gomadChoiceSite(sys.GetCallerPC())
+ 	if debugSelect {
+ 		print("select: cas0=", cas0, "\n")
+ 	}
+@@ -189,6 +190,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+ 		}
+ 
+ 		j := cheaprandn(uint32(norder + 1))
++		gomadChoiceRecord(gomadChoiceKindSelectPoll, gomadChoiceFlagDecision|choiceSiteFlags, choiceSite, uint32(norder+1), j, uint32(i))
+ 		pollorder[norder] = pollorder[j]
+ 		pollorder[j] = uint16(i)
+ 		norder++
+@@ -267,6 +269,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+ 	var caseSuccess bool
+ 	var caseReleaseTime int64 = -1
+ 	var recvOK bool
++	var selected uint32
++	var alternatives uint32
+ 	for _, casei := range pollorder {
+ 		casi = int(casei)
+ 		cas = &scases[casi]
+@@ -534,6 +538,15 @@ retc:
+ 	if caseReleaseTime > 0 {
+ 		blockevent(caseReleaseTime-t0, 1)
+ 	}
++	selected = uint32(casi)
++	alternatives = uint32(ncases)
++	if !block {
++		alternatives++
++		if casi < 0 {
++			selected = uint32(ncases)
++		}
++	}
++	gomadChoiceRecord(gomadChoiceKindSelectResult, gomadChoiceFlagObservation|choiceSiteFlags, choiceSite, alternatives, selected, uint32(norder))
+ 	return casi, recvOK
+ 
+ sclose:
 diff --git a/src/runtime/time.go b/src/runtime/time.go
 index 81a4c6b..1612f32 100644
 --- a/src/runtime/time.go
