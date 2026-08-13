@@ -60,7 +60,11 @@ func Open(path string) (Artifact, error) {
 			return Artifact{}, errors.Join(fmt.Errorf("artifact is missing listed file %s", filepath.ToSlash(file)), root.Close())
 		}
 	}
-	return Artifact{Path: path, Manifest: manifest, root: root}, nil
+	storedBytes, err := artifactStoredBytes(manifest, uint64(len(manifestBytes)))
+	if err != nil {
+		return Artifact{}, errors.Join(err, root.Close())
+	}
+	return Artifact{Path: path, Manifest: manifest, StoredBytes: storedBytes, root: root}, nil
 }
 
 func (opened *Artifact) Close() error {
@@ -73,7 +77,7 @@ func (opened *Artifact) Close() error {
 }
 
 func (opened Artifact) Detached() Artifact {
-	return Artifact{Path: opened.Path, Manifest: opened.Manifest}
+	return Artifact{Path: opened.Path, Manifest: opened.Manifest, StoredBytes: opened.StoredBytes}
 }
 
 func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File, error) {

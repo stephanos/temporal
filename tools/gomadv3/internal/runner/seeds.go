@@ -83,6 +83,20 @@ func (selection SeedSelection) Iterator() *SeedIterator {
 	return &SeedIterator{ranges: selection.ranges}
 }
 
+func (selection SeedSelection) SeedAt(ordinal uint64) (uint64, bool) {
+	if ordinal >= selection.count {
+		return 0, false
+	}
+	for _, selected := range selection.ranges {
+		width := selected.end - selected.start + 1
+		if ordinal < width {
+			return selected.start + ordinal, true
+		}
+		ordinal -= width
+	}
+	return 0, false
+}
+
 func (iterator *SeedIterator) Next() (uint64, bool) {
 	for iterator.rangeIndex < len(iterator.ranges) {
 		currentRange := iterator.ranges[iterator.rangeIndex]

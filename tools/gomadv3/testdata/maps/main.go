@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"maps"
 	"math"
-	"os"
-	"runtime"
-	"strconv"
 	"strings"
+
+	"gomadv3.test/internal/layout"
 )
 
 type emptyInterfaceKey struct {
@@ -30,8 +29,6 @@ type structKey struct {
 	label string
 }
 
-const maxAddressPadding = 4 << 20
-
 func appendMap[K comparable](output *strings.Builder, prefix string, values map[K]int, formatKey func(K) string) {
 	fmt.Fprint(output, prefix, ":")
 	for key, value := range values {
@@ -40,59 +37,74 @@ func appendMap[K comparable](output *strings.Builder, prefix string, values map[
 	output.WriteByte('\n')
 }
 
-func invalidAddressPadding() {
-	fmt.Fprintf(os.Stderr, "GOMADV3_MAP_PADDING must be a decimal byte count up to %d\n", maxAddressPadding)
-	os.Exit(2)
-}
-
-func addressPadding() ([]*[64]byte, *[64]byte) {
-	value, present := os.LookupEnv("GOMADV3_MAP_PADDING")
-	if !present {
-		return nil, nil
+func requireMap[K comparable](values map[K]int, expected map[K]int) {
+	if len(values) != len(expected) {
+		panic("map has an invalid cardinality")
 	}
-	if value == "" {
-		invalidAddressPadding()
-	}
-	for _, digit := range value {
-		if digit < '0' || digit > '9' {
-			invalidAddressPadding()
+	for key, value := range expected {
+		if observed, present := values[key]; !present || observed != value {
+			panic("map has an invalid logical entry")
 		}
 	}
-	size, err := strconv.ParseUint(value, 10, 23)
-	if err != nil || size > maxAddressPadding {
-		invalidAddressPadding()
-	}
-	padding := make([]*[64]byte, int((size+63)/64))
-	for index := range padding {
-		padding[index] = new([64]byte)
-	}
-	marker := new([64]byte)
-	return padding, marker
 }
 
 func main() {
-	padding, marker := addressPadding()
+	padding := layout.New()
 	var output strings.Builder
 	values := make(map[string]int)
 	for value := range 24 {
 		values[fmt.Sprintf("k%02d", value)] = value
 	}
+	expectedStrings := make(map[string]int)
+	for value := range 24 {
+		expectedStrings[fmt.Sprintf("k%02d", value)] = value
+	}
+	requireMap(values, expectedStrings)
 	formatString := func(key string) string { return key }
 	appendMap(&output, "create", values, formatString)
 	appendMap(&output, "string", values, formatString)
-	appendMap(&output, "clone", maps.Clone(values), formatString)
+	cloned := maps.Clone(values)
+	requireMap(cloned, expectedStrings)
+	appendMap(&output, "clone", cloned, formatString)
+	delete(values, "k00")
+	values["k00"] = 100
+	if cloned["k00"] != 0 || values["k00"] != 100 {
+		panic("map clone did not preserve an independent lifecycle")
+	}
+	appendMap(&output, "delete-reinsert", values, formatString)
 	clear(values)
+	expectedStrings = make(map[string]int)
 	for value := range 24 {
 		values[fmt.Sprintf("r%02d", value)] = value
+		expectedStrings[fmt.Sprintf("r%02d", value)] = value
 	}
+	requireMap(values, expectedStrings)
 	appendMap(&output, "clear", values, formatString)
 
+	uint8s := make(map[uint8]int)
+	uint16s := make(map[uint16]int)
 	uint32s := make(map[uint32]int)
 	uint64s := make(map[uint64]int)
+	expectedUint8s := make(map[uint8]int)
+	expectedUint16s := make(map[uint16]int)
+	expectedUint32s := make(map[uint32]int)
+	expectedUint64s := make(map[uint64]int)
 	for value := range 24 {
-		uint32s[uint32(value)*2654435761] = value
-		uint64s[uint64(value)*11400714819323198485] = value
+		key8 := uint8(value * 11)
+		key16 := uint16(value * 2731)
+		key32 := uint32(value) * 2654435761
+		key64 := uint64(value) * 11400714819323198485
+		uint8s[key8], expectedUint8s[key8] = value, value
+		uint16s[key16], expectedUint16s[key16] = value, value
+		uint32s[key32], expectedUint32s[key32] = value, value
+		uint64s[key64], expectedUint64s[key64] = value, value
 	}
+	requireMap(uint8s, expectedUint8s)
+	requireMap(uint16s, expectedUint16s)
+	requireMap(uint32s, expectedUint32s)
+	requireMap(uint64s, expectedUint64s)
+	appendMap(&output, "uint8", uint8s, func(key uint8) string { return fmt.Sprintf("%02x", key) })
+	appendMap(&output, "uint16", uint16s, func(key uint16) string { return fmt.Sprintf("%04x", key) })
 	appendMap(&output, "uint32", uint32s, func(key uint32) string { return fmt.Sprintf("%08x", key) })
 	appendMap(&output, "uint64", uint64s, func(key uint64) string { return fmt.Sprintf("%016x", key) })
 
@@ -111,6 +123,9 @@ func main() {
 		float64s[float64Key] = value
 		complex64s[complex(float32Key, float32(value+1))] = value
 		complex128s[complex(float64Key, float64(value+1))] = value
+	}
+	if len(float32s) != 24 || len(float64s) != 24 || len(complex64s) != 24 || len(complex128s) != 24 {
+		panic("floating map has an invalid cardinality")
 	}
 	appendMap(&output, "float32", float32s, func(key float32) string {
 		return fmt.Sprintf("%08x", math.Float32bits(key))
@@ -135,6 +150,17 @@ func main() {
 		arrays[[2]uint64{uint64(value), uint64(value * value)}] = value
 		structs[structKey{index: uint64(value), label: fmt.Sprintf("s%02d", value)}] = value
 	}
+	if len(emptyInterfaces) != 24 || len(nonEmptyInterfaces) != 24 || len(arrays) != 24 || len(structs) != 24 {
+		panic("composite map has an invalid cardinality")
+	}
+	for value := range 24 {
+		if emptyInterfaces[emptyInterfaceKey{index: value, label: fmt.Sprintf("e%02d", value)}] != value ||
+			nonEmptyInterfaces[nonEmptyInterfaceKey(value)] != value ||
+			arrays[[2]uint64{uint64(value), uint64(value * value)}] != value ||
+			structs[structKey{index: uint64(value), label: fmt.Sprintf("s%02d", value)}] != value {
+			panic("composite map has an invalid logical entry")
+		}
+	}
 	appendMap(&output, "empty-interface", emptyInterfaces, func(key any) string {
 		value := key.(emptyInterfaceKey)
 		return fmt.Sprintf("%d-%s", value.index, value.label)
@@ -149,20 +175,60 @@ func main() {
 		return fmt.Sprintf("%d-%s", key.index, key.label)
 	})
 
+	lifecycle := make(map[int]int)
+	for value := range 4096 {
+		lifecycle[value] = value * value
+	}
+	for value := 0; value < 4096; value += 2 {
+		delete(lifecycle, value)
+	}
+	for value := 0; value < 4096; value += 2 {
+		lifecycle[value] = -value
+	}
+	if len(lifecycle) != 4096 {
+		panic("map lifecycle changed its cardinality")
+	}
+	for value := range 4096 {
+		expected := value * value
+		if value%2 == 0 {
+			expected = -value
+		}
+		if lifecycle[value] != expected {
+			panic("map lifecycle returned an invalid value")
+		}
+	}
+	growthDigest := uint64(14695981039346656037)
+	for key, value := range lifecycle {
+		growthDigest ^= uint64(uint32(key))<<32 | uint64(uint32(value))
+		growthDigest *= 1099511628211
+	}
+	fmt.Fprintf(&output, "growth:%016x\n", growthDigest)
+
+	small := map[int]int{0: 0, 1: 1, 2: 4, 3: 9}
+	requireMap(small, map[int]int{0: 0, 1: 1, 2: 4, 3: 9})
+	appendMap(&output, "small", small, func(key int) string { return fmt.Sprintf("%d", key) })
+
 	nans := make(map[float64]int)
 	for value := range 8 {
 		key := math.Float64frombits(0x7ff8000000000000 + uint64(value))
 		nans[key] = value
+	}
+	if len(nans) != 8 {
+		panic("NaN map has an invalid cardinality")
+	}
+	seenNaNs := make([]bool, 8)
+	for key, value := range nans {
+		if value < 0 || value >= len(seenNaNs) || seenNaNs[value] || math.Float64bits(key) != 0x7ff8000000000000+uint64(value) {
+			panic("NaN map has an invalid logical entry")
+		}
+		seenNaNs[value] = true
 	}
 	output.WriteString("nan:")
 	for key, value := range nans {
 		fmt.Fprintf(&output, "%x=%d,", math.Float64bits(key), value)
 	}
 	output.WriteByte('\n')
-	if marker != nil {
-		fmt.Fprintf(&output, "GOMADV3_MAP_ADDRESS %p\n", marker)
-	}
+	output.WriteString("maps-oracle:ok\n")
 	fmt.Print(output.String())
-	runtime.KeepAlive(padding)
-	runtime.KeepAlive(marker)
+	padding.Finish()
 }

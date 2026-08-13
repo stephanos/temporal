@@ -23,27 +23,33 @@ type BatchConfig struct {
 }
 
 type BatchSummary struct {
-	Attempted         uint64
-	Succeeded         uint64
-	Failures          uint64
-	Watchdogs         uint64
-	Cancelled         uint64
-	DistinctFailures  uint64
-	StopReason        string
-	FailureSignatures []record.SHA256
+	Attempted            uint64
+	Succeeded            uint64
+	Failures             uint64
+	Watchdogs            uint64
+	Cancelled            uint64
+	DistinctFailures     uint64
+	RetainedSuccesses    uint64
+	RetainedSuccessBytes uint64
+	StopReason           string
+	FailureSignatures    []record.SHA256
 }
 
 type RunRecord struct {
-	SelectionOrdinal    record.Uint64String  `json:"selection_ordinal"`
-	Seed                record.Uint64String  `json:"seed"`
-	Domain              string               `json:"domain"`
-	Reason              string               `json:"reason"`
-	Termination         string               `json:"termination"`
-	FailureSignature    *record.SHA256       `json:"failure_signature"`
-	Artifact            *string              `json:"artifact"`
-	ElapsedNanos        record.Uint64String  `json:"elapsed_nanos"`
-	IOTranscriptSHA256  *record.SHA256       `json:"io_transcript_sha256"`
-	IOTranscriptRecords *record.Uint64String `json:"io_transcript_records"`
+	SelectionOrdinal     record.Uint64String  `json:"selection_ordinal"`
+	Seed                 record.Uint64String  `json:"seed"`
+	Domain               string               `json:"domain"`
+	Reason               string               `json:"reason"`
+	Termination          string               `json:"termination"`
+	FailureSignature     *record.SHA256       `json:"failure_signature"`
+	Artifact             *string              `json:"artifact"`
+	ElapsedNanos         record.Uint64String  `json:"elapsed_nanos"`
+	IOTranscriptSHA256   *record.SHA256       `json:"io_transcript_sha256"`
+	IOTranscriptRecords  *record.Uint64String `json:"io_transcript_records"`
+	SemanticProbes       []string             `json:"semantic_probes,omitempty"`
+	SuccessArtifact      *string              `json:"success_artifact,omitempty"`
+	SuccessArtifactBytes *record.Uint64String `json:"success_artifact_bytes,omitempty"`
+	NovelSemanticProbes  []string             `json:"novel_semantic_probes,omitempty"`
 }
 
 type BatchJournal struct {
@@ -54,6 +60,7 @@ type BatchJournal struct {
 	runsHasher hash.Hash
 	runsWriter io.Writer
 	published  bool
+	resumeLock *os.File
 }
 
 type RunState string
@@ -73,21 +80,23 @@ type RunJournal struct {
 	state   RunState
 }
 
-type batchRecord struct {
-	SchemaVersion     uint32              `json:"schema_version"`
-	Schema            string              `json:"schema"`
-	RunID             string              `json:"run_id"`
-	Selection         string              `json:"selection"`
-	SelectionCount    record.Uint64String `json:"selection_count"`
-	Attempted         record.Uint64String `json:"attempted"`
-	Succeeded         record.Uint64String `json:"succeeded"`
-	Failures          record.Uint64String `json:"failures"`
-	Watchdogs         record.Uint64String `json:"watchdogs"`
-	Cancelled         record.Uint64String `json:"cancelled"`
-	DistinctFailures  record.Uint64String `json:"distinct_failures"`
-	StopReason        string              `json:"stop_reason"`
-	RunsSHA256        record.SHA256       `json:"runs_sha256"`
-	FailureSignatures []record.SHA256     `json:"failure_signatures"`
+type BatchRecord struct {
+	SchemaVersion        uint32              `json:"schema_version"`
+	Schema               string              `json:"schema"`
+	RunID                string              `json:"run_id"`
+	Selection            string              `json:"selection"`
+	SelectionCount       record.Uint64String `json:"selection_count"`
+	Attempted            record.Uint64String `json:"attempted"`
+	Succeeded            record.Uint64String `json:"succeeded"`
+	Failures             record.Uint64String `json:"failures"`
+	Watchdogs            record.Uint64String `json:"watchdogs"`
+	Cancelled            record.Uint64String `json:"cancelled"`
+	DistinctFailures     record.Uint64String `json:"distinct_failures"`
+	RetainedSuccesses    record.Uint64String `json:"retained_successes,omitempty"`
+	RetainedSuccessBytes record.Uint64String `json:"retained_success_bytes,omitempty"`
+	StopReason           string              `json:"stop_reason"`
+	RunsSHA256           record.SHA256       `json:"runs_sha256"`
+	FailureSignatures    []record.SHA256     `json:"failure_signatures"`
 }
 
 func NewBatchJournal(ctx context.Context, config BatchConfig) (*BatchJournal, error) {
@@ -98,7 +107,7 @@ func NewBatchJournal(ctx context.Context, config BatchConfig) (*BatchJournal, er
 		return nil, errors.New("batch journal root, run ID, selection, and selection count are required")
 	}
 	path := filepath.Join(config.Root, "v1", config.RunID)
-	for _, directory := range []string{config.Root, filepath.Join(config.Root, "v1"), path, filepath.Join(path, "failures"), filepath.Join(path, ".partial"), filepath.Join(path, ".partial", "batch")} {
+	for _, directory := range []string{config.Root, filepath.Join(config.Root, "v1"), path, filepath.Join(path, "failures"), filepath.Join(path, "successes"), filepath.Join(path, ".partial"), filepath.Join(path, ".partial", "batch")} {
 		if err := makePrivateDirectories(directory); err != nil {
 			return nil, err
 		}
@@ -120,6 +129,10 @@ func (journal *BatchJournal) PreparedPath() string {
 
 func (journal *BatchJournal) FailuresPath() string {
 	return filepath.Join(journal.path, "failures")
+}
+
+func (journal *BatchJournal) SuccessesPath() string {
+	return filepath.Join(journal.path, "successes")
 }
 
 func (journal *BatchJournal) BeginPreparation() error {
@@ -220,11 +233,12 @@ func (journal *BatchJournal) Publish(summary BatchSummary) error {
 		failureSignatures = []record.SHA256{}
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
-	batch := batchRecord{
+	batch := BatchRecord{
 		SchemaVersion: record.SchemaVersion, Schema: "gomadv3.batch/v1", RunID: journal.config.RunID, Selection: journal.config.Selection,
 		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),
 		Failures: record.Uint64String(summary.Failures), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
 		DistinctFailures: record.Uint64String(summary.DistinctFailures), StopReason: summary.StopReason,
+		RetainedSuccesses: record.Uint64String(summary.RetainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.RetainedSuccessBytes),
 		RunsSHA256: record.SHA256("sha256:" + hex.EncodeToString(journal.runsHasher.Sum(nil))), FailureSignatures: failureSignatures,
 	}
 	encoded, err := record.CanonicalJSON(batch)
@@ -248,12 +262,16 @@ func (journal *BatchJournal) Publish(summary BatchSummary) error {
 }
 
 func (journal *BatchJournal) Close() error {
-	if journal.runsFile == nil {
-		return nil
+	var result error
+	if journal.runsFile != nil {
+		result = journal.runsFile.Close()
+		journal.runsFile = nil
 	}
-	err := journal.runsFile.Close()
-	journal.runsFile = nil
-	return err
+	if journal.resumeLock != nil {
+		result = errors.Join(result, releaseResumeLock(journal.resumeLock))
+		journal.resumeLock = nil
+	}
+	return result
 }
 
 func (journal *BatchJournal) writeLifecycle(directory, state, reason string, cause error) error {

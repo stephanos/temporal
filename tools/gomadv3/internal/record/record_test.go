@@ -179,6 +179,21 @@ func TestFinalizeManifestRejectsImpossibleUntruncatedStream(t *testing.T) {
 	}
 }
 
+func TestFinalizeManifestAcceptsReplayableSuccessfulRun(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.ArtifactKind = ArtifactSuccess
+	manifest.Outcome.Domain = "success"
+	manifest.Outcome.Reason = "success"
+	manifest.Outcome.ExitCode = uint64StringPointer(0)
+	finalized, _, err := FinalizeManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if finalized.ReplayMode != ReplayExact || finalized.Outcome.FailureSignature == "" {
+		t.Fatalf("successful manifest = %#v", finalized)
+	}
+}
+
 func finalizedManifest(t *testing.T, input Manifest) (Manifest, []byte) {
 	t.Helper()
 	manifest, encoded, err := FinalizeManifest(input)

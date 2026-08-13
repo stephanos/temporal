@@ -21,7 +21,7 @@ Runner ---- prepares and supervises one target process per seed
   |
   +---- target process ---- runtime choices and native virtual time
                               |
-                              +---- I/O profile ---- transparent target-specific I/O
+                              +---- deterministic I/O ---- transparent reviewed boundary
                               |
                               +---- World ---- explicit external-event model
 ```
@@ -34,7 +34,8 @@ These boundaries intentionally do not collapse into one controller:
 - Record owns raw bytes, hashes, and the outer replay envelope;
 - World owns external-event identities, ordering, state, and semantic digests;
 - each adapter owns its domain semantics; and
-- an I/O profile owns the reviewed transparent boundary for one exact target.
+- deterministic I/O owns the reviewed transparent boundary for every
+  Runner-managed target on one qualified toolchain and platform.
 
 The mode is for trusted tests. The process boundary and fail-closed shims reduce
 accidental host dependence; they are not an operating-system sandbox against a
@@ -45,14 +46,23 @@ target deliberately issuing raw syscalls.
 ### Activation
 
 A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed
-I/O profile instead supplies the seed in an inherited, identity-bound bootstrap
-configuration and uses `GOMADV3_IO_PROFILE` only to select that bootstrap path.
-Both paths converge before package initialization on the same runtime state.
+target instead supplies the seed in an inherited, identity-bound bootstrap
+configuration and uses the private `GOMADV3_IO_PROFILE` marker only to select
+that bootstrap path. The marker names a versioned artifact identity, not a
+user-selectable or target-specific profile. Both paths converge before package
+initialization on the same runtime state.
 
 Activation forces the initial `GOMAXPROCS` to one, disables asynchronous
 preemption and the system monitor, initializes the seeded runtime choice state,
 and starts the process clock at midnight UTC on 2000-01-01. Disabled execution
 retains the upstream runtime paths.
+
+The supported CI host also runs a privileged DTrace escape audit. A marker in
+an unsigned probe binary activates observation only after runtime startup; an
+unseeded positive control must reach both `clock_gettime` and
+`mach_absolute_time`, while the seeded execution must reach neither. Missing
+privileges, missing probes, or an unobserved marker fail the gate rather than
+silently skipping it.
 
 ### Why process faketime
 
@@ -105,9 +115,15 @@ runtime randomness from leaking between seeds. Parallelism is across processes,
 not through multiple Ps inside one target.
 
 The Go build driver runs outside deterministic mode. `go-run` and `go-test`
-produce a target first, while `exec` requires trusted provenance for the supplied
-binary. Runner validates and hashes the prepared bytes before execution and
-again before publication.
+produce a target first. `exec` requires canonical v2 provenance containing the
+same policy-versioned package-closure review: direct and test-only imports,
+foreign sources, overlay-resolved source hashes, module identities, and the
+generated test main are all explicit evidence. Runner checks standard-package
+claims against the pinned toolchain and module claims against the executable's
+embedded build information before accepting the binary. The provenance remains
+a declaration made by trusted build tooling; its binary hash binds that
+declaration to the exact supplied bytes. Runner validates and hashes the
+prepared bytes before execution and again before publication.
 
 The target environment starts empty. Runner adds only its activation values,
 UTC, and explicitly supplied validated entries; runtime, toolchain, and dynamic
@@ -246,20 +262,42 @@ own versioned snapshot, and Runner composes adapter and World data into one
 record generation. This keeps the event core deep without making it responsible
 for filesystem, network, persistence, or process semantics.
 
-## Transparent I/O profiles
+## Transparent deterministic I/O
 
-World is an explicit event model; a transparent I/O profile is a different
-integration boundary. A profile is restricted to an exact target and reviewed
-dependency closure. Standard-library shims and generated overlays replace only
-the inventoried operations needed by that target, bind their implementation and
-inventory identities into the artifact, and fail closed at unsupported reviewed
-entry points.
+World is an explicit event model; transparent deterministic I/O is a different
+integration boundary. Every Runner-managed target uses the same versioned
+boundary for the qualified toolchain and platform. Standard-library shims cover
+the inventoried operations independently of the target package or arguments,
+bind their implementation and inventory identities into the artifact, and fail
+closed at unsupported reviewed entry points.
 
-Public profiles resolve through an immutable registry. Each opaque profile spec
-owns its name, target contract, canonical inventory and identities, and
-build-overlay policy; callers cannot mutate shared registry bytes. Profiles that
-share the current deterministic implementation reuse that implementation seam
-without introducing a plugin interface.
+`boundary/manifest.json` is the canonical inventory of the currently reviewed
+standard-library entry points. It records each target's signature, semantic
+operation, stable probe, disposition, hook or delegated boundary, permitted
+adapter closure, and fixtures. Generation emits the version-specific compiler
+table, applied-interception report, and human-readable inventory; validation
+rejects malformed, duplicate, or stale declarations before a toolchain build.
+The generated compiler table also carries the formatted declaration fingerprint
+of every intercepted definition. The compiler rereads and hashes the selected
+source declaration before inserting a prologue, so a signature-compatible body
+change cannot silently retain an obsolete interception decision.
+Qualification also discovers public callers of host-capability sinks and
+methods on capability-bearing handles. Every discovered target must be directly
+intercepted or carry an explicit transitive, dynamic, unreachable, patch, or
+upstream disposition; static delegates must still reach a declared hook.
+
+Each compiler prologue records its generated stable probe ID once per process,
+before hook dispatch. The generated semantic-canary test runs the filesystem
+and network fixtures and fails if any manifest hook is unobserved, while the
+fixtures independently assert the modeled result or stable rejection.
+
+The implementation retains one immutable internal profile specification because
+bootstrap frames and existing artifact schemas need a stable name, target
+contract, inventory, identities, and build-overlay policy. It is not a public
+registry or extension mechanism. Foreign-runtime adapters form a separate,
+closed, version-pinned registry selected from target build metadata. The current
+`modernc.org/libc` adapter is generic to that reviewed dependency version; it is
+not keyed to SQLite, Temporal, or an individual test.
 
 Modeled I/O is appended to a bounded deterministic transcript. Replay supplies
 the recorded transcript and stops at the first mismatching operation. Host data
@@ -267,12 +305,30 @@ that is intentionally imported, such as a read-only mount, is captured through
 a Runner-owned boundary and must replay from artifact data without reopening the
 original host source.
 
-Profiles need not route operations through World when a synchronous, explicitly
-ordered transcript is sufficient. A profile should adopt World only when it
-needs modeled external readiness, competing events, cancellation, or logical
-time coordination. This avoids imposing a speculative event scheduler on simple
-deterministic shims while preserving one World contract for adapters that do
-need those semantics.
+Deterministic I/O need not route operations through World when a synchronous,
+explicitly ordered transcript is sufficient. An adapter should adopt World only
+when it needs modeled external readiness, competing events, cancellation, or
+logical time coordination. This avoids imposing a speculative event scheduler
+on simple deterministic shims while preserving one World contract for adapters
+that do need those semantics.
+
+### Filesystem and mount ownership
+
+`internal/gomadfs` is a purpose-built in-memory filesystem shared by the `os`
+adapter and reviewed foreign-runtime adapters. It owns namespace and handle
+semantics, deterministic timestamps, stable directory order, mount
+immutability, and explicit capacity accounting behind a small operation
+interface. Gomad does not use Afero here: Afero imports `os`, cannot sit below a
+patched `os` package without a cycle, and does not cover unchanged libc callers
+or Gomad's transcript, replay, and capacity contracts.
+
+Explicit read-only mounts are the only brokered host filesystem input. A
+Runner-owned broker pins each approved root, resolves descendants without
+following symlinks, validates stable bounded captures, and sends typed entries
+to the target. The target installs each first observation as an immutable
+in-memory node. Replay serves only the artifact's captured entries and never
+reopens the original host path; an uncaptured lookup diverges instead of falling
+back to live input.
 
 ### Binary protocol ownership
 
@@ -302,7 +358,7 @@ closure small while making malformed input fail before allocation or exposure.
 Gomad keeps these outcomes distinct:
 
 - target failure: the process completed with a deterministic exit, signal,
-  logical test timeout, runtime fatal, or structured World/profile failure;
+  logical test timeout, runtime fatal, or structured World/I/O failure;
 - watchdog timeout: host time bounded a process that did not produce a complete
   target result;
 - replay divergence: current deterministic interaction differs from the record;
@@ -316,9 +372,22 @@ input, an approximate schema, or an unbounded allocation.
 
 ## Maintenance gates
 
+`version.json` is the canonical release descriptor. It owns the Go archive and
+digest, supported platforms, patch name, boundary-manifest version, adapter
+versions, and exact patch/overlay source sets. Generation produces its shell,
+Make, Go, and human-guide consumers; validation requires the allowlists to equal
+the actual patch and overlay tree rather than merely containing them.
+
 The runtime patch and transparent I/O overlays are pinned implementation costs.
-Every Go upgrade requires disabled-mode compatibility checks and a fresh audit
-of the touched runtime, linker, and standard-library paths.
+Every Go upgrade runs the typed `upgradegen` host command, which records the
+complete upstream patch, semantic boundary diff, interception evidence,
+archive-based overlay collision audit, disabled-mode upstream compatibility,
+mandatory probes, optional retained-corpus evidence, and platform qualification
+in one JSON dossier. The supported-host gate must also rerun the
+positive-controlled host-clock trace because dynamic imports and probe names are
+platform implementation details. The dossier is published on failure and
+uploaded by CI, so a rejected upgrade retains its first failing gate and bounded
+output.
 
 Broader runtime or compiler changes require a minimized real workload showing
 that Runner, World, adapters, and records cannot satisfy the contract. Runtime
