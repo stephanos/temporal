@@ -15,8 +15,8 @@ import (
 type Input struct {
 	GoVersion        string
 	ArchiveSHA256    string
-	PatchSHA256      string
-	OverlaySHA256    string
+	PatchPath        string
+	OverlayPath      string
 	HostOS           string
 	HostArch         string
 	BootstrapVersion string
@@ -26,9 +26,41 @@ type Input struct {
 	BashVersion      string
 }
 
-func Compute(input Input) (string, error) {
+type SourceError struct {
+	source string
+	err    error
+}
+
+func (err *SourceError) Error() string {
+	return fmt.Sprintf("hash %s: %v", err.source, err.err)
+}
+
+func (err *SourceError) Unwrap() error {
+	return err.err
+}
+
+type identity struct {
+	input         Input
+	patchSHA256   string
+	overlaySHA256 string
+}
+
+func Derive(input Input) (string, error) {
+	patchSHA256, err := FileDigest(input.PatchPath)
+	if err != nil {
+		return "", &SourceError{source: "patch", err: err}
+	}
+	overlaySHA256, err := treeDigest(input.OverlayPath)
+	if err != nil {
+		return "", &SourceError{source: "overlay", err: err}
+	}
+	return compute(identity{input: input, patchSHA256: patchSHA256, overlaySHA256: overlaySHA256})
+}
+
+func compute(source identity) (string, error) {
+	input := source.input
 	values := []string{
-		input.GoVersion, input.ArchiveSHA256, input.PatchSHA256, input.OverlaySHA256,
+		input.GoVersion, input.ArchiveSHA256, source.patchSHA256, source.overlaySHA256,
 		input.HostOS, input.HostArch, input.BootstrapVersion, input.RecipeVersion,
 		input.BuildPath, input.BashPath, input.BashVersion,
 	}
@@ -60,7 +92,7 @@ func FileDigest(path string) (string, error) {
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
-func TreeDigest(root string) (string, error) {
+func treeDigest(root string) (string, error) {
 	var paths []string
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {

@@ -277,11 +277,10 @@ func runBuildKey(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("hosttool build-key", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	var input buildkey.Input
-	var patch, overlay string
 	flags.StringVar(&input.GoVersion, "go-version", "", "Go release")
 	flags.StringVar(&input.ArchiveSHA256, "archive-sha256", "", "source archive digest")
-	flags.StringVar(&patch, "patch", "", "patch path")
-	flags.StringVar(&overlay, "overlay", "", "overlay root")
+	flags.StringVar(&input.PatchPath, "patch", "", "patch path")
+	flags.StringVar(&input.OverlayPath, "overlay", "", "overlay root")
 	flags.StringVar(&input.HostOS, "host-os", "", "host operating system")
 	flags.StringVar(&input.HostArch, "host-arch", "", "host architecture")
 	flags.StringVar(&input.BootstrapVersion, "bootstrap-version", "", "bootstrap Go version")
@@ -289,23 +288,16 @@ func runBuildKey(arguments []string, stdout, stderr io.Writer) int {
 	flags.StringVar(&input.BuildPath, "build-path", "", "sterile build PATH")
 	flags.StringVar(&input.BashPath, "bash-path", "", "build bash path")
 	flags.StringVar(&input.BashVersion, "bash-version", "", "build bash version")
-	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || patch == "" || overlay == "" {
+	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || input.PatchPath == "" || input.OverlayPath == "" {
 		return 2
 	}
-	var err error
-	input.PatchSHA256, err = buildkey.FileDigest(patch)
-	if err != nil {
-		fmt.Fprintf(stderr, "hash patch: %v\n", err)
-		return 1
-	}
-	input.OverlaySHA256, err = buildkey.TreeDigest(overlay)
-	if err != nil {
-		fmt.Fprintf(stderr, "hash overlay: %v\n", err)
-		return 1
-	}
-	key, err := buildkey.Compute(input)
+	key, err := buildkey.Derive(input)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
+		var sourceErr *buildkey.SourceError
+		if errors.As(err, &sourceErr) {
+			return 1
+		}
 		return 2
 	}
 	fmt.Fprintln(stdout, key)
