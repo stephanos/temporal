@@ -25,6 +25,12 @@ type ProfileSpec struct {
 	definition *profileDefinition
 }
 
+type Identity struct {
+	Name                 string        `json:"name"`
+	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
+	InventorySHA256      record.SHA256 `json:"inventory_sha256"`
+}
+
 type profileDefinition struct {
 	name                  string
 	target                TargetContract
@@ -96,6 +102,43 @@ func mustProfileSpec(definition profileDefinition) ProfileSpec {
 
 func Default() ProfileSpec {
 	return deterministicProfile
+}
+
+func (profile ProfileSpec) Identity() Identity {
+	if profile.definition == nil {
+		return Identity{}
+	}
+	return Identity{
+		Name:                 profile.definition.name,
+		ImplementationSHA256: profile.definition.implementationSHA256,
+		InventorySHA256:      profile.definition.inventorySHA256,
+	}
+}
+
+func (profile ProfileSpec) Matches(identity Identity) bool {
+	return profile.Identity() == identity
+}
+
+func (identity Identity) MatchesRecord(candidate record.IOProfile) bool {
+	return identity == (Identity{
+		Name:                 candidate.Name,
+		ImplementationSHA256: candidate.ImplementationSHA256,
+		InventorySHA256:      candidate.InventorySHA256,
+	})
+}
+
+func (profile ProfileSpec) RecordIdentity() record.IOProfile {
+	identity := profile.Identity()
+	return record.IOProfile{
+		Name:                 identity.Name,
+		ImplementationSHA256: identity.ImplementationSHA256,
+		Inventory:            string(profile.Inventory()),
+		InventorySHA256:      identity.InventorySHA256,
+	}
+}
+
+func (profile ProfileSpec) MatchesRecord(identity record.IOProfile) bool {
+	return profile.Identity().MatchesRecord(identity) && string(profile.Inventory()) == identity.Inventory
 }
 
 func (profile ProfileSpec) Name() string {

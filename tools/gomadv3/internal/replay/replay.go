@@ -224,7 +224,7 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 	}()
 	manifest := opened.Manifest
 	profile := ioprofile.Default()
-	if profile.Name() != manifest.IOProfile.Name || string(profile.Inventory()) != manifest.IOProfile.Inventory || profile.InventorySHA256() != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256() != manifest.IOProfile.ImplementationSHA256 {
+	if !profile.MatchesRecord(manifest.IOProfile) {
 		return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
 	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {

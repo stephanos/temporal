@@ -10,11 +10,7 @@ import (
 
 const RunEvidenceSchema = "gomadv3.run-evidence/v1"
 
-type IOProfileEvidence struct {
-	Name                 string        `json:"name"`
-	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
-	InventorySHA256      record.SHA256 `json:"inventory_sha256"`
-}
+type IOProfileEvidence = ioprofile.Identity
 
 type OutcomeEvidence struct {
 	Domain      string               `json:"domain"`
@@ -71,9 +67,7 @@ func runEvidence(
 		RunnerBuild: config.RunnerBuild,
 		Toolchain:   prepared.RecordToolchain(),
 		Target:      prepared.RecordTarget(),
-		IOProfile: IOProfileEvidence{
-			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), InventorySHA256: profile.InventorySHA256(),
-		},
+		IOProfile:   profile.Identity(),
 		Environment: append([]record.Environment(nil), environmentForSeed(baseEnvironment, completion.job.seed)...),
 		Limits: RunLimitsEvidence{
 			RunTimeoutNanos: record.Uint64String(config.RunTimeout), TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),

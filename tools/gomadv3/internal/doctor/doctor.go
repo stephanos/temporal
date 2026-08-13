@@ -59,11 +59,12 @@ type CheckResult struct {
 
 func Check(config Config) Report {
 	profile := ioprofile.Default()
+	profileIdentity := profile.Identity()
 	report := Report{
 		Schema: reportSchema, Host: config.HostOS + "/" + config.HostArch,
 		SupportedPlatforms:      append([]string(nil), gomadversion.SupportedPlatforms[:]...),
 		BoundaryManifestVersion: gomadversion.BoundaryManifestVersion,
-		IOInventorySHA256:       profile.InventorySHA256(), IOImplementationSHA256: profile.ImplementationSHA256(),
+		IOInventorySHA256:       profileIdentity.InventorySHA256, IOImplementationSHA256: profileIdentity.ImplementationSHA256,
 		Adapters:           []Adapter{},
 		InstallationSource: config.InstallationSource,
 		ToolchainRoot:      config.ToolchainRoot,
