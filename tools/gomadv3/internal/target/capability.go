@@ -354,7 +354,8 @@ func validateCapabilityReview(closure CapabilityClosure) error {
 			return fmt.Errorf("target capability closure package %s: %w", pkg.ImportPath, err)
 		}
 		for _, source := range pkg.Sources {
-			if filepath.Base(source.Name) != source.Name || source.Name == "" || !validSHA256(source.SHA256) {
+			_, digestErr := record.ParseSHA256(source.SHA256)
+			if filepath.Base(source.Name) != source.Name || source.Name == "" || digestErr != nil {
 				return fmt.Errorf("target capability closure package %s has invalid source evidence", pkg.ImportPath)
 			}
 		}
@@ -565,7 +566,8 @@ func sortedUniqueSources(sources []CapabilitySource) bool {
 
 func sortedUniqueCompatibility(identities []compatibility.Identity) bool {
 	for index, identity := range identities {
-		if identity.ID == "" || !validSHA256(identity.SHA256) || index > 0 && identities[index-1].ID >= identity.ID {
+		_, digestErr := record.ParseSHA256(identity.SHA256)
+		if identity.ID == "" || digestErr != nil || index > 0 && identities[index-1].ID >= identity.ID {
 			return false
 		}
 	}
@@ -589,18 +591,6 @@ func VerifyCompatibility(packs []record.CompatibilityPack) error {
 		identities[index] = compatibility.Identity{ID: pack.ID, SHA256: string(pack.SHA256)}
 	}
 	return compatibility.VerifyIdentities(identities)
-}
-
-func validSHA256(value string) bool {
-	if !strings.HasPrefix(value, "sha256:") || len(value) != len("sha256:")+sha256.Size*2 {
-		return false
-	}
-	for _, character := range strings.TrimPrefix(value, "sha256:") {
-		if character < '0' || character > '9' && character < 'a' || character > 'f' {
-			return false
-		}
-	}
-	return true
 }
 
 func generatedTestMain(pkg listedPackage) bool {
