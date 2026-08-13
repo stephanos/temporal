@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
@@ -14,23 +15,33 @@ import (
 
 func TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "corpus")
-	input, coverage, features := guideArtifactInput(t, 7)
+	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
 	corpus, err := Open(context.Background(), root, identity)
 	if err != nil {
 		t.Fatal(err)
 	}
-	published, err := (artifact.Store{Root: corpus.CasesPath(), Key: artifact.StoreKeyRecord}).Publish(input)
-	if err != nil {
-		t.Fatal(err)
-	}
-	added, err := corpus.Merge(published, coverage, features, ReplayResult{Verified: true, Match: true})
+	added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(_ context.Context, path string) (ReplayResult, error) {
+		if path == "" {
+			t.Fatal("replay path is empty")
+		}
+		return ReplayResult{Verified: true, Match: true}, nil
+	})
 	if err != nil || !added {
-		t.Fatalf("Merge() = %t, %v", added, err)
+		t.Fatalf("Admit() = %t, %v", added, err)
 	}
 	snapshot := corpus.Snapshot()
-	if len(snapshot.Entries) != 1 || snapshot.Entries[0].Seed != 7 || snapshot.Entries[0].RecordHash != published.Manifest.RecordHash || snapshot.Entries[0].Replay != (ReplayResult{Verified: true, Match: true}) || len(snapshot.Entries[0].NoveltyReasons) == 0 {
+	if len(snapshot.Entries) != 1 || snapshot.Entries[0].Seed != 7 || snapshot.Entries[0].Replay != (ReplayResult{Verified: true, Match: true}) || len(snapshot.Entries[0].NoveltyReasons) == 0 {
 		t.Fatalf("snapshot = %#v", snapshot)
+	}
+	duplicate, duplicateCoverage, _ := guideArtifactInput(t, 8)
+	replayed := false
+	added, err = corpus.Admit(context.Background(), Candidate{Artifact: duplicate, Coverage: duplicateCoverage}, func(context.Context, string) (ReplayResult, error) {
+		replayed = true
+		return ReplayResult{Verified: true, Match: true}, nil
+	})
+	if err != nil || added || replayed || len(corpus.Snapshot().Entries) != 1 {
+		t.Fatalf("Admit(duplicate) = %t, %v, replayed = %t, snapshot = %#v", added, err, replayed, corpus.Snapshot())
 	}
 	if err := corpus.Close(); err != nil {
 		t.Fatal(err)
@@ -48,24 +59,28 @@ func TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay(t *testing.T) {
 
 func TestCorpusRejectsIdentityChangesAndNonMatchingReplay(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "corpus")
-	input, coverage, features := guideArtifactInput(t, 7)
+	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
 	corpus, err := Open(context.Background(), root, identity)
 	if err != nil {
 		t.Fatal(err)
 	}
-	published, err := (artifact.Store{Root: corpus.CasesPath(), Key: artifact.StoreKeyRecord}).Publish(input)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if added, err := corpus.Merge(published, coverage, features, ReplayResult{Verified: true, Match: false, Divergence: "stdout"}); err == nil || added {
-		t.Fatalf("Merge(non-match) = %t, %v", added, err)
+	if added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(context.Context, string) (ReplayResult, error) {
+		return ReplayResult{Verified: true, Match: false, Divergence: "stdout"}, nil
+	}); err == nil || added {
+		t.Fatalf("Admit(non-match) = %t, %v", added, err)
 	}
 	if len(corpus.Snapshot().Entries) != 0 {
 		t.Fatal("non-matching replay changed corpus coverage")
 	}
-	if added, err := corpus.Merge(published, coverage, features, ReplayResult{Verified: true, Match: true}); err != nil || !added {
-		t.Fatalf("Merge(match) = %t, %v", added, err)
+	caseEntries, err := os.ReadDir(filepath.Join(root, "cases"))
+	if err != nil || len(caseEntries) != 0 {
+		t.Fatalf("divergent case cleanup = %v, %v", caseEntries, err)
+	}
+	if added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(context.Context, string) (ReplayResult, error) {
+		return ReplayResult{Verified: true, Match: true}, nil
+	}); err != nil || !added {
+		t.Fatalf("Admit(match) = %t, %v", added, err)
 	}
 	if err := corpus.Close(); err != nil {
 		t.Fatal(err)
@@ -154,7 +169,7 @@ func TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases(t *testing.T) {
 		t.Fatal(err)
 	}
 	snapshot, encoded, err := finalizeSnapshot(Snapshot{
-		Schema: CorpusSchema, Identity: identity, Entries: make([]Entry, MaximumEntries+1),
+		Schema: CorpusSchema, Identity: identity, Entries: make([]Entry, maximumEntries+1),
 	})
 	if err != nil || snapshot.SnapshotSHA256 == "" {
 		t.Fatalf("finalizeSnapshot() = %#v, %v", snapshot, err)
@@ -198,13 +213,13 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.Input, ioprofile.Se
 			Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), Inventory: string(profile.Inventory()), InventorySHA256: profile.InventorySHA256(),
 			Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 1},
 		},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64, IOTranscriptBytes: 64 << 20},
 		World:       world, Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
 		Host:    record.Host{StartedAt: "2026-08-13T00:00:00Z", FinishedAt: "2026-08-13T00:00:01Z", ElapsedNanos: 1},
 	}
-	features, err := SemanticFeatures(manifest, coverage, transcript, payloads.Transitions)
+	features, err := semanticFeatures(manifest, coverage, transcript, payloads.Transitions)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -10,7 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/world"
 )
 
-func SemanticFeatures(manifest record.Manifest, coverage ioprofile.SemanticCoverage, ioTranscript, worldTransitions []byte) ([]Feature, error) {
+func semanticFeatures(manifest record.Manifest, coverage ioprofile.SemanticCoverage, ioTranscript, worldTransitions []byte) ([]Feature, error) {
 	features := make([]Feature, 0, len(coverage.Probes)+8)
 	if manifest.Outcome.Domain != "success" {
 		features = append(features,
