@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/filelock"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/safefile"
@@ -24,7 +25,7 @@ type Corpus struct {
 	path     string
 	identity Identity
 	snapshot Snapshot
-	lock     *os.File
+	lock     *filelock.Lock
 }
 
 func Open(ctx context.Context, path string, identity Identity) (_ *Corpus, retErr error) {
