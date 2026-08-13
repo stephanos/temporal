@@ -3,6 +3,7 @@ package record
 const SchemaVersion uint32 = 1
 
 const (
+	ArtifactSuccess         = "gomadv3.success/v1"
 	ArtifactTargetFailure   = "gomadv3.target-failure/v1"
 	ArtifactWatchdogTimeout = "gomadv3.watchdog-timeout/v1"
 	ArtifactRunnerFailure   = "gomadv3.runner-failure/v1"

@@ -1,0 +1,244 @@
+# Gomad deterministic boundary: go1.26.4-darwin-arm64-v1
+
+Generated from [`manifest.json`](manifest.json) for Go go1.26.4 on darwin/arm64. Manifest identity: `sha256:ae8153017485b5277251a541c79b24b894da6774c202f4a86b56e66617e115a2`. Do not edit this inventory directly.
+
+| Target | Signature | Operation | Probe | Disposition | Hook | Adapters | Conformance | Negative | Escape |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| os.OpenFile | func(name string, flag int, perm FileMode) (*File, error) | filesystem.open | stdlib.os.openfile | model | gomadInterceptOpenFile | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  | internal/ioprofile.TestDirectSeedFilesystemStartsEmpty |
+| os.(*File).Read | func(b []byte) (n int, err error) | filesystem.read | stdlib.os.file.read | model | gomadInterceptFileRead | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  | internal/ioprofile.TestDirectSeedFilesystemStartsEmpty |
+| os.(*File).Close | func() error | filesystem.close | stdlib.os.file.close | model | gomadInterceptFileClose | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Readdir | func(n int) ([]FileInfo, error) | filesystem.read-directory | stdlib.os.file.readdir-file-info | model | gomadInterceptFileReaddir | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Readdirnames | func(n int) (names []string, err error) | filesystem.read-directory-names | stdlib.os.file.readdirnames | model | gomadInterceptFileReaddirnames | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).ReadDir | func(n int) ([]DirEntry, error) | filesystem.read-directory-entries | stdlib.os.file.read-dir | model | gomadInterceptFileReadDir | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.ReadDir | func(name string) ([]DirEntry, error) | filesystem.read-directory | stdlib.os.readdir | model | gomadInterceptReadDir | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).ReadAt | func(b []byte, off int64) (n int, err error) | filesystem.read-at | stdlib.os.file.readat | model | gomadInterceptFileReadAt | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Write | func(b []byte) (n int, err error) | filesystem.write | stdlib.os.file.write | model | gomadInterceptFileWrite | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).WriteAt | func(b []byte, off int64) (n int, err error) | filesystem.write-at | stdlib.os.file.writeat | model | gomadInterceptFileWriteAt | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Seek | func(offset int64, whence int) (ret int64, err error) | filesystem.seek | stdlib.os.file.seek | model | gomadInterceptFileSeek | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Mkdir | func(name string, perm FileMode) error | filesystem.mkdir | stdlib.os.mkdir | model | gomadInterceptMkdir | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Chdir | func(dir string) error | filesystem.chdir | stdlib.os.chdir | model | gomadInterceptChdir | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Rename | func(oldpath string, newpath string) error | filesystem.rename | stdlib.os.rename | model | gomadInterceptRename | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Readlink | func(name string) (string, error) | filesystem.readlink | stdlib.os.readlink | deny | gomadInterceptReadlink | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem |  |
+| os.Chmod | func(name string, mode FileMode) error | filesystem.chmod | stdlib.os.chmod | model | gomadInterceptChmod | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Chmod | func(mode FileMode) error | filesystem.chmod | stdlib.os.file.chmod | model | gomadInterceptFileChmod | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Chown | func(name string, uid int, gid int) error | filesystem.chown | stdlib.os.chown | deny | gomadInterceptChown | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem |  |
+| os.Lchown | func(name string, uid int, gid int) error | filesystem.lchown | stdlib.os.lchown | deny | gomadInterceptLchown | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem |  |
+| os.(*File).Chown | func(uid int, gid int) error | filesystem.chown | stdlib.os.file.chown | deny | gomadInterceptFileChown | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem |  |
+| os.(*File).Truncate | func(size int64) error | filesystem.truncate | stdlib.os.file.truncate | model | gomadInterceptFileTruncate | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Sync | func() error | filesystem.sync | stdlib.os.file.sync | model | gomadInterceptFileSync | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Chtimes | func(name string, atime time.Time, mtime time.Time) error | filesystem.change-times | stdlib.os.chtimes | model | gomadInterceptChtimes | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Chdir | func() error | filesystem.chdir | stdlib.os.file.chdir | model | gomadInterceptFileChdir | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Truncate | func(name string, size int64) error | filesystem.truncate | stdlib.os.truncate | model | gomadInterceptTruncate | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Remove | func(name string) error | filesystem.remove | stdlib.os.remove | model | gomadInterceptRemove | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Link | func(oldname string, newname string) error | filesystem.link | stdlib.os.link | deny | gomadInterceptLink | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem |  |
+| os.Symlink | func(oldname string, newname string) error | filesystem.symlink | stdlib.os.symlink | deny | gomadInterceptSymlink | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem |  |
+| os.Getwd | func() (dir string, err error) | filesystem.get-working-directory | stdlib.os.getwd | model | gomadInterceptGetwd | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.MkdirAll | func(path string, perm FileMode) error | filesystem.mkdir-all | stdlib.os.mkdirall | model | gomadInterceptMkdirAll | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.RemoveAll | func(path string) error | filesystem.remove-all | stdlib.os.removeall | model | gomadInterceptRemoveAll | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Stat | func(name string) (FileInfo, error) | filesystem.stat | stdlib.os.stat | model | gomadInterceptStat | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Lstat | func(name string) (FileInfo, error) | filesystem.lstat | stdlib.os.lstat | model | gomadInterceptLstat | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.(*File).Stat | func() (FileInfo, error) | filesystem.stat | stdlib.os.file.stat | model | gomadInterceptFileStat | internal/gomadfs<br>internal/gomadio/mount | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.Hostname | func() (name string, err error) | host.hostname | stdlib.os.hostname | model | gomadInterceptHostname | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory |  |  |
+| os.NewFile | func(fd uintptr, name string) *File | world.transport-or-deny-raw-descriptor | stdlib.os.newfile | model | gomadInterceptNewFile | overlay/os<br>world/child | internal/ioprofile.TestProfileFilesystemStaysInMemory<br>internal/process.TestRunCapturesWorldRecordFromExecutingChild | testdata/io_filesystem | testdata/io_filesystem |
+| os.Pipe | func() (r *File, w *File, err error) | filesystem.pipe | stdlib.os.pipe | deny | gomadInterceptPipe | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).Fd | func() uintptr | filesystem.raw-descriptor | stdlib.os.file.fd | deny | gomadInterceptFileFd | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).SyscallConn | func() (syscall.RawConn, error) | filesystem.raw-connection | stdlib.os.file.syscallconn | deny | gomadInterceptFileSyscallConn | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| net.(*Dialer).DialContext | func(ctx context.Context, network string, address string) (Conn, error) | network.dial | stdlib.net.dialer.dialcontext | delegate | gomadInterceptDialContext | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*ListenConfig).Listen | func(ctx context.Context, network string, address string) (Listener, error) | network.listen | stdlib.net.listenconfig.listen | delegate | gomadInterceptListen | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).Read | func(b []byte) (int, error) | network.read | stdlib.net.conn.read | model | gomadInterceptConnRead | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).Write | func(b []byte) (int, error) | network.write | stdlib.net.conn.write | model | gomadInterceptConnWrite | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).Close | func() error | network.close | stdlib.net.conn.close | model | gomadInterceptConnClose | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).LocalAddr | func() Addr | network.local-address | stdlib.net.conn.localaddr | model | gomadInterceptConnLocalAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).RemoteAddr | func() Addr | network.remote-address | stdlib.net.conn.remoteaddr | model | gomadInterceptConnRemoteAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).SetDeadline | func(t time.Time) error | network.deadline | stdlib.net.conn.setdeadline | model | gomadInterceptConnSetDeadline | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).SetReadDeadline | func(t time.Time) error | network.read-deadline | stdlib.net.conn.setreaddeadline | model | gomadInterceptConnSetReadDeadline | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).SetWriteDeadline | func(t time.Time) error | network.write-deadline | stdlib.net.conn.setwritedeadline | model | gomadInterceptConnSetWriteDeadline | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).SetReadBuffer | func(bytes int) error | network.read-buffer | stdlib.net.conn.setreadbuffer | model | gomadInterceptConnSetReadBuffer | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).SetWriteBuffer | func(bytes int) error | network.write-buffer | stdlib.net.conn.setwritebuffer | model | gomadInterceptConnSetWriteBuffer | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*conn).File | func() (f *os.File, err error) | network.raw-file | stdlib.net.conn.file | deny | gomadInterceptConnFile | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*TCPConn).SyscallConn | func() (syscall.RawConn, error) | network.raw-connection | stdlib.net.tcpconn.syscallconn | deny | gomadInterceptTCPConnSyscallConn | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*TCPConn).CloseRead | func() error | network.close-read | stdlib.net.tcpconn.closeread | model | gomadInterceptTCPConnCloseRead | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).CloseWrite | func() error | network.close-write | stdlib.net.tcpconn.closewrite | model | gomadInterceptTCPConnCloseWrite | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).SetLinger | func(sec int) error | network.linger | stdlib.net.tcpconn.setlinger | model | gomadInterceptTCPConnSetLinger | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).SetKeepAlive | func(keepalive bool) error | network.keep-alive | stdlib.net.tcpconn.setkeepalive | model | gomadInterceptTCPConnSetKeepAlive | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).SetKeepAlivePeriod | func(d time.Duration) error | network.keep-alive-period | stdlib.net.tcpconn.setkeepaliveperiod | model | gomadInterceptTCPConnSetKeepAlivePeriod | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).SetNoDelay | func(noDelay bool) error | network.no-delay | stdlib.net.tcpconn.setnodelay | model | gomadInterceptTCPConnSetNoDelay | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).MultipathTCP | func() (bool, error) | network.multipath-tcp | stdlib.net.tcpconn.multipathtcp | model | gomadInterceptTCPConnMultipathTCP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.dialTCP | func(ctx context.Context, dialer *Dialer, network string, laddr *TCPAddr, raddr *TCPAddr) (*TCPConn, error) | network.dial-tcp | stdlib.net.dialtcp | model | gomadInterceptDialTCP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPListener).SyscallConn | func() (syscall.RawConn, error) | network.listener-raw-connection | stdlib.net.tcplistener.syscallconn | deny | gomadInterceptTCPListenerSyscallConn | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*TCPListener).AcceptTCP | func() (*TCPConn, error) | network.accept-tcp | stdlib.net.tcplistener.accepttcp | model | gomadInterceptTCPListenerAcceptTCP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPListener).Accept | func() (Conn, error) | network.accept | stdlib.net.tcplistener.accept | delegate | gomadInterceptTCPListenerAccept | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPListener).Close | func() error | network.listener-close | stdlib.net.tcplistener.close | model | gomadInterceptTCPListenerClose | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPListener).Addr | func() Addr | network.listener-address | stdlib.net.tcplistener.addr | model | gomadInterceptTCPListenerAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPListener).SetDeadline | func(t time.Time) error | network.listener-deadline | stdlib.net.tcplistener.setdeadline | model | gomadInterceptTCPListenerSetDeadline | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPListener).File | func() (f *os.File, err error) | network.listener-raw-file | stdlib.net.tcplistener.file | deny | gomadInterceptTCPListenerFile | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ListenTCP | func(network string, laddr *TCPAddr) (*TCPListener, error) | network.listen-tcp | stdlib.net.listentcp | model | gomadInterceptListenTCP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.(*TCPConn).SetKeepAliveConfig | func(config KeepAliveConfig) error | network.keep-alive-config | stdlib.net.tcpconn.setkeepaliveconfig | model | gomadInterceptTCPConnSetKeepAliveConfig | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback |  |  |
+| net.DialIP | func(network string, laddr *IPAddr, raddr *IPAddr) (*IPConn, error) | network.raw-ip | stdlib.net.dialip | deny | gomadInterceptDialIP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ListenIP | func(network string, laddr *IPAddr) (*IPConn, error) | network.raw-ip-listen | stdlib.net.listenip | deny | gomadInterceptListenIP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.DialUDP | func(network string, laddr *UDPAddr, raddr *UDPAddr) (*UDPConn, error) | network.udp-dial | stdlib.net.dialudp | deny | gomadInterceptDialUDP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ListenUDP | func(network string, laddr *UDPAddr) (*UDPConn, error) | network.udp-listen | stdlib.net.listenudp | deny | gomadInterceptListenUDP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.DialUnix | func(network string, laddr *UnixAddr, raddr *UnixAddr) (*UnixConn, error) | network.unix-dial | stdlib.net.dialunix | deny | gomadInterceptDialUnix | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ListenUnix | func(network string, laddr *UnixAddr) (*UnixListener, error) | network.unix-listen | stdlib.net.listenunix | deny | gomadInterceptListenUnix | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ListenUnixgram | func(network string, laddr *UnixAddr) (*UnixConn, error) | network.unixgram-listen | stdlib.net.listenunixgram | deny | gomadInterceptListenUnixgram | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*ListenConfig).ListenPacket | func(ctx context.Context, network string, address string) (PacketConn, error) | network.packet-listen | stdlib.net.listenconfig.listenpacket | deny | gomadInterceptListenPacket | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupHost | func(ctx context.Context, host string) (addrs []string, err error) | network.dns.lookup-host | stdlib.net.resolver.lookuphost | deny | gomadInterceptResolverLookupHost | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupIP | func(ctx context.Context, network string, host string) ([]IP, error) | network.dns.lookup-ip | stdlib.net.resolver.lookupip | deny | gomadInterceptResolverLookupIP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupIPAddr | func(ctx context.Context, host string) ([]IPAddr, error) | network.dns.lookup-ip-address | stdlib.net.resolver.lookupipaddr | deny | gomadInterceptResolverLookupIPAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupNetIP | func(ctx context.Context, network string, host string) ([]netip.Addr, error) | network.dns.lookup-netip | stdlib.net.resolver.lookupnetip | deny | gomadInterceptResolverLookupNetIP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupPort | func(ctx context.Context, network string, service string) (port int, err error) | network.dns.lookup-port | stdlib.net.resolver.lookupport | deny | gomadInterceptResolverLookupPort | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupCNAME | func(ctx context.Context, host string) (string, error) | network.dns.lookup-cname | stdlib.net.resolver.lookupcname | deny | gomadInterceptResolverLookupCNAME | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupSRV | func(ctx context.Context, service string, proto string, name string) (string, []*SRV, error) | network.dns.lookup-srv | stdlib.net.resolver.lookupsrv | deny | gomadInterceptResolverLookupSRV | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupMX | func(ctx context.Context, name string) ([]*MX, error) | network.dns.lookup-mx | stdlib.net.resolver.lookupmx | deny | gomadInterceptResolverLookupMX | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupNS | func(ctx context.Context, name string) ([]*NS, error) | network.dns.lookup-ns | stdlib.net.resolver.lookupns | deny | gomadInterceptResolverLookupNS | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupTXT | func(ctx context.Context, name string) ([]string, error) | network.dns.lookup-txt | stdlib.net.resolver.lookuptxt | deny | gomadInterceptResolverLookupTXT | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Resolver).LookupAddr | func(ctx context.Context, addr string) ([]string, error) | network.dns.lookup-address | stdlib.net.resolver.lookupaddr | deny | gomadInterceptResolverLookupAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| os.Getpid | func() int | process.identity.pid | stdlib.os.getpid | model | gomadInterceptGetpid | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Getppid | func() int | process.identity.ppid | stdlib.os.getppid | model | gomadInterceptGetppid | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Getuid | func() int | process.identity.uid | stdlib.os.getuid | model | gomadInterceptGetuid | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Geteuid | func() int | process.identity.euid | stdlib.os.geteuid | model | gomadInterceptGeteuid | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Getgid | func() int | process.identity.gid | stdlib.os.getgid | model | gomadInterceptGetgid | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Getegid | func() int | process.identity.egid | stdlib.os.getegid | model | gomadInterceptGetegid | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Getgroups | func() ([]int, error) | process.identity.groups | stdlib.os.getgroups | model | gomadInterceptGetgroups | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.Executable | func() (string, error) | process.executable-path | stdlib.os.executable | model | gomadInterceptExecutable | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.StartProcess | func(name string, argv []string, attr *ProcAttr) (*Process, error) | process.start | stdlib.os.startprocess | deny | gomadInterceptStartProcess | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.FindProcess | func(pid int) (*Process, error) | process.find | stdlib.os.findprocess | deny | gomadInterceptFindProcess | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*Process).Kill | func() error | process.kill | stdlib.os.process.kill | deny | gomadInterceptProcessKill | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*Process).Wait | func() (*ProcessState, error) | process.wait | stdlib.os.process.wait | deny | gomadInterceptProcessWait | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*Process).Signal | func(sig Signal) error | process.signal | stdlib.os.process.signal | deny | gomadInterceptProcessSignal | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*Process).WithHandle | func(f func(handle uintptr)) error | process.raw-handle | stdlib.os.process.withhandle | deny | gomadInterceptProcessWithHandle | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.OpenRoot | func(name string) (*Root, error) | filesystem.open-root | stdlib.os.openroot | deny | gomadInterceptOpenRoot | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.OpenInRoot | func(dir string, name string) (*File, error) | filesystem.open-in-root | stdlib.os.openinroot | deny | gomadInterceptOpenInRoot | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).ReadFrom | func(r io.Reader) (n int64, err error) | filesystem.read-from | stdlib.os.file.readfrom | deny | gomadInterceptFileReadFrom | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).WriteTo | func(w io.Writer) (n int64, err error) | filesystem.write-to | stdlib.os.file.writeto | deny | gomadInterceptFileWriteTo | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).SetDeadline | func(t time.Time) error | filesystem.deadline | stdlib.os.file.setdeadline | deny | gomadInterceptFileSetDeadline | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).SetReadDeadline | func(t time.Time) error | filesystem.read-deadline | stdlib.os.file.setreaddeadline | deny | gomadInterceptFileSetReadDeadline | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| os.(*File).SetWriteDeadline | func(t time.Time) error | filesystem.write-deadline | stdlib.os.file.setwritedeadline | deny | gomadInterceptFileSetWriteDeadline | overlay/os | internal/ioprofile.TestProfileFilesystemStaysInMemory | testdata/io_filesystem | testdata/io_filesystem |
+| net.(*Dialer).DialIP | func(ctx context.Context, network string, laddr netip.Addr, raddr netip.Addr) (*IPConn, error) | network.ip-dial | stdlib.net.dialer.dialip | deny | gomadInterceptDialerDialIP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Dialer).DialTCP | func(ctx context.Context, network string, laddr netip.AddrPort, raddr netip.AddrPort) (*TCPConn, error) | network.tcp-dial-address-port | stdlib.net.dialer.dialtcp | deny | gomadInterceptDialerDialTCP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Dialer).DialUDP | func(ctx context.Context, network string, laddr netip.AddrPort, raddr netip.AddrPort) (*UDPConn, error) | network.udp-dial-address-port | stdlib.net.dialer.dialudp | deny | gomadInterceptDialerDialUDP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Dialer).DialUnix | func(ctx context.Context, network string, laddr *UnixAddr, raddr *UnixAddr) (*UnixConn, error) | network.unix-dial-context | stdlib.net.dialer.dialunix | deny | gomadInterceptDialerDialUnix | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.FileConn | func(f *os.File) (c Conn, err error) | network.wrap-file-connection | stdlib.net.fileconn | deny | gomadInterceptFileConn | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.FileListener | func(f *os.File) (ln Listener, err error) | network.wrap-file-listener | stdlib.net.filelistener | deny | gomadInterceptFileListener | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.FilePacketConn | func(f *os.File) (c PacketConn, err error) | network.wrap-file-packet | stdlib.net.filepacketconn | deny | gomadInterceptFilePacketConn | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.Interfaces | func() ([]Interface, error) | network.interfaces | stdlib.net.interfaces | deny | gomadInterceptInterfaces | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.InterfaceAddrs | func() ([]Addr, error) | network.interface-addresses | stdlib.net.interfaceaddrs | deny | gomadInterceptInterfaceAddrs | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.InterfaceByIndex | func(index int) (*Interface, error) | network.interface-by-index | stdlib.net.interfacebyindex | deny | gomadInterceptInterfaceByIndex | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.InterfaceByName | func(name string) (*Interface, error) | network.interface-by-name | stdlib.net.interfacebyname | deny | gomadInterceptInterfaceByName | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Interface).Addrs | func() ([]Addr, error) | network.interface-addresses-by-interface | stdlib.net.interface.addrs | deny | gomadInterceptInterfaceAddrsMethod | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.(*Interface).MulticastAddrs | func() ([]Addr, error) | network.interface-multicast-addresses | stdlib.net.interface.multicastaddrs | deny | gomadInterceptInterfaceMulticastAddrs | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ListenMulticastUDP | func(network string, ifi *Interface, gaddr *UDPAddr) (*UDPConn, error) | network.multicast-listen | stdlib.net.listenmulticastudp | deny | gomadInterceptListenMulticastUDP | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ResolveIPAddr | func(network string, address string) (*IPAddr, error) | network.resolve-ip-address | stdlib.net.resolveipaddr | deny | gomadInterceptResolveIPAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ResolveTCPAddr | func(network string, address string) (*TCPAddr, error) | network.resolve-tcp-address | stdlib.net.resolvetcpaddr | deny | gomadInterceptResolveTCPAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ResolveUDPAddr | func(network string, address string) (*UDPAddr, error) | network.resolve-udp-address | stdlib.net.resolveudpaddr | deny | gomadInterceptResolveUDPAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.ResolveUnixAddr | func(network string, address string) (*UnixAddr, error) | network.resolve-unix-address | stdlib.net.resolveunixaddr | deny | gomadInterceptResolveUnixAddr | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+| net.LookupTXT | func(name string) ([]string, error) | network.dns-txt | stdlib.net.lookuptxt | deny | gomadInterceptLookupTXT | internal/gomadio | internal/ioprofile.TestProfileTCPUsesInMemoryLoopback | testdata/io_net | testdata/io_net |
+
+## Reviewed transitive candidates
+
+These source-discovered entry points are controlled without an additional compiler prologue.
+
+| Target | Disposition | Controlling boundaries |
+| --- | --- | --- |
+| crypto/rand.Read | patch |  |
+| crypto/rand.Text | patch |  |
+| net.(*Buffers).WriteTo | upstream |  |
+| net.(*DNSConfigError).Error | upstream |  |
+| net.(*Dialer).Dial | delegate | stdlib.net.dialer.dialcontext |
+| net.(*IPConn).ReadFrom | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*IPConn).ReadFromIP | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*IPConn).ReadMsgIP | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*IPConn).SyscallConn | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*IPConn).WriteMsgIP | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*IPConn).WriteTo | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*IPConn).WriteToIP | unreachable | stdlib.net.dialip<br>stdlib.net.listenip<br>stdlib.net.dialer.dialip |
+| net.(*OpError).Error | upstream |  |
+| net.(*OpError).Temporary | upstream |  |
+| net.(*OpError).Timeout | upstream |  |
+| net.(*TCPConn).ReadFrom | dynamic | stdlib.net.conn.write |
+| net.(*TCPConn).WriteTo | dynamic | stdlib.net.conn.read |
+| net.(*UDPConn).ReadFrom | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).ReadFromUDP | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).ReadFromUDPAddrPort | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).ReadMsgUDP | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).ReadMsgUDPAddrPort | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).SyscallConn | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).WriteMsgUDP | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).WriteMsgUDPAddrPort | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).WriteTo | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).WriteToUDP | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UDPConn).WriteToUDPAddrPort | unreachable | stdlib.net.dialudp<br>stdlib.net.listenudp<br>stdlib.net.dialer.dialudp<br>stdlib.net.listenmulticastudp<br>stdlib.net.listenconfig.listenpacket |
+| net.(*UnixConn).CloseRead | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).CloseWrite | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).ReadFrom | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).ReadFromUnix | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).ReadMsgUnix | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).SyscallConn | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).WriteMsgUnix | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).WriteTo | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixConn).WriteToUnix | unreachable | stdlib.net.dialunix<br>stdlib.net.listenunixgram<br>stdlib.net.dialer.dialunix<br>stdlib.net.listenunix |
+| net.(*UnixListener).Accept | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).AcceptUnix | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).Addr | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).Close | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).File | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).SetDeadline | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).SetUnlinkOnClose | unreachable | stdlib.net.listenunix |
+| net.(*UnixListener).SyscallConn | unreachable | stdlib.net.listenunix |
+| net.Dial | delegate | stdlib.net.dialer.dialcontext |
+| net.DialTCP | delegate | stdlib.net.dialtcp |
+| net.DialTimeout | delegate | stdlib.net.dialer.dialcontext |
+| net.Listen | delegate | stdlib.net.listenconfig.listen |
+| net.ListenPacket | delegate | stdlib.net.listenconfig.listenpacket |
+| net.LookupAddr | delegate | stdlib.net.resolver.lookupaddr |
+| net.LookupCNAME | delegate | stdlib.net.resolver.lookupcname |
+| net.LookupHost | delegate | stdlib.net.resolver.lookuphost |
+| net.LookupIP | delegate | stdlib.net.resolver.lookupipaddr |
+| net.LookupMX | delegate | stdlib.net.resolver.lookupmx |
+| net.LookupNS | delegate | stdlib.net.resolver.lookupns |
+| net.LookupPort | delegate | stdlib.net.resolver.lookupport |
+| net.LookupSRV | delegate | stdlib.net.resolver.lookupsrv |
+| net.SplitHostPort | upstream |  |
+| os.(*File).Name | upstream |  |
+| os.(*File).WriteString | delegate | stdlib.os.file.write |
+| os.(*LinkError).Error | upstream |  |
+| os.(*Process).Release | unreachable | stdlib.os.startprocess<br>stdlib.os.findprocess |
+| os.(*Root).Chmod | unreachable | stdlib.os.openroot |
+| os.(*Root).Chown | unreachable | stdlib.os.openroot |
+| os.(*Root).Chtimes | unreachable | stdlib.os.openroot |
+| os.(*Root).Close | unreachable | stdlib.os.openroot |
+| os.(*Root).Create | unreachable | stdlib.os.openroot |
+| os.(*Root).FS | unreachable | stdlib.os.openroot |
+| os.(*Root).Lchown | unreachable | stdlib.os.openroot |
+| os.(*Root).Link | unreachable | stdlib.os.openroot |
+| os.(*Root).Lstat | unreachable | stdlib.os.openroot |
+| os.(*Root).Mkdir | unreachable | stdlib.os.openroot |
+| os.(*Root).MkdirAll | unreachable | stdlib.os.openroot |
+| os.(*Root).Name | unreachable | stdlib.os.openroot |
+| os.(*Root).Open | unreachable | stdlib.os.openroot |
+| os.(*Root).OpenFile | unreachable | stdlib.os.openroot |
+| os.(*Root).OpenRoot | unreachable | stdlib.os.openroot |
+| os.(*Root).ReadFile | unreachable | stdlib.os.openroot |
+| os.(*Root).Readlink | unreachable | stdlib.os.openroot |
+| os.(*Root).Remove | unreachable | stdlib.os.openroot |
+| os.(*Root).RemoveAll | unreachable | stdlib.os.openroot |
+| os.(*Root).Rename | unreachable | stdlib.os.openroot |
+| os.(*Root).Stat | unreachable | stdlib.os.openroot |
+| os.(*Root).Symlink | unreachable | stdlib.os.openroot |
+| os.(*Root).WriteFile | unreachable | stdlib.os.openroot |
+| os.(*SyscallError).Error | upstream |  |
+| os.(*SyscallError).Timeout | upstream |  |
+| os.CopyFS | delegate | stdlib.os.mkdirall<br>stdlib.os.symlink<br>stdlib.os.openfile<br>stdlib.os.file.write<br>stdlib.os.file.close |
+| os.Create | delegate | stdlib.os.openfile |
+| os.CreateTemp | delegate | stdlib.os.openfile |
+| os.Exit | upstream |  |
+| os.Expand | upstream |  |
+| os.ExpandEnv | upstream |  |
+| os.Getpagesize | upstream |  |
+| os.IsTimeout | upstream |  |
+| os.MkdirTemp | delegate | stdlib.os.mkdir<br>stdlib.os.stat |
+| os.Open | delegate | stdlib.os.openfile |
+| os.ReadFile | delegate | stdlib.os.openfile<br>stdlib.os.file.stat<br>stdlib.os.file.read<br>stdlib.os.file.close |
+| os.WriteFile | delegate | stdlib.os.openfile<br>stdlib.os.file.write<br>stdlib.os.file.close |
+| runtime.nanotime | patch |  |
+| runtime.time_runtimeNow | patch |  |

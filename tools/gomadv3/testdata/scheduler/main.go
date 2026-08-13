@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"runtime"
+
+	"gomadv3.test/internal/layout"
 )
 
 func main() {
+	padding := layout.New()
 	const (
 		workers = 8
 		rounds  = 8
@@ -30,4 +33,5 @@ func main() {
 		fmt.Print(worker)
 	}
 	fmt.Println()
+	padding.Finish()
 }

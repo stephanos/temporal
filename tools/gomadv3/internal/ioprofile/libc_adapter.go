@@ -6,17 +6,21 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/target"
+	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
 
 const (
 	libcModulePath        = "modernc.org/libc"
-	libcModuleVersion     = "v1.72.3"
+	libcModuleVersion     = gomadversion.ModerncLibcVersion
 	libcDarwinSHA256      = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
 	libcDarwinArm64SHA256 = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
 	libcUnixSHA256        = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
@@ -178,6 +182,10 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
 }
 
 func rewriteLibcDarwin(contents []byte) ([]byte, error) {
+	result, err := denyHostCapabilityCalls(contents)
+	if err != nil {
+		return nil, err
+	}
 	rewrites := []functionRewrite{
 		{header: "func Xclose(t *TLS, fd int32) int32 {", body: "\tif result, handled := gomadClose(t, fd); handled { return result }\n"},
 		{header: "func Xfsync(t *TLS, fd int32) int32 {", body: "\tif result, handled := gomadSync(t, fd); handled { return result }\n"},
@@ -190,9 +198,10 @@ func rewriteLibcDarwin(contents []byte) ([]byte, error) {
 		{header: "func Xfchown(t *TLS, fd int32, owner types.Uid_t, group types.Gid_t) int32 {", body: "\tif result, handled := gomadDescriptorNoop(t, fd); handled { return result }\n"},
 		{header: "func Xmmap(t *TLS, addr uintptr, length types.Size_t, prot, flags, fd int32, offset types.Off_t) uintptr {", body: "\tif result, handled := gomadMmap(t, fd); handled { return result }\n"},
 		{header: "func Xgettimeofday(t *TLS, tv, tz uintptr) int32 {", body: "\tif result, handled := gomadGettimeofday(t, tv, tz); handled { return result }\n"},
+		{header: "func Xgeteuid(t *TLS) types.Uid_t {", body: "\tif gomadLibcEnabled() { return 0 }\n"},
 		{header: "func Xrmdir(t *TLS, pathname uintptr) int32 {", body: "\tif gomadLibcEnabled() { return gomadRemove(t, GoString(pathname)) }\n"},
 	}
-	result, err := rewriteFunctions(contents, rewrites)
+	result, err = rewriteFunctions(result, rewrites)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +213,11 @@ func rewriteLibcDarwin(contents []byte) ([]byte, error) {
 }
 
 func rewriteLibcDarwinArm64(contents []byte) ([]byte, error) {
-	return rewriteFunctions(contents, []functionRewrite{
+	result, err := denyHostCapabilityCalls(contents)
+	if err != nil {
+		return nil, err
+	}
+	return rewriteFunctions(result, []functionRewrite{
 		{header: "func Xfcntl64(t *TLS, fd, cmd int32, args uintptr) (r int32) {", body: "\tif result, handled := gomadFcntl(t, fd, cmd, args); handled { return result }\n"},
 		{header: "func Xlstat64(t *TLS, pathname, statbuf uintptr) int32 {", body: "\tif result, handled := gomadStatPath(t, GoString(pathname), statbuf); handled { return result }\n"},
 		{header: "func Xstat64(t *TLS, pathname, statbuf uintptr) int32 {", body: "\tif result, handled := gomadStatPath(t, GoString(pathname), statbuf); handled { return result }\n"},
@@ -220,9 +233,65 @@ func rewriteLibcDarwinArm64(contents []byte) ([]byte, error) {
 }
 
 func rewriteLibcUnix(contents []byte) ([]byte, error) {
-	return rewriteFunctions(contents, []functionRewrite{
+	result, err := denyHostCapabilityCalls(contents)
+	if err != nil {
+		return nil, err
+	}
+	return rewriteFunctions(result, []functionRewrite{
 		{header: "func Xpread(t *TLS, fd int32, buf uintptr, count types.Size_t, offset types.Off_t) types.Ssize_t {", body: "\tif result, handled := gomadRead(t, fd, buf, uint64(count), int64(offset), true); handled { return types.Ssize_t(result) }\n"},
 	})
+}
+
+func denyHostCapabilityCalls(contents []byte) ([]byte, error) {
+	files := token.NewFileSet()
+	parsed, err := parser.ParseFile(files, "libc.go", contents, 0)
+	if err != nil {
+		return nil, fmt.Errorf("parse pinned modernc libc source: %w", err)
+	}
+	type insertion struct {
+		offset int
+		text   []byte
+	}
+	var insertions []insertion
+	lateModels := map[string]struct{}{"Xopen": {}, "Xopen64": {}}
+	for _, declaration := range parsed.Decls {
+		function, ok := declaration.(*ast.FuncDecl)
+		if !ok || function.Body == nil {
+			continue
+		}
+		if _, modeled := lateModels[function.Name.Name]; modeled {
+			continue
+		}
+		risky := false
+		ast.Inspect(function.Body, func(node ast.Node) bool {
+			call, ok := node.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			selector, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+			qualifier, ok := selector.X.(*ast.Ident)
+			if ok && (qualifier.Name == "unix" || qualifier.Name == "syscall" || qualifier.Name == "exec") {
+				risky = true
+				return false
+			}
+			return true
+		})
+		if risky {
+			insertions = append(insertions, insertion{
+				offset: files.Position(function.Body.Lbrace).Offset + 1,
+				text:   []byte("\n\tif gomadLibcEnabled() { panic(\"gomad: unsupported modernc libc host capability: " + function.Name.Name + "\") }"),
+			})
+		}
+	}
+	result := append([]byte(nil), contents...)
+	for index := len(insertions) - 1; index >= 0; index-- {
+		insertion := insertions[index]
+		result = append(result[:insertion.offset], append(insertion.text, result[insertion.offset:]...)...)
+	}
+	return result, nil
 }
 
 type functionRewrite struct {
@@ -391,38 +460,44 @@ func gomadOpen(t *TLS, name string, flags int32, mode uint32) int32 {
 }
 
 func gomadClose(t *TLS, fd int32) (int32, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
 	return gomadErrno(t, gomadLibcClose(fd)), true
 }
 
 func gomadRead(t *TLS, fd int32, address uintptr, size uint64, offset int64, positional bool) (int64, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
 	result, errno := gomadLibcRead(fd, address, size, offset, positional)
 	if errno != 0 { return int64(gomadErrno(t, errno)), true }
 	return result, true
 }
 
 func gomadWrite(t *TLS, fd int32, address uintptr, size uint64, offset int64, positional bool) (int64, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
 	result, errno := gomadLibcWrite(fd, address, size, offset, positional)
 	if errno != 0 { return int64(gomadErrno(t, errno)), true }
 	return result, true
 }
 
 func gomadSeek(t *TLS, fd int32, offset int64, whence int32) (int64, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
 	result, errno := gomadLibcSeek(fd, offset, int(whence))
 	if errno != 0 { return int64(gomadErrno(t, errno)), true }
 	return result, true
 }
 
 func gomadTruncate(t *TLS, fd int32, size int64) (int32, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
 	return gomadErrno(t, gomadLibcTruncate(fd, size)), true
 }
 
 func gomadSync(t *TLS, fd int32) (int32, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
 	return gomadErrno(t, gomadLibcSync(fd)), true
 }
 
@@ -440,7 +515,8 @@ func gomadStatPath(t *TLS, name string, address uintptr) (int32, bool) {
 }
 
 func gomadStatDescriptor(t *TLS, fd int32, address uintptr) (int32, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
 	return gomadFillStat(t, "", fd, address), true
 }
 
@@ -453,7 +529,8 @@ func gomadFillStat(t *TLS, name string, fd int32, address uintptr) int32 {
 }
 
 func gomadStatfs(t *TLS, fd int32, address uintptr) (int32, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
 	return gomadFillStatfs(t, address), true
 }
 
@@ -474,11 +551,14 @@ func gomadRename(t *TLS, oldName, newName string) int32 { return gomadErrno(t, g
 func gomadAccess(t *TLS, name string) int32 { return gomadErrno(t, gomadLibcAccess(name)) }
 
 func gomadDescriptorNoop(t *TLS, fd int32) (int32, bool) {
-	return 0, gomadLibcEnabled() && gomadLibcIsDescriptor(fd)
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return 0, true
 }
 
 func gomadFcntl(t *TLS, fd, cmd int32, args uintptr) (int32, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
 	switch cmd {
 	case fcntl.F_GETLK:
 		lock := *(*uintptr)(unsafe.Pointer(args))
@@ -492,7 +572,7 @@ func gomadFcntl(t *TLS, fd, cmd int32, args uintptr) (int32, bool) {
 }
 
 func gomadMmap(t *TLS, fd int32) (uintptr, bool) {
-	if !gomadLibcEnabled() || !gomadLibcIsDescriptor(fd) { return 0, false }
+	if !gomadLibcEnabled() { return 0, false }
 	gomadErrno(t, syscall.ENODEV)
 	return ^uintptr(0), true
 }
