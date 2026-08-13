@@ -15,6 +15,28 @@ func SHA256FromSum(digest [sha256.Size]byte) SHA256 {
 	return SHA256("sha256:" + hex.EncodeToString(digest[:]))
 }
 
+func ParseSHA256(value string) (SHA256, error) {
+	identity := SHA256(value)
+	if _, err := identity.Bytes(); err != nil {
+		return "", err
+	}
+	return identity, nil
+}
+
+func (identity SHA256) Bytes() ([sha256.Size]byte, error) {
+	var decoded [sha256.Size]byte
+	const prefix = "sha256:"
+	value := string(identity)
+	if len(value) != len(prefix)+hex.EncodedLen(len(decoded)) || value[:len(prefix)] != prefix {
+		return decoded, fmt.Errorf("invalid SHA-256 %q", value)
+	}
+	hexValue := value[len(prefix):]
+	if _, err := hex.Decode(decoded[:], []byte(hexValue)); err != nil || hex.EncodeToString(decoded[:]) != hexValue {
+		return [sha256.Size]byte{}, fmt.Errorf("invalid SHA-256 %q", value)
+	}
+	return decoded, nil
+}
+
 func DomainHash(domain string, data []byte) SHA256 {
 	hasher := sha256.New()
 	_, _ = hasher.Write([]byte(domain))

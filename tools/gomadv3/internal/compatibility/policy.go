@@ -10,6 +10,8 @@ import (
 	"io"
 	"slices"
 	"sort"
+
+	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
 const packSchema = "gomadv3.compatibility-pack/v1"
@@ -224,8 +226,10 @@ func validatePack(candidate pack) error {
 		if err := validateModulePattern(candidateRule.Module); err != nil {
 			return err
 		}
-		if candidateRule.SourceSetSHA256 != "" && !validSHA256(candidateRule.SourceSetSHA256) {
-			return fmt.Errorf("rule %s has an invalid source-set identity", candidateRule.ImportPath)
+		if candidateRule.SourceSetSHA256 != "" {
+			if _, err := record.ParseSHA256(candidateRule.SourceSetSHA256); err != nil {
+				return fmt.Errorf("rule %s has an invalid source-set identity", candidateRule.ImportPath)
+			}
 		}
 		if candidateRule.Module.Replacement == "local" && len(candidateRule.Capabilities) != 0 && candidateRule.SourceSetSHA256 == "" {
 			return fmt.Errorf("rule %s has no source-set identity for a local replacement", candidateRule.ImportPath)
@@ -234,7 +238,7 @@ func validatePack(candidate pack) error {
 			return fmt.Errorf("rule %s capabilities are not sorted and unique", candidateRule.ImportPath)
 		}
 		for _, linkname := range candidateRule.Linknames {
-			if linkname.Source == "" || !validSHA256(linkname.SHA256) || len(linkname.Directives) == 0 {
+			if _, err := record.ParseSHA256(linkname.SHA256); linkname.Source == "" || err != nil || len(linkname.Directives) == 0 {
 				return fmt.Errorf("rule %s has an invalid linkname source", candidateRule.ImportPath)
 			}
 		}
@@ -282,18 +286,6 @@ func matchesRule(candidate rule, pkg Package) bool {
 func sortedUnique(values []string) bool {
 	for index, value := range values {
 		if value == "" || index > 0 && values[index-1] >= value {
-			return false
-		}
-	}
-	return true
-}
-
-func validSHA256(value string) bool {
-	if len(value) != len("sha256:")+sha256.Size*2 || value[:len("sha256:")] != "sha256:" {
-		return false
-	}
-	for _, character := range value[len("sha256:"):] {
-		if character < '0' || character > '9' && character < 'a' || character > 'f' {
 			return false
 		}
 	}
