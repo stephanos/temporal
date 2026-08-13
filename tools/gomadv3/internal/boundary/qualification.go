@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"go.temporal.io/server/tools/gomadv3/internal/safefile"
 )
 
 type sourceFingerprint struct {
@@ -122,7 +124,10 @@ func RefreshFingerprints(root string) error {
 	if err != nil {
 		return fmt.Errorf("encode refreshed boundary manifest: %w", err)
 	}
-	return writeAtomic(path, append(encoded, '\n'))
+	if err := safefile.Replace(path, append(encoded, '\n'), 0o644); err != nil {
+		return fmt.Errorf("write refreshed boundary manifest: %w", err)
+	}
+	return nil
 }
 
 func lookupFunction(pkg *types.Package, entry intercept) (*types.Func, error) {
