@@ -1,7 +1,6 @@
 package romount
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -110,12 +109,8 @@ func DecodeArtifact(manifest record.ReadOnlyMounts, descriptorBytes []byte, read
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("read-only mount descriptor identity mismatch")
 	}
 	var descriptor record.ReadOnlyMountDescriptor
-	if err := record.StrictDecode(descriptorBytes, &descriptor); err != nil {
+	if err := record.DecodeCanonicalJSON(descriptorBytes, &descriptor); err != nil {
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("decode read-only mount descriptor: %w", err)
-	}
-	canonical, err := record.CanonicalJSON(descriptor)
-	if err != nil || !bytes.Equal(canonical, descriptorBytes) {
-		return nil, Limits{}, Snapshot{}, fmt.Errorf("read-only mount descriptor is not canonical")
 	}
 	limits, err := DecodeLimits(descriptor.Limits)
 	if err != nil {

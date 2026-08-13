@@ -81,6 +81,31 @@ func TestStrictDecodeRejectsDuplicateUnknownAndTrailingData(t *testing.T) {
 	}
 }
 
+func TestDecodeCanonicalJSONRejectsNonCanonicalEncoding(t *testing.T) {
+	type document struct {
+		Alpha string `json:"alpha"`
+		Zulu  string `json:"zulu"`
+	}
+	var decoded document
+	if err := DecodeCanonicalJSON([]byte(`{"zulu":"last","alpha":"first"}`), &decoded); err == nil {
+		t.Fatal("DecodeCanonicalJSON() accepted non-canonical key order")
+	}
+}
+
+func TestDecodeCanonicalJSONAcceptsCanonicalEncoding(t *testing.T) {
+	type document struct {
+		Alpha string `json:"alpha"`
+		Zulu  string `json:"zulu"`
+	}
+	var decoded document
+	if err := DecodeCanonicalJSON([]byte(`{"alpha":"first","zulu":"last"}`), &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Alpha != "first" || decoded.Zulu != "last" {
+		t.Fatalf("DecodeCanonicalJSON() = %#v", decoded)
+	}
+}
+
 func TestCanonicalJSONLinesRoundTripsAndRejectsTruncation(t *testing.T) {
 	type entry struct {
 		Seed Uint64String `json:"seed"`

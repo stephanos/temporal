@@ -237,12 +237,8 @@ func OpenReport(path string) (SetReport, error) {
 	}
 	contents = contents[:len(contents)-1]
 	var report SetReport
-	if err := record.StrictDecode(contents, &report); err != nil {
+	if err := record.DecodeCanonicalJSON(contents, &report); err != nil {
 		return SetReport{}, fmt.Errorf("decode qualification set report: %w", err)
-	}
-	canonical, err := record.CanonicalJSON(report)
-	if err != nil || !bytes.Equal(canonical, contents) {
-		return SetReport{}, errors.Join(errors.New("qualification set report is not canonical"), err)
 	}
 	if err := validateSetReport(report); err != nil {
 		return SetReport{}, err

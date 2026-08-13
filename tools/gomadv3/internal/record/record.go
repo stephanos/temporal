@@ -1,7 +1,6 @@
 package record
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -84,15 +83,8 @@ func FinalizeManifest(input Manifest) (Manifest, []byte, error) {
 
 func DecodeManifest(data []byte) (Manifest, error) {
 	var manifest Manifest
-	if err := StrictDecode(data, &manifest); err != nil {
+	if err := DecodeCanonicalJSON(data, &manifest); err != nil {
 		return Manifest{}, err
-	}
-	canonical, err := CanonicalJSON(manifest)
-	if err != nil {
-		return Manifest{}, err
-	}
-	if !bytes.Equal(data, canonical) {
-		return Manifest{}, fmt.Errorf("manifest is not canonical JSON")
 	}
 	wantRecordHash := manifest.RecordHash
 	wantFailureSignature := manifest.Outcome.FailureSignature
