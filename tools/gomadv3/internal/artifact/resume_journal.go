@@ -188,16 +188,12 @@ func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]R
 }
 
 func validateResumeSuccessArtifact(batchPath string, plan BatchPlan, run RunRecord) error {
-	if run.SuccessArtifact == nil || run.SuccessArtifactBytes == nil || !validSuccessArtifactReference(*run.SuccessArtifact) || *run.SuccessArtifactBytes == 0 {
-		return fmt.Errorf("retained success artifact reference is invalid")
-	}
-	opened, err := Open(filepath.Join(batchPath, filepath.FromSlash(*run.SuccessArtifact)))
+	evidence, err := ResolveRetainedEvidence(batchPath, filepath.Base(batchPath), run)
 	if err != nil {
-		return fmt.Errorf("open retained success artifact: %w", err)
+		return err
 	}
-	defer opened.Close()
-	manifest := opened.Manifest
-	if manifest.ArtifactKind != record.ArtifactSuccess || manifest.ReplayMode != record.ReplayExact || manifest.Outcome.Domain != "success" || manifest.BatchID != filepath.Base(batchPath) || manifest.SelectionOrdinal != run.SelectionOrdinal || manifest.Seed != run.Seed || opened.StoredBytes != uint64(*run.SuccessArtifactBytes) {
+	manifest := evidence.Manifest
+	if manifest.ReplayMode != record.ReplayExact {
 		return fmt.Errorf("retained success artifact run identity does not match its journal")
 	}
 	if manifest.Outcome.Reason != run.Reason || manifest.Outcome.Termination != run.Termination {
@@ -210,18 +206,11 @@ func validateResumeSuccessArtifact(batchPath string, plan BatchPlan, run RunReco
 }
 
 func validateResumeArtifact(batchPath string, plan BatchPlan, run RunRecord) error {
-	if run.FailureSignature == nil || !validRecordSHA256(*run.FailureSignature) || run.Artifact == nil || !validArtifactReference(*run.Artifact) {
-		return fmt.Errorf("failure artifact reference is invalid")
-	}
-	opened, err := Open(filepath.Join(batchPath, filepath.FromSlash(*run.Artifact)))
+	evidence, err := ResolveRetainedEvidence(batchPath, filepath.Base(batchPath), run)
 	if err != nil {
 		return err
 	}
-	defer opened.Close()
-	manifest := opened.Manifest
-	if manifest.BatchID != filepath.Base(batchPath) || manifest.SelectionOrdinal != run.SelectionOrdinal || manifest.Seed != run.Seed || manifest.Outcome.FailureSignature != *run.FailureSignature {
-		return fmt.Errorf("failure artifact run identity does not match its journal")
-	}
+	manifest := evidence.Manifest
 	if manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || manifest.Target.SHA256 != plan.Prepared.Target.SHA256 || manifest.Target.Size != plan.Prepared.Target.Size {
 		return fmt.Errorf("failure artifact target identity does not match its batch plan")
 	}
