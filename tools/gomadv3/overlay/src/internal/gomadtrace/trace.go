@@ -5,6 +5,7 @@
 package gomadtrace
 
 import (
+	"encoding/binary"
 	"sync"
 	"syscall"
 
@@ -31,6 +32,8 @@ var transcript = struct {
 	frozen          bool
 	finalized       bool
 	overflow        bool
+	probeIDs        [256]uint64
+	probeCount      uint16
 }{}
 
 func Init() {
@@ -119,6 +122,30 @@ func Record(operation string, arguments, content []byte, count uint64, result ui
 		}
 	}
 	transcript.Unlock()
+}
+
+func ObserveBoundary(id uint64) {
+	transcript.Lock()
+	if transcript.bytes == nil || transcript.finalized {
+		transcript.Unlock()
+		return
+	}
+	for index := uint16(0); index < transcript.probeCount; index++ {
+		if transcript.probeIDs[index] == id {
+			transcript.Unlock()
+			return
+		}
+	}
+	if int(transcript.probeCount) == len(transcript.probeIDs) {
+		transcript.Unlock()
+		panic("gomadv3: boundary probe capacity exceeded")
+	}
+	transcript.probeIDs[transcript.probeCount] = id
+	transcript.probeCount++
+	transcript.Unlock()
+	var argument [8]byte
+	binary.BigEndian.PutUint64(argument[:], id)
+	Record("boundary.probe", argument[:], nil, 0, 0, 0, 0)
 }
 
 func TestingComplete() {

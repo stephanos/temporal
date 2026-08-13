@@ -23,9 +23,11 @@ func ParseMappings(values []string, workingDirectory string) ([]Mapping, error) 
 		if source == "" {
 			return nil, fmt.Errorf("read-only mount source is required")
 		}
-		if target == "" || strings.IndexByte(target, 0) >= 0 || path.IsAbs(target) || path.Clean(target) == "." || path.Clean(target) == ".." || strings.HasPrefix(path.Clean(target), "../") {
+		targetPath := path.Clean(target)
+		if target == "" || strings.IndexByte(target, 0) >= 0 || targetPath == "." || targetPath == ".." || targetPath == "/" || strings.HasPrefix(targetPath, "../") {
 			return nil, fmt.Errorf("invalid read-only mount target %q", target)
 		}
+		targetPath = strings.TrimPrefix(targetPath, "/")
 		sourcePath := source
 		if !filepath.IsAbs(sourcePath) {
 			sourcePath = filepath.Join(workingDirectory, sourcePath)
@@ -41,7 +43,7 @@ func ParseMappings(values []string, workingDirectory string) ([]Mapping, error) 
 		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 			return nil, fmt.Errorf("read-only mount source %q is not a directory", source)
 		}
-		mappings = append(mappings, Mapping{Source: filepath.Clean(sourcePath), Target: "/" + path.Clean(target)})
+		mappings = append(mappings, Mapping{Source: filepath.Clean(sourcePath), Target: "/" + targetPath})
 	}
 	for left := range mappings {
 		for right := left + 1; right < len(mappings); right++ {

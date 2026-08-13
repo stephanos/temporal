@@ -1,8 +1,11 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +14,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -20,6 +24,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
+	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -78,6 +84,248 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 	}
 	if !allUnique(executor.directories()) {
 		t.Fatalf("working directories were reused: %v", executor.directories())
+	}
+}
+
+func TestRunReportsPreparationProgressAndCompletedCounts(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(seed uint64) process.Result {
+		if seed == 2 {
+			return processResult(2, "failure", "")
+		}
+		return processResult(0, "success", "")
+	}}, "1-3", PolicyAll, 2)
+	var progress []Progress
+	config.Progress = func(update Progress) error {
+		progress = append(progress, update)
+		return nil
+	}
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(progress) < 4 || progress[0].Phase != ProgressPreparing || progress[0].BatchPath == "" {
+		t.Fatalf("progress = %#v", progress)
+	}
+	var observedRunning bool
+	for _, update := range progress {
+		if update.Phase == ProgressRunning && update.Running > 0 {
+			observedRunning = true
+		}
+	}
+	last := progress[len(progress)-1]
+	if !observedRunning || last.Phase != ProgressComplete || last.Attempted != summary.Attempted || last.Running != 0 || last.Succeeded != 2 || last.Failures != 1 || last.DistinctFailures != 1 || len(last.Artifacts) != 1 {
+		t.Fatalf("progress = %#v, summary = %#v", progress, summary)
+	}
+}
+
+func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
+	executor := &progressGatedExecutor{started: make(chan struct{}), release: make(chan struct{})}
+	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+	config.ProgressInterval = time.Millisecond
+	updates := make(chan Progress, 16)
+	config.Progress = func(update Progress) error {
+		select {
+		case updates <- update:
+		default:
+		}
+		return nil
+	}
+	completed := make(chan error, 1)
+	go func() {
+		_, err := Run(context.Background(), config)
+		completed <- err
+	}()
+	<-executor.started
+	heartbeats := 0
+	deadline := time.After(time.Second)
+	for heartbeats < 2 {
+		select {
+		case update := <-updates:
+			if update.Phase == ProgressRunning && update.Running == 1 {
+				heartbeats++
+			}
+		case <-deadline:
+			t.Fatal("periodic running progress was not reported")
+		}
+	}
+	close(executor.release)
+	if err := <-completed; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRunReportsPassiveSemanticCoverage(t *testing.T) {
+	executor := &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+		return result
+	}}
+	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.SemanticCoverage == nil || len(summary.SemanticCoverage.Probes) != 1 || summary.SemanticCoverage.Probes[0] != "stdlib.os.openfile" {
+		t.Fatalf("summary coverage = %#v", summary.SemanticCoverage)
+	}
+}
+
+func TestRunFailsWhenRequiredSemanticProbeIsMissing(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.RequiredSemanticProbes = []string{"stdlib.os.openfile"}
+	_, err := Run(context.Background(), config)
+	var missing *ioprofile.MissingSemanticProbesError
+	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
+		t.Fatalf("Run() error = %v", err)
+	}
+}
+
+func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
+	executor := &fakeExecutor{result: func(seed uint64) process.Result {
+		result := processResult(0, fmt.Sprintf("seed=%d", seed), "")
+		probe := "stdlib.os.openfile"
+		if seed == 3 {
+			probe = "stdlib.net.dialtcp"
+		}
+		result.IOTranscript = semanticTranscript(t, probe)
+		return result
+	}}
+	config := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.KeepSuccesses = KeepSuccessesNovel
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Succeeded != 3 || summary.RetainedSuccesses != 2 || summary.RetainedSuccessBytes == 0 || len(summary.SuccessArtifacts) != 2 {
+		t.Fatalf("summary = %#v", summary)
+	}
+	batch, err := artifact.OpenBatch(summary.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Runs[0].SuccessArtifact == nil || batch.Runs[1].SuccessArtifact != nil || batch.Runs[2].SuccessArtifact == nil || !slices.Equal(batch.Runs[0].NovelSemanticProbes, []string{"stdlib.os.openfile"}) || !slices.Equal(batch.Runs[2].NovelSemanticProbes, []string{"stdlib.net.dialtcp"}) {
+		t.Fatalf("batch runs = %#v", batch.Runs)
+	}
+	for _, path := range summary.SuccessArtifacts {
+		opened, err := artifact.Open(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if opened.Manifest.ArtifactKind != record.ArtifactSuccess || opened.Manifest.Outcome.Domain != "success" || opened.Manifest.ReplayMode != record.ReplayExact {
+			t.Fatalf("retained success = %#v", opened.Manifest)
+		}
+		if err := opened.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		return result
+	}}, "1-2", PolicyAll, 1)
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 1
+	config.SuccessBytesLimit = 64 << 20
+	summary, err := Run(context.Background(), config)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
+		t.Fatalf("summary = %#v, error = %v", summary, err)
+	}
+}
+
+func TestRunRequiresExplicitSuccessRetentionBounds(t *testing.T) {
+	for _, configure := range []func(*Config){
+		func(config *Config) { config.SuccessArtifactLimit = 0 },
+		func(config *Config) { config.SuccessBytesLimit = 0 },
+		func(config *Config) { config.KeepSuccesses = KeepSuccessesNovel; config.Coverage = CoverageNone },
+	} {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+		config.KeepSuccesses = KeepSuccessesAll
+		config.SuccessArtifactLimit = 1
+		config.SuccessBytesLimit = 1 << 20
+		configure(&config)
+		if _, err := Run(context.Background(), config); err == nil {
+			t.Fatal("Run() accepted invalid success retention configuration")
+		}
+	}
+}
+
+func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 1
+	config.SuccessBytesLimit = 1 << 20
+	_, err := Run(context.Background(), config)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "success_artifact_publication" || !strings.Contains(err.Error(), "complete I/O transcript") {
+		t.Fatalf("Run() error = %v", err)
+	}
+}
+
+func TestRunCollectsBoundedQualificationEvidenceForOneSeed(t *testing.T) {
+	executor := &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "stdout", "stderr")
+		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+		return result
+	}}
+	config := testConfig(t, newFakePreparer(t), executor, "7", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.CollectRunEvidence = true
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.RunEvidence == nil || summary.RunEvidence.Seed != 7 || summary.RunEvidence.Target.SHA256 == "" || summary.RunEvidence.Stdout.FullSHA256 != record.HashBytes([]byte("stdout")) || summary.RunEvidence.Stderr.FullSHA256 != record.HashBytes([]byte("stderr")) || summary.RunEvidence.IOTranscriptRecords != 1 || summary.RunEvidence.SemanticCoverage.Digest == "" {
+		t.Fatalf("run evidence = %#v", summary.RunEvidence)
+	}
+}
+
+func TestRunEvidenceRequiresOneSeedAndSemanticCoverage(t *testing.T) {
+	for _, configure := range []func(*Config){
+		func(config *Config) { config.Seeds = "1-2" },
+		func(config *Config) { config.Coverage = CoverageNone },
+	} {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+		config.Coverage = CoverageSemantic
+		config.CollectRunEvidence = true
+		configure(&config)
+		if _, err := Run(context.Background(), config); err == nil {
+			t.Fatal("Run() accepted invalid evidence configuration")
+		}
+	}
+}
+
+func TestRunEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment(t *testing.T) {
+	var evidence []RunEvidence
+	for _, overallTimeout := range []time.Duration{9 * time.Second, 10 * time.Second} {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+		config.Coverage = CoverageSemantic
+		config.CollectRunEvidence = true
+		config.OverallTimeout = overallTimeout
+		summary, err := Run(context.Background(), config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		evidence = append(evidence, *summary.RunEvidence)
+	}
+	first, err := record.CanonicalJSON(evidence[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := record.CanonicalJSON(evidence[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(first, second) {
+		t.Fatalf("evidence changed with aggregate deadline:\n%s\n%s", first, second)
 	}
 }
 
@@ -226,6 +474,33 @@ func TestRunClassifiesConnectedWorldDeadlock(t *testing.T) {
 	}
 }
 
+func TestRunCountsConnectedWorldReplayDivergence(t *testing.T) {
+	core, err := world.New(world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 10, MaxPayloadBytes: 1024, MaxStringBytes: 64}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	initial := core.Snapshot()
+	recording, err := world.EncodeRecording(world.Recording{
+		Initial: initial, Final: core.Snapshot(), Terminal: world.Terminal{Kind: world.TerminalReplayDivergence, Detail: "transition 3"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.WorldRecord = recording
+		return result
+	}}, "7", PolicyAll, 1)
+	config.WorldTransitionLimit = 1 << 20
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Failures != 1 || summary.ReplayDivergences != 1 {
+		t.Fatalf("summary = %#v", summary)
+	}
+}
+
 func TestRunRejectsInvalidConnectedWorldBeforePublication(t *testing.T) {
 	core, err := world.New(world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 10, MaxPayloadBytes: 1024, MaxStringBytes: 64}})
 	if err != nil {
@@ -320,7 +595,7 @@ func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 
 func TestRunOverallTimeoutIsAHostFailure(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
-	config.OverallTimeout = 50 * time.Millisecond
+	config.OverallTimeout = 200 * time.Millisecond
 	config.TerminateGrace = 10 * time.Millisecond
 	summary, err := Run(context.Background(), config)
 	var hostError *HostError
@@ -329,6 +604,13 @@ func TestRunOverallTimeoutIsAHostFailure(t *testing.T) {
 	}
 	if summary.Failures != 0 || len(summary.Artifacts) != 0 {
 		t.Fatalf("overall timeout summary = %#v", summary)
+	}
+	plan, planErr := artifact.ReadResumePlan(summary.BatchPath)
+	if planErr != nil {
+		t.Fatal(planErr)
+	}
+	if plan.Selection != "1" || plan.RunnerBuild != config.RunnerBuild || plan.Prepared.Target.SHA256 == "" {
+		t.Fatalf("resume plan = %#v", plan)
 	}
 	partials, readErr := os.ReadDir(filepath.Join(summary.BatchPath, ".partial"))
 	if readErr != nil {
@@ -339,6 +621,82 @@ func TestRunOverallTimeoutIsAHostFailure(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(summary.BatchPath, ".partial", "batch", "partial.json")); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
+	preparer := newFakePreparer(t)
+	interrupted := &resumeInterruptExecutor{}
+	config := testConfig(t, preparer, interrupted, "7-9", PolicyAll, 1)
+	config.OverallTimeout = 300 * time.Millisecond
+	config.TerminateGrace = 10 * time.Millisecond
+	partial, err := Run(context.Background(), config)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
+		t.Fatalf("interrupted Run() error = %v", err)
+	}
+	if seeds := interrupted.seeds(); !slices.Equal(seeds, []uint64{7, 8}) {
+		t.Fatalf("interrupted seeds = %v", seeds)
+	}
+
+	resumedExecutor := &fakeExecutor{}
+	resumed, err := Run(context.Background(), Config{
+		ResumeBatch: partial.BatchPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if seeds := executorSeeds(resumedExecutor); !slices.Equal(seeds, []uint64{8, 9}) {
+		t.Fatalf("resumed seeds = %v", seeds)
+	}
+	if resumed.BatchPath != partial.BatchPath || resumed.SelectionCount != 3 || resumed.Attempted != 3 || resumed.Succeeded != 3 || resumed.Failures != 0 || resumed.StopReason != StopSeedsExhausted || preparer.calls != 1 {
+		t.Fatalf("resumed summary = %#v, preparation calls = %d", resumed, preparer.calls)
+	}
+	batch, err := artifact.OpenBatch(resumed.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(batch.Runs) != 3 || batch.Runs[0].Seed != 7 || batch.Runs[1].Seed != 8 || batch.Runs[2].Seed != 9 {
+		t.Fatalf("batch runs = %#v", batch.Runs)
+	}
+}
+
+func TestRunResumeRejectsChangedRunnerIdentity(t *testing.T) {
+	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
+	config.OverallTimeout = 200 * time.Millisecond
+	config.TerminateGrace = 10 * time.Millisecond
+	partial, err := Run(context.Background(), config)
+	if err == nil {
+		t.Fatal("Run() did not leave an interrupted batch")
+	}
+	_, err = Run(context.Background(), Config{
+		ResumeBatch: partial.BatchPath, RunnerBuild: "sha256:changed", SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
+	})
+	if err == nil || !strings.Contains(err.Error(), "Runner build identity") {
+		t.Fatalf("resume error = %v", err)
+	}
+}
+
+func TestRunResumeRejectsTamperedRetainedSuccessArtifact(t *testing.T) {
+	interrupted := &resumeInterruptExecutor{}
+	config := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
+	config.OverallTimeout = 300 * time.Millisecond
+	config.TerminateGrace = 10 * time.Millisecond
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	partial, err := Run(context.Background(), config)
+	if err == nil || len(partial.SuccessArtifacts) != 1 {
+		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
+	}
+	if err := os.WriteFile(filepath.Join(partial.SuccessArtifacts[0], "stdout"), []byte("tampered"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Run(context.Background(), Config{
+		ResumeBatch: partial.BatchPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
+	})
+	if err == nil || !strings.Contains(err.Error(), "retained success") {
+		t.Fatalf("resume error = %v", err)
 	}
 }
 
@@ -432,6 +790,81 @@ func TestIsolatedRunnerKillsAStuckCoordinatorInsideOverallDeadline(t *testing.T)
 	if elapsed := time.Since(started); elapsed > 350*time.Millisecond {
 		t.Fatalf("Run() elapsed = %v", elapsed)
 	}
+}
+
+func TestIsolatedRunnerPreservesUnsupportedTargetError(t *testing.T) {
+	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestUnsupportedTargetCoordinatorHelper"}
+	_, err := Run(context.Background(), config)
+	var unsupported *target.UnsupportedCapabilityError
+	if !errors.As(err, &unsupported) || unsupported.ImportPath != "example.com/target" || unsupported.Capability != "imports os/exec" {
+		t.Fatalf("Run() error = %v", err)
+	}
+}
+
+func TestIsolatedRunnerPreservesMissingSemanticProbesError(t *testing.T) {
+	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestMissingSemanticProbesCoordinatorHelper"}
+	_, err := Run(context.Background(), config)
+	var missing *ioprofile.MissingSemanticProbesError
+	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
+		t.Fatalf("Run() error = %v", err)
+	}
+}
+
+func TestIsolatedRunnerPreservesBoundedRunEvidence(t *testing.T) {
+	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.CollectRunEvidence = true
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestRunEvidenceCoordinatorHelper"}
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.RunEvidence == nil || summary.RunEvidence.Schema != RunEvidenceSchema || summary.RunEvidence.Seed != 1 || summary.RunEvidence.Target.SHA256 != "sha256:target" {
+		t.Fatalf("summary = %#v", summary)
+	}
+}
+
+func TestUnsupportedTargetCoordinatorHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
+		t.Skip("coordinator subprocess only")
+	}
+	unsupported := &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}
+	response := coordinatorResponse{
+		ErrorReason: "target_preparation", ErrorDetail: unsupported.Error(), UnsupportedTarget: unsupported,
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
+		t.Fatal(err)
+	}
+	os.Exit(0)
+}
+
+func TestMissingSemanticProbesCoordinatorHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
+		t.Skip("coordinator subprocess only")
+	}
+	missing := &ioprofile.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}
+	response := coordinatorResponse{
+		ErrorReason: "semantic_coverage", ErrorDetail: missing.Error(), MissingSemanticProbes: missing.Probes,
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
+		t.Fatal(err)
+	}
+	os.Exit(0)
+}
+
+func TestRunEvidenceCoordinatorHelper(t *testing.T) {
+	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
+		t.Skip("coordinator subprocess only")
+	}
+	response := coordinatorResponse{Summary: Summary{RunEvidence: &RunEvidence{
+		Schema: RunEvidenceSchema, Seed: 1, Target: record.Target{SHA256: "sha256:target"},
+	}}}
+	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
+		t.Fatal(err)
+	}
+	os.Exit(0)
 }
 
 func TestBlockingCoordinatorHelper(t *testing.T) {
@@ -639,6 +1072,16 @@ type firstFailureExecutor struct {
 
 type blockingExecutor struct{}
 
+type resumeInterruptExecutor struct {
+	mu    sync.Mutex
+	calls []uint64
+}
+
+type progressGatedExecutor struct {
+	started chan struct{}
+	release chan struct{}
+}
+
 type mutatingExecutor struct{}
 
 func (mutatingExecutor) Run(_ context.Context, request process.Request) (process.Result, error) {
@@ -666,6 +1109,45 @@ func (blockingExecutor) Run(ctx context.Context, _ process.Request) (process.Res
 	result.Termination = process.TerminationSignal
 	result.Signal = "killed"
 	return result, nil
+}
+
+func (executor *resumeInterruptExecutor) Run(ctx context.Context, request process.Request) (process.Result, error) {
+	seed := seedFromEnvironment(request.Env)
+	executor.mu.Lock()
+	executor.calls = append(executor.calls, seed)
+	executor.mu.Unlock()
+	if seed == 7 {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		return result, nil
+	}
+	<-ctx.Done()
+	result := processResult(0, "", "")
+	result.Cancelled = true
+	result.Termination = process.TerminationSignal
+	result.Signal = "killed"
+	return result, nil
+}
+
+func (executor *resumeInterruptExecutor) seeds() []uint64 {
+	executor.mu.Lock()
+	defer executor.mu.Unlock()
+	return append([]uint64(nil), executor.calls...)
+}
+
+func executorSeeds(executor *fakeExecutor) []uint64 {
+	environments := executor.environments()
+	seeds := make([]uint64, len(environments))
+	for index, environment := range environments {
+		seeds[index] = seedFromEnvironment(environment)
+	}
+	return seeds
+}
+
+func (executor *progressGatedExecutor) Run(context.Context, process.Request) (process.Result, error) {
+	close(executor.started)
+	<-executor.release
+	return processResult(0, "", ""), nil
 }
 
 func newFirstFailureExecutor(want int) *firstFailureExecutor {
@@ -713,6 +1195,25 @@ func output(value string) process.Output {
 	bytes := []byte(value)
 	digest := sha256.Sum256(bytes)
 	return process.Output{Bytes: bytes, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(bytes)), RetainedBytes: uint64(len(bytes))}
+}
+
+func semanticTranscript(t *testing.T, probe string) process.IOTranscript {
+	t.Helper()
+	digest := sha256.Sum256([]byte("gomadv3-boundary-probe/v1\x00" + probe))
+	var argument [8]byte
+	binary.BigEndian.PutUint64(argument[:], binary.BigEndian.Uint64(digest[:8])&(1<<63-1))
+	encoded, err := iowire.EncodeTranscriptRecord(iowire.TranscriptRecord{
+		Operation: "boundary.probe", ArgumentHash: iowire.Hash(argument[:]),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload := encoded[:]
+	return process.IOTranscript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+}
+
+func completeEmptyTranscript() process.IOTranscript {
+	return process.IOTranscript{Complete: true, SHA256: sha256.Sum256(nil)}
 }
 
 func seedFromEnvironment(environment []string) uint64 {

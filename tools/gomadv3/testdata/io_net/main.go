@@ -7,12 +7,96 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/netip"
 	"os"
 	"strings"
 	"time"
 )
 
 func main() {
+	_, err := net.ListenPacket("udp4", "127.0.0.1:0")
+	requireUnsupported("ListenPacket", err)
+	_, err = net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	requireUnsupported("ListenUDP", err)
+	_, err = net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 20000})
+	requireUnsupported("DialUDP", err)
+	_, err = net.DialIP("ip4:icmp", nil, &net.IPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	requireUnsupported("DialIP", err)
+	_, err = net.ListenIP("ip4:icmp", &net.IPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	requireUnsupported("ListenIP", err)
+	_, err = net.DialUnix("unix", nil, &net.UnixAddr{Name: "gomad-host.sock", Net: "unix"})
+	requireUnsupported("DialUnix", err)
+	_, err = net.ListenUnix("unix", &net.UnixAddr{Name: "gomad-host.sock", Net: "unix"})
+	requireUnsupported("ListenUnix", err)
+	_, err = net.ListenUnixgram("unixgram", &net.UnixAddr{Name: "gomad-host.sock", Net: "unixgram"})
+	requireUnsupported("ListenUnixgram", err)
+	_, err = net.LookupHost("example.com")
+	requireUnsupported("LookupHost", err)
+	_, err = net.LookupTXT("example.com")
+	requireUnsupported("LookupTXT", err)
+	resolver := net.DefaultResolver
+	_, err = resolver.LookupHost(context.Background(), "example.com")
+	requireUnsupported("Resolver.LookupHost", err)
+	_, err = resolver.LookupIP(context.Background(), "ip", "example.com")
+	requireUnsupported("Resolver.LookupIP", err)
+	_, err = resolver.LookupIPAddr(context.Background(), "example.com")
+	requireUnsupported("Resolver.LookupIPAddr", err)
+	_, err = resolver.LookupNetIP(context.Background(), "ip", "example.com")
+	requireUnsupported("Resolver.LookupNetIP", err)
+	_, err = resolver.LookupPort(context.Background(), "tcp", "http")
+	requireUnsupported("Resolver.LookupPort", err)
+	_, err = resolver.LookupCNAME(context.Background(), "example.com")
+	requireUnsupported("Resolver.LookupCNAME", err)
+	_, _, err = resolver.LookupSRV(context.Background(), "service", "tcp", "example.com")
+	requireUnsupported("Resolver.LookupSRV", err)
+	_, err = resolver.LookupMX(context.Background(), "example.com")
+	requireUnsupported("Resolver.LookupMX", err)
+	_, err = resolver.LookupNS(context.Background(), "example.com")
+	requireUnsupported("Resolver.LookupNS", err)
+	_, err = resolver.LookupTXT(context.Background(), "example.com")
+	requireUnsupported("Resolver.LookupTXT", err)
+	_, err = resolver.LookupAddr(context.Background(), "127.0.0.1")
+	requireUnsupported("Resolver.LookupAddr", err)
+	_, err = net.DialTCP("tcp4", nil, &net.TCPAddr{IP: net.IPv4(8, 8, 8, 8), Port: 53})
+	requireUnsupported("non-loopback DialTCP", err)
+	dialer := net.Dialer{}
+	_, err = dialer.DialIP(context.Background(), "ip4", netip.Addr{}, netip.MustParseAddr("127.0.0.1"))
+	requireUnsupported("Dialer.DialIP", err)
+	_, err = dialer.DialTCP(context.Background(), "tcp4", netip.AddrPort{}, netip.MustParseAddrPort("127.0.0.1:20000"))
+	requireUnsupported("Dialer.DialTCP", err)
+	_, err = dialer.DialUDP(context.Background(), "udp4", netip.AddrPort{}, netip.MustParseAddrPort("127.0.0.1:20000"))
+	requireUnsupported("Dialer.DialUDP", err)
+	_, err = dialer.DialUnix(context.Background(), "unix", nil, &net.UnixAddr{Name: "gomad-host.sock", Net: "unix"})
+	requireUnsupported("Dialer.DialUnix", err)
+	_, err = net.FileConn(os.Stdout)
+	requireUnsupported("FileConn", err)
+	_, err = net.FileListener(os.Stdout)
+	requireUnsupported("FileListener", err)
+	_, err = net.FilePacketConn(os.Stdout)
+	requireUnsupported("FilePacketConn", err)
+	_, err = net.Interfaces()
+	requireUnsupported("Interfaces", err)
+	_, err = net.InterfaceAddrs()
+	requireUnsupported("InterfaceAddrs", err)
+	_, err = net.InterfaceByIndex(1)
+	requireUnsupported("InterfaceByIndex", err)
+	_, err = net.InterfaceByName("lo0")
+	requireUnsupported("InterfaceByName", err)
+	_, err = (&net.Interface{}).Addrs()
+	requireUnsupported("Interface.Addrs", err)
+	_, err = (&net.Interface{}).MulticastAddrs()
+	requireUnsupported("Interface.MulticastAddrs", err)
+	_, err = net.ListenMulticastUDP("udp4", nil, &net.UDPAddr{IP: net.IPv4(224, 0, 0, 1)})
+	requireUnsupported("ListenMulticastUDP", err)
+	_, err = net.ResolveIPAddr("ip4", "localhost")
+	requireUnsupported("ResolveIPAddr", err)
+	_, err = net.ResolveTCPAddr("tcp4", "localhost:80")
+	requireUnsupported("ResolveTCPAddr", err)
+	_, err = net.ResolveUDPAddr("udp4", "localhost:80")
+	requireUnsupported("ResolveUDPAddr", err)
+	_, err = net.ResolveUnixAddr("unix", "gomad-host.sock")
+	requireUnsupported("ResolveUnixAddr", err)
+
 	listener, err := net.ListenTCP("tcp4", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1)})
 	if err != nil {
 		panic(err)
@@ -50,6 +134,21 @@ func main() {
 		panic(err)
 	}
 	defer connection.Close()
+	if connection.LocalAddr() == nil || connection.RemoteAddr() == nil {
+		panic("in-memory TCP connection has no addresses")
+	}
+	if err = connection.SetDeadline(time.Time{}); err != nil {
+		panic(err)
+	}
+	if err = connection.SetReadBuffer(64 << 10); err != nil {
+		panic(err)
+	}
+	if err = connection.SetWriteBuffer(64 << 10); err != nil {
+		panic(err)
+	}
+	if _, err = connection.SyscallConn(); err == nil {
+		panic("in-memory TCP connection exposed a raw connection")
+	}
 	if _, err = connection.Write([]byte("ping")); err != nil {
 		panic(err)
 	}
@@ -92,7 +191,6 @@ func main() {
 		}
 		serverError <- acceptErr
 	}()
-	dialer := net.Dialer{}
 	genericConnection, err := dialer.DialContext(context.Background(), "tcp", genericAddress.String())
 	if err != nil {
 		panic(err)
@@ -206,6 +304,9 @@ func main() {
 	if err = copyClient.CloseWrite(); err != nil {
 		panic(err)
 	}
+	if err = copyClient.CloseRead(); err != nil {
+		panic(err)
+	}
 	var copied bytes.Buffer
 	if length, copyErr := io.Copy(&copied, copyServer); copyErr != nil || length != 4 || copied.String() != "copy" {
 		panic(fmt.Sprintf("WriteTo result = %d, %v, %q", length, copyErr, copied.String()))
@@ -231,5 +332,14 @@ func main() {
 	if file, fileErr := copyClient.File(); fileErr == nil || file != nil {
 		panic("in-memory TCP connection exposed a file")
 	}
+	if file, fileErr := copyListener.File(); fileErr == nil || file != nil {
+		panic("in-memory TCP listener exposed a file")
+	}
 	fmt.Println("ok")
+}
+
+func requireUnsupported(operation string, err error) {
+	if err == nil || !strings.Contains(err.Error(), "unsupported Gomad network operation") {
+		panic(fmt.Sprintf("%s error = %v", operation, err))
+	}
 }

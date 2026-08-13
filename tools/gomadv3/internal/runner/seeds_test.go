@@ -83,3 +83,18 @@ func TestParseSeedsKeepsMaximumSizedLazySelection(t *testing.T) {
 		}
 	}
 }
+
+func TestSeedSelectionLooksUpOrdinalWithoutIteration(t *testing.T) {
+	selection, err := ParseSeeds("7,0,11-13,18446744073709551615")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for ordinal, want := range []uint64{7, 0, 11, 12, 13, math.MaxUint64} {
+		if got, ok := selection.SeedAt(uint64(ordinal)); !ok || got != want {
+			t.Fatalf("SeedAt(%d) = %d, %t, want %d, true", ordinal, got, ok, want)
+		}
+	}
+	if seed, ok := selection.SeedAt(6); ok {
+		t.Fatalf("SeedAt(6) = %d, true", seed)
+	}
+}

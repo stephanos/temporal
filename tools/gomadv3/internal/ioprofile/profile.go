@@ -36,11 +36,13 @@ type profileDefinition struct {
 }
 
 type inventory struct {
-	Schema      string           `json:"schema"`
-	Profile     string           `json:"profile"`
-	Platform    string           `json:"platform"`
-	Entries     []inventoryEntry `json:"entries"`
-	ReservedFDs []string         `json:"reserved_fds"`
+	Schema                  string           `json:"schema"`
+	Profile                 string           `json:"profile"`
+	Platform                string           `json:"platform"`
+	BoundaryManifestVersion string           `json:"boundary_manifest_version"`
+	BoundaryManifestSHA256  record.SHA256    `json:"boundary_manifest_sha256"`
+	Entries                 []inventoryEntry `json:"entries"`
+	ReservedFDs             []string         `json:"reserved_fds"`
 }
 
 type inventoryEntry struct {
@@ -51,7 +53,7 @@ type inventoryEntry struct {
 
 var deterministicProfile = mustProfileSpec(profileDefinition{
 	name:                  Deterministic,
-	target:                TargetContract{GoVersion: "go1.26.4", GOOS: "darwin", GOARCH: "arm64"},
+	target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: generatedBoundaryGOOS, GOARCH: generatedBoundaryGOARCH},
 	implementationFamily:  "gomadv3.deterministic-io/v1",
 	implementationVersion: deterministicImplementationVersion,
 	prepareBuildOverlay:   prepareDeterministicBuildOverlay,
@@ -64,6 +66,7 @@ var profilesByName = map[string]ProfileSpec{Deterministic: deterministicProfile}
 func mustProfileSpec(definition profileDefinition) ProfileSpec {
 	encoded, err := record.CanonicalJSON(inventory{
 		Schema: "gomadv3.io-inventory/v1", Profile: definition.name, Platform: definition.target.GOOS + "/" + definition.target.GOARCH,
+		BoundaryManifestVersion: generatedBoundaryManifestVersion, BoundaryManifestSHA256: record.SHA256(generatedBoundaryManifestSHA256),
 		Entries: []inventoryEntry{
 			{Boundary: "crypto/rand", Disposition: "in-memory", Operations: []string{"Reader.Read", "Read"}},
 			{Boundary: "filesystem", Disposition: "in-memory", Operations: []string{"open", "read", "write", "stat", "rename", "remove", "mkdir"}},

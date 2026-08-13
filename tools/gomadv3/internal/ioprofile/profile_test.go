@@ -14,9 +14,9 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const wantInventory = `{"entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"darwin/arm64","profile":"gomadv3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomadv3.io-inventory/v1"}`
-	const wantInventorySHA256 = "sha256:72a2132f812eddd17913f19a7c8ac940a4dee558cb87d860460efe25d290158f"
-	const wantImplementationSHA256 = "sha256:ecf1fd3c48d259d9b0c13ff1d7e772c6b6111782da4719f20d35306e1d0a0abb"
+	const wantInventory = `{"boundary_manifest_sha256":"sha256:ae8153017485b5277251a541c79b24b894da6774c202f4a86b56e66617e115a2","boundary_manifest_version":"go1.26.4-darwin-arm64-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"darwin/arm64","profile":"gomadv3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomadv3.io-inventory/v1"}`
+	const wantInventorySHA256 = "sha256:a93863f00737eee971feb0547eed55387c0cbe34b6ec8def3c2e5b6566c4686f"
+	const wantImplementationSHA256 = "sha256:70402c9a81972264dcdda0d7c26a4661c9b7370f69a50ec94cc85432f15e4b5f"
 	if string(profile.Inventory()) != wantInventory || string(profile.InventorySHA256()) != wantInventorySHA256 || string(profile.ImplementationSHA256()) != wantImplementationSHA256 {
 		t.Fatalf("profile identity:\n inventory = %q\n inventory SHA-256 = %q\n implementation SHA-256 = %q", profile.Inventory(), profile.InventorySHA256(), profile.ImplementationSHA256())
 	}
@@ -27,7 +27,7 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const wantFrameHex = "474f4d4144494f010001000172a2132f812eddd17913f19a7c8ac940a4dee558cb87d860460efe25d290158fecf1fd3c48d259d9b0c13ff1d7e772c6b6111782da4719f20d35306e1d0a0abbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb26ba1df2e711e0add254aeb48b2779e9aa32a01c3d07c2ee506cadf29cfec8ff000000000000002abc9a1550c2f28322e8bc5b12333f619ebe24c4738b2ab71e8c567954f69d9bc4"
+	const wantFrameHex = "474f4d4144494f0100010001a93863f00737eee971feb0547eed55387c0cbe34b6ec8def3c2e5b6566c4686f70402c9a81972264dcdda0d7c26a4661c9b7370f69a50ec94cc85432f15e4b5faaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb26ba1df2e711e0add254aeb48b2779e9aa32a01c3d07c2ee506cadf29cfec8ff000000000000002ac3b482890a5cc9fc06162d532091c4ac5d87f557123adb4c56088644116437fe"
 	if encoded := hex.EncodeToString(frame); encoded != wantFrameHex {
 		t.Fatalf("bootstrap frame = %q", encoded)
 	}

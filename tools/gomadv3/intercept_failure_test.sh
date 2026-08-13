@@ -35,5 +35,6 @@ require_failure bad_handled 'gomad interception signature mismatch for Target: h
 require_failure duplicate_target 'gomad interception target is duplicated in manifest: Target and Target'
 require_failure bodyless_target 'missing function body'
 require_failure variadic 'gomad interception signature mismatch for Target: hook variadic form does not match target'
+require_failure body_mismatch 'gomad interception declaration fingerprint mismatch for Target'
 
 printf 'gomadv3 interception failure tests passed\n'

@@ -162,7 +162,9 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomadv3-go gomadv3-runner gomadv3-run gomadv3-test
+.PHONY: gomadv3 gomadv3-go gomadv3-runner gomadv3-run gomadv3-test
+
+gomadv3: gomadv3-runner
 
 gomadv3-go:
 	@$(MAKE) -C tools/gomadv3 toolchain

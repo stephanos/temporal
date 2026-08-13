@@ -14,12 +14,14 @@ func TestParseMappingsNormalizesSourcesAndTargets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mappings, err := ParseMappings([]string{"schema=go.temporal.io/server/schema"}, root)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(mappings) != 1 || mappings[0].Source != source || mappings[0].Target != "/go.temporal.io/server/schema" {
-		t.Fatalf("ParseMappings() = %#v", mappings)
+	for _, target := range []string{"go.temporal.io/server/schema", "/go.temporal.io/server/schema"} {
+		mappings, err := ParseMappings([]string{"schema=" + target}, root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(mappings) != 1 || mappings[0].Source != source || mappings[0].Target != "/go.temporal.io/server/schema" {
+			t.Fatalf("ParseMappings(%q) = %#v", target, mappings)
+		}
 	}
 }
 
@@ -38,6 +40,7 @@ func TestParseMappingsRejectsUnsafeOrOverlappingMappings(t *testing.T) {
 		{name: "missing equals", mappings: []string{"one"}, want: "HOST_DIRECTORY=TARGET_DIRECTORY"},
 		{name: "empty source", mappings: []string{"=/target"}, want: "source"},
 		{name: "target traversal", mappings: []string{"one=../target"}, want: "target"},
+		{name: "target root", mappings: []string{"one=/"}, want: "target"},
 		{name: "duplicate", mappings: []string{"one=target", "two=target"}, want: "overlaps"},
 		{name: "nested", mappings: []string{"one=target", "two=target/child"}, want: "overlaps"},
 	}

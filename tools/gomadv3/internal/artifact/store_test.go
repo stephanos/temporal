@@ -1,6 +1,7 @@
 package artifact
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,22 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
+
+func TestPublishFailsBeforePublicationWhenByteCapacityIsExceeded(t *testing.T) {
+	root := t.TempDir()
+	_, err := (Store{Root: root, MaximumBytes: 1}).Publish(artifactInput(t))
+	var capacity *CapacityError
+	if !errors.As(err, &capacity) || capacity.Maximum != 1 || capacity.Required <= capacity.Maximum {
+		t.Fatalf("Publish() error = %#v", err)
+	}
+	entries, readErr := os.ReadDir(root)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("artifact store entries = %v", entries)
+	}
+}
 
 func TestPublishWritesPrivateAtomicArtifactAndOpenValidatesIt(t *testing.T) {
 	input := artifactInput(t)

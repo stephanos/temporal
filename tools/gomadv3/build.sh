@@ -4,18 +4,28 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$script_dir/toolchain-version.sh"
-toolchain_dir="$script_dir/.toolchain"
-patch_file=${GOMADV3_PATCH_FILE:-"$script_dir/go1.26.4.patch"}
+toolchain_dir=${GOMADV3_TOOLCHAIN_DIR:-"$script_dir/.toolchain"}
+if [[ "$toolchain_dir" != /* || "$toolchain_dir" == / ]]; then
+	printf 'gomadv3 toolchain directory must be an absolute non-root path: %s\n' "$toolchain_dir" >&2
+	exit 1
+fi
+if [[ -n ${GOMADV3_TEST_FAIL_PHASE:-} && ${GOMADV3_TESTING:-} != 1 ]]; then
+	printf 'gomadv3 builder failure injection requires GOMADV3_TESTING=1\n' >&2
+	exit 1
+fi
+patch_file=${GOMADV3_PATCH_FILE:-"$script_dir/$patch_name"}
 overlay_dir=${GOMADV3_OVERLAY_DIR:-"$script_dir/overlay"}
 patch_snapshot=
 overlay_snapshot=
 download_tmp=
 work_dir=
+launcher_tmp=
+stamp_tmp=
 lock_path=
 lock_owner_file=
 owns_lock=false
 build_key=
-build_environment=canonical-v4
+build_environment=canonical-v5
 build_path=/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin
 build_bash=$BASH
 build_bash_version=$BASH_VERSION
@@ -28,6 +38,12 @@ cleanup() {
 	fi
 	if [[ -n "$work_dir" ]]; then
 		rm -rf "$work_dir"
+	fi
+	if [[ -n "$launcher_tmp" ]]; then
+		rm -f "$launcher_tmp"
+	fi
+	if [[ -n "$stamp_tmp" ]]; then
+		rm -f "$stamp_tmp"
 	fi
 	if [[ -n "$patch_snapshot" ]]; then
 		rm -f "$patch_snapshot"
@@ -52,6 +68,13 @@ trap cleanup EXIT
 
 sha256_file() {
 	shasum -a 256 "$1" | awk '{print $1}'
+}
+
+fail_at() {
+	if [[ ${GOMADV3_TESTING:-} == 1 && ${GOMADV3_TEST_FAIL_PHASE:-} == "$1" ]]; then
+		printf 'gomadv3 injected builder failure: %s\n' "$1" >&2
+		exit 86
+	fi
 }
 
 sorted_files() {
@@ -89,13 +112,19 @@ bootstrap_root=$(env -u GOMADSEED "$bootstrap_go" env GOROOT)
 bootstrap_version=$(env -u GOMADSEED "$bootstrap_go" version)
 host_os=$(env -u GOMADSEED "$bootstrap_go" env GOHOSTOS)
 host_arch=$(env -u GOMADSEED "$bootstrap_go" env GOHOSTARCH)
-case "$host_os" in
-	aix | darwin | dragonfly | freebsd | illumos | linux | netbsd | openbsd | solaris) ;;
-	*)
-		printf 'gomadv3 deterministic mode does not support host OS %s\n' "$host_os" >&2
-		exit 1
-		;;
-esac
+host_platform="$host_os/$host_arch"
+host_supported=false
+for qualified_platform in "${qualified_platforms[@]}"; do
+	if [[ "$host_platform" == "$qualified_platform" ]]; then
+		host_supported=true
+		break
+	fi
+done
+if [[ "$host_supported" == false ]]; then
+	printf 'gomadv3 complete deterministic mode requires host %s; got %s\n' \
+		"$(IFS=,; printf '%s' "${qualified_platforms[*]}")" "$host_platform" >&2
+	exit 1
+fi
 
 if [[ ! -s "$patch_file" ]]; then
 	printf 'gomadv3 patch is missing: %s\n' "$patch_file" >&2
@@ -110,16 +139,21 @@ overlay_snapshot=$(mktemp -d "$toolchain_dir/overlay.XXXXXX")
 cp -R "$overlay_dir/." "$overlay_snapshot/"
 GOMADV3_PATCH_FILE="$patch_snapshot" GOMADV3_OVERLAY_DIR="$overlay_snapshot" "$script_dir/test.sh" validate
 
-patch_sha256=$(sha256_file "$patch_snapshot")
-overlay_sha256=$(
-	(
-		cd "$overlay_snapshot"
-		while IFS= read -r -d '' path; do
-			printf '%s\0%s\0' "${path#./}" "$(sha256_file "$path")"
-		done < <(sorted_files .)
-	) | shasum -a 256 | awk '{print $1}'
+build_key=$(
+	env -u GOMADSEED GOCACHE="$toolchain_dir/generator-cache" GOWORK=off \
+		"$bootstrap_go" -C "$script_dir" run ./internal/hosttool build-key \
+		--go-version="$go_version" \
+		--archive-sha256="$archive_sha256" \
+		--patch="$patch_snapshot" \
+		--overlay="$overlay_snapshot" \
+		--host-os="$host_os" \
+		--host-arch="$host_arch" \
+		--bootstrap-version="$bootstrap_version" \
+		--recipe-version="$build_environment" \
+		--build-path="$build_path" \
+		--bash-path="$build_bash" \
+		--bash-version="$build_bash_version"
 )
-build_key=$(printf '%s\n' "$go_version" "$archive_sha256" "$patch_sha256" "$overlay_sha256" "$host_os" "$host_arch" "$bootstrap_version" "$build_environment" "$build_path" "$build_bash" "$build_bash_version" | shasum -a 256 | awk '{print $1}')
 build_dir="$toolchain_dir/builds/$build_key"
 archive_dir="$toolchain_dir/downloads"
 archive_path="$archive_dir/$archive_name"
@@ -191,11 +225,12 @@ build_complete() {
 }
 
 acquire_build_lock
+fail_at after-lock
 
 publish_toolchain() {
 	local bin_dir="$toolchain_dir/bin"
-	local go_tmp="$bin_dir/go.next.$$"
-	local stamp_tmp="$stamp_path.next.$$"
+	launcher_tmp="$bin_dir/go.next.$$"
+	stamp_tmp="$stamp_path.next.$$"
 	if [[ -L "$bin_dir" ]]; then
 		unlink "$bin_dir"
 	fi
@@ -204,11 +239,16 @@ publish_toolchain() {
 		'#!/bin/sh' \
 		'toolchain_dir=$(CDPATH= cd "$(dirname "$0")/.." && pwd) || exit' \
 		'build_key=$(cat "$toolchain_dir/build-key") || exit' \
-		'exec "$toolchain_dir/builds/$build_key/bin/go" "$@"' >"$go_tmp"
-	chmod +x "$go_tmp"
+		'unset GOROOT' \
+		'exec "$toolchain_dir/builds/$build_key/bin/go" "$@"' >"$launcher_tmp"
+	chmod +x "$launcher_tmp"
 	printf '%s\n' "$build_key" >"$stamp_tmp"
 	mv -f "$stamp_tmp" "$stamp_path"
-	mv -f "$go_tmp" "$bin_dir/go"
+	stamp_tmp=
+	fail_at after-stamp-publish
+	mv -f "$launcher_tmp" "$bin_dir/go"
+	launcher_tmp=
+	fail_at after-launcher-publish
 }
 
 if build_complete; then
@@ -231,6 +271,7 @@ fi
 work_dir=$(mktemp -d "$toolchain_dir/build.XXXXXX")
 mkdir -p "$work_dir/bootstrap-cache" "$work_dir/tmp"
 tar -C "$work_dir" -xzf "$archive_path"
+fail_at after-extract
 while IFS= read -r -d '' source; do
 	relative=${source#"$overlay_snapshot"/}
 	destination="$work_dir/go/$relative"
@@ -240,12 +281,14 @@ while IFS= read -r -d '' source; do
 	fi
 done < <(sorted_files "$overlay_snapshot")
 "$script_dir/materialize-patch.sh" "$work_dir/go" "$patch_snapshot"
+fail_at after-patch
 while IFS= read -r -d '' source; do
 	relative=${source#"$overlay_snapshot"/}
 	destination="$work_dir/go/$relative"
 	mkdir -p "$(dirname "$destination")"
 	cp "$source" "$destination"
 done < <(sorted_files "$overlay_snapshot")
+fail_at after-overlay
 (
 	cd "$work_dir/go/src"
 	env -i \
@@ -298,6 +341,7 @@ if [[ $(env -u GOMADSEED "$work_dir/go/bin/go" version) != *" $go_version "* ]];
 	printf 'built toolchain reported an unexpected version\n' >&2
 	exit 1
 fi
+fail_at after-compile
 
 if build_complete; then
 	publish_toolchain
@@ -312,6 +356,7 @@ fi
 mv "$work_dir/go" "$build_dir"
 rm -rf "$work_dir"
 work_dir=
+fail_at after-build-publish
 
 publish_toolchain
 printf 'gomadv3 toolchain is ready (%s/%s, key %s)\n' "$host_os" "$host_arch" "$build_key"

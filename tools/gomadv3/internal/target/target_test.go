@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"strings"
 	"testing"
 
@@ -123,6 +124,39 @@ func TestPrepareGoRunUsesBuildOverlay(t *testing.T) {
 	}
 }
 
+func TestPrepareRejectsLinknameInBuildOverlay(t *testing.T) {
+	module := writeModule(t, map[string]string{
+		"go.mod":  "module example.com/overlayescape\n\ngo 1.26.4\n",
+		"main.go": "package main\nfunc main() {}\n",
+	})
+	replacement := filepath.Join(t.TempDir(), "main.go")
+	if err := os.WriteFile(replacement, []byte("package main\nimport _ \"unsafe\"\n//go:linkname escape syscall.Getpid\nfunc escape() int\nfunc main() { _ = escape() }\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	original, err := filepath.EvalSymlinks(filepath.Join(module, "main.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	replacement, err = filepath.EvalSymlinks(replacement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	overlay := filepath.Join(t.TempDir(), "overlay.json")
+	encoded, err := json.Marshal(map[string]any{"Replace": map[string]string{original: replacement}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(overlay, encoded, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Prepare(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t), BuildOverlay: overlay,
+	})
+	if err == nil || !strings.Contains(err.Error(), "go:linkname") {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+}
+
 func TestReadModuleCacheUsesPinnedToolchain(t *testing.T) {
 	moduleCache, err := ReadModuleCache(context.Background(), toolchainRoot(t))
 	if err != nil {
@@ -172,6 +206,64 @@ func TestTagged(t *testing.T) {
 	command.Env = []string{"GOMADSEED=9", "TZ=UTC"}
 	if output, runErr := command.CombinedOutput(); runErr != nil {
 		t.Fatalf("run generated test: %v: %s", runErr, output)
+	}
+}
+
+func TestPrepareRejectsEscapeCapabilityClosure(t *testing.T) {
+	tests := map[string]struct {
+		kind  Kind
+		files map[string]string
+	}{
+		"process": {
+			files: map[string]string{"main.go": `package main
+
+import "os/exec"
+
+func main() { _ = exec.Command("true") }
+`},
+		},
+		"signal": {
+			files: map[string]string{"main.go": "package main\n\nimport \"os/signal\"\n\nfunc main() { _ = signal.Ignored() }\n"},
+		},
+		"host user": {
+			files: map[string]string{"main.go": "package main\n\nimport \"os/user\"\n\nfunc main() { _, _ = user.Current() }\n"},
+		},
+		"raw syscall": {
+			files: map[string]string{"main.go": "package main\n\nimport \"syscall\"\n\nfunc main() { _ = syscall.Getpid() }\n"},
+		},
+		"plugin": {
+			files: map[string]string{"main.go": "package main\n\nimport \"plugin\"\n\nfunc main() { _, _ = plugin.Open(\"target.so\") }\n"},
+		},
+		"test process": {
+			kind: KindGoTest,
+			files: map[string]string{
+				"main.go":      "package main\n\nfunc main() {}\n",
+				"main_test.go": "package main\n\nimport (\"os/exec\"; \"testing\")\n\nfunc TestEscape(t *testing.T) { _ = exec.Command(\"true\") }\n",
+			},
+		},
+		"assembly": {
+			files: map[string]string{
+				"main.go":  "package main\n\nfunc escape()\nfunc main() { escape() }\n",
+				"escape.s": "TEXT ·escape(SB),$0-0\n\tRET\n",
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			test.files["go.mod"] = "module example.com/escape\n\ngo 1.26.4\n"
+			module := writeModule(t, test.files)
+			kind := test.kind
+			if kind == "" {
+				kind = KindGoRun
+			}
+			_, err := Prepare(context.Background(), Spec{
+				Kind: kind, Source: ".", WorkingDir: module,
+				PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+			})
+			if err == nil || !strings.Contains(err.Error(), "unsupported target capability") {
+				t.Fatalf("Prepare() error = %v", err)
+			}
+		})
 	}
 }
 
@@ -275,16 +367,23 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 		t.Fatal(err)
 	}
 	projectedBuild := built.BuildInfo
+	closure, err := ReviewCapabilityClosure(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: module, ToolchainRoot: toolchainRoot(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	provenance := filepath.Join(t.TempDir(), "provenance.json")
 	if err := WriteProvenance(provenance, Provenance{
-		SchemaVersion: 1,
-		GoVersion:     identity.GoVersion,
-		BuildKey:      identity.BuildKey,
-		TargetGOOS:    identity.TargetGOOS,
-		TargetGOARCH:  identity.TargetGOARCH,
-		BinarySHA256:  fmt.Sprintf("sha256:%x", hash),
-		BinarySize:    uint64(len(contents)),
-		BuildInfo:     projectedBuild,
+		SchemaVersion:     2,
+		GoVersion:         identity.GoVersion,
+		BuildKey:          identity.BuildKey,
+		TargetGOOS:        identity.TargetGOOS,
+		TargetGOARCH:      identity.TargetGOARCH,
+		BinarySHA256:      fmt.Sprintf("sha256:%x", hash),
+		BinarySize:        uint64(len(contents)),
+		BuildInfo:         projectedBuild,
+		CapabilityClosure: closure,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -320,6 +419,32 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 		t.Fatalf("prepared provenance mode = %#o, want 0400", info.Mode().Perm())
 	}
 
+	forgedClosure := closure
+	forgedClosure.Packages = append([]CapabilityPackage(nil), closure.Packages...)
+	forgedClosure.Packages = append(forgedClosure.Packages, CapabilityPackage{
+		ImportPath: "example.com/forged", Name: "forged", Standard: true, Imports: []string{"os/exec"},
+		Sources: []CapabilitySource{}, ForeignSources: []string{},
+	})
+	sort.Slice(forgedClosure.Packages, func(i, j int) bool {
+		if forgedClosure.Packages[i].ImportPath != forgedClosure.Packages[j].ImportPath {
+			return forgedClosure.Packages[i].ImportPath < forgedClosure.Packages[j].ImportPath
+		}
+		return forgedClosure.Packages[i].Name < forgedClosure.Packages[j].Name
+	})
+	forgedProvenance := filepath.Join(t.TempDir(), "forged-provenance.json")
+	if err := WriteProvenance(forgedProvenance, Provenance{
+		SchemaVersion: 2, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
+		BinarySHA256: fmt.Sprintf("sha256:%x", hash), BinarySize: uint64(len(contents)), BuildInfo: projectedBuild, CapabilityClosure: forgedClosure,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Prepare(context.Background(), Spec{
+		Kind: KindExec, Source: binary, Provenance: forgedProvenance, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+	})
+	if err == nil || !strings.Contains(err.Error(), "standard package") {
+		t.Fatalf("forged standard package Prepare() error = %v", err)
+	}
+
 	symlinkProvenance := filepath.Join(t.TempDir(), "provenance-link.json")
 	if err := os.Symlink(provenance, symlinkProvenance); err != nil {
 		t.Fatal(err)
@@ -339,8 +464,8 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	invalidHash := sha256.Sum256(invalidContents)
 	invalidProvenance := filepath.Join(t.TempDir(), "invalid-provenance.json")
 	if err := WriteProvenance(invalidProvenance, Provenance{
-		SchemaVersion: 1, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
-		BinarySHA256: fmt.Sprintf("sha256:%x", invalidHash), BinarySize: uint64(len(invalidContents)), BuildInfo: projectedBuild,
+		SchemaVersion: 2, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
+		BinarySHA256: fmt.Sprintf("sha256:%x", invalidHash), BinarySize: uint64(len(invalidContents)), BuildInfo: projectedBuild, CapabilityClosure: closure,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -358,9 +483,10 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 
 func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 	base := provenanceWire{
-		Schema: provenanceSchema, SchemaVersion: 1, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
+		Schema: provenanceSchema, SchemaVersion: 2, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
-		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
+		BuildInfo:         record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
+		CapabilityClosure: validCapabilityClosure(),
 	}
 	for name, setting := range map[string]record.BuildSetting{
 		"cgo":        {Key: "CGO_ENABLED", Value: "1"},
@@ -386,6 +512,37 @@ func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 				t.Fatal("validateProvenance() succeeded")
 			}
 		})
+	}
+}
+
+func TestValidateProvenanceRejectsClosurelessAttestation(t *testing.T) {
+	provenance := provenanceWire{
+		Schema: "gomadv3.exec-provenance/v1", SchemaVersion: 1, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
+		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
+		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
+	}
+	if err := validateProvenance(provenance); err == nil {
+		t.Fatal("validateProvenance() succeeded")
+	}
+}
+
+func TestValidateExecCapabilityModulesMatchesBuildInfo(t *testing.T) {
+	closure := validCapabilityClosure()
+	closure.Packages = append([]CapabilityPackage{{
+		ImportPath: "example.net/dependency", Name: "dependency", Imports: []string{},
+		Module:  &CapabilityModule{Path: "example.net/dependency", Version: "v1.2.3", Sum: "h1:sum"},
+		Sources: []CapabilitySource{{Name: "dependency.go", SHA256: "sha256:" + strings.Repeat("d", 64)}}, ForeignSources: []string{},
+	}}, closure.Packages...)
+	info := &debug.BuildInfo{
+		Main: debug.Module{Path: "example.com/target"},
+		Deps: []*debug.Module{{Path: "example.net/dependency", Version: "v1.2.3", Sum: "h1:sum"}},
+	}
+	if err := validateExecCapabilityModules(info, closure); err != nil {
+		t.Fatal(err)
+	}
+	info.Deps[0].Version = "v1.2.4"
+	if err := validateExecCapabilityModules(info, closure); err == nil {
+		t.Fatal("validateExecCapabilityModules() succeeded with a mismatched module")
 	}
 }
 
@@ -438,4 +595,15 @@ func toolchainRoot(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return directory
+}
+
+func validCapabilityClosure() CapabilityClosure {
+	return CapabilityClosure{
+		Schema: capabilityClosureSchema,
+		Packages: []CapabilityPackage{{
+			ImportPath: "example.com/target", Name: "main", Imports: []string{},
+			Module:  &CapabilityModule{Path: "example.com/target", Main: true},
+			Sources: []CapabilitySource{{Name: "main.go", SHA256: "sha256:" + strings.Repeat("c", 64)}}, ForeignSources: []string{},
+		}},
+	}
 }

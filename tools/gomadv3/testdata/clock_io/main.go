@@ -2,22 +2,23 @@ package main
 
 import (
 	"os"
+	"syscall"
 	"time"
 )
 
 func main() {
-	reader, writer, err := os.Pipe()
-	if err != nil {
+	var descriptors [2]int
+	if err := syscall.Pipe(descriptors[:]); err != nil {
 		panic(err)
 	}
 	time.AfterFunc(time.Hour, func() {
 		os.Exit(99)
 	})
 	var buffer [1]byte
-	if _, err := reader.Read(buffer[:]); err != nil {
+	if _, err := syscall.Read(descriptors[0], buffer[:]); err != nil {
 		panic(err)
 	}
-	if err := writer.Close(); err != nil {
+	if err := syscall.Close(descriptors[1]); err != nil {
 		panic(err)
 	}
 }

@@ -37,7 +37,8 @@ func Classify(result process.Result, cancelled bool, terminal record.WorldTermin
 		if terminal.Kind == string(world.TerminalIdle) {
 			reason = "world_idle"
 		}
-		return Classification{Domain: "success", Reason: reason, Termination: "exit"}
+		exitCode := record.Uint64String(0)
+		return Classification{Domain: "success", Reason: reason, Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
 	}
 	classified := Classification{Domain: "target", Reason: diagnosticReason(result.Stderr.Bytes), ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
 	setTargetTermination(&classified, result)
