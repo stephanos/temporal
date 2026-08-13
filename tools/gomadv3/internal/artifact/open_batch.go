@@ -2,7 +2,6 @@ package artifact
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -53,7 +52,7 @@ func OpenBatch(path string) (Batch, error) {
 	if err != nil {
 		return Batch{}, fmt.Errorf("read batch runs: %w", err)
 	}
-	digest := record.SHA256(fmt.Sprintf("sha256:%x", sha256.Sum256(runsBytes)))
+	digest := record.HashBytes(runsBytes)
 	if digest != batch.RunsSHA256 {
 		return Batch{}, fmt.Errorf("batch runs digest is %s, want %s", digest, batch.RunsSHA256)
 	}
@@ -115,8 +114,10 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 		if (run.IOTranscriptSHA256 == nil) != (run.IOTranscriptRecords == nil) {
 			return fmt.Errorf("batch run %d transcript identity is incomplete", index+1)
 		}
-		if run.IOTranscriptSHA256 != nil && !validRecordSHA256(*run.IOTranscriptSHA256) {
-			return fmt.Errorf("batch run %d transcript digest is invalid", index+1)
+		if run.IOTranscriptSHA256 != nil {
+			if _, err := record.ParseSHA256(string(*run.IOTranscriptSHA256)); err != nil {
+				return fmt.Errorf("batch run %d transcript digest is invalid", index+1)
+			}
 		}
 		if err := validateSemanticProbeLists(run.SemanticProbes, run.NovelSemanticProbes); err != nil {
 			return fmt.Errorf("batch run %d: %w", index+1, err)
@@ -223,14 +224,6 @@ func validateSemanticProbeLists(probes, novel []string) error {
 }
 
 func validRecordSHA256(value record.SHA256) bool {
-	text := string(value)
-	if len(text) != len("sha256:")+sha256.Size*2 || !strings.HasPrefix(text, "sha256:") {
-		return false
-	}
-	for _, character := range strings.TrimPrefix(text, "sha256:") {
-		if character < '0' || character > '9' && character < 'a' || character > 'f' {
-			return false
-		}
-	}
-	return true
+	_, err := record.ParseSHA256(string(value))
+	return err == nil
 }

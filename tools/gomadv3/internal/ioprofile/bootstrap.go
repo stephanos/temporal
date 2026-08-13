@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -67,13 +66,9 @@ func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
 }
 
 func parseSHA256(value string) ([]byte, error) {
-	hexValue, found := strings.CutPrefix(value, "sha256:")
-	if !found || len(hexValue) != sha256.Size*2 {
-		return nil, fmt.Errorf("invalid SHA-256 identity %q", value)
-	}
-	decoded, err := hex.DecodeString(hexValue)
+	decoded, err := record.SHA256(value).Bytes()
 	if err != nil {
 		return nil, fmt.Errorf("invalid SHA-256 identity %q: %w", value, err)
 	}
-	return decoded, nil
+	return decoded[:], nil
 }

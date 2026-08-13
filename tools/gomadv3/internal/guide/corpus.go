@@ -291,7 +291,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 }
 
 func (corpus *Corpus) validateEntry(entry Entry) error {
-	if !validSHA256(entry.RecordHash) || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
+	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
 		return errors.New("guided corpus entry identity is invalid")
 	}
 	coverage, err := ioprofile.SummarizeSemanticProbes(entry.Coverage.Probes)
@@ -454,19 +454,6 @@ func validCaseReference(path string) bool {
 	return clean == path && strings.HasPrefix(path, "cases/sha256-") && !strings.Contains(path, "..")
 }
 
-func validSHA256(value record.SHA256) bool {
-	text := string(value)
-	if len(text) != len("sha256:")+64 || !strings.HasPrefix(text, "sha256:") {
-		return false
-	}
-	for _, character := range strings.TrimPrefix(text, "sha256:") {
-		if character < '0' || character > '9' && character < 'a' || character > 'f' {
-			return false
-		}
-	}
-	return true
-}
-
 func artifactPayloadBytes(manifest record.Manifest) (uint64, error) {
 	var total uint64
 	for _, file := range manifest.Files {
@@ -479,7 +466,9 @@ func artifactPayloadBytes(manifest record.Manifest) (uint64, error) {
 }
 
 func validateIdentity(identity Identity) error {
-	if !validSHA256(identity.TargetSHA256) || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || !validSHA256(identity.BoundarySHA256) || identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 != semanticInstrumentationIdentity() || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
+	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
+	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
+	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 != semanticInstrumentationIdentity() || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
 		return errors.New("guided corpus identity is invalid")
 	}
 	return nil

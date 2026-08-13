@@ -419,11 +419,8 @@ func validateRelativePath(value string) error {
 }
 
 func validateSHA256(value SHA256) error {
-	text := string(value)
-	if !strings.HasPrefix(text, "sha256:") || !isLowerHex(strings.TrimPrefix(text, "sha256:"), 64) {
-		return fmt.Errorf("invalid SHA-256 %q", text)
-	}
-	return nil
+	_, err := ParseSHA256(string(value))
+	return err
 }
 
 func isLowerHex(value string, length int) bool {

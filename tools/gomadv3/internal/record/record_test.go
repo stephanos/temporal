@@ -15,6 +15,35 @@ func TestSHA256FromSumUsesCanonicalIdentity(t *testing.T) {
 	}
 }
 
+func TestParseSHA256RoundTripsCanonicalIdentity(t *testing.T) {
+	want := sha256.Sum256([]byte("payload"))
+	identity, err := ParseSHA256(string(SHA256FromSum(want)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := identity.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != want {
+		t.Fatalf("SHA256.Bytes() = %x, want %x", got, want)
+	}
+}
+
+func TestParseSHA256RejectsNonCanonicalIdentity(t *testing.T) {
+	for _, value := range []string{
+		"",
+		strings.Repeat("0", sha256.Size*2),
+		"sha256:" + strings.Repeat("0", sha256.Size*2-1),
+		"sha256:" + strings.Repeat("A", sha256.Size*2),
+		"sha256:" + strings.Repeat("z", sha256.Size*2),
+	} {
+		if _, err := ParseSHA256(value); err == nil {
+			t.Fatalf("ParseSHA256(%q) succeeded", value)
+		}
+	}
+}
+
 func TestDomainHashUsesNamedNULTerminatedDomain(t *testing.T) {
 	if got, want := DomainHash("gomadv3-run-record-v1", []byte("payload")), SHA256("sha256:087406f9758d2fbb56f25c4a24ef6fbc9986ba6108814b05105ae598447940a5"); got != want {
 		t.Fatalf("DomainHash() = %q, want %q", got, want)
