@@ -262,22 +262,12 @@ func projectBatch(opened artifact.Batch) (BatchReport, error) {
 		}
 		result.Runs = append(result.Runs, projected)
 		if run.SuccessArtifact != nil {
-			path := filepath.Join(opened.Path, filepath.FromSlash(*run.SuccessArtifact))
-			retained, err := artifact.Open(path)
+			retained, err := artifact.ResolveRetainedEvidence(opened.Path, batch.RunID, run)
 			if err != nil {
 				return BatchReport{}, fmt.Errorf("open retained success %s: %w", *run.SuccessArtifact, err)
 			}
-			manifest := retained.Manifest
-			storedBytes := retained.StoredBytes
-			closeErr := retained.Close()
-			if closeErr != nil {
-				return BatchReport{}, fmt.Errorf("close retained success %s: %w", *run.SuccessArtifact, closeErr)
-			}
-			if run.SuccessArtifactBytes == nil || storedBytes != uint64(*run.SuccessArtifactBytes) || manifest.ArtifactKind != record.ArtifactSuccess || manifest.BatchID != batch.RunID || manifest.SelectionOrdinal != run.SelectionOrdinal || manifest.Seed != run.Seed || manifest.Outcome.Domain != "success" {
-				return BatchReport{}, fmt.Errorf("retained success %s does not match its batch run", *run.SuccessArtifact)
-			}
 			result.SuccessArtifacts = append(result.SuccessArtifacts, SuccessArtifact{
-				Path: path, StoredBytes: storedBytes, NovelProbes: append([]string(nil), run.NovelSemanticProbes...), ReplayCommand: "gomad replay " + commandline.QuoteArgument(path),
+				Path: retained.Path, StoredBytes: retained.StoredBytes, NovelProbes: append([]string(nil), run.NovelSemanticProbes...), ReplayCommand: "gomad replay " + commandline.QuoteArgument(retained.Path),
 			})
 		}
 		if run.Artifact == nil {
@@ -287,21 +277,13 @@ func projectBatch(opened artifact.Batch) (BatchReport, error) {
 		if _, found := seenArtifacts[path]; found {
 			continue
 		}
-		failure, err := artifact.Open(path)
+		failure, err := artifact.ResolveRetainedEvidence(opened.Path, batch.RunID, run)
 		if err != nil {
 			return BatchReport{}, fmt.Errorf("open retained failure %s: %w", *run.Artifact, err)
 		}
-		manifest := failure.Manifest
-		closeErr := failure.Close()
-		if closeErr != nil {
-			return BatchReport{}, fmt.Errorf("close retained failure %s: %w", *run.Artifact, closeErr)
-		}
-		if run.FailureSignature == nil || manifest.Outcome.FailureSignature != *run.FailureSignature || manifest.BatchID != batch.RunID {
-			return BatchReport{}, fmt.Errorf("retained failure %s does not match its batch run", *run.Artifact)
-		}
-		seenArtifacts[path] = struct{}{}
+		seenArtifacts[failure.Path] = struct{}{}
 		result.FailureArtifacts = append(result.FailureArtifacts, FailureArtifact{
-			Signature: *run.FailureSignature, Path: path, ReplayCommand: "gomad replay " + commandline.QuoteArgument(path),
+			Signature: *run.FailureSignature, Path: failure.Path, ReplayCommand: "gomad replay " + commandline.QuoteArgument(failure.Path),
 		})
 	}
 	return result, nil
