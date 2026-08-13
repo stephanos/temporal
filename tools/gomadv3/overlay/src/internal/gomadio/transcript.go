@@ -6,9 +6,10 @@ package gomadio
 
 import (
 	"encoding/binary"
-	"internal/gomadtrace"
 	"io"
 	"os"
+
+	"internal/gomadtrace"
 )
 
 func initTranscript() {
@@ -55,6 +56,8 @@ func resultClass(err error) uint32 {
 		return 3
 	case ErrUnsupported:
 		return 4
+	case ErrResourceExhausted:
+		return 8
 	case io.EOF:
 		return 5
 	case os.ErrDeadlineExceeded:

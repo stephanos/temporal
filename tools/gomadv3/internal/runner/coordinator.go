@@ -31,6 +31,7 @@ type coordinatorConfig struct {
 	FailureBudget          uint64
 	OutputLimit            uint64
 	WorldTransitionLimit   uint64
+	ChoiceTraceLimit       uint64
 	Artifacts              string
 	Environment            []string
 	IOROMounts             []string
@@ -96,7 +97,7 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 	wire := coordinatorConfig{
 		ResumeBatch: config.ResumeBatch, Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
-		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, Artifacts: config.Artifacts,
+		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit, Artifacts: config.Artifacts,
 		Environment: append([]string(nil), config.Environment...), Target: config.Target,
 		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
@@ -163,12 +164,12 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 			}
 		case <-overallCtx.Done():
 			if waitComplete {
-				return Summary{}, &HostError{Reason: "coordinator_decode", Err: overallCtx.Err()}
+				waited = completedCoordinatorWait(waitErr)
 			}
 			return killCoordinator(command, waited, deadline, overallCtx.Err())
 		case <-timer.C:
 			if waitComplete {
-				return Summary{}, &HostError{Reason: "coordinator_decode", Err: context.DeadlineExceeded}
+				waited = completedCoordinatorWait(waitErr)
 			}
 			return killCoordinator(command, waited, deadline, context.DeadlineExceeded)
 		}
@@ -196,6 +197,12 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 		return response.Summary, &HostError{Reason: response.ErrorReason, Err: errors.New(response.ErrorDetail)}
 	}
 	return response.Summary, nil
+}
+
+func completedCoordinatorWait(waitErr error) chan error {
+	waited := make(chan error, 1)
+	waited <- waitErr
+	return waited
 }
 
 func decodeCoordinatorMessages(input io.Reader, progress ProgressFunc) (coordinatorResponse, error) {
@@ -252,7 +259,7 @@ func drainCoordinatorInput(input io.Reader, cause error) error {
 
 func killCoordinator(command *exec.Cmd, waited <-chan error, deadline time.Time, cause error) (Summary, error) {
 	cleanupErr := terminateCoordinator(command, waited, deadline)
-	return Summary{}, &HostError{Reason: "overall_timeout", Err: errors.Join(cause, cleanupErr)}
+	return Summary{}, &HostError{Reason: contextFailureReason(cause), Err: errors.Join(cause, cleanupErr)}
 }
 
 func errorFromOutput(output []byte) error {
@@ -278,7 +285,7 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 	config := Config{
 		ResumeBatch: wire.ResumeBatch, Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
-		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, Artifacts: wire.Artifacts,
+		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit, Artifacts: wire.Artifacts,
 		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
 		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
 		ProgressInterval: wire.ProgressInterval,

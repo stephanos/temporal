@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/process"
@@ -85,6 +86,7 @@ type Progress struct {
 	CorpusPath           string
 	CorpusEntries        uint64
 	CorpusAdded          uint64
+	ChoiceTrace          *ChoiceTraceSummary
 }
 
 type ProgressFunc func(Progress) error
@@ -112,6 +114,7 @@ type Config struct {
 	FailureBudget          uint64
 	OutputLimit            uint64
 	WorldTransitionLimit   uint64
+	ChoiceTraceLimit       uint64
 	Artifacts              string
 	Environment            []string
 	IOROMounts             []string
@@ -156,6 +159,20 @@ type Summary struct {
 	CorpusPath           string
 	CorpusEntries        uint64
 	CorpusAdded          uint64
+	ChoiceTrace          *ChoiceTraceSummary
+}
+
+type ChoiceTraceSummary struct {
+	Seed             uint64
+	Profile          string
+	Limit            uint64
+	SHA256           record.SHA256
+	Records          uint64
+	BranchingRecords uint64
+	Runnable         uint64
+	SelectPoll       uint64
+	SelectResult     uint64
+	TerminalState    string
 }
 
 type HostError struct {
@@ -172,6 +189,13 @@ func (err *HostError) Error() string {
 
 func (err *HostError) Unwrap() error {
 	return err.Err
+}
+
+func contextFailureReason(err error) string {
+	if errors.Is(err, context.Canceled) {
+		return "cancelled"
+	}
+	return "overall_timeout"
 }
 
 type targetPreparer struct{}
@@ -322,6 +346,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			DistinctFailures: summary.DistinctFailures, Artifacts: append([]string(nil), summary.Artifacts...),
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SuccessArtifacts: append([]string(nil), summary.SuccessArtifacts...),
 			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
+			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace),
 		})
 	}
 	if err := reportProgress(ProgressPreparing, 0); err != nil {
@@ -349,7 +374,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 	}()
 	if err := overallCtx.Err(); err != nil {
-		return summary, &HostError{Reason: "overall_timeout", Err: err}
+		return summary, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
 	selectedProfile := ioprofile.Default()
 	if !resuming {
@@ -376,8 +401,8 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		prepared, err = preparer.Prepare(overallCtx, config.Target)
 		if err != nil {
 			reason := "target_preparation"
-			if overallCtx.Err() != nil {
-				reason = "overall_timeout"
+			if contextErr := overallCtx.Err(); contextErr != nil {
+				reason = contextFailureReason(contextErr)
 			}
 			if partialErr := journal.FailPreparation(reason, err); partialErr != nil {
 				err = errors.Join(err, partialErr)
@@ -478,6 +503,9 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		if !completion.result.Captured {
 			return nil
 		}
+		if reason == "choice_trace_malformed" || reason == "choice_trace_unterminated" {
+			return nil
+		}
 		worldBundle := noneWorldBundle()
 		outcome := executionoutcome.Classification{
 			Domain: "runner", Reason: reason, Termination: "none",
@@ -493,7 +521,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		published, err := failureStore.Publish(artifact.Input{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
 		if err != nil {
 			return fmt.Errorf("publish Runner failure artifact: %w", err)
@@ -513,6 +541,8 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			Domain: "runner", Reason: reason, Termination: "none", FailureSignature: &signature, Artifact: &artifactRelative,
 			ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 		}
+		setRunTranscript(&run, completion.result.IOTranscript)
+		setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 		if err := journal.AppendRun(run); err != nil {
 			return fmt.Errorf("append Runner failure result: %w", err)
 		}
@@ -558,7 +588,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			}
 		}
 		if overallCtx.Err() != nil && hostFailure == nil && !campaign.Stopped() {
-			hostFailure = &HostError{Reason: "overall_timeout", Err: overallCtx.Err()}
+			hostFailure = &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: overallCtx.Err()}
 			campaign.Stop()
 			activeCancel()
 		}
@@ -579,21 +609,25 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		campaign.FinishAttempt()
 		if overallCtx.Err() != nil {
 			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "overall_timeout", Err: overallCtx.Err()}
+				hostFailure = &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: overallCtx.Err()}
 			}
 			campaign.Stop()
 			activeCancel()
 			continue
 		}
 		if completion.err != nil {
+			reason := supervisionFailureReason(completion.err)
+			if completion.result.ChoiceTrace.Profile != "" && completion.result.ChoiceTrace.Trace.Summary.Terminal == choicewire.TerminalOverflow {
+				summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
+			}
 			if partialErr := preservePartial(completion.journal); partialErr != nil {
 				completion.err = errors.Join(completion.err, partialErr)
 			}
-			if publishErr := publishRunnerFailure(completion, "target_supervision"); publishErr != nil {
+			if publishErr := publishRunnerFailure(completion, reason); publishErr != nil {
 				completion.err = errors.Join(completion.err, publishErr)
 			}
 			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "target_supervision", Err: completion.err}
+				hostFailure = &HostError{Reason: reason, Err: completion.err}
 				campaign.Stop()
 				activeCancel()
 			}
@@ -606,6 +640,9 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 				activeCancel()
 			}
 			continue
+		}
+		if config.ChoiceTraceLimit != 0 {
+			summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
 		}
 		if completion.result.Cancelled && campaign.Stopped() {
 			campaign.RecordCancelled()
@@ -703,7 +740,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		if overallErr := overallCtx.Err(); overallErr != nil {
 			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "overall_timeout", Err: overallErr}
+				hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
 				campaign.Stop()
 				activeCancel()
 			}
@@ -718,6 +755,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 				Domain: "success", Reason: outcome.Reason, Termination: "exit", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 			}
 			setRunTranscript(&run, completion.result.IOTranscript)
+			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
 			retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && len(novelProbes) != 0
 			if retain {
@@ -741,7 +779,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 						var published artifact.Artifact
 						published, publishErr = (artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}).Publish(artifact.Input{
 							Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-							IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+							IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 						})
 						if publishErr == nil {
 							relative, relErr := filepath.Rel(batchPath, published.Path)
@@ -823,7 +861,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		published, publishErr := failureStore.Publish(artifact.Input{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
 		if publishErr != nil {
 			if hostFailure == nil {
@@ -835,7 +873,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		if overallErr := overallCtx.Err(); overallErr != nil {
 			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "overall_timeout", Err: overallErr}
+				hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
 				campaign.Stop()
 				activeCancel()
 			}
@@ -873,6 +911,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			Artifact: &artifactRelative, ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 		}
 		setRunTranscript(&run, completion.result.IOTranscript)
+		setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 		run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
 		if err := journal.AppendRun(run); err != nil && hostFailure == nil {
 			hostFailure = &HostError{Reason: "runs_append", Err: err}
@@ -902,9 +941,14 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 	}
 	if overallCtx.Err() != nil && hostFailure == nil {
-		hostFailure = &HostError{Reason: "overall_timeout", Err: overallCtx.Err()}
+		hostFailure = &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: overallCtx.Err()}
 	}
 	if hostFailure != nil {
+		if summary.ChoiceTrace != nil {
+			if progressErr := reportProgress(ProgressRunning, 0); progressErr != nil {
+				hostFailure = errors.Join(hostFailure, &HostError{Reason: "progress_output", Err: progressErr})
+			}
+		}
 		return summary, hostFailure
 	}
 	if summary.SemanticCoverage != nil {
@@ -920,11 +964,11 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		return summary, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := overallCtx.Err(); err != nil {
-		return summary, &HostError{Reason: "overall_timeout", Err: err}
+		return summary, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
 	campaign.Finalize()
 	if err := overallCtx.Err(); err != nil {
-		return summary, &HostError{Reason: "overall_timeout", Err: err}
+		return summary, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
 	failureSignatures := make([]record.SHA256, 0, len(distinct))
 	for signature := range distinct {
@@ -971,6 +1015,9 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 	}
 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
 		return SeedSelection{}, nil, fmt.Errorf("output and World transition limits must be positive")
+	}
+	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < process.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > process.MaximumChoiceTraceBytes) {
+		return SeedSelection{}, nil, fmt.Errorf("choice trace capacity must be between %d bytes and 64 MiB", process.MinimumChoiceTraceBytes)
 	}
 	if config.Artifacts == "" || config.RunnerBuild == "" {
 		return SeedSelection{}, nil, fmt.Errorf("artifact root and Runner build identity are required")
@@ -1048,13 +1095,16 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 		return SeedSelection{}, nil, err
 	}
 	environment = append(environment, record.Environment{Name: "GOMADV3_IO_PROFILE", Value: ioprofile.Deterministic})
+	if config.ChoiceTraceLimit != 0 {
+		environment = append(environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.Profile})
+	}
 	sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
 	return selection, environment, nil
 }
 
 func parseEnvironment(entries []string) ([]record.Environment, error) {
 	reserved := map[string]struct{}{
-		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "GOMADV3_CHOICE_PROFILE": {}, "GOMADV3_CHOICE_TRACE_FD": {}, "GOMADV3_CHOICE_TERMINAL_FD": {}, "GOMADV3_CHOICE_TRACE_BYTES": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))
@@ -1111,6 +1161,15 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 	arguments := append([]string(nil), prepared.Argv[1:]...)
 	var ioConfig []byte
 	ioConfig, completion.err = profile.BootstrapFrame(prepared, config.RunnerBuild, job.seed)
+	var choiceCapability *process.ChoiceCapability
+	if completion.err == nil && config.ChoiceTraceLimit != 0 {
+		implementation, err := choicewire.ImplementationIdentity(prepared.BuildKey)
+		if err != nil {
+			completion.err = fmt.Errorf("derive choice profile implementation identity: %w", err)
+		} else {
+			choiceCapability = &process.ChoiceCapability{Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: config.ChoiceTraceLimit}
+		}
+	}
 	if completion.err == nil {
 		request := process.Request{
 			SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
@@ -1126,10 +1185,14 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 			},
 			StdoutHead: stdoutHead, StderrHead: stderrHead,
 		}
+		request.Choice = choiceCapability
 		if len(config.SupervisorCommand) != 0 {
 			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
 		}
 		completion.result, completion.err = executor.Run(ctx, request)
+		if completion.err == nil {
+			completion.err = validateObservedChoiceTrace(config.ChoiceTraceLimit, choiceCapability, completion.result.ChoiceTrace)
+		}
 	}
 	if partialErr := run.Transition(artifact.RunExited); partialErr != nil {
 		completion.err = errors.Join(completion.err, partialErr)
@@ -1151,6 +1214,19 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 	completions <- completion
 }
 
+func validateObservedChoiceTrace(limit uint64, capability *process.ChoiceCapability, observed process.ChoiceTrace) error {
+	if limit == 0 {
+		return nil
+	}
+	if observed.Profile == "" || observed.Trace.Summary.Terminal == 0 {
+		return process.ErrChoiceTraceUnterminated
+	}
+	if capability == nil || observed.Profile != choicewire.Profile || observed.ImplementationSHA256 != capability.ImplementationSHA256 || observed.Limit != limit || observed.Trace.Summary.Terminal != choicewire.TerminalComplete {
+		return process.ErrChoiceTraceMalformed
+	}
+	return nil
+}
+
 func environmentForSeed(base []record.Environment, seed uint64) []record.Environment {
 	environment := append([]record.Environment(nil), base...)
 	environment = append(environment, record.Environment{Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, record.Environment{Name: "TZ", Value: "UTC"})
@@ -1159,9 +1235,12 @@ func environmentForSeed(base []record.Environment, seed uint64) []record.Environ
 }
 
 func environmentStrings(environment []record.Environment) []string {
-	result := make([]string, len(environment))
-	for index, entry := range environment {
-		result[index] = entry.Name + "=" + entry.Value
+	result := make([]string, 0, len(environment))
+	for _, entry := range environment {
+		if entry.Name == "GOMADV3_CHOICE_PROFILE" {
+			continue
+		}
+		result = append(result, entry.Name+"="+entry.Value)
 	}
 	return result
 }
@@ -1178,6 +1257,31 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 	if mountArtifact != nil {
 		recordedProfile.ReadOnlyMounts = &mountArtifact.Manifest
 	}
+	var recordedChoices *record.ChoiceProfile
+	if config.ChoiceTraceLimit != 0 {
+		implementation, err := choicewire.ImplementationIdentity(prepared.BuildKey)
+		if err != nil {
+			return record.Manifest{}, fmt.Errorf("derive choice profile implementation identity: %w", err)
+		}
+		observed := completion.result.ChoiceTrace
+		expectedTerminal := choicewire.TerminalComplete
+		terminalState := "complete"
+		if outcome.ArtifactKind == record.ArtifactRunnerFailure && outcome.Reason == "choice_trace_overflow" {
+			expectedTerminal = choicewire.TerminalOverflow
+			terminalState = "overflow"
+		}
+		if observed.Profile != choicewire.Profile || observed.ImplementationSHA256 != implementation || observed.Limit != config.ChoiceTraceLimit || observed.Trace.Summary.Terminal != expectedTerminal {
+			return record.Manifest{}, errors.New("enabled choice profile did not produce the required terminal trace")
+		}
+		recordedChoices = &record.ChoiceProfile{
+			Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
+			Trace: record.ChoiceTrace{
+				Schema: "gomadv3.choice-trace/v1", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
+				Bytes: record.Uint64String(len(observed.Trace.Bytes)), Records: record.Uint64String(observed.Trace.Summary.Records),
+				BranchingRecords: record.Uint64String(observed.Trace.Summary.Branching), TerminalState: terminalState, Limit: record.Uint64String(observed.Limit),
+			},
+		}
+	}
 	return record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: outcome.ArtifactKind, CreatedAt: completion.finishedAt.Format(time.RFC3339Nano), BatchID: runID,
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed), ReplayMode: outcome.ReplayMode,
@@ -1187,13 +1291,15 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 			Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), Adapters: cloneAdapters(prepared.Adapters), Compatibility: cloneCompatibility(prepared.Compatibility), BuildInfo: prepared.BuildInfo,
 		},
-		IOProfile:   recordedProfile,
-		Environment: environmentForSeed(baseEnvironment, completion.job.seed),
+		IOProfile:     recordedProfile,
+		ChoiceProfile: recordedChoices,
+		Environment:   environmentForSeed(baseEnvironment, completion.job.seed),
 		Limits: record.Limits{
 			RunTimeoutNanos: record.Uint64String(config.RunTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout),
 			TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),
 			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
 			IOTranscriptBytes:    64 << 20,
+			ChoiceTraceBytes:     record.Uint64String(config.ChoiceTraceLimit),
 		},
 		World:   recordedWorld,
 		Outcome: record.Outcome{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline},
@@ -1221,6 +1327,61 @@ func setRunTranscript(run *artifact.RunRecord, transcript process.IOTranscript) 
 	records := record.Uint64String(transcript.Records)
 	run.IOTranscriptSHA256 = &digest
 	run.IOTranscriptRecords = &records
+}
+
+func setRunChoiceTrace(run *artifact.RunRecord, trace process.ChoiceTrace) {
+	if trace.Profile == "" || trace.Trace.Summary.Terminal != choicewire.TerminalComplete && trace.Trace.Summary.Terminal != choicewire.TerminalOverflow {
+		return
+	}
+	digest := record.SHA256FromSum(trace.Trace.SHA256)
+	records := record.Uint64String(trace.Trace.Summary.Records)
+	branching := record.Uint64String(trace.Trace.Summary.Branching)
+	terminal := choiceTerminalState(trace.Trace.Summary.Terminal)
+	run.ChoiceTraceSHA256 = &digest
+	run.ChoiceTraceRecords = &records
+	run.ChoiceTraceBranchingRecords = &branching
+	run.ChoiceTraceTerminalState = &terminal
+}
+
+func supervisionFailureReason(err error) string {
+	switch {
+	case errors.Is(err, process.ErrChoiceTraceOverflow):
+		return "choice_trace_overflow"
+	case errors.Is(err, process.ErrChoiceTraceMalformed):
+		return "choice_trace_malformed"
+	case errors.Is(err, process.ErrChoiceTraceUnterminated):
+		return "choice_trace_unterminated"
+	default:
+		return "target_supervision"
+	}
+}
+
+func choiceTraceSummary(seed uint64, trace process.ChoiceTrace) *ChoiceTraceSummary {
+	return &ChoiceTraceSummary{
+		Seed: seed, Profile: trace.Profile, Limit: trace.Limit, SHA256: record.SHA256FromSum(trace.Trace.SHA256),
+		Records: trace.Trace.Summary.Records, BranchingRecords: trace.Trace.Summary.Branching,
+		Runnable: trace.Trace.Summary.Runnable, SelectPoll: trace.Trace.Summary.SelectPoll, SelectResult: trace.Trace.Summary.SelectResult,
+		TerminalState: choiceTerminalState(trace.Trace.Summary.Terminal),
+	}
+}
+
+func choiceTerminalState(state choicewire.TerminalState) string {
+	switch state {
+	case choicewire.TerminalComplete:
+		return "complete"
+	case choicewire.TerminalOverflow:
+		return "overflow"
+	default:
+		return "unknown"
+	}
+}
+
+func cloneChoiceTraceSummary(summary *ChoiceTraceSummary) *ChoiceTraceSummary {
+	if summary == nil {
+		return nil
+	}
+	cloned := *summary
+	return &cloned
 }
 
 func novelSemanticProbes(observed []string, prior map[string]struct{}) []string {

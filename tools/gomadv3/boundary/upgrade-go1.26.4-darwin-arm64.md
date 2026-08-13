@@ -20,4 +20,10 @@ make generate
 make upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit>
 ```
 
-The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, optional retained-corpus report, and platform qualification. CI uploads this file on every run.
+The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:
+
+```sh
+make upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit> GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>
+```
+
+CI uploads the dossier on every run.
