@@ -1326,16 +1326,22 @@ func ConvertElasticsearchClientError(message string, err error, logger log.Logge
 	return serviceerror.NewUnavailable(errMessage)
 }
 
-func shortErrorMessage(err error) string {
-	if elasticErr, ok := errors.AsType[*elastic.Error](err); ok {
-		msg := fmt.Sprintf(
-			"VisibilityStore: Error %d (%s)",
-			elasticErr.Status,
-			http.StatusText(elasticErr.Status),
-		)
-		if elasticErr.Status == http.StatusBadRequest && elasticErr.Details != nil &&
-			elasticErr.Details.Reason != "" {
-			msg += fmt.Sprintf(": %s [type=%s]", elasticErr.Details.Reason, elasticErr.Details.Type)
+func detailedErrorMessage(err error) string {
+	var elasticErr *elastic.Error
+	if !errors.As(err, &elasticErr) ||
+		elasticErr.Details == nil ||
+		len(elasticErr.Details.RootCause) == 0 ||
+		(len(elasticErr.Details.RootCause) == 1 && elasticErr.Details.RootCause[0].Reason == elasticErr.Details.Reason) {
+		return err.Error()
+	}
+
+	var sb strings.Builder
+	sb.WriteString(elasticErr.Error())
+	sb.WriteString(", root causes:")
+	for i, rootCause := range elasticErr.Details.RootCause {
+		fmt.Fprintf(&sb, " %s [type=%s]", rootCause.Reason, rootCause.Type)
+		if i != len(elasticErr.Details.RootCause)-1 {
+			sb.WriteRune(',')
 		}
 		return msg
 	}
