@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -18,8 +17,6 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
-const qualifyEventSchema = "gomadv3.qualify-event/v1"
-
 const maximumQualificationRepeats = 32
 
 type qualifyDependencies struct {
@@ -28,17 +25,6 @@ type qualifyDependencies struct {
 	run              func(context.Context, runner.Config) (runner.Summary, error)
 	replay           func(context.Context, replay.Config) (replay.Result, error)
 	write            func(string, qualify.Report) (string, error)
-}
-
-type qualifyEvent struct {
-	Schema         string          `json:"schema"`
-	Type           string          `json:"type"`
-	Classification string          `json:"classification,omitempty"`
-	Message        string          `json:"message,omitempty"`
-	Iteration      uint64          `json:"iteration,omitempty"`
-	Repeat         uint64          `json:"repeat,omitempty"`
-	ReportPath     string          `json:"report_path,omitempty"`
-	Report         *qualify.Report `json:"report,omitempty"`
 }
 
 type qualifyReporter struct {
@@ -173,15 +159,11 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	if err != nil {
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
 	}
-	classification := classifyQualification(report)
-	if err := reporter.Result(report, reportPath, classification); err != nil {
+	if err := reporter.Result(report, reportPath); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
-	if report.Qualified {
-		return 0
-	}
-	return 1
+	return qualify.ExitStatus(qualify.Classify(report))
 }
 
 func qualificationRun(summary runner.Summary) qualify.Run {
@@ -221,31 +203,11 @@ func retainQualificationFailure(
 	if err != nil {
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
 	}
-	if err := reporter.Result(report, path, failure.Classification); err != nil {
+	if err := reporter.Result(report, path); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
-	switch failure.Classification {
-	case "unsupported_target", "invalid_input":
-		return 2
-	case "semantic_coverage_failure":
-		return 1
-	default:
-		return 3
-	}
-}
-
-func classifyQualification(report qualify.Report) string {
-	if !report.Deterministic {
-		return "nondeterministic"
-	}
-	if report.Replay != nil && !report.Replay.Match {
-		return "replay_divergence"
-	}
-	if !report.TargetSuccess {
-		return "target_failure"
-	}
-	return "qualified"
+	return qualify.ExitStatus(failure.Classification)
 }
 
 func reportQualifyInputError(reporter *qualifyReporter, stderr io.Writer, err error) int {
@@ -266,7 +228,7 @@ func newQualifyReporter(jsonOutput bool, stdout, stderr io.Writer) *qualifyRepor
 
 func (reporter *qualifyReporter) Progress(iteration, repeat uint64) error {
 	if reporter.json {
-		return reporter.writeEvent(qualifyEvent{Schema: qualifyEventSchema, Type: "progress", Iteration: iteration, Repeat: repeat})
+		return qualify.WriteProgressEvent(reporter.stdout, iteration, repeat)
 	}
 	_, err := fmt.Fprintf(reporter.stderr, "gomad: qualification iteration=%d/%d\n", iteration, repeat)
 	return err
@@ -274,15 +236,15 @@ func (reporter *qualifyReporter) Progress(iteration, repeat uint64) error {
 
 func (reporter *qualifyReporter) Error(classification string, err error) error {
 	if reporter.json {
-		return reporter.writeEvent(qualifyEvent{Schema: qualifyEventSchema, Type: "error", Classification: classification, Message: err.Error()})
+		return qualify.WriteErrorEvent(reporter.stdout, classification, err)
 	}
 	_, writeErr := fmt.Fprintf(reporter.stderr, "gomad: %s: %v\n", classification, err)
 	return writeErr
 }
 
-func (reporter *qualifyReporter) Result(report qualify.Report, path, classification string) error {
+func (reporter *qualifyReporter) Result(report qualify.Report, path string) error {
 	if reporter.json {
-		return reporter.writeEvent(qualifyEvent{Schema: qualifyEventSchema, Type: "result", Classification: classification, ReportPath: path, Report: &report})
+		return qualify.WriteResultEvent(reporter.stdout, report, path)
 	}
 	_, err := fmt.Fprintf(reporter.stdout, "gomad: qualification qualified=%t deterministic=%t target-success=%t seed=%d repeat=%d report=%s\n", report.Qualified, report.Deterministic, report.TargetSuccess, report.Seed, report.Repeat, path)
 	if err == nil && report.FirstDivergence != "" {
@@ -294,14 +256,5 @@ func (reporter *qualifyReporter) Result(report qualify.Report, path, classificat
 	if err == nil && report.Failure != nil {
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-boundary classification=%s iteration=%d import=%s capability=%s message=%s\n", report.Failure.Classification, report.Failure.Iteration, report.Failure.ImportPath, report.Failure.Capability, report.Failure.Message)
 	}
-	return err
-}
-
-func (reporter *qualifyReporter) writeEvent(event qualifyEvent) error {
-	encoded, err := json.Marshal(event)
-	if err != nil {
-		return fmt.Errorf("encode qualification event: %w", err)
-	}
-	_, err = fmt.Fprintf(reporter.stdout, "%s\n", encoded)
 	return err
 }
