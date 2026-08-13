@@ -706,9 +706,9 @@ func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 
 func TestRunOverallTimeoutIsAHostFailure(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
-	config.OverallTimeout = 200 * time.Millisecond
+	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.Running == 1 })
 	config.TerminateGrace = 10 * time.Millisecond
-	summary, err := Run(context.Background(), config)
+	summary, err := Run(ctx, config)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
 		t.Fatalf("Run() error = %#v", err)
@@ -739,9 +739,9 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 	preparer := newFakePreparer(t)
 	interrupted := &resumeInterruptExecutor{}
 	config := testConfig(t, preparer, interrupted, "7-9", PolicyAll, 1)
-	config.OverallTimeout = 300 * time.Millisecond
+	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.Succeeded == 1 })
 	config.TerminateGrace = 10 * time.Millisecond
-	partial, err := Run(context.Background(), config)
+	partial, err := Run(ctx, config)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
 		t.Fatalf("interrupted Run() error = %v", err)
@@ -777,13 +777,13 @@ func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
 	replayer := &matchingReplayer{}
 	interrupted := &resumeInterruptExecutor{}
 	config := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
-	config.OverallTimeout = 300 * time.Millisecond
+	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.CorpusEntries == 1 })
 	config.TerminateGrace = 10 * time.Millisecond
 	config.Coverage = CoverageSemantic
 	config.Guide = true
 	config.Corpus = corpus
 	config.Replayer = replayer
-	partial, err := Run(context.Background(), config)
+	partial, err := Run(ctx, config)
 	if err == nil || partial.CorpusEntries != 1 {
 		t.Fatalf("interrupted guided summary = %#v, error = %v", partial, err)
 	}
@@ -806,9 +806,9 @@ func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
 
 func TestRunResumeRejectsChangedRunnerIdentity(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
-	config.OverallTimeout = 200 * time.Millisecond
+	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.Running == 1 })
 	config.TerminateGrace = 10 * time.Millisecond
-	partial, err := Run(context.Background(), config)
+	partial, err := Run(ctx, config)
 	if err == nil {
 		t.Fatal("Run() did not leave an interrupted batch")
 	}
@@ -823,12 +823,12 @@ func TestRunResumeRejectsChangedRunnerIdentity(t *testing.T) {
 func TestRunResumeRejectsTamperedRetainedSuccessArtifact(t *testing.T) {
 	interrupted := &resumeInterruptExecutor{}
 	config := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
-	config.OverallTimeout = 300 * time.Millisecond
+	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.RetainedSuccesses == 1 })
 	config.TerminateGrace = 10 * time.Millisecond
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
-	partial, err := Run(context.Background(), config)
+	partial, err := Run(ctx, config)
 	if err == nil || len(partial.SuccessArtifacts) != 1 {
 		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
 	}
@@ -860,10 +860,16 @@ func TestRunPreparationFailureLeavesExplicitPartial(t *testing.T) {
 }
 
 func TestRunPreparationOverallTimeoutIsClassifiedSeparately(t *testing.T) {
-	config := testConfig(t, waitingPreparer{}, &fakeExecutor{}, "1", PolicyAll, 1)
-	config.OverallTimeout = 25 * time.Millisecond
+	started := make(chan struct{})
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go func() {
+		<-started
+		cancel()
+	}()
+	config := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
 	config.TerminateGrace = 10 * time.Millisecond
-	summary, err := Run(context.Background(), config)
+	summary, err := Run(ctx, config)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
 		t.Fatalf("Run() error = %#v", err)
@@ -1135,9 +1141,12 @@ func (preparer errorPreparer) Prepare(context.Context, target.Spec) (target.Prep
 	return target.Prepared{}, preparer.err
 }
 
-type waitingPreparer struct{}
+type waitingPreparer struct {
+	started chan<- struct{}
+}
 
-func (waitingPreparer) Prepare(ctx context.Context, _ target.Spec) (target.Prepared, error) {
+func (preparer waitingPreparer) Prepare(ctx context.Context, _ target.Spec) (target.Prepared, error) {
+	close(preparer.started)
 	<-ctx.Done()
 	return target.Prepared{}, ctx.Err()
 }
@@ -1410,6 +1419,20 @@ func testConfig(t *testing.T, preparer Preparer, executor Executor, seeds string
 		Environment: []string{"MODE=test"}, Target: target.Spec{Kind: target.KindGoRun, Source: "."}, SupervisorCommand: []string{"unused"},
 		RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000", Preparer: preparer, Executor: executor,
 	}
+}
+
+func cancelOnProgress(t *testing.T, config *Config, predicate func(Progress) bool) context.Context {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	config.ProgressInterval = time.Millisecond
+	config.Progress = func(progress Progress) error {
+		if predicate(progress) {
+			cancel()
+		}
+		return nil
+	}
+	return ctx
 }
 
 func processResult(exitCode int, stdout, stderr string) process.Result {

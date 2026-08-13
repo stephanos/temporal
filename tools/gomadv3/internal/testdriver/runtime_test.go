@@ -1,11 +1,63 @@
 package testdriver
 
 import (
+	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomadv3/internal/commandrun"
+	"go.temporal.io/server/tools/gomadv3/internal/outputcapture"
+	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
+
+func TestRequireStockCompatibilitySelectsPinnedToolchain(t *testing.T) {
+	launcher := filepath.Join(t.TempDir(), "go")
+	if err := os.WriteFile(launcher, []byte("fixture"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	stockRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(stockRoot, "bin"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(stockRoot, "bin", "go"), []byte("fixture"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", filepath.Dir(launcher))
+	t.Setenv("GOMADV3_STOCK_GO", "")
+	stop := errors.New("stop after stock Go resolution")
+	var requests []commandrun.Request
+	report := Report{}
+	campaign := runtimeCampaign{
+		ctx: context.Background(), testdata: t.TempDir(), report: &report,
+		run: func(_ context.Context, request commandrun.Request) (commandrun.Result, error) {
+			requests = append(requests, request)
+			if len(requests) != 1 {
+				return commandrun.Result{}, stop
+			}
+			result := successfulCommand()
+			result.Stdout = outputcapture.Output{Bytes: []byte(stockRoot + "\n"), RawBytes: []byte(stockRoot + "\n")}
+			return result, nil
+		},
+	}
+	if err := campaign.requireStockCompatibility(); !errors.Is(err, stop) {
+		t.Fatalf("requireStockCompatibility() error = %v", err)
+	}
+	if len(requests) != 2 {
+		t.Fatalf("stock Go resolution requests = %d, want 2", len(requests))
+	}
+	if !slices.Contains(requests[0].Env, "GOTOOLCHAIN="+gomadversion.GoVersion) {
+		t.Fatalf("stock Go resolution environment = %v", requests[0].Env)
+	}
+	if slices.ContainsFunc(requests[0].Env, func(value string) bool { return strings.HasPrefix(value, "GOPROXY=") }) {
+		t.Fatalf("stock Go resolution disabled verified toolchain download: %v", requests[0].Env)
+	}
+}
 
 func TestValidateRandomContract(t *testing.T) {
 	valid := strings.Repeat("0123456789abcdef 01234567\n", 8)
