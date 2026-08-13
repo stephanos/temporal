@@ -8,5 +8,5 @@
 - [x] 6/10 — Encapsulate source-backed build-key derivation in `buildkey`.
 - [x] 7/10 — Centralize retained batch-evidence resolution in `artifact`.
 - [x] 8/10 — Centralize advisory lock lifecycle in `filelock`.
-- [ ] 9/10
+- [x] 9/10 — Move prepared-target record projections into `target`.
 - [ ] 10/10
