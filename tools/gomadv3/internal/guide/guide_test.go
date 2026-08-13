@@ -70,7 +70,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 			Terminal:    record.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
 		},
 	}
-	features, err := SemanticFeatures(manifest, coverage, transcript, nil)
+	features, err := semanticFeatures(manifest, coverage, transcript, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,12 +98,12 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 	firstWorld, firstTransitions := semanticWorld(t, 7, "first-key", []byte("first-payload"), world.InitialTime)
 	secondWorld, secondTransitions := semanticWorld(t, 99, "second-key", []byte("second-payload"), world.InitialTime+100)
 	manifest := record.Manifest{Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: firstWorld}
-	first, err := SemanticFeatures(manifest, coverage, nil, firstTransitions)
+	first, err := semanticFeatures(manifest, coverage, nil, firstTransitions)
 	if err != nil {
 		t.Fatal(err)
 	}
 	manifest.World = secondWorld
-	second, err := SemanticFeatures(manifest, coverage, nil, secondTransitions)
+	second, err := semanticFeatures(manifest, coverage, nil, secondTransitions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 		{Kind: FeatureOperationPair, Value: "world.register/memory/cell/wait->world.ready/done"},
 	}
 	if !slices.Equal(first, want) || !slices.Equal(second, want) {
-		t.Fatalf("SemanticFeatures() = %#v and %#v, want %#v", first, second, want)
+		t.Fatalf("semanticFeatures() = %#v and %#v, want %#v", first, second, want)
 	}
 }
 

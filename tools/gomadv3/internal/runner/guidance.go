@@ -2,7 +2,6 @@ package runner
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -74,36 +73,24 @@ func (campaign *guidanceCampaign) MergeRun(
 	if err != nil {
 		return false, err
 	}
-	published, err := (artifact.Store{Root: campaign.corpus.CasesPath(), Context: ctx, MaximumBytes: guide.MaximumBytes, Key: artifact.StoreKeyRecord}).Publish(artifact.Input{
-		Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-		IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+	candidate := guide.Candidate{
+		Artifact: artifact.Input{
+			Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+			IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+		},
+		Coverage: coverage,
+	}
+	return campaign.corpus.Admit(ctx, candidate, func(ctx context.Context, path string) (guide.ReplayResult, error) {
+		replayConfig := replay.Config{
+			ArtifactPath: path, ToolchainRoot: campaign.config.Target.ToolchainRoot,
+			SupervisorCommand: append([]string(nil), campaign.config.SupervisorCommand...),
+		}
+		if len(campaign.config.SupervisorCommand) != 0 {
+			replayConfig.BootstrapCommand = []string{campaign.config.SupervisorCommand[0], "__target_bootstrap"}
+		}
+		replayed, err := campaign.replayer.Replay(ctx, replayConfig)
+		return guide.ReplayResult{Verified: replayed.Verified, Match: replayed.Match, Diagnostic: replayed.Diagnostic, Divergence: replayed.Divergence}, err
 	})
-	if err != nil {
-		return false, fmt.Errorf("publish guided corpus case: %w", err)
-	}
-	features, err := guide.SemanticFeatures(published.Manifest, coverage, completion.result.IOTranscript.Bytes, worldBundle.Payloads.Transitions)
-	if err != nil {
-		return false, errors.Join(err, campaign.corpus.Discard(published))
-	}
-	if !campaign.corpus.Interesting(features, published.StoredBytes) {
-		return false, campaign.corpus.Discard(published)
-	}
-	replayConfig := replay.Config{
-		ArtifactPath: published.Path, ToolchainRoot: campaign.config.Target.ToolchainRoot,
-		SupervisorCommand: append([]string(nil), campaign.config.SupervisorCommand...),
-	}
-	if len(campaign.config.SupervisorCommand) != 0 {
-		replayConfig.BootstrapCommand = []string{campaign.config.SupervisorCommand[0], "__target_bootstrap"}
-	}
-	replayed, err := campaign.replayer.Replay(ctx, replayConfig)
-	if err != nil {
-		return false, errors.Join(fmt.Errorf("replay guided corpus case: %w", err), campaign.corpus.Discard(published))
-	}
-	replayResult := guide.ReplayResult{Verified: replayed.Verified, Match: replayed.Match, Diagnostic: replayed.Diagnostic, Divergence: replayed.Divergence}
-	if !replayResult.Verified || !replayResult.Match {
-		return false, errors.Join(fmt.Errorf("guided corpus replay diverged at %s", replayResult.Divergence), campaign.corpus.Discard(published))
-	}
-	return campaign.corpus.Merge(published, coverage, features, replayResult)
 }
 
 func recordTarget(prepared target.Prepared) record.Target {

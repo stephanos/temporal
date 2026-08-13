@@ -25,8 +25,8 @@ const (
 )
 
 const (
-	MaximumEntries = 1024
-	MaximumBytes   = 1 << 30
+	maximumEntries = 1024
+	maximumBytes   = 1 << 30
 )
 
 type Identity struct {
