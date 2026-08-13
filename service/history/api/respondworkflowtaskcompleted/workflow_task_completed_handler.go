@@ -889,6 +889,7 @@ func (handler *workflowTaskCompletedHandler) handleCommandCompleteWorkflow(
 	if err != nil {
 		return nil, err
 	}
+	handler.emitWorkflowExecutionClosed(ctx, event)
 
 	// Emit an OTEL span event so the umpire test observer can transition the
 	// Workflow entity to a completed state.
@@ -967,6 +968,7 @@ func (handler *workflowTaskCompletedHandler) handleCommandFailWorkflow(
 	if err != nil {
 		return nil, err
 	}
+	handler.emitWorkflowExecutionClosed(ctx, event)
 
 	// Handle retry or cron
 	if retryBackoff != backoff.NoBackoff {
@@ -1032,7 +1034,12 @@ func (handler *workflowTaskCompletedHandler) handleCommandCancelWorkflow(
 		return nil, nil
 	}
 
-	return handler.mutableState.AddWorkflowExecutionCanceledEvent(handler.workflowTaskCompletedID, attr)
+	event, err := handler.mutableState.AddWorkflowExecutionCanceledEvent(handler.workflowTaskCompletedID, attr)
+	if err != nil {
+		return nil, err
+	}
+	handler.emitWorkflowExecutionClosed(ctx, event)
+	return event, nil
 }
 
 func (handler *workflowTaskCompletedHandler) handleCommandRequestCancelExternalWorkflow(
@@ -1206,6 +1213,7 @@ func (handler *workflowTaskCompletedHandler) handleCommandContinueAsNewWorkflow(
 	}
 
 	handler.newMutableState = newMutableState
+	handler.emitWorkflowExecutionClosed(ctx, event)
 
 	// Emit OTEL span events for the umpire run graph: the continue-as-new successor's start (with
 	// its lineage and the continued_as_new edge label) and the predecessor's continued-as-new close
@@ -1233,6 +1241,12 @@ func (handler *workflowTaskCompletedHandler) handleCommandContinueAsNewWorkflow(
 	)
 
 	return event, nil
+}
+
+func (handler *workflowTaskCompletedHandler) emitWorkflowExecutionClosed(ctx context.Context, event *historypb.HistoryEvent) {
+	if err := workflow.EmitWorkflowExecutionClosed(ctx, handler.mutableState.GetWorkflowKey(), event); err != nil {
+		handler.logger.DPanic("Failed to emit workflow close telemetry", tag.Error(err))
+	}
 }
 
 func (handler *workflowTaskCompletedHandler) handleCommandStartChildWorkflow(
