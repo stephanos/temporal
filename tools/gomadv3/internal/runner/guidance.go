@@ -26,11 +26,9 @@ type guidanceCampaign struct {
 }
 
 func openGuidance(ctx context.Context, config Config, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
-	targetRecord := recordTarget(prepared)
+	targetRecord := prepared.RecordTarget()
 	boundaryVersion, boundarySHA256 := ioprofile.BoundaryManifestIdentity()
-	identity, err := guide.IdentityFor(targetRecord, record.Toolchain{
-		GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH,
-	}, boundaryVersion, boundarySHA256)
+	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, boundarySHA256)
 	if err != nil {
 		return nil, err
 	}
@@ -91,13 +89,6 @@ func (campaign *guidanceCampaign) MergeRun(
 		replayed, err := campaign.replayer.Replay(ctx, replayConfig)
 		return guide.ReplayResult{Verified: replayed.Verified, Match: replayed.Match, Diagnostic: replayed.Diagnostic, Divergence: replayed.Divergence}, err
 	})
-}
-
-func recordTarget(prepared target.Prepared) record.Target {
-	return record.Target{
-		Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
-		Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), Adapters: cloneAdapters(prepared.Adapters), Compatibility: cloneCompatibility(prepared.Compatibility), BuildInfo: cloneBuildInfo(prepared.BuildInfo),
-	}
 }
 
 func guidedCorpusPath(path string) (string, error) {

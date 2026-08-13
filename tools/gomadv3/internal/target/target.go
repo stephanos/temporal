@@ -70,6 +70,23 @@ type Prepared struct {
 	TargetGOARCH  string
 }
 
+func (prepared Prepared) RecordTarget() record.Target {
+	buildInfo := prepared.BuildInfo
+	buildInfo.Settings = append([]record.BuildSetting(nil), prepared.BuildInfo.Settings...)
+	return record.Target{
+		Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
+		Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...),
+		Adapters: append([]record.TargetAdapter{}, prepared.Adapters...), Compatibility: append([]record.CompatibilityPack{}, prepared.Compatibility...), BuildInfo: buildInfo,
+	}
+}
+
+func (prepared Prepared) RecordToolchain() record.Toolchain {
+	return record.Toolchain{
+		GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey,
+		TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH,
+	}
+}
+
 type preparation struct {
 	buildInfo     record.BuildInfo
 	compatibility []record.CompatibilityPack
