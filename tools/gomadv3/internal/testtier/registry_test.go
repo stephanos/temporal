@@ -15,6 +15,7 @@ func TestResolveReturnsOrderedTiersAndSpecificSuccessMessage(t *testing.T) {
 		{mode: "test-builder", tiers: []string{"test-builder"}, success: "gomadv3 builder tier passed"},
 		{mode: "test-runtime", tiers: []string{"test-runtime"}, success: "gomadv3 runtime tier passed"},
 		{mode: "test-upstream", tiers: []string{"test-upstream"}, success: "gomadv3 upstream-compatibility tier passed"},
+		{mode: "test-interception", tiers: []string{"test-interception"}, success: "gomadv3 interception tier passed"},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			mode, err := Resolve(test.mode)

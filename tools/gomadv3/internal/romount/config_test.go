@@ -14,12 +14,12 @@ func TestParseMappingsNormalizesSourcesAndTargets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, target := range []string{"go.temporal.io/server/schema", "/go.temporal.io/server/schema"} {
+	for _, target := range []string{"workspace/schema", "/workspace/schema"} {
 		mappings, err := ParseMappings([]string{"schema=" + target}, root)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(mappings) != 1 || mappings[0].Source != source || mappings[0].Target != "/go.temporal.io/server/schema" {
+		if len(mappings) != 1 || mappings[0].Source != source || mappings[0].Target != "/workspace/schema" {
 			t.Fatalf("ParseMappings(%q) = %#v", target, mappings)
 		}
 	}

@@ -24,6 +24,10 @@ var modes = map[string]Mode{
 		Tiers:   []string{"test-upstream"},
 		Success: "gomadv3 upstream-compatibility tier passed",
 	},
+	"test-interception": {
+		Tiers:   []string{"test-interception"},
+		Success: "gomadv3 interception tier passed",
+	},
 }
 
 func Resolve(name string) (Mode, error) {

@@ -5,22 +5,26 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
-	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
+	"go.temporal.io/server/tools/gomadv3/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
-const capabilityClosureSchema = "gomadv3.target-capability-closure/v1"
+const capabilityClosureSchema = "gomadv3.target-capability-closure/v2"
 
 type CapabilityClosure struct {
-	Schema   string              `json:"schema"`
-	Packages []CapabilityPackage `json:"packages"`
+	Schema        string                   `json:"schema"`
+	Compatibility []compatibility.Identity `json:"compatibility"`
+	Packages      []CapabilityPackage      `json:"packages"`
 }
 
 type CapabilityPackage struct {
@@ -57,19 +61,22 @@ func (err *UnsupportedCapabilityError) Error() string {
 	return fmt.Sprintf("unsupported target capability: package %s %s", err.ImportPath, err.Capability)
 }
 
-func validateGoCapabilityClosure(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) error {
+func validateGoCapabilityClosure(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityClosure, error) {
 	closure, err := reviewGoCapabilityClosure(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
 	if err != nil {
-		return err
+		return CapabilityClosure{}, err
 	}
-	return validateCapabilityReview(closure)
+	if err := validateCapabilityReview(closure); err != nil {
+		return CapabilityClosure{}, err
+	}
+	return closure, nil
 }
 
 func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure, error) {
 	if spec.Kind != KindGoRun && spec.Kind != KindGoTest {
 		return CapabilityClosure{}, fmt.Errorf("capability review requires a go-run or go-test target")
 	}
-	tags, err := normalizeBuildTags(spec.Kind, spec.BuildTags)
+	tags, err := normalizeBuildTags(spec.BuildTags)
 	if err != nil {
 		return CapabilityClosure{}, err
 	}
@@ -171,42 +178,6 @@ type listedPackage struct {
 	Module       *listedModule `json:"Module"`
 }
 
-type reviewedModule struct {
-	version string
-	sum     string
-}
-
-var reviewedAdapterModules = map[string][]reviewedModule{
-	"github.com/mattn/go-isatty": {
-		{version: "v0.0.20", sum: "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY="},
-		{version: "v0.0.21", sum: "h1:xYae+lCNBP7QuW4PUnNG61ffM4hVIfm+zUzDuSzYLGs="},
-	},
-	"github.com/remyoudompheng/bigfft": {{version: "v0.0.0-20230129092748-24d4a6f8daec", sum: "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE="}},
-	"golang.org/x/sys": {
-		{version: "v0.41.0", sum: "h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k="},
-		{version: "v0.47.0", sum: "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs="},
-	},
-	"modernc.org/libc":   {{version: gomadversion.ModerncLibcVersion, sum: gomadversion.ModerncLibcSum}},
-	"modernc.org/memory": {{version: "v1.11.0", sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}},
-	"modernc.org/sqlite": {{version: "v1.51.0", sum: "h1:aH/MMSoayAIhozZ7uJbVTT9QO/VhzBf0J9tymmmuC/U="}},
-}
-
-var reviewedLinknameSources = map[string][]string{
-	"go_above_118.go": {"mapiterinit reflect.mapiterinit"},
-	"go_above_19.go":  {"resolveTypeOff reflect.resolveTypeOff", "makemap reflect.makemap"},
-	"type_map.go":     {"typelinks2 reflect.typelinks"},
-	"unsafe_link.go": {
-		"unsafe_New reflect.unsafe_New",
-		"typedmemmove reflect.typedmemmove",
-		"unsafe_NewArray reflect.unsafe_NewArray",
-		"typedslicecopy reflect.typedslicecopy",
-		"mapassign reflect.mapassign",
-		"mapaccess reflect.mapaccess",
-		"mapiternext reflect.mapiternext",
-		"ifaceE2I reflect.ifaceE2I",
-	},
-}
-
 func validateCapabilityClosure(packages []listedPackage) error {
 	closure, err := projectCapabilityClosure(packages, nil)
 	if err != nil {
@@ -216,14 +187,19 @@ func validateCapabilityClosure(packages []listedPackage) error {
 }
 
 func projectCapabilityClosure(packages []listedPackage, overlay map[string]string) (CapabilityClosure, error) {
-	adapterEnabled := false
+	compatibilityPackages := make([]compatibility.Package, 0, len(packages))
 	for _, pkg := range packages {
-		if pkg.ImportPath == "modernc.org/libc" && moduleMatches(pkg.Module, "modernc.org/libc", gomadversion.ModerncLibcVersion) && pkg.Module.Replace != nil && pkg.Module.Replace.Dir != "" {
-			adapterEnabled = true
-			break
-		}
+		compatibilityPackages = append(compatibilityPackages, listedCompatibilityPackage(pkg))
 	}
-	closure := CapabilityClosure{Schema: capabilityClosureSchema, Packages: make([]CapabilityPackage, 0, len(packages))}
+	selection, err := compatibility.Select(compatibilityPackages)
+	if err != nil {
+		return CapabilityClosure{}, fmt.Errorf("select target compatibility packs: %w", err)
+	}
+	closure := CapabilityClosure{
+		Schema:        capabilityClosureSchema,
+		Compatibility: selection.Identities(),
+		Packages:      make([]CapabilityPackage, 0, len(packages)),
+	}
 	for _, pkg := range packages {
 		sourceFiles := packageSourceFiles(pkg)
 		projected := CapabilityPackage{
@@ -236,13 +212,14 @@ func projectCapabilityClosure(packages []listedPackage, overlay map[string]strin
 			ForeignSources:    projectForeignSources(pkg),
 			GeneratedTestMain: generatedTestMain(pkg),
 		}
-		if pkg.Standard || reviewedAdapterPackage(pkg, adapterEnabled) || projected.GeneratedTestMain {
+		if pkg.Standard || projected.GeneratedTestMain {
 			closure.Packages = append(closure.Packages, projected)
 			continue
 		}
 		if pkg.ForTest == "" && len(sourceFiles) == 0 && len(projected.ForeignSources) == 0 && (len(pkg.TestGoFiles) != 0 || len(pkg.XTestGoFiles) != 0) {
 			continue
 		}
+		linknames := make(map[string][]string)
 		for _, name := range sourceFiles {
 			if filepath.Base(name) != name || pkg.Dir == "" {
 				return CapabilityClosure{}, unsupportedCapability(pkg.ImportPath, "has an invalid source path")
@@ -259,13 +236,25 @@ func projectCapabilityClosure(packages []listedPackage, overlay map[string]strin
 			if err != nil {
 				return CapabilityClosure{}, fmt.Errorf("inspect target capability source %s: %w", pkg.ImportPath, err)
 			}
-			if bytes.Contains(contents, []byte("//go:linkname")) && !reviewedLinknameSource(pkg, name, contents) {
-				return CapabilityClosure{}, unsupportedCapability(pkg.ImportPath, "uses go:linkname in "+name)
-			}
 			hash := sha256.Sum256(contents)
-			projected.Sources = append(projected.Sources, CapabilitySource{Name: name, SHA256: fmt.Sprintf("sha256:%x", hash)})
+			digest := fmt.Sprintf("sha256:%x", hash)
+			if bytes.Contains(contents, []byte("//go:linkname")) {
+				directives, valid := linknameDirectives(contents)
+				if !valid {
+					return CapabilityClosure{}, unsupportedCapability(pkg.ImportPath, "uses go:linkname in "+name)
+				}
+				linknames[name] = directives
+			}
+			projected.Sources = append(projected.Sources, CapabilitySource{Name: name, SHA256: digest})
 		}
 		sort.Slice(projected.Sources, func(i, j int) bool { return projected.Sources[i].Name < projected.Sources[j].Name })
+		compatibilityPackage := capabilityCompatibilityPackage(projected)
+		for _, source := range projected.Sources {
+			directives, found := linknames[source.Name]
+			if found && !selection.AllowsLinkname(compatibilityPackage, source.Name, source.SHA256, directives) {
+				return CapabilityClosure{}, unsupportedCapability(pkg.ImportPath, "uses go:linkname in "+source.Name)
+			}
+		}
 		closure.Packages = append(closure.Packages, projected)
 	}
 	sort.Slice(closure.Packages, func(i, j int) bool {
@@ -275,31 +264,6 @@ func projectCapabilityClosure(packages []listedPackage, overlay map[string]strin
 		return closure.Packages[i].Name < closure.Packages[j].Name
 	})
 	return closure, nil
-}
-
-func reviewedLinknameSource(pkg listedPackage, name string, contents []byte) bool {
-	const (
-		path    = "github.com/modern-go/reflect2"
-		version = "v1.0.3-0.20250322232337-35a7c28c31ee"
-		sum     = "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8="
-	)
-	if pkg.ImportPath != path || !moduleMatches(pkg.Module, path, version) || pkg.Module.Sum != sum || pkg.Module.Replace != nil {
-		return false
-	}
-	wanted, found := reviewedLinknameSources[name]
-	if !found {
-		return false
-	}
-	observed, valid := linknameDirectives(contents)
-	if !valid || len(observed) != len(wanted) {
-		return false
-	}
-	for index := range observed {
-		if observed[index] != wanted[index] {
-			return false
-		}
-	}
-	return true
 }
 
 func linknameDirectives(contents []byte) ([]string, bool) {
@@ -352,15 +316,22 @@ func loadBuildOverlay(path, commandDirectory string) (map[string]string, error) 
 }
 
 func validateCapabilityReview(closure CapabilityClosure) error {
-	if closure.Schema != capabilityClosureSchema || len(closure.Packages) == 0 {
+	if closure.Schema != capabilityClosureSchema || closure.Compatibility == nil || len(closure.Packages) == 0 {
 		return fmt.Errorf("unsupported or empty target capability closure")
 	}
-	adapterEnabled := false
+	if !sortedUniqueCompatibility(closure.Compatibility) {
+		return errors.New("target capability closure compatibility packs are not canonical")
+	}
+	compatibilityPackages := make([]compatibility.Package, 0, len(closure.Packages))
 	for _, pkg := range closure.Packages {
-		if pkg.ImportPath == "modernc.org/libc" && capabilityModuleMatches(pkg.Module, "modernc.org/libc", gomadversion.ModerncLibcVersion) && pkg.Module.Replacement != nil && pkg.Module.Replacement.Local {
-			adapterEnabled = true
-			break
-		}
+		compatibilityPackages = append(compatibilityPackages, capabilityCompatibilityPackage(pkg))
+	}
+	selection, err := compatibility.Select(compatibilityPackages)
+	if err != nil {
+		return fmt.Errorf("select target compatibility packs: %w", err)
+	}
+	if !slices.Equal(selection.Identities(), closure.Compatibility) {
+		return errors.New("target capability closure compatibility pack identity does not match its package closure")
 	}
 	mainPackage := false
 	for index, pkg := range closure.Packages {
@@ -393,16 +364,19 @@ func validateCapabilityReview(closure CapabilityClosure) error {
 		if pkg.GeneratedTestMain && (pkg.Name != "main" || !strings.HasSuffix(pkg.ImportPath, ".test") || pkg.Standard || pkg.Module != nil && !pkg.Module.Main || len(pkg.Sources) != 0 || len(pkg.ForeignSources) != 0) {
 			return fmt.Errorf("target capability closure package %s has invalid generated test-main evidence", pkg.ImportPath)
 		}
-		if pkg.Standard || reviewedCapabilityPackage(pkg, adapterEnabled) {
+		if pkg.Standard {
 			continue
 		}
+		compatibilityPackage := capabilityCompatibilityPackage(pkg)
 		for _, imported := range pkg.Imports {
-			if imported == "syscall" || imported == "os/exec" || imported == "os/signal" || imported == "os/user" || imported == "plugin" || imported == "runtime/cgo" || strings.HasPrefix(imported, "golang.org/x/sys/") {
+			if forbiddenImport(imported) && !selection.AllowsCapability(compatibilityPackage, "import:"+imported) {
 				return unsupportedCapability(pkg.ImportPath, "imports "+imported)
 			}
 		}
-		if len(pkg.ForeignSources) != 0 {
-			return unsupportedCapability(pkg.ImportPath, "contains foreign or assembly source "+pkg.ForeignSources[0])
+		for _, source := range pkg.ForeignSources {
+			if !selection.AllowsCapability(compatibilityPackage, "foreign:"+source) {
+				return unsupportedCapability(pkg.ImportPath, "contains foreign or assembly source "+source)
+			}
 		}
 		if pkg.GeneratedTestMain {
 			continue
@@ -415,6 +389,10 @@ func validateCapabilityReview(closure CapabilityClosure) error {
 		return fmt.Errorf("target capability closure has no main package")
 	}
 	return nil
+}
+
+func forbiddenImport(importPath string) bool {
+	return importPath == "syscall" || importPath == "os/exec" || importPath == "os/signal" || importPath == "os/user" || importPath == "plugin" || importPath == "runtime/cgo" || strings.HasPrefix(importPath, "golang.org/x/sys/")
 }
 
 func validateExecStandardPackages(ctx context.Context, goCommand string, closure CapabilityClosure) error {
@@ -504,28 +482,44 @@ func validateCapabilityModule(module *CapabilityModule) error {
 	return nil
 }
 
-func reviewedCapabilityPackage(pkg CapabilityPackage, enabled bool) bool {
-	if !enabled || pkg.Module == nil || pkg.Module.Main {
-		return false
-	}
-	wanted, found := reviewedAdapterModules[pkg.Module.Path]
-	if !found {
-		return false
-	}
-	for _, want := range wanted {
-		if !capabilityModuleMatches(pkg.Module, pkg.Module.Path, want.version) {
-			continue
-		}
-		if pkg.Module.Path == "modernc.org/libc" {
-			return pkg.Module.Replacement != nil && pkg.Module.Replacement.Local
-		}
-		return pkg.Module.Sum == want.sum
-	}
-	return false
+func listedCompatibilityPackage(pkg listedPackage) compatibility.Package {
+	return compatibility.Package{ImportPath: pkg.ImportPath, Module: listedCompatibilityModule(pkg.Module)}
 }
 
-func capabilityModuleMatches(module *CapabilityModule, path, version string) bool {
-	return module != nil && module.Path == path && module.Version == version
+func listedCompatibilityModule(module *listedModule) compatibility.Module {
+	if module == nil {
+		return compatibility.Module{}
+	}
+	return compatibility.Module{
+		Path:             module.Path,
+		Version:          module.Version,
+		Sum:              module.Sum,
+		Replaced:         module.Replace != nil,
+		LocalReplacement: module.Replace != nil && module.Replace.Dir != "",
+	}
+}
+
+func capabilityCompatibilityPackage(pkg CapabilityPackage) compatibility.Package {
+	sources := make([]compatibility.Source, len(pkg.Sources))
+	for index, source := range pkg.Sources {
+		sources[index] = compatibility.Source{Name: source.Name, SHA256: source.SHA256}
+	}
+	return compatibility.Package{
+		ImportPath: pkg.ImportPath, Module: capabilityCompatibilityModule(pkg.Module), SourceSetSHA256: compatibility.DigestSources(sources),
+	}
+}
+
+func capabilityCompatibilityModule(module *CapabilityModule) compatibility.Module {
+	if module == nil {
+		return compatibility.Module{}
+	}
+	return compatibility.Module{
+		Path:             module.Path,
+		Version:          module.Version,
+		Sum:              module.Sum,
+		Replaced:         module.Replacement != nil,
+		LocalReplacement: module.Replacement != nil && module.Replacement.Local,
+	}
 }
 
 func packageImports(pkg listedPackage) []string {
@@ -569,6 +563,34 @@ func sortedUniqueSources(sources []CapabilitySource) bool {
 	return true
 }
 
+func sortedUniqueCompatibility(identities []compatibility.Identity) bool {
+	for index, identity := range identities {
+		if identity.ID == "" || !validSHA256(identity.SHA256) || index > 0 && identities[index-1].ID >= identity.ID {
+			return false
+		}
+	}
+	return true
+}
+
+func recordCompatibility(identities []compatibility.Identity) []record.CompatibilityPack {
+	result := make([]record.CompatibilityPack, len(identities))
+	for index, identity := range identities {
+		result[index] = record.CompatibilityPack{ID: identity.ID, SHA256: record.SHA256(identity.SHA256)}
+	}
+	return result
+}
+
+func VerifyCompatibility(packs []record.CompatibilityPack) error {
+	if packs == nil {
+		return errors.New("compatibility pack identity is missing")
+	}
+	identities := make([]compatibility.Identity, len(packs))
+	for index, pack := range packs {
+		identities[index] = compatibility.Identity{ID: pack.ID, SHA256: string(pack.SHA256)}
+	}
+	return compatibility.VerifyIdentities(identities)
+}
+
 func validSHA256(value string) bool {
 	if !strings.HasPrefix(value, "sha256:") || len(value) != len("sha256:")+sha256.Size*2 {
 		return false
@@ -583,30 +605,6 @@ func validSHA256(value string) bool {
 
 func generatedTestMain(pkg listedPackage) bool {
 	return pkg.Name == "main" && strings.HasSuffix(pkg.ImportPath, ".test") && len(pkg.GoFiles) == 1 && filepath.IsAbs(pkg.GoFiles[0])
-}
-
-func reviewedAdapterPackage(pkg listedPackage, enabled bool) bool {
-	if !enabled || pkg.Module == nil || pkg.Module.Main {
-		return false
-	}
-	wanted, found := reviewedAdapterModules[pkg.Module.Path]
-	if !found {
-		return false
-	}
-	for _, want := range wanted {
-		if !moduleMatches(pkg.Module, pkg.Module.Path, want.version) {
-			continue
-		}
-		if pkg.Module.Path == "modernc.org/libc" {
-			return pkg.Module.Replace != nil && pkg.Module.Replace.Dir != ""
-		}
-		return pkg.Module.Sum == want.sum
-	}
-	return false
-}
-
-func moduleMatches(module *listedModule, path, version string) bool {
-	return module != nil && module.Path == path && module.Version == version
 }
 
 func unsupportedCapability(importPath, capability string) error {

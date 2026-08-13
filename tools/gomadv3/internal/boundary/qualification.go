@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
 type sourceFingerprint struct {
@@ -160,7 +161,7 @@ func loadSourcePackage(packagePath string) (sourcePackage, error) {
 	result := sourcePackage{fileSet: fileSet, files: make(map[*ast.FuncDecl]string)}
 	packageHash := sha256.New()
 	for _, name := range fileNames {
-		if name == "gomad.go" {
+		if name == "gomad.go" || strings.HasPrefix(name, "gomad_") {
 			continue
 		}
 		path := filepath.Join(description.Dir, name)

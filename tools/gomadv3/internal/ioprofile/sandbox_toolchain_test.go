@@ -18,10 +18,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
+	profile := Default()
 	tests := []struct {
 		name             string
 		source           string
@@ -46,7 +43,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 				if cacheErr != nil {
 					t.Fatal(cacheErr)
 				}
-				spec, _, err = profile.PrepareBuildOverlay(spec, moduleCache)
+				spec, _, err = profile.PrepareBuildAdapters(spec, moduleCache)
 				if err != nil {
 					t.Fatal(err)
 				}

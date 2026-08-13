@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/internal/compatibility"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
@@ -56,6 +57,9 @@ func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 	}
 	if got, want := prepared.BuildTags, []string{"alpha", "zeta"}; fmt.Sprint(got) != fmt.Sprint(want) {
 		t.Fatalf("build tags = %v, want %v", got, want)
+	}
+	if prepared.Compatibility == nil {
+		t.Fatal("compatibility packs are null")
 	}
 	if prepared.GoVersion != "go1.26.4" || prepared.BuildKey == "" || prepared.TargetGOOS != runtime.GOOS || prepared.TargetGOARCH != runtime.GOARCH {
 		t.Fatalf("toolchain identity = %#v", prepared)
@@ -168,10 +172,31 @@ func TestReadModuleCacheUsesPinnedToolchain(t *testing.T) {
 	}
 }
 
-func TestPrepareGoTestAlwaysAddsTestDependencyTag(t *testing.T) {
+func TestPrepareGoTestWithoutBuildTagsRemainsTagNeutral(t *testing.T) {
+	module := writeModule(t, map[string]string{
+		"go.mod":         "module example.com/targettest\n\ngo 1.26.4\n",
+		"target.go":      "package targettest\n",
+		"target_test.go": "package targettest\n\nimport \"testing\"\n\nfunc TestBase(t *testing.T) {}\n",
+	})
+	prepared, err := Prepare(context.Background(), Spec{
+		Kind:            KindGoTest,
+		Source:          ".",
+		WorkingDir:      module,
+		PreparationRoot: t.TempDir(),
+		ToolchainRoot:   toolchainRoot(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(prepared.BuildTags) != 0 {
+		t.Fatalf("build tags = %v, want none", prepared.BuildTags)
+	}
+}
+
+func TestPrepareGoTestPreservesExplicitTestDependencyTag(t *testing.T) {
 	module := writeModule(t, map[string]string{
 		"go.mod": "module example.com/targettest\n\ngo 1.26.4\n",
-		"tagged_test.go": `//go:build test_dep
+		"tagged_test.go": `//go:build gomad_fixture
 
 package targettest
 
@@ -191,6 +216,7 @@ func TestTagged(t *testing.T) {
 		Kind:            KindGoTest,
 		Source:          ".",
 		Args:            []string{"-test.run=TestTagged", "-test.count=1"},
+		BuildTags:       []string{"gomad_fixture"},
 		WorkingDir:      module,
 		PreparationRoot: t.TempDir(),
 		ToolchainRoot:   toolchainRoot(t),
@@ -198,7 +224,7 @@ func TestTagged(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, want := prepared.BuildTags, []string{"test_dep"}; fmt.Sprint(got) != fmt.Sprint(want) {
+	if got, want := prepared.BuildTags, []string{"gomad_fixture"}; fmt.Sprint(got) != fmt.Sprint(want) {
 		t.Fatalf("build tags = %v, want %v", got, want)
 	}
 	command := exec.Command(prepared.Path, prepared.Argv[1:]...)
@@ -599,7 +625,8 @@ func toolchainRoot(t *testing.T) string {
 
 func validCapabilityClosure() CapabilityClosure {
 	return CapabilityClosure{
-		Schema: capabilityClosureSchema,
+		Schema:        capabilityClosureSchema,
+		Compatibility: []compatibility.Identity{},
 		Packages: []CapabilityPackage{{
 			ImportPath: "example.com/target", Name: "main", Imports: []string{},
 			Module:  &CapabilityModule{Path: "example.com/target", Main: true},

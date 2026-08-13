@@ -4,7 +4,7 @@ package ioprofile
 
 const (
 	generatedBoundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
-	generatedBoundaryManifestSHA256  = "sha256:ae8153017485b5277251a541c79b24b894da6774c202f4a86b56e66617e115a2"
+	generatedBoundaryManifestSHA256  = "sha256:52d72583e74c8f355ac67b01bbab628f3fddd8c89a93cc82027beee7177948f0"
 	generatedBoundaryGoVersion       = "go1.26.4"
 	generatedBoundaryGOOS            = "darwin"
 	generatedBoundaryGOARCH          = "arm64"

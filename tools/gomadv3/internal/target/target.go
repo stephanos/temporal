@@ -54,18 +54,25 @@ type ToolchainIdentity struct {
 }
 
 type Prepared struct {
-	Path         string
-	Kind         Kind
-	Source       string
-	SHA256       string
-	Size         uint64
-	Argv         []string
-	BuildTags    []string
-	BuildInfo    record.BuildInfo
-	GoVersion    string
-	BuildKey     string
-	TargetGOOS   string
-	TargetGOARCH string
+	Path          string
+	Kind          Kind
+	Source        string
+	SHA256        string
+	Size          uint64
+	Argv          []string
+	BuildTags     []string
+	Adapters      []record.TargetAdapter
+	Compatibility []record.CompatibilityPack
+	BuildInfo     record.BuildInfo
+	GoVersion     string
+	BuildKey      string
+	TargetGOOS    string
+	TargetGOARCH  string
+}
+
+type preparation struct {
+	buildInfo     record.BuildInfo
+	compatibility []record.CompatibilityPack
 }
 
 type Provenance struct {
@@ -94,7 +101,7 @@ type provenanceWire struct {
 }
 
 func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
-	tags, err := normalizeBuildTags(spec.Kind, spec.BuildTags)
+	tags, err := normalizeBuildTags(spec.BuildTags)
 	if err != nil {
 		return Prepared{}, err
 	}
@@ -128,12 +135,12 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 	}
 
 	targetPath := filepath.Join(preparationDir, "target")
-	buildInfo := record.BuildInfo{}
+	preparedTarget := preparation{}
 	switch spec.Kind {
 	case KindExec:
-		buildInfo, err = prepareExec(ctx, spec, identity, targetPath)
+		preparedTarget, err = prepareExec(ctx, spec, identity, targetPath)
 	case KindGoRun, KindGoTest:
-		buildInfo, err = prepareGo(ctx, spec, tags, targetPath)
+		preparedTarget, err = prepareGo(ctx, spec, tags, targetPath)
 	default:
 		err = fmt.Errorf("unsupported target kind %q", spec.Kind)
 	}
@@ -152,27 +159,32 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 		if infoErr != nil {
 			return Prepared{}, fmt.Errorf("read prepared target build info: %w", infoErr)
 		}
-		buildInfo = ProjectBuildInfo(info)
+		preparedTarget.buildInfo = ProjectBuildInfo(info)
 	}
 	prepared = Prepared{
-		Path:         targetPath,
-		Kind:         spec.Kind,
-		Source:       spec.Source,
-		SHA256:       hash,
-		Size:         size,
-		Argv:         append([]string{"gomadv3-target"}, spec.Args...),
-		BuildTags:    tags,
-		BuildInfo:    buildInfo,
-		GoVersion:    identity.GoVersion,
-		BuildKey:     identity.BuildKey,
-		TargetGOOS:   identity.TargetGOOS,
-		TargetGOARCH: identity.TargetGOARCH,
+		Path:          targetPath,
+		Kind:          spec.Kind,
+		Source:        spec.Source,
+		SHA256:        hash,
+		Size:          size,
+		Argv:          append([]string{"gomadv3-target"}, spec.Args...),
+		BuildTags:     tags,
+		Adapters:      []record.TargetAdapter{},
+		Compatibility: preparedTarget.compatibility,
+		BuildInfo:     preparedTarget.buildInfo,
+		GoVersion:     identity.GoVersion,
+		BuildKey:      identity.BuildKey,
+		TargetGOOS:    identity.TargetGOOS,
+		TargetGOARCH:  identity.TargetGOARCH,
 	}
 	keep = true
 	return prepared, nil
 }
 
 func (prepared Prepared) Verify() error {
+	if err := VerifyCompatibility(prepared.Compatibility); err != nil {
+		return fmt.Errorf("verify prepared target compatibility: %w", err)
+	}
 	hash, size, err := hashRegularFile(prepared.Path)
 	if err != nil {
 		return fmt.Errorf("verify prepared target: %w", err)
@@ -194,14 +206,14 @@ func ReadToolchainIdentity(root string) (ToolchainIdentity, error) {
 	goCommand := filepath.Join(root, "bin", "go")
 	info, err := os.Lstat(goCommand)
 	if err != nil {
-		return ToolchainIdentity{}, fmt.Errorf("stat pinned Go command: %w; run make -C tools/gomadv3 toolchain", err)
+		return ToolchainIdentity{}, fmt.Errorf("stat pinned Go command in %s: %w; set --toolchain-root or GOMADV3_TOOLCHAIN_DIR to a complete Gomad installation", root, err)
 	}
 	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
 		return ToolchainIdentity{}, fmt.Errorf("pinned Go command is not a regular executable")
 	}
 	buildKeyBytes, err := os.ReadFile(filepath.Join(root, "build-key"))
 	if err != nil {
-		return ToolchainIdentity{}, fmt.Errorf("read toolchain build key: %w; run make -C tools/gomadv3 toolchain", err)
+		return ToolchainIdentity{}, fmt.Errorf("read toolchain build key in %s: %w; set --toolchain-root or GOMADV3_TOOLCHAIN_DIR to a complete Gomad installation", root, err)
 	}
 	buildKey := strings.TrimSuffix(string(buildKeyBytes), "\n")
 	if len(buildKey) != sha256.Size*2 || !isLowerHex(buildKey) || string(buildKeyBytes) != buildKey+"\n" {
@@ -209,7 +221,7 @@ func ReadToolchainIdentity(root string) (ToolchainIdentity, error) {
 	}
 	builtGo := filepath.Join(root, "builds", buildKey, "bin", "go")
 	if builtInfo, statErr := os.Stat(builtGo); statErr != nil || !builtInfo.Mode().IsRegular() || builtInfo.Mode()&0o111 == 0 {
-		return ToolchainIdentity{}, fmt.Errorf("toolchain build %s is missing or stale; run make -C tools/gomadv3 toolchain", buildKey)
+		return ToolchainIdentity{}, fmt.Errorf("toolchain build %s is missing or stale in %s; set --toolchain-root or GOMADV3_TOOLCHAIN_DIR to a complete Gomad installation", buildKey, root)
 	}
 	command := exec.Command(goCommand, "env", "GOVERSION", "GOOS", "GOARCH", "CGO_ENABLED")
 	command.Env = preparationEnvironment()
@@ -296,67 +308,67 @@ func WriteProvenance(path string, provenance Provenance) error {
 	return nil
 }
 
-func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, targetPath string) (record.BuildInfo, error) {
+func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, targetPath string) (preparation, error) {
 	if spec.Source == "" || spec.Provenance == "" {
-		return record.BuildInfo{}, fmt.Errorf("exec target and provenance are required")
+		return preparation{}, errors.New("exec target and provenance are required")
 	}
 	provenanceBytes, err := readBoundedRegularFile(spec.Provenance, maximumProvenanceBytes)
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("read exec provenance: %w", err)
+		return preparation{}, fmt.Errorf("read exec provenance: %w", err)
 	}
 	var provenance provenanceWire
 	if err := record.StrictDecode(provenanceBytes, &provenance); err != nil {
-		return record.BuildInfo{}, fmt.Errorf("decode exec provenance: %w", err)
+		return preparation{}, fmt.Errorf("decode exec provenance: %w", err)
 	}
 	canonical, err := record.CanonicalJSON(provenance)
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("canonicalize exec provenance: %w", err)
+		return preparation{}, fmt.Errorf("canonicalize exec provenance: %w", err)
 	}
 	if string(canonical) != string(provenanceBytes) {
-		return record.BuildInfo{}, fmt.Errorf("exec provenance is not canonical")
+		return preparation{}, errors.New("exec provenance is not canonical")
 	}
 	if err := validateProvenance(provenance); err != nil {
-		return record.BuildInfo{}, err
+		return preparation{}, err
 	}
 	if provenance.GoVersion != identity.GoVersion || provenance.BuildKey != identity.BuildKey || provenance.TargetGOOS != identity.TargetGOOS || provenance.TargetGOARCH != identity.TargetGOARCH {
-		return record.BuildInfo{}, fmt.Errorf("exec provenance does not match pinned toolchain")
+		return preparation{}, errors.New("exec provenance does not match pinned toolchain")
 	}
 	if err := validateExecStandardPackages(ctx, filepath.Join(spec.ToolchainRoot, "bin", "go"), provenance.CapabilityClosure); err != nil {
-		return record.BuildInfo{}, err
+		return preparation{}, err
 	}
 	if err := copyRegularFile(spec.Source, targetPath); err != nil {
-		return record.BuildInfo{}, err
+		return preparation{}, err
 	}
 	hash, size, err := hashRegularFile(targetPath)
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("hash prepared provenance binary: %w", err)
+		return preparation{}, fmt.Errorf("hash prepared provenance binary: %w", err)
 	}
 	if hash != provenance.BinarySHA256 || size != uint64(provenance.BinarySize) {
-		return record.BuildInfo{}, fmt.Errorf("provenance binary identity does not match prepared target")
+		return preparation{}, errors.New("provenance binary identity does not match prepared target")
 	}
 	info, err := buildinfo.ReadFile(targetPath)
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("read prepared exec target build info: %w", err)
+		return preparation{}, fmt.Errorf("read prepared exec target build info: %w", err)
 	}
 	if err := validateExecCapabilityModules(info, provenance.CapabilityClosure); err != nil {
-		return record.BuildInfo{}, err
+		return preparation{}, err
 	}
 	actualBuildInfo := ProjectBuildInfo(info)
 	recordedBuildInfo, err := record.CanonicalJSON(provenance.BuildInfo)
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("encode provenance build info: %w", err)
+		return preparation{}, fmt.Errorf("encode provenance build info: %w", err)
 	}
 	actualBuildInfoBytes, err := record.CanonicalJSON(actualBuildInfo)
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("encode exec target build info: %w", err)
+		return preparation{}, fmt.Errorf("encode exec target build info: %w", err)
 	}
 	if actualBuildInfo.GoVersion != provenance.GoVersion || string(actualBuildInfoBytes) != string(recordedBuildInfo) {
-		return record.BuildInfo{}, fmt.Errorf("exec target build info does not match provenance")
+		return preparation{}, errors.New("exec target build info does not match provenance")
 	}
 	if err := writePreparedFile(filepath.Join(filepath.Dir(targetPath), "provenance.json"), provenanceBytes, 0o400); err != nil {
-		return record.BuildInfo{}, fmt.Errorf("snapshot exec provenance: %w", err)
+		return preparation{}, fmt.Errorf("snapshot exec provenance: %w", err)
 	}
-	return provenance.BuildInfo, nil
+	return preparation{buildInfo: provenance.BuildInfo, compatibility: recordCompatibility(provenance.CapabilityClosure.Compatibility)}, nil
 }
 
 func validateExecCapabilityModules(info *debug.BuildInfo, closure CapabilityClosure) error {
@@ -424,16 +436,16 @@ func sameStringSet(left, right map[string]struct{}) bool {
 	return true
 }
 
-func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string) (record.BuildInfo, error) {
+func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string) (preparation, error) {
 	if spec.Source == "" || spec.WorkingDir == "" {
-		return record.BuildInfo{}, fmt.Errorf("Go target source and working directory are required")
+		return preparation{}, errors.New("go target source and working directory are required")
 	}
 	if strings.HasPrefix(spec.Source, "-") || strings.Contains(spec.Source, "...") || strings.IndexFunc(spec.Source, unicode.IsSpace) >= 0 || strings.IndexByte(spec.Source, 0) >= 0 {
-		return record.BuildInfo{}, fmt.Errorf("Go target package argument %q must select exactly one package", spec.Source)
+		return preparation{}, fmt.Errorf("go target package argument %q must select exactly one package", spec.Source)
 	}
 	goCommand, err := filepath.Abs(filepath.Join(spec.ToolchainRoot, "bin", "go"))
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("resolve pinned Go command: %w", err)
+		return preparation{}, fmt.Errorf("resolve pinned Go command: %w", err)
 	}
 	arguments := []string{}
 	if spec.Kind == KindGoRun {
@@ -453,10 +465,11 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 	}
 	commandDirectory, packageArgument, err := resolveBuildContext(spec.WorkingDir, spec.Source)
 	if err != nil {
-		return record.BuildInfo{}, err
+		return preparation{}, err
 	}
-	if err := validateGoCapabilityClosure(ctx, goCommand, spec, tags, commandDirectory, packageArgument); err != nil {
-		return record.BuildInfo{}, err
+	closure, err := validateGoCapabilityClosure(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
+	if err != nil {
+		return preparation{}, err
 	}
 	arguments = append(arguments, packageArgument)
 	command := exec.CommandContext(ctx, goCommand, arguments...)
@@ -464,9 +477,9 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 	command.Env = preparationEnvironment()
 	output, err := command.CombinedOutput()
 	if err != nil {
-		return record.BuildInfo{}, fmt.Errorf("prepare %s target: %w: %s", spec.Kind, err, output)
+		return preparation{}, fmt.Errorf("prepare %s target: %w: %s", spec.Kind, err, output)
 	}
-	return record.BuildInfo{}, nil
+	return preparation{compatibility: recordCompatibility(closure.Compatibility)}, nil
 }
 
 func resolveBuildContext(workingDirectory, source string) (string, string, error) {
@@ -508,16 +521,13 @@ func resolveBuildContext(workingDirectory, source string) (string, string, error
 	return "", "", fmt.Errorf("Go target package %s has no owning go.mod", source)
 }
 
-func normalizeBuildTags(kind Kind, supplied []string) ([]string, error) {
-	set := make(map[string]struct{}, len(supplied)+1)
+func normalizeBuildTags(supplied []string) ([]string, error) {
+	set := make(map[string]struct{}, len(supplied))
 	for _, tag := range supplied {
 		if tag == "" || tag == "race" || strings.Contains(tag, ",") || strings.IndexFunc(tag, unicode.IsSpace) >= 0 {
 			return nil, fmt.Errorf("unsupported build tag %q", tag)
 		}
 		set[tag] = struct{}{}
-	}
-	if kind == KindGoTest {
-		set["test_dep"] = struct{}{}
 	}
 	tags := make([]string, 0, len(set))
 	for tag := range set {

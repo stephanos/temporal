@@ -12,7 +12,7 @@ import (
 
 func TestBuildReportQualifiesRepeatedSuccessfulEvidence(t *testing.T) {
 	evidence := successfulEvidence()
-	command := []string{"gomad", "qualify", "--seed", "7", "go-test", "./common/clock"}
+	command := []string{"gomad", "qualify", "--seed", "7", "go-test", "./pkg"}
 	report, err := Build(Input{
 		Command: command,
 		Runs: []Run{
@@ -87,7 +87,7 @@ func TestBuildReportRejectsInvalidEvidenceSet(t *testing.T) {
 
 func TestBuildFailureRetainsFirstUnsupportedBoundary(t *testing.T) {
 	report, err := BuildFailure(
-		[]string{"gomad", "qualify", "go-test", "./tests"},
+		[]string{"gomad", "qualify", "go-test", "./pkg"},
 		7,
 		2,
 		nil,
@@ -156,7 +156,7 @@ func successfulEvidence() runner.RunEvidence {
 	return runner.RunEvidence{
 		Schema: runner.RunEvidenceSchema, Seed: 7, RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./common/clock", SHA256: "sha256:target", Size: 12, Argv: []string{"gomadv3-target"}, BuildTags: []string{"test_dep"}},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}},
 		IOProfile:   runner.IOProfileEvidence{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     runner.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
