@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"go.temporal.io/server/tools/gomadv3/internal/safefile"
 )
 
 const descriptorPath = "version.json"
@@ -102,8 +104,8 @@ func Generate(root string, check bool) error {
 			}
 			continue
 		}
-		if err := writeAtomic(path, generated.content); err != nil {
-			return err
+		if err := safefile.Replace(path, generated.content, 0o644); err != nil {
+			return fmt.Errorf("write generated version artifact: %w", err)
 		}
 	}
 	return nil
@@ -370,31 +372,4 @@ func quotedGoAdapters(values []descriptorAdapter) string {
 		quoted[index] = fmt.Sprintf("{Module: %q, Version: %q, Sum: %q}", value.Module, value.Version, value.Sum)
 	}
 	return strings.Join(quoted, ", ")
-}
-
-func writeAtomic(path string, contents []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("create generated version directory: %w", err)
-	}
-	temporary, err := os.CreateTemp(filepath.Dir(path), ".gomadv3-version-*")
-	if err != nil {
-		return fmt.Errorf("create generated version artifact: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	defer os.Remove(temporaryPath)
-	if err := temporary.Chmod(0o644); err != nil {
-		temporary.Close()
-		return fmt.Errorf("chmod generated version artifact: %w", err)
-	}
-	if _, err := temporary.Write(contents); err != nil {
-		temporary.Close()
-		return fmt.Errorf("write generated version artifact: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close generated version artifact: %w", err)
-	}
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return fmt.Errorf("publish generated version artifact: %w", err)
-	}
-	return nil
 }
