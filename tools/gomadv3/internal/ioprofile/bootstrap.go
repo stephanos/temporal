@@ -56,23 +56,14 @@ func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
 	for _, digest := range [][sha256.Size]byte{decoded.InventoryHash, decoded.ImplementationHash, decoded.TargetHash, decoded.RunnerHash, decoded.ArgvHash} {
 		digests = append(digests, "sha256:"+hex.EncodeToString(digest[:]))
 	}
-	profile, found := profileForIdentity(record.SHA256(digests[0]), record.SHA256(digests[1]))
-	if !found {
+	profile := Default()
+	if profile.InventorySHA256() != record.SHA256(digests[0]) || profile.ImplementationSHA256() != record.SHA256(digests[1]) {
 		return Bootstrap{}, errors.New("I/O profile bootstrap frame identity mismatch")
 	}
 	return Bootstrap{
 		Profile: profile.Name(), InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1]),
 		TargetSHA256: digests[2], RunnerSHA256: digests[3], ArgvSHA256: record.SHA256(digests[4]), Seed: decoded.Seed,
 	}, nil
-}
-
-func profileForIdentity(inventory, implementation record.SHA256) (ProfileSpec, bool) {
-	for _, profile := range profileRegistry {
-		if profile.InventorySHA256() == inventory && profile.ImplementationSHA256() == implementation {
-			return profile, true
-		}
-	}
-	return ProfileSpec{}, false
 }
 
 func parseSHA256(value string) ([]byte, error) {

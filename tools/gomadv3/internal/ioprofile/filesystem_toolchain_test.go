@@ -25,10 +25,7 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
+	profile := Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)
@@ -95,10 +92,7 @@ func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
+	profile := Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)

@@ -1,0 +1,198 @@
+// Copyright 2026 The Libc Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+//go:build darwin
+
+package libc
+
+import (
+	"syscall"
+	"unsafe"
+
+	"golang.org/x/sys/unix"
+	"modernc.org/libc/fcntl"
+)
+
+//go:linkname gomadLibcEnabled internal/gomadio.Enabled
+func gomadLibcEnabled() bool
+
+//go:linkname gomadLibcOpen internal/gomadio.LibcOpen
+func gomadLibcOpen(string, int, uint32) (int32, syscall.Errno)
+
+//go:linkname gomadLibcClose internal/gomadio.LibcClose
+func gomadLibcClose(int32) syscall.Errno
+
+//go:linkname gomadLibcRead internal/gomadio.LibcRead
+func gomadLibcRead(int32, uintptr, uint64, int64, bool) (int64, syscall.Errno)
+
+//go:linkname gomadLibcWrite internal/gomadio.LibcWrite
+func gomadLibcWrite(int32, uintptr, uint64, int64, bool) (int64, syscall.Errno)
+
+//go:linkname gomadLibcSeek internal/gomadio.LibcSeek
+func gomadLibcSeek(int32, int64, int) (int64, syscall.Errno)
+
+//go:linkname gomadLibcTruncate internal/gomadio.LibcTruncate
+func gomadLibcTruncate(int32, int64) syscall.Errno
+
+//go:linkname gomadLibcSync internal/gomadio.LibcSync
+func gomadLibcSync(int32) syscall.Errno
+
+//go:linkname gomadLibcRemove internal/gomadio.LibcRemove
+func gomadLibcRemove(string) syscall.Errno
+
+//go:linkname gomadLibcRename internal/gomadio.LibcRename
+func gomadLibcRename(string, string) syscall.Errno
+
+//go:linkname gomadLibcMkdir internal/gomadio.LibcMkdir
+func gomadLibcMkdir(string, uint32) syscall.Errno
+
+//go:linkname gomadLibcAccess internal/gomadio.LibcAccess
+func gomadLibcAccess(string) syscall.Errno
+
+//go:linkname gomadLibcStat internal/gomadio.LibcStat
+func gomadLibcStat(string, int32) (uint32, int64, syscall.Errno)
+
+//go:linkname gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor
+func gomadLibcIsDescriptor(int32) bool
+
+//go:linkname gomadLibcNow internal/gomadio.LibcNow
+func gomadLibcNow() (int64, int64)
+
+func gomadErrno(t *TLS, errno syscall.Errno) int32 {
+	if errno == 0 { return 0 }
+	t.setErrno(errno)
+	return -1
+}
+
+func gomadOpen(t *TLS, name string, flags int32, mode uint32) int32 {
+	fd, errno := gomadLibcOpen(name, int(flags), mode)
+	if errno != 0 { return gomadErrno(t, errno) }
+	return fd
+}
+
+func gomadClose(t *TLS, fd int32) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return gomadErrno(t, gomadLibcClose(fd)), true
+}
+
+func gomadRead(t *TLS, fd int32, address uintptr, size uint64, offset int64, positional bool) (int64, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
+	result, errno := gomadLibcRead(fd, address, size, offset, positional)
+	if errno != 0 { return int64(gomadErrno(t, errno)), true }
+	return result, true
+}
+
+func gomadWrite(t *TLS, fd int32, address uintptr, size uint64, offset int64, positional bool) (int64, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
+	result, errno := gomadLibcWrite(fd, address, size, offset, positional)
+	if errno != 0 { return int64(gomadErrno(t, errno)), true }
+	return result, true
+}
+
+func gomadSeek(t *TLS, fd int32, offset int64, whence int32) (int64, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return int64(gomadErrno(t, syscall.EBADF)), true }
+	result, errno := gomadLibcSeek(fd, offset, int(whence))
+	if errno != 0 { return int64(gomadErrno(t, errno)), true }
+	return result, true
+}
+
+func gomadTruncate(t *TLS, fd int32, size int64) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return gomadErrno(t, gomadLibcTruncate(fd, size)), true
+}
+
+func gomadSync(t *TLS, fd int32) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return gomadErrno(t, gomadLibcSync(fd)), true
+}
+
+func gomadGetcwd(t *TLS, address uintptr, size uint64) (uintptr, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if size < 2 || address == 0 { gomadErrno(t, syscall.ERANGE); return 0, true }
+	buffer := unsafe.Slice((*byte)(unsafe.Pointer(address)), int(size))
+	buffer[0], buffer[1] = '/', 0
+	return address, true
+}
+
+func gomadStatPath(t *TLS, name string, address uintptr) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	return gomadFillStat(t, name, -1, address), true
+}
+
+func gomadStatDescriptor(t *TLS, fd int32, address uintptr) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return gomadFillStat(t, "", fd, address), true
+}
+
+func gomadFillStat(t *TLS, name string, fd int32, address uintptr) int32 {
+	mode, size, errno := gomadLibcStat(name, fd)
+	if errno != 0 { return gomadErrno(t, errno) }
+	if address == 0 { return gomadErrno(t, syscall.EFAULT) }
+	*(*unix.Stat_t)(unsafe.Pointer(address)) = unix.Stat_t{Mode: uint16(mode), Nlink: 1, Size: size, Blocks: (size + 511) / 512, Blksize: 4096}
+	return 0
+}
+
+func gomadStatfs(t *TLS, fd int32, address uintptr) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return gomadFillStatfs(t, address), true
+}
+
+func gomadStatfsPath(t *TLS, name string, address uintptr) int32 {
+	if errno := gomadLibcAccess(name); errno != 0 { return gomadErrno(t, errno) }
+	return gomadFillStatfs(t, address)
+}
+
+func gomadFillStatfs(t *TLS, address uintptr) int32 {
+	if address == 0 { return gomadErrno(t, syscall.EFAULT) }
+	*(*unix.Statfs_t)(unsafe.Pointer(address)) = unix.Statfs_t{Bsize: 4096, Iosize: 4096, Blocks: 1 << 30, Bfree: 1 << 29, Bavail: 1 << 29, Files: 1 << 30, Ffree: 1 << 29}
+	return 0
+}
+
+func gomadMkdir(t *TLS, name string, mode uint32) int32 { return gomadErrno(t, gomadLibcMkdir(name, mode)) }
+func gomadRemove(t *TLS, name string) (result int32) { return gomadErrno(t, gomadLibcRemove(name)) }
+func gomadRename(t *TLS, oldName, newName string) int32 { return gomadErrno(t, gomadLibcRename(oldName, newName)) }
+func gomadAccess(t *TLS, name string) int32 { return gomadErrno(t, gomadLibcAccess(name)) }
+
+func gomadDescriptorNoop(t *TLS, fd int32) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	return 0, true
+}
+
+func gomadFcntl(t *TLS, fd, cmd int32, args uintptr) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if !gomadLibcIsDescriptor(fd) { return gomadErrno(t, syscall.EBADF), true }
+	switch cmd {
+	case fcntl.F_GETLK:
+		lock := *(*uintptr)(unsafe.Pointer(args))
+		(*unix.Flock_t)(unsafe.Pointer(lock)).Type = fcntl.F_UNLCK
+		return 0, true
+	case fcntl.F_SETLK, fcntl.F_SETLKW, fcntl.F_GETFL, fcntl.F_FULLFSYNC, fcntl.F_SETFD, fcntl.F_SETFL:
+		return 0, true
+	default:
+		return gomadErrno(t, syscall.ENOTSUP), true
+	}
+}
+
+func gomadMmap(t *TLS, fd int32) (uintptr, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	gomadErrno(t, syscall.ENODEV)
+	return ^uintptr(0), true
+}
+
+func gomadGettimeofday(t *TLS, tv, tz uintptr) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	if tz != 0 || tv == 0 { return gomadErrno(t, syscall.EINVAL), true }
+	seconds, microseconds := gomadLibcNow()
+	*(*unix.Timeval)(unsafe.Pointer(tv)) = unix.Timeval{Sec: seconds, Usec: int32(microseconds)}
+	return 0, true
+}

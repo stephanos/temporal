@@ -38,6 +38,9 @@ type exploreEvent struct {
 	RetainedSuccessBytes uint64                      `json:"retained_success_bytes,omitempty"`
 	StopReason           runner.StopReason           `json:"stop_reason,omitempty"`
 	SemanticCoverage     *ioprofile.SemanticCoverage `json:"semantic_coverage,omitempty"`
+	CorpusPath           string                      `json:"corpus_path,omitempty"`
+	CorpusEntries        uint64                      `json:"corpus_entries,omitempty"`
+	CorpusAdded          uint64                      `json:"corpus_added,omitempty"`
 }
 
 type exploreReporter struct {
@@ -60,6 +63,7 @@ func (reporter *exploreReporter) Progress(progress runner.Progress) error {
 			Selected: progress.Selected, Attempted: progress.Attempted, Running: progress.Running, Succeeded: progress.Succeeded,
 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
 			RetainedSuccesses: progress.RetainedSuccesses, RetainedSuccessBytes: progress.RetainedSuccessBytes,
+			CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
 		})
 	}
 	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.BatchPath)
@@ -76,6 +80,7 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 			Selected: summary.SelectionCount, Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures,
 			Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, Novelty: summary.DistinctFailures, StopReason: summary.StopReason,
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SemanticCoverage: summary.SemanticCoverage,
+			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
 		}); err != nil {
 			return err
 		}
@@ -110,6 +115,11 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 	}
 	if summary.SemanticCoverage != nil {
 		if _, err := fmt.Fprintf(reporter.stdout, "gomad: semantic-coverage digest=%s probes=%d %s\n", summary.SemanticCoverage.Digest, len(summary.SemanticCoverage.Probes), strings.Join(summary.SemanticCoverage.Probes, ",")); err != nil {
+			return err
+		}
+	}
+	if summary.CorpusPath != "" {
+		if _, err := fmt.Fprintf(reporter.stdout, "gomad: guided-corpus path=%s entries=%d added=%d\n", summary.CorpusPath, summary.CorpusEntries, summary.CorpusAdded); err != nil {
 			return err
 		}
 	}

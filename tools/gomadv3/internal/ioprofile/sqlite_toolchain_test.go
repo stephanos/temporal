@@ -22,16 +22,14 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
+	moduleRoot, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err := Resolve(Deterministic)
-	if err != nil {
-		t.Fatal(err)
-	}
-	spec, _, err := profile.PrepareBuildOverlay(target.Spec{
-		Kind: target.KindGoRun, Source: "./tools/gomadv3/root_testdata/io_sqlite", WorkingDir: repositoryRoot,
+	fixtureRoot := filepath.Join(moduleRoot, "testdata", "sqlite_adapter")
+	profile := Default()
+	spec, adapters, err := profile.PrepareBuildAdapters(target.Spec{
+		Kind: target.KindGoRun, Source: ".", WorkingDir: fixtureRoot,
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	}, strings.TrimSpace(string(moduleCacheBytes)))
 	if err != nil {
@@ -40,6 +38,10 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 	prepared, err := target.Prepare(context.Background(), spec)
 	if err != nil {
 		t.Fatal(err)
+	}
+	prepared.Adapters = RecordAdapters(adapters)
+	if len(prepared.Compatibility) != 1 || prepared.Compatibility[0].ID != "modernc-libc-xsys-v047" {
+		t.Fatalf("compatibility packs = %#v", prepared.Compatibility)
 	}
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {

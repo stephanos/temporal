@@ -73,6 +73,12 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 			retErr = fmt.Errorf("close replay artifact: %w", closeErr)
 		}
 	}()
+	if err := target.VerifyCompatibility(opened.Manifest.Target.Compatibility); err != nil {
+		return Result{}, &PreflightError{Err: fmt.Errorf("verify replay compatibility: %w", err)}
+	}
+	if err := ioprofile.Default().VerifyAdapters(opened.Manifest.Target.Adapters); err != nil {
+		return Result{}, &PreflightError{Err: fmt.Errorf("verify replay adapters: %w", err)}
+	}
 	result = Result{Artifact: opened.Detached(), Verified: true, Diagnostic: opened.Manifest.ReplayMode == record.ReplayDiagnostic}
 	if config.VerifyOnly {
 		return result, nil
@@ -130,51 +136,40 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	var readOnlyMounts []romount.Mapping
 	var readOnlyMountLimits romount.Limits
 	var readOnlyMountSnapshot *romount.Snapshot
-	if manifest.IOProfile.Name != "" {
-		profile, profileErr := ioprofile.Resolve(manifest.IOProfile.Name)
-		if profileErr != nil {
-			return Result{}, profileErr
-		}
-		if string(profile.Inventory()) != manifest.IOProfile.Inventory || profile.InventorySHA256() != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256() != manifest.IOProfile.ImplementationSHA256 {
-			return Result{}, errors.New("recorded I/O profile identity does not match this Runner")
-		}
-		ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
-		if err != nil {
-			return Result{}, err
-		}
-		ioTranscriptLimit = uint64(manifest.Limits.IOTranscriptBytes)
-		if manifest.IOProfile.Transcript == nil {
-			return Result{}, errors.New("recorded I/O profile has no complete transcript")
-		}
-		readOnlyMountLimits = romount.DefaultLimits()
-		if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
-			descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
-			if readErr != nil {
-				return Result{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
-			}
-			var snapshot romount.Snapshot
-			readOnlyMounts, readOnlyMountLimits, snapshot, readErr = romount.DecodeArtifact(*mounts, descriptor, func(name string, maximum uint64) ([]byte, error) {
-				return artifact.ReadPayload(opened, name, maximum)
-			})
-			if readErr != nil {
-				return Result{}, fmt.Errorf("decode read-only mount artifact: %w", readErr)
-			}
-			readOnlyMountSnapshot = &snapshot
-		}
-		expectedIOTranscript, err = artifact.ReadPayload(opened, manifest.IOProfile.Transcript.File, ioTranscriptLimit)
-		if err != nil {
-			return Result{}, fmt.Errorf("read expected I/O transcript: %w", err)
-		}
+	profile := ioprofile.Default()
+	ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
+	if err != nil {
+		return Result{}, err
 	}
-	var ioCapability *process.IOCapability
-	if manifest.IOProfile.Name != "" {
-		ioCapability = &process.IOCapability{
-			Config:     ioConfig,
-			Transcript: &process.IOTranscriptCapability{Limit: ioTranscriptLimit, Replay: true, Expected: expectedIOTranscript},
-			ReadOnlyMount: &process.ReadOnlyMountCapability{
-				Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
-			},
+	ioTranscriptLimit = uint64(manifest.Limits.IOTranscriptBytes)
+	if manifest.IOProfile.Transcript == nil {
+		return Result{}, errors.New("recorded I/O profile has no complete transcript")
+	}
+	readOnlyMountLimits = romount.DefaultLimits()
+	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
+		descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
+		if readErr != nil {
+			return Result{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
 		}
+		var snapshot romount.Snapshot
+		readOnlyMounts, readOnlyMountLimits, snapshot, readErr = romount.DecodeArtifact(*mounts, descriptor, func(name string, maximum uint64) ([]byte, error) {
+			return artifact.ReadPayload(opened, name, maximum)
+		})
+		if readErr != nil {
+			return Result{}, fmt.Errorf("decode read-only mount artifact: %w", readErr)
+		}
+		readOnlyMountSnapshot = &snapshot
+	}
+	expectedIOTranscript, err = artifact.ReadPayload(opened, manifest.IOProfile.Transcript.File, ioTranscriptLimit)
+	if err != nil {
+		return Result{}, fmt.Errorf("read expected I/O transcript: %w", err)
+	}
+	ioCapability := &process.IOCapability{
+		Config:     ioConfig,
+		Transcript: &process.IOTranscriptCapability{Limit: ioTranscriptLimit, Replay: true, Expected: expectedIOTranscript},
+		ReadOnlyMount: &process.ReadOnlyMountCapability{
+			Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
+		},
 	}
 	observed, err := executor.Run(ctx, process.Request{
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
@@ -228,14 +223,9 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 		}
 	}()
 	manifest := opened.Manifest
-	if manifest.IOProfile.Name != "" {
-		profile, profileErr := ioprofile.Resolve(manifest.IOProfile.Name)
-		if profileErr != nil {
-			return artifact.Artifact{}, profileErr
-		}
-		if string(profile.Inventory()) != manifest.IOProfile.Inventory || profile.InventorySHA256() != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256() != manifest.IOProfile.ImplementationSHA256 {
-			return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
-		}
+	profile := ioprofile.Default()
+	if profile.Name() != manifest.IOProfile.Name || string(profile.Inventory()) != manifest.IOProfile.Inventory || profile.InventorySHA256() != manifest.IOProfile.InventorySHA256 || profile.ImplementationSHA256() != manifest.IOProfile.ImplementationSHA256 {
+		return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
 	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 		descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))

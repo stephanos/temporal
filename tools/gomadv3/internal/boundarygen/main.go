@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -13,10 +14,21 @@ func main() {
 	discover := flag.Bool("discover", false, "list source-discovered host-capability entry points")
 	qualify := flag.Bool("qualify", false, "type-check manifest signatures against this Go toolchain")
 	refresh := flag.Bool("refresh", false, "refresh source fingerprints in the manifest")
+	checkCompilerTests := flag.Bool("check-compiler-tests", false, "validate the compiler conformance-test manifest")
+	compilerTestOverlay := flag.String("compiler-test-overlay", "", "emit a compiler conformance-test overlay")
+	goroot := flag.String("goroot", "", "installed production GOROOT for the compiler test overlay")
 	root := flag.String("root", ".", "Gomad v3 module root")
 	flag.Parse()
 	var err error
-	if *discover {
+	if *compilerTestOverlay != "" {
+		if *goroot == "" {
+			err = errors.New("-goroot is required with -compiler-test-overlay")
+		} else {
+			err = boundary.GenerateCompilerTestOverlay(*root, *goroot, *compilerTestOverlay)
+		}
+	} else if *checkCompilerTests {
+		err = boundary.CheckCompilerTests(*root)
+	} else if *discover {
 		var candidates []string
 		candidates, err = boundary.DiscoverCandidates()
 		for _, candidate := range candidates {

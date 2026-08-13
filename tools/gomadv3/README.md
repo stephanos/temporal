@@ -47,8 +47,27 @@ tools/gomadv3/.bin/gomad doctor --json --artifacts .gomad/artifacts
 ```
 
 The report includes the host, toolchain and Runner build identities, boundary
-manifest, I/O implementation, pinned adapter, artifact-directory access, and
-the exact build command needed to repair missing local components.
+manifest, I/O implementation, available adapters, artifact-directory access,
+resolved installation source, and a location-specific repair instruction.
+
+Every command that executes or verifies a target resolves the pinned toolchain
+in the same order: `--toolchain-root`, `GOMADV3_TOOLCHAIN_DIR`, a
+`gomadv3-install.json` bundle manifest adjacent to the executable or its parent,
+then an adjacent `.toolchain` directory. CLI and environment roots must be
+absolute, clean, non-root paths. The source builder uses
+`GOMADV3_TOOLCHAIN_DIR` too.
+
+A standalone bundle can place this manifest beside `bin/gomad`'s parent:
+
+```json
+{
+  "schema": "gomadv3.installation/v1",
+  "toolchain_root": "lib/gomadv3/toolchain"
+}
+```
+
+Relative manifest roots are resolved from the manifest directory. Malformed
+or unknown manifests fail closed instead of falling back to another location.
 
 Explore `go run`, `go test`, or a prepared executable target, then replay a
 retained failure exactly or verify its immutable inputs without executing it:
@@ -57,6 +76,7 @@ retained failure exactly or verify its immutable inputs without executing it:
 tools/gomadv3/.bin/gomad explore --seeds 0-999 go-run ./cmd/example -- arg
 tools/gomadv3/.bin/gomad explore --count 1000 go-run ./cmd/example -- arg
 tools/gomadv3/.bin/gomad explore --coverage=semantic --keep-successes=novel --success-limit=32 --success-bytes=1GiB --count 1000 go-run ./cmd/example -- arg
+tools/gomadv3/.bin/gomad explore --guide --corpus .gomad/corpus --count 1000 go-run ./cmd/example -- arg
 tools/gomadv3/.bin/gomad explore --seeds 0,7,42 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad explore --seeds 0-99 exec --provenance ./example.provenance.json -- ./example arg
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 go-test ./path/to/package -- -test.run=TestName
@@ -92,8 +112,36 @@ tools/gomadv3/.bin/gomad explore --coverage=semantic \
   --require-probe=stdlib.os.openfile --count 100 go-test ./path/to/package
 ```
 
-Successful runs are discarded by default. `--keep-successes=novel` retains the
-first completed success that adds a new semantic probe and therefore requires
+Use `--guide --corpus DIR` to feed replay-verified, semantically novel seeds
+back into later campaigns. Guidance enables semantic coverage unless an
+explicit incompatible `--coverage` was supplied. Each batch selects from one
+immutable corpus snapshot: at most three quarters of its seeds come from the
+corpus and at least one quarter remain in the requested seed set. Corpus cases
+are ranked by reproducible failures, invariant and terminal states, abstract
+World and I/O outcomes, operation and transition pairs, boundary probes, and
+smaller reproductions. World feature values omit seeds, internal identities,
+logical times, resource keys, and payloads.
+
+The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
+identity binds the prepared target and arguments, pinned toolchain, reviewed
+boundary, semantic instrumentation, and record contract. Every entry retains
+the exact-replay artifact, seed, captured I/O and World identities, semantic
+coverage, novelty reasons, and matching replay result. A case is published and
+replayed before the canonical corpus index advances atomically; interrupted
+unreferenced cases are removed when the corpus next opens. A changed identity,
+corrupt case, divergent replay, symbolic-link corpus, concurrent writer, or
+capacity violation fails visibly. Human and JSON results report the corpus
+path, retained entry count, and additions made by the batch.
+
+Guidance currently reuses realized seeds and transcripts; it does not mutate
+World scenarios, faults, or inputs and never forces runtime choices. Those
+extensions require evidence that retained seeds cannot reproduce minimized
+failures. Code coverage remains separate from versioned semantic probes and is
+not collected by this mode.
+
+Successful runs are discarded from the batch by default; guided corpus
+retention is independent. `--keep-successes=novel` retains the first completed
+success that adds a new semantic probe and therefore requires
 `--coverage=semantic`; `--keep-successes=all` retains every success. Both modes
 require a positive `--success-limit` and `--success-bytes`. Crossing either
 bound fails the campaign visibly instead of silently dropping replay evidence.
@@ -113,27 +161,33 @@ Add `--json` for newline-delimited `gomadv3.qualify-event/v1` progress, result,
 and error records. Unsupported targets retain their first boundary and exact
 command in the qualification report.
 
-Run the checked representative Temporal set with:
+Run a versioned qualification manifest explicitly with:
 
 ```sh
-make -C tools/gomadv3 qualification-set
+make -C tools/gomadv3 qualification-set \
+  GOMADV3_QUALIFICATION_MANIFEST=/absolute/path/to/manifest.json \
+  GOMADV3_QUALIFICATION_WORKDIR=/absolute/path/to/target/module
 ```
 
-`qualification/temporal.json` is a versioned, bounded inventory of unchanged
-Temporal tests and exact expected dispositions. The Go orchestrator runs every
-entry through `gomad qualify`, validates each private report and executed
-command, and atomically publishes the self-contained canonical aggregate at
-`.toolchain/qualification-set.json`. The current set covers clock/context time,
-future synchronization, timer gates, the functional activity-batch dependency
-closure, and repository-backed SQLite persistence preparation. An expected
-unsupported boundary is recorded as such; it does not claim that workload is
-supported. Any changed boundary, lost required probe, nondeterminism, replay
-divergence, or unexpected outcome fails the set while retaining all evidence.
-Scheduled and manually dispatched CI runs upload the aggregate and its
-referenced artifacts for 90 days.
+The Go orchestrator runs every entry through `gomad qualify`, validates each
+private report and executed command, and atomically publishes a self-contained
+canonical aggregate. An expected unsupported boundary is recorded as such; it
+does not claim that workload is supported. Any changed boundary, lost required
+probe, nondeterminism, replay divergence, or unexpected outcome fails the set
+while retaining all evidence. Consumer-specific manifests and working
+directories remain outside the core module.
+
+`make -C tools/gomadv3 core-qualification` runs the checked
+`qualification/core.json` corpus from its self-contained fixture module. Its
+five assertion-based workloads cover concurrent state invariants, filesystem
+lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
+and the direct modernc/libc file boundary. The aggregate and all evidence are
+retained below `.toolchain/core-qualification*`.
 
 An interrupted campaign retains a canonical `gomadv3.batch-plan/v1` beside
-its prepared target. `gomad resume BATCH` locks that batch, verifies the exact
+its prepared target. A guided plan also records the selected corpus snapshot
+identity and the already-mixed seed selection, so resume never reselects seeds.
+`gomad resume BATCH` locks that batch, verifies the exact
 Runner, toolchain, I/O profile, prepared binary, completed records, and every
 referenced failure or successful-run artifact, archives incomplete per-seed state, and schedules
 only unfinished selection ordinals. It appends to and eventually publishes the
@@ -178,10 +232,17 @@ tools/gomadv3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
+Schema-v2 artifacts must contain this deterministic-I/O identity and its
+matching environment marker. Profile-less v2 artifacts are rejected as
+incomplete; replay never falls back to host I/O.
+
 Gomad replaces supported loopback TCP operations, filesystem operations,
-hostname, and entropy with process-local in-memory implementations. A reviewed,
-version-pinned adapter redirects supported `modernc.org/libc` filesystem,
-entropy, and time operations to those same generic boundaries. Entropy is
+hostname, and entropy with process-local in-memory implementations. Optional
+built-in adapters are an immutable collection generated from `version.json`.
+The current version-pinned `modernc.org/libc` adapter redirects supported
+filesystem, entropy, and time operations to those same generic boundaries.
+Each target records the exact adapters it selected, and resume and replay fail
+before execution if an identity is unavailable or changed. Entropy is
 independent of `GOMADSEED`; that seed controls scheduling only.
 
 The version-pinned compiler inserts typed entry prologues into the selected
@@ -192,6 +253,12 @@ validates each definition's complete formatted declaration fingerprint as well
 as its name and signature, so a signature-stable upstream body change fails the
 build. It marks intercepted definitions non-inline so serialized pre-rewrite
 bodies cannot bypass the hook.
+
+Compiler conformance interceptions live in `boundary/compiler-tests.json`, not
+the production boundary manifest or shipped compiler table. `make intercept-test`
+builds a temporary compiler from a Go overlay containing those fixtures, proves
+the production compiler ignores their package paths, and then runs the positive
+and fail-closed compiler cases through that test-only compiler.
 
 Every modeled operation is appended to a bounded shared-memory transcript.
 Retained artifacts keep the canonical transcript, and replay supplies it to
@@ -244,10 +311,22 @@ Same-key builds use an atomic owner lock, and ambient Go experiment,
 architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMADV3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
+Host-side policy is implemented in typed Go packages. `internal/hosttool`
+provides toolchain build, patch, validation, and test commands;
+`internal/testdriver` owns bounded black-box fixture execution and semantic
+result classification. The remaining scripts are reviewed argv adapters:
+POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
+adapters, and the Darwin-only DTrace audit. `make validate` rejects an
+unowned script or new Bash/Perl policy. Linux CI exercises the platform-neutral
+host packages, but does not qualify the Gomad runtime on Linux.
+
 To upgrade Go, update the canonical `version.json` descriptor and
 `boundary/manifest.json`, materialize the old patch against the new pinned
-source, and regenerate the patch with `regenerate-patch.sh`. `make -C
-tools/gomadv3 generate` derives the shell, Make, Go, compiler-spec,
+source, and regenerate the patch with `go -C tools/gomadv3 run
+./internal/hosttool patch-regenerate --root="$PWD/tools/gomadv3"
+--candidate-root=GO-SOURCE-ROOT`. The `regenerate-patch.sh GO-SOURCE-ROOT`
+compatibility entrypoint delegates to the same typed command. `make -C
+tools/gomadv3 generate` derives the Make, Go, compiler-spec,
 interception-report, public-inventory, and upgrade-guide consumers. The
 descriptor's patch and overlay allowlists must exactly equal the checked trees.
 
@@ -257,15 +336,17 @@ Run the version-specific command from the generated upgrade guide, or directly:
 make -C tools/gomadv3 upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit>
 ```
 
-The command publishes `.toolchain/upgrade-dossier.json` even when a behavioral
-gate fails. It records the complete upstream patch, semantic boundary diff,
-interception evidence, overlay collision audit, disabled upstream results,
-mandatory probes, host-clock audit, optional retained-corpus evidence, and
-platform qualification. Pass
-`GOMADV3_CORPUS_REPORT=.toolchain/qualification-set.json` to require and embed a
-fully validated representative qualification set. Supported-host CI uploads
-the dossier on every run and includes that corpus evidence on scheduled and
-manual qualification runs.
+The command first requalifies the neutral core corpus, then publishes
+`.toolchain/upgrade-dossier.json` even when a behavioral gate fails. It records
+the complete upstream patch, semantic boundary diff, interception evidence,
+overlay collision audit, disabled upstream results, mandatory probes,
+host-clock audit, the checked `gomadv3-core` corpus, and platform qualification.
+The boundary diff compares canonical complete entries, including generated hook
+policies and fields introduced by a newer manifest, instead of projecting onto
+the fields known to the previous dossier implementation.
+A dossier cannot report `qualified=true` without that canonical corpus report.
+Supported-host CI uploads both the dossier and its retained core-corpus evidence
+on every run.
 
 The standard-library boundary is declared in
 `tools/gomadv3/boundary/manifest.json`, and the cross-process deterministic-I/O
@@ -314,8 +395,10 @@ Deterministic mode supports internally linked pure-Go targets on the qualified
 `darwin/arm64` host. Enabled cgo or externally linked binaries fail before package
 initialization. Windows, plugins, foreign threads, the race detector, signals,
 finalizers, and host-dependent network, filesystem, process, and other I/O
-readiness are outside the contract. The launch targets compile with
-`CGO_ENABLED=0`, set `TZ=UTC`, and preserve `-tags test_dep` for tests.
+readiness are outside the contract. Launch targets compile with
+`CGO_ENABLED=0` and set `TZ=UTC`. The public `go-test` target preserves only
+explicit `--build-tag` values; Temporal's root wrapper selects `test_dep`
+explicitly.
 
 The runtime system monitor is disabled with asynchronous preemption, so a
 CPU-bound goroutine or `select` polling loop may run forever and prevent
@@ -323,7 +406,7 @@ virtual-time advancement. Unsupported blocking I/O is likewise bounded by the
 external wall watchdog rather than treated as a clock event. Calling
 `runtime.GOMAXPROCS` to raise the value after startup is unsupported.
 
-The shell test harness retains at most 1 MiB from each child output stream while
+The Go test driver retains at most 1 MiB from each child output stream while
 continuing to drain both streams. Every harness result directory records
 `output-truncated` separately from `timed-out` and the child `status`. The Gomad
 Runner has a separate configurable per-stream limit that defaults to 8 MiB.
@@ -356,14 +439,10 @@ descriptors only at the process boundary, so host pipe readiness cannot affect
 event ordering. Connected replay requires the executing child to emit the same
 semantic bundle and fails closed if it is missing or divergent.
 
-## Design and roadmap
+## Design
 
 - [Architecture](ARCHITECTURE.md) records the durable runtime, Runner, World,
   artifact, replay, and deterministic-I/O decisions.
-- [Active TODO](../../GOMADv3_TODO.md) tracks the prioritized implementation and
-  verification backlog.
-- [Functional-suite sweep](docs/2026-08-11-functional-suite-sweep.md) records
-  the current unchanged-Temporal integration evidence.
 
 ## Development
 
@@ -376,6 +455,7 @@ make -C tools/gomadv3 test-runtime
 make -C tools/gomadv3 test-upstream
 make -C tools/gomadv3 runner-test
 make -C tools/gomadv3 world-test
+make -C tools/gomadv3 core-qualification
 make -C tools/gomadv3 upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit>
 ```
 
