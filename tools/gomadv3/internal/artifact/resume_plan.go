@@ -1,7 +1,6 @@
 package artifact
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -123,12 +122,8 @@ func ReadResumePlan(path string) (BatchPlan, error) {
 		return BatchPlan{}, fmt.Errorf("read batch plan: %w", err)
 	}
 	var plan BatchPlan
-	if err := record.StrictDecode(planBytes, &plan); err != nil {
+	if err := record.DecodeCanonicalJSON(planBytes, &plan); err != nil {
 		return BatchPlan{}, fmt.Errorf("decode batch plan: %w", err)
-	}
-	canonical, err := record.CanonicalJSON(plan)
-	if err != nil || !bytes.Equal(canonical, planBytes) {
-		return BatchPlan{}, errors.Join(fmt.Errorf("batch plan is not canonical"), err)
 	}
 	if err := validateBatchPlan(plan); err != nil {
 		return BatchPlan{}, err
@@ -151,12 +146,8 @@ func validateResumeLifecycle(root *os.Root) error {
 		Reason        *string `json:"reason"`
 		Detail        *string `json:"detail"`
 	}
-	if err := record.StrictDecode(contents, &lifecycle); err != nil {
+	if err := record.DecodeCanonicalJSON(contents, &lifecycle); err != nil {
 		return fmt.Errorf("decode batch lifecycle: %w", err)
-	}
-	canonical, err := record.CanonicalJSON(lifecycle)
-	if err != nil || !bytes.Equal(canonical, contents) {
-		return errors.Join(fmt.Errorf("batch lifecycle is not canonical"), err)
 	}
 	if lifecycle.SchemaVersion != record.SchemaVersion || lifecycle.State != "running" && lifecycle.State != "failed" {
 		return fmt.Errorf("batch lifecycle is not resumable")

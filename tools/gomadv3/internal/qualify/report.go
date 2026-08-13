@@ -238,18 +238,11 @@ func Open(path string) (Report, error) {
 	}
 	data = bytes.TrimSuffix(data, []byte{'\n'})
 	var report Report
-	if err := record.StrictDecode(data, &report); err != nil {
+	if err := record.DecodeCanonicalJSON(data, &report); err != nil {
 		return Report{}, fmt.Errorf("decode qualification report: %w", err)
 	}
 	if err := validateReport(report); err != nil {
 		return Report{}, err
-	}
-	canonical, err := record.CanonicalJSON(report)
-	if err != nil {
-		return Report{}, fmt.Errorf("encode qualification report: %w", err)
-	}
-	if !bytes.Equal(canonical, data) {
-		return Report{}, fmt.Errorf("qualification report is not canonical")
 	}
 	return report, nil
 }

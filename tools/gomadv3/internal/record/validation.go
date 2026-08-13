@@ -1,7 +1,6 @@
 package record
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"path"
@@ -127,15 +126,8 @@ func validateIOProfile(profile IOProfile) error {
 		return errors.New("I/O profile inventory hash does not match its bytes")
 	}
 	var decoded any
-	if err := StrictDecode([]byte(profile.Inventory), &decoded); err != nil {
+	if err := DecodeCanonicalJSON([]byte(profile.Inventory), &decoded); err != nil {
 		return fmt.Errorf("decode I/O profile inventory: %w", err)
-	}
-	canonical, err := CanonicalJSON(decoded)
-	if err != nil {
-		return fmt.Errorf("canonicalize I/O profile inventory: %w", err)
-	}
-	if !bytes.Equal(canonical, []byte(profile.Inventory)) {
-		return errors.New("I/O profile inventory is not canonical")
 	}
 	if profile.Transcript != nil {
 		if profile.Transcript.Schema != "gomadv3.io-transcript/v1" || profile.Transcript.File != "io/transcript.bin" {

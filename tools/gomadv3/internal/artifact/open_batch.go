@@ -46,12 +46,8 @@ func OpenBatch(path string) (Batch, error) {
 		return Batch{}, fmt.Errorf("read batch record: %w", err)
 	}
 	var batch BatchRecord
-	if err := record.StrictDecode(batchBytes, &batch); err != nil {
+	if err := record.DecodeCanonicalJSON(batchBytes, &batch); err != nil {
 		return Batch{}, fmt.Errorf("decode batch record: %w", err)
-	}
-	canonicalBatch, err := record.CanonicalJSON(batch)
-	if err != nil || !bytes.Equal(canonicalBatch, batchBytes) {
-		return Batch{}, errors.Join(fmt.Errorf("batch record is not canonical"), err)
 	}
 	runsBytes, err := readValidatedFile(root, "runs.jsonl", 0o600, maximumRunsBytes)
 	if err != nil {
@@ -84,12 +80,8 @@ func decodeRuns(contents []byte) ([]RunRecord, error) {
 		if len(line) == 0 {
 			return nil, fmt.Errorf("batch runs journal has an empty record at line %d", index+1)
 		}
-		if err := record.StrictDecode(line, &runs[index]); err != nil {
+		if err := record.DecodeCanonicalJSON(line, &runs[index]); err != nil {
 			return nil, fmt.Errorf("decode batch run %d: %w", index+1, err)
-		}
-		canonical, err := record.CanonicalJSON(runs[index])
-		if err != nil || !bytes.Equal(canonical, line) {
-			return nil, errors.Join(fmt.Errorf("batch run %d is not canonical", index+1), err)
 		}
 	}
 	return runs, nil

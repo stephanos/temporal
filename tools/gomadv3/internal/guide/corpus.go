@@ -1,7 +1,6 @@
 package guide
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -262,12 +261,8 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 		return Snapshot{}, fmt.Errorf("read guided corpus snapshot: %w", err)
 	}
 	var snapshot Snapshot
-	if err := record.StrictDecode(contents, &snapshot); err != nil {
+	if err := record.DecodeCanonicalJSON(contents, &snapshot); err != nil {
 		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot: %w", err)
-	}
-	canonical, err := record.CanonicalJSON(snapshot)
-	if err != nil || !bytes.Equal(canonical, contents) {
-		return Snapshot{}, errors.Join(errors.New("guided corpus snapshot is not canonical"), err)
 	}
 	finalized, _, err := finalizeSnapshot(snapshot)
 	if err != nil {

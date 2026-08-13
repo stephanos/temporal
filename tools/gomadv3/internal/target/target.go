@@ -317,15 +317,8 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 		return preparation{}, fmt.Errorf("read exec provenance: %w", err)
 	}
 	var provenance provenanceWire
-	if err := record.StrictDecode(provenanceBytes, &provenance); err != nil {
+	if err := record.DecodeCanonicalJSON(provenanceBytes, &provenance); err != nil {
 		return preparation{}, fmt.Errorf("decode exec provenance: %w", err)
-	}
-	canonical, err := record.CanonicalJSON(provenance)
-	if err != nil {
-		return preparation{}, fmt.Errorf("canonicalize exec provenance: %w", err)
-	}
-	if string(canonical) != string(provenanceBytes) {
-		return preparation{}, errors.New("exec provenance is not canonical")
 	}
 	if err := validateProvenance(provenance); err != nil {
 		return preparation{}, err
