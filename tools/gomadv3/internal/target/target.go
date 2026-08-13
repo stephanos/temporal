@@ -556,7 +556,7 @@ func validateProvenance(provenance provenanceWire) error {
 	if len(provenance.BuildKey) != sha256.Size*2 || !isLowerHex(provenance.BuildKey) {
 		return fmt.Errorf("exec provenance build key is malformed")
 	}
-	if !strings.HasPrefix(provenance.BinarySHA256, "sha256:") || len(provenance.BinarySHA256) != len("sha256:")+sha256.Size*2 || !isLowerHex(strings.TrimPrefix(provenance.BinarySHA256, "sha256:")) {
+	if _, err := record.ParseSHA256(provenance.BinarySHA256); err != nil {
 		return fmt.Errorf("exec provenance binary hash is malformed")
 	}
 	if err := validateDeterministicBuildInfo(provenance.BuildInfo); err != nil {
