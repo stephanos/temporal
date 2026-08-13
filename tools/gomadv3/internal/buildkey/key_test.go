@@ -6,42 +6,76 @@ import (
 	"testing"
 )
 
-func TestComputeChangesForEveryContractedInput(t *testing.T) {
-	base := Input{
-		GoVersion: "go1.26.4", ArchiveSHA256: "archive", PatchSHA256: "patch", OverlaySHA256: "overlay",
+func TestDeriveHashesBuildSources(t *testing.T) {
+	root := t.TempDir()
+	patch := filepath.Join(root, "gomad.patch")
+	overlay := filepath.Join(root, "overlay")
+	writeFile(t, patch, "patch")
+	writeFile(t, filepath.Join(overlay, "src", "gomad.go"), "package gomad")
+	input := Input{
+		GoVersion: "go1.26.4", ArchiveSHA256: "archive", PatchPath: patch, OverlayPath: overlay,
 		HostOS: "darwin", HostArch: "arm64", BootstrapVersion: "go version go1.26.4 darwin/arm64",
 		RecipeVersion: "canonical-v4", BuildPath: "/usr/bin:/bin", BashPath: "/bin/bash", BashVersion: "5.2",
 	}
-	baseline, err := Compute(base)
+	baseline, err := Derive(input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if repeated, err := Compute(base); err != nil || repeated != baseline {
-		t.Fatalf("repeated Compute() = %q, %v; want %q", repeated, err, baseline)
+	writeFile(t, patch, "changed patch")
+	patchChanged, err := Derive(input)
+	if err != nil {
+		t.Fatal(err)
 	}
-	mutations := map[string]func(*Input){
-		"Go version":        func(input *Input) { input.GoVersion += ".1" },
-		"archive digest":    func(input *Input) { input.ArchiveSHA256 += "1" },
-		"patch digest":      func(input *Input) { input.PatchSHA256 += "1" },
-		"overlay digest":    func(input *Input) { input.OverlaySHA256 += "1" },
-		"host OS":           func(input *Input) { input.HostOS = "linux" },
-		"host architecture": func(input *Input) { input.HostArch = "amd64" },
-		"bootstrap version": func(input *Input) { input.BootstrapVersion += ".1" },
-		"recipe version":    func(input *Input) { input.RecipeVersion += ".1" },
-		"build path":        func(input *Input) { input.BuildPath += ":/opt/bin" },
-		"bash path":         func(input *Input) { input.BashPath += ".new" },
-		"bash version":      func(input *Input) { input.BashVersion += ".1" },
+	if patchChanged == baseline {
+		t.Fatal("Derive() did not bind patch contents")
+	}
+	writeFile(t, patch, "patch")
+	writeFile(t, filepath.Join(overlay, "src", "gomad.go"), "package changed")
+	changed, err := Derive(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if changed == baseline {
+		t.Fatal("Derive() did not bind overlay contents")
+	}
+}
+
+func TestComputeChangesForEveryContractedInput(t *testing.T) {
+	base := identity{input: Input{
+		GoVersion: "go1.26.4", ArchiveSHA256: "archive",
+		HostOS: "darwin", HostArch: "arm64", BootstrapVersion: "go version go1.26.4 darwin/arm64",
+		RecipeVersion: "canonical-v4", BuildPath: "/usr/bin:/bin", BashPath: "/bin/bash", BashVersion: "5.2",
+	}, patchSHA256: "patch", overlaySHA256: "overlay"}
+	baseline, err := compute(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if repeated, err := compute(base); err != nil || repeated != baseline {
+		t.Fatalf("repeated compute() = %q, %v; want %q", repeated, err, baseline)
+	}
+	mutations := map[string]func(*identity){
+		"Go version":        func(source *identity) { source.input.GoVersion += ".1" },
+		"archive digest":    func(source *identity) { source.input.ArchiveSHA256 += "1" },
+		"patch digest":      func(source *identity) { source.patchSHA256 += "1" },
+		"overlay digest":    func(source *identity) { source.overlaySHA256 += "1" },
+		"host OS":           func(source *identity) { source.input.HostOS = "linux" },
+		"host architecture": func(source *identity) { source.input.HostArch = "amd64" },
+		"bootstrap version": func(source *identity) { source.input.BootstrapVersion += ".1" },
+		"recipe version":    func(source *identity) { source.input.RecipeVersion += ".1" },
+		"build path":        func(source *identity) { source.input.BuildPath += ":/opt/bin" },
+		"bash path":         func(source *identity) { source.input.BashPath += ".new" },
+		"bash version":      func(source *identity) { source.input.BashVersion += ".1" },
 	}
 	for name, mutate := range mutations {
 		t.Run(name, func(t *testing.T) {
 			changed := base
 			mutate(&changed)
-			key, err := Compute(changed)
+			key, err := compute(changed)
 			if err != nil {
 				t.Fatal(err)
 			}
 			if key == baseline {
-				t.Fatalf("Compute() did not change for %s", name)
+				t.Fatalf("compute() did not change for %s", name)
 			}
 		})
 	}
@@ -54,20 +88,20 @@ func TestTreeDigestBindsPathsAndContents(t *testing.T) {
 	writeFile(t, filepath.Join(first, "src", "a.go"), "same")
 	writeFile(t, filepath.Join(second, "src", "b.go"), "same")
 	writeFile(t, filepath.Join(third, "src", "a.go"), "different")
-	firstDigest, err := TreeDigest(first)
+	firstDigest, err := treeDigest(first)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if repeated, err := TreeDigest(first); err != nil || repeated != firstDigest {
-		t.Fatalf("repeated TreeDigest() = %q, %v; want %q", repeated, err, firstDigest)
+	if repeated, err := treeDigest(first); err != nil || repeated != firstDigest {
+		t.Fatalf("repeated treeDigest() = %q, %v; want %q", repeated, err, firstDigest)
 	}
 	for name, root := range map[string]string{"path": second, "contents": third} {
-		digest, err := TreeDigest(root)
+		digest, err := treeDigest(root)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if digest == firstDigest {
-			t.Fatalf("TreeDigest() did not bind %s", name)
+			t.Fatalf("treeDigest() did not bind %s", name)
 		}
 	}
 }
@@ -78,8 +112,8 @@ func TestTreeDigestRejectsNonRegularEntry(t *testing.T) {
 	if err := os.Symlink("target", filepath.Join(root, "link")); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := TreeDigest(root); err == nil {
-		t.Fatal("TreeDigest() accepted a symlink")
+	if _, err := treeDigest(root); err == nil {
+		t.Fatal("treeDigest() accepted a symlink")
 	}
 }
 
