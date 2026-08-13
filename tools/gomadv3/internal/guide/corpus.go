@@ -328,7 +328,7 @@ func (corpus *Corpus) validateEntry(entry Entry) error {
 		return errors.Join(errors.New("guided corpus payload size mismatch"), err)
 	}
 	profile := ioprofile.Default()
-	if manifest.IOProfile.Name != profile.Name() || manifest.IOProfile.ImplementationSHA256 != profile.ImplementationSHA256() || manifest.IOProfile.InventorySHA256 != profile.InventorySHA256() {
+	if !profile.Identity().MatchesRecord(manifest.IOProfile) {
 		return errors.New("guided corpus case boundary identity does not match this Runner")
 	}
 	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256)

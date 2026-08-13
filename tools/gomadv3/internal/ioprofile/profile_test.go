@@ -55,6 +55,49 @@ func TestDefaultReturnsAnImmutableProfileSpecification(t *testing.T) {
 	}
 }
 
+func TestProfileOwnsIdentityProjectionAndVerification(t *testing.T) {
+	profile := Default()
+	identity := profile.Identity()
+	want := Identity{
+		Name:                 profile.Name(),
+		ImplementationSHA256: profile.ImplementationSHA256(),
+		InventorySHA256:      profile.InventorySHA256(),
+	}
+	if identity != want {
+		t.Fatalf("identity = %#v, want %#v", identity, want)
+	}
+	if !profile.Matches(identity) {
+		t.Fatal("profile rejected its identity")
+	}
+	mutations := map[string]Identity{
+		"name":           {Name: "other", ImplementationSHA256: identity.ImplementationSHA256, InventorySHA256: identity.InventorySHA256},
+		"implementation": {Name: identity.Name, ImplementationSHA256: record.HashBytes([]byte("other")), InventorySHA256: identity.InventorySHA256},
+		"inventory":      {Name: identity.Name, ImplementationSHA256: identity.ImplementationSHA256, InventorySHA256: record.HashBytes([]byte("other"))},
+	}
+	for name, changed := range mutations {
+		t.Run(name, func(t *testing.T) {
+			if profile.Matches(changed) {
+				t.Fatal("profile accepted changed identity")
+			}
+		})
+	}
+
+	recorded := profile.RecordIdentity()
+	if recorded.Name != identity.Name || recorded.ImplementationSHA256 != identity.ImplementationSHA256 || recorded.InventorySHA256 != identity.InventorySHA256 || recorded.Inventory != string(profile.Inventory()) {
+		t.Fatalf("record identity = %#v", recorded)
+	}
+	if !profile.MatchesRecord(recorded) || !identity.MatchesRecord(recorded) {
+		t.Fatal("profile rejected its record identity")
+	}
+	recorded.Inventory = "changed"
+	if profile.MatchesRecord(recorded) {
+		t.Fatal("profile accepted changed record inventory")
+	}
+	if !identity.MatchesRecord(recorded) {
+		t.Fatal("compact identity depended on record inventory")
+	}
+}
+
 func TestDeterministicProfileAcceptsArbitraryTargetArguments(t *testing.T) {
 	profile := Default()
 	argument := "-test.run=^TestUnrelatedSuite$"

@@ -33,7 +33,7 @@ func resumeConfiguration(request Config, plan artifact.BatchPlan) (Config, SeedS
 		return Config{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
 	}
 	profile := ioprofile.Default()
-	if plan.IOProfile.Name != profile.Name() || plan.IOProfile.ImplementationSHA256 != profile.ImplementationSHA256() || plan.IOProfile.InventorySHA256 != profile.InventorySHA256() {
+	if !profile.Matches(plan.IOProfile) {
 		return Config{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
 	}
 	selection, err := ParseSeeds(plan.Selection)

@@ -9,4 +9,4 @@
 - [x] 7/10 — Centralize retained batch-evidence resolution in `artifact`.
 - [x] 8/10 — Centralize advisory lock lifecycle in `filelock`.
 - [x] 9/10 — Move prepared-target record projections into `target`.
-- [ ] 10/10
+- [x] 10/10 — Make `ioprofile` own compact and recorded profile identities.

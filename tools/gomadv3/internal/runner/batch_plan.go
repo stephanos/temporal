@@ -38,7 +38,7 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 		Prepared: artifact.PreparedTargetPlan{
 			Path: preparedPath, Target: prepared.RecordTarget(),
 		},
-		IOProfile:   artifact.IOProfilePlan{Name: profile.Name(), ImplementationSHA256: profile.ImplementationSHA256(), InventorySHA256: profile.InventorySHA256()},
+		IOProfile:   profile.Identity(),
 		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: romount.RecordLimits(config.IOROMountLimits),
 		Coverage: string(normalizedCoverage(config.Coverage)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),

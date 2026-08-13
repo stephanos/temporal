@@ -24,7 +24,7 @@ type Bootstrap struct {
 }
 
 func (profile ProfileSpec) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error) {
-	definition, err := profile.validated()
+	_, err := profile.validated()
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,8 @@ func (profile ProfileSpec) BootstrapFrame(prepared target.Prepared, runnerSHA256
 	if err != nil {
 		return nil, fmt.Errorf("encode target argv identity: %w", err)
 	}
-	digests := []string{string(definition.inventorySHA256), string(definition.implementationSHA256), prepared.SHA256, runnerSHA256, string(record.HashBytes(argv))}
+	identity := profile.Identity()
+	digests := []string{string(identity.InventorySHA256), string(identity.ImplementationSHA256), prepared.SHA256, runnerSHA256, string(record.HashBytes(argv))}
 	wire := iowire.Bootstrap{Seed: seed}
 	destinations := []*[sha256.Size]byte{&wire.InventoryHash, &wire.ImplementationHash, &wire.TargetHash, &wire.RunnerHash, &wire.ArgvHash}
 	for index, value := range digests {
@@ -56,11 +57,12 @@ func DecodeBootstrapFrame(frame []byte) (Bootstrap, error) {
 		digests = append(digests, "sha256:"+hex.EncodeToString(digest[:]))
 	}
 	profile := Default()
-	if profile.InventorySHA256() != record.SHA256(digests[0]) || profile.ImplementationSHA256() != record.SHA256(digests[1]) {
+	identity := Identity{Name: profile.Name(), InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1])}
+	if !profile.Matches(identity) {
 		return Bootstrap{}, errors.New("I/O profile bootstrap frame identity mismatch")
 	}
 	return Bootstrap{
-		Profile: profile.Name(), InventorySHA256: record.SHA256(digests[0]), ImplementationSHA256: record.SHA256(digests[1]),
+		Profile: identity.Name, InventorySHA256: identity.InventorySHA256, ImplementationSHA256: identity.ImplementationSHA256,
 		TargetSHA256: digests[2], RunnerSHA256: digests[3], ArgvSHA256: record.SHA256(digests[4]), Seed: decoded.Seed,
 	}, nil
 }
