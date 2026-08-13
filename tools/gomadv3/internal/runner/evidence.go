@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -27,6 +28,20 @@ type RunLimitsEvidence struct {
 	OutputBytes          record.Uint64String `json:"output_bytes"`
 	WorldTransitionBytes record.Uint64String `json:"world_transition_bytes"`
 	IOTranscriptBytes    record.Uint64String `json:"io_transcript_bytes"`
+	ChoiceTraceBytes     record.Uint64String `json:"choice_trace_bytes,omitempty"`
+}
+
+type ChoiceEvidence struct {
+	Profile              string              `json:"profile"`
+	ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
+	Limit                record.Uint64String `json:"limit"`
+	SHA256               record.SHA256       `json:"sha256"`
+	Records              record.Uint64String `json:"records"`
+	BranchingRecords     record.Uint64String `json:"branching_records"`
+	TerminalState        string              `json:"terminal_state"`
+	Runnable             record.Uint64String `json:"runnable"`
+	SelectPoll           record.Uint64String `json:"select_poll"`
+	SelectResult         record.Uint64String `json:"select_result"`
 }
 
 type RunEvidence struct {
@@ -45,6 +60,7 @@ type RunEvidence struct {
 	IOTranscriptSHA256   record.SHA256              `json:"io_transcript_sha256"`
 	IOTranscriptRecords  record.Uint64String        `json:"io_transcript_records"`
 	IOTranscriptComplete bool                       `json:"io_transcript_complete"`
+	Choices              *ChoiceEvidence            `json:"choices,omitempty"`
 	World                record.World               `json:"world"`
 	ReadOnlyMountsSHA256 *record.SHA256             `json:"read_only_mounts_sha256,omitempty"`
 	SemanticCoverage     ioprofile.SemanticCoverage `json:"semantic_coverage"`
@@ -72,6 +88,7 @@ func runEvidence(
 		Limits: RunLimitsEvidence{
 			RunTimeoutNanos: record.Uint64String(config.RunTimeout), TerminateGraceNanos: record.Uint64String(config.TerminateGrace), OutputBytes: record.Uint64String(config.OutputLimit),
 			WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit), IOTranscriptBytes: 64 << 20,
+			ChoiceTraceBytes: record.Uint64String(config.ChoiceTraceLimit),
 		},
 		Outcome: OutcomeEvidence{
 			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
@@ -85,6 +102,15 @@ func runEvidence(
 		IOTranscriptComplete: completion.result.IOTranscript.Complete,
 		World:                cloneWorld(worldRecord),
 		SemanticCoverage:     coverage,
+	}
+	if config.ChoiceTraceLimit != 0 && completion.result.ChoiceTrace.Trace.Summary.Terminal == choicewire.TerminalComplete {
+		trace := completion.result.ChoiceTrace
+		evidence.Choices = &ChoiceEvidence{
+			Profile: trace.Profile, ImplementationSHA256: record.SHA256FromSum(trace.ImplementationSHA256), Limit: record.Uint64String(trace.Limit),
+			SHA256: record.SHA256FromSum(trace.Trace.SHA256), Records: record.Uint64String(trace.Trace.Summary.Records),
+			BranchingRecords: record.Uint64String(trace.Trace.Summary.Branching), TerminalState: "complete",
+			Runnable: record.Uint64String(trace.Trace.Summary.Runnable), SelectPoll: record.Uint64String(trace.Trace.Summary.SelectPoll), SelectResult: record.Uint64String(trace.Trace.Summary.SelectResult),
+		}
 	}
 	if mountArtifact != nil {
 		digest := mountArtifact.Manifest.SHA256

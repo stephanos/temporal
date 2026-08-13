@@ -2,12 +2,14 @@ package inspect
 
 import (
 	"context"
+	"crypto/sha256"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
@@ -26,6 +28,28 @@ func TestOpenReportsArtifactIdentityAndReplay(t *testing.T) {
 	}
 	if !observed.Stdout.Truncated || !strings.Contains(observed.ReplayCommand, published.Path) {
 		t.Fatalf("artifact details = %#v", observed)
+	}
+}
+
+func TestOpenWithOptionsProjectsValidatedChoiceTrace(t *testing.T) {
+	published := publishInspectArtifact(t)
+	report, err := OpenWithOptions(published.Path, Options{Choices: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	choices := report.Artifact.Choices
+	if choices == nil || choices.Records != 1 || choices.BranchingRecords != 1 || choices.Runnable != 1 || choices.SelectPoll != 0 || choices.SelectResult != 0 || len(choices.Sites) != 1 {
+		t.Fatalf("choice inspection = %#v", choices)
+	}
+	if choices.Sites[0].Kind != "runnable" || choices.Sites[0].MaximumAlternatives != 2 || choices.Sites[0].Fingerprint == "" {
+		t.Fatalf("choice site = %#v", choices.Sites)
+	}
+}
+
+func TestOpenWithOptionsRejectsBatch(t *testing.T) {
+	batch := writeInspectBatchForChoiceTest(t)
+	if _, err := OpenWithOptions(batch, Options{Choices: true}); err == nil || !strings.Contains(err.Error(), "traced artifact") {
+		t.Fatalf("batch choice inspection error = %v", err)
 	}
 }
 
@@ -115,13 +139,24 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 		reason = "success"
 	}
 	transcript := []byte(strings.Repeat("x", 128*3))
+	choiceRecord, err := choicewire.EncodeRecord(choicewire.Record{Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	choicePayload := choiceRecord[:]
+	choiceLimit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	choiceImplementation, err := choicewire.ImplementationIdentity(strings.Repeat("a", 64))
+	if err != nil {
+		t.Fatal(err)
+	}
 	manifest := record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: artifactKind, CreatedAt: "2026-08-12T12:00:00Z", BatchID: batchID, SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
-		Runner:      record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
-		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
-		IOProfile:   record.IOProfile{Name: "gomadv3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}")), Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 3}},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}}, Limits: record.Limits{RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20}, World: world,
+		Runner:        record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
+		Toolchain:     record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		Target:        record.Target{Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
+		IOProfile:     record.IOProfile{Name: "gomadv3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}")), Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 3}},
+		ChoiceProfile: &record.ChoiceProfile{Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(choiceImplementation), Trace: record.ChoiceTrace{Schema: "gomadv3.choice-trace/v1", SHA256: record.SHA256FromSum(sha256.Sum256(choicePayload)), Bytes: record.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit)}},
+		Environment:   []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.Profile}, {Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}}, Limits: record.Limits{RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20, ChoiceTraceBytes: record.Uint64String(choiceLimit)}, World: world,
 		Outcome: record.Outcome{Domain: domain, Reason: reason, Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{
 			Stdout: record.Stream{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
@@ -130,10 +165,29 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 		Host: record.Host{StartedAt: "2026-08-12T12:00:00Z", FinishedAt: "2026-08-12T12:00:01Z", ElapsedNanos: 1},
 	}
 	published, err := (artifact.Store{Root: root}).Publish(artifact.Input{
-		Manifest: manifest, TargetPath: targetPath, Stdout: []byte("long"), Stderr: nil, IOTranscript: transcript, World: payloads,
+		Manifest: manifest, TargetPath: targetPath, Stdout: []byte("long"), Stderr: nil, IOTranscript: transcript, ChoiceTrace: choicePayload, World: payloads,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	return published
+}
+
+func writeInspectBatchForChoiceTest(t *testing.T) string {
+	t.Helper()
+	journal, err := artifact.NewBatchJournal(context.Background(), artifact.BatchConfig{Root: t.TempDir(), RunID: "run-choice-batch", Selection: "7", SelectionCount: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = journal.Close() })
+	if err := journal.StartRuns(); err != nil {
+		t.Fatal(err)
+	}
+	if err := journal.AppendRun(artifact.RunRecord{SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := journal.Publish(artifact.BatchSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
+		t.Fatal(err)
+	}
+	return journal.Path()
 }

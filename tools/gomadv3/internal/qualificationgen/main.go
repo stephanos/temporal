@@ -38,19 +38,19 @@ func run(arguments []string, stdout, stderr io.Writer, runSet runSetFunc, loadMa
 	if *check {
 		loaded, err := loadManifest(*manifest)
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			_, _ = fmt.Fprintln(stderr, err)
 			return 1
 		}
-		fmt.Fprintf(stdout, "gomadv3 qualification set manifest: name=%s suites=%d\n", loaded.Name, len(loaded.Suites))
+		_, _ = fmt.Fprintf(stdout, "gomadv3 qualification set manifest: name=%s suites=%d\n", loaded.Name, len(loaded.Suites))
 		return 0
 	}
 	report, err := runSet(context.Background(), qualificationset.Config{
 		ManifestPath: *manifest, GomadPath: *gomad, WorkingDir: *workingDirectory, ArtifactRoot: *artifacts, OutputPath: *output,
 	})
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		_, _ = fmt.Fprintln(stderr, err)
 	}
-	fmt.Fprintf(stdout, "gomadv3 qualification set: name=%s qualified=%t completed=%d/%d report=%s\n", report.Name, report.Qualified, report.Completed, report.Selected, *output)
+	_, _ = fmt.Fprintf(stdout, "gomadv3 qualification set: name=%s expectations-met=%t supported=%d unsupported=%d failed=%d infrastructure-errors=%d completed=%d/%d report=%s\n", report.Name, report.ExpectationsMet, report.Supported, report.Unsupported, report.Failed, report.InfrastructureErrors, report.Completed, report.Selected, *output)
 	if err != nil {
 		return 1
 	}

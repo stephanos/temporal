@@ -348,6 +348,7 @@ func firstDivergence(expected, actual runner.RunEvidence) string {
 		{"io_transcript.sha256", expected.IOTranscriptSHA256, actual.IOTranscriptSHA256},
 		{"io_transcript.records", expected.IOTranscriptRecords, actual.IOTranscriptRecords},
 		{"io_transcript.complete", expected.IOTranscriptComplete, actual.IOTranscriptComplete},
+		{"choices", expected.Choices, actual.Choices},
 		{"world", expected.World, actual.World},
 		{"read_only_mounts_sha256", expected.ReadOnlyMountsSHA256, actual.ReadOnlyMountsSHA256},
 		{"semantic_coverage", expected.SemanticCoverage, actual.SemanticCoverage},

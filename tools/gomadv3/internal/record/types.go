@@ -1,8 +1,12 @@
 package record
 
-const SchemaVersion uint32 = 2
+const LegacySchemaVersion uint32 = 2
 
-const RecordContract = "gomadv3.run-record/v2"
+const SchemaVersion uint32 = 3
+
+const LegacyRecordContract = "gomadv3.run-record/v2"
+
+const RecordContract = "gomadv3.run-record/v3"
 
 const (
 	ArtifactSuccess         = "gomadv3.success/v1"
@@ -20,25 +24,26 @@ const (
 type SHA256 string
 
 type Manifest struct {
-	SchemaVersion    uint32        `json:"schema_version"`
-	ArtifactKind     string        `json:"artifact_kind"`
-	RecordHash       SHA256        `json:"record_hash"`
-	CreatedAt        string        `json:"created_at"`
-	BatchID          string        `json:"batch_id"`
-	SelectionOrdinal Uint64String  `json:"selection_ordinal"`
-	Seed             Uint64String  `json:"seed"`
-	ReplayMode       string        `json:"replay_mode"`
-	Runner           Runner        `json:"runner"`
-	Toolchain        Toolchain     `json:"toolchain"`
-	Target           Target        `json:"target"`
-	IOProfile        IOProfile     `json:"io_profile"`
-	Environment      []Environment `json:"environment"`
-	Limits           Limits        `json:"limits"`
-	World            World         `json:"world"`
-	Outcome          Outcome       `json:"outcome"`
-	Streams          Streams       `json:"streams"`
-	Files            []File        `json:"files"`
-	Host             Host          `json:"host"`
+	SchemaVersion    uint32         `json:"schema_version"`
+	ArtifactKind     string         `json:"artifact_kind"`
+	RecordHash       SHA256         `json:"record_hash"`
+	CreatedAt        string         `json:"created_at"`
+	BatchID          string         `json:"batch_id"`
+	SelectionOrdinal Uint64String   `json:"selection_ordinal"`
+	Seed             Uint64String   `json:"seed"`
+	ReplayMode       string         `json:"replay_mode"`
+	Runner           Runner         `json:"runner"`
+	Toolchain        Toolchain      `json:"toolchain"`
+	Target           Target         `json:"target"`
+	IOProfile        IOProfile      `json:"io_profile"`
+	ChoiceProfile    *ChoiceProfile `json:"choice_profile,omitempty"`
+	Environment      []Environment  `json:"environment"`
+	Limits           Limits         `json:"limits"`
+	World            World          `json:"world"`
+	Outcome          Outcome        `json:"outcome"`
+	Streams          Streams        `json:"streams"`
+	Files            []File         `json:"files"`
+	Host             Host           `json:"host"`
 }
 
 type IOProfile struct {
@@ -56,6 +61,23 @@ type IOTranscript struct {
 	SHA256  SHA256       `json:"sha256"`
 	Bytes   Uint64String `json:"bytes"`
 	Records Uint64String `json:"records"`
+}
+
+type ChoiceProfile struct {
+	Name                 string      `json:"name"`
+	ImplementationSHA256 SHA256      `json:"implementation_sha256"`
+	Trace                ChoiceTrace `json:"trace"`
+}
+
+type ChoiceTrace struct {
+	Schema           string       `json:"schema"`
+	File             string       `json:"file"`
+	SHA256           SHA256       `json:"sha256"`
+	Bytes            Uint64String `json:"bytes"`
+	Records          Uint64String `json:"records"`
+	BranchingRecords Uint64String `json:"branching_records"`
+	TerminalState    string       `json:"terminal_state"`
+	Limit            Uint64String `json:"limit"`
 }
 
 type ReadOnlyMounts struct {
@@ -167,6 +189,7 @@ type Limits struct {
 	OutputBytes          Uint64String `json:"output_bytes"`
 	WorldTransitionBytes Uint64String `json:"world_transition_bytes"`
 	IOTranscriptBytes    Uint64String `json:"io_transcript_bytes"`
+	ChoiceTraceBytes     Uint64String `json:"choice_trace_bytes,omitempty"`
 }
 
 type World struct {

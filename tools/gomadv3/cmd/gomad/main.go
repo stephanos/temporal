@@ -32,10 +32,11 @@ const usage = `usage:
   gomad qualify [flags] exec --provenance FILE -- BINARY [ARG ...]
   gomad qualify [flags] go-run PACKAGE -- [ARG ...]
   gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad analyze [--format=text|json] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
   gomad replay [--verify-only] ARTIFACT_DIR
   gomad doctor [--artifacts DIR] [--json]
-  gomad inspect [--json] ARTIFACT_OR_BATCH
+  gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
 `
 
 type byteSize uint64
@@ -118,6 +119,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		return runExplore(arguments[1:], stdout, stderr)
 	case "qualify":
 		return runQualify(arguments[1:], stdout, stderr)
+	case "analyze":
+		return runAnalyze(arguments[1:], stdout, stderr)
 	case "resume":
 		return runResume(arguments[1:], stdout, stderr)
 	case "replay":
@@ -141,6 +144,7 @@ func runInspect(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomad inspect", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
+	choices := flags.Bool("choices", false, "project a validated runtime choice trace")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
@@ -148,7 +152,7 @@ func runInspect(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	report, err := gomadinspect.Open(flags.Arg(0))
+	report, err := gomadinspect.OpenWithOptions(flags.Arg(0), gomadinspect.Options{Choices: *choices})
 	if err != nil {
 		fmt.Fprintf(stderr, "inspect %s: %v\n", flags.Arg(0), err)
 		return 2
@@ -180,6 +184,12 @@ func printInspection(output io.Writer, report gomadinspect.Report) {
 		} else {
 			fmt.Fprintln(output, "transcript: none")
 		}
+		if choices := inspected.Choices; choices != nil {
+			fmt.Fprintf(output, "choices: profile=%s records=%d branching=%d bytes=%d limit=%d sha256=%s terminal=%s runnable=%d select-poll=%d select-result=%d\n", choices.Profile, choices.Records, choices.BranchingRecords, choices.PayloadBytes, choices.Limit, choices.SHA256, choices.TerminalState, choices.Runnable, choices.SelectPoll, choices.SelectResult)
+			for _, site := range choices.Sites {
+				fmt.Fprintf(output, "choice-site: kind=%s fingerprint=%s count=%d max-alternatives=%d\n", site.Kind, site.Fingerprint, site.Count, site.MaximumAlternatives)
+			}
+		}
 		if mounts := inspected.CapturedMounts; mounts != nil {
 			fmt.Fprintf(output, "captured-mounts: mappings=%q entries=%d missing=%d bytes=%d\n", mounts.Mappings, mounts.Entries, mounts.NotExist, mounts.TotalBytes)
 		} else {
@@ -197,7 +207,11 @@ func printInspection(output io.Writer, report gomadinspect.Report) {
 		if run.TranscriptSHA256 != nil && run.TranscriptRecords != nil {
 			transcript = fmt.Sprintf("%s/%d", *run.TranscriptSHA256, *run.TranscriptRecords)
 		}
-		fmt.Fprintf(output, "run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript)
+		choices := "none"
+		if run.ChoiceTraceSHA256 != nil && run.ChoiceTraceRecords != nil && run.ChoiceTraceBranchingRecords != nil && run.ChoiceTraceTerminalState != nil {
+			choices = fmt.Sprintf("%s/%d/%d/%s", *run.ChoiceTraceSHA256, *run.ChoiceTraceRecords, *run.ChoiceTraceBranchingRecords, *run.ChoiceTraceTerminalState)
+		}
+		fmt.Fprintf(output, "run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices)
 	}
 	for _, failure := range batch.FailureArtifacts {
 		fmt.Fprintf(output, "failure: signature=%s path=%s\nreplay: %s\n", failure.Signature, failure.Path, failure.ReplayCommand)
@@ -286,6 +300,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	coverage := flags.String("coverage", string(runner.CoverageNone), "none or semantic")
 	guide := flags.Bool("guide", false, "guide selection from a bounded semantic corpus")
 	corpus := flags.String("corpus", "", "guided semantic corpus directory")
@@ -294,9 +309,11 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	outputLimit := byteSize(8 << 20)
 	worldLimit := byteSize(64 << 20)
 	successBytes := byteSize(0)
+	choiceLimit := byteSize(8 << 20)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	flags.Var(&successBytes, "success-bytes", "total retained successful-run bytes")
+	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
 	var environment stringList
 	var buildTags stringList
 	var ioROMounts stringList
@@ -318,7 +335,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	var seedsSet, countSet, coverageSet bool
+	var seedsSet, countSet, coverageSet, choiceLimitSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
 		case "seeds":
@@ -327,6 +344,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			countSet = true
 		case "coverage":
 			coverageSet = true
+		case "choice-bytes":
+			choiceLimitSet = true
 		}
 	})
 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
@@ -346,6 +365,14 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	coverageMode, err := resolveExploreCoverage(resolvedCoverage, requiredSemanticProbes)
+	if err != nil {
+		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
+	resolvedChoiceLimit, err := resolveChoiceTrace(*choices, choiceLimit, choiceLimitSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -378,7 +405,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.Config{
 		Seeds: resolvedSeeds, Parallel: *parallel, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		ChoiceTraceLimit: resolvedChoiceLimit,
+		Artifacts:        *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
 		Guide: *guide, Corpus: *corpus,
@@ -390,18 +418,15 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	}
 	summary, err := runner.Run(context.Background(), config)
 	if err != nil {
+		if summary.ChoiceTrace != nil {
+			fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		}
 		classification := classifyExploreError(err)
 		if writeErr := reporter.Error(classification, err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
 			return 3
 		}
-		if classification == "runner_failure" {
-			return 3
-		}
-		if classification == "semantic_coverage_failure" {
-			return 1
-		}
-		return 2
+		return exploreErrorStatus(classification)
 	}
 	if err := reporter.Result(summary); err != nil {
 		fmt.Fprintln(stderr, err)
@@ -460,6 +485,19 @@ func resolveExploreCoverage(value string, required []string) (runner.CoverageMod
 		return "", fmt.Errorf("unknown coverage mode %q", value)
 	}
 	return mode, nil
+}
+
+func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, error) {
+	if !enabled {
+		if limitSet {
+			return 0, fmt.Errorf("--choice-bytes requires --choices")
+		}
+		return 0, nil
+	}
+	if limit < process.MinimumChoiceTraceBytes || limit > process.MaximumChoiceTraceBytes {
+		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", process.MinimumChoiceTraceBytes)
+	}
+	return uint64(limit), nil
 }
 
 func runReplay(arguments []string, stdout, stderr io.Writer) int {
