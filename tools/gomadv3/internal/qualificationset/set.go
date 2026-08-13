@@ -1,9 +1,7 @@
 package qualificationset
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -120,15 +118,6 @@ type ExpectationError struct {
 
 func (err *ExpectationError) Error() string {
 	return "qualification set did not match expectations: " + strings.Join(err.Suites, ", ")
-}
-
-type qualificationEvent struct {
-	Schema         string          `json:"schema"`
-	Type           string          `json:"type"`
-	Classification string          `json:"classification,omitempty"`
-	Message        string          `json:"message,omitempty"`
-	ReportPath     string          `json:"report_path,omitempty"`
-	Report         json.RawMessage `json:"report,omitempty"`
 }
 
 var setNamePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
@@ -363,7 +352,7 @@ func retainedQualification(artifactRoot string, command Command, result CommandR
 	if len(result.Stderr) != 0 {
 		return qualify.Report{}, "", "", "", errors.New("JSON qualification command wrote to stderr")
 	}
-	event, err := resultEvent(result.Stdout)
+	event, err := qualify.DecodeResultEvent(result.Stdout)
 	if err != nil {
 		return qualify.Report{}, "", "", "", err
 	}
@@ -383,8 +372,8 @@ func retainedQualification(artifactRoot string, command Command, result CommandR
 	if !slices.Equal(opened.Command, logicalCommand) {
 		return qualify.Report{}, "", "", "", errors.New("retained qualification command does not match the executed command")
 	}
-	classification := qualificationClassification(opened)
-	if event.Classification != classification || result.ExitCode != classificationStatus(classification) {
+	classification := qualify.Classify(opened)
+	if event.Classification != classification || result.ExitCode != qualify.ExitStatus(classification) {
 		return qualify.Report{}, "", "", "", fmt.Errorf("qualification result classification or status is inconsistent: %s/%d", event.Classification, result.ExitCode)
 	}
 	contents, err := os.ReadFile(path)
@@ -394,69 +383,8 @@ func retainedQualification(artifactRoot string, command Command, result CommandR
 	return opened, classification, path, record.HashBytes(contents), nil
 }
 
-func resultEvent(contents []byte) (qualificationEvent, error) {
-	var result qualificationEvent
-	for _, line := range bytes.Split(bytes.TrimSuffix(contents, []byte{'\n'}), []byte{'\n'}) {
-		if len(line) == 0 {
-			return qualificationEvent{}, errors.New("qualification event stream contains an empty record")
-		}
-		var event qualificationEvent
-		if err := json.Unmarshal(line, &event); err != nil {
-			return qualificationEvent{}, fmt.Errorf("decode qualification event: %w", err)
-		}
-		if event.Schema != "gomadv3.qualify-event/v1" {
-			return qualificationEvent{}, fmt.Errorf("unsupported qualification event schema %q", event.Schema)
-		}
-		switch event.Type {
-		case "progress":
-		case "result":
-			if result.Type != "" || event.ReportPath == "" || event.Classification == "" {
-				return qualificationEvent{}, errors.New("qualification result event is invalid or duplicated")
-			}
-			result = event
-		case "error":
-			return qualificationEvent{}, fmt.Errorf("unretained qualification error %s: %s", event.Classification, event.Message)
-		default:
-			return qualificationEvent{}, fmt.Errorf("unknown qualification event type %q", event.Type)
-		}
-	}
-	if result.Type == "" {
-		return qualificationEvent{}, errors.New("qualification event stream has no retained result")
-	}
-	return result, nil
-}
-
-func qualificationClassification(report qualify.Report) string {
-	if report.Failure != nil {
-		return report.Failure.Classification
-	}
-	if !report.Deterministic {
-		return "nondeterministic"
-	}
-	if report.Replay != nil && !report.Replay.Match {
-		return "replay_divergence"
-	}
-	if !report.TargetSuccess {
-		return "target_failure"
-	}
-	return "qualified"
-}
-
-func classificationStatus(classification string) int {
-	switch classification {
-	case "qualified":
-		return 0
-	case "target_failure", "nondeterministic", "replay_divergence", "semantic_coverage_failure":
-		return 1
-	case "unsupported_target", "invalid_input":
-		return 2
-	default:
-		return 3
-	}
-}
-
 func matchesExpectation(expected Expectation, classification string, report qualify.Report, exitCode int) bool {
-	if expected.Classification != classification || exitCode != classificationStatus(classification) {
+	if expected.Classification != classification || exitCode != qualify.ExitStatus(classification) {
 		return false
 	}
 	switch classification {
@@ -545,7 +473,7 @@ func validateSetReport(report SetReport) error {
 		}
 		if suite.ReportPath != "" {
 			completed++
-			if suite.Report.Schema != qualify.ReportSchema || suite.Classification != qualificationClassification(suite.Report) {
+			if suite.Report.Schema != qualify.ReportSchema || suite.Classification != qualify.Classify(suite.Report) {
 				return fmt.Errorf("qualification set suite report %s evidence is invalid", suite.Name)
 			}
 			contents, err := record.CanonicalJSON(suite.Report)

@@ -1,6 +1,7 @@
 package qualificationset
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -123,12 +124,10 @@ func expectedBoundaryExecutor(t *testing.T) ExecuteFunc {
 		if err != nil {
 			t.Fatal(err)
 		}
-		event, err := json.Marshal(map[string]any{
-			"schema": "gomadv3.qualify-event/v1", "type": "result", "classification": "unsupported_target", "report_path": path, "report": report,
-		})
-		if err != nil {
+		var event bytes.Buffer
+		if err := qualify.WriteResultEvent(&event, report, path); err != nil {
 			t.Fatal(err)
 		}
-		return CommandResult{ExitCode: 2, Stdout: append(event, '\n')}
+		return CommandResult{ExitCode: 2, Stdout: event.Bytes()}
 	}
 }
