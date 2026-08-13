@@ -76,6 +76,16 @@ func TimeoutWorkflow(
 	retryState enumspb.RetryState,
 	continuedRunID string,
 ) error {
+	return TimeoutWorkflowWithContext(context.Background(), mutableState, retryState, continuedRunID)
+}
+
+// TimeoutWorkflowWithContext records a timeout and emits its normalized close observation.
+func TimeoutWorkflowWithContext(
+	ctx context.Context,
+	mutableState historyi.MutableState,
+	retryState enumspb.RetryState,
+	continuedRunID string,
+) error {
 
 	if workflowTask := mutableState.GetStartedWorkflowTask(); workflowTask != nil {
 		if _, err := failWorkflowTask(
@@ -87,17 +97,33 @@ func TimeoutWorkflow(
 		}
 	}
 
-	_, err := mutableState.AddTimeoutWorkflowEvent(
+	event, err := mutableState.AddTimeoutWorkflowEvent(
 		retryState,
 		continuedRunID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	return EmitWorkflowExecutionClosed(ctx, mutableState.GetWorkflowKey(), event)
 }
 
 // TerminateWorkflow writes a WorkflowExecutionTerminated event. If a workflow
 // task is currently started it is failed first, and then the terminate event
 // is added.
 func TerminateWorkflow(
+	mutableState historyi.MutableState,
+	terminateReason string,
+	terminateDetails *commonpb.Payloads,
+	terminateIdentity string,
+	deleteAfterTerminate bool,
+	links []*commonpb.Link,
+) error {
+	return TerminateWorkflowWithContext(context.Background(), mutableState, terminateReason, terminateDetails, terminateIdentity, deleteAfterTerminate, links)
+}
+
+// TerminateWorkflowWithContext records a termination and emits its normalized close observation.
+func TerminateWorkflowWithContext(
+	ctx context.Context,
 	mutableState historyi.MutableState,
 	terminateReason string,
 	terminateDetails *commonpb.Payloads,
@@ -116,14 +142,17 @@ func TerminateWorkflow(
 		}
 	}
 
-	_, err := mutableState.AddWorkflowExecutionTerminatedEvent(
+	event, err := mutableState.AddWorkflowExecutionTerminatedEvent(
 		terminateReason,
 		terminateDetails,
 		terminateIdentity,
 		deleteAfterTerminate,
 		links,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	return EmitWorkflowExecutionClosed(ctx, mutableState.GetWorkflowKey(), event)
 }
 
 func ForceTerminateWorkflow(
