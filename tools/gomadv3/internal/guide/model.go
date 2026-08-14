@@ -1,9 +1,11 @@
 package guide
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -11,6 +13,7 @@ import (
 const (
 	CorpusSchema          = "gomadv3.guide-corpus/v1"
 	SemanticFeatureSchema = "gomadv3.semantic-features/v1"
+	ChoiceFeatureSchema   = "gomadv3.semantic-choice-features/v1"
 
 	FeatureFailure       = "failure"
 	FeatureInvariant     = "invariant"
@@ -20,6 +23,7 @@ const (
 	FeatureIOOutcome     = "io_outcome"
 	FeatureOperationPair = "operation_pair"
 	FeatureBoundaryProbe = "boundary_probe"
+	FeatureChoice        = "choice"
 	FeatureCodeEdge      = "code_edge"
 	FeatureSmaller       = "smaller_reproduction"
 )
@@ -30,14 +34,21 @@ const (
 )
 
 type Identity struct {
-	TargetSHA256           record.SHA256    `json:"target_sha256"`
-	Toolchain              record.Toolchain `json:"toolchain"`
-	BoundaryVersion        string           `json:"boundary_version"`
-	BoundarySHA256         record.SHA256    `json:"boundary_sha256"`
-	InstrumentationSchema  string           `json:"instrumentation_schema"`
-	InstrumentationSHA256  record.SHA256    `json:"instrumentation_sha256"`
-	ManifestSchemaVersion  uint32           `json:"manifest_schema_version"`
-	ManifestRecordContract string           `json:"manifest_record_contract"`
+	TargetSHA256           record.SHA256          `json:"target_sha256"`
+	Toolchain              record.Toolchain       `json:"toolchain"`
+	BoundaryVersion        string                 `json:"boundary_version"`
+	BoundarySHA256         record.SHA256          `json:"boundary_sha256"`
+	InstrumentationSchema  string                 `json:"instrumentation_schema"`
+	InstrumentationSHA256  record.SHA256          `json:"instrumentation_sha256"`
+	ManifestSchemaVersion  uint32                 `json:"manifest_schema_version"`
+	ManifestRecordContract string                 `json:"manifest_record_contract"`
+	ChoiceProfile          *ChoiceProfileIdentity `json:"choice_profile,omitempty"`
+}
+
+type ChoiceProfileIdentity struct {
+	Profile              string              `json:"profile"`
+	ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
+	Limit                record.Uint64String `json:"limit"`
 }
 
 type Feature struct {
@@ -95,6 +106,18 @@ type targetProjection struct {
 }
 
 func IdentityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256) (Identity, error) {
+	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, nil)
+}
+
+func IdentityForChoice(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, choice ChoiceProfileIdentity) (Identity, error) {
+	implementation, err := choicewire.ImplementationIdentity(toolchain.BuildKey)
+	if err != nil || choice.Profile != choicewire.Profile || choice.ImplementationSHA256 != record.SHA256FromSum(implementation) || choice.Limit < choicewire.HeaderBytes+choicewire.RecordBytes || choice.Limit > 64<<20 {
+		return Identity{}, errors.New("guided choice profile identity is invalid")
+	}
+	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, &choice)
+}
+
+func identityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, choice *ChoiceProfileIdentity) (Identity, error) {
 	projected := targetProjection{
 		Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...),
 		Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo,
@@ -103,12 +126,32 @@ func IdentityFor(target record.Target, toolchain record.Toolchain, boundaryVersi
 	if err != nil {
 		return Identity{}, fmt.Errorf("encode guided target identity: %w", err)
 	}
-	return Identity{
+	result := Identity{
 		TargetSHA256: record.DomainHash("gomadv3-guide-target-v1", encoded), Toolchain: toolchain,
 		BoundaryVersion: boundaryVersion, BoundarySHA256: boundarySHA256,
 		InstrumentationSchema: SemanticFeatureSchema, InstrumentationSHA256: semanticInstrumentationIdentity(),
 		ManifestSchemaVersion: record.SchemaVersion, ManifestRecordContract: record.RecordContract,
-	}, nil
+	}
+	if choice != nil {
+		profile := *choice
+		result.ChoiceProfile = &profile
+		result.InstrumentationSchema = ChoiceFeatureSchema
+		choiceIdentity, err := choiceInstrumentationIdentity(profile)
+		if err != nil {
+			return Identity{}, err
+		}
+		result.InstrumentationSHA256 = choiceIdentity
+	}
+	return result, nil
+}
+
+func choiceInstrumentationIdentity(profile ChoiceProfileIdentity) (record.SHA256, error) {
+	choiceBytes, err := record.CanonicalJSON(profile)
+	if err != nil {
+		return "", fmt.Errorf("encode guided choice profile identity: %w", err)
+	}
+	material := append([]byte(string(semanticInstrumentationIdentity())+"\x00"), choiceBytes...)
+	return record.DomainHash("gomadv3-guide-choice-instrumentation-v1", material), nil
 }
 
 func semanticInstrumentationIdentity() record.SHA256 {
@@ -183,6 +226,8 @@ func featureRank(kind string) int {
 		return 22
 	case FeatureOperationPair:
 		return 30
+	case FeatureChoice:
+		return 31
 	case FeatureBoundaryProbe:
 		return 40
 	case FeatureCodeEdge:

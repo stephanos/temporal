@@ -90,14 +90,14 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 		return analyzeArguments{}, 2
 	}
 	if *format != "text" && *format != "json" {
-		return analyzeArguments{}, writeAnalyzeError(stderr, 2, "invalid analysis format %q\n", *format)
+		return analyzeArguments{}, writeCommandError(stderr, 2, "invalid analysis format %q\n", *format)
 	}
 	parsed, err := parseTarget(flags.Args())
 	if err != nil {
-		return analyzeArguments{}, writeAnalyzeError(stderr, 2, "%v\n", err)
+		return analyzeArguments{}, writeCommandError(stderr, 2, "%v\n", err)
 	}
 	if parsed.kind == target.KindExec {
-		return analyzeArguments{}, writeAnalyzeError(stderr, 2, "gomad analyze requires a go-run or go-test target\n")
+		return analyzeArguments{}, writeCommandError(stderr, 2, "gomad analyze requires a go-run or go-test target\n")
 	}
 	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, buildTags: buildTags, target: parsed}, 0
 }
@@ -105,15 +105,15 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencies analyzeDependencies) (target.Spec, target.ToolchainIdentity, int) {
 	workingDirectory, err := dependencies.workingDirectory()
 	if err != nil {
-		return target.Spec{}, target.ToolchainIdentity{}, writeAnalyzeError(stderr, 3, "resolve working directory: %v\n", err)
+		return target.Spec{}, target.ToolchainIdentity{}, writeCommandError(stderr, 3, "resolve working directory: %v\n", err)
 	}
 	resolvedRoot, err := dependencies.toolchain(parsed.toolchainRoot)
 	if err != nil {
-		return target.Spec{}, target.ToolchainIdentity{}, writeAnalyzeError(stderr, 3, "resolve Gomad toolchain: %v\n", err)
+		return target.Spec{}, target.ToolchainIdentity{}, writeCommandError(stderr, 3, "resolve Gomad toolchain: %v\n", err)
 	}
 	identity, err := dependencies.identity(resolvedRoot)
 	if err != nil {
-		return target.Spec{}, target.ToolchainIdentity{}, writeAnalyzeError(stderr, 3, "read Gomad toolchain identity: %v\n", err)
+		return target.Spec{}, target.ToolchainIdentity{}, writeCommandError(stderr, 3, "read Gomad toolchain identity: %v\n", err)
 	}
 	spec := target.Spec{Kind: parsed.target.kind, Source: parsed.target.source, Args: parsed.target.arguments, BuildTags: parsed.buildTags, WorkingDir: workingDirectory, ToolchainRoot: resolvedRoot}
 	return spec, identity, 0
@@ -127,9 +127,9 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 		spec, adapters, cleanup, err = dependencies.prepare(ctx, spec)
 		if err != nil {
 			if ioprofile.IsInvalidBuildAdapterConfiguration(err) {
-				return writeAnalyzeError(stderr, 2, "prepare capability analysis: %v\n", err)
+				return writeCommandError(stderr, 2, "prepare capability analysis: %v\n", err)
 			}
-			return writeAnalyzeError(stderr, 3, "prepare capability analysis: %v\n", err)
+			return writeCommandError(stderr, 3, "prepare capability analysis: %v\n", err)
 		}
 		if cleanup != nil {
 			defer func() {
@@ -150,27 +150,27 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 
 func reportAnalyzeReviewError(stderr io.Writer, err error) int {
 	if target.IsInvalidCapabilityReview(err) {
-		return writeAnalyzeError(stderr, 2, "analyze target capabilities: %v\n", err)
+		return writeCommandError(stderr, 2, "analyze target capabilities: %v\n", err)
 	}
-	return writeAnalyzeError(stderr, 3, "analyze target capabilities: %v\n", err)
+	return writeCommandError(stderr, 3, "analyze target capabilities: %v\n", err)
 }
 
 func writeAnalysis(stdout, stderr io.Writer, format string, build func(capabilityanalysis.Input) (capabilityanalysis.Report, error), input capabilityanalysis.Input) int {
 	report, err := build(input)
 	if err != nil {
-		return writeAnalyzeError(stderr, 3, "build capability analysis: %v\n", err)
+		return writeCommandError(stderr, 3, "build capability analysis: %v\n", err)
 	}
 	if format == "json" {
 		encoded, err := record.CanonicalJSON(report)
 		if err != nil {
-			return writeAnalyzeError(stderr, 3, "encode capability analysis: %v\n", err)
+			return writeCommandError(stderr, 3, "encode capability analysis: %v\n", err)
 		}
 		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
-			return writeAnalyzeError(stderr, 3, "write capability analysis: %v\n", err)
+			return writeCommandError(stderr, 3, "write capability analysis: %v\n", err)
 		}
 	} else {
 		if _, err := fmt.Fprint(stdout, capabilityanalysis.FormatText(report)); err != nil {
-			return writeAnalyzeError(stderr, 3, "write capability analysis: %v\n", err)
+			return writeCommandError(stderr, 3, "write capability analysis: %v\n", err)
 		}
 	}
 	if report.Classification == capabilityanalysis.ClassificationUnsupported {
@@ -179,7 +179,7 @@ func writeAnalysis(stdout, stderr io.Writer, format string, build func(capabilit
 	return 0
 }
 
-func writeAnalyzeError(output io.Writer, status int, format string, arguments ...any) int {
+func writeCommandError(output io.Writer, status int, format string, arguments ...any) int {
 	if _, err := fmt.Fprintf(output, format, arguments...); err != nil {
 		return 3
 	}

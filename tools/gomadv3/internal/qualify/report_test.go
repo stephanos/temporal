@@ -65,7 +65,35 @@ func TestBuildReportRecordsFailureReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Qualified || !report.Deterministic || report.TargetSuccess || report.Replay == nil || !report.Replay.Match {
+	if report.Qualified || !report.Deterministic || report.TargetSuccess || report.Runs[0].Replay == nil || !report.Runs[0].Replay.Match {
+		t.Fatalf("report = %#v", report)
+	}
+}
+
+func TestBuildReportRecordsPerRunSuccessfulReplay(t *testing.T) {
+	evidence := successfulEvidence()
+	report, err := Build(Input{Command: []string{"gomad", "qualify", "--replay-successes"}, Runs: []Run{
+		{BatchPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &Replay{ArtifactPath: "/artifacts/success-1", Attempted: true, Match: true}},
+		{BatchPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &Replay{ArtifactPath: "/artifacts/success-2", Attempted: true, Match: true}},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Schema != "gomadv3.qualification/v2" || !report.Qualified || len(report.Runs) != 2 || report.Runs[0].Replay == nil || !report.Runs[0].Replay.Match || report.Runs[1].Replay == nil || !report.Runs[1].Replay.Match {
+		t.Fatalf("report = %#v", report)
+	}
+}
+
+func TestBuildReportRejectsMismatchedPerRunReplay(t *testing.T) {
+	evidence := successfulEvidence()
+	report, err := Build(Input{Command: []string{"gomad", "qualify", "--replay-successes"}, Runs: []Run{
+		{BatchPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &Replay{ArtifactPath: "/artifacts/success-1", Attempted: true, Match: true}},
+		{BatchPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &Replay{ArtifactPath: "/artifacts/success-2", Attempted: true, Divergence: "stdout.full_sha256"}},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Qualified || Classify(report) != "replay_divergence" {
 		t.Fatalf("report = %#v", report)
 	}
 }
@@ -117,7 +145,7 @@ func TestWriteReportRetainsCanonicalPrivateFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if filepath.Base(filepath.Dir(path)) != "v1" {
+	if filepath.Base(filepath.Dir(path)) != "v2" {
 		t.Fatalf("report path = %s", path)
 	}
 	info, err := os.Stat(path)
@@ -132,6 +160,39 @@ func TestWriteReportRetainsCanonicalPrivateFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	if opened.EvidenceDigest != report.EvidenceDigest || !opened.Qualified {
+		t.Fatalf("opened report = %#v", opened)
+	}
+}
+
+func TestOpenNormalizesLegacyFailureReplay(t *testing.T) {
+	evidence := successfulEvidence()
+	evidence.Outcome = runner.OutcomeEvidence{Domain: "target", Reason: "nonzero_exit", Termination: "exit"}
+	digest, err := evidenceDigest(evidence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacy := legacyReport{
+		Schema: LegacyReportSchema, Deterministic: true, Seed: 7, Repeat: 2,
+		Command: []string{"gomad", "qualify"}, EvidenceDigest: digest, Evidence: &evidence,
+		Runs: []legacyRunReport{
+			{BatchPath: "/artifacts/run-1", ArtifactPath: "/artifacts/failure-1", EvidenceDigest: digest},
+			{BatchPath: "/artifacts/run-2", ArtifactPath: "/artifacts/failure-2", EvidenceDigest: digest},
+		},
+		Replay: &Replay{ArtifactPath: "/artifacts/failure-1", Attempted: true, Match: true},
+	}
+	encoded, err := record.CanonicalJSON(legacy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "qualification-v1.json")
+	if err := os.WriteFile(path, append(encoded, '\n'), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	opened, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if opened.Schema != ReportSchema || opened.Qualified || opened.TargetSuccess || opened.Runs[0].Replay == nil || !opened.Runs[0].Replay.Match || opened.Runs[1].Replay != nil {
 		t.Fatalf("opened report = %#v", opened)
 	}
 }

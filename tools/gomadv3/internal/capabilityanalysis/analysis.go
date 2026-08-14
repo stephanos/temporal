@@ -15,6 +15,8 @@ import (
 
 const Schema = "gomadv3.capability-analysis/v1"
 
+const MaximumReportBytes = 16 << 20
+
 type Classification string
 
 const (
@@ -122,6 +124,58 @@ func Build(input Input) (Report, error) {
 		IOProfile: input.IOProfile.Identity(), Packs: append([]compatibility.PackEvidence{}, input.Review.Packs...),
 		Requirements: requirements, Blockers: blockers,
 	}, nil
+}
+
+func Decode(data []byte) (Report, error) {
+	if len(data) == 0 || len(data) > MaximumReportBytes {
+		return Report{}, fmt.Errorf("capability analysis report must be between 1 and %d bytes", MaximumReportBytes)
+	}
+	var report Report
+	if err := record.DecodeCanonicalJSON(data, &report); err != nil {
+		return Report{}, fmt.Errorf("decode capability analysis report: %w", err)
+	}
+	if err := validateReport(report); err != nil {
+		return Report{}, err
+	}
+	return report, nil
+}
+
+func validateReport(report Report) error {
+	if report.Schema != Schema || report.Target.Kind != target.KindGoRun && report.Target.Kind != target.KindGoTest || report.Target.Source == "" {
+		return errors.New("capability analysis identity is invalid")
+	}
+	if report.Target.Arguments == nil || report.Target.BuildTags == nil || report.Closure.Roots == nil || len(report.Closure.Roots) == 0 || report.Packs == nil || report.Requirements == nil || report.Blockers == nil || uint64(report.Closure.PackageCount) == 0 {
+		return errors.New("capability analysis evidence is incomplete")
+	}
+	for _, digest := range []record.SHA256{
+		report.Closure.SHA256, report.Toolchain.BoundaryManifestSHA256,
+		report.IOProfile.ImplementationSHA256, report.IOProfile.InventorySHA256,
+	} {
+		if _, err := digest.Bytes(); err != nil {
+			return fmt.Errorf("capability analysis digest is invalid: %w", err)
+		}
+	}
+	if report.Toolchain.GoVersion == "" || report.Toolchain.BuildKey == "" || report.Toolchain.TargetGOOS == "" || report.Toolchain.TargetGOARCH == "" || report.Toolchain.BoundaryManifestVersion == "" || report.IOProfile.Name == "" {
+		return errors.New("capability analysis implementation identity is incomplete")
+	}
+	switch report.Classification {
+	case ClassificationSupported:
+		if len(report.Blockers) != 0 {
+			return errors.New("supported capability analysis contains blockers")
+		}
+	case ClassificationUnsupported:
+		if len(report.Blockers) == 0 {
+			return errors.New("unsupported capability analysis has no blockers")
+		}
+	default:
+		return fmt.Errorf("unknown capability analysis classification %q", report.Classification)
+	}
+	for index, blocker := range report.Blockers {
+		if blocker.Kind == "" || blocker.Package.ImportPath == "" || len(blocker.DependencyPath) == 0 || blocker.DependencyPath[len(blocker.DependencyPath)-1] != blocker.Package {
+			return fmt.Errorf("capability analysis blocker %d is invalid", index)
+		}
+	}
+	return nil
 }
 
 func shortestPaths(packages []target.CapabilityPackage, roots []target.CapabilityPackageReference) (map[target.CapabilityPackageReference][]target.CapabilityPackageReference, error) {

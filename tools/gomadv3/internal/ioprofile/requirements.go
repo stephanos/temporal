@@ -1,7 +1,6 @@
 package ioprofile
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -48,14 +47,14 @@ func packageRequirementEvidence(closure target.CapabilityClosure) map[string]map
 func addAdapterRequirementEvidence(evidence map[string]map[target.CapabilityPackageReference]struct{}, closure target.CapabilityClosure, adapters []record.TargetAdapter) error {
 	for _, adapter := range adapters {
 		feature := "adapter:" + adapter.Module
-		evidence[feature] = make(map[target.CapabilityPackageReference]struct{})
+		packages := make(map[target.CapabilityPackageReference]struct{})
 		for _, pkg := range closure.Packages {
 			if pkg.Module != nil && pkg.Module.Path == adapter.Module {
-				evidence[feature][target.CapabilityPackageReference{ImportPath: pkg.ImportPath, ForTest: pkg.ForTest, Name: pkg.Name}] = struct{}{}
+				packages[target.CapabilityPackageReference{ImportPath: pkg.ImportPath, ForTest: pkg.ForTest, Name: pkg.Name}] = struct{}{}
 			}
 		}
-		if len(evidence[feature]) == 0 {
-			return fmt.Errorf("selected adapter %s has no package evidence", adapter.Module)
+		if len(packages) != 0 {
+			evidence[feature] = packages
 		}
 	}
 	return nil

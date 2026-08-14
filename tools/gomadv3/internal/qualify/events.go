@@ -77,8 +77,10 @@ func Classify(report Report) string {
 	if !report.Deterministic {
 		return "nondeterministic"
 	}
-	if report.Replay != nil && !report.Replay.Match {
-		return "replay_divergence"
+	for _, run := range report.Runs {
+		if run.Replay != nil && !run.Replay.Match {
+			return "replay_divergence"
+		}
 	}
 	if !report.TargetSuccess {
 		return "target_failure"

@@ -196,7 +196,9 @@ func validateBatchPlan(plan BatchPlan) error {
 			return fmt.Errorf("batch plan choice profile identity is invalid")
 		}
 	}
-	if plan.Coverage != "none" && plan.Coverage != "semantic" || plan.Coverage == "none" && len(plan.RequiredSemanticProbes) != 0 {
+	if plan.Coverage != "none" && plan.Coverage != "semantic" && plan.Coverage != "choice" && plan.Coverage != "semantic+choice" ||
+		(plan.Coverage == "none" || plan.Coverage == "choice") && len(plan.RequiredSemanticProbes) != 0 ||
+		(plan.Coverage == "choice" || plan.Coverage == "semantic+choice") && plan.ChoiceProfile == nil {
 		return fmt.Errorf("batch plan coverage policy is invalid")
 	}
 	if !sort.StringsAreSorted(plan.RequiredSemanticProbes) {
@@ -213,7 +215,7 @@ func validateBatchPlan(plan BatchPlan) error {
 			return fmt.Errorf("batch plan disabled success retention has capacity")
 		}
 	case "novel":
-		if plan.Coverage != "semantic" || plan.SuccessArtifactLimit == 0 || plan.SuccessBytesLimit == 0 {
+		if plan.Coverage == "none" || plan.SuccessArtifactLimit == 0 || plan.SuccessBytesLimit == 0 {
 			return fmt.Errorf("batch plan novel success retention policy is invalid")
 		}
 	case "all":
@@ -225,7 +227,7 @@ func validateBatchPlan(plan BatchPlan) error {
 	}
 	if plan.Guidance != nil {
 		corpus := filepath.Clean(plan.Guidance.Corpus)
-		if !filepath.IsAbs(corpus) || corpus != plan.Guidance.Corpus || corpus == filepath.VolumeName(corpus)+string(filepath.Separator) || !validRecordSHA256(plan.Guidance.SnapshotSHA256) || plan.Coverage != "semantic" {
+		if !filepath.IsAbs(corpus) || corpus != plan.Guidance.Corpus || corpus == filepath.VolumeName(corpus)+string(filepath.Separator) || !validRecordSHA256(plan.Guidance.SnapshotSHA256) || plan.Coverage == "none" {
 			return fmt.Errorf("batch plan guidance identity is invalid")
 		}
 	}

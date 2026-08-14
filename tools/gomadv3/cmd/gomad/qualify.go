@@ -51,11 +51,15 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
+	replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")
+	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful runs per repetition")
 	outputLimit := byteSize(8 << 20)
 	worldLimit := byteSize(64 << 20)
+	successBytes := byteSize(0)
 	choiceLimit := byteSize(8 << 20)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
+	flags.Var(&successBytes, "success-bytes", "retained successful-run bytes per repetition")
 	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
 	var environment stringList
 	var buildTags stringList
@@ -91,7 +95,17 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	if *repeat < 2 || *repeat > maximumQualificationRepeats {
 		return reportQualifyInputError(reporter, stderr, fmt.Errorf("--repeat must be between 2 and %d", maximumQualificationRepeats))
 	}
-	if _, err := resolveExploreCoverage(string(runner.CoverageSemantic), requiredSemanticProbes); err != nil {
+	if *replaySuccesses && (*successLimit == 0 || successBytes == 0) {
+		return reportQualifyInputError(reporter, stderr, errors.New("--replay-successes requires explicit --success-limit and --success-bytes bounds"))
+	}
+	if !*replaySuccesses && (*successLimit != 0 || successBytes != 0) {
+		return reportQualifyInputError(reporter, stderr, errors.New("--success-limit and --success-bytes require --replay-successes"))
+	}
+	coverage := runner.CoverageSemantic
+	if *choices {
+		coverage = runner.CoverageSemanticChoice
+	}
+	if _, err := resolveExploreCoverage(string(coverage), requiredSemanticProbes); err != nil {
 		return reportQualifyInputError(reporter, stderr, err)
 	}
 	parsedTarget, err := parseTarget(flags.Args())
@@ -113,11 +127,16 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		ChoiceTraceLimit: resolvedChoiceLimit,
 		Artifacts:        *artifacts, Environment: environment, IOROMounts: ioROMounts,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
-		Coverage: runner.CoverageSemantic, RequiredSemanticProbes: requiredSemanticProbes, CollectRunEvidence: true,
+		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectRunEvidence: true,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain,
 		},
+	}
+	if *replaySuccesses {
+		config.KeepSuccesses = runner.KeepSuccessesAll
+		config.SuccessArtifactLimit = *successLimit
+		config.SuccessBytesLimit = uint64(successBytes)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), *overallTimeout)
 	defer cancel()
@@ -147,28 +166,32 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 			failure := qualify.Failure{Classification: "runner_failure", Message: "Runner omitted the retained failure artifact", Iteration: record.Uint64String(iteration)}
 			return retainQualificationFailure(reporter, stderr, dependencies.write, *artifacts, command, *seed, *repeat, runs, failure)
 		}
+		if *replaySuccesses && summary.RunEvidence.Outcome.Domain == "success" && (summary.RetainedSuccesses != 1 || len(summary.SuccessArtifacts) != 1 || run.ArtifactPath == "") {
+			failure := qualify.Failure{Classification: "runner_failure", Message: "Runner did not retain exactly one successful replay artifact", Iteration: record.Uint64String(iteration)}
+			return retainQualificationFailure(reporter, stderr, dependencies.write, *artifacts, command, *seed, *repeat, runs, failure)
+		}
 		runs = append(runs, run)
 	}
 
-	var replayEvidence *qualify.Replay
-	for _, run := range runs {
-		if run.Evidence.Outcome.Domain == "success" {
+	for index := range runs {
+		if runs[index].ArtifactPath == "" || runs[index].Evidence.Outcome.Domain == "success" && !*replaySuccesses {
 			continue
 		}
 		replayed, replayErr := dependencies.replay(ctx, replay.Config{
-			ArtifactPath: run.ArtifactPath, ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"},
+			ArtifactPath: runs[index].ArtifactPath, ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"},
 		})
-		replayEvidence = &qualify.Replay{ArtifactPath: run.ArtifactPath, Attempted: true}
+		runs[index].Replay = &qualify.Replay{ArtifactPath: runs[index].ArtifactPath, Attempted: true}
 		if replayErr != nil {
-			replayEvidence.Divergence = replayErr.Error()
+			runs[index].Replay.Divergence = replayErr.Error()
+			failure := qualificationReplayFailure(replayErr, uint64(index)+1)
+			return retainQualificationFailure(reporter, stderr, dependencies.write, *artifacts, command, *seed, *repeat, runs, failure)
 		} else {
-			replayEvidence.Match = replayed.Match
-			replayEvidence.Diagnostic = replayed.Diagnostic
-			replayEvidence.Divergence = replayed.Divergence
+			runs[index].Replay.Match = replayed.Match
+			runs[index].Replay.Diagnostic = replayed.Diagnostic
+			runs[index].Replay.Divergence = replayed.Divergence
 		}
-		break
 	}
-	report, err := qualify.Build(qualify.Input{Command: command, Runs: runs, Replay: replayEvidence})
+	report, err := qualify.Build(qualify.Input{Command: command, Runs: runs})
 	if err != nil {
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
 	}
@@ -185,10 +208,22 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 
 func qualificationRun(summary runner.Summary) qualify.Run {
 	run := qualify.Run{BatchPath: summary.BatchPath, Evidence: *summary.RunEvidence}
-	if len(summary.Artifacts) != 0 {
+	if summary.RunEvidence.Outcome.Domain == "success" && len(summary.SuccessArtifacts) != 0 {
+		run.ArtifactPath = summary.SuccessArtifacts[0]
+	} else if len(summary.Artifacts) != 0 {
 		run.ArtifactPath = summary.Artifacts[0]
 	}
 	return run
+}
+
+func qualificationReplayFailure(err error, iteration uint64) qualify.Failure {
+	classification := "runner_failure"
+	if errors.Is(err, context.Canceled) {
+		classification = "cancelled"
+	} else if errors.Is(err, context.DeadlineExceeded) {
+		classification = "overall_timeout"
+	}
+	return qualify.Failure{Classification: classification, Message: err.Error(), Iteration: record.Uint64String(iteration)}
 }
 
 func qualificationFailure(err error, iteration uint64) qualify.Failure {
@@ -271,8 +306,15 @@ func (reporter *qualifyReporter) Result(report qualify.Report, path string) erro
 	if err == nil && report.FirstDivergence != "" {
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-divergence=%s\n", report.FirstDivergence)
 	}
-	if err == nil && report.Replay != nil {
-		_, err = fmt.Fprintf(reporter.stdout, "gomad: replay artifact=%s attempted=%t match=%t diagnostic=%t divergence=%s\n", report.Replay.ArtifactPath, report.Replay.Attempted, report.Replay.Match, report.Replay.Diagnostic, report.Replay.Divergence)
+	if err == nil {
+		for _, run := range report.Runs {
+			if run.Replay == nil {
+				continue
+			}
+			if _, err = fmt.Fprintf(reporter.stdout, "gomad: replay artifact=%s attempted=%t match=%t diagnostic=%t divergence=%s\n", run.Replay.ArtifactPath, run.Replay.Attempted, run.Replay.Match, run.Replay.Diagnostic, run.Replay.Divergence); err != nil {
+				break
+			}
+		}
 	}
 	if err == nil && report.Failure != nil {
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-boundary classification=%s iteration=%d import=%s capability=%s message=%s\n", report.Failure.Classification, report.Failure.Iteration, report.Failure.ImportPath, report.Failure.Capability, report.Failure.Message)
