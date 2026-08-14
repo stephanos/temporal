@@ -3,6 +3,7 @@ package target
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -108,7 +109,7 @@ func TestProjectCapabilityReviewRejectsUnsafeSourceFiles(t *testing.T) {
 func TestReviewGoCapabilityReviewRejectsBoundedOutputOverflow(t *testing.T) {
 	directory := t.TempDir()
 	command := filepath.Join(directory, "go")
-	requireTestNoError(t, os.WriteFile(command, []byte("#!/bin/sh\nyes x | head -c 16777217\n"), 0o700))
+	requireTestNoError(t, os.WriteFile(command, []byte(fmt.Sprintf("#!/bin/sh\nyes x | head -c %d\n", maximumCapabilityReviewOutputBytes+1)), 0o700))
 
 	_, err := reviewGoCapabilityReview(context.Background(), command, Spec{Kind: KindGoRun}, nil, directory, ".")
 	if err == nil || !strings.Contains(err.Error(), "output exceeds") {

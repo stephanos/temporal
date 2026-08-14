@@ -5,13 +5,55 @@ package gomadv3integration
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 )
+
+func TestQualificationManifestsUsePortableV2(t *testing.T) {
+	for _, test := range []struct {
+		path      string
+		module    string
+		seeds     []uint64
+		workloads int
+	}{
+		{path: filepath.Join("..", "gomadv3", "qualification", "core.json"), module: "gomadv3.core.corpus", seeds: []uint64{17}, workloads: 5},
+		{path: filepath.Join("qualification", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 16},
+	} {
+		contents, err := os.ReadFile(test.path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var manifest struct {
+			Schema string   `json:"schema"`
+			Module string   `json:"module"`
+			Seeds  []uint64 `json:"seeds"`
+			Suites []struct {
+				ID              string `json:"id"`
+				Tier            uint64 `json:"tier"`
+				Invariant       string `json:"invariant"`
+				ReplaySuccesses bool   `json:"replay_successes"`
+			} `json:"suites"`
+		}
+		if err := json.Unmarshal(contents, &manifest); err != nil {
+			t.Fatal(err)
+		}
+		if manifest.Schema != "gomadv3.qualification-set/v2" || manifest.Module != test.module || !slices.Equal(manifest.Seeds, test.seeds) || len(manifest.Suites) != test.workloads {
+			t.Fatalf("manifest %s = %#v", test.path, manifest)
+		}
+		for _, suite := range manifest.Suites {
+			if suite.ID == "" || suite.Tier == 0 || suite.Invariant == "" || !suite.ReplaySuccesses {
+				t.Fatalf("manifest %s suite = %#v", test.path, suite)
+			}
+		}
+	}
+}
 
 func TestPublicWrappers(t *testing.T) {
 	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))

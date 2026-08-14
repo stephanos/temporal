@@ -12,8 +12,13 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/internal/capabilityanalysis"
+	"go.temporal.io/server/tools/gomadv3/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/qualificationset"
 	"go.temporal.io/server/tools/gomadv3/internal/qualify"
+	"go.temporal.io/server/tools/gomadv3/internal/record"
+	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
 func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
@@ -221,7 +226,7 @@ func TestLoadCorpusRejectsQualifiedDownstreamSet(t *testing.T) {
 func writeQualifiedCorpus(t *testing.T, root, name string) string {
 	t.Helper()
 	manifest := map[string]any{
-		"schema": qualificationset.ManifestSchema, "name": name, "seed": 7, "repeat": 2,
+		"schema": qualificationset.LegacyManifestSchema, "name": name, "seed": 7, "repeat": 2,
 		"run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
 		"output_bytes": 1024, "world_transition_bytes": 2048,
 		"suites": []any{map[string]any{
@@ -239,11 +244,33 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 	if err = os.WriteFile(manifestPath, contents, 0o600); err != nil {
 		t.Fatal(err)
 	}
+	if err = os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/corpus\n\ngo 1.26.4\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	output := filepath.Join(root, ".toolchain", "corpus.json")
 	_, err = qualificationset.Run(context.Background(), qualificationset.Config{
 		ManifestPath: manifestPath, GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
 		ArtifactRoot: filepath.Join(root, ".toolchain", "corpus-artifacts"), OutputPath: output,
 		Execute: func(_ context.Context, command qualificationset.Command) qualificationset.CommandResult {
+			if command.Args[0] == "analyze" {
+				boundaryVersion, boundaryDigest := ioprofile.BoundaryManifestIdentity()
+				analysis := capabilityanalysis.Report{
+					Schema: capabilityanalysis.Schema, Classification: capabilityanalysis.ClassificationUnsupported,
+					Target:    capabilityanalysis.Target{Kind: target.KindGoTest, Source: "pkg", Arguments: []string{"-test.run=^TestBoundary$"}, BuildTags: []string{}},
+					Toolchain: capabilityanalysis.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64", BoundaryManifestVersion: boundaryVersion, BoundaryManifestSHA256: boundaryDigest},
+					Closure:   capabilityanalysis.Closure{SHA256: record.HashBytes([]byte("closure")), PackageCount: 1, Roots: []target.CapabilityPackageReference{{ImportPath: "example.com/corpus/pkg", Name: "pkg"}}},
+					IOProfile: ioprofile.Default().Identity(), Packs: []compatibility.PackEvidence{}, Requirements: []ioprofile.Requirement{},
+					Blockers: []capabilityanalysis.Blocker{{
+						CapabilityFinding: target.CapabilityFinding{Kind: target.FindingForbiddenImport, Package: target.CapabilityPackageReference{ImportPath: "example.com/escape", Name: "escape"}, Capability: "imports os/exec", Directives: []string{}, PolicyDisposition: compatibility.DispositionDenied, Remediation: compatibility.RemediationRemainUnsupported},
+						DependencyPath:    []target.CapabilityPackageReference{{ImportPath: "example.com/corpus/pkg", Name: "pkg"}, {ImportPath: "example.com/escape", Name: "escape"}},
+					}},
+				}
+				encoded, encodeErr := record.CanonicalJSON(analysis)
+				if encodeErr != nil {
+					t.Fatal(encodeErr)
+				}
+				return qualificationset.CommandResult{ExitCode: 1, Stdout: append(encoded, '\n')}
+			}
 			logicalCommand := append([]string{"gomad"}, command.Args...)
 			report, buildErr := qualify.BuildFailure(logicalCommand, 7, 2, nil, qualify.Failure{
 				Classification: "unsupported_target", Iteration: 1, Message: "unsupported boundary",

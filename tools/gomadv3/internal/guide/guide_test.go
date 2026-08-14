@@ -1,9 +1,12 @@
 package guide
 
 import (
+	"crypto/sha256"
 	"slices"
+	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -55,6 +58,33 @@ func TestIdentityForBindsFeatureAndProbeInstrumentation(t *testing.T) {
 	}
 }
 
+func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
+	target := record.Target{
+		Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"target"}, BuildTags: []string{},
+		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+	}
+	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+	implementation, err := choicewire.ImplementationIdentity(toolchain.BuildKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := ChoiceProfileIdentity{
+		Profile: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choicewire.HeaderBytes + choicewire.RecordBytes,
+	}
+	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile.Limit++
+	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.ChoiceProfile == nil || first.InstrumentationSchema != ChoiceFeatureSchema || first.InstrumentationSHA256 == second.InstrumentationSHA256 {
+		t.Fatalf("choice identities = %#v, %#v", first, second)
+	}
+}
+
 func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 	transcript := append(transcriptRecord(t, 0, "os.open", 0), transcriptRecord(t, 1, "os.read", 3)...)
 	coverage, err := ioprofile.SummarizeSemanticProbes([]string{"stdlib.os.openfile"})
@@ -70,7 +100,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 			Terminal:    record.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
 		},
 	}
-	features, err := semanticFeatures(manifest, coverage, transcript, nil)
+	features, err := semanticFeatures(manifest, coverage, transcript, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,12 +128,12 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 	firstWorld, firstTransitions := semanticWorld(t, 7, "first-key", []byte("first-payload"), world.InitialTime)
 	secondWorld, secondTransitions := semanticWorld(t, 99, "second-key", []byte("second-payload"), world.InitialTime+100)
 	manifest := record.Manifest{Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: firstWorld}
-	first, err := semanticFeatures(manifest, coverage, nil, firstTransitions)
+	first, err := semanticFeatures(manifest, coverage, nil, firstTransitions, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	manifest.World = secondWorld
-	second, err := semanticFeatures(manifest, coverage, nil, secondTransitions)
+	second, err := semanticFeatures(manifest, coverage, nil, secondTransitions, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,6 +150,48 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 	if !slices.Equal(first, want) || !slices.Equal(second, want) {
 		t.Fatalf("semanticFeatures() = %#v and %#v, want %#v", first, second, want)
 	}
+}
+
+func TestSemanticFeaturesConsumeCanonicalChoicewireFeatureIDs(t *testing.T) {
+	payload := encodeChoiceRecords(t, []choicewire.Record{{
+		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 1,
+	}})
+	projected, err := choicewire.ProjectComplete(payload, choicewire.CompleteMetadata{
+		Limit: choicewire.HeaderBytes + uint64(len(payload)), Records: 1, SHA256: sha256.Sum256(payload),
+	}, sha256.Sum256([]byte("target")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	coverage, err := ioprofile.SummarizeSemanticProbes(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	worldRecord, _ := record.NoneWorld()
+	features, err := semanticFeatures(record.Manifest{
+		Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: worldRecord,
+	}, coverage, nil, nil, &projected.Features)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, projectedFeature := range projected.Features.Values {
+		want := Feature{Kind: FeatureChoice, Value: projectedFeature.ID()}
+		if !slices.Contains(features, want) {
+			t.Fatalf("semantic features = %#v, missing %#v", features, want)
+		}
+	}
+}
+
+func encodeChoiceRecords(t *testing.T, records []choicewire.Record) []byte {
+	t.Helper()
+	payload := make([]byte, 0, len(records)*choicewire.RecordBytes)
+	for _, choiceRecord := range records {
+		encoded, err := choicewire.EncodeRecord(choiceRecord)
+		if err != nil {
+			t.Fatal(err)
+		}
+		payload = append(payload, encoded[:]...)
+	}
+	return payload
 }
 
 func TestSnapshotPrioritizesReproducibleFailuresThenRareDomains(t *testing.T) {
