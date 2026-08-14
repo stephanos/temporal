@@ -1,6 +1,7 @@
 package guide
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/filelock"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -332,7 +334,13 @@ func (corpus *Corpus) validateEntry(entry Entry) error {
 		return errors.New("guided corpus case boundary identity does not match this Runner")
 	}
 	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256)
-	if err != nil || targetIdentity != corpus.identity {
+	if corpus.identity.ChoiceProfile != nil {
+		if manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Name != corpus.identity.ChoiceProfile.Profile || manifest.ChoiceProfile.ImplementationSHA256 != corpus.identity.ChoiceProfile.ImplementationSHA256 || manifest.ChoiceProfile.Trace.Limit != corpus.identity.ChoiceProfile.Limit {
+			return errors.New("guided corpus case choice profile identity mismatch")
+		}
+		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, *corpus.identity.ChoiceProfile)
+	}
+	if err != nil || !identitiesEqual(targetIdentity, corpus.identity) {
 		return errors.Join(errors.New("guided corpus case target identity mismatch"), err)
 	}
 	if manifest.IOProfile.Transcript == nil || manifest.IOProfile.Transcript.SHA256 != entry.Inputs.IOTranscriptSHA256 || manifest.IOProfile.Transcript.Records != entry.Inputs.IOTranscriptRecords || manifest.World.Transitions.TranscriptDigest != entry.Inputs.WorldTranscriptSHA256 || manifest.World.Transitions.Count != entry.Inputs.WorldTransitionRecords || manifest.World.Initial.SemanticDigest != entry.Inputs.WorldInitialSHA256 {
@@ -476,10 +484,22 @@ func artifactPayloadBytes(manifest record.Manifest) (uint64, error) {
 func validateIdentity(identity Identity) error {
 	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
 	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
-	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 != semanticInstrumentationIdentity() || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
+	validInstrumentation := identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity()
+	if identity.ChoiceProfile != nil {
+		implementation, err := choicewire.ImplementationIdentity(identity.Toolchain.BuildKey)
+		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile)
+		validInstrumentation = err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choicewire.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choicewire.HeaderBytes+choicewire.RecordBytes && identity.ChoiceProfile.Limit <= 64<<20 && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
+	}
+	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
 		return errors.New("guided corpus identity is invalid")
 	}
 	return nil
+}
+
+func identitiesEqual(left, right Identity) bool {
+	leftBytes, leftErr := record.CanonicalJSON(left)
+	rightBytes, rightErr := record.CanonicalJSON(right)
+	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 
 func (corpus *Corpus) cleanupCases() error {

@@ -109,6 +109,7 @@ func readResumeRuns(path string) ([]byte, error) {
 func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]RunRecord, error) {
 	ordinals := make(map[uint64]struct{}, len(runs))
 	observedProbes := make(map[string]struct{})
+	observedChoiceFeatures := make(map[string]struct{})
 	retained := make([]RunRecord, 0, len(runs))
 	var retainedSuccesses, retainedSuccessBytes uint64
 	for index, run := range runs {
@@ -132,6 +133,9 @@ func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]R
 		if err := validateSemanticProbeLists(run.SemanticProbes, run.NovelSemanticProbes); err != nil {
 			return nil, fmt.Errorf("resumable run %d: %w", index+1, err)
 		}
+		if err := validateChoiceFeatureLists(run.ChoiceFeatures, run.NovelChoiceFeatures); err != nil {
+			return nil, fmt.Errorf("resumable run %d: %w", index+1, err)
+		}
 		switch run.Domain {
 		case "success":
 			if run.Termination != "exit" || run.FailureSignature != nil || run.Artifact != nil {
@@ -141,16 +145,21 @@ func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]R
 				return nil, fmt.Errorf("successful resumable run %d has incomplete retained success evidence", index+1)
 			}
 			if run.SuccessArtifact == nil {
-				if len(run.NovelSemanticProbes) != 0 || plan.KeepSuccesses == "all" {
+				if len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0 || plan.KeepSuccesses == "all" {
 					return nil, fmt.Errorf("successful resumable run %d violates its retention policy", index+1)
 				}
 			} else {
-				if plan.KeepSuccesses == "none" || plan.KeepSuccesses == "novel" && len(run.NovelSemanticProbes) == 0 || plan.KeepSuccesses == "all" && len(run.NovelSemanticProbes) != 0 {
+				if plan.KeepSuccesses == "none" || plan.KeepSuccesses == "novel" && len(run.NovelSemanticProbes) == 0 && len(run.NovelChoiceFeatures) == 0 || plan.KeepSuccesses == "all" && (len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0) {
 					return nil, fmt.Errorf("retained successful run %d violates its retention policy", index+1)
 				}
 				for _, probe := range run.NovelSemanticProbes {
 					if _, found := observedProbes[probe]; found {
 						return nil, fmt.Errorf("retained successful run %d claims previously observed probe %q", index+1, probe)
+					}
+				}
+				for _, feature := range run.NovelChoiceFeatures {
+					if _, found := observedChoiceFeatures[feature]; found {
+						return nil, fmt.Errorf("retained successful run %d claims previously observed choice feature %q", index+1, feature)
 					}
 				}
 				if err := validateResumeSuccessArtifact(batchPath, plan, run); err != nil {
@@ -185,6 +194,9 @@ func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]R
 		}
 		for _, probe := range run.SemanticProbes {
 			observedProbes[probe] = struct{}{}
+		}
+		for _, feature := range run.ChoiceFeatures {
+			observedChoiceFeatures[feature] = struct{}{}
 		}
 	}
 	return retained, nil

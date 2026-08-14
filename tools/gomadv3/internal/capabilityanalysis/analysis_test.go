@@ -120,6 +120,30 @@ func TestBuildSupportedReportHasCanonicalNonNullEvidence(t *testing.T) {
 	}
 }
 
+func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
+	review := graphReview([]target.CapabilityPackage{{
+		ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{}, Sources: sourceEvidence("main.go"),
+	}})
+	report, err := Build(Input{
+		Spec: target.Spec{Kind: target.KindGoRun, Source: "example.com/target", Args: []string{}, BuildTags: []string{}}, Review: review,
+		Toolchain: target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		IOProfile: ioprofile.Default(), Adapters: []record.TargetAdapter{},
+	})
+	requireTestNoError(t, err)
+	encoded, err := record.CanonicalJSON(report)
+	requireTestNoError(t, err)
+	decoded, err := Decode(encoded)
+	requireTestNoError(t, err)
+	requireTestEqual(t, report, decoded)
+
+	report.Classification = ClassificationUnsupported
+	encoded, err = record.CanonicalJSON(report)
+	requireTestNoError(t, err)
+	if _, err := Decode(encoded); err == nil {
+		t.Fatal("Decode() accepted unsupported analysis without blockers")
+	}
+}
+
 func TestFormatTextGroupsEquivalentBlockersWithShortestPathFirst(t *testing.T) {
 	report := Report{
 		Classification: ClassificationUnsupported,

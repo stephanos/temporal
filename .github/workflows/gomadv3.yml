@@ -78,6 +78,17 @@ jobs:
           GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256 }}
         run: make -C tools/gomadv3 upgrade-dossier
 
+      - name: Verify portable core qualification evidence
+        run: >-
+          jq -e '
+          .schema == "gomadv3.qualification-set-report/v3" and
+          .seeds == ["17"] and
+          .selected == 5 and .completed == 5 and .supported == 5 and
+          .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
+          ([.workloads[] | .classification == "qualified" and .choice.available and
+          ([.seeds[] | .replayed and .replay_match] | all)] | all)
+          ' tools/gomadv3/.toolchain/core-qualification-set.json
+
       - name: Upload upgrade qualification dossier
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -108,6 +119,19 @@ jobs:
       - name: Requalify representative Temporal workloads
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: make gomadv3-qualification
+
+      - name: Verify portable Temporal qualification evidence
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+        run: >-
+          jq -e '
+          .schema == "gomadv3.qualification-set-report/v3" and
+          .seeds == ["11", "17"] and
+          .selected == 16 and .completed == 16 and .supported == 4 and .unsupported == 12 and
+          .failed == 0 and .infrastructure_errors == 0 and
+          ([.workloads[] | select(.classification == "qualified") |
+          (.seeds | length) == 2 and .choice.available and
+          ([.seeds[] | .replayed and .replay_match] | all)] | all)
+          ' tools/gomadv3/.toolchain/temporal-qualification-set.json
 
       - name: Upload Temporal qualification
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}

@@ -2,6 +2,8 @@ package qualify
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +15,10 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/runner"
 )
 
-const ReportSchema = "gomadv3.qualification/v1"
+const (
+	ReportSchema       = "gomadv3.qualification/v2"
+	LegacyReportSchema = "gomadv3.qualification/v1"
+)
 
 const maximumReportBytes = 16 << 20
 
@@ -21,6 +26,7 @@ type Run struct {
 	BatchPath    string
 	ArtifactPath string
 	Evidence     runner.RunEvidence
+	Replay       *Replay
 }
 
 type Input struct {
@@ -49,6 +55,7 @@ type RunReport struct {
 	BatchPath      string        `json:"batch_path"`
 	ArtifactPath   string        `json:"artifact_path,omitempty"`
 	EvidenceDigest record.SHA256 `json:"evidence_digest"`
+	Replay         *Replay       `json:"replay,omitempty"`
 }
 
 type Report struct {
@@ -62,6 +69,27 @@ type Report struct {
 	EvidenceDigest  record.SHA256       `json:"evidence_digest,omitempty"`
 	Evidence        *runner.RunEvidence `json:"evidence,omitempty"`
 	Runs            []RunReport         `json:"runs"`
+	FirstDivergence string              `json:"first_divergence,omitempty"`
+	Failure         *Failure            `json:"failure,omitempty"`
+}
+
+type legacyRunReport struct {
+	BatchPath      string        `json:"batch_path"`
+	ArtifactPath   string        `json:"artifact_path,omitempty"`
+	EvidenceDigest record.SHA256 `json:"evidence_digest"`
+}
+
+type legacyReport struct {
+	Schema          string              `json:"schema"`
+	Qualified       bool                `json:"qualified"`
+	Deterministic   bool                `json:"deterministic"`
+	TargetSuccess   bool                `json:"target_success"`
+	Seed            record.Uint64String `json:"seed"`
+	Repeat          record.Uint64String `json:"repeat"`
+	Command         []string            `json:"command"`
+	EvidenceDigest  record.SHA256       `json:"evidence_digest,omitempty"`
+	Evidence        *runner.RunEvidence `json:"evidence,omitempty"`
+	Runs            []legacyRunReport   `json:"runs"`
 	FirstDivergence string              `json:"first_divergence,omitempty"`
 	Replay          *Replay             `json:"replay,omitempty"`
 	Failure         *Failure            `json:"failure,omitempty"`
@@ -86,6 +114,8 @@ func Build(input Input) (Report, error) {
 		Seed: baseline.Seed, Repeat: record.Uint64String(len(input.Runs)), Command: append([]string(nil), input.Command...), Evidence: &baseline,
 		Runs: make([]RunReport, 0, len(input.Runs)),
 	}
+	legacyReplayAssigned := false
+	replayOK := true
 	for index, run := range input.Runs {
 		if run.BatchPath == "" {
 			return Report{}, fmt.Errorf("qualification run %d has no batch path", index)
@@ -111,13 +141,20 @@ func Build(input Input) (Report, error) {
 		if run.Evidence.Outcome.Domain != "success" {
 			report.TargetSuccess = false
 		}
-		report.Runs = append(report.Runs, RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest})
+		replayEvidence := run.Replay
+		if replayEvidence == nil && input.Replay != nil && !legacyReplayAssigned && run.Evidence.Outcome.Domain != "success" {
+			replayEvidence = input.Replay
+			legacyReplayAssigned = true
+		}
+		copiedReplay, replayErr := cloneReplay(replayEvidence, run.ArtifactPath)
+		if replayErr != nil {
+			return Report{}, fmt.Errorf("validate run replay %d: %w", index, replayErr)
+		}
+		if copiedReplay != nil && !copiedReplay.Match {
+			replayOK = false
+		}
+		report.Runs = append(report.Runs, RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, Replay: copiedReplay})
 	}
-	if input.Replay != nil {
-		copied := *input.Replay
-		report.Replay = &copied
-	}
-	replayOK := report.Replay == nil || report.Replay.Attempted && report.Replay.Match
 	report.Qualified = report.Deterministic && report.TargetSuccess && replayOK
 	return report, nil
 }
@@ -154,7 +191,11 @@ func BuildFailure(command []string, seed uint64, repeat uint64, completed []Run,
 		} else if digest != report.EvidenceDigest && report.FirstDivergence == "" {
 			report.FirstDivergence = firstDivergence(*report.Evidence, run.Evidence)
 		}
-		report.Runs = append(report.Runs, RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest})
+		replayEvidence, replayErr := cloneReplay(run.Replay, run.ArtifactPath)
+		if replayErr != nil {
+			return Report{}, fmt.Errorf("validate completed qualification replay %d: %w", index, replayErr)
+		}
+		report.Runs = append(report.Runs, RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, Replay: replayEvidence})
 	}
 	return report, nil
 }
@@ -171,7 +212,7 @@ func Write(artifactRoot string, report Report) (string, error) {
 		return "", fmt.Errorf("encode qualification report: %w", err)
 	}
 	encoded = append(encoded, '\n')
-	root := filepath.Join(artifactRoot, "qualifications", "v1")
+	root := filepath.Join(artifactRoot, "qualifications", "v2")
 	if err := os.MkdirAll(root, 0o700); err != nil {
 		return "", fmt.Errorf("create qualification report directory: %w", err)
 	}
@@ -237,14 +278,94 @@ func Open(path string) (Report, error) {
 		return Report{}, fmt.Errorf("read qualification report: %w", err)
 	}
 	data = bytes.TrimSuffix(data, []byte{'\n'})
+	return Decode(data)
+}
+
+func Decode(data []byte) (Report, error) {
+	if len(data) == 0 || len(data) > maximumReportBytes {
+		return Report{}, fmt.Errorf("qualification report must be between 1 and %d bytes", maximumReportBytes)
+	}
+	var header struct {
+		Schema string `json:"schema"`
+	}
+	if err := json.Unmarshal(data, &header); err != nil {
+		return Report{}, fmt.Errorf("decode qualification report schema: %w", err)
+	}
 	var report Report
-	if err := record.DecodeCanonicalJSON(data, &report); err != nil {
-		return Report{}, fmt.Errorf("decode qualification report: %w", err)
+	switch header.Schema {
+	case ReportSchema:
+		if err := record.DecodeCanonicalJSON(data, &report); err != nil {
+			return Report{}, fmt.Errorf("decode qualification report: %w", err)
+		}
+	case LegacyReportSchema:
+		var legacy legacyReport
+		if err := record.DecodeCanonicalJSON(data, &legacy); err != nil {
+			return Report{}, fmt.Errorf("decode legacy qualification report: %w", err)
+		}
+		var normalizeErr error
+		report, normalizeErr = normalizeLegacyReport(legacy)
+		if normalizeErr != nil {
+			return Report{}, normalizeErr
+		}
+	default:
+		return Report{}, fmt.Errorf("unsupported qualification report schema %q", header.Schema)
 	}
 	if err := validateReport(report); err != nil {
 		return Report{}, err
 	}
 	return report, nil
+}
+
+func normalizeLegacyReport(legacy legacyReport) (Report, error) {
+	report := Report{
+		Schema: LegacyReportSchema, Qualified: legacy.Qualified, Deterministic: legacy.Deterministic,
+		TargetSuccess: legacy.TargetSuccess, Seed: legacy.Seed, Repeat: legacy.Repeat,
+		Command: append([]string(nil), legacy.Command...), EvidenceDigest: legacy.EvidenceDigest,
+		Evidence: legacy.Evidence, FirstDivergence: legacy.FirstDivergence, Failure: legacy.Failure,
+		Runs: make([]RunReport, len(legacy.Runs)),
+	}
+	for index, run := range legacy.Runs {
+		report.Runs[index] = RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: run.EvidenceDigest}
+	}
+	if err := validateLegacyReport(report, legacy.Replay); err != nil {
+		return Report{}, err
+	}
+	if legacy.Replay != nil {
+		matched := false
+		for index := range report.Runs {
+			if report.Runs[index].ArtifactPath == legacy.Replay.ArtifactPath {
+				copied := *legacy.Replay
+				report.Runs[index].Replay = &copied
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return Report{}, errors.New("legacy qualification replay does not match a retained artifact")
+		}
+	}
+	report.Schema = ReportSchema
+	return report, nil
+}
+
+func validateLegacyReport(report Report, replay *Replay) error {
+	if report.Schema != LegacyReportSchema {
+		return fmt.Errorf("unsupported qualification report schema %q", report.Schema)
+	}
+	report.Schema = ReportSchema
+	if replay != nil {
+		if !replay.Attempted || replay.Match && replay.Divergence != "" || !replay.Match && replay.Divergence == "" {
+			return errors.New("legacy qualification replay is invalid")
+		}
+		for index := range report.Runs {
+			if report.Runs[index].ArtifactPath == replay.ArtifactPath {
+				copied := *replay
+				report.Runs[index].Replay = &copied
+				break
+			}
+		}
+	}
+	return validateReport(report)
 }
 
 func validateReport(report Report) error {
@@ -296,11 +417,30 @@ func validateReport(report Report) error {
 	if report.Deterministic && report.TargetSuccess != (report.Evidence.Outcome.Domain == "success") {
 		return fmt.Errorf("qualification target result is inconsistent with deterministic evidence")
 	}
-	replayOK := report.Replay == nil || report.Replay.Attempted && report.Replay.Match
+	replayOK := true
+	for index, run := range report.Runs {
+		if _, err := cloneReplay(run.Replay, run.ArtifactPath); err != nil {
+			return fmt.Errorf("qualification run %d replay is invalid: %w", index, err)
+		}
+		if run.Replay != nil && !run.Replay.Match {
+			replayOK = false
+		}
+	}
 	if report.Qualified != (report.Deterministic && report.TargetSuccess && replayOK) {
 		return fmt.Errorf("qualification result is inconsistent")
 	}
 	return nil
+}
+
+func cloneReplay(replay *Replay, artifactPath string) (*Replay, error) {
+	if replay == nil {
+		return nil, nil
+	}
+	if artifactPath == "" || replay.ArtifactPath != artifactPath || !replay.Attempted || replay.Match && replay.Divergence != "" || !replay.Match && replay.Divergence == "" {
+		return nil, errors.New("replay does not match its retained artifact and result")
+	}
+	copied := *replay
+	return &copied, nil
 }
 
 func evidenceDigest(evidence runner.RunEvidence) (record.SHA256, error) {

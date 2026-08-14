@@ -32,6 +32,8 @@ const usage = `usage:
   gomad qualify [flags] exec --provenance FILE -- BINARY [ARG ...]
   gomad qualify [flags] go-run PACKAGE -- [ARG ...]
   gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--format=text|json]
+  gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
   gomad analyze [--format=text|json] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
   gomad replay [--verify-only] ARTIFACT_DIR
@@ -119,6 +121,10 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		return runExplore(arguments[1:], stdout, stderr)
 	case "qualify":
 		return runQualify(arguments[1:], stdout, stderr)
+	case "qualify-set":
+		return runQualifySet(arguments[1:], stdout, stderr)
+	case "compare-support":
+		return runCompareSupport(arguments[1:], stdout, stderr)
 	case "analyze":
 		return runAnalyze(arguments[1:], stdout, stderr)
 	case "resume":
@@ -301,9 +307,9 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
-	coverage := flags.String("coverage", string(runner.CoverageNone), "none or semantic")
-	guide := flags.Bool("guide", false, "guide selection from a bounded semantic corpus")
-	corpus := flags.String("corpus", "", "guided semantic corpus directory")
+	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
+	guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
+	corpus := flags.String("corpus", "", "guided coverage corpus directory")
 	keepSuccesses := flags.String("keep-successes", string(runner.KeepSuccessesNone), "none, novel, or all")
 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful runs")
 	outputLimit := byteSize(8 << 20)
@@ -380,6 +386,15 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
+	if (coverageMode == runner.CoverageChoice || coverageMode == runner.CoverageSemanticChoice) && resolvedChoiceLimit == 0 {
+		if writeErr := reporter.Error("invalid_input", fmt.Errorf("--coverage=%s requires --choices", coverageMode)); writeErr != nil {
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
+			return 3
+		}
+		return 2
+	}
 	parsedTarget, err := parseTarget(flags.Args())
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -448,10 +463,13 @@ func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet b
 	if corpus == "" {
 		return "", fmt.Errorf("--guide requires --corpus DIR")
 	}
-	if coverageSet && coverage != string(runner.CoverageSemantic) {
-		return "", fmt.Errorf("--guide requires --coverage=semantic")
+	if coverageSet && coverage != string(runner.CoverageSemantic) && coverage != string(runner.CoverageChoice) && coverage != string(runner.CoverageSemanticChoice) {
+		return "", errors.New("--guide requires semantic or choice coverage")
 	}
-	return string(runner.CoverageSemantic), nil
+	if !coverageSet {
+		return string(runner.CoverageSemantic), nil
+	}
+	return coverage, nil
 }
 
 func resolveExploreSeeds(seeds string, count uint64, seedsSet, countSet bool) (string, error) {
@@ -473,11 +491,11 @@ func resolveExploreSeeds(seeds string, count uint64, seedsSet, countSet bool) (s
 func resolveExploreCoverage(value string, required []string) (runner.CoverageMode, error) {
 	mode := runner.CoverageMode(value)
 	switch mode {
-	case runner.CoverageNone:
+	case runner.CoverageNone, runner.CoverageChoice:
 		if len(required) != 0 {
 			return "", fmt.Errorf("--require-probe requires --coverage=semantic")
 		}
-	case runner.CoverageSemantic:
+	case runner.CoverageSemantic, runner.CoverageSemanticChoice:
 		if _, err := ioprofile.MissingRequiredSemanticProbes(ioprofile.SemanticCoverage{}, required); err != nil {
 			return "", err
 		}

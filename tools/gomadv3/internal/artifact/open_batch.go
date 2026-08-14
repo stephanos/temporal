@@ -125,6 +125,9 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 		if err := validateSemanticProbeLists(run.SemanticProbes, run.NovelSemanticProbes); err != nil {
 			return fmt.Errorf("batch run %d: %w", index+1, err)
 		}
+		if err := validateChoiceFeatureLists(run.ChoiceFeatures, run.NovelChoiceFeatures); err != nil {
+			return fmt.Errorf("batch run %d: %w", index+1, err)
+		}
 		switch run.Domain {
 		case "success":
 			succeeded++
@@ -135,7 +138,7 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 				return fmt.Errorf("successful batch run %d has incomplete retained evidence", index+1)
 			}
 			if run.SuccessArtifact == nil {
-				if len(run.NovelSemanticProbes) != 0 {
+				if len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0 {
 					return fmt.Errorf("unretained successful batch run %d has novelty reasons", index+1)
 				}
 			} else if !validSuccessArtifactReference(*run.SuccessArtifact) || *run.SuccessArtifactBytes == 0 {
@@ -156,7 +159,7 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 				return fmt.Errorf("failed batch run %d has invalid artifact evidence", index+1)
 			}
 			failures[*run.FailureSignature] = struct{}{}
-			if run.SuccessArtifact != nil || run.SuccessArtifactBytes != nil || len(run.NovelSemanticProbes) != 0 {
+			if run.SuccessArtifact != nil || run.SuccessArtifactBytes != nil || len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0 {
 				return fmt.Errorf("failed batch run %d has successful-run evidence", index+1)
 			}
 		case "runner":
@@ -164,7 +167,7 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 			if run.Reason != "runner_cancelled" || run.Termination != "none" || run.FailureSignature != nil || run.Artifact != nil {
 				return fmt.Errorf("cancelled batch run %d is invalid", index+1)
 			}
-			if run.SuccessArtifact != nil || run.SuccessArtifactBytes != nil || len(run.NovelSemanticProbes) != 0 {
+			if run.SuccessArtifact != nil || run.SuccessArtifactBytes != nil || len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0 {
 				return fmt.Errorf("cancelled batch run %d has successful-run evidence", index+1)
 			}
 		default:
@@ -232,22 +235,30 @@ func validSuccessArtifactReference(reference string) bool {
 }
 
 func validateSemanticProbeLists(probes, novel []string) error {
-	if !sort.StringsAreSorted(probes) || !sort.StringsAreSorted(novel) {
-		return fmt.Errorf("semantic probes are not sorted")
+	return validateObservedAndNovel("semantic probes", "semantic probe", probes, novel)
+}
+
+func validateChoiceFeatureLists(features, novel []string) error {
+	return validateObservedAndNovel("choice features", "choice feature", features, novel)
+}
+
+func validateObservedAndNovel(collection, item string, observed, novel []string) error {
+	if !sort.StringsAreSorted(observed) || !sort.StringsAreSorted(novel) {
+		return fmt.Errorf("%s are not sorted", collection)
 	}
-	probeSet := make(map[string]struct{}, len(probes))
-	for index, probe := range probes {
-		if probe == "" || index > 0 && probes[index-1] == probe {
-			return fmt.Errorf("semantic probes are invalid")
+	observedSet := make(map[string]struct{}, len(observed))
+	for index, value := range observed {
+		if value == "" || index > 0 && observed[index-1] == value {
+			return fmt.Errorf("%s are invalid", collection)
 		}
-		probeSet[probe] = struct{}{}
+		observedSet[value] = struct{}{}
 	}
-	for index, probe := range novel {
-		if probe == "" || index > 0 && novel[index-1] == probe {
-			return fmt.Errorf("novel semantic probes are invalid")
+	for index, value := range novel {
+		if value == "" || index > 0 && novel[index-1] == value {
+			return fmt.Errorf("novel %s are invalid", collection)
 		}
-		if _, found := probeSet[probe]; !found {
-			return fmt.Errorf("novel semantic probe %q was not observed by the run", probe)
+		if _, found := observedSet[value]; !found {
+			return fmt.Errorf("novel %s %q was not observed by the run", item, value)
 		}
 	}
 	return nil

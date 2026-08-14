@@ -6,12 +6,14 @@ import (
 	"fmt"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 )
 
 type Candidate struct {
 	Artifact artifact.Input
 	Coverage ioprofile.SemanticCoverage
+	Choices  *choicewire.FeatureProjection
 }
 
 type ReplayCandidate func(context.Context, string) (ReplayResult, error)
@@ -21,7 +23,7 @@ func (corpus *Corpus) Admit(ctx context.Context, candidate Candidate, replay Rep
 	if err != nil {
 		return false, fmt.Errorf("publish guided corpus case: %w", err)
 	}
-	features, err := semanticFeatures(published.Manifest, candidate.Coverage, candidate.Artifact.IOTranscript, candidate.Artifact.World.Transitions)
+	features, err := semanticFeatures(published.Manifest, candidate.Coverage, candidate.Artifact.IOTranscript, candidate.Artifact.World.Transitions, candidate.Choices)
 	if err != nil {
 		return false, errors.Join(err, corpus.discard(published))
 	}

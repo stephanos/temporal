@@ -32,16 +32,19 @@ type RunLimitsEvidence struct {
 }
 
 type ChoiceEvidence struct {
-	Profile              string              `json:"profile"`
-	ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
-	Limit                record.Uint64String `json:"limit"`
-	SHA256               record.SHA256       `json:"sha256"`
-	Records              record.Uint64String `json:"records"`
-	BranchingRecords     record.Uint64String `json:"branching_records"`
-	TerminalState        string              `json:"terminal_state"`
-	Runnable             record.Uint64String `json:"runnable"`
-	SelectPoll           record.Uint64String `json:"select_poll"`
-	SelectResult         record.Uint64String `json:"select_result"`
+	Profile                string               `json:"profile"`
+	ImplementationSHA256   record.SHA256        `json:"implementation_sha256"`
+	Limit                  record.Uint64String  `json:"limit"`
+	SHA256                 record.SHA256        `json:"sha256"`
+	Records                record.Uint64String  `json:"records"`
+	BranchingRecords       record.Uint64String  `json:"branching_records"`
+	TerminalState          string               `json:"terminal_state"`
+	Runnable               record.Uint64String  `json:"runnable"`
+	SelectPoll             record.Uint64String  `json:"select_poll"`
+	SelectResult           record.Uint64String  `json:"select_result"`
+	Features               []choicewire.Feature `json:"features"`
+	AdjacentPairsObserved  record.Uint64String  `json:"adjacent_pairs_observed"`
+	AdjacentPairsTruncated bool                 `json:"adjacent_pairs_truncated"`
 }
 
 type RunEvidence struct {
@@ -75,6 +78,7 @@ func runEvidence(
 	worldRecord record.World,
 	mountArtifact *romount.ArtifactRecord,
 	coverage ioprofile.SemanticCoverage,
+	choiceFeatures *choicewire.FeatureProjection,
 ) RunEvidence {
 	profile := ioprofile.Default()
 	evidence := RunEvidence{
@@ -110,6 +114,12 @@ func runEvidence(
 			SHA256: record.SHA256FromSum(trace.Trace.SHA256), Records: record.Uint64String(trace.Trace.Summary.Records),
 			BranchingRecords: record.Uint64String(trace.Trace.Summary.Branching), TerminalState: "complete",
 			Runnable: record.Uint64String(trace.Trace.Summary.Runnable), SelectPoll: record.Uint64String(trace.Trace.Summary.SelectPoll), SelectResult: record.Uint64String(trace.Trace.Summary.SelectResult),
+			Features: []choicewire.Feature{},
+		}
+		if choiceFeatures != nil {
+			evidence.Choices.Features = append([]choicewire.Feature(nil), choiceFeatures.Values...)
+			evidence.Choices.AdjacentPairsObserved = record.Uint64String(choiceFeatures.AdjacentPairsObserved)
+			evidence.Choices.AdjacentPairsTruncated = choiceFeatures.AdjacentPairsTruncated
 		}
 	}
 	if mountArtifact != nil {

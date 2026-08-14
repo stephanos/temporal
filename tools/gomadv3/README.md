@@ -80,7 +80,10 @@ tools/gomadv3/.bin/gomad explore --guide --corpus .gomad/corpus --count 1000 go-
 tools/gomadv3/.bin/gomad explore --seeds 0,7,42 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad explore --seeds 0-99 exec --provenance ./example.provenance.json -- ./example arg
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 --choices --replay-successes --success-limit=1 --success-bytes=128MiB go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad analyze --format=json go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output report.json
+tools/gomadv3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/run-INTERRUPTED
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*
@@ -122,8 +125,9 @@ stdout and no routine output on stderr. Event types are `progress`, `result`,
 `mixed_failure`; error classifications are `invalid_input`,
 `unsupported_target`, `semantic_coverage_failure`, and `runner_failure`.
 
-Use `--coverage=semantic` to include the versioned union of observed reviewed
-boundary probes and its stable digest in the result. Repeat `--require-probe`
+Use `--coverage=semantic`, `--coverage=choice`, or
+`--coverage=semantic+choice` to retain versioned semantic probes, canonical
+choice features, or both. Choice coverage requires `--choices`. Repeat `--require-probe`
 to make an unobserved known probe fail the campaign with classification
 `semantic_coverage_failure` and status 1:
 
@@ -161,8 +165,8 @@ not collected by this mode.
 
 Successful runs are discarded from the batch by default; guided corpus
 retention is independent. `--keep-successes=novel` retains the first completed
-success that adds a new semantic probe and therefore requires
-`--coverage=semantic`; `--keep-successes=all` retains every success. Both modes
+success that adds a new semantic probe or choice feature and therefore requires
+semantic or choice coverage; `--keep-successes=all` retains every success. Both modes
 require a positive `--success-limit` and `--success-bytes`. Crossing either
 bound fails the campaign visibly instead of silently dropping replay evidence.
 Each retained success is an immutable exact-replay artifact, and its stored byte
@@ -171,31 +175,46 @@ returns status 0 only when the recorded successful outcome matches.
 
 `gomad qualify` prepares and executes the target independently two or more
 times with one seed, compares bounded canonical evidence, and automatically
-retains a private `gomadv3.qualification/v1` report below
-`ARTIFACTS/qualifications/v1`. Evidence includes the exact target, argv,
+retains a private `gomadv3.qualification/v2` report below
+`ARTIFACTS/qualifications/v2`. Readers also normalize v1 reports. Evidence includes the exact target, argv,
 toolchain and Runner identities, full output hashes, transcript, captured-mount
-identity, World identity, outcome, and semantic probes. A retained target
-failure is replayed once and its result is recorded. Repeat `--require-probe`
+identity, World identity, outcome, semantic probes, and optional choice
+features. Replay evidence is attached to its corresponding repetition. Add
+`--replay-successes` with explicit positive `--success-limit` and
+`--success-bytes` bounds to retain and replay every success. Repeat `--require-probe`
 to enforce known conditional probes; `--repeat` is bounded to 2 through 32.
 Add `--json` for newline-delimited `gomadv3.qualify-event/v1` progress, result,
 and error records. Unsupported targets retain their first boundary and exact
 command in the qualification report.
 
-Run a versioned qualification manifest explicitly with:
+Run or validate a versioned qualification manifest explicitly with:
 
 ```sh
-make -C tools/gomadv3 qualification-set \
-  GOMADV3_QUALIFICATION_MANIFEST=/absolute/path/to/manifest.json \
-  GOMADV3_QUALIFICATION_WORKDIR=/absolute/path/to/target/module
+tools/gomadv3/.bin/gomad qualify-set \
+  --manifest=/absolute/path/to/manifest.json \
+  --working-dir=/absolute/path/to/target/module \
+  --artifacts=.gomad/qualification --output=qualification-set.json
+tools/gomadv3/.bin/gomad qualify-set --check \
+  --manifest=/absolute/path/to/manifest.json \
+  --working-dir=/absolute/path/to/target/module
 ```
 
-The Go orchestrator runs every entry through `gomad qualify`, validates each
-private report and executed command, and atomically publishes a self-contained
-canonical aggregate. An expected unsupported boundary is recorded as such; it
-does not claim that workload is supported. Any changed boundary, lost required
-probe, nondeterminism, replay divergence, or unexpected outcome fails the set
-while retaining all evidence. Consumer-specific manifests and working
-directories remain outside the core module.
+Manifest v2 binds the expected module, tier, invariant, ordered seeds, choice
+capacity, successful-replay requirement, and explicit retention bounds. The
+orchestrator analyzes every workload before executing any supported target,
+checkpoints after each completed phase, and publishes a private, path-free
+`gomadv3.qualification-set-report/v3`. Unsupported analysis is completed
+evidence and is never executed. Readers normalize report v2 while marking its
+missing portable dimensions unavailable. Status 0 means all expectations
+matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
+cancellation, timeout, child, or publication infrastructure failure.
+
+Compare two validated reports with `gomad compare-support`. Clean and improved
+comparisons return 0, regressions or review-required changes return 1,
+incomparable inputs return 2, and output failures return 3. A boundary change
+prints an exact domain-separated digest; approval applies only when
+`--approve-boundary-diff=SHA256` matches that digest. Expectation matching and
+actual supported/unsupported counts remain separate.
 
 `make -C tools/gomadv3 core-qualification` runs the checked
 `qualification/core.json` corpus from its self-contained fixture module. Its

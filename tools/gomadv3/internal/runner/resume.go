@@ -98,49 +98,60 @@ func equalBatchPlans(left, right artifact.BatchPlan) (bool, error) {
 	return bytes.Equal(leftBytes, rightBytes), err
 }
 
-func restoreResumeSummary(batchPath string, selection SeedSelection, runs []artifact.RunRecord) (Summary, map[record.SHA256]string, map[string]struct{}, map[uint64]struct{}, error) {
-	summary := Summary{BatchPath: batchPath, SelectionCount: selection.Count(), Attempted: uint64(len(runs))}
-	distinct := make(map[record.SHA256]string)
-	probes := make(map[string]struct{})
-	completed := make(map[uint64]struct{}, len(runs))
+type resumeSummaryState struct {
+	summary        Summary
+	distinct       map[record.SHA256]string
+	probes         map[string]struct{}
+	choiceFeatures map[string]struct{}
+	completed      map[uint64]struct{}
+}
+
+func restoreResumeSummary(batchPath string, selection SeedSelection, runs []artifact.RunRecord) (resumeSummaryState, error) {
+	state := resumeSummaryState{
+		summary:  Summary{BatchPath: batchPath, SelectionCount: selection.Count(), Attempted: uint64(len(runs))},
+		distinct: make(map[record.SHA256]string), probes: make(map[string]struct{}), choiceFeatures: make(map[string]struct{}), completed: make(map[uint64]struct{}, len(runs)),
+	}
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		seed, ok := selection.SeedAt(ordinal)
 		if !ok || seed != uint64(run.Seed) {
-			return Summary{}, nil, nil, nil, fmt.Errorf("resumable run %d seed does not match selection ordinal", index+1)
+			return resumeSummaryState{}, fmt.Errorf("resumable run %d seed does not match selection ordinal", index+1)
 		}
-		completed[ordinal] = struct{}{}
+		state.completed[ordinal] = struct{}{}
 		for _, probe := range run.SemanticProbes {
-			probes[probe] = struct{}{}
+			state.probes[probe] = struct{}{}
+		}
+		for _, feature := range run.ChoiceFeatures {
+			state.choiceFeatures[feature] = struct{}{}
 		}
 		switch run.Domain {
 		case "success":
-			summary.Succeeded++
+			state.summary.Succeeded++
 			if run.SuccessArtifact != nil {
 				path := filepath.Join(batchPath, filepath.FromSlash(*run.SuccessArtifact))
-				summary.RetainedSuccesses++
-				summary.RetainedSuccessBytes += uint64(*run.SuccessArtifactBytes)
-				summary.SuccessArtifacts = append(summary.SuccessArtifacts, path)
+				state.summary.RetainedSuccesses++
+				state.summary.RetainedSuccessBytes += uint64(*run.SuccessArtifactBytes)
+				state.summary.SuccessArtifacts = append(state.summary.SuccessArtifacts, path)
 			}
 		case "target", "watchdog":
-			summary.Failures++
+			state.summary.Failures++
 			if run.Domain == "watchdog" {
-				summary.Watchdogs++
+				state.summary.Watchdogs++
 			}
 			if run.Reason == "world_replay_divergence" {
-				summary.ReplayDivergences++
+				state.summary.ReplayDivergences++
 			}
-			if _, found := distinct[*run.FailureSignature]; !found {
+			if _, found := state.distinct[*run.FailureSignature]; !found {
 				path := filepath.Join(batchPath, filepath.FromSlash(*run.Artifact))
-				distinct[*run.FailureSignature] = path
-				summary.Artifacts = append(summary.Artifacts, path)
+				state.distinct[*run.FailureSignature] = path
+				state.summary.Artifacts = append(state.summary.Artifacts, path)
 			}
 		default:
-			return Summary{}, nil, nil, nil, fmt.Errorf("resumable run %d domain %q cannot be reused", index+1, run.Domain)
+			return resumeSummaryState{}, fmt.Errorf("resumable run %d domain %q cannot be reused", index+1, run.Domain)
 		}
 	}
-	summary.DistinctFailures = uint64(len(distinct))
-	return summary, distinct, probes, completed, nil
+	state.summary.DistinctFailures = uint64(len(state.distinct))
+	return state, nil
 }
 
 func sortedProbeList(probes map[string]struct{}) []string {

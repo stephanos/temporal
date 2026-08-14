@@ -21,7 +21,7 @@ import (
 
 const capabilityClosureSchema = "gomadv3.target-capability-closure/v2"
 const CapabilityReviewSchema = "gomadv3.target-capability-review/v1"
-const maximumCapabilityReviewOutputBytes = 16 << 20
+const maximumCapabilityReviewOutputBytes = 64 << 20
 const maximumCapabilityReviewPackages = 100000
 const maximumCapabilitySourceBytes = 16 << 20
 

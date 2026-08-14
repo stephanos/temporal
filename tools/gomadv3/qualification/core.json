@@ -1,7 +1,9 @@
 {
-  "schema": "gomadv3.qualification-set/v1",
+  "schema": "gomadv3.qualification-set/v2",
   "name": "gomadv3-core",
-  "seed": 17,
+  "description": "Fast application-neutral Gomad v3 mechanism qualification",
+  "module": "gomadv3.core.corpus",
+  "seeds": [17],
   "repeat": 2,
   "run_timeout": "2m",
   "overall_timeout": "5m",
@@ -10,27 +12,44 @@
   "world_transition_bytes": 67108864,
   "suites": [
     {
-      "name": "concurrency-state-invariant",
+      "id": "concurrency-state-invariant",
+      "name": "Concurrency state invariant",
+      "tier": 1,
+      "invariant": "concurrent transfers preserve the total balance",
       "package": "./basic/concurrency",
       "test": "TestConcurrentTransfersPreserveBalance",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
       }
     },
     {
-      "name": "filesystem-transaction",
+      "id": "filesystem-transaction",
+      "name": "Filesystem transaction",
+      "tier": 1,
+      "invariant": "file lifecycle operations preserve contents and metadata",
       "package": "./basic/filesystem",
       "test": "TestFileLifecyclePreservesContentsAndMetadata",
       "required_probes": [
         "stdlib.os.openfile",
         "stdlib.os.rename"
       ],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
       }
     },
     {
-      "name": "loopback-tcp-roundtrip",
+      "id": "loopback-tcp-roundtrip",
+      "name": "Loopback TCP round trip",
+      "tier": 1,
+      "invariant": "loopback TCP preserves the request and response payloads",
       "package": "./basic/network",
       "test": "TestLoopbackRoundTripPreservesMessage",
       "required_probes": [
@@ -38,29 +57,47 @@
         "stdlib.net.listentcp",
         "stdlib.net.tcplistener.accepttcp"
       ],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
       }
     },
     {
-      "name": "modernc-libc-boundary",
+      "id": "modernc-libc-boundary",
+      "name": "Modernc libc boundary",
+      "tier": 1,
+      "invariant": "the modernc libc adapter preserves file contents",
       "package": "./thirdparty/libc",
       "test": "TestLibcFileBoundaryPreservesContents",
       "required_probes": [
         "stdlib.os.file.read",
         "stdlib.os.file.write"
       ],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
       }
     },
     {
-      "name": "sqlite-transaction",
+      "id": "sqlite-transaction",
+      "name": "SQLite transaction",
+      "tier": 1,
+      "invariant": "SQLite commit and rollback preserve transactional state",
       "package": "./thirdparty/persistence",
       "test": "TestSQLiteCommitAndRollbackPreserveState",
       "required_probes": [
         "stdlib.os.getpid"
       ],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
       "expectation": {
         "classification": "qualified"
       }

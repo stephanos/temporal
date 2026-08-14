@@ -51,9 +51,9 @@ runner: toolchain
 qualification-set: runner
 	@test -n "$(GOMADV3_QUALIFICATION_MANIFEST)" || { echo "GOMADV3_QUALIFICATION_MANIFEST is required" >&2; exit 2; }
 	@test -n "$(GOMADV3_QUALIFICATION_WORKDIR)" || { echo "GOMADV3_QUALIFICATION_WORKDIR is required" >&2; exit 2; }
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./internal/qualificationgen \
-		-manifest="$(GOMADV3_QUALIFICATION_MANIFEST)" -working-dir="$(GOMADV3_QUALIFICATION_WORKDIR)" \
-		-artifacts="$(GOMADV3_QUALIFICATION_ARTIFACTS)" -output="$(GOMADV3_QUALIFICATION_OUTPUT)"
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED .bin/gomad qualify-set \
+		--manifest="$(GOMADV3_QUALIFICATION_MANIFEST)" --working-dir="$(GOMADV3_QUALIFICATION_WORKDIR)" \
+		--artifacts="$(GOMADV3_QUALIFICATION_ARTIFACTS)" --output="$(GOMADV3_QUALIFICATION_OUTPUT)"
 
 core-qualification: GOMADV3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification: GOMADV3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus

@@ -35,6 +35,16 @@ func TestRequirementsRejectsUnselectedAdapterIdentity(t *testing.T) {
 	}
 }
 
+func TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure(t *testing.T) {
+	closure := target.CapabilityClosure{Packages: []target.CapabilityPackage{{
+		ImportPath: "example.com/target", Name: "target", Root: true, Imports: []string{"time"},
+	}}}
+	adapters := []record.TargetAdapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}}
+	requirements, err := Default().Requirements(closure, adapters)
+	requireTestNoError(t, err)
+	requireTestEqual(t, []string{"time"}, requirementNames(requirements))
+}
+
 func requirementNames(requirements []Requirement) []string {
 	names := make([]string, len(requirements))
 	for index, requirement := range requirements {

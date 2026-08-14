@@ -52,9 +52,11 @@ type RunRecord struct {
 	ChoiceTraceBranchingRecords *record.Uint64String `json:"choice_trace_branching_records,omitempty"`
 	ChoiceTraceTerminalState    *string              `json:"choice_trace_terminal_state,omitempty"`
 	SemanticProbes              []string             `json:"semantic_probes,omitempty"`
+	ChoiceFeatures              []string             `json:"choice_features,omitempty"`
 	SuccessArtifact             *string              `json:"success_artifact,omitempty"`
 	SuccessArtifactBytes        *record.Uint64String `json:"success_artifact_bytes,omitempty"`
 	NovelSemanticProbes         []string             `json:"novel_semantic_probes,omitempty"`
+	NovelChoiceFeatures         []string             `json:"novel_choice_features,omitempty"`
 }
 
 type BatchJournal struct {

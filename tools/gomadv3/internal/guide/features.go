@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"sort"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/iowire"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
 
-func semanticFeatures(manifest record.Manifest, coverage ioprofile.SemanticCoverage, ioTranscript, worldTransitions []byte) ([]Feature, error) {
-	features := make([]Feature, 0, len(coverage.Probes)+8)
+func semanticFeatures(manifest record.Manifest, coverage ioprofile.SemanticCoverage, ioTranscript, worldTransitions []byte, choices *choicewire.FeatureProjection) ([]Feature, error) {
+	choiceCount := 0
+	if choices != nil {
+		choiceCount = len(choices.Values)
+	}
+	features := make([]Feature, 0, len(coverage.Probes)+choiceCount+8)
 	if manifest.Outcome.Domain != "success" {
 		features = append(features,
 			Feature{Kind: FeatureFailure, Value: string(manifest.Outcome.FailureSignature)},
@@ -49,6 +54,11 @@ func semanticFeatures(manifest record.Manifest, coverage ioprofile.SemanticCover
 	}
 	for _, probe := range coverage.Probes {
 		features = append(features, Feature{Kind: FeatureBoundaryProbe, Value: probe})
+	}
+	if choices != nil {
+		for _, feature := range choices.Values {
+			features = append(features, Feature{Kind: FeatureChoice, Value: feature.ID()})
+		}
 	}
 	return canonicalFeatures(features), nil
 }

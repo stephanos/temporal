@@ -16,10 +16,12 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/compatibility"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
+	"go.temporal.io/server/tools/gomadv3/internal/qualificationset"
 	"go.temporal.io/server/tools/gomadv3/internal/qualify"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 	"go.temporal.io/server/tools/gomadv3/internal/replay"
 	"go.temporal.io/server/tools/gomadv3/internal/runner"
+	"go.temporal.io/server/tools/gomadv3/internal/supportcompare"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
@@ -38,6 +40,98 @@ func TestByteSizeFlagParsesBinaryUnitsCanonically(t *testing.T) {
 		if err := value.Set(input); err == nil {
 			t.Fatalf("Set(%q) succeeded", input)
 		}
+	}
+}
+
+func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
+	var observed qualificationset.Config
+	dependencies := qualifySetDependencies{
+		executable: func() (string, error) { return "/bin/gomad", nil },
+		load: func(string) (qualificationset.Manifest, error) {
+			return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Suites: []qualificationset.Suite{{}}}, nil
+		},
+		run: func(_ context.Context, config qualificationset.Config) (qualificationset.SetReport, error) {
+			observed = config
+			return publicSetReport(), nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--format", "json"}, &stdout, &stderr, dependencies)
+	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v3"`) {
+		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunCompareSupportMapsReviewAndIncomparableStatuses(t *testing.T) {
+	baseline := publicSetReport()
+	candidate := publicSetReport()
+	candidate.Toolchain.BoundaryManifestSHA256 = record.HashBytes([]byte("changed"))
+	dependencies := compareSupportDependencies{
+		open: func(path string) (qualificationset.SetReport, error) {
+			if path == "/baseline.json" {
+				return baseline, nil
+			}
+			return candidate, nil
+		},
+		compare: supportcompare.Compare,
+	}
+	var stdout, stderr bytes.Buffer
+	status := runCompareSupportWith([]string{"--baseline", "/baseline.json", "--candidate", "/candidate.json", "--format", "json"}, &stdout, &stderr, dependencies)
+	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"review_required":true`) {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+
+	baseline.Dimensions.PortableV3 = false
+	dependencies.open = func(path string) (qualificationset.SetReport, error) {
+		if path == "/baseline.json" {
+			return baseline, nil
+		}
+		return candidate, nil
+	}
+	stdout.Reset()
+	status = runCompareSupportWith([]string{"--baseline", "/baseline.json", "--candidate", "/candidate.json"}, &stdout, &stderr, dependencies)
+	if status != 2 || !strings.Contains(stdout.String(), "incomparable") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures(t *testing.T) {
+	root := t.TempDir()
+	invalid := filepath.Join(root, "invalid.json")
+	if err := os.WriteFile(invalid, []byte("{}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name     string
+		baseline string
+		status   int
+	}{
+		{name: "invalid report", baseline: invalid, status: 2},
+		{name: "missing report", baseline: filepath.Join(root, "missing.json"), status: 3},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			status := runCompareSupport([]string{"--baseline", test.baseline, "--candidate", invalid}, &stdout, &stderr)
+			if status != test.status || stderr.Len() == 0 {
+				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+func publicSetReport() qualificationset.SetReport {
+	return qualificationset.SetReport{
+		Schema: qualificationset.ReportSchema, Name: "test-set", Description: "public fixture",
+		ManifestSHA256: record.HashBytes([]byte("manifest")),
+		Module:         qualificationset.ModuleIdentity{Path: "example.com/target", GoModSHA256: record.HashBytes([]byte("go.mod"))},
+		Platform:       qualificationset.PlatformIdentity{GOOS: "darwin", GOARCH: "arm64"},
+		Toolchain: capabilityanalysis.Toolchain{
+			GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64",
+			BoundaryManifestVersion: "boundary-v1", BoundaryManifestSHA256: record.HashBytes([]byte("boundary")),
+		},
+		IOProfile:       ioprofile.Identity{Name: "io", ImplementationSHA256: record.HashBytes([]byte("io")), InventorySHA256: record.HashBytes([]byte("inventory"))},
+		Dimensions:      qualificationset.EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
+		ExpectationsMet: true, Suites: []qualificationset.SuiteReport{},
 	}
 }
 
@@ -75,7 +169,10 @@ func TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes(t *testing.T) 
 	}{
 		{mode: "none", want: runner.CoverageNone},
 		{mode: "semantic", required: []string{"stdlib.os.openfile"}, want: runner.CoverageSemantic},
+		{mode: "choice", want: runner.CoverageChoice},
+		{mode: "semantic+choice", required: []string{"stdlib.os.openfile"}, want: runner.CoverageSemanticChoice},
 		{mode: "none", required: []string{"stdlib.os.openfile"}, wantError: true},
+		{mode: "choice", required: []string{"stdlib.os.openfile"}, wantError: true},
 		{mode: "semantic", required: []string{"unknown.probe"}, wantError: true},
 		{mode: "code", wantError: true},
 	} {
@@ -95,6 +192,8 @@ func TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus(t *testi
 	}{
 		{guide: true, corpus: "/corpus", coverage: "none", want: "semantic"},
 		{guide: true, corpus: "/corpus", coverage: "semantic", coverageSet: true, want: "semantic"},
+		{guide: true, corpus: "/corpus", coverage: "choice", coverageSet: true, want: "choice"},
+		{guide: true, corpus: "/corpus", coverage: "semantic+choice", coverageSet: true, want: "semantic+choice"},
 		{guide: true, coverage: "none", wantError: true},
 		{corpus: "/corpus", coverage: "none", wantError: true},
 		{guide: true, corpus: "/corpus", coverage: "none", coverageSet: true, wantError: true},
@@ -518,7 +617,7 @@ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
 		t.Fatalf("status=%d calls=%d report=%#v stdout=%q stderr=%q", status, calls, retained, stdout.String(), stderr.String())
 	}
 	for _, config := range configs {
-		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemantic || !config.CollectRunEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
+		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemanticChoice || !config.CollectRunEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
 			t.Fatalf("config = %#v", config)
 		}
 	}
@@ -561,7 +660,7 @@ func TestRunQualifyReplaysRepeatedTargetFailure(t *testing.T) {
 	}
 	dependencies.replay = func(_ context.Context, config replay.Config) (replay.Result, error) {
 		replayCalls++
-		if config.ArtifactPath != "/artifacts/failure-1" {
+		if config.ArtifactPath != fmt.Sprintf("/artifacts/failure-%d", replayCalls) {
 			t.Fatalf("replay config = %#v", config)
 		}
 		return replay.Result{Match: true}, nil
@@ -569,8 +668,94 @@ func TestRunQualifyReplaysRepeatedTargetFailure(t *testing.T) {
 	dependencies.write = func(_ string, report qualify.Report) (string, error) { retained = report; return "/report.json", nil }
 	var stdout, stderr bytes.Buffer
 	status := runQualifyWith([]string{"--json", "--seed", "7", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 1 || calls != 2 || replayCalls != 1 || retained.Replay == nil || !retained.Replay.Match || retained.TargetSuccess || !strings.Contains(stdout.String(), `"classification":"target_failure"`) {
+	if status != 1 || calls != 2 || replayCalls != 2 || retained.Runs[0].Replay == nil || !retained.Runs[0].Replay.Match || retained.Runs[1].Replay == nil || !retained.Runs[1].Replay.Match || retained.TargetSuccess || !strings.Contains(stdout.String(), `"classification":"target_failure"`) {
 		t.Fatalf("status=%d calls=%d replay=%d report=%#v stdout=%q stderr=%q", status, calls, replayCalls, retained, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunQualifyReplaysEveryRetainedSuccess(t *testing.T) {
+	var calls, replayCalls int
+	var retained qualify.Report
+	dependencies := qualificationDependencies(t)
+	dependencies.run = func(_ context.Context, config runner.Config) (runner.Summary, error) {
+		calls++
+		if config.KeepSuccesses != runner.KeepSuccessesAll || config.SuccessArtifactLimit != 1 || config.SuccessBytesLimit != 1<<20 {
+			t.Fatalf("config = %#v", config)
+		}
+		evidence := qualificationEvidence(7)
+		return runner.Summary{
+			BatchPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1,
+			RetainedSuccesses: 1, SuccessArtifacts: []string{fmt.Sprintf("/artifacts/success-%d", calls)}, RunEvidence: &evidence,
+		}, nil
+	}
+	dependencies.replay = func(_ context.Context, config replay.Config) (replay.Result, error) {
+		replayCalls++
+		if config.ArtifactPath != fmt.Sprintf("/artifacts/success-%d", replayCalls) {
+			t.Fatalf("replay config = %#v", config)
+		}
+		return replay.Result{Match: true}, nil
+	}
+	dependencies.write = func(_ string, report qualify.Report) (string, error) { retained = report; return "/report.json", nil }
+	var stdout, stderr bytes.Buffer
+	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
+	if status != 0 || calls != 2 || replayCalls != 2 || !retained.Qualified || retained.Runs[0].Replay == nil || !retained.Runs[0].Replay.Match || retained.Runs[1].Replay == nil || !retained.Runs[1].Replay.Match || stderr.Len() != 0 {
+		t.Fatalf("status=%d calls=%d replay=%d report=%#v stdout=%q stderr=%q", status, calls, replayCalls, retained, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunQualifyRequiresExplicitSuccessfulReplayBounds(t *testing.T) {
+	dependencies := qualificationDependencies(t)
+	dependencies.run = func(context.Context, runner.Config) (runner.Summary, error) {
+		t.Fatal("unexpected run")
+		return runner.Summary{}, nil
+	}
+	for _, arguments := range [][]string{
+		{"--json", "--replay-successes", "go-test", "./pkg"},
+		{"--json", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"},
+	} {
+		var stdout, stderr bytes.Buffer
+		status := runQualifyWith(arguments, &stdout, &stderr, dependencies)
+		if status != 2 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) {
+			t.Fatalf("arguments=%q status=%d stdout=%q stderr=%q", arguments, status, stdout.String(), stderr.String())
+		}
+	}
+}
+
+func TestRunQualifyRetainsMissingSuccessfulReplayArtifact(t *testing.T) {
+	var retained qualify.Report
+	dependencies := qualificationDependencies(t)
+	dependencies.run = func(_ context.Context, _ runner.Config) (runner.Summary, error) {
+		evidence := qualificationEvidence(7)
+		return runner.Summary{BatchPath: "/artifacts/run-1", SelectionCount: 1, Attempted: 1, Succeeded: 1, RunEvidence: &evidence}, nil
+	}
+	dependencies.write = func(_ string, report qualify.Report) (string, error) { retained = report; return "/report.json", nil }
+	var stdout, stderr bytes.Buffer
+	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
+	if status != 3 || retained.Failure == nil || retained.Failure.Classification != "runner_failure" || !strings.Contains(retained.Failure.Message, "exactly one successful replay artifact") || stderr.Len() != 0 {
+		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunQualifyRetainsReplayCancellation(t *testing.T) {
+	var calls int
+	var retained qualify.Report
+	dependencies := qualificationDependencies(t)
+	dependencies.run = func(_ context.Context, _ runner.Config) (runner.Summary, error) {
+		calls++
+		evidence := qualificationEvidence(7)
+		return runner.Summary{
+			BatchPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1,
+			RetainedSuccesses: 1, SuccessArtifacts: []string{fmt.Sprintf("/artifacts/success-%d", calls)}, RunEvidence: &evidence,
+		}, nil
+	}
+	dependencies.replay = func(context.Context, replay.Config) (replay.Result, error) {
+		return replay.Result{}, context.Canceled
+	}
+	dependencies.write = func(_ string, report qualify.Report) (string, error) { retained = report; return "/report.json", nil }
+	var stdout, stderr bytes.Buffer
+	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
+	if status != 3 || retained.Failure == nil || retained.Failure.Classification != "cancelled" || len(retained.Runs) != 2 || retained.Runs[0].Replay == nil || retained.Runs[0].Replay.Divergence == "" || stderr.Len() != 0 {
+		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
 	}
 }
 

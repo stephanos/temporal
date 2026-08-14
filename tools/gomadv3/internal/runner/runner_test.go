@@ -227,6 +227,48 @@ func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
 	}
 }
 
+func TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := uint64(choicewire.HeaderBytes + 3*choicewire.RecordBytes)
+	executor := &fakeExecutor{result: func(seed uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		selected := uint32(0)
+		if seed == 3 {
+			selected = 1
+		}
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choicewire.Record{{
+			Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: selected,
+		}})
+		return result
+	}}
+	config := testConfig(t, preparer, executor, "1-3", PolicyAll, 1)
+	config.Coverage = CoverageChoice
+	config.ChoiceTraceLimit = limit
+	config.KeepSuccesses = KeepSuccessesNovel
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.RetainedSuccesses != 2 || len(summary.SuccessArtifacts) != 2 {
+		t.Fatalf("summary = %#v", summary)
+	}
+	batch, err := artifact.OpenBatch(summary.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Runs[0].SuccessArtifact == nil || len(batch.Runs[0].NovelChoiceFeatures) == 0 || batch.Runs[1].SuccessArtifact != nil || len(batch.Runs[1].NovelChoiceFeatures) != 0 || batch.Runs[2].SuccessArtifact == nil || len(batch.Runs[2].NovelChoiceFeatures) == 0 {
+		t.Fatalf("choice novelty runs = %#v", batch.Runs)
+	}
+	for _, run := range batch.Runs {
+		if len(run.ChoiceFeatures) == 0 || !slices.IsSorted(run.ChoiceFeatures) {
+			t.Fatalf("choice features = %#v", run.ChoiceFeatures)
+		}
+	}
+}
+
 func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
 	executor := newOutOfOrderExecutor(t)
 	config := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 3)
@@ -301,6 +343,33 @@ func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
 	}
 	if !slices.Equal(seeds, []uint64{0, 1, 100, 101, 102, 103, 104, 105}) {
 		t.Fatalf("second guided seeds = %v", seeds)
+	}
+}
+
+func TestRunGuidesFromReplayVerifiedChoiceCoverage(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	replayer := &matchingReplayer{}
+	executor := &fakeExecutor{result: func(seed uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choicewire.Record{{
+			Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: uint32(seed % 2),
+		}})
+		return result
+	}}
+	config := testConfig(t, preparer, executor, "1-2", PolicyAll, 1)
+	config.Coverage = CoverageChoice
+	config.ChoiceTraceLimit = limit
+	config.Guide = true
+	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+	config.Replayer = replayer
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.CorpusAdded != 2 || summary.CorpusEntries != 2 || replayer.calls != 2 {
+		t.Fatalf("guided choice summary = %#v, replay calls = %d", summary, replayer.calls)
 	}
 }
 
@@ -906,6 +975,50 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 	}
 	if len(batch.Runs) != 3 || batch.Runs[0].Seed != 7 || batch.Runs[1].Seed != 8 || batch.Runs[2].Seed != 9 {
 		t.Fatalf("batch runs = %#v", batch.Runs)
+	}
+}
+
+func TestRunResumeRestoresSeenChoiceFeaturesBeforeNovelRetention(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	trace := completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choicewire.Record{{
+		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 0,
+	}})
+	interrupted := &choiceResumeInterruptExecutor{trace: trace}
+	config := testConfig(t, preparer, interrupted, "7-8", PolicyAll, 1)
+	ctx := cancelOnProgress(t, &config, func(progress Progress) bool { return progress.RetainedSuccesses == 1 })
+	config.TerminateGrace = 10 * time.Millisecond
+	config.Coverage = CoverageChoice
+	config.ChoiceTraceLimit = limit
+	config.KeepSuccesses = KeepSuccessesNovel
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	partial, err := Run(ctx, config)
+	if err == nil || partial.RetainedSuccesses != 1 {
+		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
+	}
+
+	resumedExecutor := &fakeExecutor{result: func(uint64) process.Result {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		result.ChoiceTrace = trace
+		return result
+	}}
+	resumed, err := Run(context.Background(), Config{
+		ResumeBatch: partial.BatchPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resumed.RetainedSuccesses != 1 || len(resumed.SuccessArtifacts) != 1 {
+		t.Fatalf("resumed summary = %#v", resumed)
+	}
+	batch, err := artifact.OpenBatch(resumed.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Runs[1].SuccessArtifact != nil || len(batch.Runs[1].ChoiceFeatures) == 0 {
+		t.Fatalf("resumed run = %#v", batch.Runs[1])
 	}
 }
 
@@ -1597,6 +1710,10 @@ type resumeInterruptExecutor struct {
 	calls []uint64
 }
 
+type choiceResumeInterruptExecutor struct {
+	trace process.ChoiceTrace
+}
+
 type progressGatedExecutor struct {
 	started chan struct{}
 	release chan struct{}
@@ -1639,6 +1756,21 @@ func (executor *resumeInterruptExecutor) Run(ctx context.Context, request proces
 	if seed == 7 {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
+		return result, nil
+	}
+	<-ctx.Done()
+	result := processResult(0, "", "")
+	result.Cancelled = true
+	result.Termination = process.TerminationSignal
+	result.Signal = "killed"
+	return result, nil
+}
+
+func (executor *choiceResumeInterruptExecutor) Run(ctx context.Context, request process.Request) (process.Result, error) {
+	if seedFromEnvironment(request.Env) == 7 {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		result.ChoiceTrace = executor.trace
 		return result, nil
 	}
 	<-ctx.Done()
@@ -1748,6 +1880,31 @@ func semanticTranscript(t *testing.T, probe string) process.IOTranscript {
 
 func completeEmptyTranscript() process.IOTranscript {
 	return process.IOTranscript{Complete: true, SHA256: sha256.Sum256(nil)}
+}
+
+func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []choicewire.Record) process.ChoiceTrace {
+	t.Helper()
+	payload := make([]byte, 0, len(records)*choicewire.RecordBytes)
+	for _, choiceRecord := range records {
+		encoded, err := choicewire.EncodeRecord(choiceRecord)
+		if err != nil {
+			t.Fatal(err)
+		}
+		payload = append(payload, encoded[:]...)
+	}
+	digest := sha256.Sum256(payload)
+	terminal := choicewire.EncodeTerminal(choicewire.Terminal{
+		State: choicewire.TerminalComplete, Records: uint64(len(records)), MappingBytes: choicewire.HeaderBytes + uint64(len(payload)), PayloadHash: digest,
+	})
+	trace, err := choicewire.DecodeTrace(payload, terminal[:], limit)
+	if err != nil {
+		t.Fatal(err)
+	}
+	implementation, err := choicewire.ImplementationIdentity(buildKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return process.ChoiceTrace{Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit, Trace: trace}
 }
 
 func seedFromEnvironment(environment []string) uint64 {

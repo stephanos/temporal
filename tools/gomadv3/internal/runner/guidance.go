@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/guide"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
@@ -29,6 +30,15 @@ func openGuidance(ctx context.Context, config Config, prepared target.Prepared, 
 	targetRecord := prepared.RecordTarget()
 	boundaryVersion, boundarySHA256 := ioprofile.BoundaryManifestIdentity()
 	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, boundarySHA256)
+	if coverageHasChoice(config.Coverage) {
+		implementation, identityErr := choicewire.ImplementationIdentity(prepared.BuildKey)
+		if identityErr != nil {
+			return nil, identityErr
+		}
+		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, boundarySHA256, guide.ChoiceProfileIdentity{
+			Profile: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: record.Uint64String(config.ChoiceTraceLimit),
+		})
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -71,12 +81,20 @@ func (campaign *guidanceCampaign) MergeRun(
 	if err != nil {
 		return false, err
 	}
+	var choiceFeatures *choicewire.FeatureProjection
+	if coverageHasChoice(campaign.config.Coverage) {
+		projected, _, projectErr := projectChoiceFeatures(completion.result.ChoiceTrace, campaign.prepared)
+		if projectErr != nil {
+			return false, projectErr
+		}
+		choiceFeatures = &projected
+	}
 	candidate := guide.Candidate{
 		Artifact: artifact.Input{
 			Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		},
-		Coverage: coverage,
+		Coverage: coverage, Choices: choiceFeatures,
 	}
 	return campaign.corpus.Admit(ctx, candidate, func(ctx context.Context, path string) (guide.ReplayResult, error) {
 		replayConfig := replay.Config{
