@@ -219,7 +219,7 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.Input, ioprofile.Se
 		Streams: record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
 		Host:    record.Host{StartedAt: "2026-08-13T00:00:00Z", FinishedAt: "2026-08-13T00:00:01Z", ElapsedNanos: 1},
 	}
-	features, err := semanticFeatures(manifest, coverage, transcript, payloads.Transitions)
+	features, err := semanticFeatures(manifest, coverage, transcript, payloads.Transitions, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

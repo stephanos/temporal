@@ -11,7 +11,11 @@ make gomadv3-integration-test
 make gomadv3-qualification
 ```
 
-The qualification command runs every manifest entry through Gomad's public
-CLI and retains the aggregate at
+The v2 manifest owns 16 Tier 2 workloads and two fixed seeds. Gomad analyzes
+the complete corpus first, executes only supported workloads, retains and
+replays every successful repetition with bounded choice coverage, and writes a
+path-free `gomadv3.qualification-set-report/v3` to
 `tools/gomadv3/.toolchain/temporal-qualification-set.json`. Expected unsupported
-boundaries are exact downstream dispositions, not claims of support.
+boundaries are exact analyzer dispositions, not claims of support; the report
+keeps actual supported and unsupported counts separate from expectation
+matching.

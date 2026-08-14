@@ -47,8 +47,10 @@ const (
 )
 
 const (
-	CoverageNone     CoverageMode = "none"
-	CoverageSemantic CoverageMode = "semantic"
+	CoverageNone           CoverageMode = "none"
+	CoverageSemantic       CoverageMode = "semantic"
+	CoverageChoice         CoverageMode = "choice"
+	CoverageSemanticChoice CoverageMode = "semantic+choice"
 )
 
 type StopReason string
@@ -313,7 +315,9 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		if err != nil {
 			return Summary{BatchPath: batchPath, SelectionCount: selection.Count()}, &HostError{Reason: "resume_setup", Err: err}
 		}
-		summary, _, _, _, err = restoreResumeSummary(batchPath, selection, resumedRuns)
+		var restored resumeSummaryState
+		restored, err = restoreResumeSummary(batchPath, selection, resumedRuns)
+		summary = restored.summary
 		if err != nil {
 			return summary, &HostError{Reason: "resume_setup", Err: err}
 		}
@@ -475,13 +479,18 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	var hostFailure error
 	distinct := make(map[record.SHA256]string)
 	semanticProbes := make(map[string]struct{})
+	choiceFeatures := make(map[string]struct{})
 	if resuming {
-		var restored Summary
-		restored, distinct, semanticProbes, completed, err = restoreResumeSummary(batchPath, selection, resumedRuns)
+		var restored resumeSummaryState
+		restored, err = restoreResumeSummary(batchPath, selection, resumedRuns)
 		if err != nil {
 			return summary, &HostError{Reason: "resume_setup", Err: err}
 		}
-		summary = restored
+		summary = restored.summary
+		distinct = restored.distinct
+		semanticProbes = restored.probes
+		choiceFeatures = restored.choiceFeatures
+		completed = restored.completed
 		if guidance != nil {
 			snapshot := guidance.Snapshot()
 			summary.CorpusPath = guidance.corpus.Path()
@@ -699,8 +708,11 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 				continue
 			}
 		}
-		runCoverage := ioprofile.SemanticCoverage{}
-		if config.Coverage == CoverageSemantic {
+		runCoverage, coverageErr := ioprofile.SummarizeSemanticProbes(nil)
+		if coverageErr != nil {
+			return summary, &HostError{Reason: "semantic_coverage", Err: coverageErr}
+		}
+		if coverageHasSemantic(config.Coverage) {
 			coverage, coverageErr := ioprofile.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
 			if coverageErr != nil {
 				if partialErr := preservePartial(completion.journal); partialErr != nil {
@@ -715,7 +727,26 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			}
 			runCoverage = coverage
 		}
+		runChoiceFeatures := []string{}
+		var runChoiceProjection *choicewire.FeatureProjection
+		if coverageHasChoice(config.Coverage) {
+			projected, features, choiceErr := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+			if choiceErr != nil {
+				if partialErr := preservePartial(completion.journal); partialErr != nil {
+					choiceErr = errors.Join(choiceErr, partialErr)
+				}
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "choice_coverage", Err: choiceErr}
+					campaign.Stop()
+					activeCancel()
+				}
+				continue
+			}
+			runChoiceProjection = &projected
+			runChoiceFeatures = features
+		}
 		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
+		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
 		outcome := executionoutcome.Classify(completion.result, false, worldBundle.Manifest.Terminal)
 		if config.CollectRunEvidence {
 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
@@ -727,7 +758,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 				}
 				continue
 			}
-			evidence := runEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage)
+			evidence := runEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
 			summary.RunEvidence = &evidence
 		}
 		if err := completion.journal.Transition(artifact.RunClassified); err != nil {
@@ -757,7 +788,8 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			setRunTranscript(&run, completion.result.IOTranscript)
 			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
-			retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && len(novelProbes) != 0
+			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
+			retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
 			if retain {
 				if !completion.result.IOTranscript.Complete {
 					hostFailure = &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
@@ -791,6 +823,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 								run.SuccessArtifactBytes = &bytes
 								if config.KeepSuccesses == KeepSuccessesNovel {
 									run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+									run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
 								}
 								summary.SuccessArtifacts = append(summary.SuccessArtifacts, published.Path)
 								summary.RetainedSuccesses++
@@ -836,6 +869,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			if hostFailure == nil {
 				campaign.RecordSuccess()
 				addSemanticProbes(semanticProbes, runCoverage.Probes)
+				addStrings(choiceFeatures, runChoiceFeatures)
 			}
 			completePartial(completion.journal)
 			continue
@@ -913,6 +947,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		setRunTranscript(&run, completion.result.IOTranscript)
 		setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 		run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
+		run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
 		if err := journal.AppendRun(run); err != nil && hostFailure == nil {
 			hostFailure = &HostError{Reason: "runs_append", Err: err}
 			campaign.Stop()
@@ -920,6 +955,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 		if hostFailure == nil {
 			addSemanticProbes(semanticProbes, runCoverage.Probes)
+			addStrings(choiceFeatures, runChoiceFeatures)
 		}
 		completePartial(completion.journal)
 
@@ -928,7 +964,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		}
 	}
 
-	if config.Coverage == CoverageSemantic {
+	if coverageHasSemantic(config.Coverage) {
 		probes := make([]string, 0, len(semanticProbes))
 		for probe := range semanticProbes {
 			probes = append(probes, probe)
@@ -1008,76 +1044,83 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 		return SeedSelection{}, nil, fmt.Errorf("parallelism must be positive")
 	}
 	if config.RunTimeout <= 0 || config.OverallTimeout <= 0 {
-		return SeedSelection{}, nil, fmt.Errorf("run and overall timeouts must be positive")
+		return SeedSelection{}, nil, errors.New("run and overall timeouts must be positive")
 	}
 	if config.TerminateGrace < 0 || config.TerminateGrace > config.RunTimeout || config.TerminateGrace > config.OverallTimeout {
-		return SeedSelection{}, nil, fmt.Errorf("termination grace must fit inside all deadlines")
+		return SeedSelection{}, nil, errors.New("termination grace must fit inside all deadlines")
 	}
 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
-		return SeedSelection{}, nil, fmt.Errorf("output and World transition limits must be positive")
+		return SeedSelection{}, nil, errors.New("output and World transition limits must be positive")
 	}
 	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < process.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > process.MaximumChoiceTraceBytes) {
 		return SeedSelection{}, nil, fmt.Errorf("choice trace capacity must be between %d bytes and 64 MiB", process.MinimumChoiceTraceBytes)
 	}
 	if config.Artifacts == "" || config.RunnerBuild == "" {
-		return SeedSelection{}, nil, fmt.Errorf("artifact root and Runner build identity are required")
+		return SeedSelection{}, nil, errors.New("artifact root and Runner build identity are required")
 	}
 	switch config.Coverage {
 	case "", CoverageNone:
 		if len(config.RequiredSemanticProbes) != 0 {
-			return SeedSelection{}, nil, fmt.Errorf("required semantic probes require semantic coverage")
+			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
 		}
-	case CoverageSemantic:
+	case CoverageSemantic, CoverageSemanticChoice:
 		if _, err := ioprofile.MissingRequiredSemanticProbes(ioprofile.SemanticCoverage{}, config.RequiredSemanticProbes); err != nil {
 			return SeedSelection{}, nil, err
+		}
+	case CoverageChoice:
+		if len(config.RequiredSemanticProbes) != 0 {
+			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
 		}
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown coverage mode %q", config.Coverage)
 	}
+	if coverageHasChoice(config.Coverage) && config.ChoiceTraceLimit == 0 {
+		return SeedSelection{}, nil, errors.New("choice coverage requires an enabled choice trace")
+	}
 	switch normalizedKeepSuccesses(config.KeepSuccesses) {
 	case KeepSuccessesNone:
 		if config.SuccessArtifactLimit != 0 || config.SuccessBytesLimit != 0 {
-			return SeedSelection{}, nil, fmt.Errorf("disabled success retention does not accept capacity limits")
+			return SeedSelection{}, nil, errors.New("disabled success retention does not accept capacity limits")
 		}
 	case KeepSuccessesNovel:
-		if config.Coverage != CoverageSemantic || config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
-			return SeedSelection{}, nil, fmt.Errorf("novel success retention requires semantic coverage and explicit count and byte limits")
+		if normalizedCoverage(config.Coverage) == CoverageNone || config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
+			return SeedSelection{}, nil, errors.New("novel success retention requires coverage and explicit count and byte limits")
 		}
 	case KeepSuccessesAll:
 		if config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
-			return SeedSelection{}, nil, fmt.Errorf("success retention requires explicit count and byte limits")
+			return SeedSelection{}, nil, errors.New("success retention requires explicit count and byte limits")
 		}
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown successful-run retention policy %q", config.KeepSuccesses)
 	}
-	if config.CollectRunEvidence && (selection.Count() != 1 || config.Coverage != CoverageSemantic) {
-		return SeedSelection{}, nil, fmt.Errorf("run evidence requires exactly one seed and semantic coverage")
+	if config.CollectRunEvidence && (selection.Count() != 1 || !coverageHasSemantic(config.Coverage)) {
+		return SeedSelection{}, nil, errors.New("run evidence requires exactly one seed and semantic coverage")
 	}
 	if config.Guide {
-		if config.Corpus == "" || config.Coverage != CoverageSemantic {
-			return SeedSelection{}, nil, fmt.Errorf("guided exploration requires a corpus and semantic coverage")
+		if config.Corpus == "" || normalizedCoverage(config.Coverage) == CoverageNone {
+			return SeedSelection{}, nil, errors.New("guided exploration requires a corpus and coverage")
 		}
 	} else if config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
-		return SeedSelection{}, nil, fmt.Errorf("a guided corpus requires guided exploration")
+		return SeedSelection{}, nil, errors.New("a guided corpus requires guided exploration")
 	}
 	switch config.OnFailure {
 	case PolicyFirst, PolicyAll:
 		if config.FailureBudget != 1 {
-			return SeedSelection{}, nil, fmt.Errorf("failure budget is only configurable in budget mode")
+			return SeedSelection{}, nil, errors.New("failure budget is only configurable in budget mode")
 		}
 	case PolicyBudget:
 		if config.FailureBudget == 0 {
-			return SeedSelection{}, nil, fmt.Errorf("failure budget must be positive")
+			return SeedSelection{}, nil, errors.New("failure budget must be positive")
 		}
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
 	}
 	if config.Executor == nil && len(config.SupervisorCommand) == 0 {
-		return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
+		return SeedSelection{}, nil, errors.New("supervisor command is required")
 	}
 	if len(config.IOROMounts) != 0 {
 		if config.Target.WorkingDir == "" {
-			return SeedSelection{}, nil, fmt.Errorf("read-only mounts require a target working directory")
+			return SeedSelection{}, nil, errors.New("read-only mounts require a target working directory")
 		}
 		if _, err := romount.ParseMappings(config.IOROMounts, config.Target.WorkingDir); err != nil {
 			return SeedSelection{}, nil, err

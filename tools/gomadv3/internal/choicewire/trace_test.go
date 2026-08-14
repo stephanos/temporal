@@ -3,9 +3,76 @@ package choicewire
 import (
 	"crypto/sha256"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 )
+
+func TestProjectExposesCanonicalChoiceFeatures(t *testing.T) {
+	target := sha256.Sum256([]byte("target"))
+	records := []Record{
+		{Ordinal: 0, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 24, Alternatives: 3, Selected: 0},
+		{Ordinal: 1, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 1},
+		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 40, Alternatives: 4, Selected: 2, Data: 2},
+	}
+	payload := encodeRecords(t, records)
+	projection, err := ProjectComplete(payload, CompleteMetadata{
+		Limit: HeaderBytes + uint64(len(payload)), Records: uint64(len(records)), SHA256: sha256.Sum256(payload),
+	}, target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runnableSite := projection.Sites[0].Fingerprint
+	selectResultSite := projection.Sites[2].Fingerprint
+	want := []Feature{
+		{Kind: FeatureRecordKind, Value: "decision/runnable"},
+		{Kind: FeatureRecordKind, Value: "decision/select-poll"},
+		{Kind: FeatureRecordKind, Value: "observation/select-result"},
+		{Kind: FeatureSite, Value: "runnable/" + runnableSite},
+		{Kind: FeatureSite, Value: "select-poll/missing"},
+		{Kind: FeatureSite, Value: "select-result/" + selectResultSite},
+		{Kind: FeatureBranchingSite, Value: "runnable/" + runnableSite + "/max-alternatives=3"},
+		{Kind: FeatureBranchingSite, Value: "select-poll/missing/max-alternatives=2"},
+		{Kind: FeatureSelectedAlternative, Value: "decision/runnable/" + runnableSite + "/first"},
+		{Kind: FeatureSelectedAlternative, Value: "decision/select-poll/missing/last"},
+		{Kind: FeatureSelectedAlternative, Value: "observation/select-result/" + selectResultSite + "/interior"},
+		{Kind: FeatureAdjacentPair, Value: "decision/runnable/" + runnableSite + "/first->decision/select-poll/missing/last"},
+		{Kind: FeatureAdjacentPair, Value: "decision/select-poll/missing/last->observation/select-result/" + selectResultSite + "/interior"},
+		{Kind: FeatureTerminal, Value: "complete"},
+	}
+	if !slices.Equal(projection.Features.Values, want) || projection.Features.AdjacentPairsObserved != 2 || projection.Features.AdjacentPairsTruncated {
+		t.Fatalf("choice features = %#v, want %#v", projection.Features, want)
+	}
+}
+
+func TestProjectBoundsUniqueAdjacentChoicePairs(t *testing.T) {
+	records := make([]Record, MaximumAdjacentChoicePairs+2)
+	for index := range records {
+		records[index] = Record{
+			Ordinal: uint64(index), Kind: KindRunnable, Flags: FlagDecision, SiteOffset: uint64(index + 1), Alternatives: 2, Selected: uint32(index % 2),
+		}
+	}
+	payload := encodeRecords(t, records)
+	projection, err := Project(payload, TerminalMetadata{
+		State: TerminalOverflow, Limit: HeaderBytes + uint64(len(payload)), Records: uint64(len(records)), SHA256: sha256.Sum256(payload),
+	}, sha256.Sum256([]byte("target")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var adjacent int
+	for _, feature := range projection.Features.Values {
+		if feature.Kind == FeatureAdjacentPair {
+			adjacent++
+		}
+	}
+	if adjacent != MaximumAdjacentChoicePairs || projection.Features.AdjacentPairsObserved != MaximumAdjacentChoicePairs+1 || !projection.Features.AdjacentPairsTruncated {
+		t.Fatalf("bounded choice features = %#v", projection.Features)
+	}
+	wantTerminal := Feature{Kind: FeatureTerminal, Value: "overflow"}
+	if projection.Features.Values[len(projection.Features.Values)-1] != wantTerminal {
+		t.Fatalf("terminal feature = %#v, want %#v", projection.Features.Values[len(projection.Features.Values)-1], wantTerminal)
+	}
+}
 
 func TestImplementationIdentityAndProjectionAreCanonical(t *testing.T) {
 	target := sha256.Sum256([]byte("target"))

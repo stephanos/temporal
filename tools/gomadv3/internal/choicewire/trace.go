@@ -9,7 +9,10 @@ import (
 	"sort"
 )
 
-const MissingSiteFingerprint = "missing"
+const (
+	MissingSiteFingerprint     = "missing"
+	MaximumAdjacentChoicePairs = 4096
+)
 
 var (
 	ErrMalformed    = errors.New("malformed choice trace")
@@ -53,6 +56,32 @@ type Site struct {
 	MaximumAlternatives uint32
 }
 
+type FeatureKind string
+
+const (
+	FeatureRecordKind          FeatureKind = "record_kind"
+	FeatureSite                FeatureKind = "site"
+	FeatureBranchingSite       FeatureKind = "branching_site"
+	FeatureSelectedAlternative FeatureKind = "selected_alternative"
+	FeatureAdjacentPair        FeatureKind = "adjacent_pair"
+	FeatureTerminal            FeatureKind = "terminal"
+)
+
+type Feature struct {
+	Kind  FeatureKind `json:"kind"`
+	Value string      `json:"value"`
+}
+
+type FeatureProjection struct {
+	Values                 []Feature `json:"values"`
+	AdjacentPairsObserved  uint64    `json:"adjacent_pairs_observed"`
+	AdjacentPairsTruncated bool      `json:"adjacent_pairs_truncated"`
+}
+
+func (feature Feature) ID() string {
+	return string(feature.Kind) + "/" + feature.Value
+}
+
 type Projection struct {
 	Profile      string
 	Limit        uint64
@@ -60,6 +89,7 @@ type Projection struct {
 	SHA256       [sha256.Size]byte
 	Summary      Summary
 	Sites        []Site
+	Features     FeatureProjection
 }
 
 func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error) {
@@ -107,16 +137,7 @@ func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.S
 		if record.Alternatives > site.MaximumAlternatives {
 			site.MaximumAlternatives = record.Alternatives
 		}
-		if key.missing {
-			site.Fingerprint = MissingSiteFingerprint
-		} else {
-			var material [sha256.Size + 1 + 8]byte
-			copy(material[:sha256.Size], targetIdentity[:])
-			material[sha256.Size] = byte(record.Kind)
-			binary.BigEndian.PutUint64(material[sha256.Size+1:], record.SiteOffset)
-			digest := sha256.Sum256(material[:])
-			site.Fingerprint = hex.EncodeToString(digest[:])
-		}
+		site.Fingerprint = siteFingerprint(record, targetIdentity)
 		bySite[key] = site
 	}
 	sites := make([]Site, 0, len(bySite))
@@ -131,7 +152,150 @@ func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.S
 	})
 	return Projection{
 		Profile: Profile, Limit: metadata.Limit, PayloadBytes: uint64(len(payload)), SHA256: metadata.SHA256, Summary: trace.Summary, Sites: sites,
+		Features: projectFeatures(trace, sites, targetIdentity),
 	}, nil
+}
+
+func projectFeatures(trace Trace, sites []Site, targetIdentity [sha256.Size]byte) FeatureProjection {
+	recordFeatures := projectRecordFeatures(trace.Records, targetIdentity)
+	result := recordFeatures.projection
+	appendUniqueFeatures(&result, FeatureRecordKind, recordFeatures.recordKinds)
+
+	siteFeatures := make([]string, 0, len(sites))
+	for _, site := range sites {
+		siteFeatures = append(siteFeatures, kindName(site.Kind)+"/"+site.Fingerprint)
+	}
+	appendUniqueFeatures(&result, FeatureSite, siteFeatures)
+
+	branchingSites := make([]string, 0, len(sites))
+	for _, site := range sites {
+		maximum := recordFeatures.decisionMaximums[kindName(site.Kind)+"/"+site.Fingerprint]
+		if maximum > 1 {
+			branchingSites = append(branchingSites, fmt.Sprintf("%s/%s/max-alternatives=%d", kindName(site.Kind), site.Fingerprint, maximum))
+		}
+	}
+	appendUniqueFeatures(&result, FeatureBranchingSite, branchingSites)
+	appendUniqueFeatures(&result, FeatureSelectedAlternative, recordFeatures.selectedAlternatives)
+	appendUniqueFeatures(&result, FeatureAdjacentPair, recordFeatures.pairs)
+	appendUniqueFeatures(&result, FeatureTerminal, []string{terminalName(trace.Summary.Terminal)})
+	return result
+}
+
+type recordFeatureProjection struct {
+	projection           FeatureProjection
+	recordKinds          []string
+	selectedAlternatives []string
+	decisionMaximums     map[string]uint32
+	pairs                []string
+}
+
+func projectRecordFeatures(records []Record, targetIdentity [sha256.Size]byte) recordFeatureProjection {
+	result := recordFeatureProjection{
+		projection:  FeatureProjection{Values: []Feature{}},
+		recordKinds: make([]string, 0, 3), selectedAlternatives: make([]string, 0, len(records)),
+		decisionMaximums: make(map[string]uint32), pairs: make([]string, 0, min(len(records), MaximumAdjacentChoicePairs)),
+	}
+	seenRecordKinds := make(map[string]struct{}, 3)
+	seenSelectedAlternatives := make(map[string]struct{}, len(records))
+	seenPairs := make(map[string]struct{}, min(len(records), MaximumAdjacentChoicePairs))
+	previousIdentity := ""
+	for _, record := range records {
+		role := recordRole(record)
+		kind := kindName(record.Kind)
+		site := siteFingerprint(record, targetIdentity)
+		selectedClass := alternativeClass(record.Alternatives, record.Selected)
+		recordKind := role + "/" + kind
+		if _, found := seenRecordKinds[recordKind]; !found {
+			seenRecordKinds[recordKind] = struct{}{}
+			result.recordKinds = append(result.recordKinds, recordKind)
+		}
+		recordIdentity := role + "/" + kind + "/" + site + "/" + selectedClass
+		if _, found := seenSelectedAlternatives[recordIdentity]; !found {
+			seenSelectedAlternatives[recordIdentity] = struct{}{}
+			result.selectedAlternatives = append(result.selectedAlternatives, recordIdentity)
+		}
+		if previousIdentity != "" {
+			result.projection.AdjacentPairsObserved++
+			pair := previousIdentity + "->" + recordIdentity
+			if _, duplicate := seenPairs[pair]; !duplicate {
+				if len(result.pairs) == MaximumAdjacentChoicePairs {
+					result.projection.AdjacentPairsTruncated = true
+				} else {
+					seenPairs[pair] = struct{}{}
+					result.pairs = append(result.pairs, pair)
+				}
+			}
+		}
+		previousIdentity = recordIdentity
+		key := kind + "/" + site
+		if record.Flags&FlagDecision != 0 && record.Alternatives > result.decisionMaximums[key] {
+			result.decisionMaximums[key] = record.Alternatives
+		}
+	}
+	return result
+}
+
+func appendUniqueFeatures(projection *FeatureProjection, kind FeatureKind, values []string) {
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		if _, duplicate := seen[value]; duplicate {
+			continue
+		}
+		seen[value] = struct{}{}
+		projection.Values = append(projection.Values, Feature{Kind: kind, Value: value})
+	}
+}
+
+func siteFingerprint(record Record, targetIdentity [sha256.Size]byte) string {
+	if record.Flags&FlagSiteMissing != 0 {
+		return MissingSiteFingerprint
+	}
+	var material [sha256.Size + 1 + 8]byte
+	copy(material[:sha256.Size], targetIdentity[:])
+	material[sha256.Size] = byte(record.Kind)
+	binary.BigEndian.PutUint64(material[sha256.Size+1:], record.SiteOffset)
+	digest := sha256.Sum256(material[:])
+	return hex.EncodeToString(digest[:])
+}
+
+func recordRole(record Record) string {
+	if record.Flags&FlagDecision != 0 {
+		return "decision"
+	}
+	return "observation"
+}
+
+func kindName(kind Kind) string {
+	switch kind {
+	case KindRunnable:
+		return "runnable"
+	case KindSelectPoll:
+		return "select-poll"
+	case KindSelectResult:
+		return "select-result"
+	default:
+		return "unknown"
+	}
+}
+
+func alternativeClass(alternatives, selected uint32) string {
+	switch {
+	case alternatives == 1:
+		return "only"
+	case selected == 0:
+		return "first"
+	case selected == alternatives-1:
+		return "last"
+	default:
+		return "interior"
+	}
+}
+
+func terminalName(terminal TerminalState) string {
+	if terminal == TerminalOverflow {
+		return "overflow"
+	}
+	return "complete"
 }
 
 func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, error) {

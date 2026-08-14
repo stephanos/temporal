@@ -1,6 +1,7 @@
 package safefile
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -8,9 +9,19 @@ import (
 )
 
 func Replace(path string, contents []byte, mode os.FileMode) (retErr error) {
+	return ReplaceContext(context.Background(), path, contents, mode)
+}
+
+func ReplaceContext(ctx context.Context, path string, contents []byte, mode os.FileMode) (retErr error) {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	directory := filepath.Dir(path)
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return fmt.Errorf("create parent directory: %w", err)
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	temporary, err := os.CreateTemp(directory, ".safefile-*")
 	if err != nil {
@@ -28,11 +39,21 @@ func Replace(path string, contents []byte, mode os.FileMode) (retErr error) {
 	if _, err := temporary.Write(contents); err != nil {
 		return errors.Join(fmt.Errorf("write replacement: %w", err), temporary.Close())
 	}
+	if err := temporary.Sync(); err != nil {
+		return errors.Join(fmt.Errorf("sync replacement: %w", err), temporary.Close())
+	}
 	if err := temporary.Close(); err != nil {
 		return fmt.Errorf("close replacement: %w", err)
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	if err := os.Rename(temporaryPath, path); err != nil {
 		return fmt.Errorf("publish replacement: %w", err)
 	}
-	return nil
+	directoryFile, err := os.Open(directory)
+	if err != nil {
+		return fmt.Errorf("open replacement directory: %w", err)
+	}
+	return errors.Join(directoryFile.Sync(), directoryFile.Close())
 }
