@@ -449,6 +449,57 @@ func TestRunRequiresBoundedChoiceTraceCapacity(t *testing.T) {
 	}
 }
 
+func TestValidateConfigRequiresBoundedSingleSeedChoiceFrontier(t *testing.T) {
+	valid := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+	valid.Strategy = StrategyChoiceFrontier
+	valid.ChoiceTraceLimit = process.MinimumChoiceTraceBytes
+	valid.MaxRuns = 8
+	valid.MaxChoiceDepth = 4
+	valid.MaxFrontierBytes = 1 << 20
+	if _, _, err := validateConfig(valid); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, test := range []struct {
+		name      string
+		configure func(*Config)
+		want      string
+	}{
+		{name: "multiple seeds", configure: func(config *Config) { config.Seeds = "7-8" }, want: "exactly one base seed"},
+		{name: "guidance", configure: func(config *Config) {
+			config.Guide = true
+			config.Corpus = t.TempDir()
+			config.Coverage = CoverageSemantic
+		}, want: "does not support guided exploration"},
+		{name: "missing choice trace", configure: func(config *Config) { config.ChoiceTraceLimit = 0 }, want: "requires an enabled choice trace"},
+		{name: "missing run bound", configure: func(config *Config) { config.MaxRuns = 0 }, want: "max runs"},
+		{name: "missing depth bound", configure: func(config *Config) { config.MaxChoiceDepth = 0 }, want: "choice depth"},
+		{name: "missing frontier bound", configure: func(config *Config) { config.MaxFrontierBytes = 0 }, want: "frontier bytes"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := valid
+			test.configure(&config)
+			if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("validateConfig() error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestValidateConfigRejectsFrontierBoundsForSeedStrategy(t *testing.T) {
+	for _, configure := range []func(*Config){
+		func(config *Config) { config.MaxRuns = 1 },
+		func(config *Config) { config.MaxChoiceDepth = 1 },
+		func(config *Config) { config.MaxFrontierBytes = 1 },
+	} {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+		configure(&config)
+		if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "choice-frontier strategy") {
+			t.Fatalf("validateConfig() error = %v", err)
+		}
+	}
+}
+
 func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 	config.KeepSuccesses = KeepSuccessesAll
@@ -802,6 +853,128 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	})
 	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v2" || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
 		t.Fatalf("artifact choice profile = %#v", opened.Manifest.ChoiceProfile)
+	}
+}
+
+func TestRunChoiceFrontierExecutesRootAndEveryNonSelectedRank(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	executor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 2)
+	config.Strategy = StrategyChoiceFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 8
+	config.MaxChoiceDepth = 4
+	config.MaxFrontierBytes = 1 << 20
+
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopFrontierExhausted || summary.Frontier == nil || summary.Frontier.CommittedRounds != 2 || summary.Frontier.SeenPrefixes != 2 {
+		t.Fatalf("frontier summary = %#v", summary)
+	}
+	executor.mu.Lock()
+	requests := append([]process.Request(nil), executor.requests...)
+	executor.mu.Unlock()
+	if len(requests) != 2 || requests[0].Choice == nil || requests[0].Choice.Mode != choicewire.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choicewire.ModePrefix || requests[1].Choice.Tape == nil || requests[1].Choice.Tape.Decisions[0].Selected != 1 {
+		t.Fatalf("frontier requests = %#v", requests)
+	}
+	batch, err := artifact.OpenBatch(summary.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Record.Strategy != string(StrategyChoiceFrontier) || batch.Record.Frontier == nil || len(batch.Runs) != 2 || batch.Runs[1].ParentCandidateSHA256 == "" || batch.Runs[1].ForcedDepth == nil || *batch.Runs[1].ForcedDepth != 1 {
+		t.Fatalf("frontier batch = %#v", batch)
+	}
+}
+
+func TestRunChoiceFrontierResumeRerunsTheWholeIncompleteRound(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	baseExecutor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, frontierInterruptExecutor{frontier: baseExecutor}, "7", PolicyAll, 2)
+	config.Strategy = StrategyChoiceFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 8
+	config.MaxChoiceDepth = 4
+	config.MaxFrontierBytes = 1 << 20
+
+	partial, err := Run(context.Background(), config)
+	var hostErr *HostError
+	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.Frontier == nil || partial.Frontier.CommittedRounds != 1 {
+		t.Fatalf("partial frontier = %#v, error = %v", partial, err)
+	}
+	resumedExecutor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	resumed, err := Run(context.Background(), Config{
+		ResumeBatch: partial.BatchPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.Frontier == nil || resumed.Frontier.CommittedRounds != 2 || resumed.StopReason != StopFrontierExhausted {
+		t.Fatalf("resumed frontier = %#v", resumed)
+	}
+	batch, err := artifact.OpenBatch(resumed.BatchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(batch.Runs) != 2 || batch.Record.RecoveryExecutions != 1 {
+		t.Fatalf("resumed frontier batch = %#v", batch)
+	}
+}
+
+func TestRunChoiceFrontierExpandsCompleteTargetFailures(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+	executor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, exitCode: 2}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 2)
+	config.Strategy = StrategyChoiceFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 8
+	config.MaxChoiceDepth = 4
+	config.MaxFrontierBytes = 1 << 20
+
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Attempted != 2 || summary.Failures != 2 || summary.Succeeded != 0 || summary.StopReason != StopFrontierExhausted || len(summary.Artifacts) != 2 {
+		t.Fatalf("frontier target failures = %#v", summary)
+	}
+}
+
+func TestRunChoiceFrontierDiscoversBothPinnedSelectOutcomes(t *testing.T) {
+	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", ".toolchain"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	testdata, err := filepath.Abs(filepath.Join("..", "..", "testdata"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	supervisor := filepath.Join(t.TempDir(), "gomad")
+	command := exec.Command(filepath.Join(toolchainRoot, "bin", "go"), "build", "-trimpath", "-o", supervisor, "./cmd/gomad")
+	command.Dir = filepath.Join(testdata, "..")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("build pinned supervisor: %v: %s", err, output)
+	}
+	config := Config{
+		Strategy: StrategyChoiceFrontier, Seeds: "7", Parallel: 2,
+		RunTimeout: 10 * time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
+		OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
+		ChoiceTraceLimit: 1 << 20, MaxRuns: 16, MaxChoiceDepth: 32, MaxFrontierBytes: 4 << 20,
+		Artifacts: t.TempDir(), Target: target.Spec{
+			Kind: target.KindGoRun, Source: "./choice_frontier", WorkingDir: testdata, ToolchainRoot: toolchainRoot,
+		},
+		SupervisorCommand: []string{supervisor, "__supervisor"}, RunnerBuild: "sha256:" + strings.Repeat("0", 64),
+	}
+	summary, err := Run(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Frontier == nil || summary.Frontier.DeduplicatedOutcomes < 2 || summary.Attempted < 2 {
+		t.Fatalf("pinned frontier summary = %#v", summary)
 	}
 }
 
@@ -1587,6 +1760,41 @@ type fakeExecutor struct {
 	maximumActive int
 	requests      []process.Request
 	result        func(uint64) process.Result
+}
+
+type frontierExecutor struct {
+	t        *testing.T
+	buildKey string
+	limit    uint64
+	exitCode int
+	mu       sync.Mutex
+	requests []process.Request
+}
+
+type frontierInterruptExecutor struct {
+	frontier *frontierExecutor
+}
+
+func (executor frontierInterruptExecutor) Run(ctx context.Context, request process.Request) (process.Result, error) {
+	if request.Choice != nil && request.Choice.Mode == choicewire.ModePrefix {
+		return process.Result{}, errors.New("simulated frontier interruption")
+	}
+	return executor.frontier.Run(ctx, request)
+}
+
+func (executor *frontierExecutor) Run(_ context.Context, request process.Request) (process.Result, error) {
+	executor.mu.Lock()
+	executor.requests = append(executor.requests, request)
+	executor.mu.Unlock()
+	selected := uint32(0)
+	if request.Choice != nil && request.Choice.Mode == choicewire.ModePrefix {
+		selected = request.Choice.Tape.Decisions[len(request.Choice.Tape.Decisions)-1].Selected
+	}
+	result := processResult(executor.exitCode, "", "")
+	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choicewire.Record{{
+		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, Alternatives: 2, Selected: selected,
+	}})
+	return result, nil
 }
 
 type terminalErrorExecutor struct {

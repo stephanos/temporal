@@ -30,7 +30,8 @@
   "flags": {
     "decision": 1,
     "observation": 2,
-    "site_missing": 4
+    "site_missing": 4,
+    "rank_override": 8
   },
   "modes": {
     "seed": 0,

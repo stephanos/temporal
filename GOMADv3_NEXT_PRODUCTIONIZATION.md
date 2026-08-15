@@ -1,5 +1,7 @@
 # Gomad v3 Next: Productionization
 
+> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). The capability designs, invariants, verification plan, and exit criteria here remain normative.
+
 ## Goal
 
 Make the existing Gomad capability safe and economical for repeated developer and CI use. “Productionization” here means a dependable internal test service/tool, not enabling Gomad mode in production binaries or accepting hostile target code.
@@ -30,7 +32,7 @@ Operators and users should be able to answer:
 - Automatically uploading arbitrary artifacts or secrets to a shared service.
 - Preserving unlimited backward compatibility while artifact semantics are still evolving.
 
-## Capability 1: crash-consistent batch store
+## PROD-1: Crash-consistent batch store
 
 Move batch lifecycle and recovery behind a deep storage module. Runner should submit immutable run completions and a final summary; it should not manage publication ordering itself.
 
@@ -58,7 +60,7 @@ Add operator functions:
 
 Crash/fault injection at every file create, sync, rename, and delete boundary is part of the feature, not a later test improvement.
 
-## Capability 2: segmented, bounded journals
+## PROD-2: Segmented, bounded journals
 
 Replace the single unbounded `runs.jsonl` contract with a versioned segmented journal or another streaming format that has equivalent inspectability.
 
@@ -74,7 +76,7 @@ Each segment should be immutable after close, independently hashed, and referenc
 
 Capacity outcomes should be explicit: stop-before-next-run, publish-partial, discard-optional-success, or infrastructure failure. Defaults should never create a batch that its own reader rejects.
 
-## Capability 3: artifact lifecycle and data policy
+## PROD-3: Artifact lifecycle and data policy
 
 Add a versioned artifact policy to every campaign:
 
@@ -97,7 +99,7 @@ For environment secrets, support non-retained replay inputs as a distinct mode. 
 
 Do not invent application-level encryption in the first version. Rely on private files and approved encrypted storage, and make export policy explicit.
 
-## Capability 4: deterministic campaign plans, sharding, and merge
+## PROD-4: Deterministic campaign plans, sharding, and merge
 
 Separate campaign planning from execution. A canonical plan should contain target, platform bundle, profile, environment/mount identities, selection, strategy, bounds, and ordinal-to-seed/prefix mapping.
 
@@ -113,7 +115,7 @@ Each shard owns a disjoint canonical ordinal set. Merge validates plan identity,
 
 Start with filesystem artifacts and CI-native distribution. A remote scheduler can later consume the same plan/shard protocol without changing runner semantics.
 
-## Capability 5: immutable release and installation bundles
+## PROD-5: Immutable release and installation bundles
 
 Publish a versioned platform bundle containing or identifying:
 
@@ -135,7 +137,7 @@ Add conventional commands:
 
 Installation should stage, verify, and atomically activate a bundle. Keep the previous qualified bundle addressable for rollback. Never resolve an unpinned “latest” toolchain during target execution.
 
-## Capability 6: CI integration
+## PROD-6: CI integration
 
 Provide a supported CI entry point rather than relying on Makefile knowledge:
 
@@ -149,7 +151,7 @@ Provide a supported CI entry point rather than relying on Makefile knowledge:
 
 Add baseline comparison for support coverage, runtime, divergence, artifact bytes, and failure signatures. Avoid a check that is green merely because expected unsupported counts increased.
 
-## Capability 7: observability and reporting
+## PROD-7: Observability and reporting
 
 Keep stable JSON events as the primary machine interface and add an aggregate reporting layer:
 
@@ -164,7 +166,7 @@ Add `gomad report <batch...>` to produce canonical JSON and a concise human repo
 
 Trend data belongs outside immutable artifacts. Artifacts remain evidence; an external collector can aggregate their projections.
 
-## Capability 8: resource control and performance
+## PROD-8: Resource control and performance
 
 Make all significant resource limits explicit and enforce them at the owning module:
 
@@ -178,7 +180,7 @@ Use backpressure instead of spawning all work and relying on cancellation. Publi
 
 After correctness, add an immutable prepared-target cache keyed by toolchain, source/build inputs, build tags, environment contract, compatibility packs, adapters, and profile identity. Cache hits must revalidate the prepared binary and capability manifest. Fresh execution processes and per-run work directories remain mandatory.
 
-## Capability 9: release governance
+## PROD-9: Release governance
 
 Define supported schema and CLI compatibility explicitly:
 
@@ -269,6 +271,6 @@ At 10× campaign size, readers stream segments, shards cap local work, event sin
 - Qualification evidence, boundary approval, SBOM/notices, and rollback metadata are attached to the release.
 - Artifact retention and sensitive-data behavior are explicit and tested.
 
-## Recommended first slice
+## Recommended next slice
 
-Build the batch-store state machine, segmented bounded journal, and `gomad recover` together. Prove recovery with injected failures before adding sharding, remote artifacts, caches, or dashboards. This removes the largest operational risk and creates the storage substrate those later features require.
+Move the corrected publication and resume behavior behind the batch-store state machine, then add the segmented bounded journal and `gomad recover` together. Prove every mutation boundary leaves a published or recoverable state before adding sharding, remote artifacts, caches, or dashboards. This removes the largest remaining operational risk and creates the storage substrate those later features require.

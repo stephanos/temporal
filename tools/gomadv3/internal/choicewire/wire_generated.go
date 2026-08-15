@@ -27,7 +27,7 @@ var (
 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'\u008b', '"', '1', '¬', '\x17', '(', 'r', ')', '\r', 'ø', 'Ê', '\u0090', '1', 'Ý', '\u0086', '¸', '¨', '}', 'É', ';', '\\', 'd', 'f', 'Q', '\u008f', 'à', 'i', 'u', 'X', 'r', '\u009b', 'ê'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'B', '\u0084', 'O', '±', 'l', 'q', '¹', 'x', 'È', '\u0089', 'Õ', 'r', 'Á', 'æ', 'W', '¾', '}', 'y', 'Ô', '²', '\u008e', 'k', '7', '\u009b', '\x14', 'h', '\x7f', '×', '\u0084', '¤', 'a', '\x1d'}
 )
 
 type Kind uint8
@@ -41,9 +41,10 @@ const (
 type Flags uint8
 
 const (
-	FlagDecision    Flags = 1
-	FlagObservation Flags = 2
-	FlagSiteMissing Flags = 4
+	FlagDecision     Flags = 1
+	FlagObservation  Flags = 2
+	FlagSiteMissing  Flags = 4
+	FlagRankOverride Flags = 8
 )
 
 type Mode uint8
@@ -156,8 +157,11 @@ func validateRecord(value Record) error {
 	if value.Kind < KindRunnable || value.Kind > KindSelectResult {
 		return errors.New("invalid choice trace kind")
 	}
-	if value.Flags & ^(FlagDecision|FlagObservation|FlagSiteMissing) != 0 || value.Flags&(FlagDecision|FlagObservation) == 0 || value.Flags&(FlagDecision|FlagObservation) == FlagDecision|FlagObservation {
+	if value.Flags & ^(FlagDecision|FlagObservation|FlagSiteMissing|FlagRankOverride) != 0 || value.Flags&(FlagDecision|FlagObservation) == 0 || value.Flags&(FlagDecision|FlagObservation) == FlagDecision|FlagObservation {
 		return errors.New("invalid choice trace flags")
+	}
+	if value.Flags&FlagRankOverride != 0 && (value.Flags&FlagDecision == 0 || value.Kind == KindSelectResult) {
+		return errors.New("invalid choice rank override")
 	}
 	if value.Kind == KindSelectResult && value.Flags&FlagObservation == 0 || value.Kind != KindSelectResult && value.Flags&FlagDecision == 0 {
 		return errors.New("invalid choice trace kind flags")
@@ -170,7 +174,7 @@ func validateRecord(value Record) error {
 	}
 	selectedZero := zero(value.SelectedIdentity[:])
 	setZero := zero(value.AlternativeSetDigest[:])
-	if value.Flags&FlagDecision != 0 && (selectedZero || setZero) || value.Flags&FlagObservation != 0 && (!selectedZero || !setZero) {
+	if value.Flags&FlagDecision != 0 && (setZero || value.Flags&FlagRankOverride == 0 && selectedZero || value.Flags&FlagRankOverride != 0 && !selectedZero) || value.Flags&FlagObservation != 0 && (!selectedZero || !setZero) {
 		return errors.New("invalid choice trace alternative identities")
 	}
 	return nil
