@@ -81,11 +81,18 @@ type choiceSchema struct {
 		HeaderBytes int    `json:"header_bytes"`
 		RecordBytes int    `json:"record_bytes"`
 	} `json:"trace"`
+	Tape struct {
+		Magic          string `json:"magic"`
+		HeaderBytes    int    `json:"header_bytes"`
+		RecordBytes    int    `json:"record_bytes"`
+		ChecksumOffset int    `json:"checksum_offset"`
+	} `json:"tape"`
 	Terminal struct {
 		Magic  string `json:"magic"`
 		States struct {
 			Complete uint8 `json:"complete"`
 			Overflow uint8 `json:"overflow"`
+			Diverged uint8 `json:"diverged"`
 		} `json:"states"`
 		FrameBytes     int `json:"frame_bytes"`
 		ChecksumOffset int `json:"checksum_offset"`
@@ -100,6 +107,25 @@ type choiceSchema struct {
 		Observation uint8 `json:"observation"`
 		SiteMissing uint8 `json:"site_missing"`
 	} `json:"flags"`
+	Modes struct {
+		Seed   uint8 `json:"seed"`
+		Record uint8 `json:"record"`
+		Replay uint8 `json:"replay"`
+		Prefix uint8 `json:"prefix"`
+	} `json:"modes"`
+	DivergenceReasons struct {
+		Kind                uint8 `json:"kind"`
+		Site                uint8 `json:"site"`
+		Alternatives        uint8 `json:"alternatives"`
+		Selected            uint8 `json:"selected"`
+		AlternativeSet      uint8 `json:"alternative_set"`
+		TapeExhausted       uint8 `json:"tape_exhausted"`
+		TapeUnconsumed      uint8 `json:"tape_unconsumed"`
+		IdentityMissing     uint8 `json:"identity_missing"`
+		IdentityDuplicate   uint8 `json:"identity_duplicate"`
+		AlternativeCapacity uint8 `json:"alternative_capacity"`
+		Observation         uint8 `json:"observation"`
+	} `json:"divergence_reasons"`
 }
 
 type choiceTemplateData struct {
@@ -115,6 +141,8 @@ type choiceImplementationInputs struct {
 	RuntimeTemplate []byte
 	RuntimeOverlay  []byte
 	ToolchainPatch  []byte
+	HostTrace       []byte
+	HostTape        []byte
 }
 
 type output struct {
@@ -205,6 +233,8 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 		"protocol/choicewire_runtime.go.tmpl",
 		"overlay/src/runtime/gomad.go",
 		"go1.26.4.patch",
+		"internal/choicewire/trace.go",
+		"internal/choicewire/tape.go",
 	}
 	values := make([][]byte, len(paths))
 	for index, relative := range paths {
@@ -214,13 +244,16 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 		}
 		values[index] = value
 	}
-	return choiceImplementationInputs{Schema: values[0], CodecTemplate: values[1], RuntimeTemplate: values[2], RuntimeOverlay: values[3], ToolchainPatch: values[4]}, nil
+	return choiceImplementationInputs{
+		Schema: values[0], CodecTemplate: values[1], RuntimeTemplate: values[2], RuntimeOverlay: values[3], ToolchainPatch: values[4],
+		HostTrace: values[5], HostTape: values[6],
+	}, nil
 }
 
 func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Size]byte {
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomadv3-choice-implementation-source-v1"))
-	for _, input := range [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch} {
+	_, _ = hasher.Write([]byte("gomadv3-choice-implementation-source-v2"))
+	for _, input := range [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch, inputs.HostTrace, inputs.HostTape} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(input)))
 		_, _ = hasher.Write(size[:])
@@ -245,24 +278,43 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return choiceSchema{}, errors.New("choice wire schema has trailing data")
 	}
-	if len(definition.Trace.Magic) != 8 || len(definition.Terminal.Magic) != 8 {
+	if len(definition.Trace.Magic) != 8 || len(definition.Tape.Magic) != 8 || len(definition.Terminal.Magic) != 8 {
 		return choiceSchema{}, errors.New("choice wire schema magic must have 8 bytes")
 	}
 	checks := []bool{
 		definition.Version != 0,
-		definition.Profile == "gomadv3-choice-trace/v1",
+		definition.Profile == "gomadv3-choice-trace/v2",
 		definition.Trace.HeaderBytes == 64,
-		definition.Trace.RecordBytes == 48,
+		definition.Trace.RecordBytes == 96,
+		definition.Tape.HeaderBytes == 264,
+		definition.Tape.RecordBytes == 96,
+		definition.Tape.ChecksumOffset == 232,
 		definition.Terminal.States.Complete == 1,
 		definition.Terminal.States.Overflow == 2,
-		definition.Terminal.FrameBytes == 96,
-		definition.Terminal.ChecksumOffset == 64,
+		definition.Terminal.States.Diverged == 3,
+		definition.Terminal.FrameBytes == 312,
+		definition.Terminal.ChecksumOffset == 280,
 		definition.Kinds.Runnable == 1,
 		definition.Kinds.SelectPoll == 2,
 		definition.Kinds.SelectResult == 3,
 		definition.Flags.Decision == 1,
 		definition.Flags.Observation == 2,
 		definition.Flags.SiteMissing == 4,
+		definition.Modes.Seed == 0,
+		definition.Modes.Record == 1,
+		definition.Modes.Replay == 2,
+		definition.Modes.Prefix == 3,
+		definition.DivergenceReasons.Kind == 1,
+		definition.DivergenceReasons.Site == 2,
+		definition.DivergenceReasons.Alternatives == 3,
+		definition.DivergenceReasons.Selected == 4,
+		definition.DivergenceReasons.AlternativeSet == 5,
+		definition.DivergenceReasons.TapeExhausted == 6,
+		definition.DivergenceReasons.TapeUnconsumed == 7,
+		definition.DivergenceReasons.IdentityMissing == 8,
+		definition.DivergenceReasons.IdentityDuplicate == 9,
+		definition.DivergenceReasons.AlternativeCapacity == 10,
+		definition.DivergenceReasons.Observation == 11,
 	}
 	for _, valid := range checks {
 		if !valid {

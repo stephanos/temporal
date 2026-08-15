@@ -18,8 +18,8 @@ import (
 
 func BootstrapMain() (retErr error) {
 	defer func() {
-		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true}
-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource)))
+		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceTape: true}
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
 	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
@@ -74,7 +74,7 @@ func BootstrapMain() (retErr error) {
 	if err := syscall.Close(bootstrapActivationFD); err != nil {
 		return errors.Join(fmt.Errorf("close target activation: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
-	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace}
+	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceTape: request.ChoiceTapeBytes != 0}
 	if err := installTargetStage(capabilities); err != nil {
 		return err
 	}
@@ -92,10 +92,18 @@ func BootstrapMain() (retErr error) {
 		choiceTerminalFD := descriptorFor(targetStage, capabilities, choiceTerminalResource)
 		request.Env = append(request.Env,
 			choiceProfileEnvironmentName+"="+choicewire.Profile,
+			fmt.Sprintf("%s=%d", choiceModeEnvironmentName, request.ChoiceMode),
 			fmt.Sprintf("%s=%d", choiceTraceFDEnvironmentName, choiceTraceFD),
 			fmt.Sprintf("%s=%d", choiceTerminalFDEnvironmentName, choiceTerminalFD),
 			fmt.Sprintf("%s=%d", choiceTraceBytesEnvironmentName, request.ChoiceTraceLimit),
 		)
+		if request.ChoiceTapeBytes != 0 {
+			choiceTapeFD := descriptorFor(targetStage, capabilities, choiceTapeResource)
+			request.Env = append(request.Env,
+				fmt.Sprintf("%s=%d", choiceTapeFDEnvironmentName, choiceTapeFD),
+				fmt.Sprintf("%s=%d", choiceTapeBytesEnvironmentName, request.ChoiceTapeBytes),
+			)
+		}
 	}
 	return syscall.Exec(request.Command, argv, request.Env)
 }

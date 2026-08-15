@@ -18,9 +18,12 @@ type Termination string
 const maximumIOConfigBytes = 4096
 
 const choiceProfileEnvironmentName = "GOMADV3_CHOICE_PROFILE"
+const choiceModeEnvironmentName = "GOMADV3_CHOICE_MODE"
 const choiceTraceFDEnvironmentName = "GOMADV3_CHOICE_TRACE_FD"
 const choiceTerminalFDEnvironmentName = "GOMADV3_CHOICE_TERMINAL_FD"
 const choiceTraceBytesEnvironmentName = "GOMADV3_CHOICE_TRACE_BYTES"
+const choiceTapeFDEnvironmentName = "GOMADV3_CHOICE_TAPE_FD"
+const choiceTapeBytesEnvironmentName = "GOMADV3_CHOICE_TAPE_BYTES"
 
 const (
 	TerminationExit   Termination = "exit"
@@ -72,9 +75,12 @@ type ReadOnlyMountCapability struct {
 }
 
 type ChoiceCapability struct {
+	Mode                 choicewire.Mode
 	Profile              string
 	ImplementationSHA256 [sha256.Size]byte
+	ExecutionIdentity    choicewire.ExecutionIdentity
 	Limit                uint64
+	Tape                 *choicewire.Tape
 }
 
 type Result struct {
@@ -108,6 +114,8 @@ type ChoiceTrace struct {
 	ImplementationSHA256 [sha256.Size]byte
 	Limit                uint64
 	Trace                choicewire.Trace
+	TapeSHA256           [sha256.Size]byte
+	Decisions            uint64
 }
 
 func validateRequest(request Request) error {
@@ -154,6 +162,27 @@ func validateRequest(request Request) error {
 		if choice.ImplementationSHA256 == ([sha256.Size]byte{}) {
 			return errors.New("choice trace implementation identity is required")
 		}
+		if choice.Mode != choicewire.ModeRecord && choice.Mode != choicewire.ModeReplay && choice.Mode != choicewire.ModePrefix {
+			return errors.New("choice controller mode is invalid")
+		}
+		if choice.ExecutionIdentity.ImplementationSHA256 != ([sha256.Size]byte{}) && choice.ExecutionIdentity.ImplementationSHA256 != choice.ImplementationSHA256 {
+			return errors.New("choice controller implementation identities disagree")
+		}
+		if choice.Mode == choicewire.ModeRecord {
+			if choice.Tape != nil {
+				return errors.New("choice record mode cannot include a decision tape")
+			}
+		} else {
+			if choice.Tape == nil {
+				return errors.New("choice replay and prefix modes require a decision tape")
+			}
+			if len(choice.Tape.Bytes) > maximumChoiceTapeBytes {
+				return errors.New("choice decision tape exceeds its bound")
+			}
+			if _, err := choicewire.ValidateDecisionTape(*choice.Tape, choice.ExecutionIdentity); err != nil {
+				return fmt.Errorf("validate choice decision tape: %w", err)
+			}
+		}
 	}
 	if request.IO == nil {
 		return nil
@@ -198,7 +227,7 @@ func validateRequest(request Request) error {
 func validateChoiceEnvironment(environment []string) error {
 	for _, entry := range environment {
 		name, _, _ := strings.Cut(entry, "=")
-		if name == choiceProfileEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName {
+		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName {
 			return fmt.Errorf("target environment name %q is reserved", name)
 		}
 	}

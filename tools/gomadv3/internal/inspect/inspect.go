@@ -1,6 +1,7 @@
 package inspect
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -81,6 +82,9 @@ type Choices struct {
 	Records              uint64        `json:"records"`
 	BranchingRecords     uint64        `json:"branching_records"`
 	TerminalState        string        `json:"terminal_state"`
+	TapeSHA256           record.SHA256 `json:"tape_sha256,omitempty"`
+	Decisions            uint64        `json:"decisions"`
+	ExactReplayAvailable bool          `json:"exact_replay_available"`
 	Runnable             uint64        `json:"runnable"`
 	SelectPoll           uint64        `json:"select_poll"`
 	SelectResult         uint64        `json:"select_result"`
@@ -237,20 +241,28 @@ func projectChoices(opened artifact.Artifact) (Choices, error) {
 	if profile.Trace.TerminalState == "overflow" {
 		terminalState = choicewire.TerminalOverflow
 	}
-	projected, err := choicewire.Project(payload, choicewire.TerminalMetadata{
+	trace, err := choicewire.DecodeStoredTrace(profile.Name, payload, choicewire.TerminalMetadata{
 		State: terminalState, Limit: uint64(profile.Trace.Limit), Records: uint64(profile.Trace.Records), SHA256: traceIdentity,
-	}, targetIdentity)
+	})
+	if errors.Is(err, choicewire.ErrOverflow) && terminalState == choicewire.TerminalOverflow {
+		err = nil
+	}
 	if err != nil {
 		return Choices{}, fmt.Errorf("validate choice trace: %w", err)
+	}
+	projected, err := choicewire.ProjectTrace(trace, uint64(profile.Trace.Limit), targetIdentity)
+	if err != nil {
+		return Choices{}, fmt.Errorf("project choice trace: %w", err)
 	}
 	sites := make([]ChoiceSite, len(projected.Sites))
 	for index, site := range projected.Sites {
 		sites[index] = ChoiceSite{Fingerprint: site.Fingerprint, Kind: choiceKind(site.Kind), Count: site.Count, MaximumAlternatives: site.MaximumAlternatives}
 	}
 	return Choices{
-		Schema: "gomadv3.choice-inspection/v1", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
+		Schema: "gomadv3.choice-inspection/v2", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
 		Limit: projected.Limit, PayloadBytes: projected.PayloadBytes, SHA256: record.SHA256FromSum(projected.SHA256), Records: projected.Summary.Records,
 		BranchingRecords: projected.Summary.Branching, TerminalState: profile.Trace.TerminalState, Runnable: projected.Summary.Runnable,
+		TapeSHA256: profile.Trace.TapeSHA256, Decisions: uint64(profile.Trace.Decisions), ExactReplayAvailable: profile.Name == choicewire.Profile && profile.Trace.TapeSHA256 != "",
 		SelectPoll: projected.Summary.SelectPoll, SelectResult: projected.Summary.SelectResult, Sites: sites,
 	}, nil
 }

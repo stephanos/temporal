@@ -25,7 +25,8 @@ import (
 
 const ManifestSchema = "gomadv3.qualification-set/v2"
 const LegacyManifestSchema = "gomadv3.qualification-set/v1"
-const ReportSchema = "gomadv3.qualification-set-report/v3"
+const ReportSchema = "gomadv3.qualification-set-report/v4"
+const PreviousReportSchema = "gomadv3.qualification-set-report/v3"
 const LegacyReportSchema = "gomadv3.qualification-set-report/v2"
 
 const maximumCommandOutputBytes = 64 << 20
@@ -161,16 +162,17 @@ type EvidenceDimensions struct {
 }
 
 type SeedReport struct {
-	Seed             record.Uint64String `json:"seed"`
-	Classification   string              `json:"classification"`
-	EvidenceSHA256   record.SHA256       `json:"evidence_sha256,omitempty"`
-	Replayed         bool                `json:"replayed"`
-	ReplayMatch      bool                `json:"replay_match"`
-	ReplayDivergence string              `json:"replay_divergence,omitempty"`
-	ElapsedNanos     record.Uint64String `json:"elapsed_nanos"`
-	ArtifactBytes    record.Uint64String `json:"artifact_bytes"`
-	TraceBytes       record.Uint64String `json:"trace_bytes"`
-	Choice           ChoiceCoverage      `json:"choice"`
+	Seed              record.Uint64String `json:"seed"`
+	Classification    string              `json:"classification"`
+	EvidenceSHA256    record.SHA256       `json:"evidence_sha256,omitempty"`
+	Replayed          bool                `json:"replayed"`
+	ReplayMatch       bool                `json:"replay_match"`
+	ReplayDivergence  string              `json:"replay_divergence,omitempty"`
+	ChoiceReplayExact bool                `json:"choice_replay_exact,omitempty"`
+	ElapsedNanos      record.Uint64String `json:"elapsed_nanos"`
+	ArtifactBytes     record.Uint64String `json:"artifact_bytes"`
+	TraceBytes        record.Uint64String `json:"trace_bytes"`
+	Choice            ChoiceCoverage      `json:"choice"`
 }
 
 type ChoiceCoverage struct {
@@ -178,6 +180,9 @@ type ChoiceCoverage struct {
 	Profile                string               `json:"profile,omitempty"`
 	ImplementationSHA256   record.SHA256        `json:"implementation_sha256,omitempty"`
 	Limit                  record.Uint64String  `json:"limit,omitempty"`
+	TapeSHA256             record.SHA256        `json:"tape_sha256,omitempty"`
+	Decisions              record.Uint64String  `json:"decisions,omitempty"`
+	ExactReplayAvailable   bool                 `json:"exact_replay_available,omitempty"`
 	Features               []choicewire.Feature `json:"features"`
 	AdjacentPairsObserved  record.Uint64String  `json:"adjacent_pairs_observed"`
 	AdjacentPairsTruncated bool                 `json:"adjacent_pairs_truncated"`
@@ -523,12 +528,15 @@ func OpenReport(path string) (SetReport, error) {
 		}
 		return report, nil
 	}
-	if header.Schema != ReportSchema {
+	if header.Schema != ReportSchema && header.Schema != PreviousReportSchema {
 		return SetReport{}, invalidReport(fmt.Errorf("unsupported qualification set report schema %q", header.Schema))
 	}
 	var report SetReport
 	if err := record.DecodeCanonicalJSON(contents, &report); err != nil {
 		return SetReport{}, invalidReport(fmt.Errorf("decode qualification set report: %w", err))
+	}
+	if report.Schema == PreviousReportSchema {
+		report.Schema = ReportSchema
 	}
 	if err := validateSetReport(report); err != nil {
 		return SetReport{}, invalidReport(err)
@@ -937,9 +945,12 @@ func validateSetReport(report SetReport) error {
 			}
 		}
 		for seedIndex, seed := range suite.Seeds {
-			if seed.Choice.Features == nil || !validSetClassification(seed.Classification) || seedIndex >= len(report.Seeds) || seed.Seed != report.Seeds[seedIndex] {
+			if seed.Choice.Features == nil || seed.ChoiceReplayExact && (!seed.Replayed || !seed.ReplayMatch || !seed.Choice.ExactReplayAvailable || seed.Choice.TapeSHA256 == "") || !validSetClassification(seed.Classification) || seedIndex >= len(report.Seeds) || seed.Seed != report.Seeds[seedIndex] {
 				return fmt.Errorf("qualification set workload %s seed evidence is invalid", suite.ID)
 			}
+		}
+		if suite.Choice.ExactReplayAvailable && (!suite.Choice.Available || suite.Choice.Profile != choicewire.Profile) {
+			return fmt.Errorf("qualification set workload %s exact choice identity is invalid", suite.ID)
 		}
 		if suite.Classification == "qualified" && len(suite.Seeds) != len(report.Seeds) {
 			return fmt.Errorf("qualification set workload %s is missing qualified seed evidence", suite.ID)

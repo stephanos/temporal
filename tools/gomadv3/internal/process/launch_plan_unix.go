@@ -22,6 +22,7 @@ type launchCapabilities struct {
 	ioTranscript  bool
 	readOnlyMount bool
 	choiceTrace   bool
+	choiceTape    bool
 }
 
 type resourceName string
@@ -46,6 +47,7 @@ const (
 	ioROMountResponseResource resourceName = "io-ro-mount-response"
 	choiceTraceResource       resourceName = "choice-trace"
 	choiceTerminalResource    resourceName = "choice-terminal"
+	choiceTapeResource        resourceName = "choice-tape"
 )
 
 const (
@@ -119,6 +121,7 @@ var launchDescriptorSpecs = []descriptorSpec{
 	{resource: ioROMountResponseResource, supervisorFD: ioROMountResponseFD, bootstrapFD: bootstrapIOROMountResponseFD, targetFD: targetIOROMountResponseFD, readOnlyMount: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
 	{resource: choiceTraceResource, choiceTrace: true, closeOnBootstrapStart: true},
 	{resource: choiceTerminalResource, choiceTrace: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
+	{resource: choiceTapeResource, choiceTrace: true, closeOnBootstrapStart: true},
 }
 
 func descriptorLayout(stage launchStage, capabilities launchCapabilities) []descriptorBinding {
@@ -153,6 +156,9 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 			next = bindings[len(bindings)-1].fd + 1
 		}
 		bindings = append(bindings, descriptorBinding{resource: choiceTraceResource, fd: next}, descriptorBinding{resource: choiceTerminalResource, fd: next + 1})
+		if capabilities.choiceTape {
+			bindings = append(bindings, descriptorBinding{resource: choiceTapeResource, fd: next + 2})
+		}
 	}
 	return bindings
 }

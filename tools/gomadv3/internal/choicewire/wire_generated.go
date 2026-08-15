@@ -9,19 +9,25 @@ import (
 )
 
 const (
-	Profile                = "gomadv3-choice-trace/v1"
+	Profile                = "gomadv3-choice-trace/v2"
 	HeaderBytes            = 64
-	RecordBytes            = 48
-	TerminalFrameBytes     = 96
-	TerminalChecksumOffset = 64
+	RecordBytes            = 96
+	TapeHeaderBytes        = 264
+	TapeRecordBytes        = 96
+	TapeChecksumOffset     = 232
+	TerminalFrameBytes     = 312
+	TerminalChecksumOffset = 280
 	DigestBytes            = 32
-	wireVersion            = 1
+	wireVersion            = 2
+	Version1               = 1
+	Version2               = wireVersion
 )
 
 var (
-	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x01'}
-	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x01'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'\x00', 'À', 'B', 'ê', 'Ë', '1', '\u008d', 'Ó', ';', '\x16', 'Ê', '°', '\u0097', 'd', '\x1e', '!', '\u0087', '¯', 'Ã', '\u0091', 'z', 'Í', '³', 'p', 'æ', 'ë', 'õ', '\x13', 'ê', '*', '®', 'ô'}
+	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
+	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
+	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'\u008b', '"', '1', '¬', '\x17', '(', 'r', ')', '\r', 'ø', 'Ê', '\u0090', '1', 'Ý', '\u0086', '¸', '¨', '}', 'É', ';', '\\', 'd', 'f', 'Q', '\u008f', 'à', 'i', 'u', 'X', 'r', '\u009b', 'ê'}
 )
 
 type Kind uint8
@@ -38,6 +44,31 @@ const (
 	FlagDecision    Flags = 1
 	FlagObservation Flags = 2
 	FlagSiteMissing Flags = 4
+)
+
+type Mode uint8
+
+const (
+	ModeSeed   Mode = 0
+	ModeRecord Mode = 1
+	ModeReplay Mode = 2
+	ModePrefix Mode = 3
+)
+
+type DivergenceReason uint8
+
+const (
+	DivergenceKind                DivergenceReason = 1
+	DivergenceSite                DivergenceReason = 2
+	DivergenceAlternatives        DivergenceReason = 3
+	DivergenceSelected            DivergenceReason = 4
+	DivergenceAlternativeSet      DivergenceReason = 5
+	DivergenceTapeExhausted       DivergenceReason = 6
+	DivergenceTapeUnconsumed      DivergenceReason = 7
+	DivergenceIdentityMissing     DivergenceReason = 8
+	DivergenceIdentityDuplicate   DivergenceReason = 9
+	DivergenceAlternativeCapacity DivergenceReason = 10
+	DivergenceObservation         DivergenceReason = 11
 )
 
 type Header struct {
@@ -80,13 +111,15 @@ func PublishHeader(header []byte, nextOffset, recordCount uint64) error {
 }
 
 type Record struct {
-	Ordinal      uint64
-	Kind         Kind
-	Flags        Flags
-	Alternatives uint32
-	Selected     uint32
-	Data         uint32
-	SiteOffset   uint64
+	Ordinal              uint64
+	Kind                 Kind
+	Flags                Flags
+	Alternatives         uint32
+	Selected             uint32
+	Data                 uint32
+	SiteOffset           uint64
+	SelectedIdentity     [DigestBytes]byte
+	AlternativeSetDigest [DigestBytes]byte
 }
 
 func EncodeRecord(value Record) ([RecordBytes]byte, error) {
@@ -101,14 +134,18 @@ func EncodeRecord(value Record) ([RecordBytes]byte, error) {
 	binary.BigEndian.PutUint32(record[16:20], value.Selected)
 	binary.BigEndian.PutUint32(record[20:24], value.Data)
 	binary.BigEndian.PutUint64(record[24:32], value.SiteOffset)
+	copy(record[32:64], value.SelectedIdentity[:])
+	copy(record[64:96], value.AlternativeSetDigest[:])
 	return record, nil
 }
 
 func DecodeRecord(record []byte) (Record, error) {
-	if len(record) != RecordBytes || !zero(record[10:12]) || !zero(record[32:48]) {
+	if len(record) != RecordBytes || !zero(record[10:12]) {
 		return Record{}, errors.New("invalid choice trace record")
 	}
 	value := Record{Ordinal: binary.BigEndian.Uint64(record[:8]), Kind: Kind(record[8]), Flags: Flags(record[9]), Alternatives: binary.BigEndian.Uint32(record[12:16]), Selected: binary.BigEndian.Uint32(record[16:20]), Data: binary.BigEndian.Uint32(record[20:24]), SiteOffset: binary.BigEndian.Uint64(record[24:32])}
+	copy(value.SelectedIdentity[:], record[32:64])
+	copy(value.AlternativeSetDigest[:], record[64:96])
 	if err := validateRecord(value); err != nil {
 		return Record{}, err
 	}
@@ -131,7 +168,66 @@ func validateRecord(value Record) error {
 	if value.Flags&FlagSiteMissing != 0 && value.SiteOffset != 0 {
 		return errors.New("invalid missing choice trace site")
 	}
+	selectedZero := zero(value.SelectedIdentity[:])
+	setZero := zero(value.AlternativeSetDigest[:])
+	if value.Flags&FlagDecision != 0 && (selectedZero || setZero) || value.Flags&FlagObservation != 0 && (!selectedZero || !setZero) {
+		return errors.New("invalid choice trace alternative identities")
+	}
 	return nil
+}
+
+type TapeHeader struct {
+	TotalBytes         uint64
+	Records            uint64
+	SourceTraceHash    [DigestBytes]byte
+	TargetHash         [DigestBytes]byte
+	ImplementationHash [DigestBytes]byte
+	ToolchainBuildKey  [DigestBytes]byte
+	PlatformHash       [DigestBytes]byte
+	PayloadHash        [DigestBytes]byte
+}
+
+func EncodeTapeHeader(value TapeHeader) ([TapeHeaderBytes]byte, error) {
+	var header [TapeHeaderBytes]byte
+	if value.Records > (^uint64(0)-TapeHeaderBytes)/TapeRecordBytes || value.TotalBytes != TapeHeaderBytes+value.Records*TapeRecordBytes || zero(value.SourceTraceHash[:]) || zero(value.TargetHash[:]) || zero(value.ImplementationHash[:]) || zero(value.ToolchainBuildKey[:]) || zero(value.PlatformHash[:]) {
+		return header, errors.New("invalid choice tape header values")
+	}
+	copy(header[:8], tapeMagic[:])
+	binary.BigEndian.PutUint32(header[8:12], wireVersion)
+	binary.BigEndian.PutUint32(header[12:16], TapeHeaderBytes)
+	binary.BigEndian.PutUint32(header[16:20], TapeRecordBytes)
+	binary.BigEndian.PutUint64(header[24:32], value.TotalBytes)
+	binary.BigEndian.PutUint64(header[32:40], value.Records)
+	copy(header[40:72], value.SourceTraceHash[:])
+	copy(header[72:104], value.TargetHash[:])
+	copy(header[104:136], value.ImplementationHash[:])
+	copy(header[136:168], value.ToolchainBuildKey[:])
+	copy(header[168:200], value.PlatformHash[:])
+	copy(header[200:232], value.PayloadHash[:])
+	checksum := sum256(header[:TapeChecksumOffset])
+	copy(header[TapeChecksumOffset:], checksum[:])
+	return header, nil
+}
+
+func DecodeTapeHeader(header []byte) (TapeHeader, error) {
+	if len(header) != TapeHeaderBytes || !bytes.Equal(header[:8], tapeMagic[:]) || binary.BigEndian.Uint32(header[8:12]) != wireVersion || binary.BigEndian.Uint32(header[12:16]) != TapeHeaderBytes || binary.BigEndian.Uint32(header[16:20]) != TapeRecordBytes || !zero(header[20:24]) {
+		return TapeHeader{}, errors.New("invalid choice tape header")
+	}
+	checksum := sum256(header[:TapeChecksumOffset])
+	if !bytes.Equal(header[TapeChecksumOffset:], checksum[:]) {
+		return TapeHeader{}, errors.New("choice tape header checksum mismatch")
+	}
+	value := TapeHeader{TotalBytes: binary.BigEndian.Uint64(header[24:32]), Records: binary.BigEndian.Uint64(header[32:40])}
+	copy(value.SourceTraceHash[:], header[40:72])
+	copy(value.TargetHash[:], header[72:104])
+	copy(value.ImplementationHash[:], header[104:136])
+	copy(value.ToolchainBuildKey[:], header[136:168])
+	copy(value.PlatformHash[:], header[168:200])
+	copy(value.PayloadHash[:], header[200:232])
+	if value.Records > (^uint64(0)-TapeHeaderBytes)/TapeRecordBytes || value.TotalBytes != TapeHeaderBytes+value.Records*TapeRecordBytes || zero(value.SourceTraceHash[:]) || zero(value.TargetHash[:]) || zero(value.ImplementationHash[:]) || zero(value.ToolchainBuildKey[:]) || zero(value.PlatformHash[:]) {
+		return TapeHeader{}, errors.New("invalid choice tape bounds or identity")
+	}
+	return value, nil
 }
 
 type TerminalState uint8
@@ -139,13 +235,21 @@ type TerminalState uint8
 const (
 	TerminalComplete TerminalState = 1
 	TerminalOverflow TerminalState = 2
+	TerminalDiverged TerminalState = 3
 )
 
 type Terminal struct {
-	State        TerminalState
-	Records      uint64
-	MappingBytes uint64
-	PayloadHash  [DigestBytes]byte
+	State            TerminalState
+	Records          uint64
+	MappingBytes     uint64
+	PayloadHash      [DigestBytes]byte
+	DivergenceReason DivergenceReason
+	DivergentOrdinal uint64
+	TapeRecords      uint64
+	ExpectedPresent  bool
+	ObservedPresent  bool
+	Expected         Record
+	Observed         Record
 }
 
 func EncodeTerminal(value Terminal) [TerminalFrameBytes]byte {
@@ -156,23 +260,64 @@ func EncodeTerminal(value Terminal) [TerminalFrameBytes]byte {
 	binary.BigEndian.PutUint64(frame[16:24], value.Records)
 	binary.BigEndian.PutUint64(frame[24:32], value.MappingBytes)
 	copy(frame[32:64], value.PayloadHash[:])
+	frame[13] = byte(value.DivergenceReason)
+	if value.ExpectedPresent {
+		frame[64] = 1
+	}
+	if value.ObservedPresent {
+		frame[65] = 1
+	}
+	binary.BigEndian.PutUint64(frame[72:80], value.DivergentOrdinal)
+	binary.BigEndian.PutUint64(frame[80:88], value.TapeRecords)
+	if value.ExpectedPresent {
+		record, _ := EncodeRecord(value.Expected)
+		copy(frame[88:184], record[:])
+	}
+	if value.ObservedPresent {
+		record, _ := EncodeRecord(value.Observed)
+		copy(frame[184:280], record[:])
+	}
 	checksum := sum256(frame[:TerminalChecksumOffset])
 	copy(frame[TerminalChecksumOffset:], checksum[:])
 	return frame
 }
 
 func DecodeTerminal(frame []byte) (Terminal, error) {
-	if len(frame) != TerminalFrameBytes || !bytes.Equal(frame[:8], terminalMagic[:]) || binary.BigEndian.Uint32(frame[8:12]) != wireVersion || !zero(frame[13:16]) {
+	if len(frame) != TerminalFrameBytes || !bytes.Equal(frame[:8], terminalMagic[:]) || binary.BigEndian.Uint32(frame[8:12]) != wireVersion || !zero(frame[14:16]) || !zero(frame[66:72]) || frame[64] > 1 || frame[65] > 1 {
 		return Terminal{}, errors.New("invalid choice terminal frame")
 	}
 	checksum := sum256(frame[:TerminalChecksumOffset])
 	if !bytes.Equal(frame[TerminalChecksumOffset:], checksum[:]) {
 		return Terminal{}, errors.New("choice terminal checksum mismatch")
 	}
-	value := Terminal{State: TerminalState(frame[12]), Records: binary.BigEndian.Uint64(frame[16:24]), MappingBytes: binary.BigEndian.Uint64(frame[24:32])}
+	value := Terminal{State: TerminalState(frame[12]), DivergenceReason: DivergenceReason(frame[13]), Records: binary.BigEndian.Uint64(frame[16:24]), MappingBytes: binary.BigEndian.Uint64(frame[24:32]), DivergentOrdinal: binary.BigEndian.Uint64(frame[72:80]), TapeRecords: binary.BigEndian.Uint64(frame[80:88]), ExpectedPresent: frame[64] != 0, ObservedPresent: frame[65] != 0}
 	copy(value.PayloadHash[:], frame[32:64])
-	if value.State < TerminalComplete || value.State > TerminalOverflow || value.MappingBytes < HeaderBytes || (value.MappingBytes-HeaderBytes)%RecordBytes != 0 || value.Records != (value.MappingBytes-HeaderBytes)/RecordBytes {
+	if value.ExpectedPresent {
+		var decodeErr error
+		value.Expected, decodeErr = DecodeRecord(frame[88:184])
+		if decodeErr != nil {
+			return Terminal{}, decodeErr
+		}
+	}
+	if value.ObservedPresent {
+		var decodeErr error
+		value.Observed, decodeErr = DecodeRecord(frame[184:280])
+		if decodeErr != nil {
+			return Terminal{}, decodeErr
+		}
+	}
+	if value.State < TerminalComplete || value.State > TerminalDiverged || value.MappingBytes < HeaderBytes || (value.MappingBytes-HeaderBytes)%RecordBytes != 0 || value.Records != (value.MappingBytes-HeaderBytes)/RecordBytes {
 		return Terminal{}, errors.New("invalid choice terminal values")
+	}
+	if value.State == TerminalDiverged {
+		if value.DivergenceReason < DivergenceKind || value.DivergenceReason > DivergenceObservation {
+			return Terminal{}, errors.New("invalid choice terminal divergence")
+		}
+		if value.ExpectedPresent && value.Expected.Ordinal != value.DivergentOrdinal || value.ObservedPresent && value.Observed.Ordinal != value.DivergentOrdinal {
+			return Terminal{}, errors.New("choice terminal divergence ordinal mismatch")
+		}
+	} else if value.DivergenceReason != 0 || value.DivergentOrdinal != 0 || value.ExpectedPresent || value.ObservedPresent || !zero(frame[88:280]) {
+		return Terminal{}, errors.New("unexpected choice terminal divergence metadata")
 	}
 	return value, nil
 }

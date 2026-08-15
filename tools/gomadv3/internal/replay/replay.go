@@ -38,12 +38,21 @@ type Config struct {
 }
 
 type Result struct {
-	Artifact   artifact.Artifact
-	Verified   bool
-	Match      bool
-	Diagnostic bool
-	Divergence string
+	Artifact           artifact.Artifact
+	Verified           bool
+	Match              bool
+	Diagnostic         bool
+	Divergence         string
+	ChoiceReplayStatus string
 }
+
+const (
+	ChoiceReplayNone        = "none"
+	ChoiceReplayAvailable   = "available"
+	ChoiceReplayExact       = "exact"
+	ChoiceReplayDiverged    = "diverged"
+	ChoiceReplayUnavailable = "unavailable"
+)
 
 type PreflightError struct {
 	Err error
@@ -80,7 +89,19 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	if err := ioprofile.Default().VerifyAdapters(opened.Manifest.Target.Adapters); err != nil {
 		return Result{}, &PreflightError{Err: fmt.Errorf("verify replay adapters: %w", err)}
 	}
-	result = Result{Artifact: opened.Detached(), Verified: true, Diagnostic: opened.Manifest.ReplayMode == record.ReplayDiagnostic}
+	result = Result{Artifact: opened.Detached(), Verified: true, Diagnostic: opened.Manifest.ReplayMode == record.ReplayDiagnostic, ChoiceReplayStatus: ChoiceReplayNone}
+	choiceCapability, choiceUnavailable, err := choiceCapabilityForArtifact(opened)
+	if err != nil {
+		return Result{}, &PreflightError{Err: err}
+	}
+	if choiceUnavailable {
+		result.ChoiceReplayStatus = ChoiceReplayUnavailable
+		result.Divergence = "choice_profile.replay_unavailable"
+		return result, nil
+	}
+	if choiceCapability != nil {
+		result.ChoiceReplayStatus = ChoiceReplayAvailable
+	}
 	if config.VerifyOnly {
 		return result, nil
 	}
@@ -184,14 +205,6 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 			Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
 		},
 	}
-	var choiceCapability *process.ChoiceCapability
-	if choices := manifest.ChoiceProfile; choices != nil {
-		implementation, parseErr := choices.ImplementationSHA256.Bytes()
-		if parseErr != nil {
-			return Result{}, fmt.Errorf("decode choice profile implementation identity: %w", parseErr)
-		}
-		choiceCapability = &process.ChoiceCapability{Profile: choices.Name, ImplementationSHA256: implementation, Limit: uint64(choices.Trace.Limit)}
-	}
 	observed, err := executor.Run(ctx, process.Request{
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
 		BootstrapCommand: replayBootstrapCommand(config),
@@ -204,6 +217,11 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 		IO: ioCapability, Choice: choiceCapability,
 	})
 	if err != nil {
+		if divergence, controlled := onlyChoiceReplayDivergence(err); controlled {
+			result.ChoiceReplayStatus = ChoiceReplayDiverged
+			result.Divergence = fmt.Sprintf("choice_profile.divergence.ordinal[%d].%s", divergence.Divergence.Ordinal, choicewire.DivergenceReasonName(divergence.Divergence.Reason))
+			return result, nil
+		}
 		return Result{}, fmt.Errorf("execute replay target: %w", err)
 	}
 	var observedWorld *worldrecord.Bundle
@@ -225,7 +243,92 @@ func Replay(ctx context.Context, config Config) (result Result, retErr error) {
 	}
 	result.Divergence = firstDivergence(manifest, observed, observedWorld)
 	result.Match = result.Divergence == ""
+	if choiceCapability != nil {
+		if choiceTraceDivergence(manifest, observed) == "" {
+			result.ChoiceReplayStatus = ChoiceReplayExact
+		} else {
+			result.ChoiceReplayStatus = ChoiceReplayDiverged
+		}
+	}
 	return result, nil
+}
+
+func onlyChoiceReplayDivergence(err error) (*process.ChoiceReplayDivergenceError, bool) {
+	var found *process.ChoiceReplayDivergenceError
+	var visit func(error) bool
+	visit = func(current error) bool {
+		if current == nil {
+			return true
+		}
+		if divergence, ok := current.(*process.ChoiceReplayDivergenceError); ok {
+			if found != nil && found != divergence {
+				return false
+			}
+			found = divergence
+			return true
+		}
+		if joined, ok := current.(interface{ Unwrap() []error }); ok {
+			for _, child := range joined.Unwrap() {
+				if !visit(child) {
+					return false
+				}
+			}
+			return true
+		}
+		if wrapped := errors.Unwrap(current); wrapped != nil {
+			return visit(wrapped)
+		}
+		return false
+	}
+	return found, visit(err) && found != nil
+}
+
+func choiceCapabilityForArtifact(opened artifact.Artifact) (*process.ChoiceCapability, bool, error) {
+	manifest := opened.Manifest
+	choices := manifest.ChoiceProfile
+	if choices == nil {
+		return nil, false, nil
+	}
+	if choices.Name == choicewire.LegacyProfile {
+		return nil, true, nil
+	}
+	implementation, err := choicewire.ImplementationIdentity(manifest.Toolchain.BuildKey)
+	if err != nil || choices.Name != choicewire.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) {
+		return nil, false, errors.New("artifact choice profile identity does not match this Runner")
+	}
+	payload, err := artifact.ReadPayload(opened, choices.Trace.File, uint64(choices.Trace.Limit))
+	if err != nil {
+		return nil, false, fmt.Errorf("read choice trace: %w", err)
+	}
+	digest, err := choices.Trace.SHA256.Bytes()
+	if err != nil {
+		return nil, false, fmt.Errorf("decode choice trace identity: %w", err)
+	}
+	trace, err := choicewire.DecodeStoredTrace(choices.Name, payload, choicewire.TerminalMetadata{
+		State: choicewire.TerminalComplete, Limit: uint64(choices.Trace.Limit), Records: uint64(choices.Trace.Records), SHA256: digest,
+	})
+	if err != nil {
+		return nil, false, fmt.Errorf("validate choice trace: %w", err)
+	}
+	targetSHA256, err := manifest.Target.SHA256.Bytes()
+	if err != nil {
+		return nil, false, fmt.Errorf("decode choice target identity: %w", err)
+	}
+	executionIdentity := choicewire.ExecutionIdentity{
+		TargetSHA256: targetSHA256, ToolchainBuildKey: manifest.Toolchain.BuildKey,
+		GOOS: manifest.Toolchain.TargetGOOS, GOARCH: manifest.Toolchain.TargetGOARCH, ImplementationSHA256: implementation,
+	}
+	tape, err := choicewire.ProjectDecisionTape(trace, executionIdentity)
+	if err != nil {
+		return nil, false, fmt.Errorf("derive choice replay tape: %w", err)
+	}
+	if choices.Trace.TapeSHA256 != record.SHA256FromSum(tape.SHA256) || uint64(choices.Trace.Decisions) != uint64(len(tape.Decisions)) {
+		return nil, false, errors.New("artifact choice tape identity does not match its trace")
+	}
+	return &process.ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choices.Name, ImplementationSHA256: implementation,
+		ExecutionIdentity: executionIdentity, Limit: uint64(choices.Trace.Limit), Tape: &tape,
+	}, false, nil
 }
 
 func replayEnvironment(recorded []record.Environment) []string {
@@ -278,26 +381,8 @@ func preflight(config Config) (opened artifact.Artifact, retErr error) {
 			return artifact.Artifact{}, fmt.Errorf("validate read-only mount artifact: %w", readErr)
 		}
 	}
-	if choices := manifest.ChoiceProfile; choices != nil {
-		implementation, identityErr := choicewire.ImplementationIdentity(manifest.Toolchain.BuildKey)
-		if identityErr != nil || choices.Name != choicewire.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) {
-			return artifact.Artifact{}, errors.New("artifact choice profile identity does not match this Runner")
-		}
-		payload, readErr := artifact.ReadPayload(opened, choices.Trace.File, uint64(choices.Trace.Limit))
-		if readErr != nil {
-			return artifact.Artifact{}, fmt.Errorf("read choice trace: %w", readErr)
-		}
-		digest, digestErr := choices.Trace.SHA256.Bytes()
-		if digestErr != nil {
-			return artifact.Artifact{}, digestErr
-		}
-		targetDigest, targetErr := manifest.Target.SHA256.Bytes()
-		if targetErr != nil {
-			return artifact.Artifact{}, targetErr
-		}
-		if _, projectErr := choicewire.ProjectComplete(payload, choicewire.CompleteMetadata{Limit: uint64(choices.Trace.Limit), Records: uint64(choices.Trace.Records), SHA256: digest}, targetDigest); projectErr != nil {
-			return artifact.Artifact{}, fmt.Errorf("validate choice trace: %w", projectErr)
-		}
+	if _, _, choiceErr := choiceCapabilityForArtifact(opened); choiceErr != nil {
+		return artifact.Artifact{}, choiceErr
 	}
 	if manifest.Runner.HostOS != runtime.GOOS || manifest.Runner.HostArch != runtime.GOARCH || manifest.Toolchain.TargetGOOS != runtime.GOOS || manifest.Toolchain.TargetGOARCH != runtime.GOARCH {
 		return artifact.Artifact{}, fmt.Errorf("artifact platform does not match host %s/%s", runtime.GOOS, runtime.GOARCH)
@@ -424,22 +509,8 @@ func firstDivergence(manifest record.Manifest, observed process.Result, observed
 	} else if observed.IOTranscript.Complete {
 		return "io_profile.transcript"
 	}
-	if choices := manifest.ChoiceProfile; choices != nil {
-		trace := observed.ChoiceTrace
-		if trace.Profile != choices.Name || trace.Limit != uint64(choices.Trace.Limit) || trace.Trace.Summary.Terminal != choicewire.TerminalComplete {
-			return "choice_profile.trace.complete"
-		}
-		if record.SHA256FromSum(trace.Trace.SHA256) != choices.Trace.SHA256 {
-			return "choice_profile.trace.sha256"
-		}
-		if record.Uint64String(trace.Trace.Summary.Records) != choices.Trace.Records {
-			return "choice_profile.trace.records"
-		}
-		if record.Uint64String(trace.Trace.Summary.Branching) != choices.Trace.BranchingRecords {
-			return "choice_profile.trace.branching_records"
-		}
-	} else if observed.ChoiceTrace.Profile != "" {
-		return "choice_profile.trace"
+	if divergence := choiceTraceDivergence(manifest, observed); divergence != "" {
+		return divergence
 	}
 	if manifest.World.Initial.Schema == "gomadv3.world.snapshot/v1" {
 		if observedWorld == nil {
@@ -471,6 +542,27 @@ func firstDivergence(manifest record.Manifest, observed process.Result, observed
 		}
 	} else if observedWorld != nil {
 		return "world.record"
+	}
+	return ""
+}
+
+func choiceTraceDivergence(manifest record.Manifest, observed process.Result) string {
+	if choices := manifest.ChoiceProfile; choices != nil {
+		trace := observed.ChoiceTrace
+		if trace.Profile != choices.Name || trace.Limit != uint64(choices.Trace.Limit) || trace.Trace.Summary.Terminal != choicewire.TerminalComplete {
+			return "choice_profile.trace.complete"
+		}
+		if record.SHA256FromSum(trace.Trace.SHA256) != choices.Trace.SHA256 {
+			return "choice_profile.trace.sha256"
+		}
+		if record.Uint64String(trace.Trace.Summary.Records) != choices.Trace.Records {
+			return "choice_profile.trace.records"
+		}
+		if record.Uint64String(trace.Trace.Summary.Branching) != choices.Trace.BranchingRecords {
+			return "choice_profile.trace.branching_records"
+		}
+	} else if observed.ChoiceTrace.Profile != "" {
+		return "choice_profile.trace"
 	}
 	return ""
 }
