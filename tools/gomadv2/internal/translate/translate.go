@@ -19,9 +19,8 @@ import (
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gotypes"
 	"github.com/dave/dst/dstutil"
-	"golang.org/x/tools/go/packages"
-
 	"github.com/temporalio/gomad/internal/gomadtool"
+	"golang.org/x/tools/go/packages"
 )
 
 type translatePackageArgs struct {

@@ -28,7 +28,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	SIMLIB "go.temporal.io/server/tools/gomadv1/api/lib"
 	"go.temporal.io/server/tools/gomadv1/runtime/testutil"
 )

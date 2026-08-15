@@ -9,7 +9,6 @@ import (
 
 	"github.com/rogpeppe/go-internal/gotooltest"
 	"github.com/rogpeppe/go-internal/testscript"
-
 	"github.com/temporalio/gomad/internal/gomadtool"
 )
 

@@ -13,9 +13,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"golang.org/x/sys/unix"
-
 	"github.com/temporalio/gomad"
+	"golang.org/x/sys/unix"
 )
 
 func setupRealDisk(t *testing.T) {

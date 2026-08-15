@@ -3,9 +3,8 @@ package gomadruntime_test
 import (
 	"testing"
 
-	"pgregory.net/rapid"
-
 	"github.com/temporalio/gomad/gomadruntime"
+	"pgregory.net/rapid"
 )
 
 func TestMapIterDeleteDuplicatesHappen(t *testing.T) {

@@ -38,18 +38,18 @@ import (
 
 type (
 	scheduler struct {
-		Drng            *rand.Rand
-		clock           clock
-		debug           bool
-		active          *goroutine // TODO: get rid of
-		synchronizer    Synchronizer
-		doneCh          chan struct{}
-		tickCh          chan struct{}
-		goroutines      map[goroutineId]*goroutine
-		channels   map[uintptr]Channel // keyed by uintptr so GC can collect hchans
-		channelsMu sync.Mutex         // protects channels from concurrent non-coop goroutine access
-		stuckTimeout    time.Duration
-		timerQueue      timerQueue
+		Drng         *rand.Rand
+		clock        clock
+		debug        bool
+		active       *goroutine // TODO: get rid of
+		synchronizer Synchronizer
+		doneCh       chan struct{}
+		tickCh       chan struct{}
+		goroutines   map[goroutineId]*goroutine
+		channels     map[uintptr]Channel // keyed by uintptr so GC can collect hchans
+		channelsMu   sync.Mutex          // protects channels from concurrent non-coop goroutine access
+		stuckTimeout time.Duration
+		timerQueue   timerQueue
 
 		// keepAliveCh is closed by Join() to signal that no new work is expected;
 		// the scheduler exits cleanly once all in-flight goroutines finish.
@@ -236,9 +236,9 @@ func (s *scheduler) tick() chan struct{} {
 	// process new goroutine state
 	switch g.state {
 	case suspended:
-		switch {
+		switch g.syncBlock.pt {
 
-		case g.syncBlock.pt == nil:
+		case nil:
 			// there is no sync point, just resume this goroutine later
 			s.enqueue(g)
 

@@ -16,10 +16,9 @@ import (
 	"testing"
 
 	gocmp "github.com/google/go-cmp/cmp"
+	"github.com/temporalio/gomad/internal/gomadtool"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/txtar"
-
-	"github.com/temporalio/gomad/internal/gomadtool"
 )
 
 var (

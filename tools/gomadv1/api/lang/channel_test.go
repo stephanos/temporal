@@ -28,7 +28,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	SIMLANG "go.temporal.io/server/tools/gomadv1/api/lang"
 	SIM "go.temporal.io/server/tools/gomadv1/runtime"
 	"go.temporal.io/server/tools/gomadv1/runtime/testutil"
@@ -61,7 +60,7 @@ func TestChannel(t *testing.T) {
 
 			res := SIMLANG.ChanRcv(ch)
 
-			require.Nil(t, res)
+			require.NoError(t, res)
 		})
 	})
 
@@ -180,7 +179,7 @@ func TestChannel(t *testing.T) {
 
 			SIMLANG.Go(func() {
 				res, ok := SIMLANG.ChanRcvOk(ch) // unblocked by `ChanClose`
-				require.Equal(t, "", res)
+				require.Empty(t, res)
 				require.False(t, ok)
 			})
 
@@ -304,7 +303,7 @@ func TestBufferedChannel(t *testing.T) {
 			SIMLANG.ChanSend(ch, nil) // non-blocking
 			res := SIMLANG.ChanRcv(ch)
 
-			require.Nil(t, res)
+			require.NoError(t, res)
 		})
 	})
 
@@ -329,7 +328,7 @@ func TestBufferedChannel(t *testing.T) {
 				res = append(res, m)
 			}
 
-			require.Equal(t, messages, len(res))
+			require.Len(t, res, messages)
 		})
 	})
 
@@ -349,7 +348,7 @@ func TestBufferedChannel(t *testing.T) {
 				res = append(res, SIMLANG.ChanRcv(ch))
 			}
 
-			require.Equal(t, messages, len(res))
+			require.Len(t, res, messages)
 		})
 	})
 

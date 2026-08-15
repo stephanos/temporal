@@ -30,7 +30,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/afero"
-
 	SIM "go.temporal.io/server/tools/gomadv1/runtime"
 )
 

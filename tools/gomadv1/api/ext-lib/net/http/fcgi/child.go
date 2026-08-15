@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http"
-
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/cgi"
 )
 

@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http"
-
 	"golang.org/x/net/http/httpguts"
 )
 

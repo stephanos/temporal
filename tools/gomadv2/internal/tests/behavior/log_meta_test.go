@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/temporalio/gomad/internal/gomadlog"
 	"github.com/temporalio/gomad/internal/race"
 	"github.com/temporalio/gomad/metatesting"

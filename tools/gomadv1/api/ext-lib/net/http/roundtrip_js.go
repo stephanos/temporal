@@ -12,9 +12,9 @@ import (
 	"io"
 	"strconv"
 	"strings"
-	"syscall/js"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/ascii"
+	"syscall/js"
 )
 
 var uint8Array = js.Global().Get("Uint8Array")

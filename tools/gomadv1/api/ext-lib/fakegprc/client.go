@@ -10,14 +10,13 @@ import (
 	"strings"
 	"time"
 
+	SIMLIB "go.temporal.io/server/tools/gomadv1/api/lib"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/protobuf/proto"
-
-	SIMLIB "go.temporal.io/server/tools/gomadv1/api/lib"
 )
 
 var _ clientConn = &ClientConn{}

@@ -109,7 +109,7 @@ func Read(p []byte) (n int, err error) {
 	}
 	return rand.Read(p) //nolint:staticcheck
 }
-func Seed(seed int64)                    { /* ignore */ }
+func Seed(seed int64) { /* ignore */ }
 func Shuffle(n int, swap func(i, j int)) {
 	if r := drng(); r != nil {
 		r.Shuffle(n, swap)

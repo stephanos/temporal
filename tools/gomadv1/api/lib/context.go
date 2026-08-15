@@ -231,7 +231,7 @@ func CtxAfterFunc(ctx context.Context, f func()) (stop func() bool) {
 	SIMAPI.FuncStart()
 	a := &afterFuncCtx{f: f}
 
-	a.cancelCtx.propagateCancel(ctx, a)
+	a.propagateCancel(ctx, a)
 	return func() bool {
 		stopped := false
 		a.once.Do(func() {
@@ -566,7 +566,7 @@ func WithDeadlineCause(parent context.Context, d time.Time, cause error) (contex
 	}
 	c := &timerCtx{deadline: d}
 
-	c.cancelCtx.propagateCancel(parent, c)
+	c.propagateCancel(parent, c)
 	dur := Until(d)
 	if dur <= 0 {
 		c.cancel(true, DeadlineExceeded, cause) // deadline has already passed
@@ -599,7 +599,7 @@ func (c *timerCtx) Deadline() (deadline time.Time, ok bool) {
 
 func (c *timerCtx) String() string {
 	SIMAPI.FuncStart()
-	return contextName(c.cancelCtx.Context) + ".WithDeadline(" +
+	return contextName(c.Context) + ".WithDeadline(" +
 		c.deadline.String() + " [" + Until(c.deadline).String() + "])"
 }
 
@@ -608,7 +608,7 @@ func (c *timerCtx) cancel(removeFromParent bool, err, cause error) {
 	c.cancelCtx.cancel(false, err, cause)
 	if removeFromParent {
 		// Remove this timerCtx from its parent cancelCtx's children.
-		removeChild(c.cancelCtx.Context, c)
+		removeChild(c.Context, c)
 	}
 	c.mu.Lock()
 	if c.timer != nil {

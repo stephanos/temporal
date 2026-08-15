@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	SIM "go.temporal.io/server/tools/gomadv1/runtime"
 )
 

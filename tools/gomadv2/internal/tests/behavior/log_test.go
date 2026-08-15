@@ -11,12 +11,11 @@ import (
 	"testing"
 	"time"
 
-	zapslog "github.com/tommoulard/zap-slog"
-	"go.uber.org/zap"
-
 	"github.com/temporalio/gomad"
 	"github.com/temporalio/gomad/gomadruntime"
 	"github.com/temporalio/gomad/internal/gomadlog"
+	zapslog "github.com/tommoulard/zap-slog"
+	"go.uber.org/zap"
 )
 
 func TestLogSLog(t *testing.T) {

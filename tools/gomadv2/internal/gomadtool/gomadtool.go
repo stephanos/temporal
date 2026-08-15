@@ -14,9 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/mod/modfile"
-
 	"github.com/temporalio/gomad/internal/race"
+	"golang.org/x/mod/modfile"
 )
 
 const (

@@ -28,7 +28,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	SIMLANG "go.temporal.io/server/tools/gomadv1/api/lang"
 	SIM "go.temporal.io/server/tools/gomadv1/runtime"
 	"go.temporal.io/server/tools/gomadv1/runtime/testutil"

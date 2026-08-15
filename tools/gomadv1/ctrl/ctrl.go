@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"go.temporal.io/server/tools/gomadv1/runtime"
+	sim_runtime "go.temporal.io/server/tools/gomadv1/runtime"
 )
 
 var (

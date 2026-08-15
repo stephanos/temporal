@@ -17,7 +17,6 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/pingcap/failpoint/code"
 	"github.com/pkg/errors"
-
 	sim_runtime "go.temporal.io/server/tools/gomadv1/runtime"
 	transformer "go.temporal.io/server/tools/gomadv1/transformer"
 	"go.temporal.io/server/tools/gomadv1/util/verify"
@@ -341,8 +340,8 @@ func TestMain(m *testing.M) {
 // mutexes in third-party C-to-Go packages).
 func applyStaticOverrides(workingDir string, efs embed.FS) {
 	const (
-		prefix          = "overrides"
-		overlaySuffix   = ".go.overlay"
+		prefix            = "overrides"
+		overlaySuffix     = ".go.overlay"
 		destinationSuffix = ".go"
 	)
 	err := fs.WalkDir(efs, prefix, func(path string, d fs.DirEntry, err error) error {

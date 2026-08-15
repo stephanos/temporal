@@ -14,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/temporalio/gomad/gomadruntime"
 	"github.com/temporalio/gomad/internal/gomadtool"
 	"github.com/temporalio/gomad/internal/prettylog"

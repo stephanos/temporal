@@ -274,7 +274,7 @@ func New(pattern string) (*Matcher, error) {
 			}
 			bits = 0
 		case '+', '-':
-			if c == '+' && result == false {
+			if c == '+' && !result {
 				// Have already seen a -. Should be - from here on.
 				return nil, &parseError{"invalid pattern syntax (+ after -): " + pattern}
 			}

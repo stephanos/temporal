@@ -11,10 +11,9 @@ import (
 	"os"
 	"slices"
 
-	"golang.org/x/tools/go/packages"
-
 	"github.com/temporalio/gomad/internal/gomadtool"
 	"github.com/temporalio/gomad/internal/translate/cache"
+	"golang.org/x/tools/go/packages"
 )
 
 type Hash [32]byte
