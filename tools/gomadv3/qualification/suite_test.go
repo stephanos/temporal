@@ -39,7 +39,7 @@ func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {
 	if err := json.Unmarshal(contents, &public); err != nil {
 		t.Fatal(err)
 	}
-	if public["schema"] != "gomadv3.qualification-set-report/v4" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
+	if public["schema"] != "gomadv3.qualification-set-report/v5" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
 		t.Fatalf("public qualification set report = %#v", public)
 	}
 	for _, forbidden := range []string{"manifest", "report_path", "command"} {
@@ -62,7 +62,7 @@ func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {
 	}
 }
 
-func TestOpenReportNormalizesPreviousExactChoiceDimensions(t *testing.T) {
+func TestOpenReportNormalizesPreviousCapabilityAnalysis(t *testing.T) {
 	root := t.TempDir()
 	report, err := RunSuite(context.Background(), SuiteSpec{
 		ManifestPath: writeManifest(t, root, "unsupported_target"), GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
@@ -72,6 +72,7 @@ func TestOpenReportNormalizesPreviousExactChoiceDimensions(t *testing.T) {
 		t.Fatal(err)
 	}
 	report.Schema = PreviousSuiteReportSchema
+	report.Suites[0].Analysis.Schema = previousAnalysisSchema
 	encoded, err := evidence.CanonicalJSON(report)
 	if err != nil {
 		t.Fatal(err)
@@ -84,7 +85,7 @@ func TestOpenReportNormalizesPreviousExactChoiceDimensions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Schema != SuiteReportSchema || opened.Suites[0].Choice.ExactReplayAvailable {
+	if opened.Schema != SuiteReportSchema || opened.Dimensions.Analysis || opened.Suites[0].Analysis != nil || opened.Suites[0].AnalysisError != "dimension_unavailable" || len(opened.Suites[0].Blockers) != 1 {
 		t.Fatalf("normalized previous report = %#v", opened)
 	}
 }

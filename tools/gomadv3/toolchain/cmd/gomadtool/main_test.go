@@ -48,6 +48,22 @@ func TestRunBuildKeyRejectsIncompleteInput(t *testing.T) {
 	}
 }
 
+func TestRunCompatibilityPackCheckReportsOperationalFailure(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	status := run([]string{"compatibility-pack", "check", "--root=" + t.TempDir()}, &stdout, &stderr)
+	if status != 1 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "compatibility-pack requests") {
+		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	status := run([]string{"compatibility-pack", "generate", "--root=" + t.TempDir()}, &stdout, &stderr)
+	if status != 1 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "compatibility-pack requests") {
+		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
+	}
+}
+
 func TestRunTestModeProjectsRegistryFields(t *testing.T) {
 	for _, test := range []struct {
 		arguments []string
