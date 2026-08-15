@@ -8,7 +8,9 @@ Increase the number and quality of concurrency failures Gomad finds per unit of 
 
 > observe choices → control choices → explore alternatives → minimize failures → inject deterministic faults
 
-The completed first deliverable was a bounded runtime-choice trace and exact replay controller. The next slice is bounded alternative-prefix exploration.
+The completed first deliverables are bounded runtime-choice tracing, exact
+replay, and bounded alternative-prefix exploration. The raw frontier remains a
+reference algorithm until workload evidence justifies later search techniques.
 
 ## What success means
 
@@ -91,6 +93,14 @@ Replay must validate each choice before applying it. A mismatch in kind, site, a
 The choice tape should complement, not replace, I/O and World replay. Replay succeeds only when all enabled controllers consume their expected input and the final outcome/evidence matches.
 
 ## BUG-4: Bounded alternative-prefix exploration
+
+Implemented as the `choice-frontier` campaign strategy. It uses one base seed,
+breadth-first canonical prefixes, round-atomic persistence, durable resume, and
+explicit run, depth, frontier-byte, wall-time, and failure bounds. The pinned
+two-outcome `select` comparison reaches two declared outcomes in sixteen
+executions under both frontier and seed sampling. This satisfies the requirement
+to report where raw prefix search does not improve efficiency and does not yet
+justify BUG-5, PCT, or dependency reduction.
 
 Once choices can be recorded and forced, add an explorer that derives new runs from observed branching points. Start with a simple bounded frontier rather than DPOR:
 
@@ -222,4 +232,9 @@ At 10× choice volume, memory must remain bounded by streaming validation, on-di
 
 ## Recommended next slice
 
-Implement only BUG-4's raw bounded alternative-prefix frontier above the existing internal prefix controller. Persist the strategy, limits, completed prefixes, and remaining frontier; prove enumeration and resume on small state machines with known outcomes; then compare executions and distinct outcomes per compute-hour against seed sampling before adding minimization, PCT, or dependency reduction.
+Run the implemented BUG-4 frontier against additional representative Temporal
+workloads and compare failures and declared semantic outcomes per compute-hour
+with equal-budget seed sampling. Advance to BUG-5 only after this evidence shows
+that controlled prefixes find a distinct failure or materially improve useful
+outcomes per execution; otherwise keep the raw frontier as an exact, bounded
+diagnostic strategy.
