@@ -136,7 +136,7 @@ func formatFrontier(frontier *choicefrontier.Summary, recoveryExecutions uint64)
 	if frontier == nil {
 		return ""
 	}
-	return fmt.Sprintf(" frontier-rounds=%d frontier-pending=%d frontier-bytes=%d frontier-seen=%d frontier-outcomes=%d frontier-depth=%d frontier-omitted-runs=%d frontier-omitted-depth=%d frontier-omitted-bytes=%d frontier-complete=%t recovery-executions=%d", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, recoveryExecutions)
+	return fmt.Sprintf(" frontier-rounds=%d frontier-pending=%d frontier-bytes=%d frontier-seen=%d frontier-outcomes=%d frontier-depth=%d frontier-max-runs=%d frontier-max-depth=%d frontier-max-bytes=%d frontier-omitted-runs=%d frontier-omitted-depth=%d frontier-omitted-bytes=%d frontier-complete=%t recovery-executions=%d", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.MaxRuns, frontier.MaxChoiceDepth, frontier.MaxFrontierBytes, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, recoveryExecutions)
 }
 
 func formatChoiceTrace(trace *runner.ChoiceTraceSummary) string {
