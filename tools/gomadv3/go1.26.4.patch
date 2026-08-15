@@ -61,7 +61,7 @@ index 018fe01..f99542c 100644
  //
  //go:linkname fatal
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index 005c875..5d28580 100644
+index 005c875..e9bac37 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -246,6 +246,10 @@ func main() {
@@ -95,7 +95,17 @@ index 005c875..5d28580 100644
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -6428,7 +6436,10 @@ func checkdead() {
+@@ -5352,6 +5360,9 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
+ 	gostartcallfn(&newg.sched, fn)
+ 	newg.parentGoid = callergp.goid
+ 	newg.gopc = callerpc
++	if gomadChoiceEnabled {
++		gomadChoiceAssignGoroutineIdentity(newg, callergp, callerpc)
++	}
+ 	newg.ancestors = saveAncestors(callergp)
+ 	newg.startpc = fn.fn
+ 	newg.runningCleanups.Store(false)
+@@ -6428,7 +6439,10 @@ func checkdead() {
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
@@ -107,7 +117,7 @@ index 005c875..5d28580 100644
  			faketime = when
  
  			// Start an M to steal the timer.
-@@ -6478,7 +6489,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+@@ -6478,7 +6492,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -116,7 +126,7 @@ index 005c875..5d28580 100644
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -6525,7 +6536,7 @@ func sysmon() {
+@@ -6525,7 +6539,7 @@ func sysmon() {
  			lock(&sched.lock)
  			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
  				syscallWake := false
@@ -125,7 +135,7 @@ index 005c875..5d28580 100644
  				if next > now {
  					sched.sysmonwait.Store(true)
  					unlock(&sched.lock)
-@@ -7468,7 +7479,7 @@ func runqempty(pp *p) bool {
+@@ -7468,7 +7482,7 @@ func runqempty(pp *p) bool {
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -134,7 +144,34 @@ index 005c875..5d28580 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7605,6 +7616,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7487,7 +7501,7 @@ func runqput(pp *p, gp *g, next bool) {
+ 		// risk starvation.
+ 		next = false
+ 	}
+-	if randomizeScheduler && next && randn(2) == 0 {
++	if randomizeScheduler && next && gomadChoiceRunnextSeeded(2) == 0 {
+ 		next = false
+ 	}
+ 
+@@ -7540,7 +7554,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+ 
+ 	if randomizeScheduler {
+ 		for i := uint32(1); i <= n; i++ {
+-			j := cheaprandn(i + 1)
++			j := gomadChoiceShuffleSeeded(i + 1)
+ 			batch[i], batch[j] = batch[j], batch[i]
+ 		}
+ 	}
+@@ -7581,7 +7595,7 @@ func runqputbatch(pp *p, q *gQueue) {
+ 			return (pp.runqtail + o) % uint32(len(pp.runq))
+ 		}
+ 		for i := uint32(1); i < n; i++ {
+-			j := cheaprandn(i + 1)
++			j := gomadChoiceShuffleSeeded(i + 1)
+ 			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
+ 		}
+ 	}
+@@ -7605,6 +7619,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -142,8 +179,8 @@ index 005c875..5d28580 100644
 +		h := atomic.LoadAcq(&pp.runqhead)
 +		t := pp.runqtail
 +		if t-h > 1 {
-+			offset := randn(t - h)
-+			gomadChoiceRecord(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, t-h, offset, 0)
++			offset := gomadChoiceRunqSeeded(t - h)
++			offset = gomadChoiceRunqIndex(pp, h, t, offset)
 +			index := (h + offset) % uint32(len(pp.runq))
 +			gp := pp.runq[index].ptr()
 +			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
@@ -183,8 +220,35 @@ index 1739e9f..68ab02a 100644
  	var seed [4]uint64
  	for i := range seed {
  		seed[i] = bootstrapRand()
+diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
+index be33932..6b4bcd0 100644
+--- a/src/runtime/runtime2.go
++++ b/src/runtime/runtime2.go
+@@ -503,13 +503,15 @@ type g struct {
+ 	//    closure in the runtime is forbidden.
+ 	// 4. When a panic is recovered and control returns to the respective frame,
+ 	//    param may point to a savedOpenDeferState.
+-	param        unsafe.Pointer
+-	atomicstatus atomic.Uint32
+-	stackLock    uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
+-	goid         uint64
+-	schedlink    guintptr
+-	waitsince    int64      // approx time when the g become blocked
+-	waitreason   waitReason // if status==Gwaiting
++	param             unsafe.Pointer
++	atomicstatus      atomic.Uint32
++	stackLock         uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
++	goid              uint64
++	gomadIdentity     [32]byte
++	gomadChildOrdinal uint64
++	schedlink         guintptr
++	waitsince         int64      // approx time when the g become blocked
++	waitreason        waitReason // if status==Gwaiting
+ 
+ 	preempt       bool // preemption signal, duplicates stackguard0 = stackpreempt
+ 	preemptStop   bool // transition to _Gpreempted on preemption; otherwise, just deschedule
 diff --git a/src/runtime/select.go b/src/runtime/select.go
-index 553f696..702aecd 100644
+index 553f696..a4c8a1d 100644
 --- a/src/runtime/select.go
 +++ b/src/runtime/select.go
 @@ -121,6 +121,7 @@ func block() {
@@ -195,11 +259,13 @@ index 553f696..702aecd 100644
  	if debugSelect {
  		print("select: cas0=", cas0, "\n")
  	}
-@@ -189,6 +190,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+@@ -188,7 +189,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+ 			cas.c.timer.maybeRunChan(cas.c)
  		}
  
- 		j := cheaprandn(uint32(norder + 1))
-+		gomadChoiceRecord(gomadChoiceKindSelectPoll, gomadChoiceFlagDecision|choiceSiteFlags, choiceSite, uint32(norder+1), j, uint32(i))
+-		j := cheaprandn(uint32(norder + 1))
++		j := gomadChoiceSelectSeeded(uint32(norder + 1))
++		j = gomadChoiceSelectPollIndex(pollorder, norder, i, nsends, choiceSite, choiceSiteFlags, j)
  		pollorder[norder] = pollorder[j]
  		pollorder[j] = uint16(i)
  		norder++
@@ -228,6 +294,19 @@ index 553f696..702aecd 100644
  	return casi, recvOK
  
  sclose:
+diff --git a/src/runtime/sizeof_test.go b/src/runtime/sizeof_test.go
+index 219bcb9..45cf9f7 100644
+--- a/src/runtime/sizeof_test.go
++++ b/src/runtime/sizeof_test.go
+@@ -21,7 +21,7 @@ func TestSizeof(t *testing.T) {
+ 		_32bit uintptr // size on 32bit platforms
+ 		_64bit uintptr // size on 64bit platforms
+ 	}{
+-		{runtime.G{}, 288 + xreg, 448 + xreg}, // g, but exported for testing
++		{runtime.G{}, 328 + xreg, 488 + xreg}, // g, but exported for testing
+ 		{runtime.Sudog{}, 64, 104},            // sudog, but exported for testing
+ 	}
+ 
 diff --git a/src/runtime/time.go b/src/runtime/time.go
 index 81a4c6b..1612f32 100644
 --- a/src/runtime/time.go

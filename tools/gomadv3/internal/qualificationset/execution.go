@@ -119,7 +119,7 @@ func projectSeedReport(report qualify.Report, classification string, seed uint64
 	}
 	result := SeedReport{
 		Seed: record.Uint64String(seed), Classification: classification, EvidenceSHA256: report.EvidenceDigest,
-		ReplayMatch: true, Choice: emptyChoiceCoverage(),
+		ReplayMatch: true, ChoiceReplayExact: true, Choice: emptyChoiceCoverage(),
 	}
 	for index, run := range report.Runs {
 		if err := mergeQualificationRun(&result, run, index, seed, suite, analysis); err != nil {
@@ -128,12 +128,16 @@ func projectSeedReport(report qualify.Report, classification string, seed uint64
 	}
 	if !result.Replayed {
 		result.ReplayMatch = false
+		result.ChoiceReplayExact = false
 	}
 	if suite.ReplaySuccesses && (!result.Replayed || !result.ReplayMatch) {
 		return SeedReport{}, errors.New("qualification did not complete exact successful replay")
 	}
 	if suite.ChoiceBytes != 0 && !result.Choice.Available {
 		return SeedReport{}, errors.New("qualification did not retain required choice coverage")
+	}
+	if suite.ChoiceBytes != 0 && suite.ReplaySuccesses && (!result.ChoiceReplayExact || !result.Choice.ExactReplayAvailable) {
+		return SeedReport{}, errors.New("qualification did not prove exact choice replay")
 	}
 	return result, nil
 }
@@ -144,6 +148,9 @@ func mergeQualificationRun(result *SeedReport, run qualify.RunReport, index int,
 	}
 	if run.Replay != nil {
 		result.Replayed = true
+		if run.Replay.ChoiceReplayStatus != qualify.ChoiceReplayExact {
+			result.ChoiceReplayExact = false
+		}
 		if !run.Replay.Match {
 			result.ReplayMatch = false
 			if result.ReplayDivergence == "" {
@@ -202,15 +209,21 @@ func projectArtifactChoice(opened artifact.Artifact) (ChoiceCoverage, error) {
 	if err != nil {
 		return ChoiceCoverage{}, err
 	}
-	projection, err := choicewire.ProjectComplete(payload, choicewire.CompleteMetadata{
-		Limit: uint64(profile.Trace.Limit), Records: uint64(profile.Trace.Records), SHA256: traceIdentity,
-	}, targetIdentity)
+	trace, err := choicewire.DecodeStoredTrace(profile.Name, payload, choicewire.TerminalMetadata{
+		State: choicewire.TerminalComplete, Limit: uint64(profile.Trace.Limit), Records: uint64(profile.Trace.Records), SHA256: traceIdentity,
+	})
+	if err != nil {
+		return ChoiceCoverage{}, fmt.Errorf("decode retained choice trace: %w", err)
+	}
+	projection, err := choicewire.ProjectTrace(trace, uint64(profile.Trace.Limit), targetIdentity)
 	if err != nil {
 		return ChoiceCoverage{}, fmt.Errorf("project retained choice trace: %w", err)
 	}
 	return ChoiceCoverage{
 		Available: true, Profile: profile.Name, ImplementationSHA256: profile.ImplementationSHA256,
-		Limit: profile.Trace.Limit, Features: append([]choicewire.Feature(nil), projection.Features.Values...),
+		Limit: profile.Trace.Limit, TapeSHA256: profile.Trace.TapeSHA256, Decisions: profile.Trace.Decisions,
+		ExactReplayAvailable:   profile.Name == choicewire.Profile && profile.Trace.TapeSHA256 != "",
+		Features:               append([]choicewire.Feature(nil), projection.Features.Values...),
 		AdjacentPairsObserved:  record.Uint64String(projection.Features.AdjacentPairsObserved),
 		AdjacentPairsTruncated: projection.Features.AdjacentPairsTruncated,
 	}, nil
@@ -240,8 +253,12 @@ func mergeChoiceCoverage(left, right ChoiceCoverage) (ChoiceCoverage, error) {
 		right.Features = append([]choicewire.Feature(nil), right.Features...)
 		return right, nil
 	}
-	if left.Profile != right.Profile || left.ImplementationSHA256 != right.ImplementationSHA256 || left.Limit != right.Limit {
+	if left.Profile != right.Profile || left.ImplementationSHA256 != right.ImplementationSHA256 || left.Limit != right.Limit || left.ExactReplayAvailable != right.ExactReplayAvailable {
 		return ChoiceCoverage{}, errors.New("retained choice coverage identities disagree")
+	}
+	if left.TapeSHA256 != right.TapeSHA256 || left.Decisions != right.Decisions {
+		left.TapeSHA256 = ""
+		left.Decisions = 0
 	}
 	features := append(append([]choicewire.Feature(nil), left.Features...), right.Features...)
 	sort.Slice(features, func(i, j int) bool {

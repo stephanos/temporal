@@ -57,7 +57,7 @@ func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--format", "json"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v3"`) {
+	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v4"`) {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }
@@ -875,7 +875,7 @@ func TestExploreReporterHumanOutputIncludesProgressAndReplayCommands(t *testing.
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(stderr.String(), "attempted=2 running=2") || !strings.Contains(stdout.String(), "retained failure: /batch/failures/one") || !strings.Contains(stdout.String(), "gomad replay /batch/failures/one") || !strings.Contains(stdout.String(), "choices-records=3 choices-branching=2") {
+	if !strings.Contains(stderr.String(), "attempted=2 running=2") || !strings.Contains(stdout.String(), "retained failure: /batch/failures/one") || !strings.Contains(stdout.String(), "gomad replay /batch/failures/one") || !strings.Contains(stdout.String(), "choices-records=3 choices-decisions=0 choices-branching=2") {
 		t.Fatalf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
 	}
 }

@@ -193,6 +193,10 @@ func encodeRecords(t *testing.T, records []Record) []byte {
 	t.Helper()
 	payload := make([]byte, 0, len(records)*RecordBytes)
 	for _, record := range records {
+		if record.Flags&FlagDecision != 0 && record.SelectedIdentity == ([sha256.Size]byte{}) {
+			record.SelectedIdentity = sha256.Sum256([]byte{byte(record.Ordinal), byte(record.Selected), 1})
+			record.AlternativeSetDigest = sha256.Sum256([]byte{byte(record.Ordinal), byte(record.Alternatives), 2})
+		}
 		encoded, err := EncodeRecord(record)
 		if err != nil {
 			t.Fatal(err)

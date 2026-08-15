@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -77,7 +78,7 @@ func TestRunTransportsCompleteChoiceTrace(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
@@ -98,7 +99,7 @@ func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
@@ -107,6 +108,397 @@ func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
 	}
 	if result.Termination != TerminationExit || result.ExitCode != 0 || result.ChoiceTrace.Profile != choicewire.Profile || result.ChoiceTrace.Limit != limit || result.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalOverflow || result.ChoiceTrace.Trace.Summary.Records != 1 || len(result.ChoiceTrace.Trace.Bytes) != choicewire.RecordBytes {
 		t.Fatalf("overflow result = %#v", result)
+	}
+}
+
+func TestRunReplaysCompleteChoiceTape(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process choice target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	recorded, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(recorded.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Choice = &ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+		ExecutionIdentity: identity, Limit: limit, Tape: &tape,
+	}
+	replayed, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if replayed.ExitCode != 0 || replayed.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalComplete {
+		t.Fatalf("replayed result = %#v", replayed)
+	}
+	if replayed.ChoiceTrace.Trace.SHA256 != recorded.ChoiceTrace.Trace.SHA256 {
+		t.Fatalf("replayed trace = %x, want %x", replayed.ChoiceTrace.Trace.SHA256, recorded.ChoiceTrace.Trace.SHA256)
+	}
+}
+
+func TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process reordered choice target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-reorder", "GOMADV3_CHOICE_REORDER=ab", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	recorded, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(recorded.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Env = []string{"GOMADV3_PROCESS_HELPER=choice-reorder", "GOMADV3_CHOICE_REORDER=ba", "GOMADSEED=7"}
+	request.Choice = &ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+		ExecutionIdentity: identity, Limit: limit, Tape: &tape,
+	}
+	replayed, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(recorded.Stdout.Bytes) != string(replayed.Stdout.Bytes) || recorded.ChoiceTrace.Trace.SHA256 != replayed.ChoiceTrace.Trace.SHA256 {
+		t.Fatalf("reordered replay = %q/%x, want %q/%x", replayed.Stdout.Bytes, replayed.ChoiceTrace.Trace.SHA256, recorded.Stdout.Bytes, recorded.ChoiceTrace.Trace.SHA256)
+	}
+}
+
+func TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process select permutation target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-select", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	baseline, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	baselineTape, err := choicewire.ProjectDecisionTape(baseline.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repeated, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repeatedTape, err := choicewire.ProjectDecisionTape(repeated.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(repeatedTape.Decisions) != len(baselineTape.Decisions) {
+		t.Fatalf("same-seed fixture recorded %d decisions, want %d", len(repeatedTape.Decisions), len(baselineTape.Decisions))
+	}
+	if difference := firstChoiceDecisionDifference(repeatedTape.Decisions, baselineTape.Decisions); difference >= 0 {
+		t.Fatalf("same-seed fixture decision %d was not repeatable", difference)
+	}
+	var alternateSeed int
+	for seed := 8; seed < 128; seed++ {
+		request.Env = []string{"GOMADV3_PROCESS_HELPER=choice-select", fmt.Sprintf("GOMADSEED=%d", seed)}
+		alternate, err := Run(context.Background(), request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tape, err := choicewire.ProjectDecisionTape(alternate.ChoiceTrace.Trace, identity)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if compatibleSelectDifference(baselineTape.Decisions, tape.Decisions) {
+			alternateSeed = seed
+			break
+		}
+	}
+	if alternateSeed == 0 {
+		t.Fatal("no alternate seed changed a compatible select permutation")
+	}
+	request.Env = []string{"GOMADV3_PROCESS_HELPER=choice-select", fmt.Sprintf("GOMADSEED=%d", alternateSeed)}
+	request.Choice = &ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+		ExecutionIdentity: identity, Limit: limit, Tape: &baselineTape,
+	}
+	replayed, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(replayed.Stdout.Bytes) != string(baseline.Stdout.Bytes) || replayed.ChoiceTrace.Trace.SHA256 != baseline.ChoiceTrace.Trace.SHA256 {
+		t.Fatalf("select replay = %q/%x, want %q/%x", replayed.Stdout.Bytes, replayed.ChoiceTrace.Trace.SHA256, baseline.Stdout.Bytes, baseline.ChoiceTrace.Trace.SHA256)
+	}
+}
+
+func TestRunPreservesChoicePrefixRNGPosition(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process prefix RNG target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-prefix-rng", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	baseline, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(baseline.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tape.Decisions) < 2 {
+		t.Fatalf("prefix RNG fixture recorded %d decisions, want at least 2", len(tape.Decisions))
+	}
+	prefix, err := tape.Prefix(uint64(len(tape.Decisions) / 2))
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Choice = &ChoiceCapability{
+		Mode: choicewire.ModePrefix, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+		ExecutionIdentity: identity, Limit: limit, Tape: &prefix,
+	}
+	prefixed, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(prefixed.Stdout.Bytes) != string(baseline.Stdout.Bytes) || prefixed.ChoiceTrace.Trace.SHA256 != baseline.ChoiceTrace.Trace.SHA256 {
+		t.Fatalf("prefix RNG result = %q/%x, want %q/%x", prefixed.Stdout.Bytes, prefixed.ChoiceTrace.Trace.SHA256, baseline.Stdout.Bytes, baseline.ChoiceTrace.Trace.SHA256)
+	}
+}
+
+func TestRunTargetInheritsChoiceTapeReadOnly(t *testing.T) {
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process read-only choice target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	tape, err := choicewire.ProjectDecisionTape(choicewire.Trace{
+		Version: choicewire.Version2, Bytes: []byte{}, SHA256: sha256.Sum256(nil), Records: []choicewire.Record{},
+		Summary: choicewire.Summary{Terminal: choicewire.TerminalComplete},
+	}, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := Run(context.Background(), Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-tape-readonly", "GOMADSEED=7"}, Choice: &ChoiceCapability{
+			Mode: choicewire.ModePrefix, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+			ExecutionIdentity: identity, Limit: 1 << 20, Tape: &tape,
+		},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(result.Stdout.Bytes) != "choice tape read-only\n" {
+		t.Fatalf("target result = %#v", result)
+	}
+}
+
+func TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process choice marker target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-marker", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	recorded, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(recorded.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	emptyTape, err := tape.Prefix(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Choice = &ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+		ExecutionIdentity: identity, Limit: limit, Tape: &emptyTape,
+	}
+	diverged, err := Run(context.Background(), request)
+	var replayDivergence *ChoiceReplayDivergenceError
+	if !errors.As(err, &replayDivergence) || replayDivergence.Divergence.Reason != choicewire.DivergenceTapeExhausted {
+		t.Fatalf("Run() error = %#v", err)
+	}
+	if strings.Contains(string(diverged.Stdout.Bytes), "post-choice-marker") || diverged.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalDiverged {
+		t.Fatalf("diverged result = %#v", diverged)
+	}
+	request.Choice.Mode = choicewire.ModePrefix
+	prefixed, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(prefixed.Stdout.Bytes), "post-choice-marker") || prefixed.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalComplete {
+		t.Fatalf("prefixed result = %#v", prefixed)
+	}
+	request.Choice.Mode = choicewire.ModeReplay
+	request.IO = &IOCapability{Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20}}
+	diverged, err = Run(context.Background(), request)
+	if !errors.As(err, &replayDivergence) || replayDivergence.Divergence.Reason != choicewire.DivergenceTapeExhausted {
+		t.Fatalf("Run() error with incomplete I/O terminal = %#v", err)
+	}
+	if strings.Contains(string(diverged.Stdout.Bytes), "post-choice-marker") || diverged.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalDiverged {
+		t.Fatalf("combined diverged result = %#v", diverged)
+	}
+}
+
+func TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process choice mismatch target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-marker", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	recorded, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	recordIndex, decisionOrdinal := firstBranchingChoiceDecision(t, recorded.ChoiceTrace.Trace)
+	for _, test := range []struct {
+		name   string
+		reason choicewire.DivergenceReason
+		mutate func(*choicewire.Record)
+	}{
+		{name: "kind", reason: choicewire.DivergenceKind, mutate: func(record *choicewire.Record) {
+			if record.Kind == choicewire.KindRunnable {
+				record.Kind = choicewire.KindSelectPoll
+			} else {
+				record.Kind = choicewire.KindRunnable
+			}
+		}},
+		{name: "site", reason: choicewire.DivergenceSite, mutate: func(record *choicewire.Record) {
+			if record.Flags&choicewire.FlagSiteMissing != 0 {
+				record.Flags &^= choicewire.FlagSiteMissing
+				record.SiteOffset = 1
+			} else {
+				record.Flags |= choicewire.FlagSiteMissing
+				record.SiteOffset = 0
+			}
+		}},
+		{name: "alternatives", reason: choicewire.DivergenceAlternatives, mutate: func(record *choicewire.Record) {
+			record.Alternatives++
+		}},
+		{name: "selected", reason: choicewire.DivergenceSelected, mutate: func(record *choicewire.Record) {
+			record.Selected = (record.Selected + 1) % record.Alternatives
+		}},
+		{name: "alternative set", reason: choicewire.DivergenceAlternativeSet, mutate: func(record *choicewire.Record) {
+			record.AlternativeSetDigest[0] ^= 1
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			tape := projectEditedChoiceTape(t, recorded.ChoiceTrace.Trace, identity, func(records []choicewire.Record) []choicewire.Record {
+				test.mutate(&records[recordIndex])
+				return records
+			})
+			request.Choice = &ChoiceCapability{
+				Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+				ExecutionIdentity: identity, Limit: limit, Tape: &tape,
+			}
+			diverged, err := Run(context.Background(), request)
+			var replayDivergence *ChoiceReplayDivergenceError
+			if !errors.As(err, &replayDivergence) || replayDivergence.Divergence.Reason != test.reason || replayDivergence.Divergence.Ordinal != decisionOrdinal {
+				t.Fatalf("Run() error = %#v, want %s at %d", err, choicewire.DivergenceReasonName(test.reason), decisionOrdinal)
+			}
+			if strings.Contains(string(diverged.Stdout.Bytes), "post-choice-marker") || diverged.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalDiverged {
+				t.Fatalf("diverged result = %#v", diverged)
+			}
+		})
+	}
+}
+
+func TestRunRejectsUnconsumedChoiceTape(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process unconsumed choice target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-marker", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	recorded, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape := projectEditedChoiceTape(t, recorded.ChoiceTrace.Trace, identity, func(records []choicewire.Record) []choicewire.Record {
+		for index := len(records) - 1; index >= 0; index-- {
+			if records[index].Flags&choicewire.FlagDecision != 0 {
+				extra := records[index]
+				extra.Ordinal = uint64(len(records))
+				return append(records, extra)
+			}
+		}
+		t.Fatal("recorded trace contains no choice decision")
+		return nil
+	})
+	for _, mode := range []choicewire.Mode{choicewire.ModeReplay, choicewire.ModePrefix} {
+		t.Run(fmt.Sprint(mode), func(t *testing.T) {
+			request.Choice = &ChoiceCapability{
+				Mode: mode, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+				ExecutionIdentity: identity, Limit: limit, Tape: &tape,
+			}
+			diverged, err := Run(context.Background(), request)
+			var replayDivergence *ChoiceReplayDivergenceError
+			if !errors.As(err, &replayDivergence) || replayDivergence.Divergence.Reason != choicewire.DivergenceTapeUnconsumed {
+				t.Fatalf("Run() error = %#v", err)
+			}
+			if !strings.Contains(string(diverged.Stdout.Bytes), "post-choice-marker") || diverged.ChoiceTrace.Trace.Summary.Terminal != choicewire.TerminalDiverged {
+				t.Fatalf("diverged result = %#v", diverged)
+			}
+		})
 	}
 }
 
@@ -446,6 +838,31 @@ func TestTargetHelper(t *testing.T) {
 		os.Exit(0)
 	case "choice-trace":
 		os.Exit(0)
+	case "choice-marker":
+		fmt.Fprintln(os.Stdout, "post-choice-marker")
+		os.Exit(0)
+	case "choice-reorder":
+		runChoiceReorderTarget()
+		os.Exit(0)
+	case "choice-select":
+		runChoiceSelectTarget()
+		os.Exit(0)
+	case "choice-prefix-rng":
+		runChoicePrefixRNGTarget()
+		os.Exit(0)
+	case "choice-tape-readonly":
+		descriptor, err := strconv.Atoi(os.Getenv(choiceTapeFDEnvironmentName))
+		if err != nil {
+			os.Exit(32)
+		}
+		if _, err := syscall.Pwrite(descriptor, []byte{1}, 0); err == nil {
+			os.Exit(34)
+		}
+		if err := syscall.Ftruncate(descriptor, 1); err == nil {
+			os.Exit(35)
+		}
+		fmt.Fprintln(os.Stdout, "choice tape read-only")
+		os.Exit(0)
 	case "io-ro-mount":
 		request := os.NewFile(9, "gomadv3-io-ro-mount-request")
 		response := os.NewFile(10, "gomadv3-io-ro-mount-response")
@@ -548,6 +965,138 @@ func TestTargetHelper(t *testing.T) {
 	default:
 		t.Skip("target subprocess only")
 	}
+}
+
+func runChoiceReorderTarget() {
+	ready := make(chan struct{}, 3)
+	firstStart := make(chan struct{})
+	secondStart := make(chan struct{})
+	sentinelStart := make(chan struct{})
+	results := make(chan string, 2)
+	go func() {
+		ready <- struct{}{}
+		<-firstStart
+		results <- "a"
+	}()
+	go func() {
+		ready <- struct{}{}
+		<-secondStart
+		results <- "b"
+	}()
+	go func() {
+		ready <- struct{}{}
+		<-sentinelStart
+	}()
+	for range 3 {
+		<-ready
+	}
+	if os.Getenv("GOMADV3_CHOICE_REORDER") == "ba" {
+		close(secondStart)
+		close(firstStart)
+	} else {
+		close(firstStart)
+		close(secondStart)
+	}
+	close(sentinelStart)
+	fmt.Fprintln(os.Stdout, <-results+<-results)
+}
+
+func runChoiceSelectTarget() {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+}
+
+func runChoicePrefixRNGTarget() {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+}
+
+func runChoiceSelectSequence(iterations int) string {
+	left := make(chan struct{}, 1)
+	right := make(chan struct{}, 1)
+	left <- struct{}{}
+	right <- struct{}{}
+	var output strings.Builder
+	for range iterations {
+		select {
+		case <-left:
+			output.WriteByte('a')
+			left <- struct{}{}
+		case <-right:
+			output.WriteByte('b')
+			right <- struct{}{}
+		}
+	}
+	return output.String()
+}
+
+func compatibleSelectDifference(baseline, alternate []choicewire.Decision) bool {
+	if len(baseline) != len(alternate) {
+		return false
+	}
+	for index := range baseline {
+		left := baseline[index]
+		right := alternate[index]
+		if left.Kind != right.Kind || left.SiteOffset != right.SiteOffset || left.SiteMissing != right.SiteMissing || left.Alternatives != right.Alternatives || left.Data != right.Data || left.AlternativeSetDigest != right.AlternativeSetDigest {
+			return false
+		}
+		if left.Kind == choicewire.KindSelectPoll && left.Alternatives > 1 && index+1 < len(baseline) && (left.Selected != right.Selected || left.SelectedIdentity != right.SelectedIdentity) {
+			return true
+		}
+	}
+	return false
+}
+
+func firstChoiceDecisionDifference(left, right []choicewire.Decision) int {
+	if len(left) != len(right) {
+		return min(len(left), len(right))
+	}
+	for index := range left {
+		if left[index] != right[index] {
+			return index
+		}
+	}
+	return -1
+}
+
+func firstBranchingChoiceDecision(t *testing.T, trace choicewire.Trace) (int, uint64) {
+	t.Helper()
+	var ordinal uint64
+	for index, record := range trace.Records {
+		if record.Flags&choicewire.FlagDecision == 0 {
+			continue
+		}
+		if record.Alternatives > 1 {
+			return index, ordinal
+		}
+		ordinal++
+	}
+	t.Fatal("recorded trace contains no branching choice decision")
+	return 0, 0
+}
+
+func projectEditedChoiceTape(t *testing.T, trace choicewire.Trace, identity choicewire.ExecutionIdentity, edit func([]choicewire.Record) []choicewire.Record) choicewire.Tape {
+	t.Helper()
+	records := edit(append([]choicewire.Record(nil), trace.Records...))
+	payload := make([]byte, len(records)*choicewire.RecordBytes)
+	for index, record := range records {
+		encoded, err := choicewire.EncodeRecord(record)
+		if err != nil {
+			t.Fatal(err)
+		}
+		copy(payload[index*choicewire.RecordBytes:], encoded[:])
+	}
+	trace.Records = records
+	trace.Bytes = payload
+	trace.SHA256 = sha256.Sum256(payload)
+	trace.Summary.Records = uint64(len(records))
+	tape, err := choicewire.ProjectDecisionTape(trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tape
 }
 
 func writeEmptyIOTranscriptTerminal() error {

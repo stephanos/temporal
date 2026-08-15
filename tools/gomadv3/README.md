@@ -104,10 +104,15 @@ written to stdout.
 Use `--choices` on `explore` or `qualify` to observe bounded runtime runnable
 and select decisions. `--choice-bytes` defaults to 8 MiB, is valid only with
 `--choices`, and is part of batch and artifact identity. The trace is
-observational: replay reruns the same profile and reports a final trace
-divergence; it does not force the recorded schedule. `inspect --choices`
-validates the retained payload and reports choice kinds, branching records,
-and target-specific site fingerprints.
+recorded as v2 stable logical decisions. Artifact replay automatically derives
+an identity-bound, read-only decision tape and validates every choice before it
+is applied; no replay flag is required. `inspect --choices` validates the
+retained payload and reports choice kinds, decision and branching counts, the
+tape digest, exact-replay availability, and target-specific site fingerprints.
+Legacy v1 traces remain inspectable, but replay reports
+`choice_profile.replay_unavailable` and does not execute an uncontrolled target.
+Prefix replay is an internal bounded-frontier primitive and is not a public CLI
+mode in this slice.
 
 `gomad analyze` reviews a `go-run` or `go-test` target without compiling or
 executing it. The report uses the same fail-closed capability review and exact
@@ -175,8 +180,8 @@ returns status 0 only when the recorded successful outcome matches.
 
 `gomad qualify` prepares and executes the target independently two or more
 times with one seed, compares bounded canonical evidence, and automatically
-retains a private `gomadv3.qualification/v2` report below
-`ARTIFACTS/qualifications/v2`. Readers also normalize v1 reports. Evidence includes the exact target, argv,
+retains a private `gomadv3.qualification/v3` report below
+`ARTIFACTS/qualifications/v3`. Readers also normalize v1 and v2 reports. Evidence includes the exact target, argv,
 toolchain and Runner identities, full output hashes, transcript, captured-mount
 identity, World identity, outcome, semantic probes, and optional choice
 features. Replay evidence is attached to its corresponding repetition. Add
@@ -203,7 +208,7 @@ Manifest v2 binds the expected module, tier, invariant, ordered seeds, choice
 capacity, successful-replay requirement, and explicit retention bounds. The
 orchestrator analyzes every workload before executing any supported target,
 checkpoints after each completed phase, and publishes a private, path-free
-`gomadv3.qualification-set-report/v3`. Unsupported analysis is completed
+`gomadv3.qualification-set-report/v4`. Unsupported analysis is completed
 evidence and is never executed. Readers normalize report v2 while marking its
 missing portable dimensions unavailable. Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
@@ -435,6 +440,11 @@ For a fixed toolchain, architecture, program, deterministic external inputs,
 and seed, supported runtime-controlled choices repeat across fresh processes.
 Different seeds explore different choices when alternatives exist. Runtime
 choices must finish before output or other external I/O is performed.
+When v2 choice recording is enabled, exact replay forces stable logical
+goroutine and select-poll alternatives independent of their physical queue
+order, consumes the complete tape, and still compares final observation
+records. Choice traces and tapes remain explicitly byte-bounded; overflow is a
+Runner failure and cannot claim exact replay.
 
 Deterministic mode supports internally linked pure-Go targets on the qualified
 `darwin/arm64` host. Enabled cgo or externally linked binaries fail before package
@@ -460,6 +470,9 @@ The mode is intended only for trusted tests. Deterministic map seeds remove a
 hash-randomization defense and must not be enabled in production. Each process
 uses one P, so run different seeds in separate processes for parallelism. The
 shared runtime random state also means program changes can change later choices.
+Exact choice tapes are bound to the target, pinned toolchain build key,
+platform, and choice-controller implementation and are not portable across
+those identities.
 
 ## World
 
