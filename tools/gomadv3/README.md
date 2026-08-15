@@ -82,6 +82,7 @@ tools/gomadv3/.bin/gomad explore --seeds 0-99 exec --provenance ./example.proven
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 --choices --replay-successes --success-limit=1 --success-bytes=128MiB go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad analyze --format=json go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad analyze --capability-mode=linked --format=json go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output report.json
 tools/gomadv3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
@@ -131,14 +132,19 @@ and `choice_depth_complete` are bounded completions, while `max_runs` and
 `frontier_capacity` identify incomplete search envelopes. Outcome deduplication
 reduces retained evidence only and never removes a distinct forced prefix.
 
-`gomad analyze` reviews a `go-run` or `go-test` target without compiling or
-executing it. The report uses the same fail-closed capability review and exact
-compatibility-pack decisions as target preparation, lists every blocker with a
+`gomad analyze` defaults to `--capability-mode=closure`, which reviews a
+`go-run` or `go-test` target without compiling or executing it. Explicit
+`--capability-mode=linked` builds but never launches the target, extracts the
+pinned linker record, and separates live blockers from closure blockers removed
+by final reachability. Linked mode has no closure fallback: malformed records,
+identity mismatches, and capacity failures fail closed. The report uses exact
+compatibility-pack decisions, lists every active and eliminated blocker with a
 canonical shortest dependency path, and projects conservative deterministic
-I/O requirements. To keep reports path-free, arguments containing path
-separators are represented by stable SHA-256 identities. `--format=json` emits
-`gomadv3.capability-analysis/v2`. Status 0 means supported, 1 unsupported, 2
-invalid input or package configuration, and 3 analysis infrastructure failure.
+I/O requirements over the full closure. To keep reports path-free, arguments
+containing path separators are represented by stable SHA-256 identities.
+`--format=json` emits `gomadv3.capability-analysis/v3`. Status 0 means
+supported, 1 unsupported, 2 invalid input or package configuration, and 3
+analysis infrastructure failure.
 
 Add `--json` to emit newline-delimited `gomadv3.explore-event/v2` records on
 stdout and no routine output on stderr. Event types are `progress`, `result`,
@@ -197,8 +203,8 @@ returns status 0 only when the recorded successful outcome matches.
 
 `gomad qualify` prepares and executes the target independently two or more
 times with one seed, compares bounded canonical evidence, and automatically
-retains a private `gomadv3.qualification/v3` report below
-`ARTIFACTS/qualifications/v3`. Readers also normalize v1 and v2 reports. Evidence includes the exact target, argv,
+retains a private `gomadv3.qualification/v4` report below
+`ARTIFACTS/qualifications/v4`. Readers also normalize v1 through v3 reports. Evidence includes the exact target, argv,
 toolchain and Runner identities, full output hashes, transcript, captured-mount
 identity, World identity, outcome, semantic probes, and optional choice
 features. Replay evidence is attached to its corresponding repetition. Add
@@ -221,14 +227,14 @@ tools/gomadv3/.bin/gomad qualify-set --check \
   --working-dir=/absolute/path/to/target/module
 ```
 
-Manifest v2 binds the expected module, tier, invariant, ordered seeds, choice
-capacity, successful-replay requirement, and explicit retention bounds. The
+Manifest v3 binds the expected module, tier, invariant, ordered seeds, choice
+capacity, capability mode, successful-replay requirement, and explicit
+retention bounds. The
 orchestrator analyzes every workload before executing any supported target,
 checkpoints after each completed phase, and publishes a private, path-free
-`gomadv3.qualification-set-report/v5`. Unsupported analysis is completed
-evidence and is never executed. Readers normalize report v2, v3, and v4 while
-marking unavailable historical dimensions explicitly; v4 analysis remains
-historical rather than being reinterpreted as v2 evidence. Status 0 means all expectations
+`gomadv3.qualification-set-report/v6`. Unsupported analysis is completed
+evidence and is never executed. Readers normalize report v2 through v5 while
+marking unavailable historical dimensions explicitly. Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
 
@@ -246,7 +252,7 @@ lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
 and the direct modernc/libc file boundary. The aggregate and all evidence are
 retained below `.toolchain/core-qualification*`.
 
-An interrupted campaign retains a canonical `gomadv3.batch-plan/v2` beside
+An interrupted campaign retains a canonical `gomadv3.batch-plan/v3` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity and the already-mixed seed selection, so resume never reselects seeds.
 The current plan records the seed or choice-frontier strategy, its controller

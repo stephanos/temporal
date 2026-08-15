@@ -18,11 +18,23 @@ index afa1650..ac74321 100644
  
  	dwarfgen.RecordPackageName()
  
+diff --git a/src/cmd/dist/buildtool.go b/src/cmd/dist/buildtool.go
+index 2da9a17..2d87993 100644
+--- a/src/cmd/dist/buildtool.go
++++ b/src/cmd/dist/buildtool.go
+@@ -44,6 +44,7 @@ var bootstrapDirs = []string{
+ 	"cmd/internal/dwarf",
+ 	"cmd/internal/edit",
+ 	"cmd/internal/gcprog",
++	"cmd/internal/gomadcap",
+ 	"cmd/internal/goobj",
+ 	"cmd/internal/hash",
+ 	"cmd/internal/macho",
 diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
-index 1427f9c..9bfdf52 100644
+index 1427f9c..794125d 100644
 --- a/src/cmd/link/internal/ld/lib.go
 +++ b/src/cmd/link/internal/ld/lib.go
-@@ -816,6 +816,12 @@ func (ctxt *Link) linksetup() {
+@@ -816,6 +816,13 @@ func (ctxt *Link) linksetup() {
  		sb.SetType(sym.SNOPTRDATA)
  		sb.AddUint8(1)
  	}
@@ -32,6 +44,7 @@ index 1427f9c..9bfdf52 100644
 +		sb.SetType(sym.SNOPTRDATA)
 +		sb.AddUint8(1)
 +	}
++	gomadCapabilityManifest(ctxt)
  
  	// Recalculate pe parameters now that we have ctxt.LinkMode set.
  	if ctxt.HeadType == objabi.Hwindows {

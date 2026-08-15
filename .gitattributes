@@ -1,3 +1,4 @@
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 tools/gomadv3/*.patch -whitespace
+tools/gomadv3/**/*.patch -whitespace

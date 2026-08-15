@@ -11,7 +11,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
@@ -145,6 +147,57 @@ type choiceImplementationInputs struct {
 	HostTape        []byte
 }
 
+type liveCapabilitySchema struct {
+	Version uint32 `json:"version"`
+	Schema  string `json:"schema"`
+	Symbol  string `json:"symbol"`
+	Header  struct {
+		Magic string `json:"magic"`
+		Bytes uint32 `json:"bytes"`
+	} `json:"header"`
+	Limits struct {
+		PayloadBytes uint64 `json:"payload_bytes"`
+		Facts        uint64 `json:"facts"`
+		StringBytes  uint64 `json:"string_bytes"`
+		OwnerFacts   uint64 `json:"owner_facts"`
+	} `json:"limits"`
+	FactKinds         []string `json:"fact_kinds"`
+	Dispositions      []string `json:"dispositions"`
+	ForbiddenImports  []string `json:"forbidden_imports"`
+	ForbiddenPrefixes []string `json:"forbidden_prefixes"`
+}
+
+type liveCapabilityImplementationInputs struct {
+	Schema             []byte
+	CodecTemplate      []byte
+	CompilerEmitter    []byte
+	LinkerProjector    []byte
+	Encoder            []byte
+	InterceptionSource []byte
+	BoundaryTable      []byte
+	HostValidator      []byte
+	ProjectionContract []byte
+}
+
+type liveCapabilityTemplateData struct {
+	Package                string
+	Schema                 liveCapabilitySchema
+	ImplementationDigest   string
+	UniverseDigest         string
+	BoundaryManifestDigest string
+	Boundaries             []liveCapabilityBoundary
+}
+
+type liveCapabilityBoundary struct {
+	Package     string
+	Target      string
+	Hook        string
+	Operation   string
+	Probe       string
+	ProbeID     uint64
+	Disposition string
+}
+
 type output struct {
 	Package    string
 	TestImport string
@@ -213,7 +266,118 @@ func GenerateProtocols(root string, check bool) error {
 			return fmt.Errorf("write generated choice wire codec: %w", err)
 		}
 	}
+	if err := generateLiveCapabilityProtocols(root, check); err != nil {
+		return err
+	}
 	return nil
+}
+
+func generateLiveCapabilityProtocols(root string, check bool) error {
+	definition, err := readLiveCapabilitySchema(filepath.Join(root, "target", "internal", "livecap", "livecap.json"))
+	if err != nil {
+		return err
+	}
+	boundary, err := load(filepath.Join(root, filepath.FromSlash(manifestPath)))
+	if err != nil {
+		return err
+	}
+	boundaryDigest, err := manifestIdentity(boundary)
+	if err != nil {
+		return err
+	}
+	universeDigest, err := liveCapabilityUniverseIdentity(definition, boundaryDigest)
+	if err != nil {
+		return err
+	}
+	identityInputs, err := readLiveCapabilityImplementationInputs(root)
+	if err != nil {
+		return err
+	}
+	implementation := liveCapabilityImplementationIdentity(identityInputs)
+	implementationDigest := fmt.Sprintf("sha256:%x", implementation)
+	boundaries, err := projectLiveCapabilityBoundaries(boundary)
+	if err != nil {
+		return err
+	}
+	outputs := []output{
+		{Package: "livecap", Template: "livecap.go.tmpl", Path: "target/internal/livecap/protocol_generated.go"},
+		{Package: "gomadcap", Template: "livecap.go.tmpl", Path: "toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go"},
+	}
+	for _, target := range outputs {
+		generated, generateErr := generate(filepath.Join(root, "target", "internal", "livecap", target.Template), liveCapabilityTemplateData{
+			Package: target.Package, Schema: definition, ImplementationDigest: implementationDigest,
+			UniverseDigest: universeDigest, BoundaryManifestDigest: boundaryDigest, Boundaries: boundaries,
+		})
+		if generateErr != nil {
+			return generateErr
+		}
+		path := filepath.Join(root, filepath.FromSlash(target.Path))
+		if check {
+			current, readErr := os.ReadFile(path)
+			if readErr != nil || !bytes.Equal(current, generated) {
+				return fmt.Errorf("generated live capability protocol is stale: %s", target.Path)
+			}
+			continue
+		}
+		if err := hostfs.Replace(path, generated, 0o644); err != nil {
+			return fmt.Errorf("write generated live capability protocol: %w", err)
+		}
+	}
+	return nil
+}
+
+func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplementationInputs, error) {
+	paths := []string{
+		"target/internal/livecap/livecap.json",
+		"target/internal/livecap/livecap.go.tmpl",
+		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
+		"toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
+		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
+		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
+		"deterministicio/boundary_generated.go",
+		"target/internal/livecap/livecap.go",
+		"target/internal/livecap/project.go",
+	}
+	values := make([][]byte, len(paths))
+	for index, relative := range paths {
+		value, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(relative)))
+		if err != nil {
+			return liveCapabilityImplementationInputs{}, fmt.Errorf("read live capability implementation input %s: %w", relative, err)
+		}
+		values[index] = value
+	}
+	return liveCapabilityImplementationInputs{
+		Schema: values[0], CodecTemplate: values[1], CompilerEmitter: values[2], LinkerProjector: values[3],
+		Encoder: values[4], InterceptionSource: values[5], BoundaryTable: values[6], HostValidator: values[7], ProjectionContract: values[8],
+	}, nil
+}
+
+func projectLiveCapabilityBoundaries(definition manifest) ([]liveCapabilityBoundary, error) {
+	byProbe := make(map[string]intercept, len(definition.Intercepts))
+	for _, entry := range definition.Intercepts {
+		byProbe[entry.Probe] = entry
+	}
+	result := make([]liveCapabilityBoundary, 0, len(definition.Intercepts))
+	for _, entry := range definition.Intercepts {
+		resolved := entry
+		for resolved.Disposition == "delegate" {
+			resolved = byProbe[resolved.DelegatedBoundary]
+		}
+		var disposition string
+		switch resolved.Disposition {
+		case "model":
+			disposition = "modeled"
+		case "deny":
+			disposition = "denied"
+		default:
+			return nil, fmt.Errorf("unsupported live capability boundary disposition %q", resolved.Disposition)
+		}
+		result = append(result, liveCapabilityBoundary{
+			Package: entry.Package, Target: targetName(entry.Receiver, entry.Symbol), Hook: entry.Hook,
+			Operation: entry.Operation, Probe: entry.Probe, ProbeID: boundaryProbeID(entry.Probe), Disposition: disposition,
+		})
+	}
+	return result, nil
 }
 
 func readChoiceImplementationInputs(root string) (choiceImplementationInputs, error) {
@@ -252,6 +416,74 @@ func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Siz
 	var result [sha256.Size]byte
 	copy(result[:], hasher.Sum(nil))
 	return result
+}
+
+func liveCapabilityImplementationIdentity(inputs liveCapabilityImplementationInputs) [sha256.Size]byte {
+	hasher := sha256.New()
+	_, _ = hasher.Write([]byte("gomadv3-live-capability-implementation-source-v1"))
+	for _, input := range [][]byte{
+		inputs.Schema, inputs.CodecTemplate, inputs.CompilerEmitter, inputs.LinkerProjector, inputs.Encoder,
+		inputs.InterceptionSource, inputs.BoundaryTable, inputs.HostValidator, inputs.ProjectionContract,
+	} {
+		var size [8]byte
+		binary.BigEndian.PutUint64(size[:], uint64(len(input)))
+		_, _ = hasher.Write(size[:])
+		_, _ = hasher.Write(input)
+	}
+	var result [sha256.Size]byte
+	copy(result[:], hasher.Sum(nil))
+	return result
+}
+
+func liveCapabilityUniverseIdentity(definition liveCapabilitySchema, boundaryManifestSHA256 string) (string, error) {
+	if len(boundaryManifestSHA256) != len("sha256:")+sha256.Size*2 || !strings.HasPrefix(boundaryManifestSHA256, "sha256:") {
+		return "", errors.New("live capability boundary manifest identity is invalid")
+	}
+	projection := struct {
+		Schema                 string   `json:"schema"`
+		Version                uint32   `json:"version"`
+		BoundaryManifestSHA256 string   `json:"boundary_manifest_sha256"`
+		FactKinds              []string `json:"fact_kinds"`
+		Dispositions           []string `json:"dispositions"`
+		ForbiddenImports       []string `json:"forbidden_imports"`
+		ForbiddenPrefixes      []string `json:"forbidden_prefixes"`
+	}{
+		Schema: definition.Schema, Version: definition.Version, BoundaryManifestSHA256: boundaryManifestSHA256,
+		FactKinds: definition.FactKinds, Dispositions: definition.Dispositions,
+		ForbiddenImports: definition.ForbiddenImports, ForbiddenPrefixes: definition.ForbiddenPrefixes,
+	}
+	encoded, err := json.Marshal(projection)
+	if err != nil {
+		return "", fmt.Errorf("encode live capability universe: %w", err)
+	}
+	digest := sha256.Sum256(encoded)
+	return fmt.Sprintf("sha256:%x", digest), nil
+}
+
+func readLiveCapabilitySchema(path string) (liveCapabilitySchema, error) {
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		return liveCapabilitySchema{}, fmt.Errorf("read live capability schema: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var definition liveCapabilitySchema
+	if err := decoder.Decode(&definition); err != nil {
+		return liveCapabilitySchema{}, fmt.Errorf("decode live capability schema: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return liveCapabilitySchema{}, errors.New("live capability schema has trailing data")
+	}
+	if definition.Version != 1 || definition.Schema != "gomadv3.live-capability-manifest/v1" || definition.Symbol != "runtime.gomadCapabilities" ||
+		definition.Header.Magic != "GOMADCAPABILITY\x00" || definition.Header.Bytes != 112 ||
+		definition.Limits.PayloadBytes != 16<<20 || definition.Limits.Facts != 100_000 || definition.Limits.StringBytes != 4<<10 || definition.Limits.OwnerFacts != 4_096 ||
+		!slices.Equal(definition.FactKinds, []string{"boundary", "capability", "foreign", "linkname"}) ||
+		!slices.Equal(definition.Dispositions, []string{"denied", "modeled", "pack"}) ||
+		!slices.Equal(definition.ForbiddenImports, []string{"os/exec", "os/signal", "os/user", "plugin", "runtime/cgo", "syscall"}) ||
+		!slices.Equal(definition.ForbiddenPrefixes, []string{"golang.org/x/sys"}) {
+		return liveCapabilitySchema{}, errors.New("live capability schema is unsupported by this generator")
+	}
+	return definition, nil
 }
 
 func readChoiceSchema(path string) (choiceSchema, error) {
@@ -381,7 +613,7 @@ func generate(path string, data any) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read I/O wire template: %w", err)
 	}
-	parsed, err := template.New(filepath.Base(path)).Funcs(template.FuncMap{"bytes": byteLiterals}).Parse(string(source))
+	parsed, err := template.New(filepath.Base(path)).Funcs(template.FuncMap{"bytes": byteLiterals, "title": exportedIdentifier}).Parse(string(source))
 	if err != nil {
 		return nil, fmt.Errorf("parse I/O wire template: %w", err)
 	}
@@ -394,6 +626,13 @@ func generate(path string, data any) ([]byte, error) {
 		return nil, fmt.Errorf("format generated I/O wire codec: %w", err)
 	}
 	return formatted, nil
+}
+
+func exportedIdentifier(value string) string {
+	if value == "" {
+		return ""
+	}
+	return strings.ToUpper(value[:1]) + value[1:]
 }
 
 func byteLiterals(value string) string {

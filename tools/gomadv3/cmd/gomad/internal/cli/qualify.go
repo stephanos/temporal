@@ -48,6 +48,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	terminateGrace := flags.Duration("terminate-grace", 2*time.Second, "termination grace inside deadlines")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact and qualification report root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")
@@ -81,6 +82,10 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		return 2
 	}
 	reporter := newQualifyReporter(*jsonOutput, stdout, stderr)
+	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
+	if err != nil {
+		return reportQualifyInputError(reporter, stderr, err)
+	}
 	choiceLimitSet := false
 	flags.Visit(func(visited *flag.Flag) {
 		if visited.Name == "choice-bytes" {
@@ -129,7 +134,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectRunEvidence: true,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
-			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain,
+			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
 	if *replaySuccesses {
