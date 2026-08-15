@@ -674,6 +674,10 @@ func collectCapabilityPackageFindings(pkg CapabilityPackage, selection compatibi
 	compatibilityPackage := capabilityCompatibilityPackage(pkg)
 	findings := collectImportFindings(pkg, compatibilityPackage, selection)
 	for _, source := range pkg.ForeignSources {
+		// Headers remain source-set evidence, but cannot execute without a separately reviewed compiled foreign input.
+		if source.Kind == "header" {
+			continue
+		}
 		fact := compatibility.Fact{Kind: compatibility.FactCapability, Capability: "foreign:" + source.Kind + ":" + source.Name}
 		if decision := selection.Evaluate(compatibilityPackage, fact); !decision.Allowed {
 			findings = append(findings, capabilityFinding(pkg, FindingForeignSource, fact, CapabilitySource{Name: source.Name, SHA256: source.SHA256}, decision))

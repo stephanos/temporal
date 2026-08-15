@@ -88,6 +88,22 @@ func TestProjectCapabilityReviewHashesForeignSources(t *testing.T) {
 	}
 }
 
+func TestProjectCapabilityReviewHashesHeaderWithoutExecutableFinding(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\n\nfunc main() {}\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "api.h"), []byte("#define VALUE 1\n"), 0o600))
+
+	review, err := projectCapabilityReview([]listedPackage{{
+		ImportPath: "example.com/target", Name: "main", Dir: directory,
+		GoFiles: []string{"main.go"}, HFiles: []string{"api.h"}, Module: &listedModule{Path: "example.com/target", Main: true},
+	}}, nil, nil)
+	requireTestNoError(t, err)
+	requireTestEqual(t, []CapabilityForeignSource{{
+		Kind: "header", Name: "api.h", SHA256: "sha256:ac32a92f4af359517c993d6e8583ea2d9b053c2ad171b4c602bc242894bd9696",
+	}}, review.Closure.Packages[0].ForeignSources)
+	requireTestEqual(t, []CapabilityFinding{}, review.Findings)
+}
+
 func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T) {
 	directory := t.TempDir()
 	replacement := filepath.Join(directory, "replacement")
