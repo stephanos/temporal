@@ -41,10 +41,10 @@ type Snapshot struct {
 }
 
 type Adapter struct {
-	core *world.World
+	core *world.Model
 }
 
-func New(core *world.World) (*Adapter, error) {
+func New(core *world.Model) (*Adapter, error) {
 	if core == nil {
 		return nil, fmt.Errorf("mailbox World is required")
 	}
@@ -54,7 +54,7 @@ func New(core *world.World) (*Adapter, error) {
 	return &Adapter{core: core}, nil
 }
 
-func Restore(core *world.World, snapshot Snapshot) (*Adapter, error) {
+func Restore(core *world.Model, snapshot Snapshot) (*Adapter, error) {
 	if core == nil || snapshot.SchemaVersion != SchemaVersion || snapshot.Digest != snapshotDigest(snapshot) {
 		return nil, fmt.Errorf("invalid mailbox snapshot identity")
 	}

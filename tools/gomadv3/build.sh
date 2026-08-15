@@ -17,6 +17,6 @@ fi
 unset GOMADSEED GOMADV3_CHILD_SEED
 hosttool_bin="$script_dir/.toolchain/hosttool"
 GOCACHE="$script_dir/.toolchain/generator-cache" GOTOOLCHAIN=local GOWORK=off \
-	"$host_go" -C "$script_dir" build -o "$hosttool_bin" ./internal/hosttool
+"$host_go" -C "$script_dir" build -o "$hosttool_bin" ./toolchain/cmd/gomadtool
 exec "$hosttool_bin" toolchain-build \
 	--root="$script_dir" --bootstrap-go="$bootstrap_go" --build-bash="$build_bash"
