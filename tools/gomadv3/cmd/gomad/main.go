@@ -207,7 +207,10 @@ func printInspection(output io.Writer, report gomadinspect.Report) {
 		return
 	}
 	batch := report.Batch
-	fmt.Fprintf(output, "batch: id=%s selection=%s selected=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s runs=%s\n", batch.RunID, batch.Selection, batch.SelectionCount, batch.Attempted, batch.Succeeded, batch.Failures, batch.Watchdogs, batch.Cancelled, batch.DistinctFailures, batch.RetainedSuccesses, batch.RetainedSuccessBytes, batch.StopReason, batch.RunsSHA256)
+	fmt.Fprintf(output, "batch: id=%s strategy=%s selection=%s selected=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s runs=%s\n", batch.RunID, batch.Strategy, batch.Selection, batch.SelectionCount, batch.Attempted, batch.Succeeded, batch.Failures, batch.Watchdogs, batch.Cancelled, batch.DistinctFailures, batch.RetainedSuccesses, batch.RetainedSuccessBytes, batch.StopReason, batch.RunsSHA256)
+	if frontier := batch.Frontier; frontier != nil {
+		fmt.Fprintf(output, "frontier: rounds=%d pending=%d bytes=%d seen=%d outcomes=%d depth=%d omitted-runs=%d omitted-depth=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, batch.RecoveryExecutions, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256)
+	}
 	for _, run := range batch.Runs {
 		transcript := "none"
 		if run.TranscriptSHA256 != nil && run.TranscriptRecords != nil {
@@ -217,7 +220,11 @@ func printInspection(output io.Writer, report gomadinspect.Report) {
 		if run.ChoiceTraceSHA256 != nil && run.ChoiceTraceRecords != nil && run.ChoiceTraceBranchingRecords != nil && run.ChoiceTraceTerminalState != nil {
 			choices = fmt.Sprintf("%s/%d/%d/%s", *run.ChoiceTraceSHA256, *run.ChoiceTraceRecords, *run.ChoiceTraceBranchingRecords, *run.ChoiceTraceTerminalState)
 		}
-		fmt.Fprintf(output, "run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices)
+		frontier := ""
+		if run.Strategy == string(runner.StrategyChoiceFrontier) {
+			frontier = fmt.Sprintf(" round=%d candidate=%s parent=%s prefix=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, run.PrefixSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
+		}
+		fmt.Fprintf(output, "run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices, frontier)
 	}
 	for _, failure := range batch.FailureArtifacts {
 		fmt.Fprintf(output, "failure: signature=%s path=%s\nreplay: %s\n", failure.Signature, failure.Path, failure.ReplayCommand)
@@ -225,6 +232,13 @@ func printInspection(output io.Writer, report gomadinspect.Report) {
 	for _, success := range batch.SuccessArtifacts {
 		fmt.Fprintf(output, "success: bytes=%d novel=%q path=%s\nreplay: %s\n", success.StoredBytes, success.NovelProbes, success.Path, success.ReplayCommand)
 	}
+}
+
+func optionalUint64(value *uint64) uint64 {
+	if value == nil {
+		return 0
+	}
+	return *value
 }
 
 func optionalBool(value *bool) string {
@@ -295,8 +309,11 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
+	strategy := flags.String("strategy", string(runner.StrategySeed), "seed or choice-frontier")
 	seeds := flags.String("seeds", "1", "seed set or inclusive ranges")
 	count := flags.Uint64("count", 0, "explore seeds 0 through N-1")
+	maxRuns := flags.Uint64("max-runs", 0, "maximum choice-frontier candidates")
+	maxChoiceDepth := flags.Uint64("max-choice-depth", 0, "maximum forced choice decisions")
 	parallel := flags.Int("parallel", min(runtime.NumCPU(), 8), "maximum active targets")
 	runTimeout := flags.Duration("run-timeout", 30*time.Second, "per-seed host deadline")
 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete exploration host deadline")
@@ -316,10 +333,12 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	worldLimit := byteSize(64 << 20)
 	successBytes := byteSize(0)
 	choiceLimit := byteSize(8 << 20)
+	frontierLimit := byteSize(0)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	flags.Var(&successBytes, "success-bytes", "total retained successful-run bytes")
 	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
+	flags.Var(&frontierLimit, "max-frontier-bytes", "maximum live choice-frontier bytes")
 	var environment stringList
 	var buildTags stringList
 	var ioROMounts stringList
@@ -341,7 +360,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	var seedsSet, countSet, coverageSet, choiceLimitSet bool
+	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, maxFrontierBytesSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
 		case "seeds":
@@ -352,8 +371,26 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			coverageSet = true
 		case "choice-bytes":
 			choiceLimitSet = true
+		case "max-runs":
+			maxRunsSet = true
+		case "max-choice-depth":
+			maxChoiceDepthSet = true
+		case "max-frontier-bytes":
+			maxFrontierBytesSet = true
 		}
 	})
+	resolvedStrategy, resolvedChoices, err := resolveExploreStrategy(exploreStrategyOptions{
+		Value: *strategy, Seeds: *seeds, CountSet: countSet, Guide: *guide, Choices: *choices,
+		MaxRuns: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxFrontierBytes: frontierLimit,
+		MaxRunsSet: maxRunsSet, MaxChoiceDepthSet: maxChoiceDepthSet, MaxFrontierBytesSet: maxFrontierBytesSet,
+	})
+	if err != nil {
+		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -378,7 +415,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	resolvedChoiceLimit, err := resolveChoiceTrace(*choices, choiceLimit, choiceLimitSet)
+	resolvedChoiceLimit, err := resolveChoiceTrace(resolvedChoices, choiceLimit, choiceLimitSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -418,10 +455,10 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 3
 	}
 	config := runner.Config{
-		Seeds: resolvedSeeds, Parallel: *parallel, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit,
-		Artifacts:        *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		ChoiceTraceLimit: resolvedChoiceLimit, MaxRuns: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxFrontierBytes: uint64(frontierLimit),
+		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
 		Guide: *guide, Corpus: *corpus,
@@ -451,6 +488,60 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+type exploreStrategyOptions struct {
+	Value               string
+	Seeds               string
+	CountSet            bool
+	Guide               bool
+	Choices             bool
+	MaxRuns             uint64
+	MaxChoiceDepth      uint64
+	MaxFrontierBytes    byteSize
+	MaxRunsSet          bool
+	MaxChoiceDepthSet   bool
+	MaxFrontierBytesSet bool
+}
+
+func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bool, error) {
+	strategy := runner.Strategy(options.Value)
+	if strategy == "" {
+		strategy = runner.StrategySeed
+	}
+	switch strategy {
+	case runner.StrategySeed:
+		if options.MaxRunsSet || options.MaxChoiceDepthSet || options.MaxFrontierBytesSet {
+			return "", false, errors.New("frontier bounds require --strategy=choice-frontier")
+		}
+		return strategy, options.Choices, nil
+	case runner.StrategyChoiceFrontier:
+		if options.CountSet {
+			return "", false, errors.New("--strategy=choice-frontier does not accept --count")
+		}
+		selection, err := runner.ParseSeeds(options.Seeds)
+		if err != nil {
+			return "", false, err
+		}
+		if selection.Count() != 1 {
+			return "", false, errors.New("--strategy=choice-frontier requires exactly one base seed")
+		}
+		if options.Guide {
+			return "", false, errors.New("--strategy=choice-frontier does not support --guide")
+		}
+		if !options.MaxRunsSet || options.MaxRuns == 0 {
+			return "", false, errors.New("--strategy=choice-frontier requires an explicit positive --max-runs")
+		}
+		if !options.MaxChoiceDepthSet || options.MaxChoiceDepth == 0 {
+			return "", false, errors.New("--strategy=choice-frontier requires an explicit positive --max-choice-depth")
+		}
+		if !options.MaxFrontierBytesSet || options.MaxFrontierBytes == 0 {
+			return "", false, errors.New("--strategy=choice-frontier requires an explicit positive --max-frontier-bytes")
+		}
+		return strategy, true, nil
+	default:
+		return "", false, fmt.Errorf("unknown exploration strategy %q", options.Value)
+	}
 }
 
 func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet bool) (string, error) {

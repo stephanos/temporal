@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
@@ -63,6 +65,9 @@ func OpenBatch(path string) (Batch, error) {
 	if err := validateBatch(batch, runs); err != nil {
 		return Batch{}, err
 	}
+	if batch.Schema == "gomadv3.batch/v1" {
+		batch.Strategy = "seed"
+	}
 	return Batch{Path: path, Record: batch, Runs: runs}, nil
 }
 
@@ -87,25 +92,51 @@ func decodeRuns(contents []byte) ([]RunRecord, error) {
 }
 
 func validateBatch(batch BatchRecord, runs []RunRecord) error {
-	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomadv3.batch/v1" || batch.RunID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
+	legacy := batch.Schema == "gomadv3.batch/v1"
+	if batch.SchemaVersion != record.SchemaVersion || !legacy && batch.Schema != "gomadv3.batch/v2" || batch.RunID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
 		return fmt.Errorf("batch record identity is invalid")
+	}
+	if legacy {
+		if batch.Strategy != "" || batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != "" || batch.RecoveryExecutions != 0 {
+			return fmt.Errorf("legacy batch record contains strategy evidence")
+		}
+		batch.Strategy = "seed"
+	}
+	if batch.Strategy != "seed" && batch.Strategy != "choice-frontier" || batch.Strategy == "seed" && (batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != "") || batch.Strategy == "choice-frontier" && (batch.Frontier == nil || batch.FrontierImplementationSHA256 != choicefrontier.ImplementationSHA256() || !validRecordSHA256(batch.FrontierChainSHA256)) {
+		return fmt.Errorf("batch strategy evidence is invalid")
 	}
 	if uint64(batch.Attempted) != uint64(len(runs)) || uint64(batch.Succeeded)+uint64(batch.Failures)+uint64(batch.Cancelled) != uint64(batch.Attempted) || batch.Watchdogs > batch.Failures || batch.RetainedSuccesses > batch.Succeeded || batch.RetainedSuccesses == 0 && batch.RetainedSuccessBytes != 0 {
 		return fmt.Errorf("batch summary counts are inconsistent")
 	}
-	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" {
+	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" && batch.StopReason != "frontier_exhausted" && batch.StopReason != "choice_depth_complete" && batch.StopReason != "max_runs" && batch.StopReason != "frontier_capacity" {
 		return fmt.Errorf("batch stop reason is invalid: %s", batch.StopReason)
 	}
 	ordinals := make(map[uint64]struct{}, len(runs))
+	candidates := make(map[record.SHA256]struct{}, len(runs))
 	failures := make(map[record.SHA256]struct{})
 	var succeeded, failed, watchdogs, cancelled, retainedSuccesses, retainedSuccessBytes uint64
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
-		if ordinal >= uint64(batch.SelectionCount) {
+		ordinalLimit := uint64(batch.SelectionCount)
+		if batch.Strategy == "choice-frontier" {
+			ordinalLimit = uint64(batch.Attempted)
+		}
+		if ordinal >= ordinalLimit {
 			return fmt.Errorf("batch run %d selection ordinal is out of range", index+1)
 		}
 		if _, duplicate := ordinals[ordinal]; duplicate {
 			return fmt.Errorf("batch selection ordinal is duplicated: %d", ordinal)
+		}
+		if batch.Strategy == "choice-frontier" {
+			baseSeed, parseErr := strconv.ParseUint(batch.Selection, 10, 64)
+			if parseErr != nil || uint64(run.Seed) != baseSeed || ordinal != uint64(index) {
+				return fmt.Errorf("batch frontier run %d seed or logical ordinal is invalid", index+1)
+			}
+			if err := validateFrontierRunSummary(run, candidates); err != nil {
+				return fmt.Errorf("batch frontier run %d: %w", index+1, err)
+			}
+		} else if run.Strategy != "" {
+			return fmt.Errorf("seed batch run %d contains strategy evidence", index+1)
 		}
 		ordinals[ordinal] = struct{}{}
 		if run.Reason == "" {
@@ -197,6 +228,24 @@ func validateBatch(batch BatchRecord, runs []RunRecord) error {
 	return nil
 }
 
+func validateFrontierRunSummary(run RunRecord, candidates map[record.SHA256]struct{}) error {
+	if run.Strategy != "choice-frontier" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) {
+		return errors.New("frontier identity is incomplete")
+	}
+	if _, found := candidates[run.CandidateSHA256]; found {
+		return errors.New("candidate identity is duplicated")
+	}
+	candidates[run.CandidateSHA256] = struct{}{}
+	if *run.ForcedDepth == 0 {
+		if run.ParentCandidateSHA256 != "" || run.PrefixSHA256 != "" || *run.Round != 0 {
+			return errors.New("root candidate provenance is invalid")
+		}
+	} else if !validRecordSHA256(run.ParentCandidateSHA256) || !validRecordSHA256(run.PrefixSHA256) {
+		return errors.New("forced candidate provenance is invalid")
+	}
+	return nil
+}
+
 func validateChoiceRunSummary(run RunRecord) error {
 	present := 0
 	for _, value := range []bool{
@@ -233,12 +282,12 @@ func validateChoiceRunSummary(run RunRecord) error {
 
 func validArtifactReference(reference string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference)))
-	return clean == reference && strings.HasPrefix(reference, "failures/sha256-") && !strings.Contains(reference, "..")
+	return clean == reference && (strings.HasPrefix(reference, "failures/sha256-") || strings.Contains(reference, "/failures/sha256-")) && !strings.Contains(reference, "..")
 }
 
 func validSuccessArtifactReference(reference string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference)))
-	return clean == reference && strings.HasPrefix(reference, "successes/sha256-") && !strings.Contains(reference, "..")
+	return clean == reference && (strings.HasPrefix(reference, "successes/sha256-") || strings.Contains(reference, "/successes/sha256-")) && !strings.Contains(reference, "..")
 }
 
 func validateSemanticProbeLists(probes, novel []string) error {

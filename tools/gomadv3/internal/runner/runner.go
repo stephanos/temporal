@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	executionoutcome "go.temporal.io/server/tools/gomadv3/internal/outcome"
@@ -33,6 +34,8 @@ type FailurePolicy string
 type CoverageMode string
 
 type KeepSuccesses string
+
+type Strategy string
 
 const (
 	PolicyFirst  FailurePolicy = "first"
@@ -53,12 +56,21 @@ const (
 	CoverageSemanticChoice CoverageMode = "semantic+choice"
 )
 
+const (
+	StrategySeed           Strategy = "seed"
+	StrategyChoiceFrontier Strategy = "choice-frontier"
+)
+
 type StopReason string
 
 const (
-	StopSeedsExhausted StopReason = "seeds_exhausted"
-	StopFirstFailure   StopReason = "first_failure"
-	StopFailureBudget  StopReason = "failure_budget"
+	StopSeedsExhausted      StopReason = "seeds_exhausted"
+	StopFirstFailure        StopReason = "first_failure"
+	StopFailureBudget       StopReason = "failure_budget"
+	StopFrontierExhausted   StopReason = "frontier_exhausted"
+	StopChoiceDepthComplete StopReason = "choice_depth_complete"
+	StopMaxRuns             StopReason = "max_runs"
+	StopFrontierCapacity    StopReason = "frontier_capacity"
 )
 
 type ProgressPhase string
@@ -89,6 +101,8 @@ type Progress struct {
 	CorpusEntries        uint64
 	CorpusAdded          uint64
 	ChoiceTrace          *ChoiceTraceSummary
+	Frontier             *choicefrontier.Summary
+	RecoveryExecutions   uint64
 }
 
 type ProgressFunc func(Progress) error
@@ -107,6 +121,7 @@ type ArtifactReplayer interface {
 
 type Config struct {
 	ResumeBatch            string
+	Strategy               Strategy
 	Seeds                  string
 	Parallel               int
 	RunTimeout             time.Duration
@@ -117,6 +132,9 @@ type Config struct {
 	OutputLimit            uint64
 	WorldTransitionLimit   uint64
 	ChoiceTraceLimit       uint64
+	MaxRuns                uint64
+	MaxChoiceDepth         uint64
+	MaxFrontierBytes       uint64
 	Artifacts              string
 	Environment            []string
 	IOROMounts             []string
@@ -162,6 +180,8 @@ type Summary struct {
 	CorpusEntries        uint64
 	CorpusAdded          uint64
 	ChoiceTrace          *ChoiceTraceSummary
+	Frontier             *choicefrontier.Summary
+	RecoveryExecutions   uint64
 }
 
 type ChoiceTraceSummary struct {
@@ -221,8 +241,10 @@ func (artifactReplayer) Replay(ctx context.Context, config replay.Config) (repla
 }
 
 type runJob struct {
-	ordinal uint64
-	seed    uint64
+	ordinal    uint64
+	seed       uint64
+	choiceMode choicewire.Mode
+	choiceTape *choicewire.Tape
 }
 
 type runCompletion struct {
@@ -232,6 +254,10 @@ type runCompletion struct {
 	result     process.Result
 	err        error
 	journal    *artifact.RunJournal
+}
+
+type runJournalFactory interface {
+	BeginRun(uint64, uint64) (*artifact.RunJournal, error)
 }
 
 var environmentName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
@@ -331,7 +357,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 		batchPath = filepath.Join(config.Artifacts, "v1", runID)
 		summary = Summary{BatchPath: batchPath, SelectionCount: selection.Count()}
 		journal, err = artifact.NewBatchJournal(overallCtx, artifact.BatchConfig{
-			Root: config.Artifacts, RunID: runID, Selection: config.Seeds, SelectionCount: selection.Count(),
+			Root: config.Artifacts, RunID: runID, Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: selection.Count(),
 		})
 		if err != nil {
 			return summary, &HostError{Reason: "artifact_setup", Err: err}
@@ -352,7 +378,7 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 			DistinctFailures: summary.DistinctFailures, Artifacts: append([]string(nil), summary.Artifacts...),
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SuccessArtifacts: append([]string(nil), summary.SuccessArtifacts...),
 			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
-			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace),
+			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace), Frontier: cloneFrontierSummary(summary.Frontier), RecoveryExecutions: summary.RecoveryExecutions,
 		})
 	}
 	if err := reportProgress(ProgressPreparing, 0); err != nil {
@@ -472,6 +498,13 @@ func runLocal(ctx context.Context, config Config) (summary Summary, retErr error
 	}
 	if err := reportProgress(ProgressRunning, 0); err != nil {
 		return summary, &HostError{Reason: "progress_output", Err: err}
+	}
+	if normalizedStrategy(config.Strategy) == StrategyChoiceFrontier {
+		err := runChoiceFrontierLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
+		if err == nil {
+			batchComplete = true
+		}
+		return summary, err
 	}
 	activeCtx, activeCancel := context.WithCancel(overallCtx)
 	defer activeCancel()
@@ -1042,6 +1075,37 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
+	strategy := config.Strategy
+	if strategy == "" {
+		strategy = StrategySeed
+	}
+	switch strategy {
+	case StrategySeed:
+		if config.MaxRuns != 0 || config.MaxChoiceDepth != 0 || config.MaxFrontierBytes != 0 {
+			return SeedSelection{}, nil, errors.New("frontier bounds require the choice-frontier strategy")
+		}
+	case StrategyChoiceFrontier:
+		if selection.Count() != 1 {
+			return SeedSelection{}, nil, errors.New("choice-frontier exploration requires exactly one base seed")
+		}
+		if config.Guide {
+			return SeedSelection{}, nil, errors.New("choice-frontier strategy does not support guided exploration")
+		}
+		if config.ChoiceTraceLimit == 0 {
+			return SeedSelection{}, nil, errors.New("choice-frontier strategy requires an enabled choice trace")
+		}
+		if config.MaxRuns == 0 {
+			return SeedSelection{}, nil, errors.New("choice-frontier max runs must be positive")
+		}
+		if config.MaxChoiceDepth == 0 {
+			return SeedSelection{}, nil, errors.New("choice-frontier choice depth must be positive")
+		}
+		if config.MaxFrontierBytes == 0 {
+			return SeedSelection{}, nil, errors.New("choice-frontier frontier bytes must be positive")
+		}
+	default:
+		return SeedSelection{}, nil, fmt.Errorf("unknown exploration strategy %q", config.Strategy)
+	}
 	if config.Parallel <= 0 {
 		return SeedSelection{}, nil, fmt.Errorf("parallelism must be positive")
 	}
@@ -1172,7 +1236,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config Config, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile ioprofile.ProfileSpec, readOnlyMounts []romount.Mapping, journal *artifact.BatchJournal, job runJob, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config Config, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile ioprofile.ProfileSpec, readOnlyMounts []romount.Mapping, journal runJournalFactory, job runJob, completions chan<- runCompletion) {
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginRun(job.ordinal, job.seed)
 	completion := runCompletion{job: job, startedAt: startedAt, journal: run}
@@ -1216,9 +1280,17 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 			if identityErr != nil {
 				completion.err = identityErr
 			} else {
+				mode := job.choiceMode
+				if mode == 0 {
+					mode = choicewire.ModeRecord
+				}
 				choiceCapability = &process.ChoiceCapability{
-					Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+					Mode: mode, Profile: choicewire.Profile, ImplementationSHA256: implementation,
 					ExecutionIdentity: identity, Limit: config.ChoiceTraceLimit,
+				}
+				if job.choiceTape != nil {
+					tape := *job.choiceTape
+					choiceCapability.Tape = &tape
 				}
 			}
 		}
@@ -1473,6 +1545,14 @@ func choiceTerminalState(state choicewire.TerminalState) string {
 }
 
 func cloneChoiceTraceSummary(summary *ChoiceTraceSummary) *ChoiceTraceSummary {
+	if summary == nil {
+		return nil
+	}
+	cloned := *summary
+	return &cloned
+}
+
+func cloneFrontierSummary(summary *choicefrontier.Summary) *choicefrontier.Summary {
 	if summary == nil {
 		return nil
 	}

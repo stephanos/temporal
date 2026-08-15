@@ -8,12 +8,16 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
 
-const BatchPlanSchema = "gomadv3.batch-plan/v1"
+const (
+	BatchPlanSchema       = "gomadv3.batch-plan/v2"
+	LegacyBatchPlanSchema = "gomadv3.batch-plan/v1"
+)
 
 const maximumBatchPlanBytes = 1 << 20
 
@@ -36,31 +40,36 @@ type GuidancePlan struct {
 }
 
 type BatchPlan struct {
-	Schema                 string                     `json:"schema"`
-	Selection              string                     `json:"selection"`
-	SelectionCount         record.Uint64String        `json:"selection_count"`
-	Parallel               record.Uint64String        `json:"parallel"`
-	RunTimeoutNanos        record.Uint64String        `json:"run_timeout_nanos"`
-	OverallTimeoutNanos    record.Uint64String        `json:"overall_timeout_nanos"`
-	TerminateGraceNanos    record.Uint64String        `json:"terminate_grace_nanos"`
-	OnFailure              string                     `json:"on_failure"`
-	FailureBudget          record.Uint64String        `json:"failure_budget"`
-	OutputBytes            record.Uint64String        `json:"output_bytes"`
-	WorldTransitionBytes   record.Uint64String        `json:"world_transition_bytes"`
-	RunnerBuild            string                     `json:"runner_build"`
-	Toolchain              record.Toolchain           `json:"toolchain"`
-	Prepared               PreparedTargetPlan         `json:"prepared"`
-	IOProfile              IOProfilePlan              `json:"io_profile"`
-	ChoiceProfile          *ChoiceProfilePlan         `json:"choice_profile,omitempty"`
-	Environment            []record.Environment       `json:"environment"`
-	IOROMounts             []string                   `json:"io_ro_mounts"`
-	IOROMountLimits        record.ReadOnlyMountLimits `json:"io_ro_mount_limits"`
-	Coverage               string                     `json:"coverage"`
-	RequiredSemanticProbes []string                   `json:"required_semantic_probes"`
-	KeepSuccesses          string                     `json:"keep_successes"`
-	SuccessArtifactLimit   record.Uint64String        `json:"success_artifact_limit"`
-	SuccessBytesLimit      record.Uint64String        `json:"success_bytes_limit"`
-	Guidance               *GuidancePlan              `json:"guidance,omitempty"`
+	Schema                       string                     `json:"schema"`
+	Strategy                     string                     `json:"strategy,omitempty"`
+	Selection                    string                     `json:"selection"`
+	SelectionCount               record.Uint64String        `json:"selection_count"`
+	Parallel                     record.Uint64String        `json:"parallel"`
+	MaxRuns                      record.Uint64String        `json:"max_runs,omitempty"`
+	MaxChoiceDepth               record.Uint64String        `json:"max_choice_depth,omitempty"`
+	MaxFrontierBytes             record.Uint64String        `json:"max_frontier_bytes,omitempty"`
+	FrontierImplementationSHA256 record.SHA256              `json:"frontier_implementation_sha256,omitempty"`
+	RunTimeoutNanos              record.Uint64String        `json:"run_timeout_nanos"`
+	OverallTimeoutNanos          record.Uint64String        `json:"overall_timeout_nanos"`
+	TerminateGraceNanos          record.Uint64String        `json:"terminate_grace_nanos"`
+	OnFailure                    string                     `json:"on_failure"`
+	FailureBudget                record.Uint64String        `json:"failure_budget"`
+	OutputBytes                  record.Uint64String        `json:"output_bytes"`
+	WorldTransitionBytes         record.Uint64String        `json:"world_transition_bytes"`
+	RunnerBuild                  string                     `json:"runner_build"`
+	Toolchain                    record.Toolchain           `json:"toolchain"`
+	Prepared                     PreparedTargetPlan         `json:"prepared"`
+	IOProfile                    IOProfilePlan              `json:"io_profile"`
+	ChoiceProfile                *ChoiceProfilePlan         `json:"choice_profile,omitempty"`
+	Environment                  []record.Environment       `json:"environment"`
+	IOROMounts                   []string                   `json:"io_ro_mounts"`
+	IOROMountLimits              record.ReadOnlyMountLimits `json:"io_ro_mount_limits"`
+	Coverage                     string                     `json:"coverage"`
+	RequiredSemanticProbes       []string                   `json:"required_semantic_probes"`
+	KeepSuccesses                string                     `json:"keep_successes"`
+	SuccessArtifactLimit         record.Uint64String        `json:"success_artifact_limit"`
+	SuccessBytesLimit            record.Uint64String        `json:"success_bytes_limit"`
+	Guidance                     *GuidancePlan              `json:"guidance,omitempty"`
 }
 
 func (journal *BatchJournal) RecordPlan(plan BatchPlan) error {
@@ -161,8 +170,26 @@ func validateResumeLifecycle(root *os.Root) error {
 }
 
 func validateBatchPlan(plan BatchPlan) error {
-	if plan.Schema != BatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
+	if plan.Schema != BatchPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
 		return fmt.Errorf("batch plan identity is invalid")
+	}
+	if plan.Schema == LegacyBatchPlanSchema {
+		if plan.Strategy != "" || plan.MaxRuns != 0 || plan.MaxChoiceDepth != 0 || plan.MaxFrontierBytes != 0 || plan.FrontierImplementationSHA256 != "" {
+			return fmt.Errorf("legacy batch plan contains frontier fields")
+		}
+	} else {
+		switch plan.Strategy {
+		case "seed":
+			if plan.MaxRuns != 0 || plan.MaxChoiceDepth != 0 || plan.MaxFrontierBytes != 0 || plan.FrontierImplementationSHA256 != "" {
+				return fmt.Errorf("seed batch plan contains frontier bounds")
+			}
+		case "choice-frontier":
+			if plan.SelectionCount != 1 || plan.MaxRuns == 0 || plan.MaxChoiceDepth == 0 || plan.MaxFrontierBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.FrontierImplementationSHA256 != choicefrontier.ImplementationSHA256() {
+				return fmt.Errorf("choice-frontier batch plan is invalid")
+			}
+		default:
+			return fmt.Errorf("batch plan strategy is invalid")
+		}
 	}
 	if plan.RunTimeoutNanos == 0 || plan.OverallTimeoutNanos == 0 || plan.OutputBytes == 0 || plan.WorldTransitionBytes == 0 || plan.TerminateGraceNanos > plan.RunTimeoutNanos || plan.TerminateGraceNanos > plan.OverallTimeoutNanos {
 		return fmt.Errorf("batch plan limits are invalid")

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/commandline"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -114,25 +115,37 @@ type StreamReport struct {
 }
 
 type BatchReport struct {
-	RunID                string            `json:"run_id"`
-	Selection            string            `json:"selection"`
-	SelectionCount       uint64            `json:"selection_count"`
-	Attempted            uint64            `json:"attempted"`
-	Succeeded            uint64            `json:"succeeded"`
-	Failures             uint64            `json:"failures"`
-	Watchdogs            uint64            `json:"watchdogs"`
-	Cancelled            uint64            `json:"cancelled"`
-	DistinctFailures     uint64            `json:"distinct_failures"`
-	RetainedSuccesses    uint64            `json:"retained_successes"`
-	RetainedSuccessBytes uint64            `json:"retained_success_bytes"`
-	StopReason           string            `json:"stop_reason"`
-	RunsSHA256           record.SHA256     `json:"runs_sha256"`
-	Runs                 []BatchRun        `json:"runs"`
-	FailureArtifacts     []FailureArtifact `json:"failure_artifacts"`
-	SuccessArtifacts     []SuccessArtifact `json:"success_artifacts"`
+	RunID                        string                  `json:"run_id"`
+	Strategy                     string                  `json:"strategy"`
+	Selection                    string                  `json:"selection"`
+	SelectionCount               uint64                  `json:"selection_count"`
+	Attempted                    uint64                  `json:"attempted"`
+	Succeeded                    uint64                  `json:"succeeded"`
+	Failures                     uint64                  `json:"failures"`
+	Watchdogs                    uint64                  `json:"watchdogs"`
+	Cancelled                    uint64                  `json:"cancelled"`
+	DistinctFailures             uint64                  `json:"distinct_failures"`
+	RetainedSuccesses            uint64                  `json:"retained_successes"`
+	RetainedSuccessBytes         uint64                  `json:"retained_success_bytes"`
+	StopReason                   string                  `json:"stop_reason"`
+	RunsSHA256                   record.SHA256           `json:"runs_sha256"`
+	Runs                         []BatchRun              `json:"runs"`
+	FailureArtifacts             []FailureArtifact       `json:"failure_artifacts"`
+	SuccessArtifacts             []SuccessArtifact       `json:"success_artifacts"`
+	Frontier                     *choicefrontier.Summary `json:"frontier,omitempty"`
+	FrontierImplementationSHA256 record.SHA256           `json:"frontier_implementation_sha256,omitempty"`
+	FrontierChainSHA256          record.SHA256           `json:"frontier_chain_sha256,omitempty"`
+	RecoveryExecutions           uint64                  `json:"recovery_executions,omitempty"`
 }
 
 type BatchRun struct {
+	Strategy                    string         `json:"strategy,omitempty"`
+	Round                       *uint64        `json:"round,omitempty"`
+	CandidateSHA256             record.SHA256  `json:"candidate_sha256,omitempty"`
+	ParentCandidateSHA256       record.SHA256  `json:"parent_candidate_sha256,omitempty"`
+	PrefixSHA256                record.SHA256  `json:"prefix_sha256,omitempty"`
+	ForcedDepth                 *uint64        `json:"forced_depth,omitempty"`
+	OutcomeSHA256               record.SHA256  `json:"outcome_sha256,omitempty"`
 	SelectionOrdinal            uint64         `json:"selection_ordinal"`
 	Seed                        uint64         `json:"seed"`
 	Domain                      string         `json:"domain"`
@@ -349,20 +362,30 @@ func projectStream(stream record.Stream) StreamReport {
 func projectBatch(opened artifact.Batch) (BatchReport, error) {
 	batch := opened.Record
 	result := BatchReport{
-		RunID: batch.RunID, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
+		RunID: batch.RunID, Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
 		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
 		DistinctFailures: uint64(batch.DistinctFailures), StopReason: batch.StopReason, RunsSHA256: batch.RunsSHA256,
 		RetainedSuccesses: uint64(batch.RetainedSuccesses), RetainedSuccessBytes: uint64(batch.RetainedSuccessBytes),
+		Frontier: batch.Frontier, FrontierImplementationSHA256: batch.FrontierImplementationSHA256, FrontierChainSHA256: batch.FrontierChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
 		Runs: make([]BatchRun, 0, len(opened.Runs)), FailureArtifacts: []FailureArtifact{}, SuccessArtifacts: []SuccessArtifact{},
 	}
 	seenArtifacts := make(map[string]struct{})
 	for _, run := range opened.Runs {
 		projected := BatchRun{
+			Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
 			SelectionOrdinal: uint64(run.SelectionOrdinal), Seed: uint64(run.Seed), Domain: run.Domain, Reason: run.Reason,
 			Termination: run.Termination, ElapsedNanos: uint64(run.ElapsedNanos), FailureSignature: run.FailureSignature, Artifact: run.Artifact,
 			TranscriptSHA256:  run.IOTranscriptSHA256,
 			ChoiceTraceSHA256: run.ChoiceTraceSHA256, ChoiceTraceTerminalState: run.ChoiceTraceTerminalState,
 			SuccessArtifact: run.SuccessArtifact, SemanticProbes: append([]string(nil), run.SemanticProbes...), NovelSemanticProbes: append([]string(nil), run.NovelSemanticProbes...),
+		}
+		if run.Round != nil {
+			value := uint64(*run.Round)
+			projected.Round = &value
+		}
+		if run.ForcedDepth != nil {
+			value := uint64(*run.ForcedDepth)
+			projected.ForcedDepth = &value
 		}
 		if run.SuccessArtifactBytes != nil {
 			value := uint64(*run.SuccessArtifactBytes)

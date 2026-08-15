@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	RunEvidenceSchema       = "gomadv3.run-evidence/v2"
+	RunEvidenceSchema       = "gomadv3.run-evidence/v3"
+	ChoiceRunEvidenceSchema = "gomadv3.run-evidence/v2"
 	LegacyRunEvidenceSchema = "gomadv3.run-evidence/v1"
 )
 
@@ -72,6 +73,17 @@ type RunEvidence struct {
 	World                record.World               `json:"world"`
 	ReadOnlyMountsSHA256 *record.SHA256             `json:"read_only_mounts_sha256,omitempty"`
 	SemanticCoverage     ioprofile.SemanticCoverage `json:"semantic_coverage"`
+	Frontier             *FrontierRunEvidence       `json:"frontier,omitempty"`
+}
+
+type FrontierRunEvidence struct {
+	ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
+	Round                record.Uint64String `json:"round"`
+	CandidateSHA256      record.SHA256       `json:"candidate_sha256"`
+	ParentSHA256         record.SHA256       `json:"parent_sha256,omitempty"`
+	PrefixSHA256         record.SHA256       `json:"prefix_sha256,omitempty"`
+	ForcedDepth          record.Uint64String `json:"forced_depth"`
+	OutcomeSHA256        record.SHA256       `json:"outcome_sha256"`
 }
 
 func runEvidence(

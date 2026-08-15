@@ -85,6 +85,7 @@ tools/gomadv3/.bin/gomad analyze --format=json go-test ./path/to/package -- -tes
 tools/gomadv3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output report.json
 tools/gomadv3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad explore --strategy=choice-frontier --seeds 7 --max-runs=128 --max-choice-depth=32 --max-frontier-bytes=64MiB go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/run-INTERRUPTED
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/failures/sha256-*
@@ -114,6 +115,22 @@ Legacy v1 traces remain inspectable, but replay reports
 Prefix replay is an internal bounded-frontier primitive and is not a public CLI
 mode in this slice.
 
+Use `--strategy=choice-frontier` to explore every non-selected runnable or
+ready-`select` rank observed within explicit bounds. The strategy requires one
+base seed plus positive `--max-runs`, `--max-choice-depth`, and
+`--max-frontier-bytes` values. It implies choice recording and rejects
+`--count`, multiple seeds, and guided exploration. Candidates run in
+deterministic breadth-first rounds ordered by forced-prefix length and identity;
+parallel completion timing cannot change the committed frontier. A target
+failure remains expandable while the selected failure policy permits it.
+
+Each completed round is an immutable, hash-linked transaction below the batch.
+An interrupted round is archived and rerun in full on `gomad resume`; logical
+and recovery execution counts are reported separately. `frontier_exhausted`
+and `choice_depth_complete` are bounded completions, while `max_runs` and
+`frontier_capacity` identify incomplete search envelopes. Outcome deduplication
+reduces retained evidence only and never removes a distinct forced prefix.
+
 `gomad analyze` reviews a `go-run` or `go-test` target without compiling or
 executing it. The report uses the same fail-closed capability review and exact
 compatibility-pack decisions as target preparation, lists every blocker with a
@@ -123,7 +140,7 @@ separators are represented by stable SHA-256 identities. `--format=json` emits
 `gomadv3.capability-analysis/v1`. Status 0 means supported, 1 unsupported, 2
 invalid input or package configuration, and 3 analysis infrastructure failure.
 
-Add `--json` to emit newline-delimited `gomadv3.explore-event/v1` records on
+Add `--json` to emit newline-delimited `gomadv3.explore-event/v2` records on
 stdout and no routine output on stderr. Event types are `progress`, `result`,
 `artifact`, and `error`. Result classifications are `success`,
 `target_failure`, `watchdog_observation`, `replay_divergence`, and
@@ -228,9 +245,12 @@ lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
 and the direct modernc/libc file boundary. The aggregate and all evidence are
 retained below `.toolchain/core-qualification*`.
 
-An interrupted campaign retains a canonical `gomadv3.batch-plan/v1` beside
+An interrupted campaign retains a canonical `gomadv3.batch-plan/v2` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity and the already-mixed seed selection, so resume never reselects seeds.
+The current plan records the seed or choice-frontier strategy, its controller
+identity, and every search bound; the reader retains narrow support for legacy
+seed-only v1 plans and batches.
 `gomad resume BATCH` locks that batch, verifies the exact
 Runner, toolchain, I/O profile, prepared binary, completed records, and every
 referenced failure or successful-run artifact, archives incomplete per-seed state, and schedules
@@ -247,7 +267,7 @@ use the same stable campaign event stream as `explore`.
 | 2 | Input is invalid, the target is unsupported, or the resume journal is incompatible. | Input was invalid or the unsupported boundary was retained. | Input or artifact compatibility validation failed. |
 | 3 | Runner or host infrastructure failed. | Qualification or report infrastructure failed. | Replay infrastructure failed. |
 
-The Runner prepares one immutable target, launches every seed in a fresh
+The Runner prepares one immutable target, launches every seed or forced-prefix candidate in a fresh
 contained process and work directory, enforces wall deadlines, computes full
 stream hashes while retaining bounded output, and publishes canonical,
 content-addressed artifacts. `--count N` selects seeds `0` through `N-1` and is

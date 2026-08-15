@@ -1,5 +1,7 @@
 # Gomad v3 Next: Temporal and Platform Compatibility
 
+> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). The capability designs, invariants, verification plan, and exit criteria here remain normative.
+
 ## Goal
 
 Increase the amount of valuable Temporal code that can execute under Gomad without weakening its fail-closed deterministic contract. Compatibility work should be driven by observed workload blockers, not by attempting to model every Go or operating-system API.
@@ -8,7 +10,7 @@ The recommended progression is:
 
 > explain rejection → measure support → unlock high-value closures → qualify another platform
 
-The first deliverable should be a structured target compatibility analyzer.
+The completed first deliverables were the structured target compatibility analyzer and unambiguous support reports. The next slice is governed compatibility extension driven by the measured Temporal corpus.
 
 ## What success means
 
@@ -29,7 +31,7 @@ Gomad should be able to answer:
 - Cross-platform replay of the same artifact.
 - API-count parity with `os`, `net`, or `x/sys`.
 
-## Capability 1: `gomad analyze`
+## COMPAT-1: `gomad analyze`
 
 Expose capability-closure review as a read-only user command:
 
@@ -52,7 +54,7 @@ This should reuse `ReviewCapabilityClosure` and compatibility policy data throug
 
 Add `--format=json` with a versioned schema so qualification tooling can aggregate blockers. Human output should group repeated blockers and show the shortest dependency path first.
 
-## Capability 2: unambiguous support matrices
+## COMPAT-2: Unambiguous support matrices
 
 Replace the overloaded set-level meaning of `qualified` with separate evidence:
 
@@ -72,7 +74,7 @@ gomad compare-support --baseline old.json --candidate new.json
 
 Comparison should fail CI on an unexpected support regression, a changed blocker without manifest review, replay divergence, or an unapproved boundary change. Expected unsupported cases remain useful evidence, but never contribute to the supported count.
 
-## Capability 3: a tiered Temporal corpus
+## COMPAT-3: Tiered Temporal corpus
 
 Grow the corpus around architectural value rather than raw test count.
 
@@ -90,7 +92,7 @@ Build purpose-specific harnesses that compose several Temporal components using 
 
 For every tier, record multiple seeds or choice prefixes, replay qualification, actual support state, execution time, artifact growth, and blocker classification. The corpus should be required on Gomad changes and on dependency changes that alter its closure.
 
-## Capability 4: compatibility-pack development kit
+## COMPAT-4: Compatibility-pack development kit
 
 Turn exact compatibility packs into a governed extension point rather than hand-authored exceptions. Provide a generator/validator that:
 
@@ -105,7 +107,7 @@ Packs should approve narrow ABI or source facts. They must not grant generic `sy
 
 The first candidate should be the exact `x/net/internal/socket` linkname closure blocking the Activity qualification case, if review shows the live behavior is fully covered by existing or new deterministic boundaries.
 
-## Capability 5: targeted deterministic adapters and I/O models
+## COMPAT-5: Targeted deterministic adapters and I/O models
 
 Use analyzer data to rank missing operations by the Temporal workloads they unlock. Each new model should have a small semantic contract, hard resource bounds, transcript coverage, exact replay, and adversarial conformance tests.
 
@@ -119,7 +121,7 @@ Plausible candidates, subject to corpus evidence:
 
 Do not implement UDP, general host networking, subprocesses, or broad raw-descriptor emulation merely for API completeness. Their state spaces and host semantics are large, and subprocesses violate the current single-target containment model.
 
-## Capability 6: safer handling of transitive forbidden dependencies
+## COMPAT-6: Safer handling of transitive forbidden dependencies
 
 The current package-level closure intentionally rejects a package that imports a forbidden package even if the target does not call the offending function. This is safe but rejects useful dependency graphs, including the current persistence case.
 
@@ -133,7 +135,7 @@ Do not replace it with an unsound source call graph. Evaluate a stricter, compil
 
 Keep closure review as the default until this mechanism demonstrates that it accepts real targets while still rejecting deliberately hidden init-time and indirect calls. A package-specific adapter or dependency refactor is preferable to a generic exemption.
 
-## Capability 7: platform bundles
+## COMPAT-7: Platform bundles
 
 Represent platform support as a versioned deep module rather than scattered `GOOS` branches. A platform bundle should own:
 
@@ -156,7 +158,7 @@ Artifacts remain replayable only on their exact platform bundle. Cross-platform 
 
 For Linux, replace the DTrace-specific host-clock escape audit with an equivalent privileged audit appropriate to the host. Platform qualification must exercise the full runtime and I/O corpus, not only portable host packages.
 
-## Capability 8: dependency and Go upgrade impact reports
+## COMPAT-8: Dependency and Go upgrade impact reports
 
 Extend the upgrade dossier to answer:
 
@@ -242,6 +244,6 @@ At 10× corpus size, analysis should cache immutable `go list`/source digests by
 - Installation, artifact identity, and replay reject the wrong platform bundle.
 - Platform-specific host-escape audits run in CI with required privileges.
 
-## Recommended first slice
+## Recommended next slice
 
-Implement `gomad analyze` and the unambiguous support report before adding any pack, adapter, or platform. Run it across a curated list of Temporal packages, rank blockers by the value of workloads unlocked, and use that evidence to select the next compatibility change.
+Use the analyzer and sixteen-workload tier-2 corpus to rank blockers by workloads unlocked. Build the compatibility-pack development kit before adding another pack, then use its evidence to select one exact pack or deterministic adapter and to bound the compiler-backed live-capability-manifest experiment. Accept the slice only if actual support grows beyond 4/16 without a generic exemption or host fallback.

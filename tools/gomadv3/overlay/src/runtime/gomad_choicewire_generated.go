@@ -17,6 +17,7 @@ const (
 	gomadChoiceFlagDecision                  = 1
 	gomadChoiceFlagObservation               = 2
 	gomadChoiceFlagSiteMissing               = 4
+	gomadChoiceFlagRankOverride              = 8
 	gomadChoiceTerminalComplete              = 1
 	gomadChoiceTerminalOverflow              = 2
 	gomadChoiceTerminalDiverged              = 3

@@ -103,9 +103,10 @@ type choiceSchema struct {
 		SelectResult uint8 `json:"select_result"`
 	} `json:"kinds"`
 	Flags struct {
-		Decision    uint8 `json:"decision"`
-		Observation uint8 `json:"observation"`
-		SiteMissing uint8 `json:"site_missing"`
+		Decision     uint8 `json:"decision"`
+		Observation  uint8 `json:"observation"`
+		SiteMissing  uint8 `json:"site_missing"`
+		RankOverride uint8 `json:"rank_override"`
 	} `json:"flags"`
 	Modes struct {
 		Seed   uint8 `json:"seed"`
@@ -300,6 +301,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 		definition.Flags.Decision == 1,
 		definition.Flags.Observation == 2,
 		definition.Flags.SiteMissing == 4,
+		definition.Flags.RankOverride == 8,
 		definition.Modes.Seed == 0,
 		definition.Modes.Record == 1,
 		definition.Modes.Replay == 2,

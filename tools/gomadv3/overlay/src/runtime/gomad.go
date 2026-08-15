@@ -176,7 +176,7 @@ func gomadChoiceInitTape() {
 	}
 	for ordinal := uint64(0); ordinal < records; ordinal++ {
 		record := bytes[gomadChoiceTapeHeaderBytes+ordinal*gomadChoiceTapeRecordBytes : gomadChoiceTapeHeaderBytes+(ordinal+1)*gomadChoiceTapeRecordBytes]
-		if !gomadChoiceValidDecisionRecord(record, ordinal) {
+		if !gomadChoiceValidDecisionRecord(record, ordinal, records) {
 			print("runtime: invalid Gomad choice tape record\n")
 			exit(2)
 		}
@@ -333,22 +333,27 @@ func gomadChoiceDecision(kind, flags uint8, siteOffset uint64, alternatives [][3
 		}
 		expected := gomadChoiceTapeRecord(gomadChoiceTapeCursor)
 		reason := gomadChoiceCompareDecision(expected, observed)
+		rankOverride := expected.flags&gomadChoiceFlagRankOverride != 0
 		if reason == 0 {
-			if expected.selected >= uint32(len(alternatives)) || !gomadChoiceEqual(expected.selectedIdentity[:], ordered[expected.selected][:]) {
+			if expected.selected >= uint32(len(alternatives)) || !rankOverride && !gomadChoiceEqual(expected.selectedIdentity[:], ordered[expected.selected][:]) {
 				reason = gomadChoiceDivergenceSelected
 			}
 		}
 		if reason != 0 {
 			gomadChoiceDiverge(reason, &expected, &observed)
 		}
+		selectedIdentity := expected.selectedIdentity
+		if rankOverride {
+			selectedIdentity = ordered[expected.selected]
+		}
 		for index := range alternatives {
-			if gomadChoiceEqual(alternatives[index][:], expected.selectedIdentity[:]) {
+			if gomadChoiceEqual(alternatives[index][:], selectedIdentity[:]) {
 				physical = uint32(index)
 				break
 			}
 		}
 		observed.selected = expected.selected
-		observed.selectedIdentity = expected.selectedIdentity
+		observed.selectedIdentity = selectedIdentity
 		gomadChoiceTapeCursor++
 	}
 	gomadChoiceDecisionRecords++
@@ -360,7 +365,7 @@ func gomadChoiceCompareDecision(expected, observed gomadChoiceRecordValue) uint8
 	if expected.kind != observed.kind {
 		return gomadChoiceDivergenceKind
 	}
-	if expected.siteOffset != observed.siteOffset || expected.flags != observed.flags {
+	if expected.siteOffset != observed.siteOffset || expected.flags&^gomadChoiceFlagRankOverride != observed.flags {
 		return gomadChoiceDivergenceSite
 	}
 	if expected.alternatives != observed.alternatives {
@@ -403,9 +408,10 @@ func gomadChoiceDecodeRecord(record []byte) gomadChoiceRecordValue {
 	return value
 }
 
-func gomadChoiceValidDecisionRecord(record []byte, ordinal uint64) bool {
+func gomadChoiceValidDecisionRecord(record []byte, ordinal, records uint64) bool {
 	value := gomadChoiceDecodeRecord(record)
-	return len(record) == gomadChoiceTapeRecordBytes && value.ordinal == ordinal && value.kind >= gomadChoiceKindRunnable && value.kind <= gomadChoiceKindSelectPoll && value.flags&gomadChoiceFlagDecision != 0 && value.flags&gomadChoiceFlagObservation == 0 && value.flags & ^uint8(gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing) == 0 && gomadChoiceZero(record[10:12]) && value.alternatives != 0 && value.selected < value.alternatives && (value.flags&gomadChoiceFlagSiteMissing == 0 || value.siteOffset == 0) && !gomadChoiceZero(value.selectedIdentity[:]) && !gomadChoiceZero(value.alternativeSet[:])
+	rankOverride := value.flags&gomadChoiceFlagRankOverride != 0
+	return len(record) == gomadChoiceTapeRecordBytes && value.ordinal == ordinal && value.kind >= gomadChoiceKindRunnable && value.kind <= gomadChoiceKindSelectPoll && value.flags&gomadChoiceFlagDecision != 0 && value.flags&gomadChoiceFlagObservation == 0 && value.flags & ^uint8(gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing|gomadChoiceFlagRankOverride) == 0 && (!rankOverride || gomadChoiceMode == gomadChoiceModePrefix && ordinal+1 == records) && gomadChoiceZero(record[10:12]) && value.alternatives != 0 && value.selected < value.alternatives && (value.flags&gomadChoiceFlagSiteMissing == 0 || value.siteOffset == 0) && (rankOverride && gomadChoiceZero(value.selectedIdentity[:]) || !rankOverride && !gomadChoiceZero(value.selectedIdentity[:])) && !gomadChoiceZero(value.alternativeSet[:])
 }
 
 func gomadChoiceAlternativeSet(ordered [][32]byte) [32]byte {

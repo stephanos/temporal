@@ -369,6 +369,9 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		if decodeErr != nil {
 			return Trace{}, errors.Join(ErrMalformed, decodeErr)
 		}
+		if record.Flags&FlagRankOverride != 0 {
+			return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace contains a controller-only rank override"))
+		}
 		if record.Ordinal != uint64(len(result.Records)) {
 			return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("choice trace ordinal %d at record %d", record.Ordinal, len(result.Records)))
 		}

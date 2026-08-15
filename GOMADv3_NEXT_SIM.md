@@ -1,6 +1,8 @@
 # Gomad v3 Next: Distributed-System Simulation
 
-**Roadmap date:** 2026-08-13
+**Roadmap date:** 2026-08-14
+
+> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). The module designs, invariants, verification plan, and exit criteria here remain normative.
 
 ## Goal
 
@@ -25,9 +27,8 @@ This roadmap is a fourth investment track beside
 [bug-finding power](GOMADv3_NEXT_BUG_FINDING.md),
 [compatibility](GOMADv3_NEXT_COMPATIBILITY.md), and
 [productionization](GOMADv3_NEXT_PRODUCTIONIZATION.md). It depends on the
-shared trust gate in [GOMADv3_NEXT.md](GOMADv3_NEXT.md): the existing replay,
-resume, publication, TCP, process-cleanup, qualification, and resource-limit
-claims must first mean what they say.
+shared trust gate in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). That gate is complete
+and remains a required regression boundary for all simulation work.
 
 ## Executive design
 
@@ -840,9 +841,9 @@ Qualification should progress from mechanisms to representative systems:
 
 ### SIM-0: restore trust and define the parity contract
 
-Complete the shared entry gate from `GOMADv3_NEXT.md`, especially the existing
-TCP close/data races, World replay plan transport, and network resource limits.
-Create the v2-derived behavioral parity manifest and two representative
+Preserve the completed shared entry gate from `GOMADv3_NEXT.md`, including the
+TCP close/data, World replay, and network resource-limit guarantees. Create the
+v2-derived behavioral parity manifest and two representative
 Temporal scenario prototypes. Use them to finalize the small application-facing
 harness, boot registry, cluster schemas, fidelity declarations, and limits.
 
@@ -983,11 +984,14 @@ The project may claim v2 behavioral **simulation** parity after SIM-5. It must
 not claim complete product feature parity while a relied-upon adjacent feature,
 such as race mode, remains unsupported.
 
-## Recommended first slice
+## Recommended next slice
 
-Complete SIM-0, then implement only the Node registry, boot registry, runtime
-domain inheritance, and lifecycle transitions needed for a two-node
-in-process fixture. Do not begin by rewriting TCP or `gomadfs`.
+Finish the remaining SIM-0 work: create the v2-derived parity manifest and the
+two-node request/response and restart prototypes. Use their evidence to finalize
+the application harness, backend seam, fidelity declarations, and limits. Then
+implement only the SIM-1 Node registry, boot registry, runtime-domain
+inheritance, and lifecycle transitions needed for those fixtures. Do not begin
+by rewriting TCP or `gomadfs`.
 
 That slice answers the highest-risk architectural question: whether unchanged
 Temporal-style services can be constructed as logical nodes with correct

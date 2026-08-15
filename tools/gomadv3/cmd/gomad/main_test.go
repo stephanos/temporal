@@ -160,6 +160,50 @@ func TestResolveExploreSeedsSupportsCountWithoutAmbiguity(t *testing.T) {
 	}
 }
 
+func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedFrontier(t *testing.T) {
+	valid := exploreStrategyOptions{
+		Value: "choice-frontier", Seeds: "7", MaxRuns: 8, MaxChoiceDepth: 4, MaxFrontierBytes: 1 << 20,
+		MaxRunsSet: true, MaxChoiceDepthSet: true, MaxFrontierBytesSet: true,
+	}
+	strategy, choices, err := resolveExploreStrategy(valid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strategy != runner.StrategyChoiceFrontier || !choices {
+		t.Fatalf("resolveExploreStrategy() = %q, %t", strategy, choices)
+	}
+
+	for _, test := range []struct {
+		name      string
+		configure func(*exploreStrategyOptions)
+		want      string
+	}{
+		{name: "count", configure: func(options *exploreStrategyOptions) { options.CountSet = true }, want: "does not accept --count"},
+		{name: "multiple seeds", configure: func(options *exploreStrategyOptions) { options.Seeds = "7-8" }, want: "exactly one base seed"},
+		{name: "guidance", configure: func(options *exploreStrategyOptions) { options.Guide = true }, want: "does not support --guide"},
+		{name: "missing max runs", configure: func(options *exploreStrategyOptions) { options.MaxRunsSet = false }, want: "--max-runs"},
+		{name: "zero max runs", configure: func(options *exploreStrategyOptions) { options.MaxRuns = 0 }, want: "--max-runs"},
+		{name: "missing max depth", configure: func(options *exploreStrategyOptions) { options.MaxChoiceDepthSet = false }, want: "--max-choice-depth"},
+		{name: "missing frontier bytes", configure: func(options *exploreStrategyOptions) { options.MaxFrontierBytesSet = false }, want: "--max-frontier-bytes"},
+		{name: "unknown", configure: func(options *exploreStrategyOptions) { options.Value = "random" }, want: "unknown exploration strategy"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			options := valid
+			test.configure(&options)
+			if _, _, err := resolveExploreStrategy(options); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("resolveExploreStrategy() error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestResolveExploreStrategyRejectsFrontierBoundsForSeeds(t *testing.T) {
+	_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: "seed", Seeds: "7", MaxRuns: 1, MaxRunsSet: true})
+	if err == nil || !strings.Contains(err.Error(), "require --strategy=choice-frontier") {
+		t.Fatalf("resolveExploreStrategy() error = %v", err)
+	}
+}
+
 func TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes(t *testing.T) {
 	for _, test := range []struct {
 		mode      string
@@ -519,7 +563,7 @@ func TestExploreReporterEmitsStableJSONEventsAndEveryArtifact(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	for _, value := range []string{
-		`"schema":"gomadv3.explore-event/v1"`, `"type":"progress"`, `"phase":"preparing"`,
+		`"schema":"gomadv3.explore-event/v2"`, `"type":"progress"`, `"phase":"preparing"`,
 		`"type":"result"`, `"classification":"target_failure"`, `"novelty":2`,
 		`"semantic_coverage":{"schema":"gomadv3.semantic-coverage/v1","digest":"sha256:coverage","probes":["stdlib.os.openfile"]}`,
 		`"path":"/batch/failures/one"`, `"path":"/batch/failures/two"`,
@@ -575,7 +619,7 @@ func TestRunExploreReportsFlagErrorsAsJSON(t *testing.T) {
 	if status != 2 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
-	for _, value := range []string{`"schema":"gomadv3.explore-event/v1"`, `"type":"error"`, `"classification":"invalid_input"`} {
+	for _, value := range []string{`"schema":"gomadv3.explore-event/v2"`, `"type":"error"`, `"classification":"invalid_input"`} {
 		if !strings.Contains(stdout.String(), value) {
 			t.Fatalf("explore output = %q, missing %q", stdout.String(), value)
 		}
@@ -805,7 +849,7 @@ func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
 	if status != 0 || stderr.Len() != 0 || resolvedToolchainRoot != "/bundle/toolchain" || got.ResumeBatch != "/artifacts/v1/run-partial" || got.RunnerBuild != "sha256:runner" || got.Target.ToolchainRoot != "/toolchain" || len(got.CoordinatorCommand) != 2 {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, got, stdout.String(), stderr.String())
 	}
-	for _, want := range []string{`"schema":"gomadv3.explore-event/v1"`, `"type":"result"`, `"classification":"success"`, `"batch_path":"/artifacts/v1/run-partial"`} {
+	for _, want := range []string{`"schema":"gomadv3.explore-event/v2"`, `"type":"result"`, `"classification":"success"`, `"batch_path":"/artifacts/v1/run-partial"`} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("output = %q, missing %q", stdout.String(), want)
 		}

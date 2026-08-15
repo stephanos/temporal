@@ -44,6 +44,7 @@ const (
 	FlagDecision Flags = {{.Schema.Flags.Decision}}
 	FlagObservation Flags = {{.Schema.Flags.Observation}}
 	FlagSiteMissing Flags = {{.Schema.Flags.SiteMissing}}
+	FlagRankOverride Flags = {{.Schema.Flags.RankOverride}}
 )
 
 type Mode uint8
@@ -156,8 +157,11 @@ func validateRecord(value Record) error {
 	if value.Kind < KindRunnable || value.Kind > KindSelectResult {
 		return errors.New("invalid choice trace kind")
 	}
-	if value.Flags & ^(FlagDecision|FlagObservation|FlagSiteMissing) != 0 || value.Flags&(FlagDecision|FlagObservation) == 0 || value.Flags&(FlagDecision|FlagObservation) == FlagDecision|FlagObservation {
+	if value.Flags & ^(FlagDecision|FlagObservation|FlagSiteMissing|FlagRankOverride) != 0 || value.Flags&(FlagDecision|FlagObservation) == 0 || value.Flags&(FlagDecision|FlagObservation) == FlagDecision|FlagObservation {
 		return errors.New("invalid choice trace flags")
+	}
+	if value.Flags&FlagRankOverride != 0 && (value.Flags&FlagDecision == 0 || value.Kind == KindSelectResult) {
+		return errors.New("invalid choice rank override")
 	}
 	if value.Kind == KindSelectResult && value.Flags&FlagObservation == 0 || value.Kind != KindSelectResult && value.Flags&FlagDecision == 0 {
 		return errors.New("invalid choice trace kind flags")
@@ -170,7 +174,7 @@ func validateRecord(value Record) error {
 	}
 	selectedZero := zero(value.SelectedIdentity[:])
 	setZero := zero(value.AlternativeSetDigest[:])
-	if value.Flags&FlagDecision != 0 && (selectedZero || setZero) || value.Flags&FlagObservation != 0 && (!selectedZero || !setZero) {
+	if value.Flags&FlagDecision != 0 && (setZero || value.Flags&FlagRankOverride == 0 && selectedZero || value.Flags&FlagRankOverride != 0 && !selectedZero) || value.Flags&FlagObservation != 0 && (!selectedZero || !setZero) {
 		return errors.New("invalid choice trace alternative identities")
 	}
 	return nil

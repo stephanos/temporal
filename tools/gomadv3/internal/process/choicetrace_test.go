@@ -235,6 +235,57 @@ func TestValidateRequestChoiceControllerModeMatrix(t *testing.T) {
 	}
 }
 
+func TestValidateRequestAcceptsRankOverrideOnlyInPrefixMode(t *testing.T) {
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	first := sha256.Sum256([]byte("first"))
+	second := sha256.Sum256([]byte("second"))
+	decision, err := choicewire.CanonicalDecision(0, choicewire.KindRunnable, 1, false, [][sha256.Size]byte{first, second}, first, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record, err := choicewire.EncodeRecord(decision.Record())
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(choicewire.Trace{
+		Version: choicewire.Version2, Bytes: record[:], SHA256: sha256.Sum256(record[:]), Records: []choicewire.Record{decision.Record()},
+		Summary: choicewire.Summary{Records: 1, Runnable: 1, Branching: 1, Terminal: choicewire.TerminalComplete},
+	}, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prefix, err := choicewire.BuildRankPrefix(tape, 0, (decision.Selected+1)%decision.Alternatives)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := Request{
+		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
+		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+		Choice: &ChoiceCapability{
+			Mode: choicewire.ModePrefix, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+			ExecutionIdentity: identity, Limit: MinimumChoiceTraceBytes, Tape: &prefix,
+		},
+	}
+	if err := validateRequest(request); err != nil {
+		t.Fatal(err)
+	}
+	backing, err := newChoiceTraceBacking(request.Choice.Limit, request.Choice.Mode, request.Choice.Tape)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := backing.close(); err != nil {
+		t.Fatal(err)
+	}
+	request.Choice.Mode = choicewire.ModeReplay
+	if err := validateRequest(request); err == nil {
+		t.Fatal("validateRequest() accepted a rank override in exact replay mode")
+	}
+}
+
 func TestChoiceTapeBackingIsInheritedReadOnly(t *testing.T) {
 	identity := choicewire.ExecutionIdentity{
 		TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: strings.Repeat("a", 64),
