@@ -77,11 +77,22 @@ func SelectPacksForPlatform(packs []ValidatedPack, packages []Package, platform 
 	}
 	selected := make([]selectedPack, 0, len(ordered))
 	for _, candidate := range ordered {
-		if slices.Contains(candidate.pack.Governance.Platforms, platform) && matchesPackActivation(candidate.pack.Activation, packages) {
+		if slices.Contains(candidate.pack.Governance.Platforms, platform) && matchesPackActivation(candidate.pack.Activation, packages) && matchesAnyPackRule(candidate.pack.Rules, packages) {
 			selected = append(selected, selectedPack{ValidatedPack: candidate})
 		}
 	}
 	return Selection{packs: selected}, nil
+}
+
+func matchesAnyPackRule(rules []PackRule, packages []Package) bool {
+	for _, rule := range rules {
+		for _, pkg := range packages {
+			if matchesPackRule(rule, pkg) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func VerifyPackIdentities(packs []ValidatedPack, identities []Identity) error {
