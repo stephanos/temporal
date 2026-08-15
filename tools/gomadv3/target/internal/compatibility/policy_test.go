@@ -114,6 +114,23 @@ func TestSelectValidatedPackRequiresApprovedPlatform(t *testing.T) {
 	}
 }
 
+func TestSelectValidatedPackRequiresApplicableRule(t *testing.T) {
+	validated, err := LoadPack([]byte(validPackV2))
+	if err != nil {
+		t.Fatal(err)
+	}
+	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, []Package{{
+		ImportPath: "example.com/dependency/other",
+		Module:     Module{Path: "example.com/dependency", Version: "v1.2.3", Sum: "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
+	}}, "darwin/arm64")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(selection.Identities()) != 0 {
+		t.Fatalf("inapplicable pack identities = %#v", selection.Identities())
+	}
+}
+
 func TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks(t *testing.T) {
 	validated, err := LoadPack([]byte(validPackV2))
 	if err != nil {
