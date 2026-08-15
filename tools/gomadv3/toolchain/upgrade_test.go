@@ -253,7 +253,9 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 				boundaryVersion, boundaryDigest := deterministicio.BoundaryManifestIdentity()
 				analysis := qualification.AnalysisReport{
 					Schema: qualification.AnalysisSchema, Classification: qualification.ClassificationUnsupported,
-					Target:    qualification.AnalysisTarget{Kind: target.KindGoTest, Source: "pkg", Arguments: []string{"-test.run=^TestBoundary$"}, BuildTags: []string{}},
+					Target: qualification.AnalysisTarget{
+						Kind: target.KindGoTest, Source: "pkg", Arguments: []string{"-test.run=^TestBoundary$"}, BuildTags: []string{}, CapabilityMode: target.CapabilityModeClosure,
+					},
 					Toolchain: qualification.AnalysisToolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64", BoundaryManifestVersion: boundaryVersion, BoundaryManifestSHA256: evidence.SHA256(boundaryDigest)},
 					Closure:   qualification.AnalysisClosure{SHA256: evidence.HashBytes([]byte("closure")), PackageCount: 1, Roots: []target.CapabilityPackageReference{{ImportPath: "example.com/corpus/pkg", Name: "pkg"}}},
 					IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{},

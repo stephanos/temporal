@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
@@ -51,7 +52,7 @@ func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--format", "json"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v5"`) {
+	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v6"`) {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }
@@ -293,7 +294,7 @@ func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
 		},
 		workingDirectory: func() (string, error) { return "/workspace", nil },
 		review: func(_ context.Context, spec target.Spec) (target.CapabilityReview, error) {
-			if spec.Kind != target.KindGoTest || spec.Source != "./pkg" || len(spec.Args) != 1 || spec.Args[0] != "-test.run=TestScenario" || len(spec.BuildTags) != 1 {
+			if spec.Kind != target.KindGoTest || spec.Source != "./pkg" || len(spec.Args) != 1 || spec.Args[0] != "-test.run=TestScenario" || len(spec.BuildTags) != 1 || spec.CapabilityMode != target.CapabilityModeClosure {
 				t.Fatalf("analysis spec = %#v", spec)
 			}
 			return target.CapabilityReview{}, nil
@@ -304,8 +305,37 @@ func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runAnalyzeWith([]string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v2"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
+	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v3"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestParseCapabilityModeUsesClosedVocabulary(t *testing.T) {
+	for _, value := range []string{"closure", "linked"} {
+		mode, err := parseCapabilityMode(value)
+		if err != nil || string(mode) != value {
+			t.Fatalf("parseCapabilityMode(%q) = %q, %v", value, mode, err)
+		}
+	}
+	if _, err := parseCapabilityMode("auto"); err == nil {
+		t.Fatal("parseCapabilityMode() accepted an unknown mode")
+	}
+}
+
+func TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	status := reportAnalyzeError(&stderr, &target.UnsupportedCapabilityCapacityError{Resource: "facts", Required: 100001, Maximum: 100000})
+	if status != 1 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "linked capability capacity") {
+		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestCapabilityAnalysisTimeoutAllowsLinkedBuild(t *testing.T) {
+	if got := capabilityAnalysisTimeoutForMode(target.CapabilityModeClosure); got != 30*time.Second {
+		t.Fatalf("closure timeout = %v", got)
+	}
+	if got := capabilityAnalysisTimeoutForMode(target.CapabilityModeLinked); got != 2*time.Minute {
+		t.Fatalf("linked timeout = %v", got)
 	}
 }
 

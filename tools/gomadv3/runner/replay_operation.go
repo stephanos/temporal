@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"debug/buildinfo"
 	"errors"
@@ -405,6 +406,9 @@ func preflight(config ReplaySpec) (opened evidence.Artifact, retErr error) {
 	if err != nil {
 		return evidence.Artifact{}, err
 	}
+	if err := verifyReplayCapabilityManifest(opened, targetFile, identity); err != nil {
+		return evidence.Artifact{}, errors.Join(err, targetFile.Close())
+	}
 	info, err := buildinfo.Read(targetFile)
 	closeErr := targetFile.Close()
 	if err != nil {
@@ -423,6 +427,38 @@ func preflight(config ReplaySpec) (opened evidence.Artifact, retErr error) {
 		return evidence.Artifact{}, err
 	}
 	return opened, nil
+}
+
+func verifyReplayCapabilityManifest(opened evidence.Artifact, targetFile *os.File, identity target.ToolchainIdentity) error {
+	recorded := opened.Manifest.Target.CapabilityManifest
+	switch opened.Manifest.Target.CapabilityMode {
+	case "closure":
+		if recorded != nil {
+			return errors.New("closure replay target contains a linked capability manifest")
+		}
+		return nil
+	case "linked":
+		if recorded == nil {
+			return errors.New("linked replay target capability manifest is missing")
+		}
+		actual, err := target.ReadCapabilityManifestFile(targetFile, identity)
+		if err != nil {
+			return fmt.Errorf("extract stored target capability manifest: %w", err)
+		}
+		if *actual.Record() != *recorded {
+			return errors.New("stored target embedded capability manifest does not match the run record")
+		}
+		payload, err := evidence.ReadPayload(opened, recorded.File, uint64(recorded.Bytes))
+		if err != nil {
+			return fmt.Errorf("read stored target capability manifest: %w", err)
+		}
+		if !bytes.Equal(payload, actual.Payload) {
+			return errors.New("stored target capability manifest payload does not match its embedded record")
+		}
+		return nil
+	default:
+		return fmt.Errorf("unknown replay target capability mode %q", opened.Manifest.Target.CapabilityMode)
+	}
 }
 
 func replayAdapters(adapters []evidence.TargetAdapter) []deterministicio.Adapter {

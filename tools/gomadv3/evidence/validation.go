@@ -13,7 +13,7 @@ import (
 var environmentNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
-	if manifest.SchemaVersion != SchemaVersion && manifest.SchemaVersion != PreviousSchemaVersion && manifest.SchemaVersion != LegacySchemaVersion {
+	if manifest.SchemaVersion != SchemaVersion && manifest.SchemaVersion != PriorSchemaVersion && manifest.SchemaVersion != PreviousSchemaVersion && manifest.SchemaVersion != LegacySchemaVersion {
 		return fmt.Errorf("unsupported manifest schema version %d", manifest.SchemaVersion)
 	}
 	if err := validateArtifactReplay(manifest.ArtifactKind, manifest.ReplayMode, manifest.Outcome.Domain); err != nil {
@@ -34,7 +34,9 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		}
 	}
 	expectedContract := RecordContract
-	if manifest.SchemaVersion == PreviousSchemaVersion {
+	if manifest.SchemaVersion == PriorSchemaVersion {
+		expectedContract = PriorRecordContract
+	} else if manifest.SchemaVersion == PreviousSchemaVersion {
 		expectedContract = PreviousRecordContract
 	} else if manifest.SchemaVersion == LegacySchemaVersion {
 		expectedContract = LegacyRecordContract
@@ -48,7 +50,7 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.Toolchain.GoVersion == "" || !isLowerHex(manifest.Toolchain.BuildKey, 64) || manifest.Toolchain.TargetGOOS == "" || manifest.Toolchain.TargetGOARCH == "" {
 		return fmt.Errorf("invalid toolchain identity")
 	}
-	if err := validateTarget(manifest.Target); err != nil {
+	if err := validateTarget(manifest.SchemaVersion, manifest.Target); err != nil {
 		return err
 	}
 	if err := validateIOProfile(manifest.IOProfile); err != nil {
@@ -85,6 +87,12 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	}
 	if err := validateFileReference(files, manifest.Target.File, manifest.Target.SHA256, manifest.Target.Size); err != nil {
 		return fmt.Errorf("target file: %w", err)
+	}
+	if manifest.Target.CapabilityManifest != nil {
+		capabilities := manifest.Target.CapabilityManifest
+		if err := validateFileReference(files, capabilities.File, capabilities.SHA256, capabilities.Bytes); err != nil {
+			return fmt.Errorf("target capability manifest file: %w", err)
+		}
 	}
 	if err := validateStream(files, "stdout", manifest.Streams.Stdout); err != nil {
 		return err
@@ -149,7 +157,7 @@ func validateChoiceProfile(schemaVersion uint32, profile *ChoiceProfile, limit U
 		if profile.Name != "gomadv3-choice-trace/v1" || trace.Schema != "gomadv3.choice-trace/v1" || trace.TapeSHA256 != "" || trace.Decisions != 0 {
 			return errors.New("invalid schema v3 choice trace identity")
 		}
-	} else if schemaVersion != SchemaVersion || profile.Name != "gomadv3-choice-trace/v2" || trace.Schema != "gomadv3.choice-trace/v2" {
+	} else if schemaVersion != SchemaVersion && schemaVersion != PriorSchemaVersion || profile.Name != "gomadv3-choice-trace/v2" || trace.Schema != "gomadv3.choice-trace/v2" {
 		return errors.New("invalid choice trace identity")
 	}
 	if trace.File != "choices.bin" {
@@ -157,7 +165,7 @@ func validateChoiceProfile(schemaVersion uint32, profile *ChoiceProfile, limit U
 	}
 	switch trace.TerminalState {
 	case "complete":
-		if schemaVersion == SchemaVersion {
+		if schemaVersion == SchemaVersion || schemaVersion == PriorSchemaVersion {
 			if err := validateSHA256(trace.TapeSHA256); err != nil {
 				return fmt.Errorf("invalid choice tape hash: %w", err)
 			}
@@ -257,7 +265,7 @@ func validateArtifactReplay(artifactKind, replayMode, outcomeDomain string) erro
 	return nil
 }
 
-func validateTarget(target Target) error {
+func validateTarget(schemaVersion uint32, target Target) error {
 	if target.Kind != "exec" && target.Kind != "go-run" && target.Kind != "go-test" {
 		return fmt.Errorf("unknown target kind %q", target.Kind)
 	}
@@ -273,7 +281,47 @@ func validateTarget(target Target) error {
 	if !sortedUniqueStrings(target.BuildTags) || !sortedTargetAdapters(target.Adapters) || !sortedCompatibilityPacks(target.Compatibility) || !sortedBuildSettings(target.BuildInfo.Settings) {
 		return errors.New("target build tags, adapters, compatibility packs, and settings must be canonical")
 	}
+	return validateTargetCapability(schemaVersion, target)
+}
+
+func validateTargetCapability(schemaVersion uint32, target Target) error {
+	if schemaVersion != SchemaVersion {
+		if target.CapabilityMode != "" || target.CapabilityManifest != nil {
+			return errors.New("historical target contains linked capability evidence")
+		}
+		return nil
+	}
+	switch target.CapabilityMode {
+	case "closure":
+		if target.CapabilityManifest != nil {
+			return errors.New("closure target contains a linked capability manifest")
+		}
+	case "linked":
+		manifest := target.CapabilityManifest
+		if manifest == nil || manifest.Schema != "gomadv3.live-capability-manifest/v1" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
+			return errors.New("linked target capability manifest identity is incomplete")
+		}
+		if err := validateSHA256(manifest.SHA256); err != nil {
+			return fmt.Errorf("invalid target capability manifest hash: %w", err)
+		}
+		if err := validateSHA256(manifest.ProducerImplementationSHA256); err != nil {
+			return fmt.Errorf("invalid target capability producer hash: %w", err)
+		}
+		if err := validateSHA256(manifest.CapabilityUniverseSHA256); err != nil {
+			return fmt.Errorf("invalid target capability universe hash: %w", err)
+		}
+	default:
+		return fmt.Errorf("unknown target capability mode %q", target.CapabilityMode)
+	}
 	return nil
+}
+
+func ValidateCurrentTarget(target Target) error {
+	return validateTarget(SchemaVersion, target)
+}
+
+func ValidateCurrentTargetCapability(target Target) error {
+	return validateTargetCapability(SchemaVersion, target)
 }
 
 func sortedTargetAdapters(adapters []TargetAdapter) bool {

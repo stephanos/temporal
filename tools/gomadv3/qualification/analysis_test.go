@@ -139,6 +139,34 @@ func TestBuildSupportedReportHasCanonicalNonNullEvidence(t *testing.T) {
 	}
 }
 
+func TestBuildLinkedReportSeparatesEliminatedClosureBlockers(t *testing.T) {
+	review := graphReview([]target.CapabilityPackage{
+		{ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{"os/exec"}, Sources: sourceEvidence("main.go")},
+		{ImportPath: "os/exec", Name: "exec", Standard: true, Sources: sourceEvidence("exec.go")},
+	})
+	finding := target.CapabilityFinding{
+		Kind: target.FindingForbiddenImport, Package: target.CapabilityPackageReference{ImportPath: "example.com/target", Name: "main"},
+		Directives: []string{}, Capability: "import:os/exec", PolicyDisposition: target.DispositionDenied,
+		Remediation: target.RemediationRemainUnsupported,
+	}
+	review.CapabilityMode = target.CapabilityModeLinked
+	review.CapabilityManifest = &target.CapabilityManifest{
+		Schema: "gomadv3.live-capability-manifest/v1", SHA256: evidence.HashBytes([]byte("manifest")), Bytes: 8,
+		ProducerImplementationSHA256: string(evidence.HashBytes([]byte("producer"))),
+		CapabilityUniverseSHA256:     string(evidence.HashBytes([]byte("universe"))),
+	}
+	review.EliminatedFindings = []target.CapabilityFinding{finding}
+	report, err := BuildAnalysis(AnalysisInput{
+		Spec: target.Spec{Kind: target.KindGoRun, Source: ".", CapabilityMode: target.CapabilityModeLinked}, Review: review,
+		Toolchain: target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		IOProfile: deterministicio.Default(), Adapters: []deterministicio.Adapter{},
+	})
+	requireTestNoError(t, err)
+	if report.Classification != ClassificationSupported || report.Target.CapabilityMode != target.CapabilityModeLinked || report.Target.CapabilityManifest == nil || len(report.Blockers) != 0 || len(report.EliminatedBlockers) != 1 {
+		t.Fatalf("linked report = %#v", report)
+	}
+}
+
 func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
 	review := graphReview([]target.CapabilityPackage{{
 		ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{}, Sources: sourceEvidence("main.go"),
@@ -154,6 +182,19 @@ func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
 	decoded, err := DecodeAnalysisReport(encoded)
 	requireTestNoError(t, err)
 	requireTestEqual(t, report, decoded)
+
+	prior := report
+	prior.Schema = PriorAnalysisSchema
+	prior.Target.CapabilityMode = ""
+	prior.Target.CapabilityManifest = nil
+	prior.EliminatedBlockers = nil
+	encoded, err = evidence.CanonicalJSON(prior)
+	requireTestNoError(t, err)
+	decoded, err = DecodeAnalysisReport(encoded)
+	requireTestNoError(t, err)
+	if decoded.Schema != AnalysisSchema || decoded.Target.CapabilityMode != target.CapabilityModeClosure || decoded.EliminatedBlockers == nil {
+		t.Fatalf("normalized prior report = %#v", decoded)
+	}
 
 	legacy := report
 	legacy.Schema = "gomadv3.capability-analysis/v1"
@@ -212,7 +253,8 @@ func graphReview(packages []target.CapabilityPackage) target.CapabilityReview {
 	return target.CapabilityReview{
 		Schema: target.CapabilityReviewSchema, BuildTags: []string{}, Roots: roots,
 		Closure: target.CapabilityClosure{Schema: target.CapabilityClosureSchema, Compatibility: []target.CompatibilityIdentity{}, Packages: packages},
-		Packs:   []target.CompatibilityPackEvidence{}, Findings: []target.CapabilityFinding{},
+		Packs:   []target.CompatibilityPackEvidence{}, CapabilityMode: target.CapabilityModeClosure,
+		Findings: []target.CapabilityFinding{}, EliminatedFindings: []target.CapabilityFinding{},
 	}
 }
 

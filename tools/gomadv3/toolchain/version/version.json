@@ -20,6 +20,7 @@
   ],
   "patch_allowlist": [
     "src/cmd/compile/internal/gc/main.go",
+    "src/cmd/dist/buildtool.go",
     "src/cmd/link/internal/ld/lib.go",
     "src/crypto/rand/rand.go",
     "src/runtime/proc.go",
@@ -32,8 +33,13 @@
     "src/testing/testing.go"
   ],
   "overlay_allowlist": [
+    "src/cmd/compile/internal/base/gomadcap.go",
     "src/cmd/compile/internal/gomadintercept/intercept.go",
     "src/cmd/compile/internal/gomadintercept/spec_go126.go",
+    "src/cmd/internal/gomadcap/encode.go",
+    "src/cmd/internal/gomadcap/encode_test.go",
+    "src/cmd/internal/gomadcap/protocol_generated.go",
+    "src/cmd/link/internal/ld/gomadcap.go",
     "src/internal/gomadchoicewire/wire_generated.go",
     "src/internal/gomadchoicewire/wire_generated_test.go",
     "src/internal/gomadfs/fs.go",

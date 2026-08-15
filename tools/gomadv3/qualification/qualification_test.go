@@ -79,7 +79,7 @@ func TestBuildReportRecordsPerRunSuccessfulReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Schema != "gomadv3.qualification/v3" || !report.Qualified || len(report.Runs) != 2 || report.Runs[0].Replay == nil || !report.Runs[0].Replay.Match || report.Runs[1].Replay == nil || !report.Runs[1].Replay.Match {
+	if report.Schema != "gomadv3.qualification/v4" || !report.Qualified || len(report.Runs) != 2 || report.Runs[0].Replay == nil || !report.Runs[0].Replay.Match || report.Runs[1].Replay == nil || !report.Runs[1].Replay.Match {
 		t.Fatalf("report = %#v", report)
 	}
 }
@@ -167,7 +167,7 @@ func TestWriteReportRetainsCanonicalPrivateFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if filepath.Base(filepath.Dir(path)) != "v3" {
+	if filepath.Base(filepath.Dir(path)) != "v4" {
 		t.Fatalf("report path = %s", path)
 	}
 	info, err := os.Stat(path)
