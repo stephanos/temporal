@@ -12,10 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/temporalio/gomad"
 	"github.com/temporalio/gomad/nemesis"
+	"golang.org/x/sync/errgroup"
 )
 
 func makeAddresses() []string {

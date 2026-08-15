@@ -28,7 +28,7 @@ func newServer() *server {
 		msgByClient:  map[string]chan string{},
 		shutdownCh:   make(chan struct{}),
 		clientCh:     make(chan struct{}),
-		addr:         fmt.Sprintf("localhost:8888"),
+		addr:         "localhost:8888",
 	}
 }
 
@@ -113,7 +113,7 @@ func (s *server) sendAllClients(msg string) {
 	verify.T(len(s.connByClient) == 2, "server needs 2 connected clients")
 
 	for _, conn := range s.connByClient {
-		_, err := conn.Write([]byte(fmt.Sprintf("%v\n", msg)))
+		_, err := fmt.Fprintf(conn, "%v\n", msg)
 		if err != nil {
 			panic(err)
 		}

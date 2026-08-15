@@ -30,7 +30,6 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http"
-
 	"golang.org/x/net/http/httpguts"
 )
 
@@ -286,8 +285,8 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			continue
 		}
 		val = textproto.TrimString(val)
-		switch {
-		case header == "Status":
+		switch header {
+		case "Status":
 			if len(val) < 3 {
 				h.printf("cgi: bogus status (short): %q", val)
 				return

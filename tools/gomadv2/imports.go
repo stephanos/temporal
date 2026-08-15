@@ -16,7 +16,6 @@ import (
 	_ "github.com/temporalio/gomad/internal/simulation"
 	_ "github.com/temporalio/gomad/internal/stdlib/hooks"
 	_ "github.com/temporalio/gomad/internal/testing"
-
 	// Tools used by gomad. For this repository.
 	_ "golang.org/x/tools/cmd/goimports"
 )

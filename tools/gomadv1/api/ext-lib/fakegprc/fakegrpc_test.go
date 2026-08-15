@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc"
-
 	fakegrpc "go.temporal.io/server/tools/gomadv1/api/ext-lib/fakegprc"
 	pb "go.temporal.io/server/tools/gomadv1/api/ext-lib/fakegprc/fixture"
 	SIMAPI "go.temporal.io/server/tools/gomadv1/api/lang"
 	SIMLIB "go.temporal.io/server/tools/gomadv1/api/lib"
 	"go.temporal.io/server/tools/gomadv1/runtime/testutil"
+	"google.golang.org/grpc"
 )
 
 type server struct {

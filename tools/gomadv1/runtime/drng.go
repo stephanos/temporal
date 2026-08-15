@@ -8,7 +8,7 @@ import "math/rand"
 // the Rand from the same seed and fast-forward by calling Int63 the recorded
 // number of times.
 type drngSnapshot struct {
-	seed     int64
+	seed      int64
 	callCount int64
 }
 

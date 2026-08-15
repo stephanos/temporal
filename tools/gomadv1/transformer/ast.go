@@ -48,8 +48,9 @@ import (
 // tip: use https://yuroyoro.github.io/goast-viewer/ to print the Go AST
 
 // TODO: remove once the packages below support generics:
-//   prometheus/client_golang uses "+build go1.17" / "go:build go1.17"
-//   go.opencensus.io/tag    uses "+build go1.9"  / "go:build go1.9"
+//
+//	prometheus/client_golang uses "+build go1.17" / "go:build go1.17"
+//	go.opencensus.io/tag    uses "+build go1.9"  / "go:build go1.9"
 var scrubBuildConstraints = []string{
 	"+build go1.17",
 	"go:build go1.17",
@@ -396,7 +397,7 @@ func (tf *fileTransformer) transformImports(skipTransform bool) {
 			// net/http usage; keeping net/http at stdlib avoids type mismatches.
 			!matchesAnyPrefix(tf.pkgPath, tf.nativeHTTPPkgPrefixes) &&
 			(strings.HasPrefix(path, "net/http") ||
-			path == "database/sql"):
+				path == "database/sql"):
 			// Use the real (non-prefixed) ext-lib path so that types from this
 			// import are identical to those used inside the ext-lib packages
 			// themselves. A prefixed copy (gomad.local/...) would be a separate
@@ -1269,7 +1270,8 @@ func (tf *fileTransformer) transformSelExpr(t *ast.SelectorExpr, typeArgs []ast.
 	// GRPCRewritePkgPrefixes; third-party libraries import grpc directly and
 	// must not be rewritten to fakegrpc (they would fail to compile).
 	var res ast.Expr
-	if pkgPath == "google.golang.org/grpc" {
+	switch pkgPath {
+	case "google.golang.org/grpc":
 		if !matchesAnyPrefix(tf.pkgPath, tf.grpcRewritePkgPrefixes) {
 			// other libraries rely on these types
 			return t
@@ -1289,24 +1291,25 @@ func (tf *fileTransformer) transformSelExpr(t *ast.SelectorExpr, typeArgs []ast.
 			Sel: ast.NewIdent(identifier),
 		}
 		tf.extraImports["fakegrpc"] = "go.temporal.io/server/tools/gomadv1/api/ext-lib/fakegprc"
-	} else if pkgPath == "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc" {
+	case "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc":
 		res = &ast.SelectorExpr{
 			X:   ast.NewIdent("fakeotlptrace"),
 			Sel: ast.NewIdent(identifier),
 		}
 		tf.extraImports["fakeotlptrace"] = "go.temporal.io/server/tools/gomadv1/api/ext-lib/fakegprc/otlptrace"
-	} else if pkgPath == "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc" {
+	case "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc":
 		res = &ast.SelectorExpr{
 			X:   ast.NewIdent("fakeotlpmetric"),
 			Sel: ast.NewIdent(identifier),
 		}
 		tf.extraImports["fakeotlpmetric"] = "go.temporal.io/server/tools/gomadv1/api/ext-lib/fakegprc/otlpmetric"
-	} else {
+	default:
 		if pkgName == "sync" {
 			if len(typeArgs) == 0 {
-				if t.Sel.Name == "OnceValue" {
+				switch t.Sel.Name {
+				case "OnceValue":
 					ref.typeArgs = []ast.Expr{ast.NewIdent("any")}
-				} else if t.Sel.Name == "OnceValues" {
+				case "OnceValues":
 					ref.typeArgs = []ast.Expr{ast.NewIdent("any"), ast.NewIdent("any")}
 				}
 			}
@@ -1319,15 +1322,14 @@ func (tf *fileTransformer) transformSelExpr(t *ast.SelectorExpr, typeArgs []ast.
 }
 
 func (tf *fileTransformer) transformMapLiteral(c *astutil.Cursor, node *ast.CompositeLit, litType *ast.MapType, pointer bool) {
-	var annotateWithType func(expr ast.Expr, typeExpr ast.Expr) ast.Expr
-	annotateWithType = func(expr ast.Expr, typeExpr ast.Expr) ast.Expr {
+	var annotateWithType = func(expr ast.Expr, typeExpr ast.Expr) ast.Expr {
 		switch n := expr.(type) {
 		case *ast.CompositeLit:
 			switch t := typeExpr.(type) {
 			case *ast.InterfaceType:
-				// ignore
+
 			case *ast.Ident:
-				// "any" and other named interface types cannot be composite literal types.
+
 				isIface := t.Name == "any"
 				if !isIface {
 					if obj, ok := tf.info.Uses[t]; ok {

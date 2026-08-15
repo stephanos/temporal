@@ -24,7 +24,7 @@ func newRemoteCtrl(addr, clientId string) *remoteCtrl {
 	}
 
 	// identify to remote controller with client id
-	_, err = conn.Write([]byte(fmt.Sprintf("%v\n", clientId)))
+	_, err = fmt.Fprintf(conn, "%v\n", clientId)
 	if err != nil {
 		panic(err)
 	}

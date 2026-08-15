@@ -31,9 +31,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/tools/go/packages"
-
 	"go.temporal.io/server/tools/gomadv1/transformer"
+	"golang.org/x/tools/go/packages"
 )
 
 func TestTransform(t *testing.T) {
