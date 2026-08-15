@@ -69,7 +69,7 @@ func TestRunTestModeProjectsRegistryFields(t *testing.T) {
 		arguments []string
 		want      string
 	}{
-		{arguments: []string{"test-mode", "--mode=test", "--output=tiers"}, want: "test-builder\ntest-runtime\ntest-upstream\n"},
+		{arguments: []string{"test-mode", "--mode=test", "--output=tiers"}, want: "test-builder\ntest-live-capability\ntest-runtime\ntest-upstream\n"},
 		{arguments: []string{"test-mode", "--mode=test-runtime", "--output=success"}, want: "gomadv3 runtime tier passed\n"},
 	} {
 		var stdout, stderr bytes.Buffer

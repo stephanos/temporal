@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	ExecutionEvidenceSchema       = "gomadv3.run-evidence/v3"
+	ExecutionEvidenceSchema       = "gomadv3.run-evidence/v4"
+	PriorExecutionEvidenceSchema  = "gomadv3.run-evidence/v3"
 	ChoiceExecutionEvidenceSchema = "gomadv3.run-evidence/v2"
 	LegacyExecutionEvidenceSchema = "gomadv3.run-evidence/v1"
 )

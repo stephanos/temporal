@@ -78,6 +78,9 @@ func NoneWorld() (World, WorldPayloads) {
 }
 
 func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, error) {
+	if input.SchemaVersion == SchemaVersion && input.Target.CapabilityMode == "" {
+		input.Target.CapabilityMode = "closure"
+	}
 	input.RecordHash = ""
 	input.Outcome.FailureSignature = ""
 	if err := validateManifest(input, false); err != nil {
@@ -87,9 +90,12 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 	if err != nil {
 		return ExecutionRecord{}, nil, fmt.Errorf("encode failure projection: %w", err)
 	}
-	failureDomain := "gomadv3-failure-signature-v4"
-	recordDomain := "gomadv3-run-record-v4"
-	if input.SchemaVersion == PreviousSchemaVersion {
+	failureDomain := "gomadv3-failure-signature-v5"
+	recordDomain := "gomadv3-run-record-v5"
+	if input.SchemaVersion == PriorSchemaVersion {
+		failureDomain = "gomadv3-failure-signature-v4"
+		recordDomain = "gomadv3-run-record-v4"
+	} else if input.SchemaVersion == PreviousSchemaVersion {
 		failureDomain = "gomadv3-failure-signature-v3"
 		recordDomain = "gomadv3-run-record-v3"
 	} else if input.SchemaVersion == LegacySchemaVersion {
@@ -128,6 +134,9 @@ func DecodeExecutionRecord(data []byte) (ExecutionRecord, error) {
 	}
 	if wantFailureSignature != finalized.Outcome.FailureSignature {
 		return ExecutionRecord{}, fmt.Errorf("failure signature mismatch: got %s, want %s", wantFailureSignature, finalized.Outcome.FailureSignature)
+	}
+	if manifest.SchemaVersion != SchemaVersion {
+		manifest.Target.CapabilityMode = "closure"
 	}
 	return manifest, nil
 }

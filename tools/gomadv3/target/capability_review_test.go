@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/target/internal/livecap"
 )
 
 func TestProjectCapabilityReviewCollectsEveryDeniedFinding(t *testing.T) {
@@ -287,6 +288,76 @@ func TestReviewCapabilitiesClassifiesInvalidTargetInputs(t *testing.T) {
 				t.Fatalf("ReviewCapabilities() error = %T %v", err, err)
 			}
 		})
+	}
+}
+
+func TestReviewCapabilitiesLinkedModeBuildsAndProjectsManifest(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/linkedreview\n\ngo 1.26.4\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte(`package main
+
+import "os/exec"
+
+func dead() { _ = exec.Command("true") }
+func main() {}
+`), 0o600))
+	review, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: directory, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeLinked,
+	})
+	requireTestNoError(t, err)
+	if review.Schema != CapabilityReviewSchema || review.CapabilityMode != CapabilityModeLinked || review.CapabilityManifest == nil {
+		t.Fatalf("linked review identity = %#v", review)
+	}
+	if len(review.Findings) != 0 || len(review.EliminatedFindings) != 1 || review.EliminatedFindings[0].Capability != "import:os/exec" {
+		t.Fatalf("linked review findings = active %#v eliminated %#v", review.Findings, review.EliminatedFindings)
+	}
+}
+
+func TestReviewCapabilitiesLinkedModeReturnsActiveFindings(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/linkedunsupported\n\ngo 1.26.4\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\nimport \"os/exec\"\nfunc main() { _ = exec.Command(\"true\") }\n"), 0o600))
+	review, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: directory, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeLinked,
+	})
+	requireTestNoError(t, err)
+	if len(review.Findings) != 1 || review.Findings[0].Capability != "import:os/exec" || len(review.EliminatedFindings) != 0 {
+		t.Fatalf("linked review findings = active %#v eliminated %#v", review.Findings, review.EliminatedFindings)
+	}
+}
+
+func TestReviewCapabilitiesLinkedModeRejectsLiveDeniedBoundary(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/linkedboundary\n\ngo 1.26.4\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\nimport \"os\"\nfunc main() { _, _ = os.Readlink(\"target\") }\n"), 0o600))
+	review, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: directory, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeLinked,
+	})
+	requireTestNoError(t, err)
+	if len(review.Findings) != 1 || review.Findings[0].Kind != FindingDeniedBoundary || review.Findings[0].Capability != "filesystem.readlink" {
+		t.Fatalf("linked denied-boundary findings = %#v", review.Findings)
+	}
+}
+
+func TestLinkedCapabilityCapacityErrorIsUnsupported(t *testing.T) {
+	err := linkedCapabilityError(&livecap.CapacityError{Resource: "fact count", Required: 100001, Maximum: 100000})
+	var capacity *UnsupportedCapabilityCapacityError
+	if !errors.As(err, &capacity) {
+		t.Fatalf("linkedCapabilityError() = %T %v", err, err)
+	}
+	if capacity.Resource != "fact count" || capacity.Required != 100001 || capacity.Maximum != 100000 || !IsUnsupportedCapability(err) {
+		t.Fatalf("capacity error = %#v", capacity)
+	}
+}
+
+func TestLinkedCapabilityBuildCapacityDiagnosticIsUnsupported(t *testing.T) {
+	err := linkedCapabilityBuildError(errors.New("exit status 1"), []byte("link: -gomadcap: live capability facts requires 100001, maximum is 100000\n"))
+	var capacity *UnsupportedCapabilityCapacityError
+	if !errors.As(err, &capacity) || capacity.Resource != "facts" || capacity.Required != 100001 || capacity.Maximum != 100000 {
+		t.Fatalf("linkedCapabilityBuildError() = %T %v", err, err)
 	}
 }
 

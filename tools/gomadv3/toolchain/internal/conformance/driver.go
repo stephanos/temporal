@@ -94,6 +94,8 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 		switch tier {
 		case "test-builder":
 			fixtures = builderFixtures(config)
+		case "test-live-capability":
+			fixtures = liveCapabilityFixtures(config)
 		case "test-upstream":
 			fixtures, cleanup, err = upstreamFixtures(goRoot)
 			if err != nil {
@@ -141,6 +143,15 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 	}
 	report.Passed = true
 	return report, nil
+}
+
+func liveCapabilityFixtures(config Config) []fixture {
+	return []fixture{{
+		tier: "test-live-capability", name: "linked-capability-semantics",
+		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./target/internal/livecap"},
+		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMADV3_CHILD_SEED", "GOWORK"), "GOWORK=off"),
+		timeout: 10 * time.Minute,
+	}}
 }
 
 func builderFixtures(config Config) []fixture {

@@ -77,6 +77,30 @@ func TestRunBuilderExecutesTypedPackageGate(t *testing.T) {
 	}
 }
 
+func TestRunLiveCapabilityExecutesPinnedSemanticFixtures(t *testing.T) {
+	root := writeGoFixture(t)
+	goCommand := filepath.Join(root, "go", "bin", "go")
+	var requests []hostexec.Request
+	report, err := runWith(context.Background(), Config{Root: root, Mode: "test-live-capability", Go: goCommand}, func(_ context.Context, request hostexec.Request) (hostexec.Result, error) {
+		requests = append(requests, request)
+		if len(request.Command) == 3 && request.Command[1] == "env" {
+			result := successfulCommand()
+			result.Stdout = hostexec.Output{Bytes: []byte(filepath.Join(root, "go") + "\n"), RawBytes: []byte(filepath.Join(root, "go") + "\n")}
+			return result, nil
+		}
+		return successfulCommand(), nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !report.Passed || len(report.Cases) != 1 || len(requests) != 2 {
+		t.Fatalf("Run() report = %+v, requests = %d", report, len(requests))
+	}
+	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./target/internal/livecap"}) {
+		t.Fatalf("live-capability command = %v", got)
+	}
+}
+
 func TestRunAcceptsExecutableSymlink(t *testing.T) {
 	root := writeGoFixture(t)
 	target := filepath.Join(root, "go", "bin", "go")

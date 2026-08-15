@@ -7,6 +7,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/target"
 )
 
 const previousAnalysisSchema = "gomadv3.capability-analysis/v1"
@@ -62,7 +63,7 @@ func decodePreviousSetReport(data []byte, schema string) (SuiteReport, error) {
 	if err := evidence.DecodeCanonicalJSON(data, &previous); err != nil {
 		return SuiteReport{}, fmt.Errorf("decode previous qualification set report: %w", err)
 	}
-	if previous.Schema != schema || schema != PreviousSuiteReportSchema && schema != PreChoiceSuiteReportSchema {
+	if previous.Schema != schema || schema != PreviousSuiteReportSchema && schema != PreLinkedSuiteReportSchema && schema != PreChoiceSuiteReportSchema {
 		return SuiteReport{}, errors.New("previous qualification set report schema is invalid")
 	}
 	report := SuiteReport{
@@ -84,7 +85,7 @@ func decodePreviousSetReport(data []byte, schema string) (SuiteReport, error) {
 				return SuiteReport{}, fmt.Errorf("previous qualification set workload %s analysis state is invalid", workload.ID)
 			}
 			if len(workload.Analysis) != 0 {
-				decoded, err := decodePreviousAnalysis(workload.Analysis)
+				decoded, err := decodePreviousAnalysis(workload.Analysis, schema)
 				if err != nil {
 					return SuiteReport{}, fmt.Errorf("previous qualification set workload %s analysis is invalid: %w", workload.ID, err)
 				}
@@ -98,6 +99,7 @@ func decodePreviousSetReport(data []byte, schema string) (SuiteReport, error) {
 			ID: workload.ID, Name: workload.Name, Tier: workload.Tier, Invariant: workload.Invariant,
 			Expected: workload.Expected, ExpectationMet: workload.ExpectationMet, Classification: workload.Classification,
 			Analysis: analysis, AnalysisError: workload.AnalysisError, Seeds: workload.Seeds, Blockers: workload.Blockers, Choice: workload.Choice,
+			CapabilityMode: target.CapabilityModeClosure,
 		}
 	}
 	if err := validateSetReport(report); err != nil {
@@ -111,7 +113,23 @@ func decodePreviousSetReport(data []byte, schema string) (SuiteReport, error) {
 	return report, nil
 }
 
-func decodePreviousAnalysis(data []byte) (*AnalysisReport, error) {
+func decodePreviousAnalysis(data []byte, setSchema string) (*AnalysisReport, error) {
+	if setSchema == PreviousSuiteReportSchema {
+		var header struct {
+			Schema string `json:"schema"`
+		}
+		if err := json.Unmarshal(data, &header); err != nil {
+			return nil, err
+		}
+		if header.Schema != PriorAnalysisSchema {
+			return nil, fmt.Errorf("unsupported previous capability analysis schema %q", header.Schema)
+		}
+		report, err := DecodeAnalysisReport(data)
+		if err != nil {
+			return nil, err
+		}
+		return &report, nil
+	}
 	var previous previousAnalysisReport
 	if err := evidence.DecodeCanonicalJSON(data, &previous); err != nil {
 		return nil, err
@@ -121,6 +139,8 @@ func decodePreviousAnalysis(data []byte) (*AnalysisReport, error) {
 	}
 	current := AnalysisReport(previous)
 	current.Schema = AnalysisSchema
+	current.Target.CapabilityMode = target.CapabilityModeClosure
+	current.EliminatedBlockers = []AnalysisBlocker{}
 	if err := validateAnalysisReport(current); err != nil {
 		return nil, err
 	}

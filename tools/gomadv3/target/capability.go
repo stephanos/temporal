@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
@@ -18,10 +19,11 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/target/internal/livecap"
 )
 
 const CapabilityClosureSchema = "gomadv3.target-capability-closure/v3"
-const CapabilityReviewSchema = "gomadv3.target-capability-review/v2"
+const CapabilityReviewSchema = "gomadv3.target-capability-review/v3"
 const maximumCapabilityReviewOutputBytes = 64 << 20
 const maximumCapabilityReviewPackages = 100000
 const maximumCapabilitySourceBytes = 16 << 20
@@ -128,6 +130,7 @@ const (
 	FindingUnapprovedLinkname CapabilityFindingKind = "unapproved_linkname"
 	FindingMalformedLinkname  CapabilityFindingKind = "malformed_linkname"
 	FindingNoReviewedGoSource CapabilityFindingKind = "no_reviewed_go_source"
+	FindingDeniedBoundary     CapabilityFindingKind = "denied_boundary"
 )
 
 type CapabilityFinding struct {
@@ -145,12 +148,15 @@ type CapabilityFinding struct {
 }
 
 type CapabilityReview struct {
-	Schema    string                       `json:"schema"`
-	BuildTags []string                     `json:"build_tags"`
-	Roots     []CapabilityPackageReference `json:"roots"`
-	Closure   CapabilityClosure            `json:"closure"`
-	Packs     []compatibility.PackEvidence `json:"packs"`
-	Findings  []CapabilityFinding          `json:"findings"`
+	Schema             string                       `json:"schema"`
+	BuildTags          []string                     `json:"build_tags"`
+	Roots              []CapabilityPackageReference `json:"roots"`
+	Closure            CapabilityClosure            `json:"closure"`
+	Packs              []compatibility.PackEvidence `json:"packs"`
+	CapabilityMode     CapabilityMode               `json:"capability_mode"`
+	CapabilityManifest *CapabilityManifest          `json:"capability_manifest,omitempty"`
+	Findings           []CapabilityFinding          `json:"findings"`
+	EliminatedFindings []CapabilityFinding          `json:"eliminated_findings"`
 }
 
 type UnsupportedCapabilityError struct {
@@ -193,6 +199,11 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, invalidCapabilityReview(err)
 	}
+	mode, err := normalizeCapabilityMode(spec.CapabilityMode)
+	if err != nil {
+		return CapabilityReview{}, invalidCapabilityReview(err)
+	}
+	spec.CapabilityMode = mode
 	if spec.Source == "" || spec.WorkingDir == "" || spec.ToolchainRoot == "" {
 		return CapabilityReview{}, invalidCapabilityReview(errors.New("capability review requires source, working directory, and toolchain root"))
 	}
@@ -211,7 +222,26 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, err
 	}
-	return review, nil
+	if mode == CapabilityModeClosure {
+		return review, nil
+	}
+	if spec.PreparationRoot == "" {
+		return CapabilityReview{}, invalidCapabilityReview(errors.New("linked capability review requires a preparation root"))
+	}
+	identity, err := ReadToolchainIdentity(spec.ToolchainRoot)
+	if err != nil {
+		return CapabilityReview{}, err
+	}
+	workspace, err := os.MkdirTemp(spec.PreparationRoot, ".linked-review-")
+	if err != nil {
+		return CapabilityReview{}, fmt.Errorf("create linked capability review workspace: %w", err)
+	}
+	prepared, buildErr := buildGoTarget(ctx, spec, tags, identity, filepath.Join(workspace, "target"), goCommand, commandDirectory, packageArgument, review, false)
+	cleanupErr := os.RemoveAll(workspace)
+	if buildErr != nil || cleanupErr != nil {
+		return CapabilityReview{}, errors.Join(buildErr, cleanupErr)
+	}
+	return prepared.review, nil
 }
 
 func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, error) {
@@ -654,8 +684,103 @@ func capabilityReviewFromClosure(closure CapabilityClosure, tags []string, selec
 	}
 	return CapabilityReview{
 		Schema: CapabilityReviewSchema, BuildTags: append([]string{}, tags...), Roots: roots, Closure: closure,
-		Packs: selection.Evidence(), Findings: collectCapabilityFindings(closure, selection),
+		Packs: selection.Evidence(), CapabilityMode: CapabilityModeClosure,
+		Findings: collectCapabilityFindings(closure, selection), EliminatedFindings: []CapabilityFinding{},
 	}
+}
+
+func projectLinkedCapabilityReview(review CapabilityReview, record livecap.Record) CapabilityReview {
+	packages := make([]livecap.ClosurePackage, len(review.Closure.Packages))
+	for index, pkg := range review.Closure.Packages {
+		packages[index] = livecap.ClosurePackage{ImportPath: pkg.ImportPath, ForTest: pkg.ForTest, Root: pkg.Root, Standard: pkg.Standard}
+	}
+	findings := make([]livecap.ClosureFinding, len(review.Findings))
+	for index, finding := range review.Findings {
+		findings[index] = livecap.ClosureFinding{
+			Kind: string(finding.Kind), Package: finding.Package.ImportPath, ForTest: finding.Package.ForTest, Capability: finding.Capability,
+		}
+	}
+	projection := livecap.ProjectFindings(record.Manifest, packages, findings)
+	active := make([]CapabilityFinding, 0, len(review.Findings)-len(projection.Eliminated))
+	eliminated := make([]CapabilityFinding, 0, len(projection.Eliminated))
+	for index, finding := range review.Findings {
+		finding.Directives = append([]string{}, finding.Directives...)
+		if projection.Active[index] {
+			active = append(active, finding)
+		} else {
+			eliminated = append(eliminated, finding)
+		}
+	}
+	active = append(active, projectDeniedBoundaryFindings(review.Closure.Packages, projection.Denied)...)
+	sort.Slice(active, func(i, j int) bool { return compareCapabilityFinding(active[i], active[j]) < 0 })
+	review.CapabilityMode = CapabilityModeLinked
+	review.CapabilityManifest = capabilityManifest(record)
+	review.Findings = active
+	review.EliminatedFindings = eliminated
+	return review
+}
+
+func projectDeniedBoundaryFindings(packages []CapabilityPackage, facts []livecap.Fact) []CapabilityFinding {
+	result := []CapabilityFinding{}
+	seen := make(map[string]struct{})
+	for _, fact := range facts {
+		pkg, found := capabilityOwnerPackage(packages, fact.OwnerPackage, fact.ForTest)
+		if !found {
+			continue
+		}
+		key := pkg.ImportPath + "\x00" + pkg.ForTest + "\x00" + fact.Capability
+		if _, duplicate := seen[key]; duplicate {
+			continue
+		}
+		seen[key] = struct{}{}
+		result = append(result, CapabilityFinding{
+			Kind: FindingDeniedBoundary, Package: capabilityPackageReference(pkg), Module: copyCapabilityModule(pkg.Module),
+			SourceSetSHA256: capabilityCompatibilityPackage(pkg).SourceSetSHA256, Directives: []string{},
+			Capability: fact.Capability, PolicyDisposition: compatibility.DispositionDenied, Remediation: compatibility.RemediationModelOperation,
+		})
+	}
+	return result
+}
+
+func capabilityOwnerPackage(packages []CapabilityPackage, owner, forTest string) (CapabilityPackage, bool) {
+	for _, pkg := range packages {
+		if pkg.ImportPath == owner && pkg.ForTest == forTest {
+			return pkg, true
+		}
+	}
+	for _, pkg := range packages {
+		if pkg.Root && !pkg.Standard {
+			return pkg, true
+		}
+	}
+	return CapabilityPackage{}, false
+}
+
+func capabilityManifest(record livecap.Record) *CapabilityManifest {
+	return &CapabilityManifest{
+		Schema: record.Manifest.Schema, SHA256: record.SHA256, Bytes: uint64(len(record.Payload)), Facts: uint64(len(record.Manifest.Facts)),
+		ProducerImplementationSHA256: record.Manifest.ProducerImplementationSHA256,
+		CapabilityUniverseSHA256:     record.Manifest.CapabilityUniverseSHA256,
+		Payload:                      append([]byte(nil), record.Payload...),
+	}
+}
+
+func cloneCapabilityManifest(manifest *CapabilityManifest) *CapabilityManifest {
+	if manifest == nil {
+		return nil
+	}
+	cloned := *manifest
+	cloned.Payload = append([]byte(nil), manifest.Payload...)
+	return &cloned
+}
+
+func sameCapabilityManifest(left, right *CapabilityManifest) bool {
+	if left == nil || right == nil {
+		return left == right
+	}
+	return left.Schema == right.Schema && left.SHA256 == right.SHA256 && left.Bytes == right.Bytes && left.Facts == right.Facts &&
+		left.ProducerImplementationSHA256 == right.ProducerImplementationSHA256 && left.CapabilityUniverseSHA256 == right.CapabilityUniverseSHA256 &&
+		(len(left.Payload) == 0 || bytes.Equal(left.Payload, right.Payload))
 }
 
 func collectCapabilityFindings(closure CapabilityClosure, selection compatibility.Selection) []CapabilityFinding {
@@ -796,6 +921,8 @@ func unsupportedFinding(finding CapabilityFinding) error {
 		description = "uses go:linkname in " + finding.SourceName
 	case FindingNoReviewedGoSource:
 		description = "has no reviewed Go source"
+	case FindingDeniedBoundary:
+		description = "reaches denied deterministic boundary " + finding.Capability
 	default:
 	}
 	return &UnsupportedCapabilityError{ImportPath: finding.Package.ImportPath, Capability: description, Finding: finding}

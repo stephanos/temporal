@@ -9,7 +9,7 @@ type Mode struct {
 
 var modes = map[string]Mode{
 	"test": {
-		Tiers:   []string{"test-builder", "test-runtime", "test-upstream"},
+		Tiers:   []string{"test-builder", "test-live-capability", "test-runtime", "test-upstream"},
 		Success: "gomadv3 all black-box tiers passed",
 	},
 	"test-builder": {
@@ -27,6 +27,10 @@ var modes = map[string]Mode{
 	"test-interception": {
 		Tiers:   []string{"test-interception"},
 		Success: "gomadv3 interception tier passed",
+	},
+	"test-live-capability": {
+		Tiers:   []string{"test-live-capability"},
+		Success: "gomadv3 live-capability tier passed",
 	},
 }
 

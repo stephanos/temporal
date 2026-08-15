@@ -496,7 +496,7 @@ fmt-gofix:
 
 fmt-imports: $(GCI) # Don't get confused, there is a single linter called gci, which is a part of the mega linter we use is called golangci-lint.
 	@printf $(COLOR) "Formatting imports..."
-	@find . -path './tools/gomadv3/.toolchain' -prune -o -type f -name '*.go' -print0 | \
+	@find . -path './.gomad' -prune -o -path './tools/gomadv3/.toolchain' -prune -o -type f -name '*.go' -print0 | \
 		xargs -0 $(GCI) write --skip-generated -s standard -s default
 
 parallelize-tests:

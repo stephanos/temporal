@@ -19,12 +19,15 @@ import (
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
+	"go.temporal.io/server/tools/gomadv3/target"
 )
 
-const SuiteManifestSchema = "gomadv3.qualification-set/v2"
+const SuiteManifestSchema = "gomadv3.qualification-set/v3"
+const PriorSuiteManifestSchema = "gomadv3.qualification-set/v2"
 const LegacySuiteManifestSchema = "gomadv3.qualification-set/v1"
-const SuiteReportSchema = "gomadv3.qualification-set-report/v5"
-const PreviousSuiteReportSchema = "gomadv3.qualification-set-report/v4"
+const SuiteReportSchema = "gomadv3.qualification-set-report/v6"
+const PreviousSuiteReportSchema = "gomadv3.qualification-set-report/v5"
+const PreLinkedSuiteReportSchema = "gomadv3.qualification-set-report/v4"
 const PreChoiceSuiteReportSchema = "gomadv3.qualification-set-report/v3"
 const LegacySuiteReportSchema = "gomadv3.qualification-set-report/v2"
 
@@ -50,23 +53,24 @@ type SuiteManifest struct {
 }
 
 type Workload struct {
-	ID                   string              `json:"id"`
-	Name                 string              `json:"name"`
-	Tier                 uint64              `json:"tier"`
-	Invariant            string              `json:"invariant"`
-	Package              string              `json:"package"`
-	Test                 string              `json:"test"`
-	BuildTags            []string            `json:"build_tags,omitempty"`
-	Environment          []string            `json:"environment,omitempty"`
-	ReadOnlyMounts       []Mount             `json:"read_only_mounts,omitempty"`
-	RequiredProbes       []string            `json:"required_probes,omitempty"`
-	ChoiceBytes          uint64              `json:"choice_bytes"`
-	ReplaySuccesses      bool                `json:"replay_successes"`
-	SuccessArtifactLimit uint64              `json:"success_artifact_limit"`
-	SuccessBytesLimit    uint64              `json:"success_bytes_limit"`
-	RunTimeout           string              `json:"run_timeout,omitempty"`
-	OverallTimeout       string              `json:"overall_timeout,omitempty"`
-	Expectation          WorkloadExpectation `json:"expectation"`
+	ID                   string                `json:"id"`
+	Name                 string                `json:"name"`
+	Tier                 uint64                `json:"tier"`
+	Invariant            string                `json:"invariant"`
+	Package              string                `json:"package"`
+	Test                 string                `json:"test"`
+	BuildTags            []string              `json:"build_tags,omitempty"`
+	CapabilityMode       target.CapabilityMode `json:"capability_mode"`
+	Environment          []string              `json:"environment,omitempty"`
+	ReadOnlyMounts       []Mount               `json:"read_only_mounts,omitempty"`
+	RequiredProbes       []string              `json:"required_probes,omitempty"`
+	ChoiceBytes          uint64                `json:"choice_bytes"`
+	ReplaySuccesses      bool                  `json:"replay_successes"`
+	SuccessArtifactLimit uint64                `json:"success_artifact_limit"`
+	SuccessBytesLimit    uint64                `json:"success_bytes_limit"`
+	RunTimeout           string                `json:"run_timeout,omitempty"`
+	OverallTimeout       string                `json:"overall_timeout,omitempty"`
+	Expectation          WorkloadExpectation   `json:"expectation"`
 }
 
 type legacyManifest struct {
@@ -134,18 +138,19 @@ type SuiteReport struct {
 }
 
 type WorkloadReport struct {
-	ID             string              `json:"id"`
-	Name           string              `json:"name"`
-	Tier           uint64              `json:"tier"`
-	Invariant      string              `json:"invariant"`
-	Expected       WorkloadExpectation `json:"expected"`
-	ExpectationMet bool                `json:"expectation_met"`
-	Classification string              `json:"classification"`
-	Analysis       *AnalysisReport     `json:"analysis,omitempty"`
-	AnalysisError  string              `json:"analysis_error,omitempty"`
-	Seeds          []SeedReport        `json:"seeds"`
-	Blockers       []AnalysisBlocker   `json:"blockers"`
-	Choice         ChoiceCoverage      `json:"choice"`
+	ID             string                `json:"id"`
+	Name           string                `json:"name"`
+	Tier           uint64                `json:"tier"`
+	Invariant      string                `json:"invariant"`
+	Expected       WorkloadExpectation   `json:"expected"`
+	ExpectationMet bool                  `json:"expectation_met"`
+	Classification string                `json:"classification"`
+	Analysis       *AnalysisReport       `json:"analysis,omitempty"`
+	AnalysisError  string                `json:"analysis_error,omitempty"`
+	Seeds          []SeedReport          `json:"seeds"`
+	Blockers       []AnalysisBlocker     `json:"blockers"`
+	Choice         ChoiceCoverage        `json:"choice"`
+	CapabilityMode target.CapabilityMode `json:"capability_mode,omitempty"`
 }
 
 type PlatformIdentity struct {
@@ -274,6 +279,14 @@ func LoadSuiteManifest(path string) (SuiteManifest, error) {
 		if err := evidence.StrictDecode(contents, &manifest); err != nil {
 			return SuiteManifest{}, fmt.Errorf("decode qualification set manifest: %w", err)
 		}
+	case PriorSuiteManifestSchema:
+		if err := evidence.StrictDecode(contents, &manifest); err != nil {
+			return SuiteManifest{}, fmt.Errorf("decode previous qualification set manifest: %w", err)
+		}
+		manifest.Schema = SuiteManifestSchema
+		for index := range manifest.Suites {
+			manifest.Suites[index].CapabilityMode = target.CapabilityModeClosure
+		}
 	case LegacySuiteManifestSchema:
 		var legacy legacyManifest
 		if err := evidence.StrictDecode(contents, &legacy); err != nil {
@@ -304,7 +317,7 @@ func normalizeLegacyManifest(legacy legacyManifest) SuiteManifest {
 			ID: suite.Name, Name: suite.Name, Tier: 1, Package: suite.Package, Test: suite.Test,
 			BuildTags: append([]string(nil), suite.BuildTags...), Environment: append([]string(nil), suite.Environment...),
 			ReadOnlyMounts: append([]Mount(nil), suite.ReadOnlyMounts...), RequiredProbes: append([]string(nil), suite.RequiredProbes...),
-			Expectation: suite.Expectation,
+			Expectation: suite.Expectation, CapabilityMode: target.CapabilityModeClosure,
 		}
 	}
 	return manifest
@@ -354,7 +367,7 @@ func RunSuite(ctx context.Context, config SuiteSpec) (SuiteReport, error) {
 		report.Suites[index] = WorkloadReport{
 			ID: suite.ID, Name: suite.Name, Tier: suite.Tier, Invariant: suite.Invariant,
 			Expected: suite.Expectation, Seeds: []SeedReport{}, Blockers: []AnalysisBlocker{},
-			Choice: emptyChoiceCoverage(),
+			Choice: emptyChoiceCoverage(), CapabilityMode: suite.CapabilityMode,
 		}
 	}
 	failed := make([]string, 0, len(manifest.Suites))
@@ -527,7 +540,7 @@ func OpenSuiteReport(path string) (SuiteReport, error) {
 		}
 		return report, nil
 	}
-	if header.Schema == PreviousSuiteReportSchema || header.Schema == PreChoiceSuiteReportSchema {
+	if header.Schema == PreviousSuiteReportSchema || header.Schema == PreLinkedSuiteReportSchema || header.Schema == PreChoiceSuiteReportSchema {
 		report, err := decodePreviousSetReport(contents, header.Schema)
 		if err != nil {
 			return SuiteReport{}, invalidReport(err)
@@ -590,6 +603,9 @@ func validateManifest(manifest SuiteManifest) error {
 		if !sortedUnique(suite.BuildTags) || !sortedUnique(suite.Environment) || !sortedUnique(suite.RequiredProbes) {
 			return fmt.Errorf("qualification suite %s lists must be sorted and unique", suite.ID)
 		}
+		if suite.CapabilityMode != target.CapabilityModeClosure && suite.CapabilityMode != target.CapabilityModeLinked {
+			return fmt.Errorf("qualification suite %s capability mode is invalid", suite.ID)
+		}
 		for _, mount := range suite.ReadOnlyMounts {
 			if mount.Source == "" || mount.Target == "" || strings.ContainsAny(mount.Source+mount.Target, "\x00\n") {
 				return fmt.Errorf("qualification suite %s has an invalid read-only mount", suite.ID)
@@ -641,6 +657,7 @@ func suiteCommand(config SuiteSpec, manifest SuiteManifest, suite Workload, seed
 		"--run-timeout=" + runTimeout.String(), "--overall-timeout=" + overallTimeout.String(), "--terminate-grace=" + manifest.TerminateGrace,
 		"--output-limit=" + strconv.FormatUint(manifest.OutputBytes, 10), "--world-transition-limit=" + strconv.FormatUint(manifest.WorldTransitionBytes, 10),
 		"--artifacts=" + config.ArtifactRoot,
+		"--capability-mode=" + string(suite.CapabilityMode),
 	}
 	if suite.ChoiceBytes != 0 {
 		args = append(args, "--choices", "--choice-bytes="+strconv.FormatUint(suite.ChoiceBytes, 10))
@@ -923,7 +940,7 @@ func validateSetReport(report SuiteReport) error {
 	}
 	expectationsMet := report.Completed == report.Selected
 	for index, suite := range report.Suites {
-		if !setNamePattern.MatchString(suite.ID) || suite.Name == "" || suite.Tier != 1 && suite.Tier != 2 || report.Dimensions.PortableV3 && suite.Invariant == "" || suite.Seeds == nil || suite.Blockers == nil || suite.Choice.Features == nil || !validSetClassification(suite.Classification) || index > 0 && suite.ID <= report.Suites[index-1].ID {
+		if !setNamePattern.MatchString(suite.ID) || suite.Name == "" || suite.Tier != 1 && suite.Tier != 2 || report.Dimensions.PortableV3 && suite.Invariant == "" || suite.Seeds == nil || suite.Blockers == nil || suite.Choice.Features == nil || suite.CapabilityMode != target.CapabilityModeClosure && suite.CapabilityMode != target.CapabilityModeLinked || !validSetClassification(suite.Classification) || index > 0 && suite.ID <= report.Suites[index-1].ID {
 			return fmt.Errorf("qualification set workload %d identity is invalid", index)
 		}
 		if report.Dimensions.Analysis && (suite.Analysis == nil && suite.AnalysisError == "" || suite.Analysis != nil && suite.AnalysisError != "") {
@@ -939,6 +956,9 @@ func validateSetReport(report SuiteReport) error {
 			}
 			if _, err := DecodeAnalysisReport(encoded); err != nil {
 				return fmt.Errorf("qualification set workload %s analysis is invalid: %w", suite.ID, err)
+			}
+			if suite.Analysis.Target.CapabilityMode != suite.CapabilityMode {
+				return fmt.Errorf("qualification set workload %s capability mode does not match its analysis", suite.ID)
 			}
 			if suite.Analysis.Classification == ClassificationUnsupported && (suite.Classification != "unsupported_target" || len(suite.Seeds) != 0) {
 				return fmt.Errorf("qualification set workload %s unsupported analysis is inconsistent", suite.ID)

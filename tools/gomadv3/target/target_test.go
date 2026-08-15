@@ -293,6 +293,49 @@ func main() { _ = exec.Command("true") }
 	}
 }
 
+func TestPrepareLinkedModeEliminatesOnlyDeadForbiddenImports(t *testing.T) {
+	dead := writeModule(t, map[string]string{
+		"go.mod": "module example.com/deadcapability\n\ngo 1.26.4\n",
+		"main.go": `package main
+
+import "os/exec"
+
+func dead() { _ = exec.Command("true") }
+func main() {}
+`,
+	})
+	prepared, err := Prepare(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: dead, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeLinked,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if prepared.CapabilityMode != CapabilityModeLinked || prepared.CapabilityManifest == nil || prepared.CapabilityManifest.Facts == 0 {
+		t.Fatalf("linked prepared target = %#v", prepared)
+	}
+	if err := prepared.Verify(); err != nil {
+		t.Fatal(err)
+	}
+
+	live := writeModule(t, map[string]string{
+		"go.mod": "module example.com/livecapability\n\ngo 1.26.4\n",
+		"main.go": `package main
+
+import "os/exec"
+
+func main() { _ = exec.Command("true") }
+`,
+	})
+	_, err = Prepare(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: live, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeLinked,
+	})
+	if err == nil || !strings.Contains(err.Error(), "unsupported target capability") {
+		t.Fatalf("Prepare(live linked import) error = %v", err)
+	}
+}
+
 func TestPrepareScrubsDeterministicActivationFromBuild(t *testing.T) {
 	module := writeModule(t, map[string]string{
 		"go.mod":  "module example.com/envtarget\n\ngo 1.26.4\n",
@@ -530,16 +573,77 @@ func TestPreparedRecordProjectionDefensivelyCopiesIdentity(t *testing.T) {
 	}
 }
 
+func TestPrepareExecRequiresMatchingLinkedProvenance(t *testing.T) {
+	module := writeModule(t, map[string]string{
+		"go.mod":  "module example.com/linkedexec\n\ngo 1.26\n",
+		"main.go": "package main\nimport \"os/exec\"\nfunc unused() { _, _ = exec.Command(\"unused\").Output() }\nfunc main() {}\n",
+	})
+	toolchain := toolchainRoot(t)
+	spec := Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
+		CapabilityMode: CapabilityModeLinked,
+	}
+	built, err := Prepare(context.Background(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	review, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: module, ToolchainRoot: toolchain,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	identity, err := ReadToolchainIdentity(toolchain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	provenancePath := filepath.Join(t.TempDir(), "provenance.json")
+	provenance := Provenance{
+		SchemaVersion: 3, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey,
+		TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
+		BinarySHA256: built.SHA256, BinarySize: built.Size, BuildInfo: built.BuildInfo,
+		CapabilityClosure: review.Closure, CapabilityMode: CapabilityModeLinked,
+		CapabilityManifest: cloneCapabilityManifest(built.CapabilityManifest),
+	}
+	if err := WriteProvenance(provenancePath, provenance); err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := Prepare(context.Background(), Spec{
+		Kind: KindExec, Source: built.Path, Provenance: provenancePath, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
+		CapabilityMode: CapabilityModeLinked,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if prepared.CapabilityMode != CapabilityModeLinked || !sameCapabilityManifest(built.CapabilityManifest, prepared.CapabilityManifest) {
+		t.Fatalf("prepared linked exec = %#v", prepared)
+	}
+
+	forged := provenance
+	forged.CapabilityManifest = cloneCapabilityManifest(provenance.CapabilityManifest)
+	forged.CapabilityManifest.Facts++
+	forgedPath := filepath.Join(t.TempDir(), "forged-provenance.json")
+	if err := WriteProvenance(forgedPath, forged); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Prepare(context.Background(), Spec{
+		Kind: KindExec, Source: built.Path, Provenance: forgedPath, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
+		CapabilityMode: CapabilityModeLinked,
+	}); err == nil || !strings.Contains(err.Error(), "does not match provenance") {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+}
+
 func TestReadProvenanceRoundTripsValidatedDocument(t *testing.T) {
 	want := Provenance{
-		SchemaVersion: 2, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
+		SchemaVersion: 3, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH,
 		BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
 		BuildInfo: evidence.BuildInfo{
 			GoVersion: "go1.26.4", Path: "example.com/target",
 			Settings: []evidence.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}},
 		},
-		CapabilityClosure: validCapabilityClosure(),
+		CapabilityClosure: validCapabilityClosure(), CapabilityMode: CapabilityModeClosure,
 	}
 	path := filepath.Join(t.TempDir(), "provenance.json")
 	if err := WriteProvenance(path, want); err != nil {
@@ -556,10 +660,10 @@ func TestReadProvenanceRoundTripsValidatedDocument(t *testing.T) {
 
 func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 	base := provenanceWire{
-		Schema: provenanceSchema, SchemaVersion: 2, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
+		Schema: provenanceSchema, SchemaVersion: 3, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
 		BuildInfo:         evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []evidence.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
-		CapabilityClosure: validCapabilityClosure(),
+		CapabilityClosure: validCapabilityClosure(), CapabilityMode: CapabilityModeClosure,
 	}
 	for name, setting := range map[string]evidence.BuildSetting{
 		"cgo":        {Key: "CGO_ENABLED", Value: "1"},

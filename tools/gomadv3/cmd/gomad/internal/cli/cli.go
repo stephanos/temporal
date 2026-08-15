@@ -302,6 +302,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
@@ -340,6 +341,14 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
+	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
+	if err != nil {
+		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, maxFrontierBytesSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
@@ -445,7 +454,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
-			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain,
+			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
 	summary, err := runner.Explore(context.Background(), config)
@@ -671,6 +680,16 @@ func parseTarget(arguments []string) (targetInput, error) {
 		return targetInput{kind: target.Kind(arguments[0]), source: arguments[1], arguments: append([]string(nil), remaining...)}, nil
 	default:
 		return targetInput{}, fmt.Errorf("unknown target kind %q", arguments[0])
+	}
+}
+
+func parseCapabilityMode(value string) (target.CapabilityMode, error) {
+	mode := target.CapabilityMode(value)
+	switch mode {
+	case target.CapabilityModeClosure, target.CapabilityModeLinked:
+		return mode, nil
+	default:
+		return "", fmt.Errorf("unknown capability mode %q", value)
 	}
 }
 

@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	CampaignPlanSchema    = "gomadv3.batch-plan/v2"
-	LegacyBatchPlanSchema = "gomadv3.batch-plan/v1"
+	CampaignPlanSchema      = "gomadv3.batch-plan/v3"
+	PriorCampaignPlanSchema = "gomadv3.batch-plan/v2"
+	LegacyBatchPlanSchema   = "gomadv3.batch-plan/v1"
 )
 
 const maximumBatchPlanBytes = 1 << 20
@@ -146,6 +147,9 @@ func ReadResumePlan(path string) (CampaignPlan, error) {
 	if err != nil || digest != plan.Prepared.Target.SHA256 || size != uint64(plan.Prepared.Target.Size) {
 		return CampaignPlan{}, errors.Join(fmt.Errorf("prepared target identity does not match batch plan"), err)
 	}
+	if plan.Schema != CampaignPlanSchema {
+		plan.Prepared.Target.CapabilityMode = "closure"
+	}
 	return plan, nil
 }
 
@@ -170,7 +174,7 @@ func validateResumeLifecycle(root *os.Root) error {
 }
 
 func validateCampaignPlan(plan CampaignPlan) error {
-	if plan.Schema != CampaignPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
+	if plan.Schema != CampaignPlanSchema && plan.Schema != PriorCampaignPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
 		return fmt.Errorf("batch plan identity is invalid")
 	}
 	if plan.Schema == LegacyBatchPlanSchema {
@@ -213,6 +217,13 @@ func validateCampaignPlan(plan CampaignPlan) error {
 	}
 	if err := evidence.ValidateTargetAdapters(target.Adapters); err != nil {
 		return fmt.Errorf("batch plan prepared target: %w", err)
+	}
+	if plan.Schema == CampaignPlanSchema {
+		if err := evidence.ValidateCurrentTargetCapability(target); err != nil {
+			return fmt.Errorf("batch plan prepared target: %w", err)
+		}
+	} else if target.CapabilityMode != "" || target.CapabilityManifest != nil {
+		return fmt.Errorf("historical batch plan contains linked capability evidence")
 	}
 	if plan.IOProfile.Name == "" || !validRecordSHA256(evidence.SHA256(plan.IOProfile.ImplementationSHA256)) || !validRecordSHA256(evidence.SHA256(plan.IOProfile.InventorySHA256)) {
 		return fmt.Errorf("batch plan I/O profile identity is invalid")

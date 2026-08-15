@@ -44,15 +44,17 @@ type ArtifactInspection struct {
 }
 
 type TargetReport struct {
-	Kind          string                       `json:"kind"`
-	Source        string                       `json:"source"`
-	SHA256        evidence.SHA256              `json:"sha256"`
-	Size          uint64                       `json:"size"`
-	Argv          []string                     `json:"argv"`
-	BuildTags     []string                     `json:"build_tags"`
-	Adapters      []evidence.TargetAdapter     `json:"adapters"`
-	Compatibility []evidence.CompatibilityPack `json:"compatibility"`
-	BuildInfo     evidence.BuildInfo           `json:"build_info"`
+	Kind               string                             `json:"kind"`
+	Source             string                             `json:"source"`
+	SHA256             evidence.SHA256                    `json:"sha256"`
+	Size               uint64                             `json:"size"`
+	Argv               []string                           `json:"argv"`
+	BuildTags          []string                           `json:"build_tags"`
+	Adapters           []evidence.TargetAdapter           `json:"adapters"`
+	Compatibility      []evidence.CompatibilityPack       `json:"compatibility"`
+	BuildInfo          evidence.BuildInfo                 `json:"build_info"`
+	CapabilityMode     string                             `json:"capability_mode"`
+	CapabilityManifest *evidence.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
 }
 
 type OutcomeReport struct {
@@ -312,6 +314,7 @@ func projectArtifact(manifest evidence.ExecutionRecord, path string) ArtifactIns
 		Target: TargetReport{
 			Kind: manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
 			Argv: append([]string(nil), manifest.Target.Argv...), BuildTags: append([]string(nil), manifest.Target.BuildTags...), Adapters: append([]evidence.TargetAdapter(nil), manifest.Target.Adapters...), Compatibility: append([]evidence.CompatibilityPack(nil), manifest.Target.Compatibility...), BuildInfo: manifest.Target.BuildInfo,
+			CapabilityMode: manifest.Target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(manifest.Target.CapabilityManifest),
 		},
 		Outcome: projectOutcome(manifest.Outcome), FirstDivergence: firstDivergence(manifest),
 		Stdout: projectStream(manifest.Streams.Stdout), Stderr: projectStream(manifest.Streams.Stderr),
@@ -325,6 +328,14 @@ func projectArtifact(manifest evidence.ExecutionRecord, path string) ArtifactIns
 		}
 	}
 	return result
+}
+
+func cloneTargetCapabilityEvidence(manifest *evidence.TargetCapabilityManifest) *evidence.TargetCapabilityManifest {
+	if manifest == nil {
+		return nil
+	}
+	cloned := *manifest
+	return &cloned
 }
 
 func projectOutcome(outcome evidence.Outcome) OutcomeReport {

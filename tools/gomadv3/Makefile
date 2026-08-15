@@ -1,4 +1,4 @@
-.PHONY: generate clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification intercept-test patch-test qualification-set runner runner-test overlay-test world-test toolchain upgrade-dossier validate test-harness test-builder test-runtime test-upstream test
+.PHONY: generate clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification intercept-test patch-test qualification-set runner runner-test overlay-test world-test toolchain upgrade-dossier validate test-harness test-builder test-live-capability test-runtime test-upstream test
 
 include version_generated.mk
 
@@ -106,6 +106,10 @@ test-builder:
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-builder --go="$$(command -v go)"
 
+test-live-capability: toolchain
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
+		--root=$(CURDIR) --mode=test-live-capability --go=$(CURDIR)/.toolchain/bin/go
+
 test-runtime: toolchain
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-runtime --go=$(CURDIR)/.toolchain/bin/go
@@ -114,5 +118,5 @@ test-upstream: toolchain
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-upstream --go=$(CURDIR)/.toolchain/bin/go
 
-test: test-harness patch-test intercept-test runner-test overlay-test world-test test-builder test-runtime test-upstream
+test: test-harness patch-test intercept-test runner-test overlay-test world-test test-builder test-live-capability test-runtime test-upstream
 	@printf 'gomadv3 all black-box tiers passed\n'

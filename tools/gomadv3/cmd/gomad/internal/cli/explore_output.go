@@ -171,8 +171,7 @@ func classifyExploreError(err error) string {
 	if errors.As(err, &missing) {
 		return "semantic_coverage_failure"
 	}
-	var unsupported *target.UnsupportedCapabilityError
-	if errors.As(err, &unsupported) {
+	if target.IsUnsupportedCapability(err) {
 		return "unsupported_target"
 	}
 	var hostError *runner.HostError

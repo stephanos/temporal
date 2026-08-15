@@ -144,6 +144,15 @@ Do not replace it with an unsound source call graph. Evaluate a stricter, compil
 
 Keep closure review as the default until this mechanism demonstrates that it accepts real targets while still rejecting deliberately hidden init-time and indirect calls. A package-specific adapter or dependency refactor is preferable to a generic exemption.
 
+An experimental `linked` mode now embeds a bounded canonical record in the
+prepared Mach-O executable, retains the exact payload in evidence, and
+revalidates both before replay. Direct, init, function-value, interface,
+reflection, and inlined paths remain visible while unreachable forbidden
+imports are eliminated. The current Temporal candidates still retain live
+assembly, linkname, `syscall`, or forbidden-import blockers, so the qualified
+baseline remains 4/16 and closure remains the default. COMPAT-6 is not complete
+until a real unsupported workload qualifies without widening policy.
+
 ## COMPAT-7: Platform bundles
 
 Represent platform support as a versioned deep module rather than scattered `GOOS` branches. A platform bundle should own:

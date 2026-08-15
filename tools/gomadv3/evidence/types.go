@@ -4,13 +4,17 @@ const LegacySchemaVersion uint32 = 2
 
 const PreviousSchemaVersion uint32 = 3
 
-const SchemaVersion uint32 = 4
+const PriorSchemaVersion uint32 = 4
+
+const SchemaVersion uint32 = 5
 
 const LegacyRecordContract = "gomadv3.run-record/v2"
 
 const PreviousRecordContract = "gomadv3.run-record/v3"
 
-const RecordContract = "gomadv3.run-record/v4"
+const PriorRecordContract = "gomadv3.run-record/v4"
+
+const RecordContract = "gomadv3.run-record/v5"
 
 const (
 	ArtifactSuccess         = "gomadv3.success/v1"
@@ -148,16 +152,28 @@ type Toolchain struct {
 }
 
 type Target struct {
-	Kind          string              `json:"kind"`
-	Source        string              `json:"source"`
-	File          string              `json:"file"`
-	SHA256        SHA256              `json:"sha256"`
-	Size          Uint64String        `json:"size"`
-	Argv          []string            `json:"argv"`
-	BuildTags     []string            `json:"build_tags"`
-	Adapters      []TargetAdapter     `json:"adapters"`
-	Compatibility []CompatibilityPack `json:"compatibility"`
-	BuildInfo     BuildInfo           `json:"build_info"`
+	Kind               string                    `json:"kind"`
+	Source             string                    `json:"source"`
+	File               string                    `json:"file"`
+	SHA256             SHA256                    `json:"sha256"`
+	Size               Uint64String              `json:"size"`
+	Argv               []string                  `json:"argv"`
+	BuildTags          []string                  `json:"build_tags"`
+	Adapters           []TargetAdapter           `json:"adapters"`
+	Compatibility      []CompatibilityPack       `json:"compatibility"`
+	BuildInfo          BuildInfo                 `json:"build_info"`
+	CapabilityMode     string                    `json:"capability_mode,omitempty"`
+	CapabilityManifest *TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+}
+
+type TargetCapabilityManifest struct {
+	Schema                       string       `json:"schema"`
+	File                         string       `json:"file"`
+	SHA256                       SHA256       `json:"sha256"`
+	Bytes                        Uint64String `json:"bytes"`
+	Facts                        Uint64String `json:"facts"`
+	ProducerImplementationSHA256 SHA256       `json:"producer_implementation_sha256"`
+	CapabilityUniverseSHA256     SHA256       `json:"capability_universe_sha256"`
 }
 
 type TargetAdapter struct {

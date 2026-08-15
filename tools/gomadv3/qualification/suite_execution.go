@@ -16,7 +16,7 @@ import (
 
 func analysisCommand(config SuiteSpec, manifest SuiteManifest, suite Workload) SuiteCommand {
 	runTimeout, overallTimeout := suiteTimeouts(manifest, suite)
-	args := []string{"analyze", "--format=json"}
+	args := []string{"analyze", "--format=json", "--capability-mode=" + string(suite.CapabilityMode)}
 	for _, value := range suite.BuildTags {
 		args = append(args, "--build-tag="+value)
 	}

@@ -39,7 +39,7 @@ func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {
 	if err := json.Unmarshal(contents, &public); err != nil {
 		t.Fatal(err)
 	}
-	if public["schema"] != "gomadv3.qualification-set-report/v5" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
+	if public["schema"] != "gomadv3.qualification-set-report/v6" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
 		t.Fatalf("public qualification set report = %#v", public)
 	}
 	for _, forbidden := range []string{"manifest", "report_path", "command"} {
@@ -72,7 +72,11 @@ func TestOpenReportNormalizesPreviousCapabilityAnalysis(t *testing.T) {
 		t.Fatal(err)
 	}
 	report.Schema = PreviousSuiteReportSchema
-	report.Suites[0].Analysis.Schema = previousAnalysisSchema
+	report.Suites[0].CapabilityMode = ""
+	report.Suites[0].Analysis.Schema = PriorAnalysisSchema
+	report.Suites[0].Analysis.Target.CapabilityMode = ""
+	report.Suites[0].Analysis.Target.CapabilityManifest = nil
+	report.Suites[0].Analysis.EliminatedBlockers = nil
 	encoded, err := evidence.CanonicalJSON(report)
 	if err != nil {
 		t.Fatal(err)
@@ -261,7 +265,7 @@ func TestLoadManifestV2RetainsPortableWorkloadContract(t *testing.T) {
 		"output_bytes": 1024, "world_transition_bytes": 2048,
 		"suites": []any{map[string]any{
 			"id": "fixture-case", "name": "Fixture case", "tier": 1, "invariant": "the fixture remains deterministic",
-			"package": "./pkg", "test": "TestScenario", "choice_bytes": 4096, "replay_successes": true,
+			"package": "./pkg", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 4096, "replay_successes": true,
 			"success_artifact_limit": 1, "success_bytes_limit": 1048576,
 			"expectation": map[string]any{"classification": "qualified"},
 		}},
@@ -429,9 +433,9 @@ func TestRunClassifiesEveryWorkloadWhenAnalysisFails(t *testing.T) {
 		"seeds": []uint64{7}, "repeat": 2, "run_timeout": "30s", "overall_timeout": "2m", "terminate_grace": "2s",
 		"output_bytes": 1024, "world_transition_bytes": 2048,
 		"suites": []any{
-			map[string]any{"id": "a-supported", "name": "A", "tier": 1, "invariant": "A remains classified", "package": "./a", "test": "TestScenario", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
-			map[string]any{"id": "b-broken", "name": "B", "tier": 1, "invariant": "B reports analysis failure", "package": "./b", "test": "TestScenario", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
-			map[string]any{"id": "c-supported", "name": "C", "tier": 1, "invariant": "C remains classified", "package": "./c", "test": "TestScenario", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
+			map[string]any{"id": "a-supported", "name": "A", "tier": 1, "invariant": "A remains classified", "package": "./a", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
+			map[string]any{"id": "b-broken", "name": "B", "tier": 1, "invariant": "B reports analysis failure", "package": "./b", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
+			map[string]any{"id": "c-supported", "name": "C", "tier": 1, "invariant": "C remains classified", "package": "./c", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 1024, "replay_successes": true, "success_artifact_limit": 2, "success_bytes_limit": 4096, "expectation": map[string]any{"classification": "qualified"}},
 		},
 	}
 	contents, err := json.Marshal(manifest)
@@ -553,7 +557,7 @@ func writeV2Manifest(t *testing.T, root string, seeds []uint64, classification s
 		"output_bytes": 1024, "world_transition_bytes": 2048,
 		"suites": []any{map[string]any{
 			"id": "fixture-case", "name": "Fixture case", "tier": 1, "invariant": "the fixture remains deterministic",
-			"package": "./pkg", "test": "TestScenario", "choice_bytes": 4096, "replay_successes": true,
+			"package": "./pkg", "test": "TestScenario", "capability_mode": "closure", "choice_bytes": 4096, "replay_successes": true,
 			"success_artifact_limit": 2, "success_bytes_limit": 1048576, "expectation": expectation,
 		}},
 	}
@@ -624,7 +628,7 @@ func encodedAnalysisResult(t *testing.T, classification AnalysisClassification) 
 	boundaryVersion, boundaryDigest := deterministicio.BoundaryManifestIdentity()
 	report := AnalysisReport{
 		Schema: AnalysisSchema, Classification: classification,
-		Target: AnalysisTarget{Kind: target.KindGoTest, Source: "pkg", Arguments: []string{"-test.run=^TestScenario$"}, BuildTags: []string{}},
+		Target: AnalysisTarget{Kind: target.KindGoTest, Source: "pkg", Arguments: []string{"-test.run=^TestScenario$"}, BuildTags: []string{}, CapabilityMode: target.CapabilityModeClosure},
 		Toolchain: AnalysisToolchain{
 			GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64",
 			BoundaryManifestVersion: boundaryVersion, BoundaryManifestSHA256: evidence.SHA256(boundaryDigest),
@@ -633,7 +637,7 @@ func encodedAnalysisResult(t *testing.T, classification AnalysisClassification) 
 			SHA256: evidence.HashBytes([]byte("closure")), PackageCount: 1,
 			Roots: []target.CapabilityPackageReference{{ImportPath: "example.com/target/pkg", Name: "pkg"}},
 		},
-		IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []AnalysisBlocker{},
+		IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []AnalysisBlocker{}, EliminatedBlockers: []AnalysisBlocker{},
 	}
 	status := 0
 	if classification == ClassificationUnsupported {

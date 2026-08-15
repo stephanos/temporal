@@ -1,5 +1,7 @@
 package evidence
 
+import "bytes"
+
 type recordProjection struct {
 	SchemaVersion uint32                   `json:"schema_version"`
 	Runner        Runner                   `json:"runner"`
@@ -29,14 +31,25 @@ type failureProjection struct {
 }
 
 type targetProjection struct {
-	Kind          string              `json:"kind"`
-	SHA256        SHA256              `json:"sha256"`
-	Size          Uint64String        `json:"size"`
-	Argv          []string            `json:"argv"`
-	BuildTags     []string            `json:"build_tags"`
-	Adapters      []TargetAdapter     `json:"adapters"`
-	Compatibility []CompatibilityPack `json:"compatibility"`
-	BuildInfo     BuildInfo           `json:"build_info"`
+	Kind               string                              `json:"kind"`
+	SHA256             SHA256                              `json:"sha256"`
+	Size               Uint64String                        `json:"size"`
+	Argv               []string                            `json:"argv"`
+	BuildTags          []string                            `json:"build_tags"`
+	Adapters           []TargetAdapter                     `json:"adapters"`
+	Compatibility      []CompatibilityPack                 `json:"compatibility"`
+	BuildInfo          BuildInfo                           `json:"build_info"`
+	CapabilityMode     string                              `json:"capability_mode,omitempty"`
+	CapabilityManifest *targetCapabilityManifestProjection `json:"capability_manifest,omitempty"`
+}
+
+type targetCapabilityManifestProjection struct {
+	Schema                       string       `json:"schema"`
+	SHA256                       SHA256       `json:"sha256"`
+	Bytes                        Uint64String `json:"bytes"`
+	Facts                        Uint64String `json:"facts"`
+	ProducerImplementationSHA256 SHA256       `json:"producer_implementation_sha256"`
+	CapabilityUniverseSHA256     SHA256       `json:"capability_universe_sha256"`
 }
 
 type ioProfileProjection struct {
@@ -201,7 +214,38 @@ func projectIOProfile(profile IOProfile) ioProfileProjection {
 }
 
 func projectTarget(target Target) targetProjection {
-	return targetProjection{Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags, Adapters: target.Adapters, Compatibility: target.Compatibility, BuildInfo: target.BuildInfo}
+	projected := targetProjection{
+		Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags,
+		Adapters: target.Adapters, Compatibility: target.Compatibility, BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode,
+	}
+	if manifest := target.CapabilityManifest; manifest != nil {
+		projected.CapabilityManifest = &targetCapabilityManifestProjection{
+			Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: manifest.Bytes, Facts: manifest.Facts,
+			ProducerImplementationSHA256: manifest.ProducerImplementationSHA256,
+			CapabilityUniverseSHA256:     manifest.CapabilityUniverseSHA256,
+		}
+	}
+	return projected
+}
+
+func cloneTargetCapabilityManifest(manifest *TargetCapabilityManifest) *TargetCapabilityManifest {
+	if manifest == nil {
+		return nil
+	}
+	cloned := *manifest
+	return &cloned
+}
+
+func SameTargetIdentity(left, right Target) (bool, error) {
+	leftBytes, err := CanonicalJSON(projectTarget(left))
+	if err != nil {
+		return false, err
+	}
+	rightBytes, err := CanonicalJSON(projectTarget(right))
+	if err != nil {
+		return false, err
+	}
+	return bytes.Equal(leftBytes, rightBytes), nil
 }
 
 func projectOutcome(outcome Outcome) outcomeProjection {

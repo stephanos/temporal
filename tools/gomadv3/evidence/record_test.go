@@ -3,6 +3,7 @@ package evidence
 import (
 	"bytes"
 	"crypto/sha256"
+	"reflect"
 	"sort"
 	"strings"
 	"testing"
@@ -158,6 +159,30 @@ func TestFinalizeManifestBindsSelectedAdapters(t *testing.T) {
 	}
 }
 
+func TestFinalizeManifestBindsCapabilityModeAndManifestSemantics(t *testing.T) {
+	closure, _ := finalizedManifest(t, manifestFixture())
+	linkedInput := manifestFixture()
+	payload := []byte(`{"facts":[]}`)
+	linkedInput.Target.CapabilityMode = "linked"
+	linkedInput.Target.CapabilityManifest = &TargetCapabilityManifest{
+		Schema: "gomadv3.live-capability-manifest/v1", File: "target-capabilities.json", SHA256: HashBytes(payload),
+		Bytes: Uint64String(len(payload)), Facts: 0, ProducerImplementationSHA256: HashBytes([]byte("producer")), CapabilityUniverseSHA256: HashBytes([]byte("universe")),
+	}
+	linkedInput.Files = append(linkedInput.Files, File{Path: "target-capabilities.json", Mode: "0600", Size: Uint64String(len(payload)), SHA256: HashBytes(payload)})
+	sort.Slice(linkedInput.Files, func(i, j int) bool { return linkedInput.Files[i].Path < linkedInput.Files[j].Path })
+	linked, _ := finalizedManifest(t, linkedInput)
+	if closure.RecordHash == linked.RecordHash || closure.Outcome.FailureSignature == linked.Outcome.FailureSignature {
+		t.Fatal("record identities omitted linked capability semantics")
+	}
+
+	relocated := linkedInput
+	relocated.Target.CapabilityManifest = cloneTargetCapabilityManifest(linkedInput.Target.CapabilityManifest)
+	relocated.Target.CapabilityManifest.File = "relocated-capabilities.json"
+	if left, right := projectTarget(linkedInput.Target), projectTarget(relocated.Target); !reflect.DeepEqual(left, right) {
+		t.Fatal("target identity projection included the manifest payload path")
+	}
+}
+
 func TestIdentityProjectionsExcludeArtifactPaths(t *testing.T) {
 	first := manifestFixture()
 	second := manifestFixture()
@@ -303,16 +328,17 @@ func manifestFixture() ExecutionRecord {
 			TargetGOARCH: "arm64",
 		},
 		Target: Target{
-			Kind:          "go-test",
-			Source:        "./pkg",
-			File:          "target",
-			SHA256:        HashBytes(targetBytes),
-			Size:          Uint64String(len(targetBytes)),
-			Argv:          []string{"gomadv3-target", "-test.run=TestGate"},
-			BuildTags:     []string{"gomad_fixture"},
-			Adapters:      []TargetAdapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:adapter"}},
-			Compatibility: []CompatibilityPack{{ID: "reflect2-go126", SHA256: HashBytes([]byte("compatibility pack"))}},
-			BuildInfo:     BuildInfo{GoVersion: "go1.26.4", Path: "example.test/project/pkg.test"},
+			Kind:           "go-test",
+			Source:         "./pkg",
+			File:           "target",
+			SHA256:         HashBytes(targetBytes),
+			Size:           Uint64String(len(targetBytes)),
+			Argv:           []string{"gomadv3-target", "-test.run=TestGate"},
+			BuildTags:      []string{"gomad_fixture"},
+			Adapters:       []TargetAdapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:adapter"}},
+			Compatibility:  []CompatibilityPack{{ID: "reflect2-go126", SHA256: HashBytes([]byte("compatibility pack"))}},
+			BuildInfo:      BuildInfo{GoVersion: "go1.26.4", Path: "example.test/project/pkg.test"},
+			CapabilityMode: "closure",
 		},
 		IOProfile: IOProfile{
 			Name:                 "gomadv3-deterministic/v1",
@@ -356,8 +382,8 @@ func uint64StringPointer(value uint64) *Uint64String {
 	return &converted
 }
 
-func TestCurrentRecordContractIsSchemaV4(t *testing.T) {
-	if SchemaVersion != 4 || RecordContract != "gomadv3.run-record/v4" {
+func TestCurrentRecordContractIsSchemaV5(t *testing.T) {
+	if SchemaVersion != 5 || RecordContract != "gomadv3.run-record/v5" {
 		t.Fatalf("record contract = schema %d %q", SchemaVersion, RecordContract)
 	}
 }
@@ -385,6 +411,7 @@ func TestDecodeManifestAcceptsSchemaV3ObservationalChoiceTrace(t *testing.T) {
 	manifest := manifestFixture()
 	manifest.SchemaVersion = PreviousSchemaVersion
 	manifest.Runner.RecordContract = PreviousRecordContract
+	manifest.Target.CapabilityMode = ""
 	manifest.ChoiceProfile = &ChoiceProfile{
 		Name: "gomadv3-choice-trace/v1", ImplementationSHA256: HashBytes([]byte("choice implementation")),
 		Trace: ChoiceTrace{
@@ -406,8 +433,26 @@ func TestDecodeManifestAcceptsSchemaV3ObservationalChoiceTrace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if decoded.SchemaVersion != PreviousSchemaVersion || decoded.ChoiceProfile == nil || decoded.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v1" || decoded.ChoiceProfile.Trace.TapeSHA256 != "" {
+	if decoded.SchemaVersion != PreviousSchemaVersion || decoded.Target.CapabilityMode != "closure" || decoded.ChoiceProfile == nil || decoded.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v1" || decoded.ChoiceProfile.Trace.TapeSHA256 != "" {
 		t.Fatalf("schema v3 manifest = %#v", decoded)
+	}
+}
+
+func TestDecodeManifestNormalizesSchemaV4ToClosure(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.SchemaVersion = PriorSchemaVersion
+	manifest.Runner.RecordContract = PriorRecordContract
+	manifest.Target.CapabilityMode = ""
+	_, encoded, err := FinalizeExecutionRecord(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeExecutionRecord(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.SchemaVersion != PriorSchemaVersion || decoded.Target.CapabilityMode != "closure" || decoded.Target.CapabilityManifest != nil {
+		t.Fatalf("schema v4 manifest = %#v", decoded)
 	}
 }
 
@@ -415,6 +460,7 @@ func TestDecodeManifestAcceptsLegacySchemaV2WithoutChoiceTrace(t *testing.T) {
 	manifest := manifestFixture()
 	manifest.SchemaVersion = 2
 	manifest.Runner.RecordContract = "gomadv3.run-record/v2"
+	manifest.Target.CapabilityMode = ""
 	finalized, encoded, err := FinalizeExecutionRecord(manifest)
 	if err != nil {
 		t.Fatal(err)
@@ -423,7 +469,7 @@ func TestDecodeManifestAcceptsLegacySchemaV2WithoutChoiceTrace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if decoded.SchemaVersion != 2 || decoded.Runner.RecordContract != "gomadv3.run-record/v2" || decoded.ChoiceProfile != nil {
+	if decoded.SchemaVersion != 2 || decoded.Runner.RecordContract != "gomadv3.run-record/v2" || decoded.Target.CapabilityMode != "closure" || decoded.ChoiceProfile != nil {
 		t.Fatalf("legacy manifest = %#v", decoded)
 	}
 	if decoded.RecordHash != finalized.RecordHash {

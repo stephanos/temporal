@@ -16,6 +16,7 @@ import (
 )
 
 const capabilityAnalysisTimeout = 30 * time.Second
+const linkedCapabilityAnalysisTimeout = 2 * time.Minute
 
 type analyzeDependencies struct {
 	toolchain        func(string) (string, error)
@@ -28,10 +29,11 @@ type analyzeDependencies struct {
 }
 
 type analyzeArguments struct {
-	format        string
-	toolchainRoot string
-	buildTags     []string
-	target        targetInput
+	format         string
+	toolchainRoot  string
+	buildTags      []string
+	capabilityMode target.CapabilityMode
+	target         targetInput
 }
 
 func runAnalyze(arguments []string, stdout, stderr io.Writer) int {
@@ -75,9 +77,16 @@ func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies a
 	if status != 0 {
 		return status
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), capabilityAnalysisTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), capabilityAnalysisTimeoutForMode(parsed.capabilityMode))
 	defer cancel()
 	return executeAnalysis(ctx, stdout, stderr, parsed.format, spec, identity, dependencies)
+}
+
+func capabilityAnalysisTimeoutForMode(mode target.CapabilityMode) time.Duration {
+	if mode == target.CapabilityModeLinked {
+		return linkedCapabilityAnalysisTimeout
+	}
+	return capabilityAnalysisTimeout
 }
 
 func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArguments, int) {
@@ -85,6 +94,7 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	flags.SetOutput(stderr)
 	format := flags.String("format", "text", "text or json")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
 	var buildTags stringList
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
 	if err := flags.Parse(arguments); err != nil {
@@ -93,6 +103,10 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	if *format != "text" && *format != "json" {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "invalid analysis format %q\n", *format)
 	}
+	mode, err := parseCapabilityMode(*capabilityMode)
+	if err != nil {
+		return analyzeArguments{}, writeCommandError(stderr, 2, "%v\n", err)
+	}
 	parsed, err := parseTarget(flags.Args())
 	if err != nil {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "%v\n", err)
@@ -100,7 +114,7 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	if parsed.kind == target.KindExec {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "gomad analyze requires a go-run or go-test target\n")
 	}
-	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, buildTags: buildTags, target: parsed}, 0
+	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, buildTags: buildTags, capabilityMode: mode, target: parsed}, 0
 }
 
 func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencies analyzeDependencies) (target.Spec, target.ToolchainIdentity, int) {
@@ -116,7 +130,7 @@ func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencie
 	if err != nil {
 		return target.Spec{}, target.ToolchainIdentity{}, writeCommandError(stderr, 3, "read Gomad toolchain identity: %v\n", err)
 	}
-	spec := target.Spec{Kind: parsed.target.kind, Source: parsed.target.source, Args: parsed.target.arguments, BuildTags: parsed.buildTags, WorkingDir: workingDirectory, ToolchainRoot: resolvedRoot}
+	spec := target.Spec{Kind: parsed.target.kind, Source: parsed.target.source, Args: parsed.target.arguments, BuildTags: parsed.buildTags, WorkingDir: workingDirectory, ToolchainRoot: resolvedRoot, CapabilityMode: parsed.capabilityMode}
 	return spec, identity, 0
 }
 
@@ -161,6 +175,10 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 }
 
 func reportAnalyzeError(stderr io.Writer, err error) int {
+	var capacity *target.UnsupportedCapabilityCapacityError
+	if errors.As(err, &capacity) {
+		return writeCommandError(stderr, 1, "analyze target capabilities: %v\n", err)
+	}
 	if target.IsInvalidCapabilityReview(err) {
 		return writeCommandError(stderr, 2, "analyze target capabilities: %v\n", err)
 	}

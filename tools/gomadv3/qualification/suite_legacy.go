@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/target"
 )
 
 type legacySetReport struct {
@@ -59,6 +60,7 @@ func decodeLegacySetReport(data []byte) (SuiteReport, error) {
 			ExpectationMet: suite.ExpectationMet, Classification: suite.Classification,
 			AnalysisError: "dimension_unavailable", Seeds: []SeedReport{},
 			Blockers: []AnalysisBlocker{}, Choice: emptyChoiceCoverage(),
+			CapabilityMode: target.CapabilityModeClosure,
 		}
 		if suite.ReportPath != "" {
 			qualification, err := DecodeQualificationReport(suite.Report)

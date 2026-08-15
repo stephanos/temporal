@@ -19,6 +19,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
+	"go.temporal.io/server/tools/gomadv3/target/internal/livecap"
 )
 
 type Kind string
@@ -29,7 +30,17 @@ const (
 	KindGoTest Kind = "go-test"
 )
 
-const provenanceSchema = "gomadv3.exec-provenance/v2"
+type CapabilityMode string
+
+const (
+	CapabilityModeClosure CapabilityMode = "closure"
+	CapabilityModeLinked  CapabilityMode = "linked"
+)
+
+const (
+	provenanceSchema      = "gomadv3.exec-provenance/v3"
+	priorProvenanceSchema = "gomadv3.exec-provenance/v2"
+)
 
 const maximumProvenanceBytes = 16 << 20
 
@@ -45,6 +56,7 @@ type Spec struct {
 	BuildOverlay        string
 	BuildModFile        string
 	AdapterReplacements []AdapterReplacement
+	CapabilityMode      CapabilityMode
 }
 
 type ModuleIdentity struct {
@@ -72,29 +84,69 @@ type ToolchainIdentity struct {
 }
 
 type Prepared struct {
-	Path          string
-	Kind          Kind
-	Source        string
-	SHA256        string
-	Size          uint64
-	Argv          []string
-	BuildTags     []string
-	Adapters      []evidence.TargetAdapter
-	Compatibility []evidence.CompatibilityPack
-	BuildInfo     evidence.BuildInfo
-	GoVersion     string
-	BuildKey      string
-	TargetGOOS    string
-	TargetGOARCH  string
+	Path               string
+	Kind               Kind
+	Source             string
+	SHA256             string
+	Size               uint64
+	Argv               []string
+	BuildTags          []string
+	Adapters           []evidence.TargetAdapter
+	Compatibility      []evidence.CompatibilityPack
+	BuildInfo          evidence.BuildInfo
+	GoVersion          string
+	BuildKey           string
+	TargetGOOS         string
+	TargetGOARCH       string
+	CapabilityMode     CapabilityMode
+	CapabilityManifest *CapabilityManifest
+}
+
+type CapabilityManifest struct {
+	Schema                       string          `json:"schema"`
+	SHA256                       evidence.SHA256 `json:"sha256"`
+	Bytes                        uint64          `json:"bytes"`
+	Facts                        uint64          `json:"facts"`
+	ProducerImplementationSHA256 string          `json:"producer_implementation_sha256"`
+	CapabilityUniverseSHA256     string          `json:"capability_universe_sha256"`
+	Payload                      []byte          `json:"-"`
 }
 
 func (prepared Prepared) RecordTarget() evidence.Target {
 	buildInfo := prepared.BuildInfo
 	buildInfo.Settings = append([]evidence.BuildSetting(nil), prepared.BuildInfo.Settings...)
-	return evidence.Target{
+	recorded := evidence.Target{
 		Kind: string(prepared.Kind), Source: prepared.Source, SHA256: evidence.SHA256(prepared.SHA256), Size: evidence.Uint64String(prepared.Size),
 		Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...),
 		Adapters: append([]evidence.TargetAdapter{}, prepared.Adapters...), Compatibility: append([]evidence.CompatibilityPack{}, prepared.Compatibility...), BuildInfo: buildInfo,
+		CapabilityMode: string(prepared.CapabilityMode),
+	}
+	if recorded.CapabilityMode == "" {
+		recorded.CapabilityMode = string(CapabilityModeClosure)
+	}
+	if manifest := prepared.CapabilityManifest; manifest != nil {
+		recorded.CapabilityManifest = manifest.Record()
+	}
+	return recorded
+}
+
+func (manifest CapabilityManifest) Record() *evidence.TargetCapabilityManifest {
+	return &evidence.TargetCapabilityManifest{
+		Schema: manifest.Schema, File: "target-capabilities.json", SHA256: manifest.SHA256,
+		Bytes: evidence.Uint64String(manifest.Bytes), Facts: evidence.Uint64String(manifest.Facts),
+		ProducerImplementationSHA256: evidence.SHA256(manifest.ProducerImplementationSHA256),
+		CapabilityUniverseSHA256:     evidence.SHA256(manifest.CapabilityUniverseSHA256),
+	}
+}
+
+func CapabilityManifestFromRecord(manifest *evidence.TargetCapabilityManifest) *CapabilityManifest {
+	if manifest == nil {
+		return nil
+	}
+	return &CapabilityManifest{
+		Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: uint64(manifest.Bytes), Facts: uint64(manifest.Facts),
+		ProducerImplementationSHA256: string(manifest.ProducerImplementationSHA256),
+		CapabilityUniverseSHA256:     string(manifest.CapabilityUniverseSHA256),
 	}
 }
 
@@ -108,31 +160,37 @@ func (prepared Prepared) RecordToolchain() evidence.Toolchain {
 type preparation struct {
 	buildInfo     evidence.BuildInfo
 	compatibility []evidence.CompatibilityPack
+	review        CapabilityReview
+	manifest      *CapabilityManifest
 }
 
 type Provenance struct {
-	SchemaVersion     int
-	GoVersion         string
-	BuildKey          string
-	TargetGOOS        string
-	TargetGOARCH      string
-	BinarySHA256      string
-	BinarySize        uint64
-	BuildInfo         evidence.BuildInfo
-	CapabilityClosure CapabilityClosure
+	SchemaVersion      int
+	GoVersion          string
+	BuildKey           string
+	TargetGOOS         string
+	TargetGOARCH       string
+	BinarySHA256       string
+	BinarySize         uint64
+	BuildInfo          evidence.BuildInfo
+	CapabilityClosure  CapabilityClosure
+	CapabilityMode     CapabilityMode
+	CapabilityManifest *CapabilityManifest
 }
 
 type provenanceWire struct {
-	Schema            string                `json:"schema"`
-	SchemaVersion     int                   `json:"schema_version"`
-	GoVersion         string                `json:"go_version"`
-	BuildKey          string                `json:"build_key"`
-	TargetGOOS        string                `json:"target_goos"`
-	TargetGOARCH      string                `json:"target_goarch"`
-	BinarySHA256      string                `json:"binary_sha256"`
-	BinarySize        evidence.Uint64String `json:"binary_size"`
-	BuildInfo         evidence.BuildInfo    `json:"build_info"`
-	CapabilityClosure CapabilityClosure     `json:"capability_closure"`
+	Schema             string                `json:"schema"`
+	SchemaVersion      int                   `json:"schema_version"`
+	GoVersion          string                `json:"go_version"`
+	BuildKey           string                `json:"build_key"`
+	TargetGOOS         string                `json:"target_goos"`
+	TargetGOARCH       string                `json:"target_goarch"`
+	BinarySHA256       string                `json:"binary_sha256"`
+	BinarySize         evidence.Uint64String `json:"binary_size"`
+	BuildInfo          evidence.BuildInfo    `json:"build_info"`
+	CapabilityClosure  CapabilityClosure     `json:"capability_closure"`
+	CapabilityMode     CapabilityMode        `json:"capability_mode,omitempty"`
+	CapabilityManifest *CapabilityManifest   `json:"capability_manifest,omitempty"`
 }
 
 func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
@@ -140,6 +198,11 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 	if err != nil {
 		return Prepared{}, err
 	}
+	mode, err := normalizeCapabilityMode(spec.CapabilityMode)
+	if err != nil {
+		return Prepared{}, err
+	}
+	spec.CapabilityMode = mode
 	identity, err := ReadToolchainIdentity(spec.ToolchainRoot)
 	if err != nil {
 		return Prepared{}, err
@@ -175,7 +238,7 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 	case KindExec:
 		preparedTarget, err = prepareExec(ctx, spec, identity, targetPath)
 	case KindGoRun, KindGoTest:
-		preparedTarget, err = prepareGo(ctx, spec, tags, targetPath)
+		preparedTarget, err = prepareGo(ctx, spec, tags, identity, targetPath)
 	default:
 		err = fmt.Errorf("unsupported target kind %q", spec.Kind)
 	}
@@ -197,26 +260,32 @@ func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
 		preparedTarget.buildInfo = ProjectBuildInfo(info)
 	}
 	prepared = Prepared{
-		Path:          targetPath,
-		Kind:          spec.Kind,
-		Source:        spec.Source,
-		SHA256:        hash,
-		Size:          size,
-		Argv:          append([]string{"gomadv3-target"}, spec.Args...),
-		BuildTags:     tags,
-		Adapters:      []evidence.TargetAdapter{},
-		Compatibility: preparedTarget.compatibility,
-		BuildInfo:     preparedTarget.buildInfo,
-		GoVersion:     identity.GoVersion,
-		BuildKey:      identity.BuildKey,
-		TargetGOOS:    identity.TargetGOOS,
-		TargetGOARCH:  identity.TargetGOARCH,
+		Path:               targetPath,
+		Kind:               spec.Kind,
+		Source:             spec.Source,
+		SHA256:             hash,
+		Size:               size,
+		Argv:               append([]string{"gomadv3-target"}, spec.Args...),
+		BuildTags:          tags,
+		Adapters:           []evidence.TargetAdapter{},
+		Compatibility:      preparedTarget.compatibility,
+		BuildInfo:          preparedTarget.buildInfo,
+		GoVersion:          identity.GoVersion,
+		BuildKey:           identity.BuildKey,
+		TargetGOOS:         identity.TargetGOOS,
+		TargetGOARCH:       identity.TargetGOARCH,
+		CapabilityMode:     mode,
+		CapabilityManifest: cloneCapabilityManifest(preparedTarget.manifest),
 	}
 	keep = true
 	return prepared, nil
 }
 
 func (prepared Prepared) Verify() error {
+	mode := prepared.CapabilityMode
+	if mode == "" {
+		mode = CapabilityModeClosure
+	}
 	if err := VerifyCompatibility(prepared.Compatibility); err != nil {
 		return fmt.Errorf("verify prepared target compatibility: %w", err)
 	}
@@ -227,7 +296,43 @@ func (prepared Prepared) Verify() error {
 	if hash != prepared.SHA256 || size != prepared.Size {
 		return fmt.Errorf("prepared target changed after preparation")
 	}
+	if mode == CapabilityModeLinked {
+		if prepared.CapabilityManifest == nil {
+			return errors.New("verify prepared target capability manifest: missing linked manifest")
+		}
+		actual, err := ReadCapabilityManifest(prepared.Path, ToolchainIdentity{
+			GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH,
+		})
+		if err != nil {
+			return fmt.Errorf("verify prepared target capability manifest: %w", err)
+		}
+		if !sameCapabilityManifest(prepared.CapabilityManifest, actual) {
+			return errors.New("verify prepared target capability manifest: embedded record changed after preparation")
+		}
+	} else if mode != CapabilityModeClosure || prepared.CapabilityManifest != nil {
+		return errors.New("verify prepared target capability mode is invalid")
+	}
 	return nil
+}
+
+func ReadCapabilityManifest(path string, identity ToolchainIdentity) (*CapabilityManifest, error) {
+	record, err := livecap.Read(path, livecap.Expectation{
+		GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
+	})
+	if err != nil {
+		return nil, linkedCapabilityError(err)
+	}
+	return capabilityManifest(record), nil
+}
+
+func ReadCapabilityManifestFile(file *os.File, identity ToolchainIdentity) (*CapabilityManifest, error) {
+	record, err := livecap.ReadFile(file, livecap.Expectation{
+		GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
+	})
+	if err != nil {
+		return nil, linkedCapabilityError(err)
+	}
+	return capabilityManifest(record), nil
 }
 
 func ReadToolchainIdentity(root string) (ToolchainIdentity, error) {
@@ -306,17 +411,23 @@ func ReadModuleCache(ctx context.Context, root string) (string, error) {
 }
 
 func WriteProvenance(path string, provenance Provenance) error {
+	schema := provenanceSchema
+	if provenance.SchemaVersion == 2 {
+		schema = priorProvenanceSchema
+	}
 	wire := provenanceWire{
-		Schema:            provenanceSchema,
-		SchemaVersion:     provenance.SchemaVersion,
-		GoVersion:         provenance.GoVersion,
-		BuildKey:          provenance.BuildKey,
-		TargetGOOS:        provenance.TargetGOOS,
-		TargetGOARCH:      provenance.TargetGOARCH,
-		BinarySHA256:      provenance.BinarySHA256,
-		BinarySize:        evidence.Uint64String(provenance.BinarySize),
-		BuildInfo:         provenance.BuildInfo,
-		CapabilityClosure: provenance.CapabilityClosure,
+		Schema:             schema,
+		SchemaVersion:      provenance.SchemaVersion,
+		GoVersion:          provenance.GoVersion,
+		BuildKey:           provenance.BuildKey,
+		TargetGOOS:         provenance.TargetGOOS,
+		TargetGOARCH:       provenance.TargetGOARCH,
+		BinarySHA256:       provenance.BinarySHA256,
+		BinarySize:         evidence.Uint64String(provenance.BinarySize),
+		BuildInfo:          provenance.BuildInfo,
+		CapabilityClosure:  provenance.CapabilityClosure,
+		CapabilityMode:     provenance.CapabilityMode,
+		CapabilityManifest: cloneCapabilityManifest(provenance.CapabilityManifest),
 	}
 	if err := validateProvenance(wire); err != nil {
 		return err
@@ -358,11 +469,15 @@ func readProvenance(path string) (Provenance, []byte, error) {
 	if err := validateProvenance(wire); err != nil {
 		return Provenance{}, nil, err
 	}
+	if wire.SchemaVersion == 2 {
+		wire.CapabilityMode = CapabilityModeClosure
+	}
 	return Provenance{
 		SchemaVersion: wire.SchemaVersion, GoVersion: wire.GoVersion, BuildKey: wire.BuildKey,
 		TargetGOOS: wire.TargetGOOS, TargetGOARCH: wire.TargetGOARCH,
 		BinarySHA256: wire.BinarySHA256, BinarySize: uint64(wire.BinarySize),
 		BuildInfo: wire.BuildInfo, CapabilityClosure: wire.CapabilityClosure,
+		CapabilityMode: wire.CapabilityMode, CapabilityManifest: cloneCapabilityManifest(wire.CapabilityManifest),
 	}, encoded, nil
 }
 
@@ -376,6 +491,9 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 	}
 	if provenance.GoVersion != identity.GoVersion || provenance.BuildKey != identity.BuildKey || provenance.TargetGOOS != identity.TargetGOOS || provenance.TargetGOARCH != identity.TargetGOARCH {
 		return preparation{}, errors.New("exec provenance does not match pinned toolchain")
+	}
+	if provenance.CapabilityMode != spec.CapabilityMode {
+		return preparation{}, errors.New("exec provenance capability mode does not match the requested mode")
 	}
 	if err := validateExecStandardPackages(ctx, filepath.Join(spec.ToolchainRoot, "bin", "go"), provenance.CapabilityClosure); err != nil {
 		return preparation{}, err
@@ -412,7 +530,29 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 	if err := writePreparedFile(filepath.Join(filepath.Dir(targetPath), "provenance.json"), provenanceBytes, 0o400); err != nil {
 		return preparation{}, fmt.Errorf("snapshot exec provenance: %w", err)
 	}
-	return preparation{buildInfo: provenance.BuildInfo, compatibility: recordCompatibility(provenance.CapabilityClosure.Compatibility)}, nil
+	prepared := preparation{buildInfo: provenance.BuildInfo, compatibility: recordCompatibility(provenance.CapabilityClosure.Compatibility)}
+	if provenance.CapabilityMode == CapabilityModeLinked {
+		record, err := livecap.Read(targetPath, livecap.Expectation{
+			GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
+		})
+		if err != nil {
+			return preparation{}, fmt.Errorf("extract exec target capability manifest: %w", linkedCapabilityError(err))
+		}
+		actual := capabilityManifest(record)
+		if !sameCapabilityManifest(provenance.CapabilityManifest, actual) {
+			return preparation{}, errors.New("exec target capability manifest does not match provenance")
+		}
+		selection, err := validateCapabilityReviewStructure(provenance.CapabilityClosure)
+		if err != nil {
+			return preparation{}, fmt.Errorf("exec provenance capability closure: %w", err)
+		}
+		review := projectLinkedCapabilityReview(capabilityReviewFromClosure(provenance.CapabilityClosure, nil, selection), record)
+		if len(review.Findings) != 0 {
+			return preparation{}, unsupportedFinding(review.Findings[0])
+		}
+		prepared.manifest = actual
+	}
+	return prepared, nil
 }
 
 func validateExecCapabilityModules(info *debug.BuildInfo, closure CapabilityClosure) error {
@@ -480,7 +620,7 @@ func sameStringSet(left, right map[string]struct{}) bool {
 	return true
 }
 
-func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string) (preparation, error) {
+func prepareGo(ctx context.Context, spec Spec, tags []string, identity ToolchainIdentity, targetPath string) (preparation, error) {
 	if spec.Source == "" || spec.WorkingDir == "" {
 		return preparation{}, errors.New("go target source and working directory are required")
 	}
@@ -491,6 +631,32 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 	if err != nil {
 		return preparation{}, fmt.Errorf("resolve pinned Go command: %w", err)
 	}
+	commandDirectory, packageArgument, err := resolveBuildContext(spec.WorkingDir, spec.Source)
+	if err != nil {
+		return preparation{}, err
+	}
+	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
+	if err != nil {
+		return preparation{}, err
+	}
+	return buildGoTarget(ctx, spec, tags, identity, targetPath, goCommand, commandDirectory, packageArgument, review, true)
+}
+
+func buildGoTarget(
+	ctx context.Context,
+	spec Spec,
+	tags []string,
+	identity ToolchainIdentity,
+	targetPath string,
+	goCommand string,
+	commandDirectory string,
+	packageArgument string,
+	review CapabilityReview,
+	rejectUnsupported bool,
+) (preparation, error) {
+	if rejectUnsupported && spec.CapabilityMode == CapabilityModeClosure && len(review.Findings) != 0 {
+		return preparation{}, unsupportedFinding(review.Findings[0])
+	}
 	arguments := []string{}
 	if spec.Kind == KindGoRun {
 		arguments = append(arguments, "build")
@@ -498,6 +664,9 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 		arguments = append(arguments, "test", "-c")
 	}
 	arguments = append(arguments, "-trimpath", "-o", targetPath)
+	if spec.CapabilityMode == CapabilityModeLinked {
+		arguments = append(arguments, "-gcflags=all=-gomadcap", "-ldflags=-linkmode=internal -gomadcap="+identity.BuildKey)
+	}
 	if spec.BuildOverlay != "" {
 		arguments = append(arguments, "-overlay", spec.BuildOverlay)
 	}
@@ -507,23 +676,32 @@ func prepareGo(ctx context.Context, spec Spec, tags []string, targetPath string)
 	if len(tags) > 0 {
 		arguments = append(arguments, "-tags", strings.Join(tags, ","))
 	}
-	commandDirectory, packageArgument, err := resolveBuildContext(spec.WorkingDir, spec.Source)
-	if err != nil {
-		return preparation{}, err
-	}
-	closure, err := validateGoCapabilityClosure(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
-	if err != nil {
-		return preparation{}, err
-	}
 	arguments = append(arguments, packageArgument)
 	command := exec.CommandContext(ctx, goCommand, arguments...)
 	command.Dir = commandDirectory
 	command.Env = preparationEnvironment()
 	output, err := command.CombinedOutput()
 	if err != nil {
+		if spec.CapabilityMode == CapabilityModeLinked {
+			return preparation{}, fmt.Errorf("prepare %s target: %w", spec.Kind, linkedCapabilityBuildError(err, output))
+		}
 		return preparation{}, fmt.Errorf("prepare %s target: %w: %s", spec.Kind, err, output)
 	}
-	return preparation{compatibility: recordCompatibility(closure.Compatibility)}, nil
+	prepared := preparation{compatibility: recordCompatibility(review.Closure.Compatibility), review: review}
+	if spec.CapabilityMode == CapabilityModeLinked {
+		record, err := livecap.Read(targetPath, livecap.Expectation{
+			GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
+		})
+		if err != nil {
+			return preparation{}, fmt.Errorf("extract linked target capability manifest: %w", linkedCapabilityError(err))
+		}
+		prepared.review = projectLinkedCapabilityReview(review, record)
+		prepared.manifest = capabilityManifest(record)
+		if rejectUnsupported && len(prepared.review.Findings) != 0 {
+			return preparation{}, unsupportedFinding(prepared.review.Findings[0])
+		}
+	}
+	return prepared, nil
 }
 
 func resolveBuildContext(workingDirectory, source string) (string, string, error) {
@@ -581,6 +759,18 @@ func normalizeBuildTags(supplied []string) ([]string, error) {
 	return tags, nil
 }
 
+func normalizeCapabilityMode(mode CapabilityMode) (CapabilityMode, error) {
+	if mode == "" {
+		return CapabilityModeClosure, nil
+	}
+	switch mode {
+	case CapabilityModeClosure, CapabilityModeLinked:
+		return mode, nil
+	default:
+		return "", fmt.Errorf("unsupported capability mode %q", mode)
+	}
+}
+
 func preparationEnvironment() []string {
 	reserved := map[string]struct{}{
 		"CGO_ENABLED": {}, "GOMADSEED": {}, "GOMADV3_CHILD_SEED": {},
@@ -598,8 +788,21 @@ func preparationEnvironment() []string {
 }
 
 func validateProvenance(provenance provenanceWire) error {
-	if provenance.Schema != provenanceSchema || provenance.SchemaVersion != 2 {
+	if provenance.SchemaVersion != 2 && provenance.SchemaVersion != 3 || provenance.SchemaVersion == 2 && provenance.Schema != priorProvenanceSchema || provenance.SchemaVersion == 3 && provenance.Schema != provenanceSchema {
 		return fmt.Errorf("unsupported exec provenance schema")
+	}
+	if provenance.SchemaVersion == 2 {
+		if provenance.CapabilityMode != "" || provenance.CapabilityManifest != nil {
+			return fmt.Errorf("historical exec provenance contains linked capability evidence")
+		}
+	} else {
+		recorded := evidence.Target{CapabilityMode: string(provenance.CapabilityMode)}
+		if provenance.CapabilityManifest != nil {
+			recorded.CapabilityManifest = provenance.CapabilityManifest.Record()
+		}
+		if err := evidence.ValidateCurrentTargetCapability(recorded); err != nil {
+			return fmt.Errorf("exec provenance capability evidence: %w", err)
+		}
 	}
 	if provenance.GoVersion == "" || provenance.BuildKey == "" || provenance.TargetGOOS == "" || provenance.TargetGOARCH == "" || provenance.BuildInfo.GoVersion == "" || provenance.BuildInfo.Path == "" {
 		return fmt.Errorf("exec provenance has an empty identity field")
@@ -613,8 +816,15 @@ func validateProvenance(provenance provenanceWire) error {
 	if err := validateDeterministicBuildInfo(provenance.BuildInfo); err != nil {
 		return err
 	}
-	if err := validateCapabilityReview(provenance.CapabilityClosure); err != nil {
+	selection, err := validateCapabilityReviewStructure(provenance.CapabilityClosure)
+	if err != nil {
 		return fmt.Errorf("exec provenance capability closure: %w", err)
+	}
+	if provenance.SchemaVersion == 2 || provenance.CapabilityMode == CapabilityModeClosure {
+		review := capabilityReviewFromClosure(provenance.CapabilityClosure, nil, selection)
+		if len(review.Findings) != 0 {
+			return fmt.Errorf("exec provenance capability closure: %w", unsupportedFinding(review.Findings[0]))
+		}
 	}
 	return nil
 }

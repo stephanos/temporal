@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,6 +91,73 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	}
 	if !replayed.Match || replayed.Divergence != "" {
 		t.Fatalf("replay result = %#v", replayed)
+	}
+}
+
+func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *testing.T) {
+	module := t.TempDir()
+	if err := os.WriteFile(filepath.Join(module, "go.mod"), []byte("module example.com/linkedreplay\n\ngo 1.26\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(module, "main.go"), []byte("package main\nimport \"os/exec\"\nfunc unused() { _, _ = exec.Command(\"unused\").Output() }\nfunc main() {}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	toolchain := toolchainRoot(t)
+	prepared, err := target.Prepare(context.Background(), target.Spec{
+		Kind: target.KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
+		CapabilityMode: target.CapabilityModeLinked,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := deterministicio.Default()
+	worldRecord, worldPayloads := evidence.NoneWorld()
+	exitCode := evidence.Uint64String(2)
+	manifest := evidence.ExecutionRecord{
+		SchemaVersion: evidence.SchemaVersion, ArtifactKind: evidence.ArtifactTargetFailure, CreatedAt: "2026-08-15T12:00:00Z", CampaignID: "linked-replay-test",
+		SelectionOrdinal: 0, Seed: 7, ReplayMode: evidence.ReplayExact,
+		Runner:    evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+		Toolchain: prepared.RecordToolchain(), Target: prepared.RecordTarget(),
+		IOProfile:   evidence.IOProfile{Name: profile.Name(), ImplementationSHA256: evidence.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: evidence.SHA256(profile.InventorySHA256())},
+		Environment: []evidence.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Limits:      evidence.Limits{RunTimeoutNanos: evidence.Uint64String(time.Second), OverallTimeoutNanos: evidence.Uint64String(time.Minute), OutputBytes: 64, WorldTransitionBytes: 64},
+		World:       worldRecord, Outcome: evidence.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
+		Streams: evidence.Streams{
+			Stdout: evidence.Stream{FullSHA256: evidence.HashBytes(nil)},
+			Stderr: evidence.Stream{FullSHA256: evidence.HashBytes(nil)},
+		},
+		Host: evidence.Host{StartedAt: "2026-08-15T12:00:00Z", FinishedAt: "2026-08-15T12:00:01Z", ElapsedNanos: evidence.Uint64String(time.Second)},
+	}
+	published, err := campaignstore.PublishArtifact(evidence.Store{Root: t.TempDir()}, campaignstore.ArtifactInput{
+		Manifest: manifest, TargetPath: prepared.Path, Stdout: []byte{}, Stderr: []byte{}, World: worldPayloads,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if published.Manifest.Target.CapabilityManifest == nil {
+		t.Fatal("published artifact omitted the linked capability manifest")
+	}
+	opened, err := evidence.OpenArtifact(published.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload, err := evidence.ReadPayload(opened, "target-capabilities.json", uint64(published.Manifest.Target.CapabilityManifest.Bytes))
+	closeErr := opened.Close()
+	if err != nil || closeErr != nil {
+		t.Fatal(errors.Join(err, closeErr))
+	}
+	if string(payload) != string(prepared.CapabilityManifest.Payload) {
+		t.Fatal("retained capability payload differs from the embedded record")
+	}
+	result, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: true, ToolchainRoot: toolchain})
+	if err != nil || !result.Verified {
+		t.Fatalf("Replay() = %#v, %v", result, err)
+	}
+	if err := os.WriteFile(filepath.Join(published.Path, "target-capabilities.json"), []byte("changed"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: true, ToolchainRoot: toolchain}); err == nil {
+		t.Fatal("Replay() accepted a changed retained capability payload")
 	}
 }
 
