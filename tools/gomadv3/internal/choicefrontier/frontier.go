@@ -112,6 +112,10 @@ type RoundSegment struct {
 }
 
 type Summary struct {
+	Parallel             int        `json:"parallel"`
+	MaxRuns              uint64     `json:"max_runs"`
+	MaxChoiceDepth       uint64     `json:"max_choice_depth"`
+	MaxFrontierBytes     uint64     `json:"max_frontier_bytes"`
 	LogicalExecutions    uint64     `json:"logical_executions"`
 	CommittedRounds      uint64     `json:"committed_rounds"`
 	Pending              uint64     `json:"pending"`
@@ -176,6 +180,7 @@ func (state State) NextRound() (Round, bool) {
 
 func (state State) Summary() Summary {
 	return Summary{
+		Parallel: state.Config.Parallel, MaxRuns: state.Config.MaxRuns, MaxChoiceDepth: state.Config.MaxChoiceDepth, MaxFrontierBytes: state.Config.MaxFrontierBytes,
 		LogicalExecutions: state.LogicalExecutions, CommittedRounds: state.CommittedRounds,
 		Pending: uint64(len(state.Queue)), PendingBytes: state.PendingBytes, SeenPrefixes: uint64(len(state.Seen)),
 		DeduplicatedOutcomes: uint64(len(state.Outcomes)), DeepestPrefix: state.DeepestPrefix,

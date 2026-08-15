@@ -251,6 +251,7 @@ tools/gomadv3/
 │   └── hostfs/
 │
 ├── docs/
+├── GLOSSARY.md
 ├── Makefile
 ├── README.md
 └── ARCHITECTURE.md

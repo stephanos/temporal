@@ -887,6 +887,13 @@ func TestRunChoiceFrontierExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	if batch.Record.Strategy != string(StrategyChoiceFrontier) || batch.Record.Frontier == nil || len(batch.Runs) != 2 || batch.Runs[1].ParentCandidateSHA256 == "" || batch.Runs[1].ForcedDepth == nil || *batch.Runs[1].ForcedDepth != 1 {
 		t.Fatalf("frontier batch = %#v", batch)
 	}
+	segmentPath := filepath.Join(summary.BatchPath, "frontier", "rounds", "00000000000000000001", "segment.json")
+	if err := os.WriteFile(segmentPath, []byte("{}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := artifact.OpenBatch(summary.BatchPath); err == nil {
+		t.Fatal("OpenBatch() accepted a corrupt frontier segment")
+	}
 }
 
 func TestRunChoiceFrontierResumeRerunsTheWholeIncompleteRound(t *testing.T) {
