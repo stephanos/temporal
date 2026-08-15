@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/godebug"
-
 	"golang.org/x/net/http/httpguts"
 )
 

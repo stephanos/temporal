@@ -1,14 +1,6 @@
 package runtime
 
 import (
-	"go.temporal.io/server/tools/gomadv1/api/lib"
-	"go.temporal.io/server/tools/gomadv1/runtime"
-
-	// forces packages to be found in transformation
-	_ "go.temporal.io/server/tools/gomadv1/api/lang"
-
-	exthttp "go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http"
-
 	// force external packages to be included
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/bisect"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/cfg"
@@ -19,6 +11,7 @@ import (
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/fakegprc/otlptrace"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/godebug"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/godebugs"
+	exthttp "go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/ascii"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/httptest"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/httputil"
@@ -27,6 +20,10 @@ import (
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/platform"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/safefilepath"
 	_ "go.temporal.io/server/tools/gomadv1/api/ext-lib/testenv"
+	// forces packages to be found in transformation
+	_ "go.temporal.io/server/tools/gomadv1/api/lang"
+	"go.temporal.io/server/tools/gomadv1/api/lib"
+	sim_runtime "go.temporal.io/server/tools/gomadv1/runtime"
 )
 
 func init() {

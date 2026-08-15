@@ -14,12 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/temporalio/gomad/internal/gomadtool"
+	"github.com/temporalio/gomad/internal/translate/cache"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/tools/go/packages"
-
-	"github.com/temporalio/gomad/internal/gomadtool"
-	"github.com/temporalio/gomad/internal/translate/cache"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")

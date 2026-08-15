@@ -33,10 +33,10 @@ import (
 
 type Ticker struct {
 	C       chan time.Time
-	stopped bool         // used only in real (non-sim) mode
+	stopped bool          // used only in real (non-sim) mode
 	stopCh  chan struct{} // sim mode: cooperative stop signal; closed by Stop()/Reset()
 	doneCh  chan struct{} // sim mode: closed by ticker goroutine on stop; Stop()/Reset() waits on it
-	real    *time.Ticker // used in real (non-sim) mode
+	real    *time.Ticker  // used in real (non-sim) mode
 }
 
 func NewTicker(d time.Duration) *Ticker {

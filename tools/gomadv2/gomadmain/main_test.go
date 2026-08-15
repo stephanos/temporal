@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/temporalio/gomad/internal/gomadtool"
 )
 

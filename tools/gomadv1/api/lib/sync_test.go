@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
 	SIMLANG "go.temporal.io/server/tools/gomadv1/api/lang"
 	SIMLIB "go.temporal.io/server/tools/gomadv1/api/lib"
 	SIM "go.temporal.io/server/tools/gomadv1/runtime"
@@ -113,7 +112,7 @@ func TestLocker(t *testing.T) {
 					res = append(res, SIMLANG.ChanRcv(channel))
 				}
 
-				require.Equal(t, rounds, len(res))
+				require.Len(t, res, rounds)
 			},
 		},
 	}

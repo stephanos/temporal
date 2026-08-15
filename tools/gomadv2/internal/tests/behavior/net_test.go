@@ -16,11 +16,10 @@ import (
 	"testing"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
 	"github.com/temporalio/gomad"
 	"github.com/temporalio/gomad/internal/tests/testpb"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // TODO: at the end of each machine, also check that there are no more running goroutines/events/...?
