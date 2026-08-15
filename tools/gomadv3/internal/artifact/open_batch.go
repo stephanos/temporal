@@ -65,6 +65,11 @@ func OpenBatch(path string) (Batch, error) {
 	if err := validateBatch(batch, runs); err != nil {
 		return Batch{}, err
 	}
+	if batch.Strategy == "choice-frontier" {
+		if err := ValidatePublishedFrontier(path, *batch.Frontier, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256, runs); err != nil {
+			return Batch{}, fmt.Errorf("validate published frontier: %w", err)
+		}
+	}
 	if batch.Schema == "gomadv3.batch/v1" {
 		batch.Strategy = "seed"
 	}
@@ -282,12 +287,21 @@ func validateChoiceRunSummary(run RunRecord) error {
 
 func validArtifactReference(reference string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference)))
-	return clean == reference && (strings.HasPrefix(reference, "failures/sha256-") || strings.Contains(reference, "/failures/sha256-")) && !strings.Contains(reference, "..")
+	return clean == reference && (strings.HasPrefix(reference, "failures/sha256-") || validFrontierArtifactReference(reference, "failures")) && !strings.Contains(reference, "..")
 }
 
 func validSuccessArtifactReference(reference string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference)))
-	return clean == reference && (strings.HasPrefix(reference, "successes/sha256-") || strings.Contains(reference, "/successes/sha256-")) && !strings.Contains(reference, "..")
+	return clean == reference && (strings.HasPrefix(reference, "successes/sha256-") || validFrontierArtifactReference(reference, "successes")) && !strings.Contains(reference, "..")
+}
+
+func validFrontierArtifactReference(reference, kind string) bool {
+	parts := strings.Split(reference, "/")
+	if len(parts) != 5 || parts[0] != "frontier" || parts[1] != "rounds" || len(parts[2]) != 20 || parts[3] != kind || !strings.HasPrefix(parts[4], "sha256-") {
+		return false
+	}
+	_, err := strconv.ParseUint(parts[2], 10, 64)
+	return err == nil
 }
 
 func validateSemanticProbeLists(probes, novel []string) error {

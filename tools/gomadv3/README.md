@@ -519,6 +519,7 @@ semantic bundle and fails closed if it is missing or divergent.
 
 ## Design
 
+- [Glossary](GLOSSARY.md) defines the ubiquitous language in one page.
 - [Architecture](ARCHITECTURE.md) records the durable runtime, Runner, World,
   artifact, replay, and deterministic-I/O decisions.
 

@@ -82,7 +82,7 @@ func TestResumeFrontierJournalArchivesIncompleteRoundAtomically(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if recoveryExecutions != uint64(len(round.Candidates)) || recovered.Summary() != state.Summary() || resumed.State().Summary() != state.Summary() {
+	if recoveryExecutions != 0 || recovered.Summary() != state.Summary() || resumed.State().Summary() != state.Summary() {
 		t.Fatalf("resume = %#v recovery=%d", recovered, recoveryExecutions)
 	}
 	if _, err := os.Stat(staged.Path()); !os.IsNotExist(err) {

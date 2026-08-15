@@ -459,6 +459,9 @@ func processFrontierCompletion(
 				if err := os.RemoveAll(published.Path); err != nil {
 					return frontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("remove duplicate staged failure: %w", err)}
 				}
+				if err := syncFrontierDirectory(filepath.Dir(published.Path)); err != nil {
+					return frontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("sync duplicate failure removal: %w", err)}
+				}
 			}
 		}
 		relative, err := filepath.Rel(batchPath, artifactPath)
@@ -599,4 +602,12 @@ func cloneStringSet(values map[string]struct{}) map[string]struct{} {
 		result[value] = struct{}{}
 	}
 	return result
+}
+
+func syncFrontierDirectory(path string) error {
+	directory, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	return errors.Join(directory.Sync(), directory.Close())
 }

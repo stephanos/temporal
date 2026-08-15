@@ -57,7 +57,7 @@ func ResumeBatchJournal(ctx context.Context, path string) (_ *BatchJournal, _ Re
 	if err != nil {
 		return nil, ResumeState{}, err
 	}
-	if err := archiveResumeState(path, runsBytes, len(retained) != len(runs)); err != nil {
+	if err := archiveResumeState(path, runsBytes, len(retained) != len(runs), plan.Strategy == "choice-frontier"); err != nil {
 		return nil, ResumeState{}, err
 	}
 	if len(retained) != len(runs) || !fileExists(runsPath) {
@@ -282,7 +282,7 @@ func encodeRunRecords(runs []RunRecord) ([]byte, error) {
 	return record.CanonicalJSONLines(values)
 }
 
-func archiveResumeState(path string, runs []byte, archiveRuns bool) error {
+func archiveResumeState(path string, runs []byte, archiveRuns, preserveFrontier bool) error {
 	partialRoot := filepath.Join(path, ".partial")
 	entries, err := os.ReadDir(partialRoot)
 	if err != nil {
@@ -290,7 +290,7 @@ func archiveResumeState(path string, runs []byte, archiveRuns bool) error {
 	}
 	toArchive := make([]os.DirEntry, 0)
 	for _, entry := range entries {
-		if entry.Name() == "batch" || entry.Name() == "resume" || entry.Name() == "frontier" {
+		if entry.Name() == "batch" || entry.Name() == "resume" || preserveFrontier && entry.Name() == "frontier" {
 			continue
 		}
 		info, err := entry.Info()
