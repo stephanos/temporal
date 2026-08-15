@@ -116,7 +116,6 @@ var (
 		"k8s.io/.*",
 		"sigs.k8s.io/.*",
 
-
 		// olivere elastic uses net/http types alongside libraries
 		// that use stdlib net/http (AWS signer, golang.org/x/net/http2), causing
 		// incompatible type errors.

@@ -29,7 +29,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	SIMLANG "go.temporal.io/server/tools/gomadv1/api/lang"
 	"go.temporal.io/server/tools/gomadv1/runtime/testutil"
 )
@@ -71,7 +70,7 @@ func TestSelect(t *testing.T) {
 				selector.Assign(&err)
 			}
 
-			require.Nil(t, err)
+			require.NoError(t, err)
 		})
 	})
 

@@ -63,38 +63,50 @@ func (x *Int64) CompareAndSwap(old, new int64) bool { SIM.Yield(); return x.v.Co
 
 type AtomicUint32 struct{ v atomic.Uint32 }
 
-func (x *AtomicUint32) Load() uint32                          { SIM.Yield(); return x.v.Load() }
-func (x *AtomicUint32) Store(val uint32)                      { SIM.Yield(); x.v.Store(val) }
-func (x *AtomicUint32) Swap(new uint32) uint32                { SIM.Yield(); return x.v.Swap(new) }
-func (x *AtomicUint32) Add(delta uint32) uint32               { SIM.Yield(); return x.v.Add(delta) }
-func (x *AtomicUint32) CompareAndSwap(old, new uint32) bool   { SIM.Yield(); return x.v.CompareAndSwap(old, new) }
+func (x *AtomicUint32) Load() uint32            { SIM.Yield(); return x.v.Load() }
+func (x *AtomicUint32) Store(val uint32)        { SIM.Yield(); x.v.Store(val) }
+func (x *AtomicUint32) Swap(new uint32) uint32  { SIM.Yield(); return x.v.Swap(new) }
+func (x *AtomicUint32) Add(delta uint32) uint32 { SIM.Yield(); return x.v.Add(delta) }
+func (x *AtomicUint32) CompareAndSwap(old, new uint32) bool {
+	SIM.Yield()
+	return x.v.CompareAndSwap(old, new)
+}
 
 type AtomicUint64 struct{ v atomic.Uint64 }
 
-func (x *AtomicUint64) Load() uint64                          { SIM.Yield(); return x.v.Load() }
-func (x *AtomicUint64) Store(val uint64)                      { SIM.Yield(); x.v.Store(val) }
-func (x *AtomicUint64) Swap(new uint64) uint64                { SIM.Yield(); return x.v.Swap(new) }
-func (x *AtomicUint64) Add(delta uint64) uint64               { SIM.Yield(); return x.v.Add(delta) }
-func (x *AtomicUint64) CompareAndSwap(old, new uint64) bool   { SIM.Yield(); return x.v.CompareAndSwap(old, new) }
+func (x *AtomicUint64) Load() uint64            { SIM.Yield(); return x.v.Load() }
+func (x *AtomicUint64) Store(val uint64)        { SIM.Yield(); x.v.Store(val) }
+func (x *AtomicUint64) Swap(new uint64) uint64  { SIM.Yield(); return x.v.Swap(new) }
+func (x *AtomicUint64) Add(delta uint64) uint64 { SIM.Yield(); return x.v.Add(delta) }
+func (x *AtomicUint64) CompareAndSwap(old, new uint64) bool {
+	SIM.Yield()
+	return x.v.CompareAndSwap(old, new)
+}
 
 type Uintptr struct{ v atomic.Uintptr }
 
-func (x *Uintptr) Load() uintptr                          { SIM.Yield(); return x.v.Load() }
-func (x *Uintptr) Store(val uintptr)                      { SIM.Yield(); x.v.Store(val) }
-func (x *Uintptr) Swap(new uintptr) uintptr               { SIM.Yield(); return x.v.Swap(new) }
-func (x *Uintptr) Add(delta uintptr) uintptr              { SIM.Yield(); return x.v.Add(delta) }
-func (x *Uintptr) CompareAndSwap(old, new uintptr) bool   { SIM.Yield(); return x.v.CompareAndSwap(old, new) }
+func (x *Uintptr) Load() uintptr             { SIM.Yield(); return x.v.Load() }
+func (x *Uintptr) Store(val uintptr)         { SIM.Yield(); x.v.Store(val) }
+func (x *Uintptr) Swap(new uintptr) uintptr  { SIM.Yield(); return x.v.Swap(new) }
+func (x *Uintptr) Add(delta uintptr) uintptr { SIM.Yield(); return x.v.Add(delta) }
+func (x *Uintptr) CompareAndSwap(old, new uintptr) bool {
+	SIM.Yield()
+	return x.v.CompareAndSwap(old, new)
+}
 
 type Pointer[T any] struct{ v atomic.Pointer[T] }
 
-func (p *Pointer[T]) Load() *T                          { SIM.Yield(); return p.v.Load() }
-func (p *Pointer[T]) Store(val *T)                      { SIM.Yield(); p.v.Store(val) }
-func (p *Pointer[T]) Swap(new *T) *T                    { SIM.Yield(); return p.v.Swap(new) }
-func (p *Pointer[T]) CompareAndSwap(old, new *T) bool   { SIM.Yield(); return p.v.CompareAndSwap(old, new) }
+func (p *Pointer[T]) Load() *T       { SIM.Yield(); return p.v.Load() }
+func (p *Pointer[T]) Store(val *T)   { SIM.Yield(); p.v.Store(val) }
+func (p *Pointer[T]) Swap(new *T) *T { SIM.Yield(); return p.v.Swap(new) }
+func (p *Pointer[T]) CompareAndSwap(old, new *T) bool {
+	SIM.Yield()
+	return p.v.CompareAndSwap(old, new)
+}
 
 type Value struct{ v atomic.Value }
 
-func (x *Value) Load() any                          { SIM.Yield(); return x.v.Load() }
-func (x *Value) Store(val any)                      { SIM.Yield(); x.v.Store(val) }
-func (x *Value) Swap(new any) any                   { SIM.Yield(); return x.v.Swap(new) }
-func (x *Value) CompareAndSwap(old, new any) bool   { SIM.Yield(); return x.v.CompareAndSwap(old, new) }
+func (x *Value) Load() any                        { SIM.Yield(); return x.v.Load() }
+func (x *Value) Store(val any)                    { SIM.Yield(); x.v.Store(val) }
+func (x *Value) Swap(new any) any                 { SIM.Yield(); return x.v.Swap(new) }
+func (x *Value) CompareAndSwap(old, new any) bool { SIM.Yield(); return x.v.CompareAndSwap(old, new) }

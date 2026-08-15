@@ -26,7 +26,6 @@ import (
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/ascii"
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/httptrace"
-
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/idna"
 )
@@ -508,7 +507,7 @@ func (r *Request) multipartReader(allowMixed bool) (*multipart.Reader, error) {
 		return nil, errors.New("missing form body")
 	}
 	d, params, err := mime.ParseMediaType(v)
-	if err != nil || !(d == "multipart/form-data" || allowMixed && d == "multipart/mixed") {
+	if err != nil || (d != "multipart/form-data" && (!allowMixed || d != "multipart/mixed")) {
 		return nil, ErrNotMultipart
 	}
 	boundary, ok := params["boundary"]
@@ -1245,8 +1244,8 @@ func parsePostForm(r *Request) (vs url.Values, err error) {
 		ct = "application/octet-stream"
 	}
 	ct, _, err = mime.ParseMediaType(ct)
-	switch {
-	case ct == "application/x-www-form-urlencoded":
+	switch ct {
+	case "application/x-www-form-urlencoded":
 		var reader io.Reader = r.Body
 		maxFormSize := int64(1<<63 - 1)
 		if _, ok := r.Body.(*maxBytesReader); !ok {
@@ -1268,7 +1267,7 @@ func parsePostForm(r *Request) (vs url.Values, err error) {
 		if err == nil {
 			err = e
 		}
-	case ct == "multipart/form-data":
+	case "multipart/form-data":
 		// handled by ParseMultipartForm (which is calling us, or should be)
 		// TODO(bradfitz): there are too many possible
 		// orders to call too many functions here.

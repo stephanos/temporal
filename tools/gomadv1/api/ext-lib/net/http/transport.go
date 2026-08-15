@@ -29,10 +29,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/godebug"
-
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/ascii"
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/httptrace"
-
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/http/httpproxy"
 )
@@ -301,7 +299,7 @@ type Transport struct {
 // HTTP2Config defines HTTP/2 configuration parameters common to both Transport
 // and Server. It mirrors net/http.HTTP2Config added in Go 1.24.
 type HTTP2Config struct {
-	MaxConcurrentStreams           int
+	MaxConcurrentStreams          int
 	StrictMaxConcurrentRequests   bool
 	MaxDecoderHeaderTableSize     int
 	MaxEncoderHeaderTableSize     int
@@ -2467,7 +2465,7 @@ func (pc *persistConn) writeLoop() {
 		select {
 		case wr := <-pc.writech:
 			startBytesWritten := pc.nwrite
-			err := wr.req.Request.write(pc.bw, pc.isProxy, wr.req.extra, pc.waitForContinue(wr.continueCh))
+			err := wr.req.write(pc.bw, pc.isProxy, wr.req.extra, pc.waitForContinue(wr.continueCh))
 			if bre, ok := err.(requestBodyReadError); ok {
 				err = bre.error
 				// Errors reading from the user's
@@ -2689,7 +2687,7 @@ func (pc *persistConn) roundTrip(req *transportRequest) (resp *Response, err err
 	}
 
 	var respHeaderTimer <-chan time.Time
-	cancelChan := req.Request.Cancel
+	cancelChan := req.Cancel
 	ctxDoneChan := req.Context().Done()
 	pcClosed := pc.closech
 	canceled := false

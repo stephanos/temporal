@@ -21,10 +21,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http"
-
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/ascii"
 	"go.temporal.io/server/tools/gomadv1/api/ext-lib/net/http/httptrace"
-
 	"golang.org/x/net/http/httpguts"
 )
 

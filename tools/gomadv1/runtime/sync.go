@@ -116,9 +116,7 @@ func (s *Synchronizer) blocksToResume(newBlock *syncBlock) (resumeBlocks []*sync
 	// unblock *all* receivers of the closed channel
 	case cls:
 		for _, receivingBlocks := range s.unsynced[newBlock.pt][rcv] {
-			for _, receivingBlock := range receivingBlocks {
-				resumeBlocks = append(resumeBlocks, receivingBlock)
-			}
+			resumeBlocks = append(resumeBlocks, receivingBlocks...)
 		}
 		resumeBlocks = append(resumeBlocks, newBlock)
 
@@ -200,9 +198,7 @@ func (s *Synchronizer) findMatches(newBlocker *syncBlock) []*syncBlock {
 
 	possibleMatches := s.unsynced[newBlocker.pt][newBlocker.op.matching()]
 	for _, blocks := range possibleMatches {
-		for _, block := range blocks {
-			result = append(result, block)
-		}
+		result = append(result, blocks...)
 	}
 
 	slices.SortFunc(result, func(a, b *syncBlock) int {

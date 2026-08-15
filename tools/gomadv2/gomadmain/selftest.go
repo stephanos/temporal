@@ -9,10 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/tools/go/packages"
-
 	"github.com/temporalio/gomad/internal/gomadtool"
 	"github.com/temporalio/gomad/internal/translate"
+	"golang.org/x/tools/go/packages"
 )
 
 // prepareSelftest prepares for running tests in the gomad module.
