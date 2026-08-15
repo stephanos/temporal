@@ -1,0 +1,241 @@
+package wire
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
+	"testing"
+)
+
+func TestBootstrapGoldenVector(t *testing.T) {
+	frame := EncodeBootstrap(Bootstrap{Seed: 7})
+	want := decodeGolden(t, "474f4d4144494f0100010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007977b6e7b5904901d39146556858a4a77fbfe83d304ee7bf2ece30ba30fe91fb9")
+	if !bytes.Equal(frame[:], want) {
+		t.Fatalf("EncodeBootstrap() = %x, want %x", frame, want)
+	}
+	decoded, err := DecodeBootstrap(frame[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Seed != 7 {
+		t.Fatalf("DecodeBootstrap().Seed = %d", decoded.Seed)
+	}
+}
+
+func TestMountGoldenVectors(t *testing.T) {
+	var request bytes.Buffer
+	if err := WriteMountLookupRequest(&request, MountRequest{Ordinal: 4, Path: "/x"}, MountLimits{PathBytes: 4096}); err != nil {
+		t.Fatal(err)
+	}
+	wantRequest := decodeGolden(t, "474f4d4144524f01000100010000000000000004000000022f78")
+	if !bytes.Equal(request.Bytes(), wantRequest) {
+		t.Fatalf("WriteMountLookupRequest() = %x, want %x", request.Bytes(), wantRequest)
+	}
+	decodedRequest, err := ReadMountLookupRequest(bytes.NewReader(wantRequest), MountLimits{PathBytes: 4096})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decodedRequest.Ordinal != 4 || decodedRequest.Path != "/x" {
+		t.Fatalf("ReadMountLookupRequest() = %#v", decodedRequest)
+	}
+
+	var response bytes.Buffer
+	if err := WriteMountResponse(&response, MountResponse{
+		Ordinal: 4,
+		Status:  MountStatusOK,
+		Entry:   MountEntry{Kind: MountKindFile, Mode: 0o640, Data: []byte("ok")},
+	}, MountLimits{PathBytes: 4096, FileBytes: 16 << 20, DirectoryEntries: 100_000}); err != nil {
+		t.Fatal(err)
+	}
+	wantResponse := decodeGolden(t, "474f4d414452530100010000000000000000000401000000000001a00000000000000002000000006f6b")
+	if !bytes.Equal(response.Bytes(), wantResponse) {
+		t.Fatalf("WriteMountResponse() = %x, want %x", response.Bytes(), wantResponse)
+	}
+	decodedResponse, err := ReadMountResponse(bytes.NewReader(wantResponse), MountLimits{PathBytes: 4096, FileBytes: 16 << 20, DirectoryEntries: 100_000})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decodedResponse.Ordinal != 4 || decodedResponse.Status != MountStatusOK || decodedResponse.Entry.Kind != MountKindFile || decodedResponse.Entry.Mode != 0o640 || string(decodedResponse.Entry.Data) != "ok" {
+		t.Fatalf("ReadMountResponse() = %#v", decodedResponse)
+	}
+}
+
+func TestTranscriptGoldenVectors(t *testing.T) {
+	if got, want := Hash([]byte("wire hash")), sha256.Sum256([]byte("wire hash")); got != want {
+		t.Fatalf("Hash() = %x, want %x", got, want)
+	}
+	header := EncodeProducedTranscriptHeader(64 << 20)
+	if err := PublishProducedTranscript(header[:], TranscriptHeaderBytes+TranscriptRecordBytes, 1); err != nil {
+		t.Fatal(err)
+	}
+	decodedHeader, err := DecodeProducedTranscriptHeader(header[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decodedHeader.NextOffset != TranscriptHeaderBytes+TranscriptRecordBytes || decodedHeader.RecordCount != 1 {
+		t.Fatalf("DecodeProducedTranscriptHeader() = %#v", decodedHeader)
+	}
+
+	argumentHash := sha256.Sum256([]byte("argument"))
+	contentHash := sha256.Sum256([]byte("content"))
+	record, err := EncodeTranscriptRecord(TranscriptRecord{
+		Ordinal: 3, Operation: "os.read", ArgumentHash: argumentHash, ContentHash: contentHash,
+		Count: 5, Result: 2, EntropyStart: 11, EntropyEnd: 16,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeTranscriptRecord(record[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Ordinal != 3 || decoded.Operation != "os.read" || decoded.ArgumentHash != argumentHash || decoded.ContentHash != contentHash || decoded.Count != 5 || decoded.Result != 2 || decoded.EntropyStart != 11 || decoded.EntropyEnd != 16 {
+		t.Fatalf("DecodeTranscriptRecord() = %#v", decoded)
+	}
+
+	terminal := EncodeTerminal(Terminal{State: TerminalComplete, Records: 1, MappingBytes: TranscriptHeaderBytes + TranscriptRecordBytes, PayloadHash: sha256.Sum256(record[:])})
+	decodedTerminal, err := DecodeTerminal(terminal[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decodedTerminal.State != TerminalComplete || decodedTerminal.Records != 1 || decodedTerminal.MappingBytes != TranscriptHeaderBytes+TranscriptRecordBytes {
+		t.Fatalf("DecodeTerminal() = %#v", decodedTerminal)
+	}
+}
+
+func TestDecodersRejectReservedBytesAndEnums(t *testing.T) {
+	bootstrap := EncodeBootstrap(Bootstrap{})
+	bootstrap[10] = 2
+	rechecksum(bootstrap[:], BootstrapChecksumOffset)
+	if _, err := DecodeBootstrap(bootstrap[:]); err == nil {
+		t.Fatal("DecodeBootstrap() accepted an unknown kind")
+	}
+
+	var response bytes.Buffer
+	if err := WriteMountResponse(&response, MountResponse{Status: MountStatusOK, Entry: MountEntry{Kind: MountKindFile}}, MountLimits{PathBytes: 1, FileBytes: 1, DirectoryEntries: 1}); err != nil {
+		t.Fatal(err)
+	}
+	invalidResponse := append([]byte(nil), response.Bytes()...)
+	invalidResponse[21] = 1
+	if _, err := ReadMountResponse(bytes.NewReader(invalidResponse), MountLimits{PathBytes: 1, FileBytes: 1, DirectoryEntries: 1}); err == nil {
+		t.Fatal("ReadMountResponse() accepted nonzero reserved bytes")
+	}
+
+	terminal := EncodeTerminal(Terminal{State: TerminalComplete, MappingBytes: TranscriptHeaderBytes})
+	terminal[13] = 1
+	rechecksum(terminal[:], TerminalChecksumOffset)
+	if _, err := DecodeTerminal(terminal[:]); err == nil {
+		t.Fatal("DecodeTerminal() accepted nonzero reserved bytes")
+	}
+
+	record := make([]byte, TranscriptRecordBytes)
+	record[108] = 1
+	if _, err := DecodeTranscriptRecord(record); err == nil {
+		t.Fatal("DecodeTranscriptRecord() accepted nonzero reserved bytes")
+	}
+}
+
+func TestReadMountResponseRejectsFileWithChildren(t *testing.T) {
+	var response bytes.Buffer
+	if err := WriteMountResponse(&response, MountResponse{
+		Status: MountStatusOK,
+		Entry: MountEntry{Kind: MountKindDirectory, Children: []MountChild{
+			{Name: "child", Kind: MountKindFile, Mode: 0o600},
+		}},
+	}, MountLimits{PathBytes: 4096, FileBytes: 1, DirectoryEntries: 1}); err != nil {
+		t.Fatal(err)
+	}
+	encoded := append([]byte(nil), response.Bytes()...)
+	encoded[20] = byte(MountKindFile)
+	if _, err := ReadMountResponse(bytes.NewReader(encoded), MountLimits{PathBytes: 4096, FileBytes: 1, DirectoryEntries: 1}); err == nil {
+		t.Fatal("ReadMountResponse() accepted a file with directory children")
+	}
+}
+
+func TestDecodersRejectEveryTruncation(t *testing.T) {
+	bootstrap := EncodeBootstrap(Bootstrap{})
+	assertTruncated := func(t *testing.T, encoded []byte, decode func([]byte) error) {
+		t.Helper()
+		for size := range len(encoded) {
+			if err := decode(encoded[:size]); err == nil {
+				t.Fatalf("decoder accepted %d of %d bytes", size, len(encoded))
+			}
+		}
+	}
+	assertTruncated(t, bootstrap[:], func(encoded []byte) error {
+		_, err := DecodeBootstrap(encoded)
+		return err
+	})
+
+	var response bytes.Buffer
+	if err := WriteMountResponse(&response, MountResponse{Status: MountStatusOK, Entry: MountEntry{Kind: MountKindFile, Data: []byte("ok")}}, MountLimits{PathBytes: 1, FileBytes: 2, DirectoryEntries: 1}); err != nil {
+		t.Fatal(err)
+	}
+	assertTruncated(t, response.Bytes(), func(encoded []byte) error {
+		_, err := ReadMountResponse(bytes.NewReader(encoded), MountLimits{PathBytes: 1, FileBytes: 2, DirectoryEntries: 1})
+		return err
+	})
+
+	terminal := EncodeTerminal(Terminal{State: TerminalComplete, MappingBytes: TranscriptHeaderBytes})
+	assertTruncated(t, terminal[:], func(encoded []byte) error {
+		_, err := DecodeTerminal(encoded)
+		return err
+	})
+}
+
+func TestMountDecodersRejectOversizedLengthsBeforeAllocation(t *testing.T) {
+	request := decodeGolden(t, "474f4d4144524f01000100010000000000000004000000022f78")
+	binary.BigEndian.PutUint32(request[20:24], 3)
+	assertAllocationCeiling(t, func() error {
+		_, err := ReadMountLookupRequest(bytes.NewReader(request), MountLimits{PathBytes: 2})
+		return err
+	})
+
+	response := decodeGolden(t, "474f4d414452530100010000000000000000000401000000000001a00000000000000002000000006f6b")
+	binary.BigEndian.PutUint64(response[28:36], 3)
+	assertAllocationCeiling(t, func() error {
+		_, err := ReadMountResponse(bytes.NewReader(response), MountLimits{PathBytes: 2, FileBytes: 2, DirectoryEntries: 1})
+		return err
+	})
+}
+
+func FuzzBoundedDecoders(f *testing.F) {
+	f.Add([]byte{})
+	f.Add(decodeGolden(f, "474f4d414452530100010000000000000000000401000000000001a00000000000000002000000006f6b"))
+	f.Fuzz(func(t *testing.T, encoded []byte) {
+		_, _ = DecodeBootstrap(encoded)
+		_, _ = DecodeProducedTranscriptHeader(encoded)
+		_, _ = DecodeExpectedTranscriptHeader(encoded, 64<<20)
+		_, _ = DecodeTranscriptRecord(encoded)
+		_, _ = DecodeTerminal(encoded)
+		_, _ = ReadMountLookupRequest(bytes.NewReader(encoded), MountLimits{PathBytes: 4096})
+		_, _ = ReadMountResponse(bytes.NewReader(encoded), MountLimits{PathBytes: 4096, FileBytes: 16 << 20, DirectoryEntries: 100_000})
+	})
+}
+
+func rechecksum(frame []byte, offset int) {
+	digest := sha256.Sum256(frame[:offset])
+	copy(frame[offset:], digest[:])
+}
+
+func assertAllocationCeiling(t *testing.T, decode func() error) {
+	t.Helper()
+	var decodeErr error
+	allocations := testing.AllocsPerRun(100, func() { decodeErr = decode() })
+	if decodeErr == nil {
+		t.Fatal("decoder accepted an oversized length")
+	}
+	if allocations > 4 {
+		t.Fatalf("decoder made %.1f allocations before rejecting an oversized length", allocations)
+	}
+}
+
+func decodeGolden(t testing.TB, value string) []byte {
+	t.Helper()
+	decoded, err := hex.DecodeString(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return decoded
+}

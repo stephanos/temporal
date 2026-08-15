@@ -2,37 +2,37 @@
 
 include version_generated.mk
 
-OVERLAY_FILES := $(shell find overlay -type f)
-VERSION_INPUTS := version.json $(shell find internal/version internal/versiongen -type f -not -name '*_test.go')
-VERSION_OUTPUTS := version_generated.mk internal/version/generated.go
-IOWIRE_INPUTS := protocol/iowire.json protocol/iowire.go.tmpl protocol/iowire_test.go.tmpl protocol/choicewire.json protocol/choicewire.go.tmpl protocol/choicewire_test.go.tmpl protocol/choicewire_runtime.go.tmpl overlay/src/runtime/gomad.go go1.26.4.patch $(shell find internal/protocolgen -type f)
-IOWIRE_OUTPUTS := internal/iowire/wire_generated.go internal/iowire/wire_generated_test.go overlay/src/internal/gomadwire/wire_generated.go overlay/src/internal/gomadwire/wire_generated_test.go internal/choicewire/wire_generated.go internal/choicewire/wire_generated_test.go overlay/src/internal/gomadchoicewire/wire_generated.go overlay/src/internal/gomadchoicewire/wire_generated_test.go overlay/src/runtime/gomad_choicewire_generated.go
-BOUNDARY_INPUTS := boundary/manifest.json boundary/compiler-tests.json $(shell find internal/boundary internal/boundarygen -type f -not -name '*_test.go')
-BOUNDARY_OUTPUTS := $(GOMADV3_COMPILER_SPEC) $(GOMADV3_EXPECTED_INTERCEPTS) $(GOMADV3_BOUNDARY_REPORT) internal/ioprofile/boundary_generated.go
+OVERLAY_FILES := $(shell find toolchain/runtime/overlay -type f)
+VERSION_INPUTS := toolchain/version/version.json $(shell find toolchain/version -type f -not -name '*_test.go') toolchain/cmd/gomadtool/version.go
+VERSION_OUTPUTS := version_generated.mk toolchain/version/generated.go
+IOWIRE_INPUTS := deterministicio/schema/iowire.json deterministicio/schema/iowire.go.tmpl deterministicio/schema/iowire_test.go.tmpl choice/schema/choicewire.json choice/schema/choicewire.go.tmpl choice/schema/choicewire_test.go.tmpl choice/schema/choicewire_runtime.go.tmpl toolchain/runtime/overlay/src/runtime/gomad.go toolchain/runtime/go1.26.4.patch toolchain/internal/generate/protocol.go
+IOWIRE_OUTPUTS := deterministicio/internal/wire/wire_generated.go deterministicio/internal/wire/wire_generated_test.go toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go choice/internal/wire/wire_generated.go choice/internal/wire/wire_generated_test.go toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go
+BOUNDARY_INPUTS := deterministicio/boundary/manifest.json deterministicio/boundary/compiler-tests.json $(shell find deterministicio/boundary -type f -not -name '*_test.go') $(shell find toolchain/internal/generate -name 'boundary*.go' -not -name '*_test.go')
+BOUNDARY_OUTPUTS := $(GOMADV3_COMPILER_SPEC) $(GOMADV3_EXPECTED_INTERCEPTS) $(GOMADV3_BOUNDARY_REPORT) deterministicio/boundary_generated.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMADV3_QUALIFICATION_ARTIFACTS ?= .toolchain/qualification
 GOMADV3_QUALIFICATION_OUTPUT ?= .toolchain/qualification-set.json
 
 generate: $(VERSION_INPUTS) $(IOWIRE_INPUTS) $(BOUNDARY_INPUTS)
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/versiongen
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/protocolgen
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/boundarygen
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/boundarygen -check-compiler-tests
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool version-generate
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool protocol-generate
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate -check-compiler-tests
 
 patch-test: toolchain
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./internal/sourcearchive ./internal/patchset
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
 
 compiler-test-compiler: toolchain
 	@mkdir -p $(COMPILER_TEST_OVERLAY) $(dir $(COMPILER_TEST_COMPILE))
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./internal/boundarygen \
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool boundary-generate \
 		-compiler-test-overlay=$(COMPILER_TEST_OVERLAY) -goroot="$$(.toolchain/bin/go env GOROOT)"
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go build -trimpath \
 		-overlay=$(COMPILER_TEST_OVERLAY)/overlay.json -o $(COMPILER_TEST_COMPILE) cmd/compile
 
 intercept-test: compiler-test-compiler
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./internal/boundarygen -qualify
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./internal/hosttool test \
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool boundary-generate -qualify
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-interception --go=$(CURDIR)/.toolchain/bin/go \
 		--compiler=$(COMPILER_TEST_COMPILE)
 
@@ -41,7 +41,7 @@ clock-audit: toolchain
 
 toolchain: validate $(GOMADV3_PATCH_FILE) $(OVERLAY_FILES) $(IOWIRE_OUTPUTS) $(BOUNDARY_OUTPUTS)
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOCACHE=$(CURDIR)/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
-		go run ./internal/hosttool toolchain-build --root=$(CURDIR)
+		go run ./toolchain/cmd/gomadtool toolchain-build --root=$(CURDIR)
 
 runner: toolchain
 	@mkdir -p .bin
@@ -62,11 +62,14 @@ core-qualification: GOMADV3_QUALIFICATION_OUTPUT := $(CURDIR)/.toolchain/core-qu
 core-qualification: qualification-set
 
 upgrade-dossier: core-qualification
-	GOWORK=off go run ./internal/upgradegen \
+	GOWORK=off go run ./toolchain/cmd/gomadtool upgrade-dossier \
 		-baseline-ref="$(GOMADV3_BASELINE_REF)" -corpus-report=".toolchain/core-qualification-set.json" $(if $(GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff="$(GOMADV3_APPROVED_BOUNDARY_DIFF_SHA256)",)
 
 runner-test: toolchain
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/... ./internal/... ./world/...
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
+		. ./cmd/... ./runner/... ./qualification/... ./target/... ./evidence/... ./choice/... \
+		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./toolchain/cmd/... \
+		./toolchain/internal/... ./internal/...
 
 overlay-test: toolchain
 	.toolchain/bin/go test -tags test_dep internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
@@ -75,27 +78,27 @@ world-test:
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
 
 validate:
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/versiongen -check
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/protocolgen -check
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/boundarygen -check
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/boundarygen -check-compiler-tests
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/hosttool patch-validate --root=$(CURDIR)
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./internal/hosttool script-validate --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool version-generate -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool protocol-generate -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate -check-compiler-tests
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool patch-validate --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool script-validate --root=$(CURDIR)
 
 test-harness:
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go test -tags test_dep \
-		./internal/outputcapture ./internal/commandrun ./internal/testtier ./internal/testdriver ./internal/hosttool
+		./internal/hostexec ./toolchain/internal/conformance ./toolchain/cmd/gomadtool
 
 test-builder:
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./internal/hosttool test \
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-builder --go="$$(command -v go)"
 
 test-runtime: toolchain
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./internal/hosttool test \
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-runtime --go=$(CURDIR)/.toolchain/bin/go
 
 test-upstream: toolchain
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./internal/hosttool test \
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go run ./toolchain/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-upstream --go=$(CURDIR)/.toolchain/bin/go
 
 test: test-harness patch-test intercept-test runner-test overlay-test world-test test-builder test-runtime test-upstream
