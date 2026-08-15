@@ -297,12 +297,16 @@ func validateChoiceTracePayload(manifest record.Manifest, payload []byte) error 
 		return nil
 	}
 	trace := manifest.ChoiceProfile.Trace
-	implementation, err := choicewire.ImplementationIdentity(manifest.Toolchain.BuildKey)
-	if err != nil {
-		return fmt.Errorf("derive choice trace implementation identity: %w", err)
-	}
-	if manifest.ChoiceProfile.ImplementationSHA256 != record.SHA256FromSum(implementation) {
-		return errors.New("choice trace implementation identity does not match the pinned toolchain")
+	var implementation [32]byte
+	if manifest.SchemaVersion == record.SchemaVersion {
+		var err error
+		implementation, err = choicewire.ImplementationIdentity(manifest.Toolchain.BuildKey)
+		if err != nil {
+			return fmt.Errorf("derive choice trace implementation identity: %w", err)
+		}
+		if manifest.ChoiceProfile.ImplementationSHA256 != record.SHA256FromSum(implementation) {
+			return errors.New("choice trace implementation identity does not match the pinned toolchain")
+		}
 	}
 	if record.HashBytes(payload) != trace.SHA256 || uint64(len(payload)) != uint64(trace.Bytes) {
 		return errors.New("choice trace identity changed during publication")
@@ -319,14 +323,37 @@ func validateChoiceTracePayload(manifest record.Manifest, payload []byte) error 
 	if trace.TerminalState == "overflow" {
 		terminalState = choicewire.TerminalOverflow
 	}
-	projection, err := choicewire.Project(payload, choicewire.TerminalMetadata{
+	decoded, err := choicewire.DecodeStoredTrace(manifest.ChoiceProfile.Name, payload, choicewire.TerminalMetadata{
 		State: terminalState, Limit: uint64(trace.Limit), Records: uint64(trace.Records), SHA256: digest,
-	}, targetIdentity)
+	})
+	if errors.Is(err, choicewire.ErrOverflow) && terminalState == choicewire.TerminalOverflow {
+		err = nil
+	}
 	if err != nil {
 		return fmt.Errorf("validate choice trace payload: %w", err)
 	}
+	projection, err := choicewire.ProjectTrace(decoded, uint64(trace.Limit), targetIdentity)
+	if err != nil {
+		return fmt.Errorf("project choice trace payload: %w", err)
+	}
 	if projection.Summary.Branching != uint64(trace.BranchingRecords) {
 		return errors.New("choice trace branching count does not match its payload")
+	}
+	if manifest.SchemaVersion == record.PreviousSchemaVersion {
+		return nil
+	}
+	if terminalState == choicewire.TerminalOverflow {
+		return nil
+	}
+	tape, err := choicewire.ProjectDecisionTape(decoded, choicewire.ExecutionIdentity{
+		TargetSHA256: targetIdentity, ToolchainBuildKey: manifest.Toolchain.BuildKey,
+		GOOS: manifest.Toolchain.TargetGOOS, GOARCH: manifest.Toolchain.TargetGOARCH, ImplementationSHA256: implementation,
+	})
+	if err != nil {
+		return fmt.Errorf("derive choice tape: %w", err)
+	}
+	if trace.TapeSHA256 != record.SHA256FromSum(tape.SHA256) || uint64(trace.Decisions) != uint64(len(tape.Decisions)) {
+		return errors.New("choice tape identity does not match its trace")
 	}
 	return nil
 }

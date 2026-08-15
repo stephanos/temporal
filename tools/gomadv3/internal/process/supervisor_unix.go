@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/worldpipe"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -29,12 +30,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
-	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal *os.File
+	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceTape *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceTape))
 	}()
 
 	var request supervisorRequest
@@ -60,11 +61,17 @@ func SupervisorMain() (retErr error) {
 		}
 	}
 	if request.ChoiceTrace {
-		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true}
+		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceTape: request.ChoiceTapeBytes != 0}
 		choiceTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTraceResource)), "target-choice-trace")
 		choiceTerminal = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTerminalResource)), "target-choice-terminal")
-		if choiceTrace == nil || choiceTerminal == nil || request.ChoiceTraceLimit < minimumChoiceTraceBytes || request.ChoiceTraceLimit > maximumChoiceTraceBytes {
+		if request.ChoiceTapeBytes != 0 {
+			choiceTape = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTapeResource)), "target-choice-tape")
+		}
+		if choiceTrace == nil || choiceTerminal == nil || request.ChoiceTapeBytes != 0 && choiceTape == nil || request.ChoiceTraceLimit < minimumChoiceTraceBytes || request.ChoiceTraceLimit > maximumChoiceTraceBytes {
 			return errors.New("choice trace file descriptors are unavailable")
+		}
+		if request.ChoiceMode != choicewire.ModeRecord && request.ChoiceMode != choicewire.ModeReplay && request.ChoiceMode != choicewire.ModePrefix || request.ChoiceMode == choicewire.ModeRecord && request.ChoiceTapeBytes != 0 || request.ChoiceMode != choicewire.ModeRecord && request.ChoiceTapeBytes < choicewire.TapeHeaderBytes {
+			return errors.New("choice controller mode and tape are inconsistent")
 		}
 	}
 	deadline := startedAt.Add(request.RunTimeout)
@@ -86,7 +93,7 @@ func SupervisorMain() (retErr error) {
 	target.Env = append(os.Environ(), "GOMADV3_TARGET_BOOTSTRAP=1")
 	target.Stdout = stdout
 	target.Stderr = stderr
-	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil}
+	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceTape: choiceTape != nil}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	bootstrapWrite, err := resources.createPipe(bootstrapRequestResource, inheritRead, "target bootstrap request")
@@ -128,6 +135,9 @@ func SupervisorMain() (retErr error) {
 	if choiceTrace != nil {
 		resources.bind(choiceTraceResource, &choiceTrace)
 		resources.bind(choiceTerminalResource, &choiceTerminal)
+		if choiceTape != nil {
+			resources.bind(choiceTapeResource, &choiceTape)
+		}
 	}
 	target.ExtraFiles, err = resources.extraFiles(bootstrapStage)
 	if err != nil {
@@ -149,7 +159,7 @@ func SupervisorMain() (retErr error) {
 	if closeErr := resources.closeInherited(bootstrapStage); closeErr != nil {
 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit}
+	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes}
 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}

@@ -107,6 +107,10 @@ func TestDescriptorPlanOwnsEveryStageLayout(t *testing.T) {
 			stage: targetStage, caps: launchCapabilities{choiceTrace: true},
 			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {choiceTraceResource, 6}, {choiceTerminalResource, 7}},
 		},
+		"target replay choices": {
+			stage: targetStage, caps: launchCapabilities{choiceTrace: true, choiceTape: true},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {choiceTraceResource, 6}, {choiceTerminalResource, 7}, {choiceTapeResource, 8}},
+		},
 		"supervisor all capabilities": {
 			stage: supervisorStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
 			want: []descriptorBinding{{controlResource, 3}, {reportResource, 4}, {stdoutResource, 5}, {stderrResource, 6}, {supervisorRequestResource, 7}, {worldRecordResource, 8}, {identityResource, 9}, {ioTranscriptResource, 10}, {ioTerminalResource, 11}, {ioExpectedResource, 12}, {ioROMountRequestResource, 13}, {ioROMountResponseResource, 14}, {choiceTraceResource, 15}, {choiceTerminalResource, 16}},
@@ -118,6 +122,10 @@ func TestDescriptorPlanOwnsEveryStageLayout(t *testing.T) {
 		"target all capabilities": {
 			stage: targetStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
 			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {ioTranscriptResource, 6}, {ioTerminalResource, 7}, {ioExpectedResource, 8}, {ioROMountRequestResource, 9}, {ioROMountResponseResource, 10}, {choiceTraceResource, 11}, {choiceTerminalResource, 12}},
+		},
+		"target all replay capabilities": {
+			stage: targetStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceTape: true},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {ioTranscriptResource, 6}, {ioTerminalResource, 7}, {ioExpectedResource, 8}, {ioROMountRequestResource, 9}, {ioROMountResponseResource, 10}, {choiceTraceResource, 11}, {choiceTerminalResource, 12}, {choiceTapeResource, 13}},
 		},
 	}
 	for name, test := range tests {

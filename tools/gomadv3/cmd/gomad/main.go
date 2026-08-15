@@ -191,7 +191,7 @@ func printInspection(output io.Writer, report gomadinspect.Report) {
 			fmt.Fprintln(output, "transcript: none")
 		}
 		if choices := inspected.Choices; choices != nil {
-			fmt.Fprintf(output, "choices: profile=%s records=%d branching=%d bytes=%d limit=%d sha256=%s terminal=%s runnable=%d select-poll=%d select-result=%d\n", choices.Profile, choices.Records, choices.BranchingRecords, choices.PayloadBytes, choices.Limit, choices.SHA256, choices.TerminalState, choices.Runnable, choices.SelectPoll, choices.SelectResult)
+			fmt.Fprintf(output, "choices: profile=%s records=%d decisions=%d branching=%d bytes=%d limit=%d sha256=%s tape-sha256=%s exact-replay=%t terminal=%s runnable=%d select-poll=%d select-result=%d\n", choices.Profile, choices.Records, choices.Decisions, choices.BranchingRecords, choices.PayloadBytes, choices.Limit, choices.SHA256, choices.TapeSHA256, choices.ExactReplayAvailable, choices.TerminalState, choices.Runnable, choices.SelectPoll, choices.SelectResult)
 			for _, site := range choices.Sites {
 				fmt.Fprintf(output, "choice-site: kind=%s fingerprint=%s count=%d max-alternatives=%d\n", site.Kind, site.Fingerprint, site.Count, site.MaximumAlternatives)
 			}
@@ -561,18 +561,18 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 
 func reportReplayResult(output io.Writer, result replay.Result) (int, error) {
 	if !result.Match {
-		_, err := fmt.Fprintf(output, "gomad: reproduced=false divergence=%s\n", result.Divergence)
+		_, err := fmt.Fprintf(output, "gomad: reproduced=false divergence=%s choice-replay=%s\n", result.Divergence, result.ChoiceReplayStatus)
 		return 1, err
 	}
 	if result.Diagnostic {
-		_, err := fmt.Fprintln(output, "gomad: reproduced=true diagnostic=true result=watchdog_observation")
+		_, err := fmt.Fprintf(output, "gomad: reproduced=true diagnostic=true result=watchdog_observation choice-replay=%s\n", result.ChoiceReplayStatus)
 		return 1, err
 	}
 	if result.Artifact.Manifest.Outcome.Domain == "success" {
-		_, err := fmt.Fprintln(output, "gomad: reproduced=true diagnostic=false result=success")
+		_, err := fmt.Fprintf(output, "gomad: reproduced=true diagnostic=false result=success choice-replay=%s\n", result.ChoiceReplayStatus)
 		return 0, err
 	}
-	_, err := fmt.Fprintln(output, "gomad: reproduced=true diagnostic=false result=target_failure")
+	_, err := fmt.Fprintf(output, "gomad: reproduced=true diagnostic=false result=target_failure choice-replay=%s\n", result.ChoiceReplayStatus)
 	return 1, err
 }
 

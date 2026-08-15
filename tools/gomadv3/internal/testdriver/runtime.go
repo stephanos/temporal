@@ -17,7 +17,9 @@ import (
 	"sync"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/commandrun"
+	"go.temporal.io/server/tools/gomadv3/internal/process"
 	gomadversion "go.temporal.io/server/tools/gomadv3/internal/version"
 )
 
@@ -300,6 +302,7 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "channels", packageName: "./channels"},
 		{name: "sync", packageName: "./sync"},
 		{name: "runqueue", packageName: "./runqueue"},
+		{name: "choice-replay", packageName: "./choice_replay"},
 		{name: "automatic-gc", packageName: "./automatic_gc"},
 		{name: "activation", packageName: "./activation"},
 		{name: "activation-io", packageName: "./activation_io"},
@@ -324,7 +327,141 @@ func (campaign *runtimeCampaign) execute() error {
 	if err := campaign.requireSchedulingBehavior(binaries); err != nil {
 		return err
 	}
+	if err := campaign.requireExactChoiceReplay(binaries["choice-replay"]); err != nil {
+		return err
+	}
 	return campaign.requireRepeatability(binaries)
+}
+
+func (campaign *runtimeCampaign) requireExactChoiceReplay(targetPath string) error {
+	supervisorPath := filepath.Join(campaign.workspace, "choice-replay-supervisor")
+	if _, err := campaign.command(
+		"choice-replay-supervisor-build",
+		[]string{campaign.config.Go, "build", "-trimpath", "-o", supervisorPath, "./cmd/gomad"},
+		campaign.config.Root,
+		time.Minute,
+		[]string{"CGO_ENABLED", "GOMADSEED", "GOWORK"},
+		"CGO_ENABLED=0",
+		"GOWORK=off",
+	); err != nil {
+		return err
+	}
+	target, err := os.ReadFile(targetPath)
+	if err != nil {
+		return fmt.Errorf("read exact choice replay target: %w", err)
+	}
+	buildKeyBytes, err := os.ReadFile(filepath.Join(campaign.config.Root, ".toolchain", "build-key"))
+	if err != nil {
+		return fmt.Errorf("read exact choice replay build key: %w", err)
+	}
+	buildKey := strings.TrimSpace(string(buildKeyBytes))
+	implementation, err := choicewire.ImplementationIdentity(buildKey)
+	if err != nil {
+		return err
+	}
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256(target), ToolchainBuildKey: buildKey,
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: implementation,
+	}
+	request := process.Request{
+		SupervisorCommand: []string{supervisorPath, "__supervisor"},
+		BootstrapCommand:  []string{supervisorPath, "__target_bootstrap"},
+		Command:           targetPath, Args: []string{"reorder", "ab"}, Argv0: "gomadv3-choice-replay", Dir: campaign.testdata,
+		Env: []string{"GOMADSEED=7"}, Choice: &process.ChoiceCapability{
+			Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+			ExecutionIdentity: identity, Limit: 1 << 20,
+		},
+		RunTimeout: 10 * time.Second, TerminateGrace: fixtureTerminationGrace, OutputLimit: fixtureOutputLimit,
+		World: process.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	recorded, err := process.Run(campaign.ctx, request)
+	if err != nil {
+		return fmt.Errorf("record reordered exact choice target: %w", err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(recorded.ChoiceTrace.Trace, identity)
+	if err != nil {
+		return err
+	}
+	request.Args = []string{"reorder", "ba"}
+	request.Choice = &process.ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+		ExecutionIdentity: identity, Limit: 1 << 20, Tape: &tape,
+	}
+	replayed, err := process.Run(campaign.ctx, request)
+	if err != nil {
+		return fmt.Errorf("replay reordered exact choice target: %w", err)
+	}
+	if string(replayed.Stdout.Bytes) != string(recorded.Stdout.Bytes) || replayed.ChoiceTrace.Trace.SHA256 != recorded.ChoiceTrace.Trace.SHA256 {
+		return errors.New("reordered exact choice replay changed target output or choice trace")
+	}
+	campaign.report.Cases = append(campaign.report.Cases, CaseResult{
+		Tier: "test-runtime", Name: "choice-replay-reordered", Passed: true,
+		Stdout: append([]byte(nil), replayed.Stdout.Bytes...), Stderr: append([]byte(nil), replayed.Stderr.Bytes...),
+	})
+	request.Args = []string{"select", "8"}
+	request.Choice = &process.ChoiceCapability{
+		Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+		ExecutionIdentity: identity, Limit: 1 << 20,
+	}
+	recorded, err = process.Run(campaign.ctx, request)
+	if err != nil {
+		return fmt.Errorf("record exact choice prefix target: %w", err)
+	}
+	tape, err = choicewire.ProjectDecisionTape(recorded.ChoiceTrace.Trace, identity)
+	if err != nil {
+		return err
+	}
+	if len(tape.Decisions) < 2 {
+		return errors.New("exact choice prefix target recorded fewer than two decisions")
+	}
+	prefix, err := tape.Prefix(uint64(len(tape.Decisions) / 2))
+	if err != nil {
+		return err
+	}
+	request.Choice = &process.ChoiceCapability{
+		Mode: choicewire.ModePrefix, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+		ExecutionIdentity: identity, Limit: 1 << 20, Tape: &prefix,
+	}
+	prefixed, err := process.Run(campaign.ctx, request)
+	if err != nil {
+		return fmt.Errorf("run exact choice prefix target: %w", err)
+	}
+	if string(prefixed.Stdout.Bytes) != string(recorded.Stdout.Bytes) || prefixed.ChoiceTrace.Trace.SHA256 != recorded.ChoiceTrace.Trace.SHA256 {
+		return errors.New("exact choice prefix changed the seeded suffix")
+	}
+	campaign.report.Cases = append(campaign.report.Cases, CaseResult{
+		Tier: "test-runtime", Name: "choice-prefix-seeded-suffix", Passed: true,
+		Stdout: append([]byte(nil), prefixed.Stdout.Bytes...), Stderr: append([]byte(nil), prefixed.Stderr.Bytes...),
+	})
+	request.Args = []string{"overflow", "2"}
+	request.Choice = &process.ChoiceCapability{
+		Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+		ExecutionIdentity: identity, Limit: 1 << 20,
+	}
+	recorded, err = process.Run(campaign.ctx, request)
+	if err != nil {
+		return fmt.Errorf("record exact choice overflow target: %w", err)
+	}
+	tape, err = choicewire.ProjectDecisionTape(recorded.ChoiceTrace.Trace, identity)
+	if err != nil {
+		return err
+	}
+	request.Choice = &process.ChoiceCapability{
+		Mode: choicewire.ModeReplay, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+		ExecutionIdentity: identity, Limit: 1 << 20, Tape: &tape,
+	}
+	replayed, err = process.Run(campaign.ctx, request)
+	if err != nil {
+		return fmt.Errorf("replay exact choice overflow target: %w", err)
+	}
+	if string(replayed.Stdout.Bytes) != string(recorded.Stdout.Bytes) || replayed.ChoiceTrace.Trace.SHA256 != recorded.ChoiceTrace.Trace.SHA256 {
+		return errors.New("exact choice overflow replay changed target output or choice trace")
+	}
+	campaign.report.Cases = append(campaign.report.Cases, CaseResult{
+		Tier: "test-runtime", Name: "choice-replay-runqueue-overflow", Passed: true,
+		Stdout: append([]byte(nil), replayed.Stdout.Bytes...), Stderr: append([]byte(nil), replayed.Stderr.Bytes...),
+	})
+	return nil
 }
 
 func requireOutput(result commandrun.Result, want, label string) error {

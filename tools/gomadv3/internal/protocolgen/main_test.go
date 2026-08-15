@@ -15,12 +15,14 @@ func TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs(t *test
 		RuntimeTemplate: []byte("runtime-codec"),
 		RuntimeOverlay:  []byte("runtime-instrumentation"),
 		ToolchainPatch:  []byte("toolchain-patch"),
+		HostTrace:       []byte("host-trace"),
+		HostTape:        []byte("host-tape"),
 	}
 	want := choiceImplementationIdentity(inputs)
 	if want == ([32]byte{}) {
 		t.Fatal("choice implementation identity is empty")
 	}
-	mutations := [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch}
+	mutations := [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch, inputs.HostTrace, inputs.HostTape}
 	for index, original := range mutations {
 		changed := inputs
 		value := append(bytes.Clone(original), '!')
@@ -35,6 +37,10 @@ func TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs(t *test
 			changed.RuntimeOverlay = value
 		case 4:
 			changed.ToolchainPatch = value
+		case 5:
+			changed.HostTrace = value
+		case 6:
+			changed.HostTape = value
 		}
 		if got := choiceImplementationIdentity(changed); got == want {
 			t.Fatalf("identity did not bind input %d", index)
@@ -46,6 +52,8 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 	root := t.TempDir()
 	for _, relative := range []string{
 		"go1.26.4.patch",
+		"internal/choicewire/tape.go",
+		"internal/choicewire/trace.go",
 		"overlay/src/runtime/gomad.go",
 		"protocol/choicewire.go.tmpl",
 		"protocol/choicewire.json",

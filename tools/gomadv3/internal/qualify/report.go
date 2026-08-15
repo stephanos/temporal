@@ -16,8 +16,13 @@ import (
 )
 
 const (
-	ReportSchema       = "gomadv3.qualification/v2"
-	LegacyReportSchema = "gomadv3.qualification/v1"
+	ReportSchema            = "gomadv3.qualification/v3"
+	PreviousReportSchema    = "gomadv3.qualification/v2"
+	LegacyReportSchema      = "gomadv3.qualification/v1"
+	ChoiceReplayNone        = "none"
+	ChoiceReplayExact       = "exact"
+	ChoiceReplayDiverged    = "diverged"
+	ChoiceReplayUnavailable = "unavailable"
 )
 
 const maximumReportBytes = 16 << 20
@@ -36,11 +41,12 @@ type Input struct {
 }
 
 type Replay struct {
-	ArtifactPath string `json:"artifact_path"`
-	Attempted    bool   `json:"attempted"`
-	Match        bool   `json:"match"`
-	Diagnostic   bool   `json:"diagnostic"`
-	Divergence   string `json:"divergence,omitempty"`
+	ArtifactPath       string `json:"artifact_path"`
+	Attempted          bool   `json:"attempted"`
+	Match              bool   `json:"match"`
+	Diagnostic         bool   `json:"diagnostic"`
+	Divergence         string `json:"divergence,omitempty"`
+	ChoiceReplayStatus string `json:"choice_replay_status,omitempty"`
 }
 
 type Failure struct {
@@ -153,6 +159,9 @@ func Build(input Input) (Report, error) {
 		if copiedReplay != nil && !copiedReplay.Match {
 			replayOK = false
 		}
+		if copiedReplay != nil && run.Evidence.Choices != nil && copiedReplay.Match && copiedReplay.ChoiceReplayStatus != ChoiceReplayExact {
+			return Report{}, fmt.Errorf("validate run replay %d: exact choice replay evidence is required", index)
+		}
 		report.Runs = append(report.Runs, RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, Replay: copiedReplay})
 	}
 	report.Qualified = report.Deterministic && report.TargetSuccess && replayOK
@@ -195,6 +204,9 @@ func BuildFailure(command []string, seed uint64, repeat uint64, completed []Run,
 		if replayErr != nil {
 			return Report{}, fmt.Errorf("validate completed qualification replay %d: %w", index, replayErr)
 		}
+		if replayEvidence != nil && run.Evidence.Choices != nil && replayEvidence.Match && replayEvidence.ChoiceReplayStatus != ChoiceReplayExact {
+			return Report{}, fmt.Errorf("validate completed qualification replay %d: exact choice replay evidence is required", index)
+		}
 		report.Runs = append(report.Runs, RunReport{BatchPath: run.BatchPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, Replay: replayEvidence})
 	}
 	return report, nil
@@ -212,7 +224,7 @@ func Write(artifactRoot string, report Report) (string, error) {
 		return "", fmt.Errorf("encode qualification report: %w", err)
 	}
 	encoded = append(encoded, '\n')
-	root := filepath.Join(artifactRoot, "qualifications", "v2")
+	root := filepath.Join(artifactRoot, "qualifications", "v3")
 	if err := os.MkdirAll(root, 0o700); err != nil {
 		return "", fmt.Errorf("create qualification report directory: %w", err)
 	}
@@ -297,6 +309,11 @@ func Decode(data []byte) (Report, error) {
 		if err := record.DecodeCanonicalJSON(data, &report); err != nil {
 			return Report{}, fmt.Errorf("decode qualification report: %w", err)
 		}
+	case PreviousReportSchema:
+		if err := record.DecodeCanonicalJSON(data, &report); err != nil {
+			return Report{}, fmt.Errorf("decode previous qualification report: %w", err)
+		}
+		normalizePreviousReport(&report)
 	case LegacyReportSchema:
 		var legacy legacyReport
 		if err := record.DecodeCanonicalJSON(data, &legacy); err != nil {
@@ -314,6 +331,25 @@ func Decode(data []byte) (Report, error) {
 		return Report{}, err
 	}
 	return report, nil
+}
+
+func normalizePreviousReport(report *Report) {
+	report.Schema = ReportSchema
+	legacyChoice := report.Evidence != nil && report.Evidence.Choices != nil
+	for index := range report.Runs {
+		replayed := report.Runs[index].Replay
+		if replayed == nil {
+			continue
+		}
+		if legacyChoice {
+			replayed.Match = false
+			replayed.Divergence = "choice_profile.replay_unavailable"
+			replayed.ChoiceReplayStatus = ChoiceReplayUnavailable
+			report.Qualified = false
+		} else {
+			replayed.ChoiceReplayStatus = ChoiceReplayNone
+		}
+	}
 }
 
 func normalizeLegacyReport(legacy legacyReport) (Report, error) {
@@ -344,7 +380,7 @@ func normalizeLegacyReport(legacy legacyReport) (Report, error) {
 			return Report{}, errors.New("legacy qualification replay does not match a retained artifact")
 		}
 	}
-	report.Schema = ReportSchema
+	normalizePreviousReport(&report)
 	return report, nil
 }
 
@@ -352,7 +388,7 @@ func validateLegacyReport(report Report, replay *Replay) error {
 	if report.Schema != LegacyReportSchema {
 		return fmt.Errorf("unsupported qualification report schema %q", report.Schema)
 	}
-	report.Schema = ReportSchema
+	report.Schema = PreviousReportSchema
 	if replay != nil {
 		if !replay.Attempted || replay.Match && replay.Divergence != "" || !replay.Match && replay.Divergence == "" {
 			return errors.New("legacy qualification replay is invalid")
@@ -365,6 +401,7 @@ func validateLegacyReport(report Report, replay *Replay) error {
 			}
 		}
 	}
+	normalizePreviousReport(&report)
 	return validateReport(report)
 }
 
@@ -389,7 +426,7 @@ func validateReport(report Report) error {
 	if report.Failure == nil && (len(report.Runs) < 2 || uint64(report.Repeat) != uint64(len(report.Runs))) {
 		return fmt.Errorf("qualification report repetition count is invalid")
 	}
-	if report.Evidence == nil || report.Evidence.Schema != runner.RunEvidenceSchema || report.Evidence.Seed != report.Seed {
+	if report.Evidence == nil || report.Evidence.Schema != runner.RunEvidenceSchema && report.Evidence.Schema != runner.LegacyRunEvidenceSchema || report.Evidence.Seed != report.Seed {
 		return fmt.Errorf("qualification baseline evidence identity is invalid")
 	}
 	digest, err := evidenceDigest(*report.Evidence)
@@ -425,6 +462,9 @@ func validateReport(report Report) error {
 		if run.Replay != nil && !run.Replay.Match {
 			replayOK = false
 		}
+		if run.Replay != nil && report.Evidence.Choices != nil && run.Replay.Match && run.Replay.ChoiceReplayStatus != ChoiceReplayExact {
+			return fmt.Errorf("qualification run %d lacks exact choice replay evidence", index)
+		}
 	}
 	if report.Qualified != (report.Deterministic && report.TargetSuccess && replayOK) {
 		return fmt.Errorf("qualification result is inconsistent")
@@ -439,6 +479,23 @@ func cloneReplay(replay *Replay, artifactPath string) (*Replay, error) {
 	if artifactPath == "" || replay.ArtifactPath != artifactPath || !replay.Attempted || replay.Match && replay.Divergence != "" || !replay.Match && replay.Divergence == "" {
 		return nil, errors.New("replay does not match its retained artifact and result")
 	}
+	switch replay.ChoiceReplayStatus {
+	case "", ChoiceReplayNone:
+	case ChoiceReplayExact:
+		if !replay.Match {
+			return nil, errors.New("exact choice replay status requires a match")
+		}
+	case ChoiceReplayDiverged:
+		if replay.Match {
+			return nil, errors.New("diverged choice replay status cannot match")
+		}
+	case ChoiceReplayUnavailable:
+		if replay.Match || replay.Divergence != "choice_profile.replay_unavailable" {
+			return nil, errors.New("unavailable choice replay status is inconsistent")
+		}
+	default:
+		return nil, errors.New("choice replay status is invalid")
+	}
 	copied := *replay
 	return &copied, nil
 }
@@ -448,10 +505,17 @@ func evidenceDigest(evidence runner.RunEvidence) (record.SHA256, error) {
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash(RunEvidenceDigestDomain, encoded), nil
+	domain := RunEvidenceDigestDomain
+	if evidence.Schema == runner.LegacyRunEvidenceSchema {
+		domain = LegacyRunEvidenceDigestDomain
+	}
+	return record.DomainHash(domain, encoded), nil
 }
 
-const RunEvidenceDigestDomain = "gomadv3.qualification-evidence/v1"
+const (
+	RunEvidenceDigestDomain       = "gomadv3.qualification-evidence/v2"
+	LegacyRunEvidenceDigestDomain = "gomadv3.qualification-evidence/v1"
+)
 
 func cloneEvidence(evidence runner.RunEvidence) (runner.RunEvidence, error) {
 	encoded, err := record.CanonicalJSON(evidence)

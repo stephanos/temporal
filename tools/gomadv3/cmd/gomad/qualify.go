@@ -189,6 +189,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 			runs[index].Replay.Match = replayed.Match
 			runs[index].Replay.Diagnostic = replayed.Diagnostic
 			runs[index].Replay.Divergence = replayed.Divergence
+			runs[index].Replay.ChoiceReplayStatus = replayed.ChoiceReplayStatus
 		}
 	}
 	report, err := qualify.Build(qualify.Input{Command: command, Runs: runs})
@@ -301,7 +302,7 @@ func (reporter *qualifyReporter) Result(report qualify.Report, path string) erro
 	_, err := fmt.Fprintf(reporter.stdout, "gomad: qualification qualified=%t deterministic=%t target-success=%t seed=%d repeat=%d report=%s\n", report.Qualified, report.Deterministic, report.TargetSuccess, report.Seed, report.Repeat, path)
 	if err == nil && report.Evidence != nil && report.Evidence.Choices != nil {
 		choices := report.Evidence.Choices
-		_, err = fmt.Fprintf(reporter.stdout, "gomad: choices profile=%s records=%d branching=%d runnable=%d select-poll=%d select-result=%d sha256=%s terminal=%s\n", choices.Profile, choices.Records, choices.BranchingRecords, choices.Runnable, choices.SelectPoll, choices.SelectResult, choices.SHA256, choices.TerminalState)
+		_, err = fmt.Fprintf(reporter.stdout, "gomad: choices profile=%s records=%d decisions=%d branching=%d runnable=%d select-poll=%d select-result=%d sha256=%s tape-sha256=%s terminal=%s\n", choices.Profile, choices.Records, choices.Decisions, choices.BranchingRecords, choices.Runnable, choices.SelectPoll, choices.SelectResult, choices.SHA256, choices.TapeSHA256, choices.TerminalState)
 	}
 	if err == nil && report.FirstDivergence != "" {
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-divergence=%s\n", report.FirstDivergence)
@@ -311,7 +312,7 @@ func (reporter *qualifyReporter) Result(report qualify.Report, path string) erro
 			if run.Replay == nil {
 				continue
 			}
-			if _, err = fmt.Fprintf(reporter.stdout, "gomad: replay artifact=%s attempted=%t match=%t diagnostic=%t divergence=%s\n", run.Replay.ArtifactPath, run.Replay.Attempted, run.Replay.Match, run.Replay.Diagnostic, run.Replay.Divergence); err != nil {
+			if _, err = fmt.Fprintf(reporter.stdout, "gomad: replay artifact=%s attempted=%t match=%t diagnostic=%t choice-replay=%s divergence=%s\n", run.Replay.ArtifactPath, run.Replay.Attempted, run.Replay.Match, run.Replay.Diagnostic, run.Replay.ChoiceReplayStatus, run.Replay.Divergence); err != nil {
 				break
 			}
 		}

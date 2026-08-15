@@ -175,6 +175,8 @@ type ChoiceTraceSummary struct {
 	SelectPoll       uint64
 	SelectResult     uint64
 	TerminalState    string
+	TapeSHA256       record.SHA256
+	Decisions        uint64
 }
 
 type HostError struct {
@@ -1147,7 +1149,7 @@ func validateConfig(config Config) (SeedSelection, []record.Environment, error) 
 
 func parseEnvironment(entries []string) ([]record.Environment, error) {
 	reserved := map[string]struct{}{
-		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "GOMADV3_CHOICE_PROFILE": {}, "GOMADV3_CHOICE_TRACE_FD": {}, "GOMADV3_CHOICE_TERMINAL_FD": {}, "GOMADV3_CHOICE_TRACE_BYTES": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "GOMADV3_CHOICE_PROFILE": {}, "GOMADV3_CHOICE_MODE": {}, "GOMADV3_CHOICE_TRACE_FD": {}, "GOMADV3_CHOICE_TERMINAL_FD": {}, "GOMADV3_CHOICE_TRACE_BYTES": {}, "GOMADV3_CHOICE_TAPE_FD": {}, "GOMADV3_CHOICE_TAPE_BYTES": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))
@@ -1210,7 +1212,15 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 		if err != nil {
 			completion.err = fmt.Errorf("derive choice profile implementation identity: %w", err)
 		} else {
-			choiceCapability = &process.ChoiceCapability{Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: config.ChoiceTraceLimit}
+			identity, identityErr := choiceExecutionIdentity(prepared, implementation)
+			if identityErr != nil {
+				completion.err = identityErr
+			} else {
+				choiceCapability = &process.ChoiceCapability{
+					Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: implementation,
+					ExecutionIdentity: identity, Limit: config.ChoiceTraceLimit,
+				}
+			}
 		}
 	}
 	if completion.err == nil {
@@ -1234,7 +1244,7 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 		}
 		completion.result, completion.err = executor.Run(ctx, request)
 		if completion.err == nil {
-			completion.err = validateObservedChoiceTrace(config.ChoiceTraceLimit, choiceCapability, completion.result.ChoiceTrace)
+			completion.err = validateObservedChoiceTrace(config.ChoiceTraceLimit, choiceCapability, &completion.result.ChoiceTrace)
 		}
 	}
 	if partialErr := run.Transition(artifact.RunExited); partialErr != nil {
@@ -1257,17 +1267,38 @@ func runSeed(ctx context.Context, config Config, executor Executor, prepared tar
 	completions <- completion
 }
 
-func validateObservedChoiceTrace(limit uint64, capability *process.ChoiceCapability, observed process.ChoiceTrace) error {
+func validateObservedChoiceTrace(limit uint64, capability *process.ChoiceCapability, observed *process.ChoiceTrace) error {
 	if limit == 0 {
 		return nil
 	}
-	if observed.Profile == "" || observed.Trace.Summary.Terminal == 0 {
+	if observed == nil || observed.Profile == "" || observed.Trace.Summary.Terminal == 0 {
 		return process.ErrChoiceTraceUnterminated
 	}
 	if capability == nil || observed.Profile != choicewire.Profile || observed.ImplementationSHA256 != capability.ImplementationSHA256 || observed.Limit != limit || observed.Trace.Summary.Terminal != choicewire.TerminalComplete {
 		return process.ErrChoiceTraceMalformed
 	}
+	tape, err := choicewire.ProjectDecisionTape(observed.Trace, capability.ExecutionIdentity)
+	if err != nil {
+		return errors.Join(process.ErrChoiceTraceMalformed, err)
+	}
+	observed.TapeSHA256 = tape.SHA256
+	observed.Decisions = uint64(len(tape.Decisions))
 	return nil
+}
+
+func choiceExecutionIdentity(prepared target.Prepared, implementation [32]byte) (choicewire.ExecutionIdentity, error) {
+	targetIdentity, err := record.ParseSHA256(prepared.SHA256)
+	if err != nil {
+		return choicewire.ExecutionIdentity{}, fmt.Errorf("decode choice target identity: %w", err)
+	}
+	targetSHA256, err := targetIdentity.Bytes()
+	if err != nil {
+		return choicewire.ExecutionIdentity{}, fmt.Errorf("decode choice target identity: %w", err)
+	}
+	return choicewire.ExecutionIdentity{
+		TargetSHA256: targetSHA256, ToolchainBuildKey: prepared.BuildKey,
+		GOOS: prepared.TargetGOOS, GOARCH: prepared.TargetGOARCH, ImplementationSHA256: implementation,
+	}, nil
 }
 
 func environmentForSeed(base []record.Environment, seed uint64) []record.Environment {
@@ -1319,10 +1350,22 @@ func manifestForRun(config Config, prepared target.Prepared, baseEnvironment []r
 		recordedChoices = &record.ChoiceProfile{
 			Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
 			Trace: record.ChoiceTrace{
-				Schema: "gomadv3.choice-trace/v1", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
+				Schema: "gomadv3.choice-trace/v2", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
 				Bytes: record.Uint64String(len(observed.Trace.Bytes)), Records: record.Uint64String(observed.Trace.Summary.Records),
 				BranchingRecords: record.Uint64String(observed.Trace.Summary.Branching), TerminalState: terminalState, Limit: record.Uint64String(observed.Limit),
 			},
+		}
+		if expectedTerminal == choicewire.TerminalComplete {
+			identity, identityErr := choiceExecutionIdentity(prepared, implementation)
+			if identityErr != nil {
+				return record.Manifest{}, identityErr
+			}
+			tape, tapeErr := choicewire.ProjectDecisionTape(observed.Trace, identity)
+			if tapeErr != nil {
+				return record.Manifest{}, fmt.Errorf("derive choice tape identity: %w", tapeErr)
+			}
+			recordedChoices.Trace.TapeSHA256 = record.SHA256FromSum(tape.SHA256)
+			recordedChoices.Trace.Decisions = record.Uint64String(len(tape.Decisions))
 		}
 	}
 	return record.Manifest{
@@ -1384,6 +1427,12 @@ func setRunChoiceTrace(run *artifact.RunRecord, trace process.ChoiceTrace) {
 	run.ChoiceTraceRecords = &records
 	run.ChoiceTraceBranchingRecords = &branching
 	run.ChoiceTraceTerminalState = &terminal
+	if trace.TapeSHA256 != ([32]byte{}) {
+		tapeSHA256 := record.SHA256FromSum(trace.TapeSHA256)
+		decisions := record.Uint64String(trace.Decisions)
+		run.ChoiceTapeSHA256 = &tapeSHA256
+		run.ChoiceDecisions = &decisions
+	}
 }
 
 func supervisionFailureReason(err error) string {
@@ -1400,12 +1449,16 @@ func supervisionFailureReason(err error) string {
 }
 
 func choiceTraceSummary(seed uint64, trace process.ChoiceTrace) *ChoiceTraceSummary {
-	return &ChoiceTraceSummary{
+	summary := &ChoiceTraceSummary{
 		Seed: seed, Profile: trace.Profile, Limit: trace.Limit, SHA256: record.SHA256FromSum(trace.Trace.SHA256),
 		Records: trace.Trace.Summary.Records, BranchingRecords: trace.Trace.Summary.Branching,
 		Runnable: trace.Trace.Summary.Runnable, SelectPoll: trace.Trace.Summary.SelectPoll, SelectResult: trace.Trace.Summary.SelectResult,
-		TerminalState: choiceTerminalState(trace.Trace.Summary.Terminal),
+		TerminalState: choiceTerminalState(trace.Trace.Summary.Terminal), Decisions: trace.Decisions,
 	}
+	if trace.TapeSHA256 != ([32]byte{}) {
+		summary.TapeSHA256 = record.SHA256FromSum(trace.TapeSHA256)
+	}
+	return summary
 }
 
 func choiceTerminalState(state choicewire.TerminalState) string {

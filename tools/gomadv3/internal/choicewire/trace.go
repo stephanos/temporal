@@ -17,6 +17,7 @@ const (
 var (
 	ErrMalformed    = errors.New("malformed choice trace")
 	ErrOverflow     = errors.New("choice trace overflow")
+	ErrDiverged     = errors.New("choice replay divergence")
 	ErrUnterminated = errors.New("unterminated choice trace")
 )
 
@@ -30,6 +31,7 @@ type Summary struct {
 }
 
 type Trace struct {
+	Version int
 	Bytes   []byte
 	SHA256  [sha256.Size]byte
 	Records []Record
@@ -101,7 +103,7 @@ func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error)
 		return [sha256.Size]byte{}, errors.New("choice implementation toolchain build key is malformed")
 	}
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomadv3-choice-implementation-v1"))
+	_, _ = hasher.Write([]byte("gomadv3-choice-implementation-v2"))
 	_, _ = hasher.Write([]byte{0})
 	_, _ = hasher.Write(ImplementationSourceSHA256[:])
 	_, _ = hasher.Write(buildKey[:])
@@ -115,14 +117,46 @@ func ProjectComplete(payload []byte, metadata CompleteMetadata, targetIdentity [
 }
 
 func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.Size]byte) (Projection, error) {
-	terminal := EncodeTerminal(Terminal{State: metadata.State, Records: metadata.Records, MappingBytes: HeaderBytes + uint64(len(payload)), PayloadHash: metadata.SHA256})
-	trace, err := DecodeTrace(payload, terminal[:], metadata.Limit)
+	trace, err := DecodeStoredTrace(Profile, payload, metadata)
 	if errors.Is(err, ErrOverflow) && metadata.State == TerminalOverflow {
 		err = nil
 	}
 	if err != nil {
 		return Projection{}, err
 	}
+	return projectTrace(trace, metadata.Limit, targetIdentity)
+}
+
+func DecodeStoredTrace(profile string, payload []byte, metadata TerminalMetadata) (Trace, error) {
+	switch profile {
+	case Profile:
+		terminal := EncodeTerminal(Terminal{State: metadata.State, Records: metadata.Records, MappingBytes: HeaderBytes + uint64(len(payload)), PayloadHash: metadata.SHA256})
+		return DecodeTrace(payload, terminal[:], metadata.Limit)
+	case LegacyProfile:
+		return decodeStoredLegacyV1Trace(payload, metadata)
+	default:
+		return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace profile %q", profile))
+	}
+}
+
+func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error) {
+	profile := Profile
+	if trace.Version == Version1 {
+		profile = LegacyProfile
+	} else if trace.Version != Version2 {
+		return Projection{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace version %d", trace.Version))
+	}
+	validated, err := DecodeStoredTrace(profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
+	if errors.Is(err, ErrOverflow) && trace.Summary.Terminal == TerminalOverflow {
+		err = nil
+	}
+	if err != nil {
+		return Projection{}, err
+	}
+	return projectTrace(validated, limit, targetIdentity)
+}
+
+func projectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error) {
 	type siteKey struct {
 		kind    Kind
 		offset  uint64
@@ -151,9 +185,16 @@ func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.S
 		return sites[i].Fingerprint < sites[j].Fingerprint
 	})
 	return Projection{
-		Profile: Profile, Limit: metadata.Limit, PayloadBytes: uint64(len(payload)), SHA256: metadata.SHA256, Summary: trace.Summary, Sites: sites,
+		Profile: profileForVersion(trace.Version), Limit: limit, PayloadBytes: uint64(len(trace.Bytes)), SHA256: trace.SHA256, Summary: trace.Summary, Sites: sites,
 		Features: projectFeatures(trace, sites, targetIdentity),
 	}, nil
+}
+
+func profileForVersion(version int) string {
+	if version == Version1 {
+		return LegacyProfile
+	}
+	return Profile
 }
 
 func projectFeatures(trace Trace, sites []Site, targetIdentity [sha256.Size]byte) FeatureProjection {
@@ -295,6 +336,9 @@ func terminalName(terminal TerminalState) string {
 	if terminal == TerminalOverflow {
 		return "overflow"
 	}
+	if terminal == TerminalDiverged {
+		return "diverged"
+	}
 	return "complete"
 }
 
@@ -314,6 +358,7 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace digest mismatch"))
 	}
 	result := Trace{
+		Version: Version2,
 		Bytes:   append([]byte(nil), payload...),
 		SHA256:  digest,
 		Records: make([]Record, 0, terminal.Records),
@@ -343,6 +388,9 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 	}
 	if terminal.State == TerminalOverflow {
 		return result, ErrOverflow
+	}
+	if terminal.State == TerminalDiverged {
+		return result, ErrDiverged
 	}
 	return result, nil
 }

@@ -776,10 +776,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	}
 	executor := &fakeExecutor{result: func(uint64) process.Result {
 		result := processResult(1, "failure", "")
-		result.ChoiceTrace = process.ChoiceTrace{
-			Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit,
-			Trace: choicewire.Trace{SHA256: sha256.Sum256(nil), Summary: choicewire.Summary{Terminal: choicewire.TerminalComplete}},
-		}
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, nil)
 		return result
 	}}
 	config := testConfig(t, preparer, executor, "1", PolicyAll, 1)
@@ -788,7 +785,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(executor.requests) != 1 || executor.requests[0].Choice == nil || executor.requests[0].Choice.Profile != choicewire.Profile || executor.requests[0].Choice.ImplementationSHA256 != implementation || executor.requests[0].Choice.Limit != limit {
+	if len(executor.requests) != 1 || executor.requests[0].Choice == nil || executor.requests[0].Choice.Mode != choicewire.ModeRecord || executor.requests[0].Choice.Profile != choicewire.Profile || executor.requests[0].Choice.ImplementationSHA256 != implementation || executor.requests[0].Choice.ExecutionIdentity.ImplementationSHA256 != implementation || executor.requests[0].Choice.Limit != limit {
 		t.Fatalf("executor choice capability = %#v", executor.requests)
 	}
 	if summary.ChoiceTrace == nil || summary.ChoiceTrace.Profile != choicewire.Profile || summary.ChoiceTrace.TerminalState != "complete" {
@@ -803,7 +800,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) {
+	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v2" || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
 		t.Fatalf("artifact choice profile = %#v", opened.Manifest.ChoiceProfile)
 	}
 }
@@ -835,9 +832,9 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	recordBytes, err := choicewire.EncodeRecord(choicewire.Record{
+	recordBytes, err := choicewire.EncodeRecord(validTestChoiceRecord(t, choicewire.Record{
 		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, Alternatives: 2, Selected: 1,
-	})
+	}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -874,10 +871,7 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 
 	resumedExecutor := &fakeExecutor{result: func(uint64) process.Result {
 		result := processResult(0, "", "")
-		result.ChoiceTrace = process.ChoiceTrace{
-			Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit,
-			Trace: choicewire.Trace{SHA256: sha256.Sum256(nil), Summary: choicewire.Summary{Terminal: choicewire.TerminalComplete}},
-		}
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, nil)
 		return result
 	}}
 	resumed, err := Run(context.Background(), Config{
@@ -1886,6 +1880,7 @@ func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []
 	t.Helper()
 	payload := make([]byte, 0, len(records)*choicewire.RecordBytes)
 	for _, choiceRecord := range records {
+		choiceRecord = validTestChoiceRecord(t, choiceRecord)
 		encoded, err := choicewire.EncodeRecord(choiceRecord)
 		if err != nil {
 			t.Fatal(err)
@@ -1905,6 +1900,25 @@ func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []
 		t.Fatal(err)
 	}
 	return process.ChoiceTrace{Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: limit, Trace: trace}
+}
+
+func validTestChoiceRecord(t *testing.T, choiceRecord choicewire.Record) choicewire.Record {
+	t.Helper()
+	if choiceRecord.Flags&choicewire.FlagDecision == 0 || choiceRecord.SelectedIdentity != ([sha256.Size]byte{}) {
+		return choiceRecord
+	}
+	alternatives := make([][sha256.Size]byte, choiceRecord.Alternatives)
+	for index := range alternatives {
+		alternatives[index] = sha256.Sum256([]byte(fmt.Sprintf("choice/%d/alternative/%d", choiceRecord.Ordinal, index)))
+	}
+	decision, err := choicewire.CanonicalDecision(
+		choiceRecord.Ordinal, choiceRecord.Kind, choiceRecord.SiteOffset, choiceRecord.Flags&choicewire.FlagSiteMissing != 0,
+		alternatives, alternatives[choiceRecord.Selected], choiceRecord.Data,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return decision.Record()
 }
 
 func seedFromEnvironment(environment []string) uint64 {

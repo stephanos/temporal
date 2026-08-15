@@ -153,9 +153,13 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 }
 
 func TestSemanticFeaturesConsumeCanonicalChoicewireFeatureIDs(t *testing.T) {
-	payload := encodeChoiceRecords(t, []choicewire.Record{{
-		Ordinal: 0, Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 1,
-	}})
+	first := sha256.Sum256([]byte("first choice alternative"))
+	second := sha256.Sum256([]byte("second choice alternative"))
+	decision, err := choicewire.CanonicalDecision(0, choicewire.KindRunnable, 24, false, [][sha256.Size]byte{first, second}, second, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload := encodeChoiceRecords(t, []choicewire.Record{decision.Record()})
 	projected, err := choicewire.ProjectComplete(payload, choicewire.CompleteMetadata{
 		Limit: choicewire.HeaderBytes + uint64(len(payload)), Records: 1, SHA256: sha256.Sum256(payload),
 	}, sha256.Sum256([]byte("target")))

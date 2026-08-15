@@ -87,3 +87,28 @@ func TestResolveRetainedEvidenceValidatesSuccessBytes(t *testing.T) {
 		t.Fatal("ResolveRetainedEvidence() accepted mismatched stored bytes")
 	}
 }
+
+func TestRetainedChoiceSummaryBindsDerivedTapeIdentity(t *testing.T) {
+	traceSHA256 := record.HashBytes([]byte("choice trace"))
+	tapeSHA256 := record.HashBytes([]byte("choice tape"))
+	records := record.Uint64String(4)
+	branching := record.Uint64String(2)
+	decisions := record.Uint64String(3)
+	terminal := "complete"
+	run := RunRecord{
+		ChoiceTraceSHA256: &traceSHA256, ChoiceTraceRecords: &records, ChoiceTraceBranchingRecords: &branching,
+		ChoiceTraceTerminalState: &terminal, ChoiceTapeSHA256: &tapeSHA256, ChoiceDecisions: &decisions,
+	}
+	manifest := record.Manifest{ChoiceProfile: &record.ChoiceProfile{Trace: record.ChoiceTrace{
+		SHA256: traceSHA256, Records: records, BranchingRecords: branching, TerminalState: terminal,
+		TapeSHA256: tapeSHA256, Decisions: decisions,
+	}}}
+	if !retainedChoiceMatches(run, manifest) {
+		t.Fatal("matching choice tape identity was rejected")
+	}
+	changedTape := record.HashBytes([]byte("changed tape"))
+	run.ChoiceTapeSHA256 = &changedTape
+	if retainedChoiceMatches(run, manifest) {
+		t.Fatal("changed choice tape identity was accepted")
+	}
+}

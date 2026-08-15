@@ -7,9 +7,11 @@ import (
 )
 
 func TestChoiceWireRecordRoundTrip(t *testing.T) {
+	selected := Hash([]byte("selected"))
+	set := Hash([]byte("set"))
 	values := []Record{
-		{Ordinal: 4, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 32, Alternatives: 3, Selected: 1},
-		{Ordinal: 5, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 0},
+		{Ordinal: 4, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 32, Alternatives: 3, Selected: 1, SelectedIdentity: selected, AlternativeSetDigest: set},
+		{Ordinal: 5, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 0, SelectedIdentity: selected, AlternativeSetDigest: set},
 		{Ordinal: 6, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 48, Alternatives: 4, Selected: 3, Data: 2},
 	}
 	for _, value := range values {
@@ -28,16 +30,47 @@ func TestChoiceWireRecordRoundTrip(t *testing.T) {
 }
 
 func TestChoiceWireRejectsInvalidSelectionAndReservedBytes(t *testing.T) {
-	if _, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 2}); err == nil {
+	selected := Hash([]byte("selected"))
+	set := Hash([]byte("set"))
+	if _, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 2, SelectedIdentity: selected, AlternativeSetDigest: set}); err == nil {
 		t.Fatal("invalid selected index accepted")
 	}
-	encoded, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 1})
+	encoded, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 1, SelectedIdentity: selected, AlternativeSetDigest: set})
 	if err != nil {
 		t.Fatal(err)
 	}
-	encoded[47] = 1
+	encoded[10] = 1
 	if _, err := DecodeRecord(encoded[:]); err == nil {
 		t.Fatal("reserved bytes accepted")
+	}
+}
+
+func TestChoiceWireTapeHeaderRoundTrip(t *testing.T) {
+	hash := Hash([]byte("identity"))
+	header, err := EncodeTapeHeader(TapeHeader{
+		TotalBytes: TapeHeaderBytes + TapeRecordBytes, Records: 1, SourceTraceHash: hash,
+		TargetHash: hash, ImplementationHash: hash, ToolchainBuildKey: hash, PlatformHash: hash, PayloadHash: hash,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeTapeHeader(header[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Records != 1 || decoded.SourceTraceHash != hash {
+		t.Fatalf("tape header = %+v", decoded)
+	}
+	header[TapeHeaderBytes-1]++
+	if _, err := DecodeTapeHeader(header[:]); err == nil {
+		t.Fatal("bad tape checksum accepted")
+	}
+	overflowRecords := ^uint64(0)/TapeRecordBytes + 1
+	if _, err := EncodeTapeHeader(TapeHeader{
+		TotalBytes: TapeHeaderBytes + overflowRecords*TapeRecordBytes, Records: overflowRecords, SourceTraceHash: hash,
+		TargetHash: hash, ImplementationHash: hash, ToolchainBuildKey: hash, PlatformHash: hash, PayloadHash: hash,
+	}); err == nil {
+		t.Fatal("overflowing tape record count accepted")
 	}
 }
 
@@ -65,5 +98,14 @@ func TestChoiceWireHeaderAndTerminalRoundTrip(t *testing.T) {
 	terminal[TerminalFrameBytes-1]++
 	if _, err := DecodeTerminal(terminal[:]); err == nil {
 		t.Fatal("bad checksum accepted")
+	}
+	expected := Record{Ordinal: 7, Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 1, SelectedIdentity: Hash([]byte("selected")), AlternativeSetDigest: Hash([]byte("set"))}
+	diverged := EncodeTerminal(Terminal{State: TerminalDiverged, Records: 0, MappingBytes: HeaderBytes, DivergenceReason: DivergenceSelected, DivergentOrdinal: 7, TapeRecords: 8, ExpectedPresent: true, ObservedPresent: true, Expected: expected, Observed: expected})
+	decodedDivergence, err := DecodeTerminal(diverged[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decodedDivergence.State != TerminalDiverged || decodedDivergence.DivergenceReason != DivergenceSelected || decodedDivergence.DivergentOrdinal != 7 || !decodedDivergence.ExpectedPresent {
+		t.Fatalf("divergence terminal = %+v", decodedDivergence)
 	}
 }

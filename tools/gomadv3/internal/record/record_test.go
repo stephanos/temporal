@@ -356,9 +356,58 @@ func uint64StringPointer(value uint64) *Uint64String {
 	return &converted
 }
 
-func TestCurrentRecordContractIsSchemaV3(t *testing.T) {
-	if SchemaVersion != 3 || RecordContract != "gomadv3.run-record/v3" {
+func TestCurrentRecordContractIsSchemaV4(t *testing.T) {
+	if SchemaVersion != 4 || RecordContract != "gomadv3.run-record/v4" {
 		t.Fatalf("record contract = schema %d %q", SchemaVersion, RecordContract)
+	}
+}
+
+func TestFinalizeManifestRequiresTapeIdentityForCurrentCompleteChoiceTrace(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.ChoiceProfile = &ChoiceProfile{
+		Name: "gomadv3-choice-trace/v2", ImplementationSHA256: HashBytes([]byte("choice implementation")),
+		Trace: ChoiceTrace{
+			Schema: "gomadv3.choice-trace/v2", File: "choices.bin", SHA256: HashBytes(make([]byte, 96)),
+			Bytes: 96, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 160,
+		},
+	}
+	manifest.Limits.ChoiceTraceBytes = 160
+	manifest.Environment = append(manifest.Environment, Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: manifest.ChoiceProfile.Name})
+	sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
+	manifest.Files = append(manifest.Files, File{Path: "choices.bin", Mode: "0600", Size: 96, SHA256: manifest.ChoiceProfile.Trace.SHA256})
+	sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
+	if _, _, err := FinalizeManifest(manifest); err == nil || !strings.Contains(err.Error(), "tape") {
+		t.Fatalf("FinalizeManifest() error = %v", err)
+	}
+}
+
+func TestDecodeManifestAcceptsSchemaV3ObservationalChoiceTrace(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.SchemaVersion = PreviousSchemaVersion
+	manifest.Runner.RecordContract = PreviousRecordContract
+	manifest.ChoiceProfile = &ChoiceProfile{
+		Name: "gomadv3-choice-trace/v1", ImplementationSHA256: HashBytes([]byte("choice implementation")),
+		Trace: ChoiceTrace{
+			Schema: "gomadv3.choice-trace/v1", File: "choices.bin", SHA256: HashBytes(make([]byte, 48)),
+			Bytes: 48, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 112,
+		},
+	}
+	manifest.Limits.ChoiceTraceBytes = 112
+	manifest.Environment = append(manifest.Environment, Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: manifest.ChoiceProfile.Name})
+	sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
+	manifest.Files = append(manifest.Files, File{Path: "choices.bin", Mode: "0600", Size: 48, SHA256: manifest.ChoiceProfile.Trace.SHA256})
+	sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
+
+	_, encoded, err := FinalizeManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeManifest(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.SchemaVersion != PreviousSchemaVersion || decoded.ChoiceProfile == nil || decoded.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v1" || decoded.ChoiceProfile.Trace.TapeSHA256 != "" {
+		t.Fatalf("schema v3 manifest = %#v", decoded)
 	}
 }
 

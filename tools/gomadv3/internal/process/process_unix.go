@@ -23,38 +23,42 @@ type targetIdentity struct {
 }
 
 type supervisorRequest struct {
-	BootstrapCommand     []string      `json:"bootstrap_command"`
-	Command              string        `json:"command"`
-	Args                 []string      `json:"args"`
-	Argv0                string        `json:"argv0"`
-	Dir                  string        `json:"dir"`
-	Env                  []string      `json:"env"`
-	RunTimeout           time.Duration `json:"run_timeout"`
-	TerminateGrace       time.Duration `json:"terminate_grace"`
-	WorldTransitionLimit uint64        `json:"world_transition_limit"`
-	WorldSeed            uint64        `json:"world_seed"`
-	ExpectedWorldInitial []byte        `json:"expected_world_initial"`
-	WorldReplayPlan      []byte        `json:"world_replay_plan"`
-	IOConfig             []byte        `json:"io_config"`
-	IOTranscriptLimit    uint64        `json:"io_transcript_limit"`
-	IOReplay             bool          `json:"io_replay"`
-	IOROMounts           bool          `json:"io_ro_mounts"`
-	ChoiceTrace          bool          `json:"choice_trace"`
-	ChoiceTraceLimit     uint64        `json:"choice_trace_limit"`
+	BootstrapCommand     []string        `json:"bootstrap_command"`
+	Command              string          `json:"command"`
+	Args                 []string        `json:"args"`
+	Argv0                string          `json:"argv0"`
+	Dir                  string          `json:"dir"`
+	Env                  []string        `json:"env"`
+	RunTimeout           time.Duration   `json:"run_timeout"`
+	TerminateGrace       time.Duration   `json:"terminate_grace"`
+	WorldTransitionLimit uint64          `json:"world_transition_limit"`
+	WorldSeed            uint64          `json:"world_seed"`
+	ExpectedWorldInitial []byte          `json:"expected_world_initial"`
+	WorldReplayPlan      []byte          `json:"world_replay_plan"`
+	IOConfig             []byte          `json:"io_config"`
+	IOTranscriptLimit    uint64          `json:"io_transcript_limit"`
+	IOReplay             bool            `json:"io_replay"`
+	IOROMounts           bool            `json:"io_ro_mounts"`
+	ChoiceTrace          bool            `json:"choice_trace"`
+	ChoiceTraceLimit     uint64          `json:"choice_trace_limit"`
+	ChoiceMode           choicewire.Mode `json:"choice_mode"`
+	ChoiceTapeBytes      uint64          `json:"choice_tape_bytes"`
 }
 
 type targetBootstrapRequest struct {
-	Command           string   `json:"command"`
-	Args              []string `json:"args"`
-	Argv0             string   `json:"argv0"`
-	Dir               string   `json:"dir"`
-	Env               []string `json:"env"`
-	IOConfig          []byte   `json:"io_config"`
-	IOTranscriptLimit uint64   `json:"io_transcript_limit"`
-	IOReplay          bool     `json:"io_replay"`
-	IOROMounts        bool     `json:"io_ro_mounts"`
-	ChoiceTrace       bool     `json:"choice_trace"`
-	ChoiceTraceLimit  uint64   `json:"choice_trace_limit"`
+	Command           string          `json:"command"`
+	Args              []string        `json:"args"`
+	Argv0             string          `json:"argv0"`
+	Dir               string          `json:"dir"`
+	Env               []string        `json:"env"`
+	IOConfig          []byte          `json:"io_config"`
+	IOTranscriptLimit uint64          `json:"io_transcript_limit"`
+	IOReplay          bool            `json:"io_replay"`
+	IOROMounts        bool            `json:"io_ro_mounts"`
+	ChoiceTrace       bool            `json:"choice_trace"`
+	ChoiceTraceLimit  uint64          `json:"choice_trace_limit"`
+	ChoiceMode        choicewire.Mode `json:"choice_mode"`
+	ChoiceTapeBytes   uint64          `json:"choice_tape_bytes"`
 }
 
 type supervisorReport struct {
@@ -106,7 +110,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	}
 	var choiceBacking *choiceTraceBacking
 	if request.Choice != nil {
-		choiceBacking, err = newChoiceTraceBacking(request.Choice.Limit)
+		choiceBacking, err = newChoiceTraceBacking(request.Choice.Limit, request.Choice.Mode, request.Choice.Tape)
 		if err != nil {
 			return Result{}, err
 		}
@@ -125,7 +129,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}
 		defer func() { retErr = errors.Join(retErr, readOnlyMountBroker.Close()) }()
 	}
-	capabilities := launchCapabilities{ioTranscript: ioBacking != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceBacking != nil}
+	capabilities := launchCapabilities{ioTranscript: ioBacking != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceBacking != nil, choiceTape: choiceBacking != nil && choiceBacking.expected != nil}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	var mountRequestRead, mountResponseWrite *os.File
@@ -175,6 +179,9 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if choiceBacking != nil {
 		resources.bind(choiceTraceResource, &choiceBacking.file)
 		resources.bind(choiceTerminalResource, &choiceBacking.terminalWrite)
+		if choiceBacking.expected != nil {
+			resources.bind(choiceTapeResource, &choiceBacking.expected)
+		}
 	}
 
 	command := exec.Command(request.SupervisorCommand[0], request.SupervisorCommand[1:]...)
@@ -233,6 +240,10 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	}
 	if request.Choice != nil {
 		wireRequest.ChoiceTraceLimit = request.Choice.Limit
+		wireRequest.ChoiceMode = request.Choice.Mode
+		if request.Choice.Tape != nil {
+			wireRequest.ChoiceTapeBytes = uint64(len(request.Choice.Tape.Bytes))
+		}
 	}
 	if ioCapability != nil {
 		wireRequest.IOConfig = append([]byte(nil), ioCapability.Config...)
@@ -424,6 +435,18 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		result.PGID = final.PGID
 		result.GroupGone = final.GroupGone
 	}
+	var choiceErr error
+	if choiceBacking != nil {
+		terminal := <-choiceTerminal
+		trace, err := choiceBacking.result(terminal)
+		if err == nil || errors.Is(err, ErrChoiceTraceOverflow) || errors.Is(err, ErrChoiceReplayDivergence) {
+			result.ChoiceTrace = ChoiceTrace{Profile: choicewire.Profile, ImplementationSHA256: request.Choice.ImplementationSHA256, Limit: request.Choice.Limit, Trace: trace}
+		}
+		if errors.Is(err, ErrChoiceReplayDivergence) {
+			return result, err
+		}
+		choiceErr = err
+	}
 	if ioBacking != nil {
 		terminal := <-ioTerminal
 		transcript, transcriptErr := ioBacking.result(terminal)
@@ -432,15 +455,8 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}
 		result.IOTranscript = transcript
 	}
-	if choiceBacking != nil {
-		terminal := <-choiceTerminal
-		trace, traceErr := choiceBacking.result(terminal)
-		if traceErr == nil || errors.Is(traceErr, ErrChoiceTraceOverflow) {
-			result.ChoiceTrace = ChoiceTrace{Profile: choicewire.Profile, ImplementationSHA256: request.Choice.ImplementationSHA256, Limit: request.Choice.Limit, Trace: trace}
-		}
-		if traceErr != nil {
-			return result, traceErr
-		}
+	if choiceErr != nil {
+		return result, choiceErr
 	}
 	if readOnlyMountBroker != nil {
 		if err := mountRequestRead.Close(); err != nil && !errors.Is(err, os.ErrClosed) {

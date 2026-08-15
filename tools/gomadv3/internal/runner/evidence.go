@@ -9,7 +9,10 @@ import (
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
-const RunEvidenceSchema = "gomadv3.run-evidence/v1"
+const (
+	RunEvidenceSchema       = "gomadv3.run-evidence/v2"
+	LegacyRunEvidenceSchema = "gomadv3.run-evidence/v1"
+)
 
 type IOProfileEvidence = ioprofile.Identity
 
@@ -39,6 +42,8 @@ type ChoiceEvidence struct {
 	Records                record.Uint64String  `json:"records"`
 	BranchingRecords       record.Uint64String  `json:"branching_records"`
 	TerminalState          string               `json:"terminal_state"`
+	TapeSHA256             record.SHA256        `json:"tape_sha256"`
+	Decisions              record.Uint64String  `json:"decisions"`
 	Runnable               record.Uint64String  `json:"runnable"`
 	SelectPoll             record.Uint64String  `json:"select_poll"`
 	SelectResult           record.Uint64String  `json:"select_result"`
@@ -113,6 +118,7 @@ func runEvidence(
 			Profile: trace.Profile, ImplementationSHA256: record.SHA256FromSum(trace.ImplementationSHA256), Limit: record.Uint64String(trace.Limit),
 			SHA256: record.SHA256FromSum(trace.Trace.SHA256), Records: record.Uint64String(trace.Trace.Summary.Records),
 			BranchingRecords: record.Uint64String(trace.Trace.Summary.Branching), TerminalState: "complete",
+			TapeSHA256: record.SHA256FromSum(trace.TapeSHA256), Decisions: record.Uint64String(trace.Decisions),
 			Runnable: record.Uint64String(trace.Trace.Summary.Runnable), SelectPoll: record.Uint64String(trace.Trace.Summary.SelectPoll), SelectResult: record.Uint64String(trace.Trace.Summary.SelectResult),
 			Features: []choicewire.Feature{},
 		}

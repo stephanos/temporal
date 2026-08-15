@@ -69,6 +69,8 @@ type choiceTraceProjection struct {
 	BranchingRecords Uint64String `json:"branching_records"`
 	TerminalState    string       `json:"terminal_state"`
 	Limit            Uint64String `json:"limit"`
+	TapeSHA256       SHA256       `json:"tape_sha256,omitempty"`
+	Decisions        Uint64String `json:"decisions,omitempty"`
 }
 
 type readOnlyMountProjection struct {
@@ -174,6 +176,7 @@ func projectChoiceProfile(profile *ChoiceProfile) *choiceProfileProjection {
 			Schema: profile.Trace.Schema, SHA256: profile.Trace.SHA256, Bytes: profile.Trace.Bytes,
 			Records: profile.Trace.Records, BranchingRecords: profile.Trace.BranchingRecords,
 			TerminalState: profile.Trace.TerminalState, Limit: profile.Trace.Limit,
+			TapeSHA256: profile.Trace.TapeSHA256, Decisions: profile.Trace.Decisions,
 		},
 	}
 }
