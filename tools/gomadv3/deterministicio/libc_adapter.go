@@ -15,23 +15,29 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
 
 const (
-	libcModulePath         = "modernc.org/libc"
-	libcDarwinSHA256       = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
-	libcDarwinArm64SHA256  = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
-	libcUnixSHA256         = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
-	gomadLibcAdapterSHA256 = "sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c"
-	maximumModuleFiles     = 5000
-	maximumModuleBytes     = 512 << 20
+	libcModulePath              = "modernc.org/libc"
+	libcDarwinSHA256            = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
+	libcDarwinArm64SHA256       = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
+	libcUnixSHA256              = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
+	gomadLibcAdapterSHA256      = "sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c"
+	libcPreparedSourceSetSHA256 = "sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749"
+	maximumModuleFiles          = 5000
+	maximumModuleBytes          = 512 << 20
 )
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
 	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "libc@"+identity.Version))
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("resolve pinned modernc libc module: %w", err)
+	}
+	originalInventory, err := target.DigestAdapterSourceInventory(moduleSource)
+	if err != nil {
+		return adapterPreparation{}, fmt.Errorf("hash pinned modernc libc source inventory: %w", err)
 	}
 	rewrites, source, err := rewriteLibcModule(moduleSource)
 	if err != nil {
@@ -42,12 +48,19 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
 	if err != nil {
 		return adapterPreparation{}, err
 	}
+	replacementInventory, err := target.DigestAdapterSourceInventory(moduleReplacement)
+	if err != nil {
+		return adapterPreparation{}, fmt.Errorf("hash modernc libc replacement inventory: %w", err)
+	}
 	return adapterPreparation{
 		replacement: moduleReplacement,
 		evidence: BuildAdapter{
 			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
 			Source: source, Replacement: replacement, SourceSHA256: libcDarwinSHA256,
-			ReplacementSHA256: digestBytes(rewrites["libc_darwin.go"]),
+			ReplacementSHA256:                digestBytes(rewrites["libc_darwin.go"]),
+			OriginalSourceInventorySHA256:    originalInventory,
+			ReplacementSourceInventorySHA256: replacementInventory,
+			PreparedSourceSetSHA256:          libcPreparedSourceSetSHA256,
 		},
 	}, nil
 }

@@ -1,4 +1,4 @@
-.PHONY: generate clock-audit compiler-test-compiler core-qualification intercept-test patch-test qualification-set runner runner-test overlay-test world-test toolchain upgrade-dossier validate test-harness test-builder test-runtime test-upstream test
+.PHONY: generate clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification intercept-test patch-test qualification-set runner runner-test overlay-test world-test toolchain upgrade-dossier validate test-harness test-builder test-runtime test-upstream test
 
 include version_generated.mk
 
@@ -9,16 +9,19 @@ IOWIRE_INPUTS := deterministicio/schema/iowire.json deterministicio/schema/iowir
 IOWIRE_OUTPUTS := deterministicio/internal/wire/wire_generated.go deterministicio/internal/wire/wire_generated_test.go toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go choice/internal/wire/wire_generated.go choice/internal/wire/wire_generated_test.go toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go
 BOUNDARY_INPUTS := deterministicio/boundary/manifest.json deterministicio/boundary/compiler-tests.json $(shell find deterministicio/boundary -type f -not -name '*_test.go') $(shell find toolchain/internal/generate -name 'boundary*.go' -not -name '*_test.go')
 BOUNDARY_OUTPUTS := $(GOMADV3_COMPILER_SPEC) $(GOMADV3_EXPECTED_INTERCEPTS) $(GOMADV3_BOUNDARY_REPORT) deterministicio/boundary_generated.go
+COMPATIBILITY_INPUTS := $(shell find target/internal/compatibility/requests target/packdev -type f) target/internal/compatibility/schema.go target/internal/compatibility/v2_selection.go
+COMPATIBILITY_OUTPUTS := target/internal/compatibility/generation.json target/internal/compatibility/packs_generated_test.go $(shell find target/internal/compatibility/packs target/internal/compatibility/reports -type f)
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMADV3_QUALIFICATION_ARTIFACTS ?= .toolchain/qualification
 GOMADV3_QUALIFICATION_OUTPUT ?= .toolchain/qualification-set.json
 
-generate: $(VERSION_INPUTS) $(IOWIRE_INPUTS) $(BOUNDARY_INPUTS)
+generate: $(VERSION_INPUTS) $(IOWIRE_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool version-generate
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool protocol-generate
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate -check-compiler-tests
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool compatibility-pack generate --root=$(CURDIR)
 
 patch-test: toolchain
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
@@ -55,6 +58,15 @@ qualification-set: runner
 		--manifest="$(GOMADV3_QUALIFICATION_MANIFEST)" --working-dir="$(GOMADV3_QUALIFICATION_WORKDIR)" \
 		--artifacts="$(GOMADV3_QUALIFICATION_ARTIFACTS)" --output="$(GOMADV3_QUALIFICATION_OUTPUT)"
 
+compatibility-pack-qualification: toolchain
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/reflect2-go126.json --working-dir=$(CURDIR)/../..
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/modernc-libc-xsys-v041.json --working-dir=$(CURDIR)/target/internal/compatibility/testdata/v041
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/modernc-libc-xsys-v047.json --working-dir=$(CURDIR)/qualification/corpus
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/modernc-libc-xsys-v047-isatty-v021.json --working-dir=$(CURDIR)/../..
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/temporal-backoff-overflow.json --working-dir=$(CURDIR)/../..
+	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/xnet-socket-activity-candidate.json --working-dir=$(CURDIR)/../..
+
+core-qualification: compatibility-pack-qualification
 core-qualification: GOMADV3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification: GOMADV3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
 core-qualification: GOMADV3_QUALIFICATION_ARTIFACTS := $(CURDIR)/.toolchain/core-qualification
@@ -84,6 +96,7 @@ validate:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool boundary-generate -check-compiler-tests
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool patch-validate --root=$(CURDIR)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool script-validate --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./toolchain/cmd/gomadtool compatibility-pack check --root=$(CURDIR)
 
 test-harness:
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off go test -tags test_dep \

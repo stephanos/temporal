@@ -190,6 +190,7 @@ gomadv3-integration-test: gomadv3-runner
 	@go test -tags test_dep,gomadv3_integration -count=1 ./tools/gomadv3integration
 
 gomadv3-qualification: gomadv3-runner
+	@$(MAKE) -C tools/gomadv3 compatibility-pack-qualification
 	@$(MAKE) -C tools/gomadv3 qualification-set \
 		GOMADV3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomadv3integration/qualification/temporal.json" \
 		GOMADV3_QUALIFICATION_WORKDIR="$(ROOT)" \
