@@ -1,12 +1,14 @@
 # Gomad v3 Next: Bug-Finding Power
 
+> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). The capability designs, invariants, verification plan, and exit criteria here remain normative.
+
 ## Goal
 
 Increase the number and quality of concurrency failures Gomad finds per unit of compute, then turn each failure into a small, controlled reproduction. The recommended progression is:
 
 > observe choices → control choices → explore alternatives → minimize failures → inject deterministic faults
 
-The first deliverable should be a bounded runtime-choice trace. It is the common substrate for every later feature in this roadmap.
+The completed first deliverable was a bounded runtime-choice trace and exact replay controller. The next slice is bounded alternative-prefix exploration.
 
 ## What success means
 
@@ -29,7 +31,7 @@ A successful campaign is not proof of correctness. It is evidence that a bounded
 - Broad transparent network fault simulation before the current TCP semantics are correct.
 - Unbounded traces, search frontiers, or failure minimization.
 
-## Capability 1: runtime-choice trace
+## BUG-1: Runtime-choice trace
 
 Add a versioned, bounded stream of runtime decisions. Each record should contain only stable logical data:
 
@@ -53,7 +55,7 @@ The trace must be optional and identified as an execution profile because observ
 
 Introduce one choice protocol module that owns encoding, bounds, validation, terminal state, and projection. The runner should consume a validated choice artifact rather than know runtime record details. Runtime-specific encoding should not leak into guidance, replay, or CLI packages.
 
-## Capability 2: choice coverage and feedback
+## BUG-2: Choice coverage and feedback
 
 Extend semantic guidance with choice features:
 
@@ -68,13 +70,13 @@ Use these features to retain novel successful seeds and rank the existing corpus
 
 Do not begin with source-code coverage. Compiler coverage instrumentation changes program structure and scheduling, and branch coverage says little about schedule diversity. Choice coverage directly measures the mechanism Gomad controls. Code coverage can later be a separate, explicitly perturbing profile.
 
-## Capability 3: exact choice-tape replay
+## BUG-3: Exact choice-tape replay
 
 Implemented in the v2 choice controller: retained complete traces derive an
 identity-bound immutable tape, artifact replay supplies it automatically, and
 the runtime rejects mismatches before applying a decision. V1 traces remain
 readable observational evidence but cannot claim exact replay. The `prefix`
-mode is available internally for Capability 4; this capability does not expose
+mode is available internally for BUG-4; this capability does not expose
 a public tape or prefix flag.
 
 Separate decision production from the runtime RNG. A choice controller should support four modes:
@@ -88,7 +90,7 @@ Replay must validate each choice before applying it. A mismatch in kind, site, a
 
 The choice tape should complement, not replace, I/O and World replay. Replay succeeds only when all enabled controllers consume their expected input and the final outcome/evidence matches.
 
-## Capability 4: bounded alternative-prefix exploration
+## BUG-4: Bounded alternative-prefix exploration
 
 Once choices can be recorded and forced, add an explorer that derives new runs from observed branching points. Start with a simple bounded frontier rather than DPOR:
 
@@ -110,7 +112,7 @@ The campaign plan and artifact must record strategy and all search bounds. Resum
 
 This will not eliminate redundant schedules. It provides a controlled foundation on which happens-before reduction could later be evaluated using measurements from real workloads.
 
-## Capability 5: failure minimization
+## BUG-5: Failure minimization
 
 Add `gomad minimize <artifact>` for exact-replay failures. The predicate is preservation of the same normalized failure signature and replay-compatible outcome.
 
@@ -125,7 +127,7 @@ Every candidate runs in a fresh process under the same target and platform ident
 
 Do not claim general input shrinking. Target inputs are opaque unless a scenario adapter supplies a typed shrinker.
 
-## Capability 6: deterministic fault plans
+## BUG-6: Deterministic fault plans
 
 Extend World with a versioned fault-plan interface for explicit adapters. Initial fault actions should be small and composable:
 
@@ -139,7 +141,7 @@ Match faults on stable adapter, resource, operation, and occurrence identities. 
 
 Begin with mailbox and purpose-built Temporal test adapters. Do not retrofit transparent TCP into a distributed network simulator in this phase. Partitions, packet loss, and reordering require a richer network semantics and should be justified by workload evidence.
 
-## Capability 7: later research extensions
+## BUG-7: Later research extensions
 
 Evaluate these only after the choice controller is stable:
 
@@ -218,6 +220,6 @@ At 10× choice volume, memory must remain bounded by streaming validation, on-di
 - Fault plans replay exactly and unused/extra faults diverge.
 - At least one representative Temporal workload finds a failure path not reached by the same seed budget without fault control.
 
-## Recommended first slice
+## Recommended next slice
 
-Implement only choice trace v1, artifact storage, and `inspect --choices`. Use it on the existing runtime and Temporal qualification corpus before designing frontier policy. The observed record volume, choice kinds, branching density, and perturbation cost should determine the next slice.
+Implement only BUG-4's raw bounded alternative-prefix frontier above the existing internal prefix controller. Persist the strategy, limits, completed prefixes, and remaining frontier; prove enumeration and resume on small state machines with known outcomes; then compare executions and distinct outcomes per compute-hour against seed sampling before adding minimization, PCT, or dependency reduction.

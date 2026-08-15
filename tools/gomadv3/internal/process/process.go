@@ -179,7 +179,7 @@ func validateRequest(request Request) error {
 			if len(choice.Tape.Bytes) > maximumChoiceTapeBytes {
 				return errors.New("choice decision tape exceeds its bound")
 			}
-			if _, err := choicewire.ValidateDecisionTape(*choice.Tape, choice.ExecutionIdentity); err != nil {
+			if _, err := validateChoiceTape(*choice.Tape, choice.ExecutionIdentity, choice.Mode); err != nil {
 				return fmt.Errorf("validate choice decision tape: %w", err)
 			}
 		}
@@ -222,6 +222,13 @@ func validateRequest(request Request) error {
 		return fmt.Errorf("invalid expected I/O transcript length %d", len(transcript.Expected))
 	}
 	return nil
+}
+
+func validateChoiceTape(tape choicewire.Tape, identity choicewire.ExecutionIdentity, mode choicewire.Mode) (choicewire.Tape, error) {
+	if mode == choicewire.ModePrefix {
+		return choicewire.ValidatePrefixTape(tape, identity)
+	}
+	return choicewire.ValidateDecisionTape(tape, identity)
 }
 
 func validateChoiceEnvironment(environment []string) error {

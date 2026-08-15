@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/internal/artifact"
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/choicewire"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
@@ -31,7 +32,8 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 		mountValues[index] = mount.Source + "=" + strings.TrimPrefix(mount.Target, "/")
 	}
 	plan := artifact.BatchPlan{
-		Schema: artifact.BatchPlanSchema, Selection: config.Seeds, SelectionCount: record.Uint64String(selectionCount), Parallel: record.Uint64String(config.Parallel),
+		Schema: artifact.BatchPlanSchema, Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: record.Uint64String(selectionCount), Parallel: record.Uint64String(config.Parallel),
+		MaxRuns: record.Uint64String(config.MaxRuns), MaxChoiceDepth: record.Uint64String(config.MaxChoiceDepth), MaxFrontierBytes: record.Uint64String(config.MaxFrontierBytes),
 		RunTimeoutNanos: record.Uint64String(config.RunTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout), TerminateGraceNanos: record.Uint64String(config.TerminateGrace),
 		OnFailure: string(config.OnFailure), FailureBudget: record.Uint64String(config.FailureBudget), OutputBytes: record.Uint64String(config.OutputLimit), WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
 		RunnerBuild: config.RunnerBuild,
@@ -43,6 +45,9 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: romount.RecordLimits(config.IOROMountLimits),
 		Coverage: string(normalizedCoverage(config.Coverage)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
+	}
+	if normalizedStrategy(config.Strategy) == StrategyChoiceFrontier {
+		plan.FrontierImplementationSHA256 = choicefrontier.ImplementationSHA256()
 	}
 	if config.ChoiceTraceLimit != 0 {
 		implementation, err := choicewire.ImplementationIdentity(prepared.BuildKey)
@@ -57,6 +62,13 @@ func batchPlan(config Config, journal *artifact.BatchJournal, prepared target.Pr
 		plan.Guidance = &artifact.GuidancePlan{Corpus: config.Corpus, SnapshotSHA256: config.GuideSnapshotSHA256}
 	}
 	return plan, nil
+}
+
+func normalizedStrategy(strategy Strategy) Strategy {
+	if strategy == "" {
+		return StrategySeed
+	}
+	return strategy
 }
 
 func normalizedCoverage(mode CoverageMode) CoverageMode {

@@ -29,6 +29,7 @@ type Decision struct {
 	Kind                 Kind
 	SiteOffset           uint64
 	SiteMissing          bool
+	RankOverride         bool
 	Alternatives         uint32
 	Selected             uint32
 	Data                 uint32
@@ -40,6 +41,9 @@ func (decision Decision) Record() Record {
 	flags := FlagDecision
 	if decision.SiteMissing {
 		flags |= FlagSiteMissing
+	}
+	if decision.RankOverride {
+		flags |= FlagRankOverride
 	}
 	return Record{
 		Ordinal: decision.Ordinal, Kind: decision.Kind, Flags: flags, Alternatives: decision.Alternatives,
@@ -54,7 +58,7 @@ func decisionFromRecord(record Record) (Decision, error) {
 	}
 	return Decision{
 		Ordinal: record.Ordinal, Kind: record.Kind, SiteOffset: record.SiteOffset,
-		SiteMissing: record.Flags&FlagSiteMissing != 0, Alternatives: record.Alternatives,
+		SiteMissing: record.Flags&FlagSiteMissing != 0, RankOverride: record.Flags&FlagRankOverride != 0, Alternatives: record.Alternatives,
 		Selected: record.Selected, Data: record.Data, SelectedIdentity: record.SelectedIdentity,
 		AlternativeSetDigest: record.AlternativeSetDigest,
 	}, nil
@@ -155,7 +159,61 @@ func ValidateDecisionTape(tape Tape, identity ExecutionIdentity) (Tape, error) {
 	if tape.SHA256 != sha256.Sum256(tape.Bytes) {
 		return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice tape digest mismatch"))
 	}
-	return decodeTape(tape.Bytes, identity)
+	validated, err := decodeTape(tape.Bytes, identity)
+	if err != nil {
+		return Tape{}, err
+	}
+	for _, decision := range validated.Decisions {
+		if decision.RankOverride {
+			return Tape{}, errors.Join(ErrInvalidTape, errors.New("exact choice tape contains a rank override"))
+		}
+	}
+	return validated, nil
+}
+
+func ValidatePrefixTape(tape Tape, identity ExecutionIdentity) (Tape, error) {
+	if tape.SHA256 != sha256.Sum256(tape.Bytes) {
+		return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice tape digest mismatch"))
+	}
+	validated, err := decodeTape(tape.Bytes, identity)
+	if err != nil {
+		return Tape{}, err
+	}
+	for index, decision := range validated.Decisions {
+		if !decision.RankOverride {
+			continue
+		}
+		if index != len(validated.Decisions)-1 || decision.Kind == KindSelectResult || decision.SelectedIdentity != ([sha256.Size]byte{}) {
+			return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice rank override must be the final prefix decision"))
+		}
+	}
+	return validated, nil
+}
+
+func BuildRankPrefix(source Tape, decisionOrdinal uint64, rank uint32) (Tape, error) {
+	validated, err := ValidateDecisionTape(source, source.Identity)
+	if err != nil {
+		return Tape{}, err
+	}
+	if decisionOrdinal >= uint64(len(validated.Decisions)) {
+		return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice rank override exceeds its source tape"))
+	}
+	target := validated.Decisions[decisionOrdinal]
+	if rank >= target.Alternatives {
+		return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice rank override is outside its alternative set"))
+	}
+	if rank == target.Selected {
+		return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice rank override must select a non-selected alternative"))
+	}
+	decisions := append([]Decision(nil), validated.Decisions[:decisionOrdinal+1]...)
+	decisions[decisionOrdinal].Selected = rank
+	decisions[decisionOrdinal].SelectedIdentity = [sha256.Size]byte{}
+	decisions[decisionOrdinal].RankOverride = true
+	sourceHash, err := rankPrefixSourceHash(decisions)
+	if err != nil {
+		return Tape{}, err
+	}
+	return encodeTape(validated.Identity, sourceHash, decisions)
 }
 
 func (tape Tape) Prefix(records uint64) (Tape, error) {
@@ -210,6 +268,23 @@ func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decis
 	}, nil
 }
 
+func rankPrefixSourceHash(decisions []Decision) ([sha256.Size]byte, error) {
+	hasher := sha256.New()
+	_, _ = hasher.Write([]byte("gomadv3-choice-rank-prefix/v1"))
+	_, _ = hasher.Write([]byte{0})
+	for index, decision := range decisions {
+		decision.Ordinal = uint64(index)
+		record, err := EncodeRecord(decision.Record())
+		if err != nil {
+			return [sha256.Size]byte{}, errors.Join(ErrInvalidTape, fmt.Errorf("encode rank prefix decision %d: %w", index, err))
+		}
+		_, _ = hasher.Write(record[:])
+	}
+	var result [sha256.Size]byte
+	copy(result[:], hasher.Sum(nil))
+	return result, nil
+}
+
 func decodeTape(encoded []byte, identity ExecutionIdentity) (Tape, error) {
 	if len(encoded) < TapeHeaderBytes {
 		return Tape{}, errors.Join(ErrInvalidTape, errors.New("choice tape is shorter than its header"))
@@ -259,6 +334,11 @@ func decodeTape(encoded []byte, identity ExecutionIdentity) (Tape, error) {
 type encodedExecutionIdentity struct {
 	toolchain [sha256.Size]byte
 	platform  [sha256.Size]byte
+}
+
+func ValidateExecutionIdentity(identity ExecutionIdentity) error {
+	_, err := tapeHeaderIdentity(identity)
+	return err
 }
 
 func tapeHeaderIdentity(identity ExecutionIdentity) (encodedExecutionIdentity, error) {
@@ -316,7 +396,13 @@ func ValidateDivergenceTerminal(tape Tape, mode Mode, terminal Terminal) (Diverg
 	if mode != ModeReplay && mode != ModePrefix {
 		return Divergence{}, errors.New("choice divergence validation requires replay or prefix mode")
 	}
-	validated, err := ValidateDecisionTape(tape, tape.Identity)
+	var validated Tape
+	var err error
+	if mode == ModePrefix {
+		validated, err = ValidatePrefixTape(tape, tape.Identity)
+	} else {
+		validated, err = ValidateDecisionTape(tape, tape.Identity)
+	}
 	if err != nil {
 		return Divergence{}, err
 	}

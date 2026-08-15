@@ -70,13 +70,17 @@ func resumeConfiguration(request Config, plan artifact.BatchPlan) (Config, SeedS
 		}
 	}
 	config := Config{
-		ResumeBatch: request.ResumeBatch, Seeds: plan.Selection, Parallel: int(plan.Parallel), RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
+		ResumeBatch: request.ResumeBatch, Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
+		MaxRuns: uint64(plan.MaxRuns), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxFrontierBytes: uint64(plan.MaxFrontierBytes),
 		Artifacts: filepath.Dir(filepath.Dir(request.ResumeBatch)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor, Replayer: request.Replayer,
+	}
+	if config.Strategy == "" {
+		config.Strategy = StrategySeed
 	}
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
@@ -114,6 +118,9 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []arti
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		seed, ok := selection.SeedAt(ordinal)
+		if run.Strategy == string(StrategyChoiceFrontier) {
+			seed, ok = selection.SeedAt(0)
+		}
 		if !ok || seed != uint64(run.Seed) {
 			return resumeSummaryState{}, fmt.Errorf("resumable run %d seed does not match selection ordinal", index+1)
 		}

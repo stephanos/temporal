@@ -14,6 +14,7 @@ func TestChoiceWireRecordRoundTrip(t *testing.T) {
 		{Ordinal: 4, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 32, Alternatives: 3, Selected: 1, SelectedIdentity: selected, AlternativeSetDigest: set},
 		{Ordinal: 5, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 0, SelectedIdentity: selected, AlternativeSetDigest: set},
 		{Ordinal: 6, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 48, Alternatives: 4, Selected: 3, Data: 2},
+		{Ordinal: 7, Kind: KindRunnable, Flags: FlagDecision | FlagRankOverride, SiteOffset: 64, Alternatives: 3, Selected: 2, AlternativeSetDigest: set},
 	}
 	for _, value := range values {
 		encoded, err := EncodeRecord(value)

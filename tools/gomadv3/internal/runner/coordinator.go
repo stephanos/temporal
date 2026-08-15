@@ -22,6 +22,7 @@ const maximumCoordinatorMessageBytes = 16 << 20
 
 type coordinatorConfig struct {
 	ResumeBatch            string
+	Strategy               Strategy
 	Seeds                  string
 	Parallel               int
 	RunTimeout             time.Duration
@@ -32,6 +33,9 @@ type coordinatorConfig struct {
 	OutputLimit            uint64
 	WorldTransitionLimit   uint64
 	ChoiceTraceLimit       uint64
+	MaxRuns                uint64
+	MaxChoiceDepth         uint64
+	MaxFrontierBytes       uint64
 	Artifacts              string
 	Environment            []string
 	IOROMounts             []string
@@ -95,9 +99,10 @@ func runIsolated(ctx context.Context, config Config) (Summary, error) {
 	reserve := min(250*time.Millisecond, max(time.Until(deadline)/5, time.Nanosecond))
 	childTimeout := max(time.Until(deadline)-2*reserve, time.Nanosecond)
 	wire := coordinatorConfig{
-		ResumeBatch: config.ResumeBatch, Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
+		ResumeBatch: config.ResumeBatch, Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
-		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit, Artifacts: config.Artifacts,
+		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit,
+		MaxRuns: config.MaxRuns, MaxChoiceDepth: config.MaxChoiceDepth, MaxFrontierBytes: config.MaxFrontierBytes, Artifacts: config.Artifacts,
 		Environment: append([]string(nil), config.Environment...), Target: config.Target,
 		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
@@ -283,9 +288,10 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 		return fmt.Errorf("trailing coordinator request %v: %w", token, err)
 	}
 	config := Config{
-		ResumeBatch: wire.ResumeBatch, Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
+		ResumeBatch: wire.ResumeBatch, Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
-		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit, Artifacts: wire.Artifacts,
+		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit,
+		MaxRuns: wire.MaxRuns, MaxChoiceDepth: wire.MaxChoiceDepth, MaxFrontierBytes: wire.MaxFrontierBytes, Artifacts: wire.Artifacts,
 		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
 		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
 		ProgressInterval: wire.ProgressInterval,
