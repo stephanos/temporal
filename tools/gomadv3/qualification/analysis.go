@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
-const AnalysisSchema = "gomadv3.capability-analysis/v1"
+const AnalysisSchema = "gomadv3.capability-analysis/v2"
 
 const MaximumAnalysisReportBytes = 16 << 20
 
@@ -96,7 +96,7 @@ func BuildAnalysis(input AnalysisInput) (AnalysisReport, error) {
 	if input.Spec.Kind != target.KindGoRun && input.Spec.Kind != target.KindGoTest {
 		return AnalysisReport{}, errors.New("capability analysis requires a go-run or go-test target")
 	}
-	if input.Review.Schema != target.CapabilityReviewSchema || input.Review.Closure.Schema == "" || input.Review.Roots == nil || input.Review.Packs == nil || input.Review.Findings == nil {
+	if input.Review.Schema != target.CapabilityReviewSchema || input.Review.Closure.Schema != target.CapabilityClosureSchema || input.Review.Roots == nil || input.Review.Packs == nil || input.Review.Findings == nil {
 		return AnalysisReport{}, errors.New("capability analysis review evidence is incomplete")
 	}
 	if len(input.Review.Roots) == 0 || len(input.Review.Closure.Packages) == 0 {

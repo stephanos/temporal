@@ -42,6 +42,13 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 		t.Fatalf("adapters = %#v", adapters)
 	}
 	adapter := adapters[0]
+	if len(spec.AdapterReplacements) != 1 {
+		t.Fatalf("adapter replacements = %#v", spec.AdapterReplacements)
+	}
+	projected := spec.AdapterReplacements[0]
+	if projected.Original.Path != adapter.Module || projected.Adapter.Path != adapter.Module || projected.ReplacementPath != filepath.Dir(adapter.Replacement) || projected.ReplacementSourceInventorySHA256 != adapter.ReplacementSourceInventorySHA256 || projected.PreparedSourceSetSHA256 == "" {
+		t.Fatalf("adapter projection = %#v, adapter = %#v", projected, adapter)
+	}
 	if spec.BuildModFile != adapter.BuildModFile || spec.BuildOverlay != "" || adapter.Module != "modernc.org/libc" || adapter.SourceSHA256 != "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e" {
 		t.Fatalf("adapter = %#v, spec = %#v", adapter, spec)
 	}

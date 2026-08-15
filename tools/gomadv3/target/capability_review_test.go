@@ -17,6 +17,7 @@ import (
 func TestProjectCapabilityReviewCollectsEveryDeniedFinding(t *testing.T) {
 	directory := t.TempDir()
 	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "target.go"), []byte("package main\n\n//go:linkname malformed\nfunc malformed()\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "escape.c"), []byte("int escape;\n"), 0o600))
 
 	review, err := projectCapabilityReview([]listedPackage{
 		{
@@ -60,6 +61,68 @@ func TestProjectCapabilityReviewCollectsEveryDeniedFinding(t *testing.T) {
 		t.Fatalf("validateCapabilityReview() error = %T %v", err, err)
 	}
 	requireTestEqual(t, review.Findings[0], unsupported.Finding)
+}
+
+func TestProjectCapabilityReviewHashesForeignSources(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\n\nfunc main() {}\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "escape.c"), []byte("int escape;\n"), 0o600))
+
+	review, err := projectCapabilityReview([]listedPackage{{
+		ImportPath: "example.com/target", Name: "main", Dir: directory,
+		GoFiles: []string{"main.go"}, CFiles: []string{"escape.c"}, Module: &listedModule{Path: "example.com/target", Main: true},
+	}}, nil, nil)
+	requireTestNoError(t, err)
+	requireTestEqual(t, []CapabilityForeignSource{{
+		Kind: "c", Name: "escape.c", SHA256: "sha256:38e20fd52e198548ec375726cb0095711eb8788e4425035fe3c1ea598ad312a2",
+	}}, review.Closure.Packages[0].ForeignSources)
+	requireTestEqual(t, "foreign:c:escape.c", review.Findings[0].Capability)
+	requireTestEqual(t, "escape.c", review.Findings[0].SourceName)
+	requireTestEqual(t, "sha256:38e20fd52e198548ec375726cb0095711eb8788e4425035fe3c1ea598ad312a2", review.Findings[0].SourceSHA256)
+	policyPackage := capabilityCompatibilityPackage(review.Closure.Packages[0])
+	requireTestEqual(t, []compatibility.ForeignSource{{
+		Kind: "c", Name: "escape.c", SHA256: "sha256:38e20fd52e198548ec375726cb0095711eb8788e4425035fe3c1ea598ad312a2",
+	}}, policyPackage.ForeignSources)
+	if len(policyPackage.GoSources) != 1 || policyPackage.GoSources[0].Name != "main.go" {
+		t.Fatalf("policy package = %#v", policyPackage)
+	}
+}
+
+func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T) {
+	directory := t.TempDir()
+	replacement := filepath.Join(directory, "replacement")
+	requireTestNoError(t, os.Mkdir(replacement, 0o700))
+	requireTestNoError(t, os.WriteFile(filepath.Join(replacement, "main.go"), []byte("package adapter\n"), 0o600))
+	moduleSum := "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+	adapter := AdapterReplacement{
+		Original:        ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
+		ReplacementPath: replacement,
+		ProfileName:     "gomadv3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
+		Adapter:                          ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
+		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
+		ReplacementSourceInventorySHA256: "sha256:4ddea8f6f238465a2a12e9b32c32a17421d205dbf318d75f49e9fc3378c9b64b",
+		PreparedSourceSetSHA256:          "sha256:bb21537d27aaf3797c51cc354bfca8306defdbd42e1757b04fc682000bbeb12f",
+	}
+
+	review, err := projectCapabilityReview([]listedPackage{{
+		ImportPath: "example.com/adapter", Name: "adapter", Dir: replacement, GoFiles: []string{"main.go"},
+		Module: &listedModule{Path: "example.com/adapter", Version: "v1.2.3", Replace: &listedModule{Dir: replacement}},
+	}, {
+		ImportPath: "example.com/target", Name: "main", Standard: true,
+	}}, nil, nil, []AdapterReplacement{adapter})
+	requireTestNoError(t, err)
+	module := review.Closure.Packages[0].Module
+	if module == nil || module.Sum != moduleSum || module.Adapter == nil || module.Adapter.ReplacementSourceInventorySHA256 != adapter.ReplacementSourceInventorySHA256 {
+		t.Fatalf("module = %#v", module)
+	}
+
+	adapter.ReplacementPath = filepath.Join(directory, "other")
+	if _, err := projectCapabilityReview([]listedPackage{{
+		ImportPath: "example.com/adapter", Name: "adapter", Dir: replacement, GoFiles: []string{"main.go"},
+		Module: &listedModule{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum, Replace: &listedModule{Dir: replacement}},
+	}, {ImportPath: "example.com/target", Name: "main", Standard: true}}, nil, nil, []AdapterReplacement{adapter}); err == nil {
+		t.Fatal("projectCapabilityReview() accepted the wrong adapter path")
+	}
 }
 
 func TestProjectCapabilityReviewTreatsUnreadableSourceAsInfrastructureFailure(t *testing.T) {

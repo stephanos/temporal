@@ -449,7 +449,7 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	forgedClosure.Packages = append([]CapabilityPackage(nil), closure.Packages...)
 	forgedClosure.Packages = append(forgedClosure.Packages, CapabilityPackage{
 		ImportPath: "example.com/forged", Name: "forged", Standard: true, Imports: []string{"os/exec"},
-		Sources: []CapabilitySource{}, ForeignSources: []string{},
+		Sources: []CapabilitySource{}, ForeignSources: []CapabilityForeignSource{},
 	})
 	sort.Slice(forgedClosure.Packages, func(i, j int) bool {
 		if forgedClosure.Packages[i].ImportPath != forgedClosure.Packages[j].ImportPath {
@@ -604,7 +604,7 @@ func TestValidateExecCapabilityModulesMatchesBuildInfo(t *testing.T) {
 	closure.Packages = append([]CapabilityPackage{{
 		ImportPath: "example.net/dependency", Name: "dependency", Imports: []string{},
 		Module:  &CapabilityModule{Path: "example.net/dependency", Version: "v1.2.3", Sum: "h1:sum"},
-		Sources: []CapabilitySource{{Name: "dependency.go", SHA256: "sha256:" + strings.Repeat("d", 64)}}, ForeignSources: []string{},
+		Sources: []CapabilitySource{{Name: "dependency.go", SHA256: "sha256:" + strings.Repeat("d", 64)}}, ForeignSources: []CapabilityForeignSource{},
 	}}, closure.Packages...)
 	info := &debug.BuildInfo{
 		Main: debug.Module{Path: "example.com/target"},
@@ -672,12 +672,12 @@ func toolchainRoot(t *testing.T) string {
 
 func validCapabilityClosure() CapabilityClosure {
 	return CapabilityClosure{
-		Schema:        capabilityClosureSchema,
+		Schema:        CapabilityClosureSchema,
 		Compatibility: []compatibility.Identity{},
 		Packages: []CapabilityPackage{{
 			ImportPath: "example.com/target", Name: "main", Imports: []string{},
 			Module:  &CapabilityModule{Path: "example.com/target", Main: true},
-			Sources: []CapabilitySource{{Name: "main.go", SHA256: "sha256:" + strings.Repeat("c", 64)}}, ForeignSources: []string{},
+			Sources: []CapabilitySource{{Name: "main.go", SHA256: "sha256:" + strings.Repeat("c", 64)}}, ForeignSources: []CapabilityForeignSource{},
 		}},
 	}
 }

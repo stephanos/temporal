@@ -34,16 +34,34 @@ const provenanceSchema = "gomadv3.exec-provenance/v2"
 const maximumProvenanceBytes = 16 << 20
 
 type Spec struct {
-	Kind            Kind
-	Source          string
-	Provenance      string
-	Args            []string
-	BuildTags       []string
-	WorkingDir      string
-	PreparationRoot string
-	ToolchainRoot   string
-	BuildOverlay    string
-	BuildModFile    string
+	Kind                Kind
+	Source              string
+	Provenance          string
+	Args                []string
+	BuildTags           []string
+	WorkingDir          string
+	PreparationRoot     string
+	ToolchainRoot       string
+	BuildOverlay        string
+	BuildModFile        string
+	AdapterReplacements []AdapterReplacement
+}
+
+type ModuleIdentity struct {
+	Path    string `json:"path"`
+	Version string `json:"version"`
+	Sum     string `json:"sum"`
+}
+
+type AdapterReplacement struct {
+	Original                         ModuleIdentity
+	ReplacementPath                  string
+	ProfileName                      string
+	ProfileImplementationSHA256      string
+	Adapter                          ModuleIdentity
+	OriginalSourceInventorySHA256    string
+	ReplacementSourceInventorySHA256 string
+	PreparedSourceSetSHA256          string
 }
 
 type ToolchainIdentity struct {

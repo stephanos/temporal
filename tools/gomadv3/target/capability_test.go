@@ -25,6 +25,13 @@ func TestValidateCapabilityClosureRejectsEscapeCapabilities(t *testing.T) {
 	}
 	for name, pkg := range tests {
 		t.Run(name, func(t *testing.T) {
+			directory := t.TempDir()
+			pkg.Dir = directory
+			for _, source := range append(append(append([]string{}, pkg.CgoFiles...), pkg.SFiles...), pkg.SysoFiles...) {
+				if err := os.WriteFile(filepath.Join(directory, source), []byte("foreign source\n"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
 			if err := validateCapabilityClosure([]listedPackage{pkg}); err == nil || !strings.Contains(err.Error(), "unsupported target capability") {
 				t.Fatalf("validateCapabilityClosure() error = %v", err)
 			}
@@ -50,21 +57,13 @@ func TestValidateCapabilityClosureRejectsLinkname(t *testing.T) {
 	}
 }
 
-func TestValidateCapabilityClosureAllowsPinnedReflect2Linkname(t *testing.T) {
-	moduleCache, err := ReadModuleCache(context.Background(), toolchainRoot(t))
-	if err != nil {
-		t.Fatal(err)
-	}
-	directory := filepath.Join(moduleCache, "github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee")
+func TestValidateCapabilityClosureRejectsUnapprovedReflect2ForeignSources(t *testing.T) {
 	packages := []listedPackage{
 		{ImportPath: "example.com/main", Name: "main", Standard: true},
-		{
-			ImportPath: "github.com/modern-go/reflect2", Name: "reflect2", Dir: directory, GoFiles: []string{"go_above_118.go"},
-			Module: &listedModule{Path: "github.com/modern-go/reflect2", Version: "v1.0.3-0.20250322232337-35a7c28c31ee", Sum: "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8="},
-		},
+		pinnedReflect2ListedPackage(t),
 	}
-	if err := validateCapabilityClosure(packages); err != nil {
-		t.Fatal(err)
+	if err := validateCapabilityClosure(packages); err == nil || !strings.Contains(err.Error(), "relfect2_arm64.s") {
+		t.Fatalf("validateCapabilityClosure() error = %v", err)
 	}
 }
 
@@ -128,10 +127,15 @@ func TestValidateCapabilityClosureIgnoresUnlinkedDependencyTests(t *testing.T) {
 	}
 }
 
-func TestValidateCapabilityClosureAllowsStandardLibraryAndPinnedAdapter(t *testing.T) {
+func TestValidateCapabilityClosureRejectsIncompletePinnedAdapterEvidence(t *testing.T) {
 	directory := t.TempDir()
 	if err := os.WriteFile(filepath.Join(directory, "adapter.go"), []byte("package adapter\n"), 0o600); err != nil {
 		t.Fatal(err)
+	}
+	for _, source := range []string{"asm_bsd_arm64.s", "zsyscall_darwin_arm64.s"} {
+		if err := os.WriteFile(filepath.Join(directory, source), []byte("foreign source\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
 	}
 	packages := []listedPackage{
 		{ImportPath: "example.com/main", Name: "main", Standard: true},
@@ -144,24 +148,41 @@ func TestValidateCapabilityClosureAllowsStandardLibraryAndPinnedAdapter(t *testi
 		{ImportPath: "modernc.org/memory", Name: "memory", Dir: directory, GoFiles: []string{"adapter.go"}, Imports: []string{"golang.org/x/sys/unix"}, Module: &listedModule{Path: "modernc.org/memory", Version: "v1.11.0", Sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}},
 		{ImportPath: "modernc.org/sqlite", Name: "sqlite", Dir: directory, GoFiles: []string{"adapter.go"}, Imports: []string{"golang.org/x/sys/unix"}, Module: &listedModule{Path: "modernc.org/sqlite", Version: "v1.51.0", Sum: "h1:aH/MMSoayAIhozZ7uJbVTT9QO/VhzBf0J9tymmmuC/U="}},
 	}
-	if err := validateCapabilityClosure(packages); err != nil {
-		t.Fatal(err)
+	if err := validateCapabilityClosure(packages); err == nil {
+		t.Fatal("validateCapabilityClosure() accepted incomplete adapter and source evidence")
 	}
 }
 
 func TestProjectCapabilityClosureRecordsSelectedCompatibilityPack(t *testing.T) {
 	closure, err := projectCapabilityClosure([]listedPackage{
 		{ImportPath: "example.com/main", Name: "main", Standard: true},
-		{ImportPath: "modernc.org/libc", Name: "libc", Module: &listedModule{
-			Path: "modernc.org/libc", Version: "v1.72.3", Replace: &listedModule{Dir: "/private/gomad/libc"},
-		}},
-		{ImportPath: "golang.org/x/sys/unix", Name: "unix", Module: &listedModule{Path: "golang.org/x/sys", Version: "v0.47.0", Sum: "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs="}},
+		pinnedReflect2ListedPackage(t),
 	}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(closure.Compatibility) != 1 || closure.Compatibility[0].ID != "modernc-libc-xsys-v047" || closure.Compatibility[0].SHA256 == "" {
+	if len(closure.Compatibility) != 1 || closure.Compatibility[0].ID != "reflect2-go126" || closure.Compatibility[0].SHA256 == "" {
 		t.Fatalf("compatibility = %#v", closure.Compatibility)
+	}
+}
+
+func pinnedReflect2ListedPackage(t *testing.T) listedPackage {
+	t.Helper()
+	moduleCache, err := ReadModuleCache(context.Background(), toolchainRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return listedPackage{
+		ImportPath: "github.com/modern-go/reflect2", Name: "reflect2",
+		Dir: filepath.Join(moduleCache, "github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee"),
+		GoFiles: []string{
+			"go_above_118.go", "go_above_19.go", "reflect2.go", "reflect2_kind.go", "safe_field.go", "safe_map.go", "safe_slice.go", "safe_struct.go", "safe_type.go", "type_map.go",
+			"unsafe_array.go", "unsafe_eface.go", "unsafe_field.go", "unsafe_iface.go", "unsafe_link.go", "unsafe_map.go", "unsafe_ptr.go", "unsafe_slice.go", "unsafe_struct.go", "unsafe_type.go",
+		},
+		SFiles: []string{"relfect2_arm64.s", "relfect2_mips64x.s", "relfect2_mipsx.s", "relfect2_ppc64x.s"},
+		Module: &listedModule{
+			Path: "github.com/modern-go/reflect2", Version: "v1.0.3-0.20250322232337-35a7c28c31ee", Sum: "h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=",
+		},
 	}
 }
 

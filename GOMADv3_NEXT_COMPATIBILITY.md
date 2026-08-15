@@ -94,6 +94,15 @@ For every tier, record multiple seeds or choice prefixes, replay qualification, 
 
 ## COMPAT-4: Compatibility-pack development kit
 
+Implementation uses a v2-only, exact-source policy and a governed
+discover/review/approve/generate/check/qualify workflow. Active migration
+requests and unapproved candidate reports live under
+`tools/gomadv3/target/internal/compatibility`; exact review digests, rather
+than boolean approval, gate publication. Registered adapter evidence replaces
+the former arbitrary-local-replacement representation. The backoff and
+Activity candidates remain denied pending the COMPAT-6 or deterministic
+adapter evidence described below.
+
 Turn exact compatibility packs into a governed extension point rather than hand-authored exceptions. Provide a generator/validator that:
 
 - captures module path, version, sum, replacement state, package source-set digest, and exact source hashes;

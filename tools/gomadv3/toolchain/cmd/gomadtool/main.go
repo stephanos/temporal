@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/toolchain/internal/validation"
 )
 
-const usage = "usage: gomadtool boundary-generate|build-key|checked-run|patch-materialize|patch-regenerate|patch-validate|protocol-generate|script-validate|test|test-mode|toolchain-build|upgrade-dossier|version-generate [flags]"
+const usage = "usage: gomadtool boundary-generate|build-key|checked-run|compatibility-pack|patch-materialize|patch-regenerate|patch-validate|protocol-generate|script-validate|test|test-mode|toolchain-build|upgrade-dossier|version-generate [flags]"
 
 const canonicalBuildPath = "/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin"
 
@@ -39,6 +39,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		return runBuildKey(arguments[1:], stdout, stderr)
 	case "checked-run":
 		return runChecked(arguments[1:], stdout, stderr)
+	case "compatibility-pack":
+		return runCompatibilityPack(arguments[1:], stdout, stderr)
 	case "patch-materialize":
 		return runPatchMaterialize(arguments[1:], stdout, stderr)
 	case "patch-regenerate":

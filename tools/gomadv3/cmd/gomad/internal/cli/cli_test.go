@@ -51,7 +51,7 @@ func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--format", "json"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v4"`) {
+	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v5"`) {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }
@@ -304,7 +304,7 @@ func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runAnalyzeWith([]string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v1"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
+	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v2"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }

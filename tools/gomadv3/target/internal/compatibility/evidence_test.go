@@ -6,17 +6,8 @@ import (
 )
 
 func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
-	packages := []Package{
-		{
-			ImportPath:      "modernc.org/libc",
-			Module:          Module{Path: "modernc.org/libc", Version: "v1.72.3", Replaced: true, LocalReplacement: true},
-			SourceSetSHA256: "sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749",
-		},
-		{
-			ImportPath: "golang.org/x/sys/unix",
-			Module:     Module{Path: "golang.org/x/sys", Version: "v0.41.0", Sum: "h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k="},
-		},
-	}
+	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
+	packages := generatedExactPackages(validated.pack)
 	selection, err := Select(packages)
 	requireTestNoError(t, err)
 
@@ -28,23 +19,29 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
 	if evidence[0].SHA256 == "" {
 		t.Fatal("pack evidence has no SHA-256")
 	}
-	requireTestEqual(t, []ModuleEvidence{
-		{Path: "golang.org/x/sys", Version: "v0.41.0", Sum: "h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=", Replacement: "none"},
-		{Path: "modernc.org/libc", Version: "v1.72.3", Replacement: "local"},
-	}, evidence[0].Activation)
-	requireTestEqual(t, []string{"golang.org/x/sys/unix", "modernc.org/libc"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath})
-	if !contains(evidence[0].Rules[0].Capabilities, "import:syscall") || !contains(evidence[0].Rules[1].Capabilities, "import:os/exec") {
+	if evidence[0].RequestSHA256 == "" || evidence[0].Governance == nil {
+		t.Fatalf("pack governance evidence = %#v", evidence[0])
+	}
+	if len(evidence[0].Activation) != 2 || evidence[0].Activation[0].Replacement != "none" || evidence[0].Activation[1].Replacement != "adapter" || evidence[0].Activation[1].Adapter == nil {
+		t.Fatalf("activation evidence = %#v", evidence[0].Activation)
+	}
+	if len(evidence[0].Rules) != 5 {
+		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
+	}
+	requireTestEqual(t, []string{"github.com/mattn/go-isatty", "github.com/remyoudompheng/bigfft", "golang.org/x/sys/unix", "modernc.org/libc", "modernc.org/memory"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath, evidence[0].Rules[2].ImportPath, evidence[0].Rules[3].ImportPath, evidence[0].Rules[4].ImportPath})
+	if len(evidence[0].Rules[2].GoSources) == 0 || len(evidence[0].Rules[2].ForeignSources) == 0 || !contains(evidence[0].Rules[2].Capabilities, "import:syscall") || !contains(evidence[0].Rules[3].Capabilities, "import:os/exec") {
 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
 	}
 
-	allowed := selection.Evaluate(packages[1], Fact{Kind: FactCapability, Capability: "import:syscall"})
+	xsys := generatedPackageForTest(t, packages, "golang.org/x/sys/unix")
+	allowed := selection.Evaluate(xsys, Fact{Kind: FactCapability, Capability: "import:syscall"})
 	if !allowed.Allowed {
 		t.Fatalf("decision = %#v", allowed)
 	}
 	requireTestEqual(t, DispositionAllowedExactPack, allowed.Disposition)
 	requireTestEqual(t, "modernc-libc-xsys-v041", allowed.PackID)
 
-	nearMiss := packages[1]
+	nearMiss := xsys
 	nearMiss.Module.Version = "v0.42.0"
 	denied := selection.Evaluate(nearMiss, Fact{Kind: FactCapability, Capability: "import:syscall"})
 	if denied.Allowed {

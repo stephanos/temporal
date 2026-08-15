@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os/exec"
 	"path/filepath"
 	"slices"
@@ -19,8 +20,8 @@ import (
 	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
 )
 
-const capabilityClosureSchema = "gomadv3.target-capability-closure/v2"
-const CapabilityReviewSchema = "gomadv3.target-capability-review/v1"
+const CapabilityClosureSchema = "gomadv3.target-capability-closure/v3"
+const CapabilityReviewSchema = "gomadv3.target-capability-review/v2"
 const maximumCapabilityReviewOutputBytes = 64 << 20
 const maximumCapabilityReviewPackages = 100000
 const maximumCapabilitySourceBytes = 16 << 20
@@ -53,25 +54,35 @@ type CapabilityClosure struct {
 }
 
 type CapabilityPackage struct {
-	ImportPath        string             `json:"import_path"`
-	ForTest           string             `json:"for_test,omitempty"`
-	Name              string             `json:"name"`
-	Root              bool               `json:"root,omitempty"`
-	Standard          bool               `json:"standard"`
-	Imports           []string           `json:"imports"`
-	Module            *CapabilityModule  `json:"module,omitempty"`
-	Sources           []CapabilitySource `json:"sources"`
-	ForeignSources    []string           `json:"foreign_sources"`
-	GeneratedTestMain bool               `json:"generated_test_main,omitempty"`
+	ImportPath        string                    `json:"import_path"`
+	ForTest           string                    `json:"for_test,omitempty"`
+	Name              string                    `json:"name"`
+	Root              bool                      `json:"root,omitempty"`
+	Standard          bool                      `json:"standard"`
+	Imports           []string                  `json:"imports"`
+	Module            *CapabilityModule         `json:"module,omitempty"`
+	Sources           []CapabilitySource        `json:"sources"`
+	ForeignSources    []CapabilityForeignSource `json:"foreign_sources"`
+	GeneratedTestMain bool                      `json:"generated_test_main,omitempty"`
 }
 
 type CapabilityModule struct {
-	Path        string            `json:"path"`
-	Version     string            `json:"version"`
-	Sum         string            `json:"sum"`
-	Main        bool              `json:"main"`
-	Local       bool              `json:"local"`
-	Replacement *CapabilityModule `json:"replacement,omitempty"`
+	Path        string                        `json:"path"`
+	Version     string                        `json:"version"`
+	Sum         string                        `json:"sum"`
+	Main        bool                          `json:"main"`
+	Local       bool                          `json:"local"`
+	Replacement *CapabilityModule             `json:"replacement,omitempty"`
+	Adapter     *CapabilityAdapterReplacement `json:"adapter,omitempty"`
+}
+
+type CapabilityAdapterReplacement struct {
+	ProfileName                      string         `json:"profile_name"`
+	ProfileImplementationSHA256      string         `json:"profile_implementation_sha256"`
+	Adapter                          ModuleIdentity `json:"adapter"`
+	OriginalSourceInventorySHA256    string         `json:"original_source_inventory_sha256"`
+	ReplacementSourceInventorySHA256 string         `json:"replacement_source_inventory_sha256"`
+	PreparedSourceSetSHA256          string         `json:"prepared_source_set_sha256"`
 }
 
 type CapabilitySource struct {
@@ -79,6 +90,12 @@ type CapabilitySource struct {
 	SHA256             string   `json:"sha256"`
 	LinknameDirectives []string `json:"linkname_directives,omitempty"`
 	MalformedLinkname  bool     `json:"malformed_linkname,omitempty"`
+}
+
+type CapabilityForeignSource struct {
+	Kind   string `json:"kind"`
+	Name   string `json:"name"`
+	SHA256 string `json:"sha256"`
 }
 
 type CapabilityPackageReference struct {
@@ -248,7 +265,10 @@ func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, 
 	if err != nil {
 		return CapabilityReview{}, err
 	}
-	return projectCapabilityReview(packages, overlay, tags)
+	if err := validateAdapterReplacementInputs(spec); err != nil {
+		return CapabilityReview{}, err
+	}
+	return projectCapabilityReview(packages, overlay, tags, spec.AdapterReplacements)
 }
 
 func invalidGoListDiagnostic(stderr []byte) bool {
@@ -343,6 +363,7 @@ type listedPackage struct {
 	CFiles       []string      `json:"CFiles"`
 	CXXFiles     []string      `json:"CXXFiles"`
 	MFiles       []string      `json:"MFiles"`
+	HFiles       []string      `json:"HFiles"`
 	FFiles       []string      `json:"FFiles"`
 	SFiles       []string      `json:"SFiles"`
 	SwigFiles    []string      `json:"SwigFiles"`
@@ -370,14 +391,25 @@ func projectCapabilityClosure(packages []listedPackage, overlay map[string]strin
 	return review.Closure, nil
 }
 
-func projectCapabilityReview(packages []listedPackage, overlay map[string]string, tags []string) (CapabilityReview, error) {
+func projectCapabilityReview(packages []listedPackage, overlay map[string]string, tags []string, replacementSets ...[]AdapterReplacement) (CapabilityReview, error) {
+	replacements := []AdapterReplacement{}
+	if len(replacementSets) > 1 {
+		return CapabilityReview{}, errors.New("target capability review has duplicate adapter replacement inputs")
+	}
+	if len(replacementSets) == 1 {
+		replacements = replacementSets[0]
+	}
+	replacementsByModule, err := indexAdapterReplacements(replacements)
+	if err != nil {
+		return CapabilityReview{}, err
+	}
 	closure := CapabilityClosure{
-		Schema:        capabilityClosureSchema,
+		Schema:        CapabilityClosureSchema,
 		Compatibility: []compatibility.Identity{},
 		Packages:      make([]CapabilityPackage, 0, len(packages)),
 	}
 	for _, pkg := range packages {
-		projected, include, err := projectCapabilityPackage(pkg, overlay)
+		projected, include, err := projectCapabilityPackage(pkg, overlay, replacementsByModule)
 		if err != nil {
 			return CapabilityReview{}, err
 		}
@@ -411,16 +443,25 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 	return capabilityReviewFromClosure(closure, tags, selection), nil
 }
 
-func projectCapabilityPackage(pkg listedPackage, overlay map[string]string) (CapabilityPackage, bool, error) {
+func projectCapabilityPackage(pkg listedPackage, overlay map[string]string, replacements map[string]AdapterReplacement) (CapabilityPackage, bool, error) {
 	sourceFiles := packageSourceFiles(pkg)
+	replacement, hasReplacement, err := matchAdapterReplacement(pkg.Module, replacements)
+	if err != nil {
+		return CapabilityPackage{}, false, err
+	}
 	projected := CapabilityPackage{
 		ImportPath: pkg.ImportPath, ForTest: pkg.ForTest, Name: pkg.Name, Root: !pkg.DepOnly, Standard: pkg.Standard,
-		Imports: sortedSetCopy(packageImports(pkg)), Module: projectCapabilityModule(pkg.Module), Sources: []CapabilitySource{},
-		ForeignSources: projectForeignSources(pkg), GeneratedTestMain: generatedTestMain(pkg),
+		Imports: sortedSetCopy(packageImports(pkg)), Module: projectCapabilityModule(pkg.Module, replacement, hasReplacement), Sources: []CapabilitySource{},
+		ForeignSources: []CapabilityForeignSource{}, GeneratedTestMain: generatedTestMain(pkg),
 	}
 	if pkg.Standard || projected.GeneratedTestMain {
 		return projected, true, nil
 	}
+	foreignSources, err := projectForeignSources(pkg, overlay)
+	if err != nil {
+		return CapabilityPackage{}, false, err
+	}
+	projected.ForeignSources = foreignSources
 	if pkg.ForTest == "" && len(sourceFiles) == 0 && len(projected.ForeignSources) == 0 && (len(pkg.TestGoFiles) != 0 || len(pkg.XTestGoFiles) != 0) {
 		return CapabilityPackage{}, false, nil
 	}
@@ -432,6 +473,9 @@ func projectCapabilityPackage(pkg listedPackage, overlay map[string]string) (Cap
 		projected.Sources = append(projected.Sources, source)
 	}
 	sort.Slice(projected.Sources, func(i, j int) bool { return projected.Sources[i].Name < projected.Sources[j].Name })
+	if hasReplacement && pkg.ImportPath == replacement.Original.Path && capabilityCompatibilityPackage(projected).SourceSetSHA256 != replacement.PreparedSourceSetSHA256 {
+		return CapabilityPackage{}, false, fmt.Errorf("inspect target capability source %s: adapter prepared source-set identity mismatch", pkg.ImportPath)
+	}
 	return projected, true, nil
 }
 
@@ -522,7 +566,7 @@ func validateCapabilityReview(closure CapabilityClosure) error {
 }
 
 func validateCapabilityReviewStructure(closure CapabilityClosure) (compatibility.Selection, error) {
-	if closure.Schema != capabilityClosureSchema || closure.Compatibility == nil || len(closure.Packages) == 0 {
+	if closure.Schema != CapabilityClosureSchema || closure.Compatibility == nil || len(closure.Packages) == 0 {
 		return compatibility.Selection{}, errors.New("unsupported or empty target capability closure")
 	}
 	if !sortedUniqueCompatibility(closure.Compatibility) {
@@ -565,7 +609,7 @@ func validateCapabilityPackageStructure(packages []CapabilityPackage, index int)
 	if index > 0 && compareCapabilityPackage(packages[index-1], pkg) >= 0 {
 		return errors.New("target capability closure packages are not sorted and unique")
 	}
-	if !sortedUnique(pkg.Imports) || !sortedUnique(pkg.ForeignSources) || !sortedUniqueSources(pkg.Sources) {
+	if !sortedUnique(pkg.Imports) || !sortedUniqueForeignSources(pkg.ForeignSources) || !sortedUniqueSources(pkg.Sources) {
 		return fmt.Errorf("target capability closure package %s is not canonical", pkg.ImportPath)
 	}
 	if err := validateCapabilityModule(pkg.Module); err != nil {
@@ -574,6 +618,14 @@ func validateCapabilityPackageStructure(packages []CapabilityPackage, index int)
 	for _, source := range pkg.Sources {
 		if err := validateCapabilitySource(source); err != nil {
 			return fmt.Errorf("target capability closure package %s: %w", pkg.ImportPath, err)
+		}
+	}
+	for _, source := range pkg.ForeignSources {
+		if source.Kind == "" || filepath.Base(source.Name) != source.Name || source.Name == "" {
+			return fmt.Errorf("target capability closure package %s has invalid foreign source evidence", pkg.ImportPath)
+		}
+		if _, err := evidence.ParseSHA256(source.SHA256); err != nil {
+			return fmt.Errorf("target capability closure package %s has invalid foreign source evidence", pkg.ImportPath)
 		}
 	}
 	if pkg.GeneratedTestMain && (pkg.Name != "main" || !strings.HasSuffix(pkg.ImportPath, ".test") || pkg.Standard || pkg.Module != nil && !pkg.Module.Main || len(pkg.Sources) != 0 || len(pkg.ForeignSources) != 0) {
@@ -622,9 +674,9 @@ func collectCapabilityPackageFindings(pkg CapabilityPackage, selection compatibi
 	compatibilityPackage := capabilityCompatibilityPackage(pkg)
 	findings := collectImportFindings(pkg, compatibilityPackage, selection)
 	for _, source := range pkg.ForeignSources {
-		fact := compatibility.Fact{Kind: compatibility.FactCapability, Capability: "foreign:" + source}
+		fact := compatibility.Fact{Kind: compatibility.FactCapability, Capability: "foreign:" + source.Kind + ":" + source.Name}
 		if decision := selection.Evaluate(compatibilityPackage, fact); !decision.Allowed {
-			findings = append(findings, capabilityFinding(pkg, FindingForeignSource, fact, CapabilitySource{}, decision))
+			findings = append(findings, capabilityFinding(pkg, FindingForeignSource, fact, CapabilitySource{Name: source.Name, SHA256: source.SHA256}, decision))
 		}
 	}
 	findings = append(findings, collectLinknameFindings(pkg, compatibilityPackage, selection)...)
@@ -722,6 +774,10 @@ func copyCapabilityModule(module *CapabilityModule) *CapabilityModule {
 	}
 	result := *module
 	result.Replacement = copyCapabilityModule(module.Replacement)
+	if module.Adapter != nil {
+		adapter := *module.Adapter
+		result.Adapter = &adapter
+	}
 	return &result
 }
 
@@ -769,13 +825,18 @@ func validateExecStandardPackages(ctx context.Context, goCommand string, closure
 	return nil
 }
 
-func projectCapabilityModule(module *listedModule) *CapabilityModule {
+func projectCapabilityModule(module *listedModule, adapter AdapterReplacement, hasAdapter bool) *CapabilityModule {
 	if module == nil {
 		return nil
 	}
 	projected := &CapabilityModule{Path: module.Path, Version: module.Version, Sum: module.Sum, Main: module.Main}
+	if hasAdapter {
+		projected.Path = adapter.Original.Path
+		projected.Version = adapter.Original.Version
+		projected.Sum = adapter.Original.Sum
+	}
 	if module.Replace != nil {
-		projected.Replacement = projectCapabilityModule(module.Replace)
+		projected.Replacement = projectCapabilityModule(module.Replace, AdapterReplacement{}, false)
 		projected.Replacement.Local = module.Replace.Dir != ""
 		if projected.Replacement.Local {
 			projected.Replacement.Path = ""
@@ -783,11 +844,19 @@ func projectCapabilityModule(module *listedModule) *CapabilityModule {
 			projected.Replacement.Sum = ""
 		}
 	}
+	if hasAdapter {
+		projected.Adapter = &CapabilityAdapterReplacement{
+			ProfileName: adapter.ProfileName, ProfileImplementationSHA256: adapter.ProfileImplementationSHA256,
+			Adapter: adapter.Adapter, OriginalSourceInventorySHA256: adapter.OriginalSourceInventorySHA256,
+			ReplacementSourceInventorySHA256: adapter.ReplacementSourceInventorySHA256,
+			PreparedSourceSetSHA256:          adapter.PreparedSourceSetSHA256,
+		}
+	}
 	return projected
 }
 
-func projectForeignSources(pkg listedPackage) []string {
-	projected := []string{}
+func projectForeignSources(pkg listedPackage, overlay map[string]string) ([]CapabilityForeignSource, error) {
+	projected := []CapabilityForeignSource{}
 	groups := []struct {
 		kind  string
 		files []string
@@ -796,6 +865,7 @@ func projectForeignSources(pkg listedPackage) []string {
 		{kind: "c", files: pkg.CFiles},
 		{kind: "cxx", files: pkg.CXXFiles},
 		{kind: "objc", files: pkg.MFiles},
+		{kind: "header", files: pkg.HFiles},
 		{kind: "fortran", files: pkg.FFiles},
 		{kind: "assembly", files: pkg.SFiles},
 		{kind: "swig", files: pkg.SwigFiles},
@@ -804,11 +874,28 @@ func projectForeignSources(pkg listedPackage) []string {
 	}
 	for _, group := range groups {
 		for _, name := range group.files {
-			projected = append(projected, group.kind+":"+name)
+			if filepath.Base(name) != name || pkg.Dir == "" {
+				return nil, fmt.Errorf("inspect target capability source %s: invalid source path %q", pkg.ImportPath, name)
+			}
+			path := filepath.Join(pkg.Dir, name)
+			if replacement, found := overlay[filepath.Clean(path)]; found {
+				path = replacement
+			}
+			contents, err := readBoundedRegularFile(path, maximumCapabilitySourceBytes)
+			if err != nil {
+				return nil, fmt.Errorf("inspect target capability source %s: unreadable source %s: %w", pkg.ImportPath, name, err)
+			}
+			digest := sha256.Sum256(contents)
+			projected = append(projected, CapabilityForeignSource{Kind: group.kind, Name: name, SHA256: fmt.Sprintf("sha256:%x", digest)})
 		}
 	}
-	sort.Strings(projected)
-	return projected
+	sort.Slice(projected, func(i, j int) bool {
+		if projected[i].Kind != projected[j].Kind {
+			return projected[i].Kind < projected[j].Kind
+		}
+		return projected[i].Name < projected[j].Name
+	})
+	return projected, nil
 }
 
 func validateCapabilityModule(module *CapabilityModule) error {
@@ -829,16 +916,47 @@ func validateCapabilityModule(module *CapabilityModule) error {
 			return err
 		}
 	}
+	if module.Adapter != nil {
+		if module.Replacement == nil || !module.Replacement.Local {
+			return errors.New("adapter evidence requires a local replacement")
+		}
+		if err := validateCapabilityAdapter(*module.Adapter); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateCapabilityAdapter(adapter CapabilityAdapterReplacement) error {
+	if adapter.ProfileName == "" || adapter.Adapter.Path == "" || adapter.Adapter.Version == "" || adapter.Adapter.Sum == "" {
+		return errors.New("adapter replacement identity is incomplete")
+	}
+	for _, digest := range []string{
+		adapter.ProfileImplementationSHA256, adapter.OriginalSourceInventorySHA256,
+		adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256,
+	} {
+		if _, err := evidence.ParseSHA256(digest); err != nil {
+			return errors.New("adapter replacement digest is invalid")
+		}
+	}
 	return nil
 }
 
 func capabilityCompatibilityPackage(pkg CapabilityPackage) compatibility.Package {
-	sources := make([]compatibility.Source, len(pkg.Sources))
+	goSources := make([]compatibility.Source, len(pkg.Sources))
+	sources := make([]compatibility.Source, 0, len(pkg.Sources)+len(pkg.ForeignSources))
 	for index, source := range pkg.Sources {
-		sources[index] = compatibility.Source{Name: source.Name, SHA256: source.SHA256}
+		goSources[index] = compatibility.Source{Name: source.Name, SHA256: source.SHA256}
+		sources = append(sources, goSources[index])
+	}
+	foreignSources := make([]compatibility.ForeignSource, len(pkg.ForeignSources))
+	for index, source := range pkg.ForeignSources {
+		foreignSources[index] = compatibility.ForeignSource{Kind: source.Kind, Name: source.Name, SHA256: source.SHA256}
+		sources = append(sources, compatibility.Source{Name: source.Kind + ":" + source.Name, SHA256: source.SHA256})
 	}
 	return compatibility.Package{
 		ImportPath: pkg.ImportPath, Module: capabilityCompatibilityModule(pkg.Module), SourceSetSHA256: compatibility.DigestSources(sources),
+		GoSources: goSources, ForeignSources: foreignSources,
 	}
 }
 
@@ -846,13 +964,170 @@ func capabilityCompatibilityModule(module *CapabilityModule) compatibility.Modul
 	if module == nil {
 		return compatibility.Module{}
 	}
-	return compatibility.Module{
+	projected := compatibility.Module{
 		Path:             module.Path,
 		Version:          module.Version,
 		Sum:              module.Sum,
 		Replaced:         module.Replacement != nil,
 		LocalReplacement: module.Replacement != nil && module.Replacement.Local,
 	}
+	if module.Adapter != nil {
+		projected.Adapter = &compatibility.AdapterEvidence{
+			ProfileName: module.Adapter.ProfileName, ProfileImplementationSHA256: module.Adapter.ProfileImplementationSHA256,
+			Module: module.Adapter.Adapter.Path, Version: module.Adapter.Adapter.Version, Sum: module.Adapter.Adapter.Sum,
+			OriginalSourceInventorySHA256:    module.Adapter.OriginalSourceInventorySHA256,
+			ReplacementSourceInventorySHA256: module.Adapter.ReplacementSourceInventorySHA256,
+			PreparedSourceSetSHA256:          module.Adapter.PreparedSourceSetSHA256,
+		}
+	}
+	return projected
+}
+
+func validateAdapterReplacementInputs(spec Spec) error {
+	if len(spec.AdapterReplacements) == 0 {
+		return nil
+	}
+	root, err := filepath.EvalSymlinks(spec.PreparationRoot)
+	if err != nil {
+		return fmt.Errorf("resolve adapter preparation root: %w", err)
+	}
+	root, err = filepath.Abs(root)
+	if err != nil {
+		return fmt.Errorf("resolve adapter preparation root: %w", err)
+	}
+	for _, replacement := range spec.AdapterReplacements {
+		path, err := filepath.EvalSymlinks(replacement.ReplacementPath)
+		if err != nil {
+			return fmt.Errorf("resolve adapter replacement path: %w", err)
+		}
+		path, err = filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("resolve adapter replacement path: %w", err)
+		}
+		relative, err := filepath.Rel(root, path)
+		if err != nil || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) || filepath.IsAbs(relative) {
+			return errors.New("adapter replacement path is outside the private preparation root")
+		}
+	}
+	return nil
+}
+
+func indexAdapterReplacements(replacements []AdapterReplacement) (map[string]AdapterReplacement, error) {
+	result := make(map[string]AdapterReplacement, len(replacements))
+	for _, replacement := range replacements {
+		if replacement.Original.Path == "" || replacement.Original.Version == "" || replacement.Original.Sum == "" || replacement.ReplacementPath == "" {
+			return nil, errors.New("adapter replacement input identity is incomplete")
+		}
+		if _, duplicate := result[replacement.Original.Path]; duplicate {
+			return nil, fmt.Errorf("adapter replacement input is duplicated: %s", replacement.Original.Path)
+		}
+		result[replacement.Original.Path] = replacement
+	}
+	return result, nil
+}
+
+func matchAdapterReplacement(module *listedModule, replacements map[string]AdapterReplacement) (AdapterReplacement, bool, error) {
+	if module == nil || module.Replace == nil || module.Replace.Dir == "" {
+		return AdapterReplacement{}, false, nil
+	}
+	replacement, found := replacements[module.Path]
+	if !found {
+		return AdapterReplacement{}, false, nil
+	}
+	if replacement.Original.Path != module.Path || replacement.Original.Version != module.Version ||
+		module.Sum != "" && replacement.Original.Sum != module.Sum {
+		return AdapterReplacement{}, false, fmt.Errorf(
+			"adapter replacement module identity mismatch: got %s@%s %q, want %s@%s %q",
+			module.Path, module.Version, module.Sum,
+			replacement.Original.Path, replacement.Original.Version, replacement.Original.Sum,
+		)
+	}
+	wantPath, err := filepath.EvalSymlinks(replacement.ReplacementPath)
+	if err != nil {
+		return AdapterReplacement{}, false, fmt.Errorf("resolve adapter replacement evidence: %w", err)
+	}
+	actualPath, err := filepath.EvalSymlinks(module.Replace.Dir)
+	if err != nil {
+		return AdapterReplacement{}, false, fmt.Errorf("resolve target adapter replacement: %w", err)
+	}
+	wantPath, err = filepath.Abs(wantPath)
+	if err != nil {
+		return AdapterReplacement{}, false, err
+	}
+	actualPath, err = filepath.Abs(actualPath)
+	if err != nil {
+		return AdapterReplacement{}, false, err
+	}
+	if wantPath != actualPath {
+		return AdapterReplacement{}, false, errors.New("adapter replacement operational path mismatch")
+	}
+	digest, err := DigestAdapterSourceInventory(actualPath)
+	if err != nil {
+		return AdapterReplacement{}, false, fmt.Errorf("inspect adapter replacement source inventory: %w", err)
+	}
+	if digest != replacement.ReplacementSourceInventorySHA256 {
+		return AdapterReplacement{}, false, errors.New("adapter replacement source inventory mismatch")
+	}
+	portable := CapabilityAdapterReplacement{
+		ProfileName: replacement.ProfileName, ProfileImplementationSHA256: replacement.ProfileImplementationSHA256,
+		Adapter: replacement.Adapter, OriginalSourceInventorySHA256: replacement.OriginalSourceInventorySHA256,
+		ReplacementSourceInventorySHA256: replacement.ReplacementSourceInventorySHA256,
+		PreparedSourceSetSHA256:          replacement.PreparedSourceSetSHA256,
+	}
+	if err := validateCapabilityAdapter(portable); err != nil {
+		return AdapterReplacement{}, false, err
+	}
+	return replacement, true, nil
+}
+
+func DigestAdapterSourceInventory(root string) (string, error) {
+	const maximumFiles = 5000
+	const maximumBytes = uint64(512 << 20)
+	hasher := sha256.New()
+	_, _ = hasher.Write([]byte("gomadv3.adapter-source-inventory/v1\x00"))
+	files := 0
+	total := uint64(0)
+	err := filepath.WalkDir(root, func(filePath string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		if entry.Type()&fs.ModeSymlink != 0 {
+			return errors.New("adapter source inventory contains a symbolic link")
+		}
+		info, err := entry.Info()
+		if err != nil || !info.Mode().IsRegular() || info.Size() < 0 {
+			return errors.New("adapter source inventory contains a non-regular file")
+		}
+		files++
+		total += uint64(info.Size())
+		if files > maximumFiles || total > maximumBytes {
+			return errors.New("adapter source inventory exceeds its bounds")
+		}
+		contents, err := readBoundedRegularFile(filePath, maximumCapabilitySourceBytes)
+		if err != nil {
+			return err
+		}
+		relative, err := filepath.Rel(root, filePath)
+		if err != nil || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+			return errors.New("adapter source inventory path is invalid")
+		}
+		digest := sha256.Sum256(contents)
+		_, _ = hasher.Write([]byte(filepath.ToSlash(relative)))
+		_, _ = hasher.Write([]byte{0})
+		_, _ = hasher.Write([]byte(fmt.Sprintf("sha256:%x", digest)))
+		_, _ = hasher.Write([]byte{0})
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	if files == 0 {
+		return "", errors.New("adapter source inventory is empty")
+	}
+	return fmt.Sprintf("sha256:%x", hasher.Sum(nil)), nil
 }
 
 func packageImports(pkg listedPackage) []string {
@@ -888,6 +1163,19 @@ func sortedUnique(values []string) bool {
 func sortedUniqueSources(sources []CapabilitySource) bool {
 	for index, source := range sources {
 		if index > 0 && sources[index-1].Name >= source.Name {
+			return false
+		}
+	}
+	return true
+}
+
+func sortedUniqueForeignSources(sources []CapabilityForeignSource) bool {
+	for index, source := range sources {
+		if index == 0 {
+			continue
+		}
+		previous := sources[index-1]
+		if previous.Kind > source.Kind || previous.Kind == source.Kind && previous.Name >= source.Name {
 			return false
 		}
 	}

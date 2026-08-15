@@ -155,6 +155,14 @@ func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
 	requireTestNoError(t, err)
 	requireTestEqual(t, report, decoded)
 
+	legacy := report
+	legacy.Schema = "gomadv3.capability-analysis/v1"
+	encoded, err = evidence.CanonicalJSON(legacy)
+	requireTestNoError(t, err)
+	if _, err := DecodeAnalysisReport(encoded); err == nil {
+		t.Fatal("DecodeAnalysisReport() accepted legacy capability evidence as current")
+	}
+
 	report.Classification = ClassificationUnsupported
 	encoded, err = evidence.CanonicalJSON(report)
 	requireTestNoError(t, err)
@@ -203,7 +211,7 @@ func graphReview(packages []target.CapabilityPackage) target.CapabilityReview {
 	}
 	return target.CapabilityReview{
 		Schema: target.CapabilityReviewSchema, BuildTags: []string{}, Roots: roots,
-		Closure: target.CapabilityClosure{Schema: "gomadv3.target-capability-closure/v2", Compatibility: []target.CompatibilityIdentity{}, Packages: packages},
+		Closure: target.CapabilityClosure{Schema: target.CapabilityClosureSchema, Compatibility: []target.CompatibilityIdentity{}, Packages: packages},
 		Packs:   []target.CompatibilityPackEvidence{}, Findings: []target.CapabilityFinding{},
 	}
 }

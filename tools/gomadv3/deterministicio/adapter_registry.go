@@ -13,14 +13,17 @@ import (
 )
 
 type BuildAdapter struct {
-	Module            string
-	Version           string
-	Sum               string
-	BuildModFile      string
-	Source            string
-	Replacement       string
-	SourceSHA256      string
-	ReplacementSHA256 string
+	Module                           string
+	Version                          string
+	Sum                              string
+	BuildModFile                     string
+	Source                           string
+	Replacement                      string
+	SourceSHA256                     string
+	ReplacementSHA256                string
+	OriginalSourceInventorySHA256    string
+	ReplacementSourceInventorySHA256 string
+	PreparedSourceSetSHA256          string
 }
 
 type InvalidBuildAdapterConfigurationError struct {
@@ -213,7 +216,27 @@ func (profile Spec) PrepareBuildAdapters(spec target.Spec, moduleCache string) (
 	if err != nil {
 		return target.Spec{}, nil, err
 	}
-	return definition.adapters.prepare(spec, moduleCache)
+	if len(spec.AdapterReplacements) != 0 {
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(errors.New("target specification already contains adapter replacement evidence"))
+	}
+	prepared, adapters, err := definition.adapters.prepare(spec, moduleCache)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	profileIdentity := profile.Identity()
+	prepared.AdapterReplacements = make([]target.AdapterReplacement, len(adapters))
+	for index, adapter := range adapters {
+		prepared.AdapterReplacements[index] = target.AdapterReplacement{
+			Original:        target.ModuleIdentity{Path: adapter.Module, Version: adapter.Version, Sum: adapter.Sum},
+			ReplacementPath: filepath.Dir(adapter.Replacement),
+			ProfileName:     profileIdentity.Name, ProfileImplementationSHA256: string(profileIdentity.ImplementationSHA256),
+			Adapter:                          target.ModuleIdentity{Path: adapter.Module, Version: adapter.Version, Sum: adapter.Sum},
+			OriginalSourceInventorySHA256:    adapter.OriginalSourceInventorySHA256,
+			ReplacementSourceInventorySHA256: adapter.ReplacementSourceInventorySHA256,
+			PreparedSourceSetSHA256:          adapter.PreparedSourceSetSHA256,
+		}
+	}
+	return prepared, adapters, nil
 }
 
 func detectModuleVersion(contents []byte, module string) (string, error) {
