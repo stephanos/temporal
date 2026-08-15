@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/choice"
 	romount "go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/target"
 )
 
 type ArtifactInput struct {
@@ -35,6 +36,9 @@ func PublishArtifact(store evidence.Store, input ArtifactInput) (evidence.Artifa
 		return evidence.Artifact{}, err
 	}
 	manifest.Target.File = "target"
+	if manifest.Target.CapabilityMode == "" {
+		manifest.Target.CapabilityMode = string(target.CapabilityModeClosure)
+	}
 	manifest.Streams.Stdout.File = "stdout"
 	manifest.Streams.Stderr.File = "stderr"
 	manifest.Streams.Stdout.RetainedSHA256 = evidence.HashBytes(input.Stdout)
@@ -43,6 +47,27 @@ func PublishArtifact(store evidence.Store, input ArtifactInput) (evidence.Artifa
 		artifactSourcePayload(manifest.Target.File, input.TargetPath, 0o700, manifest.Target.SHA256, manifest.Target.Size),
 		artifactDataPayload(manifest.Streams.Stdout.File, input.Stdout, 0o600),
 		artifactDataPayload(manifest.Streams.Stderr.File, input.Stderr, 0o600),
+	}
+	if manifest.Target.CapabilityMode == string(target.CapabilityModeLinked) {
+		if manifest.Target.CapabilityManifest == nil {
+			return evidence.Artifact{}, errors.New("linked target capability manifest record is required")
+		}
+		capabilities, err := target.ReadCapabilityManifest(input.TargetPath, target.ToolchainIdentity{
+			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
+			TargetGOOS: manifest.Toolchain.TargetGOOS, TargetGOARCH: manifest.Toolchain.TargetGOARCH,
+		})
+		if err != nil {
+			return evidence.Artifact{}, fmt.Errorf("extract artifact target capability manifest: %w", err)
+		}
+		if actual := capabilities.Record(); *actual != *manifest.Target.CapabilityManifest {
+			return evidence.Artifact{}, errors.New("artifact target capability manifest identity changed during publication")
+		}
+		payloads = append(payloads, evidence.Payload{
+			Path: manifest.Target.CapabilityManifest.File, Mode: 0o600, Data: capabilities.Payload,
+			SHA256: manifest.Target.CapabilityManifest.SHA256, Size: manifest.Target.CapabilityManifest.Bytes,
+		})
+	} else if manifest.Target.CapabilityMode != string(target.CapabilityModeClosure) || manifest.Target.CapabilityManifest != nil {
+		return evidence.Artifact{}, errors.New("artifact target capability mode is invalid")
 	}
 	if manifest.IOProfile.Transcript != nil {
 		manifest.IOProfile.Transcript.File = "io/transcript.bin"

@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "schema": "gomadv3.live-capability-manifest/v1",
+  "symbol": "runtime.gomadCapabilities",
+  "header": {
+    "magic": "GOMADCAPABILITY\u0000",
+    "bytes": 112
+  },
+  "limits": {
+    "payload_bytes": 16777216,
+    "facts": 100000,
+    "string_bytes": 4096,
+    "owner_facts": 4096
+  },
+  "fact_kinds": [
+    "boundary",
+    "capability",
+    "foreign",
+    "linkname"
+  ],
+  "dispositions": [
+    "denied",
+    "modeled",
+    "pack"
+  ],
+  "forbidden_imports": [
+    "os/exec",
+    "os/signal",
+    "os/user",
+    "plugin",
+    "runtime/cgo",
+    "syscall"
+  ],
+  "forbidden_prefixes": [
+    "golang.org/x/sys"
+  ]
+}

@@ -241,7 +241,8 @@ func validateResumeSuccessArtifact(batchPath string, plan CampaignPlan, run Exec
 	if manifest.Outcome.Reason != run.Reason || manifest.Outcome.Termination != run.Termination {
 		return fmt.Errorf("retained success artifact outcome does not match its journal")
 	}
-	if manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || manifest.Target.SHA256 != plan.Prepared.Target.SHA256 || manifest.Target.Size != plan.Prepared.Target.Size {
+	targetMatches, targetErr := evidence.SameTargetIdentity(manifest.Target, plan.Prepared.Target)
+	if targetErr != nil || manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || !targetMatches {
 		return fmt.Errorf("retained success artifact target identity does not match its batch plan")
 	}
 	if !choiceProfileMatchesPlan(plan, manifest) {
@@ -251,12 +252,13 @@ func validateResumeSuccessArtifact(batchPath string, plan CampaignPlan, run Exec
 }
 
 func validateResumeArtifact(batchPath string, plan CampaignPlan, run ExecutionRecord) error {
-	evidence, err := ResolveRetainedEvidence(batchPath, filepath.Base(batchPath), run)
+	retained, err := ResolveRetainedEvidence(batchPath, filepath.Base(batchPath), run)
 	if err != nil {
 		return err
 	}
-	manifest := evidence.Manifest
-	if manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || manifest.Target.SHA256 != plan.Prepared.Target.SHA256 || manifest.Target.Size != plan.Prepared.Target.Size {
+	manifest := retained.Manifest
+	targetMatches, targetErr := evidence.SameTargetIdentity(manifest.Target, plan.Prepared.Target)
+	if targetErr != nil || manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || !targetMatches {
 		return fmt.Errorf("failure artifact target identity does not match its batch plan")
 	}
 	if !choiceProfileMatchesPlan(plan, manifest) {

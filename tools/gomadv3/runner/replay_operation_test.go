@@ -126,6 +126,8 @@ func TestReplayDoesNotExecuteLegacyChoiceArtifact(t *testing.T) {
 	binary.BigEndian.PutUint64(payload[24:32], 17)
 	manifest.SchemaVersion = evidence.PreviousSchemaVersion
 	manifest.Runner.RecordContract = evidence.PreviousRecordContract
+	manifest.Target.CapabilityMode = ""
+	manifest.Target.CapabilityManifest = nil
 	manifest.ChoiceProfile = &evidence.ChoiceProfile{
 		Name: choice.LegacyProfile, ImplementationSHA256: evidence.HashBytes([]byte("legacy choice implementation")),
 		Trace: evidence.ChoiceTrace{

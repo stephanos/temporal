@@ -13,10 +13,12 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner"
+	"go.temporal.io/server/tools/gomadv3/target"
 )
 
 const (
-	QualificationReportSchema         = "gomadv3.qualification/v3"
+	QualificationReportSchema         = "gomadv3.qualification/v4"
+	PriorQualificationReportSchema    = "gomadv3.qualification/v3"
 	PreviousQualificationReportSchema = "gomadv3.qualification/v2"
 	LegacyQualificationReportSchema   = "gomadv3.qualification/v1"
 	ChoiceReplayNone                  = "none"
@@ -224,7 +226,7 @@ func WriteQualificationReport(artifactRoot string, report QualificationReport) (
 		return "", fmt.Errorf("encode qualification report: %w", err)
 	}
 	encoded = append(encoded, '\n')
-	root := filepath.Join(artifactRoot, "qualifications", "v3")
+	root := filepath.Join(artifactRoot, "qualifications", "v4")
 	if err := os.MkdirAll(root, 0o700); err != nil {
 		return "", fmt.Errorf("create qualification report directory: %w", err)
 	}
@@ -304,16 +306,24 @@ func DecodeQualificationReport(data []byte) (QualificationReport, error) {
 		return QualificationReport{}, fmt.Errorf("decode qualification report schema: %w", err)
 	}
 	var report QualificationReport
+	historicalEvidence := false
 	switch header.Schema {
 	case QualificationReportSchema:
 		if err := evidence.DecodeCanonicalJSON(data, &report); err != nil {
 			return QualificationReport{}, fmt.Errorf("decode qualification report: %w", err)
 		}
+	case PriorQualificationReportSchema:
+		if err := evidence.DecodeCanonicalJSON(data, &report); err != nil {
+			return QualificationReport{}, fmt.Errorf("decode prior qualification report: %w", err)
+		}
+		report.Schema = QualificationReportSchema
+		historicalEvidence = true
 	case PreviousQualificationReportSchema:
 		if err := evidence.DecodeCanonicalJSON(data, &report); err != nil {
 			return QualificationReport{}, fmt.Errorf("decode previous qualification report: %w", err)
 		}
 		normalizePreviousReport(&report)
+		historicalEvidence = true
 	case LegacyQualificationReportSchema:
 		var legacy legacyReport
 		if err := evidence.DecodeCanonicalJSON(data, &legacy); err != nil {
@@ -324,11 +334,15 @@ func DecodeQualificationReport(data []byte) (QualificationReport, error) {
 		if normalizeErr != nil {
 			return QualificationReport{}, normalizeErr
 		}
+		historicalEvidence = true
 	default:
 		return QualificationReport{}, fmt.Errorf("unsupported qualification report schema %q", header.Schema)
 	}
 	if err := validateQualificationReport(report); err != nil {
 		return QualificationReport{}, err
+	}
+	if historicalEvidence && report.Evidence != nil {
+		report.Evidence.Target.CapabilityMode = string(target.CapabilityModeClosure)
 	}
 	return report, nil
 }
@@ -426,7 +440,7 @@ func validateQualificationReport(report QualificationReport) error {
 	if report.Failure == nil && (len(report.Runs) < 2 || uint64(report.Repeat) != uint64(len(report.Runs))) {
 		return fmt.Errorf("qualification report repetition count is invalid")
 	}
-	if report.Evidence == nil || report.Evidence.Schema != runner.ExecutionEvidenceSchema && report.Evidence.Schema != runner.ChoiceExecutionEvidenceSchema && report.Evidence.Schema != runner.LegacyExecutionEvidenceSchema || report.Evidence.Seed != report.Seed {
+	if report.Evidence == nil || report.Evidence.Schema != runner.ExecutionEvidenceSchema && report.Evidence.Schema != runner.PriorExecutionEvidenceSchema && report.Evidence.Schema != runner.ChoiceExecutionEvidenceSchema && report.Evidence.Schema != runner.LegacyExecutionEvidenceSchema || report.Evidence.Seed != report.Seed {
 		return fmt.Errorf("qualification baseline evidence identity is invalid")
 	}
 	digest, err := evidenceDigest(*report.Evidence)
@@ -506,7 +520,9 @@ func evidenceDigest(runRecord runner.ExecutionEvidence) (evidence.SHA256, error)
 		return "", err
 	}
 	domain := ExecutionEvidenceDigestDomain
-	if runRecord.Schema == runner.ChoiceExecutionEvidenceSchema {
+	if runRecord.Schema == runner.PriorExecutionEvidenceSchema {
+		domain = PriorExecutionEvidenceDigestDomain
+	} else if runRecord.Schema == runner.ChoiceExecutionEvidenceSchema {
 		domain = ChoiceExecutionEvidenceDigestDomain
 	} else if runRecord.Schema == runner.LegacyExecutionEvidenceSchema {
 		domain = LegacyExecutionEvidenceDigestDomain
@@ -515,7 +531,8 @@ func evidenceDigest(runRecord runner.ExecutionEvidence) (evidence.SHA256, error)
 }
 
 const (
-	ExecutionEvidenceDigestDomain       = "gomadv3.qualification-evidence/v3"
+	ExecutionEvidenceDigestDomain       = "gomadv3.qualification-evidence/v4"
+	PriorExecutionEvidenceDigestDomain  = "gomadv3.qualification-evidence/v3"
 	ChoiceExecutionEvidenceDigestDomain = "gomadv3.qualification-evidence/v2"
 	LegacyExecutionEvidenceDigestDomain = "gomadv3.qualification-evidence/v1"
 )
