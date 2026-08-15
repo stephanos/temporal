@@ -137,7 +137,7 @@ compatibility-pack decisions as target preparation, lists every blocker with a
 canonical shortest dependency path, and projects conservative deterministic
 I/O requirements. To keep reports path-free, arguments containing path
 separators are represented by stable SHA-256 identities. `--format=json` emits
-`gomadv3.capability-analysis/v1`. Status 0 means supported, 1 unsupported, 2
+`gomadv3.capability-analysis/v2`. Status 0 means supported, 1 unsupported, 2
 invalid input or package configuration, and 3 analysis infrastructure failure.
 
 Add `--json` to emit newline-delimited `gomadv3.explore-event/v2` records on
@@ -225,9 +225,10 @@ Manifest v2 binds the expected module, tier, invariant, ordered seeds, choice
 capacity, successful-replay requirement, and explicit retention bounds. The
 orchestrator analyzes every workload before executing any supported target,
 checkpoints after each completed phase, and publishes a private, path-free
-`gomadv3.qualification-set-report/v4`. Unsupported analysis is completed
-evidence and is never executed. Readers normalize report v2 while marking its
-missing portable dimensions unavailable. Status 0 means all expectations
+`gomadv3.qualification-set-report/v5`. Unsupported analysis is completed
+evidence and is never executed. Readers normalize report v2, v3, and v4 while
+marking unavailable historical dimensions explicitly; v4 analysis remains
+historical rather than being reinterpreted as v2 evidence. Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
 
@@ -496,6 +497,47 @@ shared runtime random state also means program changes can change later choices.
 Exact choice tapes are bound to the target, pinned toolchain build key,
 platform, and choice-controller implementation and are not portable across
 those identities.
+
+## Compatibility-pack development
+
+Compatibility packs use only the strict `gomadv3.compatibility-pack/v2`
+contract. Every allowed fact is bound to an exact module, complete compiled Go
+and foreign-source inventories, a package source-set digest, governance, and a
+`darwin/arm64` platform scope. Local module replacements are rejected unless
+they are created by a registered deterministic-I/O adapter and carry the exact
+profile, adapter, original/replacement inventory, and prepared source-set
+identities.
+
+The development workflow is discover, review, exact approval, generate, check,
+and qualify:
+
+```sh
+go -C tools/gomadv3 run ./toolchain/cmd/gomadtool compatibility-pack discover \
+  --root="$PWD/tools/gomadv3" --request=target/internal/compatibility/requests/<id>.json \
+  --working-dir=<target-module>
+go -C tools/gomadv3 run ./toolchain/cmd/gomadtool compatibility-pack review \
+  --root="$PWD/tools/gomadv3" --request=target/internal/compatibility/requests/<id>.json \
+  --output=target/internal/compatibility/reports/<id>.md
+go -C tools/gomadv3 run ./toolchain/cmd/gomadtool compatibility-pack generate \
+  --root="$PWD/tools/gomadv3" --request=target/internal/compatibility/requests/<id>.json \
+  --approve-review=<exact-review-sha256>
+make -C tools/gomadv3 validate compatibility-pack-qualification
+```
+
+Malformed or non-canonical requests and packs are invalid input. Source,
+toolchain, module-cache, adapter, publication, and cleanup failures are
+infrastructure failures. Fresh-review disagreement is unsupported drift. None
+of these cases falls back to an older pack, partial inventory, arbitrary local
+replacement, host access, or truncated evidence. Requests, generated v2 packs,
+review reports, mutation fixtures, and their generation manifest live under
+`target/internal/compatibility`.
+
+The `temporal-backoff-overflow` and `xnet-socket-activity-candidate` requests
+remain unapproved and all of their reviewed facts remain denied. Backoff needs
+COMPAT-6 live-capability absence proof or a deterministic adapter for its live
+gRPC TCP keepalive path; the Activity candidate covers only four facts within
+its current 60-blocker closure and still requires direct linkname/syscall
+containment proof.
 
 ## World
 

@@ -40,7 +40,7 @@ func TestPackageArchitecture(t *testing.T) {
 				t.Errorf("package %s imports ownerless package %s", pkg.ImportPath, imported)
 				continue
 			}
-			if !ownerMayImport(owner, importedOwner, imported) {
+			if !ownerMayImport(owner, importedOwner, pkg.ImportPath, imported) {
 				t.Errorf("owner %s package %s imports forbidden owner %s package %s", owner, pkg.ImportPath, importedOwner, imported)
 			}
 		}
@@ -48,6 +48,22 @@ func TestPackageArchitecture(t *testing.T) {
 	for _, owner := range []string{"cli", "runner", "qualification", "target", "evidence", "choice", "deterministicio", "world", "toolchain", "hostexec", "hostfs"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
+		}
+	}
+}
+
+func TestOwnerMayImportCompatibilityPackCommand(t *testing.T) {
+	packdev := modulePath + "/target/packdev"
+	if !ownerMayImport("toolchain", "target", modulePath+"/toolchain/cmd/gomadtool", packdev) {
+		t.Fatal("gomadtool must be able to import the compatibility-pack development kit")
+	}
+	for _, importing := range []string{
+		modulePath + "/toolchain",
+		modulePath + "/toolchain/version",
+		modulePath + "/toolchain/cmd/other",
+	} {
+		if ownerMayImport("toolchain", "target", importing, packdev) {
+			t.Fatalf("toolchain package %s may import the compatibility-pack development kit", importing)
 		}
 	}
 }
@@ -175,9 +191,12 @@ func packageOwner(importPath string) string {
 	}
 }
 
-func ownerMayImport(owner, importedOwner, imported string) bool {
+func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 	if owner == importedOwner {
 		return true
+	}
+	if owner == "toolchain" && importedOwner == "target" {
+		return importing == modulePath+"/toolchain/cmd/gomadtool" && imported == modulePath+"/target/packdev"
 	}
 	allowed := map[string][]string{
 		"cli":             {"runner", "qualification", "target", "evidence", "deterministicio", "toolchain"},

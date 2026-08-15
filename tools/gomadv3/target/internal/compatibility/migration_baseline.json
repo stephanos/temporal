@@ -1,0 +1,28 @@
+{
+  "schema": "gomadv3.compatibility-migration-baseline/v1",
+  "core": {"supported": 5, "unsupported": 0, "failed": 0, "infrastructure_errors": 0},
+  "temporal": {
+    "supported": 4,
+    "unsupported": 12,
+    "failed": 0,
+    "infrastructure_errors": 0,
+    "workloads": [
+      {"id": "activity-batch-cancel-boundary", "classification": "unsupported_target", "blockers_sha256": "sha256:1b4615e5373ca231f5add13debc2ffaee364d4b398bad593831a947cb39f582c"},
+      {"id": "clock-context-timeout", "classification": "qualified", "blockers_sha256": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"},
+      {"id": "future-suite", "classification": "qualified", "blockers_sha256": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"},
+      {"id": "sqlite-persistence-boundary", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "temporal-backoff-overflow", "classification": "unsupported_target", "blockers_sha256": "sha256:8ce3fd2406ce0129062e7b1a8979be70557371ff6a0fc11c9397b919c8929a74"},
+      {"id": "temporal-cache-concurrent", "classification": "unsupported_target", "blockers_sha256": "sha256:3311748e674d797c5ce509e34bee2ce4a3cf4aae57d690cb06b6e0743ba10ff7"},
+      {"id": "temporal-dither-pass", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "temporal-map-concurrent", "classification": "qualified", "blockers_sha256": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"},
+      {"id": "temporal-poller-history", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "temporal-queue-key", "classification": "unsupported_target", "blockers_sha256": "sha256:617cf3c4f280a19a42445056935ec45c85a40fdffbd71f2b0d07ef9f5731df0d"},
+      {"id": "temporal-sqlite-schema-rewrite", "classification": "unsupported_target", "blockers_sha256": "sha256:9be4017aba34588cfc0105665ecd02d57e6110c9a90ea6b23b9b88916b2de507"},
+      {"id": "temporal-transition-history", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "temporal-update-abort-matrix", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "temporal-version-set-merge", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "temporal-workflow-backoff", "classification": "unsupported_target", "blockers_sha256": "sha256:0a7a86139f1d8946ed385bac428e612d33e564fce53524d8d9af77edf5cdf979"},
+      {"id": "timer-local-gate", "classification": "qualified", "blockers_sha256": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"}
+    ]
+  }
+}

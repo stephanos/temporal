@@ -23,8 +23,9 @@ import (
 
 const SuiteManifestSchema = "gomadv3.qualification-set/v2"
 const LegacySuiteManifestSchema = "gomadv3.qualification-set/v1"
-const SuiteReportSchema = "gomadv3.qualification-set-report/v4"
-const PreviousSuiteReportSchema = "gomadv3.qualification-set-report/v3"
+const SuiteReportSchema = "gomadv3.qualification-set-report/v5"
+const PreviousSuiteReportSchema = "gomadv3.qualification-set-report/v4"
+const PreChoiceSuiteReportSchema = "gomadv3.qualification-set-report/v3"
 const LegacySuiteReportSchema = "gomadv3.qualification-set-report/v2"
 
 const maximumCommandOutputBytes = 64 << 20
@@ -526,15 +527,19 @@ func OpenSuiteReport(path string) (SuiteReport, error) {
 		}
 		return report, nil
 	}
-	if header.Schema != SuiteReportSchema && header.Schema != PreviousSuiteReportSchema {
+	if header.Schema == PreviousSuiteReportSchema || header.Schema == PreChoiceSuiteReportSchema {
+		report, err := decodePreviousSetReport(contents, header.Schema)
+		if err != nil {
+			return SuiteReport{}, invalidReport(err)
+		}
+		return report, nil
+	}
+	if header.Schema != SuiteReportSchema {
 		return SuiteReport{}, invalidReport(fmt.Errorf("unsupported qualification set report schema %q", header.Schema))
 	}
 	var report SuiteReport
 	if err := evidence.DecodeCanonicalJSON(contents, &report); err != nil {
 		return SuiteReport{}, invalidReport(fmt.Errorf("decode qualification set report: %w", err))
-	}
-	if report.Schema == PreviousSuiteReportSchema {
-		report.Schema = SuiteReportSchema
 	}
 	if err := validateSetReport(report); err != nil {
 		return SuiteReport{}, invalidReport(err)
