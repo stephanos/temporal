@@ -21,4 +21,4 @@ if [ -n "${GOMADV3_PATCH_OUTPUT:-}" ]; then
 fi
 unset GOMADSEED
 GOCACHE="$script_dir/.toolchain/generator-cache" GOTOOLCHAIN=local GOWORK=off \
-	exec "$bootstrap_go" -C "$script_dir" run ./internal/hosttool "$@"
+	exec "$bootstrap_go" -C "$script_dir" run ./toolchain/cmd/gomadtool "$@"

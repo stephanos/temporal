@@ -366,8 +366,9 @@ interface. Shell metacharacters and values that require quoting must be quoted
 for both Make and the recipe shell.
 
 The stable Go command is `tools/gomadv3/.toolchain/bin/go`. The build verifies
-the official Go source checksum, snapshots and validates `go1.26.4.patch` and
-`overlay`, rejects upstream overlay collisions, copies the exact overlay
+the official Go source checksum, snapshots and validates
+`toolchain/runtime/go1.26.4.patch` and `toolchain/runtime/overlay`, rejects
+upstream overlay collisions, copies the exact overlay
 snapshot, applies the exact patch snapshot with zero fuzz, and caches immutable
 builds by the Go version, source checksum, patch and overlay checksums, host OS
 and architecture, bootstrap Go version, and canonical build environment.
@@ -375,19 +376,20 @@ Same-key builds use an atomic owner lock, and ambient Go experiment,
 architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMADV3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
-Host-side policy is implemented in typed Go packages. `internal/hosttool`
-provides toolchain build, patch, validation, and test commands;
-`internal/testdriver` owns bounded black-box fixture execution and semantic
-result classification. The remaining scripts are reviewed argv adapters:
+Host-side policy is implemented in typed Go packages. `toolchain` provides the
+build, patch, validation, and upgrade interface; `toolchain/cmd/gomadtool` is
+its command adapter, and `toolchain/internal/conformance` owns bounded
+black-box fixture execution and semantic result classification. The remaining
+scripts are reviewed argv adapters:
 POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
 adapters, and the Darwin-only DTrace audit. `make validate` rejects an
 unowned script or new Bash/Perl policy. Linux CI exercises the platform-neutral
 host packages, but does not qualify the Gomad runtime on Linux.
 
-To upgrade Go, update the canonical `version.json` descriptor and
-`boundary/manifest.json`, materialize the old patch against the new pinned
+To upgrade Go, update the canonical `toolchain/version/version.json` descriptor
+and `deterministicio/boundary/manifest.json`, materialize the old patch against the new pinned
 source, and regenerate the patch with `go -C tools/gomadv3 run
-./internal/hosttool patch-regenerate --root="$PWD/tools/gomadv3"
+./toolchain/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomadv3"
 --candidate-root=GO-SOURCE-ROOT`. The `regenerate-patch.sh GO-SOURCE-ROOT`
 compatibility entrypoint delegates to the same typed command. `make -C
 tools/gomadv3 generate` derives the Make, Go, compiler-spec,
@@ -419,8 +421,9 @@ CI uploads both the dossier and its retained core-corpus evidence
 on every run.
 
 The standard-library boundary is declared in
-`tools/gomadv3/boundary/manifest.json`, and the cross-process deterministic-I/O
-layouts are declared in `tools/gomadv3/protocol/iowire.json`. After changing
+`tools/gomadv3/deterministicio/boundary/manifest.json`, and the cross-process
+deterministic-I/O layouts are declared in
+`tools/gomadv3/deterministicio/schema/iowire.json`. After changing
 either schema or its templates, regenerate and verify the derived artifacts
 with:
 
@@ -503,9 +506,9 @@ explicitly quiesce to choose and deliver ready events.
 
 `world/mailbox` is the initial explicit adapter. It demonstrates lifecycle,
 snapshot/restore, and replay without giving World ownership of application
-state. `internal/worldrecord` composes World semantic records with the Runner's
-raw process record while keeping those identities separate. A target connects
-its World with `world/child.Open`, takes the session-owned World returned by
+state. `runner/internal/execution` composes World semantic records with the
+Runner's raw process record while keeping those identities separate. A target connects
+its World with `world/target.Open`, takes the session-owned World returned by
 `Session.World`, performs all modeled work, and calls
 `Session.Finish` after that work has stopped, or `Session.FinishError` for a
 typed World error. The trusted bootstrap validates replay input before target

@@ -34,7 +34,7 @@ func TestWorldSnapshotRestoreContinuesWithIdenticalState(t *testing.T) {
 	if got := restored.Snapshot().StateDigest; got != snapshot.StateDigest {
 		t.Fatalf("restored digest = %s, want %s", got, snapshot.StateDigest)
 	}
-	for name, world := range map[string]*World{"original": original, "restored": restored} {
+	for name, world := range map[string]*Model{"original": original, "restored": restored} {
 		batch, quiesceErr := world.Quiesce()
 		if quiesceErr != nil {
 			t.Fatal(quiesceErr)

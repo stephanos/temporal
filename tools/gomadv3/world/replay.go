@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"unicode/utf8"
 )
+
+const MaximumReplayPlanJSONBytes = 64 << 20
 
 type Transition struct {
 	Sequence       Sequence            `json:"sequence"`
@@ -42,6 +46,64 @@ type ReplayPlan struct {
 	InitialDigest Digest       `json:"initialDigest"`
 	Transitions   []Transition `json:"transitions"`
 	FinalDigest   Digest       `json:"finalDigest"`
+}
+
+func EncodeReplayPlan(plan ReplayPlan) ([]byte, error) {
+	if err := validateReplayPlanIdentity(plan); err != nil {
+		return nil, err
+	}
+	encoded, err := canonicalJSON(plan)
+	if err != nil {
+		return nil, fmt.Errorf("encode World replay plan: %w", err)
+	}
+	if len(encoded) > MaximumReplayPlanJSONBytes {
+		return nil, fmt.Errorf("World replay plan exceeds its bound")
+	}
+	return encoded, nil
+}
+
+func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
+	if len(data) > MaximumReplayPlanJSONBytes {
+		return ReplayPlan{}, fmt.Errorf("World replay plan exceeds its bound")
+	}
+	if !utf8.Valid(data) {
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
+	}
+	if err := validateJSONStructure(data); err != nil {
+		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var plan ReplayPlan
+	if err := decoder.Decode(&plan); err != nil {
+		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
+	}
+	if err := requireJSONEOF(decoder); err != nil {
+		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
+	}
+	if err := validateReplayPlanIdentity(plan); err != nil {
+		return ReplayPlan{}, err
+	}
+	canonical, err := canonicalJSON(plan)
+	if err != nil {
+		return ReplayPlan{}, fmt.Errorf("canonicalize World replay plan: %w", err)
+	}
+	if !bytes.Equal(data, canonical) {
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not canonical")
+	}
+	return plan, nil
+}
+
+func validateReplayPlanIdentity(plan ReplayPlan) error {
+	if plan.SchemaVersion != SchemaVersion || !validDigest(plan.InitialDigest) || !validDigest(plan.FinalDigest) {
+		return fmt.Errorf("%w: replay plan identity", ErrInvalidSnapshot)
+	}
+	for index, transition := range plan.Transitions {
+		if err := validateTransitionShape(transition); err != nil {
+			return fmt.Errorf("%w: replay transition %d", ErrInvalidSnapshot, index)
+		}
+	}
+	return nil
 }
 
 func validateTransitionShape(transition Transition) error {
@@ -87,7 +149,7 @@ func validateTransitionShape(transition Transition) error {
 	return nil
 }
 
-func (w *World) attachReplay(snapshot Snapshot, plan ReplayPlan) error {
+func (w *Model) attachReplay(snapshot Snapshot, plan ReplayPlan) error {
 	if plan.SchemaVersion != SchemaVersion || plan.InitialDigest != snapshot.StateDigest || !validDigest(plan.FinalDigest) {
 		return fmt.Errorf("%w: replay plan identity", ErrInvalidSnapshot)
 	}
@@ -138,25 +200,25 @@ func (w *World) attachReplay(snapshot Snapshot, plan ReplayPlan) error {
 	return nil
 }
 
-func (w *World) nextRegisterTransition(request Request, id RequestID) Transition {
+func (w *Model) nextRegisterTransition(request Request, id RequestID) Transition {
 	transition := Transition{Sequence: w.nextTransition, Kind: "register", PreviousDigest: w.transcript, Register: &RegisterTransition{Request: copyRequest(request), RequestID: id}}
 	transition.Digest = transitionDigest(transition)
 	return transition
 }
 
-func (w *World) nextReadyTransition(readiness Readiness, id EventID) Transition {
+func (w *Model) nextReadyTransition(readiness Readiness, id EventID) Transition {
 	transition := Transition{Sequence: w.nextTransition, Kind: "ready", PreviousDigest: w.transcript, Ready: &ReadyTransition{Readiness: copyReadiness(readiness), EventID: id}}
 	transition.Digest = transitionDigest(transition)
 	return transition
 }
 
-func (w *World) nextCancelTransition(id RequestID, cancellation Cancellation) Transition {
+func (w *Model) nextCancelTransition(id RequestID, cancellation Cancellation) Transition {
 	transition := Transition{Sequence: w.nextTransition, Kind: "cancel", PreviousDigest: w.transcript, Cancel: &CancelTransition{RequestID: id, Cancellation: cancellation}}
 	transition.Digest = transitionDigest(transition)
 	return transition
 }
 
-func (w *World) nextQuiesceTransition(result Quiescence) Transition {
+func (w *Model) nextQuiesceTransition(result Quiescence) Transition {
 	transition := Transition{Sequence: w.nextTransition, Kind: "quiesce", PreviousDigest: w.transcript, Quiesce: &QuiesceTransition{Result: copyQuiescence(result)}}
 	transition.Digest = transitionDigest(transition)
 	return transition
@@ -193,7 +255,7 @@ func transitionBytes(transition Transition, includeDigest bool) []byte {
 	return data
 }
 
-func (w *World) checkReplay(actual Transition) error {
+func (w *Model) checkReplay(actual Transition) error {
 	if w.replay == nil {
 		return nil
 	}
@@ -289,7 +351,7 @@ func readinessDifference(expected, actual Readiness) string {
 	return ""
 }
 
-func (w *World) commitTransition(transition Transition) {
+func (w *Model) commitTransition(transition Transition) {
 	w.history = append(w.history, transition)
 	w.transcript = transition.Digest
 	if w.nextTransition != Sequence(^uint64(0)) {

@@ -40,7 +40,7 @@ type Terminal struct {
 }
 
 type Recorder struct {
-	world *World
+	world *Model
 	state *recordingState
 }
 
@@ -53,7 +53,7 @@ type recordingState struct {
 	closed  bool
 }
 
-func (w *World) StartRecording(transitionByteLimit uint64) (*Recorder, error) {
+func (w *Model) StartRecording(transitionByteLimit uint64) (*Recorder, error) {
 	if transitionByteLimit == 0 {
 		return nil, fmt.Errorf("%w: transition byte limit must be positive", ErrInvalidConfig)
 	}
@@ -176,7 +176,7 @@ func validateRecordingTerminal(initial, final Snapshot, terminal Terminal) error
 	return nil
 }
 
-func (w *World) checkRecordingTransition(transition Transition) error {
+func (w *Model) checkRecordingTransition(transition Transition) error {
 	if w.recording == nil {
 		return nil
 	}

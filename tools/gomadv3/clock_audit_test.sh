@@ -12,7 +12,7 @@ cleanup() {
 trap cleanup EXIT
 
 env -u GOMADSEED -u GOMADV3_CHILD_SEED CGO_ENABLED=0 GOWORK=off \
-	"$go_bin" -C "$script_dir/testdata" build -trimpath -o "$test_tmp/clock-audit" ./clock_audit
+	"$go_bin" -C "$script_dir/toolchain/internal/conformance/testdata" build -trimpath -o "$test_tmp/clock-audit" ./clock_audit
 "$go_bin" tool nm "$test_tmp/clock-audit" >"$test_tmp/clock-audit.nm"
 if ! grep -Fq ' main.auditStart' "$test_tmp/clock-audit.nm"; then
 	printf 'gomadv3 clock audit marker is absent from the probe binary\n' >&2

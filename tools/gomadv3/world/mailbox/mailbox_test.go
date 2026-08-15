@@ -171,7 +171,7 @@ func mailboxOrder(t *testing.T, seed world.Seed) string {
 	return fmt.Sprintf("%d%d%d", delivery.Deliveries[0].RequestID, delivery.Deliveries[1].RequestID, delivery.Deliveries[2].RequestID)
 }
 
-func newCore(t *testing.T, seed world.Seed) *world.World {
+func newCore(t *testing.T, seed world.Seed) *world.Model {
 	t.Helper()
 	core, err := world.New(world.Config{Seed: seed, Limits: limits()})
 	if err != nil {

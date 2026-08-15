@@ -157,7 +157,7 @@ Runner drains stdout and stderr concurrently, hashes every byte, and retains a
 bounded head and tail. Output timing and host completion order are diagnostics
 and never enter runtime or World decisions.
 
-`process.Request` groups World and deterministic-I/O inputs as typed execution
+`runner/internal/execution.Spec` groups World and deterministic-I/O inputs as typed execution
 capabilities. On Unix, one process-owned launch-resource plan creates the pipes
 and backings, fixes every stage's descriptor numbers and inheritance order, and
 defines which ends close after each process start. The supervisor and bootstrap
@@ -170,7 +170,7 @@ that unchanged launch plan.
 World transport remains enabled for every Runner-managed target. Although the
 launch plan now represents World explicitly, making its descriptors optional is
 deferred until external targets have been audited for calls to
-`world/child.Open` and migrated to an explicit declaration. Until then, an empty
+`world/target.Open` and migrated to an explicit declaration. Until then, an empty
 child record continues to become the canonical `none` World record. This keeps
 the descriptor refactor compatible rather than silently disconnecting an
 existing World-aware target.
@@ -453,8 +453,8 @@ input, an approximate schema, or an unbounded allocation.
 
 Host policy is split into deep, typed modules: source archives, patch sets,
 toolchain publication, command supervision, bounded output capture, and the
-black-box test campaign each expose a narrow Go interface. `internal/hosttool`
-is their command adapter; Make retains stable target names but does not own
+black-box test campaign each expose a narrow Go interface.
+`toolchain/cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
 lifecycle or result-classification policy. The test driver records one bounded
 case result per external command and keeps equality, diversity, diagnostics,
 timeouts, and mandatory semantic markers as distinct oracles.

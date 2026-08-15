@@ -48,7 +48,7 @@ type replayState struct {
 	cursor uint64
 }
 
-type World struct {
+type Model struct {
 	mu sync.Mutex
 
 	config             Config
@@ -69,27 +69,27 @@ type World struct {
 
 var resourceComponentPattern = regexp.MustCompile(`^[a-z][a-z0-9._-]{0,63}$`)
 
-func New(config Config) (*World, error) {
+func New(config Config) (*Model, error) {
 	if err := validateConfig(config); err != nil {
 		return nil, err
 	}
-	return newWorld(config), nil
+	return newModel(config), nil
 }
 
-func (w *World) Seed() Seed {
+func (w *Model) Seed() Seed {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	return w.config.Seed
 }
 
-func newWorld(config Config) *World {
-	return &World{
+func newModel(config Config) *Model {
+	return &Model{
 		config: config, now: InitialTime, nextRequestID: 1, nextEventID: 1, nextTransition: 1,
 		requests: make(map[RequestID]*requestState), events: make(map[EventID]*eventState), transcript: emptyDigest(),
 	}
 }
 
-func (w *World) Register(request Request) (RequestID, error) {
+func (w *Model) Register(request Request) (RequestID, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if err := validateRequest(w.config.Limits, request); err != nil {
@@ -126,7 +126,7 @@ func (w *World) Register(request Request) (RequestID, error) {
 	return id, nil
 }
 
-func (w *World) Ready(readiness Readiness) (EventID, error) {
+func (w *Model) Ready(readiness Readiness) (EventID, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	request, err := w.lookupPending(readiness.RequestID)
@@ -180,7 +180,7 @@ func (w *World) Ready(readiness Readiness) (EventID, error) {
 	return id, nil
 }
 
-func (w *World) Cancel(requestID RequestID) (Cancellation, error) {
+func (w *Model) Cancel(requestID RequestID) (Cancellation, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	request, found := w.requests[requestID]
@@ -223,7 +223,7 @@ func (w *World) Cancel(requestID RequestID) (Cancellation, error) {
 	return result, nil
 }
 
-func (w *World) Quiesce() (Quiescence, error) {
+func (w *Model) Quiesce() (Quiescence, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if err := w.checkTransition(); err != nil {
@@ -285,7 +285,7 @@ func (w *World) Quiesce() (Quiescence, error) {
 	return copyQuiescence(result), nil
 }
 
-func (w *World) ReplayProgress() ReplayProgress {
+func (w *Model) ReplayProgress() ReplayProgress {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.replay == nil {
@@ -341,7 +341,7 @@ func validateString(limits Limits, field, value string, emptyAllowed bool) error
 	return nil
 }
 
-func (w *World) lookupPending(id RequestID) (*requestState, error) {
+func (w *Model) lookupPending(id RequestID) (*requestState, error) {
 	request, found := w.requests[id]
 	if id == 0 || !found {
 		return nil, fmt.Errorf("%w: requestId", ErrUnknownRequest)
@@ -363,7 +363,7 @@ func capacity(dimension string, limit, used, delta uint64) error {
 	return &CapacityError{Dimension: dimension, Limit: limit, Used: used, Delta: delta}
 }
 
-func (w *World) checkPayload(delta uint64) error {
+func (w *Model) checkPayload(delta uint64) error {
 	used := w.payloadBytes + w.replayPayloadBytes
 	if w.replay != nil && w.replay.cursor < uint64(len(w.replay.plan.Transitions)) {
 		used -= transitionPayloadSize(w.replay.plan.Transitions[w.replay.cursor])
@@ -371,7 +371,7 @@ func (w *World) checkPayload(delta uint64) error {
 	return checkCapacity("payload-bytes", w.config.Limits.MaxPayloadBytes, used, delta)
 }
 
-func (w *World) checkTransition() error {
+func (w *Model) checkTransition() error {
 	if w.nextTransition == 0 || w.nextTransition == Sequence(math.MaxUint64) {
 		return capacity("transition-sequences", math.MaxUint64, math.MaxUint64, 1)
 	}

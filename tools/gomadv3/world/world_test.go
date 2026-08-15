@@ -203,7 +203,7 @@ func equivalentOrder(t *testing.T, seed Seed) string {
 	return fmt.Sprintf("%d%d%d%d", batch.Deliveries[0].RequestID, batch.Deliveries[1].RequestID, batch.Deliveries[2].RequestID, batch.Deliveries[3].RequestID)
 }
 
-func newTestWorld(t *testing.T, seed Seed) *World {
+func newTestWorld(t *testing.T, seed Seed) *Model {
 	t.Helper()
 	w, err := New(Config{Seed: seed, Limits: testLimits()})
 	if err != nil {

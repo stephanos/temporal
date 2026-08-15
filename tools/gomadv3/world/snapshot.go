@@ -37,13 +37,13 @@ type Snapshot struct {
 	StateDigest      Digest            `json:"stateDigest"`
 }
 
-func (w *World) Snapshot() Snapshot {
+func (w *Model) Snapshot() Snapshot {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	return w.snapshotLocked()
 }
 
-func (w *World) snapshotLocked() Snapshot {
+func (w *Model) snapshotLocked() Snapshot {
 	snapshot := Snapshot{
 		SchemaVersion: SchemaVersion, Config: w.config, Now: w.now, NextRequestID: w.nextRequestID, NextEventID: w.nextEventID,
 		NextTransition: w.nextTransition, PayloadBytes: w.payloadBytes, TranscriptDigest: w.transcript,
@@ -66,7 +66,7 @@ func (w *World) snapshotLocked() Snapshot {
 	return snapshot
 }
 
-func Restore(snapshot Snapshot, replay *ReplayPlan) (*World, error) {
+func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error) {
 	if snapshot.SchemaVersion != SchemaVersion {
 		return nil, invalidSnapshot("schemaVersion")
 	}
@@ -104,7 +104,7 @@ func Restore(snapshot Snapshot, replay *ReplayPlan) (*World, error) {
 		return nil, invalidSnapshot("stateDigest")
 	}
 
-	reconstructed := newWorld(snapshot.Config)
+	reconstructed := newModel(snapshot.Config)
 	for index, expected := range snapshot.Transitions {
 		if err := replaySnapshotTransition(reconstructed, expected); err != nil {
 			return nil, invalidSnapshot(fmt.Sprintf("transitions[%d]: %v", index, err))
@@ -161,7 +161,7 @@ func validateSnapshotPayloads(snapshot Snapshot) error {
 	return nil
 }
 
-func replaySnapshotTransition(w *World, transition Transition) error {
+func replaySnapshotTransition(w *Model, transition Transition) error {
 	if err := validateTransitionShape(transition); err != nil {
 		return err
 	}
