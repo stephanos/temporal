@@ -25,7 +25,7 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/softassert"
 	"go.temporal.io/server/common/testing/testhooks"
-	"go.temporal.io/server/common/testing/umpire"
+	umpireotel "go.temporal.io/server/common/testing/umpire/oteladapter"
 	"go.temporal.io/server/service/history/configs"
 	"go.temporal.io/server/service/history/consts"
 	historyi "go.temporal.io/server/service/history/interfaces"
@@ -344,8 +344,8 @@ func (c *cacheImpl) lockWorkflowExecution(
 	if lockPriority == locks.PriorityHigh {
 		lockPriorityStr = "high"
 	}
-	ctx, span := umpire.Instrument(ctx, "workflow.cache.lock.acquire",
-		umpire.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID).Execution(wfKey.RunID)),
+	ctx, span := umpireotel.Instrument(ctx, "workflow.cache.lock.acquire",
+		umpireotel.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID).Execution(wfKey.RunID)),
 		attribute.String("lock.type", lockPriorityStr),
 	)
 	defer span.End()
@@ -370,8 +370,8 @@ func (c *cacheImpl) lockWorkflowExecution(
 
 	if err := workflowCtx.Lock(ctx, lockPriority); err != nil {
 		// ctx is done before lock can be acquired
-		umpire.RecordError(ctx, err,
-			umpire.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID).Execution(wfKey.RunID)),
+		umpireotel.RecordError(ctx, err,
+			umpireotel.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID).Execution(wfKey.RunID)),
 		)
 		c.Release(cacheKey)
 		return consts.ErrResourceExhaustedBusyWorkflow
@@ -397,8 +397,8 @@ func (c *cacheImpl) makeReleaseFunc(
 			if rec := recover(); rec != nil {
 				// Record lock release event before panic
 				wfKey := wfContext.GetWorkflowKey()
-				umpire.RecordFact(context.Background(), "workflow.cache.lock.released",
-					umpire.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
+				umpireotel.RecordFact(context.Background(), "workflow.cache.lock.released",
+					umpireotel.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
 					attribute.String("release.reason", "panic"),
 				)
 				wfContext.Clear()
@@ -409,8 +409,8 @@ func (c *cacheImpl) makeReleaseFunc(
 				wfKey := wfContext.GetWorkflowKey()
 				if err != nil || forceClearContext {
 					// TODO see issue #668, there are certain type or errors which can bypass the clear
-					umpire.RecordFact(context.Background(), "workflow.cache.lock.released",
-						umpire.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
+					umpireotel.RecordFact(context.Background(), "workflow.cache.lock.released",
+						umpireotel.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
 						attribute.String("release.reason", "error_or_force_clear"),
 						attribute.Bool("has.error", err != nil),
 					)
@@ -420,8 +420,8 @@ func (c *cacheImpl) makeReleaseFunc(
 				} else {
 					isDirty := wfContext.IsDirty()
 					if isDirty {
-						umpire.RecordFact(context.Background(), "workflow.cache.lock.released",
-							umpire.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
+						umpireotel.RecordFact(context.Background(), "workflow.cache.lock.released",
+							umpireotel.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
 							attribute.String("release.reason", "dirty_state"),
 							attribute.Bool("is.dirty", true),
 						)
@@ -433,8 +433,8 @@ func (c *cacheImpl) makeReleaseFunc(
 							tag.WorkflowRunID(wfContext.GetWorkflowKey().RunID),
 						)
 					} else {
-						umpire.RecordFact(context.Background(), "workflow.cache.lock.released",
-							umpire.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
+						umpireotel.RecordFact(context.Background(), "workflow.cache.lock.released",
+							umpireotel.EntityTag(model.Namespace(wfKey.NamespaceID).Workflow(wfKey.WorkflowID)),
 							attribute.String("release.reason", "normal"),
 						)
 					}
