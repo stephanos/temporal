@@ -16,7 +16,7 @@ hosttool="$script_dir/.toolchain/hosttool"
 mkdir -p "$script_dir/.toolchain"
 unset GOMADSEED GOMADV3_CHILD_SEED
 GOCACHE="$script_dir/.toolchain/generator-cache" GOTOOLCHAIN=local GOWORK=off \
-	"$host_go" -C "$script_dir" build -o "$hosttool" ./internal/hosttool
+	"$host_go" -C "$script_dir" build -o "$hosttool" ./toolchain/cmd/gomadtool
 
 case ${1:-test} in
 --list-tiers)
