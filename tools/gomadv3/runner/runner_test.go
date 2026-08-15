@@ -948,7 +948,7 @@ func TestRunChoiceFrontierExpandsCompleteTargetFailures(t *testing.T) {
 	}
 }
 
-func TestRunChoiceFrontierDiscoversBothPinnedSelectOutcomes(t *testing.T) {
+func TestRunChoiceFrontierPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling(t *testing.T) {
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
 	if err != nil {
 		t.Fatal(err)
@@ -964,22 +964,62 @@ func TestRunChoiceFrontierDiscoversBothPinnedSelectOutcomes(t *testing.T) {
 		t.Fatalf("build pinned supervisor: %v: %s", err, output)
 	}
 	config := CampaignSpec{
-		Strategy: StrategyChoiceFrontier, Seeds: "7", Parallel: 2,
+		Parallel:   2,
 		RunTimeout: 10 * time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
 		OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
-		ChoiceTraceLimit: 1 << 20, MaxRuns: 16, MaxChoiceDepth: 32, MaxFrontierBytes: 4 << 20,
-		Artifacts: t.TempDir(), Target: target.Spec{
+		KeepSuccesses: KeepSuccessesAll, SuccessArtifactLimit: 16, SuccessBytesLimit: 128 << 20,
+		Target: target.Spec{
 			Kind: target.KindGoRun, Source: "./choice_frontier", WorkingDir: testdata, ToolchainRoot: toolchainRoot,
 		},
 		SupervisorCommand: []string{supervisor, "__supervisor"}, RunnerBuild: "sha256:" + strings.Repeat("0", 64),
 	}
-	summary, err := Explore(context.Background(), config)
+	seedConfig := config
+	seedConfig.Strategy = StrategySeed
+	seedConfig.Seeds = "211-226"
+	seedConfig.Artifacts = t.TempDir()
+	seedSummary, err := Explore(context.Background(), seedConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if summary.Frontier == nil || summary.Frontier.DeduplicatedOutcomes < 2 || summary.Attempted < 2 {
-		t.Fatalf("pinned frontier summary = %#v", summary)
+	frontierConfig := config
+	frontierConfig.Strategy = StrategyChoiceFrontier
+	frontierConfig.Seeds = "211"
+	frontierConfig.ChoiceTraceLimit = 1 << 20
+	frontierConfig.MaxRuns = 16
+	frontierConfig.MaxChoiceDepth = 32
+	frontierConfig.MaxFrontierBytes = 4 << 20
+	frontierConfig.Artifacts = t.TempDir()
+	frontierSummary, err := Explore(context.Background(), frontierConfig)
+	if err != nil {
+		t.Fatal(err)
 	}
+	seedOutcomes := distinctSuccessStdoutOutcomes(t, seedSummary.SuccessArtifacts)
+	frontierOutcomes := distinctSuccessStdoutOutcomes(t, frontierSummary.SuccessArtifacts)
+	if seedSummary.Attempted != 16 || len(seedOutcomes) != 2 {
+		t.Fatalf("equal-budget seed summary = %#v, outcomes = %v", seedSummary, seedOutcomes)
+	}
+	if frontierSummary.Attempted != 16 || len(frontierOutcomes) != 2 || frontierSummary.Frontier == nil || frontierSummary.Frontier.DeduplicatedOutcomes != 2 {
+		t.Fatalf("equal-budget frontier summary = %#v, outcomes = %v", frontierSummary, frontierOutcomes)
+	}
+	if uint64(len(frontierOutcomes))*seedSummary.Attempted != uint64(len(seedOutcomes))*frontierSummary.Attempted {
+		t.Fatalf("pinned outcomes per execution differ: seed=%d/%d frontier=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(frontierOutcomes), frontierSummary.Attempted)
+	}
+}
+
+func distinctSuccessStdoutOutcomes(t *testing.T, paths []string) map[evidence.SHA256]struct{} {
+	t.Helper()
+	outcomes := make(map[evidence.SHA256]struct{}, len(paths))
+	for _, path := range paths {
+		artifact, err := evidence.OpenArtifact(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		outcomes[artifact.Manifest.Streams.Stdout.FullSHA256] = struct{}{}
+		if err := artifact.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return outcomes
 }
 
 func TestRunClassifiesInvalidChoiceTraceTerminalEvidence(t *testing.T) {

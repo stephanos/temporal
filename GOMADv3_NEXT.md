@@ -1,6 +1,6 @@
 # Gomad v3: Suggested Next Functionality
 
-**Roadmap date:** 2026-08-14
+**Roadmap date:** 2026-08-15
 
 ## Purpose
 
@@ -29,7 +29,15 @@ The trust and observability work that previously blocked every track is complete
 - Qualification reports separate `expectations_met` from supported, unsupported, failed, and infrastructure counts; support comparison requires explicit approval for boundary changes.
 - Journal writers enforce the same 64 MiB bound as readers, and cancellation is distinct from deadline expiry.
 
-Choice trace v2 and exact choice-tape replay are also implemented for the currently controlled runnable and `select` decisions. Complete retained traces produce identity-bound tapes automatically during artifact replay; the runtime checks each decision before applying it. The controller already has an internal prefix mode, but there is no public or durable alternative-prefix explorer yet.
+Choice trace v2, exact choice-tape replay, and bounded alternative-prefix
+exploration are implemented for the currently controlled runnable and `select`
+decisions. Complete retained traces produce identity-bound replay plans
+automatically during artifact replay; the runtime checks each decision before
+applying it. Choice-frontier campaigns use one base seed, breadth-first forced
+prefixes, explicit run/depth/byte bounds, round-atomic journals, and durable
+resume. On the pinned two-outcome `select` fixture, frontier and seed sampling
+both reach two declared outcomes in sixteen executions; this records the raw
+frontier's current neutral efficiency rather than claiming an advantage.
 
 Compatibility analysis and qualification reporting v1 are implemented through `gomad analyze`, `qualify-set`, and `compare-support`. The current checked qualification contracts are:
 
@@ -55,9 +63,9 @@ The two initial functions are implemented:
 
 These are now the evidence sources for controlled exploration, compatibility prioritization, and simulation qualification.
 
-### Milestone 2: explore controlled schedules and validate the simulation seam — next
+### Milestone 2: explore controlled schedules and validate the simulation seam — in progress
 
-Build [BUG-4](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration), a durable bounded alternative-prefix explorer above the implemented exact replay and internal prefix controller. Start with raw prefix search as the reference algorithm, record the explored envelope honestly, and compare failures and semantic outcomes per compute-hour against seed sampling before adding PCT or dependency reduction.
+[BUG-4](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) is implemented as the durable bounded choice-frontier strategy. The pinned equal-budget comparison currently shows no outcome-efficiency advantage over seed sampling, so BUG-5 and later search refinements remain gated on stronger benchmark evidence rather than being added speculatively.
 
 Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. Build [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) so every pack captures exact module, source, approval, ownership, workload, and platform evidence and generates changed-version/source rejection tests. Evaluate [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies), compiler-backed live-capability manifests for otherwise-safe transitive forbidden dependencies, while retaining closure review as the default. Add only [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) adapters or I/O models justified by this evidence. The immediate compatibility goal is to increase actual support beyond 4/16 without generic exemptions or host fallback, then add composed tier-3 scenarios.
 
@@ -112,7 +120,7 @@ The tables below account for every named capability and delivery stage in the fo
 | [BUG-1: Runtime-choice trace](GOMADv3_NEXT_BUG_FINDING.md#bug-1-runtime-choice-trace) | Implemented | Milestone 1 |
 | [BUG-2: Choice coverage and feedback](GOMADv3_NEXT_BUG_FINDING.md#bug-2-choice-coverage-and-feedback) | Implemented | Milestone 1 |
 | [BUG-3: Exact choice-tape replay](GOMADv3_NEXT_BUG_FINDING.md#bug-3-exact-choice-tape-replay) | Implemented | Milestone 1 |
-| [BUG-4: Bounded alternative-prefix exploration](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) | Next | Milestone 2 |
+| [BUG-4: Bounded alternative-prefix exploration](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) | Implemented; pinned equal-budget comparison is neutral | Milestone 2 |
 | [BUG-5: Failure minimization](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) | Planned | Milestone 3 |
 | [BUG-6: Deterministic fault plans](GOMADv3_NEXT_BUG_FINDING.md#bug-6-deterministic-fault-plans) | Planned | Milestone 4 |
 | [BUG-7: Later research extensions](GOMADv3_NEXT_BUG_FINDING.md#bug-7-later-research-extensions) | Deferred pending evidence | Milestone 7 |
