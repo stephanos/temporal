@@ -133,7 +133,7 @@ func formatChoiceTrace(trace *runner.ChoiceTraceSummary) string {
 	if trace == nil {
 		return ""
 	}
-	return fmt.Sprintf(" choices-seed=%d choices-profile=%s choices-records=%d choices-branching=%d choices-runnable=%d choices-select-poll=%d choices-select-result=%d choices-sha256=%s choices-terminal=%s", trace.Seed, trace.Profile, trace.Records, trace.BranchingRecords, trace.Runnable, trace.SelectPoll, trace.SelectResult, trace.SHA256, trace.TerminalState)
+	return fmt.Sprintf(" choices-seed=%d choices-profile=%s choices-records=%d choices-decisions=%d choices-branching=%d choices-runnable=%d choices-select-poll=%d choices-select-result=%d choices-sha256=%s choices-tape-sha256=%s choices-terminal=%s", trace.Seed, trace.Profile, trace.Records, trace.Decisions, trace.BranchingRecords, trace.Runnable, trace.SelectPoll, trace.SelectResult, trace.SHA256, trace.TapeSHA256, trace.TerminalState)
 }
 
 func (reporter *exploreReporter) Error(classification string, err error) error {

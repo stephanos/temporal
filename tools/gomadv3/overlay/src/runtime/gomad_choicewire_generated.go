@@ -3,22 +3,43 @@
 package runtime
 
 const (
-	gomadChoiceHeaderBytes            = 64
-	gomadChoiceRecordBytes            = 48
-	gomadChoiceTerminalBytes          = 96
-	gomadChoiceTerminalChecksumOffset = 64
-	gomadChoiceKindRunnable           = 1
-	gomadChoiceKindSelectPoll         = 2
-	gomadChoiceKindSelectResult       = 3
-	gomadChoiceFlagDecision           = 1
-	gomadChoiceFlagObservation        = 2
-	gomadChoiceFlagSiteMissing        = 4
-	gomadChoiceTerminalComplete       = 1
-	gomadChoiceTerminalOverflow       = 2
+	gomadChoiceWireVersion                   = 2
+	gomadChoiceHeaderBytes                   = 64
+	gomadChoiceRecordBytes                   = 96
+	gomadChoiceTapeHeaderBytes               = 264
+	gomadChoiceTapeRecordBytes               = 96
+	gomadChoiceTapeChecksumOffset            = 232
+	gomadChoiceTerminalBytes                 = 312
+	gomadChoiceTerminalChecksumOffset        = 280
+	gomadChoiceKindRunnable                  = 1
+	gomadChoiceKindSelectPoll                = 2
+	gomadChoiceKindSelectResult              = 3
+	gomadChoiceFlagDecision                  = 1
+	gomadChoiceFlagObservation               = 2
+	gomadChoiceFlagSiteMissing               = 4
+	gomadChoiceTerminalComplete              = 1
+	gomadChoiceTerminalOverflow              = 2
+	gomadChoiceTerminalDiverged              = 3
+	gomadChoiceModeSeed                      = 0
+	gomadChoiceModeRecord                    = 1
+	gomadChoiceModeReplay                    = 2
+	gomadChoiceModePrefix                    = 3
+	gomadChoiceDivergenceKind                = 1
+	gomadChoiceDivergenceSite                = 2
+	gomadChoiceDivergenceAlternatives        = 3
+	gomadChoiceDivergenceSelected            = 4
+	gomadChoiceDivergenceAlternativeSet      = 5
+	gomadChoiceDivergenceTapeExhausted       = 6
+	gomadChoiceDivergenceTapeUnconsumed      = 7
+	gomadChoiceDivergenceIdentityMissing     = 8
+	gomadChoiceDivergenceIdentityDuplicate   = 9
+	gomadChoiceDivergenceAlternativeCapacity = 10
+	gomadChoiceDivergenceObservation         = 11
 )
 
-var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x01'}
-var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x01'}
+var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
+var gomadChoiceTapeMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
+var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
 
 func gomadChoicePut32(target []byte, value uint32) {
 	target[0] = byte(value >> 24)
@@ -41,49 +62,89 @@ func gomadChoiceRead64(source []byte) uint64 {
 }
 
 func gomadChoiceHash(input []byte) [32]byte {
-	state := [8]uint32{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19}
-	length := uint64(len(input)) * 8
-	paddedLength := (len(input) + 9 + 63) &^ 63
-	padded := make([]byte, paddedLength)
-	copy(padded, input)
-	padded[len(input)] = 0x80
-	gomadChoicePut64(padded[len(padded)-8:], length)
-	for len(padded) != 0 {
-		var words [64]uint32
-		for index := 0; index < 16; index++ {
-			words[index] = gomadChoiceRead32(padded[index*4 : index*4+4])
+	var hasher gomadChoiceHasher
+	hasher.init()
+	hasher.write(input)
+	return hasher.sum()
+}
+
+type gomadChoiceHasher struct {
+	state [8]uint32
+	block [64]byte
+	used  uint32
+	bytes uint64
+}
+
+func (hasher *gomadChoiceHasher) init() {
+	hasher.state = [8]uint32{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19}
+}
+
+func (hasher *gomadChoiceHasher) write(input []byte) {
+	hasher.bytes += uint64(len(input))
+	for len(input) != 0 {
+		count := min(len(input), len(hasher.block)-int(hasher.used))
+		copy(hasher.block[hasher.used:], input[:count])
+		hasher.used += uint32(count)
+		input = input[count:]
+		if hasher.used == uint32(len(hasher.block)) {
+			hasher.compress()
+			hasher.used = 0
 		}
-		for index := 16; index < 64; index++ {
-			s0 := gomadChoiceRotateRight(words[index-15], 7) ^ gomadChoiceRotateRight(words[index-15], 18) ^ words[index-15]>>3
-			s1 := gomadChoiceRotateRight(words[index-2], 17) ^ gomadChoiceRotateRight(words[index-2], 19) ^ words[index-2]>>10
-			words[index] = words[index-16] + s0 + words[index-7] + s1
-		}
-		a, b, c, d := state[0], state[1], state[2], state[3]
-		e, f, g, h := state[4], state[5], state[6], state[7]
-		for index := 0; index < 64; index++ {
-			s1 := gomadChoiceRotateRight(e, 6) ^ gomadChoiceRotateRight(e, 11) ^ gomadChoiceRotateRight(e, 25)
-			choice := e&f ^ (^e)&g
-			temporary1 := h + s1 + choice + gomadChoiceSHA256Constants[index] + words[index]
-			s0 := gomadChoiceRotateRight(a, 2) ^ gomadChoiceRotateRight(a, 13) ^ gomadChoiceRotateRight(a, 22)
-			majority := a&b ^ a&c ^ b&c
-			temporary2 := s0 + majority
-			h, g, f, e, d, c, b, a = g, f, e, d+temporary1, c, b, a, temporary1+temporary2
-		}
-		state[0] += a
-		state[1] += b
-		state[2] += c
-		state[3] += d
-		state[4] += e
-		state[5] += f
-		state[6] += g
-		state[7] += h
-		padded = padded[64:]
 	}
+}
+
+func (hasher *gomadChoiceHasher) sum() [32]byte {
+	length := hasher.bytes * 8
+	hasher.block[hasher.used] = 0x80
+	hasher.used++
+	if hasher.used > 56 {
+		for index := hasher.used; index < uint32(len(hasher.block)); index++ {
+			hasher.block[index] = 0
+		}
+		hasher.compress()
+		hasher.used = 0
+	}
+	for index := hasher.used; index < 56; index++ {
+		hasher.block[index] = 0
+	}
+	gomadChoicePut64(hasher.block[56:64], length)
+	hasher.compress()
 	var result [32]byte
-	for index, value := range state {
+	for index, value := range hasher.state {
 		gomadChoicePut32(result[index*4:index*4+4], value)
 	}
 	return result
+}
+
+func (hasher *gomadChoiceHasher) compress() {
+	var words [64]uint32
+	for index := 0; index < 16; index++ {
+		words[index] = gomadChoiceRead32(hasher.block[index*4 : index*4+4])
+	}
+	for index := 16; index < 64; index++ {
+		s0 := gomadChoiceRotateRight(words[index-15], 7) ^ gomadChoiceRotateRight(words[index-15], 18) ^ words[index-15]>>3
+		s1 := gomadChoiceRotateRight(words[index-2], 17) ^ gomadChoiceRotateRight(words[index-2], 19) ^ words[index-2]>>10
+		words[index] = words[index-16] + s0 + words[index-7] + s1
+	}
+	a, b, c, d := hasher.state[0], hasher.state[1], hasher.state[2], hasher.state[3]
+	e, f, g, h := hasher.state[4], hasher.state[5], hasher.state[6], hasher.state[7]
+	for index := 0; index < 64; index++ {
+		s1 := gomadChoiceRotateRight(e, 6) ^ gomadChoiceRotateRight(e, 11) ^ gomadChoiceRotateRight(e, 25)
+		choice := e&f ^ (^e)&g
+		temporary1 := h + s1 + choice + gomadChoiceSHA256Constants[index] + words[index]
+		s0 := gomadChoiceRotateRight(a, 2) ^ gomadChoiceRotateRight(a, 13) ^ gomadChoiceRotateRight(a, 22)
+		majority := a&b ^ a&c ^ b&c
+		temporary2 := s0 + majority
+		h, g, f, e, d, c, b, a = g, f, e, d+temporary1, c, b, a, temporary1+temporary2
+	}
+	hasher.state[0] += a
+	hasher.state[1] += b
+	hasher.state[2] += c
+	hasher.state[3] += d
+	hasher.state[4] += e
+	hasher.state[5] += f
+	hasher.state[6] += g
+	hasher.state[7] += h
 }
 
 func gomadChoiceRotateRight(value uint32, bits uint) uint32 { return value>>bits | value<<(32-bits) }

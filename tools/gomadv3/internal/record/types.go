@@ -2,11 +2,15 @@ package record
 
 const LegacySchemaVersion uint32 = 2
 
-const SchemaVersion uint32 = 3
+const PreviousSchemaVersion uint32 = 3
+
+const SchemaVersion uint32 = 4
 
 const LegacyRecordContract = "gomadv3.run-record/v2"
 
-const RecordContract = "gomadv3.run-record/v3"
+const PreviousRecordContract = "gomadv3.run-record/v3"
+
+const RecordContract = "gomadv3.run-record/v4"
 
 const (
 	ArtifactSuccess         = "gomadv3.success/v1"
@@ -78,6 +82,8 @@ type ChoiceTrace struct {
 	BranchingRecords Uint64String `json:"branching_records"`
 	TerminalState    string       `json:"terminal_state"`
 	Limit            Uint64String `json:"limit"`
+	TapeSHA256       SHA256       `json:"tape_sha256,omitempty"`
+	Decisions        Uint64String `json:"decisions,omitempty"`
 }
 
 type ReadOnlyMounts struct {

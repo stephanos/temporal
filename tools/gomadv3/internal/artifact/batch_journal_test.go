@@ -35,7 +35,7 @@ func TestBatchJournalPublishesTheCanonicalBatchLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	partialPath := filepath.Join(run.Path(), "partial.json")
-	assertFileContents(t, partialPath, `{"schema_version":3,"seed":"7","selection_ordinal":"0","state":"staging"}`)
+	assertFileContents(t, partialPath, `{"schema_version":4,"seed":"7","selection_ordinal":"0","state":"staging"}`)
 	if err := run.Transition(RunStarting); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestBatchJournalPublishesTheCanonicalBatchLifecycle(t *testing.T) {
 	}
 	const wantRuns = "{\"artifact\":null,\"domain\":\"success\",\"elapsed_nanos\":\"5\",\"failure_signature\":null,\"io_transcript_records\":null,\"io_transcript_sha256\":null,\"reason\":\"success\",\"seed\":\"7\",\"selection_ordinal\":\"0\",\"termination\":\"exit\"}\n"
 	assertFileContents(t, filepath.Join(journal.Path(), "runs.jsonl"), wantRuns)
-	const wantBatch = `{"attempted":"1","cancelled":"0","distinct_failures":"0","failure_signatures":[],"failures":"0","run_id":"run-fixed","runs_sha256":"sha256:52c0817ad9d6287383d15753b8c4ff3a4b5c2c805bf742d83bdb06c1d9ef8d44","schema":"gomadv3.batch/v1","schema_version":3,"selection":"7","selection_count":"1","stop_reason":"seeds_exhausted","succeeded":"1","watchdogs":"0"}`
+	const wantBatch = `{"attempted":"1","cancelled":"0","distinct_failures":"0","failure_signatures":[],"failures":"0","run_id":"run-fixed","runs_sha256":"sha256:52c0817ad9d6287383d15753b8c4ff3a4b5c2c805bf742d83bdb06c1d9ef8d44","schema":"gomadv3.batch/v1","schema_version":4,"selection":"7","selection_count":"1","stop_reason":"seeds_exhausted","succeeded":"1","watchdogs":"0"}`
 	assertFileContents(t, filepath.Join(journal.Path(), "batch.json"), wantBatch)
 	for _, removed := range []string{journal.PreparedPath(), filepath.Join(journal.Path(), ".partial", "batch"), run.Path()} {
 		if _, err := os.Stat(removed); !os.IsNotExist(err) {
@@ -345,10 +345,13 @@ func TestBatchJournalRoundTripsChoiceProfileAndRunSummary(t *testing.T) {
 	digest := record.HashBytes([]byte("choices"))
 	records := record.Uint64String(4)
 	branching := record.Uint64String(2)
+	decisions := record.Uint64String(3)
+	tapeDigest := record.HashBytes([]byte("choice tape"))
 	terminal := "complete"
 	if err := journal.AppendRun(RunRecord{
 		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit",
 		ChoiceTraceSHA256: &digest, ChoiceTraceRecords: &records, ChoiceTraceBranchingRecords: &branching, ChoiceTraceTerminalState: &terminal,
+		ChoiceTapeSHA256: &tapeDigest, ChoiceDecisions: &decisions,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -359,7 +362,7 @@ func TestBatchJournalRoundTripsChoiceProfileAndRunSummary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(opened.Runs) != 1 || opened.Runs[0].ChoiceTraceBranchingRecords == nil || *opened.Runs[0].ChoiceTraceBranchingRecords != 2 {
+	if len(opened.Runs) != 1 || opened.Runs[0].ChoiceTraceBranchingRecords == nil || *opened.Runs[0].ChoiceTraceBranchingRecords != 2 || opened.Runs[0].ChoiceTapeSHA256 == nil || *opened.Runs[0].ChoiceDecisions != 3 {
 		t.Fatalf("choice run summary = %#v", opened.Runs)
 	}
 }
@@ -494,7 +497,7 @@ func TestBatchJournalPreservesExplicitFailureState(t *testing.T) {
 	if err := journal.FailPreparation("target_preparation", failure); err != nil {
 		t.Fatal(err)
 	}
-	const wantFailure = `{"detail":"build failed","reason":"target_preparation","schema_version":3,"state":"failed"}`
+	const wantFailure = `{"detail":"build failed","reason":"target_preparation","schema_version":4,"state":"failed"}`
 	assertFileContents(t, filepath.Join(journal.Path(), ".partial", "preparation", "partial.json"), wantFailure)
 	if err := journal.Fail("target_preparation", failure); err != nil {
 		t.Fatal(err)

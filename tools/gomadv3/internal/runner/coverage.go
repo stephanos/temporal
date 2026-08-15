@@ -27,9 +27,7 @@ func projectChoiceFeatures(trace process.ChoiceTrace, prepared target.Prepared) 
 	if err != nil {
 		return choicewire.FeatureProjection{}, nil, err
 	}
-	projection, err := choicewire.Project(trace.Trace.Bytes, choicewire.TerminalMetadata{
-		State: trace.Trace.Summary.Terminal, Limit: trace.Limit, Records: trace.Trace.Summary.Records, SHA256: trace.Trace.SHA256,
-	}, targetDigest)
+	projection, err := choicewire.ProjectTrace(trace.Trace, trace.Limit, targetDigest)
 	if err != nil {
 		return choicewire.FeatureProjection{}, nil, fmt.Errorf("project choice coverage: %w", err)
 	}

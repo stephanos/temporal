@@ -13,7 +13,7 @@ import (
 var environmentNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func validateManifest(manifest Manifest, requireIdentities bool) error {
-	if manifest.SchemaVersion != SchemaVersion && manifest.SchemaVersion != LegacySchemaVersion {
+	if manifest.SchemaVersion != SchemaVersion && manifest.SchemaVersion != PreviousSchemaVersion && manifest.SchemaVersion != LegacySchemaVersion {
 		return fmt.Errorf("unsupported manifest schema version %d", manifest.SchemaVersion)
 	}
 	if err := validateArtifactReplay(manifest.ArtifactKind, manifest.ReplayMode, manifest.Outcome.Domain); err != nil {
@@ -34,7 +34,9 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 		}
 	}
 	expectedContract := RecordContract
-	if manifest.SchemaVersion == LegacySchemaVersion {
+	if manifest.SchemaVersion == PreviousSchemaVersion {
+		expectedContract = PreviousRecordContract
+	} else if manifest.SchemaVersion == LegacySchemaVersion {
 		expectedContract = LegacyRecordContract
 		if manifest.ChoiceProfile != nil || manifest.Limits.ChoiceTraceBytes != 0 {
 			return errors.New("schema v2 manifest cannot contain a choice trace")
@@ -52,7 +54,7 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	if err := validateIOProfile(manifest.IOProfile); err != nil {
 		return err
 	}
-	if err := validateChoiceProfile(manifest.ChoiceProfile, manifest.Limits.ChoiceTraceBytes, manifest.ArtifactKind, manifest.Outcome.Reason); err != nil {
+	if err := validateChoiceProfile(manifest.SchemaVersion, manifest.ChoiceProfile, manifest.Limits.ChoiceTraceBytes, manifest.ArtifactKind, manifest.Outcome.Reason); err != nil {
 		return err
 	}
 	choiceProfile := ""
@@ -132,9 +134,8 @@ func validateManifest(manifest Manifest, requireIdentities bool) error {
 	return nil
 }
 
-func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactKind, outcomeReason string) error {
+func validateChoiceProfile(schemaVersion uint32, profile *ChoiceProfile, limit Uint64String, artifactKind, outcomeReason string) error {
 	const choiceTraceHeaderBytes = 64
-	const choiceTraceRecordBytes = 48
 	if profile == nil {
 		if limit != 0 {
 			return errors.New("choice trace limit requires a choice profile")
@@ -142,14 +143,34 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 		return nil
 	}
 	trace := profile.Trace
-	if profile.Name != "gomadv3-choice-trace/v1" || trace.Schema != "gomadv3.choice-trace/v1" || trace.File != "choices.bin" {
+	recordBytes := Uint64String(96)
+	if schemaVersion == PreviousSchemaVersion {
+		recordBytes = 48
+		if profile.Name != "gomadv3-choice-trace/v1" || trace.Schema != "gomadv3.choice-trace/v1" || trace.TapeSHA256 != "" || trace.Decisions != 0 {
+			return errors.New("invalid schema v3 choice trace identity")
+		}
+	} else if schemaVersion != SchemaVersion || profile.Name != "gomadv3-choice-trace/v2" || trace.Schema != "gomadv3.choice-trace/v2" {
+		return errors.New("invalid choice trace identity")
+	}
+	if trace.File != "choices.bin" {
 		return errors.New("invalid choice trace identity")
 	}
 	switch trace.TerminalState {
 	case "complete":
+		if schemaVersion == SchemaVersion {
+			if err := validateSHA256(trace.TapeSHA256); err != nil {
+				return fmt.Errorf("invalid choice tape hash: %w", err)
+			}
+			if trace.Decisions > trace.Records || trace.BranchingRecords > trace.Decisions {
+				return errors.New("invalid choice trace decision counts")
+			}
+		}
 	case "overflow":
 		if artifactKind != ArtifactRunnerFailure || outcomeReason != "choice_trace_overflow" {
 			return errors.New("choice trace overflow requires a matching Runner failure")
+		}
+		if trace.TapeSHA256 != "" || trace.Decisions != 0 {
+			return errors.New("overflow choice trace cannot claim an exact tape")
 		}
 	default:
 		return errors.New("invalid choice trace terminal state")
@@ -160,7 +181,7 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 	if err := validateSHA256(trace.SHA256); err != nil {
 		return fmt.Errorf("invalid choice trace hash: %w", err)
 	}
-	if limit < choiceTraceHeaderBytes+choiceTraceRecordBytes || trace.Limit != limit || trace.Bytes > limit-choiceTraceHeaderBytes || trace.Bytes%choiceTraceRecordBytes != 0 || trace.Records != trace.Bytes/choiceTraceRecordBytes || trace.BranchingRecords > trace.Records {
+	if limit < choiceTraceHeaderBytes+recordBytes || trace.Limit != limit || trace.Bytes > limit-choiceTraceHeaderBytes || trace.Bytes%recordBytes != 0 || trace.Records != trace.Bytes/recordBytes || trace.BranchingRecords > trace.Records {
 		return errors.New("invalid choice trace limits or counts")
 	}
 	return nil

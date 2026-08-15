@@ -87,9 +87,12 @@ func FinalizeManifest(input Manifest) (Manifest, []byte, error) {
 	if err != nil {
 		return Manifest{}, nil, fmt.Errorf("encode failure projection: %w", err)
 	}
-	failureDomain := "gomadv3-failure-signature-v3"
-	recordDomain := "gomadv3-run-record-v3"
-	if input.SchemaVersion == LegacySchemaVersion {
+	failureDomain := "gomadv3-failure-signature-v4"
+	recordDomain := "gomadv3-run-record-v4"
+	if input.SchemaVersion == PreviousSchemaVersion {
+		failureDomain = "gomadv3-failure-signature-v3"
+		recordDomain = "gomadv3-run-record-v3"
+	} else if input.SchemaVersion == LegacySchemaVersion {
 		failureDomain = "gomadv3-failure-signature-v2"
 		recordDomain = "gomadv3-run-record-v2"
 	}

@@ -51,6 +51,8 @@ type RunRecord struct {
 	ChoiceTraceRecords          *record.Uint64String `json:"choice_trace_records,omitempty"`
 	ChoiceTraceBranchingRecords *record.Uint64String `json:"choice_trace_branching_records,omitempty"`
 	ChoiceTraceTerminalState    *string              `json:"choice_trace_terminal_state,omitempty"`
+	ChoiceTapeSHA256            *record.SHA256       `json:"choice_tape_sha256,omitempty"`
+	ChoiceDecisions             *record.Uint64String `json:"choice_decisions,omitempty"`
 	SemanticProbes              []string             `json:"semantic_probes,omitempty"`
 	ChoiceFeatures              []string             `json:"choice_features,omitempty"`
 	SuccessArtifact             *string              `json:"success_artifact,omitempty"`

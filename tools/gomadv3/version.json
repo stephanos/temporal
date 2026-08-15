@@ -24,7 +24,9 @@
     "src/crypto/rand/rand.go",
     "src/runtime/proc.go",
     "src/runtime/rand.go",
+    "src/runtime/runtime2.go",
     "src/runtime/select.go",
+    "src/runtime/sizeof_test.go",
     "src/runtime/time.go",
     "src/runtime/time_nofake.go",
     "src/testing/testing.go"

@@ -209,7 +209,8 @@ func validateChoiceRunSummary(run RunRecord) error {
 			present++
 		}
 	}
-	if present == 0 {
+	tapePresent := run.ChoiceTapeSHA256 != nil || run.ChoiceDecisions != nil
+	if present == 0 && !tapePresent {
 		return nil
 	}
 	if present != 4 {
@@ -218,7 +219,13 @@ func validateChoiceRunSummary(run RunRecord) error {
 	if !validRecordSHA256(*run.ChoiceTraceSHA256) || *run.ChoiceTraceBranchingRecords > *run.ChoiceTraceRecords {
 		return errors.New("choice trace summary is invalid")
 	}
-	if *run.ChoiceTraceTerminalState == "complete" || *run.ChoiceTraceTerminalState == "overflow" && run.Domain == "runner" && run.Reason == "choice_trace_overflow" {
+	if *run.ChoiceTraceTerminalState == "complete" {
+		if run.ChoiceTapeSHA256 == nil || run.ChoiceDecisions == nil || !validRecordSHA256(*run.ChoiceTapeSHA256) || *run.ChoiceDecisions > *run.ChoiceTraceRecords || *run.ChoiceTraceBranchingRecords > *run.ChoiceDecisions {
+			return errors.New("choice tape summary is invalid")
+		}
+		return nil
+	}
+	if *run.ChoiceTraceTerminalState == "overflow" && run.Domain == "runner" && run.Reason == "choice_trace_overflow" && run.ChoiceTapeSHA256 == nil && run.ChoiceDecisions == nil {
 		return nil
 	}
 	return errors.New("choice trace summary is invalid")

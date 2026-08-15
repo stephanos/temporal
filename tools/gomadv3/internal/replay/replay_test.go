@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"debug/buildinfo"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -58,6 +60,105 @@ func TestReplayEnvironmentExcludesChoiceControlVariables(t *testing.T) {
 	})
 	if !reflect.DeepEqual(environment, []string{"GOMADSEED=7", "TZ=UTC"}) {
 		t.Fatalf("replay environment = %#v", environment)
+	}
+}
+
+func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
+	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+	executor := &fakeReplayExecutor{result: expected}
+	result, err := Replay(context.Background(), Config{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Match || result.ChoiceReplayStatus != ChoiceReplayExact {
+		t.Fatalf("replay result = %#v", result)
+	}
+	if executor.request.Choice == nil || executor.request.Choice.Mode != choicewire.ModeReplay || executor.request.Choice.Tape == nil || len(executor.request.Choice.Tape.Decisions) != 1 {
+		t.Fatalf("replay choice capability = %#v", executor.request.Choice)
+	}
+}
+
+func TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison(t *testing.T) {
+	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+	executor := &fakeReplayExecutor{err: &process.ChoiceReplayDivergenceError{Divergence: choicewire.Divergence{Ordinal: 3, Reason: choicewire.DivergenceSite}}}
+	result, err := Replay(context.Background(), Config{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Match || result.ChoiceReplayStatus != ChoiceReplayDiverged || result.Divergence != "choice_profile.divergence.ordinal[3].site" || executor.calls != 1 {
+		t.Fatalf("replay result = %#v, calls = %d", result, executor.calls)
+	}
+}
+
+func TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence(t *testing.T) {
+	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+	cleanupErr := errors.New("cleanup failed")
+	executor := &fakeReplayExecutor{err: errors.Join(
+		&process.ChoiceReplayDivergenceError{Divergence: choicewire.Divergence{Ordinal: 3, Reason: choicewire.DivergenceSite}},
+		cleanupErr,
+	)}
+	_, err := Replay(context.Background(), Config{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if !errors.Is(err, cleanupErr) {
+		t.Fatalf("Replay() error = %v", err)
+	}
+}
+
+func TestReplayDoesNotExecuteLegacyChoiceArtifact(t *testing.T) {
+	artifactPath, _ := replayArtifact(t)
+	opened, err := artifact.Open(artifactPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest := opened.Manifest
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	payload := make([]byte, 48)
+	binary.BigEndian.PutUint64(payload[:8], 0)
+	payload[8] = byte(choicewire.KindRunnable)
+	payload[9] = byte(choicewire.FlagDecision)
+	binary.BigEndian.PutUint32(payload[12:16], 2)
+	binary.BigEndian.PutUint32(payload[16:20], 1)
+	binary.BigEndian.PutUint64(payload[24:32], 17)
+	manifest.SchemaVersion = record.PreviousSchemaVersion
+	manifest.Runner.RecordContract = record.PreviousRecordContract
+	manifest.ChoiceProfile = &record.ChoiceProfile{
+		Name: choicewire.LegacyProfile, ImplementationSHA256: record.HashBytes([]byte("legacy choice implementation")),
+		Trace: record.ChoiceTrace{
+			Schema: "gomadv3.choice-trace/v1", File: "choices.bin", SHA256: record.HashBytes(payload), Bytes: 48,
+			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 112,
+		},
+	}
+	manifest.Limits.ChoiceTraceBytes = 112
+	manifest.Environment = append(manifest.Environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.LegacyProfile})
+	sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
+	manifest.Files = append(manifest.Files, record.File{Path: "choices.bin", Mode: "0600", Size: 48, SHA256: record.HashBytes(payload)})
+	sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
+	_, manifestBytes, err := record.FinalizeManifest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(artifactPath, "choices.bin"), payload, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(artifactPath, "manifest.json"), manifestBytes, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	executor := &fakeReplayExecutor{}
+	result, err := Replay(context.Background(), Config{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Match || result.ChoiceReplayStatus != ChoiceReplayUnavailable || result.Divergence != "choice_profile.replay_unavailable" || executor.calls != 0 {
+		t.Fatalf("legacy replay result = %#v, calls = %d", result, executor.calls)
 	}
 }
 
@@ -364,6 +465,7 @@ type fakeReplayExecutor struct {
 	calls   int
 	request process.Request
 	result  process.Result
+	err     error
 }
 
 func (executor *fakeReplayExecutor) Run(_ context.Context, request process.Request) (process.Result, error) {
@@ -371,7 +473,7 @@ func (executor *fakeReplayExecutor) Run(_ context.Context, request process.Reque
 	defer executor.mu.Unlock()
 	executor.calls++
 	executor.request = request
-	return executor.result, nil
+	return executor.result, executor.err
 }
 
 func replayArtifact(t *testing.T) (string, process.Result) {
@@ -395,6 +497,7 @@ type replayArtifactTarget struct {
 	Environment   []record.Environment
 	OutcomeReason string
 	IOTranscript  []byte
+	Choices       bool
 }
 
 func publishReplayArtifactForTarget(t *testing.T, connected *worldrecord.Bundle, replayTarget replayArtifactTarget) (string, process.Result) {
@@ -467,11 +570,61 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *wor
 		},
 		TargetPath: targetPath, Stdout: stdout.Bytes, Stderr: stderr.Bytes, IOTranscript: ioTranscript, World: payloads,
 	}
+	var recordedChoices process.ChoiceTrace
+	if replayTarget.Choices {
+		implementation, identityErr := choicewire.ImplementationIdentity(identity.BuildKey)
+		if identityErr != nil {
+			t.Fatal(identityErr)
+		}
+		first := sha256.Sum256([]byte("first choice alternative"))
+		second := sha256.Sum256([]byte("second choice alternative"))
+		decision, decisionErr := choicewire.CanonicalDecision(0, choicewire.KindRunnable, 17, false, [][sha256.Size]byte{first, second}, second, 0)
+		if decisionErr != nil {
+			t.Fatal(decisionErr)
+		}
+		encoded, encodeErr := choicewire.EncodeRecord(decision.Record())
+		if encodeErr != nil {
+			t.Fatal(encodeErr)
+		}
+		choicePayload := append([]byte(nil), encoded[:]...)
+		choiceDigest := sha256.Sum256(choicePayload)
+		choiceLimit := uint64(choicewire.HeaderBytes + choicewire.RecordBytes)
+		terminal := choicewire.EncodeTerminal(choicewire.Terminal{State: choicewire.TerminalComplete, Records: 1, MappingBytes: choiceLimit, PayloadHash: choiceDigest})
+		choiceTrace, decodeErr := choicewire.DecodeTrace(choicePayload, terminal[:], choiceLimit)
+		if decodeErr != nil {
+			t.Fatal(decodeErr)
+		}
+		targetSHA256, targetErr := input.Manifest.Target.SHA256.Bytes()
+		if targetErr != nil {
+			t.Fatal(targetErr)
+		}
+		executionIdentity := choicewire.ExecutionIdentity{
+			TargetSHA256: targetSHA256, ToolchainBuildKey: identity.BuildKey,
+			GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH, ImplementationSHA256: implementation,
+		}
+		tape, tapeErr := choicewire.ProjectDecisionTape(choiceTrace, executionIdentity)
+		if tapeErr != nil {
+			t.Fatal(tapeErr)
+		}
+		input.Manifest.ChoiceProfile = &record.ChoiceProfile{
+			Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
+			Trace: record.ChoiceTrace{
+				Schema: "gomadv3.choice-trace/v2", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choiceTrace.Bytes)),
+				Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit),
+				TapeSHA256: record.SHA256FromSum(tape.SHA256), Decisions: 1,
+			},
+		}
+		input.Manifest.Limits.ChoiceTraceBytes = record.Uint64String(choiceLimit)
+		input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.Profile})
+		sort.Slice(input.Manifest.Environment, func(i, j int) bool { return input.Manifest.Environment[i].Name < input.Manifest.Environment[j].Name })
+		input.ChoiceTrace = choicePayload
+		recordedChoices = process.ChoiceTrace{Profile: choicewire.Profile, ImplementationSHA256: implementation, Limit: choiceLimit, Trace: choiceTrace}
+	}
 	published, err := (artifact.Store{Root: t.TempDir()}).Publish(input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := process.Result{Termination: process.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: process.IOTranscript{SHA256: ioTranscriptSHA256, Records: uint64(len(ioTranscript) / iowire.TranscriptRecordBytes), Complete: true}}
+	result := process.Result{Termination: process.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: process.IOTranscript{SHA256: ioTranscriptSHA256, Records: uint64(len(ioTranscript) / iowire.TranscriptRecordBytes), Complete: true}, ChoiceTrace: recordedChoices}
 	if connected != nil {
 		initial, decodeErr := world.DecodeSnapshot(connected.Payloads.Initial)
 		if decodeErr != nil {

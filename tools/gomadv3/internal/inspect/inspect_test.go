@@ -95,12 +95,15 @@ func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
 		t.Fatal(err)
 	}
 	bytes := record.Uint64String(retained.StoredBytes)
+	choiceTrace := retained.Manifest.ChoiceProfile.Trace
 	if err := journal.StartRuns(); err != nil {
 		t.Fatal(err)
 	}
 	if err := journal.AppendRun(artifact.RunRecord{
 		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit", ElapsedNanos: 5,
 		SuccessArtifact: &relative, SuccessArtifactBytes: &bytes, SemanticProbes: []string{"stdlib.os.openfile"}, NovelSemanticProbes: []string{"stdlib.os.openfile"},
+		ChoiceTraceSHA256: &choiceTrace.SHA256, ChoiceTraceRecords: &choiceTrace.Records, ChoiceTraceBranchingRecords: &choiceTrace.BranchingRecords,
+		ChoiceTraceTerminalState: &choiceTrace.TerminalState, ChoiceTapeSHA256: &choiceTrace.TapeSHA256, ChoiceDecisions: &choiceTrace.Decisions,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +142,13 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 		reason = "success"
 	}
 	transcript := []byte(strings.Repeat("x", 128*3))
-	choiceRecord, err := choicewire.EncodeRecord(choicewire.Record{Kind: choicewire.KindRunnable, Flags: choicewire.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 1})
+	first := sha256.Sum256([]byte("first choice alternative"))
+	second := sha256.Sum256([]byte("second choice alternative"))
+	decision, err := choicewire.CanonicalDecision(0, choicewire.KindRunnable, 24, false, [][sha256.Size]byte{first, second}, second, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	choiceRecord, err := choicewire.EncodeRecord(decision.Record())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,13 +158,29 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 	if err != nil {
 		t.Fatal(err)
 	}
+	choiceDigest := sha256.Sum256(choicePayload)
+	choiceTrace, err := choicewire.DecodeStoredTrace(choicewire.Profile, choicePayload, choicewire.TerminalMetadata{State: choicewire.TerminalComplete, Limit: choiceLimit, Records: 1, SHA256: choiceDigest})
+	if err != nil {
+		t.Fatal(err)
+	}
+	targetSHA256, err := record.HashBytes([]byte("target")).Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	choiceTape, err := choicewire.ProjectDecisionTape(choiceTrace, choicewire.ExecutionIdentity{
+		TargetSHA256: targetSHA256, ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: choiceImplementation,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	manifest := record.Manifest{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: artifactKind, CreatedAt: "2026-08-12T12:00:00Z", BatchID: batchID, SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
 		Runner:        record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
 		Toolchain:     record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target:        record.Target{Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
 		IOProfile:     record.IOProfile{Name: "gomadv3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}")), Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 3}},
-		ChoiceProfile: &record.ChoiceProfile{Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(choiceImplementation), Trace: record.ChoiceTrace{Schema: "gomadv3.choice-trace/v1", SHA256: record.SHA256FromSum(sha256.Sum256(choicePayload)), Bytes: record.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit)}},
+		ChoiceProfile: &record.ChoiceProfile{Name: choicewire.Profile, ImplementationSHA256: record.SHA256FromSum(choiceImplementation), Trace: record.ChoiceTrace{Schema: "gomadv3.choice-trace/v2", SHA256: record.SHA256FromSum(choiceDigest), Bytes: record.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit), TapeSHA256: record.SHA256FromSum(choiceTape.SHA256), Decisions: 1}},
 		Environment:   []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_CHOICE_PROFILE", Value: choicewire.Profile}, {Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}}, Limits: record.Limits{RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20, ChoiceTraceBytes: record.Uint64String(choiceLimit)}, World: world,
 		Outcome: record.Outcome{Domain: domain, Reason: reason, Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{

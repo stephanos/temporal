@@ -42,7 +42,7 @@ func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {
 	if err := json.Unmarshal(contents, &public); err != nil {
 		t.Fatal(err)
 	}
-	if public["schema"] != "gomadv3.qualification-set-report/v3" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
+	if public["schema"] != "gomadv3.qualification-set-report/v4" || public["expectations_met"] != true || public["supported"] != float64(0) || public["unsupported"] != float64(1) || public["failed"] != float64(0) || public["infrastructure_errors"] != float64(0) {
 		t.Fatalf("public qualification set report = %#v", public)
 	}
 	for _, forbidden := range []string{"manifest", "report_path", "command"} {
@@ -62,6 +62,33 @@ func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {
 	}
 	if _, err := OpenReport(output); err == nil {
 		t.Fatal("OpenReport() accepted a non-private report")
+	}
+}
+
+func TestOpenReportNormalizesPreviousExactChoiceDimensions(t *testing.T) {
+	root := t.TempDir()
+	report, err := Run(context.Background(), Config{
+		ManifestPath: writeManifest(t, root, "unsupported_target"), GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: filepath.Join(root, "current.json"), Execute: expectedBoundaryExecutor(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	report.Schema = PreviousReportSchema
+	encoded, err := record.CanonicalJSON(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(root, "previous.json")
+	if err := os.WriteFile(path, append(encoded, '\n'), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	opened, err := OpenReport(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if opened.Schema != ReportSchema || opened.Suites[0].Choice.ExactReplayAvailable {
+		t.Fatalf("normalized previous report = %#v", opened)
 	}
 }
 

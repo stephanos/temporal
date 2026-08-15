@@ -70,6 +70,13 @@ Do not begin with source-code coverage. Compiler coverage instrumentation change
 
 ## Capability 3: exact choice-tape replay
 
+Implemented in the v2 choice controller: retained complete traces derive an
+identity-bound immutable tape, artifact replay supplies it automatically, and
+the runtime rejects mismatches before applying a decision. V1 traces remain
+readable observational evidence but cannot claim exact replay. The `prefix`
+mode is available internally for Capability 4; this capability does not expose
+a public tape or prefix flag.
+
 Separate decision production from the runtime RNG. A choice controller should support four modes:
 
 1. `seed`: current seeded behavior;
