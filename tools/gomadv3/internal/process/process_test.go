@@ -296,6 +296,64 @@ func TestRunPreservesChoicePrefixRNGPosition(t *testing.T) {
 	}
 }
 
+func TestRunForcesCanonicalRankAtFinalPrefixDecision(t *testing.T) {
+	limit := uint64(1 << 20)
+	identity := choicewire.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("process rank prefix target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
+	}
+	request := Request{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=choice-prefix-rng", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choicewire.ModeRecord, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+	}
+	baseline, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choicewire.ProjectDecisionTape(baseline.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ordinal uint64
+	var rank uint32
+	found := false
+	for index, decision := range tape.Decisions {
+		if decision.Kind == choicewire.KindSelectPoll && decision.Alternatives > 1 {
+			ordinal = uint64(index)
+			rank = (decision.Selected + 1) % decision.Alternatives
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("prefix fixture recorded no branching select decision")
+	}
+	prefix, err := choicewire.BuildRankPrefix(tape, ordinal, rank)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Choice = &ChoiceCapability{
+		Mode: choicewire.ModePrefix, Profile: choicewire.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
+		ExecutionIdentity: identity, Limit: limit, Tape: &prefix,
+	}
+	forced, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	forcedTape, err := choicewire.ProjectDecisionTape(forced.ChoiceTrace.Trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decision := forcedTape.Decisions[ordinal]
+	if decision.Selected != rank || decision.SelectedIdentity == ([sha256.Size]byte{}) || decision.RankOverride {
+		t.Fatalf("forced decision = %#v, want canonical rank %d", decision, rank)
+	}
+}
+
 func TestRunTargetInheritsChoiceTapeReadOnly(t *testing.T) {
 	identity := choicewire.ExecutionIdentity{
 		TargetSHA256: sha256.Sum256([]byte("process read-only choice target")), ToolchainBuildKey: strings.Repeat("a", 64),

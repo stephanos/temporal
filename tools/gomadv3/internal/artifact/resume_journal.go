@@ -74,10 +74,14 @@ func ResumeBatchJournal(ctx context.Context, path string) (_ *BatchJournal, _ Re
 		runsFile.Close()
 		return nil, ResumeState{}, fmt.Errorf("hash resumable runs journal: %w", err)
 	}
+	strategy := plan.Strategy
+	if strategy == "" {
+		strategy = "seed"
+	}
 	journal := &BatchJournal{
 		ctx: ctx,
 		config: BatchConfig{
-			Root: filepath.Dir(filepath.Dir(path)), RunID: filepath.Base(path), Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount),
+			Root: filepath.Dir(filepath.Dir(path)), RunID: filepath.Base(path), Strategy: strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount),
 		},
 		path: path, runsFile: runsFile, runsHasher: hasher, runsWriter: io.MultiWriter(runsFile, hasher), runsBytes: uint64(len(retainedBytes)), resumeLock: lock,
 	}
@@ -107,15 +111,38 @@ func readResumeRuns(path string) ([]byte, error) {
 }
 
 func validateResumeRuns(batchPath string, plan BatchPlan, runs []RunRecord) ([]RunRecord, error) {
+	strategy := plan.Strategy
+	if strategy == "" {
+		strategy = "seed"
+	}
+	ordinalLimit := uint64(plan.SelectionCount)
+	if strategy == "choice-frontier" {
+		ordinalLimit = uint64(plan.MaxRuns)
+	}
 	ordinals := make(map[uint64]struct{}, len(runs))
+	candidates := make(map[record.SHA256]struct{}, len(runs))
 	observedProbes := make(map[string]struct{})
 	observedChoiceFeatures := make(map[string]struct{})
 	retained := make([]RunRecord, 0, len(runs))
 	var retainedSuccesses, retainedSuccessBytes uint64
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
-		if ordinal >= uint64(plan.SelectionCount) {
+		if ordinal >= ordinalLimit {
 			return nil, fmt.Errorf("resumable run %d selection ordinal is out of range", index+1)
+		}
+		if strategy == "choice-frontier" && run.Strategy != "choice-frontier" {
+			return nil, fmt.Errorf("resumable frontier run %d strategy is invalid", index+1)
+		}
+		if strategy == "choice-frontier" {
+			baseSeed, parseErr := strconv.ParseUint(plan.Selection, 10, 64)
+			if parseErr != nil || uint64(run.Seed) != baseSeed || ordinal != uint64(index) {
+				return nil, fmt.Errorf("resumable frontier run %d seed or logical ordinal is invalid", index+1)
+			}
+			if err := validateFrontierRunSummary(run, candidates); err != nil {
+				return nil, fmt.Errorf("resumable frontier run %d: %w", index+1, err)
+			}
+		} else if run.Strategy != "" {
+			return nil, fmt.Errorf("resumable seed run %d contains strategy evidence", index+1)
 		}
 		if _, duplicate := ordinals[ordinal]; duplicate {
 			return nil, fmt.Errorf("resumable selection ordinal is duplicated: %d", ordinal)
@@ -263,7 +290,7 @@ func archiveResumeState(path string, runs []byte, archiveRuns bool) error {
 	}
 	toArchive := make([]os.DirEntry, 0)
 	for _, entry := range entries {
-		if entry.Name() == "batch" || entry.Name() == "resume" {
+		if entry.Name() == "batch" || entry.Name() == "resume" || entry.Name() == "frontier" {
 			continue
 		}
 		info, err := entry.Info()

@@ -8,13 +8,14 @@ import (
 	"strings"
 	"sync"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/commandline"
 	"go.temporal.io/server/tools/gomadv3/internal/ioprofile"
 	"go.temporal.io/server/tools/gomadv3/internal/runner"
 	"go.temporal.io/server/tools/gomadv3/internal/target"
 )
 
-const exploreEventSchema = "gomadv3.explore-event/v1"
+const exploreEventSchema = "gomadv3.explore-event/v2"
 
 type exploreEvent struct {
 	Schema               string                      `json:"schema"`
@@ -42,6 +43,8 @@ type exploreEvent struct {
 	CorpusPath           string                      `json:"corpus_path,omitempty"`
 	CorpusEntries        uint64                      `json:"corpus_entries,omitempty"`
 	CorpusAdded          uint64                      `json:"corpus_added,omitempty"`
+	Frontier             *choicefrontier.Summary     `json:"frontier,omitempty"`
+	RecoveryExecutions   uint64                      `json:"recovery_executions,omitempty"`
 }
 
 type exploreReporter struct {
@@ -65,10 +68,10 @@ func (reporter *exploreReporter) Progress(progress runner.Progress) error {
 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
 			RetainedSuccesses: progress.RetainedSuccesses, RetainedSuccessBytes: progress.RetainedSuccessBytes,
 			CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
-			ChoiceTrace: progress.ChoiceTrace,
+			ChoiceTrace: progress.ChoiceTrace, Frontier: progress.Frontier, RecoveryExecutions: progress.RecoveryExecutions,
 		})
 	}
-	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.BatchPath, formatChoiceTrace(progress.ChoiceTrace))
+	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s%s%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.BatchPath, formatChoiceTrace(progress.ChoiceTrace), formatFrontier(progress.Frontier, progress.RecoveryExecutions))
 	return err
 }
 
@@ -83,7 +86,7 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 			Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, Novelty: summary.DistinctFailures, StopReason: summary.StopReason,
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SemanticCoverage: summary.SemanticCoverage,
 			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
-			ChoiceTrace: summary.ChoiceTrace,
+			ChoiceTrace: summary.ChoiceTrace, Frontier: summary.Frontier, RecoveryExecutions: summary.RecoveryExecutions,
 		}); err != nil {
 			return err
 		}
@@ -103,7 +106,7 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 		}
 		return nil
 	}
-	if _, err := fmt.Fprintf(reporter.stdout, "gomad: classification=%s attempted=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s artifact=%s%s\n", classification, summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.ReplayDivergences, summary.DistinctFailures, summary.RetainedSuccesses, summary.RetainedSuccessBytes, summary.StopReason, summary.BatchPath, formatChoiceTrace(summary.ChoiceTrace)); err != nil {
+	if _, err := fmt.Fprintf(reporter.stdout, "gomad: classification=%s attempted=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s artifact=%s%s%s\n", classification, summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.ReplayDivergences, summary.DistinctFailures, summary.RetainedSuccesses, summary.RetainedSuccessBytes, summary.StopReason, summary.BatchPath, formatChoiceTrace(summary.ChoiceTrace), formatFrontier(summary.Frontier, summary.RecoveryExecutions)); err != nil {
 		return err
 	}
 	for _, path := range summary.Artifacts {
@@ -127,6 +130,13 @@ func (reporter *exploreReporter) Result(summary runner.Summary) error {
 		}
 	}
 	return nil
+}
+
+func formatFrontier(frontier *choicefrontier.Summary, recoveryExecutions uint64) string {
+	if frontier == nil {
+		return ""
+	}
+	return fmt.Sprintf(" frontier-rounds=%d frontier-pending=%d frontier-bytes=%d frontier-seen=%d frontier-outcomes=%d frontier-depth=%d frontier-omitted-runs=%d frontier-omitted-depth=%d frontier-omitted-bytes=%d frontier-complete=%t recovery-executions=%d", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, recoveryExecutions)
 }
 
 func formatChoiceTrace(trace *runner.ChoiceTraceSummary) string {

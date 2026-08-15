@@ -83,7 +83,7 @@ func newChoiceTraceBacking(limit uint64, mode choicewire.Mode, tape *choicewire.
 		if len(tape.Bytes) > maximumChoiceTapeBytes {
 			return nil, errors.Join(errors.New("choice decision tape exceeds its bound"), terminalRead.Close(), terminalWrite.Close())
 		}
-		validated, validateErr := choicewire.ValidateDecisionTape(*tape, tape.Identity)
+		validated, validateErr := validateChoiceTape(*tape, tape.Identity, mode)
 		if validateErr != nil {
 			return nil, errors.Join(fmt.Errorf("validate choice decision tape backing: %w", validateErr), terminalRead.Close(), terminalWrite.Close())
 		}

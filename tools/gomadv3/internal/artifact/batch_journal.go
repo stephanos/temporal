@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"go.temporal.io/server/tools/gomadv3/internal/choicefrontier"
 	"go.temporal.io/server/tools/gomadv3/internal/filelock"
 	"go.temporal.io/server/tools/gomadv3/internal/record"
 )
@@ -19,24 +20,36 @@ import (
 type BatchConfig struct {
 	Root           string
 	RunID          string
+	Strategy       string
 	Selection      string
 	SelectionCount uint64
 }
 
 type BatchSummary struct {
-	Attempted            uint64
-	Succeeded            uint64
-	Failures             uint64
-	Watchdogs            uint64
-	Cancelled            uint64
-	DistinctFailures     uint64
-	RetainedSuccesses    uint64
-	RetainedSuccessBytes uint64
-	StopReason           string
-	FailureSignatures    []record.SHA256
+	Attempted                    uint64
+	Succeeded                    uint64
+	Failures                     uint64
+	Watchdogs                    uint64
+	Cancelled                    uint64
+	DistinctFailures             uint64
+	RetainedSuccesses            uint64
+	RetainedSuccessBytes         uint64
+	StopReason                   string
+	FailureSignatures            []record.SHA256
+	Frontier                     *choicefrontier.Summary
+	FrontierImplementationSHA256 record.SHA256
+	FrontierChainSHA256          record.SHA256
+	RecoveryExecutions           uint64
 }
 
 type RunRecord struct {
+	Strategy                    string               `json:"strategy,omitempty"`
+	Round                       *record.Uint64String `json:"round,omitempty"`
+	CandidateSHA256             record.SHA256        `json:"candidate_sha256,omitempty"`
+	ParentCandidateSHA256       record.SHA256        `json:"parent_candidate_sha256,omitempty"`
+	PrefixSHA256                record.SHA256        `json:"prefix_sha256,omitempty"`
+	ForcedDepth                 *record.Uint64String `json:"forced_depth,omitempty"`
+	OutcomeSHA256               record.SHA256        `json:"outcome_sha256,omitempty"`
 	SelectionOrdinal            record.Uint64String  `json:"selection_ordinal"`
 	Seed                        record.Uint64String  `json:"seed"`
 	Domain                      string               `json:"domain"`
@@ -91,27 +104,38 @@ type RunJournal struct {
 }
 
 type BatchRecord struct {
-	SchemaVersion        uint32              `json:"schema_version"`
-	Schema               string              `json:"schema"`
-	RunID                string              `json:"run_id"`
-	Selection            string              `json:"selection"`
-	SelectionCount       record.Uint64String `json:"selection_count"`
-	Attempted            record.Uint64String `json:"attempted"`
-	Succeeded            record.Uint64String `json:"succeeded"`
-	Failures             record.Uint64String `json:"failures"`
-	Watchdogs            record.Uint64String `json:"watchdogs"`
-	Cancelled            record.Uint64String `json:"cancelled"`
-	DistinctFailures     record.Uint64String `json:"distinct_failures"`
-	RetainedSuccesses    record.Uint64String `json:"retained_successes,omitempty"`
-	RetainedSuccessBytes record.Uint64String `json:"retained_success_bytes,omitempty"`
-	StopReason           string              `json:"stop_reason"`
-	RunsSHA256           record.SHA256       `json:"runs_sha256"`
-	FailureSignatures    []record.SHA256     `json:"failure_signatures"`
+	SchemaVersion                uint32                  `json:"schema_version"`
+	Schema                       string                  `json:"schema"`
+	RunID                        string                  `json:"run_id"`
+	Strategy                     string                  `json:"strategy,omitempty"`
+	Selection                    string                  `json:"selection"`
+	SelectionCount               record.Uint64String     `json:"selection_count"`
+	Attempted                    record.Uint64String     `json:"attempted"`
+	Succeeded                    record.Uint64String     `json:"succeeded"`
+	Failures                     record.Uint64String     `json:"failures"`
+	Watchdogs                    record.Uint64String     `json:"watchdogs"`
+	Cancelled                    record.Uint64String     `json:"cancelled"`
+	DistinctFailures             record.Uint64String     `json:"distinct_failures"`
+	RetainedSuccesses            record.Uint64String     `json:"retained_successes,omitempty"`
+	RetainedSuccessBytes         record.Uint64String     `json:"retained_success_bytes,omitempty"`
+	StopReason                   string                  `json:"stop_reason"`
+	RunsSHA256                   record.SHA256           `json:"runs_sha256"`
+	FailureSignatures            []record.SHA256         `json:"failure_signatures"`
+	Frontier                     *choicefrontier.Summary `json:"frontier,omitempty"`
+	FrontierImplementationSHA256 record.SHA256           `json:"frontier_implementation_sha256,omitempty"`
+	FrontierChainSHA256          record.SHA256           `json:"frontier_chain_sha256,omitempty"`
+	RecoveryExecutions           record.Uint64String     `json:"recovery_executions,omitempty"`
 }
 
 func NewBatchJournal(ctx context.Context, config BatchConfig) (*BatchJournal, error) {
 	if ctx == nil {
 		ctx = context.Background()
+	}
+	if config.Strategy == "" {
+		config.Strategy = "seed"
+	}
+	if config.Strategy != "seed" && config.Strategy != "choice-frontier" {
+		return nil, errors.New("batch journal strategy is invalid")
 	}
 	if config.Root == "" || config.RunID == "" || config.Selection == "" || config.SelectionCount == 0 {
 		return nil, errors.New("batch journal root, run ID, selection, and selection count are required")
@@ -262,12 +286,13 @@ func (journal *BatchJournal) Publish(summary BatchSummary) error {
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
 	batch := BatchRecord{
-		SchemaVersion: record.SchemaVersion, Schema: "gomadv3.batch/v1", RunID: journal.config.RunID, Selection: journal.config.Selection,
+		SchemaVersion: record.SchemaVersion, Schema: "gomadv3.batch/v2", RunID: journal.config.RunID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
 		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),
 		Failures: record.Uint64String(summary.Failures), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
 		DistinctFailures: record.Uint64String(summary.DistinctFailures), StopReason: summary.StopReason,
 		RetainedSuccesses: record.Uint64String(summary.RetainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.RetainedSuccessBytes),
 		RunsSHA256: record.SHA256("sha256:" + hex.EncodeToString(journal.runsHasher.Sum(nil))), FailureSignatures: failureSignatures,
+		Frontier: summary.Frontier, FrontierImplementationSHA256: summary.FrontierImplementationSHA256, FrontierChainSHA256: summary.FrontierChainSHA256, RecoveryExecutions: record.Uint64String(summary.RecoveryExecutions),
 	}
 	encoded, err := record.CanonicalJSON(batch)
 	if err != nil {

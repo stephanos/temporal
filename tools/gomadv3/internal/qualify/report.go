@@ -426,7 +426,7 @@ func validateReport(report Report) error {
 	if report.Failure == nil && (len(report.Runs) < 2 || uint64(report.Repeat) != uint64(len(report.Runs))) {
 		return fmt.Errorf("qualification report repetition count is invalid")
 	}
-	if report.Evidence == nil || report.Evidence.Schema != runner.RunEvidenceSchema && report.Evidence.Schema != runner.LegacyRunEvidenceSchema || report.Evidence.Seed != report.Seed {
+	if report.Evidence == nil || report.Evidence.Schema != runner.RunEvidenceSchema && report.Evidence.Schema != runner.ChoiceRunEvidenceSchema && report.Evidence.Schema != runner.LegacyRunEvidenceSchema || report.Evidence.Seed != report.Seed {
 		return fmt.Errorf("qualification baseline evidence identity is invalid")
 	}
 	digest, err := evidenceDigest(*report.Evidence)
@@ -506,14 +506,17 @@ func evidenceDigest(evidence runner.RunEvidence) (record.SHA256, error) {
 		return "", err
 	}
 	domain := RunEvidenceDigestDomain
-	if evidence.Schema == runner.LegacyRunEvidenceSchema {
+	if evidence.Schema == runner.ChoiceRunEvidenceSchema {
+		domain = ChoiceRunEvidenceDigestDomain
+	} else if evidence.Schema == runner.LegacyRunEvidenceSchema {
 		domain = LegacyRunEvidenceDigestDomain
 	}
 	return record.DomainHash(domain, encoded), nil
 }
 
 const (
-	RunEvidenceDigestDomain       = "gomadv3.qualification-evidence/v2"
+	RunEvidenceDigestDomain       = "gomadv3.qualification-evidence/v3"
+	ChoiceRunEvidenceDigestDomain = "gomadv3.qualification-evidence/v2"
 	LegacyRunEvidenceDigestDomain = "gomadv3.qualification-evidence/v1"
 )
 
@@ -556,6 +559,7 @@ func firstDivergence(expected, actual runner.RunEvidence) string {
 		{"world", expected.World, actual.World},
 		{"read_only_mounts_sha256", expected.ReadOnlyMountsSHA256, actual.ReadOnlyMountsSHA256},
 		{"semantic_coverage", expected.SemanticCoverage, actual.SemanticCoverage},
+		{"frontier", expected.Frontier, actual.Frontier},
 	}
 	for _, field := range fields {
 		if !reflect.DeepEqual(field.expected, field.actual) {
