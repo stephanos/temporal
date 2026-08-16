@@ -252,6 +252,10 @@ lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
 and the direct modernc/libc file boundary. The aggregate and all evidence are
 retained below `.toolchain/core-qualification*`.
 
+The checked sixteen-workload Temporal corpus currently qualifies 5 workloads
+and retains 11 exact unsupported analyses. Every qualified workload runs two
+seeds and requires matching execution, World, I/O, and choice-tape replay.
+
 An interrupted campaign retains a canonical `gomadv3.batch-plan/v3` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity and the already-mixed seed selection, so resume never reselects seeds.
@@ -312,6 +316,10 @@ hostname, and entropy with process-local in-memory implementations. Optional
 built-in adapters are an immutable collection generated from `version.json`.
 The current version-pinned `modernc.org/libc` adapter redirects supported
 filesystem, entropy, and time operations to those same generic boundaries.
+The exact `google.golang.org/grpc@v1.80.0` adapter removes its Unix raw-socket
+keepalive callback because Gomad's in-memory TCP connections have no kernel
+socket to configure; it preserves the negative `KeepAlive` value and does not
+claim kernel keepalive support.
 Each target records the exact adapters it selected, and resume and replay fail
 before execution if an identity is unavailable or changed. Entropy is
 independent of `GOMADSEED`; that seed controls scheduling only.
@@ -538,12 +546,11 @@ replacement, host access, or truncated evidence. Requests, generated v2 packs,
 review reports, mutation fixtures, and their generation manifest live under
 `target/internal/compatibility`.
 
-The `temporal-backoff-overflow` and `xnet-socket-activity-candidate` requests
-remain unapproved and all of their reviewed facts remain denied. Backoff needs
-COMPAT-6 live-capability absence proof or a deterministic adapter for its live
-gRPC TCP keepalive path; the Activity candidate covers only four facts within
-its current 60-blocker closure and still requires direct linkname/syscall
-containment proof.
+The obsolete `temporal-backoff-overflow` request was retired after the exact
+gRPC adapter removed its active blockers and the workload qualified with exact
+replay. The `xnet-socket-activity-candidate` request remains unapproved: it
+covers only four facts within its current 60-blocker closure and still requires
+direct linkname/syscall containment proof.
 
 ## World
 

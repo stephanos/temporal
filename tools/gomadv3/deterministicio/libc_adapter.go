@@ -2,15 +2,12 @@ package deterministicio
 
 import (
 	"bytes"
-	"crypto/sha256"
 	_ "embed"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,8 +23,6 @@ const (
 	libcUnixSHA256              = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
 	gomadLibcAdapterSHA256      = "sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c"
 	libcPreparedSourceSetSHA256 = "sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749"
-	maximumModuleFiles          = 5000
-	maximumModuleBytes          = 512 << 20
 )
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
@@ -56,7 +51,8 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
 		replacement: moduleReplacement,
 		evidence: BuildAdapter{
 			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
-			Source: source, Replacement: replacement, SourceSHA256: libcDarwinSHA256,
+			Source: source, ReplacementRoot: moduleReplacement, Replacement: replacement, SourceSHA256: libcDarwinSHA256,
+			PreparedPackage:                  libcModulePath,
 			ReplacementSHA256:                digestBytes(rewrites["libc_darwin.go"]),
 			OriginalSourceInventorySHA256:    originalInventory,
 			ReplacementSourceInventorySHA256: replacementInventory,
@@ -245,71 +241,10 @@ func injectAfter(contents []byte, anchor, addition string, expected int) ([]byte
 }
 
 func copyLibcModule(source, destination string, replacements map[string][]byte) (string, error) {
-	if err := os.Mkdir(destination, 0o700); err != nil {
-		return "", fmt.Errorf("create modernc libc adapter module: %w", err)
-	}
-	files := 0
-	bytesCopied := int64(0)
-	err := filepath.WalkDir(source, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-		relative, err := filepath.Rel(source, path)
-		if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-			return errors.New("invalid modernc libc module path")
-		}
-		targetPath := filepath.Join(destination, relative)
-		if entry.IsDir() {
-			if relative == "." {
-				return nil
-			}
-			return os.Mkdir(targetPath, 0o700)
-		}
-		info, err := entry.Info()
-		if err != nil || !info.Mode().IsRegular() {
-			return errors.New("modernc libc module contains a non-regular file")
-		}
-		files++
-		bytesCopied += info.Size()
-		if files > maximumModuleFiles || bytesCopied > maximumModuleBytes {
-			return errors.New("modernc libc module exceeds adapter bounds")
-		}
-		contents := replacements[relative]
-		if contents == nil {
-			contents, err = os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-		}
-		return writeExclusive(targetPath, contents)
-	})
-	if err != nil {
+	if err := copyAdapterModule(source, destination, replacements, defaultAdapterCopyLimits); err != nil {
 		return "", fmt.Errorf("copy modernc libc adapter module: %w", err)
 	}
-	adapterPath := filepath.Join(destination, "gomad_darwin.go")
-	if err := writeExclusive(adapterPath, replacements["gomad_darwin.go"]); err != nil {
-		return "", err
-	}
 	return filepath.Join(destination, "libc_darwin.go"), nil
-}
-
-func writeExclusive(path string, contents []byte) error {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o400)
-	if err != nil {
-		return fmt.Errorf("create deterministic I/O adapter file: %w", err)
-	}
-	if _, err := file.Write(contents); err != nil {
-		return errors.Join(fmt.Errorf("write deterministic I/O adapter file: %w", err), file.Close())
-	}
-	if err := file.Close(); err != nil {
-		return fmt.Errorf("close deterministic I/O adapter file: %w", err)
-	}
-	return nil
-}
-
-func digestBytes(contents []byte) string {
-	digest := sha256.Sum256(contents)
-	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 //go:embed adapterdata/modernc_libc_darwin.go.tmpl

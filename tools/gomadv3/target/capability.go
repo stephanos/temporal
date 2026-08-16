@@ -28,6 +28,15 @@ const maximumCapabilityReviewOutputBytes = 64 << 20
 const maximumCapabilityReviewPackages = 100000
 const maximumCapabilitySourceBytes = 16 << 20
 
+type AdapterCapacityError struct {
+	Resource string
+	Limit    uint64
+}
+
+func (err *AdapterCapacityError) Error() string {
+	return fmt.Sprintf("adapter module exceeds %s limit %d", err.Resource, err.Limit)
+}
+
 type InvalidCapabilityReviewError struct {
 	Err error
 }
@@ -448,6 +457,9 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 		}
 		closure.Packages = append(closure.Packages, projected)
 	}
+	if err := validatePreparedAdapterPackages(closure.Packages, replacements); err != nil {
+		return CapabilityReview{}, err
+	}
 	sort.Slice(closure.Packages, func(i, j int) bool {
 		if closure.Packages[i].ImportPath != closure.Packages[j].ImportPath {
 			return closure.Packages[i].ImportPath < closure.Packages[j].ImportPath
@@ -471,6 +483,29 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 		return CapabilityReview{}, err
 	}
 	return capabilityReviewFromClosure(closure, tags, selection), nil
+}
+
+func validatePreparedAdapterPackages(packages []CapabilityPackage, replacements []AdapterReplacement) error {
+	reviewed := make(map[string]bool, len(replacements))
+	prepared := make(map[string]bool, len(replacements))
+	for _, pkg := range packages {
+		if pkg.Module == nil || pkg.Module.Adapter == nil {
+			continue
+		}
+		reviewed[pkg.Module.Path] = true
+		for _, replacement := range replacements {
+			if replacement.Original.Path == pkg.Module.Path && replacement.PreparedPackage == pkg.ImportPath {
+				prepared[pkg.Module.Path] = true
+				break
+			}
+		}
+	}
+	for _, replacement := range replacements {
+		if reviewed[replacement.Original.Path] && !prepared[replacement.Original.Path] {
+			return fmt.Errorf("inspect target capability source: adapter prepared package %s is absent", replacement.PreparedPackage)
+		}
+	}
+	return nil
 }
 
 func projectCapabilityPackage(pkg listedPackage, overlay map[string]string, replacements map[string]AdapterReplacement) (CapabilityPackage, bool, error) {
@@ -503,8 +538,11 @@ func projectCapabilityPackage(pkg listedPackage, overlay map[string]string, repl
 		projected.Sources = append(projected.Sources, source)
 	}
 	sort.Slice(projected.Sources, func(i, j int) bool { return projected.Sources[i].Name < projected.Sources[j].Name })
-	if hasReplacement && pkg.ImportPath == replacement.Original.Path && capabilityCompatibilityPackage(projected).SourceSetSHA256 != replacement.PreparedSourceSetSHA256 {
-		return CapabilityPackage{}, false, fmt.Errorf("inspect target capability source %s: adapter prepared source-set identity mismatch", pkg.ImportPath)
+	if hasReplacement && pkg.ImportPath == replacement.PreparedPackage {
+		sourceSetSHA256 := capabilityCompatibilityPackage(projected).SourceSetSHA256
+		if sourceSetSHA256 != replacement.PreparedSourceSetSHA256 {
+			return CapabilityPackage{}, false, fmt.Errorf("inspect target capability source %s: adapter prepared source-set identity mismatch: got %s, want %s", pkg.ImportPath, sourceSetSHA256, replacement.PreparedSourceSetSHA256)
+		}
 	}
 	return projected, true, nil
 }
@@ -1146,8 +1184,11 @@ func validateAdapterReplacementInputs(spec Spec) error {
 func indexAdapterReplacements(replacements []AdapterReplacement) (map[string]AdapterReplacement, error) {
 	result := make(map[string]AdapterReplacement, len(replacements))
 	for _, replacement := range replacements {
-		if replacement.Original.Path == "" || replacement.Original.Version == "" || replacement.Original.Sum == "" || replacement.ReplacementPath == "" {
+		if replacement.Original.Path == "" || replacement.Original.Version == "" || replacement.Original.Sum == "" || replacement.ReplacementPath == "" || replacement.PreparedPackage == "" {
 			return nil, errors.New("adapter replacement input identity is incomplete")
+		}
+		if replacement.PreparedPackage != replacement.Original.Path && !strings.HasPrefix(replacement.PreparedPackage, replacement.Original.Path+"/") {
+			return nil, errors.New("adapter prepared package is outside its module")
 		}
 		if _, duplicate := result[replacement.Original.Path]; duplicate {
 			return nil, fmt.Errorf("adapter replacement input is duplicated: %s", replacement.Original.Path)
@@ -1214,6 +1255,13 @@ func matchAdapterReplacement(module *listedModule, replacements map[string]Adapt
 func DigestAdapterSourceInventory(root string) (string, error) {
 	const maximumFiles = 5000
 	const maximumBytes = uint64(512 << 20)
+	return digestAdapterSourceInventory(root, maximumFiles, maximumBytes)
+}
+
+func digestAdapterSourceInventory(root string, maximumFiles int, maximumBytes uint64) (string, error) {
+	if maximumFiles <= 0 || maximumBytes == 0 {
+		return "", errors.New("adapter source inventory limits must be positive")
+	}
 	hasher := sha256.New()
 	_, _ = hasher.Write([]byte("gomadv3.adapter-source-inventory/v1\x00"))
 	files := 0
@@ -1233,14 +1281,18 @@ func DigestAdapterSourceInventory(root string) (string, error) {
 			return errors.New("adapter source inventory contains a non-regular file")
 		}
 		files++
-		total += uint64(info.Size())
-		if files > maximumFiles || total > maximumBytes {
-			return errors.New("adapter source inventory exceeds its bounds")
+		if files > maximumFiles {
+			return &AdapterCapacityError{Resource: "files", Limit: uint64(maximumFiles)}
 		}
-		contents, err := readBoundedRegularFile(filePath, maximumCapabilitySourceBytes)
+		size := uint64(info.Size())
+		if size > maximumBytes-total {
+			return &AdapterCapacityError{Resource: "bytes", Limit: maximumBytes}
+		}
+		contents, err := readBoundedRegularFile(filePath, maximumBytes-total)
 		if err != nil {
 			return err
 		}
+		total += uint64(len(contents))
 		relative, err := filepath.Rel(root, filePath)
 		if err != nil || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
 			return errors.New("adapter source inventory path is invalid")

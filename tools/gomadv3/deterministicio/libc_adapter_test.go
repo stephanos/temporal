@@ -38,15 +38,21 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(adapters) != 1 {
+	if len(adapters) != 2 {
 		t.Fatalf("adapters = %#v", adapters)
 	}
-	adapter := adapters[0]
-	if len(spec.AdapterReplacements) != 1 {
+	var adapter BuildAdapter
+	var projected target.AdapterReplacement
+	for index := range adapters {
+		if adapters[index].Module == libcModulePath {
+			adapter = adapters[index]
+			projected = spec.AdapterReplacements[index]
+		}
+	}
+	if adapter.Module == "" || len(spec.AdapterReplacements) != 2 {
 		t.Fatalf("adapter replacements = %#v", spec.AdapterReplacements)
 	}
-	projected := spec.AdapterReplacements[0]
-	if projected.Original.Path != adapter.Module || projected.Adapter.Path != adapter.Module || projected.ReplacementPath != filepath.Dir(adapter.Replacement) || projected.ReplacementSourceInventorySHA256 != adapter.ReplacementSourceInventorySHA256 || projected.PreparedSourceSetSHA256 == "" {
+	if projected.Original.Path != adapter.Module || projected.Adapter.Path != adapter.Module || projected.ReplacementPath != adapter.ReplacementRoot || projected.ReplacementSourceInventorySHA256 != adapter.ReplacementSourceInventorySHA256 || projected.PreparedSourceSetSHA256 == "" {
 		t.Fatalf("adapter projection = %#v, adapter = %#v", projected, adapter)
 	}
 	if spec.BuildModFile != adapter.BuildModFile || spec.BuildOverlay != "" || adapter.Module != "modernc.org/libc" || adapter.SourceSHA256 != "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e" {
@@ -65,7 +71,7 @@ func TestProfilePreparesPinnedModerncLibcAdapter(t *testing.T) {
 	if adapter.ReplacementSHA256 != fmt.Sprintf("sha256:%x", digest) {
 		t.Fatalf("replacement digest = %q", adapter.ReplacementSHA256)
 	}
-	adapterBytes, err := os.ReadFile(filepath.Join(filepath.Dir(adapter.Replacement), "gomad_darwin.go"))
+	adapterBytes, err := os.ReadFile(filepath.Join(adapter.ReplacementRoot, "gomad_darwin.go"))
 	if err != nil {
 		t.Fatal(err)
 	}

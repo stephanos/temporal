@@ -16,7 +16,7 @@ const (
 
 var SupportedPlatforms = [...]string{"darwin/arm64"}
 
-var Adapters = [...]AdapterIdentity{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}}
+var Adapters = [...]AdapterIdentity{{Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="}, {Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}}
 
 func AdapterByModule(module string) (AdapterIdentity, bool) {
 	for _, adapter := range Adapters {

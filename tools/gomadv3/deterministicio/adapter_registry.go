@@ -10,6 +10,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
+	"golang.org/x/mod/modfile"
 )
 
 type BuildAdapter struct {
@@ -18,7 +19,9 @@ type BuildAdapter struct {
 	Sum                              string
 	BuildModFile                     string
 	Source                           string
+	ReplacementRoot                  string
 	Replacement                      string
+	PreparedPackage                  string
 	SourceSHA256                     string
 	ReplacementSHA256                string
 	OriginalSourceInventorySHA256    string
@@ -176,6 +179,15 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	if spec.BuildModFile != "" {
 		return target.Spec{}, nil, invalidBuildAdapterConfiguration(errors.New("deterministic I/O build adapters cannot replace an existing build modfile"))
 	}
+	sumFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.sum"))
+	if err != nil {
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module sums: %w", err))
+	}
+	for _, definition := range selected {
+		if !hasExactModuleSum(sumFile, definition.identity) {
+			return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("target module sum for %s@%s is missing or modified", definition.identity.Module, definition.identity.Version))
+		}
+	}
 	preparationRoot, err := filepath.Abs(spec.PreparationRoot)
 	if err != nil {
 		return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O preparation root: %w", err)
@@ -190,16 +202,15 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 		if prepareErr != nil {
 			return target.Spec{}, nil, prepareErr
 		}
+		if prepared.evidence.ReplacementRoot != prepared.replacement {
+			return target.Spec{}, nil, errors.New("deterministic I/O adapter replacement root mismatch")
+		}
 		moduleFile = append(moduleFile, []byte("\nreplace "+definition.identity.Module+" => "+prepared.replacement+"\n")...)
 		evidence = append(evidence, prepared.evidence)
 	}
 	modFilePath := filepath.Join(root, "gomad.mod")
 	if err := writeExclusive(modFilePath, moduleFile); err != nil {
 		return target.Spec{}, nil, err
-	}
-	sumFile, err := os.ReadFile(filepath.Join(workingDirectory, "go.sum"))
-	if err != nil {
-		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("read target module sums: %w", err))
 	}
 	if err := writeExclusive(filepath.Join(root, "gomad.sum"), sumFile); err != nil {
 		return target.Spec{}, nil, err
@@ -226,50 +237,60 @@ func (profile Spec) PrepareBuildAdapters(spec target.Spec, moduleCache string) (
 	profileIdentity := profile.Identity()
 	prepared.AdapterReplacements = make([]target.AdapterReplacement, len(adapters))
 	for index, adapter := range adapters {
-		prepared.AdapterReplacements[index] = target.AdapterReplacement{
-			Original:        target.ModuleIdentity{Path: adapter.Module, Version: adapter.Version, Sum: adapter.Sum},
-			ReplacementPath: filepath.Dir(adapter.Replacement),
-			ProfileName:     profileIdentity.Name, ProfileImplementationSHA256: string(profileIdentity.ImplementationSHA256),
-			Adapter:                          target.ModuleIdentity{Path: adapter.Module, Version: adapter.Version, Sum: adapter.Sum},
-			OriginalSourceInventorySHA256:    adapter.OriginalSourceInventorySHA256,
-			ReplacementSourceInventorySHA256: adapter.ReplacementSourceInventorySHA256,
-			PreparedSourceSetSHA256:          adapter.PreparedSourceSetSHA256,
-		}
+		prepared.AdapterReplacements[index] = projectAdapterReplacement(profileIdentity, adapter)
 	}
 	return prepared, adapters, nil
 }
 
-func detectModuleVersion(contents []byte, module string) (string, error) {
-	inRequireBlock := false
+func projectAdapterReplacement(profileIdentity Contract, adapter BuildAdapter) target.AdapterReplacement {
+	return target.AdapterReplacement{
+		Original:        target.ModuleIdentity{Path: adapter.Module, Version: adapter.Version, Sum: adapter.Sum},
+		ReplacementPath: adapter.ReplacementRoot,
+		PreparedPackage: adapter.PreparedPackage,
+		ProfileName:     profileIdentity.Name, ProfileImplementationSHA256: string(profileIdentity.ImplementationSHA256),
+		Adapter:                          target.ModuleIdentity{Path: adapter.Module, Version: adapter.Version, Sum: adapter.Sum},
+		OriginalSourceInventorySHA256:    adapter.OriginalSourceInventorySHA256,
+		ReplacementSourceInventorySHA256: adapter.ReplacementSourceInventorySHA256,
+		PreparedSourceSetSHA256:          adapter.PreparedSourceSetSHA256,
+	}
+}
+
+func hasExactModuleSum(contents []byte, identity gomadversion.AdapterIdentity) bool {
+	found := false
 	for _, line := range strings.Split(string(contents), "\n") {
-		line = strings.TrimSpace(strings.SplitN(line, "//", 2)[0])
 		fields := strings.Fields(line)
-		if len(fields) == 0 {
+		if len(fields) != 3 || fields[0] != identity.Module || fields[1] != identity.Version {
 			continue
 		}
-		if fields[0] == "replace" && len(fields) > 1 && fields[1] == module {
+		if found || fields[2] != identity.Sum {
+			return false
+		}
+		found = true
+	}
+	return found
+}
+
+func detectModuleVersion(contents []byte, module string) (string, error) {
+	parsed, err := modfile.Parse("go.mod", contents, nil)
+	if err != nil {
+		return "", fmt.Errorf("parse target module file: %w", err)
+	}
+	for _, replacement := range parsed.Replace {
+		if replacement.Old.Path == module {
 			return "", fmt.Errorf("target module already replaces %s", module)
 		}
-		if fields[0] == "require" {
-			if len(fields) == 2 && fields[1] == "(" {
-				inRequireBlock = true
-				continue
-			}
-			if len(fields) >= 3 && fields[1] == module {
-				return fields[2], nil
-			}
-		}
-		if inRequireBlock {
-			if fields[0] == ")" {
-				inRequireBlock = false
-				continue
-			}
-			if len(fields) >= 2 && fields[0] == module {
-				return fields[1], nil
-			}
-		}
 	}
-	return "", nil
+	version := ""
+	for _, requirement := range parsed.Require {
+		if requirement.Mod.Path != module {
+			continue
+		}
+		if version != "" {
+			return "", fmt.Errorf("target module requires %s more than once", module)
+		}
+		version = requirement.Mod.Version
+	}
+	return version, nil
 }
 
 func mustAdapterRegistry(identities []gomadversion.AdapterIdentity, implementations []adapterImplementation) adapterRegistry {

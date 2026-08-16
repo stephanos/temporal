@@ -12,19 +12,23 @@ func TestRequirementsProjectsKnownInventoryDomainsConservatively(t *testing.T) {
 	closure := target.CapabilityClosure{Packages: []target.CapabilityPackage{
 		{ImportPath: "example.com/dependency", Name: "dependency", Imports: []string{"path/filepath"}},
 		{ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{"crypto/rand", "net", "os", "time"}},
+		{ImportPath: "google.golang.org/grpc/internal", Name: "internal", Module: &target.CapabilityModule{Path: "google.golang.org/grpc", Version: "v1.80.0"}},
 		{ImportPath: "modernc.org/libc", Name: "libc", Module: &target.CapabilityModule{Path: "modernc.org/libc", Version: "v1.72.3"}},
 	}}
-	adapters := []Adapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}}
+	adapters := []Adapter{
+		{Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="},
+		{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="},
+	}
 
 	requirements, err := Default().Requirements(closure, adapters)
 	requireTestNoError(t, err)
-	requireTestEqual(t, []string{"adapter:modernc.org/libc", "entropy", "filesystem", "loopback_tcp", "time"}, requirementNames(requirements))
+	requireTestEqual(t, []string{"adapter:google.golang.org/grpc", "adapter:modernc.org/libc", "entropy", "filesystem", "loopback_tcp", "time"}, requirementNames(requirements))
 	for _, requirement := range requirements {
 		if !requirement.Modeled || len(requirement.Packages) == 0 {
 			t.Fatalf("requirement = %#v", requirement)
 		}
 	}
-	requireTestEqual(t, []target.CapabilityPackageReference{{ImportPath: "example.com/dependency", Name: "dependency"}, {ImportPath: "example.com/target", Name: "main"}}, requirements[2].Packages)
+	requireTestEqual(t, []target.CapabilityPackageReference{{ImportPath: "example.com/dependency", Name: "dependency"}, {ImportPath: "example.com/target", Name: "main"}}, requirements[3].Packages)
 }
 
 func TestRequirementsRejectsUnselectedAdapterIdentity(t *testing.T) {
