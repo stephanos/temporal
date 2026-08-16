@@ -10,6 +10,18 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
 
+func TestAdapterReplacementUsesExplicitModuleRoot(t *testing.T) {
+	root := t.TempDir()
+	adapter := BuildAdapter{
+		Module: "example.com/adapter", Version: "v1.2.3", Sum: "h1:adapter",
+		ReplacementRoot: root, Replacement: filepath.Join(root, "internal", "adapter.go"), PreparedPackage: "example.com/adapter/internal",
+	}
+	projected := projectAdapterReplacement(Contract{Name: "profile", ImplementationSHA256: "sha256:implementation"}, adapter)
+	if projected.ReplacementPath != root || projected.PreparedPackage != adapter.PreparedPackage {
+		t.Fatalf("projected replacement = %#v", projected)
+	}
+}
+
 func TestNewAdapterRegistryAllowsNoAdapters(t *testing.T) {
 	registry, err := newAdapterRegistry(nil, []adapterImplementation{{module: "modernc.org/libc"}})
 	if err != nil {
@@ -44,7 +56,7 @@ func TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration(
 	registry := adapterRegistry{definitions: []adapterDefinition{{
 		identity: identity,
 		implementation: adapterImplementation{module: identity.Module, prepare: func(_, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-			return adapterPreparation{replacement: root, evidence: BuildAdapter{Module: identity.Module, Version: identity.Version, Sum: identity.Sum}}, nil
+			return adapterPreparation{replacement: root, evidence: BuildAdapter{Module: identity.Module, Version: identity.Version, Sum: identity.Sum, ReplacementRoot: root}}, nil
 		}},
 	}}}
 	_, _, err := registry.prepare(target.Spec{WorkingDir: workingDirectory, PreparationRoot: t.TempDir()}, t.TempDir())
@@ -53,12 +65,26 @@ func TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration(
 	}
 }
 
+func TestDetectModuleVersionRejectsDuplicateRequirements(t *testing.T) {
+	for _, contents := range []string{
+		"require example.com/adapter v1.2.3\nrequire example.com/adapter v1.2.3\n",
+		"require (\nexample.com/adapter v1.2.3\n)\nrequire example.com/adapter v1.2.4\n",
+	} {
+		if _, err := detectModuleVersion([]byte(contents), "example.com/adapter"); err == nil {
+			t.Fatalf("detectModuleVersion() accepted duplicate requirements in %q", contents)
+		}
+	}
+}
+
 func TestProfileVerifiesSelectedAdapterIdentities(t *testing.T) {
-	selected := []Adapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}}
+	selected := []Adapter{
+		{Module: "google.golang.org/grpc", Version: "v1.80.0", Sum: "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="},
+		{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="},
+	}
 	if err := Default().VerifyAdapters(selected); err != nil {
 		t.Fatal(err)
 	}
-	selected[0].Version = "v1.72.4"
+	selected[0].Version = "v1.80.1"
 	if err := Default().VerifyAdapters(selected); err == nil {
 		t.Fatal("VerifyAdapters() accepted a modified identity")
 	}

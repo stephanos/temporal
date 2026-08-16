@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v041
 
-Review SHA-256: `sha256:21e459fa3ce5c843382997ff49a72ffe08a7891a252d0795c383c755bfc4766e`
+Review SHA-256: `sha256:08054cedd33fce591dfbafb6b3c33742f7029d2d42ecb867ed25c969e1026ac5`
 
 Owner: `temporal-server`
 
@@ -24,7 +24,7 @@ Workload: `modernc-libc-xsys-v041-fixture`
 
 - `golang.org/x/sys@v0.41.0` (`h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=`), replacement `none`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
-  - profile `gomadv3-deterministic/v1` / `sha256:a646de88d33a1fbf1a5776e2dd31ad8fecf90c4a443b4221ccb72e411d42d7ca`
+  - profile `gomadv3-deterministic/v1` / `sha256:034755da63de6446baa5c7fefaaecaeb03c1e18c753ed18fcedbf17a76813610`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8b9bc19a90b0a657b6b648de71211db718f66c08a4109dc1e2011c0ead57394b`
   - prepared source set `sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749`
