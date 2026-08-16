@@ -127,7 +127,7 @@ jobs:
           jq -e '
           .schema == "gomadv3.qualification-set-report/v6" and
           .seeds == ["11", "17"] and
-          .selected == 16 and .completed == 16 and .supported == 4 and .unsupported == 12 and
+          .selected == 16 and .completed == 16 and .supported == 5 and .unsupported == 11 and
           .failed == 0 and .infrastructure_errors == 0 and
           ([.workloads[] | select(.classification == "qualified") |
           (.seeds | length) == 2 and .choice.available and

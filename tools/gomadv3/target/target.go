@@ -68,6 +68,7 @@ type ModuleIdentity struct {
 type AdapterReplacement struct {
 	Original                         ModuleIdentity
 	ReplacementPath                  string
+	PreparedPackage                  string
 	ProfileName                      string
 	ProfileImplementationSHA256      string
 	Adapter                          ModuleIdentity

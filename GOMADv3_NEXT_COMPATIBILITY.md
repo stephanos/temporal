@@ -99,9 +99,10 @@ discover/review/approve/generate/check/qualify workflow. Active migration
 requests and unapproved candidate reports live under
 `tools/gomadv3/target/internal/compatibility`; exact review digests, rather
 than boolean approval, gate publication. Registered adapter evidence replaces
-the former arbitrary-local-replacement representation. The backoff and
-Activity candidates remain denied pending the COMPAT-6 or deterministic
-adapter evidence described below.
+the former arbitrary-local-replacement representation. The backoff candidate
+was retired after the exact gRPC adapter removed its blockers and qualified
+the workload. The Activity candidate remains denied pending the COMPAT-6 or
+deterministic adapter evidence described below.
 
 Turn exact compatibility packs into a governed extension point rather than hand-authored exceptions. Provide a generator/validator that:
 
@@ -130,6 +131,15 @@ Plausible candidates, subject to corpus evidence:
 
 Do not implement UDP, general host networking, subprocesses, or broad raw-descriptor emulation merely for API completeness. Their state spaces and host semantics are large, and subprocesses violate the current single-target containment model.
 
+The first evidence-ranked adapter is implemented for exact
+`google.golang.org/grpc@v1.80.0`. Its private bounded module replacement removes
+only the Unix `net.Dialer.Control` keepalive callback and its `syscall` and
+`x/sys/unix` imports while preserving the negative `KeepAlive` value. Exact
+module, source, original/replacement inventory, rewritten package source-set,
+and profile identities fail closed. The existing `temporal-backoff-overflow`
+workload now executes and exactly replays in closure mode, raising the tier-2
+baseline to 5/16 without a compatibility allowance or host fallback.
+
 ## COMPAT-6: Safer handling of transitive forbidden dependencies
 
 The current package-level closure intentionally rejects a package that imports a forbidden package even if the target does not call the offending function. This is safe but rejects useful dependency graphs, including the current persistence case.
@@ -150,7 +160,7 @@ revalidates both before replay. Direct, init, function-value, interface,
 reflection, and inlined paths remain visible while unreachable forbidden
 imports are eliminated. The current Temporal candidates still retain live
 assembly, linkname, `syscall`, or forbidden-import blockers, so the qualified
-baseline remains 4/16 and closure remains the default. COMPAT-6 is not complete
+baseline remains 5/16 and closure remains the default. COMPAT-6 is not complete
 until a real unsupported workload qualifies without widening policy.
 
 ## COMPAT-7: Platform bundles
@@ -264,4 +274,4 @@ At 10× corpus size, analysis should cache immutable `go list`/source digests by
 
 ## Recommended next slice
 
-Use the analyzer and sixteen-workload tier-2 corpus to rank blockers by workloads unlocked. Build the compatibility-pack development kit before adding another pack, then use its evidence to select one exact pack or deterministic adapter and to bound the compiler-backed live-capability-manifest experiment. Accept the slice only if actual support grows beyond 4/16 without a generic exemption or host fallback.
+Use the analyzer and sixteen-workload tier-2 corpus to rank the remaining eleven blockers by workloads unlocked. The compatibility-pack development kit and first exact gRPC adapter have raised actual support to 5/16. Select another exact pack, adapter, or deterministic I/O model only when retained evidence shows that it removes every blocker for a workload without a generic exemption or host fallback; otherwise begin composed tier-3 scenarios from the expanded supported set.
