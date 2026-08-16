@@ -11,7 +11,7 @@ import (
 
 const (
 	Deterministic                      = "gomadv3-deterministic/v1"
-	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v3"
+	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v4"
 )
 
 type TargetContract struct {
@@ -57,13 +57,22 @@ type inventoryEntry struct {
 	Operations  []string `json:"operations"`
 }
 
-var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adapterImplementation{{
-	module: libcModulePath,
-	inventory: inventoryEntry{
-		Boundary: libcModulePath, Disposition: "target-adapter", Operations: []string{"filesystem", "entropy", "time"},
+var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adapterImplementation{
+	{
+		module: grpcModulePath,
+		inventory: inventoryEntry{
+			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression"},
+		},
+		prepare: prepareGRPC,
 	},
-	prepare: prepareModerncLibc,
-}})
+	{
+		module: libcModulePath,
+		inventory: inventoryEntry{
+			Boundary: libcModulePath, Disposition: "target-adapter", Operations: []string{"filesystem", "entropy", "time"},
+		},
+		prepare: prepareModerncLibc,
+	},
+})
 
 var deterministicProfile = mustSpec(profileDefinition{
 	name:                  Deterministic,

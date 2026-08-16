@@ -2,6 +2,7 @@ package target
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -114,6 +115,7 @@ func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T
 	adapter := AdapterReplacement{
 		Original:        ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		ReplacementPath: replacement,
+		PreparedPackage: "example.com/adapter",
 		ProfileName:     "gomadv3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
 		Adapter:                          ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
@@ -139,6 +141,77 @@ func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T
 		Module: &listedModule{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum, Replace: &listedModule{Dir: replacement}},
 	}, {ImportPath: "example.com/target", Name: "main", Standard: true}}, nil, nil, []AdapterReplacement{adapter}); err == nil {
 		t.Fatal("projectCapabilityReview() accepted the wrong adapter path")
+	}
+}
+
+func TestProjectCapabilityReviewValidatesNestedAdapterPreparedPackage(t *testing.T) {
+	directory := t.TempDir()
+	replacement := filepath.Join(directory, "replacement")
+	packageDirectory := filepath.Join(replacement, "internal")
+	requireTestNoError(t, os.MkdirAll(packageDirectory, 0o700))
+	contents := []byte("package internal\n")
+	requireTestNoError(t, os.WriteFile(filepath.Join(packageDirectory, "internal.go"), contents, 0o600))
+	moduleSum := "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+	sourceSHA256 := fmt.Sprintf("sha256:%x", sha256.Sum256(contents))
+	replacementInventory, err := DigestAdapterSourceInventory(replacement)
+	requireTestNoError(t, err)
+	adapter := AdapterReplacement{
+		Original:        ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
+		ReplacementPath: replacement,
+		PreparedPackage: "example.com/adapter/internal",
+		ProfileName:     "gomadv3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
+		Adapter:                          ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
+		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
+		ReplacementSourceInventorySHA256: replacementInventory,
+		PreparedSourceSetSHA256: compatibility.DigestSources([]compatibility.Source{{
+			Name: "internal.go", SHA256: sourceSHA256,
+		}}),
+	}
+
+	packages := []listedPackage{{
+		ImportPath: "example.com/adapter/internal", Name: "internal", Dir: packageDirectory, GoFiles: []string{"internal.go"},
+		Module: &listedModule{Path: "example.com/adapter", Version: "v1.2.3", Replace: &listedModule{Dir: replacement}},
+	}, {
+		ImportPath: "example.com/target", Name: "main", Standard: true,
+	}}
+	if _, err := projectCapabilityReview(packages, nil, nil, []AdapterReplacement{adapter}); err != nil {
+		t.Fatal(err)
+	}
+	adapter.PreparedSourceSetSHA256 = "sha256:" + strings.Repeat("0", 64)
+	if _, err := projectCapabilityReview(packages, nil, nil, []AdapterReplacement{adapter}); err == nil {
+		t.Fatal("projectCapabilityReview() accepted the wrong nested prepared source set")
+	}
+
+	adapter.PreparedSourceSetSHA256 = compatibility.DigestSources([]compatibility.Source{{
+		Name: "internal.go", SHA256: sourceSHA256,
+	}})
+	packages[0].ImportPath = "example.com/adapter/other"
+	if _, err := projectCapabilityReview(packages, nil, nil, []AdapterReplacement{adapter}); err == nil {
+		t.Fatal("projectCapabilityReview() accepted adapter evidence without its prepared package")
+	}
+}
+
+func TestDigestAdapterSourceInventoryReturnsTypedCapacityError(t *testing.T) {
+	root := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(root, "one.go"), []byte("1"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(root, "two.go"), []byte("2"), 0o600))
+
+	for _, test := range []struct {
+		name         string
+		maximumFiles int
+		maximumBytes uint64
+		resource     string
+	}{
+		{name: "files", maximumFiles: 1, maximumBytes: 2, resource: "files"},
+		{name: "bytes", maximumFiles: 2, maximumBytes: 1, resource: "bytes"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := digestAdapterSourceInventory(root, test.maximumFiles, test.maximumBytes)
+			var capacity *AdapterCapacityError
+			if !errors.As(err, &capacity) || capacity.Resource != test.resource {
+				t.Fatalf("digestAdapterSourceInventory() error = %#v", err)
+			}
+		})
 	}
 }
 

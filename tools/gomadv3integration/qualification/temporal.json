@@ -91,9 +91,7 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 134217728,
       "expectation": {
-        "classification": "unsupported_target",
-        "import_path": "golang.org/x/sys/unix",
-        "capability": "import:syscall"
+        "classification": "qualified"
       }
     },
     {

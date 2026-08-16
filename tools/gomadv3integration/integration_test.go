@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func TestQualificationManifestsUsePortableV2(t *testing.T) {
+func TestQualificationManifestsUsePortableV3(t *testing.T) {
 	for _, test := range []struct {
 		path      string
 		module    string
@@ -44,7 +44,7 @@ func TestQualificationManifestsUsePortableV2(t *testing.T) {
 		if err := json.Unmarshal(contents, &manifest); err != nil {
 			t.Fatal(err)
 		}
-		if manifest.Schema != "gomadv3.qualification-set/v2" || manifest.Module != test.module || !slices.Equal(manifest.Seeds, test.seeds) || len(manifest.Suites) != test.workloads {
+		if manifest.Schema != "gomadv3.qualification-set/v3" || manifest.Module != test.module || !slices.Equal(manifest.Seeds, test.seeds) || len(manifest.Suites) != test.workloads {
 			t.Fatalf("manifest %s = %#v", test.path, manifest)
 		}
 		for _, suite := range manifest.Suites {
@@ -78,7 +78,7 @@ func TestPublicWrappers(t *testing.T) {
 		})
 	}
 
-	output, status := runMake(t, repositoryRoot, "gomadv3-run", "GOMADSEED=103", "GOMADV3_RUN=./tools/gomadv3/testdata/clock/main.go", "GOMADV3_ARGS=initial")
+	output, status := runMake(t, repositoryRoot, "gomadv3-run", "GOMADSEED=103", "GOMADV3_RUN=./tools/gomadv3/toolchain/internal/conformance/testdata/clock/main.go", "GOMADV3_ARGS=initial")
 	if status != 0 || !strings.HasSuffix(strings.TrimSpace(output), "clock initial ok") {
 		t.Fatalf("gomadv3-run status=%d output=%q", status, output)
 	}

@@ -9,6 +9,7 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
 - supported platforms: `darwin/arm64`
 - boundary manifest: `go1.26.4-darwin-arm64-v1`
 - patch: [`../../toolchain/runtime/go1.26.4.patch`](../../toolchain/runtime/go1.26.4.patch)
+- adapter: `google.golang.org/grpc@v1.80.0` (`h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM=`)
 - adapter: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`)
 
 ## Qualification command
