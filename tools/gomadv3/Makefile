@@ -79,7 +79,7 @@ upgrade-dossier: core-qualification
 runner-test: toolchain
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./evidence/... ./choice/... \
-		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./toolchain/cmd/... \
+		./deterministicio/... ./world/... ./simulation/... ./toolchain ./toolchain/version ./toolchain/cmd/... \
 		./toolchain/internal/... ./internal/...
 
 overlay-test: toolchain

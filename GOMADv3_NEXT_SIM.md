@@ -839,13 +839,22 @@ Qualification should progress from mechanisms to representative systems:
 
 ## Delivery roadmap
 
-### SIM-0: restore trust and define the parity contract
+### SIM-0: restore trust and define the parity contract — complete
 
 Preserve the completed shared entry gate from `GOMADv3_NEXT.md`, including the
 TCP close/data, World replay, and network resource-limit guarantees. Create the
 v2-derived behavioral parity manifest and two representative
 Temporal scenario prototypes. Use them to finalize the small application-facing
 harness, boot registry, cluster schemas, fidelity declarations, and limits.
+
+The canonical `gomadv3.simulation-parity/v1` manifest now maps thirteen
+v2-derived behaviors to named planned v3 cases, exact source tests, explicit
+replacement decisions, delivery stages, and backend/fidelity requirements.
+The root `tools/gomadv3sim` package defines the bounded
+`gomadv3.simulation-spec/v1` application contract, stable node/incarnation
+handles, fail-closed boot registration, and cluster lifecycle seam. Private
+contract tests express the required request/response and restart prototypes.
+They do not execute a simulation backend or satisfy any planned parity case.
 
 Exit criteria:
 
@@ -986,12 +995,11 @@ such as race mode, remains unsupported.
 
 ## Recommended next slice
 
-Finish the remaining SIM-0 work: create the v2-derived parity manifest and the
-two-node request/response and restart prototypes. Use their evidence to finalize
-the application harness, backend seam, fidelity declarations, and limits. Then
-implement only the SIM-1 Node registry, boot registry, runtime-domain
-inheritance, and lifecycle transitions needed for those fixtures. Do not begin
-by rewriting TCP or `gomadfs`.
+Implement only the SIM-1 Node registry, runtime-domain inheritance, lifecycle
+state machine, stale-incarnation revocation, node-labelled output, and base
+cluster records needed to run the two approved prototypes. Reuse the completed
+SIM-0 boot registry and application contract. Do not begin by rewriting TCP or
+`gomadfs`, and do not grant a network, storage, or hard-isolation claim.
 
 That slice answers the highest-risk architectural question: whether unchanged
 Temporal-style services can be constructed as logical nodes with correct
