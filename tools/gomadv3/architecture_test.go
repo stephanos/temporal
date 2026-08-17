@@ -45,7 +45,7 @@ func TestPackageArchitecture(t *testing.T) {
 			}
 		}
 	}
-	for _, owner := range []string{"cli", "runner", "qualification", "target", "evidence", "choice", "deterministicio", "world", "toolchain", "hostexec", "hostfs"} {
+	for _, owner := range []string{"cli", "runner", "qualification", "target", "evidence", "choice", "deterministicio", "world", "simulation", "toolchain", "hostexec", "hostfs"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -141,6 +141,7 @@ func listHostPackages(t *testing.T) []listedPackage {
 		"list", "-json", "-tags", "test_dep",
 		"./cmd/...", "./runner/...", "./qualification/...", "./target/...",
 		"./evidence/...", "./choice/...", "./deterministicio/...", "./world/...",
+		"./simulation/...",
 		"./toolchain", "./toolchain/version", "./toolchain/cmd/...", "./toolchain/internal/...", "./internal/...",
 	}
 	command := exec.Command("go", arguments...)
@@ -180,6 +181,8 @@ func packageOwner(importPath string) string {
 		return "deterministicio"
 	case relative == "world" || strings.HasPrefix(relative, "world/"):
 		return "world"
+	case relative == "simulation" || strings.HasPrefix(relative, "simulation/"):
+		return "simulation"
 	case relative == "toolchain" || strings.HasPrefix(relative, "toolchain/"):
 		return "toolchain"
 	case relative == "internal/hostexec" || strings.HasPrefix(relative, "internal/hostexec/"):
@@ -205,6 +208,7 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 		"target":          {"evidence", "toolchain", "hostexec", "hostfs"},
 		"evidence":        {"hostfs"},
 		"deterministicio": {"target", "toolchain", "hostfs"},
+		"simulation":      {"evidence"},
 		"toolchain":       {"qualification", "hostexec", "hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
@@ -88,10 +89,10 @@ func TestCurrentManifestIsCanonical(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(CurrentBytes(), encoded) {
+	if !bytes.Equal(currentManifestBytes, encoded) || !bytes.Equal(CurrentBytes(), encoded) {
 		t.Fatal("embedded manifest is not canonical JSON")
 	}
-	decoded, err := Decode(encoded)
+	decoded, err := Decode(currentManifestBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,12 +160,73 @@ func TestDecodeManifestRejectsInvalidInput(t *testing.T) {
 	}}
 	tests["hard isolation in process"] = encode(hardIsolationInProcess)
 
+	badDisposition := manifest
+	badDisposition.Cases = append([]Case(nil), manifest.Cases...)
+	badDisposition.Cases[0].Disposition = "copied"
+	tests["invalid disposition"] = encode(badDisposition)
+
+	badStatus := manifest
+	badStatus.Cases = append([]Case(nil), manifest.Cases...)
+	badStatus.Cases[0].Status = StatusPrototype
+	tests["invalid case status"] = encode(badStatus)
+
+	badBackend := manifest
+	badBackend.Cases = append([]Case(nil), manifest.Cases...)
+	badBackend.Cases[0].Requirements = []Requirement{{Fidelity: FidelitySimulationModel, Backends: []Backend{"host"}}}
+	tests["invalid backend"] = encode(badBackend)
+
+	badFidelity := manifest
+	badFidelity.Cases = append([]Case(nil), manifest.Cases...)
+	badFidelity.Cases[0].Requirements = []Requirement{{Fidelity: "best_effort", Backends: []Backend{BackendProcess}}}
+	tests["invalid fidelity"] = encode(badFidelity)
+
+	widenedPrototype := manifest
+	widenedPrototype.Prototypes = append([]Prototype(nil), manifest.Prototypes...)
+	widenedPrototype.Prototypes[1].Backend = BackendProcess
+	widenedPrototype.Prototypes[1].Fidelity = FidelityHardIsolation
+	tests["prototype widens case fidelity"] = encode(widenedPrototype)
+
 	for name, data := range tests {
 		t.Run(name, func(t *testing.T) {
 			if _, err := Decode(data); err == nil {
 				t.Fatal("Decode succeeded")
 			}
 		})
+	}
+}
+
+func TestManifestValidateRejectsInvalidUTF8(t *testing.T) {
+	manifest, err := Current()
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Cases = append([]Case(nil), manifest.Cases...)
+	manifest.Cases[0].Contract = string([]byte{0xff})
+	if err := manifest.Validate(); err == nil {
+		t.Fatal("Validate succeeded")
+	}
+}
+
+func TestManifestValidateRejectsUnboundedTestNames(t *testing.T) {
+	manifest, err := Current()
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Cases = append([]Case(nil), manifest.Cases...)
+	manifest.Cases[0].Sources = append([]SourceReference(nil), manifest.Cases[0].Sources...)
+	manifest.Cases[0].Sources[0].Tests = []string{"Test" + strings.Repeat("A", maximumTestNameBytes)}
+	if err := manifest.Validate(); err == nil {
+		t.Fatal("Validate accepted an unbounded source test name")
+	}
+
+	manifest, err = Current()
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Prototypes = append([]Prototype(nil), manifest.Prototypes...)
+	manifest.Prototypes[0].Test = "Test" + strings.Repeat("A", maximumTestNameBytes)
+	if err := manifest.Validate(); err == nil {
+		t.Fatal("Validate accepted an unbounded prototype test name")
 	}
 }
 
