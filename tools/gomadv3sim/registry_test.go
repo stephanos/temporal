@@ -11,7 +11,7 @@ import (
 )
 
 func TestBootRegistry(t *testing.T) {
-	id := BootID("sim0-registry-valid")
+	id := uniqueBootID("registry-valid")
 	boot := func(context.Context, NodeContext) error { return nil }
 	require.NoError(t, RegisterBoot(id, boot))
 	registered, ok := RegisteredBoot(id)
@@ -21,7 +21,7 @@ func TestBootRegistry(t *testing.T) {
 	before := RegisteredBootIDs()
 	require.Error(t, RegisterBoot(id, boot))
 	require.Error(t, RegisterBoot("Bad ID", boot))
-	require.Error(t, RegisterBoot("sim0-registry-nil", nil))
+	require.Error(t, RegisterBoot(uniqueBootID("registry-nil"), nil))
 	require.Equal(t, before, RegisteredBootIDs())
 
 	before[0] = "changed"
@@ -32,14 +32,16 @@ func TestBootRegistry(t *testing.T) {
 
 func TestBootRegistryConcurrentRegistration(t *testing.T) {
 	const registrations = 16
+	prefix := uniqueBootID("concurrent")
 	var waitGroup sync.WaitGroup
 	errors := make(chan error, registrations)
 	for index := 0; index < registrations; index++ {
 		waitGroup.Add(1)
 		go func(index int) {
 			defer waitGroup.Done()
-			id := BootID(fmt.Sprintf("sim0-concurrent-%02d", index))
+			id := BootID(fmt.Sprintf("%s-%02d", prefix, index))
 			errors <- RegisterBoot(id, func(context.Context, NodeContext) error { return nil })
+			RegisteredBootIDs()
 		}(index)
 	}
 	waitGroup.Wait()
@@ -50,7 +52,7 @@ func TestBootRegistryConcurrentRegistration(t *testing.T) {
 	ids := RegisteredBootIDs()
 	require.True(t, slices.IsSorted(ids))
 	for index := 0; index < registrations; index++ {
-		_, ok := RegisteredBoot(BootID(fmt.Sprintf("sim0-concurrent-%02d", index)))
+		_, ok := RegisteredBoot(BootID(fmt.Sprintf("%s-%02d", prefix, index)))
 		require.True(t, ok)
 	}
 }
