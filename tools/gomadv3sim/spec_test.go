@@ -1,8 +1,9 @@
 package gomadv3sim
 
 import (
-	"errors"
-	"reflect"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,9 +30,6 @@ func TestValidateSpecRejectsInvalidStructure(t *testing.T) {
 		"hard isolation in process": func(spec *Spec) {
 			spec.Fidelity = FidelityHardIsolation
 		},
-		"zero seed": func(spec *Spec) {
-			spec.Seed = 0
-		},
 		"zero configured limit": func(spec *Spec) {
 			spec.Limits.Nodes = 0
 		},
@@ -56,6 +54,9 @@ func TestValidateSpecRejectsInvalidStructure(t *testing.T) {
 		"duplicate address": func(spec *Spec) {
 			spec.Nodes[1].Address = spec.Nodes[0].Address
 		},
+		"mapped duplicate address": func(spec *Spec) {
+			spec.Nodes[1].Address = "::ffff:10.0.0.2"
+		},
 		"unsorted links": func(spec *Spec) {
 			spec.Links[0], spec.Links[1] = spec.Links[1], spec.Links[0]
 		},
@@ -72,16 +73,22 @@ func TestValidateSpecRejectsInvalidStructure(t *testing.T) {
 			spec.Volumes[0].CapacityBytes = 0
 		},
 		"unknown mounted volume": func(spec *Spec) {
-			spec.Nodes[0].Volumes[0].Volume = "missing"
+			spec.Nodes[1].Volumes[0].Volume = "missing"
 		},
 		"relative mount": func(spec *Spec) {
-			spec.Nodes[0].Volumes[0].Path = "var/lib/server"
+			spec.Nodes[1].Volumes[0].Path = "var/lib/server"
 		},
 		"unclean mount": func(spec *Spec) {
-			spec.Nodes[0].Volumes[0].Path = "/var/lib/../server"
+			spec.Nodes[1].Volumes[0].Path = "/var/lib/../server"
+		},
+		"nul mount": func(spec *Spec) {
+			spec.Nodes[1].Volumes[0].Path = "/var/lib/server\x00data"
+		},
+		"oversized mount": func(spec *Spec) {
+			spec.Nodes[1].Volumes[0].Path = "/" + strings.Repeat("a", MaximumMountPathBytes)
 		},
 		"duplicate mount path": func(spec *Spec) {
-			spec.Nodes[0].Volumes = append(spec.Nodes[0].Volumes, VolumeMount{Volume: "server-data", Path: "/var/lib/server"})
+			spec.Nodes[1].Volumes = append(spec.Nodes[1].Volumes, VolumeMount{Volume: "server-data", Path: "/var/lib/server"})
 		},
 	}
 
@@ -94,6 +101,75 @@ func TestValidateSpecRejectsInvalidStructure(t *testing.T) {
 			require.Equal(t, before, spec)
 		})
 	}
+}
+
+func TestSpecJSONFieldNames(t *testing.T) {
+	encoded, err := json.Marshal(validSpec())
+	require.NoError(t, err)
+	require.Contains(t, string(encoded), `"schema":"`+SpecSchema+`"`)
+	require.NotContains(t, string(encoded), `"Schema"`)
+	require.Contains(t, string(encoded), `"directional_links":`)
+}
+
+func TestValidateSpecAllowsZeroSeed(t *testing.T) {
+	spec := validSpec()
+	spec.Seed = 0
+	require.NoError(t, ValidateSpec(spec))
+}
+
+func TestDecodeSpec(t *testing.T) {
+	spec := validSpec()
+	encoded, err := json.Marshal(spec)
+	require.NoError(t, err)
+	decoded, err := DecodeSpec(encoded)
+	require.NoError(t, err)
+	require.Equal(t, spec, decoded)
+
+	unknown := append([]byte(`{"unknown":true,`), encoded[1:]...)
+	_, err = DecodeSpec(unknown)
+	require.Error(t, err)
+	duplicate := append([]byte(`{"schema":"ignored",`), encoded[1:]...)
+	_, err = DecodeSpec(duplicate)
+	require.Error(t, err)
+	_, err = DecodeSpec(append(encoded, '\n'))
+	require.Error(t, err)
+	_, err = DecodeSpec(append(encoded, []byte(` {}`)...))
+	require.Error(t, err)
+	_, err = DecodeSpec(make([]byte, MaximumSpecJSONBytes+1))
+	require.Error(t, err)
+}
+
+func TestDecodeSpecAllowsMaximumMountShape(t *testing.T) {
+	spec := Spec{
+		Schema:   SpecSchema,
+		Backend:  BackendInProcess,
+		Fidelity: FidelitySimulationModel,
+		Limits:   DefaultLimits(),
+	}
+	for index := uint64(0); index < MaximumVolumes; index++ {
+		spec.Volumes = append(spec.Volumes, VolumeSpec{ID: VolumeID(fmt.Sprintf("volume-%02d", index)), CapacityBytes: 1})
+	}
+	for nodeIndex := uint64(0); nodeIndex < MaximumNodes; nodeIndex++ {
+		node := NodeSpec{
+			ID:      NodeID(fmt.Sprintf("node-%02d", nodeIndex)),
+			Boot:    BootID(fmt.Sprintf("boot-%02d", nodeIndex)),
+			Address: fmt.Sprintf("10.0.0.%d", nodeIndex+1),
+		}
+		for volumeIndex, volume := range spec.Volumes {
+			node.Volumes = append(node.Volumes, VolumeMount{
+				Volume: volume.ID,
+				Path:   fmt.Sprintf("/%02d-%s", volumeIndex, strings.Repeat("a", 1018)),
+			})
+		}
+		spec.Nodes = append(spec.Nodes, node)
+	}
+	require.NoError(t, ValidateSpec(spec))
+	encoded, err := json.Marshal(spec)
+	require.NoError(t, err)
+	require.Greater(t, len(encoded), 4<<20)
+	decoded, err := DecodeSpec(encoded)
+	require.NoError(t, err)
+	require.Equal(t, spec, decoded)
 }
 
 func TestValidateSpecCapacityErrors(t *testing.T) {
@@ -157,7 +233,7 @@ func TestValidateSpecCapacityErrors(t *testing.T) {
 
 func TestCapacityErrorSupportsErrorsIs(t *testing.T) {
 	err := &CapacityError{Resource: "nodes", Required: 2, Maximum: 1}
-	require.True(t, errors.Is(err, ErrCapacity))
+	require.ErrorIs(t, err, ErrCapacity)
 }
 
 func validSpec() Spec {
@@ -191,5 +267,3 @@ func cloneSpec(spec Spec) Spec {
 	cloned.Volumes = append([]VolumeSpec(nil), spec.Volumes...)
 	return cloned
 }
-
-var _ = reflect.DeepEqual

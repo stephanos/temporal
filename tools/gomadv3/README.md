@@ -552,6 +552,21 @@ replay. The `xnet-socket-activity-candidate` request remains unapproved: it
 covers only four facts within its current 60-blocker closure and still requires
 direct linkname/syscall containment proof.
 
+## Simulation contract
+
+`simulation/parity/manifest.json` is the canonical SIM-0 behavioral contract.
+It maps thirteen Gomad v2 behaviors to named planned v3 cases, exact source
+tests, intentional replacement decisions, delivery stages, limits, and
+backend/fidelity requirements. A case remains `planned` until an executable
+backend produces its required evidence.
+
+The root `tools/gomadv3sim` package defines the no-dependency application
+harness: schema-tagged bounded specs, stable node and incarnation identities,
+boot registration, detached results, and the cluster lifecycle interface. Its
+request/response and restart tests are contract prototypes only. Gomad v3 does
+not yet provide a multi-node, network, durable-volume, or process-backed
+simulation backend.
+
 ## World
 
 `world` is a pure in-memory model for deterministic events outside the Go

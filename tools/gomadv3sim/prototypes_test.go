@@ -1,24 +1,57 @@
 package gomadv3sim
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
-	"slices"
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestPrototypeTwoNodeRequestResponse(t *testing.T) {
-	serverBoot := BootID("sim0-prototype-request-server")
-	clientBoot := BootID("sim0-prototype-request-client")
+	serverBoot := uniqueBootID("prototype-request-server")
+	clientBoot := uniqueBootID("prototype-request-client")
 	var boots []NodeContext
+	var serverEndpoint string
+	var serverHandler http.Handler
+	var clientResponse string
 	require.NoError(t, RegisterBoot(serverBoot, func(_ context.Context, node NodeContext) error {
 		boots = append(boots, node)
+		serverEndpoint = net.JoinHostPort(node.Address, "7233")
+		response := append([]byte(nil), node.Config...)
+		serverHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			payload, err := io.ReadAll(request.Body)
+			if err != nil || request.Method != http.MethodPost || request.URL.Path != "/request" || !bytes.Equal(payload, []byte("request")) {
+				http.Error(writer, "invalid request", http.StatusBadRequest)
+				return
+			}
+			if _, err := writer.Write(response); err != nil {
+				http.Error(writer, "write response", http.StatusInternalServerError)
+			}
+		})
 		return nil
 	}))
-	require.NoError(t, RegisterBoot(clientBoot, func(_ context.Context, node NodeContext) error {
+	require.NoError(t, RegisterBoot(clientBoot, func(ctx context.Context, node NodeContext) error {
 		boots = append(boots, node)
+		if serverHandler == nil {
+			return errors.New("server handler is not initialized")
+		}
+		request, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://"+serverEndpoint+"/request", bytes.NewReader(node.Config))
+		if err != nil {
+			return err
+		}
+		response := httptest.NewRecorder()
+		serverHandler.ServeHTTP(response, request)
+		if response.Code != http.StatusOK {
+			return fmt.Errorf("request status = %d, body = %q", response.Code, response.Body.String())
+		}
+		clientResponse = response.Body.String()
 		return nil
 	}))
 	spec := Spec{
@@ -61,11 +94,12 @@ func TestPrototypeTwoNodeRequestResponse(t *testing.T) {
 	require.Equal(t, []NodeID{"server", "client"}, []NodeID{boots[0].Node, boots[1].Node})
 	require.Equal(t, []byte("response"), boots[0].Config)
 	require.Equal(t, []byte("request"), boots[1].Config)
+	require.Equal(t, "response", clientResponse)
 }
 
 func TestPrototypeRestart(t *testing.T) {
-	serverBoot := BootID("sim0-prototype-restart-server")
-	clientBoot := BootID("sim0-prototype-restart-client")
+	serverBoot := uniqueBootID("prototype-restart-server")
+	clientBoot := uniqueBootID("prototype-restart-client")
 	require.NoError(t, RegisterBoot(serverBoot, func(context.Context, NodeContext) error { return nil }))
 	require.NoError(t, RegisterBoot(clientBoot, func(context.Context, NodeContext) error { return nil }))
 	spec := Spec{
@@ -212,7 +246,7 @@ func (cluster *prototypeCluster) start(ctx context.Context, id NodeID, action st
 		return NodeHandle{}, fmt.Errorf("unregistered boot %q", node.Boot)
 	}
 	config := append([]byte(nil), node.Config...)
-	if err := boot(ctx, NodeContext{Node: id, Incarnation: handle.Incarnation, Address: node.Address, Config: config}); err != nil {
+	if err := boot(ctx, NodeContext{NodeHandle: handle, Address: node.Address, Config: config}); err != nil {
 		return NodeHandle{}, err
 	}
 	cluster.states[handle] = NodeStateRunning
@@ -226,5 +260,5 @@ func (cluster *prototypeCluster) record(action string, handle NodeHandle) {
 
 func (cluster *prototypeCluster) requireComplete() {
 	cluster.t.Helper()
-	require.True(cluster.t, slices.Equal(cluster.actions, cluster.wantActions), "actions = %q, want %q", cluster.actions, cluster.wantActions)
+	require.Equal(cluster.t, cluster.wantActions, cluster.actions)
 }

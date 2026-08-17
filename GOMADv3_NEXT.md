@@ -44,9 +44,9 @@ Compatibility analysis and qualification reporting v1 are implemented through `g
 | Corpus | Selected | Supported | Unsupported | Expectations met | Execution |
 | --- | ---: | ---: | ---: | --- | --- |
 | Core tier 1 | 5 | 5 | 0 | Yes | Required on Gomad v3 pull requests and pushes |
-| Temporal tier 2 | 16 | 4 | 12 | Yes | Scheduled or manually dispatched |
+| Temporal tier 2 | 16 | 5 | 11 | Yes | Scheduled or manually dispatched |
 
-The twelve unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. Distributed-system simulation remains a design: no v3 multi-node, partition, durable-volume crash, or process-backed cluster capability has been implemented.
+The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. The distributed-system simulation parity contract and application harness are implemented, but execution remains a design: no v3 multi-node, partition, durable-volume crash, or process-backed cluster capability has been implemented.
 
 ## Recommended order
 
@@ -69,7 +69,7 @@ These are now the evidence sources for controlled exploration, compatibility pri
 
 Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode, but the remaining evaluated candidates retain real assembly, linkname, `syscall`, or forbidden-import blockers; closure review remains the default. Rank the remaining eleven blockers before selecting another exact adapter or I/O model, then add composed tier-3 scenarios from the expanded supported set.
 
-For simulation, complete [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract): derive a machine-readable v2 behavioral-parity manifest and prototype one two-node request/response scenario and one restart scenario. Use those prototypes to validate the cluster API, fidelity declarations, limits, and in-process versus process-backed seam before building network or storage models.
+For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) is complete: the canonical v2 behavioral-parity manifest names thirteen expected v3 cases, and the bounded application harness expresses one two-node request/response prototype and one restart prototype. These are contracts, not executable simulation evidence. Continue with only the SIM-1 cluster core and in-process runtime-domain behavior needed by those prototypes.
 
 ### Milestone 3: reduce failures and make campaigns durable
 
@@ -156,7 +156,7 @@ The tables below account for every named capability and delivery stage in the fo
 
 | Delivery stage | Status | Portfolio placement |
 | --- | --- | --- |
-| [SIM-0: Restore trust and define the parity contract](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) | Trust restored; parity manifest and prototypes next | Milestone 2 |
+| [SIM-0: Restore trust and define the parity contract](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) | Implemented; thirteen planned parity cases and two contract prototypes, no backend claim | Milestone 2 |
 | [SIM-1: Cluster core and in-process runtime domains](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) | Designed | Milestone 3 |
 | [SIM-2: Virtual network parity](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) | Designed | Milestone 4 |
 | [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | Designed | Milestone 4 |

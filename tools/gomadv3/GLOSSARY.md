@@ -51,6 +51,36 @@ stored in the Artifact, and reused by Replay without reopening the host path.
 **World Model** — The pure in-memory model for explicit external events,
 ordering, logical time, snapshots, and replay.
 
+**Cluster** — The application-facing contract for starting, waiting for,
+stopping, crashing, and restarting configured Nodes. SIM-0 defines this seam;
+SIM-1 will provide its first execution backend.
+
+**Node** — One stable logical service identity, configured address, boot
+identity, and volume attachments within a Cluster.
+
+**Incarnation** — One specific execution of a Node. Restart preserves the Node
+identity and creates a monotonically increasing incarnation handle so stale
+work can be rejected.
+
+**Boot Identity** — A stable identifier registered to an application boot
+function. Specs record the identity rather than a process-local function
+pointer.
+
+**Simulation Backend** — The execution mechanism behind the Cluster contract.
+The declared values are `in_process` and `process`; neither is implemented by
+SIM-0.
+
+**Simulation Model Fidelity** — A claim that detached modeled transitions and
+outcomes satisfy the declared simulation contract. It is not a hard cleanup or
+fresh-global claim.
+
+**Hard Isolation Fidelity** — A process-backend-only claim that an incarnation
+has process-level cleanup and fresh runtime state.
+
+**Parity Case** — One named v2-derived expected v3 behavior with exact source
+references, an explicit preserve-or-replace decision, delivery stage, and
+required backend/fidelity evidence.
+
 **Execution Record** — The canonical, versioned evidence describing one
 Execution, its identities, inputs, observations, and outcome.
 

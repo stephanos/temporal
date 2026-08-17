@@ -1,8 +1,8 @@
 package parity
 
 import (
-	"bytes"
 	_ "embed"
+	"errors"
 	"fmt"
 	"path"
 	"regexp"
@@ -60,6 +60,7 @@ const (
 	maximumTestsPerSource = 64
 	maximumRequirements   = 4
 	maximumTextBytes      = 4096
+	maximumTestNameBytes  = 256
 )
 
 var identifierPattern = regexp.MustCompile(`^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$`)
@@ -124,11 +125,11 @@ type Prototype struct {
 }
 
 func CurrentBytes() []byte {
-	return append([]byte(nil), bytes.TrimSuffix(currentManifestBytes, []byte{'\n'})...)
+	return append([]byte(nil), currentManifestBytes...)
 }
 
 func Current() (Manifest, error) {
-	return Decode(CurrentBytes())
+	return Decode(currentManifestBytes)
 }
 
 func Decode(data []byte) (Manifest, error) {
@@ -167,7 +168,7 @@ func (manifest Manifest) Validate() error {
 	if len(manifest.Cases) == 0 || len(manifest.Cases) > maximumCases {
 		return fmt.Errorf("simulation parity case count = %d, want between 1 and %d", len(manifest.Cases), maximumCases)
 	}
-	caseIDs := make(map[string]struct{}, len(manifest.Cases))
+	cases := make(map[string]Case, len(manifest.Cases))
 	previousID := ""
 	for index, parityCase := range manifest.Cases {
 		if err := validateCase(parityCase); err != nil {
@@ -176,7 +177,7 @@ func (manifest Manifest) Validate() error {
 		if parityCase.ID <= previousID {
 			return fmt.Errorf("simulation parity case IDs must be strictly sorted: %q after %q", parityCase.ID, previousID)
 		}
-		caseIDs[parityCase.ID] = struct{}{}
+		cases[parityCase.ID] = parityCase
 		previousID = parityCase.ID
 	}
 	if len(manifest.Prototypes) == 0 || len(manifest.Prototypes) > maximumPrototypes {
@@ -184,13 +185,20 @@ func (manifest Manifest) Validate() error {
 	}
 	previousID = ""
 	for index, prototype := range manifest.Prototypes {
-		if err := validatePrototype(prototype, caseIDs); err != nil {
+		if err := validatePrototype(prototype, cases); err != nil {
 			return fmt.Errorf("simulation prototype %d: %w", index, err)
 		}
 		if prototype.ID <= previousID {
 			return fmt.Errorf("simulation prototype IDs must be strictly sorted: %q after %q", prototype.ID, previousID)
 		}
 		previousID = prototype.ID
+	}
+	encoded, err := evidence.CanonicalJSON(manifest)
+	if err != nil {
+		return fmt.Errorf("canonicalize simulation parity manifest: %w", err)
+	}
+	if len(encoded) > MaximumManifestBytes {
+		return fmt.Errorf("simulation parity manifest requires %d bytes, maximum is %d", len(encoded), MaximumManifestBytes)
 	}
 	return nil
 }
@@ -204,7 +212,7 @@ func validateCase(parityCase Case) error {
 	default:
 		return fmt.Errorf("case %q has invalid stage %q", parityCase.ID, parityCase.Stage)
 	}
-	if parityCase.Contract == "" || len(parityCase.Contract) > maximumTextBytes {
+	if err := validateText("contract", parityCase.Contract, maximumTextBytes); err != nil {
 		return fmt.Errorf("case %q contract must be between 1 and %d bytes", parityCase.ID, maximumTextBytes)
 	}
 	switch parityCase.Disposition {
@@ -213,7 +221,7 @@ func validateCase(parityCase Case) error {
 			return fmt.Errorf("preserved case %q has replacement text", parityCase.ID)
 		}
 	case DispositionReplaced:
-		if parityCase.Replacement == "" || len(parityCase.Replacement) > maximumTextBytes {
+		if err := validateText("replacement", parityCase.Replacement, maximumTextBytes); err != nil {
 			return fmt.Errorf("replaced case %q replacement must be between 1 and %d bytes", parityCase.ID, maximumTextBytes)
 		}
 	default:
@@ -252,7 +260,7 @@ func validateCase(parityCase Case) error {
 }
 
 func validateSource(source SourceReference) error {
-	if len(source.Path) == 0 || len(source.Path) > maximumTextBytes || !strings.HasPrefix(source.Path, "tools/gomadv2/") || path.Clean(source.Path) != source.Path || path.Ext(source.Path) != ".go" || strings.Contains(source.Path, `\`) {
+	if len(source.Path) == 0 || len(source.Path) > maximumTextBytes || strings.IndexByte(source.Path, 0) >= 0 || !strings.HasPrefix(source.Path, "tools/gomadv2/") || path.Clean(source.Path) != source.Path || path.Ext(source.Path) != ".go" || strings.Contains(source.Path, `\`) {
 		return fmt.Errorf("invalid v2 source path %q", source.Path)
 	}
 	if len(source.Tests) == 0 || len(source.Tests) > maximumTestsPerSource {
@@ -262,7 +270,7 @@ func validateSource(source SourceReference) error {
 		return fmt.Errorf("source %q test names are not sorted", source.Path)
 	}
 	for index, testName := range source.Tests {
-		if !testPattern.MatchString(testName) {
+		if len(testName) > maximumTestNameBytes || !testPattern.MatchString(testName) {
 			return fmt.Errorf("source %q has invalid test name %q", source.Path, testName)
 		}
 		if index > 0 && testName == source.Tests[index-1] {
@@ -294,34 +302,50 @@ func validateRequirement(requirement Requirement) error {
 			return fmt.Errorf("fidelity %q has duplicate backend %q", requirement.Fidelity, backend)
 		}
 		if requirement.Fidelity == FidelityHardIsolation && backend != BackendProcess {
-			return fmt.Errorf("hard isolation requires the process backend")
+			return errors.New("hard isolation requires the process backend")
 		}
 	}
 	return nil
 }
 
-func validatePrototype(prototype Prototype, caseIDs map[string]struct{}) error {
+func validatePrototype(prototype Prototype, cases map[string]Case) error {
 	if err := validateIdentifier("prototype ID", prototype.ID); err != nil {
 		return err
 	}
-	if _, ok := caseIDs[prototype.CaseID]; !ok {
+	parityCase, ok := cases[prototype.CaseID]
+	if !ok {
 		return fmt.Errorf("prototype %q refers to unknown case %q", prototype.ID, prototype.CaseID)
 	}
 	if prototype.Package != "./tools/gomadv3sim" {
 		return fmt.Errorf("prototype %q package = %q, want %q", prototype.ID, prototype.Package, "./tools/gomadv3sim")
 	}
-	if !testPattern.MatchString(prototype.Test) {
+	if len(prototype.Test) > maximumTestNameBytes || !testPattern.MatchString(prototype.Test) {
 		return fmt.Errorf("prototype %q has invalid test %q", prototype.ID, prototype.Test)
 	}
 	if prototype.Status != StatusPrototype {
 		return fmt.Errorf("prototype %q status = %q, want %q", prototype.ID, prototype.Status, StatusPrototype)
 	}
-	return validateRequirement(Requirement{Fidelity: prototype.Fidelity, Backends: []Backend{prototype.Backend}})
+	if err := validateRequirement(Requirement{Fidelity: prototype.Fidelity, Backends: []Backend{prototype.Backend}}); err != nil {
+		return err
+	}
+	for _, requirement := range parityCase.Requirements {
+		if requirement.Fidelity == prototype.Fidelity && slices.Contains(requirement.Backends, prototype.Backend) {
+			return nil
+		}
+	}
+	return fmt.Errorf("prototype %q backend %q and fidelity %q are not required by case %q", prototype.ID, prototype.Backend, prototype.Fidelity, prototype.CaseID)
 }
 
 func validateIdentifier(name string, value string) error {
 	if len(value) == 0 || len(value) > 128 || !identifierPattern.MatchString(value) {
 		return fmt.Errorf("invalid %s %q", name, value)
+	}
+	return nil
+}
+
+func validateText(name string, value string, maximum int) error {
+	if len(value) == 0 || len(value) > maximum || strings.IndexByte(value, 0) >= 0 {
+		return fmt.Errorf("%s must be between 1 and %d bytes and contain no NUL", name, maximum)
 	}
 	return nil
 }
