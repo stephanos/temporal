@@ -1,636 +1,1676 @@
-# Umpire3 plan from candidate to the full Umpire vision
+# Umpire3 verification architecture
 
-Status: Umpire3 is an independent local candidate, not a qualified realization of the full vision.
+Status: approved implementation blueprint, 2026-08-20.
 
-This document is the authoritative plan for the work remaining after `UMPIRE_LEAN.md`. It is based
-on a fresh comparison of:
+This document defines the next architecture for Umpire3 after the 1.2 candidate implemented under
+`tests/umpire3`. It complements `UMPIRE_LEAN.md`: that document records the 1.0-to-1.2 roadmap and
+operational framework; this document concentrates on the semantic architecture required to turn the
+framework into a trustworthy, multi-modal verification workbench.
 
-- every goal in `UMPIRE_VISION.md`;
-- the retained Umpire2 implementation and root tests;
-- the current Umpire3 Lean model, generated artifacts, compiler, runtime, drivers, evidence,
-  campaigns, authoring API, CLI, and release protocol; and
-- the independently named Umpire2/Umpire3 root test files.
+The ambition is deliberately large:
 
-The decisive distinction is semantic depth. Umpire3 now has most of the framework-shaped pieces,
-but a generated catalog entry, a boolean in a model state, a deterministic campaign test, or a
-profile declaration is not proof that the corresponding Temporal behavior has been modeled,
-observed, or qualified. The remaining milestones replace those approximations with relational
-models, live mechanisms, learned runtime data, and deployment-bound evidence.
+> A Temporal behavior is modeled once as a Lean model family. The same family supports feature
+> contracts, distributed-system mechanisms, refinement proofs, exact finite exploration, symbolic
+> bug finding, generated regressions, live conformance, evidence qualification, campaigns, and
+> eventually proof-producing safety and liveness checking.
 
-## 1. Non-negotiable decisions
+The central decision is not to make Umpire a wrapper around one checker. Umpire owns a small Lean
+semantic kernel and explicit, proved views of each model. Veil is the primary advanced Lean checking
+backend. A collision-safe Umpire explorer is the proof-grade finite-state foundation. TLC and
+Apalache are independent external backends for the areas where their mature algorithms add value.
+Ivy is prior art, not an integration target.
 
-### 1.1 Umpire3 remains fully independent
+## 1. Decisions
 
-Umpire3 owns its model, compiler, protocol, runtime, evidence, participants, Temporal adapters,
-faults, exploration, campaigns, replay, canary, qualification, and authoring surface. It must not
-import Umpire1, Umpire2, or `common/testing/umpire`.
+These decisions are normative.
 
-A shared package may be extracted later only when both implementations independently expose the same
-stable responsibility, have symmetric contract tests, and still pass when built separately. No
-remaining milestone depends on such extraction.
-
-### 1.2 Lean is the semantic authority
-
-Lean owns product states, relations, transitions, properties, permitted interference, refinements,
-monitor meaning, exploration identities, and protobuf interpretation. Go may execute generated
-programs and collect evidence; it must not silently supply semantic rules missing from Lean.
-
-### 1.3 Protobuf shape is generated; meaning is explicit
-
-Selected Temporal protobuf messages are imported automatically from descriptors. Umpire3 must never
-copy message definitions into Lean by hand. A generator may recover presence, oneofs, maps, repeated
-fields, enum numbers, nested types, and dependencies. It must not infer that a field establishes
-identity, causality, ownership, lineage, completion, or safety. Those interpretations remain explicit
-Lean definitions with coverage obligations and conformance fixtures.
-
-### 1.4 Evidence and budgets fail closed
-
-Missing capabilities, ambiguous identity, unproved lineage, clock-only cross-process order, lost
-history, contradictory sources, an unrealized fault, incomplete cleanup, or an exhausted bound cannot
-produce a conforming claim. A time budget is called hard only across a killable process boundary.
-
-### 1.5 Candidate and qualified are distinct release states
-
-Local proofs and tests can produce a candidate. Qualification also requires real CI,
-remote-deployment, public-gRPC-only, and approved production-canary receipts bound to the exact model,
-descriptor, experiment, build, configuration, evidence, fault, and cleanup digests. No local test may
-manufacture those receipts.
-
-## 2. Current audited state
-
-### 2.1 What is implemented
-
-The candidate has the following real foundations:
-
-- a standalone Lean kernel for transitions, executable equivalence, refinements, bounded exploration,
-  generated monitors, composition, and parity manifests;
-- a generated semantic catalog and strict versioned experiment/result formats;
-- deterministic sparse compilation with bounded partial-order completion and runtime identity binding;
-- a selected protobuf descriptor pipeline with 24 root messages, 84 transitive messages, 21 enums,
-  and 397 fields at the current descriptor hash;
-- explicit semantic, opaque, ignored, and rejected field dispositions plus generated conformance
-  fixtures and typed fuzz domains;
-- typed Go regression constructors, domain handles, source-located diagnostics, explain, run, replay,
-  campaign, and qualify commands;
-- generated SDK participant programs and process-isolated participant crash, restart, and response
-  modes;
-- public-history and independent server-history evidence sources normalized into one evidence model;
-- real local mechanisms for ordinary Nexus completion, completion before the start response,
-  cancellation retry with an observed external drop, start-to-close timeout, callback completion after
-  caller closure, a shared callback handler, bidirectional Nexus/Activity links, continuation, reset,
-  task-queue routing, and Workflow Task ownership fencing;
-- fail-closed evidence qualification, exact violation identity, deterministic minimization, strict
-  replay bundles, and ordinary-regression promotion;
-- a killable canary process boundary with bounded cleanup and recovery metadata; and
-- a candidate release protocol that cannot become qualified while external gates remain.
-
-### 2.2 Side-by-side root test inventory
-
-Migration is additive. The originals are preserved under explicit Umpire2 names and Umpire3 has
-independent copies:
-
-| Retained Umpire2 | Independent Umpire3 |
+| ID | Decision |
 | --- | --- |
-| `tests/umpire2_test.go` | `tests/umpire3_test.go` |
-| `tests/umpire2_probe_test.go` | `tests/umpire3_probe_test.go` |
-| `tests/umpire2_regress_test.go` | `tests/umpire3_regress_test.go` |
+| D1 | Lean remains the sole semantic authority. Go owns orchestration and evidence transport, not Temporal behavior. |
+| D2 | “One model” means one compositional `ModelFamily`, not one monolithic state machine. |
+| D3 | Feature models and system models are independently defined. A refinement proof relates them after both exist. |
+| D4 | No system transition may contain a proof that it already performs a legal feature transition. That makes refinement circular. |
+| D5 | Every executable, finite, first-order, observation, and backend representation is an explicit view with a soundness or equivalence obligation. Arbitrary Lean is never silently translated. |
+| D6 | Umpire will build an exact, collision-safe finite explorer and a small Lean certificate checker. Fast native and external search engines are replaceable certificate or witness producers. |
+| D7 | Integrate **Veil**, spelled exactly that way. Use Veil's `#model_check`, symbolic trace queries, and invariant workflow. Do not add Ivy as a required tool. |
+| D8 | Veil `#model_check` is a high-value testing engine, not proof-grade completeness evidence until its state-identity boundary is collision-safe for the selected mode. |
+| D9 | A live adapter emits typed raw evidence. It does not emit the Boolean truth of the property it is meant to check. Generated, Lean-defined observation programs interpret evidence. |
+| D10 | Composition contracts contain propositions and proofs. String identifiers, ranks, hashes, and `status := "complete"` are exported metadata, never the reason composition is valid. |
+| D11 | Safety, bounded safety, finite exhaustive checking, inductive proof, liveness proof, and live conformance remain distinct result classes. There is no generic `verified` Boolean. |
+| D12 | Lean and model checkers remain offline build/test tools. No Lean FFI, solver, or checker enters a Temporal production request path. |
+| D13 | The first end-to-end pilot is stale Nexus completion after cancellation/ownership change. It already has a Lean model, a mutation, a trace, a runtime adapter, and a real-cluster path. |
 
-The generated migration ledger contains 28 explicit behavior contracts and checks both AST
-locations. Helper-only regressions are explicit Umpire3 tests, including their HSM/CHASM variants.
-The Umpire3 copies do not call Umpire2.
+## 2. Terminology and scope
 
-This is inventory completeness, not yet full behavioral equivalence. Several Umpire3 copies execute
-real Temporal traffic but retain a smaller generated scenario than the corresponding Umpire2 probe.
-P5 below closes that gap contract by contract.
+### 2.1 Feature model
 
-At the time of this audit, the retained Umpire2 exploration and generated-completion probes fail in
-isolation because the current root environment observes none of their expected CHASM transitions.
-Only symbol names changed in the retained files. This baseline problem must be diagnosed separately;
-Umpire3 must not weaken or overwrite the originals to make the combined target green.
+A **feature model** states user-visible Temporal meaning. It answers questions such as:
 
-### 2.3 Vision matrix
+- When is a Nexus Operation terminal?
+- What does accepting cancellation permit or forbid?
+- What lineage must Connect-as-New or Reset preserve?
+- What outcome may an Update report after its acceptance is durable?
 
-| Vision goal | Current state | Work required for full completion |
-| --- | --- | --- |
-| Single model for software behavior | Partial | Replace the broad assurance boolean model with compositional relational product/system models and honest parity states |
-| Specify and verify known regressions | Partial | Give all 28 contracts exact model targets, mechanisms, negative controls, and evidence equivalence |
-| Deterministic regression plans | Implemented locally | Preserve canonical source/digest/order under every new generator and driver |
-| Same tests local/CI/CICD/canary | Protocol implemented, execution incomplete | Collect exact-digest receipts from each real profile |
-| White-box and gRPC-only black-box | Adapters implemented locally | Qualify every eligible property through both independent evidence routes on real deployments |
-| Developer-friendly model/test API | Promising, not yet fantastic | Reduce imports and boilerplate, generate deeper domain handles, add one-command environments and measured UX gates |
-| Exploration for unknown bugs | Mechanism demonstrated | Explore the real model denominator and find a non-preseeded product defect |
-| First-class faults | Algebra and selected real faults implemented | Learn call footprints, realize the full safe fault matrix, and qualify fault effects |
-| Non-linear steps/unknown IDs | Implemented in compiler/runtime | Exercise multi-entity aliasing, late binding, rebinding rejection, and remote replay at scale |
-| Kitchensink/programmed workers | Participant language implemented | Prove every command/response/failure/crash mode against real SDK execution |
-| Guided exploration | Small bounded examples | Cover lifecycle edges, parameters, schedules, topologies, and symmetry reductions from model obligations |
-| Distributed processes/clock skew | Evidence vocabulary implemented | Run skew/partition/restart cases and prove causality without wall-clock ordering |
-| Guided automatic fuzzing | Deterministic campaign kernel | Feed it learned semantic/wire coverage and runtime footprints, then enforce corpus novelty and promotion |
+This is the role currently named `Temporal.Product`. The new architecture uses “feature” in design
+discussion because it is clearer to Temporal developers; existing package names need not be renamed
+immediately.
 
-## 3. Protobuf awareness and how to use it
+A feature model excludes shards, task queues, persistence attempts, ownership epochs, processor
+loops, and retry machinery unless one of those is itself part of the user-visible contract.
 
-### 3.1 Current answer
+### 2.2 System model
 
-Yes, the Umpire3 model is aware of selected Temporal protobuf messages. The import is automatic and
-descriptor-derived, not handwritten. `model/Temporal/API/selection.json` selects the roots. The API
-generator computes their recursive closure, emits Lean wire types and Go protocol metadata, records
-the descriptor digest, produces field dispositions and conformance fixtures, and checks drift.
+A **system model** states a selected mechanism by which Temporal may implement one or more feature
+contracts. It may contain tasks, attempts, ownership, durable records, failover, matching, clocks,
+retries, crashes, and recovery.
 
-That is useful because request shape is part of the behavior boundary:
+A system model is not the Go implementation. It is an independently reviewable abstraction of the
+mechanism most likely to violate the feature contract.
 
-- presence versus default can change validity;
-- unknown enum values are legitimate wire inputs and important fuzz cases;
-- oneofs constrain legal combinations;
-- durations, retry policies, links, callbacks, reset requests, and Activity/Nexus requests contain
-  values that drive lifecycle semantics; and
-- descriptor drift should create an explicit modeling obligation rather than silently changing a
-  test generator.
+### 2.3 Implementation
 
-Importing the entire Temporal API would be counterproductive. It would enlarge hashes and fuzz spaces
-without adding product meaning. Selection must remain use-case driven and recursively complete.
+The Go server is the implementation under test. Umpire normally relates it to a model through
+qualified execution evidence. A passing live run is a conformance result for one build, profile,
+experiment, and evidence set. It is not a universal refinement theorem.
 
-### 3.2 What is still missing
+### 2.4 Model family
 
-The generated wire model does not yet drive enough live invalid or boundary requests. Current
-reflected string/duration probes check generated descriptors and interpretations but then execute a
-generic live behavior. They do not prove that the mutated protobuf was the request accepted or
-rejected by the real Temporal endpoint.
+A **model family** is the authoritative graph containing:
 
-P2 must connect the pipeline end to end:
+- feature models;
+- system models;
+- shared mechanism contracts;
+- refinement relations;
+- observation interpretations;
+- safety and temporal properties;
+- executable, finite, and first-order views;
+- target projections and declared omissions; and
+- theorem-backed source identities for generated artifacts.
 
-```text
-descriptor selection
-  -> generated legal/illegal field domains
-  -> typed request mutation
-  -> actual public or task-protocol driver
-  -> captured request digest and field provenance
-  -> Temporal response/history evidence
-  -> Lean interpretation and generated property monitor
+It is a graph because a Temporal feature can have several system realizations, one system mechanism
+can support several features, and a focused checking target should not pull the entire server into
+one state space.
+
+### 2.5 Configuration world
+
+Each check runs in a **world**: a choice of finite identities, topology, enabled features, retry and
+fault bounds, time abstraction, and environment assumptions. A world is immutable during an
+execution. Runtime state evolves within it.
+
+This also supports software-configuration feature models if Umpire needs them later. Configuration
+constraints select valid worlds; the feature and system transition models execute inside a selected
+world. The two use cases therefore share a kernel without pretending constraint solving and
+distributed execution are the same algorithm.
+
+## 3. Current baseline: Umpire3 1.2
+
+The analysis in this document uses commit `ed8b85399` (`Expand Umpire3 into a model-driven test
+framework`) as observed on 2026-08-20. As a baseline verification of that revision,
+`make umpire3-check` passed: generated drift checks, 87 Lean build jobs, and every focused Go
+package succeeded.
+
+The generated catalog currently reports:
+
+| Kind | Count |
+| --- | ---: |
+| Semantic types | 9 |
+| Capabilities | 12 |
+| Actions | 33 |
+| Entities | 11 |
+| Relations | 11 |
+| Observations | 18 |
+| Properties | 15 |
+| Faults | 13 |
+| Modules | 39 |
+| Targets | 15 |
+| Monitor programs | 15 |
+
+The migration ledger describes 28 root behaviors: 21 exact, five semantically equivalent, and two
+partial. The checked 1.2 release remains correctly labeled `candidate`; only two of its 13 vision
+goals are `passed`, while 11 remain `partial`. It requires external qualification for remote,
+gRPC-only, and production-canary profiles.
+
+That is substantial implementation, not a toy. The next step is to make the assurance depth match
+the operational breadth.
+
+## 4. Good patterns to keep and deepen
+
+### 4.1 Lean/Go separation
+
+The versioned-data seam is correct. Lean emits catalogs, experiments, monitor programs, composition
+metadata, parity metadata, proof manifests, and coverage data. Go strictly decodes and executes
+those artifacts. Lean is not linked into Temporal.
+
+Keep this seam. Make the artifacts more theorem-backed; do not replace the seam with cgo or a live
+Lean process.
+
+### 4.2 Relational and executable semantics
+
+`Umpire3.Transition` defines relational behavior. `Umpire3.Executable` requires `next_iff`, proving
+that executable successors neither invent nor omit relational transitions. This is the most
+important formal pattern in the current kernel.
+
+Generalize it to initial-state enumeration, labeled successors, finite worlds, observations, and
+checker views. Never accept an executable projection without both soundness and completeness.
+
+### 4.3 Feature/system source layout
+
+The `Temporal/Product`, `Temporal/System`, and `Temporal/Refinement` split communicates the intended
+layers. The product files mostly avoid system mechanics, and system models name threats such as stale
+ownership and duplicate delivery.
+
+Keep the layout while making the models genuinely independent.
+
+### 4.4 Strict, generated protocol vocabulary
+
+The catalog-generated Go identifier types removed the original handwritten action and capability
+allowlists. Strict JSON decoding, canonical encoding, content digests, schema drift checks, and
+generated author constructors are strong foundations.
+
+Keep generated vocabulary. Move from string-backed declarations to typed, theorem-backed
+declarations before export.
+
+### 4.5 Selected protobuf projection
+
+`Temporal/API/selection.json` selects a bounded wire surface, closes descriptors recursively, and
+records field dispositions and fixtures. Product meaning remains in handwritten Lean interpretation
+modules rather than being guessed from field names.
+
+This is the right direction. Extend the proof connection between wire interpretation, action
+meaning, and live transport fixtures; do not import all Temporal protobufs.
+
+### 4.6 Fail-closed runtime behavior
+
+The compiler and runtime reject unknown vocabulary, incomplete bindings, insufficient capabilities,
+budget exhaustion, missing evidence, ambiguous ordering, and incomplete cleanup. Environment
+profiles separate driving, observation, and fault authority. The canary path uses process isolation
+for enforceable execution limits.
+
+These are production-quality instincts. Preserve them as formal results become stronger.
+
+### 4.7 Causal evidence rather than clock faith
+
+The evidence graph carries source identity, clock domain, source sequence, causal references,
+entity identity, and lineage. Cross-source timestamps are not silently treated as a total order.
+
+Keep this data model. Replace Boolean adapter judgments with generated evidence interpretation.
+
+### 4.8 Negative controls and replay
+
+The models contain invalid states or weakened transitions, the runtime has controlled faulty
+adapters, and campaigns minimize and replay failures. A proof or monitor with no demonstrated power
+to reject a nearby wrong behavior is weak assurance.
+
+Make mutation adequacy a release metric: every important property should reject both a semantic
+mutation and an implementation/evidence mutation.
+
+### 4.9 Honest release qualification
+
+The 1.2 manifest does not fabricate remote or production receipts. Partial migration fidelity is
+recorded rather than hidden behind skips.
+
+Keep the candidate/qualified distinction and apply the same honesty to formal checking claims.
+
+## 5. Patterns to replace
+
+The following are architectural findings, not criticisms of the bootstrap. Several were reasonable
+ways to prove a vertical slice. They are unsafe foundations for the moonshot version.
+
+### 5.1 P0: refinement is proof by construction
+
+All 12 current system models with feature counterparts define a `TransitionResult` containing:
+
+```lean
+productActions : List Product.Action
+productRun : Runs Product.model state.visible productActions nextState.visible
 ```
 
-Every selected field must have one of four checked dispositions:
+The system transition exists only after the author constructs a legal product run. The refinement
+proof then opens the system transition and returns the stored `productRun`. Because system state also
+embeds `visible : Product.State`, the abstraction relation is normally equality on that field.
 
-- **semantic** — interpreted in Lean and included in property/coverage obligations;
-- **opaque** — preserved and digest-bound but not interpreted;
-- **ignored** — excluded for a documented reason and protected by a drift test; or
-- **rejected** — generated only for a negative validity test with an expected failure class.
+This proves that the author used the constructor correctly. It does not independently test whether a
+mechanism model implements the feature model. A modeling mistake that should make refinement fail is
+often unrepresentable as a system step.
 
-No field may enter fuzzing merely because it exists. Values that can allocate excessive resources,
-address external systems, carry secrets, or affect production scope require profile-specific safety
-policies.
+Replace this pattern with:
 
-## 4. Umpire2 feature port ledger
+1. a system `Step` defined only in system vocabulary;
+2. an independently defined relation `Relates : System.State → Feature.State → Prop`;
+3. an action/event mapping defined in the refinement module; and
+4. a proof that every system step simulates zero or more feature steps.
 
-Umpire2 is a behavioral reference, not a code dependency. The following capabilities are still
-needed in Umpire3 unless explicitly marked complete.
+The stale-completion mutation must be expressible as a normal mutated system model and must make the
+refinement theorem fail. That is the acceptance test for genuine independence.
 
-| Umpire2 capability | Umpire3 state | Required disposition |
+### 5.2 P0: monitor equivalence ends before the real observation seam
+
+For many properties, `Temporal.Monitors` defines one Boolean normalized observation whose value is
+the feature predicate itself, then proves that checking that Boolean is equivalent to the predicate.
+For example, the Nexus closure observation is defined as `closureB state`, so the equivalence proof
+is necessarily simple.
+
+The live SDK adapter separately contains a large switch that computes observations such as
+`nexus-operation-closed`, `callback-reference-valid`, and `workflow-ownership-fenced` from Go state
+and history. The Lean theorem does not prove that this Go computation corresponds to the Lean
+observation function.
+
+Replace the Boolean seam with a typed evidence program:
+
+```text
+raw public/internal facts
+        |
+        v
+generated typed interpretation program
+        |
+        v
+abstract observations + identity/ordering proof obligations
+        |
+        v
+three/four-valued monitor
+        |
+        v
+established / violated / unknown / conflict
+```
+
+Adapters should report event kinds, typed fields, positions, references, and omissions. They should
+not report that the target property is satisfied.
+
+### 5.3 P0: proof and composition manifests are self-attestations
+
+Current proof manifests store theorem names and statement hashes as strings. Composition modules
+store guarantee identifiers, hashes, prose, and `status := "complete"`. Their `WellFormed` theorems
+show that the strings are present and internally consistent; they do not resolve a theorem name,
+derive its statement hash, establish that a provider proves a proposition, or prove that an exported
+target closes its obligations.
+
+This metadata is useful, but it is an index, not proof evidence.
+
+Replace author-supplied attestations with typed declarations:
+
+```lean
+structure TheoremRef (claim : Prop) where
+  name : Name
+  proof : claim
+
+structure Guarantee {World : Type} (model : Behavior World) where
+  identifier : Name
+  claim : (world : World) → Execution model world → Prop
+  holds : ∀ world execution, ValidExecution model world execution → claim world execution
+
+structure Requirement {World : Type} (model : Behavior World) where
+  claim : (world : World) → Execution model world → Prop
+```
+
+Export names, hashes, and statuses after Lean has checked the values. A Lean metaprogram should
+resolve declaration names, inventory axioms, and derive dependency/source digests. Humans should
+never type a theorem statement hash.
+
+### 5.4 P0: path enumeration is not state-space model checking
+
+`BoundedModel.frontier` expands complete execution paths recursively. It has no visited-state set,
+so cycles and converging paths duplicate work exponentially. `take maxResults` truncates a list but
+does not produce completeness evidence. `Executable.follow` checks a supplied trace; it does not
+search for one.
+
+The Go `explore` package enumerates template assignments and calls the scenario compiler. Its
+`Build` and `Observe` closures live in Go. A Boolean field says whether symmetry or partial-order
+preservation was “checked.” This is guided test generation, not a Lean model checker.
+
+Keep the campaign machinery, but name it accurately. Add a real reachability engine with:
+
+- exact state equality;
+- a visited set and work queue;
+- shortest predecessor traces;
+- action coverage and deadlock reporting;
+- explicit finite-world or depth completeness;
+- collision-safe state identity;
+- deterministic resource termination; and
+- a checkable closure/safety certificate.
+
+### 5.5 P0: broad assurance can be vacuous
+
+Several feature actions set the property they are meant to preserve directly to `true`. The
+aggregate `Temporal.Product.Assurance` model is not imported by the main `Temporal` library and its
+actions only move toward good Boolean flags. Negative controls show that predicates can be false on
+manually constructed states, but not necessarily that realistic threatening transitions can reach
+those states.
+
+Every safety property needs four non-vacuity checks:
+
+1. the antecedent is reachable;
+2. a good outcome is reachable;
+3. a nearby bad mechanism is expressible and rejected; and
+4. the property is not merely an assignment performed by every enabled action.
+
+Delete dead assurance models or connect them through proved abstraction. Do not count an unimported
+or unreachable negative state as model-checking strength.
+
+### 5.6 P1: the semantic catalog is still mostly metadata
+
+The catalog is generated from Lean and well validated, which is valuable. However, declarations use
+strings for types, actions, dependencies, properties, modules, and targets. `catalogWellFormed`
+checks identifier references, not that an action declaration denotes a constructor of a particular
+model, that a dependency is semantically necessary, or that a target's property is proved by its
+modules.
+
+Make declarations dependent on the model values they describe. Export strings only from registered
+typed handles. The compiler may continue consuming the generated catalog, but the catalog must be a
+projection of semantic declarations rather than a parallel inventory.
+
+### 5.7 P1: feature models are numerous but not compositionally executed
+
+Umpire3 now has focused models for closure, timeout, links, callbacks, lineage, routing, ownership,
+speculative tasks, and progress. They are mostly independent finite universes. Composition metadata
+declares ownership, ranks, requirements, interference action names, and omissions, but no composed
+transition system demonstrates how two features share state or interfere.
+
+Introduce theorem-backed composition for selected cross-feature slices. Do not immediately compose
+all 15 targets. Start with two modules sharing one mechanism, prove non-interference or a rely/
+guarantee rule, and model-check the composition.
+
+### 5.8 P1: only state safety is formalized
+
+The kernel defines `Safety` over reachable states. It has no explicit behavior stream, fairness,
+enabledness, leads-to, termination-sensitive refinement, or divergence condition. Properties named
+“progress” or “starvation” are currently finite-state invariants over explicit Boolean state, not
+unbounded liveness theorems.
+
+Retain these bounded safety contracts, but label them precisely. Add temporal semantics before
+claiming eventual progress under retries, fair task delivery, or recovery.
+
+### 5.9 P1: coverage is narrower than the catalog
+
+The generated coverage denominator currently contains 17 Nexus lifecycle edges for one target,
+while the catalog exposes 15 targets and 15 properties. Parity and migration ledgers use theorem and
+monitor names as strings, so “complete” means declared completeness plus separate tests, not
+machine-resolved proof coverage.
+
+Coverage should be derived per model from typed initial states, action constructors, transition
+classes, properties, relation schemas, observation alternatives, faults, and refinement cases. A
+target without a denominator is `coverage-undefined`, not complete.
+
+### 5.10 P1: source identity is manually curated
+
+Export commands hash manually maintained file lists. A newly imported semantic file can affect a
+Lean artifact without necessarily being added to the Go list. Statement hashes and assumptions are
+also manually copied.
+
+Hash the transitive Lean environment or a generated dependency manifest rooted at resolved
+declarations. Include toolchain, options, axioms, generated descriptor digests, and backend adapter
+versions. A source list can remain in the human-readable manifest, but it must be generated.
+
+### 5.11 P2: one massive toolchain would be brittle
+
+The main model currently pins Lean 4.33 with no Lake dependencies. The surveyed Veil 2 revision pins
+a different Lean version and is explicitly pre-release. Pulling Veil directly into the main model
+would couple every Umpire proof and generator to Veil churn.
+
+Use an isolated backend project and versioned input/output seam first. Merge toolchains only when
+Veil's version and interface are stable enough that doing so reduces, rather than increases, risk.
+
+## 6. Non-negotiable semantic invariants
+
+The implementation must enforce these invariants.
+
+1. **One meaning.** Feature behavior is defined once in Lean. Generated catalogs, traces, monitors,
+   and checker views point back to that definition.
+2. **Independent layers.** A system model can be read without importing a feature state or proof.
+3. **Explicit abstraction.** Every loss of detail has a named relation and an adequacy obligation.
+4. **Executable exactness.** Enumerators are proved equivalent to relational semantics.
+5. **No silent bounds.** Identity cardinalities, depth, fairness, retries, faults, time, memory, and
+   state limits are part of the result.
+6. **No proof laundering.** External UNSAT, finite exhaustion, and live conformance never become a
+   Lean theorem without a checked certificate or proof.
+7. **No oracle in the driver.** Action success and property truth come from independent evidence.
+8. **No success from absence without closure.** An absence observation requires a closed evidence
+   interval or authoritative terminal cut.
+9. **No timestamp causality across clocks.** Cross-domain order requires a causal edge or explicit
+   ordering contract.
+10. **No self-attested obligation.** A qualifying `complete` status is computed from checked
+    evidence, never authored.
+11. **No unqualified reduction.** Symmetry, partial-order, and abstraction reductions need a theorem
+    or are labeled heuristic.
+12. **No cleanup amnesty.** Incomplete cleanup can invalidate a conformance result and always remains
+    visible.
+
+## 7. Target architecture
+
+```text
+                       LEAN MODEL FAMILY
+
+   selected wire types ──> interpretation ──> FEATURE MODEL F
+                                                   ^
+                                                   | refinement theorem
+                                                   |
+                         shared contracts ──> SYSTEM MODEL S
+                                                   |
+                            +----------------------+------------------+
+                            |                      |                  |
+                      ExecutableView          FiniteView       FirstOrderView
+                            |                      |                  |
+                    trace interpreter      exact explorer       Veil adapter
+                            |                + certificate       + #model_check
+                            |                      |              + symbolic trace
+                            |                      |              + invariants
+                            |                      |
+                            +---------- normalized trace --------+
+                                                   |
+                                        experiment/scenario view
+                                                   |
+                                            GO REALIZATION
+                                                   |
+                                           typed raw evidence
+                                                   |
+                                   generated observation interpreter
+                                                   |
+                                     qualified conformance result
+
+  Independent portfolio: TLA+/TLC and Apalache views consume the same named model target,
+  return normalized traces, and are differentially checked against the Lean executable view.
+```
+
+There are three semantic relationships:
+
+```text
+system model S  refines  feature model F       -- Lean theorem
+implementation I conforms to selected S/F      -- qualified execution evidence
+checker view V represents selected S/F          -- equivalence, refinement, or scoped evidence
+```
+
+Never collapse them into one arrow.
+
+## 8. Semantic kernel 2.0
+
+Keep the new Lean types internal through A1 and A2. Stabilize the public registration API only after
+it expresses the Nexus pilot and a compile-only spike of a second existing feature/system pair. Its
+responsibilities are fixed even while the dependent-type shape is being tested.
+
+### 8.1 Behavior
+
+Conceptually:
+
+```lean
+structure Behavior (World : Type u) where
+  State : World → Type v
+  Action : World → Type w
+  Initial : (world : World) → State world → Prop
+  Step : (world : World) → State world → Action world → State world → Prop
+```
+
+`World` separates immutable configuration from mutable state. It prevents topology, feature flags,
+and finite cardinalities from being smuggled into globals or duplicated per backend.
+
+The kernel also needs labeled executions, reachability, finite prefixes, infinite behaviors,
+enabledness, and stuttering. Keep these definitions small and ordinary. Do not build a general
+theorem-prover language inside Umpire.
+
+### 8.2 ExecutableView
+
+```lean
+structure ExecutableView {World : Type u} (model : Behavior World) where
+  initials : (world : World) → List (model.State world)
+  successors : (world : World) → model.State world →
+    List (model.Action world × model.State world)
+  initials_exact : ...
+  successors_exact : ...
+```
+
+The successor list includes the action label. The current split between an action list and
+`next state action` may remain as an internal adapter, but checkers should consume labeled
+successors directly.
+
+### 8.3 FiniteView
+
+A finite view adds decidable equality, canonical serialization, and finiteness evidence for one
+world. It must distinguish:
+
+- finite entire-state completeness;
+- complete exploration through depth `k`;
+- a bounded abstraction of an infinite model; and
+- heuristic sampling.
+
+An encoding used for deduplication must be injective or collision-resolving. A 64-bit hash alone is
+never state identity.
+
+### 8.4 ModelFamily
+
+Conceptually:
+
+```lean
+structure ModelFamily where
+  World : Type
+  FeatureId : Type
+  SystemId : Type
+  feature : FeatureId → Behavior World
+  system : SystemId → Behavior World
+  realizes : SystemId → FeatureId → Prop
+  relates : {systemId : SystemId} → {featureId : FeatureId} →
+    realizes systemId featureId → (world : World) →
+    (system systemId).State world → (feature featureId).State world → Prop
+  refines : {systemId : SystemId} → {featureId : FeatureId} →
+    (edge : realizes systemId featureId) →
+    Refinement (system systemId) (feature featureId) (relates edge)
+  observations : (featureId : FeatureId) → ObservationModel (feature featureId)
+```
+
+This is a shape, not promised compiling syntax. The final types may use dependent records or
+explicit parameters to keep elaboration manageable. The important parts are that a family can
+represent many-to-many realization edges and that `system` does not contain `feature.State`,
+`feature.Action`, or a `feature.Run` witness.
+
+### 8.5 Action mapping
+
+Refinement needs more than unlabelled `StepStar`. Add an explicit mapping:
+
+```lean
+System.Action → Feature.ActionEmission
+
+Feature.ActionEmission =
+  | stutter
+  | one Feature.Action
+  | many (List Feature.Action)
+```
+
+The proof shows that the mapped emission is legal. The mapping is useful for counterexample source
+maps, coverage, and generated experiments. It must not be stored as proof inside the system step.
+
+### 8.6 Refinement strengths
+
+Provide named refinement interfaces rather than one overly permissive relation:
+
+- **Safety simulation** — every finite system prefix maps to a legal feature prefix.
+- **Observation refinement** — the system and feature agree on declared externally visible facts.
+- **Failure refinement** — system failures map only to permitted feature outcomes.
+- **Liveness refinement** — under explicit fairness and non-divergence conditions, selected feature
+  progress is preserved.
+
+Most models will start with safety simulation. A manifest reports exactly which strengths exist.
+
+### 8.7 Typed declarations
+
+Catalog registration should bind metadata to values:
+
+```lean
+structure PropertyDeclaration {World : Type} (model : Behavior World) where
+  identifier : Name
+  predicate : (world : World) → model.State world → Prop
+  safety : Option (∀ world, Safety (model.at world) (predicate world))
+  observation : Option (ObservationSpec model predicate)
+```
+
+This prevents the catalog from claiming that a string-named theorem proves an unrelated string-
+named property. The exporter erases proofs and emits stable names, hashes, source maps, and claim
+strengths.
+
+## 9. Feature and system model design
+
+### 9.1 Feature modules
+
+A feature module owns a coherent user-visible contract, not one Boolean per property. A good module
+contains:
+
+- typed identities and values;
+- state with explicit unknown/absent distinctions where relevant;
+- semantic commands and externally visible outcomes;
+- relational and executable transitions;
+- safety and temporal properties;
+- positive reachability witnesses;
+- threatening mutations; and
+- observation requirements.
+
+For example, Nexus cancellation should model the race among cancellation acceptance, cancellation
+winning, operation completion, and visible terminal outcome. It should not mention owner epochs.
+
+### 9.2 System modules
+
+A system module owns the smallest mechanism that can threaten the feature. For the same pilot:
+
+- task dispatch and attempts;
+- owner availability and ownership epoch;
+- worker epoch and returned completion epoch;
+- cancellation commit/persistence;
+- completion validation/persistence; and
+- crash, recovery, retry, and duplicate delivery.
+
+Its state should not contain `visible : Product.State`. If the model needs a system-level durable
+outcome, define a system outcome type and map it in the refinement relation.
+
+### 9.3 Shared mechanism modules
+
+Task delivery, persistence atomicity, ownership fencing, and history ordering should become deep
+modules with actual predicates and theorems. A consumer imports a theorem-backed guarantee or states
+an assumption explicitly.
+
+The current `TaskDelivery.Guarantee` identifier/hash pair becomes export metadata for something like:
+
+```lean
+def CurrentCompletionOnly (trace : DeliveryTrace) : Prop := ...
+
+theorem taskDeliveryGuarantee :
+  ∀ trace, DeliverySystem.Accepts trace → CurrentCompletionOnly trace := ...
+```
+
+### 9.4 Composition
+
+Composition is a proof problem, not a manifest-validation problem. A composed target must establish:
+
+- state ownership or shared-state protocol;
+- compatible initial states;
+- action synchronization rules;
+- rely/guarantee compatibility;
+- interference preservation for every invariant;
+- absence of circular assumptions;
+- fairness allocation for liveness; and
+- a projection/refinement to its feature contract.
+
+Ranks can remain a human-readable DAG diagnostic. They are not the proof of acyclicity or
+compatibility.
+
+### 9.5 Target projections
+
+A target is a deliberate view of a model family:
+
+```text
+target = world constraints
+       + selected modules
+       + selected properties
+       + retained actions/faults
+       + abstraction relation
+       + declared omissions
+       + checker capabilities
+```
+
+An omission must state what is abstracted and why the selected property is preserved. A numeric
+`maxCount` without a preservation argument is an execution bound, not a sound abstraction.
+
+## 10. The model-checker portfolio
+
+### 10.1 What Lean is and is not
+
+Lean is a theorem prover and a pure functional programming language capable of building executable
+explorers. It is not automatically a model checker because a transition relation is written in Lean.
+Lake can build normal executables, making Lean a suitable host for a reference interpreter,
+certificate checker, and small exact explorer ([Lean programming introduction](https://lean-lang.org/functional_programming_in_lean/Introduction/),
+[Lake reference](https://lean-lang.org/doc/reference/latest/Build-Tools-and-Distribution/Lake/)).
+
+### 10.2 Veil, not “Vail”; Lace is not a separate dependency
+
+The relevant project is [Veil](https://github.com/verse-lab/veil). Veil 2 is a Lean-embedded
+framework for distributed transition systems. Its public workflow includes:
+
+- `#model_check` for concrete finite explicit-state exploration;
+- `sat trace` and `unsat trace` for SMT-backed bounded traces;
+- `#check_invariants` for inductive-invariant obligations; and
+- ordinary Lean proofs as the escape hatch.
+
+One current example comment calls the concrete checker “Lace,” but the public package and command
+surface do not present Lace as a separate tool. Umpire should consistently say **Veil's
+`#model_check`**. Veil 2 is explicitly pre-release, so pin an exact revision and isolate it
+([Veil README](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/README.md),
+[DSL reference](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/docs/DSL-Reference.md)).
+
+### 10.3 Why Veil fits
+
+Veil follows the workflow Umpire needs:
+
+1. find short bugs in small instances;
+2. inspect action coverage and counterexamples;
+3. use counterexamples to induction to strengthen invariants;
+4. discharge first-order obligations with SMT; and
+5. fall back to interactive Lean for the hard remainder.
+
+Its verification-condition generator has a Lean soundness story, and Veil 2 is rebuilt on Loom's
+executable effect semantics ([Veil CAV 2025 paper](https://verse-lab.org/papers/veil-cav25.pdf),
+[Loom POPL 2026 paper](https://verse-lab.org/papers/loom-popl26.pdf)). This is much closer to Umpire's
+goal than maintaining a separate source language.
+
+### 10.4 Veil trust boundary
+
+Umpire must expose three important qualifications.
+
+1. Veil's concrete checker exhausts a selected finite instance; it does not prove arbitrary system
+   size or background theories. Veil's own command source says it should be treated as testing.
+2. The surveyed concrete checker stores 64-bit state fingerprints, while its completeness theorem
+   assumes an injective state view. A general 64-bit hash is not injective. Use this mode for fast
+   bug discovery, not proof-grade finite exhaustion
+   ([fingerprint source](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/Veil/Core/Tools/ModelChecker/Concrete/Core.lean),
+   [completeness lemma](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/Veil/Core/Tools/ModelChecker/Concrete/SequentialLemmas.lean)).
+3. Veil defaults to trusting SMT UNSAT. Proof-grade jobs should request reconstruction and record any
+   remaining assumptions. Lean-SMT itself is beta and may return residual Lean goals
+   ([Veil SMT option](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/Veil/Base.lean),
+   [Lean-SMT](https://github.com/ufmg-smite/lean-smt)).
+
+These are reasons to integrate Veil carefully, not reasons to avoid it.
+
+### 10.5 Veil integration design
+
+Create an isolated project:
+
+```text
+tests/umpire3/model-checkers/veil/
+  lean-toolchain
+  lakefile.lean
+  Umpire3Veil/
+    Schema.lean
+    Generated/
+  testdata/
+```
+
+The main Lean project exports a versioned `FirstOrderView` artifact for one target. The adapter
+generates a reviewable Veil module with the same state, action, invariant, and source identifiers.
+The Veil runner returns normalized results and traces.
+
+Do not attempt to translate arbitrary Lean functions or propositions. A target opts into the
+first-order view by providing:
+
+- finite or uninterpreted sorts;
+- state relations/functions;
+- action formulas;
+- initial formula;
+- invariant formula;
+- a relation to the canonical feature/system model; and
+- a theorem or explicit evidence classification for that relation.
+
+The first integration supports four jobs:
+
+| Job | Veil command/mode | Umpire classification |
 | --- | --- | --- |
-| Sparse regression terms and automatic completion | Implemented | Preserve and deepen typed domain APIs |
-| Deterministic plans and replay | Implemented | Add cross-profile digest equivalence and large-corpus tests |
-| Rich entity inventory | Partial | Model Namespace, Task Queue, Workflow, Run, Workflow Task, Activity, Activity Execution, Nexus operation/worker, Update, Callback, and participant lifecycles relationally |
-| Rich relation inventory | Partial | Model containment, ownership, hosting, delivery, continuation/reset lineage, callbacks, links, and persistence references as first-class relations |
-| Lifecycle guards/effects | Partial/shallow | Replace assurance booleans with explicit legal/illegal transitions and non-vacuity witnesses |
-| Product/system/refinement targets | Complete for narrow Nexus/Update/TaskAck slices | Add equivalent depth for every retained target |
-| Known permitted and forbidden examples | Partial | Add both witnesses and mutation sensitivity for each property |
-| Recovered/Degraded/Flagged outcome taxonomy | Missing | Define terminal and liveness semantics; stop mapping both degraded and flagged to the same negative control |
-| Reflective invalid-request enumeration | Structural only | Drive descriptor-derived mutations through real APIs and gate field/variant coverage |
-| Learned RPC/HTTP footprint | Static examples only | Capture real baseline calls and reconcile declared versus observed footprints |
-| Fault-each-observed-call resilience | Missing | Schedule each eligible learned occurrence under bounded policy and classify recovery/degradation |
-| Coverage over lifecycle edges | Small generic candidates | Derive the denominator from the Lean transition graph and cover all eligible Nexus edges/variants |
-| Random plan generation | Tiny fixed candidates | Generate valid plans from model guards, selected protobuf domains, schedules, and topology holes |
-| Risk/novelty prioritization | Kernel implemented | Use semantic transition, wire-field, fault-occurrence, evidence-source, and topology novelty |
-| Causal trace/source/clock metadata | Implemented | Stress with contradictory sources, retention loss, skew, and replay |
-| White-box telemetry observation | Server-history source implemented | Decide whether CHASM transition telemetry is required; if retained, fix and independently qualify it |
-| Black-box public evidence | Implemented for current targets | Expand to every black-box-eligible property and remote deployment |
-| Programmed kitchensink workers | Umpire3 participant implemented | Finish exhaustive real integration for commands, responses, failures, crash, and restart |
-| Guided exploration templates | Implemented narrowly | Add constraints, symmetry, model-derived coverage goals, and complete/exhausted truthfulness at realistic breadth |
-| Campaign/minimize/replay/promote | Implemented mechanically | Prove discovery on runtime-learned inputs and an unknown defect |
-| Canary envelopes and cleanup | Implemented locally | Integrate an approval-bound production realizer and collect real receipts |
-| Multiple formal backends | Intentionally not ported | Lean remains sufficient only if equivalent properties and counterexamples are demonstrated |
+| Fast small-instance check | `#model_check` | `tested-instance`, collision-qualified |
+| Symbolic depth check | `sat/unsat trace` | `bounded-safe(k)` or counterexample |
+| Invariant discovery | CTIs plus `#check_invariants` | development evidence |
+| Reconstructed invariant proof | `#check_invariants`, SMT trust disabled, all goals closed | `invariant-proved` with axiom inventory |
 
-Do not port Umpire2's duplicated registries, global instrumentation coupling, hand-maintained message
-shapes, shallow compatibility wrappers, or a second formal backend merely to claim tool parity.
+Every Veil counterexample must replay through the canonical Lean `ExecutableView`. Failure to replay
+is a translator defect and fails the backend job.
 
-## 5. Root behavior fidelity ledger
+### 10.6 Differential checking
 
-The current 28-entry ledger should be extended with a machine-readable fidelity level:
+For tiny worlds, compare:
 
-- **exact** — the same user-visible Temporal mechanism and outcome are driven and independently
-  evidenced;
-- **semantic-equivalent** — a different mechanism intentionally realizes the same proved product
-  property;
-- **partial** — real Temporal traffic exists but the original dimensions or oracle are reduced; or
-- **inventory-only** — the named test exists but has not executed its behavior.
+- canonical reachable states from Umpire's exact explorer;
+- Veil concrete states/traces where export permits;
+- TLC reachable states; and
+- selected hand-written golden traces.
 
-Current exact or near-exact local mechanisms include ordinary Nexus completion, completion before
-start response, cancellation retry/drop occurrence, shared callback handler behavior, start-to-close
-timeout, callback after caller closure with server rejection, Nexus/Activity bidirectional links,
-continuation, reset, routing, ownership fencing, and generated Workflow/Update traffic.
+Compare normalized semantic states, not printer output. The differential suite catches an exporter
+that consistently omits the same transition from all generated properties.
 
-The important remaining partial behaviors are:
+### 10.7 Ivy decision
 
-- rejected Nexus start: currently an early negative-control response, not an unknown-endpoint or
-  equivalent real start rejection;
-- reflected required-field and duration variants: wire structure is checked but the malformed request
-  is not the request driven live;
-- degraded and flagged: both collapse to violating controls instead of distinct lifecycle/liveness
-  dispositions;
-- learned footprint and resilience: selection is based on supplied footprints rather than a captured
-  baseline call stream;
-- exploration: two generic candidates do not cover the original Nexus lifecycle graph;
-- coverage-guided and randomized probes: candidates and coverage are supplied rather than learned
-  from real plans and calls; and
-- seeded mutation discovery: it proves the pipeline against an approved mutation, not an unknown
-  product defect.
+Ivy is a standalone protocol language and verifier, not a Lean model checker. Veil's language is
+substantially derived from Ivy's RML and preserves its strengths: atomic actions, first-order
+invariants, decidability-aware modeling, and CTI-driven proof development. The original Microsoft
+repository is archived, with development continuing in another fork
+([Ivy language guide](https://microsoft.github.io/ivy/language.html),
+[Ivy CAV 2020 paper](https://www.wisdom.weizmann.ac.il/~padon/ivy-cav2020.pdf),
+[archived repository](https://github.com/microsoft/ivy)).
 
-No partial entry may be represented as equivalent in the parity ledger or as passed release evidence.
+Do not integrate Ivy into Umpire3. Use its examples as benchmark and modeling prior art. Adding Ivy
+would introduce another source language and translation boundary while duplicating much of the Veil
+workflow.
 
-## 6. Developer experience: Umpire2 versus Umpire3
+### 10.8 TLC and Apalache
 
-### 6.1 Current comparison
+Veil's documented checker focus is safety. TLC has mature finite-instance safety, liveness, and
+fairness checking for TLA+; Apalache adds symbolic bounded and inductiveness checking
+([TLA+ tools](https://lamport.azurewebsites.net/tla/tools.html?unhideBut=hide-tlc&unhideDiv=tlc),
+[Apalache running guide](https://apalache-mc.org/docs/apalache/running.html),
+[Apalache supported features](https://apalache-mc.org/docs/apalache/features.html)).
 
-| Developer task | Umpire2 | Umpire3 now | Umpire3 target |
-| --- | --- | --- | --- |
-| Write a common regression | Concise sparse terms | Concise generated terms, but usually three imports plus an environment factory | One domain import and one test facade; environment selected by test harness/profile |
-| Discover valid actions | Go APIs and existing examples | Generated constructors and several domain handles | State-aware fluent handles with editor-visible compatible operations only |
-| Express unknown runtime IDs | Existing refs/trace machinery | Typed symbols and runtime grounding | Same, with inference for ordinary single-entity flows and visual explain output |
-| Add a protobuf case | Reflection helpers | Selection manifest + generated projection + explicit interpretation | One command that reports uncovered fields and creates source-located obligations |
-| Run locally | Familiar Go test | Go test or CLI plus explicit factory/config | `RequireRegression` works in package tests; one CLI command for standalone execution |
-| Understand a failure | Test logs and reports | Structured claim, explain, evidence, cleanup, artifact, replay | One concise causal narrative plus opt-in full graph/timeline |
-| Replay CI | Seed/report dependent | Strict bundle and replay command | One artifact link/command with automatic compatible profile selection |
-| Move to remote/canary | Separate harnesses | Common protocol exists, operator wiring remains | Same semantic source and command, with capability preflight and approval workflow |
+Generate a readable TLA+ view only after the canonical/executable model and Veil pilot are stable.
+Treat TLC/Apalache success as external tool evidence. Import and replay counterexamples. A candidate
+invariant becomes a Lean theorem only after Lean checks initialization, preservation, and implication
+of the property.
 
-Umpire3 is already stronger in semantic provenance, deterministic compilation, fail-closed evidence,
-and replay. It is not yet unequivocally better for a developer writing a routine test. The normal path
-still exposes framework concepts that should be inferred or owned by a deep module.
+### 10.9 Temporal logic in Lean
 
-### 6.2 Fantastic test-author UX
+Veil's public README still lists liveness as future work, although its authors have demonstrated an
+emerging interactive liveness workflow using Lentil. LeanLTL supports finite and infinite linear
+traces and proof automation; Lentil formalizes a useful portion of TLA
+([LeanLTL](https://github.com/UCSCFormalMethods/LeanLTL),
+[Lentil](https://github.com/verse-lab/Lentil)).
 
-The target API should make the correct path shorter than Umpire2:
+Define Umpire behavior and fairness independently behind a small interface. Prototype adapters to
+Lentil or LeanLTL, but do not let a young library own Umpire's core semantics. Near term:
 
-```go
-func TestCancellationRetry(t *testing.T) {
-    operation := nexus.Operation("operation")
+- Lean/Veil inductive proofs for unbounded safety;
+- TLC for finite-instance liveness and fairness;
+- Apalache for supported bounded lasso checks;
+- Lean temporal proofs for selected high-value progress arguments; and
+- no unbounded liveness claim from a finite trace budget.
 
-    umpire3test.RequireRegression(t,
-        nexus.Regression("cancellation-retry", operation,
-            operation.CancelWithRetry(nexus.DropFirstCancel()),
-            operation.CancellationWins(),
-        ),
-    )
+## 11. Exact exploration and proof-producing checking
+
+### 11.1 Reference explorer
+
+Replace path-tree enumeration with an exact BFS module:
+
+```text
+Explore(world, initials, successors, property, limits)
+  -> Counterexample(shortest trace)
+   | Exhausted(reachable set + closure certificate)
+   | DepthComplete(k, frontier certificate)
+   | ResourceLimited(reason, checkpoint)
+   | InternalError
+```
+
+Use full state equality or collision buckets keyed by a hash and resolved by equality. The reference
+version can favor clarity over maximum performance.
+
+### 11.2 Certificate boundary
+
+The moonshot design separates fast search from trusted checking.
+
+An untrusted native/parallel/external explorer produces:
+
+- canonical initial-state indexes;
+- visited states or a compact state dictionary;
+- predecessor/action edges for witnesses;
+- a closed-successor certificate for exhaustive safety;
+- the property result for every visited state;
+- bounds, reduction metadata, and termination reason; and
+- optional symmetry/POR witnesses.
+
+A small Lean checker validates the certificate. If it validates, Lean derives a theorem for the
+stated finite world or bounded depth. The search producer can then be optimized, parallelized, or
+replaced without expanding the proof-critical code.
+
+### 11.3 Counterexamples
+
+A counterexample is easier to trust than a no-bug result. Replay it by checking:
+
+1. the first state is initial;
+2. every labeled successor is legal under canonical semantics;
+3. the final state violates the named property; and
+4. all world choices and assumptions match the artifact.
+
+This produces a Lean-checked witness even when Veil, TLC, Apalache, fuzzing, or a live run found it.
+
+### 11.4 Reductions
+
+Add reductions in this order:
+
+1. exact deduplication;
+2. canonical identity/symmetry with a preservation theorem;
+3. property-preserving abstraction;
+4. partial-order reduction with an independence relation and ample/persistent-set conditions;
+5. compositional assume/guarantee checking; and
+6. distributed/parallel search with deterministic certificate merge.
+
+A Boolean `PreservationChecked` is insufficient. Until a theorem or certificate exists, label the
+reduction heuristic and forbid proof-grade completeness.
+
+## 12. Observation and live conformance
+
+### 12.1 Four layers
+
+Separate observation into four modules:
+
+1. **Source adapter** — obtains public history, RPC responses, telemetry, or in-process facts.
+2. **Normalizer** — converts source-specific data into a stable typed evidence vocabulary.
+3. **Interpreter** — generated from Lean, binds identities and derives abstract observations.
+4. **Monitor/qualifier** — evaluates the property with evidence and profile requirements.
+
+Only the first two are hand-written per source. The interpreter and monitor are semantic artifacts.
+
+### 12.2 Typed raw facts
+
+Replace `Observation{Satisfied bool}` as the primary semantic input with facts such as:
+
+```text
+HistoryEvent {
+  event_type,
+  event_id,
+  workflow_id,
+  run_id,
+  attributes_view,
+  source_identity,
+  clock_domain,
+  causal_references
+}
+
+MechanismReceipt {
+  action,
+  resource,
+  attempt,
+  owner_epoch,
+  outcome,
+  source_identity,
+  source_sequence
 }
 ```
 
-The test should not contain capability lists, checkpoint IDs, dependency edges, entity bindings,
-monitor names, descriptor paths, evidence classes, cleanup code, hashes, or a local cluster factory.
-The generated domain module and test harness infer them and fail before allocation when they cannot.
-Advanced APIs remain available for explicit partial orders, profile selection, faults, and exploration.
-
-Required UX work:
-
-- generate lifecycle/state-aware domain handles, not only flat action constructors;
-- combine the structural and domain packages behind a stable author package where Go permits it;
-- make local test profile selection automatic while keeping explicit remote/canary configuration;
-- produce typo suggestions and source spans for actions, values, properties, bindings, and profile
-  capabilities;
-- render `Explain` as a compact plan/identity/evidence graph as well as JSON;
-- include a one-command replay line in every failure and CI artifact;
-- add golden examples for common Workflow, Activity, Nexus, Update, callback, lineage, routing, and
-  ownership tests;
-- measure first-test authoring, failure diagnosis, and replay in CI/documented exercises; and
-- enforce a ten-minute fresh-contributor path for authoring and locally running a simple regression.
-
-## 7. Dependency-ordered milestones
-
-### P0 — Make every claim honest — implemented
-
-**Goal:** ensure manifests and docs distinguish modeled, generated, executed, and externally
-qualified behavior.
-
-**Deliverables**
-
-- Add fidelity and evidence-level fields to the parity and migration ledgers.
-- Mark shallow or partial assurance targets `not-yet-implemented` rather than `equivalent`.
-- Permit incomplete parity in a `candidate` manifest, but reject it in a `qualified` manifest.
-- Bind every evidence row to a proof, focused test, integration result, or external receipt class.
-- Update implementation/support documents from generated truth rather than prose-only status.
-- Record the retained Umpire2 telemetry baseline failure without changing its expected behavior.
-
-**Acceptance tests**
-
-- changing a partial parity row to equivalent without the required anchors fails generation;
-- changing candidate to qualified with any partial row or external gate fails validation;
-- stale docs/manifests fail a generated status check; and
-- cached results, constructed profiles, and skipped tests cannot count as evidence.
-
-**Failure handling:** validation errors name the exact goal, row, missing anchor, and permitted next
-state. No migration or fallback upgrades the claim automatically.
-
-**Implemented outcome:** parity ledger v2 records fidelity and evidence level, with nine
-exact/equivalent local-integration rows and the remaining 11 assurance rows explicitly
-`not-yet-implemented`, partial, and exploration-incomplete. The promoted rows are Task acknowledgement,
-the relational `NexusOperationClosure`, `NexusActivityLinkConsistency`, and
-`NexusOperationTimeoutSemantics`, `CallbackReferenceConsistency`, and
-`CallbackResponseConsistency` properties, plus the reciprocal Nexus/Activity and two callback
-integration targets.
-Migration ledger v3 records 14 exact, 4
-semantic-equivalent, and 10 partial live root behaviors. The assurance composition obligation is
-pending. Candidate validation accepts those truthful gaps; qualified validation rejects pending
-composition, incomplete or non-profile-qualified parity, partial migration fidelity, partial vision
-evidence, and outstanding external gates.
-
-### P1 — Replace the assurance umbrella with real relational models
-
-**Progress:** five vertical slices are implemented. `NexusOperationClosure` models two operation
-identities and their caller relation, every Workflow and operation terminal outcome, ordinary
-completion, completion before the start response, task attempts, ownership epochs, persistence, and
-caller closure. `NexusOperationTimeoutSemantics` models operation-to-evidence identity, configured
-timeout kind, failure metadata, ordered history observation, and duplicate delivery. The reciprocal
-Nexus/Activity slice models two operations, two Activities, independent observation, and both public
-link directions. The two callback slices model two callback/operation/handler/delivery identities,
-attachment and operation reference kind/value/order, accepted response fingerprints, idempotent
-redelivery, conflicting responses, operation settlement order, and late-response terminality. Each
-slice has product safety, system refinement/stuttering, bounded exploration,
-reachable permitted and forbidden cases, mutation sensitivity, Lean monitor equivalence, and a live
-SDK history oracle. Their property rows are exact/local-integration, and the reciprocal link target is
-also exact/local-integration; both callback integration targets are exact/local-integration using
-mechanism-qualified live receipts and public history. The broader `feature-nexus` and timeout integration targets remain
-partial until their full lifecycle and exploration denominators are complete.
-
-**Goal:** give every retained property the same semantic depth as the narrow Nexus, Update, and
-TaskAck slices.
-
-**Deliverables**
-
-- Model entity identity, lifecycle state, attempts, ownership epochs, task queues, workflow runs,
-  callbacks, Activities, Nexus operations, Updates, and persistence-visible references.
-- Model containment, delivery, hosting, lineage, linking, callback, and terminal relations explicitly.
-- Split product contracts, threatening system mechanisms, environmental interference, and refinements
-  into deep modules with small interfaces.
-- Replace state booleans that begin true or are only set true with derivations from relational state.
-- Prove executable transition equivalence, safety, refinement/stuttering, monitor equivalence, and
-  composition assumptions for every target.
-- Add non-vacuity witnesses: permitted traces, forbidden traces, reachable antecedents, and a mutation
-  that breaks each theorem or monitor.
-- Generate the semantic coverage denominator from model transitions and property obligations.
-
-**Acceptance tests**
-
-- each property has at least one accepted and one rejected trace;
-- removing a guard/effect/refinement premise fails a theorem, monitor vector, or mutation test;
-- no safety theorem is discharged only because its antecedent is unreachable; and
-- the parity ledger reaches equivalent only after product, system, refinement, monitor, and negative
-  control anchors exist.
-
-**Trade-offs:** more precise state increases proof and exploration cost. Keep models compositional and
-project only the target-relevant state; do not weaken relations to make global exploration cheap.
+Sensitive or unbounded fields remain opaque hashes with explicit disposition. The fact vocabulary
+must preserve absence versus unknown.
 
-### P2 — Drive descriptor-derived cases through real Temporal protocols
-
-**Goal:** turn protobuf awareness into implementation conformance.
+### 12.3 Observation programs
 
-**Deliverables**
+Define a small, typed, total program language in Lean for:
 
-- Generate boundary and invalid values from selected field dispositions and explicit constraints.
-- Build public gRPC, Workflow Task, Activity Task, Nexus task, callback, and history request drivers as
-  required by each message family.
-- Bind the exact serialized request digest and field mutation provenance into action evidence.
-- Classify responses into modeled accepted, rejected, unsupported, timed out, and transport-failed
-  outcomes without treating every error as a product violation.
-- Implement the Recovered/Degraded/Flagged outcome taxonomy in Lean, monitors, Go results, and root
-  tests.
-- Gate semantic/opaque/ignored/rejected field coverage and descriptor drift.
+- selecting facts by kind and identity;
+- binding projected identities;
+- following lineage and causal edges;
+- comparing enums, hashes, and bounded values;
+- checking source-local order;
+- opening and closing evidence windows;
+- deriving abstract state deltas; and
+- returning `true`, `false`, `unknown`, or `conflict` with supporting fact IDs.
 
-**Acceptance tests**
+Prove the interpreter sound against a Lean evidence semantics. Generate a generic Go interpreter and
+cross-language vectors. This is a deep module: a small interface hides the complexity currently
+spread across observation switches.
 
-- required-field absence, unknown enum numbers, duration boundaries, oneof conflicts, repeated/map
-  boundaries, and selected link/callback/reset messages are actually sent to the intended endpoint;
-- evidence identifies the mutated field, serialized digest, endpoint, response, and resulting history;
-- a generator/runtime encoding mismatch fails cross-language conformance; and
-- unsafe values are rejected before allocation or network use.
+### 12.4 Absence and quiescence
 
-**Security:** generated fuzz values are size bounded, redacted, profile checked, and prohibited from
-introducing arbitrary addresses, namespaces, task queues, payloads, or credentials.
-
-### P3 — Learn and reconcile runtime footprints
-
-**Goal:** make resilience and fault selection depend on observed execution rather than supplied call
-lists.
-
-**Deliverables**
-
-- Capture normalized gRPC and Nexus HTTP occurrences for each fault-free baseline.
-- Preserve protocol, service, route, occurrence, direction, namespace, participant, attempt, interval,
-  and causal references without retaining secrets.
-- Reconcile declared model footprint against observed calls with explicit allowed noise.
-- Derive eligible fault targets from learned calls while excluding setup/client-entry calls whose
-  failure merely prevents the behavior under test.
-- Persist the learned footprint and reconciliation digest in replay artifacts.
-
-**Acceptance tests**
-
-- a changed internal route produces deterministic drift;
-- undeclared/missing calls are reported separately from allowed background traffic;
-- identical semantic runs normalize to identical footprints despite ports, IDs, and timestamps; and
-- every selected fault has positive occurrence and cleanup evidence.
+`stale-success-absent` cannot be established by not seeing a success at an arbitrary instant. Its
+monitor must identify an authoritative cut, such as terminal history, a closed dispatch response, or
+a bounded window whose closure is part of the property. Otherwise the result is `unknown`.
 
-**Scalability:** stream and hash occurrences, cap retained samples per normalized identity, and spill
-large artifacts through the existing bounded artifact store.
+### 12.5 Implementation relation
 
-### P4 — Complete model-guided exploration and fuzzing
-
-**Goal:** explore the real model and live protocol surface, not a tiny fixed candidate list.
-
-**Deliverables**
-
-- Generate plans from legal model transitions, parameter holes, selected protobuf domains, partial
-  orders, response modes, participant failures, and bounded topologies.
-- Add symmetry reduction for interchangeable entities/participants and partial-order reduction for
-  independent actions.
-- Cover every eligible Nexus lifecycle edge and then every retained target's semantic denominator.
-- Run fault-each-learned-occurrence resilience with risk and semantic novelty prioritization.
-- Keep deterministic serial/parallel corpora for a seed and record every budget drop/omission.
-- Minimize actions, order, resources, bindings, values, participant programs, faults, and topology
-  while preserving exact qualified violation identity.
+Eventually, live evidence should constrain a set of compatible abstract traces rather than directly
+set property Booleans:
 
-**Acceptance tests**
+```text
+compatible(evidence, abstract_trace)
+```
 
-- the original 17-edge Nexus exploration denominator is represented or explicitly dispositioned;
-- serial and parallel runs select the same corpus/digests for one seed;
-- exact exhaustion is reported complete when the frontier is empty and incomplete otherwise;
-- seeded mutations at model, interpretation, adapter, evidence, and integration layers are found; and
-- promoted source compiles and fails against the mutation after campaign-only state is removed.
+- `established`: every compatible trace satisfies the property and evidence is complete enough;
+- `violated`: a qualified observed trace contradicts the property;
+- `unknown`: both satisfying and violating traces remain compatible;
+- `conflict`: the evidence is internally inconsistent.
 
-**Ten-times load:** bounded queues and deterministic admission prevent candidate explosion; coverage
-summaries are mergeable, and each worker receives an independent candidate/profile allocation.
+The first implementation can use a deterministic interpreter, but its interface should leave room
+for this set-of-traces semantics.
 
-### P5 — Make all 28 root contracts behaviorally exact
+## 13. The scenario, campaign, and runtime relationship
 
-**Goal:** preserve the Umpire2 files and make each Umpire3 copy an independently executing equivalent
-at the user-visible boundary.
+The existing Go compiler, runtime, campaign, replay, profiles, participant, and canary modules remain
+valuable. The model-checking architecture feeds them; it does not replace them.
 
-**Deliverables**
+### 13.1 One normalized trace
 
-- Preserve every existing root Umpire test under an explicit `tests/umpire2_*_test.go` name and create
-  an independently implemented `tests/umpire3_*_test.go` copy for every one; never overwrite, wrap,
-  import, or weaken the Umpire2 original.
-- Keep all six named files and the layout/import guard, and make the migration generator fail when a
-  Umpire2 test function has no Umpire3 behavior contract or either file loses its expected package
-  independence.
-- Add exact fidelity criteria to every migration contract: model target, mechanism, variants,
-  parameters, faults, expected lifecycle disposition, evidence, and cleanup.
-- Replace rejected-start, reflected variants, degraded/flagged, learned-footprint, resilience,
-  exploration, coverage-guided, and randomized approximations using P1–P4.
-- Compare semantic verdict, terminal outcome, grounded identities/lineage, relevant payload/link
-  digests, fault realization, and cleanup—not private implementation traces.
-- Diagnose the retained Umpire2 transition-telemetry baseline independently and keep the original
-  assertions intact.
-- Run Umpire2 and Umpire3 sequentially in the combined target to avoid global test-infrastructure
-  contention while preserving separate results.
+All search engines return one canonical trace representation:
 
-**Acceptance tests**
+```text
+Trace {
+  world,
+  initial_state_digest,
+  steps [{ action_id, arguments, choices, state_digest }],
+  property,
+  violation,
+  assumptions,
+  bounds,
+  source_map
+}
+```
 
-- every one of 28 entries is exact or explicitly approved semantic-equivalent; no partial entry
-  remains;
-- both AST locations and independent implementation/package imports are checked;
-- HSM/CHASM variants run where declared;
-- a deliberately corrupted Umpire3 driver fails the Umpire3 entry and parity gate without changing
-  Umpire2; and
-- both suites pass uncached in the same revision.
+The trace compiler turns a semantic trace into a sparse or completed experiment. Runtime-learned
+identities remain symbolic until evidence binds them.
 
-### P6 — Make authoring and operation fantastic
+### 13.2 Scenario compiler
 
-**Goal:** make the safe, explainable path the shortest path.
+The compiler should use generated declarations for syntax, dependencies, and type checking, but it
+must not infer that catalog membership proves semantic reachability. Add optional model validation:
 
-**Deliverables**
+- replay each compiled path in the canonical executable view;
+- reject a path that has no abstract execution;
+- record when a live-only action is outside the executable view; and
+- retain the abstract state/action source map.
 
-- Implement the state-aware generated domain API in section 6.2.
-- Provide a default local test harness and profile registry while keeping dependency injection for
-  specialized environments.
-- Generate model/protobuf source links and correction suggestions into diagnostics.
-- Add compact human output for plan, evidence, counterexample, cleanup, and replay, backed by the
-  stable diagnostic JSON.
-- Publish executable examples and migration recipes for all major domains.
-- Add IDE/build compile tests that prevent invalid combinations where Go's type system can express
-  them.
-- Measure and gate first-test, diagnosis, and replay budgets.
+### 13.3 Campaigns
 
-**Acceptance tests**
+Campaigns remain the orchestrator for templates, novelty, execution, minimization, and promotion.
+Their candidate sources expand to:
 
-- ordinary cancellation retry needs one domain import, the test facade, one resource, one behavior
-  term, and one property term;
-- no routine test specifies capabilities, checkpoints, dependencies, identities, or cleanup;
-- every failure includes the first divergence, evidence reason, artifact path, and redacted replay
-  command; and
-- a fresh contributor can author and run the documented first regression in ten minutes.
+- exact/Veil/TLC/Apalache counterexamples;
+- satisfying traces selected for coverage;
+- typed protobuf and parameter mutations;
+- schedule/fault/topology holes;
+- production evidence anomalies; and
+- proof CTIs that are executable as finite scenarios.
 
-**Complexity:** keep one deep authoring facade over compiler/runtime details. Avoid convenience
-wrappers that merely mirror every lower-level type.
-
-### P7 — Qualify real distributed profiles
-
-**Goal:** execute one semantic source unchanged across the environments named by the vision.
-
-**Deliverables**
-
-- Run the candidate in local and CI profiles with retained artifacts.
-- Deploy the least-authority remote participant/controller and execute against a real remote cluster.
-- Build a public-gRPC-only binary with an import guard excluding server-internal observers.
-- Add skew, partition, process crash/restart, delayed evidence, history pagination/retention, and
-  contradictory-source cases.
-- Integrate a deployment-owned, approval-bound production fault realizer with immutable allowlists.
-- Emit and merge signed or deployment-attested receipts for the exact candidate hashes.
-
-**Acceptance tests**
-
-- the same experiment digest has local, CI, remote, gRPC-only, and approved canary receipts;
-- black-box claims use only public APIs/tasks/history and satisfy the same generated predicates;
-- no cross-process order is inferred from wall-clock timestamps alone;
-- killed workers/controllers leave bounded, resumable cleanup records and no untracked resources; and
-- credentials and raw customer payloads never enter semantic inputs, results, logs, receipts, or
-  replay bundles.
-
-### P8 — Discover and promote an unknown defect
-
-**Goal:** prove exploration adds value beyond replaying known and deliberately seeded failures.
-
-**Deliverables**
-
-- Run bounded model/wire/schedule/fault/topology campaigns against real implementations.
-- Triage a non-preseeded qualified counterexample and rule out adapter/evidence defects.
-- Minimize it, replay it across the eligible profiles, and promote it to an ordinary typed regression.
-- Record the product bug or model correction, fix, and mutation sensitivity.
-
-**Acceptance tests**
-
-- the violation was not selected by a fixed known candidate or an approved mutation hook;
-- evidence establishes exact property, identity, lineage, ordering, implementation version, and
-  realized fault;
-- the promoted regression fails before and passes after the fix; and
-- the corpus retains the discovery's semantic novelty identity without environment-specific noise.
-
-If no defect is found within the approved budget, the campaign result is useful coverage evidence but
-does not satisfy this milestone.
-
-### P9 — Qualify Umpire3 and decide whether any seam is shared
-
-**Goal:** close the vision with auditable evidence while preserving independence.
-
-**Deliverables**
-
-- Run generated drift, Lean, unit, integration, root parity, mutation, campaign, remote, black-box,
-  canary, formatting, lint, and repository gates on one candidate.
-- Resolve every vision row and parity target to machine-verifiable evidence.
-- Validate all receipts against exact semantic and implementation digests.
-- Change release status to qualified only after no partial or external-required row remains.
-- Evaluate shared extraction candidates using symmetric APIs/tests and record an explicit decision.
-
-**Acceptance tests**
-
-- every conforming or violating result has complete qualified evidence and cleanup;
-- every known regression is deterministic, independently executable, and replayable;
-- no unsupported/skipped/profile-construction result counts as passing evidence;
-- Umpire3 builds and passes without Umpire1/Umpire2/common-Umpire dependencies; and
-- declining all extraction candidates does not block qualification.
-
-## 8. Verification ladder
-
-Each milestone starts with focused red tests and finishes, as applicable, with:
-
-1. `make umpire3-gen` after intentional semantic or selected-descriptor changes;
-2. `make umpire3-check-generated`;
-3. `make -C tests/umpire3/model check`;
-4. `go test -count=1 -tags test_dep ./tests/umpire3/...`;
-5. `make umpire3-integration` in an eligible real local environment;
-6. `make umpire3-root` for retained Umpire2 and independent Umpire3 root tests;
-7. deterministic campaign/mutation/replay gates;
-8. required remote, public-gRPC-only, and canary receipt validation;
-9. `make fmt-imports` and `make lint-code`; and
-10. repository `make unit-test` when the full resource envelope is available.
-
-Every command is run uncached when producing release evidence. Resource exhaustion, unavailable
-external infrastructure, current baseline failures, and skipped profiles are recorded as blockers,
-not converted into passes.
-
-## 9. End state
-
-Umpire3 is complete when a developer writes one concise typed semantic regression and the system can:
-
-- derive deterministic executable plans and late-bound identities from one compositional Lean model;
-- automatically project the selected protobuf wire surface while requiring explicit proved meaning;
-- run the same semantic source against local, CI, remote, public-gRPC-only, and approved production
-  canary profiles;
-- program real SDK participants, processes, failures, response modes, and cross-entity behavior;
-- learn runtime call footprints, inject safe scoped faults, and establish causal evidence without a
-  shared clock;
-- explore and fuzz model, wire, schedule, fault, participant, and topology dimensions by semantic
-  novelty;
-- minimize, replay, and promote both known and newly discovered failures;
-- independently reproduce every retained Umpire2 root behavior in the six-file side-by-side layout;
-  and
-- issue a qualified release whose proofs, tests, artifacts, and external receipts all bind to the
-  same semantic and implementation digests.
-
-The end state does not require extracting shared code. Umpire3 remains complete, testable, and
-operable on its own; extraction is permitted only after independence has revealed a genuinely stable
-seam.
+Coverage novelty is derived from model declarations, not only author-declared labels.
+
+### 13.4 Promotion
+
+A promoted failure must preserve:
+
+- the same property and model target;
+- a Lean-replayed semantic counterexample when one exists;
+- the same evidence predicate, not merely a status string;
+- grounded identity/lineage constraints;
+- a deterministic environment profile or declared uncontrollable schedule;
+- complete cleanup; and
+- source maps back to the model and discovered trace.
+
+## 14. Deep modules and stable interfaces
+
+The target architecture has six important deep modules.
+
+### 14.1 `ModelFamily`
+
+**Interface:** select a world and target; obtain feature/system semantics, properties, refinements,
+and supported views.
+
+**Implementation:** dependent Lean types, module composition, theorem registry, source mapping.
+
+Callers do not learn backend syntax or internal model state layout.
+
+### 14.2 `Explorer`
+
+**Interface:** check one finite view with explicit property and limits; receive a structured result
+and optional certificate/witness.
+
+**Implementation:** BFS, state storage, predecessor graph, coverage, certificate production,
+parallelization.
+
+### 14.3 `Backend`
+
+**Interface:** advertise capabilities, check a versioned view, return normalized results and traces.
+
+**Adapters:** Veil, TLC, Apalache, future SAT/SMT engines.
+
+The interface exposes trust mode, exactness, temporal support, and certificate support. It is not a
+lowest-common-denominator `Run() bool`.
+
+### 14.4 `ObservationInterpreter`
+
+**Interface:** evaluate generated typed programs over an evidence graph.
+
+**Implementation:** identity binding, order, causal traversal, closed-world windows, derived facts,
+four-valued logic, supporting evidence.
+
+### 14.5 `Verifier`
+
+**Interface:** run a target through selected engines, replay traces, check certificates, and emit one
+verification bundle.
+
+**Implementation:** orchestration, cache, resource isolation, deterministic merging, trust ladder,
+artifact retention.
+
+### 14.6 `Runtime`
+
+**Interface:** realize one compiled experiment against an environment and return raw evidence,
+cleanup, and profile identity.
+
+**Implementation:** existing environment/session, participant, Temporal, process, fault, and canary
+machinery.
+
+`Runtime` must get shallower semantically as the observation interpreter gets deeper.
+
+## 15. Proposed repository layout
+
+```text
+tests/umpire3/
+  model/
+    Umpire3/
+      Behavior.lean
+      Execution.lean
+      ExecutableView.lean
+      FiniteView.lean
+      Certificate.lean
+      Safety.lean
+      Temporal.lean
+      Refinement.lean
+      Composition.lean
+      Observation.lean
+      Declaration.lean
+    Temporal/
+      Feature/                 user-visible feature models
+      System/                  independent mechanism models
+      Refinement/              relations and simulation proofs
+      Contracts/               theorem-backed shared mechanisms
+      Observation/             typed fact interpretations
+      Targets/                 finite/first-order/checker views
+      API/                     selected wire projections
+
+  model-checkers/
+    veil/                      isolated pinned Veil project
+    tla/                       generated TLA+, TLC configs, Apalache config
+
+  verifier/                    checker portfolio orchestration
+  certificate/                 native producer and Lean-checkable schema
+  protocol/                    generated versioned artifacts
+  compiler/                    sparse intent and trace compilation
+  evidence/                    raw fact graph
+  observation/                 generic generated-program interpreter
+  runtime/                     realization orchestration
+  temporal/                    Temporal source/driver adapters
+  campaign/                    discovery and promotion
+  canary/                      production authority controller
+```
+
+Do not move all current files at once. Create new modules for the pilot, then migrate model families
+when the new interface demonstrates more leverage and stronger failures.
+
+## 16. Result and trust model
+
+### 16.1 Result ladder
+
+| Result | Meaning | Main trust boundary |
+| --- | --- | --- |
+| `trace-witness` | This checked initial state and legal trace reaches a violation | Lean definitions/kernel; execution mode if native |
+| `sampled-no-counterexample` | Selected randomized/simulated traces did not fail | sampler, seed, coverage; never complete |
+| `bounded-safe(k)` | No encoded execution through depth `k` violates the property | encoding and solver/certificate mode |
+| `finite-exhaustive(world)` | Every reachable state in one finite world was checked | exact state identity and checked closure certificate |
+| `external-no-counterexample` | Named external engine found none in its scope | exporter and external engine |
+| `invariant-proved` | An inductive invariant implies safety for the quantified scope | Lean kernel plus disclosed axioms/solver trust |
+| `temporal-proved` | A temporal property holds under named fairness assumptions | behavior/fairness semantics and Lean proof |
+| `refinement-proved` | Selected system behaviors are included in feature behavior | relation and Lean proof |
+| `implementation-conforming` | One implementation run meets a property under a profile and evidence set | driver, observation sources/interpreter, model, bounds |
+| `unknown` | Scope, evidence, solver, or resources cannot decide | explicit reason |
+
+### 16.2 Trust badges
+
+Every proof/check result records one of:
+
+- `kernel`;
+- `kernel-with-declared-axioms`;
+- `reconstructed-solver-proof`;
+- `trusted-solver`;
+- `checked-certificate`;
+- `external-tool`;
+- `tested-instance`;
+- `sampled`; or
+- `heuristic`.
+
+The badge is data, not prose.
+
+### 16.3 Verification bundle
+
+One immutable bundle contains:
+
+- model-family, target, world, and property identities;
+- transitive semantic/toolchain/descriptor digests;
+- axiom inventory;
+- checker name, version, options, and trust badge;
+- bounds, fairness, reductions, and omissions;
+- result and termination reason;
+- normalized trace or certificate digest;
+- trace replay result;
+- generated experiment digests;
+- implementation/profile/evidence results where run;
+- cleanup and retention results; and
+- source locations for declarations and properties.
+
+The existing replay bundle and qualification receipt can evolve toward this envelope.
+
+## 17. Developer workflow
+
+### 17.1 Model author
+
+The happy path should be:
+
+```text
+umpire3 model new nexus-cancellation-fencing
+umpire3 model check nexus-cancellation-fencing --world smoke
+umpire3 model veil nexus-cancellation-fencing --mode invariant
+umpire3 model trace <counterexample> --emit-regression
+```
+
+Editor feedback should follow Veil's excellent pattern: start interpreted checking immediately, then
+switch to compiled search when ready. Diagnostics name the feature action, system action, property,
+world choice, and source line.
+
+### 17.2 Test author
+
+The existing generated domain facade remains the right surface:
+
+```go
+umpire3test.RequireRegression(t, scenario,
+    umpire3test.WithEnvironment(factory),
+)
+```
+
+The test author should not select theorem hashes, monitor programs, checker encodings, or evidence
+rules. `Explain` adds the model trace and verification bundle identity.
+
+### 17.3 CI tiers
+
+| Tier | Trigger | Work |
+| --- | --- | --- |
+| Editor | save/focused command | Lean build, trace replay, tiny exact/Veil check |
+| PR smoke | affected target | proofs, exact tiny worlds, Veil BMC/invariant, generated drift, focused Go tests |
+| PR integration | selected changes | generated traces against local Temporal; negative controls |
+| Nightly | all targets | larger worlds, TLC/Apalache, campaigns, mutation score, certificate checks |
+| Release | candidate | all proofs, portfolio agreement, root parity, remote/black-box receipts |
+| Canary | separately authorized | approved digest, bounded live conformance only; no proof tools in production |
+
+Affected targets should be computed from the generated transitive declaration graph.
+
+## 18. Implementation roadmap
+
+The sequence starts from 1.2 and deliberately proves one vertical slice before broad migration.
+
+### A0 — Claim and provenance hardening
+
+**Goal:** make current artifacts say exactly what they establish.
+
+**Work**
+
+- Add trust badges and result classes to proof/check manifests.
+- Inventory Lean axioms for every exported theorem.
+- Generate transitive source/dependency digests.
+- Rename current path/template exploration results so they cannot imply finite-state completeness.
+- Reclassify composition and parity `WellFormed` results as metadata validation.
+- Remove or connect dead assurance modules.
+- Make coverage undefined for targets without generated denominators.
+
+**Exit gate:** no manifest can obtain `proved`, `finite-exhaustive`, or `complete` from authored
+strings or Booleans.
+
+### A1 — Independent Nexus feature/system pilot
+
+**Goal:** remove proof-by-construction refinement for the stale-completion slice.
+
+**Work**
+
+- Add `World`, `Behavior`, labeled executions, and `ExecutableView` without breaking old models.
+- Re-express Nexus cancellation as an independent feature model.
+- Re-express task/ownership/persistence mechanics without importing feature state.
+- Define the relation and action mapping in the refinement module.
+- Prove safety simulation.
+- Define a guard-removal mutated system model.
+- Compile a second existing feature/system pair against the API before stabilizing registration.
+
+**Exit gate:** the sound system proves refinement; the mutation is executable but cannot satisfy the
+refinement theorem and yields the known stale-success counterexample.
+
+### A2 — Exact finite explorer
+
+**Goal:** add honest, reusable state-space checking.
+
+**Work**
+
+- Implement deterministic exact BFS with collision resolution.
+- Return shortest counterexamples, coverage, deadlocks, and explicit termination.
+- Prove frontier/visited soundness and bounded completeness.
+- Define the first closure certificate and Lean checker.
+- Check the sound and mutated Nexus worlds.
+
+**Exit gate:** the mutation's shortest trace is discovered automatically; the sound finite world
+returns `finite-exhaustive` only after its certificate checks; injected hash collisions lose no
+states.
+
+### A3 — Veil backend
+
+**Goal:** add symbolic and invariant-driven checking without changing semantic authority.
+
+**Work**
+
+- Pin Veil in an isolated project.
+- Define `FirstOrderView/v1` and generate the Nexus pilot.
+- Run `#model_check`, symbolic trace queries, and invariant checking.
+- Expose trusted-SMT versus reconstructed mode.
+- Import and replay Veil traces in canonical Lean.
+- Differential-check tiny worlds against the exact explorer.
+
+**Exit gate:** Veil rediscovers the mutation; its trace replays; the sound invariant closes with a
+recorded trust mode; translation mutations are caught by differential tests.
+
+### A4 — Typed observation semantics
+
+**Goal:** remove property truth from Temporal adapters.
+
+**Work**
+
+- Define raw Nexus history/mechanism fact types.
+- Define the Lean evidence interpreter and four-valued monitor.
+- Generate the Go interpreter program and cross-language fixtures.
+- Change the Nexus adapter to emit facts, not `Satisfied`.
+- Model closed evidence windows for absence.
+
+**Exit gate:** a deliberately wrong Go observation mapping fails fixtures; missing closure yields
+`unknown`; stale success yields `violated`; the sound real-cluster path yields `established`.
+
+### A5 — Theorem-backed catalog and composition
+
+**Goal:** make semantic metadata a derived artifact.
+
+**Work**
+
+- Introduce typed property, action, theorem, guarantee, and requirement registrations.
+- Resolve theorem names and axioms during Lean export.
+- Replace author-supplied statement hashes.
+- Compose task delivery with Nexus and Workflow ownership through actual predicates.
+- Prove one interference-preservation result.
+
+**Exit gate:** deleting or changing a provider theorem fails the consumer at Lean elaboration, not a
+later hash comparison; the generated catalog retains the stable Go-facing IDs.
+
+### A6 — Model-derived compiler and coverage
+
+**Goal:** connect authoring, exploration, and model semantics.
+
+**Work**
+
+- Replay compiled scenario paths through executable views.
+- Generate denominators for every qualifying target.
+- Derive transition, relation, property, fault, observation, and refinement coverage.
+- Replace symmetry/POR attestation Booleans with checked evidence.
+- Feed exact/Veil traces into campaign and promotion.
+
+**Exit gate:** every qualifying target has a nonempty derived denominator; a semantically impossible
+Go scenario fails before allocation; promoted model-checker traces use normal `RequireRegression`.
+
+### A7 — Temporal properties and independent portfolio
+
+**Goal:** support real progress claims.
+
+**Work**
+
+- Add infinite behavior, enabledness, fairness, and leads-to semantics.
+- Specify task delivery and recovery fairness explicitly.
+- Generate a TLA+ view for the pilot and run TLC liveness checks.
+- Add Apalache for supported bounded/inductiveness jobs.
+- Prototype a Lean temporal proof with Lentil or LeanLTL behind an adapter.
+- Add liveness-preserving refinement or explicitly limit the claim.
+
+**Exit gate:** one bounded progress bug produces a replayable lasso; one selected progress theorem is
+proved under named fairness assumptions; no finite result is reported as unbounded liveness.
+
+### A8 — Proof-producing scale
+
+**Goal:** make large search fast without growing the trusted base.
+
+**Work**
+
+- Implement a parallel native certificate producer.
+- Add compact closure and symmetry certificates.
+- Add checkpoint/resume with transactional artifact publication.
+- Make deterministic merges independent of worker count.
+- Benchmark state storage, certificate size, and Lean checking.
+
+**Exit gate:** a 10x larger search completes through parallel production, the same small Lean checker
+validates the result, and corrupted/partial certificates fail closed.
+
+### A9 — Model-family migration and qualification
+
+**Goal:** apply the architecture across Umpire3 without repeating the bootstrap's breadth-first leap.
+
+**Order**
+
+1. Workflow ownership fencing;
+2. Workflow lineage;
+3. routing and speculative delivery;
+4. callback reference/response;
+5. Nexus timeout and Nexus/Activity linking;
+6. Update lifecycle;
+7. cross-feature compositions; and
+8. remaining parity targets.
+
+Each migrated family must have independent feature/system semantics, a real refinement test, a
+checker view, an evidence interpreter, non-vacuity, and a mutation. Old models remain until their
+replacement meets the gate.
+
+## 19. Verification plan
+
+### 19.1 Lean kernel tests
+
+- initial enumerator soundness and completeness;
+- successor enumerator soundness and completeness;
+- trace replay accepts every explorer/backend trace;
+- illegal action/state mutation fails replay;
+- independent system mutation breaks refinement;
+- finite certificate checker rejects missing states, edges, property checks, and wrong worlds;
+- theorem export contains the expected axiom inventory;
+- composition fails for missing, circular, or interference-breaking guarantees; and
+- temporal proofs name every fairness assumption.
+
+### 19.2 Explorer tests
+
+- acyclic, cyclic, nondeterministic, converging, and deadlocked graphs;
+- multiple initial states;
+- shortest counterexample stability;
+- exact exhaustion versus depth completion;
+- injected hash collisions;
+- deterministic results across iteration and parallelism;
+- timeout, memory, state, and cancellation termination; and
+- corrupt/resumed checkpoint handling.
+
+### 19.3 Veil adapter tests
+
+- pinned toolchain and checksum/revision gate;
+- generated source stability and source mapping;
+- all canonical actions represented;
+- trace replay both directions;
+- known model mutation found;
+- exporter mutation detected by differential reachable-state comparison;
+- solver trusted/reconstructed classification; and
+- timeout/unknown never converted to success.
+
+### 19.4 Observation tests
+
+- each raw fact variant and field disposition;
+- absent, unknown, contradictory, duplicate, and out-of-order evidence;
+- runtime-learned identity and lineage conflicts;
+- cross-clock timestamps with no causal edge;
+- authoritative source-local order;
+- closed and unclosed absence windows;
+- Lean/Go interpreter differential fixtures;
+- evidence loss and byte-limit exhaustion; and
+- property/evidence mutations.
+
+### 19.5 End-to-end pilot tests
+
+- sound model: refinement theorem, exact finite exhaustion, Veil invariant, conforming live run;
+- mutated model: shortest counterexample in exact explorer and Veil, replay into Lean;
+- faulty implementation: same semantic violation from real-cluster evidence;
+- missing evidence: `unknown`, never conforming;
+- model/compiler trace: emitted regression compiles and replays; and
+- cleanup failure: retained as an orthogonal failure and disqualifies conformance where required.
+
+### 19.6 Repository gates
+
+Every implementation phase runs the smallest focused tests, then:
+
+```sh
+make umpire3-check
+go test -tags test_dep <affected packages>
+make fmt-imports
+make lint-code
+```
+
+Use `integration` only for integration tests. Repository-wide `make unit-test` is the final broad
+gate when feasible.
+
+## 20. Performance and 10x scale
+
+State explosion, not Lean syntax, is the governing scalability risk. Increasing several independent
+domains by 10 can increase the state space by orders of magnitude.
+
+Use a portfolio:
+
+- exact explicit checking for small, high-value finite worlds;
+- symbolic BMC for shallow bugs in larger domains;
+- inductive invariants for unbounded safety;
+- compositional refinement to avoid global products;
+- symmetry and POR only with preservation evidence;
+- TLC distributed/parallel modes for suitable finite TLA+ targets;
+- sampled campaigns for implementation schedule/input diversity; and
+- live monitoring bounded independently from offline checking.
+
+At 10x candidates or evidence:
+
+- cache by semantic target/world/property/backend digest;
+- separate model compilation from search;
+- shard search deterministically;
+- merge certificates and corpus entries independent of completion order;
+- apply backpressure before evidence or cleanup falls behind;
+- cap state bytes as well as state count;
+- retain frontier/termination metadata; and
+- return `resource-limited`, never a weaker success definition.
+
+## 21. Crash, cancellation, and recovery
+
+- An interrupted explorer never emits exhaustive success.
+- Publish verification bundles transactionally after their trace/certificate checks.
+- A resumable checkpoint records search progress, not proof evidence.
+- Solver timeout, `unknown`, crash, malformed output, or killed process maps to `unknown` or
+  infrastructure failure.
+- Backend subprocesses run with bounded CPU, memory, time, and output and without production
+  credentials.
+- Live cleanup keeps its independent bounded authority and recovery metadata.
+- A verifier crash after live allocation cannot lose the resource ledger.
+- Canary approval binds the semantic experiment, not a checker executable or arbitrary model input.
+
+## 22. Security
+
+- Do not send Temporal payloads, headers, credentials, customer metadata, or raw failures to solvers
+  or model checkers.
+- Generate checker inputs only from reviewed semantic views.
+- Treat Veil, cvc5, TLC, Apalache, generated binaries, and proof metaprograms as build-time supply-
+  chain inputs: pin, checksum, sandbox, and cap them.
+- Record solver options and trust mode.
+- Validate imported traces and certificates as hostile input.
+- Keep concrete production identities in redacted realization records, outside semantic digests.
+- A proved model says nothing by itself about authorization, protobuf compatibility, persistence
+  schema, rate limits, performance, or side channels; retain specialized tests.
+
+## 23. Trade-offs
+
+### 23.1 Complexity
+
+This architecture adds a real semantic kernel, checker views, and certificate protocol. That is
+substantial. It removes more dangerous complexity: repeated state machines, self-attested manifests,
+property-specific Go observers, backend-specific traces, and ambiguous claims.
+
+The discipline is to add a view only when a second implementation exists or a checker needs it. Do
+not build a universal IR capable of representing arbitrary Lean.
+
+### 23.2 Performance
+
+Exact equality and checkable certificates cost memory and output. Use them for proof-grade jobs.
+Allow fingerprinted fast search for development, but label it. Search speed is not worth an
+overstated completeness claim.
+
+### 23.3 Proof maintenance
+
+Independent feature/system models make refinement harder than carrying a product proof in each
+transition. That difficulty is the value: it exposes abstraction mistakes. Keep models small,
+compose them, and use Veil's CTI workflow to control proof cost.
+
+### 23.4 Toolchain breadth
+
+Veil plus TLC/Apalache adds operational overhead. Veil is required after A3; TLC/Apalache remain
+target-specific until A7. Ivy is excluded. Lentil/LeanLTL remain adapter experiments until one earns
+a stable role.
+
+### 23.5 Source-of-truth tension
+
+A reified first-order view can look like a second model. It is acceptable only when its relation to
+the canonical model is explicit and checked or its result is classified as translation-dependent
+external evidence. A generated backend file is never authoritative.
+
+## 24. Risk register
+
+| Risk | Failure | Mitigation |
+| --- | --- | --- |
+| Wrong feature contract | Proof establishes the wrong product meaning | domain review, reachable examples, real regression corpus, semantic mutations |
+| Circular refinement | System is legal by construction | independent system state/step; mutation must break theorem |
+| Vacuous invariant | Antecedent or threat unreachable | non-vacuity witnesses and model mutation gate |
+| Exporter omission | All generated checks miss an action | canonical replay and differential tiny-state comparison |
+| Hash collision | Distinct states merged | exact equality/collision buckets; certificate validation |
+| Trusted SMT bug | False UNSAT accepted | trust badge, reconstruction, independent finite checks |
+| Veil churn | Main Lean build destabilized | isolated pinned project and versioned seam |
+| State explosion | Search cannot finish | composition, abstraction, BMC, invariants, honest resource results |
+| Liveness overclaim | Finite check presented as eventuality | temporal result classes and fairness inventory |
+| Observer restates oracle | Go produces desired Boolean | typed raw facts and generated interpreter |
+| Missing-event “success” | Absence mistaken for proof | closed evidence windows and four-valued result |
+| Manifest laundering | String says theorem/complete | typed registrations, name resolution, axiom inventory |
+| Production leakage | Sensitive data reaches checker/artifact | selected views, field dispositions, redaction, sandbox |
+
+## 25. Definition of done
+
+The architecture is realized when all of these hold.
+
+### Semantic authority
+
+- Every qualifying target resolves to typed feature/system/property declarations.
+- No system step stores a feature run or feature-state witness.
+- Every system/feature pair has an independent mutation that breaks refinement.
+- Exported theorem names resolve, their axioms are inventoried, and hashes are derived.
+
+### Checking
+
+- Every qualifying finite target has an exact executable view.
+- Proof-grade finite success comes from a checked certificate with collision-safe state identity.
+- Veil runs at least concrete, symbolic trace, and invariant jobs for supported targets.
+- Every backend counterexample replays through canonical Lean semantics.
+- Temporal claims distinguish finite lasso evidence from Lean liveness proof.
+
+### Feature/system support
+
+- Multiple system realizations can refine one feature contract.
+- A shared system contract supports at least two feature families through actual theorems.
+- At least one composed target proves interference preservation.
+- Target omissions have property-preservation evidence or are explicitly heuristic.
+
+### Live conformance
+
+- Temporal adapters emit typed raw evidence rather than property truth.
+- Generated observation programs evaluate identically in Lean and Go.
+- Absence, missing evidence, contradiction, and clock ambiguity cannot establish conformance.
+- The same normalized semantic counterexample can originate from a checker or a live run and enter
+  the same minimization/replay/promotion path.
+
+### Developer and operational quality
+
+- A model author can run a tiny exact/Veil check from one command with source diagnostics.
+- A test author continues using the generated domain facade.
+- PR checks select affected targets from semantic dependencies.
+- Nightly checks scale independently and produce deterministic bundles.
+- Canary execution remains digest-bound, process-isolated, redacted, and separately authorized.
+
+## 26. The moonshot end state
+
+The best version of Umpire is a continuously running assurance system for Temporal:
+
+1. A developer changes a feature or mechanism.
+2. Umpire identifies affected model families from typed dependencies.
+3. Lean checks semantic, refinement, composition, and observation theorems.
+4. The exact explorer and Veil search small worlds immediately.
+5. TLC/Apalache and larger native certificate producers run in the portfolio when useful.
+6. Every discovered trace is normalized and replayed in canonical Lean.
+7. Selected traces become real Temporal experiments with symbolic identities and first-class faults.
+8. Independent evidence either establishes, violates, or leaves the claim unknown.
+9. Stable violations are minimized and emitted as ordinary regression source.
+10. Production evidence can challenge the model and seed new worlds without running proof tools in
+    production.
+11. The release assurance graph shows which contracts are proved, finitely exhausted, externally
+    checked, live-conforming, partial, or unknown.
+
+The outcome is not “Temporal proved correct.” It is more useful and more honest:
+
+> Temporal's important behavioral contracts have explicit semantics; selected mechanisms are proved
+> to refine them; multiple engines aggressively search those semantics; every counterexample can
+> become a real test; every live claim is evidence-qualified; and the trust boundary of every green
+> result is mechanically visible.
+
+## 27. Primary sources
+
+The checker decisions are grounded in primary project documentation and papers:
+
+- [Veil 2 README and status](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/README.md)
+- [Veil DSL and checking modes](https://github.com/verse-lab/veil/blob/300c305e945750ab3fb62de4a79c23161b24da39/docs/DSL-Reference.md)
+- [Veil CAV 2025 paper](https://verse-lab.org/papers/veil-cav25.pdf)
+- [Loom POPL 2026 paper](https://verse-lab.org/papers/loom-popl26.pdf)
+- [Lean-SMT](https://github.com/ufmg-smite/lean-smt)
+- [Ivy language documentation](https://microsoft.github.io/ivy/language.html)
+- [Ivy CAV 2020 paper](https://www.wisdom.weizmann.ac.il/~padon/ivy-cav2020.pdf)
+- [TLA+ tools and TLC](https://lamport.azurewebsites.net/tla/tools.html?unhideBut=hide-tlc&unhideDiv=tlc)
+- [Apalache](https://apalache-mc.org/)
+- [LeanLTL](https://github.com/UCSCFormalMethods/LeanLTL)
+- [Lentil](https://github.com/verse-lab/Lentil)
+
+The local architecture findings are grounded in:
+
+- `tests/umpire3/model/Umpire3/{Transition,Executable,Refinement,Catalog,Composition,Monitor}.lean`;
+- `tests/umpire3/model/Temporal/{Monitors,Composition,Coverage,Parity}.lean`;
+- `tests/umpire3/model/Temporal/{Product,System,Refinement}`;
+- `tests/umpire3/{compiler,explore,evidence,runtime,temporal,campaign,canary}`;
+- `tests/umpire3/protocol/generated`;
+- `tests/umpire3/migration/ledger.json`; and
+- `tests/umpire3/testdata/umpire3-1.2.json`.

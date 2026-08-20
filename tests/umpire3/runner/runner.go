@@ -59,6 +59,21 @@ func Execute(parent context.Context, experiment protocol.Experiment, options Opt
 	if err != nil {
 		return umpire3runtime.Result{}, err
 	}
+	return executePrepared(ctx, experiment, options, factory, sdkWorker)
+}
+
+type workerLifecycle interface {
+	Start() error
+	Stop()
+}
+
+func executePrepared(
+	ctx context.Context,
+	experiment protocol.Experiment,
+	options Options,
+	factory environment.Factory,
+	sdkWorker workerLifecycle,
+) (umpire3runtime.Result, error) {
 	session, err := factory.Prepare(ctx, experiment)
 	if err != nil {
 		return umpire3runtime.Result{}, err

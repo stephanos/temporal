@@ -65,6 +65,23 @@ func TestExportProofManifestRunsLeanAndMatchesExperiment(t *testing.T) {
 	require.NotEmpty(t, manifest.SourceDependencies)
 }
 
+func TestExportFirstOrderViewRunsLeanAndPreservesVariant(t *testing.T) {
+	for _, variant := range []string{"sound", "mutated"} {
+		t.Run(variant, func(t *testing.T) {
+			var output bytes.Buffer
+			require.NoError(t, exportFirstOrderView("../../model", firstOrderSpecs[variant], &output))
+
+			view, err := protocol.DecodeFirstOrderView(bytes.NewReader(output.Bytes()), protocol.DefaultDecodeLimit)
+			require.NoError(t, err)
+			require.Equal(t, protocol.TargetID("nexus-cancellation"), view.Target)
+			require.Equal(t, protocol.PropertyIDNexusCancellationWonExcludesSuccess, view.Property)
+			require.Equal(t, protocol.TrustBadgeKernelWithDeclaredAxioms, view.Relation.TrustBadge)
+			require.NotEmpty(t, view.Relation.Declaration)
+			require.NotEmpty(t, view.Oracle.States)
+		})
+	}
+}
+
 func TestExportGoIdentifiersUsesCatalogVocabulary(t *testing.T) {
 	catalog, err := protocol.DefaultCatalog()
 	require.NoError(t, err)

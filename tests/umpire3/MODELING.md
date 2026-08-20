@@ -2,7 +2,9 @@
 
 Lean owns product states, actions, transition meaning, executable equivalence, safety properties,
 refinement, module contracts, targets, monitors, and the semantic catalog. Go owns transport,
-bounded orchestration, evidence normalization, and generated artifact consumption.
+bounded orchestration, evidence normalization, and generated artifact consumption. A modeled
+Scenario is compiled into Experiments; each Execution returns a Result whose retained form is a
+Replay bundle. Go adapters never redefine the Lean transition relation.
 
 Add a lifecycle through the typed declarations under `model/Umpire3`. State its assumptions and
 finite domains, prove executable equivalence, add positive traces and a negative mutation, compose

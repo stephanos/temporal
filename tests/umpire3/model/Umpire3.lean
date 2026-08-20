@@ -8,6 +8,7 @@ import Umpire3.Explore
 import Umpire3.Execution
 import Umpire3.ExecutableView
 import Umpire3.FiniteView
+import Umpire3.FirstOrderView
 import Umpire3.Certificate
 import Umpire3.Explorer
 import Umpire3.Fault
@@ -15,5 +16,7 @@ import Umpire3.Manifest
 import Umpire3.Monitor
 import Umpire3.Property
 import Umpire3.Refinement
+import Umpire3.TraceReplay
+import Umpire3.TraceReplayRunner
 import Umpire3.Transition
 import Umpire3.Value

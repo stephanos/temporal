@@ -1,13 +1,12 @@
 package fact
 
 import (
-	matchingservice "go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/common/testing/umpire"
 )
 
 // WorkflowTaskAdded represents a workflow task being added to matching.
 type WorkflowTaskAdded struct {
-	Request    *matchingservice.AddWorkflowTaskRequest
+	Request    *v1.AddWorkflowTaskRequest
 	EntityPath *umpire.EntityPath
 }
 
@@ -20,7 +19,7 @@ func (e *WorkflowTaskAdded) TargetEntity() *umpire.EntityPath {
 }
 
 func (e *WorkflowTaskAdded) ImportRequest(request any) bool {
-	req, ok := request.(*matchingservice.AddWorkflowTaskRequest)
+	req, ok := request.(*v1.AddWorkflowTaskRequest)
 	if !ok || req == nil || req.GetTaskQueue().GetName() == "" {
 		return false
 	}

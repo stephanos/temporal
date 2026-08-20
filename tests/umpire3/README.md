@@ -2,7 +2,9 @@
 
 Umpire3 is an independent Lean-first semantic modeling and implementation-conformance system. Lean
 owns product meaning, selected distributed-system behavior, executable exploration, and refinement.
-The Go runtime consumes versioned experiments and never reimplements their state machines.
+The Go execution layer consumes versioned Experiments and never reimplements their state machines.
+The canonical domain flow is Scenario → Experiment → Execution → Result → Replay bundle; see
+`CONTEXT.md` for the precise vocabulary.
 
 Run the complete focused gate from the repository root:
 
@@ -44,7 +46,7 @@ func TestNexusCancellationRetry(t *testing.T) {
 }
 ```
 
-The same scenario can run against another eligible environment by changing only
+The same Scenario can run against another eligible Environment by changing only
 `WithEnvironment`. The compiler infers dependencies and capabilities from the generated catalog,
 grounds identities projected by live actions, emits a deterministic path suite, and observes the
 generated property monitor after realization. Unsupported capabilities fail before environment
@@ -73,14 +75,14 @@ go run -tags test_dep ./tests/umpire3/cmd/umpire3 replay \
   -task-queue <isolated-queue> -build-id <build>
 ```
 
-`replay` strictly decodes the redacted bundle, verifies its experiment digest, reuses its seed and
-bounds, executes through the normal SDK runner, and classifies semantic, realization, schedule,
+`replay` strictly decodes the redacted Replay bundle, verifies its Experiment digest, reuses its seed
+and bounds, executes through the Temporal Environment adapter, and classifies semantic, realization, schedule,
 observation, and evidence drift. `campaign` deterministically mutates typed values, schedules,
 fault occurrence/scope, and bounded topology, then executes the selected candidates through that
-same runner. `make umpire3-mutation-gate` verifies that an approved cross-layer seed is discovered,
+same adapter. `make umpire3-mutation-gate` verifies that an approved cross-layer seed is discovered,
 minimized, bundled, replayed, and emitted as normal `RequireRegression` source.
 
-Set `UMPIRE3_TEMPORAL_API_KEY` outside experiment, result, and replay files when a remote endpoint
+Set `UMPIRE3_TEMPORAL_API_KEY` outside Experiment, Result, and Replay bundle files when a remote endpoint
 requires authentication. The CLI never accepts credentials in serialized semantic input.
 
 ## Authoring a model

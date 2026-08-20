@@ -288,7 +288,7 @@ func (s *FunctionalTestBase) RequireRulePassed(rule interface{ Name() string }, 
 	s.T().Helper()
 	name := rule.Name()
 	passed := s.GetMonitor().PassedKeys(name)
-	require.Contains(s.T(), passed, entityKey, "rule %s did not pass entity %q; passed keys: %v", name, entityKey, passed)
+	s.Require().Contains(passed, entityKey, "rule %s did not pass entity %q; passed keys: %v", name, entityKey, passed)
 }
 
 func (s *FunctionalTestBase) SetupSuite() {

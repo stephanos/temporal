@@ -15,21 +15,71 @@ import (
 func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 	t.Parallel()
 
-	profiles := []Config{
-		Local("build", "namespace", "queue"),
-		CI("build", "namespace", "queue"),
-		Remote("https://temporal.example", "token", "build", "namespace", "queue"),
-		BlackBox("https://temporal.example", "token", "build", "namespace", "queue"),
+	tests := []struct {
+		name     string
+		config   Config
+		expected environment.Profile
+	}{
+		{
+			name: "local", config: Local("build", "namespace", "queue"),
+			expected: environment.Profile{
+				Name: "local-in-process", BuildID: "build",
+				EvidenceProfile:  environment.EvidenceProfileInProcessHooks,
+				DrivingAuthority: "local-test-authority", ObservationAuthority: "local-server-hooks",
+				FaultAuthority: "isolated-local-faults", IsolationIdentity: "namespace/queue",
+				RetentionClass: "semantic-redacted",
+			},
+		},
+		{
+			name: "ci", config: CI("build", "namespace", "queue"),
+			expected: environment.Profile{
+				Name: "ci-test-cluster", BuildID: "build",
+				EvidenceProfile:  environment.EvidenceProfilePublicGRPCHistory,
+				DrivingAuthority: "ci-test-cluster", ObservationAuthority: "ci-public-history",
+				FaultAuthority: "isolated-ci-faults", IsolationIdentity: "namespace/queue",
+				RetentionClass: "semantic-redacted",
+			},
+		},
+		{
+			name: "remote", config: Remote("https://temporal.example", "token", "build", "namespace", "queue"),
+			expected: environment.Profile{
+				Name: "remote-deployment", BuildID: "build",
+				EvidenceProfile:  environment.EvidenceProfilePublicGRPCHistory,
+				DrivingAuthority: "remote-api", ObservationAuthority: "remote-public-history",
+				FaultAuthority: "remote-approved-faults", IsolationIdentity: "namespace/queue",
+				RetentionClass: "semantic-redacted",
+			},
+		},
+		{
+			name: "black box", config: BlackBox("https://temporal.example", "token", "build", "namespace", "queue"),
+			expected: environment.Profile{
+				Name: "grpc-only-black-box", BuildID: "build", EvidenceProfile: environment.EvidenceProfilePublicGRPC,
+				DrivingAuthority: "public-grpc", ObservationAuthority: "public-grpc",
+				FaultAuthority: "none", IsolationIdentity: "namespace/queue", RetentionClass: "semantic-redacted",
+			},
+		},
+		{
+			name:   "canary",
+			config: Canary("https://temporal.example", "token", "build", "namespace", "queue", []string{"worker"}),
+			expected: environment.Profile{
+				Name: "production-canary", BuildID: "build",
+				EvidenceProfile:      environment.EvidenceProfilePublicGRPCHistory,
+				DrivingAuthority:     "approved-production-worker",
+				ObservationAuthority: "production-public-history",
+				FaultAuthority:       "approved-production-fault-controller", IsolationIdentity: "namespace/queue",
+				RetentionClass: "semantic-redacted", HardExecutionBudget: true,
+			},
+		},
 	}
-	for _, config := range profiles {
-		definition, err := Define(config)
-		require.NoError(t, err)
-		require.NoError(t, definition.Environment.Validate())
-		require.NotEmpty(t, definition.Environment.DrivingAuthority)
-		require.NotEmpty(t, definition.Environment.ObservationAuthority)
-		require.NotEmpty(t, definition.Environment.FaultAuthority)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			definition, err := Define(test.config)
+			require.NoError(t, err)
+			test.expected.ConfigurationIdentity = definition.Environment.ConfigurationIdentity
+			require.Equal(t, test.expected, definition.Environment)
+			require.NoError(t, definition.Environment.Validate())
+		})
 	}
-	require.Equal(t, environment.EvidenceProfilePublicGRPC, mustDefine(t, profiles[3]).Environment.EvidenceProfile)
 }
 
 func TestRemoteProfileDiagnosticsNeverContainCredentials(t *testing.T) {

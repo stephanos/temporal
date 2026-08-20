@@ -1,6 +1,6 @@
 # Umpire3 1.2 support policy
 
-`umpire3/v2` experiment and proof manifests are strict: unknown fields, vocabulary, capabilities,
+`umpire3/v2` Experiment and proof manifests are strict: unknown fields, vocabulary, capabilities,
 and claim kinds are rejected. Compatible additions require a new version or an explicitly optional
 field policy. Semantic hashes cover every model source named by an exporter; descriptor hashes cover
 the selected Temporal API schema.
@@ -9,7 +9,7 @@ Umpire3 1.2 supports the checked Nexus cancellation, Workflow Update, Workflow T
 generated assurance inventory, typed author facade, deterministic sparse compilation, guided
 exploration, campaigns, first-class faults, and local, CI, remote, gRPC-only, and canary profile
 contracts. The release remains a candidate until the environment-specific qualifications recorded in
-`testdata/umpire3-1.2.json` are attached by deployment owners. A profile contract is not evidence that
+`testdata/umpire3-1.2.json` are attached by deployment owners. A Deployment profile contract is not evidence that
 a particular deployment was tested.
 
 The candidate may contain explicit pending composition obligations, partial migration fidelity, and
@@ -20,7 +20,7 @@ parity evidence.
 
 The supported operator surface is `cmd/umpire3` with `explain`, `run`, `replay`, `campaign`, and
 `qualify` subcommands. Existing single-purpose commands remain buildable compatibility entry points.
-Replay bundles use `umpire3/replay-bundle/v1`; qualification receipts use
+Replay bundles use `umpire3/replay-bundle/v1`; Qualification receipts use
 `umpire3/qualification-receipt/v1`. Both formats are strict and require a version change for
 incompatible fields.
 

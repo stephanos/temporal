@@ -54,6 +54,24 @@ func TestResponseOptionsReadAsBehaviorAndCompileWithoutProtocolPlumbing(t *testi
 	}, responseModes(suite.Experiments[0].Actions))
 }
 
+func TestGeneratedFacadeCompilationIsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	scenario := NewScenario("deterministic", protocol.TargetIDFoundationDeliverySafety,
+		[]Resource{Workflow("workflow")}, OnePath(
+			ProgressEntity("progress", Synchronously()),
+			RequireEntityProgress(),
+		))
+	limits := compiler.Limits{
+		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
+	}
+	first, err := compiler.Compile(context.Background(), scenario, limits)
+	require.NoError(t, err)
+	second, err := compiler.Compile(context.Background(), scenario, limits)
+	require.NoError(t, err)
+	require.Equal(t, first, second)
+}
+
 func responseModes(actions []protocol.Action) []protocol.ResponseMode {
 	result := make([]protocol.ResponseMode, len(actions))
 	for index, action := range actions {

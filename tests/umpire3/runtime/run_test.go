@@ -65,6 +65,7 @@ type fakeSession struct {
 	cleanup        environment.CleanupResult
 	realized       []string
 	cleaned        bool
+	cleanupCount   int
 	faultRealizer  umpire3fault.Realizer
 }
 
@@ -96,6 +97,7 @@ func (s *fakeSession) Observe(_ context.Context, checkpoint protocol.Checkpoint,
 
 func (s *fakeSession) Cleanup(context.Context) environment.CleanupResult {
 	s.cleaned = true
+	s.cleanupCount++
 	return s.cleanup
 }
 
@@ -253,6 +255,8 @@ func TestRunConformsWithCompleteCausalEvidenceAndCleanup(t *testing.T) {
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
 	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, 1, factory.prepareCount)
+	require.Equal(t, 1, session.cleanupCount)
 	require.True(t, session.cleaned)
 	require.Len(t, result.Actions, len(experiment.Actions))
 	require.Len(t, result.Observations, len(experiment.Checkpoints))

@@ -9,3 +9,7 @@ name = "Umpire3Tests"
 
 [[lean_lib]]
 name = "Temporal"
+
+[[lean_exe]]
+name = "umpire3_trace_replay"
+root = "Umpire3TraceReplay"
