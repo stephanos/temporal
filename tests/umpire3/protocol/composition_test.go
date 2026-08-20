@@ -9,6 +9,8 @@ import (
 func TestDefaultCompositionConnectsNexusAndUpdateToSharedDelivery(t *testing.T) {
 	composition, err := DefaultComposition()
 	require.NoError(t, err)
+	require.Equal(t, ResultClassMetadataValidated, composition.ResultClass)
+	require.Equal(t, TrustBadgeKernel, composition.TrustBadge)
 	require.Len(t, composition.Targets, 15)
 
 	provider, ok := composition.Module("Temporal.System.TaskDelivery")
@@ -22,10 +24,10 @@ func TestDefaultCompositionConnectsNexusAndUpdateToSharedDelivery(t *testing.T) 
 	}
 }
 
-func TestCompositionExposesPendingAssuranceFidelityObligation(t *testing.T) {
+func TestCompositionHasNoMissingMetadata(t *testing.T) {
 	composition, err := DefaultComposition()
 	require.NoError(t, err)
-	require.Empty(t, composition.PendingObligations())
+	require.Empty(t, composition.MissingMetadata())
 }
 
 func TestCompositionOwnsNexusClosureThroughRelationalProductSystemAndRefinement(t *testing.T) {
@@ -40,7 +42,7 @@ func TestCompositionOwnsNexusClosureThroughRelationalProductSystemAndRefinement(
 		require.True(t, ok, identifier)
 		require.NotEmpty(t, module.Obligations, identifier)
 		for _, obligation := range module.Obligations {
-			require.Equal(t, "complete", obligation.Status, identifier)
+			require.Equal(t, MetadataPresent, obligation.Status, identifier)
 		}
 	}
 	var target TargetProjection
@@ -73,7 +75,7 @@ func TestCompositionOwnsNexusEvidenceThroughRelationalModules(t *testing.T) {
 		require.True(t, ok, identifier)
 		require.NotEmpty(t, module.Obligations, identifier)
 		for _, obligation := range module.Obligations {
-			require.Equal(t, "complete", obligation.Status, identifier)
+			require.Equal(t, MetadataPresent, obligation.Status, identifier)
 		}
 	}
 	expectedTargets := map[TargetID][]ModuleID{
@@ -115,7 +117,7 @@ func TestCompositionOwnsCallbackEvidenceThroughRelationalModules(t *testing.T) {
 		require.True(t, ok, identifier)
 		require.NotEmpty(t, module.Obligations, identifier)
 		for _, obligation := range module.Obligations {
-			require.Equal(t, "complete", obligation.Status, identifier)
+			require.Equal(t, MetadataPresent, obligation.Status, identifier)
 		}
 	}
 	expectedTargets := map[TargetID][]ModuleID{
@@ -154,7 +156,7 @@ func TestCompositionOwnsWorkflowLineageThroughRelationalModules(t *testing.T) {
 		require.True(t, ok, identifier)
 		require.NotEmpty(t, module.Obligations, identifier)
 		for _, obligation := range module.Obligations {
-			require.Equal(t, "complete", obligation.Status, identifier)
+			require.Equal(t, MetadataPresent, obligation.Status, identifier)
 		}
 	}
 	for _, target := range composition.Targets {
@@ -182,7 +184,7 @@ func TestCompositionOwnsWorkflowOwnershipThroughRelationalModules(t *testing.T) 
 		require.True(t, ok, identifier)
 		require.NotEmpty(t, module.Obligations, identifier)
 		for _, obligation := range module.Obligations {
-			require.Equal(t, "complete", obligation.Status, identifier)
+			require.Equal(t, MetadataPresent, obligation.Status, identifier)
 		}
 	}
 	for _, target := range composition.Targets {

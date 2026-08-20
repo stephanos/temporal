@@ -37,7 +37,7 @@ func TestCheckedLedgerMatchesMechanicalRootInventory(t *testing.T) {
 			require.NotEmpty(t, executed.ScenarioDigest)
 			require.NotEmpty(t, executed.ExperimentDigests)
 			require.Equal(t, executed.ScenarioDigest, executed.Explain.ScenarioDigest)
-			require.True(t, executed.Explain.Enumeration.Complete)
+			require.Equal(t, compiler.ExplainFormatVersion, executed.Explain.FormatVersion)
 		}
 	}
 }

@@ -27,8 +27,7 @@ theorem executableTraceIsValid :
 
 def proofManifest : SemanticProofManifest where
   identifier := "update-tasks-refinement-v1"
-  theoremName := "Umpire3.Temporal.System.UpdateTasks.updateTasksRefinesProduct"
-  statementHash := "sha256:bb8eac89a0a1d1c5caf0f575377e5775b487533960d305acf729311bd15f857d"
+  proof := resolved_refinement% System.UpdateTasks.updateTasksRefinesProduct
   assumptions := [{
     identifier := System.TaskDelivery.guarantee.identifier
     statementHash := System.TaskDelivery.guarantee.statementHash

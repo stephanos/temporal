@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-const ParityFormatVersion = "umpire3/parity-ledger/v2"
+const ParityFormatVersion = "umpire3/parity-ledger/v3"
 
 type ParityCategory string
 
@@ -58,13 +58,15 @@ type ParityEntry struct {
 	Disposition        ParityDisposition `json:"disposition"`
 	Fidelity           Fidelity          `json:"fidelity"`
 	EvidenceLevel      EvidenceLevel     `json:"evidenceLevel"`
-	ExplorationStatus  string            `json:"explorationStatus"`
+	EvidenceStatus     MetadataStatus    `json:"evidenceStatus"`
 	Owner              string            `json:"owner"`
 	Evidence           ParityEvidence    `json:"evidence"`
 }
 
 type ParityLedger struct {
 	FormatVersion string        `json:"formatVersion"`
+	ResultClass   ResultClass   `json:"resultClass"`
+	TrustBadge    TrustBadge    `json:"trustBadge"`
 	SemanticHash  string        `json:"semanticHash"`
 	CatalogHash   string        `json:"catalogHash"`
 	Entries       []ParityEntry `json:"entries"`
@@ -89,8 +91,9 @@ func DefaultParityLedger() (ParityLedger, error) {
 }
 
 func (l ParityLedger) Validate() error {
-	if l.FormatVersion != ParityFormatVersion || !validHash(l.SemanticHash) || len(l.Entries) == 0 {
-		return errors.New("complete parity ledger provenance and entries are required")
+	if l.FormatVersion != ParityFormatVersion || l.ResultClass != ResultClassMetadataValidated ||
+		l.TrustBadge != TrustBadgeKernel || !validHash(l.SemanticHash) || len(l.Entries) == 0 {
+		return errors.New("metadata-validated parity ledger provenance and entries are required")
 	}
 	catalog, err := DefaultCatalog()
 	if err != nil {
@@ -116,9 +119,8 @@ func (l ParityLedger) Validate() error {
 		if entry.LegacyName == "" || entry.SemanticIdentifier == "" || entry.Owner == "" {
 			return errors.New("every parity entry requires legacy, semantic, and owner identity")
 		}
-		if entry.ExplorationStatus != "complete" && entry.ExplorationStatus != "incomplete" &&
-			entry.ExplorationStatus != "resource-limited" {
-			return fmt.Errorf("parity entry %q has unknown exploration status %q", entry.LegacyName, entry.ExplorationStatus)
+		if entry.EvidenceStatus != MetadataPresent && entry.EvidenceStatus != MetadataMissing {
+			return fmt.Errorf("parity entry %q has unknown evidence metadata status %q", entry.LegacyName, entry.EvidenceStatus)
 		}
 		identity := string(entry.Category) + ":" + entry.LegacyName
 		if _, duplicate := identities[identity]; duplicate {
@@ -155,8 +157,8 @@ func (l ParityLedger) Validate() error {
 			if entry.EvidenceLevel == EvidenceInventory {
 				return fmt.Errorf("parity entry %q claims equivalence with inventory-only evidence", entry.LegacyName)
 			}
-			if entry.ExplorationStatus != "complete" {
-				return fmt.Errorf("parity entry %q claims equivalence with incomplete exploration", entry.LegacyName)
+			if entry.EvidenceStatus != MetadataPresent {
+				return fmt.Errorf("parity entry %q claims equivalence with missing evidence metadata", entry.LegacyName)
 			}
 			if entry.Evidence.Proof == "" || entry.Evidence.Executable == "" ||
 				entry.Evidence.Monitor == "" || entry.Evidence.NegativeControl == "" {
@@ -166,8 +168,8 @@ func (l ParityLedger) Validate() error {
 			if entry.Fidelity != FidelityPartial && entry.Fidelity != FidelityInventoryOnly {
 				return fmt.Errorf("incomplete parity entry %q has fidelity %q", entry.LegacyName, entry.Fidelity)
 			}
-			if entry.ExplorationStatus == "complete" {
-				return fmt.Errorf("incomplete parity entry %q claims complete exploration", entry.LegacyName)
+			if entry.EvidenceStatus == MetadataPresent {
+				return fmt.Errorf("incomplete parity entry %q claims present evidence metadata", entry.LegacyName)
 			}
 		default:
 			return fmt.Errorf("unknown parity disposition %q", entry.Disposition)

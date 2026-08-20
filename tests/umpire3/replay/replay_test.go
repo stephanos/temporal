@@ -17,10 +17,11 @@ func TestRunReproducesBoundResult(t *testing.T) {
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
 	baseline := umpire3runtime.Result{
-		FormatVersion: protocol.FormatVersion, ExperimentDigest: digest,
+		FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
 		Environment: umpire3runtime.EnvironmentProfile{Name: "local-in-process", Capabilities: []string{"update"}},
 		Claim:       umpire3runtime.Claim{Kind: umpire3runtime.ClaimViolating, Property: experiment.Property.Identifier},
 	}
+	baseline.DeriveAssurance()
 	bundle := artifact.Record{
 		FormatVersion: artifact.FormatVersion, Experiment: experiment, Result: baseline,
 		Replay: artifact.ReplayMetadata{Profile: "local-in-process", Capabilities: []string{"update"}, Seed: experiment.Scope.Seed, Bounds: experiment.Scope.Bounds, Command: "umpire3 replay"},
@@ -37,9 +38,10 @@ func TestRunReportsProfileDrift(t *testing.T) {
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
 	baseline := umpire3runtime.Result{
-		ExperimentDigest: digest,
-		Environment:      umpire3runtime.EnvironmentProfile{Name: "remote-deployment", Capabilities: []string{"update"}},
+		FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
+		Environment: umpire3runtime.EnvironmentProfile{Name: "remote-deployment", Capabilities: []string{"update"}},
 	}
+	baseline.DeriveAssurance()
 	bundle := artifact.Record{
 		Experiment: experiment, Result: baseline,
 		Replay: artifact.ReplayMetadata{Profile: "remote-deployment", Capabilities: []string{"update"}},

@@ -21,22 +21,21 @@ func TestExploreIsDeterministicAndExportsOrdinaryExperiments(t *testing.T) {
 	second, err := Run(context.Background(), template, bounds)
 	require.NoError(t, err)
 	require.Equal(t, first, second)
-	require.Equal(t, StatusExhaustive, first.Status)
+	require.Equal(t, StatusAssignmentsEnumerated, first.Status)
 	require.Len(t, first.Candidates, 2)
 	for _, candidate := range first.Candidates {
 		require.NoError(t, candidate.Experiment.Validate())
 	}
 }
 
-func TestExploreReportsResourceLimitedWithoutClaimingExhaustive(t *testing.T) {
+func TestExploreReportsAssignmentLimitWithoutClaimingStateSpaceExhaustion(t *testing.T) {
 	t.Parallel()
 
 	bounds := testBounds()
 	bounds.MaxAssignments = 1
 	report, err := Run(context.Background(), callbackTemplate(), bounds)
 	require.NoError(t, err)
-	require.Equal(t, StatusResourceLimited, report.Status)
-	require.False(t, report.Complete)
+	require.Equal(t, StatusAssignmentLimitReached, report.Status)
 	require.NotEmpty(t, report.Omissions)
 }
 
@@ -87,10 +86,30 @@ func TestExploreCoversGeneratedNexusLifecycleDenominator(t *testing.T) {
 
 	report, err := Run(context.Background(), template, bounds)
 	require.NoError(t, err)
-	require.True(t, report.Complete)
-	require.True(t, report.Coverage.Complete, "%+v", report)
+	require.Equal(t, StatusAssignmentsEnumerated, report.Status)
+	require.Equal(t, CoverageCovered, report.Coverage.Status, "%+v", report)
 	require.Equal(t, 17, report.Coverage.Total)
 	require.Len(t, report.Coverage.Covered, 17)
+	require.Empty(t, report.Coverage.Uncovered)
+}
+
+func TestTransitionCoverageWithoutGeneratedDenominatorIsUndefined(t *testing.T) {
+	t.Parallel()
+
+	template := callbackTemplate()
+	template.Goal = Goal{
+		Kind: GoalTransitionCoverage, Target: protocol.TargetIDProtocolAtomic,
+		Property: protocol.PropertyIDCallbackResponseConsistency,
+	}
+	template.Observe = func(context.Context, Candidate) ([]string, error) { return nil, nil }
+
+	report, err := Run(context.Background(), template, testBounds())
+	require.NoError(t, err)
+	require.Equal(t, StatusAssignmentsEnumerated, report.Status)
+	require.Equal(t, CoverageUndefined, report.Coverage.Status)
+	require.NotEmpty(t, report.Coverage.Reason)
+	require.Zero(t, report.Coverage.Total)
+	require.Empty(t, report.Coverage.Covered)
 	require.Empty(t, report.Coverage.Uncovered)
 }
 

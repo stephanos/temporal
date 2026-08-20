@@ -104,6 +104,9 @@ func DecodeResult(encoded []byte) (umpire3runtime.Result, error) {
 		if !canaryResult.Complete {
 			return umpire3runtime.Result{}, errors.New("canary result is incomplete")
 		}
+		if err := validateDecodedResult(canaryResult.Runtime); err != nil {
+			return umpire3runtime.Result{}, err
+		}
 		return canaryResult.Runtime, nil
 	}
 	var result umpire3runtime.Result
@@ -112,7 +115,20 @@ func DecodeResult(encoded []byte) (umpire3runtime.Result, error) {
 	if err := decoder.Decode(&result); err != nil {
 		return umpire3runtime.Result{}, fmt.Errorf("decode runtime result: %w", err)
 	}
+	if err := validateDecodedResult(result); err != nil {
+		return umpire3runtime.Result{}, err
+	}
 	return result, nil
+}
+
+func validateDecodedResult(result umpire3runtime.Result) error {
+	if result.FormatVersion != umpire3runtime.ResultFormatVersion {
+		return fmt.Errorf("unsupported runtime result format %q", result.FormatVersion)
+	}
+	if err := result.ValidateAssurance(); err != nil {
+		return fmt.Errorf("validate result assurance: %w", err)
+	}
+	return nil
 }
 
 func validateResult(profile string, experiment protocol.Experiment, result umpire3runtime.Result) error {
@@ -120,8 +136,11 @@ func validateResult(profile string, experiment protocol.Experiment, result umpir
 	if err != nil {
 		return err
 	}
-	if result.FormatVersion != protocol.FormatVersion || result.ExperimentDigest != digest {
+	if result.FormatVersion != umpire3runtime.ResultFormatVersion || result.ExperimentDigest != digest {
 		return errors.New("result is not bound to the executed experiment")
+	}
+	if err := result.ValidateAssurance(); err != nil {
+		return fmt.Errorf("validate result assurance: %w", err)
 	}
 	if result.Environment.Name != profile || result.Environment.BuildID == "" ||
 		result.Environment.ConfigurationIdentity == "" {

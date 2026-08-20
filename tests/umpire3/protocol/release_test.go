@@ -152,16 +152,16 @@ func TestQualifiedReleaseRejectsPartialVisionEvidenceAndExternalGates(t *testing
 	require.ErrorContains(t, release.Validate(), "external qualification gates")
 }
 
-func TestQualifiedReleaseRejectsIncompleteParity(t *testing.T) {
+func TestQualifiedReleaseRejectsMetadataOnlyParity(t *testing.T) {
 	parity, err := DefaultParityLedger()
 	require.NoError(t, err)
-	require.ErrorContains(t, validateQualifiedParity(parity), "parity entry")
+	require.ErrorContains(t, validateQualifiedParity(parity), "metadata-only")
 }
 
-func TestQualifiedReleaseAcceptsCompleteCompositionObligations(t *testing.T) {
+func TestQualifiedReleaseRejectsMetadataOnlyComposition(t *testing.T) {
 	composition, err := DefaultComposition()
 	require.NoError(t, err)
-	require.NoError(t, validateQualifiedComposition(composition))
+	require.ErrorContains(t, validateQualifiedComposition(composition), "metadata-only")
 }
 
 func TestReleaseEvidenceAnchorsResolve(t *testing.T) {

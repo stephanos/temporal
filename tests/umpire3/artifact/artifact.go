@@ -44,6 +44,12 @@ func Encode(experiment protocol.Experiment, result umpire3runtime.Result, maxByt
 	if maxBytes <= 0 || maxBytes > experiment.Retention.MaxArtifactBytes {
 		maxBytes = experiment.Retention.MaxArtifactBytes
 	}
+	if result.FormatVersion != umpire3runtime.ResultFormatVersion {
+		return nil, fmt.Errorf("unsupported artifact runtime result format %q", result.FormatVersion)
+	}
+	if err := result.ValidateAssurance(); err != nil {
+		return nil, fmt.Errorf("validate artifact result assurance: %w", err)
+	}
 	redacted := redactResult(result)
 	digest, err := experiment.Digest()
 	if err != nil {
@@ -97,6 +103,12 @@ func Decode(encoded []byte, maxBytes int64) (Record, error) {
 	}
 	if record.Result.ExperimentDigest != digest {
 		return Record{}, errors.New("replay result is not bound to the experiment")
+	}
+	if record.Result.FormatVersion != umpire3runtime.ResultFormatVersion {
+		return Record{}, fmt.Errorf("unsupported replay runtime result format %q", record.Result.FormatVersion)
+	}
+	if err := record.Result.ValidateAssurance(); err != nil {
+		return Record{}, fmt.Errorf("validate replay result assurance: %w", err)
 	}
 	if record.Result.Footprint != nil {
 		if err := record.Result.Footprint.Validate(); err != nil {

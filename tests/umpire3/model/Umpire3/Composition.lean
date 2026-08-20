@@ -64,7 +64,7 @@ private def requirementSatisfied (modules : List ModuleContract)
         guarantee.identifier = requirement.guarantee &&
           guarantee.statementHash = requirement.statementHash)
 
-private def targetWellFormed (modules : List ModuleContract) (target : TargetProjection) : Bool :=
+private def targetMetadataValid (modules : List ModuleContract) (target : TargetProjection) : Bool :=
   target.identifier != "" && uniqueNonempty target.modules &&
     uniqueNonempty target.properties && uniqueNonempty target.retainedActions &&
     target.modules.all (fun identifier => (findModule? modules identifier).isSome) &&
@@ -75,7 +75,7 @@ private def targetWellFormed (modules : List ModuleContract) (target : TargetPro
     target.omissions.all (fun omission =>
       omission.identifier != "" && omission.reason != "" && omission.maxCount > 0)
 
-def Composition.wellFormed (composition : Composition) : Bool :=
+def Composition.metadataValid (composition : Composition) : Bool :=
   !composition.modules.isEmpty && !composition.targets.isEmpty &&
     uniqueNonempty (composition.modules.map (·.identifier)) &&
     uniqueNonempty (composition.modules.flatMap (·.owns)) &&
@@ -86,13 +86,13 @@ def Composition.wellFormed (composition : Composition) : Bool :=
       module.requires.all (requirementSatisfied composition.modules module)) &&
     composition.modules.all (fun module => module.obligations.all (fun obligation =>
       obligation.identifier != "" && obligation.kind != "" &&
-        (obligation.status = "complete" || obligation.status = "pending") &&
+        (obligation.status = "metadata-present" || obligation.status = "metadata-missing") &&
         obligation.detail != "")) &&
     uniqueNonempty (composition.targets.map (·.identifier)) &&
-    composition.targets.all (targetWellFormed composition.modules)
+    composition.targets.all (targetMetadataValid composition.modules)
 
-def Composition.WellFormed (composition : Composition) : Prop :=
-  composition.wellFormed = true
+def Composition.MetadataValid (composition : Composition) : Prop :=
+  composition.metadataValid = true
 
 private def stringsJson (values : List String) : Lean.Json :=
   Lean.Json.arr (values.map Lean.toJson).toArray
@@ -141,7 +141,9 @@ private def TargetProjection.toJson (target : TargetProjection) : Lean.Json := L
 
 def compositionJson (semanticHash catalogHash : String) (composition : Composition) : String :=
   (Lean.Json.mkObj [
-    ("formatVersion", "umpire3/composition/v1"),
+    ("formatVersion", "umpire3/composition/v2"),
+    ("resultClass", "metadata-validated"),
+    ("trustBadge", "kernel"),
     ("semanticHash", semanticHash),
     ("catalogHash", catalogHash),
     ("modules", Lean.Json.arr (composition.modules.map ModuleContract.toJson).toArray),

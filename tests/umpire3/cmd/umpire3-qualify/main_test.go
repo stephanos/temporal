@@ -77,7 +77,9 @@ func qualificationFixture(t *testing.T, withEvidence bool) options {
 		graph.Claims = []evidence.Claim{{Property: experiment.Property.Identifier, Verdict: "conforming"}}
 	}
 	result := umpire3runtime.Result{
-		FormatVersion: protocol.FormatVersion, ExperimentDigest: digest,
+		FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
+		ResultClass: protocol.ResultClassImplementationConforming,
+		TrustBadge:  protocol.TrustBadgeTestedInstance,
 		Environment: umpire3runtime.EnvironmentProfile{
 			Name: "remote-deployment", BuildID: "build", ConfigurationIdentity: "configuration",
 			EvidenceProfile: "public-grpc-history",

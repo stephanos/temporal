@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -37,7 +38,10 @@ func TestCompileAllPathsCompletesDependenciesDeterministically(t *testing.T) {
 	secondJSON, err := second.CanonicalJSON()
 	require.NoError(t, err)
 	require.JSONEq(t, string(firstJSON), string(secondJSON))
-	require.True(t, first.Explain.Enumeration.Complete)
+	require.Equal(t, ExplainFormatVersion, first.Explain.FormatVersion)
+	encoded, err := json.Marshal(first.Explain)
+	require.NoError(t, err)
+	require.NotContains(t, string(encoded), `"complete"`)
 	require.Len(t, first.Experiments, 1)
 	require.Equal(t, []string{
 		"generated-schedule-operation", "generated-dispatch-task", "cancel", "commit", "ownership",

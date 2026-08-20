@@ -166,7 +166,9 @@ func TestCanaryWorker(t *testing.T) {
 			facts = nil
 		}
 		response.Result = umpire3runtime.Result{
-			FormatVersion: protocol.FormatVersion, ExperimentDigest: digest,
+			FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
+			ResultClass: protocol.ResultClassImplementationConforming,
+			TrustBadge:  protocol.TrustBadgeTestedInstance,
 			Environment: umpire3runtime.EnvironmentProfile{
 				BuildID:               request.Profile.Environment.BuildID,
 				ConfigurationIdentity: request.Profile.Environment.ConfigurationIdentity,

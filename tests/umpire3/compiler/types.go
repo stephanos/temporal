@@ -9,7 +9,7 @@ import (
 
 const (
 	SuiteFormatVersion   = "umpire3/compiler-suite/v1"
-	ExplainFormatVersion = "umpire3/compiler-explain/v1"
+	ExplainFormatVersion = "umpire3/compiler-explain/v2"
 )
 
 type ErrorCategory string
@@ -264,7 +264,6 @@ func RepeatAt(source Source, count int, body Node) Node {
 
 type Enumeration struct {
 	Mode        string `json:"mode"`
-	Complete    bool   `json:"complete"`
 	States      int    `json:"states"`
 	Paths       int    `json:"paths"`
 	MaxPaths    int    `json:"maxPaths"`

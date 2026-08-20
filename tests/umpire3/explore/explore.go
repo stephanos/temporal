@@ -34,8 +34,17 @@ const (
 type Status string
 
 const (
-	StatusExhaustive      Status = "exhaustive"
-	StatusResourceLimited Status = "resource-limited"
+	StatusAssignmentsEnumerated  Status = "assignments-enumerated"
+	StatusAssignmentLimitReached Status = "assignment-limit-reached"
+)
+
+type CoverageStatus string
+
+const (
+	CoverageNotRequested CoverageStatus = "coverage-not-requested"
+	CoverageUndefined    CoverageStatus = "coverage-undefined"
+	CoverageUncovered    CoverageStatus = "coverage-uncovered"
+	CoverageCovered      CoverageStatus = "coverage-covered"
 )
 
 type Value struct {
@@ -102,7 +111,6 @@ type Pruned struct {
 type Report struct {
 	Template   string      `json:"template"`
 	Status     Status      `json:"status"`
-	Complete   bool        `json:"complete"`
 	Explored   int         `json:"explored"`
 	Pruned     Pruned      `json:"pruned"`
 	Omissions  []string    `json:"omissions"`
@@ -113,10 +121,11 @@ type Report struct {
 type Coverage struct {
 	Target    protocol.TargetID   `json:"target,omitempty"`
 	Property  protocol.PropertyID `json:"property,omitempty"`
+	Status    CoverageStatus      `json:"status"`
+	Reason    string              `json:"reason,omitempty"`
 	Total     int                 `json:"total"`
 	Covered   []string            `json:"covered"`
 	Uncovered []string            `json:"uncovered"`
-	Complete  bool                `json:"complete"`
 }
 
 func NexusLifecycleValues() ([]Value, error) {
@@ -128,6 +137,9 @@ func NexusLifecycleValues() ([]Value, error) {
 		if target.Identifier != protocol.TargetIDFeatureNexus ||
 			target.Property != protocol.PropertyIDNexusOperationClosure {
 			continue
+		}
+		if target.Status != protocol.CoverageDenominatorDefined {
+			return nil, errors.New("generated Nexus lifecycle coverage denominator is undefined")
 		}
 		values := make([]Value, len(target.Edges))
 		for index, edge := range target.Edges {
@@ -143,15 +155,23 @@ func Run(ctx context.Context, template Template, bounds Bounds) (Report, error) 
 	if err := validateTemplate(template, bounds); err != nil {
 		return Report{}, err
 	}
-	report := Report{Template: template.Identifier, Status: StatusExhaustive, Complete: true}
+	report := Report{Template: template.Identifier, Status: StatusAssignmentsEnumerated}
 	denominator, err := coverageDenominator(template.Goal)
 	if err != nil {
 		return Report{}, err
 	}
-	report.Coverage = Coverage{
-		Target: template.Goal.Target, Property: template.Goal.Property, Total: len(denominator),
+	coverageStatus := CoverageNotRequested
+	if denominator.requested {
+		coverageStatus = CoverageUndefined
+		if denominator.defined {
+			coverageStatus = CoverageUncovered
+		}
 	}
-	covered := make(map[string]struct{}, len(denominator))
+	report.Coverage = Coverage{
+		Target: template.Goal.Target, Property: template.Goal.Property, Status: coverageStatus,
+		Reason: denominator.reason, Total: len(denominator.identifiers),
+	}
+	covered := make(map[string]struct{}, len(denominator.identifiers))
 	holes := append([]Hole(nil), template.Holes...)
 	slices.SortFunc(holes, func(left, right Hole) int { return compare(left.Identifier, right.Identifier) })
 	seenDigests := make(map[string]struct{})
@@ -246,46 +266,57 @@ func Run(ctx context.Context, template Template, bounds Bounds) (Report, error) 
 		return Report{}, fmt.Errorf("explore template: %w", err)
 	}
 	if limited {
-		report.Status = StatusResourceLimited
-		report.Complete = false
+		report.Status = StatusAssignmentLimitReached
 		report.Omissions = append(report.Omissions,
 			fmt.Sprintf("assignment limit %d exhausted before enumeration completed", bounds.MaxAssignments))
 	}
 	slices.SortFunc(report.Candidates, func(left, right Candidate) int { return compare(left.Digest, right.Digest) })
-	for _, identifier := range denominator {
+	for _, identifier := range denominator.identifiers {
 		if _, exists := covered[identifier]; exists {
 			report.Coverage.Covered = append(report.Coverage.Covered, identifier)
 		} else {
 			report.Coverage.Uncovered = append(report.Coverage.Uncovered, identifier)
 		}
 	}
-	report.Coverage.Complete = len(denominator) != 0 && len(report.Coverage.Uncovered) == 0
+	if denominator.defined && len(report.Coverage.Uncovered) == 0 {
+		report.Coverage.Status = CoverageCovered
+	}
 	return report, nil
 }
 
-func coverageDenominator(goal Goal) ([]string, error) {
+type coverageSelection struct {
+	requested   bool
+	defined     bool
+	reason      string
+	identifiers []string
+}
+
+func coverageDenominator(goal Goal) (coverageSelection, error) {
 	if goal.Kind != GoalTransitionCoverage {
-		return nil, nil
+		return coverageSelection{}, nil
 	}
 	if goal.Target == "" || goal.Property == "" {
-		return nil, errors.New("transition coverage requires a model target and property")
+		return coverageSelection{}, errors.New("transition coverage requires a model target and property")
 	}
 	denominator, err := protocol.DefaultCoverageDenominator()
 	if err != nil {
-		return nil, fmt.Errorf("load model coverage denominator: %w", err)
+		return coverageSelection{}, fmt.Errorf("load model coverage denominator: %w", err)
 	}
 	for _, target := range denominator.Targets {
 		if target.Identifier != goal.Target || target.Property != goal.Property {
 			continue
+		}
+		if target.Status == protocol.CoverageDenominatorUndefined {
+			return coverageSelection{requested: true, reason: target.Reason}, nil
 		}
 		identifiers := make([]string, len(target.Edges))
 		for index, edge := range target.Edges {
 			identifiers[index] = edge.Identifier
 		}
 		slices.Sort(identifiers)
-		return identifiers, nil
+		return coverageSelection{requested: true, defined: true, identifiers: identifiers}, nil
 	}
-	return nil, fmt.Errorf("model coverage denominator has no target %q property %q", goal.Target, goal.Property)
+	return coverageSelection{}, fmt.Errorf("model coverage denominator has no target %q property %q", goal.Target, goal.Property)
 }
 
 func assignmentCoverage(assignment Assignment) []string {
@@ -316,8 +347,8 @@ func validateTemplate(template Template, bounds Bounds) error {
 	if template.Goal.Kind == GoalTransitionCoverage && template.Observe == nil {
 		return errors.New("transition coverage requires positive runtime observation")
 	}
-	knownCoverage := make(map[string]struct{}, len(denominator))
-	for _, identifier := range denominator {
+	knownCoverage := make(map[string]struct{}, len(denominator.identifiers))
+	for _, identifier := range denominator.identifiers {
 		knownCoverage[identifier] = struct{}{}
 	}
 	holes := make(map[string]map[string]struct{}, len(template.Holes))

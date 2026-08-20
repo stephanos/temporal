@@ -9,7 +9,7 @@ import (
 	"slices"
 )
 
-const CompositionFormatVersion = "umpire3/composition/v1"
+const CompositionFormatVersion = "umpire3/composition/v2"
 
 type ContractGuarantee struct {
 	Identifier    string `json:"identifier"`
@@ -23,10 +23,10 @@ type ContractRequirement struct {
 }
 
 type ModelObligation struct {
-	Identifier string `json:"identifier"`
-	Kind       string `json:"kind"`
-	Status     string `json:"status"`
-	Detail     string `json:"detail"`
+	Identifier string         `json:"identifier"`
+	Kind       string         `json:"kind"`
+	Status     MetadataStatus `json:"status"`
+	Detail     string         `json:"detail"`
 }
 
 type ModuleContract struct {
@@ -55,6 +55,8 @@ type TargetProjection struct {
 
 type Composition struct {
 	FormatVersion string             `json:"formatVersion"`
+	ResultClass   ResultClass        `json:"resultClass"`
+	TrustBadge    TrustBadge         `json:"trustBadge"`
 	SemanticHash  string             `json:"semanticHash"`
 	CatalogHash   string             `json:"catalogHash"`
 	Modules       []ModuleContract   `json:"modules"`
@@ -80,8 +82,9 @@ func DefaultComposition() (Composition, error) {
 }
 
 func (c Composition) Validate() error {
-	if c.FormatVersion != CompositionFormatVersion || !validHash(c.SemanticHash) || len(c.Modules) == 0 || len(c.Targets) == 0 {
-		return errors.New("complete composition provenance, modules, and targets are required")
+	if c.FormatVersion != CompositionFormatVersion || c.ResultClass != ResultClassMetadataValidated ||
+		c.TrustBadge != TrustBadgeKernel || !validHash(c.SemanticHash) || len(c.Modules) == 0 || len(c.Targets) == 0 {
+		return errors.New("metadata-validated composition provenance, modules, and targets are required")
 	}
 	catalog, err := DefaultCatalog()
 	if err != nil {
@@ -141,8 +144,8 @@ func (c Composition) Validate() error {
 		}
 		for _, obligation := range module.Obligations {
 			if obligation.Identifier == "" || obligation.Kind == "" || obligation.Detail == "" ||
-				(obligation.Status != "complete" && obligation.Status != "pending") {
-				return fmt.Errorf("module %q has incomplete obligation", module.Identifier)
+				(obligation.Status != MetadataPresent && obligation.Status != MetadataMissing) {
+				return fmt.Errorf("module %q has invalid obligation metadata", module.Identifier)
 			}
 		}
 	}
@@ -218,19 +221,19 @@ func (c Composition) Module(identifier ModuleID) (ModuleContract, bool) {
 	return ModuleContract{}, false
 }
 
-func (c Composition) PendingObligations() []ModelObligation {
-	var pending []ModelObligation
+func (c Composition) MissingMetadata() []ModelObligation {
+	var missing []ModelObligation
 	for _, module := range c.Modules {
 		for _, obligation := range module.Obligations {
-			if obligation.Status == "pending" {
-				pending = append(pending, obligation)
+			if obligation.Status == MetadataMissing {
+				missing = append(missing, obligation)
 			}
 		}
 	}
-	slices.SortFunc(pending, func(left, right ModelObligation) int {
+	slices.SortFunc(missing, func(left, right ModelObligation) int {
 		return stringCompare(left.Identifier, right.Identifier)
 	})
-	return pending
+	return missing
 }
 
 func (c Composition) CanonicalJSON() ([]byte, error) {

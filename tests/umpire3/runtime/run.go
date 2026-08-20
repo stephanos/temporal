@@ -29,6 +29,7 @@ const (
 	OutcomeDegraded      = protocol.OutcomeDegraded
 	OutcomeFlagged       = protocol.OutcomeFlagged
 	OutcomeUnreached     = protocol.OutcomeUnreached
+	ResultFormatVersion  = "umpire3/runtime-result/v2"
 )
 
 type Limits struct {
@@ -89,6 +90,8 @@ type FaultResult struct {
 type Result struct {
 	FormatVersion    string                    `json:"formatVersion"`
 	ExperimentDigest string                    `json:"experimentDigest"`
+	ResultClass      protocol.ResultClass      `json:"resultClass"`
+	TrustBadge       protocol.TrustBadge       `json:"trustBadge"`
 	Environment      EnvironmentProfile        `json:"environment"`
 	Actions          []ActionResult            `json:"actions"`
 	Bindings         environment.Bindings      `json:"bindings"`
@@ -145,7 +148,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 
 	capabilities := uniqueSorted(request.Environment.Capabilities())
 	result = Result{
-		FormatVersion:    protocol.FormatVersion,
+		FormatVersion:    ResultFormatVersion,
 		ExperimentDigest: digest,
 		Environment:      EnvironmentProfile{Capabilities: capabilities},
 		Bindings:         make(environment.Bindings),
@@ -154,6 +157,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 			Property: request.Experiment.Property.Identifier,
 		},
 	}
+	defer finalizeAssurance(&result)
 	defer finalizeOutcome(&result)
 	defer func() { finalizeEvidenceGraph(&result, limits.MaxEvidenceBytes) }()
 	if missing := missingCapabilities(request.Experiment, capabilities); len(missing) != 0 {
@@ -416,6 +420,34 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}
 	}
 	return result, nil
+}
+
+func finalizeAssurance(result *Result) {
+	result.DeriveAssurance()
+}
+
+func (r *Result) DeriveAssurance() {
+	r.TrustBadge = protocol.TrustBadgeTestedInstance
+	switch r.Claim.Kind {
+	case ClaimConforming:
+		r.ResultClass = protocol.ResultClassImplementationConforming
+	case ClaimViolating:
+		r.ResultClass = protocol.ResultClassTraceWitness
+	case ClaimUnsupported, ClaimInconclusive, ClaimEvidenceFailure:
+		r.ResultClass = protocol.ResultClassUnknown
+	default:
+		r.ResultClass = protocol.ResultClassUnknown
+	}
+}
+
+func (r Result) ValidateAssurance() error {
+	expected := Result{Claim: r.Claim}
+	finalizeAssurance(&expected)
+	if r.ResultClass != expected.ResultClass || r.TrustBadge != expected.TrustBadge {
+		return fmt.Errorf("runtime assurance %q/%q does not match final claim %q",
+			r.ResultClass, r.TrustBadge, r.Claim.Kind)
+	}
+	return nil
 }
 
 func finalizeFootprint(result *Result, factory environment.Factory, session environment.Session) {

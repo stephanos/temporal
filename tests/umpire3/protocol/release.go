@@ -209,15 +209,21 @@ func (m ReleaseManifest) ValidateAgainstCurrent() error {
 }
 
 func validateQualifiedComposition(composition Composition) error {
-	if len(composition.PendingObligations()) != 0 {
-		return errors.New("qualified release composition has pending obligations")
+	if composition.ResultClass == ResultClassMetadataValidated {
+		return errors.New("qualified release composition evidence is metadata-only")
+	}
+	if len(composition.MissingMetadata()) != 0 {
+		return errors.New("qualified release composition has missing metadata")
 	}
 	return nil
 }
 
 func validateQualifiedParity(parity ParityLedger) error {
+	if parity.ResultClass == ResultClassMetadataValidated {
+		return errors.New("qualified release parity evidence is metadata-only")
+	}
 	for _, entry := range parity.Entries {
-		if entry.ExplorationStatus != "complete" || entry.Disposition == ParityNotYetImplemented ||
+		if entry.EvidenceStatus != MetadataPresent || entry.Disposition == ParityNotYetImplemented ||
 			entry.Fidelity == FidelityPartial || entry.Fidelity == FidelityInventoryOnly ||
 			entry.EvidenceLevel != EvidenceProfileQualified {
 			return fmt.Errorf("qualified release parity entry %q is incomplete", entry.LegacyName)
