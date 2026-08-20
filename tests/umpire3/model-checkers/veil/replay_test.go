@@ -36,6 +36,12 @@ func TestReplayRunsBoundCanonicalChecker(t *testing.T) {
 	require.Equal(t, protocol.TraceReplayReceipt{
 		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
 		TraceDigest:   digest,
+		Target:        input.Target,
+		Property:      input.Property,
+		World:         input.World,
+		Variant:       input.Variant,
+		SemanticHash:  input.SemanticHash,
+		Actions:       input.Actions,
 		Status:        protocol.TraceReplayAccepted,
 		TrustBadge:    protocol.TrustBadgeCheckedCertificate,
 		Axioms:        []string{},
@@ -47,19 +53,25 @@ func TestCanonicalReplayHelper(t *testing.T) {
 		return
 	}
 	separator := slices.Index(os.Args, "--")
-	if separator < 0 || len(os.Args[separator+1:]) != 9 {
+	if separator < 0 || len(os.Args[separator+1:]) != 10 {
 		os.Exit(3)
 	}
 	arguments := os.Args[separator+1:]
 	if arguments[1] != "nexus-cancellation" ||
 		arguments[2] != "nexus.cancellation.won-excludes-success" ||
 		arguments[3] != "smoke" || arguments[4] != "stale-completion-guard-removed" ||
-		!slices.Equal(arguments[5:], []string{
+		arguments[5] != "sha256:0000000000000000000000000000000000000000000000000000000000000000" ||
+		!slices.Equal(arguments[6:], []string{
 			"dispatch-task", "acquire-ownership", "worker-returns-success", "persist-success",
 		}) {
 		os.Exit(4)
 	}
-	fmt.Printf(`{"axioms":[],"formatVersion":"umpire3/trace-replay-receipt/v1",`+
-		`"status":"accepted","traceDigest":%q,"trustBadge":"checked-certificate"}`, arguments[0])
+	fmt.Printf(`{"actions":["dispatch-task","acquire-ownership","worker-returns-success","persist-success"],`+
+		`"axioms":[],"formatVersion":"umpire3/trace-replay-receipt/v1",`+
+		`"property":"nexus.cancellation.won-excludes-success",`+
+		`"semanticHash":"sha256:0000000000000000000000000000000000000000000000000000000000000000",`+
+		`"status":"accepted","target":"nexus-cancellation","traceDigest":%q,`+
+		`"trustBadge":"checked-certificate","variant":"stale-completion-guard-removed","world":"smoke"}`,
+		arguments[0])
 	os.Exit(0)
 }

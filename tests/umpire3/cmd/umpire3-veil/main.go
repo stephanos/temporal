@@ -88,24 +88,6 @@ func run(arguments []string) error {
 			return err
 		}
 		return writeBackendResult(*output, result)
-	case "normalize-job":
-		if *rawResult == "" {
-			return errors.New("raw-result is required for normalization")
-		}
-		raw, err := readBoundedFile(*rawResult, protocol.DefaultDecodeLimit)
-		if err != nil {
-			return fmt.Errorf("read raw Veil result: %w", err)
-		}
-		generated, err := veil.GenerateWithTrust(view, veil.Interactive, veil.SMTTrustMode(*trust))
-		if err != nil {
-			return err
-		}
-		result, err := veil.NormalizeJobReceipt(view, generated, bytes.NewReader(raw),
-			protocol.DefaultDecodeLimit)
-		if err != nil {
-			return err
-		}
-		return writeBackendResult(*output, result)
 	case "check-job":
 		if *jobCommand == "" {
 			return errors.New("job-command is required for a checked Veil job")
