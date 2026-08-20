@@ -8,6 +8,7 @@ def mutatedRequest : TraceReplay.Request where
   property := "nexus.cancellation.won-excludes-success"
   world := "smoke"
   variant := "stale-completion-guard-removed"
+  semanticHash := "sha256:0000000000000000000000000000000000000000000000000000000000000000"
   actions := [
     "dispatch-task",
     "acquire-ownership",
@@ -21,6 +22,10 @@ example : TraceReplay.checkRequest { mutatedRequest with variant := "sound" } = 
   native_decide
 
 example : TraceReplay.checkRequest { mutatedRequest with actions := ["unknown-action"] } = false := by
+  native_decide
+
+example : TraceReplay.checkRequest { mutatedRequest with
+    traceDigest := "sha256:zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" } = false := by
   native_decide
 
 example : TraceReplay.checkedRequestAxioms = ["Classical.choice", "Quot.sound", "propext"] := by

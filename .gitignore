@@ -49,6 +49,7 @@ testdata/
 # Lake build output for the offline Lean model
 /model/.lake/
 /tests/umpire3/model/.lake/
+/tests/umpire3/model-checkers/veil/lean/.lake/
 
 # direnv
 .envrc

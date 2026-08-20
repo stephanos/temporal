@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"go.temporal.io/server/tests/umpire3/process"
@@ -34,6 +35,7 @@ func Replay(
 		string(input.Property),
 		input.World,
 		input.Variant,
+		input.SemanticHash,
 	}
 	for _, action := range input.Actions {
 		arguments = append(arguments, string(action))
@@ -53,6 +55,11 @@ func Replay(
 	}
 	if receipt.TraceDigest != digest {
 		return protocol.TraceReplayReceipt{}, errors.New("canonical Lean replay receipt has an unexpected trace digest")
+	}
+	if receipt.Target != input.Target || receipt.Property != input.Property ||
+		receipt.World != input.World || receipt.Variant != input.Variant ||
+		receipt.SemanticHash != input.SemanticHash || !slices.Equal(receipt.Actions, input.Actions) {
+		return protocol.TraceReplayReceipt{}, errors.New("canonical Lean replay receipt does not match the checked trace")
 	}
 	return receipt, nil
 }

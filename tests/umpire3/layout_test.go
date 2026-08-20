@@ -157,6 +157,19 @@ func TestManifestCommand(t *testing.T) {
 }`, string(output))
 }
 
+func TestGeneratedDriftRecipesFailOnEarlyCommandError(t *testing.T) {
+	makefile, err := os.ReadFile("../../Makefile")
+	require.NoError(t, err)
+	for _, line := range strings.Split(string(makefile), "\n") {
+		if strings.Contains(line, "temporary=$$(mktemp)") || strings.Contains(line, "temporary=$$(mktemp -d)") {
+			require.Contains(t, line, "@set -eu;", line)
+		}
+	}
+
+	command := exec.Command("/bin/sh", "-c", "set -eu; false; true")
+	require.Error(t, command.Run())
+}
+
 func findForbiddenImports(root string) ([]string, error) {
 	forbidden := []string{
 		"go.temporal.io/server/common/testing/umpire",

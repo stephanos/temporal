@@ -71,6 +71,44 @@ func TestBackendResultRejectsUnearnedConcreteCompleteness(t *testing.T) {
 	}
 }
 
+func TestBackendResultRejectsReconstructedSymbolicTrust(t *testing.T) {
+	result := BackendResult{
+		FormatVersion: BackendResultFormatVersion, Backend: BackendVeil,
+		BackendRevision: VeilBackendRevision, ViewFormatVersion: FirstOrderViewFormatVersion,
+		Target: TargetIDNexusCancellation, Property: PropertyIDNexusCancellationWonExcludesSuccess,
+		World: "smoke", Variant: "sound",
+		SemanticHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Job:          BackendJobSymbolicTrace, ResultClass: ResultClassBoundedSafe,
+		TrustBadge: TrustBadgeReconstructedSolverProof, Exact: true,
+		Termination: BackendTerminationBoundedSafe, Bounds: BackendBounds{Depth: 6},
+		Options: []string{}, Axioms: []string{}, Omissions: []string{},
+	}
+	require.ErrorContains(t, result.Validate(), "trusted-solver disclosure")
+
+	result.TrustBadge = TrustBadgeTrustedSolver
+	require.NoError(t, result.Validate())
+}
+
+func TestBackendResultRequiresInvariantAdmissionDisclosure(t *testing.T) {
+	result := BackendResult{
+		FormatVersion: BackendResultFormatVersion, Backend: BackendVeil,
+		BackendRevision: VeilBackendRevision, ViewFormatVersion: FirstOrderViewFormatVersion,
+		Target: TargetIDNexusCancellation, Property: PropertyIDNexusCancellationWonExcludesSuccess,
+		World: "smoke", Variant: "sound",
+		SemanticHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Job:          BackendJobInvariant, ResultClass: ResultClassInvariantProved,
+		TrustBadge: TrustBadgeReconstructedSolverProof, Exact: true,
+		Termination: BackendTerminationGoalsClosed,
+		Options:     []string{}, Axioms: []string{"sorryAx"}, Omissions: []string{},
+	}
+	require.ErrorContains(t, result.Validate(), "cannot depend on sorryAx")
+
+	result.TrustBadge = TrustBadgeTrustedSolver
+	require.NoError(t, result.Validate())
+	result.Axioms = []string{}
+	require.ErrorContains(t, result.Validate(), "must disclose sorryAx")
+}
+
 func TestBackendResultRequiresCheckedCanonicalReplayForTraceWitness(t *testing.T) {
 	result := BackendResult{
 		FormatVersion: BackendResultFormatVersion, Backend: BackendVeil,
@@ -102,9 +140,11 @@ func TestBackendResultRequiresCheckedCanonicalReplayForTraceWitness(t *testing.T
 				{Action: ActionKindWorkerReturnsSuccess, BackendAction: "WorkerReturnsSuccess"},
 				{Action: ActionKindPersistSuccess, BackendAction: "PersistSuccess"},
 			},
-			Replay: TraceReplayResult{Status: TraceReplayAccepted,
-				TrustBadge: TrustBadgeCheckedCertificate,
-				Axioms:     []string{"Classical.choice", "Quot.sound", "propext"}},
+			Replay: TraceReplayResult{
+				TraceDigest: "sha256:acab4c8de082939fc9b38f80063a6c19687893f46c5c16245d060b3804e53c76",
+				Status:      TraceReplayAccepted,
+				TrustBadge:  TrustBadgeCheckedCertificate,
+				Axioms:      []string{"Classical.choice", "Quot.sound", "propext"}},
 		},
 	}
 	require.NoError(t, result.Validate())
@@ -114,7 +154,7 @@ func TestBackendResultRequiresCheckedCanonicalReplayForTraceWitness(t *testing.T
 
 	result.Trace.Replay.Status = TraceReplayAccepted
 	result.Trace.Steps[0].Action = ActionKind("unknown-action")
-	require.ErrorContains(t, result.Validate(), "unknown trace action")
+	require.ErrorContains(t, result.Validate(), "replay digest")
 
 	result.Trace.Steps[0].Action = ActionKindDispatchTask
 	result.Axioms = []string{}
@@ -163,19 +203,34 @@ func TestTraceReplayInputHasStableBoundDigest(t *testing.T) {
 func TestDecodeTraceReplayReceiptRequiresAcceptedBoundCertificate(t *testing.T) {
 	receiptJSON := `{
   "axioms": [],
+  "actions": ["dispatch-task", "acquire-ownership", "worker-returns-success", "persist-success"],
   "formatVersion": "umpire3/trace-replay-receipt/v1",
+  "property": "nexus.cancellation.won-excludes-success",
+  "semanticHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "status": "accepted",
+  "target": "nexus-cancellation",
   "traceDigest": "sha256:acab4c8de082939fc9b38f80063a6c19687893f46c5c16245d060b3804e53c76",
-  "trustBadge": "checked-certificate"
+  "trustBadge": "checked-certificate",
+  "variant": "stale-completion-guard-removed",
+  "world": "smoke"
 }`
 	receipt, err := DecodeTraceReplayReceipt(strings.NewReader(receiptJSON), DefaultDecodeLimit)
 	require.NoError(t, err)
 	require.Equal(t, TraceReplayReceipt{
 		FormatVersion: TraceReplayReceiptFormatVersion,
 		TraceDigest:   "sha256:acab4c8de082939fc9b38f80063a6c19687893f46c5c16245d060b3804e53c76",
-		Status:        TraceReplayAccepted,
-		TrustBadge:    TrustBadgeCheckedCertificate,
-		Axioms:        []string{},
+		Target:        TargetIDNexusCancellation,
+		Property:      PropertyIDNexusCancellationWonExcludesSuccess,
+		World:         "smoke",
+		Variant:       "stale-completion-guard-removed",
+		SemanticHash:  "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Actions: []ActionKind{
+			ActionKindDispatchTask, ActionKindAcquireOwnership,
+			ActionKindWorkerReturnsSuccess, ActionKindPersistSuccess,
+		},
+		Status:     TraceReplayAccepted,
+		TrustBadge: TrustBadgeCheckedCertificate,
+		Axioms:     []string{},
 	}, receipt)
 
 	rejected := bytes.ReplaceAll([]byte(receiptJSON), []byte(`"accepted"`), []byte(`"rejected"`))

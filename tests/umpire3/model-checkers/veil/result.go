@@ -107,7 +107,7 @@ func NormalizeConcreteOutput(
 		}
 		trace.Bounds = bounds
 		trace.Replay = protocol.TraceReplayResult{
-			Status: receipt.Status, TrustBadge: receipt.TrustBadge,
+			TraceDigest: receipt.TraceDigest, Status: receipt.Status, TrustBadge: receipt.TrustBadge,
 			Axioms: append([]string{}, receipt.Axioms...),
 		}
 		result.Axioms = append([]string{}, receipt.Axioms...)

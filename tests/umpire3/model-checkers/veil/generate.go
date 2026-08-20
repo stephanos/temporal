@@ -2,6 +2,8 @@ package veil
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"unicode"
@@ -28,6 +30,7 @@ const (
 type GeneratedModule struct {
 	Module              string
 	Source              []byte
+	ModelHash           string
 	ActionLabels        map[string]string
 	ExportsModelChecker bool
 	TrustMode           SMTTrustMode
@@ -64,7 +67,11 @@ func GenerateWithTrust(
 	}
 
 	var source bytes.Buffer
-	source.WriteString("import Veil\n\n")
+	source.WriteString("import Veil\n")
+	if mode == Interactive {
+		source.WriteString("import Umpire3Veil.JobReceipt\n")
+	}
+	source.WriteString("\n")
 	if mode == Concrete {
 		source.WriteString("set_option veil.__modelCheckCompileMode true\n\n")
 	} else {
@@ -140,6 +147,7 @@ func GenerateWithTrust(
 		fmt.Fprintf(&source, "unsat trace [bounded_safety] {\n  any %d actions\n  assert ¬ (%s)\n}\n\n",
 			view.Bounds.SymbolicDepth, invariant)
 		source.WriteString("#check_invariants\n\n")
+		source.WriteString("#gen_theorems\n\n")
 		fmt.Fprintf(&source, "end %s\n", module)
 	case Mutation:
 		source.WriteString("set_option veil.violationIsError false in\n")
@@ -148,6 +156,23 @@ func GenerateWithTrust(
 			view.Bounds.SymbolicDepth, invariant)
 		fmt.Fprintf(&source, "end %s\n", module)
 	}
+	modelHash := sourceDigest(source.Bytes())
+	if mode == Interactive {
+		fmt.Fprintf(&source, "\nnamespace Umpire3Veil.Generated\n\ndef %sEvidence : Umpire3Veil.JobReceipt.Evidence where\n", module)
+		fmt.Fprintf(&source, "  semanticHash := %q\n", view.SemanticHash)
+		fmt.Fprintf(&source, "  generatedModelHash := %q\n", modelHash)
+		fmt.Fprintf(&source, "  trustMode := .%s\n", trustMode)
+		source.WriteString("  invariantAxioms := resolved_veil_axioms% [\n")
+		theorems := proofTheoremNames(module, names, view)
+		for index, theorem := range theorems {
+			separator := ","
+			if index == len(theorems)-1 {
+				separator = ""
+			}
+			fmt.Fprintf(&source, "    %s%s\n", theorem, separator)
+		}
+		source.WriteString("  ]\n\nend Umpire3Veil.Generated\n")
+	}
 	actionLabels := make(map[string]string, len(names.actions))
 	for identifier, label := range names.actions {
 		actionLabels[identifier] = label
@@ -155,10 +180,36 @@ func GenerateWithTrust(
 	return GeneratedModule{
 		Module:              module,
 		Source:              source.Bytes(),
+		ModelHash:           modelHash,
 		ActionLabels:        actionLabels,
 		ExportsModelChecker: mode == Concrete,
 		TrustMode:           trustModeForMode(mode, trustMode),
 	}, nil
+}
+
+func proofTheoremNames(
+	module string,
+	names generatedNames,
+	view protocol.FirstOrderView,
+) []string {
+	procedures := []string{"initializer"}
+	for _, action := range view.Actions {
+		procedures = append(procedures, names.actions[action.Identifier])
+	}
+	assertions := []string{exportedIdentifier(string(view.Property)), "CanonicalReachableEnvelope"}
+	result := make([]string, 0, len(procedures)*(len(assertions)+1))
+	for _, procedure := range procedures {
+		result = append(result, module+"."+procedure+"_doesNotThrow")
+		for _, assertion := range assertions {
+			result = append(result, module+"."+procedure+"_"+assertion)
+		}
+	}
+	return result
+}
+
+func sourceDigest(source []byte) string {
+	sum := sha256.Sum256(source)
+	return "sha256:" + hex.EncodeToString(sum[:])
 }
 
 func actionSnapshots(action protocol.FirstOrderAction) map[string]bool {

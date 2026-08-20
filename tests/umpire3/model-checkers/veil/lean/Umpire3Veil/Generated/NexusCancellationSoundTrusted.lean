@@ -1,4 +1,5 @@
 import Veil
+import Umpire3Veil.JobReceipt
 
 set_option veil.solver "grind+smt"
 set_option veil.smt.trust true
@@ -75,4 +76,38 @@ unsat trace [bounded_safety] {
 
 #check_invariants
 
+#gen_theorems
+
 end NexusCancellationSound
+
+namespace Umpire3Veil.Generated
+
+def NexusCancellationSoundEvidence : Umpire3Veil.JobReceipt.Evidence where
+  semanticHash := "sha256:91939fb7d186499518ed05a76483a9c378a8fe55ca07d8104ad7d1f9e9380e1a"
+  generatedModelHash := "sha256:642b8da2c3752652733bae1e297ae1de54a8800fd10d9fd727db4db8f20390ec"
+  trustMode := .trusted
+  invariantAxioms := resolved_veil_axioms% [
+    NexusCancellationSound.initializer_doesNotThrow,
+    NexusCancellationSound.initializer_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.initializer_CanonicalReachableEnvelope,
+    NexusCancellationSound.DispatchTask_doesNotThrow,
+    NexusCancellationSound.DispatchTask_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.DispatchTask_CanonicalReachableEnvelope,
+    NexusCancellationSound.RequestCancellation_doesNotThrow,
+    NexusCancellationSound.RequestCancellation_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.RequestCancellation_CanonicalReachableEnvelope,
+    NexusCancellationSound.AcquireOwnership_doesNotThrow,
+    NexusCancellationSound.AcquireOwnership_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.AcquireOwnership_CanonicalReachableEnvelope,
+    NexusCancellationSound.CommitCancellation_doesNotThrow,
+    NexusCancellationSound.CommitCancellation_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.CommitCancellation_CanonicalReachableEnvelope,
+    NexusCancellationSound.WorkerReturnsSuccess_doesNotThrow,
+    NexusCancellationSound.WorkerReturnsSuccess_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.WorkerReturnsSuccess_CanonicalReachableEnvelope,
+    NexusCancellationSound.PersistSuccess_doesNotThrow,
+    NexusCancellationSound.PersistSuccess_NexusCancellationWonExcludesSuccess,
+    NexusCancellationSound.PersistSuccess_CanonicalReachableEnvelope
+  ]
+
+end Umpire3Veil.Generated

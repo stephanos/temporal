@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import Lean.Elab.Term
 import Lean.Util.CollectAxioms
-import Umpire3.FiniteView
+import Umpire3.Explorer
 
 namespace Umpire3
 

@@ -61,12 +61,7 @@ func TestNormalizeConcreteOutputMapsMutationTraceAndRequiresReplay(t *testing.T)
 	require.ErrorContains(t, err, "accepted canonical replay")
 
 	result, err := NormalizeConcreteOutput(view, generated, strings.NewReader(mutatedConcreteOutput),
-		protocol.DefaultDecodeLimit, &protocol.TraceReplayReceipt{
-			FormatVersion: protocol.TraceReplayReceiptFormatVersion,
-			TraceDigest:   "sha256:1c55f5335caa18361c7033c9d6a49f3affcc1a1250753aa4f4e411885e322654",
-			Status:        protocol.TraceReplayAccepted, TrustBadge: protocol.TrustBadgeCheckedCertificate,
-			Axioms: []string{},
-		})
+		protocol.DefaultDecodeLimit, acceptedReplayReceipt(t, view))
 	require.NoError(t, err)
 	require.Equal(t, []protocol.TraceStep{
 		{Action: protocol.ActionKindDispatchTask},
@@ -113,12 +108,7 @@ func TestNormalizeConcreteOutputRejectsUnknownTransitionAndViolation(t *testing.
 	view := readFirstOrderView(t, "nexus-cancellation-mutated.first-order.json")
 	generated, err := Generate(view, Concrete)
 	require.NoError(t, err)
-	replay := &protocol.TraceReplayReceipt{
-		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
-		TraceDigest:   "sha256:1c55f5335caa18361c7033c9d6a49f3affcc1a1250753aa4f4e411885e322654",
-		Status:        protocol.TraceReplayAccepted, TrustBadge: protocol.TrustBadgeCheckedCertificate,
-		Axioms: []string{},
-	}
+	replay := acceptedReplayReceipt(t, view)
 
 	unknownTransition := strings.Replace(mutatedConcreteOutput, "PersistSuccess", "UnknownAction", 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(unknownTransition),
@@ -135,12 +125,36 @@ func TestNormalizeConcreteOutputRejectsUnknownTransitionAndViolation(t *testing.
 	wrongDigest.TraceDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(mutatedConcreteOutput),
 		protocol.DefaultDecodeLimit, &wrongDigest)
-	require.ErrorContains(t, err, "not bound to normalized trace")
+	require.ErrorContains(t, err, "accepted canonical replay")
 
 	representableState := strings.Replace(mutatedConcreteOutput, "<unrepresentable>", "state", 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(representableState),
 		protocol.DefaultDecodeLimit, replay)
 	require.ErrorContains(t, err, "unexpected Veil trace state representation")
+}
+
+func acceptedReplayReceipt(t *testing.T, view protocol.FirstOrderView) *protocol.TraceReplayReceipt {
+	t.Helper()
+	input := protocol.TraceReplayInput{
+		FormatVersion: protocol.TraceReplayInputFormatVersion,
+		Target:        view.Target, Property: view.Property, World: view.World, Variant: view.Variant,
+		SemanticHash: view.SemanticHash,
+		Actions: []protocol.ActionKind{
+			protocol.ActionKindDispatchTask,
+			protocol.ActionKindAcquireOwnership,
+			protocol.ActionKindWorkerReturnsSuccess,
+			protocol.ActionKindPersistSuccess,
+		},
+	}
+	digest, err := input.Digest()
+	require.NoError(t, err)
+	return &protocol.TraceReplayReceipt{
+		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
+		TraceDigest:   digest, Target: input.Target, Property: input.Property,
+		World: input.World, Variant: input.Variant, SemanticHash: input.SemanticHash,
+		Actions: input.Actions, Status: protocol.TraceReplayAccepted,
+		TrustBadge: protocol.TrustBadgeCheckedCertificate, Axioms: []string{},
+	}
 }
 
 func TestNormalizeConcreteOutputRejectsUnknownAndTrailingJSON(t *testing.T) {
