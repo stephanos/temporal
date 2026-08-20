@@ -4,231 +4,65 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
 type exportSpec struct {
-	root    string
-	sources []string
-}
-
-var semanticKernelSources = []string{
-	"Umpire3/Catalog.lean",
-	"Umpire3/Transition.lean",
-	"Umpire3/Executable.lean",
-	"Umpire3/Property.lean",
-	"Umpire3/Refinement.lean",
-	"Umpire3/Experiment.lean",
-	"Umpire3/Explore.lean",
-	"Umpire3/Fault.lean",
-	"Umpire3/Manifest.lean",
-	"Umpire3/Value.lean",
+	root       string
+	sourceRoot string
+	inputs     []string
 }
 
 var catalogSpec = exportSpec{
-	root: "Umpire3CatalogExport.lean",
-	sources: []string{
-		"Umpire3/Catalog.lean",
-		"Umpire3/Declaration.lean",
-		"Umpire3/Fault.lean",
-		"Umpire3/Value.lean",
-		"Temporal/Catalog.lean",
-		"Temporal/Inventory.lean",
-		"Temporal/Product/NexusLifecycle.lean",
-		"Temporal/Product/NexusClosure.lean",
-		"Temporal/Product/NexusActivityLink.lean",
-		"Temporal/Product/NexusTimeout.lean",
-		"Temporal/Product/CallbackReference.lean",
-		"Temporal/Product/CallbackResponse.lean",
-		"Temporal/Product/WorkflowLineage.lean",
-		"Temporal/Product/WorkflowRouting.lean",
-		"Temporal/Product/WorkflowOwnership.lean",
-		"Temporal/Product/SpeculativeTask.lean",
-		"Temporal/Product/WorkflowProgress.lean",
-		"Temporal/System/NexusClosure.lean",
-		"Temporal/System/NexusActivityLink.lean",
-		"Temporal/System/NexusTimeout.lean",
-		"Temporal/System/CallbackReference.lean",
-		"Temporal/System/CallbackResponse.lean",
-		"Temporal/System/WorkflowLineage.lean",
-		"Temporal/System/WorkflowRouting.lean",
-		"Temporal/System/WorkflowOwnership.lean",
-		"Temporal/System/SpeculativeTask.lean",
-		"Temporal/System/WorkflowProgress.lean",
-		"Temporal/Refinement/NexusClosure.lean",
-		"Temporal/Refinement/NexusActivityLink.lean",
-		"Temporal/Refinement/NexusTimeout.lean",
-		"Temporal/Refinement/CallbackReference.lean",
-		"Temporal/Refinement/CallbackResponse.lean",
-		"Temporal/Refinement/WorkflowLineage.lean",
-		"Temporal/Refinement/WorkflowRouting.lean",
-		"Temporal/Refinement/WorkflowOwnership.lean",
-		"Temporal/Refinement/SpeculativeTask.lean",
-		"Temporal/Refinement/WorkflowProgress.lean",
-		"Temporal/Product/TaskAck.lean",
-	},
+	root: "Umpire3CatalogExport.lean", sourceRoot: "Temporal/Catalog.lean",
 }
 
 var monitorSpec = exportSpec{
-	root: "Umpire3MonitorExport.lean",
-	sources: []string{
-		"Umpire3/Manifest.lean",
-		"Umpire3/Monitor.lean",
-		"Temporal/Monitors.lean",
-		"Temporal/Product/NexusClosure.lean",
-		"Temporal/Product/NexusActivityLink.lean",
-		"Temporal/Product/NexusTimeout.lean",
-		"Temporal/Product/CallbackReference.lean",
-		"Temporal/Product/CallbackResponse.lean",
-		"Temporal/Product/WorkflowLineage.lean",
-		"Temporal/Product/WorkflowRouting.lean",
-		"Temporal/Product/WorkflowOwnership.lean",
-		"Temporal/Product/SpeculativeTask.lean",
-		"Temporal/Product/WorkflowProgress.lean",
-	},
+	root: "Umpire3MonitorExport.lean", sourceRoot: "Temporal/Monitors.lean",
 }
 
 var compositionSpec = exportSpec{
-	root: "Umpire3CompositionExport.lean",
-	sources: []string{
-		"Umpire3/Composition.lean",
-		"Temporal/Composition.lean",
-		"Temporal/Product/Nexus.lean",
-		"Temporal/Product/NexusLifecycle.lean",
-		"Temporal/Product/NexusClosure.lean",
-		"Temporal/Product/NexusActivityLink.lean",
-		"Temporal/Product/NexusTimeout.lean",
-		"Temporal/Product/CallbackReference.lean",
-		"Temporal/Product/CallbackResponse.lean",
-		"Temporal/Product/WorkflowLineage.lean",
-		"Temporal/Product/WorkflowRouting.lean",
-		"Temporal/Product/WorkflowOwnership.lean",
-		"Temporal/Product/SpeculativeTask.lean",
-		"Temporal/Product/WorkflowProgress.lean",
-		"Temporal/Product/TaskAck.lean",
-		"Temporal/Product/Update.lean",
-		"Temporal/System/NexusTasks.lean",
-		"Temporal/System/NexusClosure.lean",
-		"Temporal/System/NexusActivityLink.lean",
-		"Temporal/System/NexusTimeout.lean",
-		"Temporal/System/CallbackReference.lean",
-		"Temporal/System/CallbackResponse.lean",
-		"Temporal/System/WorkflowLineage.lean",
-		"Temporal/System/WorkflowRouting.lean",
-		"Temporal/System/WorkflowOwnership.lean",
-		"Temporal/System/SpeculativeTask.lean",
-		"Temporal/System/WorkflowProgress.lean",
-		"Temporal/Refinement/NexusClosure.lean",
-		"Temporal/Refinement/NexusActivityLink.lean",
-		"Temporal/Refinement/NexusTimeout.lean",
-		"Temporal/Refinement/CallbackReference.lean",
-		"Temporal/Refinement/CallbackResponse.lean",
-		"Temporal/Refinement/WorkflowLineage.lean",
-		"Temporal/Refinement/WorkflowRouting.lean",
-		"Temporal/Refinement/WorkflowOwnership.lean",
-		"Temporal/Refinement/SpeculativeTask.lean",
-		"Temporal/Refinement/WorkflowProgress.lean",
-		"Temporal/System/TaskDelivery.lean",
-		"Temporal/System/UpdateTasks.lean",
-	},
+	root: "Umpire3CompositionExport.lean", sourceRoot: "Temporal/Composition.lean",
 }
 
 var paritySpec = exportSpec{
-	root: "Umpire3ParityExport.lean",
-	sources: []string{
-		"Temporal/Parity.lean",
-		"Temporal/Product/NexusClosure.lean",
-		"Temporal/Product/NexusActivityLink.lean",
-		"Temporal/Product/NexusTimeout.lean",
-		"Temporal/Product/CallbackReference.lean",
-		"Temporal/Product/CallbackResponse.lean",
-		"Temporal/Product/WorkflowLineage.lean",
-		"Temporal/Product/WorkflowRouting.lean",
-		"Temporal/Product/WorkflowOwnership.lean",
-		"Temporal/Product/SpeculativeTask.lean",
-		"Temporal/Product/WorkflowProgress.lean",
-		"Temporal/System/NexusClosure.lean",
-		"Temporal/System/NexusActivityLink.lean",
-		"Temporal/System/NexusTimeout.lean",
-		"Temporal/System/CallbackReference.lean",
-		"Temporal/System/CallbackResponse.lean",
-		"Temporal/System/WorkflowLineage.lean",
-		"Temporal/System/WorkflowRouting.lean",
-		"Temporal/System/WorkflowOwnership.lean",
-		"Temporal/System/SpeculativeTask.lean",
-		"Temporal/System/WorkflowProgress.lean",
-		"Temporal/Refinement/NexusClosure.lean",
-		"Temporal/Refinement/NexusActivityLink.lean",
-		"Temporal/Refinement/NexusTimeout.lean",
-		"Temporal/Refinement/CallbackReference.lean",
-		"Temporal/Refinement/CallbackResponse.lean",
-		"Temporal/Refinement/WorkflowLineage.lean",
-		"Temporal/Refinement/WorkflowRouting.lean",
-		"Temporal/Refinement/WorkflowOwnership.lean",
-		"Temporal/Refinement/SpeculativeTask.lean",
-		"Temporal/Refinement/WorkflowProgress.lean",
-		"Temporal/Monitors.lean",
-		"Temporal/Product/TaskAck.lean",
-	},
+	root: "Umpire3ParityExport.lean", sourceRoot: "Temporal/Parity.lean",
 }
 
 var coverageSpec = exportSpec{
-	root: "Umpire3CoverageExport.lean",
-	sources: []string{
-		"Umpire3/Transition.lean",
-		"Umpire3/Executable.lean",
-		"Umpire3/Property.lean",
-		"Temporal/Product/NexusLifecycle.lean",
-		"Temporal/Coverage.lean",
-	},
+	root: "Umpire3CoverageExport.lean", sourceRoot: "Temporal/Coverage.lean",
 }
 
 var exportSpecs = map[string]exportSpec{
 	"nexus": {
-		root: "Umpire3Export.lean",
-		sources: append(append([]string{}, semanticKernelSources...), []string{
-			"Temporal/API/selection.json",
-			"Temporal/API/Generated/Wire.lean",
-			"Temporal/API/Interpretation.lean",
-			"Temporal/API/Nexus.lean",
-			"Temporal/Product/Nexus.lean",
-			"Temporal/System/NexusTasks.lean",
-			"Temporal/Refinement/NexusTasks.lean",
-			"Temporal/Experiments/NexusCancellation.lean",
-			"Temporal/System/TaskDelivery.lean",
-		}...),
+		root: "Umpire3Export.lean", sourceRoot: "Temporal/Experiments/NexusCancellation.lean",
+		inputs: []string{"Temporal/API/selection.json"},
 	},
 	"update": {
-		root: "Umpire3UpdateExport.lean",
-		sources: append(append([]string{}, semanticKernelSources...), []string{
-			"Temporal/API/selection.json",
-			"Temporal/API/Generated/Wire.lean",
-			"Temporal/API/Interpretation.lean",
-			"Temporal/API/Update.lean",
-			"Temporal/Product/Update.lean",
-			"Temporal/System/UpdateTasks.lean",
-			"Temporal/Refinement/UpdateTasks.lean",
-			"Temporal/Experiments/UpdateLifecycle.lean",
-			"Temporal/System/TaskDelivery.lean",
-		}...),
+		root: "Umpire3UpdateExport.lean", sourceRoot: "Temporal/Experiments/UpdateLifecycle.lean",
+		inputs: []string{"Temporal/API/selection.json"},
 	},
 }
 
 var proofSpecs = map[string]exportSpec{
 	"nexus": {
-		root:    "Umpire3NexusProofExport.lean",
-		sources: exportSpecs["nexus"].sources,
+		root: "Umpire3NexusProofExport.lean", sourceRoot: exportSpecs["nexus"].sourceRoot,
+		inputs: exportSpecs["nexus"].inputs,
 	},
 	"update": {
-		root:    "Umpire3UpdateProofExport.lean",
-		sources: exportSpecs["update"].sources,
+		root: "Umpire3UpdateProofExport.lean", sourceRoot: exportSpecs["update"].sourceRoot,
+		inputs: exportSpecs["update"].inputs,
 	},
 }
 
@@ -306,7 +140,7 @@ func main() {
 }
 
 func exportExperiment(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
 		return err
 	}
@@ -342,7 +176,7 @@ func exportExperiment(modelRoot string, spec exportSpec, writer io.Writer) error
 }
 
 func exportCatalog(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
 		return err
 	}
@@ -369,7 +203,11 @@ func exportCatalog(modelRoot string, spec exportSpec, writer io.Writer) error {
 }
 
 func exportProofManifest(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	dependencies, err := resolveSourceDependencies(modelRoot, spec.sourceRoot, spec.inputs)
+	if err != nil {
+		return err
+	}
+	semanticHash, _, err := protocol.DigestSourceDependencies(dependencies)
 	if err != nil {
 		return err
 	}
@@ -377,12 +215,17 @@ func exportProofManifest(modelRoot string, spec exportSpec, writer io.Writer) er
 	if err != nil {
 		return err
 	}
-	manifest, err := protocol.DecodeProofManifest(bytes.NewReader(stdout), protocol.DefaultDecodeLimit)
+	raw, err := decodeLeanProofManifest(stdout)
 	if err != nil {
 		return fmt.Errorf("validate Lean proof manifest: %w", err)
 	}
+	manifest, err := protocol.NewProofManifest(raw.Identifier, raw.Theorem, raw.Statement, raw.ResultClass,
+		raw.Axioms, raw.LeanVersion, raw.Assumptions, dependencies)
+	if err != nil {
+		return fmt.Errorf("bind Lean proof provenance: %w", err)
+	}
 	if manifest.SemanticHash != semanticHash {
-		return fmt.Errorf("lean proof semantic hash %q does not match sources %q", manifest.SemanticHash, semanticHash)
+		return fmt.Errorf("proof semantic hash %q does not match sources %q", manifest.SemanticHash, semanticHash)
 	}
 	encoded, err := manifest.CanonicalJSON()
 	if err != nil {
@@ -396,7 +239,7 @@ func exportProofManifest(modelRoot string, spec exportSpec, writer io.Writer) er
 }
 
 func exportMonitorCatalog(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
 		return err
 	}
@@ -431,7 +274,7 @@ func exportMonitorCatalog(modelRoot string, spec exportSpec, writer io.Writer) e
 }
 
 func exportComposition(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
 		return err
 	}
@@ -466,7 +309,7 @@ func exportComposition(modelRoot string, spec exportSpec, writer io.Writer) erro
 }
 
 func exportParityLedger(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
 		return err
 	}
@@ -501,7 +344,7 @@ func exportParityLedger(modelRoot string, spec exportSpec, writer io.Writer) err
 }
 
 func exportCoverageDenominator(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := hashSources(modelRoot, spec.sources)
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
 		return err
 	}
@@ -556,19 +399,153 @@ func runLean(modelRoot string, root string, semanticHash string, catalogHash str
 	return stdout.Bytes(), nil
 }
 
-func hashSources(modelRoot string, sources []string) (string, error) {
-	hash := sha256.New()
-	for _, source := range sources {
-		content, err := os.ReadFile(filepath.Join(modelRoot, source))
+type leanProofManifest struct {
+	FormatVersion string                     `json:"formatVersion"`
+	Identifier    string                     `json:"identifier"`
+	Theorem       string                     `json:"theorem"`
+	Statement     string                     `json:"statement"`
+	ResultClass   protocol.ResultClass       `json:"resultClass"`
+	Axioms        []string                   `json:"axioms"`
+	LeanVersion   string                     `json:"leanVersion"`
+	Assumptions   []protocol.ProofDependency `json:"assumptions"`
+}
+
+func decodeLeanProofManifest(encoded []byte) (leanProofManifest, error) {
+	if int64(len(encoded)) > protocol.DefaultDecodeLimit {
+		return leanProofManifest{}, fmt.Errorf("Lean proof manifest exceeds %d bytes", protocol.DefaultDecodeLimit)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var manifest leanProofManifest
+	if err := decoder.Decode(&manifest); err != nil {
+		return leanProofManifest{}, err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		return leanProofManifest{}, errors.New("Lean proof manifest must contain exactly one JSON value")
+	}
+	if manifest.FormatVersion != protocol.ProofManifestFormatVersion || manifest.Identifier == "" ||
+		manifest.Theorem == "" || manifest.Statement == "" || manifest.LeanVersion == "" {
+		return leanProofManifest{}, errors.New("complete resolved Lean proof identity is required")
+	}
+	return manifest, nil
+}
+
+func semanticSourceHash(modelRoot string, spec exportSpec) (string, error) {
+	dependencies, err := resolveSourceDependencies(modelRoot, spec.sourceRoot, spec.inputs)
+	if err != nil {
+		return "", err
+	}
+	sourceHash, _, err := protocol.DigestSourceDependencies(dependencies)
+	return sourceHash, err
+}
+
+func resolveSourceDependencies(
+	modelRoot string,
+	sourceRoot string,
+	inputs []string,
+) ([]protocol.SourceDependency, error) {
+	if sourceRoot == "" {
+		return nil, errors.New("semantic source root is required")
+	}
+	dependencies := make(map[string]protocol.SourceDependency)
+	visiting := make(map[string]bool)
+	var visit func(string) error
+	visit = func(source string) error {
+		source, err := cleanSourcePath(source)
 		if err != nil {
-			return "", fmt.Errorf("read semantic source %q: %w", source, err)
+			return err
 		}
-		if _, err := fmt.Fprintf(hash, "%d:%s:%d:", len(source), source, len(content)); err != nil {
-			return "", fmt.Errorf("hash semantic source metadata: %w", err)
+		if _, exists := dependencies[source]; exists {
+			return nil
 		}
-		if _, err := hash.Write(content); err != nil {
-			return "", fmt.Errorf("hash semantic source: %w", err)
+		if visiting[source] {
+			return fmt.Errorf("cyclic local Lean import through %q", source)
+		}
+		visiting[source] = true
+		defer delete(visiting, source)
+		content, err := os.ReadFile(filepath.Join(modelRoot, filepath.FromSlash(source)))
+		if err != nil {
+			return fmt.Errorf("read semantic source %q: %w", source, err)
+		}
+		imports, err := localLeanImports(modelRoot, content)
+		if err != nil {
+			return fmt.Errorf("resolve imports for %q: %w", source, err)
+		}
+		for _, imported := range imports {
+			if err := visit(imported); err != nil {
+				return err
+			}
+		}
+		dependencies[source] = protocol.SourceDependency{
+			Path: source, Digest: contentDigest(content), Imports: imports,
+		}
+		return nil
+	}
+	if err := visit(sourceRoot); err != nil {
+		return nil, err
+	}
+	for _, input := range inputs {
+		input, err := cleanSourcePath(input)
+		if err != nil {
+			return nil, err
+		}
+		if _, exists := dependencies[input]; exists {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(modelRoot, filepath.FromSlash(input)))
+		if err != nil {
+			return nil, fmt.Errorf("read semantic input %q: %w", input, err)
+		}
+		dependencies[input] = protocol.SourceDependency{Path: input, Digest: contentDigest(content), Imports: []string{}}
+	}
+	result := make([]protocol.SourceDependency, 0, len(dependencies))
+	for _, dependency := range dependencies {
+		result = append(result, dependency)
+	}
+	slices.SortFunc(result, func(left, right protocol.SourceDependency) int {
+		return strings.Compare(left.Path, right.Path)
+	})
+	return result, nil
+}
+
+func localLeanImports(modelRoot string, content []byte) ([]string, error) {
+	var imports []string
+	for _, line := range strings.Split(string(content), "\n") {
+		line, _, _ = strings.Cut(line, "--")
+		fields := strings.Fields(line)
+		importIndex := slices.Index(fields, "import")
+		if importIndex < 0 || importIndex > 1 {
+			continue
+		}
+		for _, module := range fields[importIndex+1:] {
+			path := strings.ReplaceAll(module, ".", "/") + ".lean"
+			info, err := os.Stat(filepath.Join(modelRoot, filepath.FromSlash(path)))
+			switch {
+			case err == nil && !info.IsDir():
+				imports = append(imports, path)
+			case err == nil:
+				return nil, fmt.Errorf("local import %q resolves to a directory", module)
+			case os.IsNotExist(err):
+				continue
+			default:
+				return nil, fmt.Errorf("stat local import %q: %w", module, err)
+			}
 		}
 	}
-	return "sha256:" + hex.EncodeToString(hash.Sum(nil)), nil
+	slices.Sort(imports)
+	return slices.Compact(imports), nil
+}
+
+func cleanSourcePath(source string) (string, error) {
+	source = filepath.ToSlash(filepath.Clean(source))
+	if source == "." || filepath.IsAbs(source) || source == ".." || strings.HasPrefix(source, "../") {
+		return "", fmt.Errorf("semantic source path %q must remain under the model root", source)
+	}
+	return source, nil
+}
+
+func contentDigest(content []byte) string {
+	digest := sha256.Sum256(content)
+	return "sha256:" + hex.EncodeToString(digest[:])
 }

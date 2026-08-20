@@ -102,8 +102,7 @@ theorem explorerRejectsSoundCounterexample :
 
 def proofManifest : SemanticProofManifest where
   identifier := "nexus-tasks-refinement-v1"
-  theoremName := "Umpire3.Temporal.System.NexusTasks.nexusTasksRefinesProduct"
-  statementHash := "sha256:51c9b67f45c1d58999fc7628a95593c681f3e0ed2e4b59612f2b0fcfb6d4c633"
+  proof := resolved_refinement% System.NexusTasks.nexusTasksRefinesProduct
   assumptions := [
     {
       identifier := "persistence-commit-atomicity"

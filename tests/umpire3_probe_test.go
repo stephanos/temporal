@@ -268,8 +268,8 @@ func (s *Umpire3TestSuite) TestProbeNexusExploration() {
 	}, explore.Bounds{MaxAssignments: len(values), Compiler: umpire3CompilerLimits()})
 	require.NoError(t, err)
 	requireUmpire3ExplorationBehaviorContract(t, "ProbeNexusExploration", report)
-	require.True(t, report.Complete)
-	require.True(t, report.Coverage.Complete)
+	require.Equal(t, explore.StatusAssignmentsEnumerated, report.Status)
+	require.Equal(t, explore.CoverageCovered, report.Coverage.Status)
 	require.Len(t, report.Candidates, 17)
 }
 

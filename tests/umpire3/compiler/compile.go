@@ -115,7 +115,6 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		Omissions:        append([]protocol.ProjectionOmission(nil), target.Omissions...),
 		Enumeration: Enumeration{
 			Mode:        map[bool]string{false: "one-path", true: "all-paths"}[plan.allPaths],
-			Complete:    true,
 			States:      enumerated.states,
 			Paths:       len(enumerated.paths),
 			MaxPaths:    limits.MaxPaths,
@@ -578,7 +577,7 @@ func digestScenario(scenario Scenario, plan *normalizedPlan) (string, error) {
 
 func (s Suite) CanonicalJSON() ([]byte, error) {
 	if s.FormatVersion != SuiteFormatVersion || !strings.HasPrefix(s.ScenarioDigest, "sha256:") ||
-		len(s.Experiments) == 0 || len(s.Experiments) != len(s.Digests) || !s.Explain.Enumeration.Complete {
+		len(s.Experiments) == 0 || len(s.Experiments) != len(s.Digests) {
 		return nil, errors.New("complete compiler suite is required")
 	}
 	for index, experiment := range s.Experiments {
