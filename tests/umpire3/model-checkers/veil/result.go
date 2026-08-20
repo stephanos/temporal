@@ -171,7 +171,7 @@ func readConcreteOutput(
 		return concreteResult{}, err
 	}
 	if raw.ExploredStates > view.Bounds.ConcreteStateLimit {
-		return concreteResult{}, fmt.Errorf("Veil explored %d states beyond the declared limit %d",
+		return concreteResult{}, fmt.Errorf("veil explored %d states beyond the declared limit %d",
 			raw.ExploredStates, view.Bounds.ConcreteStateLimit)
 	}
 	return raw, nil
@@ -211,7 +211,7 @@ func validateConcreteModule(view protocol.FirstOrderView, generated GeneratedMod
 		!maps.Equal(generated.ActionLabels, expected.ActionLabels) ||
 		generated.ExportsModelChecker != expected.ExportsModelChecker ||
 		generated.TrustMode != expected.TrustMode {
-		return errors.New("Veil concrete output is not bound to the generated first-order module")
+		return errors.New("veil concrete output is not bound to the generated first-order module")
 	}
 	return nil
 }
@@ -230,11 +230,11 @@ func normalizeViolationTrace(
 	}
 	if raw.Violation.Kind != veilSafetyFailure || len(raw.Violation.Violates) != 1 ||
 		raw.Violation.Violates[0] != exportedIdentifier(string(view.Property)) {
-		return protocol.ModelTrace{}, errors.New("Veil violation does not match first-order property")
+		return protocol.ModelTrace{}, errors.New("veil violation does not match first-order property")
 	}
 	if len(raw.Trace.States) < 2 || raw.Trace.States[0].Index != 0 ||
 		raw.Trace.States[0].Transition != veilAfterInit {
-		return protocol.ModelTrace{}, errors.New("Veil violation trace requires an indexed initial state")
+		return protocol.ModelTrace{}, errors.New("veil violation trace requires an indexed initial state")
 	}
 	if raw.Trace.Theory != veilUnrepresentable {
 		return protocol.ModelTrace{}, errors.New("unexpected Veil trace state representation")
@@ -249,7 +249,7 @@ func normalizeViolationTrace(
 	for _, action := range view.Actions {
 		backendAction, found := generated.ActionLabels[action.Identifier]
 		if !found || backendAction == "" {
-			return protocol.ModelTrace{}, fmt.Errorf("Veil source map omits action %q", action.Identifier)
+			return protocol.ModelTrace{}, fmt.Errorf("veil source map omits action %q", action.Identifier)
 		}
 		if _, duplicate := backendActions[backendAction]; duplicate {
 			return protocol.ModelTrace{}, fmt.Errorf("duplicate Veil transition %q", backendAction)
@@ -261,7 +261,7 @@ func normalizeViolationTrace(
 	steps := make([]protocol.TraceStep, 0, len(raw.Trace.States)-1)
 	for index, state := range raw.Trace.States[1:] {
 		if state.Index != index+1 || state.Transition == veilAfterInit {
-			return protocol.ModelTrace{}, errors.New("Veil violation trace indices and transitions must be ordered")
+			return protocol.ModelTrace{}, errors.New("veil violation trace indices and transitions must be ordered")
 		}
 		action, found := backendActions[state.Transition]
 		if !found {

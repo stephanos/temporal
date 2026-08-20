@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/regress"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 type fakeTestingT struct {
@@ -26,14 +26,26 @@ func (t *fakeTestingT) Fatalf(format string, arguments ...any) {
 }
 
 type facadeFactory struct {
-	capabilities []string
+	capabilities []protocol.CapabilityID
 	prepareCount int
 }
 
-func (f *facadeFactory) Capabilities() []string { return f.capabilities }
-func (f *facadeFactory) Prepare(context.Context, protocol.Experiment) (environment.Session, error) {
+func (f *facadeFactory) Capabilities() []protocol.CapabilityID { return f.capabilities }
+func (f *facadeFactory) Prepare(
+	context.Context,
+	protocol.Experiment,
+) (environment.PreparedEnvironment, error) {
 	f.prepareCount++
-	return facadeSession{}, nil
+	return environment.PreparedEnvironment{
+		Session: facadeSession{},
+		Identity: environment.EnvironmentIdentity{
+			Name: "test", BuildID: "build", ConfigurationIdentity: "configuration",
+			EvidenceProfile: environment.EvidenceProfileInProcessHooks, DrivingAuthority: "driver",
+			ObservationAuthority: "observer", FaultAuthority: "none",
+			IsolationIdentity: "namespace/queue", RetentionClass: "semantic-redacted",
+			Capabilities: f.Capabilities(),
+		},
+	}, nil
 }
 
 type facadeSession struct{}
@@ -58,16 +70,16 @@ func TestRequireRegressionRunsTypedScenario(t *testing.T) {
 	t.Parallel()
 
 	test := &fakeTestingT{name: "TestRequireRegressionRunsTypedScenario"}
-	factory := &facadeFactory{capabilities: []string{"history-observation"}}
-	scenario := regress.NewScenario("callback-response", protocol.TargetIDProtocolAtomic,
-		[]regress.Resource{regress.Callback("callback")},
-		regress.OnePath(
-			regress.RecordCallbackResponse("respond"),
-			regress.RequireCallbackResponseConsistency(),
+	factory := &facadeFactory{capabilities: []protocol.CapabilityID{protocol.CapabilityIDHistoryObservation}}
+	authored := scenario.NewScenario("callback-response", protocol.TargetIDProtocolAtomic,
+		[]scenario.Resource{scenario.Callback("callback")},
+		scenario.OnePath(
+			scenario.RecordCallbackResponse("respond"),
+			scenario.RequireCallbackResponseConsistency(),
 		),
 	)
 
-	RequireRegression(test, scenario, WithEnvironment(factory), WithCompilerLimits(testCompilerLimits()))
+	RequireRegression(test, authored, WithEnvironment(factory), WithCompilerLimits(testCompilerLimits()))
 	require.Positive(t, test.helperCalls)
 	require.Equal(t, 1, factory.prepareCount)
 }
@@ -79,7 +91,7 @@ func TestRequireRegressionReportsStableCompileCategory(t *testing.T) {
 	require.PanicsWithValue(t,
 		"Umpire3 scenario compilation failed: invalid-intent: scenario identifier and resources are required",
 		func() {
-			RequireRegression(test, regress.Scenario{}, WithCompilerLimits(testCompilerLimits()))
+			RequireRegression(test, scenario.Scenario{}, WithCompilerLimits(testCompilerLimits()))
 		})
 }
 
@@ -88,18 +100,18 @@ func TestRequireRegressionReportsUnsupportedBeforeAllocation(t *testing.T) {
 
 	test := &fakeTestingT{name: "TestUnsupported/Profile"}
 	factory := &facadeFactory{}
-	scenario := regress.NewScenario("callback-response", protocol.TargetIDProtocolAtomic,
-		[]regress.Resource{regress.Callback("callback")},
-		regress.OnePath(
-			regress.RecordCallbackResponse("respond"),
-			regress.RequireCallbackResponseConsistency(),
+	authored := scenario.NewScenario("callback-response", protocol.TargetIDProtocolAtomic,
+		[]scenario.Resource{scenario.Callback("callback")},
+		scenario.OnePath(
+			scenario.RecordCallbackResponse("respond"),
+			scenario.RequireCallbackResponseConsistency(),
 		),
 	)
 
 	require.PanicsWithValue(t,
 		"Umpire3 regression failed\nclaim: unsupported\nreason: missing capabilities: [history-observation]\npath: [respond]\ngrounded bindings: map[]\nomissions: []\ncleanup: {Complete:false Error: RecoverableResources:map[]}\nartifact: not retained\nreplay: go test -run '^TestUnsupported/Profile$'",
 		func() {
-			RequireRegression(test, scenario, WithEnvironment(factory), WithCompilerLimits(testCompilerLimits()))
+			RequireRegression(test, authored, WithEnvironment(factory), WithCompilerLimits(testCompilerLimits()))
 		})
 	require.Zero(t, factory.prepareCount)
 }

@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"sync"
 
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
-type ClusterInfo struct {
+type clusterInfo struct {
 	BuildID           string
 	ConfigurationID   string
 	EvidenceProfile   string
@@ -21,9 +22,9 @@ type ClusterInfo struct {
 	MintedUpdateID    string
 }
 
-type ClusterProbe func(context.Context) (ClusterInfo, error)
+type clusterProbe func(context.Context) (clusterInfo, error)
 
-type NexusOptions struct {
+type nexusOptions struct {
 	AllowStaleSuccess bool
 	ProfileName       string
 	TaskTransport     NexusTaskTransport
@@ -51,32 +52,35 @@ type NexusTaskTransport interface {
 	Cleanup(context.Context) error
 }
 
-type NexusFactory struct {
-	probe   ClusterProbe
-	options NexusOptions
+type nexusFactory struct {
+	probe   clusterProbe
+	options nexusOptions
 }
 
-func NewNexusFactory(probe ClusterProbe, options NexusOptions) *NexusFactory {
-	return &NexusFactory{probe: probe, options: options}
+func newNexusFactory(probe clusterProbe, options nexusOptions) *nexusFactory {
+	return &nexusFactory{probe: probe, options: options}
 }
 
-func (f *NexusFactory) Capabilities() []string {
-	return []string{"nexus", "nexus-worker-control", "nexus-observation", "failover-control"}
+func (f *nexusFactory) Capabilities() []protocol.CapabilityID {
+	return []protocol.CapabilityID{
+		protocol.CapabilityIDNexus, protocol.CapabilityIDNexusWorkerControl,
+		protocol.CapabilityIDNexusObservation, protocol.CapabilityIDFailoverControl,
+	}
 }
 
-func (f *NexusFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.Session, error) {
+func (f *nexusFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.PreparedEnvironment, error) {
 	if f.probe == nil {
-		return nil, errors.New("temporal cluster probe is required")
+		return environment.PreparedEnvironment{}, errors.New("temporal cluster probe is required")
 	}
 	cluster, err := f.probe(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("probe Temporal cluster: %w", err)
+		return environment.PreparedEnvironment{}, fmt.Errorf("probe Temporal cluster: %w", err)
 	}
 	if cluster.BuildID == "" || cluster.Namespace == "" ||
 		(cluster.MintedOperationID == "" && f.options.TaskTransport == nil) {
-		return nil, errors.New("cluster probe returned incomplete identity evidence")
+		return environment.PreparedEnvironment{}, errors.New("cluster probe returned incomplete identity evidence")
 	}
-	return &nexusSession{
+	session := &nexusSession{
 		cluster:      cluster,
 		options:      f.options,
 		transport:    f.options.TaskTransport,
@@ -85,14 +89,15 @@ func (f *NexusFactory) Prepare(ctx context.Context, experiment protocol.Experime
 		workerEpoch:  -1,
 		staleEpoch:   -1,
 		returnEpoch:  -1,
-	}, nil
+	}
+	return environment.PreparedEnvironment{Session: session, Identity: session.environmentIdentity(f.Capabilities())}, nil
 }
 
 type nexusSession struct {
 	mu sync.Mutex
 
-	cluster              ClusterInfo
-	options              NexusOptions
+	cluster              clusterInfo
+	options              nexusOptions
 	transport            NexusTaskTransport
 	experimentID         string
 	scheduled            bool
@@ -113,6 +118,7 @@ type nexusSession struct {
 	faultActive          bool
 	faultFired           bool
 	faultHandle          string
+	facts                []observation.Fact
 }
 
 func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, bindings environment.Bindings) (environment.ActionEvidence, error) {
@@ -170,17 +176,20 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, bind
 			return environment.ActionEvidence{}, errors.New("cancellation cannot be requested")
 		}
 		s.cancellationAccepted = true
+		s.appendCancellationFact(observation.NexusCancellationAccepted)
 	case "commit-cancellation":
 		if !s.cancellationAccepted {
 			return environment.ActionEvidence{}, errors.New("cancellation was not accepted")
 		}
 		s.cancelled = true
+		s.appendCancellationFact(observation.NexusCancellationCommitted)
 	case "acquire-ownership":
 		if s.dispatched && s.faultActive {
 			s.staleEpoch = s.workerEpoch
 			s.faultFired = true
 		}
 		s.ownerEpoch++
+		s.appendOwnershipFact()
 	case "retry-task":
 		if !s.scheduled {
 			return environment.ActionEvidence{}, errors.New("operation is not retryable")
@@ -219,10 +228,13 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, bind
 			return environment.ActionEvidence{}, errors.New("no worker completion to persist")
 		}
 		stale := s.returnEpoch != s.ownerEpoch || s.cancelled
-		if stale && ((s.transport != nil && s.completionVisible) ||
-			(s.transport == nil && s.options.AllowStaleSuccess)) {
+		visible := (s.transport != nil && s.completionVisible) ||
+			(s.transport == nil && s.options.AllowStaleSuccess)
+		if stale && visible {
 			s.staleVisible = true
+			s.appendSuccessFact()
 		}
+		s.appendClosedWindow()
 		if s.transport != nil {
 			evidence.Source = s.completionSource
 			evidence.Reference = s.completionReference
@@ -329,41 +341,115 @@ func (r nexusFaultRealizer) RealizationEvidence(
 	}, nil
 }
 
-func (s *nexusSession) Observe(ctx context.Context, checkpoint protocol.Checkpoint, _ environment.Bindings) (environment.Observation, error) {
+func (s *nexusSession) ObserveFacts(
+	ctx context.Context,
+	checkpoint protocol.Checkpoint,
+	_ environment.Bindings,
+) ([]observation.Fact, error) {
 	if err := ctx.Err(); err != nil {
-		return environment.Observation{}, err
+		return nil, err
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.sequence++
-	observation := environment.Observation{
-		CheckpointID:    checkpoint.Identifier,
-		Kind:            checkpoint.Observation,
-		Source:          "umpire3-controlled-nexus-state",
-		SourceSequence:  s.sequence,
-		CausalReference: s.cluster.Namespace + "/" + s.cluster.MintedOperationID,
-		EntityIdentity:  s.cluster.MintedOperationID,
-		Lineage:         []string{s.cluster.Namespace, s.cluster.MintedOperationID},
-	}
 	switch checkpoint.Observation {
-	case "cancellation-accepted":
-		observation.Satisfied = s.cancellationAccepted
-	case "cancellation-won":
-		observation.Satisfied = s.cancelled
-	case "stale-success-absent":
-		observation.Satisfied = !s.staleVisible
-		if s.completionSource != "" {
-			observation.Source = s.completionSource
-			observation.CausalReference = s.completionReference
-		}
+	case "cancellation-accepted", "cancellation-won", "stale-success-absent":
 	default:
-		return environment.Observation{}, fmt.Errorf("unsupported observation %q", checkpoint.Observation)
+		return nil, fmt.Errorf("unsupported observation %q", checkpoint.Observation)
 	}
-	observation.SourceIdentity = observation.Source
-	observation.ClockDomain = observation.Source + "-sequence"
-	observation.Reference = observation.CausalReference + "/" + checkpoint.Identifier
-	return observation, nil
+	return append([]observation.Fact(nil), s.facts...), nil
+}
+
+func (s *nexusSession) appendCancellationFact(eventType string) {
+	sequence := s.nextFactSequence()
+	operationID := s.operationID()
+	s.facts = append(s.facts, observation.Fact{
+		Identifier: fmt.Sprintf("history/%s/%d", eventType, sequence),
+		Source: s.factSource(
+			"umpire3-controlled-nexus-history", sequence,
+			fmt.Sprintf("%s/%s/history/%d", s.cluster.Namespace, operationID, sequence),
+		),
+		History: &observation.HistoryEvent{
+			EventType: eventType, EventID: sequence, OperationID: operationID,
+		},
+	})
+}
+
+func (s *nexusSession) appendOwnershipFact() {
+	sequence := s.nextFactSequence()
+	operationID := s.operationID()
+	s.facts = append(s.facts, observation.Fact{
+		Identifier: fmt.Sprintf("mechanism/%s/%d", observation.NexusOwnershipAcquired, sequence),
+		Source: s.factSource(
+			"umpire3-controlled-nexus-mechanism", sequence,
+			fmt.Sprintf("%s/%s/mechanism/%d", s.cluster.Namespace, operationID, sequence),
+		),
+		Mechanism: &observation.MechanismReceipt{
+			Action: observation.NexusOwnershipAcquired, Resource: operationID,
+			Attempt: 1, OwnerEpoch: int64(s.ownerEpoch), Outcome: "acquired",
+		},
+	})
+}
+
+func (s *nexusSession) appendSuccessFact() {
+	sequence := s.nextFactSequence()
+	operationID := s.operationID()
+	sourceIdentity := s.completionSource
+	if sourceIdentity == "" {
+		sourceIdentity = "umpire3-controlled-nexus-history"
+	}
+	reference := s.completionReference
+	if reference == "" {
+		reference = fmt.Sprintf("%s/%s/history/%d", s.cluster.Namespace, operationID, sequence)
+	}
+	cancellationCommitted := s.cancelled
+	ownerEpoch := int64(s.returnEpoch)
+	currentOwnerEpoch := int64(s.ownerEpoch)
+	s.facts = append(s.facts, observation.Fact{
+		Identifier: fmt.Sprintf("history/%s/%d", observation.NexusSuccessRecorded, sequence),
+		Source:     s.factSource(sourceIdentity, sequence, reference),
+		History: &observation.HistoryEvent{
+			EventType: observation.NexusSuccessRecorded, EventID: sequence, OperationID: operationID,
+			OwnerEpoch: &ownerEpoch, CurrentOwnerEpoch: &currentOwnerEpoch,
+			CancellationCommitted: &cancellationCommitted,
+		},
+	})
+}
+
+func (s *nexusSession) appendClosedWindow() {
+	sequence := s.nextFactSequence()
+	operationID := s.operationID()
+	s.facts = append(s.facts, observation.Fact{
+		Identifier: fmt.Sprintf("window/%s/%d", observation.NexusCancellationWindow, sequence),
+		Source: s.factSource(
+			"umpire3-controlled-nexus-history", sequence,
+			fmt.Sprintf("%s/%s/window/%d", s.cluster.Namespace, operationID, sequence),
+		),
+		Window: &observation.EvidenceWindow{
+			Purpose: observation.NexusCancellationWindow, Closed: true, ThroughSequence: sequence,
+		},
+	})
+}
+
+func (s *nexusSession) nextFactSequence() int64 {
+	s.sequence++
+	return s.sequence
+}
+
+func (s *nexusSession) operationID() string {
+	if s.cluster.MintedOperationID != "" {
+		return s.cluster.MintedOperationID
+	}
+	return s.experimentID
+}
+
+func (s *nexusSession) factSource(identity string, sequence int64, reference string) observation.Source {
+	operationID := s.operationID()
+	return observation.Source{
+		Identity: identity, ClockDomain: identity + "-sequence", Sequence: sequence,
+		Reference: reference, CausalReferences: []string{s.cluster.Namespace + "/" + operationID},
+		EntityIdentity: operationID, Lineage: []string{s.cluster.Namespace, operationID},
+	}
 }
 
 func (s *nexusSession) Cleanup(ctx context.Context) environment.CleanupResult {
@@ -401,7 +487,7 @@ func (s *nexusSession) recoveryMetadata() map[string]string {
 	}
 }
 
-func (s *nexusSession) Profile() environment.Profile {
+func (s *nexusSession) environmentIdentity(capabilities []protocol.CapabilityID) environment.EnvironmentIdentity {
 	profile := environment.EvidenceProfileInProcessHooks
 	observationAuthority := "controlled-state-hooks"
 	if s.transport != nil {
@@ -416,7 +502,7 @@ func (s *nexusSession) Profile() environment.Profile {
 	if configurationIdentity == "" {
 		configurationIdentity = s.cluster.BuildID + "/default"
 	}
-	return environment.Profile{
+	return environment.EnvironmentIdentity{
 		Name:                  name,
 		BuildID:               s.cluster.BuildID,
 		ConfigurationIdentity: configurationIdentity,
@@ -426,5 +512,6 @@ func (s *nexusSession) Profile() environment.Profile {
 		FaultAuthority:        "controlled-stale-completion",
 		IsolationIdentity:     s.cluster.Namespace,
 		RetentionClass:        "semantic-only",
+		Capabilities:          append([]protocol.CapabilityID(nil), capabilities...),
 	}
 }

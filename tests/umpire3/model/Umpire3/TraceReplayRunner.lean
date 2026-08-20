@@ -20,7 +20,7 @@ structure Request where
   actions : List String
   deriving DecidableEq, Repr
 
-private def lowerHexDigit (character : Char) : Bool :=
+def lowerHexDigit (character : Char) : Bool :=
   ('0' ≤ character && character ≤ '9') || ('a' ≤ character && character ≤ 'f')
 
 def Request.validDigest (request : Request) : Bool :=
@@ -60,12 +60,12 @@ open Lean Elab Term in
     | throwUnsupportedSyntax
   let declarationName ← realizeGlobalConstNoOverloadWithInfo theoremName
   let axioms ← collectAxioms declarationName
-  let axioms := axioms.qsort Name.lt |>.map (Syntax.mkStrLit ∘ toString)
+  let axioms := axioms.map toString |>.qsort (· < ·) |>.map Syntax.mkStrLit
   let expanded ← `([$[$axioms],*])
   withMacroExpansion stx expanded <| elabTerm expanded expectedType?
 
 def checkedRequestAxioms : List String :=
-  (resolved_trace_replay_axioms% checkedRequest).mergeSort (· ≤ ·)
+  resolved_trace_replay_axioms% checkedRequest
 
 def Request.receipt (request : Request) : Lean.Json := Lean.Json.mkObj [
   ("formatVersion", "umpire3/trace-replay-receipt/v1"),

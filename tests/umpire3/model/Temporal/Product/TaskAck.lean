@@ -77,12 +77,13 @@ def declaration : LifecycleDeclaration where
     identifier := "workflow-task-acknowledged"
     description := "The delivered Workflow Task was acknowledged"
   }]
-  properties := [{
-    identifier := "task-delivery.acknowledged-removes-backlog"
-    description := "Acknowledging a delivered Workflow Task removes it from backlog"
-    statementHash := "sha256:e953b7373a7b98cc23d9ee33b1495e4e824142dd15b7205fcd35e980c2e7ab23"
-    evidence := ["source-sequence", "identity-lineage"]
-  }]
+  properties := [
+    (RegisteredProperty.mk
+      "task-delivery.acknowledged-removes-backlog"
+      "Acknowledging a delivered Workflow Task removes it from backlog"
+      ["source-sequence", "identity-lineage"]
+      (resolved_theorem% acknowledged_removes_backlog)).declaration
+  ]
   module := {
     identifier := "Temporal.Product.TaskAck"
     description := "Workflow Task acknowledgement product contract"

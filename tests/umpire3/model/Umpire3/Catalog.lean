@@ -1,4 +1,5 @@
 import Lean.Data.Json
+import Umpire3.Registration
 
 namespace Umpire3
 
@@ -67,7 +68,21 @@ structure PropertyDeclaration where
   description : String
   statementHash : String
   evidence : List String
+  theoremName : String
+  statement : String
+  axioms : List String
+  trustBadge : String
   deriving DecidableEq, Repr
+
+def RegisteredProperty.declaration (property : RegisteredProperty) : PropertyDeclaration where
+  identifier := property.identifier
+  description := property.description
+  statementHash := "derived"
+  evidence := property.evidence
+  theoremName := property.proof.name
+  statement := property.proof.statement
+  axioms := property.proof.axioms
+  trustBadge := if property.proof.axioms.isEmpty then "kernel" else "kernel-with-declared-axioms"
 
 structure PolicyDeclaration where
   identifier : String
@@ -153,7 +168,9 @@ def SemanticCatalog.wellFormed (catalog : SemanticCatalog) : Bool :=
     catalog.relations.all (fun relation =>
       containsIdentifier relation.source (catalog.entities.map (·.identifier)) &&
       containsIdentifier relation.target (catalog.entities.map (·.identifier))) &&
-    catalog.properties.all (fun property => property.statementHash != "" &&
+    catalog.properties.all (fun property => property.statementHash = "derived" &&
+      property.theoremName != "" && property.statement != "" &&
+      (property.trustBadge = "kernel" || property.trustBadge = "kernel-with-declared-axioms") &&
       property.evidence.all (fun evidence =>
         containsIdentifier evidence (catalog.evidence.map (·.identifier)))) &&
     catalog.faults.all (fun fault => fault.safetyClass != "" &&
@@ -235,6 +252,10 @@ private def PropertyDeclaration.toJson (declaration : PropertyDeclaration) : Lea
   ("description", declaration.description),
   ("statementHash", declaration.statementHash),
   ("evidence", stringsJson declaration.evidence),
+  ("theorem", declaration.theoremName),
+  ("statement", declaration.statement),
+  ("axioms", stringsJson declaration.axioms),
+  ("trustBadge", declaration.trustBadge),
 ]
 
 private def PolicyDeclaration.toJson (declaration : PolicyDeclaration) : Lean.Json := Lean.Json.mkObj [

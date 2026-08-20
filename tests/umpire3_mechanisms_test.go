@@ -36,6 +36,7 @@ import (
 	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tests/umpire3/participant"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -469,7 +470,7 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 	ctx context.Context,
 	programID string,
 	operation participant.Operation,
-) (participant.MechanismReceipt, bool, error) {
+) (umpire3temporal.MechanismReceipt, bool, error) {
 	mode := ""
 	switch {
 	case strings.Contains(programID, "SparseRegressionOrdinaryNexusCompletion"):
@@ -479,17 +480,17 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 	case strings.Contains(programID, "ProbeNexusDegraded"):
 		mode = "degraded"
 	default:
-		return participant.MechanismReceipt{}, false, nil
+		return umpire3temporal.MechanismReceipt{}, false, nil
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.execution != nil && d.execution.mode != mode {
-		return participant.MechanismReceipt{}, true, errors.New("dedicated Nexus behavior mode changed during execution")
+		return umpire3temporal.MechanismReceipt{}, true, errors.New("dedicated Nexus behavior mode changed during execution")
 	}
 	var err error
 	if mode == "degraded" {
 		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
-			return participant.MechanismReceipt{}, true,
+			return umpire3temporal.MechanismReceipt{}, true,
 				fmt.Errorf("degraded Nexus behavior does not support action %q", operation.SemanticAction)
 		}
 		if err = d.scheduleNexusBehavior(ctx, programID, mode); err == nil {
@@ -512,15 +513,15 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 		case string(protocol.ActionKindPersistSuccess):
 			err = d.persistNexusBehavior(ctx)
 		default:
-			return participant.MechanismReceipt{}, true,
+			return umpire3temporal.MechanismReceipt{}, true,
 				fmt.Errorf("dedicated Nexus behavior does not support action %q", operation.SemanticAction)
 		}
 	}
 	if err != nil {
-		return participant.MechanismReceipt{}, true, err
+		return umpire3temporal.MechanismReceipt{}, true, err
 	}
 	execution := d.execution
-	receipt := participant.MechanismReceipt{
+	receipt := umpire3temporal.MechanismReceipt{
 		WorkflowID: execution.workflowID, RunID: execution.runID, Lineage: []string{execution.runID},
 		Source: "temporal-nexus-phased-driver",
 		Reference: fmt.Sprintf("%s/%s/nexus/%s/%s", execution.workflowID, execution.runID,
@@ -1197,11 +1198,11 @@ func (d *umpire3CallbackDriver) RegisterCompletionCallback(
 	ctx context.Context,
 	programID string,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	d.mu.Lock()
 	if d.execution != nil {
 		d.mu.Unlock()
-		return participant.MechanismReceipt{}, errors.New("completion callback is already registered")
+		return umpire3temporal.MechanismReceipt{}, errors.New("completion callback is already registered")
 	}
 	d.mu.Unlock()
 	if strings.Contains(programID, "SparseRegressionSharedHandlerWorkflow") {
@@ -1225,7 +1226,7 @@ func (d *umpire3CallbackDriver) RegisterCompletionCallback(
 			}},
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("start completion callback workflow: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("start completion callback workflow: %w", err)
 	}
 	cleanup := true
 	defer func() {
@@ -1244,22 +1245,22 @@ func (d *umpire3CallbackDriver) RegisterCompletionCallback(
 		Identity:  "umpire3-completion-callback-driver",
 	})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("poll completion callback workflow task: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll completion callback workflow task: %w", err)
 	}
 	if len(task.GetTaskToken()) == 0 {
-		return participant.MechanismReceipt{}, errors.New("completion callback workflow returned an empty task token")
+		return umpire3temporal.MechanismReceipt{}, errors.New("completion callback workflow returned an empty task token")
 	}
 	description, err := d.env.SdkClient().DescribeWorkflowExecution(ctx, workflowID, started.GetRunId())
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("describe registered completion callback: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("describe registered completion callback: %w", err)
 	}
 	if len(description.GetCallbacks()) != 1 ||
 		description.GetCallbacks()[0].GetState() != enumspb.CALLBACK_STATE_STANDBY ||
 		description.GetCallbacks()[0].GetCallback().GetNexus().GetUrl() != callbackURL {
-		return participant.MechanismReceipt{}, errors.New("Temporal did not expose the registered completion callback")
+		return umpire3temporal.MechanismReceipt{}, errors.New("Temporal did not expose the registered completion callback")
 	}
 	if err := d.validateStorageVariant(ctx, workflowID, started.GetRunId()); err != nil {
-		return participant.MechanismReceipt{}, err
+		return umpire3temporal.MechanismReceipt{}, err
 	}
 	d.mu.Lock()
 	d.execution = &umpire3CallbackExecution{
@@ -1268,7 +1269,7 @@ func (d *umpire3CallbackDriver) RegisterCompletionCallback(
 	}
 	d.mu.Unlock()
 	cleanup = false
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: workflowID, RunID: started.GetRunId(), Lineage: []string{started.GetRunId()},
 		Source:    "temporal-completion-callback-registration",
 		Reference: fmt.Sprintf("%s/%s/callback/%s/registered", workflowID, started.GetRunId(), callbackURL),
@@ -1279,9 +1280,9 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 	ctx context.Context,
 	programID string,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	if d.nexusEnv == nil {
-		return participant.MechanismReceipt{}, errors.New("shared handler callback driver requires a Nexus environment")
+		return umpire3temporal.MechanismReceipt{}, errors.New("shared handler callback driver requires a Nexus environment")
 	}
 	handlerWorkflowID := umpire3SDKWorkflowID(programID+"-shared-handler", commandID)
 	handlerTaskQueue := handlerWorkflowID + "-task-queue"
@@ -1308,7 +1309,7 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 				}},
 			}})
 		if err != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("create shared handler Nexus endpoint: %w", err)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("create shared handler Nexus endpoint: %w", err)
 		}
 		d.t.Cleanup(func() {
 			cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -1330,7 +1331,7 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 				WorkflowTaskTimeout: durationpb.New(10 * time.Second),
 			})
 		if err != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("start shared handler caller: %w", err)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("start shared handler caller: %w", err)
 		}
 		caller := umpire3SharedHandlerCaller{
 			workflowID: callerID, runID: started.GetRunId(), taskQueue: callerTaskQueue,
@@ -1345,7 +1346,7 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 				Identity: "umpire3-shared-handler-driver",
 			})
 		if err != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("poll shared handler caller task: %w", err)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll shared handler caller task: %w", err)
 		}
 		_, err = d.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 			&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1362,7 +1363,7 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 				}},
 			})
 		if err != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("schedule shared handler Nexus operation: %w", err)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("schedule shared handler Nexus operation: %w", err)
 		}
 		nexusTask, err := d.env.FrontendClient().PollNexusTaskQueue(ctx,
 			&workflowservice.PollNexusTaskQueueRequest{
@@ -1373,11 +1374,11 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 				Identity: "umpire3-shared-handler-driver",
 			})
 		if err != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("poll shared handler Nexus task: %w", err)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll shared handler Nexus task: %w", err)
 		}
 		start := nexusTask.GetRequest().GetStartOperation()
 		if start == nil || start.GetCallback() == "" || start.GetCallbackHeader() == nil {
-			return participant.MechanismReceipt{}, errors.New("shared handler Nexus task has no completion callback")
+			return umpire3temporal.MechanismReceipt{}, errors.New("shared handler Nexus task has no completion callback")
 		}
 		start.CallbackHeader[nexus.HeaderOperationToken] = handlerWorkflowID
 		handlerRequestID := uuid.NewString()
@@ -1402,28 +1403,28 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 				}},
 			})
 		if err != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("start or attach shared handler callback: %w", err)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("start or attach shared handler callback: %w", err)
 		}
 		if shared.handlerRunID == "" {
 			if !handler.GetStarted() {
-				return participant.MechanismReceipt{}, errors.New("first shared handler request did not start the handler")
+				return umpire3temporal.MechanismReceipt{}, errors.New("first shared handler request did not start the handler")
 			}
 			shared.handlerRunID = handler.GetRunId()
 		} else if handler.GetStarted() || handler.GetRunId() != shared.handlerRunID {
-			return participant.MechanismReceipt{}, errors.New("second shared handler request did not attach to the existing run")
+			return umpire3temporal.MechanismReceipt{}, errors.New("second shared handler request did not attach to the existing run")
 		}
 		shared.callers[index].nexusTask = nexusTask
 	}
 	description, err := d.env.SdkClient().DescribeWorkflowExecution(ctx, shared.handlerWorkflowID, shared.handlerRunID)
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("describe shared handler callbacks: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("describe shared handler callbacks: %w", err)
 	}
 	if len(description.GetCallbacks()) != 2 {
-		return participant.MechanismReceipt{}, fmt.Errorf("shared handler has %d callbacks, want 2", len(description.GetCallbacks()))
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("shared handler has %d callbacks, want 2", len(description.GetCallbacks()))
 	}
 	for _, callback := range description.GetCallbacks() {
 		if callback.GetState() != enumspb.CALLBACK_STATE_STANDBY || callback.GetCallback().GetNexus().GetUrl() == "" {
-			return participant.MechanismReceipt{}, errors.New("shared handler callback is not retained in standby")
+			return umpire3temporal.MechanismReceipt{}, errors.New("shared handler callback is not retained in standby")
 		}
 	}
 	d.mu.Lock()
@@ -1434,7 +1435,7 @@ func (d *umpire3CallbackDriver) registerSharedHandlerCallbacks(
 	}
 	d.mu.Unlock()
 	cleanup = false
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: shared.callers[0].workflowID, RunID: shared.callers[0].runID,
 		Lineage: []string{shared.callers[0].runID}, Source: "temporal-shared-handler-registration",
 		Reference: fmt.Sprintf("%s/%s/shared-handler/%s/%s/callbacks/2",
@@ -1447,12 +1448,12 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 	ctx context.Context,
 	execution *umpire3CallbackExecution,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	d.mu.Lock()
 	shared := d.shared
 	d.mu.Unlock()
 	if shared == nil || len(shared.callers) != 2 {
-		return participant.MechanismReceipt{}, errors.New("shared handler execution is incomplete")
+		return umpire3temporal.MechanismReceipt{}, errors.New("shared handler execution is incomplete")
 	}
 	handlerTask, err := d.env.FrontendClient().PollWorkflowTaskQueue(ctx,
 		&workflowservice.PollWorkflowTaskQueueRequest{
@@ -1463,7 +1464,7 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 			Identity: "umpire3-shared-handler-driver",
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("poll shared handler completion task: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll shared handler completion task: %w", err)
 	}
 	_, err = d.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 		&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1479,7 +1480,7 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 			}},
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("complete shared handler workflow: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("complete shared handler workflow: %w", err)
 	}
 	for _, caller := range shared.callers {
 		callerTask, pollErr := d.env.FrontendClient().PollWorkflowTaskQueue(ctx,
@@ -1489,29 +1490,29 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 				Identity:  "umpire3-shared-handler-driver",
 			})
 		if pollErr != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("poll completed shared caller: %w", pollErr)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll completed shared caller: %w", pollErr)
 		}
 		startedFound := false
 		completedFound := false
 		for _, event := range callerTask.GetHistory().GetEvents() {
 			if event.GetEventType() == enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED {
 				if event.GetNexusOperationStartedEventAttributes().GetOperationToken() != shared.handlerWorkflowID {
-					return participant.MechanismReceipt{}, errors.New("shared caller operation token does not name the handler")
+					return umpire3temporal.MechanismReceipt{}, errors.New("shared caller operation token does not name the handler")
 				}
 				if len(event.GetLinks()) != 1 {
-					return participant.MechanismReceipt{}, errors.New("shared caller start does not contain exactly one handler link")
+					return umpire3temporal.MechanismReceipt{}, errors.New("shared caller start does not contain exactly one handler link")
 				}
 				link := event.GetLinks()[0].GetWorkflowEvent()
 				if link == nil || link.GetNamespace() != d.env.Namespace().String() ||
 					link.GetWorkflowId() != shared.handlerWorkflowID || link.GetRunId() != shared.handlerRunID {
-					return participant.MechanismReceipt{}, errors.New("shared caller callback link does not resolve to the shared handler run")
+					return umpire3temporal.MechanismReceipt{}, errors.New("shared caller callback link does not resolve to the shared handler run")
 				}
 				startedFound = true
 			}
 			completedFound = completedFound || event.GetEventType() == enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED
 		}
 		if !startedFound || !completedFound {
-			return participant.MechanismReceipt{}, errors.New("shared caller did not record started and completed Nexus events")
+			return umpire3temporal.MechanismReceipt{}, errors.New("shared caller did not record started and completed Nexus events")
 		}
 		_, lateErr := d.env.FrontendClient().RespondNexusTaskCompleted(ctx,
 			&workflowservice.RespondNexusTaskCompletedRequest{
@@ -1524,7 +1525,7 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 				}},
 			})
 		if lateErr != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("return late shared handler start response: %w", lateErr)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("return late shared handler start response: %w", lateErr)
 		}
 		_, completeErr := d.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 			&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1538,7 +1539,7 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 				}},
 			})
 		if completeErr != nil {
-			return participant.MechanismReceipt{}, fmt.Errorf("complete shared handler caller: %w", completeErr)
+			return umpire3temporal.MechanismReceipt{}, fmt.Errorf("complete shared handler caller: %w", completeErr)
 		}
 	}
 	d.mu.Lock()
@@ -1546,7 +1547,7 @@ func (d *umpire3CallbackDriver) completeSharedHandlerCallbacks(
 	execution.workflowClosed = true
 	execution.completed = true
 	d.mu.Unlock()
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: execution.workflowID, RunID: execution.runID, Lineage: []string{execution.runID},
 		Source: "temporal-shared-handler-completion",
 		Reference: fmt.Sprintf("%s/%s/shared-handler/%s/%s/%s/completed",
@@ -1587,9 +1588,9 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 	ctx context.Context,
 	programID string,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	if d.nexusEnv == nil {
-		return participant.MechanismReceipt{}, errors.New("Nexus callback driver requires a Nexus environment")
+		return umpire3temporal.MechanismReceipt{}, errors.New("Nexus callback driver requires a Nexus environment")
 	}
 	captured := make(chan umpire3CapturedNexusCallback, 1)
 	endpoint := d.nexusEnv.createRandomExternalNexusServer(ctx, d.t, nexustest.Handler{
@@ -1627,7 +1628,7 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 			WorkflowTaskTimeout: durationpb.New(10 * time.Second),
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("start Nexus callback caller: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("start Nexus callback caller: %w", err)
 	}
 	cleanup := true
 	defer func() {
@@ -1647,7 +1648,7 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 			Identity:  "umpire3-nexus-callback-driver",
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("poll Nexus callback caller start task: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll Nexus callback caller start task: %w", err)
 	}
 	_, err = d.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 		&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1665,13 +1666,13 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 			}},
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("schedule Nexus callback operation: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("schedule Nexus callback operation: %w", err)
 	}
 	var callback umpire3CapturedNexusCallback
 	select {
 	case callback = <-captured:
 	case <-ctx.Done():
-		return participant.MechanismReceipt{}, fmt.Errorf("capture Nexus completion callback: %w", ctx.Err())
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("capture Nexus completion callback: %w", ctx.Err())
 	}
 	terminalTask, err := d.env.FrontendClient().PollWorkflowTaskQueue(ctx,
 		&workflowservice.PollWorkflowTaskQueueRequest{
@@ -1680,7 +1681,7 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 			Identity:  "umpire3-nexus-callback-driver",
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("poll Nexus started caller task: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll Nexus started caller task: %w", err)
 	}
 	startedObserved := false
 	for _, event := range terminalTask.GetHistory().GetEvents() {
@@ -1690,7 +1691,7 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 		}
 	}
 	if !startedObserved {
-		return participant.MechanismReceipt{}, errors.New("caller history did not record the asynchronous Nexus operation")
+		return umpire3temporal.MechanismReceipt{}, errors.New("caller history did not record the asynchronous Nexus operation")
 	}
 	_, err = d.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 		&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1704,7 +1705,7 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 			}},
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("complete Nexus callback caller: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("complete Nexus callback caller: %w", err)
 	}
 	d.mu.Lock()
 	d.execution = &umpire3CallbackExecution{
@@ -1714,7 +1715,7 @@ func (d *umpire3CallbackDriver) registerNexusCallbackAfterCaller(
 	}
 	d.mu.Unlock()
 	cleanup = false
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: workflowID, RunID: started.GetRunId(), Lineage: []string{started.GetRunId()},
 		Source:    "temporal-nexus-callback-registration",
 		Reference: fmt.Sprintf("%s/%s/nexus-callback/registered", workflowID, started.GetRunId()),
@@ -1725,12 +1726,12 @@ func (d *umpire3CallbackDriver) CompleteCompletionCallback(
 	ctx context.Context,
 	programID string,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	d.mu.Lock()
 	execution := d.execution
 	if execution == nil || execution.programID != programID || execution.completed {
 		d.mu.Unlock()
-		return participant.MechanismReceipt{}, errors.New("completion callback is not deliverable")
+		return umpire3temporal.MechanismReceipt{}, errors.New("completion callback is not deliverable")
 	}
 	d.mu.Unlock()
 	if execution.kind == "shared-handler" {
@@ -1751,25 +1752,25 @@ func (d *umpire3CallbackDriver) CompleteCompletionCallback(
 			}},
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("complete callback workflow: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("complete callback workflow: %w", err)
 	}
 	var completion *nexusrpc.CompletionRequest
 	select {
 	case completion = <-d.completionCh:
 	case <-ctx.Done():
-		return participant.MechanismReceipt{}, fmt.Errorf("wait for completion callback delivery: %w", ctx.Err())
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("wait for completion callback delivery: %w", ctx.Err())
 	}
 	if completion == nil || completion.State != nexus.OperationStateSucceeded {
-		return participant.MechanismReceipt{}, errors.New("completion callback receiver did not observe a successful terminal state")
+		return umpire3temporal.MechanismReceipt{}, errors.New("completion callback receiver did not observe a successful terminal state")
 	}
 	if err := d.waitForSucceededCallback(ctx, execution); err != nil {
-		return participant.MechanismReceipt{}, err
+		return umpire3temporal.MechanismReceipt{}, err
 	}
 	d.mu.Lock()
 	execution.responseValidated = true
 	execution.completed = true
 	d.mu.Unlock()
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: execution.workflowID, RunID: execution.runID, Lineage: []string{execution.runID},
 		Source: "temporal-nexus-completion-callback-receiver",
 		Reference: fmt.Sprintf("%s/%s/callback/%s/delivered/%s",
@@ -1781,7 +1782,7 @@ func (d *umpire3CallbackDriver) completeNexusCallbackAfterCaller(
 	ctx context.Context,
 	execution *umpire3CallbackExecution,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	client := nexusrpc.NewCompletionHTTPClient(nexusrpc.CompletionHTTPClientOptions{
 		Serializer: commonnexus.PayloadSerializer,
 	})
@@ -1790,7 +1791,7 @@ func (d *umpire3CallbackDriver) completeNexusCallbackAfterCaller(
 		Result: payload.EncodeString("umpire3-late-success"),
 	})
 	if err == nil {
-		return participant.MechanismReceipt{}, errors.New("Temporal accepted a Nexus callback after its caller completed")
+		return umpire3temporal.MechanismReceipt{}, errors.New("Temporal accepted a Nexus callback after its caller completed")
 	}
 	history := d.env.GetHistory(d.env.Namespace().String(), &commonpb.WorkflowExecution{
 		WorkflowId: execution.workflowID, RunId: execution.runID,
@@ -1802,13 +1803,13 @@ func (d *umpire3CallbackDriver) completeNexusCallbackAfterCaller(
 		callerCompleted = callerCompleted || event.GetEventType() == enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED
 	}
 	if !startedObserved || !callerCompleted {
-		return participant.MechanismReceipt{}, errors.New("late Nexus callback rejection lacks caller history evidence")
+		return umpire3temporal.MechanismReceipt{}, errors.New("late Nexus callback rejection lacks caller history evidence")
 	}
 	d.mu.Lock()
 	execution.responseValidated = true
 	execution.completed = true
 	d.mu.Unlock()
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: execution.workflowID, RunID: execution.runID, Lineage: []string{execution.runID},
 		Source: "temporal-nexus-callback-rejection",
 		Reference: fmt.Sprintf("%s/%s/nexus-callback/%s/rejected-after-close",
@@ -1919,9 +1920,9 @@ func (f *umpire3WorkflowTaskFencer) FenceWorkflowOwner(
 	ctx context.Context,
 	programID string,
 	commandID string,
-) (participant.MechanismReceipt, error) {
+) (umpire3temporal.MechanismReceipt, error) {
 	if f.env == nil {
-		return participant.MechanismReceipt{}, errors.New("Workflow Task fencer requires a Temporal environment")
+		return umpire3temporal.MechanismReceipt{}, errors.New("Workflow Task fencer requires a Temporal environment")
 	}
 	workflowID := umpire3SDKWorkflowID(programID+"-fence", commandID)
 	taskQueue := workflowID + "-task-queue"
@@ -1934,7 +1935,7 @@ func (f *umpire3WorkflowTaskFencer) FenceWorkflowOwner(
 		WorkflowTaskTimeout: durationpb.New(10 * time.Second), Identity: identity,
 	})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("start fenced workflow: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("start fenced workflow: %w", err)
 	}
 	cleanup := true
 	defer func() {
@@ -1963,7 +1964,7 @@ func (f *umpire3WorkflowTaskFencer) FenceWorkflowOwner(
 	}
 	stale, err := poll(identity + "-stale")
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("poll stale Workflow Task owner: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll stale Workflow Task owner: %w", err)
 	}
 	_, err = f.env.FrontendClient().RespondWorkflowTaskFailed(ctx, &workflowservice.RespondWorkflowTaskFailedRequest{
 		Namespace: f.env.Namespace().String(), TaskToken: stale.GetTaskToken(),
@@ -1971,11 +1972,11 @@ func (f *umpire3WorkflowTaskFencer) FenceWorkflowOwner(
 		Identity: identity + "-stale",
 	})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("supersede stale Workflow Task owner: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("supersede stale Workflow Task owner: %w", err)
 	}
 	current, err := poll(identity + "-current")
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("poll current Workflow Task owner: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("poll current Workflow Task owner: %w", err)
 	}
 	_, staleErr := f.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 		&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1983,7 +1984,7 @@ func (f *umpire3WorkflowTaskFencer) FenceWorkflowOwner(
 		})
 	var notFound *serviceerror.NotFound
 	if !errors.As(staleErr, &notFound) {
-		return participant.MechanismReceipt{}, fmt.Errorf("stale Workflow Task completion was not fenced: %w", staleErr)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("stale Workflow Task completion was not fenced: %w", staleErr)
 	}
 	_, err = f.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
 		&workflowservice.RespondWorkflowTaskCompletedRequest{
@@ -1996,10 +1997,10 @@ func (f *umpire3WorkflowTaskFencer) FenceWorkflowOwner(
 			}},
 		})
 	if err != nil {
-		return participant.MechanismReceipt{}, fmt.Errorf("complete current Workflow Task owner: %w", err)
+		return umpire3temporal.MechanismReceipt{}, fmt.Errorf("complete current Workflow Task owner: %w", err)
 	}
 	cleanup = false
-	return participant.MechanismReceipt{
+	return umpire3temporal.MechanismReceipt{
 		WorkflowID: workflowID, RunID: started.GetRunId(), Lineage: []string{started.GetRunId()},
 		Source: identity,
 		Reference: fmt.Sprintf("%s/%s/workflow-task/%d/fenced-before/%d",

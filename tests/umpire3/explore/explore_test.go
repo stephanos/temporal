@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/compiler"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 func TestExploreIsDeterministicAndExportsOrdinaryExperiments(t *testing.T) {
@@ -62,17 +62,17 @@ func TestExploreCoversGeneratedNexusLifecycleDenominator(t *testing.T) {
 			Property: protocol.PropertyIDNexusOperationClosure,
 		},
 		Holes: []Hole{{Identifier: "edge", Kind: HoleAction, Values: values}},
-		Build: func(assignment Assignment) (compiler.Scenario, error) {
+		Build: func(assignment Assignment) (scenario.Scenario, error) {
 			value := assignment["edge"]
-			return compiler.Scenario{
+			return scenario.Scenario{
 				Identifier: "nexus-" + strings.ReplaceAll(value.Key, "/", "-"),
 				Target:     protocol.TargetIDFeatureNexus,
-				Resources: []compiler.Resource{{
+				Resources: []scenario.Resource{{
 					Identifier: "operation", Kind: protocol.EntityKindNexusOperation,
 				}},
-				Root: compiler.OnePath(
-					compiler.Action("edge-action", nexusCoverageAction(value.Text)),
-					compiler.Require(protocol.PropertyIDNexusOperationClosure),
+				Root: scenario.OnePath(
+					scenario.Action("edge-action", nexusCoverageAction(value.Text)),
+					scenario.Require(protocol.PropertyIDNexusOperationClosure),
 				),
 			}, nil
 		},
@@ -123,7 +123,7 @@ func TestTransitionCoverageRequiresPositiveRuntimeObservation(t *testing.T) {
 		Goal: Goal{Kind: GoalTransitionCoverage, Target: protocol.TargetIDFeatureNexus,
 			Property: protocol.PropertyIDNexusOperationClosure},
 		Holes: []Hole{{Identifier: "edge", Kind: HoleAction, Values: values[:1]}},
-		Build: func(Assignment) (compiler.Scenario, error) { return compiler.Scenario{}, nil },
+		Build: func(Assignment) (scenario.Scenario, error) { return scenario.Scenario{}, nil },
 	}
 
 	_, err = Run(context.Background(), template, testBounds())
@@ -156,14 +156,14 @@ func callbackTemplate() Template {
 			Identifier: "variant", Kind: HoleAction,
 			Values: []Value{{Key: "first", Text: "first"}, {Key: "second", Text: "second"}},
 		}},
-		Build: func(assignment Assignment) (compiler.Scenario, error) {
-			return compiler.Scenario{
+		Build: func(assignment Assignment) (scenario.Scenario, error) {
+			return scenario.Scenario{
 				Identifier: "callback-" + assignment["variant"].Text,
 				Target:     protocol.TargetIDProtocolAtomic,
-				Resources:  []compiler.Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
-				Root: compiler.OnePath(
-					compiler.Action("respond-"+assignment["variant"].Text, protocol.ActionKindRecordCallbackResponse),
-					compiler.Require(protocol.PropertyIDCallbackResponseConsistency),
+				Resources:  []scenario.Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
+				Root: scenario.OnePath(
+					scenario.Action("respond-"+assignment["variant"].Text, protocol.ActionKindRecordCallbackResponse),
+					scenario.Require(protocol.PropertyIDCallbackResponseConsistency),
 				),
 			}, nil
 		},
@@ -173,7 +173,7 @@ func callbackTemplate() Template {
 func testBounds() Bounds {
 	return Bounds{
 		MaxAssignments: 8,
-		Compiler: compiler.Limits{
+		Compiler: scenario.Limits{
 			MaxPaths: 4, MaxActions: 8, MaxStates: 64, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
 		},
 	}

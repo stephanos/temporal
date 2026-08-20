@@ -181,7 +181,9 @@ func validateSourceDependencies(dependencies []SourceDependency) error {
 	return nil
 }
 
-func DigestSourceDependencies(dependencies []SourceDependency) (string, string, error) {
+func DigestSourceDependencies(
+	dependencies []SourceDependency,
+) (sourceDigest string, importDigest string, err error) {
 	if err := validateSourceDependencies(dependencies); err != nil {
 		return "", "", err
 	}

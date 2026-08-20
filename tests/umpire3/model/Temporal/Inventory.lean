@@ -1,4 +1,14 @@
 import Umpire3.Catalog
+import Temporal.Product.CallbackReference
+import Temporal.Product.CallbackResponse
+import Temporal.Product.NexusActivityLink
+import Temporal.Product.NexusClosure
+import Temporal.Product.NexusTimeout
+import Temporal.Product.SpeculativeTask
+import Temporal.Product.WorkflowLineage
+import Temporal.Product.WorkflowOwnership
+import Temporal.Product.WorkflowProgress
+import Temporal.Product.WorkflowRouting
 
 namespace Umpire3.Temporal.Inventory
 
@@ -13,12 +23,9 @@ private def entity (identifier description : String) : EntityDeclaration :=
 private def observation (identifier description : String) : ObservationDeclaration :=
   { identifier, description }
 
-private def property (identifier description statementHash : String) : PropertyDeclaration := {
-  identifier
-  description
-  statementHash
-  evidence := ["causal", "identity-lineage"]
-}
+private def property (identifier description : String)
+    (proof : ResolvedTheorem) : PropertyDeclaration :=
+  (RegisteredProperty.mk identifier description ["causal", "identity-lineage"] proof).declaration
 
 def entities : List EntityDeclaration := [
   entity "namespace" "Temporal Namespace",
@@ -92,29 +99,29 @@ def observations : List ObservationDeclaration := [
 
 def properties : List PropertyDeclaration := [
   property "workflow-task.speculative-creation" "SpeculativeTaskCreation"
-    "sha256:93dde5178008a5a6c769d3980af88c43d8ffbaa31a4a7395f26cc3e1b872e6c5",
+    (resolved_theorem% Umpire3.Temporal.Product.SpeculativeTask.speculativeCreationSafe),
   property "nexus-operation.closure" "NexusOperationClosure"
-    "sha256:f793044a1875cebac67335b7d653bd9eba07b63576f2be5e9dee47e4463baebb",
+    (resolved_theorem% Umpire3.Temporal.Product.NexusClosure.closureSafe),
   property "nexus-activity.link-consistency" "NexusActivityLinkConsistency"
-    "sha256:12fc8f2fc279123239747d42076963b622fdef3580bd8e7bdab3f2bd10c0d97d",
+    (resolved_theorem% Umpire3.Temporal.Product.NexusActivityLink.linkConsistencySafe),
   property "nexus-operation.timeout-semantics" "NexusOperationTimeoutSemantics"
-    "sha256:495ef4b393d35f35a9212c599dc2c2de340c9de7ce39dd4750a8c45caa102455",
+    (resolved_theorem% Umpire3.Temporal.Product.NexusTimeout.timeoutSemanticsSafe),
   property "callback.reference-consistency" "CallbackReferenceConsistency"
-    "sha256:3f85e1a045dab782595876f7123d8d91728b92019601fc4aa34c1b3b448cad5a",
+    (resolved_theorem% Umpire3.Temporal.Product.CallbackReference.referenceConsistencySafe),
   property "callback.response-consistency" "CallbackResponseConsistency"
-    "sha256:60885f3085fba30e9f07872f3d6d0fd30ee4fea127451a217333770fcda31d8f",
+    (resolved_theorem% Umpire3.Temporal.Product.CallbackResponse.responseConsistencySafe),
   property "workflow-task.starvation" "WorkflowTaskStarvation"
-    "sha256:467947d799f5bf5f4a7801065a13919e10936735699f707d54925df0a4f4da3f",
+    (resolved_theorem% Umpire3.Temporal.Product.WorkflowProgress.workflowTaskStarvationSafe),
   property "entity.progress" "EntityProgress"
-    "sha256:7a2ae813c7b09d9a4f6c152469aad915a1be0c8b0c87b7f1a4524ec702486e2e",
+    (resolved_theorem% Umpire3.Temporal.Product.WorkflowProgress.entityProgressSafe),
   property "workflow-run.continuation-lineage" "ContinuationLineage"
-    "sha256:1c4ab49d19cc38f6c23286ff949d33bc52d05437f587ee9ff964de71845ff0ec",
+    (resolved_theorem% Umpire3.Temporal.Product.WorkflowLineage.continuationLineageSafe),
   property "workflow-run.reset-lineage" "ResetLineage"
-    "sha256:0d6fafb264288dc1f8de1cc9923a95e54ae6baae1697ccb67eca86e3f1c70570",
+    (resolved_theorem% Umpire3.Temporal.Product.WorkflowLineage.resetLineageSafe),
   property "workflow-task.routing-isolation" "WorkflowRoutingIsolation"
-    "sha256:27ce559f16b78db637e1d35a0fab320da8382a15bb49f09e25178b55f1b45d6c",
+    (resolved_theorem% Umpire3.Temporal.Product.WorkflowRouting.routingIsolationSafe),
   property "workflow-task.ownership-fencing" "WorkflowOwnershipFencing"
-    "sha256:0ef8b9936c01a1d30d187d27045659bbb5622616b5fd7ae5d093118497d0139f",
+    (resolved_theorem% Umpire3.Temporal.Product.WorkflowOwnership.ownershipFencingSafe),
 ]
 
 def nexusClosureProductModule : ModuleDeclaration := {

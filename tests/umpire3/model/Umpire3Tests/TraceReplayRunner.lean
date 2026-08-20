@@ -16,19 +16,27 @@ def mutatedRequest : TraceReplay.Request where
     "persist-success",
   ]
 
-example : TraceReplay.checkRequest mutatedRequest = true := by native_decide
+example : TraceReplay.checkRequest mutatedRequest = true := by
+  simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus,
+    TraceReplay.Request.validDigest, TraceReplay.Request.validSemanticHash,
+    TraceReplay.lowerHexDigit, mutatedRequest]
+  decide
 
 example : TraceReplay.checkRequest { mutatedRequest with variant := "sound" } = false := by
-  native_decide
+  simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus, mutatedRequest]
 
 example : TraceReplay.checkRequest { mutatedRequest with actions := ["unknown-action"] } = false := by
-  native_decide
+  simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus,
+    TraceReplay.Request.validDigest, TraceReplay.Request.validSemanticHash,
+    TraceReplay.lowerHexDigit, mutatedRequest]
+  decide
 
 example : TraceReplay.checkRequest { mutatedRequest with
     traceDigest := "sha256:zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" } = false := by
-  native_decide
+  simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus,
+    TraceReplay.Request.validDigest, TraceReplay.lowerHexDigit, mutatedRequest]
 
 example : TraceReplay.checkedRequestAxioms = ["Classical.choice", "Quot.sound", "propext"] := by
-  native_decide
+  simp [TraceReplay.checkedRequestAxioms]
 
 end Umpire3.Tests.TraceReplayRunner

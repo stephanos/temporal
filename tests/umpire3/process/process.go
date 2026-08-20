@@ -5,9 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -15,6 +15,7 @@ import (
 
 var (
 	ErrDeadline    = errors.New("worker execution deadline exceeded")
+	ErrMemoryLimit = errors.New("worker memory limit exceeded")
 	ErrOutputLimit = errors.New("worker output limit exceeded")
 )
 
@@ -42,45 +43,50 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if len(request.Command) == 0 || request.Timeout <= 0 || request.MaxOutputBytes <= 0 {
 		return Result{}, errors.New("worker command, timeout, and output budget are required")
 	}
-	commandArguments, err := commandWithLimits(request.Command, request.Limits)
+	attempt, err := startProcessAttempt(request, 1)
 	if err != nil {
 		return Result{}, err
 	}
 	workerCtx, cancel := context.WithTimeout(ctx, request.Timeout)
 	defer cancel()
-
-	command := exec.Command(commandArguments[0], commandArguments[1:]...)
-	command.Env = append(os.Environ(), request.Environment...)
-	command.Stdin = bytes.NewReader(request.Input)
-	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	output := &limitedBuffer{remaining: request.MaxOutputBytes}
-	command.Stdout = output
-	command.Stderr = output
-	if err := command.Start(); err != nil {
-		return Result{}, fmt.Errorf("start worker: %w", err)
-	}
-
-	waited := make(chan error, 1)
-	go func() { waited <- command.Wait() }()
 	select {
-	case err := <-waited:
-		result := Result{Output: output.Bytes(), ExitCode: command.ProcessState.ExitCode()}
-		if output.exceeded {
-			return result, ErrOutputLimit
-		}
-		if err != nil {
-			return result, fmt.Errorf("worker exited with status %d: %w", result.ExitCode, err)
-		}
-		return result, nil
+	case <-attempt.done:
+		return completedRun(attempt)
 	case <-workerCtx.Done():
-		_ = syscall.Kill(-command.Process.Pid, syscall.SIGKILL)
-		<-waited
-		result := Result{Output: output.Bytes(), ExitCode: command.ProcessState.ExitCode(), TimedOut: true}
+		_ = attempt.kill(syscall.SIGKILL, TerminationDeadline)
+		<-attempt.done
+		result, _ := completedRun(attempt)
+		result.TimedOut = true
 		if errors.Is(workerCtx.Err(), context.DeadlineExceeded) {
 			return result, ErrDeadline
 		}
 		return result, workerCtx.Err()
+	case <-attempt.memoryExceeded:
+		_ = attempt.kill(syscall.SIGKILL, TerminationLimit)
+		<-attempt.done
+		result, _ := completedRun(attempt)
+		return result, ErrMemoryLimit
+	case <-attempt.output.exceededSignal:
+		_ = attempt.kill(syscall.SIGKILL, TerminationLimit)
+		<-attempt.done
+		result, _ := completedRun(attempt)
+		return result, ErrOutputLimit
 	}
+}
+
+func completedRun(attempt *processAttempt) (Result, error) {
+	snapshot := attempt.snapshot()
+	result := Result{Output: snapshot.Output, ExitCode: snapshot.ExitCode}
+	if attempt.output.Exceeded() {
+		return result, ErrOutputLimit
+	}
+	attempt.mu.Lock()
+	waitErr := attempt.waitErr
+	attempt.mu.Unlock()
+	if waitErr != nil && snapshot.Termination == TerminationExit {
+		return result, fmt.Errorf("worker exited with status %d: %w", result.ExitCode, waitErr)
+	}
+	return result, nil
 }
 
 func commandWithLimits(command []string, limits Limits) ([]string, error) {
@@ -90,21 +96,64 @@ func commandWithLimits(command []string, limits Limits) ([]string, error) {
 	if limits.CPUSeconds <= 0 || limits.MemoryBytes <= 0 {
 		return nil, errors.New("worker CPU and memory limits must both be positive")
 	}
-	memoryKiB := (limits.MemoryBytes + 1023) / 1024
 	arguments := []string{
 		"/bin/sh", "-c",
-		"cpu_seconds=$1; memory_kib=$2; shift 2; " +
-			"ulimit -t \"$cpu_seconds\"; ulimit -d \"$memory_kib\"; exec \"$@\"",
-		"umpire3-worker", strconv.Itoa(limits.CPUSeconds), strconv.FormatInt(memoryKiB, 10),
+		"cpu_seconds=$1; shift; ulimit -t \"$cpu_seconds\"; exec \"$@\"",
+		"umpire3-worker", strconv.Itoa(limits.CPUSeconds),
 	}
 	return append(arguments, command...), nil
 }
 
+func watchProcessGroupMemory(pid int, limit int64, exceeded chan<- struct{}, stop <-chan struct{}) {
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			usage, err := processGroupMemoryBytes(pid)
+			if err == nil && usage > limit {
+				select {
+				case exceeded <- struct{}{}:
+				default:
+				}
+				return
+			}
+		case <-stop:
+			return
+		}
+	}
+}
+
+func processGroupMemoryBytes(groupID int) (int64, error) {
+	output, err := exec.Command("/bin/ps", "-axo", "pgid=,rss=").Output()
+	if err != nil {
+		return 0, err
+	}
+	var totalKiB int64
+	for _, line := range strings.Split(string(output), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) != 2 || fields[0] != strconv.Itoa(groupID) {
+			continue
+		}
+		value, err := strconv.ParseInt(fields[1], 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		totalKiB += value
+	}
+	return totalKiB * 1024, nil
+}
+
 type limitedBuffer struct {
-	mu        sync.Mutex
-	buffer    bytes.Buffer
-	remaining int64
-	exceeded  bool
+	mu             sync.Mutex
+	buffer         bytes.Buffer
+	remaining      int64
+	exceeded       bool
+	exceededSignal chan struct{}
+}
+
+func newLimitedBuffer(limit int64) *limitedBuffer {
+	return &limitedBuffer{remaining: limit, exceededSignal: make(chan struct{}, 1)}
 }
 
 func (b *limitedBuffer) Write(value []byte) (int, error) {
@@ -114,6 +163,10 @@ func (b *limitedBuffer) Write(value []byte) (int, error) {
 	if int64(len(value)) > b.remaining {
 		value = value[:max(b.remaining, 0)]
 		b.exceeded = true
+		select {
+		case b.exceededSignal <- struct{}{}:
+		default:
+		}
 	}
 	if len(value) != 0 {
 		_, _ = b.buffer.Write(value)

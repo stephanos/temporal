@@ -54,6 +54,7 @@ func TestCanonicalReplayHelper(t *testing.T) {
 	}
 	separator := slices.Index(os.Args, "--")
 	if separator < 0 || len(os.Args[separator+1:]) != 10 {
+		//nolint:revive // The subprocess helper reports malformed invocation through its exit status.
 		os.Exit(3)
 	}
 	arguments := os.Args[separator+1:]
@@ -64,6 +65,7 @@ func TestCanonicalReplayHelper(t *testing.T) {
 		!slices.Equal(arguments[6:], []string{
 			"dispatch-task", "acquire-ownership", "worker-returns-success", "persist-success",
 		}) {
+		//nolint:revive // The subprocess helper reports a mismatched replay request through its exit status.
 		os.Exit(4)
 	}
 	fmt.Printf(`{"actions":["dispatch-task","acquire-ownership","worker-returns-success","persist-success"],`+
@@ -73,5 +75,6 @@ func TestCanonicalReplayHelper(t *testing.T) {
 		`"status":"accepted","target":"nexus-cancellation","traceDigest":%q,`+
 		`"trustBadge":"checked-certificate","variant":"stale-completion-guard-removed","world":"smoke"}`,
 		arguments[0])
+	//nolint:revive // The subprocess helper must not emit the Go test runner's PASS output.
 	os.Exit(0)
 }

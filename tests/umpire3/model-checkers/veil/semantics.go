@@ -123,7 +123,7 @@ func parseGeneratedSemantics(
 			if err != nil {
 				return generatedSemantics{}, err
 			}
-			action, err := parseGeneratedAction(view, names, identifier, block)
+			action, err := parseGeneratedAction(names, identifier, block)
 			if err != nil {
 				return generatedSemantics{}, err
 			}
@@ -150,6 +150,7 @@ func parseGeneratedSemantics(
 			}
 			result.envelope = formula
 			foundEnvelope = true
+		default:
 		}
 	}
 	if !foundInitial || !foundInvariant || !foundEnvelope {
@@ -202,6 +203,7 @@ func parseGeneratedInitializer(
 			wildcards[field] = struct{}{}
 		case line != "":
 			return protocol.FirstOrderFormula{}, fmt.Errorf("unknown generated initializer statement %q", line)
+		default:
 		}
 	}
 	if initial == nil || len(wildcards) != len(view.StateFields) {
@@ -211,7 +213,6 @@ func parseGeneratedInitializer(
 }
 
 func parseGeneratedAction(
-	view protocol.FirstOrderView,
 	names generatedNames,
 	identifier string,
 	block []string,
@@ -266,6 +267,7 @@ func parseGeneratedAction(
 			updated[field] = struct{}{}
 		case line != "":
 			return generatedActionSemantics{}, fmt.Errorf("unknown generated action statement %q", line)
+		default:
 		}
 	}
 	if guard == nil {
@@ -279,16 +281,15 @@ func parseGeneratedAction(
 		}
 		return generatedActionSemantics{}, fmt.Errorf("generated action %q omits update or pure", identifier)
 	}
-	_ = view
 	return generatedActionSemantics{guard: *guard, updates: updates}, nil
 }
 
 func formulaAfterLabel(line string, names generatedNames) (protocol.FirstOrderFormula, error) {
-	close := strings.Index(line, "] ")
-	if close < 0 {
+	closing := strings.Index(line, "] ")
+	if closing < 0 {
 		return protocol.FirstOrderFormula{}, fmt.Errorf("invalid generated safety declaration %q", line)
 	}
-	return parseGeneratedFormula(line[close+2:], names)
+	return parseGeneratedFormula(line[closing+2:], names)
 }
 
 func generatedField(names generatedNames, generated string) (string, bool) {
@@ -330,6 +331,7 @@ func generatedFormulaTokens(value string) []string {
 			tokens = append(tokens, string(runes[0]))
 			runes = runes[1:]
 			continue
+		default:
 		}
 		end := 0
 		for end < len(runes) && (unicode.IsLetter(runes[end]) || unicode.IsDigit(runes[end]) ||

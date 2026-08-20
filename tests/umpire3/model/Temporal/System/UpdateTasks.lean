@@ -105,6 +105,15 @@ def executable : ExecutableModel system where
   next := next
   next_iff := next_iff
 
+theorem completeUpdateRequiresRecordedHistory {state nextState}
+    (transition : system.Step state .CompleteUpdate nextState) : state.historyRecorded = true := by
+  rcases transition with ⟨result, member, _⟩
+  simp only [transitions] at member
+  split at member
+  · rename_i completes
+    exact completes.2.1
+  · simp at member
+
 def updateDeliveryRequirement : Temporal.System.TaskDelivery.Requirement where
   provider := Temporal.System.TaskDelivery.guarantee.identifier
   statementHash := Temporal.System.TaskDelivery.guarantee.statementHash

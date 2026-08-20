@@ -6,10 +6,9 @@ import (
 	"regexp"
 	"time"
 
-	"go.temporal.io/server/tests/umpire3/compiler"
-	"go.temporal.io/server/tests/umpire3/environment"
+	"go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 type TestingT interface {
@@ -18,23 +17,23 @@ type TestingT interface {
 	Fatalf(string, ...any)
 }
 
-type CompilerLimits = compiler.Limits
+type CompilerLimits = scenario.Limits
 
 type Corpus interface {
-	Save(context.Context, protocol.Experiment, umpire3runtime.Result) (string, error)
+	Save(context.Context, protocol.Experiment, execution.Result) (string, error)
 }
 
 type Option func(*options)
 
 type options struct {
 	context        context.Context
-	environment    environment.Factory
-	compilerLimits compiler.Limits
-	runtimeLimits  umpire3runtime.Limits
+	environment    execution.Factory
+	compilerLimits scenario.Limits
+	runtimeLimits  execution.Limits
 	corpus         Corpus
 }
 
-func WithEnvironment(factory environment.Factory) Option {
+func WithEnvironment(factory execution.Factory) Option {
 	return func(options *options) {
 		options.environment = factory
 	}
@@ -46,7 +45,7 @@ func WithCompilerLimits(limits CompilerLimits) Option {
 	}
 }
 
-func WithRuntimeLimits(limits umpire3runtime.Limits) Option {
+func WithRuntimeLimits(limits execution.Limits) Option {
 	return func(options *options) {
 		options.runtimeLimits = limits
 	}
@@ -64,11 +63,11 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
-func RequireRegression(t TestingT, scenario compiler.Scenario, optionValues ...Option) {
+func RequireRegression(t TestingT, authored scenario.Scenario, optionValues ...Option) {
 	t.Helper()
 	configuration := options{
 		context: context.Background(),
-		compilerLimits: compiler.Limits{
+		compilerLimits: scenario.Limits{
 			MaxPaths: 128, MaxActions: 256, MaxStates: 100000,
 			MaxMemoryBytes: 64 << 20, MaxTime: 10 * time.Second,
 		},
@@ -76,7 +75,7 @@ func RequireRegression(t TestingT, scenario compiler.Scenario, optionValues ...O
 	for _, option := range optionValues {
 		option(&configuration)
 	}
-	suite, err := compiler.Compile(configuration.context, scenario, configuration.compilerLimits)
+	suite, err := scenario.Compile(configuration.context, authored, configuration.compilerLimits)
 	if err != nil {
 		t.Fatalf("Umpire3 scenario compilation failed: %v", err)
 		return
@@ -87,14 +86,14 @@ func RequireRegression(t TestingT, scenario compiler.Scenario, optionValues ...O
 		return
 	}
 	for index, experiment := range suite.Experiments {
-		result, runErr := umpire3runtime.Run(configuration.context, umpire3runtime.Request{
+		result, runErr := execution.Run(configuration.context, execution.Request{
 			Experiment: experiment, Environment: configuration.environment, Limits: configuration.runtimeLimits,
 		})
 		if runErr != nil {
 			t.Fatalf("Umpire3 regression execution failed: %v", runErr)
 			return
 		}
-		if result.Claim.Kind == umpire3runtime.ClaimConforming {
+		if result.Claim.Kind == execution.ClaimConforming {
 			continue
 		}
 		artifactPath := "not retained"
@@ -118,10 +117,10 @@ func RequireRegression(t TestingT, scenario compiler.Scenario, optionValues ...O
 	}
 }
 
-func Explain(scenario compiler.Scenario, limits CompilerLimits) (compiler.Explain, error) {
-	suite, err := compiler.Compile(context.Background(), scenario, limits)
+func Explain(authored scenario.Scenario, limits CompilerLimits) (scenario.Explain, error) {
+	suite, err := scenario.Compile(context.Background(), authored, limits)
 	if err != nil {
-		return compiler.Explain{}, fmt.Errorf("compile Umpire3 scenario: %w", err)
+		return scenario.Explain{}, fmt.Errorf("compile Umpire3 scenario: %w", err)
 	}
 	return suite.Explain, nil
 }

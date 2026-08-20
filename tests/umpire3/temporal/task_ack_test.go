@@ -6,10 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/compiler"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/regress"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 func TestTaskAckRunsThroughPublicTaskProtocolEvidence(t *testing.T) {
@@ -18,8 +17,8 @@ func TestTaskAckRunsThroughPublicTaskProtocolEvidence(t *testing.T) {
 	transport := &fakeWorkflowTaskTransport{backlogAbsent: true}
 	result, err := umpire3runtime.Run(context.Background(), umpire3runtime.Request{
 		Experiment: taskAckExperiment(t),
-		Environment: NewTaskAckFactory(func(context.Context) (ClusterInfo, error) {
-			return ClusterInfo{BuildID: "build", ConfigurationID: "configuration", Namespace: "namespace"}, nil
+		Environment: newTaskAckFactory(func(context.Context) (clusterInfo, error) {
+			return clusterInfo{BuildID: "build", ConfigurationID: "configuration", Namespace: "namespace"}, nil
 		}, transport),
 	})
 	require.NoError(t, err)
@@ -35,8 +34,8 @@ func TestTaskAckNegativeControlViolatesGeneratedMonitor(t *testing.T) {
 
 	result, err := umpire3runtime.Run(context.Background(), umpire3runtime.Request{
 		Experiment: taskAckExperiment(t),
-		Environment: NewTaskAckFactory(func(context.Context) (ClusterInfo, error) {
-			return ClusterInfo{BuildID: "build", Namespace: "namespace"}, nil
+		Environment: newTaskAckFactory(func(context.Context) (clusterInfo, error) {
+			return clusterInfo{BuildID: "build", Namespace: "namespace"}, nil
 		}, &fakeWorkflowTaskTransport{}),
 	})
 	require.NoError(t, err)
@@ -50,8 +49,8 @@ func TestTaskAckRejectsChangedDeliveryLineage(t *testing.T) {
 	transport := &fakeWorkflowTaskTransport{differentRun: true, backlogAbsent: true}
 	result, err := umpire3runtime.Run(context.Background(), umpire3runtime.Request{
 		Experiment: taskAckExperiment(t),
-		Environment: NewTaskAckFactory(func(context.Context) (ClusterInfo, error) {
-			return ClusterInfo{BuildID: "build", Namespace: "namespace"}, nil
+		Environment: newTaskAckFactory(func(context.Context) (clusterInfo, error) {
+			return clusterInfo{BuildID: "build", Namespace: "namespace"}, nil
 		}, transport),
 	})
 	require.NoError(t, err)
@@ -61,17 +60,17 @@ func TestTaskAckRejectsChangedDeliveryLineage(t *testing.T) {
 
 func taskAckExperiment(t *testing.T) protocol.Experiment {
 	t.Helper()
-	suite, err := compiler.Compile(context.Background(), regress.NewScenario(
+	suite, err := scenario.Compile(context.Background(), scenario.NewScenario(
 		"workflow-task-ack",
 		protocol.TargetIDFoundationBacklogAck,
-		[]regress.Resource{regress.WorkflowTask("workflow-task")},
-		regress.OnePath(
-			regress.EnqueueWorkflowTask("enqueue"),
-			regress.DeliverWorkflowTask("deliver"),
-			regress.AcknowledgeWorkflowTask("acknowledge"),
-			regress.RequireTaskDeliveryAcknowledgedRemovesBacklog(),
+		[]scenario.Resource{scenario.WorkflowTask("workflow-task")},
+		scenario.OnePath(
+			scenario.EnqueueWorkflowTask("enqueue"),
+			scenario.DeliverWorkflowTask("deliver"),
+			scenario.AcknowledgeWorkflowTask("acknowledge"),
+			scenario.RequireTaskDeliveryAcknowledgedRemovesBacklog(),
 		),
-	), compiler.Limits{
+	), scenario.Limits{
 		MaxPaths: 4, MaxActions: 8, MaxStates: 64, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
 	})
 	require.NoError(t, err)

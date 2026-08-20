@@ -16,10 +16,10 @@ import (
 	"sync"
 	"time"
 
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/process"
 	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
 const FormatVersion = "umpire3/canary/v1"
@@ -76,7 +76,7 @@ func Seal(approval Approval) (Approval, error) {
 
 type Request struct {
 	Experiment        protocol.Experiment `json:"experiment"`
-	Profile           profile.Definition  `json:"profile"`
+	Profile           profile.Profile     `json:"profile"`
 	Approval          Approval            `json:"approval"`
 	WorkerEnvironment []string            `json:"-"`
 }
@@ -131,7 +131,7 @@ type WorkerRequest struct {
 	FormatVersion string              `json:"formatVersion"`
 	Operation     WorkerOperation     `json:"operation"`
 	Experiment    protocol.Experiment `json:"experiment"`
-	Profile       profile.Definition  `json:"profile"`
+	Profile       profile.Profile     `json:"profile"`
 	Approval      Approval            `json:"approval"`
 	Recovery      RecoveryRecord      `json:"recovery"`
 }
@@ -217,7 +217,7 @@ func (c Controller) Run(ctx context.Context, request Request) (result Result, re
 	return result, nil
 }
 
-func (c Controller) ResumeCleanup(ctx context.Context, definition profile.Definition, approval Approval, environment []string) (Result, error) {
+func (c Controller) ResumeCleanup(ctx context.Context, definition profile.Profile, approval Approval, environment []string) (Result, error) {
 	if c.Store == nil {
 		return Result{}, errors.New("recovery store is required")
 	}

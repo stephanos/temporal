@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
 func TestQualifyRejectsIncompleteInput(t *testing.T) {

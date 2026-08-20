@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/participant"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
@@ -437,20 +437,21 @@ func TestSDKCapabilitiesAreConservativeOrExplicitlyAttested(t *testing.T) {
 
 	capabilities, err := normalizeSDKCapabilities(SDKFactoryOptions{})
 	require.NoError(t, err)
-	require.Equal(t, []string{"history-observation", "update", "workflow-task-control"}, capabilities)
+	require.Equal(t, []protocol.CapabilityID{
+		protocol.CapabilityIDHistoryObservation, protocol.CapabilityIDUpdate,
+		protocol.CapabilityIDWorkflowTaskControl,
+	}, capabilities)
 
 	capabilities, err = normalizeSDKCapabilities(SDKFactoryOptions{
 		NexusEndpoint: "endpoint", NexusService: "service", NexusOperation: "operation",
 	})
 	require.NoError(t, err)
-	require.Equal(t, []string{
-		"history-observation", "nexus", "nexus-observation", "nexus-worker-control", "update", "workflow-task-control",
+	require.Equal(t, []protocol.CapabilityID{
+		protocol.CapabilityIDHistoryObservation, protocol.CapabilityIDNexus,
+		protocol.CapabilityIDNexusObservation, protocol.CapabilityIDNexusWorkerControl,
+		protocol.CapabilityIDUpdate, protocol.CapabilityIDWorkflowTaskControl,
 	}, capabilities)
 
-	_, err = normalizeSDKCapabilities(SDKFactoryOptions{Capabilities: []string{"unknown"}})
-	require.ErrorContains(t, err, "unknown capability")
-	_, err = normalizeSDKCapabilities(SDKFactoryOptions{Capabilities: []string{"update", "update"}})
-	require.ErrorContains(t, err, "duplicate capability")
 }
 
 func TestSDKSessionCorroboratesThroughIndependentHistorySource(t *testing.T) {

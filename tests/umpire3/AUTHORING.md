@@ -17,12 +17,12 @@ contract, and `Require<Property>()`. Do not copy transition mechanics into Go, i
 booleans, use sleeps, or turn unsupported/inconclusive into a skip. Promoted campaign source uses
 this same API and must compile without campaign-only support.
 
-Generated domain handles under `regress/nexus`, `regress/workflow`, `regress/activity`, and
-`regress/callback` are the preferred entry point. Their methods expose compatible semantic actions,
-create runtime-learned identities where needed, and preserve the author call site. Use the lower
-level generated `regress` constructors only when adding a new domain package or testing the compiler.
+Generated domain handles under `scenario/nexus` and `scenario/workflow` are the preferred entry
+point. Their methods expose compatible semantic actions, create runtime-learned identities where
+needed, and preserve the author call site. Use the lower-level generated `scenario` constructors
+only when adding a new domain handle or testing compilation.
 
-On failure, configure `WithCorpus(artifact.NewFileCorpus(...))`. `RequireRegression` retains a
+On failure, configure `WithCorpus(replay.NewFileCorpus(...))`. `RequireRegression` retains a
 redacted digest-bound Replay bundle containing the Experiment and Result, and reports its path. Inspect a checked Experiment without allocation
 with `umpire3 explain`; replay a retained failure with `umpire3 replay -bundle ...` plus the same
 least-authority connection profile. Replay drift is classified instead of collapsed into a generic

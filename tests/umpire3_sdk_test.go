@@ -28,9 +28,10 @@ import (
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
 	"go.temporal.io/server/tests/umpire3/participant"
+	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
 	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
 	"go.temporal.io/server/tests/umpire3/temporal/internalhistory"
@@ -123,14 +124,14 @@ func TestUmpire3RootFaultRealizerMatchesExactLearnedOccurrence(t *testing.T) {
 	require.Contains(t, evidence.Reference, "/fault/drop/1")
 }
 
-func (f *umpire3SDKRootFactory) Capabilities() []string {
+func (f *umpire3SDKRootFactory) Capabilities() []protocol.CapabilityID {
 	catalog, err := protocol.DefaultCatalog()
 	if err != nil {
 		return nil
 	}
-	capabilities := make([]string, len(catalog.Capabilities))
+	capabilities := make([]protocol.CapabilityID, len(catalog.Capabilities))
 	for index, capability := range catalog.Capabilities {
-		capabilities[index] = string(capability.Identifier)
+		capabilities[index] = capability.Identifier
 	}
 	slices.Sort(capabilities)
 	return capabilities
@@ -140,15 +141,18 @@ func (f *umpire3SDKRootFactory) FaultRealizer() umpire3fault.Realizer {
 	return f.faultRealizer
 }
 
-func (f *umpire3SDKRootFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.Session, error) {
+func (f *umpire3SDKRootFactory) Prepare(
+	ctx context.Context,
+	experiment protocol.Experiment,
+) (environment.PreparedEnvironment, error) {
 	program, _, err := participant.CompileExperiment(experiment)
 	if err != nil {
-		return nil, fmt.Errorf("compile SDK participant experiment: %w", err)
+		return environment.PreparedEnvironment{}, fmt.Errorf("compile SDK participant experiment: %w", err)
 	}
 	var env *testcore.TestEnv
 	var nexusEnv *NexusTestEnv
 	var nexusActivityLinks *umpire3NexusActivityLinkDriver
-	var nexusDriver participant.NexusDriver
+	var nexusDriver umpire3temporal.NexusDriver
 	nexusEndpoint := ""
 	f.faultRealizer = &umpire3RootRPCFaultRealizer{experimentID: experiment.ExperimentID}
 	f.footprintRecorder = umpire3fault.NewRecorder()
@@ -241,7 +245,7 @@ func (f *umpire3SDKRootFactory) Prepare(ctx context.Context, experiment protocol
 	}
 	f.faultRealizer.namespace = env.Namespace().String()
 	f.registerGRPCFootprint(env, experiment.ExperimentID)
-	var callbackDriver participant.CallbackDriver
+	var callbackDriver umpire3temporal.CallbackDriver
 	var rootCallbackDriver *umpire3CallbackDriver
 	if needsCallbacks {
 		rootCallbackDriver = newUmpire3CallbackDriver(f.t, env, nexusEnv, f.variant)
@@ -251,36 +255,44 @@ func (f *umpire3SDKRootFactory) Prepare(ctx context.Context, experiment protocol
 		env.GetTestCluster().HistoryClient(), env.NamespaceID().String(), "test-cluster/"+env.NamespaceID().String(),
 	)
 	if err != nil {
-		return nil, err
+		return environment.PreparedEnvironment{}, err
+	}
+	deploymentSpec := profile.Local(
+		"umpire3-sdk-participant-v1", env.Namespace().String(), env.WorkerTaskQueue(),
+	)
+	deploymentSpec.Capabilities = f.Capabilities()
+	deployment, err := profile.Define(deploymentSpec)
+	if err != nil {
+		return environment.PreparedEnvironment{}, err
 	}
 	factory, err := umpire3temporal.NewSDKFactory(umpire3temporal.SDKFactoryOptions{
-		Client: env.SdkClient(), Registry: env.SdkWorker(), Namespace: env.Namespace().String(),
-		TaskQueue: env.WorkerTaskQueue(), BuildID: "umpire3-sdk-participant-v1",
+		Client: env.SdkClient(), Registry: env.SdkWorker(), Deployment: deployment,
+		Namespace: env.Namespace().String(), TaskQueue: env.WorkerTaskQueue(),
 		CleanupTimeout: 5 * time.Second, NegativeControl: f.negativeControl,
 		WorkflowID: func(experiment protocol.Experiment) string {
 			return umpire3SDKWorkflowID(experiment.ExperimentID, f.t.Name())
 		},
 		NexusEndpoint: nexusEndpoint, NexusService: nexusService, NexusOperation: nexusOperation,
-		Capabilities: f.Capabilities(), FaultAuthority: "umpire3-root-nexus-handler",
-		CorroboratingHistory:  []umpire3temporal.CorroboratingHistorySource{historySource},
-		WorkflowTaskFencer:    &umpire3WorkflowTaskFencer{env: env},
-		CallbackDriver:        callbackDriver,
-		NexusDriver:           nexusDriver,
-		ConfigurationIdentity: umpire3RootConfigurationIdentity(env.NamespaceID().String(), f.variant),
+		CorroboratingHistory: []umpire3temporal.CorroboratingHistorySource{historySource},
+		WorkflowTaskFencer:   &umpire3WorkflowTaskFencer{env: env},
+		CallbackDriver:       callbackDriver,
+		NexusDriver:          nexusDriver,
 	})
 	if err != nil {
-		return nil, err
+		return environment.PreparedEnvironment{}, err
 	}
-	session, err := factory.Prepare(ctx, experiment)
+	prepared, err := factory.Prepare(ctx, experiment)
 	if err != nil {
-		return nil, err
+		return prepared, err
 	}
-	return &umpire3RootSession{
-		Session: session, faultRealizer: f.faultRealizer, nexusEnv: nexusEnv, variant: f.variant,
+	prepared.Session = &umpire3RootSession{
+		Session: prepared.Session, faultRealizer: f.faultRealizer, nexusEnv: nexusEnv, variant: f.variant,
 		nexusActivityLinks: nexusActivityLinks, callbackDriver: rootCallbackDriver,
 		behavior: experiment.ExperimentID, retryableAttempt: f.retryableAttempt,
 		footprintFactory: f,
-	}, nil
+	}
+	prepared.Identity.FaultAuthority = deployment.Environment.FaultAuthority
+	return prepared, nil
 }
 
 func (f *umpire3SDKRootFactory) learnedFootprint() ([]umpire3fault.Call, string) {
@@ -446,14 +458,6 @@ func (s *umpire3RootSession) Observe(
 			s.callbackDriver.ValidatedObservation(checkpoint.Observation)
 	}
 	return observation, nil
-}
-
-func (s *umpire3RootSession) Profile() environment.Profile {
-	provider, ok := s.Session.(environment.ProfileProvider)
-	if !ok {
-		return environment.Profile{}
-	}
-	return provider.Profile()
 }
 
 func (s *umpire3RootSession) Realize(
@@ -706,9 +710,4 @@ func participantProgramHasAction(program participant.Program, action string) boo
 func umpire3SDKWorkflowID(experimentID, testName string) string {
 	digest := sha256.Sum256([]byte(experimentID + "\x00" + testName))
 	return "umpire3-" + hex.EncodeToString(digest[:16])
-}
-
-func umpire3RootConfigurationIdentity(namespaceID, variant string) string {
-	digest := sha256.Sum256([]byte(namespaceID + "\x00" + variant))
-	return "sha256:" + hex.EncodeToString(digest[:])
 }

@@ -52,7 +52,7 @@ func GenerateWithTrust(
 		return GeneratedModule{}, err
 	}
 	if mode != Interactive && mode != Concrete && mode != Mutation {
-		return GeneratedModule{}, fmt.Errorf("unknown Veil generation mode %q", mode)
+		return GeneratedModule{}, fmt.Errorf("unknown veil generation mode %q", mode)
 	}
 	if trustMode != ReconstructedSMT && trustMode != TrustedSMT {
 		return GeneratedModule{}, fmt.Errorf("unknown Veil SMT trust mode %q", trustMode)
@@ -198,6 +198,8 @@ func GenerateWithTrust(
 		fmt.Fprintf(&source, "sat trace [counterexample] {\n  any %d actions\n  assert ¬ (%s)\n}\n\n",
 			view.Bounds.SymbolicDepth, invariant)
 		fmt.Fprintf(&source, "end %s\n", module)
+	default:
+		return GeneratedModule{}, fmt.Errorf("unknown Veil generation mode %q", mode)
 	}
 	modelHash := sourceDigest(source.Bytes())
 	if mode == Interactive {
@@ -311,7 +313,7 @@ func buildNames(view protocol.FirstOrderView) (generatedNames, error) {
 	used := make(map[string]string)
 	register := func(kind, source, generated string) error {
 		if previous, duplicate := used[generated]; duplicate {
-			return fmt.Errorf("Veil identifiers %q and %q both generate %q", previous, kind+" "+source, generated)
+			return fmt.Errorf("veil identifiers %q and %q both generate %q", previous, kind+" "+source, generated)
 		}
 		used[generated] = kind + " " + source
 		return nil
@@ -366,7 +368,10 @@ func buildNames(view protocol.FirstOrderView) (generatedNames, error) {
 	return names, nil
 }
 
-func renderInstantiations(view protocol.FirstOrderView, names generatedNames) (string, string) {
+func renderInstantiations(
+	view protocol.FirstOrderView,
+	names generatedNames,
+) (typeInstantiation string, theoryInstantiation string) {
 	types := make([]string, 0)
 	theory := make([]string, 0)
 	for _, sort := range view.Sorts {

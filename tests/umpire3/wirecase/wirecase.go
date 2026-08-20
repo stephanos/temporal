@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"go.temporal.io/api/serviceerror"
-	_ "go.temporal.io/api/workflowservice/v1"
+	_ "go.temporal.io/api/workflowservice/v1" // Register selected workflow-service descriptors.
 	"go.temporal.io/server/tests/umpire3/protocol"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -86,6 +86,7 @@ func Catalog(message string) ([]Mutation, error) {
 			mutations = append(mutations,
 				Mutation{Message: message, Field: name, Kind: MutationNegativeDuration, Disposition: field.Disposition},
 				Mutation{Message: message, Field: name, Kind: MutationOverflowDuration, Disposition: field.Disposition})
+		default:
 		}
 	}
 	slices.SortFunc(mutations, func(left, right Mutation) int {

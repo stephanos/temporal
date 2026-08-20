@@ -35,7 +35,7 @@ facade. Cluster setup stays in the environment factory and is not part of the sc
 func TestNexusCancellationRetry(t *testing.T) {
     operation := nexus.Operation("operation")
     scenario := nexus.Regression("nexus-cancellation", operation,
-        regress.OnePath(
+        scenario.OnePath(
             operation.CancelWithRetry(),
             operation.CancellationSafety(),
         ),
@@ -52,7 +52,7 @@ grounds identities projected by live actions, emits a deterministic path suite, 
 generated property monitor after realization. Unsupported capabilities fail before environment
 allocation.
 
-Use `regress.AllPaths` with `regress.AnyOrder` when every bounded linearization matters. Compilation
+Use `scenario.AllPaths` with `scenario.AnyOrder` when every bounded linearization matters. Compilation
 fails instead of truncating if explicit path, action, state, memory, or time limits are exhausted.
 `umpire3test.Explain` returns the completed paths, semantic and causal edges, grounded identity plan,
 bounded omissions, and catalog digest without allocating an environment.

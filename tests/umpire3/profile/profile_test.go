@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -17,12 +17,12 @@ func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		config   Config
-		expected environment.Profile
+		config   Spec
+		expected environment.EnvironmentIdentity
 	}{
 		{
 			name: "local", config: Local("build", "namespace", "queue"),
-			expected: environment.Profile{
+			expected: environment.EnvironmentIdentity{
 				Name: "local-in-process", BuildID: "build",
 				EvidenceProfile:  environment.EvidenceProfileInProcessHooks,
 				DrivingAuthority: "local-test-authority", ObservationAuthority: "local-server-hooks",
@@ -32,7 +32,7 @@ func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 		},
 		{
 			name: "ci", config: CI("build", "namespace", "queue"),
-			expected: environment.Profile{
+			expected: environment.EnvironmentIdentity{
 				Name: "ci-test-cluster", BuildID: "build",
 				EvidenceProfile:  environment.EvidenceProfilePublicGRPCHistory,
 				DrivingAuthority: "ci-test-cluster", ObservationAuthority: "ci-public-history",
@@ -42,7 +42,7 @@ func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 		},
 		{
 			name: "remote", config: Remote("https://temporal.example", "token", "build", "namespace", "queue"),
-			expected: environment.Profile{
+			expected: environment.EnvironmentIdentity{
 				Name: "remote-deployment", BuildID: "build",
 				EvidenceProfile:  environment.EvidenceProfilePublicGRPCHistory,
 				DrivingAuthority: "remote-api", ObservationAuthority: "remote-public-history",
@@ -52,7 +52,7 @@ func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 		},
 		{
 			name: "black box", config: BlackBox("https://temporal.example", "token", "build", "namespace", "queue"),
-			expected: environment.Profile{
+			expected: environment.EnvironmentIdentity{
 				Name: "grpc-only-black-box", BuildID: "build", EvidenceProfile: environment.EvidenceProfilePublicGRPC,
 				DrivingAuthority: "public-grpc", ObservationAuthority: "public-grpc",
 				FaultAuthority: "none", IsolationIdentity: "namespace/queue", RetentionClass: "semantic-redacted",
@@ -61,7 +61,7 @@ func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 		{
 			name:   "canary",
 			config: Canary("https://temporal.example", "token", "build", "namespace", "queue", []string{"worker"}),
-			expected: environment.Profile{
+			expected: environment.EnvironmentIdentity{
 				Name: "production-canary", BuildID: "build",
 				EvidenceProfile:      environment.EvidenceProfilePublicGRPCHistory,
 				DrivingAuthority:     "approved-production-worker",
@@ -76,6 +76,7 @@ func TestDeploymentProfilesHaveSeparatedAuthorities(t *testing.T) {
 			definition, err := Define(test.config)
 			require.NoError(t, err)
 			test.expected.ConfigurationIdentity = definition.Environment.ConfigurationIdentity
+			test.expected.Capabilities = definition.Capabilities
 			require.Equal(t, test.expected, definition.Environment)
 			require.NoError(t, definition.Environment.Validate())
 		})
@@ -129,20 +130,17 @@ func TestFactoryRejectsUnsupportedBeforeAllocation(t *testing.T) {
 	require.Zero(t, underlying.prepares)
 }
 
-func TestPairwiseMatrixIsDeterministicAndCoversEveryPair(t *testing.T) {
+func TestBoundProfileCannotBroadenAdapterFaultAuthority(t *testing.T) {
 	t.Parallel()
 
-	dimensions := Dimensions{
-		"evidence": {"grpc", "history", "hooks"},
-		"fault":    {"none", "rpc"},
-		"profile":  {"local", "ci", "remote"},
-	}
-	first, err := Pairwise(dimensions)
+	definition := mustDefine(t, Local("build", "namespace", "queue"))
+	underlying := &identityFactory{capabilities: catalogCapabilities()}
+	factory, err := Bind(definition, underlying)
 	require.NoError(t, err)
-	second, err := Pairwise(dimensions)
+	prepared, err := factory.Prepare(context.Background(), validExperiment(t))
 	require.NoError(t, err)
-	require.Equal(t, first, second)
-	require.True(t, CoversEveryPair(dimensions, first))
+	require.Equal(t, "none", prepared.Identity.FaultAuthority)
+	require.Equal(t, factory.Capabilities(), prepared.Identity.Capabilities)
 }
 
 func TestSemanticExperimentDigestIsPortableAcrossProfiles(t *testing.T) {
@@ -151,7 +149,7 @@ func TestSemanticExperimentDigestIsPortableAcrossProfiles(t *testing.T) {
 	experiment := validExperiment(t)
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
-	for _, config := range []Config{
+	for _, config := range []Spec{
 		Local("build", "namespace", "queue"),
 		CI("build", "namespace", "queue"),
 		Remote("https://temporal.example", "token", "build", "namespace", "queue"),
@@ -173,16 +171,55 @@ type countingFactory struct {
 	prepares int
 }
 
-func (f *countingFactory) Capabilities() []string {
-	return []string{string(protocol.CapabilityIDHistoryObservation)}
+type identityFactory struct {
+	capabilities []protocol.CapabilityID
 }
 
-func (f *countingFactory) Prepare(context.Context, protocol.Experiment) (environment.Session, error) {
+func (f *identityFactory) Capabilities() []protocol.CapabilityID {
+	return append([]protocol.CapabilityID(nil), f.capabilities...)
+}
+
+func (*identityFactory) Prepare(context.Context, protocol.Experiment) (environment.PreparedEnvironment, error) {
+	return environment.PreparedEnvironment{
+		Session:  profileSession{},
+		Identity: environment.EnvironmentIdentity{FaultAuthority: "none"},
+	}, nil
+}
+
+type profileSession struct{}
+
+func (profileSession) Realize(
+	context.Context,
+	protocol.Action,
+	environment.Bindings,
+) (environment.ActionEvidence, error) {
+	return environment.ActionEvidence{}, nil
+}
+
+func (profileSession) Observe(
+	context.Context,
+	protocol.Checkpoint,
+	environment.Bindings,
+) (environment.Observation, error) {
+	return environment.Observation{}, nil
+}
+
+func (profileSession) Cleanup(context.Context) environment.CleanupResult {
+	return environment.CleanupResult{Complete: true}
+}
+
+func (profileSession) RecoveryMetadata() map[string]string { return nil }
+
+func (f *countingFactory) Capabilities() []protocol.CapabilityID {
+	return []protocol.CapabilityID{protocol.CapabilityIDHistoryObservation}
+}
+
+func (f *countingFactory) Prepare(context.Context, protocol.Experiment) (environment.PreparedEnvironment, error) {
 	f.prepares++
-	return nil, errors.New("not implemented")
+	return environment.PreparedEnvironment{}, errors.New("not implemented")
 }
 
-func mustDefine(t *testing.T, config Config) Definition {
+func mustDefine(t *testing.T, config Spec) Profile {
 	t.Helper()
 	definition, err := Define(config)
 	require.NoError(t, err)

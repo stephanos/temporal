@@ -25,6 +25,7 @@ import Temporal.API.Workflow
 import Temporal.Experiments.NexusCancellation
 import Temporal.Experiments.UpdateLifecycle
 import Temporal.Monitors
+import Temporal.Observation.Nexus
 import Temporal.Parity
 import Temporal.Refinement.NexusTasks
 import Temporal.Refinement.NexusCancellationFencing

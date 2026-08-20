@@ -44,6 +44,7 @@ func Replay(
 		Command:        append(append([]string(nil), command...), arguments...),
 		Timeout:        canonicalReplayTimeout,
 		MaxOutputBytes: protocol.DefaultDecodeLimit,
+		Limits:         backendProcessLimits,
 	})
 	if err != nil {
 		return protocol.TraceReplayReceipt{}, fmt.Errorf("run canonical Lean replay: %w", err)

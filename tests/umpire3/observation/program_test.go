@@ -1,0 +1,106 @@
+package observation
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/protocol"
+)
+
+func TestGeneratedNexusObservationProgramsEvaluateFourValues(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+
+	cancellationWon, ok := catalog.Program(protocol.ObservationIDCancellationWon)
+	require.True(t, ok)
+	staleSuccessAbsent, ok := catalog.Program(protocol.ObservationIDStaleSuccessAbsent)
+	require.True(t, ok)
+
+	cancelled := historyFact("history/cancelled", "nexus-cancellation-committed", 2)
+	closed := windowFact("window/closed", true, 4)
+	stale := historyFact("history/stale-success", "nexus-success-recorded", 3)
+	stale.History.OwnerEpoch = int64Pointer(1)
+	stale.History.CurrentOwnerEpoch = int64Pointer(2)
+	stale.History.CancellationCommitted = boolPointer(true)
+
+	require.Equal(t, Evaluation{Value: True, Support: []string{"history/cancelled"}},
+		cancellationWon.Evaluate([]Fact{cancelled}))
+	require.Equal(t, Evaluation{Value: Unknown}, staleSuccessAbsent.Evaluate([]Fact{cancelled}))
+	require.Equal(t, Evaluation{Value: True, Support: []string{"window/closed"}},
+		staleSuccessAbsent.Evaluate([]Fact{cancelled, closed}))
+	require.Equal(t, Evaluation{Value: False, Support: []string{"history/stale-success"}},
+		staleSuccessAbsent.Evaluate([]Fact{cancelled, stale, closed}))
+
+	conflicting := windowFact("window/closed", false, 4)
+	require.Equal(t, Conflict,
+		staleSuccessAbsent.Evaluate([]Fact{closed, conflicting}).Value)
+}
+
+func TestGeneratedObservationFixturesDetectWrongMapping(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	require.NotEmpty(t, catalog.Fixtures)
+
+	program, ok := catalog.Program(protocol.ObservationIDStaleSuccessAbsent)
+	require.True(t, ok)
+	program.Violations = []Selector{{
+		FactType: FactTypeHistoryEvent,
+		Kind:     NexusCancellationCommitted,
+	}}
+	catalog.Programs[programIndex(t, catalog, program.Observation)] = program
+
+	require.ErrorContains(t, catalog.Validate(), "fixture")
+}
+
+func TestFactValidationRejectsUntypedOrUnboundedEvidence(t *testing.T) {
+	fact := historyFact("history/stale-success", "nexus-success-recorded", 3)
+	fact.History.OwnerEpoch = int64Pointer(1)
+	require.ErrorContains(t, fact.Validate(), "current owner epoch")
+
+	fact = historyFact("history/cancelled", "nexus-cancellation-committed", 2)
+	fact.Window = &EvidenceWindow{Purpose: "nexus-cancellation", Closed: true, ThroughSequence: 2}
+	require.ErrorContains(t, fact.Validate(), "exactly one")
+}
+
+func historyFact(identifier, eventType string, sequence int64) Fact {
+	return Fact{
+		Identifier: identifier,
+		Source: Source{
+			Identity: "history/source", ClockDomain: "history/sequence", Sequence: sequence,
+			Reference: "operation/1/" + identifier, EntityIdentity: "operation/1",
+			Lineage: []string{"namespace/1", "operation/1"},
+		},
+		History: &HistoryEvent{EventType: eventType, EventID: sequence, OperationID: "operation/1"},
+	}
+}
+
+func windowFact(identifier string, closed bool, sequence int64) Fact {
+	return Fact{
+		Identifier: identifier,
+		Source: Source{
+			Identity: "history/source", ClockDomain: "history/sequence", Sequence: sequence,
+			Reference: "operation/1/" + identifier, EntityIdentity: "operation/1",
+			Lineage: []string{"namespace/1", "operation/1"},
+		},
+		Window: &EvidenceWindow{Purpose: "nexus-cancellation", Closed: closed, ThroughSequence: sequence},
+	}
+}
+
+func int64Pointer(value int64) *int64 {
+	return &value
+}
+
+func boolPointer(value bool) *bool {
+	return &value
+}
+
+func programIndex(t *testing.T, catalog Catalog, observation protocol.ObservationID) int {
+	t.Helper()
+	for index, program := range catalog.Programs {
+		if program.Observation == observation {
+			return index
+		}
+	}
+	require.FailNow(t, "program is missing", observation)
+	return -1
+}

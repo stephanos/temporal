@@ -26,7 +26,7 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:0f220fc2eef45c3ffcc3fa2b8b40c4b64d24d17290387ec479fb90735b4b9523",
+    "ledgerHash": "sha256:d8bb4ca95a070e7cf47b33dccb84219bcde2bcb8aaf97f0584271cb88604331d",
     "behaviorCount": 28,
     "exactCount": 23,
     "semanticEquivalentCount": 5,
@@ -47,7 +47,7 @@
     {
       "goal": "deterministic-plans",
       "status": "passed",
-      "anchors": ["compiler/compiler_test.go", "compiler/enumerate.go"]
+      "anchors": ["scenario/compiler_test.go", "scenario/enumerate.go"]
     },
     {
       "goal": "portable-profiles",
@@ -62,7 +62,7 @@
     {
       "goal": "developer-authoring",
       "status": "partial",
-      "anchors": ["README.md", "regress/regress_test.go", "umpire3test/require_test.go"]
+      "anchors": ["README.md", "scenario/regress_test.go", "umpire3test/require_test.go"]
     },
     {
       "goal": "unknown-bug-exploration",
@@ -77,7 +77,7 @@
     {
       "goal": "non-linear-identity",
       "status": "passed",
-      "anchors": ["compiler/compiler_test.go", "evidence/graph_test.go", "temporal/nexus_test.go"]
+      "anchors": ["scenario/compiler_test.go", "evidence/graph_test.go", "temporal/nexus_test.go"]
     },
     {
       "goal": "programmable-participants",
@@ -87,7 +87,7 @@
     {
       "goal": "clock-skew-safety",
       "status": "partial",
-      "anchors": ["evidence/graph_test.go", "runtime/run_test.go"]
+      "anchors": ["evidence/graph_test.go", "execution/run_test.go"]
     },
     {
       "goal": "guided-exploration",
@@ -97,7 +97,7 @@
     {
       "goal": "coverage-guided-fuzzing",
       "status": "partial",
-      "anchors": ["campaign/mutation_test.go", "campaign/campaign_test.go", "runtime/minimize_test.go"]
+      "anchors": ["campaign/mutation_test.go", "campaign/campaign_test.go", "campaign/minimize_test.go"]
     }
   ],
   "documents": {

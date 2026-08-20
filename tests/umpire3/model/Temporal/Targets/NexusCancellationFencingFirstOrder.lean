@@ -324,9 +324,9 @@ def soundFirstOrderView : FirstOrderView behavior .smoke noStaleCompletion where
   step_preserved := soundStepPreserved
   property_preserved := propertyPreserved
   action_injective := soundFiniteView.actionName_injective
-  action_total := by intro action; cases action <;> native_decide
+  action_total := by intro action; cases action <;> decide
   action_complete := actionComplete
-  action_identifiers_unique := by native_decide
+  action_identifiers_unique := by decide
 
 private theorem mutatedStepAdmissible (state : SystemState) (action : SystemAction)
     (nextState : SystemState) (stateAdmissible : admissible state = true)
@@ -352,13 +352,13 @@ def mutatedFirstOrderView : FirstOrderView mutatedBehavior .smoke noStaleComplet
   step_preserved := mutatedStepPreserved
   property_preserved := propertyPreserved
   action_injective := mutatedFiniteView.actionName_injective
-  action_total := by intro action; cases action <;> native_decide
+  action_total := by intro action; cases action <;> decide
   action_complete := by
     intro identifier member
     apply actionComplete identifier
     simpa [mutatedFirstOrderArtifact, soundFirstOrderArtifact, artifact,
       FirstOrderArtifact.actionIdentifiers] using member
-  action_identifiers_unique := by native_decide
+  action_identifiers_unique := by decide
 
 def soundSearch := Exact.explore soundFiniteView noStaleCompletion {
   maxDepth := 16

@@ -19,12 +19,11 @@ import (
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tests/umpire3/campaign"
-	"go.temporal.io/server/tests/umpire3/compiler"
+	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/explore"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/regress"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/scenario"
 	"go.temporal.io/server/tests/umpire3/wirecase"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -195,7 +194,7 @@ func (s *Umpire3TestSuite) TestProbeNexusResilience() {
 		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 	}
 	baseline := evaluateUmpire3BehaviorIn(t, "ProbeNexusLearnedFootprint", "", baselineFactory)
-	require.Equal(t, umpire3runtime.ClaimConforming, baseline.Claim.Kind, baseline.Claim.Reason)
+	require.Equal(t, umpire3execution.ClaimConforming, baseline.Claim.Kind, baseline.Claim.Reason)
 	require.NotNil(t, baseline.Footprint)
 	targets := umpire3fault.FaultTargets(baseline.Footprint.Calls, 17, 6)
 	require.NotEmpty(t, targets)
@@ -204,7 +203,7 @@ func (s *Umpire3TestSuite) TestProbeNexusResilience() {
 		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 	}
 	faulted := evaluateUmpire3BehaviorIn(t, "ProbeNexusResilience", "", faultFactory)
-	require.Equal(t, umpire3runtime.ClaimConforming, faulted.Claim.Kind, faulted.Claim.Reason)
+	require.Equal(t, umpire3execution.ClaimConforming, faulted.Claim.Kind, faulted.Claim.Reason)
 	require.NotNil(t, faulted.Footprint)
 	require.Len(t, faulted.Faults, 1)
 	require.True(t, faulted.Faults[0].Realized)
@@ -213,15 +212,15 @@ func (s *Umpire3TestSuite) TestProbeNexusResilience() {
 
 func (s *Umpire3TestSuite) TestProbeNexusDegraded() {
 	result := evaluateUmpire3Behavior(s.T(), "ProbeNexusDegraded", "", false)
-	s.Equal(umpire3runtime.ClaimConforming, result.Claim.Kind)
-	s.Equal(umpire3runtime.OutcomeDegraded, result.Outcome.Kind)
+	s.Equal(umpire3execution.ClaimConforming, result.Claim.Kind)
+	s.Equal(umpire3execution.OutcomeDegraded, result.Outcome.Kind)
 	s.Equal("failed", result.Outcome.Terminal)
 }
 
 func (s *Umpire3TestSuite) TestProbeNexusFlagged() {
 	result := evaluateUmpire3Behavior(s.T(), "ProbeNexusFlagged", "", false)
-	s.Equal(umpire3runtime.ClaimViolating, result.Claim.Kind)
-	s.Equal(umpire3runtime.OutcomeFlagged, result.Outcome.Kind)
+	s.Equal(umpire3execution.ClaimViolating, result.Claim.Kind)
+	s.Equal(umpire3execution.OutcomeFlagged, result.Outcome.Kind)
 	s.Empty(result.Outcome.Terminal)
 }
 
@@ -250,7 +249,7 @@ func (s *Umpire3TestSuite) TestProbeNexusExploration() {
 		Holes: []explore.Hole{{
 			Identifier: "edge", Kind: explore.HoleAction, Values: values,
 		}},
-		Build: func(assignment explore.Assignment) (compiler.Scenario, error) {
+		Build: func(assignment explore.Assignment) (scenario.Scenario, error) {
 			value := assignment["edge"]
 			return umpire3AssuranceScenario("umpire3-explore-"+strings.ReplaceAll(value.Key, "/", "-"),
 				protocol.TargetIDFeatureNexus, protocol.PropertyIDNexusOperationClosure,
@@ -328,7 +327,7 @@ func (s *Umpire3TestSuite) TestProbeNexusLearnedFootprint() {
 		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 	}
 	result := evaluateUmpire3BehaviorIn(t, "ProbeNexusLearnedFootprint", "", factory)
-	require.Equal(t, umpire3runtime.ClaimConforming, result.Claim.Kind, result.Claim.Reason)
+	require.Equal(t, umpire3execution.ClaimConforming, result.Claim.Kind, result.Claim.Reason)
 	calls, digest := factory.learnedFootprint()
 	require.NotEmpty(t, calls)
 	require.NotEmpty(t, digest)
@@ -368,7 +367,7 @@ func (s *Umpire3TestSuite) TestProbeNexusCoverageGuidedFaults() {
 	t := s.T()
 	require.Contains(t, t.Name(), "ProbeNexusCoverageGuidedFaults")
 	campaignRun := runUmpire3LearnedFaultCampaign(t, 23, 3)
-	require.Equal(t, umpire3runtime.ClaimConforming, campaignRun.Baseline.Claim.Kind,
+	require.Equal(t, umpire3execution.ClaimConforming, campaignRun.Baseline.Claim.Kind,
 		campaignRun.Baseline.Claim.Reason)
 	require.NotNil(t, campaignRun.Baseline.Footprint)
 	require.True(t, campaignRun.Baseline.Footprint.Complete)
@@ -376,7 +375,7 @@ func (s *Umpire3TestSuite) TestProbeNexusCoverageGuidedFaults() {
 	require.NotEmpty(t, campaignRun.Report.Dropped)
 	protocols := make(map[string]struct{})
 	for _, execution := range campaignRun.Report.Executions {
-		require.NotEqual(t, umpire3runtime.ClaimViolating, execution.Result.Claim.Kind,
+		require.NotEqual(t, umpire3execution.ClaimViolating, execution.Result.Claim.Kind,
 			execution.Result.Claim.Reason)
 		require.Len(t, execution.Result.Faults, 1)
 		require.True(t, execution.Result.Faults[0].Realized)
@@ -401,7 +400,7 @@ func (s *Umpire3TestSuite) TestProbeNexusRandomized() {
 	require.Len(t, first.Executions, 6)
 	require.Len(t, first.Dropped, 11)
 	for _, execution := range first.Executions {
-		require.Equal(t, umpire3runtime.ClaimConforming, execution.Result.Claim.Kind)
+		require.Equal(t, umpire3execution.ClaimConforming, execution.Result.Claim.Kind)
 		require.Len(t, execution.Coverage, 1)
 		require.Equal(t, campaign.CoverageTransition, execution.Coverage[0].Kind)
 	}
@@ -435,7 +434,7 @@ func deterministicCampaignView(report campaign.Report) umpire3CampaignView {
 }
 
 type umpire3LearnedFaultCampaign struct {
-	Baseline umpire3runtime.Result
+	Baseline umpire3execution.Result
 	Targets  []umpire3fault.Footprint
 	Report   campaign.Report
 }
@@ -469,17 +468,17 @@ func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire
 	report, err := campaign.Run(context.Background(), campaign.Request{
 		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
 		CompilerLimits: umpire3CompilerLimits(), RiskFocus: riskFocus,
-		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []campaign.CoveragePoint, error) {
+		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3execution.Result, []campaign.CoveragePoint, error) {
 			factory := &umpire3RequiredFootprintFactory{
 				umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 			}
-			result, err := umpire3runtime.Run(ctx, umpire3runtime.Request{
+			result, err := umpire3execution.Run(ctx, umpire3execution.Request{
 				Experiment: experiment, Environment: factory,
 			})
 			if err != nil {
 				return result, nil, err
 			}
-			if result.Claim.Kind != umpire3runtime.ClaimConforming {
+			if result.Claim.Kind != umpire3execution.ClaimConforming {
 				return result, nil, fmt.Errorf("faulted occurrence did not produce a conforming claim: %s", result.Claim.Reason)
 			}
 			if len(result.Faults) != 1 || !result.Faults[0].Realized || !result.Faults[0].CleanupComplete {
@@ -497,7 +496,7 @@ func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire
 	return umpire3LearnedFaultCampaign{Baseline: baseline, Targets: targets, Report: report}
 }
 
-func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) compiler.Scenario {
+func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) scenario.Scenario {
 	t.Helper()
 	require.True(t, target.RealizationEvidence)
 	require.Positive(t, target.Occurrence)
@@ -511,10 +510,10 @@ func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) com
 	}
 	identifier := strings.NewReplacer("/", "-", ".", "-", "_", "-").Replace(
 		fmt.Sprintf("umpire3-fault-%s-%s-%s-%d", target.Protocol, target.Service, target.Route, target.Occurrence))
-	resource := regress.Resource{Identifier: identifier + "-operation", Kind: protocol.EntityKindNexusOperation}
-	return regress.NewScenario(identifier, protocol.TargetIDFeatureNexus, []regress.Resource{resource},
-		regress.OnePath(
-			regress.During(regress.ConfiguredFault(protocol.Fault{
+	resource := scenario.Resource{Identifier: identifier + "-operation", Kind: protocol.EntityKindNexusOperation}
+	return scenario.NewScenario(identifier, protocol.TargetIDFeatureNexus, []scenario.Resource{resource},
+		scenario.OnePath(
+			scenario.During(scenario.ConfiguredFault(protocol.Fault{
 				Identifier: identifier + "-drop", Kind: string(protocol.FaultKindDrop),
 				SafetyClass: declaration.SafetyClass,
 				Scope: protocol.FaultScope{
@@ -523,8 +522,8 @@ func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) com
 				},
 				Occurrence:           protocol.FaultOccurrence{First: target.Occurrence, Count: 1},
 				RequiredCapabilities: capabilities,
-			}), regress.Action(identifier+"-close", protocol.ActionKindCloseNexusOperation)),
-			regress.Require(protocol.PropertyIDNexusOperationClosure),
+			}), scenario.Action(identifier+"-close", protocol.ActionKindCloseNexusOperation)),
+			scenario.Require(protocol.PropertyIDNexusOperationClosure),
 		))
 }
 
@@ -564,17 +563,17 @@ func runUmpire3NexusRandomCampaign(t *testing.T, seed int64, budget int) campaig
 	report, err := campaign.Run(context.Background(), campaign.Request{
 		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
 		CompilerLimits: umpire3CompilerLimits(),
-		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []campaign.CoveragePoint, error) {
+		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3execution.Result, []campaign.CoveragePoint, error) {
 			edge, found := edges[experiment.ExperimentID]
 			if !found {
-				return umpire3runtime.Result{}, nil,
+				return umpire3execution.Result{}, nil,
 					fmt.Errorf("generated random experiment %q has no model edge", experiment.ExperimentID)
 			}
 			if err := observer.Observe(ctx, edge); err != nil {
-				return umpire3runtime.Result{}, nil, fmt.Errorf("observe generated random edge %q: %w", edge, err)
+				return umpire3execution.Result{}, nil, fmt.Errorf("observe generated random edge %q: %w", edge, err)
 			}
-			return umpire3runtime.Result{Claim: umpire3runtime.Claim{
-				Kind: umpire3runtime.ClaimConforming, Property: experiment.Property.Identifier,
+			return umpire3execution.Result{Claim: umpire3execution.Claim{
+				Kind: umpire3execution.ClaimConforming, Property: experiment.Property.Identifier,
 			}}, []campaign.CoveragePoint{{Kind: campaign.CoverageTransition, Identifier: edge}}, nil
 		},
 	})
@@ -641,8 +640,8 @@ func (r *umpire3RootFaultRealizer) Cleanup(context.Context, string) error {
 	return nil
 }
 
-func umpire3CompilerLimits() compiler.Limits {
-	return compiler.Limits{
+func umpire3CompilerLimits() scenario.Limits {
+	return scenario.Limits{
 		MaxPaths: 8, MaxActions: 64, MaxStates: 1000, MaxMemoryBytes: 8 << 20, MaxTime: 5 * time.Second,
 	}
 }

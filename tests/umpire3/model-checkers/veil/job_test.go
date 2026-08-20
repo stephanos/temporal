@@ -112,9 +112,11 @@ func TestJobReceiptHelper(t *testing.T) {
 	}
 	separator := slices.Index(os.Args, "--")
 	if separator < 0 || !slices.Equal(os.Args[separator+1:], []string{"invariant"}) {
+		//nolint:revive // The subprocess helper reports malformed invocation through its exit status.
 		os.Exit(3)
 	}
 	fmt.Print(os.Getenv("UMPIRE3_VEIL_JOB_RECEIPT"))
+	//nolint:revive // The subprocess helper must not emit the Go test runner's PASS output.
 	os.Exit(0)
 }
 
@@ -141,6 +143,7 @@ func testJobReceipt(
 		} else {
 			receipt.TrustBadge = protocol.TrustBadgeTrustedSolver
 		}
+	default:
 	}
 	receipt.Options = []string{"grind+smt", "sequential", "smt-trust=false"}
 	if generated.TrustMode == TrustedSMT {

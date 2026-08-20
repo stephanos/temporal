@@ -77,9 +77,10 @@ UMPIRE3_MANIFEST := $(UMPIRE3_ROOT)/testdata/empty-manifest.json
 UMPIRE3_MANIFEST_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-manifest -lean-version $(UMPIRE3_LEAN_VERSION)
 UMPIRE3_CATALOG := $(UMPIRE3_ROOT)/protocol/generated/catalog.json
 UMPIRE3_IDENTIFIERS := $(UMPIRE3_ROOT)/protocol/catalog_ids.gen.go
-UMPIRE3_AUTHOR_FACADE := $(UMPIRE3_ROOT)/regress/catalog.gen.go
+UMPIRE3_AUTHOR_FACADE := $(UMPIRE3_ROOT)/scenario/catalog.gen.go
 UMPIRE3_EXPERIMENT_SCHEMA := $(UMPIRE3_ROOT)/protocol/generated/experiment.schema.json
 UMPIRE3_MONITORS := $(UMPIRE3_ROOT)/protocol/generated/monitor-programs.json
+UMPIRE3_OBSERVATIONS := $(UMPIRE3_ROOT)/observation/generated/programs.json
 UMPIRE3_COMPOSITION := $(UMPIRE3_ROOT)/protocol/generated/composition.json
 UMPIRE3_PARITY := $(UMPIRE3_ROOT)/protocol/generated/parity-ledger.json
 UMPIRE3_COVERAGE := $(UMPIRE3_ROOT)/protocol/generated/coverage-denominator.json
@@ -530,6 +531,17 @@ umpire3-check-monitor: umpire3-check-catalog
 		$(UMPIRE3_EXPORT_COMMAND) -artifact monitor-programs > "$$temporary"; \
 		diff -u $(UMPIRE3_MONITORS) "$$temporary"
 
+umpire3-gen-observation: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 observation programs..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact observation-programs -output $(UMPIRE3_OBSERVATIONS)
+
+umpire3-check-observation: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 observation programs..."
+	@set -eu; temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact observation-programs > "$$temporary"; \
+		diff -u $(UMPIRE3_OBSERVATIONS) "$$temporary"
+
 umpire3-gen-composition: umpire3-gen-catalog
 	@printf $(COLOR) "Generate Umpire3 model composition..."
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact composition -output $(UMPIRE3_COMPOSITION)
@@ -613,14 +625,11 @@ umpire3-build-veil:
 umpire3-gen-veil-results: umpire3-gen-veil
 	@$(MAKE) umpire3-build-veil
 	@printf $(COLOR) "Generate normalized Umpire3 Veil results..."
-	@set -eu; temporary=$$(mktemp -d); \
-		trap 'rm -rf "$$temporary"' EXIT; \
-		$(UMPIRE3_VEIL_SOUND_BIN) > "$$temporary/sound.json"; \
-		$(UMPIRE3_VEIL_MUTATED_BIN) > "$$temporary/mutated.json"; \
-		$(UMPIRE3_VEIL_COMMAND) -operation normalize -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
-			-raw-result "$$temporary/sound.json" -output $(UMPIRE3_VEIL_SOUND_RESULT); \
-		$(UMPIRE3_VEIL_COMMAND) -operation normalize -input $(UMPIRE3_NEXUS_MUTATED_FIRST_ORDER) \
-			-raw-result "$$temporary/mutated.json" -replay-command $(UMPIRE3_TRACE_REPLAY_BIN) \
+	@set -eu; \
+		$(UMPIRE3_VEIL_COMMAND) -operation check-concrete -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-backend-command $(UMPIRE3_VEIL_SOUND_BIN) -output $(UMPIRE3_VEIL_SOUND_RESULT); \
+		$(UMPIRE3_VEIL_COMMAND) -operation check-concrete -input $(UMPIRE3_NEXUS_MUTATED_FIRST_ORDER) \
+			-backend-command $(UMPIRE3_VEIL_MUTATED_BIN) -replay-command $(UMPIRE3_TRACE_REPLAY_BIN) \
 			-output $(UMPIRE3_VEIL_MUTATED_RESULT); \
 		$(UMPIRE3_VEIL_COMMAND) -operation check-job -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
 			-job symbolic-trace -job-command $(UMPIRE3_VEIL_SOUND_PROOF_BIN) \
@@ -637,13 +646,11 @@ umpire3-check-veil-results: umpire3-check-veil-generated
 	@printf $(COLOR) "Check normalized Umpire3 Veil results..."
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
-		$(UMPIRE3_VEIL_SOUND_BIN) > "$$temporary/sound.raw.json"; \
-		$(UMPIRE3_VEIL_MUTATED_BIN) > "$$temporary/mutated.raw.json"; \
-		$(UMPIRE3_VEIL_COMMAND) -operation normalize -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
-			-raw-result "$$temporary/sound.raw.json" -output "$$temporary/sound.json"; \
+		$(UMPIRE3_VEIL_COMMAND) -operation check-concrete -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-backend-command $(UMPIRE3_VEIL_SOUND_BIN) -output "$$temporary/sound.json"; \
 		diff -u $(UMPIRE3_VEIL_SOUND_RESULT) "$$temporary/sound.json"; \
-		$(UMPIRE3_VEIL_COMMAND) -operation normalize -input $(UMPIRE3_NEXUS_MUTATED_FIRST_ORDER) \
-			-raw-result "$$temporary/mutated.raw.json" -replay-command $(UMPIRE3_TRACE_REPLAY_BIN) \
+		$(UMPIRE3_VEIL_COMMAND) -operation check-concrete -input $(UMPIRE3_NEXUS_MUTATED_FIRST_ORDER) \
+			-backend-command $(UMPIRE3_VEIL_MUTATED_BIN) -replay-command $(UMPIRE3_TRACE_REPLAY_BIN) \
 			-output "$$temporary/mutated.json"; \
 		diff -u $(UMPIRE3_VEIL_MUTATED_RESULT) "$$temporary/mutated.json"; \
 		$(UMPIRE3_VEIL_COMMAND) -operation check-job -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
@@ -708,9 +715,9 @@ umpire3-check-migration:
 		$(UMPIRE3_MIGRATION_COMMAND) -output "$$temporary"; \
 		diff -u $(UMPIRE3_MIGRATION_LEDGER) "$$temporary"
 
-umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-veil-results umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration
+umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-observation umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-veil-results umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration
 
-umpire3-check-generated: umpire3-check-manifest umpire3-check-identifiers umpire3-check-author-facade umpire3-check-schema umpire3-check-monitor umpire3-check-composition umpire3-check-parity umpire3-check-coverage umpire3-check-veil-results umpire3-check-proof umpire3-check-experiment umpire3-check-api umpire3-check-migration
+umpire3-check-generated: umpire3-check-manifest umpire3-check-identifiers umpire3-check-author-facade umpire3-check-schema umpire3-check-monitor umpire3-check-observation umpire3-check-composition umpire3-check-parity umpire3-check-coverage umpire3-check-veil-results umpire3-check-proof umpire3-check-experiment umpire3-check-api umpire3-check-migration
 
 umpire3-check: umpire3-check-generated
 	@printf $(COLOR) "Check Umpire3 Lean model..."
@@ -739,7 +746,7 @@ umpire3-root:
 		go test -count=1 -tags test_dep ./tests -run '^TestUmpire3' -timeout 20m || status=$$?; \
 		exit $$status
 
-.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-first-order umpire3-check-first-order umpire3-gen-veil umpire3-check-veil-generated umpire3-build-veil umpire3-gen-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-gen umpire3-check-generated umpire3-check umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-root
+.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-first-order umpire3-check-first-order umpire3-gen-veil umpire3-check-veil-generated umpire3-build-veil umpire3-gen-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-gen umpire3-check-generated umpire3-check umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-root
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

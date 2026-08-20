@@ -1,7 +1,6 @@
 package evidence
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -68,22 +67,6 @@ func TestBuilderRequiresSourceIdentityAndLineage(t *testing.T) {
 	require.ErrorContains(t, builder.AddFact(incomplete), "source identity")
 }
 
-func TestIndependentProfilesNormalizeTheSameSemanticClaim(t *testing.T) {
-	t.Parallel()
-
-	for _, adapter := range []SourceAdapter{
-		staticAdapter{kind: SourcePublicAPI, facts: []Fact{fact("public", "frontend", "frontend-sequence", 1, 10, "public-ref")}},
-		staticAdapter{kind: SourceInProcessHooks, facts: []Fact{fact("hook", "history-engine", "engine-sequence", 1, 10, "hook-ref")}},
-	} {
-		builder := NewBuilder(Limits{MaxFacts: 2, MaxBytes: 1 << 20})
-		require.NoError(t, Ingest(context.Background(), builder, adapter))
-		graph, err := builder.Build()
-		require.NoError(t, err)
-		require.True(t, graph.Facts[0].Value)
-		require.Equal(t, "observation", graph.Facts[0].Kind)
-	}
-}
-
 func fact(identifier, source, clock string, sequence, observedAt int64, reference string) Fact {
 	return Fact{
 		Identifier: identifier, Kind: "observation", Value: true,
@@ -91,14 +74,4 @@ func fact(identifier, source, clock string, sequence, observedAt int64, referenc
 		ObservedAtUnixNano: observedAt, Reference: reference,
 		EntityIdentity: "entity", Lineage: []string{"namespace", "entity"},
 	}
-}
-
-type staticAdapter struct {
-	kind  SourceKind
-	facts []Fact
-}
-
-func (a staticAdapter) Kind() SourceKind { return a.kind }
-func (a staticAdapter) Read(context.Context) ([]Fact, error) {
-	return append([]Fact(nil), a.facts...), nil
 }

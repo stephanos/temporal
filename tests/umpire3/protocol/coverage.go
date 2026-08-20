@@ -135,19 +135,19 @@ func (d CoverageDenominator) CanonicalJSON() ([]byte, error) {
 	if err := d.Validate(); err != nil {
 		return nil, err
 	}
-	copy := d
-	copy.Targets = append([]CoverageTarget(nil), d.Targets...)
-	slices.SortFunc(copy.Targets, func(left, right CoverageTarget) int {
+	canonical := d
+	canonical.Targets = append([]CoverageTarget(nil), d.Targets...)
+	slices.SortFunc(canonical.Targets, func(left, right CoverageTarget) int {
 		if comparison := compareStrings(string(left.Identifier), string(right.Identifier)); comparison != 0 {
 			return comparison
 		}
 		return compareStrings(string(left.Property), string(right.Property))
 	})
-	for index := range copy.Targets {
-		copy.Targets[index].Edges = append([]CoverageEdge(nil), copy.Targets[index].Edges...)
-		slices.SortFunc(copy.Targets[index].Edges, func(left, right CoverageEdge) int {
+	for index := range canonical.Targets {
+		canonical.Targets[index].Edges = append([]CoverageEdge(nil), canonical.Targets[index].Edges...)
+		slices.SortFunc(canonical.Targets[index].Edges, func(left, right CoverageEdge) int {
 			return compareStrings(left.Identifier, right.Identifier)
 		})
 	}
-	return json.Marshal(copy)
+	return json.Marshal(canonical)
 }

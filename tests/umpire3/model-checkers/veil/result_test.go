@@ -2,6 +2,7 @@ package veil
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -49,6 +50,33 @@ func TestNormalizeConcreteOutputClassifiesSoundInstanceWithoutCompleteness(t *te
 	require.Equal(t, []string{protocol.VeilConcreteCollisionOmission}, result.Omissions)
 	require.Nil(t, result.Trace)
 	require.NoError(t, result.Validate())
+}
+
+func TestCheckConcreteRunsSupervisedBackend(t *testing.T) {
+	t.Setenv("UMPIRE3_VEIL_CONCRETE_HELPER", "1")
+	view := testView()
+	generated, err := Generate(view, Concrete)
+	require.NoError(t, err)
+
+	result, err := CheckConcrete(context.Background(),
+		[]string{os.Args[0], "-test.run=^TestConcreteCheckerHelper$"}, nil, view, generated)
+	require.NoError(t, err)
+	require.Equal(t, 2, result.ExploredStates)
+	require.Equal(t, protocol.ResultClassExternalNoCounterexample, result.ResultClass)
+}
+
+func TestConcreteCheckerHelper(t *testing.T) {
+	if os.Getenv("UMPIRE3_VEIL_CONCRETE_HELPER") != "1" {
+		return
+	}
+	_, err := os.Stdout.Write([]byte(`{
+  "explored_states": 2,
+  "result": "no_violation_found",
+  "termination_reason": {"kind": "explored_all_reachable_states"}
+}`))
+	require.NoError(t, err)
+	//nolint:revive // The helper must not append the Go test runner's PASS output to the receipt.
+	os.Exit(0)
 }
 
 func TestNormalizeConcreteOutputRejectsExplorationCountMismatch(t *testing.T) {
@@ -107,7 +135,7 @@ func TestConcreteReplayInputBindsNormalizedMutationTrace(t *testing.T) {
 		Property:      protocol.PropertyIDNexusCancellationWonExcludesSuccess,
 		World:         "smoke",
 		Variant:       "stale-completion-guard-removed",
-		SemanticHash:  "sha256:91939fb7d186499518ed05a76483a9c378a8fe55ca07d8104ad7d1f9e9380e1a",
+		SemanticHash:  view.SemanticHash,
 		Actions: []protocol.ActionKind{
 			protocol.ActionKindDispatchTask,
 			protocol.ActionKindAcquireOwnership,
@@ -232,7 +260,7 @@ func TestGeneratedBackendResultsRetainTheirTrustClasses(t *testing.T) {
 		},
 		"nexus-cancellation-sound-symbolic.json": {
 			resultClass: protocol.ResultClassBoundedSafe,
-			trustBadge:  protocol.TrustBadgeReconstructedSolverProof,
+			trustBadge:  protocol.TrustBadgeTrustedSolver,
 		},
 		"nexus-cancellation-sound-invariant.json": {
 			resultClass: protocol.ResultClassInvariantProved,

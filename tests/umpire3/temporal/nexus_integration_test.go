@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/tests/testcore"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 )
 
 func TestLeanTaskAckExperimentRunsWithRealTemporalWorkflowTask(t *testing.T) {
@@ -31,7 +31,7 @@ func TestLeanTaskAckExperimentRunsWithRealTemporalWorkflowTask(t *testing.T) {
 	}
 	result, err := umpire3runtime.Run(context.Background(), umpire3runtime.Request{
 		Experiment:  taskAckExperiment(t),
-		Environment: NewTaskAckFactory(realNexusProbe(testEnvironment), transport),
+		Environment: newTaskAckFactory(realNexusProbe(testEnvironment), transport),
 	})
 	require.NoError(t, err)
 	require.Equal(t, umpire3runtime.ClaimConforming, result.Claim.Kind)
@@ -51,7 +51,7 @@ func TestLeanNexusExperimentRunsWithRealTemporalNexusTask(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			testEnvironment := testcore.NewEnv(t)
 			experiment := loadNexusExperiment(t)
-			factory := NewNexusFactory(realNexusProbe(testEnvironment), NexusOptions{
+			factory := newNexusFactory(realNexusProbe(testEnvironment), nexusOptions{
 				AllowStaleSuccess: testCase.allowStaleSuccess,
 				ProfileName:       "ci",
 				TaskTransport:     newRealNexusTaskTransport(t, testEnvironment),
@@ -75,16 +75,16 @@ func TestLeanNexusExperimentRunsWithRealTemporalNexusTask(t *testing.T) {
 	}
 }
 
-func realNexusProbe(testEnvironment *testcore.TestEnv) ClusterProbe {
-	return func(parent context.Context) (ClusterInfo, error) {
+func realNexusProbe(testEnvironment *testcore.TestEnv) clusterProbe {
+	return func(parent context.Context) (clusterInfo, error) {
 		ctx, cancel := context.WithTimeout(parent, 30*time.Second)
 		defer cancel()
 
 		systemInfo, err := testEnvironment.FrontendClient().GetSystemInfo(ctx, &workflowservice.GetSystemInfoRequest{})
 		if err != nil {
-			return ClusterInfo{}, err
+			return clusterInfo{}, err
 		}
-		return ClusterInfo{
+		return clusterInfo{
 			BuildID:         systemInfo.GetServerVersion(),
 			ConfigurationID: testEnvironment.NamespaceID().String(),
 			EvidenceProfile: "real-cluster-controlled-task",

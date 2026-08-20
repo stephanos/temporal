@@ -1,6 +1,8 @@
 import Umpire3.Catalog
+import Temporal.Product.Nexus
 import Temporal.Product.TaskAck
 import Temporal.Inventory
+import Temporal.System.UpdateTasks
 
 namespace Umpire3.Temporal
 
@@ -35,10 +37,9 @@ private def observation (identifier description : String) : ObservationDeclarati
 private def evidence (identifier description : String) : EvidenceDeclaration :=
   { identifier, description }
 
-private def property (identifier description statementHash : String)
-    (requirements : List String) : PropertyDeclaration := {
-  identifier, description, statementHash, evidence := requirements
-}
+private def property (identifier description : String) (requirements : List String)
+    (proof : ResolvedTheorem) : PropertyDeclaration :=
+  (RegisteredProperty.mk identifier description requirements proof).declaration
 
 private def module (identifier description : String) : ModuleDeclaration :=
   { identifier, description }
@@ -136,12 +137,12 @@ def catalog : SemanticCatalog where
   properties := [
     property "nexus.cancellation.won-excludes-success"
       "Cancellation excludes a later stale success"
-      "sha256:ee1e668005a68fd1dd72bbd4dd2758d035c89f67f6492223c1b615ef094225d8"
-      ["causal", "identity-lineage"],
+      ["causal", "identity-lineage"]
+      (resolved_theorem% Umpire3.Temporal.Product.Nexus.cancellation_won_excludes_success),
     property "workflow-update.accepted-completes-through-history"
       "Accepted Update completion is represented in history"
-      "sha256:d36d6ddd20e5d51e0a4bd591bd2b59ce90f953417042a7b0bc4bff99485c351d"
-      ["source-sequence", "identity-lineage"],
+      ["source-sequence", "identity-lineage"]
+      (resolved_theorem% Umpire3.Temporal.System.UpdateTasks.completeUpdateRequiresRecordedHistory),
   ] ++ Product.TaskAck.declaration.properties ++ Inventory.properties
   policies := [{ identifier := "during", description := "Policy active during a bounded action interval" }]
   faults := [{

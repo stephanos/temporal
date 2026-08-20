@@ -10,6 +10,7 @@ enum Lifecycle = {Open, CancellationAccepted, Cancelled, Succeeded}
 enum TaskStage = {Idle, Dispatched, Returned}
 enum Epoch = {None, Epoch0, Epoch1}
 
+
 individual lifecycle : Lifecycle
 individual task : TaskStage
 individual ownerEpoch : Epoch
@@ -67,7 +68,7 @@ invariant [CanonicalReachableEnvelope] (((lifecycle = Open) âˆ§ (task = Idle) âˆ
 
 #gen_spec
 
-#model_check interpreted {  } { } (sequential := true)
+#model_check interpreted {  } {  } (sequential := true)
 
 unsat trace [bounded_safety] {
   any 6 actions
@@ -83,8 +84,8 @@ end NexusCancellationSound
 namespace Umpire3Veil.Generated
 
 def NexusCancellationSoundEvidence : Umpire3Veil.JobReceipt.Evidence where
-  semanticHash := "sha256:91939fb7d186499518ed05a76483a9c378a8fe55ca07d8104ad7d1f9e9380e1a"
-  generatedModelHash := "sha256:642b8da2c3752652733bae1e297ae1de54a8800fd10d9fd727db4db8f20390ec"
+  semanticHash := "sha256:3cbff91241afd620e598c1f5b1e1609f50571d12c8f1af1aeec6f32dfdbc9089"
+  generatedModelHash := "sha256:551804024480e44f07c742af616e57733445a676fb69a5c8f128ce391a32b139"
   trustMode := .trusted
   invariantAxioms := resolved_veil_axioms% [
     NexusCancellationSound.initializer_doesNotThrow,

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tests/umpire3/compiler"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 const FormatVersion = "umpire3/migration-ledger/v3"
@@ -25,7 +25,7 @@ type ExecutedContract struct {
 	Variant           string           `json:"variant,omitempty"`
 	ScenarioDigest    string           `json:"scenarioDigest"`
 	ExperimentDigests []string         `json:"experimentDigests"`
-	Explain           compiler.Explain `json:"explain"`
+	Explain           scenario.Explain `json:"explain"`
 }
 
 type Entry struct {
@@ -94,13 +94,15 @@ func Build(testsRoot string) (Ledger, error) {
 		}
 		entries = append(entries, Entry{
 			Behavior: previous.behavior, Umpire2: previous.source, Umpire3: current.source,
-			ModelTarget: contract.ModelTarget, Properties: contract.Properties,
-			Entities: contract.Entities, Actions: contract.Actions, Faults: contract.Faults,
-			Relations: contract.Relations, Variants: contract.Variants, Evidence: contract.Evidence,
+			ModelTarget: string(contract.ModelTarget), Properties: []string{string(contract.Property)},
+			Entities: stringsOf(contract.Entities), Actions: stringsOf(contract.Actions),
+			Faults: stringsOf(contract.Faults), Relations: stringsOf(contract.Relations),
+			Variants: contract.Variants, Evidence: contract.Evidence,
 			Fidelity: contract.Fidelity, EvidenceLevel: contract.EvidenceLevel,
 			Scenario: "behavior-contract/" + previous.behavior, Profile: "local-in-process",
-			RequiredCapabilities: contract.RequiredCapabilities, ExpectedVerdict: contract.ExpectedVerdict,
-			NegativeControl: contract.NegativeControl, ArtifactReplay: true,
+			RequiredCapabilities: stringsOf(contract.RequiredCapabilities),
+			ExpectedVerdict:      string(contract.ExpectedVerdict),
+			NegativeControl:      contract.NegativeControl, ArtifactReplay: true,
 			ExecutedContracts: executedContracts,
 		})
 		delete(byBehavior, previous.behavior)
@@ -133,11 +135,11 @@ func compileContract(contract BehaviorContract) ([]ExecutedContract, error) {
 	}
 	result := make([]ExecutedContract, len(variants))
 	for index, variant := range variants {
-		scenario, err := Scenario(contract.Behavior, variant)
+		authored, err := Scenario(contract.Behavior, variant)
 		if err != nil {
 			return nil, err
 		}
-		suite, err := compiler.Compile(context.Background(), scenario, compiler.Limits{
+		suite, err := scenario.Compile(context.Background(), authored, scenario.Limits{
 			MaxPaths: 64, MaxActions: 128, MaxStates: 10000,
 			MaxMemoryBytes: 32 << 20, MaxTime: 10 * time.Second,
 		})

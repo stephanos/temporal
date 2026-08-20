@@ -29,12 +29,15 @@ Trust is recorded in data:
   finite-exhaustive because Veil's concrete state identity can merge fingerprint collisions.
 - A counterexample becomes `trace-witness` only after the canonical Lean replay executable accepts
   its digest-bound action trace. Lean collects and records the replay theorem's axiom inventory.
-- `reconstructed-solver-proof` means `veil.smt.trust` is disabled and all generated verification
-  conditions closed through reconstruction. It is deliberately distinct from `kernel` trust.
-- `trusted-solver` means Veil accepted SMT UNSAT directly. The current Nexus pilot reports 11 such
-  trusted goals.
+- `reconstructed-solver-proof` means `veil.smt.trust` is disabled and all generated invariant
+  verification conditions closed through reconstruction. The receipt is compiled from the named
+  generated theorems and records their transitive Lean axioms. It is deliberately distinct from
+  `kernel` trust.
+- `trusted-solver` means Veil accepted SMT UNSAT directly. This includes bounded symbolic search,
+  whose pinned implementation can fall back to raw UNSAT even when `veil.smt.trust` is disabled,
+  and the invariant mode that deliberately enables solver trust.
 
-Veil does not export a persistent theorem for `#check_invariants`, so its reconstructed job receipt
-cannot be treated as a main-model Lean proof manifest. The pinned dependency build also warns that a
-lean-smt bit-vector reconstruction declaration uses `sorry`; this pilot does not use bit-vectors,
-but the warning is another reason not to upgrade reconstructed Veil evidence to `kernel` trust.
+Veil's generated invariant theorems remain backend evidence rather than main-model Lean proof
+manifests. The pinned dependency build also warns that a lean-smt bit-vector reconstruction
+declaration uses `sorry`; this pilot does not use bit-vectors, and reconstructed receipts fail
+closed if their actual axiom inventory contains `sorryAx`.

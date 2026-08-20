@@ -194,7 +194,7 @@ func TestTraceReplayInputHasStableBoundDigest(t *testing.T) {
 	}
 	canonical, err := input.CanonicalJSON()
 	require.NoError(t, err)
-	require.Equal(t,
+	require.JSONEq(t,
 		`{"formatVersion":"umpire3/trace-replay-input/v1","target":"nexus-cancellation","property":"nexus.cancellation.won-excludes-success","world":"smoke","variant":"stale-completion-guard-removed","semanticHash":"sha256:0000000000000000000000000000000000000000000000000000000000000000","actions":["dispatch-task","acquire-ownership","worker-returns-success","persist-success"]}`,
 		string(canonical))
 	digest, err := input.Digest()

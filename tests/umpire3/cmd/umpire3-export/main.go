@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strings"
 
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -30,6 +31,10 @@ var catalogSpec = exportSpec{
 
 var monitorSpec = exportSpec{
 	root: "Umpire3MonitorExport.lean", sourceRoot: "Temporal/Monitors.lean",
+}
+
+var observationSpec = exportSpec{
+	root: "Umpire3ObservationExport.lean", sourceRoot: "Temporal/Observation/Nexus.lean",
 }
 
 var compositionSpec = exportSpec{
@@ -120,6 +125,8 @@ func main() {
 		err = exportExperimentSchema(&encoded)
 	case "monitor-programs":
 		err = exportMonitorCatalog(*modelRoot, monitorSpec, &encoded)
+	case "observation-programs":
+		err = exportObservationCatalog(*modelRoot, observationSpec, &encoded)
 	case "composition":
 		err = exportComposition(*modelRoot, compositionSpec, &encoded)
 	case "parity-ledger":
@@ -320,6 +327,42 @@ func exportMonitorCatalog(modelRoot string, spec exportSpec, writer io.Writer) e
 	return nil
 }
 
+func exportObservationCatalog(modelRoot string, spec exportSpec, writer io.Writer) error {
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	if err != nil {
+		return err
+	}
+	catalog, err := protocol.DefaultCatalog()
+	if err != nil {
+		return fmt.Errorf("load semantic catalog: %w", err)
+	}
+	catalogHash, err := catalog.Digest()
+	if err != nil {
+		return fmt.Errorf("digest semantic catalog: %w", err)
+	}
+	stdout, err := runLean(modelRoot, spec.root, semanticHash, catalogHash)
+	if err != nil {
+		return err
+	}
+	programs, err := observation.DecodeCatalog(stdout)
+	if err != nil {
+		return fmt.Errorf("validate Lean observation catalog: %w", err)
+	}
+	if programs.SemanticHash != semanticHash {
+		return fmt.Errorf("lean observation semantic hash %q does not match sources %q",
+			programs.SemanticHash, semanticHash)
+	}
+	encoded, err := programs.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write canonical observation catalog: %w", err)
+	}
+	return nil
+}
+
 func exportComposition(modelRoot string, spec exportSpec, writer io.Writer) error {
 	semanticHash, err := semanticSourceHash(modelRoot, spec)
 	if err != nil {
@@ -459,7 +502,7 @@ type leanProofManifest struct {
 
 func decodeLeanProofManifest(encoded []byte) (leanProofManifest, error) {
 	if int64(len(encoded)) > protocol.DefaultDecodeLimit {
-		return leanProofManifest{}, fmt.Errorf("Lean proof manifest exceeds %d bytes", protocol.DefaultDecodeLimit)
+		return leanProofManifest{}, fmt.Errorf("lean proof manifest exceeds %d bytes", protocol.DefaultDecodeLimit)
 	}
 	decoder := json.NewDecoder(bytes.NewReader(encoded))
 	decoder.DisallowUnknownFields()
@@ -469,7 +512,7 @@ func decodeLeanProofManifest(encoded []byte) (leanProofManifest, error) {
 	}
 	var trailing any
 	if err := decoder.Decode(&trailing); err != io.EOF {
-		return leanProofManifest{}, errors.New("Lean proof manifest must contain exactly one JSON value")
+		return leanProofManifest{}, errors.New("lean proof manifest must contain exactly one JSON value")
 	}
 	if manifest.FormatVersion != protocol.ProofManifestFormatVersion || manifest.Identifier == "" ||
 		manifest.Theorem == "" || manifest.Statement == "" || manifest.LeanVersion == "" {
