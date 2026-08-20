@@ -52,6 +52,8 @@
     "src/internal/gomadchoicewire/wire_generated_test.go",
     "src/internal/gomadfs/fs.go",
     "src/internal/gomadfs/fs_test.go",
+    "src/internal/gomadfs/process_volume.go",
+    "src/internal/gomadfs/process_volume_host.go",
     "src/internal/gomadfs/runtime.go",
     "src/internal/gomadfs/simulation_volume.go",
     "src/internal/gomadfs/simulation_volume_wire.go",

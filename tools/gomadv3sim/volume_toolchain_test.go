@@ -143,6 +143,60 @@ func TestVolumeCrashEnumerationRestartAndExactReplay(t *testing.T) {
 	close(release)
 }
 
+func TestProcessBackendPreservesHostVolumeAcrossRestart(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	bootID := uniqueBootID("volume-process-restart")
+	require.NoError(t, RegisterBoot(bootID, func(_ context.Context, node NodeContext) error {
+		if node.Incarnation == 1 {
+			if err := os.MkdirAll("/data", 0o755); err != nil {
+				return err
+			}
+			return os.WriteFile("/data/value", []byte("persisted"), 0o600)
+		}
+		contents, err := os.ReadFile("/data/value")
+		if err != nil {
+			return err
+		}
+		if !bytes.Equal(contents, []byte("persisted")) {
+			return fmt.Errorf("restarted volume contents = %q", contents)
+		}
+		return nil
+	}))
+	spec := oneNodeVolumeSpec(bootID)
+	spec.Backend = BackendProcess
+	spec.Fidelity = FidelityHardIsolation
+	result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
+		first, err := cluster.Start(ctx, "server")
+		if err != nil {
+			return err
+		}
+		terminal, err := cluster.Wait(ctx, first)
+		if err != nil {
+			return err
+		}
+		if terminal.State != NodeStateExited {
+			return fmt.Errorf("first incarnation state = %s: %s", terminal.State, terminal.Reason)
+		}
+		second, err := cluster.Restart(ctx, "server")
+		if err != nil {
+			return err
+		}
+		terminal, err = cluster.Wait(ctx, second)
+		if err != nil {
+			return err
+		}
+		if terminal.State != NodeStateExited {
+			return fmt.Errorf("second incarnation state = %s: %s", terminal.State, terminal.Reason)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
+	require.NotEmpty(t, result.Volumes.Transitions)
+}
+
 func TestVolumeReplayRejectsChangedWriteBeforeFileMutation(t *testing.T) {
 	bootID := uniqueBootID("volume-replay-before-mutation")
 	rejectedSize := make(chan int64, 1)

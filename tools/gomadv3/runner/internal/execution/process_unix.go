@@ -562,6 +562,9 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		result.PGID = final.PGID
 		result.GroupGone = final.GroupGone
 	}
+	if request.Simulation != nil && request.Simulation.reaped != nil {
+		close(request.Simulation.reaped)
+	}
 	var choiceErr error
 	if choiceSession != nil {
 		collected := <-collectedChoice

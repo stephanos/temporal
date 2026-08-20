@@ -324,6 +324,7 @@ func (run *simulationVolumeRun) revoke(domain gomadsim.NetworkDomain, graceful, 
 		}
 		return err
 	}
+	revokeProcessVolumeResources(domain.Token)
 	run.Lock()
 	defer run.Unlock()
 	if node.activeDomain != domain.Token || node.filesystem != filesystem {

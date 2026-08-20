@@ -11,6 +11,7 @@ import (
 	"sync"
 	"syscall"
 
+	"internal/gomadmodelwire"
 	"internal/gomadwire"
 )
 
@@ -63,6 +64,7 @@ type node struct {
 
 type FS struct {
 	mu           sync.Mutex
+	process      bool
 	nodes        map[string]*node
 	loader       Loader
 	clock        func() int64
@@ -81,6 +83,7 @@ type FS struct {
 
 type Handle struct {
 	fs              *FS
+	processHandle   uint64
 	node            *node
 	name            string
 	offset          int64
@@ -94,12 +97,13 @@ type Handle struct {
 }
 
 type Mapping struct {
-	fs         *FS
-	node       *node
-	data       []byte
-	closed     bool
-	revoked    bool
-	generation uint64
+	fs            *FS
+	processHandle uint64
+	node          *node
+	data          []byte
+	closed        bool
+	revoked       bool
+	generation    uint64
 }
 
 type Statistics struct {
@@ -126,7 +130,6 @@ func NewSimulation() *FS {
 	Default.mu.Lock()
 	defer Default.mu.Unlock()
 	fs := New()
-	fs.loader = Default.loader
 	fs.clock = Default.clock
 	fs.nodes["/"].modTime = Default.nodes["/"].modTime
 	return fs
@@ -194,10 +197,16 @@ func (fs *FS) normalize(name string) (string, string, error) {
 }
 
 func (fs *FS) Resolve(name string) (string, string, error) {
+	if fs.process {
+		return processResolve(name)
+	}
 	return fs.normalize(name)
 }
 
 func (fs *FS) Mkdir(name string, perm uint32) error {
+	if fs.process {
+		return processMkdir(name, perm, false)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil || path == "/" {
 		return syscall.EINVAL
@@ -239,6 +248,9 @@ func (fs *FS) Mkdir(name string, perm uint32) error {
 }
 
 func (fs *FS) MkdirAll(name string, perm uint32) error {
+	if fs.process {
+		return processMkdir(name, perm, true)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
 		return err
@@ -310,6 +322,9 @@ func (fs *FS) MkdirAll(name string, perm uint32) error {
 }
 
 func (fs *FS) Stat(name string) (Entry, error) {
+	if fs.process {
+		return processStat(name)
+	}
 	path, base, err := fs.normalize(name)
 	if err != nil {
 		return Entry{}, err
@@ -324,6 +339,9 @@ func (fs *FS) Stat(name string) (Entry, error) {
 }
 
 func (fs *FS) Open(name string, flags OpenFlags, perm uint32) (*Handle, error) {
+	if fs.process {
+		return processOpen(name, flags, perm)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
 		return nil, err
@@ -396,6 +414,9 @@ func (fs *FS) Open(name string, flags OpenFlags, perm uint32) (*Handle, error) {
 }
 
 func (fs *FS) Rename(oldName, newName string) error {
+	if fs.process {
+		return processPathOperation(gomadmodelwire.VolumeRename, oldName, newName, 0, 0)
+	}
 	oldPath, _, err := fs.normalize(oldName)
 	if err != nil {
 		return err
@@ -513,6 +534,9 @@ func (fs *FS) Rename(oldName, newName string) error {
 }
 
 func (fs *FS) Remove(name string) error {
+	if fs.process {
+		return processPathOperation(gomadmodelwire.VolumeRemove, name, "", 0, 0)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil || path == "/" {
 		return syscall.EINVAL
@@ -557,6 +581,9 @@ func (fs *FS) Remove(name string) error {
 }
 
 func (fs *FS) RemoveAll(name string) error {
+	if fs.process {
+		return processPathOperation(gomadmodelwire.VolumeRemoveAll, name, "", 0, 0)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil || path == "/" {
 		return syscall.EINVAL
@@ -615,6 +642,9 @@ func (fs *FS) RemoveAll(name string) error {
 }
 
 func (fs *FS) Chmod(name string, mode uint32) error {
+	if fs.process {
+		return processPathOperation(gomadmodelwire.VolumeChmod, name, "", 0, uint64(mode))
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
 		return err
@@ -642,6 +672,9 @@ func (fs *FS) Chmod(name string, mode uint32) error {
 }
 
 func (fs *FS) Chtimes(name string, modTime int64) error {
+	if fs.process {
+		return processPathOperation(gomadmodelwire.VolumeChtimes, name, "", modTime, 0)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
 		return err
@@ -666,6 +699,9 @@ func (fs *FS) Chtimes(name string, modTime int64) error {
 }
 
 func (fs *FS) Chdir(name string) error {
+	if fs.process {
+		return processPathOperation(gomadmodelwire.VolumeChdir, name, "", 0, 0)
+	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
 		return err
@@ -684,6 +720,9 @@ func (fs *FS) Chdir(name string) error {
 }
 
 func (fs *FS) Getwd() string {
+	if fs.process {
+		return processGetwd()
+	}
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 	return fs.cwd
@@ -721,6 +760,9 @@ func (fs *FS) lookupLocked(path string) (*node, error) {
 }
 
 func (handle *Handle) Read(destination []byte) (int, error) {
+	if handle.fs.process {
+		return processHandleRead(handle, destination, 0, false)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -741,6 +783,9 @@ func (handle *Handle) Read(destination []byte) (int, error) {
 }
 
 func (handle *Handle) ReadAt(destination []byte, offset int64) (int, error) {
+	if handle.fs.process {
+		return processHandleRead(handle, destination, offset, true)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -766,6 +811,9 @@ func (handle *Handle) ReadAt(destination []byte, offset int64) (int, error) {
 }
 
 func (handle *Handle) Write(source []byte) (int, error) {
+	if handle.fs.process {
+		return processHandleWrite(handle, source, 0, false)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -815,6 +863,9 @@ func (handle *Handle) Write(source []byte) (int, error) {
 }
 
 func (handle *Handle) WriteAt(source []byte, offset int64) (int, error) {
+	if handle.fs.process {
+		return processHandleWrite(handle, source, offset, true)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -862,6 +913,10 @@ func (handle *Handle) WriteAt(source []byte, offset int64) (int, error) {
 }
 
 func (handle *Handle) Truncate(size int64) error {
+	if handle.fs.process {
+		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleTruncate, size, 0, 0)
+		return err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -906,6 +961,10 @@ func (handle *Handle) Truncate(size int64) error {
 }
 
 func (handle *Handle) Chmod(mode uint32) error {
+	if handle.fs.process {
+		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleChmod, 0, 0, uint64(mode))
+		return err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -928,6 +987,10 @@ func (handle *Handle) Chmod(mode uint32) error {
 }
 
 func (handle *Handle) Chtimes(modTime int64) error {
+	if handle.fs.process {
+		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleChtimes, modTime, 0, 0)
+		return err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -947,6 +1010,10 @@ func (handle *Handle) Chtimes(modTime int64) error {
 }
 
 func (handle *Handle) Chdir() error {
+	if handle.fs.process {
+		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleChdir, 0, 0, 0)
+		return err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -968,6 +1035,10 @@ func (handle *Handle) Chdir() error {
 }
 
 func (handle *Handle) Seek(offset int64, whence int) (int64, error) {
+	if handle.fs.process {
+		response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleSeek, offset, int64(whence), 0)
+		return response.Int1, err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -992,6 +1063,9 @@ func (handle *Handle) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (handle *Handle) Stat() (Entry, error) {
+	if handle.fs.process {
+		return processHandleStat(handle)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -1002,12 +1076,18 @@ func (handle *Handle) Stat() (Entry, error) {
 }
 
 func (handle *Handle) Path() string {
+	if handle.fs.process {
+		return handle.name
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	return handle.name
 }
 
 func (handle *Handle) ReadDir(count int) ([]Entry, error) {
+	if handle.fs.process {
+		return processHandleReadDir(handle, count)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -1050,6 +1130,13 @@ func (handle *Handle) ReadDir(count int) ([]Entry, error) {
 }
 
 func (handle *Handle) Close() error {
+	if handle.fs.process {
+		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleClose, 0, 0, 0)
+		if err == nil {
+			handle.closed = true
+		}
+		return err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -1064,6 +1151,10 @@ func (handle *Handle) Close() error {
 }
 
 func (handle *Handle) Sync() error {
+	if handle.fs.process {
+		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleSync, 0, 0, 0)
+		return err
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -1073,6 +1164,9 @@ func (handle *Handle) Sync() error {
 }
 
 func (handle *Handle) Map(length uint64) (*Mapping, error) {
+	if handle.fs.process {
+		return processHandleMap(handle, length)
+	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
 	if err := handle.errorLocked(); err != nil {
@@ -1094,6 +1188,9 @@ func (handle *Handle) Map(length uint64) (*Mapping, error) {
 }
 
 func (mapping *Mapping) Bytes() ([]byte, error) {
+	if mapping.fs.process {
+		return processMappingBytes(mapping)
+	}
 	mapping.fs.mu.Lock()
 	defer mapping.fs.mu.Unlock()
 	if err := mapping.errorLocked(); err != nil {
@@ -1103,6 +1200,9 @@ func (mapping *Mapping) Bytes() ([]byte, error) {
 }
 
 func (mapping *Mapping) Close() error {
+	if mapping.fs.process {
+		return processMappingClose(mapping)
+	}
 	mapping.fs.mu.Lock()
 	defer mapping.fs.mu.Unlock()
 	if err := mapping.errorLocked(); err != nil {

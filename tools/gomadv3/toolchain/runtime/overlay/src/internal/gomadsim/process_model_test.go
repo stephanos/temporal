@@ -49,13 +49,23 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
 			served <- err
 			return
 		}
-		served <- writeProcessModelTestFrame(responseWrite, first)
+		if err := writeProcessModelTestFrame(responseWrite, first); err != nil {
+			served <- err
+			return
+		}
+		third, err := readProcessModelTestFrame(requestRead)
+		if err != nil {
+			served <- err
+			return
+		}
+		third.Response, third.Error = true, "host model failure"
+		served <- writeProcessModelTestFrame(responseWrite, third)
 	}()
 	results := make(chan string, 2)
 	for _, node := range []string{"first", "second"} {
 		go func(node string) {
-			response, ok := gomadsim.ProcessModelExchange(node, 1, []byte(node), 64)
-			if !ok {
+			response, remoteErr, ok := gomadsim.ProcessModelExchange(node, 1, []byte(node), 64)
+			if !ok || remoteErr != "" {
 				results <- "failed"
 				return
 			}
@@ -65,6 +75,10 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
 	got := map[string]bool{<-results: true, <-results: true}
 	if !got["first"] || !got["second"] || len(got) != 2 {
 		t.Fatalf("responses = %v", got)
+	}
+	response, remoteErr, ok := gomadsim.ProcessModelExchange("third", 1, []byte("third"), 64)
+	if !ok || remoteErr != "host model failure" || response != nil {
+		t.Fatalf("remote error response = %q, %q, %t", response, remoteErr, ok)
 	}
 	if err := <-served; err != nil {
 		t.Fatal(err)

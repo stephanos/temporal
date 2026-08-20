@@ -28,9 +28,9 @@ var processModels = struct {
 	done        chan struct{}
 }{}
 
-func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit uint64) ([]byte, bool) {
+func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit uint64) ([]byte, string, bool) {
 	if ProcessRole() != 2 || node == "" || len(node) > 256 || incarnation == 0 || len(payload) == 0 || len(payload) > maximumProcessFrameBytes || limit == 0 || limit > maximumProcessFrameBytes {
-		return nil, false
+		return nil, "", false
 	}
 	processModels.Lock()
 	if !processModels.initialized {
@@ -38,7 +38,7 @@ func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit
 		response, responseOK := processDescriptor(processModelResponseFDEnvironmentName)
 		if !requestOK || !responseOK {
 			processModels.Unlock()
-			return nil, false
+			return nil, "", false
 		}
 		processModels.initialized = true
 		processModels.request = request
@@ -49,13 +49,13 @@ func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit
 	}
 	if processModels.failed || len(processModels.pending) >= maximumProcessModelRequests {
 		processModels.Unlock()
-		return nil, false
+		return nil, "", false
 	}
 	processModels.next++
 	if processModels.next == 0 {
 		failProcessModelsLocked()
 		processModels.Unlock()
-		return nil, false
+		return nil, "", false
 	}
 	requestID := processModels.next
 	result := make(chan processModelResult, 1)
@@ -68,23 +68,23 @@ func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit
 	encoded, err := EncodeModelTransportFrame(request)
 	if err != nil {
 		removeProcessModelRequest(requestID)
-		return nil, false
+		return nil, "", false
 	}
 	processModels.write.Lock()
 	written := writeProcessModelFrame(requestDescriptor, encoded)
 	processModels.write.Unlock()
 	if !written {
 		failProcessModels()
-		return nil, false
+		return nil, "", false
 	}
 	select {
 	case response := <-result:
-		if !response.ok || !response.frame.Response || response.frame.Node != "" && response.frame.Node != node || response.frame.Incarnation != 0 && response.frame.Incarnation != incarnation || response.frame.Error != "" || uint64(len(response.frame.Payload)) > limit {
-			return nil, false
+		if !response.ok || !response.frame.Response || response.frame.Node != "" && response.frame.Node != node || response.frame.Incarnation != 0 && response.frame.Incarnation != incarnation || uint64(len(response.frame.Payload)) > limit {
+			return nil, "", false
 		}
-		return append([]byte(nil), response.frame.Payload...), true
+		return append([]byte(nil), response.frame.Payload...), response.frame.Error, true
 	case <-done:
-		return nil, false
+		return nil, "", false
 	}
 }
 

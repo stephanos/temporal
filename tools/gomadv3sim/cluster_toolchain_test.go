@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"slices"
 	"syscall"
 	"testing"
 	"time"
@@ -200,6 +201,146 @@ func TestProcessBackendRoutesListenThroughSharedHostModel(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
 	require.NotEmpty(t, result.Network.Transitions)
+}
+
+func TestProcessModelClosureWaitsForAdmittedOperationAndRejectsNewWork(t *testing.T) {
+	handle := NodeHandle{Node: "server", Incarnation: 1}
+	node := &clusterNode{state: NodeStateRunning, handle: handle, domain: 7}
+	cluster := &inProcessCluster{nodes: map[NodeID]*clusterNode{"server": node}, activity: make(chan struct{}, 1)}
+	domain, err := cluster.beginProcessModelOperation(handle)
+	require.NoError(t, err)
+	require.Equal(t, uint64(7), domain)
+
+	cluster.mu.Lock()
+	node.modelClosing = true
+	cluster.mu.Unlock()
+	_, err = cluster.beginProcessModelOperation(handle)
+	require.ErrorIs(t, err, ErrInvalidTransition)
+
+	done := make(chan struct{})
+	go func() {
+		cluster.waitForProcessModelOperations(node)
+		close(done)
+	}()
+	select {
+	case <-done:
+		t.Fatal("model closure completed before the admitted operation")
+	default:
+	}
+	cluster.finishProcessModelOperation(node)
+	<-done
+}
+
+func TestProcessBackendCrashDrainsInflightModelOperationDeterministically(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	bootID := uniqueBootID("cluster-process-crash-inflight")
+	require.NoError(t, RegisterBoot(bootID, func(_ context.Context, node NodeContext) (resultErr error) {
+		listener, err := net.Listen("tcp", net.JoinHostPort(node.Address, "7233"))
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if closeErr := listener.Close(); closeErr != nil && !errors.Is(closeErr, net.ErrClosed) {
+				resultErr = errors.Join(resultErr, closeErr)
+			}
+		}()
+		_, err = listener.Accept()
+		return err
+	}))
+	spec := Spec{
+		Schema: SpecSchema, Backend: BackendProcess, Fidelity: FidelityHardIsolation, Seed: 101, Limits: DefaultLimits(),
+		Nodes: []NodeSpec{{ID: "server", Boot: bootID, Address: "10.0.0.1"}},
+	}
+	run := func() Result {
+		result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
+			handle, err := cluster.Start(ctx, "server")
+			if err != nil {
+				return err
+			}
+			concrete := cluster.(*inProcessCluster)
+			for {
+				concrete.mu.Lock()
+				node := concrete.nodes[handle.Node]
+				acceptActive := node.modelStarted >= 2 && node.modelActive != 0
+				concrete.mu.Unlock()
+				if acceptActive {
+					break
+				}
+				select {
+				case <-concrete.activity:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			return cluster.Crash(ctx, handle)
+		})
+		require.NoError(t, err)
+		require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
+		require.Equal(t, NodeStateCrashed, result.Nodes[0].State)
+		require.NotEmpty(t, result.Network.Transitions)
+		return result
+	}
+	first := run()
+	second := run()
+	require.Equal(t, first.Record.Identity, second.Record.Identity)
+	require.Equal(t, first.Record.Transitions, second.Record.Transitions)
+	require.Equal(t, first.Network, second.Network)
+}
+
+func TestProcessBackendModelDigestsIgnoreCompletionOrder(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	bootID := uniqueBootID("cluster-process-completion-order")
+	require.NoError(t, RegisterBoot(bootID, func(_ context.Context, node NodeContext) error {
+		if err := os.MkdirAll("/data", 0o755); err != nil {
+			return err
+		}
+		return os.WriteFile("/data/value", []byte(node.Node), 0o600)
+	}))
+	spec := Spec{
+		Schema: SpecSchema, Backend: BackendProcess, Fidelity: FidelityHardIsolation, Seed: 103, Limits: DefaultLimits(),
+		Nodes: []NodeSpec{
+			{ID: "first", Boot: bootID, Address: "10.0.0.1", Volumes: []VolumeMount{{Volume: "first-data", Path: "/data"}}},
+			{ID: "second", Boot: bootID, Address: "10.0.0.2", Volumes: []VolumeMount{{Volume: "second-data", Path: "/data"}}},
+		},
+		Volumes: []VolumeSpec{{ID: "first-data", CapacityBytes: 1 << 20}, {ID: "second-data", CapacityBytes: 1 << 20}},
+	}
+	run := func(reverse bool) Result {
+		result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
+			first, err := cluster.Start(ctx, "first")
+			if err != nil {
+				return err
+			}
+			second, err := cluster.Start(ctx, "second")
+			if err != nil {
+				return err
+			}
+			handles := []NodeHandle{first, second}
+			if reverse {
+				slices.Reverse(handles)
+			}
+			for _, handle := range handles {
+				terminal, err := cluster.Wait(ctx, handle)
+				if err != nil {
+					return err
+				}
+				if terminal.State != NodeStateExited {
+					return fmt.Errorf("node %q state = %s: %s", handle.Node, terminal.State, terminal.Reason)
+				}
+			}
+			return nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
+		return result
+	}
+	forward := run(false)
+	reverse := run(true)
+	require.Equal(t, forward.Network, reverse.Network)
+	require.Equal(t, forward.Volumes, reverse.Volumes)
 }
 
 func processNetworkPeer(peer string, value byte) BootFunc {
