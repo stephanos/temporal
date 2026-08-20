@@ -1,13 +1,17 @@
-# M11 generated Go interface decision
+# Generated artifact gate
 
-Decision: skip generated Go semantic types in Umpire3 1.0.
+Lean is the semantic source for the catalog, experiment schema, composition, parity ledger, monitor
+programs, proof manifests, checked experiments, Go identifiers, and author facade. The Temporal
+protobuf descriptor selection generates the recursive wire projection, field dispositions,
+conformance fixtures, and runtime descriptor mirror. The root-test AST inventory plus explicit
+behavior contracts generates the migration ledger.
 
-The formal negative-control loop has succeeded and two Lean models use the versioned experiment
-schema. The remaining entry condition is not met: there is one handwritten Go protocol model, and
-the Nexus and Update adapters contain domain behavior rather than repeated schema declarations.
-A Lean-to-Go generator would add a second compiler and differential-test surface without removing
-measured repeated boilerplate. The ordinary protocol structs remain a non-authoritative data seam.
+Run `make umpire3-gen` after an intentional Lean, descriptor-selection, or root-test inventory change.
+Run `make umpire3-check-generated` in review and CI. The check rebuilds every output into a temporary
+file and compares bytes; the API projection additionally checks every selected field disposition and
+the runtime descriptor mirror. Generated files are never hand edited.
 
-Re-evaluate only when at least two additional models repeat the same Go schema declarations and a
-change log demonstrates recurring maintenance cost. Generated code must then remain deterministic,
-carry source/proof hashes, reject unsupported Lean, and pass differential tests against Lean.
+A generated diff is a semantic review surface. Review action/property/type identity, dependencies,
+capabilities, evidence requirements, descriptor closure, protobuf field classification, module
+obligations, target omissions, parity status, root behavior contracts, and release hashes before
+accepting it.

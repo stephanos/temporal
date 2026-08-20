@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tests/umpire3/environment"
+	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
 )
 
 func TestCompareReplaySeparatesDriftClasses(t *testing.T) {
@@ -44,4 +45,16 @@ func TestCompareReplaySeparatesDriftClasses(t *testing.T) {
 	evidence.Observations = append([]environment.Observation(nil), baseline.Observations...)
 	evidence.Observations[0].CausalReference = ""
 	require.Equal(t, DriftEvidence, CompareReplay(baseline, evidence)[0].Kind)
+}
+
+func TestCompareReplayDetectsLearnedFootprintDrift(t *testing.T) {
+	previous := Result{ExperimentDigest: "sha256:same", Footprint: &umpire3fault.Report{
+		FootprintDigest: "sha256:before", ReconciliationDigest: "sha256:reconciled",
+	}}
+	current := Result{ExperimentDigest: "sha256:same", Footprint: &umpire3fault.Report{
+		FootprintDigest: "sha256:after", ReconciliationDigest: "sha256:reconciled",
+	}}
+
+	require.Equal(t, []Drift{{Kind: DriftFootprint, Detail: "learned runtime footprint changed"}},
+		CompareReplay(previous, current))
 }

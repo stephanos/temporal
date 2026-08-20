@@ -15,6 +15,7 @@ func TestClaimKindsRemainDistinct(t *testing.T) {
 		ClaimViolating,
 		ClaimUnsupported,
 		ClaimInconclusive,
+		ClaimEvidenceFailure,
 	}
 	seen := make(map[ClaimKind]struct{}, len(claims))
 	for _, claim := range claims {
