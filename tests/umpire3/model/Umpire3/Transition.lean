@@ -45,4 +45,11 @@ theorem Runs.empty {model : TransitionSystem} {start final : model.State}
   cases run
   rfl
 
+theorem Runs.firstStep {model : TransitionSystem} {start final : model.State}
+    {action : model.Action} {actions : List model.Action}
+    (run : Runs model start (action :: actions) final) :
+    ∃ nextState, model.Step start action nextState := by
+  cases run with
+  | cons step _ => exact ⟨_, step⟩
+
 end Umpire3
