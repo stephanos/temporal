@@ -159,7 +159,11 @@ func ProcessWaitStop() bool {
 		return false
 	}
 	var control [1]byte
-	return processReadFull(descriptor, control[:]) && control[0] == 1
+	if !processReadFull(descriptor, control[:]) || control[0] != 1 {
+		return false
+	}
+	runtimeSimulationExternalArrive()
+	return true
 }
 
 //go:linkname ProcessRole
@@ -227,10 +231,14 @@ func ProcessExchange(request []byte, limit uint64) ([]byte, bool) {
 	}
 	processTransport.Lock()
 	defer processTransport.Unlock()
-	if processRequestBlocksSimulationTime(request) {
-		runtimeSimulationExternalBegin()
-		defer runtimeSimulationExternalEnd()
-	}
+	external := true
+	runtimeSimulationExternalBegin()
+	defer func() {
+		if external {
+			runtimeSimulationExternalEnd()
+		}
+	}()
+	blocksSimulationTime := processRequestBlocksSimulationTime(request)
 	var header [4]byte
 	binary.BigEndian.PutUint32(header[:], uint32(len(request)))
 	if !processWriteFull(requestDescriptor, header[:]) || !processWriteFull(requestDescriptor, request) {
@@ -238,6 +246,16 @@ func ProcessExchange(request []byte, limit uint64) ([]byte, bool) {
 	}
 	if !processReadFull(responseDescriptor, header[:]) {
 		return nil, false
+	}
+	if !blocksSimulationTime {
+		if binary.BigEndian.Uint32(header[:]) != 0 {
+			return nil, false
+		}
+		runtimeSimulationExternalEnd()
+		external = false
+		if !processReadFull(responseDescriptor, header[:]) {
+			return nil, false
+		}
 	}
 	size := binary.BigEndian.Uint32(header[:])
 	if size == 0 || uint64(size) > limit {

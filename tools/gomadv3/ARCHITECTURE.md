@@ -59,7 +59,8 @@ fault, scenario, history, and oracle evidence. The in-process backend assigns
 inheritable runtime domains to logical
 node incarnations; stale domains fail before model mutation. Package globals
 and computationally live crashed goroutines remain shared-process limitations,
-so fresh initialization and hard cleanup are reserved for the process backend.
+so fresh initialization and hard cleanup are provided only by the process
+backend.
 
 The virtual network is a separate run-scoped deep module below ordinary `net`
 TCP calls. It owns node addresses, deterministic ports, directional links,

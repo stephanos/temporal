@@ -1093,8 +1093,14 @@ func runSimulationProcessHelper() {
 		if writeErr := writeSimulationFrame(request, frame); writeErr != nil {
 			os.Exit(48)
 		}
+		accepted := true
+		if frame.Kind == simulationFrameWait {
+			var receipt [4]byte
+			_, readErr := io.ReadFull(response, receipt[:])
+			accepted = readErr == nil && receipt == [4]byte{}
+		}
 		answer, readErr := readSimulationFrame(response)
-		if readErr != nil || answer.Error != "" {
+		if !accepted || readErr != nil || answer.Error != "" {
 			os.Exit(49)
 		}
 		if frame.Kind == simulationFrameWait && os.Getenv("GOMADV3_SIMULATION_CASE") != "crash" && string(answer.Payload) != "node-terminal" {

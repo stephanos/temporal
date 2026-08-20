@@ -63,6 +63,8 @@ type inProcessCluster struct {
 	faults                []FaultRealization
 	faultPending          bool
 	faultOccurrences      map[string]uint64
+	scenarioChoicePlan    ScenarioChoicePlan
+	scenarioChoiceCursor  uint64
 	scenarios             []ScenarioDecision
 	scenarioOccurrences   map[string]uint64
 	history               []HistoryOperation
@@ -318,6 +320,10 @@ func newInProcessCluster(spec Spec) (*inProcessCluster, error) {
 	} else {
 		cluster.faultPlan = *spec.Faults
 		cluster.faultPlan.Actions = cloneFaultActions(spec.Faults.Actions)
+	}
+	cluster.scenarioChoicePlan, err = scenarioChoicePlanForSpec(spec)
+	if err != nil {
+		return nil, err
 	}
 	if spec.Replay != nil {
 		if spec.Replay.SpecSHA256 != specSHA256 {
