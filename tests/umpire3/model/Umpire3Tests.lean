@@ -10,6 +10,7 @@ import Umpire3Tests.TemporalNexusClosure
 import Umpire3Tests.TemporalNexusLifecycle
 import Umpire3Tests.TemporalNexusEvidence
 import Umpire3Tests.TemporalNexusFencing
+import Umpire3Tests.FiniteExplorer
 import Umpire3Tests.TemporalOutcome
 import Umpire3Tests.TemporalCallback
 import Umpire3Tests.TemporalWorkflowEvidence
