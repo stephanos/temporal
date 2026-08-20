@@ -16,10 +16,10 @@ def stateIdentity : StateIdentity SystemState where
 
 def actionName : SystemAction → String
   | .dispatchTask => "dispatch-task"
-  | .acceptCancellation => "accept-cancellation"
+  | .acceptCancellation => "request-cancellation"
   | .acquireOwnership => "acquire-ownership"
   | .commitCancellation => "commit-cancellation"
-  | .returnSuccess => "return-success"
+  | .returnSuccess => "worker-returns-success"
   | .persistSuccess => "persist-success"
 
 def soundFiniteView : FiniteView

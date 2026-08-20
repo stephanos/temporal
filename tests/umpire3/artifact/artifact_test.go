@@ -3,6 +3,8 @@ package artifact
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"testing"
@@ -90,6 +92,24 @@ func TestEncodeEnforcesArtifactLimit(t *testing.T) {
 	result.DeriveAssurance()
 	_, err := Encode(experiment, result, 16)
 	require.ErrorContains(t, err, "exceeds")
+}
+
+func TestReplayBundleV1BytesRemainStable(t *testing.T) {
+	experiment := artifactExperiment(t)
+	digest, err := experiment.Digest()
+	require.NoError(t, err)
+	result := umpire3runtime.Result{
+		FormatVersion:    umpire3runtime.ResultFormatVersion,
+		ExperimentDigest: digest,
+		Claim:            umpire3runtime.Claim{Kind: umpire3runtime.ClaimInconclusive, Reason: "characterization"},
+	}
+	result.DeriveAssurance()
+
+	encoded, err := Encode(experiment, result, experiment.Retention.MaxArtifactBytes)
+	require.NoError(t, err)
+	sum := sha256.Sum256(encoded)
+	require.Equal(t, "20a15821675d50e9abffdbcfb8379c025f2acdfe992c355fbd48f94945dfcc09",
+		hex.EncodeToString(sum[:]))
 }
 
 func TestFileCorpusDeduplicatesByExperimentDigest(t *testing.T) {

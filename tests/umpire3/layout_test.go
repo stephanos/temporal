@@ -95,6 +95,25 @@ func TestBlackBoxProfileDoesNotImportServerObservationInternals(t *testing.T) {
 	require.Empty(t, violations)
 }
 
+func TestFoundationalPackageImportDirection(t *testing.T) {
+	allowed := map[string][]string{
+		"protocol":    nil,
+		"evidence":    nil,
+		"process":     nil,
+		"compiler":    {"protocol"},
+		"environment": {"protocol"},
+		"fault":       {"protocol"},
+		"participant": {"protocol"},
+	}
+	for packageName, dependencies := range allowed {
+		t.Run(packageName, func(t *testing.T) {
+			violations, err := findUnexpectedUmpire3Imports(packageName, dependencies)
+			require.NoError(t, err)
+			require.Empty(t, violations)
+		})
+	}
+}
+
 func TestDependencyGuardRejectsPreviousUmpire(t *testing.T) {
 	fixture := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(fixture, "bad.go"), []byte(`package bad
@@ -171,6 +190,46 @@ func findImportsWithPrefixes(root string, forbidden []string) ([]string, error) 
 					violations = append(violations, fmt.Sprintf("%s imports %s", filepath.Base(path), importPath))
 				}
 			}
+		}
+		return nil
+	})
+	return violations, err
+}
+
+func findUnexpectedUmpire3Imports(root string, allowed []string) ([]string, error) {
+	const prefix = "go.temporal.io/server/tests/umpire3/"
+	allowedImports := make(map[string]struct{}, len(allowed))
+	for _, dependency := range allowed {
+		allowedImports[prefix+dependency] = struct{}{}
+	}
+	var violations []string
+	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".go" || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		file, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.ImportsOnly)
+		if err != nil {
+			return err
+		}
+		for _, imported := range file.Imports {
+			importPath, err := strconv.Unquote(imported.Path.Value)
+			if err != nil {
+				return err
+			}
+			if !strings.HasPrefix(importPath, prefix) {
+				continue
+			}
+			if _, ok := allowedImports[importPath]; ok {
+				continue
+			}
+			relative, err := filepath.Rel(root, path)
+			if err != nil {
+				return err
+			}
+			violations = append(violations, fmt.Sprintf("%s imports %s", relative, importPath))
 		}
 		return nil
 	})
