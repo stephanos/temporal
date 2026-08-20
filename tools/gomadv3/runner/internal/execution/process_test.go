@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"errors"
@@ -51,6 +52,26 @@ func TestRunCapturesTargetExitAndBothStreams(t *testing.T) {
 	}
 	if result.PID <= 0 || result.PGID != result.PID || !result.GroupGone {
 		t.Fatalf("process identity = pid %d pgid %d gone %v", result.PID, result.PGID, result.GroupGone)
+	}
+}
+
+func TestRunTransportsSimulationExplorationPlanAndRecords(t *testing.T) {
+	result, err := Run(context.Background(), Spec{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-exploration"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+		Simulation: &SimulationCapability{
+			Role: SimulationRoleCoordinator, ExplorationPlan: []byte("forced-plan"),
+			ExplorationRecordLimit: 64, ExplorationRecordCount: 2,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.SimulationRecords) != 2 || !bytes.Equal(result.SimulationRecords[0], []byte("record-one")) || !bytes.Equal(result.SimulationRecords[1], []byte("record-two")) {
+		t.Fatalf("simulation records = %q", result.SimulationRecords)
 	}
 }
 
@@ -1030,8 +1051,38 @@ func TestTargetHelper(t *testing.T) {
 	case "simulation-coordinator":
 		runSimulationProcessHelper()
 		os.Exit(0)
+	case "simulation-exploration":
+		runSimulationExplorationHelper()
+		os.Exit(0)
 	default:
 		t.Skip("target subprocess only")
+	}
+}
+
+func runSimulationExplorationHelper() {
+	requestDescriptor, err := strconv.Atoi(os.Getenv(simulationRequestFDEnvironmentName))
+	if err != nil {
+		os.Exit(51)
+	}
+	responseDescriptor, err := strconv.Atoi(os.Getenv(simulationResponseFDEnvironmentName))
+	if err != nil {
+		os.Exit(52)
+	}
+	request := os.NewFile(uintptr(requestDescriptor), "simulation-request")
+	response := os.NewFile(uintptr(responseDescriptor), "simulation-response")
+	frames := []simulationFrame{
+		{Profile: simulationProtocol, Kind: simulationFrameExplorationPlan, Request: 1},
+		{Profile: simulationProtocol, Kind: simulationFrameExplorationRecord, Request: 2, Payload: []byte("record-one")},
+		{Profile: simulationProtocol, Kind: simulationFrameExplorationRecord, Request: 3, Payload: []byte("record-two")},
+	}
+	for index, frame := range frames {
+		if writeSimulationFrame(request, frame) != nil {
+			os.Exit(53)
+		}
+		answer, readErr := readSimulationFrame(response)
+		if readErr != nil || answer.Error != "" || index == 0 && string(answer.Payload) != "forced-plan" {
+			os.Exit(54)
+		}
 	}
 }
 

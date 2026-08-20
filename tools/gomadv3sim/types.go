@@ -6,9 +6,9 @@ import (
 	"fmt"
 )
 
-const SpecSchema = "gomadv3.simulation-spec/v6"
-const ClusterRecordSchema = "gomadv3.cluster-record/v6"
-const ClusterReplaySchema = "gomadv3.cluster-replay/v6"
+const SpecSchema = "gomadv3.simulation-spec/v7"
+const ClusterRecordSchema = "gomadv3.cluster-record/v7"
+const ClusterReplaySchema = "gomadv3.cluster-replay/v7"
 
 const MaximumClusterRecordBytes = 128 << 20
 const MaximumTerminalReasonBytes = 4096
@@ -396,20 +396,22 @@ func (err *BackendUnavailableError) Unwrap() error {
 }
 
 type ReplayDivergence struct {
-	Dimension        ReplayDimension     `json:"dimension"`
-	Ordinal          uint64              `json:"ordinal"`
-	Expected         LifecycleTransition `json:"expected"`
-	Actual           LifecycleTransition `json:"actual"`
-	ExpectedSHA256   string              `json:"expected_sha256,omitempty"`
-	ActualSHA256     string              `json:"actual_sha256,omitempty"`
-	ExpectedNetwork  *NetworkTransition  `json:"expected_network,omitempty"`
-	ActualNetwork    *NetworkTransition  `json:"actual_network,omitempty"`
-	ExpectedVolume   *VolumeTransition   `json:"expected_volume,omitempty"`
-	ActualVolume     *VolumeTransition   `json:"actual_volume,omitempty"`
-	ExpectedFault    *FaultAction        `json:"expected_fault,omitempty"`
-	ActualFault      *FaultAction        `json:"actual_fault,omitempty"`
-	ExpectedScenario *ScenarioDecision   `json:"expected_scenario,omitempty"`
-	ActualScenario   *ScenarioDecision   `json:"actual_scenario,omitempty"`
+	Dimension           ReplayDimension      `json:"dimension"`
+	Ordinal             uint64               `json:"ordinal"`
+	Expected            LifecycleTransition  `json:"expected"`
+	Actual              LifecycleTransition  `json:"actual"`
+	ExpectedSHA256      string               `json:"expected_sha256,omitempty"`
+	ActualSHA256        string               `json:"actual_sha256,omitempty"`
+	ExpectedNetwork     *NetworkTransition   `json:"expected_network,omitempty"`
+	ActualNetwork       *NetworkTransition   `json:"actual_network,omitempty"`
+	ExpectedVolume      *VolumeTransition    `json:"expected_volume,omitempty"`
+	ActualVolume        *VolumeTransition    `json:"actual_volume,omitempty"`
+	ExpectedFault       *FaultAction         `json:"expected_fault,omitempty"`
+	ActualFault         *FaultAction         `json:"actual_fault,omitempty"`
+	ExpectedScenario    *ScenarioDecision    `json:"expected_scenario,omitempty"`
+	ActualScenario      *ScenarioDecision    `json:"actual_scenario,omitempty"`
+	ExpectedExploration *ExplorationDecision `json:"expected_exploration,omitempty"`
+	ActualExploration   *ExplorationDecision `json:"actual_exploration,omitempty"`
 }
 
 type ReplayDivergenceError struct {
@@ -417,7 +419,7 @@ type ReplayDivergenceError struct {
 }
 
 func (err *ReplayDivergenceError) Error() string {
-	return fmt.Sprintf("%v: dimension=%s ordinal=%d expected_sha256=%s actual_sha256=%s expected_network=%+v actual_network=%+v expected_volume=%+v actual_volume=%+v expected_fault=%+v actual_fault=%+v expected_scenario=%+v actual_scenario=%+v", ErrReplayDiverged, err.Divergence.Dimension, err.Divergence.Ordinal, err.Divergence.ExpectedSHA256, err.Divergence.ActualSHA256, err.Divergence.ExpectedNetwork, err.Divergence.ActualNetwork, err.Divergence.ExpectedVolume, err.Divergence.ActualVolume, err.Divergence.ExpectedFault, err.Divergence.ActualFault, err.Divergence.ExpectedScenario, err.Divergence.ActualScenario)
+	return fmt.Sprintf("%v: dimension=%s ordinal=%d expected_sha256=%s actual_sha256=%s expected_network=%+v actual_network=%+v expected_volume=%+v actual_volume=%+v expected_fault=%+v actual_fault=%+v expected_scenario=%+v actual_scenario=%+v expected_exploration=%+v actual_exploration=%+v", ErrReplayDiverged, err.Divergence.Dimension, err.Divergence.Ordinal, err.Divergence.ExpectedSHA256, err.Divergence.ActualSHA256, err.Divergence.ExpectedNetwork, err.Divergence.ActualNetwork, err.Divergence.ExpectedVolume, err.Divergence.ActualVolume, err.Divergence.ExpectedFault, err.Divergence.ActualFault, err.Divergence.ExpectedScenario, err.Divergence.ActualScenario, err.Divergence.ExpectedExploration, err.Divergence.ActualExploration)
 }
 
 func (err *ReplayDivergenceError) Unwrap() error {
@@ -425,60 +427,64 @@ func (err *ReplayDivergenceError) Unwrap() error {
 }
 
 type ClusterRecord struct {
-	Schema          string                  `json:"schema"`
-	Backend         Backend                 `json:"backend"`
-	Fidelity        Fidelity                `json:"fidelity"`
-	Seed            uint64                  `json:"seed"`
-	Limits          Limits                  `json:"limits"`
-	Static          ClusterStaticIdentities `json:"static_identities"`
-	Models          ClusterModelIdentities  `json:"model_identities"`
-	NodeSpecs       []NodeSpec              `json:"node_specs"`
-	LinkSpecs       []LinkSpec              `json:"link_specs"`
-	VolumeSpecs     []VolumeSpec            `json:"volume_specs"`
-	SpecSHA256      string                  `json:"spec_sha256"`
-	Outcome         Outcome                 `json:"outcome"`
-	Reason          string                  `json:"reason,omitempty"`
-	FailureIdentity string                  `json:"failure_identity,omitempty"`
-	Nodes           []NodeResult            `json:"nodes"`
-	Transitions     []LifecycleTransition   `json:"transitions"`
-	FaultPlan       FaultPlan               `json:"fault_plan"`
-	Faults          []FaultRealization      `json:"faults"`
-	ScenarioChoices ScenarioChoicePlan      `json:"scenario_choice_plan"`
-	Scenarios       []ScenarioDecision      `json:"scenario_tape"`
-	History         []HistoryOperation      `json:"history"`
-	Observations    []Observation           `json:"observations"`
-	Oracles         []OracleResult          `json:"oracles"`
-	Network         NetworkRecord           `json:"network"`
-	Volumes         VolumeRecord            `json:"volumes"`
-	Outputs         []OutputObservation     `json:"outputs"`
-	Limitations     []Limitation            `json:"limitations"`
-	Leaks           []LeakDiagnostic        `json:"leaks"`
-	Divergence      *ReplayDivergence       `json:"divergence,omitempty"`
-	Identity        string                  `json:"identity"`
+	Schema               string                  `json:"schema"`
+	Backend              Backend                 `json:"backend"`
+	Fidelity             Fidelity                `json:"fidelity"`
+	Seed                 uint64                  `json:"seed"`
+	Limits               Limits                  `json:"limits"`
+	Static               ClusterStaticIdentities `json:"static_identities"`
+	Models               ClusterModelIdentities  `json:"model_identities"`
+	NodeSpecs            []NodeSpec              `json:"node_specs"`
+	LinkSpecs            []LinkSpec              `json:"link_specs"`
+	VolumeSpecs          []VolumeSpec            `json:"volume_specs"`
+	SpecSHA256           string                  `json:"spec_sha256"`
+	Outcome              Outcome                 `json:"outcome"`
+	Reason               string                  `json:"reason,omitempty"`
+	FailureIdentity      string                  `json:"failure_identity,omitempty"`
+	Nodes                []NodeResult            `json:"nodes"`
+	Transitions          []LifecycleTransition   `json:"transitions"`
+	FaultPlan            FaultPlan               `json:"fault_plan"`
+	Faults               []FaultRealization      `json:"faults"`
+	ExplorationPlan      *ExplorationPlan        `json:"exploration_plan,omitempty"`
+	ExplorationDecisions []ExplorationDecision   `json:"exploration_decisions,omitempty"`
+	ScenarioChoices      ScenarioChoicePlan      `json:"scenario_choice_plan"`
+	Scenarios            []ScenarioDecision      `json:"scenario_tape"`
+	History              []HistoryOperation      `json:"history"`
+	Observations         []Observation           `json:"observations"`
+	Oracles              []OracleResult          `json:"oracles"`
+	Network              NetworkRecord           `json:"network"`
+	Volumes              VolumeRecord            `json:"volumes"`
+	Outputs              []OutputObservation     `json:"outputs"`
+	Limitations          []Limitation            `json:"limitations"`
+	Leaks                []LeakDiagnostic        `json:"leaks"`
+	Divergence           *ReplayDivergence       `json:"divergence,omitempty"`
+	Identity             string                  `json:"identity"`
 }
 
 type ReplayPlan struct {
-	Schema          string                  `json:"schema"`
-	SpecSHA256      string                  `json:"spec_sha256"`
-	Static          ClusterStaticIdentities `json:"static_identities"`
-	Models          ClusterModelIdentities  `json:"model_identities"`
-	Outcome         Outcome                 `json:"outcome"`
-	Reason          string                  `json:"reason,omitempty"`
-	FailureIdentity string                  `json:"failure_identity,omitempty"`
-	Nodes           []NodeResult            `json:"nodes"`
-	Transitions     []LifecycleTransition   `json:"transitions"`
-	FaultPlan       FaultPlan               `json:"fault_plan"`
-	Faults          []FaultRealization      `json:"faults"`
-	ScenarioChoices ScenarioChoicePlan      `json:"scenario_choice_plan"`
-	Scenarios       []ScenarioDecision      `json:"scenario_tape"`
-	History         []HistoryOperation      `json:"history"`
-	Observations    []Observation           `json:"observations"`
-	Oracles         []OracleResult          `json:"oracles"`
-	Network         NetworkRecord           `json:"network"`
-	Volumes         VolumeRecord            `json:"volumes"`
-	Outputs         []OutputObservation     `json:"outputs"`
-	Leaks           []LeakDiagnostic        `json:"leaks"`
-	Identity        string                  `json:"identity"`
+	Schema               string                  `json:"schema"`
+	SpecSHA256           string                  `json:"spec_sha256"`
+	Static               ClusterStaticIdentities `json:"static_identities"`
+	Models               ClusterModelIdentities  `json:"model_identities"`
+	Outcome              Outcome                 `json:"outcome"`
+	Reason               string                  `json:"reason,omitempty"`
+	FailureIdentity      string                  `json:"failure_identity,omitempty"`
+	Nodes                []NodeResult            `json:"nodes"`
+	Transitions          []LifecycleTransition   `json:"transitions"`
+	FaultPlan            FaultPlan               `json:"fault_plan"`
+	Faults               []FaultRealization      `json:"faults"`
+	ExplorationPlan      *ExplorationPlan        `json:"exploration_plan,omitempty"`
+	ExplorationDecisions []ExplorationDecision   `json:"exploration_decisions,omitempty"`
+	ScenarioChoices      ScenarioChoicePlan      `json:"scenario_choice_plan"`
+	Scenarios            []ScenarioDecision      `json:"scenario_tape"`
+	History              []HistoryOperation      `json:"history"`
+	Observations         []Observation           `json:"observations"`
+	Oracles              []OracleResult          `json:"oracles"`
+	Network              NetworkRecord           `json:"network"`
+	Volumes              VolumeRecord            `json:"volumes"`
+	Outputs              []OutputObservation     `json:"outputs"`
+	Leaks                []LeakDiagnostic        `json:"leaks"`
+	Identity             string                  `json:"identity"`
 }
 
 type Result struct {
