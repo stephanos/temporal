@@ -523,7 +523,7 @@ umpire3-gen-catalog:
 
 umpire3-check-catalog:
 	@printf $(COLOR) "Check generated Umpire3 semantic catalog..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact catalog > "$$temporary"; \
 		diff -u $(UMPIRE3_CATALOG) "$$temporary"
@@ -534,7 +534,7 @@ umpire3-gen-identifiers: umpire3-gen-catalog
 
 umpire3-check-identifiers: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 Go identifiers..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact go-identifiers > "$$temporary"; \
 		diff -u $(UMPIRE3_IDENTIFIERS) "$$temporary"
@@ -545,7 +545,7 @@ umpire3-gen-author-facade: umpire3-gen-catalog
 
 umpire3-check-author-facade: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 author facade..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact author-facade > "$$temporary"; \
 		diff -u $(UMPIRE3_AUTHOR_FACADE) "$$temporary"
@@ -556,7 +556,7 @@ umpire3-gen-schema:
 
 umpire3-check-schema:
 	@printf $(COLOR) "Check generated Umpire3 experiment schema..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact experiment-schema > "$$temporary"; \
 		diff -u $(UMPIRE3_EXPERIMENT_SCHEMA) "$$temporary"
@@ -567,7 +567,7 @@ umpire3-gen-monitor: umpire3-gen-catalog
 
 umpire3-check-monitor: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 monitor programs..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact monitor-programs > "$$temporary"; \
 		diff -u $(UMPIRE3_MONITORS) "$$temporary"
@@ -578,7 +578,7 @@ umpire3-gen-composition: umpire3-gen-catalog
 
 umpire3-check-composition: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 model composition..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact composition > "$$temporary"; \
 		diff -u $(UMPIRE3_COMPOSITION) "$$temporary"
@@ -589,7 +589,7 @@ umpire3-gen-parity: umpire3-gen-catalog
 
 umpire3-check-parity: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 parity ledger..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact parity-ledger > "$$temporary"; \
 		diff -u $(UMPIRE3_PARITY) "$$temporary"
@@ -600,7 +600,7 @@ umpire3-gen-coverage: umpire3-gen-catalog
 
 umpire3-check-coverage: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 coverage denominator..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact coverage-denominator > "$$temporary"; \
 		diff -u $(UMPIRE3_COVERAGE) "$$temporary"
@@ -614,7 +614,7 @@ umpire3-gen-first-order: umpire3-gen-catalog
 umpire3-check-first-order: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 Nexus first-order views..."
 	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Targets.NexusCancellationFencingFirstOrder
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact first-order-view -variant sound > "$$temporary"; \
 		diff -u $(UMPIRE3_NEXUS_FIRST_ORDER) "$$temporary"; \
@@ -708,7 +708,7 @@ umpire3-gen-proof: umpire3-gen-api
 
 umpire3-check-proof: umpire3-check-api
 	@printf $(COLOR) "Check generated Umpire3 proof manifests..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment nexus > "$$temporary"; \
 		diff -u $(UMPIRE3_NEXUS_PROOF_MANIFEST) "$$temporary"; \
@@ -722,7 +722,7 @@ umpire3-gen-experiment: umpire3-gen-catalog umpire3-gen-api
 
 umpire3-check-experiment: umpire3-check-catalog umpire3-check-api
 	@printf $(COLOR) "Check generated Umpire3 Nexus experiment..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment nexus > "$$temporary"; \
 		diff -u $(UMPIRE3_NEXUS_EXPERIMENT) "$$temporary"; \
@@ -745,7 +745,7 @@ umpire3-gen-migration:
 
 umpire3-check-migration:
 	@printf $(COLOR) "Check Umpire3 root-test migration ledger..."
-	@temporary=$$(mktemp); \
+	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_MIGRATION_COMMAND) -output "$$temporary"; \
 		diff -u $(UMPIRE3_MIGRATION_LEDGER) "$$temporary"
