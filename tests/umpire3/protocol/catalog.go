@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
+	"strings"
 )
 
 const CatalogFormatVersion = "umpire3/catalog/v1"
@@ -80,6 +82,10 @@ type PropertyDeclaration struct {
 	Description   string   `json:"description"`
 	StatementHash string   `json:"statementHash"`
 	Evidence      []string `json:"evidence"`
+	Theorem       string   `json:"theorem"`
+	Statement     string   `json:"statement"`
+	Axioms        []string `json:"axioms"`
+	TrustBadge    TrustBadge `json:"trustBadge"`
 }
 
 type PolicyDeclaration struct {
@@ -132,6 +138,7 @@ func DecodeCatalog(reader io.Reader, limit int64) (Catalog, error) {
 	if err := decodeStrictJSON(reader, limit, "catalog", &catalog); err != nil {
 		return Catalog{}, err
 	}
+	catalog.derivePropertyProofs()
 	if err := catalog.Validate(); err != nil {
 		return Catalog{}, err
 	}
@@ -295,6 +302,27 @@ func (c Catalog) Validate() error {
 		if !validHash(property.StatementHash) {
 			return fmt.Errorf("property %q has invalid statement hash", property.Identifier)
 		}
+		if property.Theorem == "" || property.Statement == "" {
+			return fmt.Errorf("property %q has no resolved Lean theorem", property.Identifier)
+		}
+		if property.StatementHash != statementDigest(property.Statement) {
+			return fmt.Errorf("property %q derived statement hash does not match its resolved theorem", property.Identifier)
+		}
+		if !slices.IsSorted(property.Axioms) || len(slices.Compact(append([]string(nil), property.Axioms...))) != len(property.Axioms) {
+			return fmt.Errorf("property %q axioms are not sorted and unique", property.Identifier)
+		}
+		for _, axiom := range property.Axioms {
+			if axiom == "" || strings.Contains(axiom, "sorryAx") {
+				return fmt.Errorf("property %q has invalid axiom %q", property.Identifier, axiom)
+			}
+		}
+		expectedTrust := TrustBadgeKernel
+		if len(property.Axioms) != 0 {
+			expectedTrust = TrustBadgeKernelWithDeclaredAxioms
+		}
+		if property.TrustBadge != expectedTrust {
+			return fmt.Errorf("property %q trust badge does not match its resolved axioms", property.Identifier)
+		}
 		for _, requirement := range property.Evidence {
 			if _, known := evidence[requirement]; !known {
 				return fmt.Errorf("property %q references unknown evidence %q", property.Identifier, requirement)
@@ -340,6 +368,19 @@ func (c Catalog) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (c *Catalog) derivePropertyProofs() {
+	for index := range c.Properties {
+		if c.Properties[index].StatementHash == "derived" {
+			c.Properties[index].StatementHash = statementDigest(c.Properties[index].Statement)
+		}
+	}
+}
+
+func statementDigest(statement string) string {
+	digest := sha256.Sum256([]byte(statement))
+	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 func validateActionDependencies(actions []ActionDeclaration) error {

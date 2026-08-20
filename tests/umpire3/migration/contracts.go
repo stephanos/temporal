@@ -4,22 +4,21 @@ import (
 	"fmt"
 	"slices"
 
-	"go.temporal.io/server/tests/umpire3/compiler"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/regress"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 type BehaviorContract struct {
 	Behavior             string
-	ModelTarget          string
-	Properties           []string
-	Entities             []string
-	Actions              []string
-	Faults               []string
-	Relations            []string
+	ModelTarget          protocol.TargetID
+	Property             protocol.PropertyID
+	Entities             []protocol.EntityKind
+	Actions              []protocol.ActionKind
+	Faults               []protocol.FaultKind
+	Relations            []protocol.RelationID
 	Variants             []string
-	RequiredCapabilities []string
-	ExpectedVerdict      string
+	RequiredCapabilities []protocol.CapabilityID
+	ExpectedVerdict      protocol.ClaimKind
 	NegativeControl      string
 	Evidence             []string
 	Fidelity             protocol.Fidelity
@@ -127,51 +126,51 @@ func Contract(behavior string) (BehaviorContract, bool) {
 	return contract, exists
 }
 
-func Scenario(behavior string, variant string) (compiler.Scenario, error) {
+func Scenario(behavior string, variant string) (scenario.Scenario, error) {
 	contract, exists := Contract(behavior)
 	if !exists {
-		return compiler.Scenario{}, fmt.Errorf("unknown Umpire3 behavior contract %q", behavior)
+		return scenario.Scenario{}, fmt.Errorf("unknown Umpire3 behavior contract %q", behavior)
 	}
-	if len(contract.Properties) != 1 || len(contract.Entities) == 0 || len(contract.Actions) == 0 {
-		return compiler.Scenario{}, fmt.Errorf("behavior contract %q is not executable", behavior)
+	if contract.Property == "" || len(contract.Entities) == 0 || len(contract.Actions) == 0 {
+		return scenario.Scenario{}, fmt.Errorf("behavior contract %q is not executable", behavior)
 	}
 	if len(contract.Variants) == 0 {
 		if variant != "" {
-			return compiler.Scenario{}, fmt.Errorf("behavior contract %q has no variant %q", behavior, variant)
+			return scenario.Scenario{}, fmt.Errorf("behavior contract %q has no variant %q", behavior, variant)
 		}
 	} else if !slices.Contains(contract.Variants, variant) {
-		return compiler.Scenario{}, fmt.Errorf("behavior contract %q does not declare variant %q", behavior, variant)
+		return scenario.Scenario{}, fmt.Errorf("behavior contract %q does not declare variant %q", behavior, variant)
 	}
 	identifier := "behavior-contract-" + behavior
 	if variant != "" {
 		identifier += "-" + variant
 	}
-	resources := make([]regress.Resource, len(contract.Entities))
+	resources := make([]scenario.Resource, len(contract.Entities))
 	for index, entity := range contract.Entities {
-		resources[index] = regress.Resource{
-			Identifier: identifier + "-" + entity, Kind: protocol.EntityKind(entity),
+		resources[index] = scenario.Resource{
+			Identifier: identifier + "-" + string(entity), Kind: entity,
 		}
 	}
-	actions := make([]regress.Term, len(contract.Actions))
+	actions := make([]scenario.Term, len(contract.Actions))
 	for index, action := range contract.Actions {
-		var options []regress.ActionOption
+		var options []scenario.ActionOption
 		if behavior == "ProbeNexusFlagged" {
-			options = append(options, regress.Asynchronously())
+			options = append(options, scenario.Asynchronously())
 		}
-		actions[index] = regress.Action(
-			fmt.Sprintf("%s-action-%02d", identifier, index+1), protocol.ActionKind(action), options...)
+		actions[index] = scenario.Action(
+			fmt.Sprintf("%s-action-%02d", identifier, index+1), action, options...)
 	}
-	actions = append(actions, regress.Require(protocol.PropertyID(contract.Properties[0])))
-	root := regress.OnePath(actions...)
+	actions = append(actions, scenario.Require(contract.Property))
+	root := scenario.OnePath(actions...)
 	catalog, err := protocol.DefaultCatalog()
 	if err != nil {
-		return compiler.Scenario{}, err
+		return scenario.Scenario{}, err
 	}
 	for index := len(contract.Faults) - 1; index >= 0; index-- {
-		faultKind := protocol.FaultKind(contract.Faults[index])
+		faultKind := contract.Faults[index]
 		declaration, known := catalog.Fault(string(faultKind))
 		if !known {
-			return compiler.Scenario{}, fmt.Errorf("behavior contract %q has unknown fault %q", behavior, faultKind)
+			return scenario.Scenario{}, fmt.Errorf("behavior contract %q has unknown fault %q", behavior, faultKind)
 		}
 		requiredCapabilities := make([]string, len(declaration.RequiredCapabilities))
 		for capabilityIndex, capability := range declaration.RequiredCapabilities {
@@ -181,8 +180,8 @@ func Scenario(behavior string, variant string) (compiler.Scenario, error) {
 		for resourceIndex, resource := range resources {
 			resourceScope[resourceIndex] = resource.Identifier
 		}
-		root = regress.During(
-			regress.ConfiguredFault(protocol.Fault{
+		root = scenario.During(
+			scenario.ConfiguredFault(protocol.Fault{
 				Identifier: fmt.Sprintf("%s-fault-%02d", identifier, index+1), Kind: string(faultKind),
 				SafetyClass: declaration.SafetyClass,
 				Scope: protocol.FaultScope{
@@ -196,7 +195,7 @@ func Scenario(behavior string, variant string) (compiler.Scenario, error) {
 			root,
 		)
 	}
-	return regress.NewScenario(identifier, protocol.TargetID(contract.ModelTarget), resources, root), nil
+	return scenario.NewScenario(identifier, contract.ModelTarget, resources, root), nil
 }
 
 func contract(
@@ -211,9 +210,11 @@ func contract(
 	verdict string,
 ) BehaviorContract {
 	return BehaviorContract{
-		Behavior: behavior, ModelTarget: target, Properties: []string{property}, Entities: entities,
-		Actions: actions, Relations: relations, Variants: variants, RequiredCapabilities: capabilities,
-		ExpectedVerdict: verdict, NegativeControl: "qualified-opposite-observation",
+		Behavior: behavior, ModelTarget: protocol.TargetID(target), Property: protocol.PropertyID(property),
+		Entities: identifiers[protocol.EntityKind](entities), Actions: identifiers[protocol.ActionKind](actions),
+		Relations: identifiers[protocol.RelationID](relations), Variants: variants,
+		RequiredCapabilities: identifiers[protocol.CapabilityID](capabilities),
+		ExpectedVerdict:      protocol.ClaimKind(verdict), NegativeControl: "qualified-opposite-observation",
 		Evidence: []string{"source-identity", "source-sequence", "entity-identity", "identity-lineage"},
 		Fidelity: behaviorFidelity(behavior), EvidenceLevel: protocol.EvidenceLocalIntegration,
 	}
@@ -249,10 +250,26 @@ func contractWithFault(
 ) BehaviorContract {
 	result := contract(behavior, target, property, []string{"nexus-operation"}, actions,
 		[]string{"scoped-fault-effect"}, nil, append(nexusCapabilities(), "fault-rpc"), verdict)
-	result.Faults = faults
+	result.Faults = identifiers[protocol.FaultKind](faults)
 	return result
 }
 
 func nexusCapabilities() []string {
 	return []string{"nexus", "nexus-observation", "nexus-worker-control"}
+}
+
+func identifiers[T ~string](values []string) []T {
+	result := make([]T, len(values))
+	for index, value := range values {
+		result[index] = T(value)
+	}
+	return result
+}
+
+func stringsOf[T ~string](values []T) []string {
+	result := make([]string, len(values))
+	for index, value := range values {
+		result[index] = string(value)
+	}
+	return result
 }

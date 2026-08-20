@@ -2,15 +2,12 @@ package campaign
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
-	"go.temporal.io/server/tests/umpire3/artifact"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
 	"go.temporal.io/server/tests/umpire3/replay"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
 type ApprovedMutation struct {
@@ -23,7 +20,7 @@ type ApprovedMutation struct {
 type MutationGateRequest struct {
 	Mutation MutationRequest
 	Approved []ApprovedMutation
-	Executor umpire3runtime.ExecuteCandidate
+	Executor ExecuteCandidate
 }
 
 type MutationGateReport struct {
@@ -53,71 +50,55 @@ func RunMutationGate(ctx context.Context, request MutationGateRequest) (Mutation
 		}
 		approved[key] = mutation
 	}
-	mutations, err := Mutate(request.Mutation)
+	canonical, err := Run(ctx, Request{
+		Mutation: &request.Mutation, Workers: 1, MaxExecutions: request.Mutation.MaxCandidates,
+		MinimizeAttempts: max(64, request.Mutation.MaxCandidates*16),
+		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []CoveragePoint, error) {
+			result, err := request.Executor(ctx, experiment)
+			return result, nil, err
+		},
+	})
 	if err != nil {
 		return MutationGateReport{}, err
 	}
 	report := MutationGateReport{Seed: request.Mutation.Seed}
-	var discovered Mutation
-	found := false
-	for _, mutation := range mutations.Selected {
-		report.Examined = append(report.Examined, string(mutation.Kind)+":"+mutation.Path)
-		result, executeErr := request.Executor(ctx, mutation.Experiment)
-		if executeErr != nil {
-			return MutationGateReport{}, fmt.Errorf("execute mutation %s at %s: %w", mutation.Kind, mutation.Path, executeErr)
-		}
-		approvedMutation, known := approved[string(mutation.Kind)+"\x00"+mutation.Path]
-		if result.Claim.Kind != umpire3runtime.ClaimViolating {
+	for _, execution := range canonical.Executions {
+		report.Examined = append(report.Examined, string(execution.Mutation)+":"+execution.Path)
+		if execution.Result.Claim.Kind != umpire3runtime.ClaimViolating {
 			continue
 		}
+		approvedMutation, known := approved[string(execution.Mutation)+"\x00"+execution.Path]
 		if !known {
-			return MutationGateReport{}, fmt.Errorf("unapproved mutation %s at %s produced a violation", mutation.Kind, mutation.Path)
+			return MutationGateReport{}, fmt.Errorf("unapproved mutation %s at %s produced a violation", execution.Mutation, execution.Path)
+		}
+		var discovery *Discovery
+		for index := range canonical.Discoveries {
+			candidate := &canonical.Discoveries[index]
+			if candidate.Mutation == execution.Mutation && candidate.Path == execution.Path {
+				discovery = candidate
+				break
+			}
+		}
+		if discovery == nil {
+			return MutationGateReport{}, errors.New("qualified mutation has no canonical campaign discovery")
+		}
+		if discovery.PromotionBlock != "" {
+			return MutationGateReport{}, fmt.Errorf("qualify mutation discovery: %s", discovery.PromotionBlock)
 		}
 		report.Discovered = approvedMutation
-		discovered = mutation
-		found = true
-		break
+		report.OriginalDigest = execution.Digest
+		report.Minimized = discovery.Minimized
+		report.MinimizedDigest, err = discovery.Minimized.Digest()
+		if err != nil {
+			return MutationGateReport{}, err
+		}
+		report.ReplayBundleDigest = discovery.BundleDigest
+		report.Replay = discovery.Replay
+		report.PromotionSource = discovery.Promotion.Source
+		return report, nil
 	}
-	if !found {
+	if len(report.Examined) == 0 {
 		return MutationGateReport{}, errors.New("campaign did not discover an approved cross-layer mutation")
 	}
-	report.OriginalDigest = discovered.Digest
-	minimized, err := umpire3runtime.MinimizeExperiment(ctx, discovered.Experiment, request.Executor)
-	if err != nil {
-		return MutationGateReport{}, fmt.Errorf("minimize discovered mutation: %w", err)
-	}
-	minimizedResult, err := request.Executor(ctx, minimized)
-	if err != nil {
-		return MutationGateReport{}, fmt.Errorf("execute minimized mutation: %w", err)
-	}
-	minimizedDigest, err := minimized.Digest()
-	if err != nil {
-		return MutationGateReport{}, err
-	}
-	encoded, err := artifact.Encode(minimized, minimizedResult, minimized.Retention.MaxArtifactBytes)
-	if err != nil {
-		return MutationGateReport{}, fmt.Errorf("encode minimized replay bundle: %w", err)
-	}
-	bundle, err := artifact.Decode(encoded, minimized.Retention.MaxArtifactBytes)
-	if err != nil {
-		return MutationGateReport{}, fmt.Errorf("decode minimized replay bundle: %w", err)
-	}
-	replayed, err := replay.Run(ctx, bundle, replay.Executor(request.Executor))
-	if err != nil {
-		return MutationGateReport{}, err
-	}
-	if !replayed.Reproduced {
-		return MutationGateReport{}, errors.New("minimized replay did not reproduce the qualified violation")
-	}
-	promotion, err := promotionSource(minimized)
-	if err != nil {
-		return MutationGateReport{}, fmt.Errorf("promote minimized mutation: %w", err)
-	}
-	bundleHash := sha256.Sum256(encoded)
-	report.Minimized = minimized
-	report.MinimizedDigest = minimizedDigest
-	report.ReplayBundleDigest = "sha256:" + hex.EncodeToString(bundleHash[:])
-	report.Replay = replayed
-	report.PromotionSource = promotion
-	return report, nil
+	return MutationGateReport{}, errors.New("campaign did not discover an approved cross-layer mutation")
 }

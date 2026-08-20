@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/compiler"
+	runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 func TestCampaignParallelMergeIsDeterministic(t *testing.T) {
@@ -53,10 +53,16 @@ func TestViolationPromotionUsesMinimizedNormalRegressionPath(t *testing.T) {
 		Seed:       1, Workers: 1, MaxExecutions: 1, CompilerLimits: compilerLimits(),
 		MinimizeAttempts: 8,
 		Executor: func(_ context.Context, experiment protocol.Experiment) (runtime.Result, []CoveragePoint, error) {
-			return runtime.Result{Claim: runtime.Claim{
-				Kind: runtime.ClaimViolating, Property: experiment.Property.Identifier,
-				Checkpoint: "observe-callback-response-consistent",
-			}}, nil, nil
+			digest, err := experiment.Digest()
+			require.NoError(t, err)
+			result := runtime.Result{
+				FormatVersion: runtime.ResultFormatVersion, ExperimentDigest: digest,
+				Claim: runtime.Claim{
+					Kind: runtime.ClaimViolating, Property: experiment.Property.Identifier,
+					Checkpoint: "observe-callback-response-consistent",
+				}}
+			result.DeriveAssurance()
+			return result, nil, nil
 		},
 	})
 	require.NoError(t, err)
@@ -64,7 +70,7 @@ func TestViolationPromotionUsesMinimizedNormalRegressionPath(t *testing.T) {
 	discovery := report.Discoveries[0]
 	require.True(t, discovery.Minimization.Complete)
 	require.Contains(t, discovery.Promotion.Source, "umpire3test.RequireRegression")
-	require.Contains(t, discovery.Promotion.Source, "compiler.Action")
+	require.Contains(t, discovery.Promotion.Source, "scenario.Action")
 	_, err = parser.ParseFile(token.NewFileSet(), "promotion.go", discovery.Promotion.Source, parser.AllErrors)
 	require.NoError(t, err)
 }
@@ -93,9 +99,9 @@ func TestPromotionRetainsTypedBindingsArgumentsAndFaultConfiguration(t *testing.
 	}}
 	source, err := promotionSource(experiment)
 	require.NoError(t, err)
-	require.Contains(t, source, "compiler.ConfiguredFault")
-	require.Contains(t, source, "compiler.Bind")
-	require.Contains(t, source, "compiler.WithArgument")
+	require.Contains(t, source, "scenario.ConfiguredFault")
+	require.Contains(t, source, "scenario.Bind")
+	require.Contains(t, source, "scenario.WithArgument")
 	_, err = parser.ParseFile(token.NewFileSet(), "promotion.go", source, parser.AllErrors)
 	require.NoError(t, err)
 }
@@ -103,21 +109,21 @@ func TestPromotionRetainsTypedBindingsArgumentsAndFaultConfiguration(t *testing.
 func callbackCandidate(identifier string) Candidate {
 	return Candidate{
 		Identifier: identifier,
-		Scenario: compiler.Scenario{
+		Scenario: scenario.Scenario{
 			Identifier: "callback-" + identifier,
 			Target:     protocol.TargetIDProtocolAtomic,
-			Resources:  []compiler.Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
-			Root: compiler.OnePath(
-				compiler.Action("respond", protocol.ActionKindRecordCallbackResponse),
-				compiler.Require(protocol.PropertyIDCallbackResponseConsistency),
+			Resources:  []scenario.Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
+			Root: scenario.OnePath(
+				scenario.Action("respond", protocol.ActionKindRecordCallbackResponse),
+				scenario.Require(protocol.PropertyIDCallbackResponseConsistency),
 			),
 		},
 		Coverage: []CoveragePoint{{Kind: CoverageAction, Identifier: "record-callback-response"}},
 	}
 }
 
-func compilerLimits() compiler.Limits {
-	return compiler.Limits{
+func compilerLimits() scenario.Limits {
+	return scenario.Limits{
 		MaxPaths: 2, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
 	}
 }

@@ -11,9 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	"go.temporal.io/server/tests/umpire3/compiler"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/replay"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 type CoverageKind string
@@ -47,7 +48,7 @@ type CoveragePoint struct {
 
 type Candidate struct {
 	Identifier string
-	Scenario   compiler.Scenario
+	Scenario   scenario.Scenario
 	Coverage   []CoveragePoint
 	Risk       []CoveragePoint
 }
@@ -56,11 +57,12 @@ type Executor func(context.Context, protocol.Experiment) (umpire3runtime.Result,
 
 type Request struct {
 	Candidates       []Candidate
+	Mutation         *MutationRequest
 	Seed             int64
 	Workers          int
 	MaxExecutions    int
 	MinimizeAttempts int
-	CompilerLimits   compiler.Limits
+	CompilerLimits   scenario.Limits
 	RiskFocus        []CoveragePoint
 	CorpusCoverage   []CoveragePoint
 	Executor         Executor
@@ -68,6 +70,8 @@ type Request struct {
 
 type Execution struct {
 	CandidateID string                `json:"candidateID"`
+	Mutation    MutationKind          `json:"mutation,omitempty"`
+	Path        string                `json:"path,omitempty"`
 	Digest      string                `json:"digest"`
 	Result      umpire3runtime.Result `json:"result"`
 	Coverage    []CoveragePoint       `json:"coverage"`
@@ -91,14 +95,19 @@ type Promotion struct {
 
 type Discovery struct {
 	CandidateID    string              `json:"candidateID"`
+	Mutation       MutationKind        `json:"mutation,omitempty"`
+	Path           string              `json:"path,omitempty"`
 	Original       protocol.Experiment `json:"original"`
 	Minimized      protocol.Experiment `json:"minimized"`
 	Minimization   Minimization        `json:"minimization"`
+	BundleDigest   string              `json:"bundleDigest,omitempty"`
+	Replay         replay.Report       `json:"replay,omitempty"`
 	Promotion      Promotion           `json:"promotion"`
 	PromotionBlock string              `json:"promotionBlock,omitempty"`
 }
 
 type Report struct {
+	Mutation       *MutationReport `json:"mutation,omitempty"`
 	CoverageBefore []CoveragePoint `json:"coverageBefore"`
 	CoverageAfter  []CoveragePoint `json:"coverageAfter"`
 	CoverageDelta  []CoveragePoint `json:"coverageDelta"`
@@ -109,6 +118,8 @@ type Report struct {
 
 type rankedExperiment struct {
 	candidateID string
+	mutation    MutationKind
+	path        string
 	experiment  protocol.Experiment
 	digest      string
 	score       int
@@ -123,53 +134,69 @@ type executionResult struct {
 }
 
 func Run(ctx context.Context, request Request) (Report, error) {
-	if request.Executor == nil || request.Workers <= 0 || request.MaxExecutions <= 0 || len(request.Candidates) == 0 {
-		return Report{}, errors.New("campaign candidates, executor, workers, and execution budget are required")
+	if request.Executor == nil || request.Workers <= 0 || request.MaxExecutions <= 0 ||
+		(len(request.Candidates) == 0) == (request.Mutation == nil) {
+		return Report{}, errors.New("campaign requires exactly one candidate source plus an executor, workers, and execution budget")
 	}
 	report := Report{CoverageBefore: normalizeCoverage(request.CorpusCoverage)}
 	covered := coverageSet(report.CoverageBefore)
 	risk := coverageSet(request.RiskFocus)
 	seenDigests := make(map[string]struct{})
 	var ranked []rankedExperiment
-	for _, candidate := range request.Candidates {
-		if candidate.Identifier == "" {
-			report.Dropped = append(report.Dropped, Dropped{Reason: DropUnsupported, Detail: "candidate identifier is required"})
-			continue
-		}
-		suite, err := compiler.Compile(ctx, candidate.Scenario, request.CompilerLimits)
+	if request.Mutation != nil {
+		mutations, err := Mutate(*request.Mutation)
 		if err != nil {
-			report.Dropped = append(report.Dropped, Dropped{
-				CandidateID: candidate.Identifier, Reason: DropUnsupported, Detail: err.Error(),
-			})
-			continue
+			return Report{}, err
 		}
-		for index, experiment := range suite.Experiments {
-			digest := suite.Digests[index]
-			if _, duplicate := seenDigests[digest]; duplicate {
+		report.Mutation = &mutations
+		for _, mutation := range mutations.Selected {
+			ranked = append(ranked, rankedExperiment{
+				candidateID: string(mutation.Kind) + ":" + mutation.Path,
+				mutation:    mutation.Kind, path: mutation.Path,
+				experiment: mutation.Experiment, digest: mutation.Digest,
+			})
+		}
+	} else {
+		for _, candidate := range request.Candidates {
+			if candidate.Identifier == "" {
+				report.Dropped = append(report.Dropped, Dropped{Reason: DropUnsupported, Detail: "candidate identifier is required"})
+				continue
+			}
+			suite, err := scenario.Compile(ctx, candidate.Scenario, request.CompilerLimits)
+			if err != nil {
 				report.Dropped = append(report.Dropped, Dropped{
-					CandidateID: candidate.Identifier, Digest: digest, Reason: DropDuplicate, Detail: "compiled experiment digest already ranked",
+					CandidateID: candidate.Identifier, Reason: DropUnsupported, Detail: err.Error(),
 				})
 				continue
 			}
-			seenDigests[digest] = struct{}{}
-			ranked = append(ranked, rankedExperiment{
-				candidateID: candidate.Identifier, experiment: experiment, digest: digest,
-				score: campaignScore(candidate, covered, risk), seedOrder: seededOrder(request.Seed, digest),
-			})
+			for index, experiment := range suite.Experiments {
+				digest := suite.Digests[index]
+				if _, duplicate := seenDigests[digest]; duplicate {
+					report.Dropped = append(report.Dropped, Dropped{
+						CandidateID: candidate.Identifier, Digest: digest, Reason: DropDuplicate, Detail: "compiled experiment digest already ranked",
+					})
+					continue
+				}
+				seenDigests[digest] = struct{}{}
+				ranked = append(ranked, rankedExperiment{
+					candidateID: candidate.Identifier, experiment: experiment, digest: digest,
+					score: campaignScore(candidate, covered, risk), seedOrder: seededOrder(request.Seed, digest),
+				})
+			}
 		}
+		slices.SortFunc(ranked, func(left, right rankedExperiment) int {
+			if left.score != right.score {
+				return right.score - left.score
+			}
+			if left.seedOrder < right.seedOrder {
+				return -1
+			}
+			if left.seedOrder > right.seedOrder {
+				return 1
+			}
+			return compare(left.digest, right.digest)
+		})
 	}
-	slices.SortFunc(ranked, func(left, right rankedExperiment) int {
-		if left.score != right.score {
-			return right.score - left.score
-		}
-		if left.seedOrder < right.seedOrder {
-			return -1
-		}
-		if left.seedOrder > right.seedOrder {
-			return 1
-		}
-		return compare(left.digest, right.digest)
-	})
 	if len(ranked) > request.MaxExecutions {
 		for _, candidate := range ranked[request.MaxExecutions:] {
 			report.Dropped = append(report.Dropped, Dropped{
@@ -187,7 +214,8 @@ func Run(ctx context.Context, request Request) (Report, error) {
 		}
 		coverage := normalizeCoverage(execution.coverage)
 		report.Executions = append(report.Executions, Execution{
-			CandidateID: execution.ranked.candidateID, Digest: execution.ranked.digest,
+			CandidateID: execution.ranked.candidateID, Mutation: execution.ranked.mutation,
+			Path: execution.ranked.path, Digest: execution.ranked.digest,
 			Result: execution.result, Coverage: coverage,
 		})
 		for _, point := range coverage {
@@ -235,7 +263,10 @@ func executeParallel(ctx context.Context, ranked []rankedExperiment, workers int
 }
 
 func minimizeDiscovery(ctx context.Context, execution executionResult, maxAttempts int, executor Executor) Discovery {
-	discovery := Discovery{CandidateID: execution.ranked.candidateID, Original: execution.ranked.experiment}
+	discovery := Discovery{
+		CandidateID: execution.ranked.candidateID, Mutation: execution.ranked.mutation,
+		Path: execution.ranked.path, Original: execution.ranked.experiment,
+	}
 	if maxAttempts <= 0 {
 		discovery.Minimized = execution.ranked.experiment
 		discovery.PromotionBlock = "minimization budget is required"
@@ -243,7 +274,7 @@ func minimizeDiscovery(ctx context.Context, execution executionResult, maxAttemp
 	}
 	attempts := 0
 	budgetErr := errors.New("minimization attempt budget exhausted")
-	minimized, err := umpire3runtime.MinimizeExperiment(ctx, execution.ranked.experiment,
+	minimized, err := MinimizeExperiment(ctx, execution.ranked.experiment,
 		func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, error) {
 			if attempts == maxAttempts {
 				return umpire3runtime.Result{}, budgetErr
@@ -261,6 +292,39 @@ func minimizeDiscovery(ctx context.Context, execution executionResult, maxAttemp
 		return discovery
 	}
 	discovery.Minimized = minimized
+	minimizedResult, _, executeErr := executor(ctx, minimized)
+	if executeErr != nil {
+		discovery.PromotionBlock = executeErr.Error()
+		return discovery
+	}
+	encoded, encodeErr := replay.EncodeBundle(minimized, minimizedResult, minimized.Retention.MaxArtifactBytes)
+	if encodeErr != nil {
+		discovery.PromotionBlock = encodeErr.Error()
+		return discovery
+	}
+	bundle, decodeErr := replay.DecodeBundle(encoded, minimized.Retention.MaxArtifactBytes)
+	if decodeErr != nil {
+		discovery.PromotionBlock = decodeErr.Error()
+		return discovery
+	}
+	replayed, replayErr := replay.Reproduce(ctx, bundle, func(
+		ctx context.Context,
+		candidate protocol.Experiment,
+	) (umpire3runtime.Result, error) {
+		result, _, err := executor(ctx, candidate)
+		return result, err
+	})
+	if replayErr != nil {
+		discovery.PromotionBlock = replayErr.Error()
+		return discovery
+	}
+	if !replayed.Reproduced {
+		discovery.PromotionBlock = "minimized replay did not reproduce the qualified violation"
+		return discovery
+	}
+	bundleHash := sha256.Sum256(encoded)
+	discovery.BundleDigest = fmt.Sprintf("sha256:%x", bundleHash)
+	discovery.Replay = replayed
 	source, sourceErr := promotionSource(minimized)
 	if sourceErr != nil {
 		discovery.PromotionBlock = sourceErr.Error()
@@ -286,21 +350,21 @@ func promotionSource(experiment protocol.Experiment) (string, error) {
 	var source strings.Builder
 	source.WriteString("package umpire3promotion\n\n")
 	source.WriteString("import (\n")
-	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/compiler\"\n")
-	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/environment\"\n")
+	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/scenario\"\n")
+	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/execution\"\n")
 	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/protocol\"\n")
 	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/umpire3test\"\n")
 	source.WriteString(")\n\n")
-	source.WriteString("func RequirePromoted(t umpire3test.TestingT, factory environment.Factory) {\n")
-	source.WriteString("\tscenario := compiler.Scenario{\n")
+	source.WriteString("func RequirePromoted(t umpire3test.TestingT, factory execution.Factory) {\n")
+	source.WriteString("\tscenario := scenario.Scenario{\n")
 	fmt.Fprintf(&source, "\t\tIdentifier: %q,\n", experiment.ExperimentID+"-promoted")
 	fmt.Fprintf(&source, "\t\tTarget: protocol.TargetID(%q),\n", target)
-	source.WriteString("\t\tResources: []compiler.Resource{\n")
+	source.WriteString("\t\tResources: []scenario.Resource{\n")
 	for _, resource := range experiment.Resources {
 		fmt.Fprintf(&source, "\t\t\t{Identifier: %q, Kind: protocol.EntityKind(%q)},\n", resource.Identifier, resource.Kind)
 	}
 	source.WriteString("\t\t},\n")
-	fmt.Fprintf(&source, "\t\tRoot: compiler.OnePath(%s, compiler.Require(protocol.PropertyID(%q))),\n",
+	fmt.Fprintf(&source, "\t\tRoot: scenario.OnePath(%s, scenario.Require(protocol.PropertyID(%q))),\n",
 		root, experiment.Property.Identifier)
 	source.WriteString("\t}\n")
 	source.WriteString("\tumpire3test.RequireRegression(t, scenario, umpire3test.WithEnvironment(factory))\n")
@@ -401,31 +465,31 @@ func renderPromotionInterval(
 		terms = append(terms, renderPromotionAction(experiment.Actions[index]))
 		index++
 	}
-	body := "compiler.OnePath(" + strings.Join(terms, ", ") + ")"
+	body := "scenario.OnePath(" + strings.Join(terms, ", ") + ")"
 	if synthetic {
 		return body, nil
 	}
-	return "compiler.During(compiler.ConfiguredFault(" + renderPromotionFault(interval.fault) + "), " + body + ")", nil
+	return "scenario.During(scenario.ConfiguredFault(" + renderPromotionFault(interval.fault) + "), " + body + ")", nil
 }
 
 func renderPromotionAction(action protocol.Action) string {
 	options := make([]string, len(action.Arguments))
 	for index, argument := range action.Arguments {
-		options[index] = fmt.Sprintf("compiler.WithArgument(%q, %s)", argument.Name, renderPromotionValue(argument.Value))
+		options[index] = fmt.Sprintf("scenario.WithArgument(%q, %s)", argument.Name, renderPromotionValue(argument.Value))
 	}
 	arguments := []string{fmt.Sprintf("%q", action.Identifier), fmt.Sprintf("protocol.ActionKind(%q)", action.Kind)}
 	arguments = append(arguments, options...)
-	actionTerm := "compiler.Action(" + strings.Join(arguments, ", ") + ")"
+	actionTerm := "scenario.Action(" + strings.Join(arguments, ", ") + ")"
 	if len(action.Bindings) == 0 {
 		return actionTerm
 	}
 	terms := []string{actionTerm}
 	for _, binding := range action.Bindings {
 		terms = append(terms, fmt.Sprintf(
-			"compiler.Bind(compiler.Symbol{Name: %q, Type: protocol.SemanticTypeID(%q)}, compiler.Project(%q, %q, protocol.SemanticTypeID(%q)))",
+			"scenario.Bind(scenario.Symbol{Name: %q, Type: protocol.SemanticTypeID(%q)}, scenario.Project(%q, %q, protocol.SemanticTypeID(%q)))",
 			binding.Symbol, binding.Type, action.Identifier, binding.Projection, binding.Type))
 	}
-	return "compiler.OnePath(" + strings.Join(terms, ", ") + ")"
+	return "scenario.OnePath(" + strings.Join(terms, ", ") + ")"
 }
 
 func renderPromotionValue(value protocol.Value) string {

@@ -10,8 +10,8 @@ import (
 	"slices"
 
 	"go.temporal.io/server/tests/umpire3/canary"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
 const FormatVersion = "umpire3/qualification-receipt/v1"

@@ -9,6 +9,7 @@ enum Lifecycle = {Open, CancellationAccepted, Cancelled, Succeeded}
 enum TaskStage = {Idle, Dispatched, Returned}
 enum Epoch = {None, Epoch0, Epoch1}
 
+
 individual lifecycle : Lifecycle
 individual task : TaskStage
 individual ownerEpoch : Epoch
@@ -67,7 +68,7 @@ invariant [CanonicalReachableEnvelope] (((lifecycle = Open) âˆ§ (task = Idle) âˆ
 #gen_spec
 
 set_option veil.violationIsError false in
-#model_check interpreted {  } { } (sequential := true)
+#model_check interpreted {  } {  } (sequential := true)
 
 sat trace [counterexample] {
   any 6 actions
