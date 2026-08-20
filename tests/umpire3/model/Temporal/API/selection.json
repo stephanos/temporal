@@ -1,0 +1,305 @@
+{
+  "formatVersion": "umpire3/protobuf-selection/v1",
+  "presencePolicy": "preserve",
+  "messages": [
+    {
+      "fullName": "temporal.api.common.v1.Callback",
+      "purpose": "callback.registration",
+      "owner": "Temporal.API.Workflow",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "nexus": "interpreted",
+        "internal": "intentionally-unmodeled",
+        "links": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.common.v1.Link",
+      "purpose": "cross-entity.identity-link",
+      "owner": "Temporal.API.History",
+      "defaultFieldDisposition": "intentionally-unmodeled",
+      "fields": {
+        "workflow_event": "interpreted",
+        "activity": "interpreted",
+        "nexus_operation": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.RequestCancelNexusOperationExecutionRequest",
+      "purpose": "nexus.request-cancellation",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "operation_id": "interpreted",
+        "run_id": "interpreted",
+        "request_id": "interpreted",
+        "reason": "interpreted",
+        "identity": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.StartNexusOperationExecutionRequest",
+      "purpose": "nexus.start",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "operation_id": "interpreted",
+        "endpoint": "interpreted",
+        "service": "interpreted",
+        "operation": "interpreted",
+        "schedule_to_close_timeout": "interpreted",
+        "schedule_to_start_timeout": "interpreted",
+        "start_to_close_timeout": "interpreted",
+        "input": "sensitive",
+        "request_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.nexus.v1.StartOperationRequest",
+      "purpose": "nexus.worker-start",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "service": "interpreted",
+        "operation": "interpreted",
+        "payload": "sensitive",
+        "callback": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.StartWorkflowExecutionRequest",
+      "purpose": "workflow.start",
+      "owner": "Temporal.API.Workflow",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "workflow_id": "interpreted",
+        "workflow_type": "interpreted",
+        "task_queue": "interpreted",
+        "input": "sensitive",
+        "request_id": "interpreted",
+        "completion_callbacks": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.ResetWorkflowExecutionRequest",
+      "purpose": "workflow.reset",
+      "owner": "Temporal.API.Workflow",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "workflow_execution": "interpreted",
+        "reason": "interpreted",
+        "workflow_task_finish_event_id": "interpreted",
+        "request_id": "interpreted",
+        "identity": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+      "purpose": "activity.start-with-callback",
+      "owner": "Temporal.API.Workflow",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "request_id": "interpreted",
+        "activity_id": "interpreted",
+        "activity_type": "interpreted",
+        "task_queue": "interpreted",
+        "input": "sensitive",
+        "completion_callbacks": "interpreted",
+        "links": "interpreted",
+        "identity": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.SignalWorkflowExecutionRequest",
+      "purpose": "workflow.signal",
+      "owner": "Temporal.API.Workflow",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "workflow_execution": "interpreted",
+        "signal_name": "interpreted",
+        "input": "sensitive",
+        "request_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.QueryWorkflowRequest",
+      "purpose": "workflow.query",
+      "owner": "Temporal.API.Workflow",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "execution": "interpreted",
+        "query": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.workflowservice.v1.UpdateWorkflowExecutionRequest",
+      "purpose": "workflow.update",
+      "owner": "Temporal.API.Update",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "namespace": "interpreted",
+        "workflow_execution": "interpreted",
+        "request": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.WorkflowExecutionStartedEventAttributes",
+      "purpose": "history.workflow-started",
+      "owner": "Temporal.API.History",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "workflow_type": "interpreted",
+        "task_queue": "interpreted",
+        "input": "sensitive",
+        "continued_execution_run_id": "interpreted",
+        "original_execution_run_id": "interpreted",
+        "first_execution_run_id": "interpreted",
+        "completion_callbacks": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.WorkflowExecutionContinuedAsNewEventAttributes",
+      "purpose": "history.workflow-continued-as-new",
+      "owner": "Temporal.API.History",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "new_execution_run_id": "interpreted",
+        "workflow_task_completed_event_id": "interpreted",
+        "initiator": "interpreted",
+        "input": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.WorkflowExecutionSignaledEventAttributes",
+      "purpose": "history.workflow-signaled",
+      "owner": "Temporal.API.History",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "signal_name": "interpreted",
+        "input": "sensitive",
+        "identity": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.WorkflowExecutionUpdateAcceptedEventAttributes",
+      "purpose": "history.update-accepted",
+      "owner": "Temporal.API.Update",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "protocol_instance_id": "interpreted",
+        "accepted_request": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.NexusOperationScheduledEventAttributes",
+      "purpose": "history.nexus-scheduled",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "endpoint": "interpreted",
+        "service": "interpreted",
+        "operation": "interpreted",
+        "input": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.NexusOperationStartedEventAttributes",
+      "purpose": "history.nexus-started",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "operation_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.NexusOperationCompletedEventAttributes",
+      "purpose": "history.nexus-completed",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "result": "sensitive",
+        "scheduled_event_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.NexusOperationFailedEventAttributes",
+      "purpose": "history.nexus-failed",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "failure": "sensitive",
+        "scheduled_event_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.NexusOperationCanceledEventAttributes",
+      "purpose": "history.nexus-canceled",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "failure": "sensitive",
+        "scheduled_event_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.NexusOperationTimedOutEventAttributes",
+      "purpose": "history.nexus-timed-out",
+      "owner": "Temporal.API.Nexus",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "failure": "sensitive",
+        "scheduled_event_id": "interpreted",
+        "request_id": "interpreted"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.ActivityTaskScheduledEventAttributes",
+      "purpose": "history.activity-scheduled",
+      "owner": "Temporal.API.History",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "activity_id": "interpreted",
+        "activity_type": "interpreted",
+        "task_queue": "interpreted",
+        "input": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.ActivityTaskCompletedEventAttributes",
+      "purpose": "history.activity-completed",
+      "owner": "Temporal.API.History",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "result": "sensitive",
+        "scheduled_event_id": "interpreted",
+        "started_event_id": "interpreted",
+        "identity": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.failure.v1.Failure",
+      "purpose": "failure.normalization",
+      "owner": "Temporal.API.Failure",
+      "defaultFieldDisposition": "transport-only",
+      "fields": {
+        "message": "sensitive",
+        "stack_trace": "sensitive",
+        "cause": "sensitive"
+      }
+    },
+    {
+      "fullName": "temporal.api.history.v1.HistoryEvent",
+      "status": "deferred",
+      "purpose": "history.full-event-union",
+      "owner": "Temporal.API.History",
+      "reason": "Selected event attributes are modeled first; the complete event union is intentionally outside the current closure."
+    }
+  ]
+}

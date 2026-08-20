@@ -1,0 +1,128 @@
+{
+  "release": "umpire3/1.2",
+  "status": "candidate",
+  "formatVersion": "umpire3/release/v1",
+  "experimentFormatVersion": "umpire3/v2",
+  "leanVersion": "4.33.0",
+  "catalogHash": "sha256:4d39c0b9607731c352eed577494024e482a6df4ea37ccb6c7ad8b7a7423bd3f5",
+  "descriptorHash": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081",
+  "monitorSemanticHash": "sha256:c9d78d79b7b466cecb8df17f3b481497c7256aaf2c3f7264f40f4b20545644f6",
+  "compositionSemanticHash": "sha256:2f26ef05ca0353e3e045a1d2724ee73bbf4f7c81fff7b37a0a0e92f649041543",
+  "paritySemanticHash": "sha256:52aa98d4723d5bd13ccda47ec803c5a5724c04b2e8e781d22fcb6df886b04695",
+  "experiments": {
+    "nexus-cancellation-stale-completion-v1": "sha256:7a113aec231b0526b6ca94fe1c7260dc06b15ccb03dbd034f98b61e4b53962cd",
+    "workflow-update-lifecycle-v1": "sha256:ca72fc0eefccc511c62c1c811c9b9da551dac2dad1356a7f2059ee6e224c9bcc"
+  },
+  "proofManifests": [
+    "nexus-tasks-refinement-v1",
+    "update-tasks-refinement-v1"
+  ],
+  "profiles": [
+    "local-in-process",
+    "ci-test-cluster",
+    "remote-deployment",
+    "grpc-only-black-box",
+    "production-canary"
+  ],
+  "migration": {
+    "formatVersion": "umpire3/migration-ledger/v3",
+    "ledgerHash": "sha256:56e7c013c6dc306b5702252d7436b392cf01cd27aea51ae5f29f5b604110aa4b",
+    "behaviorCount": 28,
+    "exactCount": 21,
+    "semanticEquivalentCount": 5,
+    "partialCount": 2,
+    "inventoryOnlyCount": 0
+  },
+  "evidence": [
+    {
+      "goal": "single-semantic-model",
+      "status": "partial",
+      "anchors": ["model/Temporal/Catalog.lean", "protocol/catalog_test.go", "layout_test.go"]
+    },
+    {
+      "goal": "known-regression-verification",
+      "status": "partial",
+      "anchors": ["migration/ledger.json", "migration/inventory_test.go", "../umpire3_regress_test.go"]
+    },
+    {
+      "goal": "deterministic-plans",
+      "status": "passed",
+      "anchors": ["compiler/compiler_test.go", "compiler/enumerate.go"]
+    },
+    {
+      "goal": "portable-profiles",
+      "status": "partial",
+      "anchors": ["profile/profile_test.go", "profile/profile.go"]
+    },
+    {
+      "goal": "white-box-black-box",
+      "status": "partial",
+      "anchors": ["evidence/graph_test.go", "profile/profile_test.go"]
+    },
+    {
+      "goal": "developer-authoring",
+      "status": "partial",
+      "anchors": ["README.md", "regress/regress_test.go", "umpire3test/require_test.go"]
+    },
+    {
+      "goal": "unknown-bug-exploration",
+      "status": "partial",
+      "anchors": ["explore/explore_test.go", "campaign/campaign_test.go"]
+    },
+    {
+      "goal": "first-class-faults",
+      "status": "partial",
+      "anchors": ["model/Umpire3/Fault.lean", "fault/fault_test.go"]
+    },
+    {
+      "goal": "non-linear-identity",
+      "status": "passed",
+      "anchors": ["compiler/compiler_test.go", "evidence/graph_test.go", "temporal/nexus_test.go"]
+    },
+    {
+      "goal": "programmable-participants",
+      "status": "partial",
+      "anchors": ["participant/participant_test.go", "temporal/task_ack_test.go", "temporal/nexus_integration_test.go"]
+    },
+    {
+      "goal": "clock-skew-safety",
+      "status": "partial",
+      "anchors": ["evidence/graph_test.go", "runtime/run_test.go"]
+    },
+    {
+      "goal": "guided-exploration",
+      "status": "partial",
+      "anchors": ["model/Umpire3/Explore.lean", "explore/explore_test.go"]
+    },
+    {
+      "goal": "coverage-guided-fuzzing",
+      "status": "partial",
+      "anchors": ["campaign/mutation_test.go", "campaign/campaign_test.go", "runtime/minimize_test.go"]
+    }
+  ],
+  "documents": {
+    "support": "SUPPORT.md",
+    "authoring": "AUTHORING.md",
+    "modeling": "MODELING.md",
+    "operations": "OPERATIONS.md",
+    "security": "SECURITY.md",
+    "incident-recovery": "INCIDENT_RECOVERY.md"
+  },
+  "externalQualifications": [
+    {
+      "profile": "remote-deployment",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile remote-deployment -release tests/umpire3/testdata/umpire3-1.2.json -experiment <experiment.json> -result <result.json> -output <receipt.json>",
+      "status": "required"
+    },
+    {
+      "profile": "grpc-only-black-box",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile grpc-only-black-box -release tests/umpire3/testdata/umpire3-1.2.json -experiment <experiment.json> -result <result.json> -output <receipt.json>",
+      "status": "required"
+    },
+    {
+      "profile": "production-canary",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile production-canary -release tests/umpire3/testdata/umpire3-1.2.json -experiment <experiment.json> -result <result.json> -output <receipt.json>",
+      "status": "required"
+    }
+  ]
+}

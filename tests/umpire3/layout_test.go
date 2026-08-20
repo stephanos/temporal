@@ -18,11 +18,26 @@ func TestIndependentLayout(t *testing.T) {
 	root := "."
 	for _, path := range []string{
 		"artifact",
+		"campaign",
+		"canary",
+		"compiler",
 		"environment",
+		"evidence",
+		"explore",
+		"fault",
+		"migration",
 		"model",
+		"participant",
+		"process",
+		"profile",
 		"protocol",
+		"qualification",
+		"regress",
+		"replay",
+		"runner",
 		"runtime",
 		"temporal",
+		"umpire3test",
 	} {
 		require.DirExists(t, filepath.Join(root, path))
 	}
@@ -30,10 +45,52 @@ func TestIndependentLayout(t *testing.T) {
 	require.FileExists(t, filepath.Join(root, "model", "lean-toolchain"))
 	require.FileExists(t, filepath.Join(root, "model", "lakefile.toml"))
 	require.FileExists(t, filepath.Join(root, "model", "mise.toml"))
+	require.FileExists(t, filepath.Join(root, "cmd", "umpire3", "main.go"))
 }
 
 func TestGoPackagesDoNotImportPreviousUmpires(t *testing.T) {
 	violations, err := findForbiddenImports(".")
+	require.NoError(t, err)
+	for _, path := range []string{"../umpire3_test.go", "../umpire3_probe_test.go", "../umpire3_regress_test.go"} {
+		rootViolations, rootErr := findForbiddenImports(path)
+		require.NoError(t, rootErr)
+		violations = append(violations, rootViolations...)
+	}
+	require.Empty(t, violations)
+}
+
+func TestRetainedUmpire2RootTestsDoNotImportUmpire3(t *testing.T) {
+	var violations []string
+	for _, path := range []string{"../umpire2_test.go", "../umpire2_probe_test.go", "../umpire2_regress_test.go"} {
+		rootViolations, err := findImportsWithPrefixes(path, []string{"go.temporal.io/server/tests/umpire3"})
+		require.NoError(t, err)
+		violations = append(violations, rootViolations...)
+	}
+	require.Empty(t, violations)
+}
+
+func TestRootUmpireTestsUseIndependentSideBySideFiles(t *testing.T) {
+	testsRoot := ".."
+	for _, name := range []string{
+		"umpire2_test.go",
+		"umpire2_probe_test.go",
+		"umpire2_regress_test.go",
+		"umpire3_test.go",
+		"umpire3_probe_test.go",
+		"umpire3_regress_test.go",
+	} {
+		require.FileExists(t, filepath.Join(testsRoot, name))
+	}
+	for _, name := range []string{"umpire_test.go", "umpire_probe_test.go", "umpire_regress_test.go"} {
+		_, err := os.Stat(filepath.Join(testsRoot, name))
+		require.ErrorIs(t, err, os.ErrNotExist)
+	}
+}
+
+func TestBlackBoxProfileDoesNotImportServerObservationInternals(t *testing.T) {
+	forbidden := []string{"go.temporal.io/server/service", "go.temporal.io/server/common/persistence",
+		"go.temporal.io/server/api/historyservice", "go.temporal.io/server/api/matchingservice"}
+	violations, err := findImportsWithPrefixes("profile", forbidden)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -74,7 +131,7 @@ func TestManifestCommand(t *testing.T) {
 	output, err := command.CombinedOutput()
 	require.NoError(t, err, string(output))
 	require.JSONEq(t, `{
-  "formatVersion": "umpire3/v1",
+  "formatVersion": "umpire3/v2",
   "toolchain": {
     "lean": "4.33.0"
   }
@@ -87,7 +144,10 @@ func findForbiddenImports(root string) ([]string, error) {
 		"go.temporal.io/server/tests/umpire1",
 		"go.temporal.io/server/tests/umpire2",
 	}
+	return findImportsWithPrefixes(root, forbidden)
+}
 
+func findImportsWithPrefixes(root string, forbidden []string) ([]string, error) {
 	var violations []string
 	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {

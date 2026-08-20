@@ -25,6 +25,15 @@ def actions : List Action := [
 theorem executableTraceIsValid :
     executable.follow [initial] actions = [completedState] := by decide
 
+def proofManifest : SemanticProofManifest where
+  identifier := "update-tasks-refinement-v1"
+  theoremName := "Umpire3.Temporal.System.UpdateTasks.updateTasksRefinesProduct"
+  statementHash := "sha256:bb8eac89a0a1d1c5caf0f575377e5775b487533960d305acf729311bd15f857d"
+  assumptions := [{
+    identifier := System.TaskDelivery.guarantee.identifier
+    statementHash := System.TaskDelivery.guarantee.statementHash
+  }]
+
 def experiment : SemanticExperiment where
   identifier := "workflow-update-lifecycle-v1"
   modelModules := [
@@ -34,6 +43,7 @@ def experiment : SemanticExperiment where
     "Temporal.System.TaskDelivery",
   ]
   propertyIdentifier := "workflow-update.accepted-completes-through-history"
+  propertyStatementHash := "sha256:d36d6ddd20e5d51e0a4bd591bd2b59ce90f953417042a7b0bc4bff99485c351d"
   scope := {
     bound := { maxDepth := 6, maxResults := 1000 }
     assumptions := [{
@@ -41,6 +51,7 @@ def experiment : SemanticExperiment where
       statementHash := System.TaskDelivery.guarantee.statementHash
     }]
   }
+  strategy := "explicit-trace"
   resources := [
     { identifier := "workflow", kind := "workflow" },
     { identifier := "update", kind := "workflow-update" },
@@ -62,54 +73,30 @@ def experiment : SemanticExperiment where
     { identifier := "u6", kind := "complete-update", requiredCapabilities := ["update"],
       preCheckpoint := none, postCheckpoint := some "update-completed" },
   ]
+  order := [
+    { before := "u1", after := "u2", relation := "semantic" },
+    { before := "u2", after := "u3", relation := "semantic" },
+    { before := "u3", after := "u4", relation := "semantic" },
+    { before := "u4", after := "u5", relation := "semantic" },
+    { before := "u5", after := "u6", relation := "semantic" },
+  ]
   checkpoints := [
     { identifier := "update-accepted", observation := "update-accepted",
       ordering := "source-sequence", omissionPolicy := "required" },
     { identifier := "update-completed", observation := "update-completed",
       ordering := "causal", omissionPolicy := "required" },
   ]
-  provenance := "proof"
+  provenanceKind := "proof"
+  proofManifest := "update-tasks-refinement-v1"
 
 theorem experimentWellFormed : experiment.WellFormed := by
   simp [SemanticExperiment.WellFormed, experiment, System.TaskDelivery.guarantee]
 
-def json (semanticHash : String) : String :=
-  "{" ++
-  "\"formatVersion\":\"" ++ formatVersion ++ "\"," ++
-  "\"experimentID\":\"workflow-update-lifecycle-v1\"," ++
-  "\"model\":{" ++
-    "\"modules\":[\"Temporal.Product.Update\",\"Temporal.System.UpdateTasks\",\"Temporal.Refinement.UpdateTasks\",\"Temporal.System.TaskDelivery\"]," ++
-    "\"sourceRevision\":\"umpire3-v1\"," ++
-    "\"semanticHash\":\"" ++ semanticHash ++ "\"," ++
-    "\"leanVersion\":\"" ++ leanVersion ++ "\"}," ++
-  "\"property\":{" ++
-    "\"identifier\":\"workflow-update.accepted-completes-through-history\"," ++
-    "\"statementHash\":\"sha256:d36d6ddd20e5d51e0a4bd591bd2b59ce90f953417042a7b0bc4bff99485c351d\"," ++
-    "\"claim\":\"implementation-conformance\"}," ++
-  "\"scope\":{" ++
-    "\"bounds\":{\"maxDepth\":6,\"maxResults\":1000}," ++
-    "\"assumptions\":[{\"identifier\":\"task-delivery.current-completion-only\"," ++
-      "\"statementHash\":\"sha256:31e3bc0f50ed17ad15f1848d8fd3cc753e18c21729d606f10fc10d5b71d9bc93\"}]," ++
-    "\"strategy\":\"explicit-trace\",\"seed\":0}," ++
-  "\"resources\":[{\"identifier\":\"workflow\",\"kind\":\"workflow\"}," ++
-    "{\"identifier\":\"update\",\"kind\":\"workflow-update\"}]," ++
-  "\"actions\":[" ++
-    "{\"identifier\":\"u1\",\"kind\":\"start-update\",\"requiredCapabilities\":[\"update\"]}," ++
-    "{\"identifier\":\"u2\",\"kind\":\"dispatch-workflow-task\",\"requiredCapabilities\":[\"workflow-task-control\"]}," ++
-    "{\"identifier\":\"u3\",\"kind\":\"accept-update\",\"requiredCapabilities\":[\"update\"],\"postCheckpoint\":\"update-accepted\"}," ++
-    "{\"identifier\":\"u4\",\"kind\":\"record-update-history\",\"requiredCapabilities\":[\"history-observation\"],\"preCheckpoint\":\"update-accepted\"}," ++
-    "{\"identifier\":\"u5\",\"kind\":\"complete-workflow-task\",\"requiredCapabilities\":[\"workflow-task-control\"]}," ++
-    "{\"identifier\":\"u6\",\"kind\":\"complete-update\",\"requiredCapabilities\":[\"update\"],\"postCheckpoint\":\"update-completed\"}]," ++
-  "\"checkpoints\":[" ++
-    "{\"identifier\":\"update-accepted\",\"observation\":\"update-accepted\",\"ordering\":\"source-sequence\",\"omissionPolicy\":\"required\"}," ++
-    "{\"identifier\":\"update-completed\",\"observation\":\"update-completed\",\"ordering\":\"causal\",\"omissionPolicy\":\"required\"}]," ++
-  "\"provenance\":{\"kind\":\"proof\",\"proofManifest\":\"update-tasks-refinement-v1\"}," ++
-  "\"retention\":{\"redactionClass\":\"semantic-only\",\"maxArtifactBytes\":1048576}" ++
-  "}"
-
 def main : IO Unit := do
   let some semanticHash ← IO.getEnv "UMPIRE3_SEMANTIC_HASH"
     | throw (IO.userError "UMPIRE3_SEMANTIC_HASH is required")
-  IO.println (json semanticHash)
+  let some catalogHash ← IO.getEnv "UMPIRE3_CATALOG_HASH"
+    | throw (IO.userError "UMPIRE3_CATALOG_HASH is required")
+  IO.println (experiment.json semanticHash catalogHash)
 
 end Umpire3.Temporal.Experiments.UpdateLifecycle

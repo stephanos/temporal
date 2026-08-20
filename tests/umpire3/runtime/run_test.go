@@ -8,17 +8,43 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/compiler"
 	"go.temporal.io/server/tests/umpire3/environment"
+	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
 type fakeFactory struct {
 	capabilities []string
-	session      *fakeSession
+	session      environment.Session
 	prepareErr   error
 	prepareCount int
+}
+
+type footprintFactory struct {
+	fakeFactory
+	report umpire3fault.Report
+}
+
+func (f *footprintFactory) FootprintReport() (umpire3fault.Report, error) {
+	return f.report, nil
+}
+
+type corroboratingFakeSession struct {
+	*fakeSession
+	observations map[string][]environment.Observation
+	err          error
+}
+
+func (s *corroboratingFakeSession) Corroborate(
+	_ context.Context,
+	checkpoint protocol.Checkpoint,
+	_ environment.Bindings,
+) ([]environment.Observation, error) {
+	return s.observations[checkpoint.Identifier], s.err
 }
 
 func (f *fakeFactory) Capabilities() []string {
@@ -31,12 +57,15 @@ func (f *fakeFactory) Prepare(context.Context, protocol.Experiment) (environment
 }
 
 type fakeSession struct {
-	mu           sync.Mutex
-	realizeErr   map[string]error
-	observations map[string]environment.Observation
-	cleanup      environment.CleanupResult
-	realized     []string
-	cleaned      bool
+	mu             sync.Mutex
+	realizeErr     map[string]error
+	actionEvidence map[string]environment.ActionEvidence
+	groundings     map[string]map[string]string
+	observations   map[string]environment.Observation
+	cleanup        environment.CleanupResult
+	realized       []string
+	cleaned        bool
+	faultRealizer  umpire3fault.Realizer
 }
 
 func (s *fakeSession) Realize(ctx context.Context, action protocol.Action, _ environment.Bindings) (environment.ActionEvidence, error) {
@@ -48,7 +77,13 @@ func (s *fakeSession) Realize(ctx context.Context, action protocol.Action, _ env
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.realized = append(s.realized, action.Kind)
-	return environment.ActionEvidence{Source: "fake", Reference: action.Identifier}, s.realizeErr[action.Kind]
+	evidence, exists := s.actionEvidence[action.Identifier]
+	if exists {
+		return evidence, s.realizeErr[action.Kind]
+	}
+	return environment.ActionEvidence{
+		Source: "fake", Reference: action.Identifier, GroundedBindings: s.groundings[action.Identifier],
+	}, s.realizeErr[action.Kind]
 }
 
 func (s *fakeSession) Observe(_ context.Context, checkpoint protocol.Checkpoint, _ environment.Bindings) (environment.Observation, error) {
@@ -68,6 +103,8 @@ func (s *fakeSession) RecoveryMetadata() map[string]string {
 	return map[string]string{"resource": "fake"}
 }
 
+func (s *fakeSession) FaultRealizer() umpire3fault.Realizer { return s.faultRealizer }
+
 func TestRunRejectsUnsupportedCapabilitiesBeforePrepare(t *testing.T) {
 	experiment := loadExperiment(t)
 	factory := &fakeFactory{capabilities: []string{"nexus"}}
@@ -76,6 +113,110 @@ func TestRunRejectsUnsupportedCapabilitiesBeforePrepare(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ClaimUnsupported, result.Claim.Kind)
 	require.Zero(t, factory.prepareCount)
+}
+
+func TestMissingCapabilitiesIncludesFaultRequirements(t *testing.T) {
+	experiment := protocol.Experiment{Faults: []protocol.Fault{{
+		RequiredCapabilities: []string{"failover-control"},
+	}}}
+
+	require.Equal(t, []string{"failover-control"}, missingCapabilities(experiment, nil))
+}
+
+func TestRunRejectsDeclaredFaultWithoutRealizer(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	session.faultRealizer = nil
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimUnsupported, result.Claim.Kind)
+	require.ErrorContains(t, errors.New(result.Claim.Reason), "fault realizer")
+	require.Empty(t, result.Actions)
+	require.True(t, session.cleaned)
+}
+
+func TestRunRealizesFaultOverDeclaredActionInterval(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	realizer := &runtimeFaultRealizer{}
+	factory := &faultFactory{
+		fakeFactory: fakeFactory{capabilities: allCapabilities(experiment), session: session},
+		realizer:    realizer,
+	}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, []string{"install", "activate", "release", "cleanup"}, realizer.calls)
+	require.Len(t, result.Faults, 1)
+	require.True(t, result.Faults[0].Realized)
+	require.True(t, result.Faults[0].Released)
+	require.True(t, result.Faults[0].CleanupComplete)
+	require.NotEmpty(t, result.Faults[0].Reference)
+}
+
+func TestRunFaultCleanupFailureDowngradesConformance(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	realizer := &runtimeFaultRealizer{cleanupErr: errors.New("injected fault cleanup failure")}
+	factory := &faultFactory{
+		fakeFactory: fakeFactory{capabilities: allCapabilities(experiment), session: session},
+		realizer:    realizer,
+	}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
+	require.ErrorContains(t, errors.New(result.Faults[0].Error), "cleanup")
+	require.False(t, result.Faults[0].CleanupComplete)
+}
+
+func TestRunPersistsRequiredLearnedFootprint(t *testing.T) {
+	experiment := loadExperiment(t)
+	factory := &footprintFactory{fakeFactory: fakeFactory{
+		capabilities: allCapabilities(experiment), session: conformingSession(experiment),
+	}, report: umpire3fault.Report{
+		FormatVersion: umpire3fault.FootprintFormatVersion,
+		Calls: []umpire3fault.Call{{
+			Protocol: "http", Service: "nexus", Route: "/service/operation",
+			Direction: umpire3fault.DirectionInbound, Role: umpire3fault.CallRoleInternal,
+			Namespace: "namespace", Participant: "handler", Attempt: 1, Occurrence: 1,
+			Interval: umpire3fault.Interval{Start: 1, Stop: 2},
+		}},
+		Declared: []umpire3fault.Footprint{{Protocol: "http", Service: "nexus", Route: "/service/operation"}},
+	}}
+	report, err := umpire3fault.BuildFootprintReport(factory.report.Declared, factory.report.Calls, nil)
+	require.NoError(t, err)
+	factory.report = report
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.NotNil(t, result.Footprint)
+	require.True(t, result.Footprint.Complete)
+	require.NotEmpty(t, result.Footprint.ReconciliationDigest)
+}
+
+func TestRunRejectsRequiredLearnedFootprintDrift(t *testing.T) {
+	experiment := loadExperiment(t)
+	report, err := umpire3fault.BuildFootprintReport(
+		[]umpire3fault.Footprint{{Protocol: "grpc", Service: "matching", Route: "DispatchNexusTask"}},
+		[]umpire3fault.Call{{
+			Protocol: "http", Service: "nexus", Route: "/service/operation",
+			Direction: umpire3fault.DirectionInbound, Role: umpire3fault.CallRoleInternal,
+			Namespace: "namespace", Participant: "handler", Attempt: 1, Occurrence: 1,
+			Interval: umpire3fault.Interval{Start: 1, Stop: 2},
+		}}, nil)
+	require.NoError(t, err)
+	factory := &footprintFactory{fakeFactory: fakeFactory{
+		capabilities: allCapabilities(experiment), session: conformingSession(experiment),
+	}, report: report}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.ErrorContains(t, errors.New(result.Claim.Reason), "footprint reconciliation drift")
 }
 
 func TestRunConformsWithCompleteCausalEvidenceAndCleanup(t *testing.T) {
@@ -90,6 +231,97 @@ func TestRunConformsWithCompleteCausalEvidenceAndCleanup(t *testing.T) {
 	require.Len(t, result.Actions, len(experiment.Actions))
 	require.Len(t, result.Observations, len(experiment.Checkpoints))
 	require.True(t, result.Cleanup.Complete)
+}
+
+func TestRunReportsAllowedFailureAsDegradedWithoutChangingClaim(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	last := experiment.Actions[len(experiment.Actions)-1]
+	session.actionEvidence = map[string]environment.ActionEvidence{
+		last.Identifier: {
+			Source: "fake", SourceIdentity: "fake", Reference: "history/failed",
+			EntityIdentity: "workflow/run", Lineage: []string{"workflow", "run"},
+			TerminalState: "failed", TerminalDisposition: protocol.TerminalDispositionFailure,
+		},
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, OutcomeDegraded, result.Outcome.Kind)
+	require.Equal(t, "failed", result.Outcome.Terminal)
+}
+
+func TestRunReportsViolationAsFlaggedWithoutTerminal(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	observation := session.observations["no-stale-success"]
+	observation.Satisfied = false
+	session.observations["no-stale-success"] = observation
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimViolating, result.Claim.Kind)
+	require.Equal(t, OutcomeFlagged, result.Outcome.Kind)
+}
+
+func TestRunRetainsIndependentCorroboratingEvidence(t *testing.T) {
+	experiment := loadExperiment(t)
+	primary := conformingSession(experiment)
+	corroborating := make(map[string][]environment.Observation, len(experiment.Checkpoints))
+	for identifier, observation := range primary.observations {
+		observation.Source = "history-service"
+		observation.SourceIdentity = "history-service-cluster"
+		observation.ClockDomain = "history-service-event-id"
+		observation.Reference = "history-service/" + identifier
+		corroborating[identifier] = []environment.Observation{observation}
+	}
+	session := &corroboratingFakeSession{fakeSession: primary, observations: corroborating}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Len(t, result.Observations, 2*len(experiment.Checkpoints))
+	require.Contains(t, observationSources(result.Observations), "fake")
+	require.Contains(t, observationSources(result.Observations), "history-service")
+}
+
+func TestRunRejectsDisagreeingCorroboratingEvidence(t *testing.T) {
+	experiment := loadExperiment(t)
+	primary := conformingSession(experiment)
+	observation := primary.observations[experiment.Checkpoints[0].Identifier]
+	observation.Satisfied = !observation.Satisfied
+	observation.Source = "history-service"
+	observation.SourceIdentity = "history-service-cluster"
+	observation.Reference = "history-service/disagreement"
+	session := &corroboratingFakeSession{
+		fakeSession: primary,
+		observations: map[string][]environment.Observation{
+			experiment.Checkpoints[0].Identifier: {observation},
+		},
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "contradictory evidence")
+}
+
+func TestRunFailsClosedWhenAdvertisedCorroborationIsUnavailable(t *testing.T) {
+	experiment := loadExperiment(t)
+	primary := conformingSession(experiment)
+	session := &corroboratingFakeSession{fakeSession: primary, err: errors.New("history service unavailable")}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "history service unavailable")
+	require.NotEmpty(t, result.Omissions)
 }
 
 func TestRunCleansUpAfterActionFailure(t *testing.T) {
@@ -116,7 +348,7 @@ func TestRunMissingEvidenceIsInconclusive(t *testing.T) {
 	require.NotEmpty(t, result.Omissions)
 }
 
-func TestRunAllowsExplicitlyOptionalOmission(t *testing.T) {
+func TestRunOptionalOmissionRequiredByPropertyIsInconclusive(t *testing.T) {
 	experiment := loadExperiment(t)
 	for index := range experiment.Checkpoints {
 		if experiment.Checkpoints[index].Identifier == "cancellation-won" {
@@ -129,7 +361,7 @@ func TestRunAllowsExplicitlyOptionalOmission(t *testing.T) {
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
-	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
 }
 
 func TestRunContradictingEvidenceIsViolating(t *testing.T) {
@@ -143,6 +375,57 @@ func TestRunContradictingEvidenceIsViolating(t *testing.T) {
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
 	require.Equal(t, ClaimViolating, result.Claim.Kind)
+}
+
+func TestRunUsesGeneratedPropertyProgramInsteadOfEveryObservationBoolean(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	observation := session.observations["cancellation-accepted"]
+	observation.Satisfied = false
+	session.observations["cancellation-accepted"] = observation
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+}
+
+func TestRunObservesCompilerCheckpointsAfterActions(t *testing.T) {
+	experiment := loadExperiment(t)
+	for index := range experiment.Actions {
+		experiment.Actions[index].PreCheckpoint = ""
+		experiment.Actions[index].PostCheckpoint = ""
+	}
+	session := conformingSession(experiment)
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Len(t, result.Observations, len(experiment.Checkpoints))
+}
+
+func TestRunGroundsAndReusesCompilerIdentity(t *testing.T) {
+	experiment := compiledUpdateExperiment(t)
+	session := conformingSession(experiment)
+	session.groundings = map[string]map[string]string{"start": {"run-id": "concrete-run-id"}}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, "concrete-run-id", result.Bindings["run-id"])
+}
+
+func TestRunRejectsMissingProjectionGrounding(t *testing.T) {
+	experiment := compiledUpdateExperiment(t)
+	session := conformingSession(experiment)
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "did not ground")
 }
 
 func TestRunHonorsCooperativeCancellation(t *testing.T) {
@@ -198,6 +481,32 @@ func TestRunIncomparableOrderingIsInconclusive(t *testing.T) {
 	require.Contains(t, result.Omissions[0], "causal reference")
 }
 
+func TestRunMissingIdentityLineageIsInconclusive(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	observation := session.observations["cancellation-won"]
+	observation.Lineage = nil
+	session.observations["cancellation-won"] = observation
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
+	require.Contains(t, result.Omissions[0], "lineage")
+}
+
+func TestContradictoryEvidenceIsEvidenceFailure(t *testing.T) {
+	result := Result{Claim: Claim{Kind: ClaimConforming, Property: "property"}}
+	result.Observations = []environment.Observation{
+		completeObservation("first", true, "api"),
+		completeObservation("second", false, "history"),
+	}
+
+	finalizeEvidenceGraph(&result, 1<<20)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "contradictory evidence")
+}
+
 func TestRunRejectsCountBudgetBeforePrepare(t *testing.T) {
 	experiment := loadExperiment(t)
 	factory := &fakeFactory{capabilities: allCapabilities(experiment)}
@@ -214,6 +523,45 @@ func TestRunRejectsCountBudgetBeforePrepare(t *testing.T) {
 type blockingFactory struct {
 	capabilities []string
 	session      environment.Session
+}
+
+type faultFactory struct {
+	fakeFactory
+	realizer umpire3fault.Realizer
+}
+
+func (f *faultFactory) FaultRealizer() umpire3fault.Realizer { return f.realizer }
+
+type runtimeFaultRealizer struct {
+	calls      []string
+	cleanupErr error
+}
+
+func (r *runtimeFaultRealizer) Install(context.Context, umpire3fault.Term) (string, error) {
+	r.calls = append(r.calls, "install")
+	return "sensitive-runtime-handle", nil
+}
+
+func (r *runtimeFaultRealizer) Activate(context.Context, string) error {
+	r.calls = append(r.calls, "activate")
+	return nil
+}
+
+func (r *runtimeFaultRealizer) Release(context.Context, string) error {
+	r.calls = append(r.calls, "release")
+	return nil
+}
+
+func (r *runtimeFaultRealizer) Cleanup(context.Context, string) error {
+	r.calls = append(r.calls, "cleanup")
+	return r.cleanupErr
+}
+
+func (r *runtimeFaultRealizer) RealizationEvidence(context.Context, string) (umpire3fault.RealizationEvidence, error) {
+	return umpire3fault.RealizationEvidence{
+		SourceIdentity: "runtime-fault-test", Reference: "runtime-fault-test/fired",
+		EntityIdentity: "runtime-fault-scope",
+	}, nil
 }
 
 func (f *blockingFactory) Capabilities() []string { return f.capabilities }
@@ -242,6 +590,14 @@ func allCapabilities(experiment protocol.Experiment) []string {
 			}
 		}
 	}
+	for _, fault := range experiment.Faults {
+		for _, capability := range fault.RequiredCapabilities {
+			if _, exists := seen[capability]; !exists {
+				seen[capability] = struct{}{}
+				capabilities = append(capabilities, capability)
+			}
+		}
+	}
 	return capabilities
 }
 
@@ -253,13 +609,64 @@ func conformingSession(experiment protocol.Experiment) *fakeSession {
 			Kind:            checkpoint.Observation,
 			Satisfied:       true,
 			Source:          "fake",
+			SourceIdentity:  "fake-source",
+			ClockDomain:     "fake-sequence",
 			SourceSequence:  int64(index + 1),
+			Reference:       "fake/observation/" + checkpoint.Identifier,
 			CausalReference: "fake-causal-chain",
+			EntityIdentity:  "fake-entity",
+			Lineage:         []string{"fake-namespace", "fake-entity"},
 		}
 	}
 	return &fakeSession{
-		realizeErr:   make(map[string]error),
-		observations: observations,
-		cleanup:      environment.CleanupResult{Complete: true},
+		realizeErr:    make(map[string]error),
+		observations:  observations,
+		cleanup:       environment.CleanupResult{Complete: true},
+		faultRealizer: &runtimeFaultRealizer{},
 	}
+}
+
+func completeObservation(identifier string, satisfied bool, source string) environment.Observation {
+	return environment.Observation{
+		CheckpointID: identifier, Kind: "same-observation", Satisfied: satisfied,
+		Source: source, SourceIdentity: source, ClockDomain: source + "-sequence", SourceSequence: 1,
+		ObservedAtUnixNano: 1, Reference: source + "/reference", EntityIdentity: "entity",
+		Lineage: []string{"namespace", "entity"},
+	}
+}
+
+func observationSources(observations []environment.Observation) []string {
+	sources := make([]string, len(observations))
+	for index, observation := range observations {
+		sources[index] = observation.Source
+	}
+	return sources
+}
+
+func compiledUpdateExperiment(t *testing.T) protocol.Experiment {
+	t.Helper()
+	runID := compiler.Symbol{Name: "run-id", Type: protocol.SemanticTypeIDIdentity}
+	suite, err := compiler.Compile(context.Background(), compiler.Scenario{
+		Identifier: "runtime-update-identity",
+		Target:     protocol.TargetIDWorkflowUpdateLifecycle,
+		Resources: []compiler.Resource{
+			{Identifier: "workflow", Kind: protocol.EntityKindWorkflow},
+			{Identifier: "update", Kind: protocol.EntityKindWorkflowUpdate},
+		},
+		Root: compiler.OnePath(
+			compiler.Action("start", protocol.ActionKindStartUpdate),
+			compiler.Bind(runID, compiler.Project("start", "update-id", protocol.SemanticTypeIDIdentity)),
+			compiler.Action("dispatch", protocol.ActionKindDispatchWorkflowTask,
+				compiler.WithArgument("update", runID.Value())),
+			compiler.Action("accept", protocol.ActionKindAcceptUpdate),
+			compiler.Action("history", protocol.ActionKindRecordUpdateHistory),
+			compiler.Action("complete-task", protocol.ActionKindCompleteWorkflowTask),
+			compiler.Action("complete", protocol.ActionKindCompleteUpdate),
+			compiler.Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+		),
+	}, compiler.Limits{
+		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
+	})
+	require.NoError(t, err)
+	return suite.Experiments[0]
 }

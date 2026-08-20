@@ -18,5 +18,5 @@ func TestEmptyManifestRecordsSchemaAndLeanVersions(t *testing.T) {
 func TestWriteManifestIsCanonical(t *testing.T) {
 	var output bytes.Buffer
 	require.NoError(t, protocol.WriteManifest(&output, protocol.NewEmptyManifest("4.33.0")))
-	require.JSONEq(t, "{\n  \"formatVersion\": \"umpire3/v1\",\n  \"toolchain\": {\n    \"lean\": \"4.33.0\"\n  }\n}\n", output.String())
+	require.JSONEq(t, "{\n  \"formatVersion\": \"umpire3/v2\",\n  \"toolchain\": {\n    \"lean\": \"4.33.0\"\n  }\n}\n", output.String())
 }

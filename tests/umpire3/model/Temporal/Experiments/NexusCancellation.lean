@@ -100,6 +100,25 @@ theorem explorerFindsUnsafeCounterexample :
 theorem explorerRejectsSoundCounterexample :
     executable.follow [initial] counterexampleActions = [] := by decide
 
+def proofManifest : SemanticProofManifest where
+  identifier := "nexus-tasks-refinement-v1"
+  theoremName := "Umpire3.Temporal.System.NexusTasks.nexusTasksRefinesProduct"
+  statementHash := "sha256:51c9b67f45c1d58999fc7628a95593c681f3e0ed2e4b59612f2b0fcfb6d4c633"
+  assumptions := [
+    {
+      identifier := "persistence-commit-atomicity"
+      statementHash := "sha256:61db93cf9c68dfc18c4d379f71dc5b03ae45854bb70c94c1b390e30ba52e50ad"
+    },
+    {
+      identifier := "task-at-least-once-delivery"
+      statementHash := "sha256:4bb260aba066d97231a70090468b1c6bd1ad4bba387742a54f8110a484270415"
+    },
+    {
+      identifier := System.TaskDelivery.guarantee.identifier
+      statementHash := System.TaskDelivery.guarantee.statementHash
+    },
+  ]
+
 def experiment : SemanticExperiment where
   identifier := "nexus-cancellation-stale-completion-v1"
   modelModules := [
@@ -108,10 +127,12 @@ def experiment : SemanticExperiment where
     "Temporal.Refinement.NexusTasks",
   ]
   propertyIdentifier := "nexus.cancellation.won-excludes-success"
+  propertyStatementHash := "sha256:ee1e668005a68fd1dd72bbd4dd2758d035c89f67f6492223c1b615ef094225d8"
   scope := {
     bound := { maxDepth := 8, maxResults := 10000 }
     assumptions := System.NexusTasks.assumptions
   }
+  strategy := "explicit-breadth-first"
   resources := [
     { identifier := "operation", kind := "nexus-operation" },
     { identifier := "worker", kind := "nexus-worker" },
@@ -134,6 +155,34 @@ def experiment : SemanticExperiment where
     { identifier := "a8", kind := "persist-success", requiredCapabilities := ["nexus-observation"],
       preCheckpoint := some "cancellation-won", postCheckpoint := some "no-stale-success" },
   ]
+  policies := [{
+    identifier := "ownership-change"
+    kind := "during"
+    scope := ["a5", "a6", "a7", "a8"]
+  }]
+  faults := [{
+    identifier := "stale-completion"
+    kind := "stale-worker-completion"
+    policy := some "ownership-change"
+    safetyClass := "controlled"
+    scopeResources := ["operation", "worker"]
+    scopeParticipants := ["worker"]
+    scopeAttempts := [1]
+    occurrenceFirst := 1
+    occurrenceCount := 1
+    intervalStartAction := "a5"
+    intervalStopAction := "a8"
+    requiredCapabilities := ["nexus-worker-control", "failover-control"]
+  }]
+  order := [
+    { before := "a1", after := "a2", relation := "semantic" },
+    { before := "a2", after := "a3", relation := "semantic" },
+    { before := "a3", after := "a4", relation := "semantic" },
+    { before := "a4", after := "a5", relation := "semantic" },
+    { before := "a5", after := "a6", relation := "semantic" },
+    { before := "a6", after := "a7", relation := "semantic" },
+    { before := "a7", after := "a8", relation := "semantic" },
+  ]
   checkpoints := [
     { identifier := "cancellation-accepted", observation := "cancellation-accepted",
       ordering := "source-sequence", omissionPolicy := "required" },
@@ -142,54 +191,17 @@ def experiment : SemanticExperiment where
     { identifier := "no-stale-success", observation := "stale-success-absent",
       ordering := "causal", omissionPolicy := "required" },
   ]
-  provenance := "counterexample"
+  provenanceKind := "counterexample"
+  proofManifest := "nexus-tasks-refinement-v1"
 
 theorem experimentWellFormed : experiment.WellFormed := by
   simp [SemanticExperiment.WellFormed, experiment, System.NexusTasks.assumptions]
 
-def json (semanticHash : String) : String :=
-  "{" ++
-  "\"formatVersion\":\"" ++ formatVersion ++ "\"," ++
-  "\"experimentID\":\"nexus-cancellation-stale-completion-v1\"," ++
-  "\"model\":{" ++
-    "\"modules\":[\"Temporal.Product.Nexus\",\"Temporal.System.NexusTasks\",\"Temporal.Refinement.NexusTasks\"]," ++
-    "\"sourceRevision\":\"umpire3-v1\"," ++
-    "\"semanticHash\":\"" ++ semanticHash ++ "\"," ++
-    "\"leanVersion\":\"" ++ leanVersion ++ "\"}," ++
-  "\"property\":{" ++
-    "\"identifier\":\"nexus.cancellation.won-excludes-success\"," ++
-    "\"statementHash\":\"sha256:ee1e668005a68fd1dd72bbd4dd2758d035c89f67f6492223c1b615ef094225d8\"," ++
-    "\"claim\":\"implementation-conformance\"}," ++
-  "\"scope\":{" ++
-    "\"bounds\":{\"maxDepth\":8,\"maxResults\":10000}," ++
-    "\"assumptions\":[" ++
-      "{\"identifier\":\"persistence-commit-atomicity\",\"statementHash\":\"sha256:61db93cf9c68dfc18c4d379f71dc5b03ae45854bb70c94c1b390e30ba52e50ad\"}," ++
-      "{\"identifier\":\"task-at-least-once-delivery\",\"statementHash\":\"sha256:4bb260aba066d97231a70090468b1c6bd1ad4bba387742a54f8110a484270415\"}," ++
-      "{\"identifier\":\"task-delivery.current-completion-only\",\"statementHash\":\"sha256:31e3bc0f50ed17ad15f1848d8fd3cc753e18c21729d606f10fc10d5b71d9bc93\"}]," ++
-    "\"strategy\":\"explicit-breadth-first\",\"seed\":0}," ++
-  "\"resources\":[" ++
-    "{\"identifier\":\"operation\",\"kind\":\"nexus-operation\"}," ++
-    "{\"identifier\":\"worker\",\"kind\":\"nexus-worker\"}]," ++
-  "\"actions\":[" ++
-    "{\"identifier\":\"a1\",\"kind\":\"schedule-operation\",\"requiredCapabilities\":[\"nexus\"]}," ++
-    "{\"identifier\":\"a2\",\"kind\":\"dispatch-task\",\"requiredCapabilities\":[\"nexus-worker-control\"]}," ++
-    "{\"identifier\":\"a3\",\"kind\":\"request-cancellation\",\"requiredCapabilities\":[\"nexus\"],\"postCheckpoint\":\"cancellation-accepted\"}," ++
-    "{\"identifier\":\"a4\",\"kind\":\"commit-cancellation\",\"requiredCapabilities\":[\"nexus-observation\"],\"preCheckpoint\":\"cancellation-accepted\",\"postCheckpoint\":\"cancellation-won\"}," ++
-    "{\"identifier\":\"a5\",\"kind\":\"acquire-ownership\",\"requiredCapabilities\":[\"failover-control\"]}," ++
-    "{\"identifier\":\"a6\",\"kind\":\"retry-task\",\"requiredCapabilities\":[\"nexus-worker-control\"]}," ++
-    "{\"identifier\":\"a7\",\"kind\":\"worker-returns-success\",\"requiredCapabilities\":[\"nexus-worker-control\"]}," ++
-    "{\"identifier\":\"a8\",\"kind\":\"persist-success\",\"requiredCapabilities\":[\"nexus-observation\"],\"preCheckpoint\":\"cancellation-won\",\"postCheckpoint\":\"no-stale-success\"}]," ++
-  "\"checkpoints\":[" ++
-    "{\"identifier\":\"cancellation-accepted\",\"observation\":\"cancellation-accepted\",\"ordering\":\"source-sequence\",\"omissionPolicy\":\"required\"}," ++
-    "{\"identifier\":\"cancellation-won\",\"observation\":\"cancellation-won\",\"ordering\":\"causal\",\"omissionPolicy\":\"required\"}," ++
-    "{\"identifier\":\"no-stale-success\",\"observation\":\"stale-success-absent\",\"ordering\":\"causal\",\"omissionPolicy\":\"required\"}]," ++
-  "\"provenance\":{\"kind\":\"counterexample\",\"proofManifest\":\"nexus-tasks-refinement-v1\"}," ++
-  "\"retention\":{\"redactionClass\":\"semantic-only\",\"maxArtifactBytes\":1048576}" ++
-  "}"
-
 def main : IO Unit := do
   let some semanticHash ← IO.getEnv "UMPIRE3_SEMANTIC_HASH"
     | throw (IO.userError "UMPIRE3_SEMANTIC_HASH is required")
-  IO.println (json semanticHash)
+  let some catalogHash ← IO.getEnv "UMPIRE3_CATALOG_HASH"
+    | throw (IO.userError "UMPIRE3_CATALOG_HASH is required")
+  IO.println (experiment.json semanticHash catalogHash)
 
 end Umpire3.Temporal.Experiments.NexusCancellation

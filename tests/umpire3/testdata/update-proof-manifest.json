@@ -1,14 +1,1 @@
-{
-  "formatVersion": "umpire3/v1",
-  "identifier": "update-tasks-refinement-v1",
-  "theorem": "Umpire3.Temporal.System.UpdateTasks.updateTasksRefinesProduct",
-  "statementHash": "sha256:bb8eac89a0a1d1c5caf0f575377e5775b487533960d305acf729311bd15f857d",
-  "semanticHash": "sha256:e76bfc490698629875cb54b6c84e292336c6fe5dcd632726a657d06243a30f03",
-  "leanVersion": "4.33.0",
-  "assumptions": [
-    {
-      "identifier": "task-delivery.current-completion-only",
-      "statementHash": "sha256:31e3bc0f50ed17ad15f1848d8fd3cc753e18c21729d606f10fc10d5b71d9bc93"
-    }
-  ]
-}
+{"formatVersion":"umpire3/v2","identifier":"update-tasks-refinement-v1","theorem":"Umpire3.Temporal.System.UpdateTasks.updateTasksRefinesProduct","statementHash":"sha256:bb8eac89a0a1d1c5caf0f575377e5775b487533960d305acf729311bd15f857d","semanticHash":"sha256:ca72fc0eefccc511c62c1c811c9b9da551dac2dad1356a7f2059ee6e224c9bcc","leanVersion":"4.33.0","assumptions":[{"identifier":"task-delivery.current-completion-only","statementHash":"sha256:31e3bc0f50ed17ad15f1848d8fd3cc753e18c21729d606f10fc10d5b71d9bc93"}]}

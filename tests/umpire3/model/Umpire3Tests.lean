@@ -2,9 +2,18 @@ import Umpire3.Executable
 import Umpire3.Property
 import Umpire3.Refinement
 import Umpire3.Transition
+import Temporal.Catalog
 import Umpire3Tests.TemporalProduct
 import Umpire3Tests.TemporalSystem
 import Umpire3Tests.TemporalAPI
+import Umpire3Tests.TemporalNexusClosure
+import Umpire3Tests.TemporalNexusLifecycle
+import Umpire3Tests.TemporalNexusEvidence
+import Umpire3Tests.TemporalOutcome
+import Umpire3Tests.TemporalCallback
+import Umpire3Tests.TemporalWorkflowEvidence
+import Umpire3Tests.TemporalSpeculativeTask
+import Umpire3Tests.TemporalWorkflowProgress
 import Umpire3Tests.TemporalUpdate
 
 namespace Umpire3.Tests
@@ -79,6 +88,11 @@ def smokeScope : ExplorationScope where
 example : smokeScope.assumptions.length = 1 := rfl
 
 example : (Refinement.identity toggle).Relates .off .off := rfl
+
+example : Umpire3.Temporal.catalog.WellFormed := by
+  exact Umpire3.Temporal.catalogWellFormed
+
+example : Umpire3.Temporal.catalog.actions.length = 33 := by decide
 
 example : ¬(Refinement.identity toggle).Stutters .off .off .enable .on := by
   intro stutters
