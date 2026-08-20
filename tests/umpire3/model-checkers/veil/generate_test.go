@@ -1,6 +1,7 @@
 package veil
 
 import (
+	"bytes"
 	"slices"
 	"strings"
 	"testing"
@@ -66,10 +67,67 @@ func TestGenerateRecordsSMTTrustMode(t *testing.T) {
 	require.Equal(t, TrustedSMT, trusted.TrustMode)
 	require.Contains(t, string(trusted.Source), "set_option veil.smt.trust true")
 	require.NotEqual(t, reconstructed.Source, trusted.Source)
+	reconstructedModel := strings.SplitN(string(reconstructed.Source),
+		"\nnamespace Umpire3Veil.Generated", 2)[0]
+	trustedModel := strings.SplitN(string(trusted.Source),
+		"\nnamespace Umpire3Veil.Generated", 2)[0]
 	require.Equal(t,
-		strings.Replace(string(reconstructed.Source), "veil.smt.trust false", "veil.smt.trust true", 1),
-		string(trusted.Source),
+		strings.Replace(reconstructedModel, "veil.smt.trust false", "veil.smt.trust true", 1),
+		trustedModel,
 	)
+	require.Contains(t, string(reconstructed.Source), "trustMode := .reconstructed")
+	require.Contains(t, string(trusted.Source), "trustMode := .trusted")
+	require.NotEqual(t, reconstructed.ModelHash, trusted.ModelHash)
+}
+
+func TestValidateGeneratedSemanticsRejectsRendererMutation(t *testing.T) {
+	view := testView()
+	generated, err := Generate(view, Interactive)
+	require.NoError(t, err)
+
+	mutatedGuard := bytes.Replace(generated.Source,
+		[]byte("  require (flag = Zero)"), []byte("  require (flag = One)"), 1)
+	require.NotEqual(t, generated.Source, mutatedGuard)
+	require.ErrorContains(t, validateGeneratedSemantics(view, mutatedGuard),
+		`generated action "flip" guard`)
+
+	mutatedUpdate := bytes.Replace(generated.Source,
+		[]byte("  flag := One"), []byte("  flag := Zero"), 1)
+	require.NotEqual(t, generated.Source, mutatedUpdate)
+	require.ErrorContains(t, validateGeneratedSemantics(view, mutatedUpdate),
+		`generated action "flip" successor`)
+}
+
+func TestGenerateNamesFiniteMembersOfUninterpretedSorts(t *testing.T) {
+	view := testView()
+	view.Sorts = []protocol.FirstOrderSort{{
+		Identifier: "node", Kind: protocol.FirstOrderSortUninterpreted,
+		Values: []string{}, Cardinality: 2,
+	}}
+	view.StateFields[0].Sort = "node"
+	view.Initial.Right = &protocol.FirstOrderTerm{
+		Kind: protocol.FirstOrderTermValue, Sort: "node", Value: "member-0",
+	}
+	view.Actions[0].Guard.Right = &protocol.FirstOrderTerm{
+		Kind: protocol.FirstOrderTermValue, Sort: "node", Value: "member-0",
+	}
+	view.Actions[0].Updates[0].Value = protocol.FirstOrderTerm{
+		Kind: protocol.FirstOrderTermValue, Sort: "node", Value: "member-1",
+	}
+	view.Oracle.States = []protocol.FirstOrderState{
+		{Fields: []protocol.FirstOrderBinding{{Field: "flag", Value: "member-0"}}},
+		{Fields: []protocol.FirstOrderBinding{{Field: "flag", Value: "member-1"}}},
+	}
+
+	generated, err := Generate(view, Interactive)
+	require.NoError(t, err)
+	require.Contains(t, string(generated.Source), "type node")
+	require.Contains(t, string(generated.Source), "immutable individual NodeMember0 : node")
+	require.Contains(t, string(generated.Source),
+		"assumption [NodeMembersDistinct] (NodeMember0 ≠ NodeMember1)")
+	require.Contains(t, string(generated.Source),
+		"assumption [NodeMembersExhaustive] ∀ value : node, (value = NodeMember0) ∨ (value = NodeMember1)")
+	require.Contains(t, string(generated.Source), "{ node := Fin 2 }")
 }
 
 func testView() protocol.FirstOrderView {
