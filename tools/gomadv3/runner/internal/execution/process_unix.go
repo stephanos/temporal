@@ -673,6 +673,9 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		if serveErr := <-simulationTimeServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) && !errors.Is(serveErr, context.Canceled) {
 			return result, fmt.Errorf("serve simulation time transport: %w", serveErr)
 		}
+		if simulationCoordinator != nil {
+			result.SimulationRecords = simulationCoordinator.retainedExplorationRecords()
+		}
 	}
 	if worldCapture.Result().Truncated {
 		return result, fmt.Errorf("World child record exceeded its configured bound")

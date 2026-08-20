@@ -12,6 +12,9 @@ import (
 
 const maximumSimulationFrameBytes = 128 << 20
 const maximumSimulationBootstrapBytes = 1 << 20
+const maximumSimulationExplorationPlanBytes = 16 << 20
+const maximumSimulationExplorationRecordBytes = 128 << 20
+const maximumSimulationExplorationRecords = 4096
 const simulationProtocol = "gomadv3.simulation-process/v3"
 
 type SimulationRole string
@@ -22,16 +25,19 @@ const (
 )
 
 type SimulationCapability struct {
-	Role       SimulationRole
-	Bootstrap  []byte
-	handler    func(context.Context, simulationFrame) (simulationFrame, error)
-	time       func(context.Context, simulationTimeRequest) (simulationTimeResponse, error)
-	accepting  func(simulationFrame) error
-	delivering func(simulationFrame)
-	responded  func(simulationFrame)
-	arrived    func(uint32) error
-	hardCrash  <-chan struct{}
-	reaped     chan struct{}
+	Role                   SimulationRole
+	Bootstrap              []byte
+	ExplorationPlan        []byte
+	ExplorationRecordLimit uint64
+	ExplorationRecordCount uint64
+	handler                func(context.Context, simulationFrame) (simulationFrame, error)
+	time                   func(context.Context, simulationTimeRequest) (simulationTimeResponse, error)
+	accepting              func(simulationFrame) error
+	delivering             func(simulationFrame)
+	responded              func(simulationFrame)
+	arrived                func(uint32) error
+	hardCrash              <-chan struct{}
+	reaped                 chan struct{}
 }
 
 const simulationRoleEnvironmentName = "GOMADV3_SIMULATION_ROLE"
@@ -47,17 +53,19 @@ const simulationTimeResponseFDEnvironmentName = "GOMADV3_SIMULATION_TIME_RESPONS
 type simulationFrameKind string
 
 const (
-	simulationFrameStart     simulationFrameKind = "start"
-	simulationFrameActivate  simulationFrameKind = "activate"
-	simulationFrameActivated simulationFrameKind = "activated"
-	simulationFrameModel     simulationFrameKind = "model"
-	simulationFrameStop      simulationFrameKind = "stop"
-	simulationFrameCrash     simulationFrameKind = "crash"
-	simulationFrameWait      simulationFrameKind = "wait"
-	simulationFrameReady     simulationFrameKind = "ready"
-	simulationFrameTerminal  simulationFrameKind = "terminal"
-	simulationFrameResponse  simulationFrameKind = "response"
-	simulationFrameArrival   simulationFrameKind = "arrival"
+	simulationFrameStart             simulationFrameKind = "start"
+	simulationFrameActivate          simulationFrameKind = "activate"
+	simulationFrameActivated         simulationFrameKind = "activated"
+	simulationFrameModel             simulationFrameKind = "model"
+	simulationFrameStop              simulationFrameKind = "stop"
+	simulationFrameCrash             simulationFrameKind = "crash"
+	simulationFrameWait              simulationFrameKind = "wait"
+	simulationFrameReady             simulationFrameKind = "ready"
+	simulationFrameTerminal          simulationFrameKind = "terminal"
+	simulationFrameResponse          simulationFrameKind = "response"
+	simulationFrameArrival           simulationFrameKind = "arrival"
+	simulationFrameExplorationPlan   simulationFrameKind = "exploration_plan"
+	simulationFrameExplorationRecord simulationFrameKind = "exploration_record"
 )
 
 type simulationFrame struct {
@@ -110,7 +118,7 @@ func validateSimulationFrame(frame simulationFrame) error {
 		return fmt.Errorf("unsupported simulation frame profile %q", frame.Profile)
 	}
 	switch frame.Kind {
-	case simulationFrameStart, simulationFrameActivate, simulationFrameActivated, simulationFrameModel, simulationFrameStop, simulationFrameCrash, simulationFrameWait, simulationFrameReady, simulationFrameTerminal, simulationFrameResponse:
+	case simulationFrameStart, simulationFrameActivate, simulationFrameActivated, simulationFrameModel, simulationFrameStop, simulationFrameCrash, simulationFrameWait, simulationFrameReady, simulationFrameTerminal, simulationFrameResponse, simulationFrameExplorationPlan, simulationFrameExplorationRecord:
 	default:
 		return fmt.Errorf("invalid simulation frame kind %q", frame.Kind)
 	}

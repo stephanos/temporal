@@ -387,14 +387,7 @@ func (cluster *inProcessCluster) commitScenarioDecision(ctx context.Context, dec
 	if choose {
 		decision.Selected = selectScenarioAlternative(cluster.seed, decision.Ordinal, decision.ID, uint64(len(decision.Alternatives)))
 	}
-	identity, err := scenarioDecisionIdentity(decision)
-	if err != nil {
-		return 0, err
-	}
-	decision.Identity = identity
-	if err := validateScenarioDecision(decision); err != nil {
-		return 0, err
-	}
+	var err error
 	if cluster.scenarioChoiceCursor < uint64(len(cluster.scenarioChoicePlan.Overrides)) {
 		override := cluster.scenarioChoicePlan.Overrides[cluster.scenarioChoiceCursor]
 		if override.Ordinal <= decision.Ordinal {
@@ -412,6 +405,25 @@ func (cluster *inProcessCluster) commitScenarioDecision(ctx context.Context, dec
 			}
 			cluster.scenarioChoiceCursor++
 		}
+	}
+	if choose && cluster.explorationPlan != nil {
+		site, alternatives, identityErr := scenarioExplorationIdentities(decision.ID, decision.Occurrence, decision.Alternatives)
+		if identityErr != nil {
+			return 0, identityErr
+		}
+		selected, explorationErr := cluster.commitExplorationDecisionLocked(ExplorationScenario, decision.Ordinal, site, alternatives, uint32(decision.Selected))
+		if explorationErr != nil {
+			return 0, explorationErr
+		}
+		decision.Selected = uint64(selected)
+	}
+	identity, err := scenarioDecisionIdentity(decision)
+	if err != nil {
+		return 0, err
+	}
+	decision.Identity = identity
+	if err := validateScenarioDecision(decision); err != nil {
+		return 0, err
 	}
 	if err := checkCapacity("scenario_decisions", decision.Ordinal+1, cluster.limits.ScenarioDecisions); err != nil {
 		return 0, err
@@ -444,6 +456,9 @@ func (cluster *inProcessCluster) finishControllers() error {
 		override := cluster.scenarioChoicePlan.Overrides[cluster.scenarioChoiceCursor]
 		return cluster.scenarioDivergenceLocked(override.Ordinal, scenarioDecisionFromChoiceOverride(override), ScenarioDecision{})
 	}
+	if err := cluster.finishExplorationLocked(); err != nil {
+		return err
+	}
 	if cluster.replay == nil {
 		return nil
 	}
@@ -473,6 +488,97 @@ func (cluster *inProcessCluster) finishControllers() error {
 		return cluster.evidenceDivergenceLocked(ReplayDimensionEvidence, uint64(len(cluster.scenarios)), expected, actual)
 	}
 	return nil
+}
+
+func (cluster *inProcessCluster) commitExplorationDecisionLocked(dimension ExplorationDimension, ordinal uint64, site string, alternatives []string, selected uint32) (uint32, error) {
+	decision, err := newExplorationDecision(dimension, ordinal, site, alternatives, selected)
+	if err != nil {
+		return 0, err
+	}
+	override, forced := cluster.nextExplorationOverrideLocked(dimension)
+	if forced && override.Ordinal < ordinal {
+		return 0, cluster.explorationDivergenceLocked(override, decision)
+	}
+	if forced && override.Ordinal == ordinal {
+		if override.SiteSHA256 != decision.SiteSHA256 || override.Alternatives != uint32(len(decision.Alternatives)) || override.AlternativeSetSHA256 != decision.AlternativeSetSHA256 || override.SelectedSHA256 != decision.Alternatives[override.Selected] {
+			return 0, cluster.explorationDivergenceLocked(override, decision)
+		}
+		decision.Selected = override.Selected
+		decision.Identity, err = explorationDecisionIdentity(decision)
+		if err != nil {
+			return 0, err
+		}
+		cluster.explorationConsumed[dimension]++
+	}
+	if cluster.replay != nil {
+		expected, ok := findExplorationDecision(cluster.replay.ExplorationDecisions, dimension, ordinal)
+		if !ok || !equalExplorationDecision(expected, decision) {
+			return 0, cluster.explorationDecisionDivergenceLocked(expected, decision)
+		}
+	}
+	cluster.explorationDecisions = append(cluster.explorationDecisions, decision)
+	return decision.Selected, nil
+}
+
+func (cluster *inProcessCluster) finishExplorationLocked() error {
+	if cluster.explorationPlan != nil {
+		for _, dimension := range []ExplorationDimension{ExplorationRuntime, ExplorationScenario, ExplorationNetwork, ExplorationStorage, ExplorationFault, ExplorationCrash} {
+			if override, ok := cluster.nextExplorationOverrideLocked(dimension); ok {
+				return cluster.explorationDivergenceLocked(override, ExplorationDecision{})
+			}
+		}
+	}
+	if cluster.replay != nil && len(cluster.explorationDecisions) != len(cluster.replay.ExplorationDecisions) {
+		var expected ExplorationDecision
+		if len(cluster.explorationDecisions) < len(cluster.replay.ExplorationDecisions) {
+			expected = cluster.replay.ExplorationDecisions[len(cluster.explorationDecisions)]
+		}
+		return cluster.explorationDecisionDivergenceLocked(expected, ExplorationDecision{})
+	}
+	return nil
+}
+
+func (cluster *inProcessCluster) nextExplorationOverrideLocked(dimension ExplorationDimension) (ExplorationOverride, bool) {
+	remaining := cluster.explorationConsumed[dimension]
+	for _, override := range cluster.explorationPlan.Overrides {
+		if override.Dimension != dimension {
+			continue
+		}
+		if remaining == 0 {
+			return override, true
+		}
+		remaining--
+	}
+	return ExplorationOverride{}, false
+}
+
+func (cluster *inProcessCluster) explorationDivergenceLocked(expected ExplorationOverride, actual ExplorationDecision) error {
+	expectedDecision := ExplorationDecision{
+		Dimension: expected.Dimension, Ordinal: expected.Ordinal, SiteSHA256: expected.SiteSHA256,
+		AlternativeSetSHA256: expected.AlternativeSetSHA256, Selected: expected.Selected,
+	}
+	return cluster.explorationDecisionDivergenceLocked(expectedDecision, actual)
+}
+
+func (cluster *inProcessCluster) explorationDecisionDivergenceLocked(expected, actual ExplorationDecision) error {
+	return &ReplayDivergenceError{Divergence: ReplayDivergence{
+		Dimension: ReplayDimension(expected.Dimension), Ordinal: expected.Ordinal,
+		ExpectedSHA256: expected.Identity, ActualSHA256: actual.Identity,
+		ExpectedExploration: &expected, ActualExploration: &actual,
+	}}
+}
+
+func findExplorationDecision(decisions []ExplorationDecision, dimension ExplorationDimension, ordinal uint64) (ExplorationDecision, bool) {
+	for _, decision := range decisions {
+		if decision.Dimension == dimension && decision.Ordinal == ordinal {
+			return decision, true
+		}
+	}
+	return ExplorationDecision{}, false
+}
+
+func equalExplorationDecision(left, right ExplorationDecision) bool {
+	return left.Dimension == right.Dimension && left.Ordinal == right.Ordinal && left.SiteSHA256 == right.SiteSHA256 && slices.Equal(left.Alternatives, right.Alternatives) && left.AlternativeSetSHA256 == right.AlternativeSetSHA256 && left.Selected == right.Selected && left.Identity == right.Identity
 }
 
 func (cluster *inProcessCluster) plannedFaultLocked(ordinal uint64) (FaultAction, bool) {

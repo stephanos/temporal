@@ -63,6 +63,9 @@ type inProcessCluster struct {
 	faults                []FaultRealization
 	faultPending          bool
 	faultOccurrences      map[string]uint64
+	explorationPlan       *ExplorationPlan
+	explorationConsumed   map[ExplorationDimension]uint64
+	explorationDecisions  []ExplorationDecision
 	scenarioChoicePlan    ScenarioChoicePlan
 	scenarioChoiceCursor  uint64
 	scenarios             []ScenarioDecision
@@ -311,6 +314,11 @@ func newInProcessCluster(spec Spec) (*inProcessCluster, error) {
 		activity:            make(chan struct{}, 1),
 		faultOccurrences:    make(map[string]uint64),
 		scenarioOccurrences: make(map[string]uint64),
+		explorationConsumed: make(map[ExplorationDimension]uint64),
+	}
+	if spec.Exploration != nil {
+		exploration := cloneExplorationPlan(*spec.Exploration)
+		cluster.explorationPlan = &exploration
 	}
 	if spec.Faults == nil {
 		cluster.faultPlan, err = NewFaultPlan(nil)
@@ -1201,7 +1209,7 @@ func (cluster *inProcessCluster) result() (Result, error) {
 		History:      cloneHistoryOperations(cluster.history),
 		Observations: cloneObservations(cluster.observations),
 		Oracles:      cloneOracleResults(cluster.oracles),
-		Record:       ClusterRecord{Nodes: incarnations, Transitions: transitions},
+		Record:       ClusterRecord{Nodes: incarnations, Transitions: transitions, ExplorationDecisions: cloneExplorationDecisions(cluster.explorationDecisions)},
 	}
 	for _, id := range cluster.ordered {
 		node := cluster.nodes[id]

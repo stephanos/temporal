@@ -97,6 +97,7 @@ type Spec struct {
 	Links           []LinkSpec          `json:"links,omitempty"`
 	Volumes         []VolumeSpec        `json:"volumes,omitempty"`
 	Faults          *FaultPlan          `json:"faults,omitempty"`
+	Exploration     *ExplorationPlan    `json:"exploration,omitempty"`
 	ScenarioChoices *ScenarioChoicePlan `json:"scenario_choice_plan,omitempty"`
 	Replay          *ReplayPlan         `json:"replay,omitempty"`
 }
@@ -240,6 +241,14 @@ func ValidateSpec(spec Spec) error {
 		}
 		if err := checkCapacity("scenario_choice_overrides", uint64(len(spec.ScenarioChoices.Overrides)), spec.Limits.ScenarioDecisions); err != nil {
 			return err
+		}
+	}
+	if spec.Exploration != nil {
+		if err := validateExplorationPlan(*spec.Exploration); err != nil {
+			return err
+		}
+		if spec.Exploration.BaseSeed != spec.Seed {
+			return errors.New("simulation exploration plan base seed does not match the specification")
 		}
 	}
 
