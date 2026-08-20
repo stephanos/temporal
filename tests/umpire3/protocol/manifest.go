@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-const FormatVersion = "umpire3/v1"
+const FormatVersion = "umpire3/v2"
 
 type Toolchain struct {
 	Lean string `json:"lean"`

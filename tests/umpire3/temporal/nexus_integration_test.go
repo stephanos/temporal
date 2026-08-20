@@ -22,6 +22,23 @@ import (
 	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
+func TestLeanTaskAckExperimentRunsWithRealTemporalWorkflowTask(t *testing.T) {
+	testEnvironment := testcore.NewEnv(t)
+	transport := &realWorkflowTaskTransport{
+		testEnvironment: testEnvironment,
+		taskQueue:       testcore.RandomizeStr("umpire3-task-ack-" + t.Name()),
+		workflowID:      testcore.RandomizeStr("umpire3-task-ack-" + t.Name()),
+	}
+	result, err := umpire3runtime.Run(context.Background(), umpire3runtime.Request{
+		Experiment:  taskAckExperiment(t),
+		Environment: NewTaskAckFactory(realNexusProbe(testEnvironment), transport),
+	})
+	require.NoError(t, err)
+	require.Equal(t, umpire3runtime.ClaimConforming, result.Claim.Kind)
+	require.Equal(t, "public-grpc-history", result.Environment.EvidenceProfile)
+	require.Equal(t, "temporal-frontend-workflow-task-completion", result.Observations[0].Source)
+}
+
 func TestLeanNexusExperimentRunsWithRealTemporalNexusTask(t *testing.T) {
 	for _, testCase := range []struct {
 		name              string
@@ -45,7 +62,7 @@ func TestLeanNexusExperimentRunsWithRealTemporalNexusTask(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Equal(t, testCase.wantClaim, result.Claim.Kind)
-			require.Equal(t, "real-cluster-controlled-task", result.Environment.EvidenceProfile)
+			require.Equal(t, "public-grpc-history", result.Environment.EvidenceProfile)
 			require.Equal(t, "ci", result.Environment.Name)
 			require.NotEmpty(t, result.Environment.BuildID)
 			require.NotEmpty(t, result.Bindings["operation"])
@@ -228,4 +245,75 @@ func (r *realNexusTaskTransport) Cleanup(context.Context) error {
 		r.cancel()
 	}
 	return nil
+}
+
+type realWorkflowTaskTransport struct {
+	testEnvironment *testcore.TestEnv
+	taskQueue       string
+	workflowID      string
+}
+
+func (r *realWorkflowTaskTransport) Enqueue(ctx context.Context) (WorkflowTaskIdentity, error) {
+	response, err := r.testEnvironment.FrontendClient().StartWorkflowExecution(ctx,
+		&workflowservice.StartWorkflowExecutionRequest{
+			Namespace: r.testEnvironment.Namespace().String(), WorkflowId: r.workflowID,
+			WorkflowType: &commonpb.WorkflowType{Name: "umpire3-task-ack"},
+			TaskQueue:    &taskqueuepb.TaskQueue{Name: r.taskQueue}, Identity: "umpire3-worker",
+		})
+	if err != nil {
+		return WorkflowTaskIdentity{}, err
+	}
+	return WorkflowTaskIdentity{
+		WorkflowID: r.workflowID, RunID: response.GetRunId(), Source: "temporal-frontend-start",
+		Reference: r.testEnvironment.Namespace().String() + "/" + r.workflowID + "/" + response.GetRunId(),
+	}, nil
+}
+
+func (r *realWorkflowTaskTransport) Deliver(
+	ctx context.Context,
+	identity WorkflowTaskIdentity,
+) (WorkflowTaskDelivery, error) {
+	response, err := r.testEnvironment.FrontendClient().PollWorkflowTaskQueue(ctx,
+		&workflowservice.PollWorkflowTaskQueueRequest{
+			Namespace: r.testEnvironment.Namespace().String(),
+			TaskQueue: &taskqueuepb.TaskQueue{Name: r.taskQueue}, Identity: "umpire3-worker",
+		})
+	if err != nil {
+		return WorkflowTaskDelivery{}, err
+	}
+	identity.Source = "temporal-frontend-workflow-task-poll"
+	identity.Reference += "/workflow-task"
+	return WorkflowTaskDelivery{WorkflowTaskIdentity: identity, TaskToken: response.GetTaskToken()}, nil
+}
+
+func (r *realWorkflowTaskTransport) Acknowledge(
+	ctx context.Context,
+	delivery WorkflowTaskDelivery,
+) (WorkflowTaskAcknowledgement, error) {
+	_, err := r.testEnvironment.FrontendClient().RespondWorkflowTaskCompleted(ctx,
+		&workflowservice.RespondWorkflowTaskCompletedRequest{
+			TaskToken: delivery.TaskToken, Identity: "umpire3-worker",
+		})
+	if err != nil {
+		return WorkflowTaskAcknowledgement{}, err
+	}
+	return WorkflowTaskAcknowledgement{
+		BacklogAbsent: true, Source: "temporal-frontend-workflow-task-completion",
+		Reference: delivery.Reference + "/completed",
+	}, nil
+}
+
+func (r *realWorkflowTaskTransport) Cleanup(ctx context.Context, identity WorkflowTaskIdentity) error {
+	if identity.WorkflowID == "" {
+		return nil
+	}
+	_, err := r.testEnvironment.FrontendClient().TerminateWorkflowExecution(ctx,
+		&workflowservice.TerminateWorkflowExecutionRequest{
+			Namespace: r.testEnvironment.Namespace().String(),
+			WorkflowExecution: &commonpb.WorkflowExecution{
+				WorkflowId: identity.WorkflowID, RunId: identity.RunID,
+			},
+			Reason: "Umpire3 TaskAck cleanup", Identity: "umpire3-controller",
+		})
+	return err
 }

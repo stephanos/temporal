@@ -9,6 +9,7 @@ const (
 	DriftSchedule    DriftKind = "schedule"
 	DriftObservation DriftKind = "observation"
 	DriftEvidence    DriftKind = "evidence"
+	DriftFootprint   DriftKind = "footprint"
 )
 
 type Drift struct {
@@ -31,6 +32,13 @@ func CompareReplay(previous, current Result) []Drift {
 				drift = append(drift, Drift{Kind: DriftRealization, Detail: "realized action changed: " + before.Identifier})
 			}
 		}
+	}
+	if (previous.Footprint == nil) != (current.Footprint == nil) {
+		drift = append(drift, Drift{Kind: DriftFootprint, Detail: "learned runtime footprint availability changed"})
+	} else if previous.Footprint != nil &&
+		(previous.Footprint.FootprintDigest != current.Footprint.FootprintDigest ||
+			previous.Footprint.ReconciliationDigest != current.Footprint.ReconciliationDigest) {
+		drift = append(drift, Drift{Kind: DriftFootprint, Detail: "learned runtime footprint changed"})
 	}
 	if len(previous.Observations) != len(current.Observations) {
 		drift = append(drift, Drift{Kind: DriftEvidence, Detail: "observation count changed"})

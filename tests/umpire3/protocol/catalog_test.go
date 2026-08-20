@@ -1,0 +1,98 @@
+package protocol
+
+import (
+	"bytes"
+	"encoding/json"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestDefaultCatalogOwnsExperimentVocabulary(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	require.Equal(t, CatalogFormatVersion, catalog.FormatVersion)
+
+	action, ok := catalog.Action("schedule-operation")
+	require.True(t, ok)
+	require.Equal(t, []CapabilityID{"nexus"}, action.RequiredCapabilities)
+	require.True(t, catalog.HasCapability("nexus"))
+
+	firstDigest, err := catalog.Digest()
+	require.NoError(t, err)
+	catalog.Actions[0].Identifier = "mutated"
+
+	pristine, err := DefaultCatalog()
+	require.NoError(t, err)
+	secondDigest, err := pristine.Digest()
+	require.NoError(t, err)
+	require.Equal(t, firstDigest, secondDigest)
+}
+
+func TestDefaultCatalogOwnsCloseNexusRuntimeFootprint(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	action, ok := catalog.Action("close-nexus-operation")
+	require.True(t, ok)
+	require.Contains(t, action.Footprint, FootprintDeclaration{
+		Protocol: "http", Service: "nexus", Route: "/service/operation",
+	})
+	require.Contains(t, action.Footprint, FootprintDeclaration{
+		Protocol: "grpc", Service: "history", Route: "UpdateWorkflowExecution",
+	})
+}
+
+func TestDecodeCatalogRejectsUnknownFieldsAndTrailingData(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	encoded, err := json.Marshal(catalog)
+	require.NoError(t, err)
+
+	var object map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &object))
+	object["unexpected"] = true
+	encoded, err = json.Marshal(object)
+	require.NoError(t, err)
+
+	_, err = DecodeCatalog(bytes.NewReader(encoded), DefaultDecodeLimit)
+	require.ErrorContains(t, err, "unknown field")
+
+	canonical, err := catalog.CanonicalJSON()
+	require.NoError(t, err)
+	_, err = DecodeCatalog(bytes.NewReader(append(canonical, []byte(` {}`)...)), DefaultDecodeLimit)
+	require.ErrorContains(t, err, "multiple JSON values")
+}
+
+func TestCatalogRejectsDuplicateAndDanglingDeclarations(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+
+	catalog.Actions = append(catalog.Actions, catalog.Actions[0])
+	require.ErrorContains(t, catalog.Validate(), "duplicate action")
+
+	catalog, err = DefaultCatalog()
+	require.NoError(t, err)
+	catalog.Actions[0].RequiredCapabilities = append(
+		catalog.Actions[0].RequiredCapabilities,
+		CapabilityID("missing-capability"),
+	)
+	require.ErrorContains(t, catalog.Validate(), "unknown capability")
+}
+
+func TestCatalogCanonicalEncodingAndDigestAreStable(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+
+	first, err := catalog.CanonicalJSON()
+	require.NoError(t, err)
+	second, err := catalog.CanonicalJSON()
+	require.NoError(t, err)
+	require.Equal(t, first, second)
+
+	firstDigest, err := catalog.Digest()
+	require.NoError(t, err)
+	catalog.Properties[0].Description += " changed"
+	secondDigest, err := catalog.Digest()
+	require.NoError(t, err)
+	require.NotEqual(t, firstDigest, secondDigest)
+}
