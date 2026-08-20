@@ -31,4 +31,5 @@ var simulationSpecs = []spec{
 	{PackagePath: "go.temporal.io/server/tools/gomadv3sim", Function: "processBackendWaitStop", Hook: "gomadInterceptProcessBackendWaitStop", DeclarationSHA256: "sha256:ac35f227ddb1b96cde44425ea9c893463171f08dda0cf81054c34f4bf76d259d"},
 	{PackagePath: "go.temporal.io/server/tools/gomadv3sim", Function: "processBackendServeModel", Hook: "gomadInterceptProcessBackendServeModel", DeclarationSHA256: "sha256:4c72e912ee5bfd5e328c7ecf3455121b9238d443f8cc20dbf40e5a2d23846f58"},
 	{PackagePath: "go.temporal.io/server/tools/gomadv3sim", Function: "runtimeProcessNetworkOperation", Hook: "gomadInterceptRuntimeProcessNetworkOperation", DeclarationSHA256: "sha256:f7c753d1fdfccacf3dc01c9e8a9424b847d7f85916d3c3f28b4deb728d5287d4"},
+	{PackagePath: "go.temporal.io/server/tools/gomadv3sim", Function: "runtimeProcessVolumeOperation", Hook: "gomadInterceptRuntimeProcessVolumeOperation", DeclarationSHA256: "sha256:3b11980475a86a133f768929fa60512a29ccb03488b9c21abb9e739a64cfe55a"},
 }

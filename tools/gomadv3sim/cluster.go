@@ -27,15 +27,18 @@ type transitionEntry struct {
 }
 
 type clusterNode struct {
-	spec       NodeSpec
-	state      NodeState
-	handle     NodeHandle
-	boot       BootFunc
-	cancel     context.CancelFunc
-	completion *bootCompletion
-	operation  *nodeOperation
-	domain     uint64
-	reason     string
+	spec         NodeSpec
+	state        NodeState
+	handle       NodeHandle
+	boot         BootFunc
+	cancel       context.CancelFunc
+	completion   *bootCompletion
+	operation    *nodeOperation
+	domain       uint64
+	reason       string
+	modelActive  uint64
+	modelStarted uint64
+	modelClosing bool
 }
 
 type inProcessCluster struct {
@@ -136,7 +139,7 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 	network, networkFinishErr := runtimeNetworkFinish(runtimeRun)
 	outputs, finishErr := runtimeDomainFinish(runtimeRun)
 	if err := errors.Join(cleanupErr, modelBrokerErr, finishErr); err != nil {
-		return Result{}, fmt.Errorf("finish simulation: %w", err)
+		return Result{}, errors.Join(fmt.Errorf("finish simulation: %w", err), scenarioErr)
 	}
 	result, err := cluster.result()
 	if err != nil {
@@ -186,23 +189,70 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 }
 
 func (cluster *inProcessCluster) handleProcessModelOperation(request processModelRequest) ([]byte, error) {
-	cluster.mu.Lock()
-	node, err := cluster.currentNode(request.Handle, NodeStateRunning)
+	domain, err := cluster.beginProcessModelOperation(request.Handle)
 	if err != nil {
-		cluster.mu.Unlock()
 		return nil, err
 	}
-	domain := node.domain
+	cluster.mu.Lock()
+	node := cluster.nodes[request.Handle.Node]
 	cluster.mu.Unlock()
+	defer cluster.finishProcessModelOperation(node)
 	previous, err := runtimeDomainEnter(domain)
 	if err != nil {
 		return nil, err
 	}
 	defer runtimeDomainLeave(previous)
-	if len(request.Payload) < 10 || request.Payload[9] != 1 {
+	if len(request.Payload) < 10 {
 		return nil, errors.New("process simulation model operation is unsupported")
 	}
-	return runtimeProcessNetworkOperation(domain, request.Payload)
+	switch request.Payload[9] {
+	case 1:
+		return runtimeProcessNetworkOperation(domain, request.Payload)
+	case 2:
+		return runtimeProcessVolumeOperation(domain, request.Payload)
+	default:
+		return nil, errors.New("process simulation model operation is unsupported")
+	}
+}
+
+func (cluster *inProcessCluster) beginProcessModelOperation(handle NodeHandle) (uint64, error) {
+	cluster.mu.Lock()
+	node, err := cluster.currentNode(handle, NodeStateRunning)
+	if err != nil {
+		cluster.mu.Unlock()
+		return 0, err
+	}
+	if node.modelClosing {
+		cluster.mu.Unlock()
+		return 0, ErrInvalidTransition
+	}
+	node.modelActive++
+	node.modelStarted++
+	domain := node.domain
+	cluster.mu.Unlock()
+	cluster.notifyActivity()
+	return domain, nil
+}
+
+func (cluster *inProcessCluster) finishProcessModelOperation(node *clusterNode) {
+	cluster.mu.Lock()
+	if node.modelActive != 0 {
+		node.modelActive--
+	}
+	cluster.mu.Unlock()
+	cluster.notifyActivity()
+}
+
+func (cluster *inProcessCluster) waitForProcessModelOperations(node *clusterNode) {
+	for {
+		cluster.mu.Lock()
+		active := node.modelActive != 0
+		cluster.mu.Unlock()
+		if !active {
+			return
+		}
+		<-cluster.activity
+	}
 }
 
 func applyReplayDivergence(result *Result, source error) bool {
@@ -396,10 +446,10 @@ func (cluster *inProcessCluster) waitProcess(ctx context.Context, handle NodeHan
 
 	terminal, terminalErr := waitProcessNode(handle)
 	cluster.mu.Lock()
-	defer cluster.mu.Unlock()
 	if terminalErr != nil {
 		operation.err = terminalErr
 		cluster.finishOperationLocked(operation)
+		cluster.mu.Unlock()
 		return NodeResult{}, terminalErr
 	}
 	to := NodeStateExited
@@ -412,17 +462,25 @@ func (cluster *inProcessCluster) waitProcess(ctx context.Context, handle NodeHan
 	if err != nil {
 		operation.err = err
 		cluster.finishOperationLocked(operation)
+		cluster.mu.Unlock()
 		return NodeResult{}, err
 	}
-	if err := errors.Join(runtimeVolumeRevoke(node.domain, true, false), runtimeNetworkRevoke(node.domain, true), runtimeDomainRevoke(node.domain)); err != nil {
-		operation.err = err
+	node.modelClosing = true
+	revokeErr := errors.Join(runtimeVolumeRevoke(node.domain, true, false), runtimeNetworkRevoke(node.domain, true), runtimeDomainRevoke(node.domain))
+	cluster.mu.Unlock()
+	cluster.waitForProcessModelOperations(node)
+	cluster.mu.Lock()
+	if revokeErr != nil {
+		operation.err = revokeErr
 		cluster.finishOperationLocked(operation)
-		return NodeResult{}, err
+		cluster.mu.Unlock()
+		return NodeResult{}, revokeErr
 	}
 	cluster.processOutputs = append(cluster.processOutputs, terminal.Outputs...)
 	cluster.commitTransition(transition)
 	result := cluster.commitTerminal(node, to, reason)
 	cluster.finishOperationLocked(operation)
+	cluster.mu.Unlock()
 	return result, nil
 }
 
@@ -478,17 +536,20 @@ func (cluster *inProcessCluster) stopProcess(ctx context.Context, handle NodeHan
 	}
 	operation := &nodeOperation{action: LifecycleStop, done: make(chan struct{})}
 	node.operation = operation
+	node.modelClosing = true
 	cluster.pendingOps++
+	revokeErr := errors.Join(runtimeVolumeRevoke(node.domain, true, false), runtimeNetworkRevoke(node.domain, true), runtimeDomainRevoke(node.domain))
 	cluster.mu.Unlock()
+	cluster.waitForProcessModelOperations(node)
 
 	terminal, terminalErr := stopProcessNode(handle)
 	cluster.mu.Lock()
 	defer cluster.mu.Unlock()
 	if terminalErr != nil {
 		cluster.transitions = cluster.transitions[:len(cluster.transitions)-1]
-		operation.err = terminalErr
+		operation.err = errors.Join(revokeErr, terminalErr)
 		cluster.finishOperationLocked(operation)
-		return terminalErr
+		return operation.err
 	}
 	to := NodeStateStopped
 	reason := ""
@@ -508,10 +569,10 @@ func (cluster *inProcessCluster) stopProcess(ctx context.Context, handle NodeHan
 	}
 	entry.transition = actual
 	entry.resolved = true
-	if err := errors.Join(runtimeVolumeRevoke(node.domain, true, false), runtimeNetworkRevoke(node.domain, true), runtimeDomainRevoke(node.domain)); err != nil {
-		operation.err = err
+	if revokeErr != nil {
+		operation.err = revokeErr
 		cluster.finishOperationLocked(operation)
-		return err
+		return revokeErr
 	}
 	cluster.processOutputs = append(cluster.processOutputs, terminal.Outputs...)
 	cluster.commitTerminal(node, to, reason)
@@ -606,22 +667,24 @@ func (cluster *inProcessCluster) crash(ctx context.Context, handle NodeHandle, p
 	}
 	defer cluster.endCall()
 	cluster.mu.Lock()
-	defer cluster.mu.Unlock()
 	node, err := cluster.currentNode(handle, NodeStateRunning)
 	if err != nil {
+		cluster.mu.Unlock()
 		return err
 	}
 	if node.operation != nil {
+		cluster.mu.Unlock()
 		return ErrInvalidTransition
 	}
+	if cluster.backend == BackendProcess {
+		err := cluster.crashProcessLocked(node, handle, persistedOnly)
+		cluster.mu.Unlock()
+		return err
+	}
+	defer cluster.mu.Unlock()
 	transition, err := cluster.prepareTransition(LifecycleCrash, handle, NodeStateRunning, NodeStateCrashed)
 	if err != nil {
 		return err
-	}
-	if cluster.backend == BackendProcess {
-		if err := crashProcessNode(handle); err != nil {
-			return err
-		}
 	}
 	if err := runtimeVolumeRevoke(node.domain, false, persistedOnly); err != nil {
 		return err
@@ -638,6 +701,41 @@ func (cluster *inProcessCluster) crash(ctx context.Context, handle NodeHandle, p
 	}
 	cluster.commitTerminal(node, NodeStateCrashed, "")
 	return nil
+}
+
+func (cluster *inProcessCluster) crashProcessLocked(node *clusterNode, handle NodeHandle, persistedOnly bool) error {
+	transition, err := cluster.prepareTransition(LifecycleCrash, handle, NodeStateRunning, NodeStateCrashed)
+	if err != nil {
+		return err
+	}
+	entry := &transitionEntry{transition: transition}
+	cluster.transitions = append(cluster.transitions, entry)
+	operation := &nodeOperation{action: LifecycleCrash, done: make(chan struct{})}
+	node.operation = operation
+	node.modelClosing = true
+	cluster.pendingOps++
+	if err := crashProcessNode(handle); err != nil {
+		cluster.transitions = cluster.transitions[:len(cluster.transitions)-1]
+		node.modelClosing = false
+		operation.err = err
+		cluster.finishOperationLocked(operation)
+		return err
+	}
+	revokeErr := errors.Join(runtimeVolumeRevoke(node.domain, false, persistedOnly), runtimeNetworkRevoke(node.domain, false), runtimeDomainRevoke(node.domain))
+	cluster.mu.Unlock()
+	cluster.waitForProcessModelOperations(node)
+	reapErr := waitCrashedProcessNode(handle)
+	cluster.mu.Lock()
+	if reapErr != nil {
+		operation.err = errors.Join(revokeErr, reapErr)
+		cluster.finishOperationLocked(operation)
+		return operation.err
+	}
+	entry.resolved = true
+	cluster.commitTerminal(node, NodeStateCrashed, "")
+	operation.err = revokeErr
+	cluster.finishOperationLocked(operation)
+	return revokeErr
 }
 
 func (cluster *inProcessCluster) Restart(ctx context.Context, id NodeID) (NodeHandle, error) {
@@ -827,6 +925,9 @@ func (cluster *inProcessCluster) launchProcess(node *clusterNode, handle NodeHan
 	node.completion = nil
 	node.domain = domain
 	node.reason = ""
+	node.modelActive = 0
+	node.modelStarted = 0
+	node.modelClosing = false
 }
 
 func (cluster *inProcessCluster) currentNode(handle NodeHandle, state NodeState) (*clusterNode, error) {
@@ -978,6 +1079,11 @@ func (cluster *inProcessCluster) shutdown(ctx context.Context) error {
 func (cluster *inProcessCluster) shutdownProcess(ctx context.Context) error {
 	cluster.mu.Lock()
 	cluster.closing = true
+	for _, id := range cluster.ordered {
+		if node := cluster.nodes[id]; node.state == NodeStateRunning {
+			node.modelClosing = true
+		}
+	}
 	cluster.mu.Unlock()
 	if err := cluster.waitForQuiescence(ctx); err != nil {
 		return err
@@ -992,17 +1098,22 @@ func (cluster *inProcessCluster) shutdownProcess(ctx context.Context) error {
 	cluster.mu.Unlock()
 	var cleanupErr error
 	for _, handle := range handles {
-		terminal, err := stopProcessNode(handle)
-		if err != nil {
-			crashErr := crashProcessNode(handle)
-			cleanupErr = errors.Join(cleanupErr, err, crashErr)
-			continue
-		}
 		cluster.mu.Lock()
 		node, currentErr := cluster.currentNode(handle, NodeStateRunning)
 		if currentErr == nil {
 			currentErr = errors.Join(runtimeVolumeRevoke(node.domain, true, false), runtimeNetworkRevoke(node.domain, true), runtimeDomainRevoke(node.domain))
 		}
+		cluster.mu.Unlock()
+		if node != nil {
+			cluster.waitForProcessModelOperations(node)
+		}
+		terminal, err := stopProcessNode(handle)
+		if err != nil {
+			crashErr := crashProcessNode(handle)
+			cleanupErr = errors.Join(cleanupErr, currentErr, err, crashErr)
+			continue
+		}
+		cluster.mu.Lock()
 		if currentErr == nil {
 			cluster.processOutputs = append(cluster.processOutputs, terminal.Outputs...)
 			to := NodeStateStopped

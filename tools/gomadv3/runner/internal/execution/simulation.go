@@ -26,6 +26,7 @@ type SimulationCapability struct {
 	Bootstrap []byte
 	handler   func(context.Context, simulationFrame) (simulationFrame, error)
 	hardCrash <-chan struct{}
+	reaped    chan struct{}
 }
 
 const simulationRoleEnvironmentName = "GOMADV3_SIMULATION_ROLE"

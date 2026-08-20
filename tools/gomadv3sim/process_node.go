@@ -46,6 +46,17 @@ func crashProcessNode(handle NodeHandle) error {
 	return err
 }
 
+func waitCrashedProcessNode(handle NodeHandle) error {
+	response, err := exchangeProcessFrame(processFrameWait, handle, nil)
+	if err != nil {
+		return err
+	}
+	if len(response.Payload) != 0 {
+		return errors.New("crashed process simulation node returned a terminal payload")
+	}
+	return nil
+}
+
 func decodeProcessTerminal(encoded []byte, handle NodeHandle) (processNodeTerminal, error) {
 	var terminal processNodeTerminal
 	if err := decodeProcessValue(encoded, &terminal); err != nil {
