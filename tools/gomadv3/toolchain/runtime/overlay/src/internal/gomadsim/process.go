@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"syscall"
-	_ "unsafe"
+	"unsafe"
 )
 
 const maximumProcessFrameBytes = 128 << 20
@@ -30,6 +30,12 @@ type processModelRead struct {
 	payload []byte
 	ok      bool
 }
+
+//go:linkname runtimeBlockingRead runtime.gomadBlockingRead
+func runtimeBlockingRead(int32, unsafe.Pointer, int32) int32
+
+//go:linkname runtimeBlockingWrite runtime.gomadBlockingWrite
+func runtimeBlockingWrite(uintptr, unsafe.Pointer, int32) int32
 
 //go:linkname ProcessAvailable
 func ProcessAvailable() bool {
@@ -231,8 +237,8 @@ func processDescriptor(name string) (int, bool) {
 
 func processWriteFull(descriptor int, source []byte) bool {
 	for len(source) != 0 {
-		count, err := syscall.Write(descriptor, source)
-		if err != nil || count <= 0 || count > len(source) {
+		count := int(runtimeBlockingWrite(uintptr(descriptor), unsafe.Pointer(&source[0]), int32(len(source))))
+		if count <= 0 || count > len(source) {
 			return false
 		}
 		source = source[count:]
@@ -242,8 +248,8 @@ func processWriteFull(descriptor int, source []byte) bool {
 
 func processReadFull(descriptor int, destination []byte) bool {
 	for len(destination) != 0 {
-		count, err := syscall.Read(descriptor, destination)
-		if err != nil || count <= 0 || count > len(destination) {
+		count := int(runtimeBlockingRead(int32(descriptor), unsafe.Pointer(&destination[0]), int32(len(destination))))
+		if count <= 0 || count > len(destination) {
 			return false
 		}
 		destination = destination[count:]

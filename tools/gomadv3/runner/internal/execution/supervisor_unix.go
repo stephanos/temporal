@@ -322,13 +322,15 @@ func SupervisorMain() (retErr error) {
 				}
 			}
 		}
-		groupPresent, err = groupExists(pgid)
-		if err != nil {
-			return errors.Join(fmt.Errorf("probe target process group before kill: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
-		}
-		if groupPresent {
-			if err := signalGroup(pgid, syscall.SIGKILL); err != nil {
-				return fmt.Errorf("kill target process group: %w", err)
+		if !hardCrash {
+			groupPresent, err = groupExists(pgid)
+			if err != nil {
+				return errors.Join(fmt.Errorf("probe target process group before kill: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
+			}
+			if groupPresent {
+				if err := signalGroup(pgid, syscall.SIGKILL); err != nil {
+					return fmt.Errorf("kill target process group: %w", err)
+				}
 			}
 		}
 		if target.ProcessState == nil {
