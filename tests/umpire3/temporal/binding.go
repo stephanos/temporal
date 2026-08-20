@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 

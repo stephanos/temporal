@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -28,46 +28,47 @@ type WorkflowTaskAcknowledgement struct {
 	Reference     string
 }
 
-type WorkflowTaskTransport interface {
+type workflowTaskTransport interface {
 	Enqueue(context.Context) (WorkflowTaskIdentity, error)
 	Deliver(context.Context, WorkflowTaskIdentity) (WorkflowTaskDelivery, error)
 	Acknowledge(context.Context, WorkflowTaskDelivery) (WorkflowTaskAcknowledgement, error)
 	Cleanup(context.Context, WorkflowTaskIdentity) error
 }
 
-type TaskAckFactory struct {
-	probe     ClusterProbe
-	transport WorkflowTaskTransport
+type taskAckFactory struct {
+	probe     clusterProbe
+	transport workflowTaskTransport
 }
 
-func NewTaskAckFactory(probe ClusterProbe, transport WorkflowTaskTransport) *TaskAckFactory {
-	return &TaskAckFactory{probe: probe, transport: transport}
+func newTaskAckFactory(probe clusterProbe, transport workflowTaskTransport) *taskAckFactory {
+	return &taskAckFactory{probe: probe, transport: transport}
 }
 
-func (f *TaskAckFactory) Capabilities() []string {
-	return []string{"workflow-task-control"}
+func (f *taskAckFactory) Capabilities() []protocol.CapabilityID {
+	return []protocol.CapabilityID{protocol.CapabilityIDWorkflowTaskControl}
 }
 
-func (f *TaskAckFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.Session, error) {
+func (f *taskAckFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.PreparedEnvironment, error) {
 	if f.probe == nil || f.transport == nil {
-		return nil, errors.New("temporal cluster probe and Workflow Task transport are required")
+		return environment.PreparedEnvironment{}, errors.New("temporal cluster probe and Workflow Task transport are required")
 	}
 	cluster, err := f.probe(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("probe Temporal cluster: %w", err)
+		return environment.PreparedEnvironment{}, fmt.Errorf("probe Temporal cluster: %w", err)
 	}
 	if cluster.BuildID == "" || cluster.Namespace == "" {
-		return nil, errors.New("cluster probe returned incomplete Workflow Task identity evidence")
+		return environment.PreparedEnvironment{}, errors.New("cluster probe returned incomplete Workflow Task identity evidence")
 	}
-	return &taskAckSession{cluster: cluster, experimentID: experiment.ExperimentID, transport: f.transport}, nil
+	session := &taskAckSession{cluster: cluster, experimentID: experiment.ExperimentID, transport: f.transport}
+	return environment.PreparedEnvironment{Session: session, Identity: session.environmentIdentity(f.Capabilities())}, nil
 }
 
 type taskAckSession struct {
 	mu sync.Mutex
 
-	cluster         ClusterInfo
+	cluster         clusterInfo
 	experimentID    string
-	transport       WorkflowTaskTransport
+	transport       workflowTaskTransport
 	identity        WorkflowTaskIdentity
 	delivery        WorkflowTaskDelivery
 	acknowledgement WorkflowTaskAcknowledgement
@@ -196,19 +197,19 @@ func (s *taskAckSession) recoveryMetadata() map[string]string {
 	}
 }
 
-func (s *taskAckSession) Profile() environment.Profile {
+func (s *taskAckSession) environmentIdentity(capabilities []protocol.CapabilityID) environment.EnvironmentIdentity {
 	configurationIdentity := s.cluster.ConfigurationID
 	if configurationIdentity == "" {
 		configurationIdentity = s.cluster.BuildID + "/default"
 	}
-	return environment.Profile{
+	return environment.EnvironmentIdentity{
 		Name: "ci-test-cluster", BuildID: s.cluster.BuildID,
 		ConfigurationIdentity: configurationIdentity,
 		EvidenceProfile:       environment.EvidenceProfilePublicGRPCHistory,
 		DrivingAuthority:      "public-workflow-task-api",
 		ObservationAuthority:  "public-workflow-task-response",
 		FaultAuthority:        "none", IsolationIdentity: s.cluster.Namespace,
-		RetentionClass: "semantic-redacted",
+		RetentionClass: "semantic-redacted", Capabilities: append([]protocol.CapabilityID(nil), capabilities...),
 	}
 }
 

@@ -6,23 +6,22 @@ import (
 	"fmt"
 	"slices"
 
-	"go.temporal.io/server/tests/umpire3/artifact"
+	"go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
-type Executor func(context.Context, protocol.Experiment) (umpire3runtime.Result, error)
+type Executor func(context.Context, protocol.Experiment) (execution.Result, error)
 
 type Report struct {
-	ExperimentDigest string                 `json:"experimentDigest"`
-	Baseline         umpire3runtime.Claim   `json:"baseline"`
-	Current          umpire3runtime.Claim   `json:"current"`
-	Drift            []umpire3runtime.Drift `json:"drift"`
-	Result           umpire3runtime.Result  `json:"result"`
-	Reproduced       bool                   `json:"reproduced"`
+	ExperimentDigest string           `json:"experimentDigest"`
+	Baseline         execution.Claim  `json:"baseline"`
+	Current          execution.Claim  `json:"current"`
+	Drift            []Drift          `json:"drift"`
+	Result           execution.Result `json:"result"`
+	Reproduced       bool             `json:"reproduced"`
 }
 
-func Run(ctx context.Context, bundle artifact.Record, executor Executor) (Report, error) {
+func Reproduce(ctx context.Context, bundle Bundle, executor Executor) (Report, error) {
 	if executor == nil {
 		return Report{}, errors.New("replay executor is required")
 	}
@@ -37,19 +36,19 @@ func Run(ctx context.Context, bundle artifact.Record, executor Executor) (Report
 	if err != nil {
 		return Report{}, fmt.Errorf("execute replay: %w", err)
 	}
-	drift := umpire3runtime.CompareReplay(bundle.Result, current)
+	drift := Compare(bundle.Result, current)
 	if bundle.Replay.Profile != "" && bundle.Replay.Profile != current.Environment.Name {
-		drift = append(drift, umpire3runtime.Drift{
-			Kind: umpire3runtime.DriftRealization, Detail: "environment profile changed",
+		drift = append(drift, Drift{
+			Kind: DriftRealization, Detail: "environment profile changed",
 		})
 	}
-	capabilities := append([]string(nil), current.Environment.Capabilities...)
+	capabilities := append([]protocol.CapabilityID(nil), current.Environment.Capabilities...)
 	slices.Sort(capabilities)
-	expectedCapabilities := append([]string(nil), bundle.Replay.Capabilities...)
+	expectedCapabilities := append([]protocol.CapabilityID(nil), bundle.Replay.Capabilities...)
 	slices.Sort(expectedCapabilities)
 	if !slices.Equal(expectedCapabilities, capabilities) {
-		drift = append(drift, umpire3runtime.Drift{
-			Kind: umpire3runtime.DriftRealization, Detail: "environment capabilities changed",
+		drift = append(drift, Drift{
+			Kind: DriftRealization, Detail: "environment capabilities changed",
 		})
 	}
 	reproduced := len(drift) == 0 && bundle.Result.Claim.Kind == current.Claim.Kind &&

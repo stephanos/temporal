@@ -5,10 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/environment"
 	"go.temporal.io/server/tests/umpire3/evidence"
+	"go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
 func TestCrossLayerMutationGateDiscoversMinimizesReplaysAndPromotes(t *testing.T) {
@@ -18,21 +17,21 @@ func TestCrossLayerMutationGateDiscoversMinimizesReplaysAndPromotes(t *testing.T
 		Name: "reason", Value: protocol.Value{Type: protocol.ValueString, Text: &baseline},
 	}}
 	seeded := "seeded-adapter-corruption"
-	executor := func(_ context.Context, candidate protocol.Experiment) (umpire3runtime.Result, error) {
+	executor := func(_ context.Context, candidate protocol.Experiment) (execution.Result, error) {
 		digest, err := candidate.Digest()
 		require.NoError(t, err)
-		result := umpire3runtime.Result{
-			FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
-			Environment: umpire3runtime.EnvironmentProfile{
-				Name: "local-in-process", Capabilities: []string{"history-observation", "nexus"},
+		result := execution.Result{
+			FormatVersion: execution.ResultFormatVersion, ExperimentDigest: digest,
+			Environment: execution.EnvironmentIdentity{
+				Name: "local-in-process", Capabilities: []protocol.CapabilityID{"history-observation", "nexus"},
 			},
-			Claim: umpire3runtime.Claim{
-				Kind: umpire3runtime.ClaimConforming, Property: candidate.Property.Identifier,
+			Claim: execution.Claim{
+				Kind: execution.ClaimConforming, Property: candidate.Property.Identifier,
 			},
-			Cleanup: environment.CleanupResult{Complete: true},
+			Cleanup: execution.CleanupResult{Complete: true},
 		}
 		if hasArgument(candidate, "reason", seeded) {
-			result.Claim.Kind = umpire3runtime.ClaimViolating
+			result.Claim.Kind = execution.ClaimViolating
 			result.Claim.Checkpoint = "observe-cancellation-won"
 			result.Evidence = evidence.Graph{
 				FormatVersion: evidence.FormatVersion,
@@ -86,12 +85,12 @@ func TestMutationGateRejectsUnapprovedViolation(t *testing.T) {
 	_, err := RunMutationGate(context.Background(), MutationGateRequest{
 		Mutation: MutationRequest{Experiment: experiment, Seed: 1, MaxCandidates: 8},
 		Approved: []ApprovedMutation{{Identifier: "approved", Layer: "model", Kind: MutationSchedule, Path: "other"}},
-		Executor: func(_ context.Context, candidate protocol.Experiment) (umpire3runtime.Result, error) {
+		Executor: func(_ context.Context, candidate protocol.Experiment) (execution.Result, error) {
 			digest, digestErr := candidate.Digest()
 			require.NoError(t, digestErr)
-			result := umpire3runtime.Result{
-				FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest, Claim: umpire3runtime.Claim{
-					Kind: umpire3runtime.ClaimViolating, Property: candidate.Property.Identifier,
+			result := execution.Result{
+				FormatVersion: execution.ResultFormatVersion, ExperimentDigest: digest, Claim: execution.Claim{
+					Kind: execution.ClaimViolating, Property: candidate.Property.Identifier,
 				}}
 			result.DeriveAssurance()
 			return result, nil

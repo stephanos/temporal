@@ -88,7 +88,7 @@ func run(parent context.Context, configuration config) (retErr error) {
 	}
 	defer client.Close()
 	sdkWorker := worker.New(client, configuration.taskQueue, worker.Options{})
-	runner, err := participant.NewSDKRunner(participant.SDKOptions{
+	runner, err := umpire3temporal.NewSDKParticipantAdapter(umpire3temporal.SDKParticipantOptions{
 		Client: client, Registry: sdkWorker, Namespace: configuration.namespace, TaskQueue: configuration.taskQueue,
 		WorkflowID: configuration.workflowID, CleanupTimeout: configuration.timeout,
 		NexusEndpoint: configuration.nexusEndpoint, NexusService: configuration.nexusService,

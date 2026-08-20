@@ -24,12 +24,13 @@ func main() {
 func run(arguments []string) error {
 	flags := flag.NewFlagSet("umpire3-veil", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	operation := flags.String("operation", "generate", "generate or normalize")
+	operation := flags.String("operation", "generate", "generate, check, or normalize")
 	input := flags.String("input", "", "path to a FirstOrderView/v1 artifact")
 	output := flags.String("output", "", "path for generated output")
 	mode := flags.String("mode", string(veil.Interactive), "Veil job mode")
 	trust := flags.String("smt-trust", string(veil.ReconstructedSMT), "SMT trust mode")
 	rawResult := flags.String("raw-result", "", "path to raw Veil model-checker JSON")
+	backendCommand := flags.String("backend-command", "", "path to the Veil concrete checker executable")
 	replayCommand := flags.String("replay-command", "", "path to the canonical Lean replay executable")
 	job := flags.String("job", "", "symbolic-trace or invariant Veil job")
 	jobCommand := flags.String("job-command", "", "path to the checked Veil job receipt executable")
@@ -54,6 +55,24 @@ func run(arguments []string) error {
 			return err
 		}
 		return writeOutput(*output, generated.Source)
+	case "check-concrete":
+		if *backendCommand == "" {
+			return errors.New("backend-command is required for a checked Veil concrete job")
+		}
+		generated, err := veil.Generate(view, veil.Concrete)
+		if err != nil {
+			return err
+		}
+		var replay []string
+		if *replayCommand != "" {
+			replay = []string{*replayCommand}
+		}
+		result, err := veil.CheckConcrete(context.Background(), []string{*backendCommand}, replay,
+			view, generated)
+		if err != nil {
+			return err
+		}
+		return writeBackendResult(*output, result)
 	case "normalize":
 		if *rawResult == "" {
 			return errors.New("raw-result is required for normalization")
@@ -120,10 +139,10 @@ func readFirstOrderView(path string) (protocol.FirstOrderView, error) {
 	if err != nil {
 		return protocol.FirstOrderView{}, fmt.Errorf("open first-order view: %w", err)
 	}
-	defer input.Close()
-	view, err := protocol.DecodeFirstOrderView(input, protocol.DefaultDecodeLimit)
-	if err != nil {
-		return protocol.FirstOrderView{}, fmt.Errorf("decode first-order view: %w", err)
+	view, decodeErr := protocol.DecodeFirstOrderView(input, protocol.DefaultDecodeLimit)
+	closeErr := input.Close()
+	if decodeErr != nil || closeErr != nil {
+		return protocol.FirstOrderView{}, fmt.Errorf("decode first-order view: %w", errors.Join(decodeErr, closeErr))
 	}
 	return view, nil
 }
@@ -133,10 +152,10 @@ func readBoundedFile(path string, limit int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer input.Close()
-	encoded, err := io.ReadAll(io.LimitReader(input, limit+1))
-	if err != nil {
-		return nil, err
+	encoded, readErr := io.ReadAll(io.LimitReader(input, limit+1))
+	closeErr := input.Close()
+	if readErr != nil || closeErr != nil {
+		return nil, errors.Join(readErr, closeErr)
 	}
 	if int64(len(encoded)) > limit {
 		return nil, fmt.Errorf("input exceeds %d-byte limit", limit)

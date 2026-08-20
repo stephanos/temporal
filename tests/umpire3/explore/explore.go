@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"slices"
 
-	"go.temporal.io/server/tests/umpire3/compiler"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 type HoleKind string
@@ -84,13 +84,13 @@ type Template struct {
 	SymmetryPreservationChecked     bool
 	PartialOrderReduction           bool
 	PartialOrderPreservationChecked bool
-	Build                           func(Assignment) (compiler.Scenario, error)
+	Build                           func(Assignment) (scenario.Scenario, error)
 	Observe                         func(context.Context, Candidate) ([]string, error)
 }
 
 type Bounds struct {
 	MaxAssignments int
-	Compiler       compiler.Limits
+	Compiler       scenario.Limits
 }
 
 type Candidate struct {
@@ -215,14 +215,14 @@ func Run(ctx context.Context, template Template, bounds Bounds) (Report, error) 
 			return nil
 		}
 		report.Explored++
-		scenario, err := template.Build(cloneAssignment(assignment))
+		authored, err := template.Build(cloneAssignment(assignment))
 		if err != nil {
 			report.Pruned.Invalid++
 			return nil
 		}
-		suite, err := compiler.Compile(ctx, scenario, bounds.Compiler)
+		suite, err := scenario.Compile(ctx, authored, bounds.Compiler)
 		if err != nil {
-			var compileErr *compiler.Error
+			var compileErr *scenario.Error
 			if errors.As(err, &compileErr) {
 				report.Pruned.Invalid++
 				return nil

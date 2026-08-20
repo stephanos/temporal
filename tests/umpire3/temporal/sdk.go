@@ -2,8 +2,6 @@ package temporal
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
@@ -14,35 +12,28 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	sdkclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/participant"
+	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
 type SDKFactoryOptions struct {
-	Client                sdkclient.Client
-	Registry              worker.Registry
-	Namespace             string
-	TaskQueue             string
-	BuildID               string
-	ConfigurationIdentity string
-	ProfileName           string
-	EvidenceProfile       string
-	DrivingAuthority      string
-	ObservationAuthority  string
-	FaultAuthority        string
-	HardExecutionBudget   bool
-	WorkflowID            func(protocol.Experiment) string
-	CleanupTimeout        time.Duration
-	NegativeControl       bool
-	NexusEndpoint         string
-	NexusService          string
-	NexusOperation        string
-	Capabilities          []string
-	CorroboratingHistory  []CorroboratingHistorySource
-	WorkflowTaskFencer    participant.WorkflowTaskFencer
-	CallbackDriver        participant.CallbackDriver
-	NexusDriver           participant.NexusDriver
+	Client               sdkclient.Client
+	Registry             worker.Registry
+	Deployment           profile.Profile
+	Namespace            string
+	TaskQueue            string
+	WorkflowID           func(protocol.Experiment) string
+	CleanupTimeout       time.Duration
+	NegativeControl      bool
+	NexusEndpoint        string
+	NexusService         string
+	NexusOperation       string
+	CorroboratingHistory []CorroboratingHistorySource
+	WorkflowTaskFencer   WorkflowTaskFencer
+	CallbackDriver       CallbackDriver
+	NexusDriver          NexusDriver
 }
 
 type HistoryRequest struct {
@@ -79,87 +70,66 @@ type CorroboratingHistorySource interface {
 }
 
 type SDKFactory struct {
-	options SDKFactoryOptions
+	options  SDKFactoryOptions
+	identity environment.EnvironmentIdentity
 }
 
 func NewSDKFactory(options SDKFactoryOptions) (*SDKFactory, error) {
 	if options.Client == nil || options.Registry == nil || options.Namespace == "" ||
-		options.TaskQueue == "" || options.BuildID == "" || options.WorkflowID == nil {
+		options.TaskQueue == "" || options.WorkflowID == nil {
 		return nil, errors.New("SDK environment requires client, registry, namespace, task queue, build, and workflow identity")
 	}
 	if options.CleanupTimeout <= 0 {
 		return nil, errors.New("SDK environment requires a positive cleanup timeout")
 	}
-	if options.ConfigurationIdentity == "" {
-		digest := sha256.Sum256([]byte(options.Namespace + "\x00" + options.TaskQueue + "\x00" + options.BuildID))
-		options.ConfigurationIdentity = "sha256:" + hex.EncodeToString(digest[:])
+	identity := options.Deployment.Environment
+	if err := identity.Validate(); err != nil {
+		return nil, fmt.Errorf("validate SDK deployment profile: %w", err)
 	}
-	if options.ProfileName == "" {
-		options.ProfileName = "sdk-public-history"
+	if options.Deployment.Namespace != options.Namespace || options.Deployment.TaskQueue != options.TaskQueue {
+		return nil, errors.New("SDK namespace and task queue must match the deployment profile")
 	}
-	if options.EvidenceProfile == "" {
-		options.EvidenceProfile = environment.EvidenceProfilePublicGRPCHistory
-		if len(options.CorroboratingHistory) != 0 {
-			options.EvidenceProfile = environment.EvidenceProfileDualHistory
-		}
-	}
-	if options.DrivingAuthority == "" {
-		options.DrivingAuthority = "temporal-sdk"
-	}
-	if options.ObservationAuthority == "" {
-		options.ObservationAuthority = "temporal-public-history"
-		if len(options.CorroboratingHistory) != 0 {
-			options.ObservationAuthority = "temporal-public-history+temporal-history-service"
-		}
-	}
-	if options.FaultAuthority == "" {
-		options.FaultAuthority = "none"
-	}
+	identity.FaultAuthority = "none"
 	for _, source := range options.CorroboratingHistory {
 		if source == nil {
 			return nil, errors.New("SDK environment has a nil corroborating history source")
 		}
 	}
-	if options.EvidenceProfile == environment.EvidenceProfileDualHistory && len(options.CorroboratingHistory) == 0 {
-		return nil, errors.New("dual-history evidence profile requires a corroborating history source")
+	if len(options.CorroboratingHistory) != 0 {
+		identity.EvidenceProfile = environment.EvidenceProfileDualHistory
+		identity.ObservationAuthority = "temporal-public-history+temporal-history-service"
 	}
 	capabilities, err := normalizeSDKCapabilities(options)
 	if err != nil {
 		return nil, err
 	}
-	options.Capabilities = capabilities
-	profile := environment.Profile{
-		Name: options.ProfileName, BuildID: options.BuildID,
-		ConfigurationIdentity: options.ConfigurationIdentity, EvidenceProfile: options.EvidenceProfile,
-		DrivingAuthority: options.DrivingAuthority, ObservationAuthority: options.ObservationAuthority,
-		FaultAuthority: options.FaultAuthority, IsolationIdentity: options.Namespace + "/" + options.TaskQueue,
-		RetentionClass: "semantic-redacted", HardExecutionBudget: options.HardExecutionBudget,
-	}
-	if err := profile.Validate(); err != nil {
+	identity.Capabilities = capabilities
+	if err := identity.Validate(); err != nil {
 		return nil, fmt.Errorf("validate SDK environment profile: %w", err)
 	}
-	return &SDKFactory{options: options}, nil
+	return &SDKFactory{options: options, identity: identity}, nil
 }
 
-func (f *SDKFactory) Capabilities() []string {
-	return slices.Clone(f.options.Capabilities)
+func (f *SDKFactory) Capabilities() []protocol.CapabilityID {
+	return slices.Clone(f.identity.Capabilities)
 }
 
-func normalizeSDKCapabilities(options SDKFactoryOptions) ([]string, error) {
+func normalizeSDKCapabilities(options SDKFactoryOptions) ([]protocol.CapabilityID, error) {
 	catalog, err := protocol.DefaultCatalog()
 	if err != nil {
 		return nil, err
 	}
-	known := make(map[string]struct{}, len(catalog.Capabilities))
+	known := make(map[protocol.CapabilityID]struct{}, len(catalog.Capabilities))
 	for _, capability := range catalog.Capabilities {
-		known[string(capability.Identifier)] = struct{}{}
+		known[capability.Identifier] = struct{}{}
 	}
-	capabilities := slices.Clone(options.Capabilities)
-	if len(capabilities) == 0 {
-		capabilities = []string{"history-observation", "update", "workflow-task-control"}
-		if options.NexusEndpoint != "" && options.NexusService != "" && options.NexusOperation != "" {
-			capabilities = append(capabilities, "nexus", "nexus-observation", "nexus-worker-control")
-		}
+	capabilities := []protocol.CapabilityID{
+		protocol.CapabilityIDHistoryObservation, protocol.CapabilityIDUpdate,
+		protocol.CapabilityIDWorkflowTaskControl,
+	}
+	if options.NexusEndpoint != "" && options.NexusService != "" && options.NexusOperation != "" {
+		capabilities = append(capabilities, protocol.CapabilityIDNexus,
+			protocol.CapabilityIDNexusObservation, protocol.CapabilityIDNexusWorkerControl)
 	}
 	slices.Sort(capabilities)
 	for index, capability := range capabilities {
@@ -173,10 +143,10 @@ func normalizeSDKCapabilities(options SDKFactoryOptions) ([]string, error) {
 	return capabilities, nil
 }
 
-func (f *SDKFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.Session, error) {
+func (f *SDKFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.PreparedEnvironment, error) {
 	program, _, err := participant.CompileExperiment(experiment)
 	if err != nil {
-		return nil, fmt.Errorf("compile SDK participant experiment: %w", err)
+		return environment.PreparedEnvironment{}, fmt.Errorf("compile SDK participant experiment: %w", err)
 	}
 	if f.options.NegativeControl {
 		for index := range program.Commands {
@@ -185,9 +155,9 @@ func (f *SDKFactory) Prepare(ctx context.Context, experiment protocol.Experiment
 	}
 	workflowID := f.options.WorkflowID(experiment)
 	if workflowID == "" {
-		return nil, errors.New("SDK environment returned an empty workflow identity")
+		return environment.PreparedEnvironment{}, errors.New("SDK environment returned an empty workflow identity")
 	}
-	runner, err := participant.NewSDKRunner(participant.SDKOptions{
+	runner, err := NewSDKParticipantAdapter(SDKParticipantOptions{
 		Client: f.options.Client, Registry: f.options.Registry, TaskQueue: f.options.TaskQueue,
 		Namespace: f.options.Namespace, WorkflowID: workflowID, CleanupTimeout: f.options.CleanupTimeout,
 		NexusEndpoint: f.options.NexusEndpoint, NexusService: f.options.NexusService,
@@ -197,44 +167,35 @@ func (f *SDKFactory) Prepare(ctx context.Context, experiment protocol.Experiment
 		NexusDriver:        f.options.NexusDriver,
 	})
 	if err != nil {
-		return nil, err
+		return environment.PreparedEnvironment{}, err
 	}
 	session, err := participant.Start(ctx, program, runner)
 	if err != nil {
-		return nil, err
+		return environment.PreparedEnvironment{}, err
 	}
 	sdk := &sdkSession{
 		experiment: experiment, participant: session, client: f.options.Client,
 		namespace: f.options.Namespace, taskQueue: f.options.TaskQueue,
-		buildID: f.options.BuildID, configurationIdentity: f.options.ConfigurationIdentity,
-		profileName: f.options.ProfileName, evidenceProfile: f.options.EvidenceProfile,
-		drivingAuthority: f.options.DrivingAuthority, observationAuthority: f.options.ObservationAuthority,
-		faultAuthority: f.options.FaultAuthority, hardExecutionBudget: f.options.HardExecutionBudget,
-		results: make(map[string]participant.Result),
+		identityValue: f.identity,
+		results:       make(map[string]participant.Result),
 	}
 	if len(f.options.CorroboratingHistory) != 0 {
-		return &corroboratingSDKSession{
+		session := &corroboratingSDKSession{
 			sdkSession: sdk, sources: slices.Clone(f.options.CorroboratingHistory),
-		}, nil
+		}
+		return environment.PreparedEnvironment{Session: session, Identity: sdk.identity(f.Capabilities())}, nil
 	}
-	return sdk, nil
+	return environment.PreparedEnvironment{Session: sdk, Identity: sdk.identity(f.Capabilities())}, nil
 }
 
 type sdkSession struct {
-	experiment            protocol.Experiment
-	participant           *participant.Session
-	client                sdkclient.Client
-	namespace             string
-	taskQueue             string
-	buildID               string
-	configurationIdentity string
-	profileName           string
-	evidenceProfile       string
-	drivingAuthority      string
-	observationAuthority  string
-	faultAuthority        string
-	hardExecutionBudget   bool
-	results               map[string]participant.Result
+	experiment    protocol.Experiment
+	participant   *participant.Session
+	client        sdkclient.Client
+	namespace     string
+	taskQueue     string
+	identityValue environment.EnvironmentIdentity
+	results       map[string]participant.Result
 }
 
 type corroboratingSDKSession struct {
@@ -414,15 +375,10 @@ func (s *sdkSession) RecoveryMetadata() map[string]string {
 	return result
 }
 
-func (s *sdkSession) Profile() environment.Profile {
-	return environment.Profile{
-		Name: s.profileName, BuildID: s.buildID,
-		ConfigurationIdentity: s.configurationIdentity,
-		EvidenceProfile:       s.evidenceProfile, DrivingAuthority: s.drivingAuthority,
-		ObservationAuthority: s.observationAuthority, FaultAuthority: s.faultAuthority,
-		IsolationIdentity: s.namespace + "/" + s.taskQueue, RetentionClass: "semantic-redacted",
-		HardExecutionBudget: s.hardExecutionBudget,
-	}
+func (s *sdkSession) identity(capabilities []protocol.CapabilityID) environment.EnvironmentIdentity {
+	identity := s.identityValue
+	identity.Capabilities = append([]protocol.CapabilityID(nil), capabilities...)
+	return identity
 }
 
 type historyPosition struct {
@@ -610,7 +566,7 @@ func (s *sdkSession) observationSatisfied(observation string, history historyPos
 	}
 }
 
-func parseWorkflowOwnerFencingReference(reference string) (int64, int64, bool) {
+func parseWorkflowOwnerFencingReference(reference string) (staleStarted int64, currentStarted int64, valid bool) {
 	const marker = "/workflow-task/"
 	index := strings.LastIndex(reference, marker)
 	if index < 0 {

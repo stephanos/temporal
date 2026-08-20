@@ -14,7 +14,7 @@ domain flow shared by models, authoring, execution, qualification, and operation
 | Environment identity | The non-secret build, configuration, isolation, authority, evidence, and capability facts reported by the prepared Environment. | `EnvironmentProfile` or another competing Profile type. |
 | Deployment profile | The validated maximum authority, capabilities, isolation, and attestation allowed for a deployment kind. | `Config`, `Definition`, and partial `Profile` values with overlapping meanings. |
 | Participant program | Concrete Temporal commands used to realize an Experiment. | Generic “plan” outside participant internals. |
-| Replay bundle | A redacted, digest-bound Experiment and Result plus reproduction metadata. | Generic `artifact.Record`. |
+| Replay bundle | A redacted, digest-bound Experiment and Result plus reproduction metadata. | Generic records or artifacts without replay semantics. |
 | Result | The evidence and semantic claim from one Execution. | Unqualified `Result` outside a module; use `execution.Result`, `canary.Result`, and similarly specific names. |
 | Qualification receipt | The signed-off result of checking a candidate release against external execution evidence. | Generic report or artifact. |
 

@@ -6,40 +6,44 @@ import (
 	"fmt"
 	"sync"
 
-	"go.temporal.io/server/tests/umpire3/environment"
+	environment "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
-type UpdateFactory struct {
-	probe ClusterProbe
+type updateFactory struct {
+	probe clusterProbe
 }
 
-func NewUpdateFactory(probe ClusterProbe) *UpdateFactory {
-	return &UpdateFactory{probe: probe}
+func newUpdateFactory(probe clusterProbe) *updateFactory {
+	return &updateFactory{probe: probe}
 }
 
-func (f *UpdateFactory) Capabilities() []string {
-	return []string{"update", "workflow-task-control", "history-observation"}
+func (f *updateFactory) Capabilities() []protocol.CapabilityID {
+	return []protocol.CapabilityID{
+		protocol.CapabilityIDUpdate, protocol.CapabilityIDWorkflowTaskControl,
+		protocol.CapabilityIDHistoryObservation,
+	}
 }
 
-func (f *UpdateFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.Session, error) {
+func (f *updateFactory) Prepare(ctx context.Context, experiment protocol.Experiment) (environment.PreparedEnvironment, error) {
 	if f.probe == nil {
-		return nil, errors.New("temporal cluster probe is required")
+		return environment.PreparedEnvironment{}, errors.New("temporal cluster probe is required")
 	}
 	cluster, err := f.probe(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("probe Temporal cluster: %w", err)
+		return environment.PreparedEnvironment{}, fmt.Errorf("probe Temporal cluster: %w", err)
 	}
 	if cluster.BuildID == "" || cluster.Namespace == "" || cluster.MintedWorkflowID == "" || cluster.MintedUpdateID == "" {
-		return nil, errors.New("cluster probe returned incomplete Update identity evidence")
+		return environment.PreparedEnvironment{}, errors.New("cluster probe returned incomplete Update identity evidence")
 	}
-	return &updateSession{cluster: cluster, experimentID: experiment.ExperimentID}, nil
+	session := &updateSession{cluster: cluster, experimentID: experiment.ExperimentID}
+	return environment.PreparedEnvironment{Session: session, Identity: session.environmentIdentity(f.Capabilities())}, nil
 }
 
 type updateSession struct {
 	mu sync.Mutex
 
-	cluster         ClusterInfo
+	cluster         clusterInfo
 	experimentID    string
 	started         bool
 	dispatched      bool
@@ -159,12 +163,12 @@ func (s *updateSession) RecoveryMetadata() map[string]string {
 	}
 }
 
-func (s *updateSession) Profile() environment.Profile {
+func (s *updateSession) environmentIdentity(capabilities []protocol.CapabilityID) environment.EnvironmentIdentity {
 	configurationIdentity := s.cluster.ConfigurationID
 	if configurationIdentity == "" {
 		configurationIdentity = s.cluster.BuildID + "/default"
 	}
-	return environment.Profile{
+	return environment.EnvironmentIdentity{
 		Name:                  "controlled-local",
 		BuildID:               s.cluster.BuildID,
 		ConfigurationIdentity: configurationIdentity,
@@ -174,5 +178,6 @@ func (s *updateSession) Profile() environment.Profile {
 		FaultAuthority:        "none",
 		IsolationIdentity:     s.cluster.Namespace,
 		RetentionClass:        "semantic-only",
+		Capabilities:          append([]protocol.CapabilityID(nil), capabilities...),
 	}
 }

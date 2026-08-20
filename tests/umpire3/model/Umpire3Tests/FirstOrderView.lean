@@ -28,9 +28,9 @@ example : mutatedFirstOrderArtifact.next (encodeState staleReturned) "persist-su
 example : soundFirstOrderArtifact.invariant.eval (encodeState staleSuccess) = false := by
   decide
 
-example : soundFirstOrderExport.isSome := by native_decide
+example : soundFirstOrderExport.isSome := by decide
 
-example : mutatedFirstOrderExport.isSome := by native_decide
+example : mutatedFirstOrderExport.isSome := by decide
 
 def limitedSearch := Exact.explore soundFiniteView (fun _ => true) {
   maxDepth := 16
@@ -40,7 +40,7 @@ def limitedSearch := Exact.explore soundFiniteView (fun _ => true) {
 }
 
 example : (FirstOrderExport.ofSearch (resolved_first_order% soundFirstOrderView)
-    soundFiniteView (fun _ => true) limitedSearch encodeState).isNone := by native_decide
+    soundFiniteView (fun _ => true) limitedSearch encodeState).isNone := by decide
 
 def counterexampleSearch := Exact.explore mutatedFiniteView noStaleCompletion {
   maxDepth := 16
@@ -50,7 +50,7 @@ def counterexampleSearch := Exact.explore mutatedFiniteView noStaleCompletion {
 }
 
 example : (FirstOrderExport.ofSearch (resolved_first_order% mutatedFirstOrderView)
-    mutatedFiniteView noStaleCompletion counterexampleSearch encodeState).isNone := by native_decide
+    mutatedFiniteView noStaleCompletion counterexampleSearch encodeState).isNone := by decide
 
 example : soundFirstOrderArtifact.initial.eval (encodeState initial) = true :=
   soundFirstOrderView.initial_preserved initial rfl

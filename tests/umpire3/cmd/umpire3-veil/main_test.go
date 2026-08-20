@@ -84,3 +84,12 @@ func TestRunCheckJobRequiresReceiptCommand(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "job-command is required")
 }
+
+func TestRunCheckConcreteRequiresBackendCommand(t *testing.T) {
+	err := run([]string{
+		"-operation", "check-concrete",
+		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-output", filepath.Join(t.TempDir(), "result.json"),
+	})
+	require.ErrorContains(t, err, "backend-command is required")
+}
