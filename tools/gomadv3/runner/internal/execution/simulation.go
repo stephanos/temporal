@@ -26,6 +26,7 @@ type SimulationCapability struct {
 	Bootstrap  []byte
 	handler    func(context.Context, simulationFrame) (simulationFrame, error)
 	time       func(context.Context, simulationTimeRequest) (simulationTimeResponse, error)
+	accepting  func(simulationFrame) error
 	delivering func(simulationFrame)
 	responded  func(simulationFrame)
 	arrived    func(uint32) error
@@ -180,7 +181,7 @@ func readSimulationFrame(source io.Reader) (simulationFrame, error) {
 	return decodeSimulationFrame(encoded)
 }
 
-func serveSimulation(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationFrame) (simulationFrame, error), delivering func(simulationFrame), responded func(simulationFrame), arrived func(uint32) error) error {
+func serveSimulation(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationFrame) (simulationFrame, error), accepting func(simulationFrame) error, delivering func(simulationFrame), responded func(simulationFrame), arrived func(uint32) error) error {
 	if handler == nil {
 		return errors.New("simulation frame handler is unavailable")
 	}
@@ -201,6 +202,9 @@ func serveSimulation(ctx context.Context, source io.Reader, destination io.Write
 			}
 			continue
 		}
+		if err := acceptSimulationWait(destination, accepting, request); err != nil {
+			return err
+		}
 		response, handleErr := handler(ctx, request)
 		response.Profile = simulationProtocol
 		response.Kind = simulationFrameResponse
@@ -219,4 +223,25 @@ func serveSimulation(ctx context.Context, source io.Reader, destination io.Write
 			responded(request)
 		}
 	}
+}
+
+func acceptSimulationWait(destination io.Writer, accepting func(simulationFrame) error, request simulationFrame) error {
+	if request.Kind != simulationFrameWait {
+		return nil
+	}
+	if accepting == nil {
+		return errors.New("simulation wait acceptance handler is unavailable")
+	}
+	if err := accepting(request); err != nil {
+		return err
+	}
+	var accepted [4]byte
+	written, err := destination.Write(accepted[:])
+	if err != nil {
+		return fmt.Errorf("write simulation wait acceptance: %w", err)
+	}
+	if written != len(accepted) {
+		return io.ErrShortWrite
+	}
+	return nil
 }

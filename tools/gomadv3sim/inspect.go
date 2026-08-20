@@ -8,25 +8,27 @@ import (
 	"strings"
 )
 
-const ClusterInspectionSchema = "gomadv3.cluster-inspection/v1"
+const ClusterInspectionSchema = "gomadv3.cluster-inspection/v2"
 
 type ClusterInspectionCounts struct {
-	Nodes              uint64 `json:"nodes"`
-	Incarnations       uint64 `json:"incarnations"`
-	Lifecycle          uint64 `json:"lifecycle_transitions"`
-	Faults             uint64 `json:"faults"`
-	ScenarioDecisions  uint64 `json:"scenario_decisions"`
-	HistoryOperations  uint64 `json:"history_operations"`
-	Observations       uint64 `json:"observations"`
-	OracleResults      uint64 `json:"oracle_results"`
-	NetworkTransitions uint64 `json:"network_transitions"`
-	VolumeTransitions  uint64 `json:"volume_transitions"`
+	Nodes                   uint64 `json:"nodes"`
+	Incarnations            uint64 `json:"incarnations"`
+	Lifecycle               uint64 `json:"lifecycle_transitions"`
+	Faults                  uint64 `json:"faults"`
+	ScenarioChoiceOverrides uint64 `json:"scenario_choice_overrides"`
+	ScenarioDecisions       uint64 `json:"scenario_decisions"`
+	HistoryOperations       uint64 `json:"history_operations"`
+	Observations            uint64 `json:"observations"`
+	OracleResults           uint64 `json:"oracle_results"`
+	NetworkTransitions      uint64 `json:"network_transitions"`
+	VolumeTransitions       uint64 `json:"volume_transitions"`
 }
 
 type ClusterInspectionTapes struct {
-	FaultPlanSHA256 string `json:"fault_plan_sha256"`
-	NetworkSHA256   string `json:"network_sha256"`
-	VolumeSHA256    string `json:"volume_sha256"`
+	FaultPlanSHA256          string `json:"fault_plan_sha256"`
+	ScenarioChoicePlanSHA256 string `json:"scenario_choice_plan_sha256"`
+	NetworkSHA256            string `json:"network_sha256"`
+	VolumeSHA256             string `json:"volume_sha256"`
 }
 
 type ClusterInspectionTerminal struct {
@@ -75,14 +77,16 @@ func InspectClusterRecord(record ClusterRecord) (ClusterInspection, error) {
 		Static: record.Static, Models: record.Models, Limits: record.Limits,
 		Counts: ClusterInspectionCounts{
 			Nodes: uint64(len(record.NodeSpecs)), Incarnations: uint64(len(record.Nodes)), Lifecycle: uint64(len(record.Transitions)),
-			Faults: uint64(len(record.Faults)), ScenarioDecisions: uint64(len(record.Scenarios)), HistoryOperations: uint64(len(record.History)),
+			Faults: uint64(len(record.Faults)), ScenarioChoiceOverrides: uint64(len(record.ScenarioChoices.Overrides)),
+			ScenarioDecisions: uint64(len(record.Scenarios)), HistoryOperations: uint64(len(record.History)),
 			Observations: uint64(len(record.Observations)), OracleResults: uint64(len(record.Oracles)),
 			NetworkTransitions: uint64(len(record.Network.Transitions)), VolumeTransitions: uint64(len(record.Volumes.Transitions)),
 		},
 		Tapes: ClusterInspectionTapes{
-			FaultPlanSHA256: record.FaultPlan.Identity,
-			NetworkSHA256:   record.Network.Snapshot.TransitionSHA256,
-			VolumeSHA256:    record.Volumes.Snapshot.TransitionSHA256,
+			FaultPlanSHA256:          record.FaultPlan.Identity,
+			ScenarioChoicePlanSHA256: record.ScenarioChoices.Identity,
+			NetworkSHA256:            record.Network.Snapshot.TransitionSHA256,
+			VolumeSHA256:             record.Volumes.Snapshot.TransitionSHA256,
 		},
 		Terminal:       ClusterInspectionTerminal{NetworkSHA256: record.Network.Snapshot.Identity, VolumeSHA256: record.Volumes.Snapshot.Identity},
 		OracleFailures: failures,
@@ -120,6 +124,7 @@ func FormatClusterInspection(inspection ClusterInspection) (string, error) {
 		"outcome: " + string(inspection.Outcome),
 		fmt.Sprintf("nodes: %d", inspection.Counts.Nodes),
 		fmt.Sprintf("faults: %d", inspection.Counts.Faults),
+		fmt.Sprintf("scenario choice overrides: %d", inspection.Counts.ScenarioChoiceOverrides),
 		fmt.Sprintf("scenario decisions: %d", inspection.Counts.ScenarioDecisions),
 		fmt.Sprintf("history operations: %d", inspection.Counts.HistoryOperations),
 		fmt.Sprintf("oracle results: %d", inspection.Counts.OracleResults),
@@ -159,7 +164,7 @@ func validateClusterInspection(inspection ClusterInspection) error {
 		return err
 	}
 	for _, identity := range []string{
-		inspection.Tapes.FaultPlanSHA256, inspection.Tapes.NetworkSHA256, inspection.Tapes.VolumeSHA256,
+		inspection.Tapes.FaultPlanSHA256, inspection.Tapes.ScenarioChoicePlanSHA256, inspection.Tapes.NetworkSHA256, inspection.Tapes.VolumeSHA256,
 		inspection.Terminal.NetworkSHA256, inspection.Terminal.VolumeSHA256,
 	} {
 		if !validSHA256(identity) {
@@ -191,6 +196,7 @@ func validateInspectionCounts(counts ClusterInspectionCounts, limits Limits) err
 		{"scenario_actions", counts.Incarnations, limits.ScenarioActions},
 		{"scenario_actions", counts.Lifecycle, limits.ScenarioActions},
 		{"fault_actions", counts.Faults, limits.FaultActions},
+		{"scenario_decisions", counts.ScenarioChoiceOverrides, limits.ScenarioDecisions},
 		{"scenario_decisions", counts.ScenarioDecisions, limits.ScenarioDecisions},
 		{"history_operations", counts.HistoryOperations, limits.HistoryOperations},
 		{"observations", counts.Observations, limits.Observations},
@@ -209,5 +215,5 @@ func validateInspectionCounts(counts ClusterInspectionCounts, limits Limits) err
 func clusterInspectionIdentity(inspection ClusterInspection) (string, error) {
 	inspection.Identity = ""
 	inspection.OracleFailures = append([]ClusterOracleFailure(nil), inspection.OracleFailures...)
-	return hashCanonical("gomadv3-cluster-inspection/v1", inspection)
+	return hashCanonical("gomadv3-cluster-inspection/v2", inspection)
 }

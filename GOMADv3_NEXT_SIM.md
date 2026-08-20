@@ -884,7 +884,7 @@ through this path and exactly replay their lifecycle and terminal evidence.
 
 The in-process fidelity limits remain explicit: package globals are shared,
 revoked crash work may remain computationally live, CPU loops require an outer
-watchdog, and hard isolation requires the future process backend. SIM-1 does
+watchdog, and hard isolation requires the process backend. SIM-1 does
 not claim cross-node TCP, durable volumes, partitions, crash persistence, or
 fresh package initialization.
 
@@ -994,7 +994,7 @@ production `common/collection.SyncMap`, loses an acknowledgement across an
 injected directional disconnect, observes duplicate task delivery, fails the
 duplicate/lost oracle, and exactly replays the same failure identity and
 bounded artifact. The three SIM-4 parity cases now carry named in-process
-prototypes; process-backed evidence remains a SIM-5 obligation.
+prototypes; SIM-5 supplies the process-backed evidence.
 
 Exit criteria:
 
@@ -1004,12 +1004,24 @@ Exit criteria:
 - invariant failures have stable identities independent of seed; and
 - cluster artifacts stay within declared limits at the qualification size.
 
-### SIM-5: process-backed fidelity tier
+### SIM-5: process-backed fidelity tier — complete
 
 Add Runner-owned node launch and supervision, private node bootstrap, generated
 bounded operation protocols, host-side models, time and model arbitration,
 hard crash/reap, fresh-incarnation initialization, process-aware output, and
 cross-backend conformance.
+
+The Runner now launches each process-backed incarnation through a private,
+bounded bootstrap and routes generated model operations to the host-owned
+network, volume, lifecycle, and time arbiters. Wait admission, in-flight model
+operations, crash, response delivery, and time advancement have explicit
+acceptance and completion states, so process death cannot leave an ambiguous
+model commit. Hard crash reaps the exact incarnation and its descendants;
+restart receives fresh package globals, goroutines, and descriptors while
+retaining only declared model state. Root process tests cover shared TCP,
+durable restart, clock synchronization, hard isolation, detached-model
+equivalence, completion-order-independent digests, and deterministic draining
+of operations interrupted by crash.
 
 Exit criteria:
 
@@ -1020,7 +1032,8 @@ Exit criteria:
 - all descendants are bounded, terminated, and reaped; and
 - the complete v2 behavioral parity corpus passes on its declared backend.
 
-Only after SIM-5 may the project claim full v2 behavioral simulation parity.
+SIM-5 completes the evidence required to claim full v2 behavioral simulation
+parity at the declared fidelity tiers.
 
 ### SIM-6: controlled schedule and fault exploration
 
@@ -1064,14 +1077,14 @@ addresses their simulation consequences as follows:
 - race-detector support remains a separate runtime/toolchain research item and
   must be reported as unsupported rather than implied by single-P simulation.
 
-The project may claim v2 behavioral **simulation** parity after SIM-5. It must
+The project may claim v2 behavioral **simulation** parity. It must
 not claim complete product feature parity while a relied-upon adjacent feature,
 such as race mode, remains unsupported.
 
 ## Recommended next slice
 
-Implement SIM-5 behind the completed lifecycle, network, volume, fault,
-scenario, and oracle seams. Start with Runner-owned private node bootstrap,
-bounded generated IPC, hard crash/reap, and fresh-incarnation initialization,
-then prove detached model equivalence against the in-process backend before
-adding cross-process time arbitration.
+Implement SIM-6 behind the completed runtime-choice, lifecycle, network,
+volume, fault, scenario, oracle, and process seams. Start with one canonical,
+bounded combined-candidate identity and breadth-first frontier, then make its
+round checkpoint durable before adding semantic failure deduplication and
+schedule-plus-fault minimization.

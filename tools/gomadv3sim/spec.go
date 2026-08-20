@@ -88,16 +88,17 @@ type Limits struct {
 }
 
 type Spec struct {
-	Schema   string       `json:"schema"`
-	Backend  Backend      `json:"backend"`
-	Fidelity Fidelity     `json:"fidelity"`
-	Seed     uint64       `json:"seed"`
-	Limits   Limits       `json:"limits"`
-	Nodes    []NodeSpec   `json:"nodes"`
-	Links    []LinkSpec   `json:"links,omitempty"`
-	Volumes  []VolumeSpec `json:"volumes,omitempty"`
-	Faults   *FaultPlan   `json:"faults,omitempty"`
-	Replay   *ReplayPlan  `json:"replay,omitempty"`
+	Schema          string              `json:"schema"`
+	Backend         Backend             `json:"backend"`
+	Fidelity        Fidelity            `json:"fidelity"`
+	Seed            uint64              `json:"seed"`
+	Limits          Limits              `json:"limits"`
+	Nodes           []NodeSpec          `json:"nodes"`
+	Links           []LinkSpec          `json:"links,omitempty"`
+	Volumes         []VolumeSpec        `json:"volumes,omitempty"`
+	Faults          *FaultPlan          `json:"faults,omitempty"`
+	ScenarioChoices *ScenarioChoicePlan `json:"scenario_choice_plan,omitempty"`
+	Replay          *ReplayPlan         `json:"replay,omitempty"`
 }
 
 type NodeSpec struct {
@@ -230,6 +231,14 @@ func ValidateSpec(spec Spec) error {
 			return err
 		}
 		if err := checkCapacity("fault_actions", uint64(len(spec.Faults.Actions)), spec.Limits.FaultActions); err != nil {
+			return err
+		}
+	}
+	if spec.ScenarioChoices != nil {
+		if err := validateScenarioChoicePlan(*spec.ScenarioChoices); err != nil {
+			return err
+		}
+		if err := checkCapacity("scenario_choice_overrides", uint64(len(spec.ScenarioChoices.Overrides)), spec.Limits.ScenarioDecisions); err != nil {
 			return err
 		}
 	}

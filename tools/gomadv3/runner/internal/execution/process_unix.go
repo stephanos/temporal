@@ -92,6 +92,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 		request.Simulation.handler = simulationCoordinator.handle
 		request.Simulation.time = simulationCoordinator.handleCoordinatorTime
+		request.Simulation.accepting = simulationCoordinator.handleWaitAcceptance
 		request.Simulation.delivering = simulationCoordinator.handleCoordinatorDelivery
 		request.Simulation.responded = simulationCoordinator.handleCoordinatorResponse
 		request.Simulation.arrived = func(arrivals uint32) error {
@@ -213,6 +214,8 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 				simulationCoordinator.time.deliverExternal(simulationCoordinator.coordinator)
 			}, func(frame simulationFrame) error {
 				return simulationCoordinator.handleModelArrival(frame)
+			}, func(frame simulationFrame) error {
+				return simulationCoordinator.time.acknowledgeExternal(simulationCoordinator.coordinator, frame.Arrivals)
 			})
 		}
 		simulationTimeRequestRead, err = resources.createPipe(simulationTimeRequestResource, inheritWrite, "simulation time request")
@@ -371,7 +374,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		defer cancelSimulationTime()
 		served := make(chan error, 1)
 		go func() {
-			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
+			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
 		}()
 		simulationServed = served
 		timeServed := make(chan error, 1)

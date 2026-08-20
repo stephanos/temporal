@@ -395,6 +395,24 @@ func (cluster *inProcessCluster) commitScenarioDecision(ctx context.Context, dec
 	if err := validateScenarioDecision(decision); err != nil {
 		return 0, err
 	}
+	if cluster.scenarioChoiceCursor < uint64(len(cluster.scenarioChoicePlan.Overrides)) {
+		override := cluster.scenarioChoicePlan.Overrides[cluster.scenarioChoiceCursor]
+		if override.Ordinal <= decision.Ordinal {
+			expected := scenarioDecisionFromChoiceOverride(override)
+			if override.Ordinal != decision.Ordinal || !scenarioChoiceOverrideMatchesDecision(override, decision) {
+				return 0, cluster.scenarioDivergenceLocked(decision.Ordinal, expected, decision)
+			}
+			decision.Selected = override.Selected
+			decision.Identity, err = scenarioDecisionIdentity(decision)
+			if err != nil {
+				return 0, err
+			}
+			if err := validateScenarioDecision(decision); err != nil {
+				return 0, err
+			}
+			cluster.scenarioChoiceCursor++
+		}
+	}
 	if err := checkCapacity("scenario_decisions", decision.Ordinal+1, cluster.limits.ScenarioDecisions); err != nil {
 		return 0, err
 	}
@@ -421,6 +439,10 @@ func (cluster *inProcessCluster) finishControllers() error {
 			return cluster.faultMismatchLocked(ordinal, optionalFaultAction(planned, ok), nil, ErrReplayDiverged)
 		}
 		return &FaultPlanError{Ordinal: ordinal, Expected: optionalFaultAction(planned, ok), Cause: ErrFaultPlanMismatch}
+	}
+	if cluster.scenarioChoiceCursor != uint64(len(cluster.scenarioChoicePlan.Overrides)) {
+		override := cluster.scenarioChoicePlan.Overrides[cluster.scenarioChoiceCursor]
+		return cluster.scenarioDivergenceLocked(override.Ordinal, scenarioDecisionFromChoiceOverride(override), ScenarioDecision{})
 	}
 	if cluster.replay == nil {
 		return nil

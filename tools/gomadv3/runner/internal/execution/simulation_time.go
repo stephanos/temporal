@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"os"
 	"sync"
 )
 
@@ -175,6 +174,7 @@ type simulationTimeParticipant struct {
 	active     bool
 	external   uint64
 	delivered  uint64
+	handling   uint64
 	generation uint64
 	deadline   int64
 	waiter     chan simulationTimeResult
@@ -233,7 +233,7 @@ func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *
 	}
 	if uint64(request.Arrivals) > participant.delivered {
 		arbiter.mu.Unlock()
-		return simulationTimeResponse{}, errors.New("simulation time request acknowledged unknown external work")
+		return simulationTimeResponse{}, fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, request.Arrivals, participant.external, participant.delivered)
 	}
 	participant.generation = request.Generation
 	participant.external -= uint64(request.Arrivals)
@@ -261,7 +261,6 @@ func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *
 	participant.deadline = request.Deadline
 	waiter := make(chan simulationTimeResult, 1)
 	participant.waiter = waiter
-	arbiter.traceLocked("quiesce " + participant.name)
 	arbiter.settleLocked()
 	arbiter.mu.Unlock()
 
@@ -317,7 +316,18 @@ func (arbiter *simulationTimeArbiter) beginExternal(participant *simulationTimeP
 		return
 	}
 	participant.external++
-	arbiter.traceLocked("external-begin " + participant.name)
+	arbiter.externalLocked(participant)
+	arbiter.settleLocked()
+}
+
+func (arbiter *simulationTimeArbiter) beginHandledExternal(participant *simulationTimeParticipant) {
+	arbiter.mu.Lock()
+	defer arbiter.mu.Unlock()
+	if participant == nil || arbiter.participants[participant.name] != participant {
+		return
+	}
+	participant.external++
+	participant.handling++
 	arbiter.externalLocked(participant)
 	arbiter.settleLocked()
 }
@@ -329,11 +339,12 @@ func (arbiter *simulationTimeArbiter) beginExternalAfterArrivals(participant *si
 		return errors.New("simulation time participant is inactive")
 	}
 	if uint64(arrivals) > participant.delivered {
-		return errors.New("simulation time request acknowledged unknown external work")
+		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, arrivals, participant.external, participant.delivered)
 	}
 	participant.external -= uint64(arrivals)
 	participant.delivered -= uint64(arrivals)
 	participant.external++
+	participant.handling++
 	arbiter.externalLocked(participant)
 	return nil
 }
@@ -345,13 +356,13 @@ func (arbiter *simulationTimeArbiter) forwardExternalAfterArrivals(source *simul
 		return errors.New("simulation time participant is inactive")
 	}
 	if uint64(arrivals) > source.delivered {
-		return errors.New("simulation time request acknowledged unknown external work")
+		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", source.name, arrivals, source.external, source.delivered)
 	}
 	source.external -= uint64(arrivals)
 	source.delivered -= uint64(arrivals)
 	source.external++
 	destination.external++
-	arbiter.traceLocked("external-forward " + source.name + " " + destination.name)
+	destination.handling++
 	arbiter.externalLocked(source)
 	arbiter.externalLocked(destination)
 	arbiter.settleLocked()
@@ -361,11 +372,14 @@ func (arbiter *simulationTimeArbiter) forwardExternalAfterArrivals(source *simul
 func (arbiter *simulationTimeArbiter) transferExternalArrival(source *simulationTimeParticipant, arrivals uint32, destination *simulationTimeParticipant) error {
 	arbiter.mu.Lock()
 	defer arbiter.mu.Unlock()
-	if source == nil || destination == nil || source == destination || arbiter.participants[source.name] != source || arbiter.participants[destination.name] != destination {
-		return errors.New("simulation time participant is inactive")
+	if source == nil || arbiter.participants[source.name] != source {
+		return errors.New("simulation time external arrival source is inactive")
+	}
+	if destination == nil || source == destination || arbiter.participants[destination.name] != destination {
+		return errors.New("simulation time external arrival destination is inactive")
 	}
 	if uint64(arrivals) > source.delivered {
-		return errors.New("simulation time request acknowledged unknown external work")
+		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", source.name, arrivals, source.external, source.delivered)
 	}
 	if destination.delivered >= destination.external {
 		return errors.New("simulation time external arrival is unexpected")
@@ -385,11 +399,10 @@ func (arbiter *simulationTimeArbiter) acknowledgeExternal(participant *simulatio
 		return errors.New("simulation time participant is inactive")
 	}
 	if uint64(arrivals) > participant.delivered {
-		return errors.New("simulation time request acknowledged unknown external work")
+		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, arrivals, participant.external, participant.delivered)
 	}
 	participant.external -= uint64(arrivals)
 	participant.delivered -= uint64(arrivals)
-	arbiter.traceLocked(fmt.Sprintf("external-ack %s arrivals=%d", participant.name, arrivals))
 	arbiter.settleLocked()
 	return nil
 }
@@ -401,7 +414,9 @@ func (arbiter *simulationTimeArbiter) deliverExternal(participant *simulationTim
 		return
 	}
 	participant.delivered++
-	arbiter.traceLocked("external-deliver " + participant.name)
+	if participant.handling != 0 {
+		participant.handling--
+	}
 	arbiter.runnableLocked(participant)
 }
 
@@ -412,7 +427,9 @@ func (arbiter *simulationTimeArbiter) endExternal(participant *simulationTimePar
 		return
 	}
 	participant.external--
-	arbiter.traceLocked("external-end " + participant.name)
+	if participant.handling != 0 {
+		participant.handling--
+	}
 	arbiter.settleLocked()
 }
 
@@ -430,11 +447,13 @@ func (arbiter *simulationTimeArbiter) remove(participant *simulationTimeParticip
 }
 
 func (arbiter *simulationTimeArbiter) settleLocked() {
-	arbiter.traceLocked("settle")
 	deadline := int64(math.MaxInt64)
 	active := 0
 	for _, participant := range arbiter.participants {
 		if !participant.active {
+			return
+		}
+		if participant.handling != 0 {
 			return
 		}
 		if participant.delivered != 0 {
@@ -459,7 +478,6 @@ func (arbiter *simulationTimeArbiter) settleLocked() {
 	if deadline != math.MaxInt64 {
 		arbiter.current = deadline
 	}
-	arbiter.traceLocked("advance")
 	for _, participant := range arbiter.participants {
 		if !participant.active || participant.external != 0 {
 			continue
@@ -475,17 +493,6 @@ func (arbiter *simulationTimeArbiter) settleLocked() {
 		}}
 		participant.waiter = nil
 	}
-}
-
-func (arbiter *simulationTimeArbiter) traceLocked(event string) {
-	if os.Getenv("GOMADV3_DEBUG_TIME") == "" {
-		return
-	}
-	fmt.Fprintf(os.Stderr, "simulation-time %s current=%d", event, arbiter.current)
-	for _, participant := range arbiter.participants {
-		fmt.Fprintf(os.Stderr, " %s(active=%t external=%d delivered=%d waiter=%t deadline=%d generation=%d)", participant.name, participant.active, participant.external, participant.delivered, participant.waiter != nil, participant.deadline, participant.generation)
-	}
-	fmt.Fprintln(os.Stderr)
 }
 
 func (arbiter *simulationTimeArbiter) currentTime() int64 {
