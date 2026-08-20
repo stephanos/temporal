@@ -16,14 +16,24 @@ structure Request where
   property : String
   world : String
   variant : String
+  semanticHash : String
   actions : List String
   deriving DecidableEq, Repr
 
+private def lowerHexDigit (character : Char) : Bool :=
+  ('0' ≤ character && character ≤ '9') || ('a' ≤ character && character ≤ 'f')
+
 def Request.validDigest (request : Request) : Bool :=
-  request.traceDigest.startsWith "sha256:" && request.traceDigest.length = 71
+  request.traceDigest.startsWith "sha256:" && request.traceDigest.length = 71 &&
+    (request.traceDigest.drop 7).toString.toList.all lowerHexDigit
+
+def Request.validSemanticHash (request : Request) : Bool :=
+  request.semanticHash.startsWith "sha256:" && request.semanticHash.length = 71 &&
+    (request.semanticHash.drop 7).toString.toList.all lowerHexDigit
 
 def Request.matchesMutatedNexus (request : Request) : Bool :=
   request.validDigest &&
+    request.validSemanticHash &&
     request.target == "nexus-cancellation" &&
     request.property == "nexus.cancellation.won-excludes-success" &&
     request.world == "smoke" &&
@@ -60,6 +70,12 @@ def checkedRequestAxioms : List String :=
 def Request.receipt (request : Request) : Lean.Json := Lean.Json.mkObj [
   ("formatVersion", "umpire3/trace-replay-receipt/v1"),
   ("traceDigest", request.traceDigest),
+  ("target", request.target),
+  ("property", request.property),
+  ("world", request.world),
+  ("variant", request.variant),
+  ("semanticHash", request.semanticHash),
+  ("actions", Lean.Json.arr (request.actions.map Lean.toJson).toArray),
   ("status", "accepted"),
   ("trustBadge", "checked-certificate"),
   ("axioms", Lean.Json.arr (checkedRequestAxioms.map Lean.toJson).toArray),

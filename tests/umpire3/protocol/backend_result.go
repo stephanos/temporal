@@ -64,9 +64,10 @@ type TraceSource struct {
 }
 
 type TraceReplayResult struct {
-	Status     TraceReplayStatus `json:"status"`
-	TrustBadge TrustBadge        `json:"trustBadge"`
-	Axioms     []string          `json:"axioms"`
+	TraceDigest string            `json:"traceDigest"`
+	Status      TraceReplayStatus `json:"status"`
+	TrustBadge  TrustBadge        `json:"trustBadge"`
+	Axioms      []string          `json:"axioms"`
 }
 
 type TraceReplayInput struct {
@@ -82,6 +83,12 @@ type TraceReplayInput struct {
 type TraceReplayReceipt struct {
 	FormatVersion string            `json:"formatVersion"`
 	TraceDigest   string            `json:"traceDigest"`
+	Target        TargetID          `json:"target"`
+	Property      PropertyID        `json:"property"`
+	World         string            `json:"world"`
+	Variant       string            `json:"variant"`
+	SemanticHash  string            `json:"semanticHash"`
+	Actions       []ActionKind      `json:"actions"`
 	Status        TraceReplayStatus `json:"status"`
 	TrustBadge    TrustBadge        `json:"trustBadge"`
 	Axioms        []string          `json:"axioms"`
@@ -185,6 +192,15 @@ func (r TraceReplayReceipt) Validate() error {
 		r.Axioms == nil {
 		return errors.New("trace replay receipt requires an accepted checked-certificate bound digest")
 	}
+	input := TraceReplayInput{
+		FormatVersion: TraceReplayInputFormatVersion,
+		Target:        r.Target, Property: r.Property, World: r.World, Variant: r.Variant,
+		SemanticHash: r.SemanticHash, Actions: append([]ActionKind(nil), r.Actions...),
+	}
+	digest, err := input.Digest()
+	if err != nil || digest != r.TraceDigest {
+		return errors.New("trace replay receipt digest does not match its checked trace")
+	}
 	return validateOrderedStrings("trace replay receipt axiom", r.Axioms)
 }
 
@@ -236,15 +252,21 @@ func (r BackendResult) Validate() error {
 		}
 	case ResultClassBoundedSafe:
 		if r.Job != BackendJobSymbolicTrace || !r.Exact ||
-			(r.TrustBadge != TrustBadgeReconstructedSolverProof && r.TrustBadge != TrustBadgeTrustedSolver) ||
+			r.TrustBadge != TrustBadgeTrustedSolver ||
 			r.Termination != BackendTerminationBoundedSafe || r.Bounds.Depth <= 0 || r.Trace != nil {
-			return errors.New("bounded-safe result requires an exact symbolic bound and disclosed solver trust")
+			return errors.New("bounded-safe result requires an exact symbolic bound and trusted-solver disclosure")
 		}
 	case ResultClassInvariantProved:
 		if r.Job != BackendJobInvariant || !r.Exact ||
 			(r.TrustBadge != TrustBadgeReconstructedSolverProof && r.TrustBadge != TrustBadgeTrustedSolver) ||
 			r.Termination != BackendTerminationGoalsClosed || r.Trace != nil {
 			return errors.New("invariant proof requires closed goals and disclosed solver trust")
+		}
+		if r.TrustBadge == TrustBadgeReconstructedSolverProof && slices.Contains(r.Axioms, "sorryAx") {
+			return errors.New("reconstructed invariant proof cannot depend on sorryAx")
+		}
+		if r.TrustBadge == TrustBadgeTrustedSolver && !slices.Contains(r.Axioms, "sorryAx") {
+			return errors.New("trusted Veil invariant proof must disclose sorryAx")
 		}
 	case ResultClassUnknown:
 		if r.Exact || (r.Termination != BackendTerminationUnknown &&
@@ -270,8 +292,21 @@ func (t ModelTrace) validate(result BackendResult) error {
 		return errors.New("trace identity, violation, assumptions, and bounds must match the backend result")
 	}
 	if t.Replay.Status != TraceReplayAccepted || t.Replay.TrustBadge != TrustBadgeCheckedCertificate ||
-		t.Replay.Axioms == nil {
+		!validHash(t.Replay.TraceDigest) || t.Replay.Axioms == nil {
 		return errors.New("trace witness requires accepted canonical replay with checked-certificate trust")
+	}
+	actions := make([]ActionKind, len(t.Steps))
+	for index, step := range t.Steps {
+		actions[index] = step.Action
+	}
+	replayInput := TraceReplayInput{
+		FormatVersion: TraceReplayInputFormatVersion,
+		Target:        result.Target, Property: result.Property, World: result.World, Variant: result.Variant,
+		SemanticHash: result.SemanticHash, Actions: actions,
+	}
+	digest, err := replayInput.Digest()
+	if err != nil || digest != t.Replay.TraceDigest {
+		return errors.New("trace witness replay digest does not match result identity and actions")
 	}
 	if !slices.Equal(result.Axioms, t.Replay.Axioms) {
 		return errors.New("trace witness axiom inventory must match canonical replay")
