@@ -206,7 +206,8 @@ func FaultTargets(calls []Call, seed int64, limit int) []Footprint {
 			continue
 		}
 		footprints = append(footprints, Footprint{
-			Protocol: call.Protocol, Service: call.Service, Route: call.Route, Risk: call.Risk,
+			Protocol: call.Protocol, Service: call.Service, Route: call.Route,
+			Occurrence: call.Occurrence, Risk: call.Risk,
 		})
 	}
 	return SelectFootprints(footprints, seed, limit)
@@ -302,6 +303,7 @@ func footprintSet(footprints []Footprint) map[string]Footprint {
 		if footprint.Protocol == "" || footprint.Service == "" || footprint.Route == "" {
 			continue
 		}
+		footprint.Occurrence = 0
 		result[footprintIdentity(footprint)] = footprint
 	}
 	return result

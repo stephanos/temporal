@@ -70,6 +70,7 @@ type Footprint struct {
 	Protocol            string `json:"protocol"`
 	Service             string `json:"service"`
 	Route               string `json:"route"`
+	Occurrence          int    `json:"occurrence,omitempty"`
 	Risk                int    `json:"risk"`
 	RealizationEvidence bool   `json:"realizationEvidence"`
 }
@@ -198,7 +199,7 @@ func SelectFootprints(footprints []Footprint, seed int64, limit int) []Footprint
 			continue
 		}
 		footprint.RealizationEvidence = true
-		key := footprint.Protocol + "\x00" + footprint.Service + "\x00" + footprint.Route
+		key := faultTargetIdentity(footprint)
 		if previous, exists := unique[key]; !exists || footprint.Risk > previous.Risk {
 			unique[key] = footprint
 		}
@@ -210,6 +211,9 @@ func SelectFootprints(footprints []Footprint, seed int64, limit int) []Footprint
 	slices.SortFunc(selected, func(left, right Footprint) int {
 		if left.Risk != right.Risk {
 			return right.Risk - left.Risk
+		}
+		if footprintIdentity(left) == footprintIdentity(right) && left.Occurrence != right.Occurrence {
+			return left.Occurrence - right.Occurrence
 		}
 		leftHash := footprintOrder(left, seed)
 		rightHash := footprintOrder(right, seed)
@@ -225,8 +229,12 @@ func SelectFootprints(footprints []Footprint, seed int64, limit int) []Footprint
 }
 
 func footprintOrder(footprint Footprint, seed int64) uint64 {
-	digest := sha256.Sum256([]byte(fmt.Sprintf("%d:%s:%s:%s", seed, footprint.Protocol, footprint.Service, footprint.Route)))
+	digest := sha256.Sum256([]byte(fmt.Sprintf("%d:%s", seed, faultTargetIdentity(footprint))))
 	return binary.BigEndian.Uint64(digest[:8])
+}
+
+func faultTargetIdentity(footprint Footprint) string {
+	return fmt.Sprintf("%s\x00%s\x00%s\x00%d", footprint.Protocol, footprint.Service, footprint.Route, footprint.Occurrence)
 }
 
 func nonEmpty(values []string) bool {
