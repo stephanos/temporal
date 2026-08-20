@@ -9,7 +9,7 @@ import (
 )
 
 const maximumProcessFrameBytes = 128 << 20
-const processProtocol = "gomadv3.simulation-process/v2"
+const processProtocol = "gomadv3.simulation-process/v3"
 const processNodeBootstrapSchema = "gomadv3.simulation-node-bootstrap/v1"
 const processNodeTerminalSchema = "gomadv3.simulation-node-terminal/v1"
 
@@ -34,6 +34,7 @@ type processFrame struct {
 	Request     uint64           `json:"request"`
 	Node        string           `json:"node,omitempty"`
 	Incarnation uint64           `json:"incarnation,omitempty"`
+	Arrivals    uint32           `json:"arrivals,omitempty"`
 	Payload     []byte           `json:"payload,omitempty"`
 	Error       string           `json:"error,omitempty"`
 }
@@ -88,6 +89,9 @@ func validateProcessFrame(frame processFrame) error {
 	}
 	if frame.Request == 0 {
 		return errors.New("process simulation request identity is required")
+	}
+	if frame.Kind == processFrameResponse && frame.Arrivals != 0 {
+		return errors.New("process simulation response cannot acknowledge external work")
 	}
 	if len(frame.Node) > 256 || len(frame.Payload) > maximumProcessFrameBytes || len(frame.Error) > MaximumTerminalReasonBytes {
 		return errors.New("process simulation frame exceeds its bound")

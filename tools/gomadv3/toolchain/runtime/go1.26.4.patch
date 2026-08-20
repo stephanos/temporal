@@ -77,18 +77,18 @@ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
 index 005c875..7a49cf1 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
-@@ -246,6 +246,10 @@ func main() {
+@@ -244,6 +244,10 @@
+ 		// a C-created thread and need to create a new thread.
+ 		startTemplateThread()
  		cgocall(_cgo_notify_runtime_init_done, nil)
- 	}
- 
-+	if gomadEnabled {
-+		gomadStartUserCode(mp)
 +	}
 +
++	if gomadEnabled {
++		gomadStartUserCode(mp)
+ 	}
+ 
  	// Run the initializing tasks. Depending on build mode this
- 	// list can arrive a few different ways, but it will always
- 	// contain the init tasks computed by the linker for all the
-@@ -873,6 +877,7 @@ func schedinit() {
+@@ -873,6 +877,7 @@
  	ticks.init() // run as early as possible
  	moduledataverify()
  	stackinit()
@@ -96,7 +96,7 @@ index 005c875..7a49cf1 100644
  	randinit() // must run before mallocinit, alginit, mcommoninit
  	mallocinit()
  	cpuinit(godebug) // must run before alginit
-@@ -919,7 +924,10 @@ func schedinit() {
+@@ -919,7 +924,10 @@
  	lock(&sched.lock)
  	sched.lastpoll.Store(nanotime())
  	var procs int32
@@ -108,7 +108,7 @@ index 005c875..7a49cf1 100644
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -5352,6 +5360,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
+@@ -5352,6 +5360,10 @@
  	gostartcallfn(&newg.sched, fn)
  	newg.parentGoid = callergp.goid
  	newg.gopc = callerpc
@@ -119,19 +119,95 @@ index 005c875..7a49cf1 100644
  	newg.ancestors = saveAncestors(callergp)
  	newg.startpc = fn.fn
  	newg.runningCleanups.Store(false)
-@@ -6428,7 +6440,10 @@ func checkdead() {
+@@ -6393,7 +6405,7 @@
+ 		run0 = 1
+ 	}
+ 
+-	run := mcount() - sched.nmidle - sched.nmidlelocked - sched.nmsys
++	run := mcount() - sched.nmidle - sched.nmidlelocked - sched.nmsys - gomadSimulationTransportSyscalls.Load()
+ 	if run > run0 {
+ 		return
+ 	}
+@@ -6408,6 +6420,10 @@
+ 		if isSystemGoroutine(gp, false) {
+ 			return
+ 		}
++		if gp.gomadSimulationTransport {
++			grunning++
++			return
++		}
+ 		s := readgstatus(gp)
+ 		switch s &^ _Gscan {
+ 		case _Gwaiting,
+@@ -6428,12 +6444,53 @@
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
 -		if when := timeSleepUntil(); when < maxWhen {
-+		if gomadEnabled && netpollAnyWaiters() {
+-			faketime = when
+-
++		if gomadSimulationTimeEnabled && gomadSimulationExternalRequests.Load() != 0 {
 +			return
 +		}
-+		if when, ok := timeSleepUntil(); when < maxWhen || gomadEnabled && ok {
- 			faketime = when
- 
++		if gomadSimulationTimeEnabled && gomadSimulationTimeAwaitingExternal.Load() && gomadSimulationTimeArrivals.Load() == 0 {
++			return
++		}
++		when, timer := timeSleepUntil()
++		wakeTimer := false
++		if gomadSimulationTimeEnabled {
++			if gomadSimulationTimeQuiescing {
++				return
++			}
++			gomadSimulationTimeQuiescing = true
++			unlock(&sched.lock)
++			current, kind, ok := gomadSimulationTimeQuiesce(when)
++			lock(&sched.lock)
++			gomadSimulationTimeQuiescing = false
++			if !ok {
++				unlock(&sched.lock)
++				fatal("Gomad simulation time transport failed")
++			}
++			switch kind {
++			case gomadSimulationTimeResponseRetry, gomadSimulationTimeResponseExternal:
++				return
++			case gomadSimulationTimeResponseDeadlock:
++				unlock(&sched.lock)
++				fatal("all goroutines are asleep - deadlock!")
++			case gomadSimulationTimeResponseAdvance:
++				faketime = current
++				wakeTimer = timer && when <= current
++			}
++		} else {
++			if gomadEnabled && netpollAnyWaiters() {
++				return
++			}
++			wakeTimer = when < maxWhen || gomadEnabled && timer
++			if wakeTimer {
++				faketime = when
++			}
++		}
++		if wakeTimer {
  			// Start an M to steal the timer.
-@@ -6478,7 +6493,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+ 			pp, _ := pidleget(faketime)
+ 			if pp == nil {
++				if gomadSimulationTimeEnabled {
++					return
++				}
+ 				// There should always be a free P since
+ 				// nothing is running.
+ 				unlock(&sched.lock)
+@@ -6441,6 +6498,10 @@
+ 			}
+ 			mp := mget()
+ 			if mp == nil {
++				if gomadSimulationTimeEnabled {
++					pidleput(pp, faketime)
++					return
++				}
+ 				// There should always be a free M since
+ 				// nothing is running.
+ 				unlock(&sched.lock)
+@@ -6478,7 +6539,7 @@
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -140,7 +216,7 @@ index 005c875..7a49cf1 100644
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -6525,7 +6540,7 @@ func sysmon() {
+@@ -6525,7 +6586,7 @@
  			lock(&sched.lock)
  			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
  				syscallWake := false
@@ -149,7 +225,7 @@ index 005c875..7a49cf1 100644
  				if next > now {
  					sched.sysmonwait.Store(true)
  					unlock(&sched.lock)
-@@ -7468,7 +7483,7 @@ func runqempty(pp *p) bool {
+@@ -7468,7 +7529,7 @@
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -158,7 +234,7 @@ index 005c875..7a49cf1 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7487,7 +7502,7 @@ func runqput(pp *p, gp *g, next bool) {
+@@ -7487,7 +7548,7 @@
  		// risk starvation.
  		next = false
  	}
@@ -167,7 +243,7 @@ index 005c875..7a49cf1 100644
  		next = false
  	}
  
-@@ -7540,7 +7555,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+@@ -7540,7 +7601,7 @@
  
  	if randomizeScheduler {
  		for i := uint32(1); i <= n; i++ {
@@ -176,7 +252,7 @@ index 005c875..7a49cf1 100644
  			batch[i], batch[j] = batch[j], batch[i]
  		}
  	}
-@@ -7581,7 +7596,7 @@ func runqputbatch(pp *p, q *gQueue) {
+@@ -7581,7 +7642,7 @@
  			return (pp.runqtail + o) % uint32(len(pp.runq))
  		}
  		for i := uint32(1); i < n; i++ {
@@ -185,10 +261,12 @@ index 005c875..7a49cf1 100644
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
  	}
-@@ -7605,6 +7620,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7603,6 +7664,20 @@
+ 	// Hence, there's no need to retry this CAS if it fails.
+ 	if next != 0 && pp.runnext.cas(next, 0) {
  		return next.ptr(), true
- 	}
- 
++	}
++
 +	if gomadEnabled && gomaxprocs == 1 {
 +		h := atomic.LoadAcq(&pp.runqhead)
 +		t := pp.runqtail
@@ -201,11 +279,9 @@ index 005c875..7a49cf1 100644
 +			atomic.StoreRel(&pp.runqhead, h+1)
 +			return gp, false
 +		}
-+	}
-+
+ 	}
+ 
  	for {
- 		h := atomic.LoadAcq(&pp.runqhead) // load-acquire, synchronize with other consumers
- 		t := pp.runqtail
 diff --git a/src/runtime/rand.go b/src/runtime/rand.go
 index 1739e9f..68ab02a 100644
 --- a/src/runtime/rand.go
@@ -238,7 +314,7 @@ diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
 index be33932..4f221ca 100644
 --- a/src/runtime/runtime2.go
 +++ b/src/runtime/runtime2.go
-@@ -503,13 +503,16 @@ type g struct {
+@@ -503,13 +503,17 @@
  	//    closure in the runtime is forbidden.
  	// 4. When a panic is recovered and control returns to the respective frame,
  	//    param may point to a savedOpenDeferState.
@@ -249,16 +325,17 @@ index be33932..4f221ca 100644
 -	schedlink    guintptr
 -	waitsince    int64      // approx time when the g become blocked
 -	waitreason   waitReason // if status==Gwaiting
-+	param                 unsafe.Pointer
-+	atomicstatus          atomic.Uint32
-+	stackLock             uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
-+	goid                  uint64
-+	gomadIdentity         [32]byte
-+	gomadChildOrdinal     uint64
-+	gomadSimulationDomain uint64
-+	schedlink             guintptr
-+	waitsince             int64      // approx time when the g become blocked
-+	waitreason            waitReason // if status==Gwaiting
++	param                    unsafe.Pointer
++	atomicstatus             atomic.Uint32
++	stackLock                uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
++	goid                     uint64
++	gomadIdentity            [32]byte
++	gomadChildOrdinal        uint64
++	gomadSimulationDomain    uint64
++	gomadSimulationTransport bool
++	schedlink                guintptr
++	waitsince                int64      // approx time when the g become blocked
++	waitreason               waitReason // if status==Gwaiting
  
  	preempt       bool // preemption signal, duplicates stackguard0 = stackpreempt
  	preemptStop   bool // transition to _Gpreempted on preemption; otherwise, just deschedule
