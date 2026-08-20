@@ -57,6 +57,8 @@ const (
 	simulationControlResource       resourceName = "simulation-control"
 	simulationModelRequestResource  resourceName = "simulation-model-request"
 	simulationModelResponseResource resourceName = "simulation-model-response"
+	simulationTimeRequestResource   resourceName = "simulation-time-request"
+	simulationTimeResponseResource  resourceName = "simulation-time-response"
 )
 
 const (
@@ -138,6 +140,8 @@ var launchDescriptorSpecs = []descriptorSpec{
 	{resource: simulationControlResource, simulation: true, closeOnBootstrapStart: true},
 	{resource: simulationModelRequestResource, simulation: true, closeOnBootstrapStart: true},
 	{resource: simulationModelResponseResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationTimeRequestResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationTimeResponseResource, simulation: true, closeOnBootstrapStart: true},
 }
 
 func descriptorLayout(stage launchStage, capabilities launchCapabilities) []descriptorBinding {
@@ -181,9 +185,16 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 				descriptorBinding{resource: simulationControlResource, fd: next + 3},
 				descriptorBinding{resource: simulationModelRequestResource, fd: next + 4},
 				descriptorBinding{resource: simulationModelResponseResource, fd: next + 5},
+				descriptorBinding{resource: simulationTimeRequestResource, fd: next + 6},
+				descriptorBinding{resource: simulationTimeResponseResource, fd: next + 7},
 			)
 		} else if capabilities.simulationCoordinator {
-			bindings = append(bindings, descriptorBinding{resource: simulationModelRequestResource, fd: next + 2}, descriptorBinding{resource: simulationModelResponseResource, fd: next + 3})
+			bindings = append(bindings,
+				descriptorBinding{resource: simulationModelRequestResource, fd: next + 2},
+				descriptorBinding{resource: simulationModelResponseResource, fd: next + 3},
+				descriptorBinding{resource: simulationTimeRequestResource, fd: next + 4},
+				descriptorBinding{resource: simulationTimeResponseResource, fd: next + 5},
+			)
 		}
 	}
 	if capabilities.choiceTrace {

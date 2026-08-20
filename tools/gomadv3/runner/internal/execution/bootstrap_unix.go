@@ -19,7 +19,7 @@ import (
 func BootstrapMain() (retErr error) {
 	defer func() {
 		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true, simulation: true, simulationBootstrap: true}
-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, simulationModelRequestResource), descriptorFor(bootstrapStage, capabilities, simulationModelResponseResource), descriptorFor(bootstrapStage, capabilities, simulationTimeRequestResource), descriptorFor(bootstrapStage, capabilities, simulationTimeResponseResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
 	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
@@ -120,6 +120,8 @@ func BootstrapMain() (retErr error) {
 		request.Env = append(request.Env,
 			fmt.Sprintf("%s=%d", simulationModelRequestFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationModelRequestResource)),
 			fmt.Sprintf("%s=%d", simulationModelResponseFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationModelResponseResource)),
+			fmt.Sprintf("%s=%d", simulationTimeRequestFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationTimeRequestResource)),
+			fmt.Sprintf("%s=%d", simulationTimeResponseFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationTimeResponseResource)),
 		)
 	}
 	return syscall.Exec(request.Command, argv, request.Env)

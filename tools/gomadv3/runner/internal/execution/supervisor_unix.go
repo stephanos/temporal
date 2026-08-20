@@ -30,12 +30,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
-	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse *os.File
+	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse, simulationTimeRequest, simulationTimeResponse *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse), closeOpenFile(&simulationTimeRequest), closeOpenFile(&simulationTimeResponse))
 	}()
 
 	var request supervisorRequest
@@ -84,7 +84,9 @@ func SupervisorMain() (retErr error) {
 		}
 		simulationModelRequest = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationModelRequestResource)), "simulation-model-request")
 		simulationModelResponse = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationModelResponseResource)), "simulation-model-response")
-		if simulationRequest == nil || simulationResponse == nil || simulationModelRequest == nil || simulationModelResponse == nil || request.SimulationBootstrap && (simulationBootstrap == nil || simulationControl == nil) {
+		simulationTimeRequest = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationTimeRequestResource)), "simulation-time-request")
+		simulationTimeResponse = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationTimeResponseResource)), "simulation-time-response")
+		if simulationRequest == nil || simulationResponse == nil || simulationModelRequest == nil || simulationModelResponse == nil || simulationTimeRequest == nil || simulationTimeResponse == nil || request.SimulationBootstrap && (simulationBootstrap == nil || simulationControl == nil) {
 			return errors.New("simulation file descriptors are unavailable")
 		}
 	}
@@ -162,6 +164,8 @@ func SupervisorMain() (retErr error) {
 		}
 		resources.bind(simulationModelRequestResource, &simulationModelRequest)
 		resources.bind(simulationModelResponseResource, &simulationModelResponse)
+		resources.bind(simulationTimeRequestResource, &simulationTimeRequest)
+		resources.bind(simulationTimeResponseResource, &simulationTimeResponse)
 	}
 	target.ExtraFiles, err = resources.extraFiles(bootstrapStage)
 	if err != nil {

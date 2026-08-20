@@ -20,6 +20,16 @@ var gomadExternal bool
 var gomadIOProfile bool
 var gomadConfigPresent bool
 var gomadConfig [212]byte
+var gomadSimulationTimeEnabled bool
+var gomadSimulationTimeRequestDescriptor int32
+var gomadSimulationTimeResponseDescriptor int32
+var gomadSimulationTimeGeneration uint64
+var gomadSimulationTimeQuiescing bool
+var gomadSimulationTimeAwaitingExternal atomic.Bool
+var gomadSimulationTimeArrivals atomic.Uint32
+var gomadSimulationTimeArrivalEpoch atomic.Uint64
+var gomadSimulationExternalRequests atomic.Int32
+var gomadSimulationTransportSyscalls atomic.Int32
 
 var gomadChoiceEnabled bool
 var gomadChoiceMode uint8
@@ -44,6 +54,18 @@ var gomadChoiceSelectRandom uint64
 const gomadInitialTime = 946684800000000000
 const gomadMapShared = 1
 const gomadChoiceMaximumAlternatives = 256
+const gomadSimulationTimeRequestBytes = 40
+const gomadSimulationTimeResponseBytes = 32
+
+const (
+	gomadSimulationTimeResponseAdvance = iota + 1
+	gomadSimulationTimeResponseRetry
+	gomadSimulationTimeResponseDeadlock
+	gomadSimulationTimeResponseExternal
+)
+
+var gomadSimulationTimeRequestMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'Q', 1}
+var gomadSimulationTimeResponseMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'R', 1}
 
 func gomadInit() {
 	var seed uint64
@@ -80,9 +102,27 @@ func gomadInit() {
 	gomadEnabled = true
 	gomadSeed = seed
 	faketime = gomadInitialTime
+	gomadSimulationTimeInit()
 	debug.asyncpreemptoff = 1
 	haveSysmon = false
 	randomizeScheduler = true
+}
+
+func gomadSimulationTimeInit() {
+	requestValue, requestPresent := gomadEnvEarly("GOMADV3_SIMULATION_TIME_REQUEST_FD=")
+	responseValue, responsePresent := gomadEnvEarly("GOMADV3_SIMULATION_TIME_RESPONSE_FD=")
+	if !requestPresent && !responsePresent {
+		return
+	}
+	request, requestOK := gomadParseSeed(requestValue)
+	response, responseOK := gomadParseSeed(responseValue)
+	if !requestPresent || !responsePresent || !requestOK || !responseOK || request < 3 || response < 3 || request > 1<<31-1 || response > 1<<31-1 || request == response {
+		print("runtime: invalid Gomad simulation time configuration\n")
+		exit(2)
+	}
+	gomadSimulationTimeEnabled = true
+	gomadSimulationTimeRequestDescriptor = int32(request)
+	gomadSimulationTimeResponseDescriptor = int32(response)
 }
 
 func gomadChoiceConfigured() bool {
@@ -654,12 +694,185 @@ func gomadSimulationSetDomain(domain uint64) uint64 {
 	return previous
 }
 
+//go:linkname gomadSimulationTimeAdvance
+func gomadSimulationTimeAdvance(current int64) bool {
+	if !gomadSimulationTimeEnabled || current < faketime {
+		return false
+	}
+	faketime = current
+	return true
+}
+
+//go:linkname gomadSimulationTimeCurrent
+func gomadSimulationTimeCurrent() int64 {
+	if !gomadSimulationTimeEnabled {
+		return 0
+	}
+	return faketime
+}
+
+//go:linkname gomadSimulationTimeObserve
+func gomadSimulationTimeObserve(current int64) bool {
+	if !gomadSimulationTimeEnabled {
+		return current == 0
+	}
+	return gomadSimulationTimeAdvance(current)
+}
+
+//go:linkname gomadSimulationExternalBegin
+func gomadSimulationExternalBegin() {
+	if gomadSimulationTimeEnabled {
+		gomadSimulationExternalRequests.Add(1)
+	}
+}
+
+//go:linkname gomadSimulationExternalEnd
+func gomadSimulationExternalEnd() {
+	if gomadSimulationTimeEnabled {
+		gomadSimulationExternalRequests.Add(-1)
+	}
+}
+
+//go:linkname gomadSimulationExternalArrive
+func gomadSimulationExternalArrive() {
+	if gomadSimulationTimeEnabled {
+		gomadSimulationTimeArrivals.Add(1)
+		gomadSimulationTimeArrivalEpoch.Add(1)
+	}
+}
+
+//go:linkname gomadSimulationTimeTakeArrivals
+func gomadSimulationTimeTakeArrivals() uint32 {
+	if !gomadSimulationTimeEnabled {
+		return 0
+	}
+	arrivals := gomadSimulationTimeArrivals.Swap(0)
+	if arrivals != 0 {
+		gomadSimulationTimeAwaitingExternal.Store(false)
+	}
+	return arrivals
+}
+
+//go:nosplit
+func gomadSimulationTimeQuiesce(deadline int64) (int64, uint8, bool) {
+	if !gomadSimulationTimeEnabled {
+		return 0, 0, false
+	}
+	gomadSimulationTimeGeneration++
+	if gomadSimulationTimeGeneration == 0 {
+		return 0, 0, false
+	}
+	var request [gomadSimulationTimeRequestBytes]byte
+	for index := range gomadSimulationTimeRequestMagic {
+		request[index] = gomadSimulationTimeRequestMagic[index]
+	}
+	gomadSimulationTimePut64(request[8:16], gomadSimulationTimeGeneration)
+	gomadSimulationTimePut64(request[16:24], uint64(faketime))
+	gomadSimulationTimePut64(request[24:32], uint64(deadline))
+	arrivalEpoch := gomadSimulationTimeArrivalEpoch.Load()
+	arrivals := gomadSimulationTimeArrivals.Swap(0)
+	gomadSimulationTimePut32(request[32:36], arrivals)
+	if !gomadSimulationTimeWrite(gomadSimulationTimeRequestDescriptor, request[:]) {
+		return 0, 0, false
+	}
+	var response [gomadSimulationTimeResponseBytes]byte
+	if !gomadSimulationTimeRead(gomadSimulationTimeResponseDescriptor, response[:]) {
+		return 0, 0, false
+	}
+	for index := range gomadSimulationTimeResponseMagic {
+		if response[index] != gomadSimulationTimeResponseMagic[index] {
+			return 0, 0, false
+		}
+	}
+	if gomadSimulationTimeGet64(response[8:16]) != gomadSimulationTimeGeneration {
+		return 0, 0, false
+	}
+	for _, value := range response[25:] {
+		if value != 0 {
+			return 0, 0, false
+		}
+	}
+	current := int64(gomadSimulationTimeGet64(response[16:24]))
+	kind := response[24]
+	if current < faketime || kind < gomadSimulationTimeResponseAdvance || kind > gomadSimulationTimeResponseExternal {
+		return 0, 0, false
+	}
+	if arrivals != 0 {
+		gomadSimulationTimeAwaitingExternal.Store(false)
+	}
+	if kind == gomadSimulationTimeResponseExternal {
+		gomadSimulationTimeAwaitingExternal.Store(true)
+		if arrivalEpoch != gomadSimulationTimeArrivalEpoch.Load() || gomadSimulationTimeArrivals.Load() != 0 {
+			gomadSimulationTimeAwaitingExternal.Store(false)
+		}
+	}
+	return current, kind, true
+}
+
+//go:nosplit
+func gomadSimulationTimeWrite(descriptor int32, source []byte) bool {
+	for len(source) != 0 {
+		count := write1(uintptr(descriptor), unsafe.Pointer(&source[0]), int32(len(source)))
+		if count <= 0 || count > int32(len(source)) {
+			return false
+		}
+		source = source[count:]
+	}
+	return true
+}
+
+//go:nosplit
+func gomadSimulationTimeRead(descriptor int32, destination []byte) bool {
+	for len(destination) != 0 {
+		count := read(descriptor, unsafe.Pointer(&destination[0]), int32(len(destination)))
+		if count <= 0 || count > int32(len(destination)) {
+			return false
+		}
+		destination = destination[count:]
+	}
+	return true
+}
+
+//go:nosplit
+func gomadSimulationTimePut64(destination []byte, value uint64) {
+	for index := 7; index >= 0; index-- {
+		destination[index] = byte(value)
+		value >>= 8
+	}
+}
+
+//go:nosplit
+func gomadSimulationTimePut32(destination []byte, value uint32) {
+	for index := 3; index >= 0; index-- {
+		destination[index] = byte(value)
+		value >>= 8
+	}
+}
+
+//go:nosplit
+func gomadSimulationTimeGet64(source []byte) uint64 {
+	var value uint64
+	for _, current := range source {
+		value = value<<8 | uint64(current)
+	}
+	return value
+}
+
 //go:linkname gomadBlockingRead
 //go:nosplit
 func gomadBlockingRead(fd int32, destination unsafe.Pointer, bytes int32) int32 {
+	gp := getg()
+	if gomadSimulationTimeEnabled {
+		gp.gomadSimulationTransport = true
+		gomadSimulationTransportSyscalls.Add(1)
+	}
 	entersyscallblock()
 	count := read(fd, destination, bytes)
+	if gomadSimulationTimeEnabled {
+		gomadSimulationTransportSyscalls.Add(-1)
+	}
 	exitsyscall()
+	gp.gomadSimulationTransport = false
 	return count
 }
 
