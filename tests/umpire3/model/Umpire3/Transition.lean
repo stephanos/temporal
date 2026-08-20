@@ -52,4 +52,12 @@ theorem Runs.firstStep {model : TransitionSystem} {start final : model.State}
   cases run with
   | cons step _ => exact ⟨_, step⟩
 
+theorem Runs.uncons {model : TransitionSystem} {start final : model.State}
+    {action : model.Action} {actions : List model.Action}
+    (run : Runs model start (action :: actions) final) :
+    ∃ nextState, model.Step start action nextState ∧
+      Runs model nextState actions final := by
+  cases run with
+  | cons step tail => exact ⟨_, step, tail⟩
+
 end Umpire3
