@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
@@ -43,22 +44,26 @@ type supervisorRequest struct {
 	ChoiceTraceLimit     uint64        `json:"choice_trace_limit"`
 	ChoiceMode           choice.Mode   `json:"choice_mode"`
 	ChoiceTapeBytes      uint64        `json:"choice_tape_bytes"`
+	Simulation           bool          `json:"simulation"`
+	SimulationBootstrap  bool          `json:"simulation_bootstrap"`
 }
 
 type targetBootstrapRequest struct {
-	Command           string      `json:"command"`
-	Args              []string    `json:"args"`
-	Argv0             string      `json:"argv0"`
-	Dir               string      `json:"dir"`
-	Env               []string    `json:"env"`
-	IOConfig          []byte      `json:"io_config"`
-	IOTranscriptLimit uint64      `json:"io_transcript_limit"`
-	IOReplay          bool        `json:"io_replay"`
-	IOROMounts        bool        `json:"io_ro_mounts"`
-	ChoiceTrace       bool        `json:"choice_trace"`
-	ChoiceTraceLimit  uint64      `json:"choice_trace_limit"`
-	ChoiceMode        choice.Mode `json:"choice_mode"`
-	ChoiceTapeBytes   uint64      `json:"choice_tape_bytes"`
+	Command             string      `json:"command"`
+	Args                []string    `json:"args"`
+	Argv0               string      `json:"argv0"`
+	Dir                 string      `json:"dir"`
+	Env                 []string    `json:"env"`
+	IOConfig            []byte      `json:"io_config"`
+	IOTranscriptLimit   uint64      `json:"io_transcript_limit"`
+	IOReplay            bool        `json:"io_replay"`
+	IOROMounts          bool        `json:"io_ro_mounts"`
+	ChoiceTrace         bool        `json:"choice_trace"`
+	ChoiceTraceLimit    uint64      `json:"choice_trace_limit"`
+	ChoiceMode          choice.Mode `json:"choice_mode"`
+	ChoiceTapeBytes     uint64      `json:"choice_tape_bytes"`
+	Simulation          bool        `json:"simulation"`
+	SimulationBootstrap bool        `json:"simulation_bootstrap"`
 }
 
 type supervisorReport struct {
@@ -77,6 +82,12 @@ type supervisorReport struct {
 func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	if err := validateSpec(request); err != nil {
 		return Result{}, err
+	}
+	var simulationCoordinator *simulationCoordinator
+	if request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator && request.Simulation.handler == nil {
+		simulationCoordinator = newSimulationCoordinator(request)
+		request.Simulation.handler = simulationCoordinator.handle
+		defer func() { retErr = errors.Join(retErr, simulationCoordinator.close()) }()
 	}
 	worldCapability, ioCapability := request.World, request.IO
 	timeout, err := effectiveTimeout(ctx, request.RunTimeout)
@@ -135,10 +146,11 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 		defer func() { retErr = errors.Join(retErr, readOnlyMountBroker.Close()) }()
 	}
-	capabilities := launchCapabilities{ioTranscript: ioSession != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceSession != nil, choiceReplayPlan: choiceReplayPlanFile != nil}
+	capabilities := launchCapabilities{ioTranscript: ioSession != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceSession != nil, choiceReplayPlan: choiceReplayPlanFile != nil, simulation: request.Simulation != nil, simulationBootstrap: request.Simulation != nil && request.Simulation.Role == SimulationRoleNode, simulationCoordinator: request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	var mountRequestRead, mountResponseWrite *os.File
+	var simulationRequestRead, simulationResponseWrite, simulationBootstrapWrite, simulationControlWrite, simulationModelRequestHost, simulationModelResponseHost *os.File
 	if readOnlyMountBroker != nil {
 		mountRequestRead, err = resources.createPipe(ioROMountRequestResource, inheritWrite, "read-only mount request")
 		if err != nil {
@@ -147,6 +159,47 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		mountResponseWrite, err = resources.createPipe(ioROMountResponseResource, inheritRead, "read-only mount response")
 		if err != nil {
 			return Result{}, err
+		}
+	}
+	if request.Simulation != nil {
+		simulationRequestRead, err = resources.createPipe(simulationRequestResource, inheritWrite, "simulation request")
+		if err != nil {
+			return Result{}, err
+		}
+		simulationResponseWrite, err = resources.createPipe(simulationResponseResource, inheritRead, "simulation response")
+		if err != nil {
+			return Result{}, err
+		}
+		if request.Simulation.Role == SimulationRoleNode {
+			simulationBootstrapWrite, err = resources.createPipe(simulationBootstrapResource, inheritRead, "simulation node bootstrap")
+			if err != nil {
+				return Result{}, err
+			}
+			simulationControlWrite, err = resources.createPipe(simulationControlResource, inheritRead, "simulation node control")
+			if err != nil {
+				return Result{}, err
+			}
+			simulationModelRequestHost, err = resources.createPipe(simulationModelRequestResource, inheritWrite, "simulation node model request")
+			if err != nil {
+				return Result{}, err
+			}
+			simulationModelResponseHost, err = resources.createPipe(simulationModelResponseResource, inheritRead, "simulation node model response")
+			if err != nil {
+				return Result{}, err
+			}
+		} else {
+			simulationModelRequestHost, err = resources.createPipe(simulationModelRequestResource, inheritRead, "simulation model request")
+			if err != nil {
+				return Result{}, err
+			}
+			simulationModelResponseHost, err = resources.createPipe(simulationModelResponseResource, inheritWrite, "simulation model response")
+			if err != nil {
+				return Result{}, err
+			}
+			if simulationCoordinator == nil {
+				return Result{}, errors.New("simulation coordinator transport is unavailable")
+			}
+			simulationCoordinator.model = newSimulationModelTransport(simulationModelRequestHost, simulationModelResponseHost)
 		}
 	}
 	controlWrite, err := resources.createPipe(controlResource, inheritRead, "supervisor control")
@@ -251,6 +304,8 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		WorldReplayPlan:      append([]byte(nil), worldCapability.ReplayPlan...),
 		IOROMounts:           readOnlyMountBroker != nil,
 		ChoiceTrace:          choiceSession != nil,
+		Simulation:           request.Simulation != nil,
+		SimulationBootstrap:  request.Simulation != nil && request.Simulation.Role == SimulationRoleNode,
 	}
 	if request.Choice != nil {
 		wireRequest.ChoiceTraceLimit = request.Choice.Limit
@@ -280,6 +335,42 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		go func() { served <- readOnlyMountBroker.Serve(mountRequestRead, mountResponseWrite) }()
 		mountServed = served
 	}
+	var simulationServed <-chan error
+	var simulationModelsServed <-chan error
+	var simulationBootstrapWritten <-chan error
+	if request.Simulation != nil {
+		served := make(chan error, 1)
+		go func() {
+			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler)
+		}()
+		simulationServed = served
+		if simulationBootstrapWrite != nil {
+			bootstrap := append([]byte(nil), request.Simulation.Bootstrap...)
+			written := make(chan error, 1)
+			go func() {
+				count, writeErr := simulationBootstrapWrite.Write(bootstrap)
+				if writeErr == nil && count != len(bootstrap) {
+					writeErr = io.ErrShortWrite
+				}
+				written <- errors.Join(writeErr, simulationBootstrapWrite.Close())
+			}()
+			simulationBootstrapWritten = written
+			modelsServed := make(chan error, 1)
+			go func() {
+				modelsServed <- serveSimulationModels(ctx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler)
+			}()
+			simulationModelsServed = modelsServed
+		}
+	}
+	var controlOnce sync.Once
+	signalSupervisor := func(mode byte) {
+		controlOnce.Do(func() {
+			if mode != 0 {
+				_, _ = controlWrite.Write([]byte{mode})
+			}
+			_ = controlWrite.Close()
+		})
+	}
 
 	type captureResult struct {
 		name string
@@ -287,12 +378,12 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	captures := make(chan captureResult, 3)
 	go func() {
-		writer := newCaptureWriter(stdoutCapture, request.StdoutHead, func() { _ = controlWrite.Close() })
+		writer := newCaptureWriter(stdoutCapture, request.StdoutHead, func() { signalSupervisor(0) })
 		_, copyErr := io.Copy(writer, stdoutRead)
 		captures <- captureResult{name: "stdout", err: errors.Join(copyErr, writer.err)}
 	}()
 	go func() {
-		writer := newCaptureWriter(stderrCapture, request.StderrHead, func() { _ = controlWrite.Close() })
+		writer := newCaptureWriter(stderrCapture, request.StderrHead, func() { signalSupervisor(0) })
 		_, copyErr := io.Copy(writer, stderrRead)
 		captures <- captureResult{name: "stderr", err: errors.Join(copyErr, writer.err)}
 	}()
@@ -320,9 +411,31 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 
 	contextDone := make(chan struct{})
 	go func() {
+		if request.Simulation != nil && request.Simulation.hardCrash != nil {
+			select {
+			case <-request.Simulation.hardCrash:
+				signalSupervisor(2)
+			case <-ctx.Done():
+				if simulationControlWrite != nil {
+					_, _ = simulationControlWrite.Write([]byte{1})
+					_ = simulationControlWrite.Close()
+				}
+				timer := time.NewTimer(request.TerminateGrace)
+				select {
+				case <-timer.C:
+					signalSupervisor(1)
+				case <-contextDone:
+					if !timer.Stop() {
+						<-timer.C
+					}
+				}
+			case <-contextDone:
+			}
+			return
+		}
 		select {
 		case <-ctx.Done():
-			_ = controlWrite.Close()
+			signalSupervisor(1)
 		case <-contextDone:
 		}
 	}()
@@ -342,7 +455,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	case waitErr = <-waits:
 	case <-parentTimer.C:
 		supervisorTimedOut = true
-		_ = controlWrite.Close()
+		signalSupervisor(0)
 		killErr := command.Process.Kill()
 		reapTimer := time.NewTimer(cleanupReserve / 2)
 		select {
@@ -376,7 +489,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 	}
 	close(contextDone)
-	_ = controlWrite.Close()
+	signalSupervisor(0)
 	identity := <-identities
 	decodedReports := <-reports
 
@@ -482,6 +595,33 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			return result, fmt.Errorf("serve read-only mounts: %w", serveErr)
 		}
 		result.IOROMounts = readOnlyMountBroker.Captured()
+	}
+	if request.Simulation != nil {
+		if simulationBootstrapWritten != nil {
+			if writeErr := <-simulationBootstrapWritten; writeErr != nil {
+				return result, fmt.Errorf("write simulation node bootstrap: %w", writeErr)
+			}
+		}
+		if err := simulationRequestRead.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close simulation request reader: %w", err)
+		}
+		if err := simulationResponseWrite.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close simulation response writer: %w", err)
+		}
+		if serveErr := <-simulationServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) {
+			return result, fmt.Errorf("serve simulation transport: %w", serveErr)
+		}
+		if simulationModelsServed != nil {
+			if err := simulationModelRequestHost.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+				return result, fmt.Errorf("close simulation model request reader: %w", err)
+			}
+			if err := simulationModelResponseHost.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+				return result, fmt.Errorf("close simulation model response writer: %w", err)
+			}
+			if serveErr := <-simulationModelsServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) && !errors.Is(serveErr, context.Canceled) {
+				return result, fmt.Errorf("serve simulation model transport: %w", serveErr)
+			}
+		}
 	}
 	if worldCapture.Result().Truncated {
 		return result, fmt.Errorf("World child record exceeded its configured bound")

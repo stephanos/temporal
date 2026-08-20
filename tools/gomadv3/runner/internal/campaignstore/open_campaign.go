@@ -17,9 +17,19 @@ import (
 const maximumRunsBytes = 64 << 20
 
 type Campaign struct {
-	Path   string
-	Record CampaignRecord
-	Runs   []ExecutionRecord
+	Path    string
+	Record  CampaignRecord
+	Runs    []ExecutionRecord
+	Journal *RunJournalInfo
+}
+
+type RunJournalInfo struct {
+	Schema      string
+	IndexSHA256 evidence.SHA256
+	Segments    uint64
+	Records     uint64
+	Bytes       uint64
+	Limits      RunJournalPlan
 }
 
 func OpenCampaign(path string) (Campaign, error) {
@@ -50,20 +60,23 @@ func OpenCampaign(path string) (Campaign, error) {
 	if err := evidence.DecodeCanonicalJSON(batchBytes, &batch); err != nil {
 		return Campaign{}, fmt.Errorf("decode batch record: %w", err)
 	}
-	runsBytes, err := readValidatedFile(root, "runs.jsonl", 0o600, maximumRunsBytes)
-	if err != nil {
-		return Campaign{}, fmt.Errorf("read batch runs: %w", err)
+	var runs []ExecutionRecord
+	var journal *RunJournalInfo
+	if batch.Schema == "gomadv3.batch/v3" || batch.Schema == "gomadv3.batch/v4" {
+		runs, journal, err = readPublishedRunJournal(root, batch)
+	} else {
+		runs, err = readLegacyPublishedRuns(root, batch)
 	}
-	digest := evidence.HashBytes(runsBytes)
-	if digest != batch.RunsSHA256 {
-		return Campaign{}, fmt.Errorf("batch runs digest is %s, want %s", digest, batch.RunsSHA256)
-	}
-	runs, err := decodeExecutions(runsBytes)
 	if err != nil {
-		return Campaign{}, err
+		return Campaign{}, classifyIntegrityError(err)
 	}
 	if err := validateCampaign(batch, runs); err != nil {
 		return Campaign{}, err
+	}
+	if batch.Artifacts != nil {
+		if err := validatePublishedArtifactCapacity(path, batch, runs); err != nil {
+			return Campaign{}, classifyIntegrityError(err)
+		}
 	}
 	if batch.Strategy == "choice-frontier" {
 		if err := ValidatePublishedFrontier(path, *batch.Frontier, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256, runs); err != nil {
@@ -73,7 +86,7 @@ func OpenCampaign(path string) (Campaign, error) {
 	if batch.Schema == "gomadv3.batch/v1" {
 		batch.Strategy = "seed"
 	}
-	return Campaign{Path: path, Record: batch, Runs: runs}, nil
+	return Campaign{Path: path, Record: batch, Runs: runs, Journal: journal}, nil
 }
 
 func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
@@ -98,8 +111,23 @@ func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
 
 func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	legacy := batch.Schema == "gomadv3.batch/v1"
-	if batch.SchemaVersion != evidence.SchemaVersion || !legacy && batch.Schema != "gomadv3.batch/v2" || batch.CampaignID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
+	segmented := batch.Schema == "gomadv3.batch/v3" || batch.Schema == "gomadv3.batch/v4"
+	if batch.SchemaVersion != evidence.SchemaVersion || !legacy && batch.Schema != "gomadv3.batch/v2" && !segmented || batch.CampaignID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
 		return fmt.Errorf("batch record identity is invalid")
+	}
+	if batch.Schema == "gomadv3.batch/v4" {
+		if !validRecordSHA256(batch.PlanSHA256) || batch.Shard == nil || batch.Shard.Count == 0 || batch.Shard.Index >= batch.Shard.Count || batch.Strategy != "seed" {
+			return errors.New("sharded batch identity is invalid")
+		}
+	} else if batch.PlanSHA256 != "" || batch.Shard != nil {
+		return errors.New("historical batch contains shard identity")
+	}
+	if segmented {
+		if batch.Journal == nil || batch.RunsSHA256 != "" {
+			return errors.New("segmented batch journal identity is invalid")
+		}
+	} else if batch.Journal != nil || batch.Artifacts != nil || !validRecordSHA256(batch.RunsSHA256) {
+		return errors.New("legacy batch journal identity is invalid")
 	}
 	if legacy {
 		if batch.Strategy != "" || batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != "" || batch.RecoveryExecutions != 0 {
@@ -112,6 +140,14 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	}
 	if uint64(batch.Attempted) != uint64(len(runs)) || uint64(batch.Succeeded)+uint64(batch.Failures)+uint64(batch.Cancelled) != uint64(batch.Attempted) || batch.Watchdogs > batch.Failures || batch.RetainedSuccesses > batch.Succeeded || batch.RetainedSuccesses == 0 && batch.RetainedSuccessBytes != 0 {
 		return fmt.Errorf("batch summary counts are inconsistent")
+	}
+	if limits := batch.Artifacts; limits != nil {
+		failureBytes := uint64(limits.FailureBytes)
+		successBytes := uint64(limits.SuccessBytes)
+		if limits.FailureOutcome != CapacityInfrastructureFailure || limits.SuccessOutcome != CapacityInfrastructureFailure || limits.FailureArtifacts == 0 || failureBytes == 0 || limits.TranscriptBytes == 0 || uint64(limits.TotalBytes) != failureBytes+successBytes || uint64(limits.TotalBytes) < failureBytes ||
+			batch.DistinctFailures > limits.FailureArtifacts || batch.RetainedSuccesses > limits.SuccessArtifacts || batch.RetainedSuccessBytes > limits.SuccessBytes {
+			return errors.New("batch artifact capacity is invalid")
+		}
 	}
 	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" && batch.StopReason != "frontier_exhausted" && batch.StopReason != "choice_depth_complete" && batch.StopReason != "max_runs" && batch.StopReason != "frontier_capacity" {
 		return fmt.Errorf("batch stop reason is invalid: %s", batch.StopReason)
@@ -128,6 +164,9 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 		}
 		if ordinal >= ordinalLimit {
 			return fmt.Errorf("batch run %d selection ordinal is out of range", index+1)
+		}
+		if batch.Shard != nil && ordinal%uint64(batch.Shard.Count) != uint64(batch.Shard.Index) {
+			return fmt.Errorf("batch run %d is outside shard assignment", index+1)
 		}
 		if _, duplicate := ordinals[ordinal]; duplicate {
 			return fmt.Errorf("batch selection ordinal is duplicated: %d", ordinal)
@@ -229,6 +268,44 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 		if _, found := failures[signature]; !found {
 			return fmt.Errorf("batch failure signature has no run: %s", signature)
 		}
+	}
+	return nil
+}
+
+func validatePublishedArtifactCapacity(batchPath string, batch CampaignRecord, runs []ExecutionRecord) error {
+	limits := *batch.Artifacts
+	seenFailures := make(map[evidence.SHA256]struct{}, uint64(batch.DistinctFailures))
+	var failureBytes, successBytes uint64
+	for index, run := range runs {
+		if run.SuccessArtifact != nil {
+			retained, err := ResolveRetainedEvidence(batchPath, batch.CampaignID, run)
+			if err != nil {
+				return fmt.Errorf("validate published success artifact %d: %w", index+1, err)
+			}
+			if retained.StoredBytes > ^uint64(0)-successBytes {
+				return errors.New("published success artifact bytes overflow")
+			}
+			successBytes += retained.StoredBytes
+			continue
+		}
+		if run.FailureSignature == nil {
+			continue
+		}
+		if _, found := seenFailures[*run.FailureSignature]; found {
+			continue
+		}
+		retained, err := ResolveRetainedEvidence(batchPath, batch.CampaignID, run)
+		if err != nil {
+			return fmt.Errorf("validate published failure artifact %d: %w", index+1, err)
+		}
+		if retained.StoredBytes > ^uint64(0)-failureBytes {
+			return errors.New("published failure artifact bytes overflow")
+		}
+		failureBytes += retained.StoredBytes
+		seenFailures[*run.FailureSignature] = struct{}{}
+	}
+	if failureBytes > uint64(limits.FailureBytes) || successBytes > uint64(limits.SuccessBytes) || successBytes > ^uint64(0)-failureBytes || failureBytes+successBytes > uint64(limits.TotalBytes) {
+		return errors.New("published artifacts exceed the batch capacity")
 	}
 	return nil
 }

@@ -8,19 +8,73 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
+	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 )
 
-const reportSchema = "gomadv3.inspect/v1"
+const reportSchema = "gomadv3.inspect/v3"
 
 type Inspection struct {
-	Schema   string              `json:"schema"`
-	Kind     string              `json:"kind"`
-	Path     string              `json:"path"`
-	Artifact *ArtifactInspection `json:"artifact,omitempty"`
-	Campaign *CampaignInspection `json:"batch,omitempty"`
+	Schema    string                       `json:"schema"`
+	Kind      string                       `json:"kind"`
+	Path      string                       `json:"path"`
+	Plan      *CampaignPlanInspection      `json:"campaign_plan,omitempty"`
+	Artifact  *ArtifactInspection          `json:"artifact,omitempty"`
+	Campaign  *CampaignInspection          `json:"batch,omitempty"`
+	Merged    *MergedCampaignInspection    `json:"merged_batch,omitempty"`
+	Lifecycle *CampaignLifecycleInspection `json:"lifecycle,omitempty"`
+}
+
+type CampaignPlanInspection struct {
+	SHA256           evidence.SHA256                    `json:"sha256"`
+	BundlePath       string                             `json:"bundle_path"`
+	Mapping          string                             `json:"mapping"`
+	Strategy         string                             `json:"strategy"`
+	Selection        string                             `json:"selection"`
+	SelectionCount   uint64                             `json:"selection_count"`
+	Parallel         uint64                             `json:"parallel"`
+	RunnerBuild      string                             `json:"runner_build"`
+	Toolchain        evidence.Toolchain                 `json:"toolchain"`
+	Target           TargetReport                       `json:"target"`
+	Environment      []evidence.Environment             `json:"environment"`
+	ReadOnlyMounts   []string                           `json:"io_ro_mounts"`
+	MountSHA256      deterministicio.Digest             `json:"mount_sha256,omitempty"`
+	Journal          campaignstore.RunJournalPlan       `json:"journal"`
+	ArtifactCapacity campaignstore.ArtifactCapacityPlan `json:"artifact_capacity"`
+}
+
+type MergedCampaignInspection struct {
+	PlanSHA256         evidence.SHA256        `json:"plan_sha256"`
+	Selection          string                 `json:"selection"`
+	SelectionCount     uint64                 `json:"selection_count"`
+	Partial            bool                   `json:"partial"`
+	Missing            []CampaignOrdinalRange `json:"missing"`
+	Shards             uint64                 `json:"shards"`
+	Attempted          uint64                 `json:"attempted"`
+	Succeeded          uint64                 `json:"succeeded"`
+	Failures           uint64                 `json:"failures"`
+	Watchdogs          uint64                 `json:"watchdogs"`
+	Cancelled          uint64                 `json:"cancelled"`
+	DistinctFailures   uint64                 `json:"distinct_failures"`
+	RetainedEvidence   uint64                 `json:"retained_evidence"`
+	EvidenceBytes      uint64                 `json:"evidence_bytes"`
+	JournalBytes       uint64                 `json:"journal_bytes"`
+	JournalSegments    uint64                 `json:"journal_segments"`
+	SourceCampaignIDs  []string               `json:"source_campaign_ids"`
+	EvidenceIdentities []evidence.SHA256      `json:"evidence_identities"`
+}
+
+type CampaignLifecycleInspection struct {
+	State           string `json:"state"`
+	LastStableState string `json:"last_stable_state"`
+	Reason          string `json:"reason,omitempty"`
+	Detail          string `json:"detail,omitempty"`
+	Published       bool   `json:"published"`
+	Resumable       bool   `json:"resumable"`
+	Repairable      bool   `json:"repairable"`
+	Action          string `json:"action,omitempty"`
 }
 
 type ArtifactInspection struct {
@@ -117,27 +171,40 @@ type StreamReport struct {
 }
 
 type CampaignInspection struct {
-	CampaignID                   string                `json:"run_id"`
-	Strategy                     string                `json:"strategy"`
-	Selection                    string                `json:"selection"`
-	SelectionCount               uint64                `json:"selection_count"`
-	Attempted                    uint64                `json:"attempted"`
-	Succeeded                    uint64                `json:"succeeded"`
-	Failures                     uint64                `json:"failures"`
-	Watchdogs                    uint64                `json:"watchdogs"`
-	Cancelled                    uint64                `json:"cancelled"`
-	DistinctFailures             uint64                `json:"distinct_failures"`
-	RetainedSuccesses            uint64                `json:"retained_successes"`
-	RetainedSuccessBytes         uint64                `json:"retained_success_bytes"`
-	StopReason                   string                `json:"stop_reason"`
-	RunsSHA256                   evidence.SHA256       `json:"runs_sha256"`
-	Runs                         []ExecutionInspection `json:"runs"`
-	FailureArtifacts             []FailureArtifact     `json:"failure_artifacts"`
-	SuccessArtifacts             []SuccessArtifact     `json:"success_artifacts"`
-	Frontier                     *frontier.Summary     `json:"frontier,omitempty"`
-	FrontierImplementationSHA256 evidence.SHA256       `json:"frontier_implementation_sha256,omitempty"`
-	FrontierChainSHA256          evidence.SHA256       `json:"frontier_chain_sha256,omitempty"`
-	RecoveryExecutions           uint64                `json:"recovery_executions,omitempty"`
+	CampaignID                   string                              `json:"run_id"`
+	PlanSHA256                   evidence.SHA256                     `json:"plan_sha256,omitempty"`
+	Shard                        *CampaignShard                      `json:"shard,omitempty"`
+	Strategy                     string                              `json:"strategy"`
+	Selection                    string                              `json:"selection"`
+	SelectionCount               uint64                              `json:"selection_count"`
+	Attempted                    uint64                              `json:"attempted"`
+	Succeeded                    uint64                              `json:"succeeded"`
+	Failures                     uint64                              `json:"failures"`
+	Watchdogs                    uint64                              `json:"watchdogs"`
+	Cancelled                    uint64                              `json:"cancelled"`
+	DistinctFailures             uint64                              `json:"distinct_failures"`
+	RetainedSuccesses            uint64                              `json:"retained_successes"`
+	RetainedSuccessBytes         uint64                              `json:"retained_success_bytes"`
+	StopReason                   string                              `json:"stop_reason"`
+	RunsSHA256                   evidence.SHA256                     `json:"runs_sha256"`
+	Journal                      *RunJournalInspection               `json:"journal,omitempty"`
+	ArtifactCapacity             *campaignstore.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
+	Runs                         []ExecutionInspection               `json:"runs"`
+	FailureArtifacts             []FailureArtifact                   `json:"failure_artifacts"`
+	SuccessArtifacts             []SuccessArtifact                   `json:"success_artifacts"`
+	Frontier                     *frontier.Summary                   `json:"frontier,omitempty"`
+	FrontierImplementationSHA256 evidence.SHA256                     `json:"frontier_implementation_sha256,omitempty"`
+	FrontierChainSHA256          evidence.SHA256                     `json:"frontier_chain_sha256,omitempty"`
+	RecoveryExecutions           uint64                              `json:"recovery_executions,omitempty"`
+}
+
+type RunJournalInspection struct {
+	Schema      string                       `json:"schema"`
+	IndexSHA256 evidence.SHA256              `json:"index_sha256"`
+	Segments    uint64                       `json:"segments"`
+	Records     uint64                       `json:"records"`
+	Bytes       uint64                       `json:"bytes"`
+	Limits      campaignstore.RunJournalPlan `json:"limits"`
 }
 
 type ExecutionInspection struct {
@@ -194,6 +261,21 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 	if err != nil {
 		return Inspection{}, fmt.Errorf("resolve inspection path: %w", err)
 	}
+	pathInfo, err := os.Lstat(absolute)
+	if err != nil {
+		return Inspection{}, err
+	}
+	if pathInfo.Mode().IsRegular() {
+		if options.Choices {
+			return Inspection{}, errors.New("choice inspection requires a traced artifact")
+		}
+		opened, err := openCampaignPlan(absolute)
+		if err != nil {
+			return Inspection{}, err
+		}
+		projected := projectCampaignPlan(opened)
+		return Inspection{Schema: reportSchema, Kind: "campaign-plan", Path: absolute, Plan: &projected}, nil
+	}
 	hasManifest, err := regularChild(absolute, "manifest.json")
 	if err != nil {
 		return Inspection{}, err
@@ -202,8 +284,12 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 	if err != nil {
 		return Inspection{}, err
 	}
-	if hasManifest == hasBatch {
-		return Inspection{}, fmt.Errorf("inspection path must contain exactly one of manifest.json or batch.json")
+	hasMerge, err := regularChild(absolute, "merge.json")
+	if err != nil {
+		return Inspection{}, err
+	}
+	if present := boolCount(hasManifest, hasBatch, hasMerge); present > 1 {
+		return Inspection{}, errors.New("inspection path contains conflicting artifact records")
 	}
 	if hasManifest {
 		opened, err := evidence.OpenArtifact(absolute)
@@ -221,18 +307,92 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 		}
 		return Inspection{Schema: reportSchema, Kind: "artifact", Path: absolute, Artifact: &projected}, nil
 	}
-	opened, err := campaignstore.OpenCampaign(absolute)
+	if options.Choices {
+		return Inspection{}, errors.New("choice inspection requires a traced artifact")
+	}
+	if hasMerge {
+		opened, err := campaignstore.OpenMergedCampaign(absolute)
+		if err != nil {
+			return Inspection{}, err
+		}
+		projected := projectMergedCampaign(opened)
+		return Inspection{Schema: reportSchema, Kind: "merged-batch", Path: absolute, Merged: &projected}, nil
+	}
+	lifecycle, err := campaignstore.InspectCampaignLifecycle(absolute)
 	if err != nil {
 		return Inspection{}, err
 	}
-	if options.Choices {
-		return Inspection{}, fmt.Errorf("choice inspection requires a traced artifact")
+	projectedLifecycle := projectCampaignLifecycle(lifecycle)
+	if !hasBatch {
+		return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Lifecycle: &projectedLifecycle}, nil
+	}
+	opened, err := campaignstore.OpenCampaign(absolute)
+	if err != nil {
+		return Inspection{}, err
 	}
 	projected, err := projectCampaign(opened)
 	if err != nil {
 		return Inspection{}, err
 	}
-	return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Campaign: &projected}, nil
+	return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Campaign: &projected, Lifecycle: &projectedLifecycle}, nil
+}
+
+func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
+	plan := opened.plan
+	target := plan.Prepared.Target
+	result := CampaignPlanInspection{
+		SHA256: opened.identity, BundlePath: opened.path + campaignPlanBundleSuffix, Mapping: campaignPlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
+		RunnerBuild: plan.RunnerBuild, Toolchain: plan.Toolchain,
+		Target:      TargetReport{Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]evidence.TargetAdapter(nil), target.Adapters...), Compatibility: append([]evidence.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
+		Environment: append([]evidence.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
+	}
+	if plan.Journal != nil {
+		result.Journal = *plan.Journal
+	}
+	if plan.Artifacts != nil {
+		result.ArtifactCapacity = *plan.Artifacts
+	}
+	if opened.mounts != nil {
+		result.MountSHA256 = opened.mounts.SHA256
+	}
+	return result
+}
+
+func boolCount(values ...bool) int {
+	count := 0
+	for _, value := range values {
+		if value {
+			count++
+		}
+	}
+	return count
+}
+
+func projectMergedCampaign(opened campaignstore.MergedCampaign) MergedCampaignInspection {
+	result := campaignMergeResult(opened)
+	sources := make([]string, len(opened.Record.Shards))
+	for index, shard := range opened.Record.Shards {
+		sources[index] = shard.CampaignID
+	}
+	evidenceIdentities := make([]evidence.SHA256, 0, uint64(opened.Record.RetainedEvidence))
+	for _, run := range opened.Runs {
+		if run.Evidence != nil {
+			evidenceIdentities = append(evidenceIdentities, run.Evidence.SHA256)
+		}
+	}
+	return MergedCampaignInspection{
+		PlanSHA256: result.PlanSHA256, Selection: opened.Record.Selection, SelectionCount: result.SelectionCount, Partial: result.Partial, Missing: result.Missing,
+		Shards: result.Shards, Attempted: result.Attempted, Succeeded: result.Succeeded, Failures: result.Failures, Watchdogs: result.Watchdogs, Cancelled: result.Cancelled, DistinctFailures: result.DistinctFailures,
+		RetainedEvidence: result.RetainedEvidence, EvidenceBytes: result.RetainedBytes, JournalBytes: result.JournalBytes, JournalSegments: result.JournalSegments,
+		SourceCampaignIDs: sources, EvidenceIdentities: evidenceIdentities,
+	}
+}
+
+func projectCampaignLifecycle(status campaignstore.LifecycleStatus) CampaignLifecycleInspection {
+	return CampaignLifecycleInspection{
+		State: string(status.State), LastStableState: string(status.LastStableState), Reason: status.Reason, Detail: status.Detail,
+		Published: status.Published, Resumable: status.Resumable, Repairable: status.Repairable, Action: string(status.Action),
+	}
 }
 
 func projectChoices(opened evidence.Artifact) (Choices, error) {
@@ -373,12 +533,22 @@ func projectStream(stream evidence.Stream) StreamReport {
 func projectCampaign(opened campaignstore.Campaign) (CampaignInspection, error) {
 	batch := opened.Record
 	result := CampaignInspection{
-		CampaignID: batch.CampaignID, Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
+		CampaignID: batch.CampaignID, PlanSHA256: batch.PlanSHA256, Shard: runnerCampaignShardPointer(batch.Shard), Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
 		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
 		DistinctFailures: uint64(batch.DistinctFailures), StopReason: batch.StopReason, RunsSHA256: batch.RunsSHA256,
 		RetainedSuccesses: uint64(batch.RetainedSuccesses), RetainedSuccessBytes: uint64(batch.RetainedSuccessBytes),
 		Frontier: batch.Frontier, FrontierImplementationSHA256: batch.FrontierImplementationSHA256, FrontierChainSHA256: batch.FrontierChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
 		Runs: make([]ExecutionInspection, 0, len(opened.Runs)), FailureArtifacts: []FailureArtifact{}, SuccessArtifacts: []SuccessArtifact{},
+	}
+	if opened.Journal != nil {
+		result.Journal = &RunJournalInspection{
+			Schema: opened.Journal.Schema, IndexSHA256: opened.Journal.IndexSHA256,
+			Segments: opened.Journal.Segments, Records: opened.Journal.Records, Bytes: opened.Journal.Bytes, Limits: opened.Journal.Limits,
+		}
+	}
+	if batch.Artifacts != nil {
+		capacity := *batch.Artifacts
+		result.ArtifactCapacity = &capacity
 	}
 	seenArtifacts := make(map[string]struct{})
 	for _, run := range opened.Runs {
@@ -441,6 +611,14 @@ func projectCampaign(opened campaignstore.Campaign) (CampaignInspection, error) 
 		})
 	}
 	return result, nil
+}
+
+func runnerCampaignShardPointer(shard *campaignstore.CampaignShard) *CampaignShard {
+	if shard == nil {
+		return nil
+	}
+	value := runnerCampaignShard(shard)
+	return &value
 }
 
 func quoteArgument(value string) string {

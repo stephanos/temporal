@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	CampaignPlanSchema      = "gomadv3.batch-plan/v3"
-	PriorCampaignPlanSchema = "gomadv3.batch-plan/v2"
-	LegacyBatchPlanSchema   = "gomadv3.batch-plan/v1"
+	CampaignPlanSchema         = "gomadv3.batch-plan/v5"
+	PreviousCampaignPlanSchema = "gomadv3.batch-plan/v4"
+	PriorCampaignPlanSchema    = "gomadv3.batch-plan/v3"
+	EarlierCampaignPlanSchema  = "gomadv3.batch-plan/v2"
+	LegacyBatchPlanSchema      = "gomadv3.batch-plan/v1"
 )
 
 const maximumBatchPlanBytes = 1 << 20
@@ -40,12 +42,21 @@ type GuidancePlan struct {
 	SnapshotSHA256 evidence.SHA256 `json:"snapshot_sha256"`
 }
 
+type CampaignShard struct {
+	Index evidence.Uint64String `json:"index"`
+	Count evidence.Uint64String `json:"count"`
+}
+
 type CampaignPlan struct {
 	Schema                       string                       `json:"schema"`
+	PlanSHA256                   evidence.SHA256              `json:"plan_sha256,omitempty"`
+	Shard                        *CampaignShard               `json:"shard,omitempty"`
 	Strategy                     string                       `json:"strategy,omitempty"`
 	Selection                    string                       `json:"selection"`
 	SelectionCount               evidence.Uint64String        `json:"selection_count"`
 	Parallel                     evidence.Uint64String        `json:"parallel"`
+	Journal                      *RunJournalPlan              `json:"journal,omitempty"`
+	Artifacts                    *ArtifactCapacityPlan        `json:"artifacts,omitempty"`
 	MaxRuns                      evidence.Uint64String        `json:"max_runs,omitempty"`
 	MaxChoiceDepth               evidence.Uint64String        `json:"max_choice_depth,omitempty"`
 	MaxFrontierBytes             evidence.Uint64String        `json:"max_frontier_bytes,omitempty"`
@@ -80,6 +91,12 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
 	if plan.Selection != journal.config.Selection || uint64(plan.SelectionCount) != journal.config.SelectionCount {
 		return fmt.Errorf("batch plan selection does not match journal")
 	}
+	if plan.PlanSHA256 != journal.config.PlanSHA256 || !equalCampaignShard(plan.Shard, journal.config.Shard) {
+		return fmt.Errorf("batch plan shard identity does not match journal")
+	}
+	if (plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema) && (plan.Journal == nil || *plan.Journal != journal.RunJournalPlan()) {
+		return fmt.Errorf("batch plan journal limits do not match journal")
+	}
 	root, err := os.OpenRoot(journal.path)
 	if err != nil {
 		return fmt.Errorf("pin batch directory: %w", err)
@@ -99,7 +116,21 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	return atomicWriteContext(journal.ctx, path, encoded)
+	if err := atomicWriteContext(journal.ctx, path, encoded); err != nil {
+		return err
+	}
+	if plan.Artifacts != nil {
+		artifacts := *plan.Artifacts
+		journal.artifactPlan = &artifacts
+	}
+	return nil
+}
+
+func equalCampaignShard(left, right *CampaignShard) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
 }
 
 func ReadResumePlan(path string) (CampaignPlan, error) {
@@ -129,7 +160,7 @@ func ReadResumePlan(path string) (CampaignPlan, error) {
 	} else if !os.IsNotExist(err) {
 		return CampaignPlan{}, fmt.Errorf("inspect batch preparation state: %w", err)
 	}
-	if err := validateResumeLifecycle(root); err != nil {
+	if err := validateResumeLifecycle(root, filepath.Base(path)); err != nil {
 		return CampaignPlan{}, err
 	}
 	planBytes, err := readValidatedFile(root, filepath.Join(".prepared", "plan.json"), 0o600, maximumBatchPlanBytes)
@@ -147,35 +178,54 @@ func ReadResumePlan(path string) (CampaignPlan, error) {
 	if err != nil || digest != plan.Prepared.Target.SHA256 || size != uint64(plan.Prepared.Target.Size) {
 		return CampaignPlan{}, errors.Join(fmt.Errorf("prepared target identity does not match batch plan"), err)
 	}
-	if plan.Schema != CampaignPlanSchema {
+	if plan.Schema == EarlierCampaignPlanSchema || plan.Schema == LegacyBatchPlanSchema {
 		plan.Prepared.Target.CapabilityMode = "closure"
 	}
 	return plan, nil
 }
 
-func validateResumeLifecycle(root *os.Root) error {
+func validateResumeLifecycle(root *os.Root, campaignID string) error {
 	contents, err := readValidatedFile(root, filepath.Join(".partial", "batch", "partial.json"), 0o600, maximumBatchPlanBytes)
 	if err != nil {
 		return fmt.Errorf("read batch lifecycle: %w", err)
 	}
-	var lifecycle struct {
-		SchemaVersion uint32  `json:"schema_version"`
-		State         string  `json:"state"`
-		Reason        *string `json:"reason"`
-		Detail        *string `json:"detail"`
+	lifecycle, err := decodeLifecycleRecord(contents, campaignID)
+	if err != nil {
+		return err
 	}
-	if err := evidence.DecodeCanonicalJSON(contents, &lifecycle); err != nil {
-		return fmt.Errorf("decode batch lifecycle: %w", err)
-	}
-	if lifecycle.SchemaVersion != evidence.SchemaVersion || lifecycle.State != "running" && lifecycle.State != "failed" {
+	if lifecycle.State != LifecyclePrepared && lifecycle.State != LifecycleRunning && lifecycle.State != LifecycleCommitting &&
+		(lifecycle.State != LifecycleRecoverableFailure || lifecycle.LastStableState != LifecyclePrepared && lifecycle.LastStableState != LifecycleRunning) {
 		return fmt.Errorf("batch lifecycle is not resumable")
 	}
 	return nil
 }
 
 func validateCampaignPlan(plan CampaignPlan) error {
-	if plan.Schema != CampaignPlanSchema && plan.Schema != PriorCampaignPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
+	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && plan.Schema != PriorCampaignPlanSchema && plan.Schema != EarlierCampaignPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
 		return fmt.Errorf("batch plan identity is invalid")
+	}
+	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && (plan.Journal != nil || plan.Artifacts != nil) {
+		return fmt.Errorf("historical batch plan contains segmented journal or artifact limits")
+	}
+	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema {
+		if plan.Journal == nil || validateRunJournalPlan(*plan.Journal, plan) != nil || plan.Artifacts == nil {
+			return fmt.Errorf("batch plan journal limits are invalid")
+		}
+		artifacts, err := DeriveArtifactCapacityPlan(plan)
+		if err != nil || artifacts != *plan.Artifacts {
+			return errors.Join(fmt.Errorf("batch plan artifact limits are invalid"), err)
+		}
+	}
+	if plan.Schema != CampaignPlanSchema && (plan.PlanSHA256 != "" || plan.Shard != nil) {
+		return fmt.Errorf("historical batch plan contains portable plan identity")
+	}
+	if (plan.PlanSHA256 == "") != (plan.Shard == nil) {
+		return fmt.Errorf("batch plan portable identity is incomplete")
+	}
+	if plan.Shard != nil {
+		if !validRecordSHA256(plan.PlanSHA256) || plan.Shard.Count == 0 || plan.Shard.Index >= plan.Shard.Count || plan.Strategy != "seed" || plan.Guidance != nil || plan.OnFailure != "all" {
+			return fmt.Errorf("batch plan shard identity is invalid")
+		}
 	}
 	if plan.Schema == LegacyBatchPlanSchema {
 		if plan.Strategy != "" || plan.MaxRuns != 0 || plan.MaxChoiceDepth != 0 || plan.MaxFrontierBytes != 0 || plan.FrontierImplementationSHA256 != "" {
@@ -218,7 +268,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
 	if err := evidence.ValidateTargetAdapters(target.Adapters); err != nil {
 		return fmt.Errorf("batch plan prepared target: %w", err)
 	}
-	if plan.Schema == CampaignPlanSchema {
+	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema || plan.Schema == PriorCampaignPlanSchema {
 		if err := evidence.ValidateCurrentTargetCapability(target); err != nil {
 			return fmt.Errorf("batch plan prepared target: %w", err)
 		}
@@ -270,4 +320,8 @@ func validateCampaignPlan(plan CampaignPlan) error {
 		}
 	}
 	return nil
+}
+
+func ValidateCampaignPlan(plan CampaignPlan) error {
+	return validateCampaignPlan(plan)
 }
