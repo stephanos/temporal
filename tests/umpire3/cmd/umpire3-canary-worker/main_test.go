@@ -17,7 +17,7 @@ func TestDecodeRequestIsStrictAndBounded(t *testing.T) {
 	experiment := loadCanaryExperiment(t)
 	request := canary.WorkerRequest{
 		FormatVersion: canary.FormatVersion, Operation: canary.OperationCleanup, Experiment: experiment,
-		Profile:  profile.Definition{Endpoint: "https://temporal.example", Namespace: "namespace", TaskQueue: "queue"},
+		Profile:  profile.Profile{Endpoint: "https://temporal.example", Namespace: "namespace", TaskQueue: "queue"},
 		Approval: canary.Approval{Identifier: "approval"},
 	}
 	encoded, err := json.Marshal(request)

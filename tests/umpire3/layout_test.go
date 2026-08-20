@@ -17,12 +17,10 @@ import (
 func TestIndependentLayout(t *testing.T) {
 	root := "."
 	for _, path := range []string{
-		"artifact",
 		"campaign",
 		"canary",
-		"compiler",
-		"environment",
 		"evidence",
+		"execution",
 		"explore",
 		"fault",
 		"migration",
@@ -32,14 +30,17 @@ func TestIndependentLayout(t *testing.T) {
 		"profile",
 		"protocol",
 		"qualification",
-		"regress",
 		"replay",
-		"runner",
-		"runtime",
+		"scenario",
 		"temporal",
 		"umpire3test",
+		"internal/command",
 	} {
 		require.DirExists(t, filepath.Join(root, path))
+	}
+	for _, path := range []string{"artifact", "compiler", "environment", "regress", "runner", "runtime"} {
+		_, err := os.Stat(filepath.Join(root, path))
+		require.ErrorIs(t, err, os.ErrNotExist)
 	}
 
 	require.FileExists(t, filepath.Join(root, "model", "lean-toolchain"))
@@ -100,10 +101,14 @@ func TestFoundationalPackageImportDirection(t *testing.T) {
 		"protocol":    nil,
 		"evidence":    nil,
 		"process":     nil,
-		"compiler":    {"protocol"},
-		"environment": {"protocol"},
+		"scenario":    {"protocol", "scenario"},
+		"execution":   {"evidence", "fault", "protocol"},
 		"fault":       {"protocol"},
 		"participant": {"protocol"},
+		"profile":     {"execution", "protocol"},
+		"replay":      {"evidence", "execution", "fault", "protocol"},
+		"campaign":    {"execution", "protocol", "replay", "scenario"},
+		"temporal":    {"execution", "fault", "participant", "profile", "protocol", "temporal", "temporal/internalhistory"},
 	}
 	for packageName, dependencies := range allowed {
 		t.Run(packageName, func(t *testing.T) {

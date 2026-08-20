@@ -96,3 +96,20 @@ func TestCatalogCanonicalEncodingAndDigestAreStable(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, firstDigest, secondDigest)
 }
+
+func TestCatalogPropertiesAreBoundToResolvedLeanTheorems(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+
+	for _, property := range catalog.Properties {
+		require.NotEmpty(t, property.Theorem, property.Identifier)
+		require.NotEmpty(t, property.Statement, property.Identifier)
+		require.NotEqual(t, "derived", property.StatementHash, property.Identifier)
+		require.NotContains(t, property.Axioms, "sorryAx", property.Identifier)
+	}
+
+	mutated := catalog
+	mutated.Properties = append([]PropertyDeclaration(nil), catalog.Properties...)
+	mutated.Properties[0].Statement += " changed"
+	require.ErrorContains(t, mutated.Validate(), "derived statement hash")
+}

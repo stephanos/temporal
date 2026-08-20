@@ -14,9 +14,8 @@ import (
 	sdkclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/server/tests/umpire3/canary"
-	"go.temporal.io/server/tests/umpire3/environment"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
 )
 
@@ -78,38 +77,20 @@ func execute(
 		return canary.WorkerResponse{}, err
 	}
 	factory, err := umpire3temporal.NewSDKFactory(umpire3temporal.SDKFactoryOptions{
-		Client: client, Registry: sdkWorker, Namespace: request.Profile.Namespace,
-		TaskQueue: request.Profile.TaskQueue, BuildID: request.Profile.Environment.BuildID,
-		ConfigurationIdentity: request.Profile.Environment.ConfigurationIdentity,
-		ProfileName:           "production-canary", EvidenceProfile: environment.EvidenceProfilePublicGRPCHistory,
-		DrivingAuthority:     "approved-production-worker",
-		ObservationAuthority: "production-public-history",
-		FaultAuthority:       "none", HardExecutionBudget: true,
+		Client: client, Registry: sdkWorker, Deployment: request.Profile,
+		Namespace: request.Profile.Namespace, TaskQueue: request.Profile.TaskQueue,
 		CleanupTimeout: request.Approval.CleanupTimeout,
 		WorkflowID:     func(protocol.Experiment) string { return workflowID },
 	})
 	if err != nil {
 		return canary.WorkerResponse{}, err
 	}
-	session, err := factory.Prepare(ctx, request.Experiment)
-	if err != nil {
-		return canary.WorkerResponse{}, err
-	}
-	if err := sdkWorker.Start(); err != nil {
-		cleanupResult := session.Cleanup(ctx)
-		startErr := fmt.Errorf("start canary SDK worker: %w", err)
-		if cleanupResult.Error != "" {
-			return canary.WorkerResponse{}, errors.Join(startErr, errors.New(cleanupResult.Error))
-		}
-		return canary.WorkerResponse{}, startErr
-	}
-	defer sdkWorker.Stop()
-	prepared, err := environment.PrepareOnce(factory.Capabilities(), session)
+	owned, err := umpire3temporal.OwnWorkerLifecycle(factory, sdkWorker, request.Approval.CleanupTimeout)
 	if err != nil {
 		return canary.WorkerResponse{}, err
 	}
 	result, err := umpire3runtime.Run(ctx, umpire3runtime.Request{
-		Experiment: request.Experiment, Environment: prepared,
+		Experiment: request.Experiment, Environment: owned,
 		Limits: umpire3runtime.Limits{
 			PrepareTimeout: request.Approval.MaxDuration,
 			ActionTimeout:  request.Approval.MaxDuration, ObserveTimeout: request.Approval.MaxDuration,

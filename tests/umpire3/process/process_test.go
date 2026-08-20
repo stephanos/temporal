@@ -51,16 +51,41 @@ func TestRunRejectsOutputBeyondBudget(t *testing.T) {
 	require.ErrorIs(t, err, ErrOutputLimit)
 }
 
-func TestRunAppliesWorkerCPUAndMemoryLimits(t *testing.T) {
+func TestRunKillsNonCooperativeWorkerBeyondOutputBudget(t *testing.T) {
+	t.Parallel()
+
+	started := time.Now()
+	_, err := Run(context.Background(), Request{
+		Command:     []string{os.Args[0], "-test.run=TestProcessWorker"},
+		Environment: []string{"UMPIRE3_PROCESS_MODE=flood"},
+		Timeout:     time.Second, MaxOutputBytes: 8,
+	})
+	require.ErrorIs(t, err, ErrOutputLimit)
+	require.Less(t, time.Since(started), time.Second)
+}
+
+func TestRunAppliesWorkerCPULimit(t *testing.T) {
 	t.Parallel()
 
 	result, err := Run(context.Background(), Request{
-		Command: []string{"/bin/sh", "-c", "ulimit -t; ulimit -d"},
+		Command: []string{"/bin/sh", "-c", "ulimit -t"},
 		Timeout: time.Second, MaxOutputBytes: 1024,
 		Limits: Limits{CPUSeconds: 2, MemoryBytes: 64 << 20},
 	})
 	require.NoError(t, err)
-	require.Equal(t, "2\n65536\n", string(result.Output))
+	require.Equal(t, "2\n", string(result.Output))
+}
+
+func TestRunKillsWorkerBeyondMemoryLimit(t *testing.T) {
+	t.Parallel()
+
+	_, err := Run(context.Background(), Request{
+		Command:     []string{os.Args[0], "-test.run=TestProcessWorker"},
+		Environment: []string{"UMPIRE3_PROCESS_MODE=block"},
+		Timeout:     time.Second, MaxOutputBytes: 64,
+		Limits: Limits{CPUSeconds: 10, MemoryBytes: 1},
+	})
+	require.ErrorIs(t, err, ErrMemoryLimit)
 }
 
 func TestRunRejectsPartialWorkerResourceLimits(t *testing.T) {
@@ -129,6 +154,32 @@ func TestSupervisorRejectsRestartWhileProcessIsRunning(t *testing.T) {
 	require.ErrorContains(t, err, "still running")
 }
 
+func TestSupervisorKillsWorkerBeyondOutputBudget(t *testing.T) {
+	t.Parallel()
+
+	supervisor, err := NewSupervisor(Request{
+		Command:     []string{os.Args[0], "-test.run=TestProcessWorker"},
+		Environment: []string{"UMPIRE3_PROCESS_MODE=flood"}, Timeout: time.Second, MaxOutputBytes: 8,
+	})
+	require.NoError(t, err)
+	_, err = supervisor.Start(context.Background())
+	require.NoError(t, err)
+	attempt, err := supervisor.Wait(context.Background())
+	require.ErrorIs(t, err, ErrOutputLimit)
+	require.Equal(t, TerminationLimit, attempt.Termination)
+	require.NotZero(t, attempt.StoppedAtUnixNano)
+}
+
+func TestSupervisorRejectsPartialWorkerResourceLimits(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewSupervisor(Request{
+		Command: []string{"true"}, Timeout: time.Second, MaxOutputBytes: 64,
+		Limits: Limits{CPUSeconds: 1},
+	})
+	require.ErrorContains(t, err, "CPU and memory limits")
+}
+
 func TestProcessWorker(t *testing.T) {
 	switch os.Getenv("UMPIRE3_PROCESS_MODE") {
 	case "echo":
@@ -147,6 +198,14 @@ func TestProcessWorker(t *testing.T) {
 		require.NoError(t, err)
 		//nolint:revive // The helper process must terminate before the Go test runner writes to stdout.
 		os.Exit(0)
+	case "flood":
+		for {
+			_, err := os.Stdout.Write([]byte("0123456789abcdef"))
+			if err != nil {
+				//nolint:revive // The subprocess helper reports a closed output stream through its exit status.
+				os.Exit(4)
+			}
+		}
 	case "supervised":
 		_, err := os.Stdout.Write([]byte("ready"))
 		require.NoError(t, err)

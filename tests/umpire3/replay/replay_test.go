@@ -7,52 +7,51 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/artifact"
+	"go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
-func TestRunReproducesBoundResult(t *testing.T) {
+func TestReproduceReproducesBoundResult(t *testing.T) {
 	experiment := replayExperiment(t)
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
-	baseline := umpire3runtime.Result{
-		FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
-		Environment: umpire3runtime.EnvironmentProfile{Name: "local-in-process", Capabilities: []string{"update"}},
-		Claim:       umpire3runtime.Claim{Kind: umpire3runtime.ClaimViolating, Property: experiment.Property.Identifier},
+	baseline := execution.Result{
+		FormatVersion: execution.ResultFormatVersion, ExperimentDigest: digest,
+		Environment: execution.EnvironmentIdentity{Name: "local-in-process", Capabilities: []protocol.CapabilityID{"update"}},
+		Claim:       execution.Claim{Kind: execution.ClaimViolating, Property: experiment.Property.Identifier},
 	}
 	baseline.DeriveAssurance()
-	bundle := artifact.Record{
-		FormatVersion: artifact.FormatVersion, Experiment: experiment, Result: baseline,
-		Replay: artifact.ReplayMetadata{Profile: "local-in-process", Capabilities: []string{"update"}, Seed: experiment.Scope.Seed, Bounds: experiment.Scope.Bounds, Command: "umpire3 replay"},
+	bundle := Bundle{
+		FormatVersion: BundleFormatVersion, Experiment: experiment, Result: baseline,
+		Replay: Metadata{Profile: "local-in-process", Capabilities: []protocol.CapabilityID{"update"}, Seed: experiment.Scope.Seed, Bounds: experiment.Scope.Bounds, Command: "umpire3 replay"},
 	}
-	report, err := Run(context.Background(), bundle,
-		func(context.Context, protocol.Experiment) (umpire3runtime.Result, error) { return baseline, nil })
+	report, err := Reproduce(context.Background(), bundle,
+		func(context.Context, protocol.Experiment) (execution.Result, error) { return baseline, nil })
 	require.NoError(t, err)
 	require.True(t, report.Reproduced)
 	require.Empty(t, report.Drift)
 }
 
-func TestRunReportsProfileDrift(t *testing.T) {
+func TestReproduceReportsProfileDrift(t *testing.T) {
 	experiment := replayExperiment(t)
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
-	baseline := umpire3runtime.Result{
-		FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
-		Environment: umpire3runtime.EnvironmentProfile{Name: "remote-deployment", Capabilities: []string{"update"}},
+	baseline := execution.Result{
+		FormatVersion: execution.ResultFormatVersion, ExperimentDigest: digest,
+		Environment: execution.EnvironmentIdentity{Name: "remote-deployment", Capabilities: []protocol.CapabilityID{"update"}},
 	}
 	baseline.DeriveAssurance()
-	bundle := artifact.Record{
+	bundle := Bundle{
 		Experiment: experiment, Result: baseline,
-		Replay: artifact.ReplayMetadata{Profile: "remote-deployment", Capabilities: []string{"update"}},
+		Replay: Metadata{Profile: "remote-deployment", Capabilities: []protocol.CapabilityID{"update"}},
 	}
 	current := baseline
 	current.Environment.Name = "local-in-process"
-	report, err := Run(context.Background(), bundle,
-		func(context.Context, protocol.Experiment) (umpire3runtime.Result, error) { return current, nil })
+	report, err := Reproduce(context.Background(), bundle,
+		func(context.Context, protocol.Experiment) (execution.Result, error) { return current, nil })
 	require.NoError(t, err)
 	require.False(t, report.Reproduced)
-	require.Contains(t, report.Drift, umpire3runtime.Drift{Kind: umpire3runtime.DriftRealization, Detail: "environment profile changed"})
+	require.Contains(t, report.Drift, Drift{Kind: DriftRealization, Detail: "environment profile changed"})
 }
 
 func replayExperiment(t *testing.T) protocol.Experiment {

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -132,6 +133,18 @@ func TestExportMonitorCatalogRunsLeanAndMatchesSemanticCatalog(t *testing.T) {
 		_, ok := catalog.Program(identifier)
 		require.True(t, ok, identifier)
 	}
+}
+
+func TestExportObservationCatalogRunsLeanAndIncludesCheckedFixtures(t *testing.T) {
+	var output bytes.Buffer
+	require.NoError(t, exportObservationCatalog("../../model", observationSpec, &output))
+
+	catalog, err := observation.DecodeCatalog(output.Bytes())
+	require.NoError(t, err)
+	require.Len(t, catalog.Programs, 3)
+	require.Len(t, catalog.Fixtures, 6)
+	_, ok := catalog.Program(protocol.ObservationIDStaleSuccessAbsent)
+	require.True(t, ok)
 }
 
 func TestExportCompositionRunsLeanAndReportsObligations(t *testing.T) {

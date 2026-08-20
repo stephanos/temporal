@@ -11,9 +11,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tests/umpire3/evidence"
+	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 )
 
 func TestCanaryRejectsUnapprovedDigestBeforeWorkerExecution(t *testing.T) {
@@ -169,7 +169,7 @@ func TestCanaryWorker(t *testing.T) {
 			FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
 			ResultClass: protocol.ResultClassImplementationConforming,
 			TrustBadge:  protocol.TrustBadgeTestedInstance,
-			Environment: umpire3runtime.EnvironmentProfile{
+			Environment: umpire3runtime.EnvironmentIdentity{
 				BuildID:               request.Profile.Environment.BuildID,
 				ConfigurationIdentity: request.Profile.Environment.ConfigurationIdentity,
 			},

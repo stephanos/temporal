@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/compiler"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 func TestCheckedLedgerMatchesMechanicalRootInventory(t *testing.T) {
@@ -37,7 +37,7 @@ func TestCheckedLedgerMatchesMechanicalRootInventory(t *testing.T) {
 			require.NotEmpty(t, executed.ScenarioDigest)
 			require.NotEmpty(t, executed.ExperimentDigests)
 			require.Equal(t, executed.ScenarioDigest, executed.Explain.ScenarioDigest)
-			require.Equal(t, compiler.ExplainFormatVersion, executed.Explain.FormatVersion)
+			require.Equal(t, scenario.ExplainFormatVersion, executed.Explain.FormatVersion)
 		}
 	}
 }
@@ -141,21 +141,19 @@ func TestBehaviorContractsUseGeneratedSemanticVocabulary(t *testing.T) {
 	require.Len(t, contracts, 28)
 	for behavior, contract := range contracts {
 		require.Equal(t, behavior, contract.Behavior)
-		require.Contains(t, targets, contract.ModelTarget, behavior)
-		for _, value := range contract.Properties {
-			require.Contains(t, properties, value, behavior)
-		}
+		require.Contains(t, targets, string(contract.ModelTarget), behavior)
+		require.Contains(t, properties, string(contract.Property), behavior)
 		for _, value := range contract.Entities {
-			require.Contains(t, entities, value, behavior)
+			require.Contains(t, entities, string(value), behavior)
 		}
 		for _, value := range contract.Actions {
-			require.Contains(t, actions, value, behavior)
+			require.Contains(t, actions, string(value), behavior)
 		}
 		for _, value := range contract.Faults {
-			require.Contains(t, faults, value, behavior)
+			require.Contains(t, faults, string(value), behavior)
 		}
 		for _, value := range contract.RequiredCapabilities {
-			require.Contains(t, capabilities, value, behavior)
+			require.Contains(t, capabilities, string(value), behavior)
 		}
 	}
 }
@@ -165,14 +163,14 @@ func TestBehaviorContractsPreserveFaultSemanticsAndScopes(t *testing.T) {
 
 	faultAction, exists := Contract("ProbeNexusFaultAction")
 	require.True(t, exists)
-	require.Equal(t, []string{"hold-release"}, faultAction.Faults)
+	require.Equal(t, []protocol.FaultKind{"hold-release"}, faultAction.Faults)
 	httpFault, exists := Contract("ProbeNexusHTTPFaultSeam")
 	require.True(t, exists)
-	require.Equal(t, []string{"hold-release"}, httpFault.Faults)
+	require.Equal(t, []protocol.FaultKind{"hold-release"}, httpFault.Faults)
 
-	scenario, err := Scenario("SparseRegressionCancellationRetry", "")
+	authored, err := Scenario("SparseRegressionCancellationRetry", "")
 	require.NoError(t, err)
-	suite, err := compiler.Compile(context.Background(), scenario, compiler.Limits{
+	suite, err := scenario.Compile(context.Background(), authored, scenario.Limits{
 		MaxPaths: 1, MaxActions: 16, MaxStates: 64, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
 	})
 	require.NoError(t, err)
