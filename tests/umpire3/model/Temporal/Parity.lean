@@ -16,7 +16,7 @@ structure Entry where
   disposition : String
   fidelity : String
   evidenceLevel : String
-  explorationStatus : String
+  evidenceStatus : String
   owner : String
   evidence : Evidence
   deriving DecidableEq, Repr
@@ -25,11 +25,10 @@ structure Ledger where
   entries : List Entry
   deriving DecidableEq, Repr
 
-private def entryWellFormed (entry : Entry) : Bool :=
+private def entryMetadataValid (entry : Entry) : Bool :=
   entry.category != "" && entry.legacyName != "" && entry.semanticIdentifier != "" &&
     entry.owner != "" &&
-    (entry.explorationStatus = "complete" || entry.explorationStatus = "incomplete" ||
-      entry.explorationStatus = "resource-limited") &&
+    (entry.evidenceStatus = "metadata-present" || entry.evidenceStatus = "metadata-missing") &&
     (entry.disposition = "equivalent" || entry.disposition = "replaced" ||
       entry.disposition = "intentionally-unsupported" || entry.disposition = "not-yet-implemented") &&
     (entry.fidelity = "exact" || entry.fidelity = "semantic-equivalent" ||
@@ -38,19 +37,19 @@ private def entryWellFormed (entry : Entry) : Bool :=
       entry.evidenceLevel = "local-integration" || entry.evidenceLevel = "profile-qualified") &&
     if entry.disposition = "equivalent" || entry.disposition = "replaced" then
       (entry.fidelity = "exact" || entry.fidelity = "semantic-equivalent") &&
-      entry.evidenceLevel != "inventory" && entry.explorationStatus = "complete" &&
+      entry.evidenceLevel != "inventory" && entry.evidenceStatus = "metadata-present" &&
       entry.evidence.proof != "" && entry.evidence.executable != "" &&
         entry.evidence.monitor != "" && entry.evidence.negativeControl != ""
     else
       (entry.fidelity = "partial" || entry.fidelity = "inventory-only") &&
-        entry.explorationStatus != "complete"
+        entry.evidenceStatus = "metadata-missing"
 
-def Ledger.wellFormed (ledger : Ledger) : Bool :=
-  ledger.entries.length = 20 && ledger.entries.all entryWellFormed &&
+def Ledger.metadataValid (ledger : Ledger) : Bool :=
+  ledger.entries.length = 20 && ledger.entries.all entryMetadataValid &&
     (ledger.entries.map (fun entry => entry.category ++ ":" ++ entry.legacyName)).eraseDups.length =
       ledger.entries.length
 
-def Ledger.WellFormed (ledger : Ledger) : Prop := ledger.wellFormed = true
+def Ledger.MetadataValid (ledger : Ledger) : Prop := ledger.metadataValid = true
 
 private def target (legacyName semanticIdentifier owner proof executable monitor
     negativeControl : String) : Entry := {
@@ -60,7 +59,7 @@ private def target (legacyName semanticIdentifier owner proof executable monitor
   disposition := "not-yet-implemented"
   fidelity := "partial"
   evidenceLevel := "model-proof"
-  explorationStatus := "incomplete"
+  evidenceStatus := "metadata-missing"
   owner
   evidence := {
     proof
@@ -77,7 +76,7 @@ private def taskAckTarget : Entry := {
   disposition := "equivalent"
   fidelity := "exact"
   evidenceLevel := "local-integration"
-  explorationStatus := "complete"
+  evidenceStatus := "metadata-present"
   owner := "Temporal.Product.TaskAck"
   evidence := {
     proof := "Umpire3.Temporal.Product.TaskAck.acknowledged_removes_backlog"
@@ -94,7 +93,7 @@ private def nexusClosureProperty : Entry := {
   disposition := "equivalent"
   fidelity := "exact"
   evidenceLevel := "local-integration"
-  explorationStatus := "complete"
+  evidenceStatus := "metadata-present"
   owner := "Temporal.Product.NexusClosure"
   evidence := {
     proof := "Umpire3.Temporal.Product.NexusClosure.closureSafe"
@@ -112,7 +111,7 @@ private def exactProperty (legacyName semanticIdentifier owner proof executable 
   disposition := "equivalent"
   fidelity := "exact"
   evidenceLevel := "local-integration"
-  explorationStatus := "complete"
+  evidenceStatus := "metadata-present"
   owner
   evidence := { proof, executable, monitor, negativeControl }
 }
@@ -125,7 +124,7 @@ private def exactTarget (legacyName semanticIdentifier owner proof executable mo
   disposition := "equivalent"
   fidelity := "exact"
   evidenceLevel := "local-integration"
-  explorationStatus := "complete"
+  evidenceStatus := "metadata-present"
   owner
   evidence := { proof, executable, monitor, negativeControl }
 }
@@ -242,8 +241,8 @@ def ledger : Ledger where
       "Umpire3.Temporal.Product.CallbackResponse.conflictingResponseMutationNegativeControl",
   ]
 
-theorem ledgerWellFormed : ledger.WellFormed := by
-  change ledger.wellFormed = true
+theorem ledgerMetadataValid : ledger.MetadataValid := by
+  change ledger.metadataValid = true
   decide
 
 private def Evidence.toJson (evidence : Evidence) : Lean.Json := Lean.Json.mkObj [
@@ -260,14 +259,16 @@ private def Entry.toJson (entry : Entry) : Lean.Json := Lean.Json.mkObj [
   ("disposition", entry.disposition),
   ("fidelity", entry.fidelity),
   ("evidenceLevel", entry.evidenceLevel),
-  ("explorationStatus", entry.explorationStatus),
+  ("evidenceStatus", entry.evidenceStatus),
   ("owner", entry.owner),
   ("evidence", entry.evidence.toJson),
 ]
 
 def json (semanticHash catalogHash : String) : String :=
   (Lean.Json.mkObj [
-    ("formatVersion", "umpire3/parity-ledger/v2"),
+    ("formatVersion", "umpire3/parity-ledger/v3"),
+    ("resultClass", "metadata-validated"),
+    ("trustBadge", "kernel"),
     ("semanticHash", semanticHash),
     ("catalogHash", catalogHash),
     ("entries", Lean.Json.arr (ledger.entries.map Entry.toJson).toArray),

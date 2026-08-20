@@ -19,7 +19,7 @@ func TestEncodeRedactsConcreteRuntimeIdentities(t *testing.T) {
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
 	result := umpire3runtime.Result{
-		FormatVersion: protocol.FormatVersion, ExperimentDigest: digest,
+		FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
 		Bindings: environment.Bindings{"operation": "sensitive-operation-id"},
 		Actions: []umpire3runtime.ActionResult{{
 			Identifier: "a1",
@@ -44,6 +44,7 @@ func TestEncodeRedactsConcreteRuntimeIdentities(t *testing.T) {
 			RecoverableResources: map[string]string{"operation": "sensitive-operation-id"},
 		},
 	}
+	result.DeriveAssurance()
 	result.Footprint, err = learnedFootprintForArtifact()
 	require.NoError(t, err)
 
@@ -85,7 +86,9 @@ func TestEncodeEnforcesArtifactLimit(t *testing.T) {
 	experiment := artifactExperiment(t)
 	digest, digestErr := experiment.Digest()
 	require.NoError(t, digestErr)
-	_, err := Encode(experiment, umpire3runtime.Result{ExperimentDigest: digest}, 16)
+	result := umpire3runtime.Result{FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest}
+	result.DeriveAssurance()
+	_, err := Encode(experiment, result, 16)
 	require.ErrorContains(t, err, "exceeds")
 }
 
@@ -95,7 +98,8 @@ func TestFileCorpusDeduplicatesByExperimentDigest(t *testing.T) {
 	experiment := artifactExperiment(t)
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
-	result := umpire3runtime.Result{FormatVersion: protocol.FormatVersion, ExperimentDigest: digest}
+	result := umpire3runtime.Result{FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest}
+	result.DeriveAssurance()
 
 	first, err := store.Save(context.Background(), experiment, result)
 	require.NoError(t, err)

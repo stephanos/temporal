@@ -355,6 +355,12 @@ func validateWorkerResult(request Request, digest string, result umpire3runtime.
 	if result.ExperimentDigest != digest || result.Claim.Property != request.Experiment.Property.Identifier {
 		return errors.New("worker semantic identity drift")
 	}
+	if result.FormatVersion != umpire3runtime.ResultFormatVersion {
+		return fmt.Errorf("worker returned unsupported runtime result format %q", result.FormatVersion)
+	}
+	if err := result.ValidateAssurance(); err != nil {
+		return fmt.Errorf("validate worker result assurance: %w", err)
+	}
 	if result.Environment.BuildID != request.Profile.Environment.BuildID ||
 		result.Environment.ConfigurationIdentity != request.Profile.Environment.ConfigurationIdentity {
 		return errors.New("worker build or configuration attestation drift")

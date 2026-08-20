@@ -9,7 +9,14 @@ import (
 	"slices"
 )
 
-const CoverageDenominatorFormatVersion = "umpire3/coverage-denominator/v1"
+const CoverageDenominatorFormatVersion = "umpire3/coverage-denominator/v2"
+
+type CoverageDenominatorStatus string
+
+const (
+	CoverageDenominatorDefined   CoverageDenominatorStatus = "coverage-defined"
+	CoverageDenominatorUndefined CoverageDenominatorStatus = "coverage-undefined"
+)
 
 type CoverageEdge struct {
 	Identifier     string `json:"identifier"`
@@ -21,9 +28,11 @@ type CoverageEdge struct {
 }
 
 type CoverageTarget struct {
-	Identifier TargetID       `json:"identifier"`
-	Property   PropertyID     `json:"property"`
-	Edges      []CoverageEdge `json:"edges"`
+	Identifier TargetID                  `json:"identifier"`
+	Property   PropertyID                `json:"property"`
+	Status     CoverageDenominatorStatus `json:"status"`
+	Reason     string                    `json:"reason,omitempty"`
+	Edges      []CoverageEdge            `json:"edges"`
 }
 
 type CoverageDenominator struct {
@@ -67,29 +76,43 @@ func (d CoverageDenominator) Validate() error {
 	if d.CatalogHash != catalogHash {
 		return fmt.Errorf("coverage catalog hash %q does not match semantic catalog %q", d.CatalogHash, catalogHash)
 	}
-	knownTargets := make(map[TargetID]struct{}, len(catalog.Targets))
+	type targetProperty struct {
+		target   TargetID
+		property PropertyID
+	}
+	knownTargetProperties := make(map[targetProperty]struct{})
 	for _, target := range catalog.Targets {
-		knownTargets[TargetID(target.Identifier)] = struct{}{}
+		for _, property := range target.Properties {
+			knownTargetProperties[targetProperty{
+				target: TargetID(target.Identifier), property: PropertyID(property),
+			}] = struct{}{}
+		}
 	}
-	knownProperties := make(map[PropertyID]struct{}, len(catalog.Properties))
-	for _, property := range catalog.Properties {
-		knownProperties[PropertyID(property.Identifier)] = struct{}{}
-	}
-	targets := make(map[TargetID]struct{}, len(d.Targets))
+	targets := make(map[targetProperty]struct{}, len(d.Targets))
 	identifiers := make(map[string]struct{})
 	for _, target := range d.Targets {
-		if _, known := knownTargets[target.Identifier]; !known {
-			return fmt.Errorf("coverage denominator has unknown target %q", target.Identifier)
+		key := targetProperty{target: target.Identifier, property: target.Property}
+		if _, known := knownTargetProperties[key]; !known {
+			return fmt.Errorf("coverage denominator has unknown target/property %q/%q", target.Identifier, target.Property)
 		}
-		if _, duplicate := targets[target.Identifier]; duplicate {
-			return fmt.Errorf("coverage denominator has duplicate target %q", target.Identifier)
+		if _, duplicate := targets[key]; duplicate {
+			return fmt.Errorf("coverage denominator has duplicate target/property %q/%q", target.Identifier, target.Property)
 		}
-		targets[target.Identifier] = struct{}{}
-		if _, known := knownProperties[target.Property]; !known {
-			return fmt.Errorf("coverage denominator target %q has unknown property %q", target.Identifier, target.Property)
-		}
-		if len(target.Edges) == 0 {
-			return fmt.Errorf("coverage denominator target %q has no edges", target.Identifier)
+		targets[key] = struct{}{}
+		switch target.Status {
+		case CoverageDenominatorDefined:
+			if target.Reason != "" || len(target.Edges) == 0 {
+				return fmt.Errorf("defined coverage denominator target %q property %q requires edges and no reason",
+					target.Identifier, target.Property)
+			}
+		case CoverageDenominatorUndefined:
+			if target.Reason == "" || len(target.Edges) != 0 {
+				return fmt.Errorf("undefined coverage denominator target %q property %q requires a reason and no edges",
+					target.Identifier, target.Property)
+			}
+		default:
+			return fmt.Errorf("coverage denominator target %q property %q has unknown status %q",
+				target.Identifier, target.Property, target.Status)
 		}
 		for _, edge := range target.Edges {
 			if edge.Identifier == "" || edge.FromState == "" || edge.Action == "" || edge.ToState == "" {
@@ -101,6 +124,10 @@ func (d CoverageDenominator) Validate() error {
 			identifiers[edge.Identifier] = struct{}{}
 		}
 	}
+	if len(targets) != len(knownTargetProperties) {
+		return fmt.Errorf("coverage denominator classifies %d target/property pairs; catalog requires %d",
+			len(targets), len(knownTargetProperties))
+	}
 	return nil
 }
 
@@ -111,7 +138,10 @@ func (d CoverageDenominator) CanonicalJSON() ([]byte, error) {
 	copy := d
 	copy.Targets = append([]CoverageTarget(nil), d.Targets...)
 	slices.SortFunc(copy.Targets, func(left, right CoverageTarget) int {
-		return compareStrings(string(left.Identifier), string(right.Identifier))
+		if comparison := compareStrings(string(left.Identifier), string(right.Identifier)); comparison != 0 {
+			return comparison
+		}
+		return compareStrings(string(left.Property), string(right.Property))
 	})
 	for index := range copy.Targets {
 		copy.Targets[index].Edges = append([]CoverageEdge(nil), copy.Targets[index].Edges...)

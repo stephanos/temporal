@@ -11,6 +11,8 @@ import (
 func TestDefaultParityLedgerDispositionsEntireUmpire2Inventory(t *testing.T) {
 	ledger, err := DefaultParityLedger()
 	require.NoError(t, err)
+	require.Equal(t, ResultClassMetadataValidated, ledger.ResultClass)
+	require.Equal(t, TrustBadgeKernel, ledger.TrustBadge)
 	require.Len(t, ledger.Entries, 20)
 
 	properties := 0
@@ -38,13 +40,13 @@ func TestDefaultParityLedgerDispositionsEntireUmpire2Inventory(t *testing.T) {
 	for _, entry := range ledger.Entries {
 		if _, equivalentEntry := equivalentNames[entry.LegacyName]; equivalentEntry {
 			require.Equal(t, ParityEquivalent, entry.Disposition)
-			require.Equal(t, "complete", entry.ExplorationStatus)
+			require.Equal(t, MetadataPresent, entry.EvidenceStatus)
 			require.Equal(t, FidelityExact, entry.Fidelity)
 			require.Equal(t, EvidenceLocalIntegration, entry.EvidenceLevel)
 			equivalent++
 		} else {
 			require.Equal(t, ParityNotYetImplemented, entry.Disposition, entry.LegacyName)
-			require.Equal(t, "incomplete", entry.ExplorationStatus, entry.LegacyName)
+			require.Equal(t, MetadataMissing, entry.EvidenceStatus, entry.LegacyName)
 			incomplete++
 		}
 		switch entry.Category {
@@ -74,7 +76,7 @@ func TestGeneratedParityEntriesDeclareFidelityAndEvidenceLevel(t *testing.T) {
 		} `json:"entries"`
 	}
 	require.NoError(t, json.Unmarshal(encoded, &raw))
-	require.Equal(t, "umpire3/parity-ledger/v2", raw.FormatVersion)
+	require.Equal(t, "umpire3/parity-ledger/v3", raw.FormatVersion)
 	for _, entry := range raw.Entries {
 		require.NotEmpty(t, entry.Fidelity, entry.LegacyName)
 		require.NotEmpty(t, entry.EvidenceLevel, entry.LegacyName)
@@ -129,8 +131,8 @@ func TestParityLedgerRejectsDispositionFidelityAndEvidenceContradictions(t *test
 		},
 		{
 			name: "equivalent incomplete exploration", entry: equivalent,
-			mutate:     func(entry *ParityEntry) { entry.ExplorationStatus = "incomplete" },
-			errorMatch: "incomplete exploration",
+			mutate:     func(entry *ParityEntry) { entry.EvidenceStatus = MetadataMissing },
+			errorMatch: "missing evidence metadata",
 		},
 		{
 			name: "incomplete exact fidelity", entry: incomplete,
@@ -139,8 +141,8 @@ func TestParityLedgerRejectsDispositionFidelityAndEvidenceContradictions(t *test
 		},
 		{
 			name: "incomplete complete exploration", entry: incomplete,
-			mutate:     func(entry *ParityEntry) { entry.ExplorationStatus = "complete" },
-			errorMatch: "claims complete exploration",
+			mutate:     func(entry *ParityEntry) { entry.EvidenceStatus = MetadataPresent },
+			errorMatch: "claims present evidence metadata",
 		},
 		{
 			name: "unknown fidelity", entry: incomplete,
