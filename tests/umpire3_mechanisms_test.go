@@ -188,7 +188,7 @@ func (o *umpire3NexusLifecycleObserver) prepare(
 				})
 		}
 	}
-	if from != "unspecified" && !(from == "scheduled" && action == "timeout") {
+	if from != "unspecified" && (from != "scheduled" || action != "timeout") {
 		if err := o.requireState(ctx, execution, "scheduled"); err != nil {
 			cleanup()
 			return nil, func() {}, err
@@ -682,7 +682,8 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 		}},
 	}
 	nexusHandlerLink := commonnexus.ConvertLinkWorkflowEventToNexusLink(handlerLink)
-	if execution.mode == "ordinary" {
+	switch execution.mode {
+	case "ordinary":
 		_, err := d.env.FrontendClient().RespondNexusTaskCompleted(ctx,
 			&workflowservice.RespondNexusTaskCompletedRequest{
 				Namespace: d.env.Namespace().String(), Identity: "umpire3-nexus-phased-driver",
@@ -700,7 +701,7 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 		if err != nil {
 			return fmt.Errorf("return ordinary Nexus completion: %w", err)
 		}
-	} else if execution.mode == "completion-before-start" {
+	case "completion-before-start":
 		start := execution.nexusTask.GetRequest().GetStartOperation()
 		if start.GetCallback() == "" || start.GetCallbackHeader() == nil {
 			return errors.New("completion-before-start task has no callback routing")
@@ -760,7 +761,7 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 			return fmt.Errorf("complete completion-before-start handler: %w", err)
 		}
 		execution.handlerClosed = true
-	} else {
+	default:
 		_, err := d.env.FrontendClient().RespondNexusTaskCompleted(ctx,
 			&workflowservice.RespondNexusTaskCompletedRequest{
 				Namespace: d.env.Namespace().String(), Identity: "umpire3-nexus-phased-driver",

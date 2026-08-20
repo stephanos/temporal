@@ -1,9 +1,10 @@
 # Authoring Umpire3 regressions
 
-Write semantic intent with generated resources, actions, properties, and structural combinators.
-Keep cluster setup and credentials in an environment factory. `RequireRegression` compiles first,
+Write a sparse Scenario with generated resources, actions, properties, and structural combinators.
+Keep cluster setup and credentials in an Environment factory. `RequireRegression` compiles the
+Scenario into validated Experiments first,
 rejects unsupported capabilities before allocation, runs every deterministic path, qualifies the
-generated monitor from evidence, cleans up, and prints a replay-oriented failure.
+generated monitor from evidence, cleans up, and prints a Replay-bundle-oriented failure.
 
 Use `OnePath` for one intended trace, `AllPaths(AnyOrder(...))` for every bounded valid ordering,
 `Before` for an author constraint, `During` for a scoped fault, `Bind` for a runtime identity, and
@@ -22,7 +23,7 @@ create runtime-learned identities where needed, and preserve the author call sit
 level generated `regress` constructors only when adding a new domain package or testing the compiler.
 
 On failure, configure `WithCorpus(artifact.NewFileCorpus(...))`. `RequireRegression` retains a
-redacted digest-bound bundle and reports its path. Inspect a checked experiment without allocation
+redacted digest-bound Replay bundle containing the Experiment and Result, and reports its path. Inspect a checked Experiment without allocation
 with `umpire3 explain`; replay a retained failure with `umpire3 replay -bundle ...` plus the same
 least-authority connection profile. Replay drift is classified instead of collapsed into a generic
 test mismatch.

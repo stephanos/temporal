@@ -44,6 +44,17 @@ var coverageSpec = exportSpec{
 	root: "Umpire3CoverageExport.lean", sourceRoot: "Temporal/Coverage.lean",
 }
 
+var firstOrderSpecs = map[string]exportSpec{
+	"sound": {
+		root:       "Umpire3NexusFirstOrderExport.lean",
+		sourceRoot: "Temporal/Targets/NexusCancellationFencingFirstOrder.lean",
+	},
+	"mutated": {
+		root:       "Umpire3NexusMutatedFirstOrderExport.lean",
+		sourceRoot: "Temporal/Targets/NexusCancellationFencingFirstOrder.lean",
+	},
+}
+
 var exportSpecs = map[string]exportSpec{
 	"nexus": {
 		root: "Umpire3Export.lean", sourceRoot: "Temporal/Experiments/NexusCancellation.lean",
@@ -70,6 +81,7 @@ func main() {
 	modelRoot := flag.String("model-root", "tests/umpire3/model", "path to the Umpire3 Lean model")
 	artifact := flag.String("artifact", "experiment", "artifact to export")
 	experiment := flag.String("experiment", "nexus", "experiment to export")
+	variant := flag.String("variant", "sound", "model variant to export")
 	output := flag.String("output", "", "optional output path")
 	flag.Parse()
 
@@ -114,6 +126,13 @@ func main() {
 		err = exportParityLedger(*modelRoot, paritySpec, &encoded)
 	case "coverage-denominator":
 		err = exportCoverageDenominator(*modelRoot, coverageSpec, &encoded)
+	case "first-order-view":
+		spec, ok := firstOrderSpecs[*variant]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "unknown first-order variant %q\n", *variant)
+			os.Exit(1)
+		}
+		err = exportFirstOrderView(*modelRoot, spec, &encoded)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown artifact %q\n", *artifact)
 		os.Exit(1)
@@ -198,6 +217,34 @@ func exportCatalog(modelRoot string, spec exportSpec, writer io.Writer) error {
 	encoded = append(encoded, '\n')
 	if _, err := writer.Write(encoded); err != nil {
 		return fmt.Errorf("write canonical catalog: %w", err)
+	}
+	return nil
+}
+
+func exportFirstOrderView(modelRoot string, spec exportSpec, writer io.Writer) error {
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	if err != nil {
+		return err
+	}
+	stdout, err := runLean(modelRoot, spec.root, semanticHash, "")
+	if err != nil {
+		return err
+	}
+	view, err := protocol.DecodeFirstOrderView(bytes.NewReader(stdout), protocol.DefaultDecodeLimit)
+	if err != nil {
+		return fmt.Errorf("validate Lean first-order view: %w", err)
+	}
+	if view.SemanticHash != semanticHash {
+		return fmt.Errorf("lean first-order semantic hash %q does not match sources %q",
+			view.SemanticHash, semanticHash)
+	}
+	encoded, err := view.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write canonical first-order view: %w", err)
 	}
 	return nil
 }
