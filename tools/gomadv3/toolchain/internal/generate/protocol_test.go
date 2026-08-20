@@ -53,7 +53,7 @@ func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if definition.Version != 1 || definition.Profile != "gomadv3.simulation-model/v1" || definition.TransportMagic != "GOMADPM\x01" || definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4096 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4096 {
+	if definition.Version != 1 || definition.Profile != "gomadv3.simulation-model/v1" || definition.TransportMagic != "GOMADPM\x03" || definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4096 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4096 {
 		t.Fatalf("simulation model protocol = %+v", definition)
 	}
 	if definition.Models.Network != 1 || definition.Models.Volume != 2 || definition.NetworkOperations.Listen != 1 || definition.NetworkOperations.ConnSetWriteDeadline != 13 || definition.VolumeOperations.Resolve != 1 || definition.VolumeOperations.MappingClose != 28 {

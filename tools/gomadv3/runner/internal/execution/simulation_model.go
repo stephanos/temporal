@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"sync"
 )
 
@@ -33,6 +32,7 @@ type simulationModelTransport struct {
 	response  io.ReadCloser
 	delivered func()
 	arrived   func(simulationFrame) error
+	discarded func(simulationFrame) error
 	writeMu   sync.Mutex
 	mu        sync.Mutex
 	next      uint64
@@ -42,9 +42,9 @@ type simulationModelTransport struct {
 	err       error
 }
 
-func newSimulationModelTransport(request io.WriteCloser, response io.ReadCloser, delivered func(), arrived func(simulationFrame) error) *simulationModelTransport {
+func newSimulationModelTransport(request io.WriteCloser, response io.ReadCloser, delivered func(), arrived func(simulationFrame) error, discarded func(simulationFrame) error) *simulationModelTransport {
 	transport := &simulationModelTransport{
-		request: request, response: response, delivered: delivered, arrived: arrived, pending: make(map[uint64]chan simulationModelResult), abandoned: make(map[uint64]struct{}), done: make(chan struct{}),
+		request: request, response: response, delivered: delivered, arrived: arrived, discarded: discarded, pending: make(map[uint64]chan simulationModelResult), abandoned: make(map[uint64]struct{}), done: make(chan struct{}),
 	}
 	go transport.readResponses()
 	return transport
@@ -142,9 +142,6 @@ func (transport *simulationModelTransport) exchange(ctx context.Context, frame s
 		return simulationFrame{}, errors.New("simulation model request identity exhausted")
 	}
 	frame.Request = transport.next
-	if os.Getenv("GOMADV3_DEBUG_TIME") != "" {
-		fmt.Fprintf(os.Stderr, "simulation-model send request=%d node=%s/%d arrivals=%d\n", frame.Request, frame.Node, frame.Incarnation, frame.Arrivals)
-	}
 	result := make(chan simulationModelResult, 1)
 	transport.pending[frame.Request] = result
 	transport.mu.Unlock()
@@ -191,28 +188,31 @@ func (transport *simulationModelTransport) readResponses() {
 			transport.fail(errors.New("simulation model response kind is invalid"))
 			return
 		}
-		if os.Getenv("GOMADV3_DEBUG_TIME") != "" {
-			fmt.Fprintf(os.Stderr, "simulation-model receive request=%d node=%s/%d arrivals=%d time=%d\n", frame.Request, frame.Node, frame.Incarnation, frame.Arrivals, frame.Time)
+		transport.mu.Lock()
+		result := transport.pending[frame.Request]
+		_, abandoned := transport.abandoned[frame.Request]
+		if result != nil {
+			delete(transport.pending, frame.Request)
+		} else if abandoned {
+			delete(transport.abandoned, frame.Request)
 		}
-		if transport.arrived != nil {
-			if err := transport.arrived(frame); err != nil {
+		transport.mu.Unlock()
+		if result == nil && !abandoned {
+			transport.fail(errors.New("simulation model response identity is unknown"))
+			return
+		}
+		arrival := transport.arrived
+		if abandoned {
+			arrival = transport.discarded
+		}
+		if arrival != nil {
+			if err := arrival(frame); err != nil {
 				transport.fail(err)
 				return
 			}
 		}
-		transport.mu.Lock()
-		result := transport.pending[frame.Request]
-		if result != nil {
-			delete(transport.pending, frame.Request)
-		} else if _, ok := transport.abandoned[frame.Request]; ok {
-			delete(transport.abandoned, frame.Request)
-			transport.mu.Unlock()
+		if abandoned {
 			continue
-		}
-		transport.mu.Unlock()
-		if result == nil {
-			transport.fail(errors.New("simulation model response identity is unknown"))
-			return
 		}
 		result <- simulationModelResult{frame: frame}
 	}

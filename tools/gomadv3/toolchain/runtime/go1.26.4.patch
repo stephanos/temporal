@@ -74,21 +74,21 @@ index 018fe01..f99542c 100644
  //
  //go:linkname fatal
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index 005c875..7a49cf1 100644
+index 005c875..4e79cf1 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
-@@ -244,6 +244,10 @@
- 		// a C-created thread and need to create a new thread.
- 		startTemplateThread()
+@@ -246,6 +246,10 @@ func main() {
  		cgocall(_cgo_notify_runtime_init_done, nil)
-+	}
-+
-+	if gomadEnabled {
-+		gomadStartUserCode(mp)
  	}
  
++	if gomadEnabled {
++		gomadStartUserCode(mp)
++	}
++
  	// Run the initializing tasks. Depending on build mode this
-@@ -873,6 +877,7 @@
+ 	// list can arrive a few different ways, but it will always
+ 	// contain the init tasks computed by the linker for all the
+@@ -873,6 +877,7 @@ func schedinit() {
  	ticks.init() // run as early as possible
  	moduledataverify()
  	stackinit()
@@ -96,7 +96,7 @@ index 005c875..7a49cf1 100644
  	randinit() // must run before mallocinit, alginit, mcommoninit
  	mallocinit()
  	cpuinit(godebug) // must run before alginit
-@@ -919,7 +924,10 @@
+@@ -919,7 +924,10 @@ func schedinit() {
  	lock(&sched.lock)
  	sched.lastpoll.Store(nanotime())
  	var procs int32
@@ -108,7 +108,7 @@ index 005c875..7a49cf1 100644
  		procs = int32(n)
  		sched.customGOMAXPROCS = true
  	} else {
-@@ -5352,6 +5360,10 @@
+@@ -5352,6 +5360,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
  	gostartcallfn(&newg.sched, fn)
  	newg.parentGoid = callergp.goid
  	newg.gopc = callerpc
@@ -119,7 +119,7 @@ index 005c875..7a49cf1 100644
  	newg.ancestors = saveAncestors(callergp)
  	newg.startpc = fn.fn
  	newg.runningCleanups.Store(false)
-@@ -6393,7 +6405,7 @@
+@@ -6393,7 +6405,7 @@ func checkdead() {
  		run0 = 1
  	}
  
@@ -128,7 +128,12 @@ index 005c875..7a49cf1 100644
  	if run > run0 {
  		return
  	}
-@@ -6408,6 +6420,10 @@
+@@ -6404,10 +6416,15 @@ func checkdead() {
+ 	}
+ 
+ 	grunning := 0
++	gomadRunnable := false
+ 	forEachG(func(gp *g) {
  		if isSystemGoroutine(gp, false) {
  			return
  		}
@@ -139,7 +144,26 @@ index 005c875..7a49cf1 100644
  		s := readgstatus(gp)
  		switch s &^ _Gscan {
  		case _Gwaiting,
-@@ -6428,12 +6444,53 @@
+@@ -6416,11 +6433,18 @@ func checkdead() {
+ 		case _Grunnable,
+ 			_Grunning,
+ 			_Gsyscall:
++			if gomadSimulationTimeEnabled {
++				gomadRunnable = true
++				return
++			}
+ 			print("runtime: checkdead: find g ", gp.goid, " in status ", s, "\n")
+ 			unlock(&sched.lock)
+ 			throw("checkdead: runnable g")
+ 		}
+ 	})
++	if gomadRunnable {
++		return
++	}
+ 	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
+ 		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
+ 		fatal("no goroutines (main called runtime.Goexit) - deadlock!")
+@@ -6428,12 +6452,53 @@ func checkdead() {
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
@@ -196,7 +220,7 @@ index 005c875..7a49cf1 100644
  				// There should always be a free P since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6441,6 +6498,10 @@
+@@ -6441,6 +6506,10 @@ func checkdead() {
  			}
  			mp := mget()
  			if mp == nil {
@@ -207,7 +231,7 @@ index 005c875..7a49cf1 100644
  				// There should always be a free M since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6478,7 +6539,7 @@
+@@ -6478,7 +6547,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -216,7 +240,7 @@ index 005c875..7a49cf1 100644
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -6525,7 +6586,7 @@
+@@ -6525,7 +6594,7 @@ func sysmon() {
  			lock(&sched.lock)
  			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
  				syscallWake := false
@@ -225,7 +249,7 @@ index 005c875..7a49cf1 100644
  				if next > now {
  					sched.sysmonwait.Store(true)
  					unlock(&sched.lock)
-@@ -7468,7 +7529,7 @@
+@@ -7468,7 +7537,7 @@ func runqempty(pp *p) bool {
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -234,7 +258,7 @@ index 005c875..7a49cf1 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7487,7 +7548,7 @@
+@@ -7487,7 +7556,7 @@ func runqput(pp *p, gp *g, next bool) {
  		// risk starvation.
  		next = false
  	}
@@ -243,7 +267,7 @@ index 005c875..7a49cf1 100644
  		next = false
  	}
  
-@@ -7540,7 +7601,7 @@
+@@ -7540,7 +7609,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
  
  	if randomizeScheduler {
  		for i := uint32(1); i <= n; i++ {
@@ -252,7 +276,7 @@ index 005c875..7a49cf1 100644
  			batch[i], batch[j] = batch[j], batch[i]
  		}
  	}
-@@ -7581,7 +7642,7 @@
+@@ -7581,7 +7650,7 @@ func runqputbatch(pp *p, q *gQueue) {
  			return (pp.runqtail + o) % uint32(len(pp.runq))
  		}
  		for i := uint32(1); i < n; i++ {
@@ -261,12 +285,10 @@ index 005c875..7a49cf1 100644
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
  	}
-@@ -7603,6 +7664,20 @@
- 	// Hence, there's no need to retry this CAS if it fails.
- 	if next != 0 && pp.runnext.cas(next, 0) {
+@@ -7605,6 +7674,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
-+	}
-+
+ 	}
+ 
 +	if gomadEnabled && gomaxprocs == 1 {
 +		h := atomic.LoadAcq(&pp.runqhead)
 +		t := pp.runqtail
@@ -279,9 +301,11 @@ index 005c875..7a49cf1 100644
 +			atomic.StoreRel(&pp.runqhead, h+1)
 +			return gp, false
 +		}
- 	}
- 
++	}
++
  	for {
+ 		h := atomic.LoadAcq(&pp.runqhead) // load-acquire, synchronize with other consumers
+ 		t := pp.runqtail
 diff --git a/src/runtime/rand.go b/src/runtime/rand.go
 index 1739e9f..68ab02a 100644
 --- a/src/runtime/rand.go
@@ -311,10 +335,10 @@ index 1739e9f..68ab02a 100644
  	for i := range seed {
  		seed[i] = bootstrapRand()
 diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
-index be33932..4f221ca 100644
+index be33932..16bc0b3 100644
 --- a/src/runtime/runtime2.go
 +++ b/src/runtime/runtime2.go
-@@ -503,13 +503,17 @@
+@@ -503,13 +503,17 @@ type g struct {
  	//    closure in the runtime is forbidden.
  	// 4. When a panic is recovered and control returns to the respective frame,
  	//    param may point to a savedOpenDeferState.

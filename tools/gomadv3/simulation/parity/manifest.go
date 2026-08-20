@@ -13,7 +13,7 @@ import (
 )
 
 const ManifestSchema = "gomadv3.simulation-parity/v1"
-const HarnessSpecSchema = "gomadv3.simulation-spec/v5"
+const HarnessSpecSchema = "gomadv3.simulation-spec/v6"
 const MaximumManifestBytes = 1 << 20
 
 const (

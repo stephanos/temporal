@@ -9,6 +9,11 @@ import (
 
 func TestInspectClusterRecordProducesStableJSONAndTextProjection(t *testing.T) {
 	spec := validSpec()
+	scenarioChoices, err := NewScenarioChoicePlan([]ScenarioChoiceOverride{{
+		Ordinal: 0, ID: "route", Occurrence: 1, Alternatives: []string{"alpha", "beta"}, Selected: 0,
+	}})
+	require.NoError(t, err)
+	spec.ScenarioChoices = &scenarioChoices
 	specSHA256, err := hashSpec(spec)
 	require.NoError(t, err)
 	oracle, err := StateInvariant("state.valid", true, []OracleEvidence{{Label: "state", Value: []byte("ok")}}, 1024)
@@ -29,6 +34,8 @@ func TestInspectClusterRecordProducesStableJSONAndTextProjection(t *testing.T) {
 	require.EqualValues(t, len(spec.Nodes), inspection.Counts.Nodes)
 	require.EqualValues(t, 1, inspection.Counts.HistoryOperations)
 	require.EqualValues(t, 1, inspection.Counts.OracleResults)
+	require.EqualValues(t, 1, inspection.Counts.ScenarioChoiceOverrides)
+	require.Equal(t, scenarioChoices.Identity, inspection.Tapes.ScenarioChoicePlanSHA256)
 	require.Equal(t, record.Network.Snapshot.Identity, inspection.Terminal.NetworkSHA256)
 	require.Equal(t, record.Volumes.Snapshot.Identity, inspection.Terminal.VolumeSHA256)
 

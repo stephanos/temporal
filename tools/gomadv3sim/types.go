@@ -6,9 +6,9 @@ import (
 	"fmt"
 )
 
-const SpecSchema = "gomadv3.simulation-spec/v5"
-const ClusterRecordSchema = "gomadv3.cluster-record/v5"
-const ClusterReplaySchema = "gomadv3.cluster-replay/v5"
+const SpecSchema = "gomadv3.simulation-spec/v6"
+const ClusterRecordSchema = "gomadv3.cluster-record/v6"
+const ClusterReplaySchema = "gomadv3.cluster-replay/v6"
 
 const MaximumClusterRecordBytes = 128 << 20
 const MaximumTerminalReasonBytes = 4096
@@ -443,6 +443,7 @@ type ClusterRecord struct {
 	Transitions     []LifecycleTransition   `json:"transitions"`
 	FaultPlan       FaultPlan               `json:"fault_plan"`
 	Faults          []FaultRealization      `json:"faults"`
+	ScenarioChoices ScenarioChoicePlan      `json:"scenario_choice_plan"`
 	Scenarios       []ScenarioDecision      `json:"scenario_tape"`
 	History         []HistoryOperation      `json:"history"`
 	Observations    []Observation           `json:"observations"`
@@ -468,6 +469,7 @@ type ReplayPlan struct {
 	Transitions     []LifecycleTransition   `json:"transitions"`
 	FaultPlan       FaultPlan               `json:"fault_plan"`
 	Faults          []FaultRealization      `json:"faults"`
+	ScenarioChoices ScenarioChoicePlan      `json:"scenario_choice_plan"`
 	Scenarios       []ScenarioDecision      `json:"scenario_tape"`
 	History         []HistoryOperation      `json:"history"`
 	Observations    []Observation           `json:"observations"`

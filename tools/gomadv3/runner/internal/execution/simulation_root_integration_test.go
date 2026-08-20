@@ -27,6 +27,8 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 	}
 
 	for _, testName := range []string{
+		"TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays",
+		"TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection",
 		"TestProcessBackendResetsGlobalsDescriptorsAndGoroutines",
 		"TestProcessAndInProcessBackendsHaveEquivalentDetachedModels",
 		"TestProcessBackendRoutesTCPThroughSharedHostModel",

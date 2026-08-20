@@ -42,8 +42,10 @@ func testReplayPlan(t *testing.T, spec Spec) ReplayPlan {
 	require.NoError(t, err)
 	faults, err := NewFaultPlan(nil)
 	require.NoError(t, err)
+	scenarioChoices, err := NewScenarioChoicePlan(nil)
+	require.NoError(t, err)
 	return ReplayPlan{
 		Schema: ClusterReplaySchema, SpecSHA256: specSHA256, Static: static, Models: models,
-		Outcome: OutcomeCompleted, FaultPlan: faults, Network: emptyNetworkRecord(), Volumes: emptyVolumeRecord(),
+		Outcome: OutcomeCompleted, FaultPlan: faults, ScenarioChoices: scenarioChoices, Network: emptyNetworkRecord(), Volumes: emptyVolumeRecord(),
 	}
 }

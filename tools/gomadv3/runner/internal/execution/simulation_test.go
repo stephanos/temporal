@@ -13,7 +13,7 @@ import (
 )
 
 func TestServeSimulationNotifiesAfterWritingResponse(t *testing.T) {
-	request := simulationFrame{Profile: simulationProtocol, Kind: simulationFrameWait, Request: 1, Node: "node", Incarnation: 1}
+	request := simulationFrame{Profile: simulationProtocol, Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1}
 	var source bytes.Buffer
 	if err := writeSimulationFrame(&source, request); err != nil {
 		t.Fatal(err)
@@ -23,7 +23,7 @@ func TestServeSimulationNotifiesAfterWritingResponse(t *testing.T) {
 	delivering := false
 	err := serveSimulation(context.Background(), &source, &destination, func(context.Context, simulationFrame) (simulationFrame, error) {
 		return simulationFrame{}, nil
-	}, func(actual simulationFrame) {
+	}, nil, func(actual simulationFrame) {
 		delivering = true
 		if !reflect.DeepEqual(actual, request) {
 			t.Fatalf("delivering request = %#v, want %#v", actual, request)
@@ -51,6 +51,44 @@ func TestServeSimulationNotifiesAfterWritingResponse(t *testing.T) {
 	}
 }
 
+func TestServeSimulationAcknowledgesWaitBeforeHandling(t *testing.T) {
+	request := simulationFrame{Profile: simulationProtocol, Kind: simulationFrameWait, Request: 1, Node: "node", Incarnation: 1}
+	var source bytes.Buffer
+	if err := writeSimulationFrame(&source, request); err != nil {
+		t.Fatal(err)
+	}
+	var destination bytes.Buffer
+	accepted := false
+	err := serveSimulation(context.Background(), &source, &destination, func(context.Context, simulationFrame) (simulationFrame, error) {
+		if !accepted {
+			t.Fatal("wait handler ran before acceptance")
+		}
+		if !reflect.DeepEqual(destination.Bytes(), make([]byte, 4)) {
+			t.Fatalf("wait acceptance = %x", destination.Bytes())
+		}
+		return simulationFrame{}, nil
+	}, func(actual simulationFrame) error {
+		accepted = true
+		if !reflect.DeepEqual(actual, request) {
+			t.Fatalf("accepted request = %#v, want %#v", actual, request)
+		}
+		return nil
+	}, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !accepted {
+		t.Fatal("wait acceptance was omitted")
+	}
+	response, err := readSimulationFrame(bytes.NewReader(destination.Bytes()[4:]))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.Kind != simulationFrameResponse || response.Request != request.Request {
+		t.Fatalf("wait response = %#v", response)
+	}
+}
+
 func TestServeSimulationAcceptsArrivalAcknowledgement(t *testing.T) {
 	var source bytes.Buffer
 	var arrival [8]byte
@@ -62,7 +100,7 @@ func TestServeSimulationAcceptsArrivalAcknowledgement(t *testing.T) {
 	err := serveSimulation(context.Background(), &source, io.Discard, func(context.Context, simulationFrame) (simulationFrame, error) {
 		t.Fatal("arrival acknowledgement reached the request handler")
 		return simulationFrame{}, nil
-	}, nil, nil, func(arrivals uint32) error {
+	}, nil, nil, nil, func(arrivals uint32) error {
 		acknowledged += arrivals
 		return nil
 	})
@@ -77,7 +115,7 @@ func TestServeSimulationAcceptsArrivalAcknowledgement(t *testing.T) {
 func TestSimulationModelTransportCorrelatesConcurrentResponses(t *testing.T) {
 	requestRead, requestWrite := io.Pipe()
 	responseRead, responseWrite := io.Pipe()
-	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil)
+	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil, nil)
 	defer func() {
 		if err := transport.close(); err != nil {
 			t.Error(err)
@@ -154,7 +192,18 @@ func TestSimulationModelTransportCarriesLogicalTime(t *testing.T) {
 func TestSimulationModelTransportDiscardsLateCancelledResponse(t *testing.T) {
 	requestRead, requestWrite := io.Pipe()
 	responseRead, responseWrite := io.Pipe()
-	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil)
+	discarded := false
+	transport := newSimulationModelTransport(requestWrite, responseRead, nil, func(frame simulationFrame) error {
+		if frame.Node == "cancelled" {
+			return errors.New("cancelled response reached the active arrival handler")
+		}
+		return nil
+	}, func(frame simulationFrame) error {
+		if frame.Node == "cancelled" {
+			discarded = true
+		}
+		return nil
+	})
 	t.Cleanup(func() {
 		if err := errors.Join(transport.close(), requestRead.Close(), responseWrite.Close()); err != nil {
 			t.Error(err)
@@ -201,6 +250,9 @@ func TestSimulationModelTransportDiscardsLateCancelledResponse(t *testing.T) {
 	if !reflect.DeepEqual(result.frame.Payload, []byte("ok")) {
 		t.Fatalf("second response payload = %q", result.frame.Payload)
 	}
+	if !discarded {
+		t.Fatal("late cancelled response was not discarded")
+	}
 }
 
 func TestServeSimulationModelsAllowsConcurrentBlockingOperations(t *testing.T) {
@@ -220,7 +272,7 @@ func TestServeSimulationModelsAllowsConcurrentBlockingOperations(t *testing.T) {
 			return simulationFrame{Payload: []byte(request.Node)}, nil
 		}, nil, nil)
 	}()
-	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil)
+	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil, nil)
 	results := make(chan string, 2)
 	for _, node := range []string{"blocked", "release"} {
 		go func(node string) {

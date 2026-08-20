@@ -1,6 +1,6 @@
 # Gomad v3: Suggested Next Functionality
 
-**Roadmap date:** 2026-08-15
+**Roadmap date:** 2026-08-20
 
 ## Purpose
 
@@ -46,7 +46,7 @@ Compatibility analysis and qualification reporting v1 are implemented through `g
 | Core tier 1 | 5 | 5 | 0 | Yes | Required on Gomad v3 pull requests and pushes |
 | Temporal tier 2 | 16 | 5 | 11 | Yes | Scheduled or manually dispatched |
 
-The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. PROD-1, PROD-2, and the static-seed filesystem slice of PROD-4 are implemented: campaigns have an explicit crash-consistent lifecycle, bounded segmented journals, portable prepared-target and mount bundles, deterministic ordinal shards, and identity-checking aggregate merge. The distributed-system simulation parity contract, application harness, and SIM-1 through SIM-4 are implemented. Logical nodes now have exact lifecycle, network, storage, fault, scenario, history, observation, oracle, output, and terminal replay; modeled partition/restart and partial-persistence nemeses; bounded inspection; stable failure identities; and a representative Temporal duplicate-delivery failure reproduction. Process-backed hard isolation remains unimplemented.
+The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. PROD-1, PROD-2, and the static-seed filesystem slice of PROD-4 are implemented: campaigns have an explicit crash-consistent lifecycle, bounded segmented journals, portable prepared-target and mount bundles, deterministic ordinal shards, and identity-checking aggregate merge. The distributed-system simulation parity contract, application harness, and SIM-1 through SIM-5 are implemented. Logical nodes now have exact lifecycle, network, storage, fault, scenario, history, observation, oracle, output, and terminal replay; modeled partition/restart and partial-persistence nemeses; bounded inspection; stable failure identities; and a representative Temporal duplicate-delivery failure reproduction. The process backend adds bounded private bootstrap and model IPC, host-owned time arbitration, fresh package initialization, hard crash/reap, and cross-backend detached-model conformance.
 
 ## Recommended order
 
@@ -69,7 +69,7 @@ These are now the evidence sources for controlled exploration, compatibility pri
 
 Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode, but the remaining evaluated candidates retain real assembly, linkname, `syscall`, or forbidden-import blockers; closure review remains the default. Rank the remaining eleven blockers before selecting another exact adapter or I/O model, then add composed tier-3 scenarios from the expanded supported set.
 
-For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) through [SIM-4](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) are complete. The canonical v2 behavioral-parity manifest names thirteen expected v3 cases and marks twelve with implemented in-process evidence. Runtime domains bind every modeled network and volume operation to an exact incarnation; lifecycle, terminal, transition, fault, scenario, history, observation, oracle, and final model state replay exactly. Fresh-global and hard-isolation claims remain gated on SIM-5.
+For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) through [SIM-5](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) are complete. The canonical v2 behavioral-parity manifest names thirteen implemented v3 cases with sixteen declared in-process and process prototypes. Runtime domains bind every modeled network and volume operation to an exact incarnation; lifecycle, terminal, transition, fault, scenario, history, observation, oracle, and final model state replay exactly. The process tier provides the fresh-global and hard-isolation evidence that the in-process tier intentionally cannot claim.
 
 ### Milestone 3: reduce failures and make campaigns durable
 
@@ -77,7 +77,7 @@ For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-p
 
 The static-seed filesystem slice of [PROD-4](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) is complete. Canonical plans capture verified targets and bounded read-only inputs, zero-based ordinal-modulo shards retain global ordinals, and merge validates exact plan identity, completeness, content deduplication, and capacity before publishing a new aggregate. Dynamic choice-frontier sharding remains gated on a round coordinator because prefixes are discovered by prior executions. The initial [PROD-8](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) slice enforces journal, simultaneous partial-run, artifact, and merge capacities with explicit infrastructure outcomes.
 
-In the simulation track, [SIM-1](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) through [SIM-4](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) are complete. Preserve their lifecycle, runtime-domain, network, storage, fault, scenario, history, oracle, replay, output, capacity, and disabled-mode gates while SIM-5 adds process-backed fidelity.
+In the simulation track, [SIM-1](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) through [SIM-5](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) are complete. Preserve their lifecycle, runtime-domain, network, storage, fault, scenario, history, oracle, replay, output, capacity, disabled-mode, process-isolation, and cross-backend conformance gates while SIM-6 integrates controlled exploration.
 
 ### Milestone 4: add modeled faults, simulation parity, and a second qualified platform
 
@@ -97,7 +97,7 @@ Implement [PROD-6](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-6-ci-integration), a s
 
 Complete [COMPAT-8](GOMADv3_NEXT_COMPATIBILITY.md#compat-8-dependency-and-go-upgrade-impact-reports) by extending dependency and Go upgrade dossiers to report changed targets, packs, adapters, workload support, boundary dispositions, approvals, and rollback availability. Implement [PROD-9](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-9-release-governance) by defining schema/CLI compatibility windows, evidence-preserving migrations, release ownership, qualification state, known limitations, maturity labels, and rollback targets.
 
-Complete [SIM-5](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) only after in-process network, storage, lifecycle, and oracle semantics pass their parity corpus. The process-backed fidelity tier owns bounded node launch, typed model IPC, time arbitration, hard crash/reap, and fresh-incarnation initialization; only this tier may claim fresh package globals and hard process isolation across node restarts.
+[SIM-5](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) is complete after the in-process network, storage, lifecycle, and oracle semantics passed their parity corpus. The process-backed fidelity tier owns bounded node launch, typed model IPC, time arbitration, hard crash/reap, and fresh-incarnation initialization; only this tier claims fresh package globals and hard process isolation across node restarts.
 
 ### Milestone 6: integrate simulation exploration and expand by evidence
 
@@ -161,8 +161,8 @@ The tables below account for every named capability and delivery stage in the fo
 | [SIM-2: Virtual network parity](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) | Implemented; in-process network fidelity only | Milestone 4 |
 | [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | Implemented; in-process durability fidelity only | Milestone 4 |
 | [SIM-4: Scenarios, nemeses, records, and oracles](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) | Implemented; in-process typed faults, scenarios, histories, oracles, artifacts, and Temporal failure replay | Milestone 4 |
-| [SIM-5: Process-backed fidelity tier](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) | Designed, after in-process parity | Milestone 5 |
-| [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | Designed, after SIM-5 | Milestone 6 |
+| [SIM-5: Process-backed fidelity tier](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) | Implemented; bounded process launch, model/time IPC, hard isolation, and cross-backend conformance | Milestone 5 |
+| [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | Designed; next simulation stage | Milestone 6 |
 | [SIM-7: Evidence-driven expansion beyond v2](GOMADv3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) | Designed, after measurable parity | Milestone 6 |
 
 The simulation track also carries the adjacent v2 obligations explicitly: same-seed equality and different-seed diversity remain qualification requirements; typed choice/model records replace opaque trace checksums; only the process-backed tier can provide fresh globals and hard cleanup; output remains node/incarnation-aware while preserving Go-test presentation; and race detection remains a separate non-Gomad profile rather than an implied single-P capability.

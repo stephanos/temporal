@@ -327,6 +327,9 @@ func TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled(t *test
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
+	if err := arbiter.beginExternalAfterArrivals(node, 0); err != nil {
+		t.Fatal(err)
+	}
 	responses := make(chan simulationTimeResponse, 1)
 	errors := make(chan error, 1)
 	go func() {
@@ -337,9 +340,6 @@ func TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled(t *test
 		errors <- quiesceErr
 	}()
 	waitForSimulationQuiescence(t, arbiter, coordinator)
-	if err := arbiter.beginExternalAfterArrivals(node, 0); err != nil {
-		t.Fatal(err)
-	}
 	if current := arbiter.currentTime(); current != simulationInitialTime {
 		t.Fatalf("current time = %d", current)
 	}
@@ -347,6 +347,35 @@ func TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled(t *test
 	<-responses
 	if err := <-errors; err == nil {
 		t.Fatal("quiescence did not observe cancellation")
+	}
+}
+
+func TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered(t *testing.T) {
+	arbiter := newSimulationTimeArbiter()
+	coordinator, err := arbiter.register("coordinator")
+	if err != nil {
+		t.Fatal(err)
+	}
+	node, err := arbiter.register("node/1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arbiter.activate(coordinator)
+	arbiter.activate(node)
+	if err := arbiter.forwardExternalAfterArrivals(node, 0, coordinator); err != nil {
+		t.Fatal(err)
+	}
+	arbiter.deliverExternal(coordinator)
+
+	response, err := arbiter.quiesce(context.Background(), coordinator, simulationTimeRequest{
+		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 10, Arrivals: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := simulationTimeResponse{Generation: 1, Kind: simulationTimeAdvance, Time: simulationInitialTime + 10}
+	if response != want {
+		t.Fatalf("response = %#v, want %#v", response, want)
 	}
 }
 
@@ -517,6 +546,7 @@ func TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives(t *testing.T) {
 	if err := <-errors; err != nil {
 		t.Fatal(err)
 	}
+	arbiter.deliverExternal(participant)
 
 	go func() {
 		response, quiesceErr := arbiter.quiesce(context.Background(), participant, simulationTimeRequest{

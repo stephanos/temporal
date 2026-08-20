@@ -561,11 +561,13 @@ qualified `darwin/arm64` platform. Cgo, external linking, multiple Ps, signals,
 finalizers, subprocesses, non-loopback networking, DNS, plugins, and
 unrecognized host I/O are outside the committed deterministic contract.
 
-The main feature gaps are similarly straightforward: committed Gomad v3 samples
-seeded executions rather than systematically enumerating schedules, does not yet
-minimize failures, and does not yet provide the planned multi-node distributed
-system simulation or a qualified Linux Runner bundle. Those are roadmap items,
-not hidden assumptions in current results.
+The main feature gaps are similarly straightforward: bounded choice-frontier
+exploration currently has neutral benchmark efficiency, combined
+schedule-plus-fault exploration and failure minimization are not yet complete,
+and there is no qualified Linux Runner bundle. Multi-node distributed-system
+simulation is available through explicit in-process and process-backed fidelity
+tiers. Those limits are roadmap items, not hidden assumptions in current
+results.
 
 ## A practical way to start
 
