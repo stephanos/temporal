@@ -4,14 +4,14 @@
   "formatVersion": "umpire3/release/v1",
   "experimentFormatVersion": "umpire3/v2",
   "leanVersion": "4.33.0",
-  "catalogHash": "sha256:4d39c0b9607731c352eed577494024e482a6df4ea37ccb6c7ad8b7a7423bd3f5",
+  "catalogHash": "sha256:f5755a6a3b64476d6adec515d099c3f277838583fe85eb1212c55a256f4f9b4e",
   "descriptorHash": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081",
-  "monitorSemanticHash": "sha256:c9d78d79b7b466cecb8df17f3b481497c7256aaf2c3f7264f40f4b20545644f6",
-  "compositionSemanticHash": "sha256:2f26ef05ca0353e3e045a1d2724ee73bbf4f7c81fff7b37a0a0e92f649041543",
-  "paritySemanticHash": "sha256:52aa98d4723d5bd13ccda47ec803c5a5724c04b2e8e781d22fcb6df886b04695",
+  "monitorSemanticHash": "sha256:059874376d80d2dd25bb4b34a90cd13fc091a49363c7ec0ec9ea1abf6e0e7b4c",
+  "compositionSemanticHash": "sha256:664fa4acdfee9b461d090f7b3a0f054384865209a08aa06fac5ed1a6d2396794",
+  "paritySemanticHash": "sha256:456c48cf5b78f7a1ba07aa6ecfb7183d3baab21cc32cceee41280b4c55537fc7",
   "experiments": {
-    "nexus-cancellation-stale-completion-v1": "sha256:7a113aec231b0526b6ca94fe1c7260dc06b15ccb03dbd034f98b61e4b53962cd",
-    "workflow-update-lifecycle-v1": "sha256:ca72fc0eefccc511c62c1c811c9b9da551dac2dad1356a7f2059ee6e224c9bcc"
+    "nexus-cancellation-stale-completion-v1": "sha256:8e676ca72e639504f4bc426da27bd96e79de337e2137d1e179f840026b3efb66",
+    "workflow-update-lifecycle-v1": "sha256:93d52127216d9afb34d62f043ea73a4c55fc271d2efea210aa10b03d28745cc2"
   },
   "proofManifests": [
     "nexus-tasks-refinement-v1",
@@ -26,7 +26,7 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:f853faae5491b0d373b93c13953d8df3d09472537876a80e409339aa21fd1361",
+    "ledgerHash": "sha256:a47873dfd96a433d079088e7aaefcca1d372d23a98b12455958bfd3c0ec75d81",
     "behaviorCount": 28,
     "exactCount": 23,
     "semanticEquivalentCount": 5,

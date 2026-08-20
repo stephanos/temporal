@@ -149,12 +149,38 @@ func TestRunRealizesFaultOverDeclaredActionInterval(t *testing.T) {
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
 	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, protocol.ResultClassImplementationConforming, result.ResultClass)
+	require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
 	require.Equal(t, []string{"install", "activate", "release", "cleanup"}, realizer.calls)
 	require.Len(t, result.Faults, 1)
 	require.True(t, result.Faults[0].Realized)
 	require.True(t, result.Faults[0].Released)
 	require.True(t, result.Faults[0].CleanupComplete)
 	require.NotEmpty(t, result.Faults[0].Reference)
+}
+
+func TestResultAssuranceIsDerivedFromFinalClaim(t *testing.T) {
+	for _, test := range []struct {
+		claim       ClaimKind
+		resultClass protocol.ResultClass
+	}{
+		{claim: ClaimConforming, resultClass: protocol.ResultClassImplementationConforming},
+		{claim: ClaimViolating, resultClass: protocol.ResultClassTraceWitness},
+		{claim: ClaimUnsupported, resultClass: protocol.ResultClassUnknown},
+		{claim: ClaimInconclusive, resultClass: protocol.ResultClassUnknown},
+		{claim: ClaimEvidenceFailure, resultClass: protocol.ResultClassUnknown},
+	} {
+		t.Run(string(test.claim), func(t *testing.T) {
+			result := Result{Claim: Claim{Kind: test.claim}}
+			finalizeAssurance(&result)
+			require.Equal(t, test.resultClass, result.ResultClass)
+			require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
+			require.NoError(t, result.ValidateAssurance())
+
+			result.ResultClass = protocol.ResultClassFiniteExhaustive
+			require.Error(t, result.ValidateAssurance())
+		})
+	}
 }
 
 func TestRunFaultCleanupFailureDowngradesConformance(t *testing.T) {

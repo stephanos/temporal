@@ -22,7 +22,7 @@ func TestCrossLayerMutationGateDiscoversMinimizesReplaysAndPromotes(t *testing.T
 		digest, err := candidate.Digest()
 		require.NoError(t, err)
 		result := umpire3runtime.Result{
-			FormatVersion: protocol.FormatVersion, ExperimentDigest: digest,
+			FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest,
 			Environment: umpire3runtime.EnvironmentProfile{
 				Name: "local-in-process", Capabilities: []string{"history-observation", "nexus"},
 			},
@@ -44,6 +44,7 @@ func TestCrossLayerMutationGateDiscoversMinimizesReplaysAndPromotes(t *testing.T
 				Claims: []evidence.Claim{{Property: candidate.Property.Identifier, Verdict: "violating"}},
 			}
 		}
+		result.DeriveAssurance()
 		return result, nil
 	}
 	request := MutationGateRequest{
@@ -88,9 +89,12 @@ func TestMutationGateRejectsUnapprovedViolation(t *testing.T) {
 		Executor: func(_ context.Context, candidate protocol.Experiment) (umpire3runtime.Result, error) {
 			digest, digestErr := candidate.Digest()
 			require.NoError(t, digestErr)
-			return umpire3runtime.Result{ExperimentDigest: digest, Claim: umpire3runtime.Claim{
-				Kind: umpire3runtime.ClaimViolating, Property: candidate.Property.Identifier,
-			}}, nil
+			result := umpire3runtime.Result{
+				FormatVersion: umpire3runtime.ResultFormatVersion, ExperimentDigest: digest, Claim: umpire3runtime.Claim{
+					Kind: umpire3runtime.ClaimViolating, Property: candidate.Property.Identifier,
+				}}
+			result.DeriveAssurance()
+			return result, nil
 		},
 	})
 	require.ErrorContains(t, err, "unapproved mutation")
