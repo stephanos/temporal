@@ -119,6 +119,14 @@ func TestDescriptorPlanOwnsEveryStageLayout(t *testing.T) {
 			stage: bootstrapStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
 			want: []descriptorBinding{{bootstrapRequestResource, 3}, {activationResource, 4}, {readinessResource, 5}, {worldConfigResource, 6}, {worldRecordResource, 7}, {identityResource, 8}, {ioTranscriptResource, 9}, {ioTerminalResource, 10}, {ioExpectedResource, 11}, {ioROMountRequestResource, 12}, {ioROMountResponseResource, 13}, {choiceTraceResource, 14}, {choiceTerminalResource, 15}},
 		},
+		"target simulation coordinator": {
+			stage: targetStage, caps: launchCapabilities{simulation: true, simulationCoordinator: true},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {simulationRequestResource, 6}, {simulationResponseResource, 7}, {simulationModelRequestResource, 8}, {simulationModelResponseResource, 9}},
+		},
+		"target simulation node": {
+			stage: targetStage, caps: launchCapabilities{simulation: true, simulationBootstrap: true},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {simulationRequestResource, 6}, {simulationResponseResource, 7}, {simulationBootstrapResource, 8}, {simulationControlResource, 9}, {simulationModelRequestResource, 10}, {simulationModelResponseResource, 11}},
+		},
 		"target all capabilities": {
 			stage: targetStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},
 			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {ioTranscriptResource, 6}, {ioTerminalResource, 7}, {ioExpectedResource, 8}, {ioROMountRequestResource, 9}, {ioROMountResponseResource, 10}, {choiceTraceResource, 11}, {choiceTerminalResource, 12}},

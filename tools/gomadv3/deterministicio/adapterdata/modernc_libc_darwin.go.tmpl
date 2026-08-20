@@ -38,6 +38,12 @@ func gomadLibcTruncate(int32, int64) syscall.Errno
 //go:linkname gomadLibcSync internal/gomadio.LibcSync
 func gomadLibcSync(int32) syscall.Errno
 
+//go:linkname gomadLibcMmap internal/gomadio.LibcMmap
+func gomadLibcMmap(int32, uint64) (uintptr, syscall.Errno)
+
+//go:linkname gomadLibcMunmap internal/gomadio.LibcMunmap
+func gomadLibcMunmap(uintptr, uint64) syscall.Errno
+
 //go:linkname gomadLibcRemove internal/gomadio.LibcRemove
 func gomadLibcRemove(string) syscall.Errno
 
@@ -183,10 +189,20 @@ func gomadFcntl(t *TLS, fd, cmd int32, args uintptr) (int32, bool) {
 	}
 }
 
-func gomadMmap(t *TLS, fd int32) (uintptr, bool) {
+func gomadMmap(t *TLS, address uintptr, length uint64, prot, flags, fd int32, offset int64) (uintptr, bool) {
 	if !gomadLibcEnabled() { return 0, false }
-	gomadErrno(t, syscall.ENODEV)
-	return ^uintptr(0), true
+	if address != 0 || length == 0 || prot != syscall.PROT_READ || flags != syscall.MAP_SHARED || offset != 0 {
+		gomadErrno(t, syscall.EINVAL)
+		return ^uintptr(0), true
+	}
+	result, errno := gomadLibcMmap(fd, length)
+	if errno != 0 { gomadErrno(t, errno); return ^uintptr(0), true }
+	return result, true
+}
+
+func gomadMunmap(t *TLS, address uintptr, length uint64) (int32, bool) {
+	if !gomadLibcEnabled() { return 0, false }
+	return gomadErrno(t, gomadLibcMunmap(address, length)), true
 }
 
 func gomadGettimeofday(t *TLS, tv, tz uintptr) (int32, bool) {

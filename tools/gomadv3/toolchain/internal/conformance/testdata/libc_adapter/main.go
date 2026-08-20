@@ -27,6 +27,27 @@ func main() {
 	if written := libc.Xwrite(tls, fd, uintptr(unsafe.Pointer(&contents[0])), libc.Tsize_t(len(contents))); int64(written) != int64(len(contents)) {
 		panic(fmt.Sprintf("write = %d", written))
 	}
+	mappedAddress := libc.Xmmap(tls, 0, libc.Tsize_t(len(contents)), 1, 1, fd, 0)
+	if mappedAddress == ^uintptr(0) {
+		panic("mmap failed")
+	}
+	mapped := unsafe.Slice((*byte)(unsafe.Pointer(mappedAddress)), len(contents))
+	if string(mapped) != string(contents) {
+		panic(fmt.Sprintf("mmap = %q", mapped))
+	}
+	replacement := []byte("other")
+	if written := libc.Xpwrite(tls, fd, uintptr(unsafe.Pointer(&replacement[0])), libc.Tsize_t(len(replacement)), 0); int64(written) != int64(len(replacement)) {
+		panic(fmt.Sprintf("mapped pwrite = %d", written))
+	}
+	if string(mapped) != string(replacement) {
+		panic(fmt.Sprintf("mmap after pwrite = %q", mapped))
+	}
+	if written := libc.Xpwrite(tls, fd, uintptr(unsafe.Pointer(&contents[0])), libc.Tsize_t(len(contents)), 0); int64(written) != int64(len(contents)) {
+		panic(fmt.Sprintf("mapped restore = %d", written))
+	}
+	if result := libc.Xmunmap(tls, mappedAddress, libc.Tsize_t(len(contents))); result != 0 {
+		panic(fmt.Sprintf("munmap = %d", result))
+	}
 	if offset := libc.Xlseek64(tls, fd, 0, fcntl.SEEK_SET); offset != 0 {
 		panic(fmt.Sprintf("seek = %d", offset))
 	}

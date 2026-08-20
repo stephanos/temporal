@@ -851,10 +851,12 @@ The canonical `gomadv3.simulation-parity/v1` manifest now maps thirteen
 v2-derived behaviors to named planned v3 cases, exact source tests, explicit
 replacement decisions, delivery stages, and backend/fidelity requirements.
 The root `tools/gomadv3sim` package defines the bounded
-`gomadv3.simulation-spec/v1` application contract, stable node/incarnation
+`gomadv3.simulation-spec/v2` application contract, stable node/incarnation
 handles, fail-closed boot registration, and cluster lifecycle seam. Private
-contract tests express the required request/response and restart prototypes.
-They do not execute a simulation backend or satisfy any planned parity case.
+contract tests originally expressed the required request/response and restart
+prototypes without a backend claim; SIM-1 below now executes those contracts.
+They still do not satisfy the network or storage parity cases assigned to
+later stages.
 
 Exit criteria:
 
@@ -864,12 +866,33 @@ Exit criteria:
 - backend and fidelity requirements are machine-readable; and
 - no new model code is built on a known false replay or TCP guarantee.
 
-### SIM-1: cluster core and in-process runtime domains
+### SIM-1: cluster core and in-process runtime domains — complete
 
 Implement Cluster, Node registry, runtime-domain identity/inheritance, boot
 registry, lifecycle state machine, node-aware transparent hooks, stale
 incarnation revocation, node-labelled output, and base cluster records. Start
 with no cross-node network or crash-persistent storage beyond minimal fixtures.
+
+The production `tools/gomadv3sim.Run` path now owns stable node configuration,
+monotonic incarnations, concurrent boot execution, validate-before-commit
+lifecycle transitions, authenticated cluster replay plans, bounded canonical
+records, per-incarnation terminal results, and context-bounded teardown. The
+pinned runtime propagates opaque node domains through ordinary goroutine
+creation; `os.Hostname`, stdout, and stderr resolve the active incarnation,
+and revocation is atomic with output admission. Both SIM-0 prototypes execute
+through this path and exactly replay their lifecycle and terminal evidence.
+
+The in-process fidelity limits remain explicit: package globals are shared,
+revoked crash work may remain computationally live, CPU loops require an outer
+watchdog, and hard isolation requires the future process backend. SIM-1 does
+not claim cross-node TCP, durable volumes, partitions, crash persistence, or
+fresh package initialization.
+
+Graceful Stop checks caller cancellation before admission. After it delivers
+cancellation to arbitrary boot code, it waits for a terminal commit so a
+context error never hides a partially stopped incarnation. A boot that ignores
+cancellation is therefore an outer-watchdog failure in this tier; bounded hard
+termination belongs to the process backend.
 
 Exit criteria:
 
@@ -882,12 +905,30 @@ Exit criteria:
 - ordinary single-process Gomad v3 behavior is unchanged when cluster mode is
   disabled.
 
-### SIM-2: virtual network parity
+### SIM-2: virtual network parity — complete
 
 Deepen the current loopback network into the node-aware Network module. Add
 multi-address TCP, deterministic ports and resources, link topology, fixed
 delay, partition/heal, lifecycle behavior, snapshots, recording, replay, and
 inspection.
+
+The in-process backend now intercepts ordinary `net` TCP operations inside a
+runtime domain and routes them through a run-scoped network. Nodes retain
+independent addresses and deterministic port sequences; links carry explicit
+enabled state and delay; listeners, connections, queued deliveries, bytes, and
+transitions are bounded before mutation. Partition/heal and delay changes are
+recorded topology operations. Every connection and delayed delivery carries
+both endpoint incarnations, so crash revocation resets established operations,
+drops stale queued data, and cannot deliver it after restart. Graceful stop
+produces close/EOF behavior instead of a crash reset.
+
+Cluster record and replay schemas v2 contain canonical causal-lane history and
+a digest-bound final network snapshot. Replay matches each semantic operation
+against the next transition for its resource before mutation. Topology changes
+share one ordered lane, while host arrival order between independent resources
+is normalized. Missing, changed, or causally reordered transitions fail, and
+exact final state is checked. Endpoint, payload, delay, outcome, resource, and
+incarnation identity are all part of the match.
 
 Exit criteria:
 
@@ -898,12 +939,27 @@ Exit criteria:
 - limits fail before partial mutation; and
 - disabled cluster mode preserves qualified upstream behavior.
 
-### SIM-3: durable volume parity
+### SIM-3: durable volume parity — complete
 
 Deepen `gomadfs` into the per-node Volume module. Add persisted and volatile
 views, dependency-aware pending operations, sync semantics, graceful flush,
 crash selection, lazy crash-state enumeration, copy-on-write snapshots,
 recording, replay, and inspection.
+
+The in-process backend now gives every mounted volume separate persisted and
+volatile views with explicit allocation, content, resize, metadata, and
+namespace dependencies. File sync and directory sync persist distinct
+dependency closures, graceful stop flushes all pending operations, and crash
+uses a deterministic dependency-valid selection. Crash-state enumeration is
+bounded by state, operation, depth, byte, and wall budgets; incomplete pages
+carry an identity-bound canonical frontier and resume without changing order.
+
+Volume transitions and final snapshots are independently digest-bound in the
+cluster record and replayed before mutation. Lifecycle changes fork the durable
+state, revoke handles and read-only mappings with `ESTALE`, and clear retained
+mapping bytes. The exact modernc libc adapter exposes bounded read-only shared
+mmap/munmap behavior without a host syscall. Captured read-only mount replay is
+constructed only from retained inputs and contains no host source path.
 
 Exit criteria:
 
@@ -915,11 +971,30 @@ Exit criteria:
 - mount replay never reopens host input; and
 - bounded enumeration can stop and resume without changing order.
 
-### SIM-4: scenarios, nemeses, records, and oracles
+### SIM-4: scenarios, nemeses, records, and oracles — complete
 
 Add typed scenario composition, parity nemeses, Fault controller, stable
 operation histories, initial oracles, complete cluster artifacts, inspect
 projections, and exact replay from cluster start.
+
+The v4 cluster contract now composes typed sequence, repeat, deterministic
+choice, and bounded-parallel scenario steps. Versioned fault plans bind stable
+match fields and controller-owned occurrence ordinals, select candidate targets
+through a domain-separated function, record planned and realized actions
+independently, and reject missing, extra, reordered, changed, or inapplicable
+faults before their model mutation. Directional disconnect/reconnect/delay,
+atomic group partition/heal, graceful stop, persisted-only or selected-partial
+crash, and prior-target restart all have patched-runtime coverage.
+
+Cluster records bind static target/platform identity, independent lifecycle,
+network, volume, fault, scenario, history, observation, oracle, and output
+evidence, normalized failures, bounded inspection projections, and terminal
+model snapshots. A representative Temporal matching retry scenario uses the
+production `common/collection.SyncMap`, loses an acknowledgement across an
+injected directional disconnect, observes duplicate task delivery, fails the
+duplicate/lost oracle, and exactly replays the same failure identity and
+bounded artifact. The three SIM-4 parity cases now carry named in-process
+prototypes; process-backed evidence remains a SIM-5 obligation.
 
 Exit criteria:
 
@@ -995,14 +1070,8 @@ such as race mode, remains unsupported.
 
 ## Recommended next slice
 
-Implement only the SIM-1 Node registry, runtime-domain inheritance, lifecycle
-state machine, stale-incarnation revocation, node-labelled output, and base
-cluster records needed to run the two approved prototypes. Reuse the completed
-SIM-0 boot registry and application contract. Do not begin by rewriting TCP or
-`gomadfs`, and do not grant a network, storage, or hard-isolation claim.
-
-That slice answers the highest-risk architectural question: whether unchanged
-Temporal-style services can be constructed as logical nodes with correct
-node-aware I/O identity and revocable incarnations. Its evidence should decide
-how much workload belongs in the fast backend and which cases genuinely
-justify the process-backed tier.
+Implement SIM-5 behind the completed lifecycle, network, volume, fault,
+scenario, and oracle seams. Start with Runner-owned private node bootstrap,
+bounded generated IPC, hard crash/reap, and fresh-incarnation initialization,
+then prove detached model equivalence against the in-process backend before
+adding cross-process time arbitration.

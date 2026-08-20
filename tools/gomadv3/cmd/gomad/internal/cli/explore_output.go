@@ -167,6 +167,9 @@ func (reporter *exploreReporter) writeEvent(event exploreEvent) error {
 }
 
 func classifyExploreError(err error) string {
+	if runner.IsCapacityError(err) {
+		return "capacity"
+	}
 	var missing *deterministicio.MissingSemanticProbesError
 	if errors.As(err, &missing) {
 		return "semantic_coverage_failure"

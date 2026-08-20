@@ -522,7 +522,7 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		want      []string
 	}{
 		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=batch", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomadv3.inspect/v1"`, `"kind":"batch"`, `"run_id":"run-inspect-command"`}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomadv3.inspect/v3"`, `"kind":"batch"`, `"run_id":"run-inspect-command"`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -542,6 +542,91 @@ func TestRunInspectRejectsChoicesForBatch(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if status := runInspect([]string{"--choices", writeInspectBatchFixture(t)}, &stdout, &stderr); status != 2 || !strings.Contains(stderr.String(), "traced artifact") {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunInspectReportsOutputFailure(t *testing.T) {
+	var stderr bytes.Buffer
+	if status := runInspect([]string{writeInspectBatchFixture(t)}, failingWriter{}, &stderr); status != 3 || !strings.Contains(stderr.String(), "write inspection report") {
+		t.Fatalf("status=%d stderr=%q", status, stderr.String())
+	}
+}
+
+func TestRunRecoverReportsStableTextAndJSON(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		arguments []string
+		want      []string
+	}{
+		{name: "text", arguments: []string{"/artifacts/v1/run-interrupted"}, want: []string{"gomad recover:", "action=restore-running", "changed=true", "state=recoverable-failure", "resumable=true"}},
+		{name: "json", arguments: []string{"--json", "/artifacts/v1/run-interrupted"}, want: []string{`"schema":"gomadv3.recovery/v1"`, `"action":"restore-running"`, `"changed":true`, `"state":"recoverable-failure"`, `"resumable":true`}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			status := runRecoverWith(test.arguments, &stdout, &stderr, recoverDependencies{
+				recover: func(context.Context, string) (runner.Recovery, error) {
+					return runner.Recovery{
+						Schema: "gomadv3.recovery/v1", Path: "/artifacts/v1/run-interrupted", Action: "restore-running", Changed: true,
+						Before: runner.CampaignLifecycleInspection{State: "committing", Repairable: true, Action: "restore-running"},
+						After:  runner.CampaignLifecycleInspection{State: "recoverable-failure", LastStableState: "running", Resumable: true},
+					}, nil
+				},
+			})
+			if status != 0 || stderr.Len() != 0 {
+				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+			}
+			for _, want := range test.want {
+				if !strings.Contains(stdout.String(), want) {
+					t.Fatalf("recover output = %q, missing %q", stdout.String(), want)
+				}
+			}
+		})
+	}
+}
+
+func TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure(t *testing.T) {
+	_, invalidErr := runner.Recover(context.Background(), t.TempDir())
+	if invalidErr == nil || !runner.IsInvalidRecoveryError(invalidErr) {
+		t.Fatalf("runner.Recover() error = %T %v, want invalid recovery error", invalidErr, invalidErr)
+	}
+	for _, test := range []struct {
+		name       string
+		recoverErr error
+		wantStatus int
+	}{
+		{name: "invalid", recoverErr: invalidErr, wantStatus: 2},
+		{name: "infrastructure", recoverErr: errors.New("disk unavailable"), wantStatus: 3},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			status := runRecoverWith([]string{"/artifacts/v1/run-interrupted"}, &stdout, &stderr, recoverDependencies{
+				recover: func(context.Context, string) (runner.Recovery, error) {
+					return runner.Recovery{}, test.recoverErr
+				},
+			})
+			if status != test.wantStatus || stdout.Len() != 0 || !strings.Contains(stderr.String(), test.recoverErr.Error()) {
+				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+func TestRunRecoverRepairsPublishedBatchPrivateState(t *testing.T) {
+	path := writeInspectBatchFixture(t)
+	stale := filepath.Join(path, ".partial", "batch")
+	if err := os.MkdirAll(stale, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(filepath.Join(path, ".partial"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if status := runRecover([]string{path}, &stdout, &stderr); status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), "action=finalize-publication") || !strings.Contains(stdout.String(), "changed=true") {
+		t.Fatalf("status output stdout=%q stderr=%q", stdout.String(), stderr.String())
+	}
+	if _, err := os.Lstat(stale); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("stale private state remains: %v", err)
 	}
 }
 

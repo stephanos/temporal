@@ -46,6 +46,7 @@ type Spec struct {
 	World             WorldCapability
 	IO                *IOCapability
 	Choice            *ChoiceCapability
+	Simulation        *SimulationCapability
 }
 
 type WorldCapability struct {
@@ -146,6 +147,23 @@ func validateSpec(request Spec) error {
 	if err := validateChoiceEnvironment(request.Env); err != nil {
 		return err
 	}
+	if simulation := request.Simulation; simulation != nil {
+		switch simulation.Role {
+		case SimulationRoleCoordinator:
+			if len(simulation.Bootstrap) != 0 {
+				return errors.New("simulation coordinator cannot include node bootstrap data")
+			}
+		case SimulationRoleNode:
+			if len(simulation.Bootstrap) == 0 {
+				return errors.New("simulation node bootstrap data is required")
+			}
+		default:
+			return fmt.Errorf("invalid simulation role %q", simulation.Role)
+		}
+		if len(simulation.Bootstrap) > maximumSimulationBootstrapBytes {
+			return errors.New("simulation node bootstrap data exceeds its bound")
+		}
+	}
 	if choiceCapability := request.Choice; choiceCapability != nil {
 		if choiceCapability.Profile != choice.Profile {
 			return fmt.Errorf("unsupported choice trace profile %q", choiceCapability.Profile)
@@ -225,7 +243,7 @@ func validateChoiceReplayPlan(tape choice.ReplayPlan, identity choice.ExecutionI
 func validateChoiceEnvironment(environment []string) error {
 	for _, entry := range environment {
 		name, _, _ := strings.Cut(entry, "=")
-		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName {
+		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
 			return fmt.Errorf("target environment name %q is reserved", name)
 		}
 	}

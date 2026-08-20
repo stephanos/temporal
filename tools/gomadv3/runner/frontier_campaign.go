@@ -232,7 +232,9 @@ func executeFrontierRound(
 			mode = choice.ModePrefix
 		}
 		job := runJob{ordinal: startOrdinal + uint64(index), seed: state.Config.BaseSeed, choiceMode: mode, choiceReplayPlan: tape}
-		go runSeed(roundCtx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, job, completionChannel)
+		readiness := newRunReadiness()
+		go runSeed(roundCtx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, job, readiness, completionChannel)
+		readiness.wait()
 	}
 	progressErr := reportProgress(ProgressRunning, len(round.Candidates))
 	if progressErr != nil {
@@ -432,7 +434,7 @@ func processFrontierCompletion(
 		if err != nil {
 			return frontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
 		}
-		published, err := campaignstore.PublishArtifact(evidence.Store{Root: filepath.Join(staged.Path(), "failures"), Context: ctx}, campaignstore.ArtifactInput{
+		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, campaignstore.ArtifactInput{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
 			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})

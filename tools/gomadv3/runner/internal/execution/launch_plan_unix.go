@@ -19,35 +19,44 @@ const (
 )
 
 type launchCapabilities struct {
-	ioTranscript     bool
-	readOnlyMount    bool
-	choiceTrace      bool
-	choiceReplayPlan bool
+	ioTranscript          bool
+	readOnlyMount         bool
+	choiceTrace           bool
+	choiceReplayPlan      bool
+	simulation            bool
+	simulationBootstrap   bool
+	simulationCoordinator bool
 }
 
 type resourceName string
 
 const (
-	controlResource           resourceName = "supervisor-control"
-	reportResource            resourceName = "supervisor-report"
-	stdoutResource            resourceName = "target-stdout"
-	stderrResource            resourceName = "target-stderr"
-	supervisorRequestResource resourceName = "supervisor-request"
-	bootstrapRequestResource  resourceName = "bootstrap-request"
-	activationResource        resourceName = "bootstrap-activation"
-	readinessResource         resourceName = "bootstrap-readiness"
-	worldConfigResource       resourceName = "world-config"
-	worldRecordResource       resourceName = "world-record"
-	identityResource          resourceName = "target-identity"
-	ioConfigResource          resourceName = "io-config"
-	ioTranscriptResource      resourceName = "io-transcript"
-	ioTerminalResource        resourceName = "io-terminal"
-	ioExpectedResource        resourceName = "io-expected"
-	ioROMountRequestResource  resourceName = "io-ro-mount-request"
-	ioROMountResponseResource resourceName = "io-ro-mount-response"
-	choiceTraceResource       resourceName = "choice-trace"
-	choiceTerminalResource    resourceName = "choice-terminal"
-	choiceTapeResource        resourceName = "choice-tape"
+	controlResource                 resourceName = "supervisor-control"
+	reportResource                  resourceName = "supervisor-report"
+	stdoutResource                  resourceName = "target-stdout"
+	stderrResource                  resourceName = "target-stderr"
+	supervisorRequestResource       resourceName = "supervisor-request"
+	bootstrapRequestResource        resourceName = "bootstrap-request"
+	activationResource              resourceName = "bootstrap-activation"
+	readinessResource               resourceName = "bootstrap-readiness"
+	worldConfigResource             resourceName = "world-config"
+	worldRecordResource             resourceName = "world-record"
+	identityResource                resourceName = "target-identity"
+	ioConfigResource                resourceName = "io-config"
+	ioTranscriptResource            resourceName = "io-transcript"
+	ioTerminalResource              resourceName = "io-terminal"
+	ioExpectedResource              resourceName = "io-expected"
+	ioROMountRequestResource        resourceName = "io-ro-mount-request"
+	ioROMountResponseResource       resourceName = "io-ro-mount-response"
+	choiceTraceResource             resourceName = "choice-trace"
+	choiceTerminalResource          resourceName = "choice-terminal"
+	choiceTapeResource              resourceName = "choice-tape"
+	simulationRequestResource       resourceName = "simulation-request"
+	simulationResponseResource      resourceName = "simulation-response"
+	simulationBootstrapResource     resourceName = "simulation-bootstrap"
+	simulationControlResource       resourceName = "simulation-control"
+	simulationModelRequestResource  resourceName = "simulation-model-request"
+	simulationModelResponseResource resourceName = "simulation-model-response"
 )
 
 const (
@@ -92,6 +101,7 @@ type descriptorSpec struct {
 	ioTranscript           bool
 	readOnlyMount          bool
 	choiceTrace            bool
+	simulation             bool
 	closeOnSupervisorStart bool
 	closeOnBootstrapStart  bool
 }
@@ -122,6 +132,12 @@ var launchDescriptorSpecs = []descriptorSpec{
 	{resource: choiceTraceResource, choiceTrace: true, closeOnBootstrapStart: true},
 	{resource: choiceTerminalResource, choiceTrace: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
 	{resource: choiceTapeResource, choiceTrace: true, closeOnBootstrapStart: true},
+	{resource: simulationRequestResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationResponseResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationBootstrapResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationControlResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationModelRequestResource, simulation: true, closeOnBootstrapStart: true},
+	{resource: simulationModelResponseResource, simulation: true, closeOnBootstrapStart: true},
 }
 
 func descriptorLayout(stage launchStage, capabilities launchCapabilities) []descriptorBinding {
@@ -130,7 +146,7 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 	}
 	bindings := make([]descriptorBinding, 0, len(launchDescriptorSpecs))
 	for _, spec := range launchDescriptorSpecs {
-		if spec.choiceTrace {
+		if spec.choiceTrace || spec.simulation {
 			continue
 		}
 		if spec.ioTranscript && !capabilities.ioTranscript || spec.readOnlyMount && !capabilities.readOnlyMount || spec.choiceTrace && !capabilities.choiceTrace {
@@ -150,6 +166,26 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 		}
 	}
 	sort.Slice(bindings, func(i, j int) bool { return bindings[i].fd < bindings[j].fd })
+	if capabilities.simulation {
+		next := 3
+		if len(bindings) != 0 {
+			next = bindings[len(bindings)-1].fd + 1
+		}
+		bindings = append(bindings,
+			descriptorBinding{resource: simulationRequestResource, fd: next},
+			descriptorBinding{resource: simulationResponseResource, fd: next + 1},
+		)
+		if capabilities.simulationBootstrap {
+			bindings = append(bindings,
+				descriptorBinding{resource: simulationBootstrapResource, fd: next + 2},
+				descriptorBinding{resource: simulationControlResource, fd: next + 3},
+				descriptorBinding{resource: simulationModelRequestResource, fd: next + 4},
+				descriptorBinding{resource: simulationModelResponseResource, fd: next + 5},
+			)
+		} else if capabilities.simulationCoordinator {
+			bindings = append(bindings, descriptorBinding{resource: simulationModelRequestResource, fd: next + 2}, descriptorBinding{resource: simulationModelResponseResource, fd: next + 3})
+		}
+	}
 	if capabilities.choiceTrace {
 		next := 3
 		if len(bindings) != 0 {

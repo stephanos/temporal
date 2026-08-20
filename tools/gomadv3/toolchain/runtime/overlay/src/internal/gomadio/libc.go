@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
+
+	"internal/gomadfs"
 )
 
 const firstLibcDescriptor int32 = 1000
@@ -22,10 +24,23 @@ var libcDescriptors = struct {
 	files map[int32]libcDescriptor
 }{next: firstLibcDescriptor, files: make(map[int32]libcDescriptor)}
 
+var libcMappings = struct {
+	sync.Mutex
+	mappings map[uintptr]libcMapping
+}{mappings: make(map[uintptr]libcMapping)}
+
 type libcDescriptor struct {
 	file    *os.File
 	entropy bool
 }
+
+type libcMapping struct {
+	mapping *gomadfs.Mapping
+	length  uint64
+}
+
+//go:linkname gomadMapFile os.gomadMapFile
+func gomadMapFile(*os.File, uint64) (*gomadfs.Mapping, []byte, error)
 
 //go:linkname LibcOpen
 func LibcOpen(name string, flags int, mode uint32) (int32, syscall.Errno) {
@@ -144,6 +159,40 @@ func LibcSync(descriptor int32) syscall.Errno {
 		return syscall.EBADF
 	}
 	return libcErrno(state.file.Sync())
+}
+
+//go:linkname LibcMmap
+func LibcMmap(descriptor int32, length uint64) (uintptr, syscall.Errno) {
+	state, found := libcFile(descriptor)
+	if !found || state.file == nil {
+		return 0, syscall.EBADF
+	}
+	mapping, contents, err := gomadMapFile(state.file, length)
+	if err != nil {
+		return 0, libcErrno(err)
+	}
+	address := uintptr(unsafe.Pointer(unsafe.SliceData(contents)))
+	libcMappings.Lock()
+	if _, found := libcMappings.mappings[address]; found {
+		libcMappings.Unlock()
+		return 0, libcErrno(errors.Join(syscall.EBUSY, mapping.Close()))
+	}
+	libcMappings.mappings[address] = libcMapping{mapping: mapping, length: length}
+	libcMappings.Unlock()
+	return address, 0
+}
+
+//go:linkname LibcMunmap
+func LibcMunmap(address uintptr, length uint64) syscall.Errno {
+	libcMappings.Lock()
+	state, found := libcMappings.mappings[address]
+	if !found || state.length != length {
+		libcMappings.Unlock()
+		return syscall.EINVAL
+	}
+	delete(libcMappings.mappings, address)
+	libcMappings.Unlock()
+	return libcErrno(state.mapping.Close())
 }
 
 //go:linkname LibcRemove

@@ -188,6 +188,99 @@ type liveCapabilityTemplateData struct {
 	Boundaries             []liveCapabilityBoundary
 }
 
+type simulationModelSchema struct {
+	Version        uint16 `json:"version"`
+	Profile        string `json:"profile"`
+	Magic          string `json:"magic"`
+	TransportMagic string `json:"transport_magic"`
+	Limits         struct {
+		FrameBytes  uint64 `json:"frame_bytes"`
+		StringBytes uint64 `json:"string_bytes"`
+		DataBytes   uint64 `json:"data_bytes"`
+		Entries     uint64 `json:"entries"`
+		NodeBytes   uint64 `json:"node_bytes"`
+		ErrorBytes  uint64 `json:"error_bytes"`
+	} `json:"limits"`
+	Models struct {
+		Network uint8 `json:"network"`
+		Volume  uint8 `json:"volume"`
+	} `json:"models"`
+	NetworkOperations struct {
+		Listen               uint16 `json:"listen"`
+		Dial                 uint16 `json:"dial"`
+		Accept               uint16 `json:"accept"`
+		ListenerClose        uint16 `json:"listener_close"`
+		ListenerSetDeadline  uint16 `json:"listener_set_deadline"`
+		ConnRead             uint16 `json:"conn_read"`
+		ConnWrite            uint16 `json:"conn_write"`
+		ConnClose            uint16 `json:"conn_close"`
+		ConnCloseRead        uint16 `json:"conn_close_read"`
+		ConnCloseWrite       uint16 `json:"conn_close_write"`
+		ConnSetDeadline      uint16 `json:"conn_set_deadline"`
+		ConnSetReadDeadline  uint16 `json:"conn_set_read_deadline"`
+		ConnSetWriteDeadline uint16 `json:"conn_set_write_deadline"`
+	} `json:"network_operations"`
+	VolumeOperations struct {
+		Resolve        uint16 `json:"resolve"`
+		Mkdir          uint16 `json:"mkdir"`
+		MkdirAll       uint16 `json:"mkdir_all"`
+		Stat           uint16 `json:"stat"`
+		Open           uint16 `json:"open"`
+		Rename         uint16 `json:"rename"`
+		Remove         uint16 `json:"remove"`
+		RemoveAll      uint16 `json:"remove_all"`
+		Chmod          uint16 `json:"chmod"`
+		Chtimes        uint16 `json:"chtimes"`
+		Chdir          uint16 `json:"chdir"`
+		Getwd          uint16 `json:"getwd"`
+		HandleRead     uint16 `json:"handle_read"`
+		HandleReadAt   uint16 `json:"handle_read_at"`
+		HandleWrite    uint16 `json:"handle_write"`
+		HandleWriteAt  uint16 `json:"handle_write_at"`
+		HandleTruncate uint16 `json:"handle_truncate"`
+		HandleChmod    uint16 `json:"handle_chmod"`
+		HandleChtimes  uint16 `json:"handle_chtimes"`
+		HandleChdir    uint16 `json:"handle_chdir"`
+		HandleSeek     uint16 `json:"handle_seek"`
+		HandleStat     uint16 `json:"handle_stat"`
+		HandleReadDir  uint16 `json:"handle_read_dir"`
+		HandleClose    uint16 `json:"handle_close"`
+		HandleSync     uint16 `json:"handle_sync"`
+		HandleMap      uint16 `json:"handle_map"`
+		MappingBytes   uint16 `json:"mapping_bytes"`
+		MappingClose   uint16 `json:"mapping_close"`
+	} `json:"volume_operations"`
+	Errors struct {
+		None              uint16 `json:"none"`
+		Generic           uint16 `json:"generic"`
+		EOF               uint16 `json:"eof"`
+		Deadline          uint16 `json:"deadline"`
+		Canceled          uint16 `json:"canceled"`
+		AddressInUse      uint16 `json:"address_in_use"`
+		Closed            uint16 `json:"closed"`
+		ConnectionRefused uint16 `json:"connection_refused"`
+		ResourceExhausted uint16 `json:"resource_exhausted"`
+		Unsupported       uint16 `json:"unsupported"`
+		EINVAL            uint16 `json:"einval"`
+		EEXIST            uint16 `json:"eexist"`
+		ENOENT            uint16 `json:"enoent"`
+		ENOTDIR           uint16 `json:"enotdir"`
+		EISDIR            uint16 `json:"eisdir"`
+		EROFS             uint16 `json:"erofs"`
+		ENOSPC            uint16 `json:"enospc"`
+		EBADF             uint16 `json:"ebadf"`
+		ENODEV            uint16 `json:"enodev"`
+		ESTALE            uint16 `json:"estale"`
+		ENOTEMPTY         uint16 `json:"enotempty"`
+		Capacity          uint16 `json:"capacity"`
+	} `json:"errors"`
+}
+
+type simulationModelTemplateData struct {
+	Package string
+	Schema  simulationModelSchema
+}
+
 type liveCapabilityBoundary struct {
 	Package     string
 	Target      string
@@ -264,6 +357,33 @@ func GenerateProtocols(root string, check bool) error {
 		}
 		if err := hostfs.Replace(path, generated, 0o644); err != nil {
 			return fmt.Errorf("write generated choice wire codec: %w", err)
+		}
+	}
+	modelDefinition, err := readSimulationModelSchema(filepath.Join(root, "simulation", "schema", "modelwire.json"))
+	if err != nil {
+		return err
+	}
+	modelOutputs := []output{
+		{Package: "gomadmodelwire", Template: "modelwire.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go"},
+		{Package: "gomadmodelwire", Template: "modelwire_test.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go"},
+		{Package: "execution", Template: "modeltransport.go.tmpl", Path: "runner/internal/execution/simulation_model_wire_generated.go"},
+		{Package: "gomadsim", Template: "modeltransport.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go"},
+	}
+	for _, target := range modelOutputs {
+		generated, generateErr := generate(filepath.Join(root, "simulation", "schema", target.Template), simulationModelTemplateData{Package: target.Package, Schema: modelDefinition})
+		if generateErr != nil {
+			return generateErr
+		}
+		path := filepath.Join(root, filepath.FromSlash(target.Path))
+		if check {
+			current, readErr := os.ReadFile(path)
+			if readErr != nil || !bytes.Equal(current, generated) {
+				return fmt.Errorf("generated simulation model wire codec is stale: %s", target.Path)
+			}
+			continue
+		}
+		if err := hostfs.Replace(path, generated, 0o644); err != nil {
+			return fmt.Errorf("write generated simulation model wire codec: %w", err)
 		}
 	}
 	if err := generateLiveCapabilityProtocols(root, check); err != nil {
@@ -545,6 +665,42 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 		}
 	}
 	return definition, nil
+}
+
+func readSimulationModelSchema(path string) (simulationModelSchema, error) {
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		return simulationModelSchema{}, fmt.Errorf("read simulation model wire schema: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var definition simulationModelSchema
+	if err := decoder.Decode(&definition); err != nil {
+		return simulationModelSchema{}, fmt.Errorf("decode simulation model wire schema: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return simulationModelSchema{}, errors.New("simulation model wire schema has trailing data")
+	}
+	network := definition.NetworkOperations
+	volume := definition.VolumeOperations
+	errorCodes := definition.Errors
+	if definition.Version != 1 || definition.Profile != "gomadv3.simulation-model/v1" || len(definition.Magic) != 8 || len(definition.TransportMagic) != 8 ||
+		definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4<<10 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4<<10 ||
+		definition.Models.Network != 1 || definition.Models.Volume != 2 ||
+		!slices.Equal([]uint16{network.Listen, network.Dial, network.Accept, network.ListenerClose, network.ListenerSetDeadline, network.ConnRead, network.ConnWrite, network.ConnClose, network.ConnCloseRead, network.ConnCloseWrite, network.ConnSetDeadline, network.ConnSetReadDeadline, network.ConnSetWriteDeadline}, sequence16(1, 13)) ||
+		!slices.Equal([]uint16{volume.Resolve, volume.Mkdir, volume.MkdirAll, volume.Stat, volume.Open, volume.Rename, volume.Remove, volume.RemoveAll, volume.Chmod, volume.Chtimes, volume.Chdir, volume.Getwd, volume.HandleRead, volume.HandleReadAt, volume.HandleWrite, volume.HandleWriteAt, volume.HandleTruncate, volume.HandleChmod, volume.HandleChtimes, volume.HandleChdir, volume.HandleSeek, volume.HandleStat, volume.HandleReadDir, volume.HandleClose, volume.HandleSync, volume.HandleMap, volume.MappingBytes, volume.MappingClose}, sequence16(1, 28)) ||
+		!slices.Equal([]uint16{errorCodes.None, errorCodes.Generic, errorCodes.EOF, errorCodes.Deadline, errorCodes.Canceled, errorCodes.AddressInUse, errorCodes.Closed, errorCodes.ConnectionRefused, errorCodes.ResourceExhausted, errorCodes.Unsupported, errorCodes.EINVAL, errorCodes.EEXIST, errorCodes.ENOENT, errorCodes.ENOTDIR, errorCodes.EISDIR, errorCodes.EROFS, errorCodes.ENOSPC, errorCodes.EBADF, errorCodes.ENODEV, errorCodes.ESTALE, errorCodes.ENOTEMPTY, errorCodes.Capacity}, sequence16(0, 21)) {
+		return simulationModelSchema{}, errors.New("simulation model wire schema is unsupported by this generator")
+	}
+	return definition, nil
+}
+
+func sequence16(first, last uint16) []uint16 {
+	result := make([]uint16, last-first+1)
+	for value := first; value <= last; value++ {
+		result[value-first] = value
+	}
+	return result
 }
 
 func readSchema(path string) (schema, error) {
