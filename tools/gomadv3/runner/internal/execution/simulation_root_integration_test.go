@@ -30,6 +30,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 		"TestProcessBackendResetsGlobalsDescriptorsAndGoroutines",
 		"TestProcessAndInProcessBackendsHaveEquivalentDetachedModels",
 		"TestProcessBackendRoutesTCPThroughSharedHostModel",
+		"TestProcessBackendSynchronizesNodeClockWithModelDelay",
 		"TestProcessBackendRoutesListenThroughSharedHostModel",
 		"TestProcessBackendPreservesHostVolumeAcrossRestart",
 		"TestProcessBackendCrashDrainsInflightModelOperationDeterministically",

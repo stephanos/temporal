@@ -2,7 +2,7 @@
   "version": 1,
   "profile": "gomadv3.simulation-model/v1",
   "magic": "GOMADMO\u0001",
-  "transport_magic": "GOMADPM\u0001",
+  "transport_magic": "GOMADPM\u0003",
   "limits": {
     "frame_bytes": 134217728,
     "string_bytes": 4096,

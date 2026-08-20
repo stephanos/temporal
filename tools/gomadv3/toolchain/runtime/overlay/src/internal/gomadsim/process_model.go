@@ -63,8 +63,10 @@ func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit
 	requestDescriptor := processModels.request
 	done := processModels.done
 	processModels.Unlock()
+	runtimeSimulationExternalBegin()
+	defer runtimeSimulationExternalEnd()
 
-	request := ModelTransportFrame{Request: requestID, Node: node, Incarnation: incarnation, Payload: append([]byte(nil), payload...)}
+	request := ModelTransportFrame{Request: requestID, Node: node, Incarnation: incarnation, Arrivals: runtimeSimulationTimeTakeArrivals(), Payload: append([]byte(nil), payload...)}
 	encoded, err := EncodeModelTransportFrame(request)
 	if err != nil {
 		removeProcessModelRequest(requestID)
@@ -106,7 +108,12 @@ func readProcessModelResponses(descriptor int) {
 			return
 		}
 		frame, err := DecodeModelTransportFrame(encoded)
-		if err != nil || !frame.Response {
+		if err != nil || !frame.Response || !runtimeSimulationTimeObserve(frame.Time) {
+			failProcessModels()
+			return
+		}
+		runtimeSimulationExternalArrive()
+		if !acknowledgeProcessArrivals() {
 			failProcessModels()
 			return
 		}

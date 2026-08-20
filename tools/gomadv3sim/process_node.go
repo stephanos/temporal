@@ -2,6 +2,7 @@ package gomadv3sim
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
@@ -160,7 +161,17 @@ func runPrivateProcessNode(ctx context.Context, spec Spec) error {
 		runtimeDomainLeave(previous)
 		return finishPrivateProcessModels(runtimeRun, domain, err)
 	}
-	if _, err := exchangeProcessFrame(processFrameActivated, bootstrap.Context.NodeHandle, nil); err != nil {
+	activation, err := exchangeProcessFrame(processFrameActivated, bootstrap.Context.NodeHandle, nil)
+	if err != nil {
+		runtimeDomainLeave(previous)
+		return finishPrivateProcessModels(runtimeRun, domain, err)
+	}
+	current, err := decodeProcessActivationTime(activation.Payload)
+	if err != nil {
+		runtimeDomainLeave(previous)
+		return finishPrivateProcessModels(runtimeRun, domain, err)
+	}
+	if err := runtimeProcessTimeAdvance(current); err != nil {
 		runtimeDomainLeave(previous)
 		return finishPrivateProcessModels(runtimeRun, domain, err)
 	}
@@ -192,6 +203,17 @@ func runPrivateProcessNode(ctx context.Context, spec Spec) error {
 	}
 	_, err = exchangeProcessFrame(processFrameTerminal, bootstrap.Context.NodeHandle, terminalBytes)
 	return err
+}
+
+func decodeProcessActivationTime(encoded []byte) (int64, error) {
+	if len(encoded) != 8 {
+		return 0, errors.New("process simulation activation time is invalid")
+	}
+	current := int64(binary.BigEndian.Uint64(encoded))
+	if current < 946684800000000000 {
+		return 0, errors.New("process simulation activation time is invalid")
+	}
+	return current, nil
 }
 
 func finishPrivateProcessModels(runtimeRun, domain uint64, source error) error {

@@ -174,6 +174,104 @@ func TestProcessBackendRoutesTCPThroughSharedHostModel(t *testing.T) {
 	require.NotEmpty(t, result.Network.Transitions)
 }
 
+func TestProcessBackendSynchronizesNodeClockWithModelDelay(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	serverBoot := uniqueBootID("cluster-process-delay-server")
+	clientBoot := uniqueBootID("cluster-process-delay-client")
+	require.NoError(t, RegisterBoot(serverBoot, func(_ context.Context, node NodeContext) (resultErr error) {
+		listener, err := net.Listen("tcp", net.JoinHostPort(node.Address, "7233"))
+		if err != nil {
+			return err
+		}
+		defer func() { resultErr = errors.Join(resultErr, listener.Close()) }()
+		connection, err := listener.Accept()
+		if err != nil {
+			return err
+		}
+		defer func() { resultErr = errors.Join(resultErr, connection.Close()) }()
+		var request [1]byte
+		if _, err := io.ReadFull(connection, request[:]); err != nil {
+			return err
+		}
+		_, err = connection.Write(request[:])
+		return err
+	}))
+	require.NoError(t, RegisterBoot(clientBoot, func(ctx context.Context, _ NodeContext) (resultErr error) {
+		var connection net.Conn
+		var err error
+		for attempt := 0; attempt < 4096; attempt++ {
+			connection, err = (&net.Dialer{}).DialContext(ctx, "tcp", "10.0.0.1:7233")
+			if err == nil {
+				break
+			}
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			runtime.Gosched()
+		}
+		if err != nil {
+			return err
+		}
+		defer func() { resultErr = errors.Join(resultErr, connection.Close()) }()
+		started := time.Now()
+		if _, err := connection.Write([]byte{'x'}); err != nil {
+			return err
+		}
+		var response [1]byte
+		if _, err := io.ReadFull(connection, response[:]); err != nil {
+			return err
+		}
+		if response[0] != 'x' {
+			return fmt.Errorf("response = %q", response)
+		}
+		if elapsed := time.Since(started); elapsed < 14*time.Millisecond {
+			return fmt.Errorf("round trip elapsed = %s", elapsed)
+		}
+		return nil
+	}))
+	spec := Spec{
+		Schema: SpecSchema, Backend: BackendProcess, Fidelity: FidelityHardIsolation, Seed: 93, Limits: DefaultLimits(),
+		Nodes: []NodeSpec{
+			{ID: "client", Boot: clientBoot, Address: "10.0.0.2"},
+			{ID: "server", Boot: serverBoot, Address: "10.0.0.1"},
+		},
+		Links: []LinkSpec{
+			{From: "client", To: "server", Enabled: true, DelayNanos: uint64(7 * time.Millisecond)},
+			{From: "server", To: "client", Enabled: true, DelayNanos: uint64(7 * time.Millisecond)},
+		},
+	}
+	result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
+		server, err := cluster.Start(ctx, "server")
+		if err != nil {
+			return err
+		}
+		client, err := cluster.Start(ctx, "client")
+		if err != nil {
+			return err
+		}
+		clientTerminal, err := cluster.Wait(ctx, client)
+		if err != nil {
+			return err
+		}
+		if clientTerminal.State != NodeStateExited {
+			return fmt.Errorf("client state = %s: %s", clientTerminal.State, clientTerminal.Reason)
+		}
+		serverTerminal, err := cluster.Wait(ctx, server)
+		if err != nil {
+			return err
+		}
+		if serverTerminal.State != NodeStateExited {
+			return fmt.Errorf("server state = %s: %s", serverTerminal.State, serverTerminal.Reason)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
+	require.Contains(t, networkDelays(result.Network.Transitions), uint64(7*time.Millisecond))
+}
+
 func TestProcessBackendRoutesListenThroughSharedHostModel(t *testing.T) {
 	if !processBackendAvailable() {
 		t.Skip("Runner simulation transport is unavailable")

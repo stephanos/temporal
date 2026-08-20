@@ -121,11 +121,11 @@ func TestDescriptorPlanOwnsEveryStageLayout(t *testing.T) {
 		},
 		"target simulation coordinator": {
 			stage: targetStage, caps: launchCapabilities{simulation: true, simulationCoordinator: true},
-			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {simulationRequestResource, 6}, {simulationResponseResource, 7}, {simulationModelRequestResource, 8}, {simulationModelResponseResource, 9}},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {simulationRequestResource, 6}, {simulationResponseResource, 7}, {simulationModelRequestResource, 8}, {simulationModelResponseResource, 9}, {simulationTimeRequestResource, 10}, {simulationTimeResponseResource, 11}},
 		},
 		"target simulation node": {
 			stage: targetStage, caps: launchCapabilities{simulation: true, simulationBootstrap: true},
-			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {simulationRequestResource, 6}, {simulationResponseResource, 7}, {simulationBootstrapResource, 8}, {simulationControlResource, 9}, {simulationModelRequestResource, 10}, {simulationModelResponseResource, 11}},
+			want: []descriptorBinding{{worldConfigResource, 3}, {worldRecordResource, 4}, {ioConfigResource, 5}, {simulationRequestResource, 6}, {simulationResponseResource, 7}, {simulationBootstrapResource, 8}, {simulationControlResource, 9}, {simulationModelRequestResource, 10}, {simulationModelResponseResource, 11}, {simulationTimeRequestResource, 12}, {simulationTimeResponseResource, 13}},
 		},
 		"target all capabilities": {
 			stage: targetStage, caps: launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true},

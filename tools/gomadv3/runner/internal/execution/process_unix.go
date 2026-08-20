@@ -85,8 +85,18 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	var simulationCoordinator *simulationCoordinator
 	if request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator && request.Simulation.handler == nil {
-		simulationCoordinator = newSimulationCoordinator(request)
+		var coordinatorErr error
+		simulationCoordinator, coordinatorErr = newSimulationCoordinator(request)
+		if coordinatorErr != nil {
+			return Result{}, coordinatorErr
+		}
 		request.Simulation.handler = simulationCoordinator.handle
+		request.Simulation.time = simulationCoordinator.handleCoordinatorTime
+		request.Simulation.delivering = simulationCoordinator.handleCoordinatorDelivery
+		request.Simulation.responded = simulationCoordinator.handleCoordinatorResponse
+		request.Simulation.arrived = func(arrivals uint32) error {
+			return simulationCoordinator.time.acknowledgeExternal(simulationCoordinator.coordinator, arrivals)
+		}
 		defer func() { retErr = errors.Join(retErr, simulationCoordinator.close()) }()
 	}
 	worldCapability, ioCapability := request.World, request.IO
@@ -150,7 +160,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	var mountRequestRead, mountResponseWrite *os.File
-	var simulationRequestRead, simulationResponseWrite, simulationBootstrapWrite, simulationControlWrite, simulationModelRequestHost, simulationModelResponseHost *os.File
+	var simulationRequestRead, simulationResponseWrite, simulationBootstrapWrite, simulationControlWrite, simulationModelRequestHost, simulationModelResponseHost, simulationTimeRequestRead, simulationTimeResponseWrite *os.File
 	if readOnlyMountBroker != nil {
 		mountRequestRead, err = resources.createPipe(ioROMountRequestResource, inheritWrite, "read-only mount request")
 		if err != nil {
@@ -199,7 +209,22 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			if simulationCoordinator == nil {
 				return Result{}, errors.New("simulation coordinator transport is unavailable")
 			}
-			simulationCoordinator.model = newSimulationModelTransport(simulationModelRequestHost, simulationModelResponseHost)
+			simulationCoordinator.model = newSimulationModelTransport(simulationModelRequestHost, simulationModelResponseHost, func() {
+				simulationCoordinator.time.deliverExternal(simulationCoordinator.coordinator)
+			}, func(frame simulationFrame) error {
+				return simulationCoordinator.handleModelArrival(frame)
+			})
+		}
+		simulationTimeRequestRead, err = resources.createPipe(simulationTimeRequestResource, inheritWrite, "simulation time request")
+		if err != nil {
+			return Result{}, err
+		}
+		simulationTimeResponseWrite, err = resources.createPipe(simulationTimeResponseResource, inheritRead, "simulation time response")
+		if err != nil {
+			return Result{}, err
+		}
+		if request.Simulation.time == nil {
+			return Result{}, errors.New("simulation time arbitration is unavailable")
 		}
 	}
 	controlWrite, err := resources.createPipe(controlResource, inheritRead, "supervisor control")
@@ -337,13 +362,23 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	var simulationServed <-chan error
 	var simulationModelsServed <-chan error
+	var simulationTimeServed <-chan error
 	var simulationBootstrapWritten <-chan error
+	simulationTimeCtx := ctx
+	cancelSimulationTime := func() {}
 	if request.Simulation != nil {
+		simulationTimeCtx, cancelSimulationTime = context.WithCancel(ctx)
+		defer cancelSimulationTime()
 		served := make(chan error, 1)
 		go func() {
-			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler)
+			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
 		}()
 		simulationServed = served
+		timeServed := make(chan error, 1)
+		go func() {
+			timeServed <- serveSimulationTime(simulationTimeCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
+		}()
+		simulationTimeServed = timeServed
 		if simulationBootstrapWrite != nil {
 			bootstrap := append([]byte(nil), request.Simulation.Bootstrap...)
 			written := make(chan error, 1)
@@ -357,7 +392,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			simulationBootstrapWritten = written
 			modelsServed := make(chan error, 1)
 			go func() {
-				modelsServed <- serveSimulationModels(ctx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler)
+				modelsServed <- serveSimulationModels(ctx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
 			}()
 			simulationModelsServed = modelsServed
 		}
@@ -489,6 +524,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 	}
 	close(contextDone)
+	cancelSimulationTime()
 	signalSupervisor(0)
 	identity := <-identities
 	decodedReports := <-reports
@@ -624,6 +660,15 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			if serveErr := <-simulationModelsServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) && !errors.Is(serveErr, context.Canceled) {
 				return result, fmt.Errorf("serve simulation model transport: %w", serveErr)
 			}
+		}
+		if err := simulationTimeRequestRead.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close simulation time request reader: %w", err)
+		}
+		if err := simulationTimeResponseWrite.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			return result, fmt.Errorf("close simulation time response writer: %w", err)
+		}
+		if serveErr := <-simulationTimeServed; serveErr != nil && !errors.Is(serveErr, os.ErrClosed) && !errors.Is(serveErr, context.Canceled) {
+			return result, fmt.Errorf("serve simulation time transport: %w", serveErr)
 		}
 	}
 	if worldCapture.Result().Truncated {
