@@ -30,12 +30,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
-	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan *os.File
+	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse))
 	}()
 
 	var request supervisorRequest
@@ -61,7 +61,7 @@ func SupervisorMain() (retErr error) {
 		}
 	}
 	if request.ChoiceTrace {
-		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceReplayPlan: request.ChoiceTapeBytes != 0}
+		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
 		choiceTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTraceResource)), "target-choice-trace")
 		choiceTerminal = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTerminalResource)), "target-choice-terminal")
 		if request.ChoiceTapeBytes != 0 {
@@ -72,6 +72,20 @@ func SupervisorMain() (retErr error) {
 		}
 		if choice.ValidateController(request.ChoiceMode, request.ChoiceTapeBytes) != nil {
 			return errors.New("choice controller mode and tape are inconsistent")
+		}
+	}
+	if request.Simulation {
+		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: true, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: !request.SimulationBootstrap}
+		simulationRequest = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationRequestResource)), "simulation-request")
+		simulationResponse = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationResponseResource)), "simulation-response")
+		if request.SimulationBootstrap {
+			simulationBootstrap = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationBootstrapResource)), "simulation-bootstrap")
+			simulationControl = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationControlResource)), "simulation-control")
+		}
+		simulationModelRequest = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationModelRequestResource)), "simulation-model-request")
+		simulationModelResponse = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationModelResponseResource)), "simulation-model-response")
+		if simulationRequest == nil || simulationResponse == nil || simulationModelRequest == nil || simulationModelResponse == nil || request.SimulationBootstrap && (simulationBootstrap == nil || simulationControl == nil) {
+			return errors.New("simulation file descriptors are unavailable")
 		}
 	}
 	deadline := startedAt.Add(request.RunTimeout)
@@ -93,7 +107,7 @@ func SupervisorMain() (retErr error) {
 	target.Env = append(os.Environ(), "GOMADV3_TARGET_BOOTSTRAP=1")
 	target.Stdout = stdout
 	target.Stderr = stderr
-	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil}
+	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: simulationRequest != nil, simulationBootstrap: simulationBootstrap != nil, simulationCoordinator: simulationBootstrap == nil && simulationModelRequest != nil}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	bootstrapWrite, err := resources.createPipe(bootstrapRequestResource, inheritRead, "target bootstrap request")
@@ -139,6 +153,16 @@ func SupervisorMain() (retErr error) {
 			resources.bind(choiceTapeResource, &choiceReplayPlan)
 		}
 	}
+	if simulationRequest != nil {
+		resources.bind(simulationRequestResource, &simulationRequest)
+		resources.bind(simulationResponseResource, &simulationResponse)
+		if simulationBootstrap != nil {
+			resources.bind(simulationBootstrapResource, &simulationBootstrap)
+			resources.bind(simulationControlResource, &simulationControl)
+		}
+		resources.bind(simulationModelRequestResource, &simulationModelRequest)
+		resources.bind(simulationModelResponseResource, &simulationModelResponse)
+	}
 	target.ExtraFiles, err = resources.extraFiles(bootstrapStage)
 	if err != nil {
 		return err
@@ -159,7 +183,7 @@ func SupervisorMain() (retErr error) {
 	if closeErr := resources.closeInherited(bootstrapStage); closeErr != nil {
 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes}
+	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes, Simulation: request.Simulation, SimulationBootstrap: request.SimulationBootstrap}
 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
@@ -208,10 +232,21 @@ func SupervisorMain() (retErr error) {
 	go func() {
 		waited <- target.Wait()
 	}()
-	controlLost := make(chan struct{}, 1)
+	type controlEvent struct {
+		mode byte
+		err  error
+	}
+	controlLost := make(chan controlEvent, 1)
 	go func() {
-		_, _ = io.Copy(io.Discard, control)
-		controlLost <- struct{}{}
+		var mode [1]byte
+		read, err := control.Read(mode[:])
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		if read == 0 {
+			mode[0] = 1
+		}
+		controlLost <- controlEvent{mode: mode[0], err: err}
 	}()
 
 	cleanupReserve := min(50*time.Millisecond, request.RunTimeout/4)
@@ -223,14 +258,22 @@ func SupervisorMain() (retErr error) {
 	var waitErr error
 	watchdogTimeout := false
 	cancelled := false
+	hardCrash := false
 	terminationStarted := false
 	select {
 	case waitErr = <-waited:
 	case <-termTimer.C:
 		watchdogTimeout = true
 		terminationStarted = true
-	case <-controlLost:
+	case control := <-controlLost:
+		if control.err != nil {
+			return errors.Join(fmt.Errorf("read supervisor control: %w", control.err), killReapTarget(target, pgid, deadline))
+		}
+		if control.mode != 1 && control.mode != 2 {
+			return errors.Join(fmt.Errorf("invalid supervisor control mode %d", control.mode), killReapTarget(target, pgid, deadline))
+		}
 		cancelled = true
+		hardCrash = control.mode == 2
 		terminationStarted = true
 	}
 
@@ -245,32 +288,38 @@ func SupervisorMain() (retErr error) {
 		terminationStarted = true
 	}
 	if terminationStarted {
-		if err := signalGroup(pgid, syscall.SIGTERM); err != nil {
+		signal := syscall.SIGTERM
+		if hardCrash {
+			signal = syscall.SIGKILL
+		}
+		if err := signalGroup(pgid, signal); err != nil {
 			return fmt.Errorf("terminate target process group: %w", err)
 		}
-		graceTimer := time.NewTimer(max(min(request.TerminateGrace, time.Until(killAt)), 0))
-		poll := time.NewTicker(5 * time.Millisecond)
-		graceExpired := false
-		for !graceExpired {
-			groupPresent, err = groupExists(pgid)
-			if err != nil {
-				return errors.Join(fmt.Errorf("probe target process group during termination grace: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
+		if !hardCrash {
+			graceTimer := time.NewTimer(max(min(request.TerminateGrace, time.Until(killAt)), 0))
+			poll := time.NewTicker(5 * time.Millisecond)
+			graceExpired := false
+			for !graceExpired {
+				groupPresent, err = groupExists(pgid)
+				if err != nil {
+					return errors.Join(fmt.Errorf("probe target process group during termination grace: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
+				}
+				if !groupPresent {
+					break
+				}
+				select {
+				case waitErr = <-waited:
+				case <-poll.C:
+				case <-graceTimer.C:
+					graceExpired = true
+				}
 			}
-			if !groupPresent {
-				break
-			}
-			select {
-			case waitErr = <-waited:
-			case <-poll.C:
-			case <-graceTimer.C:
-				graceExpired = true
-			}
-		}
-		poll.Stop()
-		if !graceTimer.Stop() {
-			select {
-			case <-graceTimer.C:
-			default:
+			poll.Stop()
+			if !graceTimer.Stop() {
+				select {
+				case <-graceTimer.C:
+				default:
+				}
 			}
 		}
 		groupPresent, err = groupExists(pgid)
@@ -289,7 +338,7 @@ func SupervisorMain() (retErr error) {
 				return fmt.Errorf("target could not be reaped before the process deadline")
 			}
 		}
-		poll = time.NewTicker(5 * time.Millisecond)
+		poll := time.NewTicker(5 * time.Millisecond)
 		for time.Now().Before(deadline) {
 			groupPresent, err = groupExists(pgid)
 			if err != nil {

@@ -1,7 +1,11 @@
 package runner
 
 func orderRunCompletions(selection SeedSelection, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
-	jobs := pendingJobs{seeds: selection.Iterator(), completed: completed}
+	orderShardRunCompletions(selection, CampaignShard{}, completed, input, output)
+}
+
+func orderShardRunCompletions(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
+	jobs := pendingJobs{seeds: selection.Iterator(), shard: shard, completed: completed}
 	next, hasNext := jobs.Next()
 	pending := make(map[uint64]runCompletion)
 	for completion := range input {
@@ -27,6 +31,7 @@ func orderRunCompletions(selection SeedSelection, completed map[uint64]struct{},
 type pendingJobs struct {
 	seeds     *SeedIterator
 	ordinal   uint64
+	shard     CampaignShard
 	completed map[uint64]struct{}
 }
 
@@ -38,6 +43,9 @@ func (jobs *pendingJobs) Next() (runJob, bool) {
 		}
 		job := runJob{ordinal: jobs.ordinal, seed: seed}
 		jobs.ordinal++
+		if !normalizedCampaignShard(jobs.shard).Owns(job.ordinal) {
+			continue
+		}
 		if _, found := jobs.completed[job.ordinal]; found {
 			continue
 		}
@@ -57,8 +65,12 @@ type seedCampaign struct {
 }
 
 func newSeedCampaign(selection SeedSelection, completed map[uint64]struct{}, parallel int, policy FailurePolicy, failureBudget uint64, summary *CampaignResult) *seedCampaign {
+	return newShardedSeedCampaign(selection, CampaignShard{}, completed, parallel, policy, failureBudget, summary)
+}
+
+func newShardedSeedCampaign(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, parallel int, policy FailurePolicy, failureBudget uint64, summary *CampaignResult) *seedCampaign {
 	campaign := &seedCampaign{
-		jobs: pendingJobs{seeds: selection.Iterator(), completed: completed}, parallel: parallel,
+		jobs: pendingJobs{seeds: selection.Iterator(), shard: shard, completed: completed}, parallel: parallel,
 		policy: policy, failureBudget: failureBudget, summary: summary,
 	}
 	switch policy {

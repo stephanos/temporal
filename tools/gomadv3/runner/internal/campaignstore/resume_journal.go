@@ -8,10 +8,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
 )
 
 type ResumeState struct {
@@ -27,7 +29,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	if err != nil {
 		return nil, ResumeState{}, fmt.Errorf("resolve resumable batch path: %w", err)
 	}
-	lock, err := acquireResumeLock(filepath.Join(path, ".resume.lock"))
+	lock, err := acquireResumeLock(ctx, filepath.Join(path, ".resume.lock"))
 	if err != nil {
 		return nil, ResumeState{}, err
 	}
@@ -36,9 +38,22 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 			retErr = errors.Join(retErr, releaseResumeLock(lock))
 		}
 	}()
-	plan, err := ReadResumePlan(path)
+	preflight, err := PreflightResume(path)
 	if err != nil {
 		return nil, ResumeState{}, err
+	}
+	if preflight.Lifecycle.Action == RecoveryRestoreRunning {
+		if err := restoreInterruptedCommit(ctx, path); err != nil {
+			return nil, ResumeState{}, err
+		}
+		preflight, err = PreflightResume(path)
+		if err != nil {
+			return nil, ResumeState{}, err
+		}
+	}
+	plan := preflight.Plan
+	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema {
+		return resumeSegmentedCampaignJournal(ctx, path, plan, lock)
 	}
 	runsPath := filepath.Join(path, "runs.jsonl")
 	runsBytes, err := readResumeRuns(runsPath)
@@ -57,7 +72,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	if err != nil {
 		return nil, ResumeState{}, err
 	}
-	if err := archiveResumeState(path, runsBytes, len(retained) != len(runs), plan.Strategy == "choice-frontier"); err != nil {
+	if err := archiveResumeState(ctx, path, runsBytes, len(retained) != len(runs), plan.Strategy == "choice-frontier"); err != nil {
 		return nil, ResumeState{}, err
 	}
 	if len(retained) != len(runs) || !fileExists(runsPath) {
@@ -81,15 +96,100 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	journal := &CampaignJournal{
 		ctx: ctx,
 		config: CampaignConfig{
-			Root: filepath.Dir(filepath.Dir(path)), CampaignID: filepath.Base(path), Strategy: strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount),
+			Root: filepath.Dir(filepath.Dir(path)), CampaignID: filepath.Base(path), PlanSHA256: plan.PlanSHA256, Shard: cloneCampaignShard(plan.Shard), Strategy: strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount),
 		},
 		path: path, runsFile: runsFile, runsHasher: hasher, runsWriter: io.MultiWriter(runsFile, hasher), runsBytes: uint64(len(retainedBytes)), resumeLock: lock,
 	}
-	if err := journal.writeLifecycle(filepath.Join(path, ".partial", "batch"), "running", "", nil); err != nil {
-		journal.Close()
-		return nil, ResumeState{}, err
+	lifecycle, err := InspectCampaignLifecycle(path)
+	if err != nil {
+		return nil, ResumeState{}, errors.Join(err, journal.Close())
+	}
+	journal.lifecycle = lifecycle.State
+	journal.lastStableLifecycle = lifecycle.LastStableState
+	if lifecycle.State == LifecycleRunning {
+		journal.lifecycle = LifecycleRecoverableFailure
+		journal.lastStableLifecycle = LifecycleRunning
+	}
+	if err := journal.transitionLifecycle(LifecycleRunning, "", nil); err != nil {
+		return nil, ResumeState{}, errors.Join(err, journal.Close())
 	}
 	return journal, ResumeState{Plan: plan, Runs: retained}, nil
+}
+
+func resumeSegmentedCampaignJournal(ctx context.Context, path string, plan CampaignPlan, lock *hostfs.Lock) (*CampaignJournal, ResumeState, error) {
+	limits := runJournalLimitsFromPlan(*plan.Journal)
+	index, closedRuns, activeRuns, err := readResumableRunJournal(path, limits)
+	if err != nil {
+		return nil, ResumeState{}, err
+	}
+	allRuns := append(append([]ExecutionRecord(nil), closedRuns...), activeRuns...)
+	retained, err := validateResumeExecutions(path, plan, allRuns)
+	if err != nil {
+		return nil, ResumeState{}, err
+	}
+	for index := range closedRuns {
+		if index >= len(retained) || !reflect.DeepEqual(retained[index], closedRuns[index]) {
+			return nil, ResumeState{}, newIntegrityError(errors.New("closed run segment contains a discardable resume record"))
+		}
+	}
+	if err := archiveResumeState(ctx, path, nil, false, plan.Strategy == "choice-frontier"); err != nil {
+		return nil, ResumeState{}, err
+	}
+	if err := makePrivateDirectoriesContext(ctx, filepath.Join(path, ".partial", "runs")); err != nil {
+		return nil, ResumeState{}, err
+	}
+	segmented := &segmentedRunJournal{
+		ctx: ctx, batchPath: path, limits: limits, segments: append([]runJournalSegment(nil), index.Segments...),
+		totalRecords: uint64(index.Records), totalBytes: uint64(index.Bytes),
+	}
+	if err := segmented.writeIndex(); err != nil {
+		return nil, ResumeState{}, err
+	}
+	for _, run := range retained[len(closedRuns):] {
+		encoded, err := evidence.CanonicalJSON(run)
+		if err != nil {
+			return nil, ResumeState{}, errors.Join(err, segmented.close())
+		}
+		if err := segmented.append(append(encoded, '\n')); err != nil {
+			return nil, ResumeState{}, errors.Join(err, segmented.close())
+		}
+	}
+	if len(retained) != len(closedRuns) {
+		if err := segmented.seal(); err != nil {
+			return nil, ResumeState{}, errors.Join(err, segmented.close())
+		}
+	}
+	strategy := plan.Strategy
+	if strategy == "" {
+		strategy = "seed"
+	}
+	artifacts := *plan.Artifacts
+	journal := &CampaignJournal{
+		ctx: ctx,
+		config: CampaignConfig{
+			Root: filepath.Dir(filepath.Dir(path)), CampaignID: filepath.Base(path), PlanSHA256: plan.PlanSHA256, Shard: cloneCampaignShard(plan.Shard), Strategy: strategy,
+			Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), MaxRuns: uint64(plan.MaxRuns), Parallel: uint64(plan.Parallel), Journal: limits,
+		},
+		path: path, segmentedRuns: segmented, artifactPlan: &artifacts, resumeLock: lock,
+	}
+	if err := restoreRunningLifecycle(journal, path); err != nil {
+		return nil, ResumeState{}, errors.Join(err, journal.Close())
+	}
+	return journal, ResumeState{Plan: plan, Runs: retained}, nil
+}
+
+func restoreRunningLifecycle(journal *CampaignJournal, path string) error {
+	lifecycle, err := InspectCampaignLifecycle(path)
+	if err != nil {
+		return err
+	}
+	journal.lifecycle = lifecycle.State
+	journal.lastStableLifecycle = lifecycle.LastStableState
+	if lifecycle.State == LifecycleRunning {
+		journal.lifecycle = LifecycleRecoverableFailure
+		journal.lastStableLifecycle = LifecycleRunning
+	}
+	return journal.transitionLifecycle(LifecycleRunning, "", nil)
 }
 
 func readResumeRuns(path string) ([]byte, error) {
@@ -125,10 +225,15 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 	observedChoiceFeatures := make(map[string]struct{})
 	retained := make([]ExecutionRecord, 0, len(runs))
 	var retainedSuccesses, retainedSuccessBytes uint64
+	failureArtifacts := make(map[evidence.SHA256]uint64)
+	var failureArtifactBytes uint64
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		if ordinal >= ordinalLimit {
 			return nil, fmt.Errorf("resumable run %d selection ordinal is out of range", index+1)
+		}
+		if plan.Shard != nil && ordinal%uint64(plan.Shard.Count) != uint64(plan.Shard.Index) {
+			return nil, fmt.Errorf("resumable run %d is outside its shard assignment", index+1)
 		}
 		if strategy == "choice-frontier" && run.Strategy != "choice-frontier" {
 			return nil, fmt.Errorf("resumable frontier run %d strategy is invalid", index+1)
@@ -203,14 +308,30 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 			}
 			retained = append(retained, run)
 		case "target", "watchdog":
-			if err := validateResumeArtifact(batchPath, plan, run); err != nil {
+			artifact, err := validateResumeArtifact(batchPath, plan, run)
+			if err != nil {
 				return nil, fmt.Errorf("validate resumable run %d: %w", index+1, err)
+			}
+			if _, found := failureArtifacts[*run.FailureSignature]; !found {
+				if artifact.StoredBytes > ^uint64(0)-failureArtifactBytes {
+					return nil, errors.New("retained failure byte count overflows")
+				}
+				failureArtifacts[*run.FailureSignature] = artifact.StoredBytes
+				failureArtifactBytes += artifact.StoredBytes
 			}
 			retained = append(retained, run)
 		case "runner":
 			if run.Artifact != nil || run.FailureSignature != nil {
-				if err := validateResumeArtifact(batchPath, plan, run); err != nil {
+				artifact, err := validateResumeArtifact(batchPath, plan, run)
+				if err != nil {
 					return nil, fmt.Errorf("validate resumable Runner record %d: %w", index+1, err)
+				}
+				if _, found := failureArtifacts[*run.FailureSignature]; !found {
+					if artifact.StoredBytes > ^uint64(0)-failureArtifactBytes {
+						return nil, errors.New("retained failure byte count overflows")
+					}
+					failureArtifacts[*run.FailureSignature] = artifact.StoredBytes
+					failureArtifactBytes += artifact.StoredBytes
 				}
 			} else if run.Reason != "runner_cancelled" || run.Termination != "none" {
 				return nil, fmt.Errorf("resumable Runner record %d is invalid", index+1)
@@ -218,6 +339,11 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 			delete(ordinals, ordinal)
 		default:
 			return nil, fmt.Errorf("resumable run %d domain is invalid: %s", index+1, run.Domain)
+		}
+		if limits := plan.Artifacts; limits != nil {
+			if uint64(len(failureArtifacts)) > uint64(limits.FailureArtifacts) || failureArtifactBytes > uint64(limits.FailureBytes) || retainedSuccessBytes > ^uint64(0)-failureArtifactBytes || failureArtifactBytes+retainedSuccessBytes > uint64(limits.TotalBytes) {
+				return nil, errors.New("retained artifacts exceed the batch plan capacity")
+			}
 		}
 		for _, probe := range run.SemanticProbes {
 			observedProbes[probe] = struct{}{}
@@ -251,20 +377,20 @@ func validateResumeSuccessArtifact(batchPath string, plan CampaignPlan, run Exec
 	return nil
 }
 
-func validateResumeArtifact(batchPath string, plan CampaignPlan, run ExecutionRecord) error {
+func validateResumeArtifact(batchPath string, plan CampaignPlan, run ExecutionRecord) (RetainedEvidence, error) {
 	retained, err := ResolveRetainedEvidence(batchPath, filepath.Base(batchPath), run)
 	if err != nil {
-		return err
+		return RetainedEvidence{}, err
 	}
 	manifest := retained.Manifest
 	targetMatches, targetErr := evidence.SameTargetIdentity(manifest.Target, plan.Prepared.Target)
 	if targetErr != nil || manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || !targetMatches {
-		return fmt.Errorf("failure artifact target identity does not match its batch plan")
+		return RetainedEvidence{}, fmt.Errorf("failure artifact target identity does not match its batch plan")
 	}
 	if !choiceProfileMatchesPlan(plan, manifest) {
-		return fmt.Errorf("failure artifact choice profile does not match its batch plan")
+		return RetainedEvidence{}, fmt.Errorf("failure artifact choice profile does not match its batch plan")
 	}
-	return nil
+	return retained, nil
 }
 
 func choiceProfileMatchesPlan(plan CampaignPlan, manifest evidence.ExecutionRecord) bool {
@@ -284,7 +410,7 @@ func encodeExecutionRecords(runs []ExecutionRecord) ([]byte, error) {
 	return evidence.CanonicalJSONLines(values)
 }
 
-func archiveResumeState(path string, runs []byte, archiveRuns, preserveFrontier bool) error {
+func archiveResumeState(ctx context.Context, path string, runs []byte, archiveRuns, preserveFrontier bool) error {
 	partialRoot := filepath.Join(path, ".partial")
 	entries, err := os.ReadDir(partialRoot)
 	if err != nil {
@@ -305,7 +431,7 @@ func archiveResumeState(path string, runs []byte, archiveRuns, preserveFrontier 
 		return nil
 	}
 	resumeRoot := filepath.Join(partialRoot, "resume")
-	if err := makePrivateDirectories(resumeRoot); err != nil {
+	if err := makePrivateDirectoriesContext(ctx, resumeRoot); err != nil {
 		return err
 	}
 	attempt, err := nextResumeAttempt(resumeRoot)
@@ -314,20 +440,20 @@ func archiveResumeState(path string, runs []byte, archiveRuns, preserveFrontier 
 	}
 	attemptPath := filepath.Join(resumeRoot, fmt.Sprintf("%06d", attempt))
 	partialsPath := filepath.Join(attemptPath, "partials")
-	if err := makePrivateDirectories(partialsPath); err != nil {
+	if err := makePrivateDirectoriesContext(ctx, partialsPath); err != nil {
 		return err
 	}
 	if archiveRuns {
-		if err := atomicWrite(filepath.Join(attemptPath, "runs.jsonl"), runs); err != nil {
+		if err := atomicWriteContext(ctx, filepath.Join(attemptPath, "runs.jsonl"), runs); err != nil {
 			return err
 		}
 	}
 	for _, entry := range toArchive {
-		if err := os.Rename(filepath.Join(partialRoot, entry.Name()), filepath.Join(partialsPath, entry.Name())); err != nil {
+		if err := renameContext(ctx, filepath.Join(partialRoot, entry.Name()), filepath.Join(partialsPath, entry.Name()), "resume-archive"); err != nil {
 			return fmt.Errorf("archive partial batch entry %q: %w", entry.Name(), err)
 		}
 	}
-	return syncDirectory(partialRoot)
+	return syncDirectoryContext(ctx, partialRoot)
 }
 
 func nextResumeAttempt(root string) (uint64, error) {

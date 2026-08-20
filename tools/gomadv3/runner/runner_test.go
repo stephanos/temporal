@@ -600,6 +600,28 @@ func TestRunResolvesRelativeArtifactRootBeforeTargetPreparation(t *testing.T) {
 	}
 }
 
+func TestFailureArtifactCapacityRejectsBeforePublication(t *testing.T) {
+	signature := evidence.HashBytes([]byte("existing"))
+	distinct := map[evidence.SHA256]string{signature: "/existing"}
+	config := CampaignSpec{failureArtifactLimit: 1, failureBytesLimit: 10}
+	storedBytes := uint64(5)
+	storeRoot := t.TempDir()
+	_, err := publishBoundedFailureArtifact(
+		context.Background(), config, storeRoot, evidence.HashBytes([]byte("new")), distinct, &storedBytes, campaignstore.ArtifactInput{},
+	)
+	var capacityErr *campaignstore.ArtifactCapacityError
+	if !errors.As(err, &capacityErr) || capacityErr.Limit != campaignstore.ArtifactLimitFailureCount || capacityErr.Outcome != campaignstore.CapacityInfrastructureFailure {
+		t.Fatalf("publishBoundedFailureArtifact() error = %v", err)
+	}
+	entries, err := os.ReadDir(storeRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("artifact store mutated after capacity rejection: %v", entries)
+	}
+}
+
 func TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem(t *testing.T) {
 	preparer := newFakePreparer(t)
 	executor := newFirstFailureExecutor(3)
@@ -1140,8 +1162,8 @@ func TestRunCancellationIsAHostFailure(t *testing.T) {
 	if readErr != nil {
 		t.Fatal(readErr)
 	}
-	if len(partials) != 2 {
-		t.Fatalf("cancelled partials = %v, want batch and target", partials)
+	if len(partials) != 3 {
+		t.Fatalf("cancelled partials = %v, want batch, runs, and target", partials)
 	}
 	if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".partial", "batch", "partial.json")); err != nil {
 		t.Fatal(err)

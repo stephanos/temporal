@@ -21,8 +21,8 @@ const (
 	libcDarwinSHA256            = "sha256:46fc04624c96033980a81d8eeb9b4d73daff0c6cae511931456f2c72a75fcb7e"
 	libcDarwinArm64SHA256       = "sha256:6c725881029bda79d32b8e29be850b45ec8e359a0d5d2f52bc634f93dcae4e99"
 	libcUnixSHA256              = "sha256:b4350edb7222f6f4e2a8f8eb079ab0fbbc18e2be74762b68b17205ac3ead4f4a"
-	gomadLibcAdapterSHA256      = "sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c"
-	libcPreparedSourceSetSHA256 = "sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749"
+	gomadLibcAdapterSHA256      = "sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd"
+	libcPreparedSourceSetSHA256 = "sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833"
 )
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
@@ -118,7 +118,8 @@ func rewriteLibcDarwin(contents []byte) ([]byte, error) {
 		{header: "func Xgetcwd(t *TLS, buf uintptr, size types.Size_t) uintptr {", body: "\tif result, handled := gomadGetcwd(t, buf, uint64(size)); handled { return result }\n"},
 		{header: "func Xfchmod(t *TLS, fd int32, mode types.Mode_t) int32 {", body: "\tif result, handled := gomadDescriptorNoop(t, fd); handled { return result }\n"},
 		{header: "func Xfchown(t *TLS, fd int32, owner types.Uid_t, group types.Gid_t) int32 {", body: "\tif result, handled := gomadDescriptorNoop(t, fd); handled { return result }\n"},
-		{header: "func Xmmap(t *TLS, addr uintptr, length types.Size_t, prot, flags, fd int32, offset types.Off_t) uintptr {", body: "\tif result, handled := gomadMmap(t, fd); handled { return result }\n"},
+		{header: "func Xmmap(t *TLS, addr uintptr, length types.Size_t, prot, flags, fd int32, offset types.Off_t) uintptr {", body: "\tif result, handled := gomadMmap(t, addr, uint64(length), prot, flags, fd, int64(offset)); handled { return result }\n"},
+		{header: "func Xmunmap(t *TLS, addr uintptr, length types.Size_t) int32 {", body: "\tif result, handled := gomadMunmap(t, addr, uint64(length)); handled { return result }\n"},
 		{header: "func Xgettimeofday(t *TLS, tv, tz uintptr) int32 {", body: "\tif result, handled := gomadGettimeofday(t, tv, tz); handled { return result }\n"},
 		{header: "func Xgeteuid(t *TLS) types.Uid_t {", body: "\tif gomadLibcEnabled() { return 0 }\n"},
 		{header: "func Xrmdir(t *TLS, pathname uintptr) int32 {", body: "\tif gomadLibcEnabled() { return gomadRemove(t, GoString(pathname)) }\n"},

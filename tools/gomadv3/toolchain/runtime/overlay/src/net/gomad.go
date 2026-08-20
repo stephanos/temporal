@@ -24,7 +24,7 @@ var gomadNetState = struct {
 }{connections: make(map[*netFD]*gomadio.Conn), listeners: make(map[*netFD]*gomadio.Listener)}
 
 func gomadIOEnabled() bool {
-	return gomadio.Enabled()
+	return gomadio.NetworkEnabled()
 }
 
 func gomadObserveBoundary(id uint64) {
@@ -295,10 +295,10 @@ func gomadInterceptDialTCP(ctx context.Context, _ *Dialer, network string, local
 	if remote == nil {
 		return nil, &OpError{Op: "dial", Net: network, Source: local.opAddr(), Addr: nil, Err: errMissingAddress}, true
 	}
-	if local != nil && local.Port != 0 || len(remote.IP) != 0 && !remote.IP.IsUnspecified() && !remote.IP.IsLoopback() {
+	if local != nil && local.Port != 0 {
 		return nil, &OpError{Op: "dial", Net: network, Source: local.opAddr(), Addr: remote, Err: gomadio.ErrUnsupported}, true
 	}
-	connection, err := gomadDialTCP(ctx, network, remote.Port)
+	connection, err := gomadDialTCP(ctx, network, remote.IP.String(), remote.Port)
 	if err != nil {
 		return nil, &OpError{Op: "dial", Net: network, Source: local.opAddr(), Addr: remote, Err: err}, true
 	}
@@ -406,10 +406,7 @@ func gomadInterceptListenTCP(network string, local *TCPAddr) (*TCPListener, erro
 	if local == nil {
 		local = &TCPAddr{}
 	}
-	if len(local.IP) != 0 && !local.IP.IsUnspecified() && !local.IP.IsLoopback() {
-		return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: local, Err: gomadio.ErrUnsupported}, true
-	}
-	listener, err := gomadListenTCP(network, local.Port)
+	listener, err := gomadListenTCP(network, local.IP.String(), local.Port)
 	if err != nil {
 		return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: local, Err: err}, true
 	}
@@ -420,8 +417,8 @@ func gomadInterceptTCPConnSetKeepAliveConfig(conn *TCPConn, _ KeepAliveConfig) (
 	return gomadInterceptTCPConnOption(conn)
 }
 
-func gomadListenTCP(network string, port int) (*TCPListener, error) {
-	listener, err := gomadio.ListenTCP(network, port)
+func gomadListenTCP(network, host string, port int) (*TCPListener, error) {
+	listener, err := gomadio.ListenTCP(network, host, port)
 	if err != nil {
 		return nil, err
 	}
@@ -432,8 +429,8 @@ func gomadListenTCP(network string, port int) (*TCPListener, error) {
 	return &TCPListener{fd: fd}, nil
 }
 
-func gomadDialTCP(ctx context.Context, network string, port int) (*TCPConn, error) {
-	connection, err := gomadio.DialTCP(ctx, network, port)
+func gomadDialTCP(ctx context.Context, network, host string, port int) (*TCPConn, error) {
+	connection, err := gomadio.DialTCP(ctx, network, host, port)
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +458,11 @@ func gomadListener(fd *netFD) *gomadio.Listener {
 }
 
 func gomadTCPAddr(address gomadio.Address) *TCPAddr {
-	return &TCPAddr{IP: IPv4(127, 0, 0, 1), Port: address.Port}
+	ip := ParseIP(address.IP)
+	if ip == nil {
+		ip = IPv4(127, 0, 0, 1)
+	}
+	return &TCPAddr{IP: ip, Port: address.Port}
 }
 
 func gomadParseTCPAddress(network, address string, listening bool) (*TCPAddr, error) {
@@ -476,10 +477,18 @@ func gomadParseTCPAddress(network, address string, listening bool) (*TCPAddr, er
 	if err != nil || port < 0 || port > 65535 || !listening && port == 0 {
 		return nil, gomadio.ErrUnsupported
 	}
-	switch host {
-	case "", "localhost", "127.0.0.1", "0.0.0.0":
-	default:
+	if host == "localhost" {
+		host = "127.0.0.1"
+	}
+	if host == "" {
+		if !listening {
+			return nil, gomadio.ErrUnsupported
+		}
+		host = "0.0.0.0"
+	}
+	ip := ParseIP(host)
+	if ip == nil || ip.To4() == nil {
 		return nil, gomadio.ErrUnsupported
 	}
-	return &TCPAddr{IP: IPv4(127, 0, 0, 1), Port: port}, nil
+	return &TCPAddr{IP: ip.To4(), Port: port}, nil
 }

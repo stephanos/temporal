@@ -17,6 +17,9 @@ func initTranscript() {
 }
 
 func record(operation string, arguments, content []byte, count uint64, result uint32, entropyStart, entropyEnd uint64) {
+	if !enabled {
+		return
+	}
 	gomadtrace.Record(operation, arguments, content, count, result, entropyStart, entropyEnd)
 }
 

@@ -641,6 +641,19 @@ func gomadDeterministicEnabled() bool {
 	return gomadEnabled
 }
 
+//go:linkname gomadSimulationDomain
+func gomadSimulationDomain() uint64 {
+	return getg().gomadSimulationDomain
+}
+
+//go:linkname gomadSimulationSetDomain
+func gomadSimulationSetDomain(domain uint64) uint64 {
+	gp := getg()
+	previous := gp.gomadSimulationDomain
+	gp.gomadSimulationDomain = domain
+	return previous
+}
+
 //go:linkname gomadIOConfigFrame
 func gomadIOConfigFrame() *[212]byte {
 	return &gomadConfig
