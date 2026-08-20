@@ -165,3 +165,43 @@ func TestDecodeFirstOrderViewEnforcesByteLimit(t *testing.T) {
 	_, err := DecodeFirstOrderView(bytes.NewReader([]byte(validFirstOrderView)), 8)
 	require.ErrorContains(t, err, "exceeds 8-byte decode limit")
 }
+
+func TestFirstOrderViewSupportsCanonicalUninterpretedMembers(t *testing.T) {
+	view, err := DecodeFirstOrderView(strings.NewReader(validFirstOrderView), DefaultDecodeLimit)
+	require.NoError(t, err)
+	view.Sorts = []FirstOrderSort{{
+		Identifier: "node", Kind: FirstOrderSortUninterpreted, Values: []string{}, Cardinality: 2,
+	}}
+	view.StateFields = []FirstOrderField{{Identifier: "flag", Sort: "node"}}
+	view.Initial.Right = &FirstOrderTerm{
+		Kind: FirstOrderTermValue, Sort: "node", Value: "member-0",
+	}
+	view.Actions[0].Guard.Right = &FirstOrderTerm{
+		Kind: FirstOrderTermValue, Sort: "node", Value: "member-0",
+	}
+	view.Actions[0].Updates[0].Value = FirstOrderTerm{
+		Kind: FirstOrderTermValue, Sort: "node", Value: "member-1",
+	}
+	view.Oracle.States = []FirstOrderState{
+		{Fields: []FirstOrderBinding{{Field: "flag", Value: "member-0"}}},
+		{Fields: []FirstOrderBinding{{Field: "flag", Value: "member-1"}}},
+	}
+	require.NoError(t, view.Validate())
+
+	view.Oracle.States[1].Fields[0].Value = "member-2"
+	require.ErrorContains(t, view.Validate(), `unknown value "member-2" for sort "node"`)
+}
+
+func TestFirstOrderViewCapsHostileStateDomainsBeforeAllocation(t *testing.T) {
+	view, err := DecodeFirstOrderView(strings.NewReader(validFirstOrderView), DefaultDecodeLimit)
+	require.NoError(t, err)
+	view.Bounds.ConcreteStateLimit = MaxFirstOrderConcreteStateLimit + 1
+	require.ErrorContains(t, view.Validate(), "bounded first-order")
+
+	view.Bounds.ConcreteStateLimit = 16
+	view.StateFields = append(view.StateFields, FirstOrderField{Identifier: "second", Sort: "bit"},
+		FirstOrderField{Identifier: "third", Sort: "bit"},
+		FirstOrderField{Identifier: "fourth", Sort: "bit"},
+		FirstOrderField{Identifier: "fifth", Sort: "bit"})
+	require.ErrorContains(t, view.Validate(), "state domain exceeds concrete state limit 16")
+}

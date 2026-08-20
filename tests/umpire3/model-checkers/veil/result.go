@@ -82,7 +82,7 @@ func NormalizeConcreteOutput(
 
 	switch raw.Result {
 	case veilResultNoViolationFound:
-		if err := validateNoViolationResult(raw); err != nil {
+		if err := validateNoViolationResult(raw, len(view.Oracle.States)); err != nil {
 			return protocol.BackendResult{}, err
 		}
 		result.ResultClass = protocol.ResultClassExternalNoCounterexample
@@ -138,7 +138,7 @@ func ConcreteReplayInput(
 	}
 	switch raw.Result {
 	case veilResultNoViolationFound:
-		if err := validateNoViolationResult(raw); err != nil {
+		if err := validateNoViolationResult(raw, len(view.Oracle.States)); err != nil {
 			return nil, err
 		}
 		return nil, nil
@@ -170,11 +170,15 @@ func readConcreteOutput(
 	if err := decodeConcreteOutput(reader, limit, &raw); err != nil {
 		return concreteResult{}, err
 	}
+	if raw.ExploredStates > view.Bounds.ConcreteStateLimit {
+		return concreteResult{}, fmt.Errorf("Veil explored %d states beyond the declared limit %d",
+			raw.ExploredStates, view.Bounds.ConcreteStateLimit)
+	}
 	return raw, nil
 }
 
-func validateNoViolationResult(raw concreteResult) error {
-	if raw.ExploredStates <= 0 || raw.TerminationReason == nil ||
+func validateNoViolationResult(raw concreteResult, expectedStates int) error {
+	if raw.ExploredStates != expectedStates || raw.TerminationReason == nil ||
 		raw.TerminationReason.Kind != veilExploredAllStates || raw.StateFingerprint != "" ||
 		raw.Trace != nil || raw.Violation != nil {
 		return errors.New("invalid Veil no-violation result")

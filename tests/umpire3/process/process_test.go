@@ -51,6 +51,28 @@ func TestRunRejectsOutputBeyondBudget(t *testing.T) {
 	require.ErrorIs(t, err, ErrOutputLimit)
 }
 
+func TestRunAppliesWorkerCPUAndMemoryLimits(t *testing.T) {
+	t.Parallel()
+
+	result, err := Run(context.Background(), Request{
+		Command: []string{"/bin/sh", "-c", "ulimit -t; ulimit -d"},
+		Timeout: time.Second, MaxOutputBytes: 1024,
+		Limits: Limits{CPUSeconds: 2, MemoryBytes: 64 << 20},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "2\n65536\n", string(result.Output))
+}
+
+func TestRunRejectsPartialWorkerResourceLimits(t *testing.T) {
+	t.Parallel()
+
+	_, err := Run(context.Background(), Request{
+		Command: []string{"true"}, Timeout: time.Second, MaxOutputBytes: 64,
+		Limits: Limits{CPUSeconds: 1},
+	})
+	require.ErrorContains(t, err, "CPU and memory limits")
+}
+
 func TestSupervisorCrashesRestartsAndCleansUpIsolatedProcess(t *testing.T) {
 	t.Parallel()
 

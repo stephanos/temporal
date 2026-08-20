@@ -51,6 +51,24 @@ func TestNormalizeConcreteOutputClassifiesSoundInstanceWithoutCompleteness(t *te
 	require.NoError(t, result.Validate())
 }
 
+func TestNormalizeConcreteOutputRejectsExplorationCountMismatch(t *testing.T) {
+	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
+	generated, err := Generate(view, Concrete)
+	require.NoError(t, err)
+
+	wrongCount := strings.Replace(soundConcreteOutput, `"explored_states": 26`,
+		`"explored_states": 25`, 1)
+	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(wrongCount),
+		protocol.DefaultDecodeLimit, nil)
+	require.ErrorContains(t, err, "invalid Veil no-violation result")
+
+	overLimit := strings.Replace(soundConcreteOutput, `"explored_states": 26`,
+		`"explored_states": 513`, 1)
+	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(overLimit),
+		protocol.DefaultDecodeLimit, nil)
+	require.ErrorContains(t, err, "beyond the declared limit 512")
+}
+
 func TestNormalizeConcreteOutputMapsMutationTraceAndRequiresReplay(t *testing.T) {
 	view := readFirstOrderView(t, "nexus-cancellation-mutated.first-order.json")
 	generated, err := Generate(view, Concrete)
@@ -98,7 +116,10 @@ func TestConcreteReplayInputBindsNormalizedMutationTrace(t *testing.T) {
 		},
 	}, input)
 
-	input, err = ConcreteReplayInput(view, generated, strings.NewReader(soundConcreteOutput),
+	soundView := readFirstOrderView(t, "nexus-cancellation.first-order.json")
+	soundGenerated, err := Generate(soundView, Concrete)
+	require.NoError(t, err)
+	input, err = ConcreteReplayInput(soundView, soundGenerated, strings.NewReader(soundConcreteOutput),
 		protocol.DefaultDecodeLimit)
 	require.NoError(t, err)
 	require.Nil(t, input)

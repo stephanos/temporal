@@ -229,6 +229,10 @@ func (r BackendResult) Validate() error {
 	if err := validateOrderedStrings("backend omission", r.Omissions); err != nil {
 		return err
 	}
+	if r.Job == BackendJobConcrete && (r.Bounds.ConcreteStateLimit <= 0 ||
+		r.ExploredStates < 0 || r.ExploredStates > r.Bounds.ConcreteStateLimit) {
+		return errors.New("concrete backend result exceeds or omits its declared state limit")
+	}
 	if r.Job == BackendJobConcrete && r.Termination == BackendTerminationExhaustedInstance &&
 		r.ResultClass != ResultClassExternalNoCounterexample {
 		return errors.New("concrete no-counterexample result cannot claim finite completeness")
