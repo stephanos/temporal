@@ -594,11 +594,12 @@ direct linkname/syscall containment proof.
 `simulation/parity/manifest.json` is the canonical SIM-0 behavioral contract.
 It maps thirteen Gomad v2 behaviors to named v3 cases, exact source
 tests, intentional replacement decisions, delivery stages, limits, and
-backend/fidelity requirements. Twelve cases now have implemented in-process
-evidence; fresh arbitrary package globals remain planned for the process tier.
+backend/fidelity requirements. All thirteen cases are implemented through
+sixteen declared in-process and process prototypes, including process evidence
+for fresh arbitrary package globals and hard isolation.
 
 The root `tools/gomadv3sim` package defines the no-dependency application
-harness. Its v4 schemas provide bounded specs, stable node and incarnation
+harness. Its v6 schemas provide bounded specs, stable node and incarnation
 identities, boot registration, detached results, lifecycle and topology
 control, typed scenario composition, stable histories and oracles, inspect,
 and exact replay. The in-process backend supplies deterministic
@@ -610,8 +611,10 @@ directory sync, dependency-valid partial persistence, persisted-only crash,
 restart, bounded resumable crash-state enumeration, and exact replay. Fault
 plans bind stable match fields and realized targets independently; scenario,
 fault, network, volume, and runtime-choice tapes retain separate identities.
-Process-backed hard isolation remains unimplemented and is not implied by the
-in-process model.
+The process backend adds private bounded bootstrap and model IPC, host-owned
+time arbitration, fresh package initialization, hard crash/reap, and
+cross-backend detached-model conformance. None of those process-isolation
+claims is implied by the in-process model.
 
 ## World
 

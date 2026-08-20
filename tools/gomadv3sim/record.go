@@ -73,6 +73,7 @@ func ReplayPlanFor(record ClusterRecord) (ReplayPlan, error) {
 		Transitions:     append([]LifecycleTransition(nil), record.Transitions...),
 		FaultPlan:       cloneFaultPlan(record.FaultPlan),
 		Faults:          cloneFaultRealizations(record.Faults),
+		ScenarioChoices: cloneScenarioChoicePlan(record.ScenarioChoices),
 		Scenarios:       cloneScenarioDecisions(record.Scenarios),
 		History:         cloneHistoryOperations(record.History),
 		Observations:    cloneObservations(record.Observations),
@@ -108,6 +109,10 @@ func buildClusterRecord(spec Spec, specSHA256 string, result Result) (ClusterRec
 	} else {
 		faultPlan = cloneFaultPlan(*spec.Faults)
 	}
+	scenarioChoices, err := scenarioChoicePlanForSpec(spec)
+	if err != nil {
+		return ClusterRecord{}, err
+	}
 	network := cloneNetworkRecord(result.Network)
 	if network.Snapshot.TransitionSHA256 == "" {
 		network = emptyNetworkRecord()
@@ -142,6 +147,7 @@ func buildClusterRecord(spec Spec, specSHA256 string, result Result) (ClusterRec
 		Transitions:     append([]LifecycleTransition(nil), result.Record.Transitions...),
 		FaultPlan:       faultPlan,
 		Faults:          cloneFaultRealizations(result.Faults),
+		ScenarioChoices: scenarioChoices,
 		Scenarios:       cloneScenarioDecisions(result.Scenarios),
 		History:         cloneHistoryOperations(result.History),
 		Observations:    cloneObservations(result.Observations),
@@ -213,6 +219,12 @@ func validateClusterRecord(record ClusterRecord) error {
 	if err := validateControllerEvidence(record.FaultPlan, record.Faults, record.Scenarios, record.History, record.Observations, record.Oracles, record.Limits); err != nil {
 		return err
 	}
+	if err := validateScenarioChoicePlan(record.ScenarioChoices); err != nil {
+		return err
+	}
+	if err := checkCapacity("scenario_choice_overrides", uint64(len(record.ScenarioChoices.Overrides)), record.Limits.ScenarioDecisions); err != nil {
+		return err
+	}
 	if err := validateNetworkRecord(record.Network, record.Limits); err != nil {
 		return err
 	}
@@ -255,9 +267,11 @@ func validateClusterStaticEvidence(record ClusterRecord) error {
 		return err
 	}
 	faultPlan := cloneFaultPlan(record.FaultPlan)
+	scenarioChoices := cloneScenarioChoicePlan(record.ScenarioChoices)
 	spec := Spec{
 		Schema: SpecSchema, Backend: record.Backend, Fidelity: record.Fidelity, Seed: record.Seed, Limits: record.Limits,
-		Nodes: cloneNodeSpecs(record.NodeSpecs), Links: append([]LinkSpec(nil), record.LinkSpecs...), Volumes: append([]VolumeSpec(nil), record.VolumeSpecs...), Faults: &faultPlan,
+		Nodes: cloneNodeSpecs(record.NodeSpecs), Links: append([]LinkSpec(nil), record.LinkSpecs...), Volumes: append([]VolumeSpec(nil), record.VolumeSpecs...),
+		Faults: &faultPlan, ScenarioChoices: &scenarioChoices,
 	}
 	wantSpec, err := hashSpec(spec)
 	if err != nil {
@@ -359,7 +373,7 @@ func currentClusterModelIdentities() (ClusterModelIdentities, error) {
 		"gomadv3-network-model/v4-directional-links-atomic-groups",
 		"gomadv3-volume-model/v2-explicit-crash-selection",
 		"gomadv3-fault-controller/v2-stable-match-occurrence",
-		"gomadv3-scenario-controller/v1",
+		"gomadv3-scenario-controller/v2-rank-bound-choice-plan",
 		"gomadv3-oracle-model/v1",
 	}
 	identities := make([]string, len(definitions))
@@ -427,6 +441,16 @@ func validateReplayPlan(plan ReplayPlan, spec Spec) error {
 	}
 	if err := validateControllerEvidence(plan.FaultPlan, plan.Faults, plan.Scenarios, plan.History, plan.Observations, plan.Oracles, spec.Limits); err != nil {
 		return err
+	}
+	scenarioChoices, err := scenarioChoicePlanForSpec(spec)
+	if err != nil {
+		return err
+	}
+	if err := validateScenarioChoicePlan(plan.ScenarioChoices); err != nil {
+		return err
+	}
+	if !equalScenarioChoicePlan(plan.ScenarioChoices, scenarioChoices) {
+		return errors.New("cluster replay scenario choice plan does not match the specification")
 	}
 	if err := validateNetworkRecord(plan.Network, spec.Limits); err != nil {
 		return err
@@ -1090,17 +1114,22 @@ func hashSpec(spec Spec) (string, error) {
 		faults := cloneFaultPlan(*spec.Faults)
 		spec.Faults = &faults
 	}
-	return hashCanonical("gomadv3-simulation-spec/v5", spec)
+	scenarioChoices, err := scenarioChoicePlanForSpec(spec)
+	if err != nil {
+		return "", err
+	}
+	spec.ScenarioChoices = &scenarioChoices
+	return hashCanonical("gomadv3-simulation-spec/v6", spec)
 }
 
 func clusterRecordIdentity(record ClusterRecord) (string, error) {
 	record.Identity = ""
-	return hashCanonical("gomadv3-cluster-record/v5", record)
+	return hashCanonical("gomadv3-cluster-record/v6", record)
 }
 
 func replayPlanIdentity(plan ReplayPlan) (string, error) {
 	plan.Identity = ""
-	return hashCanonical("gomadv3-cluster-replay/v5", plan)
+	return hashCanonical("gomadv3-cluster-replay/v6", plan)
 }
 
 func hashCanonical(domain string, value any) (string, error) {
@@ -1129,6 +1158,7 @@ func cloneReplayPlan(plan ReplayPlan) ReplayPlan {
 	plan.Transitions = append([]LifecycleTransition(nil), plan.Transitions...)
 	plan.FaultPlan = cloneFaultPlan(plan.FaultPlan)
 	plan.Faults = cloneFaultRealizations(plan.Faults)
+	plan.ScenarioChoices = cloneScenarioChoicePlan(plan.ScenarioChoices)
 	plan.Scenarios = cloneScenarioDecisions(plan.Scenarios)
 	plan.History = cloneHistoryOperations(plan.History)
 	plan.Observations = cloneObservations(plan.Observations)
