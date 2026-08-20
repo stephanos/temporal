@@ -626,7 +626,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationStartsStandaloneActivityBidir
 	if !chasmEnabled {
 		s.T().Skip("standalone activity is only available with chasm enabled")
 	}
-	runSparseRegressionBidirectionalNexusActivityLinks(s.T(), chasmEnabled)
+	runUmpire2SparseRegressionBidirectionalNexusActivityLinks(s.T(), chasmEnabled)
 }
 
 // TestNexusOperationAsyncStandaloneActivityCompletionBeforeStart verifies that when a standalone
@@ -2382,7 +2382,7 @@ func (s *NexusWorkflowTestSuite) TestNexusCallbackAfterCallerComplete(chasmEnabl
 	if chasmEnabled {
 		s.T().Skip("Blocked on CHASM Nexus callback failure handling after caller completion")
 	}
-	runSparseRegressionCallbackAfterCallerCompletion(s.T(), chasmEnabled)
+	runUmpire2SparseRegressionCallbackAfterCallerCompletion(s.T(), chasmEnabled)
 }
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationSyncNexusFailure(chasmEnabled bool) {
@@ -2844,7 +2844,7 @@ func (s *NexusWorkflowTestSuite) TestNexusOperationScheduleToStartTimeout(chasmE
 }
 
 func (s *NexusWorkflowTestSuite) TestNexusOperationStartToCloseTimeout(chasmEnabled bool) {
-	runSparseRegressionStartToCloseTimeout(s.T(), chasmEnabled)
+	runUmpire2SparseRegressionStartToCloseTimeout(s.T(), chasmEnabled)
 }
 
 // generateValidCallbackToken creates a valid callback token for testing with the given namespace, workflow, and run IDs

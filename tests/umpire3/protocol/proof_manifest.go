@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 )
 
 type ProofDependency struct {
@@ -21,6 +22,17 @@ type ProofManifest struct {
 	SemanticHash  string            `json:"semanticHash"`
 	LeanVersion   string            `json:"leanVersion"`
 	Assumptions   []ProofDependency `json:"assumptions"`
+}
+
+func DecodeProofManifest(reader io.Reader, limit int64) (ProofManifest, error) {
+	var manifest ProofManifest
+	if err := decodeStrictJSON(reader, limit, "proof manifest", &manifest); err != nil {
+		return ProofManifest{}, err
+	}
+	if err := manifest.Validate(); err != nil {
+		return ProofManifest{}, err
+	}
+	return manifest, nil
 }
 
 func (m ProofManifest) Validate() error {
@@ -48,4 +60,15 @@ func (m ProofManifest) Digest() (string, error) {
 	}
 	digest := sha256.Sum256(encoded)
 	return "sha256:" + hex.EncodeToString(digest[:]), nil
+}
+
+func (m ProofManifest) CanonicalJSON() ([]byte, error) {
+	if err := m.Validate(); err != nil {
+		return nil, err
+	}
+	encoded, err := json.Marshal(m)
+	if err != nil {
+		return nil, fmt.Errorf("encode proof manifest: %w", err)
+	}
+	return encoded, nil
 }

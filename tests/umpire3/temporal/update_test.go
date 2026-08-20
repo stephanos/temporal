@@ -8,7 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/regress"
+	"go.temporal.io/server/tests/umpire3/regress/workflow"
 	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/umpire3test"
 )
 
 func TestUpdateExperimentUsesSameRuntimeSeam(t *testing.T) {
@@ -29,4 +32,17 @@ func TestUpdateExperimentUsesSameRuntimeSeam(t *testing.T) {
 	require.Equal(t, umpire3runtime.ClaimConforming, result.Claim.Kind)
 	require.Equal(t, "workflow", result.Bindings["workflow"])
 	require.Equal(t, "update", result.Bindings["update"])
+}
+
+func TestTypedUpdateRegressionFacadeRuns(t *testing.T) {
+	update := workflow.Update("update")
+	scenario := workflow.Regression("typed-update-lifecycle", update,
+		regress.OnePath(update.Lifecycle(), update.CompletionThroughHistory()))
+	factory := NewUpdateFactory(func(context.Context) (ClusterInfo, error) {
+		return ClusterInfo{
+			BuildID: "build", Namespace: "namespace", MintedWorkflowID: "workflow", MintedUpdateID: "update",
+		}, nil
+	})
+
+	umpire3test.RequireRegression(t, scenario, umpire3test.WithEnvironment(factory))
 }

@@ -50,15 +50,22 @@ type updateSession struct {
 	sequence        int64
 }
 
-func (s *updateSession) Realize(ctx context.Context, action protocol.Action, _ environment.Bindings) (environment.ActionEvidence, error) {
+func (s *updateSession) Realize(ctx context.Context, action protocol.Action, bindings environment.Bindings) (environment.ActionEvidence, error) {
 	if err := ctx.Err(); err != nil {
 		return environment.ActionEvidence{}, err
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	evidence := environment.ActionEvidence{
-		Source:    "temporal-test-cluster",
-		Reference: s.cluster.Namespace + "/" + action.Identifier,
+		Source:         "temporal-test-cluster",
+		SourceIdentity: "temporal-test-cluster",
+		ClockDomain:    "temporal-test-cluster-sequence",
+		Reference:      s.cluster.Namespace + "/" + action.Identifier,
+		EntityIdentity: s.cluster.MintedUpdateID,
+		Lineage:        []string{s.cluster.Namespace, s.cluster.MintedWorkflowID, s.cluster.MintedUpdateID},
+	}
+	if err := validateIdentityArgument(action, "update", s.cluster.MintedUpdateID, bindings); err != nil {
+		return environment.ActionEvidence{}, err
 	}
 	switch action.Kind {
 	case "start-update":
@@ -66,6 +73,13 @@ func (s *updateSession) Realize(ctx context.Context, action protocol.Action, _ e
 		evidence.GroundedBindings = map[string]string{
 			"workflow": s.cluster.MintedWorkflowID,
 			"update":   s.cluster.MintedUpdateID,
+		}
+		grounded, err := groundActionBindings(action, map[string]string{"update-id": s.cluster.MintedUpdateID})
+		if err != nil {
+			return environment.ActionEvidence{}, err
+		}
+		for symbol, concrete := range grounded {
+			evidence.GroundedBindings[symbol] = concrete
 		}
 	case "dispatch-workflow-task":
 		if !s.started {
@@ -109,8 +123,14 @@ func (s *updateSession) Observe(ctx context.Context, checkpoint protocol.Checkpo
 		CheckpointID:    checkpoint.Identifier,
 		Kind:            checkpoint.Observation,
 		Source:          "temporal-history",
+		SourceIdentity:  "temporal-history",
+		ClockDomain:     "temporal-history-sequence",
 		SourceSequence:  s.sequence,
 		CausalReference: s.cluster.Namespace + "/" + s.cluster.MintedWorkflowID + "/" + s.cluster.MintedUpdateID,
+		Reference: s.cluster.Namespace + "/" + s.cluster.MintedWorkflowID + "/" +
+			s.cluster.MintedUpdateID + "/" + checkpoint.Identifier,
+		EntityIdentity: s.cluster.MintedUpdateID,
+		Lineage:        []string{s.cluster.Namespace, s.cluster.MintedWorkflowID, s.cluster.MintedUpdateID},
 	}
 	switch checkpoint.Observation {
 	case "update-accepted":
@@ -140,14 +160,19 @@ func (s *updateSession) RecoveryMetadata() map[string]string {
 }
 
 func (s *updateSession) Profile() environment.Profile {
-	profile := s.cluster.EvidenceProfile
-	if profile == "" {
-		profile = "controlled"
+	configurationIdentity := s.cluster.ConfigurationID
+	if configurationIdentity == "" {
+		configurationIdentity = s.cluster.BuildID + "/default"
 	}
 	return environment.Profile{
 		Name:                  "controlled-local",
 		BuildID:               s.cluster.BuildID,
-		ConfigurationIdentity: s.cluster.ConfigurationID,
-		EvidenceProfile:       profile,
+		ConfigurationIdentity: configurationIdentity,
+		EvidenceProfile:       environment.EvidenceProfileInProcessHooks,
+		DrivingAuthority:      "temporal-api",
+		ObservationAuthority:  "controlled-state-hooks",
+		FaultAuthority:        "none",
+		IsolationIdentity:     s.cluster.Namespace,
+		RetentionClass:        "semantic-only",
 	}
 }

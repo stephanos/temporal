@@ -75,10 +75,25 @@ UMPIRE3_MODEL_ROOT := $(UMPIRE3_ROOT)/model
 UMPIRE3_LEAN_VERSION := $(shell sed -e 's|leanprover/lean4:v||' $(UMPIRE3_MODEL_ROOT)/lean-toolchain)
 UMPIRE3_MANIFEST := $(UMPIRE3_ROOT)/testdata/empty-manifest.json
 UMPIRE3_MANIFEST_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-manifest -lean-version $(UMPIRE3_LEAN_VERSION)
+UMPIRE3_CATALOG := $(UMPIRE3_ROOT)/protocol/generated/catalog.json
+UMPIRE3_IDENTIFIERS := $(UMPIRE3_ROOT)/protocol/catalog_ids.gen.go
+UMPIRE3_AUTHOR_FACADE := $(UMPIRE3_ROOT)/regress/catalog.gen.go
+UMPIRE3_EXPERIMENT_SCHEMA := $(UMPIRE3_ROOT)/protocol/generated/experiment.schema.json
+UMPIRE3_MONITORS := $(UMPIRE3_ROOT)/protocol/generated/monitor-programs.json
+UMPIRE3_COMPOSITION := $(UMPIRE3_ROOT)/protocol/generated/composition.json
+UMPIRE3_PARITY := $(UMPIRE3_ROOT)/protocol/generated/parity-ledger.json
+UMPIRE3_COVERAGE := $(UMPIRE3_ROOT)/protocol/generated/coverage-denominator.json
 UMPIRE3_NEXUS_EXPERIMENT := $(UMPIRE3_ROOT)/testdata/nexus-cancellation.json
 UMPIRE3_UPDATE_EXPERIMENT := $(UMPIRE3_ROOT)/testdata/update-lifecycle.json
+UMPIRE3_NEXUS_PROOF_MANIFEST := $(UMPIRE3_ROOT)/testdata/nexus-proof-manifest.json
+UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/testdata/update-proof-manifest.json
 UMPIRE3_EXPORT_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-export
 UMPIRE3_API_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-api
+UMPIRE3_API_DESCRIPTOR := $(UMPIRE3_MODEL_ROOT)/Temporal/API/Generated/descriptor-manifest.json
+UMPIRE3_PROTOCOL_DESCRIPTOR := $(UMPIRE3_ROOT)/protocol/generated/descriptor-manifest.json
+UMPIRE3_MIGRATION_LEDGER := $(UMPIRE3_ROOT)/migration/ledger.json
+UMPIRE3_MIGRATION_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-migration
+UMPIRE3_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3
 
 # Number of retries for *-coverage targets.
 MAX_TEST_ATTEMPTS ?= 3
@@ -439,29 +454,148 @@ umpire3-check-manifest:
 		$(UMPIRE3_MANIFEST_COMMAND) > "$$temporary"; \
 		diff -u $(UMPIRE3_MANIFEST) "$$temporary"
 
-umpire3-gen-experiment:
-	@printf $(COLOR) "Generate Umpire3 experiments..."
-	@$(UMPIRE3_EXPORT_COMMAND) -experiment nexus > $(UMPIRE3_NEXUS_EXPERIMENT)
-	@$(UMPIRE3_EXPORT_COMMAND) -experiment update > $(UMPIRE3_UPDATE_EXPERIMENT)
+umpire3-gen-catalog:
+	@printf $(COLOR) "Generate Umpire3 semantic catalog..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact catalog -output $(UMPIRE3_CATALOG)
 
-umpire3-check-experiment:
+umpire3-check-catalog:
+	@printf $(COLOR) "Check generated Umpire3 semantic catalog..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact catalog > "$$temporary"; \
+		diff -u $(UMPIRE3_CATALOG) "$$temporary"
+
+umpire3-gen-identifiers: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 Go identifiers..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact go-identifiers -output $(UMPIRE3_IDENTIFIERS)
+
+umpire3-check-identifiers: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 Go identifiers..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact go-identifiers > "$$temporary"; \
+		diff -u $(UMPIRE3_IDENTIFIERS) "$$temporary"
+
+umpire3-gen-author-facade: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 author facade..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact author-facade -output $(UMPIRE3_AUTHOR_FACADE)
+
+umpire3-check-author-facade: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 author facade..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact author-facade > "$$temporary"; \
+		diff -u $(UMPIRE3_AUTHOR_FACADE) "$$temporary"
+
+umpire3-gen-schema:
+	@printf $(COLOR) "Generate Umpire3 experiment schema..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact experiment-schema -output $(UMPIRE3_EXPERIMENT_SCHEMA)
+
+umpire3-check-schema:
+	@printf $(COLOR) "Check generated Umpire3 experiment schema..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact experiment-schema > "$$temporary"; \
+		diff -u $(UMPIRE3_EXPERIMENT_SCHEMA) "$$temporary"
+
+umpire3-gen-monitor: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 monitor programs..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact monitor-programs -output $(UMPIRE3_MONITORS)
+
+umpire3-check-monitor: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 monitor programs..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact monitor-programs > "$$temporary"; \
+		diff -u $(UMPIRE3_MONITORS) "$$temporary"
+
+umpire3-gen-composition: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 model composition..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact composition -output $(UMPIRE3_COMPOSITION)
+
+umpire3-check-composition: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 model composition..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact composition > "$$temporary"; \
+		diff -u $(UMPIRE3_COMPOSITION) "$$temporary"
+
+umpire3-gen-parity: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 parity ledger..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact parity-ledger -output $(UMPIRE3_PARITY)
+
+umpire3-check-parity: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 parity ledger..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact parity-ledger > "$$temporary"; \
+		diff -u $(UMPIRE3_PARITY) "$$temporary"
+
+umpire3-gen-coverage: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 coverage denominator..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact coverage-denominator -output $(UMPIRE3_COVERAGE)
+
+umpire3-check-coverage: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 coverage denominator..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact coverage-denominator > "$$temporary"; \
+		diff -u $(UMPIRE3_COVERAGE) "$$temporary"
+
+umpire3-gen-proof: umpire3-gen-api
+	@printf $(COLOR) "Generate Umpire3 proof manifests..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment nexus -output $(UMPIRE3_NEXUS_PROOF_MANIFEST)
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment update -output $(UMPIRE3_UPDATE_PROOF_MANIFEST)
+
+umpire3-check-proof: umpire3-check-api
+	@printf $(COLOR) "Check generated Umpire3 proof manifests..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment nexus > "$$temporary"; \
+		diff -u $(UMPIRE3_NEXUS_PROOF_MANIFEST) "$$temporary"; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment update > "$$temporary"; \
+		diff -u $(UMPIRE3_UPDATE_PROOF_MANIFEST) "$$temporary"
+
+umpire3-gen-experiment: umpire3-gen-catalog umpire3-gen-api
+	@printf $(COLOR) "Generate Umpire3 experiments..."
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment nexus -output $(UMPIRE3_NEXUS_EXPERIMENT)
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment update -output $(UMPIRE3_UPDATE_EXPERIMENT)
+
+umpire3-check-experiment: umpire3-check-catalog umpire3-check-api
 	@printf $(COLOR) "Check generated Umpire3 Nexus experiment..."
 	@temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
-		$(UMPIRE3_EXPORT_COMMAND) -experiment nexus > "$$temporary"; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment nexus > "$$temporary"; \
 		diff -u $(UMPIRE3_NEXUS_EXPERIMENT) "$$temporary"; \
-		$(UMPIRE3_EXPORT_COMMAND) -experiment update > "$$temporary"; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment update > "$$temporary"; \
 		diff -u $(UMPIRE3_UPDATE_EXPERIMENT) "$$temporary"
 
 umpire3-gen-api:
 	@printf $(COLOR) "Generate Umpire3 Nexus API model..."
 	@$(UMPIRE3_API_COMMAND) -mode generate
+	@cp $(UMPIRE3_API_DESCRIPTOR) $(UMPIRE3_PROTOCOL_DESCRIPTOR)
 
 umpire3-check-api:
 	@printf $(COLOR) "Check generated Umpire3 Nexus API model..."
 	@$(UMPIRE3_API_COMMAND) -mode check
+	@cmp $(UMPIRE3_API_DESCRIPTOR) $(UMPIRE3_PROTOCOL_DESCRIPTOR)
 
-umpire3-check: umpire3-check-manifest umpire3-check-experiment umpire3-check-api
+umpire3-gen-migration:
+	@printf $(COLOR) "Generate Umpire3 root-test migration ledger..."
+	@$(UMPIRE3_MIGRATION_COMMAND) -output $(UMPIRE3_MIGRATION_LEDGER)
+
+umpire3-check-migration:
+	@printf $(COLOR) "Check Umpire3 root-test migration ledger..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_MIGRATION_COMMAND) -output "$$temporary"; \
+		diff -u $(UMPIRE3_MIGRATION_LEDGER) "$$temporary"
+
+umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration
+
+umpire3-check-generated: umpire3-check-manifest umpire3-check-identifiers umpire3-check-author-facade umpire3-check-schema umpire3-check-monitor umpire3-check-composition umpire3-check-parity umpire3-check-coverage umpire3-check-proof umpire3-check-experiment umpire3-check-api umpire3-check-migration
+
+umpire3-check: umpire3-check-generated
 	@printf $(COLOR) "Check Umpire3 Lean model..."
 	@$(MAKE) -C $(UMPIRE3_MODEL_ROOT) check
 	@printf $(COLOR) "Test Umpire3 Go packages..."
@@ -470,9 +604,25 @@ umpire3-check: umpire3-check-manifest umpire3-check-experiment umpire3-check-api
 umpire3-integration:
 	@printf $(COLOR) "Run Umpire3 real-cluster integration..."
 	@go test -count=1 -tags test_dep,integration ./$(UMPIRE3_ROOT)/temporal \
-		-run '^TestLeanNexusExperimentRunsWithRealTemporalNexusTask$$' -timeout 10m
+		-run '^TestLean(Nexus|TaskAck)ExperimentRunsWithRealTemporal' -timeout 10m
 
-.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-check umpire3-integration
+umpire3-explain:
+	@test -n "$(EXPERIMENT)" || (echo "EXPERIMENT is required" >&2; exit 1)
+	@$(UMPIRE3_COMMAND) explain -experiment $(EXPERIMENT)
+
+umpire3-mutation-gate:
+	@printf $(COLOR) "Run Umpire3 seeded cross-layer mutation gate..."
+	@go test -count=1 -tags test_dep ./$(UMPIRE3_ROOT)/campaign \
+		-run '^TestCrossLayerMutationGateDiscoversMinimizesReplaysAndPromotes$$'
+
+umpire3-root:
+	@printf $(COLOR) "Run retained Umpire2 and independent Umpire3 root tests..."
+	@status=0; \
+		go test -count=1 -tags test_dep ./tests -run '^TestUmpire2' -timeout 20m || status=$$?; \
+		go test -count=1 -tags test_dep ./tests -run '^TestUmpire3' -timeout 20m || status=$$?; \
+		exit $$status
+
+.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-gen umpire3-check-generated umpire3-check umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-root
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

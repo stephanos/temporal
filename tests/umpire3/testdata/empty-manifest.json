@@ -1,5 +1,5 @@
 {
-  "formatVersion": "umpire3/v1",
+  "formatVersion": "umpire3/v2",
   "toolchain": {
     "lean": "4.33.0"
   }

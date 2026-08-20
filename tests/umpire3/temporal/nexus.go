@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"go.temporal.io/server/tests/umpire3/environment"
+	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -108,9 +109,13 @@ type nexusSession struct {
 	staleVisible         bool
 	sequence             int64
 	cleaned              bool
+	faultInstalled       bool
+	faultActive          bool
+	faultFired           bool
+	faultHandle          string
 }
 
-func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, _ environment.Bindings) (environment.ActionEvidence, error) {
+func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, bindings environment.Bindings) (environment.ActionEvidence, error) {
 	if err := ctx.Err(); err != nil {
 		return environment.ActionEvidence{}, err
 	}
@@ -121,9 +126,16 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, _ en
 	if referenceID == "" {
 		referenceID = s.experimentID
 	}
+	if err := validateIdentityArgument(action, "operation", referenceID, bindings); err != nil {
+		return environment.ActionEvidence{}, err
+	}
 	evidence := environment.ActionEvidence{
-		Source:    "temporal-test-cluster",
-		Reference: s.cluster.Namespace + "/" + referenceID + "/" + action.Identifier,
+		Source:         "temporal-test-cluster",
+		SourceIdentity: "temporal-test-cluster",
+		ClockDomain:    "temporal-test-cluster-sequence",
+		Reference:      s.cluster.Namespace + "/" + referenceID + "/" + action.Identifier,
+		EntityIdentity: referenceID,
+		Lineage:        []string{s.cluster.Namespace, referenceID},
 	}
 	switch action.Kind {
 	case "schedule-operation":
@@ -132,9 +144,7 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, _ en
 		}
 		s.scheduled = true
 		if s.cluster.MintedOperationID != "" {
-			evidence.GroundedBindings = map[string]string{
-				"operation": s.cluster.MintedOperationID,
-			}
+			evidence.GroundedBindings = map[string]string{"operation": s.cluster.MintedOperationID}
 		}
 	case "dispatch-task":
 		if !s.scheduled || s.dispatched {
@@ -166,8 +176,9 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, _ en
 		}
 		s.cancelled = true
 	case "acquire-ownership":
-		if s.dispatched {
+		if s.dispatched && s.faultActive {
 			s.staleEpoch = s.workerEpoch
+			s.faultFired = true
 		}
 		s.ownerEpoch++
 	case "retry-task":
@@ -223,7 +234,99 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, _ en
 	default:
 		return environment.ActionEvidence{}, fmt.Errorf("unsupported action %q", action.Kind)
 	}
+	grounded, err := groundActionBindings(action, map[string]string{
+		"operation-id": s.cluster.MintedOperationID,
+	})
+	if err != nil {
+		return environment.ActionEvidence{}, err
+	}
+	if len(grounded) != 0 && evidence.GroundedBindings == nil {
+		evidence.GroundedBindings = make(map[string]string, len(grounded))
+	}
+	for symbol, concrete := range grounded {
+		evidence.GroundedBindings[symbol] = concrete
+	}
+	evidence.SourceIdentity = evidence.Source
+	evidence.ClockDomain = evidence.Source + "-sequence"
 	return evidence, nil
+}
+
+type nexusFaultRealizer struct {
+	session *nexusSession
+}
+
+func (s *nexusSession) FaultRealizer() umpire3fault.Realizer {
+	return nexusFaultRealizer{session: s}
+}
+
+func (r nexusFaultRealizer) Install(_ context.Context, term umpire3fault.Term) (string, error) {
+	s := r.session
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.faultInstalled {
+		return "", errors.New("nexus fault is already installed")
+	}
+	if term.Kind != protocol.FaultKindStaleWorkerCompletion {
+		return "", fmt.Errorf("nexus adapter cannot realize fault %q", term.Kind)
+	}
+	s.faultInstalled = true
+	s.faultHandle = "nexus-stale-completion/" + s.experimentID
+	return s.faultHandle, nil
+}
+
+func (r nexusFaultRealizer) Activate(_ context.Context, handle string) error {
+	s := r.session
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.faultInstalled || handle != s.faultHandle || s.faultActive {
+		return errors.New("nexus fault handle is not activatable")
+	}
+	s.faultActive = true
+	return nil
+}
+
+func (r nexusFaultRealizer) Release(_ context.Context, handle string) error {
+	s := r.session
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.faultInstalled || handle != s.faultHandle {
+		return errors.New("unknown nexus fault handle")
+	}
+	s.faultActive = false
+	return nil
+}
+
+func (r nexusFaultRealizer) Cleanup(_ context.Context, handle string) error {
+	s := r.session
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.faultInstalled || handle != s.faultHandle {
+		return errors.New("unknown nexus fault handle")
+	}
+	s.faultActive = false
+	s.faultInstalled = false
+	return nil
+}
+
+func (r nexusFaultRealizer) RealizationEvidence(
+	_ context.Context,
+	handle string,
+) (umpire3fault.RealizationEvidence, error) {
+	s := r.session
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.faultInstalled || handle != s.faultHandle || !s.faultFired {
+		return umpire3fault.RealizationEvidence{}, errors.New("stale completion fault did not fire")
+	}
+	operationID := s.cluster.MintedOperationID
+	if operationID == "" {
+		operationID = s.experimentID
+	}
+	return umpire3fault.RealizationEvidence{
+		SourceIdentity: "umpire3-controlled-nexus-state",
+		Reference:      s.cluster.Namespace + "/" + operationID + "/fault/stale-completion",
+		EntityIdentity: operationID,
+	}, nil
 }
 
 func (s *nexusSession) Observe(ctx context.Context, checkpoint protocol.Checkpoint, _ environment.Bindings) (environment.Observation, error) {
@@ -240,6 +343,8 @@ func (s *nexusSession) Observe(ctx context.Context, checkpoint protocol.Checkpoi
 		Source:          "umpire3-controlled-nexus-state",
 		SourceSequence:  s.sequence,
 		CausalReference: s.cluster.Namespace + "/" + s.cluster.MintedOperationID,
+		EntityIdentity:  s.cluster.MintedOperationID,
+		Lineage:         []string{s.cluster.Namespace, s.cluster.MintedOperationID},
 	}
 	switch checkpoint.Observation {
 	case "cancellation-accepted":
@@ -255,6 +360,9 @@ func (s *nexusSession) Observe(ctx context.Context, checkpoint protocol.Checkpoi
 	default:
 		return environment.Observation{}, fmt.Errorf("unsupported observation %q", checkpoint.Observation)
 	}
+	observation.SourceIdentity = observation.Source
+	observation.ClockDomain = observation.Source + "-sequence"
+	observation.Reference = observation.CausalReference + "/" + checkpoint.Identifier
 	return observation, nil
 }
 
@@ -294,18 +402,29 @@ func (s *nexusSession) recoveryMetadata() map[string]string {
 }
 
 func (s *nexusSession) Profile() environment.Profile {
-	profile := s.cluster.EvidenceProfile
-	if profile == "" {
-		profile = "controlled"
+	profile := environment.EvidenceProfileInProcessHooks
+	observationAuthority := "controlled-state-hooks"
+	if s.transport != nil {
+		profile = environment.EvidenceProfilePublicGRPCHistory
+		observationAuthority = "public-api-and-task-protocol"
 	}
 	name := s.options.ProfileName
 	if name == "" {
 		name = "controlled-local"
 	}
+	configurationIdentity := s.cluster.ConfigurationID
+	if configurationIdentity == "" {
+		configurationIdentity = s.cluster.BuildID + "/default"
+	}
 	return environment.Profile{
 		Name:                  name,
 		BuildID:               s.cluster.BuildID,
-		ConfigurationIdentity: s.cluster.ConfigurationID,
+		ConfigurationIdentity: configurationIdentity,
 		EvidenceProfile:       profile,
+		DrivingAuthority:      "temporal-api",
+		ObservationAuthority:  observationAuthority,
+		FaultAuthority:        "controlled-stale-completion",
+		IsolationIdentity:     s.cluster.Namespace,
+		RetentionClass:        "semantic-only",
 	}
 }

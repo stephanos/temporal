@@ -10,7 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tests/umpire3/environment"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/regress"
+	regressnexus "go.temporal.io/server/tests/umpire3/regress/nexus"
 	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
+	"go.temporal.io/server/tests/umpire3/umpire3test"
 )
 
 func TestNexusFactoryPreparationFailure(t *testing.T) {
@@ -24,15 +27,20 @@ func TestNexusFactoryPreparationFailure(t *testing.T) {
 
 func TestNexusFactoryLearnsMintedIdentity(t *testing.T) {
 	experiment := loadNexusExperiment(t)
+	experiment.Actions[1].Bindings = []protocol.Binding{{
+		Symbol: "learned-operation", Type: "identity", Projection: "operation-id",
+	}}
 	factory := NewNexusFactory(func(context.Context) (ClusterInfo, error) {
 		return ClusterInfo{BuildID: "build", Namespace: "namespace", MintedOperationID: "server-operation"}, nil
 	}, NexusOptions{})
 	session, err := factory.Prepare(context.Background(), experiment)
 	require.NoError(t, err)
 
-	evidence, err := session.Realize(context.Background(), experiment.Actions[0], environment.Bindings{})
+	_, err = session.Realize(context.Background(), experiment.Actions[0], environment.Bindings{})
 	require.NoError(t, err)
-	require.Equal(t, "server-operation", evidence.GroundedBindings["operation"])
+	evidence, err := session.Realize(context.Background(), experiment.Actions[1], environment.Bindings{})
+	require.NoError(t, err)
+	require.Equal(t, "server-operation", evidence.GroundedBindings["learned-operation"])
 }
 
 func TestEveryNexusRealizerHonorsCancellation(t *testing.T) {
@@ -70,6 +78,17 @@ func TestNexusNegativeControlChangesImplementationBehavior(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, umpire3runtime.ClaimViolating, faulty.Claim.Kind)
+}
+
+func TestTypedNexusRegressionFacadeRuns(t *testing.T) {
+	operation := regressnexus.Operation("operation")
+	scenario := regressnexus.Regression("typed-nexus-cancellation", operation,
+		regress.OnePath(operation.CancelWithRetry(), operation.CancellationSafety()))
+	factory := NewNexusFactory(func(context.Context) (ClusterInfo, error) {
+		return ClusterInfo{BuildID: "build", Namespace: "namespace", MintedOperationID: "operation"}, nil
+	}, NexusOptions{})
+
+	umpire3test.RequireRegression(t, scenario, umpire3test.WithEnvironment(factory))
 }
 
 func TestNexusTaskTransportDeterminesVisibleCompletion(t *testing.T) {
