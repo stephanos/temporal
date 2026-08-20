@@ -69,7 +69,7 @@ def Terminal : State → Prop
 theorem terminalStable {world state action nextState}
     (terminal : Terminal state)
     (step : behavior.Step world state action nextState) : False := by
-  cases state <;> simp [Terminal, behavior, successors] at terminal step
+  cases state <;> simp [Terminal, successors] at terminal step
 
 theorem cancelledCannotComplete {world finalState}
     (run : Runs (behavior.at world) .cancelled [.completeSuccess] finalState) : False := by
