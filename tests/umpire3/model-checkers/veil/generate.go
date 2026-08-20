@@ -92,10 +92,50 @@ func GenerateWithTrust(
 		}
 	}
 	source.WriteString("\n")
+	uninterpretedAssumptions := make([]string, 0)
+	for _, sort := range view.Sorts {
+		if sort.Kind != protocol.FirstOrderSortUninterpreted {
+			continue
+		}
+		members := names.values[sort.Identifier]
+		memberNames := make([]string, sort.Cardinality)
+		for index := range sort.Cardinality {
+			memberNames[index] = members[fmt.Sprintf("member-%d", index)]
+			fmt.Fprintf(&source, "immutable individual %s : %s\n",
+				memberNames[index], names.sorts[sort.Identifier])
+		}
+		distinct := make([]string, 0, sort.Cardinality*(sort.Cardinality-1)/2)
+		for left := range memberNames {
+			for right := left + 1; right < len(memberNames); right++ {
+				distinct = append(distinct, fmt.Sprintf("(%s ≠ %s)", memberNames[left], memberNames[right]))
+			}
+		}
+		if len(distinct) != 0 {
+			uninterpretedAssumptions = append(uninterpretedAssumptions, fmt.Sprintf(
+				"assumption [%sMembersDistinct] %s",
+				exportedIdentifier(sort.Identifier), strings.Join(distinct, " ∧ ")))
+		}
+		exhaustive := make([]string, len(memberNames))
+		for index, member := range memberNames {
+			exhaustive[index] = fmt.Sprintf("(value = %s)", member)
+		}
+		uninterpretedAssumptions = append(uninterpretedAssumptions, fmt.Sprintf(
+			"assumption [%sMembersExhaustive] ∀ value : %s, %s",
+			exportedIdentifier(sort.Identifier), names.sorts[sort.Identifier],
+			strings.Join(exhaustive, " ∨ ")))
+	}
+	source.WriteString("\n")
 	for _, field := range view.StateFields {
 		fmt.Fprintf(&source, "individual %s : %s\n", names.fields[field.Identifier], names.sorts[field.Sort])
 	}
-	source.WriteString("\n#gen_state\n\nafter_init {\n")
+	source.WriteString("\n#gen_state\n")
+	if len(uninterpretedAssumptions) != 0 {
+		source.WriteString("\n")
+		for _, assumption := range uninterpretedAssumptions {
+			fmt.Fprintln(&source, assumption)
+		}
+	}
+	source.WriteString("\nafter_init {\n")
 	for _, field := range view.StateFields {
 		fmt.Fprintf(&source, "  %s := *\n", names.fields[field.Identifier])
 	}
@@ -138,12 +178,14 @@ func GenerateWithTrust(
 	fmt.Fprintf(&source, "invariant [CanonicalReachableEnvelope] %s\n\n",
 		renderOracleEnvelope(view, names))
 	source.WriteString("#gen_spec\n\n")
-	instantiation := renderInstantiation(view, names)
+	typeInstantiation, theoryInstantiation := renderInstantiations(view, names)
 	switch mode {
 	case Concrete:
-		fmt.Fprintf(&source, "#model_check %s { } (sequential := true)\n", instantiation)
+		fmt.Fprintf(&source, "#model_check %s %s (sequential := true)\n",
+			typeInstantiation, theoryInstantiation)
 	case Interactive:
-		fmt.Fprintf(&source, "#model_check interpreted %s { } (sequential := true)\n\n", instantiation)
+		fmt.Fprintf(&source, "#model_check interpreted %s %s (sequential := true)\n\n",
+			typeInstantiation, theoryInstantiation)
 		fmt.Fprintf(&source, "unsat trace [bounded_safety] {\n  any %d actions\n  assert ¬ (%s)\n}\n\n",
 			view.Bounds.SymbolicDepth, invariant)
 		source.WriteString("#check_invariants\n\n")
@@ -151,7 +193,8 @@ func GenerateWithTrust(
 		fmt.Fprintf(&source, "end %s\n", module)
 	case Mutation:
 		source.WriteString("set_option veil.violationIsError false in\n")
-		fmt.Fprintf(&source, "#model_check interpreted %s { } (sequential := true)\n\n", instantiation)
+		fmt.Fprintf(&source, "#model_check interpreted %s %s (sequential := true)\n\n",
+			typeInstantiation, theoryInstantiation)
 		fmt.Fprintf(&source, "sat trace [counterexample] {\n  any %d actions\n  assert ¬ (%s)\n}\n\n",
 			view.Bounds.SymbolicDepth, invariant)
 		fmt.Fprintf(&source, "end %s\n", module)
@@ -176,6 +219,9 @@ func GenerateWithTrust(
 	actionLabels := make(map[string]string, len(names.actions))
 	for identifier, label := range names.actions {
 		actionLabels[identifier] = label
+	}
+	if err := validateGeneratedSemantics(view, source.Bytes()); err != nil {
+		return GeneratedModule{}, err
 	}
 	return GeneratedModule{
 		Module:              module,
@@ -279,9 +325,19 @@ func buildNames(view protocol.FirstOrderView) (generatedNames, error) {
 			return generatedNames{}, err
 		}
 		names.sorts[sort.Identifier] = generated
-		names.values[sort.Identifier] = make(map[string]string, len(sort.Values))
-		for _, value := range sort.Values {
+		valueNames := append([]string(nil), sort.Values...)
+		if sort.Kind == protocol.FirstOrderSortUninterpreted {
+			valueNames = make([]string, sort.Cardinality)
+			for index := range valueNames {
+				valueNames[index] = fmt.Sprintf("member-%d", index)
+			}
+		}
+		names.values[sort.Identifier] = make(map[string]string, len(valueNames))
+		for _, value := range valueNames {
 			generated := exportedIdentifier(value)
+			if sort.Kind == protocol.FirstOrderSortUninterpreted {
+				generated = exportedIdentifier(sort.Identifier + "-" + value)
+			}
 			if err := register("sort value", sort.Identifier+"/"+value, generated); err != nil {
 				return generatedNames{}, err
 			}
@@ -310,14 +366,19 @@ func buildNames(view protocol.FirstOrderView) (generatedNames, error) {
 	return names, nil
 }
 
-func renderInstantiation(view protocol.FirstOrderView, names generatedNames) string {
-	values := make([]string, 0)
+func renderInstantiations(view protocol.FirstOrderView, names generatedNames) (string, string) {
+	types := make([]string, 0)
+	theory := make([]string, 0)
 	for _, sort := range view.Sorts {
 		if sort.Kind == protocol.FirstOrderSortUninterpreted {
-			values = append(values, fmt.Sprintf("%s := Fin %d", names.sorts[sort.Identifier], sort.Cardinality))
+			types = append(types, fmt.Sprintf("%s := Fin %d", names.sorts[sort.Identifier], sort.Cardinality))
+			for index := range sort.Cardinality {
+				theory = append(theory, fmt.Sprintf("%s := %d",
+					names.values[sort.Identifier][fmt.Sprintf("member-%d", index)], index))
+			}
 		}
 	}
-	return "{ " + strings.Join(values, ", ") + " }"
+	return "{ " + strings.Join(types, ", ") + " }", "{ " + strings.Join(theory, ", ") + " }"
 }
 
 func renderFormula(formula protocol.FirstOrderFormula, names generatedNames, snapshots bool) (string, error) {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -23,6 +24,12 @@ type Request struct {
 	Input          []byte
 	Timeout        time.Duration
 	MaxOutputBytes int64
+	Limits         Limits
+}
+
+type Limits struct {
+	CPUSeconds  int
+	MemoryBytes int64
 }
 
 type Result struct {
@@ -35,10 +42,14 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if len(request.Command) == 0 || request.Timeout <= 0 || request.MaxOutputBytes <= 0 {
 		return Result{}, errors.New("worker command, timeout, and output budget are required")
 	}
+	commandArguments, err := commandWithLimits(request.Command, request.Limits)
+	if err != nil {
+		return Result{}, err
+	}
 	workerCtx, cancel := context.WithTimeout(ctx, request.Timeout)
 	defer cancel()
 
-	command := exec.Command(request.Command[0], request.Command[1:]...)
+	command := exec.Command(commandArguments[0], commandArguments[1:]...)
 	command.Env = append(os.Environ(), request.Environment...)
 	command.Stdin = bytes.NewReader(request.Input)
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
@@ -70,6 +81,23 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		}
 		return result, workerCtx.Err()
 	}
+}
+
+func commandWithLimits(command []string, limits Limits) ([]string, error) {
+	if limits == (Limits{}) {
+		return append([]string(nil), command...), nil
+	}
+	if limits.CPUSeconds <= 0 || limits.MemoryBytes <= 0 {
+		return nil, errors.New("worker CPU and memory limits must both be positive")
+	}
+	memoryKiB := (limits.MemoryBytes + 1023) / 1024
+	arguments := []string{
+		"/bin/sh", "-c",
+		"cpu_seconds=$1; memory_kib=$2; shift 2; " +
+			"ulimit -t \"$cpu_seconds\"; ulimit -d \"$memory_kib\"; exec \"$@\"",
+		"umpire3-worker", strconv.Itoa(limits.CPUSeconds), strconv.FormatInt(memoryKiB, 10),
+	}
+	return append(arguments, command...), nil
 }
 
 type limitedBuffer struct {

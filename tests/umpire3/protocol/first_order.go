@@ -6,10 +6,15 @@ import (
 	"fmt"
 	"io"
 	"slices"
+	"strconv"
 	"strings"
 )
 
-const FirstOrderViewFormatVersion = "umpire3/first-order-view/v1"
+const (
+	FirstOrderViewFormatVersion     = "umpire3/first-order-view/v1"
+	MaxFirstOrderSymbolicDepth      = 1024
+	MaxFirstOrderConcreteStateLimit = 65536
+)
 
 type FirstOrderSortKind string
 
@@ -139,8 +144,10 @@ func (v FirstOrderView) Validate() error {
 	if err := v.Relation.validate(); err != nil {
 		return err
 	}
-	if v.Bounds.SymbolicDepth <= 0 || v.Bounds.ConcreteStateLimit <= 0 {
-		return errors.New("positive first-order symbolic and concrete bounds are required")
+	if v.Bounds.SymbolicDepth <= 0 || v.Bounds.SymbolicDepth > MaxFirstOrderSymbolicDepth ||
+		v.Bounds.ConcreteStateLimit <= 0 ||
+		v.Bounds.ConcreteStateLimit > MaxFirstOrderConcreteStateLimit {
+		return errors.New("bounded first-order symbolic depth and concrete state limit are required")
 	}
 
 	sorts := make(map[string]FirstOrderSort, len(v.Sorts))
@@ -172,6 +179,19 @@ func (v FirstOrderView) Validate() error {
 	}
 	if len(fields) == 0 {
 		return errors.New("first-order view requires at least one state field")
+	}
+	domainSize := 1
+	for _, field := range v.StateFields {
+		sort := sorts[field.Sort]
+		size := len(sort.Values)
+		if sort.Kind == FirstOrderSortUninterpreted {
+			size = sort.Cardinality
+		}
+		if domainSize > v.Bounds.ConcreteStateLimit/size {
+			return fmt.Errorf("first-order state domain exceeds concrete state limit %d",
+				v.Bounds.ConcreteStateLimit)
+		}
+		domainSize *= size
 	}
 
 	if err := validateFirstOrderFormula(v.Initial, fields, sorts); err != nil {
@@ -302,7 +322,7 @@ func (o FirstOrderOracle) validate(fields []FirstOrderField, sorts map[string]Fi
 				return fmt.Errorf("oracle state %d has duplicate state field %q", index, binding.Field)
 			}
 			sort := sorts[field.Sort]
-			if sort.Kind != FirstOrderSortEnum || !slices.Contains(sort.Values, binding.Value) {
+			if !firstOrderSortContains(sort, binding.Value) {
 				return fmt.Errorf("oracle state %d has unknown value %q for sort %q", index, binding.Value, field.Sort)
 			}
 			bindings[binding.Field] = binding.Value
@@ -404,13 +424,24 @@ func validateFirstOrderTerm(
 		if !known {
 			return "", fmt.Errorf("unknown first-order sort %q", term.Sort)
 		}
-		if sort.Kind != FirstOrderSortEnum || !slices.Contains(sort.Values, term.Value) {
+		if !firstOrderSortContains(sort, term.Value) {
 			return "", fmt.Errorf("unknown value %q for sort %q", term.Value, term.Sort)
 		}
 		return term.Sort, nil
 	default:
 		return "", fmt.Errorf("unknown first-order term kind %q", term.Kind)
 	}
+}
+
+func firstOrderSortContains(sort FirstOrderSort, value string) bool {
+	if sort.Kind == FirstOrderSortEnum {
+		return slices.Contains(sort.Values, value)
+	}
+	if sort.Kind != FirstOrderSortUninterpreted || !strings.HasPrefix(value, "member-") {
+		return false
+	}
+	index, err := strconv.Atoi(strings.TrimPrefix(value, "member-"))
+	return err == nil && index >= 0 && index < sort.Cardinality && value == fmt.Sprintf("member-%d", index)
 }
 
 func findFirstOrderField(fields []FirstOrderField, identifier string) (FirstOrderField, bool) {

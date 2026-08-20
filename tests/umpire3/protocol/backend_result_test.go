@@ -63,10 +63,12 @@ func TestBackendResultRejectsUnearnedConcreteCompleteness(t *testing.T) {
 		"exact": strings.Replace(validVeilConcreteResult, `"exact": false`, `"exact": true`, 1),
 		"missing collision qualification": strings.Replace(validVeilConcreteResult,
 			`["veil-concrete-fingerprint-collisions-not-ruled-out"]`, `[]`, 1),
+		"state limit exceeded": strings.Replace(validVeilConcreteResult,
+			`"exploredStates": 26`, `"exploredStates": 513`, 1),
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := DecodeBackendResult(strings.NewReader(changed), DefaultDecodeLimit)
-			require.ErrorContains(t, err, "concrete no-counterexample")
+			require.Error(t, err)
 		})
 	}
 }
