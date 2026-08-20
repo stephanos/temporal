@@ -13,6 +13,8 @@ testdata/
 !/tests/umpire2/testdata/
 !/tests/umpire2/testdata/genmodels/
 !/tests/umpire2/testdata/genmodels/**
+!/tests/umpire3/testdata/
+!/tests/umpire3/testdata/**
 
 *.out
 *.test
@@ -46,6 +48,7 @@ testdata/
 
 # Lake build output for the offline Lean model
 /model/.lake/
+/tests/umpire3/model/.lake/
 
 # direnv
 .envrc

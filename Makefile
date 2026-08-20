@@ -70,6 +70,15 @@ TEST_TAG_FLAG := -tags $(ALL_TEST_TAGS)
 TEST_TIMEOUT ?= 35m
 
 UMPIRE_GENMODELS := go run -tags test_dep ./cmd/umpire-genmodels
+UMPIRE3_ROOT := tests/umpire3
+UMPIRE3_MODEL_ROOT := $(UMPIRE3_ROOT)/model
+UMPIRE3_LEAN_VERSION := $(shell sed -e 's|leanprover/lean4:v||' $(UMPIRE3_MODEL_ROOT)/lean-toolchain)
+UMPIRE3_MANIFEST := $(UMPIRE3_ROOT)/testdata/empty-manifest.json
+UMPIRE3_MANIFEST_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-manifest -lean-version $(UMPIRE3_LEAN_VERSION)
+UMPIRE3_NEXUS_EXPERIMENT := $(UMPIRE3_ROOT)/testdata/nexus-cancellation.json
+UMPIRE3_UPDATE_EXPERIMENT := $(UMPIRE3_ROOT)/testdata/update-lifecycle.json
+UMPIRE3_EXPORT_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-export
+UMPIRE3_API_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-api
 
 # Number of retries for *-coverage targets.
 MAX_TEST_ATTEMPTS ?= 3
@@ -418,6 +427,52 @@ umpire-verify-nightly: umpire-check-genmodels
 	@$(UMPIRE_GENMODELS) -mode verify -profile nightly
 
 .PHONY: umpire-genmodels umpire-check-genmodels umpire-verify-smoke umpire-verify-nightly
+
+umpire3-gen-manifest:
+	@printf $(COLOR) "Generate Umpire3 empty manifest..."
+	@$(UMPIRE3_MANIFEST_COMMAND) > $(UMPIRE3_MANIFEST)
+
+umpire3-check-manifest:
+	@printf $(COLOR) "Check generated Umpire3 empty manifest..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_MANIFEST_COMMAND) > "$$temporary"; \
+		diff -u $(UMPIRE3_MANIFEST) "$$temporary"
+
+umpire3-gen-experiment:
+	@printf $(COLOR) "Generate Umpire3 experiments..."
+	@$(UMPIRE3_EXPORT_COMMAND) -experiment nexus > $(UMPIRE3_NEXUS_EXPERIMENT)
+	@$(UMPIRE3_EXPORT_COMMAND) -experiment update > $(UMPIRE3_UPDATE_EXPERIMENT)
+
+umpire3-check-experiment:
+	@printf $(COLOR) "Check generated Umpire3 Nexus experiment..."
+	@temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -experiment nexus > "$$temporary"; \
+		diff -u $(UMPIRE3_NEXUS_EXPERIMENT) "$$temporary"; \
+		$(UMPIRE3_EXPORT_COMMAND) -experiment update > "$$temporary"; \
+		diff -u $(UMPIRE3_UPDATE_EXPERIMENT) "$$temporary"
+
+umpire3-gen-api:
+	@printf $(COLOR) "Generate Umpire3 Nexus API model..."
+	@$(UMPIRE3_API_COMMAND) -mode generate
+
+umpire3-check-api:
+	@printf $(COLOR) "Check generated Umpire3 Nexus API model..."
+	@$(UMPIRE3_API_COMMAND) -mode check
+
+umpire3-check: umpire3-check-manifest umpire3-check-experiment umpire3-check-api
+	@printf $(COLOR) "Check Umpire3 Lean model..."
+	@$(MAKE) -C $(UMPIRE3_MODEL_ROOT) check
+	@printf $(COLOR) "Test Umpire3 Go packages..."
+	@go test -count=1 -tags test_dep ./$(UMPIRE3_ROOT)/...
+
+umpire3-integration:
+	@printf $(COLOR) "Run Umpire3 real-cluster integration..."
+	@go test -count=1 -tags test_dep,integration ./$(UMPIRE3_ROOT)/temporal \
+		-run '^TestLeanNexusExperimentRunsWithRealTemporalNexusTask$$' -timeout 10m
+
+.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-check umpire3-integration
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
