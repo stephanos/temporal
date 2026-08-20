@@ -134,9 +134,12 @@ func exchangeProcessNetwork(request gomadmodelwire.Request) (gomadmodelwire.Resp
 	if err != nil {
 		return gomadmodelwire.Response{}, err
 	}
-	responseBytes, ok := gomadsim.ProcessModelExchange(domain.Node, domain.Incarnation, encoded, gomadmodelwire.MaximumFrameBytes)
+	responseBytes, remoteErr, ok := gomadsim.ProcessModelExchange(domain.Node, domain.Incarnation, encoded, gomadmodelwire.MaximumFrameBytes)
 	if !ok {
 		return gomadmodelwire.Response{}, syscall.EIO
+	}
+	if remoteErr != "" {
+		return gomadmodelwire.Response{}, errors.New(remoteErr)
 	}
 	response, err := gomadmodelwire.DecodeResponse(responseBytes)
 	if err != nil {

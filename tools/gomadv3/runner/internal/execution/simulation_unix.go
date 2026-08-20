@@ -18,12 +18,14 @@ type simulationNodeProcess struct {
 	activate               chan struct{}
 	activated              chan struct{}
 	done                   chan struct{}
+	reaped                 chan struct{}
 	result                 Result
 	err                    error
 	terminal               []byte
 	readyOnce              sync.Once
 	activationStarted      bool
 	activationAcknowledged bool
+	hardCrashStarted       bool
 }
 
 type simulationCoordinator struct {
@@ -71,7 +73,7 @@ func (coordinator *simulationCoordinator) start(ctx context.Context, frame simul
 	}
 	nodeCtx, cancel := context.WithCancel(ctx)
 	node := &simulationNodeProcess{
-		node: frame.Node, incarnation: frame.Incarnation, cancel: cancel, hardCrash: make(chan struct{}), ready: make(chan struct{}), activate: make(chan struct{}), activated: make(chan struct{}), done: make(chan struct{}),
+		node: frame.Node, incarnation: frame.Incarnation, cancel: cancel, hardCrash: make(chan struct{}), ready: make(chan struct{}), activate: make(chan struct{}), activated: make(chan struct{}), done: make(chan struct{}), reaped: make(chan struct{}),
 	}
 	coordinator.nodes[key] = node
 	coordinator.mu.Unlock()
@@ -79,6 +81,7 @@ func (coordinator *simulationCoordinator) start(ctx context.Context, frame simul
 	request := coordinator.request
 	request.Simulation = &SimulationCapability{
 		Role: SimulationRoleNode, Bootstrap: append([]byte(nil), frame.Payload...), hardCrash: node.hardCrash,
+		reaped: node.reaped,
 		handler: func(childCtx context.Context, child simulationFrame) (simulationFrame, error) {
 			return coordinator.handleNodeFrame(childCtx, node, child)
 		},
@@ -185,11 +188,30 @@ func (coordinator *simulationCoordinator) stop(ctx context.Context, frame simula
 		return simulationFrame{}, err
 	}
 	if hard {
+		coordinator.mu.Lock()
+		if node.hardCrashStarted {
+			coordinator.mu.Unlock()
+			return simulationFrame{}, errors.New("simulation node hard crash is duplicated")
+		}
+		node.hardCrashStarted = true
 		close(node.hardCrash)
-	} else {
-		node.cancel()
+		coordinator.mu.Unlock()
+		select {
+		case <-node.reaped:
+			return simulationFrame{Node: node.node, Incarnation: node.incarnation}, nil
+		case <-node.done:
+			select {
+			case <-node.reaped:
+				return simulationFrame{Node: node.node, Incarnation: node.incarnation}, nil
+			default:
+			}
+			return simulationFrame{}, errors.Join(errors.New("simulation node ended before hard-crash containment was confirmed"), node.err)
+		case <-ctx.Done():
+			return simulationFrame{}, ctx.Err()
+		}
 	}
-	response, waitErr := coordinator.waitNode(ctx, node, hard)
+	node.cancel()
+	response, waitErr := coordinator.waitNode(ctx, node, false)
 	if waitErr == nil {
 		coordinator.removeNode(node)
 	}
@@ -201,7 +223,10 @@ func (coordinator *simulationCoordinator) wait(ctx context.Context, frame simula
 	if err != nil {
 		return simulationFrame{}, err
 	}
-	response, waitErr := coordinator.waitNode(ctx, node, false)
+	coordinator.mu.Lock()
+	crashed := node.hardCrashStarted
+	coordinator.mu.Unlock()
+	response, waitErr := coordinator.waitNode(ctx, node, crashed)
 	if waitErr == nil {
 		coordinator.removeNode(node)
 	}
@@ -220,17 +245,17 @@ func (coordinator *simulationCoordinator) waitNode(ctx context.Context, node *si
 	case <-ctx.Done():
 		return simulationFrame{}, ctx.Err()
 	}
-	if node.err != nil {
-		return simulationFrame{}, node.err
-	}
 	if !node.result.GroupGone {
-		return simulationFrame{}, errors.New("simulation node process group remains after completion")
+		return simulationFrame{}, errors.Join(errors.New("simulation node process group remains after completion"), node.err)
 	}
 	if crashed {
 		if node.result.Termination != TerminationSignal {
-			return simulationFrame{}, errors.New("simulation crash did not terminate the node with a signal")
+			return simulationFrame{}, errors.Join(errors.New("simulation crash did not terminate the node with a signal"), node.err)
 		}
 		return simulationFrame{Node: node.node, Incarnation: node.incarnation}, nil
+	}
+	if node.err != nil {
+		return simulationFrame{}, node.err
 	}
 	if node.result.ExitCode != 0 || node.result.Termination != TerminationExit {
 		return simulationFrame{}, fmt.Errorf("simulation node terminated as %s exit=%d signal=%s", node.result.Termination, node.result.ExitCode, node.result.Signal)

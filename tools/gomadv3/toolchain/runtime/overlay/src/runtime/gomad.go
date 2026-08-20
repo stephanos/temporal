@@ -654,6 +654,24 @@ func gomadSimulationSetDomain(domain uint64) uint64 {
 	return previous
 }
 
+//go:linkname gomadBlockingRead
+//go:nosplit
+func gomadBlockingRead(fd int32, destination unsafe.Pointer, bytes int32) int32 {
+	entersyscallblock()
+	count := read(fd, destination, bytes)
+	exitsyscall()
+	return count
+}
+
+//go:linkname gomadBlockingWrite
+//go:nosplit
+func gomadBlockingWrite(fd uintptr, source unsafe.Pointer, bytes int32) int32 {
+	entersyscallblock()
+	count := write1(fd, source, bytes)
+	exitsyscall()
+	return count
+}
+
 //go:linkname gomadIOConfigFrame
 func gomadIOConfigFrame() *[212]byte {
 	return &gomadConfig

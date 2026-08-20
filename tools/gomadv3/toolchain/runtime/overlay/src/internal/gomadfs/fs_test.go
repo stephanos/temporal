@@ -26,6 +26,24 @@ func TestFilesystemEnforcesPathAndFileBounds(t *testing.T) {
 	}
 }
 
+func TestSimulationFilesystemDoesNotLoadAmbientHostPaths(t *testing.T) {
+	loaded := false
+	Default.SetLoader(func(string) (LoadEntry, MountStatus, error) {
+		loaded = true
+		return LoadEntry{}, MountNotExist, nil
+	})
+	t.Cleanup(func() { Default.SetLoader(nil) })
+
+	filesystem := NewSimulation()
+	_, err := filesystem.Stat("/ambient")
+	if !errors.Is(err, syscall.ENOENT) {
+		t.Fatalf("Stat() error = %v, want ENOENT", err)
+	}
+	if loaded {
+		t.Fatal("simulation filesystem consulted the ambient host loader")
+	}
+}
+
 func TestFilesystemAccountsReleasedBytes(t *testing.T) {
 	filesystem := New()
 	file, err := filesystem.Open("/file", OpenFlags{Write: true, Create: true}, 0o600)

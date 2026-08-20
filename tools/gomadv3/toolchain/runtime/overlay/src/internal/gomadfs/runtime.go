@@ -8,6 +8,8 @@ import (
 	"sync"
 	"syscall"
 	_ "unsafe"
+
+	"internal/gomadsim"
 )
 
 type simulationFilesystemBinding struct {
@@ -29,6 +31,9 @@ func runtimeSimulationDomain() uint64
 func runtimeWallNanotime() int64
 
 func Current() *FS {
+	if gomadsim.ProcessRole() == 2 {
+		return processFilesystem
+	}
 	domain := runtimeSimulationDomain()
 	if domain == 0 {
 		return Default

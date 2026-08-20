@@ -1086,7 +1086,7 @@ func runSimulationProcessHelper() {
 	}
 	frames := []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("node-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameWait, Request: 3, Node: "node", Incarnation: 1}}
 	if os.Getenv("GOMADV3_SIMULATION_CASE") == "crash" {
-		frames = []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("crash-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameCrash, Request: 3, Node: "node", Incarnation: 1}}
+		frames = []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("crash-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameCrash, Request: 3, Node: "node", Incarnation: 1}, {Kind: simulationFrameWait, Request: 4, Node: "node", Incarnation: 1}}
 	}
 	for _, frame := range frames {
 		frame.Profile = simulationProtocol
@@ -1097,7 +1097,7 @@ func runSimulationProcessHelper() {
 		if readErr != nil || answer.Error != "" {
 			os.Exit(49)
 		}
-		if frame.Kind == simulationFrameWait && string(answer.Payload) != "node-terminal" {
+		if frame.Kind == simulationFrameWait && os.Getenv("GOMADV3_SIMULATION_CASE") != "crash" && string(answer.Payload) != "node-terminal" {
 			os.Exit(50)
 		}
 	}
