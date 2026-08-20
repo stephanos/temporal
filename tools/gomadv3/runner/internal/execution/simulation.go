@@ -12,7 +12,7 @@ import (
 
 const maximumSimulationFrameBytes = 128 << 20
 const maximumSimulationBootstrapBytes = 1 << 20
-const simulationProtocol = "gomadv3.simulation-process/v2"
+const simulationProtocol = "gomadv3.simulation-process/v3"
 
 type SimulationRole string
 
@@ -22,11 +22,15 @@ const (
 )
 
 type SimulationCapability struct {
-	Role      SimulationRole
-	Bootstrap []byte
-	handler   func(context.Context, simulationFrame) (simulationFrame, error)
-	hardCrash <-chan struct{}
-	reaped    chan struct{}
+	Role       SimulationRole
+	Bootstrap  []byte
+	handler    func(context.Context, simulationFrame) (simulationFrame, error)
+	time       func(context.Context, simulationTimeRequest) (simulationTimeResponse, error)
+	delivering func(simulationFrame)
+	responded  func(simulationFrame)
+	arrived    func(uint32) error
+	hardCrash  <-chan struct{}
+	reaped     chan struct{}
 }
 
 const simulationRoleEnvironmentName = "GOMADV3_SIMULATION_ROLE"
@@ -36,6 +40,8 @@ const simulationBootstrapFDEnvironmentName = "GOMADV3_SIMULATION_BOOTSTRAP_FD"
 const simulationControlFDEnvironmentName = "GOMADV3_SIMULATION_CONTROL_FD"
 const simulationModelRequestFDEnvironmentName = "GOMADV3_SIMULATION_MODEL_REQUEST_FD"
 const simulationModelResponseFDEnvironmentName = "GOMADV3_SIMULATION_MODEL_RESPONSE_FD"
+const simulationTimeRequestFDEnvironmentName = "GOMADV3_SIMULATION_TIME_REQUEST_FD"
+const simulationTimeResponseFDEnvironmentName = "GOMADV3_SIMULATION_TIME_RESPONSE_FD"
 
 type simulationFrameKind string
 
@@ -50,6 +56,7 @@ const (
 	simulationFrameReady     simulationFrameKind = "ready"
 	simulationFrameTerminal  simulationFrameKind = "terminal"
 	simulationFrameResponse  simulationFrameKind = "response"
+	simulationFrameArrival   simulationFrameKind = "arrival"
 )
 
 type simulationFrame struct {
@@ -58,6 +65,8 @@ type simulationFrame struct {
 	Request     uint64              `json:"request"`
 	Node        string              `json:"node,omitempty"`
 	Incarnation uint64              `json:"incarnation,omitempty"`
+	Arrivals    uint32              `json:"arrivals,omitempty"`
+	Time        int64               `json:"-"`
 	Payload     []byte              `json:"payload,omitempty"`
 	Error       string              `json:"error,omitempty"`
 }
@@ -107,6 +116,9 @@ func validateSimulationFrame(frame simulationFrame) error {
 	if frame.Request == 0 {
 		return errors.New("simulation frame request identity is required")
 	}
+	if frame.Kind == simulationFrameResponse && frame.Arrivals != 0 {
+		return errors.New("simulation response cannot acknowledge external work")
+	}
 	if len(frame.Node) > 256 {
 		return errors.New("simulation frame node identity exceeds its bound")
 	}
@@ -120,9 +132,16 @@ func validateSimulationFrame(frame simulationFrame) error {
 }
 
 func writeSimulationFrame(destination io.Writer, frame simulationFrame) error {
+	return writeSimulationFrameDelivering(destination, frame, nil)
+}
+
+func writeSimulationFrameDelivering(destination io.Writer, frame simulationFrame, delivering func()) error {
 	encoded, err := encodeSimulationFrame(frame)
 	if err != nil {
 		return err
+	}
+	if delivering != nil {
+		delivering()
 	}
 	var header [4]byte
 	binary.BigEndian.PutUint32(header[:], uint32(len(encoded)))
@@ -141,7 +160,17 @@ func readSimulationFrame(source io.Reader) (simulationFrame, error) {
 		return simulationFrame{}, err
 	}
 	size := binary.BigEndian.Uint32(header[:])
-	if size == 0 || size > maximumSimulationFrameBytes {
+	if size == 0 {
+		if _, err := io.ReadFull(source, header[:]); err != nil {
+			return simulationFrame{}, fmt.Errorf("read simulation arrival frame: %w", err)
+		}
+		arrivals := binary.BigEndian.Uint32(header[:])
+		if arrivals == 0 {
+			return simulationFrame{}, errors.New("simulation arrival frame is empty")
+		}
+		return simulationFrame{Profile: simulationProtocol, Kind: simulationFrameArrival, Arrivals: arrivals}, nil
+	}
+	if size > maximumSimulationFrameBytes {
 		return simulationFrame{}, errors.New("simulation frame size is invalid")
 	}
 	encoded := make([]byte, size)
@@ -151,7 +180,7 @@ func readSimulationFrame(source io.Reader) (simulationFrame, error) {
 	return decodeSimulationFrame(encoded)
 }
 
-func serveSimulation(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationFrame) (simulationFrame, error)) error {
+func serveSimulation(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationFrame) (simulationFrame, error), delivering func(simulationFrame), responded func(simulationFrame), arrived func(uint32) error) error {
 	if handler == nil {
 		return errors.New("simulation frame handler is unavailable")
 	}
@@ -163,6 +192,15 @@ func serveSimulation(ctx context.Context, source io.Reader, destination io.Write
 		if err != nil {
 			return fmt.Errorf("read simulation request: %w", err)
 		}
+		if request.Kind == simulationFrameArrival {
+			if arrived == nil {
+				return errors.New("simulation arrival handler is unavailable")
+			}
+			if err := arrived(request.Arrivals); err != nil {
+				return err
+			}
+			continue
+		}
 		response, handleErr := handler(ctx, request)
 		response.Profile = simulationProtocol
 		response.Kind = simulationFrameResponse
@@ -170,8 +208,15 @@ func serveSimulation(ctx context.Context, source io.Reader, destination io.Write
 		if handleErr != nil {
 			response.Error = handleErr.Error()
 		}
-		if err := writeSimulationFrame(destination, response); err != nil {
+		if err := writeSimulationFrameDelivering(destination, response, func() {
+			if delivering != nil {
+				delivering(request)
+			}
+		}); err != nil {
 			return fmt.Errorf("write simulation response: %w", err)
+		}
+		if responded != nil {
+			responded(request)
 		}
 	}
 }

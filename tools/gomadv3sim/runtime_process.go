@@ -107,7 +107,7 @@ func exchangeProcessFrame(kind processFrameKind, handle NodeHandle, payload []by
 	if processRequests.next == 0 {
 		return processFrame{}, errors.New("process simulation request identity exhausted")
 	}
-	request := processFrame{Profile: processProtocol, Kind: kind, Request: processRequests.next, Node: string(handle.Node), Incarnation: handle.Incarnation, Payload: append([]byte(nil), payload...)}
+	request := processFrame{Profile: processProtocol, Kind: kind, Request: processRequests.next, Node: string(handle.Node), Incarnation: handle.Incarnation, Arrivals: runtimeProcessTimeArrivals(), Payload: append([]byte(nil), payload...)}
 	if err := validateProcessFrame(request); err != nil {
 		return processFrame{}, err
 	}

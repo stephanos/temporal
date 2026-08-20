@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"sync"
 )
 
@@ -30,6 +31,8 @@ type simulationModelHandled struct {
 type simulationModelTransport struct {
 	request   io.WriteCloser
 	response  io.ReadCloser
+	delivered func()
+	arrived   func(simulationFrame) error
 	writeMu   sync.Mutex
 	mu        sync.Mutex
 	next      uint64
@@ -39,15 +42,15 @@ type simulationModelTransport struct {
 	err       error
 }
 
-func newSimulationModelTransport(request io.WriteCloser, response io.ReadCloser) *simulationModelTransport {
+func newSimulationModelTransport(request io.WriteCloser, response io.ReadCloser, delivered func(), arrived func(simulationFrame) error) *simulationModelTransport {
 	transport := &simulationModelTransport{
-		request: request, response: response, pending: make(map[uint64]chan simulationModelResult), abandoned: make(map[uint64]struct{}), done: make(chan struct{}),
+		request: request, response: response, delivered: delivered, arrived: arrived, pending: make(map[uint64]chan simulationModelResult), abandoned: make(map[uint64]struct{}), done: make(chan struct{}),
 	}
 	go transport.readResponses()
 	return transport
 }
 
-func serveSimulationModels(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationFrame) (simulationFrame, error)) error {
+func serveSimulationModels(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationFrame) (simulationFrame, error), delivering func(simulationFrame), responded func(simulationFrame)) error {
 	if handler == nil {
 		return errors.New("simulation model handler is unavailable")
 	}
@@ -105,8 +108,15 @@ func serveSimulationModels(ctx context.Context, source io.Reader, destination io
 			if result.err != nil {
 				response.Error = result.err.Error()
 			}
-			if err := writeSimulationModelTransportFrame(destination, response); err != nil {
+			if err := writeSimulationModelTransportFrameDelivering(destination, response, func() {
+				if delivering != nil {
+					delivering(result.request)
+				}
+			}); err != nil {
 				return fmt.Errorf("write simulation model response: %w", err)
+			}
+			if responded != nil {
+				responded(result.request)
 			}
 		case <-ctx.Done():
 			return ctx.Err()
@@ -132,12 +142,15 @@ func (transport *simulationModelTransport) exchange(ctx context.Context, frame s
 		return simulationFrame{}, errors.New("simulation model request identity exhausted")
 	}
 	frame.Request = transport.next
+	if os.Getenv("GOMADV3_DEBUG_TIME") != "" {
+		fmt.Fprintf(os.Stderr, "simulation-model send request=%d node=%s/%d arrivals=%d\n", frame.Request, frame.Node, frame.Incarnation, frame.Arrivals)
+	}
 	result := make(chan simulationModelResult, 1)
 	transport.pending[frame.Request] = result
 	transport.mu.Unlock()
 
 	transport.writeMu.Lock()
-	err := writeSimulationModelTransportFrame(transport.request, frame)
+	err := writeSimulationModelTransportFrameDelivering(transport.request, frame, transport.delivered)
 	transport.writeMu.Unlock()
 	if err != nil {
 		transport.discard(frame.Request)
@@ -177,6 +190,15 @@ func (transport *simulationModelTransport) readResponses() {
 		if frame.Kind != simulationFrameResponse {
 			transport.fail(errors.New("simulation model response kind is invalid"))
 			return
+		}
+		if os.Getenv("GOMADV3_DEBUG_TIME") != "" {
+			fmt.Fprintf(os.Stderr, "simulation-model receive request=%d node=%s/%d arrivals=%d time=%d\n", frame.Request, frame.Node, frame.Incarnation, frame.Arrivals, frame.Time)
+		}
+		if transport.arrived != nil {
+			if err := transport.arrived(frame); err != nil {
+				transport.fail(err)
+				return
+			}
 		}
 		transport.mu.Lock()
 		result := transport.pending[frame.Request]
@@ -229,12 +251,19 @@ func (transport *simulationModelTransport) close() error {
 }
 
 func writeSimulationModelTransportFrame(destination io.Writer, frame simulationFrame) error {
+	return writeSimulationModelTransportFrameDelivering(destination, frame, nil)
+}
+
+func writeSimulationModelTransportFrameDelivering(destination io.Writer, frame simulationFrame, delivering func()) error {
 	encoded, err := EncodeModelTransportFrame(ModelTransportFrame{
 		Response: frame.Kind == simulationFrameResponse, Request: frame.Request, Node: frame.Node,
-		Incarnation: frame.Incarnation, Payload: frame.Payload, Error: frame.Error,
+		Incarnation: frame.Incarnation, Arrivals: frame.Arrivals, Time: frame.Time, Payload: frame.Payload, Error: frame.Error,
 	})
 	if err != nil {
 		return err
+	}
+	if delivering != nil {
+		delivering()
 	}
 	var header [4]byte
 	binary.BigEndian.PutUint32(header[:], uint32(len(encoded)))
@@ -270,6 +299,6 @@ func readSimulationModelTransportFrame(source io.Reader) (simulationFrame, error
 	}
 	return simulationFrame{
 		Profile: simulationProtocol, Kind: kind, Request: frame.Request, Node: frame.Node,
-		Incarnation: frame.Incarnation, Payload: frame.Payload, Error: frame.Error,
+		Incarnation: frame.Incarnation, Arrivals: frame.Arrivals, Time: frame.Time, Payload: frame.Payload, Error: frame.Error,
 	}, nil
 }

@@ -5,6 +5,7 @@
 package gomadsim
 
 import (
+	"bytes"
 	"encoding/binary"
 	"strconv"
 	"sync"
@@ -36,6 +37,24 @@ func runtimeBlockingRead(int32, unsafe.Pointer, int32) int32
 
 //go:linkname runtimeBlockingWrite runtime.gomadBlockingWrite
 func runtimeBlockingWrite(uintptr, unsafe.Pointer, int32) int32
+
+//go:linkname runtimeSimulationExternalBegin runtime.gomadSimulationExternalBegin
+func runtimeSimulationExternalBegin()
+
+//go:linkname runtimeSimulationExternalEnd runtime.gomadSimulationExternalEnd
+func runtimeSimulationExternalEnd()
+
+//go:linkname runtimeSimulationExternalArrive runtime.gomadSimulationExternalArrive
+func runtimeSimulationExternalArrive()
+
+//go:linkname runtimeSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals
+func runtimeSimulationTimeTakeArrivals() uint32
+
+//go:linkname runtimeSimulationTimeCurrent runtime.gomadSimulationTimeCurrent
+func runtimeSimulationTimeCurrent() int64
+
+//go:linkname runtimeSimulationTimeObserve runtime.gomadSimulationTimeObserve
+func runtimeSimulationTimeObserve(int64) bool
 
 //go:linkname ProcessAvailable
 func ProcessAvailable() bool {
@@ -106,9 +125,10 @@ func ProcessServeModel(handler func(string, uint64, []byte) ([]byte, string)) bo
 			}
 			inFlight++
 			go func(request ModelTransportFrame) {
+				runtimeSimulationExternalArrive()
 				payload, errorText := handler(request.Node, request.Incarnation, request.Payload)
 				response, encodeErr := EncodeModelTransportFrame(ModelTransportFrame{
-					Response: true, Request: request.Request, Node: request.Node, Incarnation: request.Incarnation, Payload: payload, Error: errorText,
+					Response: true, Request: request.Request, Node: request.Node, Incarnation: request.Incarnation, Arrivals: runtimeSimulationTimeTakeArrivals(), Time: runtimeSimulationTimeCurrent(), Payload: payload, Error: errorText,
 				})
 				if encodeErr != nil {
 					response = nil
@@ -207,6 +227,10 @@ func ProcessExchange(request []byte, limit uint64) ([]byte, bool) {
 	}
 	processTransport.Lock()
 	defer processTransport.Unlock()
+	if processRequestBlocksSimulationTime(request) {
+		runtimeSimulationExternalBegin()
+		defer runtimeSimulationExternalEnd()
+	}
 	var header [4]byte
 	binary.BigEndian.PutUint32(header[:], uint32(len(request)))
 	if !processWriteFull(requestDescriptor, header[:]) || !processWriteFull(requestDescriptor, request) {
@@ -223,7 +247,39 @@ func ProcessExchange(request []byte, limit uint64) ([]byte, bool) {
 	if !processReadFull(responseDescriptor, response) {
 		return nil, false
 	}
+	runtimeSimulationExternalArrive()
+	if !writeProcessArrivals(requestDescriptor, runtimeSimulationTimeTakeArrivals()) {
+		return nil, false
+	}
 	return response, true
+}
+
+func acknowledgeProcessArrivals() bool {
+	arrivals := runtimeSimulationTimeTakeArrivals()
+	if arrivals == 0 {
+		return true
+	}
+	descriptor, ok := processDescriptor(processRequestFDEnvironmentName)
+	if !ok {
+		return false
+	}
+	processTransport.Lock()
+	written := writeProcessArrivals(descriptor, arrivals)
+	processTransport.Unlock()
+	return written
+}
+
+func writeProcessArrivals(descriptor int, arrivals uint32) bool {
+	if arrivals == 0 {
+		return true
+	}
+	var frame [8]byte
+	binary.BigEndian.PutUint32(frame[4:], arrivals)
+	return processWriteFull(descriptor, frame[:])
+}
+
+func processRequestBlocksSimulationTime(request []byte) bool {
+	return !bytes.HasPrefix(request, []byte(`{"profile":"gomadv3.simulation-process/v3","kind":"wait",`))
 }
 
 func processDescriptor(name string) (int, bool) {

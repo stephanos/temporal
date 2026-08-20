@@ -8,7 +8,8 @@ import (
 	"errors"
 )
 
-const ModelTransportHeaderBytes = 48
+const ModelTransportHeaderBytes = 56
+const ModelTransportInitialTime int64 = 946684800000000000
 
 var modelTransportMagic = [8]byte{ {{bytes .Schema.TransportMagic}} }
 
@@ -17,6 +18,8 @@ type ModelTransportFrame struct {
 	Request uint64
 	Node string
 	Incarnation uint64
+	Arrivals uint32
+	Time int64
 	Payload []byte
 	Error string
 }
@@ -34,11 +37,13 @@ func EncodeModelTransportFrame(frame ModelTransportFrame) ([]byte, error) {
 	if frame.Response {
 		encoded[8] = 1
 	}
+	binary.BigEndian.PutUint32(encoded[12:16], frame.Arrivals)
 	binary.BigEndian.PutUint64(encoded[16:24], frame.Request)
 	binary.BigEndian.PutUint64(encoded[24:32], frame.Incarnation)
 	binary.BigEndian.PutUint32(encoded[32:36], uint32(len(frame.Node)))
 	binary.BigEndian.PutUint32(encoded[36:40], uint32(len(frame.Error)))
 	binary.BigEndian.PutUint64(encoded[40:48], uint64(len(frame.Payload)))
+	binary.BigEndian.PutUint64(encoded[48:56], uint64(frame.Time))
 	offset := ModelTransportHeaderBytes
 	copy(encoded[offset:], frame.Node)
 	offset += len(frame.Node)
@@ -49,7 +54,7 @@ func EncodeModelTransportFrame(frame ModelTransportFrame) ([]byte, error) {
 }
 
 func DecodeModelTransportFrame(encoded []byte) (ModelTransportFrame, error) {
-	if len(encoded) < ModelTransportHeaderBytes || uint64(len(encoded)) > {{.Schema.Limits.FrameBytes}} || !bytes.Equal(encoded[:8], modelTransportMagic[:]) || encoded[8] > 1 || !zeroModelTransport(encoded[9:16]) {
+	if len(encoded) < ModelTransportHeaderBytes || uint64(len(encoded)) > {{.Schema.Limits.FrameBytes}} || !bytes.Equal(encoded[:8], modelTransportMagic[:]) || encoded[8] > 1 || !zeroModelTransport(encoded[9:12]) {
 		return ModelTransportFrame{}, errors.New("simulation model transport frame header is invalid")
 	}
 	nodeBytes := uint64(binary.BigEndian.Uint32(encoded[32:36]))
@@ -62,8 +67,10 @@ func DecodeModelTransportFrame(encoded []byte) (ModelTransportFrame, error) {
 	offset := uint64(ModelTransportHeaderBytes)
 	frame := ModelTransportFrame{
 		Response: encoded[8] == 1,
+		Arrivals: binary.BigEndian.Uint32(encoded[12:16]),
 		Request: binary.BigEndian.Uint64(encoded[16:24]),
 		Incarnation: binary.BigEndian.Uint64(encoded[24:32]),
+		Time: int64(binary.BigEndian.Uint64(encoded[48:56])),
 		Node: string(encoded[offset:offset+nodeBytes]),
 	}
 	offset += nodeBytes
@@ -80,7 +87,10 @@ func validateModelTransportFrame(frame ModelTransportFrame) error {
 	if frame.Request == 0 || len(frame.Node) > {{.Schema.Limits.NodeBytes}} || len(frame.Error) > {{.Schema.Limits.ErrorBytes}} || uint64(len(frame.Payload)) > {{.Schema.Limits.FrameBytes}}-ModelTransportHeaderBytes {
 		return errors.New("simulation model transport frame is invalid")
 	}
-	if !frame.Response && (frame.Node == "" || frame.Incarnation == 0 || frame.Error != "") {
+	if frame.Response && frame.Time != 0 && frame.Time < ModelTransportInitialTime {
+		return errors.New("simulation model transport response time is invalid")
+	}
+	if !frame.Response && (frame.Node == "" || frame.Incarnation == 0 || frame.Time != 0 || frame.Error != "") {
 		return errors.New("simulation model transport request identity is invalid")
 	}
 	return nil

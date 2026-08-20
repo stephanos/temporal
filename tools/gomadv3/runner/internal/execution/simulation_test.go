@@ -1,7 +1,9 @@
 package execution
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"io"
 	"os"
@@ -10,10 +12,72 @@ import (
 	"time"
 )
 
+func TestServeSimulationNotifiesAfterWritingResponse(t *testing.T) {
+	request := simulationFrame{Profile: simulationProtocol, Kind: simulationFrameWait, Request: 1, Node: "node", Incarnation: 1}
+	var source bytes.Buffer
+	if err := writeSimulationFrame(&source, request); err != nil {
+		t.Fatal(err)
+	}
+	var destination bytes.Buffer
+	responded := false
+	delivering := false
+	err := serveSimulation(context.Background(), &source, &destination, func(context.Context, simulationFrame) (simulationFrame, error) {
+		return simulationFrame{}, nil
+	}, func(actual simulationFrame) {
+		delivering = true
+		if !reflect.DeepEqual(actual, request) {
+			t.Fatalf("delivering request = %#v, want %#v", actual, request)
+		}
+		if destination.Len() != 0 {
+			t.Fatal("delivery notification followed the response write")
+		}
+	}, func(actual simulationFrame) {
+		responded = true
+		if !delivering {
+			t.Fatal("response notification preceded delivery notification")
+		}
+		if !reflect.DeepEqual(actual, request) {
+			t.Fatalf("responded request = %#v, want %#v", actual, request)
+		}
+		if destination.Len() == 0 {
+			t.Fatal("response notification preceded the response write")
+		}
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !responded {
+		t.Fatal("response notification was omitted")
+	}
+}
+
+func TestServeSimulationAcceptsArrivalAcknowledgement(t *testing.T) {
+	var source bytes.Buffer
+	var arrival [8]byte
+	binary.BigEndian.PutUint32(arrival[4:], 3)
+	if _, err := source.Write(arrival[:]); err != nil {
+		t.Fatal(err)
+	}
+	acknowledged := uint32(0)
+	err := serveSimulation(context.Background(), &source, io.Discard, func(context.Context, simulationFrame) (simulationFrame, error) {
+		t.Fatal("arrival acknowledgement reached the request handler")
+		return simulationFrame{}, nil
+	}, nil, nil, func(arrivals uint32) error {
+		acknowledged += arrivals
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if acknowledged != 3 {
+		t.Fatalf("acknowledged arrivals = %d, want 3", acknowledged)
+	}
+}
+
 func TestSimulationModelTransportCorrelatesConcurrentResponses(t *testing.T) {
 	requestRead, requestWrite := io.Pipe()
 	responseRead, responseWrite := io.Pipe()
-	transport := newSimulationModelTransport(requestWrite, responseRead)
+	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil)
 	defer func() {
 		if err := transport.close(); err != nil {
 			t.Error(err)
@@ -65,10 +129,32 @@ func TestSimulationModelTransportCorrelatesConcurrentResponses(t *testing.T) {
 	}
 }
 
+func TestSimulationModelTransportCarriesLogicalTime(t *testing.T) {
+	var encoded bytes.Buffer
+	want := simulationFrame{
+		Profile: simulationProtocol, Kind: simulationFrameResponse, Request: 7, Node: "node", Incarnation: 1,
+		Arrivals: 2, Time: simulationInitialTime + 11, Payload: []byte("response"),
+	}
+	if err := writeSimulationModelTransportFrame(&encoded, want); err != nil {
+		t.Fatal(err)
+	}
+	got, err := readSimulationModelTransportFrame(&encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("model response = %#v, want %#v", got, want)
+	}
+	want.Time = 1
+	if err := writeSimulationModelTransportFrame(io.Discard, want); err == nil {
+		t.Fatal("model response accepted an invalid logical time")
+	}
+}
+
 func TestSimulationModelTransportDiscardsLateCancelledResponse(t *testing.T) {
 	requestRead, requestWrite := io.Pipe()
 	responseRead, responseWrite := io.Pipe()
-	transport := newSimulationModelTransport(requestWrite, responseRead)
+	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil)
 	t.Cleanup(func() {
 		if err := errors.Join(transport.close(), requestRead.Close(), responseWrite.Close()); err != nil {
 			t.Error(err)
@@ -132,9 +218,9 @@ func TestServeSimulationModelsAllowsConcurrentBlockingOperations(t *testing.T) {
 				close(release)
 			}
 			return simulationFrame{Payload: []byte(request.Node)}, nil
-		})
+		}, nil, nil)
 	}()
-	transport := newSimulationModelTransport(requestWrite, responseRead)
+	transport := newSimulationModelTransport(requestWrite, responseRead, nil, nil)
 	results := make(chan string, 2)
 	for _, node := range []string{"blocked", "release"} {
 		go func(node string) {
@@ -165,6 +251,7 @@ func TestSimulationFrameRoundTrip(t *testing.T) {
 		Request:     7,
 		Node:        "history",
 		Incarnation: 2,
+		Arrivals:    3,
 		Payload:     []byte("bounded bootstrap"),
 	}
 	encoded, err := encodeSimulationFrame(request)
@@ -190,7 +277,7 @@ func TestSimulationActivationFramesAreValid(t *testing.T) {
 }
 
 func TestSimulationFrameRejectsUnknownAndOversizedInput(t *testing.T) {
-	_, err := decodeSimulationFrame([]byte(`{"profile":"gomadv3.simulation-process/v2","kind":"start","request":1,"unknown":true}`))
+	_, err := decodeSimulationFrame([]byte(`{"profile":"gomadv3.simulation-process/v3","kind":"start","request":1,"unknown":true}`))
 	if err == nil {
 		t.Fatal("unknown field was accepted")
 	}
