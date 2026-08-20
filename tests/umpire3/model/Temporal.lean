@@ -1,6 +1,7 @@
 import Temporal.Catalog
 import Temporal.Composition
 import Temporal.Coverage
+import Temporal.Feature.NexusCancellationFencing
 import Temporal.Inventory
 import Temporal.Outcome
 import Temporal.Product.Nexus
@@ -26,6 +27,7 @@ import Temporal.Experiments.UpdateLifecycle
 import Temporal.Monitors
 import Temporal.Parity
 import Temporal.Refinement.NexusTasks
+import Temporal.Refinement.NexusCancellationFencing
 import Temporal.Refinement.NexusClosure
 import Temporal.Refinement.NexusActivityLink
 import Temporal.Refinement.NexusTimeout
@@ -38,6 +40,7 @@ import Temporal.Refinement.SpeculativeTask
 import Temporal.Refinement.WorkflowProgress
 import Temporal.Refinement.UpdateTasks
 import Temporal.System.NexusTasks
+import Temporal.System.NexusCancellationFencing
 import Temporal.System.NexusClosure
 import Temporal.System.NexusActivityLink
 import Temporal.System.NexusTimeout
@@ -50,3 +53,4 @@ import Temporal.System.SpeculativeTask
 import Temporal.System.WorkflowProgress
 import Temporal.System.TaskDelivery
 import Temporal.System.UpdateTasks
+import Temporal.Targets.UpdateLifecycleBehavior

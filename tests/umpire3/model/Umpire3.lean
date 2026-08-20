@@ -1,9 +1,12 @@
+import Umpire3.Behavior
 import Umpire3.Catalog
 import Umpire3.Composition
 import Umpire3.Declaration
 import Umpire3.Executable
 import Umpire3.Experiment
 import Umpire3.Explore
+import Umpire3.Execution
+import Umpire3.ExecutableView
 import Umpire3.Fault
 import Umpire3.Manifest
 import Umpire3.Monitor
