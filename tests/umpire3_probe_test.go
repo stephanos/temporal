@@ -23,6 +23,7 @@ import (
 	"go.temporal.io/server/tests/umpire3/explore"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/regress"
 	umpire3runtime "go.temporal.io/server/tests/umpire3/runtime"
 	"go.temporal.io/server/tests/umpire3/wirecase"
 	"google.golang.org/grpc/codes"
@@ -339,7 +340,7 @@ func (s *Umpire3TestSuite) TestProbeNexusLearnedFootprint() {
 	targets := umpire3fault.FaultTargets(calls, 99, 2)
 	require.Len(t, targets, 2)
 	require.Contains(t, targets, umpire3fault.Footprint{
-		Protocol: "http", Service: "nexus", Route: "/service/operation", Risk: 8,
+		Protocol: "http", Service: "nexus", Route: "/service/operation", Occurrence: 1, Risk: 8,
 		RealizationEvidence: true,
 	})
 }
@@ -364,18 +365,46 @@ func umpire3DeclaredFootprint(t *testing.T, actionKind protocol.ActionKind) []um
 }
 
 func (s *Umpire3TestSuite) TestProbeNexusCoverageGuidedFaults() {
-	runUmpire3Behavior(s.T(), "ProbeNexusCoverageGuidedFaults", "")
-	report := runUmpire3RootCampaign(s.T(), 23, 1)
-	s.Len(report.Executions, 1)
-	s.Len(report.Dropped, 1)
-	s.Equal(campaign.DropBudget, report.Dropped[0].Reason)
+	t := s.T()
+	require.Contains(t, t.Name(), "ProbeNexusCoverageGuidedFaults")
+	campaignRun := runUmpire3LearnedFaultCampaign(t, 23, 3)
+	require.Equal(t, umpire3runtime.ClaimConforming, campaignRun.Baseline.Claim.Kind,
+		campaignRun.Baseline.Claim.Reason)
+	require.NotNil(t, campaignRun.Baseline.Footprint)
+	require.True(t, campaignRun.Baseline.Footprint.Complete)
+	require.Len(t, campaignRun.Report.Executions, 3)
+	require.NotEmpty(t, campaignRun.Report.Dropped)
+	protocols := make(map[string]struct{})
+	for _, execution := range campaignRun.Report.Executions {
+		require.NotEqual(t, umpire3runtime.ClaimViolating, execution.Result.Claim.Kind,
+			execution.Result.Claim.Reason)
+		require.Len(t, execution.Result.Faults, 1)
+		require.True(t, execution.Result.Faults[0].Realized)
+		require.True(t, execution.Result.Faults[0].CleanupComplete)
+		require.Len(t, execution.Coverage, 1)
+		require.Equal(t, campaign.CoverageFault, execution.Coverage[0].Kind)
+		protocols[strings.SplitN(execution.Coverage[0].Identifier, "/", 2)[0]] = struct{}{}
+	}
+	require.Contains(t, protocols, "grpc")
+	require.Contains(t, protocols, "http")
+	for _, dropped := range campaignRun.Report.Dropped {
+		require.Equal(t, campaign.DropBudget, dropped.Reason)
+	}
 }
 
 func (s *Umpire3TestSuite) TestProbeNexusRandomized() {
-	runUmpire3Behavior(s.T(), "ProbeNexusRandomized", "")
-	first := runUmpire3RootCampaign(s.T(), 8675309, 2)
-	second := runUmpire3RootCampaign(s.T(), 8675309, 2)
-	s.Equal(deterministicCampaignView(first), deterministicCampaignView(second))
+	t := s.T()
+	require.Contains(t, t.Name(), "ProbeNexusRandomized")
+	first := runUmpire3NexusRandomCampaign(t, 0x5eed, 6)
+	second := runUmpire3NexusRandomCampaign(t, 0x5eed, 6)
+	require.Equal(t, deterministicCampaignView(first), deterministicCampaignView(second))
+	require.Len(t, first.Executions, 6)
+	require.Len(t, first.Dropped, 11)
+	for _, execution := range first.Executions {
+		require.Equal(t, umpire3runtime.ClaimConforming, execution.Result.Claim.Kind)
+		require.Len(t, execution.Coverage, 1)
+		require.Equal(t, campaign.CoverageTransition, execution.Coverage[0].Kind)
+	}
 }
 
 type umpire3CampaignExecution struct {
@@ -405,28 +434,148 @@ func deterministicCampaignView(report campaign.Report) umpire3CampaignView {
 	return view
 }
 
-func runUmpire3RootCampaign(t *testing.T, seed int64, budget int) campaign.Report {
+type umpire3LearnedFaultCampaign struct {
+	Baseline umpire3runtime.Result
+	Targets  []umpire3fault.Footprint
+	Report   campaign.Report
+}
+
+func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire3LearnedFaultCampaign {
 	t.Helper()
-	candidates := []campaign.Candidate{
-		{Identifier: "callback", Scenario: umpire3AssuranceScenario(
-			"umpire3-campaign-callback", protocol.TargetIDIntegrationCallbackWorkflow,
-			protocol.PropertyIDCallbackResponseConsistency, protocol.EntityKindCallback,
-			protocol.ActionKindRecordCallbackResponse),
-			Coverage: []campaign.CoveragePoint{{Kind: campaign.CoverageAction, Identifier: "record-callback-response"}}},
-		{Identifier: "nexus", Scenario: umpire3AssuranceScenario(
-			"umpire3-campaign-nexus", protocol.TargetIDFeatureNexus,
-			protocol.PropertyIDNexusOperationClosure, protocol.EntityKindNexusOperation,
-			protocol.ActionKindCloseNexusOperation),
-			Coverage: []campaign.CoveragePoint{{Kind: campaign.CoverageAction, Identifier: "close-nexus-operation"}}},
+	declared := umpire3DeclaredFootprint(t, protocol.ActionKindCloseNexusOperation)
+	baselineFactory := &umpire3RequiredFootprintFactory{
+		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+	}
+	baseline := evaluateUmpire3RegressionIn(t, umpire3AssuranceScenario(
+		"umpire3-learned-fault-baseline", protocol.TargetIDFeatureNexus,
+		protocol.PropertyIDNexusOperationClosure, protocol.EntityKindNexusOperation,
+		protocol.ActionKindCloseNexusOperation), baselineFactory)
+	calls, _ := baselineFactory.learnedFootprint()
+	targets := umpire3fault.FaultTargets(calls, seed, len(calls))
+	require.GreaterOrEqual(t, len(targets), budget)
+	prioritized := umpire3fault.FaultTargets(calls, seed, budget)
+	riskFocus := make([]campaign.CoveragePoint, len(prioritized))
+	for index, target := range prioritized {
+		riskFocus[index] = umpire3FaultCoverage(target)
+	}
+	candidates := make([]campaign.Candidate, len(targets))
+	for index, target := range targets {
+		point := umpire3FaultCoverage(target)
+		candidates[index] = campaign.Candidate{
+			Identifier: point.Identifier, Scenario: umpire3FaultTargetScenario(t, target),
+			Coverage: []campaign.CoveragePoint{point}, Risk: []campaign.CoveragePoint{point},
+		}
 	}
 	report, err := campaign.Run(context.Background(), campaign.Request{
-		Candidates: candidates, Seed: seed, Workers: 2, MaxExecutions: budget,
+		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
+		CompilerLimits: umpire3CompilerLimits(), RiskFocus: riskFocus,
+		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []campaign.CoveragePoint, error) {
+			factory := &umpire3RequiredFootprintFactory{
+				umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+			}
+			result, err := umpire3runtime.Run(ctx, umpire3runtime.Request{
+				Experiment: experiment, Environment: factory,
+			})
+			if err != nil {
+				return result, nil, err
+			}
+			if result.Claim.Kind != umpire3runtime.ClaimConforming {
+				return result, nil, fmt.Errorf("faulted occurrence did not produce a conforming claim: %s", result.Claim.Reason)
+			}
+			if len(result.Faults) != 1 || !result.Faults[0].Realized || !result.Faults[0].CleanupComplete {
+				return result, nil, fmt.Errorf("faulted occurrence lacks realization or cleanup evidence")
+			}
+			fault := experiment.Faults[0]
+			return result, []campaign.CoveragePoint{{
+				Kind: campaign.CoverageFault,
+				Identifier: fmt.Sprintf("%s/%s/%s#%d", umpire3FaultProtocol(fault),
+					fault.Scope.Services[0], fault.Scope.Routes[0], fault.Occurrence.First),
+			}}, nil
+		},
+	})
+	require.NoError(t, err)
+	return umpire3LearnedFaultCampaign{Baseline: baseline, Targets: targets, Report: report}
+}
+
+func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) compiler.Scenario {
+	t.Helper()
+	require.True(t, target.RealizationEvidence)
+	require.Positive(t, target.Occurrence)
+	catalog, err := protocol.DefaultCatalog()
+	require.NoError(t, err)
+	declaration, found := catalog.Fault(string(protocol.FaultKindDrop))
+	require.True(t, found)
+	capabilities := make([]string, len(declaration.RequiredCapabilities))
+	for index, capability := range declaration.RequiredCapabilities {
+		capabilities[index] = string(capability)
+	}
+	identifier := strings.NewReplacer("/", "-", ".", "-", "_", "-").Replace(
+		fmt.Sprintf("umpire3-fault-%s-%s-%s-%d", target.Protocol, target.Service, target.Route, target.Occurrence))
+	resource := regress.Resource{Identifier: identifier + "-operation", Kind: protocol.EntityKindNexusOperation}
+	return regress.NewScenario(identifier, protocol.TargetIDFeatureNexus, []regress.Resource{resource},
+		regress.OnePath(
+			regress.During(regress.ConfiguredFault(protocol.Fault{
+				Identifier: identifier + "-drop", Kind: string(protocol.FaultKindDrop),
+				SafetyClass: declaration.SafetyClass,
+				Scope: protocol.FaultScope{
+					Resources: []string{resource.Identifier}, Services: []string{target.Service},
+					Routes: []string{target.Route}, Participants: []string{resource.Identifier}, Attempts: []int{1},
+				},
+				Occurrence:           protocol.FaultOccurrence{First: target.Occurrence, Count: 1},
+				RequiredCapabilities: capabilities,
+			}), regress.Action(identifier+"-close", protocol.ActionKindCloseNexusOperation)),
+			regress.Require(protocol.PropertyIDNexusOperationClosure),
+		))
+}
+
+func umpire3FaultCoverage(target umpire3fault.Footprint) campaign.CoveragePoint {
+	return campaign.CoveragePoint{
+		Kind:       campaign.CoverageFault,
+		Identifier: fmt.Sprintf("%s/%s/%s#%d", target.Protocol, target.Service, target.Route, target.Occurrence),
+	}
+}
+
+func umpire3FaultProtocol(fault protocol.Fault) string {
+	if len(fault.Scope.Services) != 0 && fault.Scope.Services[0] == "nexus" {
+		return "http"
+	}
+	return "grpc"
+}
+
+func runUmpire3NexusRandomCampaign(t *testing.T, seed int64, budget int) campaign.Report {
+	t.Helper()
+	values, err := explore.NexusLifecycleValues()
+	require.NoError(t, err)
+	edges := make(map[string]string, len(values))
+	candidates := make([]campaign.Candidate, len(values))
+	for index, value := range values {
+		identifier := "umpire3-random-" + strings.NewReplacer("/", "-", ".", "-").Replace(value.Key)
+		edges[identifier+"-path-001"] = value.Key
+		point := campaign.CoveragePoint{Kind: campaign.CoverageTransition, Identifier: value.Key}
+		candidates[index] = campaign.Candidate{
+			Identifier: value.Key,
+			Scenario: umpire3AssuranceScenario(identifier, protocol.TargetIDFeatureNexus,
+				protocol.PropertyIDNexusOperationClosure, protocol.EntityKindNexusOperation,
+				umpire3NexusCoverageAction(value.Text)),
+			Coverage: []campaign.CoveragePoint{point},
+		}
+	}
+	observer := newUmpire3NexusLifecycleObserver(t)
+	report, err := campaign.Run(context.Background(), campaign.Request{
+		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
 		CompilerLimits: umpire3CompilerLimits(),
 		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []campaign.CoveragePoint, error) {
-			result, err := umpire3runtime.Run(ctx, umpire3runtime.Request{
-				Experiment: experiment, Environment: newUmpire3RootEnvironment(t, false),
-			})
-			return result, []campaign.CoveragePoint{{Kind: campaign.CoverageAction, Identifier: experiment.Actions[0].Kind}}, err
+			edge, found := edges[experiment.ExperimentID]
+			if !found {
+				return umpire3runtime.Result{}, nil,
+					fmt.Errorf("generated random experiment %q has no model edge", experiment.ExperimentID)
+			}
+			if err := observer.Observe(ctx, edge); err != nil {
+				return umpire3runtime.Result{}, nil, fmt.Errorf("observe generated random edge %q: %w", edge, err)
+			}
+			return umpire3runtime.Result{Claim: umpire3runtime.Claim{
+				Kind: umpire3runtime.ClaimConforming, Property: experiment.Property.Identifier,
+			}}, []campaign.CoveragePoint{{Kind: campaign.CoverageTransition, Identifier: edge}}, nil
 		},
 	})
 	require.NoError(t, err)
