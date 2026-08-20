@@ -1,0 +1,11 @@
+name = "umpire3"
+defaultTargets = ["Umpire3", "Temporal", "Umpire3Tests"]
+
+[[lean_lib]]
+name = "Umpire3"
+
+[[lean_lib]]
+name = "Umpire3Tests"
+
+[[lean_lib]]
+name = "Temporal"
