@@ -4,14 +4,14 @@
   "formatVersion": "umpire3/release/v1",
   "experimentFormatVersion": "umpire3/v2",
   "leanVersion": "4.33.0",
-  "catalogHash": "sha256:f5755a6a3b64476d6adec515d099c3f277838583fe85eb1212c55a256f4f9b4e",
+  "catalogHash": "sha256:222e9487c3d601a5e50608d96cc895b19509f69e80626d3b941434052df658e1",
   "descriptorHash": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081",
-  "monitorSemanticHash": "sha256:059874376d80d2dd25bb4b34a90cd13fc091a49363c7ec0ec9ea1abf6e0e7b4c",
-  "compositionSemanticHash": "sha256:664fa4acdfee9b461d090f7b3a0f054384865209a08aa06fac5ed1a6d2396794",
+  "monitorSemanticHash": "sha256:7e5e3780f59156c5981e9b7cd9918dd2933a312d8e8fdac175a7a142b730217a",
+  "compositionSemanticHash": "sha256:7a756620226a0c70dc7765c1503f3e986d57e53546485fb609568953a767b523",
   "paritySemanticHash": "sha256:456c48cf5b78f7a1ba07aa6ecfb7183d3baab21cc32cceee41280b4c55537fc7",
   "experiments": {
-    "nexus-cancellation-stale-completion-v1": "sha256:8e676ca72e639504f4bc426da27bd96e79de337e2137d1e179f840026b3efb66",
-    "workflow-update-lifecycle-v1": "sha256:93d52127216d9afb34d62f043ea73a4c55fc271d2efea210aa10b03d28745cc2"
+    "nexus-cancellation-stale-completion-v1": "sha256:3125cedd48fa415b24b9f0343aa141144246483ddd208adbabe4b890cfc9dc9e",
+    "workflow-update-lifecycle-v1": "sha256:1bbae994131a8d7fd99d9b1a66bb7d276f5717324089a5a867786dfb5e83a769"
   },
   "proofManifests": [
     "nexus-tasks-refinement-v1",
@@ -26,7 +26,7 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:a47873dfd96a433d079088e7aaefcca1d372d23a98b12455958bfd3c0ec75d81",
+    "ledgerHash": "sha256:3999ed1c8fc37d34047596cc5566bd67dbfcb90f76bf469eedeef20e69d51ae6",
     "behaviorCount": 28,
     "exactCount": 23,
     "semanticEquivalentCount": 5,
