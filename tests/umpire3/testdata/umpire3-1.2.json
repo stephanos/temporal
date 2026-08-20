@@ -26,11 +26,11 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:56e7c013c6dc306b5702252d7436b392cf01cd27aea51ae5f29f5b604110aa4b",
+    "ledgerHash": "sha256:f853faae5491b0d373b93c13953d8df3d09472537876a80e409339aa21fd1361",
     "behaviorCount": 28,
-    "exactCount": 21,
+    "exactCount": 23,
     "semanticEquivalentCount": 5,
-    "partialCount": 2,
+    "partialCount": 0,
     "inventoryOnlyCount": 0
   },
   "evidence": [

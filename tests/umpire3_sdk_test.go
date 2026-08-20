@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/server/api/adminservice/v1"
 	"go.temporal.io/server/chasm"
 	chasmactivity "go.temporal.io/server/chasm/lib/activity"
@@ -33,13 +34,14 @@ import (
 	"go.temporal.io/server/tests/umpire3/protocol"
 	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
 	"go.temporal.io/server/tests/umpire3/temporal/internalhistory"
+	"google.golang.org/grpc/codes"
 )
 
 type umpire3SDKRootFactory struct {
 	t                 *testing.T
 	negativeControl   bool
 	variant           string
-	faultRealizer     *umpire3RootHTTPFaultRealizer
+	faultRealizer     *umpire3RootRPCFaultRealizer
 	footprintRecorder *umpire3fault.Recorder
 	retryableAttempt  chan struct{}
 	footprintActive   atomic.Bool
@@ -88,6 +90,39 @@ func TestUmpire3MechanismVariantQualification(t *testing.T) {
 	require.ErrorContains(t, err, "variant mismatch")
 }
 
+func TestUmpire3RootFaultRealizerMatchesExactLearnedOccurrence(t *testing.T) {
+	t.Parallel()
+
+	realizer := &umpire3RootRPCFaultRealizer{experimentID: "learned-occurrence", namespace: "namespace"}
+	handle, err := realizer.Install(t.Context(), umpire3fault.Term{
+		Kind: protocol.FaultKindDrop,
+		Scope: umpire3fault.Scope{
+			Namespaces: []string{"namespace"}, Services: []string{"history"}, Routes: []string{"RecordNexusTaskStarted"},
+		},
+		Occurrence: umpire3fault.Occurrence{First: 2, Count: 1},
+		Interval:   umpire3fault.Interval{Start: 1, Stop: 2},
+	})
+	require.NoError(t, err)
+	require.NoError(t, realizer.Activate(t.Context(), handle))
+
+	matched, err := realizer.interceptCall(t.Context(), "grpc", "matching", "RecordNexusTaskStarted")
+	require.NoError(t, err)
+	require.False(t, matched)
+	matched, err = realizer.interceptCall(t.Context(), "grpc", "history", "RecordNexusTaskStarted")
+	require.NoError(t, err)
+	require.False(t, matched)
+	matched, err = realizer.interceptCall(t.Context(), "grpc", "history", "RecordNexusTaskStarted")
+	require.True(t, matched)
+	require.Equal(t, codes.Unavailable, serviceerror.ToStatus(err).Code())
+	matched, err = realizer.interceptCall(t.Context(), "grpc", "history", "RecordNexusTaskStarted")
+	require.NoError(t, err)
+	require.False(t, matched)
+
+	evidence, err := realizer.RealizationEvidence(t.Context(), handle)
+	require.NoError(t, err)
+	require.Contains(t, evidence.Reference, "/fault/drop/1")
+}
+
 func (f *umpire3SDKRootFactory) Capabilities() []string {
 	catalog, err := protocol.DefaultCatalog()
 	if err != nil {
@@ -115,7 +150,7 @@ func (f *umpire3SDKRootFactory) Prepare(ctx context.Context, experiment protocol
 	var nexusActivityLinks *umpire3NexusActivityLinkDriver
 	var nexusDriver participant.NexusDriver
 	nexusEndpoint := ""
-	f.faultRealizer = &umpire3RootHTTPFaultRealizer{experimentID: experiment.ExperimentID}
+	f.faultRealizer = &umpire3RootRPCFaultRealizer{experimentID: experiment.ExperimentID}
 	f.footprintRecorder = umpire3fault.NewRecorder()
 	f.retryableAttempt = make(chan struct{}, 1)
 	needsNexus := participantProgramHas(program, participant.CommandNexus) ||
@@ -179,9 +214,6 @@ func (f *umpire3SDKRootFactory) Prepare(ctx context.Context, experiment protocol
 						return nil, nexus.NewHandlerErrorf(
 							nexus.HandlerErrorTypeUnavailable, "Umpire3 injected retryable operation failure")
 					}
-					if err := f.faultRealizer.intercept(requestCtx); err != nil {
-						return nil, err
-					}
 					if operation.SemanticAction == "timeout-nexus-operation" {
 						return &nexus.HandlerStartOperationResultAsync{OperationToken: "umpire3-timeout"}, nil
 					}
@@ -194,7 +226,7 @@ func (f *umpire3SDKRootFactory) Prepare(ctx context.Context, experiment protocol
 					_ string,
 					_ nexus.CancelOperationOptions,
 				) error {
-					return f.faultRealizer.intercept(requestCtx)
+					return nil
 				},
 			})
 		}
@@ -266,7 +298,7 @@ func (f *umpire3SDKRootFactory) registerGRPCFootprint(env *testcore.TestEnv, exp
 	namespaceID := env.NamespaceID().String()
 	namespaceName := env.Namespace().String()
 	cleanup := generator.RegisterCallback(func(
-		_ context.Context,
+		callCtx context.Context,
 		fullMethod string,
 		request any,
 		response any,
@@ -301,7 +333,8 @@ func (f *umpire3SDKRootFactory) registerGRPCFootprint(env *testcore.TestEnv, exp
 			f.footprintErr = errors.Join(f.footprintErr, err)
 			f.footprintErrMu.Unlock()
 		}
-		return false, nil, nil
+		matched, err := f.faultRealizer.interceptCall(callCtx, protocolName, service, route)
+		return matched, nil, err
 	})
 	f.t.Cleanup(cleanup)
 }
@@ -346,7 +379,7 @@ func umpire3CallIdentity(fullMethod string) (string, string, string) {
 
 type umpire3RootSession struct {
 	environment.Session
-	faultRealizer      *umpire3RootHTTPFaultRealizer
+	faultRealizer      *umpire3RootRPCFaultRealizer
 	nexusEnv           *NexusTestEnv
 	variant            string
 	variantChecked     bool
@@ -506,7 +539,7 @@ func umpire3MechanismVariantMatches(variant string, inHSM, inCHASM bool) (bool, 
 	return true, nil
 }
 
-type umpire3RootHTTPFaultRealizer struct {
+type umpire3RootRPCFaultRealizer struct {
 	mu sync.Mutex
 
 	experimentID string
@@ -520,26 +553,26 @@ type umpire3RootHTTPFaultRealizer struct {
 	firedCh      chan struct{}
 }
 
-func (r *umpire3RootHTTPFaultRealizer) Install(_ context.Context, term umpire3fault.Term) (string, error) {
+func (r *umpire3RootRPCFaultRealizer) Install(_ context.Context, term umpire3fault.Term) (string, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.installed {
-		return "", errors.New("root HTTP fault is already installed")
+		return "", errors.New("root RPC fault is already installed")
 	}
 	if term.Kind != protocol.FaultKindDrop && term.Kind != protocol.FaultKindHoldRelease {
-		return "", fmt.Errorf("root HTTP fault realizer does not support %q", term.Kind)
+		return "", fmt.Errorf("root RPC fault realizer does not support %q", term.Kind)
 	}
 	r.term = term
-	r.handle = "root-http-fault/" + r.experimentID
+	r.handle = "root-rpc-fault/" + r.experimentID
 	r.installed = true
 	return r.handle, nil
 }
 
-func (r *umpire3RootHTTPFaultRealizer) Activate(_ context.Context, handle string) error {
+func (r *umpire3RootRPCFaultRealizer) Activate(_ context.Context, handle string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if !r.installed || r.handle != handle || r.active {
-		return errors.New("root HTTP fault is not activatable")
+		return errors.New("root RPC fault is not activatable")
 	}
 	r.active = true
 	r.requests = 0
@@ -547,35 +580,35 @@ func (r *umpire3RootHTTPFaultRealizer) Activate(_ context.Context, handle string
 	return nil
 }
 
-func (r *umpire3RootHTTPFaultRealizer) Release(_ context.Context, handle string) error {
+func (r *umpire3RootRPCFaultRealizer) Release(_ context.Context, handle string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if !r.installed || r.handle != handle {
-		return errors.New("unknown root HTTP fault handle")
+		return errors.New("unknown root RPC fault handle")
 	}
 	r.active = false
 	return nil
 }
 
-func (r *umpire3RootHTTPFaultRealizer) Cleanup(_ context.Context, handle string) error {
+func (r *umpire3RootRPCFaultRealizer) Cleanup(_ context.Context, handle string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if !r.installed || r.handle != handle {
-		return errors.New("unknown root HTTP fault handle")
+		return errors.New("unknown root RPC fault handle")
 	}
 	r.active = false
 	r.installed = false
 	return nil
 }
 
-func (r *umpire3RootHTTPFaultRealizer) RealizationEvidence(
+func (r *umpire3RootRPCFaultRealizer) RealizationEvidence(
 	_ context.Context,
 	handle string,
 ) (umpire3fault.RealizationEvidence, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if !r.installed || r.handle != handle || r.fired == 0 {
-		return umpire3fault.RealizationEvidence{}, errors.New("root HTTP fault did not fire")
+		return umpire3fault.RealizationEvidence{}, errors.New("root RPC fault did not fire")
 	}
 	return umpire3fault.RealizationEvidence{
 		SourceIdentity: "umpire3-root-nexus-handler",
@@ -584,18 +617,24 @@ func (r *umpire3RootHTTPFaultRealizer) RealizationEvidence(
 	}, nil
 }
 
-func (r *umpire3RootHTTPFaultRealizer) intercept(ctx context.Context) error {
+func (r *umpire3RootRPCFaultRealizer) interceptCall(
+	ctx context.Context,
+	protocolName string,
+	service string,
+	route string,
+) (bool, error) {
 	r.mu.Lock()
-	if !r.active {
+	if !r.active || !slices.Contains(r.term.Scope.Routes, route) ||
+		(len(r.term.Scope.Services) != 0 && !slices.Contains(r.term.Scope.Services, service)) {
 		r.mu.Unlock()
-		return nil
+		return false, nil
 	}
 	r.requests++
 	first := r.term.Occurrence.First
 	last := first + r.term.Occurrence.Count
 	if r.requests < first || r.requests >= last {
 		r.mu.Unlock()
-		return nil
+		return false, nil
 	}
 	r.fired++
 	if r.fired == 1 {
@@ -606,22 +645,23 @@ func (r *umpire3RootHTTPFaultRealizer) intercept(ctx context.Context) error {
 
 	switch kind {
 	case protocol.FaultKindDrop:
-		return nexus.NewHandlerErrorf(nexus.HandlerErrorTypeUnavailable, "umpire3 injected one retryable HTTP drop")
+		return true, serviceerror.NewUnavailable(
+			fmt.Sprintf("umpire3 injected retryable %s drop of %s/%s", protocolName, service, route))
 	case protocol.FaultKindHoldRelease:
 		timer := time.NewTimer(50 * time.Millisecond)
 		defer timer.Stop()
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return true, ctx.Err()
 		case <-timer.C:
-			return nil
+			return false, nil
 		}
 	default:
-		return fmt.Errorf("unsupported active root HTTP fault %q", kind)
+		return true, fmt.Errorf("unsupported active root RPC fault %q", kind)
 	}
 }
 
-func (r *umpire3RootHTTPFaultRealizer) waitForFire(ctx context.Context) error {
+func (r *umpire3RootRPCFaultRealizer) waitForFire(ctx context.Context) error {
 	r.mu.Lock()
 	if r.fired != 0 {
 		r.mu.Unlock()
@@ -633,7 +673,7 @@ func (r *umpire3RootHTTPFaultRealizer) waitForFire(ctx context.Context) error {
 	}
 	if !r.active || r.firedCh == nil {
 		r.mu.Unlock()
-		return errors.New("root HTTP fault is not active")
+		return errors.New("root RPC fault is not active")
 	}
 	firedCh := r.firedCh
 	r.mu.Unlock()

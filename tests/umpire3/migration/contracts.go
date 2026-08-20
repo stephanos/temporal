@@ -221,12 +221,11 @@ func contract(
 
 func behaviorFidelity(behavior string) protocol.Fidelity {
 	switch behavior {
-	case "ProbeNexusCoverageGuidedFaults", "ProbeNexusRandomized":
-		return protocol.FidelityPartial
 	case "PlanAndDriveKitchenSinkNexusOperation", "PlanAndDriveKitchenSinkWorkflow",
 		"PlanAndDriveNexusOperationCHASM", "PlanAndDriveWorkflowToCompletion", "ProbeNexusLearnedFootprint":
 		return protocol.FidelitySemanticEquivalent
-	case "ProbeNexusDegraded", "ProbeNexusExploration", "ProbeNexusFaultAction", "ProbeNexusFlagged", "ProbeNexusResilience",
+	case "ProbeNexusCoverageGuidedFaults", "ProbeNexusDegraded", "ProbeNexusExploration", "ProbeNexusFaultAction",
+		"ProbeNexusFlagged", "ProbeNexusRandomized", "ProbeNexusResilience",
 		"ProbeNexusGeneratedCompletion", "ProbeNexusHTTPFaultSeam",
 		"ProbeNexusReflectedDurationVariant", "ProbeNexusReflectedVariant", "ProbeNexusRejectedStart",
 		"ProbeWorkflowContinueAsNew", "ProbeWorkflowContinueAsNewGenerated", "ProbeWorkflowGenerated",

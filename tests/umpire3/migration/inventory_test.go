@@ -57,22 +57,14 @@ func TestCheckedLedgerClassifiesCurrentBehaviorFidelity(t *testing.T) {
 	}
 	require.NoError(t, json.Unmarshal(encoded, &raw))
 	require.Equal(t, "umpire3/migration-ledger/v3", raw.FormatVersion)
-	partial := map[string]struct{}{
-		"ProbeNexusCoverageGuidedFaults": {},
-		"ProbeNexusRandomized":           {},
-	}
 	counts := make(map[string]int)
 	for _, entry := range raw.Entries {
 		require.Equal(t, "local-integration", entry.EvidenceLevel, entry.Behavior)
-		if _, exists := partial[entry.Behavior]; exists {
-			require.Equal(t, "partial", entry.Fidelity, entry.Behavior)
-		} else {
-			require.Contains(t, []string{"exact", "semantic-equivalent"}, entry.Fidelity, entry.Behavior)
-		}
+		require.Contains(t, []string{"exact", "semantic-equivalent"}, entry.Fidelity, entry.Behavior)
 		counts[entry.Fidelity]++
 	}
-	require.Equal(t, 2, counts["partial"])
-	require.Equal(t, 21, counts["exact"])
+	require.Zero(t, counts["partial"])
+	require.Equal(t, 23, counts["exact"])
 	require.Equal(t, 5, counts["semantic-equivalent"])
 }
 

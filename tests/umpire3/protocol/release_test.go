@@ -106,6 +106,8 @@ func TestQualifiedReleaseRejectsPartialMigrationFidelity(t *testing.T) {
 	for index := range release.Evidence {
 		release.Evidence[index].Status = "passed"
 	}
+	release.Migration.ExactCount--
+	release.Migration.PartialCount++
 	release.ExternalQualifications = nil
 	require.ErrorContains(t, release.Validate(), "migration behaviors remain partial")
 }

@@ -49,11 +49,16 @@ func TestRecorderSelectsOnlyInternalFaultTargetsAndReconcilesDrift(t *testing.T)
 		Protocol: "http", Service: "nexus", Route: "/service/operation",
 		Direction: DirectionOutbound, Role: CallRoleInternal, Namespace: "namespace", Participant: "history", Risk: 8,
 	}))
+	require.NoError(t, recorder.Record(Call{
+		Protocol: "http", Service: "nexus", Route: "/service/operation",
+		Direction: DirectionOutbound, Role: CallRoleInternal, Namespace: "namespace", Participant: "history", Risk: 8,
+	}))
 
-	targets := FaultTargets(recorder.Snapshot(), 99, 2)
+	targets := FaultTargets(recorder.Snapshot(), 99, 3)
 	require.Equal(t, []Footprint{
-		{Protocol: "http", Service: "nexus", Route: "/service/operation", Risk: 8, RealizationEvidence: true},
-		{Protocol: "grpc", Service: "matching", Route: "DispatchNexusTask", Risk: 4, RealizationEvidence: true},
+		{Protocol: "http", Service: "nexus", Route: "/service/operation", Occurrence: 1, Risk: 8, RealizationEvidence: true},
+		{Protocol: "http", Service: "nexus", Route: "/service/operation", Occurrence: 2, Risk: 8, RealizationEvidence: true},
+		{Protocol: "grpc", Service: "matching", Route: "DispatchNexusTask", Occurrence: 1, Risk: 4, RealizationEvidence: true},
 	}, targets)
 	require.NotContains(t, targets, Footprint{
 		Protocol: "grpc", Service: "frontend", Route: "StartNexusOperationExecution",
