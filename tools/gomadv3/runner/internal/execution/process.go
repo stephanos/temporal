@@ -85,21 +85,22 @@ type ChoiceCapability struct {
 }
 
 type Result struct {
-	Captured        bool
-	Termination     Termination
-	ExitCode        int
-	Signal          string
-	WatchdogTimeout bool
-	Cancelled       bool
-	Stdout          Output
-	Stderr          Output
-	PID             int
-	PGID            int
-	GroupGone       bool
-	WorldRecord     []byte
-	IOTranscript    IOTranscript
-	IOROMounts      romount.Snapshot
-	ChoiceTrace     ChoiceTrace
+	Captured          bool
+	Termination       Termination
+	ExitCode          int
+	Signal            string
+	WatchdogTimeout   bool
+	Cancelled         bool
+	Stdout            Output
+	Stderr            Output
+	PID               int
+	PGID              int
+	GroupGone         bool
+	WorldRecord       []byte
+	IOTranscript      IOTranscript
+	IOROMounts        romount.Snapshot
+	ChoiceTrace       ChoiceTrace
+	SimulationRecords [][]byte
 }
 
 type IOTranscript = romount.Transcript
@@ -162,6 +163,16 @@ func validateSpec(request Spec) error {
 		}
 		if len(simulation.Bootstrap) > maximumSimulationBootstrapBytes {
 			return errors.New("simulation node bootstrap data exceeds its bound")
+		}
+		if simulation.Role == SimulationRoleNode && (len(simulation.ExplorationPlan) != 0 || simulation.ExplorationRecordLimit != 0 || simulation.ExplorationRecordCount != 0) {
+			return errors.New("simulation node cannot own exploration control")
+		}
+		if len(simulation.ExplorationPlan) == 0 {
+			if simulation.ExplorationRecordLimit != 0 || simulation.ExplorationRecordCount != 0 {
+				return errors.New("simulation exploration limits require a plan")
+			}
+		} else if len(simulation.ExplorationPlan) > maximumSimulationExplorationPlanBytes || simulation.ExplorationRecordLimit == 0 || simulation.ExplorationRecordLimit > maximumSimulationExplorationRecordBytes || simulation.ExplorationRecordCount == 0 || simulation.ExplorationRecordCount > maximumSimulationExplorationRecords {
+			return errors.New("simulation exploration plan or limits are invalid")
 		}
 	}
 	if choiceCapability := request.Choice; choiceCapability != nil {

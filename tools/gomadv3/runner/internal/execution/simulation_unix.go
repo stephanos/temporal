@@ -40,14 +40,19 @@ const (
 )
 
 type simulationCoordinator struct {
-	mu          sync.Mutex
-	request     Spec
-	nodes       map[string]*simulationNodeProcess
-	model       *simulationModelTransport
-	time        *simulationTimeArbiter
-	coordinator *simulationTimeParticipant
-	responses   map[uint64]simulationResponseBarrier
-	closing     bool
+	mu                     sync.Mutex
+	request                Spec
+	nodes                  map[string]*simulationNodeProcess
+	model                  *simulationModelTransport
+	time                   *simulationTimeArbiter
+	coordinator            *simulationTimeParticipant
+	responses              map[uint64]simulationResponseBarrier
+	explorationPlan        []byte
+	explorationRecords     [][]byte
+	explorationRecordBytes uint64
+	explorationRecordLimit uint64
+	explorationRecordCount uint64
+	closing                bool
 }
 
 func newSimulationCoordinator(request Spec) (*simulationCoordinator, error) {
@@ -57,9 +62,17 @@ func newSimulationCoordinator(request Spec) (*simulationCoordinator, error) {
 		return nil, err
 	}
 	timeArbiter.activate(participant)
+	var explorationPlan []byte
+	var explorationRecordLimit, explorationRecordCount uint64
+	if request.Simulation != nil {
+		explorationPlan = append([]byte(nil), request.Simulation.ExplorationPlan...)
+		explorationRecordLimit = request.Simulation.ExplorationRecordLimit
+		explorationRecordCount = request.Simulation.ExplorationRecordCount
+	}
 	return &simulationCoordinator{
 		request: request, nodes: make(map[string]*simulationNodeProcess), time: timeArbiter, coordinator: participant,
-		responses: make(map[uint64]simulationResponseBarrier),
+		responses: make(map[uint64]simulationResponseBarrier), explorationPlan: explorationPlan,
+		explorationRecordLimit: explorationRecordLimit, explorationRecordCount: explorationRecordCount,
 	}, nil
 }
 
@@ -81,6 +94,10 @@ func (coordinator *simulationCoordinator) handle(ctx context.Context, frame simu
 		}
 	}
 	switch frame.Kind {
+	case simulationFrameExplorationPlan:
+		return coordinator.explorationPlanResponse(frame)
+	case simulationFrameExplorationRecord:
+		return coordinator.retainExplorationRecord(frame)
 	case simulationFrameStart:
 		return coordinator.start(ctx, frame)
 	case simulationFrameActivate:
@@ -94,6 +111,41 @@ func (coordinator *simulationCoordinator) handle(ctx context.Context, frame simu
 	default:
 		return simulationFrame{}, fmt.Errorf("simulation coordinator cannot handle %q", frame.Kind)
 	}
+}
+
+func (coordinator *simulationCoordinator) explorationPlanResponse(frame simulationFrame) (simulationFrame, error) {
+	if frame.Node != "" || frame.Incarnation != 0 || len(frame.Payload) != 0 {
+		return simulationFrame{}, errors.New("simulation exploration plan request is invalid")
+	}
+	return simulationFrame{Payload: append([]byte(nil), coordinator.explorationPlan...)}, nil
+}
+
+func (coordinator *simulationCoordinator) retainExplorationRecord(frame simulationFrame) (simulationFrame, error) {
+	if frame.Node != "" || frame.Incarnation != 0 || len(frame.Payload) == 0 || len(coordinator.explorationPlan) == 0 {
+		return simulationFrame{}, errors.New("simulation exploration record is invalid or disabled")
+	}
+	coordinator.mu.Lock()
+	defer coordinator.mu.Unlock()
+	if uint64(len(coordinator.explorationRecords)) >= coordinator.explorationRecordCount {
+		return simulationFrame{}, errors.New("simulation exploration record count exceeded")
+	}
+	required := coordinator.explorationRecordBytes + uint64(len(frame.Payload))
+	if required < coordinator.explorationRecordBytes || required > coordinator.explorationRecordLimit {
+		return simulationFrame{}, errors.New("simulation exploration record bytes exceeded")
+	}
+	coordinator.explorationRecords = append(coordinator.explorationRecords, append([]byte(nil), frame.Payload...))
+	coordinator.explorationRecordBytes = required
+	return simulationFrame{}, nil
+}
+
+func (coordinator *simulationCoordinator) retainedExplorationRecords() [][]byte {
+	coordinator.mu.Lock()
+	defer coordinator.mu.Unlock()
+	records := make([][]byte, len(coordinator.explorationRecords))
+	for index := range records {
+		records[index] = append([]byte(nil), coordinator.explorationRecords[index]...)
+	}
+	return records
 }
 
 func (coordinator *simulationCoordinator) beginNodeResponseBarrier(request uint64, arrivals uint32, node *simulationNodeProcess) error {
