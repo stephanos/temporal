@@ -380,13 +380,14 @@ func (r *SDKRunner) qualifyResult(operation Operation, result Result) (Result, e
 		result.RunID = r.run.GetRunID()
 	}
 	if result.Reference == "" {
-		if result.Source == "temporal-sdk-speculative-update" {
+		switch result.Source {
+		case "temporal-sdk-speculative-update":
 			result.Reference = result.WorkflowID + "/" + result.RunID +
 				"/speculative-update/" + operation.CommandID
-		} else if result.Source == "temporal-sdk-workflow-progress" {
+		case "temporal-sdk-workflow-progress":
 			result.Reference = result.WorkflowID + "/" + result.RunID +
 				"/workflow-progress/" + operation.CommandID
-		} else {
+		default:
 			result.Reference = result.WorkflowID + "/" + result.RunID + "/" + operation.CommandID
 		}
 	}

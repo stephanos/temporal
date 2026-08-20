@@ -1,6 +1,6 @@
 # Operating Umpire3
 
-Choose the least-authoritative eligible profile. Local and CI profiles may bind in-process adapters;
+Choose the least-authoritative eligible Deployment profile. Local and CI profiles may bind in-process Environment adapters;
 hard-budget and canary profiles require a killable worker command. Remote configuration requires an
 HTTPS origin, build/configuration attestation, unique namespace and task queue, explicit capability
 intersection, and separately supplied authentication. Secrets are excluded from profile values and
@@ -22,11 +22,11 @@ go run -tags test_dep ./tests/umpire3/cmd/umpire3 run \
 
 Supply Nexus endpoint, service, and operation together or omit all three. Supply authentication only
 through `UMPIRE3_TEMPORAL_API_KEY`. A replay uses the same connection flags and obtains semantic
-source, seed, bounds, baseline claim, and expected capabilities from its bundle. Profile or
+source, seed, bounds, baseline claim, and expected capabilities from its Replay bundle. Deployment profile or
 capability drift is reported as realization drift.
 
-The local and remote SDK runner currently advertises no fault authority. An experiment declaring a
-fault therefore fails closed before actions unless its environment supplies a scoped `fault.Realizer`
+The local and remote Temporal Environment adapter currently advertises no fault authority. An Experiment declaring a
+fault therefore fails closed before actions unless its Environment supplies a scoped `fault.Realizer`
 and positive occurrence evidence. The root Nexus harness has such a local realizer; the production
 canary worker deliberately refuses faulted experiments until a deployment-owned realizer is wired
 through its approval policy.

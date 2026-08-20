@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	workflowservice "go.temporal.io/api/workflowservice/v1"
-	historyservice "go.temporal.io/server/api/historyservice/v1"
 	"go.temporal.io/server/common/log"
 	umpirefw "go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/tests/umpire1/fact"
@@ -16,9 +14,9 @@ import (
 
 func startedWorkflowIn(namespaceID, workflowID string) umpirefw.Fact {
 	return &fact.WorkflowStarted{
-		Request: &historyservice.StartWorkflowExecutionRequest{
+		Request: &v1.StartWorkflowExecutionRequest{
 			NamespaceId: namespaceID,
-			StartRequest: &workflowservice.StartWorkflowExecutionRequest{
+			StartRequest: &v1.StartWorkflowExecutionRequest{
 				WorkflowId: workflowID,
 			},
 		},
