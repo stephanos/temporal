@@ -13,7 +13,7 @@ import (
 )
 
 const ManifestSchema = "gomadv3.simulation-parity/v1"
-const HarnessSpecSchema = "gomadv3.simulation-spec/v1"
+const HarnessSpecSchema = "gomadv3.simulation-spec/v5"
 const MaximumManifestBytes = 1 << 20
 
 const (
@@ -32,8 +32,9 @@ const (
 )
 
 const (
-	StatusPlanned   Status = "planned"
-	StatusPrototype Status = "prototype"
+	StatusImplemented Status = "implemented"
+	StatusPlanned     Status = "planned"
+	StatusPrototype   Status = "prototype"
 )
 
 const (
@@ -44,13 +45,30 @@ const (
 )
 
 const (
-	MaximumNodes               uint64 = 64
-	MaximumDirectionalLinks    uint64 = 4096
-	MaximumVolumes             uint64 = 64
-	MaximumScenarioActions     uint64 = 4096
-	MaximumBootConfigBytes     uint64 = 1 << 20
-	MaximumVolumeCapacityBytes uint64 = 1 << 30
-	MaximumObservationBytes    uint64 = 64 << 20
+	MaximumNodes                 uint64 = 64
+	MaximumDirectionalLinks      uint64 = 4096
+	MaximumVolumes               uint64 = 64
+	MaximumScenarioActions       uint64 = 4096
+	MaximumScenarioDecisions     uint64 = 4096
+	MaximumFaultActions          uint64 = 4096
+	MaximumHistoryOperations     uint64 = 1 << 16
+	MaximumObservations          uint64 = 1 << 16
+	MaximumOracleResults         uint64 = 4096
+	MaximumScenarioEvidenceBytes uint64 = 64 << 20
+	MaximumBootConfigBytes       uint64 = 1 << 20
+	MaximumVolumeCapacityBytes   uint64 = 1 << 30
+	MaximumObservationBytes      uint64 = 64 << 20
+	MaximumNetworkListeners      uint64 = 4096
+	MaximumNetworkConnections    uint64 = 65536
+	MaximumNetworkDeliveries     uint64 = 65536
+	MaximumNetworkBytes          uint64 = 1 << 30
+	MaximumNetworkTransitions    uint64 = 1 << 20
+	MaximumVolumeOperations      uint64 = 1 << 20
+	MaximumVolumeTransitions     uint64 = 1 << 20
+	MaximumCrashStates           uint64 = 1 << 16
+	MaximumCrashDepth            uint64 = 256
+	MaximumCrashBytes            uint64 = 128 << 20
+	MaximumCrashWallNanos        uint64 = 60_000_000_000
 )
 
 const (
@@ -84,13 +102,30 @@ type Manifest struct {
 }
 
 type Limits struct {
-	Nodes               uint64 `json:"nodes"`
-	DirectionalLinks    uint64 `json:"directional_links"`
-	Volumes             uint64 `json:"volumes"`
-	ScenarioActions     uint64 `json:"scenario_actions"`
-	BootConfigBytes     uint64 `json:"boot_config_bytes"`
-	VolumeCapacityBytes uint64 `json:"volume_capacity_bytes"`
-	ObservationBytes    uint64 `json:"observation_bytes"`
+	Nodes                 uint64 `json:"nodes"`
+	DirectionalLinks      uint64 `json:"directional_links"`
+	Volumes               uint64 `json:"volumes"`
+	ScenarioActions       uint64 `json:"scenario_actions"`
+	ScenarioDecisions     uint64 `json:"scenario_decisions"`
+	FaultActions          uint64 `json:"fault_actions"`
+	HistoryOperations     uint64 `json:"history_operations"`
+	Observations          uint64 `json:"observations"`
+	OracleResults         uint64 `json:"oracle_results"`
+	ScenarioEvidenceBytes uint64 `json:"scenario_evidence_bytes"`
+	BootConfigBytes       uint64 `json:"boot_config_bytes"`
+	VolumeCapacityBytes   uint64 `json:"volume_capacity_bytes"`
+	ObservationBytes      uint64 `json:"observation_bytes"`
+	NetworkListeners      uint64 `json:"network_listeners"`
+	NetworkConnections    uint64 `json:"network_connections"`
+	NetworkDeliveries     uint64 `json:"network_deliveries"`
+	NetworkBytes          uint64 `json:"network_bytes"`
+	NetworkTransitions    uint64 `json:"network_transitions"`
+	VolumeOperations      uint64 `json:"volume_operations"`
+	VolumeTransitions     uint64 `json:"volume_transitions"`
+	CrashStates           uint64 `json:"crash_states"`
+	CrashDepth            uint64 `json:"crash_depth"`
+	CrashBytes            uint64 `json:"crash_bytes"`
+	CrashWallNanos        uint64 `json:"crash_wall_nanos"`
 }
 
 type Case struct {
@@ -154,13 +189,30 @@ func (manifest Manifest) Validate() error {
 		return fmt.Errorf("simulation harness schema = %q, want %q", manifest.HarnessSchema, HarnessSpecSchema)
 	}
 	wantLimits := Limits{
-		Nodes:               MaximumNodes,
-		DirectionalLinks:    MaximumDirectionalLinks,
-		Volumes:             MaximumVolumes,
-		ScenarioActions:     MaximumScenarioActions,
-		BootConfigBytes:     MaximumBootConfigBytes,
-		VolumeCapacityBytes: MaximumVolumeCapacityBytes,
-		ObservationBytes:    MaximumObservationBytes,
+		Nodes:                 MaximumNodes,
+		DirectionalLinks:      MaximumDirectionalLinks,
+		Volumes:               MaximumVolumes,
+		ScenarioActions:       MaximumScenarioActions,
+		ScenarioDecisions:     MaximumScenarioDecisions,
+		FaultActions:          MaximumFaultActions,
+		HistoryOperations:     MaximumHistoryOperations,
+		Observations:          MaximumObservations,
+		OracleResults:         MaximumOracleResults,
+		ScenarioEvidenceBytes: MaximumScenarioEvidenceBytes,
+		BootConfigBytes:       MaximumBootConfigBytes,
+		VolumeCapacityBytes:   MaximumVolumeCapacityBytes,
+		ObservationBytes:      MaximumObservationBytes,
+		NetworkListeners:      MaximumNetworkListeners,
+		NetworkConnections:    MaximumNetworkConnections,
+		NetworkDeliveries:     MaximumNetworkDeliveries,
+		NetworkBytes:          MaximumNetworkBytes,
+		NetworkTransitions:    MaximumNetworkTransitions,
+		VolumeOperations:      MaximumVolumeOperations,
+		VolumeTransitions:     MaximumVolumeTransitions,
+		CrashStates:           MaximumCrashStates,
+		CrashDepth:            MaximumCrashDepth,
+		CrashBytes:            MaximumCrashBytes,
+		CrashWallNanos:        MaximumCrashWallNanos,
 	}
 	if manifest.Limits != wantLimits {
 		return fmt.Errorf("simulation parity limits = %+v, want %+v", manifest.Limits, wantLimits)
@@ -227,7 +279,7 @@ func validateCase(parityCase Case) error {
 	default:
 		return fmt.Errorf("case %q has invalid disposition %q", parityCase.ID, parityCase.Disposition)
 	}
-	if parityCase.Status != StatusPlanned {
+	if parityCase.Status != StatusImplemented && parityCase.Status != StatusPlanned {
 		return fmt.Errorf("case %q has invalid status %q", parityCase.ID, parityCase.Status)
 	}
 	if len(parityCase.Sources) == 0 || len(parityCase.Sources) > maximumSourcesPerCase {

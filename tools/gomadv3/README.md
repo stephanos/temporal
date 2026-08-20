@@ -87,6 +87,10 @@ tools/gomadv3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./targ
 tools/gomadv3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad explore --strategy=choice-frontier --seeds 7 --max-runs=128 --max-choice-depth=32 --max-frontier-bytes=64MiB go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad plan --seeds 0-99 --output campaign.plan.json go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad run-shard --shard 0/4 campaign.plan.json
+tools/gomadv3/.bin/gomad merge --output merged-batch campaign.plan.json .gomad/artifacts/v1/run-*
+tools/gomadv3/.bin/gomad recover .gomad/artifacts/v1/run-INTERRUPTED
 tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/run-INTERRUPTED
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*
 tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/failures/sha256-*
@@ -256,20 +260,52 @@ The checked sixteen-workload Temporal corpus currently qualifies 5 workloads
 and retains 11 exact unsupported analyses. Every qualified workload runs two
 seeds and requires matching execution, World, I/O, and choice-tape replay.
 
-An interrupted campaign retains a canonical `gomadv3.batch-plan/v3` beside
+An interrupted campaign retains a canonical `gomadv3.batch-plan/v5` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity and the already-mixed seed selection, so resume never reselects seeds.
 The current plan records the seed or choice-frontier strategy, its controller
-identity, and every search bound; the reader retains narrow support for legacy
-seed-only v1 plans and batches.
-`gomad resume BATCH` locks that batch, verifies the exact
+identity, every search bound, immutable-segment limits, simultaneous partial
+runs, and success, failure, transcript, and aggregate artifact capacities. New
+unsharded batch v3 and sharded batch v4 publications reference `runs/index.json`, which binds each private,
+zero-padded JSONL segment by record count, byte count, and SHA-256. Readers
+retain narrow support for published batch v1/v2 and interrupted plan v1-v4
+records.
+
+`gomad plan` publishes a canonical `gomadv3.campaign-plan/v1` and adjacent
+private bundle containing the verified prepared target and complete bounded
+copies of configured read-only mount trees. Plan identity is independent of
+the plan output path and original mount source paths. The initial protocol
+accepts only unguided seed campaigns with `--on-failure=all`; dynamically
+discovered choice-frontier prefixes require a later round coordinator.
+`gomad run-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
+partition, revalidates the entire bundle before execution, and records global
+selection ordinals in batch v4. `gomad merge` accepts only shards from the same
+plan, rejects duplicate or missing ordinals unless `--partial` is explicit,
+deduplicates retained evidence by content identity, enforces aggregate bounds,
+and publishes a new `gomadv3.merged-batch/v1` without mutating shard artifacts.
+Both plan and aggregate are available through `gomad inspect`.
+The batch store records the explicit `planned`, `prepared`, `running`,
+`committing`, `published`, and `recoverable-failure` lifecycle. A validated
+`batch.json` is authoritative even when a crash leaves private state behind.
+`gomad recover BATCH` locks the batch and either finishes that private cleanup,
+normalizes an interrupted commit to its validated running state, or reports
+that the batch is invalid or not recoverable without changing it. Add `--json`
+for the stable `gomadv3.recovery/v1` result. Invalid or non-recoverable input
+returns status 2; storage, locking, and publication failures return status 3.
+
+`gomad resume BATCH` uses the same store-owned preflight, locks that batch, verifies the exact
 Runner, toolchain, I/O profile, prepared binary, completed records, and every
 referenced failure or successful-run artifact, archives incomplete per-seed state, and schedules
-only unfinished selection ordinals. It appends to and eventually publishes the
-original batch; repeated resumes are safe when the recorded aggregate deadline
-is too short to finish all remaining seeds. Published batches, changed inputs,
-concurrent resumes, and interrupted preparation fail closed. Add `--json` to
-use the same stable campaign event stream as `explore`.
+only unfinished selection ordinals. Closed run segments remain immutable;
+resume may incorporate one contiguous segment whose rename completed before
+its index update, and it archives an active segment before excluding only a
+torn terminal record. It appends to and eventually publishes the original
+batch; repeated resumes are safe when the recorded aggregate deadline is too
+short to finish all remaining seeds. Published batches, changed inputs,
+concurrent resumes, and interrupted preparation fail closed. `gomad inspect`
+reports the index identity, segment totals, journal limits, and artifact
+capacity. Add `--json` to use the same stable campaign event stream as
+`explore`.
 
 | Status | `explore` / `resume` | `qualify` | `replay` |
 | --- | --- | --- | --- |
@@ -292,8 +328,9 @@ identity; v1 or arbitrary binaries are rejected.
 `gomad inspect` validates the batch journal or immutable failure/success artifact before
 printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
-and copy-paste replay commands. Add `--json` for the
-stable `gomadv3.inspect/v1` report.
+copy-paste replay commands, and batch lifecycle, resumability, repairability,
+and recovery reason. Interrupted batches can be inspected before publication.
+Add `--json` for the stable `gomadv3.inspect/v3` report.
 
 ### Deterministic I/O
 
@@ -555,17 +592,26 @@ direct linkname/syscall containment proof.
 ## Simulation contract
 
 `simulation/parity/manifest.json` is the canonical SIM-0 behavioral contract.
-It maps thirteen Gomad v2 behaviors to named planned v3 cases, exact source
+It maps thirteen Gomad v2 behaviors to named v3 cases, exact source
 tests, intentional replacement decisions, delivery stages, limits, and
-backend/fidelity requirements. A case remains `planned` until an executable
-backend produces its required evidence.
+backend/fidelity requirements. Twelve cases now have implemented in-process
+evidence; fresh arbitrary package globals remain planned for the process tier.
 
 The root `tools/gomadv3sim` package defines the no-dependency application
-harness: schema-tagged bounded specs, stable node and incarnation identities,
-boot registration, detached results, and the cluster lifecycle interface. Its
-request/response and restart tests are contract prototypes only. Gomad v3 does
-not yet provide a multi-node, network, durable-volume, or process-backed
-simulation backend.
+harness. Its v4 schemas provide bounded specs, stable node and incarnation
+identities, boot registration, detached results, lifecycle and topology
+control, typed scenario composition, stable histories and oracles, inspect,
+and exact replay. The in-process backend supplies deterministic
+multi-address TCP, per-node ports, bounded listeners/connections/deliveries,
+fixed link delay, partition/heal, graceful-stop versus crash/reset behavior,
+incarnation-bound delayed delivery, canonical network snapshots, and typed
+replay divergence. Its separate durable-volume model provides file and
+directory sync, dependency-valid partial persistence, persisted-only crash,
+restart, bounded resumable crash-state enumeration, and exact replay. Fault
+plans bind stable match fields and realized targets independently; scenario,
+fault, network, volume, and runtime-choice tapes retain separate identities.
+Process-backed hard isolation remains unimplemented and is not implied by the
+in-process model.
 
 ## World
 

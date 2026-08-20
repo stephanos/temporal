@@ -117,6 +117,8 @@ type ArtifactReplayer interface {
 
 type CampaignSpec struct {
 	ResumeBatch            string
+	PlanSHA256             evidence.SHA256
+	Shard                  CampaignShard
 	Strategy               Strategy
 	Seeds                  string
 	Parallel               int
@@ -153,6 +155,9 @@ type CampaignSpec struct {
 	Preparer               Preparer
 	Executor               Executor
 	Replayer               ArtifactReplayer
+	resumePreflight        *campaignstore.ResumePreflight
+	failureArtifactLimit   uint64
+	failureBytesLimit      uint64
 }
 
 type CampaignResult struct {
@@ -178,6 +183,7 @@ type CampaignResult struct {
 	ChoiceTrace          *ChoiceTraceSummary
 	Frontier             *frontier.Summary
 	RecoveryExecutions   uint64
+	failureArtifactBytes uint64
 }
 
 type ChoiceTraceSummary struct {
@@ -254,6 +260,27 @@ type runCompletion struct {
 	journal    *campaignstore.ExecutionJournal
 }
 
+type runReadiness struct {
+	ready    chan struct{}
+	signaled bool
+}
+
+func newRunReadiness() *runReadiness {
+	return &runReadiness{ready: make(chan struct{})}
+}
+
+func (readiness *runReadiness) signal() {
+	if readiness.signaled {
+		return
+	}
+	close(readiness.ready)
+	readiness.signaled = true
+}
+
+func (readiness *runReadiness) wait() {
+	<-readiness.ready
+}
+
 type runJournalFactory interface {
 	BeginExecution(uint64, uint64) (*campaignstore.ExecutionJournal, error)
 }
@@ -293,9 +320,16 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		return CampaignResult{}, err
 	}
 	if resuming {
-		resumePlan, err = campaignstore.ReadResumePlan(config.ResumeBatch)
+		preflight := config.resumePreflight
+		if preflight == nil {
+			var opened campaignstore.ResumePreflight
+			opened, err = campaignstore.PreflightResume(config.ResumeBatch)
+			preflight = &opened
+		}
 		if err == nil {
+			resumePlan = preflight.Plan
 			config, selection, baseEnvironment, readOnlyMounts, prepared, err = resumeConfiguration(config, resumePlan)
+			config.resumePreflight = preflight
 		}
 		if err != nil {
 			return CampaignResult{}, err
@@ -334,7 +368,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			var equal bool
 			equal, err = equalBatchPlans(resumePlan, resumeState.Plan)
 			if !equal && err == nil {
-				err = fmt.Errorf("batch plan changed while acquiring its resume lock")
+				err = errors.New("batch plan changed while acquiring its resume lock")
 			}
 			resumedRuns = resumeState.Runs
 		}
@@ -344,6 +378,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		var restored resumeSummaryState
 		restored, err = restoreResumeSummary(batchPath, selection, resumedRuns)
 		summary = restored.summary
+		summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
 		if err != nil {
 			return summary, &HostError{Reason: "resume_setup", Err: err}
 		}
@@ -353,9 +388,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			return CampaignResult{}, &HostError{Reason: "run_id", Err: err}
 		}
 		batchPath = filepath.Join(config.Artifacts, "v1", runID)
-		summary = CampaignResult{CampaignPath: batchPath, SelectionCount: selection.Count()}
+		summary = CampaignResult{CampaignPath: batchPath, SelectionCount: normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())}
 		journal, err = campaignstore.NewCampaignJournal(overallCtx, campaignstore.CampaignConfig{
-			Root: config.Artifacts, CampaignID: runID, Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: selection.Count(),
+			Root: config.Artifacts, CampaignID: runID, PlanSHA256: config.PlanSHA256, Shard: campaignStoreShard(config.Shard),
+			Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: selection.Count(), MaxRuns: config.MaxRuns, Parallel: uint64(config.Parallel),
 		})
 		if err != nil {
 			return summary, &HostError{Reason: "artifact_setup", Err: err}
@@ -470,6 +506,8 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		if err := journal.RecordPlan(plan); err != nil {
 			return summary, &HostError{Reason: "batch_plan", Err: err}
 		}
+		config.failureArtifactLimit = uint64(plan.Artifacts.FailureArtifacts)
+		config.failureBytesLimit = uint64(plan.Artifacts.FailureBytes)
 		if err := journal.CompletePreparation(); err != nil {
 			return summary, &HostError{Reason: "partial_cleanup", Err: err}
 		}
@@ -511,6 +549,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	completed := make(map[uint64]struct{})
 	var hostFailure error
 	distinct := make(map[evidence.SHA256]string)
+	failureArtifactBytes := uint64(0)
 	semanticProbes := make(map[string]struct{})
 	choiceFeatures := make(map[string]struct{})
 	if resuming {
@@ -520,7 +559,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			return summary, &HostError{Reason: "resume_setup", Err: err}
 		}
 		summary = restored.summary
+		summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
 		distinct = restored.distinct
+		failureArtifactBytes = restored.failureArtifactBytes
 		semanticProbes = restored.probes
 		choiceFeatures = restored.choiceFeatures
 		completed = restored.completed
@@ -533,14 +574,13 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	completionOrderDone := make(chan struct{})
 	go func() {
 		defer close(completionOrderDone)
-		orderRunCompletions(selection, completed, rawCompletions, completions)
+		orderShardRunCompletions(selection, config.Shard, completed, rawCompletions, completions)
 	}()
 	defer func() {
 		close(rawCompletions)
 		<-completionOrderDone
 	}()
-	campaign := newSeedCampaign(selection, completed, config.Parallel, config.OnFailure, config.FailureBudget, &summary)
-	failureStore := evidence.Store{Root: journal.FailuresPath(), Context: overallCtx}
+	campaign := newShardedSeedCampaign(selection, config.Shard, completed, config.Parallel, config.OnFailure, config.FailureBudget, &summary)
 	publishRunnerFailure := func(completion runCompletion, reason string) error {
 		if !completion.result.Captured {
 			return nil
@@ -561,7 +601,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		if err != nil {
 			return fmt.Errorf("construct Runner failure manifest: %w", err)
 		}
-		published, err := campaignstore.PublishArtifact(failureStore, campaignstore.ArtifactInput{
+		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, campaignstore.ArtifactInput{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
 			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
@@ -599,7 +639,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	}
 
 	launch := func(job runJob) {
-		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, selectedProfile, readOnlyMounts, journal, job, rawCompletions)
+		readiness := newRunReadiness()
+		go runSeed(activeCtx, config, executor, prepared, baseEnvironment, selectedProfile, readOnlyMounts, journal, job, readiness, rawCompletions)
+		readiness.wait()
 	}
 	var progressTicker *time.Ticker
 	var progressTicks <-chan time.Time
@@ -614,12 +656,14 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	}
 	runningReported := false
 	for !campaign.Done() {
+		admittedThisTurn := false
 		for overallCtx.Err() == nil {
 			job, ok := campaign.Next()
 			if !ok {
 				break
 			}
 			launch(job)
+			admittedThisTurn = true
 		}
 		if campaign.Active() > 0 && !runningReported {
 			runningReported = true
@@ -641,6 +685,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		select {
 		case completion = <-completions:
 		case <-progressTicks:
+			if admittedThisTurn {
+				continue
+			}
 			if err := reportProgress(ProgressRunning, campaign.Active()); err != nil {
 				hostFailure = &HostError{Reason: "progress_output", Err: err}
 				campaign.Stop()
@@ -926,7 +973,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			}
 			continue
 		}
-		published, publishErr := campaignstore.PublishArtifact(failureStore, campaignstore.ArtifactInput{
+		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, campaignstore.ArtifactInput{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
 			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
@@ -1077,6 +1124,24 @@ func validateConfig(config CampaignSpec) (SeedSelection, []evidence.Environment,
 	if strategy == "" {
 		strategy = StrategySeed
 	}
+	shard := normalizedCampaignShard(config.Shard)
+	if err := shard.Validate(); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if config.Shard.Count != 0 {
+		if config.PlanSHA256 == "" {
+			return SeedSelection{}, nil, errors.New("sharded campaign requires a canonical plan identity")
+		}
+		if _, err := evidence.ParseSHA256(string(config.PlanSHA256)); err != nil {
+			return SeedSelection{}, nil, fmt.Errorf("canonical plan identity: %w", err)
+		}
+		if strategy != StrategySeed || config.Guide {
+			return SeedSelection{}, nil, errors.New("static sharding requires an unguided seed campaign")
+		}
+		if config.OnFailure != PolicyAll {
+			return SeedSelection{}, nil, errors.New("sharded campaign requires on-failure=all")
+		}
+	}
 	switch strategy {
 	case StrategySeed:
 		if config.MaxRuns != 0 || config.MaxChoiceDepth != 0 || config.MaxFrontierBytes != 0 {
@@ -1211,7 +1276,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []evidence.Environment,
 
 func parseEnvironment(entries []string) ([]evidence.Environment, error) {
 	reserved := map[string]struct{}{
-		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "GOMADV3_CHOICE_PROFILE": {}, "GOMADV3_CHOICE_MODE": {}, "GOMADV3_CHOICE_TRACE_FD": {}, "GOMADV3_CHOICE_TERMINAL_FD": {}, "GOMADV3_CHOICE_TRACE_BYTES": {}, "GOMADV3_CHOICE_TAPE_FD": {}, "GOMADV3_CHOICE_TAPE_BYTES": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "GOMADV3_CHOICE_PROFILE": {}, "GOMADV3_CHOICE_MODE": {}, "GOMADV3_CHOICE_TRACE_FD": {}, "GOMADV3_CHOICE_TERMINAL_FD": {}, "GOMADV3_CHOICE_TRACE_BYTES": {}, "GOMADV3_CHOICE_TAPE_FD": {}, "GOMADV3_CHOICE_TAPE_BYTES": {}, "GOMADV3_SIMULATION_ROLE": {}, "GOMADV3_SIMULATION_REQUEST_FD": {}, "GOMADV3_SIMULATION_RESPONSE_FD": {}, "GOMADV3_SIMULATION_BOOTSTRAP_FD": {}, "GOMADV3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))
@@ -1234,7 +1299,8 @@ func parseEnvironment(entries []string) ([]evidence.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepared target.Prepared, baseEnvironment []evidence.Environment, profile deterministicio.Spec, readOnlyMounts []deterministicio.Mapping, journal runJournalFactory, job runJob, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepared target.Prepared, baseEnvironment []evidence.Environment, profile deterministicio.Spec, readOnlyMounts []deterministicio.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+	defer readiness.signal()
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginExecution(job.ordinal, job.seed)
 	completion := runCompletion{job: job, startedAt: startedAt, journal: run}
@@ -1269,31 +1335,11 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 	var ioConfig []byte
 	ioConfig, completion.err = profile.BootstrapFrame(prepared, config.RunnerBuild, job.seed)
 	var choiceCapability *execution.ChoiceCapability
-	if completion.err == nil && config.ChoiceTraceLimit != 0 {
-		implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
-		if err != nil {
-			completion.err = fmt.Errorf("derive choice profile implementation identity: %w", err)
-		} else {
-			identity, identityErr := choiceExecutionIdentity(prepared, implementation)
-			if identityErr != nil {
-				completion.err = identityErr
-			} else {
-				mode := job.choiceMode
-				if mode == 0 {
-					mode = choice.ModeRecord
-				}
-				choiceCapability = &execution.ChoiceCapability{
-					Mode: mode, Profile: choice.Profile, ImplementationSHA256: implementation,
-					ExecutionIdentity: identity, Limit: config.ChoiceTraceLimit,
-				}
-				if job.choiceReplayPlan != nil {
-					tape := *job.choiceReplayPlan
-					choiceCapability.ReplayPlan = &tape
-				}
-			}
-		}
+	if completion.err == nil {
+		choiceCapability, completion.err = choiceCapabilityForJob(config, prepared, job)
 	}
 	if completion.err == nil {
+		readiness.signal()
 		request := execution.Spec{
 			SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
 			Dir: run.WorkPath(), Env: environmentStrings(environment), RunTimeout: config.RunTimeout,
@@ -1307,6 +1353,9 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 				},
 			},
 			StdoutHead: stdoutHead, StderrHead: stderrHead,
+		}
+		if _, ok := executor.(processExecutor); ok {
+			request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
 		}
 		request.Choice = choiceCapability
 		if len(config.SupervisorCommand) != 0 {
@@ -1335,6 +1384,33 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 		}
 	}
 	completions <- completion
+}
+
+func choiceCapabilityForJob(config CampaignSpec, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
+	if config.ChoiceTraceLimit == 0 {
+		return nil, nil
+	}
+	implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
+	if err != nil {
+		return nil, fmt.Errorf("derive choice profile implementation identity: %w", err)
+	}
+	identity, err := choiceExecutionIdentity(prepared, implementation)
+	if err != nil {
+		return nil, err
+	}
+	mode := job.choiceMode
+	if mode == 0 {
+		mode = choice.ModeRecord
+	}
+	capability := &execution.ChoiceCapability{
+		Mode: mode, Profile: choice.Profile, ImplementationSHA256: implementation,
+		ExecutionIdentity: identity, Limit: config.ChoiceTraceLimit,
+	}
+	if job.choiceReplayPlan != nil {
+		replayPlan := *job.choiceReplayPlan
+		capability.ReplayPlan = &replayPlan
+	}
+	return capability, nil
 }
 
 func validateObservedChoiceTrace(limit uint64, capability *execution.ChoiceCapability, observed *execution.ChoiceTrace) error {
@@ -1580,6 +1656,53 @@ func preservePartial(run *campaignstore.ExecutionJournal) error {
 		return nil
 	}
 	return run.Preserve()
+}
+
+func publishBoundedFailureArtifact(
+	ctx context.Context,
+	config CampaignSpec,
+	root string,
+	signature evidence.SHA256,
+	distinct map[evidence.SHA256]string,
+	storedBytes *uint64,
+	input campaignstore.ArtifactInput,
+) (evidence.Artifact, error) {
+	store := evidence.Store{Root: root, Context: ctx}
+	_, existing := distinct[signature]
+	if !existing && config.failureArtifactLimit != 0 && uint64(len(distinct)) == config.failureArtifactLimit {
+		return evidence.Artifact{}, &campaignstore.ArtifactCapacityError{
+			Limit: campaignstore.ArtifactLimitFailureCount, Required: uint64(len(distinct)) + 1,
+			Maximum: config.failureArtifactLimit, Outcome: campaignstore.CapacityInfrastructureFailure,
+		}
+	}
+	if !existing && config.failureBytesLimit != 0 {
+		if *storedBytes >= config.failureBytesLimit {
+			return evidence.Artifact{}, &campaignstore.ArtifactCapacityError{
+				Limit: campaignstore.ArtifactLimitFailureBytes, Required: *storedBytes + 1,
+				Maximum: config.failureBytesLimit, Outcome: campaignstore.CapacityInfrastructureFailure,
+			}
+		}
+		store.MaximumBytes = config.failureBytesLimit - *storedBytes
+	}
+	published, err := campaignstore.PublishArtifact(store, input)
+	if err != nil {
+		var capacity *evidence.CapacityError
+		if !existing && errors.As(err, &capacity) {
+			required := *storedBytes + capacity.Required
+			if required < *storedBytes {
+				required = ^uint64(0)
+			}
+			return evidence.Artifact{}, &campaignstore.ArtifactCapacityError{
+				Limit: campaignstore.ArtifactLimitFailureBytes, Required: required,
+				Maximum: config.failureBytesLimit, Outcome: campaignstore.CapacityInfrastructureFailure,
+			}
+		}
+		return evidence.Artifact{}, err
+	}
+	if !existing {
+		*storedBytes += published.StoredBytes
+	}
+	return published, nil
 }
 
 func streamRecord(output execution.Output) evidence.Stream {

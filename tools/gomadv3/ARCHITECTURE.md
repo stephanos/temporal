@@ -51,6 +51,39 @@ The mode is for trusted tests. The process boundary and fail-closed shims reduce
 accidental host dependence; they are not an operating-system sandbox against a
 target deliberately issuing raw syscalls.
 
+## In-process cluster simulation
+
+`tools/gomadv3sim` owns the application-facing cluster seam. A run selects one
+backend and records bounded node, topology, lifecycle, output, network, volume,
+fault, scenario, history, and oracle evidence. The in-process backend assigns
+inheritable runtime domains to logical
+node incarnations; stale domains fail before model mutation. Package globals
+and computationally live crashed goroutines remain shared-process limitations,
+so fresh initialization and hard cleanup are reserved for the process backend.
+
+The virtual network is a separate run-scoped deep module below ordinary `net`
+TCP calls. It owns node addresses, deterministic ports, directional links,
+fixed delay, partition/heal, listeners, streams, queued deliveries, lifecycle
+revocation, capacity, snapshots, and replay. Every endpoint and queued delivery
+is incarnation-bound. Graceful stop closes the local side and exposes EOF;
+crash resets both sides and removes pending traffic before a restart can reuse
+the stable node address.
+
+Network transitions are partitioned into canonical causal lanes. Operations on
+one connection or listener retain order, and all topology changes share one
+ordered lane; arrival order between independent resources is normalized.
+Replay validates the next transition in the affected lane before mutation and
+also requires exact final state. This network identity remains independent from
+runtime choice, lifecycle, output, volume, fault, scenario, and oracle
+identities.
+
+The durable-volume and fault controllers are separate deep modules. Volume
+owns persisted and volatile views, dependency-aware operations, sync, crash
+selection, enumeration, snapshots, and replay. Fault plans own stable matching,
+occurrence counting, target selection, application bounds, and fail-before-
+mutation replay. Typed scenarios and semantic oracles consume those modules
+through the Cluster seam without taking ownership of their state machines.
+
 ## Runtime choices and virtual time
 
 ### Activation
@@ -203,10 +236,33 @@ Interrupted work may leave explicit partial diagnostics but can never appear as
 a complete replayable artifact. Existing content-addressed artifacts are reused
 only after complete validation.
 
-Artifact's `BatchJournal` owns the durable batch state machine: preparation and
-per-run partial directories, append-and-sync of `runs.jsonl`, final batch hash
-and `batch.json` publication, and partial cleanup. Runner advances semantic run
-states but does not implement filesystem publication primitives.
+`campaignstore` owns the durable batch state machine: planned, prepared,
+running, committing, published, and recoverable-failure state; preparation and
+per-run partial directories; bounded immutable run segments; compact index and
+`batch.json` publication; inspection; locked recovery; and resume preflight.
+Batch-plan v5 declares journal, simultaneous partial-run, transcript, retained
+success, failure, aggregate artifact ceilings, and optional portable-plan shard
+identity. Batch v3 binds every unsharded closed segment through the index
+digest; batch v4 adds the exact external plan and ordinal partition. Readers
+retain explicit batch v1/v2 and interrupted plan v1-v4 compatibility. The validated final manifest is
+authoritative. Recovery reconstructs validated state, incorporates at most one
+contiguous post-rename segment, archives an active partial before trimming a
+torn terminal record, and never edits a closed segment. Injected create, sync,
+rename, and delete failures must leave a published or resumable batch. Runner
+advances semantic run states but does not implement filesystem publication or
+integrity decisions.
+
+The portable campaign-plan module separates immutable work identity from
+execution. A `gomadv3.campaign-plan/v1` file binds the Runner, toolchain,
+deterministic profiles, environment, complete selection, ordinal mapping,
+bounds, prepared target, and captured read-only mount digest. Its adjacent
+private bundle contains only the verified target and path-independent numbered
+mount trees; the plan file is published last. Static seed shards own disjoint
+global ordinals by `ordinal % count`, and resume preserves that assignment.
+Merge validates every batch v4 source through `campaignstore`, requires one
+plan identity, rejects overlap or unexplained gaps, stores content-deduplicated
+evidence metadata once in a bounded segmented journal, and publishes an
+immutable `gomadv3.merged-batch/v1` without changing source artifacts.
 
 Replay performs all identity and payload validation before starting the stored
 target. It never rebuilds from source, substitutes a local binary, silently

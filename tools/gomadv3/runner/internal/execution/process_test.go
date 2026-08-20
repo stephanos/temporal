@@ -1027,8 +1027,79 @@ func TestTargetHelper(t *testing.T) {
 			os.Exit(19)
 		}
 		os.Exit(0)
+	case "simulation-coordinator":
+		runSimulationProcessHelper()
+		os.Exit(0)
 	default:
 		t.Skip("target subprocess only")
+	}
+}
+
+func runSimulationProcessHelper() {
+	requestDescriptor, err := strconv.Atoi(os.Getenv(simulationRequestFDEnvironmentName))
+	if err != nil {
+		os.Exit(40)
+	}
+	responseDescriptor, err := strconv.Atoi(os.Getenv(simulationResponseFDEnvironmentName))
+	if err != nil {
+		os.Exit(41)
+	}
+	request := os.NewFile(uintptr(requestDescriptor), "simulation-request")
+	response := os.NewFile(uintptr(responseDescriptor), "simulation-response")
+	if request == nil || response == nil {
+		os.Exit(42)
+	}
+	if os.Getenv(simulationRoleEnvironmentName) == string(SimulationRoleNode) {
+		bootstrapDescriptor, bootstrapErr := strconv.Atoi(os.Getenv(simulationBootstrapFDEnvironmentName))
+		if bootstrapErr != nil {
+			os.Exit(43)
+		}
+		bootstrap := os.NewFile(uintptr(bootstrapDescriptor), "simulation-bootstrap")
+		if bootstrap == nil {
+			os.Exit(44)
+		}
+		payload, readErr := io.ReadAll(io.LimitReader(bootstrap, maximumSimulationBootstrapBytes+1))
+		wantBootstrap := "node-bootstrap"
+		if os.Getenv("GOMADV3_SIMULATION_CASE") == "crash" {
+			wantBootstrap = "crash-bootstrap"
+		}
+		if readErr != nil || string(payload) != wantBootstrap {
+			os.Exit(45)
+		}
+		frames := []simulationFrame{{Kind: simulationFrameReady, Request: 1, Node: "node", Incarnation: 1}, {Kind: simulationFrameActivated, Request: 2, Node: "node", Incarnation: 1}}
+		if os.Getenv("GOMADV3_SIMULATION_CASE") != "crash" {
+			frames = append(frames, simulationFrame{Kind: simulationFrameTerminal, Request: 3, Node: "node", Incarnation: 1, Payload: []byte("node-terminal")})
+		}
+		for _, frame := range frames {
+			frame.Profile = simulationProtocol
+			if writeErr := writeSimulationFrame(request, frame); writeErr != nil {
+				os.Exit(46)
+			}
+			if _, readErr := readSimulationFrame(response); readErr != nil {
+				os.Exit(47)
+			}
+		}
+		if os.Getenv("GOMADV3_SIMULATION_CASE") == "crash" {
+			select {}
+		}
+		return
+	}
+	frames := []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("node-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameWait, Request: 3, Node: "node", Incarnation: 1}}
+	if os.Getenv("GOMADV3_SIMULATION_CASE") == "crash" {
+		frames = []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("crash-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameCrash, Request: 3, Node: "node", Incarnation: 1}}
+	}
+	for _, frame := range frames {
+		frame.Profile = simulationProtocol
+		if writeErr := writeSimulationFrame(request, frame); writeErr != nil {
+			os.Exit(48)
+		}
+		answer, readErr := readSimulationFrame(response)
+		if readErr != nil || answer.Error != "" {
+			os.Exit(49)
+		}
+		if frame.Kind == simulationFrameWait && string(answer.Payload) != "node-terminal" {
+			os.Exit(50)
+		}
 	}
 }
 

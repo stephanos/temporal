@@ -67,9 +67,18 @@ func TestBatchJournalPublishesTheCanonicalBatchLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	const wantRuns = "{\"artifact\":null,\"domain\":\"success\",\"elapsed_nanos\":\"5\",\"failure_signature\":null,\"io_transcript_records\":null,\"io_transcript_sha256\":null,\"reason\":\"success\",\"seed\":\"7\",\"selection_ordinal\":\"0\",\"termination\":\"exit\"}\n"
-	assertFileContents(t, filepath.Join(journal.Path(), "runs.jsonl"), wantRuns)
-	const wantBatch = `{"attempted":"1","cancelled":"0","distinct_failures":"0","failure_signatures":[],"failures":"0","run_id":"run-fixed","runs_sha256":"sha256:52c0817ad9d6287383d15753b8c4ff3a4b5c2c805bf742d83bdb06c1d9ef8d44","schema":"gomadv3.batch/v2","schema_version":5,"selection":"7","selection_count":"1","stop_reason":"seeds_exhausted","strategy":"seed","succeeded":"1","watchdogs":"0"}`
-	assertFileContents(t, filepath.Join(journal.Path(), "batch.json"), wantBatch)
+	assertFileContents(t, filepath.Join(journal.Path(), "runs", "00000000000000000000.jsonl"), wantRuns)
+	batchBytes, err := os.ReadFile(filepath.Join(journal.Path(), "batch.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var batch CampaignRecord
+	if err := evidence.DecodeCanonicalJSON(batchBytes, &batch); err != nil {
+		t.Fatal(err)
+	}
+	if batch.Schema != "gomadv3.batch/v3" || batch.Journal == nil || batch.Journal.Records != 1 || batch.Journal.Segments != 1 || batch.RunsSHA256 != "" {
+		t.Fatalf("published batch = %#v", batch)
+	}
 	for _, removed := range []string{journal.PreparedPath(), filepath.Join(journal.Path(), ".partial", "batch"), run.Path()} {
 		if _, err := os.Stat(removed); !os.IsNotExist(err) {
 			t.Fatalf("completed path %q remains: %v", removed, err)
@@ -102,13 +111,49 @@ func TestOpenBatchRetainsTheLegacySeedReader(t *testing.T) {
 	if err := evidence.DecodeCanonicalJSON(contents, &batch); err != nil {
 		t.Fatal(err)
 	}
+	root, err := os.OpenRoot(batchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runs, _, err := readPublishedRunJournal(root, batch)
+	closeErr := root.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if closeErr != nil {
+		t.Fatal(closeErr)
+	}
+	runsBytes, err := encodeExecutionRecords(runs)
+	if err != nil {
+		t.Fatal(err)
+	}
 	batch.Schema = "gomadv3.batch/v1"
 	batch.Strategy = ""
+	batch.RunsSHA256 = evidence.HashBytes(runsBytes)
+	batch.Journal = nil
 	legacy, err := evidence.CanonicalJSON(batch)
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := os.WriteFile(filepath.Join(batchPath, "runs.jsonl"), runsBytes, 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(batchPath, "batch.json"), legacy, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.RemoveAll(filepath.Join(batchPath, "runs")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := OpenCampaign(batchPath); err != nil {
+		t.Fatal(err)
+	}
+	batch.Schema = "gomadv3.batch/v2"
+	batch.Strategy = "seed"
+	previous, err := evidence.CanonicalJSON(batch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(batchPath, "batch.json"), previous, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := OpenCampaign(batchPath); err != nil {
@@ -120,6 +165,8 @@ func TestValidateBatchPlanRetainsOnlyTheLegacySeedContract(t *testing.T) {
 	plan := testBatchPlan(nil, evidence.HashBytes([]byte("target")), 1)
 	plan.Schema = LegacyBatchPlanSchema
 	plan.Strategy = ""
+	plan.Journal = nil
+	plan.Artifacts = nil
 	plan.Prepared.Target.CapabilityMode = ""
 	if err := validateCampaignPlan(plan); err != nil {
 		t.Fatal(err)
@@ -127,6 +174,28 @@ func TestValidateBatchPlanRetainsOnlyTheLegacySeedContract(t *testing.T) {
 	plan.MaxRuns = 1
 	if err := validateCampaignPlan(plan); err == nil {
 		t.Fatal("validateBatchPlan() accepted frontier fields in a legacy plan")
+	}
+}
+
+func TestValidateBatchPlanRejectsChangedArtifactCapacity(t *testing.T) {
+	plan := testBatchPlan(nil, evidence.HashBytes([]byte("target")), 1)
+	journalLimits := RunJournalLimits{
+		MaximumRuns: 3, MaximumBytes: 3 << 20, SegmentBytes: 1 << 20,
+		SegmentRecords: 1024, MaximumSegments: 3, MaximumPartialRuns: 2,
+	}
+	journalPlan := recordRunJournalLimits(journalLimits)
+	plan.Journal = &journalPlan
+	artifacts, err := DeriveArtifactCapacityPlan(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.Artifacts = &artifacts
+	if err := validateCampaignPlan(plan); err != nil {
+		t.Fatal(err)
+	}
+	plan.Artifacts.FailureBytes--
+	if err := validateCampaignPlan(plan); err == nil || !strings.Contains(err.Error(), "artifact limits") {
+		t.Fatalf("validateCampaignPlan() error = %v", err)
 	}
 }
 
@@ -184,6 +253,11 @@ func TestBatchJournalRecordsCanonicalResumePlan(t *testing.T) {
 		t.Fatal(err)
 	}
 	plan.ChoiceProfile = &ChoiceProfilePlan{Name: choice.Profile, ImplementationSHA256: evidence.SHA256FromSum(implementation), Limit: 8 << 20}
+	artifacts, err := DeriveArtifactCapacityPlan(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.Artifacts = &artifacts
 	if err := journal.RecordPlan(plan); err != nil {
 		t.Fatal(err)
 	}
@@ -324,6 +398,11 @@ func TestResumeBatchJournalAcceptsRunsSharingDeduplicatedFailureEvidence(t *test
 	plan.RunnerBuild = input.Manifest.Runner.RunnerBuild
 	plan.Toolchain = input.Manifest.Toolchain
 	plan.Prepared.Target = input.Manifest.Target
+	artifacts, err := DeriveArtifactCapacityPlan(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.Artifacts = &artifacts
 	if err := journal.RecordPlan(plan); err != nil {
 		t.Fatal(err)
 	}
@@ -372,8 +451,16 @@ func TestResumeBatchJournalAcceptsRunsSharingDeduplicatedFailureEvidence(t *test
 }
 
 func testBatchPlan(journal *CampaignJournal, digest evidence.SHA256, size uint64) CampaignPlan {
-	return CampaignPlan{
-		Schema: CampaignPlanSchema, Strategy: "seed", Selection: "7-9", SelectionCount: 3, Parallel: 2,
+	var journalPlan *RunJournalPlan
+	parallel := evidence.Uint64String(2)
+	if journal != nil {
+		value := journal.RunJournalPlan()
+		journalPlan = &value
+		parallel = value.MaximumPartialRuns
+	}
+	plan := CampaignPlan{
+		Schema: CampaignPlanSchema, Strategy: "seed", Selection: "7-9", SelectionCount: 3, Parallel: parallel,
+		Journal:         journalPlan,
 		RunTimeoutNanos: evidence.Uint64String(time.Second), OverallTimeoutNanos: evidence.Uint64String(10 * time.Second), TerminateGraceNanos: evidence.Uint64String(100 * time.Millisecond),
 		OnFailure: "all", FailureBudget: 1, OutputBytes: 64, WorldTransitionBytes: 1024,
 		RunnerBuild: string(evidence.HashBytes([]byte("runner"))), Toolchain: evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
@@ -385,6 +472,12 @@ func testBatchPlan(journal *CampaignJournal, digest evidence.SHA256, size uint64
 		Environment: []evidence.Environment{{Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}},
 		Coverage:    "semantic", RequiredSemanticProbes: []string{"stdlib.os.openfile"}, KeepSuccesses: "none",
 	}
+	artifacts, err := DeriveArtifactCapacityPlan(plan)
+	if err != nil {
+		panic(err)
+	}
+	plan.Artifacts = &artifacts
+	return plan
 }
 
 func TestBatchJournalRoundTripsChoiceProfileAndRunSummary(t *testing.T) {
@@ -458,11 +551,11 @@ func TestOpenBatchRejectsChangedRuns(t *testing.T) {
 	if err := journal.Publish(CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
-	runs := filepath.Join(journal.Path(), "runs.jsonl")
+	runs := filepath.Join(journal.Path(), "runs", "00000000000000000000.jsonl")
 	if err := os.WriteFile(runs, []byte("{}\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := OpenCampaign(journal.Path()); err == nil || !strings.Contains(err.Error(), "runs digest") {
+	if _, err := OpenCampaign(journal.Path()); err == nil || !strings.Contains(err.Error(), "identity changed") {
 		t.Fatalf("OpenBatch() error = %v", err)
 	}
 }
@@ -522,17 +615,18 @@ func TestBatchJournalRejectsRunBeforeExceedingReaderCapacity(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = journal.AppendExecution(ExecutionRecord{
-		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: strings.Repeat("x", maximumRunsBytes), Termination: "exit",
+		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: strings.Repeat("x", defaultRunSegmentBytes), Termination: "exit",
 	})
-	if err == nil || !strings.Contains(err.Error(), "runs journal capacity") {
+	var capacityErr *JournalCapacityError
+	if !errors.As(err, &capacityErr) || capacityErr.Limit != JournalLimitSegmentBytes || capacityErr.Outcome != CapacityInfrastructureFailure {
 		t.Fatalf("AppendRun() error = %v", err)
 	}
-	info, err := os.Stat(filepath.Join(journal.Path(), "runs.jsonl"))
+	entries, err := os.ReadDir(filepath.Join(journal.Path(), ".partial", "runs"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Size() != 0 {
-		t.Fatalf("runs journal size = %d after rejected append, want 0", info.Size())
+	if len(entries) != 0 {
+		t.Fatalf("active run journal entries = %v after rejected append", entries)
 	}
 }
 
@@ -556,7 +650,8 @@ func TestBatchJournalPreservesExplicitFailureState(t *testing.T) {
 	if err := journal.Fail("target_preparation", failure); err != nil {
 		t.Fatal(err)
 	}
-	assertFileContents(t, filepath.Join(journal.Path(), ".partial", "batch", "partial.json"), wantFailure)
+	const wantLifecycleFailure = `{"campaign_id":"run-failed","detail":"build failed","last_stable_state":"planned","reason":"target_preparation","schema":"gomadv3.batch-lifecycle/v1","schema_version":5,"state":"recoverable-failure"}`
+	assertFileContents(t, filepath.Join(journal.Path(), ".partial", "batch", "partial.json"), wantLifecycleFailure)
 }
 
 func TestRunJournalRejectsInvalidStateTransitions(t *testing.T) {

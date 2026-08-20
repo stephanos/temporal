@@ -48,6 +48,19 @@ func TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs(t *test
 	}
 }
 
+func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
+	definition, err := readSimulationModelSchema(filepath.Join("..", "..", "..", "simulation", "schema", "modelwire.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Version != 1 || definition.Profile != "gomadv3.simulation-model/v1" || definition.TransportMagic != "GOMADPM\x01" || definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4096 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4096 {
+		t.Fatalf("simulation model protocol = %+v", definition)
+	}
+	if definition.Models.Network != 1 || definition.Models.Volume != 2 || definition.NetworkOperations.Listen != 1 || definition.NetworkOperations.ConnSetWriteDeadline != 13 || definition.VolumeOperations.Resolve != 1 || definition.VolumeOperations.MappingClose != 28 {
+		t.Fatalf("simulation model operation vocabulary = network %+v volume %+v", definition.NetworkOperations, definition.VolumeOperations)
+	}
+}
+
 func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 	definition, err := readLiveCapabilitySchema(filepath.Join("..", "..", "..", "target", "internal", "livecap", "livecap.json"))
 	if err != nil {
@@ -165,6 +178,10 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"deterministicio/schema/iowire.go.tmpl",
 		"deterministicio/schema/iowire.json",
 		"deterministicio/schema/iowire_test.go.tmpl",
+		"simulation/schema/modelwire.go.tmpl",
+		"simulation/schema/modelwire.json",
+		"simulation/schema/modelwire_test.go.tmpl",
+		"simulation/schema/modeltransport.go.tmpl",
 		"target/internal/livecap/livecap.go",
 		"target/internal/livecap/livecap.go.tmpl",
 		"target/internal/livecap/livecap.json",
@@ -198,6 +215,10 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go",
 		"toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go",
 		"toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go",
+		"toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go",
+		"toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go",
+		"runner/internal/execution/simulation_model_wire_generated.go",
+		"toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go",
 		"target/internal/livecap/protocol_generated.go",
 		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
 	} {
@@ -205,7 +226,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 			t.Fatalf("generated endpoint %q: %v", relative, err)
 		}
 	}
-	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "deterministicio/internal/wire/wire_generated.go", "target/internal/livecap/protocol_generated.go"} {
+	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "deterministicio/internal/wire/wire_generated.go", "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "target/internal/livecap/protocol_generated.go"} {
 		stale := filepath.Join(root, filepath.FromSlash(relative))
 		current, err := os.ReadFile(stale)
 		if err != nil {

@@ -202,7 +202,7 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 			Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
 		},
 	}
-	observed, err := executor.Run(ctx, execution.Spec{
+	request := execution.Spec{
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
 		BootstrapCommand: replayBootstrapCommand(config),
 		Args:             append([]string(nil), manifest.Target.Argv[1:]...), Argv0: manifest.Target.Argv[0], Dir: workDirectory, Env: environment,
@@ -212,7 +212,11 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 			Seed: uint64(manifest.Seed), ExpectedInitial: expectedWorldInitial, ReplayPlan: worldReplayPlan,
 		},
 		IO: ioCapability, Choice: choiceCapability,
-	})
+	}
+	if _, ok := executor.(replayProcessExecutor); ok {
+		request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
+	}
+	observed, err := executor.Run(ctx, request)
 	if err != nil {
 		if divergence, controlled := onlyChoiceReplayDivergence(err); controlled {
 			result.ChoiceReplayStatus = ChoiceReplayDiverged

@@ -76,8 +76,29 @@ func TestOpenReportsValidatedBatchRuns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Kind != "batch" || report.Campaign == nil || report.Artifact != nil || report.Campaign.CampaignID != "run-inspect" || len(report.Campaign.Runs) != 1 {
+	if report.Kind != "batch" || report.Campaign == nil || report.Lifecycle == nil || report.Lifecycle.State != "published" || report.Artifact != nil || report.Campaign.CampaignID != "run-inspect" || len(report.Campaign.Runs) != 1 || report.Campaign.Journal == nil || report.Campaign.Journal.Records != 1 {
 		t.Fatalf("report = %#v", report)
+	}
+}
+
+func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
+	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
+		Root: t.TempDir(), CampaignID: "run-interrupted-inspect", Selection: "7", SelectionCount: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	report, err := Open(journal.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Kind != "batch" || report.Campaign != nil || report.Artifact != nil || report.Lifecycle == nil || report.Lifecycle.State != "planned" || report.Lifecycle.Resumable || report.Lifecycle.Published {
+		t.Fatalf("interrupted batch report = %#v", report)
 	}
 }
 

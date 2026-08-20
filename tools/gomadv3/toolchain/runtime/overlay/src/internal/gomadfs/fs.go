@@ -48,25 +48,35 @@ type OpenFlags struct {
 type Loader func(string) (LoadEntry, MountStatus, error)
 
 type node struct {
-	mode     uint32
-	kind     Kind
-	data     []byte
-	children []Child
-	readonly bool
-	linked   bool
-	handles  uint64
-	modTime  int64
+	inode     uint64
+	mode      uint32
+	kind      Kind
+	data      []byte
+	children  []Child
+	readonly  bool
+	linked    bool
+	handles   uint64
+	modTime   int64
+	volume    string
+	mountRoot bool
 }
 
 type FS struct {
-	mu          sync.Mutex
-	nodes       map[string]*node
-	loader      Loader
-	clock       func() int64
-	openHandles uint64
-	usedBytes   uint64
-	liveNodes   uint64
-	cwd         string
+	mu           sync.Mutex
+	nodes        map[string]*node
+	loader       Loader
+	clock        func() int64
+	openHandles  uint64
+	usedBytes    uint64
+	liveNodes    uint64
+	cwd          string
+	nextInode    uint64
+	generation   uint64
+	volumes      map[string]*volumeState
+	volumeLimits VolumeLimits
+	handles      map[*Handle]struct{}
+	mappings     map[*Mapping]struct{}
+	unavailable  error
 }
 
 type Handle struct {
@@ -79,21 +89,59 @@ type Handle struct {
 	writable        bool
 	append          bool
 	closed          bool
+	revoked         bool
+	generation      uint64
+}
+
+type Mapping struct {
+	fs         *FS
+	node       *node
+	data       []byte
+	closed     bool
+	revoked    bool
+	generation uint64
+}
+
+type Statistics struct {
+	OpenHandles uint64
+	UsedBytes   uint64
 }
 
 var Default = New()
 
 const (
-	maximumPathBytes        = 4096
+	MaximumPathBytes        = 4096
 	maximumNodes            = 100_000
 	maximumHandles          = 100_000
 	maximumDirectoryEntries = 100_000
-	maximumFileBytes        = 16 << 20
+	MaximumFileBytes        = 16 << 20
 	maximumTotalBytes       = 64 << 20
 )
 
 func New() *FS {
-	return &FS{nodes: map[string]*node{"/": {mode: 0o755, kind: KindDirectory, linked: true}}, liveNodes: 1, cwd: "/"}
+	return &FS{nodes: map[string]*node{"/": {inode: 1, mode: 0o755, kind: KindDirectory, linked: true}}, liveNodes: 1, cwd: "/", nextInode: 2, generation: 1, handles: make(map[*Handle]struct{}), mappings: make(map[*Mapping]struct{})}
+}
+
+func NewSimulation() *FS {
+	Default.mu.Lock()
+	defer Default.mu.Unlock()
+	fs := New()
+	fs.loader = Default.loader
+	fs.clock = Default.clock
+	fs.nodes["/"].modTime = Default.nodes["/"].modTime
+	return fs
+}
+
+func (fs *FS) allocateInodeLocked() uint64 {
+	inode := fs.nextInode
+	fs.nextInode++
+	return inode
+}
+
+func (fs *FS) Statistics() Statistics {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+	return Statistics{OpenHandles: fs.openHandles, UsedBytes: fs.usedBytes}
 }
 
 func (fs *FS) SetLoader(loader Loader) {
@@ -110,7 +158,7 @@ func (fs *FS) SetClock(clock func() int64) {
 }
 
 func Normalize(name string) (string, string, error) {
-	if name == "" || len(name) > maximumPathBytes || strings.IndexByte(name, 0) >= 0 {
+	if name == "" || len(name) > MaximumPathBytes || strings.IndexByte(name, 0) >= 0 {
 		return "", "", syscall.EINVAL
 	}
 	components := make([]string, 0, strings.Count(name, "/")+1)
@@ -133,6 +181,9 @@ func Normalize(name string) (string, string, error) {
 }
 
 func (fs *FS) normalize(name string) (string, string, error) {
+	if fs.unavailable != nil {
+		return "", "", fs.unavailable
+	}
 	if strings.HasPrefix(name, "/") {
 		return Normalize(name)
 	}
@@ -175,7 +226,14 @@ func (fs *FS) Mkdir(name string, perm uint32) error {
 	if fs.directoryEntriesLocked(parent) == maximumDirectoryEntries {
 		return syscall.ENOSPC
 	}
-	fs.nodes[path] = &node{mode: perm & 0o777, kind: KindDirectory, linked: true, modTime: fs.nowLocked()}
+	if err := fs.preflightVolumeOperationsLocked(parentNode.volume, 2); err != nil {
+		return err
+	}
+	n := &node{inode: fs.allocateInodeLocked(), mode: perm & 0o777, kind: KindDirectory, linked: true, modTime: fs.nowLocked(), volume: parentNode.volume}
+	if err := fs.recordAllocationAndLinkLocked(path, n, parentNode); err != nil {
+		return err
+	}
+	fs.nodes[path] = n
 	fs.liveNodes++
 	return nil
 }
@@ -187,13 +245,20 @@ func (fs *FS) MkdirAll(name string, perm uint32) error {
 	}
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
+	planned := make(map[string]*node)
+	links := make([]allocationLink, 0)
+	newEntries := make(map[string]int)
 	current := ""
 	for _, component := range strings.Split(strings.TrimPrefix(path, "/"), "/") {
 		if component == "" {
 			continue
 		}
 		current += "/" + component
-		existing, lookupErr := fs.lookupLocked(current)
+		existing := planned[current]
+		lookupErr := error(nil)
+		if existing == nil {
+			existing, lookupErr = fs.lookupLocked(current)
+		}
 		if lookupErr == nil {
 			if existing.kind != KindDirectory {
 				return syscall.ENOTDIR
@@ -203,20 +268,42 @@ func (fs *FS) MkdirAll(name string, perm uint32) error {
 		if lookupErr != syscall.ENOENT {
 			return lookupErr
 		}
-		parent, err := fs.lookupLocked(parentPath(current))
-		if err != nil {
-			return err
+		parentName := parentPath(current)
+		parent := planned[parentName]
+		if parent == nil {
+			parent, err = fs.lookupLocked(parentName)
+			if err != nil {
+				return err
+			}
 		}
 		if parent.readonly {
 			return syscall.EROFS
 		}
-		if fs.liveNodes == maximumNodes {
+		if fs.liveNodes+uint64(len(links))+1 > maximumNodes {
 			return syscall.ENOSPC
 		}
-		if fs.directoryEntriesLocked(parentPath(current)) == maximumDirectoryEntries {
+		if fs.directoryEntriesLocked(parentName)+newEntries[parentName] == maximumDirectoryEntries {
 			return syscall.ENOSPC
 		}
-		fs.nodes[current] = &node{mode: perm & 0o777, kind: KindDirectory, linked: true, modTime: fs.nowLocked()}
+		n := &node{inode: fs.allocateInodeLocked(), mode: perm & 0o777, kind: KindDirectory, linked: true, modTime: fs.nowLocked(), volume: parent.volume}
+		planned[current] = n
+		links = append(links, allocationLink{path: current, node: n, parent: parent})
+		newEntries[parentName]++
+	}
+	operations := make(map[string]uint64)
+	for _, link := range links {
+		operations[link.node.volume] += 2
+	}
+	for volume, count := range operations {
+		if err := fs.preflightVolumeOperationsLocked(volume, count); err != nil {
+			return err
+		}
+	}
+	if err := fs.recordAllocationLinksLocked(links); err != nil {
+		return err
+	}
+	for _, link := range links {
+		fs.nodes[link.path] = link.node
 		fs.liveNodes++
 	}
 	return nil
@@ -270,7 +357,13 @@ func (fs *FS) Open(name string, flags OpenFlags, perm uint32) (*Handle, error) {
 		if fs.directoryEntriesLocked(parentPath(path)) == maximumDirectoryEntries {
 			return nil, syscall.ENOSPC
 		}
-		n = &node{mode: perm & 0o777, kind: KindFile, linked: true, modTime: fs.nowLocked()}
+		if err := fs.preflightVolumeOperationsLocked(parent.volume, 2); err != nil {
+			return nil, err
+		}
+		n = &node{inode: fs.allocateInodeLocked(), mode: perm & 0o777, kind: KindFile, linked: true, modTime: fs.nowLocked(), volume: parent.volume}
+		if err := fs.recordAllocationAndLinkLocked(path, n, parent); err != nil {
+			return nil, err
+		}
 		fs.nodes[path] = n
 		fs.liveNodes++
 	} else if flags.Create && flags.Exclusive {
@@ -282,14 +375,24 @@ func (fs *FS) Open(name string, flags OpenFlags, perm uint32) (*Handle, error) {
 	if n.kind == KindDirectory && flags.Write {
 		return nil, syscall.EISDIR
 	}
-	if flags.Truncate && flags.Write {
+	if flags.Truncate && flags.Write && len(n.data) != 0 {
+		if err := fs.preflightVolumeOperationsLocked(n.volume, 1); err != nil {
+			return nil, err
+		}
+		modTime := fs.nowLocked()
+		if err := fs.recordResizeLocked(n, 0, modTime); err != nil {
+			return nil, err
+		}
 		fs.usedBytes -= uint64(len(n.data))
+		fs.truncateMappingsLocked(n, 0, uint64(len(n.data)))
 		n.data = nil
-		n.modTime = fs.nowLocked()
+		n.modTime = modTime
 	}
 	fs.openHandles++
 	n.handles++
-	return &Handle{fs: fs, node: n, name: path, readable: flags.Read, writable: flags.Write, append: flags.Append}, nil
+	handle := &Handle{fs: fs, node: n, name: path, readable: flags.Read, writable: flags.Write, append: flags.Append, generation: fs.generation}
+	fs.handles[handle] = struct{}{}
+	return handle, nil
 }
 
 func (fs *FS) Rename(oldName, newName string) error {
@@ -314,6 +417,9 @@ func (fs *FS) Rename(oldName, newName string) error {
 	if n.readonly || parent.readonly {
 		return syscall.EXDEV
 	}
+	if n.mountRoot || n.volume != parent.volume {
+		return syscall.EXDEV
+	}
 	if parent.kind != KindDirectory {
 		return syscall.ENOTDIR
 	}
@@ -327,6 +433,9 @@ func (fs *FS) Rename(oldName, newName string) error {
 	if existing != nil && existing.readonly {
 		return syscall.EXDEV
 	}
+	if existing != nil && (existing.mountRoot || existing.volume != n.volume) {
+		return syscall.EXDEV
+	}
 	if n.kind == KindDirectory {
 		for name, descendant := range fs.nodes {
 			if strings.HasPrefix(name, oldPath+"/") && descendant.readonly {
@@ -334,20 +443,61 @@ func (fs *FS) Rename(oldName, newName string) error {
 			}
 		}
 	}
-	if existing != nil {
-		if existing.kind == KindDirectory {
-			return syscall.EEXIST
-		}
-		existing.linked = false
-		fs.releaseNodeLocked(existing)
+	if existing != nil && existing.kind == KindDirectory {
+		return syscall.EEXIST
 	}
 	if fs.nodes[newPath] == nil && parentPath(oldPath) != parentPath(newPath) && fs.directoryEntriesLocked(parentPath(newPath)) == maximumDirectoryEntries {
 		return syscall.ENOSPC
 	}
+	if err := fs.preflightVolumeOperationsLocked(n.volume, 1); err != nil {
+		return err
+	}
+	oldParent := fs.nodes[parentPath(oldPath)]
+	effects := []namespaceEffect(nil)
+	if n.volume != "" {
+		effects = append(effects, namespaceEffect{path: fs.volumes[n.volume].relative(oldPath)})
+		if n.kind == KindDirectory {
+			paths := make([]string, 0)
+			for name := range fs.nodes {
+				if strings.HasPrefix(name, oldPath+"/") {
+					paths = append(paths, name)
+				}
+			}
+			sort.Strings(paths)
+			for _, name := range paths {
+				effects = append(effects, namespaceEffect{path: fs.volumes[n.volume].relative(name)})
+			}
+		}
+		effects = append(effects, namespaceEffect{path: fs.volumes[n.volume].relative(newPath), inode: n.inode})
+		if n.kind == KindDirectory {
+			paths := make([]string, 0)
+			for name := range fs.nodes {
+				if strings.HasPrefix(name, oldPath+"/") {
+					paths = append(paths, name)
+				}
+			}
+			sort.Strings(paths)
+			for _, name := range paths {
+				effects = append(effects, namespaceEffect{path: fs.volumes[n.volume].relative(newPath + strings.TrimPrefix(name, oldPath)), inode: fs.nodes[name].inode})
+			}
+		}
+	}
+	modTime := fs.nowLocked()
+	parents := []uint64{oldParent.inode}
+	if parent.inode != oldParent.inode {
+		parents = append(parents, parent.inode)
+	}
+	if err := fs.recordNamespaceLocked(n.volume, parents, effects, n.inode, modTime); err != nil {
+		return err
+	}
+	if existing != nil {
+		existing.linked = false
+		fs.releaseNodeLocked(existing)
+	}
 	delete(fs.nodes, newPath)
 	fs.nodes[newPath] = n
 	delete(fs.nodes, oldPath)
-	n.modTime = fs.nowLocked()
+	n.modTime = modTime
 	if n.kind == KindDirectory {
 		for name, descendant := range fs.nodes {
 			if strings.HasPrefix(name, oldPath+"/") {
@@ -376,6 +526,9 @@ func (fs *FS) Remove(name string) error {
 	if n.readonly {
 		return syscall.EROFS
 	}
+	if n.mountRoot {
+		return syscall.EBUSY
+	}
 	if fs.cwd == path || strings.HasPrefix(fs.cwd, path+"/") {
 		return syscall.EBUSY
 	}
@@ -385,6 +538,17 @@ func (fs *FS) Remove(name string) error {
 				return syscall.ENOTEMPTY
 			}
 		}
+	}
+	if err := fs.preflightVolumeOperationsLocked(n.volume, 1); err != nil {
+		return err
+	}
+	parent := fs.nodes[parentPath(path)]
+	var effectPath string
+	if n.volume != "" {
+		effectPath = fs.volumes[n.volume].relative(path)
+	}
+	if err := fs.recordNamespaceLocked(n.volume, []uint64{parent.inode}, []namespaceEffect{{path: effectPath}}, n.inode, n.modTime); err != nil {
+		return err
 	}
 	delete(fs.nodes, path)
 	n.linked = false
@@ -412,10 +576,33 @@ func (fs *FS) RemoveAll(name string) error {
 	if n.readonly {
 		return syscall.EROFS
 	}
+	if n.mountRoot {
+		return syscall.EBUSY
+	}
 	for candidate, descendant := range fs.nodes {
 		if strings.HasPrefix(candidate, path+"/") && descendant.readonly {
 			return syscall.EROFS
 		}
+	}
+	if err := fs.preflightVolumeOperationsLocked(n.volume, 1); err != nil {
+		return err
+	}
+	parent := fs.nodes[parentPath(path)]
+	effects := make([]namespaceEffect, 0)
+	if n.volume != "" {
+		paths := make([]string, 0)
+		for candidate := range fs.nodes {
+			if candidate == path || strings.HasPrefix(candidate, path+"/") {
+				paths = append(paths, candidate)
+			}
+		}
+		sort.Sort(sort.Reverse(sort.StringSlice(paths)))
+		for _, candidate := range paths {
+			effects = append(effects, namespaceEffect{path: fs.volumes[n.volume].relative(candidate)})
+		}
+	}
+	if err := fs.recordNamespaceLocked(n.volume, []uint64{parent.inode}, effects, n.inode, n.modTime); err != nil {
+		return err
 	}
 	for candidate, descendant := range fs.nodes {
 		if candidate == path || strings.HasPrefix(candidate, path+"/") {
@@ -441,8 +628,16 @@ func (fs *FS) Chmod(name string, mode uint32) error {
 	if n.readonly {
 		return syscall.EROFS
 	}
-	n.mode = mode & 0o777
-	n.modTime = fs.nowLocked()
+	if err := fs.preflightVolumeOperationsLocked(n.volume, 1); err != nil {
+		return err
+	}
+	nextMode := mode & 0o777
+	nextModTime := fs.nowLocked()
+	if err := fs.recordMetadataLocked(n, nextMode, nextModTime); err != nil {
+		return err
+	}
+	n.mode = nextMode
+	n.modTime = nextModTime
 	return nil
 }
 
@@ -459,6 +654,12 @@ func (fs *FS) Chtimes(name string, modTime int64) error {
 	}
 	if n.readonly {
 		return syscall.EROFS
+	}
+	if err := fs.preflightVolumeOperationsLocked(n.volume, 1); err != nil {
+		return err
+	}
+	if err := fs.recordMetadataLocked(n, n.mode, modTime); err != nil {
+		return err
 	}
 	n.modTime = modTime
 	return nil
@@ -489,6 +690,9 @@ func (fs *FS) Getwd() string {
 }
 
 func (fs *FS) lookupLocked(path string) (*node, error) {
+	if fs.unavailable != nil {
+		return nil, fs.unavailable
+	}
 	if n := fs.nodes[path]; n != nil {
 		return n, nil
 	}
@@ -503,10 +707,10 @@ func (fs *FS) lookupLocked(path string) (*node, error) {
 	case MountUnmounted, MountNotExist:
 		return nil, syscall.ENOENT
 	case MountOK:
-		if fs.liveNodes == maximumNodes || len(entry.Children) > maximumNodes || uint64(len(entry.Data)) > maximumFileBytes || uint64(len(entry.Data)) > maximumTotalBytes-fs.usedBytes {
+		if fs.liveNodes == maximumNodes || len(entry.Children) > maximumNodes || uint64(len(entry.Data)) > MaximumFileBytes || uint64(len(entry.Data)) > maximumTotalBytes-fs.usedBytes {
 			return nil, syscall.ENOSPC
 		}
-		n := &node{mode: entry.Mode & 0o777, kind: entry.Kind, data: append([]byte(nil), entry.Data...), children: append([]Child(nil), entry.Children...), readonly: true, linked: true, modTime: fs.nowLocked()}
+		n := &node{inode: fs.allocateInodeLocked(), mode: entry.Mode & 0o777, kind: entry.Kind, data: append([]byte(nil), entry.Data...), children: append([]Child(nil), entry.Children...), readonly: true, linked: true, modTime: fs.nowLocked()}
 		fs.nodes[path] = n
 		fs.liveNodes++
 		fs.usedBytes += uint64(len(n.data))
@@ -519,8 +723,8 @@ func (fs *FS) lookupLocked(path string) (*node, error) {
 func (handle *Handle) Read(destination []byte) (int, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return 0, syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return 0, err
 	}
 	if !handle.readable {
 		return 0, syscall.EBADF
@@ -539,7 +743,10 @@ func (handle *Handle) Read(destination []byte) (int, error) {
 func (handle *Handle) ReadAt(destination []byte, offset int64) (int, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed || !handle.readable {
+	if err := handle.errorLocked(); err != nil {
+		return 0, err
+	}
+	if !handle.readable {
 		return 0, syscall.EBADF
 	}
 	if offset < 0 {
@@ -561,7 +768,10 @@ func (handle *Handle) ReadAt(destination []byte, offset int64) (int, error) {
 func (handle *Handle) Write(source []byte) (int, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed || !handle.writable {
+	if err := handle.errorLocked(); err != nil {
+		return 0, err
+	}
+	if !handle.writable {
 		return 0, syscall.EBADF
 	}
 	if handle.node.readonly {
@@ -571,8 +781,23 @@ func (handle *Handle) Write(source []byte) (int, error) {
 		handle.offset = int64(len(handle.node.data))
 	}
 	end := handle.offset + int64(len(source))
-	if end < handle.offset || end > maximumFileBytes {
+	if end < handle.offset || end > MaximumFileBytes {
 		return 0, syscall.EFBIG
+	}
+	operationCount := uint64(1)
+	if end > int64(len(handle.node.data)) {
+		operationCount++
+	}
+	if err := handle.fs.preflightVolumeOperationsLocked(handle.node.volume, operationCount); err != nil {
+		return 0, err
+	}
+	if err := handle.fs.preflightVolumeGrowthLocked(handle.node, end); err != nil {
+		return 0, err
+	}
+	start := handle.offset
+	modTime := handle.fs.nowLocked()
+	if err := handle.fs.recordWriteLocked(handle.node, uint64(start), source, uint64(end), modTime); err != nil {
+		return 0, err
 	}
 	if end > int64(len(handle.node.data)) {
 		growth := uint64(end - int64(len(handle.node.data)))
@@ -582,16 +807,20 @@ func (handle *Handle) Write(source []byte) (int, error) {
 		handle.node.data = append(handle.node.data, make([]byte, int(end)-len(handle.node.data))...)
 		handle.fs.usedBytes += growth
 	}
-	copy(handle.node.data[handle.offset:end], source)
+	copy(handle.node.data[start:end], source)
+	handle.fs.updateMappingsLocked(handle.node, uint64(start), source)
 	handle.offset = end
-	handle.node.modTime = handle.fs.nowLocked()
+	handle.node.modTime = modTime
 	return len(source), nil
 }
 
 func (handle *Handle) WriteAt(source []byte, offset int64) (int, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed || !handle.writable {
+	if err := handle.errorLocked(); err != nil {
+		return 0, err
+	}
+	if !handle.writable {
 		return 0, syscall.EBADF
 	}
 	if handle.append || offset < 0 {
@@ -601,8 +830,22 @@ func (handle *Handle) WriteAt(source []byte, offset int64) (int, error) {
 		return 0, syscall.EROFS
 	}
 	end := offset + int64(len(source))
-	if end < offset || end > maximumFileBytes {
+	if end < offset || end > MaximumFileBytes {
 		return 0, syscall.EFBIG
+	}
+	operationCount := uint64(1)
+	if end > int64(len(handle.node.data)) {
+		operationCount++
+	}
+	if err := handle.fs.preflightVolumeOperationsLocked(handle.node.volume, operationCount); err != nil {
+		return 0, err
+	}
+	if err := handle.fs.preflightVolumeGrowthLocked(handle.node, end); err != nil {
+		return 0, err
+	}
+	modTime := handle.fs.nowLocked()
+	if err := handle.fs.recordWriteLocked(handle.node, uint64(offset), source, uint64(end), modTime); err != nil {
+		return 0, err
 	}
 	if end > int64(len(handle.node.data)) {
 		growth := uint64(end - int64(len(handle.node.data)))
@@ -613,14 +856,18 @@ func (handle *Handle) WriteAt(source []byte, offset int64) (int, error) {
 		handle.fs.usedBytes += growth
 	}
 	copy(handle.node.data[offset:end], source)
-	handle.node.modTime = handle.fs.nowLocked()
+	handle.fs.updateMappingsLocked(handle.node, uint64(offset), source)
+	handle.node.modTime = modTime
 	return len(source), nil
 }
 
 func (handle *Handle) Truncate(size int64) error {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed || !handle.writable {
+	if err := handle.errorLocked(); err != nil {
+		return err
+	}
+	if !handle.writable {
 		return syscall.EBADF
 	}
 	if handle.node.readonly {
@@ -629,10 +876,21 @@ func (handle *Handle) Truncate(size int64) error {
 	if size < 0 {
 		return syscall.EINVAL
 	}
-	if size > maximumFileBytes {
+	if size > MaximumFileBytes {
 		return syscall.EFBIG
 	}
+	if err := handle.fs.preflightVolumeOperationsLocked(handle.node.volume, 1); err != nil {
+		return err
+	}
+	if err := handle.fs.preflightVolumeGrowthLocked(handle.node, size); err != nil {
+		return err
+	}
+	modTime := handle.fs.nowLocked()
+	if err := handle.fs.recordResizeLocked(handle.node, uint64(size), modTime); err != nil {
+		return err
+	}
 	if size <= int64(len(handle.node.data)) {
+		handle.fs.truncateMappingsLocked(handle.node, uint64(size), uint64(len(handle.node.data)))
 		handle.fs.usedBytes -= uint64(int64(len(handle.node.data)) - size)
 		handle.node.data = handle.node.data[:size]
 	} else {
@@ -643,32 +901,46 @@ func (handle *Handle) Truncate(size int64) error {
 		handle.node.data = append(handle.node.data, make([]byte, int(size)-len(handle.node.data))...)
 		handle.fs.usedBytes += growth
 	}
-	handle.node.modTime = handle.fs.nowLocked()
+	handle.node.modTime = modTime
 	return nil
 }
 
 func (handle *Handle) Chmod(mode uint32) error {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return err
 	}
 	if handle.node.readonly {
 		return syscall.EROFS
 	}
-	handle.node.mode = mode & 0o777
-	handle.node.modTime = handle.fs.nowLocked()
+	if err := handle.fs.preflightVolumeOperationsLocked(handle.node.volume, 1); err != nil {
+		return err
+	}
+	nextMode := mode & 0o777
+	nextModTime := handle.fs.nowLocked()
+	if err := handle.fs.recordMetadataLocked(handle.node, nextMode, nextModTime); err != nil {
+		return err
+	}
+	handle.node.mode = nextMode
+	handle.node.modTime = nextModTime
 	return nil
 }
 
 func (handle *Handle) Chtimes(modTime int64) error {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return err
 	}
 	if handle.node.readonly {
 		return syscall.EROFS
+	}
+	if err := handle.fs.preflightVolumeOperationsLocked(handle.node.volume, 1); err != nil {
+		return err
+	}
+	if err := handle.fs.recordMetadataLocked(handle.node, handle.node.mode, modTime); err != nil {
+		return err
 	}
 	handle.node.modTime = modTime
 	return nil
@@ -677,8 +949,8 @@ func (handle *Handle) Chtimes(modTime int64) error {
 func (handle *Handle) Chdir() error {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return err
 	}
 	if handle.node.kind != KindDirectory {
 		return syscall.ENOTDIR
@@ -698,8 +970,8 @@ func (handle *Handle) Chdir() error {
 func (handle *Handle) Seek(offset int64, whence int) (int64, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return 0, syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return 0, err
 	}
 	var next int64
 	switch whence {
@@ -722,8 +994,8 @@ func (handle *Handle) Seek(offset int64, whence int) (int64, error) {
 func (handle *Handle) Stat() (Entry, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return Entry{}, syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return Entry{}, err
 	}
 	_, base, _ := Normalize(handle.name)
 	return entryForNode(base, handle.node), nil
@@ -738,8 +1010,8 @@ func (handle *Handle) Path() string {
 func (handle *Handle) ReadDir(count int) ([]Entry, error) {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return nil, syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return nil, err
 	}
 	if handle.node.kind != KindDirectory {
 		return nil, syscall.ENOTDIR
@@ -780,13 +1052,110 @@ func (handle *Handle) ReadDir(count int) ([]Entry, error) {
 func (handle *Handle) Close() error {
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
-	if handle.closed {
-		return syscall.EBADF
+	if err := handle.errorLocked(); err != nil {
+		return err
 	}
 	handle.closed = true
+	delete(handle.fs.handles, handle)
 	handle.fs.openHandles--
 	handle.node.handles--
 	handle.fs.releaseNodeLocked(handle.node)
+	return nil
+}
+
+func (handle *Handle) Sync() error {
+	handle.fs.mu.Lock()
+	defer handle.fs.mu.Unlock()
+	if err := handle.errorLocked(); err != nil {
+		return err
+	}
+	return handle.fs.syncNodeLocked(handle.node)
+}
+
+func (handle *Handle) Map(length uint64) (*Mapping, error) {
+	handle.fs.mu.Lock()
+	defer handle.fs.mu.Unlock()
+	if err := handle.errorLocked(); err != nil {
+		return nil, err
+	}
+	if !handle.readable {
+		return nil, syscall.EBADF
+	}
+	if handle.node.kind != KindFile {
+		return nil, syscall.ENODEV
+	}
+	if length == 0 || length > MaximumFileBytes {
+		return nil, syscall.EINVAL
+	}
+	mapping := &Mapping{fs: handle.fs, node: handle.node, data: make([]byte, length), generation: handle.fs.generation}
+	copy(mapping.data, handle.node.data)
+	handle.fs.mappings[mapping] = struct{}{}
+	return mapping, nil
+}
+
+func (mapping *Mapping) Bytes() ([]byte, error) {
+	mapping.fs.mu.Lock()
+	defer mapping.fs.mu.Unlock()
+	if err := mapping.errorLocked(); err != nil {
+		return nil, err
+	}
+	return mapping.data, nil
+}
+
+func (mapping *Mapping) Close() error {
+	mapping.fs.mu.Lock()
+	defer mapping.fs.mu.Unlock()
+	if err := mapping.errorLocked(); err != nil {
+		return err
+	}
+	mapping.closed = true
+	delete(mapping.fs.mappings, mapping)
+	mapping.data = nil
+	return nil
+}
+
+func (mapping *Mapping) errorLocked() error {
+	if mapping.fs.unavailable != nil {
+		return mapping.fs.unavailable
+	}
+	if mapping.revoked || mapping.generation != mapping.fs.generation {
+		return syscall.ESTALE
+	}
+	if mapping.closed {
+		return syscall.EINVAL
+	}
+	return nil
+}
+
+func (fs *FS) truncateMappingsLocked(n *node, size, previous uint64) {
+	for mapping := range fs.mappings {
+		if mapping.node != n || size >= uint64(len(mapping.data)) {
+			continue
+		}
+		end := min(previous, uint64(len(mapping.data)))
+		clear(mapping.data[size:end])
+	}
+}
+
+func (fs *FS) updateMappingsLocked(n *node, offset uint64, source []byte) {
+	for mapping := range fs.mappings {
+		if mapping.node != n || offset >= uint64(len(mapping.data)) {
+			continue
+		}
+		copy(mapping.data[offset:], source)
+	}
+}
+
+func (handle *Handle) errorLocked() error {
+	if handle.fs.unavailable != nil {
+		return handle.fs.unavailable
+	}
+	if handle.revoked || handle.generation != handle.fs.generation {
+		return syscall.ESTALE
+	}
+	if handle.closed {
+		return syscall.EBADF
+	}
 	return nil
 }
 

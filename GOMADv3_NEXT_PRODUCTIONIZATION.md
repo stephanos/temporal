@@ -34,6 +34,15 @@ Operators and users should be able to answer:
 
 ## PROD-1: Crash-consistent batch store
 
+**Status:** Implemented. `campaignstore` owns the explicit lifecycle,
+manifest-authoritative inspection, store-owned resume preflight, locked
+idempotent recovery, and private filesystem mutation boundary. `gomad recover`
+and inspect schema v2 expose the result, and creation, preparation, execution,
+publication, resume, recovery, and choice-frontier mutation matrices cover file
+create, sync, rename, and delete failures. New campaigns use the PROD-2
+segmented journal; historical interrupted plans retain their legacy append
+path.
+
 Move batch lifecycle and recovery behind a deep storage module. Runner should submit immutable run completions and a final summary; it should not manage publication ordering itself.
 
 Use an explicit state machine:
@@ -61,6 +70,16 @@ Add operator functions:
 Crash/fault injection at every file create, sync, rename, and delete boundary is part of the feature, not a later test improvement.
 
 ## PROD-2: Segmented, bounded journals
+
+**Status:** Implemented. New batch-plan v5 and batch v3/v4 records bind bounded
+immutable JSONL segments through a compact canonical index. The plan declares
+run, journal, segment, partial-run, transcript, success, failure, and aggregate
+artifact ceilings with explicit infrastructure-capacity outcomes. Published
+and resume readers validate one bounded segment at a time, reject inventory or
+digest ambiguity, recover one contiguous post-rename segment, archive and trim
+only a torn active tail, and never rewrite closed segments. Published batch
+v1/v2 and interrupted plan v1-v4 fixtures remain readable. Fault matrices and
+a journal larger than the historical 64 MiB ceiling exercise the contract.
 
 Replace the single unbounded `runs.jsonl` contract with a versioned segmented journal or another streaming format that has equivalent inspectability.
 
@@ -100,6 +119,20 @@ For environment secrets, support non-retained replay inputs as a distinct mode. 
 Do not invent application-level encryption in the first version. Rely on private files and approved encrypted storage, and make export policy explicit.
 
 ## PROD-4: Deterministic campaign plans, sharding, and merge
+
+**Status:** Filesystem v1 is implemented for static unguided seed campaigns.
+`gomad plan` publishes a canonical path-independent plan only after its private
+bundle contains the verified prepared target and complete bounded copies of
+read-only mount trees. `run-shard` owns one zero-based ordinal-modulo partition,
+retains global ordinals, revalidates the plan, platform identities, target, and
+mount inventory before execution, and remains resumable through batch-plan v5
+and batch v4. `merge` accepts only identical plan identities, rejects duplicate
+or missing ordinals unless partial output was requested, deduplicates retained
+evidence by content identity, enforces the plan's journal and artifact budgets,
+and publishes a new immutable `gomadv3.merged-batch/v1` without copying or
+mutating source evidence. Dynamic choice-frontier candidates are not a static
+partition: v1 rejects them until a round coordinator can distribute newly
+discovered prefixes without duplicate ownership.
 
 Separate campaign planning from execution. A canonical plan should contain target, platform bundle, profile, environment/mount identities, selection, strategy, bounds, and ordinal-to-seed/prefix mapping.
 
@@ -273,4 +306,9 @@ At 10× campaign size, readers stream segments, shards cap local work, event sin
 
 ## Recommended next slice
 
-Move the corrected publication and resume behavior behind the batch-store state machine, then add the segmented bounded journal and `gomad recover` together. Prove every mutation boundary leaves a published or recoverable state before adding sharding, remote artifacts, caches, or dashboards. This removes the largest remaining operational risk and creates the storage substrate those later features require.
+Complete PROD-3 artifact lifecycle and data policy before exporting campaign
+bundles or building release packages. Preserve the completed static PROD-4
+protocol and initial PROD-8 journal, partial-run, artifact, and merge capacity
+gates; add dynamic frontier distribution only with a round coordinator that can
+prove unique prefix ownership. Defer the prepared-target cache until that
+resource-correct execution identity is stable.

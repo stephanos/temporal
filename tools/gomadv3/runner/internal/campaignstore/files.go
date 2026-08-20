@@ -77,6 +77,9 @@ func syncDirectoryContext(ctx context.Context, path string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	if err := observeMutation(ctx, mutationDirectorySync, "directory"); err != nil {
+		return err
+	}
 	if err := syncDirectory(path); err != nil {
 		return err
 	}

@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v041
 
-Review SHA-256: `sha256:08054cedd33fce591dfbafb6b3c33742f7029d2d42ecb867ed25c969e1026ac5`
+Review SHA-256: `sha256:c7a07dd0fd186086b51ecaf1364146c4447094f5cc428bc554bd82ce4ee12928`
 
 Owner: `temporal-server`
 
@@ -26,8 +26,8 @@ Workload: `modernc-libc-xsys-v041-fixture`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
   - profile `gomadv3-deterministic/v1` / `sha256:034755da63de6446baa5c7fefaaecaeb03c1e18c753ed18fcedbf17a76813610`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
-  - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8b9bc19a90b0a657b6b648de71211db718f66c08a4109dc1e2011c0ead57394b`
-  - prepared source set `sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749`
+  - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8579228404e49a9df26f1a5f735cd530e17f6264ed1c231bf15051d20b2cc76c`
+  - prepared source set `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
 
 ## Reviewed packages
 
@@ -139,7 +139,7 @@ Requested facts:
 
 Module: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
 
-Source set: `sha256:86528a49d1159917b064c458409f43c9094cca0bb1212d77e157cc05b7457749`
+Source set: `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
 
 Go sources:
 
@@ -148,14 +148,14 @@ Go sources:
 - `ccgo.go`: `sha256:c49dacf7c917bbab19692914b4efa950b6f461117014f7364c818fb39069b92a`
 - `etc.go`: `sha256:b48935972f453553e9a623cde5ccd6810e9036df2561c6f70edc3369703244cf`
 - `fsync.go`: `sha256:5760bc90f3df02bbbe2a24dd08365a403b8bbe9a01f6ee9ee345249f7f698b62`
-- `gomad_darwin.go`: `sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c`
+- `gomad_darwin.go`: `sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd`
 - `int128.go`: `sha256:fa4821cd943874028ba6a953e0ee48c480759f98ea1ade6e09d1cd64a8dd7cb4`
 - `ioutil_darwin.go`: `sha256:a496b5553d12820e4a9a7adc62970a6b6a5481933b9a30679fd3d95aefd1e06c`
 - `libc.go`: `sha256:e37b0c81c65de523307acd877a02c0ce372fbbec0aee47126cb169ff27d18224`
 - `libc64.go`: `sha256:8890988534e74862883cd891f5755203837b10b3b6f59210f06f644f12f390a0`
 - `libc_all.go`: `sha256:dcd4d1f818059ab5a5f9b430b3cacde4290a15907467ed4e396169d64b778c6c`
 - `libc_arm64.go`: `sha256:e176bc579a8e7d8a7188c1ee6142fc1c17af50a777d693273155133dd384d327`
-- `libc_darwin.go`: `sha256:3fd717f9725047cf2f5ad9fd39f37a6ee407ddb24dba6f920460cabcee417f8f`
+- `libc_darwin.go`: `sha256:44c0ccbbb5c890dc4b10a63a199a5a9b0185724a54b4f45f0e7b0aafd4f50376`
 - `libc_darwin_arm64.go`: `sha256:dc9ff2436a24e90368bd0dae18a6f1bce7f031883ac4029b9436b721888f1ac7`
 - `libc_unix.go`: `sha256:f603427bda270dd60ac1a15b41326b50648b15d48dbc43d72e4588320eeb7301`
 - `libc_unix1.go`: `sha256:70ab4175ef2801300f3b2922a42b98bd8c7fd22be4f7b4d3d72c84b0acf5eb5d`
@@ -180,7 +180,7 @@ Requested facts:
 - `import:os/signal`: **allow**
 - `import:syscall`: **allow** — **security-sensitive**
 - `linkname:gomad_darwin.go`: **allow** — **security-sensitive**
-  - source `sha256:de831957b7a6e5cf7c79785ea5026bbbda4486b179d7e843b22f00a985296a2c`
+  - source `sha256:751f42d790ea150f57977ae75189909eeb8ad0b55f3aee7bd5ede3e0f92f10cd`
   - directive `gomadLibcEnabled internal/gomadio.Enabled`
   - directive `gomadLibcOpen internal/gomadio.LibcOpen`
   - directive `gomadLibcClose internal/gomadio.LibcClose`
@@ -189,6 +189,8 @@ Requested facts:
   - directive `gomadLibcSeek internal/gomadio.LibcSeek`
   - directive `gomadLibcTruncate internal/gomadio.LibcTruncate`
   - directive `gomadLibcSync internal/gomadio.LibcSync`
+  - directive `gomadLibcMmap internal/gomadio.LibcMmap`
+  - directive `gomadLibcMunmap internal/gomadio.LibcMunmap`
   - directive `gomadLibcRemove internal/gomadio.LibcRemove`
   - directive `gomadLibcRename internal/gomadio.LibcRename`
   - directive `gomadLibcMkdir internal/gomadio.LibcMkdir`

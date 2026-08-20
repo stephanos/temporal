@@ -875,11 +875,47 @@ func collectLinknameFindings(pkg CapabilityPackage, compatibilityPackage compati
 		if !present {
 			continue
 		}
+		if builtInSimulationLinknameAllowed(pkg, source) {
+			continue
+		}
 		if decision := selection.Evaluate(compatibilityPackage, fact); !decision.Allowed {
 			findings = append(findings, capabilityFinding(pkg, kind, fact, source, decision))
 		}
 	}
 	return findings
+}
+
+var builtInSimulationLinknames = map[string]CapabilitySource{
+	"runtime_domain.go": {
+		Name: "runtime_domain.go", SHA256: "sha256:8d7f3d9d4fa4f3ad939364e2dc26110fc0cbdff4698ba8f234927e792d5f57af",
+		LinknameDirectives: []string{"gomadSimulationEnabled runtime.gomadDeterministicEnabled", "gomadSimulationBegin internal/gomadsim.Begin", "gomadSimulationRegister internal/gomadsim.Register", "gomadSimulationEnter internal/gomadsim.Enter", "gomadSimulationLeave internal/gomadsim.Leave", "gomadSimulationRevoke internal/gomadsim.Revoke", "gomadSimulationFinish internal/gomadsim.Finish"},
+	},
+	"runtime_network.go": {
+		Name: "runtime_network.go", SHA256: "sha256:2f4c6f740dfe9d10fac2e75e07db096d6e6adef99f1370bc385ccfe7efd77223",
+		LinknameDirectives: []string{"gomadNetworkBegin internal/gomadio.BeginSimulation", "gomadNetworkPartition internal/gomadio.PartitionSimulation", "gomadNetworkHeal internal/gomadio.HealSimulation", "gomadNetworkDelay internal/gomadio.DelaySimulation", "gomadNetworkGroup internal/gomadio.ChangeSimulationGroup", "gomadNetworkRevoke internal/gomadio.RevokeSimulation", "gomadNetworkFinish internal/gomadio.FinishSimulation"},
+	},
+	"runtime_process.go": {
+		Name: "runtime_process.go", SHA256: "sha256:3f5cc7f97fe13f8699503ca2b9654ec3cfaea4c0865699838e2c4adfee507124",
+		LinknameDirectives: []string{"gomadProcessAvailable internal/gomadsim.ProcessAvailable", "gomadProcessRole internal/gomadsim.ProcessRole", "gomadProcessBootstrap internal/gomadsim.ProcessBootstrap", "gomadProcessExchange internal/gomadsim.ProcessExchange", "gomadProcessWaitStop internal/gomadsim.ProcessWaitStop", "gomadProcessServeModel internal/gomadsim.ProcessServeModel"},
+	},
+	"runtime_process_model.go": {
+		Name: "runtime_process_model.go", SHA256: "sha256:d42aab0768800d79393eb23cd8f3e29c47663afcb5694bfc61b2285ddb24e7a4",
+		LinknameDirectives: []string{"gomadProcessNetworkOperation internal/gomadio.ProcessSimulationNetworkOperation"},
+	},
+	"runtime_volume.go": {
+		Name: "runtime_volume.go", SHA256: "sha256:08072b86675fead340e8266d7c1c6d7c027159c3c30573e33b318a68b75de2de",
+		LinknameDirectives: []string{"gomadVolumeBegin internal/gomadfs.BeginSimulationVolumes", "gomadInitializeVolumeFilesystem os.gomadInitializeSimulationFilesystem", "gomadVolumeRegister internal/gomadfs.RegisterSimulationVolumes", "gomadVolumeRevoke internal/gomadfs.RevokeSimulationVolumes", "gomadVolumeEnumerate internal/gomadfs.EnumerateSimulationVolume", "gomadVolumeFinish internal/gomadfs.FinishSimulationVolumes"},
+	},
+}
+
+func builtInSimulationLinknameAllowed(pkg CapabilityPackage, source CapabilitySource) bool {
+	const importPath = "go.temporal.io/server/tools/gomadv3sim"
+	exactPackage := pkg.ImportPath == importPath || pkg.ForTest == importPath && strings.HasPrefix(pkg.ImportPath, importPath+" [")
+	if !exactPackage || pkg.Module == nil || pkg.Module.Path != "go.temporal.io/server" || !pkg.Module.Main || pkg.Module.Replacement != nil || source.MalformedLinkname {
+		return false
+	}
+	want, ok := builtInSimulationLinknames[source.Name]
+	return ok && source.SHA256 == want.SHA256 && slices.Equal(source.LinknameDirectives, want.LinknameDirectives)
 }
 
 func linknameFinding(source CapabilitySource) (compatibility.Fact, CapabilityFindingKind, bool) {

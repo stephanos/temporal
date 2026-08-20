@@ -51,7 +51,7 @@ func Apply(pkg *ir.Package) {
 		return
 	}
 	var selected []spec
-	for _, candidate := range specs {
+	for _, candidate := range append(specs, simulationSpecs...) {
 		if candidate.PackagePath == types.LocalPkg.Path {
 			selected = append(selected, candidate)
 		}
@@ -140,6 +140,15 @@ func validateDeclarationFingerprint(target *ir.Func, candidate spec) error {
 		filename = filepath.FromSlash(buildcfg.GOROOT + filename[len(dollarGOROOT):])
 	}
 	contents, err := os.ReadFile(filename)
+	if err != nil && !filepath.IsAbs(filename) {
+		for _, candidate := range untrimmedFilenames(filename, base.Flag.TrimPath) {
+			contents, err = os.ReadFile(candidate)
+			if err == nil {
+				filename = candidate
+				break
+			}
+		}
+	}
 	if err != nil && buildcfg.GOROOT != "" && !filepath.IsAbs(filename) {
 		filename = filepath.Join(buildcfg.GOROOT, "src", filepath.FromSlash(filename))
 		contents, err = os.ReadFile(filename)
@@ -176,6 +185,31 @@ func validateDeclarationFingerprint(target *ir.Func, candidate spec) error {
 		return fmt.Errorf("got %s, want %s", actual, candidate.DeclarationSHA256)
 	}
 	return nil
+}
+
+func untrimmedFilenames(filename, trimPath string) []string {
+	var candidates []string
+	for _, rewrite := range strings.Split(trimPath, ";") {
+		if rewrite == "" {
+			continue
+		}
+		from, to, mapped := strings.Cut(rewrite, "=>")
+		if !mapped {
+			to = ""
+		}
+		if to == "" {
+			candidates = append(candidates, filepath.Join(from, filepath.FromSlash(filename)))
+			continue
+		}
+		if filename == to {
+			candidates = append(candidates, from)
+			continue
+		}
+		if strings.HasPrefix(filename, to+"/") {
+			candidates = append(candidates, filepath.Join(from, filepath.FromSlash(filename[len(to)+1:])))
+		}
+	}
+	return candidates
 }
 
 func matchesASTReceiver(fields *ast.FieldList, want *receiverSpec) bool {

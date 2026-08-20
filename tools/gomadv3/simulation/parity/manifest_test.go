@@ -42,10 +42,29 @@ func TestCurrentManifest(t *testing.T) {
 		"two-node-request-response",
 	}
 	gotCases := make([]string, 0, len(manifest.Cases))
+	implemented := map[string]struct{}{
+		"different-seed-diversity":            {},
+		"enumerate-crash-states":              {},
+		"file-directory-sync":                 {},
+		"fixed-link-latency":                  {},
+		"graceful-stop-vs-crash-connection":   {},
+		"independent-node-identity-lifecycle": {},
+		"nemesis-partition-restart":           {},
+		"partial-crash-persistence":           {},
+		"partition-timeout-heal-reconnect":    {},
+		"rename-truncate-crash-dependencies":  {},
+		"restart-durable-and-volatile":        {},
+		"same-seed-equality":                  {},
+		"two-node-request-response":           {},
+	}
 	for _, parityCase := range manifest.Cases {
 		gotCases = append(gotCases, parityCase.ID)
-		if parityCase.Status != StatusPlanned {
-			t.Fatalf("case %q status = %q, want %q", parityCase.ID, parityCase.Status, StatusPlanned)
+		wantStatus := StatusPlanned
+		if _, ok := implemented[parityCase.ID]; ok {
+			wantStatus = StatusImplemented
+		}
+		if parityCase.Status != wantStatus {
+			t.Fatalf("case %q status = %q, want %q", parityCase.ID, parityCase.Status, wantStatus)
 		}
 		if parityCase.Disposition == DispositionReplaced && parityCase.Replacement == "" {
 			t.Fatalf("case %q replaces v2 behavior without an explanation", parityCase.ID)
@@ -57,10 +76,118 @@ func TestCurrentManifest(t *testing.T) {
 
 	wantPrototypes := []Prototype{
 		{
+			ID:       "different-seed-diversity",
+			CaseID:   "different-seed-diversity",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestScenarioCompositionSameSeedEqualityAndDifferentSeedDiversity",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "enumerate-crash-states",
+			CaseID:   "enumerate-crash-states",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestVolumeCrashEnumerationRestartAndExactReplay",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "file-directory-sync",
+			CaseID:   "file-directory-sync",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestVolumeFileAndDirectorySyncParity",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "fixed-link-latency",
+			CaseID:   "fixed-link-latency",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestNetworkFixedDelayIsRecordedAndExactlyReplayable",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "graceful-stop-vs-crash-connection",
+			CaseID:   "graceful-stop-vs-crash-connection",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestNetworkGracefulStopReturnsEOFAndCrashResetsConnection",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "independent-node-identity-lifecycle",
+			CaseID:   "independent-node-identity-lifecycle",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestRunProducesExactReplayableLifecycleRecord",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "nemesis-partition-restart",
+			CaseID:   "nemesis-partition-restart",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestFaultPlanPartitionRestartEvidenceAndExactReplay",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "partial-crash-persistence",
+			CaseID:   "partial-crash-persistence",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestVolumeCrashEnumerationRestartAndExactReplay",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "partition-timeout-heal-reconnect",
+			CaseID:   "partition-timeout-heal-reconnect",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestNetworkPartitionTimeoutHealReconnect",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "rename-truncate-crash-dependencies",
+			CaseID:   "rename-truncate-crash-dependencies",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestVolumeRenameAndTruncateCrashDependenciesParity",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
 			ID:       "restart",
 			CaseID:   "restart-durable-and-volatile",
 			Package:  "./tools/gomadv3sim",
 			Test:     "TestPrototypeRestart",
+			Backend:  BackendInProcess,
+			Fidelity: FidelitySimulationModel,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "restart-hard-isolation",
+			CaseID:   "restart-durable-and-volatile",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestProcessBackendResetsGlobalsDescriptorsAndGoroutines",
+			Backend:  BackendProcess,
+			Fidelity: FidelityHardIsolation,
+			Status:   StatusPrototype,
+		},
+		{
+			ID:       "same-seed-equality",
+			CaseID:   "same-seed-equality",
+			Package:  "./tools/gomadv3sim",
+			Test:     "TestScenarioCompositionSameSeedEqualityAndDifferentSeedDiversity",
 			Backend:  BackendInProcess,
 			Fidelity: FidelitySimulationModel,
 			Status:   StatusPrototype,
@@ -182,8 +309,8 @@ func TestDecodeManifestRejectsInvalidInput(t *testing.T) {
 
 	widenedPrototype := manifest
 	widenedPrototype.Prototypes = append([]Prototype(nil), manifest.Prototypes...)
-	widenedPrototype.Prototypes[1].Backend = BackendProcess
-	widenedPrototype.Prototypes[1].Fidelity = FidelityHardIsolation
+	widenedPrototype.Prototypes[0].Backend = BackendProcess
+	widenedPrototype.Prototypes[0].Fidelity = FidelityHardIsolation
 	tests["prototype widens case fidelity"] = encode(widenedPrototype)
 
 	for name, data := range tests {

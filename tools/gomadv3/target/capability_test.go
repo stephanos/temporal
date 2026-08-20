@@ -39,6 +39,23 @@ func TestValidateCapabilityClosureRejectsEscapeCapabilities(t *testing.T) {
 	}
 }
 
+func TestBuiltInSimulationLinknamesRequireExactFirstPartySource(t *testing.T) {
+	want := builtInSimulationLinknames["runtime_domain.go"]
+	pkg := CapabilityPackage{ImportPath: "go.temporal.io/server/tools/gomadv3sim", Module: &CapabilityModule{Path: "go.temporal.io/server", Main: true}}
+	if !builtInSimulationLinknameAllowed(pkg, want) {
+		t.Fatal("exact built-in simulation linkname source was rejected")
+	}
+	changed := want
+	changed.SHA256 = "sha256:" + strings.Repeat("0", 64)
+	if builtInSimulationLinknameAllowed(pkg, changed) {
+		t.Fatal("changed built-in simulation linkname source was accepted")
+	}
+	pkg.Module.Path = "example.com/lookalike"
+	if builtInSimulationLinknameAllowed(pkg, want) {
+		t.Fatal("lookalike simulation package was accepted")
+	}
+}
+
 func TestValidateCapabilityClosureRejectsLinkname(t *testing.T) {
 	directory := t.TempDir()
 	if err := os.WriteFile(filepath.Join(directory, "target.go"), []byte("package target\n\n//go:linkname escape syscall.Syscall\nfunc escape()\n"), 0o600); err != nil {

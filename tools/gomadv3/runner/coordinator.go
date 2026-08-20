@@ -21,6 +21,8 @@ const maximumCoordinatorMessageBytes = 16 << 20
 
 type coordinatorConfig struct {
 	ResumeBatch            string
+	PlanSHA256             evidence.SHA256
+	Shard                  CampaignShard
 	Strategy               Strategy
 	Seeds                  string
 	Parallel               int
@@ -98,7 +100,8 @@ func runIsolated(ctx context.Context, config CampaignSpec) (CampaignResult, erro
 	reserve := min(250*time.Millisecond, max(time.Until(deadline)/5, time.Nanosecond))
 	childTimeout := max(time.Until(deadline)-2*reserve, time.Nanosecond)
 	wire := coordinatorConfig{
-		ResumeBatch: config.ResumeBatch, Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
+		ResumeBatch: config.ResumeBatch, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
+		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
 		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit,
 		MaxRuns: config.MaxRuns, MaxChoiceDepth: config.MaxChoiceDepth, MaxFrontierBytes: config.MaxFrontierBytes, Artifacts: config.Artifacts,
@@ -287,7 +290,8 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 		return fmt.Errorf("trailing coordinator request %v: %w", token, err)
 	}
 	config := CampaignSpec{
-		ResumeBatch: wire.ResumeBatch, Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
+		ResumeBatch: wire.ResumeBatch, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
+		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
 		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit,
 		MaxRuns: wire.MaxRuns, MaxChoiceDepth: wire.MaxChoiceDepth, MaxFrontierBytes: wire.MaxFrontierBytes, Artifacts: wire.Artifacts,

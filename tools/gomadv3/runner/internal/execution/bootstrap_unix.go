@@ -18,8 +18,8 @@ import (
 
 func BootstrapMain() (retErr error) {
 	defer func() {
-		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true}
-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
+		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true, simulation: true, simulationBootstrap: true}
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
 	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
@@ -74,7 +74,7 @@ func BootstrapMain() (retErr error) {
 	if err := syscall.Close(bootstrapActivationFD); err != nil {
 		return errors.Join(fmt.Errorf("close target activation: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
-	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceReplayPlan: request.ChoiceTapeBytes != 0}
+	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
 	if err := installTargetStage(capabilities); err != nil {
 		return err
 	}
@@ -104,6 +104,23 @@ func BootstrapMain() (retErr error) {
 				fmt.Sprintf("%s=%d", choiceTapeBytesEnvironmentName, request.ChoiceTapeBytes),
 			)
 		}
+	}
+	if request.Simulation {
+		request.Env = append(request.Env,
+			simulationRoleEnvironmentName+"="+string(map[bool]SimulationRole{false: SimulationRoleCoordinator, true: SimulationRoleNode}[request.SimulationBootstrap]),
+			fmt.Sprintf("%s=%d", simulationRequestFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationRequestResource)),
+			fmt.Sprintf("%s=%d", simulationResponseFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationResponseResource)),
+		)
+		if request.SimulationBootstrap {
+			request.Env = append(request.Env,
+				fmt.Sprintf("%s=%d", simulationBootstrapFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationBootstrapResource)),
+				fmt.Sprintf("%s=%d", simulationControlFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationControlResource)),
+			)
+		}
+		request.Env = append(request.Env,
+			fmt.Sprintf("%s=%d", simulationModelRequestFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationModelRequestResource)),
+			fmt.Sprintf("%s=%d", simulationModelResponseFDEnvironmentName, descriptorFor(targetStage, capabilities, simulationModelResponseResource)),
+		)
 	}
 	return syscall.Exec(request.Command, argv, request.Env)
 }

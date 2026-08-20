@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -41,11 +42,12 @@ func resumeRequestDefaults(config CampaignSpec) (CampaignSpec, error) {
 		return CampaignSpec{}, fmt.Errorf("resolve resumable batch path: %w", err)
 	}
 	config.ResumeBatch = path
-	plan, err := campaignstore.ReadResumePlan(path)
+	preflight, err := campaignstore.PreflightResume(path)
 	if err != nil {
 		return CampaignSpec{}, err
 	}
-	config.OverallTimeout = time.Duration(plan.OverallTimeoutNanos)
+	config.OverallTimeout = time.Duration(preflight.Plan.OverallTimeoutNanos)
+	config.resumePreflight = &preflight
 	return config, nil
 }
 
@@ -92,7 +94,8 @@ func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) 
 		}
 	}
 	config := CampaignSpec{
-		ResumeBatch: request.ResumeBatch, Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
+		ResumeBatch: request.ResumeBatch, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
+		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
 		MaxRuns: uint64(plan.MaxRuns), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxFrontierBytes: uint64(plan.MaxFrontierBytes),
 		Artifacts: filepath.Dir(filepath.Dir(request.ResumeBatch)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
@@ -112,7 +115,18 @@ func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) 
 		config.Corpus = plan.Guidance.Corpus
 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
 	}
+	if plan.Artifacts != nil {
+		config.failureArtifactLimit = uint64(plan.Artifacts.FailureArtifacts)
+		config.failureBytesLimit = uint64(plan.Artifacts.FailureBytes)
+	}
 	return config, selection, append([]evidence.Environment(nil), plan.Environment...), mounts, prepared, nil
+}
+
+func runnerCampaignShard(shard *campaignstore.CampaignShard) CampaignShard {
+	if shard == nil {
+		return CampaignShard{}
+	}
+	return CampaignShard{Index: uint64(shard.Index), Count: uint64(shard.Count)}
 }
 
 func equalBatchPlans(left, right campaignstore.CampaignPlan) (bool, error) {
@@ -125,11 +139,12 @@ func equalBatchPlans(left, right campaignstore.CampaignPlan) (bool, error) {
 }
 
 type resumeSummaryState struct {
-	summary        CampaignResult
-	distinct       map[evidence.SHA256]string
-	probes         map[string]struct{}
-	choiceFeatures map[string]struct{}
-	completed      map[uint64]struct{}
+	summary              CampaignResult
+	distinct             map[evidence.SHA256]string
+	probes               map[string]struct{}
+	choiceFeatures       map[string]struct{}
+	completed            map[uint64]struct{}
+	failureArtifactBytes uint64
 }
 
 func restoreResumeSummary(batchPath string, selection SeedSelection, runs []campaignstore.ExecutionRecord) (resumeSummaryState, error) {
@@ -172,6 +187,17 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 			}
 			if _, found := state.distinct[*run.FailureSignature]; !found {
 				path := filepath.Join(batchPath, filepath.FromSlash(*run.Artifact))
+				opened, err := evidence.OpenArtifact(path)
+				if err != nil {
+					return resumeSummaryState{}, fmt.Errorf("open resumable failure artifact %d: %w", index+1, err)
+				}
+				if opened.StoredBytes > ^uint64(0)-state.failureArtifactBytes {
+					return resumeSummaryState{}, errors.Join(errors.New("resumable failure artifact bytes overflow"), opened.Close())
+				}
+				state.failureArtifactBytes += opened.StoredBytes
+				if err := opened.Close(); err != nil {
+					return resumeSummaryState{}, fmt.Errorf("close resumable failure artifact %d: %w", index+1, err)
+				}
 				state.distinct[*run.FailureSignature] = path
 				state.summary.Artifacts = append(state.summary.Artifacts, path)
 			}
@@ -180,6 +206,7 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 		}
 	}
 	state.summary.DistinctFailures = uint64(len(state.distinct))
+	state.summary.failureArtifactBytes = state.failureArtifactBytes
 	return state, nil
 }
 

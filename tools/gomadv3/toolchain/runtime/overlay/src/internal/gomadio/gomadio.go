@@ -11,6 +11,7 @@ import (
 	"sync"
 	_ "unsafe"
 
+	"internal/gomadsim"
 	"internal/gomadwire"
 )
 
@@ -48,6 +49,14 @@ func runtimeConfigFrame() *[configBytes]byte
 //go:linkname Enabled
 func Enabled() bool {
 	return enabled
+}
+
+func NetworkEnabled() bool {
+	if enabled || gomadsim.ProcessRole() == 2 {
+		return true
+	}
+	_, _, _, handled := currentSimulationNetwork()
+	return handled
 }
 
 func RandomReader() io.Reader {

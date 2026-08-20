@@ -1,13 +1,17 @@
 package campaignstore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
 )
 
-func acquireResumeLock(path string) (*hostfs.Lock, error) {
+func acquireResumeLock(ctx context.Context, path string) (*hostfs.Lock, error) {
+	if err := observeMutation(ctx, mutationCreate, "resume-lock"); err != nil {
+		return nil, err
+	}
 	lock, err := hostfs.Try(path)
 	switch {
 	case errors.Is(err, hostfs.ErrSymbolicLink):

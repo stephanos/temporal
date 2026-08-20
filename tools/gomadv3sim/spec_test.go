@@ -155,18 +155,16 @@ func TestDecodeSpecAllowsMaximumMountShape(t *testing.T) {
 			Boot:    BootID(fmt.Sprintf("boot-%02d", nodeIndex)),
 			Address: fmt.Sprintf("10.0.0.%d", nodeIndex+1),
 		}
-		for volumeIndex, volume := range spec.Volumes {
-			node.Volumes = append(node.Volumes, VolumeMount{
-				Volume: volume.ID,
-				Path:   fmt.Sprintf("/%02d-%s", volumeIndex, strings.Repeat("a", 1018)),
-			})
-		}
+		node.Volumes = []VolumeMount{{
+			Volume: spec.Volumes[nodeIndex].ID,
+			Path:   fmt.Sprintf("/%02d-%s", nodeIndex, strings.Repeat("a", MaximumMountPathBytes-5)),
+		}}
 		spec.Nodes = append(spec.Nodes, node)
 	}
 	require.NoError(t, ValidateSpec(spec))
 	encoded, err := json.Marshal(spec)
 	require.NoError(t, err)
-	require.Greater(t, len(encoded), 4<<20)
+	require.Greater(t, len(encoded), 256<<10)
 	decoded, err := DecodeSpec(encoded)
 	require.NoError(t, err)
 	require.Equal(t, spec, decoded)
@@ -231,6 +229,71 @@ func TestValidateSpecCapacityErrors(t *testing.T) {
 	}
 }
 
+func TestValidateSpecRejectsInvalidFaultReferences(t *testing.T) {
+	tests := map[string][]FaultAction{
+		"unknown target":     {{ID: "crash", Kind: FaultHarshCrash, Node: "missing", Persistence: FaultPersistencePersisted}},
+		"unknown candidate":  {{ID: "crash", Kind: FaultHarshCrash, Candidates: []NodeID{"client", "missing"}, Persistence: FaultPersistencePersisted}},
+		"unknown match node": {{ID: "disconnect", Kind: FaultDisconnect, Match: FaultMatch{Node: "missing"}, From: "client", To: "server"}},
+		"unknown link node":  {{ID: "disconnect", Kind: FaultDisconnect, From: "client", To: "missing"}},
+		"forward target reference": {
+			{ID: "restart", Kind: FaultRestart, TargetFrom: "crash"},
+			{ID: "crash", Kind: FaultHarshCrash, Node: "server", Persistence: FaultPersistencePersisted},
+		},
+		"non-lifecycle target reference": {
+			{ID: "disconnect", Kind: FaultDisconnect, From: "client", To: "server"},
+			{ID: "restart", Kind: FaultRestart, TargetFrom: "disconnect"},
+		},
+	}
+	for name, actions := range tests {
+		t.Run(name, func(t *testing.T) {
+			plan, err := NewFaultPlan(actions)
+			require.NoError(t, err)
+			spec := validSpec()
+			spec.Faults = &plan
+			require.Error(t, ValidateSpec(spec))
+		})
+	}
+}
+
+func TestValidateSpecRejectsInvalidReplayPlan(t *testing.T) {
+	spec := validSpec()
+	base := testReplayPlan(t, spec)
+	identity, err := replayPlanIdentity(base)
+	require.NoError(t, err)
+	base.Identity = identity
+	valid := cloneSpec(spec)
+	valid.Replay = &base
+	require.NoError(t, ValidateSpec(valid))
+	tests := map[string]func(*ReplayPlan){
+		"schema":        func(plan *ReplayPlan) { plan.Schema = "gomadv3.cluster-replay/v2" },
+		"spec identity": func(plan *ReplayPlan) { plan.SpecSHA256 = "invalid" },
+		"plan identity": func(plan *ReplayPlan) { plan.Identity = "invalid" },
+		"outcome":       func(plan *ReplayPlan) { plan.Outcome = "unknown" },
+		"transition": func(plan *ReplayPlan) {
+			plan.Transitions = []LifecycleTransition{{Action: "unknown"}}
+		},
+		"output": func(plan *ReplayPlan) {
+			plan.Outputs = []OutputObservation{{Handle: NodeHandle{Node: "client", Incarnation: 1}, Stream: "unknown"}}
+		},
+		"leak": func(plan *ReplayPlan) {
+			plan.Leaks = []LeakDiagnostic{{Handle: NodeHandle{Node: "client", Incarnation: 1}, Kind: "unknown"}}
+		},
+	}
+	for name, mutate := range tests {
+		t.Run(name, func(t *testing.T) {
+			plan := cloneReplayPlan(base)
+			mutate(&plan)
+			if name != "plan identity" {
+				plan.Identity, err = replayPlanIdentity(plan)
+				require.NoError(t, err)
+			}
+			candidate := cloneSpec(spec)
+			candidate.Replay = &plan
+			require.Error(t, ValidateSpec(candidate))
+		})
+	}
+}
+
 func TestCapacityErrorSupportsErrorsIs(t *testing.T) {
 	err := &CapacityError{Resource: "nodes", Required: 2, Maximum: 1}
 	require.ErrorIs(t, err, ErrCapacity)
@@ -265,5 +328,14 @@ func cloneSpec(spec Spec) Spec {
 	}
 	cloned.Links = append([]LinkSpec(nil), spec.Links...)
 	cloned.Volumes = append([]VolumeSpec(nil), spec.Volumes...)
+	if spec.Faults != nil {
+		faults := *spec.Faults
+		faults.Actions = cloneFaultActions(faults.Actions)
+		cloned.Faults = &faults
+	}
+	if spec.Replay != nil {
+		replay := cloneReplayPlan(*spec.Replay)
+		cloned.Replay = &replay
+	}
 	return cloned
 }

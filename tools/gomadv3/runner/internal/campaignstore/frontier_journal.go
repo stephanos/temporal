@@ -46,7 +46,12 @@ type frontierAttempt struct {
 	Seed    evidence.Uint64String `json:"seed"`
 }
 
-func NewFrontierJournal(ctx context.Context, batchPath string, initial frontier.State, maximumSegmentBytes uint64) (*FrontierJournal, error) {
+type frontierJournalDirectories struct {
+	frontier string
+	partial  string
+}
+
+func NewFrontierJournal(ctx context.Context, batchPath string, initial frontier.State, maximumSegmentBytes uint64) (_ *FrontierJournal, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -75,12 +80,15 @@ func NewFrontierJournal(ctx context.Context, batchPath string, initial frontier.
 	if providedIdentity != expectedIdentity {
 		return nil, errors.New("frontier journal requires the canonical initial state")
 	}
-	frontierPath := filepath.Join(batchPath, "frontier")
-	for _, directory := range []string{frontierPath, filepath.Join(frontierPath, "rounds"), filepath.Join(batchPath, ".partial"), filepath.Join(batchPath, ".partial", "frontier")} {
-		if err := makePrivateDirectories(directory); err != nil {
-			return nil, err
-		}
+	directories, err := createFrontierJournalDirectories(ctx, batchPath)
+	if err != nil {
+		return nil, err
 	}
+	defer func() {
+		if retErr != nil {
+			retErr = errors.Join(retErr, directories.remove(ctx, batchPath))
+		}
+	}()
 	plan := frontierPlan{
 		Schema: frontierPlanSchema, Config: initial.Config, InitialStateSHA256: expectedIdentity,
 		MaximumSegmentBytes: evidence.Uint64String(maximumSegmentBytes),
@@ -89,19 +97,78 @@ func NewFrontierJournal(ctx context.Context, batchPath string, initial frontier.
 	if err != nil {
 		return nil, err
 	}
-	planPath := filepath.Join(frontierPath, "plan.json")
-	if _, err := os.Lstat(planPath); err == nil {
-		return nil, errors.New("frontier journal already exists")
-	} else if !os.IsNotExist(err) {
-		return nil, err
-	}
+	planPath := filepath.Join(directories.frontier, "plan.json")
 	if err := atomicWriteContext(ctx, planPath, encoded); err != nil {
 		return nil, fmt.Errorf("write frontier plan: %w", err)
 	}
-	if err := syncDirectoryContext(ctx, frontierPath); err != nil {
+	if err := syncDirectoryContext(ctx, directories.frontier); err != nil {
 		return nil, fmt.Errorf("sync frontier plan directory: %w", err)
 	}
 	return &FrontierJournal{ctx: ctx, batchPath: batchPath, state: initial, maximumSegmentBytes: maximumSegmentBytes, chainSHA256: expectedIdentity}, nil
+}
+
+func createFrontierJournalDirectories(ctx context.Context, batchPath string) (_ frontierJournalDirectories, retErr error) {
+	directories := frontierJournalDirectories{
+		frontier: filepath.Join(batchPath, "frontier"),
+		partial:  filepath.Join(batchPath, ".partial", "frontier"),
+	}
+	for _, path := range []string{directories.frontier, directories.partial} {
+		if _, err := os.Lstat(path); err == nil {
+			return frontierJournalDirectories{}, errors.New("frontier journal already exists")
+		} else if !os.IsNotExist(err) {
+			return frontierJournalDirectories{}, err
+		}
+	}
+	frontierOwned := false
+	partialOwned := false
+	defer func() {
+		if retErr == nil {
+			return
+		}
+		if partialOwned {
+			retErr = errors.Join(retErr, removeCompletedPartialContext(ctx, directories.partial, "frontier-journal"))
+			retErr = errors.Join(retErr, syncDirectoryContext(ctx, filepath.Dir(directories.partial)))
+		}
+		if frontierOwned {
+			retErr = errors.Join(retErr, removeCompletedPartialContext(ctx, directories.frontier, "frontier-journal"))
+			retErr = errors.Join(retErr, syncDirectoryContext(ctx, batchPath))
+		}
+	}()
+	if err := observeMutation(ctx, mutationCreate, "frontier-directory"); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	if err := os.Mkdir(directories.frontier, 0o700); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	frontierOwned = true
+	if err := os.Chmod(directories.frontier, 0o700); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	if err := makePrivateDirectoriesContext(ctx, filepath.Join(directories.frontier, "rounds")); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	if err := makePrivateDirectoriesContext(ctx, filepath.Join(batchPath, ".partial")); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	if err := observeMutation(ctx, mutationCreate, "partial-frontier-directory"); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	if err := os.Mkdir(directories.partial, 0o700); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	partialOwned = true
+	if err := os.Chmod(directories.partial, 0o700); err != nil {
+		return frontierJournalDirectories{}, err
+	}
+	return directories, nil
+}
+
+func (directories frontierJournalDirectories) remove(ctx context.Context, batchPath string) error {
+	var result error
+	result = errors.Join(result, removeCompletedPartialContext(ctx, directories.partial, "frontier-journal"))
+	result = errors.Join(result, syncDirectoryContext(ctx, filepath.Dir(directories.partial)))
+	result = errors.Join(result, removeCompletedPartialContext(ctx, directories.frontier, "frontier-journal"))
+	return errors.Join(result, syncDirectoryContext(ctx, batchPath))
 }
 
 func ResumeFrontierJournal(ctx context.Context, batchPath string, config frontier.Config, maximumSegmentBytes uint64) (*FrontierJournal, frontier.State, uint64, error) {
@@ -197,7 +264,7 @@ func ResumeFrontierJournal(ctx context.Context, batchPath string, config frontie
 		}
 		journalRuns = append(journalRuns, roundRuns...)
 	}
-	recoveryExecutions, err := archiveIncompleteFrontier(batchPath, state, config.MaxFrontierBytes)
+	recoveryExecutions, err := archiveIncompleteFrontier(ctx, batchPath, state, config.MaxFrontierBytes)
 	if err != nil {
 		return nil, frontier.State{}, 0, err
 	}
@@ -209,7 +276,7 @@ func (journal *FrontierJournal) State() frontier.State {
 	return journal.state
 }
 
-func (journal *FrontierJournal) StageRound(round frontier.Round) (*FrontierRoundJournal, error) {
+func (journal *FrontierJournal) StageRound(round frontier.Round) (_ *FrontierRoundJournal, retErr error) {
 	if journal == nil {
 		return nil, errors.New("frontier journal is required")
 	}
@@ -227,13 +294,27 @@ func (journal *FrontierJournal) StageRound(round frontier.Round) (*FrontierRound
 	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
-	if err := makePrivateDirectories(path); err != nil {
+	if err := observeMutation(journal.ctx, mutationCreate, "frontier-round-directory"); err != nil {
 		return nil, err
 	}
-	if err := makePrivateDirectories(filepath.Join(path, "candidates")); err != nil {
+	if err := os.Mkdir(path, 0o700); err != nil {
 		return nil, err
 	}
-	if err := makePrivateDirectories(filepath.Join(path, "attempts")); err != nil {
+	owned := true
+	defer func() {
+		if retErr == nil || !owned {
+			return
+		}
+		retErr = errors.Join(retErr, removeCompletedPartialContext(journal.ctx, path, "frontier-round"))
+		retErr = errors.Join(retErr, syncDirectoryContext(journal.ctx, filepath.Dir(path)))
+	}()
+	if err := os.Chmod(path, 0o700); err != nil {
+		return nil, err
+	}
+	if err := makePrivateDirectoriesContext(journal.ctx, filepath.Join(path, "candidates")); err != nil {
+		return nil, err
+	}
+	if err := makePrivateDirectoriesContext(journal.ctx, filepath.Join(path, "attempts")); err != nil {
 		return nil, err
 	}
 	encoded, err := evidence.CanonicalJSON(round)
@@ -249,6 +330,7 @@ func (journal *FrontierJournal) StageRound(round frontier.Round) (*FrontierRound
 	if err := syncDirectoryContext(journal.ctx, path); err != nil {
 		return nil, fmt.Errorf("sync staged frontier round: %w", err)
 	}
+	owned = false
 	return &FrontierRoundJournal{journal: journal, path: path, index: round.Index, runs: make([]ExecutionRecord, len(round.Candidates)), runSet: make([]bool, len(round.Candidates))}, nil
 }
 
@@ -260,7 +342,7 @@ func (staged *FrontierRoundJournal) RecordExecution(index int, run ExecutionReco
 		return errors.New("frontier run record is already staged")
 	}
 	path := filepath.Join(staged.path, "runs")
-	if err := makePrivateDirectories(path); err != nil {
+	if err := makePrivateDirectoriesContext(staged.journal.ctx, path); err != nil {
 		return err
 	}
 	encoded, err := evidence.CanonicalJSON(run)
@@ -299,10 +381,10 @@ func (journal *FrontierJournal) CommitRound(staged *FrontierRoundJournal, segmen
 	if slices.Contains(staged.runSet, true) && slices.Contains(staged.runSet, false) {
 		return errors.New("frontier round run records are incomplete")
 	}
-	if err := os.Remove(filepath.Join(staged.path, "candidates")); err != nil && !os.IsNotExist(err) {
+	if err := removeCompletedPartialContext(journal.ctx, filepath.Join(staged.path, "candidates"), "frontier-candidate-work"); err != nil {
 		return fmt.Errorf("remove completed frontier candidate work: %w", err)
 	}
-	if err := os.RemoveAll(filepath.Join(staged.path, "attempts")); err != nil {
+	if err := removeCompletedPartialContext(journal.ctx, filepath.Join(staged.path, "attempts"), "frontier-attempts"); err != nil {
 		return fmt.Errorf("remove completed frontier attempt records: %w", err)
 	}
 	if err := syncDirectoryContext(journal.ctx, staged.path); err != nil {
@@ -314,7 +396,7 @@ func (journal *FrontierJournal) CommitRound(staged *FrontierRoundJournal, segmen
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	if err := os.Rename(staged.path, finalPath); err != nil {
+	if err := renameContext(journal.ctx, staged.path, finalPath, "frontier-publish"); err != nil {
 		return fmt.Errorf("publish frontier segment: %w", err)
 	}
 	if err := syncDirectoryContext(journal.ctx, filepath.Dir(finalPath)); err != nil {
@@ -453,20 +535,20 @@ func (staged *FrontierRoundJournal) BeginExecution(ordinal, seed uint64) (*Execu
 		return nil, fmt.Errorf("record frontier candidate attempt: %w", err)
 	}
 	path := filepath.Join(staged.path, "candidates", fmt.Sprintf("%020d", ordinal))
-	if err := makePrivateDirectories(path); err != nil {
+	if err := makePrivateDirectoriesContext(staged.journal.ctx, path); err != nil {
 		return nil, err
 	}
-	run := &ExecutionJournal{path: path, ordinal: ordinal, seed: seed, state: ExecutionStaging}
+	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: ExecutionStaging}
 	if err := run.writeState(ExecutionStaging); err != nil {
 		return run, err
 	}
-	if err := makePrivateDirectories(run.WorkPath()); err != nil {
+	if err := makePrivateDirectoriesContext(staged.journal.ctx, run.WorkPath()); err != nil {
 		return run, err
 	}
 	return run, nil
 }
 
-func archiveIncompleteFrontier(batchPath string, state frontier.State, maximumRoundBytes uint64) (uint64, error) {
+func archiveIncompleteFrontier(ctx context.Context, batchPath string, state frontier.State, maximumRoundBytes uint64) (uint64, error) {
 	partialRoot := filepath.Join(batchPath, ".partial")
 	frontierRoot := filepath.Join(partialRoot, "frontier")
 	if err := validatePrivateDirectory(frontierRoot, "partial frontier"); err != nil {
@@ -506,12 +588,12 @@ func archiveIncompleteFrontier(batchPath string, state frontier.State, maximumRo
 	if !ok || !equal {
 		return 0, errors.New("partial frontier round does not match committed state")
 	}
-	attempts, err := countFrontierAttempts(path, state, round)
+	attempts, err := countFrontierAttempts(path, state, round, maximumRoundBytes)
 	if err != nil {
 		return 0, err
 	}
 	resumeRoot := filepath.Join(partialRoot, "resume")
-	if err := makePrivateDirectories(resumeRoot); err != nil {
+	if err := makePrivateDirectoriesContext(ctx, resumeRoot); err != nil {
 		return 0, err
 	}
 	attempt, err := nextResumeAttempt(resumeRoot)
@@ -519,20 +601,36 @@ func archiveIncompleteFrontier(batchPath string, state frontier.State, maximumRo
 		return 0, err
 	}
 	destinationRoot := filepath.Join(resumeRoot, fmt.Sprintf("%06d", attempt), "partials", "frontier")
-	if err := makePrivateDirectories(destinationRoot); err != nil {
+	if err := makePrivateDirectoriesContext(ctx, destinationRoot); err != nil {
 		return 0, err
 	}
-	if err := os.Rename(path, filepath.Join(destinationRoot, entry.Name())); err != nil {
+	if err := renameContext(ctx, path, filepath.Join(destinationRoot, entry.Name()), "frontier-archive"); err != nil {
 		return 0, fmt.Errorf("archive partial frontier round: %w", err)
 	}
-	if err := syncDirectory(partialRoot); err != nil {
+	if err := syncDirectoryContext(ctx, partialRoot); err != nil {
 		return 0, fmt.Errorf("sync partial frontier archive: %w", err)
 	}
 	return attempts, nil
 }
 
-func countFrontierAttempts(roundPath string, state frontier.State, round frontier.Round) (uint64, error) {
+func countFrontierAttempts(roundPath string, state frontier.State, round frontier.Round, maximumRoundBytes uint64) (uint64, error) {
 	attemptsPath := filepath.Join(roundPath, "attempts")
+	if _, err := os.Lstat(attemptsPath); os.IsNotExist(err) {
+		segmentBytes, err := readFrontierFile(filepath.Join(roundPath, "segment.json"), maximumRoundBytes)
+		if err != nil {
+			return 0, fmt.Errorf("read cleaned partial frontier segment: %w", err)
+		}
+		var segment frontier.RoundSegment
+		if err := evidence.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
+			return 0, fmt.Errorf("decode cleaned partial frontier segment: %w", err)
+		}
+		if _, err := frontier.ReplaySegment(state, segment); err != nil || len(segment.Results) != len(round.Candidates) {
+			return 0, errors.Join(errors.New("cleaned partial frontier segment is invalid"), err)
+		}
+		return uint64(len(round.Candidates)), nil
+	} else if err != nil {
+		return 0, err
+	}
 	if err := validatePrivateDirectory(attemptsPath, "partial frontier attempts"); err != nil {
 		return 0, err
 	}

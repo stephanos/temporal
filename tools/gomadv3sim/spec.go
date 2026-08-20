@@ -15,15 +15,31 @@ import (
 )
 
 const (
-	MaximumNodes               uint64 = 64
-	MaximumDirectionalLinks    uint64 = 4096
-	MaximumVolumes             uint64 = 64
-	MaximumScenarioActions     uint64 = 4096
-	MaximumBootConfigBytes     uint64 = 1 << 20
-	MaximumVolumeCapacityBytes uint64 = 1 << 30
-	MaximumObservationBytes    uint64 = 64 << 20
-	MaximumSpecJSONBytes              = 128 << 20
-	MaximumMountPathBytes             = 4096
+	MaximumNodes                 uint64 = 64
+	MaximumDirectionalLinks      uint64 = 4096
+	MaximumVolumes               uint64 = 64
+	MaximumScenarioActions       uint64 = 4096
+	MaximumScenarioDecisions     uint64 = 4096
+	MaximumHistoryOperations     uint64 = 1 << 16
+	MaximumObservations          uint64 = 1 << 16
+	MaximumOracleResults         uint64 = 4096
+	MaximumScenarioEvidenceBytes uint64 = 64 << 20
+	MaximumBootConfigBytes       uint64 = 1 << 20
+	MaximumVolumeCapacityBytes   uint64 = 1 << 30
+	MaximumObservationBytes      uint64 = 64 << 20
+	MaximumNetworkListeners      uint64 = 4096
+	MaximumNetworkConnections    uint64 = 65536
+	MaximumNetworkDeliveries     uint64 = 65536
+	MaximumNetworkBytes          uint64 = 1 << 30
+	MaximumNetworkTransitions    uint64 = 1 << 20
+	MaximumVolumeOperations      uint64 = 1 << 20
+	MaximumVolumeTransitions     uint64 = 1 << 20
+	MaximumCrashStates           uint64 = 1 << 16
+	MaximumCrashDepth            uint64 = 256
+	MaximumCrashBytes            uint64 = 128 << 20
+	MaximumCrashWallNanos        uint64 = 60_000_000_000
+	MaximumSpecJSONBytes                = 128 << 20
+	MaximumMountPathBytes               = 4096
 )
 
 var ErrCapacity = errors.New("simulation capacity exhausted")
@@ -45,13 +61,30 @@ func (err *CapacityError) Unwrap() error {
 }
 
 type Limits struct {
-	Nodes               uint64 `json:"nodes"`
-	DirectionalLinks    uint64 `json:"directional_links"`
-	Volumes             uint64 `json:"volumes"`
-	ScenarioActions     uint64 `json:"scenario_actions"`
-	BootConfigBytes     uint64 `json:"boot_config_bytes"`
-	VolumeCapacityBytes uint64 `json:"volume_capacity_bytes"`
-	ObservationBytes    uint64 `json:"observation_bytes"`
+	Nodes                 uint64 `json:"nodes"`
+	DirectionalLinks      uint64 `json:"directional_links"`
+	Volumes               uint64 `json:"volumes"`
+	ScenarioActions       uint64 `json:"scenario_actions"`
+	ScenarioDecisions     uint64 `json:"scenario_decisions"`
+	FaultActions          uint64 `json:"fault_actions"`
+	HistoryOperations     uint64 `json:"history_operations"`
+	Observations          uint64 `json:"observations"`
+	OracleResults         uint64 `json:"oracle_results"`
+	ScenarioEvidenceBytes uint64 `json:"scenario_evidence_bytes"`
+	BootConfigBytes       uint64 `json:"boot_config_bytes"`
+	VolumeCapacityBytes   uint64 `json:"volume_capacity_bytes"`
+	ObservationBytes      uint64 `json:"observation_bytes"`
+	NetworkListeners      uint64 `json:"network_listeners"`
+	NetworkConnections    uint64 `json:"network_connections"`
+	NetworkDeliveries     uint64 `json:"network_deliveries"`
+	NetworkBytes          uint64 `json:"network_bytes"`
+	NetworkTransitions    uint64 `json:"network_transitions"`
+	VolumeOperations      uint64 `json:"volume_operations"`
+	VolumeTransitions     uint64 `json:"volume_transitions"`
+	CrashStates           uint64 `json:"crash_states"`
+	CrashDepth            uint64 `json:"crash_depth"`
+	CrashBytes            uint64 `json:"crash_bytes"`
+	CrashWallNanos        uint64 `json:"crash_wall_nanos"`
 }
 
 type Spec struct {
@@ -63,6 +96,8 @@ type Spec struct {
 	Nodes    []NodeSpec   `json:"nodes"`
 	Links    []LinkSpec   `json:"links,omitempty"`
 	Volumes  []VolumeSpec `json:"volumes,omitempty"`
+	Faults   *FaultPlan   `json:"faults,omitempty"`
+	Replay   *ReplayPlan  `json:"replay,omitempty"`
 }
 
 type NodeSpec struct {
@@ -92,13 +127,30 @@ type VolumeMount struct {
 
 func DefaultLimits() Limits {
 	return Limits{
-		Nodes:               MaximumNodes,
-		DirectionalLinks:    MaximumDirectionalLinks,
-		Volumes:             MaximumVolumes,
-		ScenarioActions:     MaximumScenarioActions,
-		BootConfigBytes:     MaximumBootConfigBytes,
-		VolumeCapacityBytes: MaximumVolumeCapacityBytes,
-		ObservationBytes:    MaximumObservationBytes,
+		Nodes:                 MaximumNodes,
+		DirectionalLinks:      MaximumDirectionalLinks,
+		Volumes:               MaximumVolumes,
+		ScenarioActions:       MaximumScenarioActions,
+		ScenarioDecisions:     MaximumScenarioDecisions,
+		FaultActions:          MaximumFaultActions,
+		HistoryOperations:     MaximumHistoryOperations,
+		Observations:          MaximumObservations,
+		OracleResults:         MaximumOracleResults,
+		ScenarioEvidenceBytes: MaximumScenarioEvidenceBytes,
+		BootConfigBytes:       MaximumBootConfigBytes,
+		VolumeCapacityBytes:   MaximumVolumeCapacityBytes,
+		ObservationBytes:      MaximumObservationBytes,
+		NetworkListeners:      MaximumNetworkListeners,
+		NetworkConnections:    MaximumNetworkConnections,
+		NetworkDeliveries:     MaximumNetworkDeliveries,
+		NetworkBytes:          MaximumNetworkBytes,
+		NetworkTransitions:    MaximumNetworkTransitions,
+		VolumeOperations:      MaximumVolumeOperations,
+		VolumeTransitions:     MaximumVolumeTransitions,
+		CrashStates:           MaximumCrashStates,
+		CrashDepth:            MaximumCrashDepth,
+		CrashBytes:            MaximumCrashBytes,
+		CrashWallNanos:        MaximumCrashWallNanos,
 	}
 }
 
@@ -168,6 +220,19 @@ func ValidateSpec(spec Spec) error {
 	if len(spec.Nodes) == 0 {
 		return errors.New("simulation spec must contain at least one node")
 	}
+	if spec.Replay != nil {
+		if err := validateReplayPlan(*spec.Replay, spec); err != nil {
+			return err
+		}
+	}
+	if spec.Faults != nil {
+		if err := validateFaultPlan(*spec.Faults); err != nil {
+			return err
+		}
+		if err := checkCapacity("fault_actions", uint64(len(spec.Faults.Actions)), spec.Limits.FaultActions); err != nil {
+			return err
+		}
+	}
 
 	volumes, err := validateVolumes(spec.Volumes, spec.Limits.VolumeCapacityBytes)
 	if err != nil {
@@ -177,7 +242,55 @@ func ValidateSpec(spec Spec) error {
 	if err != nil {
 		return err
 	}
-	return validateLinks(spec.Links, nodes)
+	if err := validateLinks(spec.Links, nodes); err != nil {
+		return err
+	}
+	return validateFaultReferences(spec.Faults, nodes)
+}
+
+func validateFaultReferences(plan *FaultPlan, nodes map[NodeID]struct{}) error {
+	if plan == nil {
+		return nil
+	}
+	prior := make(map[FaultID]FaultAction, len(plan.Actions))
+	for _, action := range plan.Actions {
+		checkNode := func(node NodeID) error {
+			if _, ok := nodes[node]; !ok {
+				return fmt.Errorf("fault %q refers to unknown node %q", action.ID, node)
+			}
+			return nil
+		}
+		if action.Node != "" {
+			if err := checkNode(action.Node); err != nil {
+				return err
+			}
+		}
+		for _, node := range action.Candidates {
+			if err := checkNode(node); err != nil {
+				return err
+			}
+		}
+		for _, node := range append(append(append([]NodeID(nil), action.Left...), action.Right...), action.From, action.To) {
+			if node != "" {
+				if err := checkNode(node); err != nil {
+					return err
+				}
+			}
+		}
+		if action.Match.Node != "" {
+			if err := checkNode(action.Match.Node); err != nil {
+				return err
+			}
+		}
+		if action.TargetFrom != "" {
+			referenced, ok := prior[action.TargetFrom]
+			if !ok || referenced.Kind != FaultGracefulStop && referenced.Kind != FaultHarshCrash && referenced.Kind != FaultRestart {
+				return fmt.Errorf("fault %q has invalid prior target reference %q", action.ID, action.TargetFrom)
+			}
+		}
+		prior[action.ID] = action
+	}
+	return nil
 }
 
 func validateLimits(limits Limits) error {
@@ -190,9 +303,26 @@ func validateLimits(limits Limits) error {
 		{name: "directional_links", value: limits.DirectionalLinks, maximum: MaximumDirectionalLinks},
 		{name: "volumes", value: limits.Volumes, maximum: MaximumVolumes},
 		{name: "scenario_actions", value: limits.ScenarioActions, maximum: MaximumScenarioActions},
+		{name: "scenario_decisions", value: limits.ScenarioDecisions, maximum: MaximumScenarioDecisions},
+		{name: "fault_actions", value: limits.FaultActions, maximum: MaximumFaultActions},
+		{name: "history_operations", value: limits.HistoryOperations, maximum: MaximumHistoryOperations},
+		{name: "observations", value: limits.Observations, maximum: MaximumObservations},
+		{name: "oracle_results", value: limits.OracleResults, maximum: MaximumOracleResults},
+		{name: "scenario_evidence_bytes", value: limits.ScenarioEvidenceBytes, maximum: MaximumScenarioEvidenceBytes},
 		{name: "boot_config_bytes", value: limits.BootConfigBytes, maximum: MaximumBootConfigBytes},
 		{name: "volume_capacity_bytes", value: limits.VolumeCapacityBytes, maximum: MaximumVolumeCapacityBytes},
 		{name: "observation_bytes", value: limits.ObservationBytes, maximum: MaximumObservationBytes},
+		{name: "network_listeners", value: limits.NetworkListeners, maximum: MaximumNetworkListeners},
+		{name: "network_connections", value: limits.NetworkConnections, maximum: MaximumNetworkConnections},
+		{name: "network_deliveries", value: limits.NetworkDeliveries, maximum: MaximumNetworkDeliveries},
+		{name: "network_bytes", value: limits.NetworkBytes, maximum: MaximumNetworkBytes},
+		{name: "network_transitions", value: limits.NetworkTransitions, maximum: MaximumNetworkTransitions},
+		{name: "volume_operations", value: limits.VolumeOperations, maximum: MaximumVolumeOperations},
+		{name: "volume_transitions", value: limits.VolumeTransitions, maximum: MaximumVolumeTransitions},
+		{name: "crash_states", value: limits.CrashStates, maximum: MaximumCrashStates},
+		{name: "crash_depth", value: limits.CrashDepth, maximum: MaximumCrashDepth},
+		{name: "crash_bytes", value: limits.CrashBytes, maximum: MaximumCrashBytes},
+		{name: "crash_wall_nanos", value: limits.CrashWallNanos, maximum: MaximumCrashWallNanos},
 	}
 	for _, limit := range configured {
 		if limit.value == 0 || limit.value > limit.maximum {
@@ -229,6 +359,7 @@ func validateVolumes(specs []VolumeSpec, maximumBytes uint64) (map[VolumeID]stru
 func validateNodes(specs []NodeSpec, volumes map[VolumeID]struct{}, maximumConfigBytes uint64) (map[NodeID]struct{}, error) {
 	nodes := make(map[NodeID]struct{}, len(specs))
 	addresses := make(map[netip.Addr]NodeID, len(specs))
+	volumeOwners := make(map[VolumeID]NodeID, len(volumes))
 	var configBytes uint64
 	var previous NodeID
 	for _, spec := range specs {
@@ -248,7 +379,7 @@ func validateNodes(specs []NodeSpec, volumes map[VolumeID]struct{}, maximumConfi
 		if owner, ok := addresses[address]; ok {
 			return nil, fmt.Errorf("nodes %q and %q share address %q", owner, spec.ID, address)
 		}
-		if err := validateMounts(spec.ID, spec.Volumes, volumes); err != nil {
+		if err := validateMounts(spec.ID, spec.Volumes, volumes, volumeOwners); err != nil {
 			return nil, err
 		}
 		configBytes = saturatingAdd(configBytes, uint64(len(spec.Config)))
@@ -259,10 +390,13 @@ func validateNodes(specs []NodeSpec, volumes map[VolumeID]struct{}, maximumConfi
 		addresses[address] = spec.ID
 		previous = spec.ID
 	}
+	if len(volumeOwners) != len(volumes) {
+		return nil, errors.New("every simulation volume must be mounted by exactly one node")
+	}
 	return nodes, nil
 }
 
-func validateMounts(nodeID NodeID, mounts []VolumeMount, volumes map[VolumeID]struct{}) error {
+func validateMounts(nodeID NodeID, mounts []VolumeMount, volumes map[VolumeID]struct{}, owners map[VolumeID]NodeID) error {
 	seenVolumes := make(map[VolumeID]struct{}, len(mounts))
 	previousPath := ""
 	for _, mount := range mounts {
@@ -278,7 +412,11 @@ func validateMounts(nodeID NodeID, mounts []VolumeMount, volumes map[VolumeID]st
 		if _, ok := seenVolumes[mount.Volume]; ok {
 			return fmt.Errorf("node %q mounts volume %q more than once", nodeID, mount.Volume)
 		}
+		if owner := owners[mount.Volume]; owner != "" {
+			return fmt.Errorf("nodes %q and %q both mount per-node volume %q", owner, nodeID, mount.Volume)
+		}
 		seenVolumes[mount.Volume] = struct{}{}
+		owners[mount.Volume] = nodeID
 		previousPath = mount.Path
 	}
 	return nil

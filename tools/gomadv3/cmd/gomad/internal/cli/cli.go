@@ -22,6 +22,9 @@ import (
 )
 
 const usage = `usage:
+  gomad plan [flags] --output FILE (exec --provenance FILE -- BINARY [ARG ...] | go-run PACKAGE -- [ARG ...] | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad run-shard [--json] [--artifacts DIR] [--toolchain-root DIR] --shard INDEX/COUNT CAMPAIGN_PLAN
+  gomad merge [--json] [--partial] --output DIR CAMPAIGN_PLAN SHARD_BATCH...
   gomad explore [flags] exec --provenance FILE -- BINARY [ARG ...]
   gomad explore [flags] go-run PACKAGE -- [ARG ...]
   gomad explore [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
@@ -32,6 +35,7 @@ const usage = `usage:
   gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
   gomad analyze [--format=text|json] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
+  gomad recover [--json] INTERRUPTED_BATCH
   gomad replay [--verify-only] ARTIFACT_DIR
   gomad doctor [--artifacts DIR] [--json]
   gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
@@ -99,6 +103,12 @@ func Run(arguments []string, stdout, stderr io.Writer) int {
 		return 0
 	case "explore":
 		return runExplore(arguments[1:], stdout, stderr)
+	case "plan":
+		return runPlan(arguments[1:], stdout, stderr)
+	case "run-shard":
+		return runCampaignShard(arguments[1:], stdout, stderr)
+	case "merge":
+		return runMergeCampaigns(arguments[1:], stdout, stderr)
 	case "qualify":
 		return runQualify(arguments[1:], stdout, stderr)
 	case "qualify-set":
@@ -109,6 +119,8 @@ func Run(arguments []string, stdout, stderr io.Writer) int {
 		return runAnalyze(arguments[1:], stdout, stderr)
 	case "resume":
 		return runResume(arguments[1:], stdout, stderr)
+	case "recover":
+		return runRecover(arguments[1:], stdout, stderr)
 	case "replay":
 		return runReplay(arguments[1:], stdout, stderr)
 	case "doctor":
@@ -135,61 +147,125 @@ func runInspect(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if flags.NArg() != 1 {
-		fmt.Fprint(stderr, usage)
+		if _, err := fmt.Fprint(stderr, usage); err != nil {
+			return 3
+		}
 		return 2
 	}
 	report, err := runner.Inspect(flags.Arg(0), runner.InspectOptions{Choices: *choices})
 	if err != nil {
-		fmt.Fprintf(stderr, "inspect %s: %v\n", flags.Arg(0), err)
+		if _, writeErr := fmt.Fprintf(stderr, "inspect %s: %v\n", flags.Arg(0), err); writeErr != nil {
+			return 3
+		}
 		return 2
 	}
 	if *jsonOutput {
 		encoded, marshalErr := json.Marshal(report)
 		if marshalErr != nil {
-			fmt.Fprintf(stderr, "encode inspection report: %v\n", marshalErr)
+			if _, writeErr := fmt.Fprintf(stderr, "encode inspection report: %v\n", marshalErr); writeErr != nil {
+				return 3
+			}
 			return 3
 		}
-		fmt.Fprintf(stdout, "%s\n", encoded)
+		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
+			return 3
+		}
 		return 0
 	}
-	printInspection(stdout, report)
+	if err := printInspection(stdout, report); err != nil {
+		if _, writeErr := fmt.Fprintf(stderr, "write inspection report: %v\n", err); writeErr != nil {
+			return 3
+		}
+		return 3
+	}
 	return 0
 }
 
-func printInspection(output io.Writer, report runner.Inspection) {
-	fmt.Fprintf(output, "gomad inspect: kind=%s path=%s\n", report.Kind, report.Path)
-	if inspected := report.Artifact; inspected != nil {
-		fmt.Fprintf(output, "identity: record=%s batch=%s ordinal=%d seed=%d toolchain=%s runner=%s\n", inspected.RecordHash, inspected.CampaignID, inspected.SelectionOrdinal, inspected.Seed, inspected.Toolchain.BuildKey, inspected.Runner.RunnerBuild)
-		fmt.Fprintf(output, "target: kind=%s source=%s sha256=%s size=%d argv=%q tags=%q\n", inspected.Target.Kind, inspected.Target.Source, inspected.Target.SHA256, inspected.Target.Size, inspected.Target.Argv, inspected.Target.BuildTags)
-		fmt.Fprintf(output, "outcome: domain=%s reason=%s termination=%s signature=%s replay-match=%s\n", inspected.Outcome.Domain, inspected.Outcome.Reason, inspected.Outcome.Termination, inspected.Outcome.FailureSignature, optionalBool(inspected.Outcome.ReplayMatch))
-		if inspected.FirstDivergence != "" {
-			fmt.Fprintf(output, "first-divergence: %s\n", inspected.FirstDivergence)
-		}
-		if transcript := inspected.Transcript; transcript != nil {
-			fmt.Fprintf(output, "transcript: records=%d bytes=%d sha256=%s\n", transcript.Records, transcript.Bytes, transcript.SHA256)
-		} else {
-			fmt.Fprintln(output, "transcript: none")
-		}
-		if choices := inspected.Choices; choices != nil {
-			fmt.Fprintf(output, "choices: profile=%s records=%d decisions=%d branching=%d bytes=%d limit=%d sha256=%s tape-sha256=%s exact-replay=%t terminal=%s runnable=%d select-poll=%d select-result=%d\n", choices.Profile, choices.Records, choices.Decisions, choices.BranchingRecords, choices.PayloadBytes, choices.Limit, choices.SHA256, choices.TapeSHA256, choices.ExactReplayAvailable, choices.TerminalState, choices.Runnable, choices.SelectPoll, choices.SelectResult)
-			for _, site := range choices.Sites {
-				fmt.Fprintf(output, "choice-site: kind=%s fingerprint=%s count=%d max-alternatives=%d\n", site.Kind, site.Fingerprint, site.Count, site.MaximumAlternatives)
-			}
-		}
-		if mounts := inspected.CapturedMounts; mounts != nil {
-			fmt.Fprintf(output, "captured-mounts: mappings=%q entries=%d missing=%d bytes=%d\n", mounts.Mappings, mounts.Entries, mounts.NotExist, mounts.TotalBytes)
-		} else {
-			fmt.Fprintln(output, "captured-mounts: none")
-		}
-		fmt.Fprintf(output, "stdout: bytes=%d retained=%d discarded=%d truncated=%t sha256=%s\n", inspected.Stdout.TotalBytes, inspected.Stdout.RetainedBytes, inspected.Stdout.DiscardedBytes, inspected.Stdout.Truncated, inspected.Stdout.FullSHA256)
-		fmt.Fprintf(output, "stderr: bytes=%d retained=%d discarded=%d truncated=%t sha256=%s\n", inspected.Stderr.TotalBytes, inspected.Stderr.RetainedBytes, inspected.Stderr.DiscardedBytes, inspected.Stderr.Truncated, inspected.Stderr.FullSHA256)
-		fmt.Fprintf(output, "replay: %s\n", inspected.ReplayCommand)
+type inspectionPrinter struct {
+	output io.Writer
+	err    error
+}
+
+func (printer *inspectionPrinter) printf(format string, arguments ...any) {
+	if printer.err != nil {
 		return
 	}
-	batch := report.Campaign
-	fmt.Fprintf(output, "batch: id=%s strategy=%s selection=%s selected=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s runs=%s\n", batch.CampaignID, batch.Strategy, batch.Selection, batch.SelectionCount, batch.Attempted, batch.Succeeded, batch.Failures, batch.Watchdogs, batch.Cancelled, batch.DistinctFailures, batch.RetainedSuccesses, batch.RetainedSuccessBytes, batch.StopReason, batch.RunsSHA256)
+	_, printer.err = fmt.Fprintf(printer.output, format, arguments...)
+}
+
+func printInspection(output io.Writer, report runner.Inspection) error {
+	printer := &inspectionPrinter{output: output}
+	printer.printf("gomad inspect: kind=%s path=%s\n", report.Kind, report.Path)
+	if plan := report.Plan; plan != nil {
+		printer.printf("campaign-plan: sha256=%s bundle=%s mapping=%s strategy=%s selection=%s selected=%d parallel=%d runner=%s toolchain=%s target=%s/%d mounts=%d mount-sha256=%s journal-max-runs=%d journal-max-bytes=%d artifact-max-bytes=%d\n", plan.SHA256, plan.BundlePath, plan.Mapping, plan.Strategy, plan.Selection, plan.SelectionCount, plan.Parallel, plan.RunnerBuild, plan.Toolchain.BuildKey, plan.Target.SHA256, plan.Target.Size, len(plan.ReadOnlyMounts), plan.MountSHA256, plan.Journal.MaximumRuns, plan.Journal.MaximumBytes, plan.ArtifactCapacity.TotalBytes)
+		return printer.err
+	}
+	if inspected := report.Artifact; inspected != nil {
+		printArtifactInspection(printer, inspected)
+		return printer.err
+	}
+	if merged := report.Merged; merged != nil {
+		printer.printf("merged-batch: plan=%s partial=%t selection=%s selected=%d shards=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-evidence=%d evidence-bytes=%d journal-segments=%d journal-bytes=%d missing=%s\n", merged.PlanSHA256, merged.Partial, merged.Selection, merged.SelectionCount, merged.Shards, merged.Attempted, merged.Succeeded, merged.Failures, merged.Watchdogs, merged.Cancelled, merged.DistinctFailures, merged.RetainedEvidence, merged.EvidenceBytes, merged.JournalSegments, merged.JournalBytes, formatMissingOrdinals(merged.Missing))
+		for _, source := range merged.SourceCampaignIDs {
+			printer.printf("source-batch: %s\n", source)
+		}
+		for _, identity := range merged.EvidenceIdentities {
+			printer.printf("evidence: %s\n", identity)
+		}
+		return printer.err
+	}
+	if lifecycle := report.Lifecycle; lifecycle != nil {
+		printer.printf("lifecycle: state=%s stable=%s published=%t resumable=%t repairable=%t action=%s reason=%s\n", lifecycle.State, lifecycle.LastStableState, lifecycle.Published, lifecycle.Resumable, lifecycle.Repairable, lifecycle.Action, lifecycle.Reason)
+		if report.Campaign == nil {
+			return printer.err
+		}
+	}
+	printCampaignInspection(printer, report.Campaign)
+	return printer.err
+}
+
+func printArtifactInspection(printer *inspectionPrinter, inspected *runner.ArtifactInspection) {
+	printer.printf("identity: record=%s batch=%s ordinal=%d seed=%d toolchain=%s runner=%s\n", inspected.RecordHash, inspected.CampaignID, inspected.SelectionOrdinal, inspected.Seed, inspected.Toolchain.BuildKey, inspected.Runner.RunnerBuild)
+	printer.printf("target: kind=%s source=%s sha256=%s size=%d argv=%q tags=%q\n", inspected.Target.Kind, inspected.Target.Source, inspected.Target.SHA256, inspected.Target.Size, inspected.Target.Argv, inspected.Target.BuildTags)
+	printer.printf("outcome: domain=%s reason=%s termination=%s signature=%s replay-match=%s\n", inspected.Outcome.Domain, inspected.Outcome.Reason, inspected.Outcome.Termination, inspected.Outcome.FailureSignature, optionalBool(inspected.Outcome.ReplayMatch))
+	if inspected.FirstDivergence != "" {
+		printer.printf("first-divergence: %s\n", inspected.FirstDivergence)
+	}
+	if transcript := inspected.Transcript; transcript != nil {
+		printer.printf("transcript: records=%d bytes=%d sha256=%s\n", transcript.Records, transcript.Bytes, transcript.SHA256)
+	} else {
+		printer.printf("transcript: none\n")
+	}
+	if choices := inspected.Choices; choices != nil {
+		printer.printf("choices: profile=%s records=%d decisions=%d branching=%d bytes=%d limit=%d sha256=%s tape-sha256=%s exact-replay=%t terminal=%s runnable=%d select-poll=%d select-result=%d\n", choices.Profile, choices.Records, choices.Decisions, choices.BranchingRecords, choices.PayloadBytes, choices.Limit, choices.SHA256, choices.TapeSHA256, choices.ExactReplayAvailable, choices.TerminalState, choices.Runnable, choices.SelectPoll, choices.SelectResult)
+		for _, site := range choices.Sites {
+			printer.printf("choice-site: kind=%s fingerprint=%s count=%d max-alternatives=%d\n", site.Kind, site.Fingerprint, site.Count, site.MaximumAlternatives)
+		}
+	}
+	if mounts := inspected.CapturedMounts; mounts != nil {
+		printer.printf("captured-mounts: mappings=%q entries=%d missing=%d bytes=%d\n", mounts.Mappings, mounts.Entries, mounts.NotExist, mounts.TotalBytes)
+	} else {
+		printer.printf("captured-mounts: none\n")
+	}
+	printer.printf("stdout: bytes=%d retained=%d discarded=%d truncated=%t sha256=%s\n", inspected.Stdout.TotalBytes, inspected.Stdout.RetainedBytes, inspected.Stdout.DiscardedBytes, inspected.Stdout.Truncated, inspected.Stdout.FullSHA256)
+	printer.printf("stderr: bytes=%d retained=%d discarded=%d truncated=%t sha256=%s\n", inspected.Stderr.TotalBytes, inspected.Stderr.RetainedBytes, inspected.Stderr.DiscardedBytes, inspected.Stderr.Truncated, inspected.Stderr.FullSHA256)
+	printer.printf("replay: %s\n", inspected.ReplayCommand)
+}
+
+func printCampaignInspection(printer *inspectionPrinter, batch *runner.CampaignInspection) {
+	printer.printf("batch: id=%s strategy=%s selection=%s selected=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s runs=%s\n", batch.CampaignID, batch.Strategy, batch.Selection, batch.SelectionCount, batch.Attempted, batch.Succeeded, batch.Failures, batch.Watchdogs, batch.Cancelled, batch.DistinctFailures, batch.RetainedSuccesses, batch.RetainedSuccessBytes, batch.StopReason, batch.RunsSHA256)
+	if batch.Shard != nil {
+		printer.printf("shard: plan=%s index=%d count=%d\n", batch.PlanSHA256, batch.Shard.Index, batch.Shard.Count)
+	}
+	if journal := batch.Journal; journal != nil {
+		limits := journal.Limits
+		printer.printf("journal: schema=%s index=%s segments=%d records=%d bytes=%d max-runs=%d max-bytes=%d segment-bytes=%d segment-records=%d max-segments=%d max-partials=%d capacity=%s\n", journal.Schema, journal.IndexSHA256, journal.Segments, journal.Records, journal.Bytes, limits.MaximumRuns, limits.MaximumBytes, limits.SegmentBytes, limits.SegmentRecords, limits.MaximumSegments, limits.MaximumPartialRuns, limits.CapacityOutcome)
+	}
+	if capacity := batch.ArtifactCapacity; capacity != nil {
+		printer.printf("artifact-capacity: failures=%d failure-bytes=%d successes=%d success-bytes=%d total-bytes=%d transcript-bytes=%d failure-outcome=%s success-outcome=%s\n", capacity.FailureArtifacts, capacity.FailureBytes, capacity.SuccessArtifacts, capacity.SuccessBytes, capacity.TotalBytes, capacity.TranscriptBytes, capacity.FailureOutcome, capacity.SuccessOutcome)
+	}
 	if frontier := batch.Frontier; frontier != nil {
-		fmt.Fprintf(output, "frontier: rounds=%d pending=%d bytes=%d seen=%d outcomes=%d depth=%d max-runs=%d max-depth=%d max-bytes=%d omitted-runs=%d omitted-depth=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.MaxRuns, frontier.MaxChoiceDepth, frontier.MaxFrontierBytes, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, batch.RecoveryExecutions, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256)
+		printer.printf("frontier: rounds=%d pending=%d bytes=%d seen=%d outcomes=%d depth=%d max-runs=%d max-depth=%d max-bytes=%d omitted-runs=%d omitted-depth=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.MaxRuns, frontier.MaxChoiceDepth, frontier.MaxFrontierBytes, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, batch.RecoveryExecutions, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256)
 	}
 	for _, run := range batch.Runs {
 		transcript := "none"
@@ -204,13 +280,13 @@ func printInspection(output io.Writer, report runner.Inspection) {
 		if run.Strategy == string(runner.StrategyChoiceFrontier) {
 			frontier = fmt.Sprintf(" round=%d candidate=%s parent=%s prefix=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, run.PrefixSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
 		}
-		fmt.Fprintf(output, "run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices, frontier)
+		printer.printf("run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices, frontier)
 	}
 	for _, failure := range batch.FailureArtifacts {
-		fmt.Fprintf(output, "failure: signature=%s path=%s\nreplay: %s\n", failure.Signature, failure.Path, failure.ReplayCommand)
+		printer.printf("failure: signature=%s path=%s\nreplay: %s\n", failure.Signature, failure.Path, failure.ReplayCommand)
 	}
 	for _, success := range batch.SuccessArtifacts {
-		fmt.Fprintf(output, "success: bytes=%d novel=%q path=%s\nreplay: %s\n", success.StoredBytes, success.NovelProbes, success.Path, success.ReplayCommand)
+		printer.printf("success: bytes=%d novel=%q path=%s\nreplay: %s\n", success.StoredBytes, success.NovelProbes, success.Path, success.ReplayCommand)
 	}
 }
 
@@ -304,6 +380,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+	planOnly := flags.Bool("__plan", false, "create a campaign plan")
+	planOutput := flags.String("output", "", "campaign plan output")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
 	guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
@@ -341,6 +419,13 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
+	if !*planOnly && *planOutput != "" {
+		if writeErr := reporter.Error("invalid_input", errors.New("--output is only valid with gomad plan")); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
 	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -457,6 +542,37 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
+	if *planOnly {
+		if *planOutput == "" {
+			if writeErr := reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
+				fmt.Fprintln(stderr, writeErr)
+				return 3
+			}
+			return 2
+		}
+		planned, err := runner.CreateCampaignPlan(context.Background(), runner.CampaignPlanSpec{Campaign: config, Output: *planOutput})
+		if err != nil {
+			classification := classifyExploreError(err)
+			if writeErr := reporter.Error(classification, err); writeErr != nil {
+				fmt.Fprintln(stderr, writeErr)
+				return 3
+			}
+			return exploreErrorStatus(classification)
+		}
+		if *jsonOutput {
+			encoded, err := json.Marshal(planned)
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 3
+			}
+			if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
+				return 3
+			}
+		} else if _, err := fmt.Fprintf(stdout, "gomad plan: path=%s bundle=%s sha256=%s selected=%d target=%s\n", planned.Path, planned.BundlePath, planned.SHA256, planned.SelectionCount, planned.TargetSHA256); err != nil {
+			return 3
+		}
+		return 0
+	}
 	summary, err := runner.Explore(context.Background(), config)
 	if err != nil {
 		if summary.ChoiceTrace != nil {
@@ -477,6 +593,10 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+func runPlan(arguments []string, stdout, stderr io.Writer) int {
+	return runExplore(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr)
 }
 
 type exploreStrategyOptions struct {

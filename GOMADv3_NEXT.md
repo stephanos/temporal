@@ -27,7 +27,7 @@ The trust and observability work that previously blocked every track is complete
 - Virtual TCP covers queued-data/close and related dial, accept, deadline, and resource-exhaustion races.
 - Supervisor cleanup signals only an independently validated target process group.
 - Qualification reports separate `expectations_met` from supported, unsupported, failed, and infrastructure counts; support comparison requires explicit approval for boundary changes.
-- Journal writers enforce the same 64 MiB bound as readers, and cancellation is distinct from deadline expiry.
+- New journals use independently hashed immutable segments and a digest-bound compact index; historical single-file journals remain readable, and cancellation is distinct from deadline expiry.
 
 Choice trace v2, exact choice-tape replay, and bounded alternative-prefix
 exploration are implemented for the currently controlled runnable and `select`
@@ -46,7 +46,7 @@ Compatibility analysis and qualification reporting v1 are implemented through `g
 | Core tier 1 | 5 | 5 | 0 | Yes | Required on Gomad v3 pull requests and pushes |
 | Temporal tier 2 | 16 | 5 | 11 | Yes | Scheduled or manually dispatched |
 
-The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. The distributed-system simulation parity contract and application harness are implemented, but execution remains a design: no v3 multi-node, partition, durable-volume crash, or process-backed cluster capability has been implemented.
+The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. PROD-1, PROD-2, and the static-seed filesystem slice of PROD-4 are implemented: campaigns have an explicit crash-consistent lifecycle, bounded segmented journals, portable prepared-target and mount bundles, deterministic ordinal shards, and identity-checking aggregate merge. The distributed-system simulation parity contract, application harness, and SIM-1 through SIM-4 are implemented. Logical nodes now have exact lifecycle, network, storage, fault, scenario, history, observation, oracle, output, and terminal replay; modeled partition/restart and partial-persistence nemeses; bounded inspection; stable failure identities; and a representative Temporal duplicate-delivery failure reproduction. Process-backed hard isolation remains unimplemented.
 
 ## Recommended order
 
@@ -69,21 +69,21 @@ These are now the evidence sources for controlled exploration, compatibility pri
 
 Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode, but the remaining evaluated candidates retain real assembly, linkname, `syscall`, or forbidden-import blockers; closure review remains the default. Rank the remaining eleven blockers before selecting another exact adapter or I/O model, then add composed tier-3 scenarios from the expanded supported set.
 
-For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) is complete: the canonical v2 behavioral-parity manifest names thirteen expected v3 cases, and the bounded application harness expresses one two-node request/response prototype and one restart prototype. These are contracts, not executable simulation evidence. Continue with only the SIM-1 cluster core and in-process runtime-domain behavior needed by those prototypes.
+For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) through [SIM-4](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) are complete. The canonical v2 behavioral-parity manifest names thirteen expected v3 cases and marks twelve with implemented in-process evidence. Runtime domains bind every modeled network and volume operation to an exact incarnation; lifecycle, terminal, transition, fault, scenario, history, observation, oracle, and final model state replay exactly. Fresh-global and hard-isolation claims remain gated on SIM-5.
 
 ### Milestone 3: reduce failures and make campaigns durable
 
-Add [BUG-5](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) and make campaigns durable. Move planned, prepared, running, committing, published, and recoverable-failure transitions behind [PROD-1](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store); add `gomad recover`, make `inspect` explain recoverability, and make `resume` delegate integrity decisions to the store. Replace the single journal with [PROD-2](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) immutable bounded segments and streaming readers.
+[PROD-1](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) and [PROD-2](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) are complete: the store owns explicit lifecycle and locked recovery, while new batch-plan v5 and batch v3/v4 records bind immutable bounded segments, partial-run and artifact ceilings, and typed capacity outcomes. Historical batch v1/v2 and interrupted plan v1-v4 readers remain covered. Add [BUG-5](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) only when the neutral BUG-4 benchmark gate is satisfied.
 
-Implement [PROD-4](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) by separating canonical campaign plans from execution and adding deterministic sharding and identity-checking merge. Begin [PROD-8](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) by enforcing global and per-run resource limits with backpressure and explicit capacity outcomes. The output of a long campaign should be a small, durable reproduction that another machine with the same platform bundle can inspect and replay.
+The static-seed filesystem slice of [PROD-4](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) is complete. Canonical plans capture verified targets and bounded read-only inputs, zero-based ordinal-modulo shards retain global ordinals, and merge validates exact plan identity, completeness, content deduplication, and capacity before publishing a new aggregate. Dynamic choice-frontier sharding remains gated on a round coordinator because prefixes are discovered by prior executions. The initial [PROD-8](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) slice enforces journal, simultaneous partial-run, artifact, and merge capacities with explicit infrastructure outcomes.
 
-In the simulation track, implement only [SIM-1](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains): the cluster core, node and incarnation registry, runtime-domain inheritance, boot registry, lifecycle transitions, and stale-incarnation revocation needed by the validated prototypes. Keep network, storage, and fault semantics behind later deep modules.
+In the simulation track, [SIM-1](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) through [SIM-4](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) are complete. Preserve their lifecycle, runtime-domain, network, storage, fault, scenario, history, oracle, replay, output, capacity, and disabled-mode gates while SIM-5 adds process-backed fidelity.
 
 ### Milestone 4: add modeled faults, simulation parity, and a second qualified platform
 
 Introduce [BUG-6](GOMADv3_NEXT_BUG_FINDING.md#bug-6-deterministic-fault-plans) for explicit World and simulation adapters, starting with delay, cancellation, injected errors, dropped modeled delivery, and declared capacity outcomes.
 
-Complete [SIM-2](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) through [SIM-4](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) in order: first node-aware virtual-network parity with topology, delay, partition/heal, and lifecycle semantics; then [SIM-3](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) durable-volume parity with volatile/persisted views, sync dependencies, partial-crash outcomes, and bounded crash-state enumeration; then typed scenarios, nemeses, histories, records, replay, and semantic oracles. Do not merge these models into one shallow simulator interface.
+[SIM-2](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity), [SIM-3](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity), and [SIM-4](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) are complete with node-aware topology, dependency-aware durability, typed scenarios and faults, stable histories and oracles, bounded records, and exact replay. Keep their model identities and deep interfaces separate while platform qualification proceeds.
 
 In parallel, continue [COMPAT-7](GOMADv3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles) with a Linux platform bundle and run the same core and Temporal qualification contracts there. Platform work must remain independent of simulation semantics so neither can accidentally grant the other a support claim.
 
@@ -142,25 +142,25 @@ The tables below account for every named capability and delivery stage in the fo
 
 | Capability | Status | Portfolio placement |
 | --- | --- | --- |
-| [PROD-1: Crash-consistent batch store](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) | Publication foundation fixed; deep store and recovery planned | Milestone 3 |
-| [PROD-2: Segmented, bounded journals](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) | Planned | Milestone 3 |
+| [PROD-1: Crash-consistent batch store](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) | Implemented with explicit lifecycle, locked recovery, interrupted inspection, store-owned resume preflight, and mutation-fault matrices | Milestone 3 |
+| [PROD-2: Segmented, bounded journals](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) | Implemented with batch-plan v5, batch v3/v4, immutable indexed segments, historical readers, typed capacities, and crash recovery | Milestone 3 |
 | [PROD-3: Artifact lifecycle and data policy](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-3-artifact-lifecycle-and-data-policy) | Planned | Milestone 5 |
-| [PROD-4: Deterministic campaign plans, sharding, and merge](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) | Planned | Milestone 3 |
+| [PROD-4: Deterministic campaign plans, sharding, and merge](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) | Static-seed filesystem v1 implemented; dynamic choice-frontier distribution planned | Milestone 3 |
 | [PROD-5: Immutable release and installation bundles](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-5-immutable-release-and-installation-bundles) | Installation discovery exists; qualified bundles planned | Milestone 5 |
 | [PROD-6: CI integration](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-6-ci-integration) | Qualification workflow exists; supported campaign entry point planned | Milestone 5 |
 | [PROD-7: Observability and reporting](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-7-observability-and-reporting) | Stable events exist; aggregate reporting and metrics planned | Milestone 5 |
-| [PROD-8: Resource control and performance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) | Bounded protocols exist; campaign-wide limits, backpressure, and cache planned | Milestones 3 and 5 |
+| [PROD-8: Resource control and performance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) | Journal, partial-run, artifact, and merge bounds implemented; load evidence and prepared-target cache planned | Milestones 3 and 5 |
 | [PROD-9: Release governance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-9-release-governance) | Boundary approval and current readers exist; explicit compatibility and release policy planned | Milestone 5 |
 
 ### Distributed-system simulation
 
 | Delivery stage | Status | Portfolio placement |
 | --- | --- | --- |
-| [SIM-0: Restore trust and define the parity contract](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) | Implemented; thirteen planned parity cases and two contract prototypes, no backend claim | Milestone 2 |
-| [SIM-1: Cluster core and in-process runtime domains](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) | Designed | Milestone 3 |
-| [SIM-2: Virtual network parity](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) | Designed | Milestone 4 |
-| [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | Designed | Milestone 4 |
-| [SIM-4: Scenarios, nemeses, records, and oracles](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) | Designed | Milestone 4 |
+| [SIM-0: Restore trust and define the parity contract](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) | Implemented; thirteen named parity cases and bounded backend/fidelity claims | Milestone 2 |
+| [SIM-1: Cluster core and in-process runtime domains](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) | Implemented; in-process lifecycle fidelity only | Milestone 3 |
+| [SIM-2: Virtual network parity](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) | Implemented; in-process network fidelity only | Milestone 4 |
+| [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | Implemented; in-process durability fidelity only | Milestone 4 |
+| [SIM-4: Scenarios, nemeses, records, and oracles](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) | Implemented; in-process typed faults, scenarios, histories, oracles, artifacts, and Temporal failure replay | Milestone 4 |
 | [SIM-5: Process-backed fidelity tier](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) | Designed, after in-process parity | Milestone 5 |
 | [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | Designed, after SIM-5 | Milestone 6 |
 | [SIM-7: Evidence-driven expansion beyond v2](GOMADv3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) | Designed, after measurable parity | Milestone 6 |
