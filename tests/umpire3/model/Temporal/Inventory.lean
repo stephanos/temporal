@@ -135,13 +135,13 @@ def nexusLifecycleProductModule : ModuleDeclaration := {
 }
 
 def nexusClosureSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.NexusClosure"
-  description := "Nexus task, ownership epoch, completion, and Workflow closure mechanism"
+  identifier := "Temporal.System.MigratedFamilies.NexusClosure"
+  description := "Independent Nexus lifecycle and Workflow closure mechanism"
 }
 
 def nexusClosureRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.NexusClosure"
-  description := "Nexus closure system-to-product refinement"
+  identifier := "Temporal.Refinement.MigratedFamilies.NexusClosure"
+  description := "Independent Nexus closure system-to-product refinement"
 }
 
 def nexusTimeoutProductModule : ModuleDeclaration := {
@@ -150,12 +150,12 @@ def nexusTimeoutProductModule : ModuleDeclaration := {
 }
 
 def nexusTimeoutSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.NexusTimeout"
+  identifier := "Temporal.System.MigratedFamilies.NexusTimeout"
   description := "Ordered Nexus timeout history observation mechanism"
 }
 
 def nexusTimeoutRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.NexusTimeout"
+  identifier := "Temporal.Refinement.MigratedFamilies.NexusTimeout"
   description := "Nexus timeout observation system-to-product refinement"
 }
 
@@ -165,12 +165,12 @@ def nexusActivityLinkProductModule : ModuleDeclaration := {
 }
 
 def nexusActivityLinkSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.NexusActivityLink"
+  identifier := "Temporal.System.MigratedFamilies.NexusActivityLink"
   description := "Nexus and Activity link observation and redelivery mechanism"
 }
 
 def nexusActivityLinkRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.NexusActivityLink"
+  identifier := "Temporal.Refinement.MigratedFamilies.NexusActivityLink"
   description := "Nexus Activity link observation system-to-product refinement"
 }
 
@@ -180,12 +180,12 @@ def callbackReferenceProductModule : ModuleDeclaration := {
 }
 
 def callbackReferenceSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.CallbackReference"
+  identifier := "Temporal.System.MigratedFamilies.CallbackReference"
   description := "Independent callback attachment and Nexus start observation mechanism"
 }
 
 def callbackReferenceRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.CallbackReference"
+  identifier := "Temporal.Refinement.MigratedFamilies.CallbackReference"
   description := "Callback reference observation system-to-product refinement"
 }
 
@@ -195,12 +195,12 @@ def callbackResponseProductModule : ModuleDeclaration := {
 }
 
 def callbackResponseSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.CallbackResponse"
+  identifier := "Temporal.System.MigratedFamilies.CallbackResponse"
   description := "Callback registration, settlement, response, and redelivery observation mechanism"
 }
 
 def callbackResponseRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.CallbackResponse"
+  identifier := "Temporal.Refinement.MigratedFamilies.CallbackResponse"
   description := "Callback response observation system-to-product refinement"
 }
 
@@ -210,12 +210,12 @@ def workflowLineageProductModule : ModuleDeclaration := {
 }
 
 def workflowLineageSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.WorkflowLineage"
+  identifier := "Temporal.System.MigratedFamilies.WorkflowLineage"
   description := "Workflow start-history lineage observation and redelivery mechanism"
 }
 
 def workflowLineageRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.WorkflowLineage"
+  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowLineage"
   description := "Workflow lineage observation system-to-product refinement"
 }
 
@@ -225,12 +225,12 @@ def workflowRoutingProductModule : ModuleDeclaration := {
 }
 
 def workflowRoutingSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.WorkflowRouting"
+  identifier := "Temporal.System.MigratedFamilies.WorkflowRouting"
   description := "Workflow Task and poller route plus reservation observation mechanism"
 }
 
 def workflowRoutingRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.WorkflowRouting"
+  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowRouting"
   description := "Workflow routing observation system-to-product refinement"
 }
 
@@ -240,12 +240,12 @@ def workflowOwnershipProductModule : ModuleDeclaration := {
 }
 
 def workflowOwnershipSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.WorkflowOwnership"
+  identifier := "Temporal.System.MigratedFamilies.WorkflowOwnership"
   description := "Workflow Task ownership failure, rotation, rejection, and completion observation mechanism"
 }
 
 def workflowOwnershipRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.WorkflowOwnership"
+  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowOwnership"
   description := "Workflow ownership observation system-to-product refinement"
 }
 
@@ -255,12 +255,12 @@ def speculativeTaskProductModule : ModuleDeclaration := {
 }
 
 def speculativeTaskSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.SpeculativeTask"
+  identifier := "Temporal.System.MigratedFamilies.SpeculativeTask"
   description := "Update request, speculative task creation, commit, and redelivery observation mechanism"
 }
 
 def speculativeTaskRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.SpeculativeTask"
+  identifier := "Temporal.Refinement.MigratedFamilies.SpeculativeTask"
   description := "Speculative Workflow Task observation system-to-product refinement"
 }
 
@@ -270,12 +270,12 @@ def workflowProgressProductModule : ModuleDeclaration := {
 }
 
 def workflowProgressSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.WorkflowProgress"
+  identifier := "Temporal.System.MigratedFamilies.WorkflowProgress"
   description := "Task enqueue, worker availability, dispatch, completion, and redelivery observation mechanism"
 }
 
 def workflowProgressRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.WorkflowProgress"
+  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowProgress"
   description := "Workflow progress observation system-to-product refinement"
 }
 

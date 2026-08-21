@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	environment "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -116,35 +117,50 @@ func (s *updateSession) Realize(ctx context.Context, action protocol.Action, bin
 	return evidence, nil
 }
 
-func (s *updateSession) Observe(ctx context.Context, checkpoint protocol.Checkpoint, _ environment.Bindings) (environment.Observation, error) {
+func (s *updateSession) ObserveFacts(
+	ctx context.Context,
+	checkpoint protocol.Checkpoint,
+	_ environment.Bindings,
+) ([]observation.Fact, error) {
 	if err := ctx.Err(); err != nil {
-		return environment.Observation{}, err
+		return nil, err
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.sequence++
-	observation := environment.Observation{
-		CheckpointID:    checkpoint.Identifier,
-		Kind:            checkpoint.Observation,
-		Source:          "temporal-history",
-		SourceIdentity:  "temporal-history",
-		ClockDomain:     "temporal-history-sequence",
-		SourceSequence:  s.sequence,
-		CausalReference: s.cluster.Namespace + "/" + s.cluster.MintedWorkflowID + "/" + s.cluster.MintedUpdateID,
-		Reference: s.cluster.Namespace + "/" + s.cluster.MintedWorkflowID + "/" +
-			s.cluster.MintedUpdateID + "/" + checkpoint.Identifier,
-		EntityIdentity: s.cluster.MintedUpdateID,
-		Lineage:        []string{s.cluster.Namespace, s.cluster.MintedWorkflowID, s.cluster.MintedUpdateID},
-	}
+	var eventType, outcome string
 	switch checkpoint.Observation {
 	case "update-accepted":
-		observation.Satisfied = s.accepted
+		if !s.accepted {
+			return nil, environment.ErrObservationUnavailable
+		}
+		eventType, outcome = observation.WorkflowUpdateAccepted, "accepted"
 	case "update-completed":
-		observation.Satisfied = s.completed
+		if !s.completed {
+			return nil, environment.ErrObservationUnavailable
+		}
+		eventType, outcome = observation.WorkflowUpdateCompleted, "completed"
 	default:
-		return environment.Observation{}, fmt.Errorf("unsupported Update observation %q", checkpoint.Observation)
+		return nil, fmt.Errorf("unsupported Update observation %q", checkpoint.Observation)
 	}
-	return observation, nil
+	s.sequence++
+	return []observation.Fact{{
+		Identifier: "mechanism/" + eventType,
+		Source: observation.Source{
+			Identity: "temporal-update-state", ClockDomain: "temporal-update-state-sequence",
+			Sequence: s.sequence,
+			Reference: s.cluster.Namespace + "/" + s.cluster.MintedWorkflowID + "/" +
+				s.cluster.MintedUpdateID + "/" + checkpoint.Identifier,
+			CausalReferences: []string{
+				s.cluster.Namespace + "/" + s.cluster.MintedWorkflowID + "/" + s.cluster.MintedUpdateID,
+			},
+			EntityIdentity: s.cluster.MintedUpdateID,
+			Lineage:        []string{s.cluster.Namespace, s.cluster.MintedWorkflowID, s.cluster.MintedUpdateID},
+		},
+		Mechanism: &observation.MechanismReceipt{
+			Action: eventType, Resource: s.cluster.MintedUpdateID,
+			Attempt: s.sequence, OwnerEpoch: 0, Outcome: outcome,
+		},
+	}}, nil
 }
 
 func (s *updateSession) Cleanup(ctx context.Context) environment.CleanupResult {

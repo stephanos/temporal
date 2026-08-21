@@ -2,6 +2,7 @@ import Lean.Data.Json
 import Lean.Elab.Term
 import Lean.Util.CollectAxioms
 import Umpire3.Explorer
+import Umpire3.Registration
 
 namespace Umpire3
 
@@ -60,12 +61,20 @@ structure FirstOrderBounds where
   concreteStateLimit : Nat
   deriving DecidableEq, Repr
 
+structure FirstOrderResource where
+  identifier : String
+  kind : String
+  deriving DecidableEq, Repr
+
 structure FirstOrderArtifact where
   target : String
   property : String
   world : String
   variant : String
   canonicalModel : String
+  resources : List FirstOrderResource
+  liveOnlyActions : List String
+  activatingFaults : List String
   bounds : FirstOrderBounds
   sorts : List FirstOrderSort
   stateFields : List FirstOrderField
@@ -209,6 +218,11 @@ private def FirstOrderState.toJson (state : FirstOrderState) : Lean.Json := Lean
   ("fields", Lean.Json.arr (state.fields.map FirstOrderBinding.toJson).toArray),
 ]
 
+private def FirstOrderResource.toJson (resource : FirstOrderResource) : Lean.Json := Lean.Json.mkObj [
+  ("identifier", resource.identifier),
+  ("kind", resource.kind),
+]
+
 structure ResolvedFirstOrderView where
   artifact : FirstOrderArtifact
   declaration : String
@@ -227,6 +241,7 @@ open Lean Elab Term in
   unless declaration.type.getAppFn.constName? == some ``FirstOrderView do
     throwErrorAt viewName "resolved first-order declaration must have type FirstOrderView"
   let axioms ← collectAxioms declarationName
+  rejectForbiddenAxioms viewName axioms
   let axioms := axioms.qsort Name.lt |>.map (Syntax.mkStrLit ∘ toString)
   let expanded ← `(ResolvedFirstOrderView.mk
     $(mkIdent declarationName).artifact
@@ -257,13 +272,19 @@ def FirstOrderExport.ofSearch {World : Type} {model : Behavior World} {world : W
 
 def FirstOrderExport.toJson (exported : FirstOrderExport)
     (semanticHash : String) : Lean.Json := Lean.Json.mkObj [
-  ("formatVersion", "umpire3/first-order-view/v1"),
+  ("formatVersion", "umpire3/first-order-view/v2"),
   ("target", exported.view.artifact.target),
   ("property", exported.view.artifact.property),
   ("world", exported.view.artifact.world),
   ("variant", exported.view.artifact.variant),
   ("semanticHash", semanticHash),
   ("canonicalModel", exported.view.artifact.canonicalModel),
+  ("resources", Lean.Json.arr
+    (exported.view.artifact.resources.map FirstOrderResource.toJson).toArray),
+  ("liveOnlyActions", Lean.Json.arr
+    (exported.view.artifact.liveOnlyActions.map Lean.toJson).toArray),
+  ("activatingFaults", Lean.Json.arr
+    (exported.view.artifact.activatingFaults.map Lean.toJson).toArray),
   ("relation", Lean.Json.mkObj [
     ("declaration", exported.view.declaration),
     ("axioms", Lean.Json.arr (exported.view.axioms.map Lean.toJson).toArray),

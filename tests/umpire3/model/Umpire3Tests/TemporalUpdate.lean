@@ -17,11 +17,9 @@ example : product.Step accepted .complete completed := by
 
 example : Refinement system product := updateTasksRefinesProduct
 
-example : System.TaskDelivery.Compatible System.TaskDelivery.guarantee
-    System.NexusTasks.nexusDeliveryRequirement := by
-  simp [System.TaskDelivery.Compatible, System.NexusTasks.nexusDeliveryRequirement]
+example : System.TaskDelivery.guarantee.Claim :=
+  System.NexusTasks.nexusDeliveryRequirement.proof
 
-example : System.TaskDelivery.Compatible System.TaskDelivery.guarantee updateDeliveryRequirement := by
-  simp [System.TaskDelivery.Compatible, updateDeliveryRequirement]
+example : System.TaskDelivery.guarantee.Claim := updateDeliveryRequirement.proof
 
 end Umpire3.Temporal.Update.Tests

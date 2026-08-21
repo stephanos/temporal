@@ -5,4 +5,7 @@ def main : IO Unit := do
     | throw (IO.userError "UMPIRE3_SEMANTIC_HASH is required")
   let some catalogHash ← IO.getEnv "UMPIRE3_CATALOG_HASH"
     | throw (IO.userError "UMPIRE3_CATALOG_HASH is required")
-  IO.println (Umpire3.compositionJson semanticHash catalogHash Umpire3.Temporal.Composition.composition)
+  let some dependencyHash ← IO.getEnv "UMPIRE3_DEPENDENCY_HASH"
+    | throw (IO.userError "UMPIRE3_DEPENDENCY_HASH is required")
+  IO.println (Umpire3.compositionJson semanticHash dependencyHash catalogHash
+    Umpire3.Temporal.Composition.composition)

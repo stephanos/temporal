@@ -59,7 +59,9 @@ structure Fact where
 
 inductive Operation where
   | exists
+  | allExist
   | absentWhenClosed
+  | allExistAbsentWhenClosed
   deriving BEq, DecidableEq, Repr
 
 inductive OwnerEpochRelation where
@@ -72,6 +74,7 @@ structure Selector where
   kind : String
   ownerEpochRelation : Option OwnerEpochRelation := none
   cancellationCommitted : Option Bool := none
+  outcome : Option String := none
   closed : Option Bool := none
   deriving BEq, DecidableEq, Repr
 
@@ -100,6 +103,7 @@ def Selector.matchesFact (selector : Selector) (fact : Fact) : Bool :=
   match fact.value with
   | .history event =>
       selector.factType == "history-event" && selector.kind == event.eventType &&
+        selector.outcome.isNone &&
         match selector.ownerEpochRelation with
         | none =>
             match selector.cancellationCommitted with
@@ -119,10 +123,14 @@ def Selector.matchesFact (selector : Selector) (fact : Fact) : Bool :=
   | .mechanism receipt =>
       selector.factType == "mechanism-receipt" && selector.kind == receipt.action &&
         selector.ownerEpochRelation.isNone && selector.cancellationCommitted.isNone &&
-        selector.closed.isNone
+        selector.closed.isNone &&
+        match selector.outcome with
+        | none => true
+        | some expected => receipt.outcome == expected
   | .window evidenceWindow =>
       selector.factType == "evidence-window" && selector.kind == evidenceWindow.purpose &&
-        selector.closed == some evidenceWindow.closed
+        selector.ownerEpochRelation.isNone && selector.cancellationCommitted.isNone &&
+        selector.outcome.isNone && selector.closed == some evidenceWindow.closed
 
 private def appendUnique (values : List String) (value : String) : List String :=
   if values.contains value then values else values ++ [value]
@@ -148,6 +156,10 @@ def Program.evaluate (program : Program) (facts : List Fact) : Evaluation :=
     | .exists =>
         let support := matchingSupport program.matchers facts
         if support.isEmpty then { value := .unknown } else { value := .true, support }
+    | .allExist =>
+        let complete := program.matchers.all fun selector => facts.any selector.matchesFact
+        let support := matchingSupport program.matchers facts
+        if complete then { value := .true, support } else { value := .unknown }
     | .absentWhenClosed =>
         let violations := matchingSupport program.violations facts
         if !violations.isEmpty then
@@ -155,6 +167,15 @@ def Program.evaluate (program : Program) (facts : List Fact) : Evaluation :=
         else
           let closures := matchingSupport program.closures facts
           if closures.isEmpty then { value := .unknown } else { value := .true, support := closures }
+    | .allExistAbsentWhenClosed =>
+        let violations := matchingSupport program.violations facts
+        if !violations.isEmpty then
+          { value := .false, support := violations }
+        else
+          let complete := program.matchers.all fun selector => facts.any selector.matchesFact
+          let closures := matchingSupport program.closures facts
+          if !complete || closures.isEmpty then { value := .unknown }
+          else { value := .true, support := matchingSupport program.matchers facts ++ closures }
 
 theorem evaluate_exists_true_iff (program : Program) (facts : List Fact)
     (operation : program.operation = .exists) (consistent : conflictSupport facts = []) :
@@ -258,11 +279,14 @@ def Selector.toJson (selector : Selector) : Lean.Json := Lean.Json.mkObj <| ([
   | none => []
   | some relation => [("ownerEpochRelation", relation.toJsonString)]) ++
   optionBoolField "cancellationCommitted" selector.cancellationCommitted ++
+  optionStringField "outcome" selector.outcome ++
   optionBoolField "closed" selector.closed
 
 def Operation.toJsonString : Operation → String
   | .exists => "exists"
+  | .allExist => "all-exist"
   | .absentWhenClosed => "absent-when-closed"
+  | .allExistAbsentWhenClosed => "all-exist-absent-when-closed"
 
 def Program.toJson (program : Program) : Lean.Json := Lean.Json.mkObj <| ([
   ("identifier", program.identifier),

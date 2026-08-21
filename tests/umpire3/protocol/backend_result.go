@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	BackendResultFormatVersion      = "umpire3/backend-result/v1"
+	BackendResultFormatVersion      = "umpire3/backend-result/v2"
 	TraceReplayInputFormatVersion   = "umpire3/trace-replay-input/v1"
 	TraceReplayReceiptFormatVersion = "umpire3/trace-replay-receipt/v1"
 	VeilBackendRevision             = "300c305e945750ab3fb62de4a79c23161b24da39"
@@ -51,6 +51,17 @@ const (
 type BackendBounds struct {
 	Depth              int `json:"depth,omitempty"`
 	ConcreteStateLimit int `json:"concreteStateLimit,omitempty"`
+}
+
+type BackendExecutionLimits struct {
+	TimeoutMillis  int64 `json:"timeoutMillis"`
+	CPUSeconds     int   `json:"cpuSeconds"`
+	MemoryBytes    int64 `json:"memoryBytes"`
+	MaxOutputBytes int64 `json:"maxOutputBytes"`
+}
+
+func (l BackendExecutionLimits) valid() bool {
+	return l.TimeoutMillis > 0 && l.CPUSeconds > 0 && l.MemoryBytes > 0 && l.MaxOutputBytes > 0
 }
 
 type TraceStep struct {
@@ -107,26 +118,28 @@ type ModelTrace struct {
 }
 
 type BackendResult struct {
-	FormatVersion     string             `json:"formatVersion"`
-	Backend           Backend            `json:"backend"`
-	BackendRevision   string             `json:"backendRevision"`
-	ViewFormatVersion string             `json:"viewFormatVersion"`
-	Target            TargetID           `json:"target"`
-	Property          PropertyID         `json:"property"`
-	World             string             `json:"world"`
-	Variant           string             `json:"variant"`
-	SemanticHash      string             `json:"semanticHash"`
-	Job               BackendJob         `json:"job"`
-	ResultClass       ResultClass        `json:"resultClass"`
-	TrustBadge        TrustBadge         `json:"trustBadge"`
-	Exact             bool               `json:"exact"`
-	Termination       BackendTermination `json:"termination"`
-	Bounds            BackendBounds      `json:"bounds"`
-	ExploredStates    int                `json:"exploredStates,omitempty"`
-	Options           []string           `json:"options"`
-	Axioms            []string           `json:"axioms"`
-	Omissions         []string           `json:"omissions"`
-	Trace             *ModelTrace        `json:"trace,omitempty"`
+	FormatVersion           string                 `json:"formatVersion"`
+	Backend                 Backend                `json:"backend"`
+	BackendRevision         string                 `json:"backendRevision"`
+	ViewFormatVersion       string                 `json:"viewFormatVersion"`
+	Target                  TargetID               `json:"target"`
+	Property                PropertyID             `json:"property"`
+	World                   string                 `json:"world"`
+	Variant                 string                 `json:"variant"`
+	SemanticHash            string                 `json:"semanticHash"`
+	GeneratedArtifactDigest string                 `json:"generatedArtifactDigest"`
+	Job                     BackendJob             `json:"job"`
+	ResultClass             ResultClass            `json:"resultClass"`
+	TrustBadge              TrustBadge             `json:"trustBadge"`
+	Exact                   bool                   `json:"exact"`
+	Termination             BackendTermination     `json:"termination"`
+	Bounds                  BackendBounds          `json:"bounds"`
+	ExecutionLimits         BackendExecutionLimits `json:"executionLimits"`
+	ExploredStates          int                    `json:"exploredStates,omitempty"`
+	Options                 []string               `json:"options"`
+	Axioms                  []string               `json:"axioms"`
+	Omissions               []string               `json:"omissions"`
+	Trace                   *ModelTrace            `json:"trace,omitempty"`
 }
 
 func DecodeBackendResult(reader io.Reader, limit int64) (BackendResult, error) {
@@ -208,7 +221,7 @@ func (r BackendResult) Validate() error {
 	if r.FormatVersion != BackendResultFormatVersion || r.Backend != BackendVeil ||
 		r.BackendRevision != VeilBackendRevision || r.ViewFormatVersion != FirstOrderViewFormatVersion ||
 		r.Target == "" || r.Property == "" || r.World == "" || r.Variant == "" ||
-		!validHash(r.SemanticHash) {
+		!validHash(r.SemanticHash) || !validHash(r.GeneratedArtifactDigest) {
 		return errors.New("complete pinned backend result identity and provenance are required")
 	}
 	if err := validateFirstOrderTarget(r.Target, r.Property); err != nil {
@@ -216,6 +229,9 @@ func (r BackendResult) Validate() error {
 	}
 	if !r.ResultClass.valid() || !r.TrustBadge.valid() {
 		return errors.New("backend result requires a known result class and trust badge")
+	}
+	if !r.ExecutionLimits.valid() {
+		return errors.New("backend execution timeout, CPU, memory, and output limits are required")
 	}
 	if r.Options == nil || r.Axioms == nil || r.Omissions == nil {
 		return errors.New("backend options, axioms, and omissions must be explicit")

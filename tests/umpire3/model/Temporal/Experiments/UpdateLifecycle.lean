@@ -1,53 +1,46 @@
-import Temporal.Refinement.UpdateTasks
+import Temporal.Refinement.MigratedFamilies
 import Umpire3.Experiment
 import Umpire3.Manifest
 
 namespace Umpire3.Temporal.Experiments.UpdateLifecycle
 
-open System.UpdateTasks
-
-def requestedState : State := { initial with visible := .requested }
-def dispatchedState : State := { requestedState with taskDispatched := true }
-def acceptedState : State := { dispatchedState with visible := .accepted }
-def recordedState : State := { acceptedState with historyRecorded := true }
-def taskCompletedState : State := { recordedState with completionEpoch := some 0 }
-def completedState : State := { taskCompletedState with visible := .completed }
+open System.MigratedFamilies.UpdateLifecycle
 
 def actions : List Action := [
-  .StartUpdate,
-  .DispatchWorkflowTask,
-  .AcceptUpdate,
-  .RecordUpdateHistory,
-  .CompleteWorkflowTask,
-  .CompleteUpdate,
+  .start,
+  .dispatchTask,
+  .accept,
+  .recordHistory,
+  .completeWorkflowTask,
+  .complete,
 ]
 
 theorem executableTraceIsValid :
-    executable.follow [initial] actions = [completedState] := by decide
+    executable.follow () [initial] actions = [State.completed] := by decide
 
 def proofManifest : SemanticProofManifest where
-  identifier := "update-tasks-refinement-v1"
-  proof := resolved_refinement% System.UpdateTasks.updateTasksRefinesProduct
+  identifier := "update-lifecycle-simulation-v1"
+  proof := resolved_simulation% Refinement.MigratedFamilies.UpdateLifecycle.soundSimulation
   assumptions := [{
     identifier := System.TaskDelivery.guarantee.identifier
-    statementHash := System.TaskDelivery.guarantee.statementHash
+    statementHash := "derived:" ++ System.TaskDelivery.guarantee.identifier
   }]
 
 def experiment : SemanticExperiment where
   identifier := "workflow-update-lifecycle-v1"
   modelModules := [
-    "Temporal.Product.Update",
-    "Temporal.System.UpdateTasks",
-    "Temporal.Refinement.UpdateTasks",
+    "Temporal.Feature.UpdateLifecycle",
     "Temporal.System.TaskDelivery",
+    "Temporal.System.MigratedFamilies.UpdateLifecycle",
+    "Temporal.Refinement.MigratedFamilies.UpdateLifecycle",
   ]
   propertyIdentifier := "workflow-update.accepted-completes-through-history"
-  propertyStatementHash := "sha256:d36d6ddd20e5d51e0a4bd591bd2b59ce90f953417042a7b0bc4bff99485c351d"
+  propertyStatementHash := "derived"
   scope := {
     bound := { maxDepth := 6, maxResults := 1000 }
     assumptions := [{
       identifier := System.TaskDelivery.guarantee.identifier
-      statementHash := System.TaskDelivery.guarantee.statementHash
+      statementHash := "derived:" ++ System.TaskDelivery.guarantee.identifier
     }]
   }
   strategy := "explicit-trace"
@@ -86,7 +79,7 @@ def experiment : SemanticExperiment where
       ordering := "causal", omissionPolicy := "required" },
   ]
   provenanceKind := "proof"
-  proofManifest := "update-tasks-refinement-v1"
+  proofManifest := "update-lifecycle-simulation-v1"
 
 theorem experimentWellFormed : experiment.WellFormed := by
   simp [SemanticExperiment.WellFormed, experiment, System.TaskDelivery.guarantee]

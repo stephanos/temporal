@@ -1,7 +1,5 @@
 import Temporal.Monitors
-import Temporal.Refinement.WorkflowLineage
-import Temporal.Refinement.WorkflowRouting
-import Temporal.Refinement.WorkflowOwnership
+import Temporal.Refinement.MigratedFamilies
 
 namespace Umpire3.Tests.TemporalWorkflowEvidence
 
@@ -48,14 +46,35 @@ example :
       { maxDepth := 1, maxResults := 1000 }).all
       (fun execution => Umpire3.Temporal.Product.WorkflowLineage.lineageConsistencyB execution.2) = true := by decide
 
-def systemActions : List Umpire3.Temporal.System.WorkflowLineage.Action := [
-  .observe .secondary .continuation .primary .secondary .primary,
-  .redeliver .secondary,
+def systemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.Action := [
+  .observeContinuation,
 ]
 
-example : Umpire3.Temporal.System.WorkflowLineage.executable.follow
-    [Umpire3.Temporal.System.WorkflowLineage.initial] systemActions =
-    [Umpire3.Temporal.System.WorkflowLineage.continuationFinal] := by decide
+def invalidLineageSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.Action := [
+  .observeInvalidContinuation,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.initial] systemActions =
+    [.continuationObserved] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.initial]
+    invalidLineageSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.initial]
+    invalidLineageSystemActions = [.invalidContinuation] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowLineage.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowLineage.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowLineage.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowLineage.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowLineage.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.continuationLineage.Holds
     (Umpire3.Temporal.Monitors.continuationLineageObservations
@@ -103,16 +122,39 @@ example :
       { maxDepth := 3, maxResults := 5000 }).all
       (fun execution => Umpire3.Temporal.Product.WorkflowRouting.routingIsolationB execution.2) = true := by decide
 
-def routingSystemActions : List Umpire3.Temporal.System.WorkflowRouting.Action := [
-  .observeTaskRoute .primary .primary,
-  .observePollerRoute .primary .primary,
-  .observeReservation .primary .primary .primary,
-  .redeliverReservation .primary,
+def routingSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.Action := [
+  .assignTask,
+  .registerMatchingPoller,
+  .reserveMatching,
 ]
 
-example : Umpire3.Temporal.System.WorkflowRouting.executable.follow
-    [Umpire3.Temporal.System.WorkflowRouting.initial] routingSystemActions =
-    [Umpire3.Temporal.System.WorkflowRouting.matchingFinal] := by decide
+def crossingRoutingSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.Action := [
+  .assignTask,
+  .registerCrossingPoller,
+  .reserveCrossing,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.initial] routingSystemActions =
+    [.matchingReservation] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.initial]
+    crossingRoutingSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.initial]
+    crossingRoutingSystemActions = [.crossingReservation] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowRouting.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowRouting.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowRouting.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowRouting.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowRouting.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.workflowRoutingIsolation.Holds
     (Umpire3.Temporal.Monitors.workflowRoutingObservations
@@ -160,20 +202,42 @@ example :
       { maxDepth := 3, maxResults := 5000 }).all
       (fun execution => Umpire3.Temporal.Product.WorkflowOwnership.ownershipFencingB execution.2) = true := by decide
 
-def ownershipSystemActions : List Umpire3.Temporal.System.WorkflowOwnership.Action := [
-  .observeBootstrap .primary .first,
-  .observeDispatch .primary .primary .first,
-  .observeFailure .primary,
-  .observeRotation .primary .first .second,
-  .observeDispatch .secondary .primary .second,
-  .observeStaleRejection .primary,
-  .observeCompletion .secondary,
-  .redeliverCompletion .secondary,
+def ownershipSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.Action := [
+  .dispatchCurrent,
+  .failCurrent,
+  .rotateOwner,
+  .rejectStale,
+  .completeCurrent,
 ]
 
-example : Umpire3.Temporal.System.WorkflowOwnership.executable.follow
-    [Umpire3.Temporal.System.WorkflowOwnership.initial] ownershipSystemActions =
-    [Umpire3.Temporal.System.WorkflowOwnership.fencedFinal] := by decide
+def staleCompletionSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.Action := [
+  .dispatchCurrent,
+  .failCurrent,
+  .rotateOwner,
+  .completeStale,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.initial] ownershipSystemActions =
+    [.currentCompleted] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.initial]
+    staleCompletionSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.initial]
+    staleCompletionSystemActions = [.staleCompleted] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.workflowOwnershipFencing.Holds
     (Umpire3.Temporal.Monitors.workflowOwnershipObservations

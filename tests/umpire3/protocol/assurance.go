@@ -4,6 +4,7 @@ type ResultClass string
 
 const (
 	ResultClassTraceWitness             ResultClass = "trace-witness"
+	ResultClassLassoWitness             ResultClass = "lasso-witness"
 	ResultClassSampledNoCounterexample  ResultClass = "sampled-no-counterexample"
 	ResultClassBoundedSafe              ResultClass = "bounded-safe"
 	ResultClassFiniteExhaustive         ResultClass = "finite-exhaustive"
@@ -11,6 +12,8 @@ const (
 	ResultClassInvariantProved          ResultClass = "invariant-proved"
 	ResultClassTemporalProved           ResultClass = "temporal-proved"
 	ResultClassRefinementProved         ResultClass = "refinement-proved"
+	ResultClassCompositionProved        ResultClass = "composition-proved"
+	ResultClassEvidenceResolved         ResultClass = "evidence-resolved"
 	ResultClassImplementationConforming ResultClass = "implementation-conforming"
 	ResultClassMetadataValidated        ResultClass = "metadata-validated"
 	ResultClassUnknown                  ResultClass = "unknown"
@@ -18,9 +21,10 @@ const (
 
 func (r ResultClass) valid() bool {
 	switch r {
-	case ResultClassTraceWitness, ResultClassSampledNoCounterexample, ResultClassBoundedSafe,
+	case ResultClassTraceWitness, ResultClassLassoWitness, ResultClassSampledNoCounterexample, ResultClassBoundedSafe,
 		ResultClassFiniteExhaustive, ResultClassExternalNoCounterexample, ResultClassInvariantProved,
-		ResultClassTemporalProved, ResultClassRefinementProved, ResultClassImplementationConforming,
+		ResultClassTemporalProved, ResultClassRefinementProved, ResultClassCompositionProved,
+		ResultClassEvidenceResolved, ResultClassImplementationConforming,
 		ResultClassMetadataValidated, ResultClassUnknown:
 		return true
 	default:

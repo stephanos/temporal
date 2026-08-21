@@ -9,21 +9,23 @@ import (
 )
 
 const validVeilConcreteResult = `{
-  "formatVersion": "umpire3/backend-result/v1",
+  "formatVersion": "umpire3/backend-result/v2",
   "backend": "veil",
   "backendRevision": "300c305e945750ab3fb62de4a79c23161b24da39",
-  "viewFormatVersion": "umpire3/first-order-view/v1",
+  "viewFormatVersion": "umpire3/first-order-view/v2",
   "target": "nexus-cancellation",
   "property": "nexus.cancellation.won-excludes-success",
   "world": "smoke",
   "variant": "sound",
   "semanticHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "generatedArtifactDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "job": "concrete",
   "resultClass": "external-no-counterexample",
   "trustBadge": "tested-instance",
   "exact": false,
   "termination": "exhausted-instance",
   "bounds": {"concreteStateLimit": 512},
+  "executionLimits": {"timeoutMillis":30000,"cpuSeconds":30,"memoryBytes":1073741824,"maxOutputBytes":4194304},
   "exploredStates": 26,
   "options": ["sequential"],
   "axioms": [],
@@ -34,25 +36,27 @@ func TestDecodeBackendResultPreservesCollisionQualifiedConcreteResult(t *testing
 	result, err := DecodeBackendResult(strings.NewReader(validVeilConcreteResult), DefaultDecodeLimit)
 	require.NoError(t, err)
 	require.Equal(t, BackendResult{
-		FormatVersion:     BackendResultFormatVersion,
-		Backend:           BackendVeil,
-		BackendRevision:   "300c305e945750ab3fb62de4a79c23161b24da39",
-		ViewFormatVersion: FirstOrderViewFormatVersion,
-		Target:            TargetIDNexusCancellation,
-		Property:          PropertyIDNexusCancellationWonExcludesSuccess,
-		World:             "smoke",
-		Variant:           "sound",
-		SemanticHash:      "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-		Job:               BackendJobConcrete,
-		ResultClass:       ResultClassExternalNoCounterexample,
-		TrustBadge:        TrustBadgeTestedInstance,
-		Exact:             false,
-		Termination:       BackendTerminationExhaustedInstance,
-		Bounds:            BackendBounds{ConcreteStateLimit: 512},
-		ExploredStates:    26,
-		Options:           []string{"sequential"},
-		Axioms:            []string{},
-		Omissions:         []string{VeilConcreteCollisionOmission},
+		FormatVersion:           BackendResultFormatVersion,
+		Backend:                 BackendVeil,
+		BackendRevision:         "300c305e945750ab3fb62de4a79c23161b24da39",
+		ViewFormatVersion:       FirstOrderViewFormatVersion,
+		Target:                  TargetIDNexusCancellation,
+		Property:                PropertyIDNexusCancellationWonExcludesSuccess,
+		World:                   "smoke",
+		Variant:                 "sound",
+		SemanticHash:            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		GeneratedArtifactDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+		Job:                     BackendJobConcrete,
+		ResultClass:             ResultClassExternalNoCounterexample,
+		TrustBadge:              TrustBadgeTestedInstance,
+		Exact:                   false,
+		Termination:             BackendTerminationExhaustedInstance,
+		Bounds:                  BackendBounds{ConcreteStateLimit: 512},
+		ExecutionLimits:         testBackendExecutionLimits(),
+		ExploredStates:          26,
+		Options:                 []string{"sequential"},
+		Axioms:                  []string{},
+		Omissions:               []string{VeilConcreteCollisionOmission},
 	}, result)
 }
 
@@ -79,11 +83,13 @@ func TestBackendResultRejectsReconstructedSymbolicTrust(t *testing.T) {
 		BackendRevision: VeilBackendRevision, ViewFormatVersion: FirstOrderViewFormatVersion,
 		Target: TargetIDNexusCancellation, Property: PropertyIDNexusCancellationWonExcludesSuccess,
 		World: "smoke", Variant: "sound",
-		SemanticHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-		Job:          BackendJobSymbolicTrace, ResultClass: ResultClassBoundedSafe,
+		SemanticHash:            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		GeneratedArtifactDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+		Job:                     BackendJobSymbolicTrace, ResultClass: ResultClassBoundedSafe,
 		TrustBadge: TrustBadgeReconstructedSolverProof, Exact: true,
 		Termination: BackendTerminationBoundedSafe, Bounds: BackendBounds{Depth: 6},
-		Options: []string{}, Axioms: []string{}, Omissions: []string{},
+		ExecutionLimits: testBackendExecutionLimits(),
+		Options:         []string{}, Axioms: []string{}, Omissions: []string{},
 	}
 	require.ErrorContains(t, result.Validate(), "trusted-solver disclosure")
 
@@ -97,11 +103,13 @@ func TestBackendResultRequiresInvariantAdmissionDisclosure(t *testing.T) {
 		BackendRevision: VeilBackendRevision, ViewFormatVersion: FirstOrderViewFormatVersion,
 		Target: TargetIDNexusCancellation, Property: PropertyIDNexusCancellationWonExcludesSuccess,
 		World: "smoke", Variant: "sound",
-		SemanticHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-		Job:          BackendJobInvariant, ResultClass: ResultClassInvariantProved,
+		SemanticHash:            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		GeneratedArtifactDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+		Job:                     BackendJobInvariant, ResultClass: ResultClassInvariantProved,
 		TrustBadge: TrustBadgeReconstructedSolverProof, Exact: true,
-		Termination: BackendTerminationGoalsClosed,
-		Options:     []string{}, Axioms: []string{"sorryAx"}, Omissions: []string{},
+		Termination:     BackendTerminationGoalsClosed,
+		ExecutionLimits: testBackendExecutionLimits(),
+		Options:         []string{}, Axioms: []string{"sorryAx"}, Omissions: []string{},
 	}
 	require.ErrorContains(t, result.Validate(), "cannot depend on sorryAx")
 
@@ -118,14 +126,16 @@ func TestBackendResultRequiresCheckedCanonicalReplayForTraceWitness(t *testing.T
 		ViewFormatVersion: FirstOrderViewFormatVersion,
 		Target:            TargetIDNexusCancellation, Property: PropertyIDNexusCancellationWonExcludesSuccess,
 		World: "smoke", Variant: "stale-completion-guard-removed",
-		SemanticHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-		Job:          BackendJobConcrete, ResultClass: ResultClassTraceWitness,
+		SemanticHash:            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		GeneratedArtifactDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+		Job:                     BackendJobConcrete, ResultClass: ResultClassTraceWitness,
 		TrustBadge: TrustBadgeCheckedCertificate, Exact: true,
 		Termination: BackendTerminationViolationFound,
 		Bounds:      BackendBounds{ConcreteStateLimit: 512}, ExploredStates: 17,
-		Options:   []string{"sequential"},
-		Axioms:    []string{"Classical.choice", "Quot.sound", "propext"},
-		Omissions: []string{VeilTraceStateOmission},
+		ExecutionLimits: testBackendExecutionLimits(),
+		Options:         []string{"sequential"},
+		Axioms:          []string{"Classical.choice", "Quot.sound", "propext"},
+		Omissions:       []string{VeilTraceStateOmission},
 		Trace: &ModelTrace{
 			World: "smoke", Property: PropertyIDNexusCancellationWonExcludesSuccess,
 			Violation: true,
@@ -167,6 +177,12 @@ func TestBackendResultRequiresCheckedCanonicalReplayForTraceWitness(t *testing.T
 	require.ErrorContains(t, result.Validate(), "state digest omission")
 }
 
+func testBackendExecutionLimits() BackendExecutionLimits {
+	return BackendExecutionLimits{
+		TimeoutMillis: 30000, CPUSeconds: 30, MemoryBytes: 1 << 30, MaxOutputBytes: 4 << 20,
+	}
+}
+
 func TestDecodeBackendResultRejectsUnknownAndTrailingInput(t *testing.T) {
 	unknown := strings.Replace(validVeilConcreteResult, `"world": "smoke",`,
 		`"world": "smoke", "unknown": true,`, 1)
@@ -175,6 +191,39 @@ func TestDecodeBackendResultRejectsUnknownAndTrailingInput(t *testing.T) {
 
 	_, err = DecodeBackendResult(strings.NewReader(validVeilConcreteResult+` {}`), DefaultDecodeLimit)
 	require.ErrorContains(t, err, "multiple JSON values")
+}
+
+func TestFirstOrderViewReplaysCompiledPathsAndClassifiesLiveOnlyActions(t *testing.T) {
+	t.Parallel()
+
+	sound, found, err := DefaultFirstOrderView(TargetIDNexusCancellation, "sound")
+	require.NoError(t, err)
+	require.True(t, found)
+	mutated, found, err := DefaultFirstOrderView(TargetIDNexusCancellation,
+		"stale-completion-guard-removed")
+	require.NoError(t, err)
+	require.True(t, found)
+	actions := []ActionKind{
+		ActionKindScheduleOperation,
+		ActionKindDispatchTask,
+		ActionKindRequestCancellation,
+		ActionKindCommitCancellation,
+		ActionKindAcquireOwnership,
+		ActionKindWorkerReturnsSuccess,
+		ActionKindPersistSuccess,
+	}
+
+	soundReplay, err := sound.Replay(actions)
+	require.NoError(t, err)
+	require.False(t, soundReplay.Accepted)
+	require.Equal(t, ActionKindPersistSuccess, soundReplay.RejectedAction)
+	require.Equal(t, []ActionKind{ActionKindScheduleOperation}, soundReplay.LiveOnlyActions)
+
+	mutatedReplay, err := mutated.Replay(actions)
+	require.NoError(t, err)
+	require.True(t, mutatedReplay.Accepted)
+	require.Empty(t, mutatedReplay.RejectedAction)
+	require.Equal(t, []ActionKind{ActionKindScheduleOperation}, mutatedReplay.LiveOnlyActions)
 }
 
 func TestTraceReplayInputHasStableBoundDigest(t *testing.T) {

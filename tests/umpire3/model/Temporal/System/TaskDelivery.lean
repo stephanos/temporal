@@ -1,28 +1,29 @@
+import Umpire3.Registration
+
 namespace Umpire3.Temporal.System.TaskDelivery
 
-abbrev CurrentCompletion (completionEpoch : Option Nat) (ownerEpoch : Nat) : Prop :=
+abbrev CurrentCompletionOf {Epoch : Type} (completionEpoch : Option Epoch) (ownerEpoch : Epoch) : Prop :=
   completionEpoch = some ownerEpoch
 
-theorem stale_completion_is_not_current {completionEpoch ownerEpoch : Nat}
+abbrev CurrentCompletion (completionEpoch : Option Nat) (ownerEpoch : Nat) : Prop :=
+  CurrentCompletionOf completionEpoch ownerEpoch
+
+theorem stale_completion_is_not_current {Epoch : Type} {completionEpoch ownerEpoch : Epoch}
     (stale : completionEpoch ≠ ownerEpoch) :
-    ¬CurrentCompletion (some completionEpoch) ownerEpoch := by
-  simp [CurrentCompletion, stale]
+    ¬CurrentCompletionOf (some completionEpoch) ownerEpoch := by
+  simp [CurrentCompletionOf, stale]
 
-structure Guarantee where
-  identifier : String
-  statementHash : String
-  deriving DecidableEq, Repr
+def CurrentCompletionOnly : Prop :=
+  ∀ (Epoch : Type) (completionEpoch ownerEpoch : Epoch), completionEpoch ≠ ownerEpoch →
+    ¬CurrentCompletionOf (some completionEpoch) ownerEpoch
 
-structure Requirement where
-  provider : String
-  statementHash : String
-  deriving DecidableEq, Repr
+theorem current_completion_only : CurrentCompletionOnly := by
+  intro Epoch completionEpoch ownerEpoch stale
+  exact stale_completion_is_not_current stale
 
-def guarantee : Guarantee where
-  identifier := "task-delivery.current-completion-only"
-  statementHash := "sha256:31e3bc0f50ed17ad15f1848d8fd3cc753e18c21729d606f10fc10d5b71d9bc93"
+def guarantee : Umpire3.Guarantee :=
+  registered_guarantee% "task-delivery.current-completion-only" current_completion_only
 
-def Compatible (provider : Guarantee) (consumer : Requirement) : Prop :=
-  consumer.provider = provider.identifier ∧ consumer.statementHash = provider.statementHash
+abbrev Requirement := Umpire3.Requirement guarantee
 
 end Umpire3.Temporal.System.TaskDelivery

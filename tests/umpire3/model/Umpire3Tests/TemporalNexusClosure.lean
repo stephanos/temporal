@@ -1,4 +1,4 @@
-import Temporal.Refinement.NexusClosure
+import Temporal.Refinement.MigratedFamilies
 import Temporal.Monitors
 
 namespace Umpire3.Tests.TemporalNexusClosure
@@ -37,37 +37,44 @@ example :
     (bounded.explore { maxDepth := 4, maxResults := 1000 }).all
       (fun execution => closureB execution.2) = true := by decide
 
-def ordinarySystemActions : List Umpire3.Temporal.System.NexusClosure.Action := [
-  .scheduleOperation .primary,
-  .dispatchTask .primary,
-  .observeStart .primary,
-  .workerReturns .primary,
-  .persist .primary .succeeded,
-  .closeWorkflow .completed,
+def ordinarySystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.NexusClosure.Action := [
+  .schedule,
+  .start,
+  .settle,
+  .close,
 ]
 
-def completionBeforeStartActions : List Umpire3.Temporal.System.NexusClosure.Action := [
-  .scheduleOperation .primary,
-  .dispatchTask .primary,
-  .workerReturns .primary,
-  .persist .primary .succeeded,
-  .observeStart .primary,
-  .closeWorkflow .completed,
+def closeWhileRunningSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.NexusClosure.Action := [
+  .schedule,
+  .start,
+  .closeWhileRunning,
 ]
 
-example : Umpire3.Temporal.System.NexusClosure.executable.follow
-    [Umpire3.Temporal.System.NexusClosure.initial] ordinarySystemActions =
-    [Umpire3.Temporal.System.NexusClosure.ordinaryFinal] := by decide
+example : Umpire3.Temporal.System.MigratedFamilies.NexusClosure.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusClosure.initial] ordinarySystemActions =
+    [.closed] := by decide
 
-example : Umpire3.Temporal.System.NexusClosure.executable.follow
-    [Umpire3.Temporal.System.NexusClosure.initial] completionBeforeStartActions =
-    [Umpire3.Temporal.System.NexusClosure.completionBeforeStartFinal] := by decide
+example : Umpire3.Temporal.System.MigratedFamilies.NexusClosure.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusClosure.initial]
+    closeWhileRunningSystemActions = [] := by decide
 
-example : Umpire3.Temporal.System.NexusClosure.Closure
-    Umpire3.Temporal.System.NexusClosure.completionBeforeStartFinal := by decide
+example : Umpire3.Temporal.System.MigratedFamilies.NexusClosure.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusClosure.initial]
+    closeWhileRunningSystemActions = [.closedWhileRunning] := by decide
 
-example : Umpire3.Temporal.System.NexusClosure.nexusClosureRefinesProduct.Relates
-    Umpire3.Temporal.System.NexusClosure.initial initial := rfl
+example : Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.soundSimulation.Relates
+    (world := ())
+    Umpire3.Temporal.System.MigratedFamilies.NexusClosure.initial initial := rfl
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.nexusOperationClosure.Holds
     (Umpire3.Temporal.Monitors.nexusClosureObservations permittedFinal) :=
