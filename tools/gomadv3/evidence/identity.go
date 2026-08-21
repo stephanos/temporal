@@ -61,6 +61,7 @@ type targetCapabilityManifestProjection struct {
 	Bytes                        Uint64String `json:"bytes"`
 	Facts                        Uint64String `json:"facts"`
 	ProducerImplementationSHA256 SHA256       `json:"producer_implementation_sha256"`
+	GuardImplementationSHA256    SHA256       `json:"guard_implementation_sha256,omitempty"`
 	CapabilityUniverseSHA256     SHA256       `json:"capability_universe_sha256"`
 }
 
@@ -296,6 +297,7 @@ func projectTarget(target Target) targetProjection {
 		projected.CapabilityManifest = &targetCapabilityManifestProjection{
 			Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: manifest.Bytes, Facts: manifest.Facts,
 			ProducerImplementationSHA256: manifest.ProducerImplementationSHA256,
+			GuardImplementationSHA256:    manifest.GuardImplementationSHA256,
 			CapabilityUniverseSHA256:     manifest.CapabilityUniverseSHA256,
 		}
 	}

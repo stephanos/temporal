@@ -8,6 +8,7 @@ const (
 	FactKindBoundary   FactKind = "boundary"
 	FactKindCapability FactKind = "capability"
 	FactKindForeign    FactKind = "foreign"
+	FactKindGuard      FactKind = "guard"
 	FactKindLinkname   FactKind = "linkname"
 )
 
@@ -15,21 +16,24 @@ type Disposition string
 
 const (
 	DispositionDenied  Disposition = "denied"
+	DispositionGuarded Disposition = "guarded"
 	DispositionModeled Disposition = "modeled"
 	DispositionPack    Disposition = "pack"
 )
 
 const (
-	ProtocolVersion              = 1
-	ManifestSchema               = "gomadv3.live-capability-manifest/v1"
+	ProtocolVersion              = 2
+	ManifestSchema               = "gomadv3.live-capability-manifest/v2"
 	ReservedSymbol               = "runtime.gomadCapabilities"
+	GuardSymbol                  = "runtime.gomadCapabilityGuard"
 	HeaderBytes                  = 112
 	MaximumPayloadBytes          = 16777216
 	MaximumFacts                 = 100000
 	MaximumStringBytes           = 4096
 	MaximumOwnerFacts            = 4096
-	ProducerImplementationSHA256 = "sha256:5a6c19830b8a565d514ef1277ffe5f2fd1c6feddcd903b0618d95265816a5ba9"
-	CapabilityUniverseSHA256     = "sha256:9cd4b3138d76ac8bc73006bd174f7f8eba4eec7148f4db28deb94b9cc1ef47f4"
+	ProducerImplementationSHA256 = "sha256:f8c0d9f7dc1a254850e62d57eac2ac29f51572a5163dbd0b1d5110846647adf6"
+	GuardImplementationSHA256    = "sha256:f8c0d9f7dc1a254850e62d57eac2ac29f51572a5163dbd0b1d5110846647adf6"
+	CapabilityUniverseSHA256     = "sha256:ec5633bb02f50227039ba394ef95520f6b3ab94aa062c8d7d977258b89ee110e"
 	BoundaryManifestSHA256       = "sha256:febc956871f3bd6885b4af2daed7653705eb6f03d5df2784decea946a849aa14"
 )
 
@@ -59,6 +63,7 @@ type Manifest struct {
 	GoVersion                    string `json:"go_version"`
 	GOARCH                       string `json:"goarch"`
 	GOOS                         string `json:"goos"`
+	GuardImplementationSHA256    string `json:"guard_implementation_sha256"`
 	Limits                       Limits `json:"limits"`
 	ProducerImplementationSHA256 string `json:"producer_implementation_sha256"`
 	Schema                       string `json:"schema"`
