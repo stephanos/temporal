@@ -62,6 +62,82 @@ func PlanForCandidate(config combinedfrontier.Config, candidate combinedfrontier
 	return encoded, nil
 }
 
+func validateRetainedPlan(encoded []byte) (plan, error) {
+	if len(encoded) == 0 || len(encoded) > maximumPlanBytes {
+		return plan{}, errors.New("simulation exploration plan size is invalid")
+	}
+	var decoded plan
+	if err := evidence.StrictDecode(encoded, &decoded); err != nil {
+		return plan{}, fmt.Errorf("decode simulation exploration plan: %w", err)
+	}
+	reencoded, err := json.Marshal(decoded)
+	if err != nil {
+		return plan{}, fmt.Errorf("encode simulation exploration plan: %w", err)
+	}
+	if string(reencoded) != string(encoded) {
+		return plan{}, errors.New("simulation exploration plan is not canonical")
+	}
+	if decoded.Schema != planSchema {
+		return plan{}, fmt.Errorf("simulation exploration plan schema = %q, want %q", decoded.Schema, planSchema)
+	}
+	for _, identity := range []evidence.SHA256{decoded.ExecutionSHA256, decoded.ControllerSHA256, decoded.CandidateSHA256} {
+		if _, err := identity.Bytes(); err != nil {
+			return plan{}, err
+		}
+	}
+	var identityOverrides []any
+	if decoded.Overrides != nil {
+		identityOverrides = make([]any, len(decoded.Overrides))
+	}
+	for index, override := range decoded.Overrides {
+		if !validDimension(override.Dimension) || override.Alternatives < 2 || override.Selected >= override.Alternatives {
+			return plan{}, fmt.Errorf("simulation exploration plan override %d shape is invalid", index)
+		}
+		for _, identity := range []evidence.SHA256{override.SiteSHA256, override.AlternativeSetSHA256, override.SelectedSHA256, override.Identity} {
+			if _, err := identity.Bytes(); err != nil {
+				return plan{}, fmt.Errorf("simulation exploration plan override %d: %w", index, err)
+			}
+		}
+		encodedOverride, err := evidence.CanonicalJSON(map[string]any{
+			"alternative_set_sha256": override.AlternativeSetSHA256, "alternatives": override.Alternatives,
+			"dimension": override.Dimension, "identity": "", "ordinal": override.Ordinal, "selected": override.Selected,
+			"selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
+		})
+		if err != nil {
+			return plan{}, err
+		}
+		if evidence.DomainHash("gomadv3-combined-frontier-forced-decision/v1", encodedOverride) != override.Identity {
+			return plan{}, fmt.Errorf("simulation exploration plan override %d identity changed", index)
+		}
+		identityOverrides[index] = map[string]any{
+			"alternative_set_sha256": override.AlternativeSetSHA256, "alternatives": override.Alternatives,
+			"dimension": override.Dimension, "identity": override.Identity, "ordinal": override.Ordinal,
+			"selected": override.Selected, "selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
+		}
+	}
+	candidateBytes, err := evidence.CanonicalJSON(map[string]any{
+		"base_seed": decoded.BaseSeed, "controller_sha256": decoded.ControllerSHA256,
+		"execution_sha256": decoded.ExecutionSHA256, "overrides": identityOverrides,
+	})
+	if err != nil {
+		return plan{}, err
+	}
+	if evidence.DomainHash("gomadv3-combined-frontier-candidate/v1", candidateBytes) != decoded.CandidateSHA256 {
+		return plan{}, errors.New("simulation exploration plan candidate identity changed")
+	}
+	return decoded, nil
+}
+
+func validDimension(dimension combinedfrontier.Dimension) bool {
+	switch dimension {
+	case combinedfrontier.DimensionRuntime, combinedfrontier.DimensionScenario, combinedfrontier.DimensionNetwork,
+		combinedfrontier.DimensionStorage, combinedfrontier.DimensionFault, combinedfrontier.DimensionCrash:
+		return true
+	default:
+		return false
+	}
+}
+
 func ExecutionForCandidate(config combinedfrontier.Config, candidate combinedfrontier.Candidate, identity choice.ExecutionIdentity) (CandidateExecution, error) {
 	planBytes, err := PlanForCandidate(config, candidate)
 	if err != nil {

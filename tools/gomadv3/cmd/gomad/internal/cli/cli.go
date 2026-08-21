@@ -260,6 +260,9 @@ func printArtifactInspection(printer *inspectionPrinter, inspected *runner.Artif
 			printer.printf("choice-site: kind=%s fingerprint=%s count=%d max-alternatives=%d\n", site.Kind, site.Fingerprint, site.Count, site.MaximumAlternatives)
 		}
 	}
+	if simulation := inspected.Simulation; simulation != nil {
+		printer.printf("simulation: profile=%s controller=%s execution=%s candidate=%s outcome=%s failure=%s plan-schema=%s plan-bytes=%d plan-sha256=%s record-schema=%s record-bytes=%d record-limit=%d record-sha256=%s\n", simulation.Profile, simulation.ControllerSHA256, simulation.ExecutionSHA256, simulation.CandidateSHA256, simulation.OutcomeSHA256, simulation.FailureSHA256, simulation.Plan.Schema, simulation.Plan.Bytes, simulation.Plan.SHA256, simulation.Record.Schema, simulation.Record.Bytes, simulation.Record.Limit, simulation.Record.SHA256)
+	}
 	if mounts := inspected.CapturedMounts; mounts != nil {
 		printer.printf("captured-mounts: mappings=%q entries=%d missing=%d bytes=%d\n", mounts.Mappings, mounts.Entries, mounts.NotExist, mounts.TotalBytes)
 	} else {
