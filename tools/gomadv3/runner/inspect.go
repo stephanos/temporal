@@ -14,17 +14,52 @@ import (
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 )
 
-const reportSchema = "gomadv3.inspect/v3"
+const reportSchema = "gomadv3.inspect/v4"
 
 type Inspection struct {
-	Schema    string                       `json:"schema"`
-	Kind      string                       `json:"kind"`
-	Path      string                       `json:"path"`
-	Plan      *CampaignPlanInspection      `json:"campaign_plan,omitempty"`
-	Artifact  *ArtifactInspection          `json:"artifact,omitempty"`
-	Campaign  *CampaignInspection          `json:"batch,omitempty"`
-	Merged    *MergedCampaignInspection    `json:"merged_batch,omitempty"`
-	Lifecycle *CampaignLifecycleInspection `json:"lifecycle,omitempty"`
+	Schema           string                       `json:"schema"`
+	Kind             string                       `json:"kind"`
+	Path             string                       `json:"path"`
+	Plan             *CampaignPlanInspection      `json:"campaign_plan,omitempty"`
+	Artifact         *ArtifactInspection          `json:"artifact,omitempty"`
+	Campaign         *CampaignInspection          `json:"batch,omitempty"`
+	Merged           *MergedCampaignInspection    `json:"merged_batch,omitempty"`
+	Lifecycle        *CampaignLifecycleInspection `json:"lifecycle,omitempty"`
+	CombinedFrontier *CombinedFrontierInspection  `json:"combined_frontier,omitempty"`
+}
+
+type CombinedFrontierInspection struct {
+	Schema               string                         `json:"schema"`
+	Summary              CombinedFrontierSummary        `json:"summary"`
+	ImplementationSHA256 evidence.SHA256                `json:"implementation_sha256"`
+	ChainSHA256          evidence.SHA256                `json:"chain_sha256"`
+	Pending              []CombinedCandidateInspection  `json:"pending"`
+	StagedRound          *CombinedStagedRoundInspection `json:"staged_round,omitempty"`
+}
+
+type CombinedCandidateInspection struct {
+	SHA256       evidence.SHA256              `json:"sha256"`
+	ParentSHA256 evidence.SHA256              `json:"parent_sha256,omitempty"`
+	Overrides    []CombinedOverrideInspection `json:"overrides"`
+}
+
+type CombinedOverrideInspection struct {
+	Dimension            string          `json:"dimension"`
+	Ordinal              uint64          `json:"ordinal"`
+	SiteSHA256           evidence.SHA256 `json:"site_sha256"`
+	Alternatives         uint32          `json:"alternatives"`
+	AlternativeSetSHA256 evidence.SHA256 `json:"alternative_set_sha256"`
+	Selected             uint32          `json:"selected"`
+	SelectedSHA256       evidence.SHA256 `json:"selected_sha256"`
+	ControlBytes         uint64          `json:"control_bytes,omitempty"`
+	ControlSHA256        evidence.SHA256 `json:"control_sha256,omitempty"`
+	Identity             evidence.SHA256 `json:"identity"`
+}
+
+type CombinedStagedRoundInspection struct {
+	Index      uint64 `json:"index"`
+	Candidates uint64 `json:"candidates"`
+	Attempted  uint64 `json:"attempted"`
 }
 
 type CampaignPlanInspection struct {
@@ -171,31 +206,34 @@ type StreamReport struct {
 }
 
 type CampaignInspection struct {
-	CampaignID                   string                              `json:"run_id"`
-	PlanSHA256                   evidence.SHA256                     `json:"plan_sha256,omitempty"`
-	Shard                        *CampaignShard                      `json:"shard,omitempty"`
-	Strategy                     string                              `json:"strategy"`
-	Selection                    string                              `json:"selection"`
-	SelectionCount               uint64                              `json:"selection_count"`
-	Attempted                    uint64                              `json:"attempted"`
-	Succeeded                    uint64                              `json:"succeeded"`
-	Failures                     uint64                              `json:"failures"`
-	Watchdogs                    uint64                              `json:"watchdogs"`
-	Cancelled                    uint64                              `json:"cancelled"`
-	DistinctFailures             uint64                              `json:"distinct_failures"`
-	RetainedSuccesses            uint64                              `json:"retained_successes"`
-	RetainedSuccessBytes         uint64                              `json:"retained_success_bytes"`
-	StopReason                   string                              `json:"stop_reason"`
-	RunsSHA256                   evidence.SHA256                     `json:"runs_sha256"`
-	Journal                      *RunJournalInspection               `json:"journal,omitempty"`
-	ArtifactCapacity             *campaignstore.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
-	Runs                         []ExecutionInspection               `json:"runs"`
-	FailureArtifacts             []FailureArtifact                   `json:"failure_artifacts"`
-	SuccessArtifacts             []SuccessArtifact                   `json:"success_artifacts"`
-	Frontier                     *frontier.Summary                   `json:"frontier,omitempty"`
-	FrontierImplementationSHA256 evidence.SHA256                     `json:"frontier_implementation_sha256,omitempty"`
-	FrontierChainSHA256          evidence.SHA256                     `json:"frontier_chain_sha256,omitempty"`
-	RecoveryExecutions           uint64                              `json:"recovery_executions,omitempty"`
+	CampaignID                           string                              `json:"run_id"`
+	PlanSHA256                           evidence.SHA256                     `json:"plan_sha256,omitempty"`
+	Shard                                *CampaignShard                      `json:"shard,omitempty"`
+	Strategy                             string                              `json:"strategy"`
+	Selection                            string                              `json:"selection"`
+	SelectionCount                       uint64                              `json:"selection_count"`
+	Attempted                            uint64                              `json:"attempted"`
+	Succeeded                            uint64                              `json:"succeeded"`
+	Failures                             uint64                              `json:"failures"`
+	Watchdogs                            uint64                              `json:"watchdogs"`
+	Cancelled                            uint64                              `json:"cancelled"`
+	DistinctFailures                     uint64                              `json:"distinct_failures"`
+	RetainedSuccesses                    uint64                              `json:"retained_successes"`
+	RetainedSuccessBytes                 uint64                              `json:"retained_success_bytes"`
+	StopReason                           string                              `json:"stop_reason"`
+	RunsSHA256                           evidence.SHA256                     `json:"runs_sha256"`
+	Journal                              *RunJournalInspection               `json:"journal,omitempty"`
+	ArtifactCapacity                     *campaignstore.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
+	Runs                                 []ExecutionInspection               `json:"runs"`
+	FailureArtifacts                     []FailureArtifact                   `json:"failure_artifacts"`
+	SuccessArtifacts                     []SuccessArtifact                   `json:"success_artifacts"`
+	Frontier                             *frontier.Summary                   `json:"frontier,omitempty"`
+	FrontierImplementationSHA256         evidence.SHA256                     `json:"frontier_implementation_sha256,omitempty"`
+	FrontierChainSHA256                  evidence.SHA256                     `json:"frontier_chain_sha256,omitempty"`
+	CombinedFrontier                     *CombinedFrontierSummary            `json:"combined_frontier,omitempty"`
+	CombinedFrontierImplementationSHA256 evidence.SHA256                     `json:"combined_frontier_implementation_sha256,omitempty"`
+	CombinedFrontierChainSHA256          evidence.SHA256                     `json:"combined_frontier_chain_sha256,omitempty"`
+	RecoveryExecutions                   uint64                              `json:"recovery_executions,omitempty"`
 }
 
 type RunJournalInspection struct {
@@ -323,8 +361,21 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 		return Inspection{}, err
 	}
 	projectedLifecycle := projectCampaignLifecycle(lifecycle)
+	var combined *CombinedFrontierInspection
+	hasCombined, err := directoryChild(absolute, "combined-frontier")
+	if err != nil {
+		return Inspection{}, err
+	}
+	if hasCombined {
+		status, err := campaignstore.InspectCombinedFrontier(absolute)
+		if err != nil {
+			return Inspection{}, fmt.Errorf("inspect combined frontier: %w", err)
+		}
+		projected := projectCombinedFrontier(status)
+		combined = &projected
+	}
 	if !hasBatch {
-		return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Lifecycle: &projectedLifecycle}, nil
+		return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Lifecycle: &projectedLifecycle, CombinedFrontier: combined}, nil
 	}
 	opened, err := campaignstore.OpenCampaign(absolute)
 	if err != nil {
@@ -334,7 +385,37 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 	if err != nil {
 		return Inspection{}, err
 	}
-	return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Campaign: &projected, Lifecycle: &projectedLifecycle}, nil
+	return Inspection{Schema: reportSchema, Kind: "batch", Path: absolute, Campaign: &projected, Lifecycle: &projectedLifecycle, CombinedFrontier: combined}, nil
+}
+
+func projectCombinedFrontier(status campaignstore.CombinedFrontierInspection) CombinedFrontierInspection {
+	pending := make([]CombinedCandidateInspection, len(status.Pending))
+	for candidateIndex, candidate := range status.Pending {
+		overrides := make([]CombinedOverrideInspection, len(candidate.Overrides))
+		for overrideIndex, override := range candidate.Overrides {
+			projected := CombinedOverrideInspection{
+				Dimension: string(override.Dimension), Ordinal: override.Ordinal, SiteSHA256: override.SiteSHA256,
+				Alternatives: override.Alternatives, AlternativeSetSHA256: override.AlternativeSetSHA256,
+				Selected: override.Selected, SelectedSHA256: override.SelectedSHA256, Identity: override.Identity,
+			}
+			if len(override.Control) != 0 {
+				projected.ControlBytes = uint64(len(override.Control))
+				projected.ControlSHA256 = evidence.HashBytes(override.Control)
+			}
+			overrides[overrideIndex] = projected
+		}
+		pending[candidateIndex] = CombinedCandidateInspection{SHA256: candidate.SHA256, ParentSHA256: candidate.ParentSHA256, Overrides: overrides}
+	}
+	result := CombinedFrontierInspection{
+		Schema: "gomadv3.combined-frontier-inspection/v1", Summary: status.Summary,
+		ImplementationSHA256: status.ImplementationSHA256, ChainSHA256: status.ChainSHA256, Pending: pending,
+	}
+	if status.StagedRound != nil {
+		result.StagedRound = &CombinedStagedRoundInspection{
+			Index: status.StagedRound.Index, Candidates: status.StagedRound.Candidates, Attempted: status.StagedRound.Attempted,
+		}
+	}
+	return result
 }
 
 func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
@@ -466,6 +547,20 @@ func regularChild(root, name string) (bool, error) {
 	return info.Mode().IsRegular(), nil
 }
 
+func directoryChild(root, name string) (bool, error) {
+	info, err := os.Lstat(filepath.Join(root, name))
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("inspect %s: %w", name, err)
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return false, fmt.Errorf("inspect %s: expected a directory", name)
+	}
+	return true, nil
+}
+
 func projectArtifact(manifest evidence.ExecutionRecord, path string) ArtifactInspection {
 	result := ArtifactInspection{
 		ArtifactKind: manifest.ArtifactKind, RecordHash: manifest.RecordHash, CampaignID: manifest.CampaignID,
@@ -538,6 +633,7 @@ func projectCampaign(opened campaignstore.Campaign) (CampaignInspection, error) 
 		DistinctFailures: uint64(batch.DistinctFailures), StopReason: batch.StopReason, RunsSHA256: batch.RunsSHA256,
 		RetainedSuccesses: uint64(batch.RetainedSuccesses), RetainedSuccessBytes: uint64(batch.RetainedSuccessBytes),
 		Frontier: batch.Frontier, FrontierImplementationSHA256: batch.FrontierImplementationSHA256, FrontierChainSHA256: batch.FrontierChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
+		CombinedFrontier: batch.CombinedFrontier, CombinedFrontierImplementationSHA256: batch.CombinedFrontierImplementationSHA256, CombinedFrontierChainSHA256: batch.CombinedFrontierChainSHA256,
 		Runs: make([]ExecutionInspection, 0, len(opened.Runs)), FailureArtifacts: []FailureArtifact{}, SuccessArtifacts: []SuccessArtifact{},
 	}
 	if opened.Journal != nil {

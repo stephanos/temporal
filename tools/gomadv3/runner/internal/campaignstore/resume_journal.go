@@ -72,7 +72,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	if err != nil {
 		return nil, ResumeState{}, err
 	}
-	if err := archiveResumeState(ctx, path, runsBytes, len(retained) != len(runs), plan.Strategy == "choice-frontier"); err != nil {
+	if err := archiveResumeState(ctx, path, runsBytes, len(retained) != len(runs), plan.Strategy); err != nil {
 		return nil, ResumeState{}, err
 	}
 	if len(retained) != len(runs) || !fileExists(runsPath) {
@@ -132,7 +132,7 @@ func resumeSegmentedCampaignJournal(ctx context.Context, path string, plan Campa
 			return nil, ResumeState{}, newIntegrityError(errors.New("closed run segment contains a discardable resume record"))
 		}
 	}
-	if err := archiveResumeState(ctx, path, nil, false, plan.Strategy == "choice-frontier"); err != nil {
+	if err := archiveResumeState(ctx, path, nil, false, plan.Strategy); err != nil {
 		return nil, ResumeState{}, err
 	}
 	if err := makePrivateDirectoriesContext(ctx, filepath.Join(path, ".partial", "runs")); err != nil {
@@ -216,7 +216,7 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 		strategy = "seed"
 	}
 	ordinalLimit := uint64(plan.SelectionCount)
-	if strategy == "choice-frontier" {
+	if strategy == "choice-frontier" || strategy == "combined-frontier" {
 		ordinalLimit = uint64(plan.MaxRuns)
 	}
 	ordinals := make(map[uint64]struct{}, len(runs))
@@ -235,7 +235,7 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 		if plan.Shard != nil && ordinal%uint64(plan.Shard.Count) != uint64(plan.Shard.Index) {
 			return nil, fmt.Errorf("resumable run %d is outside its shard assignment", index+1)
 		}
-		if strategy == "choice-frontier" && run.Strategy != "choice-frontier" {
+		if (strategy == "choice-frontier" || strategy == "combined-frontier") && run.Strategy != strategy {
 			return nil, fmt.Errorf("resumable frontier run %d strategy is invalid", index+1)
 		}
 		if strategy == "choice-frontier" {
@@ -245,6 +245,14 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 			}
 			if err := validateFrontierExecutionSummary(run, candidates); err != nil {
 				return nil, fmt.Errorf("resumable frontier run %d: %w", index+1, err)
+			}
+		} else if strategy == "combined-frontier" {
+			baseSeed, parseErr := strconv.ParseUint(plan.Selection, 10, 64)
+			if parseErr != nil || uint64(run.Seed) != baseSeed || ordinal != uint64(index) {
+				return nil, fmt.Errorf("resumable combined frontier run %d seed or logical ordinal is invalid", index+1)
+			}
+			if err := validateCombinedFrontierExecutionSummary(run, candidates); err != nil {
+				return nil, fmt.Errorf("resumable combined frontier run %d: %w", index+1, err)
 			}
 		} else if run.Strategy != "" {
 			return nil, fmt.Errorf("resumable seed run %d contains strategy evidence", index+1)
@@ -410,7 +418,7 @@ func encodeExecutionRecords(runs []ExecutionRecord) ([]byte, error) {
 	return evidence.CanonicalJSONLines(values)
 }
 
-func archiveResumeState(ctx context.Context, path string, runs []byte, archiveRuns, preserveFrontier bool) error {
+func archiveResumeState(ctx context.Context, path string, runs []byte, archiveRuns bool, strategy string) error {
 	partialRoot := filepath.Join(path, ".partial")
 	entries, err := os.ReadDir(partialRoot)
 	if err != nil {
@@ -418,7 +426,7 @@ func archiveResumeState(ctx context.Context, path string, runs []byte, archiveRu
 	}
 	toArchive := make([]os.DirEntry, 0)
 	for _, entry := range entries {
-		if entry.Name() == "batch" || entry.Name() == "resume" || preserveFrontier && entry.Name() == "frontier" {
+		if entry.Name() == "batch" || entry.Name() == "resume" || strategy == "choice-frontier" && entry.Name() == "frontier" || strategy == "combined-frontier" && entry.Name() == "combined-frontier" {
 			continue
 		}
 		info, err := entry.Info()

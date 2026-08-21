@@ -192,6 +192,48 @@ func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedFrontier(t *test
 	}
 }
 
+func TestResolveExploreStrategyRequiresExplicitBoundedCombinedFrontier(t *testing.T) {
+	valid := exploreStrategyOptions{
+		Value: "combined-frontier", Seeds: "7", MaxRuns: 8, MaxForcedDecisions: 4,
+		MaxFrontierBytes: 1 << 20, MaxExplorationResultBytes: 1 << 20,
+		CombinedDimensionLimits: runner.CombinedDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4},
+		MaxRunsSet:              true, MaxForcedDecisionsSet: true, MaxFrontierBytesSet: true, MaxExplorationResultBytesSet: true,
+		RuntimeLimitSet: true, ScenarioLimitSet: true, NetworkLimitSet: true, StorageLimitSet: true, FaultLimitSet: true, CrashLimitSet: true,
+	}
+	strategy, choices, err := resolveExploreStrategy(valid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strategy != runner.StrategyCombinedFrontier || !choices {
+		t.Fatalf("resolveExploreStrategy() = %q, %t", strategy, choices)
+	}
+
+	for _, test := range []struct {
+		name      string
+		configure func(*exploreStrategyOptions)
+		want      string
+	}{
+		{name: "count", configure: func(options *exploreStrategyOptions) { options.CountSet = true }, want: "does not accept --count"},
+		{name: "multiple seeds", configure: func(options *exploreStrategyOptions) { options.Seeds = "7-8" }, want: "exactly one base seed"},
+		{name: "guidance", configure: func(options *exploreStrategyOptions) { options.Guide = true }, want: "does not support --guide"},
+		{name: "choice depth", configure: func(options *exploreStrategyOptions) { options.MaxChoiceDepthSet = true; options.MaxChoiceDepth = 1 }, want: "does not accept --max-choice-depth"},
+		{name: "missing max runs", configure: func(options *exploreStrategyOptions) { options.MaxRunsSet = false }, want: "--max-runs"},
+		{name: "missing forced decisions", configure: func(options *exploreStrategyOptions) { options.MaxForcedDecisionsSet = false }, want: "--max-forced-decisions"},
+		{name: "missing frontier bytes", configure: func(options *exploreStrategyOptions) { options.MaxFrontierBytesSet = false }, want: "--max-frontier-bytes"},
+		{name: "missing result bytes", configure: func(options *exploreStrategyOptions) { options.MaxExplorationResultBytesSet = false }, want: "--max-exploration-result-bytes"},
+		{name: "missing runtime bound", configure: func(options *exploreStrategyOptions) { options.RuntimeLimitSet = false }, want: "--max-runtime-decisions"},
+		{name: "zero crash bound", configure: func(options *exploreStrategyOptions) { options.CombinedDimensionLimits.Crash = 0 }, want: "--max-crash-decisions"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			options := valid
+			test.configure(&options)
+			if _, _, err := resolveExploreStrategy(options); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("resolveExploreStrategy() error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
 func TestResolveExploreStrategyRejectsFrontierBoundsForSeeds(t *testing.T) {
 	_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: "seed", Seeds: "7", MaxRuns: 1, MaxRunsSet: true})
 	if err == nil || !strings.Contains(err.Error(), "require --strategy=choice-frontier") {
@@ -522,7 +564,7 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		want      []string
 	}{
 		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=batch", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomadv3.inspect/v3"`, `"kind":"batch"`, `"run_id":"run-inspect-command"`}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomadv3.inspect/v4"`, `"kind":"batch"`, `"run_id":"run-inspect-command"`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -542,6 +584,36 @@ func TestRunInspectRejectsChoicesForBatch(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if status := runInspect([]string{"--choices", writeInspectBatchFixture(t)}, &stdout, &stderr); status != 2 || !strings.Contains(stderr.String(), "traced artifact") {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestPrintInspectionReportsInterruptedCombinedFrontierWork(t *testing.T) {
+	report := runner.Inspection{
+		Kind: "batch", Path: "/batch",
+		Lifecycle: &runner.CampaignLifecycleInspection{State: "running", Resumable: true},
+		CombinedFrontier: &runner.CombinedFrontierInspection{
+			Schema: "gomadv3.combined-frontier-inspection/v1",
+			Summary: runner.CombinedFrontierSummary{
+				MaxRuns: 8, MaxForcedDecisions: 2, MaxFrontierBytes: 4096, MaxResultBytes: 2048,
+				Limits:  runner.CombinedDimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
+				Pending: 1, PendingBytes: 512,
+			},
+			Pending: []runner.CombinedCandidateInspection{{
+				SHA256: "sha256:candidate", Overrides: []runner.CombinedOverrideInspection{{
+					Dimension: "fault", Ordinal: 0, Selected: 1, Alternatives: 2, Identity: "sha256:override", ControlBytes: 64, ControlSHA256: "sha256:control",
+				}},
+			}},
+			StagedRound: &runner.CombinedStagedRoundInspection{Index: 3, Candidates: 2, Attempted: 1},
+		},
+	}
+	var output bytes.Buffer
+	if err := printInspection(&output, report); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"combined-frontier:", "pending=1", "runtime=1", "scenario=2", "network=3", "storage=4", "fault=5", "crash=6", "pending-candidate:", "forced-decision:", "staged-round: index=3 candidates=2 attempted=1"} {
+		if !strings.Contains(output.String(), want) {
+			t.Fatalf("inspection output = %q, missing %q", output.String(), want)
+		}
 	}
 }
 
@@ -730,6 +802,37 @@ func TestExploreReporterReportsGuidedCorpusUpdates(t *testing.T) {
 			if !strings.Contains(stdout.String(), want) {
 				t.Fatalf("json=%t output = %q, missing %q", jsonOutput, stdout.String(), want)
 			}
+		}
+	}
+}
+
+func TestExploreReporterReportsCombinedFrontierBoundsAndRemainingWork(t *testing.T) {
+	frontier := &runner.CombinedFrontierSummary{
+		Parallel: 2, MaxRuns: 16, MaxForcedDecisions: 4, MaxFrontierBytes: 1 << 20, MaxResultBytes: 64 << 10,
+		Limits:            runner.CombinedDimensionLimits{Runtime: 2, Scenario: 3, Network: 4, Storage: 5, Fault: 6, Crash: 7},
+		LogicalExecutions: 5, CommittedRounds: 3, Pending: 4, PendingBytes: 2048, SeenCandidates: 9,
+		DeduplicatedOutcomes: 3, DistinctFailures: 1, DeepestOverride: 2, OmittedByDimension: 8,
+	}
+	for _, jsonOutput := range []bool{false, true} {
+		var stdout, stderr bytes.Buffer
+		reporter := newExploreReporter(jsonOutput, &stdout, &stderr)
+		if err := reporter.Result(runner.CampaignResult{
+			CampaignPath: "/batch", SelectionCount: 1, Attempted: 5, Failures: 1,
+			StopReason: runner.StopDimensionDepthComplete, CombinedFrontier: frontier, RecoveryExecutions: 2,
+		}); err != nil {
+			t.Fatal(err)
+		}
+		frontierName := "combined-frontier"
+		if jsonOutput {
+			frontierName = "combined_frontier"
+		}
+		for _, want := range []string{frontierName, "pending", "2048", "runtime", "scenario", "network", "storage", "fault", "crash", "recovery"} {
+			if !strings.Contains(stdout.String(), want) {
+				t.Fatalf("json=%t output = %q, missing %q", jsonOutput, stdout.String(), want)
+			}
+		}
+		if stderr.Len() != 0 {
+			t.Fatalf("json=%t stderr = %q", jsonOutput, stderr.String())
 		}
 	}
 }

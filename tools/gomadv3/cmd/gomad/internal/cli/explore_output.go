@@ -42,6 +42,7 @@ type exploreEvent struct {
 	CorpusEntries        uint64                            `json:"corpus_entries,omitempty"`
 	CorpusAdded          uint64                            `json:"corpus_added,omitempty"`
 	Frontier             *runner.FrontierSummary           `json:"frontier,omitempty"`
+	CombinedFrontier     *runner.CombinedFrontierSummary   `json:"combined_frontier,omitempty"`
 	RecoveryExecutions   uint64                            `json:"recovery_executions,omitempty"`
 }
 
@@ -66,10 +67,10 @@ func (reporter *exploreReporter) Progress(progress runner.CampaignEvent) error {
 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
 			RetainedSuccesses: progress.RetainedSuccesses, RetainedSuccessBytes: progress.RetainedSuccessBytes,
 			CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
-			ChoiceTrace: progress.ChoiceTrace, Frontier: progress.Frontier, RecoveryExecutions: progress.RecoveryExecutions,
+			ChoiceTrace: progress.ChoiceTrace, Frontier: progress.Frontier, CombinedFrontier: progress.CombinedFrontier, RecoveryExecutions: progress.RecoveryExecutions,
 		})
 	}
-	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s%s%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.CampaignPath, formatChoiceTrace(progress.ChoiceTrace), formatFrontier(progress.Frontier, progress.RecoveryExecutions))
+	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s%s%s%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.CampaignPath, formatChoiceTrace(progress.ChoiceTrace), formatFrontier(progress.Frontier, progress.RecoveryExecutions), formatCombinedFrontier(progress.CombinedFrontier, progress.RecoveryExecutions))
 	return err
 }
 
@@ -84,7 +85,7 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 			Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, Novelty: summary.DistinctFailures, StopReason: summary.StopReason,
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SemanticCoverage: summary.SemanticCoverage,
 			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
-			ChoiceTrace: summary.ChoiceTrace, Frontier: summary.Frontier, RecoveryExecutions: summary.RecoveryExecutions,
+			ChoiceTrace: summary.ChoiceTrace, Frontier: summary.Frontier, CombinedFrontier: summary.CombinedFrontier, RecoveryExecutions: summary.RecoveryExecutions,
 		}); err != nil {
 			return err
 		}
@@ -104,7 +105,7 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 		}
 		return nil
 	}
-	if _, err := fmt.Fprintf(reporter.stdout, "gomad: classification=%s attempted=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s artifact=%s%s%s\n", classification, summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.ReplayDivergences, summary.DistinctFailures, summary.RetainedSuccesses, summary.RetainedSuccessBytes, summary.StopReason, summary.CampaignPath, formatChoiceTrace(summary.ChoiceTrace), formatFrontier(summary.Frontier, summary.RecoveryExecutions)); err != nil {
+	if _, err := fmt.Fprintf(reporter.stdout, "gomad: classification=%s attempted=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s artifact=%s%s%s%s\n", classification, summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.ReplayDivergences, summary.DistinctFailures, summary.RetainedSuccesses, summary.RetainedSuccessBytes, summary.StopReason, summary.CampaignPath, formatChoiceTrace(summary.ChoiceTrace), formatFrontier(summary.Frontier, summary.RecoveryExecutions), formatCombinedFrontier(summary.CombinedFrontier, summary.RecoveryExecutions)); err != nil {
 		return err
 	}
 	for _, path := range summary.Artifacts {
@@ -135,6 +136,14 @@ func formatFrontier(frontier *runner.FrontierSummary, recoveryExecutions uint64)
 		return ""
 	}
 	return fmt.Sprintf(" frontier-rounds=%d frontier-pending=%d frontier-bytes=%d frontier-seen=%d frontier-outcomes=%d frontier-depth=%d frontier-max-runs=%d frontier-max-depth=%d frontier-max-bytes=%d frontier-omitted-runs=%d frontier-omitted-depth=%d frontier-omitted-bytes=%d frontier-complete=%t recovery-executions=%d", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.MaxRuns, frontier.MaxChoiceDepth, frontier.MaxFrontierBytes, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, recoveryExecutions)
+}
+
+func formatCombinedFrontier(frontier *runner.CombinedFrontierSummary, recoveryExecutions uint64) string {
+	if frontier == nil {
+		return ""
+	}
+	limits := frontier.Limits
+	return fmt.Sprintf(" combined-frontier-rounds=%d combined-frontier-executions=%d combined-frontier-pending=%d combined-frontier-bytes=%d combined-frontier-seen=%d combined-frontier-outcomes=%d combined-frontier-failures=%d combined-frontier-depth=%d combined-frontier-max-runs=%d combined-frontier-max-forced=%d combined-frontier-max-bytes=%d combined-frontier-max-result-bytes=%d combined-frontier-runtime=%d combined-frontier-scenario=%d combined-frontier-network=%d combined-frontier-storage=%d combined-frontier-fault=%d combined-frontier-crash=%d combined-frontier-omitted-runs=%d combined-frontier-omitted-depth=%d combined-frontier-omitted-dimension=%d combined-frontier-omitted-bytes=%d combined-frontier-complete=%t recovery-executions=%d", frontier.CommittedRounds, frontier.LogicalExecutions, frontier.Pending, frontier.PendingBytes, frontier.SeenCandidates, frontier.DeduplicatedOutcomes, frontier.DistinctFailures, frontier.DeepestOverride, frontier.MaxRuns, frontier.MaxForcedDecisions, frontier.MaxFrontierBytes, frontier.MaxResultBytes, limits.Runtime, limits.Scenario, limits.Network, limits.Storage, limits.Fault, limits.Crash, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByDimension, frontier.OmittedByCapacity, frontier.BoundedComplete, recoveryExecutions)
 }
 
 func formatChoiceTrace(trace *runner.ChoiceTraceSummary) string {

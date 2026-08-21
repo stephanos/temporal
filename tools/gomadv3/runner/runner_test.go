@@ -1043,6 +1043,42 @@ func TestRunChoiceFrontierResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	}
 }
 
+func TestRunCombinedFrontierResumePreservesCommittedCandidates(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	baseExecutor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, combinedFrontierInterruptExecutor{frontier: baseExecutor}, "7", PolicyAll, 1)
+	config.Strategy = StrategyCombinedFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 4
+	config.MaxForcedDecisions = 2
+	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationResultBytes = 1 << 20
+	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+
+	partial, err := Explore(context.Background(), config)
+	var hostErr *HostError
+	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.CombinedFrontier == nil || partial.CombinedFrontier.CommittedRounds != 1 {
+		t.Fatalf("partial combined frontier = %#v, error = %v", partial, err)
+	}
+	resumedExecutor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	resumed, err := Explore(context.Background(), CampaignSpec{
+		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.CombinedFrontier == nil || resumed.CombinedFrontier.CommittedRounds != 2 || resumed.StopReason != StopFrontierExhausted {
+		t.Fatalf("resumed combined frontier = %#v", resumed)
+	}
+	resumedExecutor.mu.Lock()
+	resumedRequests := len(resumedExecutor.requests)
+	resumedExecutor.mu.Unlock()
+	if resumedRequests != 1 {
+		t.Fatalf("resumed combined frontier executed %d candidates, want only the uncommitted candidate", resumedRequests)
+	}
+}
+
 func TestRunChoiceFrontierExpandsCompleteTargetFailures(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -1938,9 +1974,26 @@ type frontierInterruptExecutor struct {
 	frontier *frontierExecutor
 }
 
+type combinedFrontierInterruptExecutor struct {
+	frontier *combinedFrontierExecutor
+}
+
 func (executor frontierInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
 	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
 		return execution.Result{}, errors.New("simulated frontier interruption")
+	}
+	return executor.frontier.Run(ctx, request)
+}
+
+func (executor combinedFrontierInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+	var plan struct {
+		Overrides []json.RawMessage `json:"overrides"`
+	}
+	if request.Simulation == nil || json.Unmarshal(request.Simulation.ExplorationPlan, &plan) != nil {
+		return execution.Result{}, errors.New("combined frontier simulation plan is unavailable")
+	}
+	if len(plan.Overrides) != 0 {
+		return execution.Result{}, errors.New("simulated combined frontier interruption")
 	}
 	return executor.frontier.Run(ctx, request)
 }
