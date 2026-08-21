@@ -10,6 +10,7 @@ type recordProjection struct {
 	IOProfile         ioProfileProjection          `json:"io_profile"`
 	ChoiceProfile     *choiceProfileProjection     `json:"choice_profile,omitempty"`
 	SimulationProfile *simulationProfileProjection `json:"simulation_profile,omitempty"`
+	Minimization      *Minimization                `json:"minimization,omitempty"`
 	Environment       []Environment                `json:"environment"`
 	Limits            Limits                       `json:"limits"`
 	Seed              Uint64String                 `json:"seed"`
@@ -185,6 +186,7 @@ func recordProjectionOf(manifest ExecutionRecord) recordProjection {
 		IOProfile:         projectIOProfile(manifest.IOProfile),
 		ChoiceProfile:     projectChoiceProfile(manifest.ChoiceProfile),
 		SimulationProfile: projectSimulationProfile(manifest.SimulationProfile),
+		Minimization:      cloneMinimization(manifest.Minimization),
 		Environment:       manifest.Environment,
 		Limits:            manifest.Limits,
 		Seed:              manifest.Seed,
@@ -192,6 +194,19 @@ func recordProjectionOf(manifest ExecutionRecord) recordProjection {
 		Outcome:           projectOutcome(manifest.Outcome),
 		Streams:           projectStreams(manifest.Streams),
 	}
+}
+
+func cloneMinimization(minimization *Minimization) *Minimization {
+	if minimization == nil {
+		return nil
+	}
+	cloned := *minimization
+	cloned.Accepted = make([]MinimizationReduction, len(minimization.Accepted))
+	for index, reduction := range minimization.Accepted {
+		cloned.Accepted[index] = reduction
+		cloned.Accepted[index].Removed = append([]MinimizationDecision(nil), reduction.Removed...)
+	}
+	return &cloned
 }
 
 func failureProjectionOf(manifest ExecutionRecord) any {
