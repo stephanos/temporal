@@ -422,7 +422,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
-	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
+	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	planOnly := flags.Bool("__plan", false, "create a campaign plan")
 	planOutput := flags.String("output", "", "campaign plan output")
@@ -1015,7 +1015,7 @@ func parseTarget(arguments []string) (targetInput, error) {
 func parseCapabilityMode(value string) (target.CapabilityMode, error) {
 	mode := target.CapabilityMode(value)
 	switch mode {
-	case target.CapabilityModeClosure, target.CapabilityModeLinked:
+	case target.CapabilityModeClosure, target.CapabilityModeLinked, target.CapabilityModeGuarded:
 		return mode, nil
 	default:
 		return "", fmt.Errorf("unknown capability mode %q", value)

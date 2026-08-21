@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	AnalysisSchema      = "gomadv3.capability-analysis/v3"
-	PriorAnalysisSchema = "gomadv3.capability-analysis/v2"
+	AnalysisSchema       = "gomadv3.capability-analysis/v4"
+	PriorAnalysisSchema  = "gomadv3.capability-analysis/v3"
+	LegacyAnalysisSchema = "gomadv3.capability-analysis/v2"
 )
 
 const MaximumAnalysisReportBytes = 16 << 20
@@ -66,6 +67,7 @@ type AnalysisReport struct {
 	Packs              []target.CompatibilityPackEvidence `json:"packs"`
 	Requirements       []deterministicio.Requirement      `json:"requirements"`
 	Blockers           []AnalysisBlocker                  `json:"blockers"`
+	GuardedBlockers    []AnalysisBlocker                  `json:"guarded_blockers"`
 	EliminatedBlockers []AnalysisBlocker                  `json:"eliminated_blockers,omitempty"`
 }
 
@@ -102,7 +104,7 @@ func BuildAnalysis(input AnalysisInput) (AnalysisReport, error) {
 	if input.Spec.Kind != target.KindGoRun && input.Spec.Kind != target.KindGoTest {
 		return AnalysisReport{}, errors.New("capability analysis requires a go-run or go-test target")
 	}
-	if input.Review.Schema != target.CapabilityReviewSchema || input.Review.Closure.Schema != target.CapabilityClosureSchema || input.Review.Roots == nil || input.Review.Packs == nil || input.Review.Findings == nil || input.Review.EliminatedFindings == nil {
+	if input.Review.Schema != target.CapabilityReviewSchema || input.Review.Closure.Schema != target.CapabilityClosureSchema || input.Review.Roots == nil || input.Review.Packs == nil || input.Review.Findings == nil || input.Review.GuardedFindings == nil || input.Review.EliminatedFindings == nil {
 		return AnalysisReport{}, errors.New("capability analysis review evidence is incomplete")
 	}
 	if len(input.Review.Roots) == 0 || len(input.Review.Closure.Packages) == 0 {
@@ -121,6 +123,10 @@ func BuildAnalysis(input AnalysisInput) (AnalysisReport, error) {
 		return AnalysisReport{}, err
 	}
 	blockers, err := projectAnalysisBlockers(input.Review.Findings, paths)
+	if err != nil {
+		return AnalysisReport{}, err
+	}
+	guarded, err := projectAnalysisBlockers(input.Review.GuardedFindings, paths)
 	if err != nil {
 		return AnalysisReport{}, err
 	}
@@ -168,7 +174,7 @@ func BuildAnalysis(input AnalysisInput) (AnalysisReport, error) {
 			Roots: append([]target.CapabilityPackageReference{}, input.Review.Roots...),
 		},
 		IOProfile: input.IOProfile.Identity(), Packs: append([]target.CompatibilityPackEvidence{}, input.Review.Packs...),
-		Requirements: requirements, Blockers: blockers, EliminatedBlockers: eliminated,
+		Requirements: requirements, Blockers: blockers, GuardedBlockers: guarded, EliminatedBlockers: eliminated,
 	}, nil
 }
 
@@ -195,9 +201,15 @@ func DecodeAnalysisReport(data []byte) (AnalysisReport, error) {
 	if err := validateAnalysisReport(report); err != nil {
 		return AnalysisReport{}, err
 	}
-	if report.Schema == PriorAnalysisSchema {
+	if report.Schema == LegacyAnalysisSchema {
 		report.Schema = AnalysisSchema
 		report.Target.CapabilityMode = target.CapabilityModeClosure
+	}
+	if report.Schema == PriorAnalysisSchema {
+		report.Schema = AnalysisSchema
+	}
+	if report.GuardedBlockers == nil {
+		report.GuardedBlockers = []AnalysisBlocker{}
 	}
 	if report.EliminatedBlockers == nil {
 		report.EliminatedBlockers = []AnalysisBlocker{}
@@ -206,15 +218,22 @@ func DecodeAnalysisReport(data []byte) (AnalysisReport, error) {
 }
 
 func validateAnalysisReport(report AnalysisReport) error {
-	if report.Schema != AnalysisSchema && report.Schema != PriorAnalysisSchema || report.Target.Kind != target.KindGoRun && report.Target.Kind != target.KindGoTest || report.Target.Source == "" {
+	if report.Schema != AnalysisSchema && report.Schema != PriorAnalysisSchema && report.Schema != LegacyAnalysisSchema || report.Target.Kind != target.KindGoRun && report.Target.Kind != target.KindGoTest || report.Target.Source == "" {
 		return errors.New("capability analysis identity is invalid")
 	}
-	if report.Target.Arguments == nil || report.Target.BuildTags == nil || report.Closure.Roots == nil || len(report.Closure.Roots) == 0 || report.Packs == nil || report.Requirements == nil || report.Blockers == nil || uint64(report.Closure.PackageCount) == 0 {
+	if report.Target.Arguments == nil || report.Target.BuildTags == nil || report.Closure.Roots == nil || len(report.Closure.Roots) == 0 || report.Packs == nil || report.Requirements == nil || report.Blockers == nil || report.Schema == AnalysisSchema && report.GuardedBlockers == nil || uint64(report.Closure.PackageCount) == 0 {
 		return errors.New("capability analysis evidence is incomplete")
 	}
-	if report.Schema == PriorAnalysisSchema {
+	if report.Schema == LegacyAnalysisSchema {
 		if report.Target.CapabilityMode != "" || report.Target.CapabilityManifest != nil || report.EliminatedBlockers != nil {
 			return errors.New("historical capability analysis contains linked capability evidence")
+		}
+	} else if report.Schema == PriorAnalysisSchema {
+		if report.GuardedBlockers != nil || report.Target.CapabilityMode == target.CapabilityModeGuarded {
+			return errors.New("prior capability analysis contains guarded capability evidence")
+		}
+		if err := evidence.ValidateCurrentTargetCapability(evidence.Target{CapabilityMode: string(report.Target.CapabilityMode), CapabilityManifest: report.Target.CapabilityManifest}); err != nil {
+			return fmt.Errorf("capability analysis target: %w", err)
 		}
 	} else {
 		if err := evidence.ValidateCurrentTargetCapability(evidence.Target{CapabilityMode: string(report.Target.CapabilityMode), CapabilityManifest: report.Target.CapabilityManifest}); err != nil {
@@ -252,6 +271,11 @@ func validateAnalysisReport(report AnalysisReport) error {
 	for index, blocker := range report.EliminatedBlockers {
 		if blocker.Kind == "" || blocker.Package.ImportPath == "" || len(blocker.DependencyPath) == 0 || blocker.DependencyPath[len(blocker.DependencyPath)-1] != blocker.Package {
 			return fmt.Errorf("capability analysis eliminated blocker %d is invalid", index)
+		}
+	}
+	for index, blocker := range report.GuardedBlockers {
+		if blocker.Kind == "" || blocker.Package.ImportPath == "" || len(blocker.DependencyPath) == 0 || blocker.DependencyPath[len(blocker.DependencyPath)-1] != blocker.Package {
+			return fmt.Errorf("capability analysis guarded blocker %d is invalid", index)
 		}
 	}
 	return nil
@@ -393,6 +417,9 @@ func FormatAnalysisText(report AnalysisReport) string {
 	}
 	if len(report.EliminatedBlockers) != 0 {
 		fmt.Fprintf(&output, "eliminated-blockers: %d\n", len(report.EliminatedBlockers))
+	}
+	if len(report.GuardedBlockers) != 0 {
+		fmt.Fprintf(&output, "guarded-blockers: %d\n", len(report.GuardedBlockers))
 	}
 	return output.String()
 }

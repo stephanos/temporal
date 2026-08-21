@@ -9,19 +9,18 @@ import (
 	"encoding/binary"
 	"strconv"
 	"sync"
-	"syscall"
 	"unsafe"
 )
 
 const maximumProcessFrameBytes = 128 << 20
 
-const processRoleEnvironmentName = "GOMADV3_SIMULATION_ROLE"
-const processRequestFDEnvironmentName = "GOMADV3_SIMULATION_REQUEST_FD"
-const processResponseFDEnvironmentName = "GOMADV3_SIMULATION_RESPONSE_FD"
-const processBootstrapFDEnvironmentName = "GOMADV3_SIMULATION_BOOTSTRAP_FD"
-const processControlFDEnvironmentName = "GOMADV3_SIMULATION_CONTROL_FD"
-const processModelRequestFDEnvironmentName = "GOMADV3_SIMULATION_MODEL_REQUEST_FD"
-const processModelResponseFDEnvironmentName = "GOMADV3_SIMULATION_MODEL_RESPONSE_FD"
+const processRoleEnvironmentName = "GOMADV3_SIMULATION_ROLE="
+const processRequestFDEnvironmentName = "GOMADV3_SIMULATION_REQUEST_FD="
+const processResponseFDEnvironmentName = "GOMADV3_SIMULATION_RESPONSE_FD="
+const processBootstrapFDEnvironmentName = "GOMADV3_SIMULATION_BOOTSTRAP_FD="
+const processControlFDEnvironmentName = "GOMADV3_SIMULATION_CONTROL_FD="
+const processModelRequestFDEnvironmentName = "GOMADV3_SIMULATION_MODEL_REQUEST_FD="
+const processModelResponseFDEnvironmentName = "GOMADV3_SIMULATION_MODEL_RESPONSE_FD="
 
 var processTransport sync.Mutex
 var processBootstrap sync.Mutex
@@ -55,6 +54,9 @@ func runtimeSimulationTimeCurrent() int64
 
 //go:linkname runtimeSimulationTimeObserve runtime.gomadSimulationTimeObserve
 func runtimeSimulationTimeObserve(int64) bool
+
+//go:linkname runtimeControlEnvironment runtime.gomadControlEnvironment
+func runtimeControlEnvironment(string) (string, bool)
 
 //go:linkname ProcessAvailable
 func ProcessAvailable() bool {
@@ -168,7 +170,7 @@ func ProcessWaitStop() bool {
 
 //go:linkname ProcessRole
 func ProcessRole() uint8 {
-	role, ok := syscall.Getenv(processRoleEnvironmentName)
+	role, ok := runtimeControlEnvironment(processRoleEnvironmentName)
 	if !ok {
 		return 0
 	}
@@ -200,15 +202,15 @@ func ProcessBootstrap(limit uint64) ([]byte, bool) {
 	result := make([]byte, 0, min(limit, 4096))
 	var buffer [4096]byte
 	for {
-		count, err := syscall.Read(descriptor, buffer[:])
+		count := int(runtimeBlockingRead(int32(descriptor), unsafe.Pointer(&buffer[0]), int32(len(buffer))))
+		if count < 0 || count > len(buffer) {
+			return nil, false
+		}
 		if count > 0 {
 			if uint64(len(result))+uint64(count) > limit {
 				return nil, false
 			}
 			result = append(result, buffer[:count]...)
-		}
-		if err != nil {
-			return nil, false
 		}
 		if count == 0 {
 			return result, len(result) != 0
@@ -301,7 +303,7 @@ func processRequestBlocksSimulationTime(request []byte) bool {
 }
 
 func processDescriptor(name string) (int, bool) {
-	value, ok := syscall.Getenv(name)
+	value, ok := runtimeControlEnvironment(name)
 	if !ok {
 		return 0, false
 	}

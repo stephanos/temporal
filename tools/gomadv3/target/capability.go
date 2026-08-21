@@ -23,7 +23,7 @@ import (
 )
 
 const CapabilityClosureSchema = "gomadv3.target-capability-closure/v3"
-const CapabilityReviewSchema = "gomadv3.target-capability-review/v3"
+const CapabilityReviewSchema = "gomadv3.target-capability-review/v4"
 const maximumCapabilityReviewOutputBytes = 64 << 20
 const maximumCapabilityReviewPackages = 100000
 const maximumCapabilitySourceBytes = 16 << 20
@@ -165,6 +165,7 @@ type CapabilityReview struct {
 	CapabilityMode     CapabilityMode               `json:"capability_mode"`
 	CapabilityManifest *CapabilityManifest          `json:"capability_manifest,omitempty"`
 	Findings           []CapabilityFinding          `json:"findings"`
+	GuardedFindings    []CapabilityFinding          `json:"guarded_findings"`
 	EliminatedFindings []CapabilityFinding          `json:"eliminated_findings"`
 }
 
@@ -723,11 +724,11 @@ func capabilityReviewFromClosure(closure CapabilityClosure, tags []string, selec
 	return CapabilityReview{
 		Schema: CapabilityReviewSchema, BuildTags: append([]string{}, tags...), Roots: roots, Closure: closure,
 		Packs: selection.Evidence(), CapabilityMode: CapabilityModeClosure,
-		Findings: collectCapabilityFindings(closure, selection), EliminatedFindings: []CapabilityFinding{},
+		Findings: collectCapabilityFindings(closure, selection), GuardedFindings: []CapabilityFinding{}, EliminatedFindings: []CapabilityFinding{},
 	}
 }
 
-func projectLinkedCapabilityReview(review CapabilityReview, record livecap.Record) CapabilityReview {
+func projectExecutableCapabilityReview(review CapabilityReview, record livecap.Record, mode CapabilityMode) CapabilityReview {
 	packages := make([]livecap.ClosurePackage, len(review.Closure.Packages))
 	for index, pkg := range review.Closure.Packages {
 		packages[index] = livecap.ClosurePackage{ImportPath: pkg.ImportPath, ForTest: pkg.ForTest, Root: pkg.Root, Standard: pkg.Standard}
@@ -739,21 +740,38 @@ func projectLinkedCapabilityReview(review CapabilityReview, record livecap.Recor
 		}
 	}
 	projection := livecap.ProjectFindings(record.Manifest, packages, findings)
-	active := make([]CapabilityFinding, 0, len(review.Findings)-len(projection.Eliminated))
+	active := make([]CapabilityFinding, 0, len(review.Findings)-len(projection.Eliminated)-len(projection.Guarded))
+	guardedIndexes := make(map[int]struct{}, len(projection.Guarded))
+	for _, index := range projection.Guarded {
+		guardedIndexes[index] = struct{}{}
+	}
+	guarded := make([]CapabilityFinding, 0, len(projection.Guarded))
 	eliminated := make([]CapabilityFinding, 0, len(projection.Eliminated))
 	for index, finding := range review.Findings {
 		finding.Directives = append([]string{}, finding.Directives...)
 		if projection.Active[index] {
+			active = append(active, finding)
+		} else if _, protected := guardedIndexes[index]; protected && mode == CapabilityModeGuarded {
+			guarded = append(guarded, finding)
+		} else if protected {
 			active = append(active, finding)
 		} else {
 			eliminated = append(eliminated, finding)
 		}
 	}
 	active = append(active, projectDeniedBoundaryFindings(review.Closure.Packages, projection.Denied)...)
+	guardedBoundaries := projectDeniedBoundaryFindings(review.Closure.Packages, projection.GuardedDenied)
+	if mode == CapabilityModeGuarded {
+		guarded = append(guarded, guardedBoundaries...)
+	} else {
+		active = append(active, guardedBoundaries...)
+	}
 	sort.Slice(active, func(i, j int) bool { return compareCapabilityFinding(active[i], active[j]) < 0 })
-	review.CapabilityMode = CapabilityModeLinked
+	sort.Slice(guarded, func(i, j int) bool { return compareCapabilityFinding(guarded[i], guarded[j]) < 0 })
+	review.CapabilityMode = mode
 	review.CapabilityManifest = capabilityManifest(record)
 	review.Findings = active
+	review.GuardedFindings = guarded
 	review.EliminatedFindings = eliminated
 	return review
 }

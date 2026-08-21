@@ -150,7 +150,7 @@ func validateFact(fact Fact) error {
 			return errors.New("foreign fact is invalid")
 		}
 	case FactKindGuard:
-		if fact.Disposition != DispositionGuarded || !strings.HasPrefix(fact.Capability, "import:") || fact.ReferencedSymbol == "" {
+		if fact.Disposition != DispositionGuarded || !IsValidGuardFact(fact.Capability, fact.ReferencedSymbol) {
 			return errors.New("guard fact is invalid")
 		}
 	case FactKindLinkname:

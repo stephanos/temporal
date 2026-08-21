@@ -108,9 +108,11 @@ func gomadInit() {
 	randomizeScheduler = true
 }
 
+//go:linkname gomadCapabilityGuard
 //go:noinline
 func gomadCapabilityGuard() {
 	if gomadEnabled {
+		runExitHooks(2)
 		throw("GOMAD_CAPABILITY_DENIED")
 	}
 }
@@ -892,6 +894,35 @@ func gomadBlockingWrite(fd uintptr, source unsafe.Pointer, bytes int32) int32 {
 	return count
 }
 
+//go:linkname gomadTraceExit
+func gomadTraceExit(code int32) {
+	exit(code)
+}
+
+//go:linkname gomadTraceMap
+func gomadTraceMap(descriptor int32, size uintptr, writable bool) []byte {
+	if descriptor < 3 || size == 0 {
+		return nil
+	}
+	protection := int32(_PROT_READ)
+	if writable {
+		protection |= _PROT_WRITE
+	}
+	mapped, errno := mmap(nil, size, protection, gomadMapShared, descriptor, 0)
+	if errno != 0 {
+		return nil
+	}
+	return unsafe.Slice((*byte)(mapped), int(size))
+}
+
+//go:linkname gomadTraceWrite
+func gomadTraceWrite(descriptor int32, source []byte) bool {
+	if descriptor < 3 || len(source) == 0 || len(source) > 1<<31-1 {
+		return false
+	}
+	return gomadBlockingWrite(uintptr(descriptor), unsafe.Pointer(&source[0]), int32(len(source))) == int32(len(source))
+}
+
 //go:linkname gomadIOConfigFrame
 func gomadIOConfigFrame() *[212]byte {
 	return &gomadConfig
@@ -946,6 +977,11 @@ func gomadEnv(prefix string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+//go:linkname gomadControlEnvironment
+func gomadControlEnvironment(prefix string) (string, bool) {
+	return gomadEnv(prefix)
 }
 
 func gomadParseSeed(value string) (uint64, bool) {
