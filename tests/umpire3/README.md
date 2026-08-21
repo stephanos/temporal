@@ -416,6 +416,7 @@ or maintain them.
 
 ## Where to go next
 
+- [SPEC.md](SPEC.md): stable identifiers and requirements for every supported Umpire3 behavior.
 - [CONTEXT.md](CONTEXT.md): canonical terms and words to avoid.
 - [AUTHORING.md](AUTHORING.md): compact regression-authoring and failure-diagnosis rules.
 - [MODELING.md](MODELING.md): the Lean/Go ownership boundary and model workflow.
