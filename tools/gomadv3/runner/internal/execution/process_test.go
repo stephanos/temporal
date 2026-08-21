@@ -790,7 +790,7 @@ func TestRunCapturesWorldRecordFromExecutingChild(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=9"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
@@ -798,7 +798,7 @@ func TestRunCapturesWorldRecordFromExecutingChild(t *testing.T) {
 	}
 	recording, err := world.DecodeRecording(result.WorldRecord)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("decode child World recording: %v; termination = %s/%d; stderr = %q", err, result.Termination, result.ExitCode, result.Stderr.Bytes)
 	}
 	if recording.Initial.Config.Seed != 9 || len(recording.Final.Transitions)-len(recording.Initial.Transitions) != 2 || recording.Terminal.Kind != world.TerminalDeadlock {
 		t.Fatalf("child World recording = %#v", recording)
@@ -810,7 +810,7 @@ func TestRunPreservesPrematureWorldProducerMarker(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-open-only"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=9"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
@@ -829,7 +829,7 @@ func TestRunPreservesWorldSeedMismatchMarker(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=8"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 8},
 	})
 	if err != nil {
@@ -857,7 +857,7 @@ func TestRunInstallsWorldInitialReplayInputBeforeModeledWork(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=9"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9, ExpectedInitial: expectedInitial},
 	})
 	if err != nil {

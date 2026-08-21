@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 
 	"go.temporal.io/server/tools/gomadv3/world"
 	"go.temporal.io/server/tools/gomadv3/world/internal/transport"
@@ -50,18 +49,14 @@ func Open(core *world.Model) (*Session, error) {
 	if err != nil || closeErr != nil {
 		return nil, errors.Join(err, closeErr, output.Close())
 	}
-	seedText, found := os.LookupEnv("GOMADSEED")
-	seed, err := strconv.ParseUint(seedText, 10, 64)
-	if !found || err != nil || strconv.FormatUint(seed, 10) != seedText || seed != childConfig.Seed {
-		return nil, errors.Join(fmt.Errorf("World seed does not match the canonical GOMADSEED input"), output.Close())
-	}
+	seed := childConfig.Seed
 	if len(childConfig.ExpectedInitial) != 0 {
 		core, err = restoreReplayWorld(childConfig, seed)
 		if err != nil {
 			return nil, errors.Join(err, output.Close())
 		}
 	} else if world.Seed(seed) != core.Seed() {
-		return nil, errors.Join(fmt.Errorf("World seed does not match the canonical GOMADSEED input"), output.Close())
+		return nil, errors.Join(fmt.Errorf("World seed does not match the execution configuration"), output.Close())
 	}
 	recorder, err := core.StartRecording(childConfig.TransitionLimit)
 	if err != nil {
@@ -93,7 +88,7 @@ func restoreReplayWorld(config transport.Config, seed uint64) (*world.Model, err
 		}
 	}
 	if uint64(initial.Config.Seed) != seed {
-		return nil, errors.New("trusted replay initial World snapshot seed does not match GOMADSEED")
+		return nil, errors.New("trusted replay initial World snapshot seed does not match the execution configuration")
 	}
 	return restored, nil
 }

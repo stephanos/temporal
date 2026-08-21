@@ -125,57 +125,59 @@ Use [BUG-7](GOMADv3_NEXT_BUG_FINDING.md#bug-7-later-research-extensions) evidenc
 
 The tables below account for every named capability and delivery stage in the four detailed roadmaps. The companion documents remain normative for their non-goals, module boundaries, protocols, error classifications, 10×-load behavior, trade-offs, verification plans, and exit criteria.
 
+Status legend: ✅ complete · 🟡 in progress or partial · 🧪 experimental · ⏳ planned · ⏸️ evidence-gated or deferred.
+
 ### Bug-finding power
 
 | Capability | Status | Portfolio placement |
 | --- | --- | --- |
-| [BUG-1: Runtime-choice trace](GOMADv3_NEXT_BUG_FINDING.md#bug-1-runtime-choice-trace) | Implemented | Milestone 1 |
-| [BUG-2: Choice coverage and feedback](GOMADv3_NEXT_BUG_FINDING.md#bug-2-choice-coverage-and-feedback) | Implemented | Milestone 1 |
-| [BUG-3: Exact choice-tape replay](GOMADv3_NEXT_BUG_FINDING.md#bug-3-exact-choice-tape-replay) | Implemented | Milestone 1 |
-| [BUG-4: Bounded alternative-prefix exploration](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) | Implemented; pinned equal-budget comparison is neutral | Milestone 2 |
-| [BUG-5: Failure minimization](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) | Exact combined-failure reducer implemented; durable minimizer resume and typed scenario shrinkers remain | Milestone 3 |
-| [BUG-6: Deterministic fault plans](GOMADv3_NEXT_BUG_FINDING.md#bug-6-deterministic-fault-plans) | Planned | Milestone 4 |
-| [BUG-7: Later research extensions](GOMADv3_NEXT_BUG_FINDING.md#bug-7-later-research-extensions) | Deferred pending evidence | Milestone 7 |
+| [BUG-1: Runtime-choice trace](GOMADv3_NEXT_BUG_FINDING.md#bug-1-runtime-choice-trace) | ✅ Complete | Milestone 1 |
+| [BUG-2: Choice coverage and feedback](GOMADv3_NEXT_BUG_FINDING.md#bug-2-choice-coverage-and-feedback) | ✅ Complete | Milestone 1 |
+| [BUG-3: Exact choice-tape replay](GOMADv3_NEXT_BUG_FINDING.md#bug-3-exact-choice-tape-replay) | ✅ Complete | Milestone 1 |
+| [BUG-4: Bounded alternative-prefix exploration](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) | ✅ Complete; pinned equal-budget comparison is neutral | Milestone 2 |
+| [BUG-5: Failure minimization](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) | 🟡 Partial; exact combined-failure reducer is complete, durable minimizer resume and typed scenario shrinkers remain | Milestone 3 |
+| [BUG-6: Deterministic fault plans](GOMADv3_NEXT_BUG_FINDING.md#bug-6-deterministic-fault-plans) | ⏳ Planned | Milestone 4 |
+| [BUG-7: Later research extensions](GOMADv3_NEXT_BUG_FINDING.md#bug-7-later-research-extensions) | ⏸️ Deferred pending evidence | Milestone 7 |
 
 ### Temporal and platform compatibility
 
 | Capability | Status | Portfolio placement |
 | --- | --- | --- |
-| [COMPAT-1: `gomad analyze`](GOMADv3_NEXT_COMPATIBILITY.md#compat-1-gomad-analyze) | Implemented | Milestone 1 |
-| [COMPAT-2: Unambiguous support matrices](GOMADv3_NEXT_COMPATIBILITY.md#compat-2-unambiguous-support-matrices) | Implemented | Milestone 1 |
-| [COMPAT-3: Tiered Temporal corpus](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) | Tier 1 and tier 2 implemented; first local functional probe executes successfully in guarded mode | Milestones 1–2 |
-| [COMPAT-4: Compatibility-pack development kit](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) | Implemented with v2-only exact-source packs and exact-digest approval | Milestone 2 |
-| [COMPAT-5: Targeted deterministic adapters and I/O models](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) | Evidence-driven | Milestones 2 and 4 |
-| [COMPAT-6: Safer handling of transitive forbidden dependencies](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) | Guarded compiler/linker mode executes the first real workload; runtime guards remain fail-closed and closure remains the default support claim | Milestone 2 |
-| [COMPAT-7: Platform bundles](GOMADv3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles) | `darwin/arm64` qualified; Linux planned | Milestones 4–5 |
-| [COMPAT-8: Dependency and Go upgrade impact reports](GOMADv3_NEXT_COMPATIBILITY.md#compat-8-dependency-and-go-upgrade-impact-reports) | Boundary approval exists; full impact report planned | Milestone 5 |
+| [COMPAT-1: `gomad analyze`](GOMADv3_NEXT_COMPATIBILITY.md#compat-1-gomad-analyze) | ✅ Complete | Milestone 1 |
+| [COMPAT-2: Unambiguous support matrices](GOMADv3_NEXT_COMPATIBILITY.md#compat-2-unambiguous-support-matrices) | ✅ Complete | Milestone 1 |
+| [COMPAT-3: Tiered Temporal corpus](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) | 🟡 In progress; tiers 1 and 2 are complete and the first local functional probe executes successfully in guarded mode | Milestones 1–2 |
+| [COMPAT-4: Compatibility-pack development kit](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) | ✅ Complete with v2-only exact-source packs and exact-digest approval | Milestone 2 |
+| [COMPAT-5: Targeted deterministic adapters and I/O models](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) | 🟡 Ongoing, evidence-driven | Milestones 2 and 4 |
+| [COMPAT-6: Safer handling of transitive forbidden dependencies](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) | 🧪 Experimental guarded compiler/linker mode executes the first real workload; runtime guards remain fail-closed and closure remains the default support claim | Milestone 2 |
+| [COMPAT-7: Platform bundles](GOMADv3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles) | 🟡 Partial; `darwin/arm64` is qualified and Linux is planned | Milestones 4–5 |
+| [COMPAT-8: Dependency and Go upgrade impact reports](GOMADv3_NEXT_COMPATIBILITY.md#compat-8-dependency-and-go-upgrade-impact-reports) | 🟡 Partial; boundary approval exists and the full impact report is planned | Milestone 5 |
 
 ### Productionization
 
 | Capability | Status | Portfolio placement |
 | --- | --- | --- |
-| [PROD-1: Crash-consistent batch store](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) | Implemented with explicit lifecycle, locked recovery, interrupted inspection, store-owned resume preflight, and mutation-fault matrices | Milestone 3 |
-| [PROD-2: Segmented, bounded journals](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) | Implemented with batch-plan v5, batch v3/v4, immutable indexed segments, historical readers, typed capacities, and crash recovery | Milestone 3 |
-| [PROD-3: Artifact lifecycle and data policy](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-3-artifact-lifecycle-and-data-policy) | Planned | Milestone 5 |
-| [PROD-4: Deterministic campaign plans, sharding, and merge](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) | Static-seed filesystem v1 implemented; dynamic choice-frontier distribution planned | Milestone 3 |
-| [PROD-5: Immutable release and installation bundles](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-5-immutable-release-and-installation-bundles) | Installation discovery exists; qualified bundles planned | Milestone 5 |
-| [PROD-6: CI integration](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-6-ci-integration) | Qualification workflow exists; supported campaign entry point planned | Milestone 5 |
-| [PROD-7: Observability and reporting](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-7-observability-and-reporting) | Stable events exist; aggregate reporting and metrics planned | Milestone 5 |
-| [PROD-8: Resource control and performance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) | Journal, partial-run, artifact, and merge bounds implemented; load evidence and prepared-target cache planned | Milestones 3 and 5 |
-| [PROD-9: Release governance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-9-release-governance) | Boundary approval and current readers exist; explicit compatibility and release policy planned | Milestone 5 |
+| [PROD-1: Crash-consistent batch store](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) | ✅ Complete with explicit lifecycle, locked recovery, interrupted inspection, store-owned resume preflight, and mutation-fault matrices | Milestone 3 |
+| [PROD-2: Segmented, bounded journals](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) | ✅ Complete with batch-plan v5, batch v3/v4, immutable indexed segments, historical readers, typed capacities, and crash recovery | Milestone 3 |
+| [PROD-3: Artifact lifecycle and data policy](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-3-artifact-lifecycle-and-data-policy) | ⏳ Planned | Milestone 5 |
+| [PROD-4: Deterministic campaign plans, sharding, and merge](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) | 🟡 Partial; static-seed filesystem v1 is complete and dynamic choice-frontier distribution is planned | Milestone 3 |
+| [PROD-5: Immutable release and installation bundles](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-5-immutable-release-and-installation-bundles) | 🟡 Partial; installation discovery exists and qualified bundles are planned | Milestone 5 |
+| [PROD-6: CI integration](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-6-ci-integration) | 🟡 Partial; qualification workflow exists and a supported campaign entry point is planned | Milestone 5 |
+| [PROD-7: Observability and reporting](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-7-observability-and-reporting) | 🟡 Partial; stable events exist and aggregate reporting and metrics are planned | Milestone 5 |
+| [PROD-8: Resource control and performance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) | 🟡 Partial; journal, partial-run, artifact, and merge bounds are complete, while load evidence and a prepared-target cache are planned | Milestones 3 and 5 |
+| [PROD-9: Release governance](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-9-release-governance) | 🟡 Partial; boundary approval and current readers exist, while explicit compatibility and release policy are planned | Milestone 5 |
 
 ### Distributed-system simulation
 
 | Delivery stage | Status | Portfolio placement |
 | --- | --- | --- |
-| [SIM-0: Restore trust and define the parity contract](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) | Implemented; thirteen named parity cases and bounded backend/fidelity claims | Milestone 2 |
-| [SIM-1: Cluster core and in-process runtime domains](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) | Implemented; in-process lifecycle fidelity only | Milestone 3 |
-| [SIM-2: Virtual network parity](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) | Implemented; in-process network fidelity only | Milestone 4 |
-| [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | Implemented; in-process durability fidelity only | Milestone 4 |
-| [SIM-4: Scenarios, nemeses, records, and oracles](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) | Implemented; in-process typed faults, scenarios, histories, oracles, artifacts, and Temporal failure replay | Milestone 4 |
-| [SIM-5: Process-backed fidelity tier](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) | Implemented; bounded process launch, model/time IPC, hard isolation, and cross-backend conformance | Milestone 5 |
-| [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | Combined frontier, durable rounds, exact evidence, semantic deduplication, and first minimizer slice implemented; benchmark and minimizer-resume gates remain | Milestone 6 |
-| [SIM-7: Evidence-driven expansion beyond v2](GOMADv3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) | Designed, after measurable parity | Milestone 6 |
+| [SIM-0: Restore trust and define the parity contract](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) | ✅ Complete; thirteen named parity cases and bounded backend/fidelity claims | Milestone 2 |
+| [SIM-1: Cluster core and in-process runtime domains](GOMADv3_NEXT_SIM.md#sim-1-cluster-core-and-in-process-runtime-domains) | ✅ Complete; in-process lifecycle fidelity only | Milestone 3 |
+| [SIM-2: Virtual network parity](GOMADv3_NEXT_SIM.md#sim-2-virtual-network-parity) | ✅ Complete; in-process network fidelity only | Milestone 4 |
+| [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | ✅ Complete; in-process durability fidelity only | Milestone 4 |
+| [SIM-4: Scenarios, nemeses, records, and oracles](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) | ✅ Complete; in-process typed faults, scenarios, histories, oracles, artifacts, and Temporal failure replay | Milestone 4 |
+| [SIM-5: Process-backed fidelity tier](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) | ✅ Complete; bounded process launch, model/time IPC, hard isolation, and cross-backend conformance | Milestone 5 |
+| [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | 🟡 Partial; combined frontier, durable rounds, exact evidence, semantic deduplication, and the first minimizer slice are complete, while benchmark and minimizer-resume gates remain | Milestone 6 |
+| [SIM-7: Evidence-driven expansion beyond v2](GOMADv3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) | ⏸️ Evidence-gated; designed to follow measurable parity | Milestone 6 |
 
 The simulation track also carries the adjacent v2 obligations explicitly: same-seed equality and different-seed diversity remain qualification requirements; typed choice/model records replace opaque trace checksums; only the process-backed tier can provide fresh globals and hard cleanup; output remains node/incarnation-aware while preserving Go-test presentation; and race detection remains a separate non-Gomad profile rather than an implied single-P capability.
 
