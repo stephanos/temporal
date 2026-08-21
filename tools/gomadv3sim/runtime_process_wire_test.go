@@ -22,3 +22,8 @@ func TestProcessActivationFramesAreValid(t *testing.T) {
 		require.NoError(t, validateProcessFrame(processFrame{Profile: processProtocol, Kind: kind, Request: 1, Node: "history", Incarnation: 2}))
 	}
 }
+
+func TestProcessExplorationFramesAreValid(t *testing.T) {
+	require.NoError(t, validateProcessFrame(processFrame{Profile: processProtocol, Kind: processFrameExplorationPlan, Request: 1}))
+	require.NoError(t, validateProcessFrame(processFrame{Profile: processProtocol, Kind: processFrameExplorationRecord, Request: 2, Payload: []byte("record")}))
+}

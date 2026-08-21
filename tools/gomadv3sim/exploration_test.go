@@ -39,3 +39,36 @@ func TestExplorationPlanRejectsChangedForcedDecisionIdentity(t *testing.T) {
 	_, err = EncodeExplorationPlan(plan)
 	require.Error(t, err)
 }
+
+func TestExplorationForcedMismatchProducesValidDivergenceEvidence(t *testing.T) {
+	site, alternatives, err := scenarioExplorationIdentities("route", 1, []string{"alpha", "beta"})
+	require.NoError(t, err)
+	override, err := NewExplorationOverride(ExplorationScenario, 0, site, alternatives, 1)
+	require.NoError(t, err)
+	observed, err := newExplorationDecision(ExplorationScenario, 0, site, alternatives, 0)
+	require.NoError(t, err)
+
+	divergenceErr := (&inProcessCluster{}).explorationDivergenceLocked(override, observed)
+	var replayErr *ReplayDivergenceError
+	require.ErrorAs(t, divergenceErr, &replayErr)
+	require.NoError(t, validateDivergence(replayErr.Divergence))
+	require.Equal(t, ReplayDimensionExploration, replayErr.Divergence.Dimension)
+	require.Equal(t, &override, replayErr.Divergence.ExpectedExplorationOverride)
+	require.Equal(t, &observed, replayErr.Divergence.ActualExploration)
+}
+
+func TestNonExplorationDivergenceRejectsExplorationEvidence(t *testing.T) {
+	site, alternatives, err := scenarioExplorationIdentities("route", 1, []string{"alpha", "beta"})
+	require.NoError(t, err)
+	expected, err := newExplorationDecision(ExplorationScenario, 0, site, alternatives, 0)
+	require.NoError(t, err)
+	actual, err := newExplorationDecision(ExplorationScenario, 0, site, alternatives, 1)
+	require.NoError(t, err)
+
+	err = validateDivergence(ReplayDivergence{
+		Dimension: ReplayDimensionEvidence, Ordinal: 0,
+		ExpectedSHA256: expected.Identity, ActualSHA256: actual.Identity,
+		ExpectedExploration: &expected, ActualExploration: &actual,
+	})
+	require.ErrorContains(t, err, "evidence replay divergence")
+}

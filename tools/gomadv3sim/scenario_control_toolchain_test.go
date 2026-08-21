@@ -99,3 +99,26 @@ func TestExplorationPlanForcesScenarioDecisionAndRetainsProof(t *testing.T) {
 	require.Len(t, result.Record.ExplorationDecisions, 1)
 	require.EqualValues(t, 0, result.Record.ExplorationDecisions[0].Selected)
 }
+
+func TestProcessExplorationConsumesExternalPlanAndPublishesRecord(t *testing.T) {
+	if !processBackendAvailable() || processBackendRole() != processRoleCoordinator {
+		t.Skip("process exploration transport is unavailable")
+	}
+	boot := uniqueBootID("process-exploration")
+	require.NoError(t, RegisterBoot(boot, func(context.Context, NodeContext) error { return nil }))
+	spec := Spec{
+		Schema: SpecSchema, Backend: BackendInProcess, Fidelity: FidelitySimulationModel, Seed: 89, Limits: DefaultLimits(),
+		Nodes: []NodeSpec{{ID: "server", Boot: boot, Address: "10.0.0.1"}},
+	}
+	selected := ""
+	alpha, err := NewScenarioStep("alpha", func(context.Context, Cluster) error { selected = "alpha"; return nil })
+	require.NoError(t, err)
+	beta, err := NewScenarioStep("beta", func(context.Context, Cluster) error { selected = "beta"; return nil })
+	require.NoError(t, err)
+
+	result, err := Run(context.Background(), spec, Choose("route", alpha, beta))
+	require.NoError(t, err)
+	require.Contains(t, []string{"alpha", "beta"}, selected)
+	require.NotNil(t, result.Record.ExplorationPlan)
+	require.Len(t, result.Record.ExplorationDecisions, 1)
+}

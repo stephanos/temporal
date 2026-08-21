@@ -41,13 +41,14 @@ const (
 )
 
 const (
-	ReplayDimensionTransition ReplayDimension = "transition"
-	ReplayDimensionNetwork    ReplayDimension = "network"
-	ReplayDimensionVolume     ReplayDimension = "volume"
-	ReplayDimensionFault      ReplayDimension = "fault"
-	ReplayDimensionScenario   ReplayDimension = "scenario"
-	ReplayDimensionEvidence   ReplayDimension = "evidence"
-	ReplayDimensionTerminal   ReplayDimension = "terminal"
+	ReplayDimensionTransition  ReplayDimension = "transition"
+	ReplayDimensionNetwork     ReplayDimension = "network"
+	ReplayDimensionVolume      ReplayDimension = "volume"
+	ReplayDimensionFault       ReplayDimension = "fault"
+	ReplayDimensionScenario    ReplayDimension = "scenario"
+	ReplayDimensionExploration ReplayDimension = "exploration"
+	ReplayDimensionEvidence    ReplayDimension = "evidence"
+	ReplayDimensionTerminal    ReplayDimension = "terminal"
 )
 
 const (
@@ -396,22 +397,23 @@ func (err *BackendUnavailableError) Unwrap() error {
 }
 
 type ReplayDivergence struct {
-	Dimension           ReplayDimension      `json:"dimension"`
-	Ordinal             uint64               `json:"ordinal"`
-	Expected            LifecycleTransition  `json:"expected"`
-	Actual              LifecycleTransition  `json:"actual"`
-	ExpectedSHA256      string               `json:"expected_sha256,omitempty"`
-	ActualSHA256        string               `json:"actual_sha256,omitempty"`
-	ExpectedNetwork     *NetworkTransition   `json:"expected_network,omitempty"`
-	ActualNetwork       *NetworkTransition   `json:"actual_network,omitempty"`
-	ExpectedVolume      *VolumeTransition    `json:"expected_volume,omitempty"`
-	ActualVolume        *VolumeTransition    `json:"actual_volume,omitempty"`
-	ExpectedFault       *FaultAction         `json:"expected_fault,omitempty"`
-	ActualFault         *FaultAction         `json:"actual_fault,omitempty"`
-	ExpectedScenario    *ScenarioDecision    `json:"expected_scenario,omitempty"`
-	ActualScenario      *ScenarioDecision    `json:"actual_scenario,omitempty"`
-	ExpectedExploration *ExplorationDecision `json:"expected_exploration,omitempty"`
-	ActualExploration   *ExplorationDecision `json:"actual_exploration,omitempty"`
+	Dimension                   ReplayDimension      `json:"dimension"`
+	Ordinal                     uint64               `json:"ordinal"`
+	Expected                    LifecycleTransition  `json:"expected"`
+	Actual                      LifecycleTransition  `json:"actual"`
+	ExpectedSHA256              string               `json:"expected_sha256,omitempty"`
+	ActualSHA256                string               `json:"actual_sha256,omitempty"`
+	ExpectedNetwork             *NetworkTransition   `json:"expected_network,omitempty"`
+	ActualNetwork               *NetworkTransition   `json:"actual_network,omitempty"`
+	ExpectedVolume              *VolumeTransition    `json:"expected_volume,omitempty"`
+	ActualVolume                *VolumeTransition    `json:"actual_volume,omitempty"`
+	ExpectedFault               *FaultAction         `json:"expected_fault,omitempty"`
+	ActualFault                 *FaultAction         `json:"actual_fault,omitempty"`
+	ExpectedScenario            *ScenarioDecision    `json:"expected_scenario,omitempty"`
+	ActualScenario              *ScenarioDecision    `json:"actual_scenario,omitempty"`
+	ExpectedExplorationOverride *ExplorationOverride `json:"expected_exploration_override,omitempty"`
+	ExpectedExploration         *ExplorationDecision `json:"expected_exploration,omitempty"`
+	ActualExploration           *ExplorationDecision `json:"actual_exploration,omitempty"`
 }
 
 type ReplayDivergenceError struct {
@@ -419,7 +421,7 @@ type ReplayDivergenceError struct {
 }
 
 func (err *ReplayDivergenceError) Error() string {
-	return fmt.Sprintf("%v: dimension=%s ordinal=%d expected_sha256=%s actual_sha256=%s expected_network=%+v actual_network=%+v expected_volume=%+v actual_volume=%+v expected_fault=%+v actual_fault=%+v expected_scenario=%+v actual_scenario=%+v expected_exploration=%+v actual_exploration=%+v", ErrReplayDiverged, err.Divergence.Dimension, err.Divergence.Ordinal, err.Divergence.ExpectedSHA256, err.Divergence.ActualSHA256, err.Divergence.ExpectedNetwork, err.Divergence.ActualNetwork, err.Divergence.ExpectedVolume, err.Divergence.ActualVolume, err.Divergence.ExpectedFault, err.Divergence.ActualFault, err.Divergence.ExpectedScenario, err.Divergence.ActualScenario, err.Divergence.ExpectedExploration, err.Divergence.ActualExploration)
+	return fmt.Sprintf("%v: dimension=%s ordinal=%d expected_sha256=%s actual_sha256=%s expected_network=%+v actual_network=%+v expected_volume=%+v actual_volume=%+v expected_fault=%+v actual_fault=%+v expected_scenario=%+v actual_scenario=%+v expected_exploration_override=%+v expected_exploration=%+v actual_exploration=%+v", ErrReplayDiverged, err.Divergence.Dimension, err.Divergence.Ordinal, err.Divergence.ExpectedSHA256, err.Divergence.ActualSHA256, err.Divergence.ExpectedNetwork, err.Divergence.ActualNetwork, err.Divergence.ExpectedVolume, err.Divergence.ActualVolume, err.Divergence.ExpectedFault, err.Divergence.ActualFault, err.Divergence.ExpectedScenario, err.Divergence.ActualScenario, err.Divergence.ExpectedExplorationOverride, err.Divergence.ExpectedExploration, err.Divergence.ActualExploration)
 }
 
 func (err *ReplayDivergenceError) Unwrap() error {

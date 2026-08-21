@@ -624,7 +624,7 @@ func validNodeState(state NodeState) bool {
 func validateDivergence(divergence ReplayDivergence) error {
 	switch divergence.Dimension {
 	case ReplayDimensionTransition:
-		if divergence.ExpectedSHA256 != "" || divergence.ActualSHA256 != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		if divergence.ExpectedSHA256 != "" || divergence.ActualSHA256 != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("transition replay divergence contains terminal hashes")
 		}
 		if divergence.Expected.Action == "" && divergence.Actual.Action == "" {
@@ -640,7 +640,7 @@ func validateDivergence(divergence ReplayDivergence) error {
 		if divergence.ExpectedNetwork != nil && !validNetworkTransition(*divergence.ExpectedNetwork) || divergence.ActualNetwork != nil && !validNetworkTransition(*divergence.ActualNetwork) {
 			return errors.New("network replay divergence transitions are invalid")
 		}
-		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("network replay divergence contains lifecycle transitions")
 		}
 	case ReplayDimensionVolume:
@@ -650,7 +650,7 @@ func validateDivergence(divergence ReplayDivergence) error {
 		if divergence.ExpectedVolume != nil && !validVolumeTransition(*divergence.ExpectedVolume) || divergence.ActualVolume != nil && !validVolumeTransition(*divergence.ActualVolume) {
 			return errors.New("volume replay divergence transitions are invalid")
 		}
-		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("volume replay divergence contains another transition dimension")
 		}
 	case ReplayDimensionFault:
@@ -667,7 +667,7 @@ func validateDivergence(divergence ReplayDivergence) error {
 				return err
 			}
 		}
-		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("fault replay divergence contains another transition dimension")
 		}
 	case ReplayDimensionScenario:
@@ -684,22 +684,78 @@ func validateDivergence(divergence ReplayDivergence) error {
 				return err
 			}
 		}
-		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil {
+		if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("scenario replay divergence contains another transition dimension")
 		}
+	case ReplayDimensionExploration:
+		if err := validateExplorationDivergence(divergence); err != nil {
+			return err
+		}
 	case ReplayDimensionEvidence:
-		if !validSHA256(divergence.ExpectedSHA256) || !validSHA256(divergence.ActualSHA256) || divergence.ExpectedSHA256 == divergence.ActualSHA256 || divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		if !validSHA256(divergence.ExpectedSHA256) || !validSHA256(divergence.ActualSHA256) || divergence.ExpectedSHA256 == divergence.ActualSHA256 || divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("evidence replay divergence is invalid")
 		}
 	case ReplayDimensionTerminal:
 		if !validSHA256(divergence.ExpectedSHA256) || !validSHA256(divergence.ActualSHA256) || divergence.ExpectedSHA256 == divergence.ActualSHA256 || divergence.Expected.Action != "" || divergence.Actual.Action != "" {
 			return errors.New("terminal replay divergence is invalid")
 		}
-		if divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		if divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil || hasExplorationDivergenceEvidence(divergence) {
 			return errors.New("terminal replay divergence contains network transitions")
 		}
 	default:
 		return errors.New("replay divergence dimension is invalid")
+	}
+	return nil
+}
+
+func hasExplorationDivergenceEvidence(divergence ReplayDivergence) bool {
+	return divergence.ExpectedExplorationOverride != nil || divergence.ExpectedExploration != nil || divergence.ActualExploration != nil
+}
+
+func validateExplorationDivergence(divergence ReplayDivergence) error {
+	if !validSHA256(divergence.ExpectedSHA256) || !validSHA256(divergence.ActualSHA256) || divergence.ExpectedSHA256 == divergence.ActualSHA256 {
+		return errors.New("exploration replay divergence is invalid")
+	}
+	if divergence.Expected.Action != "" || divergence.Actual.Action != "" || divergence.ExpectedNetwork != nil || divergence.ActualNetwork != nil || divergence.ExpectedVolume != nil || divergence.ActualVolume != nil || divergence.ExpectedFault != nil || divergence.ActualFault != nil || divergence.ExpectedScenario != nil || divergence.ActualScenario != nil {
+		return errors.New("exploration replay divergence contains another transition dimension")
+	}
+	if divergence.ExpectedExplorationOverride != nil && divergence.ExpectedExploration != nil || divergence.ExpectedExplorationOverride == nil && divergence.ExpectedExploration == nil && divergence.ActualExploration == nil {
+		return errors.New("exploration replay divergence evidence is invalid")
+	}
+	var dimension ExplorationDimension
+	admit := func(candidate ExplorationDimension, ordinal uint64) error {
+		if explorationDimensionOrder(candidate) < 0 || ordinal != divergence.Ordinal {
+			return errors.New("exploration replay divergence decision key is invalid")
+		}
+		if dimension != "" && dimension != candidate {
+			return errors.New("exploration replay divergence dimensions disagree")
+		}
+		dimension = candidate
+		return nil
+	}
+	if expected := divergence.ExpectedExplorationOverride; expected != nil {
+		if err := validateExplorationOverride(*expected); err != nil || expected.Identity != divergence.ExpectedSHA256 {
+			return errors.Join(errors.New("exploration replay divergence expected override is invalid"), err)
+		}
+		if err := admit(expected.Dimension, expected.Ordinal); err != nil {
+			return err
+		}
+	}
+	if expected := divergence.ExpectedExploration; expected != nil {
+		if err := validateExplorationDecision(*expected); err != nil || expected.Identity != divergence.ExpectedSHA256 {
+			return errors.Join(errors.New("exploration replay divergence expected decision is invalid"), err)
+		}
+		if err := admit(expected.Dimension, expected.Ordinal); err != nil {
+			return err
+		}
+	}
+	if actual := divergence.ActualExploration; actual != nil {
+		if err := validateExplorationDecision(*actual); err != nil || actual.Identity != divergence.ActualSHA256 {
+			return errors.Join(errors.New("exploration replay divergence actual decision is invalid"), err)
+		}
+		if err := admit(actual.Dimension, actual.Ordinal); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1248,6 +1304,7 @@ func cloneReplayDivergence(divergence *ReplayDivergence) *ReplayDivergence {
 	}
 	cloned.ExpectedFault = cloneFaultActionPointer(divergence.ExpectedFault)
 	cloned.ActualFault = cloneFaultActionPointer(divergence.ActualFault)
+	cloned.ExpectedExplorationOverride = cloneExplorationOverridePointer(divergence.ExpectedExplorationOverride)
 	if divergence.ExpectedScenario != nil {
 		expected := *divergence.ExpectedScenario
 		expected.Alternatives = append([]string(nil), expected.Alternatives...)
@@ -1257,6 +1314,16 @@ func cloneReplayDivergence(divergence *ReplayDivergence) *ReplayDivergence {
 		actual := *divergence.ActualScenario
 		actual.Alternatives = append([]string(nil), actual.Alternatives...)
 		cloned.ActualScenario = &actual
+	}
+	if divergence.ExpectedExploration != nil {
+		expected := *divergence.ExpectedExploration
+		expected.Alternatives = append([]string(nil), expected.Alternatives...)
+		cloned.ExpectedExploration = &expected
+	}
+	if divergence.ActualExploration != nil {
+		actual := *divergence.ActualExploration
+		actual.Alternatives = append([]string(nil), actual.Alternatives...)
+		cloned.ActualExploration = &actual
 	}
 	return &cloned
 }

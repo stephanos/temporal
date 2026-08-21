@@ -131,13 +131,24 @@ func validateSimulationFrame(frame simulationFrame) error {
 	if len(frame.Node) > 256 {
 		return errors.New("simulation frame node identity exceeds its bound")
 	}
-	if len(frame.Payload) > maximumSimulationBootstrapBytes {
+	if len(frame.Payload) > simulationFramePayloadLimit(frame.Kind) {
 		return errors.New("simulation frame payload exceeds its bound")
 	}
 	if len(frame.Error) > 4096 {
 		return errors.New("simulation frame error exceeds its bound")
 	}
 	return nil
+}
+
+func simulationFramePayloadLimit(kind simulationFrameKind) int {
+	switch kind {
+	case simulationFrameExplorationPlan:
+		return maximumSimulationExplorationPlanBytes
+	case simulationFrameExplorationRecord:
+		return maximumSimulationExplorationRecordBytes
+	default:
+		return maximumSimulationBootstrapBytes
+	}
 }
 
 func writeSimulationFrame(destination io.Writer, frame simulationFrame) error {
