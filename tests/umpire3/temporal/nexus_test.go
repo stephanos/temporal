@@ -127,6 +127,7 @@ func TestNexusTaskTransportDeterminesVisibleCompletion(t *testing.T) {
 			require.Equal(t, testCase.wantClaim, result.Claim.Kind)
 			require.Equal(t, "server-minted-operation", result.Bindings["operation"])
 			require.Equal(t, []bool{testCase.wantReportSuccess}, transport.reportedSuccess)
+			require.Equal(t, "fake-matching", result.Observations[len(result.Observations)-1].Source)
 			require.True(t, transport.cleaned)
 		})
 	}
