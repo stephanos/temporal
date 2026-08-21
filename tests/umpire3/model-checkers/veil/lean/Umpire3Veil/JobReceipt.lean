@@ -54,7 +54,7 @@ private def receipt (evidence : Evidence) (job status trustBadge : String)
   let fields := [
     ("formatVersion", Lean.Json.str "umpire3/veil-job-receipt/v1"),
     ("backendRevision", Lean.Json.str "300c305e945750ab3fb62de4a79c23161b24da39"),
-    ("viewFormatVersion", Lean.Json.str "umpire3/first-order-view/v1"),
+    ("viewFormatVersion", Lean.Json.str "umpire3/first-order-view/v2"),
     ("target", Lean.Json.str "nexus-cancellation"),
     ("property", Lean.Json.str "nexus.cancellation.won-excludes-success"),
     ("world", Lean.Json.str "smoke"),

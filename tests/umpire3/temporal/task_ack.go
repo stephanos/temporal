@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	environment "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -144,32 +145,57 @@ func (s *taskAckSession) Realize(
 	}, nil
 }
 
-func (s *taskAckSession) Observe(
+func (s *taskAckSession) ObserveFacts(
 	ctx context.Context,
 	checkpoint protocol.Checkpoint,
 	_ environment.Bindings,
-) (environment.Observation, error) {
+) ([]observation.Fact, error) {
 	if err := ctx.Err(); err != nil {
-		return environment.Observation{}, err
+		return nil, err
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if checkpoint.Observation != "workflow-task-acknowledged" {
-		return environment.Observation{}, fmt.Errorf("unsupported Workflow Task observation %q", checkpoint.Observation)
+		return nil, fmt.Errorf("unsupported Workflow Task observation %q", checkpoint.Observation)
 	}
 	if !s.acknowledged {
-		return environment.Observation{}, environment.ErrObservationUnavailable
+		return nil, environment.ErrObservationUnavailable
 	}
 	s.sequence++
-	return environment.Observation{
-		CheckpointID: checkpoint.Identifier, Kind: checkpoint.Observation,
-		Satisfied: s.acknowledgement.BacklogAbsent,
-		Source:    s.acknowledgement.Source, SourceIdentity: s.acknowledgement.Source,
-		ClockDomain: s.acknowledgement.Source + "-sequence", SourceSequence: s.sequence,
-		Reference:        s.acknowledgement.Reference,
-		CausalReferences: []string{s.delivery.Reference, s.acknowledgement.Reference},
-		EntityIdentity:   s.identity.WorkflowID,
-		Lineage:          []string{s.cluster.Namespace, s.identity.WorkflowID, s.identity.RunID},
+	receiptSequence := s.sequence
+	outcome := "backlog-present"
+	if s.acknowledgement.BacklogAbsent {
+		outcome = "backlog-absent"
+	}
+	s.sequence++
+	windowSequence := s.sequence
+	factSource := func(sequence int64, reference string) observation.Source {
+		return observation.Source{
+			Identity: s.acknowledgement.Source, ClockDomain: s.acknowledgement.Source + "-sequence",
+			Sequence: sequence, Reference: reference,
+			CausalReferences: []string{s.delivery.Reference, s.acknowledgement.Reference},
+			EntityIdentity:   s.identity.WorkflowID,
+			Lineage:          []string{s.cluster.Namespace, s.identity.WorkflowID, s.identity.RunID},
+		}
+	}
+	return []observation.Fact{
+		{
+			Identifier: "mechanism/" + observation.WorkflowTaskAcknowledged,
+			Source:     factSource(receiptSequence, s.acknowledgement.Reference),
+			Mechanism: &observation.MechanismReceipt{
+				Action: observation.WorkflowTaskAcknowledged, Resource: s.identity.WorkflowID,
+				Attempt: receiptSequence, OwnerEpoch: 0, Outcome: outcome,
+			},
+		},
+		{
+			Identifier: "window/" + observation.WorkflowTaskAcknowledged,
+			Source: factSource(windowSequence,
+				s.acknowledgement.Reference+"/window/"+checkpoint.Identifier),
+			Window: &observation.EvidenceWindow{
+				Purpose: observation.WorkflowTaskAcknowledged, Closed: true,
+				ThroughSequence: windowSequence,
+			},
+		},
 	}, nil
 }
 

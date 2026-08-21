@@ -1,5 +1,5 @@
 import Temporal.Monitors
-import Temporal.Refinement.WorkflowProgress
+import Temporal.Refinement.MigratedFamilies
 
 namespace Umpire3.Tests.TemporalWorkflowProgress
 
@@ -62,18 +62,59 @@ example :
       { maxDepth := 4, maxResults := 10000 }).all
       (fun execution => Umpire3.Temporal.Product.WorkflowProgress.invariantB execution.2) = true := by decide
 
-def systemActions : List Umpire3.Temporal.System.WorkflowProgress.Action := [
-  .observeEnqueue .primary .primary,
-  .observeWorkerAvailability .primary,
-  .observeWait .primary,
-  .observeDispatch .primary .primary,
-  .observeCompletion .primary .primary,
-  .redeliverCompletion .primary,
+def systemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.Action := [
+  .enqueue,
+  .makeWorkerAvailable,
+  .wait,
+  .dispatch,
+  .complete,
 ]
 
-example : Umpire3.Temporal.System.WorkflowProgress.executable.follow
-    [Umpire3.Temporal.System.WorkflowProgress.initial] systemActions =
-    [Umpire3.Temporal.System.WorkflowProgress.progressedFinal] := by decide
+def starvedSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.Action := [
+  .enqueue,
+  .makeWorkerAvailable,
+  .wait,
+  .waitAgain,
+]
+
+def wrongEntitySystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.Action := [
+  .enqueue,
+  .makeWorkerAvailable,
+  .wait,
+  .dispatch,
+  .completeWrongEntity,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.initial] systemActions =
+    [.completed] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.initial]
+    starvedSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.initial]
+    starvedSystemActions = [.starved] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.initial]
+    wrongEntitySystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.initial]
+    wrongEntitySystemActions = [.wrongEntityCompleted] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.starvationMutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.workflowTaskStarvation.Holds
     (Umpire3.Temporal.Monitors.workflowTaskStarvationObservations

@@ -9,20 +9,21 @@ import (
 
 const (
 	SuiteFormatVersion   = "umpire3/compiler-suite/v1"
-	ExplainFormatVersion = "umpire3/compiler-explain/v2"
+	ExplainFormatVersion = "umpire3/compiler-explain/v3"
 )
 
 type ErrorCategory string
 
 const (
-	ErrorInvalidIntent         ErrorCategory = "invalid-intent"
-	ErrorCycle                 ErrorCategory = "cycle"
-	ErrorAmbiguousProducer     ErrorCategory = "ambiguous-producer"
-	ErrorMissingProjection     ErrorCategory = "missing-projection"
-	ErrorRebind                ErrorCategory = "rebind"
-	ErrorTypeMismatch          ErrorCategory = "type-mismatch"
-	ErrorIncompleteEnumeration ErrorCategory = "incomplete-enumeration"
-	ErrorLimitExceeded         ErrorCategory = "limit-exceeded"
+	ErrorInvalidIntent          ErrorCategory = "invalid-intent"
+	ErrorCycle                  ErrorCategory = "cycle"
+	ErrorAmbiguousProducer      ErrorCategory = "ambiguous-producer"
+	ErrorMissingProjection      ErrorCategory = "missing-projection"
+	ErrorRebind                 ErrorCategory = "rebind"
+	ErrorTypeMismatch           ErrorCategory = "type-mismatch"
+	ErrorIncompleteEnumeration  ErrorCategory = "incomplete-enumeration"
+	ErrorLimitExceeded          ErrorCategory = "limit-exceeded"
+	ErrorSemanticallyImpossible ErrorCategory = "semantically-impossible"
 )
 
 type Source struct {
@@ -244,6 +245,21 @@ type IdentityRecord struct {
 	ConsumerActions []string `json:"consumerActions"`
 }
 
+type ModelReplayStatus string
+
+const (
+	ModelReplayChecked      ModelReplayStatus = "checked"
+	ModelReplayNotSupported ModelReplayStatus = "not-supported"
+)
+
+type ModelReplay struct {
+	Status          ModelReplayStatus     `json:"status"`
+	CanonicalModel  string                `json:"canonicalModel,omitempty"`
+	Variant         string                `json:"variant,omitempty"`
+	LiveOnlyActions []protocol.ActionKind `json:"liveOnlyActions"`
+	Reason          string                `json:"reason,omitempty"`
+}
+
 type Explain struct {
 	FormatVersion    string                        `json:"formatVersion"`
 	Scenario         string                        `json:"scenario"`
@@ -256,6 +272,7 @@ type Explain struct {
 	Identities       []IdentityRecord              `json:"identities"`
 	Paths            [][]string                    `json:"paths"`
 	Omissions        []protocol.ProjectionOmission `json:"omissions"`
+	ModelReplay      ModelReplay                   `json:"modelReplay"`
 	Enumeration      Enumeration                   `json:"enumeration"`
 }
 

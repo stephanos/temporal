@@ -200,6 +200,112 @@ func TestCompileSupportsDuringRepeatAndBefore(t *testing.T) {
 	require.Equal(t, []string{"retry#1", "retry#2"}, suite.Experiments[0].Policies[0].Scope)
 }
 
+func TestCompileRejectsPathThatCanonicalModelCannotExecute(t *testing.T) {
+	t.Parallel()
+
+	authored := Scenario{
+		Identifier: "impossible-stale-success",
+		Target:     protocol.TargetIDNexusCancellation,
+		Resources: []Resource{
+			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+		},
+		Root: OnePath(
+			Action("schedule", protocol.ActionKindScheduleOperation),
+			Action("dispatch", protocol.ActionKindDispatchTask),
+			Action("cancel", protocol.ActionKindRequestCancellation),
+			Action("commit", protocol.ActionKindCommitCancellation),
+			Action("ownership", protocol.ActionKindAcquireOwnership),
+			Action("returned", protocol.ActionKindWorkerReturnsSuccess),
+			Action("persist", protocol.ActionKindPersistSuccess),
+			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+		),
+	}
+
+	_, err := Compile(context.Background(), authored, Limits{
+		MaxPaths: 1, MaxActions: 16, MaxStates: 64, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
+	})
+	var compileErr *Error
+	require.ErrorAs(t, err, &compileErr)
+	require.Equal(t, ErrorSemanticallyImpossible, compileErr.Category)
+}
+
+func TestCompileReplaysFaultChallengeThroughMutatedExecutableView(t *testing.T) {
+	t.Parallel()
+
+	authored := Scenario{
+		Identifier: "checked-stale-success-challenge",
+		Target:     protocol.TargetIDNexusCancellation,
+		Resources: []Resource{
+			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+		},
+		Root: OnePath(
+			Action("schedule", protocol.ActionKindScheduleOperation),
+			Action("dispatch", protocol.ActionKindDispatchTask),
+			Action("cancel", protocol.ActionKindRequestCancellation),
+			Action("commit", protocol.ActionKindCommitCancellation),
+			During(
+				Fault("stale", protocol.FaultKindStaleWorkerCompletion),
+				OnePath(
+					Action("ownership", protocol.ActionKindAcquireOwnership),
+					Action("returned", protocol.ActionKindWorkerReturnsSuccess),
+					Action("persist", protocol.ActionKindPersistSuccess),
+				),
+			),
+			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+		),
+	}
+
+	suite, err := Compile(context.Background(), authored, Limits{
+		MaxPaths: 1, MaxActions: 16, MaxStates: 64, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
+	})
+	require.NoError(t, err)
+	require.Equal(t, ModelReplayChecked, suite.Explain.ModelReplay.Status)
+	require.Equal(t, "stale-completion-guard-removed", suite.Explain.ModelReplay.Variant)
+	require.Equal(t, []protocol.ActionKind{protocol.ActionKindScheduleOperation},
+		suite.Explain.ModelReplay.LiveOnlyActions)
+}
+
+func TestModelTraceReceiptMustMatchTheGeneratedExecutableView(t *testing.T) {
+	t.Parallel()
+
+	view, found, err := protocol.DefaultFirstOrderView(protocol.TargetIDNexusCancellation,
+		"stale-completion-guard-removed")
+	require.NoError(t, err)
+	require.True(t, found)
+	input := protocol.TraceReplayInput{
+		FormatVersion: protocol.TraceReplayInputFormatVersion,
+		Target:        view.Target,
+		Property:      view.Property,
+		World:         view.World,
+		Variant:       view.Variant,
+		SemanticHash:  "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Actions: []protocol.ActionKind{
+			protocol.ActionKindDispatchTask,
+			protocol.ActionKindAcquireOwnership,
+			protocol.ActionKindWorkerReturnsSuccess,
+			protocol.ActionKindPersistSuccess,
+		},
+	}
+	digest, err := input.Digest()
+	require.NoError(t, err)
+	_, err = FromTraceReplayReceipt("mismatched-view", protocol.TraceReplayReceipt{
+		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
+		TraceDigest:   digest,
+		Target:        input.Target,
+		Property:      input.Property,
+		World:         input.World,
+		Variant:       input.Variant,
+		SemanticHash:  input.SemanticHash,
+		Actions:       input.Actions,
+		Status:        protocol.TraceReplayAccepted,
+		TrustBadge:    protocol.TrustBadgeCheckedCertificate,
+		Axioms:        []string{},
+	})
+	require.ErrorContains(t, err, "does not match generated executable view")
+}
+
 func TestCompileRejectsCycleWithActionSource(t *testing.T) {
 	t.Parallel()
 

@@ -1,17 +1,44 @@
 import Lean.Data.Json
+import Umpire3.Registration
 
 namespace Umpire3
 
 structure ContractGuarantee where
   identifier : String
   statementHash : String
+  theoremName : String
+  statement : String
+  axioms : List String
+  trustBadge : String
   deriving DecidableEq, Repr
+
+def ContractGuarantee.ofGuarantee (guarantee : Guarantee) : ContractGuarantee where
+  identifier := guarantee.identifier
+  statementHash := "derived"
+  theoremName := guarantee.resolved.name
+  statement := guarantee.resolved.statement
+  axioms := guarantee.resolved.axioms
+  trustBadge := if guarantee.resolved.axioms.isEmpty then "kernel" else "kernel-with-declared-axioms"
 
 structure ContractRequirement where
   providerModule : String
   guarantee : String
   statementHash : String
+  theoremName : String
+  statement : String
+  axioms : List String
+  trustBadge : String
   deriving DecidableEq, Repr
+
+def ContractRequirement.ofRequirement (providerModule : String) (provider : Guarantee)
+    (_ : Requirement provider) : ContractRequirement where
+  providerModule
+  guarantee := provider.identifier
+  statementHash := "derived"
+  theoremName := provider.resolved.name
+  statement := provider.resolved.statement
+  axioms := provider.resolved.axioms
+  trustBadge := if provider.resolved.axioms.isEmpty then "kernel" else "kernel-with-declared-axioms"
 
 structure ModelObligation where
   identifier : String
@@ -45,6 +72,7 @@ structure TargetProjection where
   deriving DecidableEq, Repr
 
 structure Composition where
+  proof : ResolvedTheorem
   modules : List ModuleContract
   targets : List TargetProjection
   deriving DecidableEq, Repr
@@ -62,7 +90,9 @@ private def requirementSatisfied (modules : List ModuleContract)
   | some provider =>
       provider.rank < consumer.rank && provider.provides.any (fun guarantee =>
         guarantee.identifier = requirement.guarantee &&
-          guarantee.statementHash = requirement.statementHash)
+          guarantee.theoremName = requirement.theoremName &&
+          guarantee.statement = requirement.statement &&
+          guarantee.axioms = requirement.axioms)
 
 private def targetMetadataValid (modules : List ModuleContract) (target : TargetProjection) : Bool :=
   target.identifier != "" && uniqueNonempty target.modules &&
@@ -100,12 +130,20 @@ private def stringsJson (values : List String) : Lean.Json :=
 private def ContractGuarantee.toJson (guarantee : ContractGuarantee) : Lean.Json := Lean.Json.mkObj [
   ("identifier", guarantee.identifier),
   ("statementHash", guarantee.statementHash),
+  ("theorem", guarantee.theoremName),
+  ("statement", guarantee.statement),
+  ("axioms", stringsJson guarantee.axioms),
+  ("trustBadge", guarantee.trustBadge),
 ]
 
 private def ContractRequirement.toJson (requirement : ContractRequirement) : Lean.Json := Lean.Json.mkObj [
   ("providerModule", requirement.providerModule),
   ("guarantee", requirement.guarantee),
   ("statementHash", requirement.statementHash),
+  ("theorem", requirement.theoremName),
+  ("statement", requirement.statement),
+  ("axioms", stringsJson requirement.axioms),
+  ("trustBadge", requirement.trustBadge),
 ]
 
 private def ModelObligation.toJson (obligation : ModelObligation) : Lean.Json := Lean.Json.mkObj [
@@ -139,13 +177,20 @@ private def TargetProjection.toJson (target : TargetProjection) : Lean.Json := L
   ("omissions", Lean.Json.arr (target.omissions.map ProjectionOmission.toJson).toArray),
 ]
 
-def compositionJson (semanticHash catalogHash : String) (composition : Composition) : String :=
+def compositionJson (semanticHash dependencyHash catalogHash : String)
+    (composition : Composition) : String :=
   (Lean.Json.mkObj [
-    ("formatVersion", "umpire3/composition/v2"),
-    ("resultClass", "metadata-validated"),
-    ("trustBadge", "kernel"),
+    ("formatVersion", "umpire3/composition/v4"),
+    ("resultClass", "composition-proved"),
+    ("trustBadge", if composition.proof.axioms.isEmpty && composition.modules.all (fun module =>
+      module.provides.all (·.axioms.isEmpty) && module.requires.all (·.axioms.isEmpty)) then
+        "kernel" else "kernel-with-declared-axioms"),
     ("semanticHash", semanticHash),
+    ("sourceDigest", semanticHash),
+    ("dependencyDigest", dependencyHash),
+    ("artifactDigest", "derived"),
     ("catalogHash", catalogHash),
+    ("proof", composition.proof.declaration.toJson),
     ("modules", Lean.Json.arr (composition.modules.map ModuleContract.toJson).toArray),
     ("targets", Lean.Json.arr (composition.targets.map TargetProjection.toJson).toArray),
   ]).compress
