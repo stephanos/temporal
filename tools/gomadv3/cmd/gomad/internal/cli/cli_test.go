@@ -347,13 +347,13 @@ func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runAnalyzeWith([]string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v3"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
+	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v4"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }
 
 func TestParseCapabilityModeUsesClosedVocabulary(t *testing.T) {
-	for _, value := range []string{"closure", "linked"} {
+	for _, value := range []string{"closure", "linked", "guarded"} {
 		mode, err := parseCapabilityMode(value)
 		if err != nil || string(mode) != value {
 			t.Fatalf("parseCapabilityMode(%q) = %q, %v", value, mode, err)
@@ -379,6 +379,9 @@ func TestCapabilityAnalysisTimeoutAllowsLinkedBuild(t *testing.T) {
 	if got := capabilityAnalysisTimeoutForMode(target.CapabilityModeLinked); got != 2*time.Minute {
 		t.Fatalf("linked timeout = %v", got)
 	}
+	if got := capabilityAnalysisTimeoutForMode(target.CapabilityModeGuarded); got != 2*time.Minute {
+		t.Fatalf("guarded timeout = %v", got)
+	}
 	for _, test := range []struct {
 		name      string
 		mode      target.CapabilityMode
@@ -388,6 +391,7 @@ func TestCapabilityAnalysisTimeoutAllowsLinkedBuild(t *testing.T) {
 	}{
 		{name: "closure default", mode: target.CapabilityModeClosure, want: 30 * time.Second},
 		{name: "linked default", mode: target.CapabilityModeLinked, want: 2 * time.Minute},
+		{name: "guarded default", mode: target.CapabilityModeGuarded, want: 2 * time.Minute},
 		{name: "explicit bounded", mode: target.CapabilityModeLinked, requested: 5 * time.Minute, want: 5 * time.Minute},
 		{name: "negative", mode: target.CapabilityModeLinked, requested: -time.Second, wantError: true},
 		{name: "over maximum", mode: target.CapabilityModeLinked, requested: 30*time.Minute + time.Second, wantError: true},

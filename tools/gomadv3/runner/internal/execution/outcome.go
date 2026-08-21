@@ -67,6 +67,8 @@ func diagnosticReason(stderr []byte) string {
 		return "deterministic_deadlock"
 	case strings.HasPrefix(diagnostic, "panic: test timed out after"):
 		return "logical_test_timeout"
+	case strings.HasPrefix(diagnostic, "fatal error: GOMAD_CAPABILITY_DENIED"):
+		return "denied_capability"
 	case strings.HasPrefix(diagnostic, "panic:") || strings.HasPrefix(diagnostic, "fatal error:"):
 		return "panic_or_runtime_fatal"
 	default:

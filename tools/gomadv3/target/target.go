@@ -301,7 +301,7 @@ func (prepared Prepared) Verify() error {
 	if hash != prepared.SHA256 || size != prepared.Size {
 		return fmt.Errorf("prepared target changed after preparation")
 	}
-	if mode == CapabilityModeLinked {
+	if mode != CapabilityModeClosure {
 		if prepared.CapabilityManifest == nil {
 			return errors.New("verify prepared target capability manifest: missing linked manifest")
 		}
@@ -536,7 +536,7 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 		return preparation{}, fmt.Errorf("snapshot exec provenance: %w", err)
 	}
 	prepared := preparation{buildInfo: provenance.BuildInfo, compatibility: recordCompatibility(provenance.CapabilityClosure.Compatibility)}
-	if provenance.CapabilityMode == CapabilityModeLinked {
+	if provenance.CapabilityMode != CapabilityModeClosure {
 		record, err := livecap.Read(targetPath, livecap.Expectation{
 			GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
 		})
@@ -551,7 +551,7 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 		if err != nil {
 			return preparation{}, fmt.Errorf("exec provenance capability closure: %w", err)
 		}
-		review := projectLinkedCapabilityReview(capabilityReviewFromClosure(provenance.CapabilityClosure, nil, selection), record)
+		review := projectExecutableCapabilityReview(capabilityReviewFromClosure(provenance.CapabilityClosure, nil, selection), record, provenance.CapabilityMode)
 		if len(review.Findings) != 0 {
 			return preparation{}, unsupportedFinding(review.Findings[0])
 		}
@@ -669,8 +669,12 @@ func buildGoTarget(
 		arguments = append(arguments, "test", "-c")
 	}
 	arguments = append(arguments, "-trimpath", "-o", targetPath)
-	if spec.CapabilityMode == CapabilityModeLinked {
-		arguments = append(arguments, "-gcflags=all=-gomadcap", "-ldflags=-linkmode=internal -gomadcap="+identity.BuildKey)
+	if spec.CapabilityMode != CapabilityModeClosure {
+		gcflags := "-gcflags=all=-gomadcap"
+		if spec.CapabilityMode == CapabilityModeGuarded {
+			gcflags += " -gomadguard"
+		}
+		arguments = append(arguments, gcflags, "-ldflags=-linkmode=internal -gomadcap="+identity.BuildKey)
 	}
 	if spec.BuildOverlay != "" {
 		arguments = append(arguments, "-overlay", spec.BuildOverlay)
@@ -682,25 +686,29 @@ func buildGoTarget(
 		arguments = append(arguments, "-tags", strings.Join(tags, ","))
 	}
 	arguments = append(arguments, packageArgument)
+	buildCache, err := prepareBuildCache(spec.ToolchainRoot, identity.BuildKey)
+	if err != nil {
+		return preparation{}, err
+	}
 	command := exec.CommandContext(ctx, goCommand, arguments...)
 	command.Dir = commandDirectory
-	command.Env = preparationEnvironment()
+	command.Env = preparationBuildEnvironment(buildCache)
 	output, err := command.CombinedOutput()
 	if err != nil {
-		if spec.CapabilityMode == CapabilityModeLinked {
+		if spec.CapabilityMode != CapabilityModeClosure {
 			return preparation{}, fmt.Errorf("prepare %s target: %w", spec.Kind, linkedCapabilityBuildError(err, output))
 		}
 		return preparation{}, fmt.Errorf("prepare %s target: %w: %s", spec.Kind, err, output)
 	}
 	prepared := preparation{compatibility: recordCompatibility(review.Closure.Compatibility), review: review}
-	if spec.CapabilityMode == CapabilityModeLinked {
+	if spec.CapabilityMode != CapabilityModeClosure {
 		record, err := livecap.Read(targetPath, livecap.Expectation{
 			GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
 		})
 		if err != nil {
 			return preparation{}, fmt.Errorf("extract linked target capability manifest: %w", linkedCapabilityError(err))
 		}
-		prepared.review = projectLinkedCapabilityReview(review, record)
+		prepared.review = projectExecutableCapabilityReview(review, record, spec.CapabilityMode)
 		prepared.manifest = capabilityManifest(record)
 		if rejectUnsupported && len(prepared.review.Findings) != 0 {
 			return preparation{}, unsupportedFinding(prepared.review.Findings[0])
@@ -779,7 +787,7 @@ func normalizeCapabilityMode(mode CapabilityMode) (CapabilityMode, error) {
 func preparationEnvironment() []string {
 	reserved := map[string]struct{}{
 		"CGO_ENABLED": {}, "GOMADSEED": {}, "GOMADV3_CHILD_SEED": {},
-		"GOENV": {}, "GOEXPERIMENT": {}, "GOFLAGS": {}, "GOROOT": {}, "GOTOOLCHAIN": {}, "GOWORK": {}, "TZ": {},
+		"GOCACHE": {}, "GOENV": {}, "GOEXPERIMENT": {}, "GOFLAGS": {}, "GOROOT": {}, "GOTOOLCHAIN": {}, "GOWORK": {}, "TZ": {},
 	}
 	environment := make([]string, 0, len(os.Environ())+5)
 	for _, entry := range os.Environ() {
@@ -790,6 +798,31 @@ func preparationEnvironment() []string {
 	}
 	environment = append(environment, "CGO_ENABLED=0", "GOENV=off", "GOEXPERIMENT=", "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "TZ=UTC")
 	return environment
+}
+
+func preparationBuildEnvironment(cache string) []string {
+	return append(preparationEnvironment(), "GOCACHE="+cache)
+}
+
+func prepareBuildCache(toolchainRoot, buildKey string) (string, error) {
+	cache := filepath.Join(toolchainRoot, "builds", buildKey, "target-cache")
+	info, err := os.Lstat(cache)
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.Mkdir(cache, 0o700); err != nil {
+			return "", fmt.Errorf("create target build cache: %w", err)
+		}
+		return cache, nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("inspect target build cache: %w", err)
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return "", errors.New("target build cache is not a directory")
+	}
+	if err := os.Chmod(cache, 0o700); err != nil {
+		return "", fmt.Errorf("make target build cache private: %w", err)
+	}
+	return cache, nil
 }
 
 func validateProvenance(provenance provenanceWire) error {

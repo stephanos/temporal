@@ -8,6 +8,7 @@ import (
 	"io"
 	"sync"
 	"syscall"
+	"unsafe"
 
 	"internal/gomadwire"
 )
@@ -35,6 +36,12 @@ var Default = New(
 	descriptorReader(responseDescriptor),
 	gomadwire.MountLimits{PathBytes: 4096, FileBytes: 16 << 20, DirectoryEntries: 100_000},
 )
+
+//go:linkname runtimeBlockingRead runtime.gomadBlockingRead
+func runtimeBlockingRead(int32, unsafe.Pointer, int32) int32
+
+//go:linkname runtimeBlockingWrite runtime.gomadBlockingWrite
+func runtimeBlockingWrite(uintptr, unsafe.Pointer, int32) int32
 
 type Client struct {
 	mu        sync.Mutex
@@ -72,15 +79,34 @@ func (client *Client) Lookup(path string) (Entry, Status, error) {
 type descriptorWriter int
 
 func (descriptor descriptorWriter) Write(data []byte) (int, error) {
-	return syscall.Write(int(descriptor), data)
+	if len(data) == 0 {
+		return 0, nil
+	}
+	if len(data) > 1<<31-1 {
+		return 0, syscall.EOVERFLOW
+	}
+	written := runtimeBlockingWrite(uintptr(descriptor), unsafe.Pointer(&data[0]), int32(len(data)))
+	if written < 0 || int(written) > len(data) {
+		return 0, syscall.EIO
+	}
+	return int(written), nil
 }
 
 type descriptorReader int
 
 func (descriptor descriptorReader) Read(data []byte) (int, error) {
-	read, err := syscall.Read(int(descriptor), data)
-	if read == 0 && err == nil && len(data) != 0 {
+	if len(data) == 0 {
+		return 0, nil
+	}
+	if len(data) > 1<<31-1 {
+		return 0, syscall.EOVERFLOW
+	}
+	read := runtimeBlockingRead(int32(descriptor), unsafe.Pointer(&data[0]), int32(len(data)))
+	if read < 0 || int(read) > len(data) {
+		return 0, syscall.EIO
+	}
+	if read == 0 {
 		return 0, io.EOF
 	}
-	return read, err
+	return int(read), nil
 }

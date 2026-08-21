@@ -19,12 +19,17 @@ import (
 
 // Apply installs a guard before each instrumentable non-init function body.
 func Apply(pkg *ir.Package) {
-	if !*base.GomadGuard || !gomadcap.IsForbiddenImport(types.LocalPkg.Path) {
+	if !*base.GomadGuard {
 		return
 	}
+	guardPackage := gomadcap.IsForbiddenImport(types.LocalPkg.Path)
 	guard := guardFunction()
 	for _, function := range pkg.Funcs {
 		if !guardable(function) {
+			continue
+		}
+		guardForbidden := guardPackage && exportedEntryPoint(function) && !gomadcap.IsGuardExempt(types.LocalPkg.Path, function.Sym().Name) && !modeledBoundary(function)
+		if !guardForbidden && !deniedBoundary(function) {
 			continue
 		}
 		ir.CurFunc = function
@@ -35,6 +40,24 @@ func Apply(pkg *ir.Package) {
 		}
 	}
 	ir.CurFunc = nil
+}
+
+func exportedEntryPoint(function *ir.Func) bool {
+	name := function.Sym().Name
+	if separator := strings.LastIndexByte(name, '.'); separator >= 0 {
+		name = name[separator+1:]
+	}
+	return name != "" && types.IsExported(name)
+}
+
+func deniedBoundary(function *ir.Func) bool {
+	boundary, found := gomadcap.LookupBoundary(types.LocalPkg.Path, function.Sym().Name)
+	return found && boundary.Disposition == gomadcap.DispositionDenied
+}
+
+func modeledBoundary(function *ir.Func) bool {
+	boundary, found := gomadcap.LookupBoundary(types.LocalPkg.Path, function.Sym().Name)
+	return found && boundary.Disposition == gomadcap.DispositionModeled
 }
 
 func guardable(function *ir.Func) bool {

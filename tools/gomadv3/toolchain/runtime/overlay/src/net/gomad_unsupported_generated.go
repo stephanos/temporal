@@ -93,14 +93,6 @@ func gomadInterceptResolverLookupIP(_ *Resolver, _ context.Context, _ string, _ 
 	return result0, gomadio.ErrUnsupported, true
 }
 
-func gomadInterceptResolverLookupIPAddr(_ *Resolver, _ context.Context, _ string) ([]IPAddr, error, bool) {
-	var result0 []IPAddr
-	if !gomadIOEnabled() {
-		return result0, nil, false
-	}
-	return result0, gomadio.ErrUnsupported, true
-}
-
 func gomadInterceptResolverLookupNetIP(_ *Resolver, _ context.Context, _ string, _ string) ([]netip.Addr, error, bool) {
 	var result0 []netip.Addr
 	if !gomadIOEnabled() {
@@ -216,14 +208,6 @@ func gomadInterceptFileListener(_ *os.File) (Listener, error, bool) {
 
 func gomadInterceptFilePacketConn(_ *os.File) (PacketConn, error, bool) {
 	var result0 PacketConn
-	if !gomadIOEnabled() {
-		return result0, nil, false
-	}
-	return result0, gomadio.ErrUnsupported, true
-}
-
-func gomadInterceptInterfaces() ([]Interface, error, bool) {
-	var result0 []Interface
 	if !gomadIOEnabled() {
 		return result0, nil, false
 	}

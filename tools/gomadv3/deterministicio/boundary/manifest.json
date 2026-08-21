@@ -993,6 +993,48 @@
       ]
     },
     {
+      "package": "os/user",
+      "symbol": "Current",
+      "signature": "func() (*User, error)",
+      "source": "os/user/lookup.go",
+      "declaration_sha256": "sha256:f3c7e0772bbfb77c1817e56527ea1b230a7a8dd3f748e546cc9c17bcc700cf7e",
+      "package_sha256": "sha256:600cf1e10855feaf8a3863d57a408ccdc5495f56b07328d5f2e09996791b761b",
+      "operation": "user.current",
+      "probe": "stdlib.osuser.current",
+      "disposition": "model",
+      "hook": "gomadInterceptCurrent",
+      "delegated_boundary": "",
+      "adapters": [
+        "internal/gomadio"
+      ],
+      "conformance_fixtures": [
+        "runner/internal/execution.TestProfilePassesHostCapabilitySandbox"
+      ],
+      "negative_fixtures": [],
+      "escape_fixtures": []
+    },
+    {
+      "package": "os/signal",
+      "symbol": "Stop",
+      "signature": "func(c chan\u003c- os.Signal)",
+      "source": "os/signal/signal.go",
+      "declaration_sha256": "sha256:3a4ced0a4efbc915a4653df4edc08621b294278e6b4d9b8dfdade48a11ac5800",
+      "package_sha256": "sha256:d2e88503af2193b128c8200f757411ac345a9e92c483992f144483a756f6d43d",
+      "operation": "signal.stop",
+      "probe": "stdlib.ossignal.stop",
+      "disposition": "model",
+      "hook": "gomadInterceptStop",
+      "delegated_boundary": "",
+      "adapters": [
+        "internal/gomadio"
+      ],
+      "conformance_fixtures": [
+        "runner/internal/execution.TestProfilePassesHostCapabilitySandbox"
+      ],
+      "negative_fixtures": [],
+      "escape_fixtures": []
+    },
+    {
       "package": "net",
       "receiver": {
         "name": "Dialer",
@@ -2060,9 +2102,8 @@
       "package_sha256": "sha256:7895b7d6f831011520ed2358aedaa3036af9ff2a81b9dee6612ddcf98d16f559",
       "operation": "network.dns.lookup-ip-address",
       "probe": "stdlib.net.resolver.lookupipaddr",
-      "disposition": "deny",
+      "disposition": "model",
       "hook": "gomadInterceptResolverLookupIPAddr",
-      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"
@@ -3085,9 +3126,8 @@
       "package_sha256": "sha256:7895b7d6f831011520ed2358aedaa3036af9ff2a81b9dee6612ddcf98d16f559",
       "operation": "network.interfaces",
       "probe": "stdlib.net.interfaces",
-      "disposition": "deny",
+      "disposition": "model",
       "hook": "gomadInterceptInterfaces",
-      "hook_policy": "net-unsupported/v1",
       "delegated_boundary": "",
       "adapters": [
         "internal/gomadio"

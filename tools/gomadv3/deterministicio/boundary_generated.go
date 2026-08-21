@@ -4,7 +4,7 @@ package deterministicio
 
 const (
 	generatedBoundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
-	generatedBoundaryManifestSHA256  = "sha256:febc956871f3bd6885b4af2daed7653705eb6f03d5df2784decea946a849aa14"
+	generatedBoundaryManifestSHA256  = "sha256:1923d3faf7c9d7f4c3f64d88e5708a2a6e5c1221a8ba688300d7fbeadcfc00f3"
 	generatedBoundaryGoVersion       = "go1.26.4"
 	generatedBoundaryGOOS            = "darwin"
 	generatedBoundaryGOARCH          = "arm64"
@@ -53,6 +53,8 @@ var generatedBoundaryProbes = []struct {
 	{ID: 8600868093930554745, Name: "stdlib.os.pipe"},
 	{ID: 1940018568683693166, Name: "stdlib.os.file.fd"},
 	{ID: 6341108320089597219, Name: "stdlib.os.file.syscallconn"},
+	{ID: 1055737590077328763, Name: "stdlib.osuser.current"},
+	{ID: 4973094598532238081, Name: "stdlib.ossignal.stop"},
 	{ID: 4235268865641828290, Name: "stdlib.net.dialer.dialcontext"},
 	{ID: 8174924882754913928, Name: "stdlib.net.listenconfig.listen"},
 	{ID: 6332659738683654986, Name: "stdlib.net.conn.read"},

@@ -54,9 +54,9 @@ func PublishArtifact(store evidence.Store, input ArtifactInput) (evidence.Artifa
 		artifactDataPayload(manifest.Streams.Stdout.File, input.Stdout, 0o600),
 		artifactDataPayload(manifest.Streams.Stderr.File, input.Stderr, 0o600),
 	}
-	if manifest.Target.CapabilityMode == string(target.CapabilityModeLinked) {
+	if manifest.Target.CapabilityMode == string(target.CapabilityModeLinked) || manifest.Target.CapabilityMode == string(target.CapabilityModeGuarded) {
 		if manifest.Target.CapabilityManifest == nil {
-			return evidence.Artifact{}, errors.New("linked target capability manifest record is required")
+			return evidence.Artifact{}, errors.New("executable target capability manifest record is required")
 		}
 		capabilities, err := target.ReadCapabilityManifest(input.TargetPath, target.ToolchainIdentity{
 			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,

@@ -43,6 +43,10 @@ func TestClassifyOwnsRecordingAndReplaySemantics(t *testing.T) {
 			result: failedResult("panic: broken\n"),
 			want:   Classification{Domain: "target", Reason: "panic_or_runtime_fatal", Termination: "exit", ExitCode: &exitTwo, ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact},
 		},
+		"guarded capability": {
+			result: failedResult("fatal error: GOMAD_CAPABILITY_DENIED\n\nstack\n"),
+			want:   Classification{Domain: "target", Reason: "denied_capability", Termination: "exit", ExitCode: &exitTwo, ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact},
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {

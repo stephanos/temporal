@@ -603,7 +603,7 @@ func validateManifest(manifest SuiteManifest) error {
 		if !sortedUnique(suite.BuildTags) || !sortedUnique(suite.Environment) || !sortedUnique(suite.RequiredProbes) {
 			return fmt.Errorf("qualification suite %s lists must be sorted and unique", suite.ID)
 		}
-		if suite.CapabilityMode != target.CapabilityModeClosure && suite.CapabilityMode != target.CapabilityModeLinked {
+		if suite.CapabilityMode != target.CapabilityModeClosure && suite.CapabilityMode != target.CapabilityModeLinked && suite.CapabilityMode != target.CapabilityModeGuarded {
 			return fmt.Errorf("qualification suite %s capability mode is invalid", suite.ID)
 		}
 		for _, mount := range suite.ReadOnlyMounts {
@@ -940,7 +940,7 @@ func validateSetReport(report SuiteReport) error {
 	}
 	expectationsMet := report.Completed == report.Selected
 	for index, suite := range report.Suites {
-		if !setNamePattern.MatchString(suite.ID) || suite.Name == "" || suite.Tier != 1 && suite.Tier != 2 || report.Dimensions.PortableV3 && suite.Invariant == "" || suite.Seeds == nil || suite.Blockers == nil || suite.Choice.Features == nil || suite.CapabilityMode != target.CapabilityModeClosure && suite.CapabilityMode != target.CapabilityModeLinked || !validSetClassification(suite.Classification) || index > 0 && suite.ID <= report.Suites[index-1].ID {
+		if !setNamePattern.MatchString(suite.ID) || suite.Name == "" || suite.Tier != 1 && suite.Tier != 2 || report.Dimensions.PortableV3 && suite.Invariant == "" || suite.Seeds == nil || suite.Blockers == nil || suite.Choice.Features == nil || suite.CapabilityMode != target.CapabilityModeClosure && suite.CapabilityMode != target.CapabilityModeLinked && suite.CapabilityMode != target.CapabilityModeGuarded || !validSetClassification(suite.Classification) || index > 0 && suite.ID <= report.Suites[index-1].ID {
 			return fmt.Errorf("qualification set workload %d identity is invalid", index)
 		}
 		if report.Dimensions.Analysis && (suite.Analysis == nil && suite.AnalysisError == "" || suite.Analysis != nil && suite.AnalysisError != "") {

@@ -127,3 +127,5 @@ os.StartProcess -> os.gomadInterceptStartProcess
 os.Stat -> os.gomadInterceptStat
 os.Symlink -> os.gomadInterceptSymlink
 os.Truncate -> os.gomadInterceptTruncate
+os/signal.Stop -> os/signal.gomadInterceptStop
+os/user.Current -> os/user.gomadInterceptCurrent
