@@ -59,6 +59,26 @@ func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 	}
 }
 
+func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
+	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true, ForcedSimulation: true})
+	result, err := Minimize(context.Background(), MinimizeSpec{
+		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
+		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	report, err := Open(result.Artifact.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	minimization := report.Artifact.Minimization
+	if minimization == nil || minimization.ParentRecordHash == "" || minimization.Attempts == 0 || minimization.AttemptBudget != 16 || minimization.OriginalForcedDecisions != 2 || minimization.FinalForcedDecisions != 1 || len(minimization.Accepted) != 1 || minimization.Accepted[0].Kind != "fault_entries" || len(minimization.Accepted[0].Removed) != 1 || !minimization.Predicate.ReplayMatch {
+		t.Fatalf("minimization inspection = %#v", minimization)
+	}
+}
+
 func TestOpenWithOptionsProjectsValidatedChoiceTrace(t *testing.T) {
 	published := publishInspectArtifact(t)
 	report, err := Inspect(published.Path, InspectOptions{Choices: true})

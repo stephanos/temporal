@@ -542,12 +542,13 @@ func publishReplayArtifactWithWorldAndCompatibility(t *testing.T, connected *exe
 }
 
 type replayArtifactTarget struct {
-	Argv          []string
-	Environment   []evidence.Environment
-	OutcomeReason string
-	IOTranscript  []byte
-	Choices       bool
-	Simulation    bool
+	Argv             []string
+	Environment      []evidence.Environment
+	OutcomeReason    string
+	IOTranscript     []byte
+	Choices          bool
+	Simulation       bool
+	ForcedSimulation bool
 }
 
 func publishReplayArtifactForTarget(t *testing.T, connected *execution.Bundle, replayTarget replayArtifactTarget) (string, execution.Result) {
@@ -687,26 +688,87 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			t.Fatal("simulation replay root candidate is unavailable")
 		}
 		candidate := round.Candidates[0]
+		var runtimeDecisions []combinedfrontier.Decision
+		var explorationDecisions []combinedfrontier.Decision
+		if replayTarget.ForcedSimulation {
+			if !replayTarget.Choices {
+				t.Fatal("forced simulation fixture requires choices")
+			}
+			targetSHA256, targetErr := input.Manifest.Target.SHA256.Bytes()
+			if targetErr != nil {
+				t.Fatal(targetErr)
+			}
+			implementation, implementationErr := choice.ImplementationIdentity(identity.BuildKey)
+			if implementationErr != nil {
+				t.Fatal(implementationErr)
+			}
+			executionIdentity := choice.ExecutionIdentity{
+				TargetSHA256: targetSHA256, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS,
+				GOARCH: identity.TargetGOARCH, ImplementationSHA256: implementation,
+			}
+			exactTape, tapeErr := choice.ProjectReplayPlan(recordedChoices.Trace, executionIdentity)
+			if tapeErr != nil {
+				t.Fatal(tapeErr)
+			}
+			runtimeDecisions, tapeErr = simulationexploration.RuntimeDecisions(exactTape)
+			if tapeErr != nil {
+				t.Fatal(tapeErr)
+			}
+			prefix, prefixErr := choice.BuildForcedRankPrefix(exactTape, 0, runtimeDecisions[0].Selected)
+			if prefixErr != nil {
+				t.Fatal(prefixErr)
+			}
+			runtimeOverride, overrideErr := combinedfrontier.CanonicalForcedDecision(combinedfrontier.ForcedDecision{
+				Dimension: combinedfrontier.DimensionRuntime, Ordinal: runtimeDecisions[0].Ordinal,
+				SiteSHA256: runtimeDecisions[0].SiteSHA256, Alternatives: uint32(len(runtimeDecisions[0].Alternatives)),
+				AlternativeSetSHA256: runtimeDecisions[0].AlternativeSetSHA256, Selected: runtimeDecisions[0].Selected,
+				SelectedSHA256: runtimeDecisions[0].Alternatives[runtimeDecisions[0].Selected], Control: prefix.Bytes,
+			})
+			if overrideErr != nil {
+				t.Fatal(overrideErr)
+			}
+			faultSite := evidence.HashBytes([]byte("fault site"))
+			faultAlternatives := []evidence.SHA256{evidence.HashBytes([]byte("no fault")), evidence.HashBytes([]byte("drop"))}
+			faultBaseline, decisionErr := combinedfrontier.CanonicalDecision(combinedfrontier.DimensionFault, 0, faultSite, faultAlternatives, 0)
+			if decisionErr != nil {
+				t.Fatal(decisionErr)
+			}
+			faultOverride, overrideErr := combinedfrontier.ForceDecision(faultBaseline, 1)
+			if overrideErr != nil {
+				t.Fatal(overrideErr)
+			}
+			candidate, overrideErr = combinedfrontier.CanonicalCandidate(config, []combinedfrontier.ForcedDecision{runtimeOverride, faultOverride}, "")
+			if overrideErr != nil {
+				t.Fatal(overrideErr)
+			}
+			faultObserved, decisionErr := combinedfrontier.CanonicalDecision(combinedfrontier.DimensionFault, 0, faultSite, faultAlternatives, 1)
+			if decisionErr != nil {
+				t.Fatal(decisionErr)
+			}
+			explorationDecisions = []combinedfrontier.Decision{faultObserved}
+		}
 		plan, planErr := simulationexploration.PlanForCandidate(config, candidate)
 		if planErr != nil {
 			t.Fatal(planErr)
 		}
 		record, recordErr := json.Marshal(struct {
-			Schema          string          `json:"schema"`
-			Seed            uint64          `json:"seed"`
-			SpecSHA256      evidence.SHA256 `json:"spec_sha256"`
-			Outcome         string          `json:"outcome"`
-			FailureIdentity evidence.SHA256 `json:"failure_identity"`
-			ExplorationPlan json.RawMessage `json:"exploration_plan"`
-			Identity        evidence.SHA256 `json:"identity"`
+			Schema               string                      `json:"schema"`
+			Seed                 uint64                      `json:"seed"`
+			SpecSHA256           evidence.SHA256             `json:"spec_sha256"`
+			Outcome              string                      `json:"outcome"`
+			FailureIdentity      evidence.SHA256             `json:"failure_identity"`
+			ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
+			ExplorationDecisions []combinedfrontier.Decision `json:"exploration_decisions,omitempty"`
+			Identity             evidence.SHA256             `json:"identity"`
 		}{
 			Schema: "gomadv3.cluster-record/v7", Seed: 7, SpecSHA256: evidence.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
-			FailureIdentity: evidence.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan, Identity: evidence.HashBytes([]byte("simulation record")),
+			FailureIdentity: evidence.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan,
+			ExplorationDecisions: explorationDecisions, Identity: evidence.HashBytes([]byte("simulation record")),
 		})
 		if recordErr != nil {
 			t.Fatal(recordErr)
 		}
-		profile, profileErr := simulationexploration.ProjectArtifact(config, candidate, plan, record, nil, 1<<20)
+		profile, profileErr := simulationexploration.ProjectArtifact(config, candidate, plan, record, runtimeDecisions, 1<<20)
 		if profileErr != nil {
 			t.Fatal(profileErr)
 		}
