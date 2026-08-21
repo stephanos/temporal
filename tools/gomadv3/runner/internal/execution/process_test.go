@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -97,8 +98,8 @@ func TestRunTransportsCompleteChoiceTrace(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
@@ -118,8 +119,8 @@ func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
@@ -144,8 +145,8 @@ func TestRunReplaysCompleteChoiceTape(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-trace", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -182,8 +183,8 @@ func TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-reorder", "GOMADV3_CHOICE_REORDER=ab", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-reorder", "ab"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -195,7 +196,7 @@ func TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Env = []string{"GOMADV3_PROCESS_HELPER=choice-reorder", "GOMADV3_CHOICE_REORDER=ba", "GOMADSEED=7"}
+	request.Args = targetHelperArgs("choice-reorder", "ba")
 	request.Choice = &ChoiceCapability{
 		Mode: choice.ModeReplay, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
 		ExecutionIdentity: identity, Limit: limit, ReplayPlan: &tape,
@@ -218,8 +219,8 @@ func TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-select", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-select"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -247,7 +248,7 @@ func TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder(t *testing.T) {
 	}
 	var alternateSeed int
 	for seed := 8; seed < 128; seed++ {
-		request.Env = []string{"GOMADV3_PROCESS_HELPER=choice-select", fmt.Sprintf("GOMADSEED=%d", seed)}
+		request.Env = []string{fmt.Sprintf("GOMADSEED=%d", seed)}
 		alternate, err := Run(context.Background(), request)
 		if err != nil {
 			t.Fatal(err)
@@ -264,7 +265,7 @@ func TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder(t *testing.T) {
 	if alternateSeed == 0 {
 		t.Fatal("no alternate seed changed a compatible select permutation")
 	}
-	request.Env = []string{"GOMADV3_PROCESS_HELPER=choice-select", fmt.Sprintf("GOMADSEED=%d", alternateSeed)}
+	request.Env = []string{fmt.Sprintf("GOMADSEED=%d", alternateSeed)}
 	request.Choice = &ChoiceCapability{
 		Mode: choice.ModeReplay, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
 		ExecutionIdentity: identity, Limit: limit, ReplayPlan: &baselineTape,
@@ -287,8 +288,8 @@ func TestRunPreservesChoicePrefixRNGPosition(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-prefix-rng", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -329,8 +330,8 @@ func TestRunForcesCanonicalRankAtFinalPrefixDecision(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-prefix-rng", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -393,8 +394,8 @@ func TestRunTargetInheritsChoiceTapeReadOnly(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-tape-readonly", "GOMADSEED=7"}, Choice: &ChoiceCapability{
+		Command:           os.Args[0], Args: targetHelperArgs("choice-tape-readonly"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{
 			Mode: choice.ModePrefix, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
 			ExecutionIdentity: identity, Limit: 1 << 20, ReplayPlan: &tape,
 		},
@@ -418,8 +419,8 @@ func TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-marker", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -475,8 +476,8 @@ func TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-marker", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -546,8 +547,8 @@ func TestRunRejectsUnconsumedChoiceTape(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=choice-marker", "GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
+		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
@@ -788,8 +789,8 @@ func TestRunCapturesWorldRecordFromExecutingChild(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=9", "GOMADV3_PROCESS_HELPER=world-record"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=9"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
@@ -808,8 +809,8 @@ func TestRunPreservesPrematureWorldProducerMarker(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=9", "GOMADV3_PROCESS_HELPER=world-open-only"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Command:           os.Args[0], Args: targetHelperArgs("world-open-only"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=9"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
@@ -827,8 +828,8 @@ func TestRunPreservesWorldSeedMismatchMarker(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=8", "GOMADV3_PROCESS_HELPER=world-record"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=8"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 8},
 	})
 	if err != nil {
@@ -855,8 +856,8 @@ func TestRunInstallsWorldInitialReplayInputBeforeModeledWork(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADSEED=9", "GOMADV3_PROCESS_HELPER=world-record"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
+		Env: []string{"GOMADSEED=9"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9, ExpectedInitial: expectedInitial},
 	})
 	if err != nil {
@@ -897,7 +898,8 @@ func TestTargetBootstrapHelper(t *testing.T) {
 }
 
 func TestTargetHelper(t *testing.T) {
-	switch os.Getenv("GOMADV3_PROCESS_HELPER") {
+	helper, helperArgs := targetHelper()
+	switch helper {
 	case "output":
 		fmt.Fprintln(os.Stdout, "target stdout")
 		fmt.Fprintln(os.Stderr, "target stderr")
@@ -928,7 +930,7 @@ func TestTargetHelper(t *testing.T) {
 		fmt.Fprintln(os.Stdout, "post-choice-marker")
 		os.Exit(0)
 	case "choice-reorder":
-		runChoiceReorderTarget()
+		runChoiceReorderTarget(helperArgs)
 		os.Exit(0)
 	case "choice-select":
 		runChoiceSelectTarget()
@@ -937,10 +939,7 @@ func TestTargetHelper(t *testing.T) {
 		runChoicePrefixRNGTarget()
 		os.Exit(0)
 	case "choice-tape-readonly":
-		descriptor, err := strconv.Atoi(os.Getenv(choiceTapeFDEnvironmentName))
-		if err != nil {
-			os.Exit(32)
-		}
+		descriptor := descriptorFor(targetStage, launchCapabilities{choiceTrace: true, choiceReplayPlan: true}, choiceTapeResource)
 		if _, err := syscall.Pwrite(descriptor, []byte{1}, 0); err == nil {
 			os.Exit(34)
 		}
@@ -1160,7 +1159,22 @@ func runSimulationProcessHelper() {
 	}
 }
 
-func runChoiceReorderTarget() {
+func targetHelperArgs(helper string, arguments ...string) []string {
+	return append([]string{"-test.run=^TestTargetHelper$", "--", helper}, arguments...)
+}
+
+func targetHelper() (string, []string) {
+	arguments := flag.Args()
+	if len(arguments) != 0 {
+		return arguments[0], arguments[1:]
+	}
+	return os.Getenv("GOMADV3_PROCESS_HELPER"), nil
+}
+
+func runChoiceReorderTarget(arguments []string) {
+	if len(arguments) != 1 {
+		os.Exit(36)
+	}
 	ready := make(chan struct{}, 3)
 	firstStart := make(chan struct{})
 	secondStart := make(chan struct{})
@@ -1183,7 +1197,7 @@ func runChoiceReorderTarget() {
 	for range 3 {
 		<-ready
 	}
-	if os.Getenv("GOMADV3_CHOICE_REORDER") == "ba" {
+	if arguments[0] == "ba" {
 		close(secondStart)
 		close(firstStart)
 	} else {

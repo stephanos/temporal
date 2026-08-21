@@ -23,7 +23,10 @@ func main() {
 			fmt.Printf("FAIL: %v\n", failure)
 		}
 	}()
-	switch testCase := os.Getenv("GOMADV3_NETWORK_CASE"); testCase {
+	if len(os.Args) != 2 {
+		panic(fmt.Sprintf("expected one test case argument, got %d", len(os.Args)-1))
+	}
+	switch testCase := os.Args[1]; testCase {
 	case "close-after-write":
 		testCloseAfterWrite()
 	case "accept-close":

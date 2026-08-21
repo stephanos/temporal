@@ -11,8 +11,11 @@ import (
 )
 
 func main() {
-	hostEscape := os.Getenv("GOMADV3_HOST_ESCAPE")
-	if hostEscape != "" {
+	if len(os.Args) > 2 {
+		panic(fmt.Sprintf("expected at most one host escape argument, got %d", len(os.Args)-1))
+	}
+	if len(os.Args) == 2 {
+		hostEscape := os.Args[1]
 		if _, err := os.ReadFile(hostEscape); !errors.Is(err, fs.ErrNotExist) {
 			panic(fmt.Sprintf("host escape read error = %v", err))
 		}
