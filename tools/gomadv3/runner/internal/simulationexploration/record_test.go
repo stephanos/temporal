@@ -173,3 +173,72 @@ func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.
 		t.Fatal("ResultForRecord() accepted a changed decision identity")
 	}
 }
+
+func TestProjectArtifactBindsExactReplayAndNormalizedFailure(t *testing.T) {
+	config := combinedfrontier.Config{
+		ExecutionSHA256: evidence.HashBytes([]byte("execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: 17,
+		Parallel: 1, MaxRuns: 2, MaxForcedDecisions: 1, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
+		Limits: combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+	}
+	state, err := combinedfrontier.New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, ok := state.NextRound()
+	if !ok {
+		t.Fatal("combined frontier root round is unavailable")
+	}
+	candidate := round.Candidates[0]
+	plan, err := PlanForCandidate(config, candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	failure := evidence.HashBytes([]byte("normalized oracle failure"))
+	record, err := json.Marshal(struct {
+		Schema          string          `json:"schema"`
+		Seed            uint64          `json:"seed"`
+		SpecSHA256      evidence.SHA256 `json:"spec_sha256"`
+		Outcome         string          `json:"outcome"`
+		FailureIdentity evidence.SHA256 `json:"failure_identity"`
+		ExplorationPlan json.RawMessage `json:"exploration_plan"`
+		Identity        evidence.SHA256 `json:"identity"`
+	}{
+		Schema: "gomadv3.cluster-record/v7", Seed: config.BaseSeed, SpecSHA256: evidence.HashBytes([]byte("spec")),
+		Outcome: "oracle_failed", FailureIdentity: failure, ExplorationPlan: plan, Identity: evidence.HashBytes([]byte("record")),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	profile, err := ProjectArtifact(config, candidate, plan, record, nil, 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if profile.CandidateSHA256 != candidate.SHA256 || profile.ControllerSHA256 != config.ControllerSHA256 || profile.ExecutionSHA256 != config.ExecutionSHA256 || profile.FailureSHA256 != failure || profile.Plan.SHA256 != evidence.HashBytes(plan) || profile.Record.SHA256 != evidence.HashBytes(record) {
+		t.Fatalf("simulation profile = %#v", profile)
+	}
+	if err := ValidateArtifact(profile, plan, record); err != nil {
+		t.Fatal(err)
+	}
+
+	changedConfig := config
+	changedConfig.BaseSeed = 18
+	changedState, err := combinedfrontier.New(changedConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	changedRound, ok := changedState.NextRound()
+	if !ok {
+		t.Fatal("changed combined frontier root round is unavailable")
+	}
+	changedPlan, err := PlanForCandidate(changedConfig, changedRound.Candidates[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile.CandidateSHA256 = changedRound.Candidates[0].SHA256
+	profile.Plan.SHA256 = evidence.HashBytes(changedPlan)
+	profile.Plan.Bytes = evidence.Uint64String(len(changedPlan))
+	if err := ValidateArtifact(profile, changedPlan, record); err == nil {
+		t.Fatal("ValidateArtifact() accepted a record bound to a different exploration plan")
+	}
+}

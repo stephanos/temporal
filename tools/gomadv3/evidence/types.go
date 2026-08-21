@@ -32,26 +32,27 @@ const (
 type SHA256 string
 
 type ExecutionRecord struct {
-	SchemaVersion    uint32         `json:"schema_version"`
-	ArtifactKind     string         `json:"artifact_kind"`
-	RecordHash       SHA256         `json:"record_hash"`
-	CreatedAt        string         `json:"created_at"`
-	CampaignID       string         `json:"batch_id"`
-	SelectionOrdinal Uint64String   `json:"selection_ordinal"`
-	Seed             Uint64String   `json:"seed"`
-	ReplayMode       string         `json:"replay_mode"`
-	Runner           Runner         `json:"runner"`
-	Toolchain        Toolchain      `json:"toolchain"`
-	Target           Target         `json:"target"`
-	IOProfile        IOProfile      `json:"io_profile"`
-	ChoiceProfile    *ChoiceProfile `json:"choice_profile,omitempty"`
-	Environment      []Environment  `json:"environment"`
-	Limits           Limits         `json:"limits"`
-	World            World          `json:"world"`
-	Outcome          Outcome        `json:"outcome"`
-	Streams          Streams        `json:"streams"`
-	Files            []File         `json:"files"`
-	Host             Host           `json:"host"`
+	SchemaVersion     uint32             `json:"schema_version"`
+	ArtifactKind      string             `json:"artifact_kind"`
+	RecordHash        SHA256             `json:"record_hash"`
+	CreatedAt         string             `json:"created_at"`
+	CampaignID        string             `json:"batch_id"`
+	SelectionOrdinal  Uint64String       `json:"selection_ordinal"`
+	Seed              Uint64String       `json:"seed"`
+	ReplayMode        string             `json:"replay_mode"`
+	Runner            Runner             `json:"runner"`
+	Toolchain         Toolchain          `json:"toolchain"`
+	Target            Target             `json:"target"`
+	IOProfile         IOProfile          `json:"io_profile"`
+	ChoiceProfile     *ChoiceProfile     `json:"choice_profile,omitempty"`
+	SimulationProfile *SimulationProfile `json:"simulation_profile,omitempty"`
+	Environment       []Environment      `json:"environment"`
+	Limits            Limits             `json:"limits"`
+	World             World              `json:"world"`
+	Outcome           Outcome            `json:"outcome"`
+	Streams           Streams            `json:"streams"`
+	Files             []File             `json:"files"`
+	Host              Host               `json:"host"`
 }
 
 type IOProfile struct {
@@ -88,6 +89,32 @@ type ChoiceTrace struct {
 	Limit            Uint64String `json:"limit"`
 	TapeSHA256       SHA256       `json:"tape_sha256,omitempty"`
 	Decisions        Uint64String `json:"decisions,omitempty"`
+}
+
+type SimulationProfile struct {
+	Name             string           `json:"name"`
+	ControllerSHA256 SHA256           `json:"controller_sha256"`
+	ExecutionSHA256  SHA256           `json:"execution_sha256"`
+	CandidateSHA256  SHA256           `json:"candidate_sha256"`
+	OutcomeSHA256    SHA256           `json:"outcome_sha256"`
+	FailureSHA256    SHA256           `json:"failure_sha256,omitempty"`
+	Plan             SimulationPlan   `json:"plan"`
+	Record           SimulationRecord `json:"record"`
+}
+
+type SimulationPlan struct {
+	Schema string       `json:"schema"`
+	File   string       `json:"file"`
+	SHA256 SHA256       `json:"sha256"`
+	Bytes  Uint64String `json:"bytes"`
+}
+
+type SimulationRecord struct {
+	Schema string       `json:"schema"`
+	File   string       `json:"file"`
+	SHA256 SHA256       `json:"sha256"`
+	Bytes  Uint64String `json:"bytes"`
+	Limit  Uint64String `json:"limit"`
 }
 
 type ReadOnlyMounts struct {
