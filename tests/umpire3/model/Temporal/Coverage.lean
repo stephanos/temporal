@@ -83,6 +83,15 @@ private def observationPoints (target : TargetProjection) (property : String) : 
       source := monitor.identifier
     }
 
+private def evidencePoints (target : TargetProjection) (property : String) : List Point :=
+  match Monitors.declarations.find? (·.property = property) with
+  | none => []
+  | some monitor => monitor.evidence.map fun evidence => {
+      dimension := "evidence"
+      identifier := target.identifier ++ "/evidence:" ++ evidence
+      source := monitor.identifier
+    }
+
 private def refinementPoints (target : TargetProjection) : List Point :=
   (targetModules target).flatMap fun module =>
     (module.obligations.filter (·.kind = "refinement")).map fun obligation => {
@@ -93,7 +102,8 @@ private def refinementPoints (target : TargetProjection) : List Point :=
 
 private def points (target : TargetProjection) (property : String) : List Point :=
   transitionPoints target ++ relationPoints target ++ propertyPoints target property ++
-    faultPoints target ++ observationPoints target property ++ refinementPoints target
+    faultPoints target ++ observationPoints target property ++ evidencePoints target property ++
+    refinementPoints target
 
 private def targetPropertyToJson (target : TargetDeclaration) (property : String) : Lean.Json :=
   match targetProjection target.identifier with

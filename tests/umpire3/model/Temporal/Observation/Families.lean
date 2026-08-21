@@ -22,6 +22,17 @@ private def historyFact (kind : String) (sequence : Nat) : Fact where
     runID := some "run/1"
   }
 
+private def mechanismFact (kind : String) (sequence : Nat) (outcome : String) : Fact where
+  identifier := "mechanism/" ++ kind
+  source := source sequence
+  value := .mechanism {
+    action := kind
+    resource := "workflow/1/run/1"
+    attempt := sequence
+    ownerEpoch := 0
+    outcome
+  }
+
 private def closedWindow (observation : String) (sequence : Nat) : Fact where
   identifier := "window/" ++ observation
   source := source sequence
@@ -51,6 +62,15 @@ private def program (observation : String) (required : List String)
   violations := [selector violation]
   closures := [{ factType := "evidence-window", kind := observation, closed := some true }]
 
+private def mechanismProgram (observation : String) (required : List String)
+    (violation : String) : Program where
+  identifier := "observation." ++ observation
+  observation
+  operation := .allExistAbsentWhenClosed
+  matchers := required.map (mechanismSelector · (some "linked"))
+  violations := [mechanismSelector violation (some "one-sided")]
+  closures := [{ factType := "evidence-window", kind := observation, closed := some true }]
+
 private def fixture (observation : String) (required : List String) : Fixture :=
   let facts := (required.zip (List.range required.length)).map fun entry =>
     historyFact entry.1 (entry.2 + 1)
@@ -62,6 +82,20 @@ private def fixture (observation : String) (required : List String) : Fixture :=
     expected := {
       value := .true
       support := required.mergeSort.map ("history/" ++ ·) ++ ["window/" ++ observation]
+    }
+  }
+
+private def mechanismFixture (observation : String) (required : List String) : Fixture :=
+  let facts := (required.zip (List.range required.length)).map fun entry =>
+    mechanismFact entry.1 (entry.2 + 1) "linked"
+  let window := closedWindow observation (required.length + 1)
+  {
+    identifier := observation ++ ".established"
+    observation
+    facts := facts ++ [window]
+    expected := {
+      value := .true
+      support := required.mergeSort.map ("mechanism/" ++ ·) ++ ["window/" ++ observation]
     }
   }
 
@@ -102,7 +136,22 @@ def nexusOperationClosed : Program := program "nexus-operation-closed" [
   "nexus-operation-settled", "caller-workflow-closed",
 ] "caller-closed-with-open-operation"
 
-def nexusActivityLinksConsistent : Program := program "nexus-activity-links-consistent" [
+def nexusOperationProgressed : Program where
+  identifier := "observation.nexus-operation-progressed"
+  observation := "nexus-operation-progressed"
+  operation := .allExistAbsentWhenClosed
+  matchers := [
+    mechanismSelector "nexus-operation-retryable-failure" (some "retryable"),
+    mechanismSelector "nexus-operation-settled-after-retry" (some "settled"),
+  ]
+  violations := [mechanismSelector "nexus-progress-deadline-expired" (some "open")]
+  closures := [{
+    factType := "evidence-window"
+    kind := "nexus-operation-progressed"
+    closed := some true
+  }]
+
+def nexusActivityLinksConsistent : Program := mechanismProgram "nexus-activity-links-consistent" [
   "nexus-operation-linked-activity", "activity-linked-nexus-operation",
 ] "nexus-activity-link-one-sided"
 
@@ -149,6 +198,7 @@ def programs : List Program := [
   workflowTaskAcknowledged,
   speculativeTaskValid,
   nexusOperationClosed,
+  nexusOperationProgressed,
   nexusActivityLinksConsistent,
   nexusTimeoutValid,
   callbackReferenceValid,
@@ -189,7 +239,43 @@ def fixtures : List Fixture := [
   fixture "speculative-task-valid"
     ["update-requested", "speculative-task-created", "speculative-task-committed"],
   fixture "nexus-operation-closed" ["nexus-operation-settled", "caller-workflow-closed"],
-  fixture "nexus-activity-links-consistent"
+  {
+    identifier := "nexus-operation-progressed.established"
+    observation := "nexus-operation-progressed"
+    facts := [
+      mechanismFact "nexus-operation-retryable-failure" 1 "retryable",
+      mechanismFact "nexus-operation-settled-after-retry" 2 "settled",
+      closedWindow "nexus-operation-progressed" 3,
+    ]
+    expected := {
+      value := .true
+      support := [
+        "mechanism/nexus-operation-retryable-failure",
+        "mechanism/nexus-operation-settled-after-retry",
+        "window/nexus-operation-progressed",
+      ]
+    }
+  },
+  {
+    identifier := "nexus-operation-progressed.violated"
+    observation := "nexus-operation-progressed"
+    facts := [
+      mechanismFact "nexus-operation-retryable-failure" 1 "retryable",
+      mechanismFact "nexus-progress-deadline-expired" 2 "open",
+      closedWindow "nexus-operation-progressed" 3,
+    ]
+    expected := {
+      value := .false
+      support := ["mechanism/nexus-progress-deadline-expired"]
+    }
+  },
+  {
+    identifier := "nexus-operation-progressed.unknown"
+    observation := "nexus-operation-progressed"
+    facts := [mechanismFact "nexus-operation-retryable-failure" 1 "retryable"]
+    expected := { value := .unknown, support := [] }
+  },
+  mechanismFixture "nexus-activity-links-consistent"
     ["nexus-operation-linked-activity", "activity-linked-nexus-operation"],
   fixture "nexus-timeout-valid" ["nexus-timeout-configured", "nexus-operation-timed-out"],
   fixture "callback-reference-valid" ["callback-attached", "nexus-operation-started"],

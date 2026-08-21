@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const FormatVersion = "umpire3/evidence-graph/v1"
+const FormatVersion = "umpire3/evidence-graph/v2"
 
 type Fact struct {
 	Identifier                string   `json:"identifier"`
@@ -31,6 +31,7 @@ type Fact struct {
 type Action struct {
 	Identifier     string   `json:"identifier"`
 	Kind           string   `json:"kind"`
+	Outcome        string   `json:"outcome"`
 	SourceIdentity string   `json:"sourceIdentity"`
 	Reference      string   `json:"reference"`
 	EntityIdentity string   `json:"entityIdentity,omitempty"`
@@ -106,8 +107,8 @@ func (b *Builder) AddFact(fact Fact) error {
 }
 
 func (b *Builder) AddAction(action Action) error {
-	if action.Identifier == "" || action.Kind == "" || action.SourceIdentity == "" || action.Reference == "" {
-		return errors.New("complete action evidence identity is required")
+	if err := action.validate(); err != nil {
+		return err
 	}
 	b.graph.Actions = append(b.graph.Actions, action)
 	return nil
@@ -162,6 +163,16 @@ func (g Graph) Validate() error {
 			return &ContradictionError{Kind: fact.Kind, Facts: []string{previous.Identifier, fact.Identifier}}
 		}
 		values[key] = fact
+	}
+	actionIdentifiers := make(map[string]struct{}, len(g.Actions))
+	for _, action := range g.Actions {
+		if err := action.validate(); err != nil {
+			return fmt.Errorf("action %q: %w", action.Identifier, err)
+		}
+		if _, duplicate := actionIdentifiers[action.Identifier]; duplicate {
+			return fmt.Errorf("duplicate evidence action %q", action.Identifier)
+		}
+		actionIdentifiers[action.Identifier] = struct{}{}
 	}
 	return nil
 }
@@ -239,6 +250,14 @@ func (f Fact) validate() error {
 	}
 	if f.PayloadDigest != "" && !validDigest(f.PayloadDigest) {
 		return errors.New("payload digest must be sha256")
+	}
+	return nil
+}
+
+func (a Action) validate() error {
+	if a.Identifier == "" || a.Kind == "" || a.Outcome == "" ||
+		a.SourceIdentity == "" || a.Reference == "" {
+		return errors.New("complete action evidence identity and outcome are required")
 	}
 	return nil
 }

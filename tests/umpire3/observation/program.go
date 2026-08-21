@@ -145,6 +145,12 @@ func (c Catalog) Validate() error {
 		}
 		programs[program.Observation] = program
 	}
+	for _, declaration := range semanticCatalog.Observations {
+		observation := protocol.ObservationID(declaration.Identifier)
+		if _, exists := programs[observation]; !exists {
+			return fmt.Errorf("semantic observation %q has no program", observation)
+		}
+	}
 	fixtureIDs := make(map[string]struct{}, len(c.Fixtures))
 	coveredPrograms := make(map[protocol.ObservationID]struct{}, len(c.Programs))
 	coveredValues := make(map[Truth]struct{}, 4)

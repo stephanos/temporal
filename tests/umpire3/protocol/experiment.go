@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 )
 
@@ -59,15 +60,16 @@ const (
 )
 
 type Action struct {
-	Identifier           string       `json:"identifier"`
-	Kind                 string       `json:"kind"`
-	Arguments            []NamedValue `json:"arguments,omitempty"`
-	Bindings             []Binding    `json:"bindings,omitempty"`
-	RequiredCapabilities []string     `json:"requiredCapabilities"`
-	PreCheckpoint        string       `json:"preCheckpoint,omitempty"`
-	PostCheckpoint       string       `json:"postCheckpoint,omitempty"`
-	ResponseMode         ResponseMode `json:"responseMode,omitempty"`
-	MaxBlockNanos        int64        `json:"maxBlockNanos,omitempty"`
+	Identifier           string          `json:"identifier"`
+	Kind                 string          `json:"kind"`
+	AllowedOutcomes      []ActionOutcome `json:"allowedOutcomes"`
+	Arguments            []NamedValue    `json:"arguments,omitempty"`
+	Bindings             []Binding       `json:"bindings,omitempty"`
+	RequiredCapabilities []string        `json:"requiredCapabilities"`
+	PreCheckpoint        string          `json:"preCheckpoint,omitempty"`
+	PostCheckpoint       string          `json:"postCheckpoint,omitempty"`
+	ResponseMode         ResponseMode    `json:"responseMode,omitempty"`
+	MaxBlockNanos        int64           `json:"maxBlockNanos,omitempty"`
 }
 
 func (a Action) EffectiveResponseMode() ResponseMode {
@@ -341,6 +343,19 @@ func (e Experiment) Validate() error {
 		if !known {
 			return fmt.Errorf("unknown action kind %q", action.Kind)
 		}
+		if len(action.AllowedOutcomes) == 0 {
+			return fmt.Errorf("action %q requires at least one allowed outcome", action.Identifier)
+		}
+		seenOutcomes := make(map[ActionOutcome]struct{}, len(action.AllowedOutcomes))
+		for _, outcome := range action.AllowedOutcomes {
+			if !validActionOutcome(outcome) {
+				return fmt.Errorf("action %q has unknown allowed outcome %q", action.Identifier, outcome)
+			}
+			if _, duplicate := seenOutcomes[outcome]; duplicate {
+				return fmt.Errorf("action %q has duplicate allowed outcome %q", action.Identifier, outcome)
+			}
+			seenOutcomes[outcome] = struct{}{}
+		}
 		requiredCapabilities := make(map[string]struct{}, len(declaration.RequiredCapabilities))
 		for _, capability := range declaration.RequiredCapabilities {
 			requiredCapabilities[string(capability)] = struct{}{}
@@ -452,6 +467,13 @@ func validateActionArguments(action Action, declaration ActionDeclaration) error
 		}
 		if argument.Value.semanticType() != parameter.Type {
 			return fmt.Errorf("argument %q has type %q, expected %q", argument.Name, argument.Value.Type, parameter.Type)
+		}
+		if len(parameter.Values) != 0 && argument.Value.Text == nil {
+			return fmt.Errorf("argument %q requires one of %v", argument.Name, parameter.Values)
+		}
+		if len(parameter.Values) != 0 && !slices.Contains(parameter.Values, *argument.Value.Text) {
+			return fmt.Errorf("argument %q has unsupported value %q, expected one of %v",
+				argument.Name, *argument.Value.Text, parameter.Values)
 		}
 		delete(parameters, argument.Name)
 	}

@@ -71,7 +71,7 @@ func execute(
 	if len(request.Experiment.Faults) != 0 {
 		return canary.WorkerResponse{}, errors.New("production canary fault realization is not configured")
 	}
-	sdkWorker := worker.New(client, request.Profile.TaskQueue, worker.Options{})
+	sdkWorker := worker.New(client, request.Profile.TaskQueue, workerOptions(request.Approval))
 	workflowID, err := canaryWorkflowID(request.Experiment)
 	if err != nil {
 		return canary.WorkerResponse{}, err
@@ -96,6 +96,7 @@ func execute(
 			ActionTimeout:  request.Approval.MaxDuration, ObserveTimeout: request.Approval.MaxDuration,
 			CleanupTimeout: request.Approval.CleanupTimeout,
 			MaxActions:     request.Approval.MaxActions, MaxEvidenceBytes: request.Approval.MaxEvidenceBytes,
+			MaxActionsPerSecond: request.Approval.MaxRatePerSecond,
 		},
 	})
 	if err != nil {
@@ -106,6 +107,16 @@ func execute(
 		Resources:       map[string]string{"workflow": workflowID, "namespace": request.Profile.Namespace},
 		CleanupComplete: result.Cleanup.Complete,
 	}, nil
+}
+
+func workerOptions(approval canary.Approval) worker.Options {
+	return worker.Options{
+		MaxConcurrentActivityExecutionSize:      approval.MaxConcurrent,
+		MaxConcurrentLocalActivityExecutionSize: approval.MaxConcurrent,
+		MaxConcurrentWorkflowTaskExecutionSize:  approval.MaxConcurrent,
+		WorkerActivitiesPerSecond:               float64(approval.MaxRatePerSecond),
+		TaskQueueActivitiesPerSecond:            float64(approval.MaxRatePerSecond),
+	}
 }
 
 func cleanup(

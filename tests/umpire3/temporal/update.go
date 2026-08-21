@@ -63,6 +63,7 @@ func (s *updateSession) Realize(ctx context.Context, action protocol.Action, bin
 	defer s.mu.Unlock()
 	evidence := environment.ActionEvidence{
 		Source:         "temporal-test-cluster",
+		Outcome:        protocol.ActionOutcomeApplied,
 		SourceIdentity: "temporal-test-cluster",
 		ClockDomain:    "temporal-test-cluster-sequence",
 		Reference:      s.cluster.Namespace + "/" + action.Identifier,

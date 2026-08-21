@@ -1,4 +1,5 @@
 import Lean.Data.Json
+import Umpire3.Manifest
 import Umpire3.Registration
 
 namespace Umpire3
@@ -18,6 +19,7 @@ structure ParameterDeclaration where
   name : String
   type : String
   required : Bool
+  allowedValues : List String := []
   deriving DecidableEq, Repr
 
 structure ProjectionDeclaration where
@@ -202,6 +204,7 @@ private def ParameterDeclaration.toJson (declaration : ParameterDeclaration) : L
   ("name", declaration.name),
   ("type", declaration.type),
   ("required", declaration.required),
+  ("values", stringsJson declaration.allowedValues),
 ]
 
 private def ProjectionDeclaration.toJson (declaration : ProjectionDeclaration) : Lean.Json := Lean.Json.mkObj [
@@ -285,6 +288,7 @@ private def TargetDeclaration.toJson (declaration : TargetDeclaration) : Lean.Js
 def SemanticCatalog.toJson (catalog : SemanticCatalog) (semanticHash : String) : Lean.Json := Lean.Json.mkObj [
   ("formatVersion", "umpire3/catalog/v1"),
   ("catalogVersion", catalog.version),
+  ("leanVersion", leanVersion),
   ("semanticHash", semanticHash),
   ("types", Lean.Json.arr (catalog.types.map TypeDeclaration.toJson).toArray),
   ("capabilities", Lean.Json.arr (catalog.capabilities.map CapabilityDeclaration.toJson).toArray),

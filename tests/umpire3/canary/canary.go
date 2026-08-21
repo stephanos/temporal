@@ -3,9 +3,13 @@ package canary
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -17,12 +21,13 @@ import (
 	"time"
 
 	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/internal/artifact"
 	"go.temporal.io/server/tests/umpire3/process"
 	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
-const FormatVersion = "umpire3/canary/v1"
+const FormatVersion = "umpire3/canary/v3"
 
 var ErrUnsafeRequest = errors.New("unsafe Umpire3 canary request")
 
@@ -57,7 +62,10 @@ type Approval struct {
 	CleanupTimeout     time.Duration `json:"cleanupTimeout"`
 	MaxEvidenceBytes   int64         `json:"maxEvidenceBytes"`
 	MaxOutputBytes     int64         `json:"maxOutputBytes"`
+	MaxCPUSeconds      int           `json:"maxCPUSeconds"`
+	MaxMemoryBytes     int64         `json:"maxMemoryBytes"`
 	ApprovalDigest     string        `json:"approvalDigest"`
+	Signature          string        `json:"signature"`
 }
 
 func Seal(approval Approval) (Approval, error) {
@@ -66,12 +74,58 @@ func Seal(approval Approval) (Approval, error) {
 	approval.AllowedFaults = sortedUnique(approval.AllowedFaults)
 	approval.DestructiveActions = sortedUnique(approval.DestructiveActions)
 	approval.ApprovalDigest = ""
+	approval.Signature = ""
 	digest, err := approvalDigest(approval)
 	if err != nil {
 		return Approval{}, err
 	}
 	approval.ApprovalDigest = digest
 	return approval, nil
+}
+
+type ApprovalAuthority struct {
+	Identity  string
+	PublicKey ed25519.PublicKey
+}
+
+func NewApprovalAuthority(identity string, publicKey ed25519.PublicKey) (ApprovalAuthority, error) {
+	authority := ApprovalAuthority{Identity: identity, PublicKey: append(ed25519.PublicKey(nil), publicKey...)}
+	if err := authority.Validate(); err != nil {
+		return ApprovalAuthority{}, err
+	}
+	return authority, nil
+}
+
+func ParseApprovalPublicKey(encoded []byte) (ed25519.PublicKey, error) {
+	block, trailing := pem.Decode(encoded)
+	if block == nil || block.Type != "PUBLIC KEY" || len(bytes.TrimSpace(trailing)) != 0 {
+		return nil, errors.New("canary approval key must be one PKIX PUBLIC KEY PEM block")
+	}
+	parsed, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("parse canary approval key: %w", err)
+	}
+	publicKey, ok := parsed.(ed25519.PublicKey)
+	if !ok || len(publicKey) != ed25519.PublicKeySize {
+		return nil, errors.New("canary approval key must be Ed25519")
+	}
+	return publicKey, nil
+}
+
+func Authorize(approval Approval, privateKey ed25519.PrivateKey) (Approval, error) {
+	if len(privateKey) != ed25519.PrivateKeySize {
+		return Approval{}, errors.New("Ed25519 canary approval signing key is required")
+	}
+	sealed, err := Seal(approval)
+	if err != nil {
+		return Approval{}, err
+	}
+	payload, err := approvalSigningPayload(sealed)
+	if err != nil {
+		return Approval{}, err
+	}
+	sealed.Signature = base64.RawStdEncoding.EncodeToString(ed25519.Sign(privateKey, payload))
+	return sealed, nil
 }
 
 type Request struct {
@@ -110,6 +164,33 @@ type Result struct {
 	Complete       bool                  `json:"complete"`
 }
 
+func (r Result) ValidateQualification() error {
+	if r.FormatVersion != FormatVersion || !r.Complete || r.PrimaryFailure != "" ||
+		r.CleanupFailure != "" || r.StopReason != "" {
+		return errors.New("canary qualification result is not complete")
+	}
+	if !validDigest(r.ApprovalDigest) || r.Recovery.FormatVersion != FormatVersion ||
+		r.Recovery.ApprovalID == "" || r.Recovery.ApprovalDigest != r.ApprovalDigest ||
+		r.Recovery.ExperimentDigest == "" || r.Recovery.Namespace == "" || r.Recovery.Tenant == "" ||
+		r.Recovery.CleanupPending || r.Recovery.ExperimentDigest != r.Runtime.ExperimentDigest {
+		return errors.New("canary qualification recovery evidence is incomplete")
+	}
+	if r.Recovery.Resources["namespace"] != r.Recovery.Namespace ||
+		r.Recovery.Resources["tenant"] != r.Recovery.Tenant {
+		return errors.New("canary qualification recovery resources are incomplete")
+	}
+	expectedAudit := []string{"recovery-intent-persisted", "semantic-result-qualified", "cleanup-complete"}
+	if len(r.Audit) != len(expectedAudit) {
+		return errors.New("canary qualification audit evidence is incomplete")
+	}
+	for index, decision := range expectedAudit {
+		if r.Audit[index].Sequence != index+1 || r.Audit[index].Decision != decision || r.Audit[index].Reason != "" {
+			return errors.New("canary qualification audit evidence is invalid")
+		}
+	}
+	return nil
+}
+
 type Store interface {
 	Save(context.Context, RecoveryRecord) error
 	Load(context.Context, string) (RecoveryRecord, error)
@@ -117,7 +198,8 @@ type Store interface {
 }
 
 type Controller struct {
-	Store Store
+	Store             Store
+	ApprovalAuthority ApprovalAuthority
 }
 
 type WorkerOperation string
@@ -144,7 +226,7 @@ type WorkerResponse struct {
 }
 
 func (c Controller) Run(ctx context.Context, request Request) (result Result, retErr error) {
-	experimentDigest, err := preflight(request, c.Store)
+	experimentDigest, err := preflight(request, c.Store, c.ApprovalAuthority)
 	if err != nil {
 		return Result{}, err
 	}
@@ -165,7 +247,9 @@ func (c Controller) Run(ctx context.Context, request Request) (result Result, re
 	result.Audit = append(result.Audit, AuditRecord{Sequence: 1, Decision: "recovery-intent-persisted"})
 
 	workerResponse, executeErr := runWorker(ctx, request, OperationExecute, result.Recovery,
-		request.Approval.MaxDuration, request.Approval.MaxOutputBytes)
+		request.Approval.MaxDuration, request.Approval.MaxOutputBytes, process.Limits{
+			CPUSeconds: request.Approval.MaxCPUSeconds, MemoryBytes: request.Approval.MaxMemoryBytes,
+		})
 	if executeErr != nil {
 		result.PrimaryFailure = errorClass(executeErr)
 		result.StopReason = "worker execution failed"
@@ -183,16 +267,24 @@ func (c Controller) Run(ctx context.Context, request Request) (result Result, re
 		} else if err := validateWorkerResult(request, experimentDigest, workerResponse.Result); err != nil {
 			result.PrimaryFailure = errorClass(err)
 			result.StopReason = err.Error()
-		} else if workerResponse.Result.Claim.Kind == umpire3runtime.ClaimViolating {
-			result.StopReason = "property violation"
 		} else {
-			result.Audit = append(result.Audit, AuditRecord{Sequence: 2, Decision: "semantic-result-qualified"})
+			result.Runtime.Environment = request.Profile.Environment
+			if err := result.Runtime.BindEvidenceDigest(); err != nil {
+				result.PrimaryFailure = "evidence"
+				result.StopReason = err.Error()
+			} else if workerResponse.Result.Claim.Kind == umpire3runtime.ClaimViolating {
+				result.StopReason = "property violation"
+			} else {
+				result.Audit = append(result.Audit, AuditRecord{Sequence: 2, Decision: "semantic-result-qualified"})
+			}
 		}
 	}
 
 	cleanupCtx, cancelCleanup := context.WithTimeout(context.WithoutCancel(ctx), request.Approval.CleanupTimeout)
 	cleanupResponse, cleanupErr := runWorker(cleanupCtx, request, OperationCleanup, result.Recovery,
-		request.Approval.CleanupTimeout, request.Approval.MaxOutputBytes)
+		request.Approval.CleanupTimeout, request.Approval.MaxOutputBytes, process.Limits{
+			CPUSeconds: request.Approval.MaxCPUSeconds, MemoryBytes: request.Approval.MaxMemoryBytes,
+		})
 	cancelCleanup()
 	if cleanupErr != nil || !cleanupResponse.CleanupComplete {
 		if cleanupErr != nil {
@@ -206,6 +298,7 @@ func (c Controller) Run(ctx context.Context, request Request) (result Result, re
 		result.Audit = append(result.Audit, AuditRecord{Sequence: 3, Decision: "cleanup-pending", Reason: result.CleanupFailure})
 	} else {
 		result.Recovery.CleanupPending = false
+		result.Runtime.Cleanup = umpire3runtime.CleanupResult{Complete: true}
 		if err := c.Store.Delete(context.WithoutCancel(ctx), request.Approval.Identifier); err != nil {
 			result.CleanupFailure = "recovery-store"
 			result.StopReason = "cleanup record deletion failed"
@@ -221,14 +314,32 @@ func (c Controller) ResumeCleanup(ctx context.Context, definition profile.Profil
 	if c.Store == nil {
 		return Result{}, errors.New("recovery store is required")
 	}
+	if err := verifyApproval(approval, c.ApprovalAuthority); err != nil {
+		return Result{}, fmt.Errorf("%w: %v", ErrUnsafeRequest, err)
+	}
 	recovery, err := c.Store.Load(ctx, approval.Identifier)
 	if err != nil {
 		return Result{}, err
 	}
+	profileDigest, err := definition.Digest()
+	if err != nil {
+		return Result{}, err
+	}
+	if recovery.FormatVersion != FormatVersion || recovery.ApprovalID != approval.Identifier ||
+		recovery.ApprovalDigest != approval.ApprovalDigest ||
+		recovery.ExperimentDigest != approval.ExperimentDigest || recovery.Namespace != approval.Namespace ||
+		recovery.Tenant != approval.Tenant || !recovery.CleanupPending ||
+		recovery.Resources["namespace"] != approval.Namespace || recovery.Resources["tenant"] != approval.Tenant ||
+		definition.Kind != profile.KindCanary || definition.Namespace != approval.Namespace ||
+		profileDigest != approval.ProfileDigest {
+		return Result{}, fmt.Errorf("%w: recovery record does not match the signed approval", ErrUnsafeRequest)
+	}
 	request := Request{Profile: definition, Approval: approval, WorkerEnvironment: environment}
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), approval.CleanupTimeout)
 	response, cleanupErr := runWorker(cleanupCtx, request, OperationCleanup, recovery,
-		approval.CleanupTimeout, approval.MaxOutputBytes)
+		approval.CleanupTimeout, approval.MaxOutputBytes, process.Limits{
+			CPUSeconds: approval.MaxCPUSeconds, MemoryBytes: approval.MaxMemoryBytes,
+		})
 	cancel()
 	result := Result{
 		FormatVersion: FormatVersion, ApprovalDigest: approval.ApprovalDigest, Recovery: recovery,
@@ -251,7 +362,7 @@ func (c Controller) ResumeCleanup(ctx context.Context, definition profile.Profil
 	return result, nil
 }
 
-func preflight(request Request, store Store) (string, error) {
+func preflight(request Request, store Store, authority ApprovalAuthority) (string, error) {
 	if store == nil {
 		return "", fmt.Errorf("%w: recovery store is required", ErrUnsafeRequest)
 	}
@@ -261,6 +372,12 @@ func preflight(request Request, store Store) (string, error) {
 	if request.Profile.Kind != profile.KindCanary || !request.Profile.Environment.HardExecutionBudget ||
 		len(request.Profile.WorkerCommand()) == 0 {
 		return "", fmt.Errorf("%w: production canary requires a hard-budget canary profile", ErrUnsafeRequest)
+	}
+	if err := validateWorkerEnvironment(request.WorkerEnvironment); err != nil {
+		return "", fmt.Errorf("%w: %v", ErrUnsafeRequest, err)
+	}
+	if err := verifyApproval(request.Approval, authority); err != nil {
+		return "", fmt.Errorf("%w: %v", ErrUnsafeRequest, err)
 	}
 	profileDigest, err := request.Profile.Digest()
 	if err != nil {
@@ -285,11 +402,19 @@ func preflight(request Request, store Store) (string, error) {
 	}
 	if approval.MaxActions <= 0 || approval.MaxFaults < 0 || approval.MaxConcurrent <= 0 ||
 		approval.MaxRatePerSecond <= 0 || approval.MaxDuration <= 0 || approval.CleanupTimeout <= 0 ||
-		approval.MaxEvidenceBytes <= 0 || approval.MaxOutputBytes <= 0 {
-		return "", fmt.Errorf("%w: complete count, rate, duration, evidence, output, and cleanup budgets are required", ErrUnsafeRequest)
+		approval.MaxEvidenceBytes <= 0 || approval.MaxOutputBytes <= 0 ||
+		approval.MaxCPUSeconds <= 0 || approval.MaxMemoryBytes <= 0 {
+		return "", fmt.Errorf("%w: complete count, rate, duration, evidence, output, cleanup, and process resource budgets are required", ErrUnsafeRequest)
 	}
 	if len(request.Experiment.Actions) > approval.MaxActions || len(request.Experiment.Faults) > approval.MaxFaults {
 		return "", fmt.Errorf("%w: experiment exceeds approved action or fault count", ErrUnsafeRequest)
+	}
+	if len(request.Experiment.Actions) > 1 {
+		interval := time.Second / time.Duration(approval.MaxRatePerSecond)
+		minimumDuration := time.Duration(len(request.Experiment.Actions)-1) * interval
+		if interval > 0 && minimumDuration >= approval.MaxDuration {
+			return "", fmt.Errorf("%w: action rate cannot fit inside the execution duration budget", ErrUnsafeRequest)
+		}
 	}
 	if approval.Mode == ModeShadow && (approval.AllowWrites || approval.AllowFaults) {
 		return "", fmt.Errorf("%w: shadow mode cannot authorize writes or faults", ErrUnsafeRequest)
@@ -319,6 +444,21 @@ func preflight(request Request, store Store) (string, error) {
 	return experimentDigest, nil
 }
 
+func validateWorkerEnvironment(environment []string) error {
+	seen := make(map[string]struct{}, len(environment))
+	for _, binding := range environment {
+		name, value, found := strings.Cut(binding, "=")
+		if !found || name != "UMPIRE3_TEMPORAL_API_KEY" || value == "" {
+			return errors.New("worker environment contains an unapproved or empty variable")
+		}
+		if _, duplicate := seen[name]; duplicate {
+			return errors.New("worker environment contains a duplicate variable")
+		}
+		seen[name] = struct{}{}
+	}
+	return nil
+}
+
 func runWorker(
 	ctx context.Context,
 	request Request,
@@ -326,6 +466,7 @@ func runWorker(
 	recovery RecoveryRecord,
 	timeout time.Duration,
 	maxOutputBytes int64,
+	limits process.Limits,
 ) (WorkerResponse, error) {
 	encoded, err := json.Marshal(WorkerRequest{
 		FormatVersion: FormatVersion, Operation: operation, Experiment: request.Experiment, Profile: request.Profile,
@@ -337,6 +478,7 @@ func runWorker(
 	worker, err := process.Run(ctx, process.Request{
 		Command: request.Profile.WorkerCommand(), Environment: request.WorkerEnvironment,
 		Input: encoded, Timeout: timeout, MaxOutputBytes: maxOutputBytes,
+		Limits: limits,
 	})
 	if err != nil {
 		return WorkerResponse{}, err
@@ -394,12 +536,66 @@ func validateWorkerResult(request Request, digest string, result umpire3runtime.
 }
 
 func approvalDigest(approval Approval) (string, error) {
+	approval.ApprovalDigest = ""
+	approval.Signature = ""
 	encoded, err := json.Marshal(approval)
 	if err != nil {
 		return "", fmt.Errorf("encode approval: %w", err)
 	}
 	sum := sha256.Sum256(encoded)
 	return "sha256:" + hex.EncodeToString(sum[:]), nil
+}
+
+func (a ApprovalAuthority) Validate() error {
+	if a.Identity == "" || len(a.PublicKey) != ed25519.PublicKeySize {
+		return errors.New("complete Ed25519 canary approval authority is required")
+	}
+	return nil
+}
+
+func verifyApproval(approval Approval, authority ApprovalAuthority) error {
+	if err := authority.Validate(); err != nil {
+		return err
+	}
+	if approval.ApproverIdentity != authority.Identity {
+		return errors.New("canary approval signer is not trusted")
+	}
+	sealed, err := Seal(approval)
+	if err != nil {
+		return err
+	}
+	if sealed.ApprovalDigest != approval.ApprovalDigest {
+		return errors.New("canary approval digest is invalid")
+	}
+	signature, err := base64.RawStdEncoding.DecodeString(approval.Signature)
+	if err != nil || len(signature) != ed25519.SignatureSize {
+		return errors.New("canary approval signature is invalid")
+	}
+	payload, err := approvalSigningPayload(approval)
+	if err != nil {
+		return err
+	}
+	if !ed25519.Verify(authority.PublicKey, payload, signature) {
+		return errors.New("canary approval signature is invalid")
+	}
+	return nil
+}
+
+func approvalSigningPayload(approval Approval) ([]byte, error) {
+	approval.Signature = ""
+	encoded, err := json.Marshal(approval)
+	if err != nil {
+		return nil, fmt.Errorf("encode canary approval signature payload: %w", err)
+	}
+	return encoded, nil
+}
+
+func validDigest(value string) bool {
+	if !strings.HasPrefix(value, "sha256:") || len(value) != len("sha256:")+sha256.Size*2 {
+		return false
+	}
+	_, err := hex.DecodeString(strings.TrimPrefix(value, "sha256:"))
+	return err == nil
 }
 
 func decodeStrict(data []byte, target any) error {
@@ -490,25 +686,7 @@ func (s *FileStore) Save(ctx context.Context, record RecoveryRecord) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := os.MkdirAll(s.root, 0o700); err != nil {
-		return err
-	}
-	temporary, err := os.CreateTemp(s.root, ".recovery-*")
-	if err != nil {
-		return err
-	}
-	temporaryPath := temporary.Name()
-	defer func() { _ = os.Remove(temporaryPath) }()
-	if err := temporary.Chmod(0o600); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if _, err := temporary.Write(encoded); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if err := temporary.Close(); err != nil {
-		return err
-	}
-	return os.Rename(temporaryPath, path)
+	return artifact.Publish(path, encoded)
 }
 
 func (s *FileStore) Load(ctx context.Context, identifier string) (RecoveryRecord, error) {
@@ -542,10 +720,7 @@ func (s *FileStore) Delete(ctx context.Context, identifier string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
-	}
-	return nil
+	return artifact.Remove(path)
 }
 
 func (s *FileStore) path(identifier string) (string, error) {

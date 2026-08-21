@@ -9,7 +9,7 @@ import (
 func TestDefaultMonitorCatalogEvaluatesPropertiesGenerically(t *testing.T) {
 	catalog, err := DefaultMonitorCatalog()
 	require.NoError(t, err)
-	require.Len(t, catalog.Programs, 15)
+	require.Len(t, catalog.Programs, 16)
 
 	program, ok := catalog.Program(PropertyIDNexusCancellationWonExcludesSuccess)
 	require.True(t, ok)
@@ -57,6 +57,21 @@ func TestMonitorCatalogRejectsProductSpecificUnknownObservation(t *testing.T) {
 		Expected:    boolPointer(true),
 	}
 	require.ErrorContains(t, catalog.Validate(), "unknown observation")
+}
+
+func TestDefaultMonitorCatalogEvaluatesNexusProgress(t *testing.T) {
+	catalog, err := DefaultMonitorCatalog()
+	require.NoError(t, err)
+	program, ok := catalog.Program(PropertyID("nexus-operation.progress"))
+	require.True(t, ok)
+
+	evaluation, err := program.Evaluate([]ObservedFact{{
+		Observation: ObservationID("nexus-operation-progressed"),
+		Value:       false,
+	}})
+	require.NoError(t, err)
+	require.True(t, evaluation.Complete)
+	require.False(t, evaluation.Satisfied)
 }
 
 func boolPointer(value bool) *bool {

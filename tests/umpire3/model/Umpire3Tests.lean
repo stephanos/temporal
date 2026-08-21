@@ -8,11 +8,13 @@ import Umpire3Tests.TemporalSystem
 import Umpire3Tests.TemporalTaskAck
 import Umpire3Tests.TemporalAPI
 import Umpire3Tests.TemporalNexusClosure
+import Umpire3Tests.TemporalNexusProgress
 import Umpire3Tests.TemporalNexusLifecycle
 import Umpire3Tests.TemporalNexusEvidence
 import Umpire3Tests.TemporalNexusFencing
 import Umpire3Tests.FiniteExplorer
 import Umpire3Tests.FirstOrderView
+import Umpire3Tests.AttemptView
 import Umpire3Tests.Registration
 import Umpire3Tests.TraceReplay
 import Umpire3Tests.TraceReplayRunner

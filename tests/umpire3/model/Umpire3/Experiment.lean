@@ -12,6 +12,7 @@ structure SemanticResource where
 structure SemanticAction where
   identifier : String
   kind : String
+  allowedOutcomes : List String := ["applied"]
   arguments : List SemanticNamedValue := []
   bindings : List SemanticBinding := []
   requiredCapabilities : List String
@@ -88,6 +89,10 @@ def SemanticExperiment.WellFormed (experiment : SemanticExperiment) : Prop :=
     experiment.provenanceKind ≠ "" ∧
     experiment.proofManifest ≠ "" ∧
     ∀ action ∈ experiment.actions,
+      action.allowedOutcomes ≠ [] ∧
+      (∀ outcome ∈ action.allowedOutcomes,
+        outcome = "applied" ∨ outcome = "suppressed" ∨ outcome = "rejected" ∨
+          outcome = "retried" ∨ outcome = "fault-intercepted") ∧
       ((action.responseMode = "synchronous" ∨ action.responseMode = "asynchronous" ∨
           action.responseMode = "deferred" ∨ action.responseMode = "failure") ∧
           action.maxBlockNanos = 0 ∨
@@ -113,6 +118,7 @@ private def SemanticAction.toJson (action : SemanticAction) : Lean.Json :=
   let fields : List (String × Lean.Json) := [
     ("identifier", action.identifier),
     ("kind", action.kind),
+    ("allowedOutcomes", stringsJson action.allowedOutcomes),
     ("arguments", namedValuesJson action.arguments),
     ("bindings", bindingsJson action.bindings),
     ("requiredCapabilities", stringsJson action.requiredCapabilities),

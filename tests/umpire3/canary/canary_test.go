@@ -2,10 +2,13 @@ package canary
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"encoding/json"
 	"io"
 	"os"
 	"runtime"
+	"slices"
 	"testing"
 	"time"
 
@@ -21,9 +24,49 @@ func TestCanaryRejectsUnapprovedDigestBeforeWorkerExecution(t *testing.T) {
 
 	request := canaryRequest(t, "success")
 	request.Approval.ExperimentDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	request.Approval, _ = Seal(request.Approval)
-	_, err := (Controller{Store: NewMemoryStore()}).Run(context.Background(), request)
+	request.Approval, _ = Authorize(request.Approval, testApprovalPrivateKey())
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 	require.ErrorIs(t, err, ErrUnsafeRequest)
+}
+
+func TestCanaryRejectsApprovalFromUntrustedApprover(t *testing.T) {
+	request := canaryRequest(t, "success")
+	request.Approval.ApproverIdentity = "untrusted-approver"
+	request.Approval, _ = Authorize(request.Approval, testApprovalPrivateKey())
+
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.ErrorIs(t, err, ErrUnsafeRequest)
+}
+
+func TestCanaryRejectsUnsignedOrWrongKeyApproval(t *testing.T) {
+	request := canaryRequest(t, "success")
+	request.Approval, _ = Seal(request.Approval)
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.ErrorIs(t, err, ErrUnsafeRequest)
+
+	wrongSeed := sha256.Sum256([]byte("umpire3 untrusted canary approval key"))
+	request.Approval, _ = Authorize(request.Approval, ed25519.NewKeyFromSeed(wrongSeed[:]))
+	_, err = testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.ErrorIs(t, err, ErrUnsafeRequest)
+}
+
+func TestCanaryRejectsInfeasibleRateBudgetBeforeWorkerExecution(t *testing.T) {
+	request := canaryRequest(t, "success")
+	request.Approval.MaxRatePerSecond = 1
+	request.Approval.MaxDuration = 100 * time.Millisecond
+	request.Approval, _ = Authorize(request.Approval, testApprovalPrivateKey())
+
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.ErrorIs(t, err, ErrUnsafeRequest)
+}
+
+func TestCanaryRejectsMissingProcessResourceBudget(t *testing.T) {
+	request := canaryRequest(t, "success")
+	request.Approval.MaxMemoryBytes = 0
+	request.Approval, _ = Authorize(request.Approval, testApprovalPrivateKey())
+
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.ErrorContains(t, err, "process resource")
 }
 
 func TestCanaryTerminatesBlockingExecutionAndStillCleans(t *testing.T) {
@@ -33,7 +76,7 @@ func TestCanaryTerminatesBlockingExecutionAndStillCleans(t *testing.T) {
 		t.Run(phase, func(t *testing.T) {
 			request := canaryRequest(t, "block-"+phase)
 			started := time.Now()
-			result, err := (Controller{Store: NewMemoryStore()}).Run(context.Background(), request)
+			result, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 			require.NoError(t, err)
 			require.Less(t, time.Since(started), 2*time.Second)
 			require.Equal(t, "deadline", result.PrimaryFailure)
@@ -48,7 +91,7 @@ func TestCanaryTerminatesBlockingCleanupAndRetainsRecovery(t *testing.T) {
 
 	store := NewMemoryStore()
 	request := canaryRequest(t, "block-cleanup")
-	result, err := (Controller{Store: store}).Run(context.Background(), request)
+	result, err := testController(t, store).Run(context.Background(), request)
 	require.NoError(t, err)
 	require.Equal(t, "deadline", result.CleanupFailure)
 	require.True(t, result.Recovery.CleanupPending)
@@ -67,10 +110,14 @@ func TestCanaryResumesCleanupFromPersistedRecovery(t *testing.T) {
 		ApprovalDigest:   request.Approval.ApprovalDigest,
 		ExperimentDigest: request.Approval.ExperimentDigest,
 		Namespace:        request.Approval.Namespace, Tenant: request.Approval.Tenant,
-		Resources: map[string]string{"namespace": request.Approval.Namespace}, CleanupPending: true,
+		Resources: map[string]string{
+			"namespace": request.Approval.Namespace,
+			"tenant":    request.Approval.Tenant,
+		},
+		CleanupPending: true,
 	}
 	require.NoError(t, store.Save(context.Background(), recovery))
-	result, err := (Controller{Store: store}).ResumeCleanup(context.Background(),
+	result, err := testController(t, store).ResumeCleanup(context.Background(),
 		request.Profile, request.Approval, request.WorkerEnvironment)
 	require.NoError(t, err)
 	require.True(t, result.Complete)
@@ -78,22 +125,56 @@ func TestCanaryResumesCleanupFromPersistedRecovery(t *testing.T) {
 	require.ErrorIs(t, err, os.ErrNotExist)
 }
 
+func TestCanaryResumeCleanupRejectsRecoveryApprovalDrift(t *testing.T) {
+	request := canaryRequest(t, "success")
+	store := NewMemoryStore()
+	recovery := RecoveryRecord{
+		FormatVersion: FormatVersion, ApprovalID: request.Approval.Identifier,
+		ApprovalDigest:   "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		ExperimentDigest: request.Approval.ExperimentDigest,
+		Namespace:        request.Approval.Namespace, Tenant: request.Approval.Tenant,
+		Resources: map[string]string{
+			"namespace": request.Approval.Namespace,
+			"tenant":    request.Approval.Tenant,
+		},
+		CleanupPending: true,
+	}
+	require.NoError(t, store.Save(context.Background(), recovery))
+
+	_, err := testController(t, store).ResumeCleanup(
+		context.Background(), request.Profile, request.Approval, request.WorkerEnvironment,
+	)
+	require.ErrorIs(t, err, ErrUnsafeRequest)
+}
+
 func TestCanaryAcceptsQualifiedEvidenceWithSameSemanticDigest(t *testing.T) {
 	t.Parallel()
 
 	request := canaryRequest(t, "success")
-	result, err := (Controller{Store: NewMemoryStore()}).Run(context.Background(), request)
+	result, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 	require.NoError(t, err)
 	require.True(t, result.Complete)
 	require.Equal(t, request.Approval.ExperimentDigest, result.Runtime.ExperimentDigest)
 	require.Equal(t, umpire3runtime.ClaimConforming, result.Runtime.Claim.Kind)
+	require.Equal(t, request.Profile.Environment, result.Runtime.Environment)
+	require.NoError(t, result.ValidateQualification())
+	require.NoError(t, result.Runtime.ValidateEvidenceDigest())
+}
+
+func TestCanaryQualificationRequiresRecoverableResourceIdentity(t *testing.T) {
+	request := canaryRequest(t, "success")
+	result, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.NoError(t, err)
+	result.Recovery.Resources = nil
+
+	require.ErrorContains(t, result.ValidateQualification(), "resources")
 }
 
 func TestCanaryStopsOnEvidenceLoss(t *testing.T) {
 	t.Parallel()
 
 	request := canaryRequest(t, "evidence-loss")
-	result, err := (Controller{Store: NewMemoryStore()}).Run(context.Background(), request)
+	result, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 	require.NoError(t, err)
 	require.False(t, result.Complete)
 	require.Equal(t, "evidence loss or omission", result.StopReason)
@@ -104,17 +185,26 @@ func TestCanaryRejectsActionOutsideImmutableAllowlist(t *testing.T) {
 
 	request := canaryRequest(t, "success")
 	request.Approval.AllowedActions = request.Approval.AllowedActions[:1]
-	request.Approval, _ = Seal(request.Approval)
-	_, err := (Controller{Store: NewMemoryStore()}).Run(context.Background(), request)
+	request.Approval, _ = Authorize(request.Approval, testApprovalPrivateKey())
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 	require.ErrorIs(t, err, ErrUnsafeRequest)
 }
 
-func TestCanaryArtifactsDoNotContainWorkerSecrets(t *testing.T) {
+func TestCanaryRejectsUnapprovedWorkerEnvironment(t *testing.T) {
 	t.Parallel()
 
 	request := canaryRequest(t, "success")
-	request.WorkerEnvironment = append(request.WorkerEnvironment, "UMPIRE3_CANARY_SECRET=top-secret")
-	result, err := (Controller{Store: NewMemoryStore()}).Run(context.Background(), request)
+	request.WorkerEnvironment = []string{"UMPIRE3_CANARY_SECRET=top-secret"}
+	_, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
+	require.ErrorIs(t, err, ErrUnsafeRequest)
+}
+
+func TestCanaryArtifactsDoNotContainApprovedWorkerCredential(t *testing.T) {
+	t.Parallel()
+
+	request := canaryRequest(t, "success")
+	request.WorkerEnvironment = []string{"UMPIRE3_TEMPORAL_API_KEY=top-secret"}
+	result, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 	require.NoError(t, err)
 	encoded, err := json.Marshal(result)
 	require.NoError(t, err)
@@ -136,10 +226,11 @@ func TestFileStorePersistsRecoveryWithProtectedFile(t *testing.T) {
 }
 
 func TestCanaryWorker(t *testing.T) {
-	mode := os.Getenv("UMPIRE3_CANARY_MODE")
-	if mode == "" {
+	separator := slices.Index(os.Args, "--")
+	if separator < 0 || len(os.Args) != separator+2 {
 		return
 	}
+	mode := os.Args[separator+1]
 	input, err := io.ReadAll(os.Stdin)
 	require.NoError(t, err)
 	var request WorkerRequest
@@ -202,7 +293,7 @@ func canaryRequest(t *testing.T, mode string) Request {
 	experiment, err := protocol.DecodeExperiment(file, protocol.DefaultDecodeLimit)
 	require.NoError(t, err)
 	config := profile.Canary("https://temporal.example", "token", "build", "canary-namespace",
-		"canary-task-queue", []string{os.Args[0], "-test.run=TestCanaryWorker"})
+		"canary-task-queue", []string{os.Args[0], "-test.run=TestCanaryWorker", "--", mode})
 	definition, err := profile.Define(config)
 	require.NoError(t, err)
 	profileDigest, err := definition.Digest()
@@ -213,18 +304,31 @@ func canaryRequest(t *testing.T, mode string) Request {
 	for index, action := range experiment.Actions {
 		allowedActions[index] = action.Kind
 	}
-	approval, err := Seal(Approval{
+	approval, err := Authorize(Approval{
 		Identifier: "approval-" + mode, ApproverIdentity: "release-controller",
 		ExperimentDigest: experimentDigest, CatalogDigest: experiment.Model.CatalogHash,
 		ProfileDigest: profileDigest, Tenant: "canary-tenant", Namespace: definition.Namespace,
 		Mode: ModeSafeWrite, AllowedActions: allowedActions, AllowWrites: true,
 		MaxActions: len(experiment.Actions), MaxFaults: len(experiment.Faults),
-		MaxConcurrent: 1, MaxRatePerSecond: 1, MaxDuration: 100 * time.Millisecond,
+		MaxConcurrent: 1, MaxRatePerSecond: 100, MaxDuration: 100 * time.Millisecond,
 		CleanupTimeout: 100 * time.Millisecond, MaxEvidenceBytes: 1 << 20, MaxOutputBytes: 2 << 20,
-	})
+		MaxCPUSeconds: 1, MaxMemoryBytes: 512 << 20,
+	}, testApprovalPrivateKey())
 	require.NoError(t, err)
 	return Request{
 		Experiment: experiment, Profile: definition, Approval: approval,
-		WorkerEnvironment: []string{"UMPIRE3_CANARY_MODE=" + mode},
 	}
+}
+
+func testController(t *testing.T, store Store) Controller {
+	t.Helper()
+	privateKey := testApprovalPrivateKey()
+	authority, err := NewApprovalAuthority("release-controller", privateKey.Public().(ed25519.PublicKey))
+	require.NoError(t, err)
+	return Controller{Store: store, ApprovalAuthority: authority}
+}
+
+func testApprovalPrivateKey() ed25519.PrivateKey {
+	seed := sha256.Sum256([]byte("umpire3 canary approval test authority"))
+	return ed25519.NewKeyFromSeed(seed[:])
 }

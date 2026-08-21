@@ -3,8 +3,7 @@ package replay
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tests/umpire3/execution"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -26,14 +26,28 @@ func TestEncodeRedactsConcreteRuntimeIdentities(t *testing.T) {
 			Identifier: "a1",
 			Kind:       "schedule-operation",
 			Evidence: execution.ActionEvidence{
-				Source: "cluster", Reference: "sensitive-reference",
+				Source: "cluster", Outcome: protocol.ActionOutcomeApplied,
+				SourceIdentity: "sensitive-action-source", Reference: "sensitive-reference",
 				EntityIdentity: "sensitive-entity", Lineage: []string{"sensitive-namespace", "sensitive-entity"},
 			},
 		}},
 		Observations: []execution.Observation{{
 			CheckpointID: "checkpoint", Kind: "observation", Source: "history",
-			Reference: "sensitive-observation", EntityIdentity: "sensitive-entity",
-			Lineage: []string{"sensitive-namespace", "sensitive-entity"},
+			SourceIdentity: "sensitive-observation-source",
+			Reference:      "sensitive-observation", EntityIdentity: "sensitive-entity",
+			Lineage: []string{"sensitive-namespace", "sensitive-entity"}, SupportingFacts: []string{"raw-fact"},
+		}},
+		Facts: []observation.Fact{{
+			Identifier: "raw-fact",
+			Source: observation.Source{
+				Identity: "raw-history", ClockDomain: "raw-sequence", Sequence: 1,
+				Reference: "sensitive-raw-reference", CausalReferences: []string{"sensitive-raw-cause"},
+				EntityIdentity: "sensitive-raw-entity", Lineage: []string{"sensitive-raw-lineage"},
+			},
+			History: &observation.HistoryEvent{
+				EventType: observation.NexusCancellationAccepted, EventID: 1,
+				OperationID: "sensitive-raw-operation",
+			},
 		}},
 		Faults: []execution.FaultResult{{
 			Identifier: "fault", Kind: "drop", SourceIdentity: "sensitive-fault-source",
@@ -59,12 +73,21 @@ func TestEncodeRedactsConcreteRuntimeIdentities(t *testing.T) {
 	require.NotContains(t, string(encoded), "sensitive-fault-source")
 	require.NotContains(t, string(encoded), "sensitive-fault-reference")
 	require.NotContains(t, string(encoded), "sensitive-fault-entity")
+	require.NotContains(t, string(encoded), "sensitive-action-source")
+	require.NotContains(t, string(encoded), "sensitive-observation-source")
+	require.NotContains(t, string(encoded), "sensitive-raw-reference")
+	require.NotContains(t, string(encoded), "sensitive-raw-cause")
+	require.NotContains(t, string(encoded), "sensitive-raw-entity")
+	require.NotContains(t, string(encoded), "sensitive-raw-lineage")
+	require.NotContains(t, string(encoded), "sensitive-raw-operation")
 	require.NotContains(t, string(encoded), "sensitive-footprint-namespace")
 	require.NotContains(t, string(encoded), "sensitive-footprint-participant")
 	require.NotContains(t, string(encoded), "sensitive-footprint-reference")
 	require.Contains(t, string(encoded), "sha256:")
 	record, err := DecodeBundle(encoded, 1<<20)
 	require.NoError(t, err)
+	require.NoError(t, record.Result.ValidateEvidenceDigest())
+	require.Equal(t, record.Result.Facts[0].Identifier, record.Result.Observations[0].SupportingFacts[0])
 	require.Equal(t, BundleFormatVersion, record.FormatVersion)
 	require.Equal(t, experiment.Scope.Seed, record.Replay.Seed)
 	require.Equal(t, "umpire3 replay -bundle <bundle.json>", record.Replay.Command)
@@ -93,7 +116,45 @@ func TestEncodeEnforcesArtifactLimit(t *testing.T) {
 	require.ErrorContains(t, err, "exceeds")
 }
 
-func TestReplayBundleV1BytesRemainStable(t *testing.T) {
+func TestViolatingBundleRetainsDigestBoundSemanticTrace(t *testing.T) {
+	experiment := artifactExperiment(t)
+	view, found, err := protocol.DefaultAttemptExecutionView(experiment)
+	require.NoError(t, err)
+	require.True(t, found)
+	attempts := make([]protocol.ObservedAttempt, len(experiment.Actions))
+	for index, action := range experiment.Actions {
+		attempts[index] = protocol.ObservedAttempt{
+			Action: protocol.ActionKind(action.Kind), Outcome: protocol.ActionOutcomeApplied,
+		}
+	}
+	trace, err := protocol.NewLiveSemanticTrace(experiment, view, attempts)
+	require.NoError(t, err)
+	digest, err := experiment.Digest()
+	require.NoError(t, err)
+	result := execution.Result{
+		FormatVersion: execution.ResultFormatVersion, ExperimentDigest: digest,
+		Trace: &trace, Claim: execution.Claim{
+			Kind: execution.ClaimViolating, Property: experiment.Property.Identifier,
+		},
+	}
+	result.DeriveAssurance()
+
+	encoded, err := EncodeBundle(experiment, result, experiment.Retention.MaxArtifactBytes)
+	require.NoError(t, err)
+	record, err := DecodeBundle(encoded, experiment.Retention.MaxArtifactBytes)
+	require.NoError(t, err)
+	require.NotNil(t, record.Result.Trace)
+	require.Equal(t, trace.Replay.Digest, record.Result.Trace.Replay.Digest)
+	require.NotEmpty(t, record.Result.EvidenceDigest)
+
+	record.Result.Trace.Steps[0].Outcome = protocol.ActionOutcomeSuppressed
+	tampered, err := json.Marshal(record)
+	require.NoError(t, err)
+	_, err = DecodeBundle(tampered, experiment.Retention.MaxArtifactBytes)
+	require.Error(t, err)
+}
+
+func TestReplayBundleV3EncodingIsDeterministic(t *testing.T) {
 	experiment := artifactExperiment(t)
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
@@ -104,11 +165,30 @@ func TestReplayBundleV1BytesRemainStable(t *testing.T) {
 	}
 	result.DeriveAssurance()
 
+	first, err := EncodeBundle(experiment, result, experiment.Retention.MaxArtifactBytes)
+	require.NoError(t, err)
+	second, err := EncodeBundle(experiment, result, experiment.Retention.MaxArtifactBytes)
+	require.NoError(t, err)
+	require.Equal(t, "umpire3/replay-bundle/v3", BundleFormatVersion)
+	require.Equal(t, first, second)
+	_, err = DecodeBundle(first, experiment.Retention.MaxArtifactBytes)
+	require.NoError(t, err)
+}
+
+func TestDecodeRejectsV2BundleWithoutSemanticTraceContract(t *testing.T) {
+	experiment := artifactExperiment(t)
+	digest, err := experiment.Digest()
+	require.NoError(t, err)
+	result := execution.Result{FormatVersion: execution.ResultFormatVersion, ExperimentDigest: digest}
+	result.DeriveAssurance()
 	encoded, err := EncodeBundle(experiment, result, experiment.Retention.MaxArtifactBytes)
 	require.NoError(t, err)
-	sum := sha256.Sum256(encoded)
-	require.Equal(t, "20a15821675d50e9abffdbcfb8379c025f2acdfe992c355fbd48f94945dfcc09",
-		hex.EncodeToString(sum[:]))
+	encoded = bytes.Replace(encoded,
+		[]byte(`"formatVersion":"umpire3/replay-bundle/v3"`),
+		[]byte(`"formatVersion":"umpire3/replay-bundle/v2"`), 1)
+
+	_, err = DecodeBundle(encoded, experiment.Retention.MaxArtifactBytes)
+	require.ErrorContains(t, err, "unsupported replay bundle format")
 }
 
 func TestFileCorpusDeduplicatesByExperimentDigest(t *testing.T) {

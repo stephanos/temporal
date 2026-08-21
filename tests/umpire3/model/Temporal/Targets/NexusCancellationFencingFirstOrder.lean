@@ -21,33 +21,33 @@ private def epochSort : FirstOrderSort where
   kind := .enumeration
   values := ["none", "epoch-0", "epoch-1"]
 
-private def field (identifier : String) : FirstOrderTerm := .field identifier
+def field (identifier : String) : FirstOrderTerm := .field identifier
 
-private def value (sort identifier : String) : FirstOrderTerm := .value sort identifier
+def value (sort identifier : String) : FirstOrderTerm := .value sort identifier
 
-private def equalFieldValue (fieldName sortName identifier : String) : FirstOrderFormula :=
+def equalFieldValue (fieldName sortName identifier : String) : FirstOrderFormula :=
   .equal (field fieldName) (value sortName identifier)
 
-private def equalFields (left right : String) : FirstOrderFormula :=
+def equalFields (left right : String) : FirstOrderFormula :=
   .equal (field left) (field right)
 
-private def all : List FirstOrderFormula → FirstOrderFormula
+def all : List FirstOrderFormula → FirstOrderFormula
   | [] => .truth
   | formula :: formulas => formulas.foldl FirstOrderFormula.all formula
 
-private def any : List FirstOrderFormula → FirstOrderFormula
+def any : List FirstOrderFormula → FirstOrderFormula
   | [] => .not .truth
   | formula :: formulas => formulas.foldl FirstOrderFormula.any formula
 
-private def setValue (fieldName sortName identifier : String) : FirstOrderUpdate where
+def setValue (fieldName sortName identifier : String) : FirstOrderUpdate where
   field := fieldName
   value := value sortName identifier
 
-private def copyValue (target source : String) : FirstOrderUpdate where
+def copyValue (target source : String) : FirstOrderUpdate where
   field := target
   value := field source
 
-private def commonActions : List FirstOrderAction := [
+def baseFirstOrderActions : List FirstOrderAction := [
   {
     identifier := "dispatch-task"
     guard := all [
@@ -91,12 +91,12 @@ private def commonActions : List FirstOrderAction := [
   },
 ]
 
-private def noStaleCompletionFormula : FirstOrderFormula := any [
+def noStaleCompletionFormula : FirstOrderFormula := any [
   .not (equalFieldValue "lifecycle" "lifecycle" "succeeded"),
   equalFields "completion-epoch" "owner-epoch",
 ]
 
-private def artifact (variant : String) (persistGuard : FirstOrderFormula) : FirstOrderArtifact where
+def firstOrderArtifact (variant : String) (persistGuard : FirstOrderFormula) : FirstOrderArtifact where
   target := "nexus-cancellation"
   property := "nexus.cancellation.won-excludes-success"
   world := "smoke"
@@ -124,14 +124,14 @@ private def artifact (variant : String) (persistGuard : FirstOrderFormula) : Fir
     equalFieldValue "worker-epoch" "epoch" "none",
     equalFieldValue "completion-epoch" "epoch" "none",
   ]
-  actions := commonActions ++ [{
+  actions := baseFirstOrderActions ++ [{
     identifier := "persist-success"
     guard := persistGuard
     updates := [setValue "lifecycle" "lifecycle" "succeeded"]
   }]
   invariant := noStaleCompletionFormula
 
-def soundFirstOrderArtifact : FirstOrderArtifact := artifact "sound" (all [
+def soundFirstOrderArtifact : FirstOrderArtifact := firstOrderArtifact "sound" (all [
   equalFieldValue "task" "task-stage" "returned",
   equalFields "completion-epoch" "owner-epoch",
   any [
@@ -140,7 +140,7 @@ def soundFirstOrderArtifact : FirstOrderArtifact := artifact "sound" (all [
   ],
 ])
 
-def mutatedFirstOrderArtifact : FirstOrderArtifact := artifact
+def mutatedFirstOrderArtifact : FirstOrderArtifact := firstOrderArtifact
   "stale-completion-guard-removed" (all [
     equalFieldValue "task" "task-stage" "returned",
     .not (equalFieldValue "completion-epoch" "epoch" "none"),
@@ -249,7 +249,7 @@ private theorem soundStepPreserved (state : SystemState) (action : SystemAction)
   all_goals
     subst nextState
     simp only [admissible, Bool.and_eq_true, boundedOptionalEpoch] at stateAdmissible
-    simp_all [soundFirstOrderArtifact, artifact, commonActions, actionName,
+    simp_all [soundFirstOrderArtifact, firstOrderArtifact, baseFirstOrderActions, actionName,
       all, any, equalFieldValue, equalFields, field, value, setValue, copyValue,
       FirstOrderArtifact.next, FirstOrderAction.apply, FirstOrderFormula.eval,
       FirstOrderTerm.eval, FirstOrderState.read, FirstOrderState.write,
@@ -273,7 +273,7 @@ private theorem mutatedStepPreserved (state : SystemState) (action : SystemActio
   all_goals
     subst nextState
     simp only [admissible, Bool.and_eq_true, boundedOptionalEpoch] at stateAdmissible
-    simp_all [mutatedFirstOrderArtifact, artifact, commonActions, actionName,
+    simp_all [mutatedFirstOrderArtifact, firstOrderArtifact, baseFirstOrderActions, actionName,
       all, any, equalFieldValue, field, value, setValue, copyValue,
       FirstOrderArtifact.next, FirstOrderAction.apply, FirstOrderFormula.eval,
       FirstOrderTerm.eval, FirstOrderState.read, FirstOrderState.write,
@@ -310,7 +310,7 @@ private theorem propertyPreserved (state : SystemState)
 private theorem actionComplete (identifier : String)
     (member : identifier ∈ soundFirstOrderArtifact.actionIdentifiers) :
     ∃ action, actionName action = identifier := by
-  simp [soundFirstOrderArtifact, artifact, commonActions,
+  simp [soundFirstOrderArtifact, firstOrderArtifact, baseFirstOrderActions,
     FirstOrderArtifact.actionIdentifiers] at member
   rcases member with rfl | rfl | rfl | rfl | rfl | rfl
   · exact ⟨.dispatchTask, by simp [actionName]⟩
@@ -363,7 +363,7 @@ def mutatedFirstOrderView : FirstOrderView mutatedBehavior .smoke noStaleComplet
   action_complete := by
     intro identifier member
     apply actionComplete identifier
-    simpa [mutatedFirstOrderArtifact, soundFirstOrderArtifact, artifact,
+    simpa [mutatedFirstOrderArtifact, soundFirstOrderArtifact, firstOrderArtifact,
       FirstOrderArtifact.actionIdentifiers] using member
   action_identifiers_unique := by decide
 

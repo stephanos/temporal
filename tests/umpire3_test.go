@@ -2,14 +2,14 @@ package tests
 
 import (
 	"context"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/parallelsuite"
 	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
-	"go.temporal.io/server/tests/umpire3/migration"
-	"go.temporal.io/server/tests/umpire3/protocol"
 	"go.temporal.io/server/tests/umpire3/scenario"
 	"go.temporal.io/server/tests/umpire3/umpire3test"
 )
@@ -26,84 +26,79 @@ func TestUmpire3TestSuite(t *testing.T) {
 }
 
 func TestUmpire3IndependentHistoryCorroboratesPublicHistory(t *testing.T) {
-	result := evaluateUmpire3Behavior(t, "PlanAndDriveWorkflowToCompletion", "", false)
-	require.Equal(t, umpire3execution.ClaimConforming, result.Claim.Kind)
+	result := evaluateUmpire3Regression(t, umpire3WorkflowProgressRegression("independent-history"), "", false)
+	require.Equal(t, umpire3execution.ClaimConforming, result.Claim.Kind, result.Claim.Reason)
 	require.Equal(t, umpire3execution.EvidenceProfileDualHistory, result.Environment.EvidenceProfile)
-	require.Contains(t, umpire3ObservationSources(result.Observations), "temporal-public-history")
-	require.Contains(t, umpire3ObservationSources(result.Observations), "temporal-history-service")
+	identities := umpire3ObservationSourceIdentities(result.Observations)
+	require.Len(t, identities, 2)
+	require.NotEqual(t, identities[0], identities[1])
+	require.True(t, slices.ContainsFunc(identities, func(identity string) bool {
+		return !strings.HasSuffix(identity, "/history-service")
+	}), identities)
+	require.True(t, slices.ContainsFunc(identities, func(identity string) bool {
+		return strings.HasSuffix(identity, "/history-service")
+	}), identities)
 }
 
 func TestUmpire3WorkflowTaskOwnershipFencingUsesStaleTaskToken(t *testing.T) {
-	runUmpire3Regression(t, scenario.NewScenario(
+	runUmpire3Regression(t, scenario.FoundationOwnershipFencingRegression(
 		"umpire3-workflow-task-ownership-fencing",
-		protocol.TargetIDFoundationOwnershipFencing,
-		[]scenario.Resource{{Identifier: "workflow-task", Kind: protocol.EntityKindWorkflowTask}},
+		[]scenario.Resource{scenario.WorkflowTask("workflow-task")},
 		scenario.OnePath(
-			scenario.Action("fence-owner", protocol.ActionKindFenceWorkflowOwner),
-			scenario.Require(protocol.PropertyIDWorkflowTaskOwnershipFencing),
+			scenario.FenceWorkflowOwner("fence-owner"),
+			scenario.RequireWorkflowTaskOwnershipFencing(),
 		),
 	))
 }
 
-func umpire3ObservationSources(observations []umpire3execution.Observation) []string {
+func umpire3ObservationSourceIdentities(observations []umpire3execution.Observation) []string {
 	sources := make([]string, len(observations))
 	for index, observation := range observations {
-		sources[index] = observation.Source
+		sources[index] = observation.SourceIdentity
 	}
 	return sources
 }
 
 func (s *Umpire3TestSuite) TestPlanAndDriveWorkflowToCompletion() {
-	runUmpire3Behavior(s.T(), "PlanAndDriveWorkflowToCompletion", "")
+	runUmpire3Regression(s.T(), umpire3WorkflowProgressRegression("PlanAndDriveWorkflowToCompletion"))
 }
 
 // TestPlanAndDriveKitchenSinkWorkflow is the same compile -> drive -> judge loop, but records the
 // participant-program migration of the kitchensink workflow as a distinct regression.
 func (s *Umpire3TestSuite) TestPlanAndDriveKitchenSinkWorkflow() {
-	runUmpire3Behavior(s.T(), "PlanAndDriveKitchenSinkWorkflow", "")
+	runUmpire3Regression(s.T(), umpire3WorkflowProgressRegression("PlanAndDriveKitchenSinkWorkflow"))
 }
 
 // TestPlanAndDriveNexusOperationCHASM retains the CHASM Nexus semantic outcome while Umpire3
 // qualifies it through its own catalog, compiler, environment, and evidence graph.
 func (s *Umpire3TestSuite) TestPlanAndDriveNexusOperationCHASM() {
-	runUmpire3Behavior(s.T(), "PlanAndDriveNexusOperationCHASM", "chasm")
+	runUmpire3Regression(s.T(), umpire3NexusClosureRegression("PlanAndDriveNexusOperationCHASM",
+		scenario.ScheduleOperation("schedule"),
+		scenario.WorkerReturnsSuccess("success"),
+		scenario.PersistSuccess("persist"),
+	), "chasm")
 }
 
 // TestPlanAndDriveKitchenSinkNexusOperation keeps the independently named kitchensink path in the
 // root functional suite while sharing only Umpire3's normal semantic execution seam.
 func (s *Umpire3TestSuite) TestPlanAndDriveKitchenSinkNexusOperation() {
-	runUmpire3Behavior(s.T(), "PlanAndDriveKitchenSinkNexusOperation", "chasm")
-}
-
-func runUmpire3Behavior(t *testing.T, behavior string, variant string) {
-	t.Helper()
-	scenario, err := migration.Scenario(behavior, variant)
-	require.NoError(t, err)
-	runUmpire3Regression(t, scenario, variant)
-}
-
-func evaluateUmpire3Behavior(t *testing.T, behavior string, variant string, negativeControl bool) umpire3execution.Result {
-	t.Helper()
-	scenario, err := migration.Scenario(behavior, variant)
-	require.NoError(t, err)
-	return evaluateUmpire3Regression(t, scenario, variant, negativeControl)
-}
-
-func evaluateUmpire3BehaviorIn(
-	t *testing.T,
-	behavior string,
-	variant string,
-	factory umpire3execution.Factory,
-) umpire3execution.Result {
-	t.Helper()
-	scenario, err := migration.Scenario(behavior, variant)
-	require.NoError(t, err)
-	return evaluateUmpire3RegressionIn(t, scenario, factory)
+	runUmpire3Regression(s.T(), umpire3NexusClosureRegression("PlanAndDriveKitchenSinkNexusOperation",
+		scenario.ScheduleOperation("schedule"),
+		scenario.WorkerReturnsSuccess("success"),
+		scenario.PersistSuccess("persist"),
+	), "chasm")
 }
 
 func runUmpire3Regression(t *testing.T, authored scenario.Scenario, variant ...string) {
 	t.Helper()
 	umpire3test.RequireRegression(t, authored, umpire3test.WithEnvironment(newUmpire3RootEnvironment(t, false, variant...)))
+}
+
+func requireUmpire3Violation(t *testing.T, authored scenario.Scenario, variant ...string) {
+	t.Helper()
+	umpire3test.RequireRegression(t, authored,
+		umpire3test.WithEnvironment(newUmpire3RootEnvironment(t, false, variant...)),
+		umpire3test.ExpectViolation())
 }
 
 func evaluateUmpire3Regression(
@@ -135,33 +130,60 @@ func evaluateUmpire3RegressionIn(
 	return result
 }
 
-func umpire3ProgressScenario(identifier string, target protocol.TargetID, kind protocol.EntityKind) scenario.Scenario {
-	return umpire3AssuranceScenario(identifier, target, protocol.PropertyIDEntityProgress,
-		kind, protocol.ActionKindProgressEntity)
+func umpire3WorkflowProgressRegression(identifier string) scenario.Scenario {
+	return scenario.FoundationDeliverySafetyRegression(identifier,
+		[]scenario.Resource{scenario.Workflow(identifier + "-workflow")},
+		scenario.OnePath(
+			scenario.ProgressEntity(identifier+"-progress"),
+			scenario.RequireEntityProgress(),
+		))
 }
 
-func umpire3AssuranceScenario(
+func umpire3NexusClosureRegression(identifier string, actions ...scenario.Term) scenario.Scenario {
+	actions = append(actions, scenario.RequireNexusOperationClosure())
+	return scenario.FeatureNexusRegression(identifier,
+		[]scenario.Resource{
+			scenario.NexusOperation(identifier + "-operation"),
+			scenario.Workflow(identifier + "-workflow"),
+		},
+		scenario.OnePath(actions...))
+}
+
+func umpire3NexusProgressRegression(identifier string, actions ...scenario.Term) scenario.Scenario {
+	actions = append(actions, scenario.RequireNexusOperationProgress())
+	return scenario.FeatureNexusProgressRegression(identifier,
+		[]scenario.Resource{
+			scenario.NexusOperation(identifier + "-operation"),
+			scenario.Workflow(identifier + "-workflow"),
+		},
+		scenario.OnePath(actions...))
+}
+
+func umpire3NexusRPCFault(
 	identifier string,
-	target protocol.TargetID,
-	property protocol.PropertyID,
-	resourceKind protocol.EntityKind,
-	action protocol.ActionKind,
-) scenario.Scenario {
-	return scenario.NewScenario(identifier, target,
-		[]scenario.Resource{{Identifier: identifier + "-resource", Kind: resourceKind}},
-		scenario.OnePath(scenario.Action(identifier+"-action", action), scenario.Require(property)))
+	build func(string, ...scenario.FaultOption) scenario.FaultIntent,
+	options ...scenario.FaultOption,
+) scenario.FaultIntent {
+	defaults := []scenario.FaultOption{
+		scenario.OnEndpoints("umpire3-nexus-endpoint"),
+		scenario.OnTaskQueues("umpire3-nexus-task-queue"),
+		scenario.OnServices("nexus"),
+		scenario.OnRoutes("/service/operation"),
+		scenario.OnAttempts(1),
+		scenario.AtOccurrence(1, 1),
+	}
+	return build(identifier, append(defaults, options...)...)
 }
 
-func umpire3NexusCancellationScenario(identifier string) scenario.Scenario {
-	return umpire3AssuranceScenario(identifier, protocol.TargetIDNexusCancellation,
-		protocol.PropertyIDNexusCancellationWonExcludesSuccess,
-		protocol.EntityKindNexusOperation, protocol.ActionKindPersistSuccess)
-}
+type umpire3ScenarioAction func(string, ...scenario.ActionOption) scenario.Term
 
-func umpire3UpdateScenario(identifier string) scenario.Scenario {
-	return umpire3AssuranceScenario(identifier, protocol.TargetIDWorkflowUpdateLifecycle,
-		protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory,
-		protocol.EntityKindWorkflowUpdate, protocol.ActionKindCompleteUpdate)
+func umpire3NexusActionRegression(identifier string, action umpire3ScenarioAction) scenario.Scenario {
+	return scenario.FeatureNexusRegression(identifier,
+		[]scenario.Resource{scenario.NexusOperation(identifier + "-operation")},
+		scenario.OnePath(
+			action(identifier+"-action"),
+			scenario.RequireNexusOperationClosure(),
+		))
 }
 
 func newUmpire3RootEnvironment(t *testing.T, negativeControl bool, variant ...string) umpire3execution.Factory {

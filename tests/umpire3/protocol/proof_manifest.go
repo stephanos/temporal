@@ -17,6 +17,12 @@ const ProofManifestFormatVersion = "umpire3/proof-manifest/v3"
 //go:embed generated/nexus-proof-manifest.json
 var defaultNexusProofManifestJSON []byte
 
+//go:embed generated/nexus-mutation-rejection-proof-manifest.json
+var defaultNexusMutationRejectionProofManifestJSON []byte
+
+//go:embed generated/nexus-exact-mutation-proof-manifest.json
+var defaultNexusExactMutationProofManifestJSON []byte
+
 //go:embed generated/update-proof-manifest.json
 var defaultUpdateProofManifestJSON []byte
 
@@ -103,7 +109,12 @@ func DecodeProofManifest(reader io.Reader, limit int64) (ProofManifest, error) {
 }
 
 func DefaultProofManifests() ([]ProofManifest, error) {
-	encodedManifests := [][]byte{defaultNexusProofManifestJSON, defaultUpdateProofManifestJSON}
+	encodedManifests := [][]byte{
+		defaultNexusProofManifestJSON,
+		defaultNexusMutationRejectionProofManifestJSON,
+		defaultNexusExactMutationProofManifestJSON,
+		defaultUpdateProofManifestJSON,
+	}
 	manifests := make([]ProofManifest, 0, len(encodedManifests))
 	identifiers := make(map[string]struct{}, len(encodedManifests))
 	for _, encoded := range encodedManifests {
@@ -125,7 +136,8 @@ func (m ProofManifest) Validate() error {
 		m.Statement == "" || m.LeanVersion == "" {
 		return errors.New("complete proof manifest identity is required")
 	}
-	if m.ResultClass != ResultClassInvariantProved && m.ResultClass != ResultClassTemporalProved &&
+	if m.ResultClass != ResultClassTraceWitness &&
+		m.ResultClass != ResultClassInvariantProved && m.ResultClass != ResultClassTemporalProved &&
 		m.ResultClass != ResultClassRefinementProved {
 		return fmt.Errorf("proof manifest has non-proof result class %q", m.ResultClass)
 	}

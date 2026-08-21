@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -20,6 +22,7 @@ type processAttempt struct {
 	memoryExceeded chan struct{}
 	stopMemory     chan struct{}
 	stopMemoryOnce sync.Once
+	peakMemory     atomic.Int64
 	waitErr        error
 	generation     int
 	startedAt      int64
@@ -33,7 +36,7 @@ func startProcessAttempt(request Request, generation int) (*processAttempt, erro
 		return nil, err
 	}
 	command := exec.Command(commandArguments[0], commandArguments[1:]...)
-	command.Env = append(os.Environ(), request.Environment...)
+	command.Env = append([]string{}, request.Environment...)
 	command.Stdin = bytes.NewReader(request.Input)
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	output := newLimitedBuffer(request.MaxOutputBytes)
@@ -50,7 +53,7 @@ func startProcessAttempt(request Request, generation int) (*processAttempt, erro
 		attempt.memoryExceeded = make(chan struct{}, 1)
 		attempt.stopMemory = make(chan struct{})
 		go watchProcessGroupMemory(command.Process.Pid, request.Limits.MemoryBytes,
-			attempt.memoryExceeded, attempt.stopMemory)
+			attempt.memoryExceeded, attempt.stopMemory, attempt.recordPeakMemory)
 	}
 	go attempt.wait()
 	return attempt, nil
@@ -58,6 +61,7 @@ func startProcessAttempt(request Request, generation int) (*processAttempt, erro
 
 func (a *processAttempt) wait() {
 	err := a.command.Wait()
+	a.recordPeakMemory(processStatePeakMemoryBytes(a.command.ProcessState))
 	a.stopMemoryWatch()
 	a.mu.Lock()
 	a.waitErr = err
@@ -98,6 +102,29 @@ func (a *processAttempt) setTermination(termination Termination) {
 	a.termination = termination
 }
 
+func (a *processAttempt) recordPeakMemory(value int64) {
+	for current := a.peakMemory.Load(); value > current; current = a.peakMemory.Load() {
+		if a.peakMemory.CompareAndSwap(current, value) {
+			return
+		}
+	}
+}
+
+func processStatePeakMemoryBytes(state *os.ProcessState) int64 {
+	if state == nil {
+		return 0
+	}
+	usage, ok := state.SysUsage().(*syscall.Rusage)
+	if !ok || usage.Maxrss <= 0 {
+		return 0
+	}
+	peak := usage.Maxrss
+	if runtime.GOOS != "darwin" {
+		peak *= 1024
+	}
+	return peak
+}
+
 func (a *processAttempt) snapshot() Attempt {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -108,6 +135,7 @@ func (a *processAttempt) snapshot() Attempt {
 	return Attempt{
 		Generation: a.generation, PID: a.command.Process.Pid,
 		StartedAtUnixNano: a.startedAt, StoppedAtUnixNano: a.stoppedAt,
+		DurationNanos: max(a.stoppedAt-a.startedAt, 0), PeakMemoryBytes: a.peakMemory.Load(),
 		ExitCode: exitCode, Termination: a.termination, Output: a.output.Bytes(),
 	}
 }

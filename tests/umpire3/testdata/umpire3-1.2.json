@@ -1,26 +1,33 @@
 {
   "release": "umpire3/1.2",
   "status": "candidate",
-  "formatVersion": "umpire3/release/v2",
+  "formatVersion": "umpire3/release/v6",
   "experimentFormatVersion": "umpire3/v2",
-  "leanVersion": "4.33.0",
-  "catalogHash": "sha256:66dfa07fa512b5ca17df5d101be900e7a9ba7b60646b0f389119572ac50fb8f8",
+  "leanVersion": "4.28.0",
+  "catalogHash": "sha256:6ee5a1a327f11b918c000067dedfb46522d1be7fd6883da34a270ac581d640fe",
   "descriptorHash": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081",
-  "monitorSemanticHash": "sha256:d244e0918effb7b18bbf44e4a273083c4b583448acb45fab3ff8d89ccfb38840",
-  "compositionSemanticHash": "sha256:40697d8407c3cd8bd482fdee0a1cc5c2892bec4e14eb9cdee36b8361aeafa9a9",
-  "paritySemanticHash": "sha256:834e46912d32f715511a10c95a429deab215b4aa0750f44042c9cdcaabeb8afb",
+  "monitorSemanticHash": "sha256:1610843d5be3be1cd89d324ac9ea0bd6ee1cfd03727dabce148a15a51dc588ac",
+  "compositionSemanticHash": "sha256:57fa7c9cd3e36b6b595e29d361fad901a8ddfb640ed463abcd5bc54ab8c22769",
+  "paritySemanticHash": "sha256:45fe5bfe7b372402b0763d3f04ffbfa21a0205a94126d088d196c40acaa06fc0",
+  "checkerCoverageHash": "sha256:e7335c7af23ac17de6f4a561157c54b942c8b1b3fda42e55d401107aac767b6f",
   "experiments": {
-    "nexus-cancellation-stale-completion-v1": "sha256:75ae45565182bfa60be4354df05522c80abbea707850ecd53f9093c6d83c3e4e",
-    "workflow-update-lifecycle-v1": "sha256:479d2132e0200c7b7ba3e0e5c8b63027cc52ac7a62d88e09448ab97b15774b48"
+    "nexus-cancellation-stale-completion-v1": {
+      "semanticHash": "sha256:5c4b524bbe6a72a2713fb1cf86594e93bfb7049d56919ca3aa3e557f97423288",
+      "digest": "sha256:1cb6252167097d71d1f95d0b2c5edda42a57fba6480b9620f1821b08eb68fb33"
+    },
+    "workflow-update-lifecycle-v1": {
+      "semanticHash": "sha256:910db88e291f81429b00addf86a1ca4d5fbc34660ab068aa38437925a8c492ac",
+      "digest": "sha256:40b6e259d0b128b16b7431cc774cad2dce94d7cbe025071b345a6ecff4d98683"
+    }
   },
   "proofManifests": [
     {
       "identifier": "nexus-tasks-refinement-v1",
-      "digest": "sha256:b5d9136676a5ba6e1b40eecaf82ebfa62c22cd7a9ee4ba82b5d5286263cff688"
+      "digest": "sha256:a2a09394bf0a831cfd15c27c56f8772cb6d418dac36945b7cbe0876f415549ff"
     },
     {
       "identifier": "update-lifecycle-simulation-v1",
-      "digest": "sha256:7ba0b532f7fe617b3bcabfdbeb0ec06fb263344a47e642e0f0b2f65b3617cc1a"
+      "digest": "sha256:95e796c824ae429cb0b66067e16e27dab45ccb0f18de16c55468f920da2ba69b"
     }
   ],
   "profiles": [
@@ -32,102 +39,279 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:d8bb4ca95a070e7cf47b33dccb84219bcde2bcb8aaf97f0584271cb88604331d",
+    "ledgerHash": "sha256:626cc9112d4d5fa294722ddf29d2780da97a47a2a0626e9820a58bc868abc0b0",
     "behaviorCount": 28,
     "exactCount": 23,
     "semanticEquivalentCount": 5,
     "partialCount": 0,
     "inventoryOnlyCount": 0
   },
-  "evidence": [
-    {
-      "goal": "single-semantic-model",
-      "status": "partial",
-      "anchors": ["model/Temporal/Catalog.lean", "protocol/catalog_test.go", "layout_test.go"]
-    },
-    {
-      "goal": "known-regression-verification",
-      "status": "partial",
-      "anchors": ["migration/ledger.json", "migration/inventory_test.go", "../umpire3_regress_test.go"]
-    },
-    {
-      "goal": "deterministic-plans",
-      "status": "passed",
-      "anchors": ["scenario/compiler_test.go", "scenario/enumerate.go"]
-    },
-    {
-      "goal": "portable-profiles",
-      "status": "partial",
-      "anchors": ["profile/profile_test.go", "profile/profile.go"]
-    },
-    {
-      "goal": "white-box-black-box",
-      "status": "partial",
-      "anchors": ["evidence/graph_test.go", "profile/profile_test.go"]
-    },
-    {
-      "goal": "developer-authoring",
-      "status": "partial",
-      "anchors": ["README.md", "scenario/regress_test.go", "umpire3test/require_test.go"]
-    },
-    {
-      "goal": "unknown-bug-exploration",
-      "status": "partial",
-      "anchors": ["explore/explore_test.go", "campaign/campaign_test.go"]
-    },
-    {
-      "goal": "first-class-faults",
-      "status": "partial",
-      "anchors": ["model/Umpire3/Fault.lean", "fault/fault_test.go"]
-    },
-    {
-      "goal": "non-linear-identity",
-      "status": "passed",
-      "anchors": ["scenario/compiler_test.go", "evidence/graph_test.go", "temporal/nexus_test.go"]
-    },
-    {
-      "goal": "programmable-participants",
-      "status": "partial",
-      "anchors": ["participant/participant_test.go", "temporal/task_ack_test.go", "temporal/nexus_integration_test.go"]
-    },
-    {
-      "goal": "clock-skew-safety",
-      "status": "partial",
-      "anchors": ["evidence/graph_test.go", "execution/run_test.go"]
-    },
-    {
-      "goal": "guided-exploration",
-      "status": "partial",
-      "anchors": ["model/Umpire3/Explore.lean", "explore/explore_test.go"]
-    },
-    {
-      "goal": "coverage-guided-fuzzing",
-      "status": "partial",
-      "anchors": ["campaign/mutation_test.go", "campaign/campaign_test.go", "campaign/minimize_test.go"]
-    }
-  ],
+  "assurance": {
+    "formatVersion": "umpire3/release-assurance/v1",
+    "digest": "sha256:5a0bf13e9b74055c677645d2d1cdeae6744b54122da560580cddb2117922083b",
+    "nodes": [
+      {
+        "identifier": "approved-mutation-audit",
+        "resultClass": "trace-witness",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:f50397bd8ac8afba1becd791108d36cc15d56a9beb711484d74bce5f3bbcf7a2"
+      },
+      {
+        "identifier": "catalog",
+        "resultClass": "metadata-validated",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:6ee5a1a327f11b918c000067dedfb46522d1be7fd6883da34a270ac581d640fe"
+      },
+      {
+        "identifier": "checker-coverage",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:e7335c7af23ac17de6f4a561157c54b942c8b1b3fda42e55d401107aac767b6f"
+      },
+      {
+        "identifier": "clock-skew-audit",
+        "resultClass": "implementation-conforming",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:6416122d526360eaf67a8b37d48f84cfb36479c328a3857a96c33c15b8bda359"
+      },
+      {
+        "identifier": "composition",
+        "resultClass": "composition-proved",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:57fa7c9cd3e36b6b595e29d361fad901a8ddfb640ed463abcd5bc54ab8c22769"
+      },
+      {
+        "identifier": "developer-ux",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:b939599c7e51ef8744db30c8810aa36d4fca7a4ec33f60c699ad75055fdf81f5"
+      },
+      {
+        "identifier": "documentation",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:f37304b03a2337cc3802a2453e69cef9a16853ee84859e53608b0fd603ff4cd0"
+      },
+      {
+        "identifier": "experiment/nexus-cancellation-stale-completion-v1",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:1cb6252167097d71d1f95d0b2c5edda42a57fba6480b9620f1821b08eb68fb33"
+      },
+      {
+        "identifier": "experiment/workflow-update-lifecycle-v1",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:40b6e259d0b128b16b7431cc774cad2dce94d7cbe025071b345a6ecff4d98683"
+      },
+      {
+        "identifier": "migration",
+        "resultClass": "implementation-conforming",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:626cc9112d4d5fa294722ddf29d2780da97a47a2a0626e9820a58bc868abc0b0"
+      },
+      {
+        "identifier": "monitor-programs",
+        "resultClass": "evidence-resolved",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:1610843d5be3be1cd89d324ac9ea0bd6ee1cfd03727dabce148a15a51dc588ac"
+      },
+      {
+        "identifier": "native-scale-benchmark",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:968720b0ee94e7e4b1f75407380fe33363f045a88e62c5ffcd537240ffc99b15"
+      },
+      {
+        "identifier": "parity",
+        "resultClass": "evidence-resolved",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:45fe5bfe7b372402b0763d3f04ffbfa21a0205a94126d088d196c40acaa06fc0"
+      },
+      {
+        "identifier": "proof/nexus-tasks-refinement-v1",
+        "resultClass": "refinement-proved",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:a2a09394bf0a831cfd15c27c56f8772cb6d418dac36945b7cbe0876f415549ff"
+      },
+      {
+        "identifier": "proof/update-lifecycle-simulation-v1",
+        "resultClass": "refinement-proved",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:95e796c824ae429cb0b66067e16e27dab45ccb0f18de16c55468f920da2ba69b"
+      },
+      {
+        "identifier": "protobuf-descriptor",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081"
+      },
+      {
+        "identifier": "resilience-audit",
+        "resultClass": "implementation-conforming",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:f163574753bf5f0aa274a9b84710f0a02740d7ad77d04f8740b9cec845e27560"
+      }
+    ],
+    "goals": [
+      {
+        "identifier": "clock-skew-safety",
+        "requires": [
+          "catalog",
+          "clock-skew-audit",
+          "monitor-programs"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "coverage-guided-fuzzing",
+        "requires": [
+          "approved-mutation-audit",
+          "checker-coverage",
+          "migration",
+          "native-scale-benchmark"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "deterministic-plans",
+        "requires": [
+          "migration"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "developer-authoring",
+        "requires": [
+          "developer-ux",
+          "documentation",
+          "migration",
+          "protobuf-descriptor"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "first-class-faults",
+        "requires": [
+          "catalog",
+          "migration"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "guided-exploration",
+        "requires": [
+          "checker-coverage",
+          "migration",
+          "native-scale-benchmark"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "known-regression-verification",
+        "requires": [
+          "experiment/nexus-cancellation-stale-completion-v1",
+          "experiment/workflow-update-lifecycle-v1",
+          "migration",
+          "parity"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "non-linear-identity",
+        "requires": [
+          "migration",
+          "monitor-programs"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "portable-profiles",
+        "requires": [
+          "catalog",
+          "documentation",
+          "resilience-audit"
+        ],
+        "omissions": [
+          "profile-qualification-missing/ci-test-cluster",
+          "profile-qualification-missing/grpc-only-black-box",
+          "profile-qualification-missing/local-in-process",
+          "profile-qualification-missing/production-canary",
+          "profile-qualification-missing/remote-deployment"
+        ]
+      },
+      {
+        "identifier": "programmable-participants",
+        "requires": [
+          "migration"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "single-semantic-model",
+        "requires": [
+          "catalog",
+          "composition",
+          "monitor-programs",
+          "proof/nexus-tasks-refinement-v1",
+          "proof/update-lifecycle-simulation-v1",
+          "protobuf-descriptor"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "unknown-bug-exploration",
+        "requires": [
+          "approved-mutation-audit",
+          "checker-coverage"
+        ],
+        "omissions": null
+      },
+      {
+        "identifier": "white-box-black-box",
+        "requires": [
+          "monitor-programs",
+          "resilience-audit"
+        ],
+        "omissions": [
+          "profile-qualification-missing/grpc-only-black-box",
+          "profile-qualification-missing/local-in-process"
+        ]
+      }
+    ]
+  },
   "documents": {
-    "support": "SUPPORT.md",
     "authoring": "AUTHORING.md",
+    "incident-recovery": "INCIDENT_RECOVERY.md",
     "modeling": "MODELING.md",
     "operations": "OPERATIONS.md",
     "security": "SECURITY.md",
-    "incident-recovery": "INCIDENT_RECOVERY.md"
+    "support": "SUPPORT.md"
   },
   "externalQualifications": [
     {
+      "profile": "local-in-process",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile local-in-process -release tests/umpire3/testdata/umpire3-1.2.json -experiment \u003cexperiment.json\u003e -result \u003cresult.json\u003e -signing-key \u003cauthority.pem\u003e -output \u003creceipt.json\u003e",
+      "status": "required"
+    },
+    {
+      "profile": "ci-test-cluster",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile ci-test-cluster -release tests/umpire3/testdata/umpire3-1.2.json -experiment \u003cexperiment.json\u003e -result \u003cresult.json\u003e -signing-key \u003cauthority.pem\u003e -output \u003creceipt.json\u003e",
+      "status": "required"
+    },
+    {
       "profile": "remote-deployment",
-      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile remote-deployment -release tests/umpire3/testdata/umpire3-1.2.json -experiment <experiment.json> -result <result.json> -output <receipt.json>",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile remote-deployment -release tests/umpire3/testdata/umpire3-1.2.json -experiment \u003cexperiment.json\u003e -result \u003cresult.json\u003e -signing-key \u003cauthority.pem\u003e -output \u003creceipt.json\u003e",
       "status": "required"
     },
     {
       "profile": "grpc-only-black-box",
-      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile grpc-only-black-box -release tests/umpire3/testdata/umpire3-1.2.json -experiment <experiment.json> -result <result.json> -output <receipt.json>",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile grpc-only-black-box -release tests/umpire3/testdata/umpire3-1.2.json -experiment \u003cexperiment.json\u003e -result \u003cresult.json\u003e -signing-key \u003cauthority.pem\u003e -output \u003creceipt.json\u003e",
       "status": "required"
     },
     {
       "profile": "production-canary",
-      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile production-canary -release tests/umpire3/testdata/umpire3-1.2.json -experiment <experiment.json> -result <result.json> -output <receipt.json>",
+      "command": "go run -tags test_dep ./tests/umpire3/cmd/umpire3-qualify -profile production-canary -release tests/umpire3/testdata/umpire3-1.2.json -experiment \u003cexperiment.json\u003e -result \u003cresult.json\u003e -signing-key \u003cauthority.pem\u003e -output \u003creceipt.json\u003e",
       "status": "required"
     }
   ]

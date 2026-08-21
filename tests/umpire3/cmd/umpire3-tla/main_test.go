@@ -1,3 +1,5 @@
+//go:build umpire3_tla_experiment
+
 package main
 
 import (

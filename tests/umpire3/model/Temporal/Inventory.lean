@@ -3,6 +3,7 @@ import Temporal.Product.CallbackReference
 import Temporal.Product.CallbackResponse
 import Temporal.Product.NexusActivityLink
 import Temporal.Product.NexusClosure
+import Temporal.Product.NexusProgress
 import Temporal.Product.NexusTimeout
 import Temporal.Product.SpeculativeTask
 import Temporal.Product.WorkflowLineage
@@ -63,6 +64,12 @@ def actions : List ActionDeclaration := [
   action "create-speculative-workflow-task" "Create a speculative Workflow Task" ["workflow-task-control"],
   action "commit-speculative-workflow-task" "Commit a speculative Workflow Task" ["history-observation"],
   { identifier := "close-nexus-operation", description := "Close a Nexus operation",
+    parameters := [{
+      name := "nexus-completion"
+      type := "string"
+      required := false
+      allowedValues := ["failed", "open-at-caller-close", "retry-stuck", "retry-then-success"]
+    }],
     requiredCapabilities := ["nexus"], footprint := [
       { protocol := "grpc", service := "history", route := "RecordWorkflowTaskStarted" },
       { protocol := "grpc", service := "history", route := "RespondWorkflowTaskCompleted" },
@@ -85,6 +92,7 @@ def actions : List ActionDeclaration := [
 def observations : List ObservationDeclaration := [
   observation "speculative-task-valid" "Speculative Workflow Task creation is valid",
   observation "nexus-operation-closed" "A closed Nexus operation is terminal",
+  observation "nexus-operation-progressed" "A retrying Nexus operation settled within its progress deadline",
   observation "nexus-activity-links-consistent" "Nexus and Activity links agree",
   observation "nexus-timeout-valid" "Nexus timeout state is terminal and recorded",
   observation "callback-reference-valid" "Callback reference resolves to its owner",
@@ -102,6 +110,8 @@ def properties : List PropertyDeclaration := [
     (resolved_theorem% Umpire3.Temporal.Product.SpeculativeTask.speculativeCreationSafe),
   property "nexus-operation.closure" "NexusOperationClosure"
     (resolved_theorem% Umpire3.Temporal.Product.NexusClosure.closureSafe),
+  property "nexus-operation.progress" "NexusOperationProgress"
+    (resolved_theorem% Umpire3.Temporal.Product.NexusProgress.progressSafe),
   property "nexus-activity.link-consistency" "NexusActivityLinkConsistency"
     (resolved_theorem% Umpire3.Temporal.Product.NexusActivityLink.linkConsistencySafe),
   property "nexus-operation.timeout-semantics" "NexusOperationTimeoutSemantics"
@@ -142,6 +152,21 @@ def nexusClosureSystemModule : ModuleDeclaration := {
 def nexusClosureRefinementModule : ModuleDeclaration := {
   identifier := "Temporal.Refinement.MigratedFamilies.NexusClosure"
   description := "Independent Nexus closure system-to-product refinement"
+}
+
+def nexusProgressProductModule : ModuleDeclaration := {
+  identifier := "Temporal.Product.NexusProgress"
+  description := "Bounded Nexus retry progress contract"
+}
+
+def nexusProgressSystemModule : ModuleDeclaration := {
+  identifier := "Temporal.System.NexusProgress"
+  description := "Independent Nexus retry and deadline observation mechanism"
+}
+
+def nexusProgressRefinementModule : ModuleDeclaration := {
+  identifier := "Temporal.Refinement.NexusProgress"
+  description := "Nexus retry progress system-to-product refinement"
 }
 
 def nexusTimeoutProductModule : ModuleDeclaration := {
@@ -284,6 +309,9 @@ def modules : List ModuleDeclaration := [
   nexusClosureProductModule,
   nexusClosureSystemModule,
   nexusClosureRefinementModule,
+  nexusProgressProductModule,
+  nexusProgressSystemModule,
+  nexusProgressRefinementModule,
   nexusTimeoutProductModule,
   nexusTimeoutSystemModule,
   nexusTimeoutRefinementModule,
@@ -331,6 +359,12 @@ def targets : List TargetDeclaration := [
     modules := [nexusLifecycleProductModule.identifier, nexusClosureProductModule.identifier, nexusClosureSystemModule.identifier,
       nexusClosureRefinementModule.identifier]
     properties := ["nexus-operation.closure"]
+  },
+  {
+    identifier := "feature-nexus-progress"
+    modules := [nexusProgressProductModule.identifier, nexusProgressSystemModule.identifier,
+      nexusProgressRefinementModule.identifier]
+    properties := ["nexus-operation.progress"]
   },
   {
     identifier := "feature-workflow-speculative-delivery"

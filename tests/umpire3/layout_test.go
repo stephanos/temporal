@@ -100,15 +100,16 @@ func TestFoundationalPackageImportDirection(t *testing.T) {
 	allowed := map[string][]string{
 		"protocol":    nil,
 		"evidence":    nil,
+		"observation": {"protocol"},
 		"process":     nil,
 		"scenario":    {"protocol", "scenario"},
-		"execution":   {"evidence", "fault", "protocol"},
+		"execution":   {"evidence", "fault", "observation", "protocol"},
 		"fault":       {"protocol"},
 		"participant": {"protocol"},
 		"profile":     {"execution", "protocol"},
-		"replay":      {"evidence", "execution", "fault", "protocol"},
+		"replay":      {"evidence", "execution", "fault", "internal/artifact", "observation", "protocol"},
 		"campaign":    {"execution", "protocol", "replay", "scenario"},
-		"temporal":    {"execution", "fault", "participant", "profile", "protocol", "temporal", "temporal/internalhistory"},
+		"temporal":    {"execution", "fault", "observation", "participant", "profile", "protocol", "temporal", "temporal/internalhistory"},
 	}
 	for packageName, dependencies := range allowed {
 		t.Run(packageName, func(t *testing.T) {
@@ -173,6 +174,21 @@ func TestGeneratedDriftRecipesFailOnEarlyCommandError(t *testing.T) {
 
 	command := exec.Command("/bin/sh", "-c", "set -eu; false; true")
 	require.Error(t, command.Run())
+}
+
+func TestTLAExperimentRequiresExplicitBuildTag(t *testing.T) {
+	for _, root := range []string{"cmd/umpire3-tla", "model-checkers/tla"} {
+		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+			if err != nil || entry.IsDir() || filepath.Ext(path) != ".go" {
+				return err
+			}
+			source, err := os.ReadFile(path)
+			require.NoError(t, err)
+			require.True(t, strings.HasPrefix(string(source), "//go:build umpire3_tla_experiment\n\n"), path)
+			return nil
+		})
+		require.NoError(t, err)
+	}
 }
 
 func findForbiddenImports(root string) ([]string, error) {
