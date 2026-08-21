@@ -96,7 +96,7 @@ func behaviorContracts() map[string]BehaviorContract {
 			[]string{"history-observation"}, "conforming"),
 		contract("SparseRegressionCallbackAfterCallerCompletion", "integration-callback-workflow", "callback.response-consistency",
 			[]string{"nexus-operation", "callback", "workflow"}, []string{"register-callback", "record-callback-response"},
-			[]string{"caller-terminal-before-callback", "callback-failure"}, []string{"hsm", "chasm"},
+			[]string{"caller-terminal-before-callback", "callback-failure"}, []string{"hsm"},
 			[]string{"history-observation"}, "conforming"),
 		contractWithFault("SparseRegressionCancellationRetry", "nexus-cancellation", "nexus.cancellation.won-excludes-success",
 			[]string{"request-cancellation", "commit-cancellation", "retry-task", "persist-success"}, []string{"drop"}, "conforming"),
