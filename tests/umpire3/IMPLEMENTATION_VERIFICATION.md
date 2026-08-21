@@ -59,7 +59,6 @@ permits its five declared deployment-profile omissions; every locally executable
 bound evidence node. Qualified validation rejects any profile gap or evidence below profile-qualified
 level.
 
-The combined root target preserves and runs both implementations sequentially. At the current audit
-revision, retained Umpire2 exploration/generated-completion probes do not receive their expected
-CHASM transition telemetry even when run alone. That baseline failure is reported independently and
-must not be hidden by changing the preserved Umpire2 assertions or by attributing it to Umpire3.
+The combined root target preserves and runs both implementations sequentially and fails if either
+suite fails. Root parity is local integration evidence; it does not satisfy or replace any signed
+deployment-profile qualification.
