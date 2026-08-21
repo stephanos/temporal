@@ -11,6 +11,29 @@ Run `make umpire3-check` for model, generation, dependency, and Go gates. Run
 qualifying a release, execute its external qualification entries unchanged in the named deployment,
 retain the semantic result and attestation, and review omissions, cleanup, and evidence retention.
 
+`make umpire3-check` also validates and freshly repeats the bounded 10-replica native benchmark.
+Use `make umpire3-record-native-benchmark` only to replace the retained performance measurement;
+review timing, peak memory, state/certificate bytes, checker identity, worker determinism, and both
+recovery fields in the resulting report before accepting it.
+
+Production canary approval is a v3 Ed25519-signed immutable allowlist. Configure the controller with
+the reviewed signer identity and PKIX public key through `-approval-authority` and
+`-approval-public-key`; keep the private approval key in the separate approval service. Execution and
+cleanup both reject an unsigned approval, a different signer, or recovery metadata that does not
+match the signed approval.
+
+Provision each external gate with its deployment owner's reviewed authority identity and Ed25519
+public key before running it. Keep the matching PKCS#8 private key outside the repository and pass
+only its file path with `-signing-key` inside the authorized qualification job.
+
+Run `umpire3 qualify` beside each external deployment result to produce a v3 signed receipt bound to the
+canonical candidate release, immutable Experiment, complete Result artifact, evidence graph, build,
+and configuration identity. Use the same Experiment digest for local in-process, CI test cluster,
+remote, public-gRPC-only, and canary runs. After all vision evidence is passing, `umpire3 promote`
+consumes exactly one receipt for each required profile and emits a qualified release that retains
+those receipt bindings; missing, duplicate, unsigned, wrong-authority, drifted, or mixed-scenario
+receipts fail closed.
+
 Use the unified command for deployment execution:
 
 ```sh

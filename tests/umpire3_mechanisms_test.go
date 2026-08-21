@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nexus-rpc/sdk-go/nexus"
+	"github.com/stretchr/testify/require"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -34,8 +35,10 @@ import (
 	"go.temporal.io/server/components/callbacks"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/tests/testcore"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/participant"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/scenario"
 	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -404,66 +407,213 @@ func (o *umpire3NexusLifecycleObserver) requireState(
 	execution *umpire3NexusLifecycleExecution,
 	want string,
 ) error {
-	describe, err := o.describe(ctx, execution)
-	if err != nil {
-		return fmt.Errorf("describe generated Nexus operation: %w", err)
+	poll := time.NewTicker(10 * time.Millisecond)
+	defer poll.Stop()
+	for {
+		describe, err := o.describe(ctx, execution)
+		if err != nil {
+			return fmt.Errorf("describe generated Nexus operation: %w", err)
+		}
+		info := describe.GetInfo()
+		if info == nil || info.GetOperationId() != execution.operation || info.GetRunId() != execution.runID {
+			return errors.New("generated Nexus observation lacks exact operation identity")
+		}
+		var observed bool
+		switch want {
+		case "scheduled":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_RUNNING &&
+				info.GetState() == enumspb.PENDING_NEXUS_OPERATION_STATE_SCHEDULED
+		case "backing-off":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_RUNNING &&
+				info.GetState() == enumspb.PENDING_NEXUS_OPERATION_STATE_BACKING_OFF
+		case "started":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_RUNNING &&
+				info.GetState() == enumspb.PENDING_NEXUS_OPERATION_STATE_STARTED && info.GetOperationToken() != ""
+		case "succeeded":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED && describe.GetResult() != nil
+		case "failed":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_FAILED && describe.GetFailure() != nil
+		case "canceled":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_CANCELED && describe.GetFailure() != nil
+		case "timed-out":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_TIMED_OUT && describe.GetFailure() != nil
+		case "terminated":
+			observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_TERMINATED && describe.GetFailure() != nil
+		default:
+			return fmt.Errorf("unsupported generated Nexus lifecycle state %q", want)
+		}
+		if observed {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("generated Nexus edge expected %q, observed status %q state %q: %w",
+				want, info.GetStatus(), info.GetState(), ctx.Err())
+		case <-poll.C:
+		}
 	}
-	info := describe.GetInfo()
-	if info == nil || info.GetOperationId() != execution.operation || info.GetRunId() != execution.runID {
-		return errors.New("generated Nexus observation lacks exact operation identity")
-	}
-	var observed bool
-	switch want {
-	case "scheduled":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_RUNNING &&
-			info.GetState() == enumspb.PENDING_NEXUS_OPERATION_STATE_SCHEDULED
-	case "backing-off":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_RUNNING &&
-			info.GetState() == enumspb.PENDING_NEXUS_OPERATION_STATE_BACKING_OFF
-	case "started":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_RUNNING &&
-			info.GetState() == enumspb.PENDING_NEXUS_OPERATION_STATE_STARTED && info.GetOperationToken() != ""
-	case "succeeded":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED && describe.GetResult() != nil
-	case "failed":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_FAILED && describe.GetFailure() != nil
-	case "canceled":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_CANCELED && describe.GetFailure() != nil
-	case "timed-out":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_TIMED_OUT && describe.GetFailure() != nil
-	case "terminated":
-		observed = info.GetStatus() == enumspb.NEXUS_OPERATION_EXECUTION_STATUS_TERMINATED && describe.GetFailure() != nil
-	}
-	if !observed {
-		return fmt.Errorf("generated Nexus edge expected %q, observed status %q state %q",
-			want, info.GetStatus(), info.GetState())
-	}
-	return nil
 }
 
 type umpire3NexusBehaviorDriver struct {
 	mu sync.Mutex
 
-	env       *testcore.TestEnv
-	t         *testing.T
-	execution *umpire3NexusBehaviorExecution
+	env         *testcore.TestEnv
+	t           *testing.T
+	plannedMode string
+	execution   *umpire3NexusBehaviorExecution
 }
 
+const umpire3NexusProgressDeadline = 2 * time.Second
+
 type umpire3NexusBehaviorExecution struct {
-	mode              string
-	workflowID        string
-	runID             string
-	taskQueue         string
-	handlerWorkflowID string
-	handlerRunID      string
-	handlerTaskToken  []byte
-	handlerClosed     bool
-	endpointID        string
-	endpointVersion   int64
-	nexusTask         *workflowservice.PollNexusTaskQueueResponse
-	dispatched        bool
-	workerCompleted   bool
-	closed            bool
+	mode                      string
+	programID                 string
+	workflowID                string
+	runID                     string
+	taskQueue                 string
+	handlerWorkflowID         string
+	handlerRunID              string
+	handlerTaskToken          []byte
+	handlerClosed             bool
+	endpointID                string
+	endpointVersion           int64
+	nexusTask                 *workflowservice.PollNexusTaskQueueResponse
+	dispatched                bool
+	workerCompleted           bool
+	retryableFailures         int64
+	retryFailureAt            time.Time
+	progressScheduledSequence int64
+	progressSettledSequence   int64
+	progressSequence          int64
+	progressViolated          bool
+	progressClosed            bool
+	closed                    bool
+}
+
+func TestUmpire3NexusBehaviorModeUsesTypedScenarioIntent(t *testing.T) {
+	t.Parallel()
+
+	completion := string(scenario.NexusCompletionFailed)
+	mode, handled, err := umpire3NexusBehaviorMode(participant.Operation{Arguments: []protocol.NamedValue{{
+		Name:  "nexus-completion",
+		Value: protocol.Value{Type: protocol.ValueString, Text: &completion},
+	}}}, "")
+	require.NoError(t, err)
+	require.True(t, handled)
+	require.Equal(t, completion, mode)
+
+	mode, handled, err = umpire3NexusBehaviorMode(participant.Operation{}, mode)
+	require.NoError(t, err)
+	require.True(t, handled)
+	require.Equal(t, completion, mode)
+
+	mode, handled, err = umpire3NexusBehaviorMode(participant.Operation{}, "")
+	require.NoError(t, err)
+	require.False(t, handled)
+	require.Empty(t, mode)
+}
+
+func TestUmpire3NexusBehaviorPlannedModeAppliesToGeneratedPrerequisites(t *testing.T) {
+	t.Parallel()
+
+	completion := string(scenario.NexusCompletionBeforeStart)
+	program := participant.Program{Commands: []participant.Command{
+		{Identifier: "generated-schedule", SemanticAction: string(protocol.ActionKindScheduleOperation)},
+		{Identifier: "complete", SemanticAction: string(protocol.ActionKindWorkerReturnsSuccess),
+			Arguments: []protocol.NamedValue{{
+				Name: "nexus-completion", Value: protocol.Value{Type: protocol.ValueString, Text: &completion},
+			}}},
+	}}
+	planned, err := umpire3NexusBehaviorPlannedMode(program)
+	require.NoError(t, err)
+	require.Equal(t, completion, planned)
+	mode, handled, err := umpire3NexusBehaviorMode(participant.Operation{}, planned)
+	require.NoError(t, err)
+	require.True(t, handled)
+	require.Equal(t, completion, mode)
+}
+
+func TestUmpire3NexusProgressFactsProveClosedRetryDeadlineViolation(t *testing.T) {
+	t.Parallel()
+
+	facts, err := umpire3NexusProgressFacts(&umpire3NexusBehaviorExecution{
+		mode: string(scenario.NexusCompletionRetryStuck), programID: "program",
+		workflowID: "workflow", runID: "run", retryableFailures: 1,
+		progressScheduledSequence: 2, progressViolated: true,
+	}, 7)
+	require.NoError(t, err)
+	require.Len(t, facts, 3)
+
+	catalog, err := observation.DefaultCatalog()
+	require.NoError(t, err)
+	program, ok := catalog.Program(protocol.ObservationIDNexusOperationProgressed)
+	require.True(t, ok)
+	require.Equal(t, observation.False, program.Evaluate(facts).Value)
+}
+
+func TestUmpire3NexusProgressFactsProveRetrySettlement(t *testing.T) {
+	t.Parallel()
+
+	facts, err := umpire3NexusProgressFacts(&umpire3NexusBehaviorExecution{
+		mode: string(scenario.NexusCompletionRetryThenSuccess), programID: "program",
+		workflowID: "workflow", runID: "run", retryableFailures: 1,
+		progressScheduledSequence: 2, progressSettledSequence: 7,
+	}, 8)
+	require.NoError(t, err)
+	require.Len(t, facts, 3)
+
+	catalog, err := observation.DefaultCatalog()
+	require.NoError(t, err)
+	program, ok := catalog.Program(protocol.ObservationIDNexusOperationProgressed)
+	require.True(t, ok)
+	require.Equal(t, observation.True, program.Evaluate(facts).Value)
+}
+
+func TestUmpire3NexusProgressConforming(t *testing.T) {
+	runUmpire3Regression(t,
+		umpire3NexusProgressRegression("NexusProgressConforming", scenario.CloseNexusOperation("close",
+			scenario.WithNexusCompletion(scenario.NexusCompletionRetryThenSuccess))),
+	)
+}
+
+func umpire3NexusBehaviorMode(operation participant.Operation, current string) (string, bool, error) {
+	mode := current
+	for _, argument := range operation.Arguments {
+		if argument.Name != "nexus-completion" {
+			continue
+		}
+		if argument.Value.Type != protocol.ValueString || argument.Value.Text == nil {
+			return "", true, errors.New("Nexus completion mode requires a string value")
+		}
+		candidate := *argument.Value.Text
+		switch scenario.NexusCompletionMode(candidate) {
+		case scenario.NexusCompletionOrdinary,
+			scenario.NexusCompletionBeforeStart,
+			scenario.NexusCompletionFailed,
+			scenario.NexusCompletionOpenAtCallerClose,
+			scenario.NexusCompletionRetryStuck,
+			scenario.NexusCompletionRetryThenSuccess:
+		default:
+			return "", true, fmt.Errorf("unsupported Nexus completion mode %q", candidate)
+		}
+		if mode != "" && mode != candidate {
+			return "", true, fmt.Errorf("Nexus completion mode changed from %q to %q", mode, candidate)
+		}
+		mode = candidate
+	}
+	return mode, mode != "", nil
+}
+
+func umpire3NexusBehaviorPlannedMode(program participant.Program) (string, error) {
+	mode := ""
+	for _, command := range program.Commands {
+		var err error
+		mode, _, err = umpire3NexusBehaviorMode(participant.Operation{Arguments: command.Arguments}, mode)
+		if err != nil {
+			return "", fmt.Errorf("resolve planned Nexus completion mode: %w", err)
+		}
+	}
+	return mode, nil
 }
 
 func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
@@ -471,27 +621,50 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 	programID string,
 	operation participant.Operation,
 ) (umpire3temporal.MechanismReceipt, bool, error) {
-	mode := ""
-	switch {
-	case strings.Contains(programID, "SparseRegressionOrdinaryNexusCompletion"):
-		mode = "ordinary"
-	case strings.Contains(programID, "SparseRegressionCompletionBeforeStartResponse"):
-		mode = "completion-before-start"
-	case strings.Contains(programID, "ProbeNexusDegraded"):
-		mode = "degraded"
-	default:
-		return umpire3temporal.MechanismReceipt{}, false, nil
-	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	current := d.plannedMode
+	if d.execution != nil {
+		current = d.execution.mode
+	}
+	mode, handled, err := umpire3NexusBehaviorMode(operation, current)
+	if err != nil || !handled {
+		return umpire3temporal.MechanismReceipt{}, handled, err
+	}
+	if mode == "" {
+		return umpire3temporal.MechanismReceipt{}, false, nil
+	}
 	if d.execution != nil && d.execution.mode != mode {
 		return umpire3temporal.MechanismReceipt{}, true, errors.New("dedicated Nexus behavior mode changed during execution")
 	}
-	var err error
-	if mode == "degraded" {
+	if mode == string(scenario.NexusCompletionRetryStuck) ||
+		mode == string(scenario.NexusCompletionRetryThenSuccess) {
 		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
 			return umpire3temporal.MechanismReceipt{}, true,
-				fmt.Errorf("degraded Nexus behavior does not support action %q", operation.SemanticAction)
+				fmt.Errorf("retrying Nexus completion does not support action %q", operation.SemanticAction)
+		}
+		if err = d.scheduleNexusBehavior(ctx, programID, mode); err == nil {
+			err = d.dispatchNexusBehavior(ctx)
+		}
+		if err == nil {
+			err = d.failNexusBehaviorRetryably(ctx)
+		}
+		if err == nil && mode == string(scenario.NexusCompletionRetryThenSuccess) {
+			err = d.dispatchNexusBehavior(ctx)
+		}
+		if err == nil && mode == string(scenario.NexusCompletionRetryThenSuccess) {
+			err = d.completeNexusBehaviorWorker(ctx)
+		}
+		if err == nil && mode == string(scenario.NexusCompletionRetryThenSuccess) {
+			err = d.persistNexusBehavior(ctx)
+		}
+		if err == nil {
+			err = d.closeNexusProgressWindow(ctx, mode == string(scenario.NexusCompletionRetryThenSuccess))
+		}
+	} else if mode == string(scenario.NexusCompletionFailed) {
+		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
+			return umpire3temporal.MechanismReceipt{}, true,
+				fmt.Errorf("failed Nexus completion does not support action %q", operation.SemanticAction)
 		}
 		if err = d.scheduleNexusBehavior(ctx, programID, mode); err == nil {
 			err = d.dispatchNexusBehavior(ctx)
@@ -501,6 +674,20 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 		}
 		if err == nil {
 			err = d.persistNexusBehavior(ctx)
+		}
+	} else if mode == string(scenario.NexusCompletionOpenAtCallerClose) {
+		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
+			return umpire3temporal.MechanismReceipt{}, true,
+				fmt.Errorf("open Nexus completion does not support action %q", operation.SemanticAction)
+		}
+		if err = d.scheduleNexusBehavior(ctx, programID, mode); err == nil {
+			err = d.dispatchNexusBehavior(ctx)
+		}
+		if err == nil {
+			err = d.completeNexusBehaviorWorker(ctx)
+		}
+		if err == nil {
+			err = d.closeNexusBehaviorCallerWhileOpen(ctx)
 		}
 	} else {
 		switch operation.SemanticAction {
@@ -527,10 +714,10 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 		Reference: fmt.Sprintf("%s/%s/nexus/%s/%s", execution.workflowID, execution.runID,
 			execution.mode, operation.SemanticAction),
 	}
-	if execution.mode == "degraded" {
+	if execution.mode == string(scenario.NexusCompletionFailed) {
 		receipt.TerminalState = "failed"
 		receipt.TerminalDisposition = participant.TerminalDispositionFailure
-	} else if execution.closed {
+	} else if execution.closed && execution.mode != string(scenario.NexusCompletionOpenAtCallerClose) {
 		receipt.TerminalState = "succeeded"
 		receipt.TerminalDisposition = participant.TerminalDispositionSuccess
 	}
@@ -545,7 +732,7 @@ func (d *umpire3NexusBehaviorDriver) scheduleNexusBehavior(
 	if d.execution != nil {
 		return errors.New("dedicated Nexus behavior is already scheduled")
 	}
-	execution := &umpire3NexusBehaviorExecution{mode: mode}
+	execution := &umpire3NexusBehaviorExecution{mode: mode, programID: programID}
 	workflowID := umpire3SDKWorkflowID(programID+"-phased-nexus", mode)
 	execution.workflowID = workflowID
 	execution.taskQueue = workflowID + "-task-queue"
@@ -563,7 +750,7 @@ func (d *umpire3NexusBehaviorDriver) scheduleNexusBehavior(
 		return fmt.Errorf("start Nexus evidence handler workflow: %w", err)
 	}
 	execution.handlerRunID = handler.GetRunId()
-	if mode == "ordinary" {
+	if mode == string(scenario.NexusCompletionOrdinary) {
 		handlerTask, err := d.env.FrontendClient().PollWorkflowTaskQueue(ctx,
 			&workflowservice.PollWorkflowTaskQueueRequest{
 				Namespace: d.env.Namespace().String(),
@@ -684,7 +871,7 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 	}
 	nexusHandlerLink := commonnexus.ConvertLinkWorkflowEventToNexusLink(handlerLink)
 	switch execution.mode {
-	case "ordinary":
+	case string(scenario.NexusCompletionOrdinary), string(scenario.NexusCompletionRetryThenSuccess):
 		_, err := d.env.FrontendClient().RespondNexusTaskCompleted(ctx,
 			&workflowservice.RespondNexusTaskCompletedRequest{
 				Namespace: d.env.Namespace().String(), Identity: "umpire3-nexus-phased-driver",
@@ -702,7 +889,7 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 		if err != nil {
 			return fmt.Errorf("return ordinary Nexus completion: %w", err)
 		}
-	case "completion-before-start":
+	case string(scenario.NexusCompletionBeforeStart):
 		start := execution.nexusTask.GetRequest().GetStartOperation()
 		if start.GetCallback() == "" || start.GetCallbackHeader() == nil {
 			return errors.New("completion-before-start task has no callback routing")
@@ -762,6 +949,24 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 			return fmt.Errorf("complete completion-before-start handler: %w", err)
 		}
 		execution.handlerClosed = true
+	case string(scenario.NexusCompletionOpenAtCallerClose):
+		_, err := d.env.FrontendClient().RespondNexusTaskCompleted(ctx,
+			&workflowservice.RespondNexusTaskCompletedRequest{
+				Namespace: d.env.Namespace().String(), Identity: "umpire3-nexus-phased-driver",
+				TaskToken: execution.nexusTask.GetTaskToken(),
+				Response: &nexuspb.Response{Variant: &nexuspb.Response_StartOperation{
+					StartOperation: &nexuspb.StartOperationResponse{Variant: &nexuspb.StartOperationResponse_AsyncSuccess{
+						AsyncSuccess: &nexuspb.StartOperationResponse_Async{
+							OperationToken: execution.handlerWorkflowID, Links: []*nexuspb.Link{{
+								Url: nexusHandlerLink.URL.String(), Type: nexusHandlerLink.Type,
+							}},
+						},
+					}},
+				}},
+			})
+		if err != nil {
+			return fmt.Errorf("start open Nexus operation: %w", err)
+		}
 	default:
 		_, err := d.env.FrontendClient().RespondNexusTaskCompleted(ctx,
 			&workflowservice.RespondNexusTaskCompletedRequest{
@@ -784,12 +989,214 @@ func (d *umpire3NexusBehaviorDriver) completeNexusBehaviorWorker(ctx context.Con
 	return nil
 }
 
+func (d *umpire3NexusBehaviorDriver) failNexusBehaviorRetryably(ctx context.Context) error {
+	execution := d.execution
+	if execution == nil || !execution.dispatched || execution.workerCompleted ||
+		execution.retryableFailures != 0 {
+		return errors.New("dedicated Nexus retryable failure is not available")
+	}
+	_, err := d.env.FrontendClient().RespondNexusTaskFailed(ctx,
+		&workflowservice.RespondNexusTaskFailedRequest{
+			Namespace: d.env.Namespace().String(), Identity: "umpire3-nexus-phased-driver",
+			TaskToken: execution.nexusTask.GetTaskToken(), Error: &nexuspb.HandlerError{
+				ErrorType: string(nexus.HandlerErrorTypeUnavailable),
+				Failure:   &nexuspb.Failure{Message: "Umpire3 injected retryable Nexus handler failure"},
+			},
+		})
+	if err != nil {
+		return fmt.Errorf("return retryable Nexus handler failure: %w", err)
+	}
+	execution.retryableFailures = 1
+	execution.retryFailureAt = time.Now()
+	execution.nexusTask = nil
+	execution.dispatched = false
+	return nil
+}
+
+func (d *umpire3NexusBehaviorDriver) closeNexusProgressWindow(
+	ctx context.Context,
+	requireSettled bool,
+) error {
+	execution := d.execution
+	if execution == nil || execution.retryableFailures == 0 || execution.retryFailureAt.IsZero() ||
+		execution.progressClosed {
+		return errors.New("Nexus progress window is not closable")
+	}
+	if remaining := umpire3NexusProgressDeadline - time.Since(execution.retryFailureAt); !requireSettled && remaining > 0 {
+		timer := time.NewTimer(remaining)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	history, err := d.env.FrontendClient().GetWorkflowExecutionHistory(ctx,
+		&workflowservice.GetWorkflowExecutionHistoryRequest{
+			Namespace: d.env.Namespace().String(),
+			Execution: &commonpb.WorkflowExecution{
+				WorkflowId: execution.workflowID, RunId: execution.runID,
+			},
+			MaximumPageSize: 100,
+		})
+	if err != nil {
+		return fmt.Errorf("read retrying Nexus caller history: %w", err)
+	}
+	var scheduled, settled bool
+	for _, event := range history.GetHistory().GetEvents() {
+		execution.progressSequence = max(execution.progressSequence, event.GetEventId())
+		switch event.GetEventType() {
+		case enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED:
+			scheduled = true
+			execution.progressScheduledSequence = event.GetEventId()
+		case enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED:
+			settled = true
+			execution.progressSettledSequence = event.GetEventId()
+		case enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED,
+			enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCELED,
+			enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT:
+			return errors.New("retrying Nexus operation reached a non-success terminal")
+		case enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED:
+			if !requireSettled {
+				return errors.New("retrying Nexus caller completed before its progress deadline")
+			}
+		case enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_FAILED,
+			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED,
+			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_TERMINATED,
+			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT:
+			return errors.New("retrying Nexus caller reached a non-success terminal")
+		default:
+		}
+	}
+	if !scheduled || execution.progressSequence <= 0 {
+		return errors.New("retrying Nexus history lacks scheduled operation evidence")
+	}
+	if requireSettled != settled {
+		return fmt.Errorf("retrying Nexus settlement=%t, expected %t", settled, requireSettled)
+	}
+	execution.progressViolated = !settled || time.Since(execution.retryFailureAt) > umpire3NexusProgressDeadline
+	execution.progressClosed = true
+	return nil
+}
+
+func (d *umpire3NexusBehaviorDriver) NexusProgressFacts() ([]observation.Fact, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.execution == nil || !d.execution.progressClosed {
+		return nil, errors.New("Nexus progress evidence window is not closed")
+	}
+	return umpire3NexusProgressFacts(d.execution, d.execution.progressSequence)
+}
+
+func umpire3NexusProgressFacts(
+	execution *umpire3NexusBehaviorExecution,
+	historyThrough int64,
+) ([]observation.Fact, error) {
+	if execution == nil || (execution.mode != string(scenario.NexusCompletionRetryStuck) &&
+		execution.mode != string(scenario.NexusCompletionRetryThenSuccess)) ||
+		execution.programID == "" || execution.workflowID == "" || execution.runID == "" ||
+		execution.retryableFailures <= 0 || execution.progressScheduledSequence <= 0 || historyThrough <= 0 {
+		return nil, errors.New("complete retrying Nexus progress evidence is required")
+	}
+	entity := execution.workflowID + "/" + execution.runID
+	lineage := []string{execution.programID, execution.workflowID, execution.runID}
+	scheduledReference := fmt.Sprintf("%s/history/%d", entity, execution.progressScheduledSequence)
+	source := func(sequence int64, kind string) observation.Source {
+		return observation.Source{
+			Identity: "temporal-nexus-progress-driver", ClockDomain: "umpire3-nexus-progress-evidence",
+			Sequence:         sequence,
+			Reference:        fmt.Sprintf("%s/nexus-progress/history-through-%d/%s", entity, historyThrough, kind),
+			CausalReferences: []string{scheduledReference},
+			EntityIdentity:   entity, Lineage: append([]string(nil), lineage...),
+		}
+	}
+	mechanism := func(sequence int64, kind string, outcome string) observation.Fact {
+		return observation.Fact{
+			Identifier: fmt.Sprintf("mechanism/%s/%s/%d", entity, kind, sequence),
+			Source:     source(sequence, kind),
+			Mechanism: &observation.MechanismReceipt{
+				Action: kind, Resource: entity, Attempt: execution.retryableFailures,
+				OwnerEpoch: 0, Outcome: outcome,
+			},
+		}
+	}
+	progress := observation.Fact{}
+	if execution.progressViolated {
+		progress = mechanism(2, observation.NexusProgressDeadlineExpired, "open")
+	} else if execution.progressSettledSequence > 0 {
+		progress = mechanism(2, observation.NexusOperationSettledAfterRetry, "settled")
+	} else {
+		return nil, errors.New("retrying Nexus progress evidence has no settlement or deadline violation")
+	}
+	return []observation.Fact{
+		mechanism(1, observation.NexusOperationRetryableFailure, "retryable"),
+		progress,
+		{
+			Identifier: fmt.Sprintf("window/%s/%s/3", entity,
+				protocol.ObservationIDNexusOperationProgressed),
+			Source: source(3, string(protocol.ObservationIDNexusOperationProgressed)),
+			Window: &observation.EvidenceWindow{
+				Purpose: string(protocol.ObservationIDNexusOperationProgressed),
+				Closed:  true, ThroughSequence: 3,
+			},
+		},
+	}, nil
+}
+
+func (d *umpire3NexusBehaviorDriver) closeNexusBehaviorCallerWhileOpen(ctx context.Context) error {
+	execution := d.execution
+	if execution == nil || !execution.workerCompleted || execution.closed {
+		return errors.New("open Nexus caller is not closable")
+	}
+	callerTask, err := d.env.FrontendClient().PollWorkflowTaskQueue(ctx,
+		&workflowservice.PollWorkflowTaskQueueRequest{
+			Namespace: d.env.Namespace().String(),
+			TaskQueue: &taskqueuepb.TaskQueue{Name: execution.taskQueue, Kind: enumspb.TASK_QUEUE_KIND_NORMAL},
+			Identity:  "umpire3-nexus-phased-driver",
+		})
+	if err != nil {
+		return fmt.Errorf("poll caller with open Nexus operation: %w", err)
+	}
+	var started bool
+	for _, event := range callerTask.GetHistory().GetEvents() {
+		switch event.GetEventType() {
+		case enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED:
+			started = true
+		case enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
+			enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED,
+			enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCELED,
+			enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT:
+			return errors.New("Nexus operation settled before its caller closed")
+		default:
+		}
+	}
+	if !started {
+		return errors.New("caller history lacks a started open Nexus operation")
+	}
+	_, err = d.env.FrontendClient().RespondWorkflowTaskCompleted(ctx,
+		&workflowservice.RespondWorkflowTaskCompletedRequest{
+			Namespace: d.env.Namespace().String(), TaskToken: callerTask.GetTaskToken(),
+			Identity: "umpire3-nexus-phased-driver",
+			Commands: []*commandpb.Command{{
+				CommandType: enumspb.COMMAND_TYPE_COMPLETE_WORKFLOW_EXECUTION,
+				Attributes: &commandpb.Command_CompleteWorkflowExecutionCommandAttributes{
+					CompleteWorkflowExecutionCommandAttributes: &commandpb.CompleteWorkflowExecutionCommandAttributes{},
+				},
+			}},
+		})
+	if err != nil {
+		return fmt.Errorf("close caller with open Nexus operation: %w", err)
+	}
+	execution.closed = true
+	return nil
+}
+
 func (d *umpire3NexusBehaviorDriver) persistNexusBehavior(ctx context.Context) error {
 	execution := d.execution
 	if execution == nil || !execution.workerCompleted || execution.closed {
 		return errors.New("dedicated Nexus completion is not persistable")
 	}
-	if execution.mode == "completion-before-start" {
+	if execution.mode == string(scenario.NexusCompletionBeforeStart) {
 		handlerLink := commonnexus.ConvertLinkWorkflowEventToNexusLink(&commonpb.Link_WorkflowEvent{
 			Namespace: d.env.Namespace().String(), WorkflowId: execution.handlerWorkflowID, RunId: execution.handlerRunID,
 			Reference: &commonpb.Link_WorkflowEvent_EventRef{EventRef: &commonpb.Link_WorkflowEvent_EventReference{
@@ -845,12 +1252,12 @@ func (d *umpire3NexusBehaviorDriver) persistNexusBehavior(ctx context.Context) e
 			if !proto.Equal(attributes.GetResult(), payload.EncodeString("ok")) {
 				return errors.New("Nexus completion result differs from the handler result")
 			}
-			if execution.mode == "ordinary" && !umpire3HistoryEventLinksWorkflow(event.GetLinks(),
+			if execution.mode == string(scenario.NexusCompletionOrdinary) && !umpire3HistoryEventLinksWorkflow(event.GetLinks(),
 				d.env.Namespace().String(), execution.handlerWorkflowID, execution.handlerRunID) {
 				return errors.New("ordinary Nexus completion lacks the handler link")
 			}
 		case enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED:
-			if execution.mode != "degraded" {
+			if execution.mode != string(scenario.NexusCompletionFailed) {
 				return errors.New("phased Nexus operation failed unexpectedly")
 			}
 			terminalEventID = event.GetEventId()
@@ -861,7 +1268,7 @@ func (d *umpire3NexusBehaviorDriver) persistNexusBehavior(ctx context.Context) e
 	if scheduledEventID == 0 || terminalEventID == 0 {
 		return errors.New("phased Nexus history lacks schedule or completion evidence")
 	}
-	if execution.mode == "completion-before-start" &&
+	if execution.mode == string(scenario.NexusCompletionBeforeStart) &&
 		(startedEventID == 0 || (scheduledEventID >= startedEventID || startedEventID >= terminalEventID)) {
 		return errors.New("completion-before-start history ordering is invalid")
 	}
@@ -879,7 +1286,7 @@ func (d *umpire3NexusBehaviorDriver) persistNexusBehavior(ctx context.Context) e
 	if err != nil {
 		return fmt.Errorf("complete phased Nexus caller: %w", err)
 	}
-	if execution.mode == "ordinary" {
+	if execution.mode == string(scenario.NexusCompletionOrdinary) {
 		description, describeErr := d.env.AdminClient().DescribeMutableState(ctx,
 			&adminservice.DescribeMutableStateRequest{
 				Namespace: d.env.Namespace().String(),
@@ -966,6 +1373,9 @@ type umpire3NexusActivityLinkDriver struct {
 	env                    *testcore.TestEnv
 	activity               *commonpb.Link_Activity
 	expectedNexusOperation *commonpb.Link_NexusOperation
+	parentIdentity         string
+	forwardReference       string
+	reverseReference       string
 	validated              bool
 }
 
@@ -1070,6 +1480,7 @@ func (d *umpire3NexusActivityLinkDriver) Validate(ctx context.Context, parentIde
 		WorkflowId: parent[0], RunId: parent[1],
 	})
 	forwardLinkFound := false
+	forwardReference := ""
 	for _, event := range history {
 		if event.GetEventType() != enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED {
 			continue
@@ -1079,6 +1490,7 @@ func (d *umpire3NexusActivityLinkDriver) Validate(ctx context.Context, parentIde
 			if candidate != nil && candidate.GetNamespace() == activity.GetNamespace() &&
 				candidate.GetActivityId() == activity.GetActivityId() && candidate.GetRunId() == activity.GetRunId() {
 				forwardLinkFound = true
+				forwardReference = fmt.Sprintf("%s/%s/history/%d", parent[0], parent[1], event.GetEventId())
 				break
 			}
 		}
@@ -1109,9 +1521,73 @@ func (d *umpire3NexusActivityLinkDriver) Validate(ctx context.Context, parentIde
 	reference := fmt.Sprintf("%s/%s/nexus-activity/%s/%s", parent[0], parent[1],
 		activity.GetActivityId(), activity.GetRunId())
 	d.mu.Lock()
+	d.parentIdentity = parentIdentity
+	d.forwardReference = forwardReference
+	d.reverseReference = fmt.Sprintf("%s/activity/%s/%s/describe",
+		activity.GetNamespace(), activity.GetActivityId(), activity.GetRunId())
 	d.validated = true
 	d.mu.Unlock()
 	return reference, nil
+}
+
+func (d *umpire3NexusActivityLinkDriver) completeFacts(
+	checkpoint protocol.Checkpoint,
+	facts []observation.Fact,
+) ([]observation.Fact, error) {
+	d.mu.Lock()
+	validated := d.validated
+	parentIdentity := d.parentIdentity
+	forwardReference := d.forwardReference
+	reverseReference := d.reverseReference
+	activity := d.activity
+	d.mu.Unlock()
+	if !validated || activity == nil || parentIdentity == "" || forwardReference == "" || reverseReference == "" {
+		return nil, errors.New("validated Nexus Activity link evidence is incomplete")
+	}
+	var forward observation.Fact
+	for _, fact := range facts {
+		if fact.Mechanism != nil && fact.Mechanism.Action == observation.NexusOperationLinkedActivity &&
+			fact.Mechanism.Outcome == "linked" {
+			forward = fact
+			break
+		}
+	}
+	if forward.Identifier == "" || forward.Source.EntityIdentity != parentIdentity {
+		return nil, errors.New("caller history does not contain the validated Nexus-to-Activity link")
+	}
+	identity := forward.Source.Identity + "/nexus-activity-link-view"
+	clockDomain := forward.Source.ClockDomain + "/nexus-activity-link-view"
+	lineage := append([]string(nil), forward.Source.Lineage...)
+	relation := fmt.Sprintf("%s/%s/%s", parentIdentity, activity.GetActivityId(), activity.GetRunId())
+	source := func(sequence int64, reference string) observation.Source {
+		return observation.Source{
+			Identity: identity, ClockDomain: clockDomain, Sequence: sequence, Reference: reference,
+			CausalReferences: []string{forwardReference, reverseReference},
+			EntityIdentity:   parentIdentity,
+			Lineage:          append([]string(nil), lineage...),
+			PayloadDigest:    forward.Source.PayloadDigest,
+		}
+	}
+	mechanismFact := func(sequence int64, kind string, reference string) observation.Fact {
+		return observation.Fact{
+			Identifier: fmt.Sprintf("mechanism/%s/%s", identity, kind),
+			Source:     source(sequence, reference),
+			Mechanism: &observation.MechanismReceipt{
+				Action: kind, Resource: relation, Attempt: sequence, OwnerEpoch: 0, Outcome: "linked",
+			},
+		}
+	}
+	return []observation.Fact{
+		mechanismFact(1, observation.NexusOperationLinkedActivity, forwardReference),
+		mechanismFact(2, observation.ActivityLinkedNexusOperation, reverseReference),
+		{
+			Identifier: fmt.Sprintf("window/%s/%s", identity, checkpoint.Observation),
+			Source:     source(3, relation+"/window/"+checkpoint.Identifier),
+			Window: &observation.EvidenceWindow{
+				Purpose: checkpoint.Observation, Closed: true, ThroughSequence: 3,
+			},
+		},
+	}, nil
 }
 
 func (d *umpire3NexusActivityLinkDriver) Validated() bool {

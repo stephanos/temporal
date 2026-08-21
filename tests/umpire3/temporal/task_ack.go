@@ -139,7 +139,8 @@ func (s *taskAckSession) Realize(
 		return environment.ActionEvidence{}, fmt.Errorf("unsupported Workflow Task action %q", action.Kind)
 	}
 	return environment.ActionEvidence{
-		Source: source, SourceIdentity: source, ClockDomain: source + "-sequence", SourceSequence: s.sequence,
+		Source: source, Outcome: protocol.ActionOutcomeApplied,
+		SourceIdentity: source, ClockDomain: source + "-sequence", SourceSequence: s.sequence,
 		Reference: reference, EntityIdentity: s.identity.WorkflowID,
 		Lineage: []string{s.cluster.Namespace, s.identity.WorkflowID, s.identity.RunID},
 	}, nil

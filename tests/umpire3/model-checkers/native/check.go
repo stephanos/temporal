@@ -12,21 +12,37 @@ import (
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
+type CertificateCheckMeasurement struct {
+	DurationNanos   int64
+	PeakMemoryBytes int64
+}
+
 func CheckCertificate(
 	ctx context.Context,
 	command []string,
 	view protocol.FirstOrderView,
 	certificate Certificate,
 ) (Receipt, error) {
+	receipt, _, err := MeasureCertificateCheck(ctx, command, view, certificate)
+	return receipt, err
+}
+
+func MeasureCertificateCheck(
+	ctx context.Context,
+	command []string,
+	view protocol.FirstOrderView,
+	certificate Certificate,
+) (Receipt, CertificateCheckMeasurement, error) {
 	if len(command) == 0 {
-		return Receipt{}, errors.New("canonical Lean native certificate checker command is required")
+		return Receipt{}, CertificateCheckMeasurement{},
+			errors.New("canonical Lean native certificate checker command is required")
 	}
 	if err := certificate.Validate(view); err != nil {
-		return Receipt{}, err
+		return Receipt{}, CertificateCheckMeasurement{}, err
 	}
 	arguments, err := certificateArguments(certificate)
 	if err != nil {
-		return Receipt{}, err
+		return Receipt{}, CertificateCheckMeasurement{}, err
 	}
 	result, err := process.Run(ctx, process.Request{
 		Command:        append(append([]string(nil), command...), arguments...),
@@ -38,14 +54,17 @@ func CheckCertificate(
 		},
 	})
 	if err != nil {
-		return Receipt{}, fmt.Errorf("run canonical Lean native certificate checker: %w", err)
+		return Receipt{}, CertificateCheckMeasurement{},
+			fmt.Errorf("run canonical Lean native certificate checker: %w", err)
 	}
 	receipt, err := DecodeReceipt(strings.NewReader(string(result.Output)),
 		protocol.DefaultDecodeLimit, certificate)
 	if err != nil {
-		return Receipt{}, err
+		return Receipt{}, CertificateCheckMeasurement{}, err
 	}
-	return receipt, nil
+	return receipt, CertificateCheckMeasurement{
+		DurationNanos: result.DurationNanos, PeakMemoryBytes: result.PeakMemoryBytes,
+	}, nil
 }
 
 func certificateArguments(certificate Certificate) ([]string, error) {

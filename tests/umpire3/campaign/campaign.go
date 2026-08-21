@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"unicode"
 
 	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
@@ -27,6 +28,7 @@ const (
 	CoverageObservation CoverageKind = "observation"
 	CoverageEvidence    CoverageKind = "evidence"
 	CoverageProtobuf    CoverageKind = "protobuf-field-class"
+	CoverageParameter   CoverageKind = "parameter"
 	CoverageFault       CoverageKind = "fault"
 	CoverageSchedule    CoverageKind = "schedule"
 	CoverageTopology    CoverageKind = "topology"
@@ -58,9 +60,7 @@ type Executor func(context.Context, protocol.Experiment) (umpire3runtime.Result,
 
 type Request struct {
 	Candidates       []Candidate
-	BackendResults   []protocol.BackendResult
-	TraceReceipts    []protocol.TraceReplayReceipt
-	TemporalLassos   []protocol.TemporalLassoReplayReceipt
+	Traces           []protocol.SemanticTrace
 	Mutation         *MutationRequest
 	Seed             int64
 	Workers          int
@@ -143,13 +143,7 @@ func Run(ctx context.Context, request Request) (Report, error) {
 	if len(request.Candidates) != 0 {
 		sources++
 	}
-	if len(request.BackendResults) != 0 {
-		sources++
-	}
-	if len(request.TraceReceipts) != 0 {
-		sources++
-	}
-	if len(request.TemporalLassos) != 0 {
+	if len(request.Traces) != 0 {
 		sources++
 	}
 	if request.Mutation != nil {
@@ -174,35 +168,53 @@ func Run(ctx context.Context, request Request) (Report, error) {
 			if err != nil {
 				return Report{}, err
 			}
+			mutationPoint, err := mutationCoverage(mutation.Kind, mutation.Path)
+			if err != nil {
+				return Report{}, err
+			}
+			coverage = normalizeCoverage(append(coverage, mutationPoint))
 			ranked = append(ranked, rankedExperiment{
 				candidateID: string(mutation.Kind) + ":" + mutation.Path,
 				mutation:    mutation.Kind, path: mutation.Path,
 				experiment: mutation.Experiment, digest: mutation.Digest, coverage: coverage,
+				score: campaignScore(coverage, nil, covered, risk), seedOrder: seededOrder(request.Seed, mutation.Digest),
 			})
 		}
 	} else {
 		candidates := append([]Candidate(nil), request.Candidates...)
-		for _, backend := range request.BackendResults {
-			identifier := scenario.ModelTraceIdentifier(backend)
-			authored, err := scenario.FromBackendResult(identifier, backend)
-			if err != nil {
-				return Report{}, fmt.Errorf("compile backend result %q: %w", identifier, err)
+		for _, trace := range request.Traces {
+			identifier := scenario.SemanticTraceIdentifier(trace)
+			if err := trace.Validate(); err != nil {
+				return Report{}, fmt.Errorf("validate semantic trace %q: %w", identifier, err)
 			}
-			candidates = append(candidates, Candidate{Identifier: identifier, Scenario: authored})
-		}
-		for _, receipt := range request.TraceReceipts {
-			identifier := scenario.TraceReceiptIdentifier(receipt)
-			authored, err := scenario.FromTraceReplayReceipt(identifier, receipt)
-			if err != nil {
-				return Report{}, fmt.Errorf("compile checked trace receipt %q: %w", identifier, err)
+			if trace.Kind == protocol.SemanticTraceLive {
+				experiment := *trace.Experiment
+				coverage, err := modelCoverage(experiment)
+				if err != nil {
+					return Report{}, fmt.Errorf("derive semantic trace %q coverage: %w", identifier, err)
+				}
+				digest, err := experiment.Digest()
+				if err != nil {
+					return Report{}, fmt.Errorf("digest semantic trace %q experiment: %w", identifier, err)
+				}
+				if _, duplicate := seenDigests[digest]; duplicate {
+					report.Dropped = append(report.Dropped, Dropped{
+						CandidateID: identifier, Digest: digest, Reason: DropDuplicate,
+						Detail: "compiled experiment digest already ranked",
+					})
+					continue
+				}
+				seenDigests[digest] = struct{}{}
+				ranked = append(ranked, rankedExperiment{
+					candidateID: identifier, experiment: experiment, digest: digest,
+					coverage: coverage, score: campaignScore(coverage, nil, covered, risk),
+					seedOrder: seededOrder(request.Seed, digest),
+				})
+				continue
 			}
-			candidates = append(candidates, Candidate{Identifier: identifier, Scenario: authored})
-		}
-		for _, receipt := range request.TemporalLassos {
-			identifier := scenario.TemporalLassoIdentifier(receipt)
-			authored, err := scenario.FromTemporalLassoReplayReceipt(identifier, receipt)
+			authored, err := scenario.FromSemanticTrace(identifier, trace)
 			if err != nil {
-				return Report{}, fmt.Errorf("compile checked temporal lasso %q: %w", identifier, err)
+				return Report{}, fmt.Errorf("compile semantic trace %q: %w", identifier, err)
 			}
 			candidates = append(candidates, Candidate{Identifier: identifier, Scenario: authored})
 		}
@@ -239,19 +251,19 @@ func Run(ctx context.Context, request Request) (Report, error) {
 				})
 			}
 		}
-		slices.SortFunc(ranked, func(left, right rankedExperiment) int {
-			if left.score != right.score {
-				return right.score - left.score
-			}
-			if left.seedOrder < right.seedOrder {
-				return -1
-			}
-			if left.seedOrder > right.seedOrder {
-				return 1
-			}
-			return compare(left.digest, right.digest)
-		})
 	}
+	slices.SortFunc(ranked, func(left, right rankedExperiment) int {
+		if left.score != right.score {
+			return right.score - left.score
+		}
+		if left.seedOrder < right.seedOrder {
+			return -1
+		}
+		if left.seedOrder > right.seedOrder {
+			return 1
+		}
+		return compare(left.digest, right.digest)
+	})
 	if len(ranked) > request.MaxExecutions {
 		for _, candidate := range ranked[request.MaxExecutions:] {
 			report.Dropped = append(report.Dropped, Dropped{
@@ -405,33 +417,20 @@ func promotionSource(experiment protocol.Experiment) (string, error) {
 	var source strings.Builder
 	source.WriteString("package umpire3promotion\n\n")
 	source.WriteString("import (\n")
-	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/scenario\"\n")
 	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/execution\"\n")
-	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/protocol\"\n")
+	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/scenario\"\n")
 	source.WriteString("\t\"go.temporal.io/server/tests/umpire3/umpire3test\"\n")
 	source.WriteString(")\n\n")
 	source.WriteString("func RequirePromoted(t umpire3test.TestingT, factory execution.Factory) {\n")
-	source.WriteString("\tscenario := scenario.Scenario{\n")
-	fmt.Fprintf(&source, "\t\tIdentifier: %q,\n", experiment.ExperimentID+"-promoted")
-	fmt.Fprintf(&source, "\t\tTarget: protocol.TargetID(%q),\n", target)
-	source.WriteString("\t\tResources: []scenario.Resource{\n")
+	fmt.Fprintf(&source, "\tauthored := scenario.%sRegression(%q, []scenario.Resource{\n",
+		facadeIdentifier(string(target)), experiment.ExperimentID+"-promoted")
 	for _, resource := range experiment.Resources {
-		fmt.Fprintf(&source, "\t\t\t{Identifier: %q, Kind: protocol.EntityKind(%q)},\n", resource.Identifier, resource.Kind)
+		fmt.Fprintf(&source, "\t\tscenario.%s(%q),\n", facadeIdentifier(string(resource.Kind)), resource.Identifier)
 	}
-	source.WriteString("\t\t},\n")
-	fmt.Fprintf(&source, "\t\tRoot: scenario.OnePath(%s, scenario.Require(protocol.PropertyID(%q))),\n",
-		root, experiment.Property.Identifier)
-	source.WriteString("\t}\n")
-	source.WriteString("\tumpire3test.RequireRegression(t, scenario, umpire3test.WithEnvironment(factory))\n")
+	fmt.Fprintf(&source, "\t}, scenario.OnePath(%s, scenario.Require%s()))\n",
+		root, facadeIdentifier(experiment.Property.Identifier))
+	source.WriteString("\tumpire3test.RequireRegression(t, authored, umpire3test.WithEnvironment(factory))\n")
 	source.WriteString("}\n")
-	source.WriteString("\nfunc textValue(kind protocol.ValueType, value string) protocol.Value {\n")
-	source.WriteString("\treturn protocol.Value{Type: kind, Text: &value}\n}\n")
-	source.WriteString("\nfunc integerValue(kind protocol.ValueType, value int64) protocol.Value {\n")
-	source.WriteString("\treturn protocol.Value{Type: kind, Integer: &value}\n}\n")
-	source.WriteString("\nfunc booleanValue(value bool) protocol.Value {\n")
-	source.WriteString("\treturn protocol.Value{Type: protocol.ValueBoolean, Boolean: &value}\n}\n")
-	source.WriteString("\nfunc enumValue(name string, number int64) protocol.Value {\n")
-	source.WriteString("\treturn protocol.Value{Type: protocol.ValueEnum, Text: &name, Integer: &number}\n}\n")
 	formatted, err := format.Source([]byte(source.String()))
 	if err != nil {
 		return "", fmt.Errorf("format promoted regression: %w", err)
@@ -517,90 +516,236 @@ func renderPromotionInterval(
 			childIndex++
 			continue
 		}
-		terms = append(terms, renderPromotionAction(experiment.Actions[index]))
+		action, err := renderPromotionAction(experiment.Actions[index])
+		if err != nil {
+			return "", err
+		}
+		terms = append(terms, action)
 		index++
 	}
 	body := "scenario.OnePath(" + strings.Join(terms, ", ") + ")"
 	if synthetic {
 		return body, nil
 	}
-	return "scenario.During(scenario.ConfiguredFault(" + renderPromotionFault(interval.fault) + "), " + body + ")", nil
+	fault, err := renderPromotionFault(interval.fault, experiment)
+	if err != nil {
+		return "", err
+	}
+	return "scenario.During(" + fault + ", " + body + ")", nil
 }
 
-func renderPromotionAction(action protocol.Action) string {
-	options := make([]string, len(action.Arguments))
-	for index, argument := range action.Arguments {
-		options[index] = fmt.Sprintf("scenario.WithArgument(%q, %s)", argument.Name, renderPromotionValue(argument.Value))
+func renderPromotionAction(action protocol.Action) (string, error) {
+	options := make([]string, 0, len(action.Arguments)+2)
+	for _, argument := range action.Arguments {
+		option, err := renderPromotionActionArgument(action, argument)
+		if err != nil {
+			return "", err
+		}
+		options = append(options, option)
 	}
-	arguments := []string{fmt.Sprintf("%q", action.Identifier), fmt.Sprintf("protocol.ActionKind(%q)", action.Kind)}
+	if len(action.AllowedOutcomes) != 0 {
+		outcomes := make([]string, len(action.AllowedOutcomes))
+		for index, outcome := range action.AllowedOutcomes {
+			name, err := promotionOutcomeName(outcome)
+			if err != nil {
+				return "", fmt.Errorf("action %q: %w", action.Identifier, err)
+			}
+			outcomes[index] = "scenario." + name
+		}
+		options = append(options, "scenario.Outcomes("+strings.Join(outcomes, ", ")+")")
+	}
+	switch action.EffectiveResponseMode() {
+	case protocol.ResponseSynchronous:
+	case protocol.ResponseAsynchronous:
+		options = append(options, "scenario.Asynchronously()")
+	case protocol.ResponseDeferred:
+		options = append(options, "scenario.Deferred()")
+	case protocol.ResponseBlocking:
+		options = append(options, fmt.Sprintf("scenario.BlockingFor(%d)", action.MaxBlockNanos))
+	case protocol.ResponseFailure:
+		options = append(options, "scenario.FailingResponse()")
+	default:
+		return "", fmt.Errorf("action %q has unsupported response mode %q", action.Identifier, action.ResponseMode)
+	}
+	arguments := []string{fmt.Sprintf("%q", action.Identifier)}
 	arguments = append(arguments, options...)
-	actionTerm := "scenario.Action(" + strings.Join(arguments, ", ") + ")"
+	actionTerm := "scenario." + facadeIdentifier(action.Kind) + "(" + strings.Join(arguments, ", ") + ")"
 	if len(action.Bindings) == 0 {
-		return actionTerm
+		return actionTerm, nil
 	}
 	terms := []string{actionTerm}
 	for _, binding := range action.Bindings {
+		if binding.Type != string(protocol.SemanticTypeIDIdentity) {
+			return "", fmt.Errorf("action %q binding %q has unsupported promoted type %q",
+				action.Identifier, binding.Symbol, binding.Type)
+		}
 		terms = append(terms, fmt.Sprintf(
-			"scenario.Bind(scenario.Symbol{Name: %q, Type: protocol.SemanticTypeID(%q)}, scenario.Project(%q, %q, protocol.SemanticTypeID(%q)))",
-			binding.Symbol, binding.Type, action.Identifier, binding.Projection, binding.Type))
+			"scenario.BindIdentity(scenario.Identity(%q), %q, %q)",
+			binding.Symbol, action.Identifier, binding.Projection))
 	}
-	return "scenario.OnePath(" + strings.Join(terms, ", ") + ")"
+	return "scenario.OnePath(" + strings.Join(terms, ", ") + ")", nil
 }
 
-func renderPromotionValue(value protocol.Value) string {
-	switch value.Type {
-	case protocol.ValueString, protocol.ValueDuration, protocol.ValueBytesDigest, protocol.ValueSymbol:
-		if value.Type == protocol.ValueDuration {
-			return fmt.Sprintf("integerValue(protocol.ValueType(%q), %d)", value.Type, valueOrZero(value.Integer))
+func renderPromotionActionArgument(action protocol.Action, argument protocol.NamedValue) (string, error) {
+	catalog, err := protocol.DefaultCatalog()
+	if err != nil {
+		return "", err
+	}
+	declaration, found := catalog.Action(action.Kind)
+	if !found {
+		return "", fmt.Errorf("action %q has unknown kind %q", action.Identifier, action.Kind)
+	}
+	for _, parameter := range declaration.Parameters {
+		if parameter.Name != argument.Name {
+			continue
 		}
-		return fmt.Sprintf("textValue(protocol.ValueType(%q), %q)", value.Type, textOrEmpty(value.Text))
+		name := "scenario.With" + facadeIdentifier(parameter.Name)
+		switch parameter.Type {
+		case "string":
+			if argument.Value.Type != protocol.ValueString || argument.Value.Text == nil {
+				return "", fmt.Errorf("action %q parameter %q requires a string", action.Identifier, argument.Name)
+			}
+			return fmt.Sprintf("%s(%q)", name, *argument.Value.Text), nil
+		case "identity":
+			if argument.Value.Type != protocol.ValueSymbol || argument.Value.Text == nil {
+				return "", fmt.Errorf("action %q parameter %q requires an identity symbol", action.Identifier, argument.Name)
+			}
+			return fmt.Sprintf("%s(scenario.Identity(%q))", name, *argument.Value.Text), nil
+		default:
+			return "", fmt.Errorf("action %q parameter %q has unsupported facade type %q",
+				action.Identifier, argument.Name, parameter.Type)
+		}
+	}
+	return "", fmt.Errorf("action %q has undeclared argument %q", action.Identifier, argument.Name)
+}
+
+func renderPromotionValue(value protocol.Value) (string, error) {
+	switch value.Type {
+	case protocol.ValueString:
+		return fmt.Sprintf("scenario.String(%q)", textOrEmpty(value.Text)), nil
 	case protocol.ValueInteger:
-		return fmt.Sprintf("integerValue(protocol.ValueInteger, %d)", valueOrZero(value.Integer))
+		return fmt.Sprintf("scenario.Integer(%d)", valueOrZero(value.Integer)), nil
 	case protocol.ValueBoolean:
-		return fmt.Sprintf("booleanValue(%t)", boolOrFalse(value.Boolean))
+		return fmt.Sprintf("scenario.Boolean(%t)", boolOrFalse(value.Boolean)), nil
+	case protocol.ValueDuration:
+		return fmt.Sprintf("scenario.Duration(%d)", valueOrZero(value.Integer)), nil
 	case protocol.ValueEnum:
-		return fmt.Sprintf("enumValue(%q, %d)", textOrEmpty(value.Text), valueOrZero(value.Integer))
+		return fmt.Sprintf("scenario.Enum(%q, %d)", textOrEmpty(value.Text), valueOrZero(value.Integer)), nil
+	case protocol.ValueBytesDigest:
+		return fmt.Sprintf("scenario.BytesDigest(%q)", textOrEmpty(value.Text)), nil
+	case protocol.ValueSymbol:
+		return fmt.Sprintf("scenario.SymbolValue(scenario.Identity(%q))", textOrEmpty(value.Text)), nil
 	case protocol.ValueList:
 		elements := make([]string, len(value.Elements))
 		for index, element := range value.Elements {
-			elements[index] = renderPromotionValue(element)
+			rendered, err := renderPromotionValue(element)
+			if err != nil {
+				return "", err
+			}
+			elements[index] = rendered
 		}
-		return "protocol.Value{Type: protocol.ValueList, Elements: []protocol.Value{" + strings.Join(elements, ", ") + "}}"
+		return "scenario.List(" + strings.Join(elements, ", ") + ")", nil
 	case protocol.ValueRecord:
 		fields := make([]string, len(value.Fields))
 		for index, field := range value.Fields {
-			fields[index] = fmt.Sprintf("{Name: %q, Value: %s}", field.Name, renderPromotionValue(field.Value))
+			rendered, err := renderPromotionValue(field.Value)
+			if err != nil {
+				return "", err
+			}
+			fields[index] = fmt.Sprintf("scenario.Named(%q, %s)", field.Name, rendered)
 		}
-		return "protocol.Value{Type: protocol.ValueRecord, Fields: []protocol.NamedValue{" + strings.Join(fields, ", ") + "}}"
+		return "scenario.Record(" + strings.Join(fields, ", ") + ")", nil
 	default:
-		return "protocol.Value{}"
+		return "", fmt.Errorf("unsupported promoted value type %q", value.Type)
 	}
 }
 
-func renderPromotionFault(fault protocol.Fault) string {
-	return fmt.Sprintf(`protocol.Fault{
-		Identifier: %q, Kind: %q, Policy: %q, SafetyClass: %q,
-		Scope: protocol.FaultScope{Resources: %#v, Endpoints: %#v, TaskQueues: %#v, Services: %#v, Routes: %#v, Participants: %#v, Attempts: %#v},
-		Occurrence: protocol.FaultOccurrence{First: %d, Count: %d},
-		Interval: protocol.FaultInterval{StartAction: %q, StopAction: %q},
-		Arguments: %s, RequiredCapabilities: %#v,
-	}`,
-		fault.Identifier, fault.Kind, fault.Policy, fault.SafetyClass,
-		fault.Scope.Resources, fault.Scope.Endpoints, fault.Scope.TaskQueues, fault.Scope.Services,
-		fault.Scope.Routes, fault.Scope.Participants, fault.Scope.Attempts,
-		fault.Occurrence.First, fault.Occurrence.Count, fault.Interval.StartAction, fault.Interval.StopAction,
-		renderPromotionNamedValues(fault.Arguments), fault.RequiredCapabilities)
+func renderPromotionFault(fault protocol.Fault, experiment protocol.Experiment) (string, error) {
+	catalog, err := protocol.DefaultCatalog()
+	if err != nil {
+		return "", err
+	}
+	if _, found := catalog.Fault(fault.Kind); !found {
+		return "", fmt.Errorf("fault %q has unknown kind %q", fault.Identifier, fault.Kind)
+	}
+	options := make([]string, 0, 8+len(fault.Arguments))
+	if len(fault.Scope.Resources) != 0 {
+		resources, err := renderPromotionResources(fault.Scope.Resources, experiment.Resources)
+		if err != nil {
+			return "", fmt.Errorf("fault %q: %w", fault.Identifier, err)
+		}
+		options = append(options, "scenario.OnResources("+strings.Join(resources, ", ")+")")
+	}
+	appendStrings := func(name string, values []string) {
+		if len(values) == 0 {
+			return
+		}
+		options = append(options, "scenario."+name+"("+joinQuoted(values)+")")
+	}
+	appendStrings("OnEndpoints", fault.Scope.Endpoints)
+	appendStrings("OnTaskQueues", fault.Scope.TaskQueues)
+	appendStrings("OnServices", fault.Scope.Services)
+	appendStrings("OnRoutes", fault.Scope.Routes)
+	appendStrings("OnParticipants", fault.Scope.Participants)
+	if len(fault.Scope.Attempts) != 0 {
+		attempts := make([]string, len(fault.Scope.Attempts))
+		for index, attempt := range fault.Scope.Attempts {
+			attempts[index] = fmt.Sprint(attempt)
+		}
+		options = append(options, "scenario.OnAttempts("+strings.Join(attempts, ", ")+")")
+	}
+	options = append(options, fmt.Sprintf("scenario.AtOccurrence(%d, %d)",
+		fault.Occurrence.First, fault.Occurrence.Count))
+	for _, argument := range fault.Arguments {
+		value, err := renderPromotionValue(argument.Value)
+		if err != nil {
+			return "", fmt.Errorf("fault %q argument %q: %w", fault.Identifier, argument.Name, err)
+		}
+		options = append(options, fmt.Sprintf("scenario.WithFaultValue(%q, %s)", argument.Name, value))
+	}
+	arguments := append([]string{fmt.Sprintf("%q", fault.Identifier)}, options...)
+	return "scenario." + facadeIdentifier(fault.Kind) + "(" + strings.Join(arguments, ", ") + ")", nil
 }
 
-func renderPromotionNamedValues(values []protocol.NamedValue) string {
-	if len(values) == 0 {
-		return "nil"
+func renderPromotionResources(identifiers []string, resources []protocol.Resource) ([]string, error) {
+	byIdentifier := make(map[string]protocol.Resource, len(resources))
+	for _, resource := range resources {
+		byIdentifier[resource.Identifier] = resource
 	}
-	result := make([]string, len(values))
+	result := make([]string, len(identifiers))
+	for index, identifier := range identifiers {
+		resource, found := byIdentifier[identifier]
+		if !found {
+			return nil, fmt.Errorf("scope references unknown resource %q", identifier)
+		}
+		result[index] = fmt.Sprintf("scenario.%s(%q)", facadeIdentifier(string(resource.Kind)), identifier)
+	}
+	return result, nil
+}
+
+func joinQuoted(values []string) string {
+	quoted := make([]string, len(values))
 	for index, value := range values {
-		result[index] = fmt.Sprintf("{Name: %q, Value: %s}", value.Name, renderPromotionValue(value.Value))
+		quoted[index] = fmt.Sprintf("%q", value)
 	}
-	return "[]protocol.NamedValue{" + strings.Join(result, ", ") + "}"
+	return strings.Join(quoted, ", ")
+}
+
+func promotionOutcomeName(outcome protocol.ActionOutcome) (string, error) {
+	switch outcome {
+	case protocol.ActionOutcomeApplied:
+		return "Applied", nil
+	case protocol.ActionOutcomeSuppressed:
+		return "Suppressed", nil
+	case protocol.ActionOutcomeRejected:
+		return "Rejected", nil
+	case protocol.ActionOutcomeRetried:
+		return "Retried", nil
+	case protocol.ActionOutcomeFaultIntercepted:
+		return "FaultIntercepted", nil
+	default:
+		return "", fmt.Errorf("unsupported action outcome %q", outcome)
+	}
 }
 
 func textOrEmpty(value *string) string {
@@ -626,8 +771,15 @@ func targetForExperiment(experiment protocol.Experiment) protocol.TargetID {
 	if err != nil {
 		return ""
 	}
+	boundTarget := protocol.TargetID("")
+	if strings.HasPrefix(experiment.Provenance.ProofManifest, "composition:") {
+		boundTarget = protocol.TargetID(strings.TrimPrefix(experiment.Provenance.ProofManifest, "composition:"))
+	}
 	var candidates []protocol.TargetID
 	for _, target := range composition.Targets {
+		if boundTarget != "" && target.Identifier != boundTarget {
+			continue
+		}
 		if slices.Contains(target.Properties, protocol.PropertyID(experiment.Property.Identifier)) {
 			modules := make([]string, len(target.Modules))
 			for index, module := range target.Modules {
@@ -652,6 +804,22 @@ func targetForExperiment(experiment protocol.Experiment) protocol.TargetID {
 		return candidates[0]
 	}
 	return ""
+}
+
+func facadeIdentifier(value string) string {
+	parts := strings.FieldsFunc(value, func(character rune) bool {
+		return !unicode.IsLetter(character) && !unicode.IsNumber(character)
+	})
+	var result strings.Builder
+	for _, part := range parts {
+		characters := []rune(part)
+		if len(characters) == 0 {
+			continue
+		}
+		result.WriteRune(unicode.ToUpper(characters[0]))
+		result.WriteString(string(characters[1:]))
+	}
+	return result.String()
 }
 
 func campaignScore(candidateCoverage, candidateRisk []CoveragePoint, covered, risk map[CoveragePoint]struct{}) int {

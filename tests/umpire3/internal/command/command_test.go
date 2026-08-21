@@ -1,12 +1,16 @@
 package command
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/campaign"
 	"go.temporal.io/server/tests/umpire3/execution"
 	"go.temporal.io/server/tests/umpire3/protocol"
 	"go.temporal.io/server/tests/umpire3/qualification"
@@ -26,8 +30,39 @@ func TestExplainUsesStableDiagnosticData(t *testing.T) {
 	require.NotEmpty(t, value.ExperimentDigest)
 }
 
+func TestMutationAuditWritesAndChecksSourceBoundReport(t *testing.T) {
+	output := filepath.Join(t.TempDir(), "mutation-audit.json")
+	value, err := execute(context.Background(), []string{
+		"audit-mutation", "-experiment", "../../testdata/nexus-cancellation.json", "-output", output,
+	})
+	require.NoError(t, err)
+	report, ok := value.(campaign.MutationGateReport)
+	require.True(t, ok)
+	experimentBytes, err := os.ReadFile("../../testdata/nexus-cancellation.json")
+	require.NoError(t, err)
+	experiment, err := protocol.DecodeExperiment(bytes.NewReader(experimentBytes), protocol.DefaultDecodeLimit)
+	require.NoError(t, err)
+	encoded, err := os.ReadFile(output)
+	require.NoError(t, err)
+	retained, err := campaign.DecodeMutationGateReport(encoded, experiment)
+	require.NoError(t, err)
+	require.Equal(t, report, retained)
+
+	_, err = execute(context.Background(), []string{
+		"audit-mutation", "-experiment", "../../testdata/nexus-cancellation.json",
+		"-output", output, "-check",
+	})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(output, append(encoded, []byte("{}")...), 0o600))
+	_, err = execute(context.Background(), []string{
+		"audit-mutation", "-experiment", "../../testdata/nexus-cancellation.json",
+		"-output", output, "-check",
+	})
+	require.ErrorContains(t, err, "trailing JSON")
+}
+
 func TestCommandsFailBeforeAllocationWhenRequiredInputsAreMissing(t *testing.T) {
-	for _, command := range []string{"run", "replay", "campaign", "qualify"} {
+	for _, command := range []string{"run", "replay", "campaign", "audit-mutation", "qualify", "promote"} {
 		_, err := execute(context.Background(), []string{command})
 		require.Error(t, err, command)
 	}
@@ -35,7 +70,8 @@ func TestCommandsFailBeforeAllocationWhenRequiredInputsAreMissing(t *testing.T) 
 
 func TestUnknownCommandListsStableSurface(t *testing.T) {
 	_, err := execute(context.Background(), []string{"unknown"})
-	require.EqualError(t, err, `unknown command "unknown": expected explain, run, replay, campaign, or qualify`)
+	require.EqualError(t, err,
+		`unknown command "unknown": expected explain, run, replay, campaign, audit-mutation, qualify, or promote`)
 }
 
 func TestRunDispatchesThroughInjectedBackend(t *testing.T) {
@@ -80,9 +116,24 @@ func TestSubcommandFlagsRemainStable(t *testing.T) {
 			error: "experiment path is required",
 		},
 		{
+			name: "audit-mutation",
+			arguments: []string{
+				"audit-mutation", "-experiment", "", "-output", "audit.json",
+			},
+			error: "experiment path is required",
+		},
+		{
 			name: "qualify",
 			arguments: []string{
 				"qualify", "-release", "", "-experiment", "", "-result", "", "-profile", "remote-deployment",
+				"-output", "receipt.json",
+			},
+			error: "release path is required",
+		},
+		{
+			name: "promote",
+			arguments: []string{
+				"promote", "-release", "", "-receipt", "receipt.json", "-output", "qualified.json",
 			},
 			error: "release path is required",
 		},

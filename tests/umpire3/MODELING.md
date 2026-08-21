@@ -15,3 +15,9 @@ Selected protobuf structure comes recursively from
 `model/Temporal/API/selection.json`. Every selected field receives a generated disposition and fuzz
 class. Product meaning belongs in an interpretation module and must be backed by conformance
 fixtures. Descriptor presence is not semantic interpretation.
+
+Run one affected family with `make umpire3-check-family FAMILY=<catalog-target>`. The generated family
+dependency graph selects its Lean modules and mutation tests, exact view, proof and fixture drift,
+and any native, Lean-temporal, or Veil checks that the family actually owns. Veil declarations are
+ordinary Lean source in this primary Lake project, not generated backend source. TLA+, TLC, and
+Apalache are quarantined experiments and are not installed or run by this command.

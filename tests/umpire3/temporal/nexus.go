@@ -137,6 +137,7 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, bind
 	}
 	evidence := environment.ActionEvidence{
 		Source:         "temporal-test-cluster",
+		Outcome:        protocol.ActionOutcomeApplied,
 		SourceIdentity: "temporal-test-cluster",
 		ClockDomain:    "temporal-test-cluster-sequence",
 		Reference:      s.cluster.Namespace + "/" + referenceID + "/" + action.Identifier,
@@ -233,6 +234,8 @@ func (s *nexusSession) Realize(ctx context.Context, action protocol.Action, bind
 		if stale && visible {
 			s.staleVisible = true
 			s.appendSuccessFact()
+		} else if stale {
+			evidence.Outcome = protocol.ActionOutcomeSuppressed
 		}
 		s.appendClosedWindow()
 		if s.transport != nil {

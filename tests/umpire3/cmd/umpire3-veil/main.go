@@ -23,11 +23,10 @@ func main() {
 func run(arguments []string) error {
 	flags := flag.NewFlagSet("umpire3-veil", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	operation := flags.String("operation", "generate", "generate or check")
-	input := flags.String("input", "", "path to a FirstOrderView/v1 artifact")
+	operation := flags.String("operation", "", "check-concrete or check-job")
+	input := flags.String("input", "", "path to a FirstOrderView/v2 artifact")
+	bindingPath := flags.String("binding", "", "path to a checked Veil binding artifact")
 	output := flags.String("output", "", "path for generated output")
-	mode := flags.String("mode", string(veil.Interactive), "Veil job mode")
-	trust := flags.String("smt-trust", string(veil.ReconstructedSMT), "SMT trust mode")
 	backendCommand := flags.String("backend-command", "", "path to the Veil concrete checker executable")
 	replayCommand := flags.String("replay-command", "", "path to the canonical Lean replay executable")
 	job := flags.String("job", "", "symbolic-trace or invariant Veil job")
@@ -38,6 +37,9 @@ func run(arguments []string) error {
 	if flags.NArg() != 0 {
 		return errors.New("unexpected positional arguments")
 	}
+	if *operation != "check-concrete" && *operation != "check-job" {
+		return fmt.Errorf("unknown operation %q", *operation)
+	}
 	if *input == "" || *output == "" {
 		return errors.New("input and output are required")
 	}
@@ -47,17 +49,11 @@ func run(arguments []string) error {
 	}
 
 	switch *operation {
-	case "generate":
-		generated, err := veil.GenerateWithTrust(view, veil.Mode(*mode), veil.SMTTrustMode(*trust))
-		if err != nil {
-			return err
-		}
-		return writeOutput(*output, generated.Source)
 	case "check-concrete":
 		if *backendCommand == "" {
 			return errors.New("backend-command is required for a checked Veil concrete job")
 		}
-		generated, err := veil.Generate(view, veil.Concrete)
+		binding, err := readBinding(*bindingPath)
 		if err != nil {
 			return err
 		}
@@ -66,7 +62,7 @@ func run(arguments []string) error {
 			replay = []string{*replayCommand}
 		}
 		result, err := veil.CheckConcrete(context.Background(), []string{*backendCommand}, replay,
-			view, generated)
+			view, binding)
 		if err != nil {
 			return err
 		}
@@ -75,19 +71,18 @@ func run(arguments []string) error {
 		if *jobCommand == "" {
 			return errors.New("job-command is required for a checked Veil job")
 		}
-		generated, err := veil.GenerateWithTrust(view, veil.Interactive, veil.SMTTrustMode(*trust))
+		binding, err := readBinding(*bindingPath)
 		if err != nil {
 			return err
 		}
-		result, err := veil.RunJob(context.Background(), []string{*jobCommand}, view, generated,
+		result, err := veil.RunJob(context.Background(), []string{*jobCommand}, view, binding,
 			protocol.BackendJob(*job))
 		if err != nil {
 			return err
 		}
 		return writeBackendResult(*output, result)
-	default:
-		return fmt.Errorf("unknown operation %q", *operation)
 	}
+	return nil
 }
 
 func writeBackendResult(path string, result protocol.BackendResult) error {
@@ -109,6 +104,22 @@ func readFirstOrderView(path string) (protocol.FirstOrderView, error) {
 		return protocol.FirstOrderView{}, fmt.Errorf("decode first-order view: %w", errors.Join(decodeErr, closeErr))
 	}
 	return view, nil
+}
+
+func readBinding(path string) (veil.BindingArtifact, error) {
+	if path == "" {
+		return veil.BindingArtifact{}, errors.New("binding is required for a checked Veil job")
+	}
+	input, err := os.Open(path)
+	if err != nil {
+		return veil.BindingArtifact{}, fmt.Errorf("open Veil binding: %w", err)
+	}
+	binding, decodeErr := veil.DecodeBindingArtifact(input, protocol.DefaultDecodeLimit)
+	closeErr := input.Close()
+	if decodeErr != nil || closeErr != nil {
+		return veil.BindingArtifact{}, fmt.Errorf("decode Veil binding: %w", errors.Join(decodeErr, closeErr))
+	}
+	return binding, nil
 }
 
 func writeOutput(path string, value []byte) error {

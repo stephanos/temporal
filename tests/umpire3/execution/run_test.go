@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"os"
+	"slices"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 	"go.temporal.io/server/tests/umpire3/scenario"
 )
@@ -27,22 +29,52 @@ type footprintFactory struct {
 	report umpire3fault.Report
 }
 
+func TestActionRateWaitHonorsCancellation(t *testing.T) {
+	previous := time.Now()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	require.ErrorIs(t, waitForActionRate(ctx, &previous, 1), context.Canceled)
+}
+
 func (f *footprintFactory) FootprintReport() (umpire3fault.Report, error) {
 	return f.report, nil
 }
 
-type corroboratingFakeSession struct {
+type corroboratingFactFakeSession struct {
 	*fakeSession
-	observations map[string][]Observation
-	err          error
+	facts         map[string][]observation.Fact
+	corroborating map[string][][]observation.Fact
+	err           error
 }
 
-func (s *corroboratingFakeSession) Corroborate(
+type factFakeSession struct {
+	*fakeSession
+	facts map[string][]observation.Fact
+}
+
+func (s *factFakeSession) ObserveFacts(
 	_ context.Context,
 	checkpoint protocol.Checkpoint,
 	_ Bindings,
-) ([]Observation, error) {
-	return s.observations[checkpoint.Identifier], s.err
+) ([]observation.Fact, error) {
+	return s.facts[checkpoint.Identifier], nil
+}
+
+func (s *corroboratingFactFakeSession) ObserveFacts(
+	_ context.Context,
+	checkpoint protocol.Checkpoint,
+	_ Bindings,
+) ([]observation.Fact, error) {
+	return s.facts[checkpoint.Identifier], nil
+}
+
+func (s *corroboratingFactFakeSession) CorroborateFacts(
+	_ context.Context,
+	checkpoint protocol.Checkpoint,
+	_ Bindings,
+) ([][]observation.Fact, error) {
+	return s.corroborating[checkpoint.Identifier], s.err
 }
 
 func (f *fakeFactory) Capabilities() []protocol.CapabilityID {
@@ -83,16 +115,84 @@ func (s *fakeSession) Realize(ctx context.Context, action protocol.Action, _ Bin
 		return evidence, s.realizeErr[action.Kind]
 	}
 	return ActionEvidence{
-		Source: "fake", Reference: action.Identifier, GroundedBindings: s.groundings[action.Identifier],
+		Source: "fake", Outcome: protocol.ActionOutcomeApplied, Reference: action.Identifier,
+		GroundedBindings: s.groundings[action.Identifier],
 	}, s.realizeErr[action.Kind]
 }
 
-func (s *fakeSession) Observe(_ context.Context, checkpoint protocol.Checkpoint, _ Bindings) (Observation, error) {
-	observation, ok := s.observations[checkpoint.Identifier]
+func (s *fakeSession) ObserveFacts(
+	_ context.Context,
+	checkpoint protocol.Checkpoint,
+	_ Bindings,
+) ([]observation.Fact, error) {
+	observed, ok := s.observations[checkpoint.Identifier]
 	if !ok {
-		return Observation{}, ErrObservationUnavailable
+		return nil, ErrObservationUnavailable
 	}
-	return observation, nil
+	return fakeObservationFacts(checkpoint, observed), nil
+}
+
+func fakeObservationFacts(checkpoint protocol.Checkpoint, observed Observation) []observation.Fact {
+	if !observed.Satisfied && checkpoint.Observation != "stale-success-absent" {
+		return nil
+	}
+	causalReferences := append([]string(nil), observed.CausalReferences...)
+	if observed.CausalReference != "" && !slices.Contains(causalReferences, observed.CausalReference) {
+		causalReferences = append(causalReferences, observed.CausalReference)
+	}
+	sourceIdentity := observed.SourceIdentity
+	if sourceIdentity == "" {
+		sourceIdentity = observed.Source
+	}
+	fact := observation.Fact{
+		Identifier: "fact/" + checkpoint.Identifier,
+		Source: observation.Source{
+			Identity: sourceIdentity, ClockDomain: observed.ClockDomain,
+			Sequence: observed.SourceSequence, Reference: observed.Reference,
+			CausalReferences: causalReferences, EntityIdentity: observed.EntityIdentity,
+			Lineage: append([]string(nil), observed.Lineage...), PayloadDigest: observed.PayloadDigest,
+		},
+	}
+	switch checkpoint.Observation {
+	case "cancellation-accepted":
+		fact.History = &observation.HistoryEvent{
+			EventType: observation.NexusCancellationAccepted,
+			EventID:   fact.Source.Sequence, OperationID: observed.EntityIdentity,
+		}
+	case "cancellation-won":
+		fact.History = &observation.HistoryEvent{
+			EventType: observation.NexusCancellationCommitted,
+			EventID:   fact.Source.Sequence, OperationID: observed.EntityIdentity,
+		}
+	case "stale-success-absent":
+		if observed.Satisfied {
+			fact.Window = &observation.EvidenceWindow{
+				Purpose: observation.NexusCancellationWindow,
+				Closed:  true, ThroughSequence: fact.Source.Sequence,
+			}
+		} else {
+			ownerEpoch, currentOwnerEpoch, cancellationCommitted := int64(1), int64(2), true
+			fact.History = &observation.HistoryEvent{
+				EventType: observation.NexusSuccessRecorded,
+				EventID:   fact.Source.Sequence, OperationID: observed.EntityIdentity,
+				OwnerEpoch: &ownerEpoch, CurrentOwnerEpoch: &currentOwnerEpoch,
+				CancellationCommitted: &cancellationCommitted,
+			}
+		}
+	case "update-accepted":
+		fact.History = &observation.HistoryEvent{
+			EventType: observation.WorkflowUpdateAccepted,
+			EventID:   fact.Source.Sequence, WorkflowID: observed.EntityIdentity, RunID: "run",
+		}
+	case "update-completed":
+		fact.History = &observation.HistoryEvent{
+			EventType: observation.WorkflowUpdateCompleted,
+			EventID:   fact.Source.Sequence, WorkflowID: observed.EntityIdentity, RunID: "run",
+		}
+	default:
+		return nil
+	}
+	return []observation.Fact{fact}
 }
 
 func (s *fakeSession) Cleanup(context.Context) CleanupResult {
@@ -127,7 +227,10 @@ func TestMissingCapabilitiesIncludesFaultRequirements(t *testing.T) {
 
 func TestRunRejectsDeclaredFaultWithoutRealizer(t *testing.T) {
 	experiment := loadExperiment(t)
-	session := conformingSession(experiment)
+	session := &factFakeSession{
+		fakeSession: conformingSession(experiment),
+		facts:       cancellationFacts(experiment, "public-history"),
+	}
 	session.faultRealizer = nil
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
@@ -163,11 +266,12 @@ func TestRunRealizesFaultOverDeclaredActionInterval(t *testing.T) {
 
 func TestResultAssuranceIsDerivedFromFinalClaim(t *testing.T) {
 	for _, test := range []struct {
-		claim       ClaimKind
-		resultClass protocol.ResultClass
+		claim         ClaimKind
+		resultClass   protocol.ResultClass
+		requiresTrace bool
 	}{
 		{claim: ClaimConforming, resultClass: protocol.ResultClassImplementationConforming},
-		{claim: ClaimViolating, resultClass: protocol.ResultClassTraceWitness},
+		{claim: ClaimViolating, resultClass: protocol.ResultClassTraceWitness, requiresTrace: true},
 		{claim: ClaimUnsupported, resultClass: protocol.ResultClassUnknown},
 		{claim: ClaimInconclusive, resultClass: protocol.ResultClassUnknown},
 		{claim: ClaimEvidenceFailure, resultClass: protocol.ResultClassUnknown},
@@ -177,7 +281,11 @@ func TestResultAssuranceIsDerivedFromFinalClaim(t *testing.T) {
 			finalizeAssurance(&result)
 			require.Equal(t, test.resultClass, result.ResultClass)
 			require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
-			require.NoError(t, result.ValidateAssurance())
+			if test.requiresTrace {
+				require.ErrorContains(t, result.ValidateAssurance(), "semantic trace")
+			} else {
+				require.NoError(t, result.ValidateAssurance())
+			}
 
 			result.ResultClass = protocol.ResultClassFiniteExhaustive
 			require.Error(t, result.ValidateAssurance())
@@ -263,13 +371,139 @@ func TestRunConformsWithCompleteCausalEvidenceAndCleanup(t *testing.T) {
 	require.True(t, result.Cleanup.Complete)
 }
 
+func TestRunRejectsMissingObservedActionOutcome(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := conformingSession(experiment)
+	session.actionEvidence = map[string]ActionEvidence{
+		experiment.Actions[0].Identifier: {
+			Source: "fake", Reference: experiment.Actions[0].Identifier,
+		},
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "observed action outcome is missing")
+}
+
+func TestRunRejectsAppliedOutcomeThatCanonicalModelCannotExecute(t *testing.T) {
+	experiment := compiledNexusAttemptExperiment(t)
+	session := conformingSession(experiment)
+	session.actionEvidence = make(map[string]ActionEvidence, len(experiment.Actions))
+	for _, action := range experiment.Actions {
+		session.actionEvidence[action.Identifier] = ActionEvidence{
+			Source: "fake", Reference: action.Identifier, Outcome: protocol.ActionOutcomeApplied,
+		}
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, `canonical attempt replay rejects action "persist-success"`)
+}
+
+func TestRunAcceptsSuppressedOutcomeWithoutApplyingAbstractTransition(t *testing.T) {
+	experiment := compiledNexusAttemptExperiment(t)
+	session := conformingSession(experiment)
+	session.actionEvidence = make(map[string]ActionEvidence, len(experiment.Actions))
+	for _, action := range experiment.Actions {
+		outcome := protocol.ActionOutcomeApplied
+		if action.Kind == string(protocol.ActionKindPersistSuccess) {
+			outcome = protocol.ActionOutcomeSuppressed
+		}
+		session.actionEvidence[action.Identifier] = ActionEvidence{
+			Source: "fake", Reference: action.Identifier, Outcome: outcome,
+		}
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimConforming, result.Claim.Kind)
+}
+
+func TestRuntimeResultBindsStoredEvidenceDigest(t *testing.T) {
+	experiment := loadExperiment(t)
+	session := &factFakeSession{
+		fakeSession: conformingSession(experiment),
+		facts:       cancellationFacts(experiment, "public-history"),
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Regexp(t, `^sha256:[0-9a-f]{64}$`, result.EvidenceDigest)
+	require.NoError(t, result.ValidateEvidenceDigest())
+
+	originalReference := result.Facts[0].Source.Reference
+	result.Facts[0].Source.Reference = "mutated-after-execution"
+	require.ErrorContains(t, result.ValidateEvidenceDigest(), "does not match")
+	result.Facts[0].Source.Reference = originalReference
+
+	originalReason := result.Evidence.Claims[0].Reason
+	result.Evidence.Claims[0].Reason = "mutated after execution"
+	require.ErrorContains(t, result.ValidateEvidenceDigest(), "does not match")
+	result.Evidence.Claims[0].Reason = originalReason
+
+	result.Actions[0].Evidence.Outcome = protocol.ActionOutcomeSuppressed
+	require.ErrorContains(t, result.ValidateEvidenceDigest(), "does not match")
+}
+
+func TestNormalizeEvidenceBuildsGraphWithoutDiscardingObservations(t *testing.T) {
+	result := Result{
+		Claim: Claim{Kind: ClaimViolating, Property: "property"},
+		Observations: []Observation{{
+			CheckpointID: "checkpoint", Kind: "kind", Satisfied: true,
+			Source: "history", SourceIdentity: "history", ClockDomain: "history-sequence",
+			SourceSequence: 1, ObservedAtUnixNano: 1, Reference: "history/1",
+			EntityIdentity: "entity", Lineage: []string{"namespace", "entity"},
+		}},
+	}
+	require.NoError(t, result.NormalizeEvidence(1<<20))
+	require.Len(t, result.Observations, 1)
+	require.Len(t, result.Evidence.Facts, 1)
+	require.Len(t, result.Evidence.Claims, 1)
+	require.NoError(t, result.ValidateEvidenceDigest())
+}
+
+func TestInterpretedObservationRetainsCompleteSupportBoundary(t *testing.T) {
+	facts := make([]observation.Fact, 3)
+	for index := range facts {
+		sequence := int64(index + 1)
+		facts[index] = observation.Fact{
+			Identifier: []string{"pending", "completed", "progressed"}[index],
+			Source: observation.Source{
+				Identity: "history", ClockDomain: "history-sequence", Sequence: sequence,
+				Reference:        "reference-" + []string{"1", "2", "3"}[index],
+				CausalReferences: []string{"cause-" + []string{"1", "2", "3"}[index]},
+				EntityIdentity:   "entity", Lineage: []string{"namespace", "entity"},
+			},
+		}
+	}
+
+	interpreted, err := interpretedObservation(protocol.Checkpoint{
+		Identifier: "progress", Observation: "entity-progressed",
+	}, observation.Evaluation{
+		Value: observation.True, Support: []string{"pending", "completed", "progressed"},
+	}, facts)
+	require.NoError(t, err)
+	require.Equal(t, int64(3), interpreted.SourceSequence)
+	require.Equal(t, "reference-3", interpreted.Reference)
+	require.Equal(t, "cause-3", interpreted.CausalReference)
+	require.Equal(t, []string{"cause-1", "cause-2", "cause-3"}, interpreted.CausalReferences)
+	require.Equal(t, []string{"pending", "completed", "progressed"}, interpreted.SupportingFacts)
+}
+
 func TestRunReportsAllowedFailureAsDegradedWithoutChangingClaim(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
 	last := experiment.Actions[len(experiment.Actions)-1]
 	session.actionEvidence = map[string]ActionEvidence{
 		last.Identifier: {
-			Source: "fake", SourceIdentity: "fake", Reference: "history/failed",
+			Source: "fake", Outcome: protocol.ActionOutcomeApplied,
+			SourceIdentity: "fake", Reference: "history/failed",
 			EntityIdentity: "workflow/run", Lineage: []string{"workflow", "run"},
 			TerminalState: "failed", TerminalDisposition: protocol.TerminalDispositionFailure,
 		},
@@ -295,56 +529,179 @@ func TestRunReportsViolationAsFlaggedWithoutTerminal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ClaimViolating, result.Claim.Kind)
 	require.Equal(t, OutcomeFlagged, result.Outcome.Kind)
+	require.NotNil(t, result.Trace)
+	require.NoError(t, result.Trace.Validate())
+	require.Equal(t, protocol.SemanticTraceProducerLive, result.Trace.Producer)
+	require.Len(t, result.Trace.Steps, len(experiment.Actions))
+	for _, step := range result.Trace.Steps {
+		require.Equal(t, protocol.ActionOutcomeApplied, step.Outcome)
+	}
 }
 
-func TestRunRetainsIndependentCorroboratingEvidence(t *testing.T) {
+func TestRunRetainsIndependentlyInterpretedCorroboratingFacts(t *testing.T) {
 	experiment := loadExperiment(t)
-	primary := conformingSession(experiment)
-	corroborating := make(map[string][]Observation, len(experiment.Checkpoints))
-	for identifier, observation := range primary.observations {
-		observation.Source = "history-service"
-		observation.SourceIdentity = "history-service-cluster"
-		observation.ClockDomain = "history-service-event-id"
-		observation.Reference = "history-service/" + identifier
-		corroborating[identifier] = []Observation{observation}
+	primaryFacts := cancellationFacts(experiment, "public-history")
+	corroboratingFacts := cancellationFacts(experiment, "internal-history")
+	corroborating := make(map[string][][]observation.Fact, len(corroboratingFacts))
+	for identifier, facts := range corroboratingFacts {
+		corroborating[identifier] = [][]observation.Fact{facts}
 	}
-	session := &corroboratingFakeSession{fakeSession: primary, observations: corroborating}
+	session := &corroboratingFactFakeSession{
+		fakeSession:   conformingSession(experiment),
+		facts:         primaryFacts,
+		corroborating: corroborating,
+	}
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
 	require.Equal(t, ClaimConforming, result.Claim.Kind)
 	require.Len(t, result.Observations, 2*len(experiment.Checkpoints))
-	require.Contains(t, observationSources(result.Observations), "fake")
-	require.Contains(t, observationSources(result.Observations), "history-service")
+	require.Contains(t, observationSources(result.Observations), "public-history")
+	require.Contains(t, observationSources(result.Observations), "internal-history")
 }
 
-func TestRunRejectsDisagreeingCorroboratingEvidence(t *testing.T) {
+func TestRunRejectsPrimaryFactsWithConflictingLineage(t *testing.T) {
 	experiment := loadExperiment(t)
-	primary := conformingSession(experiment)
-	observation := primary.observations[experiment.Checkpoints[0].Identifier]
-	observation.Satisfied = !observation.Satisfied
-	observation.Source = "history-service"
-	observation.SourceIdentity = "history-service-cluster"
-	observation.Reference = "history-service/disagreement"
-	session := &corroboratingFakeSession{
-		fakeSession: primary,
-		observations: map[string][]Observation{
-			experiment.Checkpoints[0].Identifier: {observation},
-		},
+	facts := cancellationFacts(experiment, "public-history")
+	conflicting := facts["cancellation-accepted"][0]
+	conflicting.Identifier = "public-history/conflicting-lineage"
+	conflicting.Source.Lineage = []string{experiment.ExperimentID, "different-operation"}
+	facts["cancellation-accepted"] = append(facts["cancellation-accepted"], conflicting)
+	session := &factFakeSession{fakeSession: conformingSession(experiment), facts: facts}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "inconsistent identity")
+}
+
+func TestRunRejectsPrimaryFactsWithAmbiguousClockDomain(t *testing.T) {
+	experiment := loadExperiment(t)
+	facts := cancellationFacts(experiment, "public-history")
+	ambiguous := facts["cancellation-accepted"][0]
+	ambiguous.Identifier = "public-history/ambiguous-clock"
+	ambiguous.Source.ClockDomain = "different-history-sequence"
+	facts["cancellation-accepted"] = append(facts["cancellation-accepted"], ambiguous)
+	session := &factFakeSession{fakeSession: conformingSession(experiment), facts: facts}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "inconsistent identity")
+}
+
+func TestRunRejectsPrimaryFactsWithWrongEntityIdentity(t *testing.T) {
+	experiment := loadExperiment(t)
+	facts := cancellationFacts(experiment, "public-history")
+	wrongEntity := facts["cancellation-accepted"][0]
+	wrongEntity.Identifier = "public-history/wrong-entity"
+	wrongEntity.Source.EntityIdentity = "different-operation"
+	facts["cancellation-accepted"] = append(facts["cancellation-accepted"], wrongEntity)
+	session := &factFakeSession{fakeSession: conformingSession(experiment), facts: facts}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "conflicts")
+}
+
+func TestRunMissingAuthoritativeClosureIsInconclusive(t *testing.T) {
+	experiment := loadExperiment(t)
+	facts := cancellationFacts(experiment, "public-history")
+	delete(facts, "no-stale-success")
+	session := &factFakeSession{fakeSession: conformingSession(experiment), facts: facts}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "required evidence or window closure is missing")
+}
+
+func TestRunRejectsCausalFactWithoutPredecessorReference(t *testing.T) {
+	experiment := loadExperiment(t)
+	facts := cancellationFacts(experiment, "public-history")
+	missingCausalReference := facts["cancellation-won"][0]
+	missingCausalReference.Source.CausalReferences = nil
+	facts["cancellation-won"] = []observation.Fact{missingCausalReference}
+	session := &factFakeSession{fakeSession: conformingSession(experiment), facts: facts}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
+	require.Contains(t, result.Omissions[0], "causal reference")
+}
+
+func TestRunRejectsCorroboratingFactsWithConflictingLineage(t *testing.T) {
+	experiment := loadExperiment(t)
+	primaryFacts := cancellationFacts(experiment, "public-history")
+	corroboratingFacts := cancellationFacts(experiment, "internal-history")
+	conflicting := corroboratingFacts["cancellation-accepted"][0]
+	conflicting.Identifier = "internal-history/conflicting-lineage"
+	conflicting.Source.Lineage = []string{experiment.ExperimentID, "different-operation"}
+	corroboratingFacts["cancellation-accepted"] = append(
+		corroboratingFacts["cancellation-accepted"], conflicting)
+	corroborating := make(map[string][][]observation.Fact, len(corroboratingFacts))
+	for identifier, facts := range corroboratingFacts {
+		corroborating[identifier] = [][]observation.Fact{facts}
+	}
+	session := &corroboratingFactFakeSession{
+		fakeSession:   conformingSession(experiment),
+		facts:         primaryFacts,
+		corroborating: corroborating,
 	}
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
 	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
-	require.Contains(t, result.Claim.Reason, "contradictory evidence")
+	require.Contains(t, result.Claim.Reason, "inconsistent identity")
+}
+
+func TestRunRejectsDisagreeingCorroboratingFacts(t *testing.T) {
+	experiment := loadExperiment(t)
+	primaryFacts := cancellationFacts(experiment, "public-history")
+	corroboratingFacts := cancellationFacts(experiment, "internal-history")
+	staleSuccess := corroboratingFacts["no-stale-success"][0]
+	staleSuccess.Identifier = "internal-history/stale-success"
+	staleSuccess.Source.Sequence = 2
+	staleSuccess.Source.Reference = "internal-history/stale-success"
+	ownerEpoch, currentOwnerEpoch, cancellationCommitted := int64(1), int64(2), true
+	staleSuccess.Window = nil
+	staleSuccess.History = &observation.HistoryEvent{
+		EventType: observation.NexusSuccessRecorded, EventID: 2, OperationID: "operation",
+		OwnerEpoch: &ownerEpoch, CurrentOwnerEpoch: &currentOwnerEpoch,
+		CancellationCommitted: &cancellationCommitted,
+	}
+	corroboratingFacts["no-stale-success"] = append(
+		corroboratingFacts["no-stale-success"], staleSuccess)
+	corroborating := make(map[string][][]observation.Fact, len(corroboratingFacts))
+	for identifier, facts := range corroboratingFacts {
+		corroborating[identifier] = [][]observation.Fact{facts}
+	}
+	session := &corroboratingFactFakeSession{
+		fakeSession: conformingSession(experiment), facts: primaryFacts, corroborating: corroborating,
+	}
+	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
+
+	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
+	require.NoError(t, err)
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.Contains(t, result.Claim.Reason, "contradict")
 }
 
 func TestRunFailsClosedWhenAdvertisedCorroborationIsUnavailable(t *testing.T) {
 	experiment := loadExperiment(t)
-	primary := conformingSession(experiment)
-	session := &corroboratingFakeSession{fakeSession: primary, err: errors.New("history service unavailable")}
+	session := &corroboratingFactFakeSession{
+		fakeSession: conformingSession(experiment),
+		facts:       cancellationFacts(experiment, "public-history"),
+		err:         errors.New("history service unavailable"),
+	}
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
@@ -407,7 +764,7 @@ func TestRunContradictingEvidenceIsViolating(t *testing.T) {
 	require.Equal(t, ClaimViolating, result.Claim.Kind)
 }
 
-func TestRunUsesGeneratedPropertyProgramInsteadOfEveryObservationBoolean(t *testing.T) {
+func TestRunMissingRequiredPositiveEvidenceIsInconclusive(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
 	observation := session.observations["cancellation-accepted"]
@@ -417,7 +774,7 @@ func TestRunUsesGeneratedPropertyProgramInsteadOfEveryObservationBoolean(t *test
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
-	require.Equal(t, ClaimConforming, result.Claim.Kind)
+	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
 }
 
 func TestRunObservesCompilerCheckpointsAfterActions(t *testing.T) {
@@ -511,7 +868,7 @@ func TestRunIncomparableOrderingIsInconclusive(t *testing.T) {
 	require.Contains(t, result.Omissions[0], "causal reference")
 }
 
-func TestRunMissingIdentityLineageIsInconclusive(t *testing.T) {
+func TestRunMissingIdentityLineageIsEvidenceFailure(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
 	observation := session.observations["cancellation-won"]
@@ -521,8 +878,8 @@ func TestRunMissingIdentityLineageIsInconclusive(t *testing.T) {
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
-	require.Equal(t, ClaimInconclusive, result.Claim.Kind)
-	require.Contains(t, result.Omissions[0], "lineage")
+	require.Equal(t, ClaimEvidenceFailure, result.Claim.Kind)
+	require.NotEmpty(t, result.Omissions)
 }
 
 func TestContradictoryEvidenceIsEvidenceFailure(t *testing.T) {
@@ -685,6 +1042,39 @@ func observationSources(observations []Observation) []string {
 	return sources
 }
 
+func cancellationFacts(
+	experiment protocol.Experiment,
+	source string,
+) map[string][]observation.Fact {
+	factSource := func(sequence int64) observation.Source {
+		return observation.Source{
+			Identity: source, ClockDomain: source + "-sequence", Sequence: sequence,
+			Reference: source + "/reference", CausalReferences: []string{source + "/cause"},
+			EntityIdentity: "operation", Lineage: []string{experiment.ExperimentID, "operation"},
+		}
+	}
+	return map[string][]observation.Fact{
+		"cancellation-accepted": {{
+			Identifier: source + "/accepted", Source: factSource(1),
+			History: &observation.HistoryEvent{
+				EventType: observation.NexusCancellationAccepted, EventID: 1, OperationID: "operation",
+			},
+		}},
+		"cancellation-won": {{
+			Identifier: source + "/committed", Source: factSource(2),
+			History: &observation.HistoryEvent{
+				EventType: observation.NexusCancellationCommitted, EventID: 2, OperationID: "operation",
+			},
+		}},
+		"no-stale-success": {{
+			Identifier: source + "/window", Source: factSource(3),
+			Window: &observation.EvidenceWindow{
+				Purpose: observation.NexusCancellationWindow, Closed: true, ThroughSequence: 3,
+			},
+		}},
+	}
+}
+
 func compiledUpdateExperiment(t *testing.T) protocol.Experiment {
 	t.Helper()
 	runID := scenario.Symbol{Name: "run-id", Type: protocol.SemanticTypeIDIdentity}
@@ -705,6 +1095,32 @@ func compiledUpdateExperiment(t *testing.T) protocol.Experiment {
 			scenario.Action("complete-task", protocol.ActionKindCompleteWorkflowTask),
 			scenario.Action("complete", protocol.ActionKindCompleteUpdate),
 			scenario.Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+		),
+	}, scenario.Limits{
+		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
+	})
+	require.NoError(t, err)
+	return suite.Experiments[0]
+}
+
+func compiledNexusAttemptExperiment(t *testing.T) protocol.Experiment {
+	t.Helper()
+	suite, err := scenario.Compile(context.Background(), scenario.Scenario{
+		Identifier: "runtime-nexus-attempt",
+		Target:     protocol.TargetIDNexusCancellation,
+		Resources: []scenario.Resource{
+			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+		},
+		Root: scenario.OnePath(
+			scenario.Action("schedule", protocol.ActionKindScheduleOperation),
+			scenario.Action("dispatch", protocol.ActionKindDispatchTask),
+			scenario.Action("cancel", protocol.ActionKindRequestCancellation),
+			scenario.Action("commit", protocol.ActionKindCommitCancellation),
+			scenario.Action("ownership", protocol.ActionKindAcquireOwnership),
+			scenario.Action("returned", protocol.ActionKindWorkerReturnsSuccess),
+			scenario.Action("persist", protocol.ActionKindPersistSuccess),
+			scenario.Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}, scenario.Limits{
 		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,

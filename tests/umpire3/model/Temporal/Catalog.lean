@@ -74,12 +74,35 @@ def catalog : SemanticCatalog where
     capability "fault-persistence" "Selected persistence fault authority",
   ]
   actions := [
-    actionAfter "schedule-operation" "Schedule a Nexus operation" ["nexus"] []
-      [{ name := "operation-id", type := "identity" }],
+    {
+      identifier := "schedule-operation"
+      description := "Schedule a Nexus operation"
+      parameters := [{
+        name := "nexus-completion"
+        type := "string"
+        required := false
+        allowedValues := ["ordinary"]
+      }]
+      projections := [{ name := "operation-id", type := "identity" }]
+      requiredCapabilities := ["nexus"]
+    },
     actionAfter "dispatch-task" "Dispatch a Nexus task" ["nexus-worker-control"]
       ["schedule-operation"] [{ name := "operation-id", type := "identity" }],
-    actionAfterIdentity "worker-returns-success" "Return Nexus worker success" ["nexus-worker-control"]
-      ["dispatch-task"] "operation",
+    {
+      identifier := "worker-returns-success"
+      description := "Return Nexus worker success"
+      parameters := [
+        { name := "operation", type := "identity", required := false },
+        {
+          name := "nexus-completion"
+          type := "string"
+          required := false
+          allowedValues := ["before-start"]
+        },
+      ]
+      dependencies := ["dispatch-task"]
+      requiredCapabilities := ["nexus-worker-control"]
+    },
     {
       identifier := "request-cancellation"
       description := "Request Nexus cancellation"

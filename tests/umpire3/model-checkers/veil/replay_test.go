@@ -12,7 +12,6 @@ import (
 )
 
 func TestReplayRunsBoundCanonicalChecker(t *testing.T) {
-	t.Setenv("UMPIRE3_TRACE_REPLAY_HELPER", "1")
 	input := protocol.TraceReplayInput{
 		FormatVersion: protocol.TraceReplayInputFormatVersion,
 		Target:        protocol.TargetIDNexusCancellation,
@@ -31,7 +30,8 @@ func TestReplayRunsBoundCanonicalChecker(t *testing.T) {
 	require.NoError(t, err)
 
 	receipt, err := Replay(context.Background(),
-		[]string{os.Args[0], "-test.run=^TestCanonicalReplayHelper$", "--"}, input)
+		explicitTestEnvironment([]string{"UMPIRE3_TRACE_REPLAY_HELPER=1"},
+			os.Args[0], "-test.run=^TestCanonicalReplayHelper$", "--"), input)
 	require.NoError(t, err)
 	require.Equal(t, protocol.TraceReplayReceipt{
 		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
@@ -46,6 +46,11 @@ func TestReplayRunsBoundCanonicalChecker(t *testing.T) {
 		TrustBadge:    protocol.TrustBadgeCheckedCertificate,
 		Axioms:        []string{},
 	}, receipt)
+}
+
+func explicitTestEnvironment(environment []string, command ...string) []string {
+	result := append([]string{"/usr/bin/env"}, environment...)
+	return append(result, command...)
 }
 
 func TestCanonicalReplayHelper(t *testing.T) {

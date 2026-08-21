@@ -3,12 +3,14 @@ package temporal
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	environment "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/participant"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
@@ -22,7 +24,120 @@ func (s staticHistorySource) ReadHistory(context.Context, HistoryRequest) (Corro
 	return s.snapshot, s.err
 }
 
-func TestSDKObservationUsesTargetSpecificHistoryEvidence(t *testing.T) {
+func testSDKResult(status string, source string) participant.Result {
+	return participant.Result{
+		Status: status, Source: source, Reference: "workflow/run/participant",
+		WorkflowID: "workflow", RunID: "run", Lineage: []string{"workflow", "run"},
+	}
+}
+
+func completeSDKHistory(history historyPosition) historyPosition {
+	if history.source == "" {
+		history.source = "temporal-public-history"
+	}
+	if history.sourceIdentity == "" {
+		history.sourceIdentity = "namespace/public-history"
+	}
+	if history.clockDomain == "" {
+		history.clockDomain = "temporal-history-event-id"
+	}
+	for eventType, position := range history.events {
+		if position.reference == "" {
+			position.reference = "workflow/run/history/" + strconv.FormatInt(position.sequence, 10)
+		}
+		if position.timestamp == 0 {
+			position.timestamp = time.Unix(position.sequence, 0).UnixNano()
+		}
+		history.events[eventType] = position
+		if position.sequence > history.sequence {
+			history.sequence = position.sequence
+			history.timestamp = position.timestamp
+			history.reference = position.reference
+		}
+	}
+	if history.sequence == 0 {
+		history.sequence = 1
+		history.timestamp = time.Unix(1, 0).UnixNano()
+		history.reference = "workflow/run/history/1"
+	}
+	return history
+}
+
+func sdkObservationTruth(
+	t *testing.T,
+	session *sdkSession,
+	observationID string,
+	history historyPosition,
+) observation.Truth {
+	t.Helper()
+	namespace := session.namespace
+	if namespace == "" {
+		namespace = "namespace"
+	}
+	facts, err := (sdkFactNormalizer{
+		experiment: session.experiment,
+		namespace:  namespace,
+		taskQueue:  session.taskQueue,
+		results:    session.results,
+	}).Normalize(protocol.Checkpoint{Identifier: observationID, Observation: observationID}, completeSDKHistory(history))
+	require.NoError(t, err)
+	for _, fact := range facts {
+		require.NoError(t, fact.Validate())
+	}
+	catalog, err := observation.DefaultCatalog()
+	require.NoError(t, err)
+	program, ok := catalog.Program(protocol.ObservationID(observationID))
+	require.True(t, ok)
+	return program.Evaluate(facts).Value
+}
+
+func TestSDKSessionEmitsFactsWithoutPropertyTruth(t *testing.T) {
+	t.Parallel()
+
+	var session any = &sdkSession{}
+	_, emitsFacts := session.(environment.FactSession)
+	require.True(t, emitsFacts)
+}
+
+func TestSDKFactNormalizerFeedsGeneratedObservationProgram(t *testing.T) {
+	t.Parallel()
+
+	normalizer := sdkFactNormalizer{
+		experiment: protocol.Experiment{ExperimentID: "experiment", Actions: []protocol.Action{{
+			Identifier: "update", Kind: "complete-update",
+		}}},
+		namespace: "namespace",
+		results: map[string]participant.Result{"update": {
+			Status: "completed", Source: "temporal-sdk-participant", Reference: "participant/update",
+			WorkflowID: "workflow", RunID: "run", Lineage: []string{"workflow", "run"},
+		}},
+	}
+	history := historyPosition{
+		source: "temporal-public-history", sourceIdentity: "namespace/history",
+		clockDomain: "temporal-history-event-id", sequence: 7,
+		reference: "workflow/run/history/7",
+		events: map[enumspb.EventType]historyEventPosition{
+			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_ACCEPTED: {
+				sequence: 7, timestamp: time.Unix(10, 0).UnixNano(), reference: "workflow/run/history/7",
+			},
+		},
+	}
+	facts, err := normalizer.Normalize(protocol.Checkpoint{
+		Identifier: "accepted", Observation: "update-accepted", Ordering: "source-sequence",
+	}, history)
+	require.NoError(t, err)
+	require.NotEmpty(t, facts)
+	for _, fact := range facts {
+		require.NoError(t, fact.Validate())
+	}
+	catalog, err := observation.DefaultCatalog()
+	require.NoError(t, err)
+	program, ok := catalog.Program(protocol.ObservationIDUpdateAccepted)
+	require.True(t, ok)
+	require.Equal(t, observation.True, program.Evaluate(facts).Value)
+}
+
+func TestSDKFactNormalizerSupportsEverySDKObservation(t *testing.T) {
 	t.Parallel()
 
 	events := map[enumspb.EventType]historyEventPosition{
@@ -96,48 +211,106 @@ func TestSDKObservationUsesTargetSpecificHistoryEvidence(t *testing.T) {
 		},
 	}
 	history := historyPosition{
-		events: events, callbackRegistered: true, taskQueues: map[string]bool{"task-queue": true},
+		source: "temporal-public-history", sourceIdentity: "namespace/history",
+		clockDomain: "temporal-history-event-id", sequence: 10,
+		reference: "workflow/run/history/10",
+		events:    events, callbackRegistered: true, taskQueues: map[string]bool{"task-queue": true},
 		nexusActivityForwardLinked: true, nexusActivityReverseLinked: true,
 		nexusTimeoutType: enumspb.TIMEOUT_TYPE_START_TO_CLOSE, nexusTimeoutMessage: "operation timed out",
 	}
+	for eventType, position := range history.events {
+		position.timestamp = time.Unix(position.sequence, 0).UnixNano()
+		position.reference = "workflow/run/history/" + strconv.FormatInt(position.sequence, 10)
+		history.events[eventType] = position
+	}
+	session.namespace = "namespace"
 	session.taskQueue = "task-queue"
-	for _, observation := range []string{
+	catalog, err := observation.DefaultCatalog()
+	require.NoError(t, err)
+	normalizer := sdkFactNormalizer{
+		experiment: session.experiment, namespace: session.namespace,
+		taskQueue: session.taskQueue, results: session.results,
+	}
+	for _, observationID := range []string{
 		"cancellation-accepted", "cancellation-won", "stale-success-absent",
-		"update-accepted", "update-completed", "workflow-task-acknowledged",
+		"update-accepted", "update-completed",
 		"speculative-task-valid", "workflow-task-not-starved", "nexus-operation-closed",
 		"nexus-activity-links-consistent", "nexus-timeout-valid", "callback-reference-valid",
 		"callback-response-consistent", "entity-progressed",
 		"workflow-routing-isolated",
 	} {
-		require.True(t, session.observationSatisfied(observation, history), observation)
+		facts, err := normalizer.Normalize(protocol.Checkpoint{
+			Identifier: observationID, Observation: observationID, Ordering: "causal",
+		}, history)
+		require.NoError(t, err, observationID)
+		program, ok := catalog.Program(protocol.ObservationID(observationID))
+		require.True(t, ok, observationID)
+		require.Equal(t, observation.True, program.Evaluate(facts).Value, observationID)
 	}
+	linkFacts, err := normalizer.Normalize(protocol.Checkpoint{
+		Identifier: "links", Observation: "nexus-activity-links-consistent", Ordering: "causal",
+	}, history)
+	require.NoError(t, err)
+	var linkReceipts []string
+	for _, fact := range linkFacts {
+		if fact.Mechanism != nil && (fact.Mechanism.Action == observation.NexusOperationLinkedActivity ||
+			fact.Mechanism.Action == observation.ActivityLinkedNexusOperation) {
+			linkReceipts = append(linkReceipts, fact.Mechanism.Action)
+		}
+		if fact.History != nil {
+			require.NotContains(t, []string{
+				observation.NexusOperationLinkedActivity,
+				observation.ActivityLinkedNexusOperation,
+			}, fact.History.EventType)
+		}
+	}
+	require.ElementsMatch(t, []string{
+		observation.NexusOperationLinkedActivity,
+		observation.ActivityLinkedNexusOperation,
+	}, linkReceipts)
 }
 
 func TestSDKObservationFailsClosedOnMissingTargetEventOrFailedCommand(t *testing.T) {
 	t.Parallel()
 
-	session := &sdkSession{results: map[string]participant.Result{"action": {Status: "completed"}}}
+	session := &sdkSession{
+		experiment: protocol.Experiment{Actions: []protocol.Action{{
+			Identifier: "action", Kind: "link-nexus-activity",
+		}}},
+		results: map[string]participant.Result{"action": testSDKResult("completed", "temporal-sdk-participant")},
+	}
 	history := historyPosition{events: map[enumspb.EventType]historyEventPosition{
 		enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED: {sequence: 1},
 	}}
-	require.False(t, session.observationSatisfied("nexus-activity-links-consistent", history))
-	require.False(t, session.observationSatisfied("nexus-timeout-valid", history))
-	require.False(t, session.observationSatisfied("unknown-observation", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "nexus-activity-links-consistent", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "nexus-timeout-valid", history))
+	_, err := (sdkFactNormalizer{
+		experiment: session.experiment, namespace: "namespace", results: session.results,
+	}).Normalize(protocol.Checkpoint{Observation: "unknown-observation"}, completeSDKHistory(history))
+	require.ErrorContains(t, err, "no generated interpreter")
 
-	session.results["action"] = participant.Result{
-		Status: "failed", TerminalState: "failed",
-		TerminalDisposition: participant.TerminalDispositionFailure,
-	}
+	failed := testSDKResult("failed", "temporal-sdk-participant")
+	failed.TerminalState = "failed"
+	failed.TerminalDisposition = participant.TerminalDispositionFailure
+	session.results["action"] = failed
 	history.events[enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED] = historyEventPosition{sequence: 2}
 	history.events[enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED] = historyEventPosition{sequence: 3}
-	require.True(t, session.observationSatisfied("nexus-operation-closed", history))
-	missingCallbackResult := &sdkSession{results: map[string]participant.Result{"action": {Status: "completed"}}}
-	require.False(t, missingCallbackResult.observationSatisfied("callback-response-consistent", historyPosition{
-		events: map[enumspb.EventType]historyEventPosition{
-			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED: {sequence: 1},
-		},
-		callbackRegistered: true,
-	}))
+	require.Equal(t, observation.True, sdkObservationTruth(t, session, "nexus-operation-closed", history))
+	missingCallbackResult := &sdkSession{
+		experiment: protocol.Experiment{Actions: []protocol.Action{{
+			Identifier: "action", Kind: "record-callback-response",
+		}}},
+		results: map[string]participant.Result{"action": testSDKResult("completed", "generic-sdk")},
+	}
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, missingCallbackResult, "callback-response-consistent", historyPosition{
+			events: map[enumspb.EventType]historyEventPosition{
+				enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED: {sequence: 1},
+			},
+			callbackRegistered: true,
+		}))
 }
 
 func TestSDKCallbackObservationRequiresMechanismReceipts(t *testing.T) {
@@ -149,14 +322,8 @@ func TestSDKCallbackObservationRequiresMechanismReceipts(t *testing.T) {
 			{Identifier: "respond", Kind: "record-callback-response"},
 		}},
 		results: map[string]participant.Result{
-			"register": {
-				Status: "completed", Source: "generic-sdk", Reference: "register",
-				WorkflowID: "workflow", RunID: "run", Lineage: []string{"run"},
-			},
-			"respond": {
-				Status: "completed", Source: "generic-sdk", Reference: "respond",
-				WorkflowID: "workflow", RunID: "run", Lineage: []string{"run"},
-			},
+			"register": testSDKResult("completed", "generic-sdk"),
+			"respond":  testSDKResult("completed", "generic-sdk"),
 		},
 	}
 	history := historyPosition{
@@ -166,19 +333,24 @@ func TestSDKCallbackObservationRequiresMechanismReceipts(t *testing.T) {
 		},
 		callbackRegistered: true,
 	}
-	require.False(t, session.observationSatisfied("callback-reference-valid", history))
-	require.False(t, session.observationSatisfied("callback-response-consistent", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "callback-reference-valid", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "callback-response-consistent", history))
 
 	register := session.results["register"]
 	register.Source = "temporal-completion-callback-registration"
 	session.results["register"] = register
-	require.True(t, session.observationSatisfied("callback-reference-valid", history))
-	require.False(t, session.observationSatisfied("callback-response-consistent", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "callback-reference-valid", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "callback-response-consistent", history))
 
 	response := session.results["respond"]
 	response.Source = "temporal-nexus-completion-callback-receiver"
 	session.results["respond"] = response
-	require.True(t, session.observationSatisfied("callback-response-consistent", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "callback-response-consistent", history))
 }
 
 func TestSDKLineageObservationsRequireTypedMechanismReceipts(t *testing.T) {
@@ -202,13 +374,13 @@ func TestSDKLineageObservationsRequireTypedMechanismReceipts(t *testing.T) {
 		originalExecutionRunID:  "successor",
 		firstExecutionRunID:     "predecessor",
 	}
-	require.False(t, continuation.observationSatisfied(
-		"workflow-continuation-lineage-valid", continuationHistory))
+	require.Equal(t, observation.Unknown, sdkObservationTruth(
+		t, continuation, "workflow-continuation-lineage-valid", continuationHistory))
 	result := continuation.results["continue"]
 	result.Source = "temporal-sdk-continuation"
 	continuation.results["continue"] = result
-	require.True(t, continuation.observationSatisfied(
-		"workflow-continuation-lineage-valid", continuationHistory))
+	require.Equal(t, observation.True, sdkObservationTruth(
+		t, continuation, "workflow-continuation-lineage-valid", continuationHistory))
 
 	reset := &sdkSession{
 		experiment: protocol.Experiment{Actions: []protocol.Action{{
@@ -226,9 +398,11 @@ func TestSDKLineageObservationsRequireTypedMechanismReceipts(t *testing.T) {
 		originalExecutionRunID: "base",
 		firstExecutionRunID:    "base",
 	}
-	require.True(t, reset.observationSatisfied("workflow-reset-lineage-valid", resetHistory))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, reset, "workflow-reset-lineage-valid", resetHistory))
 	resetHistory.firstExecutionRunID = "unrelated"
-	require.False(t, reset.observationSatisfied("workflow-reset-lineage-valid", resetHistory))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, reset, "workflow-reset-lineage-valid", resetHistory))
 }
 
 func TestSDKOwnershipObservationRequiresTypedOrderedFencingEvidence(t *testing.T) {
@@ -248,22 +422,26 @@ func TestSDKOwnershipObservationRequiresTypedOrderedFencingEvidence(t *testing.T
 		enumspb.EVENT_TYPE_WORKFLOW_TASK_FAILED:    {sequence: 4},
 		enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED: {sequence: 7},
 	}}
-	require.False(t, session.observationSatisfied("workflow-ownership-fenced", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "workflow-ownership-fenced", history))
 
 	result := session.results["fence"]
 	result.Source = "umpire3-workflow-task-fencer"
 	result.SourceIdentity = result.Source
 	session.results["fence"] = result
-	require.True(t, session.observationSatisfied("workflow-ownership-fenced", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "workflow-ownership-fenced", history))
 
 	result.Reference = "workflow/run/workflow-task/5/fenced-before/2"
 	session.results["fence"] = result
-	require.False(t, session.observationSatisfied("workflow-ownership-fenced", history))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, session, "workflow-ownership-fenced", history))
 
 	result.Reference = "workflow/run/workflow-task/2/fenced-before/5"
 	session.results["fence"] = result
 	history.events[enumspb.EVENT_TYPE_WORKFLOW_TASK_FAILED] = historyEventPosition{sequence: 8}
-	require.False(t, session.observationSatisfied("workflow-ownership-fenced", history))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, session, "workflow-ownership-fenced", history))
 }
 
 func TestSDKSpeculativeObservationRequiresTypedReceiptsAndUpdateHistory(t *testing.T) {
@@ -292,7 +470,8 @@ func TestSDKSpeculativeObservationRequiresTypedReceiptsAndUpdateHistory(t *testi
 		enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED: {sequence: 4},
 		enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED:             {sequence: 5},
 	}}
-	require.False(t, session.observationSatisfied("speculative-task-valid", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "speculative-task-valid", history))
 
 	for _, identifier := range []string{"create", "commit"} {
 		result := session.results[identifier]
@@ -301,10 +480,12 @@ func TestSDKSpeculativeObservationRequiresTypedReceiptsAndUpdateHistory(t *testi
 		result.Reference = "workflow/run/speculative-update/" + identifier
 		session.results[identifier] = result
 	}
-	require.True(t, session.observationSatisfied("speculative-task-valid", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "speculative-task-valid", history))
 
 	delete(history.events, enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED)
-	require.False(t, session.observationSatisfied("speculative-task-valid", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "speculative-task-valid", history))
 }
 
 func TestSDKProgressObservationsRequireTypedReceiptsAndOrderedHistory(t *testing.T) {
@@ -334,8 +515,10 @@ func TestSDKProgressObservationsRequireTypedReceiptsAndOrderedHistory(t *testing
 		enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED:            {sequence: 4},
 		enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED: {sequence: 6},
 	}}
-	require.False(t, session.observationSatisfied("workflow-task-not-starved", history))
-	require.False(t, session.observationSatisfied("entity-progressed", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "workflow-task-not-starved", history))
+	require.Equal(t, observation.Unknown,
+		sdkObservationTruth(t, session, "entity-progressed", history))
 
 	for _, identifier := range []string{"dispatch", "progress"} {
 		result := session.results[identifier]
@@ -344,21 +527,52 @@ func TestSDKProgressObservationsRequireTypedReceiptsAndOrderedHistory(t *testing
 		result.Reference = "workflow/run/workflow-progress/" + identifier
 		session.results[identifier] = result
 	}
-	require.True(t, session.observationSatisfied("workflow-task-not-starved", history))
-	require.True(t, session.observationSatisfied("entity-progressed", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "workflow-task-not-starved", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "entity-progressed", history))
 
 	history.events[enumspb.EVENT_TYPE_WORKFLOW_TASK_STARTED] = historyEventPosition{sequence: 5}
-	require.False(t, session.observationSatisfied("workflow-task-not-starved", history))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, session, "workflow-task-not-starved", history))
+}
+
+func TestSDKEntityProgressObservationAcceptsHighLevelProgressReceipt(t *testing.T) {
+	t.Parallel()
+
+	session := &sdkSession{
+		experiment: protocol.Experiment{Actions: []protocol.Action{{
+			Identifier: "progress", Kind: "progress-entity",
+		}}},
+		results: map[string]participant.Result{
+			"progress": {
+				Status: "completed", Source: "temporal-sdk-workflow-progress",
+				Reference:  "workflow/run/workflow-progress/progress",
+				WorkflowID: "workflow", RunID: "run", Lineage: []string{"run"},
+			},
+		},
+	}
+	history := historyPosition{events: map[enumspb.EventType]historyEventPosition{
+		enumspb.EVENT_TYPE_WORKFLOW_TASK_SCHEDULED:            {sequence: 2},
+		enumspb.EVENT_TYPE_WORKFLOW_TASK_STARTED:              {sequence: 3},
+		enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED:            {sequence: 4},
+		enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED: {sequence: 6},
+	}}
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "entity-progressed", history))
 }
 
 func TestSDKNexusClosureRequiresOperationTerminalBeforeCallerClose(t *testing.T) {
 	t.Parallel()
 
-	session := &sdkSession{results: map[string]participant.Result{"action": {Status: "completed"}}}
+	session := &sdkSession{
+		experiment: protocol.Experiment{Actions: []protocol.Action{{Identifier: "action", Kind: "complete-operation"}}},
+		results:    map[string]participant.Result{"action": testSDKResult("completed", "temporal-sdk-participant")},
+	}
 	tests := []struct {
-		name      string
-		events    map[enumspb.EventType]historyEventPosition
-		satisfied bool
+		name   string
+		events map[enumspb.EventType]historyEventPosition
+		value  observation.Truth
 	}{
 		{
 			name: "settled before close",
@@ -366,7 +580,7 @@ func TestSDKNexusClosureRequiresOperationTerminalBeforeCallerClose(t *testing.T)
 				enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED:    {sequence: 9},
 				enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED: {sequence: 10},
 			},
-			satisfied: true,
+			value: observation.True,
 		},
 		{
 			name: "settled after close",
@@ -374,24 +588,27 @@ func TestSDKNexusClosureRequiresOperationTerminalBeforeCallerClose(t *testing.T)
 				enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_FAILED: {sequence: 10},
 				enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED:    {sequence: 11},
 			},
+			value: observation.False,
 		},
 		{
 			name: "caller close only",
 			events: map[enumspb.EventType]historyEventPosition{
 				enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED: {sequence: 10},
 			},
+			value: observation.False,
 		},
 		{
 			name: "operation terminal only",
 			events: map[enumspb.EventType]historyEventPosition{
 				enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCELED: {sequence: 9},
 			},
+			value: observation.Unknown,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			require.Equal(t, test.satisfied, session.observationSatisfied(
-				"nexus-operation-closed", historyPosition{events: test.events}))
+			require.Equal(t, test.value, sdkObservationTruth(
+				t, session, "nexus-operation-closed", historyPosition{events: test.events}))
 		})
 	}
 }
@@ -399,19 +616,25 @@ func TestSDKNexusClosureRequiresOperationTerminalBeforeCallerClose(t *testing.T)
 func TestSDKNexusTimeoutObservationRejectsWrongMetadata(t *testing.T) {
 	t.Parallel()
 
-	session := &sdkSession{results: map[string]participant.Result{"action": {Status: "completed"}}}
+	session := &sdkSession{
+		experiment: protocol.Experiment{Actions: []protocol.Action{{Identifier: "action", Kind: "timeout-operation"}}},
+		results:    map[string]participant.Result{"action": testSDKResult("completed", "temporal-sdk-participant")},
+	}
 	history := historyPosition{
 		events: map[enumspb.EventType]historyEventPosition{
 			enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT: {sequence: 1},
 		},
 		nexusTimeoutType: enumspb.TIMEOUT_TYPE_SCHEDULE_TO_CLOSE, nexusTimeoutMessage: "operation timed out",
 	}
-	require.False(t, session.observationSatisfied("nexus-timeout-valid", history))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, session, "nexus-timeout-valid", history))
 	history.nexusTimeoutType = enumspb.TIMEOUT_TYPE_START_TO_CLOSE
 	history.nexusTimeoutMessage = "unrelated failure"
-	require.False(t, session.observationSatisfied("nexus-timeout-valid", history))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, session, "nexus-timeout-valid", history))
 	history.nexusTimeoutMessage = "operation timed out after 2s"
-	require.True(t, session.observationSatisfied("nexus-timeout-valid", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "nexus-timeout-valid", history))
 }
 
 func TestSDKNexusActivityObservationRequiresReciprocalLinks(t *testing.T) {
@@ -419,7 +642,7 @@ func TestSDKNexusActivityObservationRequiresReciprocalLinks(t *testing.T) {
 
 	session := &sdkSession{
 		experiment: protocol.Experiment{Actions: []protocol.Action{{Identifier: "link", Kind: "link-nexus-activity"}}},
-		results:    map[string]participant.Result{"link": {Status: "completed"}},
+		results:    map[string]participant.Result{"link": testSDKResult("completed", "temporal-sdk-participant")},
 	}
 	history := historyPosition{
 		events: map[enumspb.EventType]historyEventPosition{
@@ -427,9 +650,11 @@ func TestSDKNexusActivityObservationRequiresReciprocalLinks(t *testing.T) {
 		},
 		nexusActivityForwardLinked: true,
 	}
-	require.False(t, session.observationSatisfied("nexus-activity-links-consistent", history))
+	require.Equal(t, observation.False,
+		sdkObservationTruth(t, session, "nexus-activity-links-consistent", history))
 	history.nexusActivityReverseLinked = true
-	require.True(t, session.observationSatisfied("nexus-activity-links-consistent", history))
+	require.Equal(t, observation.True,
+		sdkObservationTruth(t, session, "nexus-activity-links-consistent", history))
 }
 
 func TestSDKCapabilitiesAreConservativeOrExplicitlyAttested(t *testing.T) {
@@ -454,48 +679,68 @@ func TestSDKCapabilitiesAreConservativeOrExplicitlyAttested(t *testing.T) {
 
 }
 
-func TestSDKSessionCorroboratesThroughIndependentHistorySource(t *testing.T) {
+func TestSDKSessionEmitsIndependentlyNormalizableCorroboratingFacts(t *testing.T) {
 	t.Parallel()
 
 	session := &corroboratingSDKSession{
 		sdkSession: &sdkSession{
-			experiment: protocol.Experiment{ExperimentID: "experiment", Actions: []protocol.Action{{
-				Identifier: "action", Kind: "progress-entity",
-			}}},
-			namespace: "namespace",
-			results: map[string]participant.Result{"action": {
-				Status: "completed", Source: "temporal-sdk-workflow-progress",
-				Reference: "participant/workflow-progress/action", WorkflowID: "workflow", RunID: "run",
-				Lineage: []string{"workflow", "run"}, PayloadDigest: "",
+			experiment: protocol.Experiment{ExperimentID: "experiment", Actions: []protocol.Action{
+				{Identifier: "dispatch", Kind: "dispatch-assurance-workflow-task"},
+				{Identifier: "progress", Kind: "progress-entity"},
 			}},
+			namespace: "namespace",
+			results: map[string]participant.Result{
+				"dispatch": {
+					Status: "completed", Source: "temporal-sdk-workflow-progress",
+					Reference: "participant/workflow-progress/dispatch", WorkflowID: "workflow", RunID: "run",
+					Lineage: []string{"workflow", "run"},
+				},
+				"progress": {
+					Status: "completed", Source: "temporal-sdk-workflow-progress",
+					Reference: "participant/workflow-progress/progress", WorkflowID: "workflow", RunID: "run",
+					Lineage: []string{"workflow", "run"},
+				},
+			},
 		},
 		sources: []CorroboratingHistorySource{staticHistorySource{snapshot: CorroboratingHistory{
 			Source: "temporal-history-service", SourceIdentity: "cluster/history-service",
 			ClockDomain: "temporal-history-service-event-id",
-			Events: []CorroboratingHistoryEvent{{
-				Type: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED,
-				ID:   17, TimeUnixNano: time.Unix(10, 0).UnixNano(), Reference: "history-service/workflow/run/17",
-			}},
+			Events: []CorroboratingHistoryEvent{
+				{
+					Type: enumspb.EVENT_TYPE_WORKFLOW_TASK_SCHEDULED,
+					ID:   14, TimeUnixNano: time.Unix(7, 0).UnixNano(), Reference: "history-service/workflow/run/14",
+				},
+				{
+					Type: enumspb.EVENT_TYPE_WORKFLOW_TASK_STARTED,
+					ID:   15, TimeUnixNano: time.Unix(8, 0).UnixNano(), Reference: "history-service/workflow/run/15",
+				},
+				{
+					Type: enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED,
+					ID:   16, TimeUnixNano: time.Unix(9, 0).UnixNano(), Reference: "history-service/workflow/run/16",
+				},
+				{
+					Type: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED,
+					ID:   17, TimeUnixNano: time.Unix(10, 0).UnixNano(), Reference: "history-service/workflow/run/17",
+				},
+			},
 		}}},
 	}
 
-	observations, err := session.Corroborate(context.Background(), protocol.Checkpoint{
+	factSets, err := session.CorroborateFacts(context.Background(), protocol.Checkpoint{
 		Identifier: "progress", Observation: "entity-progressed", Ordering: "causal",
 	}, environment.Bindings{})
 	require.NoError(t, err)
-	require.Len(t, observations, 1)
-	require.Equal(t, environment.Observation{
-		CheckpointID: "progress", Kind: "entity-progressed", Satisfied: true,
-		Source: "temporal-history-service", SourceIdentity: "cluster/history-service",
-		ClockDomain: "temporal-history-service-event-id", SourceSequence: 17,
-		AuthoritativeTimeUnixNano: time.Unix(10, 0).UnixNano(),
-		ObservedAtUnixNano:        observations[0].ObservedAtUnixNano,
-		Reference:                 "history-service/workflow/run/17/progress",
-		CausalReference:           "history-service/workflow/run/17",
-		CausalReferences:          []string{"participant/workflow-progress/action"},
-		EntityIdentity:            "workflow/run",
-		Lineage:                   []string{"experiment", "workflow", "run"},
-	}, observations[0])
+	require.Len(t, factSets, 1)
+	for _, fact := range factSets[0] {
+		require.NoError(t, fact.Validate())
+		require.Equal(t, "cluster/history-service", fact.Source.Identity)
+		require.Equal(t, "temporal-history-service-event-id", fact.Source.ClockDomain)
+	}
+	catalog, err := observation.DefaultCatalog()
+	require.NoError(t, err)
+	program, ok := catalog.Program(protocol.ObservationIDEntityProgressed)
+	require.True(t, ok)
+	require.Equal(t, observation.True, program.Evaluate(factSets[0]).Value)
 }
 
 func TestSDKSessionFailsClosedWhenIndependentHistorySourceFails(t *testing.T) {
@@ -509,6 +754,6 @@ func TestSDKSessionFailsClosedWhenIndependentHistorySourceFails(t *testing.T) {
 		sources: []CorroboratingHistorySource{staticHistorySource{err: errors.New("internal history unavailable")}},
 	}
 
-	_, err := session.Corroborate(context.Background(), protocol.Checkpoint{}, nil)
+	_, err := session.CorroborateFacts(context.Background(), protocol.Checkpoint{}, nil)
 	require.ErrorContains(t, err, "internal history unavailable")
 }

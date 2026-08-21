@@ -3,6 +3,7 @@ package model
 import (
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/tests/umpire1/fact"
@@ -94,8 +95,8 @@ func (d *FactDecoder) ImportRejection(req any, err error, namespaceID string) um
 // fromResponse creates a fact from a gRPC request+response pair, or nil if unrecognized.
 func fromResponse(req, resp any) umpire.Fact {
 	switch req := req.(type) {
-	case *v1.PollWorkflowTaskQueueRequest:
-		r, ok := resp.(*v1.PollWorkflowTaskQueueResponse)
+	case *matchingservice.PollWorkflowTaskQueueRequest:
+		r, ok := resp.(*matchingservice.PollWorkflowTaskQueueResponse)
 		if !ok || r == nil || len(r.GetTaskToken()) == 0 {
 			return nil // no task was returned
 		}

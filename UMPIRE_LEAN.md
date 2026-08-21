@@ -1,6 +1,6 @@
 # Umpire3 roadmap to the full Umpire vision
 
-Status: active implementation plan, consolidated 2026-08-20.
+Status: active implementation plan, consolidated 2026-08-21.
 
 This is the single forward-looking plan for Umpire3. It supersedes the completed bootstrap roadmap
 and the separate verification-architecture plan. Completed milestones have been removed; this file
@@ -8,10 +8,16 @@ contains only enduring architectural constraints, remaining work, and the eviden
 Umpire3 complete against `UMPIRE_VISION.md`.
 
 The existing `tests/umpire3` tree is the implementation baseline. Its generated catalog, typed
-authoring facade, protobuf projection, exact explorer, Veil integration, temporal portfolio, native
-certificate producer, campaign/replay pipeline, isolated canary, and side-by-side Umpire2/Umpire3
-root tests are foundations, not unfinished milestones. They still count as complete only when the
-final verification matrix proves that later work has not weakened them.
+authoring facade, protobuf projection, exact explorer, Lean temporal checking, native certificate
+producer, unified semantic traces, campaign/replay pipeline, isolated canary, primary-project Veil
+dependency and Lean source declarations, family-scoped checks, TLA quarantine guardrails,
+digest-bound release qualification, retained coverage-guided mutation and 10x native
+performance/recovery reports, developer-UX and clock-skew audits, a retained hostile-input,
+isolation, and recovery audit, published operational documentation, and side-by-side
+Umpire2/Umpire3 root tests are foundations, not unfinished milestones.
+Any family that uses Veil still has to bind those Lean declarations to its canonical semantics.
+These foundations count as complete only when the final verification matrix proves that later work
+has not weakened them.
 
 ## 1. End state
 
@@ -21,7 +27,8 @@ second semantic authority:
 1. feature contracts and independently defined system mechanisms;
 2. refinement, interference, safety, and temporal proofs;
 3. exact finite exploration and checked certificates;
-4. exact, native, and Lean-side Veil search through explicit proved views;
+4. exact and native search, with optional Veil declarations used as Lean-native modeling and proof
+   support inside the primary Lean project;
 5. generated regressions and sparse developer-authored tests;
 6. real Temporal execution under local, CI, remote, black-box, and authorized canary profiles;
 7. typed evidence interpretation with established, violated, unknown, and conflict results;
@@ -56,18 +63,27 @@ and mechanically inspectable:
   process isolation. It does not restate a Temporal state machine or property rule.
 - `tests/umpire3/protocol` is a strict, versioned transport boundary. It may represent an explicit
   Lean-generated `ExecutableView`, `FirstOrderView`, `TemporalView`, certificate, trace, or evidence
-  program. It is not an independently authored semantic IR.
-- A non-Lean portability adapter may validate and mechanically render a proved view. If it evaluates
-  or replays a view for differential checking, that implementation is checked against canonical Lean
-  vectors and cannot become the source of the claim.
-- Veil is a Lean extension. An Umpire3 Lean command consumes the canonical model or a proved view and
-  elaborates Veil declarations in the same Lean build. Go may isolate that build and transport its
-  receipt, but it does not render Veil syntax. No intermediate Veil `.lean` source tree is generated
-  or checked in; only source-bound backend results and receipts are materialized.
-- TLC and Apalache are deferred portability adapters. They receive no new scope until Lean proofs,
-  exact exploration, native certificates, Lean-side Veil, model migration, live observation, and
-  developer UX satisfy their gates. They cannot block primary Umpire3 qualification; any result that
-  is published from them must still meet the same provenance, bounds, and replay rules.
+  program. It is not an independently authored semantic IR, a backend-neutral compiler IR, or an API
+  designed around hypothetical future model checkers.
+- No current plan item translates Umpire3 semantics into another modeling language. A future
+  portability experiment may validate and mechanically render an explicit proved view only under a
+  separately approved plan. If it evaluates or replays that view, the implementation must be checked
+  against canonical Lean vectors and cannot become the source of the claim.
+- Veil is a Lean library and embedded DSL, not a source-generation target, target language, or
+  independent semantic backend.
+  Umpire3 imports the pinned Veil dependency in the primary Lake project and authors Veil declarations
+  as Lean source beside the owning model family. A supported family proves the relationship between
+  that declaration and its canonical view. Lean elaboration or metaprogramming may remove repetitive
+  declaration boilerplate, but neither Go, JSON, a backend-neutral IR, nor a text template generates
+  Veil source. Go may isolate a Lean invocation and transport its source-bound result; it does not
+  compile semantics into Veil. Veil is optional per family; qualification does not require adding a
+  Veil declaration to families that already have sufficient Lean proof and checked-search evidence.
+- TLA+, TLC, and Apalache are parked portability experiments, not planned Umpire3 work. Existing
+  adapters remain quarantined from default generation, checks, qualification, release gates,
+  developer setup, and transitive Lean targets. Do not extend, repair, or install them while executing
+  R5 through R7. They may be deleted if quarantine costs ongoing maintenance. Any future activation is
+  a separate post-qualification decision and must meet the same provenance, bounds, omission, and
+  canonical replay rules.
 - Scenario authoring is a separate intent language. Compiling a requested action attempt must not
   silently equate the attempt with a successful abstract transition.
 
@@ -77,9 +93,10 @@ and mechanically inspectable:
   observation, and backend representation has a declared soundness or equivalence obligation.
 - Proof-grade finite success requires collision-safe identity and a certificate accepted by the
   small Lean checker.
-- Veil testing, trusted SMT, reconstructed proofs, finite lasso evidence, unbounded temporal proof,
-  and live conformance remain different result classes. There is no generic `verified` Boolean.
-- Every backend counterexample must replay through canonical Lean semantics before promotion or a
+- A Veil-authored declaration may use testing, trusted SMT, or reconstructed proof support, but those
+  trust modes remain distinct from kernel proof, finite lasso evidence, unbounded temporal proof, and
+  live conformance. There is no generic `verified` Boolean.
+- Every checker counterexample must replay through canonical Lean semantics before promotion or a
   semantic violation claim.
 
 ### 2.4 Observation and evidence
@@ -154,134 +171,28 @@ heuristic; a heuristic omission cannot support proof-grade completeness.
 The milestones are ordered. A later milestone may add tests early, but it cannot be declared complete
 while an earlier semantic dependency remains open.
 
-### R2 — Finish model-family migration
+Execution priority is R6 and R7. Veil remains optional Lean-native modeling and proof support, not a
+parallel model compilation track. TLA+, TLC, and Apalache have no scheduled milestone, release gate,
+default check, or required developer dependency.
 
-**Goal:** apply independent feature/system semantics across every active catalog target.
+The active checker portfolio is:
 
-**Work**
+| Mechanism | Role in Umpire3 | Completion status |
+| --- | --- | --- |
+| Lean kernel proofs | Semantic and theorem authority | Required |
+| Exact exploration and checked certificates | Small finite proof-carrying search | Required for qualifying finite targets |
+| Native certificate producer | Replaceable scalable search with Lean-checked output | Required for qualifying scalable finite targets |
+| Lean temporal checking | Safety/liveness under explicit assumptions | Required for qualifying temporal targets |
+| Veil | Optional embedded Lean declarations and proof/search support in the primary Lake project | Family-scoped; never a generated backend |
+| TLA+, TLC, and Apalache | Quarantined historical portability experiments | Excluded from completion and default tooling |
 
-- Finish the active migrations for Workflow ownership, lineage, routing, speculative delivery,
-  callbacks, Nexus closure/timeout/Activity links, Workflow progress, and Update lifecycle.
-- Point experiments, catalog targets, composition, coverage, parity, and proof manifests only at the
-  independent replacements once their gates pass.
-- Give every family a reachable good outcome and a reachable mutated bad outcome; prove property
-  non-vacuity rather than relying on a truth table over unreachable states.
-- Give every system/feature pair a concrete mapped execution, safety or temporal simulation, exact
-  executable view, and independent mutation that breaks the declared simulation.
-- Demonstrate multiple system realizations refining one feature contract.
-- Use the shared current-completion/task-delivery contract from at least two families through actual
-  theorems, not matching metadata.
-- Complete cross-feature compositions and prove at least one interference-preservation theorem.
-- Retire legacy proof-by-construction models from active targets. Old source may remain temporarily
-  only when clearly quarantined and excluded from qualification.
+No remaining milestone creates a Veil generator, a Veil-specific semantic IR, or a second Lake
+project. Work on Veil is limited to ordinary Lean declarations, checked canonical-model bindings,
+honest trust classification, and family-scoped build/test ergonomics. Work on the TLA experiments is
+limited to preserving their quarantine or deleting them if that is cheaper than maintaining it.
 
-**Exit gate:** every catalog target resolves to independent typed models and non-vacuous evidence;
-searching active system modules finds no embedded feature state or feature-run witness.
-
-### R3 — Complete typed live observation
-
-**Goal:** remove property truth from every production Temporal adapter.
-
-**Work**
-
-- Complete the four-layer seam: source adapter, source-specific normalizer, generated interpreter,
-  and monitor/qualifier.
-- Replace the remaining `Observation{Satisfied: ...}` implementations and property switches with
-  `FactSession` implementations for SDK, Update, Workflow Task, callback, lineage, routing,
-  ownership, progress, timeout, and link paths.
-- Extend the small Lean observation language only where required to bind projected identities,
-  compare bounded typed fields, follow lineage and causal edges, check source-local order, and close
-  authoritative windows.
-- Keep history events and mechanism receipts distinct; normalized event names must not disguise an
-  adapter-computed final property verdict.
-- Generate all programs and four-valued fixtures from Lean. Mutation tests must fail when Go maps a
-  source field, event kind, identity, order, or closure incorrectly.
-- Preserve evidence digests and the complete support set in stored runtime results.
-- Make dual-history profiles compare independently sourced normalized facts without identifier
-  collisions or loss of corroboration requirements.
-- Demonstrate established, violated, unknown, conflict, missing closure, wrong identity, wrong
-  lineage, clock ambiguity, and contradictory-source cases.
-
-**Exit gate:** no production adapter implements property truth; all 18 current observations and every
-future registered observation are interpreted by generated programs with Lean/Go differential
-fixtures.
-
-### R4 — Complete model-derived compilation and primary checker coverage
-
-**Goal:** connect developer intent, model semantics, every primary checker, and live execution
-without making Go a semantic compiler.
-
-**Work**
-
-- Define the relation between a requested live action attempt, its observed outcome, and zero or more
-  abstract transitions. Suppressed, rejected, retried, and fault-intercepted attempts must not be
-  rejected merely because the successful abstract transition is disabled.
-- Replay every compiled path through the exact Lean-derived view before allocation while preserving
-  valid live-only behavior and rejecting genuinely impossible intent.
-- Give every qualifying finite target a nonempty exact executable view and generated coverage
-  denominator for transitions, relations, properties, faults, observations, refinements, and
-  evidence alternatives.
-- Replace reduction attestations with checked symmetry/closure evidence, or label the reduction
-  heuristic and withhold completeness.
-- Replace Go-rendered, checked-in Veil modules with an Umpire3 Lean command that consumes the
-  canonical model or a proved first-order view and elaborates Veil declarations directly. Remove the
-  generated Veil source directory. Mutation-test the elaboration bridge against canonical states,
-  transitions, traces, and explored counts.
-- Keep exact and native checking as the smallest proof-carrying baseline. A Veil failure must not
-  weaken or bypass their certificates, and a Veil success retains its distinct solver trust class.
-- Enforce advertised state, time, memory, CPU, output, and tool bounds at the process boundary and in
-  result validation.
-- Normalize exact, Veil, native, Lean-temporal, and live counterexamples into one semantic trace with
-  canonical Lean replay receipts.
-- Feed normalized traces through the same campaign minimization, replay, bundle, and ordinary
-  `RequireRegression` promotion path.
-- Preserve shortest-witness, deterministic merge, collision safety, checkpoint/resume, and corrupt
-  certificate failure tests while broadening target coverage.
-
-**Exit gate:** derived artifacts are drift-free; every qualifying target has honest exact/native and,
-where supported, Veil coverage status; the full migration ledger compiles; and checker/live traces
-converge on one replay and promotion path. TLC and Apalache are outside this gate.
-
-### R5 — Make the developer workflow exceptional
-
-**Goal:** make Umpire3 strictly easier than Umpire2 for ordinary tests while exposing more assurance
-to model authors.
-
-**Test-author contract**
-
-An ordinary test declares only:
-
-- a generated target/property identifier;
-- typed resources and symbolic identities;
-- a sparse partial-order scenario;
-- optional typed parameters, alternatives, and faults; and
-- a profile selected by the test environment.
-
-The author does not edit JSON, hashes, capabilities, protobuf descriptors, model modules, evidence
-rules, participant plumbing, cleanup, or replay code. `umpire3test.RequireRegression` compiles,
-preflights, executes, qualifies, cleans up, and reports source-located diagnostics.
-
-**Model-author contract**
-
-- One command builds a selected family, runs its Lean proofs, exact exploration, native certificate
-  checks, supported Lean-side Veil jobs, mutations, fixtures, and derived-artifact drift checks.
-- Diagnostics point to the originating Lean declaration, scenario term, unsupported profile
-  capability, missing evidence selector, or failed replay edge.
-- A generated dependency graph selects affected targets for PR checks; nightly jobs broaden worlds
-  and backend portfolios without changing semantics.
-
-**Remaining work**
-
-- Eliminate residual protocol/generated-file knowledge from public test APIs.
-- Add concise first-test, model-family, failure-diagnosis, backend-trust, and profile guides.
-- Verify the UX budget with a first regression, a partial-order test, a runtime-bound identity, a
-  typed fault, and a campaign-promoted regression.
-- Ensure copied root Umpire3 tests use normal public Umpire3 APIs and real evidence, not compatibility
-  shortcuts or migration-only helpers.
-- Keep deterministic source diagnostics and byte-identical compiled intent for identical inputs.
-
-**Exit gate:** representative tests are shorter or clearer than their Umpire2 equivalents, use no
-generated plumbing, and run unchanged across every eligible profile.
+The current focus is R6: turn the completed authoring, model-family, copied-regression, embedded-Veil,
+and TLA-quarantine work into independently retained deployment qualification.
 
 ### R6 — Finish real-mechanism parity and environment qualification
 
@@ -299,11 +210,14 @@ generated plumbing, and run unchanged across every eligible profile.
   public-gRPC-only profiles. Profile differences may change realization/evidence digests, never the
   semantic intent.
 - Obtain external build/configuration, isolation, observation, cleanup, and retention evidence rather
-  than manufacturing qualification receipts locally.
+  than manufacturing qualification receipts locally. Pin a reviewed Ed25519 authority per external
+  profile, sign the exact candidate/result/evidence/environment binding outside the repository, and
+  retain and reverify the signature in the qualified manifest.
 - Demonstrate public-only and internal/white-box evidence for every eligible claim, or record a
   precise unsupported result when public evidence is insufficient.
 - Exercise an authorized canary rehearsal with digest allowlists, least authority, redaction,
-  process isolation, enforceable hard budgets, persisted recovery metadata, and resumable cleanup.
+  a controller-pinned Ed25519 approval authority, process isolation, enforceable hard budgets,
+  persisted recovery metadata, and resumable cleanup.
 - Prove blocking prepare, execute, wait, observe, and cleanup paths cannot exceed profiles that claim
   hard execution bounds.
 
@@ -319,23 +233,22 @@ inferred.
 
 - Re-audit every goal in `UMPIRE_VISION.md`, every requirement below, every generated artifact, and
   every retained Umpire2 behavioral contract against current source and fresh results.
-- Run semantic mutations through proof, exact exploration, native certificates, Lean-side Veil,
-  Lean temporal checking, live evidence, minimization, replay, and promotion.
-- Demonstrate coverage-guided exploration or fuzzing finding and minimizing an approved cross-layer
-  mutation or genuine defect, with deterministic corpus selection.
-- Run the 10x native-search benchmark and record state storage, certificate size, Lean checking time,
-  peak memory, worker-count determinism, checkpoint/resume, and partial-publication recovery.
-- Verify hostile artifact decoding, secret redaction, dependency isolation, bounded cardinalities,
-  subprocess sandboxing, and recovery after controller or worker crashes.
-- Publish support, limits, trust, authoring, modeling, operations, security, and incident-recovery
-  documentation.
+- Run semantic mutations through Lean proof, exact exploration, native certificates, Lean temporal
+  checking, live evidence, minimization, replay, and promotion. For a family that owns a Veil
+  declaration, include that declaration and its canonical binding in the same mutation audit.
 - Move the release from `candidate` to `qualified` only after all mandatory evidence is present.
 - Evaluate extraction after qualification; do not delay completion on an optional shared seam.
-- After primary qualification, evaluate TLC and Apalache as optional portability adapters. Keep them
-  only when they add independent defect-finding value without introducing a second semantic model.
 
 **Exit gate:** every final requirement has direct current evidence and no green result depends on a
 stale artifact, cached-only test, authored attestation, hidden omission, or unavailable external run.
+
+### Out of scope — TLA+, TLC, and Apalache
+
+TLA+, TLC, and Apalache are not part of R5 through R7 or Umpire3's definition of done. Keep existing
+experimental code quarantined from default generation, CI, release, installation, Lean dependencies,
+family selection, Go package sweeps, and `make umpire3-check`; delete it if quarantine becomes a
+maintenance burden. Do not add a mise task or install bootstrap for these tools. Reconsidering this
+portability track after qualification requires a separate plan and explicit approval.
 
 ## 5. Result and trust model
 
@@ -380,8 +293,8 @@ cannot be selected by authored status text.
   boundaries.
 - Worlds, descriptors, evidence, cardinalities, traces, output, and retained artifacts are bounded
   before allocation.
-- Backend projects and tool revisions remain isolated and pinned; no toolchain becomes a runtime
-  dependency.
+- Checker dependencies and tool revisions remain pinned and build-isolated; Veil shares the primary
+  Lean project without becoming a runtime dependency.
 - Sensitive or unbounded wire fields are omitted, redacted, or represented by explicit digests.
 - Credentials never enter generated artifacts, command arguments, logs, replay bundles, or model
   checker input.
@@ -415,7 +328,8 @@ not evidence for a semantic claim.
   coverage, experiments, proofs, backend views/results, and migration ledger drift checks;
 - scenario attempt/outcome and impossible-intent tests;
 - exact explorer collision, nondeterminism, deadlock, depth, cancellation, and determinism tests;
-- Lean-side Veil elaborator mutations and canonical trace replay;
+- Veil-authored declaration/binding mutations and canonical trace replay for families that use the
+  library, all within the primary Lean project;
 - observation true/false/unknown/conflict, closure, lineage, order, and source-conflict tests;
 - campaign novelty, minimization identity, deterministic merge, replay, and promotion tests;
 - process timeout, CPU, memory, output, cancellation, cleanup, and crash-recovery tests; and
@@ -431,6 +345,9 @@ not evidence for a semantic claim.
 - relevant `go test -count=1 -tags test_dep` packages;
 - formatting and `make lint-code`; and
 - repository-wide `make unit-test` when feasible, with any resource limitation reported explicitly.
+
+TLA+, TLC, and Apalache availability or results are not prerequisites for any verification gate in
+this roadmap.
 
 ## 9. Definition of done
 
@@ -451,12 +368,15 @@ Umpire3 is complete only when all statements below have direct, current evidence
 
 - Every qualifying finite target has an exact executable view and derived coverage denominator.
 - Proof-grade finite success comes only from a collision-safe checked certificate.
-- Veil runs as a Lean-derived extension for supported targets with concrete, symbolic-trace, and
-  invariant results carrying honest trust.
-- Lean temporal results preserve the bounded/unbounded distinction. Optional TLC/Apalache results do
-  the same whenever those adapters are enabled.
-- Every backend counterexample replays through canonical Lean semantics.
+- Any Veil declarations used by a qualifying family are ordinary source in the primary Lean project,
+  with checked bindings to canonical views and concrete, symbolic-trace, and invariant results
+  carrying honest trust.
+- Lean temporal results preserve the bounded/unbounded distinction.
+- Every checker counterexample replays through canonical Lean semantics.
 - All search and backend resource limits are enforced and accurately reported.
+- A retained and freshly repeated 10x native benchmark records state and certificate storage,
+  search and Lean-check timing/peak memory, worker-count determinism, checkpoint resume, and
+  partial-publication recovery without elevating performance evidence into a proof claim.
 
 ### Feature and composition support
 
@@ -479,8 +399,8 @@ Umpire3 is complete only when all statements below have direct, current evidence
 ### Developer and operational quality
 
 - Test authors use the generated domain facade and `RequireRegression` without artifact plumbing.
-- Model authors run a selected Lean proof/exact/native/Veil family check with one command and source
-  diagnostics.
+- Model authors run a selected Lean proof/exact/native family check, including Veil when that family
+  imports it, in the primary Lean project with one command and source diagnostics.
 - PR checks select affected targets from generated transitive semantic dependencies.
 - Nightly jobs scale independently and produce deterministic, resumable bundles.
 - The same scenario digest runs in every eligible profile.
@@ -497,8 +417,8 @@ Umpire3 is complete only when all statements below have direct, current evidence
 - Generated transport and trust vocabulary: `tests/umpire3/protocol`.
 - Sparse authoring and model-aware compilation: `tests/umpire3/scenario` and
   `tests/umpire3/umpire3test`.
-- Exact, Lean-side Veil, temporal, and native checking: `tests/umpire3/explore` and
-  `tests/umpire3/model-checkers`.
+- Exact, temporal, native, and embedded Veil checking: `tests/umpire3/model`,
+  `tests/umpire3/explore`, and `tests/umpire3/model-checkers`.
 - Live facts and Temporal realization: `tests/umpire3/observation`,
   `tests/umpire3/execution`, and `tests/umpire3/temporal`.
 - Campaign, replay, process isolation, and canary: `tests/umpire3/campaign`,

@@ -13,8 +13,12 @@ func TestMinimizeActionsRemovesIrrelevantStepsAndPreservesViolation(t *testing.T
 	experiment := loadMutationExperiment(t)
 	experiment.Scope.Bounds.MaxDepth = 10
 	experiment.Actions = append(experiment.Actions[:5], append([]protocol.Action{
-		{Identifier: "irrelevant-crash", Kind: "crash-owner", RequiredCapabilities: []string{"failover-control"}},
-		{Identifier: "irrelevant-recover", Kind: "recover-owner", RequiredCapabilities: []string{"failover-control"}},
+		{Identifier: "irrelevant-crash", Kind: "crash-owner",
+			AllowedOutcomes:      []protocol.ActionOutcome{protocol.ActionOutcomeApplied},
+			RequiredCapabilities: []string{"failover-control"}},
+		{Identifier: "irrelevant-recover", Kind: "recover-owner",
+			AllowedOutcomes:      []protocol.ActionOutcome{protocol.ActionOutcomeApplied},
+			RequiredCapabilities: []string{"failover-control"}},
 	}, experiment.Actions[5:]...)...)
 
 	minimized, err := MinimizeActions(context.Background(), experiment, func(_ context.Context, candidate protocol.Experiment) (umpire3execution.Result, error) {
@@ -77,7 +81,9 @@ func TestMinimizeExperimentRemovesUnusedResourcesFaultsAndBindings(t *testing.T)
 		Symbol: "unused", Type: "identity", Projection: "operation-id",
 	}}
 	experiment.Actions = append(experiment.Actions, protocol.Action{
-		Identifier: "unused-fault", Kind: "crash-owner", RequiredCapabilities: []string{"failover-control"},
+		Identifier: "unused-fault", Kind: "crash-owner",
+		AllowedOutcomes:      []protocol.ActionOutcome{protocol.ActionOutcomeApplied},
+		RequiredCapabilities: []string{"failover-control"},
 	})
 	experiment.Resources = append(experiment.Resources, protocol.Resource{Identifier: "unused", Kind: "nexus-worker"})
 

@@ -34,9 +34,11 @@ type Limits struct {
 }
 
 type Result struct {
-	Output   []byte
-	ExitCode int
-	TimedOut bool
+	Output          []byte
+	ExitCode        int
+	TimedOut        bool
+	DurationNanos   int64
+	PeakMemoryBytes int64
 }
 
 func Run(ctx context.Context, request Request) (Result, error) {
@@ -76,7 +78,10 @@ func Run(ctx context.Context, request Request) (Result, error) {
 
 func completedRun(attempt *processAttempt) (Result, error) {
 	snapshot := attempt.snapshot()
-	result := Result{Output: snapshot.Output, ExitCode: snapshot.ExitCode}
+	result := Result{
+		Output: snapshot.Output, ExitCode: snapshot.ExitCode,
+		DurationNanos: snapshot.DurationNanos, PeakMemoryBytes: snapshot.PeakMemoryBytes,
+	}
 	if attempt.output.Exceeded() {
 		return result, ErrOutputLimit
 	}
@@ -104,18 +109,37 @@ func commandWithLimits(command []string, limits Limits) ([]string, error) {
 	return append(arguments, command...), nil
 }
 
-func watchProcessGroupMemory(pid int, limit int64, exceeded chan<- struct{}, stop <-chan struct{}) {
+func watchProcessGroupMemory(
+	pid int,
+	limit int64,
+	exceeded chan<- struct{},
+	stop <-chan struct{},
+	observe func(int64),
+) {
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
+	check := func() bool {
+		usage, err := processGroupMemoryBytes(pid)
+		if err != nil {
+			return false
+		}
+		observe(usage)
+		if usage <= limit {
+			return false
+		}
+		select {
+		case exceeded <- struct{}{}:
+		default:
+		}
+		return true
+	}
+	if check() {
+		return
+	}
 	for {
 		select {
 		case <-ticker.C:
-			usage, err := processGroupMemoryBytes(pid)
-			if err == nil && usage > limit {
-				select {
-				case exceeded <- struct{}{}:
-				default:
-				}
+			if check() {
 				return
 			}
 		case <-stop:

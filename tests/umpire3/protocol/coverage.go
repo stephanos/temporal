@@ -37,6 +37,7 @@ const (
 	CoverageFault       CoverageDimension = "fault"
 	CoverageObservation CoverageDimension = "observation"
 	CoverageRefinement  CoverageDimension = "refinement"
+	CoverageEvidence    CoverageDimension = "evidence"
 )
 
 type ModelCoveragePoint struct {
@@ -146,7 +147,9 @@ func (d CoverageDenominator) Validate() error {
 			dimensions[point.Dimension] = struct{}{}
 		}
 		if target.Status == CoverageDenominatorDefined {
-			for _, required := range []CoverageDimension{CoverageTransition, CoverageProperty, CoverageObservation} {
+			for _, required := range []CoverageDimension{
+				CoverageTransition, CoverageProperty, CoverageObservation, CoverageEvidence,
+			} {
 				if _, exists := dimensions[required]; !exists {
 					return fmt.Errorf("coverage denominator target %q property %q has no %s points",
 						target.Identifier, target.Property, required)
@@ -218,6 +221,27 @@ func (d CoverageDenominator) PointsForExperiment(experiment Experiment) ([]Model
 	for _, checkpoint := range experiment.Checkpoints {
 		observations[checkpoint.Observation] = struct{}{}
 	}
+	evidence := make(map[string]struct{})
+	monitors, err := DefaultMonitorCatalog()
+	if err != nil {
+		return nil, fmt.Errorf("load monitor catalog for model coverage: %w", err)
+	}
+	monitor, found := monitors.Program(PropertyID(experiment.Property.Identifier))
+	if !found {
+		return nil, fmt.Errorf("property %q has no monitor program", experiment.Property.Identifier)
+	}
+	completeMonitorCoverage := true
+	for _, observation := range monitor.Coverage {
+		if _, covered := observations[strings.TrimPrefix(observation, "observation.")]; !covered {
+			completeMonitorCoverage = false
+			break
+		}
+	}
+	if completeMonitorCoverage {
+		for _, requirement := range monitor.Evidence {
+			evidence[string(requirement)] = struct{}{}
+		}
+	}
 	modules := make(map[string]struct{}, len(experiment.Model.Modules))
 	for _, module := range experiment.Model.Modules {
 		modules[module] = struct{}{}
@@ -235,6 +259,8 @@ func (d CoverageDenominator) PointsForExperiment(experiment Experiment) ([]Model
 			_, covered = faults[suffix]
 		case CoverageObservation:
 			_, covered = observations[strings.TrimPrefix(suffix, "observation.")]
+		case CoverageEvidence:
+			_, covered = evidence[strings.TrimPrefix(suffix, "evidence:")]
 		case CoverageRelation, CoverageRefinement:
 			_, covered = modules[point.Source]
 		}
@@ -297,7 +323,7 @@ func (d CoverageDenominator) targetForExperiment(experiment Experiment) (Coverag
 func (d CoverageDimension) valid() bool {
 	switch d {
 	case CoverageTransition, CoverageRelation, CoverageProperty, CoverageFault,
-		CoverageObservation, CoverageRefinement:
+		CoverageObservation, CoverageRefinement, CoverageEvidence:
 		return true
 	default:
 		return false

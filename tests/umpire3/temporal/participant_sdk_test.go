@@ -9,10 +9,43 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/activity"
+	sdkmocks "go.temporal.io/sdk/mocks"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 	"go.temporal.io/server/tests/umpire3/participant"
 )
+
+func TestSDKParticipantAsynchronousResponseAcknowledgesSignalDispatch(t *testing.T) {
+	t.Parallel()
+
+	operation := participant.Operation{
+		CommandID: "cancel", SemanticAction: "request-cancellation",
+		SDKOperation: participant.SDKCancel, Response: participant.ResponseAsynchronous,
+	}
+	client := &sdkmocks.Client{}
+	run := &sdkmocks.WorkflowRun{}
+	client.On("SignalWorkflow", mock.Anything, "workflow", "run", SDKCommandSignalName, operation).
+		Return(nil).Once()
+	run.On("GetID").Return("workflow")
+	run.On("GetRunID").Return("run")
+	adapter := &SDKParticipantAdapter{
+		options: SDKParticipantOptions{Client: client, WorkflowType: "workflow-type"},
+		plan: participant.Plan{
+			FormatVersion: participant.FormatVersion, ProgramID: "program",
+			Operations: []participant.Operation{operation},
+		},
+		run: run, started: true,
+	}
+
+	result, err := adapter.Execute(t.Context(), operation)
+	require.NoError(t, err)
+	require.Equal(t, "accepted", result.Status)
+	require.Equal(t, "workflow", result.WorkflowID)
+	require.Equal(t, "run", result.RunID)
+	require.False(t, adapter.workflowClosed)
+	require.Equal(t, 1, adapter.programExecutions)
+	client.AssertExpectations(t)
+}
 
 func TestSDKProgramAsynchronousAndDeferredResponsesDoNotWaitForCompletion(t *testing.T) {
 	var suite testsuite.WorkflowTestSuite

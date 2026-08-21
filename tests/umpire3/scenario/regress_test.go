@@ -13,7 +13,7 @@ import (
 func TestGeneratedFacadeCapturesAuthorSource(t *testing.T) {
 	t.Parallel()
 
-	authored := NewScenario("source", protocol.TargetIDNexusCancellation,
+	authored := NexusCancellationRegression("source",
 		[]Resource{NexusOperation("operation")},
 		OnePath(
 			ScheduleOperation("duplicate"),
@@ -34,7 +34,7 @@ func TestGeneratedFacadeCapturesAuthorSource(t *testing.T) {
 func TestResponseOptionsReadAsBehaviorAndCompileWithoutProtocolPlumbing(t *testing.T) {
 	t.Parallel()
 
-	authored := NewScenario("response-options", protocol.TargetIDFoundationDeliverySafety,
+	authored := FoundationDeliverySafetyRegression("response-options",
 		[]Resource{Workflow("workflow")}, OnePath(
 			ProgressEntity("sync", Synchronously()),
 			ProgressEntity("async", Asynchronously()),
@@ -56,7 +56,7 @@ func TestResponseOptionsReadAsBehaviorAndCompileWithoutProtocolPlumbing(t *testi
 func TestGeneratedFacadeCompilationIsDeterministic(t *testing.T) {
 	t.Parallel()
 
-	authored := NewScenario("deterministic", protocol.TargetIDFoundationDeliverySafety,
+	authored := FoundationDeliverySafetyRegression("deterministic",
 		[]Resource{Workflow("workflow")}, OnePath(
 			ProgressEntity("progress", Synchronously()),
 			RequireEntityProgress(),
@@ -69,6 +69,7 @@ func TestGeneratedFacadeCompilationIsDeterministic(t *testing.T) {
 	second, err := Compile(context.Background(), authored, limits)
 	require.NoError(t, err)
 	require.Equal(t, first, second)
+	require.Equal(t, protocol.LeanVersion, first.Experiments[0].Model.LeanVersion)
 }
 
 func responseModes(actions []protocol.Action) []protocol.ResponseMode {

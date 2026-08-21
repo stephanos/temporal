@@ -19,7 +19,7 @@ def mutatedRequest : TraceReplay.Request where
 example : TraceReplay.checkRequest mutatedRequest = true := by
   simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus,
     TraceReplay.Request.validDigest, TraceReplay.Request.validSemanticHash,
-    TraceReplay.lowerHexDigit, mutatedRequest]
+    TraceReplay.hasSha256Prefix, TraceReplay.lowerHexDigit, mutatedRequest]
   decide
 
 example : TraceReplay.checkRequest { mutatedRequest with variant := "sound" } = false := by
@@ -28,13 +28,14 @@ example : TraceReplay.checkRequest { mutatedRequest with variant := "sound" } = 
 example : TraceReplay.checkRequest { mutatedRequest with actions := ["unknown-action"] } = false := by
   simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus,
     TraceReplay.Request.validDigest, TraceReplay.Request.validSemanticHash,
-    TraceReplay.lowerHexDigit, mutatedRequest]
+    TraceReplay.hasSha256Prefix, TraceReplay.lowerHexDigit, mutatedRequest]
   decide
 
 example : TraceReplay.checkRequest { mutatedRequest with
     traceDigest := "sha256:zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" } = false := by
   simp [TraceReplay.checkRequest, TraceReplay.Request.matchesMutatedNexus,
-    TraceReplay.Request.validDigest, TraceReplay.lowerHexDigit, mutatedRequest]
+    TraceReplay.Request.validDigest, TraceReplay.hasSha256Prefix, TraceReplay.lowerHexDigit,
+    mutatedRequest] <;> decide
 
 example : TraceReplay.checkedRequestAxioms = ["Classical.choice", "Quot.sound", "propext"] := by
   simp [TraceReplay.checkedRequestAxioms]

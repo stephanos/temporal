@@ -1,6 +1,8 @@
 package protocol
 
 import (
+	"bytes"
+	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -10,12 +12,52 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestBindReleaseArtifactBindingsReplacesStaleBindings(t *testing.T) {
+	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	release, err := DecodeReleaseManifest(encoded)
+	require.NoError(t, err)
+	release.CatalogHash = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	release.Experiments = map[string]ReleaseExperiment{
+		"stale": {
+			SemanticHash: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			Digest:       "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		},
+	}
+	release.ProofManifests = []ReleaseProofManifest{{
+		Identifier: "stale",
+		Digest:     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}}
+
+	experiments := make([]Experiment, 0, 2)
+	for _, path := range []string{"../testdata/nexus-cancellation.json", "../testdata/update-lifecycle.json"} {
+		experimentBytes, readErr := os.ReadFile(path)
+		require.NoError(t, readErr)
+		experiment, decodeErr := DecodeExperiment(bytes.NewReader(experimentBytes), DefaultDecodeLimit)
+		require.NoError(t, decodeErr)
+		experiments = append(experiments, experiment)
+	}
+
+	bound, err := BindReleaseArtifactBindings(release, experiments)
+	require.NoError(t, err)
+	require.NoError(t, bound.ValidateArtifactBindingsAgainstCurrent())
+	for _, experiment := range experiments {
+		digest, digestErr := experiment.Digest()
+		require.NoError(t, digestErr)
+		require.Equal(t, ReleaseExperiment{
+			SemanticHash: experiment.Model.SemanticHash,
+			Digest:       digest,
+		}, bound.Experiments[experiment.ExperimentID])
+	}
+	require.Len(t, bound.ProofManifests, 4)
+}
+
 func TestReleaseManifestMatchesExportedExperiments(t *testing.T) {
 	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
 	require.NoError(t, err)
 	release, err := DecodeReleaseManifest(encoded)
 	require.NoError(t, err)
-	require.NoError(t, release.ValidateAgainstCurrent())
+	require.NoError(t, release.ValidateArtifactBindingsAgainstCurrent())
 	require.Equal(t, "umpire3/1.2", release.Release)
 	require.Equal(t, "candidate", release.Status)
 	require.Equal(t, FormatVersion, release.ExperimentFormatVersion)
@@ -34,6 +76,11 @@ func TestReleaseManifestMatchesExportedExperiments(t *testing.T) {
 	parity, err := DefaultParityLedger()
 	require.NoError(t, err)
 	require.Equal(t, parity.SemanticHash, release.ParitySemanticHash)
+	checkerCoverage, err := DefaultCheckerCoverage()
+	require.NoError(t, err)
+	checkerCoverageJSON, err := checkerCoverage.CanonicalJSON()
+	require.NoError(t, err)
+	require.Equal(t, digestBytes(checkerCoverageJSON), release.CheckerCoverageHash)
 	require.ElementsMatch(t, []string{
 		"local-in-process", "ci-test-cluster", "remote-deployment", "grpc-only-black-box", "production-canary",
 	}, release.Profiles)
@@ -52,8 +99,61 @@ func TestReleaseManifestMatchesExportedExperiments(t *testing.T) {
 		require.NoError(t, err)
 		var experiment Experiment
 		require.NoError(t, json.Unmarshal(encoded, &experiment))
-		require.Equal(t, experiment.Model.SemanticHash, release.Experiments[experiment.ExperimentID])
+		digest, digestErr := experiment.Digest()
+		require.NoError(t, digestErr)
+		require.Equal(t, ReleaseExperiment{
+			SemanticHash: experiment.Model.SemanticHash,
+			Digest:       digest,
+		}, release.Experiments[experiment.ExperimentID])
 	}
+}
+
+func TestQualificationReceiptRejectsPayloadMutation(t *testing.T) {
+	seed := sha256.Sum256([]byte("umpire3 qualification receipt mutation test"))
+	privateKey := ed25519.NewKeyFromSeed(seed[:])
+	authority, err := NewQualificationAuthority("test-authority", privateKey.Public().(ed25519.PublicKey))
+	require.NoError(t, err)
+	receipt, err := SignQualificationReceipt(QualificationReceipt{
+		FormatVersion:         QualificationReceiptFormatVersion,
+		Release:               "umpire3/test",
+		ReleaseDigest:         "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+		Profile:               "remote-deployment",
+		ExperimentID:          "experiment",
+		ExperimentDigest:      "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+		ResultDigest:          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+		BuildID:               "build",
+		ConfigurationIdentity: "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+		EvidenceDigest:        "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+		Authority:             authority,
+	}, privateKey)
+	require.NoError(t, err)
+	receipt.BuildID = "mutated-build"
+	encoded, err := json.Marshal(receipt)
+	require.NoError(t, err)
+
+	_, err = DecodeQualificationReceipt(encoded)
+	require.ErrorContains(t, err, "signature")
+}
+
+func TestQualificationReceiptRejectsOpaqueConfigurationIdentity(t *testing.T) {
+	seed := sha256.Sum256([]byte("umpire3 qualification configuration identity test"))
+	privateKey := ed25519.NewKeyFromSeed(seed[:])
+	authority, err := NewQualificationAuthority("test-authority", privateKey.Public().(ed25519.PublicKey))
+	require.NoError(t, err)
+	_, err = SignQualificationReceipt(QualificationReceipt{
+		FormatVersion:         QualificationReceiptFormatVersion,
+		Release:               "umpire3/test",
+		ReleaseDigest:         "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+		Profile:               "remote-deployment",
+		ExperimentID:          "experiment",
+		ExperimentDigest:      "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+		ResultDigest:          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+		BuildID:               "build",
+		ConfigurationIdentity: "opaque-configuration",
+		EvidenceDigest:        "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+		Authority:             authority,
+	}, privateKey)
+	require.ErrorContains(t, err, "configuration")
 }
 
 func TestReleaseManifestSummarizesMigrationFidelity(t *testing.T) {
@@ -122,7 +222,18 @@ func TestReleaseManifestRejectsMismatchedCurrentProofManifestDigest(t *testing.T
 	require.NoError(t, err)
 	release.ProofManifests[0].Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-	require.ErrorContains(t, release.ValidateAgainstCurrent(), "proof manifest")
+	require.ErrorContains(t, release.ValidateArtifactBindingsAgainstCurrent(), "proof manifest")
+}
+
+func TestReleaseManifestRejectsMismatchedCheckerCoverage(t *testing.T) {
+	releaseBytes, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	release, err := DecodeReleaseManifest(releaseBytes)
+	require.NoError(t, err)
+	release.CheckerCoverageHash =
+		"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+	require.ErrorContains(t, release.ValidateArtifactBindingsAgainstCurrent(), "checker coverage")
 }
 
 func TestReleaseManifestRejectsLegacyProofManifestReferenceFormat(t *testing.T) {
@@ -141,9 +252,7 @@ func TestQualifiedReleaseRejectsPartialMigrationFidelity(t *testing.T) {
 	release, err := DecodeReleaseManifest(encoded)
 	require.NoError(t, err)
 	release.Status = "qualified"
-	for index := range release.Evidence {
-		release.Evidence[index].Status = "passed"
-	}
+	release.Assurance = completeReleaseAssurance(t, release.Assurance)
 	release.Migration.ExactCount--
 	release.Migration.PartialCount++
 	release.ExternalQualifications = nil
@@ -155,25 +264,48 @@ func TestReleaseManifestRejectsMissingVisionEvidence(t *testing.T) {
 	require.NoError(t, err)
 	release, err := DecodeReleaseManifest(encoded)
 	require.NoError(t, err)
-	release.Evidence = release.Evidence[:len(release.Evidence)-1]
+	release.Assurance.Goals = release.Assurance.Goals[:len(release.Assurance.Goals)-1]
 	require.ErrorContains(t, release.Validate(), "every Umpire vision goal")
+}
+
+func TestReleaseManifestRejectsAuthoredVisionStatus(t *testing.T) {
+	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	var release map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &release))
+	assurance, ok := release["assurance"].(map[string]any)
+	require.True(t, ok)
+	goals, ok := assurance["goals"].([]any)
+	require.True(t, ok)
+	first, ok := goals[0].(map[string]any)
+	require.True(t, ok)
+	first["status"] = "passed"
+	encoded, err = json.Marshal(release)
+	require.NoError(t, err)
+
+	_, err = DecodeReleaseManifest(encoded)
+	require.ErrorContains(t, err, "unknown field")
 }
 
 func TestCandidateReleaseEvidenceMatchesAuditedVisionState(t *testing.T) {
 	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
 	require.NoError(t, err)
+	var retained struct {
+		Assurance ReleaseAssurance `json:"assurance"`
+	}
+	require.NoError(t, json.Unmarshal(encoded, &retained))
+	sealed, err := SealReleaseAssurance(retained.Assurance)
+	require.NoError(t, err)
+	require.Equal(t, sealed.Digest, retained.Assurance.Digest)
 	release, err := DecodeReleaseManifest(encoded)
 	require.NoError(t, err)
-	passed := map[string]struct{}{
-		"deterministic-plans": {},
-		"non-linear-identity": {},
+	require.False(t, release.Assurance.Complete())
+	omitted := map[string]struct{}{
+		"portable-profiles": {}, "white-box-black-box": {},
 	}
-	for _, evidence := range release.Evidence {
-		if _, complete := passed[evidence.Goal]; complete {
-			require.Equal(t, "passed", evidence.Status, evidence.Goal)
-		} else {
-			require.Equal(t, "partial", evidence.Status, evidence.Goal)
-		}
+	for _, goal := range release.Assurance.Goals {
+		_, incomplete := omitted[goal.Identifier]
+		require.Equal(t, incomplete, len(goal.Omissions) != 0, goal.Identifier)
 	}
 }
 
@@ -183,11 +315,31 @@ func TestQualifiedReleaseRejectsPartialVisionEvidenceAndExternalGates(t *testing
 	release, err := DecodeReleaseManifest(encoded)
 	require.NoError(t, err)
 	release.Status = "qualified"
-	require.ErrorContains(t, release.Validate(), "lacks passing evidence")
-	for index := range release.Evidence {
-		release.Evidence[index].Status = "passed"
-	}
+	require.ErrorContains(t, release.Validate(), "unresolved omissions")
+	release.Assurance = completeReleaseAssurance(t, release.Assurance)
 	require.ErrorContains(t, release.Validate(), "external qualification gates")
+}
+
+func TestQualifiedReleaseRequiresExternalQualificationEvidence(t *testing.T) {
+	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	release, err := DecodeReleaseManifest(encoded)
+	require.NoError(t, err)
+	release.Status = "qualified"
+	release.Assurance = completeReleaseAssurance(t, release.Assurance)
+	release.ExternalQualifications = nil
+	release.Qualifications = nil
+	require.ErrorContains(t, release.Validate(), "qualification evidence")
+}
+
+func TestCandidateReleaseRequiresQualificationGateForEveryProfile(t *testing.T) {
+	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	release, err := DecodeReleaseManifest(encoded)
+	require.NoError(t, err)
+	release.ExternalQualifications = release.ExternalQualifications[1:]
+
+	require.ErrorContains(t, release.Validate(), "qualification gates cover")
 }
 
 func TestQualifiedReleaseRejectsUnresolvedParity(t *testing.T) {
@@ -195,6 +347,11 @@ func TestQualifiedReleaseRejectsUnresolvedParity(t *testing.T) {
 	require.NoError(t, err)
 	parity.ResultClass = ResultClassMetadataValidated
 	require.ErrorContains(t, validateQualifiedParity(parity), "not declaration-resolved")
+
+	parity, err = DefaultParityLedger()
+	require.NoError(t, err)
+	parity.Entries[0].EvidenceLevel = EvidenceModelProof
+	require.ErrorContains(t, validateQualifiedParity(parity), "incomplete")
 }
 
 func TestQualifiedReleaseAcceptsProofBackedComposition(t *testing.T) {
@@ -205,19 +362,23 @@ func TestQualifiedReleaseAcceptsProofBackedComposition(t *testing.T) {
 	require.ErrorContains(t, validateQualifiedComposition(composition), "not proof-backed")
 }
 
-func TestReleaseEvidenceAnchorsResolve(t *testing.T) {
+func TestReleaseDocumentsResolve(t *testing.T) {
 	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
 	require.NoError(t, err)
 	release, err := DecodeReleaseManifest(encoded)
 	require.NoError(t, err)
-	for _, evidence := range release.Evidence {
-		for _, anchor := range evidence.Anchors {
-			_, statErr := os.Stat("../" + anchor)
-			require.NoError(t, statErr, "%s: %s", evidence.Goal, anchor)
-		}
-	}
 	for name, path := range release.Documents {
 		_, statErr := os.Stat("../" + path)
 		require.NoError(t, statErr, "%s: %s", name, path)
 	}
+}
+
+func completeReleaseAssurance(t *testing.T, assurance ReleaseAssurance) ReleaseAssurance {
+	t.Helper()
+	for index := range assurance.Goals {
+		assurance.Goals[index].Omissions = nil
+	}
+	assurance, err := SealReleaseAssurance(assurance)
+	require.NoError(t, err)
+	return assurance
 }

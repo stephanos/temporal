@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	environment "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 	"go.temporal.io/server/tests/umpire3/scenario"
 )
@@ -28,6 +29,7 @@ func (t *fakeTestingT) Fatalf(format string, arguments ...any) {
 type facadeFactory struct {
 	capabilities []protocol.CapabilityID
 	prepareCount int
+	violating    bool
 }
 
 func (f *facadeFactory) Capabilities() []protocol.CapabilityID { return f.capabilities }
@@ -37,7 +39,7 @@ func (f *facadeFactory) Prepare(
 ) (environment.PreparedEnvironment, error) {
 	f.prepareCount++
 	return environment.PreparedEnvironment{
-		Session: facadeSession{},
+		Session: facadeSession{violating: f.violating},
 		Identity: environment.EnvironmentIdentity{
 			Name: "test", BuildID: "build", ConfigurationIdentity: "configuration",
 			EvidenceProfile: environment.EvidenceProfileInProcessHooks, DrivingAuthority: "driver",
@@ -48,18 +50,56 @@ func (f *facadeFactory) Prepare(
 	}, nil
 }
 
-type facadeSession struct{}
+type facadeSession struct {
+	violating bool
+}
 
 func (facadeSession) Realize(context.Context, protocol.Action, environment.Bindings) (environment.ActionEvidence, error) {
-	return environment.ActionEvidence{Source: "facade-test", Reference: "action"}, nil
-}
-func (facadeSession) Observe(_ context.Context, checkpoint protocol.Checkpoint, _ environment.Bindings) (environment.Observation, error) {
-	return environment.Observation{
-		CheckpointID: checkpoint.Identifier, Kind: checkpoint.Observation, Satisfied: true,
-		Source: "facade-test", SourceIdentity: "facade-source", ClockDomain: "facade-sequence",
-		SourceSequence: 1, Reference: "facade/" + checkpoint.Identifier, CausalReference: "cause",
-		EntityIdentity: "callback", Lineage: []string{"namespace", "callback"},
+	return environment.ActionEvidence{
+		Source: "facade-test", Outcome: protocol.ActionOutcomeApplied, Reference: "action",
 	}, nil
+}
+func (s facadeSession) ObserveFacts(
+	_ context.Context,
+	checkpoint protocol.Checkpoint,
+	_ environment.Bindings,
+) ([]observation.Fact, error) {
+	kinds := []string{
+		observation.CallbackRegistered,
+		observation.CallbackOperationSettled,
+		observation.CallbackResponseRecorded,
+	}
+	if s.violating {
+		kinds = []string{observation.CallbackResponseConflict}
+	}
+	facts := make([]observation.Fact, len(kinds), len(kinds)+1)
+	for index, kind := range kinds {
+		sequence := int64(index + 1)
+		facts[index] = observation.Fact{
+			Identifier: "facade/" + kind,
+			Source: observation.Source{
+				Identity: "facade-source", ClockDomain: "facade-sequence", Sequence: sequence,
+				Reference: "facade/reference/" + kind, CausalReferences: []string{"facade/cause"},
+				EntityIdentity: "callback", Lineage: []string{"namespace", "callback"},
+			},
+			History: &observation.HistoryEvent{
+				EventType: kind, EventID: sequence, WorkflowID: "workflow", RunID: "run",
+			},
+		}
+	}
+	sequence := int64(len(kinds) + 1)
+	facts = append(facts, observation.Fact{
+		Identifier: "facade/window/" + checkpoint.Observation,
+		Source: observation.Source{
+			Identity: "facade-source", ClockDomain: "facade-sequence", Sequence: sequence,
+			Reference: "facade/reference/window", CausalReferences: []string{"facade/cause"},
+			EntityIdentity: "callback", Lineage: []string{"namespace", "callback"},
+		},
+		Window: &observation.EvidenceWindow{
+			Purpose: checkpoint.Observation, Closed: true, ThroughSequence: sequence,
+		},
+	})
+	return facts, nil
 }
 func (facadeSession) Cleanup(context.Context) environment.CleanupResult {
 	return environment.CleanupResult{Complete: true}
@@ -71,7 +111,7 @@ func TestRequireRegressionRunsTypedScenario(t *testing.T) {
 
 	test := &fakeTestingT{name: "TestRequireRegressionRunsTypedScenario"}
 	factory := &facadeFactory{capabilities: []protocol.CapabilityID{protocol.CapabilityIDHistoryObservation}}
-	authored := scenario.NewScenario("callback-response", protocol.TargetIDProtocolAtomic,
+	authored := scenario.ProtocolAtomicRegression("callback-response",
 		[]scenario.Resource{scenario.Callback("callback")},
 		scenario.OnePath(
 			scenario.RecordCallbackResponse("respond"),
@@ -80,6 +120,28 @@ func TestRequireRegressionRunsTypedScenario(t *testing.T) {
 	)
 
 	RequireRegression(test, authored, WithEnvironment(factory), WithCompilerLimits(testCompilerLimits()))
+	require.Positive(t, test.helperCalls)
+	require.Equal(t, 1, factory.prepareCount)
+}
+
+func TestRequireRegressionAcceptsExpectedViolation(t *testing.T) {
+	t.Parallel()
+
+	test := &fakeTestingT{name: "TestRequireRegressionAcceptsExpectedViolation"}
+	factory := &facadeFactory{
+		capabilities: []protocol.CapabilityID{protocol.CapabilityIDHistoryObservation},
+		violating:    true,
+	}
+	authored := scenario.ProtocolAtomicRegression("callback-response",
+		[]scenario.Resource{scenario.Callback("callback")},
+		scenario.OnePath(
+			scenario.RecordCallbackResponse("respond"),
+			scenario.RequireCallbackResponseConsistency(),
+		),
+	)
+
+	RequireRegression(test, authored, WithEnvironment(factory), ExpectViolation(),
+		WithCompilerLimits(testCompilerLimits()))
 	require.Positive(t, test.helperCalls)
 	require.Equal(t, 1, factory.prepareCount)
 }
@@ -100,7 +162,7 @@ func TestRequireRegressionReportsUnsupportedBeforeAllocation(t *testing.T) {
 
 	test := &fakeTestingT{name: "TestUnsupported/Profile"}
 	factory := &facadeFactory{}
-	authored := scenario.NewScenario("callback-response", protocol.TargetIDProtocolAtomic,
+	authored := scenario.ProtocolAtomicRegression("callback-response",
 		[]scenario.Resource{scenario.Callback("callback")},
 		scenario.OnePath(
 			scenario.RecordCallbackResponse("respond"),

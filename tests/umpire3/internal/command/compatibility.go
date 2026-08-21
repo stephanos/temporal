@@ -100,10 +100,13 @@ type qualificationCompatibilityOptions struct {
 	experimentPath string
 	resultPath     string
 	profile        string
+	signingKeyPath string
 	outputPath     string
 }
 
 type receipt = qualification.Receipt
+
+const qualificationSigningKeyLimit int64 = 16 << 10
 
 func QualifyCompatibility(arguments []string, stdout io.Writer) error {
 	return QualifyCompatibilityWithBackend(arguments, stdout, defaultBackend{})
@@ -122,8 +125,8 @@ func QualifyCompatibilityWithBackend(arguments []string, stdout io.Writer, backe
 
 func qualifyCompatibility(configuration qualificationCompatibilityOptions, stdout io.Writer, backend Backend) error {
 	if configuration.releasePath == "" || configuration.experimentPath == "" ||
-		configuration.resultPath == "" || configuration.profile == "" {
-		return errors.New("release, experiment, result, and profile are required")
+		configuration.resultPath == "" || configuration.profile == "" || configuration.signingKeyPath == "" {
+		return errors.New("release, experiment, result, profile, and signing key are required")
 	}
 	releaseBytes, err := readRequiredFile("release", configuration.releasePath, protocol.DefaultDecodeLimit)
 	if err != nil {
@@ -137,9 +140,17 @@ func qualifyCompatibility(configuration qualificationCompatibilityOptions, stdou
 	if err != nil {
 		return err
 	}
+	signingKeyBytes, err := readRequiredFile("signing key", configuration.signingKeyPath, qualificationSigningKeyLimit)
+	if err != nil {
+		return err
+	}
+	signingKey, err := qualification.ParseSigningKey(signingKeyBytes)
+	if err != nil {
+		return err
+	}
 	value, err := backend.Qualify(qualification.Request{
 		ReleaseBytes: releaseBytes, ExperimentBytes: experimentBytes,
-		ResultBytes: resultBytes, Profile: configuration.profile,
+		ResultBytes: resultBytes, Profile: configuration.profile, SigningKey: signingKey,
 	})
 	if err != nil {
 		return err
@@ -171,6 +182,7 @@ func parseQualificationCompatibilityFlags(arguments []string) (qualificationComp
 	flags.StringVar(&result.experimentPath, "experiment", "", "executed semantic experiment")
 	flags.StringVar(&result.resultPath, "result", "", "runtime or canary result artifact")
 	flags.StringVar(&result.profile, "profile", "", "external profile being qualified")
+	flags.StringVar(&result.signingKeyPath, "signing-key", "", "PKCS#8 Ed25519 qualification authority key")
 	flags.StringVar(&result.outputPath, "output", "", "qualification receipt output")
 	if err := flags.Parse(arguments); err != nil {
 		return qualificationCompatibilityOptions{}, err

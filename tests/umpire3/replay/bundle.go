@@ -16,10 +16,12 @@ import (
 	"go.temporal.io/server/tests/umpire3/evidence"
 	"go.temporal.io/server/tests/umpire3/execution"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
+	"go.temporal.io/server/tests/umpire3/internal/artifact"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
-const BundleFormatVersion = "umpire3/replay-bundle/v1"
+const BundleFormatVersion = "umpire3/replay-bundle/v3"
 
 type Metadata struct {
 	Profile      string                  `json:"profile,omitempty"`
@@ -49,7 +51,10 @@ func EncodeBundle(experiment protocol.Experiment, result execution.Result, maxBy
 	if err := result.ValidateAssurance(); err != nil {
 		return nil, fmt.Errorf("validate artifact result assurance: %w", err)
 	}
-	redacted := redactResult(result)
+	redacted, err := redactResult(result)
+	if err != nil {
+		return nil, err
+	}
 	digest, err := experiment.Digest()
 	if err != nil {
 		return nil, err
@@ -110,6 +115,11 @@ func DecodeBundle(encoded []byte, maxBytes int64) (Bundle, error) {
 	if err := record.Result.ValidateAssurance(); err != nil {
 		return Bundle{}, fmt.Errorf("validate replay result assurance: %w", err)
 	}
+	if resultHasStoredEvidence(record.Result) {
+		if err := record.Result.ValidateEvidenceDigest(); err != nil {
+			return Bundle{}, fmt.Errorf("validate replay result evidence digest: %w", err)
+		}
+	}
 	if record.Result.Footprint != nil {
 		if err := record.Result.Footprint.Validate(); err != nil {
 			return Bundle{}, fmt.Errorf("validate replay learned footprint: %w", err)
@@ -122,13 +132,14 @@ func DecodeBundle(encoded []byte, maxBytes int64) (Bundle, error) {
 	return record, nil
 }
 
-func redactResult(result execution.Result) execution.Result {
+func redactResult(result execution.Result) (execution.Result, error) {
 	redacted := result
 	redacted.Environment.ConfigurationIdentity = digestValue(result.Environment.ConfigurationIdentity)
 	redacted.Environment.IsolationIdentity = digestValue(result.Environment.IsolationIdentity)
 	redacted.Bindings = redactMap(result.Bindings)
 	redacted.Actions = append([]execution.ActionResult(nil), result.Actions...)
 	for index := range redacted.Actions {
+		redacted.Actions[index].Evidence.SourceIdentity = digestValue(redacted.Actions[index].Evidence.SourceIdentity)
 		redacted.Actions[index].Evidence.Reference = digestValue(redacted.Actions[index].Evidence.Reference)
 		redacted.Actions[index].Evidence.CausalReferences = redactStrings(redacted.Actions[index].Evidence.CausalReferences)
 		redacted.Actions[index].Evidence.EntityIdentity = digestValue(redacted.Actions[index].Evidence.EntityIdentity)
@@ -137,11 +148,44 @@ func redactResult(result execution.Result) execution.Result {
 	}
 	redacted.Observations = append([]execution.Observation(nil), result.Observations...)
 	for index := range redacted.Observations {
+		redacted.Observations[index].SourceIdentity = digestValue(redacted.Observations[index].SourceIdentity)
 		redacted.Observations[index].CausalReference = digestValue(redacted.Observations[index].CausalReference)
 		redacted.Observations[index].Reference = digestValue(redacted.Observations[index].Reference)
 		redacted.Observations[index].CausalReferences = redactStrings(redacted.Observations[index].CausalReferences)
 		redacted.Observations[index].EntityIdentity = digestValue(redacted.Observations[index].EntityIdentity)
 		redacted.Observations[index].Lineage = redactStrings(redacted.Observations[index].Lineage)
+	}
+	factIdentifiers := make(map[string]string, len(result.Facts))
+	redacted.Facts = append([]observation.Fact(nil), result.Facts...)
+	for index := range redacted.Facts {
+		fact := &redacted.Facts[index]
+		factIdentifiers[fact.Identifier] = digestValue(fact.Identifier)
+		fact.Identifier = factIdentifiers[fact.Identifier]
+		fact.Source.Identity = digestValue(fact.Source.Identity)
+		fact.Source.Reference = digestValue(fact.Source.Reference)
+		fact.Source.CausalReferences = redactStrings(fact.Source.CausalReferences)
+		fact.Source.EntityIdentity = digestValue(fact.Source.EntityIdentity)
+		fact.Source.Lineage = redactStrings(fact.Source.Lineage)
+		if fact.History != nil {
+			history := *fact.History
+			history.WorkflowID = digestValue(history.WorkflowID)
+			history.RunID = digestValue(history.RunID)
+			history.OperationID = digestValue(history.OperationID)
+			fact.History = &history
+		}
+		if fact.Mechanism != nil {
+			mechanism := *fact.Mechanism
+			mechanism.Resource = digestValue(mechanism.Resource)
+			fact.Mechanism = &mechanism
+		}
+		if fact.Window != nil {
+			window := *fact.Window
+			fact.Window = &window
+		}
+	}
+	for index := range redacted.Observations {
+		redacted.Observations[index].SupportingFacts = redactFactIdentifiers(
+			redacted.Observations[index].SupportingFacts, factIdentifiers)
 	}
 	redacted.Faults = append([]execution.FaultResult(nil), result.Faults...)
 	for index := range redacted.Faults {
@@ -151,6 +195,7 @@ func redactResult(result execution.Result) execution.Result {
 	}
 	redacted.Evidence.Facts = append([]evidence.Fact(nil), result.Evidence.Facts...)
 	for index := range redacted.Evidence.Facts {
+		redacted.Evidence.Facts[index].SourceIdentity = digestValue(redacted.Evidence.Facts[index].SourceIdentity)
 		redacted.Evidence.Facts[index].Reference = digestValue(redacted.Evidence.Facts[index].Reference)
 		redacted.Evidence.Facts[index].CausalReferences = redactStrings(redacted.Evidence.Facts[index].CausalReferences)
 		redacted.Evidence.Facts[index].EntityIdentity = digestValue(redacted.Evidence.Facts[index].EntityIdentity)
@@ -158,6 +203,7 @@ func redactResult(result execution.Result) execution.Result {
 	}
 	redacted.Evidence.Actions = append([]evidence.Action(nil), result.Evidence.Actions...)
 	for index := range redacted.Evidence.Actions {
+		redacted.Evidence.Actions[index].SourceIdentity = digestValue(redacted.Evidence.Actions[index].SourceIdentity)
 		redacted.Evidence.Actions[index].Reference = digestValue(redacted.Evidence.Actions[index].Reference)
 		redacted.Evidence.Actions[index].EntityIdentity = digestValue(redacted.Evidence.Actions[index].EntityIdentity)
 		redacted.Evidence.Actions[index].Lineage = redactStrings(redacted.Evidence.Actions[index].Lineage)
@@ -169,6 +215,30 @@ func redactResult(result execution.Result) execution.Result {
 	}
 	redacted.Footprint = redactFootprint(result.Footprint)
 	redacted.Cleanup.RecoverableResources = redactMap(result.Cleanup.RecoverableResources)
+	if resultHasStoredEvidence(redacted) {
+		if err := redacted.BindEvidenceDigest(); err != nil {
+			return execution.Result{}, fmt.Errorf("bind redacted evidence digest: %w", err)
+		}
+	}
+	return redacted, nil
+}
+
+func resultHasStoredEvidence(result execution.Result) bool {
+	return result.EvidenceDigest != "" || result.Trace != nil ||
+		len(result.Facts) != 0 || len(result.Observations) != 0 ||
+		len(result.Evidence.Facts) != 0 || len(result.Evidence.Actions) != 0 ||
+		len(result.Evidence.Relations) != 0 || len(result.Evidence.Claims) != 0
+}
+
+func redactFactIdentifiers(values []string, replacements map[string]string) []string {
+	redacted := make([]string, len(values))
+	for index, value := range values {
+		if replacement, ok := replacements[value]; ok {
+			redacted[index] = replacement
+		} else {
+			redacted[index] = digestValue(value)
+		}
+	}
 	return redacted
 }
 
@@ -243,9 +313,6 @@ func (c *FileCorpus) Save(ctx context.Context, experiment protocol.Experiment, r
 	if err != nil {
 		return "", err
 	}
-	if err := os.MkdirAll(c.root, 0o700); err != nil {
-		return "", fmt.Errorf("create corpus directory: %w", err)
-	}
 	name := strings.TrimPrefix(digest, "sha256:") + ".json"
 	path := filepath.Join(c.root, name)
 	if _, err := os.Stat(path); err == nil {
@@ -253,36 +320,11 @@ func (c *FileCorpus) Save(ctx context.Context, experiment protocol.Experiment, r
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return "", fmt.Errorf("inspect corpus entry: %w", err)
 	}
-	temporary, err := os.CreateTemp(c.root, ".umpire3-artifact-*")
-	if err != nil {
-		return "", fmt.Errorf("create temporary artifact: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	defer func() { _ = os.Remove(temporaryPath) }()
-	if err := temporary.Chmod(0o600); err != nil {
-		return "", closeWithError(temporary, fmt.Errorf("protect temporary artifact: %w", err))
-	}
-	if _, err := temporary.Write(encoded); err != nil {
-		return "", closeWithError(temporary, fmt.Errorf("write temporary artifact: %w", err))
-	}
-	if err := temporary.Sync(); err != nil {
-		return "", closeWithError(temporary, fmt.Errorf("sync temporary artifact: %w", err))
-	}
-	if err := temporary.Close(); err != nil {
-		return "", fmt.Errorf("close temporary artifact: %w", err)
-	}
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return "", fmt.Errorf("publish artifact: %w", err)
+	if err := artifact.Publish(path, encoded); err != nil {
+		return "", err
 	}
 	return path, nil
-}
-
-func closeWithError(file *os.File, operationErr error) error {
-	if closeErr := file.Close(); closeErr != nil {
-		return errors.Join(operationErr, closeErr)
-	}
-	return operationErr
 }

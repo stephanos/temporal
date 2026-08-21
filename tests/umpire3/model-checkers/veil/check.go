@@ -30,19 +30,19 @@ func CheckConcrete(
 	command []string,
 	replayCommand []string,
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 ) (protocol.BackendResult, error) {
 	if len(command) == 0 {
 		return protocol.BackendResult{}, errors.New("veil concrete checker command is required")
 	}
 	checked, err := process.Run(ctx, process.Request{
-		Command: command, Timeout: canonicalReplayTimeout,
+		Command: append(append([]string(nil), command...), view.SemanticHash), Timeout: canonicalReplayTimeout,
 		MaxOutputBytes: protocol.DefaultDecodeLimit, Limits: backendProcessLimits,
 	})
 	if err != nil {
 		return protocol.BackendResult{}, fmt.Errorf("run Veil concrete checker: %w", err)
 	}
-	replayInput, err := ConcreteReplayInput(view, generated, bytes.NewReader(checked.Output),
+	replayInput, err := ConcreteReplayInput(view, binding, bytes.NewReader(checked.Output),
 		protocol.DefaultDecodeLimit)
 	if err != nil {
 		return protocol.BackendResult{}, err
@@ -58,6 +58,6 @@ func CheckConcrete(
 		}
 		receipt = &accepted
 	}
-	return NormalizeConcreteOutput(view, generated, bytes.NewReader(checked.Output),
+	return NormalizeConcreteOutput(view, binding, bytes.NewReader(checked.Output),
 		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), receipt)
 }

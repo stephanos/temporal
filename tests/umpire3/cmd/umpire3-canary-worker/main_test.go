@@ -44,6 +44,15 @@ func TestCanaryWorkflowIdentityIsSemanticAndStable(t *testing.T) {
 	require.Len(t, first, len("umpire3-canary-")+32)
 }
 
+func TestWorkerOptionsEnforceApprovedConcurrencyAndRate(t *testing.T) {
+	options := workerOptions(canary.Approval{MaxConcurrent: 3, MaxRatePerSecond: 7})
+	require.Equal(t, 3, options.MaxConcurrentActivityExecutionSize)
+	require.Equal(t, 3, options.MaxConcurrentLocalActivityExecutionSize)
+	require.Equal(t, 3, options.MaxConcurrentWorkflowTaskExecutionSize)
+	require.EqualValues(t, 7, options.WorkerActivitiesPerSecond)
+	require.EqualValues(t, 7, options.TaskQueueActivitiesPerSecond)
+}
+
 func loadCanaryExperiment(t *testing.T) protocol.Experiment {
 	t.Helper()
 	input, err := os.Open("../../testdata/nexus-cancellation.json")

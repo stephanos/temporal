@@ -43,6 +43,11 @@ func Bind(symbol Symbol, projection Projection) Term {
 	return BindAt(callerSource(2), symbol, projection)
 }
 
+func BindIdentity(symbol Symbol, producerAction, projection string) Term {
+	return BindAt(callerSource(2), symbol,
+		Project(producerAction, projection, protocol.SemanticTypeIDIdentity))
+}
+
 func Require(property protocol.PropertyID) Term {
 	return requireAtCaller(property)
 }
@@ -75,7 +80,7 @@ func actionAtCaller(identifier string, kind protocol.ActionKind, options ...Acti
 	return ActionAt(callerSource(3), identifier, kind, options...)
 }
 
-func faultAtCaller(identifier string, kind protocol.FaultKind, options ...ActionOption) FaultIntent {
+func faultAtCaller(identifier string, kind protocol.FaultKind, options ...FaultOption) FaultIntent {
 	return FaultAt(callerSource(3), identifier, kind, options...)
 }
 

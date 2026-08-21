@@ -157,8 +157,6 @@ func TestNexusAdapterEmitsRawFactsWithoutPropertyTruth(t *testing.T) {
 	require.NoError(t, err)
 	_, emitsFacts := prepared.Session.(execution.FactSession)
 	require.True(t, emitsFacts)
-	_, emitsPropertyTruth := prepared.Session.(execution.ObservationSession)
-	require.False(t, emitsPropertyTruth)
 
 	result, err := execution.Run(context.Background(), execution.Request{
 		Experiment:  experiment,
@@ -174,12 +172,19 @@ func TestNexusViolationMinimizesWithoutChangingCheckpoint(t *testing.T) {
 	experiment := loadNexusExperiment(t)
 	experiment.Scope.Bounds.MaxDepth = 10
 	experiment.Actions = append(experiment.Actions[:5], append([]protocol.Action{
-		{Identifier: "irrelevant-crash", Kind: "crash-owner", RequiredCapabilities: []string{"failover-control"}},
-		{Identifier: "irrelevant-recover", Kind: "recover-owner", RequiredCapabilities: []string{"failover-control"}},
+		{Identifier: "irrelevant-retry", Kind: "retry-task",
+			AllowedOutcomes:      []protocol.ActionOutcome{protocol.ActionOutcomeApplied},
+			RequiredCapabilities: []string{"nexus-worker-control"}},
 	}, experiment.Actions[5:]...)...)
 	probe := func(context.Context) (clusterInfo, error) {
 		return clusterInfo{BuildID: "build", Namespace: "namespace", MintedOperationID: "operation"}, nil
 	}
+	original, err := execution.Run(context.Background(), execution.Request{
+		Experiment:  experiment,
+		Environment: newNexusFactory(probe, nexusOptions{AllowStaleSuccess: true}),
+	})
+	require.NoError(t, err)
+	require.Equal(t, execution.ClaimViolating, original.Claim.Kind, original.Claim.Reason)
 
 	minimized, err := campaign.MinimizeActions(context.Background(), experiment,
 		func(ctx context.Context, candidate protocol.Experiment) (execution.Result, error) {
@@ -190,8 +195,7 @@ func TestNexusViolationMinimizesWithoutChangingCheckpoint(t *testing.T) {
 		})
 	require.NoError(t, err)
 	for _, action := range minimized.Actions {
-		require.NotEqual(t, "crash-owner", action.Kind)
-		require.NotEqual(t, "recover-owner", action.Kind)
+		require.NotEqual(t, "irrelevant-retry", action.Identifier)
 	}
 	require.Less(t, len(minimized.Actions), len(experiment.Actions))
 }

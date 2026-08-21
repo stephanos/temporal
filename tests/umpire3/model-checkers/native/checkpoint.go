@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
+	"go.temporal.io/server/tests/umpire3/internal/artifact"
 	"go.temporal.io/server/tests/umpire3/protocol"
 )
 
@@ -50,50 +50,7 @@ func SaveCheckpoint(path string, checkpoint Checkpoint) error {
 }
 
 func WriteArtifact(path string, encoded []byte) error {
-	directory := filepath.Dir(path)
-	if err := os.MkdirAll(directory, 0o755); err != nil {
-		return fmt.Errorf("create artifact directory: %w", err)
-	}
-	temporary, err := os.CreateTemp(directory, ".umpire3-checkpoint-*")
-	if err != nil {
-		return fmt.Errorf("create temporary artifact: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	removeTemporary := true
-	defer func() {
-		if removeTemporary {
-			_ = os.Remove(temporaryPath)
-		}
-	}()
-	if err := temporary.Chmod(0o600); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("secure temporary artifact: %w", err)
-	}
-	if _, err := temporary.Write(encoded); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("write temporary artifact: %w", err)
-	}
-	if err := temporary.Sync(); err != nil {
-		_ = temporary.Close()
-		return fmt.Errorf("sync temporary artifact: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close temporary artifact: %w", err)
-	}
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return fmt.Errorf("publish artifact: %w", err)
-	}
-	removeTemporary = false
-	directoryHandle, err := os.Open(directory)
-	if err != nil {
-		return fmt.Errorf("open artifact directory: %w", err)
-	}
-	syncErr := directoryHandle.Sync()
-	closeErr := directoryHandle.Close()
-	if syncErr != nil || closeErr != nil {
-		return fmt.Errorf("sync artifact directory: %w", errors.Join(syncErr, closeErr))
-	}
-	return nil
+	return artifact.Publish(path, encoded)
 }
 
 func LoadCheckpoint(path string, limit int64) (Checkpoint, error) {

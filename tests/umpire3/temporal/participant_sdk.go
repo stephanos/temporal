@@ -236,6 +236,18 @@ func (r *SDKParticipantAdapter) Execute(ctx context.Context, operation participa
 			})
 		}
 	}
+	if detachedResponse(operation.Response) && executesInParticipantWorkflow(operation.SDKOperation) {
+		if err := r.options.Client.SignalWorkflow(
+			ctx, r.run.GetID(), r.run.GetRunID(), SDKCommandSignalName, operation,
+		); err != nil {
+			return participant.Result{}, fmt.Errorf("dispatch asynchronous SDK operation %q: %w", operation.CommandID, err)
+		}
+		r.programExecutions++
+		return r.qualifyResult(operation, participant.Result{
+			CommandID: operation.CommandID,
+			Status:    responseStatus(operation.Response),
+		})
+	}
 	var result participant.Result
 	var err error
 	executedInProgram := false
@@ -292,6 +304,17 @@ func (r *SDKParticipantAdapter) Execute(ctx context.Context, operation participa
 		}
 	}
 	return qualified, nil
+}
+
+func executesInParticipantWorkflow(operation participant.SDKOperation) bool {
+	switch operation {
+	case participant.SDKContinueWorkflow, participant.SDKResetWorkflow,
+		participant.SDKRouteWorkflowTask, participant.SDKFenceWorkflowOwner,
+		participant.SDKRegisterCallback, participant.SDKCompleteCallback:
+		return false
+	default:
+		return true
+	}
 }
 
 func (r *SDKParticipantAdapter) Stop(ctx context.Context) error {

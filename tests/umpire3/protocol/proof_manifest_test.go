@@ -41,6 +41,26 @@ func TestNexusProofManifestTracksSemanticsAndAssumptions(t *testing.T) {
 	require.NotEqual(t, before, after)
 }
 
+func TestDefaultProofManifestsIncludeMutationRejectionEvidence(t *testing.T) {
+	manifests, err := DefaultProofManifests()
+	require.NoError(t, err)
+
+	byIdentifier := make(map[string]ProofManifest, len(manifests))
+	for _, manifest := range manifests {
+		byIdentifier[manifest.Identifier] = manifest
+	}
+	require.Equal(t,
+		"Umpire3.Temporal.Refinement.NexusCancellationFencing.mutationBreaksDeclaredSimulation",
+		byIdentifier["nexus-cancellation-mutation-rejection-v1"].Theorem)
+	require.Equal(t, ResultClassRefinementProved,
+		byIdentifier["nexus-cancellation-mutation-rejection-v1"].ResultClass)
+	require.Equal(t,
+		"Umpire3.Temporal.Mutations.NexusCancellationFencing.exactMutationWitness",
+		byIdentifier["nexus-cancellation-exact-witness-v1"].Theorem)
+	require.Equal(t, ResultClassTraceWitness,
+		byIdentifier["nexus-cancellation-exact-witness-v1"].ResultClass)
+}
+
 func TestProofManifestRejectsNonProofClaimsAndTampering(t *testing.T) {
 	manifestBytes, err := os.ReadFile("generated/nexus-proof-manifest.json")
 	require.NoError(t, err)
@@ -49,7 +69,6 @@ func TestProofManifestRejectsNonProofClaimsAndTampering(t *testing.T) {
 	require.NoError(t, manifest.Validate())
 
 	for _, resultClass := range []ResultClass{
-		ResultClassTraceWitness,
 		ResultClassSampledNoCounterexample,
 		ResultClassBoundedSafe,
 		ResultClassFiniteExhaustive,

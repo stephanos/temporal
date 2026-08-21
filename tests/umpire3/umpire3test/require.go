@@ -26,11 +26,13 @@ type Corpus interface {
 type Option func(*options)
 
 type options struct {
-	context        context.Context
-	environment    execution.Factory
-	compilerLimits scenario.Limits
-	runtimeLimits  execution.Limits
-	corpus         Corpus
+	context         context.Context
+	environment     execution.Factory
+	compilerLimits  scenario.Limits
+	runtimeLimits   execution.Limits
+	corpus          Corpus
+	expectedClaim   execution.ClaimKind
+	expectedOutcome execution.OutcomeKind
 }
 
 func WithEnvironment(factory execution.Factory) Option {
@@ -63,10 +65,18 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
+func ExpectViolation() Option {
+	return func(options *options) {
+		options.expectedClaim = execution.ClaimViolating
+		options.expectedOutcome = execution.OutcomeFlagged
+	}
+}
+
 func RequireRegression(t TestingT, authored scenario.Scenario, optionValues ...Option) {
 	t.Helper()
 	configuration := options{
-		context: context.Background(),
+		context:       context.Background(),
+		expectedClaim: execution.ClaimConforming,
 		compilerLimits: scenario.Limits{
 			MaxPaths: 128, MaxActions: 256, MaxStates: 100000,
 			MaxMemoryBytes: 64 << 20, MaxTime: 10 * time.Second,
@@ -93,7 +103,8 @@ func RequireRegression(t TestingT, authored scenario.Scenario, optionValues ...O
 			t.Fatalf("Umpire3 regression execution failed: %v", runErr)
 			return
 		}
-		if result.Claim.Kind == execution.ClaimConforming {
+		if result.Claim.Kind == configuration.expectedClaim &&
+			(configuration.expectedOutcome == "" || result.Outcome.Kind == configuration.expectedOutcome) {
 			continue
 		}
 		artifactPath := "not retained"

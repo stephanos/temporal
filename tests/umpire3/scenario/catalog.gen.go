@@ -4,6 +4,86 @@ package scenario
 
 import "go.temporal.io/server/tests/umpire3/protocol"
 
+// NexusCancellationRegression selects the nexus-cancellation model family.
+func NexusCancellationRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDNexusCancellation, resources, root)
+}
+
+// WorkflowUpdateLifecycleRegression selects the workflow-update-lifecycle model family.
+func WorkflowUpdateLifecycleRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDWorkflowUpdateLifecycle, resources, root)
+}
+
+// FoundationBacklogAckRegression selects the foundation-backlog-ack model family.
+func FoundationBacklogAckRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFoundationBacklogAck, resources, root)
+}
+
+// FeatureNexusRegression selects the feature-nexus model family.
+func FeatureNexusRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFeatureNexus, resources, root)
+}
+
+// FeatureNexusProgressRegression selects the feature-nexus-progress model family.
+func FeatureNexusProgressRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFeatureNexusProgress, resources, root)
+}
+
+// FeatureWorkflowSpeculativeDeliveryRegression selects the feature-workflow-speculative-delivery model family.
+func FeatureWorkflowSpeculativeDeliveryRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFeatureWorkflowSpeculativeDelivery, resources, root)
+}
+
+// FoundationDeliverySafetyRegression selects the foundation-delivery-safety model family.
+func FoundationDeliverySafetyRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFoundationDeliverySafety, resources, root)
+}
+
+// FoundationOwnershipFencingRegression selects the foundation-ownership-fencing model family.
+func FoundationOwnershipFencingRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFoundationOwnershipFencing, resources, root)
+}
+
+// FoundationRoutingIsolationRegression selects the foundation-routing-isolation model family.
+func FoundationRoutingIsolationRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDFoundationRoutingIsolation, resources, root)
+}
+
+// IntegrationActivityDeliveryRegression selects the integration-activity-delivery model family.
+func IntegrationActivityDeliveryRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDIntegrationActivityDelivery, resources, root)
+}
+
+// IntegrationCallbackNexusRegression selects the integration-callback-nexus model family.
+func IntegrationCallbackNexusRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDIntegrationCallbackNexus, resources, root)
+}
+
+// IntegrationCallbackWorkflowRegression selects the integration-callback-workflow model family.
+func IntegrationCallbackWorkflowRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDIntegrationCallbackWorkflow, resources, root)
+}
+
+// IntegrationNexusActivityRegression selects the integration-nexus-activity model family.
+func IntegrationNexusActivityRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDIntegrationNexusActivity, resources, root)
+}
+
+// IntegrationNexusTimeoutRegression selects the integration-nexus-timeout model family.
+func IntegrationNexusTimeoutRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDIntegrationNexusTimeout, resources, root)
+}
+
+// IntegrationWorkflowDeliveryRegression selects the integration-workflow-delivery model family.
+func IntegrationWorkflowDeliveryRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDIntegrationWorkflowDelivery, resources, root)
+}
+
+// ProtocolAtomicRegression selects the protocol-atomic model family.
+func ProtocolAtomicRegression(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocol.TargetIDProtocolAtomic, resources, root)
+}
+
 // NexusOperation identifies Nexus operation.
 func NexusOperation(identifier string) Resource {
 	return Resource{Identifier: identifier, Kind: protocol.EntityKindNexusOperation}
@@ -224,68 +304,100 @@ func FenceWorkflowOwner(identifier string, options ...ActionOption) Term {
 	return actionAtCaller(identifier, protocol.ActionKindFenceWorkflowOwner, options...)
 }
 
+// NexusCompletionMode identifies a supported nexus-completion action mode.
+type NexusCompletionMode string
+
+const (
+	NexusCompletionBeforeStart       NexusCompletionMode = "before-start"
+	NexusCompletionFailed            NexusCompletionMode = "failed"
+	NexusCompletionOpenAtCallerClose NexusCompletionMode = "open-at-caller-close"
+	NexusCompletionOrdinary          NexusCompletionMode = "ordinary"
+	NexusCompletionRetryStuck        NexusCompletionMode = "retry-stuck"
+	NexusCompletionRetryThenSuccess  NexusCompletionMode = "retry-then-success"
+)
+
+// WithNexusCompletion supplies the typed nexus-completion action parameter.
+func WithNexusCompletion(value NexusCompletionMode) ActionOption {
+	return withStringArgument("nexus-completion", string(value))
+}
+
+// WithOperation supplies the typed operation action parameter.
+func WithOperation(value Symbol) ActionOption {
+	return withIdentityArgument("operation", value)
+}
+
+// WithReason supplies the typed reason action parameter.
+func WithReason(value string) ActionOption {
+	return withStringArgument("reason", value)
+}
+
+// WithUpdate supplies the typed update action parameter.
+func WithUpdate(value Symbol) ActionOption {
+	return withIdentityArgument("update", value)
+}
+
 // StaleWorkerCompletion creates sparse fault intent for a stale worker returns completion after ownership changes.
-func StaleWorkerCompletion(identifier string, options ...ActionOption) FaultIntent {
+func StaleWorkerCompletion(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindStaleWorkerCompletion, options...)
 }
 
 // Drop creates sparse fault intent for drop a selected RPC or HTTP occurrence.
-func Drop(identifier string, options ...ActionOption) FaultIntent {
+func Drop(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindDrop, options...)
 }
 
 // Delay creates sparse fault intent for delay a selected RPC or HTTP occurrence.
-func Delay(identifier string, options ...ActionOption) FaultIntent {
+func Delay(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindDelay, options...)
 }
 
 // Duplicate creates sparse fault intent for duplicate a selected RPC or HTTP occurrence.
-func Duplicate(identifier string, options ...ActionOption) FaultIntent {
+func Duplicate(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindDuplicate, options...)
 }
 
 // Reorder creates sparse fault intent for reorder selected RPC or HTTP occurrences.
-func Reorder(identifier string, options ...ActionOption) FaultIntent {
+func Reorder(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindReorder, options...)
 }
 
 // HoldRelease creates sparse fault intent for hold and deterministically release a selected occurrence.
-func HoldRelease(identifier string, options ...ActionOption) FaultIntent {
+func HoldRelease(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindHoldRelease, options...)
 }
 
 // Rejection creates sparse fault intent for reject a selected RPC or HTTP occurrence.
-func Rejection(identifier string, options ...ActionOption) FaultIntent {
+func Rejection(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindRejection, options...)
 }
 
 // ProcessCrash creates sparse fault intent for crash an isolated participant process.
-func ProcessCrash(identifier string, options ...ActionOption) FaultIntent {
+func ProcessCrash(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindProcessCrash, options...)
 }
 
 // Restart creates sparse fault intent for restart an isolated participant process.
-func Restart(identifier string, options ...ActionOption) FaultIntent {
+func Restart(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindRestart, options...)
 }
 
 // Partition creates sparse fault intent for partition selected isolated endpoints.
-func Partition(identifier string, options ...ActionOption) FaultIntent {
+func Partition(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindPartition, options...)
 }
 
 // Failover creates sparse fault intent for trigger a selected ownership failover.
-func Failover(identifier string, options ...ActionOption) FaultIntent {
+func Failover(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindFailover, options...)
 }
 
 // ClockSkew creates sparse fault intent for skew an isolated participant clock.
-func ClockSkew(identifier string, options ...ActionOption) FaultIntent {
+func ClockSkew(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindClockSkew, options...)
 }
 
 // PersistenceError creates sparse fault intent for inject an approved selected persistence error.
-func PersistenceError(identifier string, options ...ActionOption) FaultIntent {
+func PersistenceError(identifier string, options ...FaultOption) FaultIntent {
 	return faultAtCaller(identifier, protocol.FaultKindPersistenceError, options...)
 }
 
@@ -312,6 +424,11 @@ func RequireWorkflowTaskSpeculativeCreation() Term {
 // RequireNexusOperationClosure selects the proved property NexusOperationClosure.
 func RequireNexusOperationClosure() Term {
 	return requireAtCaller(protocol.PropertyIDNexusOperationClosure)
+}
+
+// RequireNexusOperationProgress selects the proved property NexusOperationProgress.
+func RequireNexusOperationProgress() Term {
+	return requireAtCaller(protocol.PropertyIDNexusOperationProgress)
 }
 
 // RequireNexusActivityLinkConsistency selects the proved property NexusActivityLinkConsistency.
@@ -381,6 +498,8 @@ const (
 	OutcomeSpeculativeTaskValid protocol.ObservationID = protocol.ObservationIDSpeculativeTaskValid
 	// OutcomeNexusOperationClosed denotes A closed Nexus operation is terminal.
 	OutcomeNexusOperationClosed protocol.ObservationID = protocol.ObservationIDNexusOperationClosed
+	// OutcomeNexusOperationProgressed denotes A retrying Nexus operation settled within its progress deadline.
+	OutcomeNexusOperationProgressed protocol.ObservationID = protocol.ObservationIDNexusOperationProgressed
 	// OutcomeNexusActivityLinksConsistent denotes Nexus and Activity links agree.
 	OutcomeNexusActivityLinksConsistent protocol.ObservationID = protocol.ObservationIDNexusActivityLinksConsistent
 	// OutcomeNexusTimeoutValid denotes Nexus timeout state is terminal and recorded.

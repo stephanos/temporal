@@ -1,11 +1,24 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestRunRejectsVeilSourceGeneration(t *testing.T) {
+	output := filepath.Join(t.TempDir(), "generated.lean")
+	err := run([]string{
+		"-operation", "generate",
+		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-output", output,
+	})
+	require.ErrorContains(t, err, `unknown operation "generate"`)
+	_, statErr := os.Stat(output)
+	require.ErrorIs(t, statErr, os.ErrNotExist)
+}
 
 func TestRunRejectsUnsupervisedRawConcretePromotion(t *testing.T) {
 	temporary := t.TempDir()
@@ -25,7 +38,6 @@ func TestRunRejectsRawJobReceiptPromotion(t *testing.T) {
 		"-operation", "normalize-job",
 		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
 		"-output", filepath.Join(temporary, "result.json"),
-		"-smt-trust", "reconstructed",
 	})
 	require.ErrorContains(t, err, `unknown operation "normalize-job"`)
 }

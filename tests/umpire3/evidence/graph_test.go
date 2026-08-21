@@ -67,6 +67,20 @@ func TestBuilderRequiresSourceIdentityAndLineage(t *testing.T) {
 	require.ErrorContains(t, builder.AddFact(incomplete), "source identity")
 }
 
+func TestBuilderRequiresObservedActionOutcome(t *testing.T) {
+	t.Parallel()
+
+	builder := NewBuilder(Limits{MaxFacts: 1, MaxBytes: 1 << 20})
+	require.ErrorContains(t, builder.AddAction(Action{
+		Identifier: "action", Kind: "persist-success",
+		SourceIdentity: "history", Reference: "history/action",
+	}), "outcome")
+	require.NoError(t, builder.AddAction(Action{
+		Identifier: "action", Kind: "persist-success", Outcome: "suppressed",
+		SourceIdentity: "history", Reference: "history/action",
+	}))
+}
+
 func fact(identifier, source, clock string, sequence, observedAt int64, reference string) Fact {
 	return Fact{
 		Identifier: identifier, Kind: "observation", Value: true,

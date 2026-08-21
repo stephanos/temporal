@@ -1,12 +1,13 @@
 package fact
 
 import (
+	"go.temporal.io/server/api/matchingservice/v1"
 	"go.temporal.io/server/common/testing/umpire"
 )
 
 // WorkflowTaskPolled represents a workflow task being polled.
 type WorkflowTaskPolled struct {
-	Request      *v1.PollWorkflowTaskQueueRequest
+	Request      *matchingservice.PollWorkflowTaskQueueRequest
 	EntityPath   *umpire.EntityPath
 	TaskReturned bool
 }
@@ -20,7 +21,7 @@ func (e *WorkflowTaskPolled) TargetEntity() *umpire.EntityPath {
 }
 
 func (e *WorkflowTaskPolled) ImportRequest(request any) bool {
-	req, ok := request.(*v1.PollWorkflowTaskQueueRequest)
+	req, ok := request.(*matchingservice.PollWorkflowTaskQueueRequest)
 	if !ok || req == nil || req.GetPollRequest().GetTaskQueue().GetName() == "" {
 		return false
 	}

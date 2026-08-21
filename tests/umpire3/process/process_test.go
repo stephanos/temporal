@@ -24,6 +24,23 @@ func TestRunReturnsBoundedWorkerOutput(t *testing.T) {
 	require.Equal(t, []byte("request"), result.Output)
 	require.Equal(t, 0, result.ExitCode)
 	require.False(t, result.TimedOut)
+	require.Positive(t, result.DurationNanos)
+	require.Positive(t, result.PeakMemoryBytes)
+}
+
+func TestRunPassesOnlyExplicitEnvironment(t *testing.T) {
+	t.Setenv("UMPIRE3_PROCESS_PARENT_SECRET", "must-not-cross-boundary")
+
+	result, err := Run(context.Background(), Request{
+		Command: []string{os.Args[0], "-test.run=TestProcessWorker"},
+		Environment: []string{
+			"UMPIRE3_PROCESS_MODE=environment",
+			"UMPIRE3_PROCESS_EXPLICIT=allowed",
+		},
+		Timeout: time.Second, MaxOutputBytes: 64,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "|allowed", string(result.Output))
 }
 
 func TestRunTerminatesNonCooperativeWorker(t *testing.T) {
@@ -188,6 +205,12 @@ func TestProcessWorker(t *testing.T) {
 		_, err = os.Stdout.Write(input)
 		require.NoError(t, err)
 		//nolint:revive // The helper process must not append the Go test runner's PASS output to stdout.
+		os.Exit(0)
+	case "environment":
+		_, err := os.Stdout.WriteString(os.Getenv("UMPIRE3_PROCESS_PARENT_SECRET") + "|" +
+			os.Getenv("UMPIRE3_PROCESS_EXPLICIT"))
+		require.NoError(t, err)
+		//nolint:revive // The helper process must terminate before the Go test runner writes to stdout.
 		os.Exit(0)
 	case "block":
 		for {

@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,6 +39,7 @@ func TestGeneratedCoverageDenominatorDefinesEveryCatalogTargetProperty(t *testin
 		CoverageFault:       {},
 		CoverageObservation: {},
 		CoverageRefinement:  {},
+		CoverageEvidence:    {},
 	}, kinds)
 	require.Equal(t, CoverageDenominatorDefined, nexus.Status)
 	require.Empty(t, nexus.Reason)
@@ -54,4 +56,26 @@ func TestCoverageDenominatorRejectsDefinedTargetWithoutPoints(t *testing.T) {
 	require.NoError(t, err)
 	denominator.Targets[0].Points = nil
 	require.ErrorContains(t, denominator.Validate(), "points")
+}
+
+func TestCoveragePointsRequireEveryMonitorObservationBeforeCoveringEvidence(t *testing.T) {
+	t.Parallel()
+
+	denominator, err := DefaultCoverageDenominator()
+	require.NoError(t, err)
+	experiment := loadNexusExperiment(t)
+
+	points, err := denominator.PointsForExperiment(experiment)
+	require.NoError(t, err)
+	require.True(t, slices.ContainsFunc(points, func(point ModelCoveragePoint) bool {
+		return point.Dimension == CoverageEvidence &&
+			point.Identifier == "nexus-cancellation/evidence:causal"
+	}))
+
+	experiment.Checkpoints[2].Observation = "cancellation-accepted"
+	points, err = denominator.PointsForExperiment(experiment)
+	require.NoError(t, err)
+	require.False(t, slices.ContainsFunc(points, func(point ModelCoveragePoint) bool {
+		return point.Dimension == CoverageEvidence
+	}))
 }

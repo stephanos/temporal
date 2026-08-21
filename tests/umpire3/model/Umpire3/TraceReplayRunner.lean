@@ -24,12 +24,15 @@ structure Request where
 def lowerHexDigit (character : Char) : Bool :=
   ('0' ≤ character && character ≤ '9') || ('a' ≤ character && character ≤ 'f')
 
+def hasSha256Prefix (value : String) : Bool :=
+  value.toList.take 7 == "sha256:".toList
+
 def Request.validDigest (request : Request) : Bool :=
-  request.traceDigest.startsWith "sha256:" && request.traceDigest.length = 71 &&
+  hasSha256Prefix request.traceDigest && request.traceDigest.length = 71 &&
     (request.traceDigest.drop 7).toString.toList.all lowerHexDigit
 
 def Request.validSemanticHash (request : Request) : Bool :=
-  request.semanticHash.startsWith "sha256:" && request.semanticHash.length = 71 &&
+  hasSha256Prefix request.semanticHash && request.semanticHash.length = 71 &&
     (request.semanticHash.drop 7).toString.toList.all lowerHexDigit
 
 def Request.matchesMutatedNexus (request : Request) : Bool :=

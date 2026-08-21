@@ -13,6 +13,7 @@ import (
 	sdkclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	environment "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/participant"
 	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
@@ -222,8 +223,9 @@ func (s *sdkSession) Realize(
 		grounded[binding.Symbol] = result.WorkflowID + "/" + result.RunID + "/" + binding.Symbol
 	}
 	return environment.ActionEvidence{
-		Source: "temporal-public-history", SourceIdentity: s.namespace,
-		ClockDomain: "temporal-history-event-id", SourceSequence: history.sequence,
+		Source: "temporal-public-history", Outcome: participantActionOutcome(result.Status),
+		SourceIdentity: s.namespace,
+		ClockDomain:    "temporal-history-event-id", SourceSequence: history.sequence,
 		Reference: history.reference, CausalReferences: []string{result.Reference},
 		EntityIdentity: result.WorkflowID + "/" + result.RunID,
 		Lineage:        append([]string{s.experiment.ExperimentID}, result.Lineage...),
@@ -232,48 +234,53 @@ func (s *sdkSession) Realize(
 	}, nil
 }
 
-func (s *sdkSession) Observe(
-	ctx context.Context,
-	checkpoint protocol.Checkpoint,
-	_ environment.Bindings,
-) (environment.Observation, error) {
-	if len(s.results) == 0 {
-		return environment.Observation{}, errors.New("no SDK participant result is available")
+func participantActionOutcome(status string) protocol.ActionOutcome {
+	switch status {
+	case "completed", "accepted", "deferred":
+		return protocol.ActionOutcomeApplied
+	case "suppressed":
+		return protocol.ActionOutcomeSuppressed
+	case "failed":
+		return protocol.ActionOutcomeRejected
+	default:
+		return ""
 	}
-	latest := s.latestResult()
-	if latest.WorkflowID == "" || latest.RunID == "" {
-		return environment.Observation{}, errors.New("SDK participant identity evidence is incomplete")
-	}
-	history, err := s.latestHistory(ctx, latest.WorkflowID, latest.RunID)
-	if err != nil {
-		return environment.Observation{}, err
-	}
-	satisfied := s.observationSatisfied(checkpoint.Observation, history)
-	position := history.supportingPosition(checkpoint.Observation)
-	identity := latest.WorkflowID + "/" + latest.RunID
-	return environment.Observation{
-		CheckpointID: checkpoint.Identifier, Kind: checkpoint.Observation, Satisfied: satisfied,
-		Source: "temporal-public-history", SourceIdentity: s.namespace,
-		ClockDomain: "temporal-history-event-id", SourceSequence: position.sequence,
-		AuthoritativeTimeUnixNano: position.timestamp, ObservedAtUnixNano: time.Now().UnixNano(),
-		Reference:       position.reference + "/" + checkpoint.Identifier,
-		CausalReference: position.reference, CausalReferences: []string{latest.Reference},
-		EntityIdentity: identity,
-		Lineage:        append([]string{s.experiment.ExperimentID}, latest.Lineage...),
-		PayloadDigest:  latest.PayloadDigest,
-	}, nil
 }
 
-func (s *corroboratingSDKSession) Corroborate(
+func (s *sdkSession) ObserveFacts(
 	ctx context.Context,
 	checkpoint protocol.Checkpoint,
 	_ environment.Bindings,
-) ([]environment.Observation, error) {
+) ([]observation.Fact, error) {
+	if len(s.results) == 0 {
+		return nil, errors.New("no SDK participant result is available")
+	}
 	latest := s.latestResult()
 	if latest.WorkflowID == "" || latest.RunID == "" {
 		return nil, errors.New("SDK participant identity evidence is incomplete")
 	}
-	observations := make([]environment.Observation, 0, len(s.sources))
+	history, err := s.latestHistory(ctx, latest.WorkflowID, latest.RunID)
+	if err != nil {
+		return nil, err
+	}
+	return (sdkFactNormalizer{
+		experiment: s.experiment,
+		namespace:  s.namespace,
+		taskQueue:  s.taskQueue,
+		results:    s.results,
+	}).Normalize(checkpoint, history)
+}
+
+func (s *corroboratingSDKSession) CorroborateFacts(
+	ctx context.Context,
+	checkpoint protocol.Checkpoint,
+	_ environment.Bindings,
+) ([][]observation.Fact, error) {
+	latest := s.latestResult()
+	if latest.WorkflowID == "" || latest.RunID == "" {
+		return nil, errors.New("SDK participant identity evidence is incomplete")
+	}
+	factSets := make([][]observation.Fact, 0, len(s.sources))
 	for _, source := range s.sources {
 		history, err := source.ReadHistory(ctx, HistoryRequest{
 			Namespace: s.namespace, WorkflowID: latest.WorkflowID, RunID: latest.RunID,
@@ -285,20 +292,18 @@ func (s *corroboratingSDKSession) Corroborate(
 		if err != nil {
 			return nil, err
 		}
-		supporting := position.supportingPosition(checkpoint.Observation)
-		observations = append(observations, environment.Observation{
-			CheckpointID: checkpoint.Identifier, Kind: checkpoint.Observation,
-			Satisfied: s.observationSatisfied(checkpoint.Observation, position),
-			Source:    history.Source, SourceIdentity: history.SourceIdentity, ClockDomain: history.ClockDomain,
-			SourceSequence: supporting.sequence, AuthoritativeTimeUnixNano: supporting.timestamp,
-			ObservedAtUnixNano: time.Now().UnixNano(), Reference: supporting.reference + "/" + checkpoint.Identifier,
-			CausalReference: supporting.reference, CausalReferences: []string{latest.Reference},
-			EntityIdentity: latest.WorkflowID + "/" + latest.RunID,
-			Lineage:        append([]string{s.experiment.ExperimentID}, latest.Lineage...),
-			PayloadDigest:  latest.PayloadDigest,
-		})
+		facts, err := (sdkFactNormalizer{
+			experiment: s.experiment,
+			namespace:  s.namespace,
+			taskQueue:  s.taskQueue,
+			results:    s.results,
+		}).Normalize(checkpoint, position)
+		if err != nil {
+			return nil, fmt.Errorf("normalize corroborating history: %w", err)
+		}
+		factSets = append(factSets, facts)
 	}
-	return observations, nil
+	return factSets, nil
 }
 
 func (s *sdkSession) latestResult() participant.Result {
@@ -316,6 +321,7 @@ func (h CorroboratingHistory) position() (historyPosition, error) {
 		return historyPosition{}, errors.New("corroborating history identity or events are incomplete")
 	}
 	position := historyPosition{
+		source: h.Source, sourceIdentity: h.SourceIdentity, clockDomain: h.ClockDomain,
 		events:     make(map[enumspb.EventType]historyEventPosition, len(h.Events)),
 		taskQueues: make(map[string]bool),
 	}
@@ -382,6 +388,9 @@ func (s *sdkSession) identity(capabilities []protocol.CapabilityID) environment.
 }
 
 type historyPosition struct {
+	source                     string
+	sourceIdentity             string
+	clockDomain                string
 	sequence                   int64
 	timestamp                  int64
 	reference                  string
@@ -411,7 +420,9 @@ func (s *sdkSession) latestHistory(
 	iterator := s.client.GetWorkflowHistory(
 		ctx, workflowID, runID, false, enumspb.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT)
 	latest := historyPosition{
-		events: make(map[enumspb.EventType]historyEventPosition), taskQueues: make(map[string]bool),
+		source: "temporal-public-history", sourceIdentity: s.namespace,
+		clockDomain: "temporal-history-event-id",
+		events:      make(map[enumspb.EventType]historyEventPosition), taskQueues: make(map[string]bool),
 	}
 	for iterator.HasNext() {
 		event, err := iterator.Next()
@@ -466,106 +477,6 @@ func (s *sdkSession) latestHistory(
 	return latest, nil
 }
 
-func (s *sdkSession) observationSatisfied(observation string, history historyPosition) bool {
-	if s.hasFailedResult() && observation != "nexus-operation-closed" {
-		return false
-	}
-	switch observation {
-	case "cancellation-accepted":
-		return s.hasActionStatus("request-cancellation", "completed") && history.has(
-			enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED)
-	case "cancellation-won":
-		return s.hasActionStatus("commit-cancellation", "completed") && history.has(
-			enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED)
-	case "stale-success-absent":
-		return s.hasActionStatus("commit-cancellation", "completed") &&
-			s.allActionStatuses("worker-returns-success", "suppressed") &&
-			s.allActionStatuses("persist-success", "suppressed")
-	case "update-accepted":
-		return history.has(enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_ACCEPTED)
-	case "update-completed":
-		return history.has(enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED)
-	case "workflow-task-acknowledged":
-		return history.has(enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED)
-	case "speculative-task-valid":
-		created, createdQualified := s.qualifiedActionReceipt(
-			"create-speculative-workflow-task", "temporal-sdk-speculative-update")
-		committed, committedQualified := s.qualifiedActionReceipt(
-			"commit-speculative-workflow-task", "temporal-sdk-speculative-update")
-		return createdQualified && committedQualified &&
-			strings.Contains(created.Reference, "/speculative-update/") &&
-			strings.Contains(committed.Reference, "/speculative-update/") &&
-			history.has(enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_ACCEPTED,
-				enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED,
-				enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED)
-	case "workflow-task-not-starved":
-		receipt, qualified := s.qualifiedActionReceipt(
-			"dispatch-assurance-workflow-task", "temporal-sdk-workflow-progress")
-		scheduled, scheduledObserved := history.latest(enumspb.EVENT_TYPE_WORKFLOW_TASK_SCHEDULED)
-		started, startedObserved := history.latest(enumspb.EVENT_TYPE_WORKFLOW_TASK_STARTED)
-		completed, completedObserved := history.latest(enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED)
-		return qualified && strings.Contains(receipt.Reference, "/workflow-progress/") &&
-			scheduledObserved && startedObserved && completedObserved &&
-			scheduled.sequence < started.sequence && started.sequence < completed.sequence
-	case "nexus-operation-closed":
-		return history.nexusOperationClosedBeforeWorkflow()
-	case "nexus-activity-links-consistent":
-		return s.hasActionStatus("link-nexus-activity", "completed") &&
-			history.has(enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED) &&
-			history.nexusActivityForwardLinked && history.nexusActivityReverseLinked
-	case "nexus-timeout-valid":
-		return history.has(enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT) &&
-			history.nexusTimeoutType == enumspb.TIMEOUT_TYPE_START_TO_CLOSE &&
-			strings.Contains(history.nexusTimeoutMessage, "operation timed out")
-	case "callback-reference-valid":
-		return history.callbackRegistered && s.hasQualifiedActionReceipt("register-callback",
-			"temporal-completion-callback-registration", "temporal-shared-handler-registration",
-			"temporal-nexus-callback-registration")
-	case "callback-response-consistent":
-		return history.callbackRegistered && history.has(enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED) &&
-			s.hasQualifiedActionReceipt("register-callback",
-				"temporal-completion-callback-registration", "temporal-shared-handler-registration",
-				"temporal-nexus-callback-registration") &&
-			s.hasQualifiedActionReceipt("record-callback-response",
-				"temporal-nexus-completion-callback-receiver", "temporal-shared-handler-completion",
-				"temporal-nexus-callback-rejection")
-	case "workflow-continuation-lineage-valid":
-		latest := s.latestResult()
-		return s.hasQualifiedActionReceipt("continue-workflow", "temporal-sdk-continuation") &&
-			len(latest.Lineage) >= 4 && history.continuedExecutionRunID == latest.Lineage[len(latest.Lineage)-2] &&
-			history.originalExecutionRunID == latest.RunID && history.firstExecutionRunID == latest.Lineage[len(latest.Lineage)-2]
-	case "workflow-reset-lineage-valid":
-		latest := s.latestResult()
-		return s.hasQualifiedActionReceipt("reset-workflow", "temporal-sdk-reset") &&
-			len(latest.Lineage) >= 4 && history.originalExecutionRunID == latest.Lineage[len(latest.Lineage)-2] &&
-			history.originalExecutionRunID != latest.RunID && history.firstExecutionRunID == latest.Lineage[len(latest.Lineage)-2]
-	case "workflow-routing-isolated":
-		route, qualified := s.qualifiedActionReceipt("route-workflow-task", "temporal-sdk-routing")
-		return history.taskQueues[s.taskQueue] && history.has(enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED) &&
-			qualified && route.SourceIdentity == s.taskQueue &&
-			strings.Contains(route.Reference, "/task-queue/"+s.taskQueue)
-	case "workflow-ownership-fenced":
-		receipt, qualified := s.qualifiedActionReceipt(
-			"fence-workflow-owner", "umpire3-workflow-task-fencer")
-		failed, failedObserved := history.latest(enumspb.EVENT_TYPE_WORKFLOW_TASK_FAILED)
-		completed, completedObserved := history.latest(enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED)
-		_, _, referenceValid := parseWorkflowOwnerFencingReference(receipt.Reference)
-		return qualified && receipt.SourceIdentity == "umpire3-workflow-task-fencer" &&
-			referenceValid && failedObserved && completedObserved && failed.sequence < completed.sequence
-	case "entity-progressed":
-		receipt, qualified := s.qualifiedActionReceipt(
-			"progress-entity", "temporal-sdk-workflow-progress")
-		return qualified && strings.Contains(receipt.Reference, "/workflow-progress/") && history.hasAny(
-			enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED,
-			enumspb.EVENT_TYPE_ACTIVITY_TASK_COMPLETED,
-			enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
-			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED,
-		)
-	default:
-		return false
-	}
-}
-
 func parseWorkflowOwnerFencingReference(reference string) (staleStarted int64, currentStarted int64, valid bool) {
 	const marker = "/workflow-task/"
 	index := strings.LastIndex(reference, marker)
@@ -582,88 +493,6 @@ func parseWorkflowOwnerFencingReference(reference string) (staleStarted int64, c
 		staleErr == nil && currentErr == nil && staleStarted > 0 && staleStarted < currentStarted
 }
 
-func (s *sdkSession) hasFailedResult() bool {
-	for _, result := range s.results {
-		if result.Status == "failed" {
-			return true
-		}
-	}
-	return false
-}
-
-func (s *sdkSession) hasActionStatus(actionKind string, status string) bool {
-	for _, action := range s.experiment.Actions {
-		if action.Kind != actionKind {
-			continue
-		}
-		if result, exists := s.results[action.Identifier]; exists && result.Status == status {
-			return true
-		}
-	}
-	return false
-}
-
-func (s *sdkSession) allActionStatuses(actionKind string, status string) bool {
-	found := false
-	for _, action := range s.experiment.Actions {
-		if action.Kind != actionKind {
-			continue
-		}
-		result, exists := s.results[action.Identifier]
-		if !exists {
-			continue
-		}
-		found = true
-		if result.Status != status {
-			return false
-		}
-	}
-	return found
-}
-
-func (s *sdkSession) hasQualifiedActionReceipt(actionKind string, allowedSources ...string) bool {
-	_, qualified := s.qualifiedActionReceipt(actionKind, allowedSources...)
-	return qualified
-}
-
-func (s *sdkSession) qualifiedActionReceipt(
-	actionKind string,
-	allowedSources ...string,
-) (participant.Result, bool) {
-	for _, action := range s.experiment.Actions {
-		if action.Kind != actionKind {
-			continue
-		}
-		result, exists := s.results[action.Identifier]
-		if !exists || result.Status != "completed" || result.Reference == "" ||
-			result.WorkflowID == "" || result.RunID == "" || len(result.Lineage) == 0 {
-			continue
-		}
-		if slices.Contains(allowedSources, result.Source) {
-			return result, true
-		}
-	}
-	return participant.Result{}, false
-}
-
-func (h historyPosition) has(eventTypes ...enumspb.EventType) bool {
-	for _, eventType := range eventTypes {
-		if _, exists := h.events[eventType]; !exists {
-			return false
-		}
-	}
-	return true
-}
-
-func (h historyPosition) hasAny(eventTypes ...enumspb.EventType) bool {
-	for _, eventType := range eventTypes {
-		if _, exists := h.events[eventType]; exists {
-			return true
-		}
-	}
-	return false
-}
-
 func (h historyPosition) latest(eventTypes ...enumspb.EventType) (historyEventPosition, bool) {
 	var latest historyEventPosition
 	found := false
@@ -675,58 +504,4 @@ func (h historyPosition) latest(eventTypes ...enumspb.EventType) (historyEventPo
 		}
 	}
 	return latest, found
-}
-
-func (h historyPosition) nexusOperationClosedBeforeWorkflow() bool {
-	operation, operationObserved := h.latest(
-		enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
-		enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED,
-		enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCELED,
-		enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT,
-	)
-	workflow, workflowObserved := h.latest(
-		enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED,
-		enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_FAILED,
-		enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED,
-		enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_TERMINATED,
-		enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT,
-	)
-	return operationObserved && workflowObserved && operation.sequence > 0 && operation.sequence <= workflow.sequence
-}
-
-func (h historyPosition) supportingPosition(observation string) historyEventPosition {
-	preferences := map[string][]enumspb.EventType{
-		"cancellation-accepted":      {enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED},
-		"cancellation-won":           {enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_CANCELED},
-		"stale-success-absent":       {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED},
-		"update-accepted":            {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_ACCEPTED},
-		"update-completed":           {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED},
-		"workflow-task-acknowledged": {enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED},
-		"speculative-task-valid":     {enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED},
-		"workflow-task-not-starved":  {enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED},
-		"nexus-operation-closed": {
-			enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED, enumspb.EVENT_TYPE_NEXUS_OPERATION_FAILED,
-			enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCELED, enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT,
-		},
-		"nexus-activity-links-consistent":     {enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED},
-		"nexus-timeout-valid":                 {enumspb.EVENT_TYPE_NEXUS_OPERATION_TIMED_OUT},
-		"callback-reference-valid":            {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED},
-		"callback-response-consistent":        {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED},
-		"workflow-continuation-lineage-valid": {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED},
-		"workflow-reset-lineage-valid":        {enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED},
-		"workflow-routing-isolated":           {enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED},
-		"workflow-ownership-fenced":           {enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED},
-		"entity-progressed": {
-			enumspb.EVENT_TYPE_CHILD_WORKFLOW_EXECUTION_COMPLETED,
-			enumspb.EVENT_TYPE_ACTIVITY_TASK_COMPLETED,
-			enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
-			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_COMPLETED,
-		},
-	}
-	for _, eventType := range preferences[observation] {
-		if position, exists := h.events[eventType]; exists {
-			return position
-		}
-	}
-	return historyEventPosition{sequence: h.sequence, timestamp: h.timestamp, reference: h.reference}
 }

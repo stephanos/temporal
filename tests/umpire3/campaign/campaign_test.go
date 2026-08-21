@@ -6,6 +6,9 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -67,6 +70,54 @@ func TestCampaignDerivesCoverageFromTheSelectedModel(t *testing.T) {
 	})
 }
 
+func TestMutationCampaignPrioritizesNovelMutationSiteWithinExecutionBudget(t *testing.T) {
+	t.Parallel()
+
+	experiment := loadMutationExperiment(t)
+	baseline := "baseline"
+	experiment.Actions[2].Arguments = []protocol.NamedValue{{
+		Name: "reason", Value: protocol.Value{Type: protocol.ValueString, Text: &baseline},
+	}}
+	seeded := "seeded-adapter-corruption"
+	mutation := MutationRequest{
+		Experiment: experiment, MaxCandidates: 32,
+		Values:        []protocol.Value{{Type: protocol.ValueString, Text: &seeded}},
+		TopologyKinds: []protocol.EntityKind{protocol.EntityKindCallback},
+	}
+	for seed := int64(1); seed <= 100; seed++ {
+		mutation.Seed = seed
+		generated, err := Mutate(mutation)
+		require.NoError(t, err)
+		if generated.Selected[0].Kind != MutationProtobufValue ||
+			generated.Selected[0].Path != "actions[2].arguments[reason]" {
+			break
+		}
+	}
+	require.NotZero(t, mutation.Seed)
+
+	covered, err := modelCoverage(experiment)
+	require.NoError(t, err)
+	covered = append(covered,
+		CoveragePoint{Kind: CoverageKind("parameter"), Identifier: "scope.seed"},
+		CoveragePoint{Kind: CoverageFault, Identifier: "faults[0].occurrence"},
+		CoveragePoint{Kind: CoverageTopology, Identifier: "resources"},
+	)
+	found := false
+	report, err := Run(context.Background(), Request{
+		Mutation: &mutation, Seed: mutation.Seed, Workers: 1, MaxExecutions: 1,
+		CorpusCoverage: covered,
+		Executor: func(_ context.Context, candidate protocol.Experiment) (runtime.Result, []CoveragePoint, error) {
+			found = hasArgument(candidate, "reason", seeded)
+			return conformingExecutor(context.Background(), candidate)
+		},
+	})
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Len(t, report.Executions, 1)
+	require.Equal(t, MutationProtobufValue, report.Executions[0].Mutation)
+	require.Equal(t, "actions[2].arguments[reason]", report.Executions[0].Path)
+}
+
 func TestViolationPromotionUsesMinimizedNormalRegressionPath(t *testing.T) {
 	t.Parallel()
 
@@ -83,6 +134,7 @@ func TestViolationPromotionUsesMinimizedNormalRegressionPath(t *testing.T) {
 					Kind: runtime.ClaimViolating, Property: experiment.Property.Identifier,
 					Checkpoint: "observe-callback-response-consistent",
 				}}
+			require.NoError(t, bindAcceptedSemanticTrace(experiment, &result))
 			result.DeriveAssurance()
 			return result, nil, nil
 		},
@@ -92,9 +144,12 @@ func TestViolationPromotionUsesMinimizedNormalRegressionPath(t *testing.T) {
 	discovery := report.Discoveries[0]
 	require.True(t, discovery.Minimization.Complete)
 	require.Contains(t, discovery.Promotion.Source, "umpire3test.RequireRegression")
-	require.Contains(t, discovery.Promotion.Source, "scenario.Action")
+	require.Contains(t, discovery.Promotion.Source, "scenario.ProtocolAtomicRegression")
+	require.Contains(t, discovery.Promotion.Source, "scenario.RecordCallbackResponse")
+	require.NotContains(t, discovery.Promotion.Source, "tests/umpire3/protocol")
 	_, err = parser.ParseFile(token.NewFileSet(), "promotion.go", discovery.Promotion.Source, parser.AllErrors)
 	require.NoError(t, err)
+	requirePromotionCompiles(t, discovery.Promotion.Source)
 }
 
 func TestExactlyExhaustedCompletedMinimizationIsComplete(t *testing.T) {
@@ -121,11 +176,27 @@ func TestPromotionRetainsTypedBindingsArgumentsAndFaultConfiguration(t *testing.
 	}}
 	source, err := promotionSource(experiment)
 	require.NoError(t, err)
-	require.Contains(t, source, "scenario.ConfiguredFault")
-	require.Contains(t, source, "scenario.Bind")
-	require.Contains(t, source, "scenario.WithArgument")
+	require.Contains(t, source, "scenario.NexusCancellationRegression")
+	require.Contains(t, source, "scenario.StaleWorkerCompletion")
+	require.Contains(t, source, "scenario.BindIdentity")
+	require.Contains(t, source, "scenario.WithReason")
+	require.NotContains(t, source, "scenario.ConfiguredFault")
+	require.NotContains(t, source, "tests/umpire3/protocol")
 	_, err = parser.ParseFile(token.NewFileSet(), "promotion.go", source, parser.AllErrors)
 	require.NoError(t, err)
+	requirePromotionCompiles(t, source)
+}
+
+func requirePromotionCompiles(t *testing.T, source string) {
+	t.Helper()
+	directory, err := os.MkdirTemp(".", ".promotion-")
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, os.RemoveAll(directory)) })
+	require.NoError(t, os.WriteFile(filepath.Join(directory, "promotion.go"), []byte(source), 0o600))
+	command := exec.Command("go", "test", "-tags", "test_dep", ".")
+	command.Dir = directory
+	output, err := command.CombinedOutput()
+	require.NoError(t, err, strings.TrimSpace(string(output)))
 }
 
 func TestCheckedBackendTraceUsesCampaignAndNormalRegressionPromotion(t *testing.T) {
@@ -135,10 +206,12 @@ func TestCheckedBackendTraceUsesCampaignAndNormalRegressionPromotion(t *testing.
 	require.NoError(t, err)
 	backend, err := protocol.DecodeBackendResult(bytes.NewReader(encoded), protocol.DefaultDecodeLimit)
 	require.NoError(t, err)
+	trace, err := protocol.SemanticTraceFromBackendResult(backend)
+	require.NoError(t, err)
 	report, err := Run(context.Background(), Request{
-		BackendResults: []protocol.BackendResult{backend},
-		Seed:           1, Workers: 1, MaxExecutions: 1, CompilerLimits: compilerLimits(),
-		MinimizeAttempts: 16,
+		Traces: []protocol.SemanticTrace{trace},
+		Seed:   1, Workers: 1, MaxExecutions: 1, CompilerLimits: compilerLimits(),
+		MinimizeAttempts: 128,
 		Executor: func(_ context.Context, experiment protocol.Experiment) (runtime.Result, []CoveragePoint, error) {
 			digest, digestErr := experiment.Digest()
 			require.NoError(t, digestErr)
@@ -164,17 +237,25 @@ func TestCheckedBackendTraceUsesCampaignAndNormalRegressionPromotion(t *testing.
 					Property:   experiment.Property.Identifier,
 					Checkpoint: "observe-stale-success-absent"},
 			}
+			if violating {
+				if traceErr := bindAcceptedSemanticTrace(experiment, &result); traceErr != nil {
+					result.Claim.Kind = runtime.ClaimConforming
+				}
+			}
 			result.DeriveAssurance()
 			return result, nil, nil
 		},
 	})
 	require.NoError(t, err)
 	require.Len(t, report.Discoveries, 1)
+	require.Empty(t, report.Discoveries[0].PromotionBlock)
 	require.Contains(t, report.Discoveries[0].Promotion.Source, "umpire3test.RequireRegression")
-	require.Contains(t, report.Discoveries[0].Promotion.Source, "scenario.ConfiguredFault")
+	require.Contains(t, report.Discoveries[0].Promotion.Source, "scenario.StaleWorkerCompletion")
+	require.NotContains(t, report.Discoveries[0].Promotion.Source, "tests/umpire3/protocol")
 	_, err = parser.ParseFile(token.NewFileSet(), "promotion.go",
 		report.Discoveries[0].Promotion.Source, parser.AllErrors)
 	require.NoError(t, err)
+	requirePromotionCompiles(t, report.Discoveries[0].Promotion.Source)
 }
 
 func TestCheckedCanonicalTraceReceiptUsesCampaignSource(t *testing.T) {
@@ -213,8 +294,11 @@ func TestCheckedCanonicalTraceReceiptUsesCampaignSource(t *testing.T) {
 		TrustBadge:    protocol.TrustBadgeCheckedCertificate,
 		Axioms:        []string{},
 	}
+	trace, err := protocol.SemanticTraceFromTraceReplayReceipt(
+		protocol.SemanticTraceProducerExact, receipt)
+	require.NoError(t, err)
 	report, err := Run(context.Background(), Request{
-		TraceReceipts:  []protocol.TraceReplayReceipt{receipt},
+		Traces:         []protocol.SemanticTrace{trace},
 		Seed:           1,
 		Workers:        1,
 		MaxExecutions:  1,
@@ -223,7 +307,7 @@ func TestCheckedCanonicalTraceReceiptUsesCampaignSource(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, report.Executions, 1)
-	require.Equal(t, scenario.TraceReceiptIdentifier(receipt), report.Executions[0].CandidateID)
+	require.Equal(t, scenario.SemanticTraceIdentifier(trace), report.Executions[0].CandidateID)
 }
 
 func TestCheckedTemporalLassoUsesCampaignSource(t *testing.T) {
@@ -260,8 +344,11 @@ func TestCheckedTemporalLassoUsesCampaignSource(t *testing.T) {
 		TrustBadge:    protocol.TrustBadgeCheckedCertificate,
 		Axioms:        []string{},
 	}
+	trace, err := protocol.SemanticTraceFromTemporalLassoReplayReceipt(
+		protocol.SemanticTraceProducerLeanTemporal, receipt)
+	require.NoError(t, err)
 	report, err := Run(context.Background(), Request{
-		TemporalLassos: []protocol.TemporalLassoReplayReceipt{receipt},
+		Traces:         []protocol.SemanticTrace{trace},
 		Seed:           1,
 		Workers:        1,
 		MaxExecutions:  1,
@@ -270,7 +357,40 @@ func TestCheckedTemporalLassoUsesCampaignSource(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, report.Executions, 1)
-	require.Equal(t, scenario.TemporalLassoIdentifier(receipt), report.Executions[0].CandidateID)
+	require.Equal(t, scenario.SemanticTraceIdentifier(trace), report.Executions[0].CandidateID)
+}
+
+func TestLiveSemanticTraceCampaignRetainsExactCompiledIntent(t *testing.T) {
+	t.Parallel()
+
+	experiment := loadMutationExperiment(t)
+	digest, err := experiment.Digest()
+	require.NoError(t, err)
+	result := runtime.Result{
+		FormatVersion: runtime.ResultFormatVersion, ExperimentDigest: digest,
+		Claim: runtime.Claim{
+			Kind: runtime.ClaimViolating, Property: experiment.Property.Identifier,
+		},
+	}
+	require.NoError(t, bindAcceptedSemanticTrace(experiment, &result))
+	require.NotNil(t, result.Trace)
+	var executedDigest string
+	report, err := Run(context.Background(), Request{
+		Traces: []protocol.SemanticTrace{*result.Trace}, Seed: 1, Workers: 1,
+		MaxExecutions: 1, CompilerLimits: compilerLimits(),
+		Executor: func(_ context.Context, candidate protocol.Experiment) (runtime.Result, []CoveragePoint, error) {
+			var digestErr error
+			executedDigest, digestErr = candidate.Digest()
+			if digestErr != nil {
+				return runtime.Result{}, nil, digestErr
+			}
+			return conformingExecutor(context.Background(), candidate)
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, report.Executions, 1)
+	require.Equal(t, digest, executedDigest)
+	require.Equal(t, digest, report.Executions[0].Digest)
 }
 
 func callbackCandidate(identifier string) Candidate {

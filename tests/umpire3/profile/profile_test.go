@@ -193,15 +193,7 @@ func (profileSession) Realize(
 	protocol.Action,
 	environment.Bindings,
 ) (environment.ActionEvidence, error) {
-	return environment.ActionEvidence{}, nil
-}
-
-func (profileSession) Observe(
-	context.Context,
-	protocol.Checkpoint,
-	environment.Bindings,
-) (environment.Observation, error) {
-	return environment.Observation{}, nil
+	return environment.ActionEvidence{Outcome: protocol.ActionOutcomeApplied}, nil
 }
 
 func (profileSession) Cleanup(context.Context) environment.CleanupResult {

@@ -30,6 +30,7 @@ import (
 	"go.temporal.io/server/tests/testcore"
 	environment "go.temporal.io/server/tests/umpire3/execution"
 	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
+	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/participant"
 	"go.temporal.io/server/tests/umpire3/profile"
 	"go.temporal.io/server/tests/umpire3/protocol"
@@ -44,7 +45,6 @@ type umpire3SDKRootFactory struct {
 	variant           string
 	faultRealizer     *umpire3RootRPCFaultRealizer
 	footprintRecorder *umpire3fault.Recorder
-	retryableAttempt  chan struct{}
 	footprintActive   atomic.Bool
 	footprintErrMu    sync.Mutex
 	footprintErr      error
@@ -152,11 +152,11 @@ func (f *umpire3SDKRootFactory) Prepare(
 	var env *testcore.TestEnv
 	var nexusEnv *NexusTestEnv
 	var nexusActivityLinks *umpire3NexusActivityLinkDriver
+	var nexusBehavior *umpire3NexusBehaviorDriver
 	var nexusDriver umpire3temporal.NexusDriver
 	nexusEndpoint := ""
 	f.faultRealizer = &umpire3RootRPCFaultRealizer{experimentID: experiment.ExperimentID}
 	f.footprintRecorder = umpire3fault.NewRecorder()
-	f.retryableAttempt = make(chan struct{}, 1)
 	needsNexus := participantProgramHas(program, participant.CommandNexus) ||
 		participantProgramHas(program, participant.CommandCancellation)
 	needsCallbacks := participantProgramHas(program, participant.CommandCallbackRegister) ||
@@ -176,7 +176,12 @@ func (f *umpire3SDKRootFactory) Prepare(
 		nexusEnv = newNexusTestEnv(f.t, true, environmentOptions...)
 		env = nexusEnv.TestEnv
 		if needsNexus {
-			nexusDriver = &umpire3NexusBehaviorDriver{env: env, t: f.t}
+			plannedMode, err := umpire3NexusBehaviorPlannedMode(program)
+			if err != nil {
+				return environment.PreparedEnvironment{}, err
+			}
+			nexusBehavior = &umpire3NexusBehaviorDriver{env: env, t: f.t, plannedMode: plannedMode}
+			nexusDriver = nexusBehavior
 		}
 		if needsNexusActivityLinks {
 			namespaceValues := []dynamicconfig.ConstrainedValue{{
@@ -209,14 +214,6 @@ func (f *umpire3SDKRootFactory) Prepare(
 								nexus.HandlerErrorTypeInternal, "Umpire3 Nexus Activity link driver is unavailable")
 						}
 						return nexusActivityLinks.Start(requestCtx, operation, startOptions)
-					}
-					if strings.Contains(experiment.ExperimentID, "ProbeNexusFlagged") {
-						select {
-						case f.retryableAttempt <- struct{}{}:
-						default:
-						}
-						return nil, nexus.NewHandlerErrorf(
-							nexus.HandlerErrorTypeUnavailable, "Umpire3 injected retryable operation failure")
 					}
 					if operation.SemanticAction == "timeout-nexus-operation" {
 						return &nexus.HandlerStartOperationResultAsync{OperationToken: "umpire3-timeout"}, nil
@@ -285,11 +282,15 @@ func (f *umpire3SDKRootFactory) Prepare(
 	if err != nil {
 		return prepared, err
 	}
-	prepared.Session = &umpire3RootSession{
+	rootSession := &umpire3RootSession{
 		Session: prepared.Session, faultRealizer: f.faultRealizer, nexusEnv: nexusEnv, variant: f.variant,
-		nexusActivityLinks: nexusActivityLinks, callbackDriver: rootCallbackDriver,
-		behavior: experiment.ExperimentID, retryableAttempt: f.retryableAttempt,
-		footprintFactory: f,
+		nexusActivityLinks: nexusActivityLinks,
+		nexusBehavior:      nexusBehavior,
+		footprintFactory:   f,
+	}
+	prepared.Session = rootSession
+	if experiment.Property.Identifier == string(protocol.PropertyIDNexusOperationProgress) {
+		prepared.Session = &umpire3PrimaryFactRootSession{root: rootSession}
 	}
 	prepared.Identity.FaultAuthority = deployment.Environment.FaultAuthority
 	return prepared, nil
@@ -396,68 +397,92 @@ type umpire3RootSession struct {
 	variant            string
 	variantChecked     bool
 	nexusActivityLinks *umpire3NexusActivityLinkDriver
-	callbackDriver     *umpire3CallbackDriver
-	behavior           string
-	retryableAttempt   <-chan struct{}
+	nexusBehavior      *umpire3NexusBehaviorDriver
 	footprintFactory   *umpire3SDKRootFactory
 }
 
-func (s *umpire3RootSession) Corroborate(
+type umpire3PrimaryFactRootSession struct {
+	root *umpire3RootSession
+}
+
+func (s *umpire3PrimaryFactRootSession) Realize(
+	ctx context.Context,
+	action protocol.Action,
+	bindings environment.Bindings,
+) (environment.ActionEvidence, error) {
+	return s.root.Realize(ctx, action, bindings)
+}
+
+func (s *umpire3PrimaryFactRootSession) ObserveFacts(
 	ctx context.Context,
 	checkpoint protocol.Checkpoint,
 	bindings environment.Bindings,
-) ([]environment.Observation, error) {
-	corroborating, ok := s.Session.(environment.CorroboratingSession)
+) ([]observation.Fact, error) {
+	return s.root.ObserveFacts(ctx, checkpoint, bindings)
+}
+
+func (s *umpire3PrimaryFactRootSession) Cleanup(ctx context.Context) environment.CleanupResult {
+	return s.root.Cleanup(ctx)
+}
+
+func (s *umpire3PrimaryFactRootSession) RecoveryMetadata() map[string]string {
+	return s.root.RecoveryMetadata()
+}
+
+func (s *umpire3RootSession) CorroborateFacts(
+	ctx context.Context,
+	checkpoint protocol.Checkpoint,
+	bindings environment.Bindings,
+) ([][]observation.Fact, error) {
+	corroborating, ok := s.Session.(environment.CorroboratingFactSession)
 	if !ok {
 		return nil, errors.New("root SDK session does not provide corroborating evidence")
 	}
-	observations, err := corroborating.Corroborate(ctx, checkpoint, bindings)
+	factSets, err := corroborating.CorroborateFacts(ctx, checkpoint, bindings)
 	if err != nil {
-		return nil, err
+		return factSets, err
 	}
-	if checkpoint.Observation == string(protocol.ObservationIDNexusActivityLinksConsistent) {
-		for index := range observations {
-			observations[index].Satisfied = observations[index].Satisfied && s.nexusActivityLinks != nil &&
-				s.nexusActivityLinks.Validated()
+	if checkpoint.Observation != string(protocol.ObservationIDNexusActivityLinksConsistent) {
+		return factSets, nil
+	}
+	if s.nexusActivityLinks == nil {
+		return nil, errors.New("Nexus Activity link evidence is unavailable")
+	}
+	for index := range factSets {
+		factSets[index], err = s.nexusActivityLinks.completeFacts(checkpoint, factSets[index])
+		if err != nil {
+			return nil, fmt.Errorf("complete corroborating Nexus Activity link facts: %w", err)
 		}
 	}
-	if checkpoint.Observation == string(protocol.ObservationIDCallbackReferenceValid) ||
-		checkpoint.Observation == string(protocol.ObservationIDCallbackResponseConsistent) {
-		for index := range observations {
-			observations[index].Satisfied = observations[index].Satisfied && s.callbackDriver != nil &&
-				s.callbackDriver.ValidatedObservation(checkpoint.Observation)
-		}
-	}
-	return observations, nil
+	return factSets, nil
 }
 
-func (s *umpire3RootSession) Observe(
+func (s *umpire3RootSession) ObserveFacts(
 	ctx context.Context,
 	checkpoint protocol.Checkpoint,
 	bindings environment.Bindings,
-) (environment.Observation, error) {
-	if strings.Contains(s.behavior, "ProbeNexusFlagged") &&
-		checkpoint.Observation == string(protocol.ObservationIDNexusOperationClosed) {
-		select {
-		case <-s.retryableAttempt:
-		case <-ctx.Done():
-			return environment.Observation{}, ctx.Err()
+) ([]observation.Fact, error) {
+	if checkpoint.Observation == string(protocol.ObservationIDNexusOperationProgressed) {
+		if s.nexusBehavior == nil {
+			return nil, errors.New("Nexus progress evidence is unavailable")
 		}
+		return s.nexusBehavior.NexusProgressFacts()
 	}
-	observation, err := s.Session.Observe(ctx, checkpoint, bindings)
+	facts, ok := s.Session.(environment.FactSession)
+	if !ok {
+		return nil, errors.New("root SDK session does not provide typed observation facts")
+	}
+	observed, err := facts.ObserveFacts(ctx, checkpoint, bindings)
 	if err != nil {
-		return observation, err
+		return observed, err
 	}
-	if checkpoint.Observation == string(protocol.ObservationIDNexusActivityLinksConsistent) {
-		observation.Satisfied = observation.Satisfied && s.nexusActivityLinks != nil &&
-			s.nexusActivityLinks.Validated()
+	if checkpoint.Observation != string(protocol.ObservationIDNexusActivityLinksConsistent) {
+		return observed, nil
 	}
-	if checkpoint.Observation == string(protocol.ObservationIDCallbackReferenceValid) ||
-		checkpoint.Observation == string(protocol.ObservationIDCallbackResponseConsistent) {
-		observation.Satisfied = observation.Satisfied && s.callbackDriver != nil &&
-			s.callbackDriver.ValidatedObservation(checkpoint.Observation)
+	if s.nexusActivityLinks == nil {
+		return nil, errors.New("Nexus Activity link evidence is unavailable")
 	}
-	return observation, nil
+	return s.nexusActivityLinks.completeFacts(checkpoint, observed)
 }
 
 func (s *umpire3RootSession) Realize(

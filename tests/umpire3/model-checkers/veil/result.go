@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"maps"
 	"strconv"
 
 	"go.temporal.io/server/tests/umpire3/protocol"
@@ -28,6 +27,11 @@ type concreteResult struct {
 	Trace             *concreteTrace     `json:"trace,omitempty"`
 	TerminationReason *terminationReason `json:"termination_reason,omitempty"`
 	Violation         *concreteViolation `json:"violation,omitempty"`
+}
+
+type concreteReceipt struct {
+	Binding CompiledBinding `json:"binding"`
+	Result  concreteResult  `json:"result"`
 }
 
 type concreteTrace struct {
@@ -52,13 +56,13 @@ type concreteViolation struct {
 
 func NormalizeConcreteOutput(
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	reader io.Reader,
 	limit int64,
 	executionLimits protocol.BackendExecutionLimits,
 	receipt *protocol.TraceReplayReceipt,
 ) (protocol.BackendResult, error) {
-	raw, err := readConcreteOutput(view, generated, reader, limit)
+	raw, err := readConcreteOutput(view, binding, reader, limit)
 	if err != nil {
 		return protocol.BackendResult{}, err
 	}
@@ -73,7 +77,7 @@ func NormalizeConcreteOutput(
 		World:                   view.World,
 		Variant:                 view.Variant,
 		SemanticHash:            view.SemanticHash,
-		GeneratedArtifactDigest: generated.ModelHash,
+		GeneratedArtifactDigest: binding.ArtifactDigest,
 		Job:                     protocol.BackendJobConcrete,
 		Bounds:                  bounds,
 		ExecutionLimits:         executionLimits,
@@ -93,7 +97,7 @@ func NormalizeConcreteOutput(
 		result.Termination = protocol.BackendTerminationExhaustedInstance
 		result.Omissions = []string{protocol.VeilConcreteCollisionOmission}
 	case veilResultFoundViolation:
-		trace, err := normalizeViolationTrace(view, generated, raw)
+		trace, err := normalizeViolationTrace(view, binding, raw)
 		if err != nil {
 			return protocol.BackendResult{}, err
 		}
@@ -131,11 +135,11 @@ func NormalizeConcreteOutput(
 
 func ConcreteReplayInput(
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	reader io.Reader,
 	limit int64,
 ) (*protocol.TraceReplayInput, error) {
-	raw, err := readConcreteOutput(view, generated, reader, limit)
+	raw, err := readConcreteOutput(view, binding, reader, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +150,7 @@ func ConcreteReplayInput(
 		}
 		return nil, nil
 	case veilResultFoundViolation:
-		trace, err := normalizeViolationTrace(view, generated, raw)
+		trace, err := normalizeViolationTrace(view, binding, raw)
 		if err != nil {
 			return nil, err
 		}
@@ -162,17 +166,21 @@ func ConcreteReplayInput(
 
 func readConcreteOutput(
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	reader io.Reader,
 	limit int64,
 ) (concreteResult, error) {
-	if err := validateConcreteModule(view, generated); err != nil {
+	if err := binding.ValidateAgainst(view); err != nil {
 		return concreteResult{}, err
 	}
-	var raw concreteResult
-	if err := decodeConcreteOutput(reader, limit, &raw); err != nil {
+	var receipt concreteReceipt
+	if err := decodeConcreteOutput(reader, limit, &receipt); err != nil {
 		return concreteResult{}, err
 	}
+	if err := receipt.Binding.Validate(); err != nil || !receipt.Binding.equal(binding.Binding) {
+		return concreteResult{}, errors.New("veil concrete result is not bound to the compiled Veil binding")
+	}
+	raw := receipt.Result
 	if raw.ExploredStates > view.Bounds.ConcreteStateLimit {
 		return concreteResult{}, fmt.Errorf("veil explored %d states beyond the declared limit %d",
 			raw.ExploredStates, view.Bounds.ConcreteStateLimit)
@@ -205,23 +213,9 @@ func traceReplayInput(view protocol.FirstOrderView, trace protocol.ModelTrace) p
 	}
 }
 
-func validateConcreteModule(view protocol.FirstOrderView, generated GeneratedModule) error {
-	expected, err := Generate(view, Concrete)
-	if err != nil {
-		return err
-	}
-	if generated.Module != expected.Module || !bytes.Equal(generated.Source, expected.Source) ||
-		!maps.Equal(generated.ActionLabels, expected.ActionLabels) ||
-		generated.ExportsModelChecker != expected.ExportsModelChecker ||
-		generated.TrustMode != expected.TrustMode {
-		return errors.New("veil concrete output is not bound to the generated first-order module")
-	}
-	return nil
-}
-
 func normalizeViolationTrace(
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	raw concreteResult,
 ) (protocol.ModelTrace, error) {
 	if raw.StateFingerprint == "" || raw.Trace == nil || raw.Violation == nil ||
@@ -232,7 +226,7 @@ func normalizeViolationTrace(
 		return protocol.ModelTrace{}, fmt.Errorf("invalid Veil state fingerprint: %w", err)
 	}
 	if raw.Violation.Kind != veilSafetyFailure || len(raw.Violation.Violates) != 1 ||
-		raw.Violation.Violates[0] != exportedIdentifier(string(view.Property)) {
+		raw.Violation.Violates[0] != binding.Binding.PropertyLabel {
 		return protocol.ModelTrace{}, errors.New("veil violation does not match first-order property")
 	}
 	if len(raw.Trace.States) < 2 || raw.Trace.States[0].Index != 0 ||
@@ -247,19 +241,10 @@ func normalizeViolationTrace(
 			return protocol.ModelTrace{}, errors.New("unexpected Veil trace state representation")
 		}
 	}
-	backendActions := make(map[string]protocol.ActionKind, len(generated.ActionLabels))
-	sourceMap := make([]protocol.TraceSource, 0, len(view.Actions))
-	for _, action := range view.Actions {
-		backendAction, found := generated.ActionLabels[action.Identifier]
-		if !found || backendAction == "" {
-			return protocol.ModelTrace{}, fmt.Errorf("veil source map omits action %q", action.Identifier)
-		}
-		if _, duplicate := backendActions[backendAction]; duplicate {
-			return protocol.ModelTrace{}, fmt.Errorf("duplicate Veil transition %q", backendAction)
-		}
-		canonical := protocol.ActionKind(action.Identifier)
-		backendActions[backendAction] = canonical
-		sourceMap = append(sourceMap, protocol.TraceSource{Action: canonical, BackendAction: backendAction})
+	backendActions := make(map[string]protocol.ActionKind, len(binding.Binding.ActionLabels))
+	sourceMap := append([]protocol.TraceSource(nil), binding.Binding.ActionLabels...)
+	for _, label := range sourceMap {
+		backendActions[label.BackendAction] = label.Action
 	}
 	steps := make([]protocol.TraceStep, 0, len(raw.Trace.States)-1)
 	for index, state := range raw.Trace.States[1:] {
@@ -282,7 +267,7 @@ func normalizeViolationTrace(
 	}, nil
 }
 
-func decodeConcreteOutput(reader io.Reader, limit int64, destination *concreteResult) error {
+func decodeConcreteOutput(reader io.Reader, limit int64, destination *concreteReceipt) error {
 	return decodeStrictJSON(reader, limit, "Veil concrete output", destination)
 }
 

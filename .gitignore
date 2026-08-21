@@ -49,7 +49,6 @@ testdata/
 # Lake build output for the offline Lean model
 /model/.lake/
 /tests/umpire3/model/.lake/
-/tests/umpire3/model-checkers/veil/lean/.lake/
 /tests/umpire3/model-checkers/lean-temporal/lean/.lake/
 
 # direnv

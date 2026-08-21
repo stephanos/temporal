@@ -2,6 +2,8 @@
 
 package protocol
 
+const LeanVersion = "4.28.0"
+
 type SemanticTypeID string
 
 const (
@@ -112,6 +114,7 @@ const (
 	ObservationIDWorkflowTaskAcknowledged         ObservationID = "workflow-task-acknowledged"
 	ObservationIDSpeculativeTaskValid             ObservationID = "speculative-task-valid"
 	ObservationIDNexusOperationClosed             ObservationID = "nexus-operation-closed"
+	ObservationIDNexusOperationProgressed         ObservationID = "nexus-operation-progressed"
 	ObservationIDNexusActivityLinksConsistent     ObservationID = "nexus-activity-links-consistent"
 	ObservationIDNexusTimeoutValid                ObservationID = "nexus-timeout-valid"
 	ObservationIDCallbackReferenceValid           ObservationID = "callback-reference-valid"
@@ -140,6 +143,7 @@ const (
 	PropertyIDTaskDeliveryAcknowledgedRemovesBacklog        PropertyID = "task-delivery.acknowledged-removes-backlog"
 	PropertyIDWorkflowTaskSpeculativeCreation               PropertyID = "workflow-task.speculative-creation"
 	PropertyIDNexusOperationClosure                         PropertyID = "nexus-operation.closure"
+	PropertyIDNexusOperationProgress                        PropertyID = "nexus-operation.progress"
 	PropertyIDNexusActivityLinkConsistency                  PropertyID = "nexus-activity.link-consistency"
 	PropertyIDNexusOperationTimeoutSemantics                PropertyID = "nexus-operation.timeout-semantics"
 	PropertyIDCallbackReferenceConsistency                  PropertyID = "callback.reference-consistency"
@@ -191,6 +195,9 @@ const (
 	ModuleIDTemporalProductNexusClosure                         ModuleID = "Temporal.Product.NexusClosure"
 	ModuleIDTemporalSystemMigratedFamiliesNexusClosure          ModuleID = "Temporal.System.MigratedFamilies.NexusClosure"
 	ModuleIDTemporalRefinementMigratedFamiliesNexusClosure      ModuleID = "Temporal.Refinement.MigratedFamilies.NexusClosure"
+	ModuleIDTemporalProductNexusProgress                        ModuleID = "Temporal.Product.NexusProgress"
+	ModuleIDTemporalSystemNexusProgress                         ModuleID = "Temporal.System.NexusProgress"
+	ModuleIDTemporalRefinementNexusProgress                     ModuleID = "Temporal.Refinement.NexusProgress"
 	ModuleIDTemporalProductNexusTimeout                         ModuleID = "Temporal.Product.NexusTimeout"
 	ModuleIDTemporalSystemMigratedFamiliesNexusTimeout          ModuleID = "Temporal.System.MigratedFamilies.NexusTimeout"
 	ModuleIDTemporalRefinementMigratedFamiliesNexusTimeout      ModuleID = "Temporal.Refinement.MigratedFamilies.NexusTimeout"
@@ -229,6 +236,7 @@ const (
 	TargetIDWorkflowUpdateLifecycle            TargetID = "workflow-update-lifecycle"
 	TargetIDFoundationBacklogAck               TargetID = "foundation-backlog-ack"
 	TargetIDFeatureNexus                       TargetID = "feature-nexus"
+	TargetIDFeatureNexusProgress               TargetID = "feature-nexus-progress"
 	TargetIDFeatureWorkflowSpeculativeDelivery TargetID = "feature-workflow-speculative-delivery"
 	TargetIDFoundationDeliverySafety           TargetID = "foundation-delivery-safety"
 	TargetIDFoundationOwnershipFencing         TargetID = "foundation-ownership-fencing"

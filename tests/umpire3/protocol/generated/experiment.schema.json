@@ -7,6 +7,18 @@
       "items": {
         "additionalProperties": false,
         "properties": {
+          "allowedOutcomes": {
+            "items": {
+              "enum": [
+                "applied",
+                "suppressed",
+                "rejected",
+                "retried",
+                "fault-intercepted"
+              ]
+            },
+            "type": "array"
+          },
           "arguments": {
             "items": {
               "additionalProperties": false,
@@ -103,6 +115,7 @@
         "required": [
           "identifier",
           "kind",
+          "allowedOutcomes",
           "requiredCapabilities"
         ],
         "type": "object"

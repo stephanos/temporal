@@ -22,10 +22,12 @@ func main() {
 func run(arguments []string) error {
 	flags := flag.NewFlagSet("umpire3-native", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	operation := flags.String("operation", "produce", "bind, produce, or check")
+	operation := flags.String("operation", "produce", "bind, produce, check, benchmark, or validate-benchmark")
 	input := flags.String("input", "", "path to a FirstOrderView/v2 artifact")
 	output := flags.String("output", "", "path for generated output")
 	certificatePath := flags.String("certificate", "", "path to a native certificate")
+	receiptPath := flags.String("receipt", "", "path to a checked native certificate receipt")
+	benchmarkPath := flags.String("benchmark", "", "path to a native benchmark report")
 	checkerCommand := flags.String("checker-command", "", "path to canonical Lean certificate checker")
 	checkpointPath := flags.String("checkpoint", "", "optional transactional checkpoint path")
 	resume := flags.Bool("resume", false, "resume from the checkpoint path")
@@ -41,8 +43,11 @@ func run(arguments []string) error {
 	if flags.NArg() != 0 {
 		return errors.New("unexpected positional arguments")
 	}
-	if *input == "" || *output == "" {
-		return errors.New("input and output are required")
+	if *input == "" {
+		return errors.New("input is required")
+	}
+	if *operation != "validate-benchmark" && *output == "" {
+		return errors.New("output is required")
 	}
 	view, err := readFirstOrderView(*input)
 	if err != nil {
@@ -106,6 +111,51 @@ func run(arguments []string) error {
 			return err
 		}
 		return native.WriteArtifact(*output, append(encoded, '\n'))
+	case "benchmark":
+		if *certificatePath == "" || *receiptPath == "" || *checkerCommand == "" {
+			return errors.New("certificate, receipt, and checker-command are required for benchmark")
+		}
+		if *replicas != 10 {
+			return errors.New("the native scale benchmark requires exactly 10 replicas")
+		}
+		certificate, err := readCertificate(*certificatePath, view)
+		if err != nil {
+			return err
+		}
+		receipt, err := readReceipt(*receiptPath, certificate)
+		if err != nil {
+			return err
+		}
+		report, _, _, err := native.Benchmark(context.Background(), view, native.BenchmarkOptions{
+			ParallelWorkers: *workers,
+			Limits: native.SearchLimits{
+				MaxDepth: *maxDepth, MaxStates: *maxStates,
+				MaxTransitions: *maxTransitions, MaxStateBytes: *maxStateBytes,
+			},
+			CheckerCommand: []string{*checkerCommand},
+		})
+		if err != nil {
+			return err
+		}
+		encoded, err := report.CanonicalJSON(view, certificate, receipt)
+		if err != nil {
+			return err
+		}
+		return native.WriteArtifact(*output, append(encoded, '\n'))
+	case "validate-benchmark":
+		if *certificatePath == "" || *receiptPath == "" || *benchmarkPath == "" {
+			return errors.New("certificate, receipt, and benchmark are required for validation")
+		}
+		certificate, err := readCertificate(*certificatePath, view)
+		if err != nil {
+			return err
+		}
+		receipt, err := readReceipt(*receiptPath, certificate)
+		if err != nil {
+			return err
+		}
+		_, err = readBenchmarkReport(*benchmarkPath, view, certificate, receipt)
+		return err
 	default:
 		return fmt.Errorf("unknown operation %q", *operation)
 	}
@@ -135,4 +185,36 @@ func readCertificate(path string, view protocol.FirstOrderView) (native.Certific
 		return native.Certificate{}, errors.Join(decodeErr, closeErr)
 	}
 	return certificate, nil
+}
+
+func readReceipt(path string, certificate native.Certificate) (native.Receipt, error) {
+	input, err := os.Open(path)
+	if err != nil {
+		return native.Receipt{}, fmt.Errorf("open native certificate receipt: %w", err)
+	}
+	receipt, decodeErr := native.DecodeReceipt(input, protocol.DefaultDecodeLimit, certificate)
+	closeErr := input.Close()
+	if decodeErr != nil || closeErr != nil {
+		return native.Receipt{}, errors.Join(decodeErr, closeErr)
+	}
+	return receipt, nil
+}
+
+func readBenchmarkReport(
+	path string,
+	view protocol.FirstOrderView,
+	certificate native.Certificate,
+	receipt native.Receipt,
+) (native.BenchmarkReport, error) {
+	input, err := os.Open(path)
+	if err != nil {
+		return native.BenchmarkReport{}, fmt.Errorf("open native benchmark report: %w", err)
+	}
+	report, decodeErr := native.DecodeBenchmarkReport(
+		input, protocol.DefaultDecodeLimit, view, certificate, receipt)
+	closeErr := input.Close()
+	if decodeErr != nil || closeErr != nil {
+		return native.BenchmarkReport{}, errors.Join(decodeErr, closeErr)
+	}
+	return report, nil
 }

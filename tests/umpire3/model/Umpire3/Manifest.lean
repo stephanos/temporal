@@ -8,7 +8,7 @@ namespace Umpire3
 
 def formatVersion : String := "umpire3/v2"
 
-def leanVersion : String := "4.33.0"
+def leanVersion : String := Lean.versionString
 
 def proofManifestFormatVersion : String := "umpire3/proof-manifest/v3"
 
@@ -17,12 +17,14 @@ structure SemanticProofDependency where
   statementHash : String
 
 inductive ProofResultClass where
+  | traceWitness
   | invariantProved
   | temporalProved
   | refinementProved
   deriving DecidableEq, Repr
 
 private def ProofResultClass.toString : ProofResultClass → String
+  | .traceWitness => "trace-witness"
   | .invariantProved => "invariant-proved"
   | .temporalProved => "temporal-proved"
   | .refinementProved => "refinement-proved"

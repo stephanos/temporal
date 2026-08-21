@@ -12,6 +12,26 @@ Run the complete focused gate from the repository root:
 make umpire3-check
 ```
 
+While editing one model family, run its generated transitive dependency and checker portfolio:
+
+```sh
+make umpire3-check-family FAMILY=nexus-cancellation
+```
+
+This includes Veil only when the selected family imports a Veil declaration. It never requires
+TLA+, TLC, or Apalache.
+
+The complete gate validates the retained 10-replica native benchmark and runs a fresh benchmark
+without comparing nondeterministic timing values. The report binds the view, checked certificate,
+Lean receipt, and checker executable while recording serial/parallel determinism, state and artifact
+sizes, search and Lean-check memory/timing, checkpoint resume, and partial-publication recovery. Run
+`make umpire3-record-native-benchmark` only when intentionally replacing that retained measurement.
+
+The retained TLA/TLC/Apalache prototype is a non-qualifying experiment. Its Go packages require the
+explicit `umpire3_tla_experiment` build tag and are absent from normal package discovery, CI, release,
+generation, and family checks. Developers who already provide the external tools may invoke the
+manual `umpire3-experimental-tla-*` Make targets; Umpire3 does not install or maintain those tools.
+
 `make umpire3-integration` additionally runs the exported Nexus cancellation and Workflow Task
 acknowledgement traces through a real Temporal cluster. `make umpire3-root` runs the retained
 Umpire2 files and the separately implemented Umpire3 copies. The Umpire3 root factory uses generated
@@ -23,8 +43,9 @@ release qualification.
 
 Use `make umpire3-gen` after an intentional semantic-source or selected Temporal protobuf descriptor
 change. It regenerates the catalog, typed Go identifiers, experiment schema, proof manifests,
-experiments, typed regression constructors, and selected API projection. Review generated diffs as semantic changes; do not
-hand-edit generated files. `make umpire3-check-generated` checks the same artifacts for drift.
+experiments, typed regression constructors, affected-family dependency graph, and selected API
+projection. Review generated diffs as semantic changes; do not hand-edit generated files.
+`make umpire3-check-generated` checks the same artifacts for drift.
 
 ## Write a regression
 
@@ -57,7 +78,7 @@ fails instead of truncating if explicit path, action, state, memory, or time lim
 `umpire3test.Explain` returns the completed paths, semantic and causal edges, grounded identity plan,
 bounded omissions, and catalog digest without allocating an environment.
 
-## Explain, run, replay, and campaign
+## Explain, run, replay, campaign, qualify, and promote
 
 The unified command emits `umpire3/diagnostic/v1` JSON for every subcommand:
 
@@ -73,6 +94,18 @@ go run -tags test_dep ./tests/umpire3/cmd/umpire3 run \
 go run -tags test_dep ./tests/umpire3/cmd/umpire3 replay \
   -bundle <bundle.json> -address <host:port> -namespace <namespace> \
   -task-queue <isolated-queue> -build-id <build>
+
+go run -tags test_dep ./tests/umpire3/cmd/umpire3 qualify \
+  -release tests/umpire3/testdata/umpire3-1.2.json \
+  -experiment <experiment.json> -result <result.json> \
+  -profile <external-profile> -signing-key <authority.pem> \
+  -output <receipt.json>
+
+go run -tags test_dep ./tests/umpire3/cmd/umpire3 promote \
+  -release tests/umpire3/testdata/umpire3-1.2.json \
+  -receipt <local-receipt.json> -receipt <ci-receipt.json> \
+  -receipt <remote-receipt.json> -receipt <grpc-receipt.json> \
+  -receipt <canary-receipt.json> -output <qualified-release.json>
 ```
 
 `replay` strictly decodes the redacted Replay bundle, verifies its Experiment digest, reuses its seed
@@ -81,6 +114,11 @@ observation, and evidence drift. `campaign` deterministically mutates typed valu
 fault occurrence/scope, and bounded topology, then executes the selected candidates through that
 same adapter. `make umpire3-mutation-gate` verifies that an approved cross-layer seed is discovered,
 minimized, bundled, replayed, and emitted as normal `RequireRegression` source.
+
+`make umpire3-resilience-gate` validates and freshly repeats the retained control-plane audit, then
+exercises strict hostile decoding, cardinality and artifact bounds, explicit subprocess environments
+and resource limits, secret redaction, transactional artifact publication, controller/worker
+termination, and resumable canary cleanup.
 
 Set `UMPIRE3_TEMPORAL_API_KEY` outside Experiment, Result, and Replay bundle files when a remote endpoint
 requires authentication. The CLI never accepts credentials in serialized semantic input.
@@ -111,9 +149,17 @@ causality, ordering, capability, cleanup, or source evidence must remain unsuppo
 inconclusive.
 
 The checked release manifest is `testdata/umpire3-1.2.json`. It links every vision goal to executable
-evidence and lists the remote, gRPC-only, and production qualifications that deployment owners must
-run before changing the release status from candidate to qualified. Local implementation does not
-fabricate those receipts. Its v2 parity and v3 migration ledgers also preserve current partial
-fidelity: candidate validation accepts declared gaps, while qualified validation requires complete,
-profile-qualified parity and no partial root behavior. See `AUTHORING.md`, `MODELING.md`,
+evidence and lists local in-process, CI test cluster, remote, gRPC-only, and production canary
+qualifications that their deployment owners must run before changing the release status from
+candidate to qualified. Local implementation does not fabricate those receipts. Promotion requires
+every profile receipt to bind the same
+Experiment digest, the complete runtime Result, its evidence, build and configuration identities,
+and the exact candidate release; the qualified manifest retains and self-checks those bindings. Its
+external gates must first pin the reviewed authority identity and Ed25519 public key for each profile;
+only the matching external PKCS#8 private key can issue a promotable receipt. Its
+v4 parity ledger resolves all retained assurance rows, and its v3 migration ledger records 23 exact
+and 5 explicit semantic-equivalent behaviors with no partial row. Candidate validation still accepts
+the five declared profile gaps, while qualified validation requires every goal to pass. The current
+candidate has no other assurance omission. See
+`AUTHORING.md`, `MODELING.md`,
 `OPERATIONS.md`, `SECURITY.md`, and `INCIDENT_RECOVERY.md` for the supported workflows.

@@ -29,9 +29,10 @@ type CapabilityDeclaration struct {
 }
 
 type ParameterDeclaration struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Required bool   `json:"required"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	Required bool     `json:"required"`
+	Values   []string `json:"values"`
 }
 
 type ProjectionDeclaration struct {
@@ -115,6 +116,7 @@ type TargetDeclaration struct {
 type Catalog struct {
 	FormatVersion  string                   `json:"formatVersion"`
 	CatalogVersion string                   `json:"catalogVersion"`
+	LeanVersion    string                   `json:"leanVersion"`
 	SemanticHash   string                   `json:"semanticHash"`
 	Types          []TypeDeclaration        `json:"types"`
 	Capabilities   []CapabilityDeclaration  `json:"capabilities"`
@@ -153,7 +155,7 @@ func (c Catalog) Validate() error {
 	if c.FormatVersion != CatalogFormatVersion {
 		return fmt.Errorf("unsupported catalog format version %q", c.FormatVersion)
 	}
-	if c.CatalogVersion == "" || !validHash(c.SemanticHash) {
+	if c.CatalogVersion == "" || c.LeanVersion == "" || !validHash(c.SemanticHash) {
 		return errors.New("complete catalog provenance is required")
 	}
 	if len(c.Types) == 0 || len(c.Capabilities) == 0 || len(c.Actions) == 0 ||
@@ -256,6 +258,21 @@ func (c Catalog) Validate() error {
 			parameterNames[parameter.Name] = struct{}{}
 			if _, known := types[parameter.Type]; !known {
 				return fmt.Errorf("action %q parameter %q references unknown type %q", action.Identifier, parameter.Name, parameter.Type)
+			}
+			if len(parameter.Values) != 0 && parameter.Type != "string" {
+				return fmt.Errorf("action %q parameter %q has values for non-string type %q",
+					action.Identifier, parameter.Name, parameter.Type)
+			}
+			values := make(map[string]struct{}, len(parameter.Values))
+			for _, value := range parameter.Values {
+				if value == "" {
+					return fmt.Errorf("action %q parameter %q has an empty value", action.Identifier, parameter.Name)
+				}
+				if _, duplicate := values[value]; duplicate {
+					return fmt.Errorf("action %q parameter %q has duplicate value %q",
+						action.Identifier, parameter.Name, value)
+				}
+				values[value] = struct{}{}
 			}
 		}
 		for _, capability := range action.RequiredCapabilities {

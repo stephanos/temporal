@@ -1,4 +1,5 @@
 import Temporal.Product.NexusClosure
+import Temporal.Product.NexusProgress
 import Temporal.Product.NexusActivityLink
 import Temporal.Product.NexusTimeout
 import Temporal.Product.CallbackReference
@@ -97,6 +98,26 @@ theorem nexusOperationClosure_monitor_equivalent
   simp [MonitorDeclaration.Holds, nexusOperationClosure, assuranceMonitor,
     nexusClosureObservations, MonitorExpression.eval, lookupObservation,
     Umpire3.Temporal.Product.NexusClosure.Closure]
+
+def nexusOperationProgress := assuranceMonitor
+  "monitor.nexus-operation.progress"
+  "nexus-operation.progress" "nexus-operation-progressed"
+
+def nexusProgressObservations
+    (state : Umpire3.Temporal.Product.NexusProgress.State) : List NormalizedObservation := [{
+  identifier := "nexus-operation-progressed"
+  value := Umpire3.Temporal.Product.NexusProgress.progressReadyB state &&
+    Umpire3.Temporal.Product.NexusProgress.progressB state
+}]
+
+theorem nexusOperationProgress_monitor_equivalent
+    (state : Umpire3.Temporal.Product.NexusProgress.State) :
+    nexusOperationProgress.Holds (nexusProgressObservations state) ↔
+      Umpire3.Temporal.Product.NexusProgress.ProgressQualified state := by
+  simp [MonitorDeclaration.Holds, nexusOperationProgress, assuranceMonitor,
+    nexusProgressObservations, MonitorExpression.eval, lookupObservation,
+    Umpire3.Temporal.Product.NexusProgress.ProgressQualified,
+    Umpire3.Temporal.Product.NexusProgress.NexusOperationProgress]
 
 def nexusActivityLinkConsistency := assuranceMonitor
   "monitor.nexus-activity.link-consistency"
@@ -299,6 +320,7 @@ def declarations : List MonitorDeclaration := [
   taskAcknowledgement,
   speculativeTaskCreation,
   nexusOperationClosure,
+  nexusOperationProgress,
   nexusActivityLinkConsistency,
   nexusOperationTimeoutSemantics,
   callbackReferenceConsistency,

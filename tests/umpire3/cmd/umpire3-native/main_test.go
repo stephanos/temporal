@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,4 +40,27 @@ func TestBindAndProduceUseTheSelectedFirstOrderView(t *testing.T) {
 	certificate, err := readCertificate(certificatePath, view)
 	require.NoError(t, err)
 	require.Equal(t, 260, certificate.Statistics.ExpandedStates)
+}
+
+func TestValidateRetainedBenchmarkFailsClosedOnRecoveryDrift(t *testing.T) {
+	t.Parallel()
+
+	arguments := []string{
+		"-operation", "validate-benchmark",
+		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-certificate", "../../model-checkers/native/results/nexus-cancellation-scale.certificate.json",
+		"-receipt", "../../model-checkers/native/results/nexus-cancellation-scale.receipt.json",
+		"-benchmark", "../../model-checkers/native/results/nexus-cancellation-scale.benchmark.json",
+	}
+	require.NoError(t, run(arguments))
+
+	encoded, err := os.ReadFile("../../model-checkers/native/results/nexus-cancellation-scale.benchmark.json")
+	require.NoError(t, err)
+	mutated := strings.Replace(string(encoded), `"partialPublicationRecovered":true`,
+		`"partialPublicationRecovered":false`, 1)
+	require.NotEqual(t, string(encoded), mutated)
+	path := filepath.Join(t.TempDir(), "benchmark.json")
+	require.NoError(t, os.WriteFile(path, []byte(mutated), 0o600))
+	arguments[len(arguments)-1] = path
+	require.Error(t, run(arguments))
 }
