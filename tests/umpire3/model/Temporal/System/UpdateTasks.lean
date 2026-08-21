@@ -115,7 +115,7 @@ theorem completeUpdateRequiresRecordedHistory {state nextState}
   · simp at member
 
 def updateDeliveryRequirement : Temporal.System.TaskDelivery.Requirement where
-  provider := Temporal.System.TaskDelivery.guarantee.identifier
-  statementHash := Temporal.System.TaskDelivery.guarantee.statementHash
+  consumer := "Temporal.System.UpdateTasks"
+  proof := Temporal.System.TaskDelivery.guarantee.proof
 
 end Umpire3.Temporal.System.UpdateTasks

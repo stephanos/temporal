@@ -93,7 +93,7 @@ func TestExploreCoversGeneratedNexusLifecycleDenominator(t *testing.T) {
 	require.Empty(t, report.Coverage.Uncovered)
 }
 
-func TestTransitionCoverageWithoutGeneratedDenominatorIsUndefined(t *testing.T) {
+func TestTransitionCoverageUsesGeneratedDenominatorForEveryTarget(t *testing.T) {
 	t.Parallel()
 
 	template := callbackTemplate()
@@ -106,11 +106,11 @@ func TestTransitionCoverageWithoutGeneratedDenominatorIsUndefined(t *testing.T) 
 	report, err := Run(context.Background(), template, testBounds())
 	require.NoError(t, err)
 	require.Equal(t, StatusAssignmentsEnumerated, report.Status)
-	require.Equal(t, CoverageUndefined, report.Coverage.Status)
-	require.NotEmpty(t, report.Coverage.Reason)
-	require.Zero(t, report.Coverage.Total)
+	require.Equal(t, CoverageUncovered, report.Coverage.Status)
+	require.Empty(t, report.Coverage.Reason)
+	require.Equal(t, 1, report.Coverage.Total)
 	require.Empty(t, report.Coverage.Covered)
-	require.Empty(t, report.Coverage.Uncovered)
+	require.Len(t, report.Coverage.Uncovered, 1)
 }
 
 func TestTransitionCoverageRequiresPositiveRuntimeObservation(t *testing.T) {
@@ -136,16 +136,32 @@ func TestSymmetryReductionRequiresAndReportsPreservation(t *testing.T) {
 	template := callbackTemplate()
 	template.Holes = append(template.Holes, Hole{
 		Identifier: "second", Kind: HoleEntityCount,
-		Values: []Value{{Key: "one", Integer: 1}, {Key: "two", Integer: 2}},
+		Values: []Value{{Key: "first", Integer: 1}, {Key: "second", Integer: 2}},
 	})
 	template.SymmetryGroups = [][]string{{"variant", "second"}}
 	_, err := Run(context.Background(), template, testBounds())
-	require.ErrorContains(t, err, "preservation")
+	require.ErrorContains(t, err, "changes compiled semantics")
 
-	template.SymmetryPreservationChecked = true
+	template = callbackTemplate()
+	template.Holes = []Hole{
+		{
+			Identifier: "left", Kind: HoleEntityCount,
+			Values: []Value{{Key: "one", Integer: 1}, {Key: "two", Integer: 2}},
+		},
+		{
+			Identifier: "right", Kind: HoleEntityCount,
+			Values: []Value{{Key: "one", Integer: 1}, {Key: "two", Integer: 2}},
+		},
+	}
+	template.SymmetryGroups = [][]string{{"left", "right"}}
 	report, err := Run(context.Background(), template, testBounds())
 	require.NoError(t, err)
 	require.Positive(t, report.Pruned.Symmetry)
+	require.Len(t, report.Reductions, 1)
+	require.Equal(t, ReductionSymmetry, report.Reductions[0].Kind)
+	require.Equal(t, ReductionCheckedCertificate, report.Reductions[0].Status)
+	require.Equal(t, 1, report.Reductions[0].CheckedAssignments)
+	require.Len(t, report.Reductions[0].CertificateDigest, 71)
 }
 
 func callbackTemplate() Template {

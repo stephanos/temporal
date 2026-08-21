@@ -1,4 +1,5 @@
 import Temporal.Product.WorkflowOwnership
+import Temporal.System.TaskDelivery
 
 namespace Umpire3.Temporal.System.WorkflowOwnership
 
@@ -161,5 +162,19 @@ def fencedFinal : State := {
   ownershipObservations := 6
   completionDeliveries := 2
 }
+
+def workflowOwnershipDeliveryRequirement : Temporal.System.TaskDelivery.Requirement where
+  consumer := "Temporal.System.WorkflowOwnership"
+  proof := Temporal.System.TaskDelivery.guarantee.proof
+
+theorem deliveryInterferencePreservesOwnershipFencing {state attempt result}
+    (_ : result ∈ transitions state (.redeliverCompletion attempt))
+    (safe : Umpire3.Temporal.Product.WorkflowOwnership.OwnershipFencing state.visible) :
+    Umpire3.Temporal.Product.WorkflowOwnership.OwnershipFencing result.nextState.visible :=
+  Umpire3.Temporal.Product.WorkflowOwnership.runsPreserveOwnershipFencing result.productRun safe
+
+def deliveryInterferenceGuarantee : Umpire3.Guarantee :=
+  registered_guarantee% "workflow-ownership.delivery-interference-preserves-fencing"
+    deliveryInterferencePreservesOwnershipFencing
 
 end Umpire3.Temporal.System.WorkflowOwnership

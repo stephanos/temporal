@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGeneratedCoverageDenominatorClassifiesEveryCatalogTargetProperty(t *testing.T) {
+func TestGeneratedCoverageDenominatorDefinesEveryCatalogTargetProperty(t *testing.T) {
 	t.Parallel()
 
 	denominator, err := DefaultCoverageDenominator()
@@ -19,24 +19,26 @@ func TestGeneratedCoverageDenominatorClassifiesEveryCatalogTargetProperty(t *tes
 	}
 	require.Len(t, denominator.Targets, targetProperties)
 
-	defined := 0
-	undefined := 0
+	kinds := make(map[CoverageDimension]struct{})
 	var nexus CoverageTarget
 	for _, target := range denominator.Targets {
-		switch target.Status {
-		case CoverageDenominatorDefined:
-			defined++
-		case CoverageDenominatorUndefined:
-			undefined++
-		default:
-			require.FailNow(t, "unknown coverage denominator status", target.Status)
+		require.Equal(t, CoverageDenominatorDefined, target.Status)
+		require.NotEmpty(t, target.Points)
+		for _, point := range target.Points {
+			kinds[point.Dimension] = struct{}{}
 		}
 		if target.Identifier == TargetIDFeatureNexus && target.Property == PropertyIDNexusOperationClosure {
 			nexus = target
 		}
 	}
-	require.Equal(t, 1, defined)
-	require.Equal(t, targetProperties-1, undefined)
+	require.Equal(t, map[CoverageDimension]struct{}{
+		CoverageTransition:  {},
+		CoverageRelation:    {},
+		CoverageProperty:    {},
+		CoverageFault:       {},
+		CoverageObservation: {},
+		CoverageRefinement:  {},
+	}, kinds)
 	require.Equal(t, CoverageDenominatorDefined, nexus.Status)
 	require.Empty(t, nexus.Reason)
 	require.Len(t, nexus.Edges, 17)
@@ -47,17 +49,9 @@ func TestGeneratedCoverageDenominatorClassifiesEveryCatalogTargetProperty(t *tes
 	require.Len(t, identifiers, 17)
 }
 
-func TestCoverageDenominatorRejectsUndefinedTargetWithEdges(t *testing.T) {
+func TestCoverageDenominatorRejectsDefinedTargetWithoutPoints(t *testing.T) {
 	denominator, err := DefaultCoverageDenominator()
 	require.NoError(t, err)
-	for index := range denominator.Targets {
-		if denominator.Targets[index].Status == CoverageDenominatorUndefined {
-			denominator.Targets[index].Edges = []CoverageEdge{{
-				Identifier: "invented", FromState: "from", Action: "act", ToState: "to",
-			}}
-			require.ErrorContains(t, denominator.Validate(), "undefined")
-			return
-		}
-	}
-	require.FailNow(t, "generated denominator has no undefined target")
+	denominator.Targets[0].Points = nil
+	require.ErrorContains(t, denominator.Validate(), "points")
 }

@@ -78,13 +78,13 @@ type EvidenceDeclaration struct {
 }
 
 type PropertyDeclaration struct {
-	Identifier    string   `json:"identifier"`
-	Description   string   `json:"description"`
-	StatementHash string   `json:"statementHash"`
-	Evidence      []string `json:"evidence"`
-	Theorem       string   `json:"theorem"`
-	Statement     string   `json:"statement"`
-	Axioms        []string `json:"axioms"`
+	Identifier    string     `json:"identifier"`
+	Description   string     `json:"description"`
+	StatementHash string     `json:"statementHash"`
+	Evidence      []string   `json:"evidence"`
+	Theorem       string     `json:"theorem"`
+	Statement     string     `json:"statement"`
+	Axioms        []string   `json:"axioms"`
 	TrustBadge    TrustBadge `json:"trustBadge"`
 }
 
@@ -312,7 +312,7 @@ func (c Catalog) Validate() error {
 			return fmt.Errorf("property %q axioms are not sorted and unique", property.Identifier)
 		}
 		for _, axiom := range property.Axioms {
-			if axiom == "" || strings.Contains(axiom, "sorryAx") {
+			if axiom == "" || strings.Contains(axiom, "sorryAx") || axiom == "Lean.ofReduceBool" {
 				return fmt.Errorf("property %q has invalid axiom %q", property.Identifier, axiom)
 			}
 		}
@@ -438,6 +438,15 @@ func (c Catalog) Action(identifier string) (ActionDeclaration, bool) {
 		}
 	}
 	return ActionDeclaration{}, false
+}
+
+func (c Catalog) Property(identifier string) (PropertyDeclaration, bool) {
+	for _, property := range c.Properties {
+		if property.Identifier == identifier {
+			return property, true
+		}
+	}
+	return PropertyDeclaration{}, false
 }
 
 func (c Catalog) Fault(identifier string) (FaultDeclaration, bool) {

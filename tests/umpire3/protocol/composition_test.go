@@ -6,22 +6,53 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDefaultCompositionConnectsNexusAndUpdateToSharedDelivery(t *testing.T) {
+func TestDefaultCompositionConnectsConsumersToProvedSharedDelivery(t *testing.T) {
 	composition, err := DefaultComposition()
 	require.NoError(t, err)
-	require.Equal(t, ResultClassMetadataValidated, composition.ResultClass)
-	require.Equal(t, TrustBadgeKernel, composition.TrustBadge)
+	require.Equal(t, ResultClassCompositionProved, composition.ResultClass)
+	require.Equal(t, TrustBadgeKernelWithDeclaredAxioms, composition.TrustBadge)
+	require.NotEmpty(t, composition.Proof.Declaration)
+	require.NotEmpty(t, composition.Proof.Type)
+	require.NotContains(t, composition.Proof.Axioms, "sorryAx")
+	require.Equal(t, composition.SemanticHash, composition.SourceDigest)
+	require.True(t, validHash(composition.DependencyDigest))
+	require.True(t, validHash(composition.ArtifactDigest))
 	require.Len(t, composition.Targets, 15)
 
 	provider, ok := composition.Module("Temporal.System.TaskDelivery")
 	require.True(t, ok)
 	require.Len(t, provider.Provides, 1)
-	for _, identifier := range []ModuleID{ModuleIDTemporalSystemNexusTasks, ModuleIDTemporalSystemUpdateTasks} {
+	require.NotEmpty(t, provider.Provides[0].Theorem)
+	require.NotEmpty(t, provider.Provides[0].Statement)
+	require.NotContains(t, provider.Provides[0].Axioms, "sorryAx")
+	for _, identifier := range []ModuleID{
+		ModuleIDTemporalSystemNexusTasks,
+		ModuleIDTemporalSystemMigratedFamiliesUpdateLifecycle,
+		ModuleIDTemporalSystemMigratedFamiliesWorkflowOwnership,
+	} {
 		consumer, ok := composition.Module(identifier)
 		require.True(t, ok)
 		require.Equal(t, provider.Identifier, consumer.Requires[0].ProviderModule)
 		require.Equal(t, provider.Provides[0].StatementHash, consumer.Requires[0].StatementHash)
+		require.Equal(t, provider.Provides[0].Theorem, consumer.Requires[0].Theorem)
 	}
+}
+
+func TestCompositionRejectsMissingOrForgedSemanticProof(t *testing.T) {
+	composition, err := DefaultComposition()
+	require.NoError(t, err)
+	composition.Proof.Declaration = ""
+	require.ErrorContains(t, composition.Validate(), "composition proof")
+
+	composition, err = DefaultComposition()
+	require.NoError(t, err)
+	composition.Proof.Type = "True"
+	require.ErrorContains(t, composition.Validate(), "type hash")
+
+	composition, err = DefaultComposition()
+	require.NoError(t, err)
+	composition.ArtifactDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	require.ErrorContains(t, composition.Validate(), "artifact digest")
 }
 
 func TestCompositionHasNoMissingMetadata(t *testing.T) {
@@ -35,8 +66,8 @@ func TestCompositionOwnsNexusClosureThroughRelationalProductSystemAndRefinement(
 	require.NoError(t, err)
 	for _, identifier := range []ModuleID{
 		"Temporal.Product.NexusClosure",
-		"Temporal.System.NexusClosure",
-		"Temporal.Refinement.NexusClosure",
+		"Temporal.System.MigratedFamilies.NexusClosure",
+		"Temporal.Refinement.MigratedFamilies.NexusClosure",
 	} {
 		module, ok := composition.Module(identifier)
 		require.True(t, ok, identifier)
@@ -55,8 +86,8 @@ func TestCompositionOwnsNexusClosureThroughRelationalProductSystemAndRefinement(
 	require.Equal(t, []ModuleID{
 		"Temporal.Product.NexusLifecycle",
 		"Temporal.Product.NexusClosure",
-		"Temporal.System.NexusClosure",
-		"Temporal.Refinement.NexusClosure",
+		"Temporal.System.MigratedFamilies.NexusClosure",
+		"Temporal.Refinement.MigratedFamilies.NexusClosure",
 	}, target.Modules)
 }
 
@@ -65,11 +96,11 @@ func TestCompositionOwnsNexusEvidenceThroughRelationalModules(t *testing.T) {
 	require.NoError(t, err)
 	for _, identifier := range []ModuleID{
 		"Temporal.Product.NexusTimeout",
-		"Temporal.System.NexusTimeout",
-		"Temporal.Refinement.NexusTimeout",
+		"Temporal.System.MigratedFamilies.NexusTimeout",
+		"Temporal.Refinement.MigratedFamilies.NexusTimeout",
 		"Temporal.Product.NexusActivityLink",
-		"Temporal.System.NexusActivityLink",
-		"Temporal.Refinement.NexusActivityLink",
+		"Temporal.System.MigratedFamilies.NexusActivityLink",
+		"Temporal.Refinement.MigratedFamilies.NexusActivityLink",
 	} {
 		module, ok := composition.Module(identifier)
 		require.True(t, ok, identifier)
@@ -81,13 +112,13 @@ func TestCompositionOwnsNexusEvidenceThroughRelationalModules(t *testing.T) {
 	expectedTargets := map[TargetID][]ModuleID{
 		TargetIDIntegrationNexusActivity: {
 			"Temporal.Product.NexusActivityLink",
-			"Temporal.System.NexusActivityLink",
-			"Temporal.Refinement.NexusActivityLink",
+			"Temporal.System.MigratedFamilies.NexusActivityLink",
+			"Temporal.Refinement.MigratedFamilies.NexusActivityLink",
 		},
 		TargetIDIntegrationNexusTimeout: {
 			"Temporal.Product.NexusTimeout",
-			"Temporal.System.NexusTimeout",
-			"Temporal.Refinement.NexusTimeout",
+			"Temporal.System.MigratedFamilies.NexusTimeout",
+			"Temporal.Refinement.MigratedFamilies.NexusTimeout",
 		},
 	}
 	for identifier, expected := range expectedTargets {
@@ -107,11 +138,11 @@ func TestCompositionOwnsCallbackEvidenceThroughRelationalModules(t *testing.T) {
 	require.NoError(t, err)
 	for _, identifier := range []ModuleID{
 		"Temporal.Product.CallbackReference",
-		"Temporal.System.CallbackReference",
-		"Temporal.Refinement.CallbackReference",
+		"Temporal.System.MigratedFamilies.CallbackReference",
+		"Temporal.Refinement.MigratedFamilies.CallbackReference",
 		"Temporal.Product.CallbackResponse",
-		"Temporal.System.CallbackResponse",
-		"Temporal.Refinement.CallbackResponse",
+		"Temporal.System.MigratedFamilies.CallbackResponse",
+		"Temporal.Refinement.MigratedFamilies.CallbackResponse",
 	} {
 		module, ok := composition.Module(identifier)
 		require.True(t, ok, identifier)
@@ -123,13 +154,13 @@ func TestCompositionOwnsCallbackEvidenceThroughRelationalModules(t *testing.T) {
 	expectedTargets := map[TargetID][]ModuleID{
 		TargetIDIntegrationCallbackNexus: {
 			"Temporal.Product.CallbackReference",
-			"Temporal.System.CallbackReference",
-			"Temporal.Refinement.CallbackReference",
+			"Temporal.System.MigratedFamilies.CallbackReference",
+			"Temporal.Refinement.MigratedFamilies.CallbackReference",
 		},
 		TargetIDIntegrationCallbackWorkflow: {
 			"Temporal.Product.CallbackResponse",
-			"Temporal.System.CallbackResponse",
-			"Temporal.Refinement.CallbackResponse",
+			"Temporal.System.MigratedFamilies.CallbackResponse",
+			"Temporal.Refinement.MigratedFamilies.CallbackResponse",
 		},
 	}
 	for identifier, expected := range expectedTargets {
@@ -149,8 +180,8 @@ func TestCompositionOwnsWorkflowLineageThroughRelationalModules(t *testing.T) {
 	require.NoError(t, err)
 	for _, identifier := range []ModuleID{
 		"Temporal.Product.WorkflowLineage",
-		"Temporal.System.WorkflowLineage",
-		"Temporal.Refinement.WorkflowLineage",
+		"Temporal.System.MigratedFamilies.WorkflowLineage",
+		"Temporal.Refinement.MigratedFamilies.WorkflowLineage",
 	} {
 		module, ok := composition.Module(identifier)
 		require.True(t, ok, identifier)
@@ -163,8 +194,8 @@ func TestCompositionOwnsWorkflowLineageThroughRelationalModules(t *testing.T) {
 		if target.Identifier == TargetIDFoundationRoutingIsolation {
 			require.Subset(t, target.Modules, []ModuleID{
 				"Temporal.Product.WorkflowLineage",
-				"Temporal.System.WorkflowLineage",
-				"Temporal.Refinement.WorkflowLineage",
+				"Temporal.System.MigratedFamilies.WorkflowLineage",
+				"Temporal.Refinement.MigratedFamilies.WorkflowLineage",
 			})
 			return
 		}
@@ -177,8 +208,8 @@ func TestCompositionOwnsWorkflowOwnershipThroughRelationalModules(t *testing.T) 
 	require.NoError(t, err)
 	for _, identifier := range []ModuleID{
 		"Temporal.Product.WorkflowOwnership",
-		"Temporal.System.WorkflowOwnership",
-		"Temporal.Refinement.WorkflowOwnership",
+		"Temporal.System.MigratedFamilies.WorkflowOwnership",
+		"Temporal.Refinement.MigratedFamilies.WorkflowOwnership",
 	} {
 		module, ok := composition.Module(identifier)
 		require.True(t, ok, identifier)
@@ -191,8 +222,9 @@ func TestCompositionOwnsWorkflowOwnershipThroughRelationalModules(t *testing.T) 
 		if target.Identifier == TargetIDFoundationOwnershipFencing {
 			require.Equal(t, []ModuleID{
 				"Temporal.Product.WorkflowOwnership",
-				"Temporal.System.WorkflowOwnership",
-				"Temporal.Refinement.WorkflowOwnership",
+				"Temporal.System.TaskDelivery",
+				"Temporal.System.MigratedFamilies.WorkflowOwnership",
+				"Temporal.Refinement.MigratedFamilies.WorkflowOwnership",
 			}, target.Modules)
 			return
 		}
@@ -227,4 +259,20 @@ func TestCompositionRejectsDroppedInterferenceAction(t *testing.T) {
 	require.NoError(t, err)
 	composition.Targets[0].RetainedActions = composition.Targets[0].RetainedActions[:len(composition.Targets[0].RetainedActions)-1]
 	require.ErrorContains(t, composition.Validate(), "interference")
+}
+
+func TestCompositionRejectsTargetMissingCatalogModule(t *testing.T) {
+	composition, err := DefaultComposition()
+	require.NoError(t, err)
+	for index := range composition.Targets {
+		if composition.Targets[index].Identifier != TargetIDFoundationBacklogAck {
+			continue
+		}
+		composition.Targets[index].Modules = composition.Targets[index].Modules[:2]
+		composition.ArtifactDigest = "derived"
+		composition.deriveArtifactDigest()
+		require.ErrorContains(t, composition.Validate(), "catalog module")
+		return
+	}
+	require.FailNow(t, "foundation backlog acknowledgement target is missing")
 }
