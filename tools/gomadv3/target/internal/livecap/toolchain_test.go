@@ -212,7 +212,7 @@ func TestPinnedToolchainGuardsReachableDeniedBoundary(t *testing.T) {
 	goRoot := strings.TrimSpace(runToolchainCommand(t, moduleRoot, goCommand, "env", "GOROOT"))
 	buildKey := filepath.Base(goRoot)
 	goVersion := strings.TrimSpace(runToolchainCommand(t, moduleRoot, goCommand, "env", "GOVERSION"))
-target := buildGuardedCapabilityFixture(t, goCommand, buildKey, `package main
+	target := buildGuardedCapabilityFixture(t, goCommand, buildKey, `package main
 import ("fmt"; "net")
 func main() { _, _ = net.InterfaceAddrs(); fmt.Println("after") }
 `)
