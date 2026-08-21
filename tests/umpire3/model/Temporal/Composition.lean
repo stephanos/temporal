@@ -1,16 +1,8 @@
 import Temporal.Product.TaskAck
+import Temporal.Refinement.TaskAck
 import Temporal.Product.NexusLifecycle
 import Temporal.Inventory
-import Temporal.Refinement.NexusClosure
-import Temporal.Refinement.NexusActivityLink
-import Temporal.Refinement.NexusTimeout
-import Temporal.Refinement.CallbackReference
-import Temporal.Refinement.CallbackResponse
-import Temporal.Refinement.WorkflowLineage
-import Temporal.Refinement.WorkflowRouting
-import Temporal.Refinement.WorkflowOwnership
-import Temporal.Refinement.SpeculativeTask
-import Temporal.Refinement.WorkflowProgress
+import Temporal.Refinement.MigratedFamilies
 import Temporal.System.NexusTasks
 import Temporal.System.UpdateTasks
 import Umpire3.Composition
@@ -25,19 +17,56 @@ def deliveryProvider : ModuleContract where
   identifier := "Temporal.System.TaskDelivery"
   rank := 0
   owns := ["relation:task-delivery.current-completion"]
-  provides := [{
-    identifier := System.TaskDelivery.guarantee.identifier
-    statementHash := System.TaskDelivery.guarantee.statementHash
-  }]
+  provides := [ContractGuarantee.ofGuarantee System.TaskDelivery.guarantee]
   interferenceActions := ["task-delivery.environment-tick"]
   obligations := [presentObligation "task-delivery.guarantee" "guarantee"
     "Current-owner completion is versioned and proved against stale completion."]
 
-private def deliveryRequirement : ContractRequirement := {
-  providerModule := deliveryProvider.identifier
-  guarantee := System.TaskDelivery.guarantee.identifier
-  statementHash := System.TaskDelivery.guarantee.statementHash
-}
+private def nexusDeliveryRequirement : ContractRequirement :=
+  ContractRequirement.ofRequirement deliveryProvider.identifier System.TaskDelivery.guarantee
+    System.NexusTasks.nexusDeliveryRequirement
+
+private def updateDeliveryRequirement : ContractRequirement :=
+  ContractRequirement.ofRequirement deliveryProvider.identifier System.TaskDelivery.guarantee
+    System.MigratedFamilies.UpdateLifecycle.deliveryRequirement
+
+private def workflowOwnershipDeliveryRequirement : ContractRequirement :=
+  ContractRequirement.ofRequirement deliveryProvider.identifier System.TaskDelivery.guarantee
+    System.MigratedFamilies.WorkflowOwnership.deliveryRequirement
+
+structure DeliveryProjection (Epoch : Type) where
+  completionEpoch : Option Epoch
+  ownerEpoch : Epoch
+  environmentVersion : Nat
+
+def DeliveryProjection.Current {Epoch : Type} (state : DeliveryProjection Epoch) : Prop :=
+  System.TaskDelivery.CurrentCompletionOf state.completionEpoch state.ownerEpoch
+
+def DeliveryEnvironmentInterference {Epoch : Type}
+    (before after : DeliveryProjection Epoch) : Prop :=
+  after.completionEpoch = before.completionEpoch ∧ after.ownerEpoch = before.ownerEpoch
+
+theorem deliveryInterferencePreservesCurrentCompletion {Epoch : Type}
+    {before after : DeliveryProjection Epoch}
+    (interference : DeliveryEnvironmentInterference before after)
+    (current : before.Current) : after.Current := by
+  rcases interference with ⟨completionUnchanged, ownerUnchanged⟩
+  simp only [DeliveryProjection.Current]
+  rw [completionUnchanged, ownerUnchanged]
+  exact current
+
+def SharedDeliveryComposition : Prop :=
+  System.TaskDelivery.guarantee.Claim ∧
+  System.TaskDelivery.guarantee.Claim ∧
+  System.TaskDelivery.guarantee.Claim ∧
+  (∀ {Epoch : Type} {before after : DeliveryProjection Epoch},
+    DeliveryEnvironmentInterference before after → before.Current → after.Current)
+
+theorem sharedDeliveryCompositionSound : SharedDeliveryComposition :=
+  ⟨System.NexusTasks.nexusDeliveryRequirement.proof,
+    System.MigratedFamilies.UpdateLifecycle.deliveryRequirement.proof,
+    System.MigratedFamilies.WorkflowOwnership.deliveryRequirement.proof,
+    deliveryInterferencePreservesCurrentCompletion⟩
 
 def productNexus : ModuleContract where
   identifier := "Temporal.Product.Nexus"
@@ -50,7 +79,7 @@ def systemNexus : ModuleContract where
   identifier := "Temporal.System.NexusTasks"
   rank := 1
   owns := ["mechanism:nexus-task-delivery"]
-  requires := [deliveryRequirement]
+  requires := [nexusDeliveryRequirement]
   interferenceActions := deliveryProvider.interferenceActions
   obligations := [presentObligation "nexus.system" "mechanism"
     "Task ownership and stale completion mechanism is executable."]
@@ -62,26 +91,26 @@ def refinementNexus : ModuleContract where
     "Every system step refines the Nexus product or stutters."]
 
 def productUpdate : ModuleContract where
-  identifier := "Temporal.Product.Update"
+  identifier := "Temporal.Feature.UpdateLifecycle"
   rank := 0
   owns := ["entity:workflow-update", "property:workflow-update.accepted-completes-through-history"]
   obligations := [presentObligation "update.product" "product"
     "Update lifecycle and completion stability are checked."]
 
 def systemUpdate : ModuleContract where
-  identifier := "Temporal.System.UpdateTasks"
+  identifier := "Temporal.System.MigratedFamilies.UpdateLifecycle"
   rank := 1
   owns := ["mechanism:update-task-delivery"]
-  requires := [deliveryRequirement]
+  requires := [updateDeliveryRequirement]
   interferenceActions := deliveryProvider.interferenceActions
   obligations := [presentObligation "update.system" "mechanism"
-    "Update task and history mechanism is executable."]
+    "The independent Update task and history mechanism is exactly executable."]
 
 def refinementUpdate : ModuleContract where
-  identifier := "Temporal.Refinement.UpdateTasks"
+  identifier := "Temporal.Refinement.MigratedFamilies.UpdateLifecycle"
   rank := 2
   obligations := [presentObligation "update.refinement" "refinement"
-    "Every Update system step refines the product or stutters."]
+    "Every independent Update system step refines the history-backed feature or stutters."]
 
 def productTaskAck : ModuleContract where
   identifier := Product.TaskAck.declaration.module.identifier
@@ -92,6 +121,29 @@ def productTaskAck : ModuleContract where
       "The lifecycle, executable equivalence, and acknowledgement theorem are checked.",
     presentObligation "task-ack.live-realization" "realization"
       "The public Workflow Task protocol adapter realizes enqueue, delivery, acknowledgement, and cleanup.",
+  ]
+
+def systemTaskAck : ModuleContract where
+  identifier := "Temporal.System.TaskAck"
+  rank := 1
+  owns := ["mechanism:workflow-task-acknowledgement"]
+  obligations := [
+    presentObligation "task-ack.protocol-system" "mechanism"
+      "The message delivery and completion-storage mechanism is independently executable.",
+    presentObligation "task-ack.history-system" "mechanism"
+      "The public-history observation mechanism is independently executable.",
+  ]
+
+def refinementTaskAck : ModuleContract where
+  identifier := "Temporal.Refinement.TaskAck"
+  rank := 2
+  obligations := [
+    presentObligation "task-ack.protocol-refinement" "refinement"
+      "The protocol mechanism refines the acknowledgement contract.",
+    presentObligation "task-ack.history-refinement" "refinement"
+      "The history-observation mechanism independently refines the same contract.",
+    presentObligation "task-ack.mutation" "non-vacuity"
+      "Both mechanisms have an executable backlog-retention mutation that breaks refinement.",
   ]
 
 def productNexusClosure : ModuleContract where
@@ -307,8 +359,10 @@ def systemWorkflowOwnership : ModuleContract where
   identifier := Inventory.workflowOwnershipSystemModule.identifier
   rank := 1
   owns := ["mechanism:workflow-ownership.task-history-observation"]
+  requires := [workflowOwnershipDeliveryRequirement]
+  interferenceActions := deliveryProvider.interferenceActions
   obligations := [presentObligation "workflow-ownership.system" "mechanism"
-    "Bootstrap, dispatch, failure, epoch rotation, stale rejection, completion, and redelivery are executable."]
+    "Independent dispatch, failure, epoch rotation, stale rejection, and completion are exactly executable."]
 
 def refinementWorkflowOwnership : ModuleContract where
   identifier := Inventory.workflowOwnershipRefinementModule.identifier
@@ -410,7 +464,7 @@ def updateTarget : TargetProjection where
 
 def taskAckTarget : TargetProjection where
   identifier := Product.TaskAck.declaration.target.identifier
-  modules := [productTaskAck.identifier]
+  modules := [productTaskAck.identifier, systemTaskAck.identifier, refinementTaskAck.identifier]
   properties := ["task-delivery.acknowledged-removes-backlog"]
   retainedActions := ["enqueue-workflow-task", "deliver-workflow-task", "acknowledge-workflow-task"]
   omissions := []
@@ -446,10 +500,11 @@ def productNexusLifecycle : ModuleContract where
 
 private def ownershipTarget : TargetProjection := {
   identifier := "foundation-ownership-fencing"
-  modules := [productWorkflowOwnership.identifier, systemWorkflowOwnership.identifier,
+  modules := [productWorkflowOwnership.identifier, deliveryProvider.identifier,
+    systemWorkflowOwnership.identifier,
     refinementWorkflowOwnership.identifier]
   properties := ["workflow-task.ownership-fencing"]
-  retainedActions := ["fence-workflow-owner"]
+  retainedActions := ["fence-workflow-owner", "task-delivery.environment-tick"]
   omissions := [{
     identifier := "foundation-ownership-fencing.unselected-interference"
     reason := "Independent entity actions are bounded outside this focused target projection."
@@ -470,12 +525,13 @@ private def speculativeTaskTarget : TargetProjection := {
   }]
 }
 
-private def workflowProgressTarget (identifier property action : String) : TargetProjection := {
+private def workflowProgressTarget (identifier property : String)
+    (actions : List String) : TargetProjection := {
   identifier
   modules := [productWorkflowProgress.identifier, systemWorkflowProgress.identifier,
     refinementWorkflowProgress.identifier]
   properties := [property]
-  retainedActions := [action]
+  retainedActions := actions
   omissions := [{
     identifier := identifier ++ ".unselected-interference"
     reason := "Independent entity actions are bounded outside this focused target projection."
@@ -501,10 +557,12 @@ def parityTargets : List TargetProjection := [
     }]
   },
   speculativeTaskTarget,
-  workflowProgressTarget "foundation-delivery-safety" "entity.progress" "progress-entity",
+  workflowProgressTarget "foundation-delivery-safety" "entity.progress"
+    ["crash-owner", "progress-entity", "recover-owner"],
   ownershipTarget,
   routingTarget,
-  workflowProgressTarget "integration-activity-delivery" "entity.progress" "progress-entity",
+  workflowProgressTarget "integration-activity-delivery" "entity.progress"
+    ["crash-owner", "progress-entity", "recover-owner"],
   {
     identifier := "integration-callback-nexus"
     modules := [productCallbackReference.identifier, systemCallbackReference.identifier,
@@ -554,7 +612,7 @@ def parityTargets : List TargetProjection := [
     }]
   },
   workflowProgressTarget "integration-workflow-delivery" "workflow-task.starvation"
-    "dispatch-assurance-workflow-task",
+    ["dispatch-assurance-workflow-task"],
   {
     identifier := "protocol-atomic"
     modules := [productCallbackResponse.identifier, systemCallbackResponse.identifier,
@@ -570,8 +628,9 @@ def parityTargets : List TargetProjection := [
 ]
 
 def composition : Umpire3.Composition where
+  proof := resolved_theorem% sharedDeliveryCompositionSound
   modules := [deliveryProvider, productNexus, systemNexus, refinementNexus,
-    productUpdate, systemUpdate, refinementUpdate, productTaskAck,
+    productUpdate, systemUpdate, refinementUpdate, productTaskAck, systemTaskAck, refinementTaskAck,
     productNexusLifecycle, productNexusClosure, systemNexusClosure, refinementNexusClosure,
     productNexusTimeout, systemNexusTimeout, refinementNexusTimeout,
     productNexusActivityLink, systemNexusActivityLink, refinementNexusActivityLink,
@@ -591,10 +650,8 @@ theorem compositionMetadataValid : composition.MetadataValid := by
 
 def weakenedDeliveryProvider : ModuleContract := {
   deliveryProvider with
-  provides := [{
-    identifier := System.TaskDelivery.guarantee.identifier
-    statementHash := "sha256:weakened"
-  }]
+  provides := [{ ContractGuarantee.ofGuarantee System.TaskDelivery.guarantee with
+    theoremName := "weakened" }]
 }
 
 def weakenedComposition : Umpire3.Composition := {

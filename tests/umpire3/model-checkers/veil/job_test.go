@@ -29,6 +29,7 @@ func TestNormalizeJobReceiptRecordsReconstructedInvariantProof(t *testing.T) {
 	require.Equal(t, protocol.BackendTerminationGoalsClosed, result.Termination)
 	require.True(t, result.Exact)
 	require.Equal(t, receipt.Axioms, result.Axioms)
+	require.Equal(t, generated.ModelHash, result.GeneratedArtifactDigest)
 	require.NoError(t, result.Validate())
 }
 

@@ -34,7 +34,7 @@ var monitorSpec = exportSpec{
 }
 
 var observationSpec = exportSpec{
-	root: "Umpire3ObservationExport.lean", sourceRoot: "Temporal/Observation/Nexus.lean",
+	root: "Umpire3ObservationExport.lean", sourceRoot: "Temporal/Observation.lean",
 }
 
 var compositionSpec = exportSpec{
@@ -57,6 +57,17 @@ var firstOrderSpecs = map[string]exportSpec{
 	"mutated": {
 		root:       "Umpire3NexusMutatedFirstOrderExport.lean",
 		sourceRoot: "Temporal/Targets/NexusCancellationFencingFirstOrder.lean",
+	},
+}
+
+var temporalSpecs = map[string]exportSpec{
+	"sound": {
+		root:       "Umpire3TaskDeliveryTemporalExport.lean",
+		sourceRoot: "Temporal/Targets/TaskDeliveryProgressTemporal.lean",
+	},
+	"delivery-fairness-removed": {
+		root:       "Umpire3TaskDeliveryMutatedTemporalExport.lean",
+		sourceRoot: "Temporal/Targets/TaskDeliveryProgressTemporal.lean",
 	},
 }
 
@@ -140,6 +151,13 @@ func main() {
 			os.Exit(1)
 		}
 		err = exportFirstOrderView(*modelRoot, spec, &encoded)
+	case "temporal-view":
+		spec, ok := temporalSpecs[*variant]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "unknown temporal variant %q\n", *variant)
+			os.Exit(1)
+		}
+		err = exportTemporalView(*modelRoot, spec, &encoded)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown artifact %q\n", *artifact)
 		os.Exit(1)
@@ -256,6 +274,34 @@ func exportFirstOrderView(modelRoot string, spec exportSpec, writer io.Writer) e
 	return nil
 }
 
+func exportTemporalView(modelRoot string, spec exportSpec, writer io.Writer) error {
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	if err != nil {
+		return err
+	}
+	stdout, err := runLean(modelRoot, spec.root, semanticHash, "")
+	if err != nil {
+		return err
+	}
+	view, err := protocol.DecodeTemporalView(stdout)
+	if err != nil {
+		return fmt.Errorf("validate Lean temporal view: %w", err)
+	}
+	if view.SemanticHash != semanticHash {
+		return fmt.Errorf("lean temporal semantic hash %q does not match sources %q",
+			view.SemanticHash, semanticHash)
+	}
+	encoded, err := view.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write canonical temporal view: %w", err)
+	}
+	return nil
+}
+
 func exportProofManifest(modelRoot string, spec exportSpec, writer io.Writer) error {
 	dependencies, err := resolveSourceDependencies(modelRoot, spec.sourceRoot, spec.inputs)
 	if err != nil {
@@ -273,6 +319,9 @@ func exportProofManifest(modelRoot string, spec exportSpec, writer io.Writer) er
 	if err != nil {
 		return fmt.Errorf("validate Lean proof manifest: %w", err)
 	}
+	if err := resolveProofDependencies(raw.Assumptions); err != nil {
+		return fmt.Errorf("resolve Lean proof dependencies: %w", err)
+	}
 	manifest, err := protocol.NewProofManifest(raw.Identifier, raw.Theorem, raw.Statement, raw.ResultClass,
 		raw.Axioms, raw.LeanVersion, raw.Assumptions, dependencies)
 	if err != nil {
@@ -288,6 +337,34 @@ func exportProofManifest(modelRoot string, spec exportSpec, writer io.Writer) er
 	encoded = append(encoded, '\n')
 	if _, err := writer.Write(encoded); err != nil {
 		return fmt.Errorf("write canonical proof manifest: %w", err)
+	}
+	return nil
+}
+
+func resolveProofDependencies(dependencies []protocol.ProofDependency) error {
+	composition, err := protocol.DefaultComposition()
+	if err != nil {
+		return err
+	}
+	guarantees := make(map[string]string)
+	for _, module := range composition.Modules {
+		for _, guarantee := range module.Provides {
+			guarantees[guarantee.Identifier] = guarantee.StatementHash
+		}
+	}
+	for index := range dependencies {
+		if !strings.HasPrefix(dependencies[index].StatementHash, "derived:") {
+			continue
+		}
+		identifier := strings.TrimPrefix(dependencies[index].StatementHash, "derived:")
+		if identifier != dependencies[index].Identifier {
+			return fmt.Errorf("derived proof dependency %q does not match %q", identifier, dependencies[index].Identifier)
+		}
+		statementHash, ok := guarantees[identifier]
+		if !ok {
+			return fmt.Errorf("proof dependency %q has no registered guarantee", identifier)
+		}
+		dependencies[index].StatementHash = statementHash
 	}
 	return nil
 }
@@ -364,7 +441,11 @@ func exportObservationCatalog(modelRoot string, spec exportSpec, writer io.Write
 }
 
 func exportComposition(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	dependencies, err := resolveSourceDependencies(modelRoot, spec.sourceRoot, spec.inputs)
+	if err != nil {
+		return err
+	}
+	semanticHash, dependencyHash, err := protocol.DigestSourceDependencies(dependencies)
 	if err != nil {
 		return err
 	}
@@ -376,7 +457,7 @@ func exportComposition(modelRoot string, spec exportSpec, writer io.Writer) erro
 	if err != nil {
 		return fmt.Errorf("digest semantic catalog: %w", err)
 	}
-	stdout, err := runLean(modelRoot, spec.root, semanticHash, catalogHash)
+	stdout, err := runLeanWithDependency(modelRoot, spec.root, semanticHash, dependencyHash, catalogHash)
 	if err != nil {
 		return err
 	}
@@ -399,7 +480,11 @@ func exportComposition(modelRoot string, spec exportSpec, writer io.Writer) erro
 }
 
 func exportParityLedger(modelRoot string, spec exportSpec, writer io.Writer) error {
-	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	dependencies, err := resolveSourceDependencies(modelRoot, spec.sourceRoot, spec.inputs)
+	if err != nil {
+		return err
+	}
+	semanticHash, dependencyHash, err := protocol.DigestSourceDependencies(dependencies)
 	if err != nil {
 		return err
 	}
@@ -411,7 +496,7 @@ func exportParityLedger(modelRoot string, spec exportSpec, writer io.Writer) err
 	if err != nil {
 		return fmt.Errorf("digest semantic catalog: %w", err)
 	}
-	stdout, err := runLean(modelRoot, spec.root, semanticHash, catalogHash)
+	stdout, err := runLeanWithDependency(modelRoot, spec.root, semanticHash, dependencyHash, catalogHash)
 	if err != nil {
 		return err
 	}
@@ -470,9 +555,30 @@ func exportCoverageDenominator(modelRoot string, spec exportSpec, writer io.Writ
 }
 
 func runLean(modelRoot string, root string, semanticHash string, catalogHash string) ([]byte, error) {
+	return runLeanWithDependency(modelRoot, root, semanticHash, "", catalogHash)
+}
+
+func runLeanWithDependency(
+	modelRoot string,
+	root string,
+	semanticHash string,
+	dependencyHash string,
+	catalogHash string,
+) ([]byte, error) {
+	build := exec.Command("mise", "exec", "--", "lake", "build")
+	build.Dir = modelRoot
+	var buildOutput bytes.Buffer
+	build.Stdout = &buildOutput
+	build.Stderr = &buildOutput
+	if err := build.Run(); err != nil {
+		return nil, fmt.Errorf("build Lean model dependencies: %w: %s", err, buildOutput.String())
+	}
 	command := exec.Command("mise", "exec", "--", "lake", "env", "lean", "--run", root)
 	command.Dir = modelRoot
 	command.Env = append(os.Environ(), "UMPIRE3_SEMANTIC_HASH="+semanticHash)
+	if dependencyHash != "" {
+		command.Env = append(command.Env, "UMPIRE3_DEPENDENCY_HASH="+dependencyHash)
+	}
 	if catalogHash != "" {
 		command.Env = append(command.Env, "UMPIRE3_CATALOG_HASH="+catalogHash)
 	}

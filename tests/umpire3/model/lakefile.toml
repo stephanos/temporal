@@ -13,3 +13,11 @@ name = "Temporal"
 [[lean_exe]]
 name = "umpire3_trace_replay"
 root = "Umpire3TraceReplay"
+
+[[lean_exe]]
+name = "umpire3_temporal_lasso_replay"
+root = "Umpire3TemporalLassoReplay"
+
+[[lean_exe]]
+name = "umpire3_native_certificate_check"
+root = "Umpire3NativeCertificateCheck"

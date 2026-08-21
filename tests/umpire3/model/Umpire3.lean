@@ -16,9 +16,14 @@ import Umpire3.Manifest
 import Umpire3.Monitor
 import Umpire3.Observation
 import Umpire3.Property
+import Umpire3.ReplicatedSafety
 import Umpire3.Refinement
 import Umpire3.Registration
 import Umpire3.TraceReplay
 import Umpire3.TraceReplayRunner
+import Umpire3.TemporalLogic
+import Umpire3.TemporalLassoRunner
+import Umpire3.TemporalView
+import Umpire3.NativeCertificateRunner
 import Umpire3.Transition
 import Umpire3.Value

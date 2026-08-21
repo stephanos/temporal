@@ -9,17 +9,25 @@ import (
 	"slices"
 )
 
-const CompositionFormatVersion = "umpire3/composition/v2"
+const CompositionFormatVersion = "umpire3/composition/v4"
 
 type ContractGuarantee struct {
-	Identifier    string `json:"identifier"`
-	StatementHash string `json:"statementHash"`
+	Identifier    string     `json:"identifier"`
+	StatementHash string     `json:"statementHash"`
+	Theorem       string     `json:"theorem"`
+	Statement     string     `json:"statement"`
+	Axioms        []string   `json:"axioms"`
+	TrustBadge    TrustBadge `json:"trustBadge"`
 }
 
 type ContractRequirement struct {
-	ProviderModule ModuleID `json:"providerModule"`
-	Guarantee      string   `json:"guarantee"`
-	StatementHash  string   `json:"statementHash"`
+	ProviderModule ModuleID   `json:"providerModule"`
+	Guarantee      string     `json:"guarantee"`
+	StatementHash  string     `json:"statementHash"`
+	Theorem        string     `json:"theorem"`
+	Statement      string     `json:"statement"`
+	Axioms         []string   `json:"axioms"`
+	TrustBadge     TrustBadge `json:"trustBadge"`
 }
 
 type ModelObligation struct {
@@ -54,13 +62,17 @@ type TargetProjection struct {
 }
 
 type Composition struct {
-	FormatVersion string             `json:"formatVersion"`
-	ResultClass   ResultClass        `json:"resultClass"`
-	TrustBadge    TrustBadge         `json:"trustBadge"`
-	SemanticHash  string             `json:"semanticHash"`
-	CatalogHash   string             `json:"catalogHash"`
-	Modules       []ModuleContract   `json:"modules"`
-	Targets       []TargetProjection `json:"targets"`
+	FormatVersion    string              `json:"formatVersion"`
+	ResultClass      ResultClass         `json:"resultClass"`
+	TrustBadge       TrustBadge          `json:"trustBadge"`
+	SemanticHash     string              `json:"semanticHash"`
+	SourceDigest     string              `json:"sourceDigest"`
+	DependencyDigest string              `json:"dependencyDigest"`
+	ArtifactDigest   string              `json:"artifactDigest"`
+	CatalogHash      string              `json:"catalogHash"`
+	Proof            ResolvedDeclaration `json:"proof"`
+	Modules          []ModuleContract    `json:"modules"`
+	Targets          []TargetProjection  `json:"targets"`
 }
 
 //go:embed generated/composition.json
@@ -71,6 +83,9 @@ func DecodeComposition(encoded []byte) (Composition, error) {
 	if err := decodeStrictJSON(bytes.NewReader(encoded), DefaultDecodeLimit, "composition", &composition); err != nil {
 		return Composition{}, err
 	}
+	composition.deriveContractProofs()
+	composition.Proof.derive()
+	composition.deriveArtifactDigest()
 	if err := composition.Validate(); err != nil {
 		return Composition{}, err
 	}
@@ -82,9 +97,13 @@ func DefaultComposition() (Composition, error) {
 }
 
 func (c Composition) Validate() error {
-	if c.FormatVersion != CompositionFormatVersion || c.ResultClass != ResultClassMetadataValidated ||
-		c.TrustBadge != TrustBadgeKernel || !validHash(c.SemanticHash) || len(c.Modules) == 0 || len(c.Targets) == 0 {
-		return errors.New("metadata-validated composition provenance, modules, and targets are required")
+	if c.FormatVersion != CompositionFormatVersion || c.ResultClass != ResultClassCompositionProved ||
+		!validHash(c.SemanticHash) || c.SourceDigest != c.SemanticHash || !validHash(c.DependencyDigest) ||
+		len(c.Modules) == 0 || len(c.Targets) == 0 {
+		return errors.New("proof-backed composition provenance, modules, and targets are required")
+	}
+	if err := c.Proof.Validate(); err != nil {
+		return fmt.Errorf("composition proof: %w", err)
 	}
 	catalog, err := DefaultCatalog()
 	if err != nil {
@@ -105,9 +124,9 @@ func (c Composition) Validate() error {
 	for _, property := range catalog.Properties {
 		catalogProperties[PropertyID(property.Identifier)] = struct{}{}
 	}
-	catalogTargets := make(map[TargetID]struct{}, len(catalog.Targets))
+	catalogTargets := make(map[TargetID]TargetDeclaration, len(catalog.Targets))
 	for _, target := range catalog.Targets {
-		catalogTargets[TargetID(target.Identifier)] = struct{}{}
+		catalogTargets[TargetID(target.Identifier)] = target
 	}
 
 	modules := make(map[ModuleID]ModuleContract, len(c.Modules))
@@ -134,8 +153,12 @@ func (c Composition) Validate() error {
 			owners[owned] = module.Identifier
 		}
 		for _, guarantee := range module.Provides {
-			if guarantee.Identifier == "" || !validHash(guarantee.StatementHash) {
+			if guarantee.Identifier == "" {
 				return fmt.Errorf("module %q has incomplete guarantee", module.Identifier)
+			}
+			if err := validateContractProof(guarantee.StatementHash, guarantee.Theorem,
+				guarantee.Statement, guarantee.Axioms, guarantee.TrustBadge); err != nil {
+				return fmt.Errorf("module %q guarantee %q: %w", module.Identifier, guarantee.Identifier, err)
 			}
 			if previous, conflict := guarantees[guarantee.Identifier]; conflict {
 				return fmt.Errorf("guarantee %q has conflicting providers %q and %q", guarantee.Identifier, previous, module.Identifier)
@@ -149,8 +172,24 @@ func (c Composition) Validate() error {
 			}
 		}
 	}
+	declarations := []ResolvedDeclaration{c.Proof}
+	for _, module := range c.Modules {
+		for _, guarantee := range module.Provides {
+			declarations = append(declarations, ResolvedDeclaration{Axioms: guarantee.Axioms})
+		}
+		for _, requirement := range module.Requires {
+			declarations = append(declarations, ResolvedDeclaration{Axioms: requirement.Axioms})
+		}
+	}
+	if c.TrustBadge != aggregateTrustBadge(declarations...) {
+		return errors.New("composition trust badge does not match its resolved axiom inventories")
+	}
 	for _, consumer := range c.Modules {
 		for _, requirement := range consumer.Requires {
+			if err := validateContractProof(requirement.StatementHash, requirement.Theorem,
+				requirement.Statement, requirement.Axioms, requirement.TrustBadge); err != nil {
+				return fmt.Errorf("module %q requirement %q: %w", consumer.Identifier, requirement.Guarantee, err)
+			}
 			provider, exists := modules[requirement.ProviderModule]
 			if !exists {
 				return fmt.Errorf("module %q has missing provider %q", consumer.Identifier, requirement.ProviderModule)
@@ -160,7 +199,11 @@ func (c Composition) Validate() error {
 			}
 			matched := false
 			for _, guarantee := range provider.Provides {
-				if guarantee.Identifier == requirement.Guarantee && guarantee.StatementHash == requirement.StatementHash {
+				if guarantee.Identifier == requirement.Guarantee &&
+					guarantee.StatementHash == requirement.StatementHash &&
+					guarantee.Theorem == requirement.Theorem && guarantee.Statement == requirement.Statement &&
+					slices.Equal(guarantee.Axioms, requirement.Axioms) &&
+					guarantee.TrustBadge == requirement.TrustBadge {
 					matched = true
 					break
 				}
@@ -176,7 +219,8 @@ func (c Composition) Validate() error {
 		if target.Identifier == "" || len(target.Modules) == 0 || len(target.Properties) == 0 || len(target.RetainedActions) == 0 {
 			return fmt.Errorf("target %q is vacuous", target.Identifier)
 		}
-		if _, known := catalogTargets[target.Identifier]; !known {
+		catalogTarget, known := catalogTargets[target.Identifier]
+		if !known {
 			return fmt.Errorf("unknown composition target %q", target.Identifier)
 		}
 		if _, duplicate := targets[target.Identifier]; duplicate {
@@ -187,20 +231,34 @@ func (c Composition) Validate() error {
 		for _, action := range target.RetainedActions {
 			retained[action] = struct{}{}
 		}
+		targetModules := make(map[ModuleID]struct{}, len(target.Modules))
 		for _, moduleID := range target.Modules {
 			module, exists := modules[moduleID]
 			if !exists {
 				return fmt.Errorf("target %q references missing module %q", target.Identifier, moduleID)
 			}
+			targetModules[moduleID] = struct{}{}
 			for _, action := range module.InterferenceActions {
 				if _, retainedAction := retained[action]; !retainedAction {
 					return fmt.Errorf("target %q drops interference action %q", target.Identifier, action)
 				}
 			}
 		}
+		for _, moduleID := range catalogTarget.Modules {
+			if _, present := targetModules[ModuleID(moduleID)]; !present {
+				return fmt.Errorf("target %q omits catalog module %q", target.Identifier, moduleID)
+			}
+		}
+		targetProperties := make(map[PropertyID]struct{}, len(target.Properties))
 		for _, property := range target.Properties {
 			if _, known := catalogProperties[property]; !known {
 				return fmt.Errorf("target %q references unknown property %q", target.Identifier, property)
+			}
+			targetProperties[property] = struct{}{}
+		}
+		for _, property := range catalogTarget.Properties {
+			if _, present := targetProperties[PropertyID(property)]; !present {
+				return fmt.Errorf("target %q omits catalog property %q", target.Identifier, property)
 			}
 		}
 		for _, omission := range target.Omissions {
@@ -208,6 +266,79 @@ func (c Composition) Validate() error {
 				return fmt.Errorf("target %q has unbounded omission", target.Identifier)
 			}
 		}
+	}
+	expectedArtifactDigest, err := c.computedArtifactDigest()
+	if err != nil {
+		return err
+	}
+	if c.ArtifactDigest != expectedArtifactDigest {
+		return errors.New("composition artifact digest does not match its canonical contents")
+	}
+	return nil
+}
+
+func (c *Composition) deriveContractProofs() {
+	for moduleIndex := range c.Modules {
+		for guaranteeIndex := range c.Modules[moduleIndex].Provides {
+			guarantee := &c.Modules[moduleIndex].Provides[guaranteeIndex]
+			slices.Sort(guarantee.Axioms)
+			if guarantee.StatementHash == "derived" {
+				guarantee.StatementHash = statementDigest(guarantee.Statement)
+			}
+		}
+		for requirementIndex := range c.Modules[moduleIndex].Requires {
+			requirement := &c.Modules[moduleIndex].Requires[requirementIndex]
+			slices.Sort(requirement.Axioms)
+			if requirement.StatementHash == "derived" {
+				requirement.StatementHash = statementDigest(requirement.Statement)
+			}
+		}
+	}
+}
+
+func (c *Composition) deriveArtifactDigest() {
+	if c.ArtifactDigest != "derived" {
+		return
+	}
+	digest, err := c.computedArtifactDigest()
+	if err == nil {
+		c.ArtifactDigest = digest
+	}
+}
+
+func (c Composition) computedArtifactDigest() (string, error) {
+	c.ArtifactDigest = ""
+	encoded, err := json.Marshal(c)
+	if err != nil {
+		return "", fmt.Errorf("encode composition digest payload: %w", err)
+	}
+	return digestBytes(encoded), nil
+}
+
+func validateContractProof(
+	statementHash string,
+	theorem string,
+	statement string,
+	axioms []string,
+	trustBadge TrustBadge,
+) error {
+	if theorem == "" || statement == "" || statementHash != statementDigest(statement) {
+		return errors.New("resolved theorem and derived statement hash are required")
+	}
+	if !slices.IsSorted(axioms) || len(slices.Compact(append([]string(nil), axioms...))) != len(axioms) {
+		return errors.New("axioms must be sorted and unique")
+	}
+	for _, axiom := range axioms {
+		if axiom == "" || axiom == "sorryAx" || axiom == "Lean.ofReduceBool" {
+			return fmt.Errorf("invalid axiom %q", axiom)
+		}
+	}
+	expectedTrust := TrustBadgeKernel
+	if len(axioms) != 0 {
+		expectedTrust = TrustBadgeKernelWithDeclaredAxioms
+	}
+	if trustBadge != expectedTrust {
+		return errors.New("trust badge does not match resolved axioms")
 	}
 	return nil
 }

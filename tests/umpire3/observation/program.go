@@ -18,11 +18,13 @@ import (
 const (
 	FormatVersion = "umpire3/observation-programs/v1"
 
-	OperationExists            = "exists"
-	OperationAbsentWhenClosed  = "absent-when-closed"
-	EpochRelationEqual         = "equal"
-	EpochRelationNotEqual      = "not-equal"
-	EpochRelationUnconstrained = ""
+	OperationExists                   = "exists"
+	OperationAllExist                 = "all-exist"
+	OperationAbsentWhenClosed         = "absent-when-closed"
+	OperationAllExistAbsentWhenClosed = "all-exist-absent-when-closed"
+	EpochRelationEqual                = "equal"
+	EpochRelationNotEqual             = "not-equal"
+	EpochRelationUnconstrained        = ""
 )
 
 type Truth string
@@ -39,6 +41,7 @@ type Selector struct {
 	Kind                  string `json:"kind"`
 	OwnerEpochRelation    string `json:"ownerEpochRelation,omitempty"`
 	CancellationCommitted *bool  `json:"cancellationCommitted,omitempty"`
+	Outcome               string `json:"outcome,omitempty"`
 	Closed                *bool  `json:"closed,omitempty"`
 }
 
@@ -189,9 +192,17 @@ func (p Program) validate() error {
 		if len(p.Matches) == 0 || len(p.Violations) != 0 || len(p.Closures) != 0 {
 			return errors.New("exists requires only match selectors")
 		}
+	case OperationAllExist:
+		if len(p.Matches) == 0 || len(p.Violations) != 0 || len(p.Closures) != 0 {
+			return errors.New("all-exist requires only match selectors")
+		}
 	case OperationAbsentWhenClosed:
 		if len(p.Matches) != 0 || len(p.Violations) == 0 || len(p.Closures) == 0 {
 			return errors.New("absent-when-closed requires violation and closure selectors")
+		}
+	case OperationAllExistAbsentWhenClosed:
+		if len(p.Matches) == 0 || len(p.Violations) == 0 || len(p.Closures) == 0 {
+			return errors.New("all-exist-absent-when-closed requires match, violation, and closure selectors")
 		}
 	default:
 		return fmt.Errorf("unknown operation %q", p.Operation)
@@ -212,8 +223,8 @@ func (s Selector) validate() error {
 	}
 	switch s.FactType {
 	case FactTypeHistoryEvent:
-		if s.Closed != nil {
-			return errors.New("history selector cannot test window closure")
+		if s.Outcome != "" || s.Closed != nil {
+			return errors.New("history selector has unsupported predicates")
 		}
 		if s.OwnerEpochRelation != EpochRelationUnconstrained &&
 			s.OwnerEpochRelation != EpochRelationEqual && s.OwnerEpochRelation != EpochRelationNotEqual {
@@ -224,7 +235,7 @@ func (s Selector) validate() error {
 			return errors.New("mechanism selector has unsupported predicates")
 		}
 	case FactTypeEvidenceWindow:
-		if s.OwnerEpochRelation != "" || s.CancellationCommitted != nil || s.Closed == nil {
+		if s.OwnerEpochRelation != "" || s.CancellationCommitted != nil || s.Outcome != "" || s.Closed == nil {
 			return errors.New("evidence-window selector requires only closure state")
 		}
 	default:
@@ -244,6 +255,11 @@ func (p Program) Evaluate(facts []Fact) Evaluation {
 			return Evaluation{Value: True, Support: support}
 		}
 		return Evaluation{Value: Unknown}
+	case OperationAllExist:
+		if allSelectorsMatch(p.Matches, facts) {
+			return Evaluation{Value: True, Support: matchingSupport(p.Matches, facts)}
+		}
+		return Evaluation{Value: Unknown}
 	case OperationAbsentWhenClosed:
 		if support := matchingSupport(p.Violations, facts); len(support) != 0 {
 			return Evaluation{Value: False, Support: support}
@@ -252,9 +268,39 @@ func (p Program) Evaluate(facts []Fact) Evaluation {
 			return Evaluation{Value: True, Support: support}
 		}
 		return Evaluation{Value: Unknown}
+	case OperationAllExistAbsentWhenClosed:
+		if support := matchingSupport(p.Violations, facts); len(support) != 0 {
+			return Evaluation{Value: False, Support: support}
+		}
+		if !allSelectorsMatch(p.Matches, facts) {
+			return Evaluation{Value: Unknown}
+		}
+		closureSupport := matchingSupport(p.Closures, facts)
+		if len(closureSupport) == 0 {
+			return Evaluation{Value: Unknown}
+		}
+		return Evaluation{Value: True, Support: append(
+			matchingSupport(p.Matches, facts), closureSupport...,
+		)}
 	default:
 		return Evaluation{Value: Conflict}
 	}
+}
+
+func allSelectorsMatch(selectors []Selector, facts []Fact) bool {
+	for _, selector := range selectors {
+		matched := false
+		for _, fact := range facts {
+			if selector.matches(fact) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	return true
 }
 
 func normalizeFacts(facts []Fact) ([]Fact, []string) {
@@ -325,6 +371,9 @@ func (s Selector) matches(fact Fact) bool {
 				return false
 			}
 		}
+	}
+	if fact.Mechanism != nil && s.Outcome != "" && fact.Mechanism.Outcome != s.Outcome {
+		return false
 	}
 	return fact.Window == nil || s.Closed == nil || fact.Window.Closed == *s.Closed
 }

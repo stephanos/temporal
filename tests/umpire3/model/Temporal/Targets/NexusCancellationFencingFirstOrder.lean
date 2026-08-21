@@ -70,6 +70,7 @@ private def commonActions : List FirstOrderAction := [
       any [
         equalFieldValue "lifecycle" "lifecycle" "open",
         equalFieldValue "lifecycle" "lifecycle" "cancellation-accepted",
+        equalFieldValue "lifecycle" "lifecycle" "cancelled",
       ],
       equalFieldValue "owner-epoch" "epoch" "epoch-0",
     ]
@@ -101,6 +102,12 @@ private def artifact (variant : String) (persistGuard : FirstOrderFormula) : Fir
   world := "smoke"
   variant := variant
   canonicalModel := "Umpire3.Temporal.System.NexusCancellationFencing.behavior"
+  resources := [
+    { identifier := "operation", kind := "nexus-operation" },
+    { identifier := "worker", kind := "nexus-worker" },
+  ]
+  liveOnlyActions := ["schedule-operation", "retry-task"]
+  activatingFaults := if variant = "sound" then [] else ["stale-worker-completion"]
   bounds := { symbolicDepth := 6, concreteStateLimit := 512 }
   sorts := [lifecycleSort, taskSort, epochSort]
   stateFields := [

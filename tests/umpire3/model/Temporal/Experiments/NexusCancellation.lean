@@ -114,7 +114,7 @@ def proofManifest : SemanticProofManifest where
     },
     {
       identifier := System.TaskDelivery.guarantee.identifier
-      statementHash := System.TaskDelivery.guarantee.statementHash
+      statementHash := "derived:" ++ System.TaskDelivery.guarantee.identifier
     },
   ]
 
@@ -126,7 +126,7 @@ def experiment : SemanticExperiment where
     "Temporal.Refinement.NexusTasks",
   ]
   propertyIdentifier := "nexus.cancellation.won-excludes-success"
-  propertyStatementHash := "sha256:ee1e668005a68fd1dd72bbd4dd2758d035c89f67f6492223c1b615ef094225d8"
+  propertyStatementHash := "derived"
   scope := {
     bound := { maxDepth := 8, maxResults := 10000 }
     assumptions := System.NexusTasks.assumptions

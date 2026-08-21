@@ -86,10 +86,12 @@ UMPIRE3_PARITY := $(UMPIRE3_ROOT)/protocol/generated/parity-ledger.json
 UMPIRE3_COVERAGE := $(UMPIRE3_ROOT)/protocol/generated/coverage-denominator.json
 UMPIRE3_NEXUS_FIRST_ORDER := $(UMPIRE3_ROOT)/protocol/generated/nexus-cancellation.first-order.json
 UMPIRE3_NEXUS_MUTATED_FIRST_ORDER := $(UMPIRE3_ROOT)/protocol/generated/nexus-cancellation-mutated.first-order.json
+UMPIRE3_TASK_DELIVERY_TEMPORAL := $(UMPIRE3_ROOT)/protocol/generated/task-delivery-progress.temporal.json
+UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL := $(UMPIRE3_ROOT)/protocol/generated/task-delivery-progress-mutated.temporal.json
 UMPIRE3_NEXUS_EXPERIMENT := $(UMPIRE3_ROOT)/testdata/nexus-cancellation.json
 UMPIRE3_UPDATE_EXPERIMENT := $(UMPIRE3_ROOT)/testdata/update-lifecycle.json
-UMPIRE3_NEXUS_PROOF_MANIFEST := $(UMPIRE3_ROOT)/testdata/nexus-proof-manifest.json
-UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/testdata/update-proof-manifest.json
+UMPIRE3_NEXUS_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/generated/nexus-proof-manifest.json
+UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/generated/update-proof-manifest.json
 UMPIRE3_EXPORT_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-export
 UMPIRE3_API_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-api
 UMPIRE3_API_DESCRIPTOR := $(UMPIRE3_MODEL_ROOT)/Temporal/API/Generated/descriptor-manifest.json
@@ -98,6 +100,9 @@ UMPIRE3_MIGRATION_LEDGER := $(UMPIRE3_ROOT)/migration/ledger.json
 UMPIRE3_MIGRATION_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-migration
 UMPIRE3_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3
 UMPIRE3_VEIL_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-veil
+UMPIRE3_TLA_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-tla
+UMPIRE3_NATIVE_COMMAND := go run -tags test_dep ./$(UMPIRE3_ROOT)/cmd/umpire3-native
+UMPIRE3_LENTIL_ROOT := $(UMPIRE3_ROOT)/model-checkers/lean-temporal/lean
 UMPIRE3_VEIL_ROOT := $(UMPIRE3_ROOT)/model-checkers/veil/lean
 UMPIRE3_VEIL_GENERATED := $(UMPIRE3_VEIL_ROOT)/Umpire3Veil/Generated
 UMPIRE3_VEIL_SOUND := $(UMPIRE3_VEIL_GENERATED)/NexusCancellationSound.lean
@@ -116,6 +121,24 @@ UMPIRE3_VEIL_MUTATED_RESULT := $(UMPIRE3_VEIL_RESULTS)/nexus-cancellation-mutate
 UMPIRE3_VEIL_SYMBOLIC_RESULT := $(UMPIRE3_VEIL_RESULTS)/nexus-cancellation-sound-symbolic.json
 UMPIRE3_VEIL_INVARIANT_RESULT := $(UMPIRE3_VEIL_RESULTS)/nexus-cancellation-sound-invariant.json
 UMPIRE3_VEIL_INVARIANT_TRUSTED_RESULT := $(UMPIRE3_VEIL_RESULTS)/nexus-cancellation-sound-invariant-trusted.json
+UMPIRE3_TEMPORAL_LASSO_REPLAY_BIN := $(UMPIRE3_MODEL_ROOT)/.lake/build/bin/umpire3_temporal_lasso_replay
+UMPIRE3_TLA_ROOT := $(UMPIRE3_ROOT)/model-checkers/tla
+UMPIRE3_TLA_GENERATED := $(UMPIRE3_TLA_ROOT)/generated
+UMPIRE3_TLA_RESULTS := $(UMPIRE3_TLA_ROOT)/results
+UMPIRE3_TLA_SOUND_MODULE := Umpire3FoundationDeliverySafetySound
+UMPIRE3_TLA_MUTATED_MODULE := Umpire3FoundationDeliverySafetyDeliveryFairnessRemoved
+UMPIRE3_TLA_SOUND := $(UMPIRE3_TLA_GENERATED)/$(UMPIRE3_TLA_SOUND_MODULE).tla
+UMPIRE3_TLA_SOUND_CONFIG := $(UMPIRE3_TLA_GENERATED)/$(UMPIRE3_TLA_SOUND_MODULE).cfg
+UMPIRE3_TLA_MUTATED := $(UMPIRE3_TLA_GENERATED)/$(UMPIRE3_TLA_MUTATED_MODULE).tla
+UMPIRE3_TLA_MUTATED_CONFIG := $(UMPIRE3_TLA_GENERATED)/$(UMPIRE3_TLA_MUTATED_MODULE).cfg
+UMPIRE3_TLC_SOUND_RESULT := $(UMPIRE3_TLA_RESULTS)/task-delivery-progress-sound-tlc.json
+UMPIRE3_TLC_MUTATED_RESULT := $(UMPIRE3_TLA_RESULTS)/task-delivery-progress-mutated-tlc.json
+UMPIRE3_APALACHE_SOUND_RESULT := $(UMPIRE3_TLA_RESULTS)/task-delivery-progress-sound-apalache.json
+UMPIRE3_NATIVE_BINDING := $(UMPIRE3_MODEL_ROOT)/Umpire3/Generated/NexusCertificateBinding.lean
+UMPIRE3_NATIVE_CERTIFICATE_BIN := $(UMPIRE3_MODEL_ROOT)/.lake/build/bin/umpire3_native_certificate_check
+UMPIRE3_NATIVE_RESULTS := $(UMPIRE3_ROOT)/model-checkers/native/results
+UMPIRE3_NATIVE_CERTIFICATE := $(UMPIRE3_NATIVE_RESULTS)/nexus-cancellation-scale.certificate.json
+UMPIRE3_NATIVE_RECEIPT := $(UMPIRE3_NATIVE_RESULTS)/nexus-cancellation-scale.receipt.json
 
 # Number of retries for *-coverage targets.
 MAX_TEST_ATTEMPTS ?= 3
@@ -591,6 +614,117 @@ umpire3-check-first-order: umpire3-check-catalog
 		$(UMPIRE3_EXPORT_COMMAND) -artifact first-order-view -variant mutated > "$$temporary"; \
 		diff -u $(UMPIRE3_NEXUS_MUTATED_FIRST_ORDER) "$$temporary"
 
+umpire3-gen-native-binding: umpire3-gen-first-order
+	@printf $(COLOR) "Generate Umpire3 native certificate proof binding..."
+	@$(UMPIRE3_NATIVE_COMMAND) -operation bind -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+		-output $(UMPIRE3_NATIVE_BINDING)
+
+umpire3-check-native-binding: umpire3-check-first-order
+	@printf $(COLOR) "Check Umpire3 native certificate proof binding..."
+	@set -eu; temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_NATIVE_COMMAND) -operation bind -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-output "$$temporary"; \
+		diff -u $(UMPIRE3_NATIVE_BINDING) "$$temporary"
+
+umpire3-build-native: umpire3-gen-native-binding
+	@printf $(COLOR) "Build Umpire3 native certificate checker..."
+	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build umpire3_native_certificate_check
+
+umpire3-gen-native-results: umpire3-gen-native-binding
+	@$(MAKE) umpire3-build-native
+	@printf $(COLOR) "Generate Umpire3 parallel native certificate and checked receipt..."
+	@set -eu; \
+		$(UMPIRE3_NATIVE_COMMAND) -operation produce -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-workers 8 -replicas 10 -output $(UMPIRE3_NATIVE_CERTIFICATE); \
+		$(UMPIRE3_NATIVE_COMMAND) -operation check -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-certificate $(UMPIRE3_NATIVE_CERTIFICATE) -checker-command $(UMPIRE3_NATIVE_CERTIFICATE_BIN) \
+			-output $(UMPIRE3_NATIVE_RECEIPT)
+
+umpire3-check-native-results: umpire3-check-native-binding
+	@printf $(COLOR) "Check Umpire3 parallel native certificate and checked receipt..."
+	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build umpire3_native_certificate_check
+	@set -eu; temporary=$$(mktemp -d); \
+		trap 'rm -rf "$$temporary"' EXIT; \
+		$(UMPIRE3_NATIVE_COMMAND) -operation produce -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-workers 8 -replicas 10 -output "$$temporary/certificate.json"; \
+		diff -u $(UMPIRE3_NATIVE_CERTIFICATE) "$$temporary/certificate.json"; \
+		$(UMPIRE3_NATIVE_COMMAND) -operation check -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
+			-certificate "$$temporary/certificate.json" -checker-command $(UMPIRE3_NATIVE_CERTIFICATE_BIN) \
+			-output "$$temporary/receipt.json"; \
+		diff -u $(UMPIRE3_NATIVE_RECEIPT) "$$temporary/receipt.json"
+
+umpire3-gen-temporal: umpire3-gen-catalog
+	@printf $(COLOR) "Generate Umpire3 task-delivery temporal views..."
+	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Targets.TaskDeliveryProgressTemporal
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant sound -output $(UMPIRE3_TASK_DELIVERY_TEMPORAL)
+	@$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant delivery-fairness-removed -output $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL)
+
+umpire3-check-temporal: umpire3-check-catalog
+	@printf $(COLOR) "Check generated Umpire3 task-delivery temporal views..."
+	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Targets.TaskDeliveryProgressTemporal
+	@set -eu; temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant sound > "$$temporary"; \
+		diff -u $(UMPIRE3_TASK_DELIVERY_TEMPORAL) "$$temporary"; \
+		$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant delivery-fairness-removed > "$$temporary"; \
+		diff -u $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL) "$$temporary"
+
+umpire3-gen-tla: umpire3-gen-temporal
+	@printf $(COLOR) "Generate Umpire3 task-delivery TLA+ views..."
+	@set -eu; \
+		$(UMPIRE3_TLA_COMMAND) -operation generate -input $(UMPIRE3_TASK_DELIVERY_TEMPORAL) \
+			-output $(UMPIRE3_TLA_SOUND) -config-output $(UMPIRE3_TLA_SOUND_CONFIG); \
+		$(UMPIRE3_TLA_COMMAND) -operation generate -input $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL) \
+			-output $(UMPIRE3_TLA_MUTATED) -config-output $(UMPIRE3_TLA_MUTATED_CONFIG)
+
+umpire3-check-tla-generated: umpire3-check-temporal
+	@printf $(COLOR) "Check generated Umpire3 task-delivery TLA+ views..."
+	@set -eu; temporary=$$(mktemp -d); \
+		trap 'rm -rf "$$temporary"' EXIT; \
+		$(UMPIRE3_TLA_COMMAND) -operation generate -input $(UMPIRE3_TASK_DELIVERY_TEMPORAL) \
+			-output "$$temporary/sound.tla" -config-output "$$temporary/sound.cfg"; \
+		diff -u $(UMPIRE3_TLA_SOUND) "$$temporary/sound.tla"; \
+		diff -u $(UMPIRE3_TLA_SOUND_CONFIG) "$$temporary/sound.cfg"; \
+		$(UMPIRE3_TLA_COMMAND) -operation generate -input $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL) \
+			-output "$$temporary/mutated.tla" -config-output "$$temporary/mutated.cfg"; \
+		diff -u $(UMPIRE3_TLA_MUTATED) "$$temporary/mutated.tla"; \
+		diff -u $(UMPIRE3_TLA_MUTATED_CONFIG) "$$temporary/mutated.cfg"
+
+umpire3-build-temporal:
+	@printf $(COLOR) "Build Umpire3 canonical temporal lasso replay..."
+	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build umpire3_temporal_lasso_replay
+
+umpire3-check-temporal-adapter:
+	@printf $(COLOR) "Check isolated Umpire3 Lentil temporal adapter..."
+	@$(MAKE) -C $(UMPIRE3_LENTIL_ROOT) check
+
+umpire3-gen-temporal-results: umpire3-gen-tla
+	@$(MAKE) umpire3-build-temporal
+	@printf $(COLOR) "Generate normalized Umpire3 temporal backend results..."
+	@set -eu; . .bin/umpire-tools/env; \
+		$(UMPIRE3_TLA_COMMAND) -operation check -backend tlc -input $(UMPIRE3_TASK_DELIVERY_TEMPORAL) \
+			-output $(UMPIRE3_TLC_SOUND_RESULT); \
+		$(UMPIRE3_TLA_COMMAND) -operation check -backend tlc -input $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL) \
+			-replay-command $(UMPIRE3_TEMPORAL_LASSO_REPLAY_BIN) -output $(UMPIRE3_TLC_MUTATED_RESULT); \
+		$(UMPIRE3_TLA_COMMAND) -operation check -backend apalache -input $(UMPIRE3_TASK_DELIVERY_TEMPORAL) \
+			-output $(UMPIRE3_APALACHE_SOUND_RESULT)
+
+umpire3-check-temporal-results: umpire3-check-tla-generated
+	@$(MAKE) umpire3-build-temporal
+	@printf $(COLOR) "Check normalized Umpire3 temporal backend results..."
+	@set -eu; . .bin/umpire-tools/env; temporary=$$(mktemp -d); \
+		trap 'rm -rf "$$temporary"' EXIT; \
+		$(UMPIRE3_TLA_COMMAND) -operation check -backend tlc -input $(UMPIRE3_TASK_DELIVERY_TEMPORAL) \
+			-output "$$temporary/sound-tlc.json"; \
+		diff -u $(UMPIRE3_TLC_SOUND_RESULT) "$$temporary/sound-tlc.json"; \
+		$(UMPIRE3_TLA_COMMAND) -operation check -backend tlc -input $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL) \
+			-replay-command $(UMPIRE3_TEMPORAL_LASSO_REPLAY_BIN) -output "$$temporary/mutated-tlc.json"; \
+		diff -u $(UMPIRE3_TLC_MUTATED_RESULT) "$$temporary/mutated-tlc.json"; \
+		$(UMPIRE3_TLA_COMMAND) -operation check -backend apalache -input $(UMPIRE3_TASK_DELIVERY_TEMPORAL) \
+			-output "$$temporary/sound-apalache.json"; \
+		diff -u $(UMPIRE3_APALACHE_SOUND_RESULT) "$$temporary/sound-apalache.json"
+
 umpire3-gen-veil: umpire3-gen-first-order
 	@printf $(COLOR) "Generate Umpire3 Veil modules..."
 	@$(UMPIRE3_VEIL_COMMAND) -input $(UMPIRE3_NEXUS_FIRST_ORDER) -output $(UMPIRE3_VEIL_SOUND) -mode interactive -smt-trust reconstructed
@@ -666,12 +800,12 @@ umpire3-check-veil-results: umpire3-check-veil-generated
 			-smt-trust trusted -output "$$temporary/invariant-trusted.json"; \
 		diff -u $(UMPIRE3_VEIL_INVARIANT_TRUSTED_RESULT) "$$temporary/invariant-trusted.json"
 
-umpire3-gen-proof: umpire3-gen-api
+umpire3-gen-proof: umpire3-gen-api umpire3-gen-composition
 	@printf $(COLOR) "Generate Umpire3 proof manifests..."
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment nexus -output $(UMPIRE3_NEXUS_PROOF_MANIFEST)
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment update -output $(UMPIRE3_UPDATE_PROOF_MANIFEST)
 
-umpire3-check-proof: umpire3-check-api
+umpire3-check-proof: umpire3-check-api umpire3-check-composition
 	@printf $(COLOR) "Check generated Umpire3 proof manifests..."
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
@@ -680,12 +814,12 @@ umpire3-check-proof: umpire3-check-api
 		$(UMPIRE3_EXPORT_COMMAND) -artifact proof-manifest -experiment update > "$$temporary"; \
 		diff -u $(UMPIRE3_UPDATE_PROOF_MANIFEST) "$$temporary"
 
-umpire3-gen-experiment: umpire3-gen-catalog umpire3-gen-api
+umpire3-gen-experiment: umpire3-gen-catalog umpire3-gen-api umpire3-gen-composition
 	@printf $(COLOR) "Generate Umpire3 experiments..."
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment nexus -output $(UMPIRE3_NEXUS_EXPERIMENT)
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact experiment -experiment update -output $(UMPIRE3_UPDATE_EXPERIMENT)
 
-umpire3-check-experiment: umpire3-check-catalog umpire3-check-api
+umpire3-check-experiment: umpire3-check-catalog umpire3-check-api umpire3-check-composition
 	@printf $(COLOR) "Check generated Umpire3 Nexus experiment..."
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
@@ -715,13 +849,14 @@ umpire3-check-migration:
 		$(UMPIRE3_MIGRATION_COMMAND) -output "$$temporary"; \
 		diff -u $(UMPIRE3_MIGRATION_LEDGER) "$$temporary"
 
-umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-observation umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-veil-results umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration
+umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-observation umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-veil-results umpire3-gen-native-results umpire3-gen-temporal-results umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration
 
-umpire3-check-generated: umpire3-check-manifest umpire3-check-identifiers umpire3-check-author-facade umpire3-check-schema umpire3-check-monitor umpire3-check-observation umpire3-check-composition umpire3-check-parity umpire3-check-coverage umpire3-check-veil-results umpire3-check-proof umpire3-check-experiment umpire3-check-api umpire3-check-migration
+umpire3-check-generated: umpire3-check-manifest umpire3-check-identifiers umpire3-check-author-facade umpire3-check-schema umpire3-check-monitor umpire3-check-observation umpire3-check-composition umpire3-check-parity umpire3-check-coverage umpire3-check-veil-results umpire3-check-native-results umpire3-check-temporal-results umpire3-check-proof umpire3-check-experiment umpire3-check-api umpire3-check-migration
 
 umpire3-check: umpire3-check-generated
 	@printf $(COLOR) "Check Umpire3 Lean model..."
 	@$(MAKE) -C $(UMPIRE3_MODEL_ROOT) check
+	@$(MAKE) umpire3-check-temporal-adapter
 	@printf $(COLOR) "Test Umpire3 Go packages..."
 	@go test -count=1 -tags test_dep ./$(UMPIRE3_ROOT)/...
 
@@ -746,7 +881,7 @@ umpire3-root:
 		go test -count=1 -tags test_dep ./tests -run '^TestUmpire3' -timeout 20m || status=$$?; \
 		exit $$status
 
-.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-first-order umpire3-check-first-order umpire3-gen-veil umpire3-check-veil-generated umpire3-build-veil umpire3-gen-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-gen umpire3-check-generated umpire3-check umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-root
+.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-first-order umpire3-check-first-order umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-gen-temporal umpire3-check-temporal umpire3-gen-tla umpire3-check-tla-generated umpire3-build-temporal umpire3-check-temporal-adapter umpire3-gen-temporal-results umpire3-check-temporal-results umpire3-gen-veil umpire3-check-veil-generated umpire3-build-veil umpire3-gen-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-gen umpire3-check-generated umpire3-check umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-root
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

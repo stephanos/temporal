@@ -221,12 +221,12 @@ def assumptions : List Assumption := [
   { identifier := "task-at-least-once-delivery",
     statementHash := "sha256:4bb260aba066d97231a70090468b1c6bd1ad4bba387742a54f8110a484270415" },
   { identifier := Temporal.System.TaskDelivery.guarantee.identifier,
-    statementHash := Temporal.System.TaskDelivery.guarantee.statementHash },
+    statementHash := "derived:" ++ Temporal.System.TaskDelivery.guarantee.identifier },
 ]
 
 def nexusDeliveryRequirement : Temporal.System.TaskDelivery.Requirement where
-  provider := Temporal.System.TaskDelivery.guarantee.identifier
-  statementHash := Temporal.System.TaskDelivery.guarantee.statementHash
+  consumer := "Temporal.System.NexusTasks"
+  proof := Temporal.System.TaskDelivery.guarantee.proof
 
 def StutteringAction (action : Action) : Prop :=
   ∀ state result, result ∈ transitions state action → result.productActions = []

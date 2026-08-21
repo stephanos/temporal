@@ -3,6 +3,7 @@ package protocol
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -112,4 +113,50 @@ func TestCatalogPropertiesAreBoundToResolvedLeanTheorems(t *testing.T) {
 	mutated.Properties = append([]PropertyDeclaration(nil), catalog.Properties...)
 	mutated.Properties[0].Statement += " changed"
 	require.ErrorContains(t, mutated.Validate(), "derived statement hash")
+}
+
+func TestCatalogRejectsForbiddenPropertyAxiom(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	catalog.Properties = append([]PropertyDeclaration(nil), catalog.Properties...)
+	catalog.Properties[0].Axioms = []string{"Lean.ofReduceBool"}
+	catalog.Properties[0].TrustBadge = TrustBadgeKernelWithDeclaredAxioms
+
+	require.ErrorContains(t, catalog.Validate(), "invalid axiom")
+}
+
+func TestTaskAcknowledgementTargetDeclaresIndependentMechanismAndRefinement(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	var target TargetDeclaration
+	for _, candidate := range catalog.Targets {
+		if candidate.Identifier == "foundation-backlog-ack" {
+			target = candidate
+			break
+		}
+	}
+
+	require.Equal(t, []string{
+		"Temporal.Product.TaskAck",
+		"Temporal.System.TaskAck",
+		"Temporal.Refinement.TaskAck",
+	}, target.Modules)
+}
+
+func TestEveryCatalogTargetDeclaresIndependentSystemAndRefinement(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+	var missing []string
+	for _, target := range catalog.Targets {
+		hasSystem := false
+		hasRefinement := false
+		for _, module := range target.Modules {
+			hasSystem = hasSystem || strings.HasPrefix(module, "Temporal.System.")
+			hasRefinement = hasRefinement || strings.HasPrefix(module, "Temporal.Refinement.")
+		}
+		if !hasSystem || !hasRefinement {
+			missing = append(missing, target.Identifier)
+		}
+	}
+	require.Empty(t, missing)
 }

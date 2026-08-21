@@ -16,7 +16,69 @@ const (
 	NexusSuccessRecorded       = "nexus-success-recorded"
 	NexusOwnershipAcquired     = "nexus-ownership-acquired"
 	NexusCancellationWindow    = "nexus-cancellation"
+
+	UpdateRequested                    = "update-requested"
+	WorkflowUpdateAccepted             = "workflow-update-accepted"
+	WorkflowUpdateCompleted            = "workflow-update-completed"
+	WorkflowTaskAcknowledged           = "workflow-task-acknowledged"
+	SpeculativeTaskCreated             = "speculative-task-created"
+	SpeculativeTaskCommitted           = "speculative-task-committed"
+	SpeculativeTaskOrphaned            = "speculative-task-orphaned"
+	NexusOperationSettled              = "nexus-operation-settled"
+	CallerWorkflowClosed               = "caller-workflow-closed"
+	CallerClosedWithOpenOperation      = "caller-closed-with-open-operation"
+	NexusOperationLinkedActivity       = "nexus-operation-linked-activity"
+	ActivityLinkedNexusOperation       = "activity-linked-nexus-operation"
+	NexusActivityLinkOneSided          = "nexus-activity-link-one-sided"
+	NexusTimeoutConfigured             = "nexus-timeout-configured"
+	NexusOperationTimedOut             = "nexus-operation-timed-out"
+	NexusTimeoutMetadataInvalid        = "nexus-timeout-metadata-invalid"
+	CallbackAttached                   = "callback-attached"
+	NexusOperationStarted              = "nexus-operation-started"
+	CallbackReferenceMismatch          = "callback-reference-mismatch"
+	CallbackRegistered                 = "callback-registered"
+	CallbackOperationSettled           = "callback-operation-settled"
+	CallbackResponseRecorded           = "callback-response-recorded"
+	CallbackResponseConflict           = "callback-response-conflict"
+	WorkflowTaskQueued                 = "workflow-task-queued"
+	WorkflowWorkerAvailable            = "workflow-worker-available"
+	WorkflowTaskCompleted              = "workflow-task-completed"
+	WorkflowTaskStarved                = "workflow-task-starved"
+	EntityPending                      = "entity-pending"
+	EntityProgressed                   = "entity-progressed"
+	WorkflowTaskCompletedWrongEntity   = "workflow-task-completed-wrong-entity"
+	WorkflowContinued                  = "workflow-continued"
+	WorkflowLineageRecorded            = "workflow-lineage-recorded"
+	WorkflowContinuationLineageInvalid = "workflow-continuation-lineage-invalid"
+	WorkflowReset                      = "workflow-reset"
+	WorkflowResetLineageInvalid        = "workflow-reset-lineage-invalid"
+	WorkflowTaskRouted                 = "workflow-task-routed"
+	WorkflowPollerRouted               = "workflow-poller-routed"
+	WorkflowTaskReserved               = "workflow-task-reserved"
+	WorkflowTaskCrossRoute             = "workflow-task-cross-route"
+	WorkflowTaskDispatched             = "workflow-task-dispatched"
+	WorkflowOwnerRotated               = "workflow-owner-rotated"
+	StaleCompletionRejected            = "stale-completion-rejected"
+	CurrentCompletionRecorded          = "current-completion-recorded"
+	StaleCompletionRecorded            = "stale-completion-recorded"
 )
+
+var temporalHistoryEventTypes = map[string]struct{}{
+	UpdateRequested: {}, WorkflowUpdateAccepted: {}, WorkflowUpdateCompleted: {}, WorkflowTaskAcknowledged: {},
+	SpeculativeTaskCreated: {}, SpeculativeTaskCommitted: {}, SpeculativeTaskOrphaned: {},
+	NexusOperationSettled: {}, CallerWorkflowClosed: {}, CallerClosedWithOpenOperation: {},
+	NexusOperationLinkedActivity: {}, ActivityLinkedNexusOperation: {}, NexusActivityLinkOneSided: {},
+	NexusTimeoutConfigured: {}, NexusOperationTimedOut: {}, NexusTimeoutMetadataInvalid: {},
+	CallbackAttached: {}, NexusOperationStarted: {}, CallbackReferenceMismatch: {},
+	CallbackRegistered: {}, CallbackOperationSettled: {}, CallbackResponseRecorded: {}, CallbackResponseConflict: {},
+	WorkflowTaskQueued: {}, WorkflowWorkerAvailable: {}, WorkflowTaskCompleted: {}, WorkflowTaskStarved: {},
+	EntityPending: {}, EntityProgressed: {}, WorkflowTaskCompletedWrongEntity: {},
+	WorkflowContinued: {}, WorkflowLineageRecorded: {}, WorkflowContinuationLineageInvalid: {},
+	WorkflowReset: {}, WorkflowResetLineageInvalid: {},
+	WorkflowTaskRouted: {}, WorkflowPollerRouted: {}, WorkflowTaskReserved: {}, WorkflowTaskCrossRoute: {},
+	WorkflowTaskDispatched: {}, WorkflowOwnerRotated: {}, StaleCompletionRejected: {},
+	CurrentCompletionRecorded: {}, StaleCompletionRecorded: {},
+}
 
 type Source struct {
 	Identity         string   `json:"identity"`
@@ -122,7 +184,12 @@ func (e HistoryEvent) validate(identifier string, source Source) error {
 			return fmt.Errorf("history fact %q requires cancellation commitment", identifier)
 		}
 	default:
-		return fmt.Errorf("history fact %q has unsupported event type %q", identifier, e.EventType)
+		if _, supported := temporalHistoryEventTypes[e.EventType]; !supported {
+			return fmt.Errorf("history fact %q has unsupported event type %q", identifier, e.EventType)
+		}
+		if e.WorkflowID == "" || e.RunID == "" {
+			return fmt.Errorf("history fact %q requires workflow and run identities", identifier)
+		}
 	}
 	return nil
 }

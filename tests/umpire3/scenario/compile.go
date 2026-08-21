@@ -84,11 +84,17 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 
 	experiments := make([]protocol.Experiment, len(enumerated.paths))
 	digests := make([]string, len(enumerated.paths))
+	modelReplay := ModelReplay{Status: ModelReplayNotSupported, LiveOnlyActions: []protocol.ActionKind{}}
 	for index, path := range enumerated.paths {
 		experiment, buildErr := buildExperiment(scenario, plan, target, monitor, catalog, composition, catalogHash, path, index, len(enumerated.paths))
 		if buildErr != nil {
 			return Suite{}, buildErr
 		}
+		checked, replayErr := replayExperimentPath(experiment, scenario.Root.source)
+		if replayErr != nil {
+			return Suite{}, replayErr
+		}
+		modelReplay = mergeModelReplay(modelReplay, checked)
 		experiments[index] = experiment
 		digests[index], err = experiment.Digest()
 		if err != nil {
@@ -113,6 +119,7 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		Identities:       identities,
 		Paths:            enumerated.paths,
 		Omissions:        append([]protocol.ProjectionOmission(nil), target.Omissions...),
+		ModelReplay:      modelReplay,
 		Enumeration: Enumeration{
 			Mode:        map[bool]string{false: "one-path", true: "all-paths"}[plan.allPaths],
 			States:      enumerated.states,
@@ -127,6 +134,76 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		FormatVersion: SuiteFormatVersion, ScenarioDigest: scenarioDigest,
 		Experiments: experiments, Digests: digests, Explain: explain,
 	}, nil
+}
+
+func replayExperimentPath(experiment protocol.Experiment, source Source) (ModelReplay, error) {
+	faults := make([]protocol.FaultKind, len(experiment.Faults))
+	for index, fault := range experiment.Faults {
+		faults[index] = protocol.FaultKind(fault.Kind)
+	}
+	target := targetForModel(experiment)
+	view, found, err := protocol.DefaultFirstOrderViewForFaults(target, faults)
+	if err != nil {
+		return ModelReplay{}, compileError(ErrorInvalidIntent, source,
+			"load executable model view: "+err.Error())
+	}
+	if !found {
+		return ModelReplay{
+			Status: ModelReplayNotSupported, LiveOnlyActions: []protocol.ActionKind{},
+			Reason: "No exact executable compiler view is registered for this target.",
+		}, nil
+	}
+	actions := make([]protocol.ActionKind, len(experiment.Actions))
+	for index, action := range experiment.Actions {
+		actions[index] = protocol.ActionKind(action.Kind)
+	}
+	replay, err := view.Replay(actions)
+	if err != nil {
+		return ModelReplay{}, compileError(ErrorInvalidIntent, source,
+			"replay compiled path through executable model: "+err.Error())
+	}
+	if !replay.Accepted {
+		return ModelReplay{}, compileError(ErrorSemanticallyImpossible, source,
+			fmt.Sprintf("executable model %q variant %q rejects action %q",
+				view.CanonicalModel, view.Variant, replay.RejectedAction))
+	}
+	return ModelReplay{
+		Status: ModelReplayChecked, CanonicalModel: view.CanonicalModel,
+		Variant: view.Variant, LiveOnlyActions: replay.LiveOnlyActions,
+	}, nil
+}
+
+func targetForModel(experiment protocol.Experiment) protocol.TargetID {
+	composition, err := protocol.DefaultComposition()
+	if err != nil {
+		return ""
+	}
+	for _, target := range composition.Targets {
+		if !slices.Contains(target.Properties, protocol.PropertyID(experiment.Property.Identifier)) {
+			continue
+		}
+		modules := make([]string, len(target.Modules))
+		for index, module := range target.Modules {
+			modules[index] = string(module)
+		}
+		if slices.Equal(modules, experiment.Model.Modules) {
+			return target.Identifier
+		}
+	}
+	return ""
+}
+
+func mergeModelReplay(left, right ModelReplay) ModelReplay {
+	if right.Status == ModelReplayChecked || left.Status != ModelReplayChecked {
+		left.Status = right.Status
+		left.CanonicalModel = right.CanonicalModel
+		left.Variant = right.Variant
+		left.Reason = right.Reason
+	}
+	left.LiveOnlyActions = append(left.LiveOnlyActions, right.LiveOnlyActions...)
+	slices.Sort(left.LiveOnlyActions)
+	left.LiveOnlyActions = slices.Compact(left.LiveOnlyActions)
+	return left
 }
 
 func validateLimits(limits Limits) error {

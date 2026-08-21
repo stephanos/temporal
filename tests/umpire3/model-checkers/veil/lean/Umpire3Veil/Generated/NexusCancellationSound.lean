@@ -41,7 +41,7 @@ action RequestCancellation {
 }
 
 action AcquireOwnership {
-  require (((lifecycle = Open) ∨ (lifecycle = CancellationAccepted)) ∧ (ownerEpoch = Epoch0))
+  require ((((lifecycle = Open) ∨ (lifecycle = CancellationAccepted)) ∨ (lifecycle = Cancelled)) ∧ (ownerEpoch = Epoch0))
   ownerEpoch := Epoch1
 }
 
@@ -84,8 +84,8 @@ end NexusCancellationSound
 namespace Umpire3Veil.Generated
 
 def NexusCancellationSoundEvidence : Umpire3Veil.JobReceipt.Evidence where
-  semanticHash := "sha256:3cbff91241afd620e598c1f5b1e1609f50571d12c8f1af1aeec6f32dfdbc9089"
-  generatedModelHash := "sha256:e445117b6c9dba88567edb42e96e99da4c29fd68503163a861e3402442b2a204"
+  semanticHash := "sha256:7b00ec76b9ff43174bf457cfe81dd6f3cf367c5143a5c09482a4a57c509641f2"
+  generatedModelHash := "sha256:5af1488e18462860a510bffc5708c07d3c44e95ea6bcb6663aba6948578397c0"
   trustMode := .reconstructed
   invariantAxioms := resolved_veil_axioms% [
     NexusCancellationSound.initializer_doesNotThrow,

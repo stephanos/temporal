@@ -8,6 +8,7 @@ import Temporal.Product.WorkflowRouting
 import Temporal.Product.WorkflowOwnership
 import Temporal.Product.SpeculativeTask
 import Temporal.Product.WorkflowProgress
+import Temporal.Product.TaskAck
 import Umpire3.Monitor
 
 namespace Umpire3.Temporal.Monitors
@@ -38,6 +39,18 @@ def taskAcknowledgement : MonitorDeclaration where
   evidence := ["source-sequence", "identity-lineage"]
   coverage := ["observation.workflow-task-acknowledged"]
   expression := .observation "workflow-task-acknowledged" true
+
+def taskAcknowledgementObservations
+    (state : Umpire3.Temporal.Product.TaskAck.State) : List NormalizedObservation := [{
+  identifier := "workflow-task-acknowledged"
+  value := decide (state = .acknowledged)
+}]
+
+theorem taskAcknowledgement_monitor_equivalent
+    (state : Umpire3.Temporal.Product.TaskAck.State) :
+    taskAcknowledgement.Holds (taskAcknowledgementObservations state) ↔ state = .acknowledged := by
+  cases state <;> simp [MonitorDeclaration.Holds, taskAcknowledgement,
+    taskAcknowledgementObservations, MonitorExpression.eval, lookupObservation]
 
 private def assuranceMonitor (identifier property observation : String) : MonitorDeclaration := {
   identifier

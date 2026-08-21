@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-const ReleaseFormatVersion = "umpire3/release/v1"
+const ReleaseFormatVersion = "umpire3/release/v2"
 
 type ReleaseEvidence struct {
 	Goal    string   `json:"goal"`
@@ -31,6 +31,11 @@ type ExternalQualification struct {
 	Status  string `json:"status"`
 }
 
+type ReleaseProofManifest struct {
+	Identifier string `json:"identifier"`
+	Digest     string `json:"digest"`
+}
+
 type ReleaseManifest struct {
 	Release                 string                  `json:"release"`
 	Status                  string                  `json:"status"`
@@ -43,7 +48,7 @@ type ReleaseManifest struct {
 	CompositionSemanticHash string                  `json:"compositionSemanticHash"`
 	ParitySemanticHash      string                  `json:"paritySemanticHash"`
 	Experiments             map[string]string       `json:"experiments"`
-	ProofManifests          []string                `json:"proofManifests"`
+	ProofManifests          []ReleaseProofManifest  `json:"proofManifests"`
 	Profiles                []string                `json:"profiles"`
 	Migration               ReleaseMigration        `json:"migration"`
 	Evidence                []ReleaseEvidence       `json:"evidence"`
@@ -85,6 +90,19 @@ func (m ReleaseManifest) Validate() error {
 		if identifier == "" || !validHash(hash) {
 			return errors.New("release experiment identity and semantic hash are required")
 		}
+	}
+	proofManifestIdentifiers := make(map[string]struct{}, len(m.ProofManifests))
+	for _, manifest := range m.ProofManifests {
+		if manifest.Identifier == "" {
+			return errors.New("release proof manifest identity is required")
+		}
+		if !validHash(manifest.Digest) {
+			return fmt.Errorf("release proof manifest digest for %q is invalid", manifest.Identifier)
+		}
+		if _, duplicate := proofManifestIdentifiers[manifest.Identifier]; duplicate {
+			return fmt.Errorf("release contains duplicate proof manifest %q", manifest.Identifier)
+		}
+		proofManifestIdentifiers[manifest.Identifier] = struct{}{}
 	}
 	requiredProfiles := []string{
 		"local-in-process", "ci-test-cluster", "remote-deployment", "grpc-only-black-box", "production-canary",
@@ -187,6 +205,10 @@ func (m ReleaseManifest) ValidateAgainstCurrent() error {
 	if err != nil {
 		return err
 	}
+	proofManifests, err := DefaultProofManifests()
+	if err != nil {
+		return err
+	}
 	for name, values := range map[string][2]string{
 		"catalog": {m.CatalogHash, catalogHash}, "descriptor": {m.DescriptorHash, protobuf.DescriptorDigest},
 		"monitor":     {m.MonitorSemanticHash, monitors.SemanticHash},
@@ -195,6 +217,23 @@ func (m ReleaseManifest) ValidateAgainstCurrent() error {
 	} {
 		if values[0] != values[1] {
 			return fmt.Errorf("release %s hash %q does not match current %q", name, values[0], values[1])
+		}
+	}
+	currentProofManifests := make(map[string]string, len(proofManifests))
+	for _, manifest := range proofManifests {
+		digest, err := manifest.Digest()
+		if err != nil {
+			return err
+		}
+		currentProofManifests[manifest.Identifier] = digest
+	}
+	if len(m.ProofManifests) != len(currentProofManifests) {
+		return errors.New("release proof manifests do not match current proof manifests")
+	}
+	for _, manifest := range m.ProofManifests {
+		currentDigest, exists := currentProofManifests[manifest.Identifier]
+		if !exists || manifest.Digest != currentDigest {
+			return fmt.Errorf("release proof manifest %q does not match current artifact", manifest.Identifier)
 		}
 	}
 	if m.Status == "qualified" {
@@ -209,8 +248,8 @@ func (m ReleaseManifest) ValidateAgainstCurrent() error {
 }
 
 func validateQualifiedComposition(composition Composition) error {
-	if composition.ResultClass == ResultClassMetadataValidated {
-		return errors.New("qualified release composition evidence is metadata-only")
+	if composition.ResultClass != ResultClassCompositionProved {
+		return errors.New("qualified release composition evidence is not proof-backed")
 	}
 	if len(composition.MissingMetadata()) != 0 {
 		return errors.New("qualified release composition has missing metadata")
@@ -219,8 +258,8 @@ func validateQualifiedComposition(composition Composition) error {
 }
 
 func validateQualifiedParity(parity ParityLedger) error {
-	if parity.ResultClass == ResultClassMetadataValidated {
-		return errors.New("qualified release parity evidence is metadata-only")
+	if parity.ResultClass != ResultClassEvidenceResolved {
+		return errors.New("qualified release parity evidence is not declaration-resolved")
 	}
 	for _, entry := range parity.Entries {
 		if entry.EvidenceStatus != MetadataPresent || entry.Disposition == ParityNotYetImplemented ||

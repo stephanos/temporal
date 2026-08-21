@@ -20,17 +20,18 @@ import (
 type CoverageKind string
 
 const (
-	CoverageTransition CoverageKind = "transition"
-	CoverageProperty   CoverageKind = "property"
-	CoverageRelation   CoverageKind = "relation"
-	CoverageRefinement CoverageKind = "refinement"
-	CoverageEvidence   CoverageKind = "evidence"
-	CoverageProtobuf   CoverageKind = "protobuf-field-class"
-	CoverageFault      CoverageKind = "fault"
-	CoverageSchedule   CoverageKind = "schedule"
-	CoverageTopology   CoverageKind = "topology"
-	CoverageProfile    CoverageKind = "profile"
-	CoverageAction     CoverageKind = "action"
+	CoverageTransition  CoverageKind = "transition"
+	CoverageProperty    CoverageKind = "property"
+	CoverageRelation    CoverageKind = "relation"
+	CoverageRefinement  CoverageKind = "refinement"
+	CoverageObservation CoverageKind = "observation"
+	CoverageEvidence    CoverageKind = "evidence"
+	CoverageProtobuf    CoverageKind = "protobuf-field-class"
+	CoverageFault       CoverageKind = "fault"
+	CoverageSchedule    CoverageKind = "schedule"
+	CoverageTopology    CoverageKind = "topology"
+	CoverageProfile     CoverageKind = "profile"
+	CoverageAction      CoverageKind = "action"
 )
 
 type DropReason string
@@ -57,6 +58,9 @@ type Executor func(context.Context, protocol.Experiment) (umpire3runtime.Result,
 
 type Request struct {
 	Candidates       []Candidate
+	BackendResults   []protocol.BackendResult
+	TraceReceipts    []protocol.TraceReplayReceipt
+	TemporalLassos   []protocol.TemporalLassoReplayReceipt
 	Mutation         *MutationRequest
 	Seed             int64
 	Workers          int
@@ -124,6 +128,7 @@ type rankedExperiment struct {
 	digest      string
 	score       int
 	seedOrder   uint64
+	coverage    []CoveragePoint
 }
 
 type executionResult struct {
@@ -134,8 +139,23 @@ type executionResult struct {
 }
 
 func Run(ctx context.Context, request Request) (Report, error) {
-	if request.Executor == nil || request.Workers <= 0 || request.MaxExecutions <= 0 ||
-		(len(request.Candidates) == 0) == (request.Mutation == nil) {
+	sources := 0
+	if len(request.Candidates) != 0 {
+		sources++
+	}
+	if len(request.BackendResults) != 0 {
+		sources++
+	}
+	if len(request.TraceReceipts) != 0 {
+		sources++
+	}
+	if len(request.TemporalLassos) != 0 {
+		sources++
+	}
+	if request.Mutation != nil {
+		sources++
+	}
+	if request.Executor == nil || request.Workers <= 0 || request.MaxExecutions <= 0 || sources != 1 {
 		return Report{}, errors.New("campaign requires exactly one candidate source plus an executor, workers, and execution budget")
 	}
 	report := Report{CoverageBefore: normalizeCoverage(request.CorpusCoverage)}
@@ -150,14 +170,43 @@ func Run(ctx context.Context, request Request) (Report, error) {
 		}
 		report.Mutation = &mutations
 		for _, mutation := range mutations.Selected {
+			coverage, err := modelCoverage(mutation.Experiment)
+			if err != nil {
+				return Report{}, err
+			}
 			ranked = append(ranked, rankedExperiment{
 				candidateID: string(mutation.Kind) + ":" + mutation.Path,
 				mutation:    mutation.Kind, path: mutation.Path,
-				experiment: mutation.Experiment, digest: mutation.Digest,
+				experiment: mutation.Experiment, digest: mutation.Digest, coverage: coverage,
 			})
 		}
 	} else {
-		for _, candidate := range request.Candidates {
+		candidates := append([]Candidate(nil), request.Candidates...)
+		for _, backend := range request.BackendResults {
+			identifier := scenario.ModelTraceIdentifier(backend)
+			authored, err := scenario.FromBackendResult(identifier, backend)
+			if err != nil {
+				return Report{}, fmt.Errorf("compile backend result %q: %w", identifier, err)
+			}
+			candidates = append(candidates, Candidate{Identifier: identifier, Scenario: authored})
+		}
+		for _, receipt := range request.TraceReceipts {
+			identifier := scenario.TraceReceiptIdentifier(receipt)
+			authored, err := scenario.FromTraceReplayReceipt(identifier, receipt)
+			if err != nil {
+				return Report{}, fmt.Errorf("compile checked trace receipt %q: %w", identifier, err)
+			}
+			candidates = append(candidates, Candidate{Identifier: identifier, Scenario: authored})
+		}
+		for _, receipt := range request.TemporalLassos {
+			identifier := scenario.TemporalLassoIdentifier(receipt)
+			authored, err := scenario.FromTemporalLassoReplayReceipt(identifier, receipt)
+			if err != nil {
+				return Report{}, fmt.Errorf("compile checked temporal lasso %q: %w", identifier, err)
+			}
+			candidates = append(candidates, Candidate{Identifier: identifier, Scenario: authored})
+		}
+		for _, candidate := range candidates {
 			if candidate.Identifier == "" {
 				report.Dropped = append(report.Dropped, Dropped{Reason: DropUnsupported, Detail: "candidate identifier is required"})
 				continue
@@ -170,6 +219,11 @@ func Run(ctx context.Context, request Request) (Report, error) {
 				continue
 			}
 			for index, experiment := range suite.Experiments {
+				derived, err := modelCoverage(experiment)
+				if err != nil {
+					return Report{}, fmt.Errorf("derive candidate %q coverage: %w", candidate.Identifier, err)
+				}
+				coverage := normalizeCoverage(append(append([]CoveragePoint(nil), candidate.Coverage...), derived...))
 				digest := suite.Digests[index]
 				if _, duplicate := seenDigests[digest]; duplicate {
 					report.Dropped = append(report.Dropped, Dropped{
@@ -180,7 +234,8 @@ func Run(ctx context.Context, request Request) (Report, error) {
 				seenDigests[digest] = struct{}{}
 				ranked = append(ranked, rankedExperiment{
 					candidateID: candidate.Identifier, experiment: experiment, digest: digest,
-					score: campaignScore(candidate, covered, risk), seedOrder: seededOrder(request.Seed, digest),
+					coverage: coverage,
+					score:    campaignScore(coverage, candidate.Risk, covered, risk), seedOrder: seededOrder(request.Seed, digest),
 				})
 			}
 		}
@@ -212,7 +267,7 @@ func Run(ctx context.Context, request Request) (Report, error) {
 		if execution.err != nil {
 			return Report{}, fmt.Errorf("execute candidate %q: %w", execution.ranked.candidateID, execution.err)
 		}
-		coverage := normalizeCoverage(execution.coverage)
+		coverage := normalizeCoverage(append(append([]CoveragePoint(nil), execution.ranked.coverage...), execution.coverage...))
 		report.Executions = append(report.Executions, Execution{
 			CandidateID: execution.ranked.candidateID, Mutation: execution.ranked.mutation,
 			Path: execution.ranked.path, Digest: execution.ranked.digest,
@@ -599,19 +654,35 @@ func targetForExperiment(experiment protocol.Experiment) protocol.TargetID {
 	return ""
 }
 
-func campaignScore(candidate Candidate, covered, risk map[CoveragePoint]struct{}) int {
+func campaignScore(candidateCoverage, candidateRisk []CoveragePoint, covered, risk map[CoveragePoint]struct{}) int {
 	score := 0
-	for _, point := range normalizeCoverage(candidate.Coverage) {
+	for _, point := range normalizeCoverage(candidateCoverage) {
 		if _, exists := covered[point]; !exists {
 			score += 10
 		}
 	}
-	for _, point := range normalizeCoverage(candidate.Risk) {
+	for _, point := range normalizeCoverage(candidateRisk) {
 		if _, focused := risk[point]; focused {
 			score += 100
 		}
 	}
 	return score
+}
+
+func modelCoverage(experiment protocol.Experiment) ([]CoveragePoint, error) {
+	denominator, err := protocol.DefaultCoverageDenominator()
+	if err != nil {
+		return nil, err
+	}
+	points, err := denominator.PointsForExperiment(experiment)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]CoveragePoint, len(points))
+	for index, point := range points {
+		result[index] = CoveragePoint{Kind: CoverageKind(point.Dimension), Identifier: point.Identifier}
+	}
+	return result, nil
 }
 
 func seededOrder(seed int64, digest string) uint64 {

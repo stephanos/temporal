@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -30,6 +31,32 @@ func TestResolveSourceDependenciesFollowsLocalLeanImports(t *testing.T) {
 	require.Empty(t, dependencies[1].Imports)
 	require.Equal(t, []string{"Feature/Model.lean"}, dependencies[2].Imports)
 	require.Empty(t, dependencies[3].Imports)
+}
+
+func TestRunLeanRebuildsChangedImports(t *testing.T) {
+	root, err := os.MkdirTemp("../../model", ".export-stale-import-")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(root))
+	})
+	for name, contents := range map[string]string{
+		"lean-toolchain": "leanprover/lean4:v4.33.0\n",
+		"lakefile.toml":  "name = \"export-stale-import-test\"\ndefaultTargets = [\"Dep\"]\n[[lean_lib]]\nname = \"Dep\"\n",
+		"Dep.lean":       "def exportedValue : String := \"before\"\n",
+		"Main.lean":      "import Dep\ndef main : IO Unit := IO.println exportedValue\n",
+	} {
+		require.NoError(t, os.WriteFile(filepath.Join(root, name), []byte(contents), 0o600))
+	}
+	command := exec.Command("mise", "exec", "--", "lake", "build")
+	command.Dir = root
+	output, err := command.CombinedOutput()
+	require.NoErrorf(t, err, "initial Lean build: %s", output)
+	require.NoError(t, os.WriteFile(filepath.Join(root, "Dep.lean"),
+		[]byte("def exportedValue : String := \"after\"\n"), 0o600))
+
+	output, err = runLean(root, "Main.lean", "semantic-hash", "")
+	require.NoError(t, err)
+	require.Equal(t, "after\n", string(output))
 }
 
 func TestExportCatalogRunsLeanAndProducesValidatedCatalog(t *testing.T) {
@@ -141,9 +168,11 @@ func TestExportObservationCatalogRunsLeanAndIncludesCheckedFixtures(t *testing.T
 
 	catalog, err := observation.DecodeCatalog(output.Bytes())
 	require.NoError(t, err)
-	require.Len(t, catalog.Programs, 3)
-	require.Len(t, catalog.Fixtures, 6)
+	require.Len(t, catalog.Programs, 18)
+	require.Len(t, catalog.Fixtures, 21)
 	_, ok := catalog.Program(protocol.ObservationIDStaleSuccessAbsent)
+	require.True(t, ok)
+	_, ok = catalog.Program(protocol.ObservationIDWorkflowOwnershipFenced)
 	require.True(t, ok)
 }
 
@@ -153,7 +182,7 @@ func TestExportCompositionRunsLeanAndReportsObligations(t *testing.T) {
 
 	composition, err := protocol.DecodeComposition(output.Bytes())
 	require.NoError(t, err)
-	require.Equal(t, protocol.ResultClassMetadataValidated, composition.ResultClass)
+	require.Equal(t, protocol.ResultClassCompositionProved, composition.ResultClass)
 	require.Len(t, composition.Targets, 15)
 	require.Empty(t, composition.MissingMetadata())
 }
@@ -181,11 +210,11 @@ func TestExportParityLedgerRunsLeanAndCoversInventory(t *testing.T) {
 			require.FailNow(t, "unexpected evidence metadata status", entry.EvidenceStatus)
 		}
 	}
-	require.Equal(t, 16, complete)
-	require.Equal(t, 4, incomplete)
+	require.Equal(t, 20, complete)
+	require.Zero(t, incomplete)
 }
 
-func TestExportCoverageDenominatorRunsLeanAndCoversNexusLifecycle(t *testing.T) {
+func TestExportCoverageDenominatorRunsLeanAndDefinesEveryTarget(t *testing.T) {
 	var output bytes.Buffer
 	require.NoError(t, exportCoverageDenominator("../../model", coverageSpec, &output))
 
@@ -198,13 +227,10 @@ func TestExportCoverageDenominatorRunsLeanAndCoversNexusLifecycle(t *testing.T) 
 		targetProperties += len(target.Properties)
 	}
 	require.Len(t, denominator.Targets, targetProperties)
-	defined := 0
 	for _, target := range denominator.Targets {
-		if target.Status == protocol.CoverageDenominatorDefined {
-			defined++
-		}
+		require.Equal(t, protocol.CoverageDenominatorDefined, target.Status)
+		require.NotEmpty(t, target.Points)
 	}
-	require.Equal(t, 1, defined)
 	require.Len(t, denominator.Targets[0].Edges, 17)
 }
 

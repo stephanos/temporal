@@ -2,6 +2,7 @@ import Lean.Data.Json
 import Lean.Elab.Term
 import Lean.Util.CollectAxioms
 import Temporal.Targets.NexusCancellationFencing
+import Umpire3.Registration
 import Umpire3.TraceReplay
 
 namespace Umpire3
@@ -60,6 +61,7 @@ open Lean Elab Term in
     | throwUnsupportedSyntax
   let declarationName ← realizeGlobalConstNoOverloadWithInfo theoremName
   let axioms ← collectAxioms declarationName
+  rejectForbiddenAxioms theoremName axioms
   let axioms := axioms.map toString |>.qsort (· < ·) |>.map Syntax.mkStrLit
   let expanded ← `([$[$axioms],*])
   withMacroExpansion stx expanded <| elabTerm expanded expectedType?

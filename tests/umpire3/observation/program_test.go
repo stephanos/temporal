@@ -52,6 +52,36 @@ func TestGeneratedObservationFixturesDetectWrongMapping(t *testing.T) {
 	require.ErrorContains(t, catalog.Validate(), "fixture")
 }
 
+func TestAllExistAbsentWhenClosedRequiresCompletePositiveEvidence(t *testing.T) {
+	program := Program{
+		Observation: "complete-cancellation",
+		Operation:   OperationAllExistAbsentWhenClosed,
+		Matches: []Selector{
+			{FactType: FactTypeHistoryEvent, Kind: NexusCancellationAccepted},
+			{FactType: FactTypeHistoryEvent, Kind: NexusCancellationCommitted},
+		},
+		Violations: []Selector{{FactType: FactTypeHistoryEvent, Kind: NexusSuccessRecorded}},
+		Closures: []Selector{{
+			FactType: FactTypeEvidenceWindow, Kind: NexusCancellationWindow, Closed: boolPointer(true),
+		}},
+	}
+	accepted := historyFact("history/accepted", NexusCancellationAccepted, 1)
+	committed := historyFact("history/committed", NexusCancellationCommitted, 2)
+	closed := windowFact("window/closed", true, 4)
+	violation := historyFact("history/violation", NexusSuccessRecorded, 3)
+	violation.History.OwnerEpoch = int64Pointer(1)
+	violation.History.CurrentOwnerEpoch = int64Pointer(1)
+	violation.History.CancellationCommitted = boolPointer(false)
+
+	require.Equal(t, Evaluation{Value: Unknown}, program.Evaluate([]Fact{accepted, closed}))
+	require.Equal(t, Evaluation{Value: Unknown}, program.Evaluate([]Fact{accepted, committed}))
+	require.Equal(t, Evaluation{
+		Value: True, Support: []string{"history/accepted", "history/committed", "window/closed"},
+	}, program.Evaluate([]Fact{accepted, committed, closed}))
+	require.Equal(t, Evaluation{Value: False, Support: []string{"history/violation"}},
+		program.Evaluate([]Fact{accepted, committed, violation, closed}))
+}
+
 func TestFactValidationRejectsUntypedOrUnboundedEvidence(t *testing.T) {
 	fact := historyFact("history/stale-success", "nexus-success-recorded", 3)
 	fact.History.OwnerEpoch = int64Pointer(1)

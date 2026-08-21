@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"flag"
@@ -24,12 +23,11 @@ func main() {
 func run(arguments []string) error {
 	flags := flag.NewFlagSet("umpire3-veil", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	operation := flags.String("operation", "generate", "generate, check, or normalize")
+	operation := flags.String("operation", "generate", "generate or check")
 	input := flags.String("input", "", "path to a FirstOrderView/v1 artifact")
 	output := flags.String("output", "", "path for generated output")
 	mode := flags.String("mode", string(veil.Interactive), "Veil job mode")
 	trust := flags.String("smt-trust", string(veil.ReconstructedSMT), "SMT trust mode")
-	rawResult := flags.String("raw-result", "", "path to raw Veil model-checker JSON")
 	backendCommand := flags.String("backend-command", "", "path to the Veil concrete checker executable")
 	replayCommand := flags.String("replay-command", "", "path to the canonical Lean replay executable")
 	job := flags.String("job", "", "symbolic-trace or invariant Veil job")
@@ -73,40 +71,6 @@ func run(arguments []string) error {
 			return err
 		}
 		return writeBackendResult(*output, result)
-	case "normalize":
-		if *rawResult == "" {
-			return errors.New("raw-result is required for normalization")
-		}
-		raw, err := readBoundedFile(*rawResult, protocol.DefaultDecodeLimit)
-		if err != nil {
-			return fmt.Errorf("read raw Veil result: %w", err)
-		}
-		generated, err := veil.Generate(view, veil.Concrete)
-		if err != nil {
-			return err
-		}
-		replayInput, err := veil.ConcreteReplayInput(view, generated, bytes.NewReader(raw),
-			protocol.DefaultDecodeLimit)
-		if err != nil {
-			return err
-		}
-		var receipt *protocol.TraceReplayReceipt
-		if replayInput != nil {
-			if *replayCommand == "" {
-				return errors.New("replay-command is required for a Veil counterexample")
-			}
-			accepted, err := veil.Replay(context.Background(), []string{*replayCommand}, *replayInput)
-			if err != nil {
-				return err
-			}
-			receipt = &accepted
-		}
-		result, err := veil.NormalizeConcreteOutput(view, generated, bytes.NewReader(raw),
-			protocol.DefaultDecodeLimit, receipt)
-		if err != nil {
-			return err
-		}
-		return writeBackendResult(*output, result)
 	case "check-job":
 		if *jobCommand == "" {
 			return errors.New("job-command is required for a checked Veil job")
@@ -145,22 +109,6 @@ func readFirstOrderView(path string) (protocol.FirstOrderView, error) {
 		return protocol.FirstOrderView{}, fmt.Errorf("decode first-order view: %w", errors.Join(decodeErr, closeErr))
 	}
 	return view, nil
-}
-
-func readBoundedFile(path string, limit int64) ([]byte, error) {
-	input, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	encoded, readErr := io.ReadAll(io.LimitReader(input, limit+1))
-	closeErr := input.Close()
-	if readErr != nil || closeErr != nil {
-		return nil, errors.Join(readErr, closeErr)
-	}
-	if int64(len(encoded)) > limit {
-		return nil, fmt.Errorf("input exceeds %d-byte limit", limit)
-	}
-	return encoded, nil
 }
 
 func writeOutput(path string, value []byte) error {

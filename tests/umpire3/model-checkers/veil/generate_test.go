@@ -139,6 +139,11 @@ func testView() protocol.FirstOrderView {
 		Variant:        "sound",
 		SemanticHash:   "sha256:0000000000000000000000000000000000000000000000000000000000000000",
 		CanonicalModel: "Umpire3.Temporal.System.NexusCancellationFencing.behavior",
+		Resources: []protocol.FirstOrderResource{{
+			Identifier: "operation", Kind: protocol.EntityKindNexusOperation,
+		}},
+		LiveOnlyActions:  []protocol.ActionKind{},
+		ActivatingFaults: []protocol.FaultKind{},
 		Relation: protocol.FirstOrderRelation{
 			Declaration: "Umpire3.Temporal.Targets.NexusCancellationFencing.firstOrderView",
 			Axioms:      []string{},

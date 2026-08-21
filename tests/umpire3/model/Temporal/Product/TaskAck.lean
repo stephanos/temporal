@@ -9,6 +9,7 @@ inductive State where
   | queued
   | delivered
   | acknowledged
+  | acknowledgedWithBacklog
   deriving DecidableEq, Inhabited, Repr
 
 inductive Command where
@@ -54,10 +55,38 @@ def BacklogAbsent : State → Prop
   | .empty | .acknowledged => True
   | _ => False
 
-theorem acknowledged_removes_backlog : BacklogAbsent .acknowledged := by trivial
+def Acknowledged : State → Prop
+  | .acknowledged | .acknowledgedWithBacklog => True
+  | _ => False
 
-theorem acknowledgementMutationNegativeControl : ¬BacklogAbsent .delivered := by
-  simp [BacklogAbsent]
+def AcknowledgementConsistent (state : State) : Prop :=
+  Acknowledged state → BacklogAbsent state
+
+theorem successorAcknowledgementConsistent {state action nextState}
+    (transition : product.Step state action nextState) :
+    AcknowledgementConsistent nextState := by
+  cases state <;> cases action <;> cases nextState <;>
+    simp [step, AcknowledgementConsistent, Acknowledged, BacklogAbsent] at transition ⊢
+
+theorem runsPreserveAcknowledgementConsistency {start actions final}
+    (run : Runs product start actions final)
+    (consistent : AcknowledgementConsistent start) :
+    AcknowledgementConsistent final := by
+  induction run with
+  | nil => exact consistent
+  | cons transition _ induction =>
+      exact induction (successorAcknowledgementConsistent transition)
+
+theorem acknowledged_removes_backlog : Safety product AcknowledgementConsistent := by
+  intro state reachable
+  rcases reachable with ⟨start, actions, initialState, run⟩
+  subst start
+  exact runsPreserveAcknowledgementConsistency run (by
+    simp [AcknowledgementConsistent, Acknowledged])
+
+theorem acknowledgementMutationNegativeControl :
+    ¬AcknowledgementConsistent .acknowledgedWithBacklog := by
+  simp [AcknowledgementConsistent, Acknowledged, BacklogAbsent]
 
 theorem acknowledged_is_stable {action nextState}
     (transition : product.Step .acknowledged action nextState) : nextState = .acknowledged := by
@@ -90,7 +119,7 @@ def declaration : LifecycleDeclaration where
   }
   target := {
     identifier := "foundation-backlog-ack"
-    modules := ["Temporal.Product.TaskAck"]
+    modules := ["Temporal.Product.TaskAck", "Temporal.System.TaskAck", "Temporal.Refinement.TaskAck"]
     properties := ["task-delivery.acknowledged-removes-backlog"]
   }
 

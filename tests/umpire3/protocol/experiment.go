@@ -169,10 +169,55 @@ func DecodeExperiment(reader io.Reader, limit int64) (Experiment, error) {
 	if err := decodeStrictJSON(reader, limit, "experiment", &experiment); err != nil {
 		return Experiment{}, err
 	}
+	if err := experiment.resolveDerivedStatements(); err != nil {
+		return Experiment{}, err
+	}
 	if err := experiment.Validate(); err != nil {
 		return Experiment{}, err
 	}
 	return experiment, nil
+}
+
+func (e *Experiment) resolveDerivedStatements() error {
+	if e.Property.StatementHash == "derived" {
+		catalog, err := DefaultCatalog()
+		if err != nil {
+			return err
+		}
+		property, ok := catalog.Property(e.Property.Identifier)
+		if !ok {
+			return fmt.Errorf("derive unknown property %q", e.Property.Identifier)
+		}
+		e.Property.StatementHash = property.StatementHash
+	}
+	for index := range e.Scope.Assumptions {
+		assumption := &e.Scope.Assumptions[index]
+		if !strings.HasPrefix(assumption.StatementHash, "derived:") {
+			continue
+		}
+		identifier := strings.TrimPrefix(assumption.StatementHash, "derived:")
+		if identifier != assumption.Identifier {
+			return fmt.Errorf("derived assumption %q does not match %q", identifier, assumption.Identifier)
+		}
+		composition, err := DefaultComposition()
+		if err != nil {
+			return err
+		}
+		resolved := false
+		for _, module := range composition.Modules {
+			for _, guarantee := range module.Provides {
+				if guarantee.Identifier == identifier {
+					assumption.StatementHash = guarantee.StatementHash
+					resolved = true
+					break
+				}
+			}
+		}
+		if !resolved {
+			return fmt.Errorf("derived assumption %q has no registered guarantee", identifier)
+		}
+	}
+	return nil
 }
 
 func (e Experiment) Validate() error {

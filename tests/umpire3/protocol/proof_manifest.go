@@ -1,7 +1,9 @@
 package protocol
 
 import (
+	"bytes"
 	"crypto/sha256"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -11,6 +13,12 @@ import (
 )
 
 const ProofManifestFormatVersion = "umpire3/proof-manifest/v3"
+
+//go:embed generated/nexus-proof-manifest.json
+var defaultNexusProofManifestJSON []byte
+
+//go:embed generated/update-proof-manifest.json
+var defaultUpdateProofManifestJSON []byte
 
 type ProofDependency struct {
 	Identifier    string `json:"identifier"`
@@ -94,6 +102,24 @@ func DecodeProofManifest(reader io.Reader, limit int64) (ProofManifest, error) {
 	return manifest, nil
 }
 
+func DefaultProofManifests() ([]ProofManifest, error) {
+	encodedManifests := [][]byte{defaultNexusProofManifestJSON, defaultUpdateProofManifestJSON}
+	manifests := make([]ProofManifest, 0, len(encodedManifests))
+	identifiers := make(map[string]struct{}, len(encodedManifests))
+	for _, encoded := range encodedManifests {
+		manifest, err := DecodeProofManifest(bytes.NewReader(encoded), DefaultDecodeLimit)
+		if err != nil {
+			return nil, err
+		}
+		if _, duplicate := identifiers[manifest.Identifier]; duplicate {
+			return nil, fmt.Errorf("duplicate default proof manifest %q", manifest.Identifier)
+		}
+		identifiers[manifest.Identifier] = struct{}{}
+		manifests = append(manifests, manifest)
+	}
+	return manifests, nil
+}
+
 func (m ProofManifest) Validate() error {
 	if m.FormatVersion != ProofManifestFormatVersion || m.Identifier == "" || m.Theorem == "" ||
 		m.Statement == "" || m.LeanVersion == "" {
@@ -119,6 +145,9 @@ func (m ProofManifest) Validate() error {
 	for _, axiom := range m.Axioms {
 		if axiom == "" {
 			return errors.New("proof axiom identity is required")
+		}
+		if axiom == "sorryAx" || axiom == "Lean.ofReduceBool" {
+			return fmt.Errorf("proof manifest depends on forbidden axiom %q", axiom)
 		}
 	}
 	if m.StatementHash != digestBytes([]byte(m.Statement)) {

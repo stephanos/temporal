@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-const ParityFormatVersion = "umpire3/parity-ledger/v3"
+const ParityFormatVersion = "umpire3/parity-ledger/v4"
 
 type ParityCategory string
 
@@ -45,10 +45,10 @@ const (
 )
 
 type ParityEvidence struct {
-	Proof           string `json:"proof"`
-	Executable      string `json:"executable"`
-	Monitor         string `json:"monitor"`
-	NegativeControl string `json:"negativeControl"`
+	Proof           ResolvedDeclaration `json:"proof"`
+	Executable      ResolvedDeclaration `json:"executable"`
+	Monitor         ResolvedDeclaration `json:"monitor"`
+	NegativeControl ResolvedDeclaration `json:"negativeControl"`
 }
 
 type ParityEntry struct {
@@ -64,12 +64,15 @@ type ParityEntry struct {
 }
 
 type ParityLedger struct {
-	FormatVersion string        `json:"formatVersion"`
-	ResultClass   ResultClass   `json:"resultClass"`
-	TrustBadge    TrustBadge    `json:"trustBadge"`
-	SemanticHash  string        `json:"semanticHash"`
-	CatalogHash   string        `json:"catalogHash"`
-	Entries       []ParityEntry `json:"entries"`
+	FormatVersion    string        `json:"formatVersion"`
+	ResultClass      ResultClass   `json:"resultClass"`
+	TrustBadge       TrustBadge    `json:"trustBadge"`
+	SemanticHash     string        `json:"semanticHash"`
+	SourceDigest     string        `json:"sourceDigest"`
+	DependencyDigest string        `json:"dependencyDigest"`
+	ArtifactDigest   string        `json:"artifactDigest"`
+	CatalogHash      string        `json:"catalogHash"`
+	Entries          []ParityEntry `json:"entries"`
 }
 
 //go:embed generated/parity-ledger.json
@@ -80,6 +83,7 @@ func DecodeParityLedger(encoded []byte) (ParityLedger, error) {
 	if err := decodeStrictJSON(bytes.NewReader(encoded), DefaultDecodeLimit, "parity ledger", &ledger); err != nil {
 		return ParityLedger{}, err
 	}
+	ledger.derive()
 	if err := ledger.Validate(); err != nil {
 		return ParityLedger{}, err
 	}
@@ -91,9 +95,10 @@ func DefaultParityLedger() (ParityLedger, error) {
 }
 
 func (l ParityLedger) Validate() error {
-	if l.FormatVersion != ParityFormatVersion || l.ResultClass != ResultClassMetadataValidated ||
-		l.TrustBadge != TrustBadgeKernel || !validHash(l.SemanticHash) || len(l.Entries) == 0 {
-		return errors.New("metadata-validated parity ledger provenance and entries are required")
+	if l.FormatVersion != ParityFormatVersion || l.ResultClass != ResultClassEvidenceResolved ||
+		!validHash(l.SemanticHash) || l.SourceDigest != l.SemanticHash || !validHash(l.DependencyDigest) ||
+		len(l.Entries) == 0 {
+		return errors.New("resolved parity ledger provenance and entries are required")
 	}
 	catalog, err := DefaultCatalog()
 	if err != nil {
@@ -115,6 +120,7 @@ func (l ParityLedger) Validate() error {
 		targets[target.Identifier] = struct{}{}
 	}
 	identities := make(map[string]struct{}, len(l.Entries))
+	var declarations []ResolvedDeclaration
 	for _, entry := range l.Entries {
 		if entry.LegacyName == "" || entry.SemanticIdentifier == "" || entry.Owner == "" {
 			return errors.New("every parity entry requires legacy, semantic, and owner identity")
@@ -160,10 +166,16 @@ func (l ParityLedger) Validate() error {
 			if entry.EvidenceStatus != MetadataPresent {
 				return fmt.Errorf("parity entry %q claims equivalence with missing evidence metadata", entry.LegacyName)
 			}
-			if entry.Evidence.Proof == "" || entry.Evidence.Executable == "" ||
-				entry.Evidence.Monitor == "" || entry.Evidence.NegativeControl == "" {
-				return fmt.Errorf("parity entry %q requires complete evidence", entry.LegacyName)
+			entryDeclarations := []ResolvedDeclaration{
+				entry.Evidence.Proof, entry.Evidence.Executable,
+				entry.Evidence.Monitor, entry.Evidence.NegativeControl,
 			}
+			for _, declaration := range entryDeclarations {
+				if err := declaration.Validate(); err != nil {
+					return fmt.Errorf("parity entry %q requires complete evidence: %w", entry.LegacyName, err)
+				}
+			}
+			declarations = append(declarations, entryDeclarations...)
 		case ParityIntentionallyUnsupported, ParityNotYetImplemented:
 			if entry.Fidelity != FidelityPartial && entry.Fidelity != FidelityInventoryOnly {
 				return fmt.Errorf("incomplete parity entry %q has fidelity %q", entry.LegacyName, entry.Fidelity)
@@ -175,7 +187,43 @@ func (l ParityLedger) Validate() error {
 			return fmt.Errorf("unknown parity disposition %q", entry.Disposition)
 		}
 	}
+	if l.TrustBadge != aggregateTrustBadge(declarations...) {
+		return errors.New("parity trust badge does not match its resolved axiom inventories")
+	}
+	expectedArtifactDigest, err := l.computedArtifactDigest()
+	if err != nil {
+		return err
+	}
+	if l.ArtifactDigest != expectedArtifactDigest {
+		return errors.New("parity artifact digest does not match its canonical contents")
+	}
 	return nil
+}
+
+func (l *ParityLedger) derive() {
+	for entryIndex := range l.Entries {
+		evidence := &l.Entries[entryIndex].Evidence
+		for _, declaration := range []*ResolvedDeclaration{
+			&evidence.Proof, &evidence.Executable, &evidence.Monitor, &evidence.NegativeControl,
+		} {
+			declaration.derive()
+		}
+	}
+	if l.ArtifactDigest == "derived" {
+		digest, err := l.computedArtifactDigest()
+		if err == nil {
+			l.ArtifactDigest = digest
+		}
+	}
+}
+
+func (l ParityLedger) computedArtifactDigest() (string, error) {
+	l.ArtifactDigest = ""
+	encoded, err := json.Marshal(l)
+	if err != nil {
+		return "", fmt.Errorf("encode parity digest payload: %w", err)
+	}
+	return digestBytes(encoded), nil
 }
 
 func (l ParityLedger) CanonicalJSON() ([]byte, error) {

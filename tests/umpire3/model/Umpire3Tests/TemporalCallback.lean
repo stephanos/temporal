@@ -1,6 +1,5 @@
 import Temporal.Monitors
-import Temporal.Refinement.CallbackReference
-import Temporal.Refinement.CallbackResponse
+import Temporal.Refinement.MigratedFamilies
 
 namespace Umpire3.Tests.TemporalCallback
 
@@ -38,15 +37,37 @@ example :
       { maxDepth := 2, maxResults := 5000 }).all
       (fun execution => Umpire3.Temporal.Product.CallbackReference.referenceConsistencyB execution.2) = true := by decide
 
-def referenceSystemActions : List Umpire3.Temporal.System.CallbackReference.Action := [
-  .observeAttachment .primary .primary .event .workflowStarted .first false,
-  .redeliverAttachment .primary,
-  .observeOperationStart .primary .primary .primary .event .workflowStarted .second false,
+def referenceSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.CallbackReference.Action := [
+  .observeAttachment,
+  .observeMatchingOperation,
 ]
 
-example : Umpire3.Temporal.System.CallbackReference.executable.follow
-    [Umpire3.Temporal.System.CallbackReference.initial] referenceSystemActions =
-    [Umpire3.Temporal.System.CallbackReference.matchingFinal] := by decide
+def wrongReferenceSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.CallbackReference.Action := [
+  .observeAttachment,
+  .observeWrongOperation,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.CallbackReference.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.CallbackReference.initial] referenceSystemActions =
+    [.matchingOperationObserved] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.CallbackReference.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.CallbackReference.initial]
+    wrongReferenceSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.CallbackReference.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.CallbackReference.initial]
+    wrongReferenceSystemActions = [.wrongOperationObserved] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.mutationBreaksDeclaredSimulation
 
 def consistentResponseActions : List Umpire3.Temporal.Product.CallbackResponse.Action := [
   .register .primary .primary .primary,
@@ -83,16 +104,40 @@ example :
       { maxDepth := 2, maxResults := 2500 }).all
       (fun execution => Umpire3.Temporal.Product.CallbackResponse.responseConsistencyB execution.2) = true := by decide
 
-def responseSystemActions : List Umpire3.Temporal.System.CallbackResponse.Action := [
-  .observeRegistration .primary .primary .primary,
-  .observeSettlement .primary .second true,
-  .observeResponse .primary .asyncSuccess .accepted .third,
-  .redeliverResponse .primary,
+def responseSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.Action := [
+  .register,
+  .settle,
+  .respond,
 ]
 
-example : Umpire3.Temporal.System.CallbackResponse.executable.follow
-    [Umpire3.Temporal.System.CallbackResponse.initial] responseSystemActions =
-    [Umpire3.Temporal.System.CallbackResponse.consistentFinal] := by decide
+def conflictingResponseSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.Action := [
+  .register,
+  .settle,
+  .respond,
+  .conflict,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.initial] responseSystemActions =
+    [.responded] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.initial]
+    conflictingResponseSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.initial]
+    conflictingResponseSystemActions = [.conflictingResponse] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.callbackReferenceConsistency.Holds
     (Umpire3.Temporal.Monitors.callbackReferenceObservations

@@ -1,21 +1,27 @@
 {
   "release": "umpire3/1.2",
   "status": "candidate",
-  "formatVersion": "umpire3/release/v1",
+  "formatVersion": "umpire3/release/v2",
   "experimentFormatVersion": "umpire3/v2",
   "leanVersion": "4.33.0",
-  "catalogHash": "sha256:f78ef3aa0280c31256d4b93da364cf4469ddcc6e865abe3155a0afdb51a63af3",
+  "catalogHash": "sha256:66dfa07fa512b5ca17df5d101be900e7a9ba7b60646b0f389119572ac50fb8f8",
   "descriptorHash": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081",
-  "monitorSemanticHash": "sha256:11a68515dc59f34256dc026b7071ad883809f71504bee93f3b24191c622325fb",
-  "compositionSemanticHash": "sha256:7b8f50851961b8465f4b08f5b3fb032e8ec57570f07bc9ef4f1c885cc17206e8",
-  "paritySemanticHash": "sha256:456c48cf5b78f7a1ba07aa6ecfb7183d3baab21cc32cceee41280b4c55537fc7",
+  "monitorSemanticHash": "sha256:d244e0918effb7b18bbf44e4a273083c4b583448acb45fab3ff8d89ccfb38840",
+  "compositionSemanticHash": "sha256:40697d8407c3cd8bd482fdee0a1cc5c2892bec4e14eb9cdee36b8361aeafa9a9",
+  "paritySemanticHash": "sha256:834e46912d32f715511a10c95a429deab215b4aa0750f44042c9cdcaabeb8afb",
   "experiments": {
-    "nexus-cancellation-stale-completion-v1": "sha256:afe7e43b0729513073110472daa23fd9bec6ea0c3f94ad5119bb508b36658cae",
-    "workflow-update-lifecycle-v1": "sha256:ed686266ee125de2b3dd0fa95c0752da73253453da900f4102762f8ede15c609"
+    "nexus-cancellation-stale-completion-v1": "sha256:75ae45565182bfa60be4354df05522c80abbea707850ecd53f9093c6d83c3e4e",
+    "workflow-update-lifecycle-v1": "sha256:479d2132e0200c7b7ba3e0e5c8b63027cc52ac7a62d88e09448ab97b15774b48"
   },
   "proofManifests": [
-    "nexus-tasks-refinement-v1",
-    "update-tasks-refinement-v1"
+    {
+      "identifier": "nexus-tasks-refinement-v1",
+      "digest": "sha256:b5d9136676a5ba6e1b40eecaf82ebfa62c22cd7a9ee4ba82b5d5286263cff688"
+    },
+    {
+      "identifier": "update-lifecycle-simulation-v1",
+      "digest": "sha256:7ba0b532f7fe617b3bcabfdbeb0ec06fb263344a47e642e0f0b2f65b3617cc1a"
+    }
   ],
   "profiles": [
     "local-in-process",

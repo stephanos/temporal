@@ -9,13 +9,16 @@ import (
 )
 
 const validFirstOrderView = `{
-  "formatVersion": "umpire3/first-order-view/v1",
+  "formatVersion": "umpire3/first-order-view/v2",
   "target": "nexus-cancellation",
   "property": "nexus.cancellation.won-excludes-success",
   "world": "smoke",
   "variant": "sound",
   "semanticHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "canonicalModel": "Umpire3.Temporal.System.NexusCancellationFencing.behavior",
+  "resources": [{"identifier": "operation", "kind": "nexus-operation"}],
+  "liveOnlyActions": [],
+  "activatingFaults": [],
   "relation": {
     "declaration": "Umpire3.Temporal.Targets.NexusCancellationFencing.firstOrderView",
     "axioms": [],
@@ -61,13 +64,16 @@ func TestDecodeFirstOrderViewValidatesVersionedTypedView(t *testing.T) {
 	view, err := DecodeFirstOrderView(strings.NewReader(validFirstOrderView), DefaultDecodeLimit)
 	require.NoError(t, err)
 	require.Equal(t, FirstOrderView{
-		FormatVersion:  FirstOrderViewFormatVersion,
-		Target:         TargetIDNexusCancellation,
-		Property:       PropertyIDNexusCancellationWonExcludesSuccess,
-		World:          "smoke",
-		Variant:        "sound",
-		SemanticHash:   "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-		CanonicalModel: "Umpire3.Temporal.System.NexusCancellationFencing.behavior",
+		FormatVersion:    FirstOrderViewFormatVersion,
+		Target:           TargetIDNexusCancellation,
+		Property:         PropertyIDNexusCancellationWonExcludesSuccess,
+		World:            "smoke",
+		Variant:          "sound",
+		SemanticHash:     "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		CanonicalModel:   "Umpire3.Temporal.System.NexusCancellationFencing.behavior",
+		Resources:        []FirstOrderResource{{Identifier: "operation", Kind: EntityKindNexusOperation}},
+		LiveOnlyActions:  []ActionKind{},
+		ActivatingFaults: []FaultKind{},
 		Relation: FirstOrderRelation{
 			Declaration: "Umpire3.Temporal.Targets.NexusCancellationFencing.firstOrderView",
 			Axioms:      []string{},

@@ -42,10 +42,11 @@ func TestNormalizeConcreteOutputClassifiesSoundInstanceWithoutCompleteness(t *te
 	require.NoError(t, err)
 
 	result, err := NormalizeConcreteOutput(view, generated, strings.NewReader(soundConcreteOutput),
-		protocol.DefaultDecodeLimit, nil)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.NoError(t, err)
 	require.Equal(t, protocol.ResultClassExternalNoCounterexample, result.ResultClass)
 	require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
+	require.Equal(t, generated.ModelHash, result.GeneratedArtifactDigest)
 	require.False(t, result.Exact)
 	require.Equal(t, []string{protocol.VeilConcreteCollisionOmission}, result.Omissions)
 	require.Nil(t, result.Trace)
@@ -87,13 +88,13 @@ func TestNormalizeConcreteOutputRejectsExplorationCountMismatch(t *testing.T) {
 	wrongCount := strings.Replace(soundConcreteOutput, `"explored_states": 26`,
 		`"explored_states": 25`, 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(wrongCount),
-		protocol.DefaultDecodeLimit, nil)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.ErrorContains(t, err, "invalid Veil no-violation result")
 
 	overLimit := strings.Replace(soundConcreteOutput, `"explored_states": 26`,
 		`"explored_states": 513`, 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(overLimit),
-		protocol.DefaultDecodeLimit, nil)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.ErrorContains(t, err, "beyond the declared limit 512")
 }
 
@@ -103,11 +104,11 @@ func TestNormalizeConcreteOutputMapsMutationTraceAndRequiresReplay(t *testing.T)
 	require.NoError(t, err)
 
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(mutatedConcreteOutput),
-		protocol.DefaultDecodeLimit, nil)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.ErrorContains(t, err, "accepted canonical replay")
 
 	result, err := NormalizeConcreteOutput(view, generated, strings.NewReader(mutatedConcreteOutput),
-		protocol.DefaultDecodeLimit, acceptedReplayReceipt(t, view))
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), acceptedReplayReceipt(t, view))
 	require.NoError(t, err)
 	require.Equal(t, []protocol.TraceStep{
 		{Action: protocol.ActionKindDispatchTask},
@@ -117,6 +118,7 @@ func TestNormalizeConcreteOutputMapsMutationTraceAndRequiresReplay(t *testing.T)
 	}, result.Trace.Steps)
 	require.Equal(t, protocol.ResultClassTraceWitness, result.ResultClass)
 	require.Equal(t, protocol.TrustBadgeCheckedCertificate, result.TrustBadge)
+	require.Equal(t, generated.ModelHash, result.GeneratedArtifactDigest)
 	require.True(t, result.Exact)
 	require.NoError(t, result.Validate())
 }
@@ -161,24 +163,24 @@ func TestNormalizeConcreteOutputRejectsUnknownTransitionAndViolation(t *testing.
 
 	unknownTransition := strings.Replace(mutatedConcreteOutput, "PersistSuccess", "UnknownAction", 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(unknownTransition),
-		protocol.DefaultDecodeLimit, replay)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), replay)
 	require.ErrorContains(t, err, `unknown Veil transition "UnknownAction"`)
 
 	wrongViolation := strings.Replace(mutatedConcreteOutput,
 		"NexusCancellationWonExcludesSuccess", "DifferentProperty", 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(wrongViolation),
-		protocol.DefaultDecodeLimit, replay)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), replay)
 	require.ErrorContains(t, err, "does not match first-order property")
 
 	wrongDigest := *replay
 	wrongDigest.TraceDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(mutatedConcreteOutput),
-		protocol.DefaultDecodeLimit, &wrongDigest)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), &wrongDigest)
 	require.ErrorContains(t, err, "accepted canonical replay")
 
 	representableState := strings.Replace(mutatedConcreteOutput, "<unrepresentable>", "state", 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(representableState),
-		protocol.DefaultDecodeLimit, replay)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), replay)
 	require.ErrorContains(t, err, "unexpected Veil trace state representation")
 }
 
@@ -213,11 +215,11 @@ func TestNormalizeConcreteOutputRejectsUnknownAndTrailingJSON(t *testing.T) {
 
 	unknown := strings.Replace(soundConcreteOutput, `"result":`, `"unknown": true, "result":`, 1)
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(unknown),
-		protocol.DefaultDecodeLimit, nil)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.ErrorContains(t, err, "unknown field")
 
 	_, err = NormalizeConcreteOutput(view, generated, strings.NewReader(soundConcreteOutput+` {}`),
-		protocol.DefaultDecodeLimit, nil)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.ErrorContains(t, err, "multiple JSON values")
 }
 

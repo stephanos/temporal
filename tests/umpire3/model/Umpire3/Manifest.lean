@@ -2,6 +2,7 @@ import Lean.Data.Json
 import Lean.Elab.Term
 import Lean.Util.CollectAxioms
 import Umpire3.Refinement
+import Umpire3.Registration
 
 namespace Umpire3
 
@@ -50,6 +51,29 @@ open Lean Elab Term in
   unless declaration.type.getAppFn.constName? == some ``Refinement do
     throwErrorAt theoremName "resolved refinement manifest declaration must have type Refinement"
   let axioms ← collectAxioms declarationName
+  rejectForbiddenAxioms theoremName axioms
+  let axioms := axioms.qsort Name.lt |>.map (Syntax.mkStrLit ∘ toString)
+  let statement := reprStr declaration.type
+  let expanded ← `(ResolvedProof.mk
+    ProofResultClass.refinementProved
+    $(Syntax.mkStrLit declarationName.toString)
+    $(Syntax.mkStrLit statement)
+    [$[$axioms],*])
+  withMacroExpansion stx expanded <| elabTerm expanded expectedType?
+
+open Lean Elab Term in
+syntax (name := resolvedSimulation) "resolved_simulation% " ident : term
+
+open Lean Elab Term in
+@[term_elab resolvedSimulation] meta def elabResolvedSimulation : TermElab := fun stx expectedType? => do
+  let `(resolved_simulation% $theoremName:ident) := stx
+    | throwUnsupportedSyntax
+  let declarationName ← realizeGlobalConstNoOverloadWithInfo theoremName
+  let declaration ← getConstInfo declarationName
+  unless declaration.type.getAppFn.constName? == some ``SafetySimulation do
+    throwErrorAt theoremName "resolved simulation manifest declaration must have type SafetySimulation"
+  let axioms ← collectAxioms declarationName
+  rejectForbiddenAxioms theoremName axioms
   let axioms := axioms.qsort Name.lt |>.map (Syntax.mkStrLit ∘ toString)
   let statement := reprStr declaration.type
   let expanded ← `(ResolvedProof.mk

@@ -40,7 +40,7 @@ action RequestCancellation {
 }
 
 action AcquireOwnership {
-  require (((lifecycle = Open) ∨ (lifecycle = CancellationAccepted)) ∧ (ownerEpoch = Epoch0))
+  require ((((lifecycle = Open) ∨ (lifecycle = CancellationAccepted)) ∨ (lifecycle = Cancelled)) ∧ (ownerEpoch = Epoch0))
   ownerEpoch := Epoch1
 }
 

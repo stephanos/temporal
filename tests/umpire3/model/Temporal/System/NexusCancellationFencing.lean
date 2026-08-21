@@ -61,7 +61,8 @@ def next (world : World) (state : State) : Action → List State
         [{ state with lifecycle := .cancellationAccepted }]
       else []
   | .acquireOwnership =>
-      if (state.lifecycle = .open ∨ state.lifecycle = .cancellationAccepted) ∧
+      if (state.lifecycle = .open ∨ state.lifecycle = .cancellationAccepted ∨
+          state.lifecycle = .cancelled) ∧
           state.ownerEpoch < world.maxOwnerEpoch then
         [{ state with ownerEpoch := state.ownerEpoch + 1 }]
       else []

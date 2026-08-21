@@ -10,7 +10,7 @@ import (
 )
 
 func TestNexusProofManifestTracksSemanticsAndAssumptions(t *testing.T) {
-	manifestBytes, err := os.ReadFile("../testdata/nexus-proof-manifest.json")
+	manifestBytes, err := os.ReadFile("generated/nexus-proof-manifest.json")
 	require.NoError(t, err)
 	var raw map[string]any
 	require.NoError(t, json.Unmarshal(manifestBytes, &raw))
@@ -42,7 +42,7 @@ func TestNexusProofManifestTracksSemanticsAndAssumptions(t *testing.T) {
 }
 
 func TestProofManifestRejectsNonProofClaimsAndTampering(t *testing.T) {
-	manifestBytes, err := os.ReadFile("../testdata/nexus-proof-manifest.json")
+	manifestBytes, err := os.ReadFile("generated/nexus-proof-manifest.json")
 	require.NoError(t, err)
 	var manifest ProofManifest
 	require.NoError(t, json.Unmarshal(manifestBytes, &manifest))
@@ -77,6 +77,14 @@ func TestProofManifestRejectsNonProofClaimsAndTampering(t *testing.T) {
 		require.Error(t, changed.Validate())
 	})
 
+	for _, forbiddenAxiom := range []string{"sorryAx", "Lean.ofReduceBool"} {
+		t.Run(forbiddenAxiom, func(t *testing.T) {
+			changed := manifest
+			changed.Axioms = []string{forbiddenAxiom}
+			require.ErrorContains(t, changed.Validate(), "forbidden axiom")
+		})
+	}
+
 	t.Run("source graph", func(t *testing.T) {
 		changed := manifest
 		changed.SourceDependencies = append([]SourceDependency(nil), manifest.SourceDependencies...)
@@ -100,12 +108,12 @@ func TestProofManifestRejectsLegacySelfAttestation(t *testing.T) {
 
 func TestCompositionManifestsConsumeSameTaskDeliveryGuarantee(t *testing.T) {
 	var nexus ProofManifest
-	encoded, err := os.ReadFile("../testdata/nexus-proof-manifest.json")
+	encoded, err := os.ReadFile("generated/nexus-proof-manifest.json")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(encoded, &nexus))
 
 	var update ProofManifest
-	encoded, err = os.ReadFile("../testdata/update-proof-manifest.json")
+	encoded, err = os.ReadFile("generated/update-proof-manifest.json")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(encoded, &update))
 	require.NoError(t, update.Validate())

@@ -17,6 +17,14 @@ var backendProcessLimits = process.Limits{
 	MemoryBytes: backendMemoryLimit,
 }
 
+func canonicalExecutionLimits() protocol.BackendExecutionLimits {
+	return protocol.BackendExecutionLimits{
+		TimeoutMillis: canonicalReplayTimeout.Milliseconds(),
+		CPUSeconds:    backendProcessLimits.CPUSeconds, MemoryBytes: backendProcessLimits.MemoryBytes,
+		MaxOutputBytes: protocol.DefaultDecodeLimit,
+	}
+}
+
 func CheckConcrete(
 	ctx context.Context,
 	command []string,
@@ -51,5 +59,5 @@ func CheckConcrete(
 		receipt = &accepted
 	}
 	return NormalizeConcreteOutput(view, generated, bytes.NewReader(checked.Output),
-		protocol.DefaultDecodeLimit, receipt)
+		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), receipt)
 }

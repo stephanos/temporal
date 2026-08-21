@@ -1,6 +1,5 @@
 import Temporal.Monitors
-import Temporal.Refinement.NexusActivityLink
-import Temporal.Refinement.NexusTimeout
+import Temporal.Refinement.MigratedFamilies
 
 namespace Umpire3.Tests.TemporalNexusEvidence
 
@@ -36,18 +35,42 @@ example :
       { maxDepth := 2, maxResults := 1000 }).all
       (fun execution => Umpire3.Temporal.Product.NexusTimeout.timeoutSemanticsB execution.2) = true := by decide
 
-def timeoutSystemActions : List Umpire3.Temporal.System.NexusTimeout.Action := [
-  .observeConfiguration .primary,
-  .observeTimeout .primary .primary .startToClose .operationTimedOut,
+def timeoutSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.Action := [
+  .configure,
+  .recordTimeout,
 ]
 
-example : Umpire3.Temporal.System.NexusTimeout.executable.follow
-    [Umpire3.Temporal.System.NexusTimeout.initial] timeoutSystemActions =
-    [Umpire3.Temporal.System.NexusTimeout.permittedFinal] := by decide
+def malformedTimeoutSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.Action := [
+  .configure,
+  .recordMalformedTimeout,
+]
 
-example : Umpire3.Temporal.System.NexusTimeout.nexusTimeoutRefinesProduct.Relates
-    Umpire3.Temporal.System.NexusTimeout.initial
+example : Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.initial] timeoutSystemActions =
+    [.timedOut] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.initial]
+    malformedTimeoutSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.initial]
+    malformedTimeoutSystemActions = [.malformedTimeout] := by decide
+
+example : Umpire3.Temporal.Refinement.MigratedFamilies.NexusTimeout.soundSimulation.Relates
+    (world := ())
+    Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.initial
     Umpire3.Temporal.Product.NexusTimeout.initial := rfl
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusTimeout.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusTimeout.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusTimeout.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusTimeout.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.NexusTimeout.mutationBreaksDeclaredSimulation
 
 def matchingLinkActions : List Umpire3.Temporal.Product.NexusActivityLink.Action := [
   .observeOperation .primary (some .primary),
@@ -81,19 +104,42 @@ example :
       { maxDepth := 2, maxResults := 1000 }).all
       (fun execution => Umpire3.Temporal.Product.NexusActivityLink.linkConsistencyB execution.2) = true := by decide
 
-def linkSystemActions : List Umpire3.Temporal.System.NexusActivityLink.Action := [
-  .observeOperation .primary (some .primary),
-  .redeliverOperation .primary,
-  .observeActivity .primary (some .primary),
+def linkSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.Action := [
+  .observeOperation,
+  .observeLinkedActivity,
 ]
 
-example : Umpire3.Temporal.System.NexusActivityLink.executable.follow
-    [Umpire3.Temporal.System.NexusActivityLink.initial] linkSystemActions =
-    [Umpire3.Temporal.System.NexusActivityLink.matchingFinal] := by decide
+def oneSidedLinkSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.Action := [
+  .observeOperation,
+  .observeOneSidedActivity,
+]
 
-example : Umpire3.Temporal.System.NexusActivityLink.nexusActivityLinkRefinesProduct.Relates
-    Umpire3.Temporal.System.NexusActivityLink.initial
+example : Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.initial] linkSystemActions =
+    [.linked] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.initial]
+    oneSidedLinkSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.initial]
+    oneSidedLinkSystemActions = [.oneSided] := by decide
+
+example : Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.soundSimulation.Relates
+    (world := ())
+    Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.initial
     Umpire3.Temporal.Product.NexusActivityLink.initial := rfl
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.nexusOperationTimeoutSemantics.Holds
     (Umpire3.Temporal.Monitors.nexusTimeoutObservations

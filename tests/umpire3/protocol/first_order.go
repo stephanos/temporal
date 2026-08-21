@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	FirstOrderViewFormatVersion     = "umpire3/first-order-view/v1"
+	FirstOrderViewFormatVersion     = "umpire3/first-order-view/v2"
 	MaxFirstOrderSymbolicDepth      = 1024
 	MaxFirstOrderConcreteStateLimit = 65536
 )
@@ -98,6 +98,11 @@ type FirstOrderBounds struct {
 	ConcreteStateLimit int `json:"concreteStateLimit"`
 }
 
+type FirstOrderResource struct {
+	Identifier string     `json:"identifier"`
+	Kind       EntityKind `json:"kind"`
+}
+
 type FirstOrderOracle struct {
 	ResultClass ResultClass       `json:"resultClass"`
 	TrustBadge  TrustBadge        `json:"trustBadge"`
@@ -105,21 +110,24 @@ type FirstOrderOracle struct {
 }
 
 type FirstOrderView struct {
-	FormatVersion  string             `json:"formatVersion"`
-	Target         TargetID           `json:"target"`
-	Property       PropertyID         `json:"property"`
-	World          string             `json:"world"`
-	Variant        string             `json:"variant"`
-	SemanticHash   string             `json:"semanticHash"`
-	CanonicalModel string             `json:"canonicalModel"`
-	Relation       FirstOrderRelation `json:"relation"`
-	Bounds         FirstOrderBounds   `json:"bounds"`
-	Sorts          []FirstOrderSort   `json:"sorts"`
-	StateFields    []FirstOrderField  `json:"stateFields"`
-	Initial        FirstOrderFormula  `json:"initial"`
-	Actions        []FirstOrderAction `json:"actions"`
-	Invariant      FirstOrderFormula  `json:"invariant"`
-	Oracle         FirstOrderOracle   `json:"oracle"`
+	FormatVersion    string               `json:"formatVersion"`
+	Target           TargetID             `json:"target"`
+	Property         PropertyID           `json:"property"`
+	World            string               `json:"world"`
+	Variant          string               `json:"variant"`
+	SemanticHash     string               `json:"semanticHash"`
+	CanonicalModel   string               `json:"canonicalModel"`
+	Resources        []FirstOrderResource `json:"resources"`
+	LiveOnlyActions  []ActionKind         `json:"liveOnlyActions"`
+	ActivatingFaults []FaultKind          `json:"activatingFaults"`
+	Relation         FirstOrderRelation   `json:"relation"`
+	Bounds           FirstOrderBounds     `json:"bounds"`
+	Sorts            []FirstOrderSort     `json:"sorts"`
+	StateFields      []FirstOrderField    `json:"stateFields"`
+	Initial          FirstOrderFormula    `json:"initial"`
+	Actions          []FirstOrderAction   `json:"actions"`
+	Invariant        FirstOrderFormula    `json:"invariant"`
+	Oracle           FirstOrderOracle     `json:"oracle"`
 }
 
 func DecodeFirstOrderView(reader io.Reader, limit int64) (FirstOrderView, error) {
@@ -135,11 +143,33 @@ func DecodeFirstOrderView(reader io.Reader, limit int64) (FirstOrderView, error)
 
 func (v FirstOrderView) Validate() error {
 	if v.FormatVersion != FirstOrderViewFormatVersion || v.Target == "" || v.Property == "" ||
-		v.World == "" || v.Variant == "" || !validHash(v.SemanticHash) || v.CanonicalModel == "" {
+		v.World == "" || v.Variant == "" || !validHash(v.SemanticHash) || v.CanonicalModel == "" ||
+		len(v.Resources) == 0 || v.LiveOnlyActions == nil || v.ActivatingFaults == nil {
 		return errors.New("complete first-order view identity and provenance are required")
 	}
 	if err := validateFirstOrderTarget(v.Target, v.Property); err != nil {
 		return err
+	}
+	catalog, err := DefaultCatalog()
+	if err != nil {
+		return err
+	}
+	entities := make(map[EntityKind]struct{}, len(catalog.Entities))
+	for _, entity := range catalog.Entities {
+		entities[EntityKind(entity.Identifier)] = struct{}{}
+	}
+	resourceIdentifiers := make(map[string]struct{}, len(v.Resources))
+	for _, resource := range v.Resources {
+		if resource.Identifier == "" {
+			return errors.New("first-order resource identifier is required")
+		}
+		if _, known := entities[resource.Kind]; !known {
+			return fmt.Errorf("first-order resource %q has unknown entity kind %q", resource.Identifier, resource.Kind)
+		}
+		if _, duplicate := resourceIdentifiers[resource.Identifier]; duplicate {
+			return fmt.Errorf("duplicate first-order resource %q", resource.Identifier)
+		}
+		resourceIdentifiers[resource.Identifier] = struct{}{}
 	}
 	if err := v.Relation.validate(); err != nil {
 		return err
@@ -234,6 +264,33 @@ func (v FirstOrderView) Validate() error {
 	}
 	if len(actions) == 0 {
 		return errors.New("first-order view requires at least one action")
+	}
+	liveOnly := make(map[ActionKind]struct{}, len(v.LiveOnlyActions))
+	for _, action := range v.LiveOnlyActions {
+		if _, known := catalog.Action(string(action)); !known {
+			return fmt.Errorf("unknown live-only first-order action %q", action)
+		}
+		if _, modeled := actions[string(action)]; modeled {
+			return fmt.Errorf("first-order action %q cannot also be live-only", action)
+		}
+		if _, duplicate := liveOnly[action]; duplicate {
+			return fmt.Errorf("duplicate live-only first-order action %q", action)
+		}
+		liveOnly[action] = struct{}{}
+	}
+	faults := make(map[FaultKind]struct{}, len(catalog.Faults))
+	for _, fault := range catalog.Faults {
+		faults[FaultKind(fault.Identifier)] = struct{}{}
+	}
+	seenFaults := make(map[FaultKind]struct{}, len(v.ActivatingFaults))
+	for _, fault := range v.ActivatingFaults {
+		if _, known := faults[fault]; !known {
+			return fmt.Errorf("unknown first-order activating fault %q", fault)
+		}
+		if _, duplicate := seenFaults[fault]; duplicate {
+			return fmt.Errorf("duplicate first-order activating fault %q", fault)
+		}
+		seenFaults[fault] = struct{}{}
 	}
 	return v.Oracle.validate(v.StateFields, sorts)
 }

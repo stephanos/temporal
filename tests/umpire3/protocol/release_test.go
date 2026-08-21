@@ -97,6 +97,44 @@ func TestReleaseManifestRejectsInconsistentMigrationFidelityCounts(t *testing.T)
 	require.ErrorContains(t, release.Validate(), "migration fidelity counts")
 }
 
+func TestReleaseManifestRejectsInvalidProofManifestDigest(t *testing.T) {
+	releaseBytes, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	var release map[string]any
+	require.NoError(t, json.Unmarshal(releaseBytes, &release))
+	release["proofManifests"] = []any{
+		map[string]any{
+			"identifier": "nexus-tasks-refinement-v1",
+			"digest":     "not-a-digest",
+		},
+	}
+	releaseBytes, err = json.Marshal(release)
+	require.NoError(t, err)
+
+	_, err = DecodeReleaseManifest(releaseBytes)
+	require.ErrorContains(t, err, "proof manifest digest")
+}
+
+func TestReleaseManifestRejectsMismatchedCurrentProofManifestDigest(t *testing.T) {
+	releaseBytes, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	release, err := DecodeReleaseManifest(releaseBytes)
+	require.NoError(t, err)
+	release.ProofManifests[0].Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+	require.ErrorContains(t, release.ValidateAgainstCurrent(), "proof manifest")
+}
+
+func TestReleaseManifestRejectsLegacyProofManifestReferenceFormat(t *testing.T) {
+	releaseBytes, err := os.ReadFile("../testdata/umpire3-1.2.json")
+	require.NoError(t, err)
+	release, err := DecodeReleaseManifest(releaseBytes)
+	require.NoError(t, err)
+	release.FormatVersion = "umpire3/release/v1"
+
+	require.Error(t, release.Validate())
+}
+
 func TestQualifiedReleaseRejectsPartialMigrationFidelity(t *testing.T) {
 	encoded, err := os.ReadFile("../testdata/umpire3-1.2.json")
 	require.NoError(t, err)
@@ -152,16 +190,19 @@ func TestQualifiedReleaseRejectsPartialVisionEvidenceAndExternalGates(t *testing
 	require.ErrorContains(t, release.Validate(), "external qualification gates")
 }
 
-func TestQualifiedReleaseRejectsMetadataOnlyParity(t *testing.T) {
+func TestQualifiedReleaseRejectsUnresolvedParity(t *testing.T) {
 	parity, err := DefaultParityLedger()
 	require.NoError(t, err)
-	require.ErrorContains(t, validateQualifiedParity(parity), "metadata-only")
+	parity.ResultClass = ResultClassMetadataValidated
+	require.ErrorContains(t, validateQualifiedParity(parity), "not declaration-resolved")
 }
 
-func TestQualifiedReleaseRejectsMetadataOnlyComposition(t *testing.T) {
+func TestQualifiedReleaseAcceptsProofBackedComposition(t *testing.T) {
 	composition, err := DefaultComposition()
 	require.NoError(t, err)
-	require.ErrorContains(t, validateQualifiedComposition(composition), "metadata-only")
+	require.NoError(t, validateQualifiedComposition(composition))
+	composition.ResultClass = ResultClassMetadataValidated
+	require.ErrorContains(t, validateQualifiedComposition(composition), "not proof-backed")
 }
 
 func TestReleaseEvidenceAnchorsResolve(t *testing.T) {

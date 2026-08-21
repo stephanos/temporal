@@ -55,6 +55,7 @@ func NormalizeConcreteOutput(
 	generated GeneratedModule,
 	reader io.Reader,
 	limit int64,
+	executionLimits protocol.BackendExecutionLimits,
 	receipt *protocol.TraceReplayReceipt,
 ) (protocol.BackendResult, error) {
 	raw, err := readConcreteOutput(view, generated, reader, limit)
@@ -63,21 +64,23 @@ func NormalizeConcreteOutput(
 	}
 	bounds := protocol.BackendBounds{ConcreteStateLimit: view.Bounds.ConcreteStateLimit}
 	result := protocol.BackendResult{
-		FormatVersion:     protocol.BackendResultFormatVersion,
-		Backend:           protocol.BackendVeil,
-		BackendRevision:   protocol.VeilBackendRevision,
-		ViewFormatVersion: view.FormatVersion,
-		Target:            view.Target,
-		Property:          view.Property,
-		World:             view.World,
-		Variant:           view.Variant,
-		SemanticHash:      view.SemanticHash,
-		Job:               protocol.BackendJobConcrete,
-		Bounds:            bounds,
-		ExploredStates:    raw.ExploredStates,
-		Options:           []string{"sequential"},
-		Axioms:            []string{},
-		Omissions:         []string{},
+		FormatVersion:           protocol.BackendResultFormatVersion,
+		Backend:                 protocol.BackendVeil,
+		BackendRevision:         protocol.VeilBackendRevision,
+		ViewFormatVersion:       view.FormatVersion,
+		Target:                  view.Target,
+		Property:                view.Property,
+		World:                   view.World,
+		Variant:                 view.Variant,
+		SemanticHash:            view.SemanticHash,
+		GeneratedArtifactDigest: generated.ModelHash,
+		Job:                     protocol.BackendJobConcrete,
+		Bounds:                  bounds,
+		ExecutionLimits:         executionLimits,
+		ExploredStates:          raw.ExploredStates,
+		Options:                 []string{"sequential"},
+		Axioms:                  []string{},
+		Omissions:               []string{},
 	}
 
 	switch raw.Result {

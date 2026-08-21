@@ -1,8 +1,10 @@
 import Umpire3.Catalog
 import Temporal.Product.Nexus
 import Temporal.Product.TaskAck
+import Temporal.Refinement.TaskAck
+import Temporal.Feature.UpdateLifecycle
 import Temporal.Inventory
-import Temporal.System.UpdateTasks
+import Temporal.Refinement.MigratedFamilies
 
 namespace Umpire3.Temporal
 
@@ -142,7 +144,7 @@ def catalog : SemanticCatalog where
     property "workflow-update.accepted-completes-through-history"
       "Accepted Update completion is represented in history"
       ["source-sequence", "identity-lineage"]
-      (resolved_theorem% Umpire3.Temporal.System.UpdateTasks.completeUpdateRequiresRecordedHistory),
+      (resolved_theorem% Umpire3.Temporal.Feature.UpdateLifecycle.historyBackedSafe),
   ] ++ Product.TaskAck.declaration.properties ++ Inventory.properties
   policies := [{ identifier := "during", description := "Policy active during a bounded action interval" }]
   faults := [{
@@ -228,11 +230,15 @@ def catalog : SemanticCatalog where
     module "Temporal.Product.Nexus" "Nexus product contract",
     module "Temporal.System.NexusTasks" "Nexus task mechanism",
     module "Temporal.Refinement.NexusTasks" "Nexus system refinement",
-    module "Temporal.Product.Update" "Workflow Update product contract",
-    module "Temporal.System.UpdateTasks" "Workflow Update task mechanism",
-    module "Temporal.Refinement.UpdateTasks" "Workflow Update system refinement",
+    module "Temporal.Feature.UpdateLifecycle" "History-backed Workflow Update contract",
+    module "Temporal.System.MigratedFamilies.UpdateLifecycle" "Independent Workflow Update mechanism",
+    module "Temporal.Refinement.MigratedFamilies.UpdateLifecycle" "Workflow Update mechanism refinement",
     module "Temporal.System.TaskDelivery" "Shared current-completion delivery guarantee",
   ] ++ [Product.TaskAck.declaration.module] ++ Inventory.modules
+    ++ [
+      module "Temporal.System.TaskAck" "Independent Workflow Task acknowledgement mechanisms",
+      module "Temporal.Refinement.TaskAck" "Workflow Task acknowledgement refinements",
+    ]
   targets := [
     {
       identifier := "nexus-cancellation"
@@ -241,12 +247,14 @@ def catalog : SemanticCatalog where
     },
     {
       identifier := "workflow-update-lifecycle"
-      modules := ["Temporal.Product.Update", "Temporal.System.UpdateTasks",
-        "Temporal.Refinement.UpdateTasks", "Temporal.System.TaskDelivery"]
+      modules := ["Temporal.Feature.UpdateLifecycle", "Temporal.System.TaskDelivery",
+        "Temporal.System.MigratedFamilies.UpdateLifecycle",
+        "Temporal.Refinement.MigratedFamilies.UpdateLifecycle"]
       properties := ["workflow-update.accepted-completes-through-history"]
     },
   ] ++ [Product.TaskAck.declaration.target] ++ Inventory.targets
 
+set_option maxRecDepth 100000 in
 theorem catalogWellFormed : catalog.WellFormed := by rfl
 
 def json (semanticHash : String) : String :=

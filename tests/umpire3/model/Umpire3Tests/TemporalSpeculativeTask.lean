@@ -1,5 +1,5 @@
 import Temporal.Monitors
-import Temporal.Refinement.SpeculativeTask
+import Temporal.Refinement.MigratedFamilies
 
 namespace Umpire3.Tests.TemporalSpeculativeTask
 
@@ -37,16 +37,37 @@ example :
       { maxDepth := 3, maxResults := 5000 }).all
       (fun execution => Umpire3.Temporal.Product.SpeculativeTask.speculativeCreationB execution.2) = true := by decide
 
-def systemActions : List Umpire3.Temporal.System.SpeculativeTask.Action := [
-  .observeUpdateRequest .primary,
-  .observeSpeculativeCreation .primary .primary,
-  .observeCommit .primary,
-  .redeliverCommit .primary,
+def systemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.Action := [
+  .requestUpdate,
+  .createTask,
+  .commitTask,
 ]
 
-example : Umpire3.Temporal.System.SpeculativeTask.executable.follow
-    [Umpire3.Temporal.System.SpeculativeTask.initial] systemActions =
-    [Umpire3.Temporal.System.SpeculativeTask.committedFinal] := by decide
+def orphanedSystemActions :
+    List Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.Action := [
+  .createOrphan,
+]
+
+example : Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.initial] systemActions =
+    [.taskCommitted] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.executable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.initial]
+    orphanedSystemActions = [] := by decide
+
+example : Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.mutatedExecutable.follow ()
+    [Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.initial]
+    orphanedSystemActions = [.orphanedTask] := by decide
+
+example :
+    ¬StepSimulation
+      Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.System.mutatedBehavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.Feature.behavior
+      Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.Projects
+      Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.actionMap :=
+  Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.mutationBreaksDeclaredSimulation
 
 example : Umpire3.Temporal.Monitors.speculativeTaskCreation.Holds
     (Umpire3.Temporal.Monitors.speculativeTaskObservations
