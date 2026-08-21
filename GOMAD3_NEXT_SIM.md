@@ -2,7 +2,7 @@
 
 **Roadmap date:** 2026-08-14
 
-> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). The module designs, invariants, verification plan, and exit criteria here remain normative.
+> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMAD3_NEXT.md](GOMAD3_NEXT.md). The module designs, invariants, verification plan, and exit criteria here remain normative.
 
 ## Goal
 
@@ -24,10 +24,10 @@ while still being able to express and reproduce the same system behavior:
 - deterministic time, evidence, inspection, and replay across the cluster.
 
 This roadmap is a fourth investment track beside
-[bug-finding power](GOMADv3_NEXT_BUG_FINDING.md),
-[compatibility](GOMADv3_NEXT_COMPATIBILITY.md), and
-[productionization](GOMADv3_NEXT_PRODUCTIONIZATION.md). It depends on the
-shared trust gate in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). That gate is complete
+[bug-finding power](GOMAD3_NEXT_BUG_FINDING.md),
+[compatibility](GOMAD3_NEXT_COMPATIBILITY.md), and
+[productionization](GOMAD3_NEXT_PRODUCTIONIZATION.md). It depends on the
+shared trust gate in [GOMAD3_NEXT.md](GOMAD3_NEXT.md). That gate is complete
 and remains a required regression boundary for all simulation work.
 
 ## Executive design
@@ -841,7 +841,7 @@ Qualification should progress from mechanisms to representative systems:
 
 ### SIM-0: restore trust and define the parity contract — complete
 
-Preserve the completed shared entry gate from `GOMADv3_NEXT.md`, including the
+Preserve the completed shared entry gate from `GOMAD3_NEXT.md`, including the
 TCP close/data, World replay, and network resource-limit guarantees. Create the
 v2-derived behavioral parity manifest and two representative
 Temporal scenario prototypes. Use them to finalize the small application-facing
