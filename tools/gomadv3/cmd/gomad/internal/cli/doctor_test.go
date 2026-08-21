@@ -16,10 +16,15 @@ func TestCheckReportsAvailableContract(t *testing.T) {
 	if !report.Available || report.GoVersion != "go1.26.4" || report.ToolchainBuild != strings.Repeat("a", 64) {
 		t.Fatalf("report = %#v", report)
 	}
-	if report.RunnerBuild == "" || report.BoundaryManifestVersion == "" || len(report.Adapters) != 2 || report.Adapters[0].Module != "google.golang.org/grpc" || report.Adapters[0].Status != "available" || report.Adapters[1].Module != "modernc.org/libc" || report.Adapters[1].Status != "available" {
+	gotAdapters := make([]string, len(report.Adapters))
+	for index, adapter := range report.Adapters {
+		gotAdapters[index] = adapter.Module + ":" + adapter.Status
+	}
+	wantAdapters := []string{"golang.org/x/net:available", "google.golang.org/grpc:available", "modernc.org/libc:available", "modernc.org/memory:available"}
+	if report.RunnerBuild == "" || report.BoundaryManifestVersion == "" || strings.Join(gotAdapters, ",") != strings.Join(wantAdapters, ",") {
 		t.Fatalf("identity = %#v", report)
 	}
-	if report.ArtifactDirectory != artifacts || report.InstallationSource != "test" || report.RepairInstruction != "repair test toolchain" || len(report.Checks) != 6 {
+	if report.ArtifactDirectory != artifacts || report.InstallationSource != "test" || report.RepairInstruction != "repair test toolchain" || len(report.Checks) != 8 {
 		t.Fatalf("diagnostics = %#v", report)
 	}
 	for _, check := range report.Checks {

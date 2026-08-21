@@ -84,7 +84,7 @@ The supported contract excludes cgo, external linking, race mode, plugins, forei
 This is already visible in the representative Temporal set:
 
 - clock, future, and timer cases qualify;
-- an Activity API case is expected to be unsupported because `x/net` uses an unapproved `go:linkname` boundary;
+- an Activity API case remains unsupported after the exact x/net adapter removes its former `go:linkname` boundary, because other closure blockers remain;
 - the SQLite persistence case is expected to be unsupported because a transitive cloud-auth dependency imports `os/exec`.
 
 The aggregate report still says `qualified=true` because all five cases matched their expected disposition. That means **3/5 supported and 5/5 expectations met**, not 5/5 Temporal support.

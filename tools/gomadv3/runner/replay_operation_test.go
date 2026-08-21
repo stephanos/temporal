@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -276,8 +277,7 @@ func TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation(t *testi
 		t.Fatal(err)
 	}
 	artifactPath, _ := publishReplayArtifactForTarget(t, &bundle, replayArtifactTarget{
-		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$"},
-		Environment:   []evidence.Environment{{Name: "GOMADV3_WORLD_REPLAY_TARGET", Value: "diverge"}},
+		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$", "--", "diverge"},
 		OutcomeReason: "world_replay_divergence",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
@@ -311,8 +311,7 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	artifactPath, _ := publishReplayArtifactForTarget(t, &bundle, replayArtifactTarget{
-		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$"},
-		Environment:   []evidence.Environment{{Name: "GOMADV3_WORLD_REPLAY_TARGET", Value: "match"}},
+		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$", "--", "match"},
 		OutcomeReason: "world_deadlock",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
@@ -330,9 +329,12 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 }
 
 func TestWorldReplayTarget(t *testing.T) {
-	mode := os.Getenv("GOMADV3_WORLD_REPLAY_TARGET")
+	mode := flag.Arg(0)
 	if mode == "" {
 		t.Skip("World replay target subprocess only")
+	}
+	if mode != "match" && mode != "diverge" {
+		t.Fatalf("unknown World replay target mode %q", mode)
 	}
 	core, err := world.New(world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 10, MaxPayloadBytes: 1024, MaxStringBytes: 64}})
 	if err != nil {
@@ -385,7 +387,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	argv := []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$"}
+	argv := []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$", "--", "match"}
 	profile := deterministicio.Default()
 	frame, err := profile.BootstrapFrame(target.Prepared{SHA256: string(evidence.HashBytes(targetBytes)), Argv: argv}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
@@ -395,7 +397,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command:           targetPath, Argv0: argv[0], Args: argv[1:], Dir: t.TempDir(),
-		Env:        []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADV3_WORLD_REPLAY_TARGET=match", "TZ=UTC"},
+		Env:        []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "TZ=UTC"},
 		RunTimeout: 5 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},

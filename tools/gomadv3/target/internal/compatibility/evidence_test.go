@@ -22,7 +22,12 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
 	if evidence[0].RequestSHA256 == "" || evidence[0].Governance == nil {
 		t.Fatalf("pack governance evidence = %#v", evidence[0])
 	}
-	if len(evidence[0].Activation) != 2 || evidence[0].Activation[0].Replacement != "none" || evidence[0].Activation[1].Replacement != "adapter" || evidence[0].Activation[1].Adapter == nil {
+	activation := make([]string, len(evidence[0].Activation))
+	for index, module := range evidence[0].Activation {
+		activation[index] = module.Path + ":" + module.Replacement
+	}
+	requireTestEqual(t, []string{"golang.org/x/sys:none", "modernc.org/libc:adapter", "modernc.org/memory:adapter"}, activation)
+	if evidence[0].Activation[1].Adapter == nil || evidence[0].Activation[2].Adapter == nil {
 		t.Fatalf("activation evidence = %#v", evidence[0].Activation)
 	}
 	if len(evidence[0].Rules) != 5 {

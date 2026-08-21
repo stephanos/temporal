@@ -637,7 +637,7 @@ func encodedAnalysisResult(t *testing.T, classification AnalysisClassification) 
 			SHA256: evidence.HashBytes([]byte("closure")), PackageCount: 1,
 			Roots: []target.CapabilityPackageReference{{ImportPath: "example.com/target/pkg", Name: "pkg"}},
 		},
-		IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []AnalysisBlocker{}, EliminatedBlockers: []AnalysisBlocker{},
+		IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []AnalysisBlocker{}, GuardedBlockers: []AnalysisBlocker{}, EliminatedBlockers: []AnalysisBlocker{},
 	}
 	status := 0
 	if classification == ClassificationUnsupported {
