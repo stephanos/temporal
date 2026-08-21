@@ -21,15 +21,129 @@ The product includes:
 
 This specification covers implemented behavior, not roadmap proposals. It specifies observable capabilities and invariants, not package layout, internal algorithms, file names, or schema versions.
 
-## [PRODUCT.VOCABULARY] Vocabulary
+## [PRODUCT.VOCABULARY] Ubiquitous Language
 
-- A **Target** is the exact program or test binary to execute.
-- An **Execution** is one isolated attempt to run a Target with fixed inputs and control decisions.
-- A **Campaign** is a bounded collection of Executions selected and managed together.
-- A **Record** is the canonical semantic description of one Execution.
-- An **Artifact** is a durable, validated package containing a Record and its replay inputs.
-- **Replay** is validation and optional re-execution of an Artifact.
-- **Qualification** compares repeated or grouped observations against declared expectations.
+The capitalized terms below are the canonical product language. They describe product concepts rather than commands, packages, or stored formats. Use the specific term instead of the ambiguous **run**, **result**, or **batch**.
+
+### [PRODUCT.VOCABULARY.EXECUTION] Execution and Exploration
+
+**Target**: A user-selected Go program, package test, or provenance-backed executable that Gomad is asked to evaluate.
+
+**Prepared Target**: The immutable executable and bound execution inputs produced by reviewing and preparing a Target for a Campaign.
+
+**Runner**: The product boundary that starts, controls, observes, and terminates each isolated Execution of a Prepared Target.
+
+**Execution**: One isolated attempt to execute a Prepared Target with fixed inputs and control decisions. An Execution is not a Campaign.
+
+**Seed**: A reproducible root value from which Gomad selects deterministic alternatives for one Execution. Application entropy remains a separate derived input.
+
+**Choice**: One Gomad-controlled selection among logically eligible runtime alternatives, such as runnable goroutines or ready selection cases.
+
+**Decision Tape**: The ordered logical Choices retained from an Execution and used to force and validate exact runtime replay.
+
+**Campaign**: One bounded exploration effort over a Prepared Target, comprising selected Executions, a failure policy, limits, and retained evidence.
+
+**Choice Frontier**: The bounded set of runtime Choice prefixes that remain to be explored from one base Seed.
+
+**Combined Frontier**: The bounded set of alternatives across runtime Choices and modeled simulation dimensions that remain to be explored from one base Seed.
+
+**Corpus**: A private bounded collection of replay-verified, semantically novel Artifacts that may guide later Campaigns.
+
+### [PRODUCT.VOCABULARY.EVIDENCE] Evidence and Reproduction
+
+**Evidence**: Canonical, bounded information that supports a product claim about an Execution, Campaign, replay, or qualification result.
+
+**Outcome**: The semantic classification of an Execution, distinct from command status and infrastructure health.
+
+**Record**: The canonical semantic description of one completed Execution and its Outcome, identities, limits, and retained evidence.
+
+**Artifact**: An immutable, validated, content-addressed package containing a Record and the inputs required to inspect or replay it.
+
+**Observation**: Detached, bounded application behavior collected for comparison or evaluation, including simulation histories and terminal state.
+
+**Transcript**: The ordered record of modeled interactions between a Target and its declared external environment.
+
+**Identity**: A canonical digest that binds all inputs relevant to the sameness of a product object or claim. Equal names or paths do not imply equal identity.
+
+**Provenance**: Trusted evidence that binds a Prepared Target to its binary, build origin, dependency closure, and capability review.
+
+**Coverage**: Versioned semantic or runtime-Choice features observed across Executions. It does not mean source-line coverage.
+
+**Probe**: A named semantic event whose observation contributes to Coverage and may be required by a Campaign or qualification workload.
+
+**Replay**: Validation of an Artifact followed, unless verification-only, by re-execution of its retained Prepared Target and comparison with its Record.
+
+**Exact Replay**: Replay that forces every retained runtime and modeled-environment decision and validates that all recorded decisions are consumed.
+
+**Replay Divergence**: The first point at which replayed behavior, identity, or decision consumption differs from the retained evidence. It is not a Target failure.
+
+### [PRODUCT.VOCABULARY.MODELING] External and Distributed Modeling
+
+**Interaction Boundary**: The explicit reviewed contract through which a Target accesses supported host capabilities and modeled external input.
+
+**Adapter**: A versioned deterministic replacement that brings a specific dependency's external operations inside the Interaction Boundary.
+
+**World**: The deterministic in-memory event model for application-declared external requests, readiness, cancellation, logical time, and delivery. World owns neither host input/output nor application state.
+
+**Simulation**: A bounded execution model for application-declared nodes, networks, durable storage, scenarios, faults, observations, and correctness checks.
+
+**Backend**: The selected Simulation execution fidelity, such as in-process modeling or process-backed isolation.
+
+**Node**: A named simulated participant with a stable identity and restartable lifecycle.
+
+**Incarnation**: One monotonically identified lifetime of a Node between boot and crash or termination.
+
+**Scenario**: A bounded composition of application and environment actions to be realized during a Simulation.
+
+**Fault Plan**: A deterministic specification for selecting and applying eligible partitions, healing, crashes, restarts, or crash-persistence outcomes.
+
+**Oracle**: A named correctness rule evaluated against detached Simulation Observations.
+
+### [PRODUCT.VOCABULARY.DURABILITY] Durability and Distribution
+
+**Portable Plan**: A path-independent, identity-bound description of all inputs and selected work needed to execute a supported Campaign elsewhere.
+
+**Shard**: A deterministic disjoint subset of a Portable Plan's globally ordered work.
+
+**Aggregate**: A newly published immutable Campaign result formed by validating and merging Shards from one Portable Plan.
+
+**Resume**: Continue only unfinished logical work from a validated interrupted Campaign. Resume may execute the Target.
+
+**Recovery**: Repair a recognized interrupted publication state without executing unfinished Target work. Recovery is not Resume.
+
+### [PRODUCT.VOCABULARY.SUPPORT] Support and Maintenance
+
+**Capability Review**: A non-executing assessment of whether a Target's reachable external requirements fit a selected platform and compatibility policy.
+
+**Supported Target**: A Target whose active requirements are covered by the selected qualified platform, Interaction Boundary, and Adapters.
+
+**Unsupported Target**: A Target with an active requirement outside that reviewed support contract. Unsupported does not mean the Target itself failed.
+
+**Qualification**: Independent repeated execution and comparison of canonical evidence against declared expectations.
+
+**Qualification Set**: A versioned collection of workloads analyzed, qualified where supported, and reported together as one support claim.
+
+**Support Comparison**: Classification of the difference between two validated Qualification Set reports.
+
+**Qualified Platform**: A specific operating-system and architecture bundle that has passed the complete declared product conformance gate.
+
+**Compatibility Pack**: A reviewed, version-pinned policy and deterministic adaptation contract for one third-party dependency version.
+
+**Conformance Tier**: A named bounded group of checks for one layer of the Gomad product contract.
+
+**Release Gate**: The required set of conformance and qualification evidence that permits a support or release claim.
+
+**Upgrade Dossier**: The retained bounded evidence for accepting or rejecting a Go or product-boundary upgrade.
+
+### [PRODUCT.VOCABULARY.FAILURE] Failure Language
+
+**Target Failure**: A completed Execution whose application-level Outcome violates the Target's success contract.
+
+**Watchdog Observation**: Evidence that an Execution exceeded its wall-time bound and was terminated; it is not proof of a deterministic deadlock.
+
+**Infrastructure Failure**: A failure of Gomad, the Runner, publication, or the host to complete its own contract. It is not evidence that the Target failed.
+
+**Capacity Exhaustion**: A declared product bound was reached before a complete claim could be produced. It must remain distinct from success and Target Failure.
 
 ## [PLATFORM] Platform and Toolchain
 
