@@ -553,19 +553,51 @@ func (cluster *inProcessCluster) nextExplorationOverrideLocked(dimension Explora
 }
 
 func (cluster *inProcessCluster) explorationDivergenceLocked(expected ExplorationOverride, actual ExplorationDecision) error {
-	expectedDecision := ExplorationDecision{
-		Dimension: expected.Dimension, Ordinal: expected.Ordinal, SiteSHA256: expected.SiteSHA256,
-		AlternativeSetSHA256: expected.AlternativeSetSHA256, Selected: expected.Selected,
+	actualIdentity := actual.Identity
+	if !validSHA256(actualIdentity) {
+		actualIdentity, _ = hashCanonical("gomadv3-missing-exploration-decision/v1", struct {
+			Dimension ExplorationDimension `json:"dimension"`
+			Ordinal   uint64               `json:"ordinal"`
+		}{expected.Dimension, expected.Ordinal})
 	}
-	return cluster.explorationDecisionDivergenceLocked(expectedDecision, actual)
+	divergence := ReplayDivergence{
+		Dimension: ReplayDimensionExploration, Ordinal: expected.Ordinal,
+		ExpectedSHA256: expected.Identity, ActualSHA256: actualIdentity,
+		ExpectedExplorationOverride: cloneExplorationOverridePointer(&expected),
+		ActualExploration:           cloneExplorationDecisionPointerIfValid(actual),
+	}
+	err := &ReplayDivergenceError{Divergence: divergence}
+	cluster.replayFailure = err
+	return err
 }
 
 func (cluster *inProcessCluster) explorationDecisionDivergenceLocked(expected, actual ExplorationDecision) error {
-	return &ReplayDivergenceError{Divergence: ReplayDivergence{
-		Dimension: ReplayDimension(expected.Dimension), Ordinal: expected.Ordinal,
-		ExpectedSHA256: expected.Identity, ActualSHA256: actual.Identity,
-		ExpectedExploration: &expected, ActualExploration: &actual,
-	}}
+	dimension, ordinal := expected.Dimension, expected.Ordinal
+	if explorationDimensionOrder(dimension) < 0 {
+		dimension, ordinal = actual.Dimension, actual.Ordinal
+	}
+	expectedIdentity := explorationDecisionOrMissingIdentity(expected, dimension, ordinal)
+	actualIdentity := explorationDecisionOrMissingIdentity(actual, dimension, ordinal)
+	divergence := ReplayDivergence{
+		Dimension: ReplayDimensionExploration, Ordinal: ordinal,
+		ExpectedSHA256: expectedIdentity, ActualSHA256: actualIdentity,
+		ExpectedExploration: cloneExplorationDecisionPointerIfValid(expected),
+		ActualExploration:   cloneExplorationDecisionPointerIfValid(actual),
+	}
+	err := &ReplayDivergenceError{Divergence: divergence}
+	cluster.replayFailure = err
+	return err
+}
+
+func explorationDecisionOrMissingIdentity(decision ExplorationDecision, dimension ExplorationDimension, ordinal uint64) string {
+	if validSHA256(decision.Identity) {
+		return decision.Identity
+	}
+	identity, _ := hashCanonical("gomadv3-missing-exploration-decision/v1", struct {
+		Dimension ExplorationDimension `json:"dimension"`
+		Ordinal   uint64               `json:"ordinal"`
+	}{dimension, ordinal})
+	return identity
 }
 
 func findExplorationDecision(decisions []ExplorationDecision, dimension ExplorationDimension, ordinal uint64) (ExplorationDecision, bool) {

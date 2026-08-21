@@ -87,6 +87,27 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 	if runPrivateProcessNodeIfPresent(ctx, spec) {
 		return Result{}, nil
 	}
+	externalExploration := false
+	if processBackendAvailable() && processBackendRole() == processRoleCoordinator {
+		encodedPlan, err := processExplorationPlan()
+		if err != nil {
+			return Result{}, fmt.Errorf("read process simulation exploration plan: %w", err)
+		}
+		if len(encodedPlan) != 0 {
+			plan, err := DecodeExplorationPlan(encodedPlan)
+			if err != nil {
+				return Result{}, err
+			}
+			if spec.Exploration != nil && !equalExplorationPlan(*spec.Exploration, plan) {
+				return Result{}, errors.New("process and local simulation exploration plans disagree")
+			}
+			spec.Exploration = &plan
+			externalExploration = true
+			if err := ValidateSpec(spec); err != nil {
+				return Result{}, err
+			}
+		}
+	}
 	if spec.Backend == BackendProcess && (!processBackendAvailable() || processBackendRole() != processRoleCoordinator) {
 		return Result{}, &BackendUnavailableError{Backend: spec.Backend}
 	}
@@ -186,8 +207,14 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	if _, err := EncodeClusterRecord(record); err != nil {
+	encodedRecord, err := EncodeClusterRecord(record)
+	if err != nil {
 		return Result{}, err
+	}
+	if externalExploration {
+		if err := publishProcessExplorationRecord(encodedRecord); err != nil {
+			return Result{}, fmt.Errorf("publish process simulation exploration record: %w", err)
+		}
 	}
 	result.Record = record
 	return result, nil

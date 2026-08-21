@@ -134,3 +134,22 @@ func exchangeProcessFrame(kind processFrameKind, handle NodeHandle, payload []by
 	}
 	return response, nil
 }
+
+func processExplorationPlan() ([]byte, error) {
+	response, err := exchangeProcessFrame(processFrameExplorationPlan, NodeHandle{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	if len(response.Payload) > MaximumExplorationPlanBytes {
+		return nil, errors.New("process simulation exploration plan exceeds its bound")
+	}
+	return append([]byte(nil), response.Payload...), nil
+}
+
+func publishProcessExplorationRecord(record []byte) error {
+	if len(record) == 0 || len(record) > MaximumClusterRecordBytes {
+		return errors.New("process simulation exploration record size is invalid")
+	}
+	_, err := exchangeProcessFrame(processFrameExplorationRecord, NodeHandle{}, record)
+	return err
+}

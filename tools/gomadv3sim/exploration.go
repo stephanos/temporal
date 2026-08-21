@@ -247,7 +247,10 @@ func explorationDecisionIdentity(decision ExplorationDecision) (string, error) {
 }
 
 func explorationCandidateIdentity(plan ExplorationPlan) (string, error) {
-	overrides := make([]any, len(plan.Overrides))
+	var overrides []any
+	if plan.Overrides != nil {
+		overrides = make([]any, len(plan.Overrides))
+	}
 	for index, override := range plan.Overrides {
 		overrides[index] = map[string]any{
 			"alternative_set_sha256": override.AlternativeSetSHA256, "alternatives": override.Alternatives,
@@ -337,6 +340,23 @@ func cloneExplorationPlanPointer(plan *ExplorationPlan) *ExplorationPlan {
 		return nil
 	}
 	cloned := cloneExplorationPlan(*plan)
+	return &cloned
+}
+
+func cloneExplorationOverridePointer(override *ExplorationOverride) *ExplorationOverride {
+	if override == nil {
+		return nil
+	}
+	cloned := *override
+	return &cloned
+}
+
+func cloneExplorationDecisionPointerIfValid(decision ExplorationDecision) *ExplorationDecision {
+	if validateExplorationDecision(decision) != nil {
+		return nil
+	}
+	cloned := decision
+	cloned.Alternatives = append([]string(nil), decision.Alternatives...)
 	return &cloned
 }
 
