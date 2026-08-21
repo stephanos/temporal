@@ -280,18 +280,16 @@ func TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation(t *testi
 		OutcomeReason: "world_replay_divergence",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
-	executor := &observingReplayExecutor{}
 	result, err := Replay(context.Background(), ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
-		Executor:          executor,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if result.Divergence != "world.terminal" {
-		t.Fatalf("replay divergence = %s; observed stderr = %q; world bytes = %d", result.Divergence, executor.result.Stderr.RawBytes, len(executor.result.WorldRecord))
+		t.Fatalf("divergent transition reached target-visible mutation: %#v", result)
 	}
 }
 
@@ -329,19 +327,8 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 	}
 }
 
-type observingReplayExecutor struct {
-	result execution.Result
-}
-
-func (executor *observingReplayExecutor) Run(ctx context.Context, spec execution.Spec) (execution.Result, error) {
-	result, err := execution.Run(ctx, spec)
-	executor.result = result
-	return result, err
-}
-
 func TestWorldReplayDivergentTarget(_ *testing.T) {
 	if !worldReplayTargetSelected("TestWorldReplayDivergentTarget") {
-		_, _ = os.Stderr.WriteString(fmt.Sprint(os.Args))
 		return
 	}
 	runWorldReplayTarget("diverge")
