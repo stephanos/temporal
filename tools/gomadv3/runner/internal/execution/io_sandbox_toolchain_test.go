@@ -38,7 +38,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 		{name: "modernc libc", source: ".", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata", "libc_adapter"), wantOutput: "ok\n", denyWrites: true, libcAdapter: true},
 	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+			t.Run(test.name, func(t *testing.T) {
 			spec := target.Spec{
 				Kind: target.KindGoRun, Source: test.source, WorkingDir: test.workingDirectory,
 				PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
@@ -71,21 +71,23 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 			runDirectory := t.TempDir()
 			environment := []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 			policy := fmt.Sprintf("(version 1)(allow default)(deny network*)(deny process-fork)(deny process-exec)(allow process-exec (literal %s))", strconv.Quote(canonicalTarget))
+			var targetArguments []string
 			if test.hostEscape {
 				hostFile := filepath.Join(t.TempDir(), "host-file")
 				if err := os.WriteFile(hostFile, []byte("host"), 0o600); err != nil {
 					t.Fatal(err)
 				}
 				policy += fmt.Sprintf("(deny file-read-data (literal %s))", strconv.Quote(hostFile))
-				environment = append(environment, "GOMADV3_HOST_ESCAPE="+hostFile)
+				targetArguments = append(targetArguments, hostFile)
 			}
 			if test.denyWrites {
 				policy += fmt.Sprintf("(deny file-write* (subpath %s))", strconv.Quote(runDirectory))
 			}
+			arguments := append([]string{"-p", policy, prepared.Path}, targetArguments...)
 			result, err := execution.Run(context.Background(), execution.Spec{
 				SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 				BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-				Command:           "/usr/bin/sandbox-exec", Args: []string{"-p", policy, prepared.Path}, Argv0: "sandbox-exec", Dir: runDirectory, Env: environment,
+				Command:           "/usr/bin/sandbox-exec", Args: arguments, Argv0: "sandbox-exec", Dir: runDirectory, Env: environment,
 				RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 				World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 				IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},

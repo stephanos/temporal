@@ -105,6 +105,9 @@ func BootstrapMain() (retErr error) {
 			)
 		}
 	}
+	if request.IOROMounts {
+		request.Env = append(request.Env, ioReadOnlyMountsEnvironmentName+"=1")
+	}
 	if request.Simulation {
 		request.Env = append(request.Env,
 			simulationRoleEnvironmentName+"="+string(map[bool]SimulationRole{false: SimulationRoleCoordinator, true: SimulationRoleNode}[request.SimulationBootstrap]),

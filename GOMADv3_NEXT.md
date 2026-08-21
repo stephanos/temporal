@@ -48,17 +48,17 @@ Compatibility analysis and qualification reporting v1 are implemented through `g
 
 The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. PROD-1, PROD-2, and the static-seed filesystem slice of PROD-4 are implemented: campaigns have an explicit crash-consistent lifecycle, bounded segmented journals, portable prepared-target and mount bundles, deterministic ordinal shards, and identity-checking aggregate merge. The distributed-system simulation parity contract, application harness, and SIM-1 through SIM-5 are implemented. Logical nodes now have exact lifecycle, network, storage, fault, scenario, history, observation, oracle, output, and terminal replay; modeled partition/restart and partial-persistence nemeses; bounded inspection; stable failure identities; and a representative Temporal duplicate-delivery failure reproduction. The process backend adds bounded private bootstrap and model IPC, host-owned time arbitration, fresh package initialization, hard crash/reap, and cross-backend detached-model conformance.
 
-The immediate compatibility gate is one real local functional test under
-`tests/`. `tests/gomadfunctional.TestFrontendSystemInfo` now starts the normal
-one-box harness and completes a frontend RPC under the ordinary Go toolchain.
-Gomad closure and linked analysis still reject its 1,653-package target because
-`tests/testcore` and the server composition compile optional process, signal,
-telemetry, cloud-archiver, Elasticsearch, Cassandra, SDK, and worker-provider
-paths into the same package graph. The next compatibility work is therefore a
-small local-only SQLite/static-membership harness and dependency separation,
-not another broad I/O model. AWS, GCP, Kubernetes control planes, their
-credential discovery, and external-service emulation are explicit non-goals
-for this gate.
+The first real local functional gate under `tests/` is now executable.
+`tests/gomadfunctional.TestFrontendSystemInfo` starts the normal one-box
+harness with in-memory SQLite, static membership, and unused telemetry resource
+detection disabled, then completes a frontend RPC under guarded Gomad execution.
+The target may link optional process, signal, telemetry, cloud-archiver,
+Elasticsearch, Cassandra, SDK, and worker-provider paths, but any unmodeled
+forbidden API still terminates at runtime. The only signal operation modeled
+for this workload is the deterministic no-op `os/signal.Stop` cleanup path.
+Closure analysis remains intentionally stricter than this guarded execution
+claim. AWS, GCP, Kubernetes control planes, credential discovery, and
+external-service emulation remain explicit non-goals.
 
 ## Recommended order
 
@@ -79,7 +79,7 @@ These are now the evidence sources for controlled exploration, compatibility pri
 
 [BUG-4](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) is implemented as the durable bounded choice-frontier strategy. The pinned equal-budget comparison currently shows no outcome-efficiency advantage over seed sampling, so BUG-5 and later search refinements remain gated on stronger benchmark evidence rather than being added speculatively.
 
-Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode and now accepts an explicit bounded analysis timeout for large targets, but the remaining evaluated candidates retain real assembly, linkname, `syscall`, or forbidden-import blockers; closure review remains the default. Prioritize the isolated local functional harness above generic packs: remove optional external-service providers from its package graph, then model or approve only boundaries still reached by that local workload.
+Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode and now accepts an explicit bounded analysis timeout for large targets. Guarded execution is proven on the first local functional workload while preserving runtime termination for unmodeled forbidden calls; closure review remains the default for support claims. Next qualify exact successful replay for that gate, add it to the checked Temporal corpus, and rank further local workloads by the exact packs or modeled boundaries they require.
 
 For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) through [SIM-5](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) are complete. The canonical v2 behavioral-parity manifest names thirteen implemented v3 cases with sixteen declared in-process and process prototypes. Runtime domains bind every modeled network and volume operation to an exact incarnation; lifecycle, terminal, transition, fault, scenario, history, observation, oracle, and final model state replay exactly. The process tier provides the fresh-global and hard-isolation evidence that the in-process tier intentionally cannot claim.
 
@@ -143,10 +143,10 @@ The tables below account for every named capability and delivery stage in the fo
 | --- | --- | --- |
 | [COMPAT-1: `gomad analyze`](GOMADv3_NEXT_COMPATIBILITY.md#compat-1-gomad-analyze) | Implemented | Milestone 1 |
 | [COMPAT-2: Unambiguous support matrices](GOMADv3_NEXT_COMPATIBILITY.md#compat-2-unambiguous-support-matrices) | Implemented | Milestone 1 |
-| [COMPAT-3: Tiered Temporal corpus](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) | Tier 1 and tier 2 implemented; native local functional probe added, Gomad local-harness gate remains | Milestones 1–2 |
+| [COMPAT-3: Tiered Temporal corpus](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) | Tier 1 and tier 2 implemented; first local functional probe executes successfully in guarded mode | Milestones 1–2 |
 | [COMPAT-4: Compatibility-pack development kit](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) | Implemented with v2-only exact-source packs and exact-digest approval | Milestone 2 |
 | [COMPAT-5: Targeted deterministic adapters and I/O models](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) | Evidence-driven | Milestones 2 and 4 |
-| [COMPAT-6: Safer handling of transitive forbidden dependencies](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) | Experimental linked mode implemented; real-workload exit criterion unmet, closure remains default | Milestone 2 |
+| [COMPAT-6: Safer handling of transitive forbidden dependencies](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) | Guarded compiler/linker mode executes the first real workload; runtime guards remain fail-closed and closure remains the default support claim | Milestone 2 |
 | [COMPAT-7: Platform bundles](GOMADv3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles) | `darwin/arm64` qualified; Linux planned | Milestones 4–5 |
 | [COMPAT-8: Dependency and Go upgrade impact reports](GOMADv3_NEXT_COMPATIBILITY.md#compat-8-dependency-and-go-upgrade-impact-reports) | Boundary approval exists; full impact report planned | Milestone 5 |
 

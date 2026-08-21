@@ -69,8 +69,8 @@ func TestDirectSeedFilesystemStartsEmpty(t *testing.T) {
 	if err := os.WriteFile(hostFile, []byte("secret"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	command := exec.Command(prepared.Path)
-	command.Env = []string{"GOMADSEED=7", "GOMADV3_HOST_ESCAPE=" + hostFile, "TZ=UTC"}
+	command := exec.Command(prepared.Path, hostFile)
+	command.Env = []string{"GOMADSEED=7", "TZ=UTC"}
 	output, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("run direct-seed target: %v: %s", err, output)

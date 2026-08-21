@@ -16,7 +16,7 @@ import (
 func TestBoundaryManifestSemanticCanaries(t *testing.T) {
 	required := deterministicio.RequiredSemanticProbes()
 	observed := make(map[string]struct{}, len(required))
-	for _, fixture := range []string{"./io_filesystem", "./io_net"} {
+	for _, fixture := range []string{"./io_filesystem", "./io_net", "./io_signal", "./io_user"} {
 		result := runBoundaryCanaryFixture(t, fixture)
 		coverage, err := deterministicio.DecodeSemanticCoverage(result.IOTranscript.Bytes)
 		if err != nil {

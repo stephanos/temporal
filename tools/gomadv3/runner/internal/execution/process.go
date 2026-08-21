@@ -24,6 +24,7 @@ const choiceTerminalFDEnvironmentName = "GOMADV3_CHOICE_TERMINAL_FD"
 const choiceTraceBytesEnvironmentName = "GOMADV3_CHOICE_TRACE_BYTES"
 const choiceTapeFDEnvironmentName = "GOMADV3_CHOICE_TAPE_FD"
 const choiceTapeBytesEnvironmentName = "GOMADV3_CHOICE_TAPE_BYTES"
+const ioReadOnlyMountsEnvironmentName = "GOMADV3_IO_RO_MOUNTS"
 
 const (
 	TerminationExit   Termination = "exit"
@@ -254,7 +255,7 @@ func validateChoiceReplayPlan(tape choice.ReplayPlan, identity choice.ExecutionI
 func validateChoiceEnvironment(environment []string) error {
 	for _, entry := range environment {
 		name, _, _ := strings.Cut(entry, "=")
-		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
+		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == ioReadOnlyMountsEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
 			return fmt.Errorf("target environment name %q is reserved", name)
 		}
 	}

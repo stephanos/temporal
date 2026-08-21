@@ -49,7 +49,7 @@ func TestValidateRequestRejectsChoiceEnvironmentInjection(t *testing.T) {
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	for _, choice := range []*ChoiceCapability{nil, {Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: MinimumChoiceTraceBytes}} {
-		for _, name := range []string{choiceProfileEnvironmentName, choiceModeEnvironmentName, choiceTraceFDEnvironmentName, choiceTerminalFDEnvironmentName, choiceTraceBytesEnvironmentName, choiceTapeFDEnvironmentName, choiceTapeBytesEnvironmentName} {
+		for _, name := range []string{choiceProfileEnvironmentName, choiceModeEnvironmentName, choiceTraceFDEnvironmentName, choiceTerminalFDEnvironmentName, choiceTraceBytesEnvironmentName, choiceTapeFDEnvironmentName, choiceTapeBytesEnvironmentName, ioReadOnlyMountsEnvironmentName} {
 			request := base
 			request.Choice = choice
 			request.Env = []string{name + "=injected"}

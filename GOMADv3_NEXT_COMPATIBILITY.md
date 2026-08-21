@@ -92,27 +92,28 @@ Build purpose-specific harnesses that compose several Temporal components using 
 
 The first functional gate is `tests/gomadfunctional.TestFrontendSystemInfo`.
 It starts the existing local one-box cluster and completes a frontend system-info
-RPC under the ordinary Go toolchain with `test_dep,disable_grpc_modules`.
-Gomad closure and linked analysis currently reject the target because importing
-`tests/testcore` retains 1,653 packages, including optional configuration,
-telemetry, SDK, archiver, Elasticsearch, Cassandra, worker-provider, signal,
-DNS, interface, foreign-assembly, and linkname boundaries.
+RPC with `test_dep,disable_grpc_modules`. It now also executes successfully under
+guarded Gomad mode. The functional option uses in-memory SQLite and static
+membership, server construction skips host resource detection when tracing has
+no span processors, and the exact `os/signal.Stop` cleanup path is a
+deterministic no-op. Unmodeled operations in `os/signal` and every other guarded
+package still terminate at the runtime boundary.
 
-Clear that gate in this order:
+Continue that gate in this order:
 
-1. Extract a deep local functional harness that owns only SQLite persistence,
-   static membership, the required services, and deterministic loopback gRPC.
-2. Move command-only signal handling and optional external-service/provider
-   wiring out of packages imported by that harness; inject optional providers
-   at the application boundary.
-3. Re-run closure and linked analysis, then add exact packs or deterministic
-   operations only for boundaries the local harness still reaches.
-4. Run the functional probe through `gomad qualify` with exact successful
-   replay before adding it to the checked corpus.
+1. Run the functional probe through `gomad qualify` with exact successful
+   replay, then add it to the checked corpus.
+2. Keep guarded package linkage fail-closed and add exact runtime-negative
+   coverage whenever another operation from an allowed package is modeled.
+3. Separate optional providers when doing so materially shrinks the local
+   target or unlocks another workload; do not make that separation a
+   prerequisite for this already-executable gate.
+4. Add exact packs or deterministic operations only for boundaries reached by
+   another selected local workload.
 
 AWS, GCP, Kubernetes control planes, external credential discovery, and
-external-service emulation are non-goals. Their code should be absent from this
-target's package graph rather than approved, adapted, or modeled for Gomad.
+external-service emulation are non-goals. Their linked code may remain guarded,
+but it is not approved, adapted, modeled, or exercised for Gomad.
 
 For every tier, record multiple seeds or choice prefixes, replay qualification, actual support state, execution time, artifact growth, and blocker classification. The corpus should be required on Gomad changes and on dependency changes that alter its closure.
 
