@@ -5,7 +5,7 @@ Gomad v3 has two command-line products:
 - `gomad` is the user workflow. It reviews a target, explores executions, retains evidence, replays observations, and qualifies support.
 - `gomadtool` is the maintainer workflow. It builds and validates the toolchain, governs generated contracts and compatibility packs, runs conformance campaigns, and produces upgrade evidence.
 
-This guide follows one target through both worlds. It is intentionally a journey rather than a flag catalog. [GOMADv3_SPEC.md](GOMADv3_SPEC.md) defines the corresponding product requirements.
+This guide follows one target through both worlds. It is intentionally a journey rather than a flag catalog. The [product specification](tools/gomadv3/SPEC.md) defines the corresponding requirements.
 
 ```text
 maintain toolchain

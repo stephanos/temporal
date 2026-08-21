@@ -1,6 +1,6 @@
 # Gomad v3 Next: Temporal and Platform Compatibility
 
-> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMADv3_NEXT.md](GOMADv3_NEXT.md). The capability designs, invariants, verification plan, and exit criteria here remain normative.
+> **Status note:** This is the detailed track design. Current implementation status and cross-track ordering live in [GOMAD3_NEXT.md](GOMAD3_NEXT.md). The capability designs, invariants, verification plan, and exit criteria here remain normative.
 
 ## Goal
 
