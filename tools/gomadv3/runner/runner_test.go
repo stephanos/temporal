@@ -29,6 +29,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -1008,6 +1009,55 @@ func TestRunCombinedFrontierExecutesRootAndEveryScenarioRank(t *testing.T) {
 	}
 }
 
+func TestRunCombinedFrontierRetainsExactDeduplicatedSimulationFailure(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config.Strategy = StrategyCombinedFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 4
+	config.MaxForcedDecisions = 2
+	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationResultBytes = 1 << 20
+	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Attempted != 2 || summary.Failures != 2 || summary.DistinctFailures != 1 || len(summary.Artifacts) != 1 {
+		t.Fatalf("combined frontier failure summary = %#v", summary)
+	}
+	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer opened.Close()
+	profile := opened.Manifest.SimulationProfile
+	if profile == nil {
+		t.Fatal("combined frontier failure artifact omitted simulation exploration evidence")
+	}
+	plan, err := evidence.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	record, err := evidence.ReadPayload(opened, profile.Record.File, uint64(profile.Record.Bytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := simulationexploration.ValidateArtifact(*profile, plan, record); err != nil {
+		t.Fatal(err)
+	}
+	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(batch.Runs) != 2 || batch.Runs[0].Artifact == nil || batch.Runs[1].Artifact == nil || *batch.Runs[0].Artifact != *batch.Runs[1].Artifact {
+		t.Fatalf("deduplicated combined failure references = %#v", batch.Runs)
+	}
+}
+
 func TestRunChoiceFrontierResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -1966,6 +2016,7 @@ type combinedFrontierExecutor struct {
 	t        *testing.T
 	buildKey string
 	limit    uint64
+	fail     bool
 	mu       sync.Mutex
 	requests []execution.Spec
 }
@@ -2043,24 +2094,34 @@ func (executor *combinedFrontierExecutor) Run(_ context.Context, request executi
 	if err != nil {
 		return execution.Result{}, err
 	}
+	outcome := "completed"
+	if executor.fail {
+		outcome = "oracle_failed"
+	}
 	record, err := json.Marshal(struct {
 		Schema               string                      `json:"schema"`
 		Seed                 uint64                      `json:"seed"`
 		SpecSHA256           evidence.SHA256             `json:"spec_sha256"`
 		Outcome              string                      `json:"outcome"`
+		FailureIdentity      evidence.SHA256             `json:"failure_identity,omitempty"`
 		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
 		ExplorationDecisions []combinedfrontier.Decision `json:"exploration_decisions"`
 		ScenarioTape         []string                    `json:"scenario_tape"`
 		Identity             evidence.SHA256             `json:"identity"`
 	}{
-		Schema: "gomadv3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: evidence.HashBytes([]byte("spec")), Outcome: "completed",
+		Schema: "gomadv3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: evidence.HashBytes([]byte("spec")), Outcome: outcome,
+		FailureIdentity: evidence.HashBytes([]byte("normalized oracle failure")),
 		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []combinedfrontier.Decision{decision},
 		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: evidence.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
 	})
 	if err != nil {
 		return execution.Result{}, err
 	}
-	result := processResult(0, "", "")
+	exitCode := 0
+	if executor.fail {
+		exitCode = 2
+	}
+	result := processResult(exitCode, "", "")
 	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, nil)
 	result.SimulationRecords = [][]byte{record}
 	return result, nil

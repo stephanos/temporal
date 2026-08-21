@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"debug/buildinfo"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -22,7 +23,9 @@ import (
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 	worldtarget "go.temporal.io/server/tools/gomadv3/world/target"
@@ -75,6 +78,52 @@ func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
 	}
 	if executor.request.Choice == nil || executor.request.Choice.Mode != choice.ModeReplay || executor.request.Choice.ReplayPlan == nil || len(executor.request.Choice.ReplayPlan.Decisions) != 1 {
 		t.Fatalf("replay choice capability = %#v", executor.request.Choice)
+	}
+}
+
+func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T) {
+	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
+	opened, err := evidence.OpenArtifact(artifactPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := opened.Manifest.SimulationProfile
+	if profile == nil {
+		t.Fatal("replay fixture omitted simulation exploration evidence")
+	}
+	plan, err := evidence.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	executor := &fakeReplayExecutor{result: expected}
+	result, err := Replay(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Match || result.Divergence != "" {
+		t.Fatalf("replay result = %#v", result)
+	}
+	if executor.request.Simulation == nil || executor.request.Simulation.Role != execution.SimulationRoleCoordinator || !reflect.DeepEqual(executor.request.Simulation.ExplorationPlan, plan) || executor.request.Simulation.ExplorationRecordLimit != uint64(profile.Record.Limit) || executor.request.Simulation.ExplorationRecordCount != 1 {
+		t.Fatalf("replay simulation capability = %#v", executor.request.Simulation)
+	}
+}
+
+func TestReplayReportsChangedSimulationExplorationRecord(t *testing.T) {
+	artifactPath, observed := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
+	observed.SimulationRecords = [][]byte{[]byte("changed simulation record")}
+	result, err := Replay(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: observed},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Match || result.Divergence != "simulation_profile.record.sha256" {
+		t.Fatalf("replay result = %#v", result)
 	}
 }
 
@@ -498,6 +547,7 @@ type replayArtifactTarget struct {
 	OutcomeReason string
 	IOTranscript  []byte
 	Choices       bool
+	Simulation    bool
 }
 
 func publishReplayArtifactForTarget(t *testing.T, connected *execution.Bundle, replayTarget replayArtifactTarget) (string, execution.Result) {
@@ -621,11 +671,54 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 		input.ChoiceTrace = choicePayload
 		recordedChoices = execution.ChoiceTrace{Profile: choice.Profile, ImplementationSHA256: implementation, Limit: choiceLimit, Trace: choiceTrace}
 	}
+	var recordedSimulationRecords [][]byte
+	if replayTarget.Simulation {
+		config := combinedfrontier.Config{
+			ExecutionSHA256: evidence.HashBytes([]byte("replay simulation execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: 7,
+			Parallel: 1, MaxRuns: 1, MaxForcedDecisions: 1, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
+			Limits: combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		}
+		state, stateErr := combinedfrontier.New(config)
+		if stateErr != nil {
+			t.Fatal(stateErr)
+		}
+		round, ok := state.NextRound()
+		if !ok {
+			t.Fatal("simulation replay root candidate is unavailable")
+		}
+		candidate := round.Candidates[0]
+		plan, planErr := simulationexploration.PlanForCandidate(config, candidate)
+		if planErr != nil {
+			t.Fatal(planErr)
+		}
+		record, recordErr := json.Marshal(struct {
+			Schema          string          `json:"schema"`
+			Seed            uint64          `json:"seed"`
+			SpecSHA256      evidence.SHA256 `json:"spec_sha256"`
+			Outcome         string          `json:"outcome"`
+			FailureIdentity evidence.SHA256 `json:"failure_identity"`
+			ExplorationPlan json.RawMessage `json:"exploration_plan"`
+			Identity        evidence.SHA256 `json:"identity"`
+		}{
+			Schema: "gomadv3.cluster-record/v7", Seed: 7, SpecSHA256: evidence.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
+			FailureIdentity: evidence.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan, Identity: evidence.HashBytes([]byte("simulation record")),
+		})
+		if recordErr != nil {
+			t.Fatal(recordErr)
+		}
+		profile, profileErr := simulationexploration.ProjectArtifact(config, candidate, plan, record, nil, 1<<20)
+		if profileErr != nil {
+			t.Fatal(profileErr)
+		}
+		input.Manifest.SimulationProfile = &profile
+		input.Simulation = &campaignstore.SimulationPayloads{Plan: plan, Record: record}
+		recordedSimulationRecords = [][]byte{record}
+	}
 	published, err := campaignstore.PublishArtifact(evidence.Store{Root: t.TempDir()}, input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: execution.IOTranscript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices}
+	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: execution.IOTranscript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
 	if connected != nil {
 		initial, decodeErr := world.DecodeSnapshot(connected.Payloads.Initial)
 		if decodeErr != nil {

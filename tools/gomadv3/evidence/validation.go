@@ -59,6 +59,9 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if err := validateChoiceProfile(manifest.SchemaVersion, manifest.ChoiceProfile, manifest.Limits.ChoiceTraceBytes, manifest.ArtifactKind, manifest.Outcome.Reason); err != nil {
 		return err
 	}
+	if err := validateSimulationProfile(manifest.SchemaVersion, manifest.ReplayMode, manifest.SimulationProfile); err != nil {
+		return err
+	}
 	choiceProfile := ""
 	if manifest.ChoiceProfile != nil {
 		choiceProfile = manifest.ChoiceProfile.Name
@@ -119,6 +122,15 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		trace := manifest.ChoiceProfile.Trace
 		if err := validateFileReference(files, trace.File, trace.SHA256, trace.Bytes); err != nil {
 			return fmt.Errorf("choice trace file: %w", err)
+		}
+	}
+	if manifest.SimulationProfile != nil {
+		profile := manifest.SimulationProfile
+		if err := validateFileReference(files, profile.Plan.File, profile.Plan.SHA256, profile.Plan.Bytes); err != nil {
+			return fmt.Errorf("simulation plan file: %w", err)
+		}
+		if err := validateFileReference(files, profile.Record.File, profile.Record.SHA256, profile.Record.Bytes); err != nil {
+			return fmt.Errorf("simulation record file: %w", err)
 		}
 	}
 	if err := validateFileReference(files, manifest.World.Initial.File, manifest.World.Initial.RawSHA256, files[manifest.World.Initial.File].Size); err != nil {
@@ -191,6 +203,45 @@ func validateChoiceProfile(schemaVersion uint32, profile *ChoiceProfile, limit U
 	}
 	if limit < choiceTraceHeaderBytes+recordBytes || trace.Limit != limit || trace.Bytes > limit-choiceTraceHeaderBytes || trace.Bytes%recordBytes != 0 || trace.Records != trace.Bytes/recordBytes || trace.BranchingRecords > trace.Records {
 		return errors.New("invalid choice trace limits or counts")
+	}
+	return nil
+}
+
+func validateSimulationProfile(schemaVersion uint32, replayMode string, profile *SimulationProfile) error {
+	if profile == nil {
+		return nil
+	}
+	if schemaVersion != SchemaVersion {
+		return errors.New("historical manifest contains simulation exploration evidence")
+	}
+	if replayMode != ReplayExact {
+		return errors.New("simulation exploration evidence requires exact replay")
+	}
+	if profile.Name != "gomadv3-simulation-exploration/v1" || profile.Plan.Schema != "gomadv3.simulation-exploration-plan/v1" || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != "gomadv3.cluster-record/v7" || profile.Record.File != "simulation/record.json" {
+		return errors.New("invalid simulation exploration identity")
+	}
+	for _, identity := range []struct {
+		name  string
+		value SHA256
+	}{
+		{name: "controller", value: profile.ControllerSHA256},
+		{name: "execution", value: profile.ExecutionSHA256},
+		{name: "candidate", value: profile.CandidateSHA256},
+		{name: "outcome", value: profile.OutcomeSHA256},
+		{name: "plan", value: profile.Plan.SHA256},
+		{name: "record", value: profile.Record.SHA256},
+	} {
+		if err := validateSHA256(identity.value); err != nil {
+			return fmt.Errorf("invalid simulation %s hash: %w", identity.name, err)
+		}
+	}
+	if profile.FailureSHA256 != "" {
+		if err := validateSHA256(profile.FailureSHA256); err != nil {
+			return fmt.Errorf("invalid simulation failure hash: %w", err)
+		}
+	}
+	if profile.Plan.Bytes == 0 || profile.Record.Bytes == 0 || profile.Record.Limit == 0 || profile.Record.Bytes > profile.Record.Limit {
+		return errors.New("invalid simulation exploration payload bounds")
 	}
 	return nil
 }
