@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
@@ -42,7 +43,8 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaignstore.RunJourna
 		Schema: campaignstore.CampaignPlanSchema, PlanSHA256: config.PlanSHA256, Shard: shard,
 		Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: evidence.Uint64String(selectionCount), Parallel: evidence.Uint64String(config.Parallel),
 		Journal: &journalPlan,
-		MaxRuns: evidence.Uint64String(config.MaxRuns), MaxChoiceDepth: evidence.Uint64String(config.MaxChoiceDepth), MaxFrontierBytes: evidence.Uint64String(config.MaxFrontierBytes),
+		MaxRuns: evidence.Uint64String(config.MaxRuns), MaxChoiceDepth: evidence.Uint64String(config.MaxChoiceDepth), MaxForcedDecisions: evidence.Uint64String(config.MaxForcedDecisions),
+		MaxFrontierBytes: evidence.Uint64String(config.MaxFrontierBytes), MaxExplorationResultBytes: evidence.Uint64String(config.MaxExplorationResultBytes), CombinedDimensionLimits: config.CombinedDimensionLimits,
 		RunTimeoutNanos: evidence.Uint64String(config.RunTimeout), OverallTimeoutNanos: evidence.Uint64String(config.OverallTimeout), TerminateGraceNanos: evidence.Uint64String(config.TerminateGrace),
 		OnFailure: string(config.OnFailure), FailureBudget: evidence.Uint64String(config.FailureBudget), OutputBytes: evidence.Uint64String(config.OutputLimit), WorldTransitionBytes: evidence.Uint64String(config.WorldTransitionLimit),
 		RunnerBuild: config.RunnerBuild,
@@ -57,6 +59,9 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaignstore.RunJourna
 	}
 	if normalizedStrategy(config.Strategy) == StrategyChoiceFrontier {
 		plan.FrontierImplementationSHA256 = frontier.ImplementationSHA256()
+	}
+	if normalizedStrategy(config.Strategy) == StrategyCombinedFrontier {
+		plan.CombinedFrontierImplementationSHA256 = combinedfrontier.ImplementationSHA256()
 	}
 	if config.ChoiceTraceLimit != 0 {
 		implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
