@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -277,20 +276,22 @@ func TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation(t *testi
 		t.Fatal(err)
 	}
 	artifactPath, _ := publishReplayArtifactForTarget(t, &bundle, replayArtifactTarget{
-		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$", "--", "diverge"},
+		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayDivergentTarget$"},
 		OutcomeReason: "world_replay_divergence",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
+	executor := &observingReplayExecutor{}
 	result, err := Replay(context.Background(), ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+		Executor:          executor,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if result.Divergence != "world.terminal" {
-		t.Fatalf("divergent transition reached target-visible mutation: %#v", result)
+		t.Fatalf("replay divergence = %s; observed stderr = %q; world bytes = %d", result.Divergence, executor.result.Stderr.RawBytes, len(executor.result.WorldRecord))
 	}
 }
 
@@ -311,7 +312,7 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	artifactPath, _ := publishReplayArtifactForTarget(t, &bundle, replayArtifactTarget{
-		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$", "--", "match"},
+		Argv:          []string{"gomadv3-target", "-test.run=^TestWorldReplayMatchingTarget$"},
 		OutcomeReason: "world_deadlock",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
@@ -328,14 +329,42 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 	}
 }
 
-func TestWorldReplayTarget(t *testing.T) {
-	mode := flag.Arg(0)
-	if mode == "" {
-		t.Skip("World replay target subprocess only")
+type observingReplayExecutor struct {
+	result execution.Result
+}
+
+func (executor *observingReplayExecutor) Run(ctx context.Context, spec execution.Spec) (execution.Result, error) {
+	result, err := execution.Run(ctx, spec)
+	executor.result = result
+	return result, err
+}
+
+func TestWorldReplayDivergentTarget(_ *testing.T) {
+	if !worldReplayTargetSelected("TestWorldReplayDivergentTarget") {
+		_, _ = os.Stderr.WriteString(fmt.Sprint(os.Args))
+		return
 	}
-	if mode != "match" && mode != "diverge" {
-		t.Fatalf("unknown World replay target mode %q", mode)
+	runWorldReplayTarget("diverge")
+}
+
+func TestWorldReplayMatchingTarget(_ *testing.T) {
+	if !worldReplayTargetSelected("TestWorldReplayMatchingTarget") {
+		return
 	}
+	runWorldReplayTarget("match")
+}
+
+func worldReplayTargetSelected(name string) bool {
+	want := "-test.run=^" + name + "$"
+	for _, argument := range os.Args {
+		if argument == want {
+			return true
+		}
+	}
+	return false
+}
+
+func runWorldReplayTarget(mode string) {
 	core, err := world.New(world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 10, MaxPayloadBytes: 1024, MaxStringBytes: 64}})
 	if err != nil {
 		os.Exit(10) //nolint:revive // This subprocess helper reports failure by exit status.
@@ -387,7 +416,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	argv := []string{"gomadv3-target", "-test.run=^TestWorldReplayTarget$", "--", "match"}
+	argv := []string{"gomadv3-target", "-test.run=^TestWorldReplayMatchingTarget$"}
 	profile := deterministicio.Default()
 	frame, err := profile.BootstrapFrame(target.Prepared{SHA256: string(evidence.HashBytes(targetBytes)), Argv: argv}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
