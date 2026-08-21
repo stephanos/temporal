@@ -1,12 +1,13 @@
 package fact
 
 import (
+	"go.temporal.io/server/api/historyservice/v1"
 	"go.temporal.io/server/common/testing/umpire"
 )
 
 // WorkflowStarted represents a workflow being started.
 type WorkflowStarted struct {
-	Request    *v1.StartWorkflowExecutionRequest
+	Request    *historyservice.StartWorkflowExecutionRequest
 	EntityPath *umpire.EntityPath
 }
 
@@ -19,7 +20,7 @@ func (e *WorkflowStarted) TargetEntity() *umpire.EntityPath {
 }
 
 func (e *WorkflowStarted) ImportRequest(request any) bool {
-	req, ok := request.(*v1.StartWorkflowExecutionRequest)
+	req, ok := request.(*historyservice.StartWorkflowExecutionRequest)
 	if !ok || req == nil || req.GetStartRequest().GetWorkflowId() == "" {
 		return false
 	}

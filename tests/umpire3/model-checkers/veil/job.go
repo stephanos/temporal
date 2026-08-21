@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"maps"
 	"slices"
 
 	"go.temporal.io/server/tests/umpire3/process"
@@ -16,28 +15,22 @@ import (
 const veilJobReceiptFormatVersion = "umpire3/veil-job-receipt/v1"
 
 type jobReceipt struct {
-	FormatVersion      string                      `json:"formatVersion"`
-	BackendRevision    string                      `json:"backendRevision"`
-	ViewFormatVersion  string                      `json:"viewFormatVersion"`
-	Target             protocol.TargetID           `json:"target"`
-	Property           protocol.PropertyID         `json:"property"`
-	World              string                      `json:"world"`
-	Variant            string                      `json:"variant"`
-	SemanticHash       string                      `json:"semanticHash"`
-	GeneratedModelHash string                      `json:"generatedModelHash"`
-	Job                protocol.BackendJob         `json:"job"`
-	Status             protocol.BackendTermination `json:"status"`
-	Depth              int                         `json:"depth,omitempty"`
-	TrustBadge         protocol.TrustBadge         `json:"trustBadge"`
-	Options            []string                    `json:"options"`
-	Axioms             []string                    `json:"axioms"`
+	FormatVersion   string                      `json:"formatVersion"`
+	BackendRevision string                      `json:"backendRevision"`
+	Binding         CompiledBinding             `json:"binding"`
+	Job             protocol.BackendJob         `json:"job"`
+	Status          protocol.BackendTermination `json:"status"`
+	Depth           int                         `json:"depth,omitempty"`
+	TrustBadge      protocol.TrustBadge         `json:"trustBadge"`
+	Options         []string                    `json:"options"`
+	Axioms          []string                    `json:"axioms"`
 }
 
 func RunJob(
 	ctx context.Context,
 	command []string,
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	job protocol.BackendJob,
 ) (protocol.BackendResult, error) {
 	if len(command) == 0 {
@@ -46,29 +39,29 @@ func RunJob(
 	if job != protocol.BackendJobSymbolicTrace && job != protocol.BackendJobInvariant {
 		return protocol.BackendResult{}, fmt.Errorf("unsupported Veil job %q", job)
 	}
-	if err := validateInteractiveModule(view, generated); err != nil {
+	if err := binding.ValidateAgainst(view); err != nil {
 		return protocol.BackendResult{}, err
 	}
 	result, err := process.Run(ctx, process.Request{
-		Command: append(append([]string(nil), command...), string(job)),
+		Command: append(append([]string(nil), command...), view.SemanticHash, string(job)),
 		Timeout: canonicalReplayTimeout, MaxOutputBytes: protocol.DefaultDecodeLimit,
 		Limits: backendProcessLimits,
 	})
 	if err != nil {
 		return protocol.BackendResult{}, fmt.Errorf("run Veil job receipt: %w", err)
 	}
-	return normalizeJobReceipt(view, generated, job, bytes.NewReader(result.Output),
+	return normalizeJobReceipt(view, binding, job, bytes.NewReader(result.Output),
 		protocol.DefaultDecodeLimit)
 }
 
 func normalizeJobReceipt(
 	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	job protocol.BackendJob,
 	reader io.Reader,
 	limit int64,
 ) (protocol.BackendResult, error) {
-	if err := validateInteractiveModule(view, generated); err != nil {
+	if err := binding.ValidateAgainst(view); err != nil {
 		return protocol.BackendResult{}, err
 	}
 	var receipt jobReceipt
@@ -76,25 +69,22 @@ func normalizeJobReceipt(
 		return protocol.BackendResult{}, err
 	}
 	if receipt.FormatVersion != veilJobReceiptFormatVersion ||
-		receipt.BackendRevision != protocol.VeilBackendRevision ||
-		receipt.ViewFormatVersion != view.FormatVersion || receipt.Target != view.Target ||
-		receipt.Property != view.Property || receipt.World != view.World ||
-		receipt.Variant != view.Variant || receipt.SemanticHash != view.SemanticHash {
-		return protocol.BackendResult{}, errors.New("veil job receipt is not bound to the first-order view")
+		receipt.BackendRevision != protocol.VeilBackendRevision {
+		return protocol.BackendResult{}, errors.New("veil job receipt has an unsupported identity")
 	}
-	if receipt.GeneratedModelHash != generated.ModelHash {
-		return protocol.BackendResult{}, errors.New("veil job receipt is not bound to the generated Veil module")
+	if err := receipt.Binding.Validate(); err != nil || !receipt.Binding.equal(binding.Binding) {
+		return protocol.BackendResult{}, errors.New("veil job receipt is not bound to the compiled Veil binding")
 	}
 	if receipt.Job != job {
 		return protocol.BackendResult{}, errors.New("veil job receipt does not match requested job")
 	}
-	expectedTrust, expectedTrustOption, err := jobTrust(job, generated.TrustMode)
+	expectedTrust, expectedTrustOption, err := jobTrust(job, binding.Binding.TrustMode)
 	if err != nil {
 		return protocol.BackendResult{}, err
 	}
 	if receipt.TrustBadge != expectedTrust ||
 		!slices.Equal(receipt.Options, []string{"grind+smt", "sequential", expectedTrustOption}) {
-		return protocol.BackendResult{}, errors.New("veil job receipt does not match generated Veil trust mode")
+		return protocol.BackendResult{}, errors.New("veil job receipt does not match the compiled Veil trust mode")
 	}
 	if receipt.Axioms == nil || !slices.IsSorted(receipt.Axioms) ||
 		len(slices.Compact(append([]string(nil), receipt.Axioms...))) != len(receipt.Axioms) {
@@ -104,10 +94,10 @@ func normalizeJobReceipt(
 		return protocol.BackendResult{}, errors.New("veil symbolic receipt cannot claim reconstructed proof axioms")
 	}
 	if receipt.Job == protocol.BackendJobInvariant {
-		if generated.TrustMode == ReconstructedSMT && slices.Contains(receipt.Axioms, "sorryAx") {
+		if binding.Binding.TrustMode == ReconstructedSMT && slices.Contains(receipt.Axioms, "sorryAx") {
 			return protocol.BackendResult{}, errors.New("reconstructed Veil invariant contains sorryAx")
 		}
-		if generated.TrustMode == TrustedSMT && !slices.Contains(receipt.Axioms, "sorryAx") {
+		if binding.Binding.TrustMode == TrustedSMT && !slices.Contains(receipt.Axioms, "sorryAx") {
 			return protocol.BackendResult{}, errors.New("trusted Veil invariant must disclose sorryAx")
 		}
 	}
@@ -121,7 +111,7 @@ func normalizeJobReceipt(
 		World:                   view.World,
 		Variant:                 view.Variant,
 		SemanticHash:            view.SemanticHash,
-		GeneratedArtifactDigest: generated.ModelHash,
+		GeneratedArtifactDigest: binding.ArtifactDigest,
 		Job:                     receipt.Job,
 		TrustBadge:              receipt.TrustBadge,
 		Exact:                   true,
@@ -151,19 +141,6 @@ func normalizeJobReceipt(
 		return protocol.BackendResult{}, err
 	}
 	return result, nil
-}
-
-func validateInteractiveModule(view protocol.FirstOrderView, generated GeneratedModule) error {
-	expected, err := GenerateWithTrust(view, Interactive, generated.TrustMode)
-	if err != nil {
-		return err
-	}
-	if generated.Module != expected.Module || !bytes.Equal(generated.Source, expected.Source) ||
-		!maps.Equal(generated.ActionLabels, expected.ActionLabels) || generated.ExportsModelChecker ||
-		generated.TrustMode != expected.TrustMode {
-		return errors.New("veil job receipt is not bound to the generated interactive module")
-	}
-	return nil
 }
 
 func jobTrust(job protocol.BackendJob, mode SMTTrustMode) (protocol.TrustBadge, string, error) {

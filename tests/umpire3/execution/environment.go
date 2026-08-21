@@ -14,6 +14,7 @@ type Bindings map[string]string
 
 type ActionEvidence struct {
 	Source              string                       `json:"source"`
+	Outcome             protocol.ActionOutcome       `json:"outcome"`
 	SourceIdentity      string                       `json:"sourceIdentity,omitempty"`
 	ClockDomain         string                       `json:"clockDomain,omitempty"`
 	SourceSequence      int64                        `json:"sourceSequence,omitempty"`
@@ -43,6 +44,7 @@ type Observation struct {
 	EntityIdentity            string   `json:"entityIdentity"`
 	Lineage                   []string `json:"lineage"`
 	PayloadDigest             string   `json:"payloadDigest,omitempty"`
+	SupportingFacts           []string `json:"supportingFacts,omitempty"`
 }
 
 type CleanupResult struct {
@@ -81,15 +83,10 @@ type Session interface {
 	RecoveryMetadata() map[string]string
 }
 
-type ObservationSession interface {
-	Observe(context.Context, protocol.Checkpoint, Bindings) (Observation, error)
-}
-
 type FactSession interface {
 	ObserveFacts(context.Context, protocol.Checkpoint, Bindings) ([]observation.Fact, error)
 }
 
-// CorroboratingSession advertises that every primary observation must be corroborated by an independent source.
-type CorroboratingSession interface {
-	Corroborate(context.Context, protocol.Checkpoint, Bindings) ([]Observation, error)
+type CorroboratingFactSession interface {
+	CorroborateFacts(context.Context, protocol.Checkpoint, Bindings) ([][]observation.Fact, error)
 }

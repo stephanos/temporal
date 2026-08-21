@@ -1,13 +1,16 @@
 package migration
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -20,6 +23,9 @@ import (
 )
 
 const FormatVersion = "umpire3/migration-ledger/v3"
+
+//go:embed ledger.json
+var defaultLedgerJSON []byte
 
 type ExecutedContract struct {
 	Variant           string           `json:"variant,omitempty"`
@@ -54,6 +60,30 @@ type Entry struct {
 type Ledger struct {
 	FormatVersion string  `json:"formatVersion"`
 	Entries       []Entry `json:"entries"`
+}
+
+func DecodeLedger(encoded []byte) (Ledger, error) {
+	var ledger Ledger
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&ledger); err != nil {
+		return Ledger{}, fmt.Errorf("decode migration ledger: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return Ledger{}, errors.New("decode migration ledger: trailing JSON data")
+	}
+	if err := ledger.Validate(); err != nil {
+		return Ledger{}, err
+	}
+	return ledger, nil
+}
+
+func DefaultLedger() (Ledger, []byte, error) {
+	ledger, err := DecodeLedger(defaultLedgerJSON)
+	if err != nil {
+		return Ledger{}, nil, err
+	}
+	return ledger, append([]byte(nil), defaultLedgerJSON...), nil
 }
 
 func Build(testsRoot string) (Ledger, error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -29,19 +30,20 @@ const (
 	OutcomeDegraded      = protocol.OutcomeDegraded
 	OutcomeFlagged       = protocol.OutcomeFlagged
 	OutcomeUnreached     = protocol.OutcomeUnreached
-	ResultFormatVersion  = "umpire3/runtime-result/v2"
+	ResultFormatVersion  = "umpire3/runtime-result/v3"
 )
 
 type Limits struct {
-	PrepareTimeout   time.Duration
-	ActionTimeout    time.Duration
-	ObserveTimeout   time.Duration
-	FaultTimeout     time.Duration
-	CleanupTimeout   time.Duration
-	MaxActions       int
-	MaxObservations  int
-	MaxResources     int
-	MaxEvidenceBytes int64
+	PrepareTimeout      time.Duration
+	ActionTimeout       time.Duration
+	ObserveTimeout      time.Duration
+	FaultTimeout        time.Duration
+	CleanupTimeout      time.Duration
+	MaxActions          int
+	MaxObservations     int
+	MaxResources        int
+	MaxEvidenceBytes    int64
+	MaxActionsPerSecond int
 }
 
 type Request struct {
@@ -88,28 +90,35 @@ type FaultResult struct {
 }
 
 type Result struct {
-	FormatVersion    string               `json:"formatVersion"`
-	ExperimentDigest string               `json:"experimentDigest"`
-	ResultClass      protocol.ResultClass `json:"resultClass"`
-	TrustBadge       protocol.TrustBadge  `json:"trustBadge"`
-	Environment      EnvironmentIdentity  `json:"environment"`
-	Actions          []ActionResult       `json:"actions"`
-	Bindings         Bindings             `json:"bindings"`
-	Observations     []Observation        `json:"observations"`
-	Facts            []observation.Fact   `json:"facts,omitempty"`
-	Faults           []FaultResult        `json:"faults,omitempty"`
-	Omissions        []string             `json:"omissions"`
-	Checkpoints      []CheckpointResult   `json:"checkpoints"`
-	Evidence         evidencegraph.Graph  `json:"evidence"`
-	Footprint        *umpire3fault.Report `json:"footprint,omitempty"`
-	Claim            Claim                `json:"claim"`
-	Outcome          protocol.Outcome     `json:"outcome"`
-	Cleanup          CleanupResult        `json:"cleanup"`
+	FormatVersion    string                  `json:"formatVersion"`
+	ExperimentDigest string                  `json:"experimentDigest"`
+	ResultClass      protocol.ResultClass    `json:"resultClass"`
+	TrustBadge       protocol.TrustBadge     `json:"trustBadge"`
+	Environment      EnvironmentIdentity     `json:"environment"`
+	Actions          []ActionResult          `json:"actions"`
+	Bindings         Bindings                `json:"bindings"`
+	Observations     []Observation           `json:"observations"`
+	Facts            []observation.Fact      `json:"facts,omitempty"`
+	Faults           []FaultResult           `json:"faults,omitempty"`
+	Omissions        []string                `json:"omissions"`
+	Checkpoints      []CheckpointResult      `json:"checkpoints"`
+	Evidence         evidencegraph.Graph     `json:"evidence"`
+	EvidenceDigest   string                  `json:"evidenceDigest,omitempty"`
+	Trace            *protocol.SemanticTrace `json:"trace,omitempty"`
+	Footprint        *umpire3fault.Report    `json:"footprint,omitempty"`
+	Claim            Claim                   `json:"claim"`
+	Outcome          protocol.Outcome        `json:"outcome"`
+	Cleanup          CleanupResult           `json:"cleanup"`
 }
 
 func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if err := request.Experiment.Validate(); err != nil {
 		return Result{}, fmt.Errorf("validate experiment: %w", err)
+	}
+	attemptExecutionView, hasAttemptExecutionView, err :=
+		protocol.DefaultAttemptExecutionView(request.Experiment)
+	if err != nil {
+		return Result{}, fmt.Errorf("load Lean-derived attempt execution view: %w", err)
 	}
 	monitorCatalog, err := protocol.DefaultMonitorCatalog()
 	if err != nil {
@@ -175,9 +184,8 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		return result, nil
 	}
 	factSession, emitsFacts := session.(FactSession)
-	observationSession, emitsObservations := session.(ObservationSession)
-	if !emitsFacts && !emitsObservations {
-		result.Claim.Reason = "prepared session has no observation interface"
+	if !emitsFacts {
+		result.Claim.Reason = "prepared session has no fact observation interface"
 		return result, nil
 	}
 	defer finalizeFootprint(&result, request.Environment, session)
@@ -206,6 +214,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		checkpointByID[checkpoint.Identifier] = checkpoint
 	}
 	observed := make(map[string]struct{}, len(checkpointByID))
+	primaryFacts := make([]observation.Fact, 0, len(request.Experiment.Checkpoints))
 	observe := func(identifier string) bool {
 		if identifier == "" {
 			return true
@@ -217,32 +226,38 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		observeCtx, cancelObserve := context.WithTimeout(ctx, limits.ObserveTimeout)
 		var observedValue Observation
 		var observeErr error
-		if emitsFacts {
-			var facts []observation.Fact
-			facts, observeErr = factSession.ObserveFacts(observeCtx, checkpoint, result.Bindings)
-			if observeErr == nil {
-				result.Facts = appendDistinctFacts(result.Facts, facts)
-				program, exists := observationCatalog.Program(protocol.ObservationID(checkpoint.Observation))
-				if !exists {
-					observeErr = fmt.Errorf("observation %q has no generated interpreter program", checkpoint.Observation)
-				} else {
-					evaluation := program.Evaluate(result.Facts)
-					switch evaluation.Value {
-					case observation.True, observation.False:
-						observedValue, observeErr = interpretedObservation(checkpoint, evaluation, result.Facts)
-					case observation.Unknown:
-						observeErr = errors.New("typed observation remains unknown; required evidence or window closure is missing")
-					case observation.Conflict:
+		var emittedFacts []observation.Fact
+		emittedFacts, observeErr = factSession.ObserveFacts(observeCtx, checkpoint, result.Bindings)
+		if observeErr == nil {
+			primaryFacts = appendDistinctFacts(primaryFacts, emittedFacts)
+			result.Facts = appendDistinctFacts(result.Facts, emittedFacts)
+			program, exists := observationCatalog.Program(protocol.ObservationID(checkpoint.Observation))
+			if !exists {
+				observeErr = fmt.Errorf("observation %q has no generated interpreter program", checkpoint.Observation)
+			} else {
+				evaluation := program.Evaluate(primaryFacts)
+				switch evaluation.Value {
+				case observation.True, observation.False:
+					observedValue, observeErr = interpretedObservation(checkpoint, evaluation, primaryFacts)
+					if observeErr != nil {
 						result.Claim.Kind = ClaimEvidenceFailure
-						observeErr = fmt.Errorf("typed observation evidence conflicts: %v", evaluation.Support)
-					default:
+						result.Claim.Reason = "interpret typed observation: " + observeErr.Error()
+						observeErr = errors.New(result.Claim.Reason)
+					} else if !factsShareEntityIdentity(primaryFacts, observedValue) {
 						result.Claim.Kind = ClaimEvidenceFailure
-						observeErr = fmt.Errorf("typed observation returned invalid value %q", evaluation.Value)
+						result.Claim.Reason = "primary fact set combines multiple source or entity identities"
+						observeErr = errors.New(result.Claim.Reason)
 					}
+				case observation.Unknown:
+					observeErr = errors.New("typed observation remains unknown; required evidence or window closure is missing")
+				case observation.Conflict:
+					result.Claim.Kind = ClaimEvidenceFailure
+					observeErr = fmt.Errorf("typed observation evidence conflicts: %v", evaluation.Support)
+				default:
+					result.Claim.Kind = ClaimEvidenceFailure
+					observeErr = fmt.Errorf("typed observation returned invalid value %q", evaluation.Value)
 				}
 			}
-		} else {
-			observedValue, observeErr = observationSession.Observe(observeCtx, checkpoint, result.Bindings)
 		}
 		cancelObserve()
 		if observeErr != nil {
@@ -256,6 +271,9 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 				observed[identifier] = struct{}{}
 				return true
 			}
+			if result.Claim.Reason == "" {
+				result.Claim.Reason = observeErr.Error()
+			}
 			result.Checkpoints = append(result.Checkpoints, CheckpointResult{
 				Identifier: identifier,
 				Reason:     observeErr.Error(),
@@ -267,9 +285,10 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		}
 		result.Observations = append(result.Observations, observedValue)
 		qualified, reason := qualifyObservation(checkpoint, observedValue, monitor.Evidence)
-		if qualified && !emitsFacts {
-			qualified, reason = appendCorroboratingObservations(
-				ctx, session, checkpoint, result.Bindings, limits.ObserveTimeout, &result, observedValue, monitor.Evidence,
+		if qualified {
+			qualified, reason = appendCorroboratingFactObservations(
+				ctx, session, checkpoint, result.Bindings, limits.ObserveTimeout, &result,
+				observedValue, monitor.Evidence, observationCatalog,
 			)
 		}
 		result.Checkpoints = append(result.Checkpoints, CheckpointResult{
@@ -301,7 +320,13 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 
 	completeEvidence := true
 	var evidenceBytes int64
+	observedAttempts := make([]protocol.ObservedAttempt, 0, len(request.Experiment.Actions))
+	defer func() {
+		finalizeSemanticTrace(
+			&result, request.Experiment, attemptExecutionView, hasAttemptExecutionView, observedAttempts)
+	}()
 	declaredSymbols := make(map[string]struct{})
+	var previousAction time.Time
 	for _, action := range request.Experiment.Actions {
 		for _, binding := range action.Bindings {
 			declaredSymbols[binding.Symbol] = struct{}{}
@@ -331,6 +356,15 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 			completeEvidence = false
 			break
 		}
+		if err := waitForActionRate(ctx, &previousAction, limits.MaxActionsPerSecond); err != nil {
+			reason := "wait for action rate budget: " + err.Error()
+			result.Actions = append(result.Actions, ActionResult{
+				Identifier: action.Identifier, Kind: action.Kind, Error: reason,
+			})
+			result.Claim.Reason = reason
+			completeEvidence = false
+			break
+		}
 		actionCtx, cancelAction := context.WithTimeout(ctx, limits.ActionTimeout)
 		evidence, actionErr := session.Realize(actionCtx, action, result.Bindings)
 		cancelAction()
@@ -341,6 +375,42 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 			result.Claim.Reason = "realize action " + action.Identifier + ": " + actionErr.Error()
 			completeEvidence = false
 			break
+		}
+		if evidence.Outcome == "" {
+			actionResult.Error = "observed action outcome is missing"
+			result.Actions = append(result.Actions, actionResult)
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = actionResult.Error
+			completeEvidence = false
+			break
+		}
+		if !slices.Contains(action.AllowedOutcomes, evidence.Outcome) {
+			actionResult.Error = fmt.Sprintf("observed action outcome %q is not allowed", evidence.Outcome)
+			result.Actions = append(result.Actions, actionResult)
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = actionResult.Error
+			completeEvidence = false
+			break
+		}
+		observedAttempts = append(observedAttempts, protocol.ObservedAttempt{
+			Action: protocol.ActionKind(action.Kind), Outcome: evidence.Outcome,
+		})
+		if hasAttemptExecutionView {
+			replay, replayErr := attemptExecutionView.ReplayObserved(observedAttempts)
+			if replayErr != nil {
+				actionResult.Error = "replay observed action outcomes: " + replayErr.Error()
+			} else if !replay.Accepted {
+				actionResult.Error = fmt.Sprintf(
+					"canonical attempt replay rejects action %q outcome %q",
+					replay.RejectedAction, replay.RejectedOutcome)
+			}
+			if actionResult.Error != "" {
+				result.Actions = append(result.Actions, actionResult)
+				result.Claim.Kind = ClaimEvidenceFailure
+				result.Claim.Reason = actionResult.Error
+				completeEvidence = false
+				break
+			}
 		}
 		evidenceBytes += actionEvidenceSize(evidence)
 		if evidenceBytes > limits.MaxEvidenceBytes {
@@ -460,7 +530,129 @@ func (r Result) ValidateAssurance() error {
 		return fmt.Errorf("runtime assurance %q/%q does not match final claim %q",
 			r.ResultClass, r.TrustBadge, r.Claim.Kind)
 	}
+	if r.Claim.Kind == ClaimViolating {
+		if r.Trace == nil {
+			return errors.New("violating runtime result requires a canonical semantic trace")
+		}
+		if err := r.Trace.Validate(); err != nil {
+			return fmt.Errorf("validate violating runtime semantic trace: %w", err)
+		}
+		if r.Trace.Kind != protocol.SemanticTraceLive ||
+			r.Trace.Producer != protocol.SemanticTraceProducerLive ||
+			r.Trace.ExperimentDigest != r.ExperimentDigest ||
+			string(r.Trace.Property) != r.Claim.Property {
+			return errors.New("violating runtime semantic trace does not match its result")
+		}
+	} else if r.Trace != nil {
+		return errors.New("non-violating runtime result cannot carry a semantic trace")
+	}
 	return nil
+}
+
+func (r Result) ValidateEvidenceDigest() error {
+	encoded, err := r.canonicalEvidence()
+	if err != nil {
+		return fmt.Errorf("encode runtime evidence: %w", err)
+	}
+	digest := sha256.Sum256(encoded)
+	expected := "sha256:" + hex.EncodeToString(digest[:])
+	if r.EvidenceDigest != expected {
+		return fmt.Errorf("runtime evidence digest %q does not match %q", r.EvidenceDigest, expected)
+	}
+	return nil
+}
+
+func (r *Result) BindEvidenceDigest() error {
+	encoded, err := r.canonicalEvidence()
+	if err != nil {
+		return fmt.Errorf("encode runtime evidence: %w", err)
+	}
+	digest := sha256.Sum256(encoded)
+	r.EvidenceDigest = "sha256:" + hex.EncodeToString(digest[:])
+	return nil
+}
+
+func (r *Result) NormalizeEvidence(maxBytes int64) error {
+	if maxBytes <= 0 {
+		return errors.New("positive evidence byte limit is required")
+	}
+	claim := r.Claim.Kind
+	finalizeEvidenceGraph(r, maxBytes)
+	if r.Claim.Kind != claim {
+		return errors.New(r.Claim.Reason)
+	}
+	if err := r.Evidence.Validate(); err != nil {
+		return err
+	}
+	return r.ValidateEvidenceDigest()
+}
+
+func (r Result) canonicalEvidence() ([]byte, error) {
+	if _, err := r.Evidence.CanonicalJSON(); err != nil {
+		return nil, err
+	}
+	factIdentifiers := make(map[string]struct{}, len(r.Facts))
+	for _, fact := range r.Facts {
+		if err := fact.Validate(); err != nil {
+			return nil, err
+		}
+		if _, duplicate := factIdentifiers[fact.Identifier]; duplicate {
+			return nil, fmt.Errorf("duplicate runtime fact %q", fact.Identifier)
+		}
+		factIdentifiers[fact.Identifier] = struct{}{}
+	}
+	if len(r.Facts) != 0 {
+		for _, interpreted := range r.Observations {
+			if len(interpreted.SupportingFacts) == 0 {
+				return nil, fmt.Errorf("observation %q has no supporting facts", interpreted.CheckpointID)
+			}
+			for _, identifier := range interpreted.SupportingFacts {
+				if _, exists := factIdentifiers[identifier]; !exists {
+					return nil, fmt.Errorf("observation %q references missing supporting fact %q",
+						interpreted.CheckpointID, identifier)
+				}
+			}
+		}
+	}
+	encoded, err := json.Marshal(struct {
+		Facts        []observation.Fact      `json:"facts"`
+		Actions      []ActionResult          `json:"actions"`
+		Observations []Observation           `json:"observations"`
+		Graph        evidencegraph.Graph     `json:"graph"`
+		Trace        *protocol.SemanticTrace `json:"trace,omitempty"`
+	}{
+		Facts: r.Facts, Actions: r.Actions, Observations: r.Observations,
+		Graph: r.Evidence, Trace: r.Trace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("encode runtime evidence: %w", err)
+	}
+	return encoded, nil
+}
+
+func finalizeSemanticTrace(
+	result *Result,
+	experiment protocol.Experiment,
+	view protocol.AttemptExecutionView,
+	hasView bool,
+	attempts []protocol.ObservedAttempt,
+) {
+	if result.Claim.Kind != ClaimViolating {
+		result.Trace = nil
+		return
+	}
+	if !hasView || len(attempts) == 0 {
+		result.Claim.Kind = ClaimEvidenceFailure
+		result.Claim.Reason = "violating evidence has no canonical attempt trace"
+		return
+	}
+	trace, err := protocol.NewLiveSemanticTrace(experiment, view, attempts)
+	if err != nil {
+		result.Claim.Kind = ClaimEvidenceFailure
+		result.Claim.Reason = "replay violating evidence: " + err.Error()
+		return
+	}
+	result.Trace = &trace
 }
 
 func finalizeFootprint(result *Result, factory Factory, session Session) {
@@ -484,7 +676,7 @@ func finalizeFootprint(result *Result, factory Factory, session Session) {
 	result.Footprint = &report
 }
 
-func appendCorroboratingObservations(
+func appendCorroboratingFactObservations(
 	ctx context.Context,
 	session Session,
 	checkpoint protocol.Checkpoint,
@@ -493,63 +685,118 @@ func appendCorroboratingObservations(
 	result *Result,
 	primary Observation,
 	requiredEvidence []protocol.EvidenceID,
+	catalog observation.Catalog,
 ) (bool, string) {
-	corroborating, ok := session.(CorroboratingSession)
+	corroborating, ok := session.(CorroboratingFactSession)
 	if !ok {
 		return true, ""
 	}
 	corroborateCtx, cancelCorroborate := context.WithTimeout(ctx, timeout)
-	observations, err := corroborating.Corroborate(corroborateCtx, checkpoint, bindings)
+	factSets, err := corroborating.CorroborateFacts(corroborateCtx, checkpoint, bindings)
 	cancelCorroborate()
 	if err != nil {
-		reason := "corroborate observation: " + err.Error()
+		reason := "corroborate facts: " + err.Error()
 		result.Omissions = append(result.Omissions, checkpoint.Identifier+": "+reason)
 		result.Claim.Kind = ClaimEvidenceFailure
 		result.Claim.Reason = reason
 		return false, reason
 	}
-	if len(observations) == 0 {
-		reason := "corroborating observation is unavailable"
+	if len(factSets) == 0 {
+		reason := "corroborating facts are unavailable"
 		result.Omissions = append(result.Omissions, checkpoint.Identifier+": "+reason)
+		result.Claim.Kind = ClaimEvidenceFailure
+		result.Claim.Reason = reason
+		return false, reason
+	}
+	program, exists := catalog.Program(protocol.ObservationID(checkpoint.Observation))
+	if !exists {
+		reason := fmt.Sprintf("observation %q has no generated interpreter program", checkpoint.Observation)
 		result.Claim.Kind = ClaimEvidenceFailure
 		result.Claim.Reason = reason
 		return false, reason
 	}
 	sourceIdentities := map[string]struct{}{primary.SourceIdentity: {}}
-	for _, observation := range observations {
-		if observation.ObservedAtUnixNano == 0 {
-			observation.ObservedAtUnixNano = time.Now().UnixNano()
+	for _, facts := range factSets {
+		evaluation := program.Evaluate(facts)
+		if evaluation.Value != observation.True && evaluation.Value != observation.False {
+			reason := fmt.Sprintf("corroborating typed observation is %s: %v", evaluation.Value, evaluation.Support)
+			result.Omissions = append(result.Omissions, checkpoint.Identifier+": "+reason)
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = reason
+			return false, reason
 		}
-		result.Observations = append(result.Observations, observation)
-		if qualified, reason := qualifyObservation(checkpoint, observation, requiredEvidence); !qualified {
-			result.Omissions = append(result.Omissions, checkpoint.Identifier+": corroborating "+reason)
+		interpreted, interpretErr := interpretedObservation(checkpoint, evaluation, facts)
+		if interpretErr != nil {
+			reason := "interpret corroborating facts: " + interpretErr.Error()
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = reason
+			return false, reason
+		}
+		if !factsShareObservationIdentity(facts, interpreted) {
+			reason := "corroborating fact set combines multiple source or entity identities"
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = reason
+			return false, reason
+		}
+		if _, duplicate := sourceIdentities[interpreted.SourceIdentity]; duplicate {
+			reason := "corroborating facts are not independently sourced"
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = reason
+			return false, reason
+		}
+		sourceIdentities[interpreted.SourceIdentity] = struct{}{}
+		if interpreted.EntityIdentity != primary.EntityIdentity || !slices.Equal(interpreted.Lineage, primary.Lineage) {
+			reason := "corroborating facts identify a different entity lineage"
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = reason
+			return false, reason
+		}
+		if interpreted.Satisfied != primary.Satisfied {
+			reason := "corroborating facts contradict the primary source"
+			result.Claim.Kind = ClaimEvidenceFailure
+			result.Claim.Reason = reason
+			return false, reason
+		}
+		if qualified, reason := qualifyObservation(checkpoint, interpreted, requiredEvidence); !qualified {
 			result.Claim.Kind = ClaimEvidenceFailure
 			result.Claim.Reason = "corroborating " + reason
 			return false, result.Claim.Reason
 		}
-		if _, duplicate := sourceIdentities[observation.SourceIdentity]; duplicate {
-			reason := "corroborating observation is not independently sourced"
-			result.Omissions = append(result.Omissions, checkpoint.Identifier+": "+reason)
-			result.Claim.Kind = ClaimEvidenceFailure
-			result.Claim.Reason = reason
-			return false, reason
+		if interpreted.ObservedAtUnixNano == 0 {
+			interpreted.ObservedAtUnixNano = time.Now().UnixNano()
 		}
-		sourceIdentities[observation.SourceIdentity] = struct{}{}
-		if observation.EntityIdentity != primary.EntityIdentity || !slices.Equal(observation.Lineage, primary.Lineage) {
-			reason := "corroborating observation identifies a different entity lineage"
-			result.Omissions = append(result.Omissions, checkpoint.Identifier+": "+reason)
-			result.Claim.Kind = ClaimEvidenceFailure
-			result.Claim.Reason = reason
-			return false, reason
-		}
-		if observation.Satisfied != primary.Satisfied {
-			reason := "corroborating observation contradicts the primary source"
-			result.Claim.Kind = ClaimEvidenceFailure
-			result.Claim.Reason = reason
-			return false, reason
-		}
+		result.Facts = appendDistinctFacts(result.Facts, facts)
+		result.Observations = append(result.Observations, interpreted)
 	}
 	return true, ""
+}
+
+func factsShareObservationIdentity(facts []observation.Fact, interpreted Observation) bool {
+	if interpreted.SourceIdentity == "" || len(facts) == 0 {
+		return false
+	}
+	for _, fact := range facts {
+		if fact.Source.Identity != interpreted.SourceIdentity ||
+			fact.Source.ClockDomain != interpreted.ClockDomain ||
+			fact.Source.EntityIdentity != interpreted.EntityIdentity ||
+			!slices.Equal(fact.Source.Lineage, interpreted.Lineage) {
+			return false
+		}
+	}
+	return true
+}
+
+func factsShareEntityIdentity(facts []observation.Fact, interpreted Observation) bool {
+	if interpreted.EntityIdentity == "" || len(facts) == 0 {
+		return false
+	}
+	for _, fact := range facts {
+		if fact.Source.EntityIdentity != interpreted.EntityIdentity ||
+			!slices.Equal(fact.Source.Lineage, interpreted.Lineage) {
+			return false
+		}
+	}
+	return true
 }
 
 func contradictionCheckpoint(
@@ -586,27 +833,59 @@ func interpretedObservation(
 	if len(evaluation.Support) == 0 {
 		return Observation{}, errors.New("typed observation returned no supporting fact")
 	}
+	byIdentifier := make(map[string]observation.Fact, len(facts))
 	for _, fact := range facts {
-		if fact.Identifier != evaluation.Support[0] {
-			continue
-		}
-		return Observation{
-			CheckpointID:     checkpoint.Identifier,
-			Kind:             checkpoint.Observation,
-			Satisfied:        evaluation.Value == observation.True,
-			Source:           fact.Source.Identity,
-			SourceIdentity:   fact.Source.Identity,
-			ClockDomain:      fact.Source.ClockDomain,
-			SourceSequence:   fact.Source.Sequence,
-			Reference:        fact.Source.Reference,
-			CausalReference:  fact.Source.Reference,
-			CausalReferences: append([]string(nil), fact.Source.CausalReferences...),
-			EntityIdentity:   fact.Source.EntityIdentity,
-			Lineage:          append([]string(nil), fact.Source.Lineage...),
-			PayloadDigest:    fact.Source.PayloadDigest,
-		}, nil
+		byIdentifier[fact.Identifier] = fact
 	}
-	return Observation{}, fmt.Errorf("typed observation supporting fact %q is missing", evaluation.Support[0])
+	supporting := make([]observation.Fact, len(evaluation.Support))
+	for index, identifier := range evaluation.Support {
+		fact, exists := byIdentifier[identifier]
+		if !exists {
+			return Observation{}, fmt.Errorf("typed observation supporting fact %q is missing", identifier)
+		}
+		supporting[index] = fact
+	}
+	identity := supporting[0].Source
+	latest := supporting[0]
+	var causalReferences []string
+	for _, fact := range supporting {
+		if fact.Source.Identity != identity.Identity || fact.Source.ClockDomain != identity.ClockDomain ||
+			fact.Source.EntityIdentity != identity.EntityIdentity ||
+			!slices.Equal(fact.Source.Lineage, identity.Lineage) ||
+			fact.Source.PayloadDigest != identity.PayloadDigest {
+			return Observation{}, errors.New("typed observation supporting facts have inconsistent identity")
+		}
+		if fact.Source.Sequence > latest.Source.Sequence {
+			latest = fact
+		}
+		for _, reference := range fact.Source.CausalReferences {
+			if !slices.Contains(causalReferences, reference) {
+				causalReferences = append(causalReferences, reference)
+			}
+		}
+	}
+	causalReference := ""
+	if len(latest.Source.CausalReferences) != 0 {
+		causalReference = latest.Source.CausalReferences[0]
+	} else if len(causalReferences) != 0 {
+		causalReference = causalReferences[0]
+	}
+	return Observation{
+		CheckpointID:     checkpoint.Identifier,
+		Kind:             checkpoint.Observation,
+		Satisfied:        evaluation.Value == observation.True,
+		Source:           identity.Identity,
+		SourceIdentity:   identity.Identity,
+		ClockDomain:      identity.ClockDomain,
+		SourceSequence:   latest.Source.Sequence,
+		Reference:        latest.Source.Reference,
+		CausalReference:  causalReference,
+		CausalReferences: causalReferences,
+		EntityIdentity:   identity.EntityIdentity,
+		Lineage:          append([]string(nil), identity.Lineage...),
+		PayloadDigest:    identity.PayloadDigest,
+		SupportingFacts:  append([]string(nil), evaluation.Support...),
+	}, nil
 }
 
 func finalizeOutcome(result *Result) {
@@ -678,6 +957,31 @@ func (limits Limits) withDefaults(experiment protocol.Experiment) Limits {
 		limits.MaxEvidenceBytes = experiment.Retention.MaxArtifactBytes
 	}
 	return limits
+}
+
+func waitForActionRate(ctx context.Context, previous *time.Time, perSecond int) error {
+	if perSecond <= 0 {
+		return nil
+	}
+	interval := time.Second / time.Duration(perSecond)
+	if previous.IsZero() || interval <= 0 {
+		*previous = time.Now()
+		return nil
+	}
+	wait := time.Until(previous.Add(interval))
+	if wait <= 0 {
+		*previous = time.Now()
+		return nil
+	}
+	timer := time.NewTimer(wait)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		*previous = time.Now()
+		return nil
+	}
 }
 
 var errFaultRealizerUnavailable = errors.New("environment does not provide a fault realizer")
@@ -987,8 +1291,9 @@ func finalizeEvidenceGraph(result *Result, maxBytes int64) {
 			continue
 		}
 		if err := builder.AddAction(evidencegraph.Action{
-			Identifier: action.Identifier, Kind: action.Kind, SourceIdentity: sourceIdentity,
-			Reference: action.Evidence.Reference, EntityIdentity: action.Evidence.EntityIdentity,
+			Identifier: action.Identifier, Kind: action.Kind, Outcome: string(action.Evidence.Outcome),
+			SourceIdentity: sourceIdentity,
+			Reference:      action.Evidence.Reference, EntityIdentity: action.Evidence.EntityIdentity,
 			Lineage: action.Evidence.Lineage, PayloadDigest: action.Evidence.PayloadDigest,
 		}); err != nil && graphErr == nil {
 			graphErr = err
@@ -1011,6 +1316,7 @@ func finalizeEvidenceGraph(result *Result, maxBytes int64) {
 		}
 		if err := builder.AddAction(evidencegraph.Action{
 			Identifier: faultResult.Identifier, Kind: "fault:" + faultResult.Kind,
+			Outcome:        "realized",
 			SourceIdentity: sourceIdentity, Reference: faultResult.Reference,
 			EntityIdentity: entityIdentity, Lineage: []string{result.ExperimentDigest, entityIdentity},
 		}); err != nil && graphErr == nil {
@@ -1052,6 +1358,7 @@ func finalizeEvidenceGraph(result *Result, maxBytes int64) {
 	}
 	graph, err := builder.Build()
 	result.Evidence = graph
+	_ = result.BindEvidenceDigest()
 	if graphErr == nil {
 		graphErr = err
 	}

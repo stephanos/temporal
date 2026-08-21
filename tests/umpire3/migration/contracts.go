@@ -49,7 +49,7 @@ func behaviorContracts() map[string]BehaviorContract {
 			nexusCapabilities(), "conforming"),
 		contractWithFault("ProbeNexusFaultAction", "feature-nexus", "nexus-operation.closure",
 			[]string{"close-nexus-operation"}, []string{"hold-release"}, "conforming"),
-		contract("ProbeNexusFlagged", "feature-nexus", "nexus-operation.closure",
+		contract("ProbeNexusFlagged", "feature-nexus-progress", "nexus-operation.progress",
 			[]string{"nexus-operation", "workflow"}, []string{"close-nexus-operation"},
 			[]string{"retryable-failure", "unreached-terminal", "liveness-violation"}, nil,
 			nexusCapabilities(), "violating"),
@@ -153,10 +153,7 @@ func Scenario(behavior string, variant string) (scenario.Scenario, error) {
 	}
 	actions := make([]scenario.Term, len(contract.Actions))
 	for index, action := range contract.Actions {
-		var options []scenario.ActionOption
-		if behavior == "ProbeNexusFlagged" {
-			options = append(options, scenario.Asynchronously())
-		}
+		options := behaviorActionOptions(behavior, action)
 		actions[index] = scenario.Action(
 			fmt.Sprintf("%s-action-%02d", identifier, index+1), action, options...)
 	}
@@ -196,6 +193,31 @@ func Scenario(behavior string, variant string) (scenario.Scenario, error) {
 		)
 	}
 	return scenario.NewScenario(identifier, contract.ModelTarget, resources, root), nil
+}
+
+func behaviorActionOptions(behavior string, action protocol.ActionKind) []scenario.ActionOption {
+	switch {
+	case behavior == "SparseRegressionOrdinaryNexusCompletion" &&
+		action == protocol.ActionKindScheduleOperation:
+		return []scenario.ActionOption{
+			scenario.WithNexusCompletion(scenario.NexusCompletionOrdinary),
+		}
+	case behavior == "SparseRegressionCompletionBeforeStartResponse" &&
+		action == protocol.ActionKindWorkerReturnsSuccess:
+		return []scenario.ActionOption{
+			scenario.WithNexusCompletion(scenario.NexusCompletionBeforeStart),
+		}
+	case behavior == "ProbeNexusDegraded" && action == protocol.ActionKindCloseNexusOperation:
+		return []scenario.ActionOption{
+			scenario.WithNexusCompletion(scenario.NexusCompletionFailed),
+		}
+	case behavior == "ProbeNexusFlagged" && action == protocol.ActionKindCloseNexusOperation:
+		return []scenario.ActionOption{
+			scenario.WithNexusCompletion(scenario.NexusCompletionRetryStuck),
+		}
+	default:
+		return nil
+	}
 }
 
 func contract(

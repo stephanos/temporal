@@ -42,6 +42,15 @@ func TestCheckedLedgerMatchesMechanicalRootInventory(t *testing.T) {
 	}
 }
 
+func TestDefaultLedgerMatchesRetainedArtifact(t *testing.T) {
+	retained, err := os.ReadFile("ledger.json")
+	require.NoError(t, err)
+	ledger, encoded, err := DefaultLedger()
+	require.NoError(t, err)
+	require.NoError(t, ledger.Validate())
+	require.Equal(t, retained, encoded)
+}
+
 func TestCheckedLedgerClassifiesCurrentBehaviorFidelity(t *testing.T) {
 	ledger, err := Build("../..")
 	require.NoError(t, err)

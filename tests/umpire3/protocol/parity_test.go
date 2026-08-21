@@ -16,7 +16,7 @@ func TestDefaultParityLedgerDispositionsEntireUmpire2Inventory(t *testing.T) {
 	require.Equal(t, ledger.SemanticHash, ledger.SourceDigest)
 	require.True(t, validHash(ledger.DependencyDigest))
 	require.True(t, validHash(ledger.ArtifactDigest))
-	require.Len(t, ledger.Entries, 20)
+	require.Len(t, ledger.Entries, 22)
 
 	properties := 0
 	targets := 0
@@ -47,9 +47,9 @@ func TestDefaultParityLedgerDispositionsEntireUmpire2Inventory(t *testing.T) {
 			require.FailNow(t, "unknown parity category", entry.Category)
 		}
 	}
-	require.Equal(t, 8, properties)
-	require.Equal(t, 12, targets)
-	require.Equal(t, 20, equivalent)
+	require.Equal(t, 9, properties)
+	require.Equal(t, 13, targets)
+	require.Equal(t, 22, equivalent)
 }
 
 func TestGeneratedParityEntriesDeclareFidelityAndEvidenceLevel(t *testing.T) {

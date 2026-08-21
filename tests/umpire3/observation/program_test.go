@@ -1,6 +1,7 @@
 package observation
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -50,6 +51,21 @@ func TestGeneratedObservationFixturesDetectWrongMapping(t *testing.T) {
 	catalog.Programs[programIndex(t, catalog, program.Observation)] = program
 
 	require.ErrorContains(t, catalog.Validate(), "fixture")
+}
+
+func TestObservationCatalogRequiresProgramForEverySemanticObservation(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+
+	missing := protocol.ObservationIDUpdateAccepted
+	catalog.Programs = slices.DeleteFunc(catalog.Programs, func(program Program) bool {
+		return program.Observation == missing
+	})
+	catalog.Fixtures = slices.DeleteFunc(catalog.Fixtures, func(fixture Fixture) bool {
+		return fixture.Observation == missing
+	})
+
+	require.ErrorContains(t, catalog.Validate(), `semantic observation "update-accepted" has no program`)
 }
 
 func TestAllExistAbsentWhenClosedRequiresCompletePositiveEvidence(t *testing.T) {

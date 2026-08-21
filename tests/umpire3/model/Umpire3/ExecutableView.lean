@@ -3,7 +3,9 @@ import Umpire3.Executable
 
 namespace Umpire3
 
-structure ExecutableView (model : Behavior World) where
+universe u v
+
+structure ExecutableView {World : Type u} (model : Behavior.{u, v} World) where
   initials : (world : World) → List (model.State world)
   successors : (world : World) → model.State world →
     List (model.Action world × model.State world)
@@ -37,7 +39,8 @@ def ExecutableView.ofBoundedModel (bounded : BoundedModel transition) :
       apply List.mem_map.mpr
       exact ⟨nextState, (bounded.next_iff state action nextState).mpr step, rfl⟩
 
-def ExecutableView.follow {model : Behavior World} (view : ExecutableView model)
+def ExecutableView.follow {World : Type u} {model : Behavior.{u, v} World}
+    (view : ExecutableView model)
     (world : World) [DecidableEq (model.Action world)] :
     List (model.State world) → List (model.Action world) → List (model.State world)
   | states, [] => states

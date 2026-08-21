@@ -241,6 +241,28 @@ func DefaultCoverageCatalog() ([]CoveragePoint, error) {
 	return normalizeCoverage(points), nil
 }
 
+func mutationCoverage(kind MutationKind, path string) (CoveragePoint, error) {
+	if path == "" {
+		return CoveragePoint{}, errors.New("mutation coverage path is required")
+	}
+	var coverageKind CoverageKind
+	switch kind {
+	case MutationProtobufValue, MutationWorkerResponse:
+		coverageKind = CoverageProtobuf
+	case MutationScenarioParameter:
+		coverageKind = CoverageParameter
+	case MutationSchedule:
+		coverageKind = CoverageSchedule
+	case MutationFaultScope, MutationFaultOccurrence:
+		coverageKind = CoverageFault
+	case MutationTopology:
+		coverageKind = CoverageTopology
+	default:
+		return CoveragePoint{}, fmt.Errorf("unsupported mutation coverage kind %q", kind)
+	}
+	return CoveragePoint{Kind: coverageKind, Identifier: path}, nil
+}
+
 func ordered(constraints []protocol.OrderConstraint, left, right string) bool {
 	for _, constraint := range constraints {
 		if constraint.Before == left && constraint.After == right {

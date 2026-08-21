@@ -24,6 +24,8 @@ type Attempt struct {
 	PID               int         `json:"pid"`
 	StartedAtUnixNano int64       `json:"startedAtUnixNano"`
 	StoppedAtUnixNano int64       `json:"stoppedAtUnixNano,omitempty"`
+	DurationNanos     int64       `json:"durationNanos,omitempty"`
+	PeakMemoryBytes   int64       `json:"peakMemoryBytes,omitempty"`
 	ExitCode          int         `json:"exitCode"`
 	Termination       Termination `json:"termination"`
 	Output            []byte      `json:"output,omitempty"`

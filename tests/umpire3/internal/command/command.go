@@ -14,6 +14,7 @@ import (
 
 	"go.temporal.io/server/tests/umpire3/campaign"
 	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/internal/artifact"
 	"go.temporal.io/server/tests/umpire3/protocol"
 	"go.temporal.io/server/tests/umpire3/qualification"
 	"go.temporal.io/server/tests/umpire3/replay"
@@ -131,7 +132,7 @@ func Execute(ctx context.Context, arguments []string, backend Backend) (any, err
 		return nil, errors.New("command backend is required")
 	}
 	if len(arguments) == 0 {
-		return nil, errors.New("command is required: explain, run, replay, campaign, or qualify")
+		return nil, errors.New("command is required: explain, run, replay, campaign, audit-mutation, qualify, or promote")
 	}
 	switch arguments[0] {
 	case "explain":
@@ -142,10 +143,17 @@ func Execute(ctx context.Context, arguments []string, backend Backend) (any, err
 		return executeReplay(ctx, arguments[1:], backend)
 	case "campaign":
 		return executeCampaign(ctx, arguments[1:], backend)
+	case "audit-mutation":
+		return executeMutationAudit(ctx, arguments[1:])
 	case "qualify":
 		return executeQualify(arguments[1:], backend)
+	case "promote":
+		return executePromote(arguments[1:])
 	default:
-		return nil, fmt.Errorf("unknown command %q: expected explain, run, replay, campaign, or qualify", arguments[0])
+		return nil, fmt.Errorf(
+			"unknown command %q: expected explain, run, replay, campaign, audit-mutation, qualify, or promote",
+			arguments[0],
+		)
 	}
 }
 
@@ -290,6 +298,49 @@ func executeCampaign(ctx context.Context, arguments []string, backend Backend) (
 	return result, nil
 }
 
+func executeMutationAudit(ctx context.Context, arguments []string) (any, error) {
+	flags := flag.NewFlagSet("audit-mutation", flag.ContinueOnError)
+	flags.SetOutput(io.Discard)
+	experimentPath := flags.String("experiment", "", "released seed experiment JSON")
+	outputPath := flags.String("output", "", "retained mutation audit report")
+	check := flags.Bool("check", false, "compare a fresh audit with the retained report")
+	if err := flags.Parse(arguments); err != nil {
+		return nil, err
+	}
+	experiment, err := readExperiment(*experimentPath)
+	if err != nil {
+		return nil, err
+	}
+	if *outputPath == "" {
+		return nil, errors.New("mutation audit output path is required")
+	}
+	report, err := campaign.RunApprovedMutationAudit(ctx, experiment)
+	if err != nil {
+		return nil, err
+	}
+	encoded, err := report.CanonicalJSON(experiment)
+	if err != nil {
+		return nil, err
+	}
+	if *check {
+		retained, readErr := readRequiredFile("mutation audit", *outputPath, protocol.DefaultDecodeLimit)
+		if readErr != nil {
+			return nil, readErr
+		}
+		if _, decodeErr := campaign.DecodeMutationGateReport(retained, experiment); decodeErr != nil {
+			return nil, decodeErr
+		}
+		if !bytes.Equal(encoded, retained) {
+			return nil, errors.New("retained mutation audit does not match the fresh deterministic campaign")
+		}
+		return report, nil
+	}
+	if err := artifact.Publish(*outputPath, encoded); err != nil {
+		return nil, fmt.Errorf("publish mutation audit: %w", err)
+	}
+	return report, nil
+}
+
 func executeQualify(arguments []string, backend Backend) (any, error) {
 	flags := flag.NewFlagSet("qualify", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
@@ -297,6 +348,8 @@ func executeQualify(arguments []string, backend Backend) (any, error) {
 	experimentPath := flags.String("experiment", "", "executed semantic experiment")
 	resultPath := flags.String("result", "", "runtime or canary result")
 	profile := flags.String("profile", "", "external profile being qualified")
+	signingKeyPath := flags.String("signing-key", "", "PKCS#8 Ed25519 qualification authority key")
+	outputPath := flags.String("output", "", "optional raw qualification receipt output")
 	if err := flags.Parse(arguments); err != nil {
 		return nil, err
 	}
@@ -312,9 +365,79 @@ func executeQualify(arguments []string, backend Backend) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return backend.Qualify(qualification.Request{
-		ReleaseBytes: releaseBytes, ExperimentBytes: experimentBytes, ResultBytes: resultBytes, Profile: *profile,
+	signingKeyBytes, err := readRequiredFile("signing key", *signingKeyPath, qualificationSigningKeyLimit)
+	if err != nil {
+		return nil, err
+	}
+	signingKey, err := qualification.ParseSigningKey(signingKeyBytes)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := backend.Qualify(qualification.Request{
+		ReleaseBytes: releaseBytes, ExperimentBytes: experimentBytes, ResultBytes: resultBytes,
+		Profile: *profile, SigningKey: signingKey,
 	})
+	if err != nil {
+		return nil, err
+	}
+	if *outputPath != "" {
+		if err := writeJSONFile(*outputPath, receipt); err != nil {
+			return nil, err
+		}
+	}
+	return receipt, nil
+}
+
+type repeatedPaths []string
+
+func (p *repeatedPaths) String() string {
+	return fmt.Sprint([]string(*p))
+}
+
+func (p *repeatedPaths) Set(value string) error {
+	if value == "" {
+		return errors.New("receipt path cannot be empty")
+	}
+	*p = append(*p, value)
+	return nil
+}
+
+func executePromote(arguments []string) (any, error) {
+	flags := flag.NewFlagSet("promote", flag.ContinueOnError)
+	flags.SetOutput(io.Discard)
+	releasePath := flags.String("release", "", "candidate release manifest")
+	outputPath := flags.String("output", "", "optional qualified release manifest output")
+	var receiptPaths repeatedPaths
+	flags.Var(&receiptPaths, "receipt", "qualification receipt; repeat for every external profile")
+	if err := flags.Parse(arguments); err != nil {
+		return nil, err
+	}
+	releaseBytes, err := readRequiredFile("release", *releasePath, protocol.DefaultDecodeLimit)
+	if err != nil {
+		return nil, err
+	}
+	if len(receiptPaths) == 0 {
+		return nil, errors.New("at least one qualification receipt path is required")
+	}
+	receipts := make([][]byte, len(receiptPaths))
+	for index, path := range receiptPaths {
+		receipts[index], err = readRequiredFile("qualification receipt", path, protocol.DefaultDecodeLimit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	release, err := qualification.Promote(qualification.PromotionRequest{
+		ReleaseBytes: releaseBytes, Receipts: receipts,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if *outputPath != "" {
+		if err := writeJSONFile(*outputPath, release); err != nil {
+			return nil, err
+		}
+	}
+	return release, nil
 }
 
 func addConnectionFlags(flags *flag.FlagSet) *connectionFlags {

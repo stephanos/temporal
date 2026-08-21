@@ -17,7 +17,7 @@ func TestDefaultCompositionConnectsConsumersToProvedSharedDelivery(t *testing.T)
 	require.Equal(t, composition.SemanticHash, composition.SourceDigest)
 	require.True(t, validHash(composition.DependencyDigest))
 	require.True(t, validHash(composition.ArtifactDigest))
-	require.Len(t, composition.Targets, 15)
+	require.Len(t, composition.Targets, 16)
 
 	provider, ok := composition.Module("Temporal.System.TaskDelivery")
 	require.True(t, ok)

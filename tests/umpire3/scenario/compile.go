@@ -90,9 +90,13 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		if buildErr != nil {
 			return Suite{}, buildErr
 		}
-		checked, replayErr := replayExperimentPath(experiment, scenario.Root.source)
+		checked, replayErr := replayExperimentPath(&experiment, scenario.Root.source)
 		if replayErr != nil {
 			return Suite{}, replayErr
+		}
+		if err := experiment.Validate(); err != nil {
+			return Suite{}, compileError(ErrorInvalidIntent, Source{},
+				"compiled experiment is invalid: "+err.Error())
 		}
 		modelReplay = mergeModelReplay(modelReplay, checked)
 		experiments[index] = experiment
@@ -136,28 +140,41 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 	}, nil
 }
 
-func replayExperimentPath(experiment protocol.Experiment, source Source) (ModelReplay, error) {
-	faults := make([]protocol.FaultKind, len(experiment.Faults))
-	for index, fault := range experiment.Faults {
-		faults[index] = protocol.FaultKind(fault.Kind)
-	}
-	target := targetForModel(experiment)
-	view, found, err := protocol.DefaultFirstOrderViewForFaults(target, faults)
+func replayExperimentPath(experiment *protocol.Experiment, source Source) (ModelReplay, error) {
+	executionView, found, err := protocol.DefaultAttemptExecutionView(*experiment)
 	if err != nil {
 		return ModelReplay{}, compileError(ErrorInvalidIntent, source,
 			"load executable model view: "+err.Error())
 	}
 	if !found {
+		for index := range experiment.Actions {
+			if len(experiment.Actions[index].AllowedOutcomes) == 0 {
+				experiment.Actions[index].AllowedOutcomes = []protocol.ActionOutcome{
+					protocol.ActionOutcomeApplied,
+				}
+			}
+		}
 		return ModelReplay{
 			Status: ModelReplayNotSupported, LiveOnlyActions: []protocol.ActionKind{},
 			Reason: "No exact executable compiler view is registered for this target.",
 		}, nil
 	}
-	actions := make([]protocol.ActionKind, len(experiment.Actions))
+	attempts := make([]protocol.AttemptRequest, len(experiment.Actions))
 	for index, action := range experiment.Actions {
-		actions[index] = protocol.ActionKind(action.Kind)
+		identifier := protocol.ActionKind(action.Kind)
+		outcomes := action.AllowedOutcomes
+		if len(outcomes) == 0 {
+			var mapped bool
+			outcomes, mapped = executionView.Outcomes(identifier)
+			if !mapped {
+				return ModelReplay{}, compileError(ErrorInvalidIntent, source,
+					fmt.Sprintf("action %q has no Lean-derived attempt outcomes", identifier))
+			}
+			experiment.Actions[index].AllowedOutcomes = outcomes
+		}
+		attempts[index] = protocol.AttemptRequest{Action: identifier, Outcomes: outcomes}
 	}
-	replay, err := view.Replay(actions)
+	replay, err := executionView.Replay(attempts)
 	if err != nil {
 		return ModelReplay{}, compileError(ErrorInvalidIntent, source,
 			"replay compiled path through executable model: "+err.Error())
@@ -165,32 +182,13 @@ func replayExperimentPath(experiment protocol.Experiment, source Source) (ModelR
 	if !replay.Accepted {
 		return ModelReplay{}, compileError(ErrorSemanticallyImpossible, source,
 			fmt.Sprintf("executable model %q variant %q rejects action %q",
-				view.CanonicalModel, view.Variant, replay.RejectedAction))
+				executionView.CanonicalModel(), executionView.Variant(),
+				replay.RejectedAction))
 	}
 	return ModelReplay{
-		Status: ModelReplayChecked, CanonicalModel: view.CanonicalModel,
-		Variant: view.Variant, LiveOnlyActions: replay.LiveOnlyActions,
+		Status: ModelReplayChecked, CanonicalModel: executionView.CanonicalModel(),
+		Variant: executionView.Variant(), LiveOnlyActions: replay.LiveOnlyActions,
 	}, nil
-}
-
-func targetForModel(experiment protocol.Experiment) protocol.TargetID {
-	composition, err := protocol.DefaultComposition()
-	if err != nil {
-		return ""
-	}
-	for _, target := range composition.Targets {
-		if !slices.Contains(target.Properties, protocol.PropertyID(experiment.Property.Identifier)) {
-			continue
-		}
-		modules := make([]string, len(target.Modules))
-		for index, module := range target.Modules {
-			modules[index] = string(module)
-		}
-		if slices.Equal(modules, experiment.Model.Modules) {
-			return target.Identifier
-		}
-	}
-	return ""
 }
 
 func mergeModelReplay(left, right ModelReplay) ModelReplay {
@@ -431,6 +429,7 @@ func buildExperiment(
 		actions[index] = protocol.Action{
 			Identifier:           identifier,
 			Kind:                 string(action.kind),
+			AllowedOutcomes:      append([]protocol.ActionOutcome(nil), action.allowedOutcomes...),
 			Arguments:            append([]protocol.NamedValue(nil), action.arguments...),
 			Bindings:             append([]protocol.Binding(nil), action.bindings...),
 			RequiredCapabilities: capabilities,
@@ -477,13 +476,25 @@ func buildExperiment(
 		if len(intervalScope) == 0 {
 			intervalScope = path
 		}
+		scope := cloneFaultScope(fault.scope)
+		if len(scope.Resources) == 0 {
+			scope.Resources = append([]string(nil), resourceScope...)
+		}
+		if len(scope.Participants) == 0 {
+			scope.Participants = append([]string(nil), resourceScope...)
+		}
+		if len(scope.Attempts) == 0 {
+			scope.Attempts = []int{1}
+		}
+		occurrence := fault.occurrence
+		if occurrence.First == 0 && occurrence.Count == 0 {
+			occurrence = protocol.FaultOccurrence{First: 1, Count: 1}
+		}
 		compiledFault := protocol.Fault{
 			Identifier: fault.identifier, Kind: string(fault.kind), Policy: fault.policy,
 			SafetyClass: declaration.SafetyClass,
-			Scope: protocol.FaultScope{
-				Resources: resourceScope, Participants: resourceScope, Attempts: []int{1},
-			},
-			Occurrence: protocol.FaultOccurrence{First: 1, Count: 1},
+			Scope:       scope,
+			Occurrence:  occurrence,
 			Interval: protocol.FaultInterval{
 				StartAction: intervalScope[0], StopAction: intervalScope[len(intervalScope)-1],
 			},
@@ -514,7 +525,7 @@ func buildExperiment(
 		ExperimentID:  fmt.Sprintf("%s-path-%03d", scenario.Identifier, pathIndex+1),
 		Model: protocol.Model{
 			Modules: modules, SourceRevision: "umpire3/compiler/v1", SemanticHash: composition.SemanticHash,
-			CatalogHash: catalogHash, LeanVersion: "4.33.0",
+			CatalogHash: catalogHash, LeanVersion: protocol.LeanVersion,
 		},
 		Property: protocol.Property{
 			Identifier: string(plan.property), StatementHash: property.StatementHash, Claim: "implementation-conformance",
@@ -527,9 +538,6 @@ func buildExperiment(
 		Checkpoints: checkpoints,
 		Provenance:  protocol.Provenance{Kind: "bounded-exploration", ProofManifest: "composition:" + string(target.Identifier)},
 		Retention:   protocol.Retention{RedactionClass: "semantic-only", MaxArtifactBytes: 1 << 20},
-	}
-	if err := experiment.Validate(); err != nil {
-		return protocol.Experiment{}, compileError(ErrorInvalidIntent, Source{}, "compiled experiment is invalid: "+err.Error())
 	}
 	return experiment, nil
 }
@@ -600,11 +608,13 @@ func digestScenario(scenario Scenario, plan *normalizedPlan) (string, error) {
 		Scope      []string `json:"scope"`
 	}
 	type faultDigest struct {
-		Identifier string                `json:"identifier"`
-		Kind       protocol.FaultKind    `json:"kind"`
-		Policy     string                `json:"policy"`
-		Arguments  []protocol.NamedValue `json:"arguments"`
-		Configured *protocol.Fault       `json:"configured,omitempty"`
+		Identifier string                   `json:"identifier"`
+		Kind       protocol.FaultKind       `json:"kind"`
+		Policy     string                   `json:"policy"`
+		Arguments  []protocol.NamedValue    `json:"arguments"`
+		Scope      protocol.FaultScope      `json:"scope"`
+		Occurrence protocol.FaultOccurrence `json:"occurrence"`
+		Configured *protocol.Fault          `json:"configured,omitempty"`
 	}
 	type scenarioDigestInput struct {
 		Identifier string              `json:"identifier"`
@@ -636,6 +646,7 @@ func digestScenario(scenario Scenario, plan *normalizedPlan) (string, error) {
 	for index, fault := range plan.faults {
 		faults[index] = faultDigest{
 			Identifier: fault.identifier, Kind: fault.kind, Policy: fault.policy, Arguments: fault.arguments,
+			Scope: fault.scope, Occurrence: fault.occurrence,
 			Configured: fault.configured,
 		}
 	}

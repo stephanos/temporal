@@ -81,7 +81,12 @@ example : Umpire3.Temporal.Monitors.nexusOperationClosure.Holds
   (Umpire3.Temporal.Monitors.nexusOperationClosure_monitor_equivalent permittedFinal).2 (by decide)
 
 example : Umpire3.Temporal.Monitors.nexusOperationClosure.expression.eval
-    (Umpire3.Temporal.Monitors.nexusClosureObservations unsafeFinal) = some false := by decide
+    (Umpire3.Temporal.Monitors.nexusClosureObservations unsafeFinal) = some false := by
+  change (MonitorExpression.observation "nexus-operation-closed" true).eval
+    [{ identifier := "nexus-operation-closed", value := closureB unsafeFinal }] = some false
+  simp [MonitorExpression.eval, lookupObservation, unsafeFinal, initial, closureB,
+    allRelatedTerminal, operationIDs, WorkflowState.terminal, OperationState.terminal,
+    State.operation, State.caller]
 
 example (state : State) :
     Umpire3.Temporal.Monitors.nexusOperationClosure.Holds
