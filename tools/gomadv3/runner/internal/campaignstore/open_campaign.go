@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 )
 
@@ -62,7 +63,7 @@ func OpenCampaign(path string) (Campaign, error) {
 	}
 	var runs []ExecutionRecord
 	var journal *RunJournalInfo
-	if batch.Schema == "gomadv3.batch/v3" || batch.Schema == "gomadv3.batch/v4" {
+	if batch.Schema == "gomadv3.batch/v3" || batch.Schema == "gomadv3.batch/v4" || batch.Schema == "gomadv3.batch/v5" {
 		runs, journal, err = readPublishedRunJournal(root, batch)
 	} else {
 		runs, err = readLegacyPublishedRuns(root, batch)
@@ -81,6 +82,11 @@ func OpenCampaign(path string) (Campaign, error) {
 	if batch.Strategy == "choice-frontier" {
 		if err := ValidatePublishedFrontier(path, *batch.Frontier, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256, runs); err != nil {
 			return Campaign{}, fmt.Errorf("validate published frontier: %w", err)
+		}
+	}
+	if batch.Strategy == "combined-frontier" {
+		if err := ValidatePublishedCombinedFrontier(path, *batch.CombinedFrontier, batch.CombinedFrontierImplementationSHA256, batch.CombinedFrontierChainSHA256, runs); err != nil {
+			return Campaign{}, fmt.Errorf("validate published combined frontier: %w", err)
 		}
 	}
 	if batch.Schema == "gomadv3.batch/v1" {
@@ -111,7 +117,7 @@ func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
 
 func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	legacy := batch.Schema == "gomadv3.batch/v1"
-	segmented := batch.Schema == "gomadv3.batch/v3" || batch.Schema == "gomadv3.batch/v4"
+	segmented := batch.Schema == "gomadv3.batch/v3" || batch.Schema == "gomadv3.batch/v4" || batch.Schema == "gomadv3.batch/v5"
 	if batch.SchemaVersion != evidence.SchemaVersion || !legacy && batch.Schema != "gomadv3.batch/v2" && !segmented || batch.CampaignID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
 		return fmt.Errorf("batch record identity is invalid")
 	}
@@ -122,6 +128,9 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	} else if batch.PlanSHA256 != "" || batch.Shard != nil {
 		return errors.New("historical batch contains shard identity")
 	}
+	if batch.Schema == "gomadv3.batch/v5" && batch.Strategy != "combined-frontier" {
+		return errors.New("combined frontier batch schema has another strategy")
+	}
 	if segmented {
 		if batch.Journal == nil || batch.RunsSHA256 != "" {
 			return errors.New("segmented batch journal identity is invalid")
@@ -130,12 +139,17 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 		return errors.New("legacy batch journal identity is invalid")
 	}
 	if legacy {
-		if batch.Strategy != "" || batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != "" || batch.RecoveryExecutions != 0 {
+		if batch.Strategy != "" || batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != "" || batch.CombinedFrontier != nil || batch.CombinedFrontierImplementationSHA256 != "" || batch.CombinedFrontierChainSHA256 != "" || batch.RecoveryExecutions != 0 {
 			return fmt.Errorf("legacy batch record contains strategy evidence")
 		}
 		batch.Strategy = "seed"
 	}
-	if batch.Strategy != "seed" && batch.Strategy != "choice-frontier" || batch.Strategy == "seed" && (batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != "") || batch.Strategy == "choice-frontier" && (batch.Frontier == nil || batch.FrontierImplementationSHA256 != frontier.ImplementationSHA256() || !validRecordSHA256(batch.FrontierChainSHA256)) {
+	choiceEvidence := batch.Frontier != nil || batch.FrontierImplementationSHA256 != "" || batch.FrontierChainSHA256 != ""
+	combinedEvidence := batch.CombinedFrontier != nil || batch.CombinedFrontierImplementationSHA256 != "" || batch.CombinedFrontierChainSHA256 != ""
+	if batch.Strategy != "seed" && batch.Strategy != "choice-frontier" && batch.Strategy != "combined-frontier" ||
+		batch.Strategy == "seed" && (choiceEvidence || combinedEvidence) ||
+		batch.Strategy == "choice-frontier" && (batch.Frontier == nil || batch.FrontierImplementationSHA256 != frontier.ImplementationSHA256() || !validRecordSHA256(batch.FrontierChainSHA256) || combinedEvidence) ||
+		batch.Strategy == "combined-frontier" && (batch.CombinedFrontier == nil || batch.CombinedFrontierImplementationSHA256 != combinedfrontier.ImplementationSHA256() || !validRecordSHA256(batch.CombinedFrontierChainSHA256) || choiceEvidence) {
 		return fmt.Errorf("batch strategy evidence is invalid")
 	}
 	if uint64(batch.Attempted) != uint64(len(runs)) || uint64(batch.Succeeded)+uint64(batch.Failures)+uint64(batch.Cancelled) != uint64(batch.Attempted) || batch.Watchdogs > batch.Failures || batch.RetainedSuccesses > batch.Succeeded || batch.RetainedSuccesses == 0 && batch.RetainedSuccessBytes != 0 {
@@ -149,7 +163,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 			return errors.New("batch artifact capacity is invalid")
 		}
 	}
-	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" && batch.StopReason != "frontier_exhausted" && batch.StopReason != "choice_depth_complete" && batch.StopReason != "max_runs" && batch.StopReason != "frontier_capacity" {
+	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" && batch.StopReason != "frontier_exhausted" && batch.StopReason != "choice_depth_complete" && batch.StopReason != "combined_depth_complete" && batch.StopReason != "dimension_depth_complete" && batch.StopReason != "max_runs" && batch.StopReason != "frontier_capacity" {
 		return fmt.Errorf("batch stop reason is invalid: %s", batch.StopReason)
 	}
 	ordinals := make(map[uint64]struct{}, len(runs))
@@ -159,7 +173,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		ordinalLimit := uint64(batch.SelectionCount)
-		if batch.Strategy == "choice-frontier" {
+		if batch.Strategy == "choice-frontier" || batch.Strategy == "combined-frontier" {
 			ordinalLimit = uint64(batch.Attempted)
 		}
 		if ordinal >= ordinalLimit {
@@ -178,6 +192,14 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 			}
 			if err := validateFrontierExecutionSummary(run, candidates); err != nil {
 				return fmt.Errorf("batch frontier run %d: %w", index+1, err)
+			}
+		} else if batch.Strategy == "combined-frontier" {
+			baseSeed, parseErr := strconv.ParseUint(batch.Selection, 10, 64)
+			if parseErr != nil || uint64(run.Seed) != baseSeed || ordinal != uint64(index) {
+				return fmt.Errorf("batch combined frontier run %d seed or logical ordinal is invalid", index+1)
+			}
+			if err := validateCombinedFrontierExecutionSummary(run, candidates); err != nil {
+				return fmt.Errorf("batch combined frontier run %d: %w", index+1, err)
 			}
 		} else if run.Strategy != "" {
 			return fmt.Errorf("seed batch run %d contains strategy evidence", index+1)
@@ -328,6 +350,24 @@ func validateFrontierExecutionSummary(run ExecutionRecord, candidates map[eviden
 	return nil
 }
 
+func validateCombinedFrontierExecutionSummary(run ExecutionRecord, candidates map[evidence.SHA256]struct{}) error {
+	if run.Strategy != "combined-frontier" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) || run.PrefixSHA256 != "" {
+		return errors.New("combined frontier identity is incomplete")
+	}
+	if _, found := candidates[run.CandidateSHA256]; found {
+		return errors.New("candidate identity is duplicated")
+	}
+	candidates[run.CandidateSHA256] = struct{}{}
+	if *run.ForcedDepth == 0 {
+		if run.ParentCandidateSHA256 != "" || *run.Round != 0 {
+			return errors.New("root combined candidate provenance is invalid")
+		}
+	} else if !validRecordSHA256(run.ParentCandidateSHA256) {
+		return errors.New("forced combined candidate provenance is invalid")
+	}
+	return nil
+}
+
 func validateChoiceExecutionSummary(run ExecutionRecord) error {
 	present := 0
 	for _, value := range []bool{
@@ -374,7 +414,7 @@ func validSuccessArtifactReference(reference string) bool {
 
 func validFrontierArtifactReference(reference, kind string) bool {
 	parts := strings.Split(reference, "/")
-	if len(parts) != 5 || parts[0] != "frontier" || parts[1] != "rounds" || len(parts[2]) != 20 || parts[3] != kind || !strings.HasPrefix(parts[4], "sha256-") {
+	if len(parts) != 5 || parts[0] != "frontier" && parts[0] != "combined-frontier" || parts[1] != "rounds" || len(parts[2]) != 20 || parts[3] != kind || !strings.HasPrefix(parts[4], "sha256-") {
 		return false
 	}
 	_, err := strconv.ParseUint(parts[2], 10, 64)

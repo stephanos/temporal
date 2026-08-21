@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 	"go.temporal.io/server/tools/gomadv3/target"
@@ -53,20 +54,23 @@ const (
 )
 
 const (
-	StrategySeed           Strategy = "seed"
-	StrategyChoiceFrontier Strategy = "choice-frontier"
+	StrategySeed             Strategy = "seed"
+	StrategyChoiceFrontier   Strategy = "choice-frontier"
+	StrategyCombinedFrontier Strategy = "combined-frontier"
 )
 
 type StopReason string
 
 const (
-	StopSeedsExhausted      StopReason = "seeds_exhausted"
-	StopFirstFailure        StopReason = "first_failure"
-	StopFailureBudget       StopReason = "failure_budget"
-	StopFrontierExhausted   StopReason = "frontier_exhausted"
-	StopChoiceDepthComplete StopReason = "choice_depth_complete"
-	StopMaxRuns             StopReason = "max_runs"
-	StopFrontierCapacity    StopReason = "frontier_capacity"
+	StopSeedsExhausted         StopReason = "seeds_exhausted"
+	StopFirstFailure           StopReason = "first_failure"
+	StopFailureBudget          StopReason = "failure_budget"
+	StopFrontierExhausted      StopReason = "frontier_exhausted"
+	StopChoiceDepthComplete    StopReason = "choice_depth_complete"
+	StopCombinedDepthComplete  StopReason = "combined_depth_complete"
+	StopDimensionDepthComplete StopReason = "dimension_depth_complete"
+	StopMaxRuns                StopReason = "max_runs"
+	StopFrontierCapacity       StopReason = "frontier_capacity"
 )
 
 type CampaignPhase string
@@ -98,6 +102,7 @@ type CampaignEvent struct {
 	CorpusAdded          uint64
 	ChoiceTrace          *ChoiceTraceSummary
 	Frontier             *frontier.Summary
+	CombinedFrontier     *combinedfrontier.Summary
 	RecoveryExecutions   uint64
 }
 
@@ -116,48 +121,51 @@ type ArtifactReplayer interface {
 }
 
 type CampaignSpec struct {
-	ResumeBatch            string
-	PlanSHA256             evidence.SHA256
-	Shard                  CampaignShard
-	Strategy               Strategy
-	Seeds                  string
-	Parallel               int
-	RunTimeout             time.Duration
-	OverallTimeout         time.Duration
-	TerminateGrace         time.Duration
-	OnFailure              FailurePolicy
-	FailureBudget          uint64
-	OutputLimit            uint64
-	WorldTransitionLimit   uint64
-	ChoiceTraceLimit       uint64
-	MaxRuns                uint64
-	MaxChoiceDepth         uint64
-	MaxFrontierBytes       uint64
-	Artifacts              string
-	Environment            []string
-	IOROMounts             []string
-	IOROMountLimits        deterministicio.Limits
-	Target                 target.Spec
-	SupervisorCommand      []string
-	CoordinatorCommand     []string
-	RunnerBuild            string
-	Coverage               CoverageMode
-	RequiredSemanticProbes []string
-	CollectRunEvidence     bool
-	KeepSuccesses          KeepSuccesses
-	SuccessArtifactLimit   uint64
-	SuccessBytesLimit      uint64
-	Guide                  bool
-	Corpus                 string
-	GuideSnapshotSHA256    evidence.SHA256
-	Progress               CampaignEventFunc
-	ProgressInterval       time.Duration
-	Preparer               Preparer
-	Executor               Executor
-	Replayer               ArtifactReplayer
-	resumePreflight        *campaignstore.ResumePreflight
-	failureArtifactLimit   uint64
-	failureBytesLimit      uint64
+	ResumeBatch               string
+	PlanSHA256                evidence.SHA256
+	Shard                     CampaignShard
+	Strategy                  Strategy
+	Seeds                     string
+	Parallel                  int
+	RunTimeout                time.Duration
+	OverallTimeout            time.Duration
+	TerminateGrace            time.Duration
+	OnFailure                 FailurePolicy
+	FailureBudget             uint64
+	OutputLimit               uint64
+	WorldTransitionLimit      uint64
+	ChoiceTraceLimit          uint64
+	MaxRuns                   uint64
+	MaxChoiceDepth            uint64
+	MaxForcedDecisions        uint64
+	MaxFrontierBytes          uint64
+	MaxExplorationResultBytes uint64
+	CombinedDimensionLimits   CombinedDimensionLimits
+	Artifacts                 string
+	Environment               []string
+	IOROMounts                []string
+	IOROMountLimits           deterministicio.Limits
+	Target                    target.Spec
+	SupervisorCommand         []string
+	CoordinatorCommand        []string
+	RunnerBuild               string
+	Coverage                  CoverageMode
+	RequiredSemanticProbes    []string
+	CollectRunEvidence        bool
+	KeepSuccesses             KeepSuccesses
+	SuccessArtifactLimit      uint64
+	SuccessBytesLimit         uint64
+	Guide                     bool
+	Corpus                    string
+	GuideSnapshotSHA256       evidence.SHA256
+	Progress                  CampaignEventFunc
+	ProgressInterval          time.Duration
+	Preparer                  Preparer
+	Executor                  Executor
+	Replayer                  ArtifactReplayer
+	resumePreflight           *campaignstore.ResumePreflight
+	failureArtifactLimit      uint64
+	failureBytesLimit         uint64
 }
 
 type CampaignResult struct {
@@ -182,6 +190,7 @@ type CampaignResult struct {
 	CorpusAdded          uint64
 	ChoiceTrace          *ChoiceTraceSummary
 	Frontier             *frontier.Summary
+	CombinedFrontier     *combinedfrontier.Summary
 	RecoveryExecutions   uint64
 	failureArtifactBytes uint64
 }
@@ -202,6 +211,8 @@ type ChoiceTraceSummary struct {
 }
 
 type FrontierSummary = frontier.Summary
+
+type CombinedDimensionLimits = combinedfrontier.DimensionLimits
 
 type HostError struct {
 	Reason string
@@ -245,10 +256,13 @@ func (artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayRe
 }
 
 type runJob struct {
-	ordinal          uint64
-	seed             uint64
-	choiceMode       choice.Mode
-	choiceReplayPlan *choice.ReplayPlan
+	ordinal               uint64
+	seed                  uint64
+	choiceMode            choice.Mode
+	choiceReplayPlan      *choice.ReplayPlan
+	simulationPlan        string
+	simulationRecordLimit uint64
+	simulationRecordCount uint64
 }
 
 type runCompletion struct {
@@ -412,7 +426,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			DistinctFailures: summary.DistinctFailures, Artifacts: append([]string(nil), summary.Artifacts...),
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SuccessArtifacts: append([]string(nil), summary.SuccessArtifacts...),
 			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
-			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace), Frontier: cloneFrontierSummary(summary.Frontier), RecoveryExecutions: summary.RecoveryExecutions,
+			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace), Frontier: cloneFrontierSummary(summary.Frontier), CombinedFrontier: cloneCombinedFrontierSummary(summary.CombinedFrontier), RecoveryExecutions: summary.RecoveryExecutions,
 		})
 	}
 	if err := reportProgress(ProgressPreparing, 0); err != nil {
@@ -537,6 +551,13 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	}
 	if normalizedStrategy(config.Strategy) == StrategyChoiceFrontier {
 		err := runChoiceFrontierLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
+		if err == nil {
+			batchComplete = true
+		}
+		return summary, err
+	}
+	if normalizedStrategy(config.Strategy) == StrategyCombinedFrontier {
+		err := runCombinedFrontierLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
 		if err == nil {
 			batchComplete = true
 		}
@@ -1144,10 +1165,13 @@ func validateConfig(config CampaignSpec) (SeedSelection, []evidence.Environment,
 	}
 	switch strategy {
 	case StrategySeed:
-		if config.MaxRuns != 0 || config.MaxChoiceDepth != 0 || config.MaxFrontierBytes != 0 {
+		if config.MaxRuns != 0 || config.MaxChoiceDepth != 0 || config.MaxForcedDecisions != 0 || config.MaxFrontierBytes != 0 || config.MaxExplorationResultBytes != 0 || config.CombinedDimensionLimits != (CombinedDimensionLimits{}) {
 			return SeedSelection{}, nil, errors.New("frontier bounds require the choice-frontier strategy")
 		}
 	case StrategyChoiceFrontier:
+		if config.MaxForcedDecisions != 0 || config.MaxExplorationResultBytes != 0 || config.CombinedDimensionLimits != (CombinedDimensionLimits{}) {
+			return SeedSelection{}, nil, errors.New("combined frontier bounds require the combined-frontier strategy")
+		}
 		if selection.Count() != 1 {
 			return SeedSelection{}, nil, errors.New("choice-frontier exploration requires exactly one base seed")
 		}
@@ -1165,6 +1189,34 @@ func validateConfig(config CampaignSpec) (SeedSelection, []evidence.Environment,
 		}
 		if config.MaxFrontierBytes == 0 {
 			return SeedSelection{}, nil, errors.New("choice-frontier frontier bytes must be positive")
+		}
+	case StrategyCombinedFrontier:
+		if selection.Count() != 1 {
+			return SeedSelection{}, nil, errors.New("combined-frontier exploration requires exactly one base seed")
+		}
+		if config.Guide {
+			return SeedSelection{}, nil, errors.New("combined-frontier strategy does not support guided exploration")
+		}
+		if config.ChoiceTraceLimit == 0 {
+			return SeedSelection{}, nil, errors.New("combined-frontier strategy requires an enabled choice trace")
+		}
+		if config.MaxRuns == 0 {
+			return SeedSelection{}, nil, errors.New("combined-frontier max runs must be positive")
+		}
+		if config.MaxChoiceDepth != 0 {
+			return SeedSelection{}, nil, errors.New("choice depth requires the choice-frontier strategy")
+		}
+		if config.MaxForcedDecisions == 0 {
+			return SeedSelection{}, nil, errors.New("combined-frontier forced decisions must be positive")
+		}
+		if config.MaxFrontierBytes == 0 {
+			return SeedSelection{}, nil, errors.New("combined-frontier frontier bytes must be positive")
+		}
+		if config.MaxExplorationResultBytes == 0 {
+			return SeedSelection{}, nil, errors.New("combined-frontier result bytes must be positive")
+		}
+		if err := validateCombinedDimensionLimits(config.CombinedDimensionLimits); err != nil {
+			return SeedSelection{}, nil, err
 		}
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown exploration strategy %q", config.Strategy)
@@ -1274,6 +1326,25 @@ func validateConfig(config CampaignSpec) (SeedSelection, []evidence.Environment,
 	return selection, environment, nil
 }
 
+func validateCombinedDimensionLimits(limits CombinedDimensionLimits) error {
+	for _, dimension := range []struct {
+		name  string
+		limit uint64
+	}{
+		{name: "runtime", limit: limits.Runtime},
+		{name: "scenario", limit: limits.Scenario},
+		{name: "network", limit: limits.Network},
+		{name: "storage", limit: limits.Storage},
+		{name: "fault", limit: limits.Fault},
+		{name: "crash", limit: limits.Crash},
+	} {
+		if dimension.limit == 0 {
+			return fmt.Errorf("combined-frontier %s dimension bound must be positive", dimension.name)
+		}
+	}
+	return nil
+}
+
 func parseEnvironment(entries []string) ([]evidence.Environment, error) {
 	reserved := map[string]struct{}{
 		"GOMADSEED": {}, "GOMADV3_CHILD_SEED": {}, "GOMADV3_IO_PROFILE": {}, "GOMADV3_CHOICE_PROFILE": {}, "GOMADV3_CHOICE_MODE": {}, "GOMADV3_CHOICE_TRACE_FD": {}, "GOMADV3_CHOICE_TERMINAL_FD": {}, "GOMADV3_CHOICE_TRACE_BYTES": {}, "GOMADV3_CHOICE_TAPE_FD": {}, "GOMADV3_CHOICE_TAPE_BYTES": {}, "GOMADV3_SIMULATION_ROLE": {}, "GOMADV3_SIMULATION_REQUEST_FD": {}, "GOMADV3_SIMULATION_RESPONSE_FD": {}, "GOMADV3_SIMULATION_BOOTSTRAP_FD": {}, "GOMADV3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
@@ -1338,6 +1409,10 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 	if completion.err == nil {
 		choiceCapability, completion.err = choiceCapabilityForJob(config, prepared, job)
 	}
+	var simulationCapability *execution.SimulationCapability
+	if completion.err == nil {
+		simulationCapability, completion.err = simulationCapabilityForJob(executor, job)
+	}
 	if completion.err == nil {
 		readiness.signal()
 		request := execution.Spec{
@@ -1354,9 +1429,7 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 			},
 			StdoutHead: stdoutHead, StderrHead: stderrHead,
 		}
-		if _, ok := executor.(processExecutor); ok {
-			request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
-		}
+		request.Simulation = simulationCapability
 		request.Choice = choiceCapability
 		if len(config.SupervisorCommand) != 0 {
 			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
@@ -1384,6 +1457,25 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 		}
 	}
 	completions <- completion
+}
+
+func simulationCapabilityForJob(executor Executor, job runJob) (*execution.SimulationCapability, error) {
+	if job.simulationPlan == "" {
+		if job.simulationRecordLimit != 0 || job.simulationRecordCount != 0 {
+			return nil, errors.New("simulation exploration record bounds require a plan")
+		}
+		if _, ok := executor.(processExecutor); ok {
+			return &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}, nil
+		}
+		return nil, nil
+	}
+	if job.simulationRecordLimit == 0 || job.simulationRecordCount == 0 {
+		return nil, errors.New("simulation exploration plan requires record bounds")
+	}
+	return &execution.SimulationCapability{
+		Role: execution.SimulationRoleCoordinator, ExplorationPlan: []byte(job.simulationPlan),
+		ExplorationRecordLimit: job.simulationRecordLimit, ExplorationRecordCount: job.simulationRecordCount,
+	}, nil
 }
 
 func choiceCapabilityForJob(config CampaignSpec, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
@@ -1628,6 +1720,14 @@ func cloneChoiceTraceSummary(summary *ChoiceTraceSummary) *ChoiceTraceSummary {
 }
 
 func cloneFrontierSummary(summary *frontier.Summary) *frontier.Summary {
+	if summary == nil {
+		return nil
+	}
+	cloned := *summary
+	return &cloned
+}
+
+func cloneCombinedFrontierSummary(summary *combinedfrontier.Summary) *combinedfrontier.Summary {
 	if summary == nil {
 		return nil
 	}

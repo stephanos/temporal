@@ -251,7 +251,16 @@ func testDecision(t *testing.T, dimension Dimension, ordinal uint64, alternative
 	for index := range identities {
 		identities[index] = evidence.HashBytes([]byte{byte(dimensionOrder(dimension)), byte(ordinal), byte(index + 1)})
 	}
-	decision, err := CanonicalDecision(dimension, ordinal, evidence.HashBytes([]byte("site-"+string(dimension))), identities, selected)
+	var controls [][]byte
+	if dimension == DimensionRuntime {
+		controls = make([][]byte, alternatives)
+		for rank := range controls {
+			if uint32(rank) != selected {
+				controls[rank] = []byte{byte(rank + 1)}
+			}
+		}
+	}
+	decision, err := CanonicalControlledDecision(dimension, ordinal, evidence.HashBytes([]byte("site-"+string(dimension))), identities, controls, selected)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -264,6 +273,12 @@ func forceObservedSelections(decisions []Decision, overrides []ForcedDecision) [
 		for _, override := range overrides {
 			if override.Dimension == cloned[index].Dimension && override.Ordinal == cloned[index].Ordinal {
 				cloned[index].Selected = override.Selected
+				if cloned[index].Dimension == DimensionRuntime {
+					for rank := range cloned[index].AlternativeControls {
+						cloned[index].AlternativeControls[rank] = []byte{byte(rank + 1)}
+					}
+					cloned[index].AlternativeControls[override.Selected] = nil
+				}
 				cloned[index].Identity, _ = decisionIdentity(cloned[index])
 			}
 		}

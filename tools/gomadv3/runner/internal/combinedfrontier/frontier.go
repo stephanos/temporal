@@ -16,8 +16,8 @@ const (
 	forcedDomain       = "gomadv3-combined-frontier-forced-decision/v1"
 	stateDomain        = "gomadv3-combined-frontier-state/v1"
 	roundSegmentDomain = "gomadv3-combined-frontier-round-segment/v1"
-	RoundSegmentSchema = "gomadv3.combined-frontier-round/v1"
-	controllerIdentity = "deterministic-rounds/breadth-first-combined-rank-overrides/v1"
+	RoundSegmentSchema = "gomadv3.combined-frontier-round/v2"
+	controllerIdentity = "deterministic-rounds/breadth-first-combined-rank-overrides/v2"
 )
 
 func ImplementationSHA256() evidence.SHA256 {
@@ -73,6 +73,7 @@ type Decision struct {
 	Ordinal              uint64            `json:"ordinal"`
 	SiteSHA256           evidence.SHA256   `json:"site_sha256"`
 	Alternatives         []evidence.SHA256 `json:"alternatives"`
+	AlternativeControls  [][]byte          `json:"alternative_controls,omitempty"`
 	AlternativeSetSHA256 evidence.SHA256   `json:"alternative_set_sha256"`
 	Selected             uint32            `json:"selected"`
 	Identity             evidence.SHA256   `json:"identity"`
@@ -86,6 +87,7 @@ type ForcedDecision struct {
 	AlternativeSetSHA256 evidence.SHA256 `json:"alternative_set_sha256"`
 	Selected             uint32          `json:"selected"`
 	SelectedSHA256       evidence.SHA256 `json:"selected_sha256"`
+	Control              []byte          `json:"control,omitempty"`
 	Identity             evidence.SHA256 `json:"identity"`
 }
 
@@ -160,9 +162,17 @@ type Summary struct {
 }
 
 func CanonicalDecision(dimension Dimension, ordinal uint64, site evidence.SHA256, alternatives []evidence.SHA256, selected uint32) (Decision, error) {
+	return canonicalDecision(dimension, ordinal, site, alternatives, nil, selected)
+}
+
+func CanonicalControlledDecision(dimension Dimension, ordinal uint64, site evidence.SHA256, alternatives []evidence.SHA256, controls [][]byte, selected uint32) (Decision, error) {
+	return canonicalDecision(dimension, ordinal, site, alternatives, controls, selected)
+}
+
+func canonicalDecision(dimension Dimension, ordinal uint64, site evidence.SHA256, alternatives []evidence.SHA256, controls [][]byte, selected uint32) (Decision, error) {
 	decision := Decision{
 		Dimension: dimension, Ordinal: ordinal, SiteSHA256: site,
-		Alternatives: append([]evidence.SHA256(nil), alternatives...), Selected: selected,
+		Alternatives: append([]evidence.SHA256(nil), alternatives...), AlternativeControls: cloneControls(controls), Selected: selected,
 	}
 	var err error
 	decision.AlternativeSetSHA256, err = alternativeSetIdentity(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives)
@@ -425,7 +435,7 @@ func expandCandidate(state *State, parent Candidate, decisions []Decision, child
 				continue
 			}
 			if existing, found := children[child.SHA256]; found {
-				if !slices.Equal(existing.Overrides, child.Overrides) {
+				if !slices.EqualFunc(existing.Overrides, child.Overrides, sameForcedDecision) {
 					return errors.New("combined frontier candidate identity collision")
 				}
 				if child.ParentSHA256 < existing.ParentSHA256 {
@@ -520,6 +530,9 @@ func forcedDecisionFor(decision Decision, selected uint32) (ForcedDecision, erro
 		Alternatives: uint32(len(decision.Alternatives)), AlternativeSetSHA256: decision.AlternativeSetSHA256,
 		Selected: selected, SelectedSHA256: decision.Alternatives[selected],
 	}
+	if decision.Dimension == DimensionRuntime {
+		forced.Control = append([]byte(nil), decision.AlternativeControls[selected]...)
+	}
 	var err error
 	forced.Identity, err = forcedDecisionIdentity(forced)
 	if err != nil {
@@ -572,6 +585,22 @@ func validateDecision(decision Decision) error {
 	if decision.Selected >= uint32(len(decision.Alternatives)) {
 		return errors.New("decision selected rank is invalid")
 	}
+	if decision.Dimension == DimensionRuntime {
+		if len(decision.AlternativeControls) != len(decision.Alternatives) {
+			return errors.New("runtime decision controls do not match its alternatives")
+		}
+		for rank, control := range decision.AlternativeControls {
+			if uint32(rank) == decision.Selected {
+				if len(control) != 0 {
+					return errors.New("runtime decision selected alternative contains a control prefix")
+				}
+			} else if len(control) == 0 {
+				return errors.New("runtime decision alternative control is missing")
+			}
+		}
+	} else if decision.AlternativeControls != nil {
+		return errors.New("non-runtime decision contains runtime controls")
+	}
 	set, err := alternativeSetIdentity(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives)
 	if err != nil || set != decision.AlternativeSetSHA256 {
 		return errors.Join(errors.New("decision alternative-set identity does not match"), err)
@@ -591,6 +620,12 @@ func validateForcedDecision(forced ForcedDecision) error {
 		if _, err := identity.Bytes(); err != nil {
 			return err
 		}
+	}
+	if forced.Dimension == DimensionRuntime && len(forced.Control) == 0 {
+		return errors.New("runtime forced decision control is missing")
+	}
+	if forced.Dimension != DimensionRuntime && len(forced.Control) != 0 {
+		return errors.New("non-runtime forced decision contains runtime control")
 	}
 	identity, err := forcedDecisionIdentity(forced)
 	if err != nil || identity != forced.Identity {
@@ -626,6 +661,7 @@ func alternativeSetIdentity(dimension Dimension, ordinal uint64, site evidence.S
 func decisionIdentity(decision Decision) (evidence.SHA256, error) {
 	decision.Identity = ""
 	decision.Alternatives = append([]evidence.SHA256(nil), decision.Alternatives...)
+	decision.AlternativeControls = cloneControls(decision.AlternativeControls)
 	encoded, err := evidence.CanonicalJSON(decision)
 	if err != nil {
 		return "", err
@@ -745,7 +781,14 @@ func sameCandidates(left, right []Candidate) bool {
 }
 
 func sameCandidate(left, right Candidate) bool {
-	return left.SHA256 == right.SHA256 && left.ParentSHA256 == right.ParentSHA256 && slices.Equal(left.Overrides, right.Overrides)
+	return left.SHA256 == right.SHA256 && left.ParentSHA256 == right.ParentSHA256 && slices.EqualFunc(left.Overrides, right.Overrides, sameForcedDecision)
+}
+
+func sameForcedDecision(left, right ForcedDecision) bool {
+	return left.Dimension == right.Dimension && left.Ordinal == right.Ordinal && left.SiteSHA256 == right.SiteSHA256 &&
+		left.Alternatives == right.Alternatives && left.AlternativeSetSHA256 == right.AlternativeSetSHA256 &&
+		left.Selected == right.Selected && left.SelectedSHA256 == right.SelectedSHA256 && left.Identity == right.Identity &&
+		bytes.Equal(left.Control, right.Control)
 }
 
 func stateIdentity(state State) (evidence.SHA256, error) {
@@ -828,7 +871,15 @@ func cloneCandidate(candidate Candidate) Candidate {
 }
 
 func cloneForcedDecisions(decisions []ForcedDecision) []ForcedDecision {
-	return append([]ForcedDecision(nil), decisions...)
+	if decisions == nil {
+		return nil
+	}
+	cloned := make([]ForcedDecision, len(decisions))
+	for index, decision := range decisions {
+		cloned[index] = decision
+		cloned[index].Control = append([]byte(nil), decision.Control...)
+	}
+	return cloned
 }
 
 func cloneDecisions(decisions []Decision) []Decision {
@@ -836,6 +887,18 @@ func cloneDecisions(decisions []Decision) []Decision {
 	for index, decision := range decisions {
 		cloned[index] = decision
 		cloned[index].Alternatives = append([]evidence.SHA256(nil), decision.Alternatives...)
+		cloned[index].AlternativeControls = cloneControls(decision.AlternativeControls)
+	}
+	return cloned
+}
+
+func cloneControls(controls [][]byte) [][]byte {
+	if controls == nil {
+		return nil
+	}
+	cloned := make([][]byte, len(controls))
+	for index, control := range controls {
+		cloned[index] = append([]byte(nil), control...)
 	}
 	return cloned
 }
