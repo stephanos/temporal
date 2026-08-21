@@ -516,6 +516,9 @@ func gomadInterceptProcessWithHandle(_ *Process, _ func(uintptr)) (error, bool) 
 
 var gomadFilesystemOnce sync.Once
 
+//go:linkname gomadControlEnvironment runtime.gomadControlEnvironment
+func gomadControlEnvironment(string) (string, bool)
+
 var gomadOpenHandles = struct {
 	sync.RWMutex
 	handles    map[*file]*gomadfs.Handle
@@ -524,7 +527,9 @@ var gomadOpenHandles = struct {
 
 func gomadInitializeFilesystem() {
 	gomadFilesystemOnce.Do(func() {
-		gomadfs.Default.SetLoader(gomadLoadMount)
+		if enabled, present := gomadControlEnvironment("GOMADV3_IO_RO_MOUNTS="); present && enabled == "1" {
+			gomadfs.Default.SetLoader(gomadLoadMount)
+		}
 		gomadfs.Default.SetClock(func() int64 { return time.Now().UnixNano() })
 	})
 }

@@ -74,7 +74,7 @@ func runVirtualTCPCase(t *testing.T, testCase string, timeout time.Duration) {
 	result, err := execution.Run(context.Background(), execution.Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADV3_NETWORK_CASE=" + testCase, "GOMADSEED=1", "TZ=UTC"},
+		Command:           prepared.Path, Args: []string{testCase}, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=1", "TZ=UTC"},
 		RunTimeout: timeout, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: seed},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
