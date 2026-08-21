@@ -72,6 +72,7 @@ func TestDecodeValidatesCanonicalManifestAndHeaderIdentity(t *testing.T) {
 			OwnerSource: "dependency.go", OwnerSymbol: "example.test/dependency.Live",
 		}},
 		GoVersion: expected.GoVersion, GOARCH: expected.GOARCH, GOOS: expected.GOOS,
+		GuardImplementationSHA256:    GuardImplementationSHA256,
 		Limits:                       Limits{Facts: MaximumFacts, OwnerFacts: MaximumOwnerFacts, PayloadBytes: MaximumPayloadBytes, StringBytes: MaximumStringBytes},
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
@@ -105,6 +106,7 @@ func TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch(t *testing.T) {
 			{Capability: "import:os/exec", Kind: FactKindCapability, OwnerPackage: "a.test/package", OwnerSymbol: "a.test/package.Live"},
 		},
 		GoVersion: expected.GoVersion, GOARCH: expected.GOARCH, GOOS: expected.GOOS,
+		GuardImplementationSHA256:    GuardImplementationSHA256,
 		Limits:                       Limits{Facts: MaximumFacts, OwnerFacts: MaximumOwnerFacts, PayloadBytes: MaximumPayloadBytes, StringBytes: MaximumStringBytes},
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
@@ -123,6 +125,38 @@ func TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch(t *testing.T) {
 	}
 	if _, err := Decode(liveCapabilityRecord(payload, 1), expected); err == nil || !strings.Contains(err.Error(), "fact count") {
 		t.Fatalf("Decode(count mismatch) error = %v", err)
+	}
+}
+
+func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
+	expected := Expectation{GoVersion: "go1.26.4", ToolchainBuildKey: strings.Repeat("1", 64), GOOS: "darwin", GOARCH: "arm64"}
+	manifest := Manifest{
+		CapabilityUniverseSHA256: CapabilityUniverseSHA256,
+		Facts: []Fact{{
+			Capability: "import:os/exec", Disposition: DispositionGuarded, Kind: FactKindGuard,
+			OwnerPackage: "example.test/target", OwnerSymbol: "example.test/target.main", ReferencedSymbol: "os/exec.Command",
+		}},
+		GoVersion: expected.GoVersion, GOARCH: expected.GOARCH, GOOS: expected.GOOS,
+		GuardImplementationSHA256:    GuardImplementationSHA256,
+		Limits:                       Limits{Facts: MaximumFacts, OwnerFacts: MaximumOwnerFacts, PayloadBytes: MaximumPayloadBytes, StringBytes: MaximumStringBytes},
+		ProducerImplementationSHA256: ProducerImplementationSHA256,
+		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
+	}
+	payload, err := evidence.CanonicalJSON(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Decode(liveCapabilityRecord(payload, 1), expected); err != nil {
+		t.Fatalf("Decode(guarded manifest): %v", err)
+	}
+
+	manifest.GuardImplementationSHA256 = "sha256:" + strings.Repeat("0", 64)
+	payload, err = evidence.CanonicalJSON(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Decode(liveCapabilityRecord(payload, 1), expected); err == nil || !strings.Contains(err.Error(), "guard implementation identity") {
+		t.Fatalf("Decode(guard identity drift) error = %v", err)
 	}
 }
 

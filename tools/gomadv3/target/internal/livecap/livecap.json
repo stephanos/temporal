@@ -1,7 +1,8 @@
 {
-  "version": 1,
-  "schema": "gomadv3.live-capability-manifest/v1",
+  "version": 2,
+  "schema": "gomadv3.live-capability-manifest/v2",
   "symbol": "runtime.gomadCapabilities",
+  "guard_symbol": "runtime.gomadCapabilityGuard",
   "header": {
     "magic": "GOMADCAPABILITY\u0000",
     "bytes": 112
@@ -16,10 +17,12 @@
     "boundary",
     "capability",
     "foreign",
+    "guard",
     "linkname"
   ],
   "dispositions": [
     "denied",
+    "guarded",
     "modeled",
     "pack"
   ],

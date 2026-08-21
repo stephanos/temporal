@@ -25,16 +25,21 @@ type Input struct {
 	ToolchainBuildKey string
 }
 
-func RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol string) []Fact {
+func RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol string, guarded bool) []Fact {
 	facts := []Fact{}
 	if ownerPackage != targetPackage && IsForbiddenImport(targetPackage) && symbolBelongsToPackage(targetPackage, targetSymbol) {
-		facts = append(facts, Fact{
+		fact := Fact{
 			Capability:       "import:" + targetPackage,
 			Kind:             FactKindCapability,
 			OwnerPackage:     ownerPackage,
 			OwnerSymbol:      ownerSymbol,
 			ReferencedSymbol: targetSymbol,
-		})
+		}
+		if guarded {
+			fact.Kind = FactKindGuard
+			fact.Disposition = DispositionGuarded
+		}
+		facts = append(facts, fact)
 	}
 	if boundary, ok := LookupBoundarySymbol(targetPackage, targetSymbol); ok {
 		facts = append(facts, Fact{
@@ -71,6 +76,7 @@ func Encode(input Input) ([]byte, error) {
 		GoVersion:                    input.GoVersion,
 		GOARCH:                       input.GOARCH,
 		GOOS:                         input.GOOS,
+		GuardImplementationSHA256:    GuardImplementationSHA256,
 		Limits:                       Limits{Facts: MaximumFacts, OwnerFacts: MaximumOwnerFacts, PayloadBytes: MaximumPayloadBytes, StringBytes: MaximumStringBytes},
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema,
@@ -158,6 +164,10 @@ func validateFact(fact Fact) error {
 	case FactKindForeign:
 		if fact.Disposition != "" || fact.OwnerSource == "" || !strings.HasPrefix(fact.Capability, "foreign:") {
 			return errors.New("live capability foreign fact is invalid")
+		}
+	case FactKindGuard:
+		if fact.Disposition != DispositionGuarded || !strings.HasPrefix(fact.Capability, "import:") || fact.ReferencedSymbol == "" {
+			return errors.New("live capability guard fact is invalid")
 		}
 	case FactKindLinkname:
 		if fact.Disposition != "" || fact.OwnerSource == "" || fact.ReferencedSymbol == "" {

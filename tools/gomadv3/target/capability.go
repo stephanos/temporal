@@ -798,6 +798,7 @@ func capabilityManifest(record livecap.Record) *CapabilityManifest {
 	return &CapabilityManifest{
 		Schema: record.Manifest.Schema, SHA256: record.SHA256, Bytes: uint64(len(record.Payload)), Facts: uint64(len(record.Manifest.Facts)),
 		ProducerImplementationSHA256: record.Manifest.ProducerImplementationSHA256,
+		GuardImplementationSHA256:    record.Manifest.GuardImplementationSHA256,
 		CapabilityUniverseSHA256:     record.Manifest.CapabilityUniverseSHA256,
 		Payload:                      append([]byte(nil), record.Payload...),
 	}
@@ -817,7 +818,7 @@ func sameCapabilityManifest(left, right *CapabilityManifest) bool {
 		return left == right
 	}
 	return left.Schema == right.Schema && left.SHA256 == right.SHA256 && left.Bytes == right.Bytes && left.Facts == right.Facts &&
-		left.ProducerImplementationSHA256 == right.ProducerImplementationSHA256 && left.CapabilityUniverseSHA256 == right.CapabilityUniverseSHA256 &&
+		left.ProducerImplementationSHA256 == right.ProducerImplementationSHA256 && left.GuardImplementationSHA256 == right.GuardImplementationSHA256 && left.CapabilityUniverseSHA256 == right.CapabilityUniverseSHA256 &&
 		(len(left.Payload) == 0 || bytes.Equal(left.Payload, right.Payload))
 }
 
