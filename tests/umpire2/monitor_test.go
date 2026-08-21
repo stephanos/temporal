@@ -148,6 +148,17 @@ func TestMonitor_CheckNamespaceSafetyDoesNotPromotePendingLiveness(t *testing.T)
 	require.NotEmpty(t, u.CheckNamespace(ctx, namespaceID))
 }
 
+func TestMonitorScopedChecksRetainIndependentDirtyWatermarks(t *testing.T) {
+	ctx := context.Background()
+	u, err := NewMonitor(log.NewNoopLogger())
+	require.NoError(t, err)
+
+	require.NoError(t, u.ObserveFact(ctx, startedWorkflowIn("ns-a", "wf-a")))
+	require.NoError(t, u.ObserveFact(ctx, startedWorkflowIn("ns-b", "wf-b")))
+	require.NotEmpty(t, u.CheckNamespace(ctx, "ns-a"))
+	require.NotEmpty(t, u.CheckNamespace(ctx, "ns-b"))
+}
+
 func TestEvidenceIngestorRecordsRoutesAndPurgesProtocolFacts(t *testing.T) {
 	ctx := context.Background()
 	u, err := NewMonitor(log.NewNoopLogger())

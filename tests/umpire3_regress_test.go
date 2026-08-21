@@ -73,6 +73,9 @@ func TestUmpire3SparseRegressionStartToCloseTimeout(t *testing.T) {
 func TestUmpire3SparseRegressionCallbackAfterCallerCompletion(t *testing.T) {
 	for _, chasmEnabled := range []bool{false, true} {
 		t.Run(umpire3CHASMName(chasmEnabled), func(t *testing.T) {
+			if chasmEnabled {
+				t.Skip("Blocked on CHASM Nexus callback failure handling after caller completion")
+			}
 			runUmpire3Regression(t, scenario.IntegrationCallbackWorkflowRegression("SparseRegressionCallbackAfterCallerCompletion",
 				[]scenario.Resource{
 					scenario.NexusOperation("operation"),

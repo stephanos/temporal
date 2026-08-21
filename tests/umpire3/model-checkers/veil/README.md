@@ -18,6 +18,11 @@ From the repository root, run the complete source, backend, replay, and result d
 make umpire3-check-veil-results
 ```
 
+The authored `.lean` files are inputs to every command. `make umpire3-export-veil-bindings` exports
+their source-bound JSON bindings, while `make umpire3-record-veil-results` deliberately replaces the
+retained normalized evidence after a reviewed semantic or toolchain change. Neither command emits
+Veil source.
+
 The gate checks Lean-exported declaration bindings against the first-order views, builds concrete
 and symbolic jobs, executes both concrete checkers, replays every counterexample through the
 canonical Lean `ExecutableView`, and compares normalized results in `results/`.
