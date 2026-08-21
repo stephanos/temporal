@@ -4,30 +4,38 @@
   "formatVersion": "umpire3/release/v6",
   "experimentFormatVersion": "umpire3/v2",
   "leanVersion": "4.28.0",
-  "catalogHash": "sha256:6ee5a1a327f11b918c000067dedfb46522d1be7fd6883da34a270ac581d640fe",
+  "catalogHash": "sha256:df282a57afb44ef090e3d2dc272c9a27487fd8fa90f43e9fd67722c3dcd19eb6",
   "descriptorHash": "sha256:082b6b66bbd5faf7ccd88deb28e49df237e5fa9202fa8a233c6db4a608edf081",
-  "monitorSemanticHash": "sha256:1610843d5be3be1cd89d324ac9ea0bd6ee1cfd03727dabce148a15a51dc588ac",
-  "compositionSemanticHash": "sha256:57fa7c9cd3e36b6b595e29d361fad901a8ddfb640ed463abcd5bc54ab8c22769",
-  "paritySemanticHash": "sha256:45fe5bfe7b372402b0763d3f04ffbfa21a0205a94126d088d196c40acaa06fc0",
-  "checkerCoverageHash": "sha256:e7335c7af23ac17de6f4a561157c54b942c8b1b3fda42e55d401107aac767b6f",
+  "monitorSemanticHash": "sha256:f031c2404a11a826367ee80933a1aef5a3cbe626bee8985d3785dce298701f60",
+  "compositionSemanticHash": "sha256:c003f2b009ddf8f68c41561a70bdaeaeb8cc6fb7ee6a45991ccc49c8ec255497",
+  "paritySemanticHash": "sha256:6a1b6253e8e836c788aad3cbecd74808bd430a3544fe4fb6e359ed98c8594a8b",
+  "checkerCoverageHash": "sha256:14adf1a33a15355736a29f118a2f4ff5379e82a1f4d8ad100c9fdf0c2fd65453",
   "experiments": {
     "nexus-cancellation-stale-completion-v1": {
-      "semanticHash": "sha256:5c4b524bbe6a72a2713fb1cf86594e93bfb7049d56919ca3aa3e557f97423288",
-      "digest": "sha256:1cb6252167097d71d1f95d0b2c5edda42a57fba6480b9620f1821b08eb68fb33"
+      "semanticHash": "sha256:bb263c34c95e27aa04f3129a33a952b3ee9481883ddf851b50bfb740d6543697",
+      "digest": "sha256:55729f956c15b84aed83dd74fccb796f349a94ee85a01bd20fd85e6ff6a8904b"
     },
     "workflow-update-lifecycle-v1": {
-      "semanticHash": "sha256:910db88e291f81429b00addf86a1ca4d5fbc34660ab068aa38437925a8c492ac",
-      "digest": "sha256:40b6e259d0b128b16b7431cc774cad2dce94d7cbe025071b345a6ecff4d98683"
+      "semanticHash": "sha256:5836264bfe7c9044226dcf2cae61c98a9392b2105d1c666a604e83c58ec7e3b1",
+      "digest": "sha256:90acea15d0cf3a02f420e336097d1e28ab5a64c2ef4e28c2f4b33efc5e7d5d2e"
     }
   },
   "proofManifests": [
     {
+      "identifier": "nexus-cancellation-exact-witness-v1",
+      "digest": "sha256:1bc17d0e6e6f9e3b931e6b4fced2fb8ba3264075e82e6f5950c7372ba18fcede"
+    },
+    {
+      "identifier": "nexus-cancellation-mutation-rejection-v1",
+      "digest": "sha256:ad8c0ce310e235cdf58f48e7fe513dce0c4b0e72ddf393deb564a7da023d16a6"
+    },
+    {
       "identifier": "nexus-tasks-refinement-v1",
-      "digest": "sha256:a2a09394bf0a831cfd15c27c56f8772cb6d418dac36945b7cbe0876f415549ff"
+      "digest": "sha256:3c99d9b55dfaafe83ad4afce721b202b458e6dd5ae3287e7c8a7164eefc73207"
     },
     {
       "identifier": "update-lifecycle-simulation-v1",
-      "digest": "sha256:95e796c824ae429cb0b66067e16e27dab45ccb0f18de16c55468f920da2ba69b"
+      "digest": "sha256:53784807aa86048097f1b55de0552529f70cc2ffab6c5be3dc737e66098c30a4"
     }
   ],
   "profiles": [
@@ -39,7 +47,7 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:626cc9112d4d5fa294722ddf29d2780da97a47a2a0626e9820a58bc868abc0b0",
+    "ledgerHash": "sha256:317a24bf82f9041e5450469133daf3d04a3306b442444d6601a25813c78b5940",
     "behaviorCount": 28,
     "exactCount": 23,
     "semanticEquivalentCount": 5,
@@ -48,25 +56,25 @@
   },
   "assurance": {
     "formatVersion": "umpire3/release-assurance/v1",
-    "digest": "sha256:5a0bf13e9b74055c677645d2d1cdeae6744b54122da560580cddb2117922083b",
+    "digest": "sha256:e6258ad22813888231191a855c0c9cf658f579036a97dba9545813b015985961",
     "nodes": [
       {
         "identifier": "approved-mutation-audit",
         "resultClass": "trace-witness",
         "trustBadge": "tested-instance",
-        "digest": "sha256:f50397bd8ac8afba1becd791108d36cc15d56a9beb711484d74bce5f3bbcf7a2"
+        "digest": "sha256:2b6bc54b858dfc4ccc4dffadb7ce8ba888a454e78e54023165b450ae239f89db"
       },
       {
         "identifier": "catalog",
         "resultClass": "metadata-validated",
         "trustBadge": "kernel-with-declared-axioms",
-        "digest": "sha256:6ee5a1a327f11b918c000067dedfb46522d1be7fd6883da34a270ac581d640fe"
+        "digest": "sha256:df282a57afb44ef090e3d2dc272c9a27487fd8fa90f43e9fd67722c3dcd19eb6"
       },
       {
         "identifier": "checker-coverage",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:e7335c7af23ac17de6f4a561157c54b942c8b1b3fda42e55d401107aac767b6f"
+        "digest": "sha256:14adf1a33a15355736a29f118a2f4ff5379e82a1f4d8ad100c9fdf0c2fd65453"
       },
       {
         "identifier": "clock-skew-audit",
@@ -78,13 +86,13 @@
         "identifier": "composition",
         "resultClass": "composition-proved",
         "trustBadge": "kernel-with-declared-axioms",
-        "digest": "sha256:57fa7c9cd3e36b6b595e29d361fad901a8ddfb640ed463abcd5bc54ab8c22769"
+        "digest": "sha256:c003f2b009ddf8f68c41561a70bdaeaeb8cc6fb7ee6a45991ccc49c8ec255497"
       },
       {
         "identifier": "developer-ux",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:b939599c7e51ef8744db30c8810aa36d4fca7a4ec33f60c699ad75055fdf81f5"
+        "digest": "sha256:04473d670c45616752dcc513ec6d3c08e5f34d2ccb01ec22caad50310f0954ad"
       },
       {
         "identifier": "documentation",
@@ -96,25 +104,25 @@
         "identifier": "experiment/nexus-cancellation-stale-completion-v1",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:1cb6252167097d71d1f95d0b2c5edda42a57fba6480b9620f1821b08eb68fb33"
+        "digest": "sha256:55729f956c15b84aed83dd74fccb796f349a94ee85a01bd20fd85e6ff6a8904b"
       },
       {
         "identifier": "experiment/workflow-update-lifecycle-v1",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:40b6e259d0b128b16b7431cc774cad2dce94d7cbe025071b345a6ecff4d98683"
+        "digest": "sha256:90acea15d0cf3a02f420e336097d1e28ab5a64c2ef4e28c2f4b33efc5e7d5d2e"
       },
       {
         "identifier": "migration",
         "resultClass": "implementation-conforming",
         "trustBadge": "tested-instance",
-        "digest": "sha256:626cc9112d4d5fa294722ddf29d2780da97a47a2a0626e9820a58bc868abc0b0"
+        "digest": "sha256:317a24bf82f9041e5450469133daf3d04a3306b442444d6601a25813c78b5940"
       },
       {
         "identifier": "monitor-programs",
         "resultClass": "evidence-resolved",
         "trustBadge": "tested-instance",
-        "digest": "sha256:1610843d5be3be1cd89d324ac9ea0bd6ee1cfd03727dabce148a15a51dc588ac"
+        "digest": "sha256:f031c2404a11a826367ee80933a1aef5a3cbe626bee8985d3785dce298701f60"
       },
       {
         "identifier": "native-scale-benchmark",
@@ -126,19 +134,31 @@
         "identifier": "parity",
         "resultClass": "evidence-resolved",
         "trustBadge": "kernel-with-declared-axioms",
-        "digest": "sha256:45fe5bfe7b372402b0763d3f04ffbfa21a0205a94126d088d196c40acaa06fc0"
+        "digest": "sha256:6a1b6253e8e836c788aad3cbecd74808bd430a3544fe4fb6e359ed98c8594a8b"
+      },
+      {
+        "identifier": "proof/nexus-cancellation-exact-witness-v1",
+        "resultClass": "trace-witness",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:1bc17d0e6e6f9e3b931e6b4fced2fb8ba3264075e82e6f5950c7372ba18fcede"
+      },
+      {
+        "identifier": "proof/nexus-cancellation-mutation-rejection-v1",
+        "resultClass": "refinement-proved",
+        "trustBadge": "kernel-with-declared-axioms",
+        "digest": "sha256:ad8c0ce310e235cdf58f48e7fe513dce0c4b0e72ddf393deb564a7da023d16a6"
       },
       {
         "identifier": "proof/nexus-tasks-refinement-v1",
         "resultClass": "refinement-proved",
         "trustBadge": "kernel-with-declared-axioms",
-        "digest": "sha256:a2a09394bf0a831cfd15c27c56f8772cb6d418dac36945b7cbe0876f415549ff"
+        "digest": "sha256:3c99d9b55dfaafe83ad4afce721b202b458e6dd5ae3287e7c8a7164eefc73207"
       },
       {
         "identifier": "proof/update-lifecycle-simulation-v1",
         "resultClass": "refinement-proved",
         "trustBadge": "kernel-with-declared-axioms",
-        "digest": "sha256:95e796c824ae429cb0b66067e16e27dab45ccb0f18de16c55468f920da2ba69b"
+        "digest": "sha256:53784807aa86048097f1b55de0552529f70cc2ffab6c5be3dc737e66098c30a4"
       },
       {
         "identifier": "protobuf-descriptor",
@@ -151,6 +171,12 @@
         "resultClass": "implementation-conforming",
         "trustBadge": "tested-instance",
         "digest": "sha256:f163574753bf5f0aa274a9b84710f0a02740d7ad77d04f8740b9cec845e27560"
+      },
+      {
+        "identifier": "semantic-mutation-portfolio",
+        "resultClass": "metadata-validated",
+        "trustBadge": "tested-instance",
+        "digest": "sha256:74ae0a46be478e6850aa4195ca09c3c6b332c7dcde72ebba2a5e278e90a9704d"
       }
     ],
     "goals": [
@@ -169,7 +195,8 @@
           "approved-mutation-audit",
           "checker-coverage",
           "migration",
-          "native-scale-benchmark"
+          "native-scale-benchmark",
+          "semantic-mutation-portfolio"
         ],
         "omissions": null
       },
@@ -203,7 +230,8 @@
         "requires": [
           "checker-coverage",
           "migration",
-          "native-scale-benchmark"
+          "native-scale-benchmark",
+          "semantic-mutation-portfolio"
         ],
         "omissions": null
       },
@@ -253,9 +281,12 @@
           "catalog",
           "composition",
           "monitor-programs",
+          "proof/nexus-cancellation-exact-witness-v1",
+          "proof/nexus-cancellation-mutation-rejection-v1",
           "proof/nexus-tasks-refinement-v1",
           "proof/update-lifecycle-simulation-v1",
-          "protobuf-descriptor"
+          "protobuf-descriptor",
+          "semantic-mutation-portfolio"
         ],
         "omissions": null
       },
@@ -263,7 +294,8 @@
         "identifier": "unknown-bug-exploration",
         "requires": [
           "approved-mutation-audit",
-          "checker-coverage"
+          "checker-coverage",
+          "semantic-mutation-portfolio"
         ],
         "omissions": null
       },

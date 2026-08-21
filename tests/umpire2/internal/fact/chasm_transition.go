@@ -15,9 +15,9 @@ import (
 // specific entity. Today it routes Nexus-operation transitions; other CHASM
 // components can be added by extending route().
 //
-// Unlike the per-event span facts, its Name() is the OTEL event name, not the
-// struct name, so it is registered only with the decoder (routing is by
-// TargetEntity, not by RegisterFact subscription).
+// Unlike the per-event span facts, its OTEL event name is registered explicitly
+// by the decoder. Name remains the semantic fact identity used by the runtime,
+// while routing is determined by TargetEntity.
 type ChasmTransition struct {
 	EventTimeCarrier
 	ComponentType string
@@ -33,7 +33,7 @@ type ChasmTransition struct {
 	EntityPath    *umpire.EntityPath
 }
 
-func (e *ChasmTransition) Name() string { return telemetry.EventChasmTransition }
+func (e *ChasmTransition) Name() string { return "ChasmTransition" }
 
 func (e *ChasmTransition) TargetEntity() *umpire.EntityPath { return e.EntityPath }
 
