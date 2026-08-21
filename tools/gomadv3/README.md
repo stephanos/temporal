@@ -596,11 +596,11 @@ replacement, host access, or truncated evidence. Requests, generated v2 packs,
 review reports, mutation fixtures, and their generation manifest live under
 `target/internal/compatibility`.
 
-The obsolete `temporal-backoff-overflow` request was retired after the exact
-gRPC adapter removed its active blockers and the workload qualified with exact
-replay. The `xnet-socket-activity-candidate` request remains unapproved: it
-covers only four facts within its current 60-blocker closure and still requires
-direct linkname/syscall containment proof.
+The obsolete `temporal-backoff-overflow` and
+`xnet-socket-activity-candidate` requests were retired after exact gRPC and
+x/net adapters removed their active blockers. The gRPC workload qualifies
+with exact replay; the x/net adapter removes the socket linknames, excludes
+the Darwin assembly bridge, and denies raw socket options deterministically.
 
 ## Simulation contract
 

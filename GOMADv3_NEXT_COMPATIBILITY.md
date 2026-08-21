@@ -140,7 +140,7 @@ Turn exact compatibility packs into a governed extension point rather than hand-
 
 Packs should approve narrow ABI or source facts. They must not grant generic `syscall`, `os/exec`, or `x/sys` access. If the approved package needs deterministic behavior, pair the pack with an I/O adapter and include both identities in the artifact.
 
-The first candidate should be the exact `x/net/internal/socket` linkname closure blocking the Activity qualification case, if review shows the live behavior is fully covered by existing or new deterministic boundaries.
+The original `x/net/internal/socket` pack candidate was retired after the exact x/net adapter removed its linknames, excluded its Darwin assembly bridge, and modeled raw socket options as deterministic denials. Remaining Activity blockers must be ranked from fresh analyzer evidence rather than reviving that obsolete allowance request.
 
 ## COMPAT-5: Targeted deterministic adapters and I/O models
 
