@@ -633,14 +633,14 @@ index 3812303..708cd42 100644
  
  func Setrlimit(resource int, rlim *Rlimit) error {
 diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
-index d957b77..8b2fcb2 100644
+index d957b77..7860ae9 100644
 --- a/src/syscall/syscall_unix.go
 +++ b/src/syscall/syscall_unix.go
 @@ -199,6 +199,9 @@ func Read(fd int, p []byte) (n int, err error) {
  }
  
  func Write(fd int, p []byte) (n int, err error) {
-+	if fd != Stdout && fd != Stderr {
++	if fd != Stdout && fd != Stderr && fd != 4 {
 +		gomadCapabilityGuard()
 +	}
  	if race.Enabled {

@@ -11,7 +11,7 @@ import (
 
 const (
 	Deterministic                      = "gomadv3-deterministic/v1"
-	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v10"
+	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v11"
 )
 
 type TargetContract struct {
