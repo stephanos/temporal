@@ -422,12 +422,19 @@ func (s *nexusSession) appendSuccessFact() {
 func (s *nexusSession) appendClosedWindow() {
 	sequence := s.nextFactSequence()
 	operationID := s.operationID()
+	sourceIdentity := s.completionSource
+	if sourceIdentity == "" {
+		sourceIdentity = "umpire3-controlled-nexus-history"
+	}
+	reference := s.completionReference
+	if reference == "" {
+		reference = fmt.Sprintf("%s/%s/window/%d", s.cluster.Namespace, operationID, sequence)
+	} else {
+		reference = fmt.Sprintf("%s/window/%d", reference, sequence)
+	}
 	s.facts = append(s.facts, observation.Fact{
 		Identifier: fmt.Sprintf("window/%s/%d", observation.NexusCancellationWindow, sequence),
-		Source: s.factSource(
-			"umpire3-controlled-nexus-history", sequence,
-			fmt.Sprintf("%s/%s/window/%d", s.cluster.Namespace, operationID, sequence),
-		),
+		Source:     s.factSource(sourceIdentity, sequence, reference),
 		Window: &observation.EvidenceWindow{
 			Purpose: observation.NexusCancellationWindow, Closed: true, ThroughSequence: sequence,
 		},
