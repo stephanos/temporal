@@ -76,6 +76,7 @@ func TestOpenReportNormalizesPreviousCapabilityAnalysis(t *testing.T) {
 	report.Suites[0].Analysis.Schema = PriorAnalysisSchema
 	report.Suites[0].Analysis.Target.CapabilityMode = ""
 	report.Suites[0].Analysis.Target.CapabilityManifest = nil
+	report.Suites[0].Analysis.GuardedBlockers = nil
 	report.Suites[0].Analysis.EliminatedBlockers = nil
 	encoded, err := evidence.CanonicalJSON(report)
 	if err != nil {

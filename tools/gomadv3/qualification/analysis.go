@@ -207,6 +207,9 @@ func DecodeAnalysisReport(data []byte) (AnalysisReport, error) {
 	}
 	if report.Schema == PriorAnalysisSchema {
 		report.Schema = AnalysisSchema
+		if report.Target.CapabilityMode == "" {
+			report.Target.CapabilityMode = target.CapabilityModeClosure
+		}
 	}
 	if report.GuardedBlockers == nil {
 		report.GuardedBlockers = []AnalysisBlocker{}
@@ -232,7 +235,11 @@ func validateAnalysisReport(report AnalysisReport) error {
 		if report.GuardedBlockers != nil || report.Target.CapabilityMode == target.CapabilityModeGuarded {
 			return errors.New("prior capability analysis contains guarded capability evidence")
 		}
-		if err := evidence.ValidateCurrentTargetCapability(evidence.Target{CapabilityMode: string(report.Target.CapabilityMode), CapabilityManifest: report.Target.CapabilityManifest}); err != nil {
+		capabilityMode := report.Target.CapabilityMode
+		if capabilityMode == "" {
+			capabilityMode = target.CapabilityModeClosure
+		}
+		if err := evidence.ValidateCurrentTargetCapability(evidence.Target{CapabilityMode: string(capabilityMode), CapabilityManifest: report.Target.CapabilityManifest}); err != nil {
 			return fmt.Errorf("capability analysis target: %w", err)
 		}
 	} else {

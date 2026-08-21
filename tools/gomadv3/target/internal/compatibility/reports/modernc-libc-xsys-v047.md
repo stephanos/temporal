@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047
 
-Review SHA-256: `sha256:9ed54cf624b864b07c406ee44588f49349aff8a68965092bed169353562047ce`
+Review SHA-256: `sha256:3ee8a4dd69443348399996bbfed916bf39d06f88c79e944b84cb8a3b3544f26e`
 
 Owner: `temporal-server`
 
@@ -26,12 +26,12 @@ Workload: `sqlite-transaction`
 
 - `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
-  - profile `gomadv3-deterministic/v1` / `sha256:1dd41b9645f286f8dae22588d00edc855c54bf8fe7679a860bf58b1fa2b30cc2`
+  - profile `gomadv3-deterministic/v1` / `sha256:c4a39d184fb2c80e407c450df5c6ab4c3067129c27cf1781b9bc11d648d583d7`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8579228404e49a9df26f1a5f735cd530e17f6264ed1c231bf15051d20b2cc76c`
   - prepared source set `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
 - `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
-  - profile `gomadv3-deterministic/v1` / `sha256:1dd41b9645f286f8dae22588d00edc855c54bf8fe7679a860bf58b1fa2b30cc2`
+  - profile `gomadv3-deterministic/v1` / `sha256:c4a39d184fb2c80e407c450df5c6ab4c3067129c27cf1781b9bc11d648d583d7`
   - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
   - source inventories `sha256:4d829c24cc1718026fee9455b47449cfa15d8e241bbbfd9da6136435fd81881f` → `sha256:720c0239c80b4f8bcbebe1cd887451b8e58554f857d09f3f9b9dff939ce3f24e`
   - prepared source set `sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36`
