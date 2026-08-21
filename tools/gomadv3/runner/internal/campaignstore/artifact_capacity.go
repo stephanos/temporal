@@ -23,7 +23,7 @@ type ArtifactCapacityPlan struct {
 
 func DeriveArtifactCapacityPlan(plan CampaignPlan) (ArtifactCapacityPlan, error) {
 	maximumRuns := uint64(plan.SelectionCount)
-	if plan.Strategy == "choice-frontier" {
+	if plan.Strategy == "choice-frontier" || plan.Strategy == "combined-frontier" {
 		maximumRuns = uint64(plan.MaxRuns)
 	}
 	choiceBytes := uint64(0)

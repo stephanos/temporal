@@ -11,14 +11,16 @@ import (
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 )
 
 const (
-	CampaignPlanSchema         = "gomadv3.batch-plan/v5"
-	PreviousCampaignPlanSchema = "gomadv3.batch-plan/v4"
-	PriorCampaignPlanSchema    = "gomadv3.batch-plan/v3"
-	EarlierCampaignPlanSchema  = "gomadv3.batch-plan/v2"
+	CampaignPlanSchema         = "gomadv3.batch-plan/v6"
+	PreviousCampaignPlanSchema = "gomadv3.batch-plan/v5"
+	PriorCampaignPlanSchema    = "gomadv3.batch-plan/v4"
+	EarlierCampaignPlanSchema  = "gomadv3.batch-plan/v3"
+	OlderCampaignPlanSchema    = "gomadv3.batch-plan/v2"
 	LegacyBatchPlanSchema      = "gomadv3.batch-plan/v1"
 )
 
@@ -48,40 +50,44 @@ type CampaignShard struct {
 }
 
 type CampaignPlan struct {
-	Schema                       string                       `json:"schema"`
-	PlanSHA256                   evidence.SHA256              `json:"plan_sha256,omitempty"`
-	Shard                        *CampaignShard               `json:"shard,omitempty"`
-	Strategy                     string                       `json:"strategy,omitempty"`
-	Selection                    string                       `json:"selection"`
-	SelectionCount               evidence.Uint64String        `json:"selection_count"`
-	Parallel                     evidence.Uint64String        `json:"parallel"`
-	Journal                      *RunJournalPlan              `json:"journal,omitempty"`
-	Artifacts                    *ArtifactCapacityPlan        `json:"artifacts,omitempty"`
-	MaxRuns                      evidence.Uint64String        `json:"max_runs,omitempty"`
-	MaxChoiceDepth               evidence.Uint64String        `json:"max_choice_depth,omitempty"`
-	MaxFrontierBytes             evidence.Uint64String        `json:"max_frontier_bytes,omitempty"`
-	FrontierImplementationSHA256 evidence.SHA256              `json:"frontier_implementation_sha256,omitempty"`
-	RunTimeoutNanos              evidence.Uint64String        `json:"run_timeout_nanos"`
-	OverallTimeoutNanos          evidence.Uint64String        `json:"overall_timeout_nanos"`
-	TerminateGraceNanos          evidence.Uint64String        `json:"terminate_grace_nanos"`
-	OnFailure                    string                       `json:"on_failure"`
-	FailureBudget                evidence.Uint64String        `json:"failure_budget"`
-	OutputBytes                  evidence.Uint64String        `json:"output_bytes"`
-	WorldTransitionBytes         evidence.Uint64String        `json:"world_transition_bytes"`
-	RunnerBuild                  string                       `json:"runner_build"`
-	Toolchain                    evidence.Toolchain           `json:"toolchain"`
-	Prepared                     PreparedTargetPlan           `json:"prepared"`
-	IOProfile                    IOProfilePlan                `json:"io_profile"`
-	ChoiceProfile                *ChoiceProfilePlan           `json:"choice_profile,omitempty"`
-	Environment                  []evidence.Environment       `json:"environment"`
-	IOROMounts                   []string                     `json:"io_ro_mounts"`
-	IOROMountLimits              evidence.ReadOnlyMountLimits `json:"io_ro_mount_limits"`
-	Coverage                     string                       `json:"coverage"`
-	RequiredSemanticProbes       []string                     `json:"required_semantic_probes"`
-	KeepSuccesses                string                       `json:"keep_successes"`
-	SuccessArtifactLimit         evidence.Uint64String        `json:"success_artifact_limit"`
-	SuccessBytesLimit            evidence.Uint64String        `json:"success_bytes_limit"`
-	Guidance                     *GuidancePlan                `json:"guidance,omitempty"`
+	Schema                               string                           `json:"schema"`
+	PlanSHA256                           evidence.SHA256                  `json:"plan_sha256,omitempty"`
+	Shard                                *CampaignShard                   `json:"shard,omitempty"`
+	Strategy                             string                           `json:"strategy,omitempty"`
+	Selection                            string                           `json:"selection"`
+	SelectionCount                       evidence.Uint64String            `json:"selection_count"`
+	Parallel                             evidence.Uint64String            `json:"parallel"`
+	Journal                              *RunJournalPlan                  `json:"journal,omitempty"`
+	Artifacts                            *ArtifactCapacityPlan            `json:"artifacts,omitempty"`
+	MaxRuns                              evidence.Uint64String            `json:"max_runs,omitempty"`
+	MaxChoiceDepth                       evidence.Uint64String            `json:"max_choice_depth,omitempty"`
+	MaxForcedDecisions                   evidence.Uint64String            `json:"max_forced_decisions,omitempty"`
+	MaxFrontierBytes                     evidence.Uint64String            `json:"max_frontier_bytes,omitempty"`
+	MaxExplorationResultBytes            evidence.Uint64String            `json:"max_exploration_result_bytes,omitempty"`
+	CombinedDimensionLimits              combinedfrontier.DimensionLimits `json:"combined_dimension_limits,omitempty"`
+	FrontierImplementationSHA256         evidence.SHA256                  `json:"frontier_implementation_sha256,omitempty"`
+	CombinedFrontierImplementationSHA256 evidence.SHA256                  `json:"combined_frontier_implementation_sha256,omitempty"`
+	RunTimeoutNanos                      evidence.Uint64String            `json:"run_timeout_nanos"`
+	OverallTimeoutNanos                  evidence.Uint64String            `json:"overall_timeout_nanos"`
+	TerminateGraceNanos                  evidence.Uint64String            `json:"terminate_grace_nanos"`
+	OnFailure                            string                           `json:"on_failure"`
+	FailureBudget                        evidence.Uint64String            `json:"failure_budget"`
+	OutputBytes                          evidence.Uint64String            `json:"output_bytes"`
+	WorldTransitionBytes                 evidence.Uint64String            `json:"world_transition_bytes"`
+	RunnerBuild                          string                           `json:"runner_build"`
+	Toolchain                            evidence.Toolchain               `json:"toolchain"`
+	Prepared                             PreparedTargetPlan               `json:"prepared"`
+	IOProfile                            IOProfilePlan                    `json:"io_profile"`
+	ChoiceProfile                        *ChoiceProfilePlan               `json:"choice_profile,omitempty"`
+	Environment                          []evidence.Environment           `json:"environment"`
+	IOROMounts                           []string                         `json:"io_ro_mounts"`
+	IOROMountLimits                      evidence.ReadOnlyMountLimits     `json:"io_ro_mount_limits"`
+	Coverage                             string                           `json:"coverage"`
+	RequiredSemanticProbes               []string                         `json:"required_semantic_probes"`
+	KeepSuccesses                        string                           `json:"keep_successes"`
+	SuccessArtifactLimit                 evidence.Uint64String            `json:"success_artifact_limit"`
+	SuccessBytesLimit                    evidence.Uint64String            `json:"success_bytes_limit"`
+	Guidance                             *GuidancePlan                    `json:"guidance,omitempty"`
 }
 
 func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
@@ -94,7 +100,7 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
 	if plan.PlanSHA256 != journal.config.PlanSHA256 || !equalCampaignShard(plan.Shard, journal.config.Shard) {
 		return fmt.Errorf("batch plan shard identity does not match journal")
 	}
-	if (plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema) && (plan.Journal == nil || *plan.Journal != journal.RunJournalPlan()) {
+	if (plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema || plan.Schema == PriorCampaignPlanSchema) && (plan.Journal == nil || *plan.Journal != journal.RunJournalPlan()) {
 		return fmt.Errorf("batch plan journal limits do not match journal")
 	}
 	root, err := os.OpenRoot(journal.path)
@@ -178,7 +184,7 @@ func ReadResumePlan(path string) (CampaignPlan, error) {
 	if err != nil || digest != plan.Prepared.Target.SHA256 || size != uint64(plan.Prepared.Target.Size) {
 		return CampaignPlan{}, errors.Join(fmt.Errorf("prepared target identity does not match batch plan"), err)
 	}
-	if plan.Schema == EarlierCampaignPlanSchema || plan.Schema == LegacyBatchPlanSchema {
+	if plan.Schema == OlderCampaignPlanSchema || plan.Schema == LegacyBatchPlanSchema {
 		plan.Prepared.Target.CapabilityMode = "closure"
 	}
 	return plan, nil
@@ -201,13 +207,13 @@ func validateResumeLifecycle(root *os.Root, campaignID string) error {
 }
 
 func validateCampaignPlan(plan CampaignPlan) error {
-	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && plan.Schema != PriorCampaignPlanSchema && plan.Schema != EarlierCampaignPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
+	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && plan.Schema != PriorCampaignPlanSchema && plan.Schema != EarlierCampaignPlanSchema && plan.Schema != OlderCampaignPlanSchema && plan.Schema != LegacyBatchPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
 		return fmt.Errorf("batch plan identity is invalid")
 	}
-	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && (plan.Journal != nil || plan.Artifacts != nil) {
+	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && plan.Schema != PriorCampaignPlanSchema && (plan.Journal != nil || plan.Artifacts != nil) {
 		return fmt.Errorf("historical batch plan contains segmented journal or artifact limits")
 	}
-	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema {
+	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema || plan.Schema == PriorCampaignPlanSchema {
 		if plan.Journal == nil || validateRunJournalPlan(*plan.Journal, plan) != nil || plan.Artifacts == nil {
 			return fmt.Errorf("batch plan journal limits are invalid")
 		}
@@ -216,8 +222,11 @@ func validateCampaignPlan(plan CampaignPlan) error {
 			return errors.Join(fmt.Errorf("batch plan artifact limits are invalid"), err)
 		}
 	}
-	if plan.Schema != CampaignPlanSchema && (plan.PlanSHA256 != "" || plan.Shard != nil) {
+	if plan.Schema != CampaignPlanSchema && plan.Schema != PreviousCampaignPlanSchema && (plan.PlanSHA256 != "" || plan.Shard != nil) {
 		return fmt.Errorf("historical batch plan contains portable plan identity")
+	}
+	if plan.Schema != CampaignPlanSchema && (plan.MaxForcedDecisions != 0 || plan.MaxExplorationResultBytes != 0 || plan.CombinedDimensionLimits != (combinedfrontier.DimensionLimits{}) || plan.CombinedFrontierImplementationSHA256 != "") {
+		return fmt.Errorf("historical batch plan contains combined frontier fields")
 	}
 	if (plan.PlanSHA256 == "") != (plan.Shard == nil) {
 		return fmt.Errorf("batch plan portable identity is incomplete")
@@ -228,18 +237,22 @@ func validateCampaignPlan(plan CampaignPlan) error {
 		}
 	}
 	if plan.Schema == LegacyBatchPlanSchema {
-		if plan.Strategy != "" || plan.MaxRuns != 0 || plan.MaxChoiceDepth != 0 || plan.MaxFrontierBytes != 0 || plan.FrontierImplementationSHA256 != "" {
+		if plan.Strategy != "" || hasCampaignPlanFrontierFields(plan) {
 			return fmt.Errorf("legacy batch plan contains frontier fields")
 		}
 	} else {
 		switch plan.Strategy {
 		case "seed":
-			if plan.MaxRuns != 0 || plan.MaxChoiceDepth != 0 || plan.MaxFrontierBytes != 0 || plan.FrontierImplementationSHA256 != "" {
+			if hasCampaignPlanFrontierFields(plan) {
 				return fmt.Errorf("seed batch plan contains frontier bounds")
 			}
 		case "choice-frontier":
-			if plan.SelectionCount != 1 || plan.MaxRuns == 0 || plan.MaxChoiceDepth == 0 || plan.MaxFrontierBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.FrontierImplementationSHA256 != frontier.ImplementationSHA256() {
+			if plan.SelectionCount != 1 || plan.MaxRuns == 0 || plan.MaxChoiceDepth == 0 || plan.MaxFrontierBytes == 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationResultBytes != 0 || plan.CombinedDimensionLimits != (combinedfrontier.DimensionLimits{}) || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.FrontierImplementationSHA256 != frontier.ImplementationSHA256() || plan.CombinedFrontierImplementationSHA256 != "" {
 				return fmt.Errorf("choice-frontier batch plan is invalid")
+			}
+		case "combined-frontier":
+			if plan.Schema != CampaignPlanSchema || plan.SelectionCount != 1 || plan.MaxRuns == 0 || plan.MaxChoiceDepth != 0 || plan.MaxForcedDecisions == 0 || plan.MaxFrontierBytes == 0 || plan.MaxExplorationResultBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.FrontierImplementationSHA256 != "" || plan.CombinedFrontierImplementationSHA256 != combinedfrontier.ImplementationSHA256() || !validCombinedDimensionLimits(plan.CombinedDimensionLimits) {
+				return fmt.Errorf("combined-frontier batch plan is invalid")
 			}
 		default:
 			return fmt.Errorf("batch plan strategy is invalid")
@@ -268,7 +281,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
 	if err := evidence.ValidateTargetAdapters(target.Adapters); err != nil {
 		return fmt.Errorf("batch plan prepared target: %w", err)
 	}
-	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema || plan.Schema == PriorCampaignPlanSchema {
+	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema || plan.Schema == PriorCampaignPlanSchema || plan.Schema == EarlierCampaignPlanSchema {
 		if err := evidence.ValidateCurrentTargetCapability(target); err != nil {
 			return fmt.Errorf("batch plan prepared target: %w", err)
 		}
@@ -320,6 +333,14 @@ func validateCampaignPlan(plan CampaignPlan) error {
 		}
 	}
 	return nil
+}
+
+func hasCampaignPlanFrontierFields(plan CampaignPlan) bool {
+	return plan.MaxRuns != 0 || plan.MaxChoiceDepth != 0 || plan.MaxForcedDecisions != 0 || plan.MaxFrontierBytes != 0 || plan.MaxExplorationResultBytes != 0 || plan.CombinedDimensionLimits != (combinedfrontier.DimensionLimits{}) || plan.FrontierImplementationSHA256 != "" || plan.CombinedFrontierImplementationSHA256 != ""
+}
+
+func validCombinedDimensionLimits(limits combinedfrontier.DimensionLimits) bool {
+	return limits.Runtime != 0 && limits.Scenario != 0 && limits.Network != 0 && limits.Storage != 0 && limits.Fault != 0 && limits.Crash != 0
 }
 
 func ValidateCampaignPlan(plan CampaignPlan) error {

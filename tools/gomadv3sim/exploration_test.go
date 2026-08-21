@@ -72,3 +72,15 @@ func TestNonExplorationDivergenceRejectsExplorationEvidence(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "evidence replay divergence")
 }
+
+func TestRuntimeExplorationOverrideIsCompletedByHostController(t *testing.T) {
+	site := rawSHA256([]byte("runtime site"))
+	alternatives := []string{rawSHA256([]byte("first rank")), rawSHA256([]byte("second rank"))}
+	override, err := NewExplorationOverride(ExplorationRuntime, 0, site, alternatives, 1)
+	require.NoError(t, err)
+	plan, err := NewExplorationPlan(rawSHA256([]byte("execution")), rawSHA256([]byte("controller")), 17, []ExplorationOverride{override})
+	require.NoError(t, err)
+	cluster := &inProcessCluster{explorationPlan: &plan, explorationConsumed: make(map[ExplorationDimension]uint64)}
+
+	require.NoError(t, cluster.finishExplorationLocked())
+}
