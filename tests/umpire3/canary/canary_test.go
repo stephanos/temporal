@@ -153,7 +153,7 @@ func TestCanaryAcceptsQualifiedEvidenceWithSameSemanticDigest(t *testing.T) {
 	request := canaryRequest(t, "success")
 	result, err := testController(t, NewMemoryStore()).Run(context.Background(), request)
 	require.NoError(t, err)
-	require.True(t, result.Complete)
+	require.True(t, result.Complete, "%+v", result)
 	require.Equal(t, request.Approval.ExperimentDigest, result.Runtime.ExperimentDigest)
 	require.Equal(t, umpire3runtime.ClaimConforming, result.Runtime.Claim.Kind)
 	require.Equal(t, request.Profile.Environment, result.Runtime.Environment)
@@ -287,6 +287,14 @@ func TestCanaryWorker(t *testing.T) {
 
 func canaryRequest(t *testing.T, mode string) Request {
 	t.Helper()
+	maxDuration := 5 * time.Second
+	cleanupTimeout := 5 * time.Second
+	switch mode {
+	case "block-prepare", "block-execute", "block-worker-wait", "block-observe":
+		maxDuration = 100 * time.Millisecond
+	case "block-cleanup":
+		cleanupTimeout = 100 * time.Millisecond
+	}
 	file, err := os.Open("../testdata/update-lifecycle.json")
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, file.Close()) })
@@ -310,8 +318,8 @@ func canaryRequest(t *testing.T, mode string) Request {
 		ProfileDigest: profileDigest, Tenant: "canary-tenant", Namespace: definition.Namespace,
 		Mode: ModeSafeWrite, AllowedActions: allowedActions, AllowWrites: true,
 		MaxActions: len(experiment.Actions), MaxFaults: len(experiment.Faults),
-		MaxConcurrent: 1, MaxRatePerSecond: 100, MaxDuration: 100 * time.Millisecond,
-		CleanupTimeout: 100 * time.Millisecond, MaxEvidenceBytes: 1 << 20, MaxOutputBytes: 2 << 20,
+		MaxConcurrent: 1, MaxRatePerSecond: 100, MaxDuration: maxDuration,
+		CleanupTimeout: cleanupTimeout, MaxEvidenceBytes: 1 << 20, MaxOutputBytes: 2 << 20,
 		MaxCPUSeconds: 1, MaxMemoryBytes: 512 << 20,
 	}, testApprovalPrivateKey())
 	require.NoError(t, err)
