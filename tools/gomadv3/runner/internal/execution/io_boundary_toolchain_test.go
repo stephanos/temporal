@@ -16,8 +16,16 @@ import (
 func TestBoundaryManifestSemanticCanaries(t *testing.T) {
 	required := deterministicio.RequiredSemanticProbes()
 	observed := make(map[string]struct{}, len(required))
-	for _, fixture := range []string{"./io_filesystem", "./io_net", "./io_signal", "./io_user"} {
-		result := runBoundaryCanaryFixture(t, fixture)
+	for _, fixture := range []struct {
+		source         string
+		capabilityMode target.CapabilityMode
+	}{
+		{source: "./io_filesystem"},
+		{source: "./io_net"},
+		{source: "./io_signal", capabilityMode: target.CapabilityModeGuarded},
+		{source: "./io_user", capabilityMode: target.CapabilityModeGuarded},
+	} {
+		result := runBoundaryCanaryFixture(t, fixture.source, fixture.capabilityMode)
 		coverage, err := deterministicio.DecodeSemanticCoverage(result.IOTranscript.Bytes)
 		if err != nil {
 			t.Fatal(err)
@@ -38,7 +46,7 @@ func TestBoundaryManifestSemanticCanaries(t *testing.T) {
 	}
 }
 
-func runBoundaryCanaryFixture(t *testing.T, source string) execution.Result {
+func runBoundaryCanaryFixture(t *testing.T, source string, capabilityMode target.CapabilityMode) execution.Result {
 	t.Helper()
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
 	if err != nil {
@@ -46,7 +54,7 @@ func runBoundaryCanaryFixture(t *testing.T, source string) execution.Result {
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: source, WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
-		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
+		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot, CapabilityMode: capabilityMode,
 	})
 	if err != nil {
 		t.Fatal(err)
