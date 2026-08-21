@@ -1,6 +1,8 @@
 package umpire3
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,7 +11,19 @@ import (
 func TestDocumentationAuditBindsEveryPublishedDocument(t *testing.T) {
 	report, err := AuditDocumentation()
 	require.NoError(t, err)
-	require.Len(t, report.Documents, 9)
+	entries, err := os.ReadDir(".")
+	require.NoError(t, err)
+	var published []string
+	for _, entry := range entries {
+		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".md" {
+			published = append(published, entry.Name())
+		}
+	}
+	audited := make([]string, len(report.Documents))
+	for index, document := range report.Documents {
+		audited[index] = document.Name
+	}
+	require.Equal(t, published, audited)
 	require.NoError(t, report.Validate())
 
 	report.Documents[0].Bytes = 0

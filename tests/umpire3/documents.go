@@ -7,25 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"slices"
 	"strings"
 )
 
 const DocumentationFormatVersion = "umpire3/documentation-audit/v1"
 
-var documentationNames = []string{
-	"AUTHORING.md",
-	"CONTEXT.md",
-	"IMPLEMENTATION_VERIFICATION.md",
-	"INCIDENT_RECOVERY.md",
-	"MODELING.md",
-	"OPERATIONS.md",
-	"README.md",
-	"SECURITY.md",
-	"SUPPORT.md",
-}
-
-//go:embed AUTHORING.md CONTEXT.md IMPLEMENTATION_VERIFICATION.md INCIDENT_RECOVERY.md MODELING.md OPERATIONS.md README.md SECURITY.md SUPPORT.md
+//go:embed *.md
 var documentationFiles embed.FS
 
 type DocumentationDocument struct {
@@ -41,11 +30,15 @@ type DocumentationReport struct {
 }
 
 func AuditDocumentation() (DocumentationReport, error) {
+	names, err := publishedDocumentationNames()
+	if err != nil {
+		return DocumentationReport{}, err
+	}
 	report := DocumentationReport{
 		FormatVersion: DocumentationFormatVersion,
-		Documents:     make([]DocumentationDocument, 0, len(documentationNames)),
+		Documents:     make([]DocumentationDocument, 0, len(names)),
 	}
-	for _, name := range documentationNames {
+	for _, name := range names {
 		contents, err := documentationFiles.ReadFile(name)
 		if err != nil {
 			return DocumentationReport{}, fmt.Errorf("read Umpire3 documentation %q: %w", name, err)
@@ -65,14 +58,18 @@ func AuditDocumentation() (DocumentationReport, error) {
 }
 
 func (r DocumentationReport) Validate() error {
-	if r.FormatVersion != DocumentationFormatVersion || len(r.Documents) != len(documentationNames) ||
+	names, err := publishedDocumentationNames()
+	if err != nil {
+		return err
+	}
+	if r.FormatVersion != DocumentationFormatVersion || len(r.Documents) != len(names) ||
 		!slices.IsSortedFunc(r.Documents, func(left, right DocumentationDocument) int {
 			return strings.Compare(left.Name, right.Name)
 		}) {
 		return errors.New("documentation audit requires the complete sorted document set")
 	}
 	for index, document := range r.Documents {
-		if document.Name != documentationNames[index] || document.Bytes <= 0 || !validDocumentationDigest(document.Digest) {
+		if document.Name != names[index] || document.Bytes <= 0 || !validDocumentationDigest(document.Digest) {
 			return fmt.Errorf("documentation audit entry %q is incomplete", document.Name)
 		}
 	}
@@ -80,6 +77,20 @@ func (r DocumentationReport) Validate() error {
 		return errors.New("documentation audit digest does not match its contents")
 	}
 	return nil
+}
+
+func publishedDocumentationNames() ([]string, error) {
+	entries, err := fs.ReadDir(documentationFiles, ".")
+	if err != nil {
+		return nil, fmt.Errorf("read Umpire3 documentation set: %w", err)
+	}
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
+			names = append(names, entry.Name())
+		}
+	}
+	return names, nil
 }
 
 func (r DocumentationReport) computedDigest() string {
