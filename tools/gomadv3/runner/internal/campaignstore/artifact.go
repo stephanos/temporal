@@ -22,6 +22,12 @@ type ArtifactInput struct {
 	ChoiceTrace    []byte
 	ReadOnlyMounts *romount.CapturedInputs
 	World          evidence.WorldPayloads
+	Simulation     *SimulationPayloads
+}
+
+type SimulationPayloads struct {
+	Plan   []byte
+	Record []byte
 }
 
 func PublishArtifact(store evidence.Store, input ArtifactInput) (evidence.Artifact, error) {
@@ -80,6 +86,26 @@ func PublishArtifact(store evidence.Store, input ArtifactInput) (evidence.Artifa
 		payloads = append(payloads, evidence.Payload{Path: trace.File, Mode: 0o600, Data: input.ChoiceTrace, SHA256: trace.SHA256, Size: trace.Bytes})
 	} else if input.ChoiceTrace != nil {
 		return evidence.Artifact{}, errors.New("unexpected choice trace payload")
+	}
+	if manifest.SimulationProfile != nil {
+		if input.Simulation == nil {
+			return evidence.Artifact{}, errors.New("simulation exploration artifact payloads are required")
+		}
+		profile := manifest.SimulationProfile
+		profile.Plan.File = "simulation/plan.json"
+		profile.Record.File = "simulation/record.json"
+		if evidence.HashBytes(input.Simulation.Plan) != profile.Plan.SHA256 || uint64(len(input.Simulation.Plan)) != uint64(profile.Plan.Bytes) {
+			return evidence.Artifact{}, errors.New("simulation plan identity changed during publication")
+		}
+		if evidence.HashBytes(input.Simulation.Record) != profile.Record.SHA256 || uint64(len(input.Simulation.Record)) != uint64(profile.Record.Bytes) {
+			return evidence.Artifact{}, errors.New("simulation record identity changed during publication")
+		}
+		payloads = append(payloads,
+			artifactDataPayload(profile.Plan.File, input.Simulation.Plan, 0o600),
+			artifactDataPayload(profile.Record.File, input.Simulation.Record, 0o600),
+		)
+	} else if input.Simulation != nil {
+		return evidence.Artifact{}, errors.New("unexpected simulation exploration artifact payloads")
 	}
 	if manifest.IOProfile.ReadOnlyMounts != nil {
 		if input.ReadOnlyMounts == nil {

@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -98,6 +99,10 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 	}
 	if choiceCapability != nil {
 		result.ChoiceReplayStatus = ChoiceReplayAvailable
+	}
+	simulationReplay, err := simulationCapabilityForArtifact(opened)
+	if err != nil {
+		return ReplayResult{}, &ReplayPreflightError{Err: err}
 	}
 	if config.VerifyOnly {
 		return result, nil
@@ -213,8 +218,11 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 		},
 		IO: ioCapability, Choice: choiceCapability,
 	}
-	if _, ok := executor.(replayProcessExecutor); ok {
-		request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
+	request.Simulation = simulationReplay.capability
+	if request.Simulation == nil {
+		if _, ok := executor.(replayProcessExecutor); ok {
+			request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
+		}
 	}
 	observed, err := executor.Run(ctx, request)
 	if err != nil {
@@ -242,7 +250,10 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 		}
 		observedWorld = &bundle
 	}
-	result.Divergence = replayDivergence(manifest, observed, observedWorld)
+	result.Divergence = simulationReplay.divergence(manifest, observed)
+	if result.Divergence == "" {
+		result.Divergence = replayDivergence(manifest, observed, observedWorld)
+	}
 	result.Match = result.Divergence == ""
 	if choiceCapability != nil {
 		if choiceTraceDivergence(manifest, observed) == "" {
@@ -252,6 +263,52 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 		}
 	}
 	return result, nil
+}
+
+type simulationArtifactReplay struct {
+	capability     *execution.SimulationCapability
+	expectedRecord []byte
+}
+
+func simulationCapabilityForArtifact(opened evidence.Artifact) (simulationArtifactReplay, error) {
+	profile := opened.Manifest.SimulationProfile
+	if profile == nil {
+		return simulationArtifactReplay{}, nil
+	}
+	plan, err := evidence.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	if err != nil {
+		return simulationArtifactReplay{}, fmt.Errorf("read simulation exploration plan: %w", err)
+	}
+	record, err := evidence.ReadPayload(opened, profile.Record.File, uint64(profile.Record.Bytes))
+	if err != nil {
+		return simulationArtifactReplay{}, fmt.Errorf("read simulation exploration record: %w", err)
+	}
+	if err := simulationexploration.ValidateArtifact(*profile, plan, record); err != nil {
+		return simulationArtifactReplay{}, fmt.Errorf("validate simulation exploration artifact: %w", err)
+	}
+	return simulationArtifactReplay{
+		capability: &execution.SimulationCapability{
+			Role: execution.SimulationRoleCoordinator, ExplorationPlan: plan,
+			ExplorationRecordLimit: uint64(profile.Record.Limit), ExplorationRecordCount: 1,
+		},
+		expectedRecord: record,
+	}, nil
+}
+
+func (replay simulationArtifactReplay) divergence(manifest evidence.ExecutionRecord, observed execution.Result) string {
+	if manifest.SimulationProfile == nil {
+		if len(observed.SimulationRecords) != 0 {
+			return "simulation_profile"
+		}
+		return ""
+	}
+	if len(observed.SimulationRecords) != 1 {
+		return "simulation_profile.record.count"
+	}
+	if !bytes.Equal(observed.SimulationRecords[0], replay.expectedRecord) {
+		return "simulation_profile.record.sha256"
+	}
+	return ""
 }
 
 func onlyChoiceReplayDivergence(err error) (*execution.ChoiceReplayDivergenceError, bool) {

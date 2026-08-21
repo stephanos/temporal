@@ -114,6 +114,48 @@ func TestPublishArtifactRejectsChangedChoiceTapeIdentity(t *testing.T) {
 	}
 }
 
+func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
+	input := artifactInput(t)
+	plan := []byte(`{"schema":"gomadv3.simulation-exploration-plan/v1"}`)
+	record := []byte(`{"schema":"gomadv3.cluster-record/v7"}`)
+	input.Manifest.SimulationProfile = simulationProfile(plan, record)
+	input.Simulation = &SimulationPayloads{Plan: plan, Record: record}
+
+	published, err := PublishArtifact(evidence.Store{Root: t.TempDir()}, input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened, err := evidence.OpenArtifact(published.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer opened.Close()
+	for name, want := range map[string][]byte{
+		"simulation/plan.json":   plan,
+		"simulation/record.json": record,
+	} {
+		got, err := evidence.ReadPayload(opened, name, 1<<20)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !slices.Equal(got, want) {
+			t.Fatalf("payload %s = %q, want %q", name, got, want)
+		}
+	}
+}
+
+func TestPublishArtifactRejectsChangedSimulationExplorationEvidence(t *testing.T) {
+	input := artifactInput(t)
+	plan := []byte(`{"schema":"gomadv3.simulation-exploration-plan/v1"}`)
+	record := []byte(`{"schema":"gomadv3.cluster-record/v7"}`)
+	input.Manifest.SimulationProfile = simulationProfile(plan, record)
+	input.Simulation = &SimulationPayloads{Plan: []byte("changed"), Record: record}
+
+	if _, err := PublishArtifact(evidence.Store{Root: t.TempDir()}, input); err == nil || !strings.Contains(err.Error(), "simulation plan identity changed") {
+		t.Fatalf("PublishArtifact() error = %v", err)
+	}
+}
+
 func artifactInput(t *testing.T) ArtifactInput {
 	t.Helper()
 	targetPath := filepath.Join(t.TempDir(), "target")
@@ -147,6 +189,22 @@ func artifactInput(t *testing.T) ArtifactInput {
 			Host: evidence.Host{StartedAt: "2026-08-10T12:00:00Z", FinishedAt: "2026-08-10T12:00:01Z", ElapsedNanos: 1},
 		},
 		TargetPath: targetPath, Stdout: stdout, Stderr: stderr, World: worldPayloads,
+	}
+}
+
+func simulationProfile(plan, record []byte) *evidence.SimulationProfile {
+	return &evidence.SimulationProfile{
+		Name: "gomadv3-simulation-exploration/v1", ControllerSHA256: evidence.HashBytes([]byte("controller")),
+		ExecutionSHA256: evidence.HashBytes([]byte("execution")), CandidateSHA256: evidence.HashBytes([]byte("candidate")),
+		OutcomeSHA256: evidence.HashBytes([]byte("outcome")), FailureSHA256: evidence.HashBytes([]byte("failure")),
+		Plan: evidence.SimulationPlan{
+			Schema: "gomadv3.simulation-exploration-plan/v1", File: "simulation/plan.json",
+			SHA256: evidence.HashBytes(plan), Bytes: evidence.Uint64String(len(plan)),
+		},
+		Record: evidence.SimulationRecord{
+			Schema: "gomadv3.cluster-record/v7", File: "simulation/record.json",
+			SHA256: evidence.HashBytes(record), Bytes: evidence.Uint64String(len(record)), Limit: 128 << 20,
+		},
 	}
 }
 

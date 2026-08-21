@@ -617,6 +617,29 @@ func TestPrintInspectionReportsInterruptedCombinedFrontierWork(t *testing.T) {
 	}
 }
 
+func TestPrintInspectionReportsSimulationExplorationEvidence(t *testing.T) {
+	report := runner.Inspection{
+		Kind: "artifact",
+		Artifact: &runner.ArtifactInspection{
+			Simulation: &runner.SimulationInspection{
+				Profile: "gomadv3-simulation-exploration/v1", ControllerSHA256: "sha256:controller", ExecutionSHA256: "sha256:execution",
+				CandidateSHA256: "sha256:candidate", OutcomeSHA256: "sha256:outcome", FailureSHA256: "sha256:failure",
+				Plan:   runner.SimulationPayloadInspection{Schema: "gomadv3.simulation-exploration-plan/v1", SHA256: "sha256:plan", Bytes: 123},
+				Record: runner.SimulationRecordInspection{Schema: "gomadv3.cluster-record/v7", SHA256: "sha256:record", Bytes: 456, Limit: 789},
+			},
+		},
+	}
+	var output bytes.Buffer
+	if err := printInspection(&output, report); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"simulation:", "controller=sha256:controller", "execution=sha256:execution", "candidate=sha256:candidate", "outcome=sha256:outcome", "failure=sha256:failure", "plan-bytes=123", "record-bytes=456", "record-limit=789"} {
+		if !strings.Contains(output.String(), want) {
+			t.Fatalf("inspection output = %q, missing %q", output.String(), want)
+		}
+	}
+}
+
 func TestRunInspectReportsOutputFailure(t *testing.T) {
 	var stderr bytes.Buffer
 	if status := runInspect([]string{writeInspectBatchFixture(t)}, failingWriter{}, &stderr); status != 3 || !strings.Contains(stderr.String(), "write inspection report") {

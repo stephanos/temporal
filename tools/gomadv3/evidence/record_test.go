@@ -95,6 +95,27 @@ func TestFinalizeManifestSeparatesRunAndFailureIdentity(t *testing.T) {
 	}
 }
 
+func TestFinalizeManifestSeparatesExactSimulationReplayFromNormalizedFailure(t *testing.T) {
+	failure := HashBytes([]byte("normalized simulation failure"))
+	firstInput := manifestWithSimulationProfile(manifestFixture(), []byte("plan one"), []byte("record one"), failure)
+	first, _ := finalizedManifest(t, firstInput)
+
+	changedReplayInput := manifestWithSimulationProfile(manifestFixture(), []byte("plan two"), []byte("record two"), failure)
+	changedReplay, _ := finalizedManifest(t, changedReplayInput)
+	if first.RecordHash == changedReplay.RecordHash {
+		t.Fatal("record hash omitted the exact simulation replay payloads")
+	}
+	if first.Outcome.FailureSignature != changedReplay.Outcome.FailureSignature {
+		t.Fatal("normalized failure signature included the exact simulation replay payloads")
+	}
+
+	changedFailureInput := manifestWithSimulationProfile(manifestFixture(), []byte("plan two"), []byte("record two"), HashBytes([]byte("different simulation failure")))
+	changedFailure, _ := finalizedManifest(t, changedFailureInput)
+	if first.Outcome.FailureSignature == changedFailure.Outcome.FailureSignature {
+		t.Fatal("normalized failure signature omitted the simulation failure identity")
+	}
+}
+
 func TestFinalizeManifestBindsIOProfileInventory(t *testing.T) {
 	firstInput := manifestFixture()
 	first, _ := finalizedManifest(t, firstInput)
@@ -380,6 +401,31 @@ func manifestFixture() ExecutionRecord {
 func uint64StringPointer(value uint64) *Uint64String {
 	converted := Uint64String(value)
 	return &converted
+}
+
+func manifestWithSimulationProfile(manifest ExecutionRecord, plan, record []byte, failure SHA256) ExecutionRecord {
+	manifest.SimulationProfile = &SimulationProfile{
+		Name:             "gomadv3-simulation-exploration/v1",
+		ControllerSHA256: HashBytes([]byte("simulation controller")),
+		ExecutionSHA256:  HashBytes([]byte("simulation execution")),
+		CandidateSHA256:  HashBytes(plan),
+		OutcomeSHA256:    HashBytes([]byte("simulation outcome")),
+		FailureSHA256:    failure,
+		Plan: SimulationPlan{
+			Schema: "gomadv3.simulation-exploration-plan/v1", File: "simulation/plan.json",
+			SHA256: HashBytes(plan), Bytes: Uint64String(len(plan)),
+		},
+		Record: SimulationRecord{
+			Schema: "gomadv3.cluster-record/v7", File: "simulation/record.json",
+			SHA256: HashBytes(record), Bytes: Uint64String(len(record)), Limit: 128 << 20,
+		},
+	}
+	manifest.Files = append(manifest.Files,
+		File{Path: manifest.SimulationProfile.Plan.File, Mode: "0600", Size: manifest.SimulationProfile.Plan.Bytes, SHA256: manifest.SimulationProfile.Plan.SHA256},
+		File{Path: manifest.SimulationProfile.Record.File, Mode: "0600", Size: manifest.SimulationProfile.Record.Bytes, SHA256: manifest.SimulationProfile.Record.SHA256},
+	)
+	sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
+	return manifest
 }
 
 func TestCurrentRecordContractIsSchemaV5(t *testing.T) {

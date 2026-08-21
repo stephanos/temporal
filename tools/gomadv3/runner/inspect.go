@@ -113,23 +113,24 @@ type CampaignLifecycleInspection struct {
 }
 
 type ArtifactInspection struct {
-	ArtifactKind     string             `json:"artifact_kind"`
-	RecordHash       evidence.SHA256    `json:"record_hash"`
-	CampaignID       string             `json:"batch_id"`
-	SelectionOrdinal uint64             `json:"selection_ordinal"`
-	Seed             uint64             `json:"seed"`
-	ReplayMode       string             `json:"replay_mode"`
-	ReplayCommand    string             `json:"replay_command"`
-	Runner           evidence.Runner    `json:"runner"`
-	Toolchain        evidence.Toolchain `json:"toolchain"`
-	Target           TargetReport       `json:"target"`
-	Outcome          OutcomeReport      `json:"outcome"`
-	FirstDivergence  string             `json:"first_divergence,omitempty"`
-	Transcript       *Transcript        `json:"transcript,omitempty"`
-	Choices          *Choices           `json:"choices,omitempty"`
-	CapturedMounts   *CapturedMounts    `json:"captured_mounts,omitempty"`
-	Stdout           StreamReport       `json:"stdout"`
-	Stderr           StreamReport       `json:"stderr"`
+	ArtifactKind     string                `json:"artifact_kind"`
+	RecordHash       evidence.SHA256       `json:"record_hash"`
+	CampaignID       string                `json:"batch_id"`
+	SelectionOrdinal uint64                `json:"selection_ordinal"`
+	Seed             uint64                `json:"seed"`
+	ReplayMode       string                `json:"replay_mode"`
+	ReplayCommand    string                `json:"replay_command"`
+	Runner           evidence.Runner       `json:"runner"`
+	Toolchain        evidence.Toolchain    `json:"toolchain"`
+	Target           TargetReport          `json:"target"`
+	Outcome          OutcomeReport         `json:"outcome"`
+	FirstDivergence  string                `json:"first_divergence,omitempty"`
+	Transcript       *Transcript           `json:"transcript,omitempty"`
+	Choices          *Choices              `json:"choices,omitempty"`
+	Simulation       *SimulationInspection `json:"simulation,omitempty"`
+	CapturedMounts   *CapturedMounts       `json:"captured_mounts,omitempty"`
+	Stdout           StreamReport          `json:"stdout"`
+	Stderr           StreamReport          `json:"stderr"`
 }
 
 type TargetReport struct {
@@ -188,6 +189,30 @@ type ChoiceSite struct {
 	Kind                string `json:"kind"`
 	Count               uint64 `json:"count"`
 	MaximumAlternatives uint32 `json:"maximum_alternatives"`
+}
+
+type SimulationInspection struct {
+	Profile          string                      `json:"profile"`
+	ControllerSHA256 evidence.SHA256             `json:"controller_sha256"`
+	ExecutionSHA256  evidence.SHA256             `json:"execution_sha256"`
+	CandidateSHA256  evidence.SHA256             `json:"candidate_sha256"`
+	OutcomeSHA256    evidence.SHA256             `json:"outcome_sha256"`
+	FailureSHA256    evidence.SHA256             `json:"failure_sha256,omitempty"`
+	Plan             SimulationPayloadInspection `json:"plan"`
+	Record           SimulationRecordInspection  `json:"record"`
+}
+
+type SimulationPayloadInspection struct {
+	Schema string          `json:"schema"`
+	SHA256 evidence.SHA256 `json:"sha256"`
+	Bytes  uint64          `json:"bytes"`
+}
+
+type SimulationRecordInspection struct {
+	Schema string          `json:"schema"`
+	SHA256 evidence.SHA256 `json:"sha256"`
+	Bytes  uint64          `json:"bytes"`
+	Limit  uint64          `json:"limit"`
 }
 
 type CapturedMounts struct {
@@ -576,6 +601,14 @@ func projectArtifact(manifest evidence.ExecutionRecord, path string) ArtifactIns
 	}
 	if transcript := manifest.IOProfile.Transcript; transcript != nil {
 		result.Transcript = &Transcript{Schema: transcript.Schema, SHA256: transcript.SHA256, Bytes: uint64(transcript.Bytes), Records: uint64(transcript.Records)}
+	}
+	if profile := manifest.SimulationProfile; profile != nil {
+		result.Simulation = &SimulationInspection{
+			Profile: profile.Name, ControllerSHA256: profile.ControllerSHA256, ExecutionSHA256: profile.ExecutionSHA256,
+			CandidateSHA256: profile.CandidateSHA256, OutcomeSHA256: profile.OutcomeSHA256, FailureSHA256: profile.FailureSHA256,
+			Plan:   SimulationPayloadInspection{Schema: profile.Plan.Schema, SHA256: profile.Plan.SHA256, Bytes: uint64(profile.Plan.Bytes)},
+			Record: SimulationRecordInspection{Schema: profile.Record.Schema, SHA256: profile.Record.SHA256, Bytes: uint64(profile.Record.Bytes), Limit: uint64(profile.Record.Limit)},
+		}
 	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 		result.CapturedMounts = &CapturedMounts{

@@ -384,6 +384,15 @@ func processCombinedFrontierCompletion(
 	if err != nil {
 		return combinedFrontierRoundResult{}, &HostError{Reason: "combined_frontier_record", Err: err}
 	}
+	simulationPlan := []byte(completion.job.simulationPlan)
+	simulationRecord := completion.result.SimulationRecords[0]
+	simulationProfile, err := simulationexploration.ProjectArtifact(
+		state.Config, candidate, simulationPlan, simulationRecord, runtimeDecisions, completion.job.simulationRecordLimit,
+	)
+	if err != nil {
+		return combinedFrontierRoundResult{}, &HostError{Reason: "combined_frontier_record", Err: err}
+	}
+	simulationPayloads := &campaignstore.SimulationPayloads{Plan: simulationPlan, Record: simulationRecord}
 	mountArtifact, err := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 	if err != nil {
 		return combinedFrontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
@@ -424,9 +433,10 @@ func processCombinedFrontierCompletion(
 			if err != nil {
 				return combinedFrontierRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
 			}
+			manifest.SimulationProfile = &simulationProfile
 			published, err := campaignstore.PublishArtifact(evidence.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, campaignstore.ArtifactInput{
 				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
 			})
 			if err != nil {
 				reason := "success_artifact_publication"
@@ -457,9 +467,10 @@ func processCombinedFrontierCompletion(
 		if err != nil {
 			return combinedFrontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
 		}
+		manifest.SimulationProfile = &simulationProfile
 		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, campaignstore.ArtifactInput{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
 		})
 		if err != nil {
 			return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
@@ -499,9 +510,7 @@ func processCombinedFrontierCompletion(
 			summary.ReplayDivergences++
 		}
 		frontierResult.Failed = true
-		if frontierResult.FailureSHA256 == "" {
-			frontierResult.FailureSHA256 = signature
-		}
+		frontierResult.FailureSHA256 = signature
 	}
 	summary.Attempted++
 	summary.DistinctFailures = uint64(len(distinct))

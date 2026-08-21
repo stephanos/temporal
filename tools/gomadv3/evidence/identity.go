@@ -3,18 +3,19 @@ package evidence
 import "bytes"
 
 type recordProjection struct {
-	SchemaVersion uint32                   `json:"schema_version"`
-	Runner        Runner                   `json:"runner"`
-	Toolchain     Toolchain                `json:"toolchain"`
-	Target        targetProjection         `json:"target"`
-	IOProfile     ioProfileProjection      `json:"io_profile"`
-	ChoiceProfile *choiceProfileProjection `json:"choice_profile,omitempty"`
-	Environment   []Environment            `json:"environment"`
-	Limits        Limits                   `json:"limits"`
-	Seed          Uint64String             `json:"seed"`
-	World         worldProjection          `json:"world"`
-	Outcome       outcomeProjection        `json:"outcome"`
-	Streams       streamsProjection        `json:"streams"`
+	SchemaVersion     uint32                       `json:"schema_version"`
+	Runner            Runner                       `json:"runner"`
+	Toolchain         Toolchain                    `json:"toolchain"`
+	Target            targetProjection             `json:"target"`
+	IOProfile         ioProfileProjection          `json:"io_profile"`
+	ChoiceProfile     *choiceProfileProjection     `json:"choice_profile,omitempty"`
+	SimulationProfile *simulationProfileProjection `json:"simulation_profile,omitempty"`
+	Environment       []Environment                `json:"environment"`
+	Limits            Limits                       `json:"limits"`
+	Seed              Uint64String                 `json:"seed"`
+	World             worldProjection              `json:"world"`
+	Outcome           outcomeProjection            `json:"outcome"`
+	Streams           streamsProjection            `json:"streams"`
 }
 
 type failureProjection struct {
@@ -28,6 +29,16 @@ type failureProjection struct {
 	Outcome       outcomeProjection        `json:"outcome"`
 	StdoutSHA256  SHA256                   `json:"stdout_sha256"`
 	StderrSHA256  SHA256                   `json:"stderr_sha256"`
+}
+
+type simulationFailureProjection struct {
+	SchemaVersion    uint32            `json:"schema_version"`
+	Toolchain        Toolchain         `json:"toolchain"`
+	Target           targetProjection  `json:"target"`
+	ControllerSHA256 SHA256            `json:"controller_sha256"`
+	ExecutionSHA256  SHA256            `json:"execution_sha256"`
+	FailureSHA256    SHA256            `json:"failure_sha256"`
+	Outcome          outcomeProjection `json:"outcome"`
 }
 
 type targetProjection struct {
@@ -84,6 +95,30 @@ type choiceTraceProjection struct {
 	Limit            Uint64String `json:"limit"`
 	TapeSHA256       SHA256       `json:"tape_sha256,omitempty"`
 	Decisions        Uint64String `json:"decisions,omitempty"`
+}
+
+type simulationProfileProjection struct {
+	Name             string                      `json:"name"`
+	ControllerSHA256 SHA256                      `json:"controller_sha256"`
+	ExecutionSHA256  SHA256                      `json:"execution_sha256"`
+	CandidateSHA256  SHA256                      `json:"candidate_sha256"`
+	OutcomeSHA256    SHA256                      `json:"outcome_sha256"`
+	FailureSHA256    SHA256                      `json:"failure_sha256,omitempty"`
+	Plan             simulationPayloadProjection `json:"plan"`
+	Record           simulationRecordProjection  `json:"record"`
+}
+
+type simulationPayloadProjection struct {
+	Schema string       `json:"schema"`
+	SHA256 SHA256       `json:"sha256"`
+	Bytes  Uint64String `json:"bytes"`
+}
+
+type simulationRecordProjection struct {
+	Schema string       `json:"schema"`
+	SHA256 SHA256       `json:"sha256"`
+	Bytes  Uint64String `json:"bytes"`
+	Limit  Uint64String `json:"limit"`
 }
 
 type readOnlyMountProjection struct {
@@ -143,22 +178,34 @@ type streamProjection struct {
 
 func recordProjectionOf(manifest ExecutionRecord) recordProjection {
 	return recordProjection{
-		SchemaVersion: manifest.SchemaVersion,
-		Runner:        manifest.Runner,
-		Toolchain:     manifest.Toolchain,
-		Target:        projectTarget(manifest.Target),
-		IOProfile:     projectIOProfile(manifest.IOProfile),
-		ChoiceProfile: projectChoiceProfile(manifest.ChoiceProfile),
-		Environment:   manifest.Environment,
-		Limits:        manifest.Limits,
-		Seed:          manifest.Seed,
-		World:         projectWorld(manifest.World),
-		Outcome:       projectOutcome(manifest.Outcome),
-		Streams:       projectStreams(manifest.Streams),
+		SchemaVersion:     manifest.SchemaVersion,
+		Runner:            manifest.Runner,
+		Toolchain:         manifest.Toolchain,
+		Target:            projectTarget(manifest.Target),
+		IOProfile:         projectIOProfile(manifest.IOProfile),
+		ChoiceProfile:     projectChoiceProfile(manifest.ChoiceProfile),
+		SimulationProfile: projectSimulationProfile(manifest.SimulationProfile),
+		Environment:       manifest.Environment,
+		Limits:            manifest.Limits,
+		Seed:              manifest.Seed,
+		World:             projectWorld(manifest.World),
+		Outcome:           projectOutcome(manifest.Outcome),
+		Streams:           projectStreams(manifest.Streams),
 	}
 }
 
-func failureProjectionOf(manifest ExecutionRecord) failureProjection {
+func failureProjectionOf(manifest ExecutionRecord) any {
+	if profile := manifest.SimulationProfile; profile != nil {
+		failure := profile.FailureSHA256
+		if failure == "" {
+			failure = profile.OutcomeSHA256
+		}
+		return simulationFailureProjection{
+			SchemaVersion: manifest.SchemaVersion, Toolchain: manifest.Toolchain, Target: projectTarget(manifest.Target),
+			ControllerSHA256: profile.ControllerSHA256, ExecutionSHA256: profile.ExecutionSHA256,
+			FailureSHA256: failure, Outcome: projectOutcome(manifest.Outcome),
+		}
+	}
 	environment := make([]Environment, 0, len(manifest.Environment))
 	for _, entry := range manifest.Environment {
 		if entry.Name != "GOMADSEED" {
@@ -176,6 +223,18 @@ func failureProjectionOf(manifest ExecutionRecord) failureProjection {
 		Outcome:       projectOutcome(manifest.Outcome),
 		StdoutSHA256:  manifest.Streams.Stdout.FullSHA256,
 		StderrSHA256:  manifest.Streams.Stderr.FullSHA256,
+	}
+}
+
+func projectSimulationProfile(profile *SimulationProfile) *simulationProfileProjection {
+	if profile == nil {
+		return nil
+	}
+	return &simulationProfileProjection{
+		Name: profile.Name, ControllerSHA256: profile.ControllerSHA256, ExecutionSHA256: profile.ExecutionSHA256,
+		CandidateSHA256: profile.CandidateSHA256, OutcomeSHA256: profile.OutcomeSHA256, FailureSHA256: profile.FailureSHA256,
+		Plan:   simulationPayloadProjection{Schema: profile.Plan.Schema, SHA256: profile.Plan.SHA256, Bytes: profile.Plan.Bytes},
+		Record: simulationRecordProjection{Schema: profile.Record.Schema, SHA256: profile.Record.SHA256, Bytes: profile.Record.Bytes, Limit: profile.Record.Limit},
 	}
 }
 

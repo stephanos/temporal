@@ -32,6 +32,33 @@ func TestOpenReportsArtifactIdentityAndReplay(t *testing.T) {
 	}
 }
 
+func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config.Strategy = StrategyCombinedFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 1
+	config.MaxForcedDecisions = 1
+	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationResultBytes = 1 << 20
+	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
+
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	report, err := Open(summary.Artifacts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	simulation := report.Artifact.Simulation
+	if simulation == nil || simulation.ControllerSHA256 == "" || simulation.ExecutionSHA256 == "" || simulation.CandidateSHA256 == "" || simulation.OutcomeSHA256 == "" || simulation.FailureSHA256 == "" || simulation.Plan.Bytes == 0 || simulation.Plan.SHA256 == "" || simulation.Record.Bytes == 0 || simulation.Record.SHA256 == "" || simulation.Record.Limit != 128<<20 {
+		t.Fatalf("simulation inspection = %#v", simulation)
+	}
+}
+
 func TestOpenWithOptionsProjectsValidatedChoiceTrace(t *testing.T) {
 	published := publishInspectArtifact(t)
 	report, err := Inspect(published.Path, InspectOptions{Choices: true})
