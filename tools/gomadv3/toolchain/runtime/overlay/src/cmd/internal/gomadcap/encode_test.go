@@ -114,28 +114,43 @@ func TestEncodeRejectsOwnerFactOverflow(t *testing.T) {
 }
 
 func TestRelocationFactsProjectImportsAndBoundaries(t *testing.T) {
-	facts := RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6", false)
+	facts := RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6", true, false)
 	if len(facts) != 1 || facts[0].Kind != FactKindCapability || facts[0].Capability != "import:syscall" {
 		t.Fatalf("syscall relocation facts = %#v", facts)
 	}
-	facts = RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6", true)
+	facts = RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6", true, true)
 	if len(facts) != 1 || facts[0].Kind != FactKindGuard || facts[0].Capability != "import:syscall" || facts[0].Disposition != DispositionGuarded || facts[0].ReferencedSymbol != "syscall.Syscall6" {
 		t.Fatalf("guarded syscall relocation facts = %#v", facts)
 	}
-	facts = RelocationFacts("example.com/p", "example.com/p.Read", "os", "os.(*File).Read", false)
+	facts = RelocationFacts("example.com/p", "example.com/p.Read", "os", "os.(*File).Read", true, false)
 	if len(facts) != 1 || facts[0].Kind != FactKindBoundary || facts[0].Capability != "filesystem.read" || facts[0].Disposition != DispositionModeled {
 		t.Fatalf("boundary relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("example.com/p", "example.com/p.Safe", "fmt", "fmt.Println", false); len(facts) != 0 {
+	facts = RelocationFacts("example.com/p", "example.com/p.Interfaces", "net", "net.Interfaces", true, false)
+	if len(facts) != 1 || facts[0].Kind != FactKindBoundary || facts[0].Capability != "network.interfaces" || facts[0].Disposition != DispositionModeled {
+		t.Fatalf("modeled boundary relocation facts = %#v", facts)
+	}
+	facts = RelocationFacts("example.com/p", "example.com/p.Current", "os/user", "os/user.Current", true, false)
+	if len(facts) != 1 || facts[0].Kind != FactKindBoundary || facts[0].Capability != "user.current" || facts[0].Disposition != DispositionModeled {
+		t.Fatalf("forbidden package modeled boundary relocation facts = %#v", facts)
+	}
+	facts = RelocationFacts("example.com/p", "example.com/p.Lookup", "os/user", "os/user.Lookup", true, true)
+	if len(facts) != 1 || facts[0].Kind != FactKindGuard || facts[0].Capability != "import:os/user" || facts[0].Disposition != DispositionGuarded {
+		t.Fatalf("forbidden package unmodeled relocation facts = %#v", facts)
+	}
+	if facts := RelocationFacts("example.com/p", "example.com/p.Safe", "fmt", "fmt.Println", true, false); len(facts) != 0 {
 		t.Fatalf("safe relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "runtime.gcbits.0200000000000000", false); len(facts) != 0 {
+	if facts := RelocationFacts("example.com/p", "example.com/p.Data", "os/exec", "os/exec.ErrNotFound", false, false); len(facts) != 0 {
+		t.Fatalf("data relocation facts = %#v, want none", facts)
+	}
+	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "runtime.gcbits.0200000000000000", false, false); len(facts) != 0 {
 		t.Fatalf("shared symbol relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "os/exec..stmp_13", false); len(facts) != 0 {
+	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "os/exec..stmp_13", false, false); len(facts) != 0 {
 		t.Fatalf("deduplicated static relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("syscall", "syscall.Open", "syscall", "syscall.open", false); len(facts) != 0 {
+	if facts := RelocationFacts("syscall", "syscall.Open", "syscall", "syscall.open", true, false); len(facts) != 0 {
 		t.Fatalf("same-package relocation facts = %#v", facts)
 	}
 }

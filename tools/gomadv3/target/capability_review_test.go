@@ -401,6 +401,23 @@ func TestReviewCapabilitiesLinkedModeReturnsActiveFindings(t *testing.T) {
 	}
 }
 
+func TestReviewCapabilitiesGuardedModeReturnsGuardedFindings(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/guardedreview\n\ngo 1.26.4\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\nimport \"os/exec\"\nfunc main() { _ = exec.Command(\"true\") }\n"), 0o600))
+	review, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: directory, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeGuarded,
+	})
+	requireTestNoError(t, err)
+	if review.CapabilityMode != CapabilityModeGuarded || review.CapabilityManifest == nil || review.CapabilityManifest.Schema != "gomadv3.live-capability-manifest/v2" || review.CapabilityManifest.GuardImplementationSHA256 == "" {
+		t.Fatalf("guarded review identity = %#v", review)
+	}
+	if len(review.Findings) != 0 || len(review.EliminatedFindings) != 0 || len(review.GuardedFindings) != 1 || review.GuardedFindings[0].Capability != "import:os/exec" {
+		t.Fatalf("guarded review findings = active %#v guarded %#v eliminated %#v", review.Findings, review.GuardedFindings, review.EliminatedFindings)
+	}
+}
+
 func TestReviewCapabilitiesLinkedModeRejectsLiveDeniedBoundary(t *testing.T) {
 	directory := t.TempDir()
 	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/linkedboundary\n\ngo 1.26.4\n"), 0o600))
@@ -412,6 +429,20 @@ func TestReviewCapabilitiesLinkedModeRejectsLiveDeniedBoundary(t *testing.T) {
 	requireTestNoError(t, err)
 	if len(review.Findings) != 1 || review.Findings[0].Kind != FindingDeniedBoundary || review.Findings[0].Capability != "filesystem.readlink" {
 		t.Fatalf("linked denied-boundary findings = %#v", review.Findings)
+	}
+}
+
+func TestReviewCapabilitiesGuardedModeGuardsLiveDeniedBoundary(t *testing.T) {
+	directory := t.TempDir()
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "go.mod"), []byte("module example.com/guardedboundary\n\ngo 1.26.4\n"), 0o600))
+	requireTestNoError(t, os.WriteFile(filepath.Join(directory, "main.go"), []byte("package main\nimport \"os\"\nfunc main() { _, _ = os.Readlink(\"target\") }\n"), 0o600))
+	review, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: ".", WorkingDir: directory, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t),
+		CapabilityMode: CapabilityModeGuarded,
+	})
+	requireTestNoError(t, err)
+	if len(review.Findings) != 0 || len(review.GuardedFindings) != 1 || review.GuardedFindings[0].Kind != FindingDeniedBoundary || review.GuardedFindings[0].Capability != "filesystem.readlink" {
+		t.Fatalf("guarded denied-boundary findings = active %#v guarded %#v", review.Findings, review.GuardedFindings)
 	}
 }
 

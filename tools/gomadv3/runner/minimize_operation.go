@@ -204,7 +204,7 @@ func (session *minimizationSession) prepareWorkspace() error {
 		return err
 	}
 	session.prepared = preparedTargetFromArtifact(targetPath, manifest)
-	if session.prepared.CapabilityMode == target.CapabilityModeLinked {
+	if session.prepared.CapabilityMode != target.CapabilityModeClosure {
 		capabilities, err := target.ReadCapabilityManifest(targetPath, target.ToolchainIdentity{
 			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
 			TargetGOOS: manifest.Toolchain.TargetGOOS, TargetGOARCH: manifest.Toolchain.TargetGOARCH,

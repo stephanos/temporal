@@ -31,6 +31,26 @@ func gomadObserveBoundary(id uint64) {
 	gomadtrace.ObserveBoundary(id)
 }
 
+func gomadInterceptInterfaces() ([]Interface, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	return nil, gomadio.ErrUnsupported, true
+}
+
+func gomadInterceptResolverLookupIPAddr(_ *Resolver, ctx context.Context, host string) ([]IPAddr, error, bool) {
+	if !gomadIOEnabled() {
+		return nil, nil, false
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err, true
+	}
+	if host != "localhost" {
+		return nil, gomadio.ErrUnsupported, true
+	}
+	return []IPAddr{{IP: IPv4(127, 0, 0, 1)}}, nil, true
+}
+
 func gomadInterceptDialContext(dialer *Dialer, ctx context.Context, network, address string) (Conn, error, bool) {
 	if !gomadIOEnabled() {
 		return nil, nil, false

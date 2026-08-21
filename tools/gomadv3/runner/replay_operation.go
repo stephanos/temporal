@@ -498,9 +498,9 @@ func verifyReplayCapabilityManifest(opened evidence.Artifact, targetFile *os.Fil
 			return errors.New("closure replay target contains a linked capability manifest")
 		}
 		return nil
-	case "linked":
+	case "linked", "guarded":
 		if recorded == nil {
-			return errors.New("linked replay target capability manifest is missing")
+			return errors.New("executable replay target capability manifest is missing")
 		}
 		actual, err := target.ReadCapabilityManifestFile(targetFile, identity)
 		if err != nil {

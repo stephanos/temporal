@@ -92,6 +92,28 @@ func IsForbiddenImport(importPath string) bool {
 	return false
 }
 
+func IsGuardExempt(packagePath, symbol string) bool {
+	switch packagePath + "." + symbol {
+	{{- range .Schema.GuardExemptions}}
+	case {{printf "%q" .}}:
+		return true
+	{{- end}}
+	}
+	return false
+}
+
+func IsGuardSymbol(symbol string) bool {
+	if symbol == GuardSymbol {
+		return true
+	}
+	for _, suffix := range []string{".abi0", ".abiinternal"} {
+		if symbol == GuardSymbol+suffix {
+			return true
+		}
+	}
+	return false
+}
+
 func LookupBoundary(packagePath, target string) (Boundary, bool) {
 	for _, boundary := range boundaries {
 		if boundary.Package == packagePath && boundary.Target == target {
@@ -114,6 +136,22 @@ func LookupBoundarySymbol(packagePath, symbol string) (Boundary, bool) {
 		}
 	}
 	return LookupBoundary(packagePath, target)
+}
+
+func IsValidGuardFact(capability, referencedSymbol string) bool {
+	const importPrefix = "import:"
+	if len(capability) > len(importPrefix) && capability[:len(importPrefix)] == importPrefix {
+		packagePath := capability[len(importPrefix):]
+		symbolPrefix := packagePath + "."
+		return IsForbiddenImport(packagePath) && len(referencedSymbol) > len(symbolPrefix) && referencedSymbol[:len(symbolPrefix)] == symbolPrefix
+	}
+	for _, boundary := range boundaries {
+		candidate, found := LookupBoundarySymbol(boundary.Package, referencedSymbol)
+		if found && candidate.Disposition == DispositionDenied && candidate.Operation == capability {
+			return true
+		}
+	}
+	return false
 }
 
 var boundaries = []Boundary{

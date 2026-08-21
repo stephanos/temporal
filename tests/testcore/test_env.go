@@ -27,6 +27,7 @@ import (
 	"go.temporal.io/server/common/headers"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/namespace"
+	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testhooks"
@@ -168,6 +169,17 @@ func WithPersistenceFaultInjection(cfg *config.FaultInjection) TestOption {
 		o.dedicatedCluster = true
 		o.clusterOptions = append(o.clusterOptions, WithFaultInjectionConfig(cfg))
 		o.dedicatedReason = "fault injection config used"
+	}
+}
+
+// WithInMemorySQLitePersistence gives the test a dedicated cluster backed by process-local SQLite.
+func WithInMemorySQLitePersistence() TestOption {
+	return func(o *testOptions) {
+		o.dedicatedCluster = true
+		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
+			params.Persistence = *persistencetests.GetSQLiteMemoryTestClusterOption()
+		})
+		o.dedicatedReason = "in-memory SQLite persistence required"
 	}
 }
 

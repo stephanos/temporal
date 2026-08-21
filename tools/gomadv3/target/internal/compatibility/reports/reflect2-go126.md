@@ -1,12 +1,12 @@
 # Compatibility Pack Review: reflect2-go126
 
-Review SHA-256: `sha256:203be98d0a33919bcebbb484507fce282107d9f13c420ad0fafd98ca3801dc61`
+Review SHA-256: `sha256:270d77469caf3e79a4b958baa59dabb5018a78a588606352fa766345c2db8dbc`
 
 Owner: `temporal-server`
 
-Reviewed at: `2026-08-15T00:00:00Z`
+Reviewed at: `2026-08-20T00:00:00Z`
 
-Justification: Preserves the exact reviewed reflect2 runtime-link boundary required by the Temporal representative workload.
+Justification: Preserves the exact reviewed reflect2 runtime-link boundary and admits only its four byte-empty assembly placeholders for the Temporal representative workload.
 
 Target: `go-test ./temporal`
 
@@ -64,10 +64,10 @@ Foreign sources:
 
 Requested facts:
 
-- `foreign:assembly:relfect2_arm64.s`: **deny** — **security-sensitive**
-- `foreign:assembly:relfect2_mips64x.s`: **deny** — **security-sensitive**
-- `foreign:assembly:relfect2_mipsx.s`: **deny** — **security-sensitive**
-- `foreign:assembly:relfect2_ppc64x.s`: **deny** — **security-sensitive**
+- `foreign:assembly:relfect2_arm64.s`: **allow** — **security-sensitive**
+- `foreign:assembly:relfect2_mips64x.s`: **allow** — **security-sensitive**
+- `foreign:assembly:relfect2_mipsx.s`: **allow** — **security-sensitive**
+- `foreign:assembly:relfect2_ppc64x.s`: **allow** — **security-sensitive**
 - `linkname:go_above_118.go`: **allow** — **security-sensitive**
   - source `sha256:b41d841d561da73b0ab54f9f2830d7f9437561b831faad1fa22f738ea99ad805`
   - directive `mapiterinit reflect.mapiterinit`

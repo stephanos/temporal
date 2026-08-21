@@ -1,22 +1,22 @@
 diff --git a/src/cmd/compile/internal/gc/main.go b/src/cmd/compile/internal/gc/main.go
-index afa1650..ac74321 100644
+index afa1650..215d103 100644
 --- a/src/cmd/compile/internal/gc/main.go
 +++ b/src/cmd/compile/internal/gc/main.go
 @@ -13,6 +13,8 @@ import (
-	"cmd/compile/internal/deadlocals"
-	"cmd/compile/internal/dwarfgen"
-	"cmd/compile/internal/escape"
+ 	"cmd/compile/internal/deadlocals"
+ 	"cmd/compile/internal/dwarfgen"
+ 	"cmd/compile/internal/escape"
 +	"cmd/compile/internal/gomadguard"
 +	"cmd/compile/internal/gomadintercept"
  	"cmd/compile/internal/inline"
  	"cmd/compile/internal/inline/interleaved"
  	"cmd/compile/internal/ir"
 @@ -223,6 +225,8 @@ func Main(archInit func(*ssagen.ArchInfo)) {
-		types.LocalPkg.Path = "main"
-		types.LocalPkg.Prefix = "main"
-	}
-+	gomadguard.Apply(typecheck.Target)
+ 		types.LocalPkg.Path = "main"
+ 		types.LocalPkg.Prefix = "main"
+ 	}
 +	gomadintercept.Apply(typecheck.Target)
++	gomadguard.Apply(typecheck.Target)
  
  	dwarfgen.RecordPackageName()
  
@@ -75,8 +75,22 @@ index 018fe01..f99542c 100644
  // fatal is [runtime.fatal], pushed via linkname.
  //
  //go:linkname fatal
+diff --git a/src/runtime/panic.go b/src/runtime/panic.go
+index d467e93..0937fbd 100644
+--- a/src/runtime/panic.go
++++ b/src/runtime/panic.go
+@@ -875,6 +875,9 @@ func gopanic(e any) {
+ 	// the world, we call preprintpanics to invoke all necessary Error
+ 	// and String methods to prepare the panic strings before startpanic.
+ 	preprintpanics(&p)
++	if gomadEnabled {
++		runExitHooks(2)
++	}
+ 
+ 	fatalpanic(&p)   // should not return
+ 	*(*int)(nil) = 0 // not reached
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index 005c875..4e79cf1 100644
+index 005c875..282f361 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -246,6 +246,10 @@ func main() {
@@ -165,7 +179,7 @@ index 005c875..4e79cf1 100644
  	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
  		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
  		fatal("no goroutines (main called runtime.Goexit) - deadlock!")
-@@ -6428,12 +6452,53 @@ func checkdead() {
+@@ -6428,12 +6452,56 @@ func checkdead() {
  
  	// Maybe jump time forward for playground.
  	if faketime != 0 {
@@ -197,6 +211,9 @@ index 005c875..4e79cf1 100644
 +			case gomadSimulationTimeResponseRetry, gomadSimulationTimeResponseExternal:
 +				return
 +			case gomadSimulationTimeResponseDeadlock:
++				if gomadSimulationTimeQuiescenceChanged(when, timer) {
++					return
++				}
 +				unlock(&sched.lock)
 +				fatal("all goroutines are asleep - deadlock!")
 +			case gomadSimulationTimeResponseAdvance:
@@ -222,7 +239,7 @@ index 005c875..4e79cf1 100644
  				// There should always be a free P since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6441,6 +6506,10 @@ func checkdead() {
+@@ -6441,6 +6509,10 @@ func checkdead() {
  			}
  			mp := mget()
  			if mp == nil {
@@ -233,7 +250,42 @@ index 005c875..4e79cf1 100644
  				// There should always be a free M since
  				// nothing is running.
  				unlock(&sched.lock)
-@@ -6478,7 +6547,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+@@ -6468,6 +6540,34 @@ func checkdead() {
+ 	fatal("all goroutines are asleep - deadlock!")
+ }
+ 
++func gomadSimulationTimeQuiescenceChanged(deadline int64, timer bool) bool {
++	if gomadSimulationExternalRequests.Load() != 0 || gomadSimulationTimeAwaitingExternal.Load() || gomadSimulationTimeArrivals.Load() != 0 {
++		return true
++	}
++	if mcount()-sched.nmidle-sched.nmidlelocked-sched.nmsys-gomadSimulationTransportSyscalls.Load() != 0 {
++		return true
++	}
++	changed := false
++	forEachG(func(gp *g) {
++		if changed || isSystemGoroutine(gp, false) {
++			return
++		}
++		if gp.gomadSimulationTransport {
++			changed = true
++			return
++		}
++		switch readgstatus(gp) &^ _Gscan {
++		case _Grunnable, _Grunning, _Gsyscall:
++			changed = true
++		}
++	})
++	if changed {
++		return true
++	}
++	currentDeadline, currentTimer := timeSleepUntil()
++	return currentDeadline != deadline || currentTimer != timer
++}
++
+ // forcegcperiod is the maximum time in nanoseconds between garbage
+ // collections. If we go this long without a garbage collection, one
+ // is forced to run.
+@@ -6478,7 +6578,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
  // haveSysmon indicates whether there is sysmon thread support.
  //
  // No threads on wasm yet, so no sysmon.
@@ -242,7 +294,7 @@ index 005c875..4e79cf1 100644
  
  // Always runs without a P, so write barriers are not allowed.
  //
-@@ -6525,7 +6594,7 @@ func sysmon() {
+@@ -6525,7 +6625,7 @@ func sysmon() {
  			lock(&sched.lock)
  			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
  				syscallWake := false
@@ -251,7 +303,7 @@ index 005c875..4e79cf1 100644
  				if next > now {
  					sched.sysmonwait.Store(true)
  					unlock(&sched.lock)
-@@ -7468,7 +7537,7 @@ func runqempty(pp *p) bool {
+@@ -7468,7 +7568,7 @@ func runqempty(pp *p) bool {
  // With the randomness here, as long as the tests pass
  // consistently with -race, they shouldn't have latent scheduling
  // assumptions.
@@ -260,7 +312,7 @@ index 005c875..4e79cf1 100644
  
  // runqput tries to put g on the local runnable queue.
  // If next is false, runqput adds g to the tail of the runnable queue.
-@@ -7487,7 +7556,7 @@ func runqput(pp *p, gp *g, next bool) {
+@@ -7487,7 +7587,7 @@ func runqput(pp *p, gp *g, next bool) {
  		// risk starvation.
  		next = false
  	}
@@ -269,7 +321,7 @@ index 005c875..4e79cf1 100644
  		next = false
  	}
  
-@@ -7540,7 +7609,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+@@ -7540,7 +7640,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
  
  	if randomizeScheduler {
  		for i := uint32(1); i <= n; i++ {
@@ -278,7 +330,7 @@ index 005c875..4e79cf1 100644
  			batch[i], batch[j] = batch[j], batch[i]
  		}
  	}
-@@ -7581,7 +7650,7 @@ func runqputbatch(pp *p, q *gQueue) {
+@@ -7581,7 +7681,7 @@ func runqputbatch(pp *p, q *gQueue) {
  			return (pp.runqtail + o) % uint32(len(pp.runq))
  		}
  		for i := uint32(1); i < n; i++ {
@@ -287,7 +339,7 @@ index 005c875..4e79cf1 100644
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
  	}
-@@ -7605,6 +7674,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7605,6 +7705,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -524,6 +576,86 @@ index 130ff12..ac39381 100644
  	return nanotime1()
  }
  
+diff --git a/src/syscall/env_unix.go b/src/syscall/env_unix.go
+index e1d7e21..47f7864 100644
+--- a/src/syscall/env_unix.go
++++ b/src/syscall/env_unix.go
+@@ -11,6 +11,7 @@ package syscall
+ import (
+ 	"runtime"
+ 	"sync"
++	_ "unsafe"
+ )
+ 
+ var (
+@@ -28,8 +29,14 @@ var (
+ 
+ func runtime_envs() []string // in package runtime
+ 
++//go:linkname gomadDeterministicEnabled runtime.gomadDeterministicEnabled
++func gomadDeterministicEnabled() bool
++
+ var copyenv = sync.OnceFunc(func() {
+ 	env = make(map[string]int)
++	if gomadDeterministicEnabled() {
++		envs = []string{"TZ=UTC"}
++	}
+ 	for i, s := range envs {
+ 		for j := 0; j < len(s); j++ {
+ 			if s[j] == '=' {
+diff --git a/src/syscall/rlimit.go b/src/syscall/rlimit.go
+index 3812303..708cd42 100644
+--- a/src/syscall/rlimit.go
++++ b/src/syscall/rlimit.go
+@@ -28,22 +28,8 @@ var origRlimitNofile atomic.Pointer[Rlimit]
+ // Code that really wants Go to leave the limit alone can set the hard limit,
+ // which Go of course has no choice but to respect.
+ func init() {
+-	var lim Rlimit
+-	if err := Getrlimit(RLIMIT_NOFILE, &lim); err == nil && lim.Max > 0 && lim.Cur < lim.Max-1 {
+-		origRlimitNofile.Store(&lim)
+-		nlim := lim
+-
+-		// We set Cur to Max - 1 so that we are more likely to
+-		// detect cases where another process uses prlimit
+-		// to change our resource limits. The theory is that
+-		// using prlimit to change to Cur == Max is more likely
+-		// than using prlimit to change to Cur == Max - 1.
+-		// The place we check for this is in exec_linux.go.
+-		nlim.Cur = nlim.Max - 1
+-
+-		adjustFileLimit(&nlim)
+-		setrlimit(RLIMIT_NOFILE, &nlim)
+-	}
++	// Gomad leaves the process limit unchanged because consulting or changing
++	// host resource limits would escape deterministic execution.
+ }
+ 
+ func Setrlimit(resource int, rlim *Rlimit) error {
+diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
+index d957b77..8b2fcb2 100644
+--- a/src/syscall/syscall_unix.go
++++ b/src/syscall/syscall_unix.go
+@@ -199,6 +199,9 @@ func Read(fd int, p []byte) (n int, err error) {
+ }
+ 
+ func Write(fd int, p []byte) (n int, err error) {
++	if fd != Stdout && fd != Stderr {
++		gomadCapabilityGuard()
++	}
+ 	if race.Enabled {
+ 		race.ReleaseMerge(unsafe.Pointer(&ioSync))
+ 	}
+@@ -222,6 +225,9 @@ func Write(fd int, p []byte) (n int, err error) {
+ 	return
+ }
+ 
++//go:linkname gomadCapabilityGuard runtime.gomadCapabilityGuard
++func gomadCapabilityGuard()
++
+ func Pread(fd int, p []byte, offset int64) (n int, err error) {
+ 	n, err = pread(fd, p, offset)
+ 	if race.Enabled {
 diff --git a/src/testing/testing.go b/src/testing/testing.go
 index 34b45b4..a81f5dc 100644
 --- a/src/testing/testing.go

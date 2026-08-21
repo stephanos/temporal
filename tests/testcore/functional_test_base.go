@@ -103,6 +103,7 @@ type (
 		EnableReplicationRecorder bool
 		EnableArchival            bool
 		AdditionalServerOptions   []temporal.ServerOption
+		Persistence               persistencetests.TestBaseOptions
 	}
 	TestClusterOption func(params *testClusterParams)
 )
@@ -296,6 +297,7 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 
 	s.testClusterConfig = &TestClusterConfig{
 		FaultInjection: params.FaultInjectionConfig,
+		Persistence:    params.Persistence,
 		HistoryConfig: HistoryConfig{
 			NumHistoryShards: cmp.Or(params.NumHistoryShards, 4),
 		},

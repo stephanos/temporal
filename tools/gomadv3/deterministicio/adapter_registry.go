@@ -205,7 +205,7 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 		if prepared.evidence.ReplacementRoot != prepared.replacement {
 			return target.Spec{}, nil, errors.New("deterministic I/O adapter replacement root mismatch")
 		}
-		moduleFile = append(moduleFile, []byte("\nreplace "+definition.identity.Module+" => "+prepared.replacement+"\n")...)
+		moduleFile = append(moduleFile, []byte("\nreplace "+definition.identity.Module+" "+definition.identity.Version+" => "+prepared.replacement+"\n")...)
 		evidence = append(evidence, prepared.evidence)
 	}
 	modFilePath := filepath.Join(root, "gomad.mod")

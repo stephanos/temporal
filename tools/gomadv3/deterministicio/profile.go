@@ -11,7 +11,7 @@ import (
 
 const (
 	Deterministic                      = "gomadv3-deterministic/v1"
-	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v4"
+	deterministicImplementationVersion = "gomadv3.deterministic-io/v1/implementation-v9"
 )
 
 type TargetContract struct {
@@ -59,6 +59,13 @@ type inventoryEntry struct {
 
 var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adapterImplementation{
 	{
+		module: xnetModulePath,
+		inventory: inventoryEntry{
+			Boundary: xnetModulePath, Disposition: "target-adapter", Operations: []string{"raw-socket-option-denial"},
+		},
+		prepare: prepareXNet,
+	},
+	{
 		module: grpcModulePath,
 		inventory: inventoryEntry{
 			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression"},
@@ -71,6 +78,13 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 			Boundary: libcModulePath, Disposition: "target-adapter", Operations: []string{"filesystem", "entropy", "time"},
 		},
 		prepare: prepareModerncLibc,
+	},
+	{
+		module: memoryModulePath,
+		inventory: inventoryEntry{
+			Boundary: memoryModulePath, Disposition: "target-adapter", Operations: []string{"anonymous-memory"},
+		},
+		prepare: prepareModerncMemory,
 	},
 })
 
@@ -90,7 +104,7 @@ func mustSpec(definition profileDefinition) Spec {
 	}
 	entries = append(entries, definition.adapters.inventory()...)
 	entries = append(entries,
-		inventoryEntry{Boundary: "net", Disposition: "in-memory", Operations: []string{"Dial", "DialTCP", "Dialer.DialContext", "Listen", "ListenConfig.Listen", "ListenTCP"}},
+		inventoryEntry{Boundary: "net", Disposition: "in-memory", Operations: []string{"Dial", "DialTCP", "Dialer.DialContext", "Listen", "ListenConfig.Listen", "ListenTCP", "Resolver.LookupIPAddr(localhost)"}},
 		inventoryEntry{Boundary: "os.read-only-mount", Disposition: "lazy-in-memory", Operations: []string{"open", "read", "stat", "readdir"}},
 	)
 	encoded, err := canonicalJSON(inventory{

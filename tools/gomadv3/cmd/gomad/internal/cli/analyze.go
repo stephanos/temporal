@@ -85,7 +85,7 @@ func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies a
 }
 
 func capabilityAnalysisTimeoutForMode(mode target.CapabilityMode) time.Duration {
-	if mode == target.CapabilityModeLinked {
+	if mode == target.CapabilityModeLinked || mode == target.CapabilityModeGuarded {
 		return linkedCapabilityAnalysisTimeout
 	}
 	return capabilityAnalysisTimeout
@@ -106,7 +106,7 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	flags.SetOutput(stderr)
 	format := flags.String("format", "text", "text or json")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
-	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
+	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
 	timeout := flags.Duration("timeout", 0, "analysis wall-time bound")
 	var buildTags stringList
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")

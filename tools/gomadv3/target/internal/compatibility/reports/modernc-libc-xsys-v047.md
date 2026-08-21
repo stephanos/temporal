@@ -1,12 +1,12 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047
 
-Review SHA-256: `sha256:61722d0b61a7833d20069f13f15a39ad9c3a830677ab0514f94ae1d8dd4e9f0e`
+Review SHA-256: `sha256:4e2498c5c9ba7d5c0f41a4d1720f92b2d6174a9dea337dd7f051f260e7730d15`
 
 Owner: `temporal-server`
 
 Reviewed at: `2026-08-15T00:00:00Z`
 
-Justification: Preserves the exact registered modernc libc adapter boundary used by the core SQLite qualification workload.
+Justification: Preserves the exact registered modernc libc and memory adapter boundaries used by the core SQLite qualification workload.
 
 Target: `go-test ./thirdparty/persistence`
 
@@ -26,10 +26,15 @@ Workload: `sqlite-transaction`
 
 - `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
-  - profile `gomadv3-deterministic/v1` / `sha256:034755da63de6446baa5c7fefaaecaeb03c1e18c753ed18fcedbf17a76813610`
+  - profile `gomadv3-deterministic/v1` / `sha256:193c2fb83f69bf8f5a87c772d4bec1f90116b75fa650c7ae81be7553b1774163`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8579228404e49a9df26f1a5f735cd530e17f6264ed1c231bf15051d20b2cc76c`
   - prepared source set `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
+- `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
+  - profile `gomadv3-deterministic/v1` / `sha256:193c2fb83f69bf8f5a87c772d4bec1f90116b75fa650c7ae81be7553b1774163`
+  - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
+  - source inventories `sha256:4d829c24cc1718026fee9455b47449cfa15d8e241bbbfd9da6136435fd81881f` → `sha256:720c0239c80b4f8bcbebe1cd887451b8e58554f857d09f3f9b9dff939ce3f24e`
+  - prepared source set `sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36`
 
 ## Reviewed packages
 
@@ -204,21 +209,26 @@ Requested facts:
 
 ### `modernc.org/memory`
 
-Module: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `none`
+Module: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
 
-Source set: `sha256:55c4d42b5ce341d5b92d7a319c47f4f0fc48ead7ec8aa4ac2fdb6b09d5d3429e`
+Source set: `sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36`
 
 Go sources:
 
 - `memory.go`: `sha256:3f5cee8943da57ffd3db70129f87abdf45c86e5299b81d09504ec2838dc31909`
 - `memory64.go`: `sha256:1b91a327f3b95d6fc3f80f090175a9c5bc033083a2c675b7a56f009af8fa4813`
-- `mmap_unix.go`: `sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7`
+- `mmap_unix.go`: `sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad`
 - `nocounters.go`: `sha256:070021a593fc3c28988ad04bee02d83547ff56a9665e7703a80366392e30c18c`
 - `trace_disabled.go`: `sha256:ecd151b29853826767c9fd0e2c9b48b4acd08bd211ce558016399afae693b950`
 
 Requested facts:
 
 - `import:golang.org/x/sys/unix`: **allow** — **security-sensitive**
+- `linkname:mmap_unix.go`: **allow** — **security-sensitive**
+  - source `sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad`
+  - directive `gomadMemoryEnabled internal/gomadio.Enabled`
+  - directive `gomadMemoryMap internal/gomadio.AnonymousMap`
+  - directive `gomadMemoryUnmap internal/gomadio.AnonymousUnmap`
 
 ### `modernc.org/sqlite`
 

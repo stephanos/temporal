@@ -38,10 +38,12 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 import "testing"
 
 func TestGeneratedValues(t *testing.T) {
+	xnet, xnetFound := AdapterByModule("golang.org/x/net")
 	grpc, grpcFound := AdapterByModule("google.golang.org/grpc")
 	libc, libcFound := AdapterByModule("modernc.org/libc")
-	if GoVersion != "go1.26.4" || !grpcFound || grpc.Version != "v1.80.0" || !libcFound || libc.Version != "v1.72.3" || BoundaryManifestVersion != "go1.26.4-darwin-arm64-v1" {
-		t.Fatalf("generated values = %q, %#v, %#v, %q", GoVersion, grpc, libc, BoundaryManifestVersion)
+	memory, memoryFound := AdapterByModule("modernc.org/memory")
+	if GoVersion != "go1.26.4" || !xnetFound || xnet.Version != "v0.57.0" || !grpcFound || grpc.Version != "v1.80.0" || !libcFound || libc.Version != "v1.72.3" || !memoryFound || memory.Version != "v1.11.0" || BoundaryManifestVersion != "go1.26.4-darwin-arm64-v1" {
+		t.Fatalf("generated values = %q, %#v, %#v, %#v, %#v, %q", GoVersion, xnet, grpc, libc, memory, BoundaryManifestVersion)
 	}
 }
 `
@@ -74,6 +76,10 @@ func TestGenerateAllowsNoBuiltInAdapters(t *testing.T) {
 		t.Fatal(err)
 	}
 	contents = []byte(strings.Replace(string(contents), `"adapters": [{
+    "module": "golang.org/x/net",
+    "version": "v0.57.0",
+    "sum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="
+  }, {
     "module": "google.golang.org/grpc",
     "version": "v1.80.0",
     "sum": "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="
@@ -81,6 +87,10 @@ func TestGenerateAllowsNoBuiltInAdapters(t *testing.T) {
     "module": "modernc.org/libc",
     "version": "v1.72.3",
     "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="
+  }, {
+    "module": "modernc.org/memory",
+    "version": "v1.11.0",
+    "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="
   }]`, `"adapters": []`, 1))
 	if err := os.WriteFile(path, contents, 0o600); err != nil {
 		t.Fatal(err)
@@ -170,6 +180,10 @@ func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
   "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
   "patch": "toolchain/runtime/go1.26.4.patch",
   "adapters": [{
+    "module": "golang.org/x/net",
+    "version": "v0.57.0",
+    "sum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="
+  }, {
     "module": "google.golang.org/grpc",
     "version": "v1.80.0",
     "sum": "h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM="
@@ -177,6 +191,10 @@ func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
     "module": "modernc.org/libc",
     "version": "v1.72.3",
     "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="
+  }, {
+    "module": "modernc.org/memory",
+    "version": "v1.11.0",
+    "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="
   }],
   "patch_allowlist": ["src/runtime/proc.go"],
   "overlay_allowlist": ["src/os/gomad.go"]

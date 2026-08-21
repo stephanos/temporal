@@ -7,7 +7,7 @@
 package gomadintercept
 
 const boundaryManifestVersion = "go1.26.4-darwin-arm64-v1"
-const boundaryManifestSHA256 = "sha256:febc956871f3bd6885b4af2daed7653705eb6f03d5df2784decea946a849aa14"
+const boundaryManifestSHA256 = "sha256:1923d3faf7c9d7f4c3f64d88e5708a2a6e5c1221a8ba688300d7fbeadcfc00f3"
 
 func qualifiedPlatform(goos, goarch string) bool {
 	if goos == "darwin" && goarch == "arm64" {
@@ -56,6 +56,8 @@ var specs = []spec{
 	{PackagePath: "os", Function: "Pipe", Hook: "gomadInterceptPipe", DeclarationSHA256: "sha256:2c22692a6186c6298d5110bafe3083bb0312f2894b6d102857a56bf2d954e141", ProbeID: 8600868093930554745},
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "Fd", Hook: "gomadInterceptFileFd", DeclarationSHA256: "sha256:5b25898f2677f6f1b4f8eb8a47705d03a3d80521ac276c85e3482f046c90541b", ProbeID: 1940018568683693166},
 	{PackagePath: "os", Receiver: &receiverSpec{Name: "File", Pointer: true}, Function: "SyscallConn", Hook: "gomadInterceptFileSyscallConn", DeclarationSHA256: "sha256:8067ea105ce53643b11e30a39a0e8c6eedd5278aba0e3bad2cbdd074b1d9ac5b", ProbeID: 6341108320089597219},
+	{PackagePath: "os/user", Function: "Current", Hook: "gomadInterceptCurrent", DeclarationSHA256: "sha256:f3c7e0772bbfb77c1817e56527ea1b230a7a8dd3f748e546cc9c17bcc700cf7e", ProbeID: 1055737590077328763},
+	{PackagePath: "os/signal", Function: "Stop", Hook: "gomadInterceptStop", DeclarationSHA256: "sha256:3a4ced0a4efbc915a4653df4edc08621b294278e6b4d9b8dfdade48a11ac5800", ProbeID: 4973094598532238081},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "Dialer", Pointer: true}, Function: "DialContext", Hook: "gomadInterceptDialContext", DeclarationSHA256: "sha256:dfec5bbad8104471f8a7a4fb80b8187b94b56ad01a58e6b681a1d9a7e9274594", ProbeID: 4235268865641828290},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "ListenConfig", Pointer: true}, Function: "Listen", Hook: "gomadInterceptListen", DeclarationSHA256: "sha256:380a5daa5d8cd6132831a871b8e5ba61223623d9f343e9aad588513028190746", ProbeID: 8174924882754913928},
 	{PackagePath: "net", Receiver: &receiverSpec{Name: "conn", Pointer: true}, Function: "Read", Hook: "gomadInterceptConnRead", DeclarationSHA256: "sha256:1a33fff51d4a27a9ae9932f2e87f07f56bad9283e3fc6a14bab7aafccf40a1ee", ProbeID: 6332659738683654986},

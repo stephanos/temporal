@@ -3,6 +3,18 @@
   "schema": "gomadv3.live-capability-manifest/v2",
   "symbol": "runtime.gomadCapabilities",
   "guard_symbol": "runtime.gomadCapabilityGuard",
+  "guard_exemptions": [
+    "syscall.Clearenv",
+    "syscall.Environ",
+    "syscall.Errno.Error",
+    "syscall.Errno.Is",
+    "syscall.Errno.Temporary",
+    "syscall.Errno.Timeout",
+    "syscall.Getenv",
+    "syscall.Setenv",
+    "syscall.Unsetenv",
+    "syscall.Write"
+  ],
   "header": {
     "magic": "GOMADCAPABILITY\u0000",
     "bytes": 112

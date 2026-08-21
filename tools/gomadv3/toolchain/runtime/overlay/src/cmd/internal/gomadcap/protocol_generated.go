@@ -31,10 +31,10 @@ const (
 	MaximumFacts                 = 100000
 	MaximumStringBytes           = 4096
 	MaximumOwnerFacts            = 4096
-	ProducerImplementationSHA256 = "sha256:f8c0d9f7dc1a254850e62d57eac2ac29f51572a5163dbd0b1d5110846647adf6"
-	GuardImplementationSHA256    = "sha256:f8c0d9f7dc1a254850e62d57eac2ac29f51572a5163dbd0b1d5110846647adf6"
-	CapabilityUniverseSHA256     = "sha256:ec5633bb02f50227039ba394ef95520f6b3ab94aa062c8d7d977258b89ee110e"
-	BoundaryManifestSHA256       = "sha256:febc956871f3bd6885b4af2daed7653705eb6f03d5df2784decea946a849aa14"
+	ProducerImplementationSHA256 = "sha256:db194b00597d30f97f89ad3a19bfb9d2125e4197b08e9526530ec5d9a8c039ed"
+	GuardImplementationSHA256    = "sha256:db194b00597d30f97f89ad3a19bfb9d2125e4197b08e9526530ec5d9a8c039ed"
+	CapabilityUniverseSHA256     = "sha256:43254b2955c9eda8ba44ad7d148ea97566537cc75866fec2bee6e06bf43c0236"
+	BoundaryManifestSHA256       = "sha256:1923d3faf7c9d7f4c3f64d88e5708a2a6e5c1221a8ba688300d7fbeadcfc00f3"
 )
 
 var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I', 'L', 'I', 'T', 'Y', '\x00'}
@@ -101,6 +101,44 @@ func IsForbiddenImport(importPath string) bool {
 	return false
 }
 
+func IsGuardExempt(packagePath, symbol string) bool {
+	switch packagePath + "." + symbol {
+	case "syscall.Clearenv":
+		return true
+	case "syscall.Environ":
+		return true
+	case "syscall.Errno.Error":
+		return true
+	case "syscall.Errno.Is":
+		return true
+	case "syscall.Errno.Temporary":
+		return true
+	case "syscall.Errno.Timeout":
+		return true
+	case "syscall.Getenv":
+		return true
+	case "syscall.Setenv":
+		return true
+	case "syscall.Unsetenv":
+		return true
+	case "syscall.Write":
+		return true
+	}
+	return false
+}
+
+func IsGuardSymbol(symbol string) bool {
+	if symbol == GuardSymbol {
+		return true
+	}
+	for _, suffix := range []string{".abi0", ".abiinternal"} {
+		if symbol == GuardSymbol+suffix {
+			return true
+		}
+	}
+	return false
+}
+
 func LookupBoundary(packagePath, target string) (Boundary, bool) {
 	for _, boundary := range boundaries {
 		if boundary.Package == packagePath && boundary.Target == target {
@@ -123,6 +161,22 @@ func LookupBoundarySymbol(packagePath, symbol string) (Boundary, bool) {
 		}
 	}
 	return LookupBoundary(packagePath, target)
+}
+
+func IsValidGuardFact(capability, referencedSymbol string) bool {
+	const importPrefix = "import:"
+	if len(capability) > len(importPrefix) && capability[:len(importPrefix)] == importPrefix {
+		packagePath := capability[len(importPrefix):]
+		symbolPrefix := packagePath + "."
+		return IsForbiddenImport(packagePath) && len(referencedSymbol) > len(symbolPrefix) && referencedSymbol[:len(symbolPrefix)] == symbolPrefix
+	}
+	for _, boundary := range boundaries {
+		candidate, found := LookupBoundarySymbol(boundary.Package, referencedSymbol)
+		if found && candidate.Disposition == DispositionDenied && candidate.Operation == capability {
+			return true
+		}
+	}
+	return false
 }
 
 var boundaries = []Boundary{
@@ -165,6 +219,8 @@ var boundaries = []Boundary{
 	{Disposition: DispositionDenied, Hook: "gomadInterceptPipe", Operation: "filesystem.pipe", Package: "os", Probe: "stdlib.os.pipe", ProbeID: 8600868093930554745, Target: "Pipe"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptFileFd", Operation: "filesystem.raw-descriptor", Package: "os", Probe: "stdlib.os.file.fd", ProbeID: 1940018568683693166, Target: "(*File).Fd"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptFileSyscallConn", Operation: "filesystem.raw-connection", Package: "os", Probe: "stdlib.os.file.syscallconn", ProbeID: 6341108320089597219, Target: "(*File).SyscallConn"},
+	{Disposition: DispositionModeled, Hook: "gomadInterceptCurrent", Operation: "user.current", Package: "os/user", Probe: "stdlib.osuser.current", ProbeID: 1055737590077328763, Target: "Current"},
+	{Disposition: DispositionModeled, Hook: "gomadInterceptStop", Operation: "signal.stop", Package: "os/signal", Probe: "stdlib.ossignal.stop", ProbeID: 4973094598532238081, Target: "Stop"},
 	{Disposition: DispositionModeled, Hook: "gomadInterceptDialContext", Operation: "network.dial", Package: "net", Probe: "stdlib.net.dialer.dialcontext", ProbeID: 4235268865641828290, Target: "(*Dialer).DialContext"},
 	{Disposition: DispositionModeled, Hook: "gomadInterceptListen", Operation: "network.listen", Package: "net", Probe: "stdlib.net.listenconfig.listen", ProbeID: 8174924882754913928, Target: "(*ListenConfig).Listen"},
 	{Disposition: DispositionModeled, Hook: "gomadInterceptConnRead", Operation: "network.read", Package: "net", Probe: "stdlib.net.conn.read", ProbeID: 6332659738683654986, Target: "(*conn).Read"},
@@ -206,7 +262,7 @@ var boundaries = []Boundary{
 	{Disposition: DispositionDenied, Hook: "gomadInterceptListenPacket", Operation: "network.packet-listen", Package: "net", Probe: "stdlib.net.listenconfig.listenpacket", ProbeID: 6579718152857560539, Target: "(*ListenConfig).ListenPacket"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptResolverLookupHost", Operation: "network.dns.lookup-host", Package: "net", Probe: "stdlib.net.resolver.lookuphost", ProbeID: 3806667935885053729, Target: "(*Resolver).LookupHost"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptResolverLookupIP", Operation: "network.dns.lookup-ip", Package: "net", Probe: "stdlib.net.resolver.lookupip", ProbeID: 476942327584643378, Target: "(*Resolver).LookupIP"},
-	{Disposition: DispositionDenied, Hook: "gomadInterceptResolverLookupIPAddr", Operation: "network.dns.lookup-ip-address", Package: "net", Probe: "stdlib.net.resolver.lookupipaddr", ProbeID: 6174747371384038442, Target: "(*Resolver).LookupIPAddr"},
+	{Disposition: DispositionModeled, Hook: "gomadInterceptResolverLookupIPAddr", Operation: "network.dns.lookup-ip-address", Package: "net", Probe: "stdlib.net.resolver.lookupipaddr", ProbeID: 6174747371384038442, Target: "(*Resolver).LookupIPAddr"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptResolverLookupNetIP", Operation: "network.dns.lookup-netip", Package: "net", Probe: "stdlib.net.resolver.lookupnetip", ProbeID: 4831290360088046861, Target: "(*Resolver).LookupNetIP"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptResolverLookupPort", Operation: "network.dns.lookup-port", Package: "net", Probe: "stdlib.net.resolver.lookupport", ProbeID: 1220088946929561493, Target: "(*Resolver).LookupPort"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptResolverLookupCNAME", Operation: "network.dns.lookup-cname", Package: "net", Probe: "stdlib.net.resolver.lookupcname", ProbeID: 6822629843321000696, Target: "(*Resolver).LookupCNAME"},
@@ -243,7 +299,7 @@ var boundaries = []Boundary{
 	{Disposition: DispositionDenied, Hook: "gomadInterceptFileConn", Operation: "network.wrap-file-connection", Package: "net", Probe: "stdlib.net.fileconn", ProbeID: 6540607774957094752, Target: "FileConn"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptFileListener", Operation: "network.wrap-file-listener", Package: "net", Probe: "stdlib.net.filelistener", ProbeID: 4841240397730676454, Target: "FileListener"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptFilePacketConn", Operation: "network.wrap-file-packet", Package: "net", Probe: "stdlib.net.filepacketconn", ProbeID: 8016223280742056798, Target: "FilePacketConn"},
-	{Disposition: DispositionDenied, Hook: "gomadInterceptInterfaces", Operation: "network.interfaces", Package: "net", Probe: "stdlib.net.interfaces", ProbeID: 4877720533044218754, Target: "Interfaces"},
+	{Disposition: DispositionModeled, Hook: "gomadInterceptInterfaces", Operation: "network.interfaces", Package: "net", Probe: "stdlib.net.interfaces", ProbeID: 4877720533044218754, Target: "Interfaces"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptInterfaceAddrs", Operation: "network.interface-addresses", Package: "net", Probe: "stdlib.net.interfaceaddrs", ProbeID: 6085760439597190586, Target: "InterfaceAddrs"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptInterfaceByIndex", Operation: "network.interface-by-index", Package: "net", Probe: "stdlib.net.interfacebyindex", ProbeID: 7101640275412808259, Target: "InterfaceByIndex"},
 	{Disposition: DispositionDenied, Hook: "gomadInterceptInterfaceByName", Operation: "network.interface-by-name", Package: "net", Probe: "stdlib.net.interfacebyname", ProbeID: 6680767835669436910, Target: "InterfaceByName"},

@@ -29,6 +29,21 @@ func gomadCapabilityManifest(ctxt *Link) {
 	ldr := ctxt.loader
 	facts := []gomadcap.Fact{}
 	symbols := ldr.NSym()
+	guarded := make(map[loader.Sym]struct{})
+	for index := 1; index < symbols; index++ {
+		owner := loader.Sym(index)
+		if !ldr.AttrReachable(owner) || !ldr.SymType(owner).IsText() {
+			continue
+		}
+		relocations := ldr.Relocs(owner)
+		for relocationIndex := 0; relocationIndex < relocations.Count(); relocationIndex++ {
+			target := relocations.At(relocationIndex).Sym()
+			if target != 0 && gomadcap.IsGuardSymbol(ldr.SymName(target)) {
+				guarded[owner] = struct{}{}
+				break
+			}
+		}
+	}
 	for index := 1; index < symbols; index++ {
 		owner := loader.Sym(index)
 		if !ldr.AttrReachable(owner) {
@@ -47,7 +62,9 @@ func gomadCapabilityManifest(ctxt *Link) {
 			}
 			targetPackage := ldr.SymPkg(target)
 			targetSymbol := ldr.SymName(target)
-			facts = append(facts, gomadcap.RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol, false)...)
+			targetExecutable := ldr.SymType(target).IsText()
+			_, targetGuarded := guarded[target]
+			facts = append(facts, gomadcap.RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol, targetExecutable, targetGuarded)...)
 		}
 	}
 	record, err := gomadcap.Encode(gomadcap.Input{

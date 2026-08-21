@@ -25,9 +25,10 @@ type Input struct {
 	ToolchainBuildKey string
 }
 
-func RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol string, guarded bool) []Fact {
+func RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol string, executable, guarded bool) []Fact {
 	facts := []Fact{}
-	if ownerPackage != targetPackage && IsForbiddenImport(targetPackage) && symbolBelongsToPackage(targetPackage, targetSymbol) {
+	boundary, hasBoundary := LookupBoundarySymbol(targetPackage, targetSymbol)
+	if executable && ownerPackage != targetPackage && IsForbiddenImport(targetPackage) && symbolBelongsToPackage(targetPackage, targetSymbol) && !hasBoundary {
 		fact := Fact{
 			Capability:       "import:" + targetPackage,
 			Kind:             FactKindCapability,
@@ -41,15 +42,20 @@ func RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol stri
 		}
 		facts = append(facts, fact)
 	}
-	if boundary, ok := LookupBoundarySymbol(targetPackage, targetSymbol); ok {
-		facts = append(facts, Fact{
+	if hasBoundary {
+		fact := Fact{
 			Capability:       boundary.Operation,
 			Disposition:      boundary.Disposition,
 			Kind:             FactKindBoundary,
 			OwnerPackage:     ownerPackage,
 			OwnerSymbol:      ownerSymbol,
 			ReferencedSymbol: targetSymbol,
-		})
+		}
+		if guarded && boundary.Disposition == DispositionDenied {
+			fact.Kind = FactKindGuard
+			fact.Disposition = DispositionGuarded
+		}
+		facts = append(facts, fact)
 	}
 	return facts
 }
@@ -166,7 +172,7 @@ func validateFact(fact Fact) error {
 			return errors.New("live capability foreign fact is invalid")
 		}
 	case FactKindGuard:
-		if fact.Disposition != DispositionGuarded || !strings.HasPrefix(fact.Capability, "import:") || fact.ReferencedSymbol == "" {
+		if fact.Disposition != DispositionGuarded || !IsValidGuardFact(fact.Capability, fact.ReferencedSymbol) {
 			return errors.New("live capability guard fact is invalid")
 		}
 	case FactKindLinkname:

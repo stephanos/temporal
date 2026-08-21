@@ -148,11 +148,11 @@ type choiceImplementationInputs struct {
 }
 
 type liveCapabilitySchema struct {
-	Version uint32 `json:"version"`
-	Schema  string `json:"schema"`
-	Symbol  string `json:"symbol"`
+	Version     uint32 `json:"version"`
+	Schema      string `json:"schema"`
+	Symbol      string `json:"symbol"`
 	GuardSymbol string `json:"guard_symbol"`
-	Header  struct {
+	Header      struct {
 		Magic string `json:"magic"`
 		Bytes uint32 `json:"bytes"`
 	} `json:"header"`
@@ -164,6 +164,7 @@ type liveCapabilitySchema struct {
 	} `json:"limits"`
 	FactKinds         []string `json:"fact_kinds"`
 	Dispositions      []string `json:"dispositions"`
+	GuardExemptions   []string `json:"guard_exemptions"`
 	ForbiddenImports  []string `json:"forbidden_imports"`
 	ForbiddenPrefixes []string `json:"forbidden_prefixes"`
 }
@@ -184,13 +185,13 @@ type liveCapabilityImplementationInputs struct {
 }
 
 type liveCapabilityTemplateData struct {
-	Package                string
-	Schema                 liveCapabilitySchema
-	ImplementationDigest   string
+	Package                   string
+	Schema                    liveCapabilitySchema
+	ImplementationDigest      string
 	GuardImplementationDigest string
-	UniverseDigest         string
-	BoundaryManifestDigest string
-	Boundaries             []liveCapabilityBoundary
+	UniverseDigest            string
+	BoundaryManifestDigest    string
+	Boundaries                []liveCapabilityBoundary
 }
 
 type simulationModelSchema struct {
@@ -576,11 +577,12 @@ func liveCapabilityUniverseIdentity(definition liveCapabilitySchema, boundaryMan
 		BoundaryManifestSHA256 string   `json:"boundary_manifest_sha256"`
 		FactKinds              []string `json:"fact_kinds"`
 		Dispositions           []string `json:"dispositions"`
+		GuardExemptions        []string `json:"guard_exemptions"`
 		ForbiddenImports       []string `json:"forbidden_imports"`
 		ForbiddenPrefixes      []string `json:"forbidden_prefixes"`
 	}{
 		Schema: definition.Schema, Version: definition.Version, GuardSymbol: definition.GuardSymbol, BoundaryManifestSHA256: boundaryManifestSHA256,
-		FactKinds: definition.FactKinds, Dispositions: definition.Dispositions,
+		FactKinds: definition.FactKinds, Dispositions: definition.Dispositions, GuardExemptions: definition.GuardExemptions,
 		ForbiddenImports: definition.ForbiddenImports, ForbiddenPrefixes: definition.ForbiddenPrefixes,
 	}
 	encoded, err := json.Marshal(projection)
@@ -610,6 +612,7 @@ func readLiveCapabilitySchema(path string) (liveCapabilitySchema, error) {
 		definition.Limits.PayloadBytes != 16<<20 || definition.Limits.Facts != 100_000 || definition.Limits.StringBytes != 4<<10 || definition.Limits.OwnerFacts != 4_096 ||
 		!slices.Equal(definition.FactKinds, []string{"boundary", "capability", "foreign", "guard", "linkname"}) ||
 		!slices.Equal(definition.Dispositions, []string{"denied", "guarded", "modeled", "pack"}) ||
+		!slices.Equal(definition.GuardExemptions, []string{"syscall.Clearenv", "syscall.Environ", "syscall.Errno.Error", "syscall.Errno.Is", "syscall.Errno.Temporary", "syscall.Errno.Timeout", "syscall.Getenv", "syscall.Setenv", "syscall.Unsetenv", "syscall.Write"}) ||
 		!slices.Equal(definition.ForbiddenImports, []string{"os/exec", "os/signal", "os/user", "plugin", "runtime/cgo", "syscall"}) ||
 		!slices.Equal(definition.ForbiddenPrefixes, []string{"golang.org/x/sys"}) {
 		return liveCapabilitySchema{}, errors.New("live capability schema is unsupported by this generator")
