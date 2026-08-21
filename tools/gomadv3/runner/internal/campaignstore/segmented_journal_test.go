@@ -343,7 +343,7 @@ func TestSegmentedJournalOpensBeyondLegacyJournalBound(t *testing.T) {
 }
 
 func TestResumeCampaignJournalRetainsHistoricalPlanSchemas(t *testing.T) {
-	for _, schema := range []string{LegacyBatchPlanSchema, EarlierCampaignPlanSchema, PriorCampaignPlanSchema, PreviousCampaignPlanSchema} {
+	for _, schema := range []string{LegacyBatchPlanSchema, OlderCampaignPlanSchema, EarlierCampaignPlanSchema, PriorCampaignPlanSchema, PreviousCampaignPlanSchema} {
 		t.Run(schema, func(t *testing.T) {
 			journal := newPreparedLifecycleJournal(t, "run-historical-resume")
 			if err := journal.StartExecutions(); err != nil {
@@ -356,7 +356,8 @@ func TestResumeCampaignJournalRetainsHistoricalPlanSchemas(t *testing.T) {
 			if err := journal.Close(); err != nil {
 				t.Fatal(err)
 			}
-			if schema != PreviousCampaignPlanSchema {
+			segmented := schema == PriorCampaignPlanSchema || schema == PreviousCampaignPlanSchema
+			if !segmented {
 				runs, err := os.ReadFile(activePath)
 				if err != nil {
 					t.Fatal(err)
@@ -381,14 +382,14 @@ func TestResumeCampaignJournalRetainsHistoricalPlanSchemas(t *testing.T) {
 				t.Fatal(err)
 			}
 			plan.Schema = schema
-			if schema != PreviousCampaignPlanSchema {
+			if !segmented {
 				plan.Journal = nil
 				plan.Artifacts = nil
 			}
 			if schema == LegacyBatchPlanSchema {
 				plan.Strategy = ""
 			}
-			if schema == LegacyBatchPlanSchema || schema == EarlierCampaignPlanSchema {
+			if schema == LegacyBatchPlanSchema || schema == OlderCampaignPlanSchema {
 				plan.Prepared.Target.CapabilityMode = ""
 				plan.Prepared.Target.CapabilityManifest = nil
 			}

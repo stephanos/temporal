@@ -25,9 +25,20 @@ func TestCombinedFrontierJournalCommitsAndResumesWholeRounds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	roundValue := evidence.Uint64String(round.Index)
+	depth := evidence.Uint64String(len(round.Candidates[0].Overrides))
+	outcome := evidence.HashBytes([]byte("success"))
+	run := ExecutionRecord{
+		Strategy: "combined-frontier", Round: &roundValue, CandidateSHA256: round.Candidates[0].SHA256,
+		ParentCandidateSHA256: round.Candidates[0].ParentSHA256, ForcedDepth: &depth, OutcomeSHA256: outcome,
+		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "exit_zero", Termination: "exit",
+	}
+	if err := staged.RecordExecution(0, run); err != nil {
+		t.Fatal(err)
+	}
 	next, segment, err := combinedfrontier.CommitRound(state, round, []combinedfrontier.Result{{
 		CandidateSHA256: round.Candidates[0].SHA256,
-		OutcomeSHA256:   evidence.HashBytes([]byte("success")),
+		OutcomeSHA256:   outcome,
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -56,6 +67,21 @@ func TestCombinedFrontierJournalCommitsAndResumesWholeRounds(t *testing.T) {
 	if got != want || resumed.State().Summary() != next.Summary() {
 		t.Fatalf("resumed combined frontier = %#v, want %#v", recovered, next)
 	}
+	committed := resumed.CommittedExecutions()
+	if len(committed) != 1 {
+		t.Fatalf("committed executions = %#v", committed)
+	}
+	left, err := evidence.CanonicalJSON(committed[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	right, err := evidence.CanonicalJSON(run)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(left) != string(right) {
+		t.Fatalf("committed execution = %s, want %s", left, right)
+	}
 }
 
 func TestResumeCombinedFrontierJournalDiscardsOnlyIncompleteRound(t *testing.T) {
@@ -70,6 +96,9 @@ func TestResumeCombinedFrontierJournalDiscardsOnlyIncompleteRound(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err := staged.BeginExecution(0, 7); err != nil {
+		t.Fatal(err)
+	}
 	resumed, recovered, recoveryExecutions, err := ResumeCombinedFrontierJournal(context.Background(), batchPath, state.Config, 1<<20)
 	if err != nil {
 		t.Fatal(err)
@@ -79,6 +108,27 @@ func TestResumeCombinedFrontierJournalDiscardsOnlyIncompleteRound(t *testing.T) 
 	}
 	if _, err := os.Stat(staged.Path()); !os.IsNotExist(err) {
 		t.Fatalf("incomplete round remains: %v", err)
+	}
+}
+
+func TestResumeCombinedFrontierJournalDoesNotCountUnstartedRoundCandidates(t *testing.T) {
+	batchPath := privateDirectory(t)
+	state := testCombinedFrontierState(t)
+	journal, err := NewCombinedFrontierJournal(context.Background(), batchPath, state, 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := state.NextRound()
+	if _, err := journal.StageRound(round); err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, recoveryExecutions, err := ResumeCombinedFrontierJournal(context.Background(), batchPath, state.Config, 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recoveryExecutions != 0 {
+		t.Fatalf("unstarted recovery executions = %d, want 0", recoveryExecutions)
 	}
 }
 

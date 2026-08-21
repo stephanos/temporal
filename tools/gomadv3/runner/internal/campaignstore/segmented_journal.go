@@ -87,7 +87,7 @@ func normalizeRunJournalLimits(config CampaignConfig) (RunJournalLimits, error) 
 	limits := config.Journal
 	if limits == (RunJournalLimits{}) {
 		maximumRuns := config.SelectionCount
-		if config.Strategy == "choice-frontier" && config.MaxRuns != 0 {
+		if (config.Strategy == "choice-frontier" || config.Strategy == "combined-frontier") && config.MaxRuns != 0 {
 			maximumRuns = config.MaxRuns
 		}
 		maximumPartialRuns := config.Parallel
@@ -145,7 +145,7 @@ func validateRunJournalPlan(recorded RunJournalPlan, plan CampaignPlan) error {
 		return err
 	}
 	maximumRuns := uint64(plan.SelectionCount)
-	if plan.Strategy == "choice-frontier" {
+	if plan.Strategy == "choice-frontier" || plan.Strategy == "combined-frontier" {
 		maximumRuns = uint64(plan.MaxRuns)
 	}
 	maximumPartialRuns := uint64(plan.Parallel)

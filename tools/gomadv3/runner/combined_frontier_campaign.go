@@ -12,19 +12,21 @@ import (
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
 
-type frontierRoundResult struct {
-	completion runCompletion
-	result     frontier.Result
-	run        campaignstore.ExecutionRecord
+const combinedExplorationRecordLimit = uint64(128 << 20)
+
+type combinedFrontierRoundResult struct {
+	result combinedfrontier.Result
+	run    campaignstore.ExecutionRecord
 }
 
-func runChoiceFrontierLocal(
+func runCombinedFrontierLocal(
 	ctx context.Context,
 	config CampaignSpec,
 	selection SeedSelection,
@@ -32,40 +34,51 @@ func runChoiceFrontierLocal(
 	readOnlyMounts []deterministicio.Mapping,
 	prepared target.Prepared,
 	profile deterministicio.Spec,
-	journal *campaignstore.CampaignJournal, runID string,
+	journal *campaignstore.CampaignJournal,
+	runID string,
 	resuming bool,
-	resumedRuns []campaignstore.ExecutionRecord, summary *CampaignResult,
+	resumedRuns []campaignstore.ExecutionRecord,
+	summary *CampaignResult,
 	reportProgress func(CampaignPhase, int) error,
 ) error {
 	baseSeed, ok := selection.SeedAt(0)
 	if !ok || selection.Count() != 1 {
-		return errors.New("choice-frontier base seed is unavailable")
+		return errors.New("combined-frontier base seed is unavailable")
 	}
-	implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
+	choiceImplementation, err := choice.ImplementationIdentity(prepared.BuildKey)
 	if err != nil {
-		return &HostError{Reason: "choice_frontier_setup", Err: err}
+		return &HostError{Reason: "combined_frontier_setup", Err: err}
 	}
-	executionIdentity, err := choiceExecutionIdentity(prepared, implementation)
+	choiceIdentity, err := choiceExecutionIdentity(prepared, choiceImplementation)
 	if err != nil {
-		return &HostError{Reason: "choice_frontier_setup", Err: err}
+		return &HostError{Reason: "combined_frontier_setup", Err: err}
 	}
-	frontierConfig := frontier.Config{
-		Execution: executionIdentity, ControllerSHA256: frontier.ImplementationSHA256(), BaseSeed: baseSeed, Parallel: config.Parallel,
-		MaxRuns: config.MaxRuns, MaxChoiceDepth: config.MaxChoiceDepth, MaxFrontierBytes: config.MaxFrontierBytes,
-		FailurePolicy: frontier.FailurePolicy(config.OnFailure), FailureBudget: config.FailureBudget,
-	}
-	state, err := frontier.New(frontierConfig)
+	executionSHA256, err := combinedFrontierExecutionIdentity(config, prepared, profile, choiceImplementation)
 	if err != nil {
-		return &HostError{Reason: "choice_frontier_setup", Err: err}
+		return &HostError{Reason: "combined_frontier_setup", Err: err}
 	}
-	segmentBytes, err := frontierSegmentCapacity(config)
+	failureBudget := config.FailureBudget
+	if config.OnFailure == PolicyAll {
+		failureBudget = config.MaxRuns
+	}
+	frontierConfig := combinedfrontier.Config{
+		ExecutionSHA256: executionSHA256, ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: baseSeed,
+		Parallel: config.Parallel, MaxRuns: config.MaxRuns, MaxForcedDecisions: config.MaxForcedDecisions,
+		MaxFrontierBytes: config.MaxFrontierBytes, MaxResultBytes: config.MaxExplorationResultBytes,
+		FailureBudget: failureBudget, Limits: config.CombinedDimensionLimits,
+	}
+	state, err := combinedfrontier.New(frontierConfig)
 	if err != nil {
-		return &HostError{Reason: "choice_frontier_setup", Err: err}
+		return &HostError{Reason: "combined_frontier_setup", Err: err}
 	}
-	var frontierJournal *campaignstore.FrontierJournal
+	segmentBytes, err := combinedFrontierSegmentCapacity(config)
+	if err != nil {
+		return &HostError{Reason: "combined_frontier_setup", Err: err}
+	}
+	var frontierJournal *campaignstore.CombinedFrontierJournal
 	if resuming {
 		var recovery uint64
-		frontierJournal, state, recovery, err = campaignstore.ResumeFrontierJournal(ctx, journal.Path(), frontierConfig, segmentBytes)
+		frontierJournal, state, recovery, err = campaignstore.ResumeCombinedFrontierJournal(ctx, journal.Path(), frontierConfig, segmentBytes)
 		if err != nil {
 			return &HostError{Reason: "resume_setup", Err: err}
 		}
@@ -82,13 +95,13 @@ func runChoiceFrontierLocal(
 		*summary = restored.summary
 		summary.RecoveryExecutions = recoveryExecutions
 	} else {
-		frontierJournal, err = campaignstore.NewFrontierJournal(ctx, journal.Path(), state, segmentBytes)
+		frontierJournal, err = campaignstore.NewCombinedFrontierJournal(ctx, journal.Path(), state, segmentBytes)
 		if err != nil {
-			return &HostError{Reason: "choice_frontier_setup", Err: err}
+			return &HostError{Reason: "combined_frontier_setup", Err: err}
 		}
 	}
-	frontierSummary := state.Summary()
-	summary.Frontier = &frontierSummary
+	combinedSummary := state.Summary()
+	summary.CombinedFrontier = &combinedSummary
 
 	distinct := make(map[evidence.SHA256]string)
 	semanticProbes := make(map[string]struct{})
@@ -114,9 +127,9 @@ func runChoiceFrontierLocal(
 		}
 		staged, err := frontierJournal.StageRound(round)
 		if err != nil {
-			return &HostError{Reason: "choice_frontier_stage", Err: err}
+			return &HostError{Reason: "combined_frontier_stage", Err: err}
 		}
-		completions, err := executeFrontierRound(ctx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, state, round, reportProgress)
+		completions, err := executeCombinedFrontierRound(ctx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, state, round, choiceIdentity, reportProgress)
 		if err != nil {
 			return err
 		}
@@ -124,25 +137,28 @@ func runChoiceFrontierLocal(
 		roundDistinct := cloneFailurePaths(distinct)
 		roundProbes := cloneStringSet(semanticProbes)
 		roundChoiceFeatures := cloneStringSet(choiceFeatures)
-		results := make([]frontier.Result, len(round.Candidates))
+		results := make([]combinedfrontier.Result, len(round.Candidates))
 		runs := make([]campaignstore.ExecutionRecord, len(round.Candidates))
 		for index, completion := range completions {
-			processed, err := processFrontierCompletion(ctx, config, prepared, baseEnvironment, readOnlyMounts, runID, journal.Path(), staged, state, round, index, completion, &roundSummary, roundDistinct, roundProbes, roundChoiceFeatures)
+			processed, err := processCombinedFrontierCompletion(
+				ctx, config, prepared, baseEnvironment, readOnlyMounts, runID, journal.Path(), staged,
+				state, round, index, completion, choiceIdentity, &roundSummary, roundDistinct, roundProbes, roundChoiceFeatures,
+			)
 			if err != nil {
 				return err
 			}
 			results[index] = processed.result
 			runs[index] = processed.run
 			if err := staged.RecordExecution(index, processed.run); err != nil {
-				return &HostError{Reason: "choice_frontier_stage", Err: err}
+				return &HostError{Reason: "combined_frontier_stage", Err: err}
 			}
 		}
-		next, segment, err := frontier.CommitRound(state, round, results)
+		next, segment, err := combinedfrontier.CommitRound(state, round, results)
 		if err != nil {
-			return &HostError{Reason: "choice_frontier_commit", Err: err}
+			return &HostError{Reason: "combined_frontier_commit", Err: err}
 		}
 		if err := frontierJournal.CommitRound(staged, segment); err != nil {
-			return &HostError{Reason: "choice_frontier_commit", Err: err}
+			return &HostError{Reason: "combined_frontier_commit", Err: err}
 		}
 		for _, run := range runs {
 			if err := journal.AppendExecution(run); err != nil {
@@ -154,9 +170,9 @@ func runChoiceFrontierLocal(
 		semanticProbes = roundProbes
 		choiceFeatures = roundChoiceFeatures
 		*summary = roundSummary
-		frontierSummary := state.Summary()
-		summary.Frontier = &frontierSummary
-		summary.StopReason = StopReason(frontierSummary.StopReason)
+		combinedSummary := state.Summary()
+		summary.CombinedFrontier = &combinedSummary
+		summary.StopReason = StopReason(combinedSummary.StopReason)
 		if err := reportProgress(ProgressRunning, 0); err != nil {
 			return &HostError{Reason: "progress_output", Err: err}
 		}
@@ -186,14 +202,15 @@ func runChoiceFrontierLocal(
 	for signature := range distinct {
 		failureSignatures = append(failureSignatures, signature)
 	}
-	frontierSummary = state.Summary()
-	summary.Frontier = &frontierSummary
-	summary.StopReason = StopReason(frontierSummary.StopReason)
+	combinedSummary = state.Summary()
+	summary.CombinedFrontier = &combinedSummary
+	summary.StopReason = StopReason(combinedSummary.StopReason)
 	if err := journal.Publish(campaignstore.CampaignSummary{
 		Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs,
 		Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
 		RetainedSuccessBytes: summary.RetainedSuccessBytes, StopReason: string(summary.StopReason), FailureSignatures: failureSignatures,
-		Frontier: &frontierSummary, FrontierImplementationSHA256: frontier.ImplementationSHA256(), FrontierChainSHA256: frontierJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
+		CombinedFrontier: &combinedSummary, CombinedFrontierImplementationSHA256: combinedfrontier.ImplementationSHA256(),
+		CombinedFrontierChainSHA256: frontierJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
 	}); err != nil {
 		return &HostError{Reason: "batch_publish", Err: err}
 	}
@@ -203,7 +220,7 @@ func runChoiceFrontierLocal(
 	return nil
 }
 
-func executeFrontierRound(
+func executeCombinedFrontierRound(
 	ctx context.Context,
 	config CampaignSpec,
 	executor Executor,
@@ -211,9 +228,10 @@ func executeFrontierRound(
 	baseEnvironment []evidence.Environment,
 	profile deterministicio.Spec,
 	readOnlyMounts []deterministicio.Mapping,
-	staged *campaignstore.FrontierRoundJournal,
-	state frontier.State,
-	round frontier.Round,
+	staged *campaignstore.CombinedFrontierRoundJournal,
+	state combinedfrontier.State,
+	round combinedfrontier.Round,
+	choiceIdentity choice.ExecutionIdentity,
 	reportProgress func(CampaignPhase, int) error,
 ) ([]runCompletion, error) {
 	roundCtx, cancel := context.WithCancel(ctx)
@@ -221,17 +239,15 @@ func executeFrontierRound(
 	completionChannel := make(chan runCompletion, len(round.Candidates))
 	startOrdinal := state.LogicalExecutions
 	for index, candidate := range round.Candidates {
-		var tape *choice.ReplayPlan
-		mode := choice.ModeRecord
-		if candidate.ForcedDepth != 0 {
-			prefix, err := candidate.PrefixReplayPlan(state.Config.Execution)
-			if err != nil {
-				return nil, &HostError{Reason: "choice_frontier_prefix", Err: err}
-			}
-			tape = &prefix
-			mode = choice.ModePrefix
+		candidateExecution, err := simulationexploration.ExecutionForCandidate(state.Config, candidate, choiceIdentity)
+		if err != nil {
+			return nil, &HostError{Reason: "combined_frontier_control", Err: err}
 		}
-		job := runJob{ordinal: startOrdinal + uint64(index), seed: state.Config.BaseSeed, choiceMode: mode, choiceReplayPlan: tape}
+		job := runJob{
+			ordinal: startOrdinal + uint64(index), seed: state.Config.BaseSeed,
+			choiceMode: candidateExecution.ChoiceMode, choiceReplayPlan: candidateExecution.ChoiceReplayPlan,
+			simulationPlan: string(candidateExecution.SimulationPlan), simulationRecordLimit: combinedExplorationRecordLimit, simulationRecordCount: 1,
+		}
 		readiness := newRunReadiness()
 		go runSeed(roundCtx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, job, readiness, completionChannel)
 		readiness.wait()
@@ -249,12 +265,12 @@ func executeFrontierRound(
 		case completion := <-completionChannel:
 			if completion.job.ordinal < startOrdinal || completion.job.ordinal >= startOrdinal+uint64(len(completions)) {
 				cancel()
-				return nil, &HostError{Reason: "choice_frontier_order", Err: errors.New("frontier completion ordinal is outside its round")}
+				return nil, &HostError{Reason: "combined_frontier_order", Err: errors.New("combined frontier completion ordinal is outside its round")}
 			}
 			index := int(completion.job.ordinal - startOrdinal)
 			if seen[index] {
 				cancel()
-				return nil, &HostError{Reason: "choice_frontier_order", Err: errors.New("frontier completion ordinal is duplicated")}
+				return nil, &HostError{Reason: "combined_frontier_order", Err: errors.New("combined frontier completion ordinal is duplicated")}
 			}
 			completions[index] = completion
 			seen[index] = true
@@ -276,13 +292,13 @@ func executeFrontierRound(
 			return nil, &HostError{Reason: supervisionFailureReason(completion.err), Err: completion.err}
 		}
 		if completion.result.Cancelled {
-			return nil, &HostError{Reason: "runner_cancelled", Err: errors.New("choice-frontier candidate was cancelled")}
+			return nil, &HostError{Reason: "runner_cancelled", Err: errors.New("combined frontier candidate was cancelled")}
 		}
 	}
 	return completions, nil
 }
 
-func processFrontierCompletion(
+func processCombinedFrontierCompletion(
 	ctx context.Context,
 	config CampaignSpec,
 	prepared target.Prepared,
@@ -290,21 +306,22 @@ func processFrontierCompletion(
 	readOnlyMounts []deterministicio.Mapping,
 	runID string,
 	batchPath string,
-	staged *campaignstore.FrontierRoundJournal,
-	state frontier.State,
-	round frontier.Round,
+	staged *campaignstore.CombinedFrontierRoundJournal,
+	state combinedfrontier.State,
+	round combinedfrontier.Round,
 	index int,
 	completion runCompletion,
+	choiceIdentity choice.ExecutionIdentity,
 	summary *CampaignResult,
 	distinct map[evidence.SHA256]string,
 	semanticProbes map[string]struct{},
 	choiceFeatures map[string]struct{},
-) (frontierRoundResult, error) {
+) (combinedFrontierRoundResult, error) {
 	if err := ctx.Err(); err != nil {
-		return frontierRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
 	if err := prepared.Verify(); err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]
 	worldBundle := noneWorldBundle()
@@ -322,17 +339,17 @@ func processFrontierCompletion(
 			}
 		}
 		if err != nil {
-			return frontierRoundResult{}, &HostError{Reason: "world_record", Err: err}
+			return combinedFrontierRoundResult{}, &HostError{Reason: "world_record", Err: err}
 		}
 	}
 	runCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
 	if err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
 	}
 	if coverageHasSemantic(config.Coverage) {
 		runCoverage, err = deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
 		if err != nil {
-			return frontierRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+			return combinedFrontierRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
 		}
 	}
 	runChoiceFeatures := []string{}
@@ -340,35 +357,42 @@ func processFrontierCompletion(
 	if coverageHasChoice(config.Coverage) {
 		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
 		if err != nil {
-			return frontierRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
+			return combinedFrontierRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
 		}
 		runChoiceProjection = &projection
 		runChoiceFeatures = features
 	}
 	outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
 	if outcome.Domain == "runner" {
-		return frontierRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("choice-frontier controller result is not expandable")}
+		return combinedFrontierRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("combined-frontier controller result is not expandable")}
 	}
-	tape, err := choice.ProjectReplayPlan(completion.result.ChoiceTrace.Trace, state.Config.Execution)
+	tape, err := choice.ProjectReplayPlan(completion.result.ChoiceTrace.Trace, choiceIdentity)
 	if err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "choice_trace_malformed", Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: "choice_trace_malformed", Err: err}
 	}
 	completion.result.ChoiceTrace.TapeSHA256 = tape.SHA256
 	completion.result.ChoiceTrace.Decisions = uint64(len(tape.Decisions))
 	summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
+	runtimeDecisions, err := simulationexploration.RuntimeDecisions(tape)
+	if err != nil {
+		return combinedFrontierRoundResult{}, &HostError{Reason: "combined_frontier_runtime", Err: err}
+	}
+	if len(completion.result.SimulationRecords) != 1 {
+		return combinedFrontierRoundResult{}, &HostError{Reason: "combined_frontier_record", Err: fmt.Errorf("simulation exploration records = %d, want 1", len(completion.result.SimulationRecords))}
+	}
+	frontierResult, err := simulationexploration.ResultForRecord(state.Config, candidate, completion.result.SimulationRecords[0], runtimeDecisions)
+	if err != nil {
+		return combinedFrontierRoundResult{}, &HostError{Reason: "combined_frontier_record", Err: err}
+	}
 	mountArtifact, err := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 	if err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
-	}
-	outcomeSHA256, err := frontierOutcomeSHA256(outcome, completion.result, worldBundle.Manifest)
-	if err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "choice_frontier_outcome", Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
 	}
 	roundValue := evidence.Uint64String(round.Index)
-	depthValue := evidence.Uint64String(candidate.ForcedDepth)
+	depthValue := evidence.Uint64String(len(candidate.Overrides))
 	run := campaignstore.ExecutionRecord{
-		Strategy: string(StrategyChoiceFrontier), Round: &roundValue, CandidateSHA256: candidate.SHA256,
-		ParentCandidateSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: &depthValue, OutcomeSHA256: outcomeSHA256,
+		Strategy: string(StrategyCombinedFrontier), Round: &roundValue, CandidateSHA256: candidate.SHA256,
+		ParentCandidateSHA256: candidate.ParentSHA256, ForcedDepth: &depthValue, OutcomeSHA256: frontierResult.OutcomeSHA256,
 		SelectionOrdinal: evidence.Uint64String(completion.job.ordinal), Seed: evidence.Uint64String(completion.job.seed),
 		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
 		ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
@@ -380,26 +404,25 @@ func processFrontierCompletion(
 
 	if config.CollectRunEvidence {
 		runRecord := runEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
-		runRecord.Frontier = &FrontierRunEvidence{
-			ImplementationSHA256: frontier.ImplementationSHA256(), Round: evidence.Uint64String(round.Index), CandidateSHA256: candidate.SHA256,
-			ParentSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: evidence.Uint64String(candidate.ForcedDepth), OutcomeSHA256: outcomeSHA256,
-		}
 		summary.ExecutionEvidence = &runRecord
 	}
 	if outcome.Domain == "success" {
+		if frontierResult.Failed {
+			return combinedFrontierRoundResult{}, &HostError{Reason: "combined_frontier_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
+		}
 		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
 		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
 		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
 		if retain {
 			if !completion.result.IOTranscript.Complete {
-				return frontierRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+				return combinedFrontierRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
 			}
 			if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
-				return frontierRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-run retention capacity is exhausted")}
+				return combinedFrontierRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-run retention capacity is exhausted")}
 			}
 			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 			if err != nil {
-				return frontierRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
+				return combinedFrontierRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
 			}
 			published, err := campaignstore.PublishArtifact(evidence.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, campaignstore.ArtifactInput{
 				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
@@ -411,11 +434,11 @@ func processFrontierCompletion(
 				if errors.As(err, &capacity) {
 					reason = "success_retention_capacity"
 				}
-				return frontierRoundResult{}, &HostError{Reason: reason, Err: err}
+				return combinedFrontierRoundResult{}, &HostError{Reason: reason, Err: err}
 			}
-			finalPath, relative, err := frontierPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
+			finalPath, relative, err := combinedFrontierPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
 			if err != nil {
-				return frontierRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+				return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
 			}
 			bytes := evidence.Uint64String(published.StoredBytes)
 			run.SuccessArtifact = &relative
@@ -432,38 +455,38 @@ func processFrontierCompletion(
 	} else {
 		manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 		if err != nil {
-			return frontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
+			return combinedFrontierRoundResult{}, &HostError{Reason: "manifest", Err: err}
 		}
 		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, campaignstore.ArtifactInput{
 			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
 			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		})
 		if err != nil {
-			return frontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
+			return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
 		}
 		signature := published.Manifest.Outcome.FailureSignature
 		artifactPath, found := distinct[signature]
 		if !found {
-			artifactPath, _, err = frontierPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
+			artifactPath, _, err = combinedFrontierPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
 			if err != nil {
-				return frontierRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+				return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
 			}
 			distinct[signature] = artifactPath
 			summary.Artifacts = append(summary.Artifacts, artifactPath)
 		} else {
-			currentRound := filepath.Join(batchPath, "frontier", "rounds", fmt.Sprintf("%020d", round.Index)) + string(filepath.Separator)
+			currentRound := filepath.Join(batchPath, "combined-frontier", "rounds", fmt.Sprintf("%020d", round.Index)) + string(filepath.Separator)
 			if !strings.HasPrefix(artifactPath, currentRound) {
 				if err := os.RemoveAll(published.Path); err != nil {
-					return frontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("remove duplicate staged failure: %w", err)}
+					return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("remove duplicate staged failure: %w", err)}
 				}
 				if err := syncFrontierDirectory(filepath.Dir(published.Path)); err != nil {
-					return frontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("sync duplicate failure removal: %w", err)}
+					return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("sync duplicate failure removal: %w", err)}
 				}
 			}
 		}
 		relative, err := filepath.Rel(batchPath, artifactPath)
 		if err != nil {
-			return frontierRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+			return combinedFrontierRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
 		}
 		relative = filepath.ToSlash(relative)
 		run.FailureSignature = &signature
@@ -472,8 +495,12 @@ func processFrontierCompletion(
 		if outcome.Domain == "watchdog" {
 			summary.Watchdogs++
 		}
-		if outcome.Reason == "world_replay_divergence" {
+		if outcome.Reason == "world_replay_divergence" || frontierResult.Diverged {
 			summary.ReplayDivergences++
+		}
+		frontierResult.Failed = true
+		if frontierResult.FailureSHA256 == "" {
+			frontierResult.FailureSHA256 = signature
 		}
 	}
 	summary.Attempted++
@@ -481,131 +508,63 @@ func processFrontierCompletion(
 	addSemanticProbes(semanticProbes, runCoverage.Probes)
 	addStrings(choiceFeatures, runChoiceFeatures)
 	if err := completion.journal.Transition(campaignstore.ExecutionClassified); err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: "partial_write", Err: err}
 	}
 	if err := completion.journal.Complete(); err != nil {
-		return frontierRoundResult{}, &HostError{Reason: "partial_cleanup", Err: err}
+		return combinedFrontierRoundResult{}, &HostError{Reason: "partial_cleanup", Err: err}
 	}
-	failed := outcome.Domain == "target" || outcome.Domain == "watchdog"
-	frontierResult := frontier.Result{CandidateSHA256: candidate.SHA256, OutcomeSHA256: outcomeSHA256, Failed: failed, Trace: &tape}
-	if run.FailureSignature != nil {
-		frontierResult.FailureSHA256 = *run.FailureSignature
-	}
-	return frontierRoundResult{completion: completion, result: frontierResult, run: run}, nil
+	return combinedFrontierRoundResult{result: frontierResult, run: run}, nil
 }
 
-func reconcileFrontierExecutions(journal *campaignstore.CampaignJournal, projected, committed []campaignstore.ExecutionRecord) error {
-	if len(projected) > len(committed) {
-		return errors.New("frontier run projection exceeds committed rounds")
+func combinedFrontierExecutionIdentity(config CampaignSpec, prepared target.Prepared, profile deterministicio.Spec, choiceImplementation [32]byte) (evidence.SHA256, error) {
+	encoded, err := evidence.CanonicalJSON(struct {
+		TargetSHA256         evidence.SHA256          `json:"target_sha256"`
+		ToolchainBuildKey    string                   `json:"toolchain_build_key"`
+		GOOS                 string                   `json:"goos"`
+		GOARCH               string                   `json:"goarch"`
+		ChoiceImplementation evidence.SHA256          `json:"choice_implementation_sha256"`
+		IOProfile            deterministicio.Contract `json:"io_profile"`
+		RunnerBuild          string                   `json:"runner_build"`
+	}{
+		TargetSHA256: evidence.SHA256(prepared.SHA256), ToolchainBuildKey: prepared.BuildKey,
+		GOOS: prepared.TargetGOOS, GOARCH: prepared.TargetGOARCH, ChoiceImplementation: evidence.SHA256FromSum(choiceImplementation),
+		IOProfile: profile.Identity(), RunnerBuild: config.RunnerBuild,
+	})
+	if err != nil {
+		return "", err
 	}
-	for index := range projected {
-		left, err := evidence.CanonicalJSON(projected[index])
-		if err != nil {
-			return err
-		}
-		right, err := evidence.CanonicalJSON(committed[index])
-		if err != nil {
-			return err
-		}
-		if string(left) != string(right) {
-			return fmt.Errorf("frontier run projection diverges at ordinal %d", index)
-		}
-	}
-	for _, run := range committed[len(projected):] {
-		if err := journal.AppendExecution(run); err != nil {
-			return fmt.Errorf("restore committed frontier run projection: %w", err)
-		}
-	}
-	return nil
+	return evidence.DomainHash("gomadv3-simulation-exploration-execution/v1", encoded), nil
 }
 
-func frontierSegmentCapacity(config CampaignSpec) (uint64, error) {
+func combinedFrontierSegmentCapacity(config CampaignSpec) (uint64, error) {
 	const maximum = uint64(1 << 30)
 	const overhead = uint64(4 << 20)
 	if config.MaxFrontierBytes > maximum-overhead {
-		return 0, errors.New("choice-frontier round evidence exceeds the 1 GiB journal bound")
+		return 0, errors.New("combined-frontier round evidence exceeds the 1 GiB journal bound")
 	}
 	runsPerRound := uint64(config.Parallel)
 	if runsPerRound > config.MaxRuns {
 		runsPerRound = config.MaxRuns
 	}
-	if runsPerRound == 0 || config.ChoiceTraceLimit > (maximum-config.MaxFrontierBytes)/(runsPerRound) {
-		return 0, errors.New("choice-frontier round evidence exceeds the 1 GiB journal bound")
+	if runsPerRound == 0 || config.MaxExplorationResultBytes > (maximum-config.MaxFrontierBytes)/runsPerRound {
+		return 0, errors.New("combined-frontier round evidence exceeds the 1 GiB journal bound")
 	}
-	required := config.MaxFrontierBytes + runsPerRound*config.ChoiceTraceLimit
+	required := config.MaxFrontierBytes + runsPerRound*config.MaxExplorationResultBytes
 	if required > maximum-overhead {
-		return 0, errors.New("choice-frontier round evidence exceeds the 1 GiB journal bound")
+		return 0, errors.New("combined-frontier round evidence exceeds the 1 GiB journal bound")
 	}
 	return required + overhead, nil
 }
 
-func frontierPublishedPath(batchPath string, round uint64, stagedPath, publishedPath string) (string, string, error) {
+func combinedFrontierPublishedPath(batchPath string, round uint64, stagedPath, publishedPath string) (string, string, error) {
 	withinRound, err := filepath.Rel(stagedPath, publishedPath)
 	if err != nil || withinRound == ".." || len(withinRound) >= 3 && withinRound[:3] == ".."+string(filepath.Separator) {
-		return "", "", errors.Join(errors.New("frontier artifact escaped its staged round"), err)
+		return "", "", errors.Join(errors.New("combined frontier artifact escaped its staged round"), err)
 	}
-	finalPath := filepath.Join(batchPath, "frontier", "rounds", fmt.Sprintf("%020d", round), withinRound)
+	finalPath := filepath.Join(batchPath, "combined-frontier", "rounds", fmt.Sprintf("%020d", round), withinRound)
 	relative, err := filepath.Rel(batchPath, finalPath)
 	if err != nil {
 		return "", "", err
 	}
 	return finalPath, filepath.ToSlash(relative), nil
-}
-
-func frontierOutcomeSHA256(outcome execution.Classification, result execution.Result, worldRecord evidence.World) (evidence.SHA256, error) {
-	projection := struct {
-		Domain             string                 `json:"domain"`
-		Reason             string                 `json:"reason"`
-		Termination        string                 `json:"termination"`
-		ExitCode           *evidence.Uint64String `json:"exit_code,omitempty"`
-		Signal             *string                `json:"signal,omitempty"`
-		StdoutSHA256       evidence.SHA256        `json:"stdout_sha256"`
-		StderrSHA256       evidence.SHA256        `json:"stderr_sha256"`
-		IOTranscriptSHA256 evidence.SHA256        `json:"io_transcript_sha256"`
-		WorldTerminal      evidence.WorldTerminal `json:"world_terminal"`
-		WorldFinal         evidence.SHA256        `json:"world_final"`
-	}{
-		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
-		ExitCode: outcome.ExitCode, Signal: outcome.Signal,
-		StdoutSHA256: evidence.SHA256FromSum(result.Stdout.FullSHA256), StderrSHA256: evidence.SHA256FromSum(result.Stderr.FullSHA256),
-		IOTranscriptSHA256: evidence.SHA256FromSum(result.IOTranscript.SHA256), WorldTerminal: worldRecord.Terminal, WorldFinal: worldRecord.Final.SemanticDigest,
-	}
-	encoded, err := evidence.CanonicalJSON(projection)
-	if err != nil {
-		return "", err
-	}
-	return evidence.DomainHash("gomadv3-choice-frontier-outcome/v1", encoded), nil
-}
-
-func cloneSummary(summary CampaignResult) CampaignResult {
-	summary.Artifacts = append([]string(nil), summary.Artifacts...)
-	summary.SuccessArtifacts = append([]string(nil), summary.SuccessArtifacts...)
-	summary.ChoiceTrace = cloneChoiceTraceSummary(summary.ChoiceTrace)
-	summary.Frontier = cloneFrontierSummary(summary.Frontier)
-	summary.CombinedFrontier = cloneCombinedFrontierSummary(summary.CombinedFrontier)
-	return summary
-}
-
-func cloneFailurePaths(values map[evidence.SHA256]string) map[evidence.SHA256]string {
-	result := make(map[evidence.SHA256]string, len(values))
-	for key, value := range values {
-		result[key] = value
-	}
-	return result
-}
-
-func cloneStringSet(values map[string]struct{}) map[string]struct{} {
-	result := make(map[string]struct{}, len(values))
-	for value := range values {
-		result[value] = struct{}{}
-	}
-	return result
-}
-
-func syncFrontierDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
 }

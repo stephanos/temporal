@@ -52,7 +52,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 		}
 	}
 	plan := preflight.Plan
-	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema {
+	if plan.Schema == CampaignPlanSchema || plan.Schema == PreviousCampaignPlanSchema || plan.Schema == PriorCampaignPlanSchema {
 		return resumeSegmentedCampaignJournal(ctx, path, plan, lock)
 	}
 	runsPath := filepath.Join(path, "runs.jsonl")

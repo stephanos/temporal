@@ -97,7 +97,8 @@ func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) 
 		ResumeBatch: request.ResumeBatch, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
 		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
-		MaxRuns: uint64(plan.MaxRuns), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxFrontierBytes: uint64(plan.MaxFrontierBytes),
+		MaxRuns: uint64(plan.MaxRuns), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxForcedDecisions: uint64(plan.MaxForcedDecisions),
+		MaxFrontierBytes: uint64(plan.MaxFrontierBytes), MaxExplorationResultBytes: uint64(plan.MaxExplorationResultBytes), CombinedDimensionLimits: plan.CombinedDimensionLimits,
 		Artifacts: filepath.Dir(filepath.Dir(request.ResumeBatch)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
@@ -155,7 +156,7 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		seed, ok := selection.SeedAt(ordinal)
-		if run.Strategy == string(StrategyChoiceFrontier) {
+		if run.Strategy == string(StrategyChoiceFrontier) || run.Strategy == string(StrategyCombinedFrontier) {
 			seed, ok = selection.SeedAt(0)
 		}
 		if !ok || seed != uint64(run.Seed) {

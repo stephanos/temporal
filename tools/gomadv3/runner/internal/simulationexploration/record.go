@@ -7,12 +7,81 @@ import (
 	"fmt"
 	"slices"
 
+	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 )
 
 const recordSchema = "gomadv3.cluster-record/v7"
 const maximumRecordBytes = 128 << 20
+
+func RuntimeDecisions(tape choice.ReplayPlan) ([]combinedfrontier.Decision, error) {
+	validated, err := choice.ValidateReplayPlan(tape, tape.Identity)
+	if err != nil {
+		return nil, fmt.Errorf("validate runtime choice tape: %w", err)
+	}
+	decisions := make([]combinedfrontier.Decision, 0, len(validated.Decisions))
+	for _, runtimeDecision := range validated.Decisions {
+		if runtimeDecision.Alternatives < 2 {
+			continue
+		}
+		site, alternatives, err := runtimeDecisionIdentities(runtimeDecision)
+		if err != nil {
+			return nil, err
+		}
+		controls := make([][]byte, runtimeDecision.Alternatives)
+		for rank := range controls {
+			if uint32(rank) == runtimeDecision.Selected {
+				continue
+			}
+			prefix, err := choice.BuildRankPrefix(validated, runtimeDecision.Ordinal, uint32(rank))
+			if err != nil {
+				return nil, fmt.Errorf("build runtime choice control %d rank %d: %w", runtimeDecision.Ordinal, rank, err)
+			}
+			controls[rank] = append([]byte(nil), prefix.Bytes...)
+		}
+		decision, err := combinedfrontier.CanonicalControlledDecision(
+			combinedfrontier.DimensionRuntime, runtimeDecision.Ordinal, site, alternatives, controls, runtimeDecision.Selected,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("project runtime choice decision %d: %w", runtimeDecision.Ordinal, err)
+		}
+		decisions = append(decisions, decision)
+	}
+	return decisions, nil
+}
+
+func runtimeDecisionIdentities(runtimeDecision choice.Decision) (evidence.SHA256, []evidence.SHA256, error) {
+	siteProjection := struct {
+		Kind                 uint8                 `json:"kind"`
+		SiteOffset           evidence.Uint64String `json:"site_offset"`
+		SiteMissing          bool                  `json:"site_missing"`
+		Data                 uint32                `json:"data"`
+		Alternatives         uint32                `json:"alternatives"`
+		AlternativeSetSHA256 evidence.SHA256       `json:"alternative_set_sha256"`
+	}{
+		Kind: uint8(runtimeDecision.Kind), SiteOffset: evidence.Uint64String(runtimeDecision.SiteOffset),
+		SiteMissing: runtimeDecision.SiteMissing, Data: runtimeDecision.Data, Alternatives: runtimeDecision.Alternatives,
+		AlternativeSetSHA256: evidence.SHA256FromSum(runtimeDecision.AlternativeSetDigest),
+	}
+	encodedSite, err := evidence.CanonicalJSON(siteProjection)
+	if err != nil {
+		return "", nil, err
+	}
+	site := evidence.DomainHash("gomadv3-runtime-choice-site/v1", encodedSite)
+	alternatives := make([]evidence.SHA256, runtimeDecision.Alternatives)
+	for rank := range alternatives {
+		encodedAlternative, err := evidence.CanonicalJSON(struct {
+			SiteSHA256 evidence.SHA256 `json:"site_sha256"`
+			Rank       uint32          `json:"rank"`
+		}{SiteSHA256: site, Rank: uint32(rank)})
+		if err != nil {
+			return "", nil, err
+		}
+		alternatives[rank] = evidence.DomainHash("gomadv3-runtime-choice-alternative/v1", encodedAlternative)
+	}
+	return site, alternatives, nil
+}
 
 func ResultForRecord(config combinedfrontier.Config, candidate combinedfrontier.Candidate, record []byte, runtimeDecisions []combinedfrontier.Decision) (combinedfrontier.Result, error) {
 	if len(record) == 0 || len(record) > maximumRecordBytes {

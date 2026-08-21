@@ -27,6 +27,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
@@ -483,6 +484,47 @@ func TestValidateConfigRequiresBoundedSingleSeedChoiceFrontier(t *testing.T) {
 	}
 }
 
+func TestValidateConfigRequiresBoundedSingleSeedCombinedFrontier(t *testing.T) {
+	valid := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+	valid.Strategy = StrategyCombinedFrontier
+	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
+	valid.MaxRuns = 8
+	valid.MaxForcedDecisions = 4
+	valid.MaxFrontierBytes = 1 << 20
+	valid.MaxExplorationResultBytes = 1 << 20
+	valid.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4}
+	if _, _, err := validateConfig(valid); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, test := range []struct {
+		name      string
+		configure func(*CampaignSpec)
+		want      string
+	}{
+		{name: "multiple seeds", configure: func(config *CampaignSpec) { config.Seeds = "7-8" }, want: "exactly one base seed"},
+		{name: "guidance", configure: func(config *CampaignSpec) {
+			config.Guide = true
+			config.Corpus = t.TempDir()
+			config.Coverage = CoverageSemantic
+		}, want: "does not support guided exploration"},
+		{name: "missing choice trace", configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = 0 }, want: "requires an enabled choice trace"},
+		{name: "missing run bound", configure: func(config *CampaignSpec) { config.MaxRuns = 0 }, want: "max runs"},
+		{name: "missing forced-decision bound", configure: func(config *CampaignSpec) { config.MaxForcedDecisions = 0 }, want: "forced decisions"},
+		{name: "missing frontier bound", configure: func(config *CampaignSpec) { config.MaxFrontierBytes = 0 }, want: "frontier bytes"},
+		{name: "missing result bound", configure: func(config *CampaignSpec) { config.MaxExplorationResultBytes = 0 }, want: "result bytes"},
+		{name: "missing dimension bound", configure: func(config *CampaignSpec) { config.CombinedDimensionLimits.Network = 0 }, want: "network dimension"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := valid
+			test.configure(&config)
+			if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("validateConfig() error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
 func TestValidateConfigRejectsFrontierBoundsForSeedStrategy(t *testing.T) {
 	for _, configure := range []func(*CampaignSpec){
 		func(config *CampaignSpec) { config.MaxRuns = 1 },
@@ -875,6 +917,22 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	}
 }
 
+func TestSimulationCapabilityForJobCarriesDetachedExplorationPlanToInjectedExecutor(t *testing.T) {
+	plan := []byte(`{"schema":"gomadv3.simulation-exploration-plan/v1"}`)
+	job := runJob{simulationPlan: string(plan), simulationRecordLimit: 1 << 20, simulationRecordCount: 1}
+	capability, err := simulationCapabilityForJob(&fakeExecutor{}, job)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan[0] = '!'
+	if capability == nil || capability.Role != execution.SimulationRoleCoordinator || string(capability.ExplorationPlan) != `{"schema":"gomadv3.simulation-exploration-plan/v1"}` || capability.ExplorationRecordLimit != 1<<20 || capability.ExplorationRecordCount != 1 {
+		t.Fatalf("simulation exploration capability = %#v", capability)
+	}
+	if _, err := simulationCapabilityForJob(&fakeExecutor{}, runJob{simulationPlan: "plan"}); err == nil {
+		t.Fatal("simulationCapabilityForJob() accepted missing record bounds")
+	}
+}
+
 func TestRunChoiceFrontierExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -912,6 +970,41 @@ func TestRunChoiceFrontierExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	}
 	if _, err := campaignstore.OpenCampaign(summary.CampaignPath); err == nil {
 		t.Fatal("OpenBatch() accepted a corrupt frontier segment")
+	}
+}
+
+func TestRunCombinedFrontierExecutesRootAndEveryScenarioRank(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config.Strategy = StrategyCombinedFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 4
+	config.MaxForcedDecisions = 2
+	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationResultBytes = 1 << 20
+	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopFrontierExhausted || summary.CombinedFrontier == nil || summary.CombinedFrontier.CommittedRounds != 2 || summary.CombinedFrontier.SeenCandidates != 2 {
+		t.Fatalf("combined frontier summary = %#v", summary)
+	}
+	executor.mu.Lock()
+	requests := append([]execution.Spec(nil), executor.requests...)
+	executor.mu.Unlock()
+	if len(requests) != 2 || requests[0].Simulation == nil || len(requests[0].Simulation.ExplorationPlan) == 0 || requests[1].Simulation == nil || len(requests[1].Simulation.ExplorationPlan) == 0 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModeRecord {
+		t.Fatalf("combined frontier requests = %#v", requests)
+	}
+	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Record.Strategy != string(StrategyCombinedFrontier) || batch.Record.CombinedFrontier == nil || len(batch.Runs) != 2 || batch.Runs[1].ParentCandidateSHA256 == "" || batch.Runs[1].ForcedDepth == nil || *batch.Runs[1].ForcedDepth != 1 {
+		t.Fatalf("combined frontier batch = %#v", batch)
 	}
 }
 
@@ -1833,6 +1926,14 @@ type frontierExecutor struct {
 	requests []execution.Spec
 }
 
+type combinedFrontierExecutor struct {
+	t        *testing.T
+	buildKey string
+	limit    uint64
+	mu       sync.Mutex
+	requests []execution.Spec
+}
+
 type frontierInterruptExecutor struct {
 	frontier *frontierExecutor
 }
@@ -1856,6 +1957,59 @@ func (executor *frontierExecutor) Run(_ context.Context, request execution.Spec)
 	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{{
 		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2, Selected: selected,
 	}})
+	return result, nil
+}
+
+func (executor *combinedFrontierExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+	executor.mu.Lock()
+	executor.requests = append(executor.requests, request)
+	executor.mu.Unlock()
+	if request.Simulation == nil || len(request.Simulation.ExplorationPlan) == 0 {
+		return execution.Result{}, errors.New("combined frontier simulation plan is unavailable")
+	}
+	var plan struct {
+		BaseSeed  uint64 `json:"base_seed"`
+		Overrides []struct {
+			Dimension combinedfrontier.Dimension `json:"dimension"`
+			Selected  uint32                     `json:"selected"`
+		} `json:"overrides"`
+	}
+	if err := json.Unmarshal(request.Simulation.ExplorationPlan, &plan); err != nil {
+		return execution.Result{}, err
+	}
+	selected := uint32(0)
+	for _, override := range plan.Overrides {
+		if override.Dimension == combinedfrontier.DimensionScenario {
+			selected = override.Selected
+		}
+	}
+	decision, err := combinedfrontier.CanonicalDecision(
+		combinedfrontier.DimensionScenario, 0, evidence.HashBytes([]byte("route")),
+		[]evidence.SHA256{evidence.HashBytes([]byte("alpha")), evidence.HashBytes([]byte("beta"))}, selected,
+	)
+	if err != nil {
+		return execution.Result{}, err
+	}
+	record, err := json.Marshal(struct {
+		Schema               string                      `json:"schema"`
+		Seed                 uint64                      `json:"seed"`
+		SpecSHA256           evidence.SHA256             `json:"spec_sha256"`
+		Outcome              string                      `json:"outcome"`
+		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
+		ExplorationDecisions []combinedfrontier.Decision `json:"exploration_decisions"`
+		ScenarioTape         []string                    `json:"scenario_tape"`
+		Identity             evidence.SHA256             `json:"identity"`
+	}{
+		Schema: "gomadv3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: evidence.HashBytes([]byte("spec")), Outcome: "completed",
+		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []combinedfrontier.Decision{decision},
+		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: evidence.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
+	})
+	if err != nil {
+		return execution.Result{}, err
+	}
+	result := processResult(0, "", "")
+	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, nil)
+	result.SimulationRecords = [][]byte{record}
 	return result, nil
 }
 

@@ -14,6 +14,7 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/frontier"
 )
 
@@ -31,20 +32,23 @@ type CampaignConfig struct {
 }
 
 type CampaignSummary struct {
-	Attempted                    uint64
-	Succeeded                    uint64
-	Failures                     uint64
-	Watchdogs                    uint64
-	Cancelled                    uint64
-	DistinctFailures             uint64
-	RetainedSuccesses            uint64
-	RetainedSuccessBytes         uint64
-	StopReason                   string
-	FailureSignatures            []evidence.SHA256
-	Frontier                     *frontier.Summary
-	FrontierImplementationSHA256 evidence.SHA256
-	FrontierChainSHA256          evidence.SHA256
-	RecoveryExecutions           uint64
+	Attempted                            uint64
+	Succeeded                            uint64
+	Failures                             uint64
+	Watchdogs                            uint64
+	Cancelled                            uint64
+	DistinctFailures                     uint64
+	RetainedSuccesses                    uint64
+	RetainedSuccessBytes                 uint64
+	StopReason                           string
+	FailureSignatures                    []evidence.SHA256
+	Frontier                             *frontier.Summary
+	FrontierImplementationSHA256         evidence.SHA256
+	FrontierChainSHA256                  evidence.SHA256
+	CombinedFrontier                     *combinedfrontier.Summary
+	CombinedFrontierImplementationSHA256 evidence.SHA256
+	CombinedFrontierChainSHA256          evidence.SHA256
+	RecoveryExecutions                   uint64
 }
 
 type ExecutionRecord struct {
@@ -117,31 +121,34 @@ type ExecutionJournal struct {
 }
 
 type CampaignRecord struct {
-	SchemaVersion                uint32                `json:"schema_version"`
-	Schema                       string                `json:"schema"`
-	CampaignID                   string                `json:"run_id"`
-	PlanSHA256                   evidence.SHA256       `json:"plan_sha256,omitempty"`
-	Shard                        *CampaignShard        `json:"shard,omitempty"`
-	Strategy                     string                `json:"strategy,omitempty"`
-	Selection                    string                `json:"selection"`
-	SelectionCount               evidence.Uint64String `json:"selection_count"`
-	Attempted                    evidence.Uint64String `json:"attempted"`
-	Succeeded                    evidence.Uint64String `json:"succeeded"`
-	Failures                     evidence.Uint64String `json:"failures"`
-	Watchdogs                    evidence.Uint64String `json:"watchdogs"`
-	Cancelled                    evidence.Uint64String `json:"cancelled"`
-	DistinctFailures             evidence.Uint64String `json:"distinct_failures"`
-	RetainedSuccesses            evidence.Uint64String `json:"retained_successes,omitempty"`
-	RetainedSuccessBytes         evidence.Uint64String `json:"retained_success_bytes,omitempty"`
-	StopReason                   string                `json:"stop_reason"`
-	RunsSHA256                   evidence.SHA256       `json:"runs_sha256,omitempty"`
-	Journal                      *RunJournalReference  `json:"journal,omitempty"`
-	Artifacts                    *ArtifactCapacityPlan `json:"artifacts,omitempty"`
-	FailureSignatures            []evidence.SHA256     `json:"failure_signatures"`
-	Frontier                     *frontier.Summary     `json:"frontier,omitempty"`
-	FrontierImplementationSHA256 evidence.SHA256       `json:"frontier_implementation_sha256,omitempty"`
-	FrontierChainSHA256          evidence.SHA256       `json:"frontier_chain_sha256,omitempty"`
-	RecoveryExecutions           evidence.Uint64String `json:"recovery_executions,omitempty"`
+	SchemaVersion                        uint32                    `json:"schema_version"`
+	Schema                               string                    `json:"schema"`
+	CampaignID                           string                    `json:"run_id"`
+	PlanSHA256                           evidence.SHA256           `json:"plan_sha256,omitempty"`
+	Shard                                *CampaignShard            `json:"shard,omitempty"`
+	Strategy                             string                    `json:"strategy,omitempty"`
+	Selection                            string                    `json:"selection"`
+	SelectionCount                       evidence.Uint64String     `json:"selection_count"`
+	Attempted                            evidence.Uint64String     `json:"attempted"`
+	Succeeded                            evidence.Uint64String     `json:"succeeded"`
+	Failures                             evidence.Uint64String     `json:"failures"`
+	Watchdogs                            evidence.Uint64String     `json:"watchdogs"`
+	Cancelled                            evidence.Uint64String     `json:"cancelled"`
+	DistinctFailures                     evidence.Uint64String     `json:"distinct_failures"`
+	RetainedSuccesses                    evidence.Uint64String     `json:"retained_successes,omitempty"`
+	RetainedSuccessBytes                 evidence.Uint64String     `json:"retained_success_bytes,omitempty"`
+	StopReason                           string                    `json:"stop_reason"`
+	RunsSHA256                           evidence.SHA256           `json:"runs_sha256,omitempty"`
+	Journal                              *RunJournalReference      `json:"journal,omitempty"`
+	Artifacts                            *ArtifactCapacityPlan     `json:"artifacts,omitempty"`
+	FailureSignatures                    []evidence.SHA256         `json:"failure_signatures"`
+	Frontier                             *frontier.Summary         `json:"frontier,omitempty"`
+	FrontierImplementationSHA256         evidence.SHA256           `json:"frontier_implementation_sha256,omitempty"`
+	FrontierChainSHA256                  evidence.SHA256           `json:"frontier_chain_sha256,omitempty"`
+	CombinedFrontier                     *combinedfrontier.Summary `json:"combined_frontier,omitempty"`
+	CombinedFrontierImplementationSHA256 evidence.SHA256           `json:"combined_frontier_implementation_sha256,omitempty"`
+	CombinedFrontierChainSHA256          evidence.SHA256           `json:"combined_frontier_chain_sha256,omitempty"`
+	RecoveryExecutions                   evidence.Uint64String     `json:"recovery_executions,omitempty"`
 }
 
 func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *CampaignJournal, retErr error) {
@@ -151,7 +158,7 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 	if config.Strategy == "" {
 		config.Strategy = "seed"
 	}
-	if config.Strategy != "seed" && config.Strategy != "choice-frontier" {
+	if config.Strategy != "seed" && config.Strategy != "choice-frontier" && config.Strategy != "combined-frontier" {
 		return nil, errors.New("batch journal strategy is invalid")
 	}
 	if config.Root == "" || config.CampaignID == "" || config.Selection == "" || config.SelectionCount == 0 {
@@ -396,6 +403,9 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 	if journal.config.Shard != nil {
 		batchSchema = "gomadv3.batch/v4"
 	}
+	if journal.config.Strategy == "combined-frontier" {
+		batchSchema = "gomadv3.batch/v5"
+	}
 	batch := CampaignRecord{
 		SchemaVersion: evidence.SchemaVersion, Schema: batchSchema, CampaignID: journal.config.CampaignID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
 		PlanSHA256: journal.config.PlanSHA256, Shard: cloneCampaignShard(journal.config.Shard),
@@ -405,6 +415,7 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 		RetainedSuccesses: evidence.Uint64String(summary.RetainedSuccesses), RetainedSuccessBytes: evidence.Uint64String(summary.RetainedSuccessBytes),
 		RunsSHA256: runsSHA256, Journal: journalReference, Artifacts: journal.artifactPlan, FailureSignatures: failureSignatures,
 		Frontier: summary.Frontier, FrontierImplementationSHA256: summary.FrontierImplementationSHA256, FrontierChainSHA256: summary.FrontierChainSHA256, RecoveryExecutions: evidence.Uint64String(summary.RecoveryExecutions),
+		CombinedFrontier: summary.CombinedFrontier, CombinedFrontierImplementationSHA256: summary.CombinedFrontierImplementationSHA256, CombinedFrontierChainSHA256: summary.CombinedFrontierChainSHA256,
 	}
 	encoded, err := evidence.CanonicalJSON(batch)
 	if err != nil {

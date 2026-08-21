@@ -522,7 +522,7 @@ func (cluster *inProcessCluster) commitExplorationDecisionLocked(dimension Explo
 
 func (cluster *inProcessCluster) finishExplorationLocked() error {
 	if cluster.explorationPlan != nil {
-		for _, dimension := range []ExplorationDimension{ExplorationRuntime, ExplorationScenario, ExplorationNetwork, ExplorationStorage, ExplorationFault, ExplorationCrash} {
+		for _, dimension := range []ExplorationDimension{ExplorationScenario, ExplorationNetwork, ExplorationStorage, ExplorationFault, ExplorationCrash} {
 			if override, ok := cluster.nextExplorationOverrideLocked(dimension); ok {
 				return cluster.explorationDivergenceLocked(override, ExplorationDecision{})
 			}
