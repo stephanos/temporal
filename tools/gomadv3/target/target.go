@@ -35,6 +35,7 @@ type CapabilityMode string
 const (
 	CapabilityModeClosure CapabilityMode = "closure"
 	CapabilityModeLinked  CapabilityMode = "linked"
+	CapabilityModeGuarded CapabilityMode = "guarded"
 )
 
 const (
@@ -109,6 +110,7 @@ type CapabilityManifest struct {
 	Bytes                        uint64          `json:"bytes"`
 	Facts                        uint64          `json:"facts"`
 	ProducerImplementationSHA256 string          `json:"producer_implementation_sha256"`
+	GuardImplementationSHA256    string          `json:"guard_implementation_sha256"`
 	CapabilityUniverseSHA256     string          `json:"capability_universe_sha256"`
 	Payload                      []byte          `json:"-"`
 }
@@ -136,6 +138,7 @@ func (manifest CapabilityManifest) Record() *evidence.TargetCapabilityManifest {
 		Schema: manifest.Schema, File: "target-capabilities.json", SHA256: manifest.SHA256,
 		Bytes: evidence.Uint64String(manifest.Bytes), Facts: evidence.Uint64String(manifest.Facts),
 		ProducerImplementationSHA256: evidence.SHA256(manifest.ProducerImplementationSHA256),
+		GuardImplementationSHA256:    evidence.SHA256(manifest.GuardImplementationSHA256),
 		CapabilityUniverseSHA256:     evidence.SHA256(manifest.CapabilityUniverseSHA256),
 	}
 }
@@ -147,6 +150,7 @@ func CapabilityManifestFromRecord(manifest *evidence.TargetCapabilityManifest) *
 	return &CapabilityManifest{
 		Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: uint64(manifest.Bytes), Facts: uint64(manifest.Facts),
 		ProducerImplementationSHA256: string(manifest.ProducerImplementationSHA256),
+		GuardImplementationSHA256:    string(manifest.GuardImplementationSHA256),
 		CapabilityUniverseSHA256:     string(manifest.CapabilityUniverseSHA256),
 	}
 }
@@ -765,7 +769,7 @@ func normalizeCapabilityMode(mode CapabilityMode) (CapabilityMode, error) {
 		return CapabilityModeClosure, nil
 	}
 	switch mode {
-	case CapabilityModeClosure, CapabilityModeLinked:
+	case CapabilityModeClosure, CapabilityModeLinked, CapabilityModeGuarded:
 		return mode, nil
 	default:
 		return "", fmt.Errorf("unsupported capability mode %q", mode)

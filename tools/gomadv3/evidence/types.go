@@ -239,6 +239,7 @@ type TargetCapabilityManifest struct {
 	Bytes                        Uint64String `json:"bytes"`
 	Facts                        Uint64String `json:"facts"`
 	ProducerImplementationSHA256 SHA256       `json:"producer_implementation_sha256"`
+	GuardImplementationSHA256    SHA256       `json:"guard_implementation_sha256,omitempty"`
 	CapabilityUniverseSHA256     SHA256       `json:"capability_universe_sha256"`
 }
 

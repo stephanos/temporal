@@ -235,6 +235,21 @@ func TestTagged(t *testing.T) {
 	}
 }
 
+func TestNormalizeCapabilityModeUsesClosedVocabulary(t *testing.T) {
+	for _, want := range []CapabilityMode{CapabilityModeClosure, CapabilityModeLinked, CapabilityModeGuarded} {
+		got, err := normalizeCapabilityMode(want)
+		if err != nil {
+			t.Fatalf("normalizeCapabilityMode(%q): %v", want, err)
+		}
+		if got != want {
+			t.Fatalf("normalizeCapabilityMode(%q) = %q", want, got)
+		}
+	}
+	if _, err := normalizeCapabilityMode("auto"); err == nil {
+		t.Fatal("normalizeCapabilityMode() accepted an unknown mode")
+	}
+}
+
 func TestPrepareRejectsEscapeCapabilityClosure(t *testing.T) {
 	tests := map[string]struct {
 		kind  Kind

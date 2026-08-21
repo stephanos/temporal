@@ -247,6 +247,28 @@ func TestFinalizeManifestBindsCapabilityModeAndManifestSemantics(t *testing.T) {
 	}
 }
 
+func TestValidateCurrentTargetCapabilityRequiresGuardedManifest(t *testing.T) {
+	guarded := Target{CapabilityMode: "guarded"}
+	if err := ValidateCurrentTargetCapability(guarded); err == nil || !strings.Contains(err.Error(), "guarded target capability manifest identity is incomplete") {
+		t.Fatalf("ValidateCurrentTargetCapability(missing guarded manifest) error = %v", err)
+	}
+	guarded.CapabilityManifest = &TargetCapabilityManifest{
+		Schema: "gomadv3.live-capability-manifest/v1", File: "target-capabilities.json", SHA256: HashBytes([]byte("payload")),
+		Bytes: 7, Facts: 1, ProducerImplementationSHA256: HashBytes([]byte("producer")), CapabilityUniverseSHA256: HashBytes([]byte("universe")),
+	}
+	if err := ValidateCurrentTargetCapability(guarded); err == nil || !strings.Contains(err.Error(), "guarded target capability manifest identity is incomplete") {
+		t.Fatalf("ValidateCurrentTargetCapability(v1 guarded manifest) error = %v", err)
+	}
+	guarded.CapabilityManifest.Schema = "gomadv3.live-capability-manifest/v2"
+	if err := ValidateCurrentTargetCapability(guarded); err == nil || !strings.Contains(err.Error(), "guard implementation") {
+		t.Fatalf("ValidateCurrentTargetCapability(missing guard identity) error = %v", err)
+	}
+	guarded.CapabilityManifest.GuardImplementationSHA256 = HashBytes([]byte("guard"))
+	if err := ValidateCurrentTargetCapability(guarded); err != nil {
+		t.Fatalf("ValidateCurrentTargetCapability(guarded manifest): %v", err)
+	}
+}
+
 func TestIdentityProjectionsExcludeArtifactPaths(t *testing.T) {
 	first := manifestFixture()
 	second := manifestFixture()

@@ -2,18 +2,20 @@ diff --git a/src/cmd/compile/internal/gc/main.go b/src/cmd/compile/internal/gc/m
 index afa1650..ac74321 100644
 --- a/src/cmd/compile/internal/gc/main.go
 +++ b/src/cmd/compile/internal/gc/main.go
-@@ -13,6 +13,7 @@ import (
- 	"cmd/compile/internal/deadlocals"
- 	"cmd/compile/internal/dwarfgen"
- 	"cmd/compile/internal/escape"
+@@ -13,6 +13,8 @@ import (
+	"cmd/compile/internal/deadlocals"
+	"cmd/compile/internal/dwarfgen"
+	"cmd/compile/internal/escape"
++	"cmd/compile/internal/gomadguard"
 +	"cmd/compile/internal/gomadintercept"
  	"cmd/compile/internal/inline"
  	"cmd/compile/internal/inline/interleaved"
  	"cmd/compile/internal/ir"
-@@ -223,6 +224,7 @@ func Main(archInit func(*ssagen.ArchInfo)) {
- 		types.LocalPkg.Path = "main"
- 		types.LocalPkg.Prefix = "main"
- 	}
+@@ -223,6 +225,8 @@ func Main(archInit func(*ssagen.ArchInfo)) {
+		types.LocalPkg.Path = "main"
+		types.LocalPkg.Prefix = "main"
+	}
++	gomadguard.Apply(typecheck.Target)
 +	gomadintercept.Apply(typecheck.Target)
  
  	dwarfgen.RecordPackageName()

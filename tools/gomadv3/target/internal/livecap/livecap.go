@@ -88,6 +88,9 @@ func validateManifest(manifest Manifest, expected Expectation, factCount, payloa
 	if manifest.Schema != ManifestSchema || manifest.ProducerImplementationSHA256 != ProducerImplementationSHA256 || manifest.CapabilityUniverseSHA256 != CapabilityUniverseSHA256 {
 		return errors.New("live capability manifest implementation identity is invalid")
 	}
+	if manifest.GuardImplementationSHA256 != GuardImplementationSHA256 {
+		return errors.New("live capability guard implementation identity is invalid")
+	}
 	if manifest.GoVersion != expected.GoVersion || manifest.ToolchainBuildKey != expected.ToolchainBuildKey || manifest.GOOS != expected.GOOS || manifest.GOARCH != expected.GOARCH {
 		return errors.New("live capability manifest target identity does not match the prepared target")
 	}
@@ -145,6 +148,10 @@ func validateFact(fact Fact) error {
 	case FactKindForeign:
 		if fact.Disposition != "" || fact.OwnerSource == "" || !strings.HasPrefix(fact.Capability, "foreign:") {
 			return errors.New("foreign fact is invalid")
+		}
+	case FactKindGuard:
+		if fact.Disposition != DispositionGuarded || !strings.HasPrefix(fact.Capability, "import:") || fact.ReferencedSymbol == "" {
+			return errors.New("guard fact is invalid")
 		}
 	case FactKindLinkname:
 		if fact.Disposition != "" || fact.OwnerSource == "" || fact.ReferencedSymbol == "" {

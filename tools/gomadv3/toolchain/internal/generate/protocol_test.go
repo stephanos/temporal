@@ -66,7 +66,7 @@ func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if definition.Version != 1 || definition.Schema != "gomadv3.live-capability-manifest/v1" || definition.Symbol != "runtime.gomadCapabilities" {
+	if definition.Version != 2 || definition.Schema != "gomadv3.live-capability-manifest/v2" || definition.Symbol != "runtime.gomadCapabilities" || definition.GuardSymbol != "runtime.gomadCapabilityGuard" {
 		t.Fatalf("live capability identity = version %d schema %q symbol %q", definition.Version, definition.Schema, definition.Symbol)
 	}
 	if definition.Header.Magic != "GOMADCAPABILITY\x00" || definition.Header.Bytes != 112 {
@@ -75,11 +75,11 @@ func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 	if definition.Limits.PayloadBytes != 16<<20 || definition.Limits.Facts != 100_000 || definition.Limits.StringBytes != 4<<10 || definition.Limits.OwnerFacts != 4_096 {
 		t.Fatalf("live capability limits = %+v", definition.Limits)
 	}
-	wantKinds := []string{"boundary", "capability", "foreign", "linkname"}
+	wantKinds := []string{"boundary", "capability", "foreign", "guard", "linkname"}
 	if strings.Join(definition.FactKinds, ",") != strings.Join(wantKinds, ",") {
 		t.Fatalf("live capability fact kinds = %v, want %v", definition.FactKinds, wantKinds)
 	}
-	wantDispositions := []string{"denied", "modeled", "pack"}
+	wantDispositions := []string{"denied", "guarded", "modeled", "pack"}
 	if strings.Join(definition.Dispositions, ",") != strings.Join(wantDispositions, ",") {
 		t.Fatalf("live capability dispositions = %v, want %v", definition.Dispositions, wantDispositions)
 	}
@@ -119,7 +119,8 @@ func TestLiveCapabilityUniverseIdentityBindsBoundaryAndForbiddenVocabulary(t *te
 func TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs(t *testing.T) {
 	inputs := liveCapabilityImplementationInputs{
 		Schema: []byte("schema"), CodecTemplate: []byte("codec"), CompilerEmitter: []byte("compiler"), LinkerProjector: []byte("linker"),
-		Encoder: []byte("encoder"), InterceptionSource: []byte("interception"), BoundaryTable: []byte("boundary"), HostValidator: []byte("validator"), ProjectionContract: []byte("projection"),
+		Encoder: []byte("encoder"), GuardFlag: []byte("guard-flag"), GuardSource: []byte("guard-source"), RuntimeGuard: []byte("runtime-guard"),
+		InterceptionSource: []byte("interception"), BoundaryTable: []byte("boundary"), HostValidator: []byte("validator"), ProjectionContract: []byte("projection"),
 	}
 	want := liveCapabilityImplementationIdentity(inputs)
 	if want == ([32]byte{}) {
@@ -127,7 +128,7 @@ func TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs(t *
 	}
 	mutations := [][]byte{
 		inputs.Schema, inputs.CodecTemplate, inputs.CompilerEmitter, inputs.LinkerProjector, inputs.Encoder,
-		inputs.InterceptionSource, inputs.BoundaryTable, inputs.HostValidator, inputs.ProjectionContract,
+		inputs.GuardFlag, inputs.GuardSource, inputs.RuntimeGuard, inputs.InterceptionSource, inputs.BoundaryTable, inputs.HostValidator, inputs.ProjectionContract,
 	}
 	for index, original := range mutations {
 		changed := inputs
@@ -144,12 +145,18 @@ func TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs(t *
 		case 4:
 			changed.Encoder = value
 		case 5:
-			changed.InterceptionSource = value
+			changed.GuardFlag = value
 		case 6:
-			changed.BoundaryTable = value
+			changed.GuardSource = value
 		case 7:
-			changed.HostValidator = value
+			changed.RuntimeGuard = value
 		case 8:
+			changed.InterceptionSource = value
+		case 9:
+			changed.BoundaryTable = value
+		case 10:
+			changed.HostValidator = value
+		case 11:
 			changed.ProjectionContract = value
 		}
 		if got := liveCapabilityImplementationIdentity(changed); got == want {

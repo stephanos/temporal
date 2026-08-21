@@ -439,20 +439,43 @@ func validateTargetCapability(schemaVersion uint32, target Target) error {
 		}
 	case "linked":
 		manifest := target.CapabilityManifest
-		if manifest == nil || manifest.Schema != "gomadv3.live-capability-manifest/v1" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
+		if manifest == nil || manifest.Schema != "gomadv3.live-capability-manifest/v1" && manifest.Schema != "gomadv3.live-capability-manifest/v2" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
 			return errors.New("linked target capability manifest identity is incomplete")
 		}
-		if err := validateSHA256(manifest.SHA256); err != nil {
-			return fmt.Errorf("invalid target capability manifest hash: %w", err)
+		if manifest.Schema == "gomadv3.live-capability-manifest/v2" {
+			if err := validateSHA256(manifest.GuardImplementationSHA256); err != nil {
+				return fmt.Errorf("invalid target capability guard implementation hash: %w", err)
+			}
 		}
-		if err := validateSHA256(manifest.ProducerImplementationSHA256); err != nil {
-			return fmt.Errorf("invalid target capability producer hash: %w", err)
+		if err := validateTargetCapabilityManifest(*manifest); err != nil {
+			return err
 		}
-		if err := validateSHA256(manifest.CapabilityUniverseSHA256); err != nil {
-			return fmt.Errorf("invalid target capability universe hash: %w", err)
+	case "guarded":
+		manifest := target.CapabilityManifest
+		if manifest == nil || manifest.Schema != "gomadv3.live-capability-manifest/v2" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
+			return errors.New("guarded target capability manifest identity is incomplete")
+		}
+		if err := validateSHA256(manifest.GuardImplementationSHA256); err != nil {
+			return fmt.Errorf("invalid target capability guard implementation hash: %w", err)
+		}
+		if err := validateTargetCapabilityManifest(*manifest); err != nil {
+			return err
 		}
 	default:
 		return fmt.Errorf("unknown target capability mode %q", target.CapabilityMode)
+	}
+	return nil
+}
+
+func validateTargetCapabilityManifest(manifest TargetCapabilityManifest) error {
+	if err := validateSHA256(manifest.SHA256); err != nil {
+		return fmt.Errorf("invalid target capability manifest hash: %w", err)
+	}
+	if err := validateSHA256(manifest.ProducerImplementationSHA256); err != nil {
+		return fmt.Errorf("invalid target capability producer hash: %w", err)
+	}
+	if err := validateSHA256(manifest.CapabilityUniverseSHA256); err != nil {
+		return fmt.Errorf("invalid target capability universe hash: %w", err)
 	}
 	return nil
 }

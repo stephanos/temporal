@@ -47,7 +47,7 @@ func gomadCapabilityManifest(ctxt *Link) {
 			}
 			targetPackage := ldr.SymPkg(target)
 			targetSymbol := ldr.SymName(target)
-			facts = append(facts, gomadcap.RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol)...)
+			facts = append(facts, gomadcap.RelocationFacts(ownerPackage, ownerSymbol, targetPackage, targetSymbol, false)...)
 		}
 	}
 	record, err := gomadcap.Encode(gomadcap.Input{

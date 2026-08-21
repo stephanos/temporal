@@ -108,6 +108,13 @@ func gomadInit() {
 	randomizeScheduler = true
 }
 
+//go:noinline
+func gomadCapabilityGuard() {
+	if gomadEnabled {
+		throw("GOMAD_CAPABILITY_DENIED")
+	}
+}
+
 func gomadSimulationTimeInit() {
 	requestValue, requestPresent := gomadEnvEarly("GOMADV3_SIMULATION_TIME_REQUEST_FD=")
 	responseValue, responsePresent := gomadEnvEarly("GOMADV3_SIMULATION_TIME_RESPONSE_FD=")
