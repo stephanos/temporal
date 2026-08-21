@@ -26,7 +26,7 @@ func TestChasmTransition_RoutesNexusOperation(t *testing.T) {
 		chasmTransitionAttrs("*nexusoperation.Operation", "Operations/5", "req-abc", "OPERATION_STATUS_STARTED")))
 	require.True(t, f.IsNexusOperation())
 	require.Equal(t, "OPERATION_STATUS_STARTED", f.Destination)
-	require.Equal(t, telemetry.EventChasmTransition, f.Name())
+	require.Equal(t, "ChasmTransition", f.Name())
 
 	ident := f.TargetEntity()
 	require.NotNil(t, ident)

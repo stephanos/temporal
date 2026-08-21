@@ -1,12 +1,14 @@
 package protocol
 
 import (
+	"context"
 	"reflect"
 	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/umpire"
+	"go.temporal.io/server/tests/umpire2/internal/fact"
 	"go.temporal.io/server/tests/umpire2/internal/model"
 )
 
@@ -67,6 +69,7 @@ func TestDefaultMatchesModelStateFactSet(t *testing.T) {
 		"NexusOperationHistorySnapshot",
 		"NexusOperationStartedHistory",
 		"NexusOperationTerminal",
+		"ChasmTransition",
 		"ActivityExecutionSnapshot",
 		"NexusCallbackObservation",
 		"NexusStartResponse",
@@ -78,7 +81,6 @@ func TestDefaultMatchesModelStateFactSet(t *testing.T) {
 	}
 
 	require.ElementsMatch(t, want, got)
-	require.NotContains(t, got, "chasm.transition")
 }
 
 func TestDefaultReturnsFreshCompiledProtocols(t *testing.T) {
@@ -116,6 +118,26 @@ func TestDefaultEntitySubscriptionsBelongToFactSet(t *testing.T) {
 			require.Truef(t, found, "entity %s subscription %T is not registered", entityType, subscription)
 		}
 	}
+}
+
+func TestDefaultRuntimeAcceptsDecodedChasmTransitions(t *testing.T) {
+	compiled, err := Default()
+	require.NoError(t, err)
+	runtime, err := umpire.NewRuntime(compiled.RuntimeDeclaration(nil))
+	require.NoError(t, err)
+
+	observed := &fact.ChasmTransition{
+		Destination: "OPERATION_STATUS_SCHEDULED",
+		RequestID:   "request",
+		WorkflowID:  "workflow",
+		EntityPath: &umpire.EntityPath{
+			EntityID: umpire.NewEntityID(model.NexusOperationType, "workflow:request"),
+			Ancestors: []umpire.EntityID{
+				umpire.NewEntityID(model.WorkflowType, "workflow"),
+			},
+		},
+	}
+	require.NoError(t, runtime.Ingest(context.Background(), observed))
 }
 
 func TestDefaultClassifiesEveryActiveEdgeAndHosting(t *testing.T) {

@@ -56,6 +56,7 @@ func DefaultEntities() []DefaultEntity {
 				&fact.NexusOperationHistorySnapshot{},
 				&fact.NexusOperationStartedHistory{},
 				&fact.NexusOperationTerminal{},
+				&fact.ChasmTransition{},
 			},
 		},
 		{

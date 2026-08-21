@@ -78,6 +78,10 @@ and mechanically inspectable:
   Veil source. Go may isolate a Lean invocation and transport its source-bound result; it does not
   compile semantics into Veil. Veil is optional per family; qualification does not require adding a
   Veil declaration to families that already have sufficient Lean proof and checked-search evidence.
+  Files exported from a Veil-owning family are source-bound JSON bindings, normalized results, or
+  proof receipts. They are derived evidence about authored Lean declarations, never generated Veil
+  programs. Generation and drift checks must treat every `Temporal/Veil/**/*.lean` file as an input
+  that no generator may create or rewrite.
 - TLA+, TLC, and Apalache are parked portability experiments, not planned Umpire3 work. Existing
   adapters remain quarantined from default generation, checks, qualification, release gates,
   developer setup, and transitive Lean targets. Do not extend, repair, or install them while executing
@@ -191,6 +195,12 @@ project. Work on Veil is limited to ordinary Lean declarations, checked canonica
 honest trust classification, and family-scoped build/test ergonomics. Work on the TLA experiments is
 limited to preserving their quarantine or deleting them if that is cheaper than maintaining it.
 
+Existing command names such as `umpire3-gen-veil-bindings` and `umpire3-gen-veil-results` describe
+exporting JSON evidence and recording normalized results; they do not generate Lean. During R7,
+replace this misleading vocabulary with `export`, `record`, and `check` names, retain compatibility
+aliases only where another repository target still needs them, and add a drift test that fails if an
+Umpire3 generator writes a Veil `.lean` source file.
+
 The current focus is R6: turn the completed authoring, model-family, copied-regression, embedded-Veil,
 and TLA-quarantine work into independently retained deployment qualification.
 
@@ -233,9 +243,15 @@ inferred.
 
 - Re-audit every goal in `UMPIRE_VISION.md`, every requirement below, every generated artifact, and
   every retained Umpire2 behavioral contract against current source and fresh results.
+- Rename Veil export/result targets and artifact fields that imply source generation. Verify that the
+  authored Lean declaration and its canonical binding are the only semantic inputs and that generated
+  material contains evidence and provenance only.
 - Run semantic mutations through Lean proof, exact exploration, native certificates, Lean temporal
   checking, live evidence, minimization, replay, and promotion. For a family that owns a Veil
   declaration, include that declaration and its canonical binding in the same mutation audit.
+- Confirm that no default, family, generation, qualification, release, developer-bootstrap, or
+  transitive Lean target invokes or requires TLA+, TLC, or Apalache. Do not spend R7 effort repairing
+  the quarantined experiment beyond closing a leak into one of those paths.
 - Move the release from `candidate` to `qualified` only after all mandatory evidence is present.
 - Evaluate extraction after qualification; do not delay completion on an optional shared seam.
 
@@ -330,6 +346,8 @@ not evidence for a semantic claim.
 - exact explorer collision, nondeterminism, deadlock, depth, cancellation, and determinism tests;
 - Veil-authored declaration/binding mutations and canonical trace replay for families that use the
   library, all within the primary Lean project;
+- a no-generated-Lean guard proving that export and result-recording commands cannot rewrite authored
+  Veil declarations;
 - observation true/false/unknown/conflict, closure, lineage, order, and source-conflict tests;
 - campaign novelty, minimization identity, deterministic merge, replay, and promotion tests;
 - process timeout, CPU, memory, output, cancellation, cleanup, and crash-recovery tests; and
@@ -371,6 +389,8 @@ Umpire3 is complete only when all statements below have direct, current evidence
 - Any Veil declarations used by a qualifying family are ordinary source in the primary Lean project,
   with checked bindings to canonical views and concrete, symbolic-trace, and invariant results
   carrying honest trust.
+- Veil export and recording commands produce evidence artifacts only; the source declarations remain
+  developer-authored Lean inputs.
 - Lean temporal results preserve the bounded/unbounded distinction.
 - Every checker counterexample replays through canonical Lean semantics.
 - All search and backend resource limits are enforced and accurately reported.
