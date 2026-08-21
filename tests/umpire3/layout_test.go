@@ -176,6 +176,16 @@ func TestGeneratedDriftRecipesFailOnEarlyCommandError(t *testing.T) {
 	require.Error(t, command.Run())
 }
 
+func TestVeilMakeTargetsDescribeExportsAndRecordedEvidence(t *testing.T) {
+	makefile, err := os.ReadFile("../../Makefile")
+	require.NoError(t, err)
+	source := string(makefile)
+
+	require.Contains(t, source, "\numpire3-export-veil-bindings:")
+	require.Contains(t, source, "\numpire3-record-veil-results:")
+	require.NotContains(t, source, "umpire3-gen-veil")
+}
+
 func TestTLAExperimentRequiresExplicitBuildTag(t *testing.T) {
 	for _, root := range []string{"cmd/umpire3-tla", "model-checkers/tla"} {
 		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
@@ -189,6 +199,58 @@ func TestTLAExperimentRequiresExplicitBuildTag(t *testing.T) {
 		})
 		require.NoError(t, err)
 	}
+}
+
+func TestDefaultUmpire3MakeGraphExcludesTLAExperiment(t *testing.T) {
+	makefile, err := os.ReadFile("../../Makefile")
+	require.NoError(t, err)
+	dependencies := makeTargetDependencies(string(makefile))
+	for _, root := range []string{
+		"umpire3-gen",
+		"umpire3-check-generated",
+		"umpire3-check",
+		"umpire3-gen-release",
+		"umpire3-check-release",
+	} {
+		for target := range makeDependencyClosure(dependencies, root) {
+			require.NotContains(t, target, "experimental-tla", "%s reaches %s", root, target)
+		}
+	}
+}
+
+func makeTargetDependencies(source string) map[string][]string {
+	result := map[string][]string{}
+	for _, line := range strings.Split(source, "\n") {
+		if line == "" || strings.ContainsAny(line[:1], " \t") || strings.Contains(line, ":=") {
+			continue
+		}
+		before, after, found := strings.Cut(line, ":")
+		if !found {
+			continue
+		}
+		for _, target := range strings.Fields(before) {
+			if strings.HasPrefix(target, ".") || strings.Contains(target, "$()") {
+				continue
+			}
+			result[target] = append(result[target], strings.Fields(after)...)
+		}
+	}
+	return result
+}
+
+func makeDependencyClosure(dependencies map[string][]string, root string) map[string]struct{} {
+	result := map[string]struct{}{}
+	pending := []string{root}
+	for len(pending) != 0 {
+		target := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if _, visited := result[target]; visited {
+			continue
+		}
+		result[target] = struct{}{}
+		pending = append(pending, dependencies[target]...)
+	}
+	return result
 }
 
 func findForbiddenImports(root string) ([]string, error) {

@@ -46,7 +46,7 @@ func TestNormalizeConcreteOutputBindsCompiledVeilDeclarations(t *testing.T) {
 		strings.NewReader(wrapConcreteOutput(t, binding.Binding, soundConcreteOutput)),
 		protocol.DefaultDecodeLimit, canonicalExecutionLimits(), nil)
 	require.NoError(t, err)
-	require.Equal(t, binding.ArtifactDigest, result.GeneratedArtifactDigest)
+	require.Equal(t, binding.ArtifactDigest, result.BindingArtifactDigest)
 
 	wrong := binding.Binding
 	wrong.ModuleName = "WrongModule"
@@ -66,7 +66,7 @@ func TestDefaultMutatedArtifactsRemainCanonicallyBound(t *testing.T) {
 	require.NoError(t, binding.ValidateAgainst(view))
 	result, err := DefaultMutatedResult()
 	require.NoError(t, err)
-	require.Equal(t, binding.ArtifactDigest, result.GeneratedArtifactDigest)
+	require.Equal(t, binding.ArtifactDigest, result.BindingArtifactDigest)
 	require.Equal(t, protocol.ResultClassTraceWitness, result.ResultClass)
 }
 
@@ -79,7 +79,7 @@ func TestNormalizeConcreteOutputClassifiesSoundInstanceWithoutCompleteness(t *te
 	require.NoError(t, err)
 	require.Equal(t, protocol.ResultClassExternalNoCounterexample, result.ResultClass)
 	require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
-	require.Equal(t, binding.ArtifactDigest, result.GeneratedArtifactDigest)
+	require.Equal(t, binding.ArtifactDigest, result.BindingArtifactDigest)
 	require.False(t, result.Exact)
 	require.Equal(t, []string{protocol.VeilConcreteCollisionOmission}, result.Omissions)
 	require.Nil(t, result.Trace)
@@ -157,7 +157,7 @@ func TestNormalizeConcreteOutputMapsMutationTraceAndRequiresReplay(t *testing.T)
 	}, result.Trace.Steps)
 	require.Equal(t, protocol.ResultClassTraceWitness, result.ResultClass)
 	require.Equal(t, protocol.TrustBadgeCheckedCertificate, result.TrustBadge)
-	require.Equal(t, binding.ArtifactDigest, result.GeneratedArtifactDigest)
+	require.Equal(t, binding.ArtifactDigest, result.BindingArtifactDigest)
 	require.True(t, result.Exact)
 	require.NoError(t, result.Validate())
 }

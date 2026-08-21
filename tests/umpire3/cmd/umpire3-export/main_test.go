@@ -131,6 +131,7 @@ func TestExportFirstOrderViewRunsLeanAndPreservesVariant(t *testing.T) {
 }
 
 func TestExportVeilBindingRunsLeanAndBindsCompiledDeclarations(t *testing.T) {
+	veilSourcesBefore := readLeanSources(t, "../../model/Temporal/Veil")
 	for _, test := range []struct {
 		variant           string
 		firstOrderVariant string
@@ -164,6 +165,29 @@ func TestExportVeilBindingRunsLeanAndBindsCompiledDeclarations(t *testing.T) {
 			require.NotEqual(t, "derived", binding.ArtifactDigest)
 		})
 	}
+	require.Equal(t, veilSourcesBefore, readLeanSources(t, "../../model/Temporal/Veil"))
+}
+
+func readLeanSources(t *testing.T, root string) map[string]string {
+	t.Helper()
+	sources := map[string]string{}
+	require.NoError(t, filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || entry.IsDir() || filepath.Ext(path) != ".lean" {
+			return err
+		}
+		contents, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		relative, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		sources[relative] = string(contents)
+		return nil
+	}))
+	require.NotEmpty(t, sources)
+	return sources
 }
 
 func TestVeilBindingSourceDigestCoversDeclarationsAndSemanticProofs(t *testing.T) {

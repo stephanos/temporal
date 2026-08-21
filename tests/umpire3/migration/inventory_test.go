@@ -188,3 +188,11 @@ func TestBehaviorContractsPreserveFaultSemanticsAndScopes(t *testing.T) {
 	require.Equal(t, []string{"nexus"}, suite.Experiments[0].Faults[0].Scope.Services)
 	require.Equal(t, []string{"/service/operation"}, suite.Experiments[0].Faults[0].Scope.Routes)
 }
+
+func TestBehaviorContractsPreserveSupportedMechanismVariants(t *testing.T) {
+	t.Parallel()
+
+	callbackAfterCaller, exists := Contract("SparseRegressionCallbackAfterCallerCompletion")
+	require.True(t, exists)
+	require.Equal(t, []string{"hsm"}, callbackAfterCaller.Variants)
+}

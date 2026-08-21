@@ -712,7 +712,7 @@ umpire3-check-native-benchmark: umpire3-check-native-results
 			-checker-command $(UMPIRE3_NATIVE_CERTIFICATE_BIN) -workers 8 -replicas 10 \
 			-output "$$temporary"
 
-umpire3-gen-checker-coverage: umpire3-gen-finite-replay umpire3-gen-native-results umpire3-gen-veil-results umpire3-check-native-benchmark
+umpire3-gen-checker-coverage: umpire3-gen-finite-replay umpire3-gen-native-results umpire3-record-veil-results umpire3-check-native-benchmark
 	@printf $(COLOR) "Generate Umpire3 checker coverage..."
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact checker-coverage -output $(UMPIRE3_CHECKER_COVERAGE)
 
@@ -815,8 +815,8 @@ umpire3-build-veil:
 		umpire3_veil_sound umpire3_veil_mutated \
 		umpire3_veil_sound_proof umpire3_veil_sound_trusted_proof
 
-umpire3-gen-veil-bindings: umpire3-gen-first-order
-	@printf $(COLOR) "Generate checked Umpire3 Veil bindings..."
+umpire3-export-veil-bindings: umpire3-gen-first-order
+	@printf $(COLOR) "Export checked Umpire3 Veil bindings..."
 	@set -eu; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact veil-binding -variant sound \
 			-output $(UMPIRE3_VEIL_SOUND_BINDING); \
@@ -839,9 +839,9 @@ umpire3-check-veil-bindings: umpire3-check-first-order
 			-output "$$temporary/trusted.json"; \
 		diff -u $(UMPIRE3_VEIL_TRUSTED_BINDING) "$$temporary/trusted.json"
 
-umpire3-gen-veil-results: umpire3-gen-veil-bindings
+umpire3-record-veil-results: umpire3-export-veil-bindings
 	@$(MAKE) umpire3-build-veil
-	@printf $(COLOR) "Generate normalized Umpire3 Veil results..."
+	@printf $(COLOR) "Record normalized Umpire3 Veil results..."
 	@set -eu; \
 		$(UMPIRE3_VEIL_COMMAND) -operation check-concrete -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
 			-binding $(UMPIRE3_VEIL_SOUND_BINDING) -backend-command $(UMPIRE3_VEIL_SOUND_BIN) \
@@ -963,7 +963,7 @@ umpire3-check-release: umpire3-check-experiment umpire3-check-proof umpire3-chec
 			-migration-ledger $(UMPIRE3_MIGRATION_LEDGER) > "$$temporary"; \
 		diff -u $(UMPIRE3_RELEASE) "$$temporary"
 
-umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-observation umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-finite-replay umpire3-gen-attempt umpire3-gen-veil-results umpire3-gen-native-results umpire3-gen-checker-coverage umpire3-gen-family-dependencies umpire3-gen-temporal umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration umpire3-gen-release
+umpire3-gen: umpire3-gen-manifest umpire3-gen-identifiers umpire3-gen-author-facade umpire3-gen-schema umpire3-gen-monitor umpire3-gen-observation umpire3-gen-composition umpire3-gen-parity umpire3-gen-coverage umpire3-gen-finite-replay umpire3-gen-attempt umpire3-record-veil-results umpire3-gen-native-results umpire3-gen-checker-coverage umpire3-gen-family-dependencies umpire3-gen-temporal umpire3-gen-proof umpire3-gen-experiment umpire3-gen-api umpire3-gen-migration umpire3-gen-release
 
 umpire3-check-generated: umpire3-check-manifest umpire3-check-identifiers umpire3-check-author-facade umpire3-check-schema umpire3-check-monitor umpire3-check-observation umpire3-check-composition umpire3-check-parity umpire3-check-coverage umpire3-check-finite-replay umpire3-check-attempt umpire3-check-veil-results umpire3-check-native-results umpire3-check-checker-coverage umpire3-check-family-dependencies umpire3-check-temporal umpire3-check-proof umpire3-check-experiment umpire3-check-api umpire3-check-migration umpire3-check-release
 
@@ -996,7 +996,7 @@ umpire3-check-mutation-audit:
 	@$(UMPIRE3_COMMAND) audit-mutation -experiment $(UMPIRE3_NEXUS_EXPERIMENT) \
 		-output $(UMPIRE3_MUTATION_AUDIT) -check >/dev/null
 
-umpire3-record-semantic-mutation-audit: umpire3-gen-proof umpire3-gen-veil-results umpire3-build-temporal
+umpire3-record-semantic-mutation-audit: umpire3-gen-proof umpire3-record-veil-results umpire3-build-temporal
 	@printf $(COLOR) "Record Umpire3 cross-checker semantic mutation audit..."
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact semantic-mutation-audit \
 		-mutation-experiment $(UMPIRE3_NEXUS_EXPERIMENT) \
@@ -1041,7 +1041,7 @@ umpire3-root:
 		go test -count=1 -tags test_dep ./tests -run '^TestUmpire3' -timeout 20m || status=$$?; \
 		exit $$status
 
-.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-experimental-tla-gen umpire3-experimental-tla-check-generated umpire3-build-temporal umpire3-check-temporal-adapter umpire3-experimental-tla-gen-results umpire3-experimental-tla-check-results umpire3-build-veil umpire3-gen-veil-bindings umpire3-check-veil-bindings umpire3-gen-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root
+.PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-experimental-tla-gen umpire3-experimental-tla-check-generated umpire3-build-temporal umpire3-check-temporal-adapter umpire3-experimental-tla-gen-results umpire3-experimental-tla-check-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

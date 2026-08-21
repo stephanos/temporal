@@ -9,7 +9,7 @@
   "monitorSemanticHash": "sha256:f031c2404a11a826367ee80933a1aef5a3cbe626bee8985d3785dce298701f60",
   "compositionSemanticHash": "sha256:c003f2b009ddf8f68c41561a70bdaeaeb8cc6fb7ee6a45991ccc49c8ec255497",
   "paritySemanticHash": "sha256:6a1b6253e8e836c788aad3cbecd74808bd430a3544fe4fb6e359ed98c8594a8b",
-  "checkerCoverageHash": "sha256:14adf1a33a15355736a29f118a2f4ff5379e82a1f4d8ad100c9fdf0c2fd65453",
+  "checkerCoverageHash": "sha256:b725d9efbb0ea80cbf41d754fb501ce21f7f23d1fd7cec9dbf5818d082765bff",
   "experiments": {
     "nexus-cancellation-stale-completion-v1": {
       "semanticHash": "sha256:bb263c34c95e27aa04f3129a33a952b3ee9481883ddf851b50bfb740d6543697",
@@ -47,7 +47,7 @@
   ],
   "migration": {
     "formatVersion": "umpire3/migration-ledger/v3",
-    "ledgerHash": "sha256:317a24bf82f9041e5450469133daf3d04a3306b442444d6601a25813c78b5940",
+    "ledgerHash": "sha256:647b824a5ee9cfd291abd8167040e8a211cc02863c3ceb5430b9c5a1099e5f74",
     "behaviorCount": 28,
     "exactCount": 23,
     "semanticEquivalentCount": 5,
@@ -56,7 +56,7 @@
   },
   "assurance": {
     "formatVersion": "umpire3/release-assurance/v1",
-    "digest": "sha256:e6258ad22813888231191a855c0c9cf658f579036a97dba9545813b015985961",
+    "digest": "sha256:a1d8b43c5c6fb09be9711d9b2b16f106a5cda1fd9d823643c679b0cac547705e",
     "nodes": [
       {
         "identifier": "approved-mutation-audit",
@@ -74,7 +74,7 @@
         "identifier": "checker-coverage",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:14adf1a33a15355736a29f118a2f4ff5379e82a1f4d8ad100c9fdf0c2fd65453"
+        "digest": "sha256:b725d9efbb0ea80cbf41d754fb501ce21f7f23d1fd7cec9dbf5818d082765bff"
       },
       {
         "identifier": "clock-skew-audit",
@@ -98,7 +98,7 @@
         "identifier": "documentation",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:f37304b03a2337cc3802a2453e69cef9a16853ee84859e53608b0fd603ff4cd0"
+        "digest": "sha256:b0173dcf6f221de5ded2631a42bfebe3399d592ee7b85e1b1400c1d03a73a768"
       },
       {
         "identifier": "experiment/nexus-cancellation-stale-completion-v1",
@@ -116,7 +116,7 @@
         "identifier": "migration",
         "resultClass": "implementation-conforming",
         "trustBadge": "tested-instance",
-        "digest": "sha256:317a24bf82f9041e5450469133daf3d04a3306b442444d6601a25813c78b5940"
+        "digest": "sha256:647b824a5ee9cfd291abd8167040e8a211cc02863c3ceb5430b9c5a1099e5f74"
       },
       {
         "identifier": "monitor-programs",
@@ -176,7 +176,7 @@
         "identifier": "semantic-mutation-portfolio",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:74ae0a46be478e6850aa4195ca09c3c6b332c7dcde72ebba2a5e278e90a9704d"
+        "digest": "sha256:7f47f5c7d2c78d2871d264ef0b2eec158e2b1c80dc17420b021c84387f308df4"
       }
     ],
     "goals": [

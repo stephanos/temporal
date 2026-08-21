@@ -11,8 +11,9 @@ The existing `tests/umpire3` tree is the implementation baseline. Its generated 
 authoring facade, protobuf projection, exact explorer, Lean temporal checking, native certificate
 producer, unified semantic traces, campaign/replay pipeline, isolated canary, primary-project Veil
 dependency and Lean source declarations, family-scoped checks, TLA quarantine guardrails,
-digest-bound release qualification, retained coverage-guided mutation and 10x native
-performance/recovery reports, developer-UX and clock-skew audits, a retained hostile-input,
+Veil source-authorship drift checks and evidence-only export/record targets, digest-bound release
+qualification, retained coverage-guided mutation and 10x native performance/recovery reports,
+developer-UX and clock-skew audits, a retained hostile-input,
 isolation, and recovery audit, published operational documentation, and side-by-side
 Umpire2/Umpire3 root tests are foundations, not unfinished milestones.
 Any family that uses Veil still has to bind those Lean declarations to its canonical semantics.
@@ -195,12 +196,6 @@ project. Work on Veil is limited to ordinary Lean declarations, checked canonica
 honest trust classification, and family-scoped build/test ergonomics. Work on the TLA experiments is
 limited to preserving their quarantine or deleting them if that is cheaper than maintaining it.
 
-Existing command names such as `umpire3-gen-veil-bindings` and `umpire3-gen-veil-results` describe
-exporting JSON evidence and recording normalized results; they do not generate Lean. During R7,
-replace this misleading vocabulary with `export`, `record`, and `check` names, retain compatibility
-aliases only where another repository target still needs them, and add a drift test that fails if an
-Umpire3 generator writes a Veil `.lean` source file.
-
 The current focus is R6: turn the completed authoring, model-family, copied-regression, embedded-Veil,
 and TLA-quarantine work into independently retained deployment qualification.
 
@@ -243,15 +238,9 @@ inferred.
 
 - Re-audit every goal in `UMPIRE_VISION.md`, every requirement below, every generated artifact, and
   every retained Umpire2 behavioral contract against current source and fresh results.
-- Rename Veil export/result targets and artifact fields that imply source generation. Verify that the
-  authored Lean declaration and its canonical binding are the only semantic inputs and that generated
-  material contains evidence and provenance only.
 - Run semantic mutations through Lean proof, exact exploration, native certificates, Lean temporal
   checking, live evidence, minimization, replay, and promotion. For a family that owns a Veil
   declaration, include that declaration and its canonical binding in the same mutation audit.
-- Confirm that no default, family, generation, qualification, release, developer-bootstrap, or
-  transitive Lean target invokes or requires TLA+, TLC, or Apalache. Do not spend R7 effort repairing
-  the quarantined experiment beyond closing a leak into one of those paths.
 - Move the release from `candidate` to `qualified` only after all mandatory evidence is present.
 - Evaluate extraction after qualification; do not delay completion on an optional shared seam.
 

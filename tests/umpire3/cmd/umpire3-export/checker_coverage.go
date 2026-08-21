@@ -261,7 +261,7 @@ func checkedVeilCoverage(
 		if result.Target != view.Target || result.Property != view.Property ||
 			result.World != view.World || result.Variant != view.Variant ||
 			result.SemanticHash != view.SemanticHash ||
-			result.GeneratedArtifactDigest != binding.ArtifactDigest {
+			result.BindingArtifactDigest != binding.ArtifactDigest {
 			return protocol.CheckerCoverageEntry{},
 				fmt.Errorf("Veil result %q does not match its checked binding and view", path)
 		}

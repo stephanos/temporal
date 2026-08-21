@@ -93,12 +93,13 @@ const (
 
 // ruleState holds persistent per-rule state across Check calls.
 type ruleState struct {
-	mu             sync.Mutex
-	passedKeys     []string
-	lastReported   map[string]time.Time
-	reportTTL      time.Duration
-	lastGeneration uint64               // generation watermark for dirty-tracking
-	pending        map[string]Violation // unresolved liveness conditions
+	mu                  sync.Mutex
+	passedKeys          []string
+	lastReported        map[string]time.Time
+	reportTTL           time.Duration
+	lastGeneration      uint64               // generation watermark for unscoped dirty-tracking
+	lastScopeGeneration map[EntityID]uint64  // independent watermarks for scoped checks
+	pending             map[string]Violation // unresolved liveness conditions
 }
 
 // ruleContext holds shared fields for both SafetyContext and LivenessContext.
@@ -320,9 +321,10 @@ func (r *RuleRegistry) InitRules(registry *ModelState, config RuleConfig, names 
 		}
 		out = append(out, f())
 		r.states[n] = &ruleState{
-			lastReported: make(map[string]time.Time),
-			pending:      make(map[string]Violation),
-			reportTTL:    defaultReportTTL,
+			lastReported:        make(map[string]time.Time),
+			lastScopeGeneration: make(map[EntityID]uint64),
+			pending:             make(map[string]Violation),
+			reportTTL:           defaultReportTTL,
 		}
 		seen[n] = struct{}{}
 	}
@@ -345,13 +347,17 @@ func (r *RuleRegistry) Check(ctx context.Context, final bool, scope *EntityID) [
 	for _, entry := range r.rules {
 		st := r.states[entry.name]
 		st.mu.Lock()
+		sinceGeneration := st.lastGeneration
+		if scope != nil {
+			sinceGeneration = st.lastScopeGeneration[*scope]
+		}
 
 		base := ruleContext{
 			Context:         ctx,
 			Now:             now,
 			ModelState:      r.ruleModelState,
 			Config:          r.config,
-			sinceGeneration: st.lastGeneration,
+			sinceGeneration: sinceGeneration,
 			scope:           scope,
 			state:           st,
 			ruleName:        entry.name,
@@ -380,7 +386,11 @@ func (r *RuleRegistry) Check(ctx context.Context, final bool, scope *EntityID) [
 		default:
 		}
 
-		st.lastGeneration = currentGen
+		if scope == nil {
+			st.lastGeneration = currentGen
+		} else {
+			st.lastScopeGeneration[*scope] = currentGen
+		}
 		st.pruneReported(now)
 		st.mu.Unlock()
 	}
@@ -506,6 +516,7 @@ func (r *RuleRegistry) PurgeScope(root EntityID) {
 	scope := &root
 	for _, st := range r.states {
 		st.mu.Lock()
+		delete(st.lastScopeGeneration, root)
 		for k := range st.pending {
 			if keyInScope(k, scope) {
 				delete(st.pending, k)

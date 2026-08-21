@@ -179,7 +179,7 @@ func (r Report) expectedEvidence() ([]Evidence, error) {
 		return nil, err
 	}
 	if !reflect.DeepEqual(r.VeilTrace, defaultVeilTrace) ||
-		backendResult.GeneratedArtifactDigest != binding.ArtifactDigest {
+		backendResult.BindingArtifactDigest != binding.ArtifactDigest {
 		return nil, errors.New("semantic mutation audit Veil trace does not match the retained declaration result")
 	}
 	backendJSON, err := backendResult.CanonicalJSON()
