@@ -231,6 +231,17 @@ func StateSHA256(state State) (evidence.SHA256, error) {
 	return stateIdentity(state)
 }
 
+func ValidateCandidate(config Config, candidate Candidate) error {
+	expected, err := newCandidate(config, candidate.Overrides, candidate.ParentSHA256)
+	if err != nil {
+		return err
+	}
+	if !sameCandidate(candidate, expected) {
+		return errors.New("combined frontier candidate identity does not match its contents")
+	}
+	return nil
+}
+
 func CommitRound(state State, round Round, results []Result) (State, RoundSegment, error) {
 	before, err := stateIdentity(state)
 	if err != nil {

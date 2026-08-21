@@ -189,6 +189,21 @@ func TestSimulationModelTransportCarriesLogicalTime(t *testing.T) {
 	}
 }
 
+func TestSimulationExplorationFramesUseTheirOwnPayloadBounds(t *testing.T) {
+	payload := make([]byte, maximumSimulationBootstrapBytes+1)
+	requireValid := func(kind simulationFrameKind) {
+		t.Helper()
+		if err := validateSimulationFrame(simulationFrame{Profile: simulationProtocol, Kind: kind, Request: 1, Payload: payload}); err != nil {
+			t.Fatalf("validate %s frame: %v", kind, err)
+		}
+	}
+	requireValid(simulationFrameExplorationPlan)
+	requireValid(simulationFrameExplorationRecord)
+	if err := validateSimulationFrame(simulationFrame{Profile: simulationProtocol, Kind: simulationFrameStart, Request: 1, Payload: payload}); err == nil {
+		t.Fatal("simulation start frame accepted an oversized bootstrap payload")
+	}
+}
+
 func TestSimulationModelTransportDiscardsLateCancelledResponse(t *testing.T) {
 	requestRead, requestWrite := io.Pipe()
 	responseRead, responseWrite := io.Pipe()

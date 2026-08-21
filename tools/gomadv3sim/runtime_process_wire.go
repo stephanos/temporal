@@ -16,16 +16,18 @@ const processNodeTerminalSchema = "gomadv3.simulation-node-terminal/v1"
 type processFrameKind string
 
 const (
-	processFrameStart     processFrameKind = "start"
-	processFrameActivate  processFrameKind = "activate"
-	processFrameActivated processFrameKind = "activated"
-	processFrameModel     processFrameKind = "model"
-	processFrameStop      processFrameKind = "stop"
-	processFrameCrash     processFrameKind = "crash"
-	processFrameWait      processFrameKind = "wait"
-	processFrameReady     processFrameKind = "ready"
-	processFrameTerminal  processFrameKind = "terminal"
-	processFrameResponse  processFrameKind = "response"
+	processFrameStart             processFrameKind = "start"
+	processFrameActivate          processFrameKind = "activate"
+	processFrameActivated         processFrameKind = "activated"
+	processFrameModel             processFrameKind = "model"
+	processFrameStop              processFrameKind = "stop"
+	processFrameCrash             processFrameKind = "crash"
+	processFrameWait              processFrameKind = "wait"
+	processFrameReady             processFrameKind = "ready"
+	processFrameTerminal          processFrameKind = "terminal"
+	processFrameResponse          processFrameKind = "response"
+	processFrameExplorationPlan   processFrameKind = "exploration_plan"
+	processFrameExplorationRecord processFrameKind = "exploration_record"
 )
 
 type processFrame struct {
@@ -83,7 +85,7 @@ func validateProcessFrame(frame processFrame) error {
 		return fmt.Errorf("unsupported process simulation frame profile %q", frame.Profile)
 	}
 	switch frame.Kind {
-	case processFrameStart, processFrameActivate, processFrameActivated, processFrameModel, processFrameStop, processFrameCrash, processFrameWait, processFrameReady, processFrameTerminal, processFrameResponse:
+	case processFrameStart, processFrameActivate, processFrameActivated, processFrameModel, processFrameStop, processFrameCrash, processFrameWait, processFrameReady, processFrameTerminal, processFrameResponse, processFrameExplorationPlan, processFrameExplorationRecord:
 	default:
 		return fmt.Errorf("invalid process simulation frame kind %q", frame.Kind)
 	}

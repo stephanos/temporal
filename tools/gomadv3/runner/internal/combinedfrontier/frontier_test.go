@@ -199,6 +199,37 @@ func TestCombinedFrontierRoundSegmentReplaysByteIdentically(t *testing.T) {
 	}
 }
 
+func TestValidateCandidateRejectsChangedForcedDecision(t *testing.T) {
+	config := testConfig()
+	state, err := New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, ok := state.NextRound()
+	if !ok {
+		t.Fatal("combined frontier root round is unavailable")
+	}
+	decision := testDecision(t, DimensionScenario, 0, 2, 0)
+	next, _, err := CommitRound(state, round, []Result{{
+		CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: evidence.HashBytes([]byte("baseline")), Decisions: []Decision{decision},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	childRound, ok := next.NextRound()
+	if !ok || len(childRound.Candidates) != 1 {
+		t.Fatal("combined frontier child candidate is unavailable")
+	}
+	candidate := childRound.Candidates[0]
+	if err := ValidateCandidate(config, candidate); err != nil {
+		t.Fatalf("ValidateCandidate() error = %v", err)
+	}
+	candidate.Overrides[0].Selected = decision.Selected
+	if err := ValidateCandidate(config, candidate); err == nil {
+		t.Fatal("ValidateCandidate() accepted a changed forced decision")
+	}
+}
+
 func testConfig() Config {
 	return Config{
 		ExecutionSHA256:    evidence.HashBytes([]byte("execution")),
