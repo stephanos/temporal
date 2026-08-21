@@ -182,6 +182,8 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 	for _, relative := range []string{
 		"toolchain/runtime/go1.26.4.patch",
 		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
+		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
+		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
 		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
 		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
 		"toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",

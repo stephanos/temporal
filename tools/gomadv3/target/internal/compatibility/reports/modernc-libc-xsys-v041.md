@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v041
 
-Review SHA-256: `sha256:b2afb6f0e6d611a9c6b4d35298164bffc79dcc52b0ad287900d4e644ac0ae15a`
+Review SHA-256: `sha256:adc5fa3f7ca6ce18ca9e69c65e71bf1eb4b239e5dd863db47a085620563d5308`
 
 Owner: `temporal-server`
 
@@ -28,6 +28,11 @@ Workload: `modernc-libc-xsys-v041-fixture`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8579228404e49a9df26f1a5f735cd530e17f6264ed1c231bf15051d20b2cc76c`
   - prepared source set `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
+- `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
+  - profile `gomadv3-deterministic/v1` / `sha256:1dd41b9645f286f8dae22588d00edc855c54bf8fe7679a860bf58b1fa2b30cc2`
+  - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
+  - source inventories `sha256:4d829c24cc1718026fee9455b47449cfa15d8e241bbbfd9da6136435fd81881f` → `sha256:720c0239c80b4f8bcbebe1cd887451b8e58554f857d09f3f9b9dff939ce3f24e`
+  - prepared source set `sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36`
 
 ## Reviewed packages
 
@@ -216,7 +221,7 @@ Go sources:
 Requested facts:
 
 - `import:golang.org/x/sys/unix`: **allow** — **security-sensitive**
-- `linkname:mmap_unix.go`: **deny** — **security-sensitive**
+- `linkname:mmap_unix.go`: **allow** — **security-sensitive**
   - source `sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad`
   - directive `gomadMemoryEnabled internal/gomadio.Enabled`
   - directive `gomadMemoryMap internal/gomadio.AnonymousMap`
