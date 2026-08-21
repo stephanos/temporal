@@ -174,6 +174,34 @@ def refinementNexusClosure : ModuleContract where
       "The generated monitor is equivalent to the product predicate and the SDK adapter orders operation and caller terminal history.",
   ]
 
+def productNexusProgress : ModuleContract where
+  identifier := Inventory.nexusProgressProductModule.identifier
+  rank := 0
+  owns := ["property:nexus-operation.progress"]
+  obligations := [
+    presentObligation "nexus-progress.product" "product"
+      "Retryable failure, a bounded wait, settlement, and deadline expiry are executable and safe.",
+    presentObligation "nexus-progress.non-vacuity" "non-vacuity"
+      "A retrying operation can settle while a second bounded wait violates the progress property.",
+  ]
+
+def systemNexusProgress : ModuleContract where
+  identifier := Inventory.nexusProgressSystemModule.identifier
+  rank := 1
+  owns := ["mechanism:nexus-operation.retry-progress"]
+  obligations := [presentObligation "nexus-progress.system" "mechanism"
+    "Scheduling, retryable handler failure, deadline passage, and settlement are independently executable."]
+
+def refinementNexusProgress : ModuleContract where
+  identifier := Inventory.nexusProgressRefinementModule.identifier
+  rank := 2
+  obligations := [
+    presentObligation "nexus-progress.refinement" "refinement"
+      "Every independent progress step refines the bounded product transition.",
+    presentObligation "nexus-progress.monitor" "monitor"
+      "The generated monitor requires typed retry and closed-deadline evidence from the live adapter.",
+  ]
+
 def productNexusTimeout : ModuleContract where
   identifier := Inventory.nexusTimeoutProductModule.identifier
   rank := 0
@@ -556,6 +584,18 @@ def parityTargets : List TargetProjection := [
       maxCount := 100
     }]
   },
+  {
+    identifier := "feature-nexus-progress"
+    modules := [productNexusProgress.identifier, systemNexusProgress.identifier,
+      refinementNexusProgress.identifier]
+    properties := ["nexus-operation.progress"]
+    retainedActions := ["close-nexus-operation"]
+    omissions := [{
+      identifier := "feature-nexus-progress.unselected-interference"
+      reason := "Independent entity actions are bounded outside this focused target projection."
+      maxCount := 100
+    }]
+  },
   speculativeTaskTarget,
   workflowProgressTarget "foundation-delivery-safety" "entity.progress"
     ["crash-owner", "progress-entity", "recover-owner"],
@@ -632,6 +672,7 @@ def composition : Umpire3.Composition where
   modules := [deliveryProvider, productNexus, systemNexus, refinementNexus,
     productUpdate, systemUpdate, refinementUpdate, productTaskAck, systemTaskAck, refinementTaskAck,
     productNexusLifecycle, productNexusClosure, systemNexusClosure, refinementNexusClosure,
+    productNexusProgress, systemNexusProgress, refinementNexusProgress,
     productNexusTimeout, systemNexusTimeout, refinementNexusTimeout,
     productNexusActivityLink, systemNexusActivityLink, refinementNexusActivityLink,
     productCallbackReference, systemCallbackReference, refinementCallbackReference,

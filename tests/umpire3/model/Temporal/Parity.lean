@@ -4,7 +4,9 @@ import Temporal.Monitors
 import Temporal.Product.TaskAck
 import Temporal.Refinement.TaskAck
 import Temporal.Refinement.MigratedFamilies
+import Temporal.Refinement.NexusProgress
 import Temporal.System.MigratedFamilies
+import Temporal.System.NexusProgress
 import Umpire3.Registration
 
 namespace Umpire3.Temporal.Parity
@@ -52,7 +54,7 @@ private def entryMetadataValid (entry : Entry) : Bool :=
         entry.evidenceStatus = "metadata-missing"
 
 def Ledger.metadataValid (ledger : Ledger) : Bool :=
-  ledger.entries.length = 20 && ledger.entries.all entryMetadataValid &&
+  ledger.entries.length = 22 && ledger.entries.all entryMetadataValid &&
     (ledger.entries.map (fun entry => entry.category ++ ":" ++ entry.legacyName)).eraseDups.length =
       ledger.entries.length
 
@@ -145,6 +147,12 @@ def ledger : Ledger where
       (resolved_declaration% Umpire3.Temporal.Monitors.speculativeTask_monitor_equivalent)
       (resolved_declaration% Umpire3.Temporal.Product.SpeculativeTask.orphanedTaskMutationNegativeControl),
     nexusClosureProperty,
+    exactProperty "NexusOperationProgress" "nexus-operation.progress"
+      "Temporal.Product.NexusProgress"
+      (resolved_declaration% Umpire3.Temporal.Product.NexusProgress.progressSafe)
+      (resolved_declaration% Umpire3.Temporal.Product.NexusProgress.bounded)
+      (resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationProgress_monitor_equivalent)
+      (resolved_declaration% Umpire3.Temporal.Product.NexusProgress.stuckAfterDeadlineMutationNegativeControl),
     exactProperty "NexusActivityLinkConsistency" "nexus-activity.link-consistency"
       "Temporal.Product.NexusActivityLink"
       (resolved_declaration% Umpire3.Temporal.Product.NexusActivityLink.linkConsistencySafe)
@@ -187,6 +195,12 @@ def ledger : Ledger where
       (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.NexusClosure.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationClosure_monitor_equivalent)
       (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.mutationBreaksDeclaredSimulation),
+    exactTarget "feature-nexus-progress" "feature-nexus-progress"
+      "Temporal.Refinement.NexusProgress"
+      (resolved_declaration% Umpire3.Temporal.Refinement.NexusProgress.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.NexusProgress.executable)
+      (resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationProgress_monitor_equivalent)
+      (resolved_declaration% Umpire3.Temporal.Refinement.NexusProgress.mutationBreaksDeclaredSimulation),
     exactTarget "feature-workflow-speculative-delivery" "feature-workflow-speculative-delivery"
       "Temporal.Refinement.MigratedFamilies.SpeculativeTask"
       (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.soundSimulation)

@@ -92,10 +92,90 @@ func Project(producerAction, name string, valueType protocol.SemanticTypeID) Pro
 
 type ActionOption func(*actionIntent)
 
+type Value struct {
+	value protocol.Value
+}
+
+type Field struct {
+	name  string
+	value Value
+}
+
+func String(value string) Value {
+	return Value{value: protocol.Value{Type: protocol.ValueString, Text: &value}}
+}
+
+func Integer(value int64) Value {
+	return Value{value: protocol.Value{Type: protocol.ValueInteger, Integer: &value}}
+}
+
+func Boolean(value bool) Value {
+	return Value{value: protocol.Value{Type: protocol.ValueBoolean, Boolean: &value}}
+}
+
+func Duration(value time.Duration) Value {
+	nanoseconds := int64(value)
+	return Value{value: protocol.Value{Type: protocol.ValueDuration, Integer: &nanoseconds}}
+}
+
+func Enum(name string, number int64) Value {
+	return Value{value: protocol.Value{Type: protocol.ValueEnum, Text: &name, Integer: &number}}
+}
+
+func BytesDigest(value string) Value {
+	return Value{value: protocol.Value{Type: protocol.ValueBytesDigest, Text: &value}}
+}
+
+func SymbolValue(symbol Symbol) Value {
+	return Value{value: symbol.Value()}
+}
+
+func List(values ...Value) Value {
+	elements := make([]protocol.Value, len(values))
+	for index, value := range values {
+		elements[index] = value.value
+	}
+	return Value{value: protocol.Value{Type: protocol.ValueList, Elements: elements}}
+}
+
+func Named(name string, value Value) Field {
+	return Field{name: name, value: value}
+}
+
+func Record(fields ...Field) Value {
+	values := make([]protocol.NamedValue, len(fields))
+	for index, field := range fields {
+		values[index] = protocol.NamedValue{Name: field.name, Value: field.value.value}
+	}
+	return Value{value: protocol.Value{Type: protocol.ValueRecord, Fields: values}}
+}
+
+type Outcome string
+
+const (
+	Applied          Outcome = "applied"
+	Suppressed       Outcome = "suppressed"
+	Rejected         Outcome = "rejected"
+	Retried          Outcome = "retried"
+	FaultIntercepted Outcome = "fault-intercepted"
+)
+
 func WithArgument(name string, value protocol.Value) ActionOption {
 	return func(intent *actionIntent) {
 		intent.arguments = append(intent.arguments, protocol.NamedValue{Name: name, Value: value})
 	}
+}
+
+func WithValue(name string, value Value) ActionOption {
+	return WithArgument(name, value.value)
+}
+
+func withStringArgument(name, value string) ActionOption {
+	return WithArgument(name, protocol.Value{Type: protocol.ValueString, Text: &value})
+}
+
+func withIdentityArgument(name string, symbol Symbol) ActionOption {
+	return WithArgument(name, symbol.Value())
 }
 
 func WithResponse(mode protocol.ResponseMode) ActionOption {
@@ -111,24 +191,100 @@ func WithBoundedBlock(duration time.Duration) ActionOption {
 	}
 }
 
+func WithOutcomes(outcomes ...protocol.ActionOutcome) ActionOption {
+	return func(intent *actionIntent) {
+		intent.allowedOutcomes = append([]protocol.ActionOutcome(nil), outcomes...)
+	}
+}
+
+func Outcomes(outcomes ...Outcome) ActionOption {
+	return func(intent *actionIntent) {
+		intent.allowedOutcomes = make([]protocol.ActionOutcome, len(outcomes))
+		for index, outcome := range outcomes {
+			intent.allowedOutcomes[index] = protocol.ActionOutcome(outcome)
+		}
+	}
+}
+
+type FaultOption func(*FaultIntent)
+
 type FaultIntent struct {
 	identifier string
 	kind       protocol.FaultKind
 	arguments  []protocol.NamedValue
+	scope      protocol.FaultScope
+	occurrence protocol.FaultOccurrence
 	configured *protocol.Fault
 	source     Source
 }
 
-func Fault(identifier string, kind protocol.FaultKind, options ...ActionOption) FaultIntent {
+func Fault(identifier string, kind protocol.FaultKind, options ...FaultOption) FaultIntent {
 	return FaultAt(Source{}, identifier, kind, options...)
 }
 
-func FaultAt(source Source, identifier string, kind protocol.FaultKind, options ...ActionOption) FaultIntent {
-	intent := actionIntent{}
+func FaultAt(source Source, identifier string, kind protocol.FaultKind, options ...FaultOption) FaultIntent {
+	intent := FaultIntent{identifier: identifier, kind: kind, source: source}
 	for _, option := range options {
 		option(&intent)
 	}
-	return FaultIntent{identifier: identifier, kind: kind, arguments: intent.arguments, source: source}
+	return intent
+}
+
+func OnResources(resources ...Resource) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.Resources = make([]string, len(resources))
+		for index, resource := range resources {
+			intent.scope.Resources[index] = resource.Identifier
+		}
+	}
+}
+
+func OnEndpoints(endpoints ...string) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.Endpoints = append([]string(nil), endpoints...)
+	}
+}
+
+func OnTaskQueues(taskQueues ...string) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.TaskQueues = append([]string(nil), taskQueues...)
+	}
+}
+
+func OnServices(services ...string) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.Services = append([]string(nil), services...)
+	}
+}
+
+func OnRoutes(routes ...string) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.Routes = append([]string(nil), routes...)
+	}
+}
+
+func OnParticipants(participants ...string) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.Participants = append([]string(nil), participants...)
+	}
+}
+
+func OnAttempts(attempts ...int) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.scope.Attempts = append([]int(nil), attempts...)
+	}
+}
+
+func AtOccurrence(first, count int) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.occurrence = protocol.FaultOccurrence{First: first, Count: count}
+	}
+}
+
+func WithFaultValue(name string, value Value) FaultOption {
+	return func(intent *FaultIntent) {
+		intent.arguments = append(intent.arguments, protocol.NamedValue{Name: name, Value: value.value})
+	}
 }
 
 func ConfiguredFault(fault protocol.Fault) FaultIntent {
@@ -164,11 +320,12 @@ const (
 )
 
 type actionIntent struct {
-	identifier    string
-	kind          protocol.ActionKind
-	arguments     []protocol.NamedValue
-	responseMode  protocol.ResponseMode
-	maxBlockNanos int64
+	identifier      string
+	kind            protocol.ActionKind
+	allowedOutcomes []protocol.ActionOutcome
+	arguments       []protocol.NamedValue
+	responseMode    protocol.ResponseMode
+	maxBlockNanos   int64
 }
 
 type bindIntent struct {

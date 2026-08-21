@@ -13,6 +13,7 @@ func TestDefaultCatalogOwnsExperimentVocabulary(t *testing.T) {
 	catalog, err := DefaultCatalog()
 	require.NoError(t, err)
 	require.Equal(t, CatalogFormatVersion, catalog.FormatVersion)
+	require.Equal(t, "4.28.0", catalog.LeanVersion)
 
 	action, ok := catalog.Action("schedule-operation")
 	require.True(t, ok)
@@ -159,4 +160,23 @@ func TestEveryCatalogTargetDeclaresIndependentSystemAndRefinement(t *testing.T) 
 		}
 	}
 	require.Empty(t, missing)
+}
+
+func TestDefaultCatalogOwnsNexusProgressFamily(t *testing.T) {
+	catalog, err := DefaultCatalog()
+	require.NoError(t, err)
+
+	var target TargetDeclaration
+	for _, candidate := range catalog.Targets {
+		if candidate.Identifier == "feature-nexus-progress" {
+			target = candidate
+			break
+		}
+	}
+	require.Equal(t, []string{
+		"Temporal.Product.NexusProgress",
+		"Temporal.System.NexusProgress",
+		"Temporal.Refinement.NexusProgress",
+	}, target.Modules)
+	require.Equal(t, []string{"nexus-operation.progress"}, target.Properties)
 }

@@ -122,6 +122,7 @@ def experiment : SemanticExperiment where
   identifier := "nexus-cancellation-stale-completion-v1"
   modelModules := [
     "Temporal.Product.Nexus",
+    "Temporal.System.TaskDelivery",
     "Temporal.System.NexusTasks",
     "Temporal.Refinement.NexusTasks",
   ]
@@ -149,9 +150,13 @@ def experiment : SemanticExperiment where
       preCheckpoint := none, postCheckpoint := none },
     { identifier := "a6", kind := "retry-task", requiredCapabilities := ["nexus-worker-control"],
       preCheckpoint := none, postCheckpoint := none },
-    { identifier := "a7", kind := "worker-returns-success", requiredCapabilities := ["nexus-worker-control"],
+    { identifier := "a7", kind := "worker-returns-success",
+      allowedOutcomes := ["applied", "suppressed", "rejected", "retried", "fault-intercepted"],
+      requiredCapabilities := ["nexus-worker-control"],
       preCheckpoint := none, postCheckpoint := none },
-    { identifier := "a8", kind := "persist-success", requiredCapabilities := ["nexus-observation"],
+    { identifier := "a8", kind := "persist-success",
+      allowedOutcomes := ["applied", "suppressed", "rejected", "retried", "fault-intercepted"],
+      requiredCapabilities := ["nexus-observation"],
       preCheckpoint := some "cancellation-won", postCheckpoint := some "no-stale-success" },
   ]
   policies := [{

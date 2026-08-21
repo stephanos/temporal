@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -15,8 +16,13 @@ import (
 	"slices"
 	"strings"
 
+	"go.temporal.io/server/tests/umpire3/migration"
+	"go.temporal.io/server/tests/umpire3/model-checkers/veil"
+	"go.temporal.io/server/tests/umpire3/mutationaudit"
 	"go.temporal.io/server/tests/umpire3/observation"
 	"go.temporal.io/server/tests/umpire3/protocol"
+	releaseassurance "go.temporal.io/server/tests/umpire3/release"
+	"go.temporal.io/server/tests/umpire3/resilience"
 )
 
 type exportSpec struct {
@@ -49,6 +55,10 @@ var coverageSpec = exportSpec{
 	root: "Umpire3CoverageExport.lean", sourceRoot: "Temporal/Coverage.lean",
 }
 
+var finiteReplaySpec = exportSpec{
+	root: "Umpire3FiniteReplayExport.lean", sourceRoot: "Temporal/Targets/FiniteReplay.lean",
+}
+
 var firstOrderSpecs = map[string]exportSpec{
 	"sound": {
 		root:       "Umpire3NexusFirstOrderExport.lean",
@@ -57,6 +67,35 @@ var firstOrderSpecs = map[string]exportSpec{
 	"mutated": {
 		root:       "Umpire3NexusMutatedFirstOrderExport.lean",
 		sourceRoot: "Temporal/Targets/NexusCancellationFencingFirstOrder.lean",
+	},
+}
+
+var attemptSpecs = map[string]exportSpec{
+	"sound": {
+		root:       "Umpire3NexusAttemptExport.lean",
+		sourceRoot: "Temporal/Targets/NexusCancellationFencingAttempt.lean",
+	},
+	"mutated": {
+		root:       "Umpire3NexusMutatedAttemptExport.lean",
+		sourceRoot: "Temporal/Targets/NexusCancellationFencingAttempt.lean",
+	},
+}
+
+var veilBindingSpecs = map[string]exportSpec{
+	"sound": {
+		root:       "Umpire3NexusVeilBindingExport.lean",
+		sourceRoot: "Temporal/Veil/NexusCancellationFencing/Binding.lean",
+		inputs:     []string{"lake-manifest.json", "lean-toolchain"},
+	},
+	"mutated": {
+		root:       "Umpire3NexusMutatedVeilBindingExport.lean",
+		sourceRoot: "Temporal/Veil/NexusCancellationFencing/MutatedBinding.lean",
+		inputs:     []string{"lake-manifest.json", "lean-toolchain"},
+	},
+	"trusted": {
+		root:       "Umpire3NexusTrustedVeilBindingExport.lean",
+		sourceRoot: "Temporal/Veil/NexusCancellationFencing/TrustedBinding.lean",
+		inputs:     []string{"lake-manifest.json", "lean-toolchain"},
 	},
 }
 
@@ -87,6 +126,14 @@ var proofSpecs = map[string]exportSpec{
 		root: "Umpire3NexusProofExport.lean", sourceRoot: exportSpecs["nexus"].sourceRoot,
 		inputs: exportSpecs["nexus"].inputs,
 	},
+	"nexus-mutation-exact": {
+		root:       "Umpire3NexusExactMutationProofExport.lean",
+		sourceRoot: "Temporal/Mutations/NexusCancellationFencing.lean",
+	},
+	"nexus-mutation-refinement": {
+		root:       "Umpire3NexusMutationRejectionProofExport.lean",
+		sourceRoot: "Temporal/Mutations/NexusCancellationFencing.lean",
+	},
 	"update": {
 		root: "Umpire3UpdateProofExport.lean", sourceRoot: exportSpecs["update"].sourceRoot,
 		inputs: exportSpecs["update"].inputs,
@@ -98,6 +145,38 @@ func main() {
 	artifact := flag.String("artifact", "experiment", "artifact to export")
 	experiment := flag.String("experiment", "nexus", "experiment to export")
 	variant := flag.String("variant", "sound", "model variant to export")
+	releaseTemplate := flag.String("release-template", "tests/umpire3/testdata/umpire3-1.2.json",
+		"candidate release template")
+	releaseExperiments := flag.String("release-experiments",
+		"tests/umpire3/testdata/nexus-cancellation.json,tests/umpire3/testdata/update-lifecycle.json",
+		"comma-separated release experiments")
+	migrationLedger := flag.String("migration-ledger", "tests/umpire3/migration/ledger.json",
+		"release migration ledger")
+	checkerNativeCertificate := flag.String("checker-native-certificate",
+		"tests/umpire3/model-checkers/native/results/nexus-cancellation-scale.certificate.json",
+		"native certificate for checker coverage")
+	checkerNativeReceipt := flag.String("checker-native-receipt",
+		"tests/umpire3/model-checkers/native/results/nexus-cancellation-scale.receipt.json",
+		"native receipt for checker coverage")
+	checkerNativeBenchmark := flag.String("checker-native-benchmark",
+		"tests/umpire3/model-checkers/native/results/nexus-cancellation-scale.benchmark.json",
+		"native scale benchmark for checker coverage")
+	checkerVeilBinding := flag.String("checker-veil-binding",
+		"tests/umpire3/model-checkers/veil/bindings/nexus-cancellation-sound.json",
+		"Veil binding for checker coverage")
+	checkerVeilResults := flag.String("checker-veil-results",
+		"tests/umpire3/model-checkers/veil/results/nexus-cancellation-sound-concrete.json,"+
+			"tests/umpire3/model-checkers/veil/results/nexus-cancellation-sound-symbolic.json,"+
+			"tests/umpire3/model-checkers/veil/results/nexus-cancellation-sound-invariant.json",
+		"comma-separated Veil results for checker coverage")
+	mutationExperiment := flag.String("mutation-experiment",
+		"tests/umpire3/testdata/nexus-cancellation.json", "experiment for the semantic mutation audit")
+	mutationFiniteReplay := flag.String("mutation-finite-replay-command",
+		"tests/umpire3/model/.lake/build/bin/umpire3_trace_replay",
+		"canonical Lean finite replay executable for the semantic mutation audit")
+	mutationTemporalReplay := flag.String("mutation-temporal-replay-command",
+		"tests/umpire3/model/.lake/build/bin/umpire3_temporal_lasso_replay",
+		"canonical Lean temporal replay executable for the semantic mutation audit")
 	output := flag.String("output", "", "optional output path")
 	flag.Parse()
 
@@ -120,6 +199,14 @@ func main() {
 			os.Exit(1)
 		}
 		err = exportProofManifest(*modelRoot, spec, &encoded)
+	case "release-candidate":
+		err = exportReleaseCandidate(*releaseTemplate, strings.Split(*releaseExperiments, ","),
+			*migrationLedger, &encoded)
+	case "resilience-audit":
+		err = exportResilienceAudit(context.Background(), &encoded)
+	case "semantic-mutation-audit":
+		err = exportSemanticMutationAudit(context.Background(), *mutationExperiment,
+			*mutationFiniteReplay, *mutationTemporalReplay, &encoded)
 	case "go-identifiers":
 		var catalog protocol.Catalog
 		catalog, err = protocol.DefaultCatalog()
@@ -144,6 +231,18 @@ func main() {
 		err = exportParityLedger(*modelRoot, paritySpec, &encoded)
 	case "coverage-denominator":
 		err = exportCoverageDenominator(*modelRoot, coverageSpec, &encoded)
+	case "finite-replay-catalog":
+		err = exportFiniteReplayCatalog(*modelRoot, finiteReplaySpec, &encoded)
+	case "checker-coverage":
+		err = exportCheckerCoverage(checkerCoverageInputs{
+			nativeCertificate: *checkerNativeCertificate,
+			nativeReceipt:     *checkerNativeReceipt,
+			nativeBenchmark:   *checkerNativeBenchmark,
+			veilBinding:       *checkerVeilBinding,
+			veilResults:       strings.Split(*checkerVeilResults, ","),
+		}, &encoded)
+	case "family-dependencies":
+		err = exportFamilyDependencies(*modelRoot, &encoded)
 	case "first-order-view":
 		spec, ok := firstOrderSpecs[*variant]
 		if !ok {
@@ -151,6 +250,23 @@ func main() {
 			os.Exit(1)
 		}
 		err = exportFirstOrderView(*modelRoot, spec, &encoded)
+	case "attempt-view":
+		spec, ok := attemptSpecs[*variant]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "unknown attempt variant %q\n", *variant)
+			os.Exit(1)
+		}
+		err = exportAttemptView(*modelRoot, spec, firstOrderSpecs[*variant], *variant, &encoded)
+	case "veil-binding":
+		spec, ok := veilBindingSpecs[*variant]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "unknown Veil binding variant %q\n", *variant)
+			os.Exit(1)
+		}
+		firstOrderVariant := map[string]string{
+			"sound": "sound", "mutated": "mutated", "trusted": "sound",
+		}[*variant]
+		err = exportVeilBinding(*modelRoot, spec, firstOrderSpecs[firstOrderVariant], &encoded)
 	case "temporal-view":
 		spec, ok := temporalSpecs[*variant]
 		if !ok {
@@ -181,6 +297,54 @@ func main() {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("write exported artifact: %w", err))
 		os.Exit(1)
 	}
+}
+
+func exportResilienceAudit(ctx context.Context, writer io.Writer) error {
+	report, err := resilience.RunAudit(ctx)
+	if err != nil {
+		return fmt.Errorf("run resilience audit: %w", err)
+	}
+	encoded, err := report.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write resilience audit: %w", err)
+	}
+	return nil
+}
+
+func exportSemanticMutationAudit(
+	ctx context.Context,
+	experimentPath string,
+	finiteReplayCommand string,
+	temporalReplayCommand string,
+	writer io.Writer,
+) error {
+	experimentBytes, err := os.ReadFile(experimentPath)
+	if err != nil {
+		return fmt.Errorf("read semantic mutation experiment: %w", err)
+	}
+	experiment, err := protocol.DecodeExperiment(bytes.NewReader(experimentBytes), protocol.DefaultDecodeLimit)
+	if err != nil {
+		return fmt.Errorf("decode semantic mutation experiment: %w", err)
+	}
+	report, err := mutationaudit.Run(ctx, mutationaudit.Request{
+		Experiment: experiment, FiniteReplayCommand: []string{finiteReplayCommand},
+		TemporalReplayCommand: []string{temporalReplayCommand},
+	})
+	if err != nil {
+		return fmt.Errorf("run semantic mutation audit: %w", err)
+	}
+	encoded, err := report.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	if _, err := writer.Write(append(encoded, '\n')); err != nil {
+		return fmt.Errorf("write semantic mutation audit: %w", err)
+	}
+	return nil
 }
 
 func exportExperiment(modelRoot string, spec exportSpec, writer io.Writer) error {
@@ -215,6 +379,55 @@ func exportExperiment(modelRoot string, spec exportSpec, writer io.Writer) error
 	encoded = append(encoded, '\n')
 	if _, err := writer.Write(encoded); err != nil {
 		return fmt.Errorf("write canonical experiment: %w", err)
+	}
+	return nil
+}
+
+func exportReleaseCandidate(
+	templatePath string,
+	experimentPaths []string,
+	migrationPath string,
+	writer io.Writer,
+) error {
+	template, err := os.ReadFile(templatePath)
+	if err != nil {
+		return fmt.Errorf("read release template: %w", err)
+	}
+	release, err := protocol.DecodeReleaseManifest(template)
+	if err != nil {
+		return fmt.Errorf("decode release template: %w", err)
+	}
+	experiments := make([]protocol.Experiment, 0, len(experimentPaths))
+	for _, path := range experimentPaths {
+		encoded, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return fmt.Errorf("read release experiment %q: %w", path, readErr)
+		}
+		experiment, decodeErr := protocol.DecodeExperiment(
+			bytes.NewReader(encoded), protocol.DefaultDecodeLimit)
+		if decodeErr != nil {
+			return fmt.Errorf("decode release experiment %q: %w", path, decodeErr)
+		}
+		experiments = append(experiments, experiment)
+	}
+	ledgerBytes, err := os.ReadFile(migrationPath)
+	if err != nil {
+		return fmt.Errorf("read migration ledger: %w", err)
+	}
+	ledger, err := migration.DecodeLedger(ledgerBytes)
+	if err != nil {
+		return err
+	}
+	release, err = releaseassurance.Bind(release, experiments, ledger, ledgerBytes)
+	if err != nil {
+		return fmt.Errorf("bind release manifest: %w", err)
+	}
+	encoded, err := release.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write release manifest: %w", err)
 	}
 	return nil
 }
@@ -272,6 +485,110 @@ func exportFirstOrderView(modelRoot string, spec exportSpec, writer io.Writer) e
 		return fmt.Errorf("write canonical first-order view: %w", err)
 	}
 	return nil
+}
+
+func exportAttemptView(
+	modelRoot string,
+	spec exportSpec,
+	firstOrderSpec exportSpec,
+	variant string,
+	writer io.Writer,
+) error {
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	if err != nil {
+		return err
+	}
+	firstOrderSemanticHash, err := semanticSourceHash(modelRoot, firstOrderSpec)
+	if err != nil {
+		return err
+	}
+	stdout, err := runLeanWithDependency(
+		modelRoot, spec.root, semanticHash, firstOrderSemanticHash, "")
+	if err != nil {
+		return err
+	}
+	view, err := protocol.DecodeAttemptView(bytes.NewReader(stdout), protocol.DefaultDecodeLimit)
+	if err != nil {
+		return fmt.Errorf("validate Lean attempt view: %w", err)
+	}
+	firstOrder, found, err := protocol.DefaultFirstOrderView(protocol.TargetIDNexusCancellation,
+		map[string]string{"sound": "sound", "mutated": "stale-completion-guard-removed"}[variant])
+	if err != nil {
+		return err
+	}
+	if !found {
+		return errors.New("matching first-order view is unavailable")
+	}
+	if view.SemanticHash != semanticHash || view.FirstOrderSemanticHash != firstOrderSemanticHash {
+		return errors.New("Lean attempt view semantic hashes do not match their sources")
+	}
+	if err := view.ValidateAgainst(firstOrder); err != nil {
+		return fmt.Errorf("validate Lean attempt view against first-order view: %w", err)
+	}
+	encoded, err := view.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write canonical attempt view: %w", err)
+	}
+	return nil
+}
+
+func exportVeilBinding(
+	modelRoot string,
+	spec exportSpec,
+	firstOrderSpec exportSpec,
+	writer io.Writer,
+) error {
+	if err := buildLeanTarget(modelRoot, leanModuleName(spec.sourceRoot)); err != nil {
+		return err
+	}
+	sourceDigest, err := semanticSourceHash(modelRoot, spec)
+	if err != nil {
+		return err
+	}
+	firstOrderSemanticHash, err := semanticSourceHash(modelRoot, firstOrderSpec)
+	if err != nil {
+		return err
+	}
+	stdout, err := runLeanWithDependency(
+		modelRoot, spec.root, sourceDigest, firstOrderSemanticHash, "")
+	if err != nil {
+		return err
+	}
+	binding, err := veil.DecodeBindingArtifact(bytes.NewReader(stdout), protocol.DefaultDecodeLimit)
+	if err != nil {
+		return fmt.Errorf("validate Lean Veil binding: %w", err)
+	}
+	if binding.SourceDigest != sourceDigest ||
+		binding.Binding.View.SemanticHash != firstOrderSemanticHash {
+		return errors.New("Lean Veil binding hashes do not match their sources")
+	}
+	encoded, err := binding.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write canonical Veil binding: %w", err)
+	}
+	return nil
+}
+
+func buildLeanTarget(modelRoot string, target string) error {
+	command := exec.Command("mise", "exec", "--", "lake", "build", target)
+	command.Dir = modelRoot
+	output, err := command.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("build Lean target %q: %w: %s", target, err, output)
+	}
+	return nil
+}
+
+func leanModuleName(source string) string {
+	return strings.TrimSuffix(strings.ReplaceAll(source, "/", "."), ".lean")
 }
 
 func exportTemporalView(modelRoot string, spec exportSpec, writer io.Writer) error {
@@ -550,6 +867,42 @@ func exportCoverageDenominator(modelRoot string, spec exportSpec, writer io.Writ
 	encoded = append(encoded, '\n')
 	if _, err := writer.Write(encoded); err != nil {
 		return fmt.Errorf("write canonical coverage denominator: %w", err)
+	}
+	return nil
+}
+
+func exportFiniteReplayCatalog(modelRoot string, spec exportSpec, writer io.Writer) error {
+	semanticHash, err := semanticSourceHash(modelRoot, spec)
+	if err != nil {
+		return err
+	}
+	catalog, err := protocol.DefaultCatalog()
+	if err != nil {
+		return fmt.Errorf("load semantic catalog: %w", err)
+	}
+	catalogHash, err := catalog.Digest()
+	if err != nil {
+		return fmt.Errorf("digest semantic catalog: %w", err)
+	}
+	stdout, err := runLean(modelRoot, spec.root, semanticHash, catalogHash)
+	if err != nil {
+		return err
+	}
+	replayCatalog, err := protocol.DecodeFiniteReplayCatalog(stdout)
+	if err != nil {
+		return fmt.Errorf("validate Lean finite replay catalog: %w", err)
+	}
+	if replayCatalog.SemanticHash != semanticHash {
+		return fmt.Errorf("Lean finite replay semantic hash %q does not match sources %q",
+			replayCatalog.SemanticHash, semanticHash)
+	}
+	encoded, err := replayCatalog.CanonicalJSON()
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if _, err := writer.Write(encoded); err != nil {
+		return fmt.Errorf("write canonical finite replay catalog: %w", err)
 	}
 	return nil
 }

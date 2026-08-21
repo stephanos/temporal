@@ -9,11 +9,13 @@ import Umpire3.Execution
 import Umpire3.ExecutableView
 import Umpire3.FiniteView
 import Umpire3.FirstOrderView
+import Umpire3.FiniteReplayView
 import Umpire3.Certificate
 import Umpire3.Explorer
 import Umpire3.Fault
 import Umpire3.Manifest
 import Umpire3.Monitor
+import Umpire3.Mutation
 import Umpire3.Observation
 import Umpire3.Property
 import Umpire3.ReplicatedSafety

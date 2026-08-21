@@ -10,11 +10,11 @@ import (
 )
 
 func TestPinnedVeilToolchainAndDependencyClosure(t *testing.T) {
-	toolchain, err := os.ReadFile("lean/lean-toolchain")
+	toolchain, err := os.ReadFile("../../model/lean-toolchain")
 	require.NoError(t, err)
 	require.Equal(t, "leanprover/lean4:v4.28.0\n", string(toolchain))
 
-	manifestJSON, err := os.ReadFile("lean/lake-manifest.json")
+	manifestJSON, err := os.ReadFile("../../model/lake-manifest.json")
 	require.NoError(t, err)
 	var manifest struct {
 		Version  string `json:"version"`

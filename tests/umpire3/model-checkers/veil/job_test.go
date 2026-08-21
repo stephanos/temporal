@@ -15,12 +15,11 @@ import (
 
 func TestNormalizeJobReceiptRecordsReconstructedInvariantProof(t *testing.T) {
 	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
-	generated, err := GenerateWithTrust(view, Interactive, ReconstructedSMT)
-	require.NoError(t, err)
-	receipt := testJobReceipt(view, generated, protocol.BackendJobInvariant)
+	binding := readBindingArtifact(t, "nexus-cancellation-sound.json")
+	receipt := testJobReceipt(binding, protocol.BackendJobInvariant)
 	receipt.Axioms = []string{"Classical.choice", "Quot.sound", "propext"}
 
-	result, err := normalizeJobReceipt(view, generated, protocol.BackendJobInvariant,
+	result, err := normalizeJobReceipt(view, binding, protocol.BackendJobInvariant,
 		strings.NewReader(encodeJobReceipt(t, receipt)),
 		protocol.DefaultDecodeLimit)
 	require.NoError(t, err)
@@ -29,17 +28,16 @@ func TestNormalizeJobReceiptRecordsReconstructedInvariantProof(t *testing.T) {
 	require.Equal(t, protocol.BackendTerminationGoalsClosed, result.Termination)
 	require.True(t, result.Exact)
 	require.Equal(t, receipt.Axioms, result.Axioms)
-	require.Equal(t, generated.ModelHash, result.GeneratedArtifactDigest)
+	require.Equal(t, binding.ArtifactDigest, result.GeneratedArtifactDigest)
 	require.NoError(t, result.Validate())
 }
 
 func TestNormalizeJobReceiptRecordsSymbolicSolverTrust(t *testing.T) {
 	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
-	generated, err := GenerateWithTrust(view, Interactive, ReconstructedSMT)
-	require.NoError(t, err)
-	receipt := testJobReceipt(view, generated, protocol.BackendJobSymbolicTrace)
+	binding := readBindingArtifact(t, "nexus-cancellation-sound.json")
+	receipt := testJobReceipt(binding, protocol.BackendJobSymbolicTrace)
 
-	result, err := normalizeJobReceipt(view, generated, protocol.BackendJobSymbolicTrace,
+	result, err := normalizeJobReceipt(view, binding, protocol.BackendJobSymbolicTrace,
 		strings.NewReader(encodeJobReceipt(t, receipt)),
 		protocol.DefaultDecodeLimit)
 	require.NoError(t, err)
@@ -49,27 +47,25 @@ func TestNormalizeJobReceiptRecordsSymbolicSolverTrust(t *testing.T) {
 	require.NoError(t, result.Validate())
 }
 
-func TestNormalizeJobReceiptRejectsGeneratedModelMismatch(t *testing.T) {
+func TestNormalizeJobReceiptRejectsCompiledBindingMismatch(t *testing.T) {
 	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
-	generated, err := GenerateWithTrust(view, Interactive, ReconstructedSMT)
-	require.NoError(t, err)
-	receipt := testJobReceipt(view, generated, protocol.BackendJobInvariant)
-	receipt.GeneratedModelHash = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+	binding := readBindingArtifact(t, "nexus-cancellation-sound.json")
+	receipt := testJobReceipt(binding, protocol.BackendJobInvariant)
+	receipt.Binding.ModuleName = "WrongModule"
 
-	_, err = normalizeJobReceipt(view, generated, protocol.BackendJobInvariant,
+	_, err := normalizeJobReceipt(view, binding, protocol.BackendJobInvariant,
 		strings.NewReader(encodeJobReceipt(t, receipt)),
 		protocol.DefaultDecodeLimit)
-	require.ErrorContains(t, err, "generated Veil module")
+	require.ErrorContains(t, err, "compiled Veil binding")
 }
 
 func TestNormalizeJobReceiptRejectsAdmittedReconstructedInvariant(t *testing.T) {
 	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
-	generated, err := GenerateWithTrust(view, Interactive, ReconstructedSMT)
-	require.NoError(t, err)
-	receipt := testJobReceipt(view, generated, protocol.BackendJobInvariant)
+	binding := readBindingArtifact(t, "nexus-cancellation-sound.json")
+	receipt := testJobReceipt(binding, protocol.BackendJobInvariant)
 	receipt.Axioms = []string{"sorryAx"}
 
-	_, err = normalizeJobReceipt(view, generated, protocol.BackendJobInvariant,
+	_, err := normalizeJobReceipt(view, binding, protocol.BackendJobInvariant,
 		strings.NewReader(encodeJobReceipt(t, receipt)),
 		protocol.DefaultDecodeLimit)
 	require.ErrorContains(t, err, "reconstructed Veil invariant contains sorryAx")
@@ -77,12 +73,11 @@ func TestNormalizeJobReceiptRejectsAdmittedReconstructedInvariant(t *testing.T) 
 
 func TestNormalizeJobReceiptRecordsTrustedInvariantAxioms(t *testing.T) {
 	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
-	generated, err := GenerateWithTrust(view, Interactive, TrustedSMT)
-	require.NoError(t, err)
-	receipt := testJobReceipt(view, generated, protocol.BackendJobInvariant)
+	binding := readBindingArtifact(t, "nexus-cancellation-sound-trusted.json")
+	receipt := testJobReceipt(binding, protocol.BackendJobInvariant)
 	receipt.Axioms = []string{"Classical.choice", "Quot.sound", "propext", "sorryAx"}
 
-	result, err := normalizeJobReceipt(view, generated, protocol.BackendJobInvariant,
+	result, err := normalizeJobReceipt(view, binding, protocol.BackendJobInvariant,
 		strings.NewReader(encodeJobReceipt(t, receipt)),
 		protocol.DefaultDecodeLimit)
 	require.NoError(t, err)
@@ -91,17 +86,18 @@ func TestNormalizeJobReceiptRecordsTrustedInvariantAxioms(t *testing.T) {
 }
 
 func TestRunJobBindsReceiptToCompiledEvidenceAndRequestedJob(t *testing.T) {
-	t.Setenv("UMPIRE3_VEIL_JOB_HELPER", "1")
 	view := readFirstOrderView(t, "nexus-cancellation.first-order.json")
-	generated, err := GenerateWithTrust(view, Interactive, ReconstructedSMT)
-	require.NoError(t, err)
-	receipt := testJobReceipt(view, generated, protocol.BackendJobInvariant)
+	binding := readBindingArtifact(t, "nexus-cancellation-sound.json")
+	receipt := testJobReceipt(binding, protocol.BackendJobInvariant)
 	receipt.Axioms = []string{"Classical.choice", "Quot.sound", "propext"}
-	t.Setenv("UMPIRE3_VEIL_JOB_RECEIPT", encodeJobReceipt(t, receipt))
 
 	result, err := RunJob(context.Background(),
-		[]string{os.Args[0], "-test.run=^TestJobReceiptHelper$", "--"},
-		view, generated, protocol.BackendJobInvariant)
+		explicitTestEnvironment([]string{
+			"UMPIRE3_VEIL_JOB_HELPER=1",
+			"UMPIRE3_VEIL_JOB_RECEIPT=" + encodeJobReceipt(t, receipt),
+			"UMPIRE3_VEIL_JOB_SEMANTIC_HASH=" + view.SemanticHash,
+		}, os.Args[0], "-test.run=^TestJobReceiptHelper$", "--"),
+		view, binding, protocol.BackendJobInvariant)
 	require.NoError(t, err)
 	require.Equal(t, protocol.ResultClassInvariantProved, result.ResultClass)
 	require.Equal(t, protocol.TrustBadgeReconstructedSolverProof, result.TrustBadge)
@@ -112,7 +108,10 @@ func TestJobReceiptHelper(t *testing.T) {
 		return
 	}
 	separator := slices.Index(os.Args, "--")
-	if separator < 0 || !slices.Equal(os.Args[separator+1:], []string{"invariant"}) {
+	if separator < 0 || !slices.Equal(os.Args[separator+1:], []string{
+		os.Getenv("UMPIRE3_VEIL_JOB_SEMANTIC_HASH"),
+		"invariant",
+	}) {
 		//nolint:revive // The subprocess helper reports malformed invocation through its exit status.
 		os.Exit(3)
 	}
@@ -122,24 +121,21 @@ func TestJobReceiptHelper(t *testing.T) {
 }
 
 func testJobReceipt(
-	view protocol.FirstOrderView,
-	generated GeneratedModule,
+	binding BindingArtifact,
 	job protocol.BackendJob,
 ) jobReceipt {
 	receipt := jobReceipt{
 		FormatVersion: veilJobReceiptFormatVersion, BackendRevision: protocol.VeilBackendRevision,
-		ViewFormatVersion: view.FormatVersion, Target: view.Target, Property: view.Property,
-		World: view.World, Variant: view.Variant, SemanticHash: view.SemanticHash,
-		GeneratedModelHash: generated.ModelHash, Job: job, Axioms: []string{},
+		Binding: binding.Binding, Job: job, Axioms: []string{},
 	}
 	switch job {
 	case protocol.BackendJobSymbolicTrace:
 		receipt.Status = protocol.BackendTerminationBoundedSafe
-		receipt.Depth = view.Bounds.SymbolicDepth
+		receipt.Depth = binding.Binding.View.Bounds.SymbolicDepth
 		receipt.TrustBadge = protocol.TrustBadgeTrustedSolver
 	case protocol.BackendJobInvariant:
 		receipt.Status = protocol.BackendTerminationGoalsClosed
-		if generated.TrustMode == ReconstructedSMT {
+		if binding.Binding.TrustMode == ReconstructedSMT {
 			receipt.TrustBadge = protocol.TrustBadgeReconstructedSolverProof
 		} else {
 			receipt.TrustBadge = protocol.TrustBadgeTrustedSolver
@@ -147,7 +143,7 @@ func testJobReceipt(
 	default:
 	}
 	receipt.Options = []string{"grind+smt", "sequential", "smt-trust=false"}
-	if generated.TrustMode == TrustedSMT {
+	if binding.Binding.TrustMode == TrustedSMT {
 		receipt.Options[2] = "smt-trust=true"
 	}
 	return receipt

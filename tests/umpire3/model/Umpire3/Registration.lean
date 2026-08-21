@@ -25,7 +25,7 @@ def rejectForbiddenAxioms (declarationSyntax : Lean.Syntax) (axioms : Array Lean
     Lean.Elab.Term.TermElabM Unit := do
   for declarationAxiom in axioms do
     if declarationAxiom.toString = "sorryAx" || declarationAxiom.toString = "Lean.ofReduceBool" then
-      throwErrorAt declarationSyntax "resolved declaration depends on forbidden axiom {declarationAxiom}"
+      throwErrorAt declarationSyntax "resolved declaration has forbidden dependency {declarationAxiom}"
 
 open Lean Elab Term in
 syntax (name := resolvedTheorem) "resolved_theorem% " ident : term

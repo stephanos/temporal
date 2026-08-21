@@ -18,21 +18,34 @@ type ApprovedMutation struct {
 }
 
 type MutationGateRequest struct {
-	Mutation MutationRequest
-	Approved []ApprovedMutation
-	Executor ExecuteCandidate
+	Mutation       MutationRequest
+	Approved       []ApprovedMutation
+	MaxExecutions  int
+	CorpusCoverage []CoveragePoint
+	RiskFocus      []CoveragePoint
+	Executor       ExecuteCandidate
 }
 
 type MutationGateReport struct {
-	Seed               int64               `json:"seed"`
-	Examined           []string            `json:"examined"`
-	Discovered         ApprovedMutation    `json:"discovered"`
-	OriginalDigest     string              `json:"originalDigest"`
-	Minimized          protocol.Experiment `json:"minimized"`
-	MinimizedDigest    string              `json:"minimizedDigest"`
-	ReplayBundleDigest string              `json:"replayBundleDigest"`
-	Replay             replay.Report       `json:"replay"`
-	PromotionSource    string              `json:"promotionSource"`
+	FormatVersion      string               `json:"formatVersion"`
+	ResultClass        protocol.ResultClass `json:"resultClass"`
+	TrustBadge         protocol.TrustBadge  `json:"trustBadge"`
+	SourceDigest       string               `json:"sourceDigest"`
+	ArtifactDigest     string               `json:"artifactDigest"`
+	Seed               int64                `json:"seed"`
+	ExecutionBudget    int                  `json:"executionBudget"`
+	CandidateCount     int                  `json:"candidateCount"`
+	BudgetDrops        int                  `json:"budgetDrops"`
+	CoverageBefore     []CoveragePoint      `json:"coverageBefore"`
+	CoverageDelta      []CoveragePoint      `json:"coverageDelta"`
+	Examined           []string             `json:"examined"`
+	Discovered         ApprovedMutation     `json:"discovered"`
+	OriginalDigest     string               `json:"originalDigest"`
+	Minimized          protocol.Experiment  `json:"minimized"`
+	MinimizedDigest    string               `json:"minimizedDigest"`
+	ReplayBundleDigest string               `json:"replayBundleDigest"`
+	Replay             replay.Report        `json:"replay"`
+	PromotionSource    string               `json:"promotionSource"`
 }
 
 func RunMutationGate(ctx context.Context, request MutationGateRequest) (MutationGateReport, error) {
@@ -50,9 +63,14 @@ func RunMutationGate(ctx context.Context, request MutationGateRequest) (Mutation
 		}
 		approved[key] = mutation
 	}
+	executionBudget := request.MaxExecutions
+	if executionBudget == 0 {
+		executionBudget = request.Mutation.MaxCandidates
+	}
 	canonical, err := Run(ctx, Request{
-		Mutation: &request.Mutation, Workers: 1, MaxExecutions: request.Mutation.MaxCandidates,
+		Mutation: &request.Mutation, Workers: 1, MaxExecutions: executionBudget,
 		MinimizeAttempts: max(64, request.Mutation.MaxCandidates*16),
+		CorpusCoverage:   request.CorpusCoverage, RiskFocus: request.RiskFocus,
 		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []CoveragePoint, error) {
 			result, err := request.Executor(ctx, experiment)
 			return result, nil, err
@@ -61,9 +79,22 @@ func RunMutationGate(ctx context.Context, request MutationGateRequest) (Mutation
 	if err != nil {
 		return MutationGateReport{}, err
 	}
-	report := MutationGateReport{Seed: request.Mutation.Seed}
+	report := MutationGateReport{
+		Seed: request.Mutation.Seed, ExecutionBudget: executionBudget,
+		CoverageBefore: canonical.CoverageBefore, CoverageDelta: canonical.CoverageDelta,
+	}
+	if canonical.Mutation != nil {
+		report.CandidateCount = len(canonical.Mutation.Selected)
+	}
+	for _, dropped := range canonical.Dropped {
+		if dropped.Reason == DropBudget {
+			report.BudgetDrops++
+		}
+	}
 	for _, execution := range canonical.Executions {
-		report.Examined = append(report.Examined, string(execution.Mutation)+":"+execution.Path)
+		report.Examined = append(report.Examined, mutationGateCandidateIdentity(execution))
+	}
+	for _, execution := range canonical.Executions {
 		if execution.Result.Claim.Kind != umpire3runtime.ClaimViolating {
 			continue
 		}
@@ -95,10 +126,14 @@ func RunMutationGate(ctx context.Context, request MutationGateRequest) (Mutation
 		report.ReplayBundleDigest = discovery.BundleDigest
 		report.Replay = discovery.Replay
 		report.PromotionSource = discovery.Promotion.Source
-		return report, nil
+		return sealMutationGateReport(report, request.Mutation.Experiment)
 	}
 	if len(report.Examined) == 0 {
 		return MutationGateReport{}, errors.New("campaign did not discover an approved cross-layer mutation")
 	}
 	return MutationGateReport{}, errors.New("campaign did not discover an approved cross-layer mutation")
+}
+
+func mutationGateCandidateIdentity(execution Execution) string {
+	return string(execution.Mutation) + ":" + execution.Path + "@" + execution.Digest
 }

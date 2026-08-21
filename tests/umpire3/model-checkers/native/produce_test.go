@@ -98,6 +98,42 @@ func TestResourceLimitPublishesLastCompleteCheckpoint(t *testing.T) {
 	require.Equal(t, -1, checkpoint.CompletedDepth)
 }
 
+func TestCounterexampleRequiresMatchingCanonicalReplayBeforeNormalization(t *testing.T) {
+	t.Parallel()
+
+	view, found, err := protocol.DefaultFirstOrderView(
+		protocol.TargetIDNexusCancellation, "stale-completion-guard-removed")
+	require.NoError(t, err)
+	require.True(t, found)
+	_, err = Produce(context.Background(), view, testOptions(2), nil)
+	var counterexample *CounterexampleError
+	require.ErrorAs(t, err, &counterexample)
+	input := protocol.TraceReplayInput{
+		FormatVersion: protocol.TraceReplayInputFormatVersion,
+		Target:        view.Target, Property: view.Property, World: view.World,
+		Variant: view.Variant, SemanticHash: view.SemanticHash,
+		Actions: append([]protocol.ActionKind{}, counterexample.Actions...),
+	}
+	digest, err := input.Digest()
+	require.NoError(t, err)
+	receipt := protocol.TraceReplayReceipt{
+		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
+		TraceDigest:   digest, Target: input.Target, Property: input.Property,
+		World: input.World, Variant: input.Variant, SemanticHash: input.SemanticHash,
+		Actions: input.Actions, Status: protocol.TraceReplayAccepted,
+		TrustBadge: protocol.TrustBadgeCheckedCertificate, Axioms: []string{},
+	}
+
+	trace, err := NormalizeCounterexample(view, counterexample, receipt)
+	require.NoError(t, err)
+	require.Equal(t, protocol.SemanticTraceProducerNative, trace.Producer)
+	require.Len(t, trace.Steps, len(counterexample.Actions))
+
+	receipt.Actions[0] = protocol.ActionKindRequestCancellation
+	_, err = NormalizeCounterexample(view, counterexample, receipt)
+	require.Error(t, err)
+}
+
 func BenchmarkParallelProducerTenReplicas(b *testing.B) {
 	view, found, err := protocol.DefaultFirstOrderView(protocol.TargetIDNexusCancellation, "sound")
 	require.NoError(b, err)

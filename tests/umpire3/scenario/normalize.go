@@ -8,14 +8,15 @@ import (
 )
 
 type normalizedAction struct {
-	identifier    string
-	kind          protocol.ActionKind
-	arguments     []protocol.NamedValue
-	bindings      []protocol.Binding
-	source        Source
-	generated     bool
-	responseMode  protocol.ResponseMode
-	maxBlockNanos int64
+	identifier      string
+	kind            protocol.ActionKind
+	allowedOutcomes []protocol.ActionOutcome
+	arguments       []protocol.NamedValue
+	bindings        []protocol.Binding
+	source          Source
+	generated       bool
+	responseMode    protocol.ResponseMode
+	maxBlockNanos   int64
 }
 
 type normalizedFault struct {
@@ -23,6 +24,8 @@ type normalizedFault struct {
 	kind       protocol.FaultKind
 	policy     string
 	arguments  []protocol.NamedValue
+	scope      protocol.FaultScope
+	occurrence protocol.FaultOccurrence
 	configured *protocol.Fault
 }
 
@@ -77,12 +80,13 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 	case nodeAction:
 		identifier := node.action.identifier + suffix
 		action := &normalizedAction{
-			identifier:    identifier,
-			kind:          node.action.kind,
-			arguments:     append([]protocol.NamedValue(nil), node.action.arguments...),
-			source:        node.source,
-			responseMode:  node.action.responseMode,
-			maxBlockNanos: node.action.maxBlockNanos,
+			identifier:      identifier,
+			kind:            node.action.kind,
+			allowedOutcomes: append([]protocol.ActionOutcome(nil), node.action.allowedOutcomes...),
+			arguments:       append([]protocol.NamedValue(nil), node.action.arguments...),
+			source:          node.source,
+			responseMode:    node.action.responseMode,
+			maxBlockNanos:   node.action.maxBlockNanos,
 		}
 		plan.actions = append(plan.actions, action)
 		return normalizedGroup{entries: []string{identifier}, exits: []string{identifier}, actions: []string{identifier}}, nil
@@ -136,6 +140,8 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 			kind:       node.fault.kind,
 			policy:     policyID,
 			arguments:  append([]protocol.NamedValue(nil), node.fault.arguments...),
+			scope:      cloneFaultScope(node.fault.scope),
+			occurrence: node.fault.occurrence,
 			configured: node.fault.configured,
 		})
 		return group, nil
@@ -168,6 +174,17 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 	default:
 		return normalizedGroup{}, compileError(ErrorInvalidIntent, node.source, "unknown scenario term")
 	}
+}
+
+func cloneFaultScope(scope protocol.FaultScope) protocol.FaultScope {
+	scope.Resources = append([]string(nil), scope.Resources...)
+	scope.Endpoints = append([]string(nil), scope.Endpoints...)
+	scope.TaskQueues = append([]string(nil), scope.TaskQueues...)
+	scope.Services = append([]string(nil), scope.Services...)
+	scope.Routes = append([]string(nil), scope.Routes...)
+	scope.Participants = append([]string(nil), scope.Participants...)
+	scope.Attempts = append([]int(nil), scope.Attempts...)
+	return scope
 }
 
 func normalizeSequence(children []Term, plan *normalizedPlan, suffix string) (normalizedGroup, error) {

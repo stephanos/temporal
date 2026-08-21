@@ -178,7 +178,7 @@ private def FirstOrderTerm.toJson : FirstOrderTerm → Lean.Json
       ("value", identifier),
     ]
 
-private partial def FirstOrderFormula.toJson : FirstOrderFormula → Lean.Json
+partial def FirstOrderFormula.toJson : FirstOrderFormula → Lean.Json
   | .truth => Lean.Json.mkObj [("kind", "true")]
   | .equal left right => Lean.Json.mkObj [
       ("kind", "equal"),

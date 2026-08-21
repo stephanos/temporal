@@ -64,6 +64,9 @@ func TestCompileCarriesParticipantResponseSemanticsIntoExperiment(t *testing.T) 
 	}, Limits{MaxPaths: 1, MaxActions: 1, MaxStates: 4, MaxMemoryBytes: 1 << 20, MaxTime: time.Second})
 	require.NoError(t, err)
 	require.Equal(t, protocol.ResponseDeferred, suite.Experiments[0].Actions[0].ResponseMode)
+	require.Equal(t, ModelReplayChecked, suite.Explain.ModelReplay.Status)
+	require.Equal(t, "Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.behavior",
+		suite.Explain.ModelReplay.CanonicalModel)
 }
 
 func TestCompileAllPathsEnumeratesOnlyValidLinearizations(t *testing.T) {
@@ -217,7 +220,8 @@ func TestCompileRejectsPathThatCanonicalModelCannotExecute(t *testing.T) {
 			Action("commit", protocol.ActionKindCommitCancellation),
 			Action("ownership", protocol.ActionKindAcquireOwnership),
 			Action("returned", protocol.ActionKindWorkerReturnsSuccess),
-			Action("persist", protocol.ActionKindPersistSuccess),
+			Action("persist", protocol.ActionKindPersistSuccess,
+				WithOutcomes(protocol.ActionOutcomeApplied)),
 			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}
@@ -228,6 +232,44 @@ func TestCompileRejectsPathThatCanonicalModelCannotExecute(t *testing.T) {
 	var compileErr *Error
 	require.ErrorAs(t, err, &compileErr)
 	require.Equal(t, ErrorSemanticallyImpossible, compileErr.Category)
+}
+
+func TestCompilePreservesSuppressedAttemptWithoutApplyingAbstractTransition(t *testing.T) {
+	t.Parallel()
+
+	authored := Scenario{
+		Identifier: "suppressed-stale-success",
+		Target:     protocol.TargetIDNexusCancellation,
+		Resources: []Resource{
+			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+		},
+		Root: OnePath(
+			Action("schedule", protocol.ActionKindScheduleOperation),
+			Action("dispatch", protocol.ActionKindDispatchTask),
+			Action("cancel", protocol.ActionKindRequestCancellation),
+			Action("commit", protocol.ActionKindCommitCancellation),
+			Action("ownership", protocol.ActionKindAcquireOwnership),
+			Action("returned", protocol.ActionKindWorkerReturnsSuccess),
+			Action("persist", protocol.ActionKindPersistSuccess),
+			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+		),
+	}
+
+	suite, err := Compile(context.Background(), authored, Limits{
+		MaxPaths: 1, MaxActions: 16, MaxStates: 64, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
+	})
+	require.NoError(t, err)
+	require.Equal(t, ModelReplayChecked, suite.Explain.ModelReplay.Status)
+	require.Equal(t, "sound", suite.Explain.ModelReplay.Variant)
+	persist := suite.Experiments[0].Actions[len(suite.Experiments[0].Actions)-1]
+	require.Equal(t, []protocol.ActionOutcome{
+		protocol.ActionOutcomeApplied,
+		protocol.ActionOutcomeSuppressed,
+		protocol.ActionOutcomeRejected,
+		protocol.ActionOutcomeRetried,
+		protocol.ActionOutcomeFaultIntercepted,
+	}, persist.AllowedOutcomes)
 }
 
 func TestCompileReplaysFaultChallengeThroughMutatedExecutableView(t *testing.T) {
