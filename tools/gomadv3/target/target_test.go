@@ -41,7 +41,7 @@ func TestProjectBuildInfoCanonicalizesModuleAndSettings(t *testing.T) {
 func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 	module := writeModule(t, map[string]string{
 		"go.mod":  "module example.com/target\n\ngo 1.26.4\n",
-		"main.go": "package main\nimport (\"fmt\"; \"os\")\nfunc main() { fmt.Println(os.Getenv(\"GOMADSEED\"), os.Args[1]) }\n",
+		"main.go": "package main\nimport (\"fmt\"; \"os\")\nfunc main() { fmt.Println(os.Args[1], os.Args[2]) }\n",
 	})
 	prepared, err := Prepare(context.Background(), Spec{
 		Kind:            KindGoRun,
@@ -75,14 +75,14 @@ func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, seed := range []string{"1", "2"} {
-		command := exec.Command(prepared.Path, prepared.Argv[1:]...)
+		command := exec.Command(prepared.Path, append(prepared.Argv[1:], seed)...)
 		command.Args[0] = prepared.Argv[0]
 		command.Env = []string{"GOMADSEED=" + seed, "TZ=UTC"}
 		output, runErr := command.CombinedOutput()
 		if runErr != nil {
 			t.Fatalf("run seed %s: %v: %s", seed, runErr, output)
 		}
-		if got, want := string(output), seed+" argument\n"; got != want {
+		if got, want := string(output), "argument "+seed+"\n"; got != want {
 			t.Fatalf("seed %s output = %q, want %q", seed, got, want)
 		}
 	}
@@ -201,13 +201,13 @@ func TestPrepareGoTestPreservesExplicitTestDependencyTag(t *testing.T) {
 package targettest
 
 import (
-	"os"
+	"flag"
 	"testing"
 )
 
 func TestTagged(t *testing.T) {
-	if got := os.Getenv("GOMADSEED"); got != "9" {
-		t.Fatalf("seed = %q", got)
+	if got := flag.Arg(0); got != "9" {
+		t.Fatalf("argument = %q", got)
 	}
 }
 `,
@@ -215,7 +215,7 @@ func TestTagged(t *testing.T) {
 	prepared, err := Prepare(context.Background(), Spec{
 		Kind:            KindGoTest,
 		Source:          ".",
-		Args:            []string{"-test.run=TestTagged", "-test.count=1"},
+		Args:            []string{"-test.run=TestTagged", "-test.count=1", "--", "9"},
 		BuildTags:       []string{"gomad_fixture"},
 		WorkingDir:      module,
 		PreparationRoot: t.TempDir(),

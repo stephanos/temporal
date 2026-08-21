@@ -75,11 +75,13 @@ func TestValidateCapabilityClosureRejectsLinkname(t *testing.T) {
 }
 
 func TestValidateCapabilityClosureRejectsUnapprovedReflect2ForeignSources(t *testing.T) {
+	reflect2Package := pinnedReflect2ListedPackage(t)
+	reflect2Package.SFiles = append(reflect2Package.SFiles, "unexpected_arm64.s")
 	packages := []listedPackage{
 		{ImportPath: "example.com/main", Name: "main", Standard: true},
-		pinnedReflect2ListedPackage(t),
+		reflect2Package,
 	}
-	if err := validateCapabilityClosure(packages); err == nil || !strings.Contains(err.Error(), "relfect2_arm64.s") {
+	if err := validateCapabilityClosure(packages); err == nil || !strings.Contains(err.Error(), "unexpected_arm64.s") {
 		t.Fatalf("validateCapabilityClosure() error = %v", err)
 	}
 }

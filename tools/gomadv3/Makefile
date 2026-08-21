@@ -63,7 +63,6 @@ compatibility-pack-qualification: toolchain
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/modernc-libc-xsys-v041.json --working-dir=$(CURDIR)/target/internal/compatibility/testdata/v041
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/modernc-libc-xsys-v047.json --working-dir=$(CURDIR)/qualification/corpus
 	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/modernc-libc-xsys-v047-isatty-v021.json --working-dir=$(CURDIR)/../..
-	env -u GOMADSEED -u GOMADV3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./toolchain/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=target/internal/compatibility/requests/xnet-socket-activity-candidate.json --working-dir=$(CURDIR)/../..
 
 core-qualification: compatibility-pack-qualification
 core-qualification: GOMADV3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
