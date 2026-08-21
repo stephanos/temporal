@@ -48,6 +48,18 @@ Compatibility analysis and qualification reporting v1 are implemented through `g
 
 The eleven unsupported Temporal cases are useful blocker evidence, not support. Full runner qualification remains limited to Go 1.26.4 on `darwin/arm64`. PROD-1, PROD-2, and the static-seed filesystem slice of PROD-4 are implemented: campaigns have an explicit crash-consistent lifecycle, bounded segmented journals, portable prepared-target and mount bundles, deterministic ordinal shards, and identity-checking aggregate merge. The distributed-system simulation parity contract, application harness, and SIM-1 through SIM-5 are implemented. Logical nodes now have exact lifecycle, network, storage, fault, scenario, history, observation, oracle, output, and terminal replay; modeled partition/restart and partial-persistence nemeses; bounded inspection; stable failure identities; and a representative Temporal duplicate-delivery failure reproduction. The process backend adds bounded private bootstrap and model IPC, host-owned time arbitration, fresh package initialization, hard crash/reap, and cross-backend detached-model conformance.
 
+The immediate compatibility gate is one real local functional test under
+`tests/`. `tests/gomadfunctional.TestFrontendSystemInfo` now starts the normal
+one-box harness and completes a frontend RPC under the ordinary Go toolchain.
+Gomad closure and linked analysis still reject its 1,653-package target because
+`tests/testcore` and the server composition compile optional process, signal,
+telemetry, cloud-archiver, Elasticsearch, Cassandra, SDK, and worker-provider
+paths into the same package graph. The next compatibility work is therefore a
+small local-only SQLite/static-membership harness and dependency separation,
+not another broad I/O model. AWS, GCP, Kubernetes control planes, their
+credential discovery, and external-service emulation are explicit non-goals
+for this gate.
+
 ## Recommended order
 
 ### Milestone 0: restore the contract — complete
@@ -67,13 +79,13 @@ These are now the evidence sources for controlled exploration, compatibility pri
 
 [BUG-4](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) is implemented as the durable bounded choice-frontier strategy. The pinned equal-budget comparison currently shows no outcome-efficiency advantage over seed sampling, so BUG-5 and later search refinements remain gated on stronger benchmark evidence rather than being added speculatively.
 
-Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode, but the remaining evaluated candidates retain real assembly, linkname, `syscall`, or forbidden-import blockers; closure review remains the default. Rank the remaining eleven blockers before selecting another exact adapter or I/O model, then add composed tier-3 scenarios from the expanded supported set.
+Continue [COMPAT-3](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) by using the sixteen-workload Temporal tier-2 corpus to rank exact compatibility packs and adapters by workloads unlocked. [COMPAT-4](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) is implemented with a v2-only exact-source contract, exact-digest approval, generated changed-version/source rejection tests, and independent qualification. The first evidence-ranked [COMPAT-5](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) slice is complete: an exact `google.golang.org/grpc@v1.80.0` adapter removes the meaningless host keepalive callback from Gomad's virtual TCP path, and `temporal-backoff-overflow` now executes and exactly replays in closure mode. The baseline is 5/16 with no generic exemption or host fallback. [COMPAT-6](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) has an experimental compiler/linker-backed mode and now accepts an explicit bounded analysis timeout for large targets, but the remaining evaluated candidates retain real assembly, linkname, `syscall`, or forbidden-import blockers; closure review remains the default. Prioritize the isolated local functional harness above generic packs: remove optional external-service providers from its package graph, then model or approve only boundaries still reached by that local workload.
 
 For simulation, [SIM-0](GOMADv3_NEXT_SIM.md#sim-0-restore-trust-and-define-the-parity-contract) through [SIM-5](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) are complete. The canonical v2 behavioral-parity manifest names thirteen implemented v3 cases with sixteen declared in-process and process prototypes. Runtime domains bind every modeled network and volume operation to an exact incarnation; lifecycle, terminal, transition, fault, scenario, history, observation, oracle, and final model state replay exactly. The process tier provides the fresh-global and hard-isolation evidence that the in-process tier intentionally cannot claim.
 
 ### Milestone 3: reduce failures and make campaigns durable
 
-[PROD-1](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) and [PROD-2](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) are complete: the store owns explicit lifecycle and locked recovery, while new batch-plan v5 and batch v3/v4 records bind immutable bounded segments, partial-run and artifact ceilings, and typed capacity outcomes. Historical batch v1/v2 and interrupted plan v1-v4 readers remain covered. Add [BUG-5](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) only when the neutral BUG-4 benchmark gate is satisfied.
+[PROD-1](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-1-crash-consistent-batch-store) and [PROD-2](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-2-segmented-bounded-journals) are complete: the store owns explicit lifecycle and locked recovery, while new batch-plan v5 and batch v3/v4 records bind immutable bounded segments, partial-run and artifact ceilings, and typed capacity outcomes. Historical batch v1/v2 and interrupted plan v1-v4 readers remain covered. The first [BUG-5](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) slice is implemented for exact combined simulation failures: `gomad minimize` runs bounded fresh-process suffix, forced-range, and fault-entry reductions, preserves exact choice/simulation replay and normalized failure identity, keeps the parent immutable, and publishes inspectable lineage. Durable minimizer checkpoint/resume and typed scenario shrinkers remain before BUG-5 is complete.
 
 The static-seed filesystem slice of [PROD-4](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-4-deterministic-campaign-plans-sharding-and-merge) is complete. Canonical plans capture verified targets and bounded read-only inputs, zero-based ordinal-modulo shards retain global ordinals, and merge validates exact plan identity, completeness, content deduplication, and capacity before publishing a new aggregate. Dynamic choice-frontier sharding remains gated on a round coordinator because prefixes are discovered by prior executions. The initial [PROD-8](GOMADv3_NEXT_PRODUCTIONIZATION.md#prod-8-resource-control-and-performance) slice enforces journal, simultaneous partial-run, artifact, and merge capacities with explicit infrastructure outcomes.
 
@@ -101,7 +113,7 @@ Complete [COMPAT-8](GOMADv3_NEXT_COMPATIBILITY.md#compat-8-dependency-and-go-upg
 
 ### Milestone 6: integrate simulation exploration and expand by evidence
 
-Complete [SIM-6](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) by combining runtime-choice, scenario, network, storage, crash-state, and fault tapes behind one bounded frontier. Resume must preserve remaining work without rediscovery; semantic deduplication and minimization must retain the exact schedule-plus-fault failure identity.
+Complete [SIM-6](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration). Runtime-choice, scenario, network, storage, crash-state, and fault decisions now share one bounded, round-atomic frontier with exact artifact projection, resume without committed-candidate rediscovery, evidence-only semantic deduplication, and bounded schedule-plus-fault minimization. Remaining exit work is a checked controlled-versus-seed benchmark for the combined frontier and crash-resumable minimizer state.
 
 Complete [SIM-7](GOMADv3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) by running the Temporal corpus to rank beyond-v2 simulation gaps by workloads unlocked. Add only the smallest deep model justified by named consumers, with a semantic contract, host-escape canary, exact replay, capacity and failure tests, and performance evidence. Do not pursue UDP, DNS, routing, corruption, resource-pressure, or external-service breadth for API-count parity.
 
@@ -121,7 +133,7 @@ The tables below account for every named capability and delivery stage in the fo
 | [BUG-2: Choice coverage and feedback](GOMADv3_NEXT_BUG_FINDING.md#bug-2-choice-coverage-and-feedback) | Implemented | Milestone 1 |
 | [BUG-3: Exact choice-tape replay](GOMADv3_NEXT_BUG_FINDING.md#bug-3-exact-choice-tape-replay) | Implemented | Milestone 1 |
 | [BUG-4: Bounded alternative-prefix exploration](GOMADv3_NEXT_BUG_FINDING.md#bug-4-bounded-alternative-prefix-exploration) | Implemented; pinned equal-budget comparison is neutral | Milestone 2 |
-| [BUG-5: Failure minimization](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) | Planned | Milestone 3 |
+| [BUG-5: Failure minimization](GOMADv3_NEXT_BUG_FINDING.md#bug-5-failure-minimization) | Exact combined-failure reducer implemented; durable minimizer resume and typed scenario shrinkers remain | Milestone 3 |
 | [BUG-6: Deterministic fault plans](GOMADv3_NEXT_BUG_FINDING.md#bug-6-deterministic-fault-plans) | Planned | Milestone 4 |
 | [BUG-7: Later research extensions](GOMADv3_NEXT_BUG_FINDING.md#bug-7-later-research-extensions) | Deferred pending evidence | Milestone 7 |
 
@@ -131,7 +143,7 @@ The tables below account for every named capability and delivery stage in the fo
 | --- | --- | --- |
 | [COMPAT-1: `gomad analyze`](GOMADv3_NEXT_COMPATIBILITY.md#compat-1-gomad-analyze) | Implemented | Milestone 1 |
 | [COMPAT-2: Unambiguous support matrices](GOMADv3_NEXT_COMPATIBILITY.md#compat-2-unambiguous-support-matrices) | Implemented | Milestone 1 |
-| [COMPAT-3: Tiered Temporal corpus](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) | Tier 1 and tier 2 implemented; tier 3 planned | Milestones 1–2 |
+| [COMPAT-3: Tiered Temporal corpus](GOMADv3_NEXT_COMPATIBILITY.md#compat-3-tiered-temporal-corpus) | Tier 1 and tier 2 implemented; native local functional probe added, Gomad local-harness gate remains | Milestones 1–2 |
 | [COMPAT-4: Compatibility-pack development kit](GOMADv3_NEXT_COMPATIBILITY.md#compat-4-compatibility-pack-development-kit) | Implemented with v2-only exact-source packs and exact-digest approval | Milestone 2 |
 | [COMPAT-5: Targeted deterministic adapters and I/O models](GOMADv3_NEXT_COMPATIBILITY.md#compat-5-targeted-deterministic-adapters-and-io-models) | Evidence-driven | Milestones 2 and 4 |
 | [COMPAT-6: Safer handling of transitive forbidden dependencies](GOMADv3_NEXT_COMPATIBILITY.md#compat-6-safer-handling-of-transitive-forbidden-dependencies) | Experimental linked mode implemented; real-workload exit criterion unmet, closure remains default | Milestone 2 |
@@ -162,7 +174,7 @@ The tables below account for every named capability and delivery stage in the fo
 | [SIM-3: Durable volume parity](GOMADv3_NEXT_SIM.md#sim-3-durable-volume-parity) | Implemented; in-process durability fidelity only | Milestone 4 |
 | [SIM-4: Scenarios, nemeses, records, and oracles](GOMADv3_NEXT_SIM.md#sim-4-scenarios-nemeses-records-and-oracles) | Implemented; in-process typed faults, scenarios, histories, oracles, artifacts, and Temporal failure replay | Milestone 4 |
 | [SIM-5: Process-backed fidelity tier](GOMADv3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier) | Implemented; bounded process launch, model/time IPC, hard isolation, and cross-backend conformance | Milestone 5 |
-| [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | Designed; next simulation stage | Milestone 6 |
+| [SIM-6: Controlled schedule and fault exploration](GOMADv3_NEXT_SIM.md#sim-6-controlled-schedule-and-fault-exploration) | Combined frontier, durable rounds, exact evidence, semantic deduplication, and first minimizer slice implemented; benchmark and minimizer-resume gates remain | Milestone 6 |
 | [SIM-7: Evidence-driven expansion beyond v2](GOMADv3_NEXT_SIM.md#sim-7-evidence-driven-expansion-beyond-v2) | Designed, after measurable parity | Milestone 6 |
 
 The simulation track also carries the adjacent v2 obligations explicitly: same-seed equality and different-seed diversity remain qualification requirements; typed choice/model records replace opaque trace checksums; only the process-backed tier can provide fresh globals and hard cleanup; output remains node/incarnation-aware while preserving Go-test presentation; and race detection remains a separate non-Gomad profile rather than an implied single-P capability.

@@ -17,6 +17,7 @@ import (
 
 const capabilityAnalysisTimeout = 30 * time.Second
 const linkedCapabilityAnalysisTimeout = 2 * time.Minute
+const maximumCapabilityAnalysisTimeout = 30 * time.Minute
 
 type analyzeDependencies struct {
 	toolchain        func(string) (string, error)
@@ -33,6 +34,7 @@ type analyzeArguments struct {
 	toolchainRoot  string
 	buildTags      []string
 	capabilityMode target.CapabilityMode
+	timeout        time.Duration
 	target         targetInput
 }
 
@@ -77,7 +79,7 @@ func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies a
 	if status != 0 {
 		return status
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), capabilityAnalysisTimeoutForMode(parsed.capabilityMode))
+	ctx, cancel := context.WithTimeout(context.Background(), parsed.timeout)
 	defer cancel()
 	return executeAnalysis(ctx, stdout, stderr, parsed.format, spec, identity, dependencies)
 }
@@ -89,12 +91,23 @@ func capabilityAnalysisTimeoutForMode(mode target.CapabilityMode) time.Duration 
 	return capabilityAnalysisTimeout
 }
 
+func resolveCapabilityAnalysisTimeout(mode target.CapabilityMode, requested time.Duration) (time.Duration, error) {
+	if requested < 0 || requested > maximumCapabilityAnalysisTimeout {
+		return 0, fmt.Errorf("analysis timeout must be non-negative and no greater than %s", maximumCapabilityAnalysisTimeout)
+	}
+	if requested == 0 {
+		return capabilityAnalysisTimeoutForMode(mode), nil
+	}
+	return requested, nil
+}
+
 func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArguments, int) {
 	flags := flag.NewFlagSet("gomad analyze", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	format := flags.String("format", "text", "text or json")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
+	timeout := flags.Duration("timeout", 0, "analysis wall-time bound")
 	var buildTags stringList
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
 	if err := flags.Parse(arguments); err != nil {
@@ -107,6 +120,10 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	if err != nil {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "%v\n", err)
 	}
+	resolvedTimeout, err := resolveCapabilityAnalysisTimeout(mode, *timeout)
+	if err != nil {
+		return analyzeArguments{}, writeCommandError(stderr, 2, "%v\n", err)
+	}
 	parsed, err := parseTarget(flags.Args())
 	if err != nil {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "%v\n", err)
@@ -114,7 +131,7 @@ func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArgumen
 	if parsed.kind == target.KindExec {
 		return analyzeArguments{}, writeCommandError(stderr, 2, "gomad analyze requires a go-run or go-test target\n")
 	}
-	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, buildTags: buildTags, capabilityMode: mode, target: parsed}, 0
+	return analyzeArguments{format: *format, toolchainRoot: *toolchainRoot, buildTags: buildTags, capabilityMode: mode, timeout: resolvedTimeout, target: parsed}, 0
 }
 
 func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencies analyzeDependencies) (target.Spec, target.ToolchainIdentity, int) {

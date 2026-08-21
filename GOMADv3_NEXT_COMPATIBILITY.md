@@ -90,6 +90,30 @@ Select pure-Go, single-process tests from high-value areas such as workflow stat
 
 Build purpose-specific harnesses that compose several Temporal components using explicit deterministic adapters. Keep external services out of process. These scenarios should exercise cancellation, timeout, duplicate delivery, retry, and shutdown interactions under controlled schedules and faults.
 
+The first functional gate is `tests/gomadfunctional.TestFrontendSystemInfo`.
+It starts the existing local one-box cluster and completes a frontend system-info
+RPC under the ordinary Go toolchain with `test_dep,disable_grpc_modules`.
+Gomad closure and linked analysis currently reject the target because importing
+`tests/testcore` retains 1,653 packages, including optional configuration,
+telemetry, SDK, archiver, Elasticsearch, Cassandra, worker-provider, signal,
+DNS, interface, foreign-assembly, and linkname boundaries.
+
+Clear that gate in this order:
+
+1. Extract a deep local functional harness that owns only SQLite persistence,
+   static membership, the required services, and deterministic loopback gRPC.
+2. Move command-only signal handling and optional external-service/provider
+   wiring out of packages imported by that harness; inject optional providers
+   at the application boundary.
+3. Re-run closure and linked analysis, then add exact packs or deterministic
+   operations only for boundaries the local harness still reaches.
+4. Run the functional probe through `gomad qualify` with exact successful
+   replay before adding it to the checked corpus.
+
+AWS, GCP, Kubernetes control planes, external credential discovery, and
+external-service emulation are non-goals. Their code should be absent from this
+target's package graph rather than approved, adapted, or modeled for Gomad.
+
 For every tier, record multiple seeds or choice prefixes, replay qualification, actual support state, execution time, artifact growth, and blocker classification. The corpus should be required on Gomad changes and on dependency changes that alter its closure.
 
 ## COMPAT-4: Compatibility-pack development kit

@@ -40,6 +40,76 @@ type CandidateExecution struct {
 	ChoiceReplayPlan *choice.ReplayPlan
 }
 
+func CandidateForArtifact(profile evidence.SimulationProfile, planBytes []byte, exactTape *choice.ReplayPlan) (combinedfrontier.Config, combinedfrontier.Candidate, error) {
+	retained, err := validateRetainedPlan(planBytes)
+	if err != nil {
+		return combinedfrontier.Config{}, combinedfrontier.Candidate{}, err
+	}
+	if retained.ControllerSHA256 != profile.ControllerSHA256 || retained.ExecutionSHA256 != profile.ExecutionSHA256 {
+		return combinedfrontier.Config{}, combinedfrontier.Candidate{}, errors.New("simulation exploration artifact execution identity changed")
+	}
+	config := retainedCandidateConfig(retained)
+	overrides := make([]combinedfrontier.ForcedDecision, len(retained.Overrides))
+	for index, override := range retained.Overrides {
+		forced := combinedfrontier.ForcedDecision{
+			Dimension: override.Dimension, Ordinal: override.Ordinal, SiteSHA256: override.SiteSHA256,
+			Alternatives: override.Alternatives, AlternativeSetSHA256: override.AlternativeSetSHA256,
+			Selected: override.Selected, SelectedSHA256: override.SelectedSHA256,
+		}
+		if override.Dimension == combinedfrontier.DimensionRuntime {
+			if exactTape == nil {
+				return combinedfrontier.Config{}, combinedfrontier.Candidate{}, errors.New("runtime simulation override requires an exact choice tape")
+			}
+			prefix, prefixErr := choice.BuildForcedRankPrefix(*exactTape, override.Ordinal, override.Selected)
+			if prefixErr != nil {
+				return combinedfrontier.Config{}, combinedfrontier.Candidate{}, fmt.Errorf("reconstruct runtime control at ordinal %d: %w", override.Ordinal, prefixErr)
+			}
+			forced.Control = prefix.Bytes
+		}
+		forced, err = combinedfrontier.CanonicalForcedDecision(forced)
+		if err != nil {
+			return combinedfrontier.Config{}, combinedfrontier.Candidate{}, fmt.Errorf("reconstruct forced decision %d: %w", index, err)
+		}
+		overrides[index] = forced
+	}
+	candidate, err := combinedfrontier.CanonicalCandidate(config, overrides, "")
+	if err != nil {
+		return combinedfrontier.Config{}, combinedfrontier.Candidate{}, err
+	}
+	if candidate.SHA256 != profile.CandidateSHA256 {
+		return combinedfrontier.Config{}, combinedfrontier.Candidate{}, errors.New("reconstructed simulation candidate identity changed")
+	}
+	return config, candidate, nil
+}
+
+func retainedCandidateConfig(retained plan) combinedfrontier.Config {
+	limits := combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
+	for _, override := range retained.Overrides {
+		limit := override.Ordinal + 1
+		switch override.Dimension {
+		case combinedfrontier.DimensionRuntime:
+			limits.Runtime = max(limits.Runtime, limit)
+		case combinedfrontier.DimensionScenario:
+			limits.Scenario = max(limits.Scenario, limit)
+		case combinedfrontier.DimensionNetwork:
+			limits.Network = max(limits.Network, limit)
+		case combinedfrontier.DimensionStorage:
+			limits.Storage = max(limits.Storage, limit)
+		case combinedfrontier.DimensionFault:
+			limits.Fault = max(limits.Fault, limit)
+		case combinedfrontier.DimensionCrash:
+			limits.Crash = max(limits.Crash, limit)
+		default:
+			continue
+		}
+	}
+	return combinedfrontier.Config{
+		ExecutionSHA256: retained.ExecutionSHA256, ControllerSHA256: retained.ControllerSHA256, BaseSeed: retained.BaseSeed,
+		Parallel: 1, MaxRuns: 1, MaxForcedDecisions: max(1, uint64(len(retained.Overrides))),
+		MaxFrontierBytes: ^uint64(0), MaxResultBytes: ^uint64(0), FailureBudget: 1, Limits: limits,
+	}
+}
+
 func PlanForCandidate(config combinedfrontier.Config, candidate combinedfrontier.Candidate) ([]byte, error) {
 	if err := combinedfrontier.ValidateCandidate(config, candidate); err != nil {
 		return nil, err

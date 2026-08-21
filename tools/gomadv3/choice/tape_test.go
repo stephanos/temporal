@@ -224,6 +224,35 @@ func TestBuildRankPrefixBindsCanonicalRankWithoutParentTraceIdentity(t *testing.
 	}
 }
 
+func TestBuildForcedRankPrefixReconstructsSelectedOverride(t *testing.T) {
+	identity := testExecutionIdentity()
+	unforced := testCanonicalDecision(t, 0, KindRunnable, 2, 0)
+	forced := testCanonicalDecision(t, 0, KindRunnable, 2, 1)
+	parent, err := encodeTape(identity, sha256.Sum256([]byte("parent trace")), []Decision{unforced})
+	if err != nil {
+		t.Fatal(err)
+	}
+	observed, err := encodeTape(identity, sha256.Sum256([]byte("observed trace")), []Decision{forced})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want, err := BuildRankPrefix(parent, 0, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := BuildForcedRankPrefix(observed, 0, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.SHA256 != want.SHA256 || !slices.Equal(got.Bytes, want.Bytes) {
+		t.Fatalf("reconstructed prefix = %x, want %x", got.SHA256, want.SHA256)
+	}
+	if _, err := BuildForcedRankPrefix(observed, 0, 0); err == nil {
+		t.Fatal("BuildForcedRankPrefix() accepted a rank other than the observed selection")
+	}
+}
+
 func TestBuildRankPrefixRejectsInvalidOverrideTargets(t *testing.T) {
 	identity := testExecutionIdentity()
 	decision := testCanonicalDecision(t, 0, KindRunnable, 2, 0)

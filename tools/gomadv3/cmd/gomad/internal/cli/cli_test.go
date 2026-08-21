@@ -379,6 +379,26 @@ func TestCapabilityAnalysisTimeoutAllowsLinkedBuild(t *testing.T) {
 	if got := capabilityAnalysisTimeoutForMode(target.CapabilityModeLinked); got != 2*time.Minute {
 		t.Fatalf("linked timeout = %v", got)
 	}
+	for _, test := range []struct {
+		name      string
+		mode      target.CapabilityMode
+		requested time.Duration
+		want      time.Duration
+		wantError bool
+	}{
+		{name: "closure default", mode: target.CapabilityModeClosure, want: 30 * time.Second},
+		{name: "linked default", mode: target.CapabilityModeLinked, want: 2 * time.Minute},
+		{name: "explicit bounded", mode: target.CapabilityModeLinked, requested: 5 * time.Minute, want: 5 * time.Minute},
+		{name: "negative", mode: target.CapabilityModeLinked, requested: -time.Second, wantError: true},
+		{name: "over maximum", mode: target.CapabilityModeLinked, requested: 30*time.Minute + time.Second, wantError: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := resolveCapabilityAnalysisTimeout(test.mode, test.requested)
+			if (err != nil) != test.wantError || got != test.want {
+				t.Fatalf("resolveCapabilityAnalysisTimeout() = %v, %v, want %v error=%t", got, err, test.want, test.wantError)
+			}
+		})
+	}
 }
 
 func TestRunAnalyzeMapsUnsupportedInvalidAndInfrastructureStatuses(t *testing.T) {
@@ -1254,5 +1274,26 @@ func TestReportReplayResultStatesWhetherFailureWasReproduced(t *testing.T) {
 				t.Fatalf("status = %d, error = %v, output = %q, want %q", status, err, output.String(), test.want)
 			}
 		})
+	}
+}
+
+func TestRunMinimizeUsesBoundedArtifactStoreAndCurrentInstallation(t *testing.T) {
+	var observed runner.MinimizeSpec
+	dependencies := minimizeDependencies{
+		identity: func(string) (string, string, string, error) {
+			return "/toolchain", "/bin/gomad", "runner", nil
+		},
+		minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
+			observed = config
+			return runner.MinimizeResult{
+				Artifact: evidence.Artifact{Path: "/artifacts/minimized/sha256-result"}, Changed: true,
+				Attempts: 7, AttemptBudget: 16, Accepted: []evidence.MinimizationReduction{{Kind: "fault_entries"}}, StopReason: "minimal",
+			}, nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	status := runMinimizeWith([]string{"--artifacts", "/artifacts", "--attempt-budget", "16", "--max-bytes", "8MiB", "/failure"}, &stdout, &stderr, dependencies)
+	if status != 0 || stderr.Len() != 0 || observed.ArtifactPath != "/failure" || observed.OutputRoot != "/artifacts/minimized" || observed.AttemptBudget != 16 || observed.MaximumBytes != 8<<20 || observed.ToolchainRoot != "/toolchain" || len(observed.SupervisorCommand) != 2 || !strings.Contains(stdout.String(), "accepted=1") {
+		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }

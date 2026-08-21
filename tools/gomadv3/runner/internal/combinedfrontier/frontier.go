@@ -252,6 +252,27 @@ func ValidateCandidate(config Config, candidate Candidate) error {
 	return nil
 }
 
+func CanonicalCandidate(config Config, overrides []ForcedDecision, parent evidence.SHA256) (Candidate, error) {
+	if err := validateConfig(config); err != nil {
+		return Candidate{}, err
+	}
+	return newCandidate(config, overrides, parent)
+}
+
+func CanonicalForcedDecision(forced ForcedDecision) (ForcedDecision, error) {
+	forced.Identity = ""
+	identity, err := forcedDecisionIdentity(forced)
+	if err != nil {
+		return ForcedDecision{}, err
+	}
+	forced.Identity = identity
+	return forced, validateForcedDecision(forced)
+}
+
+func ForceDecision(decision Decision, selected uint32) (ForcedDecision, error) {
+	return forcedDecisionFor(decision, selected)
+}
+
 func CommitRound(state State, round Round, results []Result) (State, RoundSegment, error) {
 	before, err := stateIdentity(state)
 	if err != nil {
@@ -326,6 +347,11 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 		return State{}, RoundSegment{}, err
 	}
 	return next, segment, nil
+}
+
+func ValidateResult(config Config, candidate Candidate, result Result) error {
+	_, err := canonicalResult(result, candidate, config)
+	return err
 }
 
 func ReplaySegment(state State, segment RoundSegment) (State, error) {

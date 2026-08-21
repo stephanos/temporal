@@ -11,7 +11,7 @@ make gomadv3-integration-test
 make gomadv3-qualification
 ```
 
-The v2 manifest owns 16 Tier 2 workloads and two fixed seeds. Gomad analyzes
+The v3 manifest owns 16 Tier 2 workloads and two fixed seeds. Gomad analyzes
 the complete corpus first, executes only supported workloads, retains and
 replays every successful repetition with bounded choice coverage, and writes a
 path-free `gomadv3.qualification-set-report/v3` to

@@ -191,6 +191,14 @@ func ValidatePrefixReplayPlan(tape ReplayPlan, identity ExecutionIdentity) (Repl
 }
 
 func BuildRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (ReplayPlan, error) {
+	return buildRankPrefix(source, decisionOrdinal, rank, false)
+}
+
+func BuildForcedRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (ReplayPlan, error) {
+	return buildRankPrefix(source, decisionOrdinal, rank, true)
+}
+
+func buildRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32, reconstruct bool) (ReplayPlan, error) {
 	validated, err := ValidateReplayPlan(source, source.Identity)
 	if err != nil {
 		return ReplayPlan{}, err
@@ -202,7 +210,10 @@ func BuildRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (Re
 	if rank >= target.Alternatives {
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice rank override is outside its alternative set"))
 	}
-	if rank == target.Selected {
+	if reconstruct && rank != target.Selected {
+		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("reconstructed choice rank override must select the observed alternative"))
+	}
+	if !reconstruct && rank == target.Selected {
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice rank override must select a non-selected alternative"))
 	}
 	decisions := append([]Decision(nil), validated.Decisions[:decisionOrdinal+1]...)
