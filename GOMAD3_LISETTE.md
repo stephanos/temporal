@@ -818,7 +818,7 @@ The rewrite is complete when:
 
 - [Gomad v3 architecture](tools/gomadv3/ARCHITECTURE.md)
 - [Gomad v3 current behavior](tools/gomadv3/README.md)
-- [Gomad v3 next functionality](GOMADv3_NEXT.md)
+- [Gomad v3 next functionality](GOMAD3_NEXT.md)
 - [Lisette repository](https://github.com/ivov/lisette)
 - [Lisette Go interop](https://github.com/ivov/lisette/blob/lisette-v0.11.2/docs/reference/13-go-interop.md)
 - [Lisette packages and emitted Go libraries](https://github.com/ivov/lisette/blob/lisette-v0.11.2/docs/reference/12-packages.md)
