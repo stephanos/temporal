@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/toolchain"
@@ -33,10 +34,11 @@ const usage = `usage:
   gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
   gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--format=text|json]
   gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
-  gomad analyze [--format=text|json] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
   gomad recover [--json] INTERRUPTED_BATCH
   gomad replay [--verify-only] ARTIFACT_DIR
+  gomad minimize [--json] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
   gomad doctor [--artifacts DIR] [--json]
   gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
 `
@@ -123,6 +125,8 @@ func Run(arguments []string, stdout, stderr io.Writer) int {
 		return runRecover(arguments[1:], stdout, stderr)
 	case "replay":
 		return runReplay(arguments[1:], stdout, stderr)
+	case "minimize":
+		return runMinimize(arguments[1:], stdout, stderr)
 	case "doctor":
 		executable, err := os.Executable()
 		if err != nil {
@@ -262,6 +266,12 @@ func printArtifactInspection(printer *inspectionPrinter, inspected *runner.Artif
 	}
 	if simulation := inspected.Simulation; simulation != nil {
 		printer.printf("simulation: profile=%s controller=%s execution=%s candidate=%s outcome=%s failure=%s plan-schema=%s plan-bytes=%d plan-sha256=%s record-schema=%s record-bytes=%d record-limit=%d record-sha256=%s\n", simulation.Profile, simulation.ControllerSHA256, simulation.ExecutionSHA256, simulation.CandidateSHA256, simulation.OutcomeSHA256, simulation.FailureSHA256, simulation.Plan.Schema, simulation.Plan.Bytes, simulation.Plan.SHA256, simulation.Record.Schema, simulation.Record.Bytes, simulation.Record.Limit, simulation.Record.SHA256)
+	}
+	if minimization := inspected.Minimization; minimization != nil {
+		printer.printf("minimization: parent=%s failure=%s candidate=%s->%s forced=%d->%d attempts=%d/%d accepted=%d replay=%t choice=%s simulation=%s implementation=%s\n", minimization.ParentRecordHash, minimization.ParentFailureSignature, minimization.OriginalCandidateSHA256, minimization.FinalCandidateSHA256, minimization.OriginalForcedDecisions, minimization.FinalForcedDecisions, minimization.Attempts, minimization.AttemptBudget, len(minimization.Accepted), minimization.Predicate.ReplayMatch, minimization.Predicate.ChoiceReplay, minimization.Predicate.SimulationReplay, minimization.ImplementationSHA256)
+		for _, reduction := range minimization.Accepted {
+			printer.printf("minimization-reduction: kind=%s before=%s after=%s removed=%d\n", reduction.Kind, reduction.BeforeSHA256, reduction.AfterSHA256, len(reduction.Removed))
+		}
 	}
 	if mounts := inspected.CapturedMounts; mounts != nil {
 		printer.printf("captured-mounts: mappings=%q entries=%d missing=%d bytes=%d\n", mounts.Mappings, mounts.Entries, mounts.NotExist, mounts.TotalBytes)
@@ -882,6 +892,80 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 		return 3
 	}
 	return status
+}
+
+type minimizeDependencies struct {
+	identity func(string) (string, string, string, error)
+	minimize func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
+}
+
+func runMinimize(arguments []string, stdout, stderr io.Writer) int {
+	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{identity: localIdentity, minimize: runner.Minimize})
+}
+
+func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {
+	flags := flag.NewFlagSet("gomad minimize", flag.ContinueOnError)
+	flags.SetOutput(stderr)
+	jsonOutput := flags.Bool("json", false, "emit stable JSON")
+	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
+	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	attemptBudget := flags.Uint64("attempt-budget", 64, "maximum fresh-process minimization candidates")
+	maximumBytes := byteSize(0)
+	flags.Var(&maximumBytes, "max-bytes", "maximum minimized artifact bytes")
+	if err := flags.Parse(arguments); err != nil {
+		return 2
+	}
+	if flags.NArg() != 1 || *attemptBudget == 0 {
+		return writeCommandError(stderr, 2, "%s", usage)
+	}
+	artifactRoot, err := filepath.Abs(*artifacts)
+	if err != nil {
+		return writeCommandError(stderr, 2, "resolve artifact directory: %v\n", err)
+	}
+	resolvedToolchain, executable, _, err := dependencies.identity(*toolchainRoot)
+	if err != nil {
+		return writeCommandError(stderr, 3, "%v\n", err)
+	}
+	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
+		ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
+		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: resolvedToolchain,
+		SupervisorCommand: []string{executable, "__supervisor"},
+	})
+	if err != nil {
+		var preflight *runner.ReplayPreflightError
+		if errors.As(err, &preflight) {
+			return writeCommandError(stderr, 2, "%v\n", err)
+		}
+		return writeCommandError(stderr, 3, "%v\n", err)
+	}
+	if *jsonOutput {
+		encoded, err := json.Marshal(struct {
+			ArtifactPath  string                           `json:"artifact_path"`
+			RecordHash    evidence.SHA256                  `json:"record_hash"`
+			Changed       bool                             `json:"changed"`
+			Attempts      uint64                           `json:"attempts"`
+			AttemptBudget uint64                           `json:"attempt_budget"`
+			Accepted      []evidence.MinimizationReduction `json:"accepted"`
+			StopReason    string                           `json:"stop_reason"`
+		}{
+			ArtifactPath: result.Artifact.Path, RecordHash: result.Artifact.Manifest.RecordHash, Changed: result.Changed,
+			Attempts: result.Attempts, AttemptBudget: result.AttemptBudget, Accepted: result.Accepted, StopReason: result.StopReason,
+		})
+		if err != nil {
+			return writeCommandError(stderr, 3, "encode minimization result: %v\n", err)
+		}
+		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
+			return 3
+		}
+		return 0
+	}
+	if _, err := fmt.Fprintf(
+		stdout, "gomad minimize: changed=%t attempts=%d/%d accepted=%d stop=%s artifact=%s\n",
+		result.Changed, result.Attempts, result.AttemptBudget, len(result.Accepted), result.StopReason, result.Artifact.Path,
+	); err != nil {
+		return 3
+	}
+	return 0
 }
 
 func reportReplayResult(output io.Writer, result runner.ReplayResult) (int, error) {

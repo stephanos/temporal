@@ -82,7 +82,7 @@ tools/gomadv3/.bin/gomad explore --seeds 0-99 exec --provenance ./example.proven
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad qualify --seed 7 --repeat 2 --choices --replay-successes --success-limit=1 --success-bytes=128MiB go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad analyze --format=json go-test ./path/to/package -- -test.run=TestName
-tools/gomadv3/.bin/gomad analyze --capability-mode=linked --format=json go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad analyze --capability-mode=linked --timeout=5m --format=json go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output report.json
 tools/gomadv3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
@@ -99,6 +99,7 @@ tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/successes/sha256-*
 tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/failures/sha256-*
 tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/successes/sha256-*
 tools/gomadv3/.bin/gomad replay --verify-only .gomad/artifacts/v1/run-*/failures/sha256-*
+tools/gomadv3/.bin/gomad minimize --attempt-budget=64 .gomad/artifacts/v1/run-*/failures/sha256-*
 ```
 
 Human-readable exploration writes preparation and running progress to stderr,
@@ -136,16 +137,28 @@ and `choice_depth_complete` are bounded completions, while `max_runs` and
 `frontier_capacity` identify incomplete search envelopes. Outcome deduplication
 reduces retained evidence only and never removes a distinct forced prefix.
 
+`gomad minimize` currently accepts an exact combined-simulation target-failure
+artifact. It runs every suffix, forced-range, and fault-entry proposal in a
+fresh process under an explicit attempt bound. An accepted reduction must keep
+the normalized failure and outcome, exact choice replay, and exact simulation
+replay. The parent remains immutable; a changed result is published by record
+identity with inspectable parent, reduction, budget, and predicate evidence.
+Minimizer checkpoint/resume and target-declared scenario shrinking are not yet
+implemented.
+
 `gomad analyze` defaults to `--capability-mode=closure`, which reviews a
 `go-run` or `go-test` target without compiling or executing it. Explicit
 `--capability-mode=linked` builds but never launches the target, extracts the
 pinned linker record, and separates live blockers from closure blockers removed
-by final reachability. Linked mode has no closure fallback: malformed records,
-identity mismatches, and capacity failures fail closed. The report uses exact
-compatibility-pack decisions, lists every active and eliminated blocker with a
-canonical shortest dependency path, and projects conservative deterministic
-I/O requirements over the full closure. To keep reports path-free, arguments
-containing path separators are represented by stable SHA-256 identities.
+by final reachability. Closure analysis has a 30-second default wall bound and
+linked analysis has a two-minute default; `--timeout` can raise either explicit
+bound up to 30 minutes for large targets. Linked mode has no closure fallback:
+malformed records, identity mismatches, and capacity failures fail closed. The
+report uses exact compatibility-pack decisions, lists every active and
+eliminated blocker with a canonical shortest dependency path, and projects
+conservative deterministic I/O requirements over the full closure. To keep
+reports path-free, arguments containing path separators are represented by
+stable SHA-256 identities.
 `--format=json` emits `gomadv3.capability-analysis/v3`. Status 0 means
 supported, 1 unsupported, 2 invalid input or package configuration, and 3
 analysis infrastructure failure.

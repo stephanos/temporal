@@ -46,6 +46,7 @@ type ExecutionRecord struct {
 	IOProfile         IOProfile          `json:"io_profile"`
 	ChoiceProfile     *ChoiceProfile     `json:"choice_profile,omitempty"`
 	SimulationProfile *SimulationProfile `json:"simulation_profile,omitempty"`
+	Minimization      *Minimization      `json:"minimization,omitempty"`
 	Environment       []Environment      `json:"environment"`
 	Limits            Limits             `json:"limits"`
 	World             World              `json:"world"`
@@ -115,6 +116,44 @@ type SimulationRecord struct {
 	SHA256 SHA256       `json:"sha256"`
 	Bytes  Uint64String `json:"bytes"`
 	Limit  Uint64String `json:"limit"`
+}
+
+type Minimization struct {
+	Schema                  string                  `json:"schema"`
+	ImplementationSHA256    SHA256                  `json:"implementation_sha256"`
+	ParentRecordHash        SHA256                  `json:"parent_record_hash"`
+	ParentFailureSignature  SHA256                  `json:"parent_failure_signature"`
+	OriginalCandidateSHA256 SHA256                  `json:"original_candidate_sha256"`
+	FinalCandidateSHA256    SHA256                  `json:"final_candidate_sha256"`
+	AttemptBudget           Uint64String            `json:"attempt_budget"`
+	Attempts                Uint64String            `json:"attempts"`
+	OriginalForcedDecisions Uint64String            `json:"original_forced_decisions"`
+	FinalForcedDecisions    Uint64String            `json:"final_forced_decisions"`
+	Accepted                []MinimizationReduction `json:"accepted"`
+	Predicate               MinimizationPredicate   `json:"predicate"`
+}
+
+type MinimizationReduction struct {
+	Kind         string                 `json:"kind"`
+	BeforeSHA256 SHA256                 `json:"before_sha256"`
+	AfterSHA256  SHA256                 `json:"after_sha256"`
+	Removed      []MinimizationDecision `json:"removed"`
+}
+
+type MinimizationDecision struct {
+	Dimension string       `json:"dimension"`
+	Ordinal   Uint64String `json:"ordinal"`
+	Identity  SHA256       `json:"identity"`
+}
+
+type MinimizationPredicate struct {
+	FailureSignature SHA256 `json:"failure_signature"`
+	Domain           string `json:"domain"`
+	Reason           string `json:"reason"`
+	Termination      string `json:"termination"`
+	ReplayMatch      bool   `json:"replay_match"`
+	ChoiceReplay     string `json:"choice_replay"`
+	SimulationReplay string `json:"simulation_replay"`
 }
 
 type ReadOnlyMounts struct {

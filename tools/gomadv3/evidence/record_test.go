@@ -116,6 +116,49 @@ func TestFinalizeManifestSeparatesExactSimulationReplayFromNormalizedFailure(t *
 	}
 }
 
+func TestFinalizeManifestBindsMinimizationLineageWithoutChangingFailureIdentity(t *testing.T) {
+	failure := HashBytes([]byte("normalized simulation failure"))
+	parentInput := manifestWithSimulationProfile(manifestFixture(), []byte("parent plan"), []byte("parent record"), failure)
+	parent, _ := finalizedManifest(t, parentInput)
+	minimizedInput := manifestWithSimulationProfile(manifestFixture(), []byte("minimized plan"), []byte("minimized record"), failure)
+	originalCandidate := HashBytes([]byte("before"))
+	finalCandidate := minimizedInput.SimulationProfile.CandidateSHA256
+	minimizedInput.Minimization = &Minimization{
+		Schema: "gomadv3.minimization/v1", ImplementationSHA256: HashBytes([]byte("minimizer implementation")),
+		ParentRecordHash: parent.RecordHash, ParentFailureSignature: parent.Outcome.FailureSignature,
+		OriginalCandidateSHA256: originalCandidate, FinalCandidateSHA256: finalCandidate,
+		AttemptBudget: 16, Attempts: 4, OriginalForcedDecisions: 5, FinalForcedDecisions: 2,
+		Accepted: []MinimizationReduction{{
+			Kind: "schedule_suffix", BeforeSHA256: originalCandidate, AfterSHA256: finalCandidate,
+			Removed: []MinimizationDecision{{Dimension: "runtime", Ordinal: 4, Identity: HashBytes([]byte("forced decision"))}},
+		}},
+		Predicate: MinimizationPredicate{
+			FailureSignature: parent.Outcome.FailureSignature, Domain: "target", Reason: "nonzero_exit", Termination: "exit",
+			ReplayMatch: true, ChoiceReplay: "not_present", SimulationReplay: "exact",
+		},
+	}
+
+	minimized, encoded := finalizedManifest(t, minimizedInput)
+	if minimized.RecordHash == parent.RecordHash {
+		t.Fatal("record hash omitted minimization evidence")
+	}
+	if minimized.Outcome.FailureSignature != parent.Outcome.FailureSignature {
+		t.Fatal("minimization evidence changed the normalized failure signature")
+	}
+	decoded, err := DecodeExecutionRecord(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Minimization == nil || decoded.Minimization.ParentRecordHash != parent.RecordHash || len(decoded.Minimization.Accepted) != 1 {
+		t.Fatalf("decoded minimization = %#v", decoded.Minimization)
+	}
+
+	minimizedInput.Minimization.Attempts = 17
+	if _, _, err := FinalizeExecutionRecord(minimizedInput); err == nil {
+		t.Fatal("FinalizeExecutionRecord() accepted minimization attempts beyond its budget")
+	}
+}
+
 func TestFinalizeManifestBindsIOProfileInventory(t *testing.T) {
 	firstInput := manifestFixture()
 	first, _ := finalizedManifest(t, firstInput)

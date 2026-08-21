@@ -84,6 +84,9 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if err := validateOutcome(manifest.Outcome); err != nil {
 		return err
 	}
+	if err := validateMinimization(manifest, requireIdentities); err != nil {
+		return err
+	}
 	files, err := validateFiles(manifest.Files)
 	if err != nil {
 		return err
@@ -150,6 +153,93 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	}
 	if _, err := time.Parse(time.RFC3339Nano, manifest.Host.FinishedAt); err != nil {
 		return fmt.Errorf("invalid host finish time: %w", err)
+	}
+	return nil
+}
+
+func validateMinimization(manifest ExecutionRecord, requireIdentities bool) error {
+	minimization := manifest.Minimization
+	if minimization == nil {
+		return nil
+	}
+	if manifest.SchemaVersion != SchemaVersion || manifest.ArtifactKind != ArtifactTargetFailure || manifest.ReplayMode != ReplayExact || manifest.SimulationProfile == nil {
+		return errors.New("minimization evidence requires a current exact simulation target failure")
+	}
+	if minimization.Schema != "gomadv3.minimization/v1" || minimization.AttemptBudget == 0 || minimization.Attempts == 0 || minimization.Attempts > minimization.AttemptBudget || len(minimization.Accepted) == 0 || uint64(len(minimization.Accepted)) > uint64(minimization.Attempts) || minimization.OriginalForcedDecisions <= minimization.FinalForcedDecisions {
+		return errors.New("invalid minimization bounds or reduction counts")
+	}
+	if err := validateMinimizationIdentity(*minimization, manifest, requireIdentities); err != nil {
+		return err
+	}
+	if err := validateMinimizationPredicate(*minimization, manifest); err != nil {
+		return err
+	}
+	if err := validateMinimizationReductions(*minimization); err != nil {
+		return err
+	}
+	if requireIdentities && minimization.Predicate.FailureSignature != manifest.Outcome.FailureSignature {
+		return errors.New("minimization predicate changed the normalized failure signature")
+	}
+	return nil
+}
+
+func validateMinimizationIdentity(minimization Minimization, manifest ExecutionRecord, requireIdentities bool) error {
+	for _, identity := range []SHA256{
+		minimization.ImplementationSHA256, minimization.ParentRecordHash, minimization.ParentFailureSignature,
+		minimization.OriginalCandidateSHA256, minimization.FinalCandidateSHA256, minimization.Predicate.FailureSignature,
+	} {
+		if err := validateSHA256(identity); err != nil {
+			return fmt.Errorf("invalid minimization identity: %w", err)
+		}
+	}
+	if minimization.ParentRecordHash == manifest.RecordHash && requireIdentities {
+		return errors.New("minimization parent cannot be the minimized record")
+	}
+	if minimization.ParentFailureSignature != minimization.Predicate.FailureSignature || minimization.FinalCandidateSHA256 != manifest.SimulationProfile.CandidateSHA256 {
+		return errors.New("minimization lineage or final candidate identity changed")
+	}
+	return nil
+}
+
+func validateMinimizationPredicate(minimization Minimization, manifest ExecutionRecord) error {
+	if minimization.Predicate.Domain != manifest.Outcome.Domain || minimization.Predicate.Reason != manifest.Outcome.Reason || minimization.Predicate.Termination != manifest.Outcome.Termination || !minimization.Predicate.ReplayMatch {
+		return errors.New("minimization predicate does not match the final outcome")
+	}
+	choiceReplay := "not_present"
+	if manifest.ChoiceProfile != nil {
+		choiceReplay = "exact"
+	}
+	if minimization.Predicate.ChoiceReplay != choiceReplay || minimization.Predicate.SimulationReplay != "exact" {
+		return errors.New("minimization predicate does not prove exact retained controls")
+	}
+	return nil
+}
+
+func validateMinimizationReductions(minimization Minimization) error {
+	previous := minimization.OriginalCandidateSHA256
+	for index, reduction := range minimization.Accepted {
+		if reduction.BeforeSHA256 != previous || reduction.BeforeSHA256 == reduction.AfterSHA256 || len(reduction.Removed) == 0 {
+			return fmt.Errorf("invalid minimization reduction chain at index %d", index)
+		}
+		switch reduction.Kind {
+		case "schedule_suffix", "schedule_range", "fault_entries":
+		default:
+			return fmt.Errorf("unknown minimization reduction %q", reduction.Kind)
+		}
+		for _, removed := range reduction.Removed {
+			switch removed.Dimension {
+			case "runtime", "scenario", "network", "storage", "fault", "crash":
+			default:
+				return fmt.Errorf("unknown minimized decision dimension %q", removed.Dimension)
+			}
+			if err := validateSHA256(removed.Identity); err != nil {
+				return err
+			}
+		}
+		previous = reduction.AfterSHA256
+	}
+	if previous != minimization.FinalCandidateSHA256 {
+		return errors.New("minimization reduction chain does not reach the final candidate")
 	}
 	return nil
 }

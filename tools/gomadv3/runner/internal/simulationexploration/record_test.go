@@ -109,6 +109,73 @@ func TestExecutionForCandidateRestoresRuntimeRankPrefix(t *testing.T) {
 	}
 }
 
+func TestCandidateForArtifactRestoresRuntimeControlAndFaultOverride(t *testing.T) {
+	identity := choice.ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: sha256.Sum256([]byte("implementation")),
+	}
+	unforcedRuntime := testRuntimeDecision(t, 0, 0)
+	unforcedTrace, err := choice.BuildTrace([]choice.Record{unforcedRuntime.Record()}, choice.TerminalComplete)
+	if err != nil {
+		t.Fatal(err)
+	}
+	unforcedTape, err := choice.ProjectReplayPlan(unforcedTrace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtimeDecisions, err := RuntimeDecisions(unforcedTape)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtimeOverride, err := combinedfrontier.ForceDecision(runtimeDecisions[0], 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	faultDecision, err := combinedfrontier.CanonicalDecision(
+		combinedfrontier.DimensionFault, 0, evidence.HashBytes([]byte("fault site")),
+		[]evidence.SHA256{evidence.HashBytes([]byte("default")), evidence.HashBytes([]byte("drop"))}, 0,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	faultOverride, err := combinedfrontier.ForceDecision(faultDecision, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := testCombinedConfig()
+	candidate, err := combinedfrontier.CanonicalCandidate(config, []combinedfrontier.ForcedDecision{runtimeOverride, faultOverride}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := PlanForCandidate(config, candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observedRuntime := testRuntimeDecision(t, 0, 1)
+	observedTrace, err := choice.BuildTrace([]choice.Record{observedRuntime.Record()}, choice.TerminalComplete)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observedTape, err := choice.ProjectReplayPlan(observedTrace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := evidence.SimulationProfile{
+		ControllerSHA256: config.ControllerSHA256, ExecutionSHA256: config.ExecutionSHA256, CandidateSHA256: candidate.SHA256,
+	}
+
+	gotConfig, gotCandidate, err := CandidateForArtifact(profile, plan, &observedTape)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotConfig.ExecutionSHA256 != config.ExecutionSHA256 || gotConfig.BaseSeed != config.BaseSeed || gotCandidate.SHA256 != candidate.SHA256 || len(gotCandidate.Overrides) != 2 {
+		t.Fatalf("reconstructed candidate = %#v with config %#v", gotCandidate, gotConfig)
+	}
+	if string(gotCandidate.Overrides[0].Control) != string(runtimeOverride.Control) || gotCandidate.Overrides[1].Dimension != combinedfrontier.DimensionFault {
+		t.Fatalf("reconstructed overrides = %#v", gotCandidate.Overrides)
+	}
+}
+
 func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.T) {
 	config := combinedfrontier.Config{
 		ExecutionSHA256: evidence.HashBytes([]byte("execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: 17,
@@ -241,4 +308,65 @@ func TestProjectArtifactBindsExactReplayAndNormalizedFailure(t *testing.T) {
 	if err := ValidateArtifact(profile, changedPlan, record); err == nil {
 		t.Fatal("ValidateArtifact() accepted a record bound to a different exploration plan")
 	}
+}
+
+func TestProjectArtifactRequiresEveryForcedDecisionRecord(t *testing.T) {
+	config := testCombinedConfig()
+	decision, err := combinedfrontier.CanonicalDecision(
+		combinedfrontier.DimensionFault, 0, evidence.HashBytes([]byte("fault site")),
+		[]evidence.SHA256{evidence.HashBytes([]byte("none")), evidence.HashBytes([]byte("drop"))}, 0,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	forced, err := combinedfrontier.ForceDecision(decision, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	candidate, err := combinedfrontier.CanonicalCandidate(config, []combinedfrontier.ForcedDecision{forced}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := PlanForCandidate(config, candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record, err := json.Marshal(struct {
+		Schema          string          `json:"schema"`
+		Seed            uint64          `json:"seed"`
+		SpecSHA256      evidence.SHA256 `json:"spec_sha256"`
+		Outcome         string          `json:"outcome"`
+		FailureIdentity evidence.SHA256 `json:"failure_identity"`
+		ExplorationPlan json.RawMessage `json:"exploration_plan"`
+		Identity        evidence.SHA256 `json:"identity"`
+	}{
+		Schema: "gomadv3.cluster-record/v7", Seed: config.BaseSeed, SpecSHA256: evidence.HashBytes([]byte("spec")),
+		Outcome: "oracle_failed", FailureIdentity: evidence.HashBytes([]byte("failure")), ExplorationPlan: plan,
+		Identity: evidence.HashBytes([]byte("record")),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ProjectArtifact(config, candidate, plan, record, nil, 1<<20); err == nil {
+		t.Fatal("ProjectArtifact() accepted a record that omitted its forced fault decision")
+	}
+}
+
+func testCombinedConfig() combinedfrontier.Config {
+	return combinedfrontier.Config{
+		ExecutionSHA256: evidence.HashBytes([]byte("execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: 17,
+		Parallel: 1, MaxRuns: 8, MaxForcedDecisions: 8, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
+		Limits: combinedfrontier.DimensionLimits{Runtime: 8, Scenario: 8, Network: 8, Storage: 8, Fault: 8, Crash: 8},
+	}
+}
+
+func testRuntimeDecision(t *testing.T, ordinal uint64, selected uint32) choice.Decision {
+	t.Helper()
+	first := sha256.Sum256([]byte("first runnable"))
+	second := sha256.Sum256([]byte("second runnable"))
+	decision, err := choice.CanonicalDecision(ordinal, choice.KindRunnable, 24, false, [][sha256.Size]byte{first, second}, [][sha256.Size]byte{first, second}[selected], 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return decision
 }

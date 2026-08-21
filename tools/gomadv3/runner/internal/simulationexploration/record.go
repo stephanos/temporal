@@ -120,10 +120,14 @@ func ResultForRecord(config combinedfrontier.Config, candidate combinedfrontier.
 		}
 		seen[key] = struct{}{}
 	}
-	return combinedfrontier.Result{
+	result := combinedfrontier.Result{
 		CandidateSHA256: candidate.SHA256, OutcomeSHA256: projected.outcomeSHA256,
 		Failed: projected.failed, FailureSHA256: projected.failureSHA256, Diverged: projected.diverged, Decisions: decisions,
-	}, nil
+	}
+	if err := combinedfrontier.ValidateResult(config, candidate, result); err != nil {
+		return combinedfrontier.Result{}, err
+	}
+	return result, nil
 }
 
 func ProjectArtifact(config combinedfrontier.Config, candidate combinedfrontier.Candidate, planBytes, recordBytes []byte, runtimeDecisions []combinedfrontier.Decision, recordLimit uint64) (evidence.SimulationProfile, error) {
@@ -269,7 +273,15 @@ func projectRetainedRecord(record, expectedPlan []byte) (retainedRecord, error) 
 }
 
 func validateDecision(decision combinedfrontier.Decision) error {
-	canonical, err := combinedfrontier.CanonicalDecision(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives, decision.Selected)
+	var canonical combinedfrontier.Decision
+	var err error
+	if decision.Dimension == combinedfrontier.DimensionRuntime {
+		canonical, err = combinedfrontier.CanonicalControlledDecision(
+			decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives, decision.AlternativeControls, decision.Selected,
+		)
+	} else {
+		canonical, err = combinedfrontier.CanonicalDecision(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives, decision.Selected)
+	}
 	if err != nil {
 		return err
 	}
