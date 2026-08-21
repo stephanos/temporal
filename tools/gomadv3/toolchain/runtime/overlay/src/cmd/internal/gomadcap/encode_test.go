@@ -114,24 +114,28 @@ func TestEncodeRejectsOwnerFactOverflow(t *testing.T) {
 }
 
 func TestRelocationFactsProjectImportsAndBoundaries(t *testing.T) {
-	facts := RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6")
+	facts := RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6", false)
 	if len(facts) != 1 || facts[0].Kind != FactKindCapability || facts[0].Capability != "import:syscall" {
 		t.Fatalf("syscall relocation facts = %#v", facts)
 	}
-	facts = RelocationFacts("example.com/p", "example.com/p.Read", "os", "os.(*File).Read")
+	facts = RelocationFacts("example.com/p", "example.com/p.Live", "syscall", "syscall.Syscall6", true)
+	if len(facts) != 1 || facts[0].Kind != FactKindGuard || facts[0].Capability != "import:syscall" || facts[0].Disposition != DispositionGuarded || facts[0].ReferencedSymbol != "syscall.Syscall6" {
+		t.Fatalf("guarded syscall relocation facts = %#v", facts)
+	}
+	facts = RelocationFacts("example.com/p", "example.com/p.Read", "os", "os.(*File).Read", false)
 	if len(facts) != 1 || facts[0].Kind != FactKindBoundary || facts[0].Capability != "filesystem.read" || facts[0].Disposition != DispositionModeled {
 		t.Fatalf("boundary relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("example.com/p", "example.com/p.Safe", "fmt", "fmt.Println"); len(facts) != 0 {
+	if facts := RelocationFacts("example.com/p", "example.com/p.Safe", "fmt", "fmt.Println", false); len(facts) != 0 {
 		t.Fatalf("safe relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "runtime.gcbits.0200000000000000"); len(facts) != 0 {
+	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "runtime.gcbits.0200000000000000", false); len(facts) != 0 {
 		t.Fatalf("shared symbol relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "os/exec..stmp_13"); len(facts) != 0 {
+	if facts := RelocationFacts("bytes", "bytes.Title.stkobj", "os/exec", "os/exec..stmp_13", false); len(facts) != 0 {
 		t.Fatalf("deduplicated static relocation facts = %#v", facts)
 	}
-	if facts := RelocationFacts("syscall", "syscall.Open", "syscall", "syscall.open"); len(facts) != 0 {
+	if facts := RelocationFacts("syscall", "syscall.Open", "syscall", "syscall.open", false); len(facts) != 0 {
 		t.Fatalf("same-package relocation facts = %#v", facts)
 	}
 }

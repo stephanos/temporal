@@ -151,6 +151,7 @@ type liveCapabilitySchema struct {
 	Version uint32 `json:"version"`
 	Schema  string `json:"schema"`
 	Symbol  string `json:"symbol"`
+	GuardSymbol string `json:"guard_symbol"`
 	Header  struct {
 		Magic string `json:"magic"`
 		Bytes uint32 `json:"bytes"`
@@ -173,6 +174,9 @@ type liveCapabilityImplementationInputs struct {
 	CompilerEmitter    []byte
 	LinkerProjector    []byte
 	Encoder            []byte
+	GuardFlag          []byte
+	GuardSource        []byte
+	RuntimeGuard       []byte
 	InterceptionSource []byte
 	BoundaryTable      []byte
 	HostValidator      []byte
@@ -183,6 +187,7 @@ type liveCapabilityTemplateData struct {
 	Package                string
 	Schema                 liveCapabilitySchema
 	ImplementationDigest   string
+	GuardImplementationDigest string
 	UniverseDigest         string
 	BoundaryManifestDigest string
 	Boundaries             []liveCapabilityBoundary
@@ -425,7 +430,7 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 	}
 	for _, target := range outputs {
 		generated, generateErr := generate(filepath.Join(root, "target", "internal", "livecap", target.Template), liveCapabilityTemplateData{
-			Package: target.Package, Schema: definition, ImplementationDigest: implementationDigest,
+			Package: target.Package, Schema: definition, ImplementationDigest: implementationDigest, GuardImplementationDigest: implementationDigest,
 			UniverseDigest: universeDigest, BoundaryManifestDigest: boundaryDigest, Boundaries: boundaries,
 		})
 		if generateErr != nil {
@@ -453,6 +458,9 @@ func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplemen
 		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
 		"toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
 		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
+		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
+		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
+		"toolchain/runtime/overlay/src/runtime/gomad.go",
 		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
 		"deterministicio/boundary_generated.go",
 		"target/internal/livecap/livecap.go",
@@ -468,7 +476,8 @@ func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplemen
 	}
 	return liveCapabilityImplementationInputs{
 		Schema: values[0], CodecTemplate: values[1], CompilerEmitter: values[2], LinkerProjector: values[3],
-		Encoder: values[4], InterceptionSource: values[5], BoundaryTable: values[6], HostValidator: values[7], ProjectionContract: values[8],
+		Encoder: values[4], GuardFlag: values[5], GuardSource: values[6], RuntimeGuard: values[7],
+		InterceptionSource: values[8], BoundaryTable: values[9], HostValidator: values[10], ProjectionContract: values[11],
 	}, nil
 }
 
@@ -540,10 +549,11 @@ func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Siz
 
 func liveCapabilityImplementationIdentity(inputs liveCapabilityImplementationInputs) [sha256.Size]byte {
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomadv3-live-capability-implementation-source-v1"))
+	_, _ = hasher.Write([]byte("gomadv3-live-capability-implementation-source-v2"))
 	for _, input := range [][]byte{
 		inputs.Schema, inputs.CodecTemplate, inputs.CompilerEmitter, inputs.LinkerProjector, inputs.Encoder,
-		inputs.InterceptionSource, inputs.BoundaryTable, inputs.HostValidator, inputs.ProjectionContract,
+		inputs.GuardFlag, inputs.GuardSource, inputs.RuntimeGuard, inputs.InterceptionSource,
+		inputs.BoundaryTable, inputs.HostValidator, inputs.ProjectionContract,
 	} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(input)))
@@ -562,13 +572,14 @@ func liveCapabilityUniverseIdentity(definition liveCapabilitySchema, boundaryMan
 	projection := struct {
 		Schema                 string   `json:"schema"`
 		Version                uint32   `json:"version"`
+		GuardSymbol            string   `json:"guard_symbol"`
 		BoundaryManifestSHA256 string   `json:"boundary_manifest_sha256"`
 		FactKinds              []string `json:"fact_kinds"`
 		Dispositions           []string `json:"dispositions"`
 		ForbiddenImports       []string `json:"forbidden_imports"`
 		ForbiddenPrefixes      []string `json:"forbidden_prefixes"`
 	}{
-		Schema: definition.Schema, Version: definition.Version, BoundaryManifestSHA256: boundaryManifestSHA256,
+		Schema: definition.Schema, Version: definition.Version, GuardSymbol: definition.GuardSymbol, BoundaryManifestSHA256: boundaryManifestSHA256,
 		FactKinds: definition.FactKinds, Dispositions: definition.Dispositions,
 		ForbiddenImports: definition.ForbiddenImports, ForbiddenPrefixes: definition.ForbiddenPrefixes,
 	}
@@ -594,11 +605,11 @@ func readLiveCapabilitySchema(path string) (liveCapabilitySchema, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return liveCapabilitySchema{}, errors.New("live capability schema has trailing data")
 	}
-	if definition.Version != 1 || definition.Schema != "gomadv3.live-capability-manifest/v1" || definition.Symbol != "runtime.gomadCapabilities" ||
+	if definition.Version != 2 || definition.Schema != "gomadv3.live-capability-manifest/v2" || definition.Symbol != "runtime.gomadCapabilities" || definition.GuardSymbol != "runtime.gomadCapabilityGuard" ||
 		definition.Header.Magic != "GOMADCAPABILITY\x00" || definition.Header.Bytes != 112 ||
 		definition.Limits.PayloadBytes != 16<<20 || definition.Limits.Facts != 100_000 || definition.Limits.StringBytes != 4<<10 || definition.Limits.OwnerFacts != 4_096 ||
-		!slices.Equal(definition.FactKinds, []string{"boundary", "capability", "foreign", "linkname"}) ||
-		!slices.Equal(definition.Dispositions, []string{"denied", "modeled", "pack"}) ||
+		!slices.Equal(definition.FactKinds, []string{"boundary", "capability", "foreign", "guard", "linkname"}) ||
+		!slices.Equal(definition.Dispositions, []string{"denied", "guarded", "modeled", "pack"}) ||
 		!slices.Equal(definition.ForbiddenImports, []string{"os/exec", "os/signal", "os/user", "plugin", "runtime/cgo", "syscall"}) ||
 		!slices.Equal(definition.ForbiddenPrefixes, []string{"golang.org/x/sys"}) {
 		return liveCapabilitySchema{}, errors.New("live capability schema is unsupported by this generator")

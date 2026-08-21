@@ -22,12 +22,14 @@ const (
 	ProtocolVersion = {{.Schema.Version}}
 	ManifestSchema = {{printf "%q" .Schema.Schema}}
 	ReservedSymbol = {{printf "%q" .Schema.Symbol}}
+	GuardSymbol = {{printf "%q" .Schema.GuardSymbol}}
 	HeaderBytes = {{.Schema.Header.Bytes}}
 	MaximumPayloadBytes = {{.Schema.Limits.PayloadBytes}}
 	MaximumFacts = {{.Schema.Limits.Facts}}
 	MaximumStringBytes = {{.Schema.Limits.StringBytes}}
 	MaximumOwnerFacts = {{.Schema.Limits.OwnerFacts}}
 	ProducerImplementationSHA256 = {{printf "%q" .ImplementationDigest}}
+	GuardImplementationSHA256 = {{printf "%q" .GuardImplementationDigest}}
 	CapabilityUniverseSHA256 = {{printf "%q" .UniverseDigest}}
 	BoundaryManifestSHA256 = {{printf "%q" .BoundaryManifestDigest}}
 )
@@ -58,6 +60,7 @@ type Manifest struct {
 	GoVersion string `json:"go_version"`
 	GOARCH string `json:"goarch"`
 	GOOS string `json:"goos"`
+	GuardImplementationSHA256 string `json:"guard_implementation_sha256"`
 	Limits Limits `json:"limits"`
 	ProducerImplementationSHA256 string `json:"producer_implementation_sha256"`
 	Schema string `json:"schema"`
