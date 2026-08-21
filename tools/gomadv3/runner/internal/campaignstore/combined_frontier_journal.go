@@ -41,6 +41,137 @@ type CombinedFrontierRoundJournal struct {
 	runSet  []bool
 }
 
+type CombinedFrontierInspection struct {
+	Summary              combinedfrontier.Summary
+	ImplementationSHA256 evidence.SHA256
+	ChainSHA256          evidence.SHA256
+	Pending              []combinedfrontier.Candidate
+	StagedRound          *CombinedFrontierStagedRound
+}
+
+type CombinedFrontierStagedRound struct {
+	Index      uint64
+	Candidates uint64
+	Attempted  uint64
+}
+
+type reconstructedCombinedFrontier struct {
+	plan         combinedFrontierPlan
+	state        combinedfrontier.State
+	runs         []ExecutionRecord
+	chainSHA256  evidence.SHA256
+	completeRuns bool
+}
+
+func InspectCombinedFrontier(batchPath string) (CombinedFrontierInspection, error) {
+	batchPath, err := filepath.Abs(batchPath)
+	if err != nil {
+		return CombinedFrontierInspection{}, fmt.Errorf("resolve combined frontier batch path: %w", err)
+	}
+	if err := validatePrivateDirectory(batchPath, "combined frontier batch"); err != nil {
+		return CombinedFrontierInspection{}, err
+	}
+	reconstructed, err := reconstructCombinedFrontier(batchPath)
+	if err != nil {
+		return CombinedFrontierInspection{}, err
+	}
+	staged, err := inspectIncompleteCombinedFrontierRound(batchPath, reconstructed.state)
+	if err != nil {
+		return CombinedFrontierInspection{}, err
+	}
+	return CombinedFrontierInspection{
+		Summary: reconstructed.state.Summary(), ImplementationSHA256: reconstructed.plan.Config.ControllerSHA256,
+		ChainSHA256: reconstructed.chainSHA256, Pending: append([]combinedfrontier.Candidate(nil), reconstructed.state.Queue...), StagedRound: staged,
+	}, nil
+}
+
+func reconstructCombinedFrontier(batchPath string) (reconstructedCombinedFrontier, error) {
+	frontierPath := filepath.Join(batchPath, "combined-frontier")
+	planBytes, err := readFrontierFile(filepath.Join(frontierPath, "plan.json"), maximumCombinedFrontierPlanBytes)
+	if err != nil {
+		return reconstructedCombinedFrontier{}, fmt.Errorf("read combined frontier plan: %w", err)
+	}
+	var plan combinedFrontierPlan
+	if err := evidence.DecodeCanonicalJSON(planBytes, &plan); err != nil {
+		return reconstructedCombinedFrontier{}, fmt.Errorf("decode combined frontier plan: %w", err)
+	}
+	if plan.Schema != combinedFrontierPlanSchema || plan.MaximumSegmentBytes == 0 {
+		return reconstructedCombinedFrontier{}, errors.New("combined frontier plan identity or bounds are invalid")
+	}
+	state, err := combinedfrontier.New(plan.Config)
+	if err != nil {
+		return reconstructedCombinedFrontier{}, err
+	}
+	initialIdentity, err := combinedfrontier.StateSHA256(state)
+	if err != nil || initialIdentity != plan.InitialStateSHA256 {
+		return reconstructedCombinedFrontier{}, errors.Join(errors.New("combined frontier initial state identity changed"), err)
+	}
+	roundsPath := filepath.Join(frontierPath, "rounds")
+	if err := validatePrivateDirectory(roundsPath, "combined frontier rounds"); err != nil {
+		return reconstructedCombinedFrontier{}, err
+	}
+	entries, err := os.ReadDir(roundsPath)
+	if err != nil {
+		return reconstructedCombinedFrontier{}, fmt.Errorf("read combined frontier rounds: %w", err)
+	}
+	if uint64(len(entries)) > plan.Config.MaxRuns {
+		return reconstructedCombinedFrontier{}, errors.New("combined frontier round count exceeds its run bound")
+	}
+	chainSHA256 := initialIdentity
+	journalRuns := []ExecutionRecord{}
+	completeRuns := true
+	for index, entry := range entries {
+		name := fmt.Sprintf("%020d", index)
+		if entry.Name() != name {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("combined frontier round sequence has a gap at %s", name)
+		}
+		roundPath := filepath.Join(roundsPath, name)
+		if err := validateCombinedFrontierRoundDirectory(roundPath, true); err != nil {
+			return reconstructedCombinedFrontier{}, err
+		}
+		roundBytes, err := readFrontierFile(filepath.Join(roundPath, "round.json"), plan.Config.MaxFrontierBytes)
+		if err != nil {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("read combined frontier round %d: %w", index, err)
+		}
+		var storedRound combinedfrontier.Round
+		if err := evidence.DecodeCanonicalJSON(roundBytes, &storedRound); err != nil {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("decode combined frontier round %d: %w", index, err)
+		}
+		expectedRound, ok := state.NextRound()
+		equal, equalErr := canonicalEqual(storedRound, expectedRound)
+		if equalErr != nil || !ok || !equal {
+			return reconstructedCombinedFrontier{}, errors.Join(fmt.Errorf("combined frontier round %d does not match reconstructed state", index), equalErr)
+		}
+		segmentBytes, err := readFrontierFile(filepath.Join(roundPath, "segment.json"), uint64(plan.MaximumSegmentBytes))
+		if err != nil {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("read combined frontier segment %d: %w", index, err)
+		}
+		var segment combinedfrontier.RoundSegment
+		if err := evidence.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("decode combined frontier segment %d: %w", index, err)
+		}
+		logicalStart := state.LogicalExecutions
+		state, err = combinedfrontier.ReplaySegment(state, segment)
+		if err != nil {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("replay combined frontier segment %d: %w", index, err)
+		}
+		runs, err := readFrontierRoundExecutions(roundPath, len(storedRound.Candidates), uint64(plan.MaximumSegmentBytes))
+		if err != nil {
+			return reconstructedCombinedFrontier{}, fmt.Errorf("read combined frontier run records %d: %w", index, err)
+		}
+		if len(runs) == 0 {
+			completeRuns = false
+		} else {
+			if err := validateCombinedFrontierRoundExecutions(storedRound, segment, runs, logicalStart, plan.Config.BaseSeed); err != nil {
+				return reconstructedCombinedFrontier{}, fmt.Errorf("validate combined frontier run records %d: %w", index, err)
+			}
+			journalRuns = append(journalRuns, runs...)
+		}
+		chainSHA256 = segment.SHA256
+	}
+	return reconstructedCombinedFrontier{plan: plan, state: state, runs: journalRuns, chainSHA256: chainSHA256, completeRuns: completeRuns}, nil
+}
+
 func NewCombinedFrontierJournal(ctx context.Context, batchPath string, initial combinedfrontier.State, maximumSegmentBytes uint64) (_ *CombinedFrontierJournal, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -545,53 +676,63 @@ func validateCombinedFrontierRoundExecutions(round combinedfrontier.Round, segme
 	return nil
 }
 
-func discardIncompleteCombinedFrontierRound(ctx context.Context, batchPath string, state combinedfrontier.State) (uint64, error) {
+func inspectIncompleteCombinedFrontierRound(batchPath string, state combinedfrontier.State) (*CombinedFrontierStagedRound, error) {
 	partialPath := filepath.Join(batchPath, ".partial", "combined-frontier")
 	if err := validatePrivateDirectory(partialPath, "partial combined frontier"); err != nil {
-		return 0, err
+		return nil, err
 	}
 	entries, err := os.ReadDir(partialPath)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	if len(entries) == 0 {
-		return 0, nil
+		return nil, nil
 	}
 	if len(entries) != 1 {
-		return 0, errors.New("partial combined frontier contains multiple rounds")
+		return nil, errors.New("partial combined frontier contains multiple rounds")
 	}
 	expected, ok := state.NextRound()
 	name := fmt.Sprintf("%020d", expected.Index)
 	if !ok || entries[0].Name() != name {
-		return 0, errors.New("partial combined frontier round does not match reconstructed state")
+		return nil, errors.New("partial combined frontier round does not match reconstructed state")
 	}
 	path := filepath.Join(partialPath, name)
 	if err := validatePrivateDirectory(path, "partial combined frontier round"); err != nil {
-		return 0, err
+		return nil, err
 	}
 	roundBytes, err := readFrontierFile(filepath.Join(path, "round.json"), state.Config.MaxFrontierBytes)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	var round combinedfrontier.Round
 	if err := evidence.DecodeCanonicalJSON(roundBytes, &round); err != nil {
-		return 0, err
+		return nil, err
 	}
 	equal, err := canonicalEqual(round, expected)
 	if err != nil || !equal {
-		return 0, errors.Join(errors.New("partial combined frontier round changed"), err)
+		return nil, errors.Join(errors.New("partial combined frontier round changed"), err)
 	}
 	attempts, err := countCombinedFrontierAttempts(path, state, round)
 	if err != nil {
+		return nil, err
+	}
+	return &CombinedFrontierStagedRound{Index: round.Index, Candidates: uint64(len(round.Candidates)), Attempted: attempts}, nil
+}
+
+func discardIncompleteCombinedFrontierRound(ctx context.Context, batchPath string, state combinedfrontier.State) (uint64, error) {
+	staged, err := inspectIncompleteCombinedFrontierRound(batchPath, state)
+	if err != nil || staged == nil {
 		return 0, err
 	}
+	partialPath := filepath.Join(batchPath, ".partial", "combined-frontier")
+	path := filepath.Join(partialPath, fmt.Sprintf("%020d", staged.Index))
 	if err := removeCompletedPartialContext(ctx, path, "combined-frontier-incomplete-round"); err != nil {
 		return 0, err
 	}
 	if err := syncDirectoryContext(ctx, partialPath); err != nil {
 		return 0, err
 	}
-	return attempts, nil
+	return staged.Attempted, nil
 }
 
 func countCombinedFrontierAttempts(roundPath string, state combinedfrontier.State, round combinedfrontier.Round) (uint64, error) {
