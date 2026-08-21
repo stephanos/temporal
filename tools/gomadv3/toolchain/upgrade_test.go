@@ -258,7 +258,7 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 					},
 					Toolchain: qualification.AnalysisToolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64", BoundaryManifestVersion: boundaryVersion, BoundaryManifestSHA256: evidence.SHA256(boundaryDigest)},
 					Closure:   qualification.AnalysisClosure{SHA256: evidence.HashBytes([]byte("closure")), PackageCount: 1, Roots: []target.CapabilityPackageReference{{ImportPath: "example.com/corpus/pkg", Name: "pkg"}}},
-					IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{},
+					IOProfile: deterministicio.Default().Identity(), Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, GuardedBlockers: []qualification.AnalysisBlocker{}, EliminatedBlockers: []qualification.AnalysisBlocker{},
 					Blockers: []qualification.AnalysisBlocker{{
 						CapabilityFinding: target.CapabilityFinding{Kind: target.FindingForbiddenImport, Package: target.CapabilityPackageReference{ImportPath: "example.com/escape", Name: "escape"}, Capability: "imports os/exec", Directives: []string{}, PolicyDisposition: target.DispositionDenied, Remediation: target.RemediationRemainUnsupported},
 						DependencyPath:    []target.CapabilityPackageReference{{ImportPath: "example.com/corpus/pkg", Name: "pkg"}, {ImportPath: "example.com/escape", Name: "escape"}},
