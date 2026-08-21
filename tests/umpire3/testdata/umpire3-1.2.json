@@ -56,7 +56,7 @@
   },
   "assurance": {
     "formatVersion": "umpire3/release-assurance/v1",
-    "digest": "sha256:a1d8b43c5c6fb09be9711d9b2b16f106a5cda1fd9d823643c679b0cac547705e",
+    "digest": "sha256:40f75d592997a31776037d9f4b2edd41743de924928bf6baff9ee5a428e5699a",
     "nodes": [
       {
         "identifier": "approved-mutation-audit",
@@ -98,7 +98,7 @@
         "identifier": "documentation",
         "resultClass": "metadata-validated",
         "trustBadge": "tested-instance",
-        "digest": "sha256:b0173dcf6f221de5ded2631a42bfebe3399d592ee7b85e1b1400c1d03a73a768"
+        "digest": "sha256:f4ed6c5d63a1c230328155d402aa55f261e68fde0fea24534fc22e149b897b4f"
       },
       {
         "identifier": "experiment/nexus-cancellation-stale-completion-v1",
