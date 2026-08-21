@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/evidence"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
 )
 
 func TestOpenReportsArtifactIdentityAndReplay(t *testing.T) {
@@ -81,6 +82,36 @@ func TestOpenReportsValidatedBatchRuns(t *testing.T) {
 	}
 }
 
+func TestOpenReportsCombinedFrontierBoundsAndRemainingWork(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config.Strategy = StrategyCombinedFrontier
+	config.ChoiceTraceLimit = limit
+	config.MaxRuns = 4
+	config.MaxForcedDecisions = 1
+	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationResultBytes = 1 << 20
+	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 1, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	report, err := Open(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	combined := report.Campaign.CombinedFrontier
+	if combined == nil || combined.LogicalExecutions != 2 || combined.Pending != 0 || combined.Limits.Scenario != 1 || report.Campaign.CombinedFrontierImplementationSHA256 == "" || report.Campaign.CombinedFrontierChainSHA256 == "" {
+		t.Fatalf("combined frontier inspection = %#v", report.Campaign)
+	}
+	if len(report.Campaign.Runs) != 2 || report.Campaign.Runs[0].Strategy != string(StrategyCombinedFrontier) || report.Campaign.Runs[1].ForcedDepth == nil || *report.Campaign.Runs[1].ForcedDepth != 1 {
+		t.Fatalf("combined frontier runs = %#v", report.Campaign.Runs)
+	}
+}
+
 func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
 	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-interrupted-inspect", Selection: "7", SelectionCount: 1,
@@ -99,6 +130,53 @@ func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
 	}
 	if report.Kind != "batch" || report.Campaign != nil || report.Artifact != nil || report.Lifecycle == nil || report.Lifecycle.State != "planned" || report.Lifecycle.Resumable || report.Lifecycle.Published {
 		t.Fatalf("interrupted batch report = %#v", report)
+	}
+}
+
+func TestOpenReportsInterruptedCombinedFrontierPendingAndStagedWork(t *testing.T) {
+	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
+		Root: t.TempDir(), CampaignID: "run-interrupted-combined", Strategy: string(StrategyCombinedFrontier), Selection: "7", SelectionCount: 1,
+		MaxRuns: 8,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	state, err := combinedfrontier.New(combinedfrontier.Config{
+		ExecutionSHA256: evidence.HashBytes([]byte("execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(),
+		BaseSeed: 7, Parallel: 2, MaxRuns: 8, MaxForcedDecisions: 4, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 4,
+		Limits: combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	frontier, err := campaignstore.NewCombinedFrontierJournal(context.Background(), journal.Path(), state, 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := state.NextRound()
+	staged, err := frontier.StageRound(round)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := staged.BeginExecution(0, 7); err != nil {
+		t.Fatal(err)
+	}
+
+	report, err := Open(journal.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	combined := report.CombinedFrontier
+	if report.Campaign != nil || combined == nil || combined.Summary.Pending != 1 || len(combined.Pending) != 1 || combined.Pending[0].SHA256 != round.Candidates[0].SHA256 || combined.StagedRound == nil || combined.StagedRound.Attempted != 1 {
+		t.Fatalf("interrupted combined frontier report = %#v", report)
+	}
+	if _, err := os.Stat(staged.Path()); err != nil {
+		t.Fatalf("inspection mutated staged round: %v", err)
 	}
 }
 

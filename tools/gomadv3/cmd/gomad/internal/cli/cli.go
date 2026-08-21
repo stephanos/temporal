@@ -216,12 +216,30 @@ func printInspection(output io.Writer, report runner.Inspection) error {
 	}
 	if lifecycle := report.Lifecycle; lifecycle != nil {
 		printer.printf("lifecycle: state=%s stable=%s published=%t resumable=%t repairable=%t action=%s reason=%s\n", lifecycle.State, lifecycle.LastStableState, lifecycle.Published, lifecycle.Resumable, lifecycle.Repairable, lifecycle.Action, lifecycle.Reason)
+		if report.CombinedFrontier != nil {
+			printCombinedFrontierInspection(printer, report.CombinedFrontier)
+		}
 		if report.Campaign == nil {
 			return printer.err
 		}
 	}
 	printCampaignInspection(printer, report.Campaign)
 	return printer.err
+}
+
+func printCombinedFrontierInspection(printer *inspectionPrinter, inspected *runner.CombinedFrontierInspection) {
+	frontier := inspected.Summary
+	limits := frontier.Limits
+	printer.printf("combined-frontier: rounds=%d executions=%d pending=%d bytes=%d seen=%d outcomes=%d failures=%d depth=%d max-runs=%d max-forced=%d max-bytes=%d max-result-bytes=%d runtime=%d scenario=%d network=%d storage=%d fault=%d crash=%d omitted-runs=%d omitted-depth=%d omitted-dimension=%d omitted-bytes=%d complete=%t implementation=%s chain=%s\n", frontier.CommittedRounds, frontier.LogicalExecutions, frontier.Pending, frontier.PendingBytes, frontier.SeenCandidates, frontier.DeduplicatedOutcomes, frontier.DistinctFailures, frontier.DeepestOverride, frontier.MaxRuns, frontier.MaxForcedDecisions, frontier.MaxFrontierBytes, frontier.MaxResultBytes, limits.Runtime, limits.Scenario, limits.Network, limits.Storage, limits.Fault, limits.Crash, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByDimension, frontier.OmittedByCapacity, frontier.BoundedComplete, inspected.ImplementationSHA256, inspected.ChainSHA256)
+	for _, candidate := range inspected.Pending {
+		printer.printf("pending-candidate: sha256=%s parent=%s depth=%d\n", candidate.SHA256, candidate.ParentSHA256, len(candidate.Overrides))
+		for _, override := range candidate.Overrides {
+			printer.printf("forced-decision: candidate=%s dimension=%s ordinal=%d selected=%d alternatives=%d site=%s alternatives-sha256=%s selected-sha256=%s identity=%s control-bytes=%d control-sha256=%s\n", candidate.SHA256, override.Dimension, override.Ordinal, override.Selected, override.Alternatives, override.SiteSHA256, override.AlternativeSetSHA256, override.SelectedSHA256, override.Identity, override.ControlBytes, override.ControlSHA256)
+		}
+	}
+	if staged := inspected.StagedRound; staged != nil {
+		printer.printf("staged-round: index=%d candidates=%d attempted=%d\n", staged.Index, staged.Candidates, staged.Attempted)
+	}
 }
 
 func printArtifactInspection(printer *inspectionPrinter, inspected *runner.ArtifactInspection) {
@@ -267,6 +285,10 @@ func printCampaignInspection(printer *inspectionPrinter, batch *runner.CampaignI
 	if frontier := batch.Frontier; frontier != nil {
 		printer.printf("frontier: rounds=%d pending=%d bytes=%d seen=%d outcomes=%d depth=%d max-runs=%d max-depth=%d max-bytes=%d omitted-runs=%d omitted-depth=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", frontier.CommittedRounds, frontier.Pending, frontier.PendingBytes, frontier.SeenPrefixes, frontier.DeduplicatedOutcomes, frontier.DeepestPrefix, frontier.MaxRuns, frontier.MaxChoiceDepth, frontier.MaxFrontierBytes, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByCapacity, frontier.BoundedComplete, batch.RecoveryExecutions, batch.FrontierImplementationSHA256, batch.FrontierChainSHA256)
 	}
+	if frontier := batch.CombinedFrontier; frontier != nil {
+		limits := frontier.Limits
+		printer.printf("combined-frontier: rounds=%d executions=%d pending=%d bytes=%d seen=%d outcomes=%d failures=%d depth=%d max-runs=%d max-forced=%d max-bytes=%d max-result-bytes=%d runtime=%d scenario=%d network=%d storage=%d fault=%d crash=%d omitted-runs=%d omitted-depth=%d omitted-dimension=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", frontier.CommittedRounds, frontier.LogicalExecutions, frontier.Pending, frontier.PendingBytes, frontier.SeenCandidates, frontier.DeduplicatedOutcomes, frontier.DistinctFailures, frontier.DeepestOverride, frontier.MaxRuns, frontier.MaxForcedDecisions, frontier.MaxFrontierBytes, frontier.MaxResultBytes, limits.Runtime, limits.Scenario, limits.Network, limits.Storage, limits.Fault, limits.Crash, frontier.OmittedByRunBound, frontier.OmittedByDepth, frontier.OmittedByDimension, frontier.OmittedByCapacity, frontier.BoundedComplete, batch.RecoveryExecutions, batch.CombinedFrontierImplementationSHA256, batch.CombinedFrontierChainSHA256)
+	}
 	for _, run := range batch.Runs {
 		transcript := "none"
 		if run.TranscriptSHA256 != nil && run.TranscriptRecords != nil {
@@ -279,6 +301,8 @@ func printCampaignInspection(printer *inspectionPrinter, batch *runner.CampaignI
 		frontier := ""
 		if run.Strategy == string(runner.StrategyChoiceFrontier) {
 			frontier = fmt.Sprintf(" round=%d candidate=%s parent=%s prefix=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, run.PrefixSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
+		} else if run.Strategy == string(runner.StrategyCombinedFrontier) {
+			frontier = fmt.Sprintf(" round=%d candidate=%s parent=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
 		}
 		printer.printf("run: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices, frontier)
 	}
@@ -365,11 +389,18 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	strategy := flags.String("strategy", string(runner.StrategySeed), "seed or choice-frontier")
+	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-frontier, or combined-frontier")
 	seeds := flags.String("seeds", "1", "seed set or inclusive ranges")
 	count := flags.Uint64("count", 0, "explore seeds 0 through N-1")
-	maxRuns := flags.Uint64("max-runs", 0, "maximum choice-frontier candidates")
+	maxRuns := flags.Uint64("max-runs", 0, "maximum frontier candidates")
 	maxChoiceDepth := flags.Uint64("max-choice-depth", 0, "maximum forced choice decisions")
+	maxForcedDecisions := flags.Uint64("max-forced-decisions", 0, "maximum combined forced decisions")
+	maxRuntimeDecisions := flags.Uint64("max-runtime-decisions", 0, "maximum runtime decision ordinal")
+	maxScenarioDecisions := flags.Uint64("max-scenario-decisions", 0, "maximum scenario decision ordinal")
+	maxNetworkDecisions := flags.Uint64("max-network-decisions", 0, "maximum network decision ordinal")
+	maxStorageDecisions := flags.Uint64("max-storage-decisions", 0, "maximum storage decision ordinal")
+	maxFaultDecisions := flags.Uint64("max-fault-decisions", 0, "maximum fault decision ordinal")
+	maxCrashDecisions := flags.Uint64("max-crash-decisions", 0, "maximum crash-state decision ordinal")
 	parallel := flags.Int("parallel", min(runtime.NumCPU(), 8), "maximum active targets")
 	runTimeout := flags.Duration("run-timeout", 30*time.Second, "per-seed host deadline")
 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete exploration host deadline")
@@ -393,11 +424,13 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	successBytes := byteSize(0)
 	choiceLimit := byteSize(8 << 20)
 	frontierLimit := byteSize(0)
+	explorationResultLimit := byteSize(0)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	flags.Var(&successBytes, "success-bytes", "total retained successful-run bytes")
 	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
 	flags.Var(&frontierLimit, "max-frontier-bytes", "maximum live choice-frontier bytes")
+	flags.Var(&explorationResultLimit, "max-exploration-result-bytes", "maximum combined result bytes per candidate")
 	var environment stringList
 	var buildTags stringList
 	var ioROMounts stringList
@@ -434,7 +467,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, maxFrontierBytesSet bool
+	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, maxForcedDecisionsSet, maxFrontierBytesSet, maxExplorationResultBytesSet bool
+	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
 		case "seeds":
@@ -449,14 +483,38 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			maxRunsSet = true
 		case "max-choice-depth":
 			maxChoiceDepthSet = true
+		case "max-forced-decisions":
+			maxForcedDecisionsSet = true
 		case "max-frontier-bytes":
 			maxFrontierBytesSet = true
+		case "max-exploration-result-bytes":
+			maxExplorationResultBytesSet = true
+		case "max-runtime-decisions":
+			runtimeLimitSet = true
+		case "max-scenario-decisions":
+			scenarioLimitSet = true
+		case "max-network-decisions":
+			networkLimitSet = true
+		case "max-storage-decisions":
+			storageLimitSet = true
+		case "max-fault-decisions":
+			faultLimitSet = true
+		case "max-crash-decisions":
+			crashLimitSet = true
 		}
 	})
 	resolvedStrategy, resolvedChoices, err := resolveExploreStrategy(exploreStrategyOptions{
 		Value: *strategy, Seeds: *seeds, CountSet: countSet, Guide: *guide, Choices: *choices,
-		MaxRuns: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxFrontierBytes: frontierLimit,
-		MaxRunsSet: maxRunsSet, MaxChoiceDepthSet: maxChoiceDepthSet, MaxFrontierBytesSet: maxFrontierBytesSet,
+		MaxRuns: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+		MaxFrontierBytes: frontierLimit, MaxExplorationResultBytes: explorationResultLimit,
+		CombinedDimensionLimits: runner.CombinedDimensionLimits{
+			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
+			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
+		},
+		MaxRunsSet: maxRunsSet, MaxChoiceDepthSet: maxChoiceDepthSet, MaxForcedDecisionsSet: maxForcedDecisionsSet,
+		MaxFrontierBytesSet: maxFrontierBytesSet, MaxExplorationResultBytesSet: maxExplorationResultBytesSet,
+		RuntimeLimitSet: runtimeLimitSet, ScenarioLimitSet: scenarioLimitSet, NetworkLimitSet: networkLimitSet,
+		StorageLimitSet: storageLimitSet, FaultLimitSet: faultLimitSet, CrashLimitSet: crashLimitSet,
 	})
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -531,7 +589,12 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit, MaxRuns: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxFrontierBytes: uint64(frontierLimit),
+		ChoiceTraceLimit: resolvedChoiceLimit, MaxRuns: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+		MaxFrontierBytes: uint64(frontierLimit), MaxExplorationResultBytes: uint64(explorationResultLimit),
+		CombinedDimensionLimits: runner.CombinedDimensionLimits{
+			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
+			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
+		},
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
@@ -600,17 +663,28 @@ func runPlan(arguments []string, stdout, stderr io.Writer) int {
 }
 
 type exploreStrategyOptions struct {
-	Value               string
-	Seeds               string
-	CountSet            bool
-	Guide               bool
-	Choices             bool
-	MaxRuns             uint64
-	MaxChoiceDepth      uint64
-	MaxFrontierBytes    byteSize
-	MaxRunsSet          bool
-	MaxChoiceDepthSet   bool
-	MaxFrontierBytesSet bool
+	Value                        string
+	Seeds                        string
+	CountSet                     bool
+	Guide                        bool
+	Choices                      bool
+	MaxRuns                      uint64
+	MaxChoiceDepth               uint64
+	MaxForcedDecisions           uint64
+	MaxFrontierBytes             byteSize
+	MaxExplorationResultBytes    byteSize
+	CombinedDimensionLimits      runner.CombinedDimensionLimits
+	MaxRunsSet                   bool
+	MaxChoiceDepthSet            bool
+	MaxForcedDecisionsSet        bool
+	MaxFrontierBytesSet          bool
+	MaxExplorationResultBytesSet bool
+	RuntimeLimitSet              bool
+	ScenarioLimitSet             bool
+	NetworkLimitSet              bool
+	StorageLimitSet              bool
+	FaultLimitSet                bool
+	CrashLimitSet                bool
 }
 
 func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bool, error) {
@@ -620,11 +694,17 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 	}
 	switch strategy {
 	case runner.StrategySeed:
+		if options.hasCombinedBounds() {
+			return "", false, errors.New("combined frontier bounds require --strategy=combined-frontier")
+		}
 		if options.MaxRunsSet || options.MaxChoiceDepthSet || options.MaxFrontierBytesSet {
 			return "", false, errors.New("frontier bounds require --strategy=choice-frontier")
 		}
 		return strategy, options.Choices, nil
 	case runner.StrategyChoiceFrontier:
+		if options.hasCombinedBounds() {
+			return "", false, errors.New("combined frontier bounds require --strategy=combined-frontier")
+		}
 		if options.CountSet {
 			return "", false, errors.New("--strategy=choice-frontier does not accept --count")
 		}
@@ -648,9 +728,51 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 			return "", false, errors.New("--strategy=choice-frontier requires an explicit positive --max-frontier-bytes")
 		}
 		return strategy, true, nil
+	case runner.StrategyCombinedFrontier:
+		if options.CountSet {
+			return "", false, errors.New("--strategy=combined-frontier does not accept --count")
+		}
+		selection, err := runner.ParseSeeds(options.Seeds)
+		if err != nil {
+			return "", false, err
+		}
+		if selection.Count() != 1 {
+			return "", false, errors.New("--strategy=combined-frontier requires exactly one base seed")
+		}
+		if options.Guide {
+			return "", false, errors.New("--strategy=combined-frontier does not support --guide")
+		}
+		if options.MaxChoiceDepthSet {
+			return "", false, errors.New("--strategy=combined-frontier does not accept --max-choice-depth")
+		}
+		for _, bound := range []struct {
+			name  string
+			value uint64
+			set   bool
+		}{
+			{name: "--max-runs", value: options.MaxRuns, set: options.MaxRunsSet},
+			{name: "--max-forced-decisions", value: options.MaxForcedDecisions, set: options.MaxForcedDecisionsSet},
+			{name: "--max-frontier-bytes", value: uint64(options.MaxFrontierBytes), set: options.MaxFrontierBytesSet},
+			{name: "--max-exploration-result-bytes", value: uint64(options.MaxExplorationResultBytes), set: options.MaxExplorationResultBytesSet},
+			{name: "--max-runtime-decisions", value: options.CombinedDimensionLimits.Runtime, set: options.RuntimeLimitSet},
+			{name: "--max-scenario-decisions", value: options.CombinedDimensionLimits.Scenario, set: options.ScenarioLimitSet},
+			{name: "--max-network-decisions", value: options.CombinedDimensionLimits.Network, set: options.NetworkLimitSet},
+			{name: "--max-storage-decisions", value: options.CombinedDimensionLimits.Storage, set: options.StorageLimitSet},
+			{name: "--max-fault-decisions", value: options.CombinedDimensionLimits.Fault, set: options.FaultLimitSet},
+			{name: "--max-crash-decisions", value: options.CombinedDimensionLimits.Crash, set: options.CrashLimitSet},
+		} {
+			if !bound.set || bound.value == 0 {
+				return "", false, fmt.Errorf("--strategy=combined-frontier requires an explicit positive %s", bound.name)
+			}
+		}
+		return strategy, true, nil
 	default:
 		return "", false, fmt.Errorf("unknown exploration strategy %q", options.Value)
 	}
+}
+
+func (options exploreStrategyOptions) hasCombinedBounds() bool {
+	return options.MaxForcedDecisionsSet || options.MaxExplorationResultBytesSet || options.RuntimeLimitSet || options.ScenarioLimitSet || options.NetworkLimitSet || options.StorageLimitSet || options.FaultLimitSet || options.CrashLimitSet
 }
 
 func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet bool) (string, error) {

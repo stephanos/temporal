@@ -212,6 +212,8 @@ type ChoiceTraceSummary struct {
 
 type FrontierSummary = frontier.Summary
 
+type CombinedFrontierSummary = combinedfrontier.Summary
+
 type CombinedDimensionLimits = combinedfrontier.DimensionLimits
 
 type HostError struct {

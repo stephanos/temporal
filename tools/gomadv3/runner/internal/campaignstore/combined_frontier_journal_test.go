@@ -132,6 +132,37 @@ func TestResumeCombinedFrontierJournalDoesNotCountUnstartedRoundCandidates(t *te
 	}
 }
 
+func TestInspectCombinedFrontierReportsPendingAndStagedWorkWithoutMutation(t *testing.T) {
+	batchPath := privateDirectory(t)
+	state := testCombinedFrontierState(t)
+	journal, err := NewCombinedFrontierJournal(context.Background(), batchPath, state, 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := state.NextRound()
+	staged, err := journal.StageRound(round)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := staged.BeginExecution(0, state.Config.BaseSeed); err != nil {
+		t.Fatal(err)
+	}
+
+	inspected, err := InspectCombinedFrontier(batchPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if inspected.Summary != state.Summary() || inspected.ImplementationSHA256 != combinedfrontier.ImplementationSHA256() || inspected.ChainSHA256 == "" || len(inspected.Pending) != 1 || inspected.Pending[0].SHA256 != round.Candidates[0].SHA256 {
+		t.Fatalf("combined frontier inspection = %#v", inspected)
+	}
+	if inspected.StagedRound == nil || inspected.StagedRound.Index != 0 || inspected.StagedRound.Candidates != 1 || inspected.StagedRound.Attempted != 1 {
+		t.Fatalf("staged combined frontier inspection = %#v", inspected.StagedRound)
+	}
+	if _, err := os.Stat(staged.Path()); err != nil {
+		t.Fatalf("inspection mutated staged round: %v", err)
+	}
+}
+
 func TestResumeCombinedFrontierJournalRejectsCorruptSegment(t *testing.T) {
 	batchPath := privateDirectory(t)
 	state := testCombinedFrontierState(t)
