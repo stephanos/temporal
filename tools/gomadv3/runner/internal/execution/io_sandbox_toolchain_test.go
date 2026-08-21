@@ -38,7 +38,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 		{name: "modernc libc", source: ".", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata", "libc_adapter"), wantOutput: "ok\n", denyWrites: true, libcAdapter: true},
 	}
 	for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			spec := target.Spec{
 				Kind: target.KindGoRun, Source: test.source, WorkingDir: test.workingDirectory,
 				PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,

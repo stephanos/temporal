@@ -12,7 +12,7 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	profile := Default()
 	const wantInventory = `{"boundary_manifest_sha256":"sha256:1923d3faf7c9d7f4c3f64d88e5708a2a6e5c1221a8ba688300d7fbeadcfc00f3","boundary_manifest_version":"go1.26.4-darwin-arm64-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"darwin/arm64","profile":"gomadv3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomadv3.io-inventory/v1"}`
 	const wantInventorySHA256 = "sha256:6d663eb6adecc5f2bf4d79c928e069a64ad223ec90cf1db29d13d1149a5cfb85"
-	const wantImplementationSHA256 = "sha256:193c2fb83f69bf8f5a87c772d4bec1f90116b75fa650c7ae81be7553b1774163"
+	const wantImplementationSHA256 = "sha256:1dd41b9645f286f8dae22588d00edc855c54bf8fe7679a860bf58b1fa2b30cc2"
 	if string(profile.Inventory()) != wantInventory || string(profile.InventorySHA256()) != wantInventorySHA256 || string(profile.ImplementationSHA256()) != wantImplementationSHA256 {
 		t.Fatalf("profile identity:\n inventory = %q\n inventory SHA-256 = %q\n implementation SHA-256 = %q", profile.Inventory(), profile.InventorySHA256(), profile.ImplementationSHA256())
 	}
@@ -23,7 +23,7 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const wantFrameHex = "474f4d4144494f01000100016d663eb6adecc5f2bf4d79c928e069a64ad223ec90cf1db29d13d1149a5cfb85193c2fb83f69bf8f5a87c772d4bec1f90116b75fa650c7ae81be7553b1774163aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb26ba1df2e711e0add254aeb48b2779e9aa32a01c3d07c2ee506cadf29cfec8ff000000000000002ae02d2ce87fb5fac7f6c2d7dd6eda3199cbf6b36731b262baba207e63c8102e42"
+	const wantFrameHex = "474f4d4144494f01000100016d663eb6adecc5f2bf4d79c928e069a64ad223ec90cf1db29d13d1149a5cfb851dd41b9645f286f8dae22588d00edc855c54bf8fe7679a860bf58b1fa2b30cc2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb26ba1df2e711e0add254aeb48b2779e9aa32a01c3d07c2ee506cadf29cfec8ff000000000000002ab9ba2980fc337868fa7a20d913a758969f5092c955bbea969f7048f53e41924d"
 	if encoded := hex.EncodeToString(frame); encoded != wantFrameHex {
 		t.Fatalf("bootstrap frame = %q", encoded)
 	}
