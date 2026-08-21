@@ -30,6 +30,14 @@ func main() {
 	requireUnsupported("ListenUnix", err)
 	_, err = net.ListenUnixgram("unixgram", &net.UnixAddr{Name: "gomad-host.sock", Net: "unixgram"})
 	requireUnsupported("ListenUnixgram", err)
+	localhostIPs, err := net.LookupIP("localhost")
+	if err != nil || len(localhostIPs) != 1 || !localhostIPs[0].Equal(net.IPv4(127, 0, 0, 1)) {
+		panic(fmt.Sprintf("LookupIP(localhost) = %#v, %v", localhostIPs, err))
+	}
+	localhostAddresses, err := net.DefaultResolver.LookupIPAddr(context.Background(), "localhost")
+	if err != nil || len(localhostAddresses) != 1 || !localhostAddresses[0].IP.Equal(net.IPv4(127, 0, 0, 1)) || localhostAddresses[0].Zone != "" {
+		panic(fmt.Sprintf("Resolver.LookupIPAddr(localhost) = %#v, %v", localhostAddresses, err))
+	}
 	_, err = net.LookupHost("example.com")
 	requireUnsupported("LookupHost", err)
 	_, err = net.LookupTXT("example.com")

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomadv3/target"
@@ -62,6 +63,38 @@ func TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration(
 	_, _, err := registry.prepare(target.Spec{WorkingDir: workingDirectory, PreparationRoot: t.TempDir()}, t.TempDir())
 	if !IsInvalidBuildAdapterConfiguration(err) {
 		t.Fatalf("adapterRegistry.prepare() error = %v", err)
+	}
+}
+
+func TestAdapterRegistryUsesExactVersionReplacement(t *testing.T) {
+	workingDirectory := t.TempDir()
+	identity := gomadversion.AdapterIdentity{Module: "example.com/adapter", Version: "v1.2.3", Sum: "h1:adapter"}
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.com/target\n\nrequire example.com/adapter v1.2.3\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("example.com/adapter v1.2.3 h1:adapter\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	registry := adapterRegistry{definitions: []adapterDefinition{{
+		identity: identity,
+		implementation: adapterImplementation{module: identity.Module, prepare: func(_, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
+			replacement := filepath.Join(root, "module")
+			if err := os.Mkdir(replacement, 0o700); err != nil {
+				return adapterPreparation{}, err
+			}
+			return adapterPreparation{replacement: replacement, evidence: BuildAdapter{Module: identity.Module, Version: identity.Version, Sum: identity.Sum, ReplacementRoot: replacement}}, nil
+		}},
+	}}}
+	_, adapters, err := registry.prepare(target.Spec{WorkingDir: workingDirectory, PreparationRoot: t.TempDir()}, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents, err := os.ReadFile(adapters[0].BuildModFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(contents), "replace example.com/adapter v1.2.3 => ") {
+		t.Fatalf("build modfile = %s", contents)
 	}
 }
 

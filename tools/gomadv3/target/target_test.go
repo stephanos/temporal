@@ -250,6 +250,23 @@ func TestNormalizeCapabilityModeUsesClosedVocabulary(t *testing.T) {
 	}
 }
 
+func TestPreparationBuildEnvironmentIsolatesAmbientGoCache(t *testing.T) {
+	t.Setenv("GOCACHE", "/ambient/cache")
+	environment := preparationBuildEnvironment("/private/cache")
+	cache := ""
+	for _, entry := range environment {
+		if strings.HasPrefix(entry, "GOCACHE=") {
+			if cache != "" {
+				t.Fatalf("preparation build environment has duplicate Go caches: %q and %q", cache, entry)
+			}
+			cache = entry
+		}
+	}
+	if cache != "GOCACHE=/private/cache" {
+		t.Fatalf("preparation build cache = %q, want private cache", cache)
+	}
+}
+
 func TestPrepareRejectsEscapeCapabilityClosure(t *testing.T) {
 	tests := map[string]struct {
 		kind  Kind

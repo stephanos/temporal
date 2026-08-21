@@ -48,7 +48,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	terminateGrace := flags.Duration("terminate-grace", 2*time.Second, "termination grace inside deadlines")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact and qualification report root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
-	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure or linked capability assessment")
+	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")

@@ -83,6 +83,9 @@ func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 	if strings.Join(definition.Dispositions, ",") != strings.Join(wantDispositions, ",") {
 		t.Fatalf("live capability dispositions = %v, want %v", definition.Dispositions, wantDispositions)
 	}
+	if strings.Join(definition.GuardExemptions, ",") != "syscall.Clearenv,syscall.Environ,syscall.Errno.Error,syscall.Errno.Is,syscall.Errno.Temporary,syscall.Errno.Timeout,syscall.Getenv,syscall.Setenv,syscall.Unsetenv,syscall.Write" {
+		t.Fatalf("live capability guard exemptions = %v", definition.GuardExemptions)
+	}
 	wantForbidden := []string{"os/exec", "os/signal", "os/user", "plugin", "runtime/cgo", "syscall"}
 	if strings.Join(definition.ForbiddenImports, ",") != strings.Join(wantForbidden, ",") || strings.Join(definition.ForbiddenPrefixes, ",") != "golang.org/x/sys" {
 		t.Fatalf("live capability forbidden vocabulary = imports %v prefixes %v", definition.ForbiddenImports, definition.ForbiddenPrefixes)
@@ -106,6 +109,15 @@ func TestLiveCapabilityUniverseIdentityBindsBoundaryAndForbiddenVocabulary(t *te
 	}
 	if got == want {
 		t.Fatal("capability universe identity omitted forbidden imports")
+	}
+	changed = definition
+	changed.GuardExemptions = []string{"syscall.rsaAlignOf"}
+	got, err = liveCapabilityUniverseIdentity(changed, "sha256:"+strings.Repeat("1", 64))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got == want {
+		t.Fatal("capability universe identity omitted guard exemptions")
 	}
 	got, err = liveCapabilityUniverseIdentity(definition, "sha256:"+strings.Repeat("2", 64))
 	if err != nil {

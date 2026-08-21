@@ -23,6 +23,17 @@ func TestLookupBoundarySymbolMatchesLinkerNames(t *testing.T) {
 	}
 }
 
+func TestIsGuardSymbolMatchesCompilerABINames(t *testing.T) {
+	for _, symbol := range []string{GuardSymbol, GuardSymbol + ".abi0", GuardSymbol + ".abiinternal"} {
+		if !IsGuardSymbol(symbol) {
+			t.Fatalf("IsGuardSymbol(%q) = false", symbol)
+		}
+	}
+	if IsGuardSymbol(GuardSymbol + "Changed") {
+		t.Fatal("IsGuardSymbol() matched a different symbol")
+	}
+}
+
 func TestExtractMachORecordRequiresOneReadOnlyInBoundsSymbol(t *testing.T) {
 	payload := []byte("payload")
 	record := liveCapabilityRecord(payload, 0)
@@ -149,6 +160,25 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 	if _, err := Decode(liveCapabilityRecord(payload, 1), expected); err != nil {
 		t.Fatalf("Decode(guarded manifest): %v", err)
 	}
+
+	manifest.Facts[0].Capability = "network.interfaces"
+	manifest.Facts[0].ReferencedSymbol = "net.Interfaces"
+	payload, err = evidence.CanonicalJSON(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Decode(liveCapabilityRecord(payload, 1), expected); err != nil {
+		t.Fatalf("Decode(guarded denied boundary): %v", err)
+	}
+	manifest.Facts[0].Capability = "unknown.boundary"
+	payload, err = evidence.CanonicalJSON(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Decode(liveCapabilityRecord(payload, 1), expected); err == nil || !strings.Contains(err.Error(), "guard fact") {
+		t.Fatalf("Decode(unknown guarded boundary) error = %v", err)
+	}
+	manifest.Facts[0].Capability = "network.interfaces"
 
 	manifest.GuardImplementationSHA256 = "sha256:" + strings.Repeat("0", 64)
 	payload, err = evidence.CanonicalJSON(manifest)

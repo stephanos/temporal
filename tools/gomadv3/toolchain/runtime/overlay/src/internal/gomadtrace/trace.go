@@ -7,7 +7,7 @@ package gomadtrace
 import (
 	"encoding/binary"
 	"sync"
-	"syscall"
+	_ "unsafe"
 
 	"internal/gomadwire"
 	"internal/runtime/exithook"
@@ -36,22 +36,31 @@ var transcript = struct {
 	probeCount      uint16
 }{}
 
+//go:linkname runtimeTraceExit runtime.gomadTraceExit
+func runtimeTraceExit(int32)
+
+//go:linkname runtimeTraceMap runtime.gomadTraceMap
+func runtimeTraceMap(int32, uintptr, bool) []byte
+
+//go:linkname runtimeTraceWrite runtime.gomadTraceWrite
+func runtimeTraceWrite(int32, []byte) bool
+
 func Init() {
 	transcript.Lock()
 	defer transcript.Unlock()
 	if transcript.bytes != nil {
 		return
 	}
-	mapped, err := syscall.Mmap(transcriptDescriptor, 0, transcriptBytes, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
-	if err != nil {
+	mapped := runtimeTraceMap(transcriptDescriptor, transcriptBytes, true)
+	if mapped == nil {
 		panic("gomadv3: map I/O transcript")
 	}
 	producedHeader, err := gomadwire.DecodeProducedTranscriptHeader(mapped[:gomadwire.TranscriptHeaderBytes])
 	if err != nil || producedHeader.Capacity != transcriptBytes || producedHeader.NextOffset != gomadwire.TranscriptHeaderBytes || producedHeader.RecordCount != 0 {
 		panic("gomadv3: invalid I/O transcript backing")
 	}
-	expected, err := syscall.Mmap(expectedDescriptor, 0, transcriptBytes, syscall.PROT_READ, syscall.MAP_SHARED)
-	if err != nil {
+	expected := runtimeTraceMap(expectedDescriptor, transcriptBytes, false)
+	if expected == nil {
 		panic("gomadv3: map expected I/O transcript")
 	}
 	expectedHeader, err := gomadwire.DecodeExpectedTranscriptHeader(expected[:gomadwire.TranscriptHeaderBytes], transcriptBytes)
@@ -79,7 +88,7 @@ func Record(operation string, arguments, content []byte, count uint64, result ui
 	}
 	if transcript.frozen {
 		transcript.Unlock()
-		syscall.Exit(125)
+		runtimeTraceExit(125)
 		return
 	}
 	if len(operation) > gomadwire.TranscriptOperationBytes || transcript.offset > uint64(len(transcript.bytes))-gomadwire.TranscriptRecordBytes {
@@ -87,7 +96,7 @@ func Record(operation string, arguments, content []byte, count uint64, result ui
 		transcript.overflow = true
 		transcript.Unlock()
 		finalize()
-		syscall.Exit(125)
+		runtimeTraceExit(125)
 		return
 	}
 	encoded, err := gomadwire.EncodeTranscriptRecord(gomadwire.TranscriptRecord{
@@ -99,7 +108,7 @@ func Record(operation string, arguments, content []byte, count uint64, result ui
 		transcript.overflow = true
 		transcript.Unlock()
 		finalize()
-		syscall.Exit(125)
+		runtimeTraceExit(125)
 		return
 	}
 	record := encoded[:]
@@ -117,7 +126,7 @@ func Record(operation string, arguments, content []byte, count uint64, result ui
 			transcript.frozen = true
 			transcript.Unlock()
 			finalize()
-			syscall.Exit(125)
+			runtimeTraceExit(125)
 			return
 		}
 	}
@@ -177,8 +186,7 @@ func finalize() {
 	}
 	terminal := gomadwire.EncodeTerminal(gomadwire.Terminal{State: state, Records: transcript.records, MappingBytes: transcript.offset, PayloadHash: digest, DivergentOrdinal: divergence})
 	transcript.Unlock()
-	written, err := syscall.Write(terminalDescriptor, terminal[:])
-	if err != nil || written != len(terminal) {
+	if !runtimeTraceWrite(terminalDescriptor, terminal[:]) {
 		panic("gomadv3: write I/O terminal frame")
 	}
 }
