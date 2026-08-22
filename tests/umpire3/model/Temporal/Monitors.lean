@@ -1,15 +1,15 @@
-import Temporal.Product.NexusClosure
-import Temporal.Product.NexusProgress
-import Temporal.Product.NexusActivityLink
-import Temporal.Product.NexusTimeout
-import Temporal.Product.CallbackReference
-import Temporal.Product.CallbackResponse
-import Temporal.Product.WorkflowLineage
-import Temporal.Product.WorkflowRouting
-import Temporal.Product.WorkflowOwnership
-import Temporal.Product.SpeculativeTask
-import Temporal.Product.WorkflowProgress
-import Temporal.Product.TaskAck
+import Temporal.Families.NexusClosure.Feature
+import Temporal.Families.NexusProgress.Feature
+import Temporal.Families.NexusActivityLink.Feature
+import Temporal.Families.NexusTimeout.Feature
+import Temporal.Families.CallbackReference.Feature
+import Temporal.Families.CallbackResponse.Feature
+import Temporal.Families.WorkflowRoutingIsolation.LineageFeature
+import Temporal.Families.WorkflowRoutingIsolation.RoutingFeature
+import Temporal.Families.WorkflowOwnership.Feature
+import Temporal.Families.SpeculativeTask.Feature
+import Temporal.Families.WorkflowProgress.Feature
+import Temporal.Families.TaskAcknowledgement.Feature
 import Umpire3.Monitor
 
 namespace Umpire3.Temporal.Monitors
@@ -42,13 +42,13 @@ def taskAcknowledgement : MonitorDeclaration where
   expression := .observation "workflow-task-acknowledged" true
 
 def taskAcknowledgementObservations
-    (state : Umpire3.Temporal.Product.TaskAck.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.TaskAck.State) : List NormalizedObservation := [{
   identifier := "workflow-task-acknowledged"
   value := decide (state = .acknowledged)
 }]
 
 theorem taskAcknowledgement_monitor_equivalent
-    (state : Umpire3.Temporal.Product.TaskAck.State) :
+    (state : Umpire3.Temporal.Feature.TaskAck.State) :
     taskAcknowledgement.Holds (taskAcknowledgementObservations state) ↔ state = .acknowledged := by
   cases state <;> simp [MonitorDeclaration.Holds, taskAcknowledgement,
     taskAcknowledgementObservations, MonitorExpression.eval, lookupObservation]
@@ -66,253 +66,253 @@ def speculativeTaskCreation := assuranceMonitor
   "workflow-task.speculative-creation" "speculative-task-valid"
 
 def speculativeTaskObservations
-    (state : Umpire3.Temporal.Product.SpeculativeTask.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.SpeculativeTask.State) : List NormalizedObservation := [{
   identifier := "speculative-task-valid"
-  value := Umpire3.Temporal.Product.SpeculativeTask.speculativeReadyB state &&
-    Umpire3.Temporal.Product.SpeculativeTask.speculativeCreationB state
+  value := Umpire3.Temporal.Feature.SpeculativeTask.speculativeReadyB state &&
+    Umpire3.Temporal.Feature.SpeculativeTask.speculativeCreationB state
 }]
 
 theorem speculativeTask_monitor_equivalent
-    (state : Umpire3.Temporal.Product.SpeculativeTask.State) :
+    (state : Umpire3.Temporal.Feature.SpeculativeTask.State) :
     speculativeTaskCreation.Holds (speculativeTaskObservations state) ↔
-      Umpire3.Temporal.Product.SpeculativeTask.SpeculativeQualified state := by
+      Umpire3.Temporal.Feature.SpeculativeTask.SpeculativeQualified state := by
   simp [MonitorDeclaration.Holds, speculativeTaskCreation, assuranceMonitor,
     speculativeTaskObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.SpeculativeTask.SpeculativeQualified,
-    Umpire3.Temporal.Product.SpeculativeTask.SpeculativeTaskCreation]
+    Umpire3.Temporal.Feature.SpeculativeTask.SpeculativeQualified,
+    Umpire3.Temporal.Feature.SpeculativeTask.SpeculativeTaskCreation]
 
 def nexusOperationClosure := assuranceMonitor
   "monitor.nexus-operation.closure"
   "nexus-operation.closure" "nexus-operation-closed"
 
 def nexusClosureObservations
-    (state : Umpire3.Temporal.Product.NexusClosure.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.NexusClosure.State) : List NormalizedObservation := [{
   identifier := "nexus-operation-closed"
-  value := Umpire3.Temporal.Product.NexusClosure.closureB state
+  value := Umpire3.Temporal.Feature.NexusClosure.closureB state
 }]
 
 theorem nexusOperationClosure_monitor_equivalent
-    (state : Umpire3.Temporal.Product.NexusClosure.State) :
+    (state : Umpire3.Temporal.Feature.NexusClosure.State) :
     nexusOperationClosure.Holds (nexusClosureObservations state) ↔
-      Umpire3.Temporal.Product.NexusClosure.Closure state := by
+      Umpire3.Temporal.Feature.NexusClosure.Closure state := by
   simp [MonitorDeclaration.Holds, nexusOperationClosure, assuranceMonitor,
     nexusClosureObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.NexusClosure.Closure]
+    Umpire3.Temporal.Feature.NexusClosure.Closure]
 
 def nexusOperationProgress := assuranceMonitor
   "monitor.nexus-operation.progress"
   "nexus-operation.progress" "nexus-operation-progressed"
 
 def nexusProgressObservations
-    (state : Umpire3.Temporal.Product.NexusProgress.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.NexusProgress.State) : List NormalizedObservation := [{
   identifier := "nexus-operation-progressed"
-  value := Umpire3.Temporal.Product.NexusProgress.progressReadyB state &&
-    Umpire3.Temporal.Product.NexusProgress.progressB state
+  value := Umpire3.Temporal.Feature.NexusProgress.progressReadyB state &&
+    Umpire3.Temporal.Feature.NexusProgress.progressB state
 }]
 
 theorem nexusOperationProgress_monitor_equivalent
-    (state : Umpire3.Temporal.Product.NexusProgress.State) :
+    (state : Umpire3.Temporal.Feature.NexusProgress.State) :
     nexusOperationProgress.Holds (nexusProgressObservations state) ↔
-      Umpire3.Temporal.Product.NexusProgress.ProgressQualified state := by
+      Umpire3.Temporal.Feature.NexusProgress.ProgressQualified state := by
   simp [MonitorDeclaration.Holds, nexusOperationProgress, assuranceMonitor,
     nexusProgressObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.NexusProgress.ProgressQualified,
-    Umpire3.Temporal.Product.NexusProgress.NexusOperationProgress]
+    Umpire3.Temporal.Feature.NexusProgress.ProgressQualified,
+    Umpire3.Temporal.Feature.NexusProgress.NexusOperationProgress]
 
 def nexusActivityLinkConsistency := assuranceMonitor
   "monitor.nexus-activity.link-consistency"
   "nexus-activity.link-consistency" "nexus-activity-links-consistent"
 
 def nexusActivityLinkObservations
-    (state : Umpire3.Temporal.Product.NexusActivityLink.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.NexusActivityLink.State) : List NormalizedObservation := [{
   identifier := "nexus-activity-links-consistent"
-  value := Umpire3.Temporal.Product.NexusActivityLink.linkConsistencyB state
+  value := Umpire3.Temporal.Feature.NexusActivityLink.linkConsistencyB state
 }]
 
 theorem nexusActivityLink_monitor_equivalent
-    (state : Umpire3.Temporal.Product.NexusActivityLink.State) :
+    (state : Umpire3.Temporal.Feature.NexusActivityLink.State) :
     nexusActivityLinkConsistency.Holds (nexusActivityLinkObservations state) ↔
-      Umpire3.Temporal.Product.NexusActivityLink.LinkConsistency state := by
+      Umpire3.Temporal.Feature.NexusActivityLink.LinkConsistency state := by
   simp [MonitorDeclaration.Holds, nexusActivityLinkConsistency, assuranceMonitor,
     nexusActivityLinkObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.NexusActivityLink.LinkConsistency]
+    Umpire3.Temporal.Feature.NexusActivityLink.LinkConsistency]
 
 def nexusOperationTimeoutSemantics := assuranceMonitor
   "monitor.nexus-operation.timeout-semantics"
   "nexus-operation.timeout-semantics" "nexus-timeout-valid"
 
 def nexusTimeoutObservations
-    (state : Umpire3.Temporal.Product.NexusTimeout.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.NexusTimeout.State) : List NormalizedObservation := [{
   identifier := "nexus-timeout-valid"
-  value := Umpire3.Temporal.Product.NexusTimeout.timeoutSemanticsB state
+  value := Umpire3.Temporal.Feature.NexusTimeout.timeoutSemanticsB state
 }]
 
 theorem nexusTimeout_monitor_equivalent
-    (state : Umpire3.Temporal.Product.NexusTimeout.State) :
+    (state : Umpire3.Temporal.Feature.NexusTimeout.State) :
     nexusOperationTimeoutSemantics.Holds (nexusTimeoutObservations state) ↔
-      Umpire3.Temporal.Product.NexusTimeout.TimeoutSemantics state := by
+      Umpire3.Temporal.Feature.NexusTimeout.TimeoutSemantics state := by
   simp [MonitorDeclaration.Holds, nexusOperationTimeoutSemantics, assuranceMonitor,
     nexusTimeoutObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.NexusTimeout.TimeoutSemantics]
+    Umpire3.Temporal.Feature.NexusTimeout.TimeoutSemantics]
 
 def callbackReferenceConsistency := assuranceMonitor
   "monitor.callback.reference-consistency"
   "callback.reference-consistency" "callback-reference-valid"
 
 def callbackReferenceObservations
-    (state : Umpire3.Temporal.Product.CallbackReference.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.CallbackReference.State) : List NormalizedObservation := [{
   identifier := "callback-reference-valid"
-  value := Umpire3.Temporal.Product.CallbackReference.referenceReadyB state &&
-    Umpire3.Temporal.Product.CallbackReference.referenceConsistencyB state
+  value := Umpire3.Temporal.Feature.CallbackReference.referenceReadyB state &&
+    Umpire3.Temporal.Feature.CallbackReference.referenceConsistencyB state
 }]
 
 theorem callbackReference_monitor_equivalent
-    (state : Umpire3.Temporal.Product.CallbackReference.State) :
+    (state : Umpire3.Temporal.Feature.CallbackReference.State) :
     callbackReferenceConsistency.Holds (callbackReferenceObservations state) ↔
-      Umpire3.Temporal.Product.CallbackReference.ReferenceQualified state := by
+      Umpire3.Temporal.Feature.CallbackReference.ReferenceQualified state := by
   simp [MonitorDeclaration.Holds, callbackReferenceConsistency, assuranceMonitor,
     callbackReferenceObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.CallbackReference.ReferenceQualified,
-    Umpire3.Temporal.Product.CallbackReference.ReferenceConsistency]
+    Umpire3.Temporal.Feature.CallbackReference.ReferenceQualified,
+    Umpire3.Temporal.Feature.CallbackReference.ReferenceConsistency]
 
 def callbackResponseConsistency := assuranceMonitor
   "monitor.callback.response-consistency"
   "callback.response-consistency" "callback-response-consistent"
 
 def callbackResponseObservations
-    (state : Umpire3.Temporal.Product.CallbackResponse.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.CallbackResponse.State) : List NormalizedObservation := [{
   identifier := "callback-response-consistent"
-  value := Umpire3.Temporal.Product.CallbackResponse.responseReadyB state &&
-    Umpire3.Temporal.Product.CallbackResponse.responseConsistencyB state
+  value := Umpire3.Temporal.Feature.CallbackResponse.responseReadyB state &&
+    Umpire3.Temporal.Feature.CallbackResponse.responseConsistencyB state
 }]
 
 theorem callbackResponse_monitor_equivalent
-    (state : Umpire3.Temporal.Product.CallbackResponse.State) :
+    (state : Umpire3.Temporal.Feature.CallbackResponse.State) :
     callbackResponseConsistency.Holds (callbackResponseObservations state) ↔
-      Umpire3.Temporal.Product.CallbackResponse.ResponseQualified state := by
+      Umpire3.Temporal.Feature.CallbackResponse.ResponseQualified state := by
   simp [MonitorDeclaration.Holds, callbackResponseConsistency, assuranceMonitor,
     callbackResponseObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.CallbackResponse.ResponseQualified,
-    Umpire3.Temporal.Product.CallbackResponse.ResponseConsistency]
+    Umpire3.Temporal.Feature.CallbackResponse.ResponseQualified,
+    Umpire3.Temporal.Feature.CallbackResponse.ResponseConsistency]
 
 def workflowTaskStarvation := assuranceMonitor
   "monitor.workflow-task.starvation"
   "workflow-task.starvation" "workflow-task-not-starved"
 
 def workflowTaskStarvationObservations
-    (state : Umpire3.Temporal.Product.WorkflowProgress.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.WorkflowProgress.State) : List NormalizedObservation := [{
   identifier := "workflow-task-not-starved"
-  value := Umpire3.Temporal.Product.WorkflowProgress.starvationReadyB state &&
-    Umpire3.Temporal.Product.WorkflowProgress.workflowTaskStarvationB state
+  value := Umpire3.Temporal.Feature.WorkflowProgress.starvationReadyB state &&
+    Umpire3.Temporal.Feature.WorkflowProgress.workflowTaskStarvationB state
 }]
 
 theorem workflowTaskStarvation_monitor_equivalent
-    (state : Umpire3.Temporal.Product.WorkflowProgress.State) :
+    (state : Umpire3.Temporal.Feature.WorkflowProgress.State) :
     workflowTaskStarvation.Holds (workflowTaskStarvationObservations state) ↔
-      Umpire3.Temporal.Product.WorkflowProgress.StarvationQualified state := by
+      Umpire3.Temporal.Feature.WorkflowProgress.StarvationQualified state := by
   simp [MonitorDeclaration.Holds, workflowTaskStarvation, assuranceMonitor,
     workflowTaskStarvationObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.WorkflowProgress.StarvationQualified,
-    Umpire3.Temporal.Product.WorkflowProgress.WorkflowTaskStarvation]
+    Umpire3.Temporal.Feature.WorkflowProgress.StarvationQualified,
+    Umpire3.Temporal.Feature.WorkflowProgress.WorkflowTaskStarvation]
 
 def entityProgress := assuranceMonitor
   "monitor.entity.progress" "entity.progress" "entity-progressed"
 
 def entityProgressObservations
-    (state : Umpire3.Temporal.Product.WorkflowProgress.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.WorkflowProgress.State) : List NormalizedObservation := [{
   identifier := "entity-progressed"
-  value := Umpire3.Temporal.Product.WorkflowProgress.progressReadyB state &&
-    Umpire3.Temporal.Product.WorkflowProgress.entityProgressB state
+  value := Umpire3.Temporal.Feature.WorkflowProgress.progressReadyB state &&
+    Umpire3.Temporal.Feature.WorkflowProgress.entityProgressB state
 }]
 
 theorem entityProgress_monitor_equivalent
-    (state : Umpire3.Temporal.Product.WorkflowProgress.State) :
+    (state : Umpire3.Temporal.Feature.WorkflowProgress.State) :
     entityProgress.Holds (entityProgressObservations state) ↔
-      Umpire3.Temporal.Product.WorkflowProgress.ProgressQualified state := by
+      Umpire3.Temporal.Feature.WorkflowProgress.ProgressQualified state := by
   simp [MonitorDeclaration.Holds, entityProgress, assuranceMonitor,
     entityProgressObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.WorkflowProgress.ProgressQualified,
-    Umpire3.Temporal.Product.WorkflowProgress.EntityProgress]
+    Umpire3.Temporal.Feature.WorkflowProgress.ProgressQualified,
+    Umpire3.Temporal.Feature.WorkflowProgress.EntityProgress]
 
 def continuationLineage := assuranceMonitor
   "monitor.workflow-run.continuation-lineage"
   "workflow-run.continuation-lineage" "workflow-continuation-lineage-valid"
 
 def continuationLineageObservations
-    (state : Umpire3.Temporal.Product.WorkflowLineage.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.WorkflowLineage.State) : List NormalizedObservation := [{
   identifier := "workflow-continuation-lineage-valid"
-  value := Umpire3.Temporal.Product.WorkflowLineage.continuationReadyB state &&
-    Umpire3.Temporal.Product.WorkflowLineage.continuationConsistencyB state
+  value := Umpire3.Temporal.Feature.WorkflowLineage.continuationReadyB state &&
+    Umpire3.Temporal.Feature.WorkflowLineage.continuationConsistencyB state
 }]
 
 theorem continuationLineage_monitor_equivalent
-    (state : Umpire3.Temporal.Product.WorkflowLineage.State) :
+    (state : Umpire3.Temporal.Feature.WorkflowLineage.State) :
     continuationLineage.Holds (continuationLineageObservations state) ↔
-      Umpire3.Temporal.Product.WorkflowLineage.ContinuationQualified state := by
+      Umpire3.Temporal.Feature.WorkflowLineage.ContinuationQualified state := by
   simp [MonitorDeclaration.Holds, continuationLineage, assuranceMonitor,
     continuationLineageObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.WorkflowLineage.ContinuationQualified,
-    Umpire3.Temporal.Product.WorkflowLineage.ContinuationLineage]
+    Umpire3.Temporal.Feature.WorkflowLineage.ContinuationQualified,
+    Umpire3.Temporal.Feature.WorkflowLineage.ContinuationLineage]
 
 def resetLineage := assuranceMonitor
   "monitor.workflow-run.reset-lineage"
   "workflow-run.reset-lineage" "workflow-reset-lineage-valid"
 
 def resetLineageObservations
-    (state : Umpire3.Temporal.Product.WorkflowLineage.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.WorkflowLineage.State) : List NormalizedObservation := [{
   identifier := "workflow-reset-lineage-valid"
-  value := Umpire3.Temporal.Product.WorkflowLineage.resetReadyB state &&
-    Umpire3.Temporal.Product.WorkflowLineage.resetConsistencyB state
+  value := Umpire3.Temporal.Feature.WorkflowLineage.resetReadyB state &&
+    Umpire3.Temporal.Feature.WorkflowLineage.resetConsistencyB state
 }]
 
 theorem resetLineage_monitor_equivalent
-    (state : Umpire3.Temporal.Product.WorkflowLineage.State) :
+    (state : Umpire3.Temporal.Feature.WorkflowLineage.State) :
     resetLineage.Holds (resetLineageObservations state) ↔
-      Umpire3.Temporal.Product.WorkflowLineage.ResetQualified state := by
+      Umpire3.Temporal.Feature.WorkflowLineage.ResetQualified state := by
   simp [MonitorDeclaration.Holds, resetLineage, assuranceMonitor,
     resetLineageObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.WorkflowLineage.ResetQualified,
-    Umpire3.Temporal.Product.WorkflowLineage.ResetLineage]
+    Umpire3.Temporal.Feature.WorkflowLineage.ResetQualified,
+    Umpire3.Temporal.Feature.WorkflowLineage.ResetLineage]
 
 def workflowRoutingIsolation := assuranceMonitor
   "monitor.workflow-task.routing-isolation"
   "workflow-task.routing-isolation" "workflow-routing-isolated"
 
 def workflowRoutingObservations
-    (state : Umpire3.Temporal.Product.WorkflowRouting.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.WorkflowRouting.State) : List NormalizedObservation := [{
   identifier := "workflow-routing-isolated"
-  value := Umpire3.Temporal.Product.WorkflowRouting.routingReadyB state &&
-    Umpire3.Temporal.Product.WorkflowRouting.routingIsolationB state
+  value := Umpire3.Temporal.Feature.WorkflowRouting.routingReadyB state &&
+    Umpire3.Temporal.Feature.WorkflowRouting.routingIsolationB state
 }]
 
 theorem workflowRouting_monitor_equivalent
-    (state : Umpire3.Temporal.Product.WorkflowRouting.State) :
+    (state : Umpire3.Temporal.Feature.WorkflowRouting.State) :
     workflowRoutingIsolation.Holds (workflowRoutingObservations state) ↔
-      Umpire3.Temporal.Product.WorkflowRouting.RoutingQualified state := by
+      Umpire3.Temporal.Feature.WorkflowRouting.RoutingQualified state := by
   simp [MonitorDeclaration.Holds, workflowRoutingIsolation, assuranceMonitor,
     workflowRoutingObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.WorkflowRouting.RoutingQualified,
-    Umpire3.Temporal.Product.WorkflowRouting.RoutingIsolation]
+    Umpire3.Temporal.Feature.WorkflowRouting.RoutingQualified,
+    Umpire3.Temporal.Feature.WorkflowRouting.RoutingIsolation]
 
 def workflowOwnershipFencing := assuranceMonitor
   "monitor.workflow-task.ownership-fencing"
   "workflow-task.ownership-fencing" "workflow-ownership-fenced"
 
 def workflowOwnershipObservations
-    (state : Umpire3.Temporal.Product.WorkflowOwnership.State) : List NormalizedObservation := [{
+    (state : Umpire3.Temporal.Feature.WorkflowOwnership.State) : List NormalizedObservation := [{
   identifier := "workflow-ownership-fenced"
-  value := Umpire3.Temporal.Product.WorkflowOwnership.ownershipReadyB state &&
-    Umpire3.Temporal.Product.WorkflowOwnership.ownershipFencingB state
+  value := Umpire3.Temporal.Feature.WorkflowOwnership.ownershipReadyB state &&
+    Umpire3.Temporal.Feature.WorkflowOwnership.ownershipFencingB state
 }]
 
 theorem workflowOwnership_monitor_equivalent
-    (state : Umpire3.Temporal.Product.WorkflowOwnership.State) :
+    (state : Umpire3.Temporal.Feature.WorkflowOwnership.State) :
     workflowOwnershipFencing.Holds (workflowOwnershipObservations state) ↔
-      Umpire3.Temporal.Product.WorkflowOwnership.OwnershipQualified state := by
+      Umpire3.Temporal.Feature.WorkflowOwnership.OwnershipQualified state := by
   simp [MonitorDeclaration.Holds, workflowOwnershipFencing, assuranceMonitor,
     workflowOwnershipObservations, MonitorExpression.eval, lookupObservation,
-    Umpire3.Temporal.Product.WorkflowOwnership.OwnershipQualified,
-    Umpire3.Temporal.Product.WorkflowOwnership.OwnershipFencing]
+    Umpire3.Temporal.Feature.WorkflowOwnership.OwnershipQualified,
+    Umpire3.Temporal.Feature.WorkflowOwnership.OwnershipFencing]
 
 def declarations : List MonitorDeclaration := [
   nexusCancellation,

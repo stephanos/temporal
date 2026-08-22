@@ -1,14 +1,13 @@
-import Temporal.System.NexusTasks
-import Temporal.System.TaskDelivery
-import Temporal.System.MigratedFamilies
+import Temporal.Mechanisms.TaskDelivery
+import Temporal.Families
 
 namespace Umpire3.Tests.Registration
 
-example : Umpire3.Temporal.System.TaskDelivery.guarantee.Claim :=
-  Umpire3.Temporal.System.NexusTasks.nexusDeliveryRequirement.proof
+example : Umpire3.Temporal.Mechanisms.TaskDelivery.guarantee.Claim :=
+  Umpire3.Temporal.System.UpdateLifecycle.deliveryRequirement.proof
 
-example : Umpire3.Temporal.System.TaskDelivery.guarantee.Claim :=
-  Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.deliveryRequirement.proof
+example : Umpire3.Temporal.Mechanisms.TaskDelivery.guarantee.Claim :=
+  Umpire3.Temporal.System.WorkflowOwnership.deliveryRequirement.proof
 
 theorem weakenedClaim : True := by trivial
 
@@ -31,15 +30,15 @@ def weakenedProvider : Umpire3.Guarantee :=
 
 /--
 error: Type mismatch
-  Temporal.System.TaskDelivery.guarantee.proof
+  Temporal.Mechanisms.TaskDelivery.guarantee.proof
 has type
-  Temporal.System.TaskDelivery.guarantee.Claim
+  Temporal.Mechanisms.TaskDelivery.guarantee.Claim
 but is expected to have type
   weakenedProvider.Claim
 -/
 #guard_msgs in
 def incompatibleConsumer : Umpire3.Requirement weakenedProvider where
-  consumer := "Temporal.System.NexusTasks"
-  proof := Umpire3.Temporal.System.TaskDelivery.guarantee.proof
+  consumer := "Temporal.System.UpdateLifecycle"
+  proof := Umpire3.Temporal.Mechanisms.TaskDelivery.guarantee.proof
 
 end Umpire3.Tests.Registration

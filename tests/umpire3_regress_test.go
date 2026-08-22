@@ -26,7 +26,7 @@ func TestUmpire3SparseRegressionCompletionBeforeStartResponse(t *testing.T) {
 
 func TestUmpire3SparseRegressionCancellationRetry(t *testing.T) {
 	operation := umpire3nexus.Operation("operation")
-	runUmpire3Regression(t, umpire3nexus.Regression("SparseRegressionCancellationRetry", operation,
+	runUmpire3Regression(t, umpire3nexus.Scenario("SparseRegressionCancellationRetry", operation,
 		scenario.OnePath(
 			operation.Schedule(),
 			operation.Dispatch(),
@@ -43,7 +43,7 @@ func TestUmpire3SparseRegressionCancellationRetry(t *testing.T) {
 }
 
 func TestUmpire3SparseRegressionSharedHandlerWorkflow(t *testing.T) {
-	runUmpire3Regression(t, scenario.IntegrationCallbackWorkflowRegression("SparseRegressionSharedHandlerWorkflow",
+	runUmpire3Regression(t, scenario.IntegrationCallbackWorkflowScenario("SparseRegressionSharedHandlerWorkflow",
 		[]scenario.Resource{
 			scenario.NexusOperation("operation"),
 			scenario.Callback("callback"),
@@ -59,7 +59,7 @@ func TestUmpire3SparseRegressionSharedHandlerWorkflow(t *testing.T) {
 func TestUmpire3SparseRegressionStartToCloseTimeout(t *testing.T) {
 	for _, chasmEnabled := range []bool{false, true} {
 		t.Run(umpire3CHASMName(chasmEnabled), func(t *testing.T) {
-			runUmpire3Regression(t, scenario.IntegrationNexusTimeoutRegression("SparseRegressionStartToCloseTimeout",
+			runUmpire3Regression(t, scenario.IntegrationNexusTimeoutScenario("SparseRegressionStartToCloseTimeout",
 				[]scenario.Resource{scenario.NexusOperation("operation")},
 				scenario.OnePath(
 					scenario.ScheduleOperation("schedule"),
@@ -76,7 +76,7 @@ func TestUmpire3SparseRegressionCallbackAfterCallerCompletion(t *testing.T) {
 			if chasmEnabled {
 				t.Skip("Blocked on CHASM Nexus callback failure handling after caller completion")
 			}
-			runUmpire3Regression(t, scenario.IntegrationCallbackWorkflowRegression("SparseRegressionCallbackAfterCallerCompletion",
+			runUmpire3Regression(t, scenario.IntegrationCallbackWorkflowScenario("SparseRegressionCallbackAfterCallerCompletion",
 				[]scenario.Resource{
 					scenario.NexusOperation("operation"),
 					scenario.Callback("callback"),
@@ -94,7 +94,7 @@ func TestUmpire3SparseRegressionCallbackAfterCallerCompletion(t *testing.T) {
 func TestUmpire3SparseRegressionBidirectionalNexusActivityLinks(t *testing.T) {
 	for _, chasmEnabled := range []bool{false, true} {
 		t.Run(umpire3CHASMName(chasmEnabled), func(t *testing.T) {
-			runUmpire3Regression(t, scenario.IntegrationNexusActivityRegression("SparseRegressionBidirectionalNexusActivityLinks",
+			runUmpire3Regression(t, scenario.IntegrationNexusActivityScenario("SparseRegressionBidirectionalNexusActivityLinks",
 				[]scenario.Resource{
 					scenario.NexusOperation("operation"),
 					scenario.Activity("activity"),

@@ -1,0 +1,16 @@
+import Temporal.Families.NexusCancellation.Targets.Veil.Binding
+
+def main (arguments : List String) : IO UInt32 := do
+  let [semanticHash] := arguments
+    | IO.eprintln "first-order semantic hash is required"
+      return 2
+  let some binding := Umpire3.Temporal.Veil.NexusCancellationFencing.soundBindingExport
+    | IO.eprintln "sound Veil binding does not match its checked first-order export"
+      return 2
+  let cancelToken ← IO.CancelToken.new
+  let result ← NexusCancellationSoundConcrete.modelCheckerResult none 0 cancelToken
+  IO.println (Lean.Json.mkObj [
+    ("binding", binding.compiledJson semanticHash),
+    ("result", Lean.toJson result),
+  ]).compress
+  return 0

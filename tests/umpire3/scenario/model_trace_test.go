@@ -8,25 +8,27 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/checker/finite"
+	checkertrace "go.temporal.io/server/tests/umpire3/checker/trace"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 func TestSemanticTraceScenarioPreservesObservedOutcomes(t *testing.T) {
-	encoded, err := os.ReadFile("../testdata/update-lifecycle.json")
+	encoded, err := os.ReadFile("../testdata/generated/update-lifecycle.json")
 	require.NoError(t, err)
-	experiment, err := protocol.DecodeExperiment(bytes.NewReader(encoded), protocol.DefaultDecodeLimit)
+	experiment, err := protocolexperiment.DecodeExperiment(bytes.NewReader(encoded), protocolexperiment.DefaultDecodeLimit)
 	require.NoError(t, err)
-	view, found, err := protocol.DefaultAttemptExecutionView(experiment)
+	view, found, err := finite.DefaultAttemptExecutionView(experiment)
 	require.NoError(t, err)
 	require.True(t, found)
-	attempts := make([]protocol.ObservedAttempt, len(experiment.Actions))
+	attempts := make([]finite.ObservedAttempt, len(experiment.Actions))
 	for index, action := range experiment.Actions {
-		attempts[index] = protocol.ObservedAttempt{
-			Action: protocol.ActionKind(action.Kind), Outcome: protocol.ActionOutcomeApplied,
+		attempts[index] = finite.ObservedAttempt{
+			Action: protocolcatalog.ActionKind(action.Kind), Outcome: protocolexperiment.ActionOutcomeApplied,
 		}
 	}
-	trace, err := protocol.NewLiveSemanticTrace(experiment, view, attempts)
+	trace, err := checkertrace.NewLive(experiment, view, attempts)
 	require.NoError(t, err)
 
 	authored, err := FromSemanticTrace(SemanticTraceIdentifier(trace), trace)
@@ -39,6 +41,6 @@ func TestSemanticTraceScenarioPreservesObservedOutcomes(t *testing.T) {
 	require.Len(t, suite.Experiments, 1)
 	require.Len(t, suite.Experiments[0].Actions, len(attempts))
 	for _, action := range suite.Experiments[0].Actions {
-		require.Equal(t, []protocol.ActionOutcome{protocol.ActionOutcomeApplied}, action.AllowedOutcomes)
+		require.Equal(t, []protocolexperiment.ActionOutcome{protocolexperiment.ActionOutcomeApplied}, action.AllowedOutcomes)
 	}
 }

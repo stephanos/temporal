@@ -10,7 +10,10 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/checker/finite"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
+	protocolmonitor "go.temporal.io/server/tests/umpire3/protocol/monitor"
 )
 
 func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, error) {
@@ -20,15 +23,15 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 	compileCtx, cancel := context.WithTimeout(ctx, limits.MaxTime)
 	defer cancel()
 
-	catalog, err := protocol.DefaultCatalog()
+	catalog, err := protocolcatalog.DefaultCatalog()
 	if err != nil {
 		return Suite{}, fmt.Errorf("load semantic catalog: %w", err)
 	}
-	composition, err := protocol.DefaultComposition()
+	composition, err := protocolcatalog.DefaultComposition()
 	if err != nil {
 		return Suite{}, fmt.Errorf("load model composition: %w", err)
 	}
-	monitors, err := protocol.DefaultMonitorCatalog()
+	monitors, err := protocolmonitor.DefaultMonitorCatalog()
 	if err != nil {
 		return Suite{}, fmt.Errorf("load monitor programs: %w", err)
 	}
@@ -82,9 +85,9 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		return Suite{}, err
 	}
 
-	experiments := make([]protocol.Experiment, len(enumerated.paths))
+	experiments := make([]protocolexperiment.Experiment, len(enumerated.paths))
 	digests := make([]string, len(enumerated.paths))
-	modelReplay := ModelReplay{Status: ModelReplayNotSupported, LiveOnlyActions: []protocol.ActionKind{}}
+	modelReplay := ModelReplay{Status: ModelReplayNotSupported, LiveOnlyActions: []protocolcatalog.ActionKind{}}
 	for index, path := range enumerated.paths {
 		experiment, buildErr := buildExperiment(scenario, plan, target, monitor, catalog, composition, catalogHash, path, index, len(enumerated.paths))
 		if buildErr != nil {
@@ -106,9 +109,9 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		}
 	}
 
-	constraints := make([]protocol.OrderConstraint, len(plan.edges))
+	constraints := make([]protocolexperiment.OrderConstraint, len(plan.edges))
 	for index, edge := range plan.edges {
-		constraints[index] = protocol.OrderConstraint{Before: edge.before, After: edge.after, Relation: edge.relation}
+		constraints[index] = protocolexperiment.OrderConstraint{Before: edge.before, After: edge.after, Relation: edge.relation}
 	}
 	addedKinds := addedActionKinds(plan, enumerated.paths[0])
 	explain := Explain{
@@ -122,7 +125,7 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 		Constraints:      constraints,
 		Identities:       identities,
 		Paths:            enumerated.paths,
-		Omissions:        append([]protocol.ProjectionOmission(nil), target.Omissions...),
+		Omissions:        append([]protocolcatalog.ProjectionOmission(nil), target.Omissions...),
 		ModelReplay:      modelReplay,
 		Enumeration: Enumeration{
 			Mode:        map[bool]string{false: "one-path", true: "all-paths"}[plan.allPaths],
@@ -140,8 +143,8 @@ func Compile(ctx context.Context, scenario Scenario, limits Limits) (Suite, erro
 	}, nil
 }
 
-func replayExperimentPath(experiment *protocol.Experiment, source Source) (ModelReplay, error) {
-	executionView, found, err := protocol.DefaultAttemptExecutionView(*experiment)
+func replayExperimentPath(experiment *protocolexperiment.Experiment, source Source) (ModelReplay, error) {
+	executionView, found, err := finite.DefaultAttemptExecutionView(*experiment)
 	if err != nil {
 		return ModelReplay{}, compileError(ErrorInvalidIntent, source,
 			"load executable model view: "+err.Error())
@@ -149,19 +152,19 @@ func replayExperimentPath(experiment *protocol.Experiment, source Source) (Model
 	if !found {
 		for index := range experiment.Actions {
 			if len(experiment.Actions[index].AllowedOutcomes) == 0 {
-				experiment.Actions[index].AllowedOutcomes = []protocol.ActionOutcome{
-					protocol.ActionOutcomeApplied,
+				experiment.Actions[index].AllowedOutcomes = []protocolexperiment.ActionOutcome{
+					protocolexperiment.ActionOutcomeApplied,
 				}
 			}
 		}
 		return ModelReplay{
-			Status: ModelReplayNotSupported, LiveOnlyActions: []protocol.ActionKind{},
+			Status: ModelReplayNotSupported, LiveOnlyActions: []protocolcatalog.ActionKind{},
 			Reason: "No exact executable compiler view is registered for this target.",
 		}, nil
 	}
-	attempts := make([]protocol.AttemptRequest, len(experiment.Actions))
+	attempts := make([]finite.AttemptRequest, len(experiment.Actions))
 	for index, action := range experiment.Actions {
-		identifier := protocol.ActionKind(action.Kind)
+		identifier := protocolcatalog.ActionKind(action.Kind)
 		outcomes := action.AllowedOutcomes
 		if len(outcomes) == 0 {
 			var mapped bool
@@ -172,7 +175,7 @@ func replayExperimentPath(experiment *protocol.Experiment, source Source) (Model
 			}
 			experiment.Actions[index].AllowedOutcomes = outcomes
 		}
-		attempts[index] = protocol.AttemptRequest{Action: identifier, Outcomes: outcomes}
+		attempts[index] = finite.AttemptRequest{Action: identifier, Outcomes: outcomes}
 	}
 	replay, err := executionView.Replay(attempts)
 	if err != nil {
@@ -212,10 +215,10 @@ func validateLimits(limits Limits) error {
 	return nil
 }
 
-func validateResources(resources []Resource, catalog protocol.Catalog) error {
-	knownKinds := make(map[protocol.EntityKind]struct{}, len(catalog.Entities))
+func validateResources(resources []Resource, catalog protocolcatalog.Catalog) error {
+	knownKinds := make(map[protocolcatalog.EntityKind]struct{}, len(catalog.Entities))
 	for _, entity := range catalog.Entities {
-		knownKinds[protocol.EntityKind(entity.Identifier)] = struct{}{}
+		knownKinds[protocolcatalog.EntityKind(entity.Identifier)] = struct{}{}
 	}
 	seen := make(map[string]struct{}, len(resources))
 	for _, resource := range resources {
@@ -233,21 +236,21 @@ func validateResources(resources []Resource, catalog protocol.Catalog) error {
 	return nil
 }
 
-func compositionTarget(composition protocol.Composition, identifier protocol.TargetID) (protocol.TargetProjection, bool) {
+func compositionTarget(composition protocolcatalog.Composition, identifier protocolcatalog.TargetID) (protocolcatalog.TargetProjection, bool) {
 	for _, target := range composition.Targets {
 		if target.Identifier == identifier {
 			return target, true
 		}
 	}
-	return protocol.TargetProjection{}, false
+	return protocolcatalog.TargetProjection{}, false
 }
 
-func completeDependencies(plan *normalizedPlan, catalog protocol.Catalog, target protocol.TargetProjection) error {
+func completeDependencies(plan *normalizedPlan, catalog protocolcatalog.Catalog, target protocolcatalog.TargetProjection) error {
 	retained := make(map[string]struct{}, len(target.RetainedActions))
 	for _, action := range target.RetainedActions {
 		retained[action] = struct{}{}
 	}
-	byKind := make(map[protocol.ActionKind][]*normalizedAction)
+	byKind := make(map[protocolcatalog.ActionKind][]*normalizedAction)
 	byID := make(map[string]*normalizedAction)
 	for _, action := range plan.actions {
 		if action.identifier == "" || action.kind == "" {
@@ -272,7 +275,7 @@ func completeDependencies(plan *normalizedPlan, catalog protocol.Catalog, target
 	ensure = func(action *normalizedAction) error {
 		declaration, _ := catalog.Action(string(action.kind))
 		for _, dependencyID := range declaration.Dependencies {
-			dependencyKind := protocol.ActionKind(dependencyID)
+			dependencyKind := protocolcatalog.ActionKind(dependencyID)
 			candidates := byKind[dependencyKind]
 			var dependency *normalizedAction
 			switch len(candidates) {
@@ -287,7 +290,7 @@ func completeDependencies(plan *normalizedPlan, catalog protocol.Catalog, target
 				}
 				dependency = &normalizedAction{
 					identifier: identifier, kind: dependencyKind, generated: true,
-					responseMode: protocol.ResponseSynchronous,
+					responseMode: protocolexperiment.ResponseSynchronous,
 				}
 				plan.actions = append(plan.actions, dependency)
 				byID[identifier] = dependency
@@ -304,7 +307,7 @@ func completeDependencies(plan *normalizedPlan, catalog protocol.Catalog, target
 				return compileError(ErrorAmbiguousProducer, action.source,
 					fmt.Sprintf("action %q has %d candidate dependencies of kind %q", action.identifier, len(candidates), dependencyKind))
 			}
-			plan.edges = append(plan.edges, normalizedEdge{before: dependency.identifier, after: action.identifier, relation: protocol.OrderSemantic})
+			plan.edges = append(plan.edges, normalizedEdge{before: dependency.identifier, after: action.identifier, relation: protocolexperiment.OrderSemantic})
 		}
 		return nil
 	}
@@ -317,7 +320,7 @@ func completeDependencies(plan *normalizedPlan, catalog protocol.Catalog, target
 	return nil
 }
 
-func compileBindings(plan *normalizedPlan, catalog protocol.Catalog) ([]IdentityRecord, error) {
+func compileBindings(plan *normalizedPlan, catalog protocolcatalog.Catalog) ([]IdentityRecord, error) {
 	byID := make(map[string]*normalizedAction, len(plan.actions))
 	for _, action := range plan.actions {
 		byID[action.identifier] = action
@@ -338,7 +341,7 @@ func compileBindings(plan *normalizedPlan, catalog protocol.Catalog) ([]Identity
 				fmt.Sprintf("binding producer %q does not identify one action", projection.ProducerAction))
 		}
 		declaration, _ := catalog.Action(string(producer.kind))
-		var declared *protocol.ProjectionDeclaration
+		var declared *protocolcatalog.ProjectionDeclaration
 		for index := range declaration.Projections {
 			if declaration.Projections[index].Name == projection.Name {
 				declared = &declaration.Projections[index]
@@ -353,7 +356,7 @@ func compileBindings(plan *normalizedPlan, catalog protocol.Catalog) ([]Identity
 			return nil, compileError(ErrorTypeMismatch, binding.source,
 				fmt.Sprintf("symbol %q type %q does not match projection type %q", symbol.Name, symbol.Type, declared.Type))
 		}
-		producer.bindings = append(producer.bindings, protocol.Binding{
+		producer.bindings = append(producer.bindings, protocolexperiment.Binding{
 			Symbol: symbol.Name, Type: string(symbol.Type), Projection: projection.Name,
 		})
 		bound[symbol.Name] = IdentityRecord{
@@ -370,7 +373,7 @@ func compileBindings(plan *normalizedPlan, catalog protocol.Catalog) ([]Identity
 				}
 				if record.ProducerAction != action.identifier {
 					plan.edges = append(plan.edges, normalizedEdge{
-						before: record.ProducerAction, after: action.identifier, relation: protocol.OrderRuntimeCausal,
+						before: record.ProducerAction, after: action.identifier, relation: protocolexperiment.OrderRuntimeCausal,
 					})
 					record.ConsumerActions = append(record.ConsumerActions, action.identifier)
 					bound[symbol] = record
@@ -388,8 +391,8 @@ func compileBindings(plan *normalizedPlan, catalog protocol.Catalog) ([]Identity
 	return records, nil
 }
 
-func valueSymbols(value protocol.Value) []string {
-	if value.Type == protocol.ValueSymbol && value.Text != nil {
+func valueSymbols(value protocolexperiment.Value) []string {
+	if value.Type == protocolexperiment.ValueSymbol && value.Text != nil {
 		return []string{*value.Text}
 	}
 	var symbols []string
@@ -405,20 +408,20 @@ func valueSymbols(value protocol.Value) []string {
 func buildExperiment(
 	scenario Scenario,
 	plan *normalizedPlan,
-	target protocol.TargetProjection,
-	monitor protocol.MonitorProgram,
-	catalog protocol.Catalog,
-	composition protocol.Composition,
+	target protocolcatalog.TargetProjection,
+	monitor protocolmonitor.MonitorProgram,
+	catalog protocolcatalog.Catalog,
+	composition protocolcatalog.Composition,
 	catalogHash string,
 	path []string,
 	pathIndex int,
 	pathCount int,
-) (protocol.Experiment, error) {
+) (protocolexperiment.Experiment, error) {
 	actionsByID := make(map[string]*normalizedAction, len(plan.actions))
 	for _, action := range plan.actions {
 		actionsByID[action.identifier] = action
 	}
-	actions := make([]protocol.Action, len(path))
+	actions := make([]protocolexperiment.Action, len(path))
 	for index, identifier := range path {
 		action := actionsByID[identifier]
 		declaration, _ := catalog.Action(string(action.kind))
@@ -426,35 +429,35 @@ func buildExperiment(
 		for capabilityIndex, capability := range declaration.RequiredCapabilities {
 			capabilities[capabilityIndex] = string(capability)
 		}
-		actions[index] = protocol.Action{
+		actions[index] = protocolexperiment.Action{
 			Identifier:           identifier,
 			Kind:                 string(action.kind),
-			AllowedOutcomes:      append([]protocol.ActionOutcome(nil), action.allowedOutcomes...),
-			Arguments:            append([]protocol.NamedValue(nil), action.arguments...),
-			Bindings:             append([]protocol.Binding(nil), action.bindings...),
+			AllowedOutcomes:      append([]protocolexperiment.ActionOutcome(nil), action.allowedOutcomes...),
+			Arguments:            append([]protocolexperiment.NamedValue(nil), action.arguments...),
+			Bindings:             append([]protocolexperiment.Binding(nil), action.bindings...),
 			RequiredCapabilities: capabilities,
 			ResponseMode:         action.responseMode,
 			MaxBlockNanos:        action.maxBlockNanos,
 		}
 	}
-	properties := make(map[string]protocol.PropertyDeclaration, len(catalog.Properties))
+	properties := make(map[string]protocolcatalog.PropertyDeclaration, len(catalog.Properties))
 	for _, property := range catalog.Properties {
 		properties[property.Identifier] = property
 	}
 	property := properties[string(plan.property)]
-	resources := make([]protocol.Resource, len(scenario.Resources))
+	resources := make([]protocolexperiment.Resource, len(scenario.Resources))
 	for index, resource := range scenario.Resources {
-		resources[index] = protocol.Resource{Identifier: resource.Identifier, Kind: string(resource.Kind)}
+		resources[index] = protocolexperiment.Resource{Identifier: resource.Identifier, Kind: string(resource.Kind)}
 	}
-	policies := make([]protocol.Policy, len(plan.policies))
+	policies := make([]protocolexperiment.Policy, len(plan.policies))
 	for index, policy := range plan.policies {
-		policies[index] = protocol.Policy{Identifier: policy.identifier, Kind: string(protocol.PolicyKindDuring), Scope: append([]string(nil), policy.scope...)}
+		policies[index] = protocolexperiment.Policy{Identifier: policy.identifier, Kind: string(protocolcatalog.PolicyKindDuring), Scope: append([]string(nil), policy.scope...)}
 	}
-	faultDeclarations := make(map[protocol.FaultKind]protocol.FaultDeclaration, len(catalog.Faults))
+	faultDeclarations := make(map[protocolcatalog.FaultKind]protocolcatalog.FaultDeclaration, len(catalog.Faults))
 	for _, declaration := range catalog.Faults {
-		faultDeclarations[protocol.FaultKind(declaration.Identifier)] = declaration
+		faultDeclarations[protocolcatalog.FaultKind(declaration.Identifier)] = declaration
 	}
-	faults := make([]protocol.Fault, len(plan.faults))
+	faults := make([]protocolexperiment.Fault, len(plan.faults))
 	policyScopes := make(map[string][]string, len(plan.policies))
 	for _, policy := range plan.policies {
 		policyScopes[policy.identifier] = policy.scope
@@ -462,7 +465,7 @@ func buildExperiment(
 	for index, fault := range plan.faults {
 		declaration, known := faultDeclarations[fault.kind]
 		if !known {
-			return protocol.Experiment{}, compileError(ErrorInvalidIntent, Source{}, fmt.Sprintf("unknown fault kind %q", fault.kind))
+			return protocolexperiment.Experiment{}, compileError(ErrorInvalidIntent, Source{}, fmt.Sprintf("unknown fault kind %q", fault.kind))
 		}
 		capabilities := make([]string, len(declaration.RequiredCapabilities))
 		for capabilityIndex, capability := range declaration.RequiredCapabilities {
@@ -488,66 +491,66 @@ func buildExperiment(
 		}
 		occurrence := fault.occurrence
 		if occurrence.First == 0 && occurrence.Count == 0 {
-			occurrence = protocol.FaultOccurrence{First: 1, Count: 1}
+			occurrence = protocolexperiment.FaultOccurrence{First: 1, Count: 1}
 		}
-		compiledFault := protocol.Fault{
+		compiledFault := protocolexperiment.Fault{
 			Identifier: fault.identifier, Kind: string(fault.kind), Policy: fault.policy,
 			SafetyClass: declaration.SafetyClass,
 			Scope:       scope,
 			Occurrence:  occurrence,
-			Interval: protocol.FaultInterval{
+			Interval: protocolexperiment.FaultInterval{
 				StartAction: intervalScope[0], StopAction: intervalScope[len(intervalScope)-1],
 			},
-			Arguments: append([]protocol.NamedValue(nil), fault.arguments...), RequiredCapabilities: capabilities,
+			Arguments: append([]protocolexperiment.NamedValue(nil), fault.arguments...), RequiredCapabilities: capabilities,
 		}
 		if fault.configured != nil {
 			compiledFault = *fault.configured
 			compiledFault.Identifier = fault.identifier
 			compiledFault.Kind = string(fault.kind)
 			compiledFault.Policy = fault.policy
-			compiledFault.Interval = protocol.FaultInterval{
+			compiledFault.Interval = protocolexperiment.FaultInterval{
 				StartAction: intervalScope[0], StopAction: intervalScope[len(intervalScope)-1],
 			}
 		}
 		faults[index] = compiledFault
 	}
 	checkpoints := monitorCheckpoints(monitor)
-	order := make([]protocol.OrderConstraint, len(plan.edges))
+	order := make([]protocolexperiment.OrderConstraint, len(plan.edges))
 	for index, edge := range plan.edges {
-		order[index] = protocol.OrderConstraint{Before: edge.before, After: edge.after, Relation: edge.relation}
+		order[index] = protocolexperiment.OrderConstraint{Before: edge.before, After: edge.after, Relation: edge.relation}
 	}
 	modules := make([]string, len(target.Modules))
 	for index, module := range target.Modules {
 		modules[index] = string(module)
 	}
-	experiment := protocol.Experiment{
-		FormatVersion: protocol.FormatVersion,
+	experiment := protocolexperiment.Experiment{
+		FormatVersion: protocolcatalog.FormatVersion,
 		ExperimentID:  fmt.Sprintf("%s-path-%03d", scenario.Identifier, pathIndex+1),
-		Model: protocol.Model{
+		Model: protocolexperiment.Model{
 			Modules: modules, SourceRevision: "umpire3/compiler/v1", SemanticHash: composition.SemanticHash,
-			CatalogHash: catalogHash, LeanVersion: protocol.LeanVersion,
+			CatalogHash: catalogHash, LeanVersion: protocolcatalog.LeanVersion,
 		},
-		Property: protocol.Property{
+		Property: protocolexperiment.Property{
 			Identifier: string(plan.property), StatementHash: property.StatementHash, Claim: "implementation-conformance",
 		},
-		Scope: protocol.Scope{
-			Bounds:      protocol.Bounds{MaxDepth: len(actions), MaxResults: max(pathCount, len(checkpoints))},
-			Assumptions: []protocol.Assumption{}, Strategy: map[bool]string{false: "deterministic-one-path", true: "complete-linearizations"}[plan.allPaths],
+		Scope: protocolexperiment.Scope{
+			Bounds:      protocolexperiment.Bounds{MaxDepth: len(actions), MaxResults: max(pathCount, len(checkpoints))},
+			Assumptions: []protocolexperiment.Assumption{}, Strategy: map[bool]string{false: "deterministic-one-path", true: "complete-linearizations"}[plan.allPaths],
 		},
 		Resources: resources, Actions: actions, Policies: policies, Faults: faults, Order: order,
 		Checkpoints: checkpoints,
-		Provenance:  protocol.Provenance{Kind: "bounded-exploration", ProofManifest: "composition:" + string(target.Identifier)},
-		Retention:   protocol.Retention{RedactionClass: "semantic-only", MaxArtifactBytes: 1 << 20},
+		Provenance:  protocolexperiment.Provenance{Kind: "bounded-exploration", ProofManifest: "composition:" + string(target.Identifier)},
+		Retention:   protocolexperiment.Retention{RedactionClass: "semantic-only", MaxArtifactBytes: 1 << 20},
 	}
 	return experiment, nil
 }
 
-func monitorCheckpoints(monitor protocol.MonitorProgram) []protocol.Checkpoint {
-	seen := make(map[protocol.ObservationID]struct{})
-	var observations []protocol.ObservationID
-	var collect func(protocol.MonitorExpression)
-	collect = func(expression protocol.MonitorExpression) {
-		if expression.Operation == protocol.MonitorObservation {
+func monitorCheckpoints(monitor protocolmonitor.MonitorProgram) []protocolexperiment.Checkpoint {
+	seen := make(map[protocolcatalog.ObservationID]struct{})
+	var observations []protocolcatalog.ObservationID
+	var collect func(protocolmonitor.MonitorExpression)
+	collect = func(expression protocolmonitor.MonitorExpression) {
+		if expression.Operation == protocolmonitor.MonitorObservation {
 			if _, exists := seen[expression.Observation]; !exists {
 				seen[expression.Observation] = struct{}{}
 				observations = append(observations, expression.Observation)
@@ -560,14 +563,14 @@ func monitorCheckpoints(monitor protocol.MonitorProgram) []protocol.Checkpoint {
 	collect(monitor.Expression)
 	slices.Sort(observations)
 	ordering := "none"
-	if slices.Contains(monitor.Evidence, protocol.EvidenceIDCausal) {
+	if slices.Contains(monitor.Evidence, protocolcatalog.EvidenceIDCausal) {
 		ordering = "causal"
-	} else if slices.Contains(monitor.Evidence, protocol.EvidenceIDSourceSequence) {
+	} else if slices.Contains(monitor.Evidence, protocolcatalog.EvidenceIDSourceSequence) {
 		ordering = "source-sequence"
 	}
-	checkpoints := make([]protocol.Checkpoint, len(observations))
+	checkpoints := make([]protocolexperiment.Checkpoint, len(observations))
 	for index, observation := range observations {
-		checkpoints[index] = protocol.Checkpoint{
+		checkpoints[index] = protocolexperiment.Checkpoint{
 			Identifier: "observe-" + string(observation), Observation: string(observation),
 			Ordering: ordering, OmissionPolicy: "required",
 		}
@@ -591,41 +594,41 @@ func addedActionKinds(plan *normalizedPlan, firstPath []string) []string {
 
 func digestScenario(scenario Scenario, plan *normalizedPlan) (string, error) {
 	type actionDigest struct {
-		Identifier    string                `json:"identifier"`
-		Kind          protocol.ActionKind   `json:"kind"`
-		Arguments     []protocol.NamedValue `json:"arguments"`
-		Bindings      []protocol.Binding    `json:"bindings"`
-		ResponseMode  protocol.ResponseMode `json:"responseMode"`
-		MaxBlockNanos int64                 `json:"maxBlockNanos,omitempty"`
+		Identifier    string                          `json:"identifier"`
+		Kind          protocolcatalog.ActionKind      `json:"kind"`
+		Arguments     []protocolexperiment.NamedValue `json:"arguments"`
+		Bindings      []protocolexperiment.Binding    `json:"bindings"`
+		ResponseMode  protocolexperiment.ResponseMode `json:"responseMode"`
+		MaxBlockNanos int64                           `json:"maxBlockNanos,omitempty"`
 	}
 	type edgeDigest struct {
-		Before   string                 `json:"before"`
-		After    string                 `json:"after"`
-		Relation protocol.OrderRelation `json:"relation"`
+		Before   string                           `json:"before"`
+		After    string                           `json:"after"`
+		Relation protocolexperiment.OrderRelation `json:"relation"`
 	}
 	type policyDigest struct {
 		Identifier string   `json:"identifier"`
 		Scope      []string `json:"scope"`
 	}
 	type faultDigest struct {
-		Identifier string                   `json:"identifier"`
-		Kind       protocol.FaultKind       `json:"kind"`
-		Policy     string                   `json:"policy"`
-		Arguments  []protocol.NamedValue    `json:"arguments"`
-		Scope      protocol.FaultScope      `json:"scope"`
-		Occurrence protocol.FaultOccurrence `json:"occurrence"`
-		Configured *protocol.Fault          `json:"configured,omitempty"`
+		Identifier string                             `json:"identifier"`
+		Kind       protocolcatalog.FaultKind          `json:"kind"`
+		Policy     string                             `json:"policy"`
+		Arguments  []protocolexperiment.NamedValue    `json:"arguments"`
+		Scope      protocolexperiment.FaultScope      `json:"scope"`
+		Occurrence protocolexperiment.FaultOccurrence `json:"occurrence"`
+		Configured *protocolexperiment.Fault          `json:"configured,omitempty"`
 	}
 	type scenarioDigestInput struct {
-		Identifier string              `json:"identifier"`
-		Target     protocol.TargetID   `json:"target"`
-		Resources  []Resource          `json:"resources"`
-		Property   protocol.PropertyID `json:"property"`
-		Actions    []actionDigest      `json:"actions"`
-		Edges      []edgeDigest        `json:"edges"`
-		Policies   []policyDigest      `json:"policies"`
-		Faults     []faultDigest       `json:"faults"`
-		AllPaths   bool                `json:"allPaths"`
+		Identifier string                     `json:"identifier"`
+		Target     protocolcatalog.TargetID   `json:"target"`
+		Resources  []Resource                 `json:"resources"`
+		Property   protocolcatalog.PropertyID `json:"property"`
+		Actions    []actionDigest             `json:"actions"`
+		Edges      []edgeDigest               `json:"edges"`
+		Policies   []policyDigest             `json:"policies"`
+		Faults     []faultDigest              `json:"faults"`
+		AllPaths   bool                       `json:"allPaths"`
 	}
 	actions := make([]actionDigest, len(plan.actions))
 	for index, action := range plan.actions {

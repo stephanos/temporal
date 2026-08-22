@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"go.temporal.io/server/tests/umpire3/observation"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/execution/observation"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexecution "go.temporal.io/server/tests/umpire3/protocol/execution"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 var ErrObservationUnavailable = errors.New("observation unavailable")
@@ -13,19 +15,19 @@ var ErrObservationUnavailable = errors.New("observation unavailable")
 type Bindings map[string]string
 
 type ActionEvidence struct {
-	Source              string                       `json:"source"`
-	Outcome             protocol.ActionOutcome       `json:"outcome"`
-	SourceIdentity      string                       `json:"sourceIdentity,omitempty"`
-	ClockDomain         string                       `json:"clockDomain,omitempty"`
-	SourceSequence      int64                        `json:"sourceSequence,omitempty"`
-	Reference           string                       `json:"reference"`
-	CausalReferences    []string                     `json:"causalReferences,omitempty"`
-	EntityIdentity      string                       `json:"entityIdentity,omitempty"`
-	Lineage             []string                     `json:"lineage,omitempty"`
-	PayloadDigest       string                       `json:"payloadDigest,omitempty"`
-	GroundedBindings    map[string]string            `json:"groundedBindings,omitempty"`
-	TerminalState       string                       `json:"terminalState,omitempty"`
-	TerminalDisposition protocol.TerminalDisposition `json:"terminalDisposition,omitempty"`
+	Source              string                                `json:"source"`
+	Outcome             protocolexperiment.ActionOutcome      `json:"outcome"`
+	SourceIdentity      string                                `json:"sourceIdentity,omitempty"`
+	ClockDomain         string                                `json:"clockDomain,omitempty"`
+	SourceSequence      int64                                 `json:"sourceSequence,omitempty"`
+	Reference           string                                `json:"reference"`
+	CausalReferences    []string                              `json:"causalReferences,omitempty"`
+	EntityIdentity      string                                `json:"entityIdentity,omitempty"`
+	Lineage             []string                              `json:"lineage,omitempty"`
+	PayloadDigest       string                                `json:"payloadDigest,omitempty"`
+	GroundedBindings    map[string]string                     `json:"groundedBindings,omitempty"`
+	TerminalState       string                                `json:"terminalState,omitempty"`
+	TerminalDisposition protocolexecution.TerminalDisposition `json:"terminalDisposition,omitempty"`
 }
 
 type Observation struct {
@@ -54,22 +56,22 @@ type CleanupResult struct {
 }
 
 type EnvironmentIdentity struct {
-	Name                  string                  `json:"name,omitempty"`
-	BuildID               string                  `json:"buildID,omitempty"`
-	ConfigurationIdentity string                  `json:"configurationIdentity,omitempty"`
-	EvidenceProfile       string                  `json:"evidenceProfile,omitempty"`
-	DrivingAuthority      string                  `json:"drivingAuthority,omitempty"`
-	ObservationAuthority  string                  `json:"observationAuthority,omitempty"`
-	FaultAuthority        string                  `json:"faultAuthority,omitempty"`
-	IsolationIdentity     string                  `json:"isolationIdentity,omitempty"`
-	RetentionClass        string                  `json:"retentionClass,omitempty"`
-	HardExecutionBudget   bool                    `json:"hardExecutionBudget"`
-	Capabilities          []protocol.CapabilityID `json:"capabilities"`
+	Name                  string                         `json:"name,omitempty"`
+	BuildID               string                         `json:"buildID,omitempty"`
+	ConfigurationIdentity string                         `json:"configurationIdentity,omitempty"`
+	EvidenceProfile       string                         `json:"evidenceProfile,omitempty"`
+	DrivingAuthority      string                         `json:"drivingAuthority,omitempty"`
+	ObservationAuthority  string                         `json:"observationAuthority,omitempty"`
+	FaultAuthority        string                         `json:"faultAuthority,omitempty"`
+	IsolationIdentity     string                         `json:"isolationIdentity,omitempty"`
+	RetentionClass        string                         `json:"retentionClass,omitempty"`
+	HardExecutionBudget   bool                           `json:"hardExecutionBudget"`
+	Capabilities          []protocolcatalog.CapabilityID `json:"capabilities"`
 }
 
 type Factory interface {
-	Capabilities() []protocol.CapabilityID
-	Prepare(context.Context, protocol.Experiment) (PreparedEnvironment, error)
+	Capabilities() []protocolcatalog.CapabilityID
+	Prepare(context.Context, protocolexperiment.Experiment) (PreparedEnvironment, error)
 }
 
 type PreparedEnvironment struct {
@@ -78,15 +80,15 @@ type PreparedEnvironment struct {
 }
 
 type Session interface {
-	Realize(context.Context, protocol.Action, Bindings) (ActionEvidence, error)
+	Realize(context.Context, protocolexperiment.Action, Bindings) (ActionEvidence, error)
 	Cleanup(context.Context) CleanupResult
 	RecoveryMetadata() map[string]string
 }
 
 type FactSession interface {
-	ObserveFacts(context.Context, protocol.Checkpoint, Bindings) ([]observation.Fact, error)
+	ObserveFacts(context.Context, protocolexperiment.Checkpoint, Bindings) ([]observation.Fact, error)
 }
 
 type CorroboratingFactSession interface {
-	CorroborateFacts(context.Context, protocol.Checkpoint, Bindings) ([][]observation.Fact, error)
+	CorroborateFacts(context.Context, protocolexperiment.Checkpoint, Bindings) ([][]observation.Fact, error)
 }

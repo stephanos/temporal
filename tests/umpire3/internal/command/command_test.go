@@ -10,16 +10,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/campaign"
+	umpire3temporal "go.temporal.io/server/tests/umpire3/adapter/temporal"
+	"go.temporal.io/server/tests/umpire3/assurance/release"
 	"go.temporal.io/server/tests/umpire3/execution"
-	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/qualification"
-	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
+	"go.temporal.io/server/tests/umpire3/mutation"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 func TestExplainUsesStableDiagnosticData(t *testing.T) {
 	result, err := execute(context.Background(), []string{
-		"explain", "-experiment", "../../testdata/update-lifecycle.json",
+		"explain", "-experiment", "../../testdata/generated/update-lifecycle.json",
 	})
 	require.NoError(t, err)
 	value, ok := result.(explanation)
@@ -33,29 +33,29 @@ func TestExplainUsesStableDiagnosticData(t *testing.T) {
 func TestMutationAuditWritesAndChecksSourceBoundReport(t *testing.T) {
 	output := filepath.Join(t.TempDir(), "mutation-audit.json")
 	value, err := execute(context.Background(), []string{
-		"audit-mutation", "-experiment", "../../testdata/nexus-cancellation.json", "-output", output,
+		"audit-mutation", "-experiment", "../../testdata/generated/nexus-cancellation.json", "-output", output,
 	})
 	require.NoError(t, err)
-	report, ok := value.(campaign.MutationGateReport)
+	report, ok := value.(mutation.MutationGateReport)
 	require.True(t, ok)
-	experimentBytes, err := os.ReadFile("../../testdata/nexus-cancellation.json")
+	experimentBytes, err := os.ReadFile("../../testdata/generated/nexus-cancellation.json")
 	require.NoError(t, err)
-	experiment, err := protocol.DecodeExperiment(bytes.NewReader(experimentBytes), protocol.DefaultDecodeLimit)
+	experiment, err := protocolexperiment.DecodeExperiment(bytes.NewReader(experimentBytes), protocolexperiment.DefaultDecodeLimit)
 	require.NoError(t, err)
 	encoded, err := os.ReadFile(output)
 	require.NoError(t, err)
-	retained, err := campaign.DecodeMutationGateReport(encoded, experiment)
+	retained, err := mutation.DecodeMutationGateReport(encoded, experiment)
 	require.NoError(t, err)
 	require.Equal(t, report, retained)
 
 	_, err = execute(context.Background(), []string{
-		"audit-mutation", "-experiment", "../../testdata/nexus-cancellation.json",
+		"audit-mutation", "-experiment", "../../testdata/generated/nexus-cancellation.json",
 		"-output", output, "-check",
 	})
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(output, append(encoded, []byte("{}")...), 0o600))
 	_, err = execute(context.Background(), []string{
-		"audit-mutation", "-experiment", "../../testdata/nexus-cancellation.json",
+		"audit-mutation", "-experiment", "../../testdata/generated/nexus-cancellation.json",
 		"-output", output, "-check",
 	})
 	require.ErrorContains(t, err, "trailing JSON")
@@ -77,7 +77,7 @@ func TestUnknownCommandListsStableSurface(t *testing.T) {
 func TestRunDispatchesThroughInjectedBackend(t *testing.T) {
 	backend := &recordingBackend{}
 	value, err := Execute(context.Background(), []string{
-		"run", "-experiment", "../../testdata/update-lifecycle.json",
+		"run", "-experiment", "../../testdata/generated/update-lifecycle.json",
 	}, backend)
 	require.NoError(t, err)
 	require.Equal(t, 1, backend.executions)
@@ -148,7 +148,7 @@ func TestSubcommandFlagsRemainStable(t *testing.T) {
 
 func TestCommandOutputEnvelopeRemainsStable(t *testing.T) {
 	command := exec.Command("go", "run", "-tags", "test_dep", "../../cmd/umpire3", "explain",
-		"-experiment", "../../testdata/update-lifecycle.json")
+		"-experiment", "../../testdata/generated/update-lifecycle.json")
 	output, err := command.CombinedOutput()
 	require.NoError(t, err, string(output))
 
@@ -175,13 +175,13 @@ type recordingBackend struct {
 
 func (b *recordingBackend) Execute(
 	context.Context,
-	protocol.Experiment,
+	protocolexperiment.Experiment,
 	umpire3temporal.Options,
 ) (execution.Result, error) {
 	b.executions++
 	return execution.Result{}, nil
 }
 
-func (*recordingBackend) Qualify(qualification.Request) (qualification.Receipt, error) {
-	return qualification.Receipt{}, nil
+func (*recordingBackend) Qualify(release.Request) (release.Receipt, error) {
+	return release.Receipt{}, nil
 }
