@@ -1,12 +1,12 @@
 import Lean.Data.Json
 import Temporal.Inventory
 import Temporal.Monitors
-import Temporal.Product.TaskAck
-import Temporal.Refinement.TaskAck
-import Temporal.Refinement.MigratedFamilies
-import Temporal.Refinement.NexusProgress
-import Temporal.System.MigratedFamilies
-import Temporal.System.NexusProgress
+import Temporal.Families.TaskAcknowledgement.Feature
+import Temporal.Families.TaskAcknowledgement.Refinement
+import Temporal.Families
+import Temporal.Families.NexusProgress.Refinement
+import Temporal.Families
+import Temporal.Families.NexusProgress.System
 import Umpire3.Registration
 
 namespace Umpire3.Temporal.Parity
@@ -103,12 +103,12 @@ private def nexusClosureProperty : Entry := {
   fidelity := "exact"
   evidenceLevel := "local-integration"
   evidenceStatus := "metadata-present"
-  owner := "Temporal.Product.NexusClosure"
+  owner := "Temporal.Feature.NexusClosure"
   evidence := {
-    proof := resolved_declaration% Umpire3.Temporal.Product.NexusClosure.closureSafe
-    executable := resolved_declaration% Umpire3.Temporal.Product.NexusClosure.bounded
+    proof := resolved_declaration% Umpire3.Temporal.Feature.NexusClosure.closureSafe
+    executable := resolved_declaration% Umpire3.Temporal.Feature.NexusClosure.bounded
     monitor := resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationClosure_monitor_equivalent
-    negativeControl := resolved_declaration% Umpire3.Temporal.Product.NexusClosure.unsafeClosureMutation
+    negativeControl := resolved_declaration% Umpire3.Temporal.Feature.NexusClosure.unsafeClosureMutation
   }
 }
 
@@ -141,60 +141,60 @@ private def exactTarget (legacyName semanticIdentifier owner : String) (proof ex
 def ledger : Ledger where
   entries := [
     exactProperty "SpeculativeTaskCreation" "workflow-task.speculative-creation"
-      "Temporal.Product.SpeculativeTask"
-      (resolved_declaration% Umpire3.Temporal.Product.SpeculativeTask.speculativeCreationSafe)
-      (resolved_declaration% Umpire3.Temporal.Product.SpeculativeTask.bounded)
+      "Temporal.Feature.SpeculativeTask"
+      (resolved_declaration% Umpire3.Temporal.Feature.SpeculativeTask.speculativeCreationSafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.SpeculativeTask.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.speculativeTask_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.SpeculativeTask.orphanedTaskMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.SpeculativeTask.orphanedTaskMutationNegativeControl),
     nexusClosureProperty,
     exactProperty "NexusOperationProgress" "nexus-operation.progress"
-      "Temporal.Product.NexusProgress"
-      (resolved_declaration% Umpire3.Temporal.Product.NexusProgress.progressSafe)
-      (resolved_declaration% Umpire3.Temporal.Product.NexusProgress.bounded)
+      "Temporal.Feature.NexusProgress"
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusProgress.progressSafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusProgress.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationProgress_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.NexusProgress.stuckAfterDeadlineMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusProgress.stuckAfterDeadlineMutationNegativeControl),
     exactProperty "NexusActivityLinkConsistency" "nexus-activity.link-consistency"
-      "Temporal.Product.NexusActivityLink"
-      (resolved_declaration% Umpire3.Temporal.Product.NexusActivityLink.linkConsistencySafe)
-      (resolved_declaration% Umpire3.Temporal.Product.NexusActivityLink.bounded)
+      "Temporal.Feature.NexusActivityLink"
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusActivityLink.linkConsistencySafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusActivityLink.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusActivityLink_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.NexusActivityLink.missingReverseMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusActivityLink.missingReverseMutationNegativeControl),
     exactProperty "NexusOperationTimeoutSemantics" "nexus-operation.timeout-semantics"
-      "Temporal.Product.NexusTimeout"
-      (resolved_declaration% Umpire3.Temporal.Product.NexusTimeout.timeoutSemanticsSafe)
-      (resolved_declaration% Umpire3.Temporal.Product.NexusTimeout.bounded)
+      "Temporal.Feature.NexusTimeout"
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusTimeout.timeoutSemanticsSafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusTimeout.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusTimeout_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.NexusTimeout.timeoutMetadataMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.NexusTimeout.timeoutMetadataMutationNegativeControl),
     exactProperty "CallbackReferenceConsistency" "callback.reference-consistency"
-      "Temporal.Product.CallbackReference"
-      (resolved_declaration% Umpire3.Temporal.Product.CallbackReference.referenceConsistencySafe)
-      (resolved_declaration% Umpire3.Temporal.Product.CallbackReference.bounded)
+      "Temporal.Feature.CallbackReference"
+      (resolved_declaration% Umpire3.Temporal.Feature.CallbackReference.referenceConsistencySafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.CallbackReference.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.callbackReference_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.CallbackReference.wrongReferenceMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.CallbackReference.wrongReferenceMutationNegativeControl),
     exactProperty "CallbackResponseConsistency" "callback.response-consistency"
-      "Temporal.Product.CallbackResponse"
-      (resolved_declaration% Umpire3.Temporal.Product.CallbackResponse.responseConsistencySafe)
-      (resolved_declaration% Umpire3.Temporal.Product.CallbackResponse.bounded)
+      "Temporal.Feature.CallbackResponse"
+      (resolved_declaration% Umpire3.Temporal.Feature.CallbackResponse.responseConsistencySafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.CallbackResponse.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.callbackResponse_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.CallbackResponse.conflictingResponseMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.CallbackResponse.conflictingResponseMutationNegativeControl),
     exactProperty "WorkflowTaskStarvation" "workflow-task.starvation"
-      "Temporal.Product.WorkflowProgress"
-      (resolved_declaration% Umpire3.Temporal.Product.WorkflowProgress.workflowTaskStarvationSafe)
-      (resolved_declaration% Umpire3.Temporal.Product.WorkflowProgress.bounded)
+      "Temporal.Feature.WorkflowProgress"
+      (resolved_declaration% Umpire3.Temporal.Feature.WorkflowProgress.workflowTaskStarvationSafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.WorkflowProgress.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.workflowTaskStarvation_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.WorkflowProgress.starvationMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.WorkflowProgress.starvationMutationNegativeControl),
     exactProperty "EntityProgress" "entity.progress"
-      "Temporal.Product.WorkflowProgress"
-      (resolved_declaration% Umpire3.Temporal.Product.WorkflowProgress.entityProgressSafe)
-      (resolved_declaration% Umpire3.Temporal.Product.WorkflowProgress.bounded)
+      "Temporal.Feature.WorkflowProgress"
+      (resolved_declaration% Umpire3.Temporal.Feature.WorkflowProgress.entityProgressSafe)
+      (resolved_declaration% Umpire3.Temporal.Feature.WorkflowProgress.bounded)
       (resolved_declaration% Umpire3.Temporal.Monitors.entityProgress_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Product.WorkflowProgress.progressMutationNegativeControl),
+      (resolved_declaration% Umpire3.Temporal.Feature.WorkflowProgress.progressMutationNegativeControl),
     exactTarget "feature-nexus" "feature-nexus"
-      "Temporal.Refinement.MigratedFamilies.NexusClosure"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.NexusClosure.executable)
+      "Temporal.Refinement.NexusClosure"
+      (resolved_declaration% Umpire3.Temporal.Refinement.NexusClosure.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.NexusClosure.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationClosure_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.NexusClosure.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.NexusClosure.mutationBreaksDeclaredSimulation),
     exactTarget "feature-nexus-progress" "feature-nexus-progress"
       "Temporal.Refinement.NexusProgress"
       (resolved_declaration% Umpire3.Temporal.Refinement.NexusProgress.soundSimulation)
@@ -202,66 +202,66 @@ def ledger : Ledger where
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusOperationProgress_monitor_equivalent)
       (resolved_declaration% Umpire3.Temporal.Refinement.NexusProgress.mutationBreaksDeclaredSimulation),
     exactTarget "feature-workflow-speculative-delivery" "feature-workflow-speculative-delivery"
-      "Temporal.Refinement.MigratedFamilies.SpeculativeTask"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.executable)
+      "Temporal.Refinement.SpeculativeTask"
+      (resolved_declaration% Umpire3.Temporal.Refinement.SpeculativeTask.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.SpeculativeTask.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.speculativeTask_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.SpeculativeTask.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.SpeculativeTask.mutationBreaksDeclaredSimulation),
     taskAckTarget,
     exactTarget "foundation-delivery-safety" "foundation-delivery-safety"
-      "Temporal.Refinement.MigratedFamilies.WorkflowProgress"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable)
+      "Temporal.Refinement.WorkflowProgress"
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowProgress.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.WorkflowProgress.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.entityProgress_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.entityMutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowProgress.entityMutationBreaksDeclaredSimulation),
     exactTarget "foundation-ownership-fencing" "foundation-ownership-fencing"
-      "Temporal.Refinement.MigratedFamilies.WorkflowOwnership"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.executable)
+      "Temporal.Refinement.WorkflowOwnership"
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowOwnership.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.WorkflowOwnership.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.workflowOwnership_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowOwnership.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowOwnership.mutationBreaksDeclaredSimulation),
     exactTarget "foundation-routing-isolation" "foundation-routing-isolation"
-      "Temporal.Refinement.MigratedFamilies.RoutingIsolation"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.RoutingIsolation.soundSimulations)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.RoutingIsolation.executableViews)
+      "Temporal.Refinement.RoutingIsolation"
+      (resolved_declaration% Umpire3.Temporal.Refinement.RoutingIsolation.soundSimulations)
+      (resolved_declaration% Umpire3.Temporal.System.RoutingIsolation.executableViews)
       (resolved_declaration% Umpire3.Temporal.Monitors.workflowRouting_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.RoutingIsolation.mutationsBreakDeclaredSimulations),
+      (resolved_declaration% Umpire3.Temporal.Refinement.RoutingIsolation.mutationsBreakDeclaredSimulations),
     exactTarget "integration-activity-delivery" "integration-activity-delivery"
-      "Temporal.Refinement.MigratedFamilies.WorkflowProgress"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable)
+      "Temporal.Refinement.WorkflowProgress"
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowProgress.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.WorkflowProgress.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.entityProgress_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.entityMutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowProgress.entityMutationBreaksDeclaredSimulation),
     exactTarget "integration-callback-nexus" "integration-callback-nexus"
-      "Temporal.Refinement.MigratedFamilies.CallbackReference"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.CallbackReference.executable)
+      "Temporal.Refinement.CallbackReference"
+      (resolved_declaration% Umpire3.Temporal.Refinement.CallbackReference.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.CallbackReference.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.callbackReference_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.CallbackReference.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.CallbackReference.mutationBreaksDeclaredSimulation),
     exactTarget "integration-callback-workflow" "integration-callback-workflow"
-      "Temporal.Refinement.MigratedFamilies.CallbackResponse"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.executable)
+      "Temporal.Refinement.CallbackResponse"
+      (resolved_declaration% Umpire3.Temporal.Refinement.CallbackResponse.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.CallbackResponse.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.callbackResponse_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.CallbackResponse.mutationBreaksDeclaredSimulation),
     exactTarget "integration-nexus-activity" "integration-nexus-activity"
-      "Temporal.Refinement.MigratedFamilies.NexusActivityLink"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.executable)
+      "Temporal.Refinement.NexusActivityLink"
+      (resolved_declaration% Umpire3.Temporal.Refinement.NexusActivityLink.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.NexusActivityLink.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.nexusActivityLink_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.NexusActivityLink.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.NexusActivityLink.mutationBreaksDeclaredSimulation),
     exactTarget "integration-workflow-delivery" "integration-workflow-delivery"
-      "Temporal.Refinement.MigratedFamilies.WorkflowProgress"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable)
+      "Temporal.Refinement.WorkflowProgress"
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowProgress.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.WorkflowProgress.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.workflowTaskStarvation_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.WorkflowProgress.starvationMutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.WorkflowProgress.starvationMutationBreaksDeclaredSimulation),
     exactTarget "protocol-atomic" "protocol-atomic"
-      "Temporal.Refinement.MigratedFamilies.CallbackResponse"
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.soundSimulation)
-      (resolved_declaration% Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.executable)
+      "Temporal.Refinement.CallbackResponse"
+      (resolved_declaration% Umpire3.Temporal.Refinement.CallbackResponse.soundSimulation)
+      (resolved_declaration% Umpire3.Temporal.System.CallbackResponse.executable)
       (resolved_declaration% Umpire3.Temporal.Monitors.callbackResponse_monitor_equivalent)
-      (resolved_declaration% Umpire3.Temporal.Refinement.MigratedFamilies.CallbackResponse.mutationBreaksDeclaredSimulation),
+      (resolved_declaration% Umpire3.Temporal.Refinement.CallbackResponse.mutationBreaksDeclaredSimulation),
   ]
 
 theorem ledgerMetadataValid : ledger.MetadataValid := by

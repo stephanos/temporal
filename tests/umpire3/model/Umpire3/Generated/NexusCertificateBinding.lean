@@ -1,9 +1,9 @@
 namespace Umpire3.Generated.NexusCertificateBinding
 
 def semanticHash : String :=
-  "sha256:3e19cbfcd34401c09433b13cf6577f7877f9021f029cc0bd3d4d7d3f50960353"
+  "sha256:271e14fb39878d517081ce66b7ba1cfe29e470c17b2f0fdeb93214da80a8aa52"
 
 def viewDigest : String :=
-  "sha256:e1d8d61eef326454a927d49d1ede55595c488ceaac587d9d41334b70294981e7"
+  "sha256:59c2db0207966c87693b2a633cf1461be0272fc71a86b59afc3aa39cf41470a0"
 
 end Umpire3.Generated.NexusCertificateBinding

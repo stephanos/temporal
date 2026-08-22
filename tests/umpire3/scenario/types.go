@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 const (
@@ -59,41 +60,41 @@ type Limits struct {
 }
 
 type Resource struct {
-	Identifier string              `json:"identifier"`
-	Kind       protocol.EntityKind `json:"kind"`
+	Identifier string                     `json:"identifier"`
+	Kind       protocolcatalog.EntityKind `json:"kind"`
 }
 
 type Scenario struct {
 	Identifier string
-	Target     protocol.TargetID
+	Target     protocolcatalog.TargetID
 	Resources  []Resource
 	Root       Term
 }
 
 type Symbol struct {
 	Name string
-	Type protocol.SemanticTypeID
+	Type protocolcatalog.SemanticTypeID
 }
 
-func (s Symbol) Value() protocol.Value {
+func (s Symbol) Value() protocolexperiment.Value {
 	name := s.Name
-	return protocol.Value{Type: protocol.ValueSymbol, Text: &name}
+	return protocolexperiment.Value{Type: protocolexperiment.ValueSymbol, Text: &name}
 }
 
 type Projection struct {
 	ProducerAction string
 	Name           string
-	Type           protocol.SemanticTypeID
+	Type           protocolcatalog.SemanticTypeID
 }
 
-func Project(producerAction, name string, valueType protocol.SemanticTypeID) Projection {
+func Project(producerAction, name string, valueType protocolcatalog.SemanticTypeID) Projection {
 	return Projection{ProducerAction: producerAction, Name: name, Type: valueType}
 }
 
 type ActionOption func(*actionIntent)
 
 type Value struct {
-	value protocol.Value
+	value protocolexperiment.Value
 }
 
 type Field struct {
@@ -102,28 +103,28 @@ type Field struct {
 }
 
 func String(value string) Value {
-	return Value{value: protocol.Value{Type: protocol.ValueString, Text: &value}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueString, Text: &value}}
 }
 
 func Integer(value int64) Value {
-	return Value{value: protocol.Value{Type: protocol.ValueInteger, Integer: &value}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueInteger, Integer: &value}}
 }
 
 func Boolean(value bool) Value {
-	return Value{value: protocol.Value{Type: protocol.ValueBoolean, Boolean: &value}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueBoolean, Boolean: &value}}
 }
 
 func Duration(value time.Duration) Value {
 	nanoseconds := int64(value)
-	return Value{value: protocol.Value{Type: protocol.ValueDuration, Integer: &nanoseconds}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueDuration, Integer: &nanoseconds}}
 }
 
 func Enum(name string, number int64) Value {
-	return Value{value: protocol.Value{Type: protocol.ValueEnum, Text: &name, Integer: &number}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueEnum, Text: &name, Integer: &number}}
 }
 
 func BytesDigest(value string) Value {
-	return Value{value: protocol.Value{Type: protocol.ValueBytesDigest, Text: &value}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueBytesDigest, Text: &value}}
 }
 
 func SymbolValue(symbol Symbol) Value {
@@ -131,11 +132,11 @@ func SymbolValue(symbol Symbol) Value {
 }
 
 func List(values ...Value) Value {
-	elements := make([]protocol.Value, len(values))
+	elements := make([]protocolexperiment.Value, len(values))
 	for index, value := range values {
 		elements[index] = value.value
 	}
-	return Value{value: protocol.Value{Type: protocol.ValueList, Elements: elements}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueList, Elements: elements}}
 }
 
 func Named(name string, value Value) Field {
@@ -143,11 +144,11 @@ func Named(name string, value Value) Field {
 }
 
 func Record(fields ...Field) Value {
-	values := make([]protocol.NamedValue, len(fields))
+	values := make([]protocolexperiment.NamedValue, len(fields))
 	for index, field := range fields {
-		values[index] = protocol.NamedValue{Name: field.name, Value: field.value.value}
+		values[index] = protocolexperiment.NamedValue{Name: field.name, Value: field.value.value}
 	}
-	return Value{value: protocol.Value{Type: protocol.ValueRecord, Fields: values}}
+	return Value{value: protocolexperiment.Value{Type: protocolexperiment.ValueRecord, Fields: values}}
 }
 
 type Outcome string
@@ -160,9 +161,9 @@ const (
 	FaultIntercepted Outcome = "fault-intercepted"
 )
 
-func WithArgument(name string, value protocol.Value) ActionOption {
+func WithArgument(name string, value protocolexperiment.Value) ActionOption {
 	return func(intent *actionIntent) {
-		intent.arguments = append(intent.arguments, protocol.NamedValue{Name: name, Value: value})
+		intent.arguments = append(intent.arguments, protocolexperiment.NamedValue{Name: name, Value: value})
 	}
 }
 
@@ -171,14 +172,14 @@ func WithValue(name string, value Value) ActionOption {
 }
 
 func withStringArgument(name, value string) ActionOption {
-	return WithArgument(name, protocol.Value{Type: protocol.ValueString, Text: &value})
+	return WithArgument(name, protocolexperiment.Value{Type: protocolexperiment.ValueString, Text: &value})
 }
 
 func withIdentityArgument(name string, symbol Symbol) ActionOption {
 	return WithArgument(name, symbol.Value())
 }
 
-func WithResponse(mode protocol.ResponseMode) ActionOption {
+func WithResponse(mode protocolexperiment.ResponseMode) ActionOption {
 	return func(intent *actionIntent) {
 		intent.responseMode = mode
 	}
@@ -186,22 +187,22 @@ func WithResponse(mode protocol.ResponseMode) ActionOption {
 
 func WithBoundedBlock(duration time.Duration) ActionOption {
 	return func(intent *actionIntent) {
-		intent.responseMode = protocol.ResponseBlocking
+		intent.responseMode = protocolexperiment.ResponseBlocking
 		intent.maxBlockNanos = int64(duration)
 	}
 }
 
-func WithOutcomes(outcomes ...protocol.ActionOutcome) ActionOption {
+func WithOutcomes(outcomes ...protocolexperiment.ActionOutcome) ActionOption {
 	return func(intent *actionIntent) {
-		intent.allowedOutcomes = append([]protocol.ActionOutcome(nil), outcomes...)
+		intent.allowedOutcomes = append([]protocolexperiment.ActionOutcome(nil), outcomes...)
 	}
 }
 
 func Outcomes(outcomes ...Outcome) ActionOption {
 	return func(intent *actionIntent) {
-		intent.allowedOutcomes = make([]protocol.ActionOutcome, len(outcomes))
+		intent.allowedOutcomes = make([]protocolexperiment.ActionOutcome, len(outcomes))
 		for index, outcome := range outcomes {
-			intent.allowedOutcomes[index] = protocol.ActionOutcome(outcome)
+			intent.allowedOutcomes[index] = protocolexperiment.ActionOutcome(outcome)
 		}
 	}
 }
@@ -210,19 +211,19 @@ type FaultOption func(*FaultIntent)
 
 type FaultIntent struct {
 	identifier string
-	kind       protocol.FaultKind
-	arguments  []protocol.NamedValue
-	scope      protocol.FaultScope
-	occurrence protocol.FaultOccurrence
-	configured *protocol.Fault
+	kind       protocolcatalog.FaultKind
+	arguments  []protocolexperiment.NamedValue
+	scope      protocolexperiment.FaultScope
+	occurrence protocolexperiment.FaultOccurrence
+	configured *protocolexperiment.Fault
 	source     Source
 }
 
-func Fault(identifier string, kind protocol.FaultKind, options ...FaultOption) FaultIntent {
+func Fault(identifier string, kind protocolcatalog.FaultKind, options ...FaultOption) FaultIntent {
 	return FaultAt(Source{}, identifier, kind, options...)
 }
 
-func FaultAt(source Source, identifier string, kind protocol.FaultKind, options ...FaultOption) FaultIntent {
+func FaultAt(source Source, identifier string, kind protocolcatalog.FaultKind, options ...FaultOption) FaultIntent {
 	intent := FaultIntent{identifier: identifier, kind: kind, source: source}
 	for _, option := range options {
 		option(&intent)
@@ -277,19 +278,19 @@ func OnAttempts(attempts ...int) FaultOption {
 
 func AtOccurrence(first, count int) FaultOption {
 	return func(intent *FaultIntent) {
-		intent.occurrence = protocol.FaultOccurrence{First: first, Count: count}
+		intent.occurrence = protocolexperiment.FaultOccurrence{First: first, Count: count}
 	}
 }
 
 func WithFaultValue(name string, value Value) FaultOption {
 	return func(intent *FaultIntent) {
-		intent.arguments = append(intent.arguments, protocol.NamedValue{Name: name, Value: value.value})
+		intent.arguments = append(intent.arguments, protocolexperiment.NamedValue{Name: name, Value: value.value})
 	}
 }
 
-func ConfiguredFault(fault protocol.Fault) FaultIntent {
+func ConfiguredFault(fault protocolexperiment.Fault) FaultIntent {
 	clone := fault
-	clone.Arguments = append([]protocol.NamedValue(nil), fault.Arguments...)
+	clone.Arguments = append([]protocolexperiment.NamedValue(nil), fault.Arguments...)
 	clone.RequiredCapabilities = append([]string(nil), fault.RequiredCapabilities...)
 	clone.Scope.Resources = append([]string(nil), fault.Scope.Resources...)
 	clone.Scope.Endpoints = append([]string(nil), fault.Scope.Endpoints...)
@@ -299,8 +300,8 @@ func ConfiguredFault(fault protocol.Fault) FaultIntent {
 	clone.Scope.Participants = append([]string(nil), fault.Scope.Participants...)
 	clone.Scope.Attempts = append([]int(nil), fault.Scope.Attempts...)
 	return FaultIntent{
-		identifier: fault.Identifier, kind: protocol.FaultKind(fault.Kind),
-		arguments: append([]protocol.NamedValue(nil), fault.Arguments...), configured: &clone,
+		identifier: fault.Identifier, kind: protocolcatalog.FaultKind(fault.Kind),
+		arguments: append([]protocolexperiment.NamedValue(nil), fault.Arguments...), configured: &clone,
 	}
 }
 
@@ -321,10 +322,10 @@ const (
 
 type actionIntent struct {
 	identifier      string
-	kind            protocol.ActionKind
-	allowedOutcomes []protocol.ActionOutcome
-	arguments       []protocol.NamedValue
-	responseMode    protocol.ResponseMode
+	kind            protocolcatalog.ActionKind
+	allowedOutcomes []protocolexperiment.ActionOutcome
+	arguments       []protocolexperiment.NamedValue
+	responseMode    protocolexperiment.ResponseMode
 	maxBlockNanos   int64
 }
 
@@ -338,14 +339,14 @@ type Term struct {
 	source      Source
 	action      actionIntent
 	bind        bindIntent
-	property    protocol.PropertyID
+	property    protocolcatalog.PropertyID
 	children    []Term
 	fault       FaultIntent
 	repeatCount int
 }
 
-func ActionAt(source Source, identifier string, kind protocol.ActionKind, options ...ActionOption) Term {
-	intent := actionIntent{identifier: identifier, kind: kind, responseMode: protocol.ResponseSynchronous}
+func ActionAt(source Source, identifier string, kind protocolcatalog.ActionKind, options ...ActionOption) Term {
+	intent := actionIntent{identifier: identifier, kind: kind, responseMode: protocolexperiment.ResponseSynchronous}
 	for _, option := range options {
 		option(&intent)
 	}
@@ -356,7 +357,7 @@ func BindAt(source Source, symbol Symbol, projection Projection) Term {
 	return Term{kind: nodeBind, source: source, bind: bindIntent{symbol: symbol, projection: projection}}
 }
 
-func RequireAt(source Source, property protocol.PropertyID) Term {
+func RequireAt(source Source, property protocolcatalog.PropertyID) Term {
 	return Term{kind: nodeRequire, source: source, property: property}
 }
 
@@ -410,33 +411,33 @@ const (
 )
 
 type ModelReplay struct {
-	Status          ModelReplayStatus     `json:"status"`
-	CanonicalModel  string                `json:"canonicalModel,omitempty"`
-	Variant         string                `json:"variant,omitempty"`
-	LiveOnlyActions []protocol.ActionKind `json:"liveOnlyActions"`
-	Reason          string                `json:"reason,omitempty"`
+	Status          ModelReplayStatus            `json:"status"`
+	CanonicalModel  string                       `json:"canonicalModel,omitempty"`
+	Variant         string                       `json:"variant,omitempty"`
+	LiveOnlyActions []protocolcatalog.ActionKind `json:"liveOnlyActions"`
+	Reason          string                       `json:"reason,omitempty"`
 }
 
 type Explain struct {
-	FormatVersion    string                        `json:"formatVersion"`
-	Scenario         string                        `json:"scenario"`
-	ScenarioDigest   string                        `json:"scenarioDigest"`
-	CatalogHash      string                        `json:"catalogHash"`
-	Target           protocol.TargetID             `json:"target"`
-	Property         protocol.PropertyID           `json:"property"`
-	AddedActionKinds []string                      `json:"addedActionKinds"`
-	Constraints      []protocol.OrderConstraint    `json:"constraints"`
-	Identities       []IdentityRecord              `json:"identities"`
-	Paths            [][]string                    `json:"paths"`
-	Omissions        []protocol.ProjectionOmission `json:"omissions"`
-	ModelReplay      ModelReplay                   `json:"modelReplay"`
-	Enumeration      Enumeration                   `json:"enumeration"`
+	FormatVersion    string                               `json:"formatVersion"`
+	Scenario         string                               `json:"scenario"`
+	ScenarioDigest   string                               `json:"scenarioDigest"`
+	CatalogHash      string                               `json:"catalogHash"`
+	Target           protocolcatalog.TargetID             `json:"target"`
+	Property         protocolcatalog.PropertyID           `json:"property"`
+	AddedActionKinds []string                             `json:"addedActionKinds"`
+	Constraints      []protocolexperiment.OrderConstraint `json:"constraints"`
+	Identities       []IdentityRecord                     `json:"identities"`
+	Paths            [][]string                           `json:"paths"`
+	Omissions        []protocolcatalog.ProjectionOmission `json:"omissions"`
+	ModelReplay      ModelReplay                          `json:"modelReplay"`
+	Enumeration      Enumeration                          `json:"enumeration"`
 }
 
 type Suite struct {
-	FormatVersion  string                `json:"formatVersion"`
-	ScenarioDigest string                `json:"scenarioDigest"`
-	Experiments    []protocol.Experiment `json:"experiments"`
-	Digests        []string              `json:"digests"`
-	Explain        Explain               `json:"explain"`
+	FormatVersion  string                          `json:"formatVersion"`
+	ScenarioDigest string                          `json:"scenarioDigest"`
+	Experiments    []protocolexperiment.Experiment `json:"experiments"`
+	Digests        []string                        `json:"digests"`
+	Explain        Explain                         `json:"explain"`
 }

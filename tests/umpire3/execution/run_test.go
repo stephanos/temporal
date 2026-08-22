@@ -11,14 +11,17 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
-	"go.temporal.io/server/tests/umpire3/observation"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
+	"go.temporal.io/server/tests/umpire3/execution/observation"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolchecker "go.temporal.io/server/tests/umpire3/protocol/checker"
+	protocolexecution "go.temporal.io/server/tests/umpire3/protocol/execution"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
 type fakeFactory struct {
-	capabilities []protocol.CapabilityID
+	capabilities []protocolcatalog.CapabilityID
 	session      Session
 	prepareErr   error
 	prepareCount int
@@ -55,7 +58,7 @@ type factFakeSession struct {
 
 func (s *factFakeSession) ObserveFacts(
 	_ context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	_ Bindings,
 ) ([]observation.Fact, error) {
 	return s.facts[checkpoint.Identifier], nil
@@ -63,7 +66,7 @@ func (s *factFakeSession) ObserveFacts(
 
 func (s *corroboratingFactFakeSession) ObserveFacts(
 	_ context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	_ Bindings,
 ) ([]observation.Fact, error) {
 	return s.facts[checkpoint.Identifier], nil
@@ -71,17 +74,17 @@ func (s *corroboratingFactFakeSession) ObserveFacts(
 
 func (s *corroboratingFactFakeSession) CorroborateFacts(
 	_ context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	_ Bindings,
 ) ([][]observation.Fact, error) {
 	return s.corroborating[checkpoint.Identifier], s.err
 }
 
-func (f *fakeFactory) Capabilities() []protocol.CapabilityID {
+func (f *fakeFactory) Capabilities() []protocolcatalog.CapabilityID {
 	return f.capabilities
 }
 
-func (f *fakeFactory) Prepare(context.Context, protocol.Experiment) (PreparedEnvironment, error) {
+func (f *fakeFactory) Prepare(context.Context, protocolexperiment.Experiment) (PreparedEnvironment, error) {
 	f.prepareCount++
 	return PreparedEnvironment{
 		Session: f.session, Identity: testEnvironmentIdentity(f.capabilities),
@@ -101,7 +104,7 @@ type fakeSession struct {
 	faultRealizer  umpire3fault.Realizer
 }
 
-func (s *fakeSession) Realize(ctx context.Context, action protocol.Action, _ Bindings) (ActionEvidence, error) {
+func (s *fakeSession) Realize(ctx context.Context, action protocolexperiment.Action, _ Bindings) (ActionEvidence, error) {
 	select {
 	case <-ctx.Done():
 		return ActionEvidence{}, ctx.Err()
@@ -115,14 +118,14 @@ func (s *fakeSession) Realize(ctx context.Context, action protocol.Action, _ Bin
 		return evidence, s.realizeErr[action.Kind]
 	}
 	return ActionEvidence{
-		Source: "fake", Outcome: protocol.ActionOutcomeApplied, Reference: action.Identifier,
+		Source: "fake", Outcome: protocolexperiment.ActionOutcomeApplied, Reference: action.Identifier,
 		GroundedBindings: s.groundings[action.Identifier],
 	}, s.realizeErr[action.Kind]
 }
 
 func (s *fakeSession) ObserveFacts(
 	_ context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	_ Bindings,
 ) ([]observation.Fact, error) {
 	observed, ok := s.observations[checkpoint.Identifier]
@@ -132,7 +135,7 @@ func (s *fakeSession) ObserveFacts(
 	return fakeObservationFacts(checkpoint, observed), nil
 }
 
-func fakeObservationFacts(checkpoint protocol.Checkpoint, observed Observation) []observation.Fact {
+func fakeObservationFacts(checkpoint protocolexperiment.Checkpoint, observed Observation) []observation.Fact {
 	if !observed.Satisfied && checkpoint.Observation != "stale-success-absent" {
 		return nil
 	}
@@ -209,7 +212,7 @@ func (s *fakeSession) FaultRealizer() umpire3fault.Realizer { return s.faultReal
 
 func TestRunRejectsUnsupportedCapabilitiesBeforePrepare(t *testing.T) {
 	experiment := loadExperiment(t)
-	factory := &fakeFactory{capabilities: []protocol.CapabilityID{protocol.CapabilityIDNexus}}
+	factory := &fakeFactory{capabilities: []protocolcatalog.CapabilityID{protocolcatalog.CapabilityIDNexus}}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
@@ -218,7 +221,7 @@ func TestRunRejectsUnsupportedCapabilitiesBeforePrepare(t *testing.T) {
 }
 
 func TestMissingCapabilitiesIncludesFaultRequirements(t *testing.T) {
-	experiment := protocol.Experiment{Faults: []protocol.Fault{{
+	experiment := protocolexperiment.Experiment{Faults: []protocolexperiment.Fault{{
 		RequiredCapabilities: []string{"failover-control"},
 	}}}
 
@@ -254,8 +257,8 @@ func TestRunRealizesFaultOverDeclaredActionInterval(t *testing.T) {
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
 	require.NoError(t, err)
 	require.Equal(t, ClaimConforming, result.Claim.Kind)
-	require.Equal(t, protocol.ResultClassImplementationConforming, result.ResultClass)
-	require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
+	require.Equal(t, protocolcatalog.ResultClassImplementationConforming, result.ResultClass)
+	require.Equal(t, protocolcatalog.TrustBadgeTestedInstance, result.TrustBadge)
 	require.Equal(t, []string{"install", "activate", "release", "cleanup"}, realizer.calls)
 	require.Len(t, result.Faults, 1)
 	require.True(t, result.Faults[0].Realized)
@@ -267,27 +270,27 @@ func TestRunRealizesFaultOverDeclaredActionInterval(t *testing.T) {
 func TestResultAssuranceIsDerivedFromFinalClaim(t *testing.T) {
 	for _, test := range []struct {
 		claim         ClaimKind
-		resultClass   protocol.ResultClass
+		resultClass   protocolcatalog.ResultClass
 		requiresTrace bool
 	}{
-		{claim: ClaimConforming, resultClass: protocol.ResultClassImplementationConforming},
-		{claim: ClaimViolating, resultClass: protocol.ResultClassTraceWitness, requiresTrace: true},
-		{claim: ClaimUnsupported, resultClass: protocol.ResultClassUnknown},
-		{claim: ClaimInconclusive, resultClass: protocol.ResultClassUnknown},
-		{claim: ClaimEvidenceFailure, resultClass: protocol.ResultClassUnknown},
+		{claim: ClaimConforming, resultClass: protocolcatalog.ResultClassImplementationConforming},
+		{claim: ClaimViolating, resultClass: protocolcatalog.ResultClassTraceWitness, requiresTrace: true},
+		{claim: ClaimUnsupported, resultClass: protocolcatalog.ResultClassUnknown},
+		{claim: ClaimInconclusive, resultClass: protocolcatalog.ResultClassUnknown},
+		{claim: ClaimEvidenceFailure, resultClass: protocolcatalog.ResultClassUnknown},
 	} {
 		t.Run(string(test.claim), func(t *testing.T) {
 			result := Result{Claim: Claim{Kind: test.claim}}
 			finalizeAssurance(&result)
 			require.Equal(t, test.resultClass, result.ResultClass)
-			require.Equal(t, protocol.TrustBadgeTestedInstance, result.TrustBadge)
+			require.Equal(t, protocolcatalog.TrustBadgeTestedInstance, result.TrustBadge)
 			if test.requiresTrace {
 				require.ErrorContains(t, result.ValidateAssurance(), "semantic trace")
 			} else {
 				require.NoError(t, result.ValidateAssurance())
 			}
 
-			result.ResultClass = protocol.ResultClassFiniteExhaustive
+			result.ResultClass = protocolcatalog.ResultClassFiniteExhaustive
 			require.Error(t, result.ValidateAssurance())
 		})
 	}
@@ -393,7 +396,7 @@ func TestRunRejectsAppliedOutcomeThatCanonicalModelCannotExecute(t *testing.T) {
 	session.actionEvidence = make(map[string]ActionEvidence, len(experiment.Actions))
 	for _, action := range experiment.Actions {
 		session.actionEvidence[action.Identifier] = ActionEvidence{
-			Source: "fake", Reference: action.Identifier, Outcome: protocol.ActionOutcomeApplied,
+			Source: "fake", Reference: action.Identifier, Outcome: protocolexperiment.ActionOutcomeApplied,
 		}
 	}
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
@@ -409,9 +412,9 @@ func TestRunAcceptsSuppressedOutcomeWithoutApplyingAbstractTransition(t *testing
 	session := conformingSession(experiment)
 	session.actionEvidence = make(map[string]ActionEvidence, len(experiment.Actions))
 	for _, action := range experiment.Actions {
-		outcome := protocol.ActionOutcomeApplied
-		if action.Kind == string(protocol.ActionKindPersistSuccess) {
-			outcome = protocol.ActionOutcomeSuppressed
+		outcome := protocolexperiment.ActionOutcomeApplied
+		if action.Kind == string(protocolcatalog.ActionKindPersistSuccess) {
+			outcome = protocolexperiment.ActionOutcomeSuppressed
 		}
 		session.actionEvidence[action.Identifier] = ActionEvidence{
 			Source: "fake", Reference: action.Identifier, Outcome: outcome,
@@ -447,7 +450,7 @@ func TestRuntimeResultBindsStoredEvidenceDigest(t *testing.T) {
 	require.ErrorContains(t, result.ValidateEvidenceDigest(), "does not match")
 	result.Evidence.Claims[0].Reason = originalReason
 
-	result.Actions[0].Evidence.Outcome = protocol.ActionOutcomeSuppressed
+	result.Actions[0].Evidence.Outcome = protocolexperiment.ActionOutcomeSuppressed
 	require.ErrorContains(t, result.ValidateEvidenceDigest(), "does not match")
 }
 
@@ -483,7 +486,7 @@ func TestInterpretedObservationRetainsCompleteSupportBoundary(t *testing.T) {
 		}
 	}
 
-	interpreted, err := interpretedObservation(protocol.Checkpoint{
+	interpreted, err := interpretedObservation(protocolexperiment.Checkpoint{
 		Identifier: "progress", Observation: "entity-progressed",
 	}, observation.Evaluation{
 		Value: observation.True, Support: []string{"pending", "completed", "progressed"},
@@ -502,10 +505,10 @@ func TestRunReportsAllowedFailureAsDegradedWithoutChangingClaim(t *testing.T) {
 	last := experiment.Actions[len(experiment.Actions)-1]
 	session.actionEvidence = map[string]ActionEvidence{
 		last.Identifier: {
-			Source: "fake", Outcome: protocol.ActionOutcomeApplied,
+			Source: "fake", Outcome: protocolexperiment.ActionOutcomeApplied,
 			SourceIdentity: "fake", Reference: "history/failed",
 			EntityIdentity: "workflow/run", Lineage: []string{"workflow", "run"},
-			TerminalState: "failed", TerminalDisposition: protocol.TerminalDispositionFailure,
+			TerminalState: "failed", TerminalDisposition: protocolexecution.TerminalDispositionFailure,
 		},
 	}
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
@@ -520,9 +523,9 @@ func TestRunReportsAllowedFailureAsDegradedWithoutChangingClaim(t *testing.T) {
 func TestRunReportsViolationAsFlaggedWithoutTerminal(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
-	observation := session.observations["no-stale-success"]
-	observation.Satisfied = false
-	session.observations["no-stale-success"] = observation
+	observed := session.observations["no-stale-success"]
+	observed.Satisfied = false
+	session.observations["no-stale-success"] = observed
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
@@ -531,10 +534,10 @@ func TestRunReportsViolationAsFlaggedWithoutTerminal(t *testing.T) {
 	require.Equal(t, OutcomeFlagged, result.Outcome.Kind)
 	require.NotNil(t, result.Trace)
 	require.NoError(t, result.Trace.Validate())
-	require.Equal(t, protocol.SemanticTraceProducerLive, result.Trace.Producer)
+	require.Equal(t, protocolchecker.SemanticTraceProducerLive, result.Trace.Producer)
 	require.Len(t, result.Trace.Steps, len(experiment.Actions))
 	for _, step := range result.Trace.Steps {
-		require.Equal(t, protocol.ActionOutcomeApplied, step.Outcome)
+		require.Equal(t, protocolexperiment.ActionOutcomeApplied, step.Outcome)
 	}
 }
 
@@ -754,9 +757,9 @@ func TestRunOptionalOmissionRequiredByPropertyIsInconclusive(t *testing.T) {
 func TestRunContradictingEvidenceIsViolating(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
-	observation := session.observations["no-stale-success"]
-	observation.Satisfied = false
-	session.observations["no-stale-success"] = observation
+	observed := session.observations["no-stale-success"]
+	observed.Satisfied = false
+	session.observations["no-stale-success"] = observed
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
@@ -767,9 +770,9 @@ func TestRunContradictingEvidenceIsViolating(t *testing.T) {
 func TestRunMissingRequiredPositiveEvidenceIsInconclusive(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
-	observation := session.observations["cancellation-accepted"]
-	observation.Satisfied = false
-	session.observations["cancellation-accepted"] = observation
+	observed := session.observations["cancellation-accepted"]
+	observed.Satisfied = false
+	session.observations["cancellation-accepted"] = observed
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
@@ -857,9 +860,9 @@ func TestRunCleanupFailureDowngradesConformance(t *testing.T) {
 func TestRunIncomparableOrderingIsInconclusive(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
-	observation := session.observations["cancellation-won"]
-	observation.CausalReference = ""
-	session.observations["cancellation-won"] = observation
+	observed := session.observations["cancellation-won"]
+	observed.CausalReference = ""
+	session.observations["cancellation-won"] = observed
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
@@ -871,9 +874,9 @@ func TestRunIncomparableOrderingIsInconclusive(t *testing.T) {
 func TestRunMissingIdentityLineageIsEvidenceFailure(t *testing.T) {
 	experiment := loadExperiment(t)
 	session := conformingSession(experiment)
-	observation := session.observations["cancellation-won"]
-	observation.Lineage = nil
-	session.observations["cancellation-won"] = observation
+	observed := session.observations["cancellation-won"]
+	observed.Lineage = nil
+	session.observations["cancellation-won"] = observed
 	factory := &fakeFactory{capabilities: allCapabilities(experiment), session: session}
 
 	result, err := Run(context.Background(), Request{Experiment: experiment, Environment: factory})
@@ -908,7 +911,7 @@ func TestRunRejectsCountBudgetBeforePrepare(t *testing.T) {
 }
 
 type blockingFactory struct {
-	capabilities []protocol.CapabilityID
+	capabilities []protocolcatalog.CapabilityID
 	session      Session
 }
 
@@ -951,27 +954,27 @@ func (r *runtimeFaultRealizer) RealizationEvidence(context.Context, string) (ump
 	}, nil
 }
 
-func (f *blockingFactory) Capabilities() []protocol.CapabilityID { return f.capabilities }
-func (f *blockingFactory) Prepare(ctx context.Context, _ protocol.Experiment) (PreparedEnvironment, error) {
+func (f *blockingFactory) Capabilities() []protocolcatalog.CapabilityID { return f.capabilities }
+func (f *blockingFactory) Prepare(ctx context.Context, _ protocolexperiment.Experiment) (PreparedEnvironment, error) {
 	<-ctx.Done()
 	return PreparedEnvironment{Session: f.session, Identity: testEnvironmentIdentity(f.capabilities)}, ctx.Err()
 }
 
-func loadExperiment(t *testing.T) protocol.Experiment {
+func loadExperiment(t *testing.T) protocolexperiment.Experiment {
 	t.Helper()
-	encoded, err := os.ReadFile("../testdata/nexus-cancellation.json")
+	encoded, err := os.ReadFile("../testdata/generated/nexus-cancellation.json")
 	require.NoError(t, err)
-	experiment, err := protocol.DecodeExperiment(bytes.NewReader(encoded), protocol.DefaultDecodeLimit)
+	experiment, err := protocolexperiment.DecodeExperiment(bytes.NewReader(encoded), protocolexperiment.DefaultDecodeLimit)
 	require.NoError(t, err)
 	return experiment
 }
 
-func allCapabilities(experiment protocol.Experiment) []protocol.CapabilityID {
-	seen := make(map[protocol.CapabilityID]struct{})
-	var capabilities []protocol.CapabilityID
+func allCapabilities(experiment protocolexperiment.Experiment) []protocolcatalog.CapabilityID {
+	seen := make(map[protocolcatalog.CapabilityID]struct{})
+	var capabilities []protocolcatalog.CapabilityID
 	for _, action := range experiment.Actions {
 		for _, capability := range action.RequiredCapabilities {
-			identifier := protocol.CapabilityID(capability)
+			identifier := protocolcatalog.CapabilityID(capability)
 			if _, exists := seen[identifier]; !exists {
 				seen[identifier] = struct{}{}
 				capabilities = append(capabilities, identifier)
@@ -980,7 +983,7 @@ func allCapabilities(experiment protocol.Experiment) []protocol.CapabilityID {
 	}
 	for _, fault := range experiment.Faults {
 		for _, capability := range fault.RequiredCapabilities {
-			identifier := protocol.CapabilityID(capability)
+			identifier := protocolcatalog.CapabilityID(capability)
 			if _, exists := seen[identifier]; !exists {
 				seen[identifier] = struct{}{}
 				capabilities = append(capabilities, identifier)
@@ -990,17 +993,17 @@ func allCapabilities(experiment protocol.Experiment) []protocol.CapabilityID {
 	return capabilities
 }
 
-func testEnvironmentIdentity(capabilities []protocol.CapabilityID) EnvironmentIdentity {
+func testEnvironmentIdentity(capabilities []protocolcatalog.CapabilityID) EnvironmentIdentity {
 	return EnvironmentIdentity{
 		Name: "test", BuildID: "build", ConfigurationIdentity: "configuration",
 		EvidenceProfile: EvidenceProfileInProcessHooks, DrivingAuthority: "test-driver",
 		ObservationAuthority: "test-observer", FaultAuthority: "test-faults",
 		IsolationIdentity: "namespace/queue", RetentionClass: "semantic-redacted",
-		Capabilities: append([]protocol.CapabilityID(nil), capabilities...),
+		Capabilities: append([]protocolcatalog.CapabilityID(nil), capabilities...),
 	}
 }
 
-func conformingSession(experiment protocol.Experiment) *fakeSession {
+func conformingSession(experiment protocolexperiment.Experiment) *fakeSession {
 	observations := make(map[string]Observation, len(experiment.Checkpoints))
 	for index, checkpoint := range experiment.Checkpoints {
 		observations[checkpoint.Identifier] = Observation{
@@ -1036,14 +1039,14 @@ func completeObservation(identifier string, satisfied bool, source string) Obser
 
 func observationSources(observations []Observation) []string {
 	sources := make([]string, len(observations))
-	for index, observation := range observations {
-		sources[index] = observation.Source
+	for index, observed := range observations {
+		sources[index] = observed.Source
 	}
 	return sources
 }
 
 func cancellationFacts(
-	experiment protocol.Experiment,
+	experiment protocolexperiment.Experiment,
 	source string,
 ) map[string][]observation.Fact {
 	factSource := func(sequence int64) observation.Source {
@@ -1075,26 +1078,26 @@ func cancellationFacts(
 	}
 }
 
-func compiledUpdateExperiment(t *testing.T) protocol.Experiment {
+func compiledUpdateExperiment(t *testing.T) protocolexperiment.Experiment {
 	t.Helper()
-	runID := scenario.Symbol{Name: "run-id", Type: protocol.SemanticTypeIDIdentity}
+	runID := scenario.Symbol{Name: "run-id", Type: protocolcatalog.SemanticTypeIDIdentity}
 	suite, err := scenario.Compile(context.Background(), scenario.Scenario{
 		Identifier: "runtime-update-identity",
-		Target:     protocol.TargetIDWorkflowUpdateLifecycle,
+		Target:     protocolcatalog.TargetIDWorkflowUpdateLifecycle,
 		Resources: []scenario.Resource{
-			{Identifier: "workflow", Kind: protocol.EntityKindWorkflow},
-			{Identifier: "update", Kind: protocol.EntityKindWorkflowUpdate},
+			{Identifier: "workflow", Kind: protocolcatalog.EntityKindWorkflow},
+			{Identifier: "update", Kind: protocolcatalog.EntityKindWorkflowUpdate},
 		},
 		Root: scenario.OnePath(
-			scenario.Action("start", protocol.ActionKindStartUpdate),
-			scenario.Bind(runID, scenario.Project("start", "update-id", protocol.SemanticTypeIDIdentity)),
-			scenario.Action("dispatch", protocol.ActionKindDispatchWorkflowTask,
+			scenario.Action("start", protocolcatalog.ActionKindStartUpdate),
+			scenario.Bind(runID, scenario.Project("start", "update-id", protocolcatalog.SemanticTypeIDIdentity)),
+			scenario.Action("dispatch", protocolcatalog.ActionKindDispatchWorkflowTask,
 				scenario.WithArgument("update", runID.Value())),
-			scenario.Action("accept", protocol.ActionKindAcceptUpdate),
-			scenario.Action("history", protocol.ActionKindRecordUpdateHistory),
-			scenario.Action("complete-task", protocol.ActionKindCompleteWorkflowTask),
-			scenario.Action("complete", protocol.ActionKindCompleteUpdate),
-			scenario.Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+			scenario.Action("accept", protocolcatalog.ActionKindAcceptUpdate),
+			scenario.Action("history", protocolcatalog.ActionKindRecordUpdateHistory),
+			scenario.Action("complete-task", protocolcatalog.ActionKindCompleteWorkflowTask),
+			scenario.Action("complete", protocolcatalog.ActionKindCompleteUpdate),
+			scenario.Require(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
 		),
 	}, scenario.Limits{
 		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
@@ -1103,24 +1106,24 @@ func compiledUpdateExperiment(t *testing.T) protocol.Experiment {
 	return suite.Experiments[0]
 }
 
-func compiledNexusAttemptExperiment(t *testing.T) protocol.Experiment {
+func compiledNexusAttemptExperiment(t *testing.T) protocolexperiment.Experiment {
 	t.Helper()
 	suite, err := scenario.Compile(context.Background(), scenario.Scenario{
 		Identifier: "runtime-nexus-attempt",
-		Target:     protocol.TargetIDNexusCancellation,
+		Target:     protocolcatalog.TargetIDNexusCancellation,
 		Resources: []scenario.Resource{
-			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
-			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+			{Identifier: "operation", Kind: protocolcatalog.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocolcatalog.EntityKindNexusWorker},
 		},
 		Root: scenario.OnePath(
-			scenario.Action("schedule", protocol.ActionKindScheduleOperation),
-			scenario.Action("dispatch", protocol.ActionKindDispatchTask),
-			scenario.Action("cancel", protocol.ActionKindRequestCancellation),
-			scenario.Action("commit", protocol.ActionKindCommitCancellation),
-			scenario.Action("ownership", protocol.ActionKindAcquireOwnership),
-			scenario.Action("returned", protocol.ActionKindWorkerReturnsSuccess),
-			scenario.Action("persist", protocol.ActionKindPersistSuccess),
-			scenario.Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+			scenario.Action("schedule", protocolcatalog.ActionKindScheduleOperation),
+			scenario.Action("dispatch", protocolcatalog.ActionKindDispatchTask),
+			scenario.Action("cancel", protocolcatalog.ActionKindRequestCancellation),
+			scenario.Action("commit", protocolcatalog.ActionKindCommitCancellation),
+			scenario.Action("ownership", protocolcatalog.ActionKindAcquireOwnership),
+			scenario.Action("returned", protocolcatalog.ActionKindWorkerReturnsSuccess),
+			scenario.Action("persist", protocolcatalog.ActionKindPersistSuccess),
+			scenario.Require(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}, scenario.Limits{
 		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,

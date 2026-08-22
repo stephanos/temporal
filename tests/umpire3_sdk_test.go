@@ -28,14 +28,15 @@ import (
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/tests/testcore"
+	umpire3temporal "go.temporal.io/server/tests/umpire3/adapter/temporal"
+	"go.temporal.io/server/tests/umpire3/adapter/temporal/internalhistory"
+	"go.temporal.io/server/tests/umpire3/deployment"
 	environment "go.temporal.io/server/tests/umpire3/execution"
-	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
-	"go.temporal.io/server/tests/umpire3/observation"
-	"go.temporal.io/server/tests/umpire3/participant"
-	"go.temporal.io/server/tests/umpire3/profile"
-	"go.temporal.io/server/tests/umpire3/protocol"
-	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
-	"go.temporal.io/server/tests/umpire3/temporal/internalhistory"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
+	"go.temporal.io/server/tests/umpire3/execution/observation"
+	"go.temporal.io/server/tests/umpire3/execution/participant"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 	"google.golang.org/grpc/codes"
 )
 
@@ -96,7 +97,7 @@ func TestUmpire3RootFaultRealizerMatchesExactLearnedOccurrence(t *testing.T) {
 
 	realizer := &umpire3RootRPCFaultRealizer{experimentID: "learned-occurrence", namespace: "namespace"}
 	handle, err := realizer.Install(t.Context(), umpire3fault.Term{
-		Kind: protocol.FaultKindDrop,
+		Kind: protocolcatalog.FaultKindDrop,
 		Scope: umpire3fault.Scope{
 			Namespaces: []string{"namespace"}, Services: []string{"history"}, Routes: []string{"RecordNexusTaskStarted"},
 		},
@@ -124,12 +125,12 @@ func TestUmpire3RootFaultRealizerMatchesExactLearnedOccurrence(t *testing.T) {
 	require.Contains(t, evidence.Reference, "/fault/drop/1")
 }
 
-func (f *umpire3SDKRootFactory) Capabilities() []protocol.CapabilityID {
-	catalog, err := protocol.DefaultCatalog()
+func (f *umpire3SDKRootFactory) Capabilities() []protocolcatalog.CapabilityID {
+	catalog, err := protocolcatalog.DefaultCatalog()
 	if err != nil {
 		return nil
 	}
-	capabilities := make([]protocol.CapabilityID, len(catalog.Capabilities))
+	capabilities := make([]protocolcatalog.CapabilityID, len(catalog.Capabilities))
 	for index, capability := range catalog.Capabilities {
 		capabilities[index] = capability.Identifier
 	}
@@ -143,7 +144,7 @@ func (f *umpire3SDKRootFactory) FaultRealizer() umpire3fault.Realizer {
 
 func (f *umpire3SDKRootFactory) Prepare(
 	ctx context.Context,
-	experiment protocol.Experiment,
+	experiment protocolexperiment.Experiment,
 ) (environment.PreparedEnvironment, error) {
 	program, _, err := participant.CompileExperiment(experiment)
 	if err != nil {
@@ -161,7 +162,7 @@ func (f *umpire3SDKRootFactory) Prepare(
 		participantProgramHas(program, participant.CommandCancellation)
 	needsCallbacks := participantProgramHas(program, participant.CommandCallbackRegister) ||
 		participantProgramHas(program, participant.CommandCallbackComplete)
-	needsNexusActivityLinks := participantProgramHasAction(program, string(protocol.ActionKindLinkNexusActivity))
+	needsNexusActivityLinks := participantProgramHasAction(program, string(protocolcatalog.ActionKindLinkNexusActivity))
 	environmentOptions := []testcore.TestOption{
 		testcore.WithDynamicConfig(chasmcallback.AllowedAddresses,
 			[]any{map[string]any{"Pattern": "*", "AllowInsecure": true}}),
@@ -208,7 +209,7 @@ func (f *umpire3SDKRootFactory) Prepare(
 					if operation.SDKOperation == participant.SDKCancel {
 						return &nexus.HandlerStartOperationResultAsync{OperationToken: "umpire3-cancellation"}, nil
 					}
-					if operation.SemanticAction == string(protocol.ActionKindLinkNexusActivity) {
+					if operation.SemanticAction == string(protocolcatalog.ActionKindLinkNexusActivity) {
 						if nexusActivityLinks == nil {
 							return nil, nexus.NewHandlerErrorf(
 								nexus.HandlerErrorTypeInternal, "Umpire3 Nexus Activity link driver is unavailable")
@@ -254,19 +255,19 @@ func (f *umpire3SDKRootFactory) Prepare(
 	if err != nil {
 		return environment.PreparedEnvironment{}, err
 	}
-	deploymentSpec := profile.Local(
+	deploymentSpec := deployment.Local(
 		"umpire3-sdk-participant-v1", env.Namespace().String(), env.WorkerTaskQueue(),
 	)
 	deploymentSpec.Capabilities = f.Capabilities()
-	deployment, err := profile.Define(deploymentSpec)
+	definedDeployment, err := deployment.Define(deploymentSpec)
 	if err != nil {
 		return environment.PreparedEnvironment{}, err
 	}
 	factory, err := umpire3temporal.NewSDKFactory(umpire3temporal.SDKFactoryOptions{
-		Client: env.SdkClient(), Registry: env.SdkWorker(), Deployment: deployment,
+		Client: env.SdkClient(), Registry: env.SdkWorker(), Deployment: definedDeployment,
 		Namespace: env.Namespace().String(), TaskQueue: env.WorkerTaskQueue(),
 		CleanupTimeout: 5 * time.Second, NegativeControl: f.negativeControl,
-		WorkflowID: func(experiment protocol.Experiment) string {
+		WorkflowID: func(experiment protocolexperiment.Experiment) string {
 			return umpire3SDKWorkflowID(experiment.ExperimentID, f.t.Name())
 		},
 		NexusEndpoint: nexusEndpoint, NexusService: nexusService, NexusOperation: nexusOperation,
@@ -289,10 +290,10 @@ func (f *umpire3SDKRootFactory) Prepare(
 		footprintFactory:   f,
 	}
 	prepared.Session = rootSession
-	if experiment.Property.Identifier == string(protocol.PropertyIDNexusOperationProgress) {
+	if experiment.Property.Identifier == string(protocolcatalog.PropertyIDNexusOperationProgress) {
 		prepared.Session = &umpire3PrimaryFactRootSession{root: rootSession}
 	}
-	prepared.Identity.FaultAuthority = deployment.Environment.FaultAuthority
+	prepared.Identity.FaultAuthority = definedDeployment.Environment.FaultAuthority
 	return prepared, nil
 }
 
@@ -362,7 +363,7 @@ func umpire3FootprintNamespaceMatches(request any, namespaceID string, namespace
 	return false
 }
 
-func umpire3CallIdentity(fullMethod string) (string, string, string) {
+func umpire3CallIdentity(fullMethod string) (transport string, service string, route string) {
 	if strings.HasPrefix(fullMethod, "HTTP ") {
 		parts := strings.SplitN(fullMethod, " ", 3)
 		if len(parts) == 3 {
@@ -374,7 +375,7 @@ func umpire3CallIdentity(fullMethod string) (string, string, string) {
 	if len(parts) != 2 {
 		return "grpc", "unknown", strings.TrimSpace(fullMethod)
 	}
-	service := parts[0]
+	service = parts[0]
 	switch {
 	case strings.HasSuffix(service, ".WorkflowService"):
 		service = "frontend"
@@ -386,6 +387,7 @@ func umpire3CallIdentity(fullMethod string) (string, string, string) {
 		service = "admin"
 	case strings.HasSuffix(service, ".OperatorService"):
 		service = "operator"
+	default:
 	}
 	return "grpc", service, parts[1]
 }
@@ -407,7 +409,7 @@ type umpire3PrimaryFactRootSession struct {
 
 func (s *umpire3PrimaryFactRootSession) Realize(
 	ctx context.Context,
-	action protocol.Action,
+	action protocolexperiment.Action,
 	bindings environment.Bindings,
 ) (environment.ActionEvidence, error) {
 	return s.root.Realize(ctx, action, bindings)
@@ -415,7 +417,7 @@ func (s *umpire3PrimaryFactRootSession) Realize(
 
 func (s *umpire3PrimaryFactRootSession) ObserveFacts(
 	ctx context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	bindings environment.Bindings,
 ) ([]observation.Fact, error) {
 	return s.root.ObserveFacts(ctx, checkpoint, bindings)
@@ -431,7 +433,7 @@ func (s *umpire3PrimaryFactRootSession) RecoveryMetadata() map[string]string {
 
 func (s *umpire3RootSession) CorroborateFacts(
 	ctx context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	bindings environment.Bindings,
 ) ([][]observation.Fact, error) {
 	corroborating, ok := s.Session.(environment.CorroboratingFactSession)
@@ -442,7 +444,7 @@ func (s *umpire3RootSession) CorroborateFacts(
 	if err != nil {
 		return factSets, err
 	}
-	if checkpoint.Observation != string(protocol.ObservationIDNexusActivityLinksConsistent) {
+	if checkpoint.Observation != string(protocolcatalog.ObservationIDNexusActivityLinksConsistent) {
 		return factSets, nil
 	}
 	if s.nexusActivityLinks == nil {
@@ -459,10 +461,10 @@ func (s *umpire3RootSession) CorroborateFacts(
 
 func (s *umpire3RootSession) ObserveFacts(
 	ctx context.Context,
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	bindings environment.Bindings,
 ) ([]observation.Fact, error) {
-	if checkpoint.Observation == string(protocol.ObservationIDNexusOperationProgressed) {
+	if checkpoint.Observation == string(protocolcatalog.ObservationIDNexusOperationProgressed) {
 		if s.nexusBehavior == nil {
 			return nil, errors.New("Nexus progress evidence is unavailable")
 		}
@@ -476,7 +478,7 @@ func (s *umpire3RootSession) ObserveFacts(
 	if err != nil {
 		return observed, err
 	}
-	if checkpoint.Observation != string(protocol.ObservationIDNexusActivityLinksConsistent) {
+	if checkpoint.Observation != string(protocolcatalog.ObservationIDNexusActivityLinksConsistent) {
 		return observed, nil
 	}
 	if s.nexusActivityLinks == nil {
@@ -487,7 +489,7 @@ func (s *umpire3RootSession) ObserveFacts(
 
 func (s *umpire3RootSession) Realize(
 	ctx context.Context,
-	action protocol.Action,
+	action protocolexperiment.Action,
 	bindings environment.Bindings,
 ) (environment.ActionEvidence, error) {
 	s.footprintFactory.footprintActive.Store(true)
@@ -495,12 +497,12 @@ func (s *umpire3RootSession) Realize(
 	if err != nil {
 		return evidence, err
 	}
-	if action.Kind == string(protocol.ActionKindRequestCancellation) {
+	if action.Kind == string(protocolcatalog.ActionKindRequestCancellation) {
 		if err := s.faultRealizer.waitForFire(ctx); err != nil {
 			return environment.ActionEvidence{}, err
 		}
 	}
-	if action.Kind == string(protocol.ActionKindLinkNexusActivity) {
+	if action.Kind == string(protocolcatalog.ActionKindLinkNexusActivity) {
 		if s.nexusActivityLinks == nil {
 			return environment.ActionEvidence{}, errors.New("Nexus Activity link driver is unavailable")
 		}
@@ -588,7 +590,7 @@ func (r *umpire3RootRPCFaultRealizer) Install(_ context.Context, term umpire3fau
 	if r.installed {
 		return "", errors.New("root RPC fault is already installed")
 	}
-	if term.Kind != protocol.FaultKindDrop && term.Kind != protocol.FaultKindHoldRelease {
+	if term.Kind != protocolcatalog.FaultKindDrop && term.Kind != protocolcatalog.FaultKindHoldRelease {
 		return "", fmt.Errorf("root RPC fault realizer does not support %q", term.Kind)
 	}
 	r.term = term
@@ -673,10 +675,10 @@ func (r *umpire3RootRPCFaultRealizer) interceptCall(
 	r.mu.Unlock()
 
 	switch kind {
-	case protocol.FaultKindDrop:
+	case protocolcatalog.FaultKindDrop:
 		return true, serviceerror.NewUnavailable(
 			fmt.Sprintf("umpire3 injected retryable %s drop of %s/%s", protocolName, service, route))
-	case protocol.FaultKindHoldRelease:
+	case protocolcatalog.FaultKindHoldRelease:
 		timer := time.NewTimer(50 * time.Millisecond)
 		defer timer.Stop()
 		select {

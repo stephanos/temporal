@@ -1,4 +1,4 @@
-import Temporal.Targets.NexusCancellationFencingFirstOrder
+import Temporal.Families.NexusCancellation.Targets.FirstOrder
 
 namespace Umpire3.Tests.FirstOrderView
 

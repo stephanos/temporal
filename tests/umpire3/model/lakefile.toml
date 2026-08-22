@@ -20,28 +20,28 @@ name = "Temporal"
 
 [[lean_exe]]
 name = "umpire3_trace_replay"
-root = "Umpire3TraceReplay"
+root = "Umpire3.Command.Replay.Trace"
 
 [[lean_exe]]
 name = "umpire3_temporal_lasso_replay"
-root = "Umpire3TemporalLassoReplay"
+root = "Umpire3.Command.Replay.TemporalLasso"
 
 [[lean_exe]]
 name = "umpire3_native_certificate_check"
-root = "Umpire3NativeCertificateCheck"
+root = "Umpire3.Command.Check.NativeCertificate"
 
 [[lean_exe]]
 name = "umpire3_veil_sound"
-root = "Umpire3VeilRunSound"
+root = "Umpire3.Command.Check.VeilSound"
 
 [[lean_exe]]
 name = "umpire3_veil_mutated"
-root = "Umpire3VeilRunMutated"
+root = "Umpire3.Command.Check.VeilMutated"
 
 [[lean_exe]]
 name = "umpire3_veil_sound_proof"
-root = "Umpire3VeilRunSoundProof"
+root = "Umpire3.Command.Check.VeilSoundProof"
 
 [[lean_exe]]
 name = "umpire3_veil_sound_trusted_proof"
-root = "Umpire3VeilRunSoundTrustedProof"
+root = "Umpire3.Command.Check.VeilSoundTrustedProof"

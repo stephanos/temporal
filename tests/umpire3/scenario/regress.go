@@ -4,27 +4,28 @@ import (
 	"runtime"
 	"time"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
-func NewScenario(identifier string, target protocol.TargetID, resources []Resource, root Term) Scenario {
+func NewScenario(identifier string, target protocolcatalog.TargetID, resources []Resource, root Term) Scenario {
 	return Scenario{Identifier: identifier, Target: target, Resources: resources, Root: root}
 }
 
 func Identity(name string) Symbol {
-	return Symbol{Name: name, Type: protocol.SemanticTypeIDIdentity}
+	return Symbol{Name: name, Type: protocolcatalog.SemanticTypeIDIdentity}
 }
 
 func Synchronously() ActionOption {
-	return WithResponse(protocol.ResponseSynchronous)
+	return WithResponse(protocolexperiment.ResponseSynchronous)
 }
 
 func Asynchronously() ActionOption {
-	return WithResponse(protocol.ResponseAsynchronous)
+	return WithResponse(protocolexperiment.ResponseAsynchronous)
 }
 
 func Deferred() ActionOption {
-	return WithResponse(protocol.ResponseDeferred)
+	return WithResponse(protocolexperiment.ResponseDeferred)
 }
 
 func BlockingFor(duration time.Duration) ActionOption {
@@ -32,10 +33,10 @@ func BlockingFor(duration time.Duration) ActionOption {
 }
 
 func FailingResponse() ActionOption {
-	return WithResponse(protocol.ResponseFailure)
+	return WithResponse(protocolexperiment.ResponseFailure)
 }
 
-func Action(identifier string, kind protocol.ActionKind, options ...ActionOption) Term {
+func Action(identifier string, kind protocolcatalog.ActionKind, options ...ActionOption) Term {
 	return actionAtCaller(identifier, kind, options...)
 }
 
@@ -45,10 +46,10 @@ func Bind(symbol Symbol, projection Projection) Term {
 
 func BindIdentity(symbol Symbol, producerAction, projection string) Term {
 	return BindAt(callerSource(2), symbol,
-		Project(producerAction, projection, protocol.SemanticTypeIDIdentity))
+		Project(producerAction, projection, protocolcatalog.SemanticTypeIDIdentity))
 }
 
-func Require(property protocol.PropertyID) Term {
+func Require(property protocolcatalog.PropertyID) Term {
 	return requireAtCaller(property)
 }
 
@@ -76,15 +77,15 @@ func Repeat(count int, body Term) Term {
 	return RepeatAt(callerSource(2), count, body)
 }
 
-func actionAtCaller(identifier string, kind protocol.ActionKind, options ...ActionOption) Term {
+func actionAtCaller(identifier string, kind protocolcatalog.ActionKind, options ...ActionOption) Term {
 	return ActionAt(callerSource(3), identifier, kind, options...)
 }
 
-func faultAtCaller(identifier string, kind protocol.FaultKind, options ...FaultOption) FaultIntent {
+func faultAtCaller(identifier string, kind protocolcatalog.FaultKind, options ...FaultOption) FaultIntent {
 	return FaultAt(callerSource(3), identifier, kind, options...)
 }
 
-func requireAtCaller(property protocol.PropertyID) Term {
+func requireAtCaller(property protocolcatalog.PropertyID) Term {
 	return RequireAt(callerSource(3), property)
 }
 

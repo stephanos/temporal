@@ -3,7 +3,7 @@ package workflow
 import (
 	"runtime"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
 	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
@@ -24,30 +24,30 @@ func (u UpdateHandle) Start(options ...scenario.ActionOption) scenario.Term {
 	source := callerSource()
 	action := u.action("start")
 	return scenario.OnePathAt(source,
-		scenario.ActionAt(source, action, protocol.ActionKindStartUpdate, options...),
+		scenario.ActionAt(source, action, protocolcatalog.ActionKindStartUpdate, options...),
 		scenario.BindAt(source, u.identity,
-			scenario.Project(action, "update-id", protocol.SemanticTypeIDIdentity)),
+			scenario.Project(action, "update-id", protocolcatalog.SemanticTypeIDIdentity)),
 	)
 }
 
 func (u UpdateHandle) Dispatch(options ...scenario.ActionOption) scenario.Term {
-	return u.actionWithIdentity("dispatch", protocol.ActionKindDispatchWorkflowTask, options...)
+	return u.actionWithIdentity("dispatch", protocolcatalog.ActionKindDispatchWorkflowTask, options...)
 }
 
 func (u UpdateHandle) Accept(options ...scenario.ActionOption) scenario.Term {
-	return u.actionWithIdentity("accept", protocol.ActionKindAcceptUpdate, options...)
+	return u.actionWithIdentity("accept", protocolcatalog.ActionKindAcceptUpdate, options...)
 }
 
 func (u UpdateHandle) RecordHistory(options ...scenario.ActionOption) scenario.Term {
-	return u.actionWithIdentity("history", protocol.ActionKindRecordUpdateHistory, options...)
+	return u.actionWithIdentity("history", protocolcatalog.ActionKindRecordUpdateHistory, options...)
 }
 
 func (u UpdateHandle) CompleteTask(options ...scenario.ActionOption) scenario.Term {
-	return u.actionWithIdentity("complete-task", protocol.ActionKindCompleteWorkflowTask, options...)
+	return u.actionWithIdentity("complete-task", protocolcatalog.ActionKindCompleteWorkflowTask, options...)
 }
 
 func (u UpdateHandle) Complete(options ...scenario.ActionOption) scenario.Term {
-	return u.actionWithIdentity("complete", protocol.ActionKindCompleteUpdate, options...)
+	return u.actionWithIdentity("complete", protocolcatalog.ActionKindCompleteUpdate, options...)
 }
 
 func (u UpdateHandle) Lifecycle() scenario.Term {
@@ -56,17 +56,17 @@ func (u UpdateHandle) Lifecycle() scenario.Term {
 }
 
 func (u UpdateHandle) CompletionThroughHistory() scenario.Term {
-	return scenario.RequireAt(callerSource(), protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory)
+	return scenario.RequireAt(callerSource(), protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory)
 }
 
-func Regression(identifier string, update UpdateHandle, root scenario.Term) scenario.Scenario {
-	return scenario.NewScenario(identifier, protocol.TargetIDWorkflowUpdateLifecycle,
+func Scenario(identifier string, update UpdateHandle, root scenario.Term) scenario.Scenario {
+	return scenario.NewScenario(identifier, protocolcatalog.TargetIDWorkflowUpdateLifecycle,
 		[]scenario.Resource{scenario.Workflow(identifier + "-workflow"), update.Resource()}, root)
 }
 
 func (u UpdateHandle) actionWithIdentity(
 	suffix string,
-	kind protocol.ActionKind,
+	kind protocolcatalog.ActionKind,
 	options ...scenario.ActionOption,
 ) scenario.Term {
 	options = append([]scenario.ActionOption{scenario.WithArgument("update", u.identity.Value())}, options...)

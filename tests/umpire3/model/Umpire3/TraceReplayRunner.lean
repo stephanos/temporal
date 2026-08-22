@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import Lean.Elab.Term
 import Lean.Util.CollectAxioms
-import Temporal.Targets.NexusCancellationFencing
+import Temporal.Families.NexusCancellation.Targets.Finite
 import Umpire3.Registration
 import Umpire3.TraceReplay
 

@@ -12,16 +12,18 @@ import (
 	"slices"
 	"time"
 
-	"go.temporal.io/server/tests/umpire3/campaign"
-	umpire3runtime "go.temporal.io/server/tests/umpire3/execution"
-	"go.temporal.io/server/tests/umpire3/internal/artifact"
-	"go.temporal.io/server/tests/umpire3/protocol"
-	"go.temporal.io/server/tests/umpire3/qualification"
+	umpire3runner "go.temporal.io/server/tests/umpire3/adapter/temporal"
+	"go.temporal.io/server/tests/umpire3/assurance/release"
+	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/internal/artifactio"
+	"go.temporal.io/server/tests/umpire3/mutation"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 	"go.temporal.io/server/tests/umpire3/replay"
-	umpire3runner "go.temporal.io/server/tests/umpire3/temporal"
 )
 
 const diagnosticFormatVersion = "umpire3/diagnostic/v1"
+const qualificationSigningKeyLimit int64 = 16 << 10
 
 type diagnostic struct {
 	FormatVersion string `json:"formatVersion"`
@@ -44,49 +46,49 @@ type connectionFlags struct {
 }
 
 type explanation struct {
-	ExperimentDigest     string                     `json:"experimentDigest"`
-	ExperimentID         string                     `json:"experimentID"`
-	Property             string                     `json:"property"`
-	ModelModules         []string                   `json:"modelModules"`
-	RequiredCapabilities []string                   `json:"requiredCapabilities"`
-	Resources            []protocol.Resource        `json:"resources"`
-	Actions              []protocol.Action          `json:"actions"`
-	Faults               []protocol.Fault           `json:"faults"`
-	Order                []protocol.OrderConstraint `json:"order"`
-	Checkpoints          []protocol.Checkpoint      `json:"checkpoints"`
-	Seed                 int64                      `json:"seed"`
-	Bounds               protocol.Bounds            `json:"bounds"`
+	ExperimentDigest     string                               `json:"experimentDigest"`
+	ExperimentID         string                               `json:"experimentID"`
+	Property             string                               `json:"property"`
+	ModelModules         []string                             `json:"modelModules"`
+	RequiredCapabilities []string                             `json:"requiredCapabilities"`
+	Resources            []protocolexperiment.Resource        `json:"resources"`
+	Actions              []protocolexperiment.Action          `json:"actions"`
+	Faults               []protocolexperiment.Fault           `json:"faults"`
+	Order                []protocolexperiment.OrderConstraint `json:"order"`
+	Checkpoints          []protocolexperiment.Checkpoint      `json:"checkpoints"`
+	Seed                 int64                                `json:"seed"`
+	Bounds               protocolexperiment.Bounds            `json:"bounds"`
 }
 
 type campaignExecution struct {
-	Kind   campaign.MutationKind `json:"kind"`
-	Path   string                `json:"path"`
-	Digest string                `json:"digest"`
-	Result umpire3runtime.Result `json:"result"`
+	Kind   mutation.MutationKind   `json:"kind"`
+	Path   string                  `json:"path"`
+	Digest string                  `json:"digest"`
+	Result umpire3execution.Result `json:"result"`
 }
 
 type campaignOutput struct {
-	Mutation campaign.MutationReport `json:"mutation"`
+	Mutation mutation.MutationReport `json:"mutation"`
 	Runs     []campaignExecution     `json:"runs"`
 }
 
 type Backend interface {
-	Execute(context.Context, protocol.Experiment, umpire3runner.Options) (umpire3runtime.Result, error)
-	Qualify(qualification.Request) (qualification.Receipt, error)
+	Execute(context.Context, protocolexperiment.Experiment, umpire3runner.Options) (umpire3execution.Result, error)
+	Qualify(release.Request) (release.Receipt, error)
 }
 
 type defaultBackend struct{}
 
 func (defaultBackend) Execute(
 	ctx context.Context,
-	experiment protocol.Experiment,
+	experiment protocolexperiment.Experiment,
 	options umpire3runner.Options,
-) (umpire3runtime.Result, error) {
+) (umpire3execution.Result, error) {
 	return umpire3runner.Execute(ctx, experiment, options)
 }
 
-func (defaultBackend) Qualify(request qualification.Request) (qualification.Receipt, error) {
-	return qualification.Qualify(request)
+func (defaultBackend) Qualify(request release.Request) (release.Receipt, error) {
+	return release.Qualify(request)
 }
 
 func Main(ctx context.Context, arguments []string, stdout, stderr io.Writer) int {
@@ -240,18 +242,18 @@ func executeReplay(ctx context.Context, arguments []string, backend Backend) (an
 	if err := flags.Parse(arguments); err != nil {
 		return nil, err
 	}
-	encoded, err := readRequiredFile("replay bundle", *bundlePath, protocol.DefaultDecodeLimit)
+	encoded, err := readRequiredFile("replay bundle", *bundlePath, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
 		return nil, err
 	}
-	bundle, err := replay.DecodeBundle(encoded, protocol.DefaultDecodeLimit)
+	bundle, err := replay.DecodeBundle(encoded, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
 		return nil, err
 	}
 	if connection.profile == "" {
 		connection.profile = bundle.Replay.Profile
 	}
-	return replay.Reproduce(ctx, bundle, func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, error) {
+	return replay.Reproduce(ctx, bundle, func(ctx context.Context, experiment protocolexperiment.Experiment) (umpire3execution.Result, error) {
 		return backend.Execute(ctx, experiment, connection.options())
 	})
 }
@@ -270,15 +272,15 @@ func executeCampaign(ctx context.Context, arguments []string, backend Backend) (
 	if err != nil {
 		return nil, err
 	}
-	mutation := campaign.MutationRequest{
+	mutationRequest := mutation.MutationRequest{
 		Experiment: experiment, Seed: *seed, MaxCandidates: *maxCandidates,
 		Values:        mutationValues(experiment),
-		TopologyKinds: []protocol.EntityKind{protocol.EntityKindActivity, protocol.EntityKindCallback},
+		TopologyKinds: []protocolcatalog.EntityKind{protocolcatalog.EntityKindActivity, protocolcatalog.EntityKindCallback},
 	}
-	report, err := campaign.Run(ctx, campaign.Request{
-		Mutation: &mutation, Workers: 1, MaxExecutions: *maxCandidates,
+	report, err := mutation.Run(ctx, mutation.Request{
+		Mutation: &mutationRequest, Workers: 1, MaxExecutions: *maxCandidates,
 		MinimizeAttempts: max(64, *maxCandidates*16),
-		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3runtime.Result, []campaign.CoveragePoint, error) {
+		Executor: func(ctx context.Context, experiment protocolexperiment.Experiment) (umpire3execution.Result, []mutation.CoveragePoint, error) {
 			result, err := backend.Execute(ctx, experiment, connection.options())
 			return result, nil, err
 		},
@@ -314,7 +316,7 @@ func executeMutationAudit(ctx context.Context, arguments []string) (any, error) 
 	if *outputPath == "" {
 		return nil, errors.New("mutation audit output path is required")
 	}
-	report, err := campaign.RunApprovedMutationAudit(ctx, experiment)
+	report, err := mutation.RunApprovedMutationAudit(ctx, experiment)
 	if err != nil {
 		return nil, err
 	}
@@ -323,11 +325,11 @@ func executeMutationAudit(ctx context.Context, arguments []string) (any, error) 
 		return nil, err
 	}
 	if *check {
-		retained, readErr := readRequiredFile("mutation audit", *outputPath, protocol.DefaultDecodeLimit)
+		retained, readErr := readRequiredFile("mutation audit", *outputPath, protocolexperiment.DefaultDecodeLimit)
 		if readErr != nil {
 			return nil, readErr
 		}
-		if _, decodeErr := campaign.DecodeMutationGateReport(retained, experiment); decodeErr != nil {
+		if _, decodeErr := mutation.DecodeMutationGateReport(retained, experiment); decodeErr != nil {
 			return nil, decodeErr
 		}
 		if !bytes.Equal(encoded, retained) {
@@ -335,7 +337,7 @@ func executeMutationAudit(ctx context.Context, arguments []string) (any, error) 
 		}
 		return report, nil
 	}
-	if err := artifact.Publish(*outputPath, encoded); err != nil {
+	if err := artifactio.Publish(*outputPath, encoded); err != nil {
 		return nil, fmt.Errorf("publish mutation audit: %w", err)
 	}
 	return report, nil
@@ -353,15 +355,15 @@ func executeQualify(arguments []string, backend Backend) (any, error) {
 	if err := flags.Parse(arguments); err != nil {
 		return nil, err
 	}
-	releaseBytes, err := readRequiredFile("release", *releasePath, protocol.DefaultDecodeLimit)
+	releaseBytes, err := readRequiredFile("release", *releasePath, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
 		return nil, err
 	}
-	experimentBytes, err := readRequiredFile("experiment", *experimentPath, protocol.DefaultDecodeLimit)
+	experimentBytes, err := readRequiredFile("experiment", *experimentPath, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
 		return nil, err
 	}
-	resultBytes, err := readRequiredFile("result", *resultPath, protocol.DefaultDecodeLimit)
+	resultBytes, err := readRequiredFile("result", *resultPath, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -369,11 +371,11 @@ func executeQualify(arguments []string, backend Backend) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	signingKey, err := qualification.ParseSigningKey(signingKeyBytes)
+	signingKey, err := release.ParseSigningKey(signingKeyBytes)
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := backend.Qualify(qualification.Request{
+	receipt, err := backend.Qualify(release.Request{
 		ReleaseBytes: releaseBytes, ExperimentBytes: experimentBytes, ResultBytes: resultBytes,
 		Profile: *profile, SigningKey: signingKey,
 	})
@@ -412,7 +414,7 @@ func executePromote(arguments []string) (any, error) {
 	if err := flags.Parse(arguments); err != nil {
 		return nil, err
 	}
-	releaseBytes, err := readRequiredFile("release", *releasePath, protocol.DefaultDecodeLimit)
+	releaseBytes, err := readRequiredFile("release", *releasePath, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -421,23 +423,23 @@ func executePromote(arguments []string) (any, error) {
 	}
 	receipts := make([][]byte, len(receiptPaths))
 	for index, path := range receiptPaths {
-		receipts[index], err = readRequiredFile("qualification receipt", path, protocol.DefaultDecodeLimit)
+		receipts[index], err = readRequiredFile("qualification receipt", path, protocolexperiment.DefaultDecodeLimit)
 		if err != nil {
 			return nil, err
 		}
 	}
-	release, err := qualification.Promote(qualification.PromotionRequest{
+	releaseManifest, err := release.Promote(release.PromotionRequest{
 		ReleaseBytes: releaseBytes, Receipts: receipts,
 	})
 	if err != nil {
 		return nil, err
 	}
 	if *outputPath != "" {
-		if err := writeJSONFile(*outputPath, release); err != nil {
+		if err := writeJSONFile(*outputPath, releaseManifest); err != nil {
 			return nil, err
 		}
 	}
-	return release, nil
+	return releaseManifest, nil
 }
 
 func addConnectionFlags(flags *flag.FlagSet) *connectionFlags {
@@ -463,12 +465,12 @@ func (flags connectionFlags) options() umpire3runner.Options {
 	}
 }
 
-func readExperiment(path string) (protocol.Experiment, error) {
-	encoded, err := readRequiredFile("experiment", path, protocol.DefaultDecodeLimit)
+func readExperiment(path string) (protocolexperiment.Experiment, error) {
+	encoded, err := readRequiredFile("experiment", path, protocolexperiment.DefaultDecodeLimit)
 	if err != nil {
-		return protocol.Experiment{}, err
+		return protocolexperiment.Experiment{}, err
 	}
-	return protocol.DecodeExperiment(bytes.NewReader(encoded), protocol.DefaultDecodeLimit)
+	return protocolexperiment.DecodeExperiment(bytes.NewReader(encoded), protocolexperiment.DefaultDecodeLimit)
 }
 
 func readRequiredFile(kind, path string, limit int64) ([]byte, error) {
@@ -501,9 +503,9 @@ func writeJSONFile(path string, value any) error {
 	return nil
 }
 
-func mutationValues(experiment protocol.Experiment) []protocol.Value {
-	seen := make(map[protocol.ValueType]struct{})
-	var result []protocol.Value
+func mutationValues(experiment protocolexperiment.Experiment) []protocolexperiment.Value {
+	seen := make(map[protocolexperiment.ValueType]struct{})
+	var result []protocolexperiment.Value
 	for _, action := range experiment.Actions {
 		for _, argument := range action.Arguments {
 			if _, exists := seen[argument.Value.Type]; exists {
@@ -511,18 +513,18 @@ func mutationValues(experiment protocol.Experiment) []protocol.Value {
 			}
 			seen[argument.Value.Type] = struct{}{}
 			switch argument.Value.Type {
-			case protocol.ValueString:
+			case protocolexperiment.ValueString:
 				value := "umpire3-mutated"
-				result = append(result, protocol.Value{Type: protocol.ValueString, Text: &value})
-			case protocol.ValueInteger, protocol.ValueDuration:
+				result = append(result, protocolexperiment.Value{Type: protocolexperiment.ValueString, Text: &value})
+			case protocolexperiment.ValueInteger, protocolexperiment.ValueDuration:
 				value := int64(1)
 				if argument.Value.Integer != nil {
 					value = *argument.Value.Integer + 1
 				}
-				result = append(result, protocol.Value{Type: argument.Value.Type, Integer: &value})
-			case protocol.ValueBoolean:
+				result = append(result, protocolexperiment.Value{Type: argument.Value.Type, Integer: &value})
+			case protocolexperiment.ValueBoolean:
 				value := argument.Value.Boolean == nil || !*argument.Value.Boolean
-				result = append(result, protocol.Value{Type: protocol.ValueBoolean, Boolean: &value})
+				result = append(result, protocolexperiment.Value{Type: protocolexperiment.ValueBoolean, Boolean: &value})
 			default:
 			}
 		}

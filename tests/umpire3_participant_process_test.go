@@ -17,8 +17,7 @@ import (
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire3/participant"
-	umpire3process "go.temporal.io/server/tests/umpire3/process"
+	"go.temporal.io/server/tests/umpire3/execution/participant"
 )
 
 func TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram(t *testing.T) {
@@ -70,29 +69,28 @@ func TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram(t *testin
 
 	workflowID := "umpire3-process-restart"
 	taskQueue := "umpire3-process-restart-" + env.NamespaceID().String()
-	supervisor, err := umpire3process.NewSupervisor(umpire3process.Request{
-		Command: []string{
-			binaryPath,
-			"-program", programPath,
-			"-output", reportPath,
-			"-address", env.FrontendGRPCAddress(),
-			"-namespace", env.Namespace().String(),
-			"-task-queue", taskQueue,
-			"-workflow-id", workflowID,
-			"-nexus-endpoint", nexusEndpoint,
-			"-nexus-service", "service",
-			"-nexus-operation", "operation",
-			"-timeout", "2m",
-		},
-		Timeout: 2 * time.Minute, MaxOutputBytes: 1 << 20,
-	})
-	require.NoError(t, err)
+	command := []string{
+		binaryPath,
+		"-program", programPath,
+		"-output", reportPath,
+		"-address", env.FrontendGRPCAddress(),
+		"-namespace", env.Namespace().String(),
+		"-task-queue", taskQueue,
+		"-workflow-id", workflowID,
+		"-nexus-endpoint", nexusEndpoint,
+		"-nexus-service", "service",
+		"-nexus-operation", "operation",
+		"-timeout", "2m",
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Minute)
+	defer cancel()
+	first := exec.CommandContext(ctx, command[0], command[1:]...)
+	require.NoError(t, first.Start())
 	t.Cleanup(func() {
-		_, cleanupErr := supervisor.Stop(context.Background())
-		require.NoError(t, cleanupErr)
+		if first.Process != nil {
+			_ = first.Process.Kill()
+		}
 	})
-	first, err := supervisor.Start(context.Background())
-	require.NoError(t, err)
 	await.RequireTrue(t, func() bool {
 		return umpire3HistoryContains(t, env, workflowID,
 			enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_UPDATE_ACCEPTED)
@@ -105,17 +103,11 @@ func TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram(t *testin
 	initialRunID := description.GetWorkflowExecutionInfo().GetExecution().GetRunId()
 	require.NotEmpty(t, initialRunID)
 
-	crashed, err := supervisor.Crash(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, first.Generation, crashed.Generation)
-	require.Equal(t, umpire3process.TerminationCrash, crashed.Termination)
-	second, err := supervisor.Restart(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, first.Generation+1, second.Generation)
-	completed, err := supervisor.Wait(context.Background())
-	require.NoError(t, err, string(completed.Output))
-	require.Equal(t, umpire3process.TerminationExit, completed.Termination)
-	require.Zero(t, completed.ExitCode)
+	require.NoError(t, first.Process.Kill())
+	require.Error(t, first.Wait())
+	second := exec.CommandContext(ctx, command[0], command[1:]...)
+	output, err := second.CombinedOutput()
+	require.NoError(t, err, string(output))
 
 	reportBytes, err := os.ReadFile(reportPath)
 	require.NoError(t, err)

@@ -13,7 +13,7 @@ func TestUpdateRegressionCompilesThroughTypedFacade(t *testing.T) {
 	t.Parallel()
 
 	update := Update("update")
-	authored := Regression("update-lifecycle", update,
+	authored := Scenario("update-lifecycle", update,
 		scenario.OnePath(update.Lifecycle(), update.CompletionThroughHistory()))
 
 	suite, err := scenario.Compile(context.Background(), authored, scenario.Limits{

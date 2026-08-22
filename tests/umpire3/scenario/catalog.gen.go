@@ -2,306 +2,306 @@
 
 package scenario
 
-import "go.temporal.io/server/tests/umpire3/protocol"
+import protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
 
-// NexusCancellationRegression selects the nexus-cancellation model family.
-func NexusCancellationRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDNexusCancellation, resources, root)
+// NexusCancellationScenario selects the nexus-cancellation model family.
+func NexusCancellationScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDNexusCancellation, resources, root)
 }
 
-// WorkflowUpdateLifecycleRegression selects the workflow-update-lifecycle model family.
-func WorkflowUpdateLifecycleRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDWorkflowUpdateLifecycle, resources, root)
+// WorkflowUpdateLifecycleScenario selects the workflow-update-lifecycle model family.
+func WorkflowUpdateLifecycleScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDWorkflowUpdateLifecycle, resources, root)
 }
 
-// FoundationBacklogAckRegression selects the foundation-backlog-ack model family.
-func FoundationBacklogAckRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFoundationBacklogAck, resources, root)
+// FoundationBacklogAckScenario selects the foundation-backlog-ack model family.
+func FoundationBacklogAckScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFoundationBacklogAck, resources, root)
 }
 
-// FeatureNexusRegression selects the feature-nexus model family.
-func FeatureNexusRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFeatureNexus, resources, root)
+// FeatureNexusScenario selects the feature-nexus model family.
+func FeatureNexusScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFeatureNexus, resources, root)
 }
 
-// FeatureNexusProgressRegression selects the feature-nexus-progress model family.
-func FeatureNexusProgressRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFeatureNexusProgress, resources, root)
+// FeatureNexusProgressScenario selects the feature-nexus-progress model family.
+func FeatureNexusProgressScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFeatureNexusProgress, resources, root)
 }
 
-// FeatureWorkflowSpeculativeDeliveryRegression selects the feature-workflow-speculative-delivery model family.
-func FeatureWorkflowSpeculativeDeliveryRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFeatureWorkflowSpeculativeDelivery, resources, root)
+// FeatureWorkflowSpeculativeDeliveryScenario selects the feature-workflow-speculative-delivery model family.
+func FeatureWorkflowSpeculativeDeliveryScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFeatureWorkflowSpeculativeDelivery, resources, root)
 }
 
-// FoundationDeliverySafetyRegression selects the foundation-delivery-safety model family.
-func FoundationDeliverySafetyRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFoundationDeliverySafety, resources, root)
+// FoundationDeliverySafetyScenario selects the foundation-delivery-safety model family.
+func FoundationDeliverySafetyScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFoundationDeliverySafety, resources, root)
 }
 
-// FoundationOwnershipFencingRegression selects the foundation-ownership-fencing model family.
-func FoundationOwnershipFencingRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFoundationOwnershipFencing, resources, root)
+// FoundationOwnershipFencingScenario selects the foundation-ownership-fencing model family.
+func FoundationOwnershipFencingScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFoundationOwnershipFencing, resources, root)
 }
 
-// FoundationRoutingIsolationRegression selects the foundation-routing-isolation model family.
-func FoundationRoutingIsolationRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDFoundationRoutingIsolation, resources, root)
+// FoundationRoutingIsolationScenario selects the foundation-routing-isolation model family.
+func FoundationRoutingIsolationScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDFoundationRoutingIsolation, resources, root)
 }
 
-// IntegrationActivityDeliveryRegression selects the integration-activity-delivery model family.
-func IntegrationActivityDeliveryRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDIntegrationActivityDelivery, resources, root)
+// IntegrationActivityDeliveryScenario selects the integration-activity-delivery model family.
+func IntegrationActivityDeliveryScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDIntegrationActivityDelivery, resources, root)
 }
 
-// IntegrationCallbackNexusRegression selects the integration-callback-nexus model family.
-func IntegrationCallbackNexusRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDIntegrationCallbackNexus, resources, root)
+// IntegrationCallbackNexusScenario selects the integration-callback-nexus model family.
+func IntegrationCallbackNexusScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDIntegrationCallbackNexus, resources, root)
 }
 
-// IntegrationCallbackWorkflowRegression selects the integration-callback-workflow model family.
-func IntegrationCallbackWorkflowRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDIntegrationCallbackWorkflow, resources, root)
+// IntegrationCallbackWorkflowScenario selects the integration-callback-workflow model family.
+func IntegrationCallbackWorkflowScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDIntegrationCallbackWorkflow, resources, root)
 }
 
-// IntegrationNexusActivityRegression selects the integration-nexus-activity model family.
-func IntegrationNexusActivityRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDIntegrationNexusActivity, resources, root)
+// IntegrationNexusActivityScenario selects the integration-nexus-activity model family.
+func IntegrationNexusActivityScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDIntegrationNexusActivity, resources, root)
 }
 
-// IntegrationNexusTimeoutRegression selects the integration-nexus-timeout model family.
-func IntegrationNexusTimeoutRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDIntegrationNexusTimeout, resources, root)
+// IntegrationNexusTimeoutScenario selects the integration-nexus-timeout model family.
+func IntegrationNexusTimeoutScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDIntegrationNexusTimeout, resources, root)
 }
 
-// IntegrationWorkflowDeliveryRegression selects the integration-workflow-delivery model family.
-func IntegrationWorkflowDeliveryRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDIntegrationWorkflowDelivery, resources, root)
+// IntegrationWorkflowDeliveryScenario selects the integration-workflow-delivery model family.
+func IntegrationWorkflowDeliveryScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDIntegrationWorkflowDelivery, resources, root)
 }
 
-// ProtocolAtomicRegression selects the protocol-atomic model family.
-func ProtocolAtomicRegression(identifier string, resources []Resource, root Term) Scenario {
-	return NewScenario(identifier, protocol.TargetIDProtocolAtomic, resources, root)
+// ProtocolAtomicScenario selects the protocol-atomic model family.
+func ProtocolAtomicScenario(identifier string, resources []Resource, root Term) Scenario {
+	return NewScenario(identifier, protocolcatalog.TargetIDProtocolAtomic, resources, root)
 }
 
 // NexusOperation identifies Nexus operation.
 func NexusOperation(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindNexusOperation}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindNexusOperation}
 }
 
 // NexusWorker identifies Nexus task worker.
 func NexusWorker(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindNexusWorker}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindNexusWorker}
 }
 
 // Workflow identifies Workflow execution.
 func Workflow(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindWorkflow}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindWorkflow}
 }
 
 // WorkflowUpdate identifies Workflow Update.
 func WorkflowUpdate(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindWorkflowUpdate}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindWorkflowUpdate}
 }
 
 // WorkflowTask identifies Workflow Task delivery lifecycle.
 func WorkflowTask(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindWorkflowTask}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindWorkflowTask}
 }
 
 // Namespace identifies Temporal Namespace.
 func Namespace(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindNamespace}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindNamespace}
 }
 
 // TaskQueue identifies Temporal Task Queue.
 func TaskQueue(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindTaskQueue}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindTaskQueue}
 }
 
 // WorkflowRun identifies A concrete Workflow Execution run.
 func WorkflowRun(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindWorkflowRun}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindWorkflowRun}
 }
 
 // Activity identifies Activity command identity.
 func Activity(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindActivity}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindActivity}
 }
 
 // ActivityExecution identifies A concrete Activity attempt.
 func ActivityExecution(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindActivityExecution}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindActivityExecution}
 }
 
 // Callback identifies A callback registered by a Temporal operation.
 func Callback(identifier string) Resource {
-	return Resource{Identifier: identifier, Kind: protocol.EntityKindCallback}
+	return Resource{Identifier: identifier, Kind: protocolcatalog.EntityKindCallback}
 }
 
 // ScheduleOperation creates sparse intent to schedule a Nexus operation.
 func ScheduleOperation(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindScheduleOperation, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindScheduleOperation, options...)
 }
 
 // DispatchTask creates sparse intent to dispatch a Nexus task.
 func DispatchTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindDispatchTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindDispatchTask, options...)
 }
 
 // WorkerReturnsSuccess creates sparse intent to return Nexus worker success.
 func WorkerReturnsSuccess(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindWorkerReturnsSuccess, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindWorkerReturnsSuccess, options...)
 }
 
 // RequestCancellation creates sparse intent to request Nexus cancellation.
 func RequestCancellation(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRequestCancellation, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRequestCancellation, options...)
 }
 
 // CommitCancellation creates sparse intent to commit Nexus cancellation.
 func CommitCancellation(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCommitCancellation, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCommitCancellation, options...)
 }
 
 // PersistSuccess creates sparse intent to persist Nexus success.
 func PersistSuccess(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindPersistSuccess, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindPersistSuccess, options...)
 }
 
 // RetryTask creates sparse intent to retry Nexus task delivery.
 func RetryTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRetryTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRetryTask, options...)
 }
 
 // AcquireOwnership creates sparse intent to acquire a new ownership epoch.
 func AcquireOwnership(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindAcquireOwnership, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindAcquireOwnership, options...)
 }
 
 // CrashOwner creates sparse intent to crash the current owner.
 func CrashOwner(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCrashOwner, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCrashOwner, options...)
 }
 
 // RecoverOwner creates sparse intent to recover an owner.
 func RecoverOwner(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRecoverOwner, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRecoverOwner, options...)
 }
 
 // AckTask creates sparse intent to acknowledge task delivery.
 func AckTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindAckTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindAckTask, options...)
 }
 
 // StartUpdate creates sparse intent to start a Workflow Update.
 func StartUpdate(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindStartUpdate, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindStartUpdate, options...)
 }
 
 // AcceptUpdate creates sparse intent to accept a Workflow Update.
 func AcceptUpdate(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindAcceptUpdate, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindAcceptUpdate, options...)
 }
 
 // CompleteUpdate creates sparse intent to complete a Workflow Update.
 func CompleteUpdate(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCompleteUpdate, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCompleteUpdate, options...)
 }
 
 // RecordUpdateHistory creates sparse intent to record Update history.
 func RecordUpdateHistory(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRecordUpdateHistory, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRecordUpdateHistory, options...)
 }
 
 // DispatchWorkflowTask creates sparse intent to dispatch a Workflow Task.
 func DispatchWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindDispatchWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindDispatchWorkflowTask, options...)
 }
 
 // CompleteWorkflowTask creates sparse intent to complete a Workflow Task.
 func CompleteWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCompleteWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCompleteWorkflowTask, options...)
 }
 
 // EnqueueWorkflowTask creates sparse intent to enqueue a Workflow Task.
 func EnqueueWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindEnqueueWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindEnqueueWorkflowTask, options...)
 }
 
 // DeliverWorkflowTask creates sparse intent to deliver a Workflow Task.
 func DeliverWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindDeliverWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindDeliverWorkflowTask, options...)
 }
 
 // AcknowledgeWorkflowTask creates sparse intent to acknowledge a Workflow Task.
 func AcknowledgeWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindAcknowledgeWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindAcknowledgeWorkflowTask, options...)
 }
 
 // CreateSpeculativeWorkflowTask creates sparse intent to create a speculative Workflow Task.
 func CreateSpeculativeWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCreateSpeculativeWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCreateSpeculativeWorkflowTask, options...)
 }
 
 // CommitSpeculativeWorkflowTask creates sparse intent to commit a speculative Workflow Task.
 func CommitSpeculativeWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCommitSpeculativeWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCommitSpeculativeWorkflowTask, options...)
 }
 
 // CloseNexusOperation creates sparse intent to close a Nexus operation.
 func CloseNexusOperation(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindCloseNexusOperation, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindCloseNexusOperation, options...)
 }
 
 // LinkNexusActivity creates sparse intent to create bidirectional Nexus and Activity links.
 func LinkNexusActivity(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindLinkNexusActivity, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindLinkNexusActivity, options...)
 }
 
 // TimeoutNexusOperation creates sparse intent to record Nexus timeout semantics.
 func TimeoutNexusOperation(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindTimeoutNexusOperation, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindTimeoutNexusOperation, options...)
 }
 
 // RegisterCallback creates sparse intent to register a callback reference.
 func RegisterCallback(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRegisterCallback, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRegisterCallback, options...)
 }
 
 // RecordCallbackResponse creates sparse intent to record a callback response.
 func RecordCallbackResponse(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRecordCallbackResponse, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRecordCallbackResponse, options...)
 }
 
 // DispatchAssuranceWorkflowTask creates sparse intent to dispatch a Workflow Task for progress.
 func DispatchAssuranceWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindDispatchAssuranceWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindDispatchAssuranceWorkflowTask, options...)
 }
 
 // ProgressEntity creates sparse intent to advance an entity lifecycle.
 func ProgressEntity(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindProgressEntity, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindProgressEntity, options...)
 }
 
 // ContinueWorkflow creates sparse intent to continue a Workflow as a new run with explicit lineage.
 func ContinueWorkflow(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindContinueWorkflow, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindContinueWorkflow, options...)
 }
 
 // ResetWorkflow creates sparse intent to reset a Workflow into a new run with explicit lineage.
 func ResetWorkflow(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindResetWorkflow, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindResetWorkflow, options...)
 }
 
 // RouteWorkflowTask creates sparse intent to route a Workflow Task through its declared Task Queue.
 func RouteWorkflowTask(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindRouteWorkflowTask, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindRouteWorkflowTask, options...)
 }
 
 // FenceWorkflowOwner creates sparse intent to reject completion from a superseded Workflow Task owner.
 func FenceWorkflowOwner(identifier string, options ...ActionOption) Term {
-	return actionAtCaller(identifier, protocol.ActionKindFenceWorkflowOwner, options...)
+	return actionAtCaller(identifier, protocolcatalog.ActionKindFenceWorkflowOwner, options...)
 }
 
 // NexusCompletionMode identifies a supported nexus-completion action mode.
@@ -338,238 +338,238 @@ func WithUpdate(value Symbol) ActionOption {
 
 // StaleWorkerCompletion creates sparse fault intent for a stale worker returns completion after ownership changes.
 func StaleWorkerCompletion(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindStaleWorkerCompletion, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindStaleWorkerCompletion, options...)
 }
 
 // Drop creates sparse fault intent for drop a selected RPC or HTTP occurrence.
 func Drop(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindDrop, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindDrop, options...)
 }
 
 // Delay creates sparse fault intent for delay a selected RPC or HTTP occurrence.
 func Delay(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindDelay, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindDelay, options...)
 }
 
 // Duplicate creates sparse fault intent for duplicate a selected RPC or HTTP occurrence.
 func Duplicate(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindDuplicate, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindDuplicate, options...)
 }
 
 // Reorder creates sparse fault intent for reorder selected RPC or HTTP occurrences.
 func Reorder(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindReorder, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindReorder, options...)
 }
 
 // HoldRelease creates sparse fault intent for hold and deterministically release a selected occurrence.
 func HoldRelease(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindHoldRelease, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindHoldRelease, options...)
 }
 
 // Rejection creates sparse fault intent for reject a selected RPC or HTTP occurrence.
 func Rejection(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindRejection, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindRejection, options...)
 }
 
 // ProcessCrash creates sparse fault intent for crash an isolated participant process.
 func ProcessCrash(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindProcessCrash, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindProcessCrash, options...)
 }
 
 // Restart creates sparse fault intent for restart an isolated participant process.
 func Restart(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindRestart, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindRestart, options...)
 }
 
 // Partition creates sparse fault intent for partition selected isolated endpoints.
 func Partition(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindPartition, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindPartition, options...)
 }
 
 // Failover creates sparse fault intent for trigger a selected ownership failover.
 func Failover(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindFailover, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindFailover, options...)
 }
 
 // ClockSkew creates sparse fault intent for skew an isolated participant clock.
 func ClockSkew(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindClockSkew, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindClockSkew, options...)
 }
 
 // PersistenceError creates sparse fault intent for inject an approved selected persistence error.
 func PersistenceError(identifier string, options ...FaultOption) FaultIntent {
-	return faultAtCaller(identifier, protocol.FaultKindPersistenceError, options...)
+	return faultAtCaller(identifier, protocolcatalog.FaultKindPersistenceError, options...)
 }
 
 // RequireNexusCancellationWonExcludesSuccess selects the proved property Cancellation excludes a later stale success.
 func RequireNexusCancellationWonExcludesSuccess() Term {
-	return requireAtCaller(protocol.PropertyIDNexusCancellationWonExcludesSuccess)
+	return requireAtCaller(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess)
 }
 
 // RequireWorkflowUpdateAcceptedCompletesThroughHistory selects the proved property Accepted Update completion is represented in history.
 func RequireWorkflowUpdateAcceptedCompletesThroughHistory() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory)
 }
 
 // RequireTaskDeliveryAcknowledgedRemovesBacklog selects the proved property Acknowledging a delivered Workflow Task removes it from backlog.
 func RequireTaskDeliveryAcknowledgedRemovesBacklog() Term {
-	return requireAtCaller(protocol.PropertyIDTaskDeliveryAcknowledgedRemovesBacklog)
+	return requireAtCaller(protocolcatalog.PropertyIDTaskDeliveryAcknowledgedRemovesBacklog)
 }
 
 // RequireWorkflowTaskSpeculativeCreation selects the proved property SpeculativeTaskCreation.
 func RequireWorkflowTaskSpeculativeCreation() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowTaskSpeculativeCreation)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowTaskSpeculativeCreation)
 }
 
 // RequireNexusOperationClosure selects the proved property NexusOperationClosure.
 func RequireNexusOperationClosure() Term {
-	return requireAtCaller(protocol.PropertyIDNexusOperationClosure)
+	return requireAtCaller(protocolcatalog.PropertyIDNexusOperationClosure)
 }
 
 // RequireNexusOperationProgress selects the proved property NexusOperationProgress.
 func RequireNexusOperationProgress() Term {
-	return requireAtCaller(protocol.PropertyIDNexusOperationProgress)
+	return requireAtCaller(protocolcatalog.PropertyIDNexusOperationProgress)
 }
 
 // RequireNexusActivityLinkConsistency selects the proved property NexusActivityLinkConsistency.
 func RequireNexusActivityLinkConsistency() Term {
-	return requireAtCaller(protocol.PropertyIDNexusActivityLinkConsistency)
+	return requireAtCaller(protocolcatalog.PropertyIDNexusActivityLinkConsistency)
 }
 
 // RequireNexusOperationTimeoutSemantics selects the proved property NexusOperationTimeoutSemantics.
 func RequireNexusOperationTimeoutSemantics() Term {
-	return requireAtCaller(protocol.PropertyIDNexusOperationTimeoutSemantics)
+	return requireAtCaller(protocolcatalog.PropertyIDNexusOperationTimeoutSemantics)
 }
 
 // RequireCallbackReferenceConsistency selects the proved property CallbackReferenceConsistency.
 func RequireCallbackReferenceConsistency() Term {
-	return requireAtCaller(protocol.PropertyIDCallbackReferenceConsistency)
+	return requireAtCaller(protocolcatalog.PropertyIDCallbackReferenceConsistency)
 }
 
 // RequireCallbackResponseConsistency selects the proved property CallbackResponseConsistency.
 func RequireCallbackResponseConsistency() Term {
-	return requireAtCaller(protocol.PropertyIDCallbackResponseConsistency)
+	return requireAtCaller(protocolcatalog.PropertyIDCallbackResponseConsistency)
 }
 
 // RequireWorkflowTaskStarvation selects the proved property WorkflowTaskStarvation.
 func RequireWorkflowTaskStarvation() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowTaskStarvation)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowTaskStarvation)
 }
 
 // RequireEntityProgress selects the proved property EntityProgress.
 func RequireEntityProgress() Term {
-	return requireAtCaller(protocol.PropertyIDEntityProgress)
+	return requireAtCaller(protocolcatalog.PropertyIDEntityProgress)
 }
 
 // RequireWorkflowRunContinuationLineage selects the proved property ContinuationLineage.
 func RequireWorkflowRunContinuationLineage() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowRunContinuationLineage)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowRunContinuationLineage)
 }
 
 // RequireWorkflowRunResetLineage selects the proved property ResetLineage.
 func RequireWorkflowRunResetLineage() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowRunResetLineage)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowRunResetLineage)
 }
 
 // RequireWorkflowTaskRoutingIsolation selects the proved property WorkflowRoutingIsolation.
 func RequireWorkflowTaskRoutingIsolation() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowTaskRoutingIsolation)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowTaskRoutingIsolation)
 }
 
 // RequireWorkflowTaskOwnershipFencing selects the proved property WorkflowOwnershipFencing.
 func RequireWorkflowTaskOwnershipFencing() Term {
-	return requireAtCaller(protocol.PropertyIDWorkflowTaskOwnershipFencing)
+	return requireAtCaller(protocolcatalog.PropertyIDWorkflowTaskOwnershipFencing)
 }
 
 const (
 	// OutcomeCancellationAccepted denotes Cancellation was accepted.
-	OutcomeCancellationAccepted protocol.ObservationID = protocol.ObservationIDCancellationAccepted
+	OutcomeCancellationAccepted protocolcatalog.ObservationID = protocolcatalog.ObservationIDCancellationAccepted
 	// OutcomeCancellationWon denotes Cancellation became authoritative.
-	OutcomeCancellationWon protocol.ObservationID = protocol.ObservationIDCancellationWon
+	OutcomeCancellationWon protocolcatalog.ObservationID = protocolcatalog.ObservationIDCancellationWon
 	// OutcomeStaleSuccessAbsent denotes No stale success became visible.
-	OutcomeStaleSuccessAbsent protocol.ObservationID = protocol.ObservationIDStaleSuccessAbsent
+	OutcomeStaleSuccessAbsent protocolcatalog.ObservationID = protocolcatalog.ObservationIDStaleSuccessAbsent
 	// OutcomeUpdateAccepted denotes Workflow Update was accepted.
-	OutcomeUpdateAccepted protocol.ObservationID = protocol.ObservationIDUpdateAccepted
+	OutcomeUpdateAccepted protocolcatalog.ObservationID = protocolcatalog.ObservationIDUpdateAccepted
 	// OutcomeUpdateCompleted denotes Workflow Update completed.
-	OutcomeUpdateCompleted protocol.ObservationID = protocol.ObservationIDUpdateCompleted
+	OutcomeUpdateCompleted protocolcatalog.ObservationID = protocolcatalog.ObservationIDUpdateCompleted
 	// OutcomeWorkflowTaskAcknowledged denotes The delivered Workflow Task was acknowledged.
-	OutcomeWorkflowTaskAcknowledged protocol.ObservationID = protocol.ObservationIDWorkflowTaskAcknowledged
+	OutcomeWorkflowTaskAcknowledged protocolcatalog.ObservationID = protocolcatalog.ObservationIDWorkflowTaskAcknowledged
 	// OutcomeSpeculativeTaskValid denotes Speculative Workflow Task creation is valid.
-	OutcomeSpeculativeTaskValid protocol.ObservationID = protocol.ObservationIDSpeculativeTaskValid
+	OutcomeSpeculativeTaskValid protocolcatalog.ObservationID = protocolcatalog.ObservationIDSpeculativeTaskValid
 	// OutcomeNexusOperationClosed denotes A closed Nexus operation is terminal.
-	OutcomeNexusOperationClosed protocol.ObservationID = protocol.ObservationIDNexusOperationClosed
+	OutcomeNexusOperationClosed protocolcatalog.ObservationID = protocolcatalog.ObservationIDNexusOperationClosed
 	// OutcomeNexusOperationProgressed denotes A retrying Nexus operation settled within its progress deadline.
-	OutcomeNexusOperationProgressed protocol.ObservationID = protocol.ObservationIDNexusOperationProgressed
+	OutcomeNexusOperationProgressed protocolcatalog.ObservationID = protocolcatalog.ObservationIDNexusOperationProgressed
 	// OutcomeNexusActivityLinksConsistent denotes Nexus and Activity links agree.
-	OutcomeNexusActivityLinksConsistent protocol.ObservationID = protocol.ObservationIDNexusActivityLinksConsistent
+	OutcomeNexusActivityLinksConsistent protocolcatalog.ObservationID = protocolcatalog.ObservationIDNexusActivityLinksConsistent
 	// OutcomeNexusTimeoutValid denotes Nexus timeout state is terminal and recorded.
-	OutcomeNexusTimeoutValid protocol.ObservationID = protocol.ObservationIDNexusTimeoutValid
+	OutcomeNexusTimeoutValid protocolcatalog.ObservationID = protocolcatalog.ObservationIDNexusTimeoutValid
 	// OutcomeCallbackReferenceValid denotes Callback reference resolves to its owner.
-	OutcomeCallbackReferenceValid protocol.ObservationID = protocol.ObservationIDCallbackReferenceValid
+	OutcomeCallbackReferenceValid protocolcatalog.ObservationID = protocolcatalog.ObservationIDCallbackReferenceValid
 	// OutcomeCallbackResponseConsistent denotes Callback response agrees with its reference.
-	OutcomeCallbackResponseConsistent protocol.ObservationID = protocol.ObservationIDCallbackResponseConsistent
+	OutcomeCallbackResponseConsistent protocolcatalog.ObservationID = protocolcatalog.ObservationIDCallbackResponseConsistent
 	// OutcomeWorkflowTaskNotStarved denotes An available worker permits Workflow Task progress.
-	OutcomeWorkflowTaskNotStarved protocol.ObservationID = protocol.ObservationIDWorkflowTaskNotStarved
+	OutcomeWorkflowTaskNotStarved protocolcatalog.ObservationID = protocolcatalog.ObservationIDWorkflowTaskNotStarved
 	// OutcomeEntityProgressed denotes The selected entity made lifecycle progress.
-	OutcomeEntityProgressed protocol.ObservationID = protocol.ObservationIDEntityProgressed
+	OutcomeEntityProgressed protocolcatalog.ObservationID = protocolcatalog.ObservationIDEntityProgressed
 	// OutcomeWorkflowContinuationLineageValid denotes The continued run names its predecessor and chain root.
-	OutcomeWorkflowContinuationLineageValid protocol.ObservationID = protocol.ObservationIDWorkflowContinuationLineageValid
+	OutcomeWorkflowContinuationLineageValid protocolcatalog.ObservationID = protocolcatalog.ObservationIDWorkflowContinuationLineageValid
 	// OutcomeWorkflowResetLineageValid denotes The reset run names the reset predecessor and chain root.
-	OutcomeWorkflowResetLineageValid protocol.ObservationID = protocol.ObservationIDWorkflowResetLineageValid
+	OutcomeWorkflowResetLineageValid protocolcatalog.ObservationID = protocolcatalog.ObservationIDWorkflowResetLineageValid
 	// OutcomeWorkflowRoutingIsolated denotes Workflow Tasks were scheduled on and completed from the declared Task Queue.
-	OutcomeWorkflowRoutingIsolated protocol.ObservationID = protocol.ObservationIDWorkflowRoutingIsolated
+	OutcomeWorkflowRoutingIsolated protocolcatalog.ObservationID = protocolcatalog.ObservationIDWorkflowRoutingIsolated
 	// OutcomeWorkflowOwnershipFenced denotes A superseded Workflow Task completion was rejected before the current owner completed.
-	OutcomeWorkflowOwnershipFenced protocol.ObservationID = protocol.ObservationIDWorkflowOwnershipFenced
+	OutcomeWorkflowOwnershipFenced protocolcatalog.ObservationID = protocolcatalog.ObservationIDWorkflowOwnershipFenced
 )
 
 const (
 	// RelationTaskDeliveryCurrentCompletion denotes A completion belongs to the current ownership epoch.
-	RelationTaskDeliveryCurrentCompletion protocol.RelationID = protocol.RelationIDTaskDeliveryCurrentCompletion
+	RelationTaskDeliveryCurrentCompletion protocolcatalog.RelationID = protocolcatalog.RelationIDTaskDeliveryCurrentCompletion
 	// RelationNamespaceContainsTaskQueue denotes A Task Queue belongs to a Namespace.
-	RelationNamespaceContainsTaskQueue protocol.RelationID = protocol.RelationIDNamespaceContainsTaskQueue
+	RelationNamespaceContainsTaskQueue protocolcatalog.RelationID = protocolcatalog.RelationIDNamespaceContainsTaskQueue
 	// RelationWorkflowHasRun denotes A Workflow identity has concrete runs.
-	RelationWorkflowHasRun protocol.RelationID = protocol.RelationIDWorkflowHasRun
+	RelationWorkflowHasRun protocolcatalog.RelationID = protocolcatalog.RelationIDWorkflowHasRun
 	// RelationWorkflowRunUsesTaskQueue denotes A Workflow run routes Workflow Tasks through a Task Queue.
-	RelationWorkflowRunUsesTaskQueue protocol.RelationID = protocol.RelationIDWorkflowRunUsesTaskQueue
+	RelationWorkflowRunUsesTaskQueue protocolcatalog.RelationID = protocolcatalog.RelationIDWorkflowRunUsesTaskQueue
 	// RelationWorkflowRunHasTask denotes A Workflow Task belongs to a Workflow run.
-	RelationWorkflowRunHasTask protocol.RelationID = protocol.RelationIDWorkflowRunHasTask
+	RelationWorkflowRunHasTask protocolcatalog.RelationID = protocolcatalog.RelationIDWorkflowRunHasTask
 	// RelationWorkflowRunHasActivity denotes An Activity belongs to a Workflow run.
-	RelationWorkflowRunHasActivity protocol.RelationID = protocol.RelationIDWorkflowRunHasActivity
+	RelationWorkflowRunHasActivity protocolcatalog.RelationID = protocolcatalog.RelationIDWorkflowRunHasActivity
 	// RelationActivityHasExecution denotes An Activity has concrete attempts.
-	RelationActivityHasExecution protocol.RelationID = protocol.RelationIDActivityHasExecution
+	RelationActivityHasExecution protocolcatalog.RelationID = protocolcatalog.RelationIDActivityHasExecution
 	// RelationNexusOperationLinksActivity denotes Nexus and Activity references agree in both directions.
-	RelationNexusOperationLinksActivity protocol.RelationID = protocol.RelationIDNexusOperationLinksActivity
+	RelationNexusOperationLinksActivity protocolcatalog.RelationID = protocolcatalog.RelationIDNexusOperationLinksActivity
 	// RelationNexusOperationHasCallback denotes A Nexus operation registers a callback.
-	RelationNexusOperationHasCallback protocol.RelationID = protocol.RelationIDNexusOperationHasCallback
+	RelationNexusOperationHasCallback protocolcatalog.RelationID = protocolcatalog.RelationIDNexusOperationHasCallback
 	// RelationWorkflowRunHasCallback denotes A Workflow run registers a callback.
-	RelationWorkflowRunHasCallback protocol.RelationID = protocol.RelationIDWorkflowRunHasCallback
+	RelationWorkflowRunHasCallback protocolcatalog.RelationID = protocolcatalog.RelationIDWorkflowRunHasCallback
 	// RelationWorkflowRunContinuesAs denotes A continued or reset run retains explicit lineage.
-	RelationWorkflowRunContinuesAs protocol.RelationID = protocol.RelationIDWorkflowRunContinuesAs
+	RelationWorkflowRunContinuesAs protocolcatalog.RelationID = protocolcatalog.RelationIDWorkflowRunContinuesAs
 )
 
 const (
 	// CapabilityNexus requests Nexus operation authority.
-	CapabilityNexus protocol.CapabilityID = protocol.CapabilityIDNexus
+	CapabilityNexus protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDNexus
 	// CapabilityNexusWorkerControl requests Nexus worker task authority.
-	CapabilityNexusWorkerControl protocol.CapabilityID = protocol.CapabilityIDNexusWorkerControl
+	CapabilityNexusWorkerControl protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDNexusWorkerControl
 	// CapabilityNexusObservation requests Nexus state observation.
-	CapabilityNexusObservation protocol.CapabilityID = protocol.CapabilityIDNexusObservation
+	CapabilityNexusObservation protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDNexusObservation
 	// CapabilityFailoverControl requests Ownership failover authority.
-	CapabilityFailoverControl protocol.CapabilityID = protocol.CapabilityIDFailoverControl
+	CapabilityFailoverControl protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDFailoverControl
 	// CapabilityUpdate requests Workflow Update authority.
-	CapabilityUpdate protocol.CapabilityID = protocol.CapabilityIDUpdate
+	CapabilityUpdate protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDUpdate
 	// CapabilityWorkflowTaskControl requests Workflow Task authority.
-	CapabilityWorkflowTaskControl protocol.CapabilityID = protocol.CapabilityIDWorkflowTaskControl
+	CapabilityWorkflowTaskControl protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDWorkflowTaskControl
 	// CapabilityHistoryObservation requests Workflow history observation.
-	CapabilityHistoryObservation protocol.CapabilityID = protocol.CapabilityIDHistoryObservation
+	CapabilityHistoryObservation protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDHistoryObservation
 	// CapabilityFaultRpc requests Scoped RPC and HTTP fault authority.
-	CapabilityFaultRpc protocol.CapabilityID = protocol.CapabilityIDFaultRpc
+	CapabilityFaultRpc protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDFaultRpc
 	// CapabilityFaultProcess requests Isolated participant process fault authority.
-	CapabilityFaultProcess protocol.CapabilityID = protocol.CapabilityIDFaultProcess
+	CapabilityFaultProcess protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDFaultProcess
 	// CapabilityFaultNetwork requests Isolated network partition authority.
-	CapabilityFaultNetwork protocol.CapabilityID = protocol.CapabilityIDFaultNetwork
+	CapabilityFaultNetwork protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDFaultNetwork
 	// CapabilityFaultClock requests Isolated clock-control authority.
-	CapabilityFaultClock protocol.CapabilityID = protocol.CapabilityIDFaultClock
+	CapabilityFaultClock protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDFaultClock
 	// CapabilityFaultPersistence requests Selected persistence fault authority.
-	CapabilityFaultPersistence protocol.CapabilityID = protocol.CapabilityIDFaultPersistence
+	CapabilityFaultPersistence protocolcatalog.CapabilityID = protocolcatalog.CapabilityIDFaultPersistence
 )

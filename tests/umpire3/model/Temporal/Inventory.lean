@@ -1,15 +1,15 @@
 import Umpire3.Catalog
-import Temporal.Product.CallbackReference
-import Temporal.Product.CallbackResponse
-import Temporal.Product.NexusActivityLink
-import Temporal.Product.NexusClosure
-import Temporal.Product.NexusProgress
-import Temporal.Product.NexusTimeout
-import Temporal.Product.SpeculativeTask
-import Temporal.Product.WorkflowLineage
-import Temporal.Product.WorkflowOwnership
-import Temporal.Product.WorkflowProgress
-import Temporal.Product.WorkflowRouting
+import Temporal.Families.CallbackReference.Feature
+import Temporal.Families.CallbackResponse.Feature
+import Temporal.Families.NexusActivityLink.Feature
+import Temporal.Families.NexusClosure.Feature
+import Temporal.Families.NexusProgress.Feature
+import Temporal.Families.NexusTimeout.Feature
+import Temporal.Families.SpeculativeTask.Feature
+import Temporal.Families.WorkflowRoutingIsolation.LineageFeature
+import Temporal.Families.WorkflowOwnership.Feature
+import Temporal.Families.WorkflowProgress.Feature
+import Temporal.Families.WorkflowRoutingIsolation.RoutingFeature
 
 namespace Umpire3.Temporal.Inventory
 
@@ -107,55 +107,55 @@ def observations : List ObservationDeclaration := [
 
 def properties : List PropertyDeclaration := [
   property "workflow-task.speculative-creation" "SpeculativeTaskCreation"
-    (resolved_theorem% Umpire3.Temporal.Product.SpeculativeTask.speculativeCreationSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.SpeculativeTask.speculativeCreationSafe),
   property "nexus-operation.closure" "NexusOperationClosure"
-    (resolved_theorem% Umpire3.Temporal.Product.NexusClosure.closureSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.NexusClosure.closureSafe),
   property "nexus-operation.progress" "NexusOperationProgress"
-    (resolved_theorem% Umpire3.Temporal.Product.NexusProgress.progressSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.NexusProgress.progressSafe),
   property "nexus-activity.link-consistency" "NexusActivityLinkConsistency"
-    (resolved_theorem% Umpire3.Temporal.Product.NexusActivityLink.linkConsistencySafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.NexusActivityLink.linkConsistencySafe),
   property "nexus-operation.timeout-semantics" "NexusOperationTimeoutSemantics"
-    (resolved_theorem% Umpire3.Temporal.Product.NexusTimeout.timeoutSemanticsSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.NexusTimeout.timeoutSemanticsSafe),
   property "callback.reference-consistency" "CallbackReferenceConsistency"
-    (resolved_theorem% Umpire3.Temporal.Product.CallbackReference.referenceConsistencySafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.CallbackReference.referenceConsistencySafe),
   property "callback.response-consistency" "CallbackResponseConsistency"
-    (resolved_theorem% Umpire3.Temporal.Product.CallbackResponse.responseConsistencySafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.CallbackResponse.responseConsistencySafe),
   property "workflow-task.starvation" "WorkflowTaskStarvation"
-    (resolved_theorem% Umpire3.Temporal.Product.WorkflowProgress.workflowTaskStarvationSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.WorkflowProgress.workflowTaskStarvationSafe),
   property "entity.progress" "EntityProgress"
-    (resolved_theorem% Umpire3.Temporal.Product.WorkflowProgress.entityProgressSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.WorkflowProgress.entityProgressSafe),
   property "workflow-run.continuation-lineage" "ContinuationLineage"
-    (resolved_theorem% Umpire3.Temporal.Product.WorkflowLineage.continuationLineageSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.WorkflowLineage.continuationLineageSafe),
   property "workflow-run.reset-lineage" "ResetLineage"
-    (resolved_theorem% Umpire3.Temporal.Product.WorkflowLineage.resetLineageSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.WorkflowLineage.resetLineageSafe),
   property "workflow-task.routing-isolation" "WorkflowRoutingIsolation"
-    (resolved_theorem% Umpire3.Temporal.Product.WorkflowRouting.routingIsolationSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.WorkflowRouting.routingIsolationSafe),
   property "workflow-task.ownership-fencing" "WorkflowOwnershipFencing"
-    (resolved_theorem% Umpire3.Temporal.Product.WorkflowOwnership.ownershipFencingSafe),
+    (resolved_theorem% Umpire3.Temporal.Feature.WorkflowOwnership.ownershipFencingSafe),
 ]
 
-def nexusClosureProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.NexusClosure"
+def nexusClosureFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.NexusClosure"
   description := "Caller Workflow and related Nexus operation closure contract"
 }
 
-def nexusLifecycleProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.NexusLifecycle"
+def nexusLifecycleFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.NexusLifecycle"
   description := "Complete Nexus operation lifecycle and generated transition coverage denominator"
 }
 
 def nexusClosureSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.NexusClosure"
+  identifier := "Temporal.System.NexusClosure"
   description := "Independent Nexus lifecycle and Workflow closure mechanism"
 }
 
 def nexusClosureRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.NexusClosure"
-  description := "Independent Nexus closure system-to-product refinement"
+  identifier := "Temporal.Refinement.NexusClosure"
+  description := "Independent Nexus closure system-to-feature refinement"
 }
 
-def nexusProgressProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.NexusProgress"
+def nexusProgressFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.NexusProgress"
   description := "Bounded Nexus retry progress contract"
 }
 
@@ -166,186 +166,203 @@ def nexusProgressSystemModule : ModuleDeclaration := {
 
 def nexusProgressRefinementModule : ModuleDeclaration := {
   identifier := "Temporal.Refinement.NexusProgress"
-  description := "Nexus retry progress system-to-product refinement"
+  description := "Nexus retry progress system-to-feature refinement"
 }
 
-def nexusTimeoutProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.NexusTimeout"
+def nexusTimeoutFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.NexusTimeout"
   description := "Nexus timeout configuration, outcome, and evidence relation contract"
 }
 
 def nexusTimeoutSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.NexusTimeout"
+  identifier := "Temporal.System.NexusTimeout"
   description := "Ordered Nexus timeout history observation mechanism"
 }
 
 def nexusTimeoutRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.NexusTimeout"
-  description := "Nexus timeout observation system-to-product refinement"
+  identifier := "Temporal.Refinement.NexusTimeout"
+  description := "Nexus timeout observation system-to-feature refinement"
 }
 
-def nexusActivityLinkProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.NexusActivityLink"
+def nexusActivityLinkFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.NexusActivityLink"
   description := "Reciprocal Nexus operation and Activity link contract"
 }
 
 def nexusActivityLinkSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.NexusActivityLink"
+  identifier := "Temporal.System.NexusActivityLink"
   description := "Nexus and Activity link observation and redelivery mechanism"
 }
 
 def nexusActivityLinkRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.NexusActivityLink"
-  description := "Nexus Activity link observation system-to-product refinement"
+  identifier := "Temporal.Refinement.NexusActivityLink"
+  description := "Nexus Activity link observation system-to-feature refinement"
 }
 
-def callbackReferenceProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.CallbackReference"
+def callbackReferenceFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.CallbackReference"
   description := "Callback, Nexus operation, handler run, reference, and causal-order contract"
 }
 
 def callbackReferenceSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.CallbackReference"
+  identifier := "Temporal.System.CallbackReference"
   description := "Independent callback attachment and Nexus start observation mechanism"
 }
 
 def callbackReferenceRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.CallbackReference"
-  description := "Callback reference observation system-to-product refinement"
+  identifier := "Temporal.Refinement.CallbackReference"
+  description := "Callback reference observation system-to-feature refinement"
 }
 
-def callbackResponseProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.CallbackResponse"
+def callbackResponseFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.CallbackResponse"
   description := "Callback delivery, accepted response, idempotency, and operation-lifetime contract"
 }
 
 def callbackResponseSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.CallbackResponse"
+  identifier := "Temporal.System.CallbackResponse"
   description := "Callback registration, settlement, response, and redelivery observation mechanism"
 }
 
 def callbackResponseRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.CallbackResponse"
-  description := "Callback response observation system-to-product refinement"
+  identifier := "Temporal.Refinement.CallbackResponse"
+  description := "Callback response observation system-to-feature refinement"
 }
 
-def workflowLineageProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.WorkflowLineage"
+def workflowLineageFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.WorkflowLineage"
   description := "Workflow continuation and reset predecessor, original, and chain-root contract"
 }
 
 def workflowLineageSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.WorkflowLineage"
+  identifier := "Temporal.System.WorkflowLineage"
   description := "Workflow start-history lineage observation and redelivery mechanism"
 }
 
 def workflowLineageRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowLineage"
-  description := "Workflow lineage observation system-to-product refinement"
+  identifier := "Temporal.Refinement.WorkflowLineage"
+  description := "Workflow lineage observation system-to-feature refinement"
 }
 
-def workflowRoutingProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.WorkflowRouting"
+def workflowRoutingFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.WorkflowRouting"
   description := "Workflow Task, poller, reservation, and Task Queue route-isolation contract"
 }
 
 def workflowRoutingSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.WorkflowRouting"
+  identifier := "Temporal.System.WorkflowRouting"
   description := "Workflow Task and poller route plus reservation observation mechanism"
 }
 
 def workflowRoutingRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowRouting"
-  description := "Workflow routing observation system-to-product refinement"
+  identifier := "Temporal.Refinement.WorkflowRouting"
+  description := "Workflow routing observation system-to-feature refinement"
 }
 
-def workflowOwnershipProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.WorkflowOwnership"
+def routingIsolationFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.RoutingIsolation"
+  description := "Workflow lineage and Task Queue routing isolation contract"
+}
+
+def routingIsolationSystemModule : ModuleDeclaration := {
+  identifier := "Temporal.System.RoutingIsolation"
+  description := "Independent Workflow lineage and Task Queue routing observation mechanisms"
+}
+
+def routingIsolationRefinementModule : ModuleDeclaration := {
+  identifier := "Temporal.Refinement.RoutingIsolation"
+  description := "Workflow routing isolation system-to-feature refinements"
+}
+
+def workflowOwnershipFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.WorkflowOwnership"
   description := "Workflow Task attempt epoch and stale-owner fencing contract"
 }
 
 def workflowOwnershipSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.WorkflowOwnership"
+  identifier := "Temporal.System.WorkflowOwnership"
   description := "Workflow Task ownership failure, rotation, rejection, and completion observation mechanism"
 }
 
 def workflowOwnershipRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowOwnership"
-  description := "Workflow ownership observation system-to-product refinement"
+  identifier := "Temporal.Refinement.WorkflowOwnership"
+  description := "Workflow ownership observation system-to-feature refinement"
 }
 
-def speculativeTaskProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.SpeculativeTask"
+def speculativeTaskFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.SpeculativeTask"
   description := "Update-linked speculative Workflow Task creation and commitment contract"
 }
 
 def speculativeTaskSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.SpeculativeTask"
+  identifier := "Temporal.System.SpeculativeTask"
   description := "Update request, speculative task creation, commit, and redelivery observation mechanism"
 }
 
 def speculativeTaskRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.SpeculativeTask"
-  description := "Speculative Workflow Task observation system-to-product refinement"
+  identifier := "Temporal.Refinement.SpeculativeTask"
+  description := "Speculative Workflow Task observation system-to-feature refinement"
 }
 
-def workflowProgressProductModule : ModuleDeclaration := {
-  identifier := "Temporal.Product.WorkflowProgress"
+def workflowProgressFeatureModule : ModuleDeclaration := {
+  identifier := "Temporal.Feature.WorkflowProgress"
   description := "Workflow Task availability deadline and task-to-entity progress contract"
 }
 
 def workflowProgressSystemModule : ModuleDeclaration := {
-  identifier := "Temporal.System.MigratedFamilies.WorkflowProgress"
+  identifier := "Temporal.System.WorkflowProgress"
   description := "Task enqueue, worker availability, dispatch, completion, and redelivery observation mechanism"
 }
 
 def workflowProgressRefinementModule : ModuleDeclaration := {
-  identifier := "Temporal.Refinement.MigratedFamilies.WorkflowProgress"
-  description := "Workflow progress observation system-to-product refinement"
+  identifier := "Temporal.Refinement.WorkflowProgress"
+  description := "Workflow progress observation system-to-feature refinement"
 }
 
 def modules : List ModuleDeclaration := [
-  nexusLifecycleProductModule,
-  nexusClosureProductModule,
+  nexusLifecycleFeatureModule,
+  nexusClosureFeatureModule,
   nexusClosureSystemModule,
   nexusClosureRefinementModule,
-  nexusProgressProductModule,
+  nexusProgressFeatureModule,
   nexusProgressSystemModule,
   nexusProgressRefinementModule,
-  nexusTimeoutProductModule,
+  nexusTimeoutFeatureModule,
   nexusTimeoutSystemModule,
   nexusTimeoutRefinementModule,
-  nexusActivityLinkProductModule,
+  nexusActivityLinkFeatureModule,
   nexusActivityLinkSystemModule,
   nexusActivityLinkRefinementModule,
-  callbackReferenceProductModule,
+  callbackReferenceFeatureModule,
   callbackReferenceSystemModule,
   callbackReferenceRefinementModule,
-  callbackResponseProductModule,
+  callbackResponseFeatureModule,
   callbackResponseSystemModule,
   callbackResponseRefinementModule,
-  workflowLineageProductModule,
+  workflowLineageFeatureModule,
   workflowLineageSystemModule,
   workflowLineageRefinementModule,
-  workflowRoutingProductModule,
+  workflowRoutingFeatureModule,
   workflowRoutingSystemModule,
   workflowRoutingRefinementModule,
-  workflowOwnershipProductModule,
+  routingIsolationFeatureModule,
+  routingIsolationSystemModule,
+  routingIsolationRefinementModule,
+  workflowOwnershipFeatureModule,
   workflowOwnershipSystemModule,
   workflowOwnershipRefinementModule,
-  speculativeTaskProductModule,
+  speculativeTaskFeatureModule,
   speculativeTaskSystemModule,
   speculativeTaskRefinementModule,
-  workflowProgressProductModule,
+  workflowProgressFeatureModule,
   workflowProgressSystemModule,
   workflowProgressRefinementModule,
 ]
 
 private def routingTarget : TargetDeclaration := {
   identifier := "foundation-routing-isolation"
-  modules := [workflowLineageProductModule.identifier, workflowLineageSystemModule.identifier,
-    workflowLineageRefinementModule.identifier, workflowRoutingProductModule.identifier,
-    workflowRoutingSystemModule.identifier, workflowRoutingRefinementModule.identifier]
+  modules := [routingIsolationFeatureModule.identifier, routingIsolationSystemModule.identifier,
+    routingIsolationRefinementModule.identifier]
   properties := [
     "workflow-task.routing-isolation",
     "workflow-run.continuation-lineage",
@@ -356,74 +373,74 @@ private def routingTarget : TargetDeclaration := {
 def targets : List TargetDeclaration := [
   {
     identifier := "feature-nexus"
-    modules := [nexusLifecycleProductModule.identifier, nexusClosureProductModule.identifier, nexusClosureSystemModule.identifier,
+    modules := [nexusClosureFeatureModule.identifier, nexusClosureSystemModule.identifier,
       nexusClosureRefinementModule.identifier]
     properties := ["nexus-operation.closure"]
   },
   {
     identifier := "feature-nexus-progress"
-    modules := [nexusProgressProductModule.identifier, nexusProgressSystemModule.identifier,
+    modules := [nexusProgressFeatureModule.identifier, nexusProgressSystemModule.identifier,
       nexusProgressRefinementModule.identifier]
     properties := ["nexus-operation.progress"]
   },
   {
     identifier := "feature-workflow-speculative-delivery"
-    modules := [speculativeTaskProductModule.identifier, speculativeTaskSystemModule.identifier,
+    modules := [speculativeTaskFeatureModule.identifier, speculativeTaskSystemModule.identifier,
       speculativeTaskRefinementModule.identifier]
     properties := ["workflow-task.speculative-creation"]
   },
   {
     identifier := "foundation-delivery-safety"
-    modules := [workflowProgressProductModule.identifier, workflowProgressSystemModule.identifier,
+    modules := [workflowProgressFeatureModule.identifier, workflowProgressSystemModule.identifier,
       workflowProgressRefinementModule.identifier]
     properties := ["entity.progress"]
   },
   {
     identifier := "foundation-ownership-fencing"
-    modules := [workflowOwnershipProductModule.identifier, workflowOwnershipSystemModule.identifier,
+    modules := [workflowOwnershipFeatureModule.identifier, workflowOwnershipSystemModule.identifier,
       workflowOwnershipRefinementModule.identifier]
     properties := ["workflow-task.ownership-fencing"]
   },
   routingTarget,
   {
     identifier := "integration-activity-delivery"
-    modules := [workflowProgressProductModule.identifier, workflowProgressSystemModule.identifier,
+    modules := [workflowProgressFeatureModule.identifier, workflowProgressSystemModule.identifier,
       workflowProgressRefinementModule.identifier]
     properties := ["entity.progress"]
   },
   {
     identifier := "integration-callback-nexus"
-    modules := [callbackReferenceProductModule.identifier, callbackReferenceSystemModule.identifier,
+    modules := [callbackReferenceFeatureModule.identifier, callbackReferenceSystemModule.identifier,
       callbackReferenceRefinementModule.identifier]
     properties := ["callback.reference-consistency"]
   },
   {
     identifier := "integration-callback-workflow"
-    modules := [callbackResponseProductModule.identifier, callbackResponseSystemModule.identifier,
+    modules := [callbackResponseFeatureModule.identifier, callbackResponseSystemModule.identifier,
       callbackResponseRefinementModule.identifier]
     properties := ["callback.response-consistency"]
   },
   {
     identifier := "integration-nexus-activity"
-    modules := [nexusActivityLinkProductModule.identifier, nexusActivityLinkSystemModule.identifier,
+    modules := [nexusActivityLinkFeatureModule.identifier, nexusActivityLinkSystemModule.identifier,
       nexusActivityLinkRefinementModule.identifier]
     properties := ["nexus-activity.link-consistency"]
   },
   {
     identifier := "integration-nexus-timeout"
-    modules := [nexusTimeoutProductModule.identifier, nexusTimeoutSystemModule.identifier,
+    modules := [nexusTimeoutFeatureModule.identifier, nexusTimeoutSystemModule.identifier,
       nexusTimeoutRefinementModule.identifier]
     properties := ["nexus-operation.timeout-semantics"]
   },
   {
     identifier := "integration-workflow-delivery"
-    modules := [workflowProgressProductModule.identifier, workflowProgressSystemModule.identifier,
+    modules := [workflowProgressFeatureModule.identifier, workflowProgressSystemModule.identifier,
       workflowProgressRefinementModule.identifier]
     properties := ["workflow-task.starvation"]
   },
   {
     identifier := "protocol-atomic"
-    modules := [callbackResponseProductModule.identifier, callbackResponseSystemModule.identifier,
+    modules := [callbackResponseFeatureModule.identifier, callbackResponseSystemModule.identifier,
       callbackResponseRefinementModule.identifier]
     properties := ["callback.response-consistency"]
   },

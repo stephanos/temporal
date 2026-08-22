@@ -7,10 +7,11 @@ import (
 	"slices"
 
 	"go.temporal.io/server/tests/umpire3/execution"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
-type Executor func(context.Context, protocol.Experiment) (execution.Result, error)
+type Executor func(context.Context, protocolexperiment.Experiment) (execution.Result, error)
 
 type Report struct {
 	ExperimentDigest string           `json:"experimentDigest"`
@@ -42,9 +43,9 @@ func Reproduce(ctx context.Context, bundle Bundle, executor Executor) (Report, e
 			Kind: DriftRealization, Detail: "environment profile changed",
 		})
 	}
-	capabilities := append([]protocol.CapabilityID(nil), current.Environment.Capabilities...)
+	capabilities := append([]protocolcatalog.CapabilityID(nil), current.Environment.Capabilities...)
 	slices.Sort(capabilities)
-	expectedCapabilities := append([]protocol.CapabilityID(nil), bundle.Replay.Capabilities...)
+	expectedCapabilities := append([]protocolcatalog.CapabilityID(nil), bundle.Replay.Capabilities...)
 	slices.Sort(expectedCapabilities)
 	if !slices.Equal(expectedCapabilities, capabilities) {
 		drift = append(drift, Drift{

@@ -1,6 +1,6 @@
-import Temporal.System.MigratedFamilies
-import Temporal.System.NexusProgress
-import Temporal.System.TaskAck
+import Temporal.Families
+import Temporal.Families.NexusProgress.System
+import Temporal.Families.TaskAcknowledgement.System
 import Umpire3.FiniteReplayView
 
 namespace Umpire3.Temporal.Targets.FiniteReplay
@@ -35,7 +35,7 @@ private def artifact (target property canonicalModel : String)
   canonicalModel := canonicalModel
   attempts := attempts
 
-private def ownershipActionName : Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.Action → String
+private def ownershipActionName : Umpire3.Temporal.System.WorkflowOwnership.Action → String
   | .dispatchCurrent => "dispatch-current"
   | .failCurrent => "fail-current"
   | .rotateOwner => "rotate-owner"
@@ -43,15 +43,15 @@ private def ownershipActionName : Umpire3.Temporal.System.MigratedFamilies.Workf
   | .completeCurrent => "complete-current"
   | .completeStale => "complete-stale"
 
-private def ownershipFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.executable inferInstance
+private def ownershipFinite : FiniteView Umpire3.Temporal.System.WorkflowOwnership.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.WorkflowOwnership.executable inferInstance
     ownershipActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [ownershipActionName])
 
-def ownership : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.behavior () where
+def ownership : FiniteReplayView Umpire3.Temporal.System.WorkflowOwnership.behavior () where
   artifact := artifact "foundation-ownership-fencing" "workflow-task.ownership-fencing"
-    "Umpire3.Temporal.System.MigratedFamilies.WorkflowOwnership.behavior" [
+    "Umpire3.Temporal.System.WorkflowOwnership.behavior" [
       attempt "fence-workflow-owner" [
         "dispatch-current", "fail-current", "rotate-owner", "reject-stale", "complete-current",
       ],
@@ -61,53 +61,53 @@ def ownership : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.Workfl
   property := fun state => decide (state ≠ .staleCompleted)
   valid := by decide
 
-private def lineageActionName : Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.Action → String
+private def lineageActionName : Umpire3.Temporal.System.WorkflowLineage.Action → String
   | .observeContinuation => "observe-continuation"
   | .observeReset => "observe-reset"
   | .observeInvalidContinuation => "observe-invalid-continuation"
 
-private def lineageFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.executable inferInstance
+private def lineageFinite : FiniteView Umpire3.Temporal.System.WorkflowLineage.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.WorkflowLineage.executable inferInstance
     lineageActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [lineageActionName])
 
 private def lineageArtifact (property : String) : FiniteReplayArtifact :=
   artifact "foundation-routing-isolation" property
-    "Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.behavior" [
+    "Umpire3.Temporal.System.WorkflowLineage.behavior" [
       attempt "route-workflow-task",
       attempt "continue-workflow" ["observe-continuation"],
       attempt "reset-workflow" ["observe-reset"],
     ]
 
-def continuationLineage : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.behavior () where
+def continuationLineage : FiniteReplayView Umpire3.Temporal.System.WorkflowLineage.behavior () where
   artifact := lineageArtifact "workflow-run.continuation-lineage"
   finite := lineageFinite
   property := fun state => decide (state ≠ .invalidContinuation)
   valid := by decide
 
-def resetLineage : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowLineage.behavior () where
+def resetLineage : FiniteReplayView Umpire3.Temporal.System.WorkflowLineage.behavior () where
   artifact := lineageArtifact "workflow-run.reset-lineage"
   finite := lineageFinite
   property := fun state => decide (state ≠ .invalidContinuation)
   valid := by decide
 
-private def routingActionName : Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.Action → String
+private def routingActionName : Umpire3.Temporal.System.WorkflowRouting.Action → String
   | .assignTask => "assign-task"
   | .registerMatchingPoller => "register-matching-poller"
   | .registerCrossingPoller => "register-crossing-poller"
   | .reserveMatching => "reserve-matching"
   | .reserveCrossing => "reserve-crossing"
 
-private def routingFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.executable inferInstance
+private def routingFinite : FiniteView Umpire3.Temporal.System.WorkflowRouting.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.WorkflowRouting.executable inferInstance
     routingActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [routingActionName])
 
-def routing : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.behavior () where
+def routing : FiniteReplayView Umpire3.Temporal.System.WorkflowRouting.behavior () where
   artifact := artifact "foundation-routing-isolation" "workflow-task.routing-isolation"
-    "Umpire3.Temporal.System.MigratedFamilies.WorkflowRouting.behavior" [
+    "Umpire3.Temporal.System.WorkflowRouting.behavior" [
       attemptPaths "route-workflow-task" [
         ["assign-task", "register-matching-poller", "reserve-matching"],
         ["assign-task", "register-crossing-poller"],
@@ -119,21 +119,21 @@ def routing : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.Workflow
   property := fun state => decide (state ≠ .crossingReservation)
   valid := by decide
 
-private def speculativeActionName : Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.Action → String
+private def speculativeActionName : Umpire3.Temporal.System.SpeculativeTask.Action → String
   | .requestUpdate => "request-update"
   | .createTask => "create-task"
   | .commitTask => "commit-task"
   | .createOrphan => "create-orphan"
 
-private def speculativeFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.executable inferInstance
+private def speculativeFinite : FiniteView Umpire3.Temporal.System.SpeculativeTask.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.SpeculativeTask.executable inferInstance
     speculativeActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [speculativeActionName])
 
-def speculative : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.behavior () where
+def speculative : FiniteReplayView Umpire3.Temporal.System.SpeculativeTask.behavior () where
   artifact := artifact "feature-workflow-speculative-delivery" "workflow-task.speculative-creation"
-    "Umpire3.Temporal.System.MigratedFamilies.SpeculativeTask.behavior" [
+    "Umpire3.Temporal.System.SpeculativeTask.behavior" [
       attempt "create-speculative-workflow-task" ["request-update", "create-task"],
       attempt "commit-speculative-workflow-task" ["commit-task"],
     ]
@@ -141,34 +141,34 @@ def speculative : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.Spec
   property := fun state => decide (state ≠ .orphanedTask)
   valid := by decide
 
-private def callbackReferenceActionName : Umpire3.Temporal.System.MigratedFamilies.CallbackReference.Action → String
+private def callbackReferenceActionName : Umpire3.Temporal.System.CallbackReference.Action → String
   | .observeAttachment => "observe-attachment"
   | .observeMatchingOperation => "observe-matching-operation"
   | .observeWrongOperation => "observe-wrong-operation"
 
-private def callbackReferenceFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.CallbackReference.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.CallbackReference.executable inferInstance
+private def callbackReferenceFinite : FiniteView Umpire3.Temporal.System.CallbackReference.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.CallbackReference.executable inferInstance
     callbackReferenceActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [callbackReferenceActionName])
 
-def callbackReference : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.CallbackReference.behavior () where
+def callbackReference : FiniteReplayView Umpire3.Temporal.System.CallbackReference.behavior () where
   artifact := artifact "integration-callback-nexus" "callback.reference-consistency"
-    "Umpire3.Temporal.System.MigratedFamilies.CallbackReference.behavior" [
+    "Umpire3.Temporal.System.CallbackReference.behavior" [
       attempt "register-callback" ["observe-attachment", "observe-matching-operation"],
     ]
   finite := callbackReferenceFinite
   property := fun state => decide (state ≠ .wrongOperationObserved)
   valid := by decide
 
-private def callbackResponseActionName : Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.Action → String
+private def callbackResponseActionName : Umpire3.Temporal.System.CallbackResponse.Action → String
   | .register => "register"
   | .settle => "settle"
   | .respond => "respond"
   | .conflict => "conflict"
 
-private def callbackResponseFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.executable inferInstance
+private def callbackResponseFinite : FiniteView Umpire3.Temporal.System.CallbackResponse.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.CallbackResponse.executable inferInstance
     callbackResponseActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [callbackResponseActionName])
@@ -176,9 +176,9 @@ private def callbackResponseFinite : FiniteView Umpire3.Temporal.System.Migrated
 private def callbackResponseArtifact (target : String)
     (attempts : List FiniteReplayAttempt) : FiniteReplayArtifact :=
   artifact target "callback.response-consistency"
-    "Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.behavior" attempts
+    "Umpire3.Temporal.System.CallbackResponse.behavior" attempts
 
-def callbackResponse : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.behavior () where
+def callbackResponse : FiniteReplayView Umpire3.Temporal.System.CallbackResponse.behavior () where
   artifact := callbackResponseArtifact "integration-callback-workflow" [
     attempt "register-callback" ["register", "settle"],
     attempt "record-callback-response" ["respond"],
@@ -187,7 +187,7 @@ def callbackResponse : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies
   property := fun state => decide (state ≠ .conflictingResponse)
   valid := by decide
 
-def atomicCallbackResponse : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.behavior () where
+def atomicCallbackResponse : FiniteReplayView Umpire3.Temporal.System.CallbackResponse.behavior () where
   artifact := callbackResponseArtifact "protocol-atomic" [
     attempt "record-callback-response" ["register", "settle", "respond"],
   ]
@@ -195,19 +195,19 @@ def atomicCallbackResponse : FiniteReplayView Umpire3.Temporal.System.MigratedFa
   property := fun state => decide (state ≠ .conflictingResponse)
   valid := by decide
 
-private def timeoutActionName : Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.Action → String
+private def timeoutActionName : Umpire3.Temporal.System.NexusTimeout.Action → String
   | .configure => "configure-timeout"
   | .recordTimeout => "record-timeout"
   | .recordMalformedTimeout => "record-malformed-timeout"
 
-private def timeoutFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.executable inferInstance timeoutActionName (by
+private def timeoutFinite : FiniteView Umpire3.Temporal.System.NexusTimeout.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.NexusTimeout.executable inferInstance timeoutActionName (by
     intro left right
     cases left <;> cases right <;> simp_all [timeoutActionName])
 
-def timeout : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.behavior () where
+def timeout : FiniteReplayView Umpire3.Temporal.System.NexusTimeout.behavior () where
   artifact := artifact "integration-nexus-timeout" "nexus-operation.timeout-semantics"
-    "Umpire3.Temporal.System.MigratedFamilies.NexusTimeout.behavior" [
+    "Umpire3.Temporal.System.NexusTimeout.behavior" [
       attempt "schedule-operation" ["configure-timeout"],
       attempt "timeout-nexus-operation" ["record-timeout"],
     ]
@@ -215,21 +215,21 @@ def timeout : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.NexusTim
   property := fun state => decide (state ≠ .malformedTimeout)
   valid := by decide
 
-private def closureActionName : Umpire3.Temporal.System.MigratedFamilies.NexusClosure.Action → String
+private def closureActionName : Umpire3.Temporal.System.NexusClosure.Action → String
   | .schedule => "schedule"
   | .start => "start"
   | .settle => "settle"
   | .close => "close"
   | .closeWhileRunning => "close-while-running"
 
-private def closureFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.NexusClosure.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.NexusClosure.executable inferInstance closureActionName (by
+private def closureFinite : FiniteView Umpire3.Temporal.System.NexusClosure.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.NexusClosure.executable inferInstance closureActionName (by
     intro left right
     cases left <;> cases right <;> simp_all [closureActionName])
 
-def closure : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.NexusClosure.behavior () where
+def closure : FiniteReplayView Umpire3.Temporal.System.NexusClosure.behavior () where
   artifact := artifact "feature-nexus" "nexus-operation.closure"
-    "Umpire3.Temporal.System.MigratedFamilies.NexusClosure.behavior" [
+    "Umpire3.Temporal.System.NexusClosure.behavior" [
       attempt "schedule-operation" ["schedule"],
       attempt "dispatch-task" ["start"],
       attempt "worker-returns-success",
@@ -275,27 +275,27 @@ def nexusProgress : FiniteReplayView Umpire3.Temporal.System.NexusProgress.behav
   property := fun state => decide (state ≠ .stuckAfterDeadline)
   valid := by decide
 
-private def activityLinkActionName : Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.Action → String
+private def activityLinkActionName : Umpire3.Temporal.System.NexusActivityLink.Action → String
   | .observeOperation => "observe-operation"
   | .observeLinkedActivity => "observe-linked-activity"
   | .observeOneSidedActivity => "observe-one-sided-activity"
 
-private def activityLinkFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.executable inferInstance
+private def activityLinkFinite : FiniteView Umpire3.Temporal.System.NexusActivityLink.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.NexusActivityLink.executable inferInstance
     activityLinkActionName (by
       intro left right
       cases left <;> cases right <;> simp_all [activityLinkActionName])
 
-def activityLink : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.behavior () where
+def activityLink : FiniteReplayView Umpire3.Temporal.System.NexusActivityLink.behavior () where
   artifact := artifact "integration-nexus-activity" "nexus-activity.link-consistency"
-    "Umpire3.Temporal.System.MigratedFamilies.NexusActivityLink.behavior" [
+    "Umpire3.Temporal.System.NexusActivityLink.behavior" [
       attempt "link-nexus-activity" ["observe-operation", "observe-linked-activity"],
     ]
   finite := activityLinkFinite
   property := fun state => decide (state ≠ .oneSided)
   valid := by decide
 
-private def progressActionName : Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.Action → String
+private def progressActionName : Umpire3.Temporal.System.WorkflowProgress.Action → String
   | .enqueue => "enqueue"
   | .makeWorkerAvailable => "make-worker-available"
   | .wait => "wait"
@@ -304,8 +304,8 @@ private def progressActionName : Umpire3.Temporal.System.MigratedFamilies.Workfl
   | .waitAgain => "wait-again"
   | .completeWrongEntity => "complete-wrong-entity"
 
-private def progressFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.executable inferInstance progressActionName (by
+private def progressFinite : FiniteView Umpire3.Temporal.System.WorkflowProgress.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.WorkflowProgress.executable inferInstance progressActionName (by
     intro left right
     cases left <;> cases right <;> simp_all [progressActionName])
 
@@ -315,34 +315,34 @@ private def progressTransitions : List String := [
 
 private def entityProgressArtifact (target : String) : FiniteReplayArtifact :=
   artifact target "entity.progress"
-    "Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.behavior" [
+    "Umpire3.Temporal.System.WorkflowProgress.behavior" [
       attempt "crash-owner",
       attempt "progress-entity" progressTransitions,
       attempt "recover-owner",
     ]
 
-def deliveryProgress : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.behavior () where
+def deliveryProgress : FiniteReplayView Umpire3.Temporal.System.WorkflowProgress.behavior () where
   artifact := entityProgressArtifact "foundation-delivery-safety"
   finite := progressFinite
   property := fun state => decide (state ≠ .wrongEntityCompleted)
   valid := by decide
 
-def activityProgress : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.behavior () where
+def activityProgress : FiniteReplayView Umpire3.Temporal.System.WorkflowProgress.behavior () where
   artifact := entityProgressArtifact "integration-activity-delivery"
   finite := progressFinite
   property := fun state => decide (state ≠ .wrongEntityCompleted)
   valid := by decide
 
-def workflowDelivery : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.behavior () where
+def workflowDelivery : FiniteReplayView Umpire3.Temporal.System.WorkflowProgress.behavior () where
   artifact := artifact "integration-workflow-delivery" "workflow-task.starvation"
-    "Umpire3.Temporal.System.MigratedFamilies.WorkflowProgress.behavior" [
+    "Umpire3.Temporal.System.WorkflowProgress.behavior" [
       attempt "dispatch-assurance-workflow-task" progressTransitions,
     ]
   finite := progressFinite
   property := fun state => decide (state ≠ .starved)
   valid := by decide
 
-private def updateActionName : Umpire3.Temporal.System.MigratedFamilies.UpdateLifecycle.Action → String
+private def updateActionName : Umpire3.Temporal.System.UpdateLifecycle.Action → String
   | .start => "start"
   | .dispatchTask => "dispatch-task"
   | .accept => "accept"
@@ -351,15 +351,15 @@ private def updateActionName : Umpire3.Temporal.System.MigratedFamilies.UpdateLi
   | .complete => "complete"
   | .completeWithoutHistory => "complete-without-history"
 
-private def updateFinite : FiniteView Umpire3.Temporal.System.MigratedFamilies.UpdateLifecycle.behavior () :=
-  FiniteView.ofExecutable Umpire3.Temporal.System.MigratedFamilies.UpdateLifecycle.executable inferInstance updateActionName (by
+private def updateFinite : FiniteView Umpire3.Temporal.System.UpdateLifecycle.behavior () :=
+  FiniteView.ofExecutable Umpire3.Temporal.System.UpdateLifecycle.executable inferInstance updateActionName (by
     intro left right
     cases left <;> cases right <;> simp_all [updateActionName])
 
-def update : FiniteReplayView Umpire3.Temporal.System.MigratedFamilies.UpdateLifecycle.behavior () where
+def update : FiniteReplayView Umpire3.Temporal.System.UpdateLifecycle.behavior () where
   artifact := artifact "workflow-update-lifecycle"
     "workflow-update.accepted-completes-through-history"
-    "Umpire3.Temporal.System.MigratedFamilies.UpdateLifecycle.behavior" [
+    "Umpire3.Temporal.System.UpdateLifecycle.behavior" [
       attempt "start-update" ["start"],
       attempt "dispatch-workflow-task" ["dispatch-task"],
       attempt "accept-update" ["accept"],

@@ -14,7 +14,7 @@ func TestPublicFacadeCompilesArgumentsAlternativesAndScopedFaultsWithoutProtocol
 	t.Parallel()
 
 	operation := nexus.Operation("operation")
-	authored := nexus.Regression("public-facade", operation, scenario.OnePath(
+	authored := nexus.Scenario("public-facade", operation, scenario.OnePath(
 		operation.Schedule(),
 		operation.Dispatch(),
 		operation.RequestCancellation(scenario.WithReason("retry cancellation")),
@@ -99,7 +99,7 @@ func TestPublicFacadeCompilesTypedNexusCompletionModes(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			authored := scenario.FeatureNexusRegression("typed-nexus-completion", []scenario.Resource{
+			authored := scenario.FeatureNexusScenario("typed-nexus-completion", []scenario.Resource{
 				scenario.NexusOperation("operation"), scenario.Workflow("workflow"),
 			}, scenario.OnePath(test.term, scenario.RequireNexusOperationClosure()))
 			suite, err := scenario.Compile(context.Background(), authored, scenario.Limits{
@@ -126,7 +126,7 @@ func TestPublicFacadeCompilesTypedNexusCompletionModes(t *testing.T) {
 func TestPublicFacadeRejectsUnsupportedNexusCompletionMode(t *testing.T) {
 	t.Parallel()
 
-	authored := scenario.FeatureNexusRegression("unsupported-nexus-completion", []scenario.Resource{
+	authored := scenario.FeatureNexusScenario("unsupported-nexus-completion", []scenario.Resource{
 		scenario.NexusOperation("operation"), scenario.Workflow("workflow"),
 	}, scenario.OnePath(
 		scenario.CloseNexusOperation("close",

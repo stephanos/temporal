@@ -71,14 +71,14 @@ theorem falseSafety : Safety model (fun _ => False) := by
 
 func TestLeanRejectsSuccessAfterCancellationWins(t *testing.T) {
 	fixture := filepath.Join(t.TempDir(), "BadNexusCancellation.lean")
-	require.NoError(t, os.WriteFile(fixture, []byte(`import Temporal.Product.Nexus
+	require.NoError(t, os.WriteFile(fixture, []byte(`import Temporal.Families.NexusCancellation.Feature
 
 open Umpire3
-open Umpire3.Temporal.Product.Nexus
+open Umpire3.Temporal.Feature.NexusCancellationFencing
 
 theorem successAfterCancellationWins :
-    product.Step cancelled .completeSuccess succeeded := by
-  simp [product, step, cancelled, succeeded]
+    behavior.Step .smoke .cancelled .completeSuccess .succeeded := by
+  simp [behavior, successors]
 `), 0o600))
 
 	command := exec.Command("mise", "exec", "--", "lake", "env", "lean", fixture)
@@ -90,20 +90,14 @@ theorem successAfterCancellationWins :
 
 func TestLeanRejectsUnsafeNexusRefinement(t *testing.T) {
 	fixture := filepath.Join(t.TempDir(), "BadNexusRefinement.lean")
-	require.NoError(t, os.WriteFile(fixture, []byte(`import Umpire3Tests.TemporalSystem
+	require.NoError(t, os.WriteFile(fixture, []byte(`import Temporal.Families.NexusCancellation.Refinement
 
 open Umpire3
-open Umpire3.Temporal.System.NexusTasks
-open Umpire3.Temporal.System.NexusTasks.Tests
+open Umpire3.Temporal.Refinement.NexusCancellationFencing
 
 theorem unsafeStepProjects :
-    ∃ nextProduct,
-      Umpire3.Temporal.Product.Nexus.product.StepStar staleReturned.visible nextProduct ∧
-      Projects unsafePersisted nextProduct := by
-  exact ⟨unsafePersisted.visible, ⟨[.completeSuccess], Runs.cons (by
-    simp [Umpire3.Temporal.Product.Nexus.step, staleReturned, retried, ownershipChanged,
-      cancellationCommitted, cancellationRequested, dispatched, scheduled, initial, noProgress])
-    (Runs.nil unsafePersisted.visible)⟩, rfl⟩
+    StepSimulation System.mutatedBehavior Feature.behavior Projects actionMap := by
+  exact stepSimulates
 `), 0o600))
 
 	command := exec.Command("mise", "exec", "--", "lake", "env", "lean", fixture)
@@ -115,13 +109,11 @@ theorem unsafeStepProjects :
 
 func TestLeanRejectsNexusRelationWithoutCancellationEvidence(t *testing.T) {
 	fixture := filepath.Join(t.TempDir(), "BadNexusRelation.lean")
-	require.NoError(t, os.WriteFile(fixture, []byte(`import Umpire3Tests.TemporalSystem
+	require.NoError(t, os.WriteFile(fixture, []byte(`import Temporal.Families.NexusCancellation.Refinement
 
-open Umpire3.Temporal.Product.Nexus
-open Umpire3.Temporal.System.NexusTasks
-open Umpire3.Temporal.System.NexusTasks.Tests
+open Umpire3.Temporal.Refinement.NexusCancellationFencing
 
-theorem cancellationEvidenceCanBeDropped : Projects cancellationRequested initial := by
+theorem cancellationEvidenceCanBeDropped : Projects System.afterCancellationAccepted Feature.initial := by
   rfl
 `), 0o600))
 

@@ -13,32 +13,33 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tests/umpire3/evidence"
 	"go.temporal.io/server/tests/umpire3/execution"
-	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
-	"go.temporal.io/server/tests/umpire3/internal/artifact"
-	"go.temporal.io/server/tests/umpire3/observation"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/execution/evidence"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
+	"go.temporal.io/server/tests/umpire3/execution/observation"
+	"go.temporal.io/server/tests/umpire3/internal/artifactio"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 const BundleFormatVersion = "umpire3/replay-bundle/v3"
 
 type Metadata struct {
-	Profile      string                  `json:"profile,omitempty"`
-	Capabilities []protocol.CapabilityID `json:"capabilities"`
-	Seed         int64                   `json:"seed"`
-	Bounds       protocol.Bounds         `json:"bounds"`
-	Command      string                  `json:"command"`
+	Profile      string                         `json:"profile,omitempty"`
+	Capabilities []protocolcatalog.CapabilityID `json:"capabilities"`
+	Seed         int64                          `json:"seed"`
+	Bounds       protocolexperiment.Bounds      `json:"bounds"`
+	Command      string                         `json:"command"`
 }
 
 type Bundle struct {
-	FormatVersion string              `json:"formatVersion"`
-	Experiment    protocol.Experiment `json:"experiment"`
-	Result        execution.Result    `json:"result"`
-	Replay        Metadata            `json:"replay"`
+	FormatVersion string                        `json:"formatVersion"`
+	Experiment    protocolexperiment.Experiment `json:"experiment"`
+	Result        execution.Result              `json:"result"`
+	Replay        Metadata                      `json:"replay"`
 }
 
-func EncodeBundle(experiment protocol.Experiment, result execution.Result, maxBytes int64) ([]byte, error) {
+func EncodeBundle(experiment protocolexperiment.Experiment, result execution.Result, maxBytes int64) ([]byte, error) {
 	if err := experiment.Validate(); err != nil {
 		return nil, fmt.Errorf("validate artifact experiment: %w", err)
 	}
@@ -68,7 +69,7 @@ func EncodeBundle(experiment protocol.Experiment, result execution.Result, maxBy
 		Result:        redacted,
 		Replay: Metadata{
 			Profile:      redacted.Environment.Name,
-			Capabilities: append([]protocol.CapabilityID(nil), redacted.Environment.Capabilities...),
+			Capabilities: append([]protocolcatalog.CapabilityID(nil), redacted.Environment.Capabilities...),
 			Seed:         experiment.Scope.Seed, Bounds: experiment.Scope.Bounds,
 			Command: "umpire3 replay -bundle <bundle.json>",
 		},
@@ -298,7 +299,7 @@ func NewFileCorpus(root string) *FileCorpus {
 	return &FileCorpus{root: root}
 }
 
-func (c *FileCorpus) Save(ctx context.Context, experiment protocol.Experiment, result execution.Result) (string, error) {
+func (c *FileCorpus) Save(ctx context.Context, experiment protocolexperiment.Experiment, result execution.Result) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
@@ -323,7 +324,7 @@ func (c *FileCorpus) Save(ctx context.Context, experiment protocol.Experiment, r
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	if err := artifact.Publish(path, encoded); err != nil {
+	if err := artifactio.Publish(path, encoded); err != nil {
 		return "", err
 	}
 	return path, nil

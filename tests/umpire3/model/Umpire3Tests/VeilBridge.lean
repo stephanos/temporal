@@ -1,7 +1,7 @@
-import Temporal.Veil.NexusCancellationFencing.Binding
-import Temporal.Veil.NexusCancellationFencing.MutatedBinding
-import Temporal.Veil.NexusCancellationFencing.SoundConcrete
-import Temporal.Veil.NexusCancellationFencing.TrustedBinding
+import Temporal.Families.NexusCancellation.Targets.Veil.Binding
+import Temporal.Families.NexusCancellation.Targets.Veil.MutatedBinding
+import Temporal.Families.NexusCancellation.Targets.Veil.SoundConcrete
+import Temporal.Families.NexusCancellation.Targets.Veil.TrustedBinding
 
 namespace Umpire3.Tests.VeilBridge
 

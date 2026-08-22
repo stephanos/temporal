@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 func TestRunUsesIdentityReturnedByPrepare(t *testing.T) {
@@ -32,11 +33,11 @@ type identityFactory struct {
 	prepares int
 }
 
-func (f *identityFactory) Capabilities() []protocol.CapabilityID {
-	return append([]protocol.CapabilityID(nil), f.identity.Capabilities...)
+func (f *identityFactory) Capabilities() []protocolcatalog.CapabilityID {
+	return append([]protocolcatalog.CapabilityID(nil), f.identity.Capabilities...)
 }
 
-func (f *identityFactory) Prepare(context.Context, protocol.Experiment) (PreparedEnvironment, error) {
+func (f *identityFactory) Prepare(context.Context, protocolexperiment.Experiment) (PreparedEnvironment, error) {
 	f.prepares++
 	return PreparedEnvironment{Session: f.session, Identity: f.identity}, nil
 }

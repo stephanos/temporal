@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tests/umpire3/execution"
-	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
 )
 
 func TestCompareReplaySeparatesDriftClasses(t *testing.T) {

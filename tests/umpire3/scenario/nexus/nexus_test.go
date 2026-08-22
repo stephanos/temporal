@@ -13,7 +13,7 @@ func TestCancellationRegressionCompilesThroughTypedFacade(t *testing.T) {
 	t.Parallel()
 
 	operation := Operation("operation")
-	authored := Regression("nexus-cancellation", operation,
+	authored := Scenario("nexus-cancellation", operation,
 		scenario.OnePath(operation.CancelWithRetry(), operation.CancellationSafety()))
 
 	suite, err := scenario.Compile(context.Background(), authored, scenario.Limits{
