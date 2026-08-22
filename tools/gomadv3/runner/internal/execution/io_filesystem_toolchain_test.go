@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
@@ -19,7 +20,7 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -35,7 +36,7 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: runDirectory, Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})
@@ -59,7 +60,7 @@ func TestDirectSeedFilesystemStartsEmpty(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -86,7 +87,7 @@ func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_ro_mount", WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_ro_mount", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -111,10 +112,10 @@ func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {
 	result, err := execution.Run(context.Background(), execution.Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: runDirectory, Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},
-			ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: []deterministicio.Mapping{{Source: source, Target: "/mounted"}}, Limits: deterministicio.DefaultLimits()}},
+			ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: []readonlymount.Mapping{{Source: source, Target: "/mounted"}}, Limits: readonlymount.DefaultLimits()}},
 	})
 	if err != nil {
 		t.Fatalf("execution.Run() error = %v, result = %#v, stderr = %q", err, result, result.Stderr.Bytes)

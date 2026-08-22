@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 )
 
@@ -75,12 +75,12 @@ func TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork(t *testin
 			config.Coverage = CoverageSemantic
 		},
 		func(config *CampaignSpec) {
-			config.Strategy = StrategyChoiceFrontier
+			config.Strategy = StrategyChoiceExploration
 			config.Seeds = "7"
 			config.ChoiceTraceLimit = 1 << 20
-			config.MaxRuns = 2
+			config.MaxExecutions = 2
 			config.MaxChoiceDepth = 1
-			config.MaxFrontierBytes = 1 << 20
+			config.MaxExplorationBytes = 1 << 20
 		},
 	} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
@@ -194,15 +194,15 @@ func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
 	if result.SelectionCount != 2 || result.Attempted != 2 || result.Succeeded != 2 {
 		t.Fatalf("shard result = %#v", result)
 	}
-	opened, err := campaignstore.OpenCampaign(result.CampaignPath)
+	opened, err := campaign.OpenCampaign(result.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Record.Schema != "gomadv3.batch/v4" || opened.Record.PlanSHA256 != planned.SHA256 || opened.Record.Shard == nil || opened.Record.Shard.Index != 1 || opened.Record.Shard.Count != 2 {
+	if opened.Record.Schema != "gomadv3.campaign/v1" || opened.Record.PlanSHA256 != planned.SHA256 || opened.Record.Shard == nil || opened.Record.Shard.Index != 1 || opened.Record.Shard.Count != 2 {
 		t.Fatalf("shard batch identity = %#v", opened.Record)
 	}
-	if len(opened.Runs) != 2 || opened.Runs[0].SelectionOrdinal != 1 || opened.Runs[0].Seed != 10 || opened.Runs[1].SelectionOrdinal != 3 || opened.Runs[1].Seed != 2 {
-		t.Fatalf("shard runs = %#v", opened.Runs)
+	if len(opened.Executions) != 2 || opened.Executions[0].SelectionOrdinal != 1 || opened.Executions[0].Seed != 10 || opened.Executions[1].SelectionOrdinal != 3 || opened.Executions[1].Seed != 2 {
+		t.Fatalf("shard runs = %#v", opened.Executions)
 	}
 }
 
@@ -237,12 +237,12 @@ func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
 	if resumed.SelectionCount != 2 || resumed.Attempted != 2 || resumed.Succeeded != 2 {
 		t.Fatalf("resumed shard = %#v", resumed)
 	}
-	opened, err := campaignstore.OpenCampaign(resumed.CampaignPath)
+	opened, err := campaign.OpenCampaign(resumed.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Record.PlanSHA256 != planned.SHA256 || opened.Record.Shard == nil || opened.Record.Shard.Index != 0 || opened.Record.Shard.Count != 2 || len(opened.Runs) != 2 || opened.Runs[0].SelectionOrdinal != 0 || opened.Runs[1].SelectionOrdinal != 2 {
-		t.Fatalf("resumed shard batch = %#v runs=%#v", opened.Record, opened.Runs)
+	if opened.Record.PlanSHA256 != planned.SHA256 || opened.Record.Shard == nil || opened.Record.Shard.Index != 0 || opened.Record.Shard.Count != 2 || len(opened.Executions) != 2 || opened.Executions[0].SelectionOrdinal != 0 || opened.Executions[1].SelectionOrdinal != 2 {
+		t.Fatalf("resumed shard batch = %#v runs=%#v", opened.Record, opened.Executions)
 	}
 }
 
@@ -284,12 +284,12 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 	if string(firstManifest) != string(secondManifest) || first.Attempted != 4 || first.Partial || first.Shards != 2 {
 		t.Fatalf("merged campaigns differ: %#v %#v", first, second)
 	}
-	opened, err := campaignstore.OpenMergedCampaign(first.Path)
+	opened, err := campaign.OpenMergedCampaign(first.Path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for ordinal, run := range opened.Runs {
-		if run.Run.SelectionOrdinal != evidence.Uint64String(ordinal) {
+	for ordinal, run := range opened.Executions {
+		if run.Execution.SelectionOrdinal != record.Uint64String(ordinal) {
 			t.Fatalf("merged run %d = %#v", ordinal, run)
 		}
 	}
@@ -297,7 +297,7 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	if inspection.Kind != "merged-batch" || inspection.Merged == nil || inspection.Merged.PlanSHA256 != first.PlanSHA256 || inspection.Merged.Attempted != 4 {
+	if inspection.Kind != "merged-campaign" || inspection.Merged == nil || inspection.Merged.PlanSHA256 != first.PlanSHA256 || inspection.Merged.Attempted != 4 {
 		t.Fatalf("merged inspection = %#v", inspection)
 	}
 

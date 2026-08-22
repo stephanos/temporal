@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
 
@@ -30,7 +29,7 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("resolve pinned modernc libc module: %w", err)
 	}
-	originalInventory, err := target.DigestAdapterSourceInventory(moduleSource)
+	originalInventory, err := digestAdapterSourceInventory(moduleSource)
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("hash pinned modernc libc source inventory: %w", err)
 	}
@@ -43,7 +42,7 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
 	if err != nil {
 		return adapterPreparation{}, err
 	}
-	replacementInventory, err := target.DigestAdapterSourceInventory(moduleReplacement)
+	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("hash modernc libc replacement inventory: %w", err)
 	}

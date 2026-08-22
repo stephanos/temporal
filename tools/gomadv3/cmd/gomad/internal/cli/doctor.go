@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
@@ -26,22 +26,22 @@ type Config struct {
 }
 
 type Report struct {
-	Schema                  string          `json:"schema"`
-	Available               bool            `json:"available"`
-	Host                    string          `json:"host"`
-	SupportedPlatforms      []string        `json:"supported_platforms"`
-	GoVersion               string          `json:"go_version,omitempty"`
-	ToolchainBuild          string          `json:"toolchain_build,omitempty"`
-	RunnerBuild             evidence.SHA256 `json:"runner_build,omitempty"`
-	BoundaryManifestVersion string          `json:"boundary_manifest_version"`
-	IOInventorySHA256       evidence.SHA256 `json:"io_inventory_sha256"`
-	IOImplementationSHA256  evidence.SHA256 `json:"io_implementation_sha256"`
-	Adapters                []Adapter       `json:"adapters"`
-	InstallationSource      string          `json:"installation_source"`
-	ToolchainRoot           string          `json:"toolchain_root"`
-	ArtifactDirectory       string          `json:"artifact_directory"`
-	RepairInstruction       string          `json:"repair_instruction"`
-	Checks                  []CheckResult   `json:"checks"`
+	Schema                  string        `json:"schema"`
+	Available               bool          `json:"available"`
+	Host                    string        `json:"host"`
+	SupportedPlatforms      []string      `json:"supported_platforms"`
+	GoVersion               string        `json:"go_version,omitempty"`
+	ToolchainBuild          string        `json:"toolchain_build,omitempty"`
+	RunnerBuild             record.SHA256 `json:"runner_build,omitempty"`
+	BoundaryManifestVersion string        `json:"boundary_manifest_version"`
+	IOInventorySHA256       record.SHA256 `json:"io_inventory_sha256"`
+	IOImplementationSHA256  record.SHA256 `json:"io_implementation_sha256"`
+	Adapters                []Adapter     `json:"adapters"`
+	InstallationSource      string        `json:"installation_source"`
+	ToolchainRoot           string        `json:"toolchain_root"`
+	ArtifactDirectory       string        `json:"artifact_directory"`
+	RepairInstruction       string        `json:"repair_instruction"`
+	Checks                  []CheckResult `json:"checks"`
 }
 
 type Adapter struct {
@@ -64,7 +64,7 @@ func Check(config Config) Report {
 		Schema: reportSchema, Host: config.HostOS + "/" + config.HostArch,
 		SupportedPlatforms:      append([]string(nil), gomadversion.SupportedPlatforms[:]...),
 		BoundaryManifestVersion: gomadversion.BoundaryManifestVersion,
-		IOInventorySHA256:       evidence.SHA256(profileIdentity.InventorySHA256), IOImplementationSHA256: evidence.SHA256(profileIdentity.ImplementationSHA256),
+		IOInventorySHA256:       record.SHA256(profileIdentity.InventorySHA256), IOImplementationSHA256: record.SHA256(profileIdentity.ImplementationSHA256),
 		Adapters:           []Adapter{},
 		InstallationSource: config.InstallationSource,
 		ToolchainRoot:      config.ToolchainRoot,
@@ -120,7 +120,7 @@ func hostCheck(host string, supported []string) CheckResult {
 	return failedCheck("host", host+" is unsupported; supported="+strings.Join(supported, ","))
 }
 
-func hashExecutable(path string) (evidence.SHA256, error) {
+func hashExecutable(path string) (record.SHA256, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("open Runner: %w", err)
@@ -137,7 +137,7 @@ func hashExecutable(path string) (evidence.SHA256, error) {
 	if _, err := io.Copy(hasher, file); err != nil {
 		return "", fmt.Errorf("hash Runner: %w", err)
 	}
-	return evidence.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
+	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
 }
 
 func checkArtifactDirectory(path string) error {

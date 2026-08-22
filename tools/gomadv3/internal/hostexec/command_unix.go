@@ -55,7 +55,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	command.Stdin = request.Stdin
 	command.Stdout = stdoutWrite
 	command.Stderr = stderrWrite
-	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	ConfigureProcessGroup(command)
 	if err := command.Start(); err != nil {
 		return Result{}, fmt.Errorf("start command %q: %w", request.Command[0], err)
 	}
@@ -85,7 +85,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		result.Cancelled = true
 	}
 
-	groupPresent, probeErr := groupExists(pgid)
+	groupPresent, probeErr := GroupExists(pgid)
 	if probeErr != nil {
 		return Result{}, errors.Join(fmt.Errorf("probe command process group: %w", probeErr), killAndReapIfNeeded(command, waits, leaderReaped, pgid, cleanupLimit))
 	}
@@ -105,7 +105,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if !leaderReaped {
 		return Result{}, fmt.Errorf("command was not reaped")
 	}
-	result.GroupGone, probeErr = groupGone(pgid)
+	result.GroupGone, probeErr = GroupGone(pgid)
 	if probeErr != nil || !result.GroupGone {
 		return Result{}, errors.Join(probeErr, fmt.Errorf("command process group %d remains after cleanup", pgid))
 	}
@@ -144,7 +144,7 @@ func collectCaptures(captures <-chan captureResult) error {
 }
 
 func terminateGroup(command *exec.Cmd, waits <-chan error, waitErr *error, leaderReaped *bool, pgid int, grace time.Duration) error {
-	if err := signalGroup(pgid, syscall.SIGTERM); err != nil {
+	if err := SignalGroup(pgid, syscall.SIGTERM); err != nil {
 		return errors.Join(fmt.Errorf("terminate command process group: %w", err), killAndReapIfNeeded(command, waits, *leaderReaped, pgid, cleanupLimit))
 	}
 	graceDeadline := time.Now().Add(grace)
@@ -156,7 +156,7 @@ func terminateGroup(command *exec.Cmd, waits <-chan error, waitErr *error, leade
 			default:
 			}
 		}
-		gone, err := groupGone(pgid)
+		gone, err := GroupGone(pgid)
 		if err != nil {
 			return errors.Join(fmt.Errorf("probe command group during termination: %w", err), killAndReapIfNeeded(command, waits, *leaderReaped, pgid, cleanupLimit))
 		}
@@ -165,12 +165,12 @@ func terminateGroup(command *exec.Cmd, waits <-chan error, waitErr *error, leade
 		}
 		time.Sleep(min(5*time.Millisecond, time.Until(graceDeadline)))
 	}
-	groupPresent, err := groupExists(pgid)
+	groupPresent, err := GroupExists(pgid)
 	if err != nil {
 		return errors.Join(fmt.Errorf("probe command group before kill: %w", err), killAndReapIfNeeded(command, waits, *leaderReaped, pgid, cleanupLimit))
 	}
 	if groupPresent {
-		if err := signalGroup(pgid, syscall.SIGKILL); err != nil {
+		if err := SignalGroup(pgid, syscall.SIGKILL); err != nil {
 			return errors.Join(fmt.Errorf("kill command process group: %w", err), killAndReapIfNeeded(command, waits, *leaderReaped, pgid, cleanupLimit))
 		}
 	}
@@ -183,7 +183,7 @@ func terminateGroup(command *exec.Cmd, waits <-chan error, waitErr *error, leade
 			default:
 			}
 		}
-		groupPresent, err = groupExists(pgid)
+		groupPresent, err = GroupExists(pgid)
 		if err != nil {
 			return fmt.Errorf("probe command group after kill: %w", err)
 		}
@@ -207,13 +207,13 @@ func terminateGroup(command *exec.Cmd, waits <-chan error, waitErr *error, leade
 
 func killAndReapIfNeeded(command *exec.Cmd, waits <-chan error, leaderReaped bool, pgid int, limit time.Duration) error {
 	if leaderReaped {
-		return killGroupBounded(pgid, limit)
+		return KillGroupBounded(pgid, limit)
 	}
 	return killAndReap(command, pgid, limit)
 }
 
 func killAndReap(command *exec.Cmd, pgid int, limit time.Duration) error {
-	signalErr := signalGroup(pgid, syscall.SIGKILL)
+	signalErr := SignalGroup(pgid, syscall.SIGKILL)
 	killErr := command.Process.Kill()
 	if errors.Is(killErr, os.ErrProcessDone) {
 		killErr = nil
@@ -223,16 +223,16 @@ func killAndReap(command *exec.Cmd, pgid int, limit time.Duration) error {
 	if errors.As(waitErr, &exitError) {
 		waitErr = nil
 	}
-	return errors.Join(signalErr, killErr, waitErr, killGroupBounded(pgid, limit))
+	return errors.Join(signalErr, killErr, waitErr, KillGroupBounded(pgid, limit))
 }
 
-func killGroupBounded(pgid int, limit time.Duration) error {
-	if err := signalGroup(pgid, syscall.SIGKILL); err != nil {
+func KillGroupBounded(pgid int, limit time.Duration) error {
+	if err := SignalGroup(pgid, syscall.SIGKILL); err != nil {
 		return err
 	}
 	deadline := time.Now().Add(limit)
 	for time.Now().Before(deadline) {
-		gone, err := groupGone(pgid)
+		gone, err := GroupGone(pgid)
 		if err != nil || gone {
 			return err
 		}
@@ -241,7 +241,15 @@ func killGroupBounded(pgid int, limit time.Duration) error {
 	return fmt.Errorf("command process group %d remains after cleanup", pgid)
 }
 
-func signalGroup(pgid int, signal syscall.Signal) error {
+func KillGroupBefore(pgid int, deadline time.Time) error {
+	return KillGroupBounded(pgid, max(time.Until(deadline), 0))
+}
+
+func ConfigureProcessGroup(command *exec.Cmd) {
+	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+}
+
+func SignalGroup(pgid int, signal syscall.Signal) error {
 	if pgid <= 0 {
 		return fmt.Errorf("invalid process group %d", pgid)
 	}
@@ -251,11 +259,15 @@ func signalGroup(pgid int, signal syscall.Signal) error {
 	return nil
 }
 
-func groupExists(pgid int) (bool, error) {
+func GroupExists(pgid int) (bool, error) {
 	if pgid <= 0 {
 		return false, fmt.Errorf("invalid process group %d", pgid)
 	}
 	err := syscall.Kill(-pgid, 0)
+	return ClassifyGroupProbe(err)
+}
+
+func ClassifyGroupProbe(err error) (bool, error) {
 	switch {
 	case err == nil, errors.Is(err, syscall.EPERM):
 		return true, nil
@@ -266,8 +278,8 @@ func groupExists(pgid int) (bool, error) {
 	}
 }
 
-func groupGone(pgid int) (bool, error) {
-	exists, err := groupExists(pgid)
+func GroupGone(pgid int) (bool, error) {
+	exists, err := GroupExists(pgid)
 	return !exists, err
 }
 

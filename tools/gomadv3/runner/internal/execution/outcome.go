@@ -3,7 +3,7 @@ package execution
 import (
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
 
@@ -11,23 +11,23 @@ type Classification struct {
 	Domain       string
 	Reason       string
 	Termination  string
-	ExitCode     *evidence.Uint64String
+	ExitCode     *record.Uint64String
 	Signal       *string
 	Deadline     *string
 	ArtifactKind string
 	ReplayMode   string
 }
 
-func Classify(result Result, cancelled bool, terminal evidence.WorldTerminal) Classification {
+func Classify(result Result, cancelled bool, terminal record.WorldTerminal) Classification {
 	if cancelled || result.Cancelled {
-		return Classification{Domain: "runner", Reason: "runner_cancelled", Termination: "none", ArtifactKind: evidence.ArtifactRunnerFailure, ReplayMode: evidence.ReplayNone}
+		return Classification{Domain: "runner", Reason: "runner_cancelled", Termination: "none", ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone}
 	}
 	if result.WatchdogTimeout {
-		deadline := "run_timeout"
-		return Classification{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline, ArtifactKind: evidence.ArtifactWatchdogTimeout, ReplayMode: evidence.ReplayDiagnostic}
+		deadline := "execution_timeout"
+		return Classification{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline, ArtifactKind: record.ArtifactWatchdogTimeout, ReplayMode: record.ReplayDiagnostic}
 	}
 	if reason := worldFailureReason(terminal.Kind); reason != "" {
-		classified := Classification{Domain: "target", Reason: reason, ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact}
+		classified := Classification{Domain: "target", Reason: reason, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
 		setTargetTermination(&classified, result)
 		return classified
 	}
@@ -36,10 +36,10 @@ func Classify(result Result, cancelled bool, terminal evidence.WorldTerminal) Cl
 		if terminal.Kind == string(world.TerminalIdle) {
 			reason = "world_idle"
 		}
-		exitCode := evidence.Uint64String(0)
-		return Classification{Domain: "success", Reason: reason, Termination: "exit", ExitCode: &exitCode, ArtifactKind: evidence.ArtifactSuccess, ReplayMode: evidence.ReplayExact}
+		exitCode := record.Uint64String(0)
+		return Classification{Domain: "success", Reason: reason, Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
 	}
-	classified := Classification{Domain: "target", Reason: diagnosticReason(result.Stderr.Bytes), ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact}
+	classified := Classification{Domain: "target", Reason: diagnosticReason(result.Stderr.Bytes), ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
 	setTargetTermination(&classified, result)
 	if result.Termination == TerminationSignal {
 		classified.Reason = "external_signal"
@@ -54,7 +54,7 @@ func setTargetTermination(classified *Classification, result Result) {
 		return
 	}
 	classified.Termination = "exit"
-	exitCode := evidence.Uint64String(result.ExitCode)
+	exitCode := record.Uint64String(result.ExitCode)
 	classified.ExitCode = &exitCode
 }
 

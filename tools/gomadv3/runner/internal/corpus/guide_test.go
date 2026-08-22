@@ -8,24 +8,24 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
 
 func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *testing.T) {
-	target := evidence.Target{
-		Kind: "go-run", Source: "/first/workspace", SHA256: evidence.HashBytes([]byte("target")), Size: 6,
-		Argv: []string{"target", "first"}, BuildTags: []string{}, Adapters: []evidence.TargetAdapter{}, Compatibility: []evidence.CompatibilityPack{},
-		BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+	target := record.Target{
+		Kind: "go-run", Source: "/first/workspace", SHA256: record.HashBytes([]byte("target")), Size: 6,
+		Argv: []string{"target", "first"}, BuildTags: []string{}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{},
+		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
-	toolchain := evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
-	first, err := IdentityFor(target, toolchain, "boundary-v1", evidence.HashBytes([]byte("boundary")))
+	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+	first, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
 	if err != nil {
 		t.Fatal(err)
 	}
 	target.Source = "/another/workspace"
-	second, err := IdentityFor(target, toolchain, "boundary-v1", evidence.HashBytes([]byte("boundary")))
+	second, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *t
 		t.Fatalf("diagnostic source changed identity: %#v, %#v", first, second)
 	}
 	target.Argv[1] = "second"
-	third, err := IdentityFor(target, toolchain, "boundary-v1", evidence.HashBytes([]byte("boundary")))
+	third, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,39 +43,39 @@ func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *t
 }
 
 func TestIdentityForBindsFeatureAndProbeInstrumentation(t *testing.T) {
-	target := evidence.Target{
-		Kind: "go-run", SHA256: evidence.HashBytes([]byte("target")), Size: 6, Argv: []string{"target"}, BuildTags: []string{},
-		Adapters: []evidence.TargetAdapter{}, Compatibility: []evidence.CompatibilityPack{}, BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+	target := record.Target{
+		Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"target"}, BuildTags: []string{},
+		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
-	toolchain := evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
-	identity, err := IdentityFor(target, toolchain, "boundary-v1", evidence.HashBytes([]byte("boundary")))
+	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+	identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 == evidence.SHA256(deterministicio.SemanticInstrumentationIdentity()) {
+	if identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 == record.SHA256(deterministicio.SemanticInstrumentationIdentity()) {
 		t.Fatalf("guided instrumentation identity = %#v", identity)
 	}
 }
 
 func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
-	target := evidence.Target{
-		Kind: "go-run", SHA256: evidence.HashBytes([]byte("target")), Size: 6, Argv: []string{"target"}, BuildTags: []string{},
-		Adapters: []evidence.TargetAdapter{}, Compatibility: []evidence.CompatibilityPack{}, BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+	target := record.Target{
+		Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"target"}, BuildTags: []string{},
+		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
-	toolchain := evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"}
 	implementation, err := choice.ImplementationIdentity(toolchain.BuildKey)
 	if err != nil {
 		t.Fatal(err)
 	}
 	profile := ChoiceProfileIdentity{
-		Profile: choice.Profile, ImplementationSHA256: evidence.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes,
+		Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes,
 	}
-	first, err := IdentityForChoice(target, toolchain, "boundary-v1", evidence.HashBytes([]byte("boundary")), profile)
+	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
 	if err != nil {
 		t.Fatal(err)
 	}
 	profile.Limit++
-	second, err := IdentityForChoice(target, toolchain, "boundary-v1", evidence.HashBytes([]byte("boundary")), profile)
+	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,13 +90,13 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	manifest := evidence.ExecutionRecord{
-		Outcome: evidence.Outcome{Domain: "target", Reason: "world_deadlock", Termination: "exit", FailureSignature: evidence.HashBytes([]byte("failure"))},
-		World: evidence.World{
-			Initial:     evidence.WorldPayload{Schema: "gomadv3.world.snapshot/v1", SemanticDigest: evidence.HashBytes([]byte("initial"))},
-			Transitions: evidence.WorldTransitions{Schema: "gomadv3.world.transitions/v1"},
-			Final:       evidence.WorldPayload{Schema: "gomadv3.world.snapshot/v1", SemanticDigest: evidence.HashBytes([]byte("world"))},
-			Terminal:    evidence.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
+	manifest := record.ExecutionRecord{
+		Outcome: record.Outcome{Domain: "target", Reason: "world_deadlock", Termination: "exit", FailureSignature: record.HashBytes([]byte("failure"))},
+		World: record.World{
+			Initial:     record.WorldPayload{Schema: "gomadv3.world.snapshot/v1", SemanticDigest: record.HashBytes([]byte("initial"))},
+			Transitions: record.WorldTransitions{Schema: "gomadv3.world.transitions/v1"},
+			Final:       record.WorldPayload{Schema: "gomadv3.world.snapshot/v1", SemanticDigest: record.HashBytes([]byte("world"))},
+			Terminal:    record.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
 		},
 	}
 	features, err := semanticFeatures(manifest, coverage, transcript, nil, nil)
@@ -126,7 +126,7 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 	}
 	firstWorld, firstTransitions := semanticWorld(t, 7, "first-key", []byte("first-payload"), world.InitialTime)
 	secondWorld, secondTransitions := semanticWorld(t, 99, "second-key", []byte("second-payload"), world.InitialTime+100)
-	manifest := evidence.ExecutionRecord{Outcome: evidence.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: firstWorld}
+	manifest := record.ExecutionRecord{Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: firstWorld}
 	first, err := semanticFeatures(manifest, coverage, nil, firstTransitions, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -169,9 +169,9 @@ func TestSemanticFeaturesConsumeCanonicalChoicewireFeatureIDs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	worldRecord, _ := evidence.NoneWorld()
-	features, err := semanticFeatures(evidence.ExecutionRecord{
-		Outcome: evidence.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: worldRecord,
+	worldRecord, _ := record.NoneWorld()
+	features, err := semanticFeatures(record.ExecutionRecord{
+		Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit"}, World: worldRecord,
 	}, coverage, nil, nil, &projected.Features)
 	if err != nil {
 		t.Fatal(err)
@@ -195,10 +195,10 @@ func encodeChoiceRecords(t *testing.T, records []choice.Record) []byte {
 
 func TestSnapshotPrioritizesReproducibleFailuresThenRareDomains(t *testing.T) {
 	snapshot := Snapshot{Entries: []Entry{
-		{Seed: 1, RecordHash: evidence.HashBytes([]byte("one")), StoredBytes: 20, Features: []Feature{{Kind: FeatureOutcome, Value: "success"}, {Kind: FeatureBoundaryProbe, Value: "common"}}},
-		{Seed: 2, RecordHash: evidence.HashBytes([]byte("two")), StoredBytes: 20, Features: []Feature{{Kind: FeatureOutcome, Value: "success"}, {Kind: FeatureBoundaryProbe, Value: "rare"}}},
-		{Seed: 3, RecordHash: evidence.HashBytes([]byte("three")), StoredBytes: 20, Features: []Feature{{Kind: FeatureOutcome, Value: "success"}, {Kind: FeatureBoundaryProbe, Value: "common"}}},
-		{Seed: 4, RecordHash: evidence.HashBytes([]byte("four")), StoredBytes: 30, Features: []Feature{{Kind: FeatureFailure, Value: "failure"}}},
+		{Seed: 1, RecordHash: record.HashBytes([]byte("one")), StoredBytes: 20, Features: []Feature{{Kind: FeatureOutcome, Value: "success"}, {Kind: FeatureBoundaryProbe, Value: "common"}}},
+		{Seed: 2, RecordHash: record.HashBytes([]byte("two")), StoredBytes: 20, Features: []Feature{{Kind: FeatureOutcome, Value: "success"}, {Kind: FeatureBoundaryProbe, Value: "rare"}}},
+		{Seed: 3, RecordHash: record.HashBytes([]byte("three")), StoredBytes: 20, Features: []Feature{{Kind: FeatureOutcome, Value: "success"}, {Kind: FeatureBoundaryProbe, Value: "common"}}},
+		{Seed: 4, RecordHash: record.HashBytes([]byte("four")), StoredBytes: 30, Features: []Feature{{Kind: FeatureFailure, Value: "failure"}}},
 	}}
 	if got, want := snapshot.PrioritizedSeeds(), []uint64{4, 2, 1, 3}; !slices.Equal(got, want) {
 		t.Fatalf("PrioritizedSeeds() = %v, want %v", got, want)
@@ -214,7 +214,7 @@ func transcriptRecord(t *testing.T, ordinal uint64, operation string, result uin
 	return encoded
 }
 
-func semanticWorld(t *testing.T, seed uint64, key string, payload []byte, readyAt world.LogicalTime) (evidence.World, []byte) {
+func semanticWorld(t *testing.T, seed uint64, key string, payload []byte, readyAt world.LogicalTime) (record.World, []byte) {
 	t.Helper()
 	limits := world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 20, MaxPayloadBytes: 1 << 20, MaxStringBytes: 1024}
 	model, err := world.New(world.Config{Seed: world.Seed(seed), Limits: limits})

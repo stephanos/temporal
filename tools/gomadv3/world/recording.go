@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 )
 
 const MaximumRecordingBytes = 2*MaximumSnapshotJSONBytes + (1 << 20) + 40
@@ -207,7 +209,7 @@ func EncodeRecording(recording Recording) ([]byte, error) {
 	if err := ValidateRecording(recording); err != nil {
 		return nil, err
 	}
-	terminal, err := canonicalJSON(recording.Terminal)
+	terminal, err := canonicaljson.CanonicalJSON(recording.Terminal)
 	if err != nil {
 		return nil, fmt.Errorf("encode World terminal: %w", err)
 	}
@@ -267,7 +269,7 @@ func DecodeRecording(data []byte) (Recording, error) {
 	if err := json.Unmarshal(remaining, &terminal); err != nil {
 		return Recording{}, fmt.Errorf("decode World terminal: %w", err)
 	}
-	canonical, err := canonicalJSON(terminal)
+	canonical, err := canonicaljson.CanonicalJSON(terminal)
 	if err != nil || !bytes.Equal(canonical, remaining) {
 		return Recording{}, fmt.Errorf("noncanonical World terminal")
 	}

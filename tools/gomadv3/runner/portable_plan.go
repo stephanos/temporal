@@ -11,9 +11,11 @@ import (
 	"slices"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
@@ -31,34 +33,34 @@ type CampaignPlanSpec struct {
 }
 
 type CampaignPlanResult struct {
-	Path           string          `json:"path"`
-	BundlePath     string          `json:"bundle_path"`
-	SHA256         evidence.SHA256 `json:"sha256"`
-	SelectionCount uint64          `json:"selection_count"`
-	TargetSHA256   evidence.SHA256 `json:"target_sha256"`
+	Path           string        `json:"path"`
+	BundlePath     string        `json:"bundle_path"`
+	SHA256         record.SHA256 `json:"sha256"`
+	SelectionCount uint64        `json:"selection_count"`
+	TargetSHA256   record.SHA256 `json:"target_sha256"`
 }
 
 type portableCampaignPlan struct {
 	Schema   string                     `json:"schema"`
 	Mapping  string                     `json:"mapping"`
 	Mounts   *campaignPlanMountIdentity `json:"mounts,omitempty"`
-	Campaign campaignstore.CampaignPlan `json:"campaign"`
+	Campaign campaign.CampaignPlan      `json:"campaign"`
 }
 
 type campaignPlanMountIdentity struct {
-	Schema     string                              `json:"schema"`
-	SHA256     deterministicio.Digest              `json:"sha256"`
-	Bytes      evidence.Uint64String               `json:"bytes"`
-	Entries    evidence.Uint64String               `json:"entries"`
-	TotalBytes evidence.Uint64String               `json:"total_bytes"`
-	Mappings   []string                            `json:"mappings"`
-	Limits     deterministicio.CapturedInputLimits `json:"limits"`
+	Schema     string                            `json:"schema"`
+	SHA256     record.SHA256                     `json:"sha256"`
+	Bytes      record.Uint64String               `json:"bytes"`
+	Entries    record.Uint64String               `json:"entries"`
+	TotalBytes record.Uint64String               `json:"total_bytes"`
+	Mappings   []string                          `json:"mappings"`
+	Limits     readonlymount.CapturedInputLimits `json:"limits"`
 }
 
 type openedCampaignPlan struct {
 	path     string
-	identity evidence.SHA256
-	plan     campaignstore.CampaignPlan
+	identity record.SHA256
+	plan     campaign.CampaignPlan
 	mounts   *campaignPlanMountIdentity
 	prepared target.Prepared
 }
@@ -75,7 +77,7 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if normalizedStrategy(config.Strategy) != StrategySeed || config.Guide || config.OnFailure != PolicyAll {
 		return CampaignPlanResult{}, errors.New("portable campaign plans require an unguided seed campaign with on-failure=all")
 	}
-	if config.Shard.Count != 0 || config.PlanSHA256 != "" || config.ResumeBatch != "" {
+	if config.Shard.Count != 0 || config.PlanSHA256 != "" || config.ResumeCampaign != "" {
 		return CampaignPlanResult{}, errors.New("portable campaign plan input cannot already be a shard or resume")
 	}
 	output, err := filepath.Abs(spec.Output)
@@ -102,10 +104,10 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 			retErr = errors.Join(retErr, os.RemoveAll(bundle))
 		}
 	}()
-	if config.IOROMountLimits == (deterministicio.Limits{}) {
-		config.IOROMountLimits = deterministicio.DefaultLimits()
+	if config.IOROMountLimits == (readonlymount.Limits{}) {
+		config.IOROMountLimits = readonlymount.DefaultLimits()
 	}
-	mounts, err := deterministicio.ParseMappings(config.IOROMounts, config.Target.WorkingDir)
+	mounts, err := readonlymount.ParseMappings(config.IOROMounts, config.Target.WorkingDir)
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
@@ -161,7 +163,7 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if err := materializeCampaignPlanMounts(bundle, capturedMounts); err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("materialize campaign plan mounts: %w", err)
 	}
-	journalPlan, err := campaignstore.DeriveRunJournalPlan(string(StrategySeed), selection.Count(), 0, uint64(config.Parallel))
+	journalPlan, err := campaign.DeriveExecutionJournalPlan(string(StrategySeed), selection.Count(), 0, uint64(config.Parallel))
 	if err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("derive campaign journal capacity: %w", err)
 	}
@@ -169,11 +171,11 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
-	if err := campaignstore.ValidateCampaignPlan(plan); err != nil {
+	if err := campaign.ValidateCampaignPlan(plan); err != nil {
 		return CampaignPlanResult{}, err
 	}
-	record := portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping, Mounts: mountIdentity, Campaign: plan}
-	encoded, err := evidence.CanonicalJSON(record)
+	document := portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping, Mounts: mountIdentity, Campaign: plan}
+	encoded, err := canonicaljson.CanonicalJSON(document)
 	if err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("encode campaign plan: %w", err)
 	}
@@ -191,7 +193,7 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	}
 	published = true
 	return CampaignPlanResult{
-		Path: output, BundlePath: bundle, SHA256: evidence.HashBytes(encoded), SelectionCount: selection.Count(), TargetSHA256: evidence.SHA256(prepared.SHA256),
+		Path: output, BundlePath: bundle, SHA256: record.HashBytes(encoded), SelectionCount: selection.Count(), TargetSHA256: record.SHA256(prepared.SHA256),
 	}, nil
 }
 
@@ -215,21 +217,21 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 	if len(contents) > maximumCampaignPlanBytes {
 		return openedCampaignPlan{}, errors.New("campaign plan exceeds its byte capacity")
 	}
-	var record portableCampaignPlan
-	if err := evidence.DecodeCanonicalJSON(contents, &record); err != nil {
+	var document portableCampaignPlan
+	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
 	}
-	canonical, err := evidence.CanonicalJSON(record)
+	canonical, err := canonicaljson.CanonicalJSON(document)
 	if err != nil || !bytes.Equal(canonical, contents) {
 		return openedCampaignPlan{}, errors.Join(errors.New("campaign plan is not canonical"), err)
 	}
-	if record.Schema != campaignPlanSchema || record.Mapping != campaignPlanMapping || record.Campaign.Strategy != string(StrategySeed) || record.Campaign.Guidance != nil || record.Campaign.OnFailure != string(PolicyAll) || record.Campaign.PlanSHA256 != "" || record.Campaign.Shard != nil {
+	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.Guidance != nil || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")
 	}
-	if err := campaignstore.ValidateCampaignPlan(record.Campaign); err != nil {
+	if err := campaign.ValidateCampaignPlan(document.Campaign); err != nil {
 		return openedCampaignPlan{}, err
 	}
-	if (record.Mounts == nil) != (len(record.Campaign.IOROMounts) == 0) {
+	if (document.Mounts == nil) != (len(document.Campaign.IOROMounts) == 0) {
 		return openedCampaignPlan{}, errors.New("campaign plan mount identity is incomplete")
 	}
 	bundle := path + campaignPlanBundleSuffix
@@ -237,10 +239,10 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 	if err != nil || !bundleInfo.IsDir() || bundleInfo.Mode()&os.ModeSymlink != 0 || bundleInfo.Mode().Perm() != 0o700 {
 		return openedCampaignPlan{}, errors.Join(errors.New("campaign plan bundle is not a private directory"), err)
 	}
-	if err := validateCampaignPlanBundleInventory(bundle, len(record.Campaign.IOROMounts)); err != nil {
+	if err := validateCampaignPlanBundleInventory(bundle, len(document.Campaign.IOROMounts)); err != nil {
 		return openedCampaignPlan{}, err
 	}
-	if err := validateCampaignPlanMountIdentity(record.Campaign, record.Mounts, bundle); err != nil {
+	if err := validateCampaignPlanMountIdentity(document.Campaign, document.Mounts, bundle); err != nil {
 		return openedCampaignPlan{}, err
 	}
 	targetPath := filepath.Join(bundle, campaignPlanTargetFile)
@@ -254,31 +256,31 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 	if targetInfo.Mode().Perm() != 0o500 {
 		return openedCampaignPlan{}, errors.New("campaign plan target mode is invalid")
 	}
-	targetRecord := record.Campaign.Prepared.Target
+	targetRecord := document.Campaign.Prepared.Target
 	prepared := target.Prepared{
 		Path: targetPath, Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, SHA256: string(targetRecord.SHA256), Size: uint64(targetRecord.Size),
 		Argv: append([]string(nil), targetRecord.Argv...), BuildTags: append([]string(nil), targetRecord.BuildTags...), Adapters: cloneAdapters(targetRecord.Adapters), Compatibility: cloneCompatibility(targetRecord.Compatibility), BuildInfo: cloneBuildInfo(targetRecord.BuildInfo),
-		GoVersion: record.Campaign.Toolchain.GoVersion, BuildKey: record.Campaign.Toolchain.BuildKey, TargetGOOS: record.Campaign.Toolchain.TargetGOOS, TargetGOARCH: record.Campaign.Toolchain.TargetGOARCH,
+		GoVersion: document.Campaign.Toolchain.GoVersion, BuildKey: document.Campaign.Toolchain.BuildKey, TargetGOOS: document.Campaign.Toolchain.TargetGOOS, TargetGOARCH: document.Campaign.Toolchain.TargetGOARCH,
 		CapabilityMode: target.CapabilityMode(targetRecord.CapabilityMode), CapabilityManifest: target.CapabilityManifestFromRecord(targetRecord.CapabilityManifest),
 	}
 	if err := prepared.Verify(); err != nil {
 		return openedCampaignPlan{}, err
 	}
-	return openedCampaignPlan{path: path, identity: evidence.HashBytes(contents), plan: record.Campaign, mounts: record.Mounts, prepared: prepared}, nil
+	return openedCampaignPlan{path: path, identity: record.HashBytes(contents), plan: document.Campaign, mounts: document.Mounts, prepared: prepared}, nil
 }
 
-func validateCampaignPlanMountIdentity(plan campaignstore.CampaignPlan, identity *campaignPlanMountIdentity, bundle string) error {
+func validateCampaignPlanMountIdentity(plan campaign.CampaignPlan, identity *campaignPlanMountIdentity, bundle string) error {
 	if identity == nil {
 		if len(plan.IOROMounts) != 0 {
 			return errors.New("campaign plan mount identity is missing")
 		}
 		return nil
 	}
-	mappings, err := deterministicio.ParseMappings(plan.IOROMounts, bundle)
+	mappings, err := readonlymount.ParseMappings(plan.IOROMounts, bundle)
 	if err != nil {
 		return err
 	}
-	limits, err := deterministicio.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
+	limits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return err
 	}
@@ -286,10 +288,10 @@ func validateCampaignPlanMountIdentity(plan campaignstore.CampaignPlan, identity
 	for index, mapping := range mappings {
 		targets[index] = mapping.Target
 	}
-	if identity.Schema != "gomadv3.io-read-only-mounts/v1" || identity.SHA256 == "" || identity.Bytes == 0 || identity.Entries < evidence.Uint64String(len(mappings)) || !slices.Equal(identity.Mappings, targets) || identity.Limits != deterministicio.CapturedInputLimitsOf(limits) {
+	if identity.Schema != "gomadv3.io-read-only-mounts/v1" || identity.SHA256 == "" || identity.Bytes == 0 || identity.Entries < record.Uint64String(len(mappings)) || !slices.Equal(identity.Mappings, targets) || identity.Limits != readonlymount.CapturedInputLimitsOf(limits) {
 		return errors.New("campaign plan mount identity is invalid")
 	}
-	if _, err := evidence.ParseSHA256(string(identity.SHA256)); err != nil {
+	if _, err := record.ParseSHA256(string(identity.SHA256)); err != nil {
 		return fmt.Errorf("campaign plan mount identity: %w", err)
 	}
 	for index, mapping := range mappings {

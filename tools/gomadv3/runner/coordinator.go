@@ -12,48 +12,49 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
 const maximumCoordinatorMessageBytes = 16 << 20
 
 type coordinatorConfig struct {
-	ResumeBatch            string
-	PlanSHA256             evidence.SHA256
-	Shard                  CampaignShard
-	Strategy               Strategy
-	Seeds                  string
-	Parallel               int
-	RunTimeout             time.Duration
-	OverallTimeout         time.Duration
-	TerminateGrace         time.Duration
-	OnFailure              FailurePolicy
-	FailureBudget          uint64
-	OutputLimit            uint64
-	WorldTransitionLimit   uint64
-	ChoiceTraceLimit       uint64
-	MaxRuns                uint64
-	MaxChoiceDepth         uint64
-	MaxFrontierBytes       uint64
-	Artifacts              string
-	Environment            []string
-	IOROMounts             []string
-	IOROMountLimits        deterministicio.Limits
-	Target                 target.Spec
-	SupervisorCommand      []string
-	RunnerBuild            string
-	Coverage               CoverageMode
-	RequiredSemanticProbes []string
-	CollectRunEvidence     bool
-	KeepSuccesses          KeepSuccesses
-	SuccessArtifactLimit   uint64
-	SuccessBytesLimit      uint64
-	Guide                  bool
-	Corpus                 string
-	GuideSnapshotSHA256    evidence.SHA256
-	ProgressInterval       time.Duration
+	ResumeCampaign           string
+	PlanSHA256               record.SHA256
+	Shard                    CampaignShard
+	Strategy                 Strategy
+	Seeds                    string
+	Parallel                 int
+	ExecutionTimeout         time.Duration
+	OverallTimeout           time.Duration
+	TerminateGrace           time.Duration
+	OnFailure                FailurePolicy
+	FailureBudget            uint64
+	OutputLimit              uint64
+	WorldTransitionLimit     uint64
+	ChoiceTraceLimit         uint64
+	MaxExecutions            uint64
+	MaxChoiceDepth           uint64
+	MaxExplorationBytes      uint64
+	Artifacts                string
+	Environment              []string
+	IOROMounts               []string
+	IOROMountLimits          readonlymount.Limits
+	Target                   target.Spec
+	SupervisorCommand        []string
+	RunnerBuild              string
+	Coverage                 CoverageMode
+	RequiredSemanticProbes   []string
+	CollectExecutionEvidence bool
+	KeepSuccesses            KeepSuccesses
+	SuccessArtifactLimit     uint64
+	SuccessBytesLimit        uint64
+	Guide                    bool
+	Corpus                   string
+	GuideSnapshotSHA256      record.SHA256
+	ProgressInterval         time.Duration
 }
 
 type coordinatorResponse struct {
@@ -100,17 +101,17 @@ func runIsolated(ctx context.Context, config CampaignSpec) (CampaignResult, erro
 	reserve := min(250*time.Millisecond, max(time.Until(deadline)/5, time.Nanosecond))
 	childTimeout := max(time.Until(deadline)-2*reserve, time.Nanosecond)
 	wire := coordinatorConfig{
-		ResumeBatch: config.ResumeBatch, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
-		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, RunTimeout: config.RunTimeout, OverallTimeout: childTimeout,
+		ResumeCampaign: config.ResumeCampaign, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
+		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, ExecutionTimeout: config.ExecutionTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
 		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit,
-		MaxRuns: config.MaxRuns, MaxChoiceDepth: config.MaxChoiceDepth, MaxFrontierBytes: config.MaxFrontierBytes, Artifacts: config.Artifacts,
+		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxExplorationBytes: config.MaxExplorationBytes, Artifacts: config.Artifacts,
 		Environment: append([]string(nil), config.Environment...), Target: config.Target,
 		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
 		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
 		Coverage: config.Coverage, RequiredSemanticProbes: append([]string(nil), config.RequiredSemanticProbes...),
-		CollectRunEvidence: config.CollectRunEvidence,
-		KeepSuccesses:      config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
+		CollectExecutionEvidence: config.CollectExecutionEvidence,
+		KeepSuccesses:            config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
 		Guide: config.Guide, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
 		ProgressInterval: config.ProgressInterval,
 	}
@@ -121,7 +122,7 @@ func runIsolated(ctx context.Context, config CampaignSpec) (CampaignResult, erro
 	command := exec.Command(config.CoordinatorCommand[0], config.CoordinatorCommand[1:]...)
 	command.Env = append(os.Environ(), "GOMADV3_RUNNER_COORDINATOR=1")
 	command.Stdin = bytes.NewReader(request)
-	stderr, err := execution.NewOutputCapture(4096)
+	stderr, err := hostexec.New(4096)
 	if err != nil {
 		return CampaignResult{}, &HostError{Reason: "coordinator_capture", Err: err}
 	}
@@ -290,17 +291,17 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 		return fmt.Errorf("trailing coordinator request %v: %w", token, err)
 	}
 	config := CampaignSpec{
-		ResumeBatch: wire.ResumeBatch, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
-		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, RunTimeout: wire.RunTimeout, OverallTimeout: wire.OverallTimeout,
+		ResumeCampaign: wire.ResumeCampaign, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
+		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, ExecutionTimeout: wire.ExecutionTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
 		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit,
-		MaxRuns: wire.MaxRuns, MaxChoiceDepth: wire.MaxChoiceDepth, MaxFrontierBytes: wire.MaxFrontierBytes, Artifacts: wire.Artifacts,
+		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, MaxExplorationBytes: wire.MaxExplorationBytes, Artifacts: wire.Artifacts,
 		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
 		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
 		ProgressInterval: wire.ProgressInterval,
 		Coverage:         wire.Coverage, RequiredSemanticProbes: wire.RequiredSemanticProbes,
-		CollectRunEvidence: wire.CollectRunEvidence,
-		KeepSuccesses:      wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
+		CollectExecutionEvidence: wire.CollectExecutionEvidence,
+		KeepSuccesses:            wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
 		Guide: wire.Guide, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
 	}
 	encoder := json.NewEncoder(output)

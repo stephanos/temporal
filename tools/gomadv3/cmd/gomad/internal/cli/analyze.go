@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/qualification"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	capabilityanalysis "go.temporal.io/server/tools/gomadv3/qualification/analysis"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
@@ -24,9 +24,9 @@ type analyzeDependencies struct {
 	identity         func(string) (target.ToolchainIdentity, error)
 	workingDirectory func() (string, error)
 	prepare          func(context.Context, target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error)
-	analyze          func(context.Context, qualification.AnalysisSpec) (qualification.AnalysisReport, error)
+	analyze          func(context.Context, capabilityanalysis.Spec) (capabilityanalysis.Report, error)
 	review           func(context.Context, target.Spec) (target.CapabilityReview, error)
-	build            func(qualification.AnalysisInput) (qualification.AnalysisReport, error)
+	build            func(capabilityanalysis.Input) (capabilityanalysis.Report, error)
 }
 
 type analyzeArguments struct {
@@ -45,7 +45,7 @@ func runAnalyze(arguments []string, stdout, stderr io.Writer) int {
 			return root, err
 		},
 		identity: target.ReadToolchainIdentity, workingDirectory: os.Getwd,
-		prepare: prepareAnalysisTarget, analyze: qualification.Analyze,
+		prepare: prepareAnalysisTarget, analyze: capabilityanalysis.Analyze,
 	})
 }
 
@@ -173,16 +173,16 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 			}()
 		}
 	}
-	var report qualification.AnalysisReport
+	var report capabilityanalysis.Report
 	if dependencies.analyze != nil {
-		report, err = dependencies.analyze(ctx, qualification.AnalysisSpec{
+		report, err = dependencies.analyze(ctx, capabilityanalysis.Spec{
 			Target: spec, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters,
 		})
 	} else {
 		var review target.CapabilityReview
 		review, err = dependencies.review(ctx, spec)
 		if err == nil {
-			report, err = dependencies.build(qualification.AnalysisInput{Spec: spec, Review: review, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters})
+			report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: review, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters})
 		}
 	}
 	if err != nil {
@@ -202,9 +202,9 @@ func reportAnalyzeError(stderr io.Writer, err error) int {
 	return writeCommandError(stderr, 3, "analyze target capabilities: %v\n", err)
 }
 
-func writeAnalysis(stdout, stderr io.Writer, format string, report qualification.AnalysisReport) int {
+func writeAnalysis(stdout, stderr io.Writer, format string, report capabilityanalysis.Report) int {
 	if format == "json" {
-		encoded, err := evidence.CanonicalJSON(report)
+		encoded, err := canonicaljson.CanonicalJSON(report)
 		if err != nil {
 			return writeCommandError(stderr, 3, "encode capability analysis: %v\n", err)
 		}
@@ -212,11 +212,11 @@ func writeAnalysis(stdout, stderr io.Writer, format string, report qualification
 			return writeCommandError(stderr, 3, "write capability analysis: %v\n", err)
 		}
 	} else {
-		if _, err := fmt.Fprint(stdout, qualification.FormatAnalysisText(report)); err != nil {
+		if _, err := fmt.Fprint(stdout, capabilityanalysis.FormatText(report)); err != nil {
 			return writeCommandError(stderr, 3, "write capability analysis: %v\n", err)
 		}
 	}
-	if report.Classification == qualification.ClassificationUnsupported {
+	if report.Classification == capabilityanalysis.ClassificationUnsupported {
 		return 1
 	}
 	return 0

@@ -33,7 +33,7 @@ These boundaries intentionally do not collapse into one controller:
 - the runtime owns goroutine scheduling, native timers, maps, and synchronization;
 - Runner owns host process lifetime, resource bounds, scheduling, and failure policy;
 - Guide owns corpus identity, semantic prioritization, and atomic corpus updates;
-- Artifact owns durable batch journaling and artifact publication;
+- Campaign owns durable execution journaling; Artifact owns durable publication;
 - Record owns raw bytes, hashes, and the outer replay envelope;
 - World owns external-event identities, ordering, state, and semantic digests;
 - each adapter owns its domain semantics; and
@@ -45,7 +45,7 @@ ordinals, parallel slots, aggregate counters, resume state, and failure-policy
 stops. The orchestration loop owns process launches and hands completed results
 to artifact publication; the campaign never prepares targets or writes files.
 Parallel results enter semantic publication in selection-ordinal order, so host
-completion timing cannot change the batch journal or guided corpus.
+completion timing cannot change the Campaign journal or guided corpus.
 
 The mode is for trusted tests. The process boundary and fail-closed shims reduce
 accidental host dependence; they are not an operating-system sandbox against a
@@ -53,7 +53,7 @@ target deliberately issuing raw syscalls.
 
 ## In-process cluster simulation
 
-`tools/gomadv3sim` owns the application-facing cluster seam. A run selects one
+`tools/gomadv3sim` owns the application-facing cluster seam. An Execution selects one
 backend and records bounded node, topology, lifecycle, output, network, volume,
 fault, scenario, history, and oracle evidence. The in-process backend assigns
 inheritable runtime domains to logical
@@ -62,7 +62,7 @@ and computationally live crashed goroutines remain shared-process limitations,
 so fresh initialization and hard cleanup are provided only by the process
 backend.
 
-The virtual network is a separate run-scoped deep module below ordinary `net`
+The virtual network is a separate Execution-scoped deep module below ordinary `net`
 TCP calls. It owns node addresses, deterministic ports, directional links,
 fixed delay, partition/heal, listeners, streams, queued deliveries, lifecycle
 revocation, capacity, snapshots, and replay. Every endpoint and queued delivery
@@ -159,7 +159,7 @@ runtime randomness from leaking between seeds. Parallelism is across processes,
 not through multiple Ps inside one target.
 
 The Go build driver runs outside deterministic mode. `go-run` and `go-test`
-produce a target first. `exec` requires canonical v2 provenance containing the
+produce a target first. `exec` requires canonical v3 provenance containing the
 same policy-versioned package-closure review: direct and test-only imports,
 foreign sources, overlay-resolved source hashes, module identities, and the
 generated test main are all explicit evidence. Runner checks standard-package
@@ -172,7 +172,7 @@ prepared bytes before execution and again before publication.
 The target environment starts empty. Runner adds only its activation values,
 UTC, and explicitly supplied validated entries; runtime, toolchain, and dynamic
 loader controls are reserved. Ambient credentials and host configuration
-therefore cannot enter a deterministic run or artifact accidentally.
+therefore cannot enter a deterministic Execution or Artifact accidentally.
 
 On Unix, a supervisor places the target at the head of a new process group. A
 liveness channel and an independently known absolute deadline allow the
@@ -182,7 +182,7 @@ reaps the leader, and verifies that the group is gone. This contains ordinary
 bugs and unsupported subprocess use, not adversarial descendants that escape
 their session.
 
-Per-run and overall deadlines are host safeguards. They never advance logical
+Per-Execution and overall deadlines are host safeguards. They never advance logical
 time. A logical `go test` timeout is a target result; a wall watchdog expiry is a
 bounded diagnostic observation; failure to terminate or reap the target is a
 Runner/host failure.
@@ -204,7 +204,7 @@ that unchanged launch plan.
 World transport remains enabled for every Runner-managed target. Although the
 launch plan now represents World explicitly, making its descriptors optional is
 deferred until external targets have been audited for calls to
-`world/target.Open` and migrated to an explicit declaration. Until then, an empty
+`world/process.Open` and migrated to an explicit declaration. Until then, an empty
 child record continues to become the canonical `none` World record. This keeps
 the descriptor refactor compatible rather than silently disconnecting an
 existing World-aware target.
@@ -237,21 +237,21 @@ Interrupted work may leave explicit partial diagnostics but can never appear as
 a complete replayable artifact. Existing content-addressed artifacts are reused
 only after complete validation.
 
-`campaignstore` owns the durable batch state machine: planned, prepared,
-running, committing, published, and recoverable-failure state; preparation and
-per-run partial directories; bounded immutable run segments; compact index and
-`batch.json` publication; inspection; locked recovery; and resume preflight.
-Batch-plan v5 declares journal, simultaneous partial-run, transcript, retained
-success, failure, aggregate artifact ceilings, and optional portable-plan shard
-identity. Batch v3 binds every unsharded closed segment through the index
-digest; batch v4 adds the exact external plan and ordinal partition. Readers
-retain explicit batch v1/v2 and interrupted plan v1-v4 compatibility. The validated final manifest is
+`runner/internal/campaign` owns the durable Campaign state machine: planned,
+prepared, running, committing, published, and recoverable-failure state;
+preparation and per-Execution partial directories; bounded immutable Execution
+segments; compact index and `campaign.json` publication; inspection; locked
+recovery; and resume preflight. Campaign plan v1 declares journal, simultaneous
+partial-Execution, transcript, retained-success, failure, aggregate Artifact
+ceilings, and optional portable-plan shard identity. Campaign v1 binds every
+closed segment through `executions/index.json`; sharded Campaigns also bind the
+exact external plan and ordinal partition. The validated final manifest is
 authoritative. Recovery reconstructs validated state, incorporates at most one
 contiguous post-rename segment, archives an active partial before trimming a
 torn terminal record, and never edits a closed segment. Injected create, sync,
-rename, and delete failures must leave a published or resumable batch. Runner
-advances semantic run states but does not implement filesystem publication or
-integrity decisions.
+rename, and delete failures must leave a published or resumable Campaign. Runner
+advances semantic Execution states but does not implement filesystem publication
+or integrity decisions.
 
 The portable campaign-plan module separates immutable work identity from
 execution. A `gomadv3.campaign-plan/v1` file binds the Runner, toolchain,
@@ -260,10 +260,10 @@ bounds, prepared target, and captured read-only mount digest. Its adjacent
 private bundle contains only the verified target and path-independent numbered
 mount trees; the plan file is published last. Static seed shards own disjoint
 global ordinals by `ordinal % count`, and resume preserves that assignment.
-Merge validates every batch v4 source through `campaignstore`, requires one
+Merge validates every Campaign v1 source through the Campaign module, requires one
 plan identity, rejects overlap or unexplained gaps, stores content-deduplicated
 evidence metadata once in a bounded segmented journal, and publishes an
-immutable `gomadv3.merged-batch/v1` without changing source artifacts.
+immutable `gomadv3.merged-campaign/v1` without changing source artifacts.
 
 Replay performs all identity and payload validation before starting the stored
 target. It never rebuilds from source, substitutes a local binary, silently
@@ -274,10 +274,10 @@ because host elapsed time is not deterministic.
 ### Guided semantic exploration
 
 Guide is a deep module around a private bounded corpus. Runner opens it only
-after preparing the target, then selects the complete batch from that one
+after preparing the target, then selects the complete Campaign from that one
 immutable snapshot. Rarity within higher-value semantic domains orders retained
-seeds; no more than three quarters of a batch may come from the corpus, leaving
-at least `ceil(count/4)` requested seeds unguided. The recorded batch plan binds
+seeds; no more than three quarters of a Campaign may come from the corpus, leaving
+at least `ceil(count/4)` requested seeds unguided. The recorded Campaign plan binds
 the snapshot hash and final mixed selection. Resume uses that selection without
 consulting a later snapshot for scheduling.
 
@@ -474,7 +474,8 @@ terminal frames, and bounded synchronous pipes for lazy read-only mounts. World
 configuration and recording remain separately owned, explicit encodings; they
 are not part of a universal serialization layer.
 
-Cross-endpoint layouts are declared once in `protocol/iowire.json`. The protocol
+Cross-endpoint layouts are declared once in the deterministic-I/O, Choice, and
+simulation schemas under their respective `schema` directories. The protocol
 generator emits dependency-free typed codecs and the same golden, truncation,
 validation, allocation-bound, and fuzz tests for the Runner module and patched
 standard library. `make generate` updates checked-in output, while `make
@@ -501,7 +502,7 @@ Gomad keeps these outcomes distinct:
 - capacity or invalid input: a modeled boundary rejected an operation before
   partial mutation; and
 - Runner/host failure: preparation, launch, containment, capture, integrity, or
-  publication failed, so the batch cannot be claimed trustworthy.
+  publication failed, so the Campaign cannot be claimed trustworthy.
 
 No error path silently falls back to host time, host readiness, live replay
 input, an approximate schema, or an unbounded allocation.
@@ -511,14 +512,14 @@ input, an approximate schema, or an unbounded allocation.
 Host policy is split into deep, typed modules: source archives, patch sets,
 toolchain publication, command supervision, bounded output capture, and the
 black-box test campaign each expose a narrow Go interface.
-`toolchain/cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
+`cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
 lifecycle or result-classification policy. The test driver records one bounded
 case result per external command and keeps equality, diversity, diagnostics,
 timeouts, and mandatory semantic markers as distinct oracles.
 
-Shell is limited to reviewed argv and platform boundaries. The build, patch,
-and test scripts are compatibility shims; `exec.sh` and
-`compiler_test_exec.sh` adapt upstream Go hooks; `clock_audit_test.sh` owns the
+Shell is limited to reviewed argv and platform boundaries. The patch-regeneration
+scripts are owned by `internal/gomadtool/conformance/scripts`: `exec.sh` and
+`compiler_test_exec.sh` adapt upstream Go hooks, while `clock_audit_test.sh` owns the
 Darwin DTrace invocation. A Go-owned content check rejects new script owners,
 Bash outside the explicit platform adapter, and Perl policy. Platform-neutral
 host-tool tests run on Linux, while runtime qualification remains exclusively
@@ -533,7 +534,7 @@ Go, and human-guide consumers; validation requires the allowlists to equal
 the actual patch and overlay tree rather than merely containing them.
 
 The runtime patch and transparent I/O overlays are pinned implementation costs.
-Every Go upgrade runs the typed `upgradegen` host command, which records the
+Every Go upgrade runs the typed `gomadtool upgrade-dossier` host command, which records the
 complete upstream patch, semantic boundary diff, interception evidence,
 archive-based overlay collision audit, disabled-mode upstream compatibility,
 mandatory probes, optional retained-corpus evidence, and platform qualification

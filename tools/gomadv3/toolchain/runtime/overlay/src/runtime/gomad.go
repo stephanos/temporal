@@ -67,6 +67,10 @@ const (
 var gomadSimulationTimeRequestMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'Q', 1}
 var gomadSimulationTimeResponseMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'R', 1}
 
+// The response buffer is static because some runtime read implementations
+// retain their pointer, while quiescence can run on an allocation-forbidden path.
+var gomadSimulationTimeResponse [gomadSimulationTimeResponseBytes]byte
+
 func gomadInit() {
 	var seed uint64
 	choiceConfigured := gomadChoiceConfigured()
@@ -343,6 +347,9 @@ func gomadChoiceDecision(kind, flags uint8, siteOffset uint64, alternatives [][3
 	}
 	if len(alternatives) == 0 || len(alternatives) > gomadChoiceMaximumAlternatives || seeded >= uint32(len(alternatives)) {
 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
+	}
+	if len(alternatives) == 1 {
+		return seeded
 	}
 	var ordered [gomadChoiceMaximumAlternatives][32]byte
 	for index := range alternatives {
@@ -784,7 +791,7 @@ func gomadSimulationTimeQuiesce(deadline int64) (int64, uint8, bool) {
 	if !gomadSimulationTimeWrite(gomadSimulationTimeRequestDescriptor, request[:]) {
 		return 0, 0, false
 	}
-	var response [gomadSimulationTimeResponseBytes]byte
+	response := gomadSimulationTimeResponse[:]
 	if !gomadSimulationTimeRead(gomadSimulationTimeResponseDescriptor, response[:]) {
 		return 0, 0, false
 	}

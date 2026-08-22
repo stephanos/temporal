@@ -86,20 +86,20 @@ tools/gomadv3/.bin/gomad analyze --capability-mode=linked --timeout=5m --format=
 tools/gomadv3/.bin/gomad qualify-set --manifest corpus.json --working-dir ./target --output report.json
 tools/gomadv3/.bin/gomad compare-support --baseline baseline.json --candidate report.json
 tools/gomadv3/.bin/gomad explore --choices --choice-bytes=8MiB --seeds 0-99 go-test ./path/to/package -- -test.run=TestName
-tools/gomadv3/.bin/gomad explore --strategy=choice-frontier --seeds 7 --max-runs=128 --max-choice-depth=32 --max-frontier-bytes=64MiB go-test ./path/to/package -- -test.run=TestName
+tools/gomadv3/.bin/gomad explore --strategy=choice-exploration --seeds 7 --max-executions=128 --max-choice-depth=32 --max-exploration-bytes=64MiB go-test ./path/to/package -- -test.run=TestName
 tools/gomadv3/.bin/gomad plan --seeds 0-99 --output campaign.plan.json go-test ./path/to/package -- -test.run=TestName
-tools/gomadv3/.bin/gomad run-shard --shard 0/4 campaign.plan.json
-tools/gomadv3/.bin/gomad merge --output merged-batch campaign.plan.json .gomad/artifacts/v1/run-*
-tools/gomadv3/.bin/gomad recover .gomad/artifacts/v1/run-INTERRUPTED
-tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/run-INTERRUPTED
-tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*
-tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/failures/sha256-*
-tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/run-*/failures/sha256-*
-tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-*/successes/sha256-*
-tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/failures/sha256-*
-tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-*/successes/sha256-*
-tools/gomadv3/.bin/gomad replay --verify-only .gomad/artifacts/v1/run-*/failures/sha256-*
-tools/gomadv3/.bin/gomad minimize --attempt-budget=64 .gomad/artifacts/v1/run-*/failures/sha256-*
+tools/gomadv3/.bin/gomad execute-shard --shard 0/4 campaign.plan.json
+tools/gomadv3/.bin/gomad merge --output merged-campaign campaign.plan.json .gomad/artifacts/v1/campaign-*
+tools/gomadv3/.bin/gomad recover .gomad/artifacts/v1/campaign-INTERRUPTED
+tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/campaign-INTERRUPTED
+tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/campaign-*
+tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/campaign-*/failures/sha256-*
+tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/campaign-*/failures/sha256-*
+tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/campaign-*/successes/sha256-*
+tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/campaign-*/failures/sha256-*
+tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/campaign-*/successes/sha256-*
+tools/gomadv3/.bin/gomad replay --verify-only .gomad/artifacts/v1/campaign-*/failures/sha256-*
+tools/gomadv3/.bin/gomad minimize --attempt-budget=64 .gomad/artifacts/v1/campaign-*/failures/sha256-*
 ```
 
 Human-readable exploration writes preparation and running progress to stderr,
@@ -110,31 +110,29 @@ written to stdout.
 
 Use `--choices` on `explore` or `qualify` to observe bounded runtime runnable
 and select decisions. `--choice-bytes` defaults to 8 MiB, is valid only with
-`--choices`, and is part of batch and artifact identity. The trace is
+`--choices`, and is part of Campaign and Artifact identity. The trace is
 recorded as v2 stable logical decisions. Artifact replay automatically derives
 an identity-bound, read-only decision tape and validates every choice before it
 is applied; no replay flag is required. `inspect --choices` validates the
 retained payload and reports choice kinds, decision and branching counts, the
 tape digest, exact-replay availability, and target-specific site fingerprints.
-Legacy v1 traces remain inspectable, but replay reports
-`choice_profile.replay_unavailable` and does not execute an uncontrolled target.
-Prefix replay is an internal bounded-frontier primitive and is not a public CLI
+Prefix replay is an internal bounded-exploration primitive and is not a public CLI
 mode in this slice.
 
-Use `--strategy=choice-frontier` to explore every non-selected runnable or
+Use `--strategy=choice-exploration` to explore every non-selected runnable or
 ready-`select` rank observed within explicit bounds. The strategy requires one
-base seed plus positive `--max-runs`, `--max-choice-depth`, and
-`--max-frontier-bytes` values. It implies choice recording and rejects
+base seed plus positive `--max-executions`, `--max-choice-depth`, and
+`--max-exploration-bytes` values. It implies choice recording and rejects
 `--count`, multiple seeds, and guided exploration. Candidates run in
 deterministic breadth-first rounds ordered by forced-prefix length and identity;
-parallel completion timing cannot change the committed frontier. A target
+parallel completion timing cannot change the committed exploration. A target
 failure remains expandable while the selected failure policy permits it.
 
-Each completed round is an immutable, hash-linked transaction below the batch.
+Each completed round is an immutable, hash-linked transaction below the Campaign.
 An interrupted round is archived and rerun in full on `gomad resume`; logical
-and recovery execution counts are reported separately. `frontier_exhausted`
-and `choice_depth_complete` are bounded completions, while `max_runs` and
-`frontier_capacity` identify incomplete search envelopes. Outcome deduplication
+and recovery execution counts are reported separately. `exploration_exhausted`
+and `choice_depth_complete` are bounded completions, while `max_executions` and
+`exploration_capacity` identify incomplete search envelopes. Outcome deduplication
 reduces retained evidence only and never removes a distinct forced prefix.
 
 `gomad minimize` currently accepts an exact combined-simulation target-failure
@@ -159,11 +157,11 @@ eliminated blocker with a canonical shortest dependency path, and projects
 conservative deterministic I/O requirements over the full closure. To keep
 reports path-free, arguments containing path separators are represented by
 stable SHA-256 identities.
-`--format=json` emits `gomadv3.capability-analysis/v3`. Status 0 means
+`--format=json` emits `gomadv3.capability-analysis/v1`. Status 0 means
 supported, 1 unsupported, 2 invalid input or package configuration, and 3
 analysis infrastructure failure.
 
-Add `--json` to emit newline-delimited `gomadv3.explore-event/v2` records on
+Add `--json` to emit newline-delimited `gomadv3.explore-event/v3` records on
 stdout and no routine output on stderr. Event types are `progress`, `result`,
 `artifact`, and `error`. Result classifications are `success`,
 `target_failure`, `watchdog_observation`, `replay_divergence`, and
@@ -183,7 +181,7 @@ tools/gomadv3/.bin/gomad explore --coverage=semantic \
 
 Use `--guide --corpus DIR` to feed replay-verified, semantically novel seeds
 back into later campaigns. Guidance enables semantic coverage unless an
-explicit incompatible `--coverage` was supplied. Each batch selects from one
+explicit incompatible `--coverage` was supplied. Each Campaign selects from one
 immutable corpus snapshot: at most three quarters of its seeds come from the
 corpus and at least one quarter remain in the requested seed set. Corpus cases
 are ranked by reproducible failures, invariant and terminal states, abstract
@@ -200,7 +198,7 @@ replayed before the canonical corpus index advances atomically; interrupted
 unreferenced cases are removed when the corpus next opens. A changed identity,
 corrupt case, divergent replay, symbolic-link corpus, concurrent writer, or
 capacity violation fails visibly. Human and JSON results report the corpus
-path, retained entry count, and additions made by the batch.
+path, retained entry count, and additions made by the Campaign.
 
 Guidance currently reuses realized seeds and transcripts; it does not mutate
 World scenarios, faults, or inputs and never forces runtime choices. Those
@@ -208,20 +206,20 @@ extensions require evidence that retained seeds cannot reproduce minimized
 failures. Code coverage remains separate from versioned semantic probes and is
 not collected by this mode.
 
-Successful runs are discarded from the batch by default; guided corpus
+Successful Executions are discarded from the Campaign by default; guided corpus
 retention is independent. `--keep-successes=novel` retains the first completed
 success that adds a new semantic probe or choice feature and therefore requires
 semantic or choice coverage; `--keep-successes=all` retains every success. Both modes
 require a positive `--success-limit` and `--success-bytes`. Crossing either
 bound fails the campaign visibly instead of silently dropping replay evidence.
 Each retained success is an immutable exact-replay artifact, and its stored byte
-count and novelty reasons are recorded in the batch journal. Success replay
+count and novelty reasons are recorded in the Campaign journal. Success replay
 returns status 0 only when the recorded successful outcome matches.
 
 `gomad qualify` prepares and executes the target independently two or more
 times with one seed, compares bounded canonical evidence, and automatically
-retains a private `gomadv3.qualification/v4` report below
-`ARTIFACTS/qualifications/v4`. Readers also normalize v1 through v3 reports. Evidence includes the exact target, argv,
+retains a private `gomadv3.qualification/v1` report below
+`ARTIFACTS/qualifications/v1`. Evidence includes the exact target, argv,
 toolchain and Runner identities, full output hashes, transcript, captured-mount
 identity, World identity, outcome, semantic probes, and optional choice
 features. Replay evidence is attached to its corresponding repetition. Add
@@ -244,14 +242,13 @@ tools/gomadv3/.bin/gomad qualify-set --check \
   --working-dir=/absolute/path/to/target/module
 ```
 
-Manifest v3 binds the expected module, tier, invariant, ordered seeds, choice
+Manifest v1 binds the expected module, tier, invariant, ordered seeds, choice
 capacity, capability mode, successful-replay requirement, and explicit
 retention bounds. The
 orchestrator analyzes every workload before executing any supported target,
 checkpoints after each completed phase, and publishes a private, path-free
-`gomadv3.qualification-set-report/v6`. Unsupported analysis is completed
-evidence and is never executed. Readers normalize report v2 through v5 while
-marking unavailable historical dimensions explicitly. Status 0 means all expectations
+`gomadv3.qualification-set-report/v1`. Unsupported analysis is completed
+evidence and is never executed. Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
 
@@ -273,47 +270,45 @@ The checked sixteen-workload Temporal corpus currently qualifies 5 workloads
 and retains 11 exact unsupported analyses. Every qualified workload runs two
 seeds and requires matching execution, World, I/O, and choice-tape replay.
 
-An interrupted campaign retains a canonical `gomadv3.batch-plan/v5` beside
+An interrupted campaign retains a canonical `gomadv3.campaign-plan/v1` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity and the already-mixed seed selection, so resume never reselects seeds.
-The current plan records the seed or choice-frontier strategy, its controller
-identity, every search bound, immutable-segment limits, simultaneous partial
-runs, and success, failure, transcript, and aggregate artifact capacities. New
-unsharded batch v3 and sharded batch v4 publications reference `runs/index.json`, which binds each private,
-zero-padded JSONL segment by record count, byte count, and SHA-256. Readers
-retain narrow support for published batch v1/v2 and interrupted plan v1-v4
-records.
+The current plan records the seed or choice-exploration strategy, its controller
+identity, every search bound, immutable-segment limit, simultaneous partial
+Executions, and success, failure, transcript, and aggregate Artifact capacities.
+Campaign v1 publications reference `executions/index.json`, which binds each
+private, zero-padded JSONL segment by record count, byte count, and SHA-256.
 
 `gomad plan` publishes a canonical `gomadv3.campaign-plan/v1` and adjacent
 private bundle containing the verified prepared target and complete bounded
 copies of configured read-only mount trees. Plan identity is independent of
 the plan output path and original mount source paths. The initial protocol
 accepts only unguided seed campaigns with `--on-failure=all`; dynamically
-discovered choice-frontier prefixes require a later round coordinator.
-`gomad run-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
+discovered choice-exploration prefixes require a later round coordinator.
+`gomad execute-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
 partition, revalidates the entire bundle before execution, and records global
-selection ordinals in batch v4. `gomad merge` accepts only shards from the same
+selection ordinals in Campaign v1. `gomad merge` accepts only shards from the same
 plan, rejects duplicate or missing ordinals unless `--partial` is explicit,
 deduplicates retained evidence by content identity, enforces aggregate bounds,
-and publishes a new `gomadv3.merged-batch/v1` without mutating shard artifacts.
+and publishes a new `gomadv3.merged-campaign/v1` without mutating shard artifacts.
 Both plan and aggregate are available through `gomad inspect`.
-The batch store records the explicit `planned`, `prepared`, `running`,
+The Campaign store records the explicit `planned`, `prepared`, `running`,
 `committing`, `published`, and `recoverable-failure` lifecycle. A validated
-`batch.json` is authoritative even when a crash leaves private state behind.
-`gomad recover BATCH` locks the batch and either finishes that private cleanup,
+`campaign.json` is authoritative even when a crash leaves private state behind.
+`gomad recover CAMPAIGN` locks the Campaign and either finishes that private cleanup,
 normalizes an interrupted commit to its validated running state, or reports
-that the batch is invalid or not recoverable without changing it. Add `--json`
+that the Campaign is invalid or not recoverable without changing it. Add `--json`
 for the stable `gomadv3.recovery/v1` result. Invalid or non-recoverable input
 returns status 2; storage, locking, and publication failures return status 3.
 
-`gomad resume BATCH` uses the same store-owned preflight, locks that batch, verifies the exact
+`gomad resume CAMPAIGN` uses the same store-owned preflight, locks that Campaign, verifies the exact
 Runner, toolchain, I/O profile, prepared binary, completed records, and every
-referenced failure or successful-run artifact, archives incomplete per-seed state, and schedules
-only unfinished selection ordinals. Closed run segments remain immutable;
+referenced failure or successful-Execution Artifact, archives incomplete per-seed state, and schedules
+only unfinished selection ordinals. Closed Execution segments remain immutable;
 resume may incorporate one contiguous segment whose rename completed before
 its index update, and it archives an active segment before excluding only a
 torn terminal record. It appends to and eventually publishes the original
-batch; repeated resumes are safe when the recorded aggregate deadline is too
+Campaign; repeated resumes are safe when the recorded aggregate deadline is too
 short to finish all remaining seeds. Published batches, changed inputs,
 concurrent resumes, and interrupted preparation fail closed. `gomad inspect`
 reports the index identity, segment totals, journal limits, and artifact
@@ -322,7 +317,7 @@ capacity. Add `--json` to use the same stable campaign event stream as
 
 | Status | `explore` / `resume` | `qualify` | `replay` |
 | --- | --- | --- | --- |
-| 0 | All selected or remaining runs succeeded. | Every repetition succeeded with identical evidence. | Verification-only succeeded, or a retained success replayed exactly. |
+| 0 | All selected or remaining Executions succeeded. | Every repetition succeeded with identical evidence. | Verification-only succeeded, or a retained success replayed exactly. |
 | 1 | A target failure, watchdog observation, or replay divergence was retained. | Evidence diverged, a target failed, a required probe was absent, or replay diverged. | The stored observation reproduced exactly, or replay diverged; inspect `reproduced=true|false`. |
 | 2 | Input is invalid, the target is unsupported, or the resume journal is incompatible. | Input was invalid or the unsupported boundary was retained. | Input or artifact compatibility validation failed. |
 | 3 | Runner or host infrastructure failed. | Qualification or report infrastructure failed. | Replay infrastructure failed. |
@@ -333,16 +328,16 @@ stream hashes while retaining bounded output, and publishes canonical,
 content-addressed artifacts. `--count N` selects seeds `0` through `N-1` and is
 mutually exclusive with `--seeds`. Arguments following `--` use an argv-safe
 interface. Trusted repository tooling preparing an `exec` target must use
-`target.ReviewCapabilityClosure` and `target.WriteProvenance` to produce v2
+`target.ReviewCapabilityClosure` and `target.WriteProvenance` to produce v3
 provenance for the exact binary. Runner revalidates its package policy, pinned
 standard-library membership, module closure, build information, and binary
-identity; v1 or arbitrary binaries are rejected.
+identity; arbitrary binaries are rejected.
 
-`gomad inspect` validates the batch journal or immutable failure/success artifact before
+`gomad inspect` validates the Campaign journal or immutable failure/success Artifact before
 printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
-copy-paste replay commands, and batch lifecycle, resumability, repairability,
-and recovery reason. Interrupted batches can be inspected before publication.
+copy-paste replay commands, and Campaign lifecycle, resumability, repairability,
+and recovery reason. Interrupted Campaigns can be inspected before publication.
 Add `--json` for the stable `gomadv3.inspect/v3` report.
 
 ### Deterministic I/O
@@ -352,7 +347,7 @@ default. It is independent of the target package, arguments, and application:
 
 ```sh
 tools/gomadv3/.bin/gomad explore \
-  --seeds 7 --parallel 1 --run-timeout 2m --overall-timeout 5m \
+  --seeds 7 --parallel 1 --execution-timeout 2m --overall-timeout 5m \
   --artifacts .gomad/qualify/seed-7 \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
@@ -442,8 +437,8 @@ architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMADV3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
 Host-side policy is implemented in typed Go packages. `toolchain` provides the
-build, patch, validation, and upgrade interface; `toolchain/cmd/gomadtool` is
-its command adapter, and `toolchain/internal/conformance` owns bounded
+build, patch, validation, and upgrade interface; `cmd/gomadtool` is
+its command adapter, and `internal/gomadtool/conformance` owns bounded
 black-box fixture execution and semantic result classification. The remaining
 scripts are reviewed argv adapters:
 POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
@@ -454,9 +449,8 @@ host packages, but does not qualify the Gomad runtime on Linux.
 To upgrade Go, update the canonical `toolchain/version/version.json` descriptor
 and `deterministicio/boundary/manifest.json`, materialize the old patch against the new pinned
 source, and regenerate the patch with `go -C tools/gomadv3 run
-./toolchain/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomadv3"
---candidate-root=GO-SOURCE-ROOT`. The `regenerate-patch.sh GO-SOURCE-ROOT`
-compatibility entrypoint delegates to the same typed command. `make -C
+./cmd/gomadtool patch-regenerate --root="$PWD/tools/gomadv3"
+--candidate-root=GO-SOURCE-ROOT`. `make -C
 tools/gomadv3 generate` derives the Make, Go, compiler-spec,
 interception-report, public-inventory, and upgrade-guide consumers. The
 descriptor's patch and overlay allowlists must exactly equal the checked trees.
@@ -576,14 +570,14 @@ The development workflow is discover, review, exact approval, generate, check,
 and qualify:
 
 ```sh
-go -C tools/gomadv3 run ./toolchain/cmd/gomadtool compatibility-pack discover \
-  --root="$PWD/tools/gomadv3" --request=target/internal/compatibility/requests/<id>.json \
+go -C tools/gomadv3 run ./cmd/gomadtool compatibility-pack discover \
+  --root="$PWD/tools/gomadv3" --request=internal/compatibilitypack/requests/<id>.json \
   --working-dir=<target-module>
-go -C tools/gomadv3 run ./toolchain/cmd/gomadtool compatibility-pack review \
-  --root="$PWD/tools/gomadv3" --request=target/internal/compatibility/requests/<id>.json \
-  --output=target/internal/compatibility/reports/<id>.md
-go -C tools/gomadv3 run ./toolchain/cmd/gomadtool compatibility-pack generate \
-  --root="$PWD/tools/gomadv3" --request=target/internal/compatibility/requests/<id>.json \
+go -C tools/gomadv3 run ./cmd/gomadtool compatibility-pack review \
+  --root="$PWD/tools/gomadv3" --request=internal/compatibilitypack/requests/<id>.json \
+  --output=internal/compatibilitypack/reports/<id>.md
+go -C tools/gomadv3 run ./cmd/gomadtool compatibility-pack generate \
+  --root="$PWD/tools/gomadv3" --request=internal/compatibilitypack/requests/<id>.json \
   --approve-review=<exact-review-sha256>
 make -C tools/gomadv3 validate compatibility-pack-qualification
 ```
@@ -594,7 +588,7 @@ infrastructure failures. Fresh-review disagreement is unsupported drift. None
 of these cases falls back to an older pack, partial inventory, arbitrary local
 replacement, host access, or truncated evidence. Requests, generated v2 packs,
 review reports, mutation fixtures, and their generation manifest live under
-`target/internal/compatibility`.
+`internal/compatibilitypack`.
 
 The obsolete `temporal-backoff-overflow` and
 `xnet-socket-activity-candidate` requests were retired after exact gRPC and
@@ -640,12 +634,12 @@ explicitly quiesce to choose and deliver ready events.
 snapshot/restore, and replay without giving World ownership of application
 state. `runner/internal/execution` composes World semantic records with the
 Runner's raw process record while keeping those identities separate. A target connects
-its World with `world/target.Open`, takes the session-owned World returned by
-`Session.World`, performs all modeled work, and calls
+its World with `world/process.Open`, takes the session-owned World returned by
+`Session.Model()`, performs all modeled work, and calls
 `Session.Finish` after that work has stopped, or `Session.FinishError` for a
 typed World error. The trusted bootstrap validates replay input before target
 activation; `Open` installs that recorded initial World rather than accepting a
-target-created substitute and returns it through `Session.World` before modeled work.
+target-created substitute and returns it through `Session.Model()` before modeled work.
 The session writes one bounded record with a structured idle, deadlock,
 capacity, invalid-input, or replay-divergence terminal result through inherited
 descriptors only at the process boundary, so host pipe readiness cannot affect
@@ -667,7 +661,7 @@ make -C tools/gomadv3 test
 make -C tools/gomadv3 test-builder
 make -C tools/gomadv3 test-runtime
 make -C tools/gomadv3 test-upstream
-make -C tools/gomadv3 runner-test
+make -C tools/gomadv3 test-host
 make -C tools/gomadv3 world-test
 make -C tools/gomadv3 core-qualification
 make -C tools/gomadv3 upgrade-dossier GOMADV3_BASELINE_REF=<previous-commit>

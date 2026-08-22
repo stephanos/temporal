@@ -12,10 +12,15 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomadv3/qualification"
+	capabilityanalysis "go.temporal.io/server/tools/gomadv3/qualification/analysis"
+	supportcomparison "go.temporal.io/server/tools/gomadv3/qualification/comparison"
+	qualificationset "go.temporal.io/server/tools/gomadv3/qualification/set"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
@@ -39,20 +44,20 @@ func TestByteSizeFlagParsesBinaryUnitsCanonically(t *testing.T) {
 }
 
 func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
-	var observed qualification.SuiteSpec
+	var observed qualificationset.Spec
 	dependencies := qualifySetDependencies{
 		executable: func() (string, error) { return "/bin/gomad", nil },
-		load: func(string) (qualification.SuiteManifest, error) {
-			return qualification.SuiteManifest{Schema: qualification.SuiteManifestSchema, Name: "test-set", Suites: []qualification.Workload{{}}}, nil
+		load: func(string) (qualificationset.Manifest, error) {
+			return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Workloads: []qualificationset.Workload{{}}}, nil
 		},
-		run: func(_ context.Context, config qualification.SuiteSpec) (qualification.SuiteReport, error) {
+		run: func(_ context.Context, config qualificationset.Spec) (qualificationset.Report, error) {
 			observed = config
 			return publicSetReport(), nil
 		},
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--format", "json"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v6"`) {
+	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !strings.Contains(stdout.String(), `"schema":"gomadv3.qualification-set-report/v1"`) {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }
@@ -60,15 +65,15 @@ func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
 func TestRunCompareSupportMapsReviewAndIncomparableStatuses(t *testing.T) {
 	baseline := publicSetReport()
 	candidate := publicSetReport()
-	candidate.Toolchain.BoundaryManifestSHA256 = evidence.HashBytes([]byte("changed"))
+	candidate.Toolchain.BoundaryManifestSHA256 = record.HashBytes([]byte("changed"))
 	dependencies := compareSupportDependencies{
-		open: func(path string) (qualification.SuiteReport, error) {
+		open: func(path string) (qualificationset.Report, error) {
 			if path == "/baseline.json" {
 				return baseline, nil
 			}
 			return candidate, nil
 		},
-		compare: qualification.Compare,
+		compare: supportcomparison.Compare,
 	}
 	var stdout, stderr bytes.Buffer
 	status := runCompareSupportWith([]string{"--baseline", "/baseline.json", "--candidate", "/candidate.json", "--format", "json"}, &stdout, &stderr, dependencies)
@@ -77,7 +82,7 @@ func TestRunCompareSupportMapsReviewAndIncomparableStatuses(t *testing.T) {
 	}
 
 	baseline.Dimensions.PortableV3 = false
-	dependencies.open = func(path string) (qualification.SuiteReport, error) {
+	dependencies.open = func(path string) (qualificationset.Report, error) {
 		if path == "/baseline.json" {
 			return baseline, nil
 		}
@@ -114,19 +119,19 @@ func TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures(t *testing.T
 	}
 }
 
-func publicSetReport() qualification.SuiteReport {
-	return qualification.SuiteReport{
-		Schema: qualification.SuiteReportSchema, Name: "test-set", Description: "public fixture",
-		ManifestSHA256: evidence.HashBytes([]byte("manifest")),
-		Module:         qualification.ModuleIdentity{Path: "example.com/target", GoModSHA256: evidence.HashBytes([]byte("go.mod"))},
-		Platform:       qualification.PlatformIdentity{GOOS: "darwin", GOARCH: "arm64"},
-		Toolchain: qualification.AnalysisToolchain{
+func publicSetReport() qualificationset.Report {
+	return qualificationset.Report{
+		Schema: qualificationset.ReportSchema, Name: "test-set", Description: "public fixture",
+		ManifestSHA256: record.HashBytes([]byte("manifest")),
+		Module:         qualificationset.ModuleIdentity{Path: "example.com/target", GoModSHA256: record.HashBytes([]byte("go.mod"))},
+		Platform:       qualificationset.PlatformIdentity{GOOS: "darwin", GOARCH: "arm64"},
+		Toolchain: capabilityanalysis.Toolchain{
 			GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64",
-			BoundaryManifestVersion: "boundary-v1", BoundaryManifestSHA256: evidence.HashBytes([]byte("boundary")),
+			BoundaryManifestVersion: "boundary-v1", BoundaryManifestSHA256: record.HashBytes([]byte("boundary")),
 		},
-		IOProfile:       deterministicio.Contract{Name: "io", ImplementationSHA256: deterministicio.Digest(evidence.HashBytes([]byte("io"))), InventorySHA256: deterministicio.Digest(evidence.HashBytes([]byte("inventory")))},
-		Dimensions:      qualification.EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
-		ExpectationsMet: true, Suites: []qualification.WorkloadReport{},
+		IOProfile:       deterministicio.Contract{Name: "io", ImplementationSHA256: deterministicio.Digest(record.HashBytes([]byte("io"))), InventorySHA256: deterministicio.Digest(record.HashBytes([]byte("inventory")))},
+		Dimensions:      qualificationset.EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
+		ExpectationsMet: true, Workloads: []qualificationset.WorkloadReport{},
 	}
 }
 
@@ -155,16 +160,16 @@ func TestResolveExploreSeedsSupportsCountWithoutAmbiguity(t *testing.T) {
 	}
 }
 
-func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedFrontier(t *testing.T) {
+func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration(t *testing.T) {
 	valid := exploreStrategyOptions{
-		Value: "choice-frontier", Seeds: "7", MaxRuns: 8, MaxChoiceDepth: 4, MaxFrontierBytes: 1 << 20,
-		MaxRunsSet: true, MaxChoiceDepthSet: true, MaxFrontierBytesSet: true,
+		Value: "choice-exploration", Seeds: "7", MaxExecutions: 8, MaxChoiceDepth: 4, MaxExplorationBytes: 1 << 20,
+		MaxExecutionsSet: true, MaxChoiceDepthSet: true, MaxExplorationBytesSet: true,
 	}
 	strategy, choices, err := resolveExploreStrategy(valid)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strategy != runner.StrategyChoiceFrontier || !choices {
+	if strategy != runner.StrategyChoiceExploration || !choices {
 		t.Fatalf("resolveExploreStrategy() = %q, %t", strategy, choices)
 	}
 
@@ -176,10 +181,10 @@ func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedFrontier(t *test
 		{name: "count", configure: func(options *exploreStrategyOptions) { options.CountSet = true }, want: "does not accept --count"},
 		{name: "multiple seeds", configure: func(options *exploreStrategyOptions) { options.Seeds = "7-8" }, want: "exactly one base seed"},
 		{name: "guidance", configure: func(options *exploreStrategyOptions) { options.Guide = true }, want: "does not support --guide"},
-		{name: "missing max runs", configure: func(options *exploreStrategyOptions) { options.MaxRunsSet = false }, want: "--max-runs"},
-		{name: "zero max runs", configure: func(options *exploreStrategyOptions) { options.MaxRuns = 0 }, want: "--max-runs"},
+		{name: "missing max executions", configure: func(options *exploreStrategyOptions) { options.MaxExecutionsSet = false }, want: "--max-executions"},
+		{name: "zero max executions", configure: func(options *exploreStrategyOptions) { options.MaxExecutions = 0 }, want: "--max-executions"},
 		{name: "missing max depth", configure: func(options *exploreStrategyOptions) { options.MaxChoiceDepthSet = false }, want: "--max-choice-depth"},
-		{name: "missing frontier bytes", configure: func(options *exploreStrategyOptions) { options.MaxFrontierBytesSet = false }, want: "--max-frontier-bytes"},
+		{name: "missing exploration bytes", configure: func(options *exploreStrategyOptions) { options.MaxExplorationBytesSet = false }, want: "--max-exploration-bytes"},
 		{name: "unknown", configure: func(options *exploreStrategyOptions) { options.Value = "random" }, want: "unknown exploration strategy"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -192,19 +197,19 @@ func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedFrontier(t *test
 	}
 }
 
-func TestResolveExploreStrategyRequiresExplicitBoundedCombinedFrontier(t *testing.T) {
+func TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration(t *testing.T) {
 	valid := exploreStrategyOptions{
-		Value: "combined-frontier", Seeds: "7", MaxRuns: 8, MaxForcedDecisions: 4,
-		MaxFrontierBytes: 1 << 20, MaxExplorationResultBytes: 1 << 20,
-		CombinedDimensionLimits: runner.CombinedDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4},
-		MaxRunsSet:              true, MaxForcedDecisionsSet: true, MaxFrontierBytesSet: true, MaxExplorationResultBytesSet: true,
+		Value: "simulation-exploration", Seeds: "7", MaxExecutions: 8, MaxForcedDecisions: 4,
+		MaxExplorationBytes: 1 << 20, MaxExplorationResultBytes: 1 << 20,
+		SimulationDimensionLimits: runner.SimulationDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4},
+		MaxExecutionsSet:          true, MaxForcedDecisionsSet: true, MaxExplorationBytesSet: true, MaxExplorationResultBytesSet: true,
 		RuntimeLimitSet: true, ScenarioLimitSet: true, NetworkLimitSet: true, StorageLimitSet: true, FaultLimitSet: true, CrashLimitSet: true,
 	}
 	strategy, choices, err := resolveExploreStrategy(valid)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strategy != runner.StrategyCombinedFrontier || !choices {
+	if strategy != runner.StrategySimulationExploration || !choices {
 		t.Fatalf("resolveExploreStrategy() = %q, %t", strategy, choices)
 	}
 
@@ -217,12 +222,12 @@ func TestResolveExploreStrategyRequiresExplicitBoundedCombinedFrontier(t *testin
 		{name: "multiple seeds", configure: func(options *exploreStrategyOptions) { options.Seeds = "7-8" }, want: "exactly one base seed"},
 		{name: "guidance", configure: func(options *exploreStrategyOptions) { options.Guide = true }, want: "does not support --guide"},
 		{name: "choice depth", configure: func(options *exploreStrategyOptions) { options.MaxChoiceDepthSet = true; options.MaxChoiceDepth = 1 }, want: "does not accept --max-choice-depth"},
-		{name: "missing max runs", configure: func(options *exploreStrategyOptions) { options.MaxRunsSet = false }, want: "--max-runs"},
+		{name: "missing max executions", configure: func(options *exploreStrategyOptions) { options.MaxExecutionsSet = false }, want: "--max-executions"},
 		{name: "missing forced decisions", configure: func(options *exploreStrategyOptions) { options.MaxForcedDecisionsSet = false }, want: "--max-forced-decisions"},
-		{name: "missing frontier bytes", configure: func(options *exploreStrategyOptions) { options.MaxFrontierBytesSet = false }, want: "--max-frontier-bytes"},
+		{name: "missing exploration bytes", configure: func(options *exploreStrategyOptions) { options.MaxExplorationBytesSet = false }, want: "--max-exploration-bytes"},
 		{name: "missing result bytes", configure: func(options *exploreStrategyOptions) { options.MaxExplorationResultBytesSet = false }, want: "--max-exploration-result-bytes"},
 		{name: "missing runtime bound", configure: func(options *exploreStrategyOptions) { options.RuntimeLimitSet = false }, want: "--max-runtime-decisions"},
-		{name: "zero crash bound", configure: func(options *exploreStrategyOptions) { options.CombinedDimensionLimits.Crash = 0 }, want: "--max-crash-decisions"},
+		{name: "zero crash bound", configure: func(options *exploreStrategyOptions) { options.SimulationDimensionLimits.Crash = 0 }, want: "--max-crash-decisions"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			options := valid
@@ -234,9 +239,9 @@ func TestResolveExploreStrategyRequiresExplicitBoundedCombinedFrontier(t *testin
 	}
 }
 
-func TestResolveExploreStrategyRejectsFrontierBoundsForSeeds(t *testing.T) {
-	_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: "seed", Seeds: "7", MaxRuns: 1, MaxRunsSet: true})
-	if err == nil || !strings.Contains(err.Error(), "require --strategy=choice-frontier") {
+func TestResolveExploreStrategyRejectsExplorationBoundsForSeeds(t *testing.T) {
+	_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: "seed", Seeds: "7", MaxExecutions: 1, MaxExecutionsSet: true})
+	if err == nil || !strings.Contains(err.Error(), "require --strategy=choice-exploration") {
 		t.Fatalf("resolveExploreStrategy() error = %v", err)
 	}
 }
@@ -341,13 +346,13 @@ func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
 			}
 			return target.CapabilityReview{}, nil
 		},
-		build: func(input qualification.AnalysisInput) (qualification.AnalysisReport, error) {
-			return qualification.AnalysisReport{Schema: qualification.AnalysisSchema, Classification: qualification.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []qualification.AnalysisBlocker{}}, nil
+		build: func(input capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
 		},
 	}
 	var stdout, stderr bytes.Buffer
 	status := runAnalyzeWith([]string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v4"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
+	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomadv3.capability-analysis/v1"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }
@@ -413,8 +418,8 @@ func TestRunAnalyzeMapsUnsupportedInvalidAndInfrastructureStatuses(t *testing.T)
 		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
 			return target.CapabilityReview{}, nil
 		},
-		build: func(qualification.AnalysisInput) (qualification.AnalysisReport, error) {
-			return qualification.AnalysisReport{Classification: qualification.ClassificationUnsupported, Blockers: []qualification.AnalysisBlocker{}}, nil
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported, Blockers: []capabilityanalysis.Blocker{}}, nil
 		},
 	}
 	for _, test := range []struct {
@@ -466,9 +471,9 @@ func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.
 		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
 		workingDirectory: func() (string, error) { return directory, nil },
 		review:           target.ReviewCapabilities,
-		build: func(qualification.AnalysisInput) (qualification.AnalysisReport, error) {
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
 			t.Fatal("analysis report was built after invalid read-only module resolution")
-			return qualification.AnalysisReport{}, nil
+			return capabilityanalysis.Report{}, nil
 		},
 	}
 	var stdout, stderr bytes.Buffer
@@ -491,8 +496,8 @@ func TestRunAnalyzePreservesClassificationWhenCleanupFails(t *testing.T) {
 		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
 			return target.CapabilityReview{}, nil
 		},
-		build: func(qualification.AnalysisInput) (qualification.AnalysisReport, error) {
-			return qualification.AnalysisReport{Classification: qualification.ClassificationUnsupported}, nil
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported}, nil
 		},
 	}
 	var stdout, stderr bytes.Buffer
@@ -509,8 +514,8 @@ func TestRunAnalyzeReportsOutputFailuresAsInfrastructure(t *testing.T) {
 		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
 			return target.CapabilityReview{}, nil
 		},
-		build: func(qualification.AnalysisInput) (qualification.AnalysisReport, error) {
-			return qualification.AnalysisReport{Classification: qualification.ClassificationSupported}, nil
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
 		},
 	}
 	var stderr bytes.Buffer
@@ -587,8 +592,8 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		arguments []string
 		want      []string
 	}{
-		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=batch", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomadv3.inspect/v4"`, `"kind":"batch"`, `"run_id":"run-inspect-command"`}},
+		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomadv3.inspect/v5"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -611,30 +616,30 @@ func TestRunInspectRejectsChoicesForBatch(t *testing.T) {
 	}
 }
 
-func TestPrintInspectionReportsInterruptedCombinedFrontierWork(t *testing.T) {
+func TestPrintInspectionReportsInterruptedSimulationExplorationWork(t *testing.T) {
 	report := runner.Inspection{
 		Kind: "batch", Path: "/batch",
 		Lifecycle: &runner.CampaignLifecycleInspection{State: "running", Resumable: true},
-		CombinedFrontier: &runner.CombinedFrontierInspection{
-			Schema: "gomadv3.combined-frontier-inspection/v1",
-			Summary: runner.CombinedFrontierSummary{
-				MaxRuns: 8, MaxForcedDecisions: 2, MaxFrontierBytes: 4096, MaxResultBytes: 2048,
-				Limits:  runner.CombinedDimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
+		SimulationExploration: &runner.SimulationExplorationInspection{
+			Schema: "gomadv3.simulation-exploration-inspection/v1",
+			Summary: runner.SimulationExplorationSummary{
+				MaxExecutions: 8, MaxForcedDecisions: 2, MaxExplorationBytes: 4096, MaxResultBytes: 2048,
+				Limits:  runner.SimulationDimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
 				Pending: 1, PendingBytes: 512,
 			},
-			Pending: []runner.CombinedCandidateInspection{{
-				SHA256: "sha256:candidate", Overrides: []runner.CombinedOverrideInspection{{
+			Pending: []runner.SimulationCandidateInspection{{
+				SHA256: "sha256:candidate", Overrides: []runner.SimulationOverrideInspection{{
 					Dimension: "fault", Ordinal: 0, Selected: 1, Alternatives: 2, Identity: "sha256:override", ControlBytes: 64, ControlSHA256: "sha256:control",
 				}},
 			}},
-			StagedRound: &runner.CombinedStagedRoundInspection{Index: 3, Candidates: 2, Attempted: 1},
+			StagedRound: &runner.SimulationStagedRoundInspection{Index: 3, Candidates: 2, Attempted: 1},
 		},
 	}
 	var output bytes.Buffer
 	if err := printInspection(&output, report); err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"combined-frontier:", "pending=1", "runtime=1", "scenario=2", "network=3", "storage=4", "fault=5", "crash=6", "pending-candidate:", "forced-decision:", "staged-round: index=3 candidates=2 attempted=1"} {
+	for _, want := range []string{"simulation-exploration:", "pending=1", "runtime=1", "scenario=2", "network=3", "storage=4", "fault=5", "crash=6", "pending-candidate:", "forced-decision:", "staged-round: index=3 candidates=2 attempted=1"} {
 		if !strings.Contains(output.String(), want) {
 			t.Fatalf("inspection output = %q, missing %q", output.String(), want)
 		}
@@ -732,7 +737,7 @@ func TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure(t *testing
 
 func TestRunRecoverRepairsPublishedBatchPrivateState(t *testing.T) {
 	path := writeInspectBatchFixture(t)
-	stale := filepath.Join(path, ".partial", "batch")
+	stale := filepath.Join(path, ".partial", "campaign")
 	if err := os.MkdirAll(stale, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -752,33 +757,55 @@ func TestRunRecoverRepairsPublishedBatchPrivateState(t *testing.T) {
 func writeInspectBatchFixture(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "run-inspect-command")
-	err := os.Mkdir(path, 0o700)
-	if err != nil {
+	if err := os.Mkdir(path, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	runs, err := evidence.CanonicalJSON(map[string]any{
-		"artifact": nil, "domain": "success", "elapsed_nanos": evidence.Uint64String(5), "failure_signature": nil,
-		"io_transcript_records": nil, "io_transcript_sha256": nil, "reason": "success", "seed": evidence.Uint64String(7),
-		"selection_ordinal": evidence.Uint64String(0), "termination": "exit",
+	execution, err := canonicaljson.CanonicalJSON(map[string]any{
+		"artifact": nil, "domain": "success", "elapsed_nanos": record.Uint64String(5), "failure_signature": nil,
+		"io_transcript_records": nil, "io_transcript_sha256": nil, "reason": "success", "seed": record.Uint64String(7),
+		"selection_ordinal": record.Uint64String(0), "termination": "exit",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	runs = append(runs, '\n')
-	if err := os.WriteFile(filepath.Join(path, "runs.jsonl"), runs, 0o600); err != nil {
+	execution = append(execution, '\n')
+	executionsPath := filepath.Join(path, "executions")
+	if err := os.Mkdir(executionsPath, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	batch, err := evidence.CanonicalJSON(map[string]any{
-		"attempted": evidence.Uint64String(1), "cancelled": evidence.Uint64String(0), "distinct_failures": evidence.Uint64String(0),
-		"failure_signatures": []evidence.SHA256{}, "failures": evidence.Uint64String(0), "run_id": "run-inspect-command",
-		"runs_sha256": evidence.HashBytes(runs), "schema": "gomadv3.batch/v2", "schema_version": evidence.SchemaVersion,
-		"selection": "7", "selection_count": evidence.Uint64String(1), "stop_reason": "seeds_exhausted", "strategy": "seed",
-		"succeeded": evidence.Uint64String(1), "watchdogs": evidence.Uint64String(0),
+	segmentName := "00000000000000000000.jsonl"
+	if err := os.WriteFile(filepath.Join(executionsPath, segmentName), execution, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	limits := map[string]any{
+		"maximum_executions": record.Uint64String(1), "maximum_bytes": record.Uint64String(1 << 20),
+		"segment_bytes": record.Uint64String(1 << 20), "segment_records": record.Uint64String(1024),
+		"maximum_segments": record.Uint64String(1), "maximum_partial_executions": record.Uint64String(1),
+		"capacity_outcome": "infrastructure_failure",
+	}
+	index, err := canonicaljson.CanonicalJSON(map[string]any{
+		"schema": "gomadv3.execution-journal/v1", "limits": limits,
+		"segments": []any{map[string]any{"file": segmentName, "records": record.Uint64String(1), "bytes": record.Uint64String(len(execution)), "sha256": record.HashBytes(execution)}},
+		"records":  record.Uint64String(1), "bytes": record.Uint64String(len(execution)),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(path, "batch.json"), batch, 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(executionsPath, "index.json"), index, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	batch, err := canonicaljson.CanonicalJSON(map[string]any{
+		"attempted": record.Uint64String(1), "cancelled": record.Uint64String(0), "distinct_failures": record.Uint64String(0),
+		"failure_signatures": []record.SHA256{}, "failures": record.Uint64String(0), "campaign_id": "run-inspect-command",
+		"journal": map[string]any{"schema": "gomadv3.execution-journal/v1", "index_file": "executions/index.json", "index_sha256": record.HashBytes(index), "segments": record.Uint64String(1), "records": record.Uint64String(1), "bytes": record.Uint64String(len(execution))},
+		"schema":  "gomadv3.campaign/v1", "schema_version": record.SchemaVersion,
+		"selection": "7", "selection_count": record.Uint64String(1), "stop_reason": "seeds_exhausted", "strategy": "seed",
+		"succeeded": record.Uint64String(1), "watchdogs": record.Uint64String(0),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(path, "campaign.json"), batch, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return path
@@ -803,7 +830,7 @@ func TestExploreReporterEmitsStableJSONEventsAndEveryArtifact(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	for _, value := range []string{
-		`"schema":"gomadv3.explore-event/v2"`, `"type":"progress"`, `"phase":"preparing"`,
+		`"schema":"gomadv3.explore-event/v3"`, `"type":"progress"`, `"phase":"preparing"`,
 		`"type":"result"`, `"classification":"target_failure"`, `"novelty":2`,
 		`"semantic_coverage":{"schema":"gomadv3.semantic-coverage/v1","digest":"sha256:coverage","probes":["stdlib.os.openfile"]}`,
 		`"path":"/batch/failures/one"`, `"path":"/batch/failures/two"`,
@@ -853,10 +880,10 @@ func TestExploreReporterReportsGuidedCorpusUpdates(t *testing.T) {
 	}
 }
 
-func TestExploreReporterReportsCombinedFrontierBoundsAndRemainingWork(t *testing.T) {
-	frontier := &runner.CombinedFrontierSummary{
-		Parallel: 2, MaxRuns: 16, MaxForcedDecisions: 4, MaxFrontierBytes: 1 << 20, MaxResultBytes: 64 << 10,
-		Limits:            runner.CombinedDimensionLimits{Runtime: 2, Scenario: 3, Network: 4, Storage: 5, Fault: 6, Crash: 7},
+func TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork(t *testing.T) {
+	exploration := &runner.SimulationExplorationSummary{
+		Parallel: 2, MaxExecutions: 16, MaxForcedDecisions: 4, MaxExplorationBytes: 1 << 20, MaxResultBytes: 64 << 10,
+		Limits:            runner.SimulationDimensionLimits{Runtime: 2, Scenario: 3, Network: 4, Storage: 5, Fault: 6, Crash: 7},
 		LogicalExecutions: 5, CommittedRounds: 3, Pending: 4, PendingBytes: 2048, SeenCandidates: 9,
 		DeduplicatedOutcomes: 3, DistinctFailures: 1, DeepestOverride: 2, OmittedByDimension: 8,
 	}
@@ -865,15 +892,15 @@ func TestExploreReporterReportsCombinedFrontierBoundsAndRemainingWork(t *testing
 		reporter := newExploreReporter(jsonOutput, &stdout, &stderr)
 		if err := reporter.Result(runner.CampaignResult{
 			CampaignPath: "/batch", SelectionCount: 1, Attempted: 5, Failures: 1,
-			StopReason: runner.StopDimensionDepthComplete, CombinedFrontier: frontier, RecoveryExecutions: 2,
+			StopReason: runner.StopDimensionDepthComplete, SimulationExploration: exploration, RecoveryExecutions: 2,
 		}); err != nil {
 			t.Fatal(err)
 		}
-		frontierName := "combined-frontier"
+		explorationName := "simulation-exploration"
 		if jsonOutput {
-			frontierName = "combined_frontier"
+			explorationName = "simulation_exploration"
 		}
-		for _, want := range []string{frontierName, "pending", "2048", "runtime", "scenario", "network", "storage", "fault", "crash", "recovery"} {
+		for _, want := range []string{explorationName, "pending", "2048", "runtime", "scenario", "network", "storage", "fault", "crash", "recovery"} {
 			if !strings.Contains(stdout.String(), want) {
 				t.Fatalf("json=%t output = %q, missing %q", jsonOutput, stdout.String(), want)
 			}
@@ -890,7 +917,7 @@ func TestRunExploreReportsFlagErrorsAsJSON(t *testing.T) {
 	if status != 2 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
-	for _, value := range []string{`"schema":"gomadv3.explore-event/v2"`, `"type":"error"`, `"classification":"invalid_input"`} {
+	for _, value := range []string{`"schema":"gomadv3.explore-event/v3"`, `"type":"error"`, `"classification":"invalid_input"`} {
 		if !strings.Contains(stdout.String(), value) {
 			t.Fatalf("explore output = %q, missing %q", stdout.String(), value)
 		}
@@ -932,7 +959,7 @@ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
 		t.Fatalf("status=%d calls=%d report=%#v stdout=%q stderr=%q", status, calls, retained, stdout.String(), stderr.String())
 	}
 	for _, config := range configs {
-		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemanticChoice || !config.CollectRunEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
+		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemanticChoice || !config.CollectExecutionEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
 			t.Fatalf("config = %#v", config)
 		}
 	}
@@ -951,7 +978,7 @@ func TestRunQualifyReportsNondeterministicEvidence(t *testing.T) {
 		calls++
 		runRecord := qualificationEvidence(7)
 		if calls == 2 {
-			runRecord.Stdout.FullSHA256 = evidence.HashBytes([]byte("different"))
+			runRecord.Stdout.FullSHA256 = record.HashBytes([]byte("different"))
 		}
 		return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1, ExecutionEvidence: &runRecord}, nil
 	}
@@ -989,7 +1016,7 @@ func TestRunQualifyReplaysRepeatedTargetFailure(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifyWith([]string{"--json", "--seed", "7", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 1 || calls != 2 || replayCalls != 2 || retained.Runs[0].Replay == nil || !retained.Runs[0].Replay.Match || retained.Runs[1].Replay == nil || !retained.Runs[1].Replay.Match || retained.TargetSuccess || !strings.Contains(stdout.String(), `"classification":"target_failure"`) {
+	if status != 1 || calls != 2 || replayCalls != 2 || retained.Executions[0].Replay == nil || !retained.Executions[0].Replay.Match || retained.Executions[1].Replay == nil || !retained.Executions[1].Replay.Match || retained.TargetSuccess || !strings.Contains(stdout.String(), `"classification":"target_failure"`) {
 		t.Fatalf("status=%d calls=%d replay=%d report=%#v stdout=%q stderr=%q", status, calls, replayCalls, retained, stdout.String(), stderr.String())
 	}
 }
@@ -1022,7 +1049,7 @@ func TestRunQualifyReplaysEveryRetainedSuccess(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 0 || calls != 2 || replayCalls != 2 || !retained.Qualified || retained.Runs[0].Replay == nil || !retained.Runs[0].Replay.Match || retained.Runs[1].Replay == nil || !retained.Runs[1].Replay.Match || stderr.Len() != 0 {
+	if status != 0 || calls != 2 || replayCalls != 2 || !retained.Qualified || retained.Executions[0].Replay == nil || !retained.Executions[0].Replay.Match || retained.Executions[1].Replay == nil || !retained.Executions[1].Replay.Match || stderr.Len() != 0 {
 		t.Fatalf("status=%d calls=%d replay=%d report=%#v stdout=%q stderr=%q", status, calls, replayCalls, retained, stdout.String(), stderr.String())
 	}
 }
@@ -1084,7 +1111,7 @@ func TestRunQualifyRetainsReplayCancellation(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 3 || retained.Failure == nil || retained.Failure.Classification != "cancelled" || len(retained.Runs) != 2 || retained.Runs[0].Replay == nil || retained.Runs[0].Replay.Divergence == "" || stderr.Len() != 0 {
+	if status != 3 || retained.Failure == nil || retained.Failure.Classification != "cancelled" || len(retained.Executions) != 2 || retained.Executions[0].Replay == nil || retained.Executions[0].Replay.Divergence == "" || stderr.Len() != 0 {
 		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
 	}
 }
@@ -1138,7 +1165,7 @@ func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
 	if status != 0 || stderr.Len() != 0 || resolvedToolchainRoot != "/bundle/toolchain" || got.CampaignPath != "/artifacts/v1/run-partial" || got.RunnerBuild != "sha256:runner" || got.ToolchainRoot != "/toolchain" || len(got.CoordinatorCommand) != 2 {
 		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, got, stdout.String(), stderr.String())
 	}
-	for _, want := range []string{`"schema":"gomadv3.explore-event/v2"`, `"type":"result"`, `"classification":"success"`, `"batch_path":"/artifacts/v1/run-partial"`} {
+	for _, want := range []string{`"schema":"gomadv3.explore-event/v3"`, `"type":"result"`, `"classification":"success"`, `"campaign_path":"/artifacts/v1/run-partial"`} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("output = %q, missing %q", stdout.String(), want)
 		}
@@ -1181,13 +1208,13 @@ func qualificationDependencies(t *testing.T) qualifyDependencies {
 
 func qualificationEvidence(seed uint64) runner.ExecutionEvidence {
 	return runner.ExecutionEvidence{
-		Schema: runner.ExecutionEvidenceSchema, Seed: evidence.Uint64String(seed), RunnerBuild: "sha256:runner",
-		Toolchain:   evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      evidence.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}},
-		IOProfile:   runner.IOProfileEvidence{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
-		Environment: []evidence.Environment{{Name: "GOMADSEED", Value: fmt.Sprintf("%d", seed)}, {Name: "TZ", Value: "UTC"}},
+		Schema: runner.ExecutionEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
+		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}},
+		IOProfile:   deterministicio.Contract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprintf("%d", seed)}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     runner.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
-		Stdout: evidence.Stream{FullSHA256: "sha256:stdout"}, Stderr: evidence.Stream{FullSHA256: "sha256:stderr"},
+		Stdout: record.Stream{FullSHA256: "sha256:stdout"}, Stderr: record.Stream{FullSHA256: "sha256:stderr"},
 		IOTranscriptSHA256: "sha256:transcript", IOTranscriptRecords: 1, IOTranscriptComplete: true,
 		SemanticCoverage: deterministicio.SemanticCoverage{Schema: deterministicio.SemanticCoverageSchema, Digest: "sha256:coverage", Probes: []string{"stdlib.os.openfile"}},
 	}
@@ -1204,7 +1231,7 @@ func TestExploreReporterHumanOutputIncludesProgressAndReplayCommands(t *testing.
 	if err := reporter.Result(runner.CampaignResult{
 		CampaignPath: "/batch", SelectionCount: 5, Attempted: 5, Succeeded: 4, Failures: 1, DistinctFailures: 1,
 		StopReason: runner.StopSeedsExhausted, Artifacts: []string{"/batch/failures/one"},
-		ChoiceTrace: &runner.ChoiceTraceSummary{Seed: 7, Profile: choice.Profile, Records: 3, BranchingRecords: 2, SHA256: evidence.HashBytes([]byte("choices")), TerminalState: "complete"},
+		ChoiceTrace: &runner.ChoiceTraceSummary{Seed: 7, Profile: choice.Profile, Records: 3, BranchingRecords: 2, SHA256: record.HashBytes([]byte("choices")), TerminalState: "complete"},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1266,7 +1293,7 @@ func TestReportReplayResultStatesWhetherFailureWasReproduced(t *testing.T) {
 		want   string
 		status int
 	}{
-		{name: "success", result: runner.ReplayResult{Artifact: evidence.Artifact{Manifest: evidence.ExecutionRecord{Outcome: evidence.Outcome{Domain: "success"}}}, Match: true}, want: "reproduced=true diagnostic=false result=success", status: 0},
+		{name: "success", result: runner.ReplayResult{Artifact: artifact.Artifact{Manifest: record.ExecutionRecord{Outcome: record.Outcome{Domain: "success"}}}, Match: true}, want: "reproduced=true diagnostic=false result=success", status: 0},
 		{name: "target failure", result: runner.ReplayResult{Match: true}, want: "reproduced=true diagnostic=false result=target_failure", status: 1},
 		{name: "watchdog observation", result: runner.ReplayResult{Match: true, Diagnostic: true}, want: "reproduced=true diagnostic=true result=watchdog_observation", status: 1},
 		{name: "divergence", result: runner.ReplayResult{Divergence: "stdout.full_sha256"}, want: "reproduced=false divergence=stdout.full_sha256", status: 1},
@@ -1290,8 +1317,8 @@ func TestRunMinimizeUsesBoundedArtifactStoreAndCurrentInstallation(t *testing.T)
 		minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
 			observed = config
 			return runner.MinimizeResult{
-				Artifact: evidence.Artifact{Path: "/artifacts/minimized/sha256-result"}, Changed: true,
-				Attempts: 7, AttemptBudget: 16, Accepted: []evidence.MinimizationReduction{{Kind: "fault_entries"}}, StopReason: "minimal",
+				Artifact: artifact.Artifact{Path: "/artifacts/minimized/sha256-result"}, Changed: true,
+				Attempts: 7, AttemptBudget: 16, Accepted: []record.MinimizationReduction{{Kind: "fault_entries"}}, StopReason: "minimal",
 			}, nil
 		},
 	}
