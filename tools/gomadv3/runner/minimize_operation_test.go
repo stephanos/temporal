@@ -7,15 +7,17 @@ import (
 	"sync"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
+	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
 )
 
 func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true, ForcedSimulation: true})
-	parent, err := evidence.OpenArtifact(artifactPath)
+	parent, err := artifact.OpenArtifact(artifactPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +52,7 @@ func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 	if executor.calls != int(result.Attempts) || replayer.calls != 2 {
 		t.Fatalf("candidate calls = %d, replay calls = %d", executor.calls, replayer.calls)
 	}
-	reopened, err := evidence.OpenArtifact(artifactPath)
+	reopened, err := artifact.OpenArtifact(artifactPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +90,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 	}
 	var retained struct {
 		Overrides []struct {
-			Dimension combinedfrontier.Dimension `json:"dimension"`
+			Dimension simulationengine.Dimension `json:"dimension"`
 		} `json:"overrides"`
 	}
 	if err := json.Unmarshal(request.Simulation.ExplorationPlan, &retained); err != nil {
@@ -97,37 +99,37 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 	hasRuntime := false
 	hasFault := false
 	for _, override := range retained.Overrides {
-		hasRuntime = hasRuntime || override.Dimension == combinedfrontier.DimensionRuntime
-		hasFault = hasFault || override.Dimension == combinedfrontier.DimensionFault
+		hasRuntime = hasRuntime || override.Dimension == simulationengine.DimensionRuntime
+		hasFault = hasFault || override.Dimension == simulationengine.DimensionFault
 	}
-	failure := evidence.HashBytes([]byte("different failure"))
+	failure := record.HashBytes([]byte("different failure"))
 	if hasRuntime {
-		failure = evidence.HashBytes([]byte("normalized replay failure"))
+		failure = record.HashBytes([]byte("normalized replay failure"))
 	}
-	var decisions []combinedfrontier.Decision
+	var decisions []simulationengine.Decision
 	if hasFault {
-		fault, decisionErr := combinedfrontier.CanonicalDecision(
-			combinedfrontier.DimensionFault, 0, evidence.HashBytes([]byte("fault site")),
-			[]evidence.SHA256{evidence.HashBytes([]byte("no fault")), evidence.HashBytes([]byte("drop"))}, 1,
+		fault, decisionErr := simulationengine.CanonicalDecision(
+			simulationengine.DimensionFault, 0, record.HashBytes([]byte("fault site")),
+			[]record.SHA256{record.HashBytes([]byte("no fault")), record.HashBytes([]byte("drop"))}, 1,
 		)
 		if decisionErr != nil {
 			return execution.Result{}, decisionErr
 		}
-		decisions = []combinedfrontier.Decision{fault}
+		decisions = []simulationengine.Decision{fault}
 	}
 	record, err := json.Marshal(struct {
 		Schema               string                      `json:"schema"`
 		Seed                 uint64                      `json:"seed"`
-		SpecSHA256           evidence.SHA256             `json:"spec_sha256"`
+		SpecSHA256           record.SHA256               `json:"spec_sha256"`
 		Outcome              string                      `json:"outcome"`
-		FailureIdentity      evidence.SHA256             `json:"failure_identity"`
+		FailureIdentity      record.SHA256               `json:"failure_identity"`
 		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
-		ExplorationDecisions []combinedfrontier.Decision `json:"exploration_decisions,omitempty"`
-		Identity             evidence.SHA256             `json:"identity"`
+		ExplorationDecisions []simulationengine.Decision `json:"exploration_decisions,omitempty"`
+		Identity             record.SHA256               `json:"identity"`
 	}{
-		Schema: "gomadv3.cluster-record/v7", Seed: 7, SpecSHA256: evidence.HashBytes([]byte("simulation spec")),
+		Schema: "gomadv3.cluster-record/v7", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")),
 		Outcome: "oracle_failed", FailureIdentity: failure, ExplorationPlan: request.Simulation.ExplorationPlan,
-		ExplorationDecisions: decisions, Identity: evidence.HashBytes([]byte("simulation record")),
+		ExplorationDecisions: decisions, Identity: record.HashBytes([]byte("simulation record")),
 	})
 	if err != nil {
 		return execution.Result{}, err
@@ -137,7 +139,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 	return execution.Result{
 		Termination: execution.TerminationExit, ExitCode: exitCode, GroupGone: true,
 		Stdout: replayOutput("recorded stdout"), Stderr: replayOutput("recorded stderr"),
-		IOTranscript: execution.IOTranscript{SHA256: empty, Complete: true}, ChoiceTrace: trace,
+		IOTranscript: deterministicio.Transcript{SHA256: empty, Complete: true}, ChoiceTrace: trace,
 		SimulationRecords: [][]byte{record},
 	}, nil
 }
@@ -165,7 +167,7 @@ type minimizationReplayer struct {
 
 func (replayer *minimizationReplayer) Replay(_ context.Context, spec ReplaySpec) (ReplayResult, error) {
 	replayer.calls++
-	opened, err := evidence.OpenArtifact(spec.ArtifactPath)
+	opened, err := artifact.OpenArtifact(spec.ArtifactPath)
 	if err != nil {
 		return ReplayResult{}, err
 	}

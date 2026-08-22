@@ -10,18 +10,18 @@ import (
 	"sort"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/record"
 )
 
 const campaignPlanMountDirectory = "mounts"
 
-func canonicalCampaignPlanMounts(mappings []deterministicio.Mapping) ([]deterministicio.Mapping, []deterministicio.Mapping) {
-	canonical := append([]deterministicio.Mapping(nil), mappings...)
+func canonicalCampaignPlanMounts(mappings []readonlymount.Mapping) ([]readonlymount.Mapping, []readonlymount.Mapping) {
+	canonical := append([]readonlymount.Mapping(nil), mappings...)
 	sort.Slice(canonical, func(left, right int) bool { return canonical[left].Target < canonical[right].Target })
-	portable := make([]deterministicio.Mapping, len(canonical))
+	portable := make([]readonlymount.Mapping, len(canonical))
 	for index, mapping := range canonical {
-		portable[index] = deterministicio.Mapping{Source: campaignPlanMountSource(index), Target: mapping.Target}
+		portable[index] = readonlymount.Mapping{Source: campaignPlanMountSource(index), Target: mapping.Target}
 	}
 	return canonical, portable
 }
@@ -34,7 +34,7 @@ func campaignPlanMountValue(index int, target string) string {
 	return campaignPlanMountSource(index) + "=" + strings.TrimPrefix(target, "/")
 }
 
-func campaignPlanRuntimeMountValues(mappings []deterministicio.Mapping) []string {
+func campaignPlanRuntimeMountValues(mappings []readonlymount.Mapping) []string {
 	values := make([]string, len(mappings))
 	for index, mapping := range mappings {
 		values[index] = mapping.Source + "=" + strings.TrimPrefix(mapping.Target, "/")
@@ -42,26 +42,26 @@ func campaignPlanRuntimeMountValues(mappings []deterministicio.Mapping) []string
 	return values
 }
 
-func captureCampaignPlanMounts(mappings []deterministicio.Mapping, limits deterministicio.Limits) (*campaignPlanMountIdentity, *deterministicio.CapturedInputs, error) {
+func captureCampaignPlanMounts(mappings []readonlymount.Mapping, limits readonlymount.Limits) (*campaignPlanMountIdentity, *readonlymount.CapturedInputs, error) {
 	if len(mappings) == 0 {
 		return nil, nil, nil
 	}
-	captured, err := deterministicio.CaptureReadOnlyMountInputs(mappings, limits)
+	captured, err := readonlymount.CaptureReadOnlyMountInputs(mappings, limits)
 	if err != nil {
 		return nil, nil, err
 	}
 	manifest := captured.Manifest
 	return &campaignPlanMountIdentity{
-		Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: evidence.Uint64String(manifest.Bytes), Entries: evidence.Uint64String(manifest.Entries), TotalBytes: evidence.Uint64String(manifest.TotalBytes),
+		Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: record.Uint64String(manifest.Bytes), Entries: record.Uint64String(manifest.Entries), TotalBytes: record.Uint64String(manifest.TotalBytes),
 		Mappings: append([]string(nil), manifest.Mappings...), Limits: manifest.Limits,
 	}, &captured, nil
 }
 
-func materializeCampaignPlanMounts(bundle string, captured *deterministicio.CapturedInputs) error {
+func materializeCampaignPlanMounts(bundle string, captured *readonlymount.CapturedInputs) error {
 	if captured == nil {
 		return nil
 	}
-	mappings, _, snapshot, err := deterministicio.DecodeCapturedInputs(captured.Manifest, captured.Descriptor, func(name string, maximum uint64) ([]byte, error) {
+	mappings, _, snapshot, err := readonlymount.DecodeCapturedInputs(captured.Manifest, captured.Descriptor, func(name string, maximum uint64) ([]byte, error) {
 		data, found := captured.Payloads[name]
 		if !found || uint64(len(data)) > maximum {
 			return nil, os.ErrNotExist
@@ -82,7 +82,7 @@ func materializeCampaignPlanMounts(bundle string, captured *deterministicio.Capt
 	directories := make([]directoryMode, 0, len(snapshot.Entries))
 	rootSeen := make([]bool, len(mappings))
 	for _, entry := range snapshot.Entries {
-		if entry.Kind != deterministicio.KindDirectory {
+		if entry.Kind != readonlymount.KindDirectory {
 			continue
 		}
 		destination, mappingIndex, err := campaignPlanMountDestination(mountRoot, mappings, entry.Path)
@@ -103,7 +103,7 @@ func materializeCampaignPlanMounts(bundle string, captured *deterministicio.Capt
 		}
 	}
 	for _, entry := range snapshot.Entries {
-		if entry.Kind != deterministicio.KindFile {
+		if entry.Kind != readonlymount.KindFile {
 			continue
 		}
 		destination, _, err := campaignPlanMountDestination(mountRoot, mappings, entry.Path)
@@ -130,7 +130,7 @@ func materializeCampaignPlanMounts(bundle string, captured *deterministicio.Capt
 	return syncDirectory(mountRoot)
 }
 
-func campaignPlanMountDestination(root string, mappings []deterministicio.Mapping, targetPath string) (string, int, error) {
+func campaignPlanMountDestination(root string, mappings []readonlymount.Mapping, targetPath string) (string, int, error) {
 	for index, mapping := range mappings {
 		if targetPath != mapping.Target && !strings.HasPrefix(targetPath, mapping.Target+"/") {
 			continue

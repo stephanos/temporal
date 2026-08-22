@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
-	romount "go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	romount "go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 )
 
 type targetIdentity struct {
@@ -30,7 +32,7 @@ type supervisorRequest struct {
 	Argv0                string        `json:"argv0"`
 	Dir                  string        `json:"dir"`
 	Env                  []string      `json:"env"`
-	RunTimeout           time.Duration `json:"run_timeout"`
+	ExecutionTimeout     time.Duration `json:"execution_timeout"`
 	TerminateGrace       time.Duration `json:"terminate_grace"`
 	WorldTransitionLimit uint64        `json:"world_transition_limit"`
 	WorldSeed            uint64        `json:"world_seed"`
@@ -101,29 +103,29 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		defer func() { retErr = errors.Join(retErr, simulationCoordinator.close()) }()
 	}
 	worldCapability, ioCapability := request.World, request.IO
-	timeout, err := effectiveTimeout(ctx, request.RunTimeout)
+	timeout, err := effectiveTimeout(ctx, request.ExecutionTimeout)
 	if err != nil {
 		return Result{}, err
 	}
 	deadline := time.Now().Add(timeout)
 
-	stdoutCapture, err := NewOutputCapture(request.OutputLimit)
+	stdoutCapture, err := hostexec.New(request.OutputLimit)
 	if err != nil {
 		return Result{}, fmt.Errorf("create stdout capture: %w", err)
 	}
-	stderrCapture, err := NewOutputCapture(request.OutputLimit)
+	stderrCapture, err := hostexec.New(request.OutputLimit)
 	if err != nil {
 		return Result{}, fmt.Errorf("create stderr capture: %w", err)
 	}
-	worldCapture, err := NewOutputCapture(worldCapability.RecordLimit)
+	worldCapture, err := hostexec.New(worldCapability.RecordLimit)
 	if err != nil {
 		return Result{}, fmt.Errorf("create World record capture: %w", err)
 	}
-	var ioSession *romount.Session
+	var ioSession *deterministicio.Session
 	var ioTranscriptFile, ioTerminalFile, ioExpectedFile *os.File
 	if ioCapability != nil && ioCapability.Transcript != nil {
 		transcript := ioCapability.Transcript
-		ioSession, err = romount.NewSession(romount.SessionSpec{Limit: transcript.Limit, Replay: transcript.Replay, Expected: transcript.Expected})
+		ioSession, err = deterministicio.NewSession(deterministicio.SessionSpec{Limit: transcript.Limit, Replay: transcript.Replay, Expected: transcript.Expected})
 		if err != nil {
 			return Result{}, err
 		}
@@ -284,7 +286,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		return Result{}, errors.Join(fmt.Errorf("close inherited supervisor pipe ends: %w", closeErr), cleanupEarlySupervisor(command, controlWrite, reportRead, nil, deadline))
 	}
 	type ioCollection struct {
-		transcript romount.Transcript
+		transcript deterministicio.Transcript
 		err        error
 	}
 	var collectedIO <-chan ioCollection
@@ -324,7 +326,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		Argv0:                request.Argv0,
 		Dir:                  request.Dir,
 		Env:                  request.Env,
-		RunTimeout:           wireTimeout,
+		ExecutionTimeout:     wireTimeout,
 		TerminateGrace:       min(request.TerminateGrace, wireTimeout),
 		WorldTransitionLimit: worldCapability.TransitionLimit,
 		WorldSeed:            worldCapability.Seed,
@@ -504,7 +506,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			select {
 			case identity := <-identities:
 				if identity.err == nil {
-					groupCleanupErr = killGroupBounded(identity.pgid, deadline)
+					groupCleanupErr = hostexec.KillGroupBefore(identity.pgid, deadline)
 				}
 			case <-startedWait.C:
 			}
@@ -536,7 +538,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	if protocolErr != nil {
 		return Result{}, errors.Join(protocolErr, cleanupTargetGroups(identity, decodedReports, deadline))
 	}
-	groupPresent, probeErr := groupExists(started.PGID)
+	groupPresent, probeErr := hostexec.GroupExists(started.PGID)
 	if probeErr != nil {
 		return Result{}, errors.Join(probeErr, cleanupTargetGroups(identity, decodedReports, deadline))
 	}
@@ -545,13 +547,13 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	var groupCleanupErr error
 	if started != nil && final == nil {
-		groupCleanupErr = killGroupBounded(started.PGID, deadline)
+		groupCleanupErr = hostexec.KillGroupBefore(started.PGID, deadline)
 	}
 	captureResults := make([]captureResult, 0, 3)
 	captureRemaining := time.Until(deadline)
 	if captureRemaining <= 0 {
 		if started != nil {
-			groupCleanupErr = errors.Join(groupCleanupErr, killGroupBounded(started.PGID, deadline))
+			groupCleanupErr = errors.Join(groupCleanupErr, hostexec.KillGroupBefore(started.PGID, deadline))
 		}
 		return Result{}, errors.Join(fmt.Errorf("target output pipes remained open at the process deadline"), groupCleanupErr)
 	}
@@ -562,7 +564,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			captureResults = append(captureResults, captured)
 		case <-captureTimer.C:
 			if started != nil {
-				groupCleanupErr = errors.Join(groupCleanupErr, killGroupBounded(started.PGID, deadline))
+				groupCleanupErr = errors.Join(groupCleanupErr, hostexec.KillGroupBefore(started.PGID, deadline))
 			}
 			return Result{}, errors.Join(fmt.Errorf("target output pipes remained open after supervisor exit"), groupCleanupErr)
 		}
@@ -576,7 +578,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	for _, captured := range captureResults {
 		if captured.err != nil {
 			if started != nil {
-				groupCleanupErr = errors.Join(groupCleanupErr, killGroupBounded(started.PGID, deadline))
+				groupCleanupErr = errors.Join(groupCleanupErr, hostexec.KillGroupBefore(started.PGID, deadline))
 			}
 			return Result{}, errors.Join(fmt.Errorf("capture target %s: %w", captured.name, captured.err), groupCleanupErr)
 		}
@@ -682,7 +684,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	if waitErr != nil {
 		if started != nil {
-			groupCleanupErr = errors.Join(groupCleanupErr, killGroupBounded(started.PGID, deadline))
+			groupCleanupErr = errors.Join(groupCleanupErr, hostexec.KillGroupBefore(started.PGID, deadline))
 		}
 		if supervisorTimedOut {
 			return result, errors.Join(fmt.Errorf("supervisor exceeded the process deadline"), groupCleanupErr)
@@ -753,14 +755,14 @@ func targetTimeout(timeout time.Duration) time.Duration {
 }
 
 type captureWriter struct {
-	capture   *OutputCapture
+	capture   *hostexec.Capture
 	head      io.Writer
 	remaining uint64
 	cancel    func()
 	err       error
 }
 
-func newCaptureWriter(capture *OutputCapture, head io.Writer, cancel func()) *captureWriter {
+func newCaptureWriter(capture *hostexec.Capture, head io.Writer, cancel func()) *captureWriter {
 	return &captureWriter{capture: capture, head: head, remaining: capture.HeadLimit(), cancel: cancel}
 }
 

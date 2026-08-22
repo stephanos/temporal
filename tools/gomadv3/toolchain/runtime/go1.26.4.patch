@@ -465,7 +465,7 @@ index 553f696..a4c8a1d 100644
  
  sclose:
 diff --git a/src/runtime/sizeof_test.go b/src/runtime/sizeof_test.go
-index 219bcb9..5028974 100644
+index 219bcb9..27dadf9 100644
 --- a/src/runtime/sizeof_test.go
 +++ b/src/runtime/sizeof_test.go
 @@ -21,7 +21,7 @@ func TestSizeof(t *testing.T) {
@@ -473,7 +473,7 @@ index 219bcb9..5028974 100644
  		_64bit uintptr // size on 64bit platforms
  	}{
 -		{runtime.G{}, 288 + xreg, 448 + xreg}, // g, but exported for testing
-+		{runtime.G{}, 336 + xreg, 496 + xreg}, // g, but exported for testing
++		{runtime.G{}, 340 + xreg, 504 + xreg}, // g, but exported for testing
  		{runtime.Sudog{}, 64, 104},            // sudog, but exported for testing
  	}
  

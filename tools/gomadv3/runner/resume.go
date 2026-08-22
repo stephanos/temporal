@@ -9,9 +9,12 @@ import (
 	"sort"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
@@ -29,7 +32,7 @@ type ResumeSpec struct {
 
 func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
 	return Explore(ctx, CampaignSpec{
-		ResumeBatch: spec.CampaignPath, RunnerBuild: spec.RunnerBuild,
+		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild,
 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
@@ -37,12 +40,12 @@ func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
 }
 
 func resumeRequestDefaults(config CampaignSpec) (CampaignSpec, error) {
-	path, err := filepath.Abs(config.ResumeBatch)
+	path, err := filepath.Abs(config.ResumeCampaign)
 	if err != nil {
-		return CampaignSpec{}, fmt.Errorf("resolve resumable batch path: %w", err)
+		return CampaignSpec{}, fmt.Errorf("resolve resumable campaign path: %w", err)
 	}
-	config.ResumeBatch = path
-	preflight, err := campaignstore.PreflightResume(path)
+	config.ResumeCampaign = path
+	preflight, err := campaign.PreflightResume(path)
 	if err != nil {
 		return CampaignSpec{}, err
 	}
@@ -51,7 +54,7 @@ func resumeRequestDefaults(config CampaignSpec) (CampaignSpec, error) {
 	return config, nil
 }
 
-func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) (CampaignSpec, SeedSelection, []evidence.Environment, []deterministicio.Mapping, target.Prepared, error) {
+func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (CampaignSpec, SeedSelection, []record.Environment, []readonlymount.Mapping, target.Prepared, error) {
 	if plan.RunnerBuild != request.RunnerBuild {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
 	}
@@ -63,16 +66,16 @@ func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) 
 	if err != nil || selection.Count() != uint64(plan.SelectionCount) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded seed selection is invalid: %w", err)
 	}
-	mountLimits, err := deterministicio.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
+	mountLimits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
-	mounts, err := deterministicio.ParseMappings(plan.IOROMounts, "")
+	mounts, err := readonlymount.ParseMappings(plan.IOROMounts, "")
 	if err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	prepared := target.Prepared{
-		Path: filepath.Join(request.ResumeBatch, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
+		Path: filepath.Join(request.ResumeCampaign, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
 		SHA256: string(plan.Prepared.Target.SHA256), Size: uint64(plan.Prepared.Target.Size), Argv: append([]string(nil), plan.Prepared.Target.Argv...),
 		BuildTags: append([]string(nil), plan.Prepared.Target.BuildTags...), Adapters: cloneAdapters(plan.Prepared.Target.Adapters), Compatibility: cloneCompatibility(plan.Prepared.Target.Compatibility), BuildInfo: cloneBuildInfo(plan.Prepared.Target.BuildInfo),
 		GoVersion: plan.Toolchain.GoVersion, BuildKey: plan.Toolchain.BuildKey, TargetGOOS: plan.Toolchain.TargetGOOS, TargetGOARCH: plan.Toolchain.TargetGOARCH,
@@ -94,12 +97,12 @@ func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) 
 		}
 	}
 	config := CampaignSpec{
-		ResumeBatch: request.ResumeBatch, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
-		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
+		ResumeCampaign: request.ResumeCampaign, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
+		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
-		MaxRuns: uint64(plan.MaxRuns), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxForcedDecisions: uint64(plan.MaxForcedDecisions),
-		MaxFrontierBytes: uint64(plan.MaxFrontierBytes), MaxExplorationResultBytes: uint64(plan.MaxExplorationResultBytes), CombinedDimensionLimits: plan.CombinedDimensionLimits,
-		Artifacts: filepath.Dir(filepath.Dir(request.ResumeBatch)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
+		MaxExecutions: uint64(plan.MaxExecutions), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxForcedDecisions: uint64(plan.MaxForcedDecisions),
+		MaxExplorationBytes: uint64(plan.MaxExplorationBytes), MaxExplorationResultBytes: uint64(plan.MaxExplorationResultBytes), SimulationDimensionLimits: SimulationDimensionLimits(plan.SimulationDimensionLimits),
+		Artifacts: filepath.Dir(filepath.Dir(request.ResumeCampaign)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
@@ -120,47 +123,47 @@ func resumeConfiguration(request CampaignSpec, plan campaignstore.CampaignPlan) 
 		config.failureArtifactLimit = uint64(plan.Artifacts.FailureArtifacts)
 		config.failureBytesLimit = uint64(plan.Artifacts.FailureBytes)
 	}
-	return config, selection, append([]evidence.Environment(nil), plan.Environment...), mounts, prepared, nil
+	return config, selection, append([]record.Environment(nil), plan.Environment...), mounts, prepared, nil
 }
 
-func runnerCampaignShard(shard *campaignstore.CampaignShard) CampaignShard {
+func runnerCampaignShard(shard *campaign.CampaignShard) CampaignShard {
 	if shard == nil {
 		return CampaignShard{}
 	}
 	return CampaignShard{Index: uint64(shard.Index), Count: uint64(shard.Count)}
 }
 
-func equalBatchPlans(left, right campaignstore.CampaignPlan) (bool, error) {
-	leftBytes, err := evidence.CanonicalJSON(left)
+func equalBatchPlans(left, right campaign.CampaignPlan) (bool, error) {
+	leftBytes, err := canonicaljson.CanonicalJSON(left)
 	if err != nil {
 		return false, err
 	}
-	rightBytes, err := evidence.CanonicalJSON(right)
+	rightBytes, err := canonicaljson.CanonicalJSON(right)
 	return bytes.Equal(leftBytes, rightBytes), err
 }
 
 type resumeSummaryState struct {
 	summary              CampaignResult
-	distinct             map[evidence.SHA256]string
+	distinct             map[record.SHA256]string
 	probes               map[string]struct{}
 	choiceFeatures       map[string]struct{}
 	completed            map[uint64]struct{}
 	failureArtifactBytes uint64
 }
 
-func restoreResumeSummary(batchPath string, selection SeedSelection, runs []campaignstore.ExecutionRecord) (resumeSummaryState, error) {
+func restoreResumeSummary(batchPath string, selection SeedSelection, runs []campaign.ExecutionRecord) (resumeSummaryState, error) {
 	state := resumeSummaryState{
 		summary:  CampaignResult{CampaignPath: batchPath, SelectionCount: selection.Count(), Attempted: uint64(len(runs))},
-		distinct: make(map[evidence.SHA256]string), probes: make(map[string]struct{}), choiceFeatures: make(map[string]struct{}), completed: make(map[uint64]struct{}, len(runs)),
+		distinct: make(map[record.SHA256]string), probes: make(map[string]struct{}), choiceFeatures: make(map[string]struct{}), completed: make(map[uint64]struct{}, len(runs)),
 	}
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		seed, ok := selection.SeedAt(ordinal)
-		if run.Strategy == string(StrategyChoiceFrontier) || run.Strategy == string(StrategyCombinedFrontier) {
+		if run.Strategy == string(StrategyChoiceExploration) || run.Strategy == string(StrategySimulationExploration) {
 			seed, ok = selection.SeedAt(0)
 		}
 		if !ok || seed != uint64(run.Seed) {
-			return resumeSummaryState{}, fmt.Errorf("resumable run %d seed does not match selection ordinal", index+1)
+			return resumeSummaryState{}, fmt.Errorf("resumable execution %d seed does not match selection ordinal", index+1)
 		}
 		state.completed[ordinal] = struct{}{}
 		for _, probe := range run.SemanticProbes {
@@ -188,7 +191,7 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 			}
 			if _, found := state.distinct[*run.FailureSignature]; !found {
 				path := filepath.Join(batchPath, filepath.FromSlash(*run.Artifact))
-				opened, err := evidence.OpenArtifact(path)
+				opened, err := artifact.OpenArtifact(path)
 				if err != nil {
 					return resumeSummaryState{}, fmt.Errorf("open resumable failure artifact %d: %w", index+1, err)
 				}
@@ -203,7 +206,7 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 				state.summary.Artifacts = append(state.summary.Artifacts, path)
 			}
 		default:
-			return resumeSummaryState{}, fmt.Errorf("resumable run %d domain %q cannot be reused", index+1, run.Domain)
+			return resumeSummaryState{}, fmt.Errorf("resumable execution %d domain %q cannot be reused", index+1, run.Domain)
 		}
 	}
 	state.summary.DistinctFailures = uint64(len(state.distinct))

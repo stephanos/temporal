@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"debug/buildinfo"
-	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,16 +18,17 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
+	simulationrecord "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
-	worldtarget "go.temporal.io/server/tools/gomadv3/world/target"
+	worldprocess "go.temporal.io/server/tools/gomadv3/world/process"
 )
 
 func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
@@ -54,7 +54,7 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 }
 
 func TestReplayEnvironmentExcludesChoiceControlVariables(t *testing.T) {
-	environment := replayEnvironment([]evidence.Environment{
+	environment := replayEnvironment([]record.Environment{
 		{Name: "GOMADSEED", Value: "7"},
 		{Name: "GOMADV3_CHOICE_PROFILE", Value: choice.Profile},
 		{Name: "TZ", Value: "UTC"},
@@ -83,7 +83,7 @@ func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
 
 func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T) {
 	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
-	opened, err := evidence.OpenArtifact(artifactPath)
+	opened, err := artifact.OpenArtifact(artifactPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T)
 	if profile == nil {
 		t.Fatal("replay fixture omitted simulation exploration evidence")
 	}
-	plan, err := evidence.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	plan, err := artifact.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,61 +156,6 @@ func TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence(t *testing
 	}
 }
 
-func TestReplayDoesNotExecuteLegacyChoiceArtifact(t *testing.T) {
-	artifactPath, _ := replayArtifact(t)
-	opened, err := evidence.OpenArtifact(artifactPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	manifest := opened.Manifest
-	if err := opened.Close(); err != nil {
-		t.Fatal(err)
-	}
-	payload := make([]byte, 48)
-	binary.BigEndian.PutUint64(payload[:8], 0)
-	payload[8] = byte(choice.KindRunnable)
-	payload[9] = byte(choice.FlagDecision)
-	binary.BigEndian.PutUint32(payload[12:16], 2)
-	binary.BigEndian.PutUint32(payload[16:20], 1)
-	binary.BigEndian.PutUint64(payload[24:32], 17)
-	manifest.SchemaVersion = evidence.PreviousSchemaVersion
-	manifest.Runner.RecordContract = evidence.PreviousRecordContract
-	manifest.Target.CapabilityMode = ""
-	manifest.Target.CapabilityManifest = nil
-	manifest.ChoiceProfile = &evidence.ChoiceProfile{
-		Name: choice.LegacyProfile, ImplementationSHA256: evidence.HashBytes([]byte("legacy choice implementation")),
-		Trace: evidence.ChoiceTrace{
-			Schema: "gomadv3.choice-trace/v1", File: "choices.bin", SHA256: evidence.HashBytes(payload), Bytes: 48,
-			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 112,
-		},
-	}
-	manifest.Limits.ChoiceTraceBytes = 112
-	manifest.Environment = append(manifest.Environment, evidence.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choice.LegacyProfile})
-	sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
-	manifest.Files = append(manifest.Files, evidence.File{Path: "choices.bin", Mode: "0600", Size: 48, SHA256: evidence.HashBytes(payload)})
-	sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
-	_, manifestBytes, err := evidence.FinalizeExecutionRecord(manifest)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(artifactPath, "choices.bin"), payload, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(artifactPath, "manifest.json"), manifestBytes, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	executor := &fakeReplayExecutor{}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if result.Match || result.ChoiceReplayStatus != ChoiceReplayUnavailable || result.Divergence != "choice_profile.replay_unavailable" || executor.calls != 0 {
-		t.Fatalf("legacy replay result = %#v, calls = %d", result, executor.calls)
-	}
-}
-
 func TestReplayVerifyOnlyDoesNotStartTarget(t *testing.T) {
 	artifactPath, _ := replayArtifact(t)
 	executor := &fakeReplayExecutor{}
@@ -226,8 +171,8 @@ func TestReplayVerifyOnlyDoesNotStartTarget(t *testing.T) {
 }
 
 func TestReplayRejectsUnavailableCompatibilityPackBeforeTargetStart(t *testing.T) {
-	artifactPath, _ := publishReplayArtifactWithCompatibility(t, []evidence.CompatibilityPack{{
-		ID: "unknown-pack", SHA256: evidence.HashBytes([]byte("unknown pack")),
+	artifactPath, _ := publishReplayArtifactWithCompatibility(t, []record.CompatibilityPack{{
+		ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
 	}})
 	executor := &fakeReplayExecutor{}
 	_, err := Replay(context.Background(), ReplaySpec{
@@ -356,7 +301,7 @@ func runWorldReplayTarget(mode string) {
 	if err != nil {
 		os.Exit(10) //nolint:revive // This subprocess helper reports failure by exit status.
 	}
-	session, err := worldtarget.Open(core)
+	session, err := worldprocess.Open(core)
 	if err != nil {
 		os.Exit(11) //nolint:revive // This subprocess helper reports failure by exit status.
 	}
@@ -405,7 +350,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 	}
 	argv := []string{"gomadv3-target", "-test.run=^TestWorldReplayMatchingTarget$"}
 	profile := deterministicio.Default()
-	frame, err := profile.BootstrapFrame(target.Prepared{SHA256: string(evidence.HashBytes(targetBytes)), Argv: argv}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
+	frame, err := profile.BootstrapFrame(target.Prepared{SHA256: string(record.HashBytes(targetBytes)), Argv: argv}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -413,8 +358,8 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command:           targetPath, Argv0: argv[0], Args: argv[1:], Dir: t.TempDir(),
-		Env:        []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "TZ=UTC"},
-		RunTimeout: 5 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
+		Env:              []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "TZ=UTC"},
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})
@@ -444,8 +389,8 @@ func TestReplayReportsFirstObservableDivergence(t *testing.T) {
 
 func TestReplayReportsIOTranscriptOrdinalBeforeOutcome(t *testing.T) {
 	ordinal := uint64(4)
-	observed := execution.Result{IOTranscript: execution.IOTranscript{ReplayDivergence: &ordinal}}
-	if divergence := replayDivergence(evidence.ExecutionRecord{}, observed, nil); divergence != "io_profile.transcript.ordinal[4]" {
+	observed := execution.Result{IOTranscript: deterministicio.Transcript{ReplayDivergence: &ordinal}}
+	if divergence := replayDivergence(record.ExecutionRecord{}, observed, nil); divergence != "io_profile.transcript.ordinal[4]" {
 		t.Fatalf("replayDivergence() = %q", divergence)
 	}
 }
@@ -453,10 +398,10 @@ func TestReplayReportsIOTranscriptOrdinalBeforeOutcome(t *testing.T) {
 func TestReplayReportsFinalChoiceTraceMismatch(t *testing.T) {
 	expectedDigest := sha256.Sum256([]byte("expected"))
 	observedDigest := sha256.Sum256([]byte("observed"))
-	manifest := evidence.ExecutionRecord{
-		Outcome:       evidence.Outcome{Domain: "success", Reason: "success", Termination: "exit"},
-		Streams:       evidence.Streams{Stdout: evidence.Stream{FullSHA256: evidence.SHA256FromSum(sha256.Sum256(nil))}, Stderr: evidence.Stream{FullSHA256: evidence.SHA256FromSum(sha256.Sum256(nil))}},
-		ChoiceProfile: &evidence.ChoiceProfile{Name: choice.Profile, Trace: evidence.ChoiceTrace{SHA256: evidence.SHA256FromSum(expectedDigest), Records: 1, BranchingRecords: 1, Limit: 1 << 20}},
+	manifest := record.ExecutionRecord{
+		Outcome:       record.Outcome{Domain: "success", Reason: "success", Termination: "exit"},
+		Streams:       record.Streams{Stdout: record.Stream{FullSHA256: record.SHA256FromSum(sha256.Sum256(nil))}, Stderr: record.Stream{FullSHA256: record.SHA256FromSum(sha256.Sum256(nil))}},
+		ChoiceProfile: &record.ChoiceProfile{Name: choice.Profile, Trace: record.ChoiceTrace{SHA256: record.SHA256FromSum(expectedDigest), Records: 1, BranchingRecords: 1, Limit: 1 << 20}},
 	}
 	observed := execution.Result{
 		Termination: execution.TerminationExit,
@@ -517,7 +462,7 @@ func TestReplayPreflightValidatesConnectedWorldRecord(t *testing.T) {
 		t.Fatalf("connected World replay = %#v", result)
 	}
 	changed := bundle
-	changed.Manifest.Final.SemanticDigest = evidence.HashBytes([]byte("changed semantic digest"))
+	changed.Manifest.Final.SemanticDigest = record.HashBytes([]byte("changed semantic digest"))
 	changedPath, _ := publishReplayArtifact(t, &changed)
 	executor := &fakeReplayExecutor{}
 	if _, err := Replay(context.Background(), ReplaySpec{
@@ -548,20 +493,20 @@ func replayArtifact(t *testing.T) (string, execution.Result) {
 }
 
 func publishReplayArtifact(t *testing.T, connected *execution.Bundle) (string, execution.Result) {
-	return publishReplayArtifactWithWorldAndCompatibility(t, connected, []evidence.CompatibilityPack{})
+	return publishReplayArtifactWithWorldAndCompatibility(t, connected, []record.CompatibilityPack{})
 }
 
-func publishReplayArtifactWithCompatibility(t *testing.T, compatibility []evidence.CompatibilityPack) (string, execution.Result) {
+func publishReplayArtifactWithCompatibility(t *testing.T, compatibility []record.CompatibilityPack) (string, execution.Result) {
 	return publishReplayArtifactWithWorldAndCompatibility(t, nil, compatibility)
 }
 
-func publishReplayArtifactWithWorldAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []evidence.CompatibilityPack) (string, execution.Result) {
+func publishReplayArtifactWithWorldAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []record.CompatibilityPack) (string, execution.Result) {
 	return publishReplayArtifactForTargetAndCompatibility(t, connected, compatibility, replayArtifactTarget{})
 }
 
 type replayArtifactTarget struct {
 	Argv             []string
-	Environment      []evidence.Environment
+	Environment      []record.Environment
 	OutcomeReason    string
 	IOTranscript     []byte
 	Choices          bool
@@ -570,10 +515,10 @@ type replayArtifactTarget struct {
 }
 
 func publishReplayArtifactForTarget(t *testing.T, connected *execution.Bundle, replayTarget replayArtifactTarget) (string, execution.Result) {
-	return publishReplayArtifactForTargetAndCompatibility(t, connected, []evidence.CompatibilityPack{}, replayTarget)
+	return publishReplayArtifactForTargetAndCompatibility(t, connected, []record.CompatibilityPack{}, replayTarget)
 }
 
-func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []evidence.CompatibilityPack, replayTarget replayArtifactTarget) (string, execution.Result) {
+func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []record.CompatibilityPack, replayTarget replayArtifactTarget) (string, execution.Result) {
 	t.Helper()
 	targetPath, err := os.Executable()
 	if err != nil {
@@ -600,12 +545,12 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 		t.Fatal(err)
 	}
 	profile := deterministicio.Default()
-	exitCode := evidence.Uint64String(2)
+	exitCode := record.Uint64String(2)
 	targetArgv := replayTarget.Argv
 	if len(targetArgv) == 0 {
 		targetArgv = []string{"gomadv3-target", "-test.run=none"}
 	}
-	environment := append([]evidence.Environment{
+	environment := append([]record.Environment{
 		{Name: "GOMADSEED", Value: "7"},
 		{Name: "GOMADV3_IO_PROFILE", Value: profile.Name()},
 		{Name: "TZ", Value: "UTC"},
@@ -615,31 +560,31 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	if outcomeReason == "" {
 		outcomeReason = "nonzero_exit"
 	}
-	recordedWorld, payloads := evidence.NoneWorld()
+	recordedWorld, payloads := record.NoneWorld()
 	if connected != nil {
 		recordedWorld = connected.Manifest
 		payloads = connected.Payloads
 	}
-	input := campaignstore.ArtifactInput{
-		Manifest: evidence.ExecutionRecord{
-			SchemaVersion: evidence.SchemaVersion, ArtifactKind: evidence.ArtifactTargetFailure, CreatedAt: "2026-08-10T12:00:00Z", CampaignID: "replay-test",
-			SelectionOrdinal: 0, Seed: 7, ReplayMode: evidence.ReplayExact,
-			Runner:    evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
-			Toolchain: evidence.Toolchain{GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH},
-			Target: evidence.Target{
-				Kind: "go-test", Source: "replay fixture", SHA256: evidence.HashBytes(targetBytes), Size: evidence.Uint64String(len(targetBytes)),
-				Argv: targetArgv, BuildTags: []string{"gomad_fixture"}, Adapters: []evidence.TargetAdapter{}, Compatibility: compatibility, BuildInfo: projectTestBuildInfo(build),
+	input := artifact.ArtifactInput{
+		Manifest: record.ExecutionRecord{
+			SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-10T12:00:00Z", CampaignID: "replay-test",
+			SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
+			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+			Toolchain: record.Toolchain{GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH},
+			Target: record.Target{
+				Kind: "go-test", Source: "replay fixture", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)),
+				Argv: targetArgv, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: compatibility, BuildInfo: projectTestBuildInfo(build),
 			},
-			IOProfile: evidence.IOProfile{
-				Name: profile.Name(), ImplementationSHA256: evidence.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: evidence.SHA256(profile.InventorySHA256()),
-				Transcript: &evidence.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: evidence.SHA256FromSum(ioTranscriptSHA256), Bytes: evidence.Uint64String(len(ioTranscript)), Records: evidence.Uint64String(ioTranscriptRecords)},
+			IOProfile: record.IOProfile{
+				Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
+				Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: record.SHA256FromSum(ioTranscriptSHA256), Bytes: record.Uint64String(len(ioTranscript)), Records: record.Uint64String(ioTranscriptRecords)},
 			},
 			Environment: environment,
-			Limits:      evidence.Limits{RunTimeoutNanos: evidence.Uint64String(5 * time.Second), OverallTimeoutNanos: evidence.Uint64String(10 * time.Second), TerminateGraceNanos: evidence.Uint64String(100 * time.Millisecond), OutputBytes: 64, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
+			Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(5 * time.Second), OverallTimeoutNanos: record.Uint64String(10 * time.Second), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 64, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
 			World:       recordedWorld,
-			Outcome:     evidence.Outcome{Domain: "target", Reason: outcomeReason, Termination: "exit", ExitCode: &exitCode},
-			Streams:     evidence.Streams{Stdout: replayStream(stdout), Stderr: replayStream(stderr)},
-			Host:        evidence.Host{StartedAt: "2026-08-10T12:00:00Z", FinishedAt: "2026-08-10T12:00:01Z", ElapsedNanos: evidence.Uint64String(time.Second)},
+			Outcome:     record.Outcome{Domain: "target", Reason: outcomeReason, Termination: "exit", ExitCode: &exitCode},
+			Streams:     record.Streams{Stdout: replayStream(stdout), Stderr: replayStream(stderr)},
+			Host:        record.Host{StartedAt: "2026-08-10T12:00:00Z", FinishedAt: "2026-08-10T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
 		},
 		TargetPath: targetPath, Stdout: stdout.Bytes, Stderr: stderr.Bytes, IOTranscript: ioTranscript, World: payloads,
 	}
@@ -676,28 +621,28 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 		if tapeErr != nil {
 			t.Fatal(tapeErr)
 		}
-		input.Manifest.ChoiceProfile = &evidence.ChoiceProfile{
-			Name: choice.Profile, ImplementationSHA256: evidence.SHA256FromSum(implementation),
-			Trace: evidence.ChoiceTrace{
-				Schema: "gomadv3.choice-trace/v2", SHA256: evidence.SHA256FromSum(choiceTrace.SHA256), Bytes: evidence.Uint64String(len(choiceTrace.Bytes)),
-				Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: evidence.Uint64String(choiceLimit),
-				TapeSHA256: evidence.SHA256FromSum(tape.SHA256), Decisions: 1,
+		input.Manifest.ChoiceProfile = &record.ChoiceProfile{
+			Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
+			Trace: record.ChoiceTrace{
+				Schema: "gomadv3.choice-trace/v2", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choiceTrace.Bytes)),
+				Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit),
+				TapeSHA256: record.SHA256FromSum(tape.SHA256), Decisions: 1,
 			},
 		}
-		input.Manifest.Limits.ChoiceTraceBytes = evidence.Uint64String(choiceLimit)
-		input.Manifest.Environment = append(input.Manifest.Environment, evidence.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choice.Profile})
+		input.Manifest.Limits.ChoiceTraceBytes = record.Uint64String(choiceLimit)
+		input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMADV3_CHOICE_PROFILE", Value: choice.Profile})
 		sort.Slice(input.Manifest.Environment, func(i, j int) bool { return input.Manifest.Environment[i].Name < input.Manifest.Environment[j].Name })
 		input.ChoiceTrace = choicePayload
 		recordedChoices = execution.ChoiceTrace{Profile: choice.Profile, ImplementationSHA256: implementation, Limit: choiceLimit, Trace: choiceTrace}
 	}
 	var recordedSimulationRecords [][]byte
 	if replayTarget.Simulation {
-		config := combinedfrontier.Config{
-			ExecutionSHA256: evidence.HashBytes([]byte("replay simulation execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: 7,
-			Parallel: 1, MaxRuns: 1, MaxForcedDecisions: 1, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-			Limits: combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		config := simulationengine.Config{
+			ExecutionSHA256: record.HashBytes([]byte("replay simulation execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 7,
+			Parallel: 1, MaxExecutions: 1, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
+			Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 		}
-		state, stateErr := combinedfrontier.New(config)
+		state, stateErr := simulationengine.New(config)
 		if stateErr != nil {
 			t.Fatal(stateErr)
 		}
@@ -706,8 +651,8 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			t.Fatal("simulation replay root candidate is unavailable")
 		}
 		candidate := round.Candidates[0]
-		var runtimeDecisions []combinedfrontier.Decision
-		var explorationDecisions []combinedfrontier.Decision
+		var runtimeDecisions []simulationengine.Decision
+		var explorationDecisions []simulationengine.Decision
 		if replayTarget.ForcedSimulation {
 			if !replayTarget.Choices {
 				t.Fatal("forced simulation fixture requires choices")
@@ -728,7 +673,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			if tapeErr != nil {
 				t.Fatal(tapeErr)
 			}
-			runtimeDecisions, tapeErr = simulationexploration.RuntimeDecisions(exactTape)
+			runtimeDecisions, tapeErr = simulationrecord.RuntimeDecisions(exactTape)
 			if tapeErr != nil {
 				t.Fatal(tapeErr)
 			}
@@ -736,8 +681,8 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			if prefixErr != nil {
 				t.Fatal(prefixErr)
 			}
-			runtimeOverride, overrideErr := combinedfrontier.CanonicalForcedDecision(combinedfrontier.ForcedDecision{
-				Dimension: combinedfrontier.DimensionRuntime, Ordinal: runtimeDecisions[0].Ordinal,
+			runtimeOverride, overrideErr := simulationengine.CanonicalForcedDecision(simulationengine.ForcedDecision{
+				Dimension: simulationengine.DimensionRuntime, Ordinal: runtimeDecisions[0].Ordinal,
 				SiteSHA256: runtimeDecisions[0].SiteSHA256, Alternatives: uint32(len(runtimeDecisions[0].Alternatives)),
 				AlternativeSetSHA256: runtimeDecisions[0].AlternativeSetSHA256, Selected: runtimeDecisions[0].Selected,
 				SelectedSHA256: runtimeDecisions[0].Alternatives[runtimeDecisions[0].Selected], Control: prefix.Bytes,
@@ -745,60 +690,60 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			if overrideErr != nil {
 				t.Fatal(overrideErr)
 			}
-			faultSite := evidence.HashBytes([]byte("fault site"))
-			faultAlternatives := []evidence.SHA256{evidence.HashBytes([]byte("no fault")), evidence.HashBytes([]byte("drop"))}
-			faultBaseline, decisionErr := combinedfrontier.CanonicalDecision(combinedfrontier.DimensionFault, 0, faultSite, faultAlternatives, 0)
+			faultSite := record.HashBytes([]byte("fault site"))
+			faultAlternatives := []record.SHA256{record.HashBytes([]byte("no fault")), record.HashBytes([]byte("drop"))}
+			faultBaseline, decisionErr := simulationengine.CanonicalDecision(simulationengine.DimensionFault, 0, faultSite, faultAlternatives, 0)
 			if decisionErr != nil {
 				t.Fatal(decisionErr)
 			}
-			faultOverride, overrideErr := combinedfrontier.ForceDecision(faultBaseline, 1)
+			faultOverride, overrideErr := simulationengine.ForceDecision(faultBaseline, 1)
 			if overrideErr != nil {
 				t.Fatal(overrideErr)
 			}
-			candidate, overrideErr = combinedfrontier.CanonicalCandidate(config, []combinedfrontier.ForcedDecision{runtimeOverride, faultOverride}, "")
+			candidate, overrideErr = simulationengine.CanonicalCandidate(config, []simulationengine.ForcedDecision{runtimeOverride, faultOverride}, "")
 			if overrideErr != nil {
 				t.Fatal(overrideErr)
 			}
-			faultObserved, decisionErr := combinedfrontier.CanonicalDecision(combinedfrontier.DimensionFault, 0, faultSite, faultAlternatives, 1)
+			faultObserved, decisionErr := simulationengine.CanonicalDecision(simulationengine.DimensionFault, 0, faultSite, faultAlternatives, 1)
 			if decisionErr != nil {
 				t.Fatal(decisionErr)
 			}
-			explorationDecisions = []combinedfrontier.Decision{faultObserved}
+			explorationDecisions = []simulationengine.Decision{faultObserved}
 		}
-		plan, planErr := simulationexploration.PlanForCandidate(config, candidate)
+		plan, planErr := simulationrecord.PlanForCandidate(config, candidate)
 		if planErr != nil {
 			t.Fatal(planErr)
 		}
 		record, recordErr := json.Marshal(struct {
 			Schema               string                      `json:"schema"`
 			Seed                 uint64                      `json:"seed"`
-			SpecSHA256           evidence.SHA256             `json:"spec_sha256"`
+			SpecSHA256           record.SHA256               `json:"spec_sha256"`
 			Outcome              string                      `json:"outcome"`
-			FailureIdentity      evidence.SHA256             `json:"failure_identity"`
+			FailureIdentity      record.SHA256               `json:"failure_identity"`
 			ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
-			ExplorationDecisions []combinedfrontier.Decision `json:"exploration_decisions,omitempty"`
-			Identity             evidence.SHA256             `json:"identity"`
+			ExplorationDecisions []simulationengine.Decision `json:"exploration_decisions,omitempty"`
+			Identity             record.SHA256               `json:"identity"`
 		}{
-			Schema: "gomadv3.cluster-record/v7", Seed: 7, SpecSHA256: evidence.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
-			FailureIdentity: evidence.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan,
-			ExplorationDecisions: explorationDecisions, Identity: evidence.HashBytes([]byte("simulation record")),
+			Schema: "gomadv3.cluster-record/v7", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
+			FailureIdentity: record.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan,
+			ExplorationDecisions: explorationDecisions, Identity: record.HashBytes([]byte("simulation record")),
 		})
 		if recordErr != nil {
 			t.Fatal(recordErr)
 		}
-		profile, profileErr := simulationexploration.ProjectArtifact(config, candidate, plan, record, runtimeDecisions, 1<<20)
+		profile, profileErr := simulationrecord.ProjectArtifact(config, candidate, plan, record, runtimeDecisions, 1<<20)
 		if profileErr != nil {
 			t.Fatal(profileErr)
 		}
 		input.Manifest.SimulationProfile = &profile
-		input.Simulation = &campaignstore.SimulationPayloads{Plan: plan, Record: record}
+		input.Simulation = &artifact.SimulationPayloads{Plan: plan, Record: record}
 		recordedSimulationRecords = [][]byte{record}
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{Root: t.TempDir()}, input)
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: execution.IOTranscript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
+	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: deterministicio.Transcript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
 	if connected != nil {
 		initial, decodeErr := world.DecodeSnapshot(connected.Payloads.Initial)
 		if decodeErr != nil {
@@ -819,26 +764,26 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	return published.Path, result
 }
 
-func replayOutput(value string) execution.Output {
+func replayOutput(value string) hostexec.Output {
 	data := []byte(value)
 	digest := sha256.Sum256(data)
-	return execution.Output{Bytes: data, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data))}
+	return hostexec.Output{Bytes: data, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data))}
 }
 
-func replayStream(output execution.Output) evidence.Stream {
-	return evidence.Stream{
-		FullSHA256: evidence.SHA256(fmt.Sprintf("sha256:%x", output.FullSHA256)), TotalBytes: evidence.Uint64String(output.TotalBytes),
-		RetainedBytes: evidence.Uint64String(output.RetainedBytes), DiscardedBytes: evidence.Uint64String(output.DiscardedBytes), Truncated: output.Truncated,
+func replayStream(output hostexec.Output) record.Stream {
+	return record.Stream{
+		FullSHA256: record.SHA256(fmt.Sprintf("sha256:%x", output.FullSHA256)), TotalBytes: record.Uint64String(output.TotalBytes),
+		RetainedBytes: record.Uint64String(output.RetainedBytes), DiscardedBytes: record.Uint64String(output.DiscardedBytes), Truncated: output.Truncated,
 	}
 }
 
-func projectTestBuildInfo(info *debug.BuildInfo) evidence.BuildInfo {
-	settings := make([]evidence.BuildSetting, len(info.Settings))
+func projectTestBuildInfo(info *debug.BuildInfo) record.BuildInfo {
+	settings := make([]record.BuildSetting, len(info.Settings))
 	for index, setting := range info.Settings {
-		settings[index] = evidence.BuildSetting{Key: setting.Key, Value: setting.Value}
+		settings[index] = record.BuildSetting{Key: setting.Key, Value: setting.Value}
 	}
 	sort.Slice(settings, func(i, j int) bool { return settings[i].Key < settings[j].Key })
-	return evidence.BuildInfo{GoVersion: info.GoVersion, Path: info.Path, MainModule: info.Main.Path, Settings: settings}
+	return record.BuildInfo{GoVersion: info.GoVersion, Path: info.Path, MainModule: info.Main.Path, Settings: settings}
 }
 
 func toolchainRoot(t *testing.T) string {

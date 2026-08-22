@@ -21,7 +21,14 @@ const (
 	maximumModuleBytes = 512 << 20
 )
 
-type AdapterCapacityError = target.AdapterCapacityError
+type AdapterCapacityError struct {
+	Resource string
+	Limit    uint64
+}
+
+func (err *AdapterCapacityError) Error() string {
+	return fmt.Sprintf("adapter module exceeds %s limit %d", err.Resource, err.Limit)
+}
 
 type adapterCopyLimits struct {
 	Files int
@@ -132,6 +139,18 @@ func readAdapterFile(path string, maximum int64) (_ []byte, retErr error) {
 		return nil, &AdapterCapacityError{Resource: "bytes", Limit: uint64(maximum)}
 	}
 	return contents, nil
+}
+
+func digestAdapterSourceInventory(root string) (string, error) {
+	inventory, err := target.DigestAdapterSourceInventory(root)
+	if err == nil {
+		return inventory, nil
+	}
+	var capacity *target.AdapterCapacityError
+	if errors.As(err, &capacity) {
+		return "", &AdapterCapacityError{Resource: capacity.Resource, Limit: capacity.Limit}
+	}
+	return "", err
 }
 
 func validAdapterRelativePath(relative string) (string, error) {

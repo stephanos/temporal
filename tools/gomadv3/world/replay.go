@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"unicode/utf8"
+
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 )
 
 const MaximumReplayPlanJSONBytes = 64 << 20
@@ -52,7 +54,7 @@ func EncodeReplayPlan(plan ReplayPlan) ([]byte, error) {
 	if err := validateReplayPlanIdentity(plan); err != nil {
 		return nil, err
 	}
-	encoded, err := canonicalJSON(plan)
+	encoded, err := canonicaljson.CanonicalJSON(plan)
 	if err != nil {
 		return nil, fmt.Errorf("encode World replay plan: %w", err)
 	}
@@ -84,7 +86,7 @@ func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
 	if err := validateReplayPlanIdentity(plan); err != nil {
 		return ReplayPlan{}, err
 	}
-	canonical, err := canonicalJSON(plan)
+	canonical, err := canonicaljson.CanonicalJSON(plan)
 	if err != nil {
 		return ReplayPlan{}, fmt.Errorf("canonicalize World replay plan: %w", err)
 	}
@@ -375,7 +377,7 @@ func EncodeTransitions(transitions []Transition) ([]byte, error) {
 		if err := validateTransitionShape(transition); err != nil {
 			return nil, fmt.Errorf("transition %d: %w", index, err)
 		}
-		encoded, err := canonicalJSON(transition)
+		encoded, err := canonicaljson.CanonicalJSON(transition)
 		if err != nil {
 			return nil, fmt.Errorf("transition %d: %w", index, err)
 		}

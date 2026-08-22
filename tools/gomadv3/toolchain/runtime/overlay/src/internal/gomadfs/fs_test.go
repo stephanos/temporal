@@ -238,10 +238,10 @@ func TestVolumeEnumerationIsCompleteDependencyValidAndResumable(t *testing.T) {
 	}
 
 	limits := CrashEnumerationLimits{States: 1, Operations: 16, Depth: 16, Bytes: 1 << 20, WallNanos: 1_000_000_000}
-	var frontier *CrashFrontier
+	var exploration *CrashExploration
 	var states []CrashState
 	for {
-		page, err := filesystem.EnumerateCrashStates("data", limits, frontier)
+		page, err := filesystem.EnumerateCrashStates("data", limits, exploration)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -249,10 +249,10 @@ func TestVolumeEnumerationIsCompleteDependencyValidAndResumable(t *testing.T) {
 		if page.Complete {
 			break
 		}
-		if page.Frontier == nil || page.Capacity != CrashCapacityStates {
+		if page.ChoiceExploration == nil || page.Capacity != CrashCapacityStates {
 			t.Fatalf("incomplete page = %#v", page)
 		}
-		frontier = page.Frontier
+		exploration = page.ChoiceExploration
 	}
 	assertCrashContents(t, states, []map[string][]byte{
 		{"/value": {0, 0}},
@@ -450,7 +450,7 @@ func TestVolumeObserverRejectsMkdirAllBeforePartialMutation(t *testing.T) {
 	}
 }
 
-func TestVolumeEnumerationWallCapacityReturnsResumableFrontier(t *testing.T) {
+func TestVolumeEnumerationWallCapacityReturnsResumableExploration(t *testing.T) {
 	filesystem := newTestVolumeFilesystem(t)
 	file, err := filesystem.Open("/data/value", OpenFlags{Write: true, Create: true}, 0o600)
 	if err != nil {
@@ -463,10 +463,10 @@ func TestVolumeEnumerationWallCapacityReturnsResumableFrontier(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if page.Capacity != CrashCapacityWall || page.Frontier == nil || page.Complete {
+	if page.Capacity != CrashCapacityWall || page.ChoiceExploration == nil || page.Complete {
 		t.Fatalf("wall-bounded page = %#v", page)
 	}
-	resumed, err := filesystem.EnumerateCrashStates("data", CrashEnumerationLimits{States: 16, Operations: 16, Depth: 16, Bytes: 1 << 20, WallNanos: 1_000_000_000}, page.Frontier)
+	resumed, err := filesystem.EnumerateCrashStates("data", CrashEnumerationLimits{States: 16, Operations: 16, Depth: 16, Bytes: 1 << 20, WallNanos: 1_000_000_000}, page.ChoiceExploration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -502,7 +502,7 @@ func enumerateAllCrashStates(t *testing.T, filesystem *FS, volume string, limits
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !page.Complete || page.Frontier != nil {
+	if !page.Complete || page.ChoiceExploration != nil {
 		t.Fatalf("enumeration did not complete: %#v", page)
 	}
 	return page.States

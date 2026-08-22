@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
@@ -52,11 +53,11 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 			return CampaignResult{}, errors.New("campaign plan toolchain identity does not match the pinned toolchain")
 		}
 	}
-	mountLimits, err := deterministicio.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
+	mountLimits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return CampaignResult{}, err
 	}
-	mappings, err := deterministicio.ParseMappings(plan.IOROMounts, opened.path+campaignPlanBundleSuffix)
+	mappings, err := readonlymount.ParseMappings(plan.IOROMounts, opened.path+campaignPlanBundleSuffix)
 	if err != nil {
 		return CampaignResult{}, err
 	}
@@ -74,7 +75,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 	targetRecord := plan.Prepared.Target
 	config := CampaignSpec{
 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
-		RunTimeout: time.Duration(plan.RunTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
+		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
 		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), Artifacts: spec.Artifacts, Environment: environment,
 		IOROMounts: campaignPlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
@@ -91,14 +92,14 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 	return runLocal(ctx, config)
 }
 
-func campaignPlanChoiceLimit(plan *campaignstore.ChoiceProfilePlan) uint64 {
+func campaignPlanChoiceLimit(plan *campaign.ChoiceProfilePlan) uint64 {
 	if plan == nil {
 		return 0
 	}
 	return uint64(plan.Limit)
 }
 
-func campaignPlanEnvironment(plan campaignstore.CampaignPlan) ([]string, error) {
+func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, error) {
 	result := make([]string, 0, len(plan.Environment))
 	ioProfile := false
 	choiceProfile := plan.ChoiceProfile == nil

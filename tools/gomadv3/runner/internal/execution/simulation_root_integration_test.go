@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
+	"go.temporal.io/server/tools/gomadv3/record"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
+	simulationrecord "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulationrecord"
 )
 
 func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
@@ -45,8 +45,8 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 	} {
 		t.Run(testName, func(t *testing.T) {
 			simulation := &SimulationCapability{Role: SimulationRoleCoordinator}
-			var explorationConfig combinedfrontier.Config
-			var explorationCandidate combinedfrontier.Candidate
+			var explorationConfig simulationengine.Config
+			var explorationCandidate simulationengine.Candidate
 			if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
 				explorationConfig, explorationCandidate, simulation.ExplorationPlan = rootExplorationPlan(t, 89)
 				simulation.ExplorationRecordLimit = 1 << 20
@@ -56,7 +56,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 				SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 				BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 				Command:           target, Args: []string{"-test.run=^" + testName + "$", "-test.v", "-test.timeout=20s"}, Argv0: "gomadv3sim.test", Dir: t.TempDir(),
-				Env: []string{"GOMADSEED=89", "TZ=UTC"}, RunTimeout: 30 * time.Second, TerminateGrace: 2 * time.Second, OutputLimit: 1 << 20,
+				Env: []string{"GOMADSEED=89", "TZ=UTC"}, ExecutionTimeout: 30 * time.Second, TerminateGrace: 2 * time.Second, OutputLimit: 1 << 20,
 				World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 89},
 				Simulation: simulation,
 			})
@@ -70,7 +70,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 				t.Fatalf("simulation exploration records = %d, want 1", len(result.SimulationRecords))
 			}
 			if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
-				if _, err := simulationexploration.ResultForRecord(explorationConfig, explorationCandidate, result.SimulationRecords[0], nil); err != nil {
+				if _, err := simulationrecord.ResultForRecord(explorationConfig, explorationCandidate, result.SimulationRecords[0], nil); err != nil {
 					t.Fatalf("project simulation exploration record: %v", err)
 				}
 			}
@@ -78,23 +78,23 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 	}
 }
 
-func rootExplorationPlan(t *testing.T, seed uint64) (combinedfrontier.Config, combinedfrontier.Candidate, []byte) {
+func rootExplorationPlan(t *testing.T, seed uint64) (simulationengine.Config, simulationengine.Candidate, []byte) {
 	t.Helper()
-	config := combinedfrontier.Config{
-		ExecutionSHA256:  evidence.HashBytes([]byte("root process exploration integration")),
-		ControllerSHA256: combinedfrontier.ImplementationSHA256(), BaseSeed: seed,
-		Parallel: 1, MaxRuns: 2, MaxForcedDecisions: 1, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+	config := simulationengine.Config{
+		ExecutionSHA256:  record.HashBytes([]byte("root process exploration integration")),
+		ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: seed,
+		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
+		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	state, err := combinedfrontier.New(config)
+	state, err := simulationengine.New(config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	round, ok := state.NextRound()
 	if !ok || len(round.Candidates) != 1 {
-		t.Fatal("combined frontier root candidate is unavailable")
+		t.Fatal("simulation exploration root candidate is unavailable")
 	}
-	encoded, err := simulationexploration.PlanForCandidate(config, round.Candidates[0])
+	encoded, err := simulationrecord.PlanForCandidate(config, round.Candidates[0])
 	if err != nil {
 		t.Fatal(err)
 	}

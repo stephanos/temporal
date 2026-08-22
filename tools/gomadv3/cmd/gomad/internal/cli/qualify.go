@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/qualification"
+	qualificationworkload "go.temporal.io/server/tools/gomadv3/qualification/workload"
 	"go.temporal.io/server/tools/gomadv3/runner"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
@@ -20,7 +21,7 @@ const maximumQualificationRepeats = 32
 type qualifyDependencies struct {
 	identity         func(string) (string, string, string, error)
 	workingDirectory func() (string, error)
-	workload         func(context.Context, qualification.WorkloadSpec) (qualification.WorkloadResult, error)
+	workload         func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error)
 	run              func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
 	replay           func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
 	write            func(string, qualification.QualificationReport) (string, error)
@@ -34,7 +35,7 @@ type qualifyReporter struct {
 
 func runQualify(arguments []string, stdout, stderr io.Writer) int {
 	return runQualifyWith(arguments, stdout, stderr, qualifyDependencies{
-		identity: localIdentity, workingDirectory: os.Getwd, workload: qualification.RunWorkload,
+		identity: localIdentity, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
 	})
 }
 
@@ -43,7 +44,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	flags.SetOutput(io.Discard)
 	seed := flags.Uint64("seed", 1, "schedule seed")
 	repeat := flags.Uint64("repeat", 2, "fresh same-seed repetitions")
-	runTimeout := flags.Duration("run-timeout", 30*time.Second, "per-run host deadline")
+	runTimeout := flags.Duration("execution-timeout", 30*time.Second, "per-execution host deadline")
 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete qualification host deadline")
 	terminateGrace := flags.Duration("terminate-grace", 2*time.Second, "termination grace inside deadlines")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact and qualification report root")
@@ -52,14 +53,14 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")
-	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful runs per repetition")
+	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful executions per repetition")
 	outputLimit := byteSize(8 << 20)
 	worldLimit := byteSize(64 << 20)
 	successBytes := byteSize(0)
 	choiceLimit := byteSize(8 << 20)
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
-	flags.Var(&successBytes, "success-bytes", "retained successful-run bytes per repetition")
+	flags.Var(&successBytes, "success-bytes", "retained successful-execution bytes per repetition")
 	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
 	var environment stringList
 	var buildTags stringList
@@ -126,12 +127,12 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	}
 	command := append([]string{"gomad", "qualify"}, arguments...)
 	config := runner.CampaignSpec{
-		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, RunTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
 		ChoiceTraceLimit: resolvedChoiceLimit,
 		Artifacts:        *artifacts, Environment: environment, IOROMounts: ioROMounts,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
-		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectRunEvidence: true,
+		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
@@ -144,15 +145,15 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), *overallTimeout)
 	defer cancel()
-	workload := dependencies.workload
-	if workload == nil {
-		workload = qualification.RunWorkload
+	runWorkload := dependencies.workload
+	if runWorkload == nil {
+		runWorkload = qualificationworkload.Run
 	}
-	result, err := workload(ctx, qualification.WorkloadSpec{
+	result, err := runWorkload(ctx, qualificationworkload.Spec{
 		Command: command, Seed: *seed, Repeat: *repeat, ArtifactRoot: *artifacts, Campaign: config,
 		Replay:          runner.ReplaySpec{ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"}},
 		ReplaySuccesses: *replaySuccesses,
-		Progress: func(event qualification.WorkloadProgress) error {
+		Progress: func(event qualificationworkload.Progress) error {
 			return reporter.Progress(event.Iteration, event.Repeat)
 		},
 		Explore: dependencies.run, ReplayArtifact: dependencies.replay, Write: dependencies.write,
@@ -217,7 +218,7 @@ func (reporter *qualifyReporter) Result(report qualification.QualificationReport
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-divergence=%s\n", report.FirstDivergence)
 	}
 	if err == nil {
-		for _, run := range report.Runs {
+		for _, run := range report.Executions {
 			if run.Replay == nil {
 				continue
 			}

@@ -17,8 +17,10 @@ import (
 	"strings"
 	"unicode"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/internal/compatibilitypack"
+	"go.temporal.io/server/tools/gomadv3/record"
+	targetbuild "go.temporal.io/server/tools/gomadv3/target/internal/build"
+	"go.temporal.io/server/tools/gomadv3/target/internal/capabilityreview"
 	"go.temporal.io/server/tools/gomadv3/target/internal/livecap"
 )
 
@@ -59,9 +61,9 @@ func invalidCapabilityReview(err error) error {
 }
 
 type CapabilityClosure struct {
-	Schema        string                   `json:"schema"`
-	Compatibility []compatibility.Identity `json:"compatibility"`
-	Packages      []CapabilityPackage      `json:"packages"`
+	Schema        string                  `json:"schema"`
+	Compatibility []CompatibilityIdentity `json:"compatibility"`
+	Packages      []CapabilityPackage     `json:"packages"`
 }
 
 type CapabilityPackage struct {
@@ -115,20 +117,20 @@ type CapabilityPackageReference struct {
 	Name       string `json:"name"`
 }
 
-type CompatibilityIdentity = compatibility.Identity
-type CompatibilityPackEvidence = compatibility.PackEvidence
-type CompatibilityDisposition = compatibility.Disposition
-type CompatibilityRemediation = compatibility.RemediationCategory
+type CompatibilityIdentity compatibility.Identity
+type CompatibilityPackEvidence compatibility.PackEvidence
+type CompatibilityDisposition compatibility.Disposition
+type CompatibilityRemediation compatibility.RemediationCategory
 
 const (
-	DispositionAllowedExactPack = compatibility.DispositionAllowedExactPack
-	DispositionDenied           = compatibility.DispositionDenied
+	DispositionAllowedExactPack CompatibilityDisposition = CompatibilityDisposition(compatibility.DispositionAllowedExactPack)
+	DispositionDenied           CompatibilityDisposition = CompatibilityDisposition(compatibility.DispositionDenied)
 
-	RemediationAddExactPack      = compatibility.RemediationAddExactPack
-	RemediationAddAdapter        = compatibility.RemediationAddAdapter
-	RemediationModelOperation    = compatibility.RemediationModelOperation
-	RemediationRemoveDependency  = compatibility.RemediationRemoveDependency
-	RemediationRemainUnsupported = compatibility.RemediationRemainUnsupported
+	RemediationAddExactPack      CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationAddExactPack)
+	RemediationAddAdapter        CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationAddAdapter)
+	RemediationModelOperation    CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationModelOperation)
+	RemediationRemoveDependency  CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationRemoveDependency)
+	RemediationRemainUnsupported CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationRemainUnsupported)
 )
 
 type CapabilityFindingKind string
@@ -143,17 +145,17 @@ const (
 )
 
 type CapabilityFinding struct {
-	Kind              CapabilityFindingKind             `json:"kind"`
-	Package           CapabilityPackageReference        `json:"package"`
-	Module            *CapabilityModule                 `json:"module,omitempty"`
-	SourceSetSHA256   string                            `json:"source_set_sha256"`
-	SourceName        string                            `json:"source_name,omitempty"`
-	SourceSHA256      string                            `json:"source_sha256,omitempty"`
-	Directives        []string                          `json:"directives"`
-	Capability        string                            `json:"capability"`
-	PolicyDisposition compatibility.Disposition         `json:"policy_disposition"`
-	Remediation       compatibility.RemediationCategory `json:"remediation"`
-	PackID            string                            `json:"pack_id,omitempty"`
+	Kind              CapabilityFindingKind      `json:"kind"`
+	Package           CapabilityPackageReference `json:"package"`
+	Module            *CapabilityModule          `json:"module,omitempty"`
+	SourceSetSHA256   string                     `json:"source_set_sha256"`
+	SourceName        string                     `json:"source_name,omitempty"`
+	SourceSHA256      string                     `json:"source_sha256,omitempty"`
+	Directives        []string                   `json:"directives"`
+	Capability        string                     `json:"capability"`
+	PolicyDisposition CompatibilityDisposition   `json:"policy_disposition"`
+	Remediation       CompatibilityRemediation   `json:"remediation"`
+	PackID            string                     `json:"pack_id,omitempty"`
 }
 
 type CapabilityReview struct {
@@ -161,7 +163,7 @@ type CapabilityReview struct {
 	BuildTags          []string                     `json:"build_tags"`
 	Roots              []CapabilityPackageReference `json:"roots"`
 	Closure            CapabilityClosure            `json:"closure"`
-	Packs              []compatibility.PackEvidence `json:"packs"`
+	Packs              []CompatibilityPackEvidence  `json:"packs"`
 	CapabilityMode     CapabilityMode               `json:"capability_mode"`
 	CapabilityManifest *CapabilityManifest          `json:"capability_manifest,omitempty"`
 	Findings           []CapabilityFinding          `json:"findings"`
@@ -205,7 +207,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if spec.Kind != KindGoRun && spec.Kind != KindGoTest {
 		return CapabilityReview{}, invalidCapabilityReview(errors.New("capability review requires a go-run or go-test target"))
 	}
-	tags, err := normalizeBuildTags(spec.BuildTags)
+	tags, err := targetbuild.NormalizeTags(spec.BuildTags)
 	if err != nil {
 		return CapabilityReview{}, invalidCapabilityReview(err)
 	}
@@ -224,11 +226,11 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, fmt.Errorf("resolve pinned Go command: %w", err)
 	}
-	commandDirectory, packageArgument, err := resolveBuildContext(spec.WorkingDir, spec.Source)
+	buildContext, err := targetbuild.Resolve(spec.WorkingDir, spec.Source, tags)
 	if err != nil {
 		return CapabilityReview{}, invalidCapabilityReview(err)
 	}
-	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
+	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package)
 	if err != nil {
 		return CapabilityReview{}, err
 	}
@@ -246,7 +248,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, fmt.Errorf("create linked capability review workspace: %w", err)
 	}
-	prepared, buildErr := buildGoTarget(ctx, spec, tags, identity, filepath.Join(workspace, "target"), goCommand, commandDirectory, packageArgument, review, false)
+	prepared, buildErr := buildGoTarget(ctx, spec, buildContext.Tags, identity, filepath.Join(workspace, "target"), goCommand, buildContext.Directory, buildContext.Package, review, allowUnsupported)
 	cleanupErr := os.RemoveAll(workspace)
 	if buildErr != nil || cleanupErr != nil {
 		return CapabilityReview{}, errors.Join(buildErr, cleanupErr)
@@ -255,51 +257,17 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 }
 
 func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, error) {
-	arguments := []string{"list", "-deps", "-json", "-mod=readonly"}
-	if spec.Kind == KindGoTest {
-		arguments = append(arguments, "-test")
-	}
-	if spec.BuildOverlay != "" {
-		arguments = append(arguments, "-overlay", spec.BuildOverlay)
-	}
-	if spec.BuildModFile != "" {
-		arguments = append(arguments, "-modfile", spec.BuildModFile)
-	}
-	if len(tags) > 0 {
-		arguments = append(arguments, "-tags", strings.Join(tags, ","))
-	}
-	arguments = append(arguments, packageArgument)
-	command := exec.CommandContext(ctx, goCommand, arguments...)
-	command.Dir = commandDirectory
-	command.Env = preparationEnvironment()
-	stdout, stderr, err := runBoundedCapabilityCommand(command, maximumCapabilityReviewOutputBytes)
+	packages, err := capabilityreview.List(ctx, capabilityreview.Request{
+		GoCommand: goCommand, Directory: commandDirectory, Package: packageArgument, Tags: tags,
+		Overlay: spec.BuildOverlay, ModFile: spec.BuildModFile, Environment: targetbuild.Environment(), Test: spec.Kind == KindGoTest,
+		OutputLimit: maximumCapabilityReviewOutputBytes, PackageLimit: maximumCapabilityReviewPackages,
+	})
 	if err != nil {
-		if ctx.Err() != nil {
-			return CapabilityReview{}, fmt.Errorf("inspect target capability closure: %w", ctx.Err())
-		}
-		var exit *exec.ExitError
-		if errors.As(err, &exit) {
-			failure := fmt.Errorf("inspect target capability closure: %w: %s", err, stderr)
-			if invalidGoListDiagnostic(stderr) {
-				return CapabilityReview{}, invalidCapabilityReview(failure)
-			}
-			return CapabilityReview{}, failure
+		var commandError *capabilityreview.CommandError
+		if errors.As(err, &commandError) && commandError.InvalidInput {
+			return CapabilityReview{}, invalidCapabilityReview(err)
 		}
 		return CapabilityReview{}, fmt.Errorf("inspect target capability closure: %w", err)
-	}
-	decoder := json.NewDecoder(bytes.NewReader(stdout))
-	var packages []listedPackage
-	for {
-		var pkg listedPackage
-		if err := decoder.Decode(&pkg); err == io.EOF {
-			break
-		} else if err != nil {
-			return CapabilityReview{}, fmt.Errorf("decode target capability closure: %w", err)
-		}
-		packages = append(packages, pkg)
-		if len(packages) > maximumCapabilityReviewPackages {
-			return CapabilityReview{}, fmt.Errorf("target capability closure package count exceeds %d", maximumCapabilityReviewPackages)
-		}
 	}
 	overlay, err := loadBuildOverlay(spec.BuildOverlay, commandDirectory)
 	if err != nil {
@@ -311,109 +279,8 @@ func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, 
 	return projectCapabilityReview(packages, overlay, tags, spec.AdapterReplacements)
 }
 
-func invalidGoListDiagnostic(stderr []byte) bool {
-	message := string(stderr)
-	fragments := []string{
-		"build constraints exclude all Go files",
-		"cannot find main module",
-		"directory prefix ",
-		"is not in std",
-		"import lookup disabled by -mod=readonly",
-		"malformed import path",
-		"missing go.sum entry",
-		"no Go files in",
-		"no required module provides package",
-		"outside main module or its selected dependencies",
-		"package without type was imported",
-		"updates to go.mod needed",
-	}
-	for _, fragment := range fragments {
-		if strings.Contains(message, fragment) {
-			return true
-		}
-	}
-	return false
-}
-
-func runBoundedCapabilityCommand(command *exec.Cmd, limit uint64) (stdoutBytes, stderrBytes []byte, retErr error) {
-	stdout, err := newBoundedCommandBuffer(limit)
-	if err != nil {
-		return nil, nil, err
-	}
-	stderr, err := newBoundedCommandBuffer(limit)
-	if err != nil {
-		return nil, nil, err
-	}
-	command.Stdout = stdout
-	command.Stderr = stderr
-	runErr := command.Run()
-	if stdout.overflow || stderr.overflow {
-		return nil, nil, fmt.Errorf("target capability closure output exceeds %d bytes", limit)
-	}
-	if runErr != nil {
-		return nil, stderr.bytes, runErr
-	}
-	return stdout.bytes, stderr.bytes, nil
-}
-
-type boundedCommandBuffer struct {
-	bytes    []byte
-	limit    uint64
-	overflow bool
-}
-
-func newBoundedCommandBuffer(limit uint64) (*boundedCommandBuffer, error) {
-	if limit == 0 || limit > uint64(^uint(0)>>1) {
-		return nil, fmt.Errorf("invalid command output limit %d", limit)
-	}
-	return &boundedCommandBuffer{bytes: make([]byte, 0, int(limit)), limit: limit}, nil
-}
-
-func (buffer *boundedCommandBuffer) Write(data []byte) (int, error) {
-	remaining := buffer.limit - uint64(len(buffer.bytes))
-	if uint64(len(data)) > remaining {
-		buffer.bytes = append(buffer.bytes, data[:int(remaining)]...)
-		buffer.overflow = true
-		return len(data), nil
-	}
-	buffer.bytes = append(buffer.bytes, data...)
-	return len(data), nil
-}
-
-type listedModule struct {
-	Path    string        `json:"Path"`
-	Version string        `json:"Version"`
-	Sum     string        `json:"Sum"`
-	Main    bool          `json:"Main"`
-	Dir     string        `json:"Dir"`
-	Replace *listedModule `json:"Replace"`
-}
-
-type listedPackage struct {
-	ImportPath   string        `json:"ImportPath"`
-	ForTest      string        `json:"ForTest"`
-	DepOnly      bool          `json:"DepOnly"`
-	Name         string        `json:"Name"`
-	Standard     bool          `json:"Standard"`
-	Dir          string        `json:"Dir"`
-	GoFiles      []string      `json:"GoFiles"`
-	TestGoFiles  []string      `json:"TestGoFiles"`
-	XTestGoFiles []string      `json:"XTestGoFiles"`
-	CgoFiles     []string      `json:"CgoFiles"`
-	CFiles       []string      `json:"CFiles"`
-	CXXFiles     []string      `json:"CXXFiles"`
-	MFiles       []string      `json:"MFiles"`
-	HFiles       []string      `json:"HFiles"`
-	FFiles       []string      `json:"FFiles"`
-	SFiles       []string      `json:"SFiles"`
-	SwigFiles    []string      `json:"SwigFiles"`
-	SwigCXXFiles []string      `json:"SwigCXXFiles"`
-	SysoFiles    []string      `json:"SysoFiles"`
-	Imports      []string      `json:"Imports"`
-	TestImports  []string      `json:"TestImports"`
-	XTestImports []string      `json:"XTestImports"`
-	Module       *listedModule `json:"Module"`
-}
+type listedModule = capabilityreview.Module
+type listedPackage = capabilityreview.Package
 
 func validateCapabilityClosure(packages []listedPackage) error {
 	review, err := projectCapabilityReview(packages, nil, nil)
@@ -445,7 +312,7 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 	}
 	closure := CapabilityClosure{
 		Schema:        CapabilityClosureSchema,
-		Compatibility: []compatibility.Identity{},
+		Compatibility: []CompatibilityIdentity{},
 		Packages:      make([]CapabilityPackage, 0, len(packages)),
 	}
 	for _, pkg := range packages {
@@ -478,7 +345,7 @@ func projectCapabilityReview(packages []listedPackage, overlay map[string]string
 	if err != nil {
 		return CapabilityReview{}, fmt.Errorf("select target compatibility packs: %w", err)
 	}
-	closure.Compatibility = selection.Identities()
+	closure.Compatibility = projectCompatibilityIdentities(selection.Identities())
 	selection, err = validateCapabilityReviewStructure(closure)
 	if err != nil {
 		return CapabilityReview{}, err
@@ -649,7 +516,7 @@ func validateCapabilityReviewStructure(closure CapabilityClosure) (compatibility
 	if err != nil {
 		return compatibility.Selection{}, fmt.Errorf("select target compatibility packs: %w", err)
 	}
-	if !slices.Equal(selection.Identities(), closure.Compatibility) {
+	if !slices.Equal(selection.Identities(), internalCompatibilityIdentities(closure.Compatibility)) {
 		return compatibility.Selection{}, errors.New("target capability closure compatibility pack identity does not match its package closure")
 	}
 	mainPackage := false
@@ -693,7 +560,7 @@ func validateCapabilityPackageStructure(packages []CapabilityPackage, index int)
 		if source.Kind == "" || filepath.Base(source.Name) != source.Name || source.Name == "" {
 			return fmt.Errorf("target capability closure package %s has invalid foreign source evidence", pkg.ImportPath)
 		}
-		if _, err := evidence.ParseSHA256(source.SHA256); err != nil {
+		if _, err := record.ParseSHA256(source.SHA256); err != nil {
 			return fmt.Errorf("target capability closure package %s has invalid foreign source evidence", pkg.ImportPath)
 		}
 	}
@@ -704,7 +571,7 @@ func validateCapabilityPackageStructure(packages []CapabilityPackage, index int)
 }
 
 func validateCapabilitySource(source CapabilitySource) error {
-	_, digestErr := evidence.ParseSHA256(source.SHA256)
+	_, digestErr := record.ParseSHA256(source.SHA256)
 	if filepath.Base(source.Name) != source.Name || source.Name == "" || digestErr != nil {
 		return errors.New("has invalid source evidence")
 	}
@@ -723,7 +590,7 @@ func capabilityReviewFromClosure(closure CapabilityClosure, tags []string, selec
 	}
 	return CapabilityReview{
 		Schema: CapabilityReviewSchema, BuildTags: append([]string{}, tags...), Roots: roots, Closure: closure,
-		Packs: selection.Evidence(), CapabilityMode: CapabilityModeClosure,
+		Packs: projectCompatibilityPackEvidence(selection.Evidence()), CapabilityMode: CapabilityModeClosure,
 		Findings: collectCapabilityFindings(closure, selection), GuardedFindings: []CapabilityFinding{}, EliminatedFindings: []CapabilityFinding{},
 	}
 }
@@ -792,7 +659,7 @@ func projectDeniedBoundaryFindings(packages []CapabilityPackage, facts []livecap
 		result = append(result, CapabilityFinding{
 			Kind: FindingDeniedBoundary, Package: capabilityPackageReference(pkg), Module: copyCapabilityModule(pkg.Module),
 			SourceSetSHA256: capabilityCompatibilityPackage(pkg).SourceSetSHA256, Directives: []string{},
-			Capability: fact.Capability, PolicyDisposition: compatibility.DispositionDenied, Remediation: compatibility.RemediationModelOperation,
+			Capability: fact.Capability, PolicyDisposition: DispositionDenied, Remediation: RemediationModelOperation,
 		})
 	}
 	return result
@@ -955,7 +822,7 @@ func capabilityFinding(pkg CapabilityPackage, kind CapabilityFindingKind, fact c
 		Kind: kind, Package: capabilityPackageReference(pkg), Module: copyCapabilityModule(pkg.Module),
 		SourceSetSHA256: capabilityCompatibilityPackage(pkg).SourceSetSHA256,
 		SourceName:      source.Name, SourceSHA256: source.SHA256, Directives: append([]string{}, fact.Directives...),
-		Capability: fact.Capability, PolicyDisposition: decision.Disposition, Remediation: decision.Remediation, PackID: decision.PackID,
+		Capability: fact.Capability, PolicyDisposition: CompatibilityDisposition(decision.Disposition), Remediation: CompatibilityRemediation(decision.Remediation), PackID: decision.PackID,
 	}
 }
 
@@ -1027,7 +894,7 @@ func forbiddenImport(importPath string) bool {
 
 func validateExecStandardPackages(ctx context.Context, goCommand string, closure CapabilityClosure) error {
 	command := exec.CommandContext(ctx, goCommand, "list", "std")
-	command.Env = preparationEnvironment()
+	command.Env = targetbuild.Environment()
 	output, err := command.Output()
 	if err != nil {
 		var stderr []byte
@@ -1159,7 +1026,7 @@ func validateCapabilityAdapter(adapter CapabilityAdapterReplacement) error {
 		adapter.ProfileImplementationSHA256, adapter.OriginalSourceInventorySHA256,
 		adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256,
 	} {
-		if _, err := evidence.ParseSHA256(digest); err != nil {
+		if _, err := record.ParseSHA256(digest); err != nil {
 			return errors.New("adapter replacement digest is invalid")
 		}
 	}
@@ -1420,9 +1287,9 @@ func sortedUniqueForeignSources(sources []CapabilityForeignSource) bool {
 	return true
 }
 
-func sortedUniqueCompatibility(identities []compatibility.Identity) bool {
+func sortedUniqueCompatibility(identities []CompatibilityIdentity) bool {
 	for index, identity := range identities {
-		_, digestErr := evidence.ParseSHA256(identity.SHA256)
+		_, digestErr := record.ParseSHA256(identity.SHA256)
 		if identity.ID == "" || digestErr != nil || index > 0 && identities[index-1].ID >= identity.ID {
 			return false
 		}
@@ -1430,15 +1297,39 @@ func sortedUniqueCompatibility(identities []compatibility.Identity) bool {
 	return true
 }
 
-func recordCompatibility(identities []compatibility.Identity) []evidence.CompatibilityPack {
-	result := make([]evidence.CompatibilityPack, len(identities))
+func recordCompatibility(identities []CompatibilityIdentity) []record.CompatibilityPack {
+	result := make([]record.CompatibilityPack, len(identities))
 	for index, identity := range identities {
-		result[index] = evidence.CompatibilityPack{ID: identity.ID, SHA256: evidence.SHA256(identity.SHA256)}
+		result[index] = record.CompatibilityPack{ID: identity.ID, SHA256: record.SHA256(identity.SHA256)}
 	}
 	return result
 }
 
-func VerifyCompatibility(packs []evidence.CompatibilityPack) error {
+func projectCompatibilityIdentities(values []compatibility.Identity) []CompatibilityIdentity {
+	result := make([]CompatibilityIdentity, len(values))
+	for index, value := range values {
+		result[index] = CompatibilityIdentity(value)
+	}
+	return result
+}
+
+func internalCompatibilityIdentities(values []CompatibilityIdentity) []compatibility.Identity {
+	result := make([]compatibility.Identity, len(values))
+	for index, value := range values {
+		result[index] = compatibility.Identity(value)
+	}
+	return result
+}
+
+func projectCompatibilityPackEvidence(values []compatibility.PackEvidence) []CompatibilityPackEvidence {
+	result := make([]CompatibilityPackEvidence, len(values))
+	for index, value := range values {
+		result[index] = CompatibilityPackEvidence(value)
+	}
+	return result
+}
+
+func VerifyCompatibility(packs []record.CompatibilityPack) error {
 	if packs == nil {
 		return errors.New("compatibility pack identity is missing")
 	}

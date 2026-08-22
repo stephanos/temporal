@@ -20,13 +20,13 @@ func TestRunEnforcesBatchModesIndependentOfUmask(t *testing.T) {
 		t.Fatal(err)
 	}
 	for path, mode := range map[string]os.FileMode{
-		".":                               0o700,
-		"failures":                        0o700,
-		".partial":                        0o700,
-		"runs":                            0o700,
-		"batch.json":                      0o600,
-		"runs/index.json":                 0o600,
-		"runs/00000000000000000000.jsonl": 0o600,
+		".":                                     0o700,
+		"failures":                              0o700,
+		".partial":                              0o700,
+		"executions":                            0o700,
+		"campaign.json":                         0o600,
+		"executions/index.json":                 0o600,
+		"executions/00000000000000000000.jsonl": 0o600,
 	} {
 		info, statErr := os.Stat(filepath.Join(summary.CampaignPath, path))
 		if statErr != nil {

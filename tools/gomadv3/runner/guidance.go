@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/record"
 	guide "go.temporal.io/server/tools/gomadv3/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/target"
@@ -18,22 +19,22 @@ type guidanceCampaign struct {
 	corpus   *guide.Corpus
 	config   CampaignSpec
 	prepared target.Prepared
-	baseEnv  []evidence.Environment
+	baseEnv  []record.Environment
 	runID    string
 	replayer ArtifactReplayer
 }
 
-func openGuidance(ctx context.Context, config CampaignSpec, prepared target.Prepared, baseEnvironment []evidence.Environment, runID string) (*guidanceCampaign, error) {
+func openGuidance(ctx context.Context, config CampaignSpec, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
 	targetRecord := prepared.RecordTarget()
 	boundaryVersion, boundarySHA256 := deterministicio.BoundaryManifestIdentity()
-	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, evidence.SHA256(boundarySHA256))
+	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256))
 	if coverageHasChoice(config.Coverage) {
 		implementation, identityErr := choice.ImplementationIdentity(prepared.BuildKey)
 		if identityErr != nil {
 			return nil, identityErr
 		}
-		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, evidence.SHA256(boundarySHA256), guide.ChoiceProfileIdentity{
-			Profile: choice.Profile, ImplementationSHA256: evidence.SHA256FromSum(implementation), Limit: evidence.Uint64String(config.ChoiceTraceLimit),
+		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), guide.ChoiceProfileIdentity{
+			Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: record.Uint64String(config.ChoiceTraceLimit),
 		})
 	}
 	if err != nil {
@@ -48,7 +49,7 @@ func openGuidance(ctx context.Context, config CampaignSpec, prepared target.Prep
 		replayer = artifactReplayer{}
 	}
 	return &guidanceCampaign{
-		corpus: corpus, config: config, prepared: prepared, baseEnv: append([]evidence.Environment(nil), baseEnvironment...), runID: runID, replayer: replayer,
+		corpus: corpus, config: config, prepared: prepared, baseEnv: append([]record.Environment(nil), baseEnvironment...), runID: runID, replayer: replayer,
 	}, nil
 }
 
@@ -68,10 +69,10 @@ func (campaign *guidanceCampaign) MergeRun(
 	completion runCompletion,
 	outcome execution.Classification,
 	worldBundle execution.Bundle,
-	mountArtifact *deterministicio.CapturedInputs,
+	mountArtifact *readonlymount.CapturedInputs,
 	coverage deterministicio.SemanticCoverage,
 ) (bool, error) {
-	if !completion.result.IOTranscript.Complete || outcome.ReplayMode == evidence.ReplayNone {
+	if !completion.result.IOTranscript.Complete || outcome.ReplayMode == record.ReplayNone {
 		return false, nil
 	}
 	manifest, err := manifestForRun(campaign.config, campaign.prepared, campaign.baseEnv, completion, outcome, campaign.runID, worldBundle.Manifest, mountArtifact)
@@ -87,7 +88,7 @@ func (campaign *guidanceCampaign) MergeRun(
 		choiceFeatures = &projected
 	}
 	candidate := guide.Candidate{
-		Artifact: campaignstore.ArtifactInput{
+		Artifact: artifact.ArtifactInput{
 			Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
 			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 		},

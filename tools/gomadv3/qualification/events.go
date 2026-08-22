@@ -77,7 +77,7 @@ func ClassifyQualification(report QualificationReport) string {
 	if !report.Deterministic {
 		return "nondeterministic"
 	}
-	for _, run := range report.Runs {
+	for _, run := range report.Executions {
 		if run.Replay != nil && !run.Replay.Match {
 			return "replay_divergence"
 		}

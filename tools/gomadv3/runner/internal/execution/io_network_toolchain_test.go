@@ -59,7 +59,7 @@ func runVirtualTCPCase(t *testing.T, testCase string, timeout time.Duration) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_net_races", WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_net_races", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -75,7 +75,7 @@ func runVirtualTCPCase(t *testing.T, testCase string, timeout time.Duration) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Args: []string{testCase}, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=1", "TZ=UTC"},
-		RunTimeout: timeout, TerminateGrace: time.Second, OutputLimit: 4096,
+		ExecutionTimeout: timeout, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: seed},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})
@@ -93,7 +93,7 @@ func TestProfileTCPUsesInMemoryLoopback(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_net", WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_net", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -108,7 +108,7 @@ func TestProfileTCPUsesInMemoryLoopback(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})

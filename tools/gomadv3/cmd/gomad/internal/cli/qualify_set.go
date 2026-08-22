@@ -8,19 +8,19 @@ import (
 	"io"
 	"os"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/qualification"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	qualificationset "go.temporal.io/server/tools/gomadv3/qualification/set"
 )
 
 type qualifySetDependencies struct {
 	executable func() (string, error)
-	load       func(string) (qualification.SuiteManifest, error)
-	run        func(context.Context, qualification.SuiteSpec) (qualification.SuiteReport, error)
+	load       func(string) (qualificationset.Manifest, error)
+	run        func(context.Context, qualificationset.Spec) (qualificationset.Report, error)
 }
 
 func runQualifySet(arguments []string, stdout, stderr io.Writer) int {
 	return runQualifySetWith(arguments, stdout, stderr, qualifySetDependencies{
-		executable: os.Executable, load: qualification.LoadSuiteManifest, run: qualification.RunSuite,
+		executable: os.Executable, load: qualificationset.LoadManifest, run: qualificationset.Run,
 	})
 }
 
@@ -45,18 +45,18 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	}
 	if *check {
 		if *format == "json" {
-			encoded, encodeErr := evidence.CanonicalJSON(struct {
+			encoded, encodeErr := canonicaljson.CanonicalJSON(struct {
 				Schema    string `json:"schema"`
 				Name      string `json:"name"`
 				Workloads uint64 `json:"workloads"`
-			}{"gomadv3.qualification-set-check/v1", manifest.Name, uint64(len(manifest.Suites))})
+			}{"gomadv3.qualification-set-check/v1", manifest.Name, uint64(len(manifest.Workloads))})
 			if encodeErr != nil {
 				return writeCommandError(stderr, 3, "encode qualification manifest result: %v\n", encodeErr)
 			}
 			if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
 				return 3
 			}
-		} else if _, err := fmt.Fprintf(stdout, "qualification manifest: name=%s workloads=%d\n", manifest.Name, len(manifest.Suites)); err != nil {
+		} else if _, err := fmt.Fprintf(stdout, "qualification manifest: name=%s workloads=%d\n", manifest.Name, len(manifest.Workloads)); err != nil {
 			return 3
 		}
 		return 0
@@ -65,7 +65,7 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	if err != nil {
 		return writeCommandError(stderr, 3, "resolve gomad executable: %v\n", err)
 	}
-	report, runErr := dependencies.run(context.Background(), qualification.SuiteSpec{
+	report, runErr := dependencies.run(context.Background(), qualificationset.Spec{
 		ManifestPath: *manifestPath, GomadPath: executable, WorkingDir: *workingDirectory,
 		ArtifactRoot: *artifacts, OutputPath: *output,
 	})
@@ -82,16 +82,16 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	return writeCommandError(stderr, status, "%s: %v\n", message, runErr)
 }
 
-func classifyQualificationSetError(report qualification.SuiteReport, runErr error) (int, string) {
-	for _, suite := range report.Suites {
-		if suite.Classification == "invalid_input" || suite.AnalysisError == "invalid_input" {
+func classifyQualificationSetError(report qualificationset.Report, runErr error) (int, string) {
+	for _, workload := range report.Workloads {
+		if workload.Classification == "invalid_input" || workload.AnalysisError == "invalid_input" {
 			return 2, "invalid qualification set workload"
 		}
 	}
 	if errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded) || report.InfrastructureErrors != 0 {
 		return 3, "qualification set infrastructure failure"
 	}
-	var mismatch *qualification.SuiteExpectationError
+	var mismatch *qualificationset.ExpectationError
 	if errors.As(runErr, &mismatch) {
 		return 1, ""
 	}
@@ -101,9 +101,9 @@ func classifyQualificationSetError(report qualification.SuiteReport, runErr erro
 	return 3, "qualification set failure"
 }
 
-func writeQualificationSetResult(output io.Writer, format string, report qualification.SuiteReport) error {
+func writeQualificationSetResult(output io.Writer, format string, report qualificationset.Report) error {
 	if format == "json" {
-		encoded, err := evidence.CanonicalJSON(report)
+		encoded, err := canonicaljson.CanonicalJSON(report)
 		if err != nil {
 			return err
 		}

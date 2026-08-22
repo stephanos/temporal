@@ -357,7 +357,7 @@ func TestSimulationFrameRejectsUnknownAndOversizedInput(t *testing.T) {
 func TestSimulationCapabilityValidation(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: 1, OutputLimit: 1, World: WorldCapability{RecordLimit: 1, TransitionLimit: 1},
+		ExecutionTimeout: 1, OutputLimit: 1, World: WorldCapability{RecordLimit: 1, TransitionLimit: 1},
 		Simulation: &SimulationCapability{Role: "invalid"},
 	}
 	if err := validateSpec(request); err == nil {
@@ -378,7 +378,7 @@ func TestRunSupervisesSimulationNodeProcess(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-coordinator"}, RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-coordinator"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		Simulation: &SimulationCapability{Role: SimulationRoleCoordinator},
 	})
@@ -395,7 +395,7 @@ func TestRunHardCrashesAndReapsSimulationNodeProcess(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-coordinator", "GOMADV3_SIMULATION_CASE=crash"}, RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-coordinator", "GOMADV3_SIMULATION_CASE=crash"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		Simulation: &SimulationCapability{Role: SimulationRoleCoordinator},
 	})

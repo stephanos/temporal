@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
 )
 
 func TestValidateCapabilityClosureRejectsEscapeCapabilities(t *testing.T) {
@@ -239,7 +237,7 @@ func TestValidateCapabilityClosureDoesNotAuthorizeAnotherPackageInPinnedModule(t
 
 func TestValidateCapabilityReviewRejectsForgedCompatibilityIdentity(t *testing.T) {
 	closure := validCapabilityClosure()
-	closure.Compatibility = []compatibility.Identity{{ID: "unknown-pack", SHA256: "sha256:" + strings.Repeat("0", 64)}}
+	closure.Compatibility = []CompatibilityIdentity{{ID: "unknown-pack", SHA256: "sha256:" + strings.Repeat("0", 64)}}
 	if err := validateCapabilityReview(closure); err == nil || !strings.Contains(err.Error(), "does not match") {
 		t.Fatalf("validateCapabilityReview() error = %v", err)
 	}

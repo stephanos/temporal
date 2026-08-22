@@ -23,13 +23,16 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
+	simulationrecord "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -58,17 +61,17 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 	if len(summary.Artifacts) != 1 {
 		t.Fatalf("artifacts = %v", summary.Artifacts)
 	}
-	if _, err := evidence.OpenArtifact(summary.Artifacts[0]); err != nil {
+	if _, err := artifact.OpenArtifact(summary.Artifacts[0]); err != nil {
 		t.Fatal(err)
 	}
-	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 	if opened.Manifest.Target.BuildTags == nil {
 		t.Fatal("empty target build tags encoded as null")
 	}
-	if _, err := os.Stat(filepath.Join(summary.CampaignPath, "batch.json")); err != nil {
+	if _, err := os.Stat(filepath.Join(summary.CampaignPath, "campaign.json")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".prepared")); !os.IsNotExist(err) {
@@ -205,19 +208,19 @@ func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
 	if summary.Succeeded != 3 || summary.RetainedSuccesses != 2 || summary.RetainedSuccessBytes == 0 || len(summary.SuccessArtifacts) != 2 {
 		t.Fatalf("summary = %#v", summary)
 	}
-	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if batch.Runs[0].SuccessArtifact == nil || batch.Runs[1].SuccessArtifact != nil || batch.Runs[2].SuccessArtifact == nil || !slices.Equal(batch.Runs[0].NovelSemanticProbes, []string{"stdlib.os.openfile"}) || !slices.Equal(batch.Runs[2].NovelSemanticProbes, []string{"stdlib.net.dialtcp"}) {
-		t.Fatalf("batch runs = %#v", batch.Runs)
+	if batch.Executions[0].SuccessArtifact == nil || batch.Executions[1].SuccessArtifact != nil || batch.Executions[2].SuccessArtifact == nil || !slices.Equal(batch.Executions[0].NovelSemanticProbes, []string{"stdlib.os.openfile"}) || !slices.Equal(batch.Executions[2].NovelSemanticProbes, []string{"stdlib.net.dialtcp"}) {
+		t.Fatalf("batch runs = %#v", batch.Executions)
 	}
 	for _, path := range summary.SuccessArtifacts {
-		opened, err := evidence.OpenArtifact(path)
+		opened, err := artifact.OpenArtifact(path)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if opened.Manifest.ArtifactKind != evidence.ArtifactSuccess || opened.Manifest.Outcome.Domain != "success" || opened.Manifest.ReplayMode != evidence.ReplayExact {
+		if opened.Manifest.ArtifactKind != record.ArtifactSuccess || opened.Manifest.Outcome.Domain != "success" || opened.Manifest.ReplayMode != record.ReplayExact {
 			t.Fatalf("retained success = %#v", opened.Manifest)
 		}
 		if err := opened.Close(); err != nil {
@@ -254,14 +257,14 @@ func TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures(t *testing.T)
 	if summary.RetainedSuccesses != 2 || len(summary.SuccessArtifacts) != 2 {
 		t.Fatalf("summary = %#v", summary)
 	}
-	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if batch.Runs[0].SuccessArtifact == nil || len(batch.Runs[0].NovelChoiceFeatures) == 0 || batch.Runs[1].SuccessArtifact != nil || len(batch.Runs[1].NovelChoiceFeatures) != 0 || batch.Runs[2].SuccessArtifact == nil || len(batch.Runs[2].NovelChoiceFeatures) == 0 {
-		t.Fatalf("choice novelty runs = %#v", batch.Runs)
+	if batch.Executions[0].SuccessArtifact == nil || len(batch.Executions[0].NovelChoiceFeatures) == 0 || batch.Executions[1].SuccessArtifact != nil || len(batch.Executions[1].NovelChoiceFeatures) != 0 || batch.Executions[2].SuccessArtifact == nil || len(batch.Executions[2].NovelChoiceFeatures) == 0 {
+		t.Fatalf("choice novelty runs = %#v", batch.Executions)
 	}
-	for _, run := range batch.Runs {
+	for _, run := range batch.Executions {
 		if len(run.ChoiceFeatures) == 0 || !slices.IsSorted(run.ChoiceFeatures) {
 			t.Fatalf("choice features = %#v", run.ChoiceFeatures)
 		}
@@ -279,15 +282,15 @@ func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := []evidence.Uint64String{batch.Runs[0].Seed, batch.Runs[1].Seed, batch.Runs[2].Seed}; !slices.Equal(got, []evidence.Uint64String{1, 2, 3}) {
+	if got := []record.Uint64String{batch.Executions[0].Seed, batch.Executions[1].Seed, batch.Executions[2].Seed}; !slices.Equal(got, []record.Uint64String{1, 2, 3}) {
 		t.Fatalf("batch merge order = %v", got)
 	}
-	if batch.Runs[0].SuccessArtifact == nil || batch.Runs[1].SuccessArtifact != nil || batch.Runs[2].SuccessArtifact == nil {
-		t.Fatalf("ordered novelty retention = %#v", batch.Runs)
+	if batch.Executions[0].SuccessArtifact == nil || batch.Executions[1].SuccessArtifact != nil || batch.Executions[2].SuccessArtifact == nil {
+		t.Fatalf("ordered novelty retention = %#v", batch.Executions)
 	}
 }
 
@@ -329,15 +332,15 @@ func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
 	if second.CorpusAdded != 0 || second.CorpusEntries != 2 || replayer.calls != 2 {
 		t.Fatalf("second guided summary = %#v, replay calls = %d", second, replayer.calls)
 	}
-	batch, err := campaignstore.OpenCampaign(second.CampaignPath)
+	batch, err := campaign.OpenCampaign(second.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if batch.Record.Selection != "0,1,100-105" || batch.Record.SelectionCount != 8 {
 		t.Fatalf("guided batch selection = %q (%d)", batch.Record.Selection, batch.Record.SelectionCount)
 	}
-	seeds := make([]uint64, len(batch.Runs))
-	for index, run := range batch.Runs {
+	seeds := make([]uint64, len(batch.Executions))
+	for index, run := range batch.Executions {
 		seeds[index] = uint64(run.Seed)
 	}
 	if !slices.Equal(seeds, []uint64{0, 1, 100, 101, 102, 103, 104, 105}) {
@@ -448,13 +451,13 @@ func TestRunRequiresBoundedChoiceTraceCapacity(t *testing.T) {
 	}
 }
 
-func TestValidateConfigRequiresBoundedSingleSeedChoiceFrontier(t *testing.T) {
+func TestValidateConfigRequiresBoundedSingleSeedChoiceExploration(t *testing.T) {
 	valid := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
-	valid.Strategy = StrategyChoiceFrontier
+	valid.Strategy = StrategyChoiceExploration
 	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
-	valid.MaxRuns = 8
+	valid.MaxExecutions = 8
 	valid.MaxChoiceDepth = 4
-	valid.MaxFrontierBytes = 1 << 20
+	valid.MaxExplorationBytes = 1 << 20
 	if _, _, err := validateConfig(valid); err != nil {
 		t.Fatal(err)
 	}
@@ -471,9 +474,9 @@ func TestValidateConfigRequiresBoundedSingleSeedChoiceFrontier(t *testing.T) {
 			config.Coverage = CoverageSemantic
 		}, want: "does not support guided exploration"},
 		{name: "missing choice trace", configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = 0 }, want: "requires an enabled choice trace"},
-		{name: "missing run bound", configure: func(config *CampaignSpec) { config.MaxRuns = 0 }, want: "max runs"},
+		{name: "missing execution bound", configure: func(config *CampaignSpec) { config.MaxExecutions = 0 }, want: "max executions"},
 		{name: "missing depth bound", configure: func(config *CampaignSpec) { config.MaxChoiceDepth = 0 }, want: "choice depth"},
-		{name: "missing frontier bound", configure: func(config *CampaignSpec) { config.MaxFrontierBytes = 0 }, want: "frontier bytes"},
+		{name: "missing exploration bound", configure: func(config *CampaignSpec) { config.MaxExplorationBytes = 0 }, want: "exploration bytes"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := valid
@@ -485,15 +488,15 @@ func TestValidateConfigRequiresBoundedSingleSeedChoiceFrontier(t *testing.T) {
 	}
 }
 
-func TestValidateConfigRequiresBoundedSingleSeedCombinedFrontier(t *testing.T) {
+func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing.T) {
 	valid := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
-	valid.Strategy = StrategyCombinedFrontier
+	valid.Strategy = StrategySimulationExploration
 	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
-	valid.MaxRuns = 8
+	valid.MaxExecutions = 8
 	valid.MaxForcedDecisions = 4
-	valid.MaxFrontierBytes = 1 << 20
+	valid.MaxExplorationBytes = 1 << 20
 	valid.MaxExplorationResultBytes = 1 << 20
-	valid.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4}
+	valid.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4}
 	if _, _, err := validateConfig(valid); err != nil {
 		t.Fatal(err)
 	}
@@ -510,11 +513,11 @@ func TestValidateConfigRequiresBoundedSingleSeedCombinedFrontier(t *testing.T) {
 			config.Coverage = CoverageSemantic
 		}, want: "does not support guided exploration"},
 		{name: "missing choice trace", configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = 0 }, want: "requires an enabled choice trace"},
-		{name: "missing run bound", configure: func(config *CampaignSpec) { config.MaxRuns = 0 }, want: "max runs"},
+		{name: "missing execution bound", configure: func(config *CampaignSpec) { config.MaxExecutions = 0 }, want: "max executions"},
 		{name: "missing forced-decision bound", configure: func(config *CampaignSpec) { config.MaxForcedDecisions = 0 }, want: "forced decisions"},
-		{name: "missing frontier bound", configure: func(config *CampaignSpec) { config.MaxFrontierBytes = 0 }, want: "frontier bytes"},
+		{name: "missing exploration bound", configure: func(config *CampaignSpec) { config.MaxExplorationBytes = 0 }, want: "exploration bytes"},
 		{name: "missing result bound", configure: func(config *CampaignSpec) { config.MaxExplorationResultBytes = 0 }, want: "result bytes"},
-		{name: "missing dimension bound", configure: func(config *CampaignSpec) { config.CombinedDimensionLimits.Network = 0 }, want: "network dimension"},
+		{name: "missing dimension bound", configure: func(config *CampaignSpec) { config.SimulationDimensionLimits.Network = 0 }, want: "network dimension"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := valid
@@ -526,15 +529,15 @@ func TestValidateConfigRequiresBoundedSingleSeedCombinedFrontier(t *testing.T) {
 	}
 }
 
-func TestValidateConfigRejectsFrontierBoundsForSeedStrategy(t *testing.T) {
+func TestValidateConfigRejectsExplorationBoundsForSeedStrategy(t *testing.T) {
 	for _, configure := range []func(*CampaignSpec){
-		func(config *CampaignSpec) { config.MaxRuns = 1 },
+		func(config *CampaignSpec) { config.MaxExecutions = 1 },
 		func(config *CampaignSpec) { config.MaxChoiceDepth = 1 },
-		func(config *CampaignSpec) { config.MaxFrontierBytes = 1 },
+		func(config *CampaignSpec) { config.MaxExplorationBytes = 1 },
 	} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
 		configure(&config)
-		if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "choice-frontier strategy") {
+		if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "choice-exploration strategy") {
 			t.Fatalf("validateConfig() error = %v", err)
 		}
 	}
@@ -560,24 +563,24 @@ func TestRunCollectsBoundedQualificationEvidenceForOneSeed(t *testing.T) {
 	}}
 	config := testConfig(t, newFakePreparer(t), executor, "7", PolicyAll, 1)
 	config.Coverage = CoverageSemantic
-	config.CollectRunEvidence = true
+	config.CollectExecutionEvidence = true
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if summary.ExecutionEvidence == nil || summary.ExecutionEvidence.Seed != 7 || summary.ExecutionEvidence.Target.SHA256 == "" || summary.ExecutionEvidence.Stdout.FullSHA256 != evidence.HashBytes([]byte("stdout")) || summary.ExecutionEvidence.Stderr.FullSHA256 != evidence.HashBytes([]byte("stderr")) || summary.ExecutionEvidence.IOTranscriptRecords != 1 || summary.ExecutionEvidence.SemanticCoverage.Digest == "" {
-		t.Fatalf("run evidence = %#v", summary.ExecutionEvidence)
+	if summary.ExecutionEvidence == nil || summary.ExecutionEvidence.Seed != 7 || summary.ExecutionEvidence.Target.SHA256 == "" || summary.ExecutionEvidence.Stdout.FullSHA256 != record.HashBytes([]byte("stdout")) || summary.ExecutionEvidence.Stderr.FullSHA256 != record.HashBytes([]byte("stderr")) || summary.ExecutionEvidence.IOTranscriptRecords != 1 || summary.ExecutionEvidence.SemanticCoverage.Digest == "" {
+		t.Fatalf("execution evidence = %#v", summary.ExecutionEvidence)
 	}
 }
 
-func TestRunEvidenceRequiresOneSeedAndSemanticCoverage(t *testing.T) {
+func TestExecutionEvidenceRequiresOneSeedAndSemanticCoverage(t *testing.T) {
 	for _, configure := range []func(*CampaignSpec){
 		func(config *CampaignSpec) { config.Seeds = "1-2" },
 		func(config *CampaignSpec) { config.Coverage = CoverageNone },
 	} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 		config.Coverage = CoverageSemantic
-		config.CollectRunEvidence = true
+		config.CollectExecutionEvidence = true
 		configure(&config)
 		if _, err := Explore(context.Background(), config); err == nil {
 			t.Fatal("Explore() accepted invalid evidence configuration")
@@ -585,12 +588,12 @@ func TestRunEvidenceRequiresOneSeedAndSemanticCoverage(t *testing.T) {
 	}
 }
 
-func TestRunEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment(t *testing.T) {
+func TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment(t *testing.T) {
 	var runRecords []ExecutionEvidence
 	for _, overallTimeout := range []time.Duration{9 * time.Second, 10 * time.Second} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
 		config.Coverage = CoverageSemantic
-		config.CollectRunEvidence = true
+		config.CollectExecutionEvidence = true
 		config.OverallTimeout = overallTimeout
 		summary, err := Explore(context.Background(), config)
 		if err != nil {
@@ -598,11 +601,11 @@ func TestRunEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment(t *testing.T) 
 		}
 		runRecords = append(runRecords, *summary.ExecutionEvidence)
 	}
-	first, err := evidence.CanonicalJSON(runRecords[0])
+	first, err := canonicaljson.CanonicalJSON(runRecords[0])
 	if err != nil {
 		t.Fatal(err)
 	}
-	second, err := evidence.CanonicalJSON(runRecords[1])
+	second, err := canonicaljson.CanonicalJSON(runRecords[1])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -644,16 +647,16 @@ func TestRunResolvesRelativeArtifactRootBeforeTargetPreparation(t *testing.T) {
 }
 
 func TestFailureArtifactCapacityRejectsBeforePublication(t *testing.T) {
-	signature := evidence.HashBytes([]byte("existing"))
-	distinct := map[evidence.SHA256]string{signature: "/existing"}
+	signature := record.HashBytes([]byte("existing"))
+	distinct := map[record.SHA256]string{signature: "/existing"}
 	config := CampaignSpec{failureArtifactLimit: 1, failureBytesLimit: 10}
 	storedBytes := uint64(5)
 	storeRoot := t.TempDir()
 	_, err := publishBoundedFailureArtifact(
-		context.Background(), config, storeRoot, evidence.HashBytes([]byte("new")), distinct, &storedBytes, campaignstore.ArtifactInput{},
+		context.Background(), config, storeRoot, record.HashBytes([]byte("new")), distinct, &storedBytes, artifact.ArtifactInput{},
 	)
-	var capacityErr *campaignstore.ArtifactCapacityError
-	if !errors.As(err, &capacityErr) || capacityErr.Limit != campaignstore.ArtifactLimitFailureCount || capacityErr.Outcome != campaignstore.CapacityInfrastructureFailure {
+	var capacityErr *campaign.ArtifactCapacityError
+	if !errors.As(err, &capacityErr) || capacityErr.Limit != campaign.ArtifactLimitFailureCount || capacityErr.Outcome != campaign.CapacityInfrastructureFailure {
 		t.Fatalf("publishBoundedFailureArtifact() error = %v", err)
 	}
 	entries, err := os.ReadDir(storeRoot)
@@ -731,7 +734,7 @@ func TestRunPublishesConnectedWorldBundle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -769,7 +772,7 @@ func TestRunClassifiesConnectedWorldDeadlock(t *testing.T) {
 	if summary.Failures != 1 || len(summary.Artifacts) != 1 {
 		t.Fatalf("summary = %#v", summary)
 	}
-	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -830,11 +833,11 @@ func TestRunRejectsInvalidConnectedWorldBeforePublication(t *testing.T) {
 	if len(summary.Artifacts) != 1 {
 		t.Fatalf("Runner failure artifacts = %v, want 1", summary.Artifacts)
 	}
-	opened, openErr := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, openErr := artifact.OpenArtifact(summary.Artifacts[0])
 	if openErr != nil {
 		t.Fatal(openErr)
 	}
-	if opened.Manifest.ArtifactKind != evidence.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "world_record" || opened.Manifest.ReplayMode != evidence.ReplayNone {
+	if opened.Manifest.ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "world_record" || opened.Manifest.ReplayMode != record.ReplayNone {
 		t.Fatalf("Runner failure manifest = %#v", opened.Manifest)
 	}
 }
@@ -904,7 +907,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	if summary.ChoiceTrace == nil || summary.ChoiceTrace.Profile != choice.Profile || summary.ChoiceTrace.TerminalState != "complete" {
 		t.Fatalf("choice summary = %#v", summary.ChoiceTrace)
 	}
-	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -913,7 +916,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v2" || opened.Manifest.ChoiceProfile.Trace.Limit != evidence.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
+	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomadv3.choice-trace/v2" || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
 		t.Fatalf("artifact choice profile = %#v", opened.Manifest.ChoiceProfile)
 	}
 }
@@ -934,227 +937,227 @@ func TestSimulationCapabilityForJobCarriesDetachedExplorationPlanToInjectedExecu
 	}
 }
 
-func TestRunChoiceFrontierExecutesRootAndEveryNonSelectedRank(t *testing.T) {
+func TestRunChoiceExplorationExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	executor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	config := testConfig(t, preparer, executor, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceFrontier
+	config.Strategy = StrategyChoiceExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 8
+	config.MaxExecutions = 8
 	config.MaxChoiceDepth = 4
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopFrontierExhausted || summary.Frontier == nil || summary.Frontier.CommittedRounds != 2 || summary.Frontier.SeenPrefixes != 2 {
-		t.Fatalf("frontier summary = %#v", summary)
+	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopExplorationExhausted || summary.ChoiceExploration == nil || summary.ChoiceExploration.CommittedRounds != 2 || summary.ChoiceExploration.SeenPrefixes != 2 {
+		t.Fatalf("exploration summary = %#v", summary)
 	}
 	executor.mu.Lock()
 	requests := append([]execution.Spec(nil), executor.requests...)
 	executor.mu.Unlock()
 	if len(requests) != 2 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModePrefix || requests[1].Choice.ReplayPlan == nil || requests[1].Choice.ReplayPlan.Decisions[0].Selected != 1 {
-		t.Fatalf("frontier requests = %#v", requests)
+		t.Fatalf("exploration requests = %#v", requests)
 	}
-	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if batch.Record.Strategy != string(StrategyChoiceFrontier) || batch.Record.Frontier == nil || len(batch.Runs) != 2 || batch.Runs[1].ParentCandidateSHA256 == "" || batch.Runs[1].ForcedDepth == nil || *batch.Runs[1].ForcedDepth != 1 {
-		t.Fatalf("frontier batch = %#v", batch)
+	if batch.Record.Strategy != string(StrategyChoiceExploration) || batch.Record.ChoiceExploration == nil || len(batch.Executions) != 2 || batch.Executions[1].ParentCandidateSHA256 == "" || batch.Executions[1].ForcedDepth == nil || *batch.Executions[1].ForcedDepth != 1 {
+		t.Fatalf("exploration batch = %#v", batch)
 	}
-	segmentPath := filepath.Join(summary.CampaignPath, "frontier", "rounds", "00000000000000000001", "segment.json")
+	segmentPath := filepath.Join(summary.CampaignPath, "choice-exploration", "rounds", "00000000000000000001", "segment.json")
 	if err := os.WriteFile(segmentPath, []byte("{}"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := campaignstore.OpenCampaign(summary.CampaignPath); err == nil {
-		t.Fatal("OpenBatch() accepted a corrupt frontier segment")
+	if _, err := campaign.OpenCampaign(summary.CampaignPath); err == nil {
+		t.Fatal("OpenBatch() accepted a corrupt exploration segment")
 	}
 }
 
-func TestRunCombinedFrontierExecutesRootAndEveryScenarioRank(t *testing.T) {
+func TestRunSimulationExplorationExecutesRootAndEveryScenarioRank(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
-	config.Strategy = StrategyCombinedFrontier
+	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 4
+	config.MaxExecutions = 4
 	config.MaxForcedDecisions = 2
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
-	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
 
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopFrontierExhausted || summary.CombinedFrontier == nil || summary.CombinedFrontier.CommittedRounds != 2 || summary.CombinedFrontier.SeenCandidates != 2 {
-		t.Fatalf("combined frontier summary = %#v", summary)
+	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopExplorationExhausted || summary.SimulationExploration == nil || summary.SimulationExploration.CommittedRounds != 2 || summary.SimulationExploration.SeenCandidates != 2 {
+		t.Fatalf("simulation exploration summary = %#v", summary)
 	}
 	executor.mu.Lock()
 	requests := append([]execution.Spec(nil), executor.requests...)
 	executor.mu.Unlock()
 	if len(requests) != 2 || requests[0].Simulation == nil || len(requests[0].Simulation.ExplorationPlan) == 0 || requests[1].Simulation == nil || len(requests[1].Simulation.ExplorationPlan) == 0 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModeRecord {
-		t.Fatalf("combined frontier requests = %#v", requests)
+		t.Fatalf("simulation exploration requests = %#v", requests)
 	}
-	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if batch.Record.Strategy != string(StrategyCombinedFrontier) || batch.Record.CombinedFrontier == nil || len(batch.Runs) != 2 || batch.Runs[1].ParentCandidateSHA256 == "" || batch.Runs[1].ForcedDepth == nil || *batch.Runs[1].ForcedDepth != 1 {
-		t.Fatalf("combined frontier batch = %#v", batch)
+	if batch.Record.Strategy != string(StrategySimulationExploration) || batch.Record.SimulationExploration == nil || len(batch.Executions) != 2 || batch.Executions[1].ParentCandidateSHA256 == "" || batch.Executions[1].ForcedDepth == nil || *batch.Executions[1].ForcedDepth != 1 {
+		t.Fatalf("simulation exploration batch = %#v", batch)
 	}
 }
 
-func TestRunCombinedFrontierRetainsExactDeduplicatedSimulationFailure(t *testing.T) {
+func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
+	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
 	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
-	config.Strategy = StrategyCombinedFrontier
+	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 4
+	config.MaxExecutions = 4
 	config.MaxForcedDecisions = 2
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
-	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
 
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if summary.Attempted != 2 || summary.Failures != 2 || summary.DistinctFailures != 1 || len(summary.Artifacts) != 1 {
-		t.Fatalf("combined frontier failure summary = %#v", summary)
+		t.Fatalf("simulation exploration failure summary = %#v", summary)
 	}
-	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer opened.Close()
 	profile := opened.Manifest.SimulationProfile
 	if profile == nil {
-		t.Fatal("combined frontier failure artifact omitted simulation exploration evidence")
+		t.Fatal("simulation exploration failure artifact omitted simulation exploration evidence")
 	}
-	plan, err := evidence.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	plan, err := artifact.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
 	if err != nil {
 		t.Fatal(err)
 	}
-	record, err := evidence.ReadPayload(opened, profile.Record.File, uint64(profile.Record.Bytes))
+	record, err := artifact.ReadPayload(opened, profile.Record.File, uint64(profile.Record.Bytes))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := simulationexploration.ValidateArtifact(*profile, plan, record); err != nil {
+	if err := simulationrecord.ValidateArtifact(*profile, plan, record); err != nil {
 		t.Fatal(err)
 	}
-	batch, err := campaignstore.OpenCampaign(summary.CampaignPath)
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(batch.Runs) != 2 || batch.Runs[0].Artifact == nil || batch.Runs[1].Artifact == nil || *batch.Runs[0].Artifact != *batch.Runs[1].Artifact {
-		t.Fatalf("deduplicated combined failure references = %#v", batch.Runs)
+	if len(batch.Executions) != 2 || batch.Executions[0].Artifact == nil || batch.Executions[1].Artifact == nil || *batch.Executions[0].Artifact != *batch.Executions[1].Artifact {
+		t.Fatalf("deduplicated combined failure references = %#v", batch.Executions)
 	}
 }
 
-func TestRunChoiceFrontierResumeRerunsTheWholeIncompleteRound(t *testing.T) {
+func TestRunChoiceExplorationResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	baseExecutor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config := testConfig(t, preparer, frontierInterruptExecutor{frontier: baseExecutor}, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceFrontier
+	baseExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
+	config.Strategy = StrategyChoiceExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 8
+	config.MaxExecutions = 8
 	config.MaxChoiceDepth = 4
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 
 	partial, err := Explore(context.Background(), config)
 	var hostErr *HostError
-	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.Frontier == nil || partial.Frontier.CommittedRounds != 1 {
-		t.Fatalf("partial frontier = %#v, error = %v", partial, err)
+	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
+		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
 	}
-	resumedExecutor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	resumed, err := Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.Frontier == nil || resumed.Frontier.CommittedRounds != 2 || resumed.StopReason != StopFrontierExhausted {
-		t.Fatalf("resumed frontier = %#v", resumed)
+	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.CommittedRounds != 2 || resumed.StopReason != StopExplorationExhausted {
+		t.Fatalf("resumed exploration = %#v", resumed)
 	}
-	batch, err := campaignstore.OpenCampaign(resumed.CampaignPath)
+	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(batch.Runs) != 2 || batch.Record.RecoveryExecutions != 1 {
-		t.Fatalf("resumed frontier batch = %#v", batch)
+	if len(batch.Executions) != 2 || batch.Record.RecoveryExecutions != 1 {
+		t.Fatalf("resumed exploration batch = %#v", batch)
 	}
 }
 
-func TestRunCombinedFrontierResumePreservesCommittedCandidates(t *testing.T) {
+func TestRunSimulationExplorationResumePreservesCommittedCandidates(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	baseExecutor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config := testConfig(t, preparer, combinedFrontierInterruptExecutor{frontier: baseExecutor}, "7", PolicyAll, 1)
-	config.Strategy = StrategyCombinedFrontier
+	baseExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config := testConfig(t, preparer, simulationExplorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 1)
+	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 4
+	config.MaxExecutions = 4
 	config.MaxForcedDecisions = 2
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
-	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
 
 	partial, err := Explore(context.Background(), config)
 	var hostErr *HostError
-	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.CombinedFrontier == nil || partial.CombinedFrontier.CommittedRounds != 1 {
-		t.Fatalf("partial combined frontier = %#v, error = %v", partial, err)
+	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.SimulationExploration == nil || partial.SimulationExploration.CommittedRounds != 1 {
+		t.Fatalf("partial simulation exploration = %#v, error = %v", partial, err)
 	}
-	resumedExecutor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	resumedExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	resumed, err := Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.CombinedFrontier == nil || resumed.CombinedFrontier.CommittedRounds != 2 || resumed.StopReason != StopFrontierExhausted {
-		t.Fatalf("resumed combined frontier = %#v", resumed)
+	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.SimulationExploration == nil || resumed.SimulationExploration.CommittedRounds != 2 || resumed.StopReason != StopExplorationExhausted {
+		t.Fatalf("resumed simulation exploration = %#v", resumed)
 	}
 	resumedExecutor.mu.Lock()
 	resumedRequests := len(resumedExecutor.requests)
 	resumedExecutor.mu.Unlock()
 	if resumedRequests != 1 {
-		t.Fatalf("resumed combined frontier executed %d candidates, want only the uncommitted candidate", resumedRequests)
+		t.Fatalf("resumed simulation exploration executed %d candidates, want only the uncommitted candidate", resumedRequests)
 	}
 }
 
-func TestRunChoiceFrontierExpandsCompleteTargetFailures(t *testing.T) {
+func TestRunChoiceExplorationExpandsCompleteTargetFailures(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := &frontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, exitCode: 2}
+	executor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, exitCode: 2}
 	config := testConfig(t, preparer, executor, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceFrontier
+	config.Strategy = StrategyChoiceExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 8
+	config.MaxExecutions = 8
 	config.MaxChoiceDepth = 4
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if summary.Attempted != 2 || summary.Failures != 2 || summary.Succeeded != 0 || summary.StopReason != StopFrontierExhausted || len(summary.Artifacts) != 2 {
-		t.Fatalf("frontier target failures = %#v", summary)
+	if summary.Attempted != 2 || summary.Failures != 2 || summary.Succeeded != 0 || summary.StopReason != StopExplorationExhausted || len(summary.Artifacts) != 2 {
+		t.Fatalf("exploration target failures = %#v", summary)
 	}
 }
 
-func TestRunChoiceFrontierPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling(t *testing.T) {
+func TestRunChoiceExplorationPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling(t *testing.T) {
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	testdata, err := filepath.Abs(filepath.Join("..", "toolchain", "internal", "conformance", "testdata"))
+	testdata, err := filepath.Abs(filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1165,12 +1168,12 @@ func TestRunChoiceFrontierPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling(
 		t.Fatalf("build pinned supervisor: %v: %s", err, output)
 	}
 	config := CampaignSpec{
-		Parallel:   2,
-		RunTimeout: 10 * time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
+		Parallel:         2,
+		ExecutionTimeout: 10 * time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
 		OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
 		KeepSuccesses: KeepSuccessesAll, SuccessArtifactLimit: 16, SuccessBytesLimit: 128 << 20,
 		Target: target.Spec{
-			Kind: target.KindGoRun, Source: "./choice_frontier", WorkingDir: testdata, ToolchainRoot: toolchainRoot,
+			Kind: target.KindGoRun, Source: "./choice_exploration", WorkingDir: testdata, ToolchainRoot: toolchainRoot,
 		},
 		SupervisorCommand: []string{supervisor, "__supervisor"}, RunnerBuild: "sha256:" + strings.Repeat("0", 64),
 	}
@@ -1182,36 +1185,36 @@ func TestRunChoiceFrontierPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling(
 	if err != nil {
 		t.Fatal(err)
 	}
-	frontierConfig := config
-	frontierConfig.Strategy = StrategyChoiceFrontier
-	frontierConfig.Seeds = "211"
-	frontierConfig.ChoiceTraceLimit = 1 << 20
-	frontierConfig.MaxRuns = 16
-	frontierConfig.MaxChoiceDepth = 32
-	frontierConfig.MaxFrontierBytes = 4 << 20
-	frontierConfig.Artifacts = t.TempDir()
-	frontierSummary, err := Explore(context.Background(), frontierConfig)
+	explorationConfig := config
+	explorationConfig.Strategy = StrategyChoiceExploration
+	explorationConfig.Seeds = "211"
+	explorationConfig.ChoiceTraceLimit = 1 << 20
+	explorationConfig.MaxExecutions = 16
+	explorationConfig.MaxChoiceDepth = 32
+	explorationConfig.MaxExplorationBytes = 4 << 20
+	explorationConfig.Artifacts = t.TempDir()
+	explorationSummary, err := Explore(context.Background(), explorationConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
 	seedOutcomes := distinctSuccessStdoutOutcomes(t, seedSummary.SuccessArtifacts)
-	frontierOutcomes := distinctSuccessStdoutOutcomes(t, frontierSummary.SuccessArtifacts)
+	explorationOutcomes := distinctSuccessStdoutOutcomes(t, explorationSummary.SuccessArtifacts)
 	if seedSummary.Attempted != 16 || len(seedOutcomes) != 2 {
 		t.Fatalf("equal-budget seed summary = %#v, outcomes = %v", seedSummary, seedOutcomes)
 	}
-	if frontierSummary.Attempted != 16 || len(frontierOutcomes) != 2 || frontierSummary.Frontier == nil || frontierSummary.Frontier.DeduplicatedOutcomes != 2 {
-		t.Fatalf("equal-budget frontier summary = %#v, outcomes = %v", frontierSummary, frontierOutcomes)
+	if explorationSummary.Attempted != 16 || len(explorationOutcomes) != 2 || explorationSummary.ChoiceExploration == nil || explorationSummary.ChoiceExploration.DeduplicatedOutcomes != 2 {
+		t.Fatalf("equal-budget exploration summary = %#v, outcomes = %v", explorationSummary, explorationOutcomes)
 	}
-	if uint64(len(frontierOutcomes))*seedSummary.Attempted != uint64(len(seedOutcomes))*frontierSummary.Attempted {
-		t.Fatalf("pinned outcomes per execution differ: seed=%d/%d frontier=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(frontierOutcomes), frontierSummary.Attempted)
+	if uint64(len(explorationOutcomes))*seedSummary.Attempted != uint64(len(seedOutcomes))*explorationSummary.Attempted {
+		t.Fatalf("pinned outcomes per execution differ: seed=%d/%d exploration=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(explorationOutcomes), explorationSummary.Attempted)
 	}
 }
 
-func distinctSuccessStdoutOutcomes(t *testing.T, paths []string) map[evidence.SHA256]struct{} {
+func distinctSuccessStdoutOutcomes(t *testing.T, paths []string) map[record.SHA256]struct{} {
 	t.Helper()
-	outcomes := make(map[evidence.SHA256]struct{}, len(paths))
+	outcomes := make(map[record.SHA256]struct{}, len(paths))
 	for _, path := range paths {
-		artifact, err := evidence.OpenArtifact(path)
+		artifact, err := artifact.OpenArtifact(path)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1272,14 +1275,14 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 	if len(summary.Artifacts) != 1 || summary.ChoiceTrace == nil || summary.ChoiceTrace.TerminalState != "overflow" {
 		t.Fatalf("Explore() summary = %#v", summary)
 	}
-	opened, err := evidence.OpenArtifact(summary.Artifacts[0])
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := opened.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.ArtifactKind != evidence.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "choice_trace_overflow" || opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.TerminalState != "overflow" {
+	if opened.Manifest.ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "choice_trace_overflow" || opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.TerminalState != "overflow" {
 		t.Fatalf("overflow manifest = %#v", opened.Manifest)
 	}
 
@@ -1289,7 +1292,7 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 		return result
 	}}
 	resumed, err := Explore(context.Background(), CampaignSpec{
-		ResumeBatch: summary.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+		ResumeCampaign: summary.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1330,7 +1333,7 @@ func TestRunCancellationIsAHostFailure(t *testing.T) {
 	if summary.Failures != 0 || len(summary.Artifacts) != 0 {
 		t.Fatalf("cancelled summary = %#v", summary)
 	}
-	plan, planErr := campaignstore.ReadResumePlan(summary.CampaignPath)
+	plan, planErr := campaign.ReadResumePlan(summary.CampaignPath)
 	if planErr != nil {
 		t.Fatal(planErr)
 	}
@@ -1342,9 +1345,9 @@ func TestRunCancellationIsAHostFailure(t *testing.T) {
 		t.Fatal(readErr)
 	}
 	if len(partials) != 3 {
-		t.Fatalf("cancelled partials = %v, want batch, runs, and target", partials)
+		t.Fatalf("cancelled partials = %v, want campaign, executions, and target", partials)
 	}
-	if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".partial", "batch", "partial.json")); err != nil {
+	if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".partial", "campaign", "partial.json")); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -1366,7 +1369,7 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 
 	resumedExecutor := &fakeExecutor{}
 	resumed, err := Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1377,12 +1380,12 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 	if resumed.CampaignPath != partial.CampaignPath || resumed.SelectionCount != 3 || resumed.Attempted != 3 || resumed.Succeeded != 3 || resumed.Failures != 0 || resumed.StopReason != StopSeedsExhausted || preparer.calls != 1 {
 		t.Fatalf("resumed summary = %#v, preparation calls = %d", resumed, preparer.calls)
 	}
-	batch, err := campaignstore.OpenCampaign(resumed.CampaignPath)
+	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(batch.Runs) != 3 || batch.Runs[0].Seed != 7 || batch.Runs[1].Seed != 8 || batch.Runs[2].Seed != 9 {
-		t.Fatalf("batch runs = %#v", batch.Runs)
+	if len(batch.Executions) != 3 || batch.Executions[0].Seed != 7 || batch.Executions[1].Seed != 8 || batch.Executions[2].Seed != 9 {
+		t.Fatalf("batch runs = %#v", batch.Executions)
 	}
 }
 
@@ -1413,7 +1416,7 @@ func TestRunResumeRestoresSeenChoiceFeaturesBeforeNovelRetention(t *testing.T) {
 		return result
 	}}
 	resumed, err := Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1421,12 +1424,12 @@ func TestRunResumeRestoresSeenChoiceFeaturesBeforeNovelRetention(t *testing.T) {
 	if resumed.RetainedSuccesses != 1 || len(resumed.SuccessArtifacts) != 1 {
 		t.Fatalf("resumed summary = %#v", resumed)
 	}
-	batch, err := campaignstore.OpenCampaign(resumed.CampaignPath)
+	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if batch.Runs[1].SuccessArtifact != nil || len(batch.Runs[1].ChoiceFeatures) == 0 {
-		t.Fatalf("resumed run = %#v", batch.Runs[1])
+	if batch.Executions[1].SuccessArtifact != nil || len(batch.Executions[1].ChoiceFeatures) == 0 {
+		t.Fatalf("resumed run = %#v", batch.Executions[1])
 	}
 }
 
@@ -1452,7 +1455,7 @@ func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
 		return result
 	}}
 	resumed, err := Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor, Replayer: replayer,
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor, Replayer: replayer,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1471,7 +1474,7 @@ func TestRunResumeRejectsChangedRunnerIdentity(t *testing.T) {
 		t.Fatal("Explore() did not leave an interrupted batch")
 	}
 	_, err = Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: "sha256:changed", SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: "sha256:changed", SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
 	})
 	if err == nil || !strings.Contains(err.Error(), "Runner build identity") {
 		t.Fatalf("resume error = %v", err)
@@ -1494,7 +1497,7 @@ func TestRunResumeRejectsTamperedRetainedSuccessArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Explore(context.Background(), CampaignSpec{
-		ResumeBatch: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
 	})
 	if err == nil || !strings.Contains(err.Error(), "retained success") {
 		t.Fatalf("resume error = %v", err)
@@ -1573,7 +1576,7 @@ func TestClassifyStableTargetDiagnostics(t *testing.T) {
 		"unsupported_deterministic_mode": "runtime: GOMADSEED does not support cgo or external linking\n",
 	} {
 		t.Run(name, func(t *testing.T) {
-			outcome := execution.Classify(processResult(2, "", stderr), false, evidence.WorldTerminal{Kind: "none"})
+			outcome := execution.Classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
 			if outcome.Domain != "target" || outcome.Reason != name {
 				t.Fatalf("outcome = %#v", outcome)
 			}
@@ -1586,7 +1589,7 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
 	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
-	}, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact}, "run", evidence.World{}, nil)
+	}, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1600,7 +1603,7 @@ func TestClassifyStructuredWorldFailures(t *testing.T) {
 		"deadlock": "world_deadlock", "capacity": "world_capacity", "replay-divergence": "world_replay_divergence", "invalid-input": "world_invalid_input",
 	} {
 		t.Run(kind, func(t *testing.T) {
-			outcome := execution.Classify(processResult(0, "", ""), false, evidence.WorldTerminal{Kind: kind, Detail: "detail"})
+			outcome := execution.Classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
 			if outcome.Domain != "target" || outcome.Reason != reason || outcome.Termination != "exit" || outcome.ExitCode == nil || *outcome.ExitCode != 0 {
 				t.Fatalf("classify() = %#v", outcome)
 			}
@@ -1684,11 +1687,11 @@ func TestIsolatedRunnerPreservesMissingSemanticProbesError(t *testing.T) {
 	}
 }
 
-func TestIsolatedRunnerPreservesBoundedRunEvidence(t *testing.T) {
+func TestIsolatedRunnerPreservesBoundedExecutionEvidence(t *testing.T) {
 	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
 	config.Coverage = CoverageSemantic
-	config.CollectRunEvidence = true
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestRunEvidenceCoordinatorHelper"}
+	config.CollectExecutionEvidence = true
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestExecutionEvidenceCoordinatorHelper"}
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
@@ -1774,12 +1777,12 @@ func TestMissingSemanticProbesCoordinatorHelper(t *testing.T) {
 	os.Exit(0)
 }
 
-func TestRunEvidenceCoordinatorHelper(t *testing.T) {
+func TestExecutionEvidenceCoordinatorHelper(t *testing.T) {
 	if os.Getenv("GOMADV3_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	response := coordinatorResponse{CampaignResult: CampaignResult{ExecutionEvidence: &ExecutionEvidence{
-		Schema: ExecutionEvidenceSchema, Seed: 1, Target: evidence.Target{SHA256: "sha256:target"},
+		Schema: ExecutionEvidenceSchema, Seed: 1, Target: record.Target{SHA256: "sha256:target"},
 	}}}
 	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
 		t.Fatal(err)
@@ -1957,7 +1960,7 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 	digest := sha256.Sum256(data)
 	return &fakePreparer{prepared: target.Prepared{
 		Path: path, Kind: target.KindGoRun, Source: ".", SHA256: fmt.Sprintf("sha256:%x", digest), Size: uint64(len(data)),
-		Argv: []string{"gomadv3-target"}, BuildTags: []string{}, Compatibility: []evidence.CompatibilityPack{}, BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+		Argv: []string{"gomadv3-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 		GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e",
 		TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}}
@@ -2003,7 +2006,7 @@ type fakeExecutor struct {
 	result        func(uint64) execution.Result
 }
 
-type frontierExecutor struct {
+type explorationExecutor struct {
 	t        *testing.T
 	buildKey string
 	limit    uint64
@@ -2012,7 +2015,7 @@ type frontierExecutor struct {
 	requests []execution.Spec
 }
 
-type combinedFrontierExecutor struct {
+type simulationExplorationExecutor struct {
 	t        *testing.T
 	buildKey string
 	limit    uint64
@@ -2021,35 +2024,35 @@ type combinedFrontierExecutor struct {
 	requests []execution.Spec
 }
 
-type frontierInterruptExecutor struct {
-	frontier *frontierExecutor
+type explorationInterruptExecutor struct {
+	exploration *explorationExecutor
 }
 
-type combinedFrontierInterruptExecutor struct {
-	frontier *combinedFrontierExecutor
+type simulationExplorationInterruptExecutor struct {
+	exploration *simulationExplorationExecutor
 }
 
-func (executor frontierInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor explorationInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
 	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
-		return execution.Result{}, errors.New("simulated frontier interruption")
+		return execution.Result{}, errors.New("simulated exploration interruption")
 	}
-	return executor.frontier.Run(ctx, request)
+	return executor.exploration.Run(ctx, request)
 }
 
-func (executor combinedFrontierInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor simulationExplorationInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
 	var plan struct {
 		Overrides []json.RawMessage `json:"overrides"`
 	}
 	if request.Simulation == nil || json.Unmarshal(request.Simulation.ExplorationPlan, &plan) != nil {
-		return execution.Result{}, errors.New("combined frontier simulation plan is unavailable")
+		return execution.Result{}, errors.New("simulation exploration simulation plan is unavailable")
 	}
 	if len(plan.Overrides) != 0 {
-		return execution.Result{}, errors.New("simulated combined frontier interruption")
+		return execution.Result{}, errors.New("simulated simulation exploration interruption")
 	}
-	return executor.frontier.Run(ctx, request)
+	return executor.exploration.Run(ctx, request)
 }
 
-func (executor *frontierExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *explorationExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
 	executor.mu.Lock()
 	executor.requests = append(executor.requests, request)
 	executor.mu.Unlock()
@@ -2064,17 +2067,17 @@ func (executor *frontierExecutor) Run(_ context.Context, request execution.Spec)
 	return result, nil
 }
 
-func (executor *combinedFrontierExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *simulationExplorationExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
 	executor.mu.Lock()
 	executor.requests = append(executor.requests, request)
 	executor.mu.Unlock()
 	if request.Simulation == nil || len(request.Simulation.ExplorationPlan) == 0 {
-		return execution.Result{}, errors.New("combined frontier simulation plan is unavailable")
+		return execution.Result{}, errors.New("simulation exploration simulation plan is unavailable")
 	}
 	var plan struct {
 		BaseSeed  uint64 `json:"base_seed"`
 		Overrides []struct {
-			Dimension combinedfrontier.Dimension `json:"dimension"`
+			Dimension simulationengine.Dimension `json:"dimension"`
 			Selected  uint32                     `json:"selected"`
 		} `json:"overrides"`
 	}
@@ -2083,13 +2086,13 @@ func (executor *combinedFrontierExecutor) Run(_ context.Context, request executi
 	}
 	selected := uint32(0)
 	for _, override := range plan.Overrides {
-		if override.Dimension == combinedfrontier.DimensionScenario {
+		if override.Dimension == simulationengine.DimensionScenario {
 			selected = override.Selected
 		}
 	}
-	decision, err := combinedfrontier.CanonicalDecision(
-		combinedfrontier.DimensionScenario, 0, evidence.HashBytes([]byte("route")),
-		[]evidence.SHA256{evidence.HashBytes([]byte("alpha")), evidence.HashBytes([]byte("beta"))}, selected,
+	decision, err := simulationengine.CanonicalDecision(
+		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")),
+		[]record.SHA256{record.HashBytes([]byte("alpha")), record.HashBytes([]byte("beta"))}, selected,
 	)
 	if err != nil {
 		return execution.Result{}, err
@@ -2101,18 +2104,18 @@ func (executor *combinedFrontierExecutor) Run(_ context.Context, request executi
 	record, err := json.Marshal(struct {
 		Schema               string                      `json:"schema"`
 		Seed                 uint64                      `json:"seed"`
-		SpecSHA256           evidence.SHA256             `json:"spec_sha256"`
+		SpecSHA256           record.SHA256               `json:"spec_sha256"`
 		Outcome              string                      `json:"outcome"`
-		FailureIdentity      evidence.SHA256             `json:"failure_identity,omitempty"`
+		FailureIdentity      record.SHA256               `json:"failure_identity,omitempty"`
 		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
-		ExplorationDecisions []combinedfrontier.Decision `json:"exploration_decisions"`
+		ExplorationDecisions []simulationengine.Decision `json:"exploration_decisions"`
 		ScenarioTape         []string                    `json:"scenario_tape"`
-		Identity             evidence.SHA256             `json:"identity"`
+		Identity             record.SHA256               `json:"identity"`
 	}{
-		Schema: "gomadv3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: evidence.HashBytes([]byte("spec")), Outcome: outcome,
-		FailureIdentity: evidence.HashBytes([]byte("normalized oracle failure")),
-		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []combinedfrontier.Decision{decision},
-		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: evidence.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
+		Schema: "gomadv3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
+		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
+		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []simulationengine.Decision{decision},
+		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
 	})
 	if err != nil {
 		return execution.Result{}, err
@@ -2151,7 +2154,7 @@ type matchingReplayer struct {
 
 func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {
 	replayer.calls++
-	opened, err := evidence.OpenArtifact(config.ArtifactPath)
+	opened, err := artifact.OpenArtifact(config.ArtifactPath)
 	if err != nil {
 		return ReplayResult{}, err
 	}
@@ -2361,7 +2364,7 @@ func (executor *firstFailureExecutor) Run(ctx context.Context, request execution
 func testConfig(t *testing.T, preparer Preparer, executor Executor, seeds string, policy FailurePolicy, parallel int) CampaignSpec {
 	t.Helper()
 	return CampaignSpec{
-		Seeds: seeds, Parallel: parallel, RunTimeout: time.Second, OverallTimeout: 10 * time.Second, TerminateGrace: 100 * time.Millisecond,
+		Seeds: seeds, Parallel: parallel, ExecutionTimeout: time.Second, OverallTimeout: 10 * time.Second, TerminateGrace: 100 * time.Millisecond,
 		OnFailure: policy, FailureBudget: 1, OutputLimit: 64, WorldTransitionLimit: 64, Artifacts: t.TempDir(),
 		Environment: []string{"MODE=test"}, Target: target.Spec{Kind: target.KindGoRun, Source: "."}, SupervisorCommand: []string{"unused"},
 		RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000", Preparer: preparer, Executor: executor,
@@ -2389,13 +2392,13 @@ func processResult(exitCode int, stdout, stderr string) execution.Result {
 	}
 }
 
-func output(value string) execution.Output {
+func output(value string) hostexec.Output {
 	bytes := []byte(value)
 	digest := sha256.Sum256(bytes)
-	return execution.Output{Bytes: bytes, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(bytes)), RetainedBytes: uint64(len(bytes))}
+	return hostexec.Output{Bytes: bytes, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(bytes)), RetainedBytes: uint64(len(bytes))}
 }
 
-func semanticTranscript(t *testing.T, probe string) execution.IOTranscript {
+func semanticTranscript(t *testing.T, probe string) deterministicio.Transcript {
 	t.Helper()
 	digest := sha256.Sum256([]byte("gomadv3-boundary-probe/v1\x00" + probe))
 	var argument [8]byte
@@ -2406,11 +2409,11 @@ func semanticTranscript(t *testing.T, probe string) execution.IOTranscript {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return execution.IOTranscript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+	return deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
 }
 
-func completeEmptyTranscript() execution.IOTranscript {
-	return execution.IOTranscript{Complete: true, SHA256: sha256.Sum256(nil)}
+func completeEmptyTranscript() deterministicio.Transcript {
+	return deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}
 }
 
 func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []choice.Record) execution.ChoiceTrace {

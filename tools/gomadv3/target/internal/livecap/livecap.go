@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
 )
 
 type Expectation struct {
@@ -21,7 +22,7 @@ type Expectation struct {
 type Record struct {
 	Manifest Manifest
 	Payload  []byte
-	SHA256   evidence.SHA256
+	SHA256   record.SHA256
 }
 
 type CapacityError struct {
@@ -34,31 +35,31 @@ func (err *CapacityError) Error() string {
 	return fmt.Sprintf("live capability %s requires %d, maximum is %d", err.Resource, err.Required, err.Maximum)
 }
 
-func Decode(record []byte, expected Expectation) (Record, error) {
-	if len(record) < HeaderBytes {
+func Decode(data []byte, expected Expectation) (Record, error) {
+	if len(data) < HeaderBytes {
 		return Record{}, errors.New("live capability record is truncated")
 	}
-	if !bytes.Equal(record[:16], HeaderMagic[:]) {
+	if !bytes.Equal(data[:16], HeaderMagic[:]) {
 		return Record{}, errors.New("live capability record magic is invalid")
 	}
-	if binary.LittleEndian.Uint32(record[16:20]) != ProtocolVersion || binary.LittleEndian.Uint32(record[20:24]) != HeaderBytes {
+	if binary.LittleEndian.Uint32(data[16:20]) != ProtocolVersion || binary.LittleEndian.Uint32(data[20:24]) != HeaderBytes {
 		return Record{}, errors.New("live capability record version or header length is invalid")
 	}
-	payloadBytes := binary.LittleEndian.Uint64(record[24:32])
-	factCount := binary.LittleEndian.Uint64(record[32:40])
+	payloadBytes := binary.LittleEndian.Uint64(data[24:32])
+	factCount := binary.LittleEndian.Uint64(data[32:40])
 	if payloadBytes > MaximumPayloadBytes {
 		return Record{}, &CapacityError{Resource: "payload bytes", Required: payloadBytes, Maximum: MaximumPayloadBytes}
 	}
 	if factCount > MaximumFacts {
 		return Record{}, &CapacityError{Resource: "fact count", Required: factCount, Maximum: MaximumFacts}
 	}
-	if payloadBytes != uint64(len(record)-HeaderBytes) {
+	if payloadBytes != uint64(len(data)-HeaderBytes) {
 		return Record{}, errors.New("live capability payload length does not match its record")
 	}
-	if !allZero(record[104:HeaderBytes]) {
+	if !allZero(data[104:HeaderBytes]) {
 		return Record{}, errors.New("live capability reserved header bytes are nonzero")
 	}
-	producer, err := evidence.ParseSHA256(ProducerImplementationSHA256)
+	producer, err := record.ParseSHA256(ProducerImplementationSHA256)
 	if err != nil {
 		return Record{}, fmt.Errorf("decode live capability producer identity: %w", err)
 	}
@@ -66,22 +67,22 @@ func Decode(record []byte, expected Expectation) (Record, error) {
 	if err != nil {
 		return Record{}, fmt.Errorf("decode live capability producer identity: %w", err)
 	}
-	if !bytes.Equal(record[72:104], producerDigest[:]) {
+	if !bytes.Equal(data[72:104], producerDigest[:]) {
 		return Record{}, errors.New("live capability header producer identity does not match this Gomad build")
 	}
-	payload := record[HeaderBytes:]
+	payload := data[HeaderBytes:]
 	digest := sha256.Sum256(payload)
-	if !bytes.Equal(record[40:72], digest[:]) {
+	if !bytes.Equal(data[40:72], digest[:]) {
 		return Record{}, errors.New("live capability payload SHA-256 does not match its header")
 	}
 	var manifest Manifest
-	if err := evidence.DecodeCanonicalJSON(payload, &manifest); err != nil {
+	if err := canonicaljson.DecodeCanonicalJSON(payload, &manifest); err != nil {
 		return Record{}, fmt.Errorf("decode live capability manifest: %w", err)
 	}
 	if err := validateManifest(manifest, expected, factCount, payloadBytes); err != nil {
 		return Record{}, err
 	}
-	return Record{Manifest: manifest, Payload: bytes.Clone(payload), SHA256: evidence.SHA256FromSum(digest)}, nil
+	return Record{Manifest: manifest, Payload: bytes.Clone(payload), SHA256: record.SHA256FromSum(digest)}, nil
 }
 
 func validateManifest(manifest Manifest, expected Expectation, factCount, payloadBytes uint64) error {

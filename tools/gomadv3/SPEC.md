@@ -43,9 +43,9 @@ The capitalized terms below are the canonical product language. They describe pr
 
 **Campaign**: One bounded exploration effort over a Prepared Target, comprising selected Executions, a failure policy, limits, and retained evidence.
 
-**Choice Frontier**: The bounded set of runtime Choice prefixes that remain to be explored from one base Seed.
+**Choice Exploration**: The bounded set of runtime Choice prefixes that remain to be explored from one base Seed.
 
-**Combined Frontier**: The bounded set of alternatives across runtime Choices and modeled simulation dimensions that remain to be explored from one base Seed.
+**Combined ChoiceExploration**: The bounded set of alternatives across runtime Choices and modeled simulation dimensions that remain to be explored from one base Seed.
 
 **Corpus**: A private bounded collection of replay-verified, semantically novel Artifacts that may guide later Campaigns.
 
@@ -293,11 +293,11 @@ Scenario, fault, network, storage, runtime-choice, and crash-state decisions mus
 
 ### [CAMPAIGN.SELECTION] Selection
 
-A Campaign must select a finite ordered set of seeds or one bounded exploration frontier before or during execution. Seed ranges and counts must have stable ordinals, and resuming a Campaign must not reselect already planned work.
+A Campaign must select a finite ordered set of seeds or one bounded exploration exploration before or during execution. Seed ranges and counts must have stable ordinals, and resuming a Campaign must not reselect already planned work.
 
 ### [CAMPAIGN.EXECUTION] Execution
 
-Gomad must prepare once, run selected work in isolated processes up to a declared parallelism bound, track progress, and produce one terminal Campaign result. Completion order must not change deterministic selection or frontier commitment.
+Gomad must prepare once, run selected work in isolated processes up to a declared parallelism bound, track progress, and produce one terminal Campaign result. Completion order must not change deterministic selection or exploration commitment.
 
 ### [CAMPAIGN.FAILURE] Failure Policy
 
@@ -315,13 +315,13 @@ Successful Executions must be discarded by default. A Campaign may retain all su
 
 Gomad may guide seed selection from a private bounded corpus of replay-verified, semantically novel Artifacts. Each Campaign must bind one immutable corpus snapshot, preserve a portion of unguided requested seeds, and publish corpus changes atomically only after exact replay succeeds.
 
-### [CAMPAIGN.CHOICE.FRONTIER] Choice Frontier
+### [CAMPAIGN.CHOICE.FRONTIER] Choice Exploration
 
-Choice-frontier exploration must expand observed alternative runtime choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when outcomes deduplicate to the same evidence.
+Choice-exploration exploration must expand observed alternative runtime choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when outcomes deduplicate to the same evidence.
 
-### [CAMPAIGN.COMBINED.FRONTIER] Combined Frontier
+### [CAMPAIGN.COMBINED.FRONTIER] Combined ChoiceExploration
 
-Combined-frontier exploration must coordinate bounded alternatives across runtime, scenario, network, storage, fault, and crash-state dimensions from one base seed. It must preserve deterministic candidate order, separate logical from recovery executions, and retain enough evidence to resume or minimize a failure.
+Combined-exploration exploration must coordinate bounded alternatives across runtime, scenario, network, storage, fault, and crash-state dimensions from one base seed. It must preserve deterministic candidate order, separate logical from recovery executions, and retain enough evidence to resume or minimize a failure.
 
 ## [EVIDENCE] Records, Artifacts, and Replay
 
@@ -409,12 +409,12 @@ The `gomad` command must expose the following user workflows. Each row is normat
 |---|---|---|
 | `[COMMAND.GOMAD.DOCTOR]` | `doctor` | Validate the resolved installation, platform, product identities, adapters, and Artifact location; report an actionable repair when unavailable. |
 | `[COMMAND.GOMAD.ANALYZE]` | `analyze` | Review a Go Target's capabilities without launching it and emit human-readable or stable machine-readable evidence. |
-| `[COMMAND.GOMAD.EXPLORE]` | `explore` | Run a bounded seed, choice-frontier, or combined-frontier Campaign and report progress, result classification, and retained Artifacts. |
+| `[COMMAND.GOMAD.EXPLORE]` | `explore` | Run a bounded seed, choice-exploration, or simulation-exploration Campaign and report progress, result classification, and retained Artifacts. |
 | `[COMMAND.GOMAD.QUALIFY]` | `qualify` | Repeat one Target under the same controls and compare its canonical evidence. |
 | `[COMMAND.GOMAD.QUALIFY.SET]` | `qualify-set` | Validate or execute a declared workload set and publish its aggregate qualification report. |
 | `[COMMAND.GOMAD.COMPARE.SUPPORT]` | `compare-support` | Compare two qualification-set reports and require exact approval for reviewed-boundary changes. |
 | `[COMMAND.GOMAD.PLAN]` | `plan` | Publish a portable Campaign plan and its verified execution bundle. |
-| `[COMMAND.GOMAD.RUN.SHARD]` | `run-shard` | Execute one deterministic shard of a portable plan. |
+| `[COMMAND.GOMAD.EXECUTE.SHARD]` | `execute-shard` | Execute one deterministic shard of a portable plan. |
 | `[COMMAND.GOMAD.MERGE]` | `merge` | Validate and combine shard Campaigns into one immutable complete or explicitly partial aggregate. |
 | `[COMMAND.GOMAD.INSPECT]` | `inspect` | Validate and describe a plan, Campaign, aggregate, or Artifact. |
 | `[COMMAND.GOMAD.REPLAY]` | `replay` | Validate and optionally re-execute a retained Artifact against its recorded observation. |
@@ -461,7 +461,6 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs. |
 | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |
 | `[COMMAND.GOMADTOOL.CHECKED.RUN]` | `checked-run` | Run a bounded external command, classify timeout and exit status, and retain bounded diagnostic output. |
-| `[COMMAND.GOMADTOOL.TEST.MODE]` | `test-mode` | Resolve the declared conformance tiers and success contract for a named test mode. |
 | `[COMMAND.GOMADTOOL.TEST]` | `test` | Execute a selected bounded conformance campaign and report the first failing evidence. |
 | `[COMMAND.GOMADTOOL.UPGRADE.DOSSIER]` | `upgrade-dossier` | Run upgrade gates and publish the complete qualification dossier even when a completed gate rejects the upgrade. |
 
@@ -473,7 +472,7 @@ Gomad must distinguish target failure, watchdog observation, replay divergence, 
 
 ### [FAILURE.BOUNDS] Bounded Operation
 
-Every untrusted or potentially growing product surface must have an explicit bound, including process time, output, transcripts, choices, World transitions, simulation state, frontier state, journals, retained Artifacts, corpora, protocol frames, and qualification reports. Capacity exhaustion must be visible and must not produce a claim of completeness.
+Every untrusted or potentially growing product surface must have an explicit bound, including process time, output, transcripts, choices, World transitions, simulation state, exploration state, journals, retained Artifacts, corpora, protocol frames, and qualification reports. Capacity exhaustion must be visible and must not produce a claim of completeness.
 
 ### [FAILURE.INTEGRITY] Integrity
 

@@ -11,7 +11,7 @@ Contract**, and records explicit external events from the **World Model**.
 The Runner validates those observations into an **Execution Record** and
 publishes an immutable **Artifact**. **Replay** verifies the same behavior, the
 **Corpus** retains useful verified Artifacts for future Campaigns, and a
-**Qualification Suite** measures what a specific toolchain and platform support.
+**Qualification Set** measures what a specific toolchain and platform support.
 
 ## Language
 
@@ -93,5 +93,5 @@ Target, Choices, deterministic I/O, and World inputs.
 **Corpus** — The bounded set of verified, interesting Artifacts used to guide
 later Campaigns toward semantically novel behavior.
 
-**Qualification Suite** — A versioned set of workloads, expectations, and
+**Qualification Set** — A versioned set of workloads, expectations, and
 limits used to measure support for one exact toolchain and platform.

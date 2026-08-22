@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 )
 
 const RecoverySchema = "gomadv3.recovery/v1"
@@ -42,9 +42,9 @@ func Recover(ctx context.Context, path string) (Recovery, error) {
 	if err != nil {
 		return Recovery{}, fmt.Errorf("resolve recovery path: %w", err)
 	}
-	recovered, err := campaignstore.RecoverCampaign(ctx, absolute)
+	recovered, err := campaign.RecoverCampaign(ctx, absolute)
 	if err != nil {
-		if campaignstore.IsIntegrityError(err) {
+		if campaign.IsIntegrityError(err) {
 			return Recovery{}, &invalidRecoveryError{err: err}
 		}
 		return Recovery{}, err

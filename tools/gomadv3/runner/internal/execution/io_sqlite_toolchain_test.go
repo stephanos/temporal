@@ -27,7 +27,7 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fixtureRoot := filepath.Join(moduleRoot, "toolchain", "internal", "conformance", "testdata", "sqlite_adapter")
+	fixtureRoot := filepath.Join(moduleRoot, "internal", "gomadtool", "conformance", "testdata", "sqlite_adapter")
 	profile := deterministicio.Default()
 	spec, adapters, err := profile.PrepareBuildAdapters(target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: fixtureRoot,
@@ -52,7 +52,7 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})

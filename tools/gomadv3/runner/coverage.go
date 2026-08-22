@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
@@ -19,7 +19,7 @@ func coverageHasChoice(mode CoverageMode) bool {
 }
 
 func projectChoiceFeatures(trace execution.ChoiceTrace, prepared target.Prepared) (choice.FeatureProjection, []string, error) {
-	targetIdentity, err := evidence.ParseSHA256(prepared.SHA256)
+	targetIdentity, err := record.ParseSHA256(prepared.SHA256)
 	if err != nil {
 		return choice.FeatureProjection{}, nil, fmt.Errorf("decode choice target identity: %w", err)
 	}

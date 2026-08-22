@@ -31,11 +31,11 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 		libcAdapter      bool
 		guarded          bool
 	}{
-		{name: "filesystem", source: "./io_filesystem", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"), wantOutput: "isolated\n", hostEscape: true, denyWrites: true},
-		{name: "network", source: "./io_net", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"), wantOutput: "ok\n"},
-		{name: "signal stop", source: "./io_signal", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
-		{name: "user lookup", source: "./io_user", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
-		{name: "modernc libc", source: ".", workingDirectory: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata", "libc_adapter"), wantOutput: "ok\n", denyWrites: true, libcAdapter: true},
+		{name: "filesystem", source: "./io_filesystem", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "isolated\n", hostEscape: true, denyWrites: true},
+		{name: "network", source: "./io_net", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "ok\n"},
+		{name: "signal stop", source: "./io_signal", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
+		{name: "user lookup", source: "./io_user", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
+		{name: "modernc libc", source: ".", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata", "libc_adapter"), wantOutput: "ok\n", denyWrites: true, libcAdapter: true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 				SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 				BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 				Command:           "/usr/bin/sandbox-exec", Args: arguments, Argv0: "sandbox-exec", Dir: runDirectory, Env: environment,
-				RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+				ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 				World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 				IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 			})
@@ -151,8 +151,8 @@ func runIOFailureFixture(t *testing.T, moduleName, source string, capabilityMode
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(),
-		Env:        []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+		Env:              []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})

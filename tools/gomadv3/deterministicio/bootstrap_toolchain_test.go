@@ -17,7 +17,7 @@ func TestToolchainLeavesFD5ForProcessesWithoutIOProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_fd5", WorkingDir: filepath.Join("..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_fd5", WorkingDir: filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {

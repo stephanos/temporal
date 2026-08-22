@@ -142,7 +142,7 @@ func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, err
 	}
 	decisions := make([]Decision, 0, len(trace.Records))
 	for _, record := range trace.Records {
-		if record.Flags&FlagObservation != 0 {
+		if record.Flags&FlagObservation != 0 || record.Alternatives < 2 {
 			continue
 		}
 		decision, err := decisionFromRecord(record)
@@ -164,6 +164,9 @@ func ValidateReplayPlan(tape ReplayPlan, identity ExecutionIdentity) (ReplayPlan
 		return ReplayPlan{}, err
 	}
 	for _, decision := range validated.Decisions {
+		if decision.Alternatives < 2 {
+			return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("exact choice tape contains a non-branching decision"))
+		}
 		if decision.RankOverride {
 			return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("exact choice tape contains a rank override"))
 		}
@@ -180,6 +183,9 @@ func ValidatePrefixReplayPlan(tape ReplayPlan, identity ExecutionIdentity) (Repl
 		return ReplayPlan{}, err
 	}
 	for index, decision := range validated.Decisions {
+		if decision.Alternatives < 2 {
+			return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice prefix contains a non-branching decision"))
+		}
 		if !decision.RankOverride {
 			continue
 		}

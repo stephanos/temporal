@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
 
@@ -31,7 +30,7 @@ func prepareModerncMemory(moduleCache, root string, identity gomadversion.Adapte
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("resolve pinned modernc memory module: %w", err)
 	}
-	originalInventory, err := target.DigestAdapterSourceInventory(moduleSource)
+	originalInventory, err := digestAdapterSourceInventory(moduleSource)
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("hash pinned modernc memory source inventory: %w", err)
 	}
@@ -50,7 +49,7 @@ func prepareModerncMemory(moduleCache, root string, identity gomadversion.Adapte
 	if err := copyAdapterModule(moduleSource, moduleReplacement, map[string][]byte{memoryMmapPath: rewritten}, defaultAdapterCopyLimits); err != nil {
 		return adapterPreparation{}, fmt.Errorf("copy modernc memory adapter module: %w", err)
 	}
-	replacementInventory, err := target.DigestAdapterSourceInventory(moduleReplacement)
+	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("hash modernc memory replacement inventory: %w", err)
 	}

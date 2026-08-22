@@ -5,9 +5,10 @@
 package signal
 
 import (
+	"os"
+
 	"internal/gomadio"
 	"internal/gomadtrace"
-	"os"
 )
 
 func gomadObserveBoundary(id uint64) {

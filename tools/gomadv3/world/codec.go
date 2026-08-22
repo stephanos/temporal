@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"sort"
-	"strconv"
-	"strings"
 	"unicode/utf8"
+
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 )
 
 const (
@@ -22,7 +21,7 @@ func EncodeSnapshot(snapshot Snapshot) ([]byte, error) {
 	if _, err := Restore(snapshot, nil); err != nil {
 		return nil, err
 	}
-	encoded, err := canonicalJSON(snapshot)
+	encoded, err := canonicaljson.CanonicalJSON(snapshot)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func DecodeSnapshot(data []byte) (Snapshot, error) {
 	if _, err := Restore(snapshot, nil); err != nil {
 		return Snapshot{}, err
 	}
-	canonical, err := canonicalJSON(snapshot)
+	canonical, err := canonicaljson.CanonicalJSON(snapshot)
 	if err != nil {
 		return Snapshot{}, invalidSnapshot("json.canonical")
 	}
@@ -271,96 +270,6 @@ func consumeSnapshotBudget(budget *uint64) error {
 		return fmt.Errorf("aggregate JSON node count exceeds configured limit")
 	}
 	*budget--
-	return nil
-}
-
-func canonicalJSON(value any) ([]byte, error) {
-	var encoded bytes.Buffer
-	encoder := json.NewEncoder(&encoded)
-	encoder.SetEscapeHTML(false)
-	if err := encoder.Encode(value); err != nil {
-		return nil, err
-	}
-	decoder := json.NewDecoder(bytes.NewReader(bytes.TrimSuffix(encoded.Bytes(), []byte{'\n'})))
-	decoder.UseNumber()
-	var decoded any
-	if err := decoder.Decode(&decoded); err != nil {
-		return nil, err
-	}
-	var canonical bytes.Buffer
-	if err := appendCanonicalJSON(&canonical, decoded); err != nil {
-		return nil, err
-	}
-	return canonical.Bytes(), nil
-}
-
-func appendCanonicalJSON(output *bytes.Buffer, value any) error {
-	switch typed := value.(type) {
-	case nil:
-		output.WriteString("null")
-	case bool:
-		output.WriteString(strconv.FormatBool(typed))
-	case string:
-		return appendCanonicalJSONString(output, typed)
-	case json.Number:
-		number := string(typed)
-		if strings.ContainsAny(number, ".eE") {
-			return fmt.Errorf("floating-point JSON value %q", number)
-		}
-		if _, err := strconv.ParseInt(number, 10, 64); err != nil {
-			if _, unsignedErr := strconv.ParseUint(number, 10, 64); unsignedErr != nil {
-				return fmt.Errorf("invalid JSON integer %q", number)
-			}
-		}
-		output.WriteString(number)
-	case []any:
-		output.WriteByte('[')
-		for index, item := range typed {
-			if index > 0 {
-				output.WriteByte(',')
-			}
-			if err := appendCanonicalJSON(output, item); err != nil {
-				return err
-			}
-		}
-		output.WriteByte(']')
-	case map[string]any:
-		keys := make([]string, 0, len(typed))
-		for key := range typed {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
-		output.WriteByte('{')
-		for index, key := range keys {
-			if index > 0 {
-				output.WriteByte(',')
-			}
-			if err := appendCanonicalJSONString(output, key); err != nil {
-				return err
-			}
-			output.WriteByte(':')
-			if err := appendCanonicalJSON(output, typed[key]); err != nil {
-				return err
-			}
-		}
-		output.WriteByte('}')
-	default:
-		return fmt.Errorf("unsupported canonical JSON value %T", value)
-	}
-	return nil
-}
-
-func appendCanonicalJSONString(output *bytes.Buffer, value string) error {
-	if !utf8.ValidString(value) {
-		return fmt.Errorf("invalid UTF-8 JSON string")
-	}
-	var encoded bytes.Buffer
-	encoder := json.NewEncoder(&encoded)
-	encoder.SetEscapeHTML(false)
-	if err := encoder.Encode(value); err != nil {
-		return err
-	}
-	output.Write(bytes.TrimSuffix(encoded.Bytes(), []byte{'\n'}))
 	return nil
 }
 

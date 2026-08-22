@@ -181,7 +181,7 @@ func RevokeSimulationVolumes(domainToken uint64, graceful, persistedOnly bool) (
 }
 
 //go:linkname EnumerateSimulationVolume
-func EnumerateSimulationVolume(domainToken uint64, volume string, states, operations, depth, bytes, wallNanos uint64, encodedFrontier []byte) ([]byte, bool) {
+func EnumerateSimulationVolume(domainToken uint64, volume string, states, operations, depth, bytes, wallNanos uint64, encodedExploration []byte) ([]byte, bool) {
 	domain, ok := gomadsim.DescribeNetworkDomain(domainToken)
 	if !ok {
 		return encodeSimulationVolumeBridgeError(syscall.ESTALE), false
@@ -190,11 +190,11 @@ func EnumerateSimulationVolume(domainToken uint64, volume string, states, operat
 	if run == nil {
 		return encodeSimulationVolumeBridgeError(errors.New("simulation volume run is unavailable")), false
 	}
-	frontier, err := decodeSimulationCrashFrontier(encodedFrontier)
+	exploration, err := decodeSimulationCrashExploration(encodedExploration)
 	if err != nil {
 		return encodeSimulationVolumeBridgeError(err), false
 	}
-	page, err := run.enumerate(domain, volume, CrashEnumerationLimits{States: states, Operations: operations, Depth: depth, Bytes: bytes, WallNanos: wallNanos}, frontier)
+	page, err := run.enumerate(domain, volume, CrashEnumerationLimits{States: states, Operations: operations, Depth: depth, Bytes: bytes, WallNanos: wallNanos}, exploration)
 	if err != nil {
 		return encodeSimulationVolumeBridgeError(err), false
 	}
@@ -346,7 +346,7 @@ func (run *simulationVolumeRun) crashSeed(node string, incarnation uint64) uint6
 		uint64(digest[4])<<32 | uint64(digest[5])<<40 | uint64(digest[6])<<48 | uint64(digest[7])<<56
 }
 
-func (run *simulationVolumeRun) enumerate(domain gomadsim.NetworkDomain, volume string, limits CrashEnumerationLimits, frontier *CrashFrontier) (CrashEnumeration, error) {
+func (run *simulationVolumeRun) enumerate(domain gomadsim.NetworkDomain, volume string, limits CrashEnumerationLimits, exploration *CrashExploration) (CrashEnumeration, error) {
 	run.Lock()
 	node := run.nodes[domain.Node]
 	if run.finished || node == nil || node.activeDomain != domain.Token || node.incarnation != domain.Incarnation {
@@ -355,7 +355,7 @@ func (run *simulationVolumeRun) enumerate(domain gomadsim.NetworkDomain, volume 
 	}
 	filesystem := node.filesystem
 	run.Unlock()
-	return filesystem.EnumerateCrashStates(volume, limits, frontier)
+	return filesystem.EnumerateCrashStates(volume, limits, exploration)
 }
 
 func (observer *simulationVolumeObserver) BeforeVolumeOperations(volume string, operations []Operation) error {
