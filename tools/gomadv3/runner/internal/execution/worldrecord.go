@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/world"
 	"go.temporal.io/server/tools/gomadv3/world/mailbox"
 )
 
 type Bundle struct {
-	Manifest evidence.World
-	Payloads evidence.WorldPayloads
+	Manifest record.World
+	Payloads record.WorldPayloads
 }
 
-func Validate(manifest evidence.World, payloads evidence.WorldPayloads) (world.Snapshot, world.Snapshot, error) {
+func Validate(manifest record.World, payloads record.WorldPayloads) (world.Snapshot, world.Snapshot, error) {
 	if manifest.Initial.Schema == "gomadv3.world.snapshot/none" && manifest.Transitions.Schema == "gomadv3.world.transitions/none" && manifest.Final.Schema == "gomadv3.world.snapshot/none" {
-		expectedManifest, expectedPayloads := evidence.NoneWorld()
+		expectedManifest, expectedPayloads := record.NoneWorld()
 		if !bytes.Equal(payloads.Initial, expectedPayloads.Initial) || !bytes.Equal(payloads.Transitions, expectedPayloads.Transitions) || !bytes.Equal(payloads.Final, expectedPayloads.Final) {
 			return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("none World payloads changed")
 		}
@@ -36,7 +37,7 @@ func Validate(manifest evidence.World, payloads evidence.WorldPayloads) (world.S
 	if err != nil {
 		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("decode final World snapshot: %w", err)
 	}
-	transitions, err := evidence.StrictDecodeJSONLines[world.Transition](payloads.Transitions)
+	transitions, err := canonicaljson.StrictDecodeJSONLines[world.Transition](payloads.Transitions)
 	if err != nil {
 		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("decode World transitions: %w", err)
 	}
@@ -57,9 +58,9 @@ func Validate(manifest evidence.World, payloads evidence.WorldPayloads) (world.S
 	return initial, final, nil
 }
 
-func sameManifest(left, right evidence.World) bool {
-	leftBytes, leftErr := evidence.CanonicalJSON(left)
-	rightBytes, rightErr := evidence.CanonicalJSON(right)
+func sameManifest(left, right record.World) bool {
+	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
+	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 
@@ -94,11 +95,11 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 	if _, err := world.Restore(final, nil); err != nil {
 		return Bundle{}, fmt.Errorf("validate final World snapshot: %w", err)
 	}
-	initialConfig, err := evidence.CanonicalJSON(initial.Config)
+	initialConfig, err := canonicaljson.CanonicalJSON(initial.Config)
 	if err != nil {
 		return Bundle{}, fmt.Errorf("encode initial World config: %w", err)
 	}
-	finalConfig, err := evidence.CanonicalJSON(final.Config)
+	finalConfig, err := canonicaljson.CanonicalJSON(final.Config)
 	if err != nil {
 		return Bundle{}, fmt.Errorf("encode final World config: %w", err)
 	}
@@ -109,11 +110,11 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 		return Bundle{}, fmt.Errorf("final World transition history regressed")
 	}
 	for index := range initial.Transitions {
-		initialTransition, encodeErr := evidence.CanonicalJSON(initial.Transitions[index])
+		initialTransition, encodeErr := canonicaljson.CanonicalJSON(initial.Transitions[index])
 		if encodeErr != nil {
 			return Bundle{}, fmt.Errorf("encode initial World transition %d: %w", index, encodeErr)
 		}
-		finalTransition, encodeErr := evidence.CanonicalJSON(final.Transitions[index])
+		finalTransition, encodeErr := canonicaljson.CanonicalJSON(final.Transitions[index])
 		if encodeErr != nil {
 			return Bundle{}, fmt.Errorf("encode final World transition %d: %w", index, encodeErr)
 		}
@@ -145,22 +146,22 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 	if uint64(len(transitionBytes)) > transitionLimit {
 		return Bundle{}, fmt.Errorf("World transition payload requires %d bytes, limit is %d", len(transitionBytes), transitionLimit)
 	}
-	payloads := evidence.WorldPayloads{Initial: initialBytes, Transitions: transitionBytes, Final: finalBytes}
-	manifest := evidence.World{
-		Initial: evidence.WorldPayload{
-			Schema: "gomadv3.world.snapshot/v1", File: "world/snapshot.json", RawSHA256: evidence.HashBytes(initialBytes),
-			SemanticDigest: evidence.SHA256("sha256:" + string(initial.StateDigest)),
+	payloads := record.WorldPayloads{Initial: initialBytes, Transitions: transitionBytes, Final: finalBytes}
+	manifest := record.World{
+		Initial: record.WorldPayload{
+			Schema: "gomadv3.world.snapshot/v1", File: "world/snapshot.json", RawSHA256: record.HashBytes(initialBytes),
+			SemanticDigest: record.SHA256("sha256:" + string(initial.StateDigest)),
 		},
-		Transitions: evidence.WorldTransitions{
-			Schema: "gomadv3.world.transitions/v1", File: "world/transitions.jsonl", RawSHA256: evidence.HashBytes(transitionBytes),
-			Count: evidence.Uint64String(len(delta)), TranscriptDigest: evidence.SHA256("sha256:" + string(final.TranscriptDigest)),
+		Transitions: record.WorldTransitions{
+			Schema: "gomadv3.world.transitions/v1", File: "world/transitions.jsonl", RawSHA256: record.HashBytes(transitionBytes),
+			Count: record.Uint64String(len(delta)), TranscriptDigest: record.SHA256("sha256:" + string(final.TranscriptDigest)),
 		},
-		Final: evidence.WorldPayload{
-			Schema: "gomadv3.world.snapshot/v1", File: "world/final-snapshot.json", RawSHA256: evidence.HashBytes(finalBytes),
-			SemanticDigest: evidence.SHA256("sha256:" + string(final.StateDigest)),
+		Final: record.WorldPayload{
+			Schema: "gomadv3.world.snapshot/v1", File: "world/final-snapshot.json", RawSHA256: record.HashBytes(finalBytes),
+			SemanticDigest: record.SHA256("sha256:" + string(final.StateDigest)),
 		},
-		Adapters: []evidence.WorldAdapter{},
-		Terminal: evidence.WorldTerminal{Kind: string(terminal.Kind), Detail: terminal.Detail},
+		Adapters: []record.WorldAdapter{},
+		Terminal: record.WorldTerminal{Kind: string(terminal.Kind), Detail: terminal.Detail},
 	}
 	if usesMailbox(initial) || usesMailbox(final) {
 		initialMailbox, err := mailbox.DeriveSnapshot(initial)
@@ -171,10 +172,10 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 		if err != nil {
 			return Bundle{}, fmt.Errorf("derive final mailbox snapshot: %w", err)
 		}
-		manifest.Adapters = append(manifest.Adapters, evidence.WorldAdapter{
+		manifest.Adapters = append(manifest.Adapters, record.WorldAdapter{
 			Schema:        "gomadv3.world.adapter/mailbox/v1",
-			InitialDigest: evidence.SHA256("sha256:" + string(initialMailbox.Digest)),
-			FinalDigest:   evidence.SHA256("sha256:" + string(finalMailbox.Digest)),
+			InitialDigest: record.SHA256("sha256:" + string(initialMailbox.Digest)),
+			FinalDigest:   record.SHA256("sha256:" + string(finalMailbox.Digest)),
 		})
 	}
 	return Bundle{Manifest: manifest, Payloads: payloads}, nil

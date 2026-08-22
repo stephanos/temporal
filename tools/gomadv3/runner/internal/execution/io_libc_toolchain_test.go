@@ -17,7 +17,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	workingDirectory, err := filepath.Abs(filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata", "libc_adapter"))
+	workingDirectory, err := filepath.Abs(filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata", "libc_adapter"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,8 +48,8 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: runDirectory,
-		Env:        []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
+		Env:              []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})

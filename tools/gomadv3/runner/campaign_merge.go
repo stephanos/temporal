@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 )
 
 type CampaignMergeSpec struct {
@@ -22,7 +22,7 @@ type CampaignOrdinalRange struct {
 
 type CampaignMergeResult struct {
 	Path             string                 `json:"path"`
-	PlanSHA256       evidence.SHA256        `json:"plan_sha256"`
+	PlanSHA256       record.SHA256          `json:"plan_sha256"`
 	Partial          bool                   `json:"partial"`
 	Missing          []CampaignOrdinalRange `json:"missing"`
 	Shards           uint64                 `json:"shards"`
@@ -51,7 +51,7 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
 	if opened.plan.Journal == nil || opened.plan.Artifacts == nil {
 		return CampaignMergeResult{}, errors.New("campaign plan capacities are incomplete")
 	}
-	merged, err := campaignstore.MergeCampaigns(ctx, campaignstore.MergeSpec{
+	merged, err := campaign.MergeCampaigns(ctx, campaign.MergeSpec{
 		Output: spec.Output, PlanSHA256: opened.identity, Selection: opened.plan.Selection, SelectionCount: selection.Count(),
 		Journal: *opened.plan.Journal, Artifacts: *opened.plan.Artifacts, Partial: spec.Partial, ShardPaths: append([]string(nil), spec.Shards...), SeedAt: selection.SeedAt,
 	})
@@ -61,7 +61,7 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
 	return campaignMergeResult(merged), nil
 }
 
-func campaignMergeResult(merged campaignstore.MergedCampaign) CampaignMergeResult {
+func campaignMergeResult(merged campaign.MergedCampaign) CampaignMergeResult {
 	record := merged.Record
 	missing := make([]CampaignOrdinalRange, len(record.Missing))
 	for index, value := range record.Missing {

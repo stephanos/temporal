@@ -22,7 +22,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_entropy", WorkingDir: filepath.Join("..", "..", "..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_entropy", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -37,7 +37,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 	}
 	profile := deterministicio.Default()
 	outputs := make([]string, 2)
-	transcripts := make([]execution.IOTranscript, 2)
+	transcripts := make([]deterministicio.Transcript, 2)
 	for index, seed := range []uint64{1, 999} {
 		frame, frameErr := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", seed)
 		if frameErr != nil {
@@ -47,7 +47,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 			SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 			BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 			Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), fmt.Sprintf("GOMADSEED=%d", seed), "TZ=UTC"},
-			RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024,
+			ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024,
 			World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: seed},
 			IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 		})
@@ -79,7 +79,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 			SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 			BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 			Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADV3_IO_PROFILE=" + profile.Name(), "GOMADSEED=1", "TZ=UTC"},
-			RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024,
+			ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024,
 			World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 1},
 			IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20, Replay: true, Expected: expected}},
 		})

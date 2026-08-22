@@ -21,7 +21,7 @@ const (
 	simulationVolumeFinishMagic      = "GOMADVR1"
 	simulationVolumeErrorMagic       = "GOMADVE1"
 	simulationVolumeEnumerationMagic = "GOMADVQ1"
-	simulationVolumeFrontierMagic    = "GOMADVF1"
+	simulationVolumeExplorationMagic = "GOMADVF1"
 )
 
 type simulationVolumeWireEncoder struct {
@@ -335,37 +335,37 @@ func encodeSimulationVolumeError(encoder *simulationVolumeWireEncoder, bridge *s
 	}
 }
 
-func decodeSimulationCrashFrontier(encoded []byte) (*CrashFrontier, error) {
+func decodeSimulationCrashExploration(encoded []byte) (*CrashExploration, error) {
 	if len(encoded) == 0 {
 		return nil, nil
 	}
-	decoder := newSimulationVolumeWireDecoder(encoded, simulationVolumeFrontierMagic)
-	frontier := decodeSimulationCrashFrontierBody(decoder)
+	decoder := newSimulationVolumeWireDecoder(encoded, simulationVolumeExplorationMagic)
+	exploration := decodeSimulationCrashExplorationBody(decoder)
 	if err := decoder.finish(); err != nil {
 		return nil, err
 	}
-	return &frontier, nil
+	return &exploration, nil
 }
 
-func decodeSimulationCrashFrontierBody(decoder *simulationVolumeWireDecoder) CrashFrontier {
-	frontier := CrashFrontier{Volume: decoder.string(), PendingSHA256: decoder.string()}
-	frontier.Cursor = decoder.bytes(maximumSimulationVolumeTransitions)
+func decodeSimulationCrashExplorationBody(decoder *simulationVolumeWireDecoder) CrashExploration {
+	exploration := CrashExploration{Volume: decoder.string(), PendingSHA256: decoder.string()}
+	exploration.Cursor = decoder.bytes(maximumSimulationVolumeTransitions)
 	for range decoder.count(maximumSimulationCrashStates) {
-		frontier.Seen = append(frontier.Seen, decoder.string())
+		exploration.Seen = append(exploration.Seen, decoder.string())
 	}
-	frontier.Identity = decoder.string()
-	return frontier
+	exploration.Identity = decoder.string()
+	return exploration
 }
 
-func encodeSimulationCrashFrontierBody(encoder *simulationVolumeWireEncoder, frontier CrashFrontier) {
-	encoder.string(frontier.Volume)
-	encoder.string(frontier.PendingSHA256)
-	encoder.bytes(frontier.Cursor, maximumSimulationVolumeTransitions)
-	encoder.uint64(uint64(len(frontier.Seen)))
-	for _, identity := range frontier.Seen {
+func encodeSimulationCrashExplorationBody(encoder *simulationVolumeWireEncoder, exploration CrashExploration) {
+	encoder.string(exploration.Volume)
+	encoder.string(exploration.PendingSHA256)
+	encoder.bytes(exploration.Cursor, maximumSimulationVolumeTransitions)
+	encoder.uint64(uint64(len(exploration.Seen)))
+	for _, identity := range exploration.Seen {
 		encoder.string(identity)
 	}
-	encoder.string(frontier.Identity)
+	encoder.string(exploration.Identity)
 }
 
 func encodeSimulationCrashEnumeration(page CrashEnumeration) ([]byte, error) {
@@ -385,9 +385,9 @@ func encodeSimulationCrashEnumeration(page CrashEnumeration) ([]byte, error) {
 		}
 		encoder.string(state.Identity)
 	}
-	encoder.boolean(page.Frontier != nil)
-	if page.Frontier != nil {
-		encodeSimulationCrashFrontierBody(encoder, *page.Frontier)
+	encoder.boolean(page.ChoiceExploration != nil)
+	if page.ChoiceExploration != nil {
+		encodeSimulationCrashExplorationBody(encoder, *page.ChoiceExploration)
 	}
 	encoder.boolean(page.Complete)
 	encoder.string(string(page.Capacity))

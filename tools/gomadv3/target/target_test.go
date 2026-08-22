@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/record"
+	targetbuild "go.temporal.io/server/tools/gomadv3/target/internal/build"
 )
 
 func TestProjectBuildInfoCanonicalizesModuleAndSettings(t *testing.T) {
@@ -29,9 +29,9 @@ func TestProjectBuildInfoCanonicalizesModuleAndSettings(t *testing.T) {
 			{Key: "alpha", Value: "first"},
 		},
 	}
-	want := evidence.BuildInfo{
+	want := record.BuildInfo{
 		GoVersion: "go1.26.4", Path: "example.com/target", MainModule: "example.com/main@v1.2.3",
-		Settings: []evidence.BuildSetting{{Key: "alpha", Value: "first"}, {Key: "zeta", Value: "last"}},
+		Settings: []record.BuildSetting{{Key: "alpha", Value: "first"}, {Key: "zeta", Value: "last"}},
 	}
 	if got := ProjectBuildInfo(info); !reflect.DeepEqual(got, want) {
 		t.Fatalf("ProjectBuildInfo() = %#v, want %#v", got, want)
@@ -252,7 +252,7 @@ func TestNormalizeCapabilityModeUsesClosedVocabulary(t *testing.T) {
 
 func TestPreparationBuildEnvironmentIsolatesAmbientGoCache(t *testing.T) {
 	t.Setenv("GOCACHE", "/ambient/cache")
-	environment := preparationBuildEnvironment("/private/cache")
+	environment := append(targetbuild.Environment(), "GOCACHE=/private/cache")
 	cache := ""
 	for _, entry := range environment {
 		if strings.HasPrefix(entry, "GOCACHE=") {
@@ -476,7 +476,7 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	}
 	provenance := filepath.Join(t.TempDir(), "provenance.json")
 	if err := WriteProvenance(provenance, Provenance{
-		SchemaVersion:     2,
+		SchemaVersion:     3,
 		GoVersion:         identity.GoVersion,
 		BuildKey:          identity.BuildKey,
 		TargetGOOS:        identity.TargetGOOS,
@@ -485,6 +485,7 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 		BinarySize:        uint64(len(contents)),
 		BuildInfo:         projectedBuild,
 		CapabilityClosure: closure,
+		CapabilityMode:    CapabilityModeClosure,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -534,8 +535,8 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	})
 	forgedProvenance := filepath.Join(t.TempDir(), "forged-provenance.json")
 	if err := WriteProvenance(forgedProvenance, Provenance{
-		SchemaVersion: 2, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
-		BinarySHA256: fmt.Sprintf("sha256:%x", hash), BinarySize: uint64(len(contents)), BuildInfo: projectedBuild, CapabilityClosure: forgedClosure,
+		SchemaVersion: 3, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
+		BinarySHA256: fmt.Sprintf("sha256:%x", hash), BinarySize: uint64(len(contents)), BuildInfo: projectedBuild, CapabilityClosure: forgedClosure, CapabilityMode: CapabilityModeClosure,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -565,8 +566,8 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	invalidHash := sha256.Sum256(invalidContents)
 	invalidProvenance := filepath.Join(t.TempDir(), "invalid-provenance.json")
 	if err := WriteProvenance(invalidProvenance, Provenance{
-		SchemaVersion: 2, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
-		BinarySHA256: fmt.Sprintf("sha256:%x", invalidHash), BinarySize: uint64(len(invalidContents)), BuildInfo: projectedBuild, CapabilityClosure: closure,
+		SchemaVersion: 3, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH,
+		BinarySHA256: fmt.Sprintf("sha256:%x", invalidHash), BinarySize: uint64(len(invalidContents)), BuildInfo: projectedBuild, CapabilityClosure: closure, CapabilityMode: CapabilityModeClosure,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -584,10 +585,10 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 
 func TestPreparedRecordProjectionDefensivelyCopiesIdentity(t *testing.T) {
 	prepared := Prepared{
-		Kind: KindGoTest, Source: "./pkg", SHA256: string(evidence.HashBytes([]byte("target"))), Size: 6,
+		Kind: KindGoTest, Source: "./pkg", SHA256: string(record.HashBytes([]byte("target"))), Size: 6,
 		Argv: []string{"target", "argument"}, BuildTags: []string{"tag"},
-		Adapters: []evidence.TargetAdapter{{Module: "adapter"}}, Compatibility: []evidence.CompatibilityPack{{ID: "pack"}},
-		BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []evidence.BuildSetting{{Key: "setting", Value: "value"}}},
+		Adapters: []record.TargetAdapter{{Module: "adapter"}}, Compatibility: []record.CompatibilityPack{{ID: "pack"}},
+		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "setting", Value: "value"}}},
 		GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}
 	targetRecord := prepared.RecordTarget()
@@ -671,9 +672,9 @@ func TestReadProvenanceRoundTripsValidatedDocument(t *testing.T) {
 		SchemaVersion: 3, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH,
 		BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
-		BuildInfo: evidence.BuildInfo{
+		BuildInfo: record.BuildInfo{
 			GoVersion: "go1.26.4", Path: "example.com/target",
-			Settings: []evidence.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}},
+			Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}},
 		},
 		CapabilityClosure: validCapabilityClosure(), CapabilityMode: CapabilityModeClosure,
 	}
@@ -694,10 +695,10 @@ func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 	base := provenanceWire{
 		Schema: provenanceSchema, SchemaVersion: 3, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
-		BuildInfo:         evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []evidence.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
+		BuildInfo:         record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
 		CapabilityClosure: validCapabilityClosure(), CapabilityMode: CapabilityModeClosure,
 	}
-	for name, setting := range map[string]evidence.BuildSetting{
+	for name, setting := range map[string]record.BuildSetting{
 		"cgo":        {Key: "CGO_ENABLED", Value: "1"},
 		"race":       {Key: "-race", Value: "true"},
 		"plugin":     {Key: "-buildmode", Value: "plugin"},
@@ -706,7 +707,7 @@ func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			candidate := base
-			candidate.BuildInfo.Settings = append([]evidence.BuildSetting(nil), base.BuildInfo.Settings...)
+			candidate.BuildInfo.Settings = append([]record.BuildSetting(nil), base.BuildInfo.Settings...)
 			replaced := false
 			for index := range candidate.BuildInfo.Settings {
 				if candidate.BuildInfo.Settings[index].Key == setting.Key {
@@ -728,7 +729,7 @@ func TestValidateProvenanceRejectsClosurelessAttestation(t *testing.T) {
 	provenance := provenanceWire{
 		Schema: "gomadv3.exec-provenance/v1", SchemaVersion: 1, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
-		BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []evidence.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
+		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
 	}
 	if err := validateProvenance(provenance); err == nil {
 		t.Fatal("validateProvenance() succeeded")
@@ -809,7 +810,7 @@ func toolchainRoot(t *testing.T) string {
 func validCapabilityClosure() CapabilityClosure {
 	return CapabilityClosure{
 		Schema:        CapabilityClosureSchema,
-		Compatibility: []compatibility.Identity{},
+		Compatibility: []CompatibilityIdentity{},
 		Packages: []CapabilityPackage{{
 			ImportPath: "example.com/target", Name: "main", Imports: []string{},
 			Module:  &CapabilityModule{Path: "example.com/target", Main: true},

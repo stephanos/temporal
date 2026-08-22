@@ -14,7 +14,7 @@ import (
 )
 
 func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
-	flags := flag.NewFlagSet("gomad run-shard", flag.ContinueOnError)
+	flags := flag.NewFlagSet("gomad execute-shard", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	shardValue := flags.String("shard", "", "zero-based INDEX/COUNT shard assignment")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")

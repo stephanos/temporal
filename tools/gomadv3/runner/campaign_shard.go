@@ -3,8 +3,8 @@ package runner
 import (
 	"fmt"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 )
 
 // CampaignShard identifies one disjoint ordinal-modulo partition of a campaign.
@@ -38,9 +38,9 @@ func normalizedCampaignShard(shard CampaignShard) CampaignShard {
 	return shard
 }
 
-func campaignStoreShard(shard CampaignShard) *campaignstore.CampaignShard {
+func campaignStoreShard(shard CampaignShard) *campaign.CampaignShard {
 	if shard.Count == 0 {
 		return nil
 	}
-	return &campaignstore.CampaignShard{Index: evidence.Uint64String(shard.Index), Count: evidence.Uint64String(shard.Count)}
+	return &campaign.CampaignShard{Index: record.Uint64String(shard.Index), Count: record.Uint64String(shard.Count)}
 }

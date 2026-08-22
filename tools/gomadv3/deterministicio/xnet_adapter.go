@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
 
@@ -54,7 +53,7 @@ func prepareXNet(moduleCache, root string, identity gomadversion.AdapterIdentity
 	if err := copyAdapterModule(moduleSource, moduleReplacement, replacements, defaultAdapterCopyLimits); err != nil {
 		return adapterPreparation{}, fmt.Errorf("copy x/net adapter module: %w", err)
 	}
-	replacementInventory, err := target.DigestAdapterSourceInventory(moduleReplacement)
+	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("hash x/net replacement inventory: %w", err)
 	}
@@ -77,7 +76,7 @@ func prepareXNet(moduleCache, root string, identity gomadversion.AdapterIdentity
 }
 
 func verifyXNetModule(moduleRoot string) error {
-	inventory, err := target.DigestAdapterSourceInventory(moduleRoot)
+	inventory, err := digestAdapterSourceInventory(moduleRoot)
 	if err != nil {
 		return fmt.Errorf("hash pinned x/net source inventory: %w", err)
 	}

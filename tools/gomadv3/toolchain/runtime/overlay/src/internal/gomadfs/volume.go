@@ -59,7 +59,7 @@ type CrashEnumerationLimits struct {
 	WallNanos  uint64
 }
 
-type CrashFrontier struct {
+type CrashExploration struct {
 	Volume        string
 	PendingSHA256 string
 	Cursor        []byte
@@ -84,10 +84,10 @@ type CrashState struct {
 }
 
 type CrashEnumeration struct {
-	States   []CrashState
-	Frontier *CrashFrontier
-	Complete bool
-	Capacity CrashCapacity
+	States            []CrashState
+	ChoiceExploration *CrashExploration
+	Complete          bool
+	Capacity          CrashCapacity
 }
 
 type Operation struct {
@@ -289,7 +289,7 @@ func (fs *FS) addVolumeMountLocked(config VolumeConfig) error {
 	return nil
 }
 
-func (fs *FS) EnumerateCrashStates(volumeID string, limits CrashEnumerationLimits, frontier *CrashFrontier) (CrashEnumeration, error) {
+func (fs *FS) EnumerateCrashStates(volumeID string, limits CrashEnumerationLimits, exploration *CrashExploration) (CrashEnumeration, error) {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 	volume := fs.volumes[volumeID]
@@ -304,12 +304,12 @@ func (fs *FS) EnumerateCrashStates(volumeID string, limits CrashEnumerationLimit
 	cursor := make([]byte, len(volume.pending))
 	seen := make(map[string]struct{})
 	seenOrder := []string{}
-	if frontier != nil {
-		if err := validateCrashFrontier(*frontier, volumeID, pendingSHA256, len(volume.pending)); err != nil {
+	if exploration != nil {
+		if err := validateCrashExploration(*exploration, volumeID, pendingSHA256, len(volume.pending)); err != nil {
 			return CrashEnumeration{}, err
 		}
-		copy(cursor, frontier.Cursor)
-		for _, identity := range frontier.Seen {
+		copy(cursor, exploration.Cursor)
+		for _, identity := range exploration.Seen {
 			seen[identity] = struct{}{}
 			seenOrder = append(seenOrder, identity)
 		}
@@ -352,7 +352,7 @@ func (fs *FS) EnumerateCrashStates(volumeID string, limits CrashEnumerationLimit
 		}
 		if uint64(len(page.States)) == limits.States {
 			page.Capacity = CrashCapacityStates
-			page.Frontier = newCrashFrontier(volumeID, pendingSHA256, cursor, seenOrder)
+			page.ChoiceExploration = newCrashExploration(volumeID, pendingSHA256, cursor, seenOrder)
 			return page, nil
 		}
 	}
@@ -360,50 +360,50 @@ func (fs *FS) EnumerateCrashStates(volumeID string, limits CrashEnumerationLimit
 
 func (volume *volumeState) capacityPage(pendingSHA256 string, cursor []byte, seen []string, capacity CrashCapacity) CrashEnumeration {
 	return CrashEnumeration{
-		Frontier: newCrashFrontier(volume.id, pendingSHA256, cursor, seen),
-		Capacity: capacity,
+		ChoiceExploration: newCrashExploration(volume.id, pendingSHA256, cursor, seen),
+		Capacity:          capacity,
 	}
 }
 
-func newCrashFrontier(volume, pendingSHA256 string, cursor []byte, seen []string) *CrashFrontier {
-	frontier := &CrashFrontier{
+func newCrashExploration(volume, pendingSHA256 string, cursor []byte, seen []string) *CrashExploration {
+	exploration := &CrashExploration{
 		Volume: volume, PendingSHA256: pendingSHA256,
 		Cursor: append([]byte(nil), cursor...), Seen: append([]string(nil), seen...),
 	}
-	frontier.Identity = crashFrontierIdentity(*frontier)
-	return frontier
+	exploration.Identity = crashExplorationIdentity(*exploration)
+	return exploration
 }
 
-func validateCrashFrontier(frontier CrashFrontier, volume, pendingSHA256 string, operations int) error {
-	if frontier.Volume != volume || frontier.PendingSHA256 != pendingSHA256 || len(frontier.Cursor) != operations || frontier.Identity != crashFrontierIdentity(frontier) {
-		return errors.New("crash enumeration frontier does not match pending volume state")
+func validateCrashExploration(exploration CrashExploration, volume, pendingSHA256 string, operations int) error {
+	if exploration.Volume != volume || exploration.PendingSHA256 != pendingSHA256 || len(exploration.Cursor) != operations || exploration.Identity != crashExplorationIdentity(exploration) {
+		return errors.New("crash enumeration exploration does not match pending volume state")
 	}
-	seen := make(map[string]struct{}, len(frontier.Seen))
-	for _, value := range frontier.Cursor {
+	seen := make(map[string]struct{}, len(exploration.Seen))
+	for _, value := range exploration.Cursor {
 		if value > 1 {
-			return errors.New("crash enumeration frontier cursor is invalid")
+			return errors.New("crash enumeration exploration cursor is invalid")
 		}
 	}
-	for _, identity := range frontier.Seen {
+	for _, identity := range exploration.Seen {
 		if !validDigest(identity) {
-			return errors.New("crash enumeration frontier contains an invalid state identity")
+			return errors.New("crash enumeration exploration contains an invalid state identity")
 		}
 		if _, ok := seen[identity]; ok {
-			return errors.New("crash enumeration frontier contains duplicate state identities")
+			return errors.New("crash enumeration exploration contains duplicate state identities")
 		}
 		seen[identity] = struct{}{}
 	}
 	return nil
 }
 
-func crashFrontierIdentity(frontier CrashFrontier) string {
-	frontier.Identity = ""
+func crashExplorationIdentity(exploration CrashExploration) string {
+	exploration.Identity = ""
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomadv3-volume-crash-frontier/v1")
-	writeHashString(hasher, frontier.Volume)
-	writeHashString(hasher, frontier.PendingSHA256)
-	writeHashBytes(hasher, frontier.Cursor)
-	for _, identity := range frontier.Seen {
+	writeHashString(hasher, "gomadv3-volume-crash-exploration/v1")
+	writeHashString(hasher, exploration.Volume)
+	writeHashString(hasher, exploration.PendingSHA256)
+	writeHashBytes(hasher, exploration.Cursor)
+	for _, identity := range exploration.Seen {
 		writeHashString(hasher, identity)
 	}
 	return hashDigest(hasher)

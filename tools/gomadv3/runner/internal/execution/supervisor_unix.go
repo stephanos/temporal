@@ -16,8 +16,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 	"go.temporal.io/server/tools/gomadv3/world"
-	worldhost "go.temporal.io/server/tools/gomadv3/world/host"
+	worldprocess "go.temporal.io/server/tools/gomadv3/world/process"
 )
 
 func SupervisorMain() (retErr error) {
@@ -42,7 +43,7 @@ func SupervisorMain() (retErr error) {
 	if err := json.NewDecoder(requestFile).Decode(&request); err != nil {
 		return fmt.Errorf("decode supervisor request: %w", err)
 	}
-	if request.RunTimeout <= 0 || request.TerminateGrace < 0 || request.TerminateGrace > request.RunTimeout {
+	if request.ExecutionTimeout <= 0 || request.TerminateGrace < 0 || request.TerminateGrace > request.ExecutionTimeout {
 		return fmt.Errorf("invalid supervisor deadline")
 	}
 	if request.IOTranscriptLimit != 0 {
@@ -90,7 +91,7 @@ func SupervisorMain() (retErr error) {
 			return errors.New("simulation file descriptors are unavailable")
 		}
 	}
-	deadline := startedAt.Add(request.RunTimeout)
+	deadline := startedAt.Add(request.ExecutionTimeout)
 	if len(request.ExpectedWorldInitial) != 0 {
 		initial, err := world.DecodeSnapshot(request.ExpectedWorldInitial)
 		if err != nil {
@@ -128,7 +129,7 @@ func SupervisorMain() (retErr error) {
 	if err != nil {
 		return err
 	}
-	encodedConfig, err := worldhost.EncodeSessionSpec(worldhost.SessionSpec{
+	encodedConfig, err := worldprocess.EncodeSessionSpec(worldprocess.SessionSpec{
 		TransitionLimit: request.WorldTransitionLimit,
 		Seed:            request.WorldSeed,
 		ExpectedInitial: request.ExpectedWorldInitial,
@@ -253,7 +254,7 @@ func SupervisorMain() (retErr error) {
 		controlLost <- controlEvent{mode: mode[0], err: err}
 	}()
 
-	cleanupReserve := min(50*time.Millisecond, request.RunTimeout/4)
+	cleanupReserve := min(50*time.Millisecond, request.ExecutionTimeout/4)
 	killAt := deadline.Add(-cleanupReserve)
 	termAfter := max(time.Until(killAt)-request.TerminateGrace, 0)
 	termTimer := time.NewTimer(termAfter)
@@ -284,7 +285,7 @@ func SupervisorMain() (retErr error) {
 	if waitErr == nil && !terminationStarted && target.ProcessState == nil {
 		return fmt.Errorf("target wait completed without process state")
 	}
-	groupPresent, err := groupExists(pgid)
+	groupPresent, err := hostexec.GroupExists(pgid)
 	if err != nil {
 		return errors.Join(fmt.Errorf("probe target process group: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
 	}
@@ -296,7 +297,7 @@ func SupervisorMain() (retErr error) {
 		if hardCrash {
 			signal = syscall.SIGKILL
 		}
-		if err := signalGroup(pgid, signal); err != nil {
+		if err := hostexec.SignalGroup(pgid, signal); err != nil {
 			return fmt.Errorf("terminate target process group: %w", err)
 		}
 		if !hardCrash {
@@ -304,7 +305,7 @@ func SupervisorMain() (retErr error) {
 			poll := time.NewTicker(5 * time.Millisecond)
 			graceExpired := false
 			for !graceExpired {
-				groupPresent, err = groupExists(pgid)
+				groupPresent, err = hostexec.GroupExists(pgid)
 				if err != nil {
 					return errors.Join(fmt.Errorf("probe target process group during termination grace: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
 				}
@@ -327,12 +328,12 @@ func SupervisorMain() (retErr error) {
 			}
 		}
 		if !hardCrash {
-			groupPresent, err = groupExists(pgid)
+			groupPresent, err = hostexec.GroupExists(pgid)
 			if err != nil {
 				return errors.Join(fmt.Errorf("probe target process group before kill: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
 			}
 			if groupPresent {
-				if err := signalGroup(pgid, syscall.SIGKILL); err != nil {
+				if err := hostexec.SignalGroup(pgid, syscall.SIGKILL); err != nil {
 					return fmt.Errorf("kill target process group: %w", err)
 				}
 			}
@@ -346,7 +347,7 @@ func SupervisorMain() (retErr error) {
 		}
 		poll := time.NewTicker(5 * time.Millisecond)
 		for time.Now().Before(deadline) {
-			groupPresent, err = groupExists(pgid)
+			groupPresent, err = hostexec.GroupExists(pgid)
 			if err != nil {
 				return errors.Join(fmt.Errorf("probe target process group after kill: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
 			}
@@ -367,7 +368,7 @@ func SupervisorMain() (retErr error) {
 			return fmt.Errorf("wait for target: %w", waitErr)
 		}
 	}
-	groupPresent, err = groupExists(pgid)
+	groupPresent, err = hostexec.GroupExists(pgid)
 	if err != nil {
 		return errors.Join(fmt.Errorf("verify target process group disappearance: %w", err), cleanupTargetAfterProbeError(target, pgid, waited, deadline))
 	}
@@ -410,36 +411,8 @@ func closeOpenFile(file **os.File) error {
 	return err
 }
 
-func signalGroup(pgid int, signal syscall.Signal) error {
-	if pgid <= 0 {
-		return fmt.Errorf("invalid process group %d", pgid)
-	}
-	if err := syscall.Kill(-pgid, signal); err != nil && !errors.Is(err, syscall.ESRCH) {
-		return err
-	}
-	return nil
-}
-
-func groupExists(pgid int) (bool, error) {
-	if pgid <= 0 {
-		return false, fmt.Errorf("invalid process group %d", pgid)
-	}
-	return classifyGroupProbe(syscall.Kill(-pgid, 0))
-}
-
-func classifyGroupProbe(err error) (bool, error) {
-	switch {
-	case err == nil, errors.Is(err, syscall.EPERM):
-		return true, nil
-	case errors.Is(err, syscall.ESRCH):
-		return false, nil
-	default:
-		return false, err
-	}
-}
-
 func cleanupTargetAfterProbeError(target *exec.Cmd, pgid int, waited <-chan error, deadline time.Time) error {
-	signalErr := signalGroup(pgid, syscall.SIGKILL)
+	signalErr := hostexec.SignalGroup(pgid, syscall.SIGKILL)
 	killErr := target.Process.Kill()
 	if errors.Is(killErr, os.ErrProcessDone) {
 		killErr = nil
@@ -461,37 +434,12 @@ func cleanupTargetAfterProbeError(target *exec.Cmd, pgid int, waited <-chan erro
 	}
 }
 
-func killGroupBounded(pgid int, deadline time.Time) error {
-	if err := signalGroup(pgid, syscall.SIGKILL); err != nil {
-		return err
-	}
-	poll := time.NewTicker(5 * time.Millisecond)
-	defer poll.Stop()
-	for {
-		exists, err := groupExists(pgid)
-		if err != nil {
-			return fmt.Errorf("probe target process group during cleanup: %w", err)
-		}
-		if !exists {
-			return nil
-		}
-		remaining := time.Until(deadline)
-		if remaining <= 0 {
-			return fmt.Errorf("target process group %d remains after cleanup", pgid)
-		}
-		select {
-		case <-poll.C:
-		case <-time.After(remaining):
-		}
-	}
-}
-
 func killReapTarget(target *exec.Cmd, pgid int, deadline time.Time) error {
-	return killReapTargetWithProbe(target, pgid, deadline, groupExists)
+	return killReapTargetWithProbe(target, pgid, deadline, hostexec.GroupExists)
 }
 
 func killReapTargetWithProbe(target *exec.Cmd, pgid int, deadline time.Time, probe func(int) (bool, error)) error {
-	signalErr := signalGroup(pgid, syscall.SIGKILL)
+	signalErr := hostexec.SignalGroup(pgid, syscall.SIGKILL)
 	killErr := target.Process.Kill()
 	if errors.Is(killErr, os.ErrProcessDone) {
 		killErr = nil
@@ -612,7 +560,7 @@ func cleanupEarlySupervisor(command *exec.Cmd, control, report *os.File, identit
 		}
 	}
 	if trustedPGID != 0 {
-		closeErr = errors.Join(closeErr, killGroupBounded(trustedPGID, deadline))
+		closeErr = errors.Join(closeErr, hostexec.KillGroupBefore(trustedPGID, deadline))
 	}
 	return errors.Join(closeErr, waitErr)
 }
@@ -633,7 +581,7 @@ func readTargetIdentity(reader io.Reader) targetIdentity {
 func cleanupTargetGroups(identity targetIdentity, reports []supervisorReport, deadline time.Time) error {
 	var result error
 	for _, pgid := range targetCleanupPGIDs(identity, reports) {
-		result = errors.Join(result, killGroupBounded(pgid, deadline))
+		result = errors.Join(result, hostexec.KillGroupBefore(pgid, deadline))
 	}
 	return result
 }

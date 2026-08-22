@@ -39,7 +39,7 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 	if flags.NArg() != 1 || flags.Arg(0) == "" {
-		if err := reporter.Error("invalid_input", errors.New("resume requires one interrupted batch path")); err != nil {
+		if err := reporter.Error("invalid_input", errors.New("resume requires one interrupted campaign path")); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 3
 		}

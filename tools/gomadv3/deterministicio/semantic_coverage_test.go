@@ -56,7 +56,7 @@ func TestSummarizeSemanticProbesCanonicalizesAUnion(t *testing.T) {
 func TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs(t *testing.T) {
 	boundaryVersion, boundaryDigest := BoundaryManifestIdentity()
 	instrumentation := SemanticInstrumentationIdentity()
-	if boundaryVersion != "go1.26.4-darwin-arm64-v1" || boundaryDigest != Digest("sha256:1923d3faf7c9d7f4c3f64d88e5708a2a6e5c1221a8ba688300d7fbeadcfc00f3") {
+	if boundaryVersion != "go1.26.4-darwin-arm64-v1" || boundaryDigest != Digest("sha256:9dc292826beeb73dbf850aa3ec3b3dd121dcee2a3a43d47ccaf6591a39325904") {
 		t.Fatalf("boundary identity = %q, %s", boundaryVersion, boundaryDigest)
 	}
 	if instrumentation == "" || instrumentation == boundaryDigest {

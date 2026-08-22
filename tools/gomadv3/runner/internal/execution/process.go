@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
-	romount "go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	romount "go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 )
 
 type Termination string
@@ -39,7 +41,7 @@ type Spec struct {
 	Argv0             string
 	Dir               string
 	Env               []string
-	RunTimeout        time.Duration
+	ExecutionTimeout  time.Duration
 	TerminateGrace    time.Duration
 	OutputLimit       uint64
 	StdoutHead        io.Writer
@@ -92,19 +94,17 @@ type Result struct {
 	Signal            string
 	WatchdogTimeout   bool
 	Cancelled         bool
-	Stdout            Output
-	Stderr            Output
+	Stdout            hostexec.Output
+	Stderr            hostexec.Output
 	PID               int
 	PGID              int
 	GroupGone         bool
 	WorldRecord       []byte
-	IOTranscript      IOTranscript
+	IOTranscript      deterministicio.Transcript
 	IOROMounts        romount.Snapshot
 	ChoiceTrace       ChoiceTrace
 	SimulationRecords [][]byte
 }
-
-type IOTranscript = romount.Transcript
 
 type ChoiceTrace struct {
 	Profile              string
@@ -131,8 +131,8 @@ func validateSpec(request Spec) error {
 	if request.Dir == "" {
 		return fmt.Errorf("target working directory is required")
 	}
-	if request.RunTimeout <= 0 {
-		return fmt.Errorf("run timeout must be positive")
+	if request.ExecutionTimeout <= 0 {
+		return fmt.Errorf("execution timeout must be positive")
 	}
 	if request.TerminateGrace < 0 {
 		return fmt.Errorf("termination grace must not be negative")
@@ -225,7 +225,7 @@ func validateSpec(request Spec) error {
 	if len(ioCapability.Config) == 0 && transcript.Limit != 0 {
 		return errors.New("I/O transcript limit requires an I/O configuration")
 	}
-	if transcript.Limit > romount.MaximumTranscriptBytes {
+	if transcript.Limit > deterministicio.MaximumTranscriptBytes {
 		return errors.New("I/O transcript limit exceeds its bound")
 	}
 	if transcript.Replay && transcript.Limit == 0 {
@@ -239,7 +239,7 @@ func validateSpec(request Spec) error {
 			return errors.New("read-only mount broker requires limits")
 		}
 	}
-	if err := romount.ValidateSessionSpec(romount.SessionSpec{Limit: transcript.Limit, Replay: transcript.Replay, Expected: transcript.Expected}); err != nil {
+	if err := deterministicio.ValidateSessionSpec(deterministicio.SessionSpec{Limit: transcript.Limit, Replay: transcript.Replay, Expected: transcript.Expected}); err != nil {
 		return err
 	}
 	return nil

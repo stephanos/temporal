@@ -100,6 +100,41 @@ func TestProjectDecisionTapeCopiesAndBindsCompleteTrace(t *testing.T) {
 	}
 }
 
+func TestProjectReplayPlanOmitsNonBranchingDecisions(t *testing.T) {
+	selected := sha256.Sum256([]byte("selected"))
+	other := sha256.Sum256([]byte("other"))
+	singleton, err := CanonicalDecision(0, KindSelectPoll, 11, false, [][sha256.Size]byte{selected}, selected, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	branching, err := CanonicalDecision(1, KindRunnable, 0, true, [][sha256.Size]byte{selected, other}, other, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	trace, err := BuildTrace([]Record{singleton.Record(), branching.Record()}, TerminalComplete)
+	if err != nil {
+		t.Fatal(err)
+	}
+	identity := ExecutionIdentity{
+		TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: strings.Repeat("a", 64),
+		GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: sha256.Sum256([]byte("implementation")),
+	}
+	tape, err := ProjectReplayPlan(trace, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tape.Decisions) != 1 || tape.Decisions[0].Ordinal != 0 || tape.Decisions[0].Alternatives != 2 || tape.Decisions[0].Kind != KindRunnable {
+		t.Fatalf("replay decisions = %#v", tape.Decisions)
+	}
+	singletonTape, err := encodeTape(identity, trace.SHA256, []Decision{singleton})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ValidateReplayPlan(singletonTape, identity); err == nil {
+		t.Fatal("ValidateReplayPlan() accepted a non-branching decision")
+	}
+}
+
 func TestValidateDivergenceTerminalBindsExpectedTapeDecision(t *testing.T) {
 	selected := sha256.Sum256([]byte("selected"))
 	other := sha256.Sum256([]byte("other"))
@@ -183,7 +218,7 @@ func TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace(t *testing.T) {
 
 func TestBuildRankPrefixBindsCanonicalRankWithoutParentTraceIdentity(t *testing.T) {
 	identity := testExecutionIdentity()
-	first := testCanonicalDecision(t, 0, KindRunnable, 1, 0)
+	first := testCanonicalDecision(t, 0, KindRunnable, 2, 0)
 	branch := testCanonicalDecision(t, 1, KindSelectPoll, 3, 1)
 	left, err := encodeTape(identity, sha256.Sum256([]byte("left parent trace")), []Decision{first, branch})
 	if err != nil {

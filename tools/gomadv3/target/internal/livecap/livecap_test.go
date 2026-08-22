@@ -8,7 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
 )
 
 func TestLookupBoundarySymbolMatchesLinkerNames(t *testing.T) {
@@ -88,20 +89,20 @@ func TestDecodeValidatesCanonicalManifestAndHeaderIdentity(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := evidence.CanonicalJSON(manifest)
+	payload, err := canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
-	record := liveCapabilityRecord(payload, uint64(len(manifest.Facts)))
-	decoded, err := Decode(record, expected)
+	recordBytes := liveCapabilityRecord(payload, uint64(len(manifest.Facts)))
+	decoded, err := Decode(recordBytes, expected)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(decoded.Payload) != string(payload) || decoded.Manifest.Facts[0] != manifest.Facts[0] || decoded.SHA256 != evidence.HashBytes(payload) {
+	if string(decoded.Payload) != string(payload) || decoded.Manifest.Facts[0] != manifest.Facts[0] || decoded.SHA256 != record.HashBytes(payload) {
 		t.Fatalf("Decode() = %#v", decoded)
 	}
 
-	mutated := append([]byte(nil), record...)
+	mutated := append([]byte(nil), recordBytes...)
 	mutated[len(mutated)-1] ^= 1
 	if _, err := Decode(mutated, expected); err == nil || !strings.Contains(err.Error(), "payload SHA-256") {
 		t.Fatalf("Decode(mutated payload) error = %v", err)
@@ -122,7 +123,7 @@ func TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := evidence.CanonicalJSON(manifest)
+	payload, err := canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +131,7 @@ func TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch(t *testing.T) {
 		t.Fatalf("Decode(unsorted facts) error = %v", err)
 	}
 	manifest.Facts[0], manifest.Facts[1] = manifest.Facts[1], manifest.Facts[0]
-	payload, err = evidence.CanonicalJSON(manifest)
+	payload, err = canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +154,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := evidence.CanonicalJSON(manifest)
+	payload, err := canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +164,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 
 	manifest.Facts[0].Capability = "network.udp-listen"
 	manifest.Facts[0].ReferencedSymbol = "net.ListenUDP"
-	payload, err = evidence.CanonicalJSON(manifest)
+	payload, err = canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +172,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 		t.Fatalf("Decode(guarded denied boundary): %v", err)
 	}
 	manifest.Facts[0].Capability = "unknown.boundary"
-	payload, err = evidence.CanonicalJSON(manifest)
+	payload, err = canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +182,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 	manifest.Facts[0].Capability = "network.udp-listen"
 
 	manifest.GuardImplementationSHA256 = "sha256:" + strings.Repeat("0", 64)
-	payload, err = evidence.CanonicalJSON(manifest)
+	payload, err = canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,15 +192,15 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 }
 
 func liveCapabilityRecord(payload []byte, facts uint64) []byte {
-	record := make([]byte, HeaderBytes+len(payload))
-	copy(record[:16], HeaderMagic[:])
-	binary.LittleEndian.PutUint32(record[16:20], ProtocolVersion)
-	binary.LittleEndian.PutUint32(record[20:24], HeaderBytes)
-	binary.LittleEndian.PutUint64(record[24:32], uint64(len(payload)))
-	binary.LittleEndian.PutUint64(record[32:40], facts)
+	recordBytes := make([]byte, HeaderBytes+len(payload))
+	copy(recordBytes[:16], HeaderMagic[:])
+	binary.LittleEndian.PutUint32(recordBytes[16:20], ProtocolVersion)
+	binary.LittleEndian.PutUint32(recordBytes[20:24], HeaderBytes)
+	binary.LittleEndian.PutUint64(recordBytes[24:32], uint64(len(payload)))
+	binary.LittleEndian.PutUint64(recordBytes[32:40], facts)
 	payloadDigest := sha256.Sum256(payload)
-	copy(record[40:72], payloadDigest[:])
-	producer, err := evidence.ParseSHA256(ProducerImplementationSHA256)
+	copy(recordBytes[40:72], payloadDigest[:])
+	producer, err := record.ParseSHA256(ProducerImplementationSHA256)
 	if err != nil {
 		panic(err)
 	}
@@ -207,7 +208,7 @@ func liveCapabilityRecord(payload []byte, facts uint64) []byte {
 	if err != nil {
 		panic(err)
 	}
-	copy(record[72:104], producerDigest[:])
-	copy(record[HeaderBytes:], payload)
-	return record
+	copy(recordBytes[72:104], producerDigest[:])
+	copy(recordBytes[HeaderBytes:], payload)
+	return recordBytes
 }

@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
 )
 
 type Candidate struct {
-	Artifact campaignstore.ArtifactInput
+	Artifact artifact.ArtifactInput
 	Coverage deterministicio.SemanticCoverage
 	Choices  *choice.FeatureProjection
 }
@@ -20,7 +19,7 @@ type Candidate struct {
 type ReplayCandidate func(context.Context, string) (ReplayResult, error)
 
 func (corpus *Corpus) Admit(ctx context.Context, candidate Candidate, replay ReplayCandidate) (bool, error) {
-	published, err := campaignstore.PublishArtifact(evidence.Store{Root: corpus.casesPath(), Context: ctx, MaximumBytes: maximumBytes, Key: evidence.StoreKeyRecord}, candidate.Artifact)
+	published, err := artifact.PublishArtifact(artifact.Store{Root: corpus.casesPath(), Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord}, candidate.Artifact)
 	if err != nil {
 		return false, fmt.Errorf("publish guided corpus case: %w", err)
 	}

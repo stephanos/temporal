@@ -8,15 +8,17 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
 )
 
-func TestOpenReportsArtifactIdentityAndReplay(t *testing.T) {
+func TestInspectReportsArtifactIdentityWithoutPresentation(t *testing.T) {
 	published := publishInspectArtifact(t)
-	report, err := Open(published.Path)
+	report, err := Inspect(published.Path, InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,29 +29,36 @@ func TestOpenReportsArtifactIdentityAndReplay(t *testing.T) {
 	if observed.Seed != 7 || observed.Target.Source != "./target" || observed.Outcome.Reason != "nonzero_exit" || observed.Transcript == nil || observed.Transcript.Records != 3 {
 		t.Fatalf("artifact report = %#v", observed)
 	}
-	if !observed.Stdout.Truncated || !strings.Contains(observed.ReplayCommand, published.Path) {
+	if !observed.Stdout.Truncated {
 		t.Fatalf("artifact details = %#v", observed)
+	}
+	encoded, err := canonicaljson.CanonicalJSON(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "replay_command") {
+		t.Fatalf("inspection contains CLI presentation: %s", encoded)
 	}
 }
 
 func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
+	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
 	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
-	config.Strategy = StrategyCombinedFrontier
+	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 1
+	config.MaxExecutions = 1
 	config.MaxForcedDecisions = 1
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
-	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
+	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
 
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Open(summary.Artifacts[0])
+	report, err := Inspect(summary.Artifacts[0], InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +78,7 @@ func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Open(result.Artifact.Path)
+	report, err := Inspect(result.Artifact.Path, InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +111,7 @@ func TestOpenWithOptionsRejectsBatch(t *testing.T) {
 }
 
 func TestOpenReportsValidatedBatchRuns(t *testing.T) {
-	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
+	journal, err := campaign.NewCampaignJournal(context.Background(), campaign.CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-inspect", Selection: "7", SelectionCount: 1,
 	})
 	if err != nil {
@@ -112,55 +121,55 @@ func TestOpenReportsValidatedBatchRuns(t *testing.T) {
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.AppendExecution(campaignstore.ExecutionRecord{
+	if err := journal.AppendExecution(campaign.ExecutionRecord{
 		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit", ElapsedNanos: 5,
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.Publish(campaignstore.CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
+	if err := journal.Publish(campaign.CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
-	report, err := Open(journal.Path())
+	report, err := Inspect(journal.Path(), InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Kind != "batch" || report.Campaign == nil || report.Lifecycle == nil || report.Lifecycle.State != "published" || report.Artifact != nil || report.Campaign.CampaignID != "run-inspect" || len(report.Campaign.Runs) != 1 || report.Campaign.Journal == nil || report.Campaign.Journal.Records != 1 {
+	if report.Kind != "campaign" || report.Campaign == nil || report.Lifecycle == nil || report.Lifecycle.State != "published" || report.Artifact != nil || report.Campaign.CampaignID != "run-inspect" || len(report.Campaign.Executions) != 1 || report.Campaign.Journal == nil || report.Campaign.Journal.Records != 1 {
 		t.Fatalf("report = %#v", report)
 	}
 }
 
-func TestOpenReportsCombinedFrontierBoundsAndRemainingWork(t *testing.T) {
+func TestOpenReportsSimulationExplorationBoundsAndRemainingWork(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := &combinedFrontierExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
-	config.Strategy = StrategyCombinedFrontier
+	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
-	config.MaxRuns = 4
+	config.MaxExecutions = 4
 	config.MaxForcedDecisions = 1
-	config.MaxFrontierBytes = 1 << 20
+	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
-	config.CombinedDimensionLimits = CombinedDimensionLimits{Runtime: 2, Scenario: 1, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 1, Network: 2, Storage: 2, Fault: 2, Crash: 2}
 
 	summary, err := Explore(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Open(summary.CampaignPath)
+	report, err := Inspect(summary.CampaignPath, InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	combined := report.Campaign.CombinedFrontier
-	if combined == nil || combined.LogicalExecutions != 2 || combined.Pending != 0 || combined.Limits.Scenario != 1 || report.Campaign.CombinedFrontierImplementationSHA256 == "" || report.Campaign.CombinedFrontierChainSHA256 == "" {
-		t.Fatalf("combined frontier inspection = %#v", report.Campaign)
+	combined := report.Campaign.SimulationExploration
+	if combined == nil || combined.LogicalExecutions != 2 || combined.Pending != 0 || combined.Limits.Scenario != 1 || report.Campaign.SimulationExplorationImplementationSHA256 == "" || report.Campaign.SimulationExplorationChainSHA256 == "" {
+		t.Fatalf("simulation exploration inspection = %#v", report.Campaign)
 	}
-	if len(report.Campaign.Runs) != 2 || report.Campaign.Runs[0].Strategy != string(StrategyCombinedFrontier) || report.Campaign.Runs[1].ForcedDepth == nil || *report.Campaign.Runs[1].ForcedDepth != 1 {
-		t.Fatalf("combined frontier runs = %#v", report.Campaign.Runs)
+	if len(report.Campaign.Executions) != 2 || report.Campaign.Executions[0].Strategy != string(StrategySimulationExploration) || report.Campaign.Executions[1].ForcedDepth == nil || *report.Campaign.Executions[1].ForcedDepth != 1 {
+		t.Fatalf("simulation exploration runs = %#v", report.Campaign.Executions)
 	}
 }
 
 func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
-	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
+	journal, err := campaign.NewCampaignJournal(context.Background(), campaign.CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-interrupted-inspect", Selection: "7", SelectionCount: 1,
 	})
 	if err != nil {
@@ -171,19 +180,19 @@ func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	report, err := Open(journal.Path())
+	report, err := Inspect(journal.Path(), InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Kind != "batch" || report.Campaign != nil || report.Artifact != nil || report.Lifecycle == nil || report.Lifecycle.State != "planned" || report.Lifecycle.Resumable || report.Lifecycle.Published {
+	if report.Kind != "campaign" || report.Campaign != nil || report.Artifact != nil || report.Lifecycle == nil || report.Lifecycle.State != "planned" || report.Lifecycle.Resumable || report.Lifecycle.Published {
 		t.Fatalf("interrupted batch report = %#v", report)
 	}
 }
 
-func TestOpenReportsInterruptedCombinedFrontierPendingAndStagedWork(t *testing.T) {
-	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
-		Root: t.TempDir(), CampaignID: "run-interrupted-combined", Strategy: string(StrategyCombinedFrontier), Selection: "7", SelectionCount: 1,
-		MaxRuns: 8,
+func TestOpenReportsInterruptedSimulationExplorationPendingAndStagedWork(t *testing.T) {
+	journal, err := campaign.NewCampaignJournal(context.Background(), campaign.CampaignConfig{
+		Root: t.TempDir(), CampaignID: "run-interrupted-combined", Strategy: string(StrategySimulationExploration), Selection: "7", SelectionCount: 1,
+		MaxExecutions: 8,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -193,20 +202,20 @@ func TestOpenReportsInterruptedCombinedFrontierPendingAndStagedWork(t *testing.T
 			t.Error(err)
 		}
 	})
-	state, err := combinedfrontier.New(combinedfrontier.Config{
-		ExecutionSHA256: evidence.HashBytes([]byte("execution")), ControllerSHA256: combinedfrontier.ImplementationSHA256(),
-		BaseSeed: 7, Parallel: 2, MaxRuns: 8, MaxForcedDecisions: 4, MaxFrontierBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 4,
-		Limits: combinedfrontier.DimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
+	state, err := simulationengine.New(simulationengine.Config{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(),
+		BaseSeed: 7, Parallel: 2, MaxExecutions: 8, MaxForcedDecisions: 4, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 4,
+		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	frontier, err := campaignstore.NewCombinedFrontierJournal(context.Background(), journal.Path(), state, 1<<20)
+	exploration, err := campaign.NewSimulationExplorationJournal(context.Background(), journal.Path(), state, 1<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
 	round, _ := state.NextRound()
-	staged, err := frontier.StageRound(round)
+	staged, err := exploration.StageRound(round)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,13 +223,13 @@ func TestOpenReportsInterruptedCombinedFrontierPendingAndStagedWork(t *testing.T
 		t.Fatal(err)
 	}
 
-	report, err := Open(journal.Path())
+	report, err := Inspect(journal.Path(), InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	combined := report.CombinedFrontier
+	combined := report.SimulationExploration
 	if report.Campaign != nil || combined == nil || combined.Summary.Pending != 1 || len(combined.Pending) != 1 || combined.Pending[0].SHA256 != round.Candidates[0].SHA256 || combined.StagedRound == nil || combined.StagedRound.Attempted != 1 {
-		t.Fatalf("interrupted combined frontier report = %#v", report)
+		t.Fatalf("interrupted simulation exploration report = %#v", report)
 	}
 	if _, err := os.Stat(staged.Path()); err != nil {
 		t.Fatalf("inspection mutated staged round: %v", err)
@@ -228,7 +237,7 @@ func TestOpenReportsInterruptedCombinedFrontierPendingAndStagedWork(t *testing.T
 }
 
 func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
-	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{
+	journal, err := campaign.NewCampaignJournal(context.Background(), campaign.CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-inspect-success", Selection: "7", SelectionCount: 1,
 	})
 	if err != nil {
@@ -240,12 +249,12 @@ func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bytes := evidence.Uint64String(retained.StoredBytes)
+	bytes := record.Uint64String(retained.StoredBytes)
 	choiceTrace := retained.Manifest.ChoiceProfile.Trace
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.AppendExecution(campaignstore.ExecutionRecord{
+	if err := journal.AppendExecution(campaign.ExecutionRecord{
 		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit", ElapsedNanos: 5,
 		SuccessArtifact: &relative, SuccessArtifactBytes: &bytes, SemanticProbes: []string{"stdlib.os.openfile"}, NovelSemanticProbes: []string{"stdlib.os.openfile"},
 		ChoiceTraceSHA256: &choiceTrace.SHA256, ChoiceTraceRecords: &choiceTrace.Records, ChoiceTraceBranchingRecords: &choiceTrace.BranchingRecords,
@@ -253,10 +262,10 @@ func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.Publish(campaignstore.CampaignSummary{Attempted: 1, Succeeded: 1, RetainedSuccesses: 1, RetainedSuccessBytes: retained.StoredBytes, StopReason: "seeds_exhausted"}); err != nil {
+	if err := journal.Publish(campaign.CampaignSummary{Attempted: 1, Succeeded: 1, RetainedSuccesses: 1, RetainedSuccessBytes: retained.StoredBytes, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
-	report, err := Open(journal.Path())
+	report, err := Inspect(journal.Path(), InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -265,25 +274,25 @@ func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
 	}
 }
 
-func publishInspectArtifact(t *testing.T) evidence.Artifact {
+func publishInspectArtifact(t *testing.T) artifact.Artifact {
 	t.Helper()
 	return publishInspectArtifactAt(t, t.TempDir(), "batch-inspect", false)
 }
 
-func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) evidence.Artifact {
+func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) artifact.Artifact {
 	t.Helper()
 	targetPath := filepath.Join(t.TempDir(), "target")
 	if err := os.WriteFile(targetPath, []byte("target"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	world, payloads := evidence.NoneWorld()
-	exitCode := evidence.Uint64String(2)
-	artifactKind := evidence.ArtifactTargetFailure
+	world, payloads := record.NoneWorld()
+	exitCode := record.Uint64String(2)
+	artifactKind := record.ArtifactTargetFailure
 	domain := "target"
 	reason := "nonzero_exit"
 	if success {
 		exitCode = 0
-		artifactKind = evidence.ArtifactSuccess
+		artifactKind = record.ArtifactSuccess
 		domain = "success"
 		reason = "success"
 	}
@@ -307,7 +316,7 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	targetSHA256, err := evidence.HashBytes([]byte("target")).Bytes()
+	targetSHA256, err := record.HashBytes([]byte("target")).Bytes()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -318,22 +327,22 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	manifest := evidence.ExecutionRecord{
-		SchemaVersion: evidence.SchemaVersion, ArtifactKind: artifactKind, CreatedAt: "2026-08-12T12:00:00Z", CampaignID: batchID, SelectionOrdinal: 0, Seed: 7, ReplayMode: evidence.ReplayExact,
-		Runner:        evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
-		Toolchain:     evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:        evidence.Target{Kind: "go-test", Source: "./target", SHA256: evidence.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []evidence.TargetAdapter{}, Compatibility: []evidence.CompatibilityPack{}, BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
-		IOProfile:     evidence.IOProfile{Name: "gomadv3-deterministic/v1", ImplementationSHA256: evidence.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: evidence.HashBytes([]byte("{}")), Transcript: &evidence.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: evidence.HashBytes(transcript), Bytes: evidence.Uint64String(len(transcript)), Records: 3}},
-		ChoiceProfile: &evidence.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: evidence.SHA256FromSum(choiceImplementation), Trace: evidence.ChoiceTrace{Schema: "gomadv3.choice-trace/v2", SHA256: evidence.SHA256FromSum(choiceTrace.SHA256), Bytes: evidence.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: evidence.Uint64String(choiceLimit), TapeSHA256: evidence.SHA256FromSum(choiceReplayPlan.SHA256), Decisions: 1}},
-		Environment:   []evidence.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_CHOICE_PROFILE", Value: choice.Profile}, {Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}}, Limits: evidence.Limits{RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20, ChoiceTraceBytes: evidence.Uint64String(choiceLimit)}, World: world,
-		Outcome: evidence.Outcome{Domain: domain, Reason: reason, Termination: "exit", ExitCode: &exitCode},
-		Streams: evidence.Streams{
-			Stdout: evidence.Stream{FullSHA256: evidence.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
-			Stderr: evidence.Stream{FullSHA256: evidence.HashBytes(nil), TotalBytes: 0, RetainedBytes: 0},
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: artifactKind, CreatedAt: "2026-08-12T12:00:00Z", CampaignID: batchID, SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
+		Runner:        record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
+		Toolchain:     record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		Target:        record.Target{Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomadv3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
+		IOProfile:     record.IOProfile{Name: "gomadv3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}")), Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 3}},
+		ChoiceProfile: &record.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(choiceImplementation), Trace: record.ChoiceTrace{Schema: "gomadv3.choice-trace/v2", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit), TapeSHA256: record.SHA256FromSum(choiceReplayPlan.SHA256), Decisions: 1}},
+		Environment:   []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_CHOICE_PROFILE", Value: choice.Profile}, {Name: "GOMADV3_IO_PROFILE", Value: "gomadv3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}}, Limits: record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20, ChoiceTraceBytes: record.Uint64String(choiceLimit)}, World: world,
+		Outcome: record.Outcome{Domain: domain, Reason: reason, Termination: "exit", ExitCode: &exitCode},
+		Streams: record.Streams{
+			Stdout: record.Stream{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
+			Stderr: record.Stream{FullSHA256: record.HashBytes(nil), TotalBytes: 0, RetainedBytes: 0},
 		},
-		Host: evidence.Host{StartedAt: "2026-08-12T12:00:00Z", FinishedAt: "2026-08-12T12:00:01Z", ElapsedNanos: 1},
+		Host: record.Host{StartedAt: "2026-08-12T12:00:00Z", FinishedAt: "2026-08-12T12:00:01Z", ElapsedNanos: 1},
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{Root: root}, campaignstore.ArtifactInput{
+	published, err := artifact.PublishArtifact(artifact.Store{Root: root}, artifact.ArtifactInput{
 		Manifest: manifest, TargetPath: targetPath, Stdout: []byte("long"), Stderr: nil, IOTranscript: transcript, ChoiceTrace: choicePayload, World: payloads,
 	})
 	if err != nil {
@@ -344,7 +353,7 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 
 func writeInspectBatchForChoiceTest(t *testing.T) string {
 	t.Helper()
-	journal, err := campaignstore.NewCampaignJournal(context.Background(), campaignstore.CampaignConfig{Root: t.TempDir(), CampaignID: "run-choice-batch", Selection: "7", SelectionCount: 1})
+	journal, err := campaign.NewCampaignJournal(context.Background(), campaign.CampaignConfig{Root: t.TempDir(), CampaignID: "run-choice-batch", Selection: "7", SelectionCount: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,10 +361,10 @@ func writeInspectBatchForChoiceTest(t *testing.T) string {
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.AppendExecution(campaignstore.ExecutionRecord{SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit"}); err != nil {
+	if err := journal.AppendExecution(campaign.ExecutionRecord{SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.Publish(campaignstore.CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
+	if err := journal.Publish(campaign.CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
 	return journal.Path()
