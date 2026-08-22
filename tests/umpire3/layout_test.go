@@ -49,7 +49,14 @@ func TestIndependentLayout(t *testing.T) {
 
 	require.FileExists(t, filepath.Join(root, "model", "lean-toolchain"))
 	require.FileExists(t, filepath.Join(root, "model", "lakefile.toml"))
-	require.FileExists(t, filepath.Join(root, "model", "mise.toml"))
+	_, err := os.Stat(filepath.Join(root, "model", "mise.toml"))
+	require.ErrorIs(t, err, os.ErrNotExist)
+	repositoryMise, err := os.ReadFile(filepath.Join(root, "..", "..", "mise.toml"))
+	require.NoError(t, err)
+	require.Contains(t, string(repositoryMise), `go = "1.27.0"`)
+	require.Contains(t, string(repositoryMise), `"github:leanprover/lean4" = "4.28.0"`)
+	require.FileExists(t, filepath.Join(root, "..", "..", "tools", "common", "formal", "lean", "SharedModel", "Transition.lean"))
+	require.FileExists(t, filepath.Join(root, "..", "..", "tools", "common", "formal", "lean", "SharedModel", "TraceReplay.lean"))
 	require.FileExists(t, filepath.Join(root, "cmd", "umpire3", "main.go"))
 }
 

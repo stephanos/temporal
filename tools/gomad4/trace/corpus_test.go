@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv4/virtualtime"
+	"go.temporal.io/server/tools/gomad4/virtualtime"
 )
 
 func TestFinalizeProducesStableSemanticAndCorpusDigests(t *testing.T) {

@@ -36,16 +36,16 @@ GOPATH      ?= $(shell go env GOPATH)
 # Disable cgo by default.
 CGO_ENABLED ?= 0
 
-# --- TEMPORARY: pin the Go toolchain to the RC that supports generic methods ---
-# This branch uses generic methods (Go 1.27+). go.mod already pins `toolchain go1.27rc2`,
+# --- TEMPORARY: pin the Go toolchain that supports generic methods ---
+# This branch uses generic methods (Go 1.27+). go.mod already pins `toolchain go1.27.0`,
 # so in-module commands (go build/test/vet/fix) use it. But `go install tool@version`
 # (gci, goimports, golangci-lint, the vettool, …) runs OUTSIDE this module and would
 # otherwise build those tools with the default toolchain, whose gofmt/parser cannot read
 # generic methods. Exporting GOTOOLCHAIN forces every make-invoked `go` — tool installs
-# included — to use rc2, so `make fmt` / `make fmt-imports` / `make lint-code` work.
+# included — to use 1.27.0, so `make fmt` / `make fmt-imports` / `make lint-code` work.
 # Remove once Go 1.27 is the default toolchain. If tools were already built under an older
-# Go, run `make clean-tools` once to rebuild them under rc2.
-export GOTOOLCHAIN := go1.27rc2
+# Go, run `make clean-tools` once to rebuild them under 1.27.0.
+export GOTOOLCHAIN := go1.27.0
 
 PERSISTENCE_TYPE ?= nosql
 PERSISTENCE_DRIVER ?= cassandra
@@ -68,6 +68,18 @@ TEST_TAG_FLAG := -tags $(ALL_TEST_TAGS)
 # The timeout in the GH workflow must be larger than this to avoid GH timing out the action,
 # which causes the a job run to not produce any logs and hurts the debugging experience.
 TEST_TIMEOUT ?= 35m
+
+ifeq ($(shell uname -s),Darwin)
+LEAN_SDKROOT := $(shell xcrun --show-sdk-path)
+LEAN_CLANG := $(shell xcrun --find clang)
+LEAN_CLANG_DIR := $(dir $(LEAN_CLANG))
+export CC := $(LEAN_CLANG)
+export CXX := $(shell xcrun --find clang++)
+export SDKROOT := $(LEAN_SDKROOT)
+LEAN_LAKE := SDKROOT="$(LEAN_SDKROOT)" mise exec -- sh -c 'PATH="$(LEAN_CLANG_DIR):$$PATH"; exec lake "$$@"' lean-lake
+else
+LEAN_LAKE := mise exec -- lake
+endif
 
 UMPIRE_GENMODELS := go run -tags test_dep ./cmd/umpire-genmodels
 UMPIRE3_ROOT := tests/umpire3
@@ -241,6 +253,22 @@ endef
 ##### Tools #####
 print-go-version:
 	@go version
+
+.PHONY: gomad4-prototype gomad4-test gomad4-formal gomad4-formal-veil
+
+gomad4-prototype: gomad4-test gomad4-formal
+
+gomad4-test:
+	@cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./...
+	@cd tools/common/formal && GOWORK=off go test -tags test_dep ./...
+	@cd tools/gomad4 && GOWORK=off go test -tags test_dep ./...
+
+gomad4-formal:
+	@cd tools/common/formal && $(LEAN_LAKE) build
+	@cd tools/gomad4/formal && $(LEAN_LAKE) build
+
+gomad4-formal-veil:
+	@cd tools/gomad4/formal/veil && $(LEAN_LAKE) build
 
 .PHONY: gomadv3 gomadv3-go gomadv3-runner gomadv3-run gomadv3-test gomadv3-integration-test gomadv3-qualification
 
@@ -640,12 +668,12 @@ umpire3-check-coverage: umpire3-check-catalog
 
 umpire3-gen-finite-replay: umpire3-gen-composition
 	@printf $(COLOR) "Generate Umpire3 finite replay catalog..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Targets.FiniteReplay
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Targets.FiniteReplay
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact finite-replay-catalog -output $(UMPIRE3_FINITE_REPLAY)
 
 umpire3-check-finite-replay: umpire3-check-composition
 	@printf $(COLOR) "Check generated Umpire3 finite replay catalog..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Targets.FiniteReplay
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Targets.FiniteReplay
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact finite-replay-catalog > "$$temporary"; \
@@ -653,13 +681,13 @@ umpire3-check-finite-replay: umpire3-check-composition
 
 umpire3-gen-first-order: umpire3-gen-catalog
 	@printf $(COLOR) "Generate Umpire3 Nexus first-order views..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Families.NexusCancellation.Targets.FirstOrder
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Families.NexusCancellation.Targets.FirstOrder
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact first-order-view -variant sound -output $(UMPIRE3_NEXUS_FIRST_ORDER)
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact first-order-view -variant mutated -output $(UMPIRE3_NEXUS_MUTATED_FIRST_ORDER)
 
 umpire3-check-first-order: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 Nexus first-order views..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Families.NexusCancellation.Targets.FirstOrder
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Families.NexusCancellation.Targets.FirstOrder
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact first-order-view -variant sound > "$$temporary"; \
@@ -669,13 +697,13 @@ umpire3-check-first-order: umpire3-check-catalog
 
 umpire3-gen-attempt: umpire3-gen-first-order
 	@printf $(COLOR) "Generate Umpire3 Nexus attempt views..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Families.NexusCancellation.Targets.Attempt
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Families.NexusCancellation.Targets.Attempt
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact attempt-view -variant sound -output $(UMPIRE3_NEXUS_ATTEMPT)
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact attempt-view -variant mutated -output $(UMPIRE3_NEXUS_MUTATED_ATTEMPT)
 
 umpire3-check-attempt: umpire3-check-first-order
 	@printf $(COLOR) "Check generated Umpire3 Nexus attempt views..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Families.NexusCancellation.Targets.Attempt
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Families.NexusCancellation.Targets.Attempt
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact attempt-view -variant sound > "$$temporary"; \
@@ -698,7 +726,7 @@ umpire3-check-native-binding: umpire3-check-first-order
 
 umpire3-build-native: umpire3-gen-native-binding
 	@printf $(COLOR) "Build Umpire3 native certificate checker..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build umpire3_native_certificate_check
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build umpire3_native_certificate_check
 
 umpire3-gen-native-results: umpire3-gen-native-binding
 	@$(MAKE) umpire3-build-native
@@ -712,7 +740,7 @@ umpire3-gen-native-results: umpire3-gen-native-binding
 
 umpire3-check-native-results: umpire3-check-native-binding
 	@printf $(COLOR) "Check Umpire3 parallel native certificate and checked receipt..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build umpire3_native_certificate_check
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build umpire3_native_certificate_check
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		$(UMPIRE3_NATIVE_COMMAND) -operation produce -input $(UMPIRE3_NEXUS_FIRST_ORDER) \
@@ -766,13 +794,13 @@ umpire3-check-family-dependencies: umpire3-check-checker-coverage
 
 umpire3-gen-temporal: umpire3-gen-catalog
 	@printf $(COLOR) "Generate Umpire3 task-delivery temporal views..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Families.WorkflowProgress.Targets.Temporal
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Families.WorkflowProgress.Targets.Temporal
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant sound -output $(UMPIRE3_TASK_DELIVERY_TEMPORAL)
 	@$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant delivery-fairness-removed -output $(UMPIRE3_TASK_DELIVERY_MUTATED_TEMPORAL)
 
 umpire3-check-temporal: umpire3-check-catalog
 	@printf $(COLOR) "Check generated Umpire3 task-delivery temporal views..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build Temporal.Families.WorkflowProgress.Targets.Temporal
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build Temporal.Families.WorkflowProgress.Targets.Temporal
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT; \
 		$(UMPIRE3_EXPORT_COMMAND) -artifact temporal-view -variant sound > "$$temporary"; \
@@ -782,11 +810,11 @@ umpire3-check-temporal: umpire3-check-catalog
 
 umpire3-build-temporal:
 	@printf $(COLOR) "Build Umpire3 canonical temporal lasso replay..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build umpire3_temporal_lasso_replay
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build umpire3_temporal_lasso_replay
 
 umpire3-build-veil:
 	@printf $(COLOR) "Build Umpire3's embedded Veil checks..."
-	@cd $(UMPIRE3_MODEL_ROOT) && mise exec -- lake build \
+	@cd $(UMPIRE3_MODEL_ROOT) && $(LEAN_LAKE) build \
 		Temporal.Families.NexusCancellation.Targets.Veil.Binding \
 		Temporal.Families.NexusCancellation.Targets.Veil.MutatedBinding \
 		Temporal.Families.NexusCancellation.Targets.Veil.TrustedBinding \

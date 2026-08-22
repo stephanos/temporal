@@ -15,8 +15,8 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv4/conformance"
-	"go.temporal.io/server/tools/gomadv4/trace"
+	"go.temporal.io/server/tools/gomad4/conformance"
+	"go.temporal.io/server/tools/gomad4/trace"
 )
 
 const CorpusFile = "corpus.json"
