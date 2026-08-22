@@ -1,5 +1,7 @@
 [tools]
 dotnet = "8.0.424"
+go = "1.27.0"
+"github:leanprover/lean4" = "4.28.0"
 java = "temurin-21.0.12+8.0.LTS"
 python = "3.10.21"
 

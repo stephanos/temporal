@@ -1,63 +1,60 @@
+import SharedModel.Transition
+
 namespace Umpire3
 
-universe u
+abbrev TransitionSystem := SharedModel.TransitionSystem
 
-structure TransitionSystem where
-  State : Type u
-  Action : Type u
-  Initial : State → Prop
-  Step : State → Action → State → Prop
+abbrev Runs := SharedModel.Runs
 
-inductive Runs (model : TransitionSystem) :
-    model.State → List model.Action → model.State → Prop where
-  | nil (state) : Runs model state [] state
-  | cons : model.Step state action next →
-      Runs model next actions final →
-      Runs model state (action :: actions) final
+namespace Runs
 
-def TransitionSystem.Reachable (model : TransitionSystem) (state : model.State) : Prop :=
-  ∃ initial actions, model.Initial initial ∧ Runs model initial actions state
+abbrev nil := @SharedModel.Runs.nil
 
-def TransitionSystem.StepStar (model : TransitionSystem)
-    (state final : model.State) : Prop :=
-  ∃ actions, Runs model state actions final
+abbrev cons := @SharedModel.Runs.cons
 
-theorem TransitionSystem.stepStarRefl (model : TransitionSystem) (state : model.State) :
-    model.StepStar state state :=
-  ⟨[], Runs.nil state⟩
-
-theorem TransitionSystem.stepStarSingle (model : TransitionSystem)
-    {state nextState : model.State} {action : model.Action}
-    (step : model.Step state action nextState) : model.StepStar state nextState :=
-  ⟨[action], Runs.cons step (Runs.nil nextState)⟩
-
-theorem Runs.append {model : TransitionSystem}
+theorem append {model : TransitionSystem}
     {start middle final : model.State} {actions more : List model.Action}
     (firstRun : Runs model start actions middle)
     (secondRun : Runs model middle more final) :
-    Runs model start (actions ++ more) final := by
-  induction firstRun generalizing final with
-  | nil => exact secondRun
-  | cons step _ ih => exact Runs.cons step (ih secondRun)
+    Runs model start (actions ++ more) final :=
+  SharedModel.Runs.append firstRun secondRun
 
-theorem Runs.empty {model : TransitionSystem} {start final : model.State}
-    (run : Runs model start [] final) : start = final := by
-  cases run
-  rfl
+theorem empty {model : TransitionSystem} {start final : model.State}
+    (run : Runs model start [] final) : start = final :=
+  SharedModel.Runs.empty run
 
-theorem Runs.firstStep {model : TransitionSystem} {start final : model.State}
+theorem firstStep {model : TransitionSystem} {start final : model.State}
     {action : model.Action} {actions : List model.Action}
     (run : Runs model start (action :: actions) final) :
-    ∃ nextState, model.Step start action nextState := by
-  cases run with
-  | cons step _ => exact ⟨_, step⟩
+    ∃ nextState, model.Step start action nextState :=
+  SharedModel.Runs.firstStep run
 
-theorem Runs.uncons {model : TransitionSystem} {start final : model.State}
+theorem uncons {model : TransitionSystem} {start final : model.State}
     {action : model.Action} {actions : List model.Action}
     (run : Runs model start (action :: actions) final) :
     ∃ nextState, model.Step start action nextState ∧
-      Runs model nextState actions final := by
-  cases run with
-  | cons step tail => exact ⟨_, step, tail⟩
+      Runs model nextState actions final :=
+  SharedModel.Runs.uncons run
+
+end Runs
+
+namespace TransitionSystem
+
+def Reachable (model : TransitionSystem) (state : model.State) : Prop :=
+  SharedModel.TransitionSystem.Reachable model state
+
+def StepStar (model : TransitionSystem) (state final : model.State) : Prop :=
+  SharedModel.TransitionSystem.StepStar model state final
+
+theorem stepStarRefl (model : TransitionSystem) (state : model.State) :
+    StepStar model state state :=
+  SharedModel.TransitionSystem.stepStarRefl model state
+
+theorem stepStarSingle (model : TransitionSystem)
+    {state nextState : model.State} {action : model.Action}
+    (step : model.Step state action nextState) : StepStar model state nextState :=
+  SharedModel.TransitionSystem.stepStarSingle model step
+
+end TransitionSystem
 
 end Umpire3
