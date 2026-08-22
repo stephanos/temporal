@@ -1,6 +1,6 @@
 import Temporal.API.Generated.Wire
 import Temporal.API.Interpretation
-import Temporal.Product.Nexus
+import Temporal.Families.NexusCancellation.Feature
 
 namespace Umpire3.Temporal.API.Nexus
 
@@ -101,7 +101,7 @@ def interpretCancel (request : Generated.RequestCancelNexusOperationExecutionReq
   }
 
 def semanticEffect (request : Generated.RequestCancelNexusOperationExecutionRequest) :
-    Option Temporal.Product.Nexus.Command :=
+    Option Temporal.Feature.NexusCancellationFencing.Action :=
   match interpretCancel request with
   | .ok _ => some .acceptCancellation
   | .error _ => none

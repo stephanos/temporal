@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 func TestGeneratedFacadeCapturesAuthorSource(t *testing.T) {
 	t.Parallel()
 
-	authored := NexusCancellationRegression("source",
+	authored := NexusCancellationScenario("source",
 		[]Resource{NexusOperation("operation")},
 		OnePath(
 			ScheduleOperation("duplicate"),
@@ -34,7 +35,7 @@ func TestGeneratedFacadeCapturesAuthorSource(t *testing.T) {
 func TestResponseOptionsReadAsBehaviorAndCompileWithoutProtocolPlumbing(t *testing.T) {
 	t.Parallel()
 
-	authored := FoundationDeliverySafetyRegression("response-options",
+	authored := FoundationDeliverySafetyScenario("response-options",
 		[]Resource{Workflow("workflow")}, OnePath(
 			ProgressEntity("sync", Synchronously()),
 			ProgressEntity("async", Asynchronously()),
@@ -47,16 +48,16 @@ func TestResponseOptionsReadAsBehaviorAndCompileWithoutProtocolPlumbing(t *testi
 		MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second,
 	})
 	require.NoError(t, err)
-	require.Equal(t, []protocol.ResponseMode{
-		protocol.ResponseSynchronous, protocol.ResponseAsynchronous, protocol.ResponseDeferred,
-		protocol.ResponseBlocking, protocol.ResponseFailure,
+	require.Equal(t, []protocolexperiment.ResponseMode{
+		protocolexperiment.ResponseSynchronous, protocolexperiment.ResponseAsynchronous, protocolexperiment.ResponseDeferred,
+		protocolexperiment.ResponseBlocking, protocolexperiment.ResponseFailure,
 	}, responseModes(suite.Experiments[0].Actions))
 }
 
 func TestGeneratedFacadeCompilationIsDeterministic(t *testing.T) {
 	t.Parallel()
 
-	authored := FoundationDeliverySafetyRegression("deterministic",
+	authored := FoundationDeliverySafetyScenario("deterministic",
 		[]Resource{Workflow("workflow")}, OnePath(
 			ProgressEntity("progress", Synchronously()),
 			RequireEntityProgress(),
@@ -69,11 +70,11 @@ func TestGeneratedFacadeCompilationIsDeterministic(t *testing.T) {
 	second, err := Compile(context.Background(), authored, limits)
 	require.NoError(t, err)
 	require.Equal(t, first, second)
-	require.Equal(t, protocol.LeanVersion, first.Experiments[0].Model.LeanVersion)
+	require.Equal(t, protocolcatalog.LeanVersion, first.Experiments[0].Model.LeanVersion)
 }
 
-func responseModes(actions []protocol.Action) []protocol.ResponseMode {
-	result := make([]protocol.ResponseMode, len(actions))
+func responseModes(actions []protocolexperiment.Action) []protocolexperiment.ResponseMode {
+	result := make([]protocolexperiment.ResponseMode, len(actions))
 	for index, action := range actions {
 		result[index] = action.EffectiveResponseMode()
 	}

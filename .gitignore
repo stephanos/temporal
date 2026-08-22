@@ -17,6 +17,8 @@ testdata/
 !/tests/umpire2/testdata/genmodels/**
 !/tests/umpire3/testdata/
 !/tests/umpire3/testdata/**
+!/tests/umpire3/**/testdata/
+!/tests/umpire3/**/testdata/**
 
 *.out
 *.test

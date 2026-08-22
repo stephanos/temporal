@@ -4,29 +4,30 @@ import (
 	"fmt"
 	"slices"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 type normalizedAction struct {
 	identifier      string
-	kind            protocol.ActionKind
-	allowedOutcomes []protocol.ActionOutcome
-	arguments       []protocol.NamedValue
-	bindings        []protocol.Binding
+	kind            protocolcatalog.ActionKind
+	allowedOutcomes []protocolexperiment.ActionOutcome
+	arguments       []protocolexperiment.NamedValue
+	bindings        []protocolexperiment.Binding
 	source          Source
 	generated       bool
-	responseMode    protocol.ResponseMode
+	responseMode    protocolexperiment.ResponseMode
 	maxBlockNanos   int64
 }
 
 type normalizedFault struct {
 	identifier string
-	kind       protocol.FaultKind
+	kind       protocolcatalog.FaultKind
 	policy     string
-	arguments  []protocol.NamedValue
-	scope      protocol.FaultScope
-	occurrence protocol.FaultOccurrence
-	configured *protocol.Fault
+	arguments  []protocolexperiment.NamedValue
+	scope      protocolexperiment.FaultScope
+	occurrence protocolexperiment.FaultOccurrence
+	configured *protocolexperiment.Fault
 }
 
 type normalizedPolicy struct {
@@ -37,7 +38,7 @@ type normalizedPolicy struct {
 type normalizedEdge struct {
 	before   string
 	after    string
-	relation protocol.OrderRelation
+	relation protocolexperiment.OrderRelation
 }
 
 type normalizedPlan struct {
@@ -46,7 +47,7 @@ type normalizedPlan struct {
 	bindings []bindIntentWithSource
 	policies []normalizedPolicy
 	faults   []normalizedFault
-	property protocol.PropertyID
+	property protocolcatalog.PropertyID
 	allPaths bool
 }
 
@@ -82,8 +83,8 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 		action := &normalizedAction{
 			identifier:      identifier,
 			kind:            node.action.kind,
-			allowedOutcomes: append([]protocol.ActionOutcome(nil), node.action.allowedOutcomes...),
-			arguments:       append([]protocol.NamedValue(nil), node.action.arguments...),
+			allowedOutcomes: append([]protocolexperiment.ActionOutcome(nil), node.action.allowedOutcomes...),
+			arguments:       append([]protocolexperiment.NamedValue(nil), node.action.arguments...),
 			source:          node.source,
 			responseMode:    node.action.responseMode,
 			maxBlockNanos:   node.action.maxBlockNanos,
@@ -139,7 +140,7 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 			identifier: node.fault.identifier + suffix,
 			kind:       node.fault.kind,
 			policy:     policyID,
-			arguments:  append([]protocol.NamedValue(nil), node.fault.arguments...),
+			arguments:  append([]protocolexperiment.NamedValue(nil), node.fault.arguments...),
 			scope:      cloneFaultScope(node.fault.scope),
 			occurrence: node.fault.occurrence,
 			configured: node.fault.configured,
@@ -160,7 +161,7 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 				return normalizedGroup{}, err
 			}
 			if len(result.exits) != 0 && len(group.entries) != 0 {
-				addCrossEdges(plan, result.exits, group.entries, protocol.OrderUser)
+				addCrossEdges(plan, result.exits, group.entries, protocolexperiment.OrderUser)
 			}
 			if len(result.entries) == 0 {
 				result.entries = append(result.entries, group.entries...)
@@ -176,7 +177,7 @@ func normalizeNode(node Term, plan *normalizedPlan, suffix string) (normalizedGr
 	}
 }
 
-func cloneFaultScope(scope protocol.FaultScope) protocol.FaultScope {
+func cloneFaultScope(scope protocolexperiment.FaultScope) protocolexperiment.FaultScope {
 	scope.Resources = append([]string(nil), scope.Resources...)
 	scope.Endpoints = append([]string(nil), scope.Endpoints...)
 	scope.TaskQueues = append([]string(nil), scope.TaskQueues...)
@@ -196,7 +197,7 @@ func normalizeSequence(children []Term, plan *normalizedPlan, suffix string) (no
 			return normalizedGroup{}, err
 		}
 		if len(previousExits) != 0 && len(group.entries) != 0 {
-			addCrossEdges(plan, previousExits, group.entries, protocol.OrderUser)
+			addCrossEdges(plan, previousExits, group.entries, protocolexperiment.OrderUser)
 		}
 		if len(result.entries) == 0 && len(group.entries) != 0 {
 			result.entries = append(result.entries, group.entries...)
@@ -210,7 +211,7 @@ func normalizeSequence(children []Term, plan *normalizedPlan, suffix string) (no
 	return result, nil
 }
 
-func addCrossEdges(plan *normalizedPlan, before, after []string, relation protocol.OrderRelation) {
+func addCrossEdges(plan *normalizedPlan, before, after []string, relation protocolexperiment.OrderRelation) {
 	for _, left := range before {
 		for _, right := range after {
 			plan.edges = append(plan.edges, normalizedEdge{before: left, after: right, relation: relation})

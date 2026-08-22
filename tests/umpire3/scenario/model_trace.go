@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"strings"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/checker/finite"
+	checkertrace "go.temporal.io/server/tests/umpire3/checker/trace"
+	protocolchecker "go.temporal.io/server/tests/umpire3/protocol/checker"
 )
 
-func FromSemanticTrace(identifier string, trace protocol.SemanticTrace) (Scenario, error) {
+func FromSemanticTrace(identifier string, trace protocolchecker.SemanticTrace) (Scenario, error) {
 	if identifier == "" {
 		return Scenario{}, errors.New("semantic trace scenario identifier is required")
 	}
-	if err := trace.Validate(); err != nil {
+	if err := checkertrace.Validate(trace); err != nil {
 		return Scenario{}, fmt.Errorf("validate semantic trace: %w", err)
 	}
 	resources := make([]Resource, len(trace.Resources))
@@ -35,8 +37,8 @@ func FromSemanticTrace(identifier string, trace protocol.SemanticTrace) (Scenari
 		return Scenario{}, errors.New("semantic trace has no executable non-stutter actions")
 	}
 	body := OnePath(actions...)
-	if trace.Kind == protocol.SemanticTraceFinite {
-		view, found, err := protocol.DefaultFirstOrderView(trace.Target, trace.Variant)
+	if trace.Kind == protocolchecker.SemanticTraceFinite {
+		view, found, err := finite.DefaultFirstOrderView(trace.Target, trace.Variant)
 		if err != nil {
 			return Scenario{}, fmt.Errorf("load semantic trace executable view: %w", err)
 		}
@@ -57,21 +59,21 @@ func FromSemanticTrace(identifier string, trace protocol.SemanticTrace) (Scenari
 	}, nil
 }
 
-func SemanticTraceIdentifier(trace protocol.SemanticTrace) string {
+func SemanticTraceIdentifier(trace protocolchecker.SemanticTrace) string {
 	return traceIdentifier(trace.Replay.Digest)
 }
 
-func FromBackendResult(identifier string, result protocol.BackendResult) (Scenario, error) {
-	trace, err := protocol.SemanticTraceFromBackendResult(result)
+func FromBackendResult(identifier string, result protocolchecker.BackendResult) (Scenario, error) {
+	trace, err := checkertrace.FromBackendResult(result)
 	if err != nil {
 		return Scenario{}, fmt.Errorf("validate model-checker result: %w", err)
 	}
 	return FromSemanticTrace(identifier, trace)
 }
 
-func FromTraceReplayReceipt(identifier string, receipt protocol.TraceReplayReceipt) (Scenario, error) {
-	trace, err := protocol.SemanticTraceFromTraceReplayReceipt(
-		protocol.SemanticTraceProducerExact, receipt)
+func FromTraceReplayReceipt(identifier string, receipt protocolchecker.TraceReplayReceipt) (Scenario, error) {
+	trace, err := checkertrace.FromTraceReplayReceipt(
+		protocolchecker.SemanticTraceProducerExact, receipt)
 	if err != nil {
 		return Scenario{}, fmt.Errorf(
 			"checked trace receipt does not match generated executable view: %w", err)
@@ -79,31 +81,31 @@ func FromTraceReplayReceipt(identifier string, receipt protocol.TraceReplayRecei
 	return FromSemanticTrace(identifier, trace)
 }
 
-func ModelTraceIdentifier(result protocol.BackendResult) string {
-	trace, err := protocol.SemanticTraceFromBackendResult(result)
+func ModelTraceIdentifier(result protocolchecker.BackendResult) string {
+	trace, err := checkertrace.FromBackendResult(result)
 	if err != nil {
 		return traceIdentifier("")
 	}
 	return SemanticTraceIdentifier(trace)
 }
 
-func TraceReceiptIdentifier(receipt protocol.TraceReplayReceipt) string {
+func TraceReceiptIdentifier(receipt protocolchecker.TraceReplayReceipt) string {
 	return traceIdentifier(receipt.TraceDigest)
 }
 
 func FromTemporalLassoReplayReceipt(
 	identifier string,
-	receipt protocol.TemporalLassoReplayReceipt,
+	receipt protocolchecker.TemporalLassoReplayReceipt,
 ) (Scenario, error) {
-	trace, err := protocol.SemanticTraceFromTemporalLassoReplayReceipt(
-		protocol.SemanticTraceProducerLeanTemporal, receipt)
+	trace, err := checkertrace.FromTemporalLassoReplayReceipt(
+		protocolchecker.SemanticTraceProducerLeanTemporal, receipt)
 	if err != nil {
 		return Scenario{}, fmt.Errorf("checked temporal lasso receipt does not match generated view: %w", err)
 	}
 	return FromSemanticTrace(identifier, trace)
 }
 
-func TemporalLassoIdentifier(receipt protocol.TemporalLassoReplayReceipt) string {
+func TemporalLassoIdentifier(receipt protocolchecker.TemporalLassoReplayReceipt) string {
 	return traceIdentifier(receipt.LassoDigest)
 }
 

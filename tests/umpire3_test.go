@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/parallelsuite"
 	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
+	"go.temporal.io/server/tests/umpire3/regression"
 	"go.temporal.io/server/tests/umpire3/scenario"
-	"go.temporal.io/server/tests/umpire3/umpire3test"
 )
 
 // Umpire3TestSuite is an end-to-end test of both halves of the umpire together:
@@ -41,7 +41,7 @@ func TestUmpire3IndependentHistoryCorroboratesPublicHistory(t *testing.T) {
 }
 
 func TestUmpire3WorkflowTaskOwnershipFencingUsesStaleTaskToken(t *testing.T) {
-	runUmpire3Regression(t, scenario.FoundationOwnershipFencingRegression(
+	runUmpire3Regression(t, scenario.FoundationOwnershipFencingScenario(
 		"umpire3-workflow-task-ownership-fencing",
 		[]scenario.Resource{scenario.WorkflowTask("workflow-task")},
 		scenario.OnePath(
@@ -91,14 +91,14 @@ func (s *Umpire3TestSuite) TestPlanAndDriveKitchenSinkNexusOperation() {
 
 func runUmpire3Regression(t *testing.T, authored scenario.Scenario, variant ...string) {
 	t.Helper()
-	umpire3test.RequireRegression(t, authored, umpire3test.WithEnvironment(newUmpire3RootEnvironment(t, false, variant...)))
+	regression.RequireRegression(t, authored, regression.WithEnvironment(newUmpire3RootEnvironment(t, false, variant...)))
 }
 
 func requireUmpire3Violation(t *testing.T, authored scenario.Scenario, variant ...string) {
 	t.Helper()
-	umpire3test.RequireRegression(t, authored,
-		umpire3test.WithEnvironment(newUmpire3RootEnvironment(t, false, variant...)),
-		umpire3test.ExpectViolation())
+	regression.RequireRegression(t, authored,
+		regression.WithEnvironment(newUmpire3RootEnvironment(t, false, variant...)),
+		regression.ExpectViolation())
 }
 
 func evaluateUmpire3Regression(
@@ -131,7 +131,7 @@ func evaluateUmpire3RegressionIn(
 }
 
 func umpire3WorkflowProgressRegression(identifier string) scenario.Scenario {
-	return scenario.FoundationDeliverySafetyRegression(identifier,
+	return scenario.FoundationDeliverySafetyScenario(identifier,
 		[]scenario.Resource{scenario.Workflow(identifier + "-workflow")},
 		scenario.OnePath(
 			scenario.ProgressEntity(identifier+"-progress"),
@@ -141,7 +141,7 @@ func umpire3WorkflowProgressRegression(identifier string) scenario.Scenario {
 
 func umpire3NexusClosureRegression(identifier string, actions ...scenario.Term) scenario.Scenario {
 	actions = append(actions, scenario.RequireNexusOperationClosure())
-	return scenario.FeatureNexusRegression(identifier,
+	return scenario.FeatureNexusScenario(identifier,
 		[]scenario.Resource{
 			scenario.NexusOperation(identifier + "-operation"),
 			scenario.Workflow(identifier + "-workflow"),
@@ -151,7 +151,7 @@ func umpire3NexusClosureRegression(identifier string, actions ...scenario.Term) 
 
 func umpire3NexusProgressRegression(identifier string, actions ...scenario.Term) scenario.Scenario {
 	actions = append(actions, scenario.RequireNexusOperationProgress())
-	return scenario.FeatureNexusProgressRegression(identifier,
+	return scenario.FeatureNexusProgressScenario(identifier,
 		[]scenario.Resource{
 			scenario.NexusOperation(identifier + "-operation"),
 			scenario.Workflow(identifier + "-workflow"),
@@ -178,7 +178,7 @@ func umpire3NexusRPCFault(
 type umpire3ScenarioAction func(string, ...scenario.ActionOption) scenario.Term
 
 func umpire3NexusActionRegression(identifier string, action umpire3ScenarioAction) scenario.Scenario {
-	return scenario.FeatureNexusRegression(identifier,
+	return scenario.FeatureNexusScenario(identifier,
 		[]scenario.Resource{scenario.NexusOperation(identifier + "-operation")},
 		scenario.OnePath(
 			action(identifier+"-action"),

@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/internal/command"
 )
 
 func TestRunRejectsVeilSourceGeneration(t *testing.T) {
 	output := filepath.Join(t.TempDir(), "generated.lean")
-	err := run([]string{
+	err := command.RunVeil([]string{
 		"-operation", "generate",
-		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-input", "../../checker/finite/testdata/generated/nexus-cancellation.first-order.json",
 		"-output", output,
 	})
 	require.ErrorContains(t, err, `unknown operation "generate"`)
@@ -24,9 +25,9 @@ func TestRunRejectsUnsupervisedRawConcretePromotion(t *testing.T) {
 	temporary := t.TempDir()
 	output := filepath.Join(temporary, "result.json")
 
-	err := run([]string{
+	err := command.RunVeil([]string{
 		"-operation", "normalize",
-		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-input", "../../checker/finite/testdata/generated/nexus-cancellation.first-order.json",
 		"-output", output,
 	})
 	require.ErrorContains(t, err, `unknown operation "normalize"`)
@@ -34,18 +35,18 @@ func TestRunRejectsUnsupervisedRawConcretePromotion(t *testing.T) {
 
 func TestRunRejectsRawJobReceiptPromotion(t *testing.T) {
 	temporary := t.TempDir()
-	err := run([]string{
+	err := command.RunVeil([]string{
 		"-operation", "normalize-job",
-		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-input", "../../checker/finite/testdata/generated/nexus-cancellation.first-order.json",
 		"-output", filepath.Join(temporary, "result.json"),
 	})
 	require.ErrorContains(t, err, `unknown operation "normalize-job"`)
 }
 
 func TestRunCheckJobRequiresReceiptCommand(t *testing.T) {
-	err := run([]string{
+	err := command.RunVeil([]string{
 		"-operation", "check-job",
-		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-input", "../../checker/finite/testdata/generated/nexus-cancellation.first-order.json",
 		"-output", filepath.Join(t.TempDir(), "result.json"),
 		"-job", "invariant",
 	})
@@ -53,9 +54,9 @@ func TestRunCheckJobRequiresReceiptCommand(t *testing.T) {
 }
 
 func TestRunCheckConcreteRequiresBackendCommand(t *testing.T) {
-	err := run([]string{
+	err := command.RunVeil([]string{
 		"-operation", "check-concrete",
-		"-input", "../../protocol/generated/nexus-cancellation.first-order.json",
+		"-input", "../../checker/finite/testdata/generated/nexus-cancellation.first-order.json",
 		"-output", filepath.Join(t.TempDir(), "result.json"),
 	})
 	require.ErrorContains(t, err, "backend-command is required")

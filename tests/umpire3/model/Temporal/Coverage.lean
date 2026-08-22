@@ -2,11 +2,11 @@ import Lean.Data.Json
 import Temporal.Catalog
 import Temporal.Composition
 import Temporal.Monitors
-import Temporal.Product.NexusLifecycle
+import Temporal.Families.NexusClosure.Lifecycle
 
 namespace Umpire3.Temporal.Coverage
 
-open Umpire3.Temporal.Product.NexusLifecycle
+open Umpire3.Temporal.Feature.NexusLifecycle
 
 private def Edge.toJson (edge : Edge) : Lean.Json := Lean.Json.mkObj [
   ("identifier", edge.identifier),
