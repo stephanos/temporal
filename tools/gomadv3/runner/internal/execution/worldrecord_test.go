@@ -3,7 +3,7 @@ package execution
 import (
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/world"
 	"go.temporal.io/server/tools/gomadv3/world/mailbox"
 )
@@ -32,7 +32,7 @@ func TestComposePreservesWorldSemanticAndRawIdentities(t *testing.T) {
 	if bundle.Manifest.Initial.Schema != "gomadv3.world.snapshot/v1" || bundle.Manifest.Transitions.Schema != "gomadv3.world.transitions/v1" || bundle.Manifest.Final.Schema != "gomadv3.world.snapshot/v1" {
 		t.Fatalf("World schemas = %#v", bundle.Manifest)
 	}
-	if bundle.Manifest.Initial.SemanticDigest != evidence.SHA256("sha256:"+string(initial.StateDigest)) || bundle.Manifest.Final.SemanticDigest != evidence.SHA256("sha256:"+string(final.StateDigest)) {
+	if bundle.Manifest.Initial.SemanticDigest != record.SHA256("sha256:"+string(initial.StateDigest)) || bundle.Manifest.Final.SemanticDigest != record.SHA256("sha256:"+string(final.StateDigest)) {
 		t.Fatalf("World semantic digests = %#v", bundle.Manifest)
 	}
 	if bundle.Manifest.Transitions.Count != 3 || len(bundle.Payloads.Transitions) == 0 || bundle.Payloads.Transitions[len(bundle.Payloads.Transitions)-1] != '\n' {
@@ -117,7 +117,7 @@ func TestValidateRejectsSemanticAndTransitionDivergence(t *testing.T) {
 		t.Fatal(err)
 	}
 	changedManifest := bundle.Manifest
-	changedManifest.Final.SemanticDigest = evidence.HashBytes([]byte("changed"))
+	changedManifest.Final.SemanticDigest = record.HashBytes([]byte("changed"))
 	if _, _, err := Validate(changedManifest, bundle.Payloads); err == nil {
 		t.Fatal("Validate() accepted changed semantic digest")
 	}

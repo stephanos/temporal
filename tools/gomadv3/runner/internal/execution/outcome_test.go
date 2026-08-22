@@ -5,47 +5,48 @@ import (
 	"reflect"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
+	"go.temporal.io/server/tools/gomadv3/record"
 )
 
 func TestClassifyOwnsRecordingAndReplaySemantics(t *testing.T) {
-	exitTwo := evidence.Uint64String(2)
-	exitZero := evidence.Uint64String(0)
+	exitTwo := record.Uint64String(2)
+	exitZero := record.Uint64String(0)
 	signal := "SIGTERM"
-	deadline := "run_timeout"
+	deadline := "execution_timeout"
 	tests := map[string]struct {
 		result    Result
 		cancelled bool
-		terminal  evidence.WorldTerminal
+		terminal  record.WorldTerminal
 		want      Classification
 	}{
 		"cancelled": {
 			cancelled: true,
-			want:      Classification{Domain: "runner", Reason: "runner_cancelled", Termination: "none", ArtifactKind: evidence.ArtifactRunnerFailure, ReplayMode: evidence.ReplayNone},
+			want:      Classification{Domain: "runner", Reason: "runner_cancelled", Termination: "none", ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone},
 		},
 		"watchdog": {
 			result: Result{WatchdogTimeout: true},
-			want:   Classification{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline, ArtifactKind: evidence.ArtifactWatchdogTimeout, ReplayMode: evidence.ReplayDiagnostic},
+			want:   Classification{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline, ArtifactKind: record.ArtifactWatchdogTimeout, ReplayMode: record.ReplayDiagnostic},
 		},
 		"World deadlock": {
-			result: Result{Termination: TerminationExit}, terminal: evidence.WorldTerminal{Kind: "deadlock"},
-			want: Classification{Domain: "target", Reason: "world_deadlock", Termination: "exit", ExitCode: new(evidence.Uint64String), ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact},
+			result: Result{Termination: TerminationExit}, terminal: record.WorldTerminal{Kind: "deadlock"},
+			want: Classification{Domain: "target", Reason: "world_deadlock", Termination: "exit", ExitCode: new(record.Uint64String), ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact},
 		},
 		"success": {
-			result: Result{Termination: TerminationExit}, terminal: evidence.WorldTerminal{Kind: "none"},
-			want: Classification{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitZero, ArtifactKind: evidence.ArtifactSuccess, ReplayMode: evidence.ReplayExact},
+			result: Result{Termination: TerminationExit}, terminal: record.WorldTerminal{Kind: "none"},
+			want: Classification{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitZero, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact},
 		},
 		"signal": {
 			result: Result{Termination: TerminationSignal, Signal: signal},
-			want:   Classification{Domain: "target", Reason: "external_signal", Termination: "signal", Signal: &signal, ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact},
+			want:   Classification{Domain: "target", Reason: "external_signal", Termination: "signal", Signal: &signal, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact},
 		},
 		"panic": {
 			result: failedResult("panic: broken\n"),
-			want:   Classification{Domain: "target", Reason: "panic_or_runtime_fatal", Termination: "exit", ExitCode: &exitTwo, ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact},
+			want:   Classification{Domain: "target", Reason: "panic_or_runtime_fatal", Termination: "exit", ExitCode: &exitTwo, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact},
 		},
 		"guarded capability": {
 			result: failedResult("fatal error: GOMAD_CAPABILITY_DENIED\n\nstack\n"),
-			want:   Classification{Domain: "target", Reason: "denied_capability", Termination: "exit", ExitCode: &exitTwo, ArtifactKind: evidence.ArtifactTargetFailure, ReplayMode: evidence.ReplayExact},
+			want:   Classification{Domain: "target", Reason: "denied_capability", Termination: "exit", ExitCode: &exitTwo, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact},
 		},
 	}
 	for name, test := range tests {
@@ -63,6 +64,6 @@ func failedResult(stderr string) Result {
 	return Result{
 		Termination: TerminationExit,
 		ExitCode:    2,
-		Stderr:      Output{Bytes: data, FullSHA256: digest, RetainedSHA256: digest},
+		Stderr:      hostexec.Output{Bytes: data, FullSHA256: digest, RetainedSHA256: digest},
 	}
 }

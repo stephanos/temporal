@@ -12,9 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
@@ -22,7 +23,7 @@ import (
 func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	toolchain := toolchainRoot(t)
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoTest, Source: "./io_failure", WorkingDir: filepath.Join("..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoTest, Source: "./io_failure", WorkingDir: filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"),
 		Args: []string{"-test.run=^TestDeterministicIOFailure$"}, BuildTags: []string{"gomad_fixture"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})
 	if err != nil {
@@ -39,7 +40,7 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: environment,
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})
@@ -49,32 +50,32 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	if observed.Termination != execution.TerminationExit || observed.ExitCode == 0 || !observed.IOTranscript.Complete {
 		t.Fatalf("fixture result = %#v", observed)
 	}
-	exitCode := evidence.Uint64String(observed.ExitCode)
-	recordedWorld, worldPayloads := evidence.NoneWorld()
-	manifest := evidence.ExecutionRecord{
-		SchemaVersion: evidence.SchemaVersion, ArtifactKind: evidence.ArtifactTargetFailure, CreatedAt: "2026-08-11T12:00:00Z", CampaignID: "io-replay-test",
-		SelectionOrdinal: 0, Seed: 7, ReplayMode: evidence.ReplayExact,
-		Runner:    evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
-		Toolchain: evidence.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
-		Target: evidence.Target{
-			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: evidence.SHA256(prepared.SHA256), Size: evidence.Uint64String(prepared.Size),
+	exitCode := record.Uint64String(observed.ExitCode)
+	recordedWorld, worldPayloads := record.NoneWorld()
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-11T12:00:00Z", CampaignID: "io-replay-test",
+		SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+		Toolchain: record.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
+		Target: record.Target{
+			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 			Argv: prepared.Argv, BuildTags: prepared.BuildTags, Adapters: prepared.Adapters, Compatibility: prepared.Compatibility, BuildInfo: prepared.BuildInfo,
 		},
-		IOProfile: evidence.IOProfile{
-			Name: profile.Name(), ImplementationSHA256: evidence.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: evidence.SHA256(profile.InventorySHA256()),
-			Transcript: &evidence.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: evidence.Uint64String(len(observed.IOTranscript.Bytes)), Records: evidence.Uint64String(observed.IOTranscript.Records)},
+		IOProfile: record.IOProfile{
+			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
+			Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 		},
-		Environment: []evidence.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
-		Limits: evidence.Limits{
-			RunTimeoutNanos: evidence.Uint64String(10 * time.Second), OverallTimeoutNanos: evidence.Uint64String(time.Minute), TerminateGraceNanos: evidence.Uint64String(time.Second),
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Limits: record.Limits{
+			ExecutionTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
 		},
 		World:   recordedWorld,
-		Outcome: evidence.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: string(observed.Termination), ExitCode: &exitCode},
-		Streams: evidence.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
-		Host:    evidence.Host{StartedAt: "2026-08-11T12:00:00Z", FinishedAt: "2026-08-11T12:00:01Z", ElapsedNanos: evidence.Uint64String(time.Second)},
+		Outcome: record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: string(observed.Termination), ExitCode: &exitCode},
+		Streams: record.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
+		Host:    record.Host{StartedAt: "2026-08-11T12:00:00Z", FinishedAt: "2026-08-11T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{Root: t.TempDir()}, campaignstore.ArtifactInput{
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{
 		Manifest: manifest, TargetPath: prepared.Path, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes,
 		IOTranscript: observed.IOTranscript.Bytes, World: worldPayloads,
 	})
@@ -111,24 +112,24 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 		t.Fatal(err)
 	}
 	profile := deterministicio.Default()
-	worldRecord, worldPayloads := evidence.NoneWorld()
-	exitCode := evidence.Uint64String(2)
-	manifest := evidence.ExecutionRecord{
-		SchemaVersion: evidence.SchemaVersion, ArtifactKind: evidence.ArtifactTargetFailure, CreatedAt: "2026-08-15T12:00:00Z", CampaignID: "linked-replay-test",
-		SelectionOrdinal: 0, Seed: 7, ReplayMode: evidence.ReplayExact,
-		Runner:    evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+	worldRecord, worldPayloads := record.NoneWorld()
+	exitCode := record.Uint64String(2)
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-15T12:00:00Z", CampaignID: "linked-replay-test",
+		SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 		Toolchain: prepared.RecordToolchain(), Target: prepared.RecordTarget(),
-		IOProfile:   evidence.IOProfile{Name: profile.Name(), ImplementationSHA256: evidence.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: evidence.SHA256(profile.InventorySHA256())},
-		Environment: []evidence.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
-		Limits:      evidence.Limits{RunTimeoutNanos: evidence.Uint64String(time.Second), OverallTimeoutNanos: evidence.Uint64String(time.Minute), OutputBytes: 64, WorldTransitionBytes: 64},
-		World:       worldRecord, Outcome: evidence.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
-		Streams: evidence.Streams{
-			Stdout: evidence.Stream{FullSHA256: evidence.HashBytes(nil)},
-			Stderr: evidence.Stream{FullSHA256: evidence.HashBytes(nil)},
+		IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), OutputBytes: 64, WorldTransitionBytes: 64},
+		World:       worldRecord, Outcome: record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
+		Streams: record.Streams{
+			Stdout: record.Stream{FullSHA256: record.HashBytes(nil)},
+			Stderr: record.Stream{FullSHA256: record.HashBytes(nil)},
 		},
-		Host: evidence.Host{StartedAt: "2026-08-15T12:00:00Z", FinishedAt: "2026-08-15T12:00:01Z", ElapsedNanos: evidence.Uint64String(time.Second)},
+		Host: record.Host{StartedAt: "2026-08-15T12:00:00Z", FinishedAt: "2026-08-15T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{Root: t.TempDir()}, campaignstore.ArtifactInput{
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{
 		Manifest: manifest, TargetPath: prepared.Path, Stdout: []byte{}, Stderr: []byte{}, World: worldPayloads,
 	})
 	if err != nil {
@@ -137,11 +138,11 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 	if published.Manifest.Target.CapabilityManifest == nil {
 		t.Fatal("published artifact omitted the linked capability manifest")
 	}
-	opened, err := evidence.OpenArtifact(published.Path)
+	opened, err := artifact.OpenArtifact(published.Path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	payload, err := evidence.ReadPayload(opened, "target-capabilities.json", uint64(published.Manifest.Target.CapabilityManifest.Bytes))
+	payload, err := artifact.ReadPayload(opened, "target-capabilities.json", uint64(published.Manifest.Target.CapabilityManifest.Bytes))
 	closeErr := opened.Close()
 	if err != nil || closeErr != nil {
 		t.Fatal(errors.Join(err, closeErr))
@@ -164,7 +165,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	toolchain := toolchainRoot(t)
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_ro_mount_failure", WorkingDir: filepath.Join("..", "toolchain", "internal", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_ro_mount_failure", WorkingDir: filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})
 	if err != nil {
@@ -180,13 +181,13 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(source, "schema.sql"), []byte("select 1;\n"), 0o640); err != nil {
 		t.Fatal(err)
 	}
-	mappings := []deterministicio.Mapping{{Source: source, Target: "/mounted"}}
-	limits := deterministicio.DefaultLimits()
+	mappings := []readonlymount.Mapping{{Source: source, Target: "/mounted"}}
+	limits := readonlymount.DefaultLimits()
 	environment := []string{"GOMADSEED=7", "GOMADV3_IO_PROFILE=" + profile.Name(), "TZ=UTC"}
 	observed, err := execution.Run(context.Background(), execution.Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment,
-		RunTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},
 			ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
@@ -197,36 +198,36 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	if observed.ExitCode != 2 || string(observed.Stdout.Bytes) != "select 1;\n" || len(observed.IOROMounts.Entries) != 1 {
 		t.Fatalf("fixture result = %#v", observed)
 	}
-	mountArtifact, err := deterministicio.EncodeCapturedInputs(mappings, limits, observed.IOROMounts)
+	mountArtifact, err := readonlymount.EncodeCapturedInputs(mappings, limits, observed.IOROMounts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	exitCode := evidence.Uint64String(observed.ExitCode)
-	recordedWorld, worldPayloads := evidence.NoneWorld()
-	manifest := evidence.ExecutionRecord{
-		SchemaVersion: evidence.SchemaVersion, ArtifactKind: evidence.ArtifactTargetFailure, CreatedAt: "2026-08-12T12:00:00Z", CampaignID: "mount-replay-test",
-		SelectionOrdinal: 0, Seed: 7, ReplayMode: evidence.ReplayExact,
-		Runner:    evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
-		Toolchain: evidence.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
-		Target: evidence.Target{
-			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: evidence.SHA256(prepared.SHA256), Size: evidence.Uint64String(prepared.Size),
+	exitCode := record.Uint64String(observed.ExitCode)
+	recordedWorld, worldPayloads := record.NoneWorld()
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-12T12:00:00Z", CampaignID: "mount-replay-test",
+		SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+		Toolchain: record.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
+		Target: record.Target{
+			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 			Argv: prepared.Argv, BuildTags: prepared.BuildTags, Adapters: prepared.Adapters, Compatibility: prepared.Compatibility, BuildInfo: prepared.BuildInfo,
 		},
-		IOProfile: evidence.IOProfile{
-			Name: profile.Name(), ImplementationSHA256: evidence.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: evidence.SHA256(profile.InventorySHA256()),
-			Transcript:     &evidence.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: evidence.Uint64String(len(observed.IOTranscript.Bytes)), Records: evidence.Uint64String(observed.IOTranscript.Records)},
+		IOProfile: record.IOProfile{
+			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
+			Transcript:     &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 			ReadOnlyMounts: pointerToReadOnlyMounts(replayRecordedCapturedInputs(mountArtifact.Manifest)),
 		},
-		Environment: []evidence.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
-		Limits: evidence.Limits{
-			RunTimeoutNanos: evidence.Uint64String(10 * time.Second), OverallTimeoutNanos: evidence.Uint64String(time.Minute), TerminateGraceNanos: evidence.Uint64String(time.Second),
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Limits: record.Limits{
+			ExecutionTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
 		},
-		World: recordedWorld, Outcome: evidence.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: string(observed.Termination), ExitCode: &exitCode},
-		Streams: evidence.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
-		Host:    evidence.Host{StartedAt: "2026-08-12T12:00:00Z", FinishedAt: "2026-08-12T12:00:01Z", ElapsedNanos: evidence.Uint64String(time.Second)},
+		World: recordedWorld, Outcome: record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: string(observed.Termination), ExitCode: &exitCode},
+		Streams: record.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
+		Host:    record.Host{StartedAt: "2026-08-12T12:00:00Z", FinishedAt: "2026-08-12T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{Root: t.TempDir()}, campaignstore.ArtifactInput{
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{
 		Manifest: manifest, TargetPath: prepared.Path, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes,
 		IOTranscript: observed.IOTranscript.Bytes, ReadOnlyMounts: &mountArtifact, World: worldPayloads,
 	})
@@ -270,21 +271,21 @@ func TestIOReplayBootstrapHelper(t *testing.T) {
 	os.Exit(0)
 }
 
-func transcriptSHA256(value [sha256.Size]byte) evidence.SHA256 {
-	return evidence.SHA256("sha256:" + hex.EncodeToString(value[:]))
+func transcriptSHA256(value [sha256.Size]byte) record.SHA256 {
+	return record.SHA256("sha256:" + hex.EncodeToString(value[:]))
 }
 
-func pointerToReadOnlyMounts(mounts evidence.ReadOnlyMounts) *evidence.ReadOnlyMounts {
+func pointerToReadOnlyMounts(mounts record.ReadOnlyMounts) *record.ReadOnlyMounts {
 	return &mounts
 }
 
-func replayRecordedCapturedInputs(manifest deterministicio.CapturedInputsManifest) evidence.ReadOnlyMounts {
-	return evidence.ReadOnlyMounts{
-		Schema: manifest.Schema, File: manifest.File, SHA256: evidence.SHA256(manifest.SHA256), Bytes: evidence.Uint64String(manifest.Bytes),
-		Entries: evidence.Uint64String(manifest.Entries), NotExist: evidence.Uint64String(manifest.NotExist), TotalBytes: evidence.Uint64String(manifest.TotalBytes), Mappings: append([]string(nil), manifest.Mappings...),
-		Limits: evidence.ReadOnlyMountLimits{
-			PathBytes: evidence.Uint64String(manifest.Limits.PathBytes), Requests: evidence.Uint64String(manifest.Limits.Requests), Files: evidence.Uint64String(manifest.Limits.Files),
-			DirectoryEntries: evidence.Uint64String(manifest.Limits.DirectoryEntries), SingleFileBytes: evidence.Uint64String(manifest.Limits.SingleFileBytes), TotalBytes: evidence.Uint64String(manifest.Limits.TotalBytes),
+func replayRecordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) record.ReadOnlyMounts {
+	return record.ReadOnlyMounts{
+		Schema: manifest.Schema, File: manifest.File, SHA256: record.SHA256(manifest.SHA256), Bytes: record.Uint64String(manifest.Bytes),
+		Entries: record.Uint64String(manifest.Entries), NotExist: record.Uint64String(manifest.NotExist), TotalBytes: record.Uint64String(manifest.TotalBytes), Mappings: append([]string(nil), manifest.Mappings...),
+		Limits: record.ReadOnlyMountLimits{
+			PathBytes: record.Uint64String(manifest.Limits.PathBytes), Requests: record.Uint64String(manifest.Limits.Requests), Files: record.Uint64String(manifest.Limits.Files),
+			DirectoryEntries: record.Uint64String(manifest.Limits.DirectoryEntries), SingleFileBytes: record.Uint64String(manifest.Limits.SingleFileBytes), TotalBytes: record.Uint64String(manifest.Limits.TotalBytes),
 		},
 	}
 }

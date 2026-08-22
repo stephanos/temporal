@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 )
 
 const ManifestSchema = "gomadv3.simulation-parity/v1"
@@ -172,7 +172,7 @@ func Decode(data []byte) (Manifest, error) {
 		return Manifest{}, fmt.Errorf("simulation parity manifest must be between 1 and %d bytes", MaximumManifestBytes)
 	}
 	var manifest Manifest
-	if err := evidence.DecodeCanonicalJSON(data, &manifest); err != nil {
+	if err := canonicaljson.DecodeCanonicalJSON(data, &manifest); err != nil {
 		return Manifest{}, fmt.Errorf("decode simulation parity manifest: %w", err)
 	}
 	if err := manifest.Validate(); err != nil {
@@ -245,7 +245,7 @@ func (manifest Manifest) Validate() error {
 		}
 		previousID = prototype.ID
 	}
-	encoded, err := evidence.CanonicalJSON(manifest)
+	encoded, err := canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		return fmt.Errorf("canonicalize simulation parity manifest: %w", err)
 	}

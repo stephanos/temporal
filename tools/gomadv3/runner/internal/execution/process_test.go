@@ -20,9 +20,11 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomadv3/choice"
-	romount "go.temporal.io/server/tools/gomadv3/deterministicio"
+	"go.temporal.io/server/tools/gomadv3/deterministicio"
+	romount "go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 	"go.temporal.io/server/tools/gomadv3/world"
-	worldtarget "go.temporal.io/server/tools/gomadv3/world/target"
+	worldprocess "go.temporal.io/server/tools/gomadv3/world/process"
 )
 
 func TestRunCapturesTargetExitAndBothStreams(t *testing.T) {
@@ -34,7 +36,7 @@ func TestRunCapturesTargetExitAndBothStreams(t *testing.T) {
 		Argv0:             "gomadv3-target",
 		Dir:               t.TempDir(),
 		Env:               []string{"GOMADV3_PROCESS_HELPER=output"},
-		RunTimeout:        5 * time.Second,
+		ExecutionTimeout:  5 * time.Second,
 		TerminateGrace:    time.Second,
 		OutputLimit:       64,
 		World:             WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -61,7 +63,7 @@ func TestRunTransportsSimulationExplorationPlanAndRecords(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-exploration"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Env: []string{"GOMADV3_PROCESS_HELPER=simulation-exploration"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		Simulation: &SimulationCapability{
 			Role: SimulationRoleCoordinator, ExplorationPlan: []byte("forced-plan"),
@@ -82,7 +84,7 @@ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADV3_PROCESS_HELPER=io-config"}, IO: &IOCapability{Config: []byte("profile-frame")},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
@@ -100,7 +102,7 @@ func TestRunTransportsCompleteChoiceTrace(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
@@ -112,6 +114,11 @@ func TestRunTransportsCompleteChoiceTrace(t *testing.T) {
 	if result.ChoiceTrace.ImplementationSHA256 != testChoiceImplementationSHA256 {
 		t.Fatalf("choice implementation identity = %x", result.ChoiceTrace.ImplementationSHA256)
 	}
+	for _, record := range result.ChoiceTrace.Trace.Records {
+		if record.Flags&choice.FlagDecision != 0 && record.Alternatives < 2 {
+			t.Fatalf("trace retained non-branching decision %#v", record)
+		}
+	}
 }
 
 func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
@@ -121,7 +128,7 @@ func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if !errors.Is(err, ErrChoiceTraceOverflow) {
@@ -147,7 +154,7 @@ func TestRunReplaysCompleteChoiceTape(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	recorded, err := Run(context.Background(), request)
@@ -185,7 +192,7 @@ func TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-reorder", "ab"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	recorded, err := Run(context.Background(), request)
@@ -221,12 +228,17 @@ func TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-select"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	baseline, err := Run(context.Background(), request)
 	if err != nil {
 		t.Fatal(err)
+	}
+	for _, record := range baseline.ChoiceTrace.Trace.Records {
+		if record.Flags&choice.FlagDecision != 0 && record.Alternatives < 2 {
+			t.Fatalf("select trace retained non-branching decision %#v", record)
+		}
 	}
 	baselineTape, err := choice.ProjectReplayPlan(baseline.ChoiceTrace.Trace, identity)
 	if err != nil {
@@ -290,7 +302,7 @@ func TestRunPreservesChoicePrefixRNGPosition(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	baseline, err := Run(context.Background(), request)
@@ -332,7 +344,7 @@ func TestRunForcesCanonicalRankAtFinalPrefixDecision(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	baseline, err := Run(context.Background(), request)
@@ -399,7 +411,7 @@ func TestRunTargetInheritsChoiceTapeReadOnly(t *testing.T) {
 			Mode: choice.ModePrefix, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
 			ExecutionIdentity: identity, Limit: 1 << 20, ReplayPlan: &tape,
 		},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
@@ -421,7 +433,7 @@ func TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	recorded, err := Run(context.Background(), request)
@@ -478,7 +490,7 @@ func TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	recorded, err := Run(context.Background(), request)
@@ -549,7 +561,7 @@ func TestRunRejectsUnconsumedChoiceTape(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomadv3-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	recorded, err := Run(context.Background(), request)
@@ -598,7 +610,7 @@ func TestRunInstallsReadOnlyMountBrokerDescriptors(t *testing.T) {
 			Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20},
 			ReadOnlyMount: &ReadOnlyMountCapability{Mappings: []romount.Mapping{{Source: source, Target: "/mounted"}}, Limits: romount.DefaultLimits()},
 		},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
@@ -618,7 +630,7 @@ func TestRunInstallsEmptyReadOnlyMountBrokerDescriptors(t *testing.T) {
 			Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20},
 			ReadOnlyMount: &ReadOnlyMountCapability{Limits: romount.DefaultLimits()},
 		},
-		RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
@@ -632,11 +644,11 @@ func TestRunInstallsEmptyReadOnlyMountBrokerDescriptors(t *testing.T) {
 func TestValidateRequestRejectsExpectedIOTranscriptOutsideReplay(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		IO:    &IOCapability{Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20}},
 	}
-	expectedBytes, err := romount.ExpectedTranscriptBytes(1)
+	expectedBytes, err := deterministicio.ExpectedTranscriptBytes(1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -654,7 +666,7 @@ func TestValidateRequestRejectsExpectedIOTranscriptOutsideReplay(t *testing.T) {
 func TestValidateRequestAcceptsNestedExecutionCapabilities(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO: &IOCapability{
 			Config:        []byte("profile-frame"),
@@ -681,7 +693,7 @@ func TestRunTimesOutAndRemovesTermIgnoringProcessGroup(t *testing.T) {
 		Argv0:             "gomadv3-target",
 		Dir:               t.TempDir(),
 		Env:               []string{"TZ=UTC"},
-		RunTimeout:        750 * time.Millisecond,
+		ExecutionTimeout:  750 * time.Millisecond,
 		TerminateGrace:    250 * time.Millisecond,
 		OutputLimit:       64,
 		World:             WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -713,7 +725,7 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 		Argv0:             "gomadv3-target",
 		Dir:               t.TempDir(),
 		Env:               []string{"GOMADV3_PROCESS_HELPER=flood"},
-		RunTimeout:        5 * time.Second,
+		ExecutionTimeout:  5 * time.Second,
 		TerminateGrace:    time.Second,
 		OutputLimit:       128,
 		World:             WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -726,7 +738,7 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 	if result.Termination != TerminationExit || result.ExitCode != 0 {
 		t.Fatalf("result status = %#v", result)
 	}
-	for name, output := range map[string]Output{"stdout": result.Stdout, "stderr": result.Stderr} {
+	for name, output := range map[string]hostexec.Output{"stdout": result.Stdout, "stderr": result.Stderr} {
 		if !output.Truncated || output.TotalBytes != 1<<20 || output.RetainedBytes != 128 || output.DiscardedBytes != 1<<20-128 {
 			t.Fatalf("%s accounting = %#v", name, output)
 		}
@@ -751,7 +763,7 @@ func TestRunBoundsUnresponsiveSupervisor(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestUnresponsiveSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"GOMADV3_PROCESS_HELPER=output"}, RunTimeout: 300 * time.Millisecond, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
+		Env: []string{"GOMADV3_PROCESS_HELPER=output"}, ExecutionTimeout: 300 * time.Millisecond, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err == nil || !strings.Contains(err.Error(), "supervisor") {
@@ -770,8 +782,8 @@ func TestRunGivesDescendantsGraceAfterLeaderExit(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomadv3-target", Dir: directory,
-		Env:        []string{"GOMADV3_PROCESS_HELPER=spawn-child", "GOMADV3_HELPER_EXE=" + os.Args[0], "GOMADV3_READY_PATH=" + readyPath, "GOMADV3_GRACEFUL_PATH=" + gracefulPath},
-		RunTimeout: 3 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Env:              []string{"GOMADV3_PROCESS_HELPER=spawn-child", "GOMADV3_HELPER_EXE=" + os.Args[0], "GOMADV3_READY_PATH=" + readyPath, "GOMADV3_GRACEFUL_PATH=" + gracefulPath},
+		ExecutionTimeout: 3 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err != nil {
@@ -790,7 +802,7 @@ func TestRunCapturesWorldRecordFromExecutingChild(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
@@ -810,7 +822,7 @@ func TestRunPreservesPrematureWorldProducerMarker(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-open-only"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
 	if err != nil {
@@ -829,7 +841,7 @@ func TestRunPreservesWorldSeedMismatchMarker(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 8},
 	})
 	if err != nil {
@@ -857,7 +869,7 @@ func TestRunInstallsWorldInitialReplayInputBeforeModeledWork(t *testing.T) {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomadv3-target", Dir: t.TempDir(),
-		Env: []string{"TZ=UTC"}, RunTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9, ExpectedInitial: expectedInitial},
 	})
 	if err != nil {
@@ -1019,7 +1031,7 @@ func TestTargetHelper(t *testing.T) {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(14)
 		}
-		session, err := worldtarget.Open(core)
+		session, err := worldprocess.Open(core)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(15)
@@ -1043,7 +1055,7 @@ func TestTargetHelper(t *testing.T) {
 		if err != nil {
 			os.Exit(18)
 		}
-		if _, err := worldtarget.Open(core); err != nil {
+		if _, err := worldprocess.Open(core); err != nil {
 			os.Exit(19)
 		}
 		os.Exit(0)
@@ -1303,7 +1315,7 @@ func writeEmptyIOTranscriptTerminal() error {
 	if file == nil {
 		return errors.New("terminal descriptor unavailable")
 	}
-	if err := romount.WriteCompletion(file, romount.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
+	if err := deterministicio.WriteCompletion(file, deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
 		return err
 	}
 	return file.Close()

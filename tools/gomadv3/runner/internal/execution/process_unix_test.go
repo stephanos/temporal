@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 )
 
 func TestStageFilesAreBuiltOnlyFromTheDescriptorPlan(t *testing.T) {
@@ -200,7 +202,7 @@ func TestEarlySupervisorCleanupIgnoresUntrustedReportedTargetIdentity(t *testing
 	if err := cleanupEarlySupervisor(supervisor, controlWrite, reportRead, nil, time.Now().Add(100*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
-	present, err := groupExists(target.Process.Pid)
+	present, err := hostexec.GroupExists(target.Process.Pid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,9 +223,9 @@ func TestGroupProbeRequiresExplicitESRCHForDisappearance(t *testing.T) {
 		"unknown": {err: syscall.EINTR, fails: true},
 	} {
 		t.Run(name, func(t *testing.T) {
-			exists, err := classifyGroupProbe(probe.err)
+			exists, err := hostexec.ClassifyGroupProbe(probe.err)
 			if exists != probe.exists || (err != nil) != probe.fails {
-				t.Fatalf("classifyGroupProbe() = (%v, %v)", exists, err)
+				t.Fatalf("hostexec.ClassifyGroupProbe() = (%v, %v)", exists, err)
 			}
 		})
 	}
@@ -242,7 +244,7 @@ func TestProbeFailureDoesNotBypassTargetReap(t *testing.T) {
 		if probes == 1 {
 			return false, probeErr
 		}
-		return groupExists(pgid)
+		return hostexec.GroupExists(pgid)
 	})
 	if !errors.Is(err, probeErr) {
 		t.Fatalf("killReapTargetWithProbe() error = %v, want %v", err, probeErr)

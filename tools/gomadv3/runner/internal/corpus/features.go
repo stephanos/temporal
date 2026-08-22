@@ -6,11 +6,12 @@ import (
 
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
 
-func semanticFeatures(manifest evidence.ExecutionRecord, coverage deterministicio.SemanticCoverage, ioTranscript, worldTransitions []byte, choices *choice.FeatureProjection) ([]Feature, error) {
+func semanticFeatures(manifest record.ExecutionRecord, coverage deterministicio.SemanticCoverage, ioTranscript, worldTransitions []byte, choices *choice.FeatureProjection) ([]Feature, error) {
 	choiceCount := 0
 	if choices != nil {
 		choiceCount = len(choices.Values)
@@ -23,7 +24,7 @@ func semanticFeatures(manifest evidence.ExecutionRecord, coverage deterministici
 		)
 	}
 	if terminal := manifest.World.Terminal; terminal.Kind != "" && terminal.Kind != "none" {
-		detail := evidence.HashBytes([]byte(terminal.Detail))
+		detail := record.HashBytes([]byte(terminal.Detail))
 		features = append(features, Feature{Kind: FeatureTerminal, Value: terminal.Kind + "/" + string(detail)})
 	}
 	features = append(features, Feature{Kind: FeatureOutcome, Value: manifest.Outcome.Domain + "/" + manifest.Outcome.Reason + "/" + manifest.Outcome.Termination})
@@ -59,7 +60,7 @@ func semanticFeatures(manifest evidence.ExecutionRecord, coverage deterministici
 	return canonicalFeatures(features), nil
 }
 
-func semanticWorldFeatures(manifest evidence.World, encoded []byte) ([]Feature, error) {
+func semanticWorldFeatures(manifest record.World, encoded []byte) ([]Feature, error) {
 	if manifest.Initial.Schema == "gomadv3.world.snapshot/none" && manifest.Transitions.Schema == "gomadv3.world.transitions/none" && manifest.Final.Schema == "gomadv3.world.snapshot/none" {
 		if len(encoded) != 0 || manifest.Transitions.Count != 0 {
 			return nil, fmt.Errorf("none World contains transitions")
@@ -69,7 +70,7 @@ func semanticWorldFeatures(manifest evidence.World, encoded []byte) ([]Feature, 
 	if manifest.Initial.Schema != "gomadv3.world.snapshot/v1" || manifest.Transitions.Schema != "gomadv3.world.transitions/v1" || manifest.Final.Schema != "gomadv3.world.snapshot/v1" {
 		return nil, fmt.Errorf("guided World schema combination is incompatible")
 	}
-	transitions, err := evidence.StrictDecodeJSONLines[world.Transition](encoded)
+	transitions, err := canonicaljson.StrictDecodeJSONLines[world.Transition](encoded)
 	if err != nil {
 		return nil, fmt.Errorf("decode guided World transitions: %w", err)
 	}

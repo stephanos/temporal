@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 )
 
 func TestCurrentManifest(t *testing.T) {
@@ -230,7 +230,7 @@ func TestCurrentManifestIsCanonical(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	encoded, err := evidence.CanonicalJSON(manifest)
+	encoded, err := canonicaljson.CanonicalJSON(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,7 +253,7 @@ func TestDecodeManifestRejectsInvalidInput(t *testing.T) {
 	}
 	encode := func(value Manifest) []byte {
 		t.Helper()
-		encoded, encodeErr := evidence.CanonicalJSON(value)
+		encoded, encodeErr := canonicaljson.CanonicalJSON(value)
 		if encodeErr != nil {
 			t.Fatal(encodeErr)
 		}

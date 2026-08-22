@@ -5,22 +5,20 @@ package runner
 import (
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"syscall"
 	"time"
+
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 )
 
 func configureCoordinatorCommand(command *exec.Cmd) {
-	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	hostexec.ConfigureProcessGroup(command)
 }
 
 func terminateCoordinator(command *exec.Cmd, waited <-chan error, deadline time.Time) error {
 	pgid := command.Process.Pid
-	signalErr := syscall.Kill(-pgid, syscall.SIGTERM)
-	if errors.Is(signalErr, os.ErrProcessDone) || errors.Is(signalErr, syscall.ESRCH) {
-		signalErr = nil
-	}
+	signalErr := hostexec.SignalGroup(pgid, syscall.SIGTERM)
 	reaped := false
 	var waitErr error
 	var probeErr error
@@ -29,7 +27,7 @@ func terminateCoordinator(command *exec.Cmd, waited <-chan error, deadline time.
 	poll := time.NewTicker(5 * time.Millisecond)
 	defer poll.Stop()
 	for time.Now().Before(graceDeadline) {
-		exists, err := coordinatorGroupExists(pgid)
+		exists, err := hostexec.GroupExists(pgid)
 		if err != nil {
 			probeErr = errors.Join(probeErr, err)
 			break
@@ -44,13 +42,10 @@ func terminateCoordinator(command *exec.Cmd, waited <-chan error, deadline time.
 		case <-poll.C:
 		}
 	}
-	killErr := syscall.Kill(-pgid, syscall.SIGKILL)
-	if errors.Is(killErr, syscall.ESRCH) {
-		killErr = nil
-	}
+	killErr := hostexec.SignalGroup(pgid, syscall.SIGKILL)
 	for (!reaped || !groupGone) && time.Now().Before(deadline) {
 		if !groupGone {
-			exists, err := coordinatorGroupExists(pgid)
+			exists, err := hostexec.GroupExists(pgid)
 			if err != nil {
 				probeErr = errors.Join(probeErr, err)
 			} else {
@@ -76,19 +71,4 @@ func terminateCoordinator(command *exec.Cmd, waited <-chan error, deadline time.
 		waitErr = nil
 	}
 	return errors.Join(signalErr, killErr, waitErr, probeErr, reapErr, groupErr)
-}
-
-func coordinatorGroupExists(pgid int) (bool, error) {
-	return classifyCoordinatorGroupProbe(syscall.Kill(-pgid, 0))
-}
-
-func classifyCoordinatorGroupProbe(err error) (bool, error) {
-	switch {
-	case err == nil, errors.Is(err, syscall.EPERM):
-		return true, nil
-	case errors.Is(err, syscall.ESRCH):
-		return false, nil
-	default:
-		return false, err
-	}
 }

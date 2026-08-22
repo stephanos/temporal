@@ -14,7 +14,7 @@ var testChoiceImplementationSHA256 = sha256.Sum256([]byte("choice implementation
 func TestValidateRequestChoiceCapability(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
 		World:  WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: MinimumChoiceTraceBytes},
 	}
@@ -45,7 +45,7 @@ func TestValidateRequestChoiceCapability(t *testing.T) {
 func TestValidateRequestRejectsChoiceEnvironmentInjection(t *testing.T) {
 	base := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	for _, choice := range []*ChoiceCapability{nil, {Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: MinimumChoiceTraceBytes}} {
@@ -79,7 +79,7 @@ func TestValidateRequestChoiceControllerModeMatrix(t *testing.T) {
 	}
 	base := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	for _, mode := range []choice.Mode{choice.ModeRecord, choice.ModeReplay, choice.ModePrefix} {
@@ -140,7 +140,7 @@ func TestValidateRequestAcceptsRankOverrideOnlyInPrefixMode(t *testing.T) {
 	}
 	request := Spec{
 		SupervisorCommand: []string{"supervisor"}, BootstrapCommand: []string{"bootstrap"}, Command: "target", Argv0: "target", Dir: t.TempDir(),
-		RunTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
+		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1024,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		Choice: &ChoiceCapability{
 			Mode: choice.ModePrefix, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256,

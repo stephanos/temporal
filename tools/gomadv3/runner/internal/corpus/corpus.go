@@ -12,10 +12,12 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomadv3/internal/hostfs"
+	"go.temporal.io/server/tools/gomadv3/record"
 )
 
 const maximumCorpusJSONBytes = 16 << 20
@@ -128,7 +130,7 @@ func (corpus *Corpus) interesting(features []Feature, storedBytes uint64) bool {
 	return false
 }
 
-func (corpus *Corpus) merge(published evidence.Artifact, coverage deterministicio.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
+func (corpus *Corpus) merge(published artifact.Artifact, coverage deterministicio.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
 	if corpus == nil || corpus.lock == nil {
 		return false, errors.New("guided corpus is not open")
 	}
@@ -193,7 +195,7 @@ func noveltyReasons(entry Entry, entries []Entry) []Feature {
 	return []Feature{}
 }
 
-func containsRecordHash(entries []Entry, hash evidence.SHA256) bool {
+func containsRecordHash(entries []Entry, hash record.SHA256) bool {
 	for _, entry := range entries {
 		if entry.RecordHash == hash {
 			return true
@@ -202,7 +204,7 @@ func containsRecordHash(entries []Entry, hash evidence.SHA256) bool {
 	return false
 }
 
-func (corpus *Corpus) discard(published evidence.Artifact) error {
+func (corpus *Corpus) discard(published artifact.Artifact) error {
 	if corpus == nil || corpus.lock == nil {
 		return errors.New("guided corpus is not open")
 	}
@@ -217,7 +219,7 @@ func (corpus *Corpus) discard(published evidence.Artifact) error {
 	return corpus.removeUnreferencedCase(relative)
 }
 
-func (corpus *Corpus) entryFor(published evidence.Artifact, coverage deterministicio.SemanticCoverage, features []Feature, replay ReplayResult) (Entry, error) {
+func (corpus *Corpus) entryFor(published artifact.Artifact, coverage deterministicio.SemanticCoverage, features []Feature, replay ReplayResult) (Entry, error) {
 	relative, err := filepath.Rel(corpus.path, published.Path)
 	if err != nil {
 		return Entry{}, fmt.Errorf("make guided case path relative: %w", err)
@@ -244,8 +246,8 @@ func (corpus *Corpus) entryFor(published evidence.Artifact, coverage determinist
 		return Entry{}, err
 	}
 	entry := Entry{
-		Seed: manifest.Seed, RecordHash: manifest.RecordHash, Artifact: relative, StoredBytes: evidence.Uint64String(published.StoredBytes),
-		PayloadBytes: evidence.Uint64String(payloadBytes), Coverage: coverage, Features: features, Inputs: inputs, Replay: replay,
+		Seed: manifest.Seed, RecordHash: manifest.RecordHash, Artifact: relative, StoredBytes: record.Uint64String(published.StoredBytes),
+		PayloadBytes: record.Uint64String(payloadBytes), Coverage: coverage, Features: features, Inputs: inputs, Replay: replay,
 	}
 	return entry, nil
 }
@@ -269,7 +271,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 		return Snapshot{}, fmt.Errorf("read guided corpus snapshot: %w", err)
 	}
 	var snapshot Snapshot
-	if err := evidence.DecodeCanonicalJSON(contents, &snapshot); err != nil {
+	if err := canonicaljson.DecodeCanonicalJSON(contents, &snapshot); err != nil {
 		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot: %w", err)
 	}
 	finalized, _, err := finalizeSnapshot(snapshot)
@@ -299,7 +301,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 }
 
 func (corpus *Corpus) validateEntry(entry Entry) error {
-	if _, err := evidence.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
+	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
 		return errors.New("guided corpus entry identity is invalid")
 	}
 	coverage, err := deterministicio.SummarizeSemanticProbes(entry.Coverage.Probes)
@@ -314,7 +316,7 @@ func (corpus *Corpus) validateEntry(entry Entry) error {
 			return errors.New("guided corpus novelty reason was not observed")
 		}
 	}
-	opened, err := evidence.OpenArtifact(filepath.Join(corpus.path, filepath.FromSlash(entry.Artifact)))
+	opened, err := artifact.OpenArtifact(filepath.Join(corpus.path, filepath.FromSlash(entry.Artifact)))
 	if err != nil {
 		return fmt.Errorf("open guided corpus case: %w", err)
 	}
@@ -359,18 +361,18 @@ func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 	for _, entry := range snapshot.Entries {
 		features = append(features, entry.Features...)
 	}
-	featureBytes, err := evidence.CanonicalJSON(canonicalFeatures(features))
+	featureBytes, err := canonicaljson.CanonicalJSON(canonicalFeatures(features))
 	if err != nil {
 		return Snapshot{}, nil, err
 	}
-	snapshot.CoverageSHA256 = evidence.DomainHash("gomadv3-guide-coverage-v1", featureBytes)
+	snapshot.CoverageSHA256 = record.DomainHash("gomadv3-guide-coverage-v1", featureBytes)
 	snapshot.SnapshotSHA256 = ""
-	projection, err := evidence.CanonicalJSON(snapshot)
+	projection, err := canonicaljson.CanonicalJSON(snapshot)
 	if err != nil {
 		return Snapshot{}, nil, err
 	}
-	snapshot.SnapshotSHA256 = evidence.DomainHash("gomadv3-guide-snapshot-v1", projection)
-	encoded, err := evidence.CanonicalJSON(snapshot)
+	snapshot.SnapshotSHA256 = record.DomainHash("gomadv3-guide-snapshot-v1", projection)
+	encoded, err := canonicaljson.CanonicalJSON(snapshot)
 	return snapshot, encoded, err
 }
 
@@ -468,7 +470,7 @@ func validCaseReference(path string) bool {
 	return clean == path && strings.HasPrefix(path, "cases/sha256-") && !strings.Contains(path, "..")
 }
 
-func artifactPayloadBytes(manifest evidence.ExecutionRecord) (uint64, error) {
+func artifactPayloadBytes(manifest record.ExecutionRecord) (uint64, error) {
 	var total uint64
 	for _, file := range manifest.Files {
 		if uint64(file.Size) > ^uint64(0)-total {
@@ -480,23 +482,23 @@ func artifactPayloadBytes(manifest evidence.ExecutionRecord) (uint64, error) {
 }
 
 func validateIdentity(identity Identity) error {
-	_, targetErr := evidence.ParseSHA256(string(identity.TargetSHA256))
-	_, boundaryErr := evidence.ParseSHA256(string(identity.BoundarySHA256))
+	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
+	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
 	validInstrumentation := identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity()
 	if identity.ChoiceProfile != nil {
 		implementation, err := choice.ImplementationIdentity(identity.Toolchain.BuildKey)
 		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile)
-		validInstrumentation = err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == evidence.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
+		validInstrumentation = err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
 	}
-	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != evidence.SchemaVersion || identity.ManifestRecordContract != evidence.RecordContract {
+	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
 		return errors.New("guided corpus identity is invalid")
 	}
 	return nil
 }
 
 func identitiesEqual(left, right Identity) bool {
-	leftBytes, leftErr := evidence.CanonicalJSON(left)
-	rightBytes, rightErr := evidence.CanonicalJSON(right)
+	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
+	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 

@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"testing"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/record"
 )
 
 func TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay(t *testing.T) {
@@ -85,7 +85,7 @@ func TestCorpusRejectsIdentityChangesAndNonMatchingReplay(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	identity.InstrumentationSHA256 = evidence.HashBytes([]byte("changed"))
+	identity.InstrumentationSHA256 = record.HashBytes([]byte("changed"))
 	if _, err := Open(context.Background(), root, identity); err == nil {
 		t.Fatal("Open accepted a changed instrumentation identity")
 	}
@@ -181,7 +181,7 @@ func TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases(t *testing.T) {
 	}
 }
 
-func guideArtifactInput(t *testing.T, seed uint64) (campaignstore.ArtifactInput, deterministicio.SemanticCoverage, []Feature) {
+func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, deterministicio.SemanticCoverage, []Feature) {
 	t.Helper()
 	targetBytes := []byte("guided target")
 	targetPath := filepath.Join(t.TempDir(), "target")
@@ -196,38 +196,38 @@ func guideArtifactInput(t *testing.T, seed uint64) (campaignstore.ArtifactInput,
 	if err != nil {
 		t.Fatal(err)
 	}
-	world, payloads := evidence.NoneWorld()
+	world, payloads := record.NoneWorld()
 	profile := deterministicio.Default()
-	exitCode := evidence.Uint64String(0)
-	manifest := evidence.ExecutionRecord{
-		SchemaVersion: evidence.SchemaVersion, ArtifactKind: evidence.ArtifactSuccess, CreatedAt: "2026-08-13T00:00:00Z", CampaignID: "guided-test", SelectionOrdinal: 0, Seed: evidence.Uint64String(seed), ReplayMode: evidence.ReplayExact,
-		Runner:    evidence.Runner{RecordContract: evidence.RecordContract, RunnerBuild: "runner", HostOS: "darwin", HostArch: "arm64"},
-		Toolchain: evidence.Toolchain{GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target: evidence.Target{
-			Kind: "go-run", Source: ".", SHA256: evidence.HashBytes(targetBytes), Size: evidence.Uint64String(len(targetBytes)), Argv: []string{"gomadv3-target"}, BuildTags: []string{},
-			Adapters: []evidence.TargetAdapter{}, Compatibility: []evidence.CompatibilityPack{}, BuildInfo: evidence.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+	exitCode := record.Uint64String(0)
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactSuccess, CreatedAt: "2026-08-13T00:00:00Z", CampaignID: "guided-test", SelectionOrdinal: 0, Seed: record.Uint64String(seed), ReplayMode: record.ReplayExact,
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "runner", HostOS: "darwin", HostArch: "arm64"},
+		Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		Target: record.Target{
+			Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomadv3-target"}, BuildTags: []string{},
+			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 		},
-		IOProfile: evidence.IOProfile{
-			Name: profile.Name(), ImplementationSHA256: evidence.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: evidence.SHA256(profile.InventorySHA256()),
-			Transcript: &evidence.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: evidence.HashBytes(transcript), Bytes: evidence.Uint64String(len(transcript)), Records: 1},
+		IOProfile: record.IOProfile{
+			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
+			Transcript: &record.IOTranscript{Schema: "gomadv3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 1},
 		},
-		Environment: []evidence.Environment{{Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
-		Limits:      evidence.Limits{RunTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64, IOTranscriptBytes: 64 << 20},
-		World:       world, Outcome: evidence.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode},
-		Streams: evidence.Streams{Stdout: evidence.Stream{FullSHA256: evidence.HashBytes(nil)}, Stderr: evidence.Stream{FullSHA256: evidence.HashBytes(nil)}},
-		Host:    evidence.Host{StartedAt: "2026-08-13T00:00:00Z", FinishedAt: "2026-08-13T00:00:01Z", ElapsedNanos: 1},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "GOMADV3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64, IOTranscriptBytes: 64 << 20},
+		World:       world, Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode},
+		Streams: record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
+		Host:    record.Host{StartedAt: "2026-08-13T00:00:00Z", FinishedAt: "2026-08-13T00:00:01Z", ElapsedNanos: 1},
 	}
 	features, err := semanticFeatures(manifest, coverage, transcript, payloads.Transitions, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return campaignstore.ArtifactInput{Manifest: manifest, TargetPath: targetPath, IOTranscript: transcript, World: payloads}, coverage, features
+	return artifact.ArtifactInput{Manifest: manifest, TargetPath: targetPath, IOTranscript: transcript, World: payloads}, coverage, features
 }
 
-func guideIdentity(t *testing.T, manifest evidence.ExecutionRecord) Identity {
+func guideIdentity(t *testing.T, manifest record.ExecutionRecord) Identity {
 	t.Helper()
 	version, boundary := deterministicio.BoundaryManifestIdentity()
-	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, evidence.SHA256(boundary))
+	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary))
 	if err != nil {
 		t.Fatal(err)
 	}

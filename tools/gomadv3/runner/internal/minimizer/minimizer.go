@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
+	"go.temporal.io/server/tools/gomadv3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomadv3/record"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
 )
 
 const Schema = "gomadv3.minimizer-state/v1"
@@ -27,46 +28,46 @@ const (
 )
 
 type DecisionReference struct {
-	Dimension combinedfrontier.Dimension `json:"dimension"`
+	Dimension simulationengine.Dimension `json:"dimension"`
 	Ordinal   uint64                     `json:"ordinal"`
-	Identity  evidence.SHA256            `json:"identity"`
+	Identity  record.SHA256              `json:"identity"`
 }
 
 type Reduction struct {
 	Kind         ReductionKind       `json:"kind"`
-	BeforeSHA256 evidence.SHA256     `json:"before_sha256"`
-	AfterSHA256  evidence.SHA256     `json:"after_sha256"`
+	BeforeSHA256 record.SHA256       `json:"before_sha256"`
+	AfterSHA256  record.SHA256       `json:"after_sha256"`
 	Removed      []DecisionReference `json:"removed"`
 }
 
 type Attempt struct {
 	Index     uint64                     `json:"index"`
 	Reduction Reduction                  `json:"reduction"`
-	Candidate combinedfrontier.Candidate `json:"candidate"`
+	Candidate simulationengine.Candidate `json:"candidate"`
 }
 
 type State struct {
 	Schema        string                     `json:"schema"`
-	Config        combinedfrontier.Config    `json:"config"`
-	Original      combinedfrontier.Candidate `json:"original"`
-	Current       combinedfrontier.Candidate `json:"current"`
+	Config        simulationengine.Config    `json:"config"`
+	Original      simulationengine.Candidate `json:"original"`
+	Current       simulationengine.Candidate `json:"current"`
 	AttemptBudget uint64                     `json:"attempt_budget"`
 	Attempts      uint64                     `json:"attempts"`
-	Evaluated     []evidence.SHA256          `json:"evaluated"`
+	Evaluated     []record.SHA256            `json:"evaluated"`
 	Accepted      []Reduction                `json:"accepted"`
 	StopReason    StopReason                 `json:"stop_reason,omitempty"`
-	SHA256        evidence.SHA256            `json:"sha256"`
+	SHA256        record.SHA256              `json:"sha256"`
 }
 
-func ImplementationSHA256() evidence.SHA256 {
-	return evidence.DomainHash("gomadv3-minimizer-controller/v1", []byte("suffix/ranges/faults;deterministic;bounded/v1"))
+func ImplementationSHA256() record.SHA256 {
+	return record.DomainHash("gomadv3-minimizer-controller/v1", []byte("suffix/ranges/faults;deterministic;bounded/v1"))
 }
 
-func New(config combinedfrontier.Config, original combinedfrontier.Candidate, attemptBudget uint64) (State, error) {
+func New(config simulationengine.Config, original simulationengine.Candidate, attemptBudget uint64) (State, error) {
 	if attemptBudget == 0 {
 		return State{}, errors.New("minimizer attempt budget must be positive")
 	}
-	canonical, err := combinedfrontier.CanonicalCandidate(config, original.Overrides, original.ParentSHA256)
+	canonical, err := simulationengine.CanonicalCandidate(config, original.Overrides, original.ParentSHA256)
 	if err != nil {
 		return State{}, err
 	}
@@ -75,7 +76,7 @@ func New(config combinedfrontier.Config, original combinedfrontier.Candidate, at
 	}
 	state := State{
 		Schema: Schema, Config: config, Original: cloneCandidate(canonical), Current: cloneCandidate(canonical),
-		AttemptBudget: attemptBudget, Evaluated: []evidence.SHA256{}, Accepted: []Reduction{},
+		AttemptBudget: attemptBudget, Evaluated: []record.SHA256{}, Accepted: []Reduction{},
 	}
 	return seal(state)
 }
@@ -121,12 +122,12 @@ func Encode(state State) ([]byte, error) {
 	if err := Validate(state); err != nil {
 		return nil, err
 	}
-	return evidence.CanonicalJSON(state)
+	return canonicaljson.CanonicalJSON(state)
 }
 
 func Decode(encoded []byte) (State, error) {
 	var state State
-	if err := evidence.DecodeCanonicalJSON(encoded, &state); err != nil {
+	if err := canonicaljson.DecodeCanonicalJSON(encoded, &state); err != nil {
 		return State{}, fmt.Errorf("decode minimizer state: %w", err)
 	}
 	if err := Validate(state); err != nil {
@@ -139,8 +140,8 @@ func Validate(state State) error {
 	if state.Schema != Schema || state.AttemptBudget == 0 || state.Attempts > state.AttemptBudget || uint64(len(state.Evaluated)) != state.Attempts || uint64(len(state.Accepted)) > state.Attempts {
 		return errors.New("minimizer state shape is invalid")
 	}
-	for _, candidate := range []combinedfrontier.Candidate{state.Original, state.Current} {
-		canonical, err := combinedfrontier.CanonicalCandidate(state.Config, candidate.Overrides, candidate.ParentSHA256)
+	for _, candidate := range []simulationengine.Candidate{state.Original, state.Current} {
+		canonical, err := simulationengine.CanonicalCandidate(state.Config, candidate.Overrides, candidate.ParentSHA256)
 		if err != nil {
 			return fmt.Errorf("validate minimizer candidate: %w", err)
 		}
@@ -178,11 +179,11 @@ func Validate(state State) error {
 
 type proposal struct {
 	Reduction Reduction
-	Candidate combinedfrontier.Candidate
+	Candidate simulationengine.Candidate
 }
 
 func proposals(state State) ([]proposal, error) {
-	seen := make(map[evidence.SHA256]struct{}, len(state.Evaluated)+1)
+	seen := make(map[record.SHA256]struct{}, len(state.Evaluated)+1)
 	seen[state.Current.SHA256] = struct{}{}
 	for _, identity := range state.Evaluated {
 		seen[identity] = struct{}{}
@@ -201,12 +202,12 @@ func proposals(state State) ([]proposal, error) {
 	return result, nil
 }
 
-func proposalIndexes(candidate combinedfrontier.Candidate) (runtime, schedule, fault []int) {
+func proposalIndexes(candidate simulationengine.Candidate) (runtime, schedule, fault []int) {
 	for index, override := range candidate.Overrides {
-		if override.Dimension == combinedfrontier.DimensionRuntime {
+		if override.Dimension == simulationengine.DimensionRuntime {
 			runtime = append(runtime, index)
 		}
-		if override.Dimension == combinedfrontier.DimensionFault {
+		if override.Dimension == simulationengine.DimensionFault {
 			fault = append(fault, index)
 		} else {
 			schedule = append(schedule, index)
@@ -215,7 +216,7 @@ func proposalIndexes(candidate combinedfrontier.Candidate) (runtime, schedule, f
 	return runtime, schedule, fault
 }
 
-func appendRangeProposals(result *[]proposal, seen map[evidence.SHA256]struct{}, state State, kind ReductionKind, indexes []int, suffixOnly bool) error {
+func appendRangeProposals(result *[]proposal, seen map[record.SHA256]struct{}, state State, kind ReductionKind, indexes []int, suffixOnly bool) error {
 	for length := len(indexes); length > 0; length-- {
 		maximumStart := len(indexes) - length
 		firstStart := 0
@@ -237,7 +238,7 @@ func appendRangeProposals(result *[]proposal, seen map[evidence.SHA256]struct{},
 	return nil
 }
 
-func reducedCandidate(config combinedfrontier.Config, current combinedfrontier.Candidate, kind ReductionKind, removedIndexes []int) (combinedfrontier.Candidate, Reduction, error) {
+func reducedCandidate(config simulationengine.Config, current simulationengine.Candidate, kind ReductionKind, removedIndexes []int) (simulationengine.Candidate, Reduction, error) {
 	removedSet := make(map[int]struct{}, len(removedIndexes))
 	removed := make([]DecisionReference, len(removedIndexes))
 	for index, candidateIndex := range removedIndexes {
@@ -245,15 +246,15 @@ func reducedCandidate(config combinedfrontier.Config, current combinedfrontier.C
 		decision := current.Overrides[candidateIndex]
 		removed[index] = DecisionReference{Dimension: decision.Dimension, Ordinal: decision.Ordinal, Identity: decision.Identity}
 	}
-	overrides := make([]combinedfrontier.ForcedDecision, 0, len(current.Overrides)-len(removedIndexes))
+	overrides := make([]simulationengine.ForcedDecision, 0, len(current.Overrides)-len(removedIndexes))
 	for index, override := range current.Overrides {
 		if _, remove := removedSet[index]; !remove {
 			overrides = append(overrides, override)
 		}
 	}
-	candidate, err := combinedfrontier.CanonicalCandidate(config, overrides, current.SHA256)
+	candidate, err := simulationengine.CanonicalCandidate(config, overrides, current.SHA256)
 	if err != nil {
-		return combinedfrontier.Candidate{}, Reduction{}, err
+		return simulationengine.Candidate{}, Reduction{}, err
 	}
 	reduction := Reduction{Kind: kind, BeforeSHA256: current.SHA256, AfterSHA256: candidate.SHA256, Removed: removed}
 	return candidate, reduction, validateReduction(reduction)
@@ -265,7 +266,7 @@ func validateReduction(reduction Reduction) error {
 	default:
 		return fmt.Errorf("unknown minimizer reduction %q", reduction.Kind)
 	}
-	for _, identity := range []evidence.SHA256{reduction.BeforeSHA256, reduction.AfterSHA256} {
+	for _, identity := range []record.SHA256{reduction.BeforeSHA256, reduction.AfterSHA256} {
 		if _, err := identity.Bytes(); err != nil {
 			return err
 		}
@@ -302,31 +303,31 @@ func seal(state State) (State, error) {
 	return state, Validate(state)
 }
 
-func stateIdentity(state State) (evidence.SHA256, error) {
+func stateIdentity(state State) (record.SHA256, error) {
 	state.SHA256 = ""
-	encoded, err := evidence.CanonicalJSON(state)
+	encoded, err := canonicaljson.CanonicalJSON(state)
 	if err != nil {
 		return "", err
 	}
-	return evidence.DomainHash("gomadv3-minimizer-state/v1", encoded), nil
+	return record.DomainHash("gomadv3-minimizer-state/v1", encoded), nil
 }
 
 func sameAttempt(left, right Attempt) bool {
-	leftBytes, leftErr := evidence.CanonicalJSON(left)
-	rightBytes, rightErr := evidence.CanonicalJSON(right)
+	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
+	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 
-func sameCandidate(left, right combinedfrontier.Candidate) bool {
-	leftBytes, leftErr := evidence.CanonicalJSON(left)
-	rightBytes, rightErr := evidence.CanonicalJSON(right)
+func sameCandidate(left, right simulationengine.Candidate) bool {
+	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
+	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 
 func cloneState(state State) State {
 	state.Original = cloneCandidate(state.Original)
 	state.Current = cloneCandidate(state.Current)
-	state.Evaluated = append([]evidence.SHA256(nil), state.Evaluated...)
+	state.Evaluated = append([]record.SHA256(nil), state.Evaluated...)
 	accepted := make([]Reduction, len(state.Accepted))
 	for index, reduction := range state.Accepted {
 		accepted[index] = reduction
@@ -336,8 +337,8 @@ func cloneState(state State) State {
 	return state
 }
 
-func cloneCandidate(candidate combinedfrontier.Candidate) combinedfrontier.Candidate {
-	overrides := make([]combinedfrontier.ForcedDecision, len(candidate.Overrides))
+func cloneCandidate(candidate simulationengine.Candidate) simulationengine.Candidate {
+	overrides := make([]simulationengine.ForcedDecision, len(candidate.Overrides))
 	for index, override := range candidate.Overrides {
 		overrides[index] = override
 		overrides[index].Control = append([]byte(nil), override.Control...)

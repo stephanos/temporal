@@ -43,8 +43,8 @@ tools/gomadv3/.bin/gomad explore \
 If a seed fails, Gomad prints an artifact path and a replay command:
 
 ```sh
-tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/run-.../failures/sha256-...
-tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-.../failures/sha256-...
+tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/campaign-.../failures/sha256-...
+tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/campaign-.../failures/sha256-...
 ```
 
 Here is what happened behind those commands:
@@ -56,7 +56,7 @@ gomad CLI
    |
    +-- builds one immutable test binary with the pinned Go toolchain
    |
-   +-- creates a durable batch plan and journal
+   +-- creates a durable Campaign plan and journal
    |
    +-- launches one fresh, supervised process per seed
            |
@@ -101,7 +101,7 @@ version. Your test still uses `go`, `time.Sleep`, channels, contexts, and
 
 The custom toolchain is opt-in. A program built with it follows normal upstream
 runtime paths unless Gomad activation is present, so merely using the compiler
-does not turn every binary into a deterministic run.
+does not turn every binary into a deterministic Execution.
 
 You can activate the runtime directly with `GOMADSEED=7 ./binary`, which is
 handy for low-level experiments. The CLI is the normal user path because it also
@@ -153,7 +153,7 @@ target before any deterministic execution begins.
 
 For `go-test`, it builds one test executable. For `go-run`, it builds one program
 executable. A prebuilt `exec` target is also supported, but it must arrive with
-trusted v2 provenance describing the same reviewed closure and binding that
+trusted v3 provenance describing the same reviewed closure and binding that
 claim to the exact binary bytes.
 
 The build itself is deliberately outside deterministic mode. Gomad is trying to
@@ -310,7 +310,7 @@ times, compete with one another, be cancelled, or change modeled state.
 That is what `World` is for.
 
 World is an opt-in, in-memory event engine under `tools/gomadv3/world`. A target
-connects through `world/child`, registers requests and readiness, and explicitly
+connects through `world/process`, registers requests and readiness, and explicitly
 calls `Quiesce` when application work cannot proceed. World then advances to the
 earliest event time and delivers all events at that instant in canonical order.
 Seed-derived ranks can choose between events that an adapter has declared
@@ -373,7 +373,7 @@ stay deliberately separate:
 - a Runner or host failure in preparation, launch, containment, capture,
   integrity checking, or publication.
 
-The batch journal records every completed selection ordinal. Results may finish
+The Campaign journal records every completed selection ordinal. Results may finish
 in parallel, but publication happens in selection order, so host timing cannot
 change the journal or the guided corpus.
 
@@ -397,22 +397,22 @@ Publication uses a private staging area and writes the manifest last. A crash
 can leave explicit partial state, but it cannot make an incomplete directory
 look like a valid replay artifact.
 
-Successful runs are discarded by default. You can retain all successes, or only
+Successful Executions are discarded by default. You can retain all successes, or only
 ones that add semantic or choice coverage, but you must provide explicit count
 and byte limits. That prevents an exploratory campaign from quietly turning
 into unbounded artifact storage.
 
 ## Inspection answers “what did I actually get?”
 
-`inspect` validates before it explains. Point it at either a batch or an
+`inspect` validates before it explains. Point it at either a Campaign or an
 artifact:
 
 ```sh
-tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/run-...
-tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/run-.../failures/sha256-...
+tools/gomadv3/.bin/gomad inspect .gomad/artifacts/v1/campaign-...
+tools/gomadv3/.bin/gomad inspect --choices .gomad/artifacts/v1/campaign-.../failures/sha256-...
 ```
 
-For a batch, it shows the selected and attempted runs, failures, retained
+For a Campaign, it shows the selected and attempted Executions, failures, retained
 successes, artifact paths, truncation, and replay commands. For an artifact, it
 shows the target and toolchain identity, outcome, transcripts, mounts, output
 hashes, and replay command. `--choices` adds record counts, branching decisions,
@@ -432,7 +432,7 @@ Only then does it copy the verified target into a fresh private directory and
 run it:
 
 ```sh
-tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/run-.../failures/sha256-...
+tools/gomadv3/.bin/gomad replay .gomad/artifacts/v1/campaign-.../failures/sha256-...
 ```
 
 Replay never rebuilds from the current checkout, swaps in a convenient local
@@ -456,17 +456,17 @@ but it cannot make host elapsed time deterministic.
 
 An ordinary `explore` campaign can run seeds in parallel and stop after the
 first failure, after a distinct-failure budget, or after all selected seeds.
-Per-run and overall wall deadlines keep the work bounded.
+Per-Execution and overall wall deadlines keep the work bounded.
 
-The batch plan records the target, identities, limits, environment, mounts, and
+The Campaign plan records the target, identities, limits, environment, mounts, and
 exact seed selection before execution. If a campaign is interrupted, resume it
 with:
 
 ```sh
-tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/run-INTERRUPTED
+tools/gomadv3/.bin/gomad resume .gomad/artifacts/v1/campaign-INTERRUPTED
 ```
 
-Resume locks and validates the original batch, prepared binary, completed run
+Resume locks and validates the original Campaign, prepared binary, completed Execution
 records, Runner, toolchain, I/O profile, and referenced artifacts. It schedules
 only unfinished ordinals. It does not reinterpret the command against the
 current checkout.
@@ -561,7 +561,7 @@ qualified `darwin/arm64` platform. Cgo, external linking, multiple Ps, signals,
 finalizers, subprocesses, non-loopback networking, DNS, plugins, and
 unrecognized host I/O are outside the committed deterministic contract.
 
-The main feature gaps are similarly straightforward: bounded choice-frontier
+The main feature gaps are similarly straightforward: bounded choice-exploration
 exploration currently has neutral benchmark efficiency, combined
 schedule-plus-fault exploration and failure minimization are not yet complete,
 and there is no qualified Linux Runner bundle. Multi-node distributed-system
@@ -586,7 +586,7 @@ code is correct. It turns controlled executions into named, bounded, inspectable
 evidence—and turns the rare bad one from “it failed once” into something another
 developer can run again.
 
-For exact command behavior and limits, see the [Gomad v3 README](tools/gomadv3/README.md).
+For exact command behavior and limits, see the [Gomad v3 README](README.md).
 For the ownership boundaries and design rationale, see the
-[architecture document](tools/gomadv3/ARCHITECTURE.md). The brief status of
+[architecture document](ARCHITECTURE.md). The brief status of
 planned work lives in [GOMAD3_NEXT.md](../../GOMAD3_NEXT.md).

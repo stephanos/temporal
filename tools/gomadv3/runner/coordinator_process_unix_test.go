@@ -5,6 +5,8 @@ package runner
 import (
 	"syscall"
 	"testing"
+
+	"go.temporal.io/server/tools/gomadv3/internal/hostexec"
 )
 
 func TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance(t *testing.T) {
@@ -19,9 +21,9 @@ func TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance(t *testing.T
 		"unknown": {err: syscall.EINTR, fails: true},
 	} {
 		t.Run(name, func(t *testing.T) {
-			exists, err := classifyCoordinatorGroupProbe(probe.err)
+			exists, err := hostexec.ClassifyGroupProbe(probe.err)
 			if exists != probe.exists || (err != nil) != probe.fails {
-				t.Fatalf("classifyCoordinatorGroupProbe() = (%v, %v)", exists, err)
+				t.Fatalf("ClassifyGroupProbe() = (%v, %v)", exists, err)
 			}
 		})
 	}

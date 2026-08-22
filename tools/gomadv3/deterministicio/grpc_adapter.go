@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.temporal.io/server/tools/gomadv3/target"
 	gomadversion "go.temporal.io/server/tools/gomadv3/toolchain/version"
 )
 
@@ -51,7 +50,7 @@ func prepareGRPC(moduleCache, root string, identity gomadversion.AdapterIdentity
 	if err := copyAdapterModule(moduleSource, moduleReplacement, map[string][]byte{grpcKeepalivePath: rewritten}, defaultAdapterCopyLimits); err != nil {
 		return adapterPreparation{}, fmt.Errorf("copy gRPC adapter module: %w", err)
 	}
-	replacementInventory, err := target.DigestAdapterSourceInventory(moduleReplacement)
+	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("hash gRPC replacement inventory: %w", err)
 	}
@@ -74,7 +73,7 @@ func prepareGRPC(moduleCache, root string, identity gomadversion.AdapterIdentity
 }
 
 func verifyGRPCModule(moduleRoot string) error {
-	inventory, err := target.DigestAdapterSourceInventory(moduleRoot)
+	inventory, err := digestAdapterSourceInventory(moduleRoot)
 	if err != nil {
 		return fmt.Errorf("hash pinned gRPC source inventory: %w", err)
 	}

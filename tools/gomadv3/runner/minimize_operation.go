@@ -9,14 +9,15 @@ import (
 	"sort"
 	"time"
 
+	"go.temporal.io/server/tools/gomadv3/artifact"
 	"go.temporal.io/server/tools/gomadv3/choice"
 	"go.temporal.io/server/tools/gomadv3/deterministicio"
-	"go.temporal.io/server/tools/gomadv3/evidence"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/combinedfrontier"
+	"go.temporal.io/server/tools/gomadv3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/execution"
+	simulationengine "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulation"
+	simulationrecord "go.temporal.io/server/tools/gomadv3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomadv3/runner/internal/minimizer"
-	"go.temporal.io/server/tools/gomadv3/runner/internal/simulationexploration"
 	"go.temporal.io/server/tools/gomadv3/target"
 	"go.temporal.io/server/tools/gomadv3/world"
 )
@@ -36,26 +37,26 @@ type MinimizeSpec struct {
 }
 
 type MinimizeResult struct {
-	Artifact      evidence.Artifact                `json:"artifact"`
-	Changed       bool                             `json:"changed"`
-	Attempts      uint64                           `json:"attempts"`
-	AttemptBudget uint64                           `json:"attempt_budget"`
-	Accepted      []evidence.MinimizationReduction `json:"accepted"`
-	StopReason    string                           `json:"stop_reason"`
+	Artifact      artifact.Artifact              `json:"artifact"`
+	Changed       bool                           `json:"changed"`
+	Attempts      uint64                         `json:"attempts"`
+	AttemptBudget uint64                         `json:"attempt_budget"`
+	Accepted      []record.MinimizationReduction `json:"accepted"`
+	StopReason    string                         `json:"stop_reason"`
 }
 
 type minimizationSession struct {
 	config          MinimizeSpec
-	opened          evidence.Artifact
+	opened          artifact.Artifact
 	workDirectory   string
 	prepared        target.Prepared
 	campaign        CampaignSpec
-	baseEnvironment []evidence.Environment
+	baseEnvironment []record.Environment
 	profile         deterministicio.Spec
-	mappings        []deterministicio.Mapping
-	mountLimits     deterministicio.Limits
-	mountSnapshot   *deterministicio.Snapshot
-	mountArtifact   *deterministicio.CapturedInputs
+	mappings        []readonlymount.Mapping
+	mountLimits     readonlymount.Limits
+	mountSnapshot   *readonlymount.Snapshot
+	mountArtifact   *readonlymount.CapturedInputs
 	choiceIdentity  choice.ExecutionIdentity
 	exactChoiceTape *choice.ReplayPlan
 	executor        Executor
@@ -64,7 +65,7 @@ type minimizationSession struct {
 }
 
 type minimizationTrial struct {
-	input    campaignstore.ArtifactInput
+	input    artifact.ArtifactInput
 	accepted bool
 	replay   ReplayResult
 }
@@ -113,8 +114,8 @@ func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, 
 	if maximumBytes == 0 {
 		maximumBytes = defaultMinimizedArtifactBytes(session.opened.StoredBytes)
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{
-		Root: config.OutputRoot, Context: ctx, MaximumBytes: maximumBytes, Key: evidence.StoreKeyRecord,
+	published, err := artifact.PublishArtifact(artifact.Store{
+		Root: config.OutputRoot, Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord,
 	}, accepted.input)
 	if err != nil {
 		return MinimizeResult{}, fmt.Errorf("publish minimized artifact: %w", err)
@@ -151,7 +152,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minim
 		}
 	}()
 	manifest := opened.Manifest
-	if manifest.ArtifactKind != evidence.ArtifactTargetFailure || manifest.ReplayMode != evidence.ReplayExact || manifest.SimulationProfile == nil || manifest.SimulationProfile.FailureSHA256 == "" {
+	if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile == nil || manifest.SimulationProfile.FailureSHA256 == "" {
 		return nil, minimizer.State{}, errors.New("minimization requires an exact simulation target-failure artifact")
 	}
 	choiceCapability, unavailable, err := choiceCapabilityForArtifact(opened)
@@ -167,15 +168,15 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minim
 	session.choiceIdentity = choiceCapability.ExecutionIdentity
 	tape := *choiceCapability.ReplayPlan
 	session.exactChoiceTape = &tape
-	plan, err := evidence.ReadPayload(opened, manifest.SimulationProfile.Plan.File, uint64(manifest.SimulationProfile.Plan.Bytes))
+	plan, err := artifact.ReadPayload(opened, manifest.SimulationProfile.Plan.File, uint64(manifest.SimulationProfile.Plan.Bytes))
 	if err != nil {
 		return nil, minimizer.State{}, fmt.Errorf("read minimization simulation plan: %w", err)
 	}
-	frontierConfig, candidate, err := simulationexploration.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
+	explorationConfig, candidate, err := simulationrecord.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
 	if err != nil {
 		return nil, minimizer.State{}, fmt.Errorf("reconstruct minimization candidate: %w", err)
 	}
-	state, err = minimizer.New(frontierConfig, candidate, config.AttemptBudget)
+	state, err = minimizer.New(explorationConfig, candidate, config.AttemptBudget)
 	if err != nil {
 		return nil, minimizer.State{}, err
 	}
@@ -197,7 +198,7 @@ func (session *minimizationSession) prepareWorkspace() error {
 	session.temporaryRoot = filepath.Join(workDirectory, "candidates")
 	manifest := session.opened.Manifest
 	targetPath := filepath.Join(workDirectory, "target")
-	if err := evidence.CopyPayload(session.opened, manifest.Target.File, targetPath, 0o500); err != nil {
+	if err := artifact.CopyPayload(session.opened, manifest.Target.File, targetPath, 0o500); err != nil {
 		return fmt.Errorf("copy verified minimization target: %w", err)
 	}
 	if err := validateTargetBuildInfo(targetPath, manifest.Target.BuildInfo); err != nil {
@@ -214,7 +215,7 @@ func (session *minimizationSession) prepareWorkspace() error {
 		}
 		session.prepared.CapabilityManifest = capabilities
 	}
-	runTimeout, err := duration(manifest.Limits.RunTimeoutNanos)
+	runTimeout, err := duration(manifest.Limits.ExecutionTimeoutNanos)
 	if err != nil {
 		return err
 	}
@@ -227,26 +228,26 @@ func (session *minimizationSession) prepareWorkspace() error {
 		return err
 	}
 	session.baseEnvironment = minimizationBaseEnvironment(manifest.Environment)
-	session.mountLimits = deterministicio.DefaultLimits()
+	session.mountLimits = readonlymount.DefaultLimits()
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
-		descriptor, readErr := evidence.ReadPayload(session.opened, mounts.File, uint64(mounts.Bytes))
+		descriptor, readErr := artifact.ReadPayload(session.opened, mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
 			return fmt.Errorf("read minimized target mounts: %w", readErr)
 		}
-		mappings, limits, snapshot, readErr := deterministicio.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
-			return evidence.ReadPayload(session.opened, name, maximum)
+		mappings, limits, snapshot, readErr := readonlymount.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
+			return artifact.ReadPayload(session.opened, name, maximum)
 		})
 		if readErr != nil {
 			return fmt.Errorf("decode minimized target mounts: %w", readErr)
 		}
-		captured, encodeErr := deterministicio.EncodeCapturedInputs(mappings, limits, snapshot)
+		captured, encodeErr := readonlymount.EncodeCapturedInputs(mappings, limits, snapshot)
 		if encodeErr != nil {
 			return fmt.Errorf("encode minimized target mounts: %w", encodeErr)
 		}
 		session.mappings, session.mountLimits, session.mountSnapshot, session.mountArtifact = mappings, limits, &snapshot, &captured
 	}
 	session.campaign = CampaignSpec{
-		RunTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
+		ExecutionTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
 		OutputLimit: uint64(manifest.Limits.OutputBytes), WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
 		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
@@ -265,8 +266,8 @@ func (session *minimizationSession) prepareWorkspace() error {
 	return nil
 }
 
-func (session *minimizationSession) evaluate(ctx context.Context, frontierConfig combinedfrontier.Config, candidate combinedfrontier.Candidate) (minimizationTrial, error) {
-	executionForCandidate, err := simulationexploration.ExecutionForCandidate(frontierConfig, candidate, session.choiceIdentity)
+func (session *minimizationSession) evaluate(ctx context.Context, explorationConfig simulationengine.Config, candidate simulationengine.Candidate) (minimizationTrial, error) {
+	executionForCandidate, err := simulationrecord.ExecutionForCandidate(explorationConfig, candidate, session.choiceIdentity)
 	if err != nil {
 		return minimizationTrial{}, err
 	}
@@ -285,8 +286,8 @@ func (session *minimizationSession) evaluate(ctx context.Context, frontierConfig
 		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...), Command: session.prepared.Path,
 		BootstrapCommand: append([]string(nil), session.config.BootstrapCommand...),
 		Args:             append([]string(nil), session.prepared.Argv[1:]...), Argv0: session.prepared.Argv[0], Dir: session.workDirectory,
-		Env:        environmentStrings(environmentForSeed(session.baseEnvironment, uint64(manifest.Seed))),
-		RunTimeout: session.campaign.RunTimeout, TerminateGrace: session.campaign.TerminateGrace, OutputLimit: session.campaign.OutputLimit,
+		Env:              environmentStrings(environmentForSeed(session.baseEnvironment, uint64(manifest.Seed))),
+		ExecutionTimeout: session.campaign.ExecutionTimeout, TerminateGrace: session.campaign.TerminateGrace, OutputLimit: session.campaign.OutputLimit,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: session.campaign.WorldTransitionLimit, Seed: uint64(manifest.Seed)},
 		IO: &execution.IOCapability{
 			Config: ioConfig, Transcript: &execution.IOTranscriptCapability{Limit: uint64(manifest.Limits.IOTranscriptBytes)},
@@ -316,7 +317,7 @@ func (session *minimizationSession) evaluate(ctx context.Context, frontierConfig
 		return minimizationTrial{}, err
 	}
 	outcome := execution.Classify(observed, false, worldBundle.Manifest.Terminal)
-	if outcome.ArtifactKind != evidence.ArtifactTargetFailure {
+	if outcome.ArtifactKind != record.ArtifactTargetFailure {
 		return minimizationTrial{accepted: false}, nil
 	}
 	tape, err := choice.ProjectReplayPlan(observed.ChoiceTrace.Trace, session.choiceIdentity)
@@ -325,15 +326,15 @@ func (session *minimizationSession) evaluate(ctx context.Context, frontierConfig
 	}
 	completion.result.ChoiceTrace.TapeSHA256 = tape.SHA256
 	completion.result.ChoiceTrace.Decisions = uint64(len(tape.Decisions))
-	runtimeDecisions, err := simulationexploration.RuntimeDecisions(tape)
+	runtimeDecisions, err := simulationrecord.RuntimeDecisions(tape)
 	if err != nil {
 		return minimizationTrial{}, err
 	}
 	if len(observed.SimulationRecords) != 1 {
 		return minimizationTrial{}, fmt.Errorf("minimization simulation records = %d, want 1", len(observed.SimulationRecords))
 	}
-	simulationProfile, err := simulationexploration.ProjectArtifact(
-		frontierConfig, candidate, executionForCandidate.SimulationPlan, observed.SimulationRecords[0], runtimeDecisions,
+	simulationProfile, err := simulationrecord.ProjectArtifact(
+		explorationConfig, candidate, executionForCandidate.SimulationPlan, observed.SimulationRecords[0], runtimeDecisions,
 		uint64(manifest.SimulationProfile.Record.Limit),
 	)
 	if err != nil {
@@ -344,14 +345,14 @@ func (session *minimizationSession) evaluate(ctx context.Context, frontierConfig
 		return minimizationTrial{}, err
 	}
 	retained.SimulationProfile = &simulationProfile
-	input := campaignstore.ArtifactInput{
+	input := artifact.ArtifactInput{
 		Manifest: retained, TargetPath: session.prepared.Path, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes,
 		IOTranscript: observed.IOTranscript.Bytes, ChoiceTrace: observed.ChoiceTrace.Trace.Bytes,
 		ReadOnlyMounts: session.mountArtifact, World: worldBundle.Payloads,
-		Simulation: &campaignstore.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]},
+		Simulation: &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]},
 	}
-	published, err := campaignstore.PublishArtifact(evidence.Store{
-		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: evidence.StoreKeyRecord,
+	published, err := artifact.PublishArtifact(artifact.Store{
+		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
 	}, input)
 	if err != nil {
 		return minimizationTrial{}, fmt.Errorf("publish minimization candidate: %w", err)
@@ -384,7 +385,7 @@ func replayExecutor(executor Executor) ReplayExecutor {
 	return executor
 }
 
-func validateMinimizationReplay(manifest evidence.ExecutionRecord, replay ReplayResult) error {
+func validateMinimizationReplay(manifest record.ExecutionRecord, replay ReplayResult) error {
 	if !replay.Match || replay.Divergence != "" {
 		return fmt.Errorf("minimization candidate exact replay diverged at %s", replay.Divergence)
 	}
@@ -416,7 +417,7 @@ func recordedWorldForMinimization(encoded []byte, seed, limit uint64) (execution
 	return bundle, nil
 }
 
-func preparedTargetFromArtifact(path string, manifest evidence.ExecutionRecord) target.Prepared {
+func preparedTargetFromArtifact(path string, manifest record.ExecutionRecord) target.Prepared {
 	return target.Prepared{
 		Path: path, Kind: target.Kind(manifest.Target.Kind), Source: manifest.Target.Source,
 		SHA256: string(manifest.Target.SHA256), Size: uint64(manifest.Target.Size), Argv: append([]string(nil), manifest.Target.Argv...),
@@ -428,8 +429,8 @@ func preparedTargetFromArtifact(path string, manifest evidence.ExecutionRecord) 
 	}
 }
 
-func minimizationBaseEnvironment(recorded []evidence.Environment) []evidence.Environment {
-	base := make([]evidence.Environment, 0, len(recorded))
+func minimizationBaseEnvironment(recorded []record.Environment) []record.Environment {
+	base := make([]record.Environment, 0, len(recorded))
 	for _, entry := range recorded {
 		if entry.Name != "GOMADSEED" && entry.Name != "TZ" {
 			base = append(base, entry)
@@ -439,23 +440,23 @@ func minimizationBaseEnvironment(recorded []evidence.Environment) []evidence.Env
 	return base
 }
 
-func sameReplayOutcome(left, right evidence.Outcome) bool {
+func sameReplayOutcome(left, right record.Outcome) bool {
 	return left.Domain == right.Domain && left.Reason == right.Reason && left.Termination == right.Termination
 }
 
-func minimizationEvidence(parent evidence.ExecutionRecord, state minimizer.State, replay ReplayResult) *evidence.Minimization {
+func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, replay ReplayResult) *record.Minimization {
 	choiceReplay := "not_present"
 	if parent.ChoiceProfile != nil {
 		choiceReplay = replay.ChoiceReplayStatus
 	}
-	return &evidence.Minimization{
+	return &record.Minimization{
 		Schema: "gomadv3.minimization/v1", ImplementationSHA256: minimizer.ImplementationSHA256(),
 		ParentRecordHash: parent.RecordHash, ParentFailureSignature: parent.Outcome.FailureSignature,
 		OriginalCandidateSHA256: state.Original.SHA256, FinalCandidateSHA256: state.Current.SHA256,
-		AttemptBudget: evidence.Uint64String(state.AttemptBudget), Attempts: evidence.Uint64String(state.Attempts),
-		OriginalForcedDecisions: evidence.Uint64String(len(state.Original.Overrides)), FinalForcedDecisions: evidence.Uint64String(len(state.Current.Overrides)),
+		AttemptBudget: record.Uint64String(state.AttemptBudget), Attempts: record.Uint64String(state.Attempts),
+		OriginalForcedDecisions: record.Uint64String(len(state.Original.Overrides)), FinalForcedDecisions: record.Uint64String(len(state.Current.Overrides)),
 		Accepted: projectMinimizationReductions(state.Accepted),
-		Predicate: evidence.MinimizationPredicate{
+		Predicate: record.MinimizationPredicate{
 			FailureSignature: parent.Outcome.FailureSignature, Domain: parent.Outcome.Domain, Reason: parent.Outcome.Reason,
 			Termination: parent.Outcome.Termination, ReplayMatch: replay.Match,
 			ChoiceReplay: choiceReplay, SimulationReplay: "exact",
@@ -463,16 +464,16 @@ func minimizationEvidence(parent evidence.ExecutionRecord, state minimizer.State
 	}
 }
 
-func projectMinimizationReductions(reductions []minimizer.Reduction) []evidence.MinimizationReduction {
-	result := make([]evidence.MinimizationReduction, len(reductions))
+func projectMinimizationReductions(reductions []minimizer.Reduction) []record.MinimizationReduction {
+	result := make([]record.MinimizationReduction, len(reductions))
 	for index, reduction := range reductions {
-		removed := make([]evidence.MinimizationDecision, len(reduction.Removed))
+		removed := make([]record.MinimizationDecision, len(reduction.Removed))
 		for decisionIndex, decision := range reduction.Removed {
-			removed[decisionIndex] = evidence.MinimizationDecision{
-				Dimension: string(decision.Dimension), Ordinal: evidence.Uint64String(decision.Ordinal), Identity: decision.Identity,
+			removed[decisionIndex] = record.MinimizationDecision{
+				Dimension: string(decision.Dimension), Ordinal: record.Uint64String(decision.Ordinal), Identity: decision.Identity,
 			}
 		}
-		result[index] = evidence.MinimizationReduction{
+		result[index] = record.MinimizationReduction{
 			Kind: string(reduction.Kind), BeforeSHA256: reduction.BeforeSHA256, AfterSHA256: reduction.AfterSHA256, Removed: removed,
 		}
 	}
@@ -491,7 +492,7 @@ func (session *minimizationSession) close() error {
 	var err error
 	if session.opened.Path != "" {
 		err = session.opened.Close()
-		session.opened = evidence.Artifact{}
+		session.opened = artifact.Artifact{}
 	}
 	if session.workDirectory != "" {
 		err = errors.Join(err, os.RemoveAll(session.workDirectory))

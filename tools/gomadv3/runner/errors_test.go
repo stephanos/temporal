@@ -4,12 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/runner/internal/campaignstore"
+	"go.temporal.io/server/tools/gomadv3/runner/internal/campaign"
 )
 
 func TestIsCapacityErrorFindsTypedCapacityThroughHostFailure(t *testing.T) {
-	err := &HostError{Reason: "artifact_publication", Err: &campaignstore.ArtifactCapacityError{
-		Limit: campaignstore.ArtifactLimitTotalBytes, Required: 2, Maximum: 1, Outcome: campaignstore.CapacityInfrastructureFailure,
+	err := &HostError{Reason: "artifact_publication", Err: &campaign.ArtifactCapacityError{
+		Limit: campaign.ArtifactLimitTotalBytes, Required: 2, Maximum: 1, Outcome: campaign.CapacityInfrastructureFailure,
 	}}
 	if !IsCapacityError(err) {
 		t.Fatalf("IsCapacityError(%v) = false", err)

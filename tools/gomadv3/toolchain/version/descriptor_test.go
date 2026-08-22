@@ -13,6 +13,13 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
+	generatedSource, err := os.ReadFile(filepath.Join(root, "toolchain", "version", "generated.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(generatedSource), "PatchFile") || strings.Contains(string(generatedSource), "AdapterByModule") {
+		t.Fatalf("generated Go source retains unused accessors:\n%s", generatedSource)
+	}
 	upgradeGuide, err := os.ReadFile(filepath.Join(root, upgradeGuideName(Descriptor{BoundaryManifestVersion: "go1.26.4-darwin-arm64-v1"})))
 	if err != nil {
 		t.Fatal(err)
@@ -38,12 +45,8 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 import "testing"
 
 func TestGeneratedValues(t *testing.T) {
-	xnet, xnetFound := AdapterByModule("golang.org/x/net")
-	grpc, grpcFound := AdapterByModule("google.golang.org/grpc")
-	libc, libcFound := AdapterByModule("modernc.org/libc")
-	memory, memoryFound := AdapterByModule("modernc.org/memory")
-	if GoVersion != "go1.26.4" || !xnetFound || xnet.Version != "v0.57.0" || !grpcFound || grpc.Version != "v1.80.0" || !libcFound || libc.Version != "v1.72.3" || !memoryFound || memory.Version != "v1.11.0" || BoundaryManifestVersion != "go1.26.4-darwin-arm64-v1" {
-		t.Fatalf("generated values = %q, %#v, %#v, %#v, %#v, %q", GoVersion, xnet, grpc, libc, memory, BoundaryManifestVersion)
+	if GoVersion != "go1.26.4" || BoundaryManifestVersion != "go1.26.4-darwin-arm64-v1" || len(Adapters) != 4 || Adapters[0].Module != "golang.org/x/net" || Adapters[0].Version != "v0.57.0" || Adapters[1].Module != "google.golang.org/grpc" || Adapters[1].Version != "v1.80.0" || Adapters[2].Module != "modernc.org/libc" || Adapters[2].Version != "v1.72.3" || Adapters[3].Module != "modernc.org/memory" || Adapters[3].Version != "v1.11.0" {
+		t.Fatalf("generated values = %q, %#v, %q", GoVersion, Adapters, BoundaryManifestVersion)
 	}
 }
 `

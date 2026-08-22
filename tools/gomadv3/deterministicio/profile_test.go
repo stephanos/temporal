@@ -4,15 +4,15 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"go.temporal.io/server/tools/gomadv3/evidence"
+	"go.temporal.io/server/tools/gomadv3/record"
 	"go.temporal.io/server/tools/gomadv3/target"
 )
 
 func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	profile := Default()
-	const wantInventory = `{"boundary_manifest_sha256":"sha256:1923d3faf7c9d7f4c3f64d88e5708a2a6e5c1221a8ba688300d7fbeadcfc00f3","boundary_manifest_version":"go1.26.4-darwin-arm64-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"darwin/arm64","profile":"gomadv3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomadv3.io-inventory/v1"}`
-	const wantInventorySHA256 = "sha256:6d663eb6adecc5f2bf4d79c928e069a64ad223ec90cf1db29d13d1149a5cfb85"
-	const wantImplementationSHA256 = "sha256:c4a39d184fb2c80e407c450df5c6ab4c3067129c27cf1781b9bc11d648d583d7"
+	const wantInventory = `{"boundary_manifest_sha256":"sha256:9dc292826beeb73dbf850aa3ec3b3dd121dcee2a3a43d47ccaf6591a39325904","boundary_manifest_version":"go1.26.4-darwin-arm64-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"darwin/arm64","profile":"gomadv3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomadv3.io-inventory/v1"}`
+	const wantInventorySHA256 = "sha256:a253bd1fd509398e5d2acb77a5b3b72e98cd1b282d243152125a6591008adfe4"
+	const wantImplementationSHA256 = "sha256:58970d7ccf32d15852d74fe4d187f5ee30a14995eef39c637706890d7585e708"
 	if string(profile.Inventory()) != wantInventory || string(profile.InventorySHA256()) != wantInventorySHA256 || string(profile.ImplementationSHA256()) != wantImplementationSHA256 {
 		t.Fatalf("profile identity:\n inventory = %q\n inventory SHA-256 = %q\n implementation SHA-256 = %q", profile.Inventory(), profile.InventorySHA256(), profile.ImplementationSHA256())
 	}
@@ -23,7 +23,7 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const wantFrameHex = "474f4d4144494f01000100016d663eb6adecc5f2bf4d79c928e069a64ad223ec90cf1db29d13d1149a5cfb85c4a39d184fb2c80e407c450df5c6ab4c3067129c27cf1781b9bc11d648d583d7aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb26ba1df2e711e0add254aeb48b2779e9aa32a01c3d07c2ee506cadf29cfec8ff000000000000002a164fe66c52110aa9c9b10abee6bddddfd1730a16ddc8734ac8cb42c3b4caf607"
+	const wantFrameHex = "474f4d4144494f0100010001a253bd1fd509398e5d2acb77a5b3b72e98cd1b282d243152125a6591008adfe458970d7ccf32d15852d74fe4d187f5ee30a14995eef39c637706890d7585e708aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb26ba1df2e711e0add254aeb48b2779e9aa32a01c3d07c2ee506cadf29cfec8ff000000000000002accf372af9e9b526f987e4621a664c80c902a9e0f0eeb769e14f3d37b805ff2c6"
 	if encoded := hex.EncodeToString(frame); encoded != wantFrameHex {
 		t.Fatalf("bootstrap frame = %q", encoded)
 	}
@@ -71,8 +71,8 @@ func TestProfileOwnsIdentityProjectionAndVerification(t *testing.T) {
 	}
 	mutations := map[string]Contract{
 		"name":           {Name: "other", ImplementationSHA256: identity.ImplementationSHA256, InventorySHA256: identity.InventorySHA256},
-		"implementation": {Name: identity.Name, ImplementationSHA256: Digest(evidence.HashBytes([]byte("other"))), InventorySHA256: identity.InventorySHA256},
-		"inventory":      {Name: identity.Name, ImplementationSHA256: identity.ImplementationSHA256, InventorySHA256: Digest(evidence.HashBytes([]byte("other")))},
+		"implementation": {Name: identity.Name, ImplementationSHA256: Digest(record.HashBytes([]byte("other"))), InventorySHA256: identity.InventorySHA256},
+		"inventory":      {Name: identity.Name, ImplementationSHA256: identity.ImplementationSHA256, InventorySHA256: Digest(record.HashBytes([]byte("other")))},
 	}
 	for name, changed := range mutations {
 		t.Run(name, func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestDeterministicProfileAcceptsArbitraryTargetArguments(t *testing.T) {
 	argument := "-test.run=^TestUnrelatedSuite$"
 	err := profile.ValidatePreparedTarget(target.Spec{Kind: target.KindGoTest, Source: "./pkg", Args: []string{argument}}, target.Prepared{
 		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomadv3-target", argument}, BuildTags: []string{"gomad_fixture"},
-		Adapters: []evidence.TargetAdapter{}, BuildInfo: evidence.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
+		Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestValidatePreparedTargetRejectsIdentityMismatch(t *testing.T) {
 	}
 	validPrepared := target.Prepared{
 		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomadv3-target", "-test.run=^TestScenario$"},
-		BuildTags: []string{"gomad_fixture"}, Adapters: []evidence.TargetAdapter{}, BuildInfo: evidence.BuildInfo{Path: "example.test/project/pkg.test"},
+		BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"},
 		GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}
 	tests := map[string]struct {

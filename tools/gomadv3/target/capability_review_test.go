@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomadv3/target/internal/compatibility"
+	"go.temporal.io/server/tools/gomadv3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomadv3/target/internal/livecap"
 )
 
@@ -51,11 +51,11 @@ func TestProjectCapabilityReviewCollectsEveryDeniedFinding(t *testing.T) {
 		review.Findings[4].Kind,
 	})
 	requireTestEqual(t, "import:syscall", review.Findings[0].Capability)
-	requireTestEqual(t, compatibility.RemediationAddExactPack, review.Findings[0].Remediation)
-	requireTestEqual(t, compatibility.RemediationRemoveDependency, review.Findings[1].Remediation)
+	requireTestEqual(t, RemediationAddExactPack, review.Findings[0].Remediation)
+	requireTestEqual(t, RemediationRemoveDependency, review.Findings[1].Remediation)
 	requireTestEqual(t, "target.go", review.Findings[4].SourceName)
 	requireTestEqual(t, []string{}, review.Findings[4].Directives)
-	requireTestEqual(t, compatibility.DispositionDenied, review.Findings[4].PolicyDisposition)
+	requireTestEqual(t, DispositionDenied, review.Findings[4].PolicyDisposition)
 
 	err = validateCapabilityReview(review.Closure)
 	var unsupported *UnsupportedCapabilityError

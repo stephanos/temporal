@@ -8,7 +8,7 @@ import (
 )
 
 func TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse(t *testing.T) {
-	payload := []byte("{\"type\":\"progress\",\"progress\":{\"Phase\":\"preparing\",\"BatchPath\":\"/batch\",\"Selected\":3,\"Attempted\":0,\"Running\":0,\"Succeeded\":0,\"Failures\":0,\"Watchdogs\":0,\"Cancelled\":0,\"DistinctFailures\":0,\"Artifacts\":null}}\n{\"type\":\"result\",\"response\":{\"CampaignResult\":{\"BatchPath\":\"/batch\",\"SelectionCount\":3,\"Attempted\":3,\"Succeeded\":3,\"Failures\":0,\"Watchdogs\":0,\"Cancelled\":0,\"DistinctFailures\":0,\"StopReason\":\"seeds_exhausted\",\"Artifacts\":null},\"ErrorReason\":\"\",\"ErrorDetail\":\"\"}}\n")
+	payload := []byte("{\"type\":\"progress\",\"progress\":{\"Phase\":\"preparing\",\"campaign_path\":\"/campaign\",\"Selected\":3,\"Attempted\":0,\"Running\":0,\"Succeeded\":0,\"Failures\":0,\"Watchdogs\":0,\"Cancelled\":0,\"DistinctFailures\":0,\"Artifacts\":null}}\n{\"type\":\"result\",\"response\":{\"CampaignResult\":{\"campaign_path\":\"/campaign\",\"SelectionCount\":3,\"Attempted\":3,\"Succeeded\":3,\"Failures\":0,\"Watchdogs\":0,\"Cancelled\":0,\"DistinctFailures\":0,\"StopReason\":\"seeds_exhausted\",\"Artifacts\":null},\"ErrorReason\":\"\",\"ErrorDetail\":\"\"}}\n")
 	var progress []CampaignEvent
 	response, err := decodeCoordinatorMessages(bytes.NewReader(payload), func(update CampaignEvent) error {
 		progress = append(progress, update)
