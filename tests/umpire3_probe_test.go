@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -18,14 +19,16 @@ import (
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire3/campaign"
+	"go.temporal.io/server/tests/umpire3/conformance/wire"
 	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
-	"go.temporal.io/server/tests/umpire3/explore"
-	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
+	"go.temporal.io/server/tests/umpire3/exploration"
+	"go.temporal.io/server/tests/umpire3/mutation"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexecution "go.temporal.io/server/tests/umpire3/protocol/execution"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 	"go.temporal.io/server/tests/umpire3/scenario"
 	umpire3workflow "go.temporal.io/server/tests/umpire3/scenario/workflow"
-	"go.temporal.io/server/tests/umpire3/wirecase"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -52,8 +55,8 @@ func (s *Umpire3TestSuite) TestProbeNexusRejectedStart() {
 		})
 	require.Error(t, err)
 	require.Equal(t, codes.NotFound, serviceerror.ToStatus(err).Code())
-	outcome, err := protocol.ClassifyOutcome(protocol.ClaimConforming, &protocol.TerminalEvidence{
-		State: "rejected", Disposition: protocol.TerminalDispositionFailure,
+	outcome, err := umpire3execution.ClassifyOutcome(protocolexecution.ClaimConforming, &protocolexecution.TerminalEvidence{
+		State: "rejected", Disposition: protocolexecution.TerminalDispositionFailure,
 		Reference: "request/" + requestID, EntityIdentity: requestID,
 	})
 	require.NoError(t, err)
@@ -63,11 +66,11 @@ func (s *Umpire3TestSuite) TestProbeNexusRejectedStart() {
 func requireUmpire3RejectedStartBehaviorContract(
 	t *testing.T,
 	behavior string,
-	outcome protocol.Outcome,
+	outcome protocolexecution.Outcome,
 ) {
 	t.Helper()
 	require.Contains(t, t.Name(), behavior)
-	require.Equal(t, protocol.OutcomeDegraded, outcome.Kind)
+	require.Equal(t, protocolexecution.OutcomeDegraded, outcome.Kind)
 	require.Equal(t, "rejected", outcome.Terminal)
 }
 
@@ -92,21 +95,21 @@ func (s *Umpire3TestSuite) TestProbeNexusReflectedVariant() {
 			return &nexus.HandlerStartOperationResultSync[any]{Value: "ok"}, nil
 		},
 	})
-	mutation := requireUmpire3WireMutation(t,
+	wireMutation := requireUmpire3WireMutation(t,
 		"temporal.api.workflowservice.v1.StartNexusOperationExecutionRequest",
-		"operation_id", wirecase.MutationEmptyString)
-	result, err := wirecase.Drive(t.Context(), &workflowservice.StartNexusOperationExecutionRequest{
+		"operation_id", wire.MutationEmptyString)
+	result, err := wire.Drive(t.Context(), &workflowservice.StartNexusOperationExecutionRequest{
 		Namespace: env.Namespace().String(), OperationId: "umpire3-reflected-" + uuid.NewString(),
 		Endpoint: endpoint, Service: "service", Operation: "operation", RequestId: uuid.NewString(),
 		ScheduleToCloseTimeout: durationpb.New(10 * time.Second),
 		StartToCloseTimeout:    durationpb.New(time.Second),
-	}, mutation, func(ctx context.Context, request proto.Message) (proto.Message, error) {
+	}, wireMutation, func(ctx context.Context, request proto.Message) (proto.Message, error) {
 		return env.FrontendClient().StartNexusOperationExecution(ctx,
 			request.(*workflowservice.StartNexusOperationExecutionRequest))
 	})
 	require.NoError(t, err)
 	requireUmpire3WireBehaviorContract(t, "ProbeNexusReflectedVariant", result)
-	require.Equal(t, wirecase.ResponseRejected, result.Response, "%+v", result)
+	require.Equal(t, wire.ResponseRejected, result.Response, "%+v", result)
 	require.Equal(t, "InvalidArgument", result.Code)
 	require.NotEmpty(t, result.Provenance.RequestDigest)
 }
@@ -132,21 +135,21 @@ func (s *Umpire3TestSuite) TestProbeNexusReflectedDurationVariant() {
 			return &nexus.HandlerStartOperationResultSync[any]{Value: "ok"}, nil
 		},
 	})
-	mutation := requireUmpire3WireMutation(t,
+	wireMutation := requireUmpire3WireMutation(t,
 		"temporal.api.workflowservice.v1.StartNexusOperationExecutionRequest",
-		"start_to_close_timeout", wirecase.MutationNegativeDuration)
-	result, err := wirecase.Drive(t.Context(), &workflowservice.StartNexusOperationExecutionRequest{
+		"start_to_close_timeout", wire.MutationNegativeDuration)
+	result, err := wire.Drive(t.Context(), &workflowservice.StartNexusOperationExecutionRequest{
 		Namespace: env.Namespace().String(), OperationId: "umpire3-duration-" + uuid.NewString(),
 		Endpoint: endpoint, Service: "service", Operation: "operation", RequestId: uuid.NewString(),
 		ScheduleToCloseTimeout: durationpb.New(10 * time.Second),
 		StartToCloseTimeout:    durationpb.New(time.Second),
-	}, mutation, func(ctx context.Context, request proto.Message) (proto.Message, error) {
+	}, wireMutation, func(ctx context.Context, request proto.Message) (proto.Message, error) {
 		return env.FrontendClient().StartNexusOperationExecution(ctx,
 			request.(*workflowservice.StartNexusOperationExecutionRequest))
 	})
 	require.NoError(t, err)
 	requireUmpire3WireBehaviorContract(t, "ProbeNexusReflectedDurationVariant", result)
-	require.Equal(t, wirecase.ResponseRejected, result.Response, "%+v", result)
+	require.Equal(t, wire.ResponseRejected, result.Response, "%+v", result)
 	require.Equal(t, "InvalidArgument", result.Code)
 	require.NotEmpty(t, result.Provenance.RequestDigest)
 }
@@ -155,24 +158,24 @@ func requireUmpire3WireMutation(
 	t *testing.T,
 	message string,
 	field string,
-	kind wirecase.MutationKind,
-) wirecase.Mutation {
+	kind wire.MutationKind,
+) wire.Mutation {
 	t.Helper()
-	mutations, err := wirecase.Catalog(message)
+	mutations, err := wire.Catalog(message)
 	require.NoError(t, err)
-	for _, mutation := range mutations {
-		if mutation.Field == field && mutation.Kind == kind {
-			return mutation
+	for _, candidateMutation := range mutations {
+		if candidateMutation.Field == field && candidateMutation.Kind == kind {
+			return candidateMutation
 		}
 	}
 	require.FailNow(t, "generated protobuf mutation is unavailable", "%s.%s/%s", message, field, kind)
-	return wirecase.Mutation{}
+	return wire.Mutation{}
 }
 
-func requireUmpire3WireBehaviorContract(t *testing.T, behavior string, result wirecase.Result) {
+func requireUmpire3WireBehaviorContract(t *testing.T, behavior string, result wire.Result) {
 	t.Helper()
 	require.Contains(t, t.Name(), behavior)
-	require.NotEqual(t, wirecase.ResponseTransportFailed, result.Response)
+	require.NotEqual(t, wire.ResponseTransportFailed, result.Response)
 	require.NotEmpty(t, result.Provenance.DescriptorDigest)
 	require.NotEmpty(t, result.Provenance.RequestDigest)
 }
@@ -183,17 +186,17 @@ func (s *Umpire3TestSuite) TestProbeNexusFaultAction() {
 			scenario.CloseNexusOperation("close"))))
 	term := umpire3DropTerm()
 	s.NoError(umpire3fault.Preflight(term,
-		[]protocol.CapabilityID{protocol.CapabilityIDFaultRpc}, false))
+		[]protocolcatalog.CapabilityID{protocolcatalog.CapabilityIDFaultRpc}, false))
 	realizer := &umpire3RootFaultRealizer{}
 	s.NoError(umpire3fault.Run(context.Background(), term, realizer, umpire3fault.Options{
-		Capabilities: []protocol.CapabilityID{protocol.CapabilityIDFaultRpc}, CleanupTimeout: time.Second,
+		Capabilities: []protocolcatalog.CapabilityID{protocolcatalog.CapabilityIDFaultRpc}, CleanupTimeout: time.Second,
 	}, func(context.Context) error { return nil }))
 	s.Equal([]string{"install", "activate", "release", "cleanup"}, realizer.events)
 }
 
 func (s *Umpire3TestSuite) TestProbeNexusResilience() {
 	t := s.T()
-	declared := umpire3DeclaredFootprint(t, protocol.ActionKindCloseNexusOperation)
+	declared := umpire3DeclaredFootprint(t, protocolcatalog.ActionKindCloseNexusOperation)
 	baselineFactory := &umpire3RequiredFootprintFactory{
 		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 	}
@@ -252,18 +255,18 @@ func (s *Umpire3TestSuite) TestProbeNexusHTTPFaultSeam() {
 func (s *Umpire3TestSuite) TestProbeNexusExploration() {
 	t := s.T()
 	observer := newUmpire3NexusLifecycleObserver(t)
-	values, err := explore.NexusLifecycleValues()
+	values, err := exploration.NexusLifecycleValues()
 	require.NoError(t, err)
-	report, err := explore.Run(context.Background(), explore.Template{
+	report, err := exploration.Run(context.Background(), exploration.Template{
 		Identifier: "umpire3-root-nexus-exploration",
-		Goal: explore.Goal{
-			Kind: explore.GoalTransitionCoverage, Target: protocol.TargetIDFeatureNexus,
-			Property: protocol.PropertyIDNexusOperationClosure,
+		Goal: exploration.Goal{
+			Kind: exploration.GoalTransitionCoverage, Target: protocolcatalog.TargetIDFeatureNexus,
+			Property: protocolcatalog.PropertyIDNexusOperationClosure,
 		},
-		Holes: []explore.Hole{{
-			Identifier: "edge", Kind: explore.HoleAction, Values: values,
+		Holes: []exploration.Hole{{
+			Identifier: "edge", Kind: exploration.HoleAction, Values: values,
 		}},
-		Build: func(assignment explore.Assignment) (scenario.Scenario, error) {
+		Build: func(assignment exploration.Assignment) (scenario.Scenario, error) {
 			value := assignment["edge"]
 			action, err := umpire3NexusCoverageAction(value.Text)
 			if err != nil {
@@ -272,7 +275,7 @@ func (s *Umpire3TestSuite) TestProbeNexusExploration() {
 			return umpire3NexusActionRegression(
 				"umpire3-explore-"+strings.ReplaceAll(value.Key, "/", "-"), action), nil
 		},
-		Observe: func(ctx context.Context, candidate explore.Candidate) ([]string, error) {
+		Observe: func(ctx context.Context, candidate exploration.Candidate) ([]string, error) {
 			if len(candidate.Coverage) != 1 {
 				return nil, fmt.Errorf("generated Nexus candidate declares %d edges, want 1", len(candidate.Coverage))
 			}
@@ -281,23 +284,23 @@ func (s *Umpire3TestSuite) TestProbeNexusExploration() {
 			}
 			return candidate.Coverage, nil
 		},
-	}, explore.Bounds{MaxAssignments: len(values), Compiler: umpire3CompilerLimits()})
+	}, exploration.Bounds{MaxAssignments: len(values), Compiler: umpire3CompilerLimits()})
 	require.NoError(t, err)
 	requireUmpire3ExplorationBehaviorContract(t, "ProbeNexusExploration", report)
-	require.Equal(t, explore.StatusAssignmentsEnumerated, report.Status)
-	require.Equal(t, explore.CoverageCovered, report.Coverage.Status)
+	require.Equal(t, exploration.StatusAssignmentsEnumerated, report.Status)
+	require.Equal(t, exploration.CoverageCovered, report.Coverage.Status)
 	require.Len(t, report.Candidates, 17)
 }
 
 func requireUmpire3ExplorationBehaviorContract(
 	t *testing.T,
 	behavior string,
-	report explore.Report,
+	report exploration.Report,
 ) {
 	t.Helper()
 	require.Contains(t, t.Name(), behavior)
-	require.Equal(t, protocol.TargetIDFeatureNexus, report.Coverage.Target)
-	require.Equal(t, protocol.PropertyIDNexusOperationClosure, report.Coverage.Property)
+	require.Equal(t, protocolcatalog.TargetIDFeatureNexus, report.Coverage.Target)
+	require.Equal(t, protocolcatalog.PropertyIDNexusOperationClosure, report.Coverage.Property)
 }
 
 func umpire3NexusCoverageAction(action string) (umpire3ScenarioAction, error) {
@@ -323,12 +326,12 @@ func umpire3NexusCoverageAction(action string) (umpire3ScenarioAction, error) {
 
 func (s *Umpire3TestSuite) TestProbeWorkflowGenerated() {
 	update := umpire3workflow.Update("generated-update")
-	runUmpire3Regression(s.T(), umpire3workflow.Regression("ProbeWorkflowGenerated", update,
+	runUmpire3Regression(s.T(), umpire3workflow.Scenario("ProbeWorkflowGenerated", update,
 		scenario.OnePath(update.Lifecycle(), update.CompletionThroughHistory())))
 }
 
 func (s *Umpire3TestSuite) TestProbeWorkflowContinueAsNew() {
-	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationRegression("ProbeWorkflowContinueAsNew",
+	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationScenario("ProbeWorkflowContinueAsNew",
 		[]scenario.Resource{scenario.WorkflowRun("continued-run")},
 		scenario.OnePath(
 			scenario.ContinueWorkflow("continue"),
@@ -337,7 +340,7 @@ func (s *Umpire3TestSuite) TestProbeWorkflowContinueAsNew() {
 }
 
 func (s *Umpire3TestSuite) TestProbeWorkflowContinueAsNewGenerated() {
-	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationRegression("ProbeWorkflowContinueAsNewGenerated",
+	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationScenario("ProbeWorkflowContinueAsNewGenerated",
 		[]scenario.Resource{
 			scenario.WorkflowRun("continued-run"),
 			scenario.WorkflowTask("continued-task"),
@@ -350,7 +353,7 @@ func (s *Umpire3TestSuite) TestProbeWorkflowContinueAsNewGenerated() {
 }
 
 func (s *Umpire3TestSuite) TestProbeWorkflowReset() {
-	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationRegression("ProbeWorkflowReset",
+	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationScenario("ProbeWorkflowReset",
 		[]scenario.Resource{scenario.WorkflowRun("reset-run")},
 		scenario.OnePath(
 			scenario.ResetWorkflow("reset"),
@@ -360,7 +363,7 @@ func (s *Umpire3TestSuite) TestProbeWorkflowReset() {
 
 func (s *Umpire3TestSuite) TestProbeNexusLearnedFootprint() {
 	t := s.T()
-	declared := umpire3DeclaredFootprint(t, protocol.ActionKindCloseNexusOperation)
+	declared := umpire3DeclaredFootprint(t, protocolcatalog.ActionKindCloseNexusOperation)
 	factory := &umpire3RequiredFootprintFactory{
 		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 	}
@@ -383,9 +386,9 @@ func (s *Umpire3TestSuite) TestProbeNexusLearnedFootprint() {
 	})
 }
 
-func umpire3DeclaredFootprint(t *testing.T, actionKind protocol.ActionKind) []umpire3fault.Footprint {
+func umpire3DeclaredFootprint(t *testing.T, actionKind protocolcatalog.ActionKind) []umpire3fault.Footprint {
 	t.Helper()
-	catalog, err := protocol.DefaultCatalog()
+	catalog, err := protocolcatalog.DefaultCatalog()
 	require.NoError(t, err)
 	action, found := catalog.Action(string(actionKind))
 	require.True(t, found)
@@ -419,15 +422,15 @@ func (s *Umpire3TestSuite) TestProbeNexusCoverageGuidedFaults() {
 		require.Len(t, execution.Result.Faults, 1)
 		require.True(t, execution.Result.Faults[0].Realized)
 		require.True(t, execution.Result.Faults[0].CleanupComplete)
-		require.Contains(t, execution.Coverage, campaign.CoveragePoint{
-			Kind: campaign.CoverageFault, Identifier: execution.CandidateID,
+		require.Contains(t, execution.Coverage, mutation.CoveragePoint{
+			Kind: mutation.CoverageFault, Identifier: execution.CandidateID,
 		})
 		protocols[strings.SplitN(execution.CandidateID, "/", 2)[0]] = struct{}{}
 	}
 	require.Contains(t, protocols, "grpc")
 	require.Contains(t, protocols, "http")
 	for _, dropped := range campaignRun.Report.Dropped {
-		require.Equal(t, campaign.DropBudget, dropped.Reason)
+		require.Equal(t, mutation.DropBudget, dropped.Reason)
 	}
 }
 
@@ -441,8 +444,8 @@ func (s *Umpire3TestSuite) TestProbeNexusRandomized() {
 	require.Len(t, first.Dropped, 11)
 	for _, execution := range first.Executions {
 		require.Equal(t, umpire3execution.ClaimConforming, execution.Result.Claim.Kind)
-		require.Contains(t, execution.Coverage, campaign.CoveragePoint{
-			Kind: campaign.CoverageTransition, Identifier: execution.CandidateID,
+		require.Contains(t, execution.Coverage, mutation.CoveragePoint{
+			Kind: mutation.CoverageTransition, Identifier: execution.CandidateID,
 		})
 	}
 }
@@ -450,18 +453,18 @@ func (s *Umpire3TestSuite) TestProbeNexusRandomized() {
 type umpire3CampaignExecution struct {
 	CandidateID string
 	Digest      string
-	Coverage    []campaign.CoveragePoint
+	Coverage    []mutation.CoveragePoint
 }
 
 type umpire3CampaignView struct {
-	CoverageBefore []campaign.CoveragePoint
-	CoverageAfter  []campaign.CoveragePoint
-	CoverageDelta  []campaign.CoveragePoint
+	CoverageBefore []mutation.CoveragePoint
+	CoverageAfter  []mutation.CoveragePoint
+	CoverageDelta  []mutation.CoveragePoint
 	Executions     []umpire3CampaignExecution
-	Dropped        []campaign.Dropped
+	Dropped        []mutation.Dropped
 }
 
-func deterministicCampaignView(report campaign.Report) umpire3CampaignView {
+func deterministicCampaignView(report mutation.Report) umpire3CampaignView {
 	view := umpire3CampaignView{
 		CoverageBefore: report.CoverageBefore, CoverageAfter: report.CoverageAfter,
 		CoverageDelta: report.CoverageDelta, Dropped: report.Dropped,
@@ -477,12 +480,12 @@ func deterministicCampaignView(report campaign.Report) umpire3CampaignView {
 type umpire3LearnedFaultCampaign struct {
 	Baseline umpire3execution.Result
 	Targets  []umpire3fault.Footprint
-	Report   campaign.Report
+	Report   mutation.Report
 }
 
 func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire3LearnedFaultCampaign {
 	t.Helper()
-	declared := umpire3DeclaredFootprint(t, protocol.ActionKindCloseNexusOperation)
+	declared := umpire3DeclaredFootprint(t, protocolcatalog.ActionKindCloseNexusOperation)
 	baselineFactory := &umpire3RequiredFootprintFactory{
 		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 	}
@@ -492,22 +495,22 @@ func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire
 	targets := umpire3fault.FaultTargets(calls, seed, len(calls))
 	require.GreaterOrEqual(t, len(targets), budget)
 	prioritized := umpire3fault.FaultTargets(calls, seed, budget)
-	riskFocus := make([]campaign.CoveragePoint, len(prioritized))
+	riskFocus := make([]mutation.CoveragePoint, len(prioritized))
 	for index, target := range prioritized {
 		riskFocus[index] = umpire3FaultCoverage(target)
 	}
-	candidates := make([]campaign.Candidate, len(targets))
+	candidates := make([]mutation.Candidate, len(targets))
 	for index, target := range targets {
 		point := umpire3FaultCoverage(target)
-		candidates[index] = campaign.Candidate{
+		candidates[index] = mutation.Candidate{
 			Identifier: point.Identifier, Scenario: umpire3FaultTargetScenario(t, target),
-			Coverage: []campaign.CoveragePoint{point}, Risk: []campaign.CoveragePoint{point},
+			Coverage: []mutation.CoveragePoint{point}, Risk: []mutation.CoveragePoint{point},
 		}
 	}
-	report, err := campaign.Run(context.Background(), campaign.Request{
+	report, err := mutation.Run(context.Background(), mutation.Request{
 		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
 		CompilerLimits: umpire3CompilerLimits(), RiskFocus: riskFocus,
-		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3execution.Result, []campaign.CoveragePoint, error) {
+		Executor: func(ctx context.Context, experiment protocolexperiment.Experiment) (umpire3execution.Result, []mutation.CoveragePoint, error) {
 			factory := &umpire3RequiredFootprintFactory{
 				umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
 			}
@@ -521,11 +524,11 @@ func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire
 				return result, nil, fmt.Errorf("faulted occurrence did not produce a conforming claim: %s", result.Claim.Reason)
 			}
 			if len(result.Faults) != 1 || !result.Faults[0].Realized || !result.Faults[0].CleanupComplete {
-				return result, nil, fmt.Errorf("faulted occurrence lacks realization or cleanup evidence")
+				return result, nil, errors.New("faulted occurrence lacks realization or cleanup evidence")
 			}
 			fault := experiment.Faults[0]
-			return result, []campaign.CoveragePoint{{
-				Kind: campaign.CoverageFault,
+			return result, []mutation.CoveragePoint{{
+				Kind: mutation.CoverageFault,
 				Identifier: fmt.Sprintf("%s/%s/%s#%d", umpire3FaultProtocol(fault),
 					fault.Scope.Services[0], fault.Scope.Routes[0], fault.Occurrence.First),
 			}}, nil
@@ -542,7 +545,7 @@ func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) sce
 	identifier := strings.NewReplacer("/", "-", ".", "-", "_", "-").Replace(
 		fmt.Sprintf("umpire3-fault-%s-%s-%s-%d", target.Protocol, target.Service, target.Route, target.Occurrence))
 	resource := scenario.NexusOperation(identifier + "-operation")
-	return scenario.FeatureNexusRegression(identifier, []scenario.Resource{resource},
+	return scenario.FeatureNexusScenario(identifier, []scenario.Resource{resource},
 		scenario.OnePath(
 			scenario.During(scenario.Drop(identifier+"-drop",
 				scenario.OnResources(resource),
@@ -556,43 +559,43 @@ func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) sce
 		))
 }
 
-func umpire3FaultCoverage(target umpire3fault.Footprint) campaign.CoveragePoint {
-	return campaign.CoveragePoint{
-		Kind:       campaign.CoverageFault,
+func umpire3FaultCoverage(target umpire3fault.Footprint) mutation.CoveragePoint {
+	return mutation.CoveragePoint{
+		Kind:       mutation.CoverageFault,
 		Identifier: fmt.Sprintf("%s/%s/%s#%d", target.Protocol, target.Service, target.Route, target.Occurrence),
 	}
 }
 
-func umpire3FaultProtocol(fault protocol.Fault) string {
+func umpire3FaultProtocol(fault protocolexperiment.Fault) string {
 	if len(fault.Scope.Services) != 0 && fault.Scope.Services[0] == "nexus" {
 		return "http"
 	}
 	return "grpc"
 }
 
-func runUmpire3NexusRandomCampaign(t *testing.T, seed int64, budget int) campaign.Report {
+func runUmpire3NexusRandomCampaign(t *testing.T, seed int64, budget int) mutation.Report {
 	t.Helper()
-	values, err := explore.NexusLifecycleValues()
+	values, err := exploration.NexusLifecycleValues()
 	require.NoError(t, err)
 	edges := make(map[string]string, len(values))
-	candidates := make([]campaign.Candidate, len(values))
+	candidates := make([]mutation.Candidate, len(values))
 	for index, value := range values {
 		identifier := "umpire3-random-" + strings.NewReplacer("/", "-", ".", "-").Replace(value.Key)
 		edges[identifier+"-path-001"] = value.Key
-		point := campaign.CoveragePoint{Kind: campaign.CoverageTransition, Identifier: value.Key}
+		point := mutation.CoveragePoint{Kind: mutation.CoverageTransition, Identifier: value.Key}
 		action, err := umpire3NexusCoverageAction(value.Text)
 		require.NoError(t, err)
-		candidates[index] = campaign.Candidate{
+		candidates[index] = mutation.Candidate{
 			Identifier: value.Key,
 			Scenario:   umpire3NexusActionRegression(identifier, action),
-			Coverage:   []campaign.CoveragePoint{point},
+			Coverage:   []mutation.CoveragePoint{point},
 		}
 	}
 	observer := newUmpire3NexusLifecycleObserver(t)
-	report, err := campaign.Run(context.Background(), campaign.Request{
+	report, err := mutation.Run(context.Background(), mutation.Request{
 		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
 		CompilerLimits: umpire3CompilerLimits(),
-		Executor: func(ctx context.Context, experiment protocol.Experiment) (umpire3execution.Result, []campaign.CoveragePoint, error) {
+		Executor: func(ctx context.Context, experiment protocolexperiment.Experiment) (umpire3execution.Result, []mutation.CoveragePoint, error) {
 			edge, found := edges[experiment.ExperimentID]
 			if !found {
 				return umpire3execution.Result{}, nil,
@@ -603,7 +606,7 @@ func runUmpire3NexusRandomCampaign(t *testing.T, seed int64, budget int) campaig
 			}
 			return umpire3execution.Result{Claim: umpire3execution.Claim{
 				Kind: umpire3execution.ClaimConforming, Property: experiment.Property.Identifier,
-			}}, []campaign.CoveragePoint{{Kind: campaign.CoverageTransition, Identifier: edge}}, nil
+			}}, []mutation.CoveragePoint{{Kind: mutation.CoverageTransition, Identifier: edge}}, nil
 		},
 	})
 	require.NoError(t, err)
@@ -635,7 +638,7 @@ func umpire3DescriptorHasField(t *testing.T, fullName string) bool {
 
 func umpire3DropTerm() umpire3fault.Term {
 	return umpire3fault.Term{
-		Kind: protocol.FaultKindDrop,
+		Kind: protocolcatalog.FaultKindDrop,
 		Scope: umpire3fault.Scope{
 			Namespaces: []string{"umpire3-root"}, Services: []string{"nexus"},
 			Routes: []string{"/service/operation"},

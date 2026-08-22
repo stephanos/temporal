@@ -1,4 +1,4 @@
-import Temporal.Targets.NexusCancellationFencing
+import Temporal.Families.NexusCancellation.Targets.Finite
 import Umpire3.Explorer
 
 namespace Umpire3.Tests.FiniteExplorer

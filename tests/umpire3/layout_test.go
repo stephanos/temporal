@@ -17,28 +17,32 @@ import (
 func TestIndependentLayout(t *testing.T) {
 	root := "."
 	for _, path := range []string{
-		"campaign",
-		"canary",
-		"evidence",
+		"adapter",
+		"assurance",
+		"checker",
+		"conformance",
+		"deployment",
 		"execution",
-		"explore",
-		"fault",
-		"migration",
+		"exploration",
 		"model",
-		"participant",
-		"process",
-		"profile",
+		"mutation",
 		"protocol",
-		"qualification",
+		"regression",
 		"replay",
 		"scenario",
-		"temporal",
-		"umpire3test",
+		"internal/artifactio",
 		"internal/command",
+		"internal/generate",
+		"internal/subprocess",
 	} {
 		require.DirExists(t, filepath.Join(root, path))
 	}
-	for _, path := range []string{"artifact", "compiler", "environment", "regress", "runner", "runtime"} {
+	for _, path := range []string{
+		"artifact", "campaign", "canary", "clockskew", "compiler", "developerux", "environment",
+		"evidence", "explore", "familycheck", "fault", "migration", "mutationaudit", "observation",
+		"participant", "process", "profile", "qualification", "regress", "release", "resilience",
+		"runner", "runtime", "temporal", "umpire3test", "wirecase",
+	} {
 		_, err := os.Stat(filepath.Join(root, path))
 		require.ErrorIs(t, err, os.ErrNotExist)
 	}
@@ -88,28 +92,28 @@ func TestRootUmpireTestsUseIndependentSideBySideFiles(t *testing.T) {
 	}
 }
 
-func TestBlackBoxProfileDoesNotImportServerObservationInternals(t *testing.T) {
+func TestBlackBoxDeploymentDoesNotImportServerObservationInternals(t *testing.T) {
 	forbidden := []string{"go.temporal.io/server/service", "go.temporal.io/server/common/persistence",
 		"go.temporal.io/server/api/historyservice", "go.temporal.io/server/api/matchingservice"}
-	violations, err := findImportsWithPrefixes("profile", forbidden)
+	violations, err := findImportsWithPrefixes("deployment", forbidden)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
 
 func TestFoundationalPackageImportDirection(t *testing.T) {
 	allowed := map[string][]string{
-		"protocol":    nil,
-		"evidence":    nil,
-		"observation": {"protocol"},
-		"process":     nil,
-		"scenario":    {"protocol", "scenario"},
-		"execution":   {"evidence", "fault", "observation", "protocol"},
-		"fault":       {"protocol"},
-		"participant": {"protocol"},
-		"profile":     {"execution", "protocol"},
-		"replay":      {"evidence", "execution", "fault", "internal/artifact", "observation", "protocol"},
-		"campaign":    {"execution", "protocol", "replay", "scenario"},
-		"temporal":    {"execution", "fault", "observation", "participant", "profile", "protocol", "temporal", "temporal/internalhistory"},
+		"protocol":              {"protocol"},
+		"execution/evidence":    nil,
+		"execution/observation": {"protocol"},
+		"internal/subprocess":   nil,
+		"scenario":              {"checker/finite", "checker/trace", "protocol", "scenario"},
+		"execution":             {"checker/finite", "checker/trace", "execution/evidence", "execution/fault", "execution/observation", "protocol"},
+		"execution/fault":       {"protocol"},
+		"execution/participant": {"protocol"},
+		"deployment":            {"deployment", "execution", "internal/artifactio", "internal/subprocess", "protocol"},
+		"replay":                {"execution", "execution/evidence", "execution/fault", "execution/observation", "internal/artifactio", "protocol"},
+		"mutation":              {"checker/finite", "checker/trace", "execution", "protocol", "replay", "scenario"},
+		"adapter/temporal":      {"adapter/temporal", "adapter/temporal/internalhistory", "deployment", "execution", "execution/fault", "execution/observation", "execution/participant", "protocol"},
 	}
 	for packageName, dependencies := range allowed {
 		t.Run(packageName, func(t *testing.T) {
@@ -152,7 +156,8 @@ func TestProofHygieneAcceptsCheckedDefinitions(t *testing.T) {
 }
 
 func TestManifestCommand(t *testing.T) {
-	command := exec.Command("go", "run", "-tags", "test_dep", "./cmd/umpire3-manifest", "-lean-version", "4.33.0")
+	command := exec.Command("go", "run", "-tags", "test_dep", "./cmd/umpire3-dev",
+		"manifest", "-lean-version", "4.33.0")
 	output, err := command.CombinedOutput()
 	require.NoError(t, err, string(output))
 	require.JSONEq(t, `{
@@ -186,36 +191,18 @@ func TestVeilMakeTargetsDescribeExportsAndRecordedEvidence(t *testing.T) {
 	require.NotContains(t, source, "umpire3-gen-veil")
 }
 
-func TestTLAExperimentRequiresExplicitBuildTag(t *testing.T) {
-	for _, root := range []string{"cmd/umpire3-tla", "model-checkers/tla"} {
-		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
-			if err != nil || entry.IsDir() || filepath.Ext(path) != ".go" {
-				return err
-			}
-			source, err := os.ReadFile(path)
-			require.NoError(t, err)
-			require.True(t, strings.HasPrefix(string(source), "//go:build umpire3_tla_experiment\n\n"), path)
-			return nil
-		})
-		require.NoError(t, err)
+func TestExcludedTLAExperimentIsAbsent(t *testing.T) {
+	for _, root := range []string{"cmd/umpire3-tla", "checker/tla"} {
+		_, err := os.Stat(root)
+		require.ErrorIs(t, err, os.ErrNotExist)
 	}
 }
 
-func TestDefaultUmpire3MakeGraphExcludesTLAExperiment(t *testing.T) {
+func TestUmpire3MakeGraphHasNoTLAExperiment(t *testing.T) {
 	makefile, err := os.ReadFile("../../Makefile")
 	require.NoError(t, err)
-	dependencies := makeTargetDependencies(string(makefile))
-	for _, root := range []string{
-		"umpire3-gen",
-		"umpire3-check-generated",
-		"umpire3-check",
-		"umpire3-gen-release",
-		"umpire3-check-release",
-	} {
-		for target := range makeDependencyClosure(dependencies, root) {
-			require.NotContains(t, target, "experimental-tla", "%s reaches %s", root, target)
-		}
-	}
+	require.NotContains(t, string(makefile), "umpire3_tla")
+	require.NotContains(t, string(makefile), "experimental-tla")
 }
 
 func makeTargetDependencies(source string) map[string][]string {
@@ -318,7 +305,14 @@ func findUnexpectedUmpire3Imports(root string, allowed []string) ([]string, erro
 			if !strings.HasPrefix(importPath, prefix) {
 				continue
 			}
-			if _, ok := allowedImports[importPath]; ok {
+			allowedImport := false
+			for allowedPath := range allowedImports {
+				if importPath == allowedPath || strings.HasPrefix(importPath, allowedPath+"/") {
+					allowedImport = true
+					break
+				}
+			}
+			if allowedImport {
 				continue
 			}
 			relative, err := filepath.Rel(root, path)

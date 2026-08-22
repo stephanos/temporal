@@ -35,11 +35,12 @@ import (
 	"go.temporal.io/server/components/callbacks"
 	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire3/observation"
-	"go.temporal.io/server/tests/umpire3/participant"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	umpire3temporal "go.temporal.io/server/tests/umpire3/adapter/temporal"
+	"go.temporal.io/server/tests/umpire3/execution/observation"
+	"go.temporal.io/server/tests/umpire3/execution/participant"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 	"go.temporal.io/server/tests/umpire3/scenario"
-	umpire3temporal "go.temporal.io/server/tests/umpire3/temporal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -163,6 +164,7 @@ func (o *umpire3NexusLifecycleObserver) prepare(
 		case "backing-off":
 			hookCleanup = o.env.InjectHook(testhooks.NewHook(testhooks.NexusOperationForceTimeout,
 				testhooks.NexusForceTimeoutFromBackingOff))
+		default:
 		}
 	}
 	startToClose := 2 * time.Minute
@@ -349,6 +351,8 @@ func (o *umpire3NexusLifecycleObserver) respondTerminal(
 		response.Variant = &nexuspb.StartOperationResponse_OperationError{OperationError: &nexuspb.UnsuccessfulOperationError{
 			OperationState: action + "ed", Failure: &nexuspb.Failure{Message: "Umpire3 generated " + action},
 		}}
+	default:
+		return fmt.Errorf("unsupported Nexus terminal action %q", action)
 	}
 	_, err := o.env.FrontendClient().RespondNexusTaskCompleted(ctx,
 		&workflowservice.RespondNexusTaskCompletedRequest{
@@ -384,6 +388,8 @@ func (o *umpire3NexusLifecycleObserver) completeAsync(
 		options.Error = nexus.NewOperationFailedErrorf("Umpire3 generated asynchronous failure")
 	case "cancel":
 		options.Error = nexus.NewOperationCanceledErrorf("Umpire3 generated asynchronous cancellation")
+	default:
+		return fmt.Errorf("unsupported asynchronous Nexus action %q", action)
 	}
 	client := nexusrpc.NewCompletionHTTPClient(nexusrpc.CompletionHTTPClientOptions{
 		Serializer: commonnexus.PayloadSerializer,
@@ -494,9 +500,9 @@ func TestUmpire3NexusBehaviorModeUsesTypedScenarioIntent(t *testing.T) {
 	t.Parallel()
 
 	completion := string(scenario.NexusCompletionFailed)
-	mode, handled, err := umpire3NexusBehaviorMode(participant.Operation{Arguments: []protocol.NamedValue{{
+	mode, handled, err := umpire3NexusBehaviorMode(participant.Operation{Arguments: []protocolexperiment.NamedValue{{
 		Name:  "nexus-completion",
-		Value: protocol.Value{Type: protocol.ValueString, Text: &completion},
+		Value: protocolexperiment.Value{Type: protocolexperiment.ValueString, Text: &completion},
 	}}}, "")
 	require.NoError(t, err)
 	require.True(t, handled)
@@ -518,10 +524,10 @@ func TestUmpire3NexusBehaviorPlannedModeAppliesToGeneratedPrerequisites(t *testi
 
 	completion := string(scenario.NexusCompletionBeforeStart)
 	program := participant.Program{Commands: []participant.Command{
-		{Identifier: "generated-schedule", SemanticAction: string(protocol.ActionKindScheduleOperation)},
-		{Identifier: "complete", SemanticAction: string(protocol.ActionKindWorkerReturnsSuccess),
-			Arguments: []protocol.NamedValue{{
-				Name: "nexus-completion", Value: protocol.Value{Type: protocol.ValueString, Text: &completion},
+		{Identifier: "generated-schedule", SemanticAction: string(protocolcatalog.ActionKindScheduleOperation)},
+		{Identifier: "complete", SemanticAction: string(protocolcatalog.ActionKindWorkerReturnsSuccess),
+			Arguments: []protocolexperiment.NamedValue{{
+				Name: "nexus-completion", Value: protocolexperiment.Value{Type: protocolexperiment.ValueString, Text: &completion},
 			}}},
 	}}
 	planned, err := umpire3NexusBehaviorPlannedMode(program)
@@ -546,7 +552,7 @@ func TestUmpire3NexusProgressFactsProveClosedRetryDeadlineViolation(t *testing.T
 
 	catalog, err := observation.DefaultCatalog()
 	require.NoError(t, err)
-	program, ok := catalog.Program(protocol.ObservationIDNexusOperationProgressed)
+	program, ok := catalog.Program(protocolcatalog.ObservationIDNexusOperationProgressed)
 	require.True(t, ok)
 	require.Equal(t, observation.False, program.Evaluate(facts).Value)
 }
@@ -564,7 +570,7 @@ func TestUmpire3NexusProgressFactsProveRetrySettlement(t *testing.T) {
 
 	catalog, err := observation.DefaultCatalog()
 	require.NoError(t, err)
-	program, ok := catalog.Program(protocol.ObservationIDNexusOperationProgressed)
+	program, ok := catalog.Program(protocolcatalog.ObservationIDNexusOperationProgressed)
 	require.True(t, ok)
 	require.Equal(t, observation.True, program.Evaluate(facts).Value)
 }
@@ -582,7 +588,7 @@ func umpire3NexusBehaviorMode(operation participant.Operation, current string) (
 		if argument.Name != "nexus-completion" {
 			continue
 		}
-		if argument.Value.Type != protocol.ValueString || argument.Value.Text == nil {
+		if argument.Value.Type != protocolexperiment.ValueString || argument.Value.Text == nil {
 			return "", true, errors.New("Nexus completion mode requires a string value")
 		}
 		candidate := *argument.Value.Text
@@ -639,7 +645,7 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 	}
 	if mode == string(scenario.NexusCompletionRetryStuck) ||
 		mode == string(scenario.NexusCompletionRetryThenSuccess) {
-		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
+		if operation.SemanticAction != string(protocolcatalog.ActionKindCloseNexusOperation) {
 			return umpire3temporal.MechanismReceipt{}, true,
 				fmt.Errorf("retrying Nexus completion does not support action %q", operation.SemanticAction)
 		}
@@ -662,7 +668,7 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 			err = d.closeNexusProgressWindow(ctx, mode == string(scenario.NexusCompletionRetryThenSuccess))
 		}
 	} else if mode == string(scenario.NexusCompletionFailed) {
-		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
+		if operation.SemanticAction != string(protocolcatalog.ActionKindCloseNexusOperation) {
 			return umpire3temporal.MechanismReceipt{}, true,
 				fmt.Errorf("failed Nexus completion does not support action %q", operation.SemanticAction)
 		}
@@ -676,7 +682,7 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 			err = d.persistNexusBehavior(ctx)
 		}
 	} else if mode == string(scenario.NexusCompletionOpenAtCallerClose) {
-		if operation.SemanticAction != string(protocol.ActionKindCloseNexusOperation) {
+		if operation.SemanticAction != string(protocolcatalog.ActionKindCloseNexusOperation) {
 			return umpire3temporal.MechanismReceipt{}, true,
 				fmt.Errorf("open Nexus completion does not support action %q", operation.SemanticAction)
 		}
@@ -691,13 +697,13 @@ func (d *umpire3NexusBehaviorDriver) ExecuteNexusAction(
 		}
 	} else {
 		switch operation.SemanticAction {
-		case string(protocol.ActionKindScheduleOperation):
+		case string(protocolcatalog.ActionKindScheduleOperation):
 			err = d.scheduleNexusBehavior(ctx, programID, mode)
-		case string(protocol.ActionKindDispatchTask):
+		case string(protocolcatalog.ActionKindDispatchTask):
 			err = d.dispatchNexusBehavior(ctx)
-		case string(protocol.ActionKindWorkerReturnsSuccess):
+		case string(protocolcatalog.ActionKindWorkerReturnsSuccess):
 			err = d.completeNexusBehaviorWorker(ctx)
-		case string(protocol.ActionKindPersistSuccess):
+		case string(protocolcatalog.ActionKindPersistSuccess):
 			err = d.persistNexusBehavior(ctx)
 		default:
 			return umpire3temporal.MechanismReceipt{}, true,
@@ -1120,7 +1126,7 @@ func umpire3NexusProgressFacts(
 			},
 		}
 	}
-	progress := observation.Fact{}
+	var progress observation.Fact
 	if execution.progressViolated {
 		progress = mechanism(2, observation.NexusProgressDeadlineExpired, "open")
 	} else if execution.progressSettledSequence > 0 {
@@ -1133,10 +1139,10 @@ func umpire3NexusProgressFacts(
 		progress,
 		{
 			Identifier: fmt.Sprintf("window/%s/%s/3", entity,
-				protocol.ObservationIDNexusOperationProgressed),
-			Source: source(3, string(protocol.ObservationIDNexusOperationProgressed)),
+				protocolcatalog.ObservationIDNexusOperationProgressed),
+			Source: source(3, string(protocolcatalog.ObservationIDNexusOperationProgressed)),
 			Window: &observation.EvidenceWindow{
-				Purpose: string(protocol.ObservationIDNexusOperationProgressed),
+				Purpose: string(protocolcatalog.ObservationIDNexusOperationProgressed),
 				Closed:  true, ThroughSequence: 3,
 			},
 		},
@@ -1531,7 +1537,7 @@ func (d *umpire3NexusActivityLinkDriver) Validate(ctx context.Context, parentIde
 }
 
 func (d *umpire3NexusActivityLinkDriver) completeFacts(
-	checkpoint protocol.Checkpoint,
+	checkpoint protocolexperiment.Checkpoint,
 	facts []observation.Fact,
 ) ([]observation.Fact, error) {
 	d.mu.Lock()
@@ -2293,16 +2299,16 @@ func (d *umpire3CallbackDriver) completeNexusCallbackAfterCaller(
 	}, nil
 }
 
-func (d *umpire3CallbackDriver) ValidatedObservation(observation string) bool {
+func (d *umpire3CallbackDriver) ValidatedObservation(observationID string) bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.execution == nil {
 		return false
 	}
-	switch observation {
-	case string(protocol.ObservationIDCallbackReferenceValid):
+	switch observationID {
+	case string(protocolcatalog.ObservationIDCallbackReferenceValid):
 		return d.execution.referenceValidated
-	case string(protocol.ObservationIDCallbackResponseConsistent):
+	case string(protocolcatalog.ObservationIDCallbackResponseConsistent):
 		return d.execution.referenceValidated && d.execution.responseValidated
 	default:
 		return false

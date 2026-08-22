@@ -3,7 +3,7 @@ package nexus
 import (
 	"runtime"
 
-	"go.temporal.io/server/tests/umpire3/protocol"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
 	"go.temporal.io/server/tests/umpire3/scenario"
 )
 
@@ -21,41 +21,41 @@ func (o OperationHandle) Resource() scenario.Resource {
 }
 
 func (o OperationHandle) Schedule(options ...scenario.ActionOption) scenario.Term {
-	return scenario.ActionAt(callerSource(), o.action("schedule"), protocol.ActionKindScheduleOperation, options...)
+	return scenario.ActionAt(callerSource(), o.action("schedule"), protocolcatalog.ActionKindScheduleOperation, options...)
 }
 
 func (o OperationHandle) Dispatch(options ...scenario.ActionOption) scenario.Term {
 	source := callerSource()
 	action := o.action("dispatch")
 	return scenario.OnePathAt(source,
-		scenario.ActionAt(source, action, protocol.ActionKindDispatchTask, options...),
+		scenario.ActionAt(source, action, protocolcatalog.ActionKindDispatchTask, options...),
 		scenario.BindAt(source, o.identity,
-			scenario.Project(action, "operation-id", protocol.SemanticTypeIDIdentity)),
+			scenario.Project(action, "operation-id", protocolcatalog.SemanticTypeIDIdentity)),
 	)
 }
 
 func (o OperationHandle) RequestCancellation(options ...scenario.ActionOption) scenario.Term {
-	return scenario.ActionAt(callerSource(), o.action("request-cancellation"), protocol.ActionKindRequestCancellation, options...)
+	return scenario.ActionAt(callerSource(), o.action("request-cancellation"), protocolcatalog.ActionKindRequestCancellation, options...)
 }
 
 func (o OperationHandle) CommitCancellation(options ...scenario.ActionOption) scenario.Term {
-	return o.identityAction("commit-cancellation", protocol.ActionKindCommitCancellation, options...)
+	return o.identityAction("commit-cancellation", protocolcatalog.ActionKindCommitCancellation, options...)
 }
 
 func (o OperationHandle) AcquireOwnership(options ...scenario.ActionOption) scenario.Term {
-	return o.identityAction("acquire-ownership", protocol.ActionKindAcquireOwnership, options...)
+	return o.identityAction("acquire-ownership", protocolcatalog.ActionKindAcquireOwnership, options...)
 }
 
 func (o OperationHandle) Retry(options ...scenario.ActionOption) scenario.Term {
-	return o.identityAction("retry", protocol.ActionKindRetryTask, options...)
+	return o.identityAction("retry", protocolcatalog.ActionKindRetryTask, options...)
 }
 
 func (o OperationHandle) WorkerReturnsSuccess(options ...scenario.ActionOption) scenario.Term {
-	return o.identityAction("worker-success", protocol.ActionKindWorkerReturnsSuccess, options...)
+	return o.identityAction("worker-success", protocolcatalog.ActionKindWorkerReturnsSuccess, options...)
 }
 
 func (o OperationHandle) PersistSuccess(options ...scenario.ActionOption) scenario.Term {
-	return o.identityAction("persist-success", protocol.ActionKindPersistSuccess, options...)
+	return o.identityAction("persist-success", protocolcatalog.ActionKindPersistSuccess, options...)
 }
 
 func (o OperationHandle) CancelWithRetry() scenario.Term {
@@ -72,17 +72,17 @@ func (o OperationHandle) CancelWithRetry() scenario.Term {
 }
 
 func (o OperationHandle) CancellationSafety() scenario.Term {
-	return scenario.RequireAt(callerSource(), protocol.PropertyIDNexusCancellationWonExcludesSuccess)
+	return scenario.RequireAt(callerSource(), protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess)
 }
 
-func Regression(identifier string, operation OperationHandle, root scenario.Term) scenario.Scenario {
-	return scenario.NewScenario(identifier, protocol.TargetIDNexusCancellation,
+func Scenario(identifier string, operation OperationHandle, root scenario.Term) scenario.Scenario {
+	return scenario.NewScenario(identifier, protocolcatalog.TargetIDNexusCancellation,
 		[]scenario.Resource{operation.Resource(), scenario.NexusWorker(operation.identifier + "-worker")}, root)
 }
 
 func (o OperationHandle) identityAction(
 	suffix string,
-	kind protocol.ActionKind,
+	kind protocolcatalog.ActionKind,
 	options ...scenario.ActionOption,
 ) scenario.Term {
 	options = append([]scenario.ActionOption{scenario.WithArgument("operation", o.identity.Value())}, options...)

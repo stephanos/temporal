@@ -6,17 +6,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/assurance/audit/documentationaudit"
 )
 
 func TestDocumentationAuditBindsEveryPublishedDocument(t *testing.T) {
-	report, err := AuditDocumentation()
+	report, err := documentationaudit.Audit(PublishedDocumentation)
 	require.NoError(t, err)
-	entries, err := os.ReadDir(".")
+	entries, err := os.ReadDir("docs")
 	require.NoError(t, err)
-	var published []string
+	published := []string{"README.md"}
 	for _, entry := range entries {
 		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".md" {
-			published = append(published, entry.Name())
+			published = append(published, filepath.ToSlash(filepath.Join("docs", entry.Name())))
 		}
 	}
 	audited := make([]string, len(report.Documents))
@@ -25,8 +26,4 @@ func TestDocumentationAuditBindsEveryPublishedDocument(t *testing.T) {
 	}
 	require.Equal(t, published, audited)
 	require.NoError(t, report.Validate())
-
-	report.Documents[0].Bytes = 0
-	report.ArtifactDigest = report.computedDigest()
-	require.ErrorContains(t, report.Validate(), "incomplete")
 }

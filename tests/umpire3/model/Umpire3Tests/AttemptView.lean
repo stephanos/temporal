@@ -1,4 +1,4 @@
-import Temporal.Targets.NexusCancellationFencingAttempt
+import Temporal.Families.NexusCancellation.Targets.Attempt
 
 namespace Umpire3.Tests.AttemptView
 

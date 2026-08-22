@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	"go.temporal.io/server/tests/umpire3/checker/finite"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolchecker "go.temporal.io/server/tests/umpire3/protocol/checker"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 func TestCompileAllPathsCompletesDependenciesDeterministically(t *testing.T) {
@@ -15,15 +18,15 @@ func TestCompileAllPathsCompletesDependenciesDeterministically(t *testing.T) {
 
 	scenario := Scenario{
 		Identifier: "nexus-cancel",
-		Target:     protocol.TargetIDNexusCancellation,
-		Resources:  []Resource{{Identifier: "operation", Kind: protocol.EntityKindNexusOperation}},
+		Target:     protocolcatalog.TargetIDNexusCancellation,
+		Resources:  []Resource{{Identifier: "operation", Kind: protocolcatalog.EntityKindNexusOperation}},
 		Root: AllPaths(
-			Action("cancel", protocol.ActionKindRequestCancellation),
+			Action("cancel", protocolcatalog.ActionKindRequestCancellation),
 			AnyOrder(
-				Action("commit", protocol.ActionKindCommitCancellation),
-				Action("ownership", protocol.ActionKindAcquireOwnership),
+				Action("commit", protocolcatalog.ActionKindCommitCancellation),
+				Action("ownership", protocolcatalog.ActionKindAcquireOwnership),
 			),
-			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+			Require(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}
 	limits := Limits{MaxPaths: 8, MaxActions: 8, MaxStates: 100, MaxMemoryBytes: 1 << 20, MaxTime: time.Second}
@@ -54,18 +57,18 @@ func TestCompileCarriesParticipantResponseSemanticsIntoExperiment(t *testing.T) 
 
 	suite, err := Compile(context.Background(), Scenario{
 		Identifier: "deferred-callback",
-		Target:     protocol.TargetIDProtocolAtomic,
-		Resources:  []Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
+		Target:     protocolcatalog.TargetIDProtocolAtomic,
+		Resources:  []Resource{{Identifier: "callback", Kind: protocolcatalog.EntityKindCallback}},
 		Root: OnePath(
-			Action("respond", protocol.ActionKindRecordCallbackResponse,
-				WithResponse(protocol.ResponseDeferred)),
-			Require(protocol.PropertyIDCallbackResponseConsistency),
+			Action("respond", protocolcatalog.ActionKindRecordCallbackResponse,
+				WithResponse(protocolexperiment.ResponseDeferred)),
+			Require(protocolcatalog.PropertyIDCallbackResponseConsistency),
 		),
 	}, Limits{MaxPaths: 1, MaxActions: 1, MaxStates: 4, MaxMemoryBytes: 1 << 20, MaxTime: time.Second})
 	require.NoError(t, err)
-	require.Equal(t, protocol.ResponseDeferred, suite.Experiments[0].Actions[0].ResponseMode)
+	require.Equal(t, protocolexperiment.ResponseDeferred, suite.Experiments[0].Actions[0].ResponseMode)
 	require.Equal(t, ModelReplayChecked, suite.Explain.ModelReplay.Status)
-	require.Equal(t, "Umpire3.Temporal.System.MigratedFamilies.CallbackResponse.behavior",
+	require.Equal(t, "Umpire3.Temporal.System.CallbackResponse.behavior",
 		suite.Explain.ModelReplay.CanonicalModel)
 }
 
@@ -74,14 +77,14 @@ func TestCompileAllPathsEnumeratesOnlyValidLinearizations(t *testing.T) {
 
 	scenario := Scenario{
 		Identifier: "unordered-assurance",
-		Target:     protocol.TargetIDProtocolAtomic,
-		Resources:  []Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
+		Target:     protocolcatalog.TargetIDProtocolAtomic,
+		Resources:  []Resource{{Identifier: "callback", Kind: protocolcatalog.EntityKindCallback}},
 		Root: AllPaths(
 			AnyOrder(
-				Action("left", protocol.ActionKindRecordCallbackResponse),
-				Action("right", protocol.ActionKindRecordCallbackResponse),
+				Action("left", protocolcatalog.ActionKindRecordCallbackResponse),
+				Action("right", protocolcatalog.ActionKindRecordCallbackResponse),
 			),
-			Require(protocol.PropertyIDCallbackResponseConsistency),
+			Require(protocolcatalog.PropertyIDCallbackResponseConsistency),
 		),
 	}
 
@@ -97,14 +100,14 @@ func TestCompileFailsInsteadOfTruncatingAllPaths(t *testing.T) {
 
 	scenario := Scenario{
 		Identifier: "bounded-unordered",
-		Target:     protocol.TargetIDProtocolAtomic,
-		Resources:  []Resource{{Identifier: "callback", Kind: protocol.EntityKindCallback}},
+		Target:     protocolcatalog.TargetIDProtocolAtomic,
+		Resources:  []Resource{{Identifier: "callback", Kind: protocolcatalog.EntityKindCallback}},
 		Root: AllPaths(
 			AnyOrder(
-				Action("left", protocol.ActionKindRecordCallbackResponse),
-				Action("right", protocol.ActionKindRecordCallbackResponse),
+				Action("left", protocolcatalog.ActionKindRecordCallbackResponse),
+				Action("right", protocolcatalog.ActionKindRecordCallbackResponse),
 			),
-			Require(protocol.PropertyIDCallbackResponseConsistency),
+			Require(protocolcatalog.PropertyIDCallbackResponseConsistency),
 		),
 	}
 
@@ -117,23 +120,23 @@ func TestCompileFailsInsteadOfTruncatingAllPaths(t *testing.T) {
 func TestCompileGroundsTypedSymbolAndAddsCausalOrder(t *testing.T) {
 	t.Parallel()
 
-	runID := Symbol{Name: "run-id", Type: protocol.SemanticTypeIDIdentity}
+	runID := Symbol{Name: "run-id", Type: protocolcatalog.SemanticTypeIDIdentity}
 	scenario := Scenario{
 		Identifier: "update-identity",
-		Target:     protocol.TargetIDWorkflowUpdateLifecycle,
+		Target:     protocolcatalog.TargetIDWorkflowUpdateLifecycle,
 		Resources: []Resource{
-			{Identifier: "workflow", Kind: protocol.EntityKindWorkflow},
-			{Identifier: "update", Kind: protocol.EntityKindWorkflowUpdate},
+			{Identifier: "workflow", Kind: protocolcatalog.EntityKindWorkflow},
+			{Identifier: "update", Kind: protocolcatalog.EntityKindWorkflowUpdate},
 		},
 		Root: OnePath(
-			Action("start", protocol.ActionKindStartUpdate),
-			Bind(runID, Project("start", "update-id", protocol.SemanticTypeIDIdentity)),
-			Action("dispatch", protocol.ActionKindDispatchWorkflowTask, WithArgument("update", runID.Value())),
-			Action("accept", protocol.ActionKindAcceptUpdate),
-			Action("history", protocol.ActionKindRecordUpdateHistory),
-			Action("complete-task", protocol.ActionKindCompleteWorkflowTask),
-			Action("complete", protocol.ActionKindCompleteUpdate),
-			Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+			Action("start", protocolcatalog.ActionKindStartUpdate),
+			Bind(runID, Project("start", "update-id", protocolcatalog.SemanticTypeIDIdentity)),
+			Action("dispatch", protocolcatalog.ActionKindDispatchWorkflowTask, WithArgument("update", runID.Value())),
+			Action("accept", protocolcatalog.ActionKindAcceptUpdate),
+			Action("history", protocolcatalog.ActionKindRecordUpdateHistory),
+			Action("complete-task", protocolcatalog.ActionKindCompleteWorkflowTask),
+			Action("complete", protocolcatalog.ActionKindCompleteUpdate),
+			Require(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
 		),
 	}
 
@@ -142,11 +145,11 @@ func TestCompileGroundsTypedSymbolAndAddsCausalOrder(t *testing.T) {
 	require.Len(t, suite.Explain.Identities, 1)
 	require.Equal(t, "start", suite.Explain.Identities[0].ProducerAction)
 	require.Equal(t, []string{"dispatch"}, suite.Explain.Identities[0].ConsumerActions)
-	require.Contains(t, suite.Experiments[0].Actions[0].Bindings, protocol.Binding{
+	require.Contains(t, suite.Experiments[0].Actions[0].Bindings, protocolexperiment.Binding{
 		Symbol: "run-id", Type: "identity", Projection: "update-id",
 	})
-	require.Contains(t, suite.Experiments[0].Order, protocol.OrderConstraint{
-		Before: "start", After: "dispatch", Relation: protocol.OrderRuntimeCausal,
+	require.Contains(t, suite.Experiments[0].Order, protocolexperiment.OrderConstraint{
+		Before: "start", After: "dispatch", Relation: protocolexperiment.OrderRuntimeCausal,
 	})
 }
 
@@ -155,15 +158,15 @@ func TestCompileReportsSourceBearingBindingErrors(t *testing.T) {
 
 	scenario := Scenario{
 		Identifier: "bad-binding",
-		Target:     protocol.TargetIDWorkflowUpdateLifecycle,
-		Resources:  []Resource{{Identifier: "update", Kind: protocol.EntityKindWorkflowUpdate}},
+		Target:     protocolcatalog.TargetIDWorkflowUpdateLifecycle,
+		Resources:  []Resource{{Identifier: "update", Kind: protocolcatalog.EntityKindWorkflowUpdate}},
 		Root: OnePath(
-			ActionAt(Source{File: "scenario_test.go", Line: 42}, "start", protocol.ActionKindStartUpdate),
+			ActionAt(Source{File: "scenario_test.go", Line: 42}, "start", protocolcatalog.ActionKindStartUpdate),
 			BindAt(Source{File: "scenario_test.go", Line: 43},
-				Symbol{Name: "run-id", Type: protocol.SemanticTypeIDString},
-				Project("start", "missing", protocol.SemanticTypeIDIdentity),
+				Symbol{Name: "run-id", Type: protocolcatalog.SemanticTypeIDString},
+				Project("start", "missing", protocolcatalog.SemanticTypeIDIdentity),
 			),
-			Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+			Require(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
 		),
 	}
 
@@ -180,19 +183,19 @@ func TestCompileSupportsDuringRepeatAndBefore(t *testing.T) {
 
 	scenario := Scenario{
 		Identifier: "fault-shape",
-		Target:     protocol.TargetIDNexusCancellation,
-		Resources:  []Resource{{Identifier: "operation", Kind: protocol.EntityKindNexusOperation}},
+		Target:     protocolcatalog.TargetIDNexusCancellation,
+		Resources:  []Resource{{Identifier: "operation", Kind: protocolcatalog.EntityKindNexusOperation}},
 		Root: OnePath(
-			Action("schedule", protocol.ActionKindScheduleOperation),
-			Action("dispatch", protocol.ActionKindDispatchTask),
+			Action("schedule", protocolcatalog.ActionKindScheduleOperation),
+			Action("dispatch", protocolcatalog.ActionKindDispatchTask),
 			Before(
-				Action("cancel", protocol.ActionKindRequestCancellation),
+				Action("cancel", protocolcatalog.ActionKindRequestCancellation),
 				During(
-					Fault("stale", protocol.FaultKindStaleWorkerCompletion),
-					Repeat(2, Action("retry", protocol.ActionKindRetryTask)),
+					Fault("stale", protocolcatalog.FaultKindStaleWorkerCompletion),
+					Repeat(2, Action("retry", protocolcatalog.ActionKindRetryTask)),
 				),
 			),
-			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+			Require(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}
 
@@ -208,21 +211,21 @@ func TestCompileRejectsPathThatCanonicalModelCannotExecute(t *testing.T) {
 
 	authored := Scenario{
 		Identifier: "impossible-stale-success",
-		Target:     protocol.TargetIDNexusCancellation,
+		Target:     protocolcatalog.TargetIDNexusCancellation,
 		Resources: []Resource{
-			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
-			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+			{Identifier: "operation", Kind: protocolcatalog.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocolcatalog.EntityKindNexusWorker},
 		},
 		Root: OnePath(
-			Action("schedule", protocol.ActionKindScheduleOperation),
-			Action("dispatch", protocol.ActionKindDispatchTask),
-			Action("cancel", protocol.ActionKindRequestCancellation),
-			Action("commit", protocol.ActionKindCommitCancellation),
-			Action("ownership", protocol.ActionKindAcquireOwnership),
-			Action("returned", protocol.ActionKindWorkerReturnsSuccess),
-			Action("persist", protocol.ActionKindPersistSuccess,
-				WithOutcomes(protocol.ActionOutcomeApplied)),
-			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+			Action("schedule", protocolcatalog.ActionKindScheduleOperation),
+			Action("dispatch", protocolcatalog.ActionKindDispatchTask),
+			Action("cancel", protocolcatalog.ActionKindRequestCancellation),
+			Action("commit", protocolcatalog.ActionKindCommitCancellation),
+			Action("ownership", protocolcatalog.ActionKindAcquireOwnership),
+			Action("returned", protocolcatalog.ActionKindWorkerReturnsSuccess),
+			Action("persist", protocolcatalog.ActionKindPersistSuccess,
+				WithOutcomes(protocolexperiment.ActionOutcomeApplied)),
+			Require(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}
 
@@ -239,20 +242,20 @@ func TestCompilePreservesSuppressedAttemptWithoutApplyingAbstractTransition(t *t
 
 	authored := Scenario{
 		Identifier: "suppressed-stale-success",
-		Target:     protocol.TargetIDNexusCancellation,
+		Target:     protocolcatalog.TargetIDNexusCancellation,
 		Resources: []Resource{
-			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
-			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+			{Identifier: "operation", Kind: protocolcatalog.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocolcatalog.EntityKindNexusWorker},
 		},
 		Root: OnePath(
-			Action("schedule", protocol.ActionKindScheduleOperation),
-			Action("dispatch", protocol.ActionKindDispatchTask),
-			Action("cancel", protocol.ActionKindRequestCancellation),
-			Action("commit", protocol.ActionKindCommitCancellation),
-			Action("ownership", protocol.ActionKindAcquireOwnership),
-			Action("returned", protocol.ActionKindWorkerReturnsSuccess),
-			Action("persist", protocol.ActionKindPersistSuccess),
-			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+			Action("schedule", protocolcatalog.ActionKindScheduleOperation),
+			Action("dispatch", protocolcatalog.ActionKindDispatchTask),
+			Action("cancel", protocolcatalog.ActionKindRequestCancellation),
+			Action("commit", protocolcatalog.ActionKindCommitCancellation),
+			Action("ownership", protocolcatalog.ActionKindAcquireOwnership),
+			Action("returned", protocolcatalog.ActionKindWorkerReturnsSuccess),
+			Action("persist", protocolcatalog.ActionKindPersistSuccess),
+			Require(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}
 
@@ -263,12 +266,12 @@ func TestCompilePreservesSuppressedAttemptWithoutApplyingAbstractTransition(t *t
 	require.Equal(t, ModelReplayChecked, suite.Explain.ModelReplay.Status)
 	require.Equal(t, "sound", suite.Explain.ModelReplay.Variant)
 	persist := suite.Experiments[0].Actions[len(suite.Experiments[0].Actions)-1]
-	require.Equal(t, []protocol.ActionOutcome{
-		protocol.ActionOutcomeApplied,
-		protocol.ActionOutcomeSuppressed,
-		protocol.ActionOutcomeRejected,
-		protocol.ActionOutcomeRetried,
-		protocol.ActionOutcomeFaultIntercepted,
+	require.Equal(t, []protocolexperiment.ActionOutcome{
+		protocolexperiment.ActionOutcomeApplied,
+		protocolexperiment.ActionOutcomeSuppressed,
+		protocolexperiment.ActionOutcomeRejected,
+		protocolexperiment.ActionOutcomeRetried,
+		protocolexperiment.ActionOutcomeFaultIntercepted,
 	}, persist.AllowedOutcomes)
 }
 
@@ -277,25 +280,25 @@ func TestCompileReplaysFaultChallengeThroughMutatedExecutableView(t *testing.T) 
 
 	authored := Scenario{
 		Identifier: "checked-stale-success-challenge",
-		Target:     protocol.TargetIDNexusCancellation,
+		Target:     protocolcatalog.TargetIDNexusCancellation,
 		Resources: []Resource{
-			{Identifier: "operation", Kind: protocol.EntityKindNexusOperation},
-			{Identifier: "worker", Kind: protocol.EntityKindNexusWorker},
+			{Identifier: "operation", Kind: protocolcatalog.EntityKindNexusOperation},
+			{Identifier: "worker", Kind: protocolcatalog.EntityKindNexusWorker},
 		},
 		Root: OnePath(
-			Action("schedule", protocol.ActionKindScheduleOperation),
-			Action("dispatch", protocol.ActionKindDispatchTask),
-			Action("cancel", protocol.ActionKindRequestCancellation),
-			Action("commit", protocol.ActionKindCommitCancellation),
+			Action("schedule", protocolcatalog.ActionKindScheduleOperation),
+			Action("dispatch", protocolcatalog.ActionKindDispatchTask),
+			Action("cancel", protocolcatalog.ActionKindRequestCancellation),
+			Action("commit", protocolcatalog.ActionKindCommitCancellation),
 			During(
-				Fault("stale", protocol.FaultKindStaleWorkerCompletion),
+				Fault("stale", protocolcatalog.FaultKindStaleWorkerCompletion),
 				OnePath(
-					Action("ownership", protocol.ActionKindAcquireOwnership),
-					Action("returned", protocol.ActionKindWorkerReturnsSuccess),
-					Action("persist", protocol.ActionKindPersistSuccess),
+					Action("ownership", protocolcatalog.ActionKindAcquireOwnership),
+					Action("returned", protocolcatalog.ActionKindWorkerReturnsSuccess),
+					Action("persist", protocolcatalog.ActionKindPersistSuccess),
 				),
 			),
-			Require(protocol.PropertyIDNexusCancellationWonExcludesSuccess),
+			Require(protocolcatalog.PropertyIDNexusCancellationWonExcludesSuccess),
 		),
 	}
 
@@ -305,35 +308,35 @@ func TestCompileReplaysFaultChallengeThroughMutatedExecutableView(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(t, ModelReplayChecked, suite.Explain.ModelReplay.Status)
 	require.Equal(t, "stale-completion-guard-removed", suite.Explain.ModelReplay.Variant)
-	require.Equal(t, []protocol.ActionKind{protocol.ActionKindScheduleOperation},
+	require.Equal(t, []protocolcatalog.ActionKind{protocolcatalog.ActionKindScheduleOperation},
 		suite.Explain.ModelReplay.LiveOnlyActions)
 }
 
 func TestModelTraceReceiptMustMatchTheGeneratedExecutableView(t *testing.T) {
 	t.Parallel()
 
-	view, found, err := protocol.DefaultFirstOrderView(protocol.TargetIDNexusCancellation,
+	view, found, err := finite.DefaultFirstOrderView(protocolcatalog.TargetIDNexusCancellation,
 		"stale-completion-guard-removed")
 	require.NoError(t, err)
 	require.True(t, found)
-	input := protocol.TraceReplayInput{
-		FormatVersion: protocol.TraceReplayInputFormatVersion,
+	input := protocolchecker.TraceReplayInput{
+		FormatVersion: protocolchecker.TraceReplayInputFormatVersion,
 		Target:        view.Target,
 		Property:      view.Property,
 		World:         view.World,
 		Variant:       view.Variant,
 		SemanticHash:  "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-		Actions: []protocol.ActionKind{
-			protocol.ActionKindDispatchTask,
-			protocol.ActionKindAcquireOwnership,
-			protocol.ActionKindWorkerReturnsSuccess,
-			protocol.ActionKindPersistSuccess,
+		Actions: []protocolcatalog.ActionKind{
+			protocolcatalog.ActionKindDispatchTask,
+			protocolcatalog.ActionKindAcquireOwnership,
+			protocolcatalog.ActionKindWorkerReturnsSuccess,
+			protocolcatalog.ActionKindPersistSuccess,
 		},
 	}
 	digest, err := input.Digest()
 	require.NoError(t, err)
-	_, err = FromTraceReplayReceipt("mismatched-view", protocol.TraceReplayReceipt{
-		FormatVersion: protocol.TraceReplayReceiptFormatVersion,
+	_, err = FromTraceReplayReceipt("mismatched-view", protocolchecker.TraceReplayReceipt{
+		FormatVersion: protocolchecker.TraceReplayReceiptFormatVersion,
 		TraceDigest:   digest,
 		Target:        input.Target,
 		Property:      input.Property,
@@ -341,8 +344,8 @@ func TestModelTraceReceiptMustMatchTheGeneratedExecutableView(t *testing.T) {
 		Variant:       input.Variant,
 		SemanticHash:  input.SemanticHash,
 		Actions:       input.Actions,
-		Status:        protocol.TraceReplayAccepted,
-		TrustBadge:    protocol.TrustBadgeCheckedCertificate,
+		Status:        protocolchecker.TraceReplayAccepted,
+		TrustBadge:    protocolcatalog.TrustBadgeCheckedCertificate,
 		Axioms:        []string{},
 	})
 	require.ErrorContains(t, err, "does not match generated executable view")
@@ -351,17 +354,17 @@ func TestModelTraceReceiptMustMatchTheGeneratedExecutableView(t *testing.T) {
 func TestCompileRejectsCycleWithActionSource(t *testing.T) {
 	t.Parallel()
 
-	updateID := Symbol{Name: "update-id", Type: protocol.SemanticTypeIDIdentity}
+	updateID := Symbol{Name: "update-id", Type: protocolcatalog.SemanticTypeIDIdentity}
 	scenario := Scenario{
 		Identifier: "cycle",
-		Target:     protocol.TargetIDWorkflowUpdateLifecycle,
-		Resources:  []Resource{{Identifier: "update", Kind: protocol.EntityKindWorkflowUpdate}},
+		Target:     protocolcatalog.TargetIDWorkflowUpdateLifecycle,
+		Resources:  []Resource{{Identifier: "update", Kind: protocolcatalog.EntityKindWorkflowUpdate}},
 		Root: OnePath(
-			ActionAt(Source{File: "cycle_test.go", Line: 17}, "dispatch", protocol.ActionKindDispatchWorkflowTask,
+			ActionAt(Source{File: "cycle_test.go", Line: 17}, "dispatch", protocolcatalog.ActionKindDispatchWorkflowTask,
 				WithArgument("update", updateID.Value())),
-			Action("start", protocol.ActionKindStartUpdate),
-			Bind(updateID, Project("start", "update-id", protocol.SemanticTypeIDIdentity)),
-			Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+			Action("start", protocolcatalog.ActionKindStartUpdate),
+			Bind(updateID, Project("start", "update-id", protocolcatalog.SemanticTypeIDIdentity)),
+			Require(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
 		),
 	}
 
@@ -375,20 +378,20 @@ func TestCompileRejectsCycleWithActionSource(t *testing.T) {
 func TestCompileRejectsRebindAndProjectionTypeMismatch(t *testing.T) {
 	t.Parallel()
 
-	identity := Symbol{Name: "identity", Type: protocol.SemanticTypeIDIdentity}
+	identity := Symbol{Name: "identity", Type: protocolcatalog.SemanticTypeIDIdentity}
 	base := Scenario{
 		Identifier: "binding-error",
-		Target:     protocol.TargetIDWorkflowUpdateLifecycle,
-		Resources:  []Resource{{Identifier: "update", Kind: protocol.EntityKindWorkflowUpdate}},
+		Target:     protocolcatalog.TargetIDWorkflowUpdateLifecycle,
+		Resources:  []Resource{{Identifier: "update", Kind: protocolcatalog.EntityKindWorkflowUpdate}},
 	}
 
 	rebind := base
 	rebind.Root = OnePath(
-		Action("start", protocol.ActionKindStartUpdate),
-		Bind(identity, Project("start", "update-id", protocol.SemanticTypeIDIdentity)),
+		Action("start", protocolcatalog.ActionKindStartUpdate),
+		Bind(identity, Project("start", "update-id", protocolcatalog.SemanticTypeIDIdentity)),
 		BindAt(Source{File: "binding_test.go", Line: 9}, identity,
-			Project("start", "update-id", protocol.SemanticTypeIDIdentity)),
-		Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+			Project("start", "update-id", protocolcatalog.SemanticTypeIDIdentity)),
+		Require(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
 	)
 	_, err := Compile(context.Background(), rebind, Limits{MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second})
 	var compileErr *Error
@@ -398,11 +401,11 @@ func TestCompileRejectsRebindAndProjectionTypeMismatch(t *testing.T) {
 
 	mistyped := base
 	mistyped.Root = OnePath(
-		Action("start", protocol.ActionKindStartUpdate),
+		Action("start", protocolcatalog.ActionKindStartUpdate),
 		BindAt(Source{File: "binding_test.go", Line: 19},
-			Symbol{Name: "identity", Type: protocol.SemanticTypeIDString},
-			Project("start", "update-id", protocol.SemanticTypeIDString)),
-		Require(protocol.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
+			Symbol{Name: "identity", Type: protocolcatalog.SemanticTypeIDString},
+			Project("start", "update-id", protocolcatalog.SemanticTypeIDString)),
+		Require(protocolcatalog.PropertyIDWorkflowUpdateAcceptedCompletesThroughHistory),
 	)
 	_, err = Compile(context.Background(), mistyped, Limits{MaxPaths: 1, MaxActions: 8, MaxStates: 32, MaxMemoryBytes: 1 << 20, MaxTime: time.Second})
 	require.ErrorAs(t, err, &compileErr)
@@ -410,7 +413,7 @@ func TestCompileRejectsRebindAndProjectionTypeMismatch(t *testing.T) {
 	require.Equal(t, 19, compileErr.Source.Line)
 }
 
-func actionIdentifiers(experiment protocol.Experiment) []string {
+func actionIdentifiers(experiment protocolexperiment.Experiment) []string {
 	identifiers := make([]string, len(experiment.Actions))
 	for index, action := range experiment.Actions {
 		identifiers[index] = action.Identifier

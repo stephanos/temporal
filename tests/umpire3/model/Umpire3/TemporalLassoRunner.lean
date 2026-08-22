@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import Lean.Elab.Term
 import Lean.Util.CollectAxioms
-import Temporal.System.TaskDeliveryProgress
+import Temporal.Families.WorkflowProgress.Targets.TemporalSystem
 import Umpire3.Registration
 
 namespace Umpire3.TemporalLassoReplay
@@ -38,10 +38,10 @@ def checkRequest (request : Request) : Bool :=
 
 theorem checkedRequest (request : Request) (_accepted : checkRequest request = true) :
     ¬LeadsTo
-      Umpire3.Temporal.System.TaskDeliveryProgress.Unfinished
-      Umpire3.Temporal.System.TaskDeliveryProgress.Completed
-      Umpire3.Temporal.System.TaskDeliveryProgress.mutatedLasso.state := by
-  exact Umpire3.Temporal.System.TaskDeliveryProgress.mutatedLassoViolatesProgress
+      Umpire3.Temporal.Mechanisms.TaskDeliveryProgress.Unfinished
+      Umpire3.Temporal.Mechanisms.TaskDeliveryProgress.Completed
+      Umpire3.Temporal.Mechanisms.TaskDeliveryProgress.mutatedLasso.state := by
+  exact Umpire3.Temporal.Mechanisms.TaskDeliveryProgress.mutatedLassoViolatesProgress
 
 open Lean Elab Term in
 syntax (name := resolvedTemporalLassoAxioms) "resolved_temporal_lasso_axioms% " ident : term

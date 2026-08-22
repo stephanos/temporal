@@ -2,24 +2,24 @@ import Umpire3.Execution
 
 namespace Umpire3
 
-structure Refinement (system product : TransitionSystem) where
-  Relates : system.State → product.State → Prop
+structure Refinement (system feature : TransitionSystem) where
+  Relates : system.State → feature.State → Prop
   initial : ∀ systemState,
     system.Initial systemState →
-    ∃ productState, product.Initial productState ∧ Relates systemState productState
-  step : ∀ systemState productState action nextSystemState,
-    Relates systemState productState →
+    ∃ featureState, feature.Initial featureState ∧ Relates systemState featureState
+  step : ∀ systemState featureState action nextSystemState,
+    Relates systemState featureState →
     system.Step systemState action nextSystemState →
-    ∃ nextProductState,
-      product.StepStar productState nextProductState ∧
-      Relates nextSystemState nextProductState
+    ∃ nextFeatureState,
+      feature.StepStar featureState nextFeatureState ∧
+      Relates nextSystemState nextFeatureState
 
-def Refinement.Stutters (refinement : Refinement system product)
-    (systemState : system.State) (productState : product.State)
+def Refinement.Stutters (refinement : Refinement system feature)
+    (systemState : system.State) (featureState : feature.State)
     (action : system.Action) (nextSystemState : system.State) : Prop :=
-  refinement.Relates systemState productState ∧
+  refinement.Relates systemState featureState ∧
     system.Step systemState action nextSystemState ∧
-    refinement.Relates nextSystemState productState
+    refinement.Relates nextSystemState featureState
 
 def Refinement.identity (model : TransitionSystem) : Refinement model model where
   Relates := Eq
@@ -27,8 +27,8 @@ def Refinement.identity (model : TransitionSystem) : Refinement model model wher
     intro state initial
     exact ⟨state, initial, rfl⟩
   step := by
-    intro state productState action nextState related step
-    subst productState
+    intro state featureState action nextState related step
+    subst featureState
     exact ⟨nextState, model.stepStarSingle step, rfl⟩
 
 inductive ActionEmission (Action : Type u) where

@@ -9,10 +9,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tests/umpire3/checker/finite"
+	checkertrace "go.temporal.io/server/tests/umpire3/checker/trace"
 	"go.temporal.io/server/tests/umpire3/execution"
-	umpire3fault "go.temporal.io/server/tests/umpire3/fault"
-	"go.temporal.io/server/tests/umpire3/observation"
-	"go.temporal.io/server/tests/umpire3/protocol"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
+	"go.temporal.io/server/tests/umpire3/execution/observation"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
 )
 
 func TestEncodeRedactsConcreteRuntimeIdentities(t *testing.T) {
@@ -26,7 +29,7 @@ func TestEncodeRedactsConcreteRuntimeIdentities(t *testing.T) {
 			Identifier: "a1",
 			Kind:       "schedule-operation",
 			Evidence: execution.ActionEvidence{
-				Source: "cluster", Outcome: protocol.ActionOutcomeApplied,
+				Source: "cluster", Outcome: protocolexperiment.ActionOutcomeApplied,
 				SourceIdentity: "sensitive-action-source", Reference: "sensitive-reference",
 				EntityIdentity: "sensitive-entity", Lineage: []string{"sensitive-namespace", "sensitive-entity"},
 			},
@@ -118,16 +121,16 @@ func TestEncodeEnforcesArtifactLimit(t *testing.T) {
 
 func TestViolatingBundleRetainsDigestBoundSemanticTrace(t *testing.T) {
 	experiment := artifactExperiment(t)
-	view, found, err := protocol.DefaultAttemptExecutionView(experiment)
+	view, found, err := finite.DefaultAttemptExecutionView(experiment)
 	require.NoError(t, err)
 	require.True(t, found)
-	attempts := make([]protocol.ObservedAttempt, len(experiment.Actions))
+	attempts := make([]finite.ObservedAttempt, len(experiment.Actions))
 	for index, action := range experiment.Actions {
-		attempts[index] = protocol.ObservedAttempt{
-			Action: protocol.ActionKind(action.Kind), Outcome: protocol.ActionOutcomeApplied,
+		attempts[index] = finite.ObservedAttempt{
+			Action: protocolcatalog.ActionKind(action.Kind), Outcome: protocolexperiment.ActionOutcomeApplied,
 		}
 	}
-	trace, err := protocol.NewLiveSemanticTrace(experiment, view, attempts)
+	trace, err := checkertrace.NewLive(experiment, view, attempts)
 	require.NoError(t, err)
 	digest, err := experiment.Digest()
 	require.NoError(t, err)
@@ -147,7 +150,7 @@ func TestViolatingBundleRetainsDigestBoundSemanticTrace(t *testing.T) {
 	require.Equal(t, trace.Replay.Digest, record.Result.Trace.Replay.Digest)
 	require.NotEmpty(t, record.Result.EvidenceDigest)
 
-	record.Result.Trace.Steps[0].Outcome = protocol.ActionOutcomeSuppressed
+	record.Result.Trace.Steps[0].Outcome = protocolexperiment.ActionOutcomeSuppressed
 	tampered, err := json.Marshal(record)
 	require.NoError(t, err)
 	_, err = DecodeBundle(tampered, experiment.Retention.MaxArtifactBytes)
@@ -212,11 +215,11 @@ func TestFileCorpusDeduplicatesByExperimentDigest(t *testing.T) {
 	require.FileExists(t, filepath.Join(root, entries[0].Name()))
 }
 
-func artifactExperiment(t *testing.T) protocol.Experiment {
+func artifactExperiment(t *testing.T) protocolexperiment.Experiment {
 	t.Helper()
-	encoded, err := os.ReadFile("../testdata/nexus-cancellation.json")
+	encoded, err := os.ReadFile("../testdata/generated/nexus-cancellation.json")
 	require.NoError(t, err)
-	experiment, err := protocol.DecodeExperiment(bytes.NewReader(encoded), protocol.DefaultDecodeLimit)
+	experiment, err := protocolexperiment.DecodeExperiment(bytes.NewReader(encoded), protocolexperiment.DefaultDecodeLimit)
 	require.NoError(t, err)
 	return experiment
 }
