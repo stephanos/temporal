@@ -705,7 +705,8 @@ func (t *timerQueueActiveTaskExecutor) executeWorkflowRunTimeoutTask(
 	}
 
 	// First add timeout workflow event, no matter what we're doing next.
-	if err := workflow.TimeoutWorkflow(
+	if err := workflow.TimeoutWorkflowWithContext(
+		ctx,
 		mutableState,
 		retryState,
 		newRunID,
@@ -831,7 +832,7 @@ func (t *timerQueueActiveTaskExecutor) executeWorkflowExecutionTimeoutTask(
 		return errNoTimerFired
 	}
 
-	if err := workflow.TimeoutWorkflow(mutableState, enumspb.RETRY_STATE_TIMEOUT, ""); err != nil {
+	if err := workflow.TimeoutWorkflowWithContext(ctx, mutableState, enumspb.RETRY_STATE_TIMEOUT, ""); err != nil {
 		return err
 	}
 

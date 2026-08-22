@@ -30,6 +30,20 @@ var (
 	HistoryTransferTaskInterceptor           = newKey[func(historytasks.Task, func()), namespace.ID]()
 	HistoryDLQTaskDeleteInterceptor          = newKey[func(context.Context, *historyservice.DeleteDLQTasksRequest, func(context.Context, *historyservice.DeleteDLQTasksRequest) (*historyservice.DeleteDLQTasksResponse, error)) (*historyservice.DeleteDLQTasksResponse, error), global]()
 	NamespaceReplicationTaskInterceptor      = newKey[func(context.Context, *replicationspb.NamespaceTaskAttributes, func() error) error, namespace.Name]()
+	RPCFaultGenerator                        = newKey[func(context.Context, string, any, any, error) (bool, any, error), global]()
+	// NexusOperationForceTimeout, when set for a namespace, makes a Nexus operation in that
+	// namespace resolve as a schedule-to-close timeout instead of proceeding — so tests can
+	// reach the timed_out terminal deterministically without waiting out a real timer. The
+	// value names the source state the timeout fires from: NexusForceTimeoutFromScheduled
+	// (the invocation attempt times out) or NexusForceTimeoutFromBackingOff (the backoff
+	// retry task times out instead of rescheduling).
+	NexusOperationForceTimeout = newKey[string, namespace.ID]()
+)
+
+// Values for the NexusOperationForceTimeout hook.
+const (
+	NexusForceTimeoutFromScheduled  = "scheduled"
+	NexusForceTimeoutFromBackingOff = "backing_off"
 )
 
 // keyID is a unique identifier for a key, used as a map key.

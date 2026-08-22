@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 	commonpb "go.temporal.io/api/common/v1"
 	deploymentpb "go.temporal.io/api/deployment/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -20,6 +21,7 @@ import (
 	"go.temporal.io/server/common/backoff"
 	"go.temporal.io/server/common/primitives/timestamp"
 	"go.temporal.io/server/common/retrypolicy"
+	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/worker_versioning"
 	historyi "go.temporal.io/server/service/history/interfaces"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -317,6 +319,25 @@ func SetupNewWorkflowForRetryOrCron(
 	if err != nil {
 		return serviceerror.NewInternal("Failed to add workflow execution started event.")
 	}
+
+	// Emit an OTEL span event for the retry/cron successor's start, carrying its lineage (previous
+	// run + chain root) and the typed edge (retry vs cron), so the umpire observer links it into the
+	// run graph. See UMPIRE.md.
+	runInitiator := telemetry.RunInitiatorRetry
+	if initiator == enumspb.CONTINUE_AS_NEW_INITIATOR_CRON_SCHEDULE {
+		runInitiator = telemetry.RunInitiatorCron
+	}
+	newKey := newMutableState.GetWorkflowKey()
+	trace.SpanFromContext(ctx).AddEvent(telemetry.EventWorkflowExecutionStarted,
+		trace.WithAttributes(
+			telemetry.AttrWorkflowID.String(newKey.WorkflowID),
+			telemetry.AttrRunID.String(newKey.RunID),
+			telemetry.AttrNamespaceID.String(newKey.NamespaceID),
+			telemetry.AttrFirstRunID.String(newMutableState.GetExecutionInfo().GetFirstExecutionRunId()),
+			telemetry.AttrPreviousRunID.String(previousMutableState.GetExecutionState().GetRunId()),
+			telemetry.AttrRunInitiator.String(runInitiator),
+		),
+	)
 	var parentClock *clockspb.VectorClock
 	if parentInfo != nil {
 		parentClock = parentInfo.Clock

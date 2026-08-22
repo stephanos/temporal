@@ -1,0 +1,17 @@
+target	lean-tests
+feature-nexus	Umpire3Tests.Families.NexusClosure,Umpire3Tests.Families.NexusClosureLifecycle
+feature-nexus-progress	Umpire3Tests.Families.NexusProgress
+feature-workflow-speculative-delivery	Umpire3Tests.Families.SpeculativeTask
+foundation-backlog-ack	Umpire3Tests.Families.TaskAcknowledgement
+foundation-delivery-safety	Umpire3Tests.Families.WorkflowProgress
+foundation-ownership-fencing	Umpire3Tests.Families.WorkflowOwnership
+foundation-routing-isolation	Umpire3Tests.Families.WorkflowRoutingIsolation
+integration-activity-delivery	Umpire3Tests.Families.WorkflowProgress
+integration-callback-nexus	Umpire3Tests.Families.CallbackReference
+integration-callback-workflow	Umpire3Tests.Families.CallbackResponse
+integration-nexus-activity	Umpire3Tests.Families.NexusActivityLink
+integration-nexus-timeout	Umpire3Tests.Families.NexusTimeout
+integration-workflow-delivery	Umpire3Tests.Families.WorkflowProgress
+nexus-cancellation	Umpire3Tests.Families.NexusCancellation
+protocol-atomic	Umpire3Tests.Families.CallbackResponse
+workflow-update-lifecycle	Umpire3Tests.Families.UpdateLifecycle

@@ -39,6 +39,7 @@ import (
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/persistence/cassandra"
 	persistenceClient "go.temporal.io/server/common/persistence/client"
+	"go.temporal.io/server/common/persistence/intercept"
 	"go.temporal.io/server/common/persistence/serialization"
 	"go.temporal.io/server/common/persistence/sql"
 	"go.temporal.io/server/common/persistence/visibility"
@@ -404,6 +405,7 @@ type (
 		ClaimMapper                     authorization.ClaimMapper
 		TokenProvider                   auth.TokenProvider
 		DataStoreFactory                persistenceClient.AbstractDataStoreFactory
+		PersistenceInterceptor          intercept.PersistenceInterceptor `optional:"true"`
 		VisibilityStoreFactory          visibility.VisibilityStoreFactory
 		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
 		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
@@ -441,6 +443,9 @@ func (params ServiceProviderParamsCommon) GetCommonServiceOptions(serviceName pr
 			params.PersistenceFactoryProvider,
 			func() persistenceClient.AbstractDataStoreFactory {
 				return params.DataStoreFactory
+			},
+			func() intercept.PersistenceInterceptor {
+				return params.PersistenceInterceptor
 			},
 			func() visibility.VisibilityStoreFactory {
 				return params.VisibilityStoreFactory
@@ -666,6 +671,7 @@ func ApplyClusterMetadataConfigProvider(
 		metricsHandler,
 		telemetry.NoopTracerProvider,
 		serializer,
+		nil,
 	)
 	factory := persistenceFactoryProvider(persistenceClient.NewFactoryParams{
 		DataStoreFactory:           dataStoreFactory,

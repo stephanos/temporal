@@ -11,6 +11,14 @@ tests/.gomad-run/
 .DS_Store
 .coverage
 .testoutput
+testdata/
+!/tests/umpire2/testdata/
+!/tests/umpire2/testdata/genmodels/
+!/tests/umpire2/testdata/genmodels/**
+!/tests/umpire3/testdata/
+!/tests/umpire3/testdata/**
+!/tests/umpire3/**/testdata/
+!/tests/umpire3/**/testdata/**
 
 *.out
 *.test
@@ -21,6 +29,11 @@ tests/.gomad-run/
 *.cov
 *.html
 /test.log
+
+# Umpire verification tool output
+/tests/umpire2/testdata/results/
+/tests/umpire2/testdata/genmodels/tla/_apalache-out/
+/tests/umpire2/testdata/genmodels/p/PGenerated/
 
 # Executables produced by temporal repo
 /temporal-*
@@ -36,6 +49,11 @@ tests/.gomad-run/
 
 # Goreleaser
 /dist
+
+# Lake build output for the offline Lean model
+/model/.lake/
+/tests/umpire3/model/.lake/
+/tests/umpire3/model-checkers/lean-temporal/lean/.lake/
 
 # direnv
 .envrc

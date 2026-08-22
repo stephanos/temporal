@@ -7,6 +7,7 @@ import (
 	"maps"
 	"os"
 	"regexp"
+	"testing"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,6 +25,7 @@ import (
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
+	"go.temporal.io/server/common/archiver/provider"
 	"go.temporal.io/server/common/config"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/log"
@@ -45,7 +47,9 @@ import (
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
-	"go.temporal.io/server/temporal"
+	testmonitor "go.temporal.io/server/tests/testcore/monitor"
+	"go.temporal.io/server/tests/umpire2"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -65,6 +69,11 @@ type (
 
 		Logger       log.Logger
 		otelExporter *testtelemetry.MemoryExporter
+		monitor      testmonitor.Monitor
+		// monitorViolationsExpected suppresses teardown enforcement for the current
+		// test (set via AllowMonitorViolations). Used only by the monitor's own
+		// detector tests, which deliberately drive the system into a bad state.
+		monitorViolationsExpected bool
 
 		t *sharedClusterT // proxy T backing Logger; tracks active tests and cluster poison state
 
@@ -91,19 +100,20 @@ type (
 	}
 	// testClusterParams contains the variables which are used to configure test cluster via the TestClusterOption type.
 	testClusterParams struct {
-		DCRedirectionPolicy       config.DCRedirectionPolicy
-		DynamicConfigOverrides    map[dynamicconfig.Key]any
-		EnableMTLS                bool
-		EnableWorkerService       bool
-		FaultInjectionConfig      *config.FaultInjection
-		NumHistoryShards          int32
-		Logger                    log.Logger
-		SharedCluster             bool
-		EnableHistoryTaskRecorder bool
-		EnableReplicationRecorder bool
-		EnableArchival            bool
-		AdditionalServerOptions   []temporal.ServerOption
-		Persistence               persistencetests.TestBaseOptions
+		DCRedirectionPolicy             config.DCRedirectionPolicy
+		DynamicConfigOverrides          map[dynamicconfig.Key]any
+		ArchivalEnabled                 bool
+		EnableMTLS                      bool
+		EnableWorkerService             bool
+		FaultInjectionConfig            *config.FaultInjection
+		NumHistoryShards                int32
+		Logger                          log.Logger
+		SharedCluster                   bool
+		EnableHistoryTaskRecorder       bool
+		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
+		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
+		AdditionalInterceptors          []grpc.UnaryServerInterceptor
+		UmpireMonitorFactory            testmonitor.Factory
 	}
 	TestClusterOption func(params *testClusterParams)
 )
@@ -131,9 +141,9 @@ func WithDynamicConfigOverrides(overrides map[dynamicconfig.Key]any) TestCluster
 	}
 }
 
-func withArchivalConfig() TestClusterOption {
+func WithArchivalEnabled() TestClusterOption {
 	return func(params *testClusterParams) {
-		params.EnableArchival = true
+		params.ArchivalEnabled = true
 	}
 }
 
@@ -175,15 +185,33 @@ func WithClusterHistoryTaskRecorder() TestClusterOption {
 	}
 }
 
-func WithReplicationStreamRecorder() TestClusterOption {
-	return func(params *testClusterParams) {
-		params.EnableReplicationRecorder = true
-	}
-}
-
 func WithSharedCluster() TestClusterOption {
 	return func(params *testClusterParams) {
 		params.SharedCluster = true
+	}
+}
+
+func WithCustomHistoryArchiverFactory(factory provider.CustomHistoryArchiverFactory) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.CustomHistoryArchiverFactory = factory
+	}
+}
+
+func WithCustomVisibilityArchiverFactory(factory provider.CustomVisibilityArchiverFactory) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.CustomVisibilityArchiverFactory = factory
+	}
+}
+
+func WithAdditionalGrpcInterceptors(interceptors ...grpc.UnaryServerInterceptor) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.AdditionalInterceptors = append(params.AdditionalInterceptors, interceptors...)
+	}
+}
+
+func withUmpireMonitorFactory(factory testmonitor.Factory) TestClusterOption {
+	return func(params *testClusterParams) {
+		params.UmpireMonitorFactory = factory
 	}
 }
 
@@ -247,6 +275,22 @@ func (s *FunctionalTestBase) TaskPoller() *taskpoller.TaskPoller {
 	return s.taskPoller
 }
 
+func (s *FunctionalTestBase) GetMonitor() testmonitor.Monitor {
+	if s.monitor == nil {
+		panic("Monitor not initialized - did you forget to call SetupSuite()?")
+	}
+	return s.monitor
+}
+
+// RequireRulePassed asserts that the given rule evaluated the entity identified
+// by entityKey and found no violation.
+func (s *FunctionalTestBase) RequireRulePassed(rule interface{ Name() string }, entityKey string) {
+	s.T().Helper()
+	name := rule.Name()
+	passed := s.GetMonitor().PassedKeys(name)
+	s.Require().Contains(passed, entityKey, "rule %s did not pass entity %q; passed keys: %v", name, entityKey, passed)
+}
+
 func (s *FunctionalTestBase) SetupSuite() {
 	s.SetupSuiteWithCluster()
 }
@@ -266,11 +310,6 @@ func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption)
 	// Reserve a slot from the dedicated test cluster pool.
 	testClusterRouter.dedicated.reserveSlot(s.T())
 	s.setupCluster(options...)
-	clusterRequest{
-		kind:              clusterKindDedicated,
-		dedicatedReason:   "legacy-suite",
-		needWorkerService: ApplyTestClusterOptions(options).EnableWorkerService,
-	}.recordCreation(s.T())
 }
 
 func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
@@ -295,21 +334,38 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		s.Logger = tl
 	}
 
+	var err error
+
+	// The monitor (property-based test observer) is enabled by default on every
+	// cluster: it observes gRPC calls and OTEL spans and validates property rules.
+	// Access it via GetMonitor().
+	monitorFactory := params.UmpireMonitorFactory
+	if monitorFactory == nil {
+		monitorFactory = defaultUmpireMonitorFactory
+	}
+	s.monitor, err = monitorFactory(s.Logger)
+	s.Require().NoError(err)
+	s.Require().NotNil(s.monitor)
+
+	additionalInterceptors := make([]grpc.UnaryServerInterceptor, 0, len(params.AdditionalInterceptors)+1)
+	additionalInterceptors = append(additionalInterceptors, s.monitor.UnaryServerInterceptor(nil))
+	additionalInterceptors = append(additionalInterceptors, params.AdditionalInterceptors...)
+
 	s.testClusterConfig = &TestClusterConfig{
 		FaultInjection: params.FaultInjectionConfig,
-		Persistence:    params.Persistence,
 		HistoryConfig: HistoryConfig{
 			NumHistoryShards: cmp.Or(params.NumHistoryShards, 4),
 		},
-		DCRedirectionPolicy:       params.DCRedirectionPolicy,
-		DynamicConfigOverrides:    params.DynamicConfigOverrides,
-		EnableMetricsCapture:      true,
-		EnableMTLS:                params.EnableMTLS,
-		EnableHistoryTaskRecorder: params.EnableHistoryTaskRecorder,
-		EnableReplicationRecorder: params.EnableReplicationRecorder,
-		EnableArchival:            params.EnableArchival,
-		AdditionalServerOptions:   params.AdditionalServerOptions,
-		WorkerConfig:              WorkerConfig{DisableWorker: !params.EnableWorkerService},
+		DCRedirectionPolicy:             params.DCRedirectionPolicy,
+		DynamicConfigOverrides:          params.DynamicConfigOverrides,
+		EnableMetricsCapture:            true,
+		EnableArchival:                  params.ArchivalEnabled,
+		EnableMTLS:                      params.EnableMTLS,
+		EnableHistoryTaskRecorder:       params.EnableHistoryTaskRecorder,
+		CustomHistoryArchiverFactory:    params.CustomHistoryArchiverFactory,
+		CustomVisibilityArchiverFactory: params.CustomVisibilityArchiverFactory,
+		AdditionalInterceptors:          additionalInterceptors,
+		WorkerConfig:                    WorkerConfig{DisableWorker: !params.EnableWorkerService},
 	}
 
 	// Apply configuration for shared clusters.
@@ -330,7 +386,8 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		}
 	}
 
-	var err error
+	s.testClusterConfig.SpanProcessors = append(s.testClusterConfig.SpanProcessors, s.monitor)
+
 	testClusterFactory := NewTestClusterFactory()
 	s.testCluster, err = testClusterFactory.NewCluster(s.T(), s.testClusterConfig, s.Logger)
 	s.Require().NoError(err)
@@ -343,6 +400,10 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 	s.externalNamespace = namespace.Name(RandomizeStr("external-namespace"))
 	_, err = s.RegisterNamespace(s.ExternalNamespace(), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
 	s.Require().NoError(err)
+}
+
+func defaultUmpireMonitorFactory(logger log.Logger) (testmonitor.Monitor, error) {
+	return umpire2.NewMonitor(logger)
 }
 
 func sharedClusterPersistence(defaults persistencetests.TestBaseOptions) persistencetests.TestBaseOptions {
@@ -469,7 +530,43 @@ func (s *FunctionalTestBase) tearDownTestCluster() error {
 // **IMPORTANT**: When overridding this, make sure to invoke `s.FunctionalTestBase.TearDownTest()`.
 func (s *FunctionalTestBase) TearDownTest() {
 	s.exportOTELTraces()
+	if s.monitor != nil {
+		s.CheckAndPurgeMonitor(s.T(), s.namespaceID.String())
+		if err := s.monitor.Shutdown(context.Background()); err != nil {
+			s.T().Logf("monitor shutdown error: %v", err)
+		}
+	}
 	s.tearDownSdk()
+}
+
+// CheckAndPurgeMonitor runs the property rules against the given namespace, fails
+// t on any violation, then purges that namespace's collected data so a shared
+// cluster's monitor carries nothing into the next test. It is a no-op when the
+// monitor is disabled or the namespace is empty.
+//
+// Most tests reach this via the TestEnv teardown (registered in NewEnv), since
+// the testify TearDownTest hook does not run for tests that use NewEnv directly.
+func (s *FunctionalTestBase) CheckAndPurgeMonitor(t *testing.T, namespaceID string) {
+	if s.monitor == nil || namespaceID == "" {
+		return
+	}
+	for _, v := range s.monitor.CheckNamespace(context.Background(), namespaceID) {
+		if s.monitorViolationsExpected {
+			t.Logf("monitor violation (expected) [%s]: %s %v", v.Rule, v.Message, v.Tags)
+			continue
+		}
+		t.Errorf("monitor violation [%s]: %s %v", v.Rule, v.Message, v.Tags)
+	}
+	s.monitor.PurgeNamespace(namespaceID)
+	s.monitorViolationsExpected = false
+}
+
+// AllowMonitorViolations disables teardown enforcement for the current test:
+// CheckAndPurgeMonitor still purges but does not fail the test on violations. Use
+// it only in tests that deliberately drive the system into a bad state to
+// exercise the monitor's own detection; the flag resets after each teardown.
+func (s *FunctionalTestBase) AllowMonitorViolations() {
+	s.monitorViolationsExpected = true
 }
 
 // **IMPORTANT**: When overridding this, make sure to invoke `s.FunctionalTestBase.TearDownSubTest()`.
@@ -654,6 +751,11 @@ func (s *FunctionalTestBase) InjectHook(hook testhooks.Hook) (cleanup func()) {
 		s.T().Fatalf("InjectHook: unknown scope %v", hook.Scope())
 	}
 	return s.testCluster.host.injectHook(s.T(), hook, scope)
+}
+
+// Context returns a context with RPC headers for use in this test.
+func (s *FunctionalTestBase) Context() context.Context {
+	return NewContext()
 }
 
 // CloseShard closes the shard that contains the given workflow.

@@ -1,0 +1,162 @@
+package verify
+
+import (
+	"errors"
+	"fmt"
+	"slices"
+
+	"go.temporal.io/server/common/testing/umpire"
+)
+
+type Status string
+
+const (
+	Generated               Status = "generated"
+	BoundedNoCounterexample Status = "bounded-no-counterexample"
+	FiniteExhaustive        Status = "finite-exhaustive"
+	InvariantProved         Status = "invariant-proved"
+	Counterexample          Status = "counterexample"
+	UnsupportedStatus       Status = "unsupported"
+	Inconclusive            Status = "inconclusive"
+)
+
+type TerminationReason string
+
+const (
+	Completed       TerminationReason = "completed"
+	Timeout         TerminationReason = "timeout"
+	DepthLimit      TerminationReason = "depth-limit"
+	StateLimit      TerminationReason = "state-limit"
+	StepLimit       TerminationReason = "step-limit"
+	MemoryLimit     TerminationReason = "memory-limit"
+	ScheduleLimit   TerminationReason = "schedule-limit"
+	ToolLimit       TerminationReason = "tool-limit"
+	ToolError       TerminationReason = "tool-error"
+	Interrupted     TerminationReason = "interrupted"
+	ParseFailure    TerminationReason = "parse-failure"
+	EvidenceFailure TerminationReason = "evidence-failure"
+)
+
+type Bounds struct {
+	Identities map[string]int `json:"identities,omitempty"`
+	MaxDepth   uint64         `json:"maxDepth,omitempty"`
+	Schedules  uint64         `json:"schedules,omitempty"`
+	MemoryGB   float64        `json:"memoryGB,omitempty"`
+}
+
+type StateDelta struct {
+	Entity    string `json:"entity,omitempty"`
+	ID        string `json:"id,omitempty"`
+	FromState string `json:"fromState,omitempty"`
+	ToState   string `json:"toState,omitempty"`
+	Relation  string `json:"relation,omitempty"`
+	Source    string `json:"source,omitempty"`
+	Target    string `json:"target,omitempty"`
+	Added     bool   `json:"added,omitempty"`
+}
+
+type TraceStep struct {
+	Action   string       `json:"action"`
+	Bindings Bindings     `json:"bindings,omitempty"`
+	Deltas   []StateDelta `json:"deltas,omitempty"`
+}
+
+type Result struct {
+	Backend         string                    `json:"backend"`
+	ModelVersion    string                    `json:"modelVersion,omitempty"`
+	Target          string                    `json:"target,omitempty"`
+	Profile         string                    `json:"profile,omitempty"`
+	Environment     umpire.EnvironmentProfile `json:"environment,omitempty"`
+	Observations    []umpire.EvidenceSource   `json:"observations,omitempty"`
+	Omissions       []string                  `json:"omissions,omitempty"`
+	Claims          []umpire.QualifiedClaim   `json:"claims,omitempty"`
+	ToolVersion     string                    `json:"toolVersion,omitempty"`
+	Status          Status                    `json:"status"`
+	Termination     TerminationReason         `json:"termination"`
+	FailedProperty  string                    `json:"failedProperty,omitempty"`
+	Bounds          Bounds                    `json:"bounds,omitempty"`
+	GeneratedStates uint64                    `json:"generatedStates,omitempty"`
+	DistinctStates  uint64                    `json:"distinctStates,omitempty"`
+	Fairness        []string                  `json:"fairness,omitempty"`
+	Abstractions    []Abstraction             `json:"abstractions,omitempty"`
+	Unsupported     []Unsupported             `json:"unsupported,omitempty"`
+	Trace           []TraceStep               `json:"trace,omitempty"`
+	Artifacts       []string                  `json:"artifacts,omitempty"`
+	ReplayCommand   []string                  `json:"replayCommand,omitempty"`
+	ReplayCommands  [][]string                `json:"replayCommands,omitempty"`
+	StandardOutput  string                    `json:"standardOutput,omitempty"`
+	StandardError   string                    `json:"standardError,omitempty"`
+	NativeTrace     string                    `json:"nativeTrace,omitempty"`
+	Diagnostic      string                    `json:"diagnostic,omitempty"`
+}
+
+func ValidateResult(result Result) error {
+	if result.Status == "" {
+		return errors.New("verification result status is empty")
+	}
+	if result.Backend != "" && result.ModelVersion == "" &&
+		(result.Status == Generated || result.Status == BoundedNoCounterexample || result.Status == FiniteExhaustive || result.Status == InvariantProved || result.Status == Counterexample) {
+		return errors.New("formal result has no model version")
+	}
+	if result.Status == Generated || result.Status == BoundedNoCounterexample || result.Status == FiniteExhaustive || result.Status == InvariantProved {
+		if len(result.Unsupported) > 0 {
+			return fmt.Errorf("status %q cannot claim success with unsupported semantics", result.Status)
+		}
+		switch result.Termination {
+		case Timeout, DepthLimit, StateLimit, StepLimit, MemoryLimit, ScheduleLimit, ToolLimit, ToolError, Interrupted, ParseFailure, EvidenceFailure:
+			return fmt.Errorf("status %q cannot claim success after %q", result.Status, result.Termination)
+		default:
+		}
+	}
+	if result.Status == Counterexample && result.FailedProperty == "" {
+		return errors.New("counterexample has no failed property")
+	}
+	if result.Status == Counterexample && result.Termination != Completed {
+		return fmt.Errorf("counterexample termination is %q, expected %q", result.Termination, Completed)
+	}
+	if result.Status == Counterexample && result.NativeTrace == "" {
+		return errors.New("counterexample has no native trace")
+	}
+	if result.Termination == EvidenceFailure && result.Diagnostic == "" {
+		return errors.New("evidence failure has no diagnostic")
+	}
+	if result.Environment.Name != "" {
+		if err := umpire.ValidateEnvironmentProfile(result.Environment); err != nil {
+			return err
+		}
+	}
+	if result.ModelVersion != "" {
+		if result.Environment.Name == "" || len(result.Observations) == 0 {
+			return errors.New("formal result has no evidence profile or observations")
+		}
+		if (result.Status == BoundedNoCounterexample || result.Status == FiniteExhaustive || result.Status == InvariantProved || result.Status == Counterexample) && len(result.Claims) == 0 {
+			return errors.New("formal result has no qualified property claims")
+		}
+		for _, claim := range result.Claims {
+			if claim.ModelVersion != result.ModelVersion || claim.Target != result.Target || claim.Environment != result.Environment.Name || claim.Property == "" {
+				return fmt.Errorf("qualified claim %q does not match result model or environment", claim.Property)
+			}
+			for _, source := range claim.Observed {
+				if !slices.Contains(result.Observations, source) {
+					return fmt.Errorf("qualified claim %q references unretained observation %q", claim.Property, source)
+				}
+			}
+		}
+	}
+	if result.Status == BoundedNoCounterexample || result.Status == FiniteExhaustive || result.Status == InvariantProved {
+		for _, claim := range result.Claims {
+			if claim.Status != umpire.ClaimEstablished {
+				return fmt.Errorf("status %q cannot claim success with %q evidence for property %q", result.Status, claim.Status, claim.Property)
+			}
+		}
+	}
+	if result.Status == Counterexample {
+		for _, claim := range result.Claims {
+			if claim.Property == result.FailedProperty && claim.Status == umpire.ClaimViolated {
+				return nil
+			}
+		}
+		return fmt.Errorf("counterexample has no violated qualified claim for property %q", result.FailedProperty)
+	}
+	return nil
+}

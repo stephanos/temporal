@@ -1,0 +1,623 @@
+{
+  "$id": "https://temporal.io/schemas/umpire3/experiment-v2.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "actions": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "allowedOutcomes": {
+            "items": {
+              "enum": [
+                "applied",
+                "suppressed",
+                "rejected",
+                "retried",
+                "fault-intercepted"
+              ]
+            },
+            "type": "array"
+          },
+          "arguments": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "type": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "bindings": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "projection": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "symbol": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "symbol",
+                "type",
+                "projection"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "identifier": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kind": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxBlockNanos": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "postCheckpoint": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "preCheckpoint": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "requiredCapabilities": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "responseMode": {
+            "enum": [
+              "synchronous",
+              "asynchronous",
+              "deferred",
+              "blocking",
+              "failure"
+            ]
+          }
+        },
+        "required": [
+          "identifier",
+          "kind",
+          "allowedOutcomes",
+          "requiredCapabilities"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "checkpoints": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "identifier": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "observation": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "omissionPolicy": {
+            "enum": [
+              "required",
+              "optional"
+            ]
+          },
+          "ordering": {
+            "enum": [
+              "causal",
+              "source-sequence",
+              "none"
+            ]
+          }
+        },
+        "required": [
+          "identifier",
+          "observation",
+          "ordering",
+          "omissionPolicy"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "experimentID": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "faults": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "type": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "identifier": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "interval": {
+            "additionalProperties": false,
+            "properties": {
+              "startAction": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "stopAction": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "startAction",
+              "stopAction"
+            ],
+            "type": "object"
+          },
+          "kind": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "occurrence": {
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "first": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "first",
+              "count"
+            ],
+            "type": "object"
+          },
+          "policy": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "requiredCapabilities": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "safetyClass": {
+            "enum": [
+              "controlled",
+              "restricted"
+            ]
+          },
+          "scope": {
+            "additionalProperties": false,
+            "properties": {
+              "attempts": {
+                "items": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "endpoints": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "participants": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resources": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "routes": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "services": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "taskQueues": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "resources",
+              "endpoints",
+              "taskQueues",
+              "services",
+              "routes",
+              "participants",
+              "attempts"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "identifier",
+          "kind",
+          "safetyClass",
+          "scope",
+          "occurrence",
+          "interval",
+          "requiredCapabilities"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "formatVersion": {
+      "const": "umpire3/v2"
+    },
+    "model": {
+      "additionalProperties": false,
+      "properties": {
+        "catalogHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "leanVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "modules": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "semanticHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "sourceRevision": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "modules",
+        "sourceRevision",
+        "semanticHash",
+        "catalogHash",
+        "leanVersion"
+      ],
+      "type": "object"
+    },
+    "order": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "after": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "before": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "relation": {
+            "enum": [
+              "user",
+              "semantic",
+              "same-source",
+              "runtime-causal"
+            ]
+          }
+        },
+        "required": [
+          "before",
+          "after",
+          "relation"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "policies": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "type": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "identifier": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kind": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "scope": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "identifier",
+          "kind",
+          "scope"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "property": {
+      "additionalProperties": false,
+      "properties": {
+        "claim": {
+          "const": "implementation-conformance"
+        },
+        "identifier": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "statementHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identifier",
+        "statementHash",
+        "claim"
+      ],
+      "type": "object"
+    },
+    "provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "proof",
+            "bounded-exploration",
+            "counterexample",
+            "curated-trace"
+          ]
+        },
+        "proofManifest": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "proofManifest"
+      ],
+      "type": "object"
+    },
+    "resources": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "identifier": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kind": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "identifier",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "retention": {
+      "additionalProperties": false,
+      "properties": {
+        "maxArtifactBytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "redactionClass": {
+          "const": "semantic-only"
+        }
+      },
+      "required": [
+        "redactionClass",
+        "maxArtifactBytes"
+      ],
+      "type": "object"
+    },
+    "scope": {
+      "additionalProperties": false,
+      "properties": {
+        "assumptions": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "identifier": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "statementHash": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "identifier",
+              "statementHash"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "bounds": {
+          "additionalProperties": false,
+          "properties": {
+            "maxDepth": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxResults": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maxDepth",
+            "maxResults"
+          ],
+          "type": "object"
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "strategy": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "bounds",
+        "assumptions",
+        "strategy",
+        "seed"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "formatVersion",
+    "experimentID",
+    "model",
+    "property",
+    "scope",
+    "resources",
+    "actions",
+    "policies",
+    "faults",
+    "order",
+    "checkpoints",
+    "provenance",
+    "retention"
+  ],
+  "type": "object"
+}

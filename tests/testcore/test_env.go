@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/dgryski/go-farm"
 	"github.com/stretchr/testify/require"
@@ -27,13 +26,13 @@ import (
 	"go.temporal.io/server/common/headers"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/namespace"
-	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
+	"go.temporal.io/server/common/rpc/faultinjection"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testvars"
-	"go.temporal.io/server/temporal"
+	testmonitor "go.temporal.io/server/tests/testcore/monitor"
 )
 
 // shardSalt is used to distribute functional tests across shards.
@@ -56,7 +55,6 @@ type Env interface {
 	GetTestCluster() *TestCluster
 	CloseShard(namespaceID string, workflowID string)
 	OverrideDynamicConfig(setting dynamicconfig.GenericSetting, value any) (cleanup func())
-	// Deprecated: use the suite's Context() method instead.
 	Context() context.Context
 	InjectHook(hook testhooks.Hook) (cleanup func())
 }
@@ -92,7 +90,6 @@ type TestOption func(*testOptions)
 
 type testOptions struct {
 	dedicatedCluster         bool
-	needWorkerService        bool
 	dedicatedReason          string
 	disableTestloggerFailure bool
 	dynamicConfigSettings    []dynamicConfigOverride
@@ -113,6 +110,20 @@ type versionHeadersContextKey struct{}
 func WithDedicatedCluster() TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
+	}
+}
+
+// WithUmpireMonitorFactory selects the Monitor implementation for a dedicated test cluster.
+func WithUmpireMonitorFactory[T testmonitor.Monitor](factory func(log.Logger) (T, error)) TestOption {
+	if factory == nil {
+		panic("Umpire monitor factory is required")
+	}
+	return func(o *testOptions) {
+		o.dedicatedCluster = true
+		o.dedicatedReason = "custom Umpire monitor used"
+		o.clusterOptions = append(o.clusterOptions, withUmpireMonitorFactory(func(logger log.Logger) (testmonitor.Monitor, error) {
+			return factory(logger)
+		}))
 	}
 }
 
@@ -148,7 +159,7 @@ func WithTestVars(fn func(*testvars.TestVars) *testvars.TestVars) TestOption {
 func WithWorkerService(reason string) TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.needWorkerService = true
+		o.clusterOptions = append(o.clusterOptions, withWorkerService(true))
 		o.dedicatedReason = "worker service required: " + reason
 	}
 }
@@ -172,23 +183,12 @@ func WithPersistenceFaultInjection(cfg *config.FaultInjection) TestOption {
 	}
 }
 
-// WithInMemorySQLitePersistence gives the test a dedicated cluster backed by process-local SQLite.
-func WithInMemorySQLitePersistence() TestOption {
-	return func(o *testOptions) {
-		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
-			params.Persistence = *persistencetests.GetSQLiteMemoryTestClusterOption()
-		})
-		o.dedicatedReason = "in-memory SQLite persistence required"
-	}
-}
-
 // WithArchival enables archival on the test's cluster. This implies a dedicated
 // cluster because archival is configured at the cluster level.
 func WithArchival() TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, withArchivalConfig())
+		o.clusterOptions = append(o.clusterOptions, WithArchivalEnabled())
 		o.dedicatedReason = "archival enabled"
 	}
 }
@@ -199,12 +199,10 @@ func WithArchival() TestOption {
 func WithCustomArchivers(historyFactory provider.CustomHistoryArchiverFactory, visibilityFactory provider.CustomVisibilityArchiverFactory) TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
-			params.AdditionalServerOptions = append(params.AdditionalServerOptions,
-				temporal.WithCustomHistoryArchiverFactory(historyFactory),
-				temporal.WithCustomVisibilityArchiverFactory(visibilityFactory),
-			)
-		})
+		o.clusterOptions = append(o.clusterOptions,
+			WithCustomHistoryArchiverFactory(historyFactory),
+			WithCustomVisibilityArchiverFactory(visibilityFactory),
+		)
 		o.dedicatedReason = "custom archivers used"
 	}
 }
@@ -283,13 +281,7 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	}
 
 	// Obtain the test cluster from the router.
-	base := getTestClusterRouter().get(t, clusterRequest{
-		dedicated:         options.dedicatedCluster,
-		needWorkerService: options.needWorkerService,
-		dedicatedReason:   options.dedicatedReason,
-		dynamicConfig:     startupConfig,
-		clusterOpts:       options.clusterOptions,
-	})
+	base := testClusterRouter.get(t, options.dedicatedCluster, startupConfig, options.clusterOptions)
 	cluster := base.GetTestCluster()
 
 	// Create a dedicated namespace for the test to help with test isolation.
@@ -304,32 +296,6 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	)
 	if err != nil {
 		t.Fatalf("Failed to register namespace: %v", err)
-	}
-
-	// Wait until the namespace is visible through the frontend API.
-	// Under GoMaD the namespace registry's background polling timer may not
-	// fire between creation and the first test RPC.
-	//
-	// A synchronous ticker loop is used here instead of require.Eventually: under
-	// GoMaD's simulated time the absolute timeout timer require.Eventually starts
-	// can fire before its (asynchronous) condition goroutine is scheduled, so it
-	// reports "condition never satisfied" even when the namespace is already
-	// visible. Checking the condition synchronously avoids that race, and works
-	// identically under real time.
-	namespaceVisibleDeadline := time.Now().Add(10 * time.Second)
-	ticker := time.NewTicker(100 * time.Millisecond)
-	defer ticker.Stop()
-	for {
-		resp, describeErr := cluster.FrontendClient().DescribeNamespace(NewContext(), &workflowservice.DescribeNamespaceRequest{
-			Id: nsID.String(),
-		})
-		if describeErr == nil && resp != nil {
-			break
-		}
-		if time.Now().After(namespaceVisibleDeadline) {
-			t.Fatalf("namespace %s not visible through frontend API before deadline", nsID)
-		}
-		<-ticker.C
 	}
 
 	tv := testvars.New(t)
@@ -354,6 +320,13 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 		sdkWorkerTQ:        RandomizeStr("tq-" + t.Name()),
 		dedicatedGuard:     dedicatedGuard,
 	}
+	// Validate and purge this env's namespace against the monitor when the test
+	// ends. Registered here (not in the testify TearDownTest hook, which does not
+	// run for NewEnv-based tests) so every test env is checked and its data is
+	// dropped from the shared cluster's monitor.
+	t.Cleanup(func() {
+		env.CheckAndPurgeMonitor(t, nsID.String())
+	})
 	t.Cleanup(func() {
 		defer func() { dedicatedGuard = nil }()
 		if err := dedicatedGuard.validate(); err != nil && !t.Failed() {
@@ -393,6 +366,11 @@ func (e *TestEnv) NamespaceID() namespace.ID {
 	return e.nsID
 }
 
+// GetFaultInjector returns the cluster's RPC fault generator.
+func (e *TestEnv) GetFaultInjector() *faultinjection.RPCFaultGenerator {
+	return e.cluster.Host().GetFaultInjector()
+}
+
 // InjectHook sets a test hook inside the cluster.
 //
 // It auto-detects the scope from the hook:
@@ -404,7 +382,7 @@ func (e *TestEnv) InjectHook(hook testhooks.Hook) (cleanup func()) {
 	case testhooks.ScopeNamespace:
 		scope = e.nsID
 	case testhooks.ScopeGlobal:
-		if e.isShared && !getTestClusterRouter().hasSuiteScoped(e.t) {
+		if e.isShared && !testClusterRouter.hasSuiteScoped(e.t) {
 			e.t.Fatal("InjectHook: global hooks require a dedicated cluster; use testcore.WithDedicatedCluster()")
 		}
 		e.dedicatedGuard.record("global hook injected")
@@ -480,6 +458,18 @@ func (e *TestEnv) Tv() *testvars.TestVars {
 	return e.tv
 }
 
+// InjectRPCFault registers a fault injection scoped to this test's namespace.
+// Requests match either the namespace ID or name filter, depending on which
+// namespace field they expose. Requests without either field are ignored.
+// Returns a cleanup function that disables the fault.
+func (e *TestEnv) InjectRPCFault(fault RPCFault, opts ...RPCFaultOption) func() {
+	opts = append([]RPCFaultOption{
+		WithNamespaceID(e.nsID.String()),
+		WithNamespaceName(e.nsName.String()),
+	}, opts...)
+	return InjectRPCFault(e.t, e.GetTestCluster(), fault, opts...)
+}
+
 // Context returns the test-level timeout context with RPC version headers already included.
 // This context will be canceled when the test timeout occurs. Use this directly for all RPC
 // operations - no need to wrap with NewContext or add headers manually.
@@ -488,8 +478,6 @@ func (e *TestEnv) Tv() *testvars.TestVars {
 //
 //	ctx, cancel := context.WithTimeout(env.Context(), 10*time.Second)
 //	defer cancel()
-//
-// Deprecated: use the suite's Context() method instead.
 func (e *TestEnv) Context() context.Context {
 	return e.ctx
 }

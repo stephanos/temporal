@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -37,6 +38,7 @@ import (
 	"go.temporal.io/server/common/protocol"
 	"go.temporal.io/server/common/searchattribute"
 	"go.temporal.io/server/common/tasktoken"
+	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/worker_versioning"
 	"go.temporal.io/server/service/history/api"
 	"go.temporal.io/server/service/history/configs"
@@ -840,6 +842,18 @@ func (handler *workflowTaskCompletedHandler) handleCommandCompleteWorkflow(
 	if err != nil {
 		return nil, err
 	}
+	handler.emitWorkflowExecutionClosed(ctx, event)
+
+	// Emit an OTEL span event so the umpire test observer can transition the
+	// Workflow entity to a completed state.
+	wfKey := handler.mutableState.GetWorkflowKey()
+	trace.SpanFromContext(ctx).AddEvent(telemetry.EventWorkflowExecutionCompleted,
+		trace.WithAttributes(
+			telemetry.AttrWorkflowID.String(wfKey.WorkflowID),
+			telemetry.AttrRunID.String(wfKey.RunID),
+			telemetry.AttrNamespaceID.String(wfKey.NamespaceID),
+		),
+	)
 
 	// Check if this workflow has a cron schedule
 	if cronBackoff != backoff.NoBackoff {
@@ -907,6 +921,7 @@ func (handler *workflowTaskCompletedHandler) handleCommandFailWorkflow(
 	if err != nil {
 		return nil, err
 	}
+	handler.emitWorkflowExecutionClosed(ctx, event)
 
 	// Handle retry or cron
 	if retryBackoff != backoff.NoBackoff {
@@ -972,7 +987,12 @@ func (handler *workflowTaskCompletedHandler) handleCommandCancelWorkflow(
 		return nil, nil
 	}
 
-	return handler.mutableState.AddWorkflowExecutionCanceledEvent(handler.workflowTaskCompletedID, attr)
+	event, err := handler.mutableState.AddWorkflowExecutionCanceledEvent(handler.workflowTaskCompletedID, attr)
+	if err != nil {
+		return nil, err
+	}
+	handler.emitWorkflowExecutionClosed(ctx, event)
+	return event, nil
 }
 
 func (handler *workflowTaskCompletedHandler) handleCommandRequestCancelExternalWorkflow(
@@ -1146,7 +1166,40 @@ func (handler *workflowTaskCompletedHandler) handleCommandContinueAsNewWorkflow(
 	}
 
 	handler.newMutableState = newMutableState
+	handler.emitWorkflowExecutionClosed(ctx, event)
+
+	// Emit OTEL span events for the umpire run graph: the continue-as-new successor's start (with
+	// its lineage and the continued_as_new edge label) and the predecessor's continued-as-new close
+	// (so the closing run reaches a continued_as_new terminal rather than staying started). See
+	// UMPIRE.md.
+	newKey := newMutableState.GetWorkflowKey()
+	prevKey := handler.mutableState.GetWorkflowKey()
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent(telemetry.EventWorkflowExecutionStarted,
+		trace.WithAttributes(
+			telemetry.AttrWorkflowID.String(newKey.WorkflowID),
+			telemetry.AttrRunID.String(newKey.RunID),
+			telemetry.AttrNamespaceID.String(newKey.NamespaceID),
+			telemetry.AttrFirstRunID.String(newMutableState.GetExecutionInfo().GetFirstExecutionRunId()),
+			telemetry.AttrPreviousRunID.String(prevKey.RunID),
+			telemetry.AttrRunInitiator.String(telemetry.RunInitiatorContinuedAsNew),
+		),
+	)
+	span.AddEvent(telemetry.EventWorkflowExecutionContinuedAsNew,
+		trace.WithAttributes(
+			telemetry.AttrWorkflowID.String(prevKey.WorkflowID),
+			telemetry.AttrRunID.String(prevKey.RunID),
+			telemetry.AttrNamespaceID.String(prevKey.NamespaceID),
+		),
+	)
+
 	return event, nil
+}
+
+func (handler *workflowTaskCompletedHandler) emitWorkflowExecutionClosed(ctx context.Context, event *historypb.HistoryEvent) {
+	if err := workflow.EmitWorkflowExecutionClosed(ctx, handler.mutableState.GetWorkflowKey(), event); err != nil {
+		handler.logger.DPanic("Failed to emit workflow close telemetry", tag.Error(err))
+	}
 }
 
 func (handler *workflowTaskCompletedHandler) handleCommandStartChildWorkflow(

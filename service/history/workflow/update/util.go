@@ -1,8 +1,10 @@
 package update
 
 import (
+	"context"
 	"fmt"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
@@ -18,6 +20,12 @@ type (
 		metrics   metrics.Handler
 		tracer    trace.Tracer
 		namespace string
+
+		// Workflow execution info for OTEL events observed by the umpire test observer.
+		namespaceID string
+		workflowID  string
+		runID       string
+		taskQueue   string
 	}
 )
 
@@ -107,5 +115,52 @@ func (i *instrumentation) stateChange(updateID string, from, to state) {
 		tag.String("update-id", updateID),
 		tag.Stringer("from-state", from),
 		tag.Stringer("to-state", to),
+	)
+}
+
+// emitAbortEvents emits OTEL span events for each aborted update so the
+// umpire test observer can track the abort.
+func (i *instrumentation) emitAbortEvents(workflowID string, updateIDs []string, reason AbortReason) {
+	_, span := i.tracer.Start(context.Background(), "update.abort")
+	defer span.End()
+	for _, updateID := range updateIDs {
+		span.AddEvent(telemetry.EventWorkflowUpdateAborted,
+			trace.WithAttributes(
+				telemetry.AttrUpdateID.String(updateID),
+				telemetry.AttrWorkflowID.String(workflowID),
+				telemetry.AttrNamespaceID.String(i.namespaceID),
+				telemetry.AttrAbortReason.String(reason.String()),
+			),
+		)
+	}
+}
+
+// emitUpdateLifecycleEvent emits an OTEL span event for an update state
+// transition so the umpire test observer can drive its WorkflowUpdate FSM.
+// eventName is one of the telemetry.EventWorkflowUpdate* constants.
+func (i *instrumentation) emitUpdateLifecycleEvent(eventName, updateID string, extra ...attribute.KeyValue) {
+	_, span := i.tracer.Start(context.Background(), "update.lifecycle")
+	defer span.End()
+	attrs := []attribute.KeyValue{
+		telemetry.AttrUpdateID.String(updateID),
+		telemetry.AttrWorkflowID.String(i.workflowID),
+		telemetry.AttrRunID.String(i.runID),
+		telemetry.AttrNamespaceID.String(i.namespaceID),
+	}
+	span.AddEvent(eventName, trace.WithAttributes(append(attrs, extra...)...))
+}
+
+// emitWorkflowTerminatedEvent emits an OTEL span event so the umpire test
+// observer can transition WorkflowTask entities to a terminal state.
+func (i *instrumentation) emitWorkflowTerminatedEvent(workflowID, runID, taskQueue string) {
+	_, span := i.tracer.Start(context.Background(), "workflow.terminated")
+	defer span.End()
+	span.AddEvent(telemetry.EventWorkflowTerminated,
+		trace.WithAttributes(
+			telemetry.AttrWorkflowID.String(workflowID),
+			telemetry.AttrRunID.String(runID),
+			telemetry.AttrNamespaceID.String(i.namespaceID),
+			telemetry.AttrTaskQueue.String(taskQueue),
+		),
 	)
 }

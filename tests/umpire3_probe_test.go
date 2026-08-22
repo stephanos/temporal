@@ -1,0 +1,679 @@
+package tests
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/nexus-rpc/sdk-go/nexus"
+	"github.com/stretchr/testify/require"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/api/workflowservice/v1"
+	chasmnexus "go.temporal.io/server/chasm/lib/nexusoperation"
+	"go.temporal.io/server/common/dynamicconfig"
+	"go.temporal.io/server/common/nexus/nexustest"
+	"go.temporal.io/server/tests/testcore"
+	"go.temporal.io/server/tests/umpire3/conformance/wire"
+	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
+	umpire3fault "go.temporal.io/server/tests/umpire3/execution/fault"
+	"go.temporal.io/server/tests/umpire3/exploration"
+	"go.temporal.io/server/tests/umpire3/mutation"
+	protocolcatalog "go.temporal.io/server/tests/umpire3/protocol/catalog"
+	protocolexecution "go.temporal.io/server/tests/umpire3/protocol/execution"
+	protocolexperiment "go.temporal.io/server/tests/umpire3/protocol/experiment"
+	"go.temporal.io/server/tests/umpire3/scenario"
+	umpire3workflow "go.temporal.io/server/tests/umpire3/scenario/workflow"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
+)
+
+func (s *Umpire3TestSuite) TestProbeNexusGeneratedCompletion() {
+	runUmpire3Regression(s.T(), umpire3NexusClosureRegression("ProbeNexusGeneratedCompletion",
+		scenario.CloseNexusOperation("close")))
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusRejectedStart() {
+	t := s.T()
+	env := newNexusTestEnv(t, true,
+		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
+		testcore.WithDynamicConfig(chasmnexus.EnableChasmWorkflowOperations, true),
+		testcore.WithDynamicConfig(chasmnexus.Enabled, true),
+	)
+	requestID := "umpire3-rejected-" + uuid.NewString()
+	_, err := env.FrontendClient().StartNexusOperationExecution(t.Context(),
+		&workflowservice.StartNexusOperationExecutionRequest{
+			Namespace: env.Namespace().String(), OperationId: requestID,
+			Endpoint: "umpire3-nonexistent-endpoint", Service: "service", Operation: "operation",
+			RequestId: requestID, ScheduleToCloseTimeout: durationpb.New(10 * time.Second),
+		})
+	require.Error(t, err)
+	require.Equal(t, codes.NotFound, serviceerror.ToStatus(err).Code())
+	outcome, err := umpire3execution.ClassifyOutcome(protocolexecution.ClaimConforming, &protocolexecution.TerminalEvidence{
+		State: "rejected", Disposition: protocolexecution.TerminalDispositionFailure,
+		Reference: "request/" + requestID, EntityIdentity: requestID,
+	})
+	require.NoError(t, err)
+	requireUmpire3RejectedStartBehaviorContract(t, "ProbeNexusRejectedStart", outcome)
+}
+
+func requireUmpire3RejectedStartBehaviorContract(
+	t *testing.T,
+	behavior string,
+	outcome protocolexecution.Outcome,
+) {
+	t.Helper()
+	require.Contains(t, t.Name(), behavior)
+	require.Equal(t, protocolexecution.OutcomeDegraded, outcome.Kind)
+	require.Equal(t, "rejected", outcome.Terminal)
+}
+
+// TestProbeNexusReflectedVariant retains descriptor-derived invalid-input coverage. The generated
+// request mutation is sent to the real public API and retained only as digest-bound provenance.
+func (s *Umpire3TestSuite) TestProbeNexusReflectedVariant() {
+	t := s.T()
+	env := newNexusTestEnv(t, true,
+		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
+		testcore.WithDynamicConfig(dynamicconfig.EnableCHASMCallbacks, true),
+		testcore.WithDynamicConfig(chasmnexus.EnableChasmWorkflowOperations, true),
+		testcore.WithDynamicConfig(chasmnexus.Enabled, true),
+	)
+	endpoint := env.createRandomExternalNexusServer(t.Context(), t, nexustest.Handler{
+		OnStartOperation: func(
+			context.Context,
+			string,
+			string,
+			*nexus.LazyValue,
+			nexus.StartOperationOptions,
+		) (nexus.HandlerStartOperationResult[any], error) {
+			return &nexus.HandlerStartOperationResultSync[any]{Value: "ok"}, nil
+		},
+	})
+	wireMutation := requireUmpire3WireMutation(t,
+		"temporal.api.workflowservice.v1.StartNexusOperationExecutionRequest",
+		"operation_id", wire.MutationEmptyString)
+	result, err := wire.Drive(t.Context(), &workflowservice.StartNexusOperationExecutionRequest{
+		Namespace: env.Namespace().String(), OperationId: "umpire3-reflected-" + uuid.NewString(),
+		Endpoint: endpoint, Service: "service", Operation: "operation", RequestId: uuid.NewString(),
+		ScheduleToCloseTimeout: durationpb.New(10 * time.Second),
+		StartToCloseTimeout:    durationpb.New(time.Second),
+	}, wireMutation, func(ctx context.Context, request proto.Message) (proto.Message, error) {
+		return env.FrontendClient().StartNexusOperationExecution(ctx,
+			request.(*workflowservice.StartNexusOperationExecutionRequest))
+	})
+	require.NoError(t, err)
+	requireUmpire3WireBehaviorContract(t, "ProbeNexusReflectedVariant", result)
+	require.Equal(t, wire.ResponseRejected, result.Response, "%+v", result)
+	require.Equal(t, "InvalidArgument", result.Code)
+	require.NotEmpty(t, result.Provenance.RequestDigest)
+}
+
+// TestProbeNexusReflectedDurationVariant sends a generated negative-duration case to the real
+// standalone Nexus start API and binds the response to descriptor and request digests.
+func (s *Umpire3TestSuite) TestProbeNexusReflectedDurationVariant() {
+	t := s.T()
+	env := newNexusTestEnv(t, true,
+		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
+		testcore.WithDynamicConfig(dynamicconfig.EnableCHASMCallbacks, true),
+		testcore.WithDynamicConfig(chasmnexus.EnableChasmWorkflowOperations, true),
+		testcore.WithDynamicConfig(chasmnexus.Enabled, true),
+	)
+	endpoint := env.createRandomExternalNexusServer(t.Context(), t, nexustest.Handler{
+		OnStartOperation: func(
+			context.Context,
+			string,
+			string,
+			*nexus.LazyValue,
+			nexus.StartOperationOptions,
+		) (nexus.HandlerStartOperationResult[any], error) {
+			return &nexus.HandlerStartOperationResultSync[any]{Value: "ok"}, nil
+		},
+	})
+	wireMutation := requireUmpire3WireMutation(t,
+		"temporal.api.workflowservice.v1.StartNexusOperationExecutionRequest",
+		"start_to_close_timeout", wire.MutationNegativeDuration)
+	result, err := wire.Drive(t.Context(), &workflowservice.StartNexusOperationExecutionRequest{
+		Namespace: env.Namespace().String(), OperationId: "umpire3-duration-" + uuid.NewString(),
+		Endpoint: endpoint, Service: "service", Operation: "operation", RequestId: uuid.NewString(),
+		ScheduleToCloseTimeout: durationpb.New(10 * time.Second),
+		StartToCloseTimeout:    durationpb.New(time.Second),
+	}, wireMutation, func(ctx context.Context, request proto.Message) (proto.Message, error) {
+		return env.FrontendClient().StartNexusOperationExecution(ctx,
+			request.(*workflowservice.StartNexusOperationExecutionRequest))
+	})
+	require.NoError(t, err)
+	requireUmpire3WireBehaviorContract(t, "ProbeNexusReflectedDurationVariant", result)
+	require.Equal(t, wire.ResponseRejected, result.Response, "%+v", result)
+	require.Equal(t, "InvalidArgument", result.Code)
+	require.NotEmpty(t, result.Provenance.RequestDigest)
+}
+
+func requireUmpire3WireMutation(
+	t *testing.T,
+	message string,
+	field string,
+	kind wire.MutationKind,
+) wire.Mutation {
+	t.Helper()
+	mutations, err := wire.Catalog(message)
+	require.NoError(t, err)
+	for _, candidateMutation := range mutations {
+		if candidateMutation.Field == field && candidateMutation.Kind == kind {
+			return candidateMutation
+		}
+	}
+	require.FailNow(t, "generated protobuf mutation is unavailable", "%s.%s/%s", message, field, kind)
+	return wire.Mutation{}
+}
+
+func requireUmpire3WireBehaviorContract(t *testing.T, behavior string, result wire.Result) {
+	t.Helper()
+	require.Contains(t, t.Name(), behavior)
+	require.NotEqual(t, wire.ResponseTransportFailed, result.Response)
+	require.NotEmpty(t, result.Provenance.DescriptorDigest)
+	require.NotEmpty(t, result.Provenance.RequestDigest)
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusFaultAction() {
+	runUmpire3Regression(s.T(), umpire3NexusClosureRegression("ProbeNexusFaultAction",
+		scenario.During(umpire3NexusRPCFault("hold", scenario.HoldRelease),
+			scenario.CloseNexusOperation("close"))))
+	term := umpire3DropTerm()
+	s.NoError(umpire3fault.Preflight(term,
+		[]protocolcatalog.CapabilityID{protocolcatalog.CapabilityIDFaultRpc}, false))
+	realizer := &umpire3RootFaultRealizer{}
+	s.NoError(umpire3fault.Run(context.Background(), term, realizer, umpire3fault.Options{
+		Capabilities: []protocolcatalog.CapabilityID{protocolcatalog.CapabilityIDFaultRpc}, CleanupTimeout: time.Second,
+	}, func(context.Context) error { return nil }))
+	s.Equal([]string{"install", "activate", "release", "cleanup"}, realizer.events)
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusResilience() {
+	t := s.T()
+	declared := umpire3DeclaredFootprint(t, protocolcatalog.ActionKindCloseNexusOperation)
+	baselineFactory := &umpire3RequiredFootprintFactory{
+		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+	}
+	baseline := evaluateUmpire3RegressionIn(t,
+		umpire3NexusClosureRegression("ProbeNexusResilience", scenario.CloseNexusOperation("close")),
+		baselineFactory)
+	require.Equal(t, umpire3execution.ClaimConforming, baseline.Claim.Kind, baseline.Claim.Reason)
+	require.NotNil(t, baseline.Footprint)
+	targets := umpire3fault.FaultTargets(baseline.Footprint.Calls, 17, 6)
+	require.NotEmpty(t, targets)
+
+	faultFactory := &umpire3RequiredFootprintFactory{
+		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+	}
+	faulted := evaluateUmpire3RegressionIn(t,
+		umpire3NexusClosureRegression("ProbeNexusResilience",
+			scenario.During(umpire3NexusRPCFault("drop", scenario.Drop),
+				scenario.CloseNexusOperation("close"))),
+		faultFactory)
+	require.Equal(t, umpire3execution.ClaimConforming, faulted.Claim.Kind, faulted.Claim.Reason)
+	require.NotNil(t, faulted.Footprint)
+	require.Len(t, faulted.Faults, 1)
+	require.True(t, faulted.Faults[0].Realized)
+	require.True(t, faulted.Faults[0].CleanupComplete)
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusDegraded() {
+	result := evaluateUmpire3Regression(s.T(),
+		umpire3NexusClosureRegression("ProbeNexusDegraded", scenario.CloseNexusOperation("close",
+			scenario.WithNexusCompletion(scenario.NexusCompletionFailed))), "", false)
+	s.Equal(umpire3execution.ClaimConforming, result.Claim.Kind, result.Claim.Reason)
+	s.Equal(umpire3execution.OutcomeDegraded, result.Outcome.Kind, result)
+	s.Equal("failed", result.Outcome.Terminal)
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusFlagged() {
+	requireUmpire3Violation(s.T(),
+		umpire3NexusProgressRegression("ProbeNexusFlagged", scenario.CloseNexusOperation("close",
+			scenario.WithNexusCompletion(scenario.NexusCompletionRetryStuck))),
+	)
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusHTTPFaultSeam() {
+	runUmpire3Regression(s.T(), umpire3NexusClosureRegression("ProbeNexusHTTPFaultSeam",
+		scenario.During(umpire3NexusRPCFault("hold", scenario.HoldRelease),
+			scenario.CloseNexusOperation("close"))))
+	selected := umpire3fault.SelectFootprints([]umpire3fault.Footprint{
+		{Protocol: "http", Service: "nexus", Route: "/service/operation", Risk: 10},
+	}, 17, 1)
+	s.Equal([]umpire3fault.Footprint{{
+		Protocol: "http", Service: "nexus", Route: "/service/operation", Risk: 10,
+		RealizationEvidence: true,
+	}}, selected)
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusExploration() {
+	t := s.T()
+	observer := newUmpire3NexusLifecycleObserver(t)
+	values, err := exploration.NexusLifecycleValues()
+	require.NoError(t, err)
+	report, err := exploration.Run(context.Background(), exploration.Template{
+		Identifier: "umpire3-root-nexus-exploration",
+		Goal: exploration.Goal{
+			Kind: exploration.GoalTransitionCoverage, Target: protocolcatalog.TargetIDFeatureNexus,
+			Property: protocolcatalog.PropertyIDNexusOperationClosure,
+		},
+		Holes: []exploration.Hole{{
+			Identifier: "edge", Kind: exploration.HoleAction, Values: values,
+		}},
+		Build: func(assignment exploration.Assignment) (scenario.Scenario, error) {
+			value := assignment["edge"]
+			action, err := umpire3NexusCoverageAction(value.Text)
+			if err != nil {
+				return scenario.Scenario{}, err
+			}
+			return umpire3NexusActionRegression(
+				"umpire3-explore-"+strings.ReplaceAll(value.Key, "/", "-"), action), nil
+		},
+		Observe: func(ctx context.Context, candidate exploration.Candidate) ([]string, error) {
+			if len(candidate.Coverage) != 1 {
+				return nil, fmt.Errorf("generated Nexus candidate declares %d edges, want 1", len(candidate.Coverage))
+			}
+			if err := observer.Observe(ctx, candidate.Coverage[0]); err != nil {
+				return nil, fmt.Errorf("edge %s: %w", candidate.Coverage[0], err)
+			}
+			return candidate.Coverage, nil
+		},
+	}, exploration.Bounds{MaxAssignments: len(values), Compiler: umpire3CompilerLimits()})
+	require.NoError(t, err)
+	requireUmpire3ExplorationBehaviorContract(t, "ProbeNexusExploration", report)
+	require.Equal(t, exploration.StatusAssignmentsEnumerated, report.Status)
+	require.Equal(t, exploration.CoverageCovered, report.Coverage.Status)
+	require.Len(t, report.Candidates, 17)
+}
+
+func requireUmpire3ExplorationBehaviorContract(
+	t *testing.T,
+	behavior string,
+	report exploration.Report,
+) {
+	t.Helper()
+	require.Contains(t, t.Name(), behavior)
+	require.Equal(t, protocolcatalog.TargetIDFeatureNexus, report.Coverage.Target)
+	require.Equal(t, protocolcatalog.PropertyIDNexusOperationClosure, report.Coverage.Property)
+}
+
+func umpire3NexusCoverageAction(action string) (umpire3ScenarioAction, error) {
+	switch action {
+	case "schedule", "reject":
+		return scenario.ScheduleOperation, nil
+	case "attempt-failed":
+		return scenario.RetryTask, nil
+	case "start":
+		return scenario.DispatchTask, nil
+	case "succeed":
+		return scenario.PersistSuccess, nil
+	case "fail", "terminate":
+		return scenario.CloseNexusOperation, nil
+	case "cancel":
+		return scenario.CommitCancellation, nil
+	case "timeout":
+		return scenario.TimeoutNexusOperation, nil
+	default:
+		return nil, fmt.Errorf("unsupported generated Nexus lifecycle action %q", action)
+	}
+}
+
+func (s *Umpire3TestSuite) TestProbeWorkflowGenerated() {
+	update := umpire3workflow.Update("generated-update")
+	runUmpire3Regression(s.T(), umpire3workflow.Scenario("ProbeWorkflowGenerated", update,
+		scenario.OnePath(update.Lifecycle(), update.CompletionThroughHistory())))
+}
+
+func (s *Umpire3TestSuite) TestProbeWorkflowContinueAsNew() {
+	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationScenario("ProbeWorkflowContinueAsNew",
+		[]scenario.Resource{scenario.WorkflowRun("continued-run")},
+		scenario.OnePath(
+			scenario.ContinueWorkflow("continue"),
+			scenario.RequireWorkflowRunContinuationLineage(),
+		)))
+}
+
+func (s *Umpire3TestSuite) TestProbeWorkflowContinueAsNewGenerated() {
+	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationScenario("ProbeWorkflowContinueAsNewGenerated",
+		[]scenario.Resource{
+			scenario.WorkflowRun("continued-run"),
+			scenario.WorkflowTask("continued-task"),
+		},
+		scenario.OnePath(
+			scenario.RouteWorkflowTask("route"),
+			scenario.ContinueWorkflow("continue"),
+			scenario.RequireWorkflowTaskRoutingIsolation(),
+		)))
+}
+
+func (s *Umpire3TestSuite) TestProbeWorkflowReset() {
+	runUmpire3Regression(s.T(), scenario.FoundationRoutingIsolationScenario("ProbeWorkflowReset",
+		[]scenario.Resource{scenario.WorkflowRun("reset-run")},
+		scenario.OnePath(
+			scenario.ResetWorkflow("reset"),
+			scenario.RequireWorkflowRunResetLineage(),
+		)))
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusLearnedFootprint() {
+	t := s.T()
+	declared := umpire3DeclaredFootprint(t, protocolcatalog.ActionKindCloseNexusOperation)
+	factory := &umpire3RequiredFootprintFactory{
+		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+	}
+	result := evaluateUmpire3RegressionIn(t,
+		umpire3NexusClosureRegression("ProbeNexusLearnedFootprint", scenario.CloseNexusOperation("close")), factory)
+	require.Equal(t, umpire3execution.ClaimConforming, result.Claim.Kind, result.Claim.Reason)
+	calls, digest := factory.learnedFootprint()
+	require.NotEmpty(t, calls)
+	require.NotEmpty(t, digest)
+	require.Empty(t, umpire3fault.ReconcileFootprints(declared, calls, nil))
+	require.NotNil(t, result.Footprint)
+	require.True(t, result.Footprint.Complete)
+	require.Equal(t, digest, result.Footprint.FootprintDigest)
+	require.NotEmpty(t, result.Footprint.ReconciliationDigest)
+	targets := umpire3fault.FaultTargets(calls, 99, 2)
+	require.Len(t, targets, 2)
+	require.Contains(t, targets, umpire3fault.Footprint{
+		Protocol: "http", Service: "nexus", Route: "/service/operation", Occurrence: 1, Risk: 8,
+		RealizationEvidence: true,
+	})
+}
+
+func umpire3DeclaredFootprint(t *testing.T, actionKind protocolcatalog.ActionKind) []umpire3fault.Footprint {
+	t.Helper()
+	catalog, err := protocolcatalog.DefaultCatalog()
+	require.NoError(t, err)
+	action, found := catalog.Action(string(actionKind))
+	require.True(t, found)
+	declared := make([]umpire3fault.Footprint, len(action.Footprint))
+	for index, call := range action.Footprint {
+		risk := 5
+		if call.Protocol == "http" {
+			risk = 8
+		}
+		declared[index] = umpire3fault.Footprint{
+			Protocol: call.Protocol, Service: call.Service, Route: call.Route, Risk: risk,
+		}
+	}
+	return declared
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusCoverageGuidedFaults() {
+	t := s.T()
+	require.Contains(t, t.Name(), "ProbeNexusCoverageGuidedFaults")
+	campaignRun := runUmpire3LearnedFaultCampaign(t, 23, 3)
+	require.Equal(t, umpire3execution.ClaimConforming, campaignRun.Baseline.Claim.Kind,
+		campaignRun.Baseline.Claim.Reason)
+	require.NotNil(t, campaignRun.Baseline.Footprint)
+	require.True(t, campaignRun.Baseline.Footprint.Complete)
+	require.Len(t, campaignRun.Report.Executions, 3)
+	require.NotEmpty(t, campaignRun.Report.Dropped)
+	protocols := make(map[string]struct{})
+	for _, execution := range campaignRun.Report.Executions {
+		require.NotEqual(t, umpire3execution.ClaimViolating, execution.Result.Claim.Kind,
+			execution.Result.Claim.Reason)
+		require.Len(t, execution.Result.Faults, 1)
+		require.True(t, execution.Result.Faults[0].Realized)
+		require.True(t, execution.Result.Faults[0].CleanupComplete)
+		require.Contains(t, execution.Coverage, mutation.CoveragePoint{
+			Kind: mutation.CoverageFault, Identifier: execution.CandidateID,
+		})
+		protocols[strings.SplitN(execution.CandidateID, "/", 2)[0]] = struct{}{}
+	}
+	require.Contains(t, protocols, "grpc")
+	require.Contains(t, protocols, "http")
+	for _, dropped := range campaignRun.Report.Dropped {
+		require.Equal(t, mutation.DropBudget, dropped.Reason)
+	}
+}
+
+func (s *Umpire3TestSuite) TestProbeNexusRandomized() {
+	t := s.T()
+	require.Contains(t, t.Name(), "ProbeNexusRandomized")
+	first := runUmpire3NexusRandomCampaign(t, 0x5eed, 6)
+	second := runUmpire3NexusRandomCampaign(t, 0x5eed, 6)
+	require.Equal(t, deterministicCampaignView(first), deterministicCampaignView(second))
+	require.Len(t, first.Executions, 6)
+	require.Len(t, first.Dropped, 11)
+	for _, execution := range first.Executions {
+		require.Equal(t, umpire3execution.ClaimConforming, execution.Result.Claim.Kind)
+		require.Contains(t, execution.Coverage, mutation.CoveragePoint{
+			Kind: mutation.CoverageTransition, Identifier: execution.CandidateID,
+		})
+	}
+}
+
+type umpire3CampaignExecution struct {
+	CandidateID string
+	Digest      string
+	Coverage    []mutation.CoveragePoint
+}
+
+type umpire3CampaignView struct {
+	CoverageBefore []mutation.CoveragePoint
+	CoverageAfter  []mutation.CoveragePoint
+	CoverageDelta  []mutation.CoveragePoint
+	Executions     []umpire3CampaignExecution
+	Dropped        []mutation.Dropped
+}
+
+func deterministicCampaignView(report mutation.Report) umpire3CampaignView {
+	view := umpire3CampaignView{
+		CoverageBefore: report.CoverageBefore, CoverageAfter: report.CoverageAfter,
+		CoverageDelta: report.CoverageDelta, Dropped: report.Dropped,
+	}
+	for _, execution := range report.Executions {
+		view.Executions = append(view.Executions, umpire3CampaignExecution{
+			CandidateID: execution.CandidateID, Digest: execution.Digest, Coverage: execution.Coverage,
+		})
+	}
+	return view
+}
+
+type umpire3LearnedFaultCampaign struct {
+	Baseline umpire3execution.Result
+	Targets  []umpire3fault.Footprint
+	Report   mutation.Report
+}
+
+func runUmpire3LearnedFaultCampaign(t *testing.T, seed int64, budget int) umpire3LearnedFaultCampaign {
+	t.Helper()
+	declared := umpire3DeclaredFootprint(t, protocolcatalog.ActionKindCloseNexusOperation)
+	baselineFactory := &umpire3RequiredFootprintFactory{
+		umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+	}
+	baseline := evaluateUmpire3RegressionIn(t, umpire3NexusActionRegression(
+		"umpire3-learned-fault-baseline", scenario.CloseNexusOperation), baselineFactory)
+	calls, _ := baselineFactory.learnedFootprint()
+	targets := umpire3fault.FaultTargets(calls, seed, len(calls))
+	require.GreaterOrEqual(t, len(targets), budget)
+	prioritized := umpire3fault.FaultTargets(calls, seed, budget)
+	riskFocus := make([]mutation.CoveragePoint, len(prioritized))
+	for index, target := range prioritized {
+		riskFocus[index] = umpire3FaultCoverage(target)
+	}
+	candidates := make([]mutation.Candidate, len(targets))
+	for index, target := range targets {
+		point := umpire3FaultCoverage(target)
+		candidates[index] = mutation.Candidate{
+			Identifier: point.Identifier, Scenario: umpire3FaultTargetScenario(t, target),
+			Coverage: []mutation.CoveragePoint{point}, Risk: []mutation.CoveragePoint{point},
+		}
+	}
+	report, err := mutation.Run(context.Background(), mutation.Request{
+		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
+		CompilerLimits: umpire3CompilerLimits(), RiskFocus: riskFocus,
+		Executor: func(ctx context.Context, experiment protocolexperiment.Experiment) (umpire3execution.Result, []mutation.CoveragePoint, error) {
+			factory := &umpire3RequiredFootprintFactory{
+				umpire3SDKRootFactory: newUmpire3SDKRootFactory(t, false), declared: declared,
+			}
+			result, err := umpire3execution.Run(ctx, umpire3execution.Request{
+				Experiment: experiment, Environment: factory,
+			})
+			if err != nil {
+				return result, nil, err
+			}
+			if result.Claim.Kind != umpire3execution.ClaimConforming {
+				return result, nil, fmt.Errorf("faulted occurrence did not produce a conforming claim: %s", result.Claim.Reason)
+			}
+			if len(result.Faults) != 1 || !result.Faults[0].Realized || !result.Faults[0].CleanupComplete {
+				return result, nil, errors.New("faulted occurrence lacks realization or cleanup evidence")
+			}
+			fault := experiment.Faults[0]
+			return result, []mutation.CoveragePoint{{
+				Kind: mutation.CoverageFault,
+				Identifier: fmt.Sprintf("%s/%s/%s#%d", umpire3FaultProtocol(fault),
+					fault.Scope.Services[0], fault.Scope.Routes[0], fault.Occurrence.First),
+			}}, nil
+		},
+	})
+	require.NoError(t, err)
+	return umpire3LearnedFaultCampaign{Baseline: baseline, Targets: targets, Report: report}
+}
+
+func umpire3FaultTargetScenario(t *testing.T, target umpire3fault.Footprint) scenario.Scenario {
+	t.Helper()
+	require.True(t, target.RealizationEvidence)
+	require.Positive(t, target.Occurrence)
+	identifier := strings.NewReplacer("/", "-", ".", "-", "_", "-").Replace(
+		fmt.Sprintf("umpire3-fault-%s-%s-%s-%d", target.Protocol, target.Service, target.Route, target.Occurrence))
+	resource := scenario.NexusOperation(identifier + "-operation")
+	return scenario.FeatureNexusScenario(identifier, []scenario.Resource{resource},
+		scenario.OnePath(
+			scenario.During(scenario.Drop(identifier+"-drop",
+				scenario.OnResources(resource),
+				scenario.OnServices(target.Service),
+				scenario.OnRoutes(target.Route),
+				scenario.OnParticipants(resource.Identifier),
+				scenario.OnAttempts(1),
+				scenario.AtOccurrence(target.Occurrence, 1),
+			), scenario.CloseNexusOperation(identifier+"-close")),
+			scenario.RequireNexusOperationClosure(),
+		))
+}
+
+func umpire3FaultCoverage(target umpire3fault.Footprint) mutation.CoveragePoint {
+	return mutation.CoveragePoint{
+		Kind:       mutation.CoverageFault,
+		Identifier: fmt.Sprintf("%s/%s/%s#%d", target.Protocol, target.Service, target.Route, target.Occurrence),
+	}
+}
+
+func umpire3FaultProtocol(fault protocolexperiment.Fault) string {
+	if len(fault.Scope.Services) != 0 && fault.Scope.Services[0] == "nexus" {
+		return "http"
+	}
+	return "grpc"
+}
+
+func runUmpire3NexusRandomCampaign(t *testing.T, seed int64, budget int) mutation.Report {
+	t.Helper()
+	values, err := exploration.NexusLifecycleValues()
+	require.NoError(t, err)
+	edges := make(map[string]string, len(values))
+	candidates := make([]mutation.Candidate, len(values))
+	for index, value := range values {
+		identifier := "umpire3-random-" + strings.NewReplacer("/", "-", ".", "-").Replace(value.Key)
+		edges[identifier+"-path-001"] = value.Key
+		point := mutation.CoveragePoint{Kind: mutation.CoverageTransition, Identifier: value.Key}
+		action, err := umpire3NexusCoverageAction(value.Text)
+		require.NoError(t, err)
+		candidates[index] = mutation.Candidate{
+			Identifier: value.Key,
+			Scenario:   umpire3NexusActionRegression(identifier, action),
+			Coverage:   []mutation.CoveragePoint{point},
+		}
+	}
+	observer := newUmpire3NexusLifecycleObserver(t)
+	report, err := mutation.Run(context.Background(), mutation.Request{
+		Candidates: candidates, Seed: seed, Workers: 1, MaxExecutions: budget,
+		CompilerLimits: umpire3CompilerLimits(),
+		Executor: func(ctx context.Context, experiment protocolexperiment.Experiment) (umpire3execution.Result, []mutation.CoveragePoint, error) {
+			edge, found := edges[experiment.ExperimentID]
+			if !found {
+				return umpire3execution.Result{}, nil,
+					fmt.Errorf("generated random experiment %q has no model edge", experiment.ExperimentID)
+			}
+			if err := observer.Observe(ctx, edge); err != nil {
+				return umpire3execution.Result{}, nil, fmt.Errorf("observe generated random edge %q: %w", edge, err)
+			}
+			return umpire3execution.Result{Claim: umpire3execution.Claim{
+				Kind: umpire3execution.ClaimConforming, Property: experiment.Property.Identifier,
+			}}, []mutation.CoveragePoint{{Kind: mutation.CoverageTransition, Identifier: edge}}, nil
+		},
+	})
+	require.NoError(t, err)
+	return report
+}
+
+func umpire3DescriptorHasField(t *testing.T, fullName string) bool {
+	t.Helper()
+	data, err := os.ReadFile("umpire3/model/Temporal/API/Generated/field-dispositions.json")
+	require.NoError(t, err)
+	var document struct {
+		Messages []struct {
+			Fields []struct {
+				FullName    string `json:"fullName"`
+				Disposition string `json:"disposition"`
+			} `json:"fields"`
+		} `json:"messages"`
+	}
+	require.NoError(t, json.Unmarshal(data, &document))
+	for _, message := range document.Messages {
+		for _, field := range message.Fields {
+			if field.FullName == fullName {
+				return field.Disposition != ""
+			}
+		}
+	}
+	return false
+}
+
+func umpire3DropTerm() umpire3fault.Term {
+	return umpire3fault.Term{
+		Kind: protocolcatalog.FaultKindDrop,
+		Scope: umpire3fault.Scope{
+			Namespaces: []string{"umpire3-root"}, Services: []string{"nexus"},
+			Routes: []string{"/service/operation"},
+		},
+		Occurrence: umpire3fault.Occurrence{First: 1, Count: 1},
+		Interval:   umpire3fault.Interval{Start: 1, Stop: 2},
+	}
+}
+
+type umpire3RootFaultRealizer struct {
+	events []string
+}
+
+func (r *umpire3RootFaultRealizer) Install(context.Context, umpire3fault.Term) (string, error) {
+	r.events = append(r.events, "install")
+	return "fault", nil
+}
+
+func (r *umpire3RootFaultRealizer) Activate(context.Context, string) error {
+	r.events = append(r.events, "activate")
+	return nil
+}
+
+func (r *umpire3RootFaultRealizer) Release(context.Context, string) error {
+	r.events = append(r.events, "release")
+	return nil
+}
+
+func (r *umpire3RootFaultRealizer) Cleanup(context.Context, string) error {
+	r.events = append(r.events, "cleanup")
+	return nil
+}
+
+func umpire3CompilerLimits() scenario.Limits {
+	return scenario.Limits{
+		MaxPaths: 8, MaxActions: 64, MaxStates: 1000, MaxMemoryBytes: 8 << 20, MaxTime: 5 * time.Second,
+	}
+}

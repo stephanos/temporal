@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
@@ -28,6 +29,7 @@ import (
 	"go.temporal.io/server/common/quotas"
 	"go.temporal.io/server/common/softassert"
 	"go.temporal.io/server/common/taskqueue"
+	"go.temporal.io/server/common/telemetry"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/util"
 	"go.temporal.io/server/common/worker_versioning"
@@ -522,6 +524,15 @@ func (c *physicalTaskQueueManagerImpl) PollTask(
 		if task.event != nil && IsTaskExpired(task.event.AllocatedTaskInfo) {
 			// task is expired while polling
 			task.finish(taskFinishResult{dropReason: dropReasonExpiredMemory})
+			trace.SpanFromContext(ctx).AddEvent(
+				telemetry.EventWorkflowTaskDiscarded,
+				trace.WithAttributes(
+					telemetry.AttrWorkflowID.String(task.event.Data.GetWorkflowId()),
+					telemetry.AttrRunID.String(task.event.Data.GetRunId()),
+					telemetry.AttrNamespaceID.String(task.event.Data.GetNamespaceId()),
+					telemetry.AttrTaskQueue.String(c.queue.TaskQueueFamily().Name()),
+				),
+			)
 			continue
 		}
 
