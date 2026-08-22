@@ -3,8 +3,8 @@ package formalbridge
 import (
 	"fmt"
 
-	"go.temporal.io/server/tools/gomadv4/trace"
-	"go.temporal.io/server/tools/gomadv4/virtualtime"
+	"go.temporal.io/server/tools/gomad4/trace"
+	"go.temporal.io/server/tools/gomad4/virtualtime"
 )
 
 type Inputs struct {
