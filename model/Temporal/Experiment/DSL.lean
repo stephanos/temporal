@@ -8,7 +8,7 @@ structure ResourceId where
 
 structure ActionId where
   value : String
-  deriving BEq, DecidableEq, Ord, Repr
+  deriving BEq, DecidableEq, Hashable, Ord, Repr
 
 structure PropertyId where
   value : String

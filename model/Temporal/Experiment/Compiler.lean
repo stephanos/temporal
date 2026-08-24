@@ -116,19 +116,43 @@ private def edgeLe (left right : PrecedenceEdge) : Bool :=
   decide (left.before.value < right.before.value) ||
     (left.before == right.before && decide (left.after.value ≤ right.after.value))
 
-private def reaches
-    (edges : List PrecedenceEdge)
-    (current goal : ActionId)
-    (visited : List ActionId) : Nat → Bool
-  | 0 => false
+private structure OrderingGraph where
+  indegree : Std.HashMap ActionId Nat
+  outgoing : Std.HashMap ActionId (List ActionId)
+
+private def buildOrderingGraph
+    (actions : List ActionId)
+    (ordering : List PrecedenceEdge) : OrderingGraph :=
+  ordering.foldl (init := {
+    indegree := actions.foldl (init := {}) fun degrees action => degrees.insert action 0
+    outgoing := {}
+  }) fun graph edge => {
+    indegree := graph.indegree.modify edge.after (fun count => count + 1)
+    outgoing := graph.outgoing.insert edge.before (edge.after :: graph.outgoing.getD edge.before [])
+  }
+
+private def countTopologically
+    (outgoing : Std.HashMap ActionId (List ActionId))
+    (indegree : Std.HashMap ActionId Nat)
+    (pending : List ActionId)
+    (count : Nat) : Nat → Nat
+  | 0 => count
   | fuel + 1 =>
-      if current == goal then
-        true
-      else if visited.contains current then
-        false
-      else
-        edges.any fun edge =>
-          edge.before == current && reaches edges edge.after goal (current :: visited) fuel
+      match pending with
+      | [] => count
+      | current :: rest =>
+          let (indegree, pending) := (outgoing.getD current []).foldl (init := (indegree, rest))
+            fun (degrees, pending) next =>
+              let remaining := degrees.getD next 0 - 1
+              let degrees := degrees.insert next remaining
+              let pending := if remaining == 0 then next :: pending else pending
+              (degrees, pending)
+          countTopologically outgoing indegree pending (count + 1) fuel
+
+private def hasOrderingCycle (actions : List ActionId) (ordering : List PrecedenceEdge) : Bool :=
+  let graph := buildOrderingGraph actions ordering
+  let pending := actions.filter (fun action => graph.indegree.getD action 0 == 0)
+  countTopologically graph.outgoing graph.indegree pending 0 actions.length < actions.length
 
 private def validateOrdering
     (actions : List ActionId)
@@ -145,9 +169,12 @@ private def validateOrdering
       throw (compileError .unresolvedAction edge.before.value "ordering")
     if !actions.contains edge.after then
       throw (compileError .unresolvedAction edge.after.value "ordering")
-  match canonical.find? (fun edge => reaches canonical edge.after edge.before [] canonical.length) with
-  | some edge => throw (compileError .cyclicOrdering (edgeSubject edge) "ordering")
-  | none => pure canonical
+  if hasOrderingCycle actions canonical then
+    match canonical.head? with
+    | some edge => throw (compileError .cyclicOrdering (edgeSubject edge) "ordering")
+    | none => pure canonical
+  else
+    pure canonical
 
 def compile (target : ModelTarget) (regression : Regression) : Except CompileError ExperimentSpec := do
   validateIdentities target regression
