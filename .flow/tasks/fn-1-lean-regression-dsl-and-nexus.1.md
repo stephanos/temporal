@@ -35,8 +35,8 @@ Build the closed pure-Lean compiler foundation for R1-R5 and R7. This is the ear
 - Preserve all existing comments in touched files.
 
 ### Task-scoped verification
-- Baseline and completion commands for this task are `make -C model check` and `make umpire-check-api`.
-- `make umpire-check-regression` is a final spec Quick command whose root target is created by task `.3`; its absence is expected until that task and must not block `.1`.
+- The baseline and completion command for this task is `make -C model check`, plus the focused `ExperimentTests` build.
+- `make -C model check-regression` is a final spec Quick command whose model-local target is created by task `.3`; its absence is expected until that task and must not block `.1`.
 
 ## Acceptance
 - [ ] `compile` exposes the planned pure Lean success/error contract with no file or runtime side effects.
