@@ -20,7 +20,7 @@ var _ umpire.Lifecycled = (*NexusOperation)(nil)
 // NexusOperation mirrors the Nexus-operation HSM
 // (components/nexusoperations/statemachine.go) as a Lifecycled entity. Its ID is
 // "<callerWorkflowID>:<scheduledEventID>" and it is rooted under the caller
-// Workflow (see UMPIRE.md).
+// Workflow (see .plans/UMPIRE.md).
 type NexusOperation struct {
 	ScheduledEventID         string
 	WorkflowID               string

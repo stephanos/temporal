@@ -322,7 +322,7 @@ func SetupNewWorkflowForRetryOrCron(
 
 	// Emit an OTEL span event for the retry/cron successor's start, carrying its lineage (previous
 	// run + chain root) and the typed edge (retry vs cron), so the umpire observer links it into the
-	// run graph. See UMPIRE.md.
+	// run graph. See .plans/UMPIRE.md.
 	runInitiator := telemetry.RunInitiatorRetry
 	if initiator == enumspb.CONTINUE_AS_NEW_INITIATOR_CRON_SCHEDULE {
 		runInitiator = telemetry.RunInitiatorCron

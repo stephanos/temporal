@@ -6,7 +6,7 @@
 // framework (common/testing/umpire). This package re-exports it alongside the Temporal
 // Models/DefaultModels registry in models.go.
 //
-// See UMPIRE.md for the broader architecture.
+// See .plans/UMPIRE.md for the broader architecture.
 package planner
 
 import umpire "go.temporal.io/server/common/testing/umpire"

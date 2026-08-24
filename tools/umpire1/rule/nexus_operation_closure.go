@@ -10,7 +10,7 @@ import (
 // NexusOperationClosure checks that no Nexus operation transitions after its
 // caller workflow has reached a terminal state. Workflow close is observed for
 // only one path; *At timestamps are observation-time. Triage against the real
-// Nexus suite before relying on it (see UMPIRE.md).
+// Nexus suite before relying on it (see .plans/UMPIRE.md).
 type NexusOperationClosure struct{}
 
 func (m *NexusOperationClosure) Name() string { return "NexusOperationClosureRule" }

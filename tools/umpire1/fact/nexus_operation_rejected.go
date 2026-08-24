@@ -8,7 +8,7 @@ import (
 )
 
 // NexusOperationRejected is the fact for a StartNexusOperationExecution the server rejected
-// synchronously — an invalid request that produced no operation and no telemetry (UMPIRE.md).
+// synchronously — an invalid request that produced no operation and no telemetry (.plans/UMPIRE.md).
 // Unlike the other Nexus facts (decoded from spans), it is synthesized from the request + error
 // outcome by the decoder's ImportRejection. It routes to a NexusOperation entity keyed by the
 // operation's request id under its namespace, so a rejection reaches the `rejected` terminal and is

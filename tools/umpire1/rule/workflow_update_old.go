@@ -16,7 +16,7 @@ package rule
 // // caller workflow has reached a terminal state. It is the direct analog of
 // // WorkflowUpdateClosure, and inherits the same fidelity caveats (workflow close is
 // // observed for only one path; *At timestamps are observation-time) — triage
-// // against the real Nexus suite before relying on it (see UMPIRE.md).
+// // against the real Nexus suite before relying on it (see .plans/UMPIRE.md).
 //
 // tools/umpire1/rule/workflow_update_closure.go
 // package rule

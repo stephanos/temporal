@@ -1,0 +1,8 @@
+name = "temporal-model"
+defaultTargets = ["NexusAutoClose", "Temporal"]
+
+[[lean_lib]]
+name = "NexusAutoClose"
+
+[[lean_lib]]
+name = "Temporal"

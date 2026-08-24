@@ -9,7 +9,7 @@ import (
 // WorkflowRunContinuedAsNew represents a run closing via continue-as-new — the predecessor of a
 // continued_as_new edge. It targets that run's WorkflowRun so it reaches a continued_as_new
 // terminal rather than staying started (its successor start carries the matching edge label). See
-// UMPIRE.md.
+// .plans/UMPIRE.md.
 type WorkflowRunContinuedAsNew struct {
 	WorkflowID  string
 	RunID       string
