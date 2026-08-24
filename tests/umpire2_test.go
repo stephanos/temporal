@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/common/testing/parallelsuite"
 	umpirefw "go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 )
 
 // Umpire2TestSuite is an end-to-end test of both halves of the umpire together:

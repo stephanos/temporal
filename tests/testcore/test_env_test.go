@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/common/testing/parallelsuite"
 	"go.temporal.io/server/common/testing/testlogger"
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 )
 
 func TestWithInMemorySQLitePersistence(t *testing.T) {

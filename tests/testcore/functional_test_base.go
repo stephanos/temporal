@@ -49,7 +49,7 @@ import (
 	"go.temporal.io/server/service/history/hsm/nexusoperations"
 	"go.temporal.io/server/temporal"
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 	"google.golang.org/grpc"
 )
 

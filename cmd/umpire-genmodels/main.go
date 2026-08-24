@@ -15,7 +15,7 @@ import (
 
 	"go.temporal.io/server/common/testing/umpire/verify"
 	"go.temporal.io/server/common/testing/umpire/verify/toolchain"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 )
 
 const generatorVersion = "umpire-genmodels/v1"
@@ -23,8 +23,8 @@ const generatorVersion = "umpire-genmodels/v1"
 func main() {
 	var (
 		mode         = flag.String("mode", "generate", "generate, check-generated, tool-environment, or verify")
-		output       = flag.String("out", "tests/umpire2/testdata/genmodels", "generated model directory")
-		artifacts    = flag.String("artifacts", "tests/umpire2/testdata/results", "verification result directory")
+		output       = flag.String("out", "tools/umpire2/testdata/genmodels", "generated model directory")
+		artifacts    = flag.String("artifacts", "tools/umpire2/testdata/results", "verification result directory")
 		target       = flag.String("target", "all", "verification target name or all")
 		backend      = flag.String("backend", "all", "sany, tlc, apalache, apalache-proof, p, pex, ivy, fizz, or all")
 		profile      = flag.String("profile", "smoke", "smoke or nightly")
