@@ -28,11 +28,11 @@ func TestReflectStartParamsIncludesEnumAndPayloadDomains(t *testing.T) {
 }
 
 func TestPayloadDomainMutationsAndNormalizationDoNotExposeRawData(t *testing.T) {
-	domain := newPayloadDomain(8)
 	payload := &commonpb.Payload{
 		Metadata: map[string][]byte{"encoding": []byte("json/plain")},
 		Data:     []byte("secret"),
 	}
+	domain := newPayloadDomain(payload.Size())
 	variants := domain.Variants()
 	require.Len(t, variants, 3)
 	for _, variant := range variants {
@@ -45,7 +45,19 @@ func TestPayloadDomainMutationsAndNormalizationDoNotExposeRawData(t *testing.T) 
 	require.NoError(t, err)
 	require.NotContains(t, normalized, "secret")
 	require.Contains(t, normalized, "sha256:")
-	_, err = domain.Normalize(&commonpb.Payload{Data: []byte("123456789")})
+	_, err = domain.Normalize(&commonpb.Payload{Data: make([]byte, payload.Size()+1)})
+	require.ErrorIs(t, err, umpirefw.ErrDomainValue)
+}
+
+func TestPayloadDomainRejectsMetadataOverEncodedSizeLimit(t *testing.T) {
+	domain := newPayloadDomain(8)
+	payload := &commonpb.Payload{
+		Metadata: map[string][]byte{"encoding": []byte("json/plain")},
+	}
+	require.Empty(t, payload.GetData())
+	require.Greater(t, payload.Size(), 8)
+
+	_, err := domain.Normalize(payload)
 	require.ErrorIs(t, err, umpirefw.ErrDomainValue)
 }
 
