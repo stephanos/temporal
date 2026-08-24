@@ -1,4 +1,5 @@
 import Temporal.Experiment.Compiler
+import Temporal.Experiment.Inspect
 import Temporal.Experiment.Json
 
 namespace Temporal.ExperimentTests
@@ -341,5 +342,163 @@ example : (compile changedPropertyTarget validRegression).toOption.map Experimen
 example : (compile changedPropertyTarget validRegression).toOption.map canonicalJson ≠
     (compile validTarget validRegression).toOption.map canonicalJson := by
   native_decide
+
+namespace NexusCallerClosureTests
+
+open NexusCallerClosure
+
+def expectedClashSetupValue : String :=
+  "{ op := NexusAutoClose.OpState.started,\n" ++
+    "  policy := NexusAutoClose.Policy.requestCancel,\n" ++
+    "  cancels := [NexusAutoClose.Initiator.user],\n" ++
+    "  callerOpen := true,\n" ++
+    "  slack := false }"
+
+def expectedUpgradedOutcomeValue : String :=
+  "{ op := NexusAutoClose.OpState.started,\n" ++
+    "  policy := NexusAutoClose.Policy.requestCancel,\n" ++
+    "  cancels := [NexusAutoClose.Initiator.system],\n" ++
+    "  callerOpen := false,\n" ++
+    "  slack := false }"
+
+def expectedPilotSetup : ResolvedSetup := ⟨[{
+  id := ⟨"caller-closure-clash"⟩
+  value := expectedClashSetupValue
+}]⟩
+
+def expectedPilotOutcomes : List ProjectedOutcome := [{
+  actionId := ⟨"caller-force-close"⟩
+  outcome := ⟨expectedUpgradedOutcomeValue⟩
+}]
+
+def expectedPilotProperties : List ExpectedProperty := [
+  {
+    propertyId := ⟨"cancellation-uniqueness"⟩
+    observationContract :=
+      "NexusAutoClose.upgrade_preserves_uniqueness" ++
+        "(NexusAutoClose.wClash,NexusAutoClose.wClash_reachable(upgrade))"
+  },
+  {
+    propertyId := ⟨"honored-delivery"⟩
+    observationContract := "NexusAutoClose.upgrade_honors_delivery(NexusAutoClose.wClash)"
+  }
+]
+
+def expectedPilotSpec : ExperimentSpec := {
+  formatVersion := "temporal-experiment/v1"
+  regressionId := ⟨"nexus-caller-closure-upgrade"⟩
+  targetId := ⟨"nexus-caller-closure"⟩
+  modelIdentity := deriveModelIdentity ⟨"nexus-caller-closure"⟩
+    "NexusAutoClose.wClash|NexusAutoClose.autoClose:upgrade"
+    expectedPilotSetup expectedPilotOutcomes expectedPilotProperties
+  resources := [⟨"caller-closure-clash"⟩]
+  resolvedSetup := expectedPilotSetup
+  actionAttempts := [⟨"caller-force-close"⟩]
+  projectedOutcomes := expectedPilotOutcomes
+  ordering := []
+  expectedProperties := expectedPilotProperties
+  bounds := { resources := 1, actions := 1, precedenceEdges := 0 }
+  omissions := ["runtime-execution", "state-exploration"]
+  provenance := { source := "NexusAutoClose", compiler := "lean-regression" }
+}
+
+example : NexusCallerClosure.compiled.toOption = some expectedPilotSpec := by
+  native_decide
+
+example : NexusCallerClosure.compiled.toOption.map (fun spec =>
+    (spec.actionAttempts, spec.projectedOutcomes)) = some (
+      [⟨"caller-force-close"⟩],
+      [{ actionId := ⟨"caller-force-close"⟩, outcome := ⟨expectedUpgradedOutcomeValue⟩ }]
+    ) := by
+  native_decide
+
+def expectedPilotStdout : String := canonicalJson expectedPilotSpec ++ "\n"
+
+example : runCli [regressionId.value] = {
+    status := 0
+    stdout := expectedPilotStdout
+    stderr := ""
+  } := by
+  native_decide
+
+def repeatedPilotOutput : List String :=
+  (List.range 2).map fun _ => (runCli [regressionId.value]).stdout
+
+example : repeatedPilotOutput = List.replicate 2 expectedPilotStdout := by
+  native_decide
+
+example : runCli ["missing-pilot"] = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"unknownPilot\",\"subject\":\"missing-pilot\"," ++
+        "\"context\":\"pilot registry\"}\n"
+  } := by
+  native_decide
+
+def incompatiblePilot : Pilot := {
+  id := "incompatible-pilot"
+  target
+  regression := { NexusCallerClosure.regression with target := ⟨"other-target"⟩ }
+}
+
+example : runInspector [incompatiblePilot] [incompatiblePilot.id] = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"incompatibleTarget\",\"subject\":\"other-target\"," ++
+        "\"context\":\"nexus-caller-closure\"}\n"
+  } := by
+  native_decide
+
+def impossibleTarget : ModelTarget := {
+  target with resources := [{ id := clashResourceId, value := "not-the-clash" }]
+}
+
+def compileFailurePilot : Pilot := {
+  id := "compile-failure-pilot"
+  target := impossibleTarget
+  regression := NexusCallerClosure.regression
+}
+
+example : runInspector [compileFailurePilot] [compileFailurePilot.id] = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"compileFailure\",\"subject\":\"caller-force-close\"," ++
+        "\"context\":\"impossibleAction:[{\\\"resourceId\\\":\\\"caller-closure-clash\\\"," ++
+        "\\\"value\\\":\\\"not-the-clash\\\"}]\"}\n"
+  } := by
+  native_decide
+
+def changedOutcomeTarget : ModelTarget := {
+  target with actionProjections := [{
+    id := forceCloseActionId
+    project := fun setup => if setup == clashSetup then some ⟨"changed-outcome"⟩ else none
+  }]
+}
+
+def changedObservationTarget : ModelTarget := {
+  target with propertyObservations := [
+    honoredDeliveryObservation,
+    {
+      id := cancellationUniquenessPropertyId
+      contract := "changed-observation-contract"
+    }
+  ]
+}
+
+def compiledIdentity (candidate : ModelTarget) : Option String :=
+  (compile candidate NexusCallerClosure.regression).toOption.map ExperimentSpec.modelIdentity
+
+def compiledJson (candidate : ModelTarget) : Option String :=
+  (compile candidate NexusCallerClosure.regression).toOption.map canonicalJson
+
+example : [changedOutcomeTarget, changedObservationTarget].all (fun candidate =>
+    compiledIdentity candidate != compiledIdentity target &&
+      compiledJson candidate != compiledJson target) = true := by
+  native_decide
+
+end NexusCallerClosureTests
 
 end Temporal.ExperimentTests
