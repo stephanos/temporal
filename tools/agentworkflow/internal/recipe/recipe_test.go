@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -16,7 +17,7 @@ func TestDefaultAndNormalizePreserveCanonicalGuardedRecipe(t *testing.T) {
 	}
 	for index, kind := range order {
 		stage := resolved.Stage(kind)
-		if stage.Kind != kind || stage != resolved.Stages[index] {
+		if stage.Kind != kind || !reflect.DeepEqual(stage, resolved.Stages[index]) {
 			t.Fatalf("stage %d = %#v, lookup=%#v", index, resolved.Stages[index], stage)
 		}
 	}
@@ -26,6 +27,34 @@ func TestDefaultAndNormalizePreserveCanonicalGuardedRecipe(t *testing.T) {
 	resolved.Stages[0].Prompt = "changed"
 	if Default().Stages[0].Prompt == "changed" {
 		t.Fatal("default workflow shares mutable storage")
+	}
+}
+
+func TestNormalizePreservesModelsForAgentStages(t *testing.T) {
+	for _, kind := range []Kind{Discover, Plan, Implement, Review, Repair} {
+		t.Run(string(kind), func(t *testing.T) {
+			workflow := Default()
+			stage := workflow.Stage(kind)
+			stage.Models = Models{"codex": "gpt-5.3-codex", "claude": "opus"}
+			for index := range workflow.Stages {
+				if workflow.Stages[index].Kind == kind {
+					workflow.Stages[index] = stage
+				}
+			}
+
+			resolved, err := Normalize(workflow)
+			if err != nil {
+				t.Fatal(err)
+			}
+			models := resolved.Stage(kind).Models
+			if models["codex"] != "gpt-5.3-codex" || models["claude"] != "opus" {
+				t.Fatalf("models = %#v", models)
+			}
+			stage.Models["codex"] = "changed"
+			if resolved.Stage(kind).Models["codex"] != "gpt-5.3-codex" {
+				t.Fatal("normalized workflow shares mutable model storage")
+			}
+		})
 	}
 }
 
@@ -42,6 +71,10 @@ func TestNormalizeRejectsEveryRecipeContractViolation(t *testing.T) {
 		"unexpected review prompt": func(workflow *Workflow) { workflow.Stages[0].ReviewPrompt = "extra" },
 		"automatic apply":          func(workflow *Workflow) { workflow.Stages[6].Mode = "automatic" },
 		"mode on non-apply":        func(workflow *Workflow) { workflow.Stages[0].Mode = "explicit" },
+		"blank codex model":        func(workflow *Workflow) { workflow.Stages[0].Models = Models{"codex": " "} },
+		"blank claude model":       func(workflow *Workflow) { workflow.Stages[0].Models = Models{"claude": "\t"} },
+		"models on check":          func(workflow *Workflow) { workflow.Stages[3].Models = Models{} },
+		"models on apply":          func(workflow *Workflow) { workflow.Stages[6].Models = Models{"claude": "opus"} },
 	}
 	for name, mutate := range cases {
 		t.Run(name, func(t *testing.T) {
