@@ -38,8 +38,8 @@ Bind the compiler contract from task `.1` to the existing standalone Nexus calle
 - Preserve all existing comments in touched files.
 
 ### Task-scoped verification
-- Baseline and completion commands for this task are `make -C model check` and `make umpire-check-api`, plus the focused Lean inspector executable/tests added here.
-- `make umpire-check-regression` is a final spec Quick command whose root target is created by task `.3`; its absence is expected until that task and must not block `.2`.
+- The baseline and completion command for this task is `make -C model check`, plus the focused Lean inspector executable/tests added here.
+- `make -C model check-regression` is a final spec Quick command whose model-local target is created by task `.3`; its absence is expected until that task and must not block `.2`.
 
 ## Acceptance
 - [ ] The checked regression selects the caller-closure clash setup, force-close attempt, upgrade projection, finite declaration bounds, and both existing honored-delivery and cancellation-uniqueness expectations.
@@ -55,6 +55,8 @@ Bind the compiler contract from task `.1` to the existing standalone Nexus calle
 Bound the checked Nexus caller-closure clash and upgrade semantics to the regression compiler, including distinct force-close intent, projected outcome, and proof-backed honored-delivery and cancellation-uniqueness expectations. Added the closed stdout-only Lean inspector and focused deterministic success/failure fixtures; both task gates and the focused executable checks passed.
 
 stage: impl-review - ran [2026-08-24T16:35:36Z..2026-08-24T16:39:13Z]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 530fecb062b3b6aa1ecc35783aa44e374cbfe1c3
 - Tests: make -C model check, make umpire-check-api, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, model/.lake/build/bin/temporal-experiment-inspect nexus-caller-closure-upgrade (success, canonical JSON, repeated-byte identity assertions), model/.lake/build/bin/temporal-experiment-inspect missing-pilot (non-zero, empty stdout, one structured stderr diagnostic assertions)
