@@ -28,7 +28,7 @@ func TestInitAndConfigExplainUserFlow(t *testing.T) {
 	if code := runCLI(context.Background(), []string{"init", "--project", root}, &stdout, &stderr); code != exitOK {
 		t.Fatalf("init exit = %d, stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
-	config := filepath.Join(root, ".spec", "agentworkflow.yaml")
+	config := filepath.Join(root, ".agentworkflow", "config.yml")
 	if _, err := os.Stat(config); err != nil {
 		t.Fatal(err)
 	}
@@ -147,21 +147,14 @@ func TestRunApplyRejectsDisabledAdmittedStageBeforeBackendProbe(t *testing.T) {
 	}
 }
 
-func TestDoctorReportsLegacyConfigurationBeforeBackendProbe(t *testing.T) {
+func TestDoctorReportsMissingConfigurationBeforeBackendProbe(t *testing.T) {
 	projectRoot := t.TempDir()
-	legacy := filepath.Join(projectRoot, ".agentworkflow", "project.json")
-	if err := os.MkdirAll(filepath.Dir(legacy), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(legacy, []byte(`{}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	code := runCLI(context.Background(), []string{
 		"doctor", "--project", projectRoot, "--backend-command", "missing-agentworkflow-provider",
 	}, &stdout, &stderr)
-	if code != exitFailure || !strings.Contains(stderr.String(), "legacy JSON configuration") || strings.Contains(stderr.String(), "missing-agentworkflow-provider") {
+	if code != exitFailure || !strings.Contains(stderr.String(), ".agentworkflow/config.yml") || strings.Contains(stderr.String(), "missing-agentworkflow-provider") {
 		t.Fatalf("exit=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
 }
@@ -277,7 +270,7 @@ func writeCLIConfig(t *testing.T, root string, applyEnabled bool) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	path := filepath.Join(root, ".spec", "agentworkflow.yaml")
+	path := filepath.Join(root, ".agentworkflow", "config.yml")
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		t.Fatal(err)
 	}
