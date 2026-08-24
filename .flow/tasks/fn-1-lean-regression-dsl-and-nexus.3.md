@@ -42,9 +42,10 @@ Finish R5-R7 by exposing one repository check, verifying the isolated dependency
 - [ ] The new top-level regression target invokes no Umpire3 code, target, artifact, test, or runtime behavior.
 
 ## Done summary
-TBD
+Added the top-level Lean regression verification workflow and documented the bounded pilot's declaration, inspection contract, and semantic authority boundary. The final target builds the compiler fixtures, verifies deterministic success output, and enforces exactly one structured negative diagnostic with empty stdout.
 
+stage: impl-review - ran [2026-08-24T16:51:29Z..2026-08-24T17:45:24Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 46a53e219924c9662f23a23b0f753e7f47776200, 79f94806c9c4414aaa24117061012ebab8fa67a6
+- Tests: cd model && mise exec -- lake build, make umpire-check-regression, positive current-model import/build allowlist (explicit Lean imports, lake targets, and top-level regression commands)
 - PRs:
