@@ -371,7 +371,7 @@
     "impl:fn-2-agentworkflow-configuration-and-cli.7": 0
   },
   "spec_path": ".flow/specs/fn-2-agentworkflow-configuration-and-cli.md",
-  "status": "open",
+  "status": "done",
   "title": "Agentworkflow configuration and CLI",
   "tracker": {
     "baseHashFlow": null,
@@ -384,5 +384,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T20:32:38.733246Z"
+  "updated_at": "2026-08-24T20:34:42.899258Z"
 }
