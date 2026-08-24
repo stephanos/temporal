@@ -50,6 +50,7 @@ func generateArtifacts(
 		"Temporal/Generated/GRPC/Public.lean":      renderGRPC(projection, sourcePublic),
 		"Temporal/Generated/GRPC/Internal.lean":    renderGRPC(projection, sourceInternal),
 		"Temporal/Generated/GRPC/CHASM.lean":       renderGRPC(projection, sourceCHASM),
+		"Temporal/Generated/GRPC/External.lean":    renderGRPC(projection, sourceExternal),
 	}
 	schema, err := canonicalIndentedJSON(projection)
 	if err != nil {
@@ -58,7 +59,7 @@ func generateArtifacts(
 	artifacts[schemaPath] = schema
 
 	manifest := generationManifest{
-		FormatVersion: "umpire/temporal-api/v1", PublicModule: publicModule, PublicVersion: publicVersion,
+		FormatVersion: "umpire/temporal-api/v2", PublicModule: publicModule, PublicVersion: publicVersion,
 		DescriptorDigest: projection.DescriptorDigest, Files: len(projection.Files), Messages: len(projection.Messages),
 		Enums: len(projection.Enums), Services: len(projection.Services),
 	}
@@ -100,6 +101,7 @@ import Temporal.Generated.Catalog.External
 import Temporal.Generated.GRPC.Public
 import Temporal.Generated.GRPC.Internal
 import Temporal.Generated.GRPC.CHASM
+import Temporal.Generated.GRPC.External
 `)
 }
 
@@ -120,7 +122,7 @@ func renderTypes(projection projection) []byte {
 	for _, message := range projection.Messages {
 		for _, oneof := range message.Oneofs {
 			fmt.Fprintf(&generated, "inductive %s where\n  | notSet\n", oneof.LeanName)
-			used := make(map[string]int)
+			used := map[string]int{"notSet": 1}
 			for _, field := range oneof.Fields {
 				name := uniqueName(field.LeanName, used, field.Number)
 				fmt.Fprintf(&generated, "  | %s (value : %s)\n", name, leanFieldBaseType(field))
@@ -129,16 +131,17 @@ func renderTypes(projection projection) []byte {
 		}
 		fmt.Fprintf(&generated, "structure %s where\n", message.LeanName)
 		fieldCount := 0
+		usedStructureNames := make(map[string]int)
 		for _, field := range message.Fields {
 			if field.Oneof != "" {
 				continue
 			}
 			fmt.Fprintf(&generated, "  %s : %s\n", field.LeanName, leanFieldType(field))
+			usedStructureNames[field.LeanName] = 1
 			fieldCount++
 		}
-		usedOneofs := make(map[string]int)
 		for index, oneof := range message.Oneofs {
-			name := uniqueName(lowerIdentifier(oneof.Name), usedOneofs, int32(index+1))
+			name := uniqueName(lowerIdentifier(oneof.Name), usedStructureNames, int32(index+1))
 			fmt.Fprintf(&generated, "  %s : %s\n", name, oneof.LeanName)
 			fieldCount++
 		}
@@ -161,8 +164,8 @@ func renderCatalog(projection projection, source sourceKind) []byte {
 		if file.Source != source {
 			continue
 		}
-		fmt.Fprintf(&generated, "  { path := %q, packageName := %q, syntaxName := %q, dependencies := [%s] },\n",
-			file.Path, file.Package, file.Syntax, leanStrings(file.Dependencies))
+		fmt.Fprintf(&generated, "  { path := %q, packageName := %q, syntaxName := %q, dependencies := [%s], services := [%s] },\n",
+			file.Path, file.Package, file.Syntax, leanStrings(file.Dependencies), leanStrings(file.Services))
 	}
 	generated.WriteString("]\n\n")
 	fmt.Fprintf(&generated, "def %sEnums : List Temporal.Proto.EnumDescriptor := [\n", name)
@@ -175,9 +178,9 @@ func renderCatalog(projection projection, source sourceKind) []byte {
 			if index > 0 {
 				generated.WriteString(", ")
 			}
-			fmt.Fprintf(&generated, "(%q, %d)", value.Name, value.Number)
+			fmt.Fprintf(&generated, "{ name := %q, number := %d, deprecated := %t }", value.Name, value.Number, value.Deprecated)
 		}
-		fmt.Fprintf(&generated, "], allowAliases := %t },\n", enum.AllowAliases)
+		fmt.Fprintf(&generated, "], allowAliases := %t, deprecated := %t },\n", enum.AllowAliases, enum.Deprecated)
 	}
 	generated.WriteString("]\n\n")
 	fmt.Fprintf(&generated, "def %sMessages : List Temporal.Proto.MessageDescriptor := [\n", name)
@@ -187,11 +190,11 @@ func renderCatalog(projection projection, source sourceKind) []byte {
 		}
 		fmt.Fprintf(&generated, "  { fullName := %q, fields := [\n", message.FullName)
 		for _, field := range message.Fields {
-			fmt.Fprintf(&generated, "      { fullName := %q, jsonName := %q, number := %d, kind := %q, typeName := %q, mapKeyType := %q, mapValueType := %q, presence := %t, oneofName := %q, repeated := %t, mapField := %t, recursive := %t, deprecated := %t },\n",
+			fmt.Fprintf(&generated, "      { fullName := %q, jsonName := %q, number := %d, kind := %q, typeName := %q, mapKeyType := %q, mapValueType := %q, presence := %t, required := %t, hasDefault := %t, defaultValue := %q, oneofName := %q, repeated := %t, mapField := %t, packed := %t, recursive := %t, deprecated := %t },\n",
 				field.FullName, field.JSONName, field.Number, field.Kind, field.TypeName, field.MapKey, field.MapValue,
-				field.Presence, field.Oneof, field.Repeated, field.Map, field.Recursive, field.Deprecated)
+				field.Presence, field.Required, field.HasDefault, field.Default, field.Oneof, field.Repeated, field.Map, field.Packed, field.Recursive, field.Deprecated)
 		}
-		generated.WriteString("    ] },\n")
+		fmt.Fprintf(&generated, "    ], deprecated := %t },\n", message.Deprecated)
 	}
 	generated.WriteString("]\n\nend Temporal.Proto.Generated.Catalog\n")
 	return []byte(generated.String())
@@ -224,7 +227,7 @@ func renderGRPC(projection projection, source sourceKind) []byte {
 			fmt.Fprintf(&generated, "      { fullName := %q, inputType := %q, outputType := %q, clientStreaming := %t, serverStreaming := %t, deprecated := %t },\n",
 				method.FullName, method.InputType, method.OutputType, method.ClientStreaming, method.ServerStreaming, method.Deprecated)
 		}
-		generated.WriteString("    ] },\n")
+		fmt.Fprintf(&generated, "    ], deprecated := %t },\n", service.Deprecated)
 	}
 	generated.WriteString("]\n\nend Temporal.Proto.Generated.GRPC\n")
 	return []byte(generated.String())
@@ -243,7 +246,7 @@ func leanFieldType(field fieldProjection) string {
 	if field.Repeated {
 		return "List " + parenthesize(base)
 	}
-	if field.Presence {
+	if field.Presence && !field.Required {
 		return "Option " + parenthesize(base)
 	}
 	return base

@@ -7,3 +7,4 @@ import Temporal.Generated.Catalog.External
 import Temporal.Generated.GRPC.Public
 import Temporal.Generated.GRPC.Internal
 import Temporal.Generated.GRPC.CHASM
+import Temporal.Generated.GRPC.External
