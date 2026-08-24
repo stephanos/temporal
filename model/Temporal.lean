@@ -1,2 +1,2 @@
-import Temporal.Generated
+import Temporal.API
 import Temporal.Experiment.NexusCallerClosure

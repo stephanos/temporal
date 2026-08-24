@@ -1,35 +1,37 @@
 # Temporal Lean model
 
-Lean owns behavioral meaning in this directory. `umpire-gen-api` consumes only serialized
-protobuf descriptor sets and projects their protobuf and gRPC structure into `Temporal/Generated`;
-generated declarations do not assign product semantics to fields or RPCs.
+Lean owns behavioral meaning in this directory. `umpire-gen-api` consumes serialized protobuf
+descriptor sets and projects their protobuf and gRPC structure behind the stable `Temporal.API`
+module boundary. Generated declarations do not assign product semantics to fields or RPCs.
 
-- `Types.lean` contains structural message, enum, map, oneof, presence, and recursion projections in
-  namespaces derived from protobuf packages. For example,
-  `temporal.server.api.adminservice.v1.DescribeMutableStateRequest` is
-  `Temporal.Server.Api.Adminservice.V1.DescribeMutableStateRequest`; nested protobuf declarations
-  retain the same nesting in Lean.
-- `Proto/Core.lean` is generated with the model and contains its small, runtime-independent support
-  structures. The generated tree does not depend on a Lean protobuf or gRPC runtime library.
-- `Catalog/*.lean` groups file, enum, message, and field descriptors by the source groups configured
-  on the generator command line. Temporal uses public, internal, CHASM, and external groups.
-- `GRPC/*.lean` provides typed method descriptions in each service's protobuf-derived namespace and
-  complete service inventories. Same-package message references are short, while cross-package
-  references are fully qualified. These files contain no RPC client or server runtime.
-- `schema.json` exposes the same resolved names and inventory to tools. Every `leanName`, including
-  fields, enum values, and methods, is fully qualified; oneofs reference their canonical fields by
-  protobuf full name rather than copying field records. `manifest.json` uses the
-  `umpire/protobuf-lean/v1` format and binds the model to normalized descriptor inputs, source
-  rules, the configured Lean root, and generated-file digests.
+The generator exclusively owns `Temporal/API.lean` and the complete `Temporal/API/` directory:
 
-Bytes and recursive links are deliberately bounded abstractions. Arbitrary custom protobuf option
-values are covered by the descriptor digest but are not interpreted as product semantics; model
-families must explicitly interpret the wire metadata they use.
+- `API/Proto.lean` contains the runtime-independent `Bytes`, `MessageRef`, and typed `Method`
+  support structures.
+- `API/Types.lean` contains structural message, enum, map, oneof, presence, and recursion
+  projections. Namespaces continue to derive from protobuf packages; for example,
+  `temporal.server.api.adminservice.v1.DescribeMutableStateRequest` becomes
+  `Temporal.Server.Api.Adminservice.V1.DescribeMutableStateRequest`.
+- `API.lean` imports both child modules and declares every typed RPC in its protobuf-derived
+  service namespace. Same-package message references are short and cross-package references are
+  qualified. These declarations do not provide an RPC client or server runtime.
 
-The repository root `Makefile` is the only Make interface for this model. Run
-`make umpire-gen-api` after changing public, internal, or CHASM APIs. It acquires the public Go
-descriptors separately, then invokes the descriptor-driven generator once over the complete type
-universe. Run `make umpire-check-api` to check generated drift and build the Lean model.
+Bytes and recursive links remain deliberately bounded abstractions. The generator does not
+interpret arbitrary protobuf options as product semantics; authored model families explicitly
+interpret the structural metadata they use.
+
+The repository root `Makefile` is the only Make interface for this model. After changing public,
+internal, or CHASM APIs, regenerate the descriptor-backed modules and verify them locally:
+
+```sh
+make umpire-gen-api
+go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
+cd model && mise exec -- lake build
+```
+
+Generation is deterministic and silent on success. Each run validates all three artifacts and
+their output paths before mutation, then replaces the owned API outputs while preserving adjacent
+authored modules.
 
 ## Bounded regression experiment
 
@@ -40,17 +42,16 @@ action attempts, ordering, expected properties, and finite declaration bounds. T
 Lean-owned model semantics; requesting an action does not itself establish a successful semantic
 transition.
 
-From the Temporal repository root, build the full model or run the focused regression check:
+From the Temporal repository root, run the focused regression check:
 
 ```sh
-make umpire-check-api
 make umpire-check-regression
 ```
 
-The focused check builds the pure compiler, pilot, compile-time positive and negative fixtures, and
-inspector. It also checks that repeated inspection is byte-for-byte deterministic and that a
-rejected pilot emits one structured diagnostic with no JSON on standard output. Neither command
-requires a running Temporal server.
+The focused check builds the pure compiler, pilot, compile-time positive and negative fixtures,
+and inspector. It also checks that repeated inspection is byte-for-byte deterministic and that a
+rejected pilot emits one structured diagnostic with no JSON on standard output. It does not
+require a running Temporal server.
 
 Inspect the checked pilot directly with:
 
@@ -59,12 +60,13 @@ cd model
 mise exec -- lake exe temporal-experiment-inspect nexus-caller-closure-upgrade
 ```
 
-On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. Its stable
-contract contains the format version, regression and target identities, derived model identity,
-declared resources and resolved setup, requested action attempts and projected model outcomes,
-ordering, expected properties and their observation contracts, declaration bounds, omissions, and
-provenance. The compiler and inspector do not write an artifact file or contact a runtime.
+On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. Its
+stable contract contains the format version, regression and target identities, derived model
+identity, declared resources and resolved setup, requested action attempts and projected model
+outcomes, ordering, expected properties and their observation contracts, declaration bounds,
+omissions, and provenance. The compiler and inspector do not write an artifact file or contact a
+runtime.
 
-Generated API declarations remain structural inputs only. Behavioral meaning, including whether a
-requested attempt is applicable and which transition outcome it produces, remains owned by the
+Generated API declarations remain structural inputs only. Behavioral meaning, including whether
+a requested attempt is applicable and which transition outcome it produces, remains owned by the
 authored Lean model.

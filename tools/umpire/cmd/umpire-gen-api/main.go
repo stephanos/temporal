@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -9,7 +8,7 @@ import (
 )
 
 func main() {
-	if err := api.Run(context.Background(), os.Args[1:], os.Stdout); err != nil {
+	if err := api.Run(os.Args[1:]); err != nil {
 		if _, writeErr := fmt.Fprintln(os.Stderr, err); writeErr != nil {
 			os.Exit(1)
 		}
