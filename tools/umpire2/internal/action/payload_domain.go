@@ -66,8 +66,9 @@ func (d *payloadDomain) Normalize(value any) (string, error) {
 	if !ok || payload == nil {
 		return "", fmt.Errorf("%w: payload has type %T", umpire.ErrDomainValue, value)
 	}
-	if d.maxBytes > 0 && len(payload.GetData()) > d.maxBytes {
-		return "", fmt.Errorf("%w: payload has %d bytes, maximum is %d", umpire.ErrDomainValue, len(payload.GetData()), d.maxBytes)
+	payloadSize := payload.Size()
+	if d.maxBytes > 0 && payloadSize > d.maxBytes {
+		return "", fmt.Errorf("%w: payload has %d bytes, maximum is %d", umpire.ErrDomainValue, payloadSize, d.maxBytes)
 	}
 	return umpire.CanonicalProtoDigest("payload", payload)
 }
