@@ -170,9 +170,7 @@ private def validateOrdering
     if !actions.contains edge.after then
       throw (compileError .unresolvedAction edge.after.value "ordering")
   if hasOrderingCycle actions canonical then
-    match canonical.head? with
-    | some edge => throw (compileError .cyclicOrdering (edgeSubject edge) "ordering")
-    | none => pure canonical
+    throw (compileError .cyclicOrdering "ordering" "ordering")
   else
     pure canonical
 
