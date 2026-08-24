@@ -401,7 +401,7 @@ def InternalServices : List Temporal.Proto.ServiceDescriptor := [
       { fullName := "temporal.server.api.adminservice.v1.AdminService.ForceUnloadTaskQueuePartition", inputType := "temporal.server.api.adminservice.v1.ForceUnloadTaskQueuePartitionRequest", outputType := "temporal.server.api.adminservice.v1.ForceUnloadTaskQueuePartitionResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.adminservice.v1.AdminService.GetTaskQueueUserData", inputType := "temporal.server.api.adminservice.v1.GetTaskQueueUserDataRequest", outputType := "temporal.server.api.adminservice.v1.GetTaskQueueUserDataResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.adminservice.v1.AdminService.MigrateSchedule", inputType := "temporal.server.api.adminservice.v1.MigrateScheduleRequest", outputType := "temporal.server.api.adminservice.v1.MigrateScheduleResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
-    ] },
+    ], deprecated := false },
   { fullName := "temporal.server.api.historyservice.v1.HistoryService", methods := [
       { fullName := "temporal.server.api.historyservice.v1.HistoryService.StartWorkflowExecution", inputType := "temporal.server.api.historyservice.v1.StartWorkflowExecutionRequest", outputType := "temporal.server.api.historyservice.v1.StartWorkflowExecutionResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.historyservice.v1.HistoryService.GetMutableState", inputType := "temporal.server.api.historyservice.v1.GetMutableStateRequest", outputType := "temporal.server.api.historyservice.v1.GetMutableStateResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
@@ -481,7 +481,7 @@ def InternalServices : List Temporal.Proto.ServiceDescriptor := [
       { fullName := "temporal.server.api.historyservice.v1.HistoryService.StartNexusOperation", inputType := "temporal.server.api.historyservice.v1.StartNexusOperationRequest", outputType := "temporal.server.api.historyservice.v1.StartNexusOperationResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.historyservice.v1.HistoryService.CancelNexusOperation", inputType := "temporal.server.api.historyservice.v1.CancelNexusOperationRequest", outputType := "temporal.server.api.historyservice.v1.CancelNexusOperationResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.historyservice.v1.HistoryService.PollWorkflowExecutionTimeSkipping", inputType := "temporal.server.api.historyservice.v1.PollWorkflowExecutionTimeSkippingRequest", outputType := "temporal.server.api.historyservice.v1.PollWorkflowExecutionTimeSkippingResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
-    ] },
+    ], deprecated := false },
   { fullName := "temporal.server.api.matchingservice.v1.MatchingService", methods := [
       { fullName := "temporal.server.api.matchingservice.v1.MatchingService.PollWorkflowTaskQueue", inputType := "temporal.server.api.matchingservice.v1.PollWorkflowTaskQueueRequest", outputType := "temporal.server.api.matchingservice.v1.PollWorkflowTaskQueueResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.matchingservice.v1.MatchingService.PollActivityTaskQueue", inputType := "temporal.server.api.matchingservice.v1.PollActivityTaskQueueRequest", outputType := "temporal.server.api.matchingservice.v1.PollActivityTaskQueueResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
@@ -525,10 +525,10 @@ def InternalServices : List Temporal.Proto.ServiceDescriptor := [
       { fullName := "temporal.server.api.matchingservice.v1.MatchingService.DescribeWorker", inputType := "temporal.server.api.matchingservice.v1.DescribeWorkerRequest", outputType := "temporal.server.api.matchingservice.v1.DescribeWorkerResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.matchingservice.v1.MatchingService.UpdateFairnessState", inputType := "temporal.server.api.matchingservice.v1.UpdateFairnessStateRequest", outputType := "temporal.server.api.matchingservice.v1.UpdateFairnessStateResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.api.matchingservice.v1.MatchingService.CheckTaskQueueVersionMembership", inputType := "temporal.server.api.matchingservice.v1.CheckTaskQueueVersionMembershipRequest", outputType := "temporal.server.api.matchingservice.v1.CheckTaskQueueVersionMembershipResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
-    ] },
+    ], deprecated := false },
   { fullName := "temporal.server.api.testservice.v1.TestService", methods := [
       { fullName := "temporal.server.api.testservice.v1.TestService.SendHello", inputType := "temporal.server.api.testservice.v1.SendHelloRequest", outputType := "temporal.server.api.testservice.v1.SendHelloResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
-    ] },
+    ], deprecated := false },
 ]
 
 end Temporal.Proto.Generated.GRPC

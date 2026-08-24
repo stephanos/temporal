@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"slices"
@@ -70,6 +71,108 @@ func TestDescriptorMergeIsDeterministicAndRejectsConflicts(t *testing.T) {
 	require.ErrorContains(t, err, "conflicting definitions")
 }
 
+func TestDescriptorInputDigestIgnoresFileOrder(t *testing.T) {
+	t.Parallel()
+
+	set := testDescriptorSet()
+	first, err := proto.Marshal(set)
+	require.NoError(t, err)
+	reversed := proto.Clone(set).(*descriptorpb.FileDescriptorSet)
+	slices.Reverse(reversed.File)
+	second, err := proto.Marshal(reversed)
+	require.NoError(t, err)
+
+	require.Equal(t,
+		newDescriptorInput("first", "first", first).Digest,
+		newDescriptorInput("second", "second", second).Digest,
+	)
+}
+
+func TestProjectionPreservesDescriptorMetadata(t *testing.T) {
+	t.Parallel()
+
+	projection, err := buildProjection(metadataDescriptorSet())
+	require.NoError(t, err)
+	artifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection)
+	require.NoError(t, err)
+
+	var document map[string]any
+	require.NoError(t, json.Unmarshal(artifacts[schemaPath], &document))
+	messages := document["messages"].([]any)
+	message := messages[0].(map[string]any)
+	fields := message["fields"].([]any)
+	require.Equal(t, true, message["deprecated"])
+	require.Equal(t, true, fields[0].(map[string]any)["required"])
+	require.Equal(t, true, fields[1].(map[string]any)["hasDefault"])
+	require.Equal(t, "7", fields[1].(map[string]any)["defaultValue"])
+	require.Equal(t, true, fields[2].(map[string]any)["packed"])
+	enums := document["enums"].([]any)
+	enum := enums[0].(map[string]any)
+	require.Equal(t, true, enum["deprecated"])
+	require.Equal(t, true, enum["values"].([]any)[0].(map[string]any)["deprecated"])
+	services := document["services"].([]any)
+	require.Equal(t, true, services[0].(map[string]any)["deprecated"])
+
+	types := string(artifacts["Temporal/Generated/Types.lean"])
+	require.Contains(t, types, "name : String")
+	require.NotContains(t, types, "name : Option String")
+	catalog := string(artifacts["Temporal/Generated/Catalog/External.lean"])
+	require.Contains(t, catalog, "services := [\"example.metadata.MetadataService\"]")
+}
+
+func TestGeneratedArtifactsDescribeExternalServices(t *testing.T) {
+	t.Parallel()
+
+	projection, err := buildProjection(metadataDescriptorSet())
+	require.NoError(t, err)
+	artifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection)
+	require.NoError(t, err)
+
+	require.Contains(t, artifacts, "Temporal/Generated/GRPC/External.lean")
+	require.Contains(t, string(artifacts["Temporal/Generated.lean"]), "import Temporal.Generated.GRPC.External")
+	require.Contains(t, string(artifacts["Temporal/Generated/GRPC/External.lean"]), "example.metadata.MetadataService.Call")
+}
+
+func TestGeneratedSchemaUsesArraysForCollections(t *testing.T) {
+	t.Parallel()
+
+	projection, err := buildProjection(testDescriptorSet())
+	require.NoError(t, err)
+	artifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection)
+	require.NoError(t, err)
+	require.NotContains(t, string(artifacts[schemaPath]), ": null")
+}
+
+func TestUniqueNameDoesNotReuseAnEmittedIdentifier(t *testing.T) {
+	t.Parallel()
+
+	used := make(map[string]int)
+	require.Equal(t, "field", uniqueName("field", used, 1))
+	require.Equal(t, "field2", uniqueName("field2", used, 2))
+	require.NotEqual(t, "field2", uniqueName("field", used, 2))
+	require.NotContains(t, uniqueName("field", used, -1), "-")
+}
+
+func TestRenderedOneofsCannotCollideWithLeanDefaultsOrFields(t *testing.T) {
+	t.Parallel()
+
+	document := projection{Messages: []messageProjection{{
+		LeanName: "Example",
+		Fields: []fieldProjection{
+			{LeanName: "choice", Kind: "string"},
+			{LeanName: "notSet", Number: 2, Kind: "string", Oneof: "choice"},
+		},
+		Oneofs: []oneofProjection{{
+			Name: "choice", LeanName: "Example_Choice",
+			Fields: []fieldProjection{{LeanName: "notSet", Number: 2, Kind: "string", Oneof: "choice"}},
+		}},
+	}}}
+
+	generated := string(renderTypes(document))
+	require.Contains(t, generated, "| notSet2 (value : String)")
+	require.Contains(t, generated, "choice1 : Example_Choice")
+}
+
 func TestPublishAndCheckArtifactsDetectDriftAndRemoveOnlyManagedStaleFiles(t *testing.T) {
 	t.Parallel()
 
@@ -87,6 +190,25 @@ func TestPublishAndCheckArtifactsDetectDriftAndRemoveOnlyManagedStaleFiles(t *te
 	require.NoError(t, publishArtifacts(outputRoot, artifacts, manifest))
 	require.NoError(t, checkArtifacts(outputRoot, artifacts))
 	require.Error(t, validateManagedPath("../authored.lean"))
+}
+
+func TestCheckArtifactsDetectsFilesRemovedFromTheGenerator(t *testing.T) {
+	t.Parallel()
+
+	outputRoot := t.TempDir()
+	projection, err := buildProjection(testDescriptorSet())
+	require.NoError(t, err)
+	artifacts, manifest, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection)
+	require.NoError(t, err)
+	require.NoError(t, publishArtifacts(outputRoot, artifacts, manifest))
+
+	withoutExternalGRPC := make(map[string][]byte, len(artifacts)-1)
+	for path, encoded := range artifacts {
+		if path != "Temporal/Generated/GRPC/External.lean" {
+			withoutExternalGRPC[path] = encoded
+		}
+	}
+	require.ErrorContains(t, checkArtifacts(outputRoot, withoutExternalGRPC), "GRPC/External.lean (unexpected)")
 }
 
 func TestPackageHasTemporalProtoIgnoresCompatibilityDescriptors(t *testing.T) {
@@ -179,4 +301,36 @@ func testDescriptorSet() *descriptorpb.FileDescriptorSet {
 		}},
 	}
 	return &descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{public, internal}}
+}
+
+func metadataDescriptorSet() *descriptorpb.FileDescriptorSet {
+	path := "example/metadata.proto"
+	packageName := "example.metadata"
+	deprecated := true
+	return &descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{
+		Name: proto.String(path), Package: proto.String(packageName), Syntax: proto.String("proto2"),
+		MessageType: []*descriptorpb.DescriptorProto{
+			{
+				Name: proto.String("Request"), Options: &descriptorpb.MessageOptions{Deprecated: &deprecated},
+				Field: []*descriptorpb.FieldDescriptorProto{
+					{Name: proto.String("name"), JsonName: proto.String("name"), Number: proto.Int32(1), Label: descriptorpb.FieldDescriptorProto_LABEL_REQUIRED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()},
+					{Name: proto.String("count"), JsonName: proto.String("count"), Number: proto.Int32(2), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(), DefaultValue: proto.String("7")},
+					{Name: proto.String("values"), JsonName: proto.String("values"), Number: proto.Int32(3), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(), Options: &descriptorpb.FieldOptions{Packed: proto.Bool(true)}},
+				},
+			},
+			{Name: proto.String("Response")},
+		},
+		EnumType: []*descriptorpb.EnumDescriptorProto{{
+			Name: proto.String("State"), Options: &descriptorpb.EnumOptions{Deprecated: &deprecated},
+			Value: []*descriptorpb.EnumValueDescriptorProto{{
+				Name: proto.String("STATE_UNSPECIFIED"), Number: proto.Int32(0), Options: &descriptorpb.EnumValueOptions{Deprecated: &deprecated},
+			}},
+		}},
+		Service: []*descriptorpb.ServiceDescriptorProto{{
+			Name: proto.String("MetadataService"), Options: &descriptorpb.ServiceOptions{Deprecated: &deprecated},
+			Method: []*descriptorpb.MethodDescriptorProto{{
+				Name: proto.String("Call"), InputType: proto.String(".example.metadata.Request"), OutputType: proto.String(".example.metadata.Response"),
+			}},
+		}},
+	}}}
 }

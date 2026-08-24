@@ -15,7 +15,7 @@ Read it top to bottom. Every section builds on the previous one.
 
 ```
 cd temporal/model
-mise install                 # pins Lean 4.28.0
+mise install                 # pins Lean 4.33.1
 make check                   # == mise exec -- lake build
 ```
 

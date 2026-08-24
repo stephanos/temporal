@@ -1624,8 +1624,8 @@ structure Google_Protobuf_FeatureSet where
   deriving Repr
 
 structure Google_Protobuf_UninterpretedOption_NamePart where
-  namePart : Option String
-  isExtension : Option Bool
+  namePart : String
+  isExtension : Bool
   deriving Repr
 
 structure Google_Protobuf_UninterpretedOption where

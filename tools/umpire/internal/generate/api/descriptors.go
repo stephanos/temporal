@@ -37,7 +37,17 @@ func descriptorFileInput(name, path string) (descriptorInput, error) {
 }
 
 func newDescriptorInput(name, locator string, encoded []byte) descriptorInput {
-	digest := sha256.Sum256(encoded)
+	digestInput := encoded
+	set := &descriptorpb.FileDescriptorSet{}
+	if err := proto.Unmarshal(encoded, set); err == nil {
+		slices.SortFunc(set.File, func(left, right *descriptorpb.FileDescriptorProto) int {
+			return strings.Compare(left.GetName(), right.GetName())
+		})
+		if normalized, err := (proto.MarshalOptions{Deterministic: true}).Marshal(set); err == nil {
+			digestInput = normalized
+		}
+	}
+	digest := sha256.Sum256(digestInput)
 	return descriptorInput{
 		Name: name, Locator: locator, Digest: "sha256:" + hex.EncodeToString(digest[:]), Encoded: encoded,
 	}
