@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package fixture.legacy.v1;
+package fixture.protobuf.compat.v1;
 
 message LegacyOptions {
   required string name = 1;
