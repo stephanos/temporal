@@ -1,28 +1,34 @@
 package api
 
 const (
-	sourcePublic   sourceGroup = "Public"
-	sourceInternal sourceGroup = "Internal"
-	sourceCHASM    sourceGroup = "CHASM"
-	sourceExternal sourceGroup = "External"
+	sourcePublic    sourceGroup = "Public"
+	sourceInternal  sourceGroup = "Internal"
+	sourceExtension sourceGroup = "Extension"
+	sourceExternal  sourceGroup = "External"
 )
 
-var temporalTestConfiguration = testGenerationConfig("Temporal")
+var fixtureTestConfiguration = testGenerationConfig("Fixture")
 
 func testGenerationConfig(root string) generationConfig {
 	layout := newOutputLayout(root)
 	return generationConfig{
 		Operation: "generate",
 		Sources: []sourceRule{
-			{Group: sourceInternal, Prefix: "temporal/server/api/"},
-			{Group: sourcePublic, Prefix: "temporal/api/"},
-			{Group: sourceCHASM, Prefix: "chasm/lib/"},
 			{Group: sourceInternal, Prefix: "internal/"},
 			{Group: sourcePublic, Prefix: "public/"},
+			{Group: sourceExtension, Prefix: "extensions/"},
 		},
-		Groups:        []sourceGroup{sourceCHASM, sourceExternal, sourceInternal, sourcePublic},
+		Groups:        []sourceGroup{sourceExtension, sourceExternal, sourceInternal, sourcePublic},
 		DefaultSource: sourceExternal,
 		OutputRoot:    "model",
 		Layout:        layout,
 	}
+}
+
+func testCatalogPath(configuration generationConfig, group sourceGroup) string {
+	return newSourceModuleSpec(configuration.Layout, group).catalogModule.Path
+}
+
+func testGRPCPath(configuration generationConfig, group sourceGroup) string {
+	return newSourceModuleSpec(configuration.Layout, group).grpcModule.Path
 }

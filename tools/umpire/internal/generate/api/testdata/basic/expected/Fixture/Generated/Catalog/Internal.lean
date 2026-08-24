@@ -7,7 +7,7 @@ set_option maxRecDepth 100000
 namespace Fixture.Proto.Generated.Catalog
 
 def InternalFiles : List Fixture.Proto.FileDescriptor := [
-  { path := "internal/v1/service.proto", packageName := "fixture.internal.v1", syntaxName := "proto3", dependencies := ["public/v1/model.proto"], services := ["fixture.internal.v1.FixtureService"] },
+  { path := "internal/messaging/v1/messaging_service.proto", packageName := "fixture.messaging.internal.v1", syntaxName := "proto3", dependencies := ["public/messaging/v1/message.proto"], services := ["fixture.messaging.internal.v1.MessagingService"] },
 ]
 
 def InternalEnums : List Fixture.Proto.EnumDescriptor := [

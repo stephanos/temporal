@@ -5,25 +5,25 @@ import Fixture.Generated.Types
 
 set_option maxRecDepth 100000
 
-namespace Fixture.Internal.V1.FixtureService
-def unary : Fixture.Proto.Method Fixture.Public.V1.Model Fixture.Public.V1.Reply :=
-  { fullName := "fixture.internal.v1.FixtureService.Unary", clientStreaming := false, serverStreaming := false, deprecated := false }
-def upload : Fixture.Proto.Method Fixture.Public.V1.Model Fixture.Public.V1.Reply :=
-  { fullName := "fixture.internal.v1.FixtureService.Upload", clientStreaming := true, serverStreaming := false, deprecated := false }
-def download : Fixture.Proto.Method Fixture.Public.V1.Model Fixture.Public.V1.Reply :=
-  { fullName := "fixture.internal.v1.FixtureService.Download", clientStreaming := false, serverStreaming := true, deprecated := false }
-def chat : Fixture.Proto.Method Fixture.Public.V1.Model Fixture.Public.V1.Reply :=
-  { fullName := "fixture.internal.v1.FixtureService.Chat", clientStreaming := true, serverStreaming := true, deprecated := true }
-end Fixture.Internal.V1.FixtureService
+namespace Fixture.Messaging.Internal.V1.MessagingService
+def unary : Fixture.Proto.Method Fixture.Messaging.Public.V1.Message Fixture.Messaging.Public.V1.Reply :=
+  { fullName := "fixture.messaging.internal.v1.MessagingService.Unary", clientStreaming := false, serverStreaming := false, deprecated := false }
+def upload : Fixture.Proto.Method Fixture.Messaging.Public.V1.Message Fixture.Messaging.Public.V1.Reply :=
+  { fullName := "fixture.messaging.internal.v1.MessagingService.Upload", clientStreaming := true, serverStreaming := false, deprecated := false }
+def download : Fixture.Proto.Method Fixture.Messaging.Public.V1.Message Fixture.Messaging.Public.V1.Reply :=
+  { fullName := "fixture.messaging.internal.v1.MessagingService.Download", clientStreaming := false, serverStreaming := true, deprecated := false }
+def chat : Fixture.Proto.Method Fixture.Messaging.Public.V1.Message Fixture.Messaging.Public.V1.Reply :=
+  { fullName := "fixture.messaging.internal.v1.MessagingService.Chat", clientStreaming := true, serverStreaming := true, deprecated := true }
+end Fixture.Messaging.Internal.V1.MessagingService
 
 namespace Fixture.Proto.Generated.GRPC
 
 def InternalServices : List Fixture.Proto.ServiceDescriptor := [
-  { fullName := "fixture.internal.v1.FixtureService", methods := [
-      { fullName := "fixture.internal.v1.FixtureService.Unary", inputType := "fixture.public.v1.Model", outputType := "fixture.public.v1.Reply", clientStreaming := false, serverStreaming := false, deprecated := false },
-      { fullName := "fixture.internal.v1.FixtureService.Upload", inputType := "fixture.public.v1.Model", outputType := "fixture.public.v1.Reply", clientStreaming := true, serverStreaming := false, deprecated := false },
-      { fullName := "fixture.internal.v1.FixtureService.Download", inputType := "fixture.public.v1.Model", outputType := "fixture.public.v1.Reply", clientStreaming := false, serverStreaming := true, deprecated := false },
-      { fullName := "fixture.internal.v1.FixtureService.Chat", inputType := "fixture.public.v1.Model", outputType := "fixture.public.v1.Reply", clientStreaming := true, serverStreaming := true, deprecated := true },
+  { fullName := "fixture.messaging.internal.v1.MessagingService", methods := [
+      { fullName := "fixture.messaging.internal.v1.MessagingService.Unary", inputType := "fixture.messaging.public.v1.Message", outputType := "fixture.messaging.public.v1.Reply", clientStreaming := false, serverStreaming := false, deprecated := false },
+      { fullName := "fixture.messaging.internal.v1.MessagingService.Upload", inputType := "fixture.messaging.public.v1.Message", outputType := "fixture.messaging.public.v1.Reply", clientStreaming := true, serverStreaming := false, deprecated := false },
+      { fullName := "fixture.messaging.internal.v1.MessagingService.Download", inputType := "fixture.messaging.public.v1.Message", outputType := "fixture.messaging.public.v1.Reply", clientStreaming := false, serverStreaming := true, deprecated := false },
+      { fullName := "fixture.messaging.internal.v1.MessagingService.Chat", inputType := "fixture.messaging.public.v1.Message", outputType := "fixture.messaging.public.v1.Reply", clientStreaming := true, serverStreaming := true, deprecated := true },
     ], deprecated := false },
 ]
 
