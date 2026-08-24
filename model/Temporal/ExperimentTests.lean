@@ -281,6 +281,35 @@ example : (compile reorderedTarget reorderedRegression).toOption.map canonicalJs
     (compile validTarget validRegression).toOption.map canonicalJson := by
   native_decide
 
+def denseActions : List ActionId :=
+  (List.range 22).map (fun index => action ("action-" ++ toString index))
+
+def denseOrdering : List PrecedenceEdge :=
+  denseActions.flatMap fun before =>
+    denseActions.filterMap fun after =>
+      if before.value < after.value then some { before, after } else none
+
+def denseTarget : ModelTarget := {
+  validTarget with
+  actionProjections := denseActions.map (fun id => { id, project := observed })
+}
+
+def denseRegression : Regression := {
+  validRegression with
+  resources := [resource "queue"]
+  actionAttempts := denseActions
+  ordering := denseOrdering
+  expectedProperties := ⟨[property "durable"]⟩
+  bounds := {
+    resources := 1
+    actions := denseActions.length
+    precedenceEdges := denseOrdering.length
+  }
+}
+
+example : (compile denseTarget denseRegression).isOk = true := by
+  native_decide
+
 def changedOutcomeTarget : ModelTarget := {
   validTarget with
   actionProjections := [
@@ -297,15 +326,20 @@ def changedPropertyTarget : ModelTarget := {
   ]
 }
 
-def identityAndJson (result : Except CompileError ExperimentSpec) : Option (String × String) :=
-  result.toOption.map (fun spec => (spec.modelIdentity, canonicalJson spec))
-
-example : identityAndJson (compile changedOutcomeTarget validRegression) ≠
-    identityAndJson (compile validTarget validRegression) := by
+example : (compile changedOutcomeTarget validRegression).toOption.map ExperimentSpec.modelIdentity ≠
+    (compile validTarget validRegression).toOption.map ExperimentSpec.modelIdentity := by
   native_decide
 
-example : identityAndJson (compile changedPropertyTarget validRegression) ≠
-    identityAndJson (compile validTarget validRegression) := by
+example : (compile changedOutcomeTarget validRegression).toOption.map canonicalJson ≠
+    (compile validTarget validRegression).toOption.map canonicalJson := by
+  native_decide
+
+example : (compile changedPropertyTarget validRegression).toOption.map ExperimentSpec.modelIdentity ≠
+    (compile validTarget validRegression).toOption.map ExperimentSpec.modelIdentity := by
+  native_decide
+
+example : (compile changedPropertyTarget validRegression).toOption.map canonicalJson ≠
+    (compile validTarget validRegression).toOption.map canonicalJson := by
   native_decide
 
 end Temporal.ExperimentTests
