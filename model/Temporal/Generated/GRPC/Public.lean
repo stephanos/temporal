@@ -5,283 +5,283 @@ import Temporal.Generated.Types
 
 set_option maxRecDepth 100000
 
-namespace Temporal.Proto.Generated.GRPC
-
-namespace Temporal_Api_Operatorservice_V1_OperatorService
-def addSearchAttributes : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_AddSearchAttributesRequest Temporal_Api_Operatorservice_V1_AddSearchAttributesResponse :=
+namespace Temporal.Api.Operatorservice.V1.OperatorService
+def addSearchAttributes : Temporal.Proto.Method AddSearchAttributesRequest AddSearchAttributesResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.AddSearchAttributes", clientStreaming := false, serverStreaming := false, deprecated := false }
-def removeSearchAttributes : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_RemoveSearchAttributesRequest Temporal_Api_Operatorservice_V1_RemoveSearchAttributesResponse :=
+def removeSearchAttributes : Temporal.Proto.Method RemoveSearchAttributesRequest RemoveSearchAttributesResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.RemoveSearchAttributes", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listSearchAttributes : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_ListSearchAttributesRequest Temporal_Api_Operatorservice_V1_ListSearchAttributesResponse :=
+def listSearchAttributes : Temporal.Proto.Method ListSearchAttributesRequest ListSearchAttributesResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.ListSearchAttributes", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteNamespace : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_DeleteNamespaceRequest Temporal_Api_Operatorservice_V1_DeleteNamespaceResponse :=
+def deleteNamespace : Temporal.Proto.Method DeleteNamespaceRequest DeleteNamespaceResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.DeleteNamespace", clientStreaming := false, serverStreaming := false, deprecated := false }
-def addOrUpdateRemoteCluster : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_AddOrUpdateRemoteClusterRequest Temporal_Api_Operatorservice_V1_AddOrUpdateRemoteClusterResponse :=
+def addOrUpdateRemoteCluster : Temporal.Proto.Method AddOrUpdateRemoteClusterRequest AddOrUpdateRemoteClusterResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.AddOrUpdateRemoteCluster", clientStreaming := false, serverStreaming := false, deprecated := false }
-def removeRemoteCluster : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_RemoveRemoteClusterRequest Temporal_Api_Operatorservice_V1_RemoveRemoteClusterResponse :=
+def removeRemoteCluster : Temporal.Proto.Method RemoveRemoteClusterRequest RemoveRemoteClusterResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.RemoveRemoteCluster", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listClusters : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_ListClustersRequest Temporal_Api_Operatorservice_V1_ListClustersResponse :=
+def listClusters : Temporal.Proto.Method ListClustersRequest ListClustersResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.ListClusters", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getNexusEndpoint : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_GetNexusEndpointRequest Temporal_Api_Operatorservice_V1_GetNexusEndpointResponse :=
+def getNexusEndpoint : Temporal.Proto.Method GetNexusEndpointRequest GetNexusEndpointResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.GetNexusEndpoint", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createNexusEndpoint : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_CreateNexusEndpointRequest Temporal_Api_Operatorservice_V1_CreateNexusEndpointResponse :=
+def createNexusEndpoint : Temporal.Proto.Method CreateNexusEndpointRequest CreateNexusEndpointResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.CreateNexusEndpoint", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateNexusEndpoint : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_UpdateNexusEndpointRequest Temporal_Api_Operatorservice_V1_UpdateNexusEndpointResponse :=
+def updateNexusEndpoint : Temporal.Proto.Method UpdateNexusEndpointRequest UpdateNexusEndpointResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.UpdateNexusEndpoint", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteNexusEndpoint : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_DeleteNexusEndpointRequest Temporal_Api_Operatorservice_V1_DeleteNexusEndpointResponse :=
+def deleteNexusEndpoint : Temporal.Proto.Method DeleteNexusEndpointRequest DeleteNexusEndpointResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.DeleteNexusEndpoint", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listNexusEndpoints : Temporal.Proto.Method Temporal_Api_Operatorservice_V1_ListNexusEndpointsRequest Temporal_Api_Operatorservice_V1_ListNexusEndpointsResponse :=
+def listNexusEndpoints : Temporal.Proto.Method ListNexusEndpointsRequest ListNexusEndpointsResponse :=
   { fullName := "temporal.api.operatorservice.v1.OperatorService.ListNexusEndpoints", clientStreaming := false, serverStreaming := false, deprecated := false }
-end Temporal_Api_Operatorservice_V1_OperatorService
+end Temporal.Api.Operatorservice.V1.OperatorService
 
-namespace Temporal_Api_Workflowservice_V1_WorkflowService
-def registerNamespace : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RegisterNamespaceRequest Temporal_Api_Workflowservice_V1_RegisterNamespaceResponse :=
+namespace Temporal.Api.Workflowservice.V1.WorkflowService
+def registerNamespace : Temporal.Proto.Method RegisterNamespaceRequest RegisterNamespaceResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RegisterNamespace", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeNamespace : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeNamespaceRequest Temporal_Api_Workflowservice_V1_DescribeNamespaceResponse :=
+def describeNamespace : Temporal.Proto.Method DescribeNamespaceRequest DescribeNamespaceResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeNamespace", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listNamespaces : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListNamespacesRequest Temporal_Api_Workflowservice_V1_ListNamespacesResponse :=
+def listNamespaces : Temporal.Proto.Method ListNamespacesRequest ListNamespacesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListNamespaces", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateNamespace : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateNamespaceRequest Temporal_Api_Workflowservice_V1_UpdateNamespaceResponse :=
+def updateNamespace : Temporal.Proto.Method UpdateNamespaceRequest UpdateNamespaceResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateNamespace", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deprecateNamespace : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeprecateNamespaceRequest Temporal_Api_Workflowservice_V1_DeprecateNamespaceResponse :=
+def deprecateNamespace : Temporal.Proto.Method DeprecateNamespaceRequest DeprecateNamespaceResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeprecateNamespace", clientStreaming := false, serverStreaming := false, deprecated := false }
-def startWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_StartWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_StartWorkflowExecutionResponse :=
+def startWorkflowExecution : Temporal.Proto.Method StartWorkflowExecutionRequest StartWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def executeMultiOperation : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ExecuteMultiOperationRequest Temporal_Api_Workflowservice_V1_ExecuteMultiOperationResponse :=
+def executeMultiOperation : Temporal.Proto.Method ExecuteMultiOperationRequest ExecuteMultiOperationResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ExecuteMultiOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getWorkflowExecutionHistory : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryRequest Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryResponse :=
+def getWorkflowExecutionHistory : Temporal.Proto.Method GetWorkflowExecutionHistoryRequest GetWorkflowExecutionHistoryResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getWorkflowExecutionHistoryReverse : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryReverseRequest Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryReverseResponse :=
+def getWorkflowExecutionHistoryReverse : Temporal.Proto.Method GetWorkflowExecutionHistoryReverseRequest GetWorkflowExecutionHistoryReverseResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistoryReverse", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollWorkflowTaskQueue : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueRequest Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueResponse :=
+def pollWorkflowTaskQueue : Temporal.Proto.Method PollWorkflowTaskQueueRequest PollWorkflowTaskQueueResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollWorkflowTaskQueue", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondWorkflowTaskCompleted : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedRequest Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedResponse :=
+def respondWorkflowTaskCompleted : Temporal.Proto.Method RespondWorkflowTaskCompletedRequest RespondWorkflowTaskCompletedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondWorkflowTaskCompleted", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondWorkflowTaskFailed : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondWorkflowTaskFailedRequest Temporal_Api_Workflowservice_V1_RespondWorkflowTaskFailedResponse :=
+def respondWorkflowTaskFailed : Temporal.Proto.Method RespondWorkflowTaskFailedRequest RespondWorkflowTaskFailedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondWorkflowTaskFailed", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollActivityTaskQueue : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollActivityTaskQueueRequest Temporal_Api_Workflowservice_V1_PollActivityTaskQueueResponse :=
+def pollActivityTaskQueue : Temporal.Proto.Method PollActivityTaskQueueRequest PollActivityTaskQueueResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue", clientStreaming := false, serverStreaming := false, deprecated := false }
-def recordActivityTaskHeartbeat : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatRequest Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatResponse :=
+def recordActivityTaskHeartbeat : Temporal.Proto.Method RecordActivityTaskHeartbeatRequest RecordActivityTaskHeartbeatResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeat", clientStreaming := false, serverStreaming := false, deprecated := false }
-def recordActivityTaskHeartbeatById : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatByIdRequest Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatByIdResponse :=
+def recordActivityTaskHeartbeatById : Temporal.Proto.Method RecordActivityTaskHeartbeatByIdRequest RecordActivityTaskHeartbeatByIdResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeatById", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondActivityTaskCompleted : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedRequest Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedResponse :=
+def respondActivityTaskCompleted : Temporal.Proto.Method RespondActivityTaskCompletedRequest RespondActivityTaskCompletedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCompleted", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondActivityTaskCompletedById : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedByIdRequest Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedByIdResponse :=
+def respondActivityTaskCompletedById : Temporal.Proto.Method RespondActivityTaskCompletedByIdRequest RespondActivityTaskCompletedByIdResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCompletedById", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondActivityTaskFailed : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedRequest Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedResponse :=
+def respondActivityTaskFailed : Temporal.Proto.Method RespondActivityTaskFailedRequest RespondActivityTaskFailedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskFailed", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondActivityTaskFailedById : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedByIdRequest Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedByIdResponse :=
+def respondActivityTaskFailedById : Temporal.Proto.Method RespondActivityTaskFailedByIdRequest RespondActivityTaskFailedByIdResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskFailedById", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondActivityTaskCanceled : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledRequest Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledResponse :=
+def respondActivityTaskCanceled : Temporal.Proto.Method RespondActivityTaskCanceledRequest RespondActivityTaskCanceledResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceled", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondActivityTaskCanceledById : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledByIdRequest Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledByIdResponse :=
+def respondActivityTaskCanceledById : Temporal.Proto.Method RespondActivityTaskCanceledByIdRequest RespondActivityTaskCanceledByIdResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceledById", clientStreaming := false, serverStreaming := false, deprecated := false }
-def requestCancelWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RequestCancelWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_RequestCancelWorkflowExecutionResponse :=
+def requestCancelWorkflowExecution : Temporal.Proto.Method RequestCancelWorkflowExecutionRequest RequestCancelWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RequestCancelWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def signalWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_SignalWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_SignalWorkflowExecutionResponse :=
+def signalWorkflowExecution : Temporal.Proto.Method SignalWorkflowExecutionRequest SignalWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.SignalWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def signalWithStartWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_SignalWithStartWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_SignalWithStartWorkflowExecutionResponse :=
+def signalWithStartWorkflowExecution : Temporal.Proto.Method SignalWithStartWorkflowExecutionRequest SignalWithStartWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.SignalWithStartWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def resetWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ResetWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_ResetWorkflowExecutionResponse :=
+def resetWorkflowExecution : Temporal.Proto.Method ResetWorkflowExecutionRequest ResetWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ResetWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def terminateWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_TerminateWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_TerminateWorkflowExecutionResponse :=
+def terminateWorkflowExecution : Temporal.Proto.Method TerminateWorkflowExecutionRequest TerminateWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.TerminateWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_DeleteWorkflowExecutionResponse :=
+def deleteWorkflowExecution : Temporal.Proto.Method DeleteWorkflowExecutionRequest DeleteWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listOpenWorkflowExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListOpenWorkflowExecutionsRequest Temporal_Api_Workflowservice_V1_ListOpenWorkflowExecutionsResponse :=
+def listOpenWorkflowExecutions : Temporal.Proto.Method ListOpenWorkflowExecutionsRequest ListOpenWorkflowExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListOpenWorkflowExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listClosedWorkflowExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListClosedWorkflowExecutionsRequest Temporal_Api_Workflowservice_V1_ListClosedWorkflowExecutionsResponse :=
+def listClosedWorkflowExecutions : Temporal.Proto.Method ListClosedWorkflowExecutionsRequest ListClosedWorkflowExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListClosedWorkflowExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listWorkflowExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListWorkflowExecutionsRequest Temporal_Api_Workflowservice_V1_ListWorkflowExecutionsResponse :=
+def listWorkflowExecutions : Temporal.Proto.Method ListWorkflowExecutionsRequest ListWorkflowExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListWorkflowExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listArchivedWorkflowExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListArchivedWorkflowExecutionsRequest Temporal_Api_Workflowservice_V1_ListArchivedWorkflowExecutionsResponse :=
+def listArchivedWorkflowExecutions : Temporal.Proto.Method ListArchivedWorkflowExecutionsRequest ListArchivedWorkflowExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListArchivedWorkflowExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def scanWorkflowExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ScanWorkflowExecutionsRequest Temporal_Api_Workflowservice_V1_ScanWorkflowExecutionsResponse :=
+def scanWorkflowExecutions : Temporal.Proto.Method ScanWorkflowExecutionsRequest ScanWorkflowExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ScanWorkflowExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def countWorkflowExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CountWorkflowExecutionsRequest Temporal_Api_Workflowservice_V1_CountWorkflowExecutionsResponse :=
+def countWorkflowExecutions : Temporal.Proto.Method CountWorkflowExecutionsRequest CountWorkflowExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CountWorkflowExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getSearchAttributes : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetSearchAttributesRequest Temporal_Api_Workflowservice_V1_GetSearchAttributesResponse :=
+def getSearchAttributes : Temporal.Proto.Method GetSearchAttributesRequest GetSearchAttributesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetSearchAttributes", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondQueryTaskCompleted : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondQueryTaskCompletedRequest Temporal_Api_Workflowservice_V1_RespondQueryTaskCompletedResponse :=
+def respondQueryTaskCompleted : Temporal.Proto.Method RespondQueryTaskCompletedRequest RespondQueryTaskCompletedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondQueryTaskCompleted", clientStreaming := false, serverStreaming := false, deprecated := false }
-def resetStickyTaskQueue : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ResetStickyTaskQueueRequest Temporal_Api_Workflowservice_V1_ResetStickyTaskQueueResponse :=
+def resetStickyTaskQueue : Temporal.Proto.Method ResetStickyTaskQueueRequest ResetStickyTaskQueueResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ResetStickyTaskQueue", clientStreaming := false, serverStreaming := false, deprecated := false }
-def shutdownWorker : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ShutdownWorkerRequest Temporal_Api_Workflowservice_V1_ShutdownWorkerResponse :=
+def shutdownWorker : Temporal.Proto.Method ShutdownWorkerRequest ShutdownWorkerResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ShutdownWorker", clientStreaming := false, serverStreaming := false, deprecated := false }
-def queryWorkflow : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_QueryWorkflowRequest Temporal_Api_Workflowservice_V1_QueryWorkflowResponse :=
+def queryWorkflow : Temporal.Proto.Method QueryWorkflowRequest QueryWorkflowResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.QueryWorkflow", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_DescribeWorkflowExecutionResponse :=
+def describeWorkflowExecution : Temporal.Proto.Method DescribeWorkflowExecutionRequest DescribeWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeTaskQueue : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeTaskQueueRequest Temporal_Api_Workflowservice_V1_DescribeTaskQueueResponse :=
+def describeTaskQueue : Temporal.Proto.Method DescribeTaskQueueRequest DescribeTaskQueueResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeTaskQueue", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getClusterInfo : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetClusterInfoRequest Temporal_Api_Workflowservice_V1_GetClusterInfoResponse :=
+def getClusterInfo : Temporal.Proto.Method GetClusterInfoRequest GetClusterInfoResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetClusterInfo", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getSystemInfo : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetSystemInfoRequest Temporal_Api_Workflowservice_V1_GetSystemInfoResponse :=
+def getSystemInfo : Temporal.Proto.Method GetSystemInfoRequest GetSystemInfoResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetSystemInfo", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listTaskQueuePartitions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListTaskQueuePartitionsRequest Temporal_Api_Workflowservice_V1_ListTaskQueuePartitionsResponse :=
+def listTaskQueuePartitions : Temporal.Proto.Method ListTaskQueuePartitionsRequest ListTaskQueuePartitionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListTaskQueuePartitions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createSchedule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CreateScheduleRequest Temporal_Api_Workflowservice_V1_CreateScheduleResponse :=
+def createSchedule : Temporal.Proto.Method CreateScheduleRequest CreateScheduleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CreateSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeSchedule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeScheduleRequest Temporal_Api_Workflowservice_V1_DescribeScheduleResponse :=
+def describeSchedule : Temporal.Proto.Method DescribeScheduleRequest DescribeScheduleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateSchedule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateScheduleRequest Temporal_Api_Workflowservice_V1_UpdateScheduleResponse :=
+def updateSchedule : Temporal.Proto.Method UpdateScheduleRequest UpdateScheduleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def patchSchedule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PatchScheduleRequest Temporal_Api_Workflowservice_V1_PatchScheduleResponse :=
+def patchSchedule : Temporal.Proto.Method PatchScheduleRequest PatchScheduleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PatchSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listScheduleMatchingTimes : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListScheduleMatchingTimesRequest Temporal_Api_Workflowservice_V1_ListScheduleMatchingTimesResponse :=
+def listScheduleMatchingTimes : Temporal.Proto.Method ListScheduleMatchingTimesRequest ListScheduleMatchingTimesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListScheduleMatchingTimes", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteSchedule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteScheduleRequest Temporal_Api_Workflowservice_V1_DeleteScheduleResponse :=
+def deleteSchedule : Temporal.Proto.Method DeleteScheduleRequest DeleteScheduleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listSchedules : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListSchedulesRequest Temporal_Api_Workflowservice_V1_ListSchedulesResponse :=
+def listSchedules : Temporal.Proto.Method ListSchedulesRequest ListSchedulesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListSchedules", clientStreaming := false, serverStreaming := false, deprecated := false }
-def countSchedules : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CountSchedulesRequest Temporal_Api_Workflowservice_V1_CountSchedulesResponse :=
+def countSchedules : Temporal.Proto.Method CountSchedulesRequest CountSchedulesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CountSchedules", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkerBuildIdCompatibility : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityResponse :=
+def updateWorkerBuildIdCompatibility : Temporal.Proto.Method UpdateWorkerBuildIdCompatibilityRequest UpdateWorkerBuildIdCompatibilityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerBuildIdCompatibility", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getWorkerBuildIdCompatibility : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetWorkerBuildIdCompatibilityRequest Temporal_Api_Workflowservice_V1_GetWorkerBuildIdCompatibilityResponse :=
+def getWorkerBuildIdCompatibility : Temporal.Proto.Method GetWorkerBuildIdCompatibilityRequest GetWorkerBuildIdCompatibilityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetWorkerBuildIdCompatibility", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkerVersioningRules : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesResponse :=
+def updateWorkerVersioningRules : Temporal.Proto.Method UpdateWorkerVersioningRulesRequest UpdateWorkerVersioningRulesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerVersioningRules", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getWorkerVersioningRules : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetWorkerVersioningRulesRequest Temporal_Api_Workflowservice_V1_GetWorkerVersioningRulesResponse :=
+def getWorkerVersioningRules : Temporal.Proto.Method GetWorkerVersioningRulesRequest GetWorkerVersioningRulesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetWorkerVersioningRules", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getWorkerTaskReachability : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetWorkerTaskReachabilityRequest Temporal_Api_Workflowservice_V1_GetWorkerTaskReachabilityResponse :=
+def getWorkerTaskReachability : Temporal.Proto.Method GetWorkerTaskReachabilityRequest GetWorkerTaskReachabilityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetWorkerTaskReachability", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeDeployment : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeDeploymentRequest Temporal_Api_Workflowservice_V1_DescribeDeploymentResponse :=
+def describeDeployment : Temporal.Proto.Method DescribeDeploymentRequest DescribeDeploymentResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeDeployment", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeWorkerDeploymentVersion : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentVersionRequest Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentVersionResponse :=
+def describeWorkerDeploymentVersion : Temporal.Proto.Method DescribeWorkerDeploymentVersionRequest DescribeWorkerDeploymentVersionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeWorkerDeploymentVersion", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listDeployments : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListDeploymentsRequest Temporal_Api_Workflowservice_V1_ListDeploymentsResponse :=
+def listDeployments : Temporal.Proto.Method ListDeploymentsRequest ListDeploymentsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListDeployments", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getDeploymentReachability : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetDeploymentReachabilityRequest Temporal_Api_Workflowservice_V1_GetDeploymentReachabilityResponse :=
+def getDeploymentReachability : Temporal.Proto.Method GetDeploymentReachabilityRequest GetDeploymentReachabilityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetDeploymentReachability", clientStreaming := false, serverStreaming := false, deprecated := false }
-def getCurrentDeployment : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_GetCurrentDeploymentRequest Temporal_Api_Workflowservice_V1_GetCurrentDeploymentResponse :=
+def getCurrentDeployment : Temporal.Proto.Method GetCurrentDeploymentRequest GetCurrentDeploymentResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.GetCurrentDeployment", clientStreaming := false, serverStreaming := false, deprecated := false }
-def setCurrentDeployment : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_SetCurrentDeploymentRequest Temporal_Api_Workflowservice_V1_SetCurrentDeploymentResponse :=
+def setCurrentDeployment : Temporal.Proto.Method SetCurrentDeploymentRequest SetCurrentDeploymentResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.SetCurrentDeployment", clientStreaming := false, serverStreaming := false, deprecated := false }
-def setWorkerDeploymentCurrentVersion : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_SetWorkerDeploymentCurrentVersionRequest Temporal_Api_Workflowservice_V1_SetWorkerDeploymentCurrentVersionResponse :=
+def setWorkerDeploymentCurrentVersion : Temporal.Proto.Method SetWorkerDeploymentCurrentVersionRequest SetWorkerDeploymentCurrentVersionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.SetWorkerDeploymentCurrentVersion", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeWorkerDeployment : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentRequest Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentResponse :=
+def describeWorkerDeployment : Temporal.Proto.Method DescribeWorkerDeploymentRequest DescribeWorkerDeploymentResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeWorkerDeployment", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteWorkerDeployment : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentRequest Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentResponse :=
+def deleteWorkerDeployment : Temporal.Proto.Method DeleteWorkerDeploymentRequest DeleteWorkerDeploymentResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteWorkerDeployment", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteWorkerDeploymentVersion : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentVersionRequest Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentVersionResponse :=
+def deleteWorkerDeploymentVersion : Temporal.Proto.Method DeleteWorkerDeploymentVersionRequest DeleteWorkerDeploymentVersionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteWorkerDeploymentVersion", clientStreaming := false, serverStreaming := false, deprecated := false }
-def setWorkerDeploymentRampingVersion : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_SetWorkerDeploymentRampingVersionRequest Temporal_Api_Workflowservice_V1_SetWorkerDeploymentRampingVersionResponse :=
+def setWorkerDeploymentRampingVersion : Temporal.Proto.Method SetWorkerDeploymentRampingVersionRequest SetWorkerDeploymentRampingVersionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.SetWorkerDeploymentRampingVersion", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listWorkerDeployments : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListWorkerDeploymentsRequest Temporal_Api_Workflowservice_V1_ListWorkerDeploymentsResponse :=
+def listWorkerDeployments : Temporal.Proto.Method ListWorkerDeploymentsRequest ListWorkerDeploymentsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListWorkerDeployments", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createWorkerDeployment : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentRequest Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentResponse :=
+def createWorkerDeployment : Temporal.Proto.Method CreateWorkerDeploymentRequest CreateWorkerDeploymentResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CreateWorkerDeployment", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createWorkerDeploymentVersion : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentVersionRequest Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentVersionResponse :=
+def createWorkerDeploymentVersion : Temporal.Proto.Method CreateWorkerDeploymentVersionRequest CreateWorkerDeploymentVersionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CreateWorkerDeploymentVersion", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkerDeploymentVersionComputeConfig : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionComputeConfigRequest Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionComputeConfigResponse :=
+def updateWorkerDeploymentVersionComputeConfig : Temporal.Proto.Method UpdateWorkerDeploymentVersionComputeConfigRequest UpdateWorkerDeploymentVersionComputeConfigResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerDeploymentVersionComputeConfig", clientStreaming := false, serverStreaming := false, deprecated := false }
-def validateWorkerDeploymentVersionComputeConfig : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ValidateWorkerDeploymentVersionComputeConfigRequest Temporal_Api_Workflowservice_V1_ValidateWorkerDeploymentVersionComputeConfigResponse :=
+def validateWorkerDeploymentVersionComputeConfig : Temporal.Proto.Method ValidateWorkerDeploymentVersionComputeConfigRequest ValidateWorkerDeploymentVersionComputeConfigResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ValidateWorkerDeploymentVersionComputeConfig", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkerDeploymentVersionMetadata : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionMetadataRequest Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionMetadataResponse :=
+def updateWorkerDeploymentVersionMetadata : Temporal.Proto.Method UpdateWorkerDeploymentVersionMetadataRequest UpdateWorkerDeploymentVersionMetadataResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerDeploymentVersionMetadata", clientStreaming := false, serverStreaming := false, deprecated := false }
-def setWorkerDeploymentManager : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_SetWorkerDeploymentManagerRequest Temporal_Api_Workflowservice_V1_SetWorkerDeploymentManagerResponse :=
+def setWorkerDeploymentManager : Temporal.Proto.Method SetWorkerDeploymentManagerRequest SetWorkerDeploymentManagerResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.SetWorkerDeploymentManager", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionResponse :=
+def updateWorkflowExecution : Temporal.Proto.Method UpdateWorkflowExecutionRequest UpdateWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollWorkflowExecutionUpdate : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollWorkflowExecutionUpdateRequest Temporal_Api_Workflowservice_V1_PollWorkflowExecutionUpdateResponse :=
+def pollWorkflowExecutionUpdate : Temporal.Proto.Method PollWorkflowExecutionUpdateRequest PollWorkflowExecutionUpdateResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollWorkflowExecutionUpdate", clientStreaming := false, serverStreaming := false, deprecated := false }
-def startBatchOperation : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_StartBatchOperationRequest Temporal_Api_Workflowservice_V1_StartBatchOperationResponse :=
+def startBatchOperation : Temporal.Proto.Method StartBatchOperationRequest StartBatchOperationResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.StartBatchOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def stopBatchOperation : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_StopBatchOperationRequest Temporal_Api_Workflowservice_V1_StopBatchOperationResponse :=
+def stopBatchOperation : Temporal.Proto.Method StopBatchOperationRequest StopBatchOperationResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.StopBatchOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeBatchOperation : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeBatchOperationRequest Temporal_Api_Workflowservice_V1_DescribeBatchOperationResponse :=
+def describeBatchOperation : Temporal.Proto.Method DescribeBatchOperationRequest DescribeBatchOperationResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeBatchOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listBatchOperations : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListBatchOperationsRequest Temporal_Api_Workflowservice_V1_ListBatchOperationsResponse :=
+def listBatchOperations : Temporal.Proto.Method ListBatchOperationsRequest ListBatchOperationsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListBatchOperations", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollNexusTaskQueue : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollNexusTaskQueueRequest Temporal_Api_Workflowservice_V1_PollNexusTaskQueueResponse :=
+def pollNexusTaskQueue : Temporal.Proto.Method PollNexusTaskQueueRequest PollNexusTaskQueueResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollNexusTaskQueue", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondNexusTaskCompleted : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondNexusTaskCompletedRequest Temporal_Api_Workflowservice_V1_RespondNexusTaskCompletedResponse :=
+def respondNexusTaskCompleted : Temporal.Proto.Method RespondNexusTaskCompletedRequest RespondNexusTaskCompletedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondNexusTaskCompleted", clientStreaming := false, serverStreaming := false, deprecated := false }
-def respondNexusTaskFailed : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RespondNexusTaskFailedRequest Temporal_Api_Workflowservice_V1_RespondNexusTaskFailedResponse :=
+def respondNexusTaskFailed : Temporal.Proto.Method RespondNexusTaskFailedRequest RespondNexusTaskFailedResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RespondNexusTaskFailed", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateActivityOptions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateActivityOptionsRequest Temporal_Api_Workflowservice_V1_UpdateActivityOptionsResponse :=
+def updateActivityOptions : Temporal.Proto.Method UpdateActivityOptionsRequest UpdateActivityOptionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateActivityOptions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkflowExecutionOptions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionOptionsRequest Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionOptionsResponse :=
+def updateWorkflowExecutionOptions : Temporal.Proto.Method UpdateWorkflowExecutionOptionsRequest UpdateWorkflowExecutionOptionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkflowExecutionOptions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pauseActivity : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PauseActivityRequest Temporal_Api_Workflowservice_V1_PauseActivityResponse :=
+def pauseActivity : Temporal.Proto.Method PauseActivityRequest PauseActivityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PauseActivity", clientStreaming := false, serverStreaming := false, deprecated := false }
-def unpauseActivity : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UnpauseActivityRequest Temporal_Api_Workflowservice_V1_UnpauseActivityResponse :=
+def unpauseActivity : Temporal.Proto.Method UnpauseActivityRequest UnpauseActivityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UnpauseActivity", clientStreaming := false, serverStreaming := false, deprecated := false }
-def resetActivity : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ResetActivityRequest Temporal_Api_Workflowservice_V1_ResetActivityResponse :=
+def resetActivity : Temporal.Proto.Method ResetActivityRequest ResetActivityResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ResetActivity", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createWorkflowRule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CreateWorkflowRuleRequest Temporal_Api_Workflowservice_V1_CreateWorkflowRuleResponse :=
+def createWorkflowRule : Temporal.Proto.Method CreateWorkflowRuleRequest CreateWorkflowRuleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CreateWorkflowRule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeWorkflowRule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeWorkflowRuleRequest Temporal_Api_Workflowservice_V1_DescribeWorkflowRuleResponse :=
+def describeWorkflowRule : Temporal.Proto.Method DescribeWorkflowRuleRequest DescribeWorkflowRuleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeWorkflowRule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteWorkflowRule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteWorkflowRuleRequest Temporal_Api_Workflowservice_V1_DeleteWorkflowRuleResponse :=
+def deleteWorkflowRule : Temporal.Proto.Method DeleteWorkflowRuleRequest DeleteWorkflowRuleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteWorkflowRule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listWorkflowRules : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListWorkflowRulesRequest Temporal_Api_Workflowservice_V1_ListWorkflowRulesResponse :=
+def listWorkflowRules : Temporal.Proto.Method ListWorkflowRulesRequest ListWorkflowRulesResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListWorkflowRules", clientStreaming := false, serverStreaming := false, deprecated := false }
-def triggerWorkflowRule : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_TriggerWorkflowRuleRequest Temporal_Api_Workflowservice_V1_TriggerWorkflowRuleResponse :=
+def triggerWorkflowRule : Temporal.Proto.Method TriggerWorkflowRuleRequest TriggerWorkflowRuleResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.TriggerWorkflowRule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def recordWorkerHeartbeat : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RecordWorkerHeartbeatRequest Temporal_Api_Workflowservice_V1_RecordWorkerHeartbeatResponse :=
+def recordWorkerHeartbeat : Temporal.Proto.Method RecordWorkerHeartbeatRequest RecordWorkerHeartbeatResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RecordWorkerHeartbeat", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listWorkers : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListWorkersRequest Temporal_Api_Workflowservice_V1_ListWorkersResponse :=
+def listWorkers : Temporal.Proto.Method ListWorkersRequest ListWorkersResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListWorkers", clientStreaming := false, serverStreaming := false, deprecated := false }
-def countWorkers : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CountWorkersRequest Temporal_Api_Workflowservice_V1_CountWorkersResponse :=
+def countWorkers : Temporal.Proto.Method CountWorkersRequest CountWorkersResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CountWorkers", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateTaskQueueConfig : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigRequest Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigResponse :=
+def updateTaskQueueConfig : Temporal.Proto.Method UpdateTaskQueueConfigRequest UpdateTaskQueueConfigResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateTaskQueueConfig", clientStreaming := false, serverStreaming := false, deprecated := false }
-def fetchWorkerConfig : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_FetchWorkerConfigRequest Temporal_Api_Workflowservice_V1_FetchWorkerConfigResponse :=
+def fetchWorkerConfig : Temporal.Proto.Method FetchWorkerConfigRequest FetchWorkerConfigResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.FetchWorkerConfig", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateWorkerConfig : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateWorkerConfigRequest Temporal_Api_Workflowservice_V1_UpdateWorkerConfigResponse :=
+def updateWorkerConfig : Temporal.Proto.Method UpdateWorkerConfigRequest UpdateWorkerConfigResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerConfig", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeWorker : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeWorkerRequest Temporal_Api_Workflowservice_V1_DescribeWorkerResponse :=
+def describeWorker : Temporal.Proto.Method DescribeWorkerRequest DescribeWorkerResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeWorker", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pauseWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PauseWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_PauseWorkflowExecutionResponse :=
+def pauseWorkflowExecution : Temporal.Proto.Method PauseWorkflowExecutionRequest PauseWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PauseWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def unpauseWorkflowExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UnpauseWorkflowExecutionRequest Temporal_Api_Workflowservice_V1_UnpauseWorkflowExecutionResponse :=
+def unpauseWorkflowExecution : Temporal.Proto.Method UnpauseWorkflowExecutionRequest UnpauseWorkflowExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UnpauseWorkflowExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def startActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_StartActivityExecutionRequest Temporal_Api_Workflowservice_V1_StartActivityExecutionResponse :=
+def startActivityExecution : Temporal.Proto.Method StartActivityExecutionRequest StartActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.StartActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def startNexusOperationExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionRequest Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionResponse :=
+def startNexusOperationExecution : Temporal.Proto.Method StartNexusOperationExecutionRequest StartNexusOperationExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.StartNexusOperationExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeActivityExecutionRequest Temporal_Api_Workflowservice_V1_DescribeActivityExecutionResponse :=
+def describeActivityExecution : Temporal.Proto.Method DescribeActivityExecutionRequest DescribeActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeNexusOperationExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionRequest Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionResponse :=
+def describeNexusOperationExecution : Temporal.Proto.Method DescribeNexusOperationExecutionRequest DescribeNexusOperationExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeNexusOperationExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollActivityExecutionRequest Temporal_Api_Workflowservice_V1_PollActivityExecutionResponse :=
+def pollActivityExecution : Temporal.Proto.Method PollActivityExecutionRequest PollActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollNexusOperationExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionRequest Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionResponse :=
+def pollNexusOperationExecution : Temporal.Proto.Method PollNexusOperationExecutionRequest PollNexusOperationExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollNexusOperationExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listActivityExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListActivityExecutionsRequest Temporal_Api_Workflowservice_V1_ListActivityExecutionsResponse :=
+def listActivityExecutions : Temporal.Proto.Method ListActivityExecutionsRequest ListActivityExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListActivityExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listNexusOperationExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ListNexusOperationExecutionsRequest Temporal_Api_Workflowservice_V1_ListNexusOperationExecutionsResponse :=
+def listNexusOperationExecutions : Temporal.Proto.Method ListNexusOperationExecutionsRequest ListNexusOperationExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ListNexusOperationExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def countActivityExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CountActivityExecutionsRequest Temporal_Api_Workflowservice_V1_CountActivityExecutionsResponse :=
+def countActivityExecutions : Temporal.Proto.Method CountActivityExecutionsRequest CountActivityExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CountActivityExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def countNexusOperationExecutions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_CountNexusOperationExecutionsRequest Temporal_Api_Workflowservice_V1_CountNexusOperationExecutionsResponse :=
+def countNexusOperationExecutions : Temporal.Proto.Method CountNexusOperationExecutionsRequest CountNexusOperationExecutionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.CountNexusOperationExecutions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def requestCancelActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RequestCancelActivityExecutionRequest Temporal_Api_Workflowservice_V1_RequestCancelActivityExecutionResponse :=
+def requestCancelActivityExecution : Temporal.Proto.Method RequestCancelActivityExecutionRequest RequestCancelActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RequestCancelActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def requestCancelNexusOperationExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_RequestCancelNexusOperationExecutionRequest Temporal_Api_Workflowservice_V1_RequestCancelNexusOperationExecutionResponse :=
+def requestCancelNexusOperationExecution : Temporal.Proto.Method RequestCancelNexusOperationExecutionRequest RequestCancelNexusOperationExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.RequestCancelNexusOperationExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def terminateActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_TerminateActivityExecutionRequest Temporal_Api_Workflowservice_V1_TerminateActivityExecutionResponse :=
+def terminateActivityExecution : Temporal.Proto.Method TerminateActivityExecutionRequest TerminateActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.TerminateActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteActivityExecutionRequest Temporal_Api_Workflowservice_V1_DeleteActivityExecutionResponse :=
+def deleteActivityExecution : Temporal.Proto.Method DeleteActivityExecutionRequest DeleteActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pauseActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PauseActivityExecutionRequest Temporal_Api_Workflowservice_V1_PauseActivityExecutionResponse :=
+def pauseActivityExecution : Temporal.Proto.Method PauseActivityExecutionRequest PauseActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PauseActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def resetActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_ResetActivityExecutionRequest Temporal_Api_Workflowservice_V1_ResetActivityExecutionResponse :=
+def resetActivityExecution : Temporal.Proto.Method ResetActivityExecutionRequest ResetActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.ResetActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def unpauseActivityExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UnpauseActivityExecutionRequest Temporal_Api_Workflowservice_V1_UnpauseActivityExecutionResponse :=
+def unpauseActivityExecution : Temporal.Proto.Method UnpauseActivityExecutionRequest UnpauseActivityExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UnpauseActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateActivityExecutionOptions : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_UpdateActivityExecutionOptionsRequest Temporal_Api_Workflowservice_V1_UpdateActivityExecutionOptionsResponse :=
+def updateActivityExecutionOptions : Temporal.Proto.Method UpdateActivityExecutionOptionsRequest UpdateActivityExecutionOptionsResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.UpdateActivityExecutionOptions", clientStreaming := false, serverStreaming := false, deprecated := false }
-def terminateNexusOperationExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_TerminateNexusOperationExecutionRequest Temporal_Api_Workflowservice_V1_TerminateNexusOperationExecutionResponse :=
+def terminateNexusOperationExecution : Temporal.Proto.Method TerminateNexusOperationExecutionRequest TerminateNexusOperationExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.TerminateNexusOperationExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteNexusOperationExecution : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_DeleteNexusOperationExecutionRequest Temporal_Api_Workflowservice_V1_DeleteNexusOperationExecutionResponse :=
+def deleteNexusOperationExecution : Temporal.Proto.Method DeleteNexusOperationExecutionRequest DeleteNexusOperationExecutionResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteNexusOperationExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollWorkflowExecutionTimeSkipping : Temporal.Proto.Method Temporal_Api_Workflowservice_V1_PollWorkflowExecutionTimeSkippingRequest Temporal_Api_Workflowservice_V1_PollWorkflowExecutionTimeSkippingResponse :=
+def pollWorkflowExecutionTimeSkipping : Temporal.Proto.Method PollWorkflowExecutionTimeSkippingRequest PollWorkflowExecutionTimeSkippingResponse :=
   { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollWorkflowExecutionTimeSkipping", clientStreaming := false, serverStreaming := false, deprecated := false }
-end Temporal_Api_Workflowservice_V1_WorkflowService
+end Temporal.Api.Workflowservice.V1.WorkflowService
+
+namespace Temporal.Proto.Generated.GRPC
 
 def PublicServices : List Temporal.Proto.ServiceDescriptor := [
   { fullName := "temporal.api.operatorservice.v1.OperatorService", methods := [

@@ -142,7 +142,7 @@ func renderTypes(plan leanPlan) []byte {
 		}
 		fmt.Fprintf(&generated, "end %s\n\n", namespace.Name.String())
 	}
-	return []byte(generated.String())
+	return []byte(strings.TrimRight(generated.String(), "\n") + "\n")
 }
 
 func renderCatalog(source leanSourcePlan) []byte {
@@ -213,28 +213,6 @@ func renderGRPC(source leanSourcePlan) []byte {
 	}
 	generated.WriteString("]\n\nend Temporal.Proto.Generated.GRPC\n")
 	return []byte(generated.String())
-}
-
-func renderLeanType(value leanType) string {
-	switch value.Kind {
-	case leanTypeNamed:
-		return value.Name
-	case leanTypeOption:
-		return "Option " + renderLeanTypeArgument(value.Arguments[0])
-	case leanTypeList:
-		return "List " + renderLeanTypeArgument(value.Arguments[0])
-	case leanTypeProduct:
-		return renderLeanType(value.Arguments[0]) + " × " + renderLeanType(value.Arguments[1])
-	default:
-		panic(fmt.Sprintf("unsupported validated Lean type kind %d", value.Kind))
-	}
-}
-
-func renderLeanTypeArgument(value leanType) string {
-	if value.Kind == leanTypeNamed {
-		return renderLeanType(value)
-	}
-	return "(" + renderLeanType(value) + ")"
 }
 
 func leanStrings(values []string) string {
