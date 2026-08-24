@@ -18,7 +18,7 @@ func TestLeanPlanAllocatesCollidingMembersFromStableProtobufIdentity(t *testing.
 	}
 	document := projection{Messages: []messageProjection{{
 		FullName: "fixture.messaging.test.v1.Collision", Name: "Collision", Package: "fixture.messaging.test.v1",
-		Source: sourcePublic, Fields: fields,
+		Fields: fields,
 		Oneofs: []oneofProjection{{
 			FullName: "fixture.messaging.test.v1.Collision.choice", Name: "choice",
 			FieldNames: []string{"fixture.messaging.test.v1.Collision.not_set"},
@@ -50,13 +50,13 @@ func TestLeanPlanDisambiguatesPackageAndDeclarationCollisions(t *testing.T) {
 	t.Parallel()
 
 	document := projection{Messages: []messageProjection{
-		{FullName: "foo_bar.v1.Record", Name: "Record", Package: "foo_bar.v1", Source: sourceExternal},
-		{FullName: "fooBar.v1.Record", Name: "Record", Package: "fooBar.v1", Source: sourceExternal},
-		{FullName: "fixture.messaging.test.v1.Foo_Bar", Name: "Foo_Bar", Package: "fixture.messaging.test.v1", Source: sourcePublic},
-		{FullName: "fixture.messaging.test.v1.FooBar", Name: "FooBar", Package: "fixture.messaging.test.v1", Source: sourcePublic},
-		{FullName: "fixture.messaging.test.v1.Outer", Name: "Outer", Package: "fixture.messaging.test.v1", Source: sourcePublic},
-		{FullName: "fixture.messaging.test.v1.Outer.Foo_Bar", Name: "Foo_Bar", Package: "fixture.messaging.test.v1", Parent: "fixture.messaging.test.v1.Outer", Source: sourcePublic},
-		{FullName: "fixture.messaging.test.v1.Outer.FooBar", Name: "FooBar", Package: "fixture.messaging.test.v1", Parent: "fixture.messaging.test.v1.Outer", Source: sourcePublic},
+		{FullName: "foo_bar.v1.Record", Name: "Record", Package: "foo_bar.v1"},
+		{FullName: "fooBar.v1.Record", Name: "Record", Package: "fooBar.v1"},
+		{FullName: "fixture.messaging.test.v1.Foo_Bar", Name: "Foo_Bar", Package: "fixture.messaging.test.v1"},
+		{FullName: "fixture.messaging.test.v1.FooBar", Name: "FooBar", Package: "fixture.messaging.test.v1"},
+		{FullName: "fixture.messaging.test.v1.Outer", Name: "Outer", Package: "fixture.messaging.test.v1"},
+		{FullName: "fixture.messaging.test.v1.Outer.Foo_Bar", Name: "Foo_Bar", Package: "fixture.messaging.test.v1", Parent: "fixture.messaging.test.v1.Outer"},
+		{FullName: "fixture.messaging.test.v1.Outer.FooBar", Name: "FooBar", Package: "fixture.messaging.test.v1", Parent: "fixture.messaging.test.v1.Outer"},
 	}}
 	first, err := buildLeanPlan(document, testGenerationConfig("Fixture"))
 	require.NoError(t, err)
@@ -85,18 +85,18 @@ func TestLeanPlanDisambiguatesEnumValuesAndMethods(t *testing.T) {
 
 	document := projection{
 		Enums: []enumProjection{{
-			FullName: "fixture.messaging.test.v1.State", Name: "State", Package: "fixture.messaging.test.v1", Source: sourcePublic,
+			FullName: "fixture.messaging.test.v1.State", Name: "State", Package: "fixture.messaging.test.v1",
 			Values: []enumValueProjection{
 				{FullName: "fixture.messaging.test.v1.FOO_BAR", Name: "FOO_BAR", Number: 1},
 				{FullName: "fixture.messaging.test.v1.FooBar", Name: "FooBar", Number: 2},
 			},
 		}},
 		Messages: []messageProjection{
-			{FullName: "fixture.messaging.test.v1.Request", Name: "Request", Package: "fixture.messaging.test.v1", Source: sourcePublic},
-			{FullName: "fixture.messaging.test.v1.Response", Name: "Response", Package: "fixture.messaging.test.v1", Source: sourcePublic},
+			{FullName: "fixture.messaging.test.v1.Request", Name: "Request", Package: "fixture.messaging.test.v1"},
+			{FullName: "fixture.messaging.test.v1.Response", Name: "Response", Package: "fixture.messaging.test.v1"},
 		},
 		Services: []serviceProjection{{
-			FullName: "fixture.messaging.test.v1.TestService", Name: "TestService", Package: "fixture.messaging.test.v1", Source: sourcePublic,
+			FullName: "fixture.messaging.test.v1.TestService", Name: "TestService", Package: "fixture.messaging.test.v1",
 			Methods: []methodProjection{
 				{FullName: "fixture.messaging.test.v1.TestService.Do_Thing", Name: "Do_Thing", InputType: "fixture.messaging.test.v1.Request", OutputType: "fixture.messaging.test.v1.Response"},
 				{FullName: "fixture.messaging.test.v1.TestService.DoThing", Name: "DoThing", InputType: "fixture.messaging.test.v1.Request", OutputType: "fixture.messaging.test.v1.Response"},
@@ -130,9 +130,9 @@ func TestLeanPlanSeparatesPackageNamespacesFromDeclarationNamespaces(t *testing.
 	t.Parallel()
 
 	document := projection{Messages: []messageProjection{
-		{FullName: "foo.Bar", Name: "Bar", Package: "foo", Source: sourceExternal},
-		{FullName: "foo.Bar.Record", Name: "Record", Package: "foo", Parent: "foo.Bar", Source: sourceExternal},
-		{FullName: "foo.bar.Record", Name: "Record", Package: "foo.bar", Source: sourceExternal},
+		{FullName: "foo.Bar", Name: "Bar", Package: "foo"},
+		{FullName: "foo.Bar.Record", Name: "Record", Package: "foo", Parent: "foo.Bar"},
+		{FullName: "foo.bar.Record", Name: "Record", Package: "foo.bar"},
 	}}
 	plan, err := buildLeanPlan(document, testGenerationConfig("Fixture"))
 	require.NoError(t, err)
@@ -147,24 +147,23 @@ func TestLeanPlanPreservesNestedOwnershipAndQualifiesCrossPackageReferences(t *t
 		Messages: []messageProjection{
 			{
 				FullName: "example.common.v1.External", Name: "External", Package: "example.common.v1",
-				Source: sourceExternal, Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
+				Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
 			},
 			{
 				FullName: "fixture.messaging.test.v1.sub.External", Name: "External", Package: "fixture.messaging.test.v1.sub",
-				Source: sourceExternal, Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
+				Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
 			},
 			{
 				FullName: "fixture.messaging.test.v1.Outer", Name: "Outer", Package: "fixture.messaging.test.v1",
-				Source: sourcePublic, Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
+				Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
 			},
 			{
 				FullName: "fixture.messaging.test.v1.Outer.Inner", Name: "Inner", Package: "fixture.messaging.test.v1",
-				Parent: "fixture.messaging.test.v1.Outer", Source: sourcePublic,
+				Parent: "fixture.messaging.test.v1.Outer",
 				Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
 			},
 			{
 				FullName: "fixture.messaging.test.v1.Holder", Name: "Holder", Package: "fixture.messaging.test.v1",
-				Source: sourcePublic,
 				Fields: []fieldProjection{
 					{FullName: "fixture.messaging.test.v1.Holder.local", Name: "local", Number: 1, Kind: "message", TypeName: "fixture.messaging.test.v1.Outer.Inner", Presence: true},
 					{FullName: "fixture.messaging.test.v1.Holder.external", Name: "external", Number: 2, Kind: "message", TypeName: "example.common.v1.External", Presence: true},
@@ -205,7 +204,7 @@ func TestLeanPlanUsesMessageReferencesOnlyWithinRecursiveComponents(t *testing.T
 	require.True(t, plan.fields["fixture.messaging.test.v1.A.value"].Recursive)
 	require.True(t, plan.fields["fixture.messaging.test.v1.B.value"].Recursive)
 	require.False(t, plan.fields["fixture.messaging.test.v1.C.value"].Recursive)
-	require.Equal(t, "Option Fixture.Proto.MessageRef", renderLeanType(plan.fields["fixture.messaging.test.v1.A.value"].Type))
+	require.Equal(t, "Option Fixture.API.Proto.MessageRef", renderLeanType(plan.fields["fixture.messaging.test.v1.A.value"].Type))
 	require.Equal(t, "Option A", renderLeanType(plan.fields["fixture.messaging.test.v1.C.value"].Type))
 
 	order := make(map[string]int, len(plan.Messages))
@@ -228,7 +227,6 @@ func TestLeanPlanRejectsUnknownNamedTypesWithFieldContext(t *testing.T) {
 
 	document := projection{Messages: []messageProjection{{
 		FullName: "fixture.messaging.test.v1.Request", Name: "Request", Package: "fixture.messaging.test.v1",
-		Source: sourcePublic,
 		Fields: []fieldProjection{{
 			FullName: "fixture.messaging.test.v1.Request.missing", Name: "missing", Number: 1,
 			Kind: "message", TypeName: "fixture.messaging.missing.v1.Unknown", Presence: true,
@@ -246,7 +244,6 @@ func TestLeanPlanRejectsFieldsWhoseOneofIsMissing(t *testing.T) {
 
 	document := projection{Messages: []messageProjection{{
 		FullName: "fixture.messaging.test.v1.Request", Name: "Request", Package: "fixture.messaging.test.v1",
-		Source: sourcePublic,
 		Fields: []fieldProjection{{
 			FullName: "fixture.messaging.test.v1.Request.value", Name: "value", Number: 1,
 			Kind: "string", Oneof: "choice",
@@ -285,17 +282,17 @@ func TestLeanPlanValidationRejectsIncompleteModuleImports(t *testing.T) {
 	configuration := testGenerationConfig("Fixture")
 	plan, err := buildLeanPlan(projection{}, configuration)
 	require.NoError(t, err)
-	plan.Sources[0].CatalogModule.Imports = nil
+	plan.APIModule.Imports = nil
 
 	err = validateLeanPlan(projection{}, plan, configuration)
-	require.ErrorContains(t, err, "incomplete modules")
+	require.ErrorContains(t, err, "API module is incomplete")
 }
 
 func TestLeanPlanValidationRejectsIncompleteNamespaceOwnership(t *testing.T) {
 	t.Parallel()
 
 	document := projection{Messages: []messageProjection{{
-		FullName: "fixture.messaging.test.v1.Request", Name: "Request", Package: "fixture.messaging.test.v1", Source: sourcePublic,
+		FullName: "fixture.messaging.test.v1.Request", Name: "Request", Package: "fixture.messaging.test.v1",
 	}}}
 	configuration := testGenerationConfig("Fixture")
 	plan, err := buildLeanPlan(document, configuration)
@@ -306,31 +303,30 @@ func TestLeanPlanValidationRejectsIncompleteNamespaceOwnership(t *testing.T) {
 	require.ErrorContains(t, err, "namespace ownership")
 }
 
-func TestLeanPlanValidationRejectsDuplicateSourceOwnership(t *testing.T) {
+func TestLeanPlanValidationRejectsChangedServiceOrder(t *testing.T) {
 	t.Parallel()
 
-	document := projection{Messages: []messageProjection{
-		{FullName: "fixture.messaging.test.v1.Public", Name: "Public", Package: "fixture.messaging.test.v1", Source: sourcePublic},
-		{FullName: "fixture.messaging.internal.v1.Internal", Name: "Internal", Package: "fixture.messaging.internal.v1", Source: sourceInternal},
+	document := projection{Services: []serviceProjection{
+		{FullName: "fixture.messaging.test.v1.Alpha", Name: "Alpha", Package: "fixture.messaging.test.v1"},
+		{FullName: "fixture.messaging.test.v1.Beta", Name: "Beta", Package: "fixture.messaging.test.v1"},
 	}}
 	configuration := testGenerationConfig("Fixture")
 	plan, err := buildLeanPlan(document, configuration)
 	require.NoError(t, err)
-	public := slices.IndexFunc(plan.Sources, func(source leanSourcePlan) bool { return source.Source == sourcePublic })
-	internal := slices.IndexFunc(plan.Sources, func(source leanSourcePlan) bool { return source.Source == sourceInternal })
-	require.NotEqual(t, -1, public)
-	require.NotEqual(t, -1, internal)
-	plan.Sources[internal].Messages[0] = plan.Sources[public].Messages[0]
+	require.Equal(t, []string{"fixture.messaging.test.v1.Alpha", "fixture.messaging.test.v1.Beta"}, []string{
+		plan.Services[0].Projection.FullName,
+		plan.Services[1].Projection.FullName,
+	})
+	plan.Services[0], plan.Services[1] = plan.Services[1], plan.Services[0]
 
 	err = validateLeanPlan(document, plan, configuration)
-	require.ErrorContains(t, err, "source partition")
+	require.ErrorContains(t, err, "service order")
 }
 
-func TestLeanPlanUsesConfiguredSupportRootAndEmitsEmptyGroups(t *testing.T) {
+func TestLeanPlanUsesConfiguredThreeModuleBoundary(t *testing.T) {
 	configuration := testGenerationConfig("Acme.Model")
-	configuration.Groups = []sourceGroup{"Empty", "External"}
 	document := projection{Messages: []messageProjection{{
-		FullName: "example.v1.Record", Name: "Record", Package: "example.v1", Source: "External",
+		FullName: "example.v1.Record", Name: "Record", Package: "example.v1",
 		Fields: []fieldProjection{{
 			FullName: "example.v1.Record.payload", Name: "payload", Number: 1, Kind: "bytes",
 		}},
@@ -338,30 +334,21 @@ func TestLeanPlanUsesConfiguredSupportRootAndEmitsEmptyGroups(t *testing.T) {
 
 	plan, err := buildLeanPlan(document, configuration)
 	require.NoError(t, err)
-	require.Equal(t, "Acme/Model/Generated/Types.lean", plan.TypesModule.Path)
-	require.Equal(t, []string{"Acme.Model.Proto.Core"}, plan.TypesModule.Imports)
-	require.Equal(t, "Acme.Model.Proto.Bytes", renderLeanType(plan.fields["example.v1.Record.payload"].Type))
-	require.Len(t, plan.Sources, 2)
-	require.Empty(t, plan.Sources[0].Files)
-	require.Equal(t, sourceGroup("Empty"), plan.Sources[0].Source)
+	require.Equal(t, leanModulePlan{Path: "Acme/Model/API/Proto.lean", Imports: []string{}}, plan.ProtoModule)
+	require.Equal(t, leanModulePlan{Path: "Acme/Model/API/Types.lean", Imports: []string{"Acme.Model.API.Proto"}}, plan.TypesModule)
+	require.Equal(t, leanModulePlan{Path: "Acme/Model/API.lean", Imports: []string{"Acme.Model.API.Proto", "Acme.Model.API.Types"}}, plan.APIModule)
+	require.Equal(t, "Acme.Model.API.Proto.Bytes", renderLeanType(plan.fields["example.v1.Record.payload"].Type))
 }
 
 func TestLeanPlanRejectsDeclarationsCollidingWithGeneratedSupport(t *testing.T) {
 	configuration := testGenerationConfig("Acme.Model")
 	document := projection{Messages: []messageProjection{{
-		FullName: "acme.model.proto.Bytes", Name: "Bytes", Package: "acme.model.proto", Source: sourceExternal,
+		FullName: "acme.model.a_p_i.proto.Bytes", Name: "Bytes", Package: "acme.model.a_p_i.proto",
 	}}}
 
 	_, err := buildLeanPlan(document, configuration)
-	require.ErrorContains(t, err, `"acme.model.proto.Bytes"`)
-	require.ErrorContains(t, err, `generated support declaration "Acme.Model.Proto.Bytes"`)
-
-	document.Messages[0] = messageProjection{
-		FullName: "acme.model.proto.generated.catalog.PublicFiles", Name: "PublicFiles",
-		Package: "acme.model.proto.generated.catalog", Source: sourceExternal,
-	}
-	_, err = buildLeanPlan(document, configuration)
-	require.ErrorContains(t, err, `generated inventory declaration "Acme.Model.Proto.Generated.Catalog.PublicFiles"`)
+	require.ErrorContains(t, err, `"acme.model.a_p_i.proto.Bytes"`)
+	require.ErrorContains(t, err, `generated support declaration "Acme.Model.API.Proto.Bytes"`)
 }
 
 func enumValueName(plan leanPlan, fullName string) string {
@@ -376,7 +363,7 @@ func enumValueName(plan leanPlan, fullName string) string {
 }
 
 func methodName(plan leanPlan, fullName string) string {
-	for _, service := range plan.services {
+	for _, service := range plan.Services {
 		for _, method := range service.Methods {
 			if method.Projection.FullName == fullName {
 				return method.Name
@@ -397,7 +384,7 @@ func plannedMessageNames(plan leanPlan) []string {
 func messageProjectionWithReference(name, target string) messageProjection {
 	fullName := "fixture.messaging.test.v1." + name
 	return messageProjection{
-		FullName: fullName, Name: name, Package: "fixture.messaging.test.v1", Source: sourcePublic,
+		FullName: fullName, Name: name, Package: "fixture.messaging.test.v1",
 		Fields: []fieldProjection{{
 			FullName: fullName + ".value", Name: "value", Number: 1, Kind: "message",
 			TypeName: "fixture.messaging.test.v1." + target, Presence: true,

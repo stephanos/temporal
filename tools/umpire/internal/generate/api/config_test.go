@@ -9,43 +9,27 @@ import (
 
 func TestParseGenerationConfig(t *testing.T) {
 	configuration, err := parseGenerationConfig([]string{
-		"generate",
-		"--source", "Internal=internal/",
-		"--descriptor", "second=fixtures/second.pb",
+		"--descriptor", "fixtures/second.pb",
 		"--lean-root", "Acme.Model",
-		"--default-source", "External",
-		"--descriptor", "first=fixtures/first.pb",
-		"--source", "Public=public/",
-		"--source", "Internal=internal/private/",
+		"--descriptor", "fixtures/first.pb",
 		"--output-root", "generated",
 	})
 	require.NoError(t, err)
-	require.Equal(t, "generate", configuration.Operation)
 	require.Equal(t, []descriptorSpec{
-		{Name: "first", Locator: "fixtures/first.pb", Path: filepath.FromSlash("fixtures/first.pb")},
-		{Name: "second", Locator: "fixtures/second.pb", Path: filepath.FromSlash("fixtures/second.pb")},
+		{Locator: "fixtures/first.pb", Path: filepath.FromSlash("fixtures/first.pb")},
+		{Locator: "fixtures/second.pb", Path: filepath.FromSlash("fixtures/second.pb")},
 	}, configuration.Descriptors)
-	require.Equal(t, []sourceGroup{"External", "Internal", "Public"}, configuration.Groups)
-	require.Equal(t, []sourceRule{
-		{Group: "Internal", Prefix: "internal/private/"},
-		{Group: "Internal", Prefix: "internal/"},
-		{Group: "Public", Prefix: "public/"},
-	}, configuration.Sources)
-	require.Equal(t, sourceGroup("External"), configuration.DefaultSource)
-	require.Equal(t, sourceGroup("Internal"), configuration.Classify("internal/private/request.proto"))
-	require.Equal(t, sourceGroup("External"), configuration.Classify("shared/model.proto"))
+	require.Equal(t, "generated", configuration.OutputRoot)
 	require.Equal(t, "Acme.Model", configuration.Layout.RootModule)
-	require.Equal(t, "Acme/Model/Proto/Core.lean", configuration.Layout.CorePath)
-	require.Equal(t, "Acme/Model/Generated.lean", configuration.Layout.UmbrellaPath)
-	require.Equal(t, "Acme/Model/Generated/manifest.json", configuration.Layout.ManifestPath)
+	require.Equal(t, "Acme/Model/API.lean", configuration.Layout.APIPath)
+	require.Equal(t, "Acme/Model/API", configuration.Layout.APIDirectory)
+	require.Equal(t, "Acme/Model/API/Proto.lean", configuration.Layout.ProtoPath)
+	require.Equal(t, "Acme/Model/API/Types.lean", configuration.Layout.TypesPath)
 }
 
 func TestParseGenerationConfigValidation(t *testing.T) {
 	valid := []string{
-		"generate",
-		"--descriptor", "input=fixture.pb",
-		"--source", "Public=public/",
-		"--default-source", "External",
+		"--descriptor", "fixture.pb",
 		"--lean-root", "Fixture",
 		"--output-root", "generated",
 	}
@@ -53,19 +37,9 @@ func TestParseGenerationConfigValidation(t *testing.T) {
 		arguments []string
 		contains  string
 	}{
-		"operation":              {valid[1:], "operation is required"},
-		"unknown operation":      {append([]string{"render"}, valid[1:]...), "unknown operation"},
-		"descriptor value":       {replaceFlagValue(valid, "--descriptor", "missing-separator"), "NAME=PATH"},
-		"empty descriptor name":  {replaceFlagValue(valid, "--descriptor", "=fixture.pb"), "descriptor name"},
-		"empty descriptor path":  {replaceFlagValue(valid, "--descriptor", "input="), "descriptor path"},
-		"duplicate descriptor":   {append(valid, "--descriptor", "input=other.pb"), "duplicate descriptor name"},
+		"empty descriptor path":  {replaceFlagValue(valid, "--descriptor", ""), "descriptor path"},
+		"duplicate descriptor":   {append(valid, "--descriptor", "./fixture.pb"), "duplicate descriptor locator"},
 		"missing descriptor":     {removeFlag(valid, "--descriptor"), "at least one --descriptor"},
-		"source value":           {replaceFlagValue(valid, "--source", "Public"), "GROUP=PREFIX"},
-		"empty source prefix":    {replaceFlagValue(valid, "--source", "Public="), "source prefix"},
-		"invalid group":          {replaceFlagValue(valid, "--source", "bad-group=public/"), "source group"},
-		"conflicting prefix":     {append(valid, "--source", "Internal=public/"), "assigned to both"},
-		"missing default":        {removeFlag(valid, "--default-source"), "--default-source is required"},
-		"invalid default":        {replaceFlagValue(valid, "--default-source", "bad-group"), "default source"},
 		"missing root":           {removeFlag(valid, "--lean-root"), "--lean-root is required"},
 		"invalid root":           {replaceFlagValue(valid, "--lean-root", "Acme.bad-segment"), "Lean root"},
 		"anonymous root":         {replaceFlagValue(valid, "--lean-root", "_"), "Lean root"},
@@ -73,8 +47,7 @@ func TestParseGenerationConfigValidation(t *testing.T) {
 		"prop root":              {replaceFlagValue(valid, "--lean-root", "Prop"), "Lean root"},
 		"sort root":              {replaceFlagValue(valid, "--lean-root", "Sort"), "Lean root"},
 		"missing output":         {removeFlag(valid, "--output-root"), "--output-root is required"},
-		"positional":             {append(valid, "extra"), "unexpected positional"},
-		"duplicate same rule":    {append(valid, "--source", "Public=public/"), "duplicate source rule"},
+		"operation word":         {append([]string{"generate"}, valid...), "unexpected positional"},
 		"empty dotted root part": {replaceFlagValue(valid, "--lean-root", "Acme..Model"), "Lean root"},
 	}
 	for name, test := range tests {
@@ -83,17 +56,6 @@ func TestParseGenerationConfigValidation(t *testing.T) {
 			require.ErrorContains(t, err, test.contains)
 		})
 	}
-}
-
-func TestInspectDoesNotRequireOutputRoot(t *testing.T) {
-	configuration, err := parseGenerationConfig([]string{
-		"inspect",
-		"--descriptor", "input=fixture.pb",
-		"--default-source", "External",
-		"--lean-root", "Fixture",
-	})
-	require.NoError(t, err)
-	require.Empty(t, configuration.OutputRoot)
 }
 
 func replaceFlagValue(arguments []string, name, value string) []string {
