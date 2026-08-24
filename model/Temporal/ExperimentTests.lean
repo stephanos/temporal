@@ -215,6 +215,26 @@ def cyclicOrdering : Regression := {
   bounds := { resources := 2, actions := 2, precedenceEdges := 2 }
 }
 
+def prefixedCycleTarget : ModelTarget := {
+  validTarget with
+  actionProjections := [
+    { id := action "alpha", project := observed },
+    { id := action "beta", project := observed },
+    { id := action "gamma", project := observed }
+  ]
+}
+
+def prefixedCycleOrdering : Regression := {
+  validRegression with
+  actionAttempts := [action "alpha", action "beta", action "gamma"]
+  ordering := [
+    { before := action "alpha", after := action "beta" },
+    { before := action "beta", after := action "gamma" },
+    { before := action "gamma", after := action "beta" }
+  ]
+  bounds := { resources := 2, actions := 3, precedenceEdges := 3 }
+}
+
 example : [
     errorKindAndSubject (compile validTarget duplicateOrdering),
     errorKindAndSubject (compile validTarget selfOrdering),
@@ -222,8 +242,12 @@ example : [
   ] = [
     some (.duplicateOrdering, "advance->observe"),
     some (.selfOrdering, "advance->advance"),
-    some (.cyclicOrdering, "advance->observe")
+    some (.cyclicOrdering, "ordering")
   ] := by
+  native_decide
+
+example : errorKindAndSubject (compile prefixedCycleTarget prefixedCycleOrdering) =
+    some (.cyclicOrdering, "ordering") := by
   native_decide
 
 example : [
