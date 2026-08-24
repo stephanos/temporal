@@ -5,73 +5,73 @@ import Temporal.Generated.Types
 
 set_option maxRecDepth 100000
 
+namespace Temporal.Server.Chasm.Lib.Activity.Proto.V1.ActivityService
+def startActivityExecution : Temporal.Proto.Method StartActivityExecutionRequest StartActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.StartActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def describeActivityExecution : Temporal.Proto.Method DescribeActivityExecutionRequest DescribeActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.DescribeActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def pollActivityExecution : Temporal.Proto.Method PollActivityExecutionRequest PollActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.PollActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def terminateActivityExecution : Temporal.Proto.Method TerminateActivityExecutionRequest TerminateActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.TerminateActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def requestCancelActivityExecution : Temporal.Proto.Method RequestCancelActivityExecutionRequest RequestCancelActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.RequestCancelActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def deleteActivityExecution : Temporal.Proto.Method DeleteActivityExecutionRequest DeleteActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.DeleteActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def pauseActivityExecution : Temporal.Proto.Method PauseActivityExecutionRequest PauseActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.PauseActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def unpauseActivityExecution : Temporal.Proto.Method UnpauseActivityExecutionRequest UnpauseActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.UnpauseActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def resetActivityExecution : Temporal.Proto.Method ResetActivityExecutionRequest ResetActivityExecutionResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.ResetActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
+def updateActivityExecutionOptions : Temporal.Proto.Method UpdateActivityExecutionOptionsRequest UpdateActivityExecutionOptionsResponse :=
+  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.UpdateActivityExecutionOptions", clientStreaming := false, serverStreaming := false, deprecated := false }
+end Temporal.Server.Chasm.Lib.Activity.Proto.V1.ActivityService
+
+namespace Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1.NexusOperationService
+def startNexusOperation : Temporal.Proto.Method StartNexusOperationRequest StartNexusOperationResponse :=
+  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.StartNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
+def describeNexusOperation : Temporal.Proto.Method DescribeNexusOperationRequest DescribeNexusOperationResponse :=
+  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.DescribeNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
+def requestCancelNexusOperation : Temporal.Proto.Method RequestCancelNexusOperationRequest RequestCancelNexusOperationResponse :=
+  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.RequestCancelNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
+def terminateNexusOperation : Temporal.Proto.Method TerminateNexusOperationRequest TerminateNexusOperationResponse :=
+  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.TerminateNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
+def deleteNexusOperation : Temporal.Proto.Method DeleteNexusOperationRequest DeleteNexusOperationResponse :=
+  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.DeleteNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
+def pollNexusOperation : Temporal.Proto.Method PollNexusOperationRequest PollNexusOperationResponse :=
+  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.PollNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
+end Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1.NexusOperationService
+
+namespace Temporal.Server.Chasm.Lib.Scheduler.Proto.V1.SchedulerService
+def createSchedule : Temporal.Proto.Method CreateScheduleRequest CreateScheduleResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.CreateSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
+def updateSchedule : Temporal.Proto.Method UpdateScheduleRequest UpdateScheduleResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.UpdateSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
+def patchSchedule : Temporal.Proto.Method PatchScheduleRequest PatchScheduleResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.PatchSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
+def deleteSchedule : Temporal.Proto.Method DeleteScheduleRequest DeleteScheduleResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.DeleteSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
+def describeSchedule : Temporal.Proto.Method DescribeScheduleRequest DescribeScheduleResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.DescribeSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
+def listScheduleMatchingTimes : Temporal.Proto.Method ListScheduleMatchingTimesRequest ListScheduleMatchingTimesResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.ListScheduleMatchingTimes", clientStreaming := false, serverStreaming := false, deprecated := false }
+def createFromMigrationState : Temporal.Proto.Method CreateFromMigrationStateRequest CreateFromMigrationStateResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.CreateFromMigrationState", clientStreaming := false, serverStreaming := false, deprecated := false }
+def createSentinel : Temporal.Proto.Method CreateSentinelRequest CreateSentinelResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.CreateSentinel", clientStreaming := false, serverStreaming := false, deprecated := false }
+def migrateToWorkflow : Temporal.Proto.Method MigrateToWorkflowRequest MigrateToWorkflowResponse :=
+  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.MigrateToWorkflow", clientStreaming := false, serverStreaming := false, deprecated := false }
+end Temporal.Server.Chasm.Lib.Scheduler.Proto.V1.SchedulerService
+
+namespace Temporal.Server.Chasm.Lib.Tests.Proto.V1.TestService
+def test : Temporal.Proto.Method TestRequest TestResponse :=
+  { fullName := "temporal.server.chasm.lib.tests.proto.v1.TestService.Test", clientStreaming := false, serverStreaming := false, deprecated := false }
+end Temporal.Server.Chasm.Lib.Tests.Proto.V1.TestService
+
 namespace Temporal.Proto.Generated.GRPC
 
-namespace Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityService
-def startActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.StartActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_DescribeActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_DescribeActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.DescribeActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_PollActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_PollActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.PollActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def terminateActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_TerminateActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_TerminateActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.TerminateActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def requestCancelActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_RequestCancelActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_RequestCancelActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.RequestCancelActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_DeleteActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_DeleteActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.DeleteActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pauseActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_PauseActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_PauseActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.PauseActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def unpauseActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_UnpauseActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_UnpauseActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.UnpauseActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def resetActivityExecution : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_ResetActivityExecutionRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_ResetActivityExecutionResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.ResetActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateActivityExecutionOptions : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Activity_Proto_V1_UpdateActivityExecutionOptionsRequest Temporal_Server_Chasm_Lib_Activity_Proto_V1_UpdateActivityExecutionOptionsResponse :=
-  { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.UpdateActivityExecutionOptions", clientStreaming := false, serverStreaming := false, deprecated := false }
-end Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityService
-
-namespace Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_NexusOperationService
-def startNexusOperation : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_StartNexusOperationRequest Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_StartNexusOperationResponse :=
-  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.StartNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeNexusOperation : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DescribeNexusOperationRequest Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DescribeNexusOperationResponse :=
-  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.DescribeNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def requestCancelNexusOperation : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_RequestCancelNexusOperationRequest Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_RequestCancelNexusOperationResponse :=
-  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.RequestCancelNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def terminateNexusOperation : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_TerminateNexusOperationRequest Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_TerminateNexusOperationResponse :=
-  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.TerminateNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteNexusOperation : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DeleteNexusOperationRequest Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DeleteNexusOperationResponse :=
-  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.DeleteNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-def pollNexusOperation : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_PollNexusOperationRequest Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_PollNexusOperationResponse :=
-  { fullName := "temporal.server.chasm.lib.nexusoperation.proto.v1.NexusOperationService.PollNexusOperation", clientStreaming := false, serverStreaming := false, deprecated := false }
-end Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_NexusOperationService
-
-namespace Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerService
-def createSchedule : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateScheduleRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateScheduleResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.CreateSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def updateSchedule : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_UpdateScheduleRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_UpdateScheduleResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.UpdateSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def patchSchedule : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_PatchScheduleRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_PatchScheduleResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.PatchSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def deleteSchedule : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DeleteScheduleRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DeleteScheduleResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.DeleteSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def describeSchedule : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DescribeScheduleRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DescribeScheduleResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.DescribeSchedule", clientStreaming := false, serverStreaming := false, deprecated := false }
-def listScheduleMatchingTimes : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_ListScheduleMatchingTimesRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_ListScheduleMatchingTimesResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.ListScheduleMatchingTimes", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createFromMigrationState : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateFromMigrationStateRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateFromMigrationStateResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.CreateFromMigrationState", clientStreaming := false, serverStreaming := false, deprecated := false }
-def createSentinel : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateSentinelRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateSentinelResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.CreateSentinel", clientStreaming := false, serverStreaming := false, deprecated := false }
-def migrateToWorkflow : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_MigrateToWorkflowRequest Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_MigrateToWorkflowResponse :=
-  { fullName := "temporal.server.chasm.lib.scheduler.proto.v1.SchedulerService.MigrateToWorkflow", clientStreaming := false, serverStreaming := false, deprecated := false }
-end Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerService
-
-namespace Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestService
-def test : Temporal.Proto.Method Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestRequest Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestResponse :=
-  { fullName := "temporal.server.chasm.lib.tests.proto.v1.TestService.Test", clientStreaming := false, serverStreaming := false, deprecated := false }
-end Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestService
-
-def ChasmServices : List Temporal.Proto.ServiceDescriptor := [
+def CHASMServices : List Temporal.Proto.ServiceDescriptor := [
   { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService", methods := [
       { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.StartActivityExecution", inputType := "temporal.server.chasm.lib.activity.proto.v1.StartActivityExecutionRequest", outputType := "temporal.server.chasm.lib.activity.proto.v1.StartActivityExecutionResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.DescribeActivityExecution", inputType := "temporal.server.chasm.lib.activity.proto.v1.DescribeActivityExecutionRequest", outputType := "temporal.server.chasm.lib.activity.proto.v1.DescribeActivityExecutionResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
