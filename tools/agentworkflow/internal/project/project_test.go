@@ -406,19 +406,28 @@ func TestExplainEmitsResolvedYAMLWorkflow(t *testing.T) {
 func TestDiscoverRetainsOnlyDeclaredInstructionContents(t *testing.T) {
 	root := t.TempDir()
 	writeProjectFile(t, filepath.Join(root, "AGENTS.md"), "trusted instructions")
+	writeProjectFile(t, filepath.Join(root, ".agentworkflow", "instructions", "architecture.md"), "architecture")
 	writeProjectFile(t, filepath.Join(root, "go.mod"), "module example.com/test")
 	writeProjectFile(t, filepath.Join(root, "secret.txt"), "not prompt context")
-	inventory, err := Discover(context.Background(), root, []string{"AGENTS.md"}, 100, 1<<20)
+	inventory, err := Discover(context.Background(), root, []string{"AGENTS.md", ".agentworkflow/instructions/architecture.md"}, 100, 1<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(inventory.Instructions) != 1 || inventory.Instructions[0].Content != "trusted instructions" {
+	if len(inventory.Instructions) != 2 {
 		t.Fatalf("inventory = %#v", inventory)
 	}
+	want := map[string]string{"AGENTS.md": "trusted instructions", ".agentworkflow/instructions/architecture.md": "architecture"}
 	for _, instruction := range inventory.Instructions {
+		if content, found := want[instruction.Path]; !found || instruction.Content != content {
+			t.Fatalf("instruction = %#v", instruction)
+		}
 		if instruction.Path == "secret.txt" {
 			t.Fatal("undeclared file content entered prompt inventory")
 		}
+		delete(want, instruction.Path)
+	}
+	if len(want) != 0 {
+		t.Fatalf("missing instructions = %#v", want)
 	}
 	if _, err := Discover(context.Background(), root, []string{"missing"}, 100, 1<<20); err == nil {
 		t.Fatal("missing instruction was accepted")
