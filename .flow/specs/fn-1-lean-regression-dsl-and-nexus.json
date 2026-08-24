@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-1-lean-regression-dsl-and-nexus",
   "impl_review_rounds": {
-    "fn-1-lean-regression-dsl-and-nexus.1": 0
+    "fn-1-lean-regression-dsl-and-nexus.1": 0,
+    "fn-1-lean-regression-dsl-and-nexus.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -257,10 +258,41 @@
       "task": "fn-1-lean-regression-dsl-and-nexus.1",
       "timestamp": "2026-08-24T16:24:48.543689Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ced7fe7d8dee489189e1948d4f5c792352fbe8cbbd4faaf26ac5740d24878535",
+      "backend": "codex",
+      "base_sha": "53ff3832df8524954db6a8fc85ac775225d6ad8c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "530fecb062b3b6aa1ecc35783aa44e374cbfe1c3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 153041,
+      "output_sha256": "c76680901b53f4079b3a114b8ad6163e8375c39094bf6514b989391fb7a08da4",
+      "reservation_id": "7a8e78f1bd4c44dbb9723a2ef426d239",
+      "round_consumed": true,
+      "scope": "impl:fn-1-lean-regression-dsl-and-nexus.2",
+      "superseded_by": null,
+      "task": "fn-1-lean-regression-dsl-and-nexus.2",
+      "timestamp": "2026-08-24T16:39:13.774511Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-1-lean-regression-dsl-and-nexus.1": 1,
+    "impl:fn-1-lean-regression-dsl-and-nexus.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -268,6 +300,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-1-lean-regression-dsl-and-nexus.1": 0,
+    "impl:fn-1-lean-regression-dsl-and-nexus.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-1-lean-regression-dsl-and-nexus.md",
@@ -284,5 +317,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T16:24:48.546235Z"
+  "updated_at": "2026-08-24T16:39:13.780246Z"
 }

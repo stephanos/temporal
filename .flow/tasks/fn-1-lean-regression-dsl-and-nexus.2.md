@@ -52,9 +52,10 @@ Bind the compiler contract from task `.1` to the existing standalone Nexus calle
 - [ ] New pilot/inspector/test/build files contain no Umpire3 import, reference, copied contract, or dependency.
 
 ## Done summary
-TBD
+Bound the checked Nexus caller-closure clash and upgrade semantics to the regression compiler, including distinct force-close intent, projected outcome, and proof-backed honored-delivery and cancellation-uniqueness expectations. Added the closed stdout-only Lean inspector and focused deterministic success/failure fixtures; both task gates and the focused executable checks passed.
 
+stage: impl-review - ran [2026-08-24T16:35:36Z..2026-08-24T16:39:13Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 530fecb062b3b6aa1ecc35783aa44e374cbfe1c3
+- Tests: make -C model check, make umpire-check-api, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, model/.lake/build/bin/temporal-experiment-inspect nexus-caller-closure-upgrade (success, canonical JSON, repeated-byte identity assertions), model/.lake/build/bin/temporal-experiment-inspect missing-pilot (non-zero, empty stdout, one structured stderr diagnostic assertions)
 - PRs:
