@@ -53,9 +53,12 @@ type Workflow struct {
 	Stages []WorkflowStage `json:"stages"`
 }
 
+type Models map[string]string
+
 type WorkflowStage struct {
 	Kind           StageKind `json:"kind"`
 	Enabled        bool      `json:"enabled"`
+	Models         Models    `json:"models,omitempty"`
 	Prompt         string    `json:"prompt,omitempty"`
 	ReviewPrompt   string    `json:"review_prompt,omitempty"`
 	RevisionPrompt string    `json:"revision_prompt,omitempty"`
@@ -82,7 +85,7 @@ func normalizeWorkflow(workflow Workflow) (Workflow, error) {
 	stages := make([]recipe.Stage, len(workflow.Stages))
 	for index, stage := range workflow.Stages {
 		stages[index] = recipe.Stage{
-			Kind: recipe.Kind(stage.Kind), Enabled: stage.Enabled, Prompt: stage.Prompt,
+			Kind: recipe.Kind(stage.Kind), Enabled: stage.Enabled, Models: recipeModels(stage.Models), Prompt: stage.Prompt,
 			ReviewPrompt: stage.ReviewPrompt, RevisionPrompt: stage.RevisionPrompt, Mode: stage.Mode,
 		}
 	}
@@ -97,9 +100,31 @@ func workflowFromRecipe(workflow recipe.Workflow) Workflow {
 	result := Workflow{Stages: make([]WorkflowStage, len(workflow.Stages))}
 	for index, stage := range workflow.Stages {
 		result.Stages[index] = WorkflowStage{
-			Kind: StageKind(stage.Kind), Enabled: stage.Enabled, Prompt: stage.Prompt,
+			Kind: StageKind(stage.Kind), Enabled: stage.Enabled, Models: workflowModels(stage.Models), Prompt: stage.Prompt,
 			ReviewPrompt: stage.ReviewPrompt, RevisionPrompt: stage.RevisionPrompt, Mode: stage.Mode,
 		}
+	}
+	return result
+}
+
+func recipeModels(models Models) recipe.Models {
+	if models == nil {
+		return nil
+	}
+	result := make(recipe.Models, len(models))
+	for provider, model := range models {
+		result[provider] = model
+	}
+	return result
+}
+
+func workflowModels(models recipe.Models) Models {
+	if models == nil {
+		return nil
+	}
+	result := make(Models, len(models))
+	for provider, model := range models {
+		result[provider] = model
 	}
 	return result
 }

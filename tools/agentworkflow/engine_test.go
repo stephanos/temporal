@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/agentworkflow/internal/workspace"
 )
 
@@ -246,8 +247,8 @@ func TestRunHonorsDisabledWorkflowStages(t *testing.T) {
 	})
 }
 
-func TestRunAlwaysProtectsSpecAndInstructions(t *testing.T) {
-	for _, protected := range []string{".spec/task.md", "GUIDE.md"} {
+func TestRunAlwaysProtectsAgentworkflowAndInstructions(t *testing.T) {
+	for _, protected := range []string{".agentworkflow/task.md", "GUIDE.md"} {
 		t.Run(protected, func(t *testing.T) {
 			projectRoot := t.TempDir()
 			writeTestFile(t, filepath.Join(projectRoot, filepath.FromSlash(protected)), "human input")
@@ -269,9 +270,9 @@ func TestRunAlwaysProtectsSpecAndInstructions(t *testing.T) {
 
 	backend := &fakeBackend{name: "fake", implementation: "good"}
 	request := testRequest(t.TempDir(), true)
-	request.Project.Source.Exclude = []string{".spec"}
+	request.Project.Source.Exclude = []string{".agentworkflow"}
 	if _, err := newTestEngine(t, backend, nil).Run(context.Background(), request); err == nil || len(backend.calls) != 0 {
-		t.Fatalf("excluding .spec error=%v calls=%#v", err, backend.calls)
+		t.Fatalf("excluding .agentworkflow error=%v calls=%#v", err, backend.calls)
 	}
 }
 
@@ -310,6 +311,51 @@ func TestRunUsesConfiguredStagePrompts(t *testing.T) {
 			t.Fatalf("phase %s prompt = %q, found=%v, want marker %q", phase, invocation.Prompt, found, marker)
 		}
 	}
+}
+
+func TestRunUsesSelectedBackendModelForEveryLogicalStage(t *testing.T) {
+	for _, provider := range []string{"codex", "claude"} {
+		t.Run(provider, func(t *testing.T) {
+			backend := &fakeBackend{name: provider, implementation: "bad", repairContent: "good", rejectFirstPlan: true}
+			request := testRequest(t.TempDir(), true)
+			request.Policy.Assurance = AssuranceHigh
+			request.Policy.Reviewers = []string{"correctness", "tests"}
+			request.Workflow = DefaultWorkflow()
+			for index := range request.Workflow.Stages {
+				stage := &request.Workflow.Stages[index]
+				if stage.Kind == StageCheck || stage.Kind == StageApply {
+					continue
+				}
+				chosen := provider + "-" + string(stage.Kind)
+				other := map[string]string{"codex": "claude", "claude": "codex"}[provider]
+				stage.Models = Models{provider: chosen, other: other + "-" + string(stage.Kind)}
+			}
+
+			result, err := newTestEngine(t, backend, nil).Run(context.Background(), request)
+			require.NoError(t, err)
+			require.Equal(t, OutcomeSucceeded, result.Outcome)
+			for phase, want := range map[string]string{
+				"discover": "discover", "plan": "plan", "plan-review": "plan", "plan-revise": "plan",
+				"plan-review-2": "plan", "implement": "implement", "repair-1": "repair",
+				"review-1-correctness": "review", "review-1-tests": "review",
+			} {
+				invocation, found := backend.invocation(phase)
+				require.True(t, found, "missing invocation for %s", phase)
+				require.Equal(t, provider+"-"+want, invocation.Model, "phase %s", phase)
+			}
+		})
+	}
+}
+
+func TestNormalizeWorkflowCopiesStageModels(t *testing.T) {
+	workflow := DefaultWorkflow()
+	workflow.Stages[0].Models = Models{"codex": "discover-model"}
+
+	normalized, err := normalizeWorkflow(workflow)
+	require.NoError(t, err)
+	workflow.Stages[0].Models["codex"] = "changed"
+
+	require.Equal(t, "discover-model", normalized.Stages[0].Models["codex"])
 }
 
 func TestRunRejectsInvalidStructuredPlanAndRetainsFailure(t *testing.T) {
@@ -564,39 +610,16 @@ func TestReviewConcurrencyIsRaceCleanAndResultOrderIsStable(t *testing.T) {
 
 func TestResumeContinuesIdentityBoundImplementationSession(t *testing.T) {
 	projectRoot := t.TempDir()
-	backend := &fakeBackend{name: "fake", implementation: "good"}
+	backend := &fakeBackend{name: "codex", implementation: "good"}
 	engine := newTestEngine(t, backend, nil)
-	request, err := normalizeRequest(testRequest(projectRoot, true), engine.limits)
-	if err != nil {
-		t.Fatal(err)
+	original := testRequest(projectRoot, true)
+	original.Workflow = DefaultWorkflow()
+	for index := range original.Workflow.Stages {
+		if original.Workflow.Stages[index].Kind == StageImplement {
+			original.Workflow.Stages[index].Models = Models{"codex": "stored-implement-model"}
+		}
 	}
-	info, err := engine.describe(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	requestData, _ := json.Marshal(request)
-	run, err := engine.store.Create("resume-run", requestData, time.Now().UTC())
-	if err != nil {
-		t.Fatal(err)
-	}
-	prepared, err := workspace.Prepare(context.Background(), projectRoot, run.Directory(), workspaceOptions(request.Project, engine.limits))
-	if err != nil {
-		t.Fatal(err)
-	}
-	checkpoint := checkpoint{
-		Schema: "agentworkflow.checkpoint/v2", Request: request, Backend: info, Limits: engine.limits,
-		StartedAt: time.Now().UTC(), Phase: "implement", Completed: map[string]bool{"prepare": true, "discover": true, "plan": true},
-		SourceDigest: prepared.Digest, CandidateDigest: prepared.Digest,
-		Brief:                 projectBrief{Summary: "fixture"},
-		Plan:                  planArtifact{Understanding: "fixture", Steps: []planStep{{Description: "change", Criteria: []int{1}, Verification: []string{"check"}}}},
-		ImplementationSession: "session-implement",
-	}
-	if err := saveCheckpoint(run, &checkpoint, "running", "implement", ""); err != nil {
-		t.Fatal(err)
-	}
-	if err := run.Close(); err != nil {
-		t.Fatal(err)
-	}
+	prepareImplementationResume(t, engine, "resume-run", original, "session-implement")
 
 	result, err := engine.Resume(context.Background(), "resume-run")
 	if err != nil {
@@ -606,9 +629,25 @@ func TestResumeContinuesIdentityBoundImplementationSession(t *testing.T) {
 		t.Fatalf("result = %#v", result)
 	}
 	invocation, found := backend.invocation("implement")
-	if !found || invocation.Session != "session-implement" {
+	if !found || invocation.Session != "session-implement" || invocation.Model != "stored-implement-model" {
 		t.Fatalf("implementation invocation = %#v, found=%v", invocation, found)
 	}
+}
+
+func TestResumeRejectsDifferentBackendConfigurationBeforeInvocation(t *testing.T) {
+	initialBackend := &fakeBackend{name: "codex", implementation: "good", configurationDigest: "sha256:old-model"}
+	initialEngine := newTestEngine(t, initialBackend, nil)
+	prepareImplementationResume(t, initialEngine, "resume-model-conflict", testRequest(t.TempDir(), true), "session-implement")
+
+	conflictingBackend := &fakeBackend{name: "codex", implementation: "good", configurationDigest: "sha256:new-model"}
+	conflictingEngine, err := Open(Config{
+		Root: initialEngine.store.Root(), Backend: conflictingBackend, Limits: initialEngine.limits,
+	})
+	require.NoError(t, err)
+	_, err = conflictingEngine.Resume(context.Background(), "resume-model-conflict")
+	require.ErrorIs(t, err, ErrUnsupported)
+	require.ErrorContains(t, err, "backend identity changed")
+	require.Empty(t, conflictingBackend.calls)
 }
 
 func TestResumeConsumesCompletedAttemptBeforeCheckpointPublication(t *testing.T) {
@@ -710,19 +749,20 @@ func TestProjectCheckHelper(t *testing.T) {
 }
 
 type fakeBackend struct {
-	name               string
-	implementation     string
-	implementationPath string
-	repairContent      string
-	findingUntilRepair bool
-	invalidPhase       string
-	reviewStarted      chan struct{}
-	reviewRelease      chan struct{}
-	mutateReadOnly     bool
-	omitTerminal       bool
-	oversizedOutput    bool
-	rejectFirstPlan    bool
-	noResume           bool
+	name                string
+	implementation      string
+	implementationPath  string
+	repairContent       string
+	findingUntilRepair  bool
+	invalidPhase        string
+	reviewStarted       chan struct{}
+	reviewRelease       chan struct{}
+	mutateReadOnly      bool
+	omitTerminal        bool
+	oversizedOutput     bool
+	rejectFirstPlan     bool
+	noResume            bool
+	configurationDigest string
 
 	mu       sync.Mutex
 	calls    []Invocation
@@ -734,10 +774,38 @@ func (backend *fakeBackend) Describe(context.Context) (BackendInfo, error) {
 	if !backend.noResume {
 		capabilities = append(capabilities, CapabilityResume)
 	}
+	configurationDigest := backend.configurationDigest
+	if configurationDigest == "" {
+		configurationDigest = "sha256:fake-configuration"
+	}
 	return BackendInfo{
-		Name: backend.name, Version: "fake/v1", ConfigurationDigest: "sha256:fake-configuration",
+		Name: backend.name, Version: "fake/v1", ConfigurationDigest: configurationDigest,
 		Capabilities: capabilities,
 	}, nil
+}
+
+func prepareImplementationResume(t *testing.T, engine *Engine, id string, original Request, session string) {
+	t.Helper()
+	request, err := normalizeRequest(original, engine.limits)
+	require.NoError(t, err)
+	info, err := engine.describe(context.Background())
+	require.NoError(t, err)
+	requestData, err := json.Marshal(request)
+	require.NoError(t, err)
+	run, err := engine.store.Create(id, requestData, time.Now().UTC())
+	require.NoError(t, err)
+	prepared, err := workspace.Prepare(context.Background(), request.Project.Root, run.Directory(), workspaceOptions(request.Project, engine.limits))
+	require.NoError(t, err)
+	checkpoint := checkpoint{
+		Schema: "agentworkflow.checkpoint/v2", Request: request, Backend: info, Limits: engine.limits,
+		StartedAt: time.Now().UTC(), Phase: "implement", Completed: map[string]bool{"prepare": true, "discover": true, "plan": true},
+		SourceDigest: prepared.Digest, CandidateDigest: prepared.Digest,
+		Brief:                 projectBrief{Summary: "fixture"},
+		Plan:                  planArtifact{Understanding: "fixture", Steps: []planStep{{Description: "change", Criteria: []int{1}, Verification: []string{"check"}}}},
+		ImplementationSession: session,
+	}
+	require.NoError(t, saveCheckpoint(run, &checkpoint, "running", "implement", ""))
+	require.NoError(t, run.Close())
 }
 
 func (backend *fakeBackend) Execute(ctx context.Context, invocation Invocation, sink EventSink) (InvocationResult, error) {
