@@ -1,5 +1,5 @@
 ---
-status: draft
+status: done
 ---
 
 # Plan: Resolve Lean declarations before rendering

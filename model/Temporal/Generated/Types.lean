@@ -4,1607 +4,1655 @@ import Temporal.Proto.Core
 
 set_option maxRecDepth 100000
 
-namespace Temporal.Proto.Generated
+namespace Google.Protobuf
 
-structure Google_Protobuf_Edition where
+structure Edition where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_Edition
-def eDITIONUNKNOWN : Google_Protobuf_Edition := { number := 0 }
-def eDITIONLEGACY : Google_Protobuf_Edition := { number := 900 }
-def eDITIONPROTO2 : Google_Protobuf_Edition := { number := 998 }
-def eDITIONPROTO3 : Google_Protobuf_Edition := { number := 999 }
-def eDITION2023 : Google_Protobuf_Edition := { number := 1000 }
-def eDITION2024 : Google_Protobuf_Edition := { number := 1001 }
-def eDITIONUNSTABLE : Google_Protobuf_Edition := { number := 9999 }
-def eDITION1TESTONLY : Google_Protobuf_Edition := { number := 1 }
-def eDITION2TESTONLY : Google_Protobuf_Edition := { number := 2 }
-def eDITION99997TESTONLY : Google_Protobuf_Edition := { number := 99997 }
-def eDITION99998TESTONLY : Google_Protobuf_Edition := { number := 99998 }
-def eDITION99999TESTONLY : Google_Protobuf_Edition := { number := 99999 }
-def eDITIONMAX : Google_Protobuf_Edition := { number := 2147483647 }
-end Google_Protobuf_Edition
+namespace Edition
+def editionUnknown : Edition := { number := 0 }
+def editionLegacy : Edition := { number := 900 }
+def editionProto2 : Edition := { number := 998 }
+def editionProto3 : Edition := { number := 999 }
+def edition2023 : Edition := { number := 1000 }
+def edition2024 : Edition := { number := 1001 }
+def editionUnstable : Edition := { number := 9999 }
+def edition1TestOnly : Edition := { number := 1 }
+def edition2TestOnly : Edition := { number := 2 }
+def edition99997TestOnly : Edition := { number := 99997 }
+def edition99998TestOnly : Edition := { number := 99998 }
+def edition99999TestOnly : Edition := { number := 99999 }
+def editionMax : Edition := { number := 2147483647 }
+end Edition
 
-structure Google_Protobuf_ExtensionRangeOptions_VerificationState where
+structure ExtensionRangeOptions.VerificationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_ExtensionRangeOptions_VerificationState
-def dECLARATION : Google_Protobuf_ExtensionRangeOptions_VerificationState := { number := 0 }
-def uNVERIFIED : Google_Protobuf_ExtensionRangeOptions_VerificationState := { number := 1 }
-end Google_Protobuf_ExtensionRangeOptions_VerificationState
+namespace ExtensionRangeOptions.VerificationState
+def declaration : ExtensionRangeOptions.VerificationState := { number := 0 }
+def unverified : ExtensionRangeOptions.VerificationState := { number := 1 }
+end ExtensionRangeOptions.VerificationState
 
-structure Google_Protobuf_FeatureSet_EnforceNamingStyle where
+structure FeatureSet.EnforceNamingStyle where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_EnforceNamingStyle
-def eNFORCENAMINGSTYLEUNKNOWN : Google_Protobuf_FeatureSet_EnforceNamingStyle := { number := 0 }
-def sTYLE2024 : Google_Protobuf_FeatureSet_EnforceNamingStyle := { number := 1 }
-def sTYLELEGACY : Google_Protobuf_FeatureSet_EnforceNamingStyle := { number := 2 }
-end Google_Protobuf_FeatureSet_EnforceNamingStyle
+namespace FeatureSet.EnforceNamingStyle
+def enforceNamingStyleUnknown : FeatureSet.EnforceNamingStyle := { number := 0 }
+def style2024 : FeatureSet.EnforceNamingStyle := { number := 1 }
+def styleLegacy : FeatureSet.EnforceNamingStyle := { number := 2 }
+end FeatureSet.EnforceNamingStyle
 
-structure Google_Protobuf_FeatureSet_EnumType where
+structure FeatureSet.EnumType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_EnumType
-def eNUMTYPEUNKNOWN : Google_Protobuf_FeatureSet_EnumType := { number := 0 }
-def oPEN : Google_Protobuf_FeatureSet_EnumType := { number := 1 }
-def cLOSED : Google_Protobuf_FeatureSet_EnumType := { number := 2 }
-end Google_Protobuf_FeatureSet_EnumType
+namespace FeatureSet.EnumType
+def enumTypeUnknown : FeatureSet.EnumType := { number := 0 }
+def openValue : FeatureSet.EnumType := { number := 1 }
+def closed : FeatureSet.EnumType := { number := 2 }
+end FeatureSet.EnumType
 
-structure Google_Protobuf_FeatureSet_FieldPresence where
+structure FeatureSet.FieldPresence where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_FieldPresence
-def fIELDPRESENCEUNKNOWN : Google_Protobuf_FeatureSet_FieldPresence := { number := 0 }
-def eXPLICIT : Google_Protobuf_FeatureSet_FieldPresence := { number := 1 }
-def iMPLICIT : Google_Protobuf_FeatureSet_FieldPresence := { number := 2 }
-def lEGACYREQUIRED : Google_Protobuf_FeatureSet_FieldPresence := { number := 3 }
-end Google_Protobuf_FeatureSet_FieldPresence
+namespace FeatureSet.FieldPresence
+def fieldPresenceUnknown : FeatureSet.FieldPresence := { number := 0 }
+def explicit : FeatureSet.FieldPresence := { number := 1 }
+def implicit : FeatureSet.FieldPresence := { number := 2 }
+def legacyRequired : FeatureSet.FieldPresence := { number := 3 }
+end FeatureSet.FieldPresence
 
-structure Google_Protobuf_FeatureSet_JsonFormat where
+structure FeatureSet.JsonFormat where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_JsonFormat
-def jSONFORMATUNKNOWN : Google_Protobuf_FeatureSet_JsonFormat := { number := 0 }
-def aLLOW : Google_Protobuf_FeatureSet_JsonFormat := { number := 1 }
-def lEGACYBESTEFFORT : Google_Protobuf_FeatureSet_JsonFormat := { number := 2 }
-end Google_Protobuf_FeatureSet_JsonFormat
+namespace FeatureSet.JsonFormat
+def jsonFormatUnknown : FeatureSet.JsonFormat := { number := 0 }
+def allow : FeatureSet.JsonFormat := { number := 1 }
+def legacyBestEffort : FeatureSet.JsonFormat := { number := 2 }
+end FeatureSet.JsonFormat
 
-structure Google_Protobuf_FeatureSet_MessageEncoding where
+structure FeatureSet.MessageEncoding where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_MessageEncoding
-def mESSAGEENCODINGUNKNOWN : Google_Protobuf_FeatureSet_MessageEncoding := { number := 0 }
-def lENGTHPREFIXED : Google_Protobuf_FeatureSet_MessageEncoding := { number := 1 }
-def dELIMITED : Google_Protobuf_FeatureSet_MessageEncoding := { number := 2 }
-end Google_Protobuf_FeatureSet_MessageEncoding
+namespace FeatureSet.MessageEncoding
+def messageEncodingUnknown : FeatureSet.MessageEncoding := { number := 0 }
+def lengthPrefixed : FeatureSet.MessageEncoding := { number := 1 }
+def delimited : FeatureSet.MessageEncoding := { number := 2 }
+end FeatureSet.MessageEncoding
 
-structure Google_Protobuf_FeatureSet_RepeatedFieldEncoding where
+structure FeatureSet.RepeatedFieldEncoding where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_RepeatedFieldEncoding
-def rEPEATEDFIELDENCODINGUNKNOWN : Google_Protobuf_FeatureSet_RepeatedFieldEncoding := { number := 0 }
-def pACKED : Google_Protobuf_FeatureSet_RepeatedFieldEncoding := { number := 1 }
-def eXPANDED : Google_Protobuf_FeatureSet_RepeatedFieldEncoding := { number := 2 }
-end Google_Protobuf_FeatureSet_RepeatedFieldEncoding
+namespace FeatureSet.RepeatedFieldEncoding
+def repeatedFieldEncodingUnknown : FeatureSet.RepeatedFieldEncoding := { number := 0 }
+def packed : FeatureSet.RepeatedFieldEncoding := { number := 1 }
+def expanded : FeatureSet.RepeatedFieldEncoding := { number := 2 }
+end FeatureSet.RepeatedFieldEncoding
 
-structure Google_Protobuf_FeatureSet_Utf8Validation where
+structure FeatureSet.Utf8Validation where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_Utf8Validation
-def uTF8VALIDATIONUNKNOWN : Google_Protobuf_FeatureSet_Utf8Validation := { number := 0 }
-def vERIFY : Google_Protobuf_FeatureSet_Utf8Validation := { number := 2 }
-def nONE : Google_Protobuf_FeatureSet_Utf8Validation := { number := 3 }
-end Google_Protobuf_FeatureSet_Utf8Validation
+namespace FeatureSet.Utf8Validation
+def utf8ValidationUnknown : FeatureSet.Utf8Validation := { number := 0 }
+def verify : FeatureSet.Utf8Validation := { number := 2 }
+def none : FeatureSet.Utf8Validation := { number := 3 }
+end FeatureSet.Utf8Validation
 
-structure Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility where
+structure FeatureSet.VisibilityFeature.DefaultSymbolVisibility where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility
-def dEFAULTSYMBOLVISIBILITYUNKNOWN : Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility := { number := 0 }
-def eXPORTALL : Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility := { number := 1 }
-def eXPORTTOPLEVEL : Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility := { number := 2 }
-def lOCALALL : Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility := { number := 3 }
-def sTRICT : Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility := { number := 4 }
-end Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility
+namespace FeatureSet.VisibilityFeature.DefaultSymbolVisibility
+def defaultSymbolVisibilityUnknown : FeatureSet.VisibilityFeature.DefaultSymbolVisibility := { number := 0 }
+def exportAll : FeatureSet.VisibilityFeature.DefaultSymbolVisibility := { number := 1 }
+def exportTopLevel : FeatureSet.VisibilityFeature.DefaultSymbolVisibility := { number := 2 }
+def localAll : FeatureSet.VisibilityFeature.DefaultSymbolVisibility := { number := 3 }
+def strict : FeatureSet.VisibilityFeature.DefaultSymbolVisibility := { number := 4 }
+end FeatureSet.VisibilityFeature.DefaultSymbolVisibility
 
-structure Google_Protobuf_FieldDescriptorProto_Label where
+structure FieldDescriptorProto.Label where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FieldDescriptorProto_Label
-def lABELOPTIONAL : Google_Protobuf_FieldDescriptorProto_Label := { number := 1 }
-def lABELREPEATED : Google_Protobuf_FieldDescriptorProto_Label := { number := 3 }
-def lABELREQUIRED : Google_Protobuf_FieldDescriptorProto_Label := { number := 2 }
-end Google_Protobuf_FieldDescriptorProto_Label
+namespace FieldDescriptorProto.Label
+def labelOptional : FieldDescriptorProto.Label := { number := 1 }
+def labelRepeated : FieldDescriptorProto.Label := { number := 3 }
+def labelRequired : FieldDescriptorProto.Label := { number := 2 }
+end FieldDescriptorProto.Label
 
-structure Google_Protobuf_FieldDescriptorProto_Type where
+structure FieldDescriptorProto.Type where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FieldDescriptorProto_Type
-def tYPEDOUBLE : Google_Protobuf_FieldDescriptorProto_Type := { number := 1 }
-def tYPEFLOAT : Google_Protobuf_FieldDescriptorProto_Type := { number := 2 }
-def tYPEINT64 : Google_Protobuf_FieldDescriptorProto_Type := { number := 3 }
-def tYPEUINT64 : Google_Protobuf_FieldDescriptorProto_Type := { number := 4 }
-def tYPEINT32 : Google_Protobuf_FieldDescriptorProto_Type := { number := 5 }
-def tYPEFIXED64 : Google_Protobuf_FieldDescriptorProto_Type := { number := 6 }
-def tYPEFIXED32 : Google_Protobuf_FieldDescriptorProto_Type := { number := 7 }
-def tYPEBOOL : Google_Protobuf_FieldDescriptorProto_Type := { number := 8 }
-def tYPESTRING : Google_Protobuf_FieldDescriptorProto_Type := { number := 9 }
-def tYPEGROUP : Google_Protobuf_FieldDescriptorProto_Type := { number := 10 }
-def tYPEMESSAGE : Google_Protobuf_FieldDescriptorProto_Type := { number := 11 }
-def tYPEBYTES : Google_Protobuf_FieldDescriptorProto_Type := { number := 12 }
-def tYPEUINT32 : Google_Protobuf_FieldDescriptorProto_Type := { number := 13 }
-def tYPEENUM : Google_Protobuf_FieldDescriptorProto_Type := { number := 14 }
-def tYPESFIXED32 : Google_Protobuf_FieldDescriptorProto_Type := { number := 15 }
-def tYPESFIXED64 : Google_Protobuf_FieldDescriptorProto_Type := { number := 16 }
-def tYPESINT32 : Google_Protobuf_FieldDescriptorProto_Type := { number := 17 }
-def tYPESINT64 : Google_Protobuf_FieldDescriptorProto_Type := { number := 18 }
-end Google_Protobuf_FieldDescriptorProto_Type
+namespace FieldDescriptorProto.Type
+def typeDouble : FieldDescriptorProto.Type := { number := 1 }
+def typeFloat : FieldDescriptorProto.Type := { number := 2 }
+def typeInt64 : FieldDescriptorProto.Type := { number := 3 }
+def typeUint64 : FieldDescriptorProto.Type := { number := 4 }
+def typeInt32 : FieldDescriptorProto.Type := { number := 5 }
+def typeFixed64 : FieldDescriptorProto.Type := { number := 6 }
+def typeFixed32 : FieldDescriptorProto.Type := { number := 7 }
+def typeBool : FieldDescriptorProto.Type := { number := 8 }
+def typeString : FieldDescriptorProto.Type := { number := 9 }
+def typeGroup : FieldDescriptorProto.Type := { number := 10 }
+def typeMessage : FieldDescriptorProto.Type := { number := 11 }
+def typeBytes : FieldDescriptorProto.Type := { number := 12 }
+def typeUint32 : FieldDescriptorProto.Type := { number := 13 }
+def typeEnum : FieldDescriptorProto.Type := { number := 14 }
+def typeSfixed32 : FieldDescriptorProto.Type := { number := 15 }
+def typeSfixed64 : FieldDescriptorProto.Type := { number := 16 }
+def typeSint32 : FieldDescriptorProto.Type := { number := 17 }
+def typeSint64 : FieldDescriptorProto.Type := { number := 18 }
+end FieldDescriptorProto.Type
 
-structure Google_Protobuf_FieldOptions_CType where
+structure FieldOptions.CType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FieldOptions_CType
-def sTRING : Google_Protobuf_FieldOptions_CType := { number := 0 }
-def cORD : Google_Protobuf_FieldOptions_CType := { number := 1 }
-def sTRINGPIECE : Google_Protobuf_FieldOptions_CType := { number := 2 }
-end Google_Protobuf_FieldOptions_CType
+namespace FieldOptions.CType
+def string : FieldOptions.CType := { number := 0 }
+def cord : FieldOptions.CType := { number := 1 }
+def stringPiece : FieldOptions.CType := { number := 2 }
+end FieldOptions.CType
 
-structure Google_Protobuf_FieldOptions_JSType where
+structure FieldOptions.JSType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FieldOptions_JSType
-def jSNORMAL : Google_Protobuf_FieldOptions_JSType := { number := 0 }
-def jSSTRING : Google_Protobuf_FieldOptions_JSType := { number := 1 }
-def jSNUMBER : Google_Protobuf_FieldOptions_JSType := { number := 2 }
-end Google_Protobuf_FieldOptions_JSType
+namespace FieldOptions.JSType
+def jsNormal : FieldOptions.JSType := { number := 0 }
+def jsString : FieldOptions.JSType := { number := 1 }
+def jsNumber : FieldOptions.JSType := { number := 2 }
+end FieldOptions.JSType
 
-structure Google_Protobuf_FieldOptions_OptionRetention where
+structure FieldOptions.OptionRetention where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FieldOptions_OptionRetention
-def rETENTIONUNKNOWN : Google_Protobuf_FieldOptions_OptionRetention := { number := 0 }
-def rETENTIONRUNTIME : Google_Protobuf_FieldOptions_OptionRetention := { number := 1 }
-def rETENTIONSOURCE : Google_Protobuf_FieldOptions_OptionRetention := { number := 2 }
-end Google_Protobuf_FieldOptions_OptionRetention
+namespace FieldOptions.OptionRetention
+def retentionUnknown : FieldOptions.OptionRetention := { number := 0 }
+def retentionRuntime : FieldOptions.OptionRetention := { number := 1 }
+def retentionSource : FieldOptions.OptionRetention := { number := 2 }
+end FieldOptions.OptionRetention
 
-structure Google_Protobuf_FieldOptions_OptionTargetType where
+structure FieldOptions.OptionTargetType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FieldOptions_OptionTargetType
-def tARGETTYPEUNKNOWN : Google_Protobuf_FieldOptions_OptionTargetType := { number := 0 }
-def tARGETTYPEFILE : Google_Protobuf_FieldOptions_OptionTargetType := { number := 1 }
-def tARGETTYPEEXTENSIONRANGE : Google_Protobuf_FieldOptions_OptionTargetType := { number := 2 }
-def tARGETTYPEMESSAGE : Google_Protobuf_FieldOptions_OptionTargetType := { number := 3 }
-def tARGETTYPEFIELD : Google_Protobuf_FieldOptions_OptionTargetType := { number := 4 }
-def tARGETTYPEONEOF : Google_Protobuf_FieldOptions_OptionTargetType := { number := 5 }
-def tARGETTYPEENUM : Google_Protobuf_FieldOptions_OptionTargetType := { number := 6 }
-def tARGETTYPEENUMENTRY : Google_Protobuf_FieldOptions_OptionTargetType := { number := 7 }
-def tARGETTYPESERVICE : Google_Protobuf_FieldOptions_OptionTargetType := { number := 8 }
-def tARGETTYPEMETHOD : Google_Protobuf_FieldOptions_OptionTargetType := { number := 9 }
-end Google_Protobuf_FieldOptions_OptionTargetType
+namespace FieldOptions.OptionTargetType
+def targetTypeUnknown : FieldOptions.OptionTargetType := { number := 0 }
+def targetTypeFile : FieldOptions.OptionTargetType := { number := 1 }
+def targetTypeExtensionRange : FieldOptions.OptionTargetType := { number := 2 }
+def targetTypeMessage : FieldOptions.OptionTargetType := { number := 3 }
+def targetTypeField : FieldOptions.OptionTargetType := { number := 4 }
+def targetTypeOneof : FieldOptions.OptionTargetType := { number := 5 }
+def targetTypeEnum : FieldOptions.OptionTargetType := { number := 6 }
+def targetTypeEnumEntry : FieldOptions.OptionTargetType := { number := 7 }
+def targetTypeService : FieldOptions.OptionTargetType := { number := 8 }
+def targetTypeMethod : FieldOptions.OptionTargetType := { number := 9 }
+end FieldOptions.OptionTargetType
 
-structure Google_Protobuf_FileOptions_OptimizeMode where
+structure FileOptions.OptimizeMode where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_FileOptions_OptimizeMode
-def sPEED : Google_Protobuf_FileOptions_OptimizeMode := { number := 1 }
-def cODESIZE : Google_Protobuf_FileOptions_OptimizeMode := { number := 2 }
-def lITERUNTIME : Google_Protobuf_FileOptions_OptimizeMode := { number := 3 }
-end Google_Protobuf_FileOptions_OptimizeMode
+namespace FileOptions.OptimizeMode
+def speed : FileOptions.OptimizeMode := { number := 1 }
+def codeSize : FileOptions.OptimizeMode := { number := 2 }
+def liteRuntime : FileOptions.OptimizeMode := { number := 3 }
+end FileOptions.OptimizeMode
 
-structure Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic where
+structure GeneratedCodeInfo.Annotation.Semantic where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic
-def nONE : Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic := { number := 0 }
-def sET : Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic := { number := 1 }
-def aLIAS : Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic := { number := 2 }
-end Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic
+namespace GeneratedCodeInfo.Annotation.Semantic
+def none : GeneratedCodeInfo.Annotation.Semantic := { number := 0 }
+def set : GeneratedCodeInfo.Annotation.Semantic := { number := 1 }
+def alias : GeneratedCodeInfo.Annotation.Semantic := { number := 2 }
+end GeneratedCodeInfo.Annotation.Semantic
 
-structure Google_Protobuf_MethodOptions_IdempotencyLevel where
+structure MethodOptions.IdempotencyLevel where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_MethodOptions_IdempotencyLevel
-def iDEMPOTENCYUNKNOWN : Google_Protobuf_MethodOptions_IdempotencyLevel := { number := 0 }
-def nOSIDEEFFECTS : Google_Protobuf_MethodOptions_IdempotencyLevel := { number := 1 }
-def iDEMPOTENT : Google_Protobuf_MethodOptions_IdempotencyLevel := { number := 2 }
-end Google_Protobuf_MethodOptions_IdempotencyLevel
+namespace MethodOptions.IdempotencyLevel
+def idempotencyUnknown : MethodOptions.IdempotencyLevel := { number := 0 }
+def noSideEffects : MethodOptions.IdempotencyLevel := { number := 1 }
+def idempotent : MethodOptions.IdempotencyLevel := { number := 2 }
+end MethodOptions.IdempotencyLevel
 
-structure Google_Protobuf_SymbolVisibility where
+structure SymbolVisibility where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Google_Protobuf_SymbolVisibility
-def vISIBILITYUNSET : Google_Protobuf_SymbolVisibility := { number := 0 }
-def vISIBILITYLOCAL : Google_Protobuf_SymbolVisibility := { number := 1 }
-def vISIBILITYEXPORT : Google_Protobuf_SymbolVisibility := { number := 2 }
-end Google_Protobuf_SymbolVisibility
+namespace SymbolVisibility
+def visibilityUnset : SymbolVisibility := { number := 0 }
+def visibilityLocal : SymbolVisibility := { number := 1 }
+def visibilityExport : SymbolVisibility := { number := 2 }
+end SymbolVisibility
 
-structure Temporal_Api_Enums_V1_ActivityExecutionStatus where
+end Google.Protobuf
+
+namespace Temporal.Api.Enums.V1
+
+structure ActivityExecutionStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ActivityExecutionStatus
-def aCTIVITYEXECUTIONSTATUSUNSPECIFIED : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 0 }
-def aCTIVITYEXECUTIONSTATUSRUNNING : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 1 }
-def aCTIVITYEXECUTIONSTATUSCOMPLETED : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 2 }
-def aCTIVITYEXECUTIONSTATUSFAILED : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 3 }
-def aCTIVITYEXECUTIONSTATUSCANCELED : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 4 }
-def aCTIVITYEXECUTIONSTATUSTERMINATED : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 5 }
-def aCTIVITYEXECUTIONSTATUSTIMEDOUT : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 6 }
-def aCTIVITYEXECUTIONSTATUSPAUSED : Temporal_Api_Enums_V1_ActivityExecutionStatus := { number := 7 }
-end Temporal_Api_Enums_V1_ActivityExecutionStatus
+namespace ActivityExecutionStatus
+def activityExecutionStatusUnspecified : ActivityExecutionStatus := { number := 0 }
+def activityExecutionStatusRunning : ActivityExecutionStatus := { number := 1 }
+def activityExecutionStatusCompleted : ActivityExecutionStatus := { number := 2 }
+def activityExecutionStatusFailed : ActivityExecutionStatus := { number := 3 }
+def activityExecutionStatusCanceled : ActivityExecutionStatus := { number := 4 }
+def activityExecutionStatusTerminated : ActivityExecutionStatus := { number := 5 }
+def activityExecutionStatusTimedOut : ActivityExecutionStatus := { number := 6 }
+def activityExecutionStatusPaused : ActivityExecutionStatus := { number := 7 }
+end ActivityExecutionStatus
 
-structure Temporal_Api_Enums_V1_ActivityIdConflictPolicy where
+structure ActivityIdConflictPolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ActivityIdConflictPolicy
-def aCTIVITYIDCONFLICTPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_ActivityIdConflictPolicy := { number := 0 }
-def aCTIVITYIDCONFLICTPOLICYFAIL : Temporal_Api_Enums_V1_ActivityIdConflictPolicy := { number := 1 }
-def aCTIVITYIDCONFLICTPOLICYUSEEXISTING : Temporal_Api_Enums_V1_ActivityIdConflictPolicy := { number := 2 }
-end Temporal_Api_Enums_V1_ActivityIdConflictPolicy
+namespace ActivityIdConflictPolicy
+def activityIdConflictPolicyUnspecified : ActivityIdConflictPolicy := { number := 0 }
+def activityIdConflictPolicyFail : ActivityIdConflictPolicy := { number := 1 }
+def activityIdConflictPolicyUseExisting : ActivityIdConflictPolicy := { number := 2 }
+end ActivityIdConflictPolicy
 
-structure Temporal_Api_Enums_V1_ActivityIdReusePolicy where
+structure ActivityIdReusePolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ActivityIdReusePolicy
-def aCTIVITYIDREUSEPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_ActivityIdReusePolicy := { number := 0 }
-def aCTIVITYIDREUSEPOLICYALLOWDUPLICATE : Temporal_Api_Enums_V1_ActivityIdReusePolicy := { number := 1 }
-def aCTIVITYIDREUSEPOLICYALLOWDUPLICATEFAILEDONLY : Temporal_Api_Enums_V1_ActivityIdReusePolicy := { number := 2 }
-def aCTIVITYIDREUSEPOLICYREJECTDUPLICATE : Temporal_Api_Enums_V1_ActivityIdReusePolicy := { number := 3 }
-end Temporal_Api_Enums_V1_ActivityIdReusePolicy
+namespace ActivityIdReusePolicy
+def activityIdReusePolicyUnspecified : ActivityIdReusePolicy := { number := 0 }
+def activityIdReusePolicyAllowDuplicate : ActivityIdReusePolicy := { number := 1 }
+def activityIdReusePolicyAllowDuplicateFailedOnly : ActivityIdReusePolicy := { number := 2 }
+def activityIdReusePolicyRejectDuplicate : ActivityIdReusePolicy := { number := 3 }
+end ActivityIdReusePolicy
 
-structure Temporal_Api_Enums_V1_ApplicationErrorCategory where
+structure ApplicationErrorCategory where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ApplicationErrorCategory
-def aPPLICATIONERRORCATEGORYUNSPECIFIED : Temporal_Api_Enums_V1_ApplicationErrorCategory := { number := 0 }
-def aPPLICATIONERRORCATEGORYBENIGN : Temporal_Api_Enums_V1_ApplicationErrorCategory := { number := 1 }
-end Temporal_Api_Enums_V1_ApplicationErrorCategory
+namespace ApplicationErrorCategory
+def applicationErrorCategoryUnspecified : ApplicationErrorCategory := { number := 0 }
+def applicationErrorCategoryBenign : ApplicationErrorCategory := { number := 1 }
+end ApplicationErrorCategory
 
-structure Temporal_Api_Enums_V1_ArchivalState where
+structure ArchivalState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ArchivalState
-def aRCHIVALSTATEUNSPECIFIED : Temporal_Api_Enums_V1_ArchivalState := { number := 0 }
-def aRCHIVALSTATEDISABLED : Temporal_Api_Enums_V1_ArchivalState := { number := 1 }
-def aRCHIVALSTATEENABLED : Temporal_Api_Enums_V1_ArchivalState := { number := 2 }
-end Temporal_Api_Enums_V1_ArchivalState
+namespace ArchivalState
+def archivalStateUnspecified : ArchivalState := { number := 0 }
+def archivalStateDisabled : ArchivalState := { number := 1 }
+def archivalStateEnabled : ArchivalState := { number := 2 }
+end ArchivalState
 
-structure Temporal_Api_Enums_V1_BatchOperationState where
+structure BatchOperationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_BatchOperationState
-def bATCHOPERATIONSTATEUNSPECIFIED : Temporal_Api_Enums_V1_BatchOperationState := { number := 0 }
-def bATCHOPERATIONSTATERUNNING : Temporal_Api_Enums_V1_BatchOperationState := { number := 1 }
-def bATCHOPERATIONSTATECOMPLETED : Temporal_Api_Enums_V1_BatchOperationState := { number := 2 }
-def bATCHOPERATIONSTATEFAILED : Temporal_Api_Enums_V1_BatchOperationState := { number := 3 }
-end Temporal_Api_Enums_V1_BatchOperationState
+namespace BatchOperationState
+def batchOperationStateUnspecified : BatchOperationState := { number := 0 }
+def batchOperationStateRunning : BatchOperationState := { number := 1 }
+def batchOperationStateCompleted : BatchOperationState := { number := 2 }
+def batchOperationStateFailed : BatchOperationState := { number := 3 }
+end BatchOperationState
 
-structure Temporal_Api_Enums_V1_BatchOperationType where
+structure BatchOperationType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_BatchOperationType
-def bATCHOPERATIONTYPEUNSPECIFIED : Temporal_Api_Enums_V1_BatchOperationType := { number := 0 }
-def bATCHOPERATIONTYPETERMINATE : Temporal_Api_Enums_V1_BatchOperationType := { number := 1 }
-def bATCHOPERATIONTYPETERMINATEWORKFLOW : Temporal_Api_Enums_V1_BatchOperationType := { number := 13 }
-def bATCHOPERATIONTYPECANCEL : Temporal_Api_Enums_V1_BatchOperationType := { number := 2 }
-def bATCHOPERATIONTYPECANCELWORKFLOW : Temporal_Api_Enums_V1_BatchOperationType := { number := 14 }
-def bATCHOPERATIONTYPESIGNAL : Temporal_Api_Enums_V1_BatchOperationType := { number := 3 }
-def bATCHOPERATIONTYPESIGNALWORKFLOW : Temporal_Api_Enums_V1_BatchOperationType := { number := 15 }
-def bATCHOPERATIONTYPEDELETE : Temporal_Api_Enums_V1_BatchOperationType := { number := 4 }
-def bATCHOPERATIONTYPEDELETEWORKFLOW : Temporal_Api_Enums_V1_BatchOperationType := { number := 16 }
-def bATCHOPERATIONTYPERESET : Temporal_Api_Enums_V1_BatchOperationType := { number := 5 }
-def bATCHOPERATIONTYPERESETWORKFLOW : Temporal_Api_Enums_V1_BatchOperationType := { number := 17 }
-def bATCHOPERATIONTYPEUPDATEEXECUTIONOPTIONS : Temporal_Api_Enums_V1_BatchOperationType := { number := 6 }
-def bATCHOPERATIONTYPEUPDATEWORKFLOWEXECUTIONOPTIONS : Temporal_Api_Enums_V1_BatchOperationType := { number := 18 }
-def bATCHOPERATIONTYPEUNPAUSEACTIVITY : Temporal_Api_Enums_V1_BatchOperationType := { number := 7 }
-def bATCHOPERATIONTYPEUPDATEACTIVITYOPTIONS : Temporal_Api_Enums_V1_BatchOperationType := { number := 8 }
-def bATCHOPERATIONTYPERESETACTIVITY : Temporal_Api_Enums_V1_BatchOperationType := { number := 9 }
-def bATCHOPERATIONTYPETERMINATEACTIVITY : Temporal_Api_Enums_V1_BatchOperationType := { number := 10 }
-def bATCHOPERATIONTYPECANCELACTIVITY : Temporal_Api_Enums_V1_BatchOperationType := { number := 11 }
-def bATCHOPERATIONTYPEDELETEACTIVITY : Temporal_Api_Enums_V1_BatchOperationType := { number := 12 }
-end Temporal_Api_Enums_V1_BatchOperationType
+namespace BatchOperationType
+def batchOperationTypeUnspecified : BatchOperationType := { number := 0 }
+def batchOperationTypeTerminate : BatchOperationType := { number := 1 }
+def batchOperationTypeTerminateWorkflow : BatchOperationType := { number := 13 }
+def batchOperationTypeCancel : BatchOperationType := { number := 2 }
+def batchOperationTypeCancelWorkflow : BatchOperationType := { number := 14 }
+def batchOperationTypeSignal : BatchOperationType := { number := 3 }
+def batchOperationTypeSignalWorkflow : BatchOperationType := { number := 15 }
+def batchOperationTypeDelete : BatchOperationType := { number := 4 }
+def batchOperationTypeDeleteWorkflow : BatchOperationType := { number := 16 }
+def batchOperationTypeReset : BatchOperationType := { number := 5 }
+def batchOperationTypeResetWorkflow : BatchOperationType := { number := 17 }
+def batchOperationTypeUpdateExecutionOptions : BatchOperationType := { number := 6 }
+def batchOperationTypeUpdateWorkflowExecutionOptions : BatchOperationType := { number := 18 }
+def batchOperationTypeUnpauseActivity : BatchOperationType := { number := 7 }
+def batchOperationTypeUpdateActivityOptions : BatchOperationType := { number := 8 }
+def batchOperationTypeResetActivity : BatchOperationType := { number := 9 }
+def batchOperationTypeTerminateActivity : BatchOperationType := { number := 10 }
+def batchOperationTypeCancelActivity : BatchOperationType := { number := 11 }
+def batchOperationTypeDeleteActivity : BatchOperationType := { number := 12 }
+end BatchOperationType
 
-structure Temporal_Api_Enums_V1_BuildIdTaskReachability where
+structure BuildIdTaskReachability where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_BuildIdTaskReachability
-def bUILDIDTASKREACHABILITYUNSPECIFIED : Temporal_Api_Enums_V1_BuildIdTaskReachability := { number := 0 }
-def bUILDIDTASKREACHABILITYREACHABLE : Temporal_Api_Enums_V1_BuildIdTaskReachability := { number := 1 }
-def bUILDIDTASKREACHABILITYCLOSEDWORKFLOWSONLY : Temporal_Api_Enums_V1_BuildIdTaskReachability := { number := 2 }
-def bUILDIDTASKREACHABILITYUNREACHABLE : Temporal_Api_Enums_V1_BuildIdTaskReachability := { number := 3 }
-end Temporal_Api_Enums_V1_BuildIdTaskReachability
+namespace BuildIdTaskReachability
+def buildIdTaskReachabilityUnspecified : BuildIdTaskReachability := { number := 0 }
+def buildIdTaskReachabilityReachable : BuildIdTaskReachability := { number := 1 }
+def buildIdTaskReachabilityClosedWorkflowsOnly : BuildIdTaskReachability := { number := 2 }
+def buildIdTaskReachabilityUnreachable : BuildIdTaskReachability := { number := 3 }
+end BuildIdTaskReachability
 
-structure Temporal_Api_Enums_V1_CallbackState where
+structure CallbackState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_CallbackState
-def cALLBACKSTATEUNSPECIFIED : Temporal_Api_Enums_V1_CallbackState := { number := 0 }
-def cALLBACKSTATESTANDBY : Temporal_Api_Enums_V1_CallbackState := { number := 1 }
-def cALLBACKSTATESCHEDULED : Temporal_Api_Enums_V1_CallbackState := { number := 2 }
-def cALLBACKSTATEBACKINGOFF : Temporal_Api_Enums_V1_CallbackState := { number := 3 }
-def cALLBACKSTATEFAILED : Temporal_Api_Enums_V1_CallbackState := { number := 4 }
-def cALLBACKSTATESUCCEEDED : Temporal_Api_Enums_V1_CallbackState := { number := 5 }
-def cALLBACKSTATEBLOCKED : Temporal_Api_Enums_V1_CallbackState := { number := 6 }
-end Temporal_Api_Enums_V1_CallbackState
+namespace CallbackState
+def callbackStateUnspecified : CallbackState := { number := 0 }
+def callbackStateStandby : CallbackState := { number := 1 }
+def callbackStateScheduled : CallbackState := { number := 2 }
+def callbackStateBackingOff : CallbackState := { number := 3 }
+def callbackStateFailed : CallbackState := { number := 4 }
+def callbackStateSucceeded : CallbackState := { number := 5 }
+def callbackStateBlocked : CallbackState := { number := 6 }
+end CallbackState
 
-structure Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause where
+structure CancelExternalWorkflowExecutionFailedCause where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause
-def cANCELEXTERNALWORKFLOWEXECUTIONFAILEDCAUSEUNSPECIFIED : Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause := { number := 0 }
-def cANCELEXTERNALWORKFLOWEXECUTIONFAILEDCAUSEEXTERNALWORKFLOWEXECUTIONNOTFOUND : Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause := { number := 1 }
-def cANCELEXTERNALWORKFLOWEXECUTIONFAILEDCAUSENAMESPACENOTFOUND : Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause := { number := 2 }
-end Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause
+namespace CancelExternalWorkflowExecutionFailedCause
+def cancelExternalWorkflowExecutionFailedCauseUnspecified : CancelExternalWorkflowExecutionFailedCause := { number := 0 }
+def cancelExternalWorkflowExecutionFailedCauseExternalWorkflowExecutionNotFound : CancelExternalWorkflowExecutionFailedCause := { number := 1 }
+def cancelExternalWorkflowExecutionFailedCauseNamespaceNotFound : CancelExternalWorkflowExecutionFailedCause := { number := 2 }
+end CancelExternalWorkflowExecutionFailedCause
 
-structure Temporal_Api_Enums_V1_CommandType where
+structure CommandType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_CommandType
-def cOMMANDTYPEUNSPECIFIED : Temporal_Api_Enums_V1_CommandType := { number := 0 }
-def cOMMANDTYPESCHEDULEACTIVITYTASK : Temporal_Api_Enums_V1_CommandType := { number := 1 }
-def cOMMANDTYPEREQUESTCANCELACTIVITYTASK : Temporal_Api_Enums_V1_CommandType := { number := 2 }
-def cOMMANDTYPESTARTTIMER : Temporal_Api_Enums_V1_CommandType := { number := 3 }
-def cOMMANDTYPECOMPLETEWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 4 }
-def cOMMANDTYPEFAILWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 5 }
-def cOMMANDTYPECANCELTIMER : Temporal_Api_Enums_V1_CommandType := { number := 6 }
-def cOMMANDTYPECANCELWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 7 }
-def cOMMANDTYPEREQUESTCANCELEXTERNALWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 8 }
-def cOMMANDTYPERECORDMARKER : Temporal_Api_Enums_V1_CommandType := { number := 9 }
-def cOMMANDTYPECONTINUEASNEWWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 10 }
-def cOMMANDTYPESTARTCHILDWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 11 }
-def cOMMANDTYPESIGNALEXTERNALWORKFLOWEXECUTION : Temporal_Api_Enums_V1_CommandType := { number := 12 }
-def cOMMANDTYPEUPSERTWORKFLOWSEARCHATTRIBUTES : Temporal_Api_Enums_V1_CommandType := { number := 13 }
-def cOMMANDTYPEPROTOCOLMESSAGE : Temporal_Api_Enums_V1_CommandType := { number := 14 }
-def cOMMANDTYPEMODIFYWORKFLOWPROPERTIES : Temporal_Api_Enums_V1_CommandType := { number := 16 }
-def cOMMANDTYPESCHEDULENEXUSOPERATION : Temporal_Api_Enums_V1_CommandType := { number := 17 }
-def cOMMANDTYPEREQUESTCANCELNEXUSOPERATION : Temporal_Api_Enums_V1_CommandType := { number := 18 }
-end Temporal_Api_Enums_V1_CommandType
+namespace CommandType
+def commandTypeUnspecified : CommandType := { number := 0 }
+def commandTypeScheduleActivityTask : CommandType := { number := 1 }
+def commandTypeRequestCancelActivityTask : CommandType := { number := 2 }
+def commandTypeStartTimer : CommandType := { number := 3 }
+def commandTypeCompleteWorkflowExecution : CommandType := { number := 4 }
+def commandTypeFailWorkflowExecution : CommandType := { number := 5 }
+def commandTypeCancelTimer : CommandType := { number := 6 }
+def commandTypeCancelWorkflowExecution : CommandType := { number := 7 }
+def commandTypeRequestCancelExternalWorkflowExecution : CommandType := { number := 8 }
+def commandTypeRecordMarker : CommandType := { number := 9 }
+def commandTypeContinueAsNewWorkflowExecution : CommandType := { number := 10 }
+def commandTypeStartChildWorkflowExecution : CommandType := { number := 11 }
+def commandTypeSignalExternalWorkflowExecution : CommandType := { number := 12 }
+def commandTypeUpsertWorkflowSearchAttributes : CommandType := { number := 13 }
+def commandTypeProtocolMessage : CommandType := { number := 14 }
+def commandTypeModifyWorkflowProperties : CommandType := { number := 16 }
+def commandTypeScheduleNexusOperation : CommandType := { number := 17 }
+def commandTypeRequestCancelNexusOperation : CommandType := { number := 18 }
+end CommandType
 
-structure Temporal_Api_Enums_V1_ContinueAsNewInitiator where
+structure ContinueAsNewInitiator where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ContinueAsNewInitiator
-def cONTINUEASNEWINITIATORUNSPECIFIED : Temporal_Api_Enums_V1_ContinueAsNewInitiator := { number := 0 }
-def cONTINUEASNEWINITIATORWORKFLOW : Temporal_Api_Enums_V1_ContinueAsNewInitiator := { number := 1 }
-def cONTINUEASNEWINITIATORRETRY : Temporal_Api_Enums_V1_ContinueAsNewInitiator := { number := 2 }
-def cONTINUEASNEWINITIATORCRONSCHEDULE : Temporal_Api_Enums_V1_ContinueAsNewInitiator := { number := 3 }
-end Temporal_Api_Enums_V1_ContinueAsNewInitiator
+namespace ContinueAsNewInitiator
+def continueAsNewInitiatorUnspecified : ContinueAsNewInitiator := { number := 0 }
+def continueAsNewInitiatorWorkflow : ContinueAsNewInitiator := { number := 1 }
+def continueAsNewInitiatorRetry : ContinueAsNewInitiator := { number := 2 }
+def continueAsNewInitiatorCronSchedule : ContinueAsNewInitiator := { number := 3 }
+end ContinueAsNewInitiator
 
-structure Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior where
+structure ContinueAsNewVersioningBehavior where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior
-def cONTINUEASNEWVERSIONINGBEHAVIORUNSPECIFIED : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior := { number := 0 }
-def cONTINUEASNEWVERSIONINGBEHAVIORAUTOUPGRADE : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior := { number := 1 }
-def cONTINUEASNEWVERSIONINGBEHAVIORUSERAMPINGVERSION : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior := { number := 2 }
-end Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior
+namespace ContinueAsNewVersioningBehavior
+def continueAsNewVersioningBehaviorUnspecified : ContinueAsNewVersioningBehavior := { number := 0 }
+def continueAsNewVersioningBehaviorAutoUpgrade : ContinueAsNewVersioningBehavior := { number := 1 }
+def continueAsNewVersioningBehaviorUseRampingVersion : ContinueAsNewVersioningBehavior := { number := 2 }
+end ContinueAsNewVersioningBehavior
 
-structure Temporal_Api_Enums_V1_DeploymentReachability where
+structure DeploymentReachability where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_DeploymentReachability
-def dEPLOYMENTREACHABILITYUNSPECIFIED : Temporal_Api_Enums_V1_DeploymentReachability := { number := 0 }
-def dEPLOYMENTREACHABILITYREACHABLE : Temporal_Api_Enums_V1_DeploymentReachability := { number := 1 }
-def dEPLOYMENTREACHABILITYCLOSEDWORKFLOWSONLY : Temporal_Api_Enums_V1_DeploymentReachability := { number := 2 }
-def dEPLOYMENTREACHABILITYUNREACHABLE : Temporal_Api_Enums_V1_DeploymentReachability := { number := 3 }
-end Temporal_Api_Enums_V1_DeploymentReachability
+namespace DeploymentReachability
+def deploymentReachabilityUnspecified : DeploymentReachability := { number := 0 }
+def deploymentReachabilityReachable : DeploymentReachability := { number := 1 }
+def deploymentReachabilityClosedWorkflowsOnly : DeploymentReachability := { number := 2 }
+def deploymentReachabilityUnreachable : DeploymentReachability := { number := 3 }
+end DeploymentReachability
 
-structure Temporal_Api_Enums_V1_DescribeTaskQueueMode where
+structure DescribeTaskQueueMode where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_DescribeTaskQueueMode
-def dESCRIBETASKQUEUEMODEUNSPECIFIED : Temporal_Api_Enums_V1_DescribeTaskQueueMode := { number := 0 }
-def dESCRIBETASKQUEUEMODEENHANCED : Temporal_Api_Enums_V1_DescribeTaskQueueMode := { number := 1 }
-end Temporal_Api_Enums_V1_DescribeTaskQueueMode
+namespace DescribeTaskQueueMode
+def describeTaskQueueModeUnspecified : DescribeTaskQueueMode := { number := 0 }
+def describeTaskQueueModeEnhanced : DescribeTaskQueueMode := { number := 1 }
+end DescribeTaskQueueMode
 
-structure Temporal_Api_Enums_V1_EncodingType where
+structure EncodingType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_EncodingType
-def eNCODINGTYPEUNSPECIFIED : Temporal_Api_Enums_V1_EncodingType := { number := 0 }
-def eNCODINGTYPEPROTO3 : Temporal_Api_Enums_V1_EncodingType := { number := 1 }
-def eNCODINGTYPEJSON : Temporal_Api_Enums_V1_EncodingType := { number := 2 }
-end Temporal_Api_Enums_V1_EncodingType
+namespace EncodingType
+def encodingTypeUnspecified : EncodingType := { number := 0 }
+def encodingTypeProto3 : EncodingType := { number := 1 }
+def encodingTypeJson : EncodingType := { number := 2 }
+end EncodingType
 
-structure Temporal_Api_Enums_V1_EventType where
+structure EventType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_EventType
-def eVENTTYPEUNSPECIFIED : Temporal_Api_Enums_V1_EventType := { number := 0 }
-def eVENTTYPEWORKFLOWEXECUTIONSTARTED : Temporal_Api_Enums_V1_EventType := { number := 1 }
-def eVENTTYPEWORKFLOWEXECUTIONCOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 2 }
-def eVENTTYPEWORKFLOWEXECUTIONFAILED : Temporal_Api_Enums_V1_EventType := { number := 3 }
-def eVENTTYPEWORKFLOWEXECUTIONTIMEDOUT : Temporal_Api_Enums_V1_EventType := { number := 4 }
-def eVENTTYPEWORKFLOWTASKSCHEDULED : Temporal_Api_Enums_V1_EventType := { number := 5 }
-def eVENTTYPEWORKFLOWTASKSTARTED : Temporal_Api_Enums_V1_EventType := { number := 6 }
-def eVENTTYPEWORKFLOWTASKCOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 7 }
-def eVENTTYPEWORKFLOWTASKTIMEDOUT : Temporal_Api_Enums_V1_EventType := { number := 8 }
-def eVENTTYPEWORKFLOWTASKFAILED : Temporal_Api_Enums_V1_EventType := { number := 9 }
-def eVENTTYPEACTIVITYTASKSCHEDULED : Temporal_Api_Enums_V1_EventType := { number := 10 }
-def eVENTTYPEACTIVITYTASKSTARTED : Temporal_Api_Enums_V1_EventType := { number := 11 }
-def eVENTTYPEACTIVITYTASKCOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 12 }
-def eVENTTYPEACTIVITYTASKFAILED : Temporal_Api_Enums_V1_EventType := { number := 13 }
-def eVENTTYPEACTIVITYTASKTIMEDOUT : Temporal_Api_Enums_V1_EventType := { number := 14 }
-def eVENTTYPEACTIVITYTASKCANCELREQUESTED : Temporal_Api_Enums_V1_EventType := { number := 15 }
-def eVENTTYPEACTIVITYTASKCANCELED : Temporal_Api_Enums_V1_EventType := { number := 16 }
-def eVENTTYPETIMERSTARTED : Temporal_Api_Enums_V1_EventType := { number := 17 }
-def eVENTTYPETIMERFIRED : Temporal_Api_Enums_V1_EventType := { number := 18 }
-def eVENTTYPETIMERCANCELED : Temporal_Api_Enums_V1_EventType := { number := 19 }
-def eVENTTYPEWORKFLOWEXECUTIONCANCELREQUESTED : Temporal_Api_Enums_V1_EventType := { number := 20 }
-def eVENTTYPEWORKFLOWEXECUTIONCANCELED : Temporal_Api_Enums_V1_EventType := { number := 21 }
-def eVENTTYPEREQUESTCANCELEXTERNALWORKFLOWEXECUTIONINITIATED : Temporal_Api_Enums_V1_EventType := { number := 22 }
-def eVENTTYPEREQUESTCANCELEXTERNALWORKFLOWEXECUTIONFAILED : Temporal_Api_Enums_V1_EventType := { number := 23 }
-def eVENTTYPEEXTERNALWORKFLOWEXECUTIONCANCELREQUESTED : Temporal_Api_Enums_V1_EventType := { number := 24 }
-def eVENTTYPEMARKERRECORDED : Temporal_Api_Enums_V1_EventType := { number := 25 }
-def eVENTTYPEWORKFLOWEXECUTIONSIGNALED : Temporal_Api_Enums_V1_EventType := { number := 26 }
-def eVENTTYPEWORKFLOWEXECUTIONTERMINATED : Temporal_Api_Enums_V1_EventType := { number := 27 }
-def eVENTTYPEWORKFLOWEXECUTIONCONTINUEDASNEW : Temporal_Api_Enums_V1_EventType := { number := 28 }
-def eVENTTYPESTARTCHILDWORKFLOWEXECUTIONINITIATED : Temporal_Api_Enums_V1_EventType := { number := 29 }
-def eVENTTYPESTARTCHILDWORKFLOWEXECUTIONFAILED : Temporal_Api_Enums_V1_EventType := { number := 30 }
-def eVENTTYPECHILDWORKFLOWEXECUTIONSTARTED : Temporal_Api_Enums_V1_EventType := { number := 31 }
-def eVENTTYPECHILDWORKFLOWEXECUTIONCOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 32 }
-def eVENTTYPECHILDWORKFLOWEXECUTIONFAILED : Temporal_Api_Enums_V1_EventType := { number := 33 }
-def eVENTTYPECHILDWORKFLOWEXECUTIONCANCELED : Temporal_Api_Enums_V1_EventType := { number := 34 }
-def eVENTTYPECHILDWORKFLOWEXECUTIONTIMEDOUT : Temporal_Api_Enums_V1_EventType := { number := 35 }
-def eVENTTYPECHILDWORKFLOWEXECUTIONTERMINATED : Temporal_Api_Enums_V1_EventType := { number := 36 }
-def eVENTTYPESIGNALEXTERNALWORKFLOWEXECUTIONINITIATED : Temporal_Api_Enums_V1_EventType := { number := 37 }
-def eVENTTYPESIGNALEXTERNALWORKFLOWEXECUTIONFAILED : Temporal_Api_Enums_V1_EventType := { number := 38 }
-def eVENTTYPEEXTERNALWORKFLOWEXECUTIONSIGNALED : Temporal_Api_Enums_V1_EventType := { number := 39 }
-def eVENTTYPEUPSERTWORKFLOWSEARCHATTRIBUTES : Temporal_Api_Enums_V1_EventType := { number := 40 }
-def eVENTTYPEWORKFLOWEXECUTIONUPDATEADMITTED : Temporal_Api_Enums_V1_EventType := { number := 47 }
-def eVENTTYPEWORKFLOWEXECUTIONUPDATEACCEPTED : Temporal_Api_Enums_V1_EventType := { number := 41 }
-def eVENTTYPEWORKFLOWEXECUTIONUPDATEREJECTED : Temporal_Api_Enums_V1_EventType := { number := 42 }
-def eVENTTYPEWORKFLOWEXECUTIONUPDATECOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 43 }
-def eVENTTYPEWORKFLOWPROPERTIESMODIFIEDEXTERNALLY : Temporal_Api_Enums_V1_EventType := { number := 44 }
-def eVENTTYPEACTIVITYPROPERTIESMODIFIEDEXTERNALLY : Temporal_Api_Enums_V1_EventType := { number := 45 }
-def eVENTTYPEWORKFLOWPROPERTIESMODIFIED : Temporal_Api_Enums_V1_EventType := { number := 46 }
-def eVENTTYPENEXUSOPERATIONSCHEDULED : Temporal_Api_Enums_V1_EventType := { number := 48 }
-def eVENTTYPENEXUSOPERATIONSTARTED : Temporal_Api_Enums_V1_EventType := { number := 49 }
-def eVENTTYPENEXUSOPERATIONCOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 50 }
-def eVENTTYPENEXUSOPERATIONFAILED : Temporal_Api_Enums_V1_EventType := { number := 51 }
-def eVENTTYPENEXUSOPERATIONCANCELED : Temporal_Api_Enums_V1_EventType := { number := 52 }
-def eVENTTYPENEXUSOPERATIONTIMEDOUT : Temporal_Api_Enums_V1_EventType := { number := 53 }
-def eVENTTYPENEXUSOPERATIONCANCELREQUESTED : Temporal_Api_Enums_V1_EventType := { number := 54 }
-def eVENTTYPEWORKFLOWEXECUTIONOPTIONSUPDATED : Temporal_Api_Enums_V1_EventType := { number := 55 }
-def eVENTTYPENEXUSOPERATIONCANCELREQUESTCOMPLETED : Temporal_Api_Enums_V1_EventType := { number := 56 }
-def eVENTTYPENEXUSOPERATIONCANCELREQUESTFAILED : Temporal_Api_Enums_V1_EventType := { number := 57 }
-def eVENTTYPEWORKFLOWEXECUTIONPAUSED : Temporal_Api_Enums_V1_EventType := { number := 58 }
-def eVENTTYPEWORKFLOWEXECUTIONUNPAUSED : Temporal_Api_Enums_V1_EventType := { number := 59 }
-def eVENTTYPEWORKFLOWEXECUTIONTIMESKIPPINGTRANSITIONED : Temporal_Api_Enums_V1_EventType := { number := 60 }
-end Temporal_Api_Enums_V1_EventType
+namespace EventType
+def eventTypeUnspecified : EventType := { number := 0 }
+def eventTypeWorkflowExecutionStarted : EventType := { number := 1 }
+def eventTypeWorkflowExecutionCompleted : EventType := { number := 2 }
+def eventTypeWorkflowExecutionFailed : EventType := { number := 3 }
+def eventTypeWorkflowExecutionTimedOut : EventType := { number := 4 }
+def eventTypeWorkflowTaskScheduled : EventType := { number := 5 }
+def eventTypeWorkflowTaskStarted : EventType := { number := 6 }
+def eventTypeWorkflowTaskCompleted : EventType := { number := 7 }
+def eventTypeWorkflowTaskTimedOut : EventType := { number := 8 }
+def eventTypeWorkflowTaskFailed : EventType := { number := 9 }
+def eventTypeActivityTaskScheduled : EventType := { number := 10 }
+def eventTypeActivityTaskStarted : EventType := { number := 11 }
+def eventTypeActivityTaskCompleted : EventType := { number := 12 }
+def eventTypeActivityTaskFailed : EventType := { number := 13 }
+def eventTypeActivityTaskTimedOut : EventType := { number := 14 }
+def eventTypeActivityTaskCancelRequested : EventType := { number := 15 }
+def eventTypeActivityTaskCanceled : EventType := { number := 16 }
+def eventTypeTimerStarted : EventType := { number := 17 }
+def eventTypeTimerFired : EventType := { number := 18 }
+def eventTypeTimerCanceled : EventType := { number := 19 }
+def eventTypeWorkflowExecutionCancelRequested : EventType := { number := 20 }
+def eventTypeWorkflowExecutionCanceled : EventType := { number := 21 }
+def eventTypeRequestCancelExternalWorkflowExecutionInitiated : EventType := { number := 22 }
+def eventTypeRequestCancelExternalWorkflowExecutionFailed : EventType := { number := 23 }
+def eventTypeExternalWorkflowExecutionCancelRequested : EventType := { number := 24 }
+def eventTypeMarkerRecorded : EventType := { number := 25 }
+def eventTypeWorkflowExecutionSignaled : EventType := { number := 26 }
+def eventTypeWorkflowExecutionTerminated : EventType := { number := 27 }
+def eventTypeWorkflowExecutionContinuedAsNew : EventType := { number := 28 }
+def eventTypeStartChildWorkflowExecutionInitiated : EventType := { number := 29 }
+def eventTypeStartChildWorkflowExecutionFailed : EventType := { number := 30 }
+def eventTypeChildWorkflowExecutionStarted : EventType := { number := 31 }
+def eventTypeChildWorkflowExecutionCompleted : EventType := { number := 32 }
+def eventTypeChildWorkflowExecutionFailed : EventType := { number := 33 }
+def eventTypeChildWorkflowExecutionCanceled : EventType := { number := 34 }
+def eventTypeChildWorkflowExecutionTimedOut : EventType := { number := 35 }
+def eventTypeChildWorkflowExecutionTerminated : EventType := { number := 36 }
+def eventTypeSignalExternalWorkflowExecutionInitiated : EventType := { number := 37 }
+def eventTypeSignalExternalWorkflowExecutionFailed : EventType := { number := 38 }
+def eventTypeExternalWorkflowExecutionSignaled : EventType := { number := 39 }
+def eventTypeUpsertWorkflowSearchAttributes : EventType := { number := 40 }
+def eventTypeWorkflowExecutionUpdateAdmitted : EventType := { number := 47 }
+def eventTypeWorkflowExecutionUpdateAccepted : EventType := { number := 41 }
+def eventTypeWorkflowExecutionUpdateRejected : EventType := { number := 42 }
+def eventTypeWorkflowExecutionUpdateCompleted : EventType := { number := 43 }
+def eventTypeWorkflowPropertiesModifiedExternally : EventType := { number := 44 }
+def eventTypeActivityPropertiesModifiedExternally : EventType := { number := 45 }
+def eventTypeWorkflowPropertiesModified : EventType := { number := 46 }
+def eventTypeNexusOperationScheduled : EventType := { number := 48 }
+def eventTypeNexusOperationStarted : EventType := { number := 49 }
+def eventTypeNexusOperationCompleted : EventType := { number := 50 }
+def eventTypeNexusOperationFailed : EventType := { number := 51 }
+def eventTypeNexusOperationCanceled : EventType := { number := 52 }
+def eventTypeNexusOperationTimedOut : EventType := { number := 53 }
+def eventTypeNexusOperationCancelRequested : EventType := { number := 54 }
+def eventTypeWorkflowExecutionOptionsUpdated : EventType := { number := 55 }
+def eventTypeNexusOperationCancelRequestCompleted : EventType := { number := 56 }
+def eventTypeNexusOperationCancelRequestFailed : EventType := { number := 57 }
+def eventTypeWorkflowExecutionPaused : EventType := { number := 58 }
+def eventTypeWorkflowExecutionUnpaused : EventType := { number := 59 }
+def eventTypeWorkflowExecutionTimeSkippingTransitioned : EventType := { number := 60 }
+end EventType
 
-structure Temporal_Api_Enums_V1_ExecutionType where
+structure ExecutionType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ExecutionType
-def eXECUTIONTYPEUNSPECIFIED : Temporal_Api_Enums_V1_ExecutionType := { number := 0 }
-def eXECUTIONTYPEWORKFLOW : Temporal_Api_Enums_V1_ExecutionType := { number := 1 }
-def eXECUTIONTYPEACTIVITY : Temporal_Api_Enums_V1_ExecutionType := { number := 2 }
-end Temporal_Api_Enums_V1_ExecutionType
+namespace ExecutionType
+def executionTypeUnspecified : ExecutionType := { number := 0 }
+def executionTypeWorkflow : ExecutionType := { number := 1 }
+def executionTypeActivity : ExecutionType := { number := 2 }
+end ExecutionType
 
-structure Temporal_Api_Enums_V1_FastForwardPollingResult where
+structure FastForwardPollingResult where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_FastForwardPollingResult
-def fASTFORWARDPOLLINGRESULTUNSPECIFIED : Temporal_Api_Enums_V1_FastForwardPollingResult := { number := 0 }
-def fASTFORWARDPOLLINGRESULTPOLLTIMEOUT : Temporal_Api_Enums_V1_FastForwardPollingResult := { number := 1 }
-def fASTFORWARDPOLLINGRESULTFASTFORWARDCOMPLETED : Temporal_Api_Enums_V1_FastForwardPollingResult := { number := 2 }
-def fASTFORWARDPOLLINGRESULTFASTFORWARDFAILED : Temporal_Api_Enums_V1_FastForwardPollingResult := { number := 3 }
-end Temporal_Api_Enums_V1_FastForwardPollingResult
+namespace FastForwardPollingResult
+def fastForwardPollingResultUnspecified : FastForwardPollingResult := { number := 0 }
+def fastForwardPollingResultPollTimeout : FastForwardPollingResult := { number := 1 }
+def fastForwardPollingResultFastForwardCompleted : FastForwardPollingResult := { number := 2 }
+def fastForwardPollingResultFastForwardFailed : FastForwardPollingResult := { number := 3 }
+end FastForwardPollingResult
 
-structure Temporal_Api_Enums_V1_HistoryEventFilterType where
+structure HistoryEventFilterType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_HistoryEventFilterType
-def hISTORYEVENTFILTERTYPEUNSPECIFIED : Temporal_Api_Enums_V1_HistoryEventFilterType := { number := 0 }
-def hISTORYEVENTFILTERTYPEALLEVENT : Temporal_Api_Enums_V1_HistoryEventFilterType := { number := 1 }
-def hISTORYEVENTFILTERTYPECLOSEEVENT : Temporal_Api_Enums_V1_HistoryEventFilterType := { number := 2 }
-end Temporal_Api_Enums_V1_HistoryEventFilterType
+namespace HistoryEventFilterType
+def historyEventFilterTypeUnspecified : HistoryEventFilterType := { number := 0 }
+def historyEventFilterTypeAllEvent : HistoryEventFilterType := { number := 1 }
+def historyEventFilterTypeCloseEvent : HistoryEventFilterType := { number := 2 }
+end HistoryEventFilterType
 
-structure Temporal_Api_Enums_V1_IndexedValueType where
+structure IndexedValueType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_IndexedValueType
-def iNDEXEDVALUETYPEUNSPECIFIED : Temporal_Api_Enums_V1_IndexedValueType := { number := 0 }
-def iNDEXEDVALUETYPETEXT : Temporal_Api_Enums_V1_IndexedValueType := { number := 1 }
-def iNDEXEDVALUETYPEKEYWORD : Temporal_Api_Enums_V1_IndexedValueType := { number := 2 }
-def iNDEXEDVALUETYPEINT : Temporal_Api_Enums_V1_IndexedValueType := { number := 3 }
-def iNDEXEDVALUETYPEDOUBLE : Temporal_Api_Enums_V1_IndexedValueType := { number := 4 }
-def iNDEXEDVALUETYPEBOOL : Temporal_Api_Enums_V1_IndexedValueType := { number := 5 }
-def iNDEXEDVALUETYPEDATETIME : Temporal_Api_Enums_V1_IndexedValueType := { number := 6 }
-def iNDEXEDVALUETYPEKEYWORDLIST : Temporal_Api_Enums_V1_IndexedValueType := { number := 7 }
-end Temporal_Api_Enums_V1_IndexedValueType
+namespace IndexedValueType
+def indexedValueTypeUnspecified : IndexedValueType := { number := 0 }
+def indexedValueTypeText : IndexedValueType := { number := 1 }
+def indexedValueTypeKeyword : IndexedValueType := { number := 2 }
+def indexedValueTypeInt : IndexedValueType := { number := 3 }
+def indexedValueTypeDouble : IndexedValueType := { number := 4 }
+def indexedValueTypeBool : IndexedValueType := { number := 5 }
+def indexedValueTypeDatetime : IndexedValueType := { number := 6 }
+def indexedValueTypeKeywordList : IndexedValueType := { number := 7 }
+end IndexedValueType
 
-structure Temporal_Api_Enums_V1_NamespaceState where
+structure NamespaceState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NamespaceState
-def nAMESPACESTATEUNSPECIFIED : Temporal_Api_Enums_V1_NamespaceState := { number := 0 }
-def nAMESPACESTATEREGISTERED : Temporal_Api_Enums_V1_NamespaceState := { number := 1 }
-def nAMESPACESTATEDEPRECATED : Temporal_Api_Enums_V1_NamespaceState := { number := 2 }
-def nAMESPACESTATEDELETED : Temporal_Api_Enums_V1_NamespaceState := { number := 3 }
-end Temporal_Api_Enums_V1_NamespaceState
+namespace NamespaceState
+def namespaceStateUnspecified : NamespaceState := { number := 0 }
+def namespaceStateRegistered : NamespaceState := { number := 1 }
+def namespaceStateDeprecated : NamespaceState := { number := 2 }
+def namespaceStateDeleted : NamespaceState := { number := 3 }
+end NamespaceState
 
-structure Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior where
+structure NexusHandlerErrorRetryBehavior where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior
-def nEXUSHANDLERERRORRETRYBEHAVIORUNSPECIFIED : Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior := { number := 0 }
-def nEXUSHANDLERERRORRETRYBEHAVIORRETRYABLE : Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior := { number := 1 }
-def nEXUSHANDLERERRORRETRYBEHAVIORNONRETRYABLE : Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior := { number := 2 }
-end Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior
+namespace NexusHandlerErrorRetryBehavior
+def nexusHandlerErrorRetryBehaviorUnspecified : NexusHandlerErrorRetryBehavior := { number := 0 }
+def nexusHandlerErrorRetryBehaviorRetryable : NexusHandlerErrorRetryBehavior := { number := 1 }
+def nexusHandlerErrorRetryBehaviorNonRetryable : NexusHandlerErrorRetryBehavior := { number := 2 }
+end NexusHandlerErrorRetryBehavior
 
-structure Temporal_Api_Enums_V1_NexusOperationCancellationState where
+structure NexusOperationCancellationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NexusOperationCancellationState
-def nEXUSOPERATIONCANCELLATIONSTATEUNSPECIFIED : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 0 }
-def nEXUSOPERATIONCANCELLATIONSTATESCHEDULED : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 1 }
-def nEXUSOPERATIONCANCELLATIONSTATEBACKINGOFF : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 2 }
-def nEXUSOPERATIONCANCELLATIONSTATESUCCEEDED : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 3 }
-def nEXUSOPERATIONCANCELLATIONSTATEFAILED : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 4 }
-def nEXUSOPERATIONCANCELLATIONSTATETIMEDOUT : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 5 }
-def nEXUSOPERATIONCANCELLATIONSTATEBLOCKED : Temporal_Api_Enums_V1_NexusOperationCancellationState := { number := 6 }
-end Temporal_Api_Enums_V1_NexusOperationCancellationState
+namespace NexusOperationCancellationState
+def nexusOperationCancellationStateUnspecified : NexusOperationCancellationState := { number := 0 }
+def nexusOperationCancellationStateScheduled : NexusOperationCancellationState := { number := 1 }
+def nexusOperationCancellationStateBackingOff : NexusOperationCancellationState := { number := 2 }
+def nexusOperationCancellationStateSucceeded : NexusOperationCancellationState := { number := 3 }
+def nexusOperationCancellationStateFailed : NexusOperationCancellationState := { number := 4 }
+def nexusOperationCancellationStateTimedOut : NexusOperationCancellationState := { number := 5 }
+def nexusOperationCancellationStateBlocked : NexusOperationCancellationState := { number := 6 }
+end NexusOperationCancellationState
 
-structure Temporal_Api_Enums_V1_NexusOperationExecutionStatus where
+structure NexusOperationExecutionStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NexusOperationExecutionStatus
-def nEXUSOPERATIONEXECUTIONSTATUSUNSPECIFIED : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 0 }
-def nEXUSOPERATIONEXECUTIONSTATUSRUNNING : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 1 }
-def nEXUSOPERATIONEXECUTIONSTATUSCOMPLETED : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 2 }
-def nEXUSOPERATIONEXECUTIONSTATUSFAILED : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 3 }
-def nEXUSOPERATIONEXECUTIONSTATUSCANCELED : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 4 }
-def nEXUSOPERATIONEXECUTIONSTATUSTERMINATED : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 5 }
-def nEXUSOPERATIONEXECUTIONSTATUSTIMEDOUT : Temporal_Api_Enums_V1_NexusOperationExecutionStatus := { number := 6 }
-end Temporal_Api_Enums_V1_NexusOperationExecutionStatus
+namespace NexusOperationExecutionStatus
+def nexusOperationExecutionStatusUnspecified : NexusOperationExecutionStatus := { number := 0 }
+def nexusOperationExecutionStatusRunning : NexusOperationExecutionStatus := { number := 1 }
+def nexusOperationExecutionStatusCompleted : NexusOperationExecutionStatus := { number := 2 }
+def nexusOperationExecutionStatusFailed : NexusOperationExecutionStatus := { number := 3 }
+def nexusOperationExecutionStatusCanceled : NexusOperationExecutionStatus := { number := 4 }
+def nexusOperationExecutionStatusTerminated : NexusOperationExecutionStatus := { number := 5 }
+def nexusOperationExecutionStatusTimedOut : NexusOperationExecutionStatus := { number := 6 }
+end NexusOperationExecutionStatus
 
-structure Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy where
+structure NexusOperationIdConflictPolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy
-def nEXUSOPERATIONIDCONFLICTPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy := { number := 0 }
-def nEXUSOPERATIONIDCONFLICTPOLICYFAIL : Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy := { number := 1 }
-def nEXUSOPERATIONIDCONFLICTPOLICYUSEEXISTING : Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy := { number := 2 }
-end Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy
+namespace NexusOperationIdConflictPolicy
+def nexusOperationIdConflictPolicyUnspecified : NexusOperationIdConflictPolicy := { number := 0 }
+def nexusOperationIdConflictPolicyFail : NexusOperationIdConflictPolicy := { number := 1 }
+def nexusOperationIdConflictPolicyUseExisting : NexusOperationIdConflictPolicy := { number := 2 }
+end NexusOperationIdConflictPolicy
 
-structure Temporal_Api_Enums_V1_NexusOperationIdReusePolicy where
+structure NexusOperationIdReusePolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NexusOperationIdReusePolicy
-def nEXUSOPERATIONIDREUSEPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_NexusOperationIdReusePolicy := { number := 0 }
-def nEXUSOPERATIONIDREUSEPOLICYALLOWDUPLICATE : Temporal_Api_Enums_V1_NexusOperationIdReusePolicy := { number := 1 }
-def nEXUSOPERATIONIDREUSEPOLICYALLOWDUPLICATEFAILEDONLY : Temporal_Api_Enums_V1_NexusOperationIdReusePolicy := { number := 2 }
-def nEXUSOPERATIONIDREUSEPOLICYREJECTDUPLICATE : Temporal_Api_Enums_V1_NexusOperationIdReusePolicy := { number := 3 }
-end Temporal_Api_Enums_V1_NexusOperationIdReusePolicy
+namespace NexusOperationIdReusePolicy
+def nexusOperationIdReusePolicyUnspecified : NexusOperationIdReusePolicy := { number := 0 }
+def nexusOperationIdReusePolicyAllowDuplicate : NexusOperationIdReusePolicy := { number := 1 }
+def nexusOperationIdReusePolicyAllowDuplicateFailedOnly : NexusOperationIdReusePolicy := { number := 2 }
+def nexusOperationIdReusePolicyRejectDuplicate : NexusOperationIdReusePolicy := { number := 3 }
+end NexusOperationIdReusePolicy
 
-structure Temporal_Api_Enums_V1_NexusOperationWaitStage where
+structure NexusOperationWaitStage where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_NexusOperationWaitStage
-def nEXUSOPERATIONWAITSTAGEUNSPECIFIED : Temporal_Api_Enums_V1_NexusOperationWaitStage := { number := 0 }
-def nEXUSOPERATIONWAITSTAGESTARTED : Temporal_Api_Enums_V1_NexusOperationWaitStage := { number := 1 }
-def nEXUSOPERATIONWAITSTAGECLOSED : Temporal_Api_Enums_V1_NexusOperationWaitStage := { number := 2 }
-end Temporal_Api_Enums_V1_NexusOperationWaitStage
+namespace NexusOperationWaitStage
+def nexusOperationWaitStageUnspecified : NexusOperationWaitStage := { number := 0 }
+def nexusOperationWaitStageStarted : NexusOperationWaitStage := { number := 1 }
+def nexusOperationWaitStageClosed : NexusOperationWaitStage := { number := 2 }
+end NexusOperationWaitStage
 
-structure Temporal_Api_Enums_V1_ParentClosePolicy where
+structure ParentClosePolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ParentClosePolicy
-def pARENTCLOSEPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_ParentClosePolicy := { number := 0 }
-def pARENTCLOSEPOLICYTERMINATE : Temporal_Api_Enums_V1_ParentClosePolicy := { number := 1 }
-def pARENTCLOSEPOLICYABANDON : Temporal_Api_Enums_V1_ParentClosePolicy := { number := 2 }
-def pARENTCLOSEPOLICYREQUESTCANCEL : Temporal_Api_Enums_V1_ParentClosePolicy := { number := 3 }
-end Temporal_Api_Enums_V1_ParentClosePolicy
+namespace ParentClosePolicy
+def parentClosePolicyUnspecified : ParentClosePolicy := { number := 0 }
+def parentClosePolicyTerminate : ParentClosePolicy := { number := 1 }
+def parentClosePolicyAbandon : ParentClosePolicy := { number := 2 }
+def parentClosePolicyRequestCancel : ParentClosePolicy := { number := 3 }
+end ParentClosePolicy
 
-structure Temporal_Api_Enums_V1_PendingActivityState where
+structure PendingActivityState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_PendingActivityState
-def pENDINGACTIVITYSTATEUNSPECIFIED : Temporal_Api_Enums_V1_PendingActivityState := { number := 0 }
-def pENDINGACTIVITYSTATESCHEDULED : Temporal_Api_Enums_V1_PendingActivityState := { number := 1 }
-def pENDINGACTIVITYSTATESTARTED : Temporal_Api_Enums_V1_PendingActivityState := { number := 2 }
-def pENDINGACTIVITYSTATECANCELREQUESTED : Temporal_Api_Enums_V1_PendingActivityState := { number := 3 }
-def pENDINGACTIVITYSTATEPAUSED : Temporal_Api_Enums_V1_PendingActivityState := { number := 4 }
-def pENDINGACTIVITYSTATEPAUSEREQUESTED : Temporal_Api_Enums_V1_PendingActivityState := { number := 5 }
-end Temporal_Api_Enums_V1_PendingActivityState
+namespace PendingActivityState
+def pendingActivityStateUnspecified : PendingActivityState := { number := 0 }
+def pendingActivityStateScheduled : PendingActivityState := { number := 1 }
+def pendingActivityStateStarted : PendingActivityState := { number := 2 }
+def pendingActivityStateCancelRequested : PendingActivityState := { number := 3 }
+def pendingActivityStatePaused : PendingActivityState := { number := 4 }
+def pendingActivityStatePauseRequested : PendingActivityState := { number := 5 }
+end PendingActivityState
 
-structure Temporal_Api_Enums_V1_PendingNexusOperationState where
+structure PendingNexusOperationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_PendingNexusOperationState
-def pENDINGNEXUSOPERATIONSTATEUNSPECIFIED : Temporal_Api_Enums_V1_PendingNexusOperationState := { number := 0 }
-def pENDINGNEXUSOPERATIONSTATESCHEDULED : Temporal_Api_Enums_V1_PendingNexusOperationState := { number := 1 }
-def pENDINGNEXUSOPERATIONSTATEBACKINGOFF : Temporal_Api_Enums_V1_PendingNexusOperationState := { number := 2 }
-def pENDINGNEXUSOPERATIONSTATESTARTED : Temporal_Api_Enums_V1_PendingNexusOperationState := { number := 3 }
-def pENDINGNEXUSOPERATIONSTATEBLOCKED : Temporal_Api_Enums_V1_PendingNexusOperationState := { number := 4 }
-end Temporal_Api_Enums_V1_PendingNexusOperationState
+namespace PendingNexusOperationState
+def pendingNexusOperationStateUnspecified : PendingNexusOperationState := { number := 0 }
+def pendingNexusOperationStateScheduled : PendingNexusOperationState := { number := 1 }
+def pendingNexusOperationStateBackingOff : PendingNexusOperationState := { number := 2 }
+def pendingNexusOperationStateStarted : PendingNexusOperationState := { number := 3 }
+def pendingNexusOperationStateBlocked : PendingNexusOperationState := { number := 4 }
+end PendingNexusOperationState
 
-structure Temporal_Api_Enums_V1_PendingWorkflowTaskState where
+structure PendingWorkflowTaskState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_PendingWorkflowTaskState
-def pENDINGWORKFLOWTASKSTATEUNSPECIFIED : Temporal_Api_Enums_V1_PendingWorkflowTaskState := { number := 0 }
-def pENDINGWORKFLOWTASKSTATESCHEDULED : Temporal_Api_Enums_V1_PendingWorkflowTaskState := { number := 1 }
-def pENDINGWORKFLOWTASKSTATESTARTED : Temporal_Api_Enums_V1_PendingWorkflowTaskState := { number := 2 }
-end Temporal_Api_Enums_V1_PendingWorkflowTaskState
+namespace PendingWorkflowTaskState
+def pendingWorkflowTaskStateUnspecified : PendingWorkflowTaskState := { number := 0 }
+def pendingWorkflowTaskStateScheduled : PendingWorkflowTaskState := { number := 1 }
+def pendingWorkflowTaskStateStarted : PendingWorkflowTaskState := { number := 2 }
+end PendingWorkflowTaskState
 
-structure Temporal_Api_Enums_V1_QueryRejectCondition where
+structure QueryRejectCondition where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_QueryRejectCondition
-def qUERYREJECTCONDITIONUNSPECIFIED : Temporal_Api_Enums_V1_QueryRejectCondition := { number := 0 }
-def qUERYREJECTCONDITIONNONE : Temporal_Api_Enums_V1_QueryRejectCondition := { number := 1 }
-def qUERYREJECTCONDITIONNOTOPEN : Temporal_Api_Enums_V1_QueryRejectCondition := { number := 2 }
-def qUERYREJECTCONDITIONNOTCOMPLETEDCLEANLY : Temporal_Api_Enums_V1_QueryRejectCondition := { number := 3 }
-end Temporal_Api_Enums_V1_QueryRejectCondition
+namespace QueryRejectCondition
+def queryRejectConditionUnspecified : QueryRejectCondition := { number := 0 }
+def queryRejectConditionNone : QueryRejectCondition := { number := 1 }
+def queryRejectConditionNotOpen : QueryRejectCondition := { number := 2 }
+def queryRejectConditionNotCompletedCleanly : QueryRejectCondition := { number := 3 }
+end QueryRejectCondition
 
-structure Temporal_Api_Enums_V1_QueryResultType where
+structure QueryResultType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_QueryResultType
-def qUERYRESULTTYPEUNSPECIFIED : Temporal_Api_Enums_V1_QueryResultType := { number := 0 }
-def qUERYRESULTTYPEANSWERED : Temporal_Api_Enums_V1_QueryResultType := { number := 1 }
-def qUERYRESULTTYPEFAILED : Temporal_Api_Enums_V1_QueryResultType := { number := 2 }
-end Temporal_Api_Enums_V1_QueryResultType
+namespace QueryResultType
+def queryResultTypeUnspecified : QueryResultType := { number := 0 }
+def queryResultTypeAnswered : QueryResultType := { number := 1 }
+def queryResultTypeFailed : QueryResultType := { number := 2 }
+end QueryResultType
 
-structure Temporal_Api_Enums_V1_RateLimitSource where
+structure RateLimitSource where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_RateLimitSource
-def rATELIMITSOURCEUNSPECIFIED : Temporal_Api_Enums_V1_RateLimitSource := { number := 0 }
-def rATELIMITSOURCEAPI : Temporal_Api_Enums_V1_RateLimitSource := { number := 1 }
-def rATELIMITSOURCEWORKER : Temporal_Api_Enums_V1_RateLimitSource := { number := 2 }
-def rATELIMITSOURCESYSTEM : Temporal_Api_Enums_V1_RateLimitSource := { number := 3 }
-end Temporal_Api_Enums_V1_RateLimitSource
+namespace RateLimitSource
+def rateLimitSourceUnspecified : RateLimitSource := { number := 0 }
+def rateLimitSourceApi : RateLimitSource := { number := 1 }
+def rateLimitSourceWorker : RateLimitSource := { number := 2 }
+def rateLimitSourceSystem : RateLimitSource := { number := 3 }
+end RateLimitSource
 
-structure Temporal_Api_Enums_V1_ReplicationState where
+structure ReplicationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ReplicationState
-def rEPLICATIONSTATEUNSPECIFIED : Temporal_Api_Enums_V1_ReplicationState := { number := 0 }
-def rEPLICATIONSTATENORMAL : Temporal_Api_Enums_V1_ReplicationState := { number := 1 }
-def rEPLICATIONSTATEHANDOVER : Temporal_Api_Enums_V1_ReplicationState := { number := 2 }
-end Temporal_Api_Enums_V1_ReplicationState
+namespace ReplicationState
+def replicationStateUnspecified : ReplicationState := { number := 0 }
+def replicationStateNormal : ReplicationState := { number := 1 }
+def replicationStateHandover : ReplicationState := { number := 2 }
+end ReplicationState
 
-structure Temporal_Api_Enums_V1_ResetReapplyExcludeType where
+structure ResetReapplyExcludeType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ResetReapplyExcludeType
-def rESETREAPPLYEXCLUDETYPEUNSPECIFIED : Temporal_Api_Enums_V1_ResetReapplyExcludeType := { number := 0 }
-def rESETREAPPLYEXCLUDETYPESIGNAL : Temporal_Api_Enums_V1_ResetReapplyExcludeType := { number := 1 }
-def rESETREAPPLYEXCLUDETYPEUPDATE : Temporal_Api_Enums_V1_ResetReapplyExcludeType := { number := 2 }
-def rESETREAPPLYEXCLUDETYPENEXUS : Temporal_Api_Enums_V1_ResetReapplyExcludeType := { number := 3 }
-def rESETREAPPLYEXCLUDETYPECANCELREQUEST : Temporal_Api_Enums_V1_ResetReapplyExcludeType := { number := 4 }
-end Temporal_Api_Enums_V1_ResetReapplyExcludeType
+namespace ResetReapplyExcludeType
+def resetReapplyExcludeTypeUnspecified : ResetReapplyExcludeType := { number := 0 }
+def resetReapplyExcludeTypeSignal : ResetReapplyExcludeType := { number := 1 }
+def resetReapplyExcludeTypeUpdate : ResetReapplyExcludeType := { number := 2 }
+def resetReapplyExcludeTypeNexus : ResetReapplyExcludeType := { number := 3 }
+def resetReapplyExcludeTypeCancelRequest : ResetReapplyExcludeType := { number := 4 }
+end ResetReapplyExcludeType
 
-structure Temporal_Api_Enums_V1_ResetReapplyType where
+structure ResetReapplyType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ResetReapplyType
-def rESETREAPPLYTYPEUNSPECIFIED : Temporal_Api_Enums_V1_ResetReapplyType := { number := 0 }
-def rESETREAPPLYTYPESIGNAL : Temporal_Api_Enums_V1_ResetReapplyType := { number := 1 }
-def rESETREAPPLYTYPENONE : Temporal_Api_Enums_V1_ResetReapplyType := { number := 2 }
-def rESETREAPPLYTYPEALLELIGIBLE : Temporal_Api_Enums_V1_ResetReapplyType := { number := 3 }
-end Temporal_Api_Enums_V1_ResetReapplyType
+namespace ResetReapplyType
+def resetReapplyTypeUnspecified : ResetReapplyType := { number := 0 }
+def resetReapplyTypeSignal : ResetReapplyType := { number := 1 }
+def resetReapplyTypeNone : ResetReapplyType := { number := 2 }
+def resetReapplyTypeAllEligible : ResetReapplyType := { number := 3 }
+end ResetReapplyType
 
-structure Temporal_Api_Enums_V1_ResetType where
+structure ResetType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ResetType
-def rESETTYPEUNSPECIFIED : Temporal_Api_Enums_V1_ResetType := { number := 0 }
-def rESETTYPEFIRSTWORKFLOWTASK : Temporal_Api_Enums_V1_ResetType := { number := 1 }
-def rESETTYPELASTWORKFLOWTASK : Temporal_Api_Enums_V1_ResetType := { number := 2 }
-end Temporal_Api_Enums_V1_ResetType
+namespace ResetType
+def resetTypeUnspecified : ResetType := { number := 0 }
+def resetTypeFirstWorkflowTask : ResetType := { number := 1 }
+def resetTypeLastWorkflowTask : ResetType := { number := 2 }
+end ResetType
 
-structure Temporal_Api_Enums_V1_ResourceExhaustedCause where
+structure ResourceExhaustedCause where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ResourceExhaustedCause
-def rESOURCEEXHAUSTEDCAUSEUNSPECIFIED : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 0 }
-def rESOURCEEXHAUSTEDCAUSERPSLIMIT : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 1 }
-def rESOURCEEXHAUSTEDCAUSECONCURRENTLIMIT : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 2 }
-def rESOURCEEXHAUSTEDCAUSESYSTEMOVERLOADED : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 3 }
-def rESOURCEEXHAUSTEDCAUSEPERSISTENCELIMIT : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 4 }
-def rESOURCEEXHAUSTEDCAUSEBUSYWORKFLOW : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 5 }
-def rESOURCEEXHAUSTEDCAUSEAPSLIMIT : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 6 }
-def rESOURCEEXHAUSTEDCAUSEPERSISTENCESTORAGELIMIT : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 7 }
-def rESOURCEEXHAUSTEDCAUSECIRCUITBREAKEROPEN : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 8 }
-def rESOURCEEXHAUSTEDCAUSEOPSLIMIT : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 9 }
-def rESOURCEEXHAUSTEDCAUSEWORKERDEPLOYMENTLIMITS : Temporal_Api_Enums_V1_ResourceExhaustedCause := { number := 10 }
-end Temporal_Api_Enums_V1_ResourceExhaustedCause
+namespace ResourceExhaustedCause
+def resourceExhaustedCauseUnspecified : ResourceExhaustedCause := { number := 0 }
+def resourceExhaustedCauseRpsLimit : ResourceExhaustedCause := { number := 1 }
+def resourceExhaustedCauseConcurrentLimit : ResourceExhaustedCause := { number := 2 }
+def resourceExhaustedCauseSystemOverloaded : ResourceExhaustedCause := { number := 3 }
+def resourceExhaustedCausePersistenceLimit : ResourceExhaustedCause := { number := 4 }
+def resourceExhaustedCauseBusyWorkflow : ResourceExhaustedCause := { number := 5 }
+def resourceExhaustedCauseApsLimit : ResourceExhaustedCause := { number := 6 }
+def resourceExhaustedCausePersistenceStorageLimit : ResourceExhaustedCause := { number := 7 }
+def resourceExhaustedCauseCircuitBreakerOpen : ResourceExhaustedCause := { number := 8 }
+def resourceExhaustedCauseOpsLimit : ResourceExhaustedCause := { number := 9 }
+def resourceExhaustedCauseWorkerDeploymentLimits : ResourceExhaustedCause := { number := 10 }
+end ResourceExhaustedCause
 
-structure Temporal_Api_Enums_V1_ResourceExhaustedScope where
+structure ResourceExhaustedScope where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ResourceExhaustedScope
-def rESOURCEEXHAUSTEDSCOPEUNSPECIFIED : Temporal_Api_Enums_V1_ResourceExhaustedScope := { number := 0 }
-def rESOURCEEXHAUSTEDSCOPENAMESPACE : Temporal_Api_Enums_V1_ResourceExhaustedScope := { number := 1 }
-def rESOURCEEXHAUSTEDSCOPESYSTEM : Temporal_Api_Enums_V1_ResourceExhaustedScope := { number := 2 }
-end Temporal_Api_Enums_V1_ResourceExhaustedScope
+namespace ResourceExhaustedScope
+def resourceExhaustedScopeUnspecified : ResourceExhaustedScope := { number := 0 }
+def resourceExhaustedScopeNamespace : ResourceExhaustedScope := { number := 1 }
+def resourceExhaustedScopeSystem : ResourceExhaustedScope := { number := 2 }
+end ResourceExhaustedScope
 
-structure Temporal_Api_Enums_V1_RetryState where
+structure RetryState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_RetryState
-def rETRYSTATEUNSPECIFIED : Temporal_Api_Enums_V1_RetryState := { number := 0 }
-def rETRYSTATEINPROGRESS : Temporal_Api_Enums_V1_RetryState := { number := 1 }
-def rETRYSTATENONRETRYABLEFAILURE : Temporal_Api_Enums_V1_RetryState := { number := 2 }
-def rETRYSTATETIMEOUT : Temporal_Api_Enums_V1_RetryState := { number := 3 }
-def rETRYSTATEMAXIMUMATTEMPTSREACHED : Temporal_Api_Enums_V1_RetryState := { number := 4 }
-def rETRYSTATERETRYPOLICYNOTSET : Temporal_Api_Enums_V1_RetryState := { number := 5 }
-def rETRYSTATEINTERNALSERVERERROR : Temporal_Api_Enums_V1_RetryState := { number := 6 }
-def rETRYSTATECANCELREQUESTED : Temporal_Api_Enums_V1_RetryState := { number := 7 }
-end Temporal_Api_Enums_V1_RetryState
+namespace RetryState
+def retryStateUnspecified : RetryState := { number := 0 }
+def retryStateInProgress : RetryState := { number := 1 }
+def retryStateNonRetryableFailure : RetryState := { number := 2 }
+def retryStateTimeout : RetryState := { number := 3 }
+def retryStateMaximumAttemptsReached : RetryState := { number := 4 }
+def retryStateRetryPolicyNotSet : RetryState := { number := 5 }
+def retryStateInternalServerError : RetryState := { number := 6 }
+def retryStateCancelRequested : RetryState := { number := 7 }
+end RetryState
 
-structure Temporal_Api_Enums_V1_RoutingConfigUpdateState where
+structure RoutingConfigUpdateState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_RoutingConfigUpdateState
-def rOUTINGCONFIGUPDATESTATEUNSPECIFIED : Temporal_Api_Enums_V1_RoutingConfigUpdateState := { number := 0 }
-def rOUTINGCONFIGUPDATESTATEINPROGRESS : Temporal_Api_Enums_V1_RoutingConfigUpdateState := { number := 1 }
-def rOUTINGCONFIGUPDATESTATECOMPLETED : Temporal_Api_Enums_V1_RoutingConfigUpdateState := { number := 2 }
-end Temporal_Api_Enums_V1_RoutingConfigUpdateState
+namespace RoutingConfigUpdateState
+def routingConfigUpdateStateUnspecified : RoutingConfigUpdateState := { number := 0 }
+def routingConfigUpdateStateInProgress : RoutingConfigUpdateState := { number := 1 }
+def routingConfigUpdateStateCompleted : RoutingConfigUpdateState := { number := 2 }
+end RoutingConfigUpdateState
 
-structure Temporal_Api_Enums_V1_ScheduleOverlapPolicy where
+structure ScheduleOverlapPolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_ScheduleOverlapPolicy
-def sCHEDULEOVERLAPPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 0 }
-def sCHEDULEOVERLAPPOLICYSKIP : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 1 }
-def sCHEDULEOVERLAPPOLICYBUFFERONE : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 2 }
-def sCHEDULEOVERLAPPOLICYBUFFERALL : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 3 }
-def sCHEDULEOVERLAPPOLICYCANCELOTHER : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 4 }
-def sCHEDULEOVERLAPPOLICYTERMINATEOTHER : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 5 }
-def sCHEDULEOVERLAPPOLICYALLOWALL : Temporal_Api_Enums_V1_ScheduleOverlapPolicy := { number := 6 }
-end Temporal_Api_Enums_V1_ScheduleOverlapPolicy
+namespace ScheduleOverlapPolicy
+def scheduleOverlapPolicyUnspecified : ScheduleOverlapPolicy := { number := 0 }
+def scheduleOverlapPolicySkip : ScheduleOverlapPolicy := { number := 1 }
+def scheduleOverlapPolicyBufferOne : ScheduleOverlapPolicy := { number := 2 }
+def scheduleOverlapPolicyBufferAll : ScheduleOverlapPolicy := { number := 3 }
+def scheduleOverlapPolicyCancelOther : ScheduleOverlapPolicy := { number := 4 }
+def scheduleOverlapPolicyTerminateOther : ScheduleOverlapPolicy := { number := 5 }
+def scheduleOverlapPolicyAllowAll : ScheduleOverlapPolicy := { number := 6 }
+end ScheduleOverlapPolicy
 
-structure Temporal_Api_Enums_V1_Severity where
+structure Severity where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_Severity
-def sEVERITYUNSPECIFIED : Temporal_Api_Enums_V1_Severity := { number := 0 }
-def sEVERITYHIGH : Temporal_Api_Enums_V1_Severity := { number := 1 }
-def sEVERITYMEDIUM : Temporal_Api_Enums_V1_Severity := { number := 2 }
-def sEVERITYLOW : Temporal_Api_Enums_V1_Severity := { number := 3 }
-end Temporal_Api_Enums_V1_Severity
+namespace Severity
+def severityUnspecified : Severity := { number := 0 }
+def severityHigh : Severity := { number := 1 }
+def severityMedium : Severity := { number := 2 }
+def severityLow : Severity := { number := 3 }
+end Severity
 
-structure Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause where
+structure SignalExternalWorkflowExecutionFailedCause where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause
-def sIGNALEXTERNALWORKFLOWEXECUTIONFAILEDCAUSEUNSPECIFIED : Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause := { number := 0 }
-def sIGNALEXTERNALWORKFLOWEXECUTIONFAILEDCAUSEEXTERNALWORKFLOWEXECUTIONNOTFOUND : Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause := { number := 1 }
-def sIGNALEXTERNALWORKFLOWEXECUTIONFAILEDCAUSENAMESPACENOTFOUND : Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause := { number := 2 }
-def sIGNALEXTERNALWORKFLOWEXECUTIONFAILEDCAUSESIGNALCOUNTLIMITEXCEEDED : Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause := { number := 3 }
-end Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause
+namespace SignalExternalWorkflowExecutionFailedCause
+def signalExternalWorkflowExecutionFailedCauseUnspecified : SignalExternalWorkflowExecutionFailedCause := { number := 0 }
+def signalExternalWorkflowExecutionFailedCauseExternalWorkflowExecutionNotFound : SignalExternalWorkflowExecutionFailedCause := { number := 1 }
+def signalExternalWorkflowExecutionFailedCauseNamespaceNotFound : SignalExternalWorkflowExecutionFailedCause := { number := 2 }
+def signalExternalWorkflowExecutionFailedCauseSignalCountLimitExceeded : SignalExternalWorkflowExecutionFailedCause := { number := 3 }
+end SignalExternalWorkflowExecutionFailedCause
 
-structure Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause where
+structure StartChildWorkflowExecutionFailedCause where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause
-def sTARTCHILDWORKFLOWEXECUTIONFAILEDCAUSEUNSPECIFIED : Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause := { number := 0 }
-def sTARTCHILDWORKFLOWEXECUTIONFAILEDCAUSEWORKFLOWALREADYEXISTS : Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause := { number := 1 }
-def sTARTCHILDWORKFLOWEXECUTIONFAILEDCAUSENAMESPACENOTFOUND : Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause := { number := 2 }
-def sTARTCHILDWORKFLOWEXECUTIONFAILEDCAUSEINVALIDVERSIONINGOVERRIDE : Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause := { number := 3 }
-end Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause
+namespace StartChildWorkflowExecutionFailedCause
+def startChildWorkflowExecutionFailedCauseUnspecified : StartChildWorkflowExecutionFailedCause := { number := 0 }
+def startChildWorkflowExecutionFailedCauseWorkflowAlreadyExists : StartChildWorkflowExecutionFailedCause := { number := 1 }
+def startChildWorkflowExecutionFailedCauseNamespaceNotFound : StartChildWorkflowExecutionFailedCause := { number := 2 }
+def startChildWorkflowExecutionFailedCauseInvalidVersioningOverride : StartChildWorkflowExecutionFailedCause := { number := 3 }
+end StartChildWorkflowExecutionFailedCause
 
-structure Temporal_Api_Enums_V1_SuggestContinueAsNewReason where
+structure SuggestContinueAsNewReason where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_SuggestContinueAsNewReason
-def sUGGESTCONTINUEASNEWREASONUNSPECIFIED : Temporal_Api_Enums_V1_SuggestContinueAsNewReason := { number := 0 }
-def sUGGESTCONTINUEASNEWREASONHISTORYSIZETOOLARGE : Temporal_Api_Enums_V1_SuggestContinueAsNewReason := { number := 1 }
-def sUGGESTCONTINUEASNEWREASONTOOMANYHISTORYEVENTS : Temporal_Api_Enums_V1_SuggestContinueAsNewReason := { number := 2 }
-def sUGGESTCONTINUEASNEWREASONTOOMANYUPDATES : Temporal_Api_Enums_V1_SuggestContinueAsNewReason := { number := 3 }
-end Temporal_Api_Enums_V1_SuggestContinueAsNewReason
+namespace SuggestContinueAsNewReason
+def suggestContinueAsNewReasonUnspecified : SuggestContinueAsNewReason := { number := 0 }
+def suggestContinueAsNewReasonHistorySizeTooLarge : SuggestContinueAsNewReason := { number := 1 }
+def suggestContinueAsNewReasonTooManyHistoryEvents : SuggestContinueAsNewReason := { number := 2 }
+def suggestContinueAsNewReasonTooManyUpdates : SuggestContinueAsNewReason := { number := 3 }
+end SuggestContinueAsNewReason
 
-structure Temporal_Api_Enums_V1_TaskQueueKind where
+structure TaskQueueKind where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_TaskQueueKind
-def tASKQUEUEKINDUNSPECIFIED : Temporal_Api_Enums_V1_TaskQueueKind := { number := 0 }
-def tASKQUEUEKINDNORMAL : Temporal_Api_Enums_V1_TaskQueueKind := { number := 1 }
-def tASKQUEUEKINDSTICKY : Temporal_Api_Enums_V1_TaskQueueKind := { number := 2 }
-def tASKQUEUEKINDWORKERCOMMANDS : Temporal_Api_Enums_V1_TaskQueueKind := { number := 3 }
-end Temporal_Api_Enums_V1_TaskQueueKind
+namespace TaskQueueKind
+def taskQueueKindUnspecified : TaskQueueKind := { number := 0 }
+def taskQueueKindNormal : TaskQueueKind := { number := 1 }
+def taskQueueKindSticky : TaskQueueKind := { number := 2 }
+def taskQueueKindWorkerCommands : TaskQueueKind := { number := 3 }
+end TaskQueueKind
 
-structure Temporal_Api_Enums_V1_TaskQueueType where
+structure TaskQueueType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_TaskQueueType
-def tASKQUEUETYPEUNSPECIFIED : Temporal_Api_Enums_V1_TaskQueueType := { number := 0 }
-def tASKQUEUETYPEWORKFLOW : Temporal_Api_Enums_V1_TaskQueueType := { number := 1 }
-def tASKQUEUETYPEACTIVITY : Temporal_Api_Enums_V1_TaskQueueType := { number := 2 }
-def tASKQUEUETYPENEXUS : Temporal_Api_Enums_V1_TaskQueueType := { number := 3 }
-end Temporal_Api_Enums_V1_TaskQueueType
+namespace TaskQueueType
+def taskQueueTypeUnspecified : TaskQueueType := { number := 0 }
+def taskQueueTypeWorkflow : TaskQueueType := { number := 1 }
+def taskQueueTypeActivity : TaskQueueType := { number := 2 }
+def taskQueueTypeNexus : TaskQueueType := { number := 3 }
+end TaskQueueType
 
-structure Temporal_Api_Enums_V1_TaskReachability where
+structure TaskReachability where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_TaskReachability
-def tASKREACHABILITYUNSPECIFIED : Temporal_Api_Enums_V1_TaskReachability := { number := 0 }
-def tASKREACHABILITYNEWWORKFLOWS : Temporal_Api_Enums_V1_TaskReachability := { number := 1 }
-def tASKREACHABILITYEXISTINGWORKFLOWS : Temporal_Api_Enums_V1_TaskReachability := { number := 2 }
-def tASKREACHABILITYOPENWORKFLOWS : Temporal_Api_Enums_V1_TaskReachability := { number := 3 }
-def tASKREACHABILITYCLOSEDWORKFLOWS : Temporal_Api_Enums_V1_TaskReachability := { number := 4 }
-end Temporal_Api_Enums_V1_TaskReachability
+namespace TaskReachability
+def taskReachabilityUnspecified : TaskReachability := { number := 0 }
+def taskReachabilityNewWorkflows : TaskReachability := { number := 1 }
+def taskReachabilityExistingWorkflows : TaskReachability := { number := 2 }
+def taskReachabilityOpenWorkflows : TaskReachability := { number := 3 }
+def taskReachabilityClosedWorkflows : TaskReachability := { number := 4 }
+end TaskReachability
 
-structure Temporal_Api_Enums_V1_TimeoutType where
+structure TimeoutType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_TimeoutType
-def tIMEOUTTYPEUNSPECIFIED : Temporal_Api_Enums_V1_TimeoutType := { number := 0 }
-def tIMEOUTTYPESTARTTOCLOSE : Temporal_Api_Enums_V1_TimeoutType := { number := 1 }
-def tIMEOUTTYPESCHEDULETOSTART : Temporal_Api_Enums_V1_TimeoutType := { number := 2 }
-def tIMEOUTTYPESCHEDULETOCLOSE : Temporal_Api_Enums_V1_TimeoutType := { number := 3 }
-def tIMEOUTTYPEHEARTBEAT : Temporal_Api_Enums_V1_TimeoutType := { number := 4 }
-end Temporal_Api_Enums_V1_TimeoutType
+namespace TimeoutType
+def timeoutTypeUnspecified : TimeoutType := { number := 0 }
+def timeoutTypeStartToClose : TimeoutType := { number := 1 }
+def timeoutTypeScheduleToStart : TimeoutType := { number := 2 }
+def timeoutTypeScheduleToClose : TimeoutType := { number := 3 }
+def timeoutTypeHeartbeat : TimeoutType := { number := 4 }
+end TimeoutType
 
-structure Temporal_Api_Enums_V1_UpdateAdmittedEventOrigin where
+structure UpdateAdmittedEventOrigin where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_UpdateAdmittedEventOrigin
-def uPDATEADMITTEDEVENTORIGINUNSPECIFIED : Temporal_Api_Enums_V1_UpdateAdmittedEventOrigin := { number := 0 }
-def uPDATEADMITTEDEVENTORIGINREAPPLY : Temporal_Api_Enums_V1_UpdateAdmittedEventOrigin := { number := 1 }
-end Temporal_Api_Enums_V1_UpdateAdmittedEventOrigin
+namespace UpdateAdmittedEventOrigin
+def updateAdmittedEventOriginUnspecified : UpdateAdmittedEventOrigin := { number := 0 }
+def updateAdmittedEventOriginReapply : UpdateAdmittedEventOrigin := { number := 1 }
+end UpdateAdmittedEventOrigin
 
-structure Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage where
+structure UpdateWorkflowExecutionLifecycleStage where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage
-def uPDATEWORKFLOWEXECUTIONLIFECYCLESTAGEUNSPECIFIED : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage := { number := 0 }
-def uPDATEWORKFLOWEXECUTIONLIFECYCLESTAGEADMITTED : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage := { number := 1 }
-def uPDATEWORKFLOWEXECUTIONLIFECYCLESTAGEACCEPTED : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage := { number := 2 }
-def uPDATEWORKFLOWEXECUTIONLIFECYCLESTAGECOMPLETED : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage := { number := 3 }
-end Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage
+namespace UpdateWorkflowExecutionLifecycleStage
+def updateWorkflowExecutionLifecycleStageUnspecified : UpdateWorkflowExecutionLifecycleStage := { number := 0 }
+def updateWorkflowExecutionLifecycleStageAdmitted : UpdateWorkflowExecutionLifecycleStage := { number := 1 }
+def updateWorkflowExecutionLifecycleStageAccepted : UpdateWorkflowExecutionLifecycleStage := { number := 2 }
+def updateWorkflowExecutionLifecycleStageCompleted : UpdateWorkflowExecutionLifecycleStage := { number := 3 }
+end UpdateWorkflowExecutionLifecycleStage
 
-structure Temporal_Api_Enums_V1_VersionDrainageStatus where
+structure VersionDrainageStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_VersionDrainageStatus
-def vERSIONDRAINAGESTATUSUNSPECIFIED : Temporal_Api_Enums_V1_VersionDrainageStatus := { number := 0 }
-def vERSIONDRAINAGESTATUSDRAINING : Temporal_Api_Enums_V1_VersionDrainageStatus := { number := 1 }
-def vERSIONDRAINAGESTATUSDRAINED : Temporal_Api_Enums_V1_VersionDrainageStatus := { number := 2 }
-end Temporal_Api_Enums_V1_VersionDrainageStatus
+namespace VersionDrainageStatus
+def versionDrainageStatusUnspecified : VersionDrainageStatus := { number := 0 }
+def versionDrainageStatusDraining : VersionDrainageStatus := { number := 1 }
+def versionDrainageStatusDrained : VersionDrainageStatus := { number := 2 }
+end VersionDrainageStatus
 
-structure Temporal_Api_Enums_V1_VersioningBehavior where
+structure VersioningBehavior where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_VersioningBehavior
-def vERSIONINGBEHAVIORUNSPECIFIED : Temporal_Api_Enums_V1_VersioningBehavior := { number := 0 }
-def vERSIONINGBEHAVIORPINNED : Temporal_Api_Enums_V1_VersioningBehavior := { number := 1 }
-def vERSIONINGBEHAVIORAUTOUPGRADE : Temporal_Api_Enums_V1_VersioningBehavior := { number := 2 }
-end Temporal_Api_Enums_V1_VersioningBehavior
+namespace VersioningBehavior
+def versioningBehaviorUnspecified : VersioningBehavior := { number := 0 }
+def versioningBehaviorPinned : VersioningBehavior := { number := 1 }
+def versioningBehaviorAutoUpgrade : VersioningBehavior := { number := 2 }
+end VersioningBehavior
 
-structure Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus where
+structure WorkerDeploymentVersionStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
-def wORKERDEPLOYMENTVERSIONSTATUSUNSPECIFIED : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 0 }
-def wORKERDEPLOYMENTVERSIONSTATUSINACTIVE : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 1 }
-def wORKERDEPLOYMENTVERSIONSTATUSCURRENT : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 2 }
-def wORKERDEPLOYMENTVERSIONSTATUSRAMPING : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 3 }
-def wORKERDEPLOYMENTVERSIONSTATUSDRAINING : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 4 }
-def wORKERDEPLOYMENTVERSIONSTATUSDRAINED : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 5 }
-def wORKERDEPLOYMENTVERSIONSTATUSCREATED : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus := { number := 6 }
-end Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
+namespace WorkerDeploymentVersionStatus
+def workerDeploymentVersionStatusUnspecified : WorkerDeploymentVersionStatus := { number := 0 }
+def workerDeploymentVersionStatusInactive : WorkerDeploymentVersionStatus := { number := 1 }
+def workerDeploymentVersionStatusCurrent : WorkerDeploymentVersionStatus := { number := 2 }
+def workerDeploymentVersionStatusRamping : WorkerDeploymentVersionStatus := { number := 3 }
+def workerDeploymentVersionStatusDraining : WorkerDeploymentVersionStatus := { number := 4 }
+def workerDeploymentVersionStatusDrained : WorkerDeploymentVersionStatus := { number := 5 }
+def workerDeploymentVersionStatusCreated : WorkerDeploymentVersionStatus := { number := 6 }
+end WorkerDeploymentVersionStatus
 
-structure Temporal_Api_Enums_V1_WorkerStatus where
+structure WorkerStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkerStatus
-def wORKERSTATUSUNSPECIFIED : Temporal_Api_Enums_V1_WorkerStatus := { number := 0 }
-def wORKERSTATUSRUNNING : Temporal_Api_Enums_V1_WorkerStatus := { number := 1 }
-def wORKERSTATUSSHUTTINGDOWN : Temporal_Api_Enums_V1_WorkerStatus := { number := 2 }
-def wORKERSTATUSSHUTDOWN : Temporal_Api_Enums_V1_WorkerStatus := { number := 3 }
-end Temporal_Api_Enums_V1_WorkerStatus
+namespace WorkerStatus
+def workerStatusUnspecified : WorkerStatus := { number := 0 }
+def workerStatusRunning : WorkerStatus := { number := 1 }
+def workerStatusShuttingDown : WorkerStatus := { number := 2 }
+def workerStatusShutdown : WorkerStatus := { number := 3 }
+end WorkerStatus
 
-structure Temporal_Api_Enums_V1_WorkerVersioningMode where
+structure WorkerVersioningMode where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkerVersioningMode
-def wORKERVERSIONINGMODEUNSPECIFIED : Temporal_Api_Enums_V1_WorkerVersioningMode := { number := 0 }
-def wORKERVERSIONINGMODEUNVERSIONED : Temporal_Api_Enums_V1_WorkerVersioningMode := { number := 1 }
-def wORKERVERSIONINGMODEVERSIONED : Temporal_Api_Enums_V1_WorkerVersioningMode := { number := 2 }
-end Temporal_Api_Enums_V1_WorkerVersioningMode
+namespace WorkerVersioningMode
+def workerVersioningModeUnspecified : WorkerVersioningMode := { number := 0 }
+def workerVersioningModeUnversioned : WorkerVersioningMode := { number := 1 }
+def workerVersioningModeVersioned : WorkerVersioningMode := { number := 2 }
+end WorkerVersioningMode
 
-structure Temporal_Api_Enums_V1_WorkflowExecutionStatus where
+structure WorkflowExecutionStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkflowExecutionStatus
-def wORKFLOWEXECUTIONSTATUSUNSPECIFIED : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 0 }
-def wORKFLOWEXECUTIONSTATUSRUNNING : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 1 }
-def wORKFLOWEXECUTIONSTATUSCOMPLETED : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 2 }
-def wORKFLOWEXECUTIONSTATUSFAILED : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 3 }
-def wORKFLOWEXECUTIONSTATUSCANCELED : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 4 }
-def wORKFLOWEXECUTIONSTATUSTERMINATED : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 5 }
-def wORKFLOWEXECUTIONSTATUSCONTINUEDASNEW : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 6 }
-def wORKFLOWEXECUTIONSTATUSTIMEDOUT : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 7 }
-def wORKFLOWEXECUTIONSTATUSPAUSED : Temporal_Api_Enums_V1_WorkflowExecutionStatus := { number := 8 }
-end Temporal_Api_Enums_V1_WorkflowExecutionStatus
+namespace WorkflowExecutionStatus
+def workflowExecutionStatusUnspecified : WorkflowExecutionStatus := { number := 0 }
+def workflowExecutionStatusRunning : WorkflowExecutionStatus := { number := 1 }
+def workflowExecutionStatusCompleted : WorkflowExecutionStatus := { number := 2 }
+def workflowExecutionStatusFailed : WorkflowExecutionStatus := { number := 3 }
+def workflowExecutionStatusCanceled : WorkflowExecutionStatus := { number := 4 }
+def workflowExecutionStatusTerminated : WorkflowExecutionStatus := { number := 5 }
+def workflowExecutionStatusContinuedAsNew : WorkflowExecutionStatus := { number := 6 }
+def workflowExecutionStatusTimedOut : WorkflowExecutionStatus := { number := 7 }
+def workflowExecutionStatusPaused : WorkflowExecutionStatus := { number := 8 }
+end WorkflowExecutionStatus
 
-structure Temporal_Api_Enums_V1_WorkflowIdConflictPolicy where
+structure WorkflowIdConflictPolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkflowIdConflictPolicy
-def wORKFLOWIDCONFLICTPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_WorkflowIdConflictPolicy := { number := 0 }
-def wORKFLOWIDCONFLICTPOLICYFAIL : Temporal_Api_Enums_V1_WorkflowIdConflictPolicy := { number := 1 }
-def wORKFLOWIDCONFLICTPOLICYUSEEXISTING : Temporal_Api_Enums_V1_WorkflowIdConflictPolicy := { number := 2 }
-def wORKFLOWIDCONFLICTPOLICYTERMINATEEXISTING : Temporal_Api_Enums_V1_WorkflowIdConflictPolicy := { number := 3 }
-end Temporal_Api_Enums_V1_WorkflowIdConflictPolicy
+namespace WorkflowIdConflictPolicy
+def workflowIdConflictPolicyUnspecified : WorkflowIdConflictPolicy := { number := 0 }
+def workflowIdConflictPolicyFail : WorkflowIdConflictPolicy := { number := 1 }
+def workflowIdConflictPolicyUseExisting : WorkflowIdConflictPolicy := { number := 2 }
+def workflowIdConflictPolicyTerminateExisting : WorkflowIdConflictPolicy := { number := 3 }
+end WorkflowIdConflictPolicy
 
-structure Temporal_Api_Enums_V1_WorkflowIdReusePolicy where
+structure WorkflowIdReusePolicy where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkflowIdReusePolicy
-def wORKFLOWIDREUSEPOLICYUNSPECIFIED : Temporal_Api_Enums_V1_WorkflowIdReusePolicy := { number := 0 }
-def wORKFLOWIDREUSEPOLICYALLOWDUPLICATE : Temporal_Api_Enums_V1_WorkflowIdReusePolicy := { number := 1 }
-def wORKFLOWIDREUSEPOLICYALLOWDUPLICATEFAILEDONLY : Temporal_Api_Enums_V1_WorkflowIdReusePolicy := { number := 2 }
-def wORKFLOWIDREUSEPOLICYREJECTDUPLICATE : Temporal_Api_Enums_V1_WorkflowIdReusePolicy := { number := 3 }
-def wORKFLOWIDREUSEPOLICYTERMINATEIFRUNNING : Temporal_Api_Enums_V1_WorkflowIdReusePolicy := { number := 4 }
-end Temporal_Api_Enums_V1_WorkflowIdReusePolicy
+namespace WorkflowIdReusePolicy
+def workflowIdReusePolicyUnspecified : WorkflowIdReusePolicy := { number := 0 }
+def workflowIdReusePolicyAllowDuplicate : WorkflowIdReusePolicy := { number := 1 }
+def workflowIdReusePolicyAllowDuplicateFailedOnly : WorkflowIdReusePolicy := { number := 2 }
+def workflowIdReusePolicyRejectDuplicate : WorkflowIdReusePolicy := { number := 3 }
+def workflowIdReusePolicyTerminateIfRunning : WorkflowIdReusePolicy := { number := 4 }
+end WorkflowIdReusePolicy
 
-structure Temporal_Api_Enums_V1_WorkflowRuleActionScope where
+structure WorkflowRuleActionScope where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkflowRuleActionScope
-def wORKFLOWRULEACTIONSCOPEUNSPECIFIED : Temporal_Api_Enums_V1_WorkflowRuleActionScope := { number := 0 }
-def wORKFLOWRULEACTIONSCOPEWORKFLOW : Temporal_Api_Enums_V1_WorkflowRuleActionScope := { number := 1 }
-def wORKFLOWRULEACTIONSCOPEACTIVITY : Temporal_Api_Enums_V1_WorkflowRuleActionScope := { number := 2 }
-end Temporal_Api_Enums_V1_WorkflowRuleActionScope
+namespace WorkflowRuleActionScope
+def workflowRuleActionScopeUnspecified : WorkflowRuleActionScope := { number := 0 }
+def workflowRuleActionScopeWorkflow : WorkflowRuleActionScope := { number := 1 }
+def workflowRuleActionScopeActivity : WorkflowRuleActionScope := { number := 2 }
+end WorkflowRuleActionScope
 
-structure Temporal_Api_Enums_V1_WorkflowTaskFailedCause where
+structure WorkflowTaskFailedCause where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Enums_V1_WorkflowTaskFailedCause
-def wORKFLOWTASKFAILEDCAUSEUNSPECIFIED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 0 }
-def wORKFLOWTASKFAILEDCAUSEUNHANDLEDCOMMAND : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 1 }
-def wORKFLOWTASKFAILEDCAUSEBADSCHEDULEACTIVITYATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 2 }
-def wORKFLOWTASKFAILEDCAUSEBADREQUESTCANCELACTIVITYATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 3 }
-def wORKFLOWTASKFAILEDCAUSEBADSTARTTIMERATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 4 }
-def wORKFLOWTASKFAILEDCAUSEBADCANCELTIMERATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 5 }
-def wORKFLOWTASKFAILEDCAUSEBADRECORDMARKERATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 6 }
-def wORKFLOWTASKFAILEDCAUSEBADCOMPLETEWORKFLOWEXECUTIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 7 }
-def wORKFLOWTASKFAILEDCAUSEBADFAILWORKFLOWEXECUTIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 8 }
-def wORKFLOWTASKFAILEDCAUSEBADCANCELWORKFLOWEXECUTIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 9 }
-def wORKFLOWTASKFAILEDCAUSEBADREQUESTCANCELEXTERNALWORKFLOWEXECUTIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 10 }
-def wORKFLOWTASKFAILEDCAUSEBADCONTINUEASNEWATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 11 }
-def wORKFLOWTASKFAILEDCAUSESTARTTIMERDUPLICATEID : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 12 }
-def wORKFLOWTASKFAILEDCAUSERESETSTICKYTASKQUEUE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 13 }
-def wORKFLOWTASKFAILEDCAUSEWORKFLOWWORKERUNHANDLEDFAILURE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 14 }
-def wORKFLOWTASKFAILEDCAUSEBADSIGNALWORKFLOWEXECUTIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 15 }
-def wORKFLOWTASKFAILEDCAUSEBADSTARTCHILDEXECUTIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 16 }
-def wORKFLOWTASKFAILEDCAUSEFORCECLOSECOMMAND : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 17 }
-def wORKFLOWTASKFAILEDCAUSEFAILOVERCLOSECOMMAND : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 18 }
-def wORKFLOWTASKFAILEDCAUSEBADSIGNALINPUTSIZE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 19 }
-def wORKFLOWTASKFAILEDCAUSERESETWORKFLOW : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 20 }
-def wORKFLOWTASKFAILEDCAUSEBADBINARY : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 21 }
-def wORKFLOWTASKFAILEDCAUSESCHEDULEACTIVITYDUPLICATEID : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 22 }
-def wORKFLOWTASKFAILEDCAUSEBADSEARCHATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 23 }
-def wORKFLOWTASKFAILEDCAUSENONDETERMINISTICERROR : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 24 }
-def wORKFLOWTASKFAILEDCAUSEBADMODIFYWORKFLOWPROPERTIESATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 25 }
-def wORKFLOWTASKFAILEDCAUSEPENDINGCHILDWORKFLOWSLIMITEXCEEDED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 26 }
-def wORKFLOWTASKFAILEDCAUSEPENDINGACTIVITIESLIMITEXCEEDED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 27 }
-def wORKFLOWTASKFAILEDCAUSEPENDINGSIGNALSLIMITEXCEEDED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 28 }
-def wORKFLOWTASKFAILEDCAUSEPENDINGREQUESTCANCELLIMITEXCEEDED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 29 }
-def wORKFLOWTASKFAILEDCAUSEBADUPDATEWORKFLOWEXECUTIONMESSAGE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 30 }
-def wORKFLOWTASKFAILEDCAUSEUNHANDLEDUPDATE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 31 }
-def wORKFLOWTASKFAILEDCAUSEBADSCHEDULENEXUSOPERATIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 32 }
-def wORKFLOWTASKFAILEDCAUSEPENDINGNEXUSOPERATIONSLIMITEXCEEDED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 33 }
-def wORKFLOWTASKFAILEDCAUSEBADREQUESTCANCELNEXUSOPERATIONATTRIBUTES : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 34 }
-def wORKFLOWTASKFAILEDCAUSEFEATUREDISABLED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 35 }
-def wORKFLOWTASKFAILEDCAUSEGRPCMESSAGETOOLARGE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 36 }
-def wORKFLOWTASKFAILEDCAUSEPAYLOADSTOOLARGE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 37 }
-def wORKFLOWTASKFAILEDCAUSEEXTERNALSTORAGEFAILURE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 38 }
-def wORKFLOWTASKFAILEDCAUSEWORKFLOWPAUSEREQUESTEDBEFORETASKSTARTED : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 39 }
-def wORKFLOWTASKFAILEDCAUSEREQUESTTOOLARGE : Temporal_Api_Enums_V1_WorkflowTaskFailedCause := { number := 40 }
-end Temporal_Api_Enums_V1_WorkflowTaskFailedCause
+namespace WorkflowTaskFailedCause
+def workflowTaskFailedCauseUnspecified : WorkflowTaskFailedCause := { number := 0 }
+def workflowTaskFailedCauseUnhandledCommand : WorkflowTaskFailedCause := { number := 1 }
+def workflowTaskFailedCauseBadScheduleActivityAttributes : WorkflowTaskFailedCause := { number := 2 }
+def workflowTaskFailedCauseBadRequestCancelActivityAttributes : WorkflowTaskFailedCause := { number := 3 }
+def workflowTaskFailedCauseBadStartTimerAttributes : WorkflowTaskFailedCause := { number := 4 }
+def workflowTaskFailedCauseBadCancelTimerAttributes : WorkflowTaskFailedCause := { number := 5 }
+def workflowTaskFailedCauseBadRecordMarkerAttributes : WorkflowTaskFailedCause := { number := 6 }
+def workflowTaskFailedCauseBadCompleteWorkflowExecutionAttributes : WorkflowTaskFailedCause := { number := 7 }
+def workflowTaskFailedCauseBadFailWorkflowExecutionAttributes : WorkflowTaskFailedCause := { number := 8 }
+def workflowTaskFailedCauseBadCancelWorkflowExecutionAttributes : WorkflowTaskFailedCause := { number := 9 }
+def workflowTaskFailedCauseBadRequestCancelExternalWorkflowExecutionAttributes : WorkflowTaskFailedCause := { number := 10 }
+def workflowTaskFailedCauseBadContinueAsNewAttributes : WorkflowTaskFailedCause := { number := 11 }
+def workflowTaskFailedCauseStartTimerDuplicateId : WorkflowTaskFailedCause := { number := 12 }
+def workflowTaskFailedCauseResetStickyTaskQueue : WorkflowTaskFailedCause := { number := 13 }
+def workflowTaskFailedCauseWorkflowWorkerUnhandledFailure : WorkflowTaskFailedCause := { number := 14 }
+def workflowTaskFailedCauseBadSignalWorkflowExecutionAttributes : WorkflowTaskFailedCause := { number := 15 }
+def workflowTaskFailedCauseBadStartChildExecutionAttributes : WorkflowTaskFailedCause := { number := 16 }
+def workflowTaskFailedCauseForceCloseCommand : WorkflowTaskFailedCause := { number := 17 }
+def workflowTaskFailedCauseFailoverCloseCommand : WorkflowTaskFailedCause := { number := 18 }
+def workflowTaskFailedCauseBadSignalInputSize : WorkflowTaskFailedCause := { number := 19 }
+def workflowTaskFailedCauseResetWorkflow : WorkflowTaskFailedCause := { number := 20 }
+def workflowTaskFailedCauseBadBinary : WorkflowTaskFailedCause := { number := 21 }
+def workflowTaskFailedCauseScheduleActivityDuplicateId : WorkflowTaskFailedCause := { number := 22 }
+def workflowTaskFailedCauseBadSearchAttributes : WorkflowTaskFailedCause := { number := 23 }
+def workflowTaskFailedCauseNonDeterministicError : WorkflowTaskFailedCause := { number := 24 }
+def workflowTaskFailedCauseBadModifyWorkflowPropertiesAttributes : WorkflowTaskFailedCause := { number := 25 }
+def workflowTaskFailedCausePendingChildWorkflowsLimitExceeded : WorkflowTaskFailedCause := { number := 26 }
+def workflowTaskFailedCausePendingActivitiesLimitExceeded : WorkflowTaskFailedCause := { number := 27 }
+def workflowTaskFailedCausePendingSignalsLimitExceeded : WorkflowTaskFailedCause := { number := 28 }
+def workflowTaskFailedCausePendingRequestCancelLimitExceeded : WorkflowTaskFailedCause := { number := 29 }
+def workflowTaskFailedCauseBadUpdateWorkflowExecutionMessage : WorkflowTaskFailedCause := { number := 30 }
+def workflowTaskFailedCauseUnhandledUpdate : WorkflowTaskFailedCause := { number := 31 }
+def workflowTaskFailedCauseBadScheduleNexusOperationAttributes : WorkflowTaskFailedCause := { number := 32 }
+def workflowTaskFailedCausePendingNexusOperationsLimitExceeded : WorkflowTaskFailedCause := { number := 33 }
+def workflowTaskFailedCauseBadRequestCancelNexusOperationAttributes : WorkflowTaskFailedCause := { number := 34 }
+def workflowTaskFailedCauseFeatureDisabled : WorkflowTaskFailedCause := { number := 35 }
+def workflowTaskFailedCauseGrpcMessageTooLarge : WorkflowTaskFailedCause := { number := 36 }
+def workflowTaskFailedCausePayloadsTooLarge : WorkflowTaskFailedCause := { number := 37 }
+def workflowTaskFailedCauseExternalStorageFailure : WorkflowTaskFailedCause := { number := 38 }
+def workflowTaskFailedCauseWorkflowPauseRequestedBeforeTaskStarted : WorkflowTaskFailedCause := { number := 39 }
+def workflowTaskFailedCauseRequestTooLarge : WorkflowTaskFailedCause := { number := 40 }
+end WorkflowTaskFailedCause
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_Architecture where
+end Temporal.Api.Enums.V1
+
+namespace Temporal.Api.Worker.V1
+
+structure EnvironmentInfo.Architecture where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Worker_V1_EnvironmentInfo_Architecture
-def aRCHITECTUREUNSPECIFIED : Temporal_Api_Worker_V1_EnvironmentInfo_Architecture := { number := 0 }
-def aRCHITECTUREAMD64 : Temporal_Api_Worker_V1_EnvironmentInfo_Architecture := { number := 1 }
-def aRCHITECTUREARM64 : Temporal_Api_Worker_V1_EnvironmentInfo_Architecture := { number := 2 }
-end Temporal_Api_Worker_V1_EnvironmentInfo_Architecture
+namespace EnvironmentInfo.Architecture
+def architectureUnspecified : EnvironmentInfo.Architecture := { number := 0 }
+def architectureAmd64 : EnvironmentInfo.Architecture := { number := 1 }
+def architectureArm64 : EnvironmentInfo.Architecture := { number := 2 }
+end EnvironmentInfo.Architecture
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType where
+structure EnvironmentInfo.HostingEnvironment.HostingEnvironmentType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType
-def hOSTINGENVIRONMENTTYPEUNSPECIFIED : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 0 }
-def hOSTINGENVIRONMENTTYPEDOCKER : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 1 }
-def hOSTINGENVIRONMENTTYPEK8S : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 2 }
-def hOSTINGENVIRONMENTTYPEAWSLAMBDA : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 3 }
-def hOSTINGENVIRONMENTTYPEAWSECS : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 4 }
-def hOSTINGENVIRONMENTTYPEGOOGLECLOUDRUN : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 6 }
-def hOSTINGENVIRONMENTTYPEGOOGLEAPPENGINE : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 7 }
-def hOSTINGENVIRONMENTTYPEAZUREAPPSERVICE : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 8 }
-def hOSTINGENVIRONMENTTYPEAZUREFUNCTIONS : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 9 }
-def hOSTINGENVIRONMENTTYPEAZURECONTAINERAPPS : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType := { number := 10 }
-end Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType
+namespace EnvironmentInfo.HostingEnvironment.HostingEnvironmentType
+def hostingEnvironmentTypeUnspecified : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 0 }
+def hostingEnvironmentTypeDocker : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 1 }
+def hostingEnvironmentTypeK8s : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 2 }
+def hostingEnvironmentTypeAwsLambda : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 3 }
+def hostingEnvironmentTypeAwsEcs : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 4 }
+def hostingEnvironmentTypeGoogleCloudRun : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 6 }
+def hostingEnvironmentTypeGoogleAppEngine : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 7 }
+def hostingEnvironmentTypeAzureAppService : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 8 }
+def hostingEnvironmentTypeAzureFunctions : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 9 }
+def hostingEnvironmentTypeAzureContainerApps : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType := { number := 10 }
+end EnvironmentInfo.HostingEnvironment.HostingEnvironmentType
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc where
+structure EnvironmentInfo.LinuxPlatform.Libc where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc
-def lIBCUNSPECIFIED : Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc := { number := 0 }
-def lIBCGLIBC : Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc := { number := 1 }
-def lIBCMUSL : Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc := { number := 2 }
-end Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc
+namespace EnvironmentInfo.LinuxPlatform.Libc
+def libcUnspecified : EnvironmentInfo.LinuxPlatform.Libc := { number := 0 }
+def libcGlibc : EnvironmentInfo.LinuxPlatform.Libc := { number := 1 }
+def libcMusl : EnvironmentInfo.LinuxPlatform.Libc := { number := 2 }
+end EnvironmentInfo.LinuxPlatform.Libc
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType where
+structure EnvironmentInfo.Runtime.RuntimeType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType
-def rUNTIMETYPEUNSPECIFIED : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 0 }
-def rUNTIMETYPEJVM : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 1 }
-def rUNTIMETYPECPYTHON : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 2 }
-def rUNTIMETYPENODE : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 3 }
-def rUNTIMETYPEBUN : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 4 }
-def rUNTIMETYPECRUBY : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 5 }
-def rUNTIMETYPEGO : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 6 }
-def rUNTIMETYPEDOTNETFRAMEWORK : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 7 }
-def rUNTIMETYPEDOTNETCORE : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 8 }
-def rUNTIMETYPENATIVE : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 9 }
-def rUNTIMETYPEROADRUNNER : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType := { number := 10 }
-end Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType
+namespace EnvironmentInfo.Runtime.RuntimeType
+def runtimeTypeUnspecified : EnvironmentInfo.Runtime.RuntimeType := { number := 0 }
+def runtimeTypeJvm : EnvironmentInfo.Runtime.RuntimeType := { number := 1 }
+def runtimeTypeCpython : EnvironmentInfo.Runtime.RuntimeType := { number := 2 }
+def runtimeTypeNode : EnvironmentInfo.Runtime.RuntimeType := { number := 3 }
+def runtimeTypeBun : EnvironmentInfo.Runtime.RuntimeType := { number := 4 }
+def runtimeTypeCruby : EnvironmentInfo.Runtime.RuntimeType := { number := 5 }
+def runtimeTypeGo : EnvironmentInfo.Runtime.RuntimeType := { number := 6 }
+def runtimeTypeDotnetFramework : EnvironmentInfo.Runtime.RuntimeType := { number := 7 }
+def runtimeTypeDotnetCore : EnvironmentInfo.Runtime.RuntimeType := { number := 8 }
+def runtimeTypeNative : EnvironmentInfo.Runtime.RuntimeType := { number := 9 }
+def runtimeTypeRoadrunner : EnvironmentInfo.Runtime.RuntimeType := { number := 10 }
+end EnvironmentInfo.Runtime.RuntimeType
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt where
+structure EnvironmentInfo.WindowsPlatform.Crt where
   number : Int
   deriving DecidableEq, Repr
+
+namespace EnvironmentInfo.WindowsPlatform.Crt
+def crtUnspecified : EnvironmentInfo.WindowsPlatform.Crt := { number := 0 }
+def crtUcrt : EnvironmentInfo.WindowsPlatform.Crt := { number := 1 }
+def crtMsvcrt : EnvironmentInfo.WindowsPlatform.Crt := { number := 2 }
+def crtMingw : EnvironmentInfo.WindowsPlatform.Crt := { number := 3 }
+def crtCygwin : EnvironmentInfo.WindowsPlatform.Crt := { number := 4 }
+end EnvironmentInfo.WindowsPlatform.Crt
 
-namespace Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt
-def cRTUNSPECIFIED : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt := { number := 0 }
-def cRTUCRT : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt := { number := 1 }
-def cRTMSVCRT : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt := { number := 2 }
-def cRTMINGW : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt := { number := 3 }
-def cRTCYGWIN : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt := { number := 4 }
-end Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt
+end Temporal.Api.Worker.V1
 
-structure Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverrideBehavior where
+namespace Temporal.Api.Workflow.V1
+
+structure VersioningOverride.PinnedOverrideBehavior where
   number : Int
   deriving DecidableEq, Repr
+
+namespace VersioningOverride.PinnedOverrideBehavior
+def pinnedOverrideBehaviorUnspecified : VersioningOverride.PinnedOverrideBehavior := { number := 0 }
+def pinnedOverrideBehaviorPinned : VersioningOverride.PinnedOverrideBehavior := { number := 1 }
+end VersioningOverride.PinnedOverrideBehavior
+
+end Temporal.Api.Workflow.V1
 
-namespace Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverrideBehavior
-def pINNEDOVERRIDEBEHAVIORUNSPECIFIED : Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverrideBehavior := { number := 0 }
-def pINNEDOVERRIDEBEHAVIORPINNED : Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverrideBehavior := { number := 1 }
-end Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverrideBehavior
+namespace Temporal.Server.Api.Adminservice.V1
 
-structure Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget where
+structure MigrateScheduleRequest.SchedulerTarget where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget
-def sCHEDULERTARGETUNSPECIFIED : Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget := { number := 0 }
-def sCHEDULERTARGETCHASM : Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget := { number := 1 }
-def sCHEDULERTARGETWORKFLOW : Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget := { number := 2 }
-end Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget
+namespace MigrateScheduleRequest.SchedulerTarget
+def schedulerTargetUnspecified : MigrateScheduleRequest.SchedulerTarget := { number := 0 }
+def schedulerTargetChasm : MigrateScheduleRequest.SchedulerTarget := { number := 1 }
+def schedulerTargetWorkflow : MigrateScheduleRequest.SchedulerTarget := { number := 2 }
+end MigrateScheduleRequest.SchedulerTarget
 
-structure Temporal_Server_Api_Common_V1_ApiCategory where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Common.V1
+
+structure ApiCategory where
   number : Int
   deriving DecidableEq, Repr
+
+namespace ApiCategory
+def apiCategoryUnspecified : ApiCategory := { number := 0 }
+def apiCategoryStandard : ApiCategory := { number := 1 }
+def apiCategoryLongPoll : ApiCategory := { number := 2 }
+def apiCategorySystem : ApiCategory := { number := 3 }
+end ApiCategory
 
-namespace Temporal_Server_Api_Common_V1_ApiCategory
-def aPICATEGORYUNSPECIFIED : Temporal_Server_Api_Common_V1_ApiCategory := { number := 0 }
-def aPICATEGORYSTANDARD : Temporal_Server_Api_Common_V1_ApiCategory := { number := 1 }
-def aPICATEGORYLONGPOLL : Temporal_Server_Api_Common_V1_ApiCategory := { number := 2 }
-def aPICATEGORYSYSTEM : Temporal_Server_Api_Common_V1_ApiCategory := { number := 3 }
-end Temporal_Server_Api_Common_V1_ApiCategory
+end Temporal.Server.Api.Common.V1
 
-structure Temporal_Server_Api_Enums_V1_CallbackState where
+namespace Temporal.Server.Api.Enums.V1
+
+structure CallbackState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_CallbackState
-def cALLBACKSTATEUNSPECIFIED : Temporal_Server_Api_Enums_V1_CallbackState := { number := 0 }
-def cALLBACKSTATESTANDBY : Temporal_Server_Api_Enums_V1_CallbackState := { number := 1 }
-def cALLBACKSTATESCHEDULED : Temporal_Server_Api_Enums_V1_CallbackState := { number := 2 }
-def cALLBACKSTATEBACKINGOFF : Temporal_Server_Api_Enums_V1_CallbackState := { number := 3 }
-def cALLBACKSTATEFAILED : Temporal_Server_Api_Enums_V1_CallbackState := { number := 4 }
-def cALLBACKSTATESUCCEEDED : Temporal_Server_Api_Enums_V1_CallbackState := { number := 5 }
-end Temporal_Server_Api_Enums_V1_CallbackState
+namespace CallbackState
+def callbackStateUnspecified : CallbackState := { number := 0 }
+def callbackStateStandby : CallbackState := { number := 1 }
+def callbackStateScheduled : CallbackState := { number := 2 }
+def callbackStateBackingOff : CallbackState := { number := 3 }
+def callbackStateFailed : CallbackState := { number := 4 }
+def callbackStateSucceeded : CallbackState := { number := 5 }
+end CallbackState
 
-structure Temporal_Server_Api_Enums_V1_ChecksumFlavor where
+structure ChecksumFlavor where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_ChecksumFlavor
-def cHECKSUMFLAVORUNSPECIFIED : Temporal_Server_Api_Enums_V1_ChecksumFlavor := { number := 0 }
-def cHECKSUMFLAVORIEEECRC32OVERPROTO3BINARY : Temporal_Server_Api_Enums_V1_ChecksumFlavor := { number := 1 }
-end Temporal_Server_Api_Enums_V1_ChecksumFlavor
+namespace ChecksumFlavor
+def checksumFlavorUnspecified : ChecksumFlavor := { number := 0 }
+def checksumFlavorIeeeCrc32OverProto3Binary : ChecksumFlavor := { number := 1 }
+end ChecksumFlavor
 
-structure Temporal_Server_Api_Enums_V1_ClusterMemberRole where
+structure ClusterMemberRole where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_ClusterMemberRole
-def cLUSTERMEMBERROLEUNSPECIFIED : Temporal_Server_Api_Enums_V1_ClusterMemberRole := { number := 0 }
-def cLUSTERMEMBERROLEFRONTEND : Temporal_Server_Api_Enums_V1_ClusterMemberRole := { number := 1 }
-def cLUSTERMEMBERROLEHISTORY : Temporal_Server_Api_Enums_V1_ClusterMemberRole := { number := 2 }
-def cLUSTERMEMBERROLEMATCHING : Temporal_Server_Api_Enums_V1_ClusterMemberRole := { number := 3 }
-def cLUSTERMEMBERROLEWORKER : Temporal_Server_Api_Enums_V1_ClusterMemberRole := { number := 4 }
-end Temporal_Server_Api_Enums_V1_ClusterMemberRole
+namespace ClusterMemberRole
+def clusterMemberRoleUnspecified : ClusterMemberRole := { number := 0 }
+def clusterMemberRoleFrontend : ClusterMemberRole := { number := 1 }
+def clusterMemberRoleHistory : ClusterMemberRole := { number := 2 }
+def clusterMemberRoleMatching : ClusterMemberRole := { number := 3 }
+def clusterMemberRoleWorker : ClusterMemberRole := { number := 4 }
+end ClusterMemberRole
 
-structure Temporal_Server_Api_Enums_V1_DLQOperationState where
+structure DLQOperationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_DLQOperationState
-def dLQOPERATIONSTATEUNSPECIFIED : Temporal_Server_Api_Enums_V1_DLQOperationState := { number := 0 }
-def dLQOPERATIONSTATERUNNING : Temporal_Server_Api_Enums_V1_DLQOperationState := { number := 1 }
-def dLQOPERATIONSTATECOMPLETED : Temporal_Server_Api_Enums_V1_DLQOperationState := { number := 2 }
-def dLQOPERATIONSTATEFAILED : Temporal_Server_Api_Enums_V1_DLQOperationState := { number := 3 }
-end Temporal_Server_Api_Enums_V1_DLQOperationState
+namespace DLQOperationState
+def dlqOperationStateUnspecified : DLQOperationState := { number := 0 }
+def dlqOperationStateRunning : DLQOperationState := { number := 1 }
+def dlqOperationStateCompleted : DLQOperationState := { number := 2 }
+def dlqOperationStateFailed : DLQOperationState := { number := 3 }
+end DLQOperationState
 
-structure Temporal_Server_Api_Enums_V1_DLQOperationType where
+structure DLQOperationType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_DLQOperationType
-def dLQOPERATIONTYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_DLQOperationType := { number := 0 }
-def dLQOPERATIONTYPEMERGE : Temporal_Server_Api_Enums_V1_DLQOperationType := { number := 1 }
-def dLQOPERATIONTYPEPURGE : Temporal_Server_Api_Enums_V1_DLQOperationType := { number := 2 }
-end Temporal_Server_Api_Enums_V1_DLQOperationType
+namespace DLQOperationType
+def dlqOperationTypeUnspecified : DLQOperationType := { number := 0 }
+def dlqOperationTypeMerge : DLQOperationType := { number := 1 }
+def dlqOperationTypePurge : DLQOperationType := { number := 2 }
+end DLQOperationType
 
-structure Temporal_Server_Api_Enums_V1_DeadLetterQueueType where
+structure DeadLetterQueueType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_DeadLetterQueueType
-def dEADLETTERQUEUETYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_DeadLetterQueueType := { number := 0 }
-def dEADLETTERQUEUETYPEREPLICATION : Temporal_Server_Api_Enums_V1_DeadLetterQueueType := { number := 1 }
-def dEADLETTERQUEUETYPENAMESPACE : Temporal_Server_Api_Enums_V1_DeadLetterQueueType := { number := 2 }
-end Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+namespace DeadLetterQueueType
+def deadLetterQueueTypeUnspecified : DeadLetterQueueType := { number := 0 }
+def deadLetterQueueTypeReplication : DeadLetterQueueType := { number := 1 }
+def deadLetterQueueTypeNamespace : DeadLetterQueueType := { number := 2 }
+end DeadLetterQueueType
 
-structure Temporal_Server_Api_Enums_V1_FairnessState where
+structure FairnessState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_FairnessState
-def fAIRNESSSTATEUNSPECIFIED : Temporal_Server_Api_Enums_V1_FairnessState := { number := 0 }
-def fAIRNESSSTATEV0 : Temporal_Server_Api_Enums_V1_FairnessState := { number := 1 }
-def fAIRNESSSTATEV1 : Temporal_Server_Api_Enums_V1_FairnessState := { number := 2 }
-def fAIRNESSSTATEV2 : Temporal_Server_Api_Enums_V1_FairnessState := { number := 3 }
-end Temporal_Server_Api_Enums_V1_FairnessState
+namespace FairnessState
+def fairnessStateUnspecified : FairnessState := { number := 0 }
+def fairnessStateV0 : FairnessState := { number := 1 }
+def fairnessStateV1 : FairnessState := { number := 2 }
+def fairnessStateV2 : FairnessState := { number := 3 }
+end FairnessState
 
-structure Temporal_Server_Api_Enums_V1_HealthState where
+structure HealthState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_HealthState
-def hEALTHSTATEUNSPECIFIED : Temporal_Server_Api_Enums_V1_HealthState := { number := 0 }
-def hEALTHSTATESERVING : Temporal_Server_Api_Enums_V1_HealthState := { number := 1 }
-def hEALTHSTATENOTSERVING : Temporal_Server_Api_Enums_V1_HealthState := { number := 2 }
-def hEALTHSTATEDECLINEDSERVING : Temporal_Server_Api_Enums_V1_HealthState := { number := 3 }
-def hEALTHSTATEINTERNALERROR : Temporal_Server_Api_Enums_V1_HealthState := { number := 4 }
-end Temporal_Server_Api_Enums_V1_HealthState
+namespace HealthState
+def healthStateUnspecified : HealthState := { number := 0 }
+def healthStateServing : HealthState := { number := 1 }
+def healthStateNotServing : HealthState := { number := 2 }
+def healthStateDeclinedServing : HealthState := { number := 3 }
+def healthStateInternalError : HealthState := { number := 4 }
+end HealthState
 
-structure Temporal_Server_Api_Enums_V1_NamespaceOperation where
+structure NamespaceOperation where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_NamespaceOperation
-def nAMESPACEOPERATIONUNSPECIFIED : Temporal_Server_Api_Enums_V1_NamespaceOperation := { number := 0 }
-def nAMESPACEOPERATIONCREATE : Temporal_Server_Api_Enums_V1_NamespaceOperation := { number := 1 }
-def nAMESPACEOPERATIONUPDATE : Temporal_Server_Api_Enums_V1_NamespaceOperation := { number := 2 }
-end Temporal_Server_Api_Enums_V1_NamespaceOperation
+namespace NamespaceOperation
+def namespaceOperationUnspecified : NamespaceOperation := { number := 0 }
+def namespaceOperationCreate : NamespaceOperation := { number := 1 }
+def namespaceOperationUpdate : NamespaceOperation := { number := 2 }
+end NamespaceOperation
 
-structure Temporal_Server_Api_Enums_V1_NexusOperationState where
+structure NexusOperationState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_NexusOperationState
-def nEXUSOPERATIONSTATEUNSPECIFIED : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 0 }
-def nEXUSOPERATIONSTATESCHEDULED : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 1 }
-def nEXUSOPERATIONSTATEBACKINGOFF : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 2 }
-def nEXUSOPERATIONSTATESTARTED : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 3 }
-def nEXUSOPERATIONSTATESUCCEEDED : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 4 }
-def nEXUSOPERATIONSTATEFAILED : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 5 }
-def nEXUSOPERATIONSTATECANCELED : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 6 }
-def nEXUSOPERATIONSTATETIMEDOUT : Temporal_Server_Api_Enums_V1_NexusOperationState := { number := 7 }
-end Temporal_Server_Api_Enums_V1_NexusOperationState
+namespace NexusOperationState
+def nexusOperationStateUnspecified : NexusOperationState := { number := 0 }
+def nexusOperationStateScheduled : NexusOperationState := { number := 1 }
+def nexusOperationStateBackingOff : NexusOperationState := { number := 2 }
+def nexusOperationStateStarted : NexusOperationState := { number := 3 }
+def nexusOperationStateSucceeded : NexusOperationState := { number := 4 }
+def nexusOperationStateFailed : NexusOperationState := { number := 5 }
+def nexusOperationStateCanceled : NexusOperationState := { number := 6 }
+def nexusOperationStateTimedOut : NexusOperationState := { number := 7 }
+end NexusOperationState
 
-structure Temporal_Server_Api_Enums_V1_PausedWorkflowEntityType where
+structure PausedWorkflowEntityType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_PausedWorkflowEntityType
-def pAUSEDWORKFLOWENTITYTYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_PausedWorkflowEntityType := { number := 0 }
-def pAUSEDWORKFLOWENTITYTYPEACTIVITY : Temporal_Server_Api_Enums_V1_PausedWorkflowEntityType := { number := 1 }
-def pAUSEDWORKFLOWENTITYTYPEWORKFLOW : Temporal_Server_Api_Enums_V1_PausedWorkflowEntityType := { number := 2 }
-end Temporal_Server_Api_Enums_V1_PausedWorkflowEntityType
+namespace PausedWorkflowEntityType
+def pausedWorkflowEntityTypeUnspecified : PausedWorkflowEntityType := { number := 0 }
+def pausedWorkflowEntityTypeActivity : PausedWorkflowEntityType := { number := 1 }
+def pausedWorkflowEntityTypeWorkflow : PausedWorkflowEntityType := { number := 2 }
+end PausedWorkflowEntityType
 
-structure Temporal_Server_Api_Enums_V1_PredicateType where
+structure PredicateType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_PredicateType
-def pREDICATETYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_PredicateType := { number := 0 }
-def pREDICATETYPEUNIVERSAL : Temporal_Server_Api_Enums_V1_PredicateType := { number := 1 }
-def pREDICATETYPEEMPTY : Temporal_Server_Api_Enums_V1_PredicateType := { number := 2 }
-def pREDICATETYPEAND : Temporal_Server_Api_Enums_V1_PredicateType := { number := 3 }
-def pREDICATETYPEOR : Temporal_Server_Api_Enums_V1_PredicateType := { number := 4 }
-def pREDICATETYPENOT : Temporal_Server_Api_Enums_V1_PredicateType := { number := 5 }
-def pREDICATETYPENAMESPACEID : Temporal_Server_Api_Enums_V1_PredicateType := { number := 6 }
-def pREDICATETYPETASKTYPE : Temporal_Server_Api_Enums_V1_PredicateType := { number := 7 }
-def pREDICATETYPEDESTINATION : Temporal_Server_Api_Enums_V1_PredicateType := { number := 8 }
-def pREDICATETYPEOUTBOUNDTASKGROUP : Temporal_Server_Api_Enums_V1_PredicateType := { number := 9 }
-def pREDICATETYPEOUTBOUNDTASK : Temporal_Server_Api_Enums_V1_PredicateType := { number := 10 }
-end Temporal_Server_Api_Enums_V1_PredicateType
+namespace PredicateType
+def predicateTypeUnspecified : PredicateType := { number := 0 }
+def predicateTypeUniversal : PredicateType := { number := 1 }
+def predicateTypeEmpty : PredicateType := { number := 2 }
+def predicateTypeAnd : PredicateType := { number := 3 }
+def predicateTypeOr : PredicateType := { number := 4 }
+def predicateTypeNot : PredicateType := { number := 5 }
+def predicateTypeNamespaceId : PredicateType := { number := 6 }
+def predicateTypeTaskType : PredicateType := { number := 7 }
+def predicateTypeDestination : PredicateType := { number := 8 }
+def predicateTypeOutboundTaskGroup : PredicateType := { number := 9 }
+def predicateTypeOutboundTask : PredicateType := { number := 10 }
+end PredicateType
 
-structure Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand where
+structure ReplicationFlowControlCommand where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand
-def rEPLICATIONFLOWCONTROLCOMMANDUNSPECIFIED : Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand := { number := 0 }
-def rEPLICATIONFLOWCONTROLCOMMANDRESUME : Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand := { number := 1 }
-def rEPLICATIONFLOWCONTROLCOMMANDPAUSE : Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand := { number := 2 }
-end Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand
+namespace ReplicationFlowControlCommand
+def replicationFlowControlCommandUnspecified : ReplicationFlowControlCommand := { number := 0 }
+def replicationFlowControlCommandResume : ReplicationFlowControlCommand := { number := 1 }
+def replicationFlowControlCommandPause : ReplicationFlowControlCommand := { number := 2 }
+end ReplicationFlowControlCommand
 
-structure Temporal_Server_Api_Enums_V1_ReplicationTaskType where
+structure ReplicationTaskType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_ReplicationTaskType
-def rEPLICATIONTASKTYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 0 }
-def rEPLICATIONTASKTYPENAMESPACETASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 1 }
-def rEPLICATIONTASKTYPEHISTORYTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 2 }
-def rEPLICATIONTASKTYPESYNCSHARDSTATUSTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 3 }
-def rEPLICATIONTASKTYPESYNCACTIVITYTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 4 }
-def rEPLICATIONTASKTYPEHISTORYMETADATATASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 5 }
-def rEPLICATIONTASKTYPEHISTORYV2TASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 6 }
-def rEPLICATIONTASKTYPESYNCWORKFLOWSTATETASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 7 }
-def rEPLICATIONTASKTYPETASKQUEUEUSERDATA : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 8 }
-def rEPLICATIONTASKTYPESYNCHSMTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 9 }
-def rEPLICATIONTASKTYPEBACKFILLHISTORYTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 10 }
-def rEPLICATIONTASKTYPEVERIFYVERSIONEDTRANSITIONTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 11 }
-def rEPLICATIONTASKTYPESYNCVERSIONEDTRANSITIONTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 12 }
-def rEPLICATIONTASKTYPEDELETEEXECUTIONTASK : Temporal_Server_Api_Enums_V1_ReplicationTaskType := { number := 13 }
-end Temporal_Server_Api_Enums_V1_ReplicationTaskType
+namespace ReplicationTaskType
+def replicationTaskTypeUnspecified : ReplicationTaskType := { number := 0 }
+def replicationTaskTypeNamespaceTask : ReplicationTaskType := { number := 1 }
+def replicationTaskTypeHistoryTask : ReplicationTaskType := { number := 2 }
+def replicationTaskTypeSyncShardStatusTask : ReplicationTaskType := { number := 3 }
+def replicationTaskTypeSyncActivityTask : ReplicationTaskType := { number := 4 }
+def replicationTaskTypeHistoryMetadataTask : ReplicationTaskType := { number := 5 }
+def replicationTaskTypeHistoryV2Task : ReplicationTaskType := { number := 6 }
+def replicationTaskTypeSyncWorkflowStateTask : ReplicationTaskType := { number := 7 }
+def replicationTaskTypeTaskQueueUserData : ReplicationTaskType := { number := 8 }
+def replicationTaskTypeSyncHsmTask : ReplicationTaskType := { number := 9 }
+def replicationTaskTypeBackfillHistoryTask : ReplicationTaskType := { number := 10 }
+def replicationTaskTypeVerifyVersionedTransitionTask : ReplicationTaskType := { number := 11 }
+def replicationTaskTypeSyncVersionedTransitionTask : ReplicationTaskType := { number := 12 }
+def replicationTaskTypeDeleteExecutionTask : ReplicationTaskType := { number := 13 }
+end ReplicationTaskType
 
-structure Temporal_Server_Api_Enums_V1_TaskPriority where
+structure TaskPriority where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_TaskPriority
-def tASKPRIORITYUNSPECIFIED : Temporal_Server_Api_Enums_V1_TaskPriority := { number := 0 }
-def tASKPRIORITYHIGH : Temporal_Server_Api_Enums_V1_TaskPriority := { number := 1 }
-def tASKPRIORITYLOW : Temporal_Server_Api_Enums_V1_TaskPriority := { number := 10 }
-end Temporal_Server_Api_Enums_V1_TaskPriority
+namespace TaskPriority
+def taskPriorityUnspecified : TaskPriority := { number := 0 }
+def taskPriorityHigh : TaskPriority := { number := 1 }
+def taskPriorityLow : TaskPriority := { number := 10 }
+end TaskPriority
 
-structure Temporal_Server_Api_Enums_V1_TaskSource where
+structure TaskSource where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_TaskSource
-def tASKSOURCEUNSPECIFIED : Temporal_Server_Api_Enums_V1_TaskSource := { number := 0 }
-def tASKSOURCEHISTORY : Temporal_Server_Api_Enums_V1_TaskSource := { number := 1 }
-def tASKSOURCEDBBACKLOG : Temporal_Server_Api_Enums_V1_TaskSource := { number := 2 }
-end Temporal_Server_Api_Enums_V1_TaskSource
+namespace TaskSource
+def taskSourceUnspecified : TaskSource := { number := 0 }
+def taskSourceHistory : TaskSource := { number := 1 }
+def taskSourceDbBacklog : TaskSource := { number := 2 }
+end TaskSource
 
-structure Temporal_Server_Api_Enums_V1_TaskType where
+structure TaskType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_TaskType
-def tASKTYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_TaskType := { number := 0 }
-def tASKTYPEREPLICATIONHISTORY : Temporal_Server_Api_Enums_V1_TaskType := { number := 1 }
-def tASKTYPEREPLICATIONSYNCACTIVITY : Temporal_Server_Api_Enums_V1_TaskType := { number := 2 }
-def tASKTYPETRANSFERWORKFLOWTASK : Temporal_Server_Api_Enums_V1_TaskType := { number := 3 }
-def tASKTYPETRANSFERACTIVITYTASK : Temporal_Server_Api_Enums_V1_TaskType := { number := 4 }
-def tASKTYPETRANSFERCLOSEEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 5 }
-def tASKTYPETRANSFERCANCELEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 6 }
-def tASKTYPETRANSFERSTARTCHILDEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 7 }
-def tASKTYPETRANSFERSIGNALEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 8 }
-def tASKTYPETRANSFERRESETWORKFLOW : Temporal_Server_Api_Enums_V1_TaskType := { number := 10 }
-def tASKTYPEWORKFLOWTASKTIMEOUT : Temporal_Server_Api_Enums_V1_TaskType := { number := 12 }
-def tASKTYPEACTIVITYTIMEOUT : Temporal_Server_Api_Enums_V1_TaskType := { number := 13 }
-def tASKTYPEUSERTIMER : Temporal_Server_Api_Enums_V1_TaskType := { number := 14 }
-def tASKTYPEWORKFLOWRUNTIMEOUT : Temporal_Server_Api_Enums_V1_TaskType := { number := 15 }
-def tASKTYPEDELETEHISTORYEVENT : Temporal_Server_Api_Enums_V1_TaskType := { number := 16 }
-def tASKTYPEACTIVITYRETRYTIMER : Temporal_Server_Api_Enums_V1_TaskType := { number := 17 }
-def tASKTYPEWORKFLOWBACKOFFTIMER : Temporal_Server_Api_Enums_V1_TaskType := { number := 18 }
-def tASKTYPEVISIBILITYSTARTEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 19 }
-def tASKTYPEVISIBILITYUPSERTEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 20 }
-def tASKTYPEVISIBILITYCLOSEEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 21 }
-def tASKTYPEVISIBILITYDELETEEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 22 }
-def tASKTYPETRANSFERDELETEEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 24 }
-def tASKTYPEREPLICATIONSYNCWORKFLOWSTATE : Temporal_Server_Api_Enums_V1_TaskType := { number := 25 }
-def tASKTYPEARCHIVALARCHIVEEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 26 }
-def tASKTYPESTATEMACHINEOUTBOUND : Temporal_Server_Api_Enums_V1_TaskType := { number := 27 }
-def tASKTYPESTATEMACHINETIMER : Temporal_Server_Api_Enums_V1_TaskType := { number := 28 }
-def tASKTYPEWORKFLOWEXECUTIONTIMEOUT : Temporal_Server_Api_Enums_V1_TaskType := { number := 29 }
-def tASKTYPEREPLICATIONSYNCHSM : Temporal_Server_Api_Enums_V1_TaskType := { number := 30 }
-def tASKTYPEREPLICATIONSYNCVERSIONEDTRANSITION : Temporal_Server_Api_Enums_V1_TaskType := { number := 31 }
-def tASKTYPECHASMPURE : Temporal_Server_Api_Enums_V1_TaskType := { number := 32 }
-def tASKTYPECHASM : Temporal_Server_Api_Enums_V1_TaskType := { number := 33 }
-def tASKTYPEREPLICATIONDELETEEXECUTION : Temporal_Server_Api_Enums_V1_TaskType := { number := 34 }
-def tASKTYPEWORKERCOMMANDS : Temporal_Server_Api_Enums_V1_TaskType := { number := 35 }
-def tASKTYPETIMESKIPPINGTIMER : Temporal_Server_Api_Enums_V1_TaskType := { number := 36 }
-end Temporal_Server_Api_Enums_V1_TaskType
+namespace TaskType
+def taskTypeUnspecified : TaskType := { number := 0 }
+def taskTypeReplicationHistory : TaskType := { number := 1 }
+def taskTypeReplicationSyncActivity : TaskType := { number := 2 }
+def taskTypeTransferWorkflowTask : TaskType := { number := 3 }
+def taskTypeTransferActivityTask : TaskType := { number := 4 }
+def taskTypeTransferCloseExecution : TaskType := { number := 5 }
+def taskTypeTransferCancelExecution : TaskType := { number := 6 }
+def taskTypeTransferStartChildExecution : TaskType := { number := 7 }
+def taskTypeTransferSignalExecution : TaskType := { number := 8 }
+def taskTypeTransferResetWorkflow : TaskType := { number := 10 }
+def taskTypeWorkflowTaskTimeout : TaskType := { number := 12 }
+def taskTypeActivityTimeout : TaskType := { number := 13 }
+def taskTypeUserTimer : TaskType := { number := 14 }
+def taskTypeWorkflowRunTimeout : TaskType := { number := 15 }
+def taskTypeDeleteHistoryEvent : TaskType := { number := 16 }
+def taskTypeActivityRetryTimer : TaskType := { number := 17 }
+def taskTypeWorkflowBackoffTimer : TaskType := { number := 18 }
+def taskTypeVisibilityStartExecution : TaskType := { number := 19 }
+def taskTypeVisibilityUpsertExecution : TaskType := { number := 20 }
+def taskTypeVisibilityCloseExecution : TaskType := { number := 21 }
+def taskTypeVisibilityDeleteExecution : TaskType := { number := 22 }
+def taskTypeTransferDeleteExecution : TaskType := { number := 24 }
+def taskTypeReplicationSyncWorkflowState : TaskType := { number := 25 }
+def taskTypeArchivalArchiveExecution : TaskType := { number := 26 }
+def taskTypeStateMachineOutbound : TaskType := { number := 27 }
+def taskTypeStateMachineTimer : TaskType := { number := 28 }
+def taskTypeWorkflowExecutionTimeout : TaskType := { number := 29 }
+def taskTypeReplicationSyncHsm : TaskType := { number := 30 }
+def taskTypeReplicationSyncVersionedTransition : TaskType := { number := 31 }
+def taskTypeChasmPure : TaskType := { number := 32 }
+def taskTypeChasm : TaskType := { number := 33 }
+def taskTypeReplicationDeleteExecution : TaskType := { number := 34 }
+def taskTypeWorkerCommands : TaskType := { number := 35 }
+def taskTypeTimeskippingTimer : TaskType := { number := 36 }
+end TaskType
 
-structure Temporal_Server_Api_Enums_V1_WorkflowBackoffType where
+structure WorkflowBackoffType where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_WorkflowBackoffType
-def wORKFLOWBACKOFFTYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_WorkflowBackoffType := { number := 0 }
-def wORKFLOWBACKOFFTYPERETRY : Temporal_Server_Api_Enums_V1_WorkflowBackoffType := { number := 1 }
-def wORKFLOWBACKOFFTYPECRON : Temporal_Server_Api_Enums_V1_WorkflowBackoffType := { number := 2 }
-def wORKFLOWBACKOFFTYPEDELAYSTART : Temporal_Server_Api_Enums_V1_WorkflowBackoffType := { number := 3 }
-end Temporal_Server_Api_Enums_V1_WorkflowBackoffType
+namespace WorkflowBackoffType
+def workflowBackoffTypeUnspecified : WorkflowBackoffType := { number := 0 }
+def workflowBackoffTypeRetry : WorkflowBackoffType := { number := 1 }
+def workflowBackoffTypeCron : WorkflowBackoffType := { number := 2 }
+def workflowBackoffTypeDelayStart : WorkflowBackoffType := { number := 3 }
+end WorkflowBackoffType
 
-structure Temporal_Server_Api_Enums_V1_WorkflowExecutionState where
+structure WorkflowExecutionState where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Api_Enums_V1_WorkflowExecutionState
-def wORKFLOWEXECUTIONSTATEUNSPECIFIED : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 0 }
-def wORKFLOWEXECUTIONSTATECREATED : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 1 }
-def wORKFLOWEXECUTIONSTATERUNNING : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 2 }
-def wORKFLOWEXECUTIONSTATECOMPLETED : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 3 }
-def wORKFLOWEXECUTIONSTATEZOMBIE : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 4 }
-def wORKFLOWEXECUTIONSTATEVOID : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 5 }
-def wORKFLOWEXECUTIONSTATECORRUPTED : Temporal_Server_Api_Enums_V1_WorkflowExecutionState := { number := 6 }
-end Temporal_Server_Api_Enums_V1_WorkflowExecutionState
+namespace WorkflowExecutionState
+def workflowExecutionStateUnspecified : WorkflowExecutionState := { number := 0 }
+def workflowExecutionStateCreated : WorkflowExecutionState := { number := 1 }
+def workflowExecutionStateRunning : WorkflowExecutionState := { number := 2 }
+def workflowExecutionStateCompleted : WorkflowExecutionState := { number := 3 }
+def workflowExecutionStateZombie : WorkflowExecutionState := { number := 4 }
+def workflowExecutionStateVoid : WorkflowExecutionState := { number := 5 }
+def workflowExecutionStateCorrupted : WorkflowExecutionState := { number := 6 }
+end WorkflowExecutionState
 
-structure Temporal_Server_Api_Enums_V1_WorkflowTaskType where
+structure WorkflowTaskType where
   number : Int
   deriving DecidableEq, Repr
+
+namespace WorkflowTaskType
+def workflowTaskTypeUnspecified : WorkflowTaskType := { number := 0 }
+def workflowTaskTypeNormal : WorkflowTaskType := { number := 1 }
+def workflowTaskTypeTransient : WorkflowTaskType := { number := 2 }
+def workflowTaskTypeSpeculative : WorkflowTaskType := { number := 3 }
+end WorkflowTaskType
 
-namespace Temporal_Server_Api_Enums_V1_WorkflowTaskType
-def wORKFLOWTASKTYPEUNSPECIFIED : Temporal_Server_Api_Enums_V1_WorkflowTaskType := { number := 0 }
-def wORKFLOWTASKTYPENORMAL : Temporal_Server_Api_Enums_V1_WorkflowTaskType := { number := 1 }
-def wORKFLOWTASKTYPETRANSIENT : Temporal_Server_Api_Enums_V1_WorkflowTaskType := { number := 2 }
-def wORKFLOWTASKTYPESPECULATIVE : Temporal_Server_Api_Enums_V1_WorkflowTaskType := { number := 3 }
-end Temporal_Server_Api_Enums_V1_WorkflowTaskType
+end Temporal.Server.Api.Enums.V1
 
-structure Temporal_Server_Api_Persistence_V1_BuildId_State where
+namespace Temporal.Server.Api.Persistence.V1
+
+structure BuildId.State where
   number : Int
   deriving DecidableEq, Repr
+
+namespace BuildId.State
+def stateUnspecified : BuildId.State := { number := 0 }
+def stateActive : BuildId.State := { number := 1 }
+def stateDeleted : BuildId.State := { number := 2 }
+end BuildId.State
+
+end Temporal.Server.Api.Persistence.V1
 
-namespace Temporal_Server_Api_Persistence_V1_BuildId_State
-def sTATEUNSPECIFIED : Temporal_Server_Api_Persistence_V1_BuildId_State := { number := 0 }
-def sTATEACTIVE : Temporal_Server_Api_Persistence_V1_BuildId_State := { number := 1 }
-def sTATEDELETED : Temporal_Server_Api_Persistence_V1_BuildId_State := { number := 2 }
-end Temporal_Server_Api_Persistence_V1_BuildId_State
+namespace Temporal.Server.Chasm.Lib.Activity.Proto.V1
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus where
+structure ActivityExecutionStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus
-def aCTIVITYEXECUTIONSTATUSUNSPECIFIED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 0 }
-def aCTIVITYEXECUTIONSTATUSSCHEDULED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 1 }
-def aCTIVITYEXECUTIONSTATUSSTARTED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 2 }
-def aCTIVITYEXECUTIONSTATUSCANCELREQUESTED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 3 }
-def aCTIVITYEXECUTIONSTATUSCOMPLETED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 4 }
-def aCTIVITYEXECUTIONSTATUSFAILED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 5 }
-def aCTIVITYEXECUTIONSTATUSCANCELED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 6 }
-def aCTIVITYEXECUTIONSTATUSTERMINATED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 7 }
-def aCTIVITYEXECUTIONSTATUSTIMEDOUT : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 8 }
-def aCTIVITYEXECUTIONSTATUSPAUSED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 9 }
-def aCTIVITYEXECUTIONSTATUSPAUSEREQUESTED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 10 }
-def aCTIVITYEXECUTIONSTATUSRESETREQUESTED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus := { number := 11 }
-end Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus
+namespace ActivityExecutionStatus
+def activityExecutionStatusUnspecified : ActivityExecutionStatus := { number := 0 }
+def activityExecutionStatusScheduled : ActivityExecutionStatus := { number := 1 }
+def activityExecutionStatusStarted : ActivityExecutionStatus := { number := 2 }
+def activityExecutionStatusCancelRequested : ActivityExecutionStatus := { number := 3 }
+def activityExecutionStatusCompleted : ActivityExecutionStatus := { number := 4 }
+def activityExecutionStatusFailed : ActivityExecutionStatus := { number := 5 }
+def activityExecutionStatusCanceled : ActivityExecutionStatus := { number := 6 }
+def activityExecutionStatusTerminated : ActivityExecutionStatus := { number := 7 }
+def activityExecutionStatusTimedOut : ActivityExecutionStatus := { number := 8 }
+def activityExecutionStatusPaused : ActivityExecutionStatus := { number := 9 }
+def activityExecutionStatusPauseRequested : ActivityExecutionStatus := { number := 10 }
+def activityExecutionStatusResetRequested : ActivityExecutionStatus := { number := 11 }
+end ActivityExecutionStatus
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource where
+structure ActivityRetryIntervalSource where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource
-def aCTIVITYRETRYINTERVALSOURCEUNSPECIFIED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource := { number := 0 }
-def aCTIVITYRETRYINTERVALSOURCERETRYPOLICY : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource := { number := 1 }
-def aCTIVITYRETRYINTERVALSOURCEWORKEROVERRIDE : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource := { number := 2 }
-end Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource
+namespace ActivityRetryIntervalSource
+def activityRetryIntervalSourceUnspecified : ActivityRetryIntervalSource := { number := 0 }
+def activityRetryIntervalSourceRetryPolicy : ActivityRetryIntervalSource := { number := 1 }
+def activityRetryIntervalSourceWorkerOverride : ActivityRetryIntervalSource := { number := 2 }
+end ActivityRetryIntervalSource
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason where
+structure DispatchReason where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason
-def dISPATCHREASONUNSPECIFIED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason := { number := 0 }
-def dISPATCHREASONIMMEDIATE : Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason := { number := 1 }
-def dISPATCHREASONSTARTDELAY : Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason := { number := 2 }
-def dISPATCHREASONRETRY : Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason := { number := 3 }
-end Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason
+namespace DispatchReason
+def dispatchReasonUnspecified : DispatchReason := { number := 0 }
+def dispatchReasonImmediate : DispatchReason := { number := 1 }
+def dispatchReasonStartDelay : DispatchReason := { number := 2 }
+def dispatchReasonRetry : DispatchReason := { number := 3 }
+end DispatchReason
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket where
+structure StartDelayBucket where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket
-def sTARTDELAYBUCKETUNSPECIFIED : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 0 }
-def sTARTDELAYBUCKETNONE : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 1 }
-def sTARTDELAYBUCKETLT1M : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 2 }
-def sTARTDELAYBUCKET1M10M : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 3 }
-def sTARTDELAYBUCKET10M1H : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 4 }
-def sTARTDELAYBUCKET1H6H : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 5 }
-def sTARTDELAYBUCKET6H1D : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 6 }
-def sTARTDELAYBUCKET1D7D : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 7 }
-def sTARTDELAYBUCKET7D30D : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 8 }
-def sTARTDELAYBUCKETGT30D : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket := { number := 9 }
-end Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket
+namespace StartDelayBucket
+def startDelayBucketUnspecified : StartDelayBucket := { number := 0 }
+def startDelayBucketNone : StartDelayBucket := { number := 1 }
+def startDelayBucketLt1m : StartDelayBucket := { number := 2 }
+def startDelayBucket1m10m : StartDelayBucket := { number := 3 }
+def startDelayBucket10m1h : StartDelayBucket := { number := 4 }
+def startDelayBucket1h6h : StartDelayBucket := { number := 5 }
+def startDelayBucket6h1d : StartDelayBucket := { number := 6 }
+def startDelayBucket1d7d : StartDelayBucket := { number := 7 }
+def startDelayBucket7d30d : StartDelayBucket := { number := 8 }
+def startDelayBucketGt30d : StartDelayBucket := { number := 9 }
+end StartDelayBucket
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus where
+end Temporal.Server.Chasm.Lib.Activity.Proto.V1
+
+namespace Temporal.Server.Chasm.Lib.Callbacks.Proto.V1
+
+structure CallbackStatus where
   number : Int
   deriving DecidableEq, Repr
+
+namespace CallbackStatus
+def callbackStatusUnspecified : CallbackStatus := { number := 0 }
+def callbackStatusStandby : CallbackStatus := { number := 1 }
+def callbackStatusScheduled : CallbackStatus := { number := 2 }
+def callbackStatusBackingOff : CallbackStatus := { number := 3 }
+def callbackStatusFailed : CallbackStatus := { number := 4 }
+def callbackStatusSucceeded : CallbackStatus := { number := 5 }
+end CallbackStatus
 
-namespace Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus
-def cALLBACKSTATUSUNSPECIFIED : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus := { number := 0 }
-def cALLBACKSTATUSSTANDBY : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus := { number := 1 }
-def cALLBACKSTATUSSCHEDULED : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus := { number := 2 }
-def cALLBACKSTATUSBACKINGOFF : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus := { number := 3 }
-def cALLBACKSTATUSFAILED : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus := { number := 4 }
-def cALLBACKSTATUSSUCCEEDED : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus := { number := 5 }
-end Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus
+end Temporal.Server.Chasm.Lib.Callbacks.Proto.V1
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus where
+namespace Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1
+
+structure CancellationStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus
-def cANCELLATIONSTATUSUNSPECIFIED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 0 }
-def cANCELLATIONSTATUSSCHEDULED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 1 }
-def cANCELLATIONSTATUSBACKINGOFF : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 2 }
-def cANCELLATIONSTATUSSUCCEEDED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 3 }
-def cANCELLATIONSTATUSFAILED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 4 }
-def cANCELLATIONSTATUSTIMEDOUT : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 5 }
-def cANCELLATIONSTATUSBLOCKED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus := { number := 6 }
-end Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus
+namespace CancellationStatus
+def cancellationStatusUnspecified : CancellationStatus := { number := 0 }
+def cancellationStatusScheduled : CancellationStatus := { number := 1 }
+def cancellationStatusBackingOff : CancellationStatus := { number := 2 }
+def cancellationStatusSucceeded : CancellationStatus := { number := 3 }
+def cancellationStatusFailed : CancellationStatus := { number := 4 }
+def cancellationStatusTimedOut : CancellationStatus := { number := 5 }
+def cancellationStatusBlocked : CancellationStatus := { number := 6 }
+end CancellationStatus
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus where
+structure OperationStatus where
   number : Int
   deriving DecidableEq, Repr
+
+namespace OperationStatus
+def operationStatusUnspecified : OperationStatus := { number := 0 }
+def operationStatusScheduled : OperationStatus := { number := 1 }
+def operationStatusBackingOff : OperationStatus := { number := 2 }
+def operationStatusStarted : OperationStatus := { number := 3 }
+def operationStatusSucceeded : OperationStatus := { number := 4 }
+def operationStatusFailed : OperationStatus := { number := 5 }
+def operationStatusCanceled : OperationStatus := { number := 6 }
+def operationStatusTimedOut : OperationStatus := { number := 7 }
+def operationStatusTerminated : OperationStatus := { number := 8 }
+end OperationStatus
+
+end Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1
 
-namespace Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus
-def oPERATIONSTATUSUNSPECIFIED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 0 }
-def oPERATIONSTATUSSCHEDULED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 1 }
-def oPERATIONSTATUSBACKINGOFF : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 2 }
-def oPERATIONSTATUSSTARTED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 3 }
-def oPERATIONSTATUSSUCCEEDED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 4 }
-def oPERATIONSTATUSFAILED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 5 }
-def oPERATIONSTATUSCANCELED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 6 }
-def oPERATIONSTATUSTIMEDOUT : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 7 }
-def oPERATIONSTATUSTERMINATED : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus := { number := 8 }
-end Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus
+namespace Google.Api
 
-structure Google_Api_CustomHttpPattern where
+structure CustomHttpPattern where
   kind : String
   path : String
   deriving Repr
 
-inductive Google_Api_HttpRule_Pattern where
+inductive HttpRule.Pattern where
   | notSet
   | get (value : String)
   | put (value : String)
   | post (value : String)
   | delete (value : String)
   | patch (value : String)
-  | custom (value : Google_Api_CustomHttpPattern)
+  | custom (value : CustomHttpPattern)
   deriving Repr
 
-structure Google_Api_HttpRule where
+structure HttpRule where
   selector : String
   body : String
   responseBody : String
   additionalBindings : List Temporal.Proto.MessageRef
-  pattern : Google_Api_HttpRule_Pattern
+  pattern : HttpRule.Pattern
   deriving Repr
 
-structure Google_Api_Http where
-  rules : List Google_Api_HttpRule
+structure Http where
+  rules : List HttpRule
   fullyDecodeReservedExpansion : Bool
   deriving Repr
 
-structure Google_Protobuf_Any where
+end Google.Api
+
+namespace Google.Protobuf
+
+structure Any where
   typeUrl : String
   value : Temporal.Proto.Bytes
   deriving Repr
 
-structure Google_Protobuf_BoolValue where
+structure BoolValue where
   value : Bool
   deriving Repr
 
-structure Google_Protobuf_BytesValue where
+structure BytesValue where
   value : Temporal.Proto.Bytes
   deriving Repr
 
-structure Google_Protobuf_ExtensionRangeOptions_Declaration where
+structure ExtensionRangeOptions.Declaration where
   number : Option Int
   fullName : Option String
   type : Option String
@@ -1612,24 +1660,24 @@ structure Google_Protobuf_ExtensionRangeOptions_Declaration where
   repeated : Option Bool
   deriving Repr
 
-structure Google_Protobuf_FeatureSet where
-  fieldPresence : Option Google_Protobuf_FeatureSet_FieldPresence
-  enumType : Option Google_Protobuf_FeatureSet_EnumType
-  repeatedFieldEncoding : Option Google_Protobuf_FeatureSet_RepeatedFieldEncoding
-  utf8Validation : Option Google_Protobuf_FeatureSet_Utf8Validation
-  messageEncoding : Option Google_Protobuf_FeatureSet_MessageEncoding
-  jsonFormat : Option Google_Protobuf_FeatureSet_JsonFormat
-  enforceNamingStyle : Option Google_Protobuf_FeatureSet_EnforceNamingStyle
-  defaultSymbolVisibility : Option Google_Protobuf_FeatureSet_VisibilityFeature_DefaultSymbolVisibility
+structure FeatureSet where
+  fieldPresence : Option FeatureSet.FieldPresence
+  enumType : Option FeatureSet.EnumType
+  repeatedFieldEncoding : Option FeatureSet.RepeatedFieldEncoding
+  utf8Validation : Option FeatureSet.Utf8Validation
+  messageEncoding : Option FeatureSet.MessageEncoding
+  jsonFormat : Option FeatureSet.JsonFormat
+  enforceNamingStyle : Option FeatureSet.EnforceNamingStyle
+  defaultSymbolVisibility : Option FeatureSet.VisibilityFeature.DefaultSymbolVisibility
   deriving Repr
 
-structure Google_Protobuf_UninterpretedOption_NamePart where
+structure UninterpretedOption.NamePart where
   namePart : String
   isExtension : Bool
   deriving Repr
 
-structure Google_Protobuf_UninterpretedOption where
-  name : List Google_Protobuf_UninterpretedOption_NamePart
+structure UninterpretedOption where
+  name : List UninterpretedOption.NamePart
   identifierValue : Option String
   positiveIntValue : Option Nat
   negativeIntValue : Option Int
@@ -1638,177 +1686,177 @@ structure Google_Protobuf_UninterpretedOption where
   aggregateValue : Option String
   deriving Repr
 
-structure Google_Protobuf_ExtensionRangeOptions where
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
-  declaration : List Google_Protobuf_ExtensionRangeOptions_Declaration
-  features : Option Google_Protobuf_FeatureSet
-  verification : Option Google_Protobuf_ExtensionRangeOptions_VerificationState
+structure ExtensionRangeOptions where
+  uninterpretedOption : List UninterpretedOption
+  declaration : List ExtensionRangeOptions.Declaration
+  features : Option FeatureSet
+  verification : Option ExtensionRangeOptions.VerificationState
   deriving Repr
 
-structure Google_Protobuf_DescriptorProto_ExtensionRange where
+structure DescriptorProto.ExtensionRange where
   start : Option Int
   endValue : Option Int
-  options : Option Google_Protobuf_ExtensionRangeOptions
+  options : Option ExtensionRangeOptions
   deriving Repr
 
-structure Google_Protobuf_DescriptorProto_ReservedRange where
-  start : Option Int
-  endValue : Option Int
-  deriving Repr
-
-structure Google_Protobuf_EnumDescriptorProto_EnumReservedRange where
+structure DescriptorProto.ReservedRange where
   start : Option Int
   endValue : Option Int
   deriving Repr
 
-structure Google_Protobuf_EnumOptions where
+structure EnumDescriptorProto.EnumReservedRange where
+  start : Option Int
+  endValue : Option Int
+  deriving Repr
+
+structure EnumOptions where
   allowAlias : Option Bool
   deprecated : Option Bool
   deprecatedLegacyJsonFieldConflicts : Option Bool
-  features : Option Google_Protobuf_FeatureSet
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  features : Option FeatureSet
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_FieldOptions_FeatureSupport where
-  editionIntroduced : Option Google_Protobuf_Edition
-  editionDeprecated : Option Google_Protobuf_Edition
+structure FieldOptions.FeatureSupport where
+  editionIntroduced : Option Edition
+  editionDeprecated : Option Edition
   deprecationWarning : Option String
-  editionRemoved : Option Google_Protobuf_Edition
+  editionRemoved : Option Edition
   deriving Repr
 
-structure Google_Protobuf_EnumValueOptions where
+structure EnumValueOptions where
   deprecated : Option Bool
-  features : Option Google_Protobuf_FeatureSet
+  features : Option FeatureSet
   debugRedact : Option Bool
-  featureSupport : Option Google_Protobuf_FieldOptions_FeatureSupport
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  featureSupport : Option FieldOptions.FeatureSupport
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_EnumValueDescriptorProto where
+structure EnumValueDescriptorProto where
   name : Option String
   number : Option Int
-  options : Option Google_Protobuf_EnumValueOptions
+  options : Option EnumValueOptions
   deriving Repr
 
-structure Google_Protobuf_EnumDescriptorProto where
+structure EnumDescriptorProto where
   name : Option String
-  value : List Google_Protobuf_EnumValueDescriptorProto
-  options : Option Google_Protobuf_EnumOptions
-  reservedRange : List Google_Protobuf_EnumDescriptorProto_EnumReservedRange
+  value : List EnumValueDescriptorProto
+  options : Option EnumOptions
+  reservedRange : List EnumDescriptorProto.EnumReservedRange
   reservedName : List String
-  visibility : Option Google_Protobuf_SymbolVisibility
+  visibility : Option SymbolVisibility
   deriving Repr
 
-structure Google_Protobuf_FieldOptions_EditionDefault where
-  edition : Option Google_Protobuf_Edition
+structure FieldOptions.EditionDefault where
+  edition : Option Edition
   value : Option String
   deriving Repr
 
-structure Google_Protobuf_FieldOptions where
-  ctype : Option Google_Protobuf_FieldOptions_CType
+structure FieldOptions where
+  ctype : Option FieldOptions.CType
   packed : Option Bool
-  jstype : Option Google_Protobuf_FieldOptions_JSType
+  jstype : Option FieldOptions.JSType
   lazy : Option Bool
   unverifiedLazy : Option Bool
   deprecated : Option Bool
   weak : Option Bool
   debugRedact : Option Bool
-  retention : Option Google_Protobuf_FieldOptions_OptionRetention
-  targets : List Google_Protobuf_FieldOptions_OptionTargetType
-  editionDefaults : List Google_Protobuf_FieldOptions_EditionDefault
-  features : Option Google_Protobuf_FeatureSet
-  featureSupport : Option Google_Protobuf_FieldOptions_FeatureSupport
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  retention : Option FieldOptions.OptionRetention
+  targets : List FieldOptions.OptionTargetType
+  editionDefaults : List FieldOptions.EditionDefault
+  features : Option FeatureSet
+  featureSupport : Option FieldOptions.FeatureSupport
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_FieldDescriptorProto where
+structure FieldDescriptorProto where
   name : Option String
   number : Option Int
-  label : Option Google_Protobuf_FieldDescriptorProto_Label
-  type : Option Google_Protobuf_FieldDescriptorProto_Type
+  label : Option FieldDescriptorProto.Label
+  type : Option FieldDescriptorProto.Type
   typeName : Option String
   extendee : Option String
   defaultValue : Option String
   oneofIndex : Option Int
   jsonName : Option String
-  options : Option Google_Protobuf_FieldOptions
+  options : Option FieldOptions
   proto3Optional : Option Bool
   deriving Repr
 
-structure Google_Protobuf_MessageOptions where
+structure MessageOptions where
   messageSetWireFormat : Option Bool
   noStandardDescriptorAccessor : Option Bool
   deprecated : Option Bool
   mapEntry : Option Bool
   deprecatedLegacyJsonFieldConflicts : Option Bool
-  features : Option Google_Protobuf_FeatureSet
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  features : Option FeatureSet
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_OneofOptions where
-  features : Option Google_Protobuf_FeatureSet
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+structure OneofOptions where
+  features : Option FeatureSet
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_OneofDescriptorProto where
+structure OneofDescriptorProto where
   name : Option String
-  options : Option Google_Protobuf_OneofOptions
+  options : Option OneofOptions
   deriving Repr
 
-structure Google_Protobuf_DescriptorProto where
+structure DescriptorProto where
   name : Option String
-  field : List Google_Protobuf_FieldDescriptorProto
-  extension : List Google_Protobuf_FieldDescriptorProto
+  field : List FieldDescriptorProto
+  extension : List FieldDescriptorProto
   nestedType : List Temporal.Proto.MessageRef
-  enumType : List Google_Protobuf_EnumDescriptorProto
-  extensionRange : List Google_Protobuf_DescriptorProto_ExtensionRange
-  oneofDecl : List Google_Protobuf_OneofDescriptorProto
-  options : Option Google_Protobuf_MessageOptions
-  reservedRange : List Google_Protobuf_DescriptorProto_ReservedRange
+  enumType : List EnumDescriptorProto
+  extensionRange : List DescriptorProto.ExtensionRange
+  oneofDecl : List OneofDescriptorProto
+  options : Option MessageOptions
+  reservedRange : List DescriptorProto.ReservedRange
   reservedName : List String
-  visibility : Option Google_Protobuf_SymbolVisibility
+  visibility : Option SymbolVisibility
   deriving Repr
 
-structure Google_Protobuf_DoubleValue where
+structure DoubleValue where
   value : Float
   deriving Repr
 
-structure Google_Protobuf_Duration where
+structure Duration where
   seconds : Int
   nanos : Int
   deriving Repr
 
-structure Google_Protobuf_Empty where
+structure Empty where
   unit : Unit := ()
   deriving Repr
 
-structure Google_Protobuf_FeatureSet_VisibilityFeature where
+structure FeatureSet.VisibilityFeature where
   unit : Unit := ()
   deriving Repr
 
-structure Google_Protobuf_FeatureSetDefaults_FeatureSetEditionDefault where
-  edition : Option Google_Protobuf_Edition
-  overridableFeatures : Option Google_Protobuf_FeatureSet
-  fixedFeatures : Option Google_Protobuf_FeatureSet
+structure FeatureSetDefaults.FeatureSetEditionDefault where
+  edition : Option Edition
+  overridableFeatures : Option FeatureSet
+  fixedFeatures : Option FeatureSet
   deriving Repr
 
-structure Google_Protobuf_FeatureSetDefaults where
-  defaults : List Google_Protobuf_FeatureSetDefaults_FeatureSetEditionDefault
-  minimumEdition : Option Google_Protobuf_Edition
-  maximumEdition : Option Google_Protobuf_Edition
+structure FeatureSetDefaults where
+  defaults : List FeatureSetDefaults.FeatureSetEditionDefault
+  minimumEdition : Option Edition
+  maximumEdition : Option Edition
   deriving Repr
 
-structure Google_Protobuf_FieldMask where
+structure FieldMask where
   paths : List String
   deriving Repr
 
-structure Google_Protobuf_FileOptions where
+structure FileOptions where
   javaPackage : Option String
   javaOuterClassname : Option String
   javaMultipleFiles : Option Bool
   javaGenerateEqualsAndHash : Option Bool
   javaStringCheckUtf8 : Option Bool
-  optimizeFor : Option Google_Protobuf_FileOptions_OptimizeMode
+  optimizeFor : Option FileOptions.OptimizeMode
   goPackage : Option String
   ccGenericServices : Option Bool
   javaGenericServices : Option Bool
@@ -1822,39 +1870,39 @@ structure Google_Protobuf_FileOptions where
   phpNamespace : Option String
   phpMetadataNamespace : Option String
   rubyPackage : Option String
-  features : Option Google_Protobuf_FeatureSet
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  features : Option FeatureSet
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_MethodOptions where
+structure MethodOptions where
   deprecated : Option Bool
-  idempotencyLevel : Option Google_Protobuf_MethodOptions_IdempotencyLevel
-  features : Option Google_Protobuf_FeatureSet
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  idempotencyLevel : Option MethodOptions.IdempotencyLevel
+  features : Option FeatureSet
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_MethodDescriptorProto where
+structure MethodDescriptorProto where
   name : Option String
   inputType : Option String
   outputType : Option String
-  options : Option Google_Protobuf_MethodOptions
+  options : Option MethodOptions
   clientStreaming : Option Bool
   serverStreaming : Option Bool
   deriving Repr
 
-structure Google_Protobuf_ServiceOptions where
-  features : Option Google_Protobuf_FeatureSet
+structure ServiceOptions where
+  features : Option FeatureSet
   deprecated : Option Bool
-  uninterpretedOption : List Google_Protobuf_UninterpretedOption
+  uninterpretedOption : List UninterpretedOption
   deriving Repr
 
-structure Google_Protobuf_ServiceDescriptorProto where
+structure ServiceDescriptorProto where
   name : Option String
-  method : List Google_Protobuf_MethodDescriptorProto
-  options : Option Google_Protobuf_ServiceOptions
+  method : List MethodDescriptorProto
+  options : Option ServiceOptions
   deriving Repr
 
-structure Google_Protobuf_SourceCodeInfo_Location where
+structure SourceCodeInfo.Location where
   path : List Int
   span : List Int
   leadingComments : Option String
@@ -1862,232 +1910,256 @@ structure Google_Protobuf_SourceCodeInfo_Location where
   leadingDetachedComments : List String
   deriving Repr
 
-structure Google_Protobuf_SourceCodeInfo where
-  location : List Google_Protobuf_SourceCodeInfo_Location
+structure SourceCodeInfo where
+  location : List SourceCodeInfo.Location
   deriving Repr
 
-structure Google_Protobuf_FileDescriptorProto where
+structure FileDescriptorProto where
   name : Option String
   package : Option String
   dependency : List String
   publicDependency : List Int
   weakDependency : List Int
   optionDependency : List String
-  messageType : List Google_Protobuf_DescriptorProto
-  enumType : List Google_Protobuf_EnumDescriptorProto
-  service : List Google_Protobuf_ServiceDescriptorProto
-  extension : List Google_Protobuf_FieldDescriptorProto
-  options : Option Google_Protobuf_FileOptions
-  sourceCodeInfo : Option Google_Protobuf_SourceCodeInfo
+  messageType : List DescriptorProto
+  enumType : List EnumDescriptorProto
+  service : List ServiceDescriptorProto
+  extension : List FieldDescriptorProto
+  options : Option FileOptions
+  sourceCodeInfo : Option SourceCodeInfo
   syntaxValue : Option String
-  edition : Option Google_Protobuf_Edition
+  edition : Option Edition
   deriving Repr
 
-structure Google_Protobuf_FileDescriptorSet where
-  file : List Google_Protobuf_FileDescriptorProto
+structure FileDescriptorSet where
+  file : List FileDescriptorProto
   deriving Repr
 
-structure Google_Protobuf_FloatValue where
+structure FloatValue where
   value : Float
   deriving Repr
 
-structure Google_Protobuf_GeneratedCodeInfo_Annotation where
+structure GeneratedCodeInfo.Annotation where
   path : List Int
   sourceFile : Option String
   begin : Option Int
   endValue : Option Int
-  semantic : Option Google_Protobuf_GeneratedCodeInfo_Annotation_Semantic
+  semantic : Option GeneratedCodeInfo.Annotation.Semantic
   deriving Repr
 
-structure Google_Protobuf_GeneratedCodeInfo where
-  annotation : List Google_Protobuf_GeneratedCodeInfo_Annotation
+structure GeneratedCodeInfo where
+  annotation : List GeneratedCodeInfo.Annotation
   deriving Repr
 
-structure Google_Protobuf_Int32Value where
+structure Int32Value where
   value : Int
   deriving Repr
 
-structure Google_Protobuf_Int64Value where
+structure Int64Value where
   value : Int
   deriving Repr
 
-structure Google_Protobuf_StringValue where
+structure StringValue where
   value : String
   deriving Repr
 
-structure Google_Protobuf_Timestamp where
+structure Timestamp where
   seconds : Int
   nanos : Int
   deriving Repr
 
-structure Google_Protobuf_UInt32Value where
+structure UInt32Value where
   value : Nat
   deriving Repr
 
-structure Google_Protobuf_UInt64Value where
+structure UInt64Value where
   value : Nat
   deriving Repr
 
-structure Nexusannotations_V1_OperationOptions where
+end Google.Protobuf
+
+namespace Nexusannotations.V1
+
+structure OperationOptions where
   name : String
   tags : List String
   deriving Repr
 
-structure Nexusannotations_V1_ServiceOptions where
+structure ServiceOptions where
   name : String
   tags : List String
   deriving Repr
 
-structure Temporal_Api_Common_V1_ActivityType where
+end Nexusannotations.V1
+
+namespace Temporal.Api.Common.V1
+
+structure ActivityType where
   name : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_Payload_ExternalPayloadDetails where
+structure Payload.ExternalPayloadDetails where
   sizeBytes : Int
   deriving Repr
 
-structure Temporal_Api_Common_V1_Payload where
+structure Payload where
   metadata : List (String × Temporal.Proto.Bytes)
   data : Temporal.Proto.Bytes
-  externalPayloads : List Temporal_Api_Common_V1_Payload_ExternalPayloadDetails
+  externalPayloads : List Payload.ExternalPayloadDetails
   deriving Repr
 
-structure Temporal_Api_Common_V1_Header where
-  fields : List (String × Temporal_Api_Common_V1_Payload)
+structure Header where
+  fields : List (String × Payload)
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_Activity where
+structure Link.Activity where
   namespaceValue : String
   activityId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_BatchJob where
+structure Link.BatchJob where
   jobId : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_NexusOperation where
+structure Link.NexusOperation where
   namespaceValue : String
   operationId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_Workflow where
+structure Link.Workflow where
   namespaceValue : String
   workflowId : String
   runId : String
   reason : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_WorkflowEvent_EventReference where
+structure Link.WorkflowEvent.EventReference where
   eventId : Int
-  eventType : Temporal_Api_Enums_V1_EventType
+  eventType : Temporal.Api.Enums.V1.EventType
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_WorkflowEvent_RequestIdReference where
+structure Link.WorkflowEvent.RequestIdReference where
   requestId : String
-  eventType : Temporal_Api_Enums_V1_EventType
+  eventType : Temporal.Api.Enums.V1.EventType
   deriving Repr
 
-inductive Temporal_Api_Common_V1_Link_WorkflowEvent_Reference where
+inductive Link.WorkflowEvent.Reference where
   | notSet
-  | eventRef (value : Temporal_Api_Common_V1_Link_WorkflowEvent_EventReference)
-  | requestIdRef (value : Temporal_Api_Common_V1_Link_WorkflowEvent_RequestIdReference)
+  | eventRef (value : Link.WorkflowEvent.EventReference)
+  | requestIdRef (value : Link.WorkflowEvent.RequestIdReference)
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link_WorkflowEvent where
+structure Link.WorkflowEvent where
   namespaceValue : String
   workflowId : String
   runId : String
-  reference : Temporal_Api_Common_V1_Link_WorkflowEvent_Reference
+  reference : Link.WorkflowEvent.Reference
   deriving Repr
 
-inductive Temporal_Api_Common_V1_Link_Variant where
+inductive Link.Variant where
   | notSet
-  | workflowEvent (value : Temporal_Api_Common_V1_Link_WorkflowEvent)
-  | batchJob (value : Temporal_Api_Common_V1_Link_BatchJob)
-  | activity (value : Temporal_Api_Common_V1_Link_Activity)
-  | nexusOperation (value : Temporal_Api_Common_V1_Link_NexusOperation)
-  | workflow (value : Temporal_Api_Common_V1_Link_Workflow)
+  | workflowEvent (value : Link.WorkflowEvent)
+  | batchJob (value : Link.BatchJob)
+  | activity (value : Link.Activity)
+  | nexusOperation (value : Link.NexusOperation)
+  | workflow (value : Link.Workflow)
   deriving Repr
 
-structure Temporal_Api_Common_V1_Link where
-  variant : Temporal_Api_Common_V1_Link_Variant
+structure Link where
+  variant : Link.Variant
   deriving Repr
 
-structure Temporal_Api_Common_V1_Payloads where
-  payloads : List Temporal_Api_Common_V1_Payload
+structure Payloads where
+  payloads : List Payload
   deriving Repr
 
-structure Temporal_Api_Common_V1_Priority where
+structure Priority where
   priorityKey : Int
   fairnessKey : String
   fairnessWeight : Float
   deriving Repr
 
-structure Temporal_Api_Common_V1_RetryPolicy where
-  initialInterval : Option Google_Protobuf_Duration
+structure RetryPolicy where
+  initialInterval : Option Google.Protobuf.Duration
   backoffCoefficient : Float
-  maximumInterval : Option Google_Protobuf_Duration
+  maximumInterval : Option Google.Protobuf.Duration
   maximumAttempts : Int
   nonRetryableErrorTypes : List String
   deriving Repr
 
-structure Temporal_Api_Common_V1_SearchAttributes where
-  indexedFields : List (String × Temporal_Api_Common_V1_Payload)
+structure SearchAttributes where
+  indexedFields : List (String × Payload)
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_WorkerDeploymentVersion where
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Deployment.V1
+
+structure WorkerDeploymentVersion where
   buildId : String
   deploymentName : String
   deriving Repr
 
-structure Temporal_Api_Failure_V1_ActivityFailureInfo where
+end Temporal.Api.Deployment.V1
+
+namespace Temporal.Api.Failure.V1
+
+structure ActivityFailureInfo where
   scheduledEventId : Int
   startedEventId : Int
   identity : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
+  activityType : Option Temporal.Api.Common.V1.ActivityType
   activityId : String
-  retryState : Temporal_Api_Enums_V1_RetryState
+  retryState : Temporal.Api.Enums.V1.RetryState
   deriving Repr
 
-structure Temporal_Api_Failure_V1_ApplicationFailureInfo where
+structure ApplicationFailureInfo where
   type : String
   nonRetryable : Bool
-  details : Option Temporal_Api_Common_V1_Payloads
-  nextRetryDelay : Option Google_Protobuf_Duration
-  category : Temporal_Api_Enums_V1_ApplicationErrorCategory
+  details : Option Temporal.Api.Common.V1.Payloads
+  nextRetryDelay : Option Google.Protobuf.Duration
+  category : Temporal.Api.Enums.V1.ApplicationErrorCategory
   deriving Repr
 
-structure Temporal_Api_Failure_V1_CanceledFailureInfo where
-  details : Option Temporal_Api_Common_V1_Payloads
+structure CanceledFailureInfo where
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_WorkflowExecution where
+end Temporal.Api.Failure.V1
+
+namespace Temporal.Api.Common.V1
+
+structure WorkflowExecution where
   workflowId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_WorkflowType where
+structure WorkflowType where
   name : String
   deriving Repr
 
-structure Temporal_Api_Failure_V1_ChildWorkflowExecutionFailureInfo where
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Failure.V1
+
+structure ChildWorkflowExecutionFailureInfo where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   initiatedEventId : Int
   startedEventId : Int
-  retryState : Temporal_Api_Enums_V1_RetryState
+  retryState : Temporal.Api.Enums.V1.RetryState
   deriving Repr
 
-structure Temporal_Api_Failure_V1_NexusHandlerFailureInfo where
+structure NexusHandlerFailureInfo where
   type : String
-  retryBehavior : Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior
+  retryBehavior : Temporal.Api.Enums.V1.NexusHandlerErrorRetryBehavior
   deriving Repr
 
-structure Temporal_Api_Failure_V1_NexusOperationFailureInfo where
+structure NexusOperationFailureInfo where
   scheduledEventId : Int
   endpoint : String
   service : String
@@ -2096,467 +2168,543 @@ structure Temporal_Api_Failure_V1_NexusOperationFailureInfo where
   operationToken : String
   deriving Repr
 
-structure Temporal_Api_Failure_V1_ResetWorkflowFailureInfo where
-  lastHeartbeatDetails : Option Temporal_Api_Common_V1_Payloads
+structure ResetWorkflowFailureInfo where
+  lastHeartbeatDetails : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-structure Temporal_Api_Failure_V1_ServerFailureInfo where
+structure ServerFailureInfo where
   nonRetryable : Bool
   deriving Repr
 
-structure Temporal_Api_Failure_V1_TerminatedFailureInfo where
+structure TerminatedFailureInfo where
   identity : String
   deriving Repr
 
-structure Temporal_Api_Failure_V1_TimeoutFailureInfo where
-  timeoutType : Temporal_Api_Enums_V1_TimeoutType
-  lastHeartbeatDetails : Option Temporal_Api_Common_V1_Payloads
+structure TimeoutFailureInfo where
+  timeoutType : Temporal.Api.Enums.V1.TimeoutType
+  lastHeartbeatDetails : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-inductive Temporal_Api_Failure_V1_Failure_FailureInfo where
+inductive Failure.FailureInfo where
   | notSet
-  | applicationFailureInfo (value : Temporal_Api_Failure_V1_ApplicationFailureInfo)
-  | timeoutFailureInfo (value : Temporal_Api_Failure_V1_TimeoutFailureInfo)
-  | canceledFailureInfo (value : Temporal_Api_Failure_V1_CanceledFailureInfo)
-  | terminatedFailureInfo (value : Temporal_Api_Failure_V1_TerminatedFailureInfo)
-  | serverFailureInfo (value : Temporal_Api_Failure_V1_ServerFailureInfo)
-  | resetWorkflowFailureInfo (value : Temporal_Api_Failure_V1_ResetWorkflowFailureInfo)
-  | activityFailureInfo (value : Temporal_Api_Failure_V1_ActivityFailureInfo)
-  | childWorkflowExecutionFailureInfo (value : Temporal_Api_Failure_V1_ChildWorkflowExecutionFailureInfo)
-  | nexusOperationExecutionFailureInfo (value : Temporal_Api_Failure_V1_NexusOperationFailureInfo)
-  | nexusHandlerFailureInfo (value : Temporal_Api_Failure_V1_NexusHandlerFailureInfo)
+  | applicationFailureInfo (value : ApplicationFailureInfo)
+  | timeoutFailureInfo (value : TimeoutFailureInfo)
+  | canceledFailureInfo (value : CanceledFailureInfo)
+  | terminatedFailureInfo (value : TerminatedFailureInfo)
+  | serverFailureInfo (value : ServerFailureInfo)
+  | resetWorkflowFailureInfo (value : ResetWorkflowFailureInfo)
+  | activityFailureInfo (value : ActivityFailureInfo)
+  | childWorkflowExecutionFailureInfo (value : ChildWorkflowExecutionFailureInfo)
+  | nexusOperationExecutionFailureInfo (value : NexusOperationFailureInfo)
+  | nexusHandlerFailureInfo (value : NexusHandlerFailureInfo)
   deriving Repr
 
-structure Temporal_Api_Failure_V1_Failure where
+structure Failure where
   message : String
   source : String
   stackTrace : String
-  encodedAttributes : Option Temporal_Api_Common_V1_Payload
+  encodedAttributes : Option Temporal.Api.Common.V1.Payload
   cause : Option Temporal.Proto.MessageRef
-  failureInfo : Temporal_Api_Failure_V1_Failure_FailureInfo
+  failureInfo : Failure.FailureInfo
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_UserMetadata where
-  summary : Option Temporal_Api_Common_V1_Payload
-  details : Option Temporal_Api_Common_V1_Payload
+end Temporal.Api.Failure.V1
+
+namespace Temporal.Api.Sdk.V1
+
+structure UserMetadata where
+  summary : Option Temporal.Api.Common.V1.Payload
+  details : Option Temporal.Api.Common.V1.Payload
   deriving Repr
 
-structure Temporal_Api_Activity_V1_ActivityExecutionInfo where
+end Temporal.Api.Sdk.V1
+
+namespace Temporal.Api.Activity.V1
+
+structure ActivityExecutionInfo where
   activityId : String
   runId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  status : Temporal_Api_Enums_V1_ActivityExecutionStatus
-  runState : Temporal_Api_Enums_V1_PendingActivityState
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  status : Temporal.Api.Enums.V1.ActivityExecutionStatus
+  runState : Temporal.Api.Enums.V1.PendingActivityState
   taskQueue : String
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
-  heartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  lastHeartbeatTime : Option Google_Protobuf_Timestamp
-  lastStartedTime : Option Google_Protobuf_Timestamp
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
+  heartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  lastHeartbeatTime : Option Google.Protobuf.Timestamp
+  lastStartedTime : Option Google.Protobuf.Timestamp
   attempt : Int
-  executionDuration : Option Google_Protobuf_Duration
-  scheduleTime : Option Google_Protobuf_Timestamp
-  expirationTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  lastFailure : Option Temporal_Api_Failure_V1_Failure
+  executionDuration : Option Google.Protobuf.Duration
+  scheduleTime : Option Google.Protobuf.Timestamp
+  expirationTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  lastFailure : Option Temporal.Api.Failure.V1.Failure
   lastWorkerIdentity : String
-  currentRetryInterval : Option Google_Protobuf_Duration
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
-  lastDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  priority : Option Temporal_Api_Common_V1_Priority
+  currentRetryInterval : Option Google.Protobuf.Duration
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
+  lastDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  priority : Option Temporal.Api.Common.V1.Priority
   stateTransitionCount : Int
   stateSizeBytes : Int
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  header : Option Temporal_Api_Common_V1_Header
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
   canceledReason : String
-  links : List Temporal_Api_Common_V1_Link
+  links : List Temporal.Api.Common.V1.Link
   totalHeartbeatCount : Int
   sdkName : String
   sdkVersion : String
-  startDelay : Option Google_Protobuf_Duration
-  executionTime : Option Google_Protobuf_Timestamp
+  startDelay : Option Google.Protobuf.Duration
+  executionTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Activity_V1_ActivityExecutionListInfo where
+structure ActivityExecutionListInfo where
   activityId : String
   runId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  scheduleTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Api_Enums_V1_ActivityExecutionStatus
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  scheduleTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  status : Temporal.Api.Enums.V1.ActivityExecutionStatus
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   taskQueue : String
   stateTransitionCount : Int
   stateSizeBytes : Int
-  executionDuration : Option Google_Protobuf_Duration
-  executionTime : Option Google_Protobuf_Timestamp
+  executionDuration : Option Google.Protobuf.Duration
+  executionTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-inductive Temporal_Api_Activity_V1_ActivityExecutionOutcome_Value where
+inductive ActivityExecutionOutcome.Value where
   | notSet
-  | result (value : Temporal_Api_Common_V1_Payloads)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | result (value : Temporal.Api.Common.V1.Payloads)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Api_Activity_V1_ActivityExecutionOutcome where
-  retryState : Temporal_Api_Enums_V1_RetryState
-  value : Temporal_Api_Activity_V1_ActivityExecutionOutcome_Value
+structure ActivityExecutionOutcome where
+  retryState : Temporal.Api.Enums.V1.RetryState
+  value : ActivityExecutionOutcome.Value
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueue where
+end Temporal.Api.Activity.V1
+
+namespace Temporal.Api.Taskqueue.V1
+
+structure TaskQueue where
   name : String
-  kind : Temporal_Api_Enums_V1_TaskQueueKind
+  kind : Temporal.Api.Enums.V1.TaskQueueKind
   normalName : String
   deriving Repr
 
-structure Temporal_Api_Activity_V1_ActivityOptions where
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
-  priority : Option Temporal_Api_Common_V1_Priority
-  startDelay : Option Google_Protobuf_Duration
+end Temporal.Api.Taskqueue.V1
+
+namespace Temporal.Api.Activity.V1
+
+structure ActivityOptions where
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
+  priority : Option Temporal.Api.Common.V1.Priority
+  startDelay : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Activity_V1_CallbackInfo_ActivityClosed where
+structure CallbackInfo.ActivityClosed where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Activity_V1_CallbackInfo_Trigger_Variant where
+inductive CallbackInfo.Trigger.Variant where
   | notSet
-  | activityClosed (value : Temporal_Api_Activity_V1_CallbackInfo_ActivityClosed)
+  | activityClosed (value : CallbackInfo.ActivityClosed)
   deriving Repr
 
-structure Temporal_Api_Activity_V1_CallbackInfo_Trigger where
-  variant : Temporal_Api_Activity_V1_CallbackInfo_Trigger_Variant
+structure CallbackInfo.Trigger where
+  variant : CallbackInfo.Trigger.Variant
   deriving Repr
 
-structure Temporal_Api_Common_V1_Callback_Internal where
+end Temporal.Api.Activity.V1
+
+namespace Temporal.Api.Common.V1
+
+structure Callback.Internal where
   data : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Common_V1_Callback_Nexus where
+structure Callback.Nexus where
   url : String
   header : List (String × String)
   deriving Repr
 
-inductive Temporal_Api_Common_V1_Callback_Variant where
+inductive Callback.Variant where
   | notSet
-  | nexus (value : Temporal_Api_Common_V1_Callback_Nexus)
-  | internal (value : Temporal_Api_Common_V1_Callback_Internal)
+  | nexus (value : Callback.Nexus)
+  | internal (value : Callback.Internal)
   deriving Repr
 
-structure Temporal_Api_Common_V1_Callback where
-  links : List Temporal_Api_Common_V1_Link
-  variant : Temporal_Api_Common_V1_Callback_Variant
+structure Callback where
+  links : List Link
+  variant : Callback.Variant
   deriving Repr
 
-structure Temporal_Api_Callback_V1_CallbackInfo where
-  callback : Option Temporal_Api_Common_V1_Callback
-  registrationTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Api_Enums_V1_CallbackState
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Callback.V1
+
+structure CallbackInfo where
+  callback : Option Temporal.Api.Common.V1.Callback
+  registrationTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Api.Enums.V1.CallbackState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   blockedReason : String
   deriving Repr
 
-structure Temporal_Api_Activity_V1_CallbackInfo where
-  trigger : Option Temporal_Api_Activity_V1_CallbackInfo_Trigger
-  info : Option Temporal_Api_Callback_V1_CallbackInfo
+end Temporal.Api.Callback.V1
+
+namespace Temporal.Api.Activity.V1
+
+structure CallbackInfo where
+  trigger : Option CallbackInfo.Trigger
+  info : Option Temporal.Api.Callback.V1.CallbackInfo
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationCancelActivities where
+end Temporal.Api.Activity.V1
+
+namespace Temporal.Api.Batch.V1
+
+structure BatchOperationCancelActivities where
   identity : String
   reason : String
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationCancellation where
+structure BatchOperationCancellation where
   identity : String
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationDeleteActivities where
+structure BatchOperationDeleteActivities where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationDeletion where
+structure BatchOperationDeletion where
   identity : String
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationInfo where
+structure BatchOperationInfo where
   jobId : String
-  state : Temporal_Api_Enums_V1_BatchOperationState
-  startTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  operationType : Temporal_Api_Enums_V1_BatchOperationType
+  state : Temporal.Api.Enums.V1.BatchOperationState
+  startTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  operationType : Temporal.Api.Enums.V1.BatchOperationType
   deriving Repr
 
-inductive Temporal_Api_Common_V1_ResetOptions_Target where
+end Temporal.Api.Batch.V1
+
+namespace Temporal.Api.Common.V1
+
+inductive ResetOptions.Target where
   | notSet
-  | firstWorkflowTask (value : Google_Protobuf_Empty)
-  | lastWorkflowTask (value : Google_Protobuf_Empty)
+  | firstWorkflowTask (value : Google.Protobuf.Empty)
+  | lastWorkflowTask (value : Google.Protobuf.Empty)
   | workflowTaskId (value : Int)
   | buildId (value : String)
   deriving Repr
 
-structure Temporal_Api_Common_V1_ResetOptions where
-  resetReapplyType : Temporal_Api_Enums_V1_ResetReapplyType
+structure ResetOptions where
+  resetReapplyType : Temporal.Api.Enums.V1.ResetReapplyType
   currentRunOnly : Bool
-  resetReapplyExcludeTypes : List Temporal_Api_Enums_V1_ResetReapplyExcludeType
-  target : Temporal_Api_Common_V1_ResetOptions_Target
+  resetReapplyExcludeTypes : List Temporal.Api.Enums.V1.ResetReapplyExcludeType
+  target : ResetOptions.Target
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PostResetOperation_SignalWorkflow where
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Workflow.V1
+
+structure PostResetOperation.SignalWorkflow where
   signalName : String
-  input : Option Temporal_Api_Common_V1_Payloads
-  header : Option Temporal_Api_Common_V1_Header
-  links : List Temporal_Api_Common_V1_Link
+  input : Option Temporal.Api.Common.V1.Payloads
+  header : Option Temporal.Api.Common.V1.Header
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Common_V1_FastForwardConfig where
+end Temporal.Api.Workflow.V1
+
+namespace Temporal.Api.Common.V1
+
+structure FastForwardConfig where
   id : String
-  duration : Option Google_Protobuf_Duration
+  duration : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Common_V1_TimeSkippingConfig where
+structure TimeSkippingConfig where
   enabled : Bool
-  fastForwardConfig : Option Temporal_Api_Common_V1_FastForwardConfig
+  fastForwardConfig : Option FastForwardConfig
   disablePropagation : Bool
   maxSessionSkipCount : Int
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_Deployment where
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Deployment.V1
+
+structure Deployment where
   seriesName : String
   buildId : String
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_VersioningOverride_OneTimeOverride where
-  targetDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+end Temporal.Api.Deployment.V1
+
+namespace Temporal.Api.Workflow.V1
+
+structure VersioningOverride.OneTimeOverride where
+  targetDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverride where
-  behavior : Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverrideBehavior
-  version : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure VersioningOverride.PinnedOverride where
+  behavior : VersioningOverride.PinnedOverrideBehavior
+  version : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-inductive Temporal_Api_Workflow_V1_VersioningOverride_Override where
+inductive VersioningOverride.Override where
   | notSet
-  | pinned (value : Temporal_Api_Workflow_V1_VersioningOverride_PinnedOverride)
+  | pinned (value : VersioningOverride.PinnedOverride)
   | autoUpgrade (value : Bool)
-  | oneTime (value : Temporal_Api_Workflow_V1_VersioningOverride_OneTimeOverride)
+  | oneTime (value : VersioningOverride.OneTimeOverride)
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_VersioningOverride where
-  behavior : Temporal_Api_Enums_V1_VersioningBehavior
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
+structure VersioningOverride where
+  behavior : Temporal.Api.Enums.V1.VersioningBehavior
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
   pinnedVersion : String
-  override : Temporal_Api_Workflow_V1_VersioningOverride_Override
+  override : VersioningOverride.Override
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_WorkflowExecutionOptions where
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
-  priority : Option Temporal_Api_Common_V1_Priority
-  timeSkippingConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
+structure WorkflowExecutionOptions where
+  versioningOverride : Option VersioningOverride
+  priority : Option Temporal.Api.Common.V1.Priority
+  timeSkippingConfig : Option Temporal.Api.Common.V1.TimeSkippingConfig
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PostResetOperation_UpdateWorkflowOptions where
-  workflowExecutionOptions : Option Temporal_Api_Workflow_V1_WorkflowExecutionOptions
-  updateMask : Option Google_Protobuf_FieldMask
+structure PostResetOperation.UpdateWorkflowOptions where
+  workflowExecutionOptions : Option WorkflowExecutionOptions
+  updateMask : Option Google.Protobuf.FieldMask
   deriving Repr
 
-inductive Temporal_Api_Workflow_V1_PostResetOperation_Variant where
+inductive PostResetOperation.Variant where
   | notSet
-  | signalWorkflow (value : Temporal_Api_Workflow_V1_PostResetOperation_SignalWorkflow)
-  | updateWorkflowOptions (value : Temporal_Api_Workflow_V1_PostResetOperation_UpdateWorkflowOptions)
+  | signalWorkflow (value : PostResetOperation.SignalWorkflow)
+  | updateWorkflowOptions (value : PostResetOperation.UpdateWorkflowOptions)
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PostResetOperation where
-  variant : Temporal_Api_Workflow_V1_PostResetOperation_Variant
+structure PostResetOperation where
+  variant : PostResetOperation.Variant
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationReset where
+end Temporal.Api.Workflow.V1
+
+namespace Temporal.Api.Batch.V1
+
+structure BatchOperationReset where
   identity : String
-  options : Option Temporal_Api_Common_V1_ResetOptions
-  resetType : Temporal_Api_Enums_V1_ResetType
-  resetReapplyType : Temporal_Api_Enums_V1_ResetReapplyType
-  postResetOperations : List Temporal_Api_Workflow_V1_PostResetOperation
+  options : Option Temporal.Api.Common.V1.ResetOptions
+  resetType : Temporal.Api.Enums.V1.ResetType
+  resetReapplyType : Temporal.Api.Enums.V1.ResetReapplyType
+  postResetOperations : List Temporal.Api.Workflow.V1.PostResetOperation
   deriving Repr
 
-inductive Temporal_Api_Batch_V1_BatchOperationResetActivities_Activity where
+inductive BatchOperationResetActivities.Activity where
   | notSet
   | type (value : String)
   | matchAll (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationResetActivities where
+structure BatchOperationResetActivities where
   identity : String
   resetAttempts : Bool
   resetHeartbeat : Bool
   keepPaused : Bool
-  jitter : Option Google_Protobuf_Duration
+  jitter : Option Google.Protobuf.Duration
   restoreOriginalOptions : Bool
-  activity : Temporal_Api_Batch_V1_BatchOperationResetActivities_Activity
+  activity : BatchOperationResetActivities.Activity
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationSignal where
+structure BatchOperationSignal where
   signal : String
-  input : Option Temporal_Api_Common_V1_Payloads
-  header : Option Temporal_Api_Common_V1_Header
+  input : Option Temporal.Api.Common.V1.Payloads
+  header : Option Temporal.Api.Common.V1.Header
   identity : String
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationTerminateActivities where
+structure BatchOperationTerminateActivities where
   identity : String
   reason : String
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationTermination where
-  details : Option Temporal_Api_Common_V1_Payloads
+structure BatchOperationTermination where
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   deriving Repr
 
-structure Temporal_Api_Rules_V1_WorkflowRuleAction_ActionActivityPause where
+end Temporal.Api.Batch.V1
+
+namespace Temporal.Api.Rules.V1
+
+structure WorkflowRuleAction.ActionActivityPause where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Rules_V1_WorkflowRuleAction_Variant where
+inductive WorkflowRuleAction.Variant where
   | notSet
-  | activityPause (value : Temporal_Api_Rules_V1_WorkflowRuleAction_ActionActivityPause)
+  | activityPause (value : WorkflowRuleAction.ActionActivityPause)
   deriving Repr
 
-structure Temporal_Api_Rules_V1_WorkflowRuleAction where
-  variant : Temporal_Api_Rules_V1_WorkflowRuleAction_Variant
+structure WorkflowRuleAction where
+  variant : WorkflowRuleAction.Variant
   deriving Repr
 
-structure Temporal_Api_Rules_V1_WorkflowRuleSpec_ActivityStartingTrigger where
+structure WorkflowRuleSpec.ActivityStartingTrigger where
   predicate : String
   deriving Repr
 
-inductive Temporal_Api_Rules_V1_WorkflowRuleSpec_Trigger where
+inductive WorkflowRuleSpec.Trigger where
   | notSet
-  | activityStart (value : Temporal_Api_Rules_V1_WorkflowRuleSpec_ActivityStartingTrigger)
+  | activityStart (value : WorkflowRuleSpec.ActivityStartingTrigger)
   deriving Repr
 
-structure Temporal_Api_Rules_V1_WorkflowRuleSpec where
+structure WorkflowRuleSpec where
   id : String
   visibilityQuery : String
-  actions : List Temporal_Api_Rules_V1_WorkflowRuleAction
-  expirationTime : Option Google_Protobuf_Timestamp
-  trigger : Temporal_Api_Rules_V1_WorkflowRuleSpec_Trigger
+  actions : List WorkflowRuleAction
+  expirationTime : Option Google.Protobuf.Timestamp
+  trigger : WorkflowRuleSpec.Trigger
   deriving Repr
 
-inductive Temporal_Api_Batch_V1_BatchOperationTriggerWorkflowRule_Rule where
+end Temporal.Api.Rules.V1
+
+namespace Temporal.Api.Batch.V1
+
+inductive BatchOperationTriggerWorkflowRule.Rule where
   | notSet
   | id (value : String)
-  | spec (value : Temporal_Api_Rules_V1_WorkflowRuleSpec)
+  | spec (value : Temporal.Api.Rules.V1.WorkflowRuleSpec)
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationTriggerWorkflowRule where
+structure BatchOperationTriggerWorkflowRule where
   identity : String
-  rule : Temporal_Api_Batch_V1_BatchOperationTriggerWorkflowRule_Rule
+  rule : BatchOperationTriggerWorkflowRule.Rule
   deriving Repr
 
-inductive Temporal_Api_Batch_V1_BatchOperationUnpauseActivities_Activity where
+inductive BatchOperationUnpauseActivities.Activity where
   | notSet
   | type (value : String)
   | matchAll (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationUnpauseActivities where
+structure BatchOperationUnpauseActivities where
   identity : String
   resetAttempts : Bool
   resetHeartbeat : Bool
-  jitter : Option Google_Protobuf_Duration
-  activity : Temporal_Api_Batch_V1_BatchOperationUnpauseActivities_Activity
+  jitter : Option Google.Protobuf.Duration
+  activity : BatchOperationUnpauseActivities.Activity
   deriving Repr
 
-inductive Temporal_Api_Batch_V1_BatchOperationUpdateActivityOptions_Activity where
+inductive BatchOperationUpdateActivityOptions.Activity where
   | notSet
   | type (value : String)
   | matchAll (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationUpdateActivityOptions where
+structure BatchOperationUpdateActivityOptions where
   identity : String
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
-  updateMask : Option Google_Protobuf_FieldMask
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
+  updateMask : Option Google.Protobuf.FieldMask
   restoreOriginal : Bool
-  activity : Temporal_Api_Batch_V1_BatchOperationUpdateActivityOptions_Activity
+  activity : BatchOperationUpdateActivityOptions.Activity
   deriving Repr
 
-structure Temporal_Api_Batch_V1_BatchOperationUpdateWorkflowExecutionOptions where
+structure BatchOperationUpdateWorkflowExecutionOptions where
   identity : String
-  workflowExecutionOptions : Option Temporal_Api_Workflow_V1_WorkflowExecutionOptions
-  updateMask : Option Google_Protobuf_FieldMask
+  workflowExecutionOptions : Option Temporal.Api.Workflow.V1.WorkflowExecutionOptions
+  updateMask : Option Google.Protobuf.FieldMask
   deriving Repr
 
-structure Temporal_Api_Command_V1_CancelTimerCommandAttributes where
+end Temporal.Api.Batch.V1
+
+namespace Temporal.Api.Command.V1
+
+structure CancelTimerCommandAttributes where
   timerId : String
   deriving Repr
 
-structure Temporal_Api_Command_V1_CancelWorkflowExecutionCommandAttributes where
-  details : Option Temporal_Api_Common_V1_Payloads
+structure CancelWorkflowExecutionCommandAttributes where
+  details : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-structure Temporal_Api_Command_V1_CompleteWorkflowExecutionCommandAttributes where
-  result : Option Temporal_Api_Common_V1_Payloads
+structure CompleteWorkflowExecutionCommandAttributes where
+  result : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-structure Temporal_Api_Common_V1_Memo where
-  fields : List (String × Temporal_Api_Common_V1_Payload)
+end Temporal.Api.Command.V1
+
+namespace Temporal.Api.Common.V1
+
+structure Memo where
+  fields : List (String × Payload)
   deriving Repr
 
-structure Temporal_Api_Command_V1_ContinueAsNewWorkflowExecutionCommandAttributes where
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
-  backoffStartInterval : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
-  initiator : Temporal_Api_Enums_V1_ContinueAsNewInitiator
-  failure : Option Temporal_Api_Failure_V1_Failure
-  lastCompletionResult : Option Temporal_Api_Common_V1_Payloads
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Command.V1
+
+structure ContinueAsNewWorkflowExecutionCommandAttributes where
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
+  backoffStartInterval : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
+  initiator : Temporal.Api.Enums.V1.ContinueAsNewInitiator
+  failure : Option Temporal.Api.Failure.V1.Failure
+  lastCompletionResult : Option Temporal.Api.Common.V1.Payloads
   cronSchedule : String
-  header : Option Temporal_Api_Common_V1_Header
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   inheritBuildId : Bool
-  initialVersioningBehavior : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior
+  initialVersioningBehavior : Temporal.Api.Enums.V1.ContinueAsNewVersioningBehavior
   deriving Repr
 
-structure Temporal_Api_Command_V1_FailWorkflowExecutionCommandAttributes where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure FailWorkflowExecutionCommandAttributes where
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Command_V1_ModifyWorkflowPropertiesCommandAttributes where
-  upsertedMemo : Option Temporal_Api_Common_V1_Memo
+structure ModifyWorkflowPropertiesCommandAttributes where
+  upsertedMemo : Option Temporal.Api.Common.V1.Memo
   deriving Repr
 
-structure Temporal_Api_Command_V1_ProtocolMessageCommandAttributes where
+structure ProtocolMessageCommandAttributes where
   messageId : String
   deriving Repr
 
-structure Temporal_Api_Command_V1_RecordMarkerCommandAttributes where
+structure RecordMarkerCommandAttributes where
   markerName : String
-  details : List (String × Temporal_Api_Common_V1_Payloads)
-  header : Option Temporal_Api_Common_V1_Header
-  failure : Option Temporal_Api_Failure_V1_Failure
+  details : List (String × Temporal.Api.Common.V1.Payloads)
+  header : Option Temporal.Api.Common.V1.Header
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Command_V1_RequestCancelActivityTaskCommandAttributes where
+structure RequestCancelActivityTaskCommandAttributes where
   scheduledEventId : Int
   deriving Repr
 
-structure Temporal_Api_Command_V1_RequestCancelExternalWorkflowExecutionCommandAttributes where
+structure RequestCancelExternalWorkflowExecutionCommandAttributes where
   namespaceValue : String
   workflowId : String
   runId : String
@@ -2565,1195 +2713,1271 @@ structure Temporal_Api_Command_V1_RequestCancelExternalWorkflowExecutionCommandA
   reason : String
   deriving Repr
 
-structure Temporal_Api_Command_V1_RequestCancelNexusOperationCommandAttributes where
+structure RequestCancelNexusOperationCommandAttributes where
   scheduledEventId : Int
   deriving Repr
 
-structure Temporal_Api_Command_V1_ScheduleActivityTaskCommandAttributes where
+structure ScheduleActivityTaskCommandAttributes where
   activityId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  header : Option Temporal_Api_Common_V1_Header
-  input : Option Temporal_Api_Common_V1_Payloads
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  header : Option Temporal.Api.Common.V1.Header
+  input : Option Temporal.Api.Common.V1.Payloads
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   requestEagerExecution : Bool
   useWorkflowBuildId : Bool
-  priority : Option Temporal_Api_Common_V1_Priority
+  priority : Option Temporal.Api.Common.V1.Priority
   deriving Repr
 
-structure Temporal_Api_Command_V1_ScheduleNexusOperationCommandAttributes where
+structure ScheduleNexusOperationCommandAttributes where
   endpoint : String
   service : String
   operation : String
-  input : Option Temporal_Api_Common_V1_Payload
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
+  input : Option Temporal.Api.Common.V1.Payload
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
   nexusHeader : List (String × String)
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Command_V1_SignalExternalWorkflowExecutionCommandAttributes where
+structure SignalExternalWorkflowExecutionCommandAttributes where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   signalName : String
-  input : Option Temporal_Api_Common_V1_Payloads
+  input : Option Temporal.Api.Common.V1.Payloads
   control : String
   childWorkflowOnly : Bool
-  header : Option Temporal_Api_Common_V1_Header
+  header : Option Temporal.Api.Common.V1.Header
   deriving Repr
 
-structure Temporal_Api_Command_V1_StartChildWorkflowExecutionCommandAttributes where
+structure StartChildWorkflowExecutionCommandAttributes where
   namespaceValue : String
   workflowId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
-  parentClosePolicy : Temporal_Api_Enums_V1_ParentClosePolicy
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
+  parentClosePolicy : Temporal.Api.Enums.V1.ParentClosePolicy
   control : String
-  workflowIdReusePolicy : Temporal_Api_Enums_V1_WorkflowIdReusePolicy
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  workflowIdReusePolicy : Temporal.Api.Enums.V1.WorkflowIdReusePolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   cronSchedule : String
-  header : Option Temporal_Api_Common_V1_Header
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   inheritBuildId : Bool
-  priority : Option Temporal_Api_Common_V1_Priority
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
+  priority : Option Temporal.Api.Common.V1.Priority
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
   deriving Repr
 
-structure Temporal_Api_Command_V1_StartTimerCommandAttributes where
+structure StartTimerCommandAttributes where
   timerId : String
-  startToFireTimeout : Option Google_Protobuf_Duration
+  startToFireTimeout : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Command_V1_UpsertWorkflowSearchAttributesCommandAttributes where
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+structure UpsertWorkflowSearchAttributesCommandAttributes where
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_EventGroupMarker_InboundEvent where
+end Temporal.Api.Command.V1
+
+namespace Temporal.Api.Sdk.V1
+
+structure EventGroupMarker.InboundEvent where
   inboundEventId : Int
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_EventGroupMarker_InboundUpdate where
+structure EventGroupMarker.InboundUpdate where
   inboundUpdateId : String
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_EventGroupMarker_Label where
+structure EventGroupMarker.Label where
   id : String
-  label : Option Temporal_Api_Common_V1_Payload
+  label : Option Temporal.Api.Common.V1.Payload
   deriving Repr
 
-inductive Temporal_Api_Sdk_V1_EventGroupMarker_Variant where
+inductive EventGroupMarker.Variant where
   | notSet
-  | label (value : Temporal_Api_Sdk_V1_EventGroupMarker_Label)
-  | inboundEvent (value : Temporal_Api_Sdk_V1_EventGroupMarker_InboundEvent)
-  | inboundUpdate (value : Temporal_Api_Sdk_V1_EventGroupMarker_InboundUpdate)
+  | label (value : EventGroupMarker.Label)
+  | inboundEvent (value : EventGroupMarker.InboundEvent)
+  | inboundUpdate (value : EventGroupMarker.InboundUpdate)
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_EventGroupMarker where
-  variant : Temporal_Api_Sdk_V1_EventGroupMarker_Variant
+structure EventGroupMarker where
+  variant : EventGroupMarker.Variant
   deriving Repr
 
-inductive Temporal_Api_Command_V1_Command_Attributes where
+end Temporal.Api.Sdk.V1
+
+namespace Temporal.Api.Command.V1
+
+inductive Command.Attributes where
   | notSet
-  | scheduleActivityTaskCommandAttributes (value : Temporal_Api_Command_V1_ScheduleActivityTaskCommandAttributes)
-  | startTimerCommandAttributes (value : Temporal_Api_Command_V1_StartTimerCommandAttributes)
-  | completeWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_CompleteWorkflowExecutionCommandAttributes)
-  | failWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_FailWorkflowExecutionCommandAttributes)
-  | requestCancelActivityTaskCommandAttributes (value : Temporal_Api_Command_V1_RequestCancelActivityTaskCommandAttributes)
-  | cancelTimerCommandAttributes (value : Temporal_Api_Command_V1_CancelTimerCommandAttributes)
-  | cancelWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_CancelWorkflowExecutionCommandAttributes)
-  | requestCancelExternalWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_RequestCancelExternalWorkflowExecutionCommandAttributes)
-  | recordMarkerCommandAttributes (value : Temporal_Api_Command_V1_RecordMarkerCommandAttributes)
-  | continueAsNewWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_ContinueAsNewWorkflowExecutionCommandAttributes)
-  | startChildWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_StartChildWorkflowExecutionCommandAttributes)
-  | signalExternalWorkflowExecutionCommandAttributes (value : Temporal_Api_Command_V1_SignalExternalWorkflowExecutionCommandAttributes)
-  | upsertWorkflowSearchAttributesCommandAttributes (value : Temporal_Api_Command_V1_UpsertWorkflowSearchAttributesCommandAttributes)
-  | protocolMessageCommandAttributes (value : Temporal_Api_Command_V1_ProtocolMessageCommandAttributes)
-  | modifyWorkflowPropertiesCommandAttributes (value : Temporal_Api_Command_V1_ModifyWorkflowPropertiesCommandAttributes)
-  | scheduleNexusOperationCommandAttributes (value : Temporal_Api_Command_V1_ScheduleNexusOperationCommandAttributes)
-  | requestCancelNexusOperationCommandAttributes (value : Temporal_Api_Command_V1_RequestCancelNexusOperationCommandAttributes)
+  | scheduleActivityTaskCommandAttributes (value : ScheduleActivityTaskCommandAttributes)
+  | startTimerCommandAttributes (value : StartTimerCommandAttributes)
+  | completeWorkflowExecutionCommandAttributes (value : CompleteWorkflowExecutionCommandAttributes)
+  | failWorkflowExecutionCommandAttributes (value : FailWorkflowExecutionCommandAttributes)
+  | requestCancelActivityTaskCommandAttributes (value : RequestCancelActivityTaskCommandAttributes)
+  | cancelTimerCommandAttributes (value : CancelTimerCommandAttributes)
+  | cancelWorkflowExecutionCommandAttributes (value : CancelWorkflowExecutionCommandAttributes)
+  | requestCancelExternalWorkflowExecutionCommandAttributes (value : RequestCancelExternalWorkflowExecutionCommandAttributes)
+  | recordMarkerCommandAttributes (value : RecordMarkerCommandAttributes)
+  | continueAsNewWorkflowExecutionCommandAttributes (value : ContinueAsNewWorkflowExecutionCommandAttributes)
+  | startChildWorkflowExecutionCommandAttributes (value : StartChildWorkflowExecutionCommandAttributes)
+  | signalExternalWorkflowExecutionCommandAttributes (value : SignalExternalWorkflowExecutionCommandAttributes)
+  | upsertWorkflowSearchAttributesCommandAttributes (value : UpsertWorkflowSearchAttributesCommandAttributes)
+  | protocolMessageCommandAttributes (value : ProtocolMessageCommandAttributes)
+  | modifyWorkflowPropertiesCommandAttributes (value : ModifyWorkflowPropertiesCommandAttributes)
+  | scheduleNexusOperationCommandAttributes (value : ScheduleNexusOperationCommandAttributes)
+  | requestCancelNexusOperationCommandAttributes (value : RequestCancelNexusOperationCommandAttributes)
   deriving Repr
 
-structure Temporal_Api_Command_V1_Command where
-  commandType : Temporal_Api_Enums_V1_CommandType
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  eventGroupMarkers : List Temporal_Api_Sdk_V1_EventGroupMarker
-  attributes : Temporal_Api_Command_V1_Command_Attributes
+structure Command where
+  commandType : Temporal.Api.Enums.V1.CommandType
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  eventGroupMarkers : List Temporal.Api.Sdk.V1.EventGroupMarker
+  attributes : Command.Attributes
   deriving Repr
 
-structure Temporal_Api_Common_V1_DataBlob where
-  encodingType : Temporal_Api_Enums_V1_EncodingType
+end Temporal.Api.Command.V1
+
+namespace Temporal.Api.Common.V1
+
+structure DataBlob where
+  encodingType : Temporal.Api.Enums.V1.EncodingType
   data : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Common_V1_Execution where
-  type : Temporal_Api_Enums_V1_ExecutionType
+structure Execution where
+  type : Temporal.Api.Enums.V1.ExecutionType
   businessId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_MeteringMetadata where
+structure MeteringMetadata where
   nonfirstLocalActivityExecutionAttempts : Nat
   deriving Repr
 
-structure Temporal_Api_Common_V1_OnConflictOptions where
+structure OnConflictOptions where
   attachRequestId : Bool
   attachCompletionCallbacks : Bool
   attachLinks : Bool
   deriving Repr
 
-structure Temporal_Api_Common_V1_Principal where
+structure Principal where
   type : String
   name : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_TimeSkippingFastForwardInfo where
-  fastForwardDuration : Option Google_Protobuf_Duration
+structure TimeSkippingFastForwardInfo where
+  fastForwardDuration : Option Google.Protobuf.Duration
   fastForwardId : String
-  targetTime : Option Google_Protobuf_Timestamp
+  targetTime : Option Google.Protobuf.Timestamp
   hasCompleted : Bool
   deriving Repr
 
-structure Temporal_Api_Common_V1_TimeSkippingInfo where
-  currentTime : Option Google_Protobuf_Timestamp
-  effectiveConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
-  fastForwardInfo : Option Temporal_Api_Common_V1_TimeSkippingFastForwardInfo
+structure TimeSkippingInfo where
+  currentTime : Option Google.Protobuf.Timestamp
+  effectiveConfig : Option TimeSkippingConfig
+  fastForwardInfo : Option TimeSkippingFastForwardInfo
   currentSessionSkipCount : Int
   deriving Repr
 
-structure Temporal_Api_Common_V1_TimeSkippingStatePropagation where
-  initialSkippedDuration : Option Google_Protobuf_Duration
-  fastForwardTargetTime : Option Google_Protobuf_Timestamp
+structure TimeSkippingStatePropagation where
+  initialSkippedDuration : Option Google.Protobuf.Duration
+  fastForwardTargetTime : Option Google.Protobuf.Timestamp
   initialSkipCount : Int
   deriving Repr
 
-inductive Temporal_Api_Common_V1_WorkerSelector_Selector where
+inductive WorkerSelector.Selector where
   | notSet
   | workerInstanceKey (value : String)
   deriving Repr
 
-structure Temporal_Api_Common_V1_WorkerSelector where
-  selector : Temporal_Api_Common_V1_WorkerSelector_Selector
+structure WorkerSelector where
+  selector : WorkerSelector.Selector
   deriving Repr
 
-structure Temporal_Api_Common_V1_WorkerVersionCapabilities where
+structure WorkerVersionCapabilities where
   buildId : String
   useVersioning : Bool
   deploymentSeriesName : String
   deriving Repr
 
-structure Temporal_Api_Common_V1_WorkerVersionStamp where
+structure WorkerVersionStamp where
   buildId : String
   useVersioning : Bool
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeProvider where
+end Temporal.Api.Common.V1
+
+namespace Temporal.Api.Compute.V1
+
+structure ComputeProvider where
   type : String
-  details : Option Temporal_Api_Common_V1_Payload
+  details : Option Temporal.Api.Common.V1.Payload
   nexusEndpoint : String
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeScaler where
+structure ComputeScaler where
   type : String
-  details : Option Temporal_Api_Common_V1_Payload
+  details : Option Temporal.Api.Common.V1.Payload
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeConfigScalingGroup where
-  taskQueueTypes : List Temporal_Api_Enums_V1_TaskQueueType
-  provider : Option Temporal_Api_Compute_V1_ComputeProvider
-  scaler : Option Temporal_Api_Compute_V1_ComputeScaler
+structure ComputeConfigScalingGroup where
+  taskQueueTypes : List Temporal.Api.Enums.V1.TaskQueueType
+  provider : Option ComputeProvider
+  scaler : Option ComputeScaler
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeConfig where
-  scalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroup)
+structure ComputeConfig where
+  scalingGroups : List (String × ComputeConfigScalingGroup)
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeConfigScalingGroupSummary where
-  taskQueueTypes : List Temporal_Api_Enums_V1_TaskQueueType
+structure ComputeConfigScalingGroupSummary where
+  taskQueueTypes : List Temporal.Api.Enums.V1.TaskQueueType
   providerType : String
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeConfigScalingGroupUpdate where
-  scalingGroup : Option Temporal_Api_Compute_V1_ComputeConfigScalingGroup
-  updateMask : Option Google_Protobuf_FieldMask
+structure ComputeConfigScalingGroupUpdate where
+  scalingGroup : Option ComputeConfigScalingGroup
+  updateMask : Option Google.Protobuf.FieldMask
   deriving Repr
 
-structure Temporal_Api_Compute_V1_ComputeConfigSummary where
-  scalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroupSummary)
+structure ComputeConfigSummary where
+  scalingGroups : List (String × ComputeConfigScalingGroupSummary)
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_ComputeStatus_ProviderValidationStatus where
+end Temporal.Api.Compute.V1
+
+namespace Temporal.Api.Deployment.V1
+
+structure ComputeStatus.ProviderValidationStatus where
   errorMessage : String
-  lastCheckTime : Option Google_Protobuf_Timestamp
+  lastCheckTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_ComputeStatus where
-  providerValidation : Option Temporal_Api_Deployment_V1_ComputeStatus_ProviderValidationStatus
+structure ComputeStatus where
+  providerValidation : Option ComputeStatus.ProviderValidationStatus
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_DeploymentInfo_TaskQueueInfo where
+structure DeploymentInfo.TaskQueueInfo where
   name : String
-  type : Temporal_Api_Enums_V1_TaskQueueType
-  firstPollerTime : Option Google_Protobuf_Timestamp
+  type : Temporal.Api.Enums.V1.TaskQueueType
+  firstPollerTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_DeploymentInfo where
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  createTime : Option Google_Protobuf_Timestamp
-  taskQueueInfos : List Temporal_Api_Deployment_V1_DeploymentInfo_TaskQueueInfo
-  metadata : List (String × Temporal_Api_Common_V1_Payload)
+structure DeploymentInfo where
+  deployment : Option Deployment
+  createTime : Option Google.Protobuf.Timestamp
+  taskQueueInfos : List DeploymentInfo.TaskQueueInfo
+  metadata : List (String × Temporal.Api.Common.V1.Payload)
   isCurrent : Bool
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_DeploymentListInfo where
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  createTime : Option Google_Protobuf_Timestamp
+structure DeploymentListInfo where
+  deployment : Option Deployment
+  createTime : Option Google.Protobuf.Timestamp
   isCurrent : Bool
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_InheritedAutoUpgradeInfo where
-  sourceDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure InheritedAutoUpgradeInfo where
+  sourceDeploymentVersion : Option WorkerDeploymentVersion
   sourceDeploymentRevisionNumber : Int
-  continueAsNewInitialVersioningBehavior : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior
+  continueAsNewInitialVersioningBehavior : Temporal.Api.Enums.V1.ContinueAsNewVersioningBehavior
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_RoutingConfig where
-  currentDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure RoutingConfig where
+  currentDeploymentVersion : Option WorkerDeploymentVersion
   currentVersion : String
-  rampingDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  rampingDeploymentVersion : Option WorkerDeploymentVersion
   rampingVersion : String
   rampingVersionPercentage : Float
-  currentVersionChangedTime : Option Google_Protobuf_Timestamp
-  rampingVersionChangedTime : Option Google_Protobuf_Timestamp
-  rampingVersionPercentageChangedTime : Option Google_Protobuf_Timestamp
+  currentVersionChangedTime : Option Google.Protobuf.Timestamp
+  rampingVersionChangedTime : Option Google.Protobuf.Timestamp
+  rampingVersionPercentageChangedTime : Option Google.Protobuf.Timestamp
   revisionNumber : Int
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_UpdateDeploymentMetadata where
-  upsertEntries : List (String × Temporal_Api_Common_V1_Payload)
+structure UpdateDeploymentMetadata where
+  upsertEntries : List (String × Temporal.Api.Common.V1.Payload)
   removeEntries : List String
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_VersionDrainageInfo where
-  status : Temporal_Api_Enums_V1_VersionDrainageStatus
-  lastChangedTime : Option Google_Protobuf_Timestamp
-  lastCheckedTime : Option Google_Protobuf_Timestamp
+structure VersionDrainageInfo where
+  status : Temporal.Api.Enums.V1.VersionDrainageStatus
+  lastChangedTime : Option Google.Protobuf.Timestamp
+  lastCheckedTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_VersionMetadata where
-  entries : List (String × Temporal_Api_Common_V1_Payload)
+structure VersionMetadata where
+  entries : List (String × Temporal.Api.Common.V1.Payload)
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary where
+structure WorkerDeploymentInfo.WorkerDeploymentVersionSummary where
   version : String
-  status : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  createTime : Option Google_Protobuf_Timestamp
-  drainageStatus : Temporal_Api_Enums_V1_VersionDrainageStatus
-  drainageInfo : Option Temporal_Api_Deployment_V1_VersionDrainageInfo
-  currentSinceTime : Option Google_Protobuf_Timestamp
-  rampingSinceTime : Option Google_Protobuf_Timestamp
-  routingUpdateTime : Option Google_Protobuf_Timestamp
-  firstActivationTime : Option Google_Protobuf_Timestamp
-  lastCurrentTime : Option Google_Protobuf_Timestamp
-  lastDeactivationTime : Option Google_Protobuf_Timestamp
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfigSummary
-  computeStatus : Option Temporal_Api_Deployment_V1_ComputeStatus
+  status : Temporal.Api.Enums.V1.WorkerDeploymentVersionStatus
+  deploymentVersion : Option WorkerDeploymentVersion
+  createTime : Option Google.Protobuf.Timestamp
+  drainageStatus : Temporal.Api.Enums.V1.VersionDrainageStatus
+  drainageInfo : Option VersionDrainageInfo
+  currentSinceTime : Option Google.Protobuf.Timestamp
+  rampingSinceTime : Option Google.Protobuf.Timestamp
+  routingUpdateTime : Option Google.Protobuf.Timestamp
+  firstActivationTime : Option Google.Protobuf.Timestamp
+  lastCurrentTime : Option Google.Protobuf.Timestamp
+  lastDeactivationTime : Option Google.Protobuf.Timestamp
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfigSummary
+  computeStatus : Option ComputeStatus
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_WorkerDeploymentInfo where
+structure WorkerDeploymentInfo where
   name : String
-  versionSummaries : List Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  createTime : Option Google_Protobuf_Timestamp
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
+  versionSummaries : List WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  createTime : Option Google.Protobuf.Timestamp
+  routingConfig : Option RoutingConfig
   lastModifierIdentity : String
   managerIdentity : String
-  routingConfigUpdateState : Temporal_Api_Enums_V1_RoutingConfigUpdateState
+  routingConfigUpdateState : Temporal.Api.Enums.V1.RoutingConfigUpdateState
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_WorkerDeploymentOptions where
+structure WorkerDeploymentOptions where
   deploymentName : String
   buildId : String
-  workerVersioningMode : Temporal_Api_Enums_V1_WorkerVersioningMode
+  workerVersioningMode : Temporal.Api.Enums.V1.WorkerVersioningMode
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_WorkerDeploymentVersionInfo_VersionTaskQueueInfo where
+structure WorkerDeploymentVersionInfo.VersionTaskQueueInfo where
   name : String
-  type : Temporal_Api_Enums_V1_TaskQueueType
+  type : Temporal.Api.Enums.V1.TaskQueueType
   deriving Repr
 
-structure Temporal_Api_Deployment_V1_WorkerDeploymentVersionInfo where
+structure WorkerDeploymentVersionInfo where
   version : String
-  status : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  status : Temporal.Api.Enums.V1.WorkerDeploymentVersionStatus
+  deploymentVersion : Option WorkerDeploymentVersion
   deploymentName : String
-  createTime : Option Google_Protobuf_Timestamp
-  routingChangedTime : Option Google_Protobuf_Timestamp
-  currentSinceTime : Option Google_Protobuf_Timestamp
-  rampingSinceTime : Option Google_Protobuf_Timestamp
-  firstActivationTime : Option Google_Protobuf_Timestamp
-  lastCurrentTime : Option Google_Protobuf_Timestamp
-  lastDeactivationTime : Option Google_Protobuf_Timestamp
+  createTime : Option Google.Protobuf.Timestamp
+  routingChangedTime : Option Google.Protobuf.Timestamp
+  currentSinceTime : Option Google.Protobuf.Timestamp
+  rampingSinceTime : Option Google.Protobuf.Timestamp
+  firstActivationTime : Option Google.Protobuf.Timestamp
+  lastCurrentTime : Option Google.Protobuf.Timestamp
+  lastDeactivationTime : Option Google.Protobuf.Timestamp
   rampPercentage : Float
-  taskQueueInfos : List Temporal_Api_Deployment_V1_WorkerDeploymentVersionInfo_VersionTaskQueueInfo
-  drainageInfo : Option Temporal_Api_Deployment_V1_VersionDrainageInfo
-  metadata : Option Temporal_Api_Deployment_V1_VersionMetadata
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfig
+  taskQueueInfos : List WorkerDeploymentVersionInfo.VersionTaskQueueInfo
+  drainageInfo : Option VersionDrainageInfo
+  metadata : Option VersionMetadata
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfig
   lastModifierIdentity : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_ActivityExecutionAlreadyStartedFailure where
+end Temporal.Api.Deployment.V1
+
+namespace Temporal.Api.Errordetails.V1
+
+structure ActivityExecutionAlreadyStartedFailure where
   startRequestId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_CancellationAlreadyRequestedFailure where
+structure CancellationAlreadyRequestedFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_ClientVersionNotSupportedFailure where
+structure ClientVersionNotSupportedFailure where
   clientVersion : String
   clientName : String
   supportedVersions : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_MultiOperationExecutionFailure_OperationStatus where
+structure MultiOperationExecutionFailure.OperationStatus where
   code : Int
   message : String
-  details : List Google_Protobuf_Any
+  details : List Google.Protobuf.Any
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_MultiOperationExecutionFailure where
-  statuses : List Temporal_Api_Errordetails_V1_MultiOperationExecutionFailure_OperationStatus
+structure MultiOperationExecutionFailure where
+  statuses : List MultiOperationExecutionFailure.OperationStatus
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NamespaceAlreadyExistsFailure where
+structure NamespaceAlreadyExistsFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NamespaceInvalidStateFailure where
+structure NamespaceInvalidStateFailure where
   namespaceValue : String
-  state : Temporal_Api_Enums_V1_NamespaceState
-  allowedStates : List Temporal_Api_Enums_V1_NamespaceState
+  state : Temporal.Api.Enums.V1.NamespaceState
+  allowedStates : List Temporal.Api.Enums.V1.NamespaceState
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NamespaceNotActiveFailure where
+structure NamespaceNotActiveFailure where
   namespaceValue : String
   currentCluster : String
   activeCluster : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NamespaceNotFoundFailure where
+structure NamespaceNotFoundFailure where
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NamespaceUnavailableFailure where
+structure NamespaceUnavailableFailure where
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NewerBuildExistsFailure where
+structure NewerBuildExistsFailure where
   defaultBuildId : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NexusOperationExecutionAlreadyStartedFailure where
+structure NexusOperationExecutionAlreadyStartedFailure where
   startRequestId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_NotFoundFailure where
+structure NotFoundFailure where
   currentCluster : String
   activeCluster : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_PermissionDeniedFailure where
+structure PermissionDeniedFailure where
   reason : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_QueryFailedFailure where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure QueryFailedFailure where
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_ResourceExhaustedFailure where
-  cause : Temporal_Api_Enums_V1_ResourceExhaustedCause
-  scope : Temporal_Api_Enums_V1_ResourceExhaustedScope
+structure ResourceExhaustedFailure where
+  cause : Temporal.Api.Enums.V1.ResourceExhaustedCause
+  scope : Temporal.Api.Enums.V1.ResourceExhaustedScope
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_ServerVersionNotSupportedFailure where
+structure ServerVersionNotSupportedFailure where
   serverVersion : String
   clientSupportedServerVersions : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_SystemWorkflowFailure where
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+structure SystemWorkflowFailure where
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   workflowError : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_WorkflowExecutionAlreadyStartedFailure where
+structure WorkflowExecutionAlreadyStartedFailure where
   startRequestId : String
   runId : String
   firstExecutionRunId : String
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_WorkflowNotReadyFailure where
+structure WorkflowNotReadyFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Errordetails_V1_WorkflowTaskCompletionBufferLostFailure where
+structure WorkflowTaskCompletionBufferLostFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityPropertiesModifiedExternallyEventAttributes where
+end Temporal.Api.Errordetails.V1
+
+namespace Temporal.Api.History.V1
+
+structure ActivityPropertiesModifiedExternallyEventAttributes where
   scheduledEventId : Int
-  newRetryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  newRetryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskCancelRequestedEventAttributes where
+structure ActivityTaskCancelRequestedEventAttributes where
   scheduledEventId : Int
   workflowTaskCompletedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskCanceledEventAttributes where
-  details : Option Temporal_Api_Common_V1_Payloads
+structure ActivityTaskCanceledEventAttributes where
+  details : Option Temporal.Api.Common.V1.Payloads
   latestCancelRequestedEventId : Int
   scheduledEventId : Int
   startedEventId : Int
   identity : String
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskCompletedEventAttributes where
-  result : Option Temporal_Api_Common_V1_Payloads
+structure ActivityTaskCompletedEventAttributes where
+  result : Option Temporal.Api.Common.V1.Payloads
   scheduledEventId : Int
   startedEventId : Int
   identity : String
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskFailedEventAttributes where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure ActivityTaskFailedEventAttributes where
+  failure : Option Temporal.Api.Failure.V1.Failure
   scheduledEventId : Int
   startedEventId : Int
   identity : String
-  retryState : Temporal_Api_Enums_V1_RetryState
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  retryState : Temporal.Api.Enums.V1.RetryState
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskScheduledEventAttributes where
+structure ActivityTaskScheduledEventAttributes where
   activityId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  header : Option Temporal_Api_Common_V1_Header
-  input : Option Temporal_Api_Common_V1_Payloads
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  header : Option Temporal.Api.Common.V1.Header
+  input : Option Temporal.Api.Common.V1.Payloads
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
   workflowTaskCompletedEventId : Int
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   useWorkflowBuildId : Bool
-  priority : Option Temporal_Api_Common_V1_Priority
+  priority : Option Temporal.Api.Common.V1.Priority
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskStartedEventAttributes where
+structure ActivityTaskStartedEventAttributes where
   scheduledEventId : Int
   identity : String
   requestId : String
   attempt : Int
-  lastFailure : Option Temporal_Api_Failure_V1_Failure
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  lastFailure : Option Temporal.Api.Failure.V1.Failure
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
   buildIdRedirectCounter : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_ActivityTaskTimedOutEventAttributes where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure ActivityTaskTimedOutEventAttributes where
+  failure : Option Temporal.Api.Failure.V1.Failure
   scheduledEventId : Int
   startedEventId : Int
-  retryState : Temporal_Api_Enums_V1_RetryState
+  retryState : Temporal.Api.Enums.V1.RetryState
   deriving Repr
 
-structure Temporal_Api_History_V1_ChildWorkflowExecutionCanceledEventAttributes where
-  details : Option Temporal_Api_Common_V1_Payloads
+structure ChildWorkflowExecutionCanceledEventAttributes where
+  details : Option Temporal.Api.Common.V1.Payloads
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   initiatedEventId : Int
   startedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_ChildWorkflowExecutionCompletedEventAttributes where
-  result : Option Temporal_Api_Common_V1_Payloads
+structure ChildWorkflowExecutionCompletedEventAttributes where
+  result : Option Temporal.Api.Common.V1.Payloads
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   initiatedEventId : Int
   startedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_ChildWorkflowExecutionFailedEventAttributes where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure ChildWorkflowExecutionFailedEventAttributes where
+  failure : Option Temporal.Api.Failure.V1.Failure
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   initiatedEventId : Int
   startedEventId : Int
-  retryState : Temporal_Api_Enums_V1_RetryState
+  retryState : Temporal.Api.Enums.V1.RetryState
   deriving Repr
 
-structure Temporal_Api_History_V1_ChildWorkflowExecutionStartedEventAttributes where
+structure ChildWorkflowExecutionStartedEventAttributes where
   namespaceValue : String
   namespaceId : String
   initiatedEventId : Int
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  header : Option Temporal_Api_Common_V1_Header
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  header : Option Temporal.Api.Common.V1.Header
   deriving Repr
 
-structure Temporal_Api_History_V1_ChildWorkflowExecutionTerminatedEventAttributes where
+structure ChildWorkflowExecutionTerminatedEventAttributes where
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  initiatedEventId : Int
-  startedEventId : Int
-  deriving Repr
-
-structure Temporal_Api_History_V1_ChildWorkflowExecutionTimedOutEventAttributes where
-  namespaceValue : String
-  namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   initiatedEventId : Int
   startedEventId : Int
-  retryState : Temporal_Api_Enums_V1_RetryState
   deriving Repr
 
-structure Temporal_Api_History_V1_ExternalWorkflowExecutionCancelRequestedEventAttributes where
+structure ChildWorkflowExecutionTimedOutEventAttributes where
+  namespaceValue : String
+  namespaceId : String
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  initiatedEventId : Int
+  startedEventId : Int
+  retryState : Temporal.Api.Enums.V1.RetryState
+  deriving Repr
+
+structure ExternalWorkflowExecutionCancelRequestedEventAttributes where
   initiatedEventId : Int
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Api_History_V1_ExternalWorkflowExecutionSignaledEventAttributes where
+structure ExternalWorkflowExecutionSignaledEventAttributes where
   initiatedEventId : Int
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   control : String
   deriving Repr
 
-structure Temporal_Api_History_V1_MarkerRecordedEventAttributes where
+structure MarkerRecordedEventAttributes where
   markerName : String
-  details : List (String × Temporal_Api_Common_V1_Payloads)
+  details : List (String × Temporal.Api.Common.V1.Payloads)
   workflowTaskCompletedEventId : Int
-  header : Option Temporal_Api_Common_V1_Header
-  failure : Option Temporal_Api_Failure_V1_Failure
+  header : Option Temporal.Api.Common.V1.Header
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationCancelRequestCompletedEventAttributes where
+structure NexusOperationCancelRequestCompletedEventAttributes where
   requestedEventId : Int
   workflowTaskCompletedEventId : Int
   scheduledEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationCancelRequestFailedEventAttributes where
+structure NexusOperationCancelRequestFailedEventAttributes where
   requestedEventId : Int
   workflowTaskCompletedEventId : Int
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   scheduledEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationCancelRequestedEventAttributes where
+structure NexusOperationCancelRequestedEventAttributes where
   scheduledEventId : Int
   workflowTaskCompletedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationCanceledEventAttributes where
+structure NexusOperationCanceledEventAttributes where
   scheduledEventId : Int
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   requestId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationCompletedEventAttributes where
+structure NexusOperationCompletedEventAttributes where
   scheduledEventId : Int
-  result : Option Temporal_Api_Common_V1_Payload
+  result : Option Temporal.Api.Common.V1.Payload
   requestId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationFailedEventAttributes where
+structure NexusOperationFailedEventAttributes where
   scheduledEventId : Int
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   requestId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationScheduledEventAttributes where
+structure NexusOperationScheduledEventAttributes where
   endpoint : String
   service : String
   operation : String
-  input : Option Temporal_Api_Common_V1_Payload
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
+  input : Option Temporal.Api.Common.V1.Payload
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
   nexusHeader : List (String × String)
   workflowTaskCompletedEventId : Int
   requestId : String
   endpointId : String
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationStartedEventAttributes where
+structure NexusOperationStartedEventAttributes where
   scheduledEventId : Int
   operationId : String
   requestId : String
   operationToken : String
   deriving Repr
 
-structure Temporal_Api_History_V1_NexusOperationTimedOutEventAttributes where
+structure NexusOperationTimedOutEventAttributes where
   scheduledEventId : Int
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   requestId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_RequestCancelExternalWorkflowExecutionFailedEventAttributes where
-  cause : Temporal_Api_Enums_V1_CancelExternalWorkflowExecutionFailedCause
+structure RequestCancelExternalWorkflowExecutionFailedEventAttributes where
+  cause : Temporal.Api.Enums.V1.CancelExternalWorkflowExecutionFailedCause
   workflowTaskCompletedEventId : Int
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   initiatedEventId : Int
   control : String
   deriving Repr
 
-structure Temporal_Api_History_V1_RequestCancelExternalWorkflowExecutionInitiatedEventAttributes where
+structure RequestCancelExternalWorkflowExecutionInitiatedEventAttributes where
   workflowTaskCompletedEventId : Int
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   control : String
   childWorkflowOnly : Bool
   reason : String
   deriving Repr
 
-structure Temporal_Api_History_V1_SignalExternalWorkflowExecutionFailedEventAttributes where
-  cause : Temporal_Api_Enums_V1_SignalExternalWorkflowExecutionFailedCause
+structure SignalExternalWorkflowExecutionFailedEventAttributes where
+  cause : Temporal.Api.Enums.V1.SignalExternalWorkflowExecutionFailedCause
   workflowTaskCompletedEventId : Int
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   initiatedEventId : Int
   control : String
   deriving Repr
 
-structure Temporal_Api_History_V1_SignalExternalWorkflowExecutionInitiatedEventAttributes where
+structure SignalExternalWorkflowExecutionInitiatedEventAttributes where
   workflowTaskCompletedEventId : Int
   namespaceValue : String
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   signalName : String
-  input : Option Temporal_Api_Common_V1_Payloads
+  input : Option Temporal.Api.Common.V1.Payloads
   control : String
   childWorkflowOnly : Bool
-  header : Option Temporal_Api_Common_V1_Header
+  header : Option Temporal.Api.Common.V1.Header
   deriving Repr
 
-structure Temporal_Api_History_V1_StartChildWorkflowExecutionFailedEventAttributes where
+structure StartChildWorkflowExecutionFailedEventAttributes where
   namespaceValue : String
   namespaceId : String
   workflowId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  cause : Temporal_Api_Enums_V1_StartChildWorkflowExecutionFailedCause
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  cause : Temporal.Api.Enums.V1.StartChildWorkflowExecutionFailedCause
   control : String
   initiatedEventId : Int
   workflowTaskCompletedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_StartChildWorkflowExecutionInitiatedEventAttributes where
+structure StartChildWorkflowExecutionInitiatedEventAttributes where
   namespaceValue : String
   namespaceId : String
   workflowId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
-  parentClosePolicy : Temporal_Api_Enums_V1_ParentClosePolicy
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
+  parentClosePolicy : Temporal.Api.Enums.V1.ParentClosePolicy
   control : String
   workflowTaskCompletedEventId : Int
-  workflowIdReusePolicy : Temporal_Api_Enums_V1_WorkflowIdReusePolicy
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  workflowIdReusePolicy : Temporal.Api.Enums.V1.WorkflowIdReusePolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   cronSchedule : String
-  header : Option Temporal_Api_Common_V1_Header
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   inheritBuildId : Bool
-  priority : Option Temporal_Api_Common_V1_Priority
-  timeSkippingConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
-  timeSkippingStatePropagation : Option Temporal_Api_Common_V1_TimeSkippingStatePropagation
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
+  priority : Option Temporal.Api.Common.V1.Priority
+  timeSkippingConfig : Option Temporal.Api.Common.V1.TimeSkippingConfig
+  timeSkippingStatePropagation : Option Temporal.Api.Common.V1.TimeSkippingStatePropagation
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
   deriving Repr
 
-structure Temporal_Api_History_V1_TimerCanceledEventAttributes where
+structure TimerCanceledEventAttributes where
   timerId : String
   startedEventId : Int
   workflowTaskCompletedEventId : Int
   identity : String
   deriving Repr
 
-structure Temporal_Api_History_V1_TimerFiredEventAttributes where
+structure TimerFiredEventAttributes where
   timerId : String
   startedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_TimerStartedEventAttributes where
+structure TimerStartedEventAttributes where
   timerId : String
-  startToFireTimeout : Option Google_Protobuf_Duration
+  startToFireTimeout : Option Google.Protobuf.Duration
   workflowTaskCompletedEventId : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_UpsertWorkflowSearchAttributesEventAttributes where
+structure UpsertWorkflowSearchAttributesEventAttributes where
   workflowTaskCompletedEventId : Int
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionCancelRequestedEventAttributes where
+structure WorkflowExecutionCancelRequestedEventAttributes where
   cause : String
   externalInitiatedEventId : Int
-  externalWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  externalWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionCanceledEventAttributes where
+structure WorkflowExecutionCanceledEventAttributes where
   workflowTaskCompletedEventId : Int
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionCompletedEventAttributes where
-  result : Option Temporal_Api_Common_V1_Payloads
+structure WorkflowExecutionCompletedEventAttributes where
+  result : Option Temporal.Api.Common.V1.Payloads
   workflowTaskCompletedEventId : Int
   newExecutionRunId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionContinuedAsNewEventAttributes where
+structure WorkflowExecutionContinuedAsNewEventAttributes where
   newExecutionRunId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
   workflowTaskCompletedEventId : Int
-  backoffStartInterval : Option Google_Protobuf_Duration
-  initiator : Temporal_Api_Enums_V1_ContinueAsNewInitiator
-  failure : Option Temporal_Api_Failure_V1_Failure
-  lastCompletionResult : Option Temporal_Api_Common_V1_Payloads
-  header : Option Temporal_Api_Common_V1_Header
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  backoffStartInterval : Option Google.Protobuf.Duration
+  initiator : Temporal.Api.Enums.V1.ContinueAsNewInitiator
+  failure : Option Temporal.Api.Failure.V1.Failure
+  lastCompletionResult : Option Temporal.Api.Common.V1.Payloads
+  header : Option Temporal.Api.Common.V1.Header
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   inheritBuildId : Bool
-  initialVersioningBehavior : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior
+  initialVersioningBehavior : Temporal.Api.Enums.V1.ContinueAsNewVersioningBehavior
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionFailedEventAttributes where
-  failure : Option Temporal_Api_Failure_V1_Failure
-  retryState : Temporal_Api_Enums_V1_RetryState
+structure WorkflowExecutionFailedEventAttributes where
+  failure : Option Temporal.Api.Failure.V1.Failure
+  retryState : Temporal.Api.Enums.V1.RetryState
   workflowTaskCompletedEventId : Int
   newExecutionRunId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionOptionsUpdatedEventAttributes_WorkflowUpdateOptionsUpdate where
+structure WorkflowExecutionOptionsUpdatedEventAttributes.WorkflowUpdateOptionsUpdate where
   updateId : String
   attachedRequestId : String
-  attachedCompletionCallbacks : List Temporal_Api_Common_V1_Callback
+  attachedCompletionCallbacks : List Temporal.Api.Common.V1.Callback
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionOptionsUpdatedEventAttributes where
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
+structure WorkflowExecutionOptionsUpdatedEventAttributes where
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
   unsetVersioningOverride : Bool
   attachedRequestId : String
-  attachedCompletionCallbacks : List Temporal_Api_Common_V1_Callback
+  attachedCompletionCallbacks : List Temporal.Api.Common.V1.Callback
   identity : String
-  priority : Option Temporal_Api_Common_V1_Priority
-  timeSkippingConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
+  priority : Option Temporal.Api.Common.V1.Priority
+  timeSkippingConfig : Option Temporal.Api.Common.V1.TimeSkippingConfig
   timeSkippingConfigUpdated : Bool
-  workflowUpdateOptions : List Temporal_Api_History_V1_WorkflowExecutionOptionsUpdatedEventAttributes_WorkflowUpdateOptionsUpdate
+  workflowUpdateOptions : List WorkflowExecutionOptionsUpdatedEventAttributes.WorkflowUpdateOptionsUpdate
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionPausedEventAttributes where
+structure WorkflowExecutionPausedEventAttributes where
   identity : String
   reason : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionSignaledEventAttributes where
+structure WorkflowExecutionSignaledEventAttributes where
   signalName : String
-  input : Option Temporal_Api_Common_V1_Payloads
+  input : Option Temporal.Api.Common.V1.Payloads
   identity : String
-  header : Option Temporal_Api_Common_V1_Header
+  header : Option Temporal.Api.Common.V1.Header
   skipGenerateWorkflowTask : Bool
-  externalWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  externalWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   requestId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_DeclinedTargetVersionUpgrade where
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure DeclinedTargetVersionUpgrade where
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   revisionNumber : Int
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_ResetPointInfo where
+end Temporal.Api.History.V1
+
+namespace Temporal.Api.Workflow.V1
+
+structure ResetPointInfo where
   buildId : String
   binaryChecksum : String
   runId : String
   firstWorkflowTaskCompletedId : Int
-  createTime : Option Google_Protobuf_Timestamp
-  expireTime : Option Google_Protobuf_Timestamp
+  createTime : Option Google.Protobuf.Timestamp
+  expireTime : Option Google.Protobuf.Timestamp
   resettable : Bool
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_ResetPoints where
-  points : List Temporal_Api_Workflow_V1_ResetPointInfo
+structure ResetPoints where
+  points : List ResetPointInfo
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionStartedEventAttributes where
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+end Temporal.Api.Workflow.V1
+
+namespace Temporal.Api.History.V1
+
+structure WorkflowExecutionStartedEventAttributes where
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   parentWorkflowNamespace : String
   parentWorkflowNamespaceId : String
-  parentWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  parentWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   parentInitiatedEventId : Int
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
   continuedExecutionRunId : String
-  initiator : Temporal_Api_Enums_V1_ContinueAsNewInitiator
-  continuedFailure : Option Temporal_Api_Failure_V1_Failure
-  lastCompletionResult : Option Temporal_Api_Common_V1_Payloads
+  initiator : Temporal.Api.Enums.V1.ContinueAsNewInitiator
+  continuedFailure : Option Temporal.Api.Failure.V1.Failure
+  lastCompletionResult : Option Temporal.Api.Common.V1.Payloads
   originalExecutionRunId : String
   identity : String
   firstExecutionRunId : String
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   attempt : Int
-  workflowExecutionExpirationTime : Option Google_Protobuf_Timestamp
+  workflowExecutionExpirationTime : Option Google.Protobuf.Timestamp
   cronSchedule : String
-  firstWorkflowTaskBackoff : Option Google_Protobuf_Duration
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  prevAutoResetPoints : Option Temporal_Api_Workflow_V1_ResetPoints
-  header : Option Temporal_Api_Common_V1_Header
+  firstWorkflowTaskBackoff : Option Google.Protobuf.Duration
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  prevAutoResetPoints : Option Temporal.Api.Workflow.V1.ResetPoints
+  header : Option Temporal.Api.Common.V1.Header
   parentInitiatedEventVersion : Int
   workflowId : String
-  sourceVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  completionCallbacks : List Temporal_Api_Common_V1_Callback
-  rootWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  sourceVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  completionCallbacks : List Temporal.Api.Common.V1.Callback
+  rootWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   inheritedBuildId : String
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
   parentPinnedWorkerDeploymentVersion : String
-  priority : Option Temporal_Api_Common_V1_Priority
-  inheritedPinnedVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  inheritedAutoUpgradeInfo : Option Temporal_Api_Deployment_V1_InheritedAutoUpgradeInfo
+  priority : Option Temporal.Api.Common.V1.Priority
+  inheritedPinnedVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  inheritedAutoUpgradeInfo : Option Temporal.Api.Deployment.V1.InheritedAutoUpgradeInfo
   eagerExecutionAccepted : Bool
-  declinedTargetVersionUpgrade : Option Temporal_Api_History_V1_DeclinedTargetVersionUpgrade
-  timeSkippingConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
-  timeSkippingStatePropagation : Option Temporal_Api_Common_V1_TimeSkippingStatePropagation
+  declinedTargetVersionUpgrade : Option DeclinedTargetVersionUpgrade
+  timeSkippingConfig : Option Temporal.Api.Common.V1.TimeSkippingConfig
+  timeSkippingStatePropagation : Option Temporal.Api.Common.V1.TimeSkippingStatePropagation
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionTerminatedEventAttributes where
+structure WorkflowExecutionTerminatedEventAttributes where
   reason : String
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionTimeSkippingTransitionedEventAttributes where
-  targetTime : Option Google_Protobuf_Timestamp
+structure WorkflowExecutionTimeSkippingTransitionedEventAttributes where
+  targetTime : Option Google.Protobuf.Timestamp
   disabledAfterFastForward : Bool
-  wallClockTime : Option Google_Protobuf_Timestamp
+  wallClockTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionTimedOutEventAttributes where
-  retryState : Temporal_Api_Enums_V1_RetryState
+structure WorkflowExecutionTimedOutEventAttributes where
+  retryState : Temporal.Api.Enums.V1.RetryState
   newExecutionRunId : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionUnpausedEventAttributes where
+structure WorkflowExecutionUnpausedEventAttributes where
   identity : String
   reason : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Update_V1_Input where
-  header : Option Temporal_Api_Common_V1_Header
+end Temporal.Api.History.V1
+
+namespace Temporal.Api.Update.V1
+
+structure Input where
+  header : Option Temporal.Api.Common.V1.Header
   name : String
-  args : Option Temporal_Api_Common_V1_Payloads
+  args : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-structure Temporal_Api_Update_V1_Meta where
+structure Meta where
   updateId : String
   identity : String
   deriving Repr
 
-structure Temporal_Api_Update_V1_Request where
-  metaValue : Option Temporal_Api_Update_V1_Meta
-  input : Option Temporal_Api_Update_V1_Input
+structure Request where
+  metaValue : Option Meta
+  input : Option Input
   requestId : String
-  completionCallbacks : List Temporal_Api_Common_V1_Callback
-  links : List Temporal_Api_Common_V1_Link
+  completionCallbacks : List Temporal.Api.Common.V1.Callback
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionUpdateAcceptedEventAttributes where
+end Temporal.Api.Update.V1
+
+namespace Temporal.Api.History.V1
+
+structure WorkflowExecutionUpdateAcceptedEventAttributes where
   protocolInstanceId : String
   acceptedRequestMessageId : String
   acceptedRequestSequencingEventId : Int
-  acceptedRequest : Option Temporal_Api_Update_V1_Request
+  acceptedRequest : Option Temporal.Api.Update.V1.Request
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionUpdateAdmittedEventAttributes where
-  request : Option Temporal_Api_Update_V1_Request
-  origin : Temporal_Api_Enums_V1_UpdateAdmittedEventOrigin
+structure WorkflowExecutionUpdateAdmittedEventAttributes where
+  request : Option Temporal.Api.Update.V1.Request
+  origin : Temporal.Api.Enums.V1.UpdateAdmittedEventOrigin
   deriving Repr
 
-inductive Temporal_Api_Update_V1_Outcome_Value where
+end Temporal.Api.History.V1
+
+namespace Temporal.Api.Update.V1
+
+inductive Outcome.Value where
   | notSet
-  | success (value : Temporal_Api_Common_V1_Payloads)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | success (value : Temporal.Api.Common.V1.Payloads)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Api_Update_V1_Outcome where
-  value : Temporal_Api_Update_V1_Outcome_Value
+structure Outcome where
+  value : Outcome.Value
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionUpdateCompletedEventAttributes where
-  metaValue : Option Temporal_Api_Update_V1_Meta
+end Temporal.Api.Update.V1
+
+namespace Temporal.Api.History.V1
+
+structure WorkflowExecutionUpdateCompletedEventAttributes where
+  metaValue : Option Temporal.Api.Update.V1.Meta
   acceptedEventId : Int
-  outcome : Option Temporal_Api_Update_V1_Outcome
+  outcome : Option Temporal.Api.Update.V1.Outcome
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowExecutionUpdateRejectedEventAttributes where
+structure WorkflowExecutionUpdateRejectedEventAttributes where
   protocolInstanceId : String
   rejectedRequestMessageId : String
   rejectedRequestSequencingEventId : Int
-  rejectedRequest : Option Temporal_Api_Update_V1_Request
-  failure : Option Temporal_Api_Failure_V1_Failure
+  rejectedRequest : Option Temporal.Api.Update.V1.Request
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowPropertiesModifiedEventAttributes where
+structure WorkflowPropertiesModifiedEventAttributes where
   workflowTaskCompletedEventId : Int
-  upsertedMemo : Option Temporal_Api_Common_V1_Memo
+  upsertedMemo : Option Temporal.Api.Common.V1.Memo
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowPropertiesModifiedExternallyEventAttributes where
+structure WorkflowPropertiesModifiedExternallyEventAttributes where
   newTaskQueue : String
-  newWorkflowTaskTimeout : Option Google_Protobuf_Duration
-  newWorkflowRunTimeout : Option Google_Protobuf_Duration
-  newWorkflowExecutionTimeout : Option Google_Protobuf_Duration
-  upsertedMemo : Option Temporal_Api_Common_V1_Memo
+  newWorkflowTaskTimeout : Option Google.Protobuf.Duration
+  newWorkflowRunTimeout : Option Google.Protobuf.Duration
+  newWorkflowExecutionTimeout : Option Google.Protobuf.Duration
+  upsertedMemo : Option Temporal.Api.Common.V1.Memo
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkflowTaskCompletedMetadata where
+end Temporal.Api.History.V1
+
+namespace Temporal.Api.Sdk.V1
+
+structure WorkflowTaskCompletedMetadata where
   coreUsedFlags : List Nat
   langUsedFlags : List Nat
   sdkName : String
   sdkVersion : String
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowTaskCompletedEventAttributes where
+end Temporal.Api.Sdk.V1
+
+namespace Temporal.Api.History.V1
+
+structure WorkflowTaskCompletedEventAttributes where
   scheduledEventId : Int
   startedEventId : Int
   identity : String
   binaryChecksum : String
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  sdkMetadata : Option Temporal_Api_Sdk_V1_WorkflowTaskCompletedMetadata
-  meteringMetadata : Option Temporal_Api_Common_V1_MeteringMetadata
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  versioningBehavior : Temporal_Api_Enums_V1_VersioningBehavior
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  sdkMetadata : Option Temporal.Api.Sdk.V1.WorkflowTaskCompletedMetadata
+  meteringMetadata : Option Temporal.Api.Common.V1.MeteringMetadata
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  versioningBehavior : Temporal.Api.Enums.V1.VersioningBehavior
   workerDeploymentVersion : String
   workerDeploymentName : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowTaskFailedEventAttributes where
+structure WorkflowTaskFailedEventAttributes where
   scheduledEventId : Int
   startedEventId : Int
-  cause : Temporal_Api_Enums_V1_WorkflowTaskFailedCause
-  failure : Option Temporal_Api_Failure_V1_Failure
+  cause : Temporal.Api.Enums.V1.WorkflowTaskFailedCause
+  failure : Option Temporal.Api.Failure.V1.Failure
   identity : String
   baseRunId : String
   newRunId : String
   forkEventVersion : Int
   binaryChecksum : String
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowTaskScheduledEventAttributes where
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  startToCloseTimeout : Option Google_Protobuf_Duration
+structure WorkflowTaskScheduledEventAttributes where
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  startToCloseTimeout : Option Google.Protobuf.Duration
   attempt : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowTaskStartedEventAttributes where
+structure WorkflowTaskStartedEventAttributes where
   scheduledEventId : Int
   identity : String
   requestId : String
   suggestContinueAsNew : Bool
-  suggestContinueAsNewReasons : List Temporal_Api_Enums_V1_SuggestContinueAsNewReason
+  suggestContinueAsNewReasons : List Temporal.Api.Enums.V1.SuggestContinueAsNewReason
   targetWorkerDeploymentVersionChanged : Bool
   historySizeBytes : Int
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
   buildIdRedirectCounter : Int
   deriving Repr
 
-structure Temporal_Api_History_V1_WorkflowTaskTimedOutEventAttributes where
+structure WorkflowTaskTimedOutEventAttributes where
   scheduledEventId : Int
   startedEventId : Int
-  timeoutType : Temporal_Api_Enums_V1_TimeoutType
+  timeoutType : Temporal.Api.Enums.V1.TimeoutType
   deriving Repr
 
-inductive Temporal_Api_History_V1_HistoryEvent_Attributes where
+inductive HistoryEvent.Attributes where
   | notSet
-  | workflowExecutionStartedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionStartedEventAttributes)
-  | workflowExecutionCompletedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionCompletedEventAttributes)
-  | workflowExecutionFailedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionFailedEventAttributes)
-  | workflowExecutionTimedOutEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionTimedOutEventAttributes)
-  | workflowTaskScheduledEventAttributes (value : Temporal_Api_History_V1_WorkflowTaskScheduledEventAttributes)
-  | workflowTaskStartedEventAttributes (value : Temporal_Api_History_V1_WorkflowTaskStartedEventAttributes)
-  | workflowTaskCompletedEventAttributes (value : Temporal_Api_History_V1_WorkflowTaskCompletedEventAttributes)
-  | workflowTaskTimedOutEventAttributes (value : Temporal_Api_History_V1_WorkflowTaskTimedOutEventAttributes)
-  | workflowTaskFailedEventAttributes (value : Temporal_Api_History_V1_WorkflowTaskFailedEventAttributes)
-  | activityTaskScheduledEventAttributes (value : Temporal_Api_History_V1_ActivityTaskScheduledEventAttributes)
-  | activityTaskStartedEventAttributes (value : Temporal_Api_History_V1_ActivityTaskStartedEventAttributes)
-  | activityTaskCompletedEventAttributes (value : Temporal_Api_History_V1_ActivityTaskCompletedEventAttributes)
-  | activityTaskFailedEventAttributes (value : Temporal_Api_History_V1_ActivityTaskFailedEventAttributes)
-  | activityTaskTimedOutEventAttributes (value : Temporal_Api_History_V1_ActivityTaskTimedOutEventAttributes)
-  | timerStartedEventAttributes (value : Temporal_Api_History_V1_TimerStartedEventAttributes)
-  | timerFiredEventAttributes (value : Temporal_Api_History_V1_TimerFiredEventAttributes)
-  | activityTaskCancelRequestedEventAttributes (value : Temporal_Api_History_V1_ActivityTaskCancelRequestedEventAttributes)
-  | activityTaskCanceledEventAttributes (value : Temporal_Api_History_V1_ActivityTaskCanceledEventAttributes)
-  | timerCanceledEventAttributes (value : Temporal_Api_History_V1_TimerCanceledEventAttributes)
-  | markerRecordedEventAttributes (value : Temporal_Api_History_V1_MarkerRecordedEventAttributes)
-  | workflowExecutionSignaledEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionSignaledEventAttributes)
-  | workflowExecutionTerminatedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionTerminatedEventAttributes)
-  | workflowExecutionCancelRequestedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionCancelRequestedEventAttributes)
-  | workflowExecutionCanceledEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionCanceledEventAttributes)
-  | requestCancelExternalWorkflowExecutionInitiatedEventAttributes (value : Temporal_Api_History_V1_RequestCancelExternalWorkflowExecutionInitiatedEventAttributes)
-  | requestCancelExternalWorkflowExecutionFailedEventAttributes (value : Temporal_Api_History_V1_RequestCancelExternalWorkflowExecutionFailedEventAttributes)
-  | externalWorkflowExecutionCancelRequestedEventAttributes (value : Temporal_Api_History_V1_ExternalWorkflowExecutionCancelRequestedEventAttributes)
-  | workflowExecutionContinuedAsNewEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionContinuedAsNewEventAttributes)
-  | startChildWorkflowExecutionInitiatedEventAttributes (value : Temporal_Api_History_V1_StartChildWorkflowExecutionInitiatedEventAttributes)
-  | startChildWorkflowExecutionFailedEventAttributes (value : Temporal_Api_History_V1_StartChildWorkflowExecutionFailedEventAttributes)
-  | childWorkflowExecutionStartedEventAttributes (value : Temporal_Api_History_V1_ChildWorkflowExecutionStartedEventAttributes)
-  | childWorkflowExecutionCompletedEventAttributes (value : Temporal_Api_History_V1_ChildWorkflowExecutionCompletedEventAttributes)
-  | childWorkflowExecutionFailedEventAttributes (value : Temporal_Api_History_V1_ChildWorkflowExecutionFailedEventAttributes)
-  | childWorkflowExecutionCanceledEventAttributes (value : Temporal_Api_History_V1_ChildWorkflowExecutionCanceledEventAttributes)
-  | childWorkflowExecutionTimedOutEventAttributes (value : Temporal_Api_History_V1_ChildWorkflowExecutionTimedOutEventAttributes)
-  | childWorkflowExecutionTerminatedEventAttributes (value : Temporal_Api_History_V1_ChildWorkflowExecutionTerminatedEventAttributes)
-  | signalExternalWorkflowExecutionInitiatedEventAttributes (value : Temporal_Api_History_V1_SignalExternalWorkflowExecutionInitiatedEventAttributes)
-  | signalExternalWorkflowExecutionFailedEventAttributes (value : Temporal_Api_History_V1_SignalExternalWorkflowExecutionFailedEventAttributes)
-  | externalWorkflowExecutionSignaledEventAttributes (value : Temporal_Api_History_V1_ExternalWorkflowExecutionSignaledEventAttributes)
-  | upsertWorkflowSearchAttributesEventAttributes (value : Temporal_Api_History_V1_UpsertWorkflowSearchAttributesEventAttributes)
-  | workflowExecutionUpdateAcceptedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionUpdateAcceptedEventAttributes)
-  | workflowExecutionUpdateRejectedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionUpdateRejectedEventAttributes)
-  | workflowExecutionUpdateCompletedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionUpdateCompletedEventAttributes)
-  | workflowPropertiesModifiedExternallyEventAttributes (value : Temporal_Api_History_V1_WorkflowPropertiesModifiedExternallyEventAttributes)
-  | activityPropertiesModifiedExternallyEventAttributes (value : Temporal_Api_History_V1_ActivityPropertiesModifiedExternallyEventAttributes)
-  | workflowPropertiesModifiedEventAttributes (value : Temporal_Api_History_V1_WorkflowPropertiesModifiedEventAttributes)
-  | workflowExecutionUpdateAdmittedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionUpdateAdmittedEventAttributes)
-  | nexusOperationScheduledEventAttributes (value : Temporal_Api_History_V1_NexusOperationScheduledEventAttributes)
-  | nexusOperationStartedEventAttributes (value : Temporal_Api_History_V1_NexusOperationStartedEventAttributes)
-  | nexusOperationCompletedEventAttributes (value : Temporal_Api_History_V1_NexusOperationCompletedEventAttributes)
-  | nexusOperationFailedEventAttributes (value : Temporal_Api_History_V1_NexusOperationFailedEventAttributes)
-  | nexusOperationCanceledEventAttributes (value : Temporal_Api_History_V1_NexusOperationCanceledEventAttributes)
-  | nexusOperationTimedOutEventAttributes (value : Temporal_Api_History_V1_NexusOperationTimedOutEventAttributes)
-  | nexusOperationCancelRequestedEventAttributes (value : Temporal_Api_History_V1_NexusOperationCancelRequestedEventAttributes)
-  | workflowExecutionOptionsUpdatedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionOptionsUpdatedEventAttributes)
-  | nexusOperationCancelRequestCompletedEventAttributes (value : Temporal_Api_History_V1_NexusOperationCancelRequestCompletedEventAttributes)
-  | nexusOperationCancelRequestFailedEventAttributes (value : Temporal_Api_History_V1_NexusOperationCancelRequestFailedEventAttributes)
-  | workflowExecutionPausedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionPausedEventAttributes)
-  | workflowExecutionUnpausedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionUnpausedEventAttributes)
-  | workflowExecutionTimeSkippingTransitionedEventAttributes (value : Temporal_Api_History_V1_WorkflowExecutionTimeSkippingTransitionedEventAttributes)
+  | workflowExecutionStartedEventAttributes (value : WorkflowExecutionStartedEventAttributes)
+  | workflowExecutionCompletedEventAttributes (value : WorkflowExecutionCompletedEventAttributes)
+  | workflowExecutionFailedEventAttributes (value : WorkflowExecutionFailedEventAttributes)
+  | workflowExecutionTimedOutEventAttributes (value : WorkflowExecutionTimedOutEventAttributes)
+  | workflowTaskScheduledEventAttributes (value : WorkflowTaskScheduledEventAttributes)
+  | workflowTaskStartedEventAttributes (value : WorkflowTaskStartedEventAttributes)
+  | workflowTaskCompletedEventAttributes (value : WorkflowTaskCompletedEventAttributes)
+  | workflowTaskTimedOutEventAttributes (value : WorkflowTaskTimedOutEventAttributes)
+  | workflowTaskFailedEventAttributes (value : WorkflowTaskFailedEventAttributes)
+  | activityTaskScheduledEventAttributes (value : ActivityTaskScheduledEventAttributes)
+  | activityTaskStartedEventAttributes (value : ActivityTaskStartedEventAttributes)
+  | activityTaskCompletedEventAttributes (value : ActivityTaskCompletedEventAttributes)
+  | activityTaskFailedEventAttributes (value : ActivityTaskFailedEventAttributes)
+  | activityTaskTimedOutEventAttributes (value : ActivityTaskTimedOutEventAttributes)
+  | timerStartedEventAttributes (value : TimerStartedEventAttributes)
+  | timerFiredEventAttributes (value : TimerFiredEventAttributes)
+  | activityTaskCancelRequestedEventAttributes (value : ActivityTaskCancelRequestedEventAttributes)
+  | activityTaskCanceledEventAttributes (value : ActivityTaskCanceledEventAttributes)
+  | timerCanceledEventAttributes (value : TimerCanceledEventAttributes)
+  | markerRecordedEventAttributes (value : MarkerRecordedEventAttributes)
+  | workflowExecutionSignaledEventAttributes (value : WorkflowExecutionSignaledEventAttributes)
+  | workflowExecutionTerminatedEventAttributes (value : WorkflowExecutionTerminatedEventAttributes)
+  | workflowExecutionCancelRequestedEventAttributes (value : WorkflowExecutionCancelRequestedEventAttributes)
+  | workflowExecutionCanceledEventAttributes (value : WorkflowExecutionCanceledEventAttributes)
+  | requestCancelExternalWorkflowExecutionInitiatedEventAttributes (value : RequestCancelExternalWorkflowExecutionInitiatedEventAttributes)
+  | requestCancelExternalWorkflowExecutionFailedEventAttributes (value : RequestCancelExternalWorkflowExecutionFailedEventAttributes)
+  | externalWorkflowExecutionCancelRequestedEventAttributes (value : ExternalWorkflowExecutionCancelRequestedEventAttributes)
+  | workflowExecutionContinuedAsNewEventAttributes (value : WorkflowExecutionContinuedAsNewEventAttributes)
+  | startChildWorkflowExecutionInitiatedEventAttributes (value : StartChildWorkflowExecutionInitiatedEventAttributes)
+  | startChildWorkflowExecutionFailedEventAttributes (value : StartChildWorkflowExecutionFailedEventAttributes)
+  | childWorkflowExecutionStartedEventAttributes (value : ChildWorkflowExecutionStartedEventAttributes)
+  | childWorkflowExecutionCompletedEventAttributes (value : ChildWorkflowExecutionCompletedEventAttributes)
+  | childWorkflowExecutionFailedEventAttributes (value : ChildWorkflowExecutionFailedEventAttributes)
+  | childWorkflowExecutionCanceledEventAttributes (value : ChildWorkflowExecutionCanceledEventAttributes)
+  | childWorkflowExecutionTimedOutEventAttributes (value : ChildWorkflowExecutionTimedOutEventAttributes)
+  | childWorkflowExecutionTerminatedEventAttributes (value : ChildWorkflowExecutionTerminatedEventAttributes)
+  | signalExternalWorkflowExecutionInitiatedEventAttributes (value : SignalExternalWorkflowExecutionInitiatedEventAttributes)
+  | signalExternalWorkflowExecutionFailedEventAttributes (value : SignalExternalWorkflowExecutionFailedEventAttributes)
+  | externalWorkflowExecutionSignaledEventAttributes (value : ExternalWorkflowExecutionSignaledEventAttributes)
+  | upsertWorkflowSearchAttributesEventAttributes (value : UpsertWorkflowSearchAttributesEventAttributes)
+  | workflowExecutionUpdateAcceptedEventAttributes (value : WorkflowExecutionUpdateAcceptedEventAttributes)
+  | workflowExecutionUpdateRejectedEventAttributes (value : WorkflowExecutionUpdateRejectedEventAttributes)
+  | workflowExecutionUpdateCompletedEventAttributes (value : WorkflowExecutionUpdateCompletedEventAttributes)
+  | workflowPropertiesModifiedExternallyEventAttributes (value : WorkflowPropertiesModifiedExternallyEventAttributes)
+  | activityPropertiesModifiedExternallyEventAttributes (value : ActivityPropertiesModifiedExternallyEventAttributes)
+  | workflowPropertiesModifiedEventAttributes (value : WorkflowPropertiesModifiedEventAttributes)
+  | workflowExecutionUpdateAdmittedEventAttributes (value : WorkflowExecutionUpdateAdmittedEventAttributes)
+  | nexusOperationScheduledEventAttributes (value : NexusOperationScheduledEventAttributes)
+  | nexusOperationStartedEventAttributes (value : NexusOperationStartedEventAttributes)
+  | nexusOperationCompletedEventAttributes (value : NexusOperationCompletedEventAttributes)
+  | nexusOperationFailedEventAttributes (value : NexusOperationFailedEventAttributes)
+  | nexusOperationCanceledEventAttributes (value : NexusOperationCanceledEventAttributes)
+  | nexusOperationTimedOutEventAttributes (value : NexusOperationTimedOutEventAttributes)
+  | nexusOperationCancelRequestedEventAttributes (value : NexusOperationCancelRequestedEventAttributes)
+  | workflowExecutionOptionsUpdatedEventAttributes (value : WorkflowExecutionOptionsUpdatedEventAttributes)
+  | nexusOperationCancelRequestCompletedEventAttributes (value : NexusOperationCancelRequestCompletedEventAttributes)
+  | nexusOperationCancelRequestFailedEventAttributes (value : NexusOperationCancelRequestFailedEventAttributes)
+  | workflowExecutionPausedEventAttributes (value : WorkflowExecutionPausedEventAttributes)
+  | workflowExecutionUnpausedEventAttributes (value : WorkflowExecutionUnpausedEventAttributes)
+  | workflowExecutionTimeSkippingTransitionedEventAttributes (value : WorkflowExecutionTimeSkippingTransitionedEventAttributes)
   deriving Repr
 
-structure Temporal_Api_History_V1_HistoryEvent where
+structure HistoryEvent where
   eventId : Int
-  eventTime : Option Google_Protobuf_Timestamp
-  eventType : Temporal_Api_Enums_V1_EventType
+  eventTime : Option Google.Protobuf.Timestamp
+  eventType : Temporal.Api.Enums.V1.EventType
   version : Int
   taskId : Int
   workerMayIgnore : Bool
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  links : List Temporal_Api_Common_V1_Link
-  principal : Option Temporal_Api_Common_V1_Principal
-  eventGroupMarkers : List Temporal_Api_Sdk_V1_EventGroupMarker
-  attributes : Temporal_Api_History_V1_HistoryEvent_Attributes
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  links : List Temporal.Api.Common.V1.Link
+  principal : Option Temporal.Api.Common.V1.Principal
+  eventGroupMarkers : List Temporal.Api.Sdk.V1.EventGroupMarker
+  attributes : HistoryEvent.Attributes
   deriving Repr
 
-structure Temporal_Api_History_V1_History where
-  events : List Temporal_Api_History_V1_HistoryEvent
+structure History where
+  events : List HistoryEvent
   deriving Repr
 
-structure Temporal_Api_Export_V1_WorkflowExecution where
-  history : Option Temporal_Api_History_V1_History
+end Temporal.Api.History.V1
+
+namespace Temporal.Api.Export.V1
+
+structure WorkflowExecution where
+  history : Option Temporal.Api.History.V1.History
   deriving Repr
 
-structure Temporal_Api_Export_V1_WorkflowExecutions where
-  items : List Temporal_Api_Export_V1_WorkflowExecution
+structure WorkflowExecutions where
+  items : List WorkflowExecution
   deriving Repr
 
-structure Temporal_Api_Failure_V1_MultiOperationExecutionAborted where
+end Temporal.Api.Export.V1
+
+namespace Temporal.Api.Failure.V1
+
+structure MultiOperationExecutionAborted where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Filter_V1_StartTimeFilter where
-  earliestTime : Option Google_Protobuf_Timestamp
-  latestTime : Option Google_Protobuf_Timestamp
+end Temporal.Api.Failure.V1
+
+namespace Temporal.Api.Filter.V1
+
+structure StartTimeFilter where
+  earliestTime : Option Google.Protobuf.Timestamp
+  latestTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Filter_V1_StatusFilter where
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+structure StatusFilter where
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   deriving Repr
 
-structure Temporal_Api_Filter_V1_WorkflowExecutionFilter where
+structure WorkflowExecutionFilter where
   workflowId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Filter_V1_WorkflowTypeFilter where
+structure WorkflowTypeFilter where
   name : String
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_BadBinaryInfo where
+end Temporal.Api.Filter.V1
+
+namespace Temporal.Api.Namespace.V1
+
+structure BadBinaryInfo where
   reason : String
   operator : String
-  createTime : Option Google_Protobuf_Timestamp
+  createTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_BadBinaries where
-  binaries : List (String × Temporal_Api_Namespace_V1_BadBinaryInfo)
+structure BadBinaries where
+  binaries : List (String × BadBinaryInfo)
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_NamespaceConfig where
-  workflowExecutionRetentionTtl : Option Google_Protobuf_Duration
-  badBinaries : Option Temporal_Api_Namespace_V1_BadBinaries
-  historyArchivalState : Temporal_Api_Enums_V1_ArchivalState
+structure NamespaceConfig where
+  workflowExecutionRetentionTtl : Option Google.Protobuf.Duration
+  badBinaries : Option BadBinaries
+  historyArchivalState : Temporal.Api.Enums.V1.ArchivalState
   historyArchivalUri : String
-  visibilityArchivalState : Temporal_Api_Enums_V1_ArchivalState
+  visibilityArchivalState : Temporal.Api.Enums.V1.ArchivalState
   visibilityArchivalUri : String
   customSearchAttributeAliases : List (String × String)
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_NamespaceFilter where
+structure NamespaceFilter where
   includeDeleted : Bool
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_NamespaceInfo_Capabilities where
+structure NamespaceInfo.Capabilities where
   eagerWorkflowStart : Bool
   syncUpdate : Bool
   asyncUpdate : Bool
@@ -3773,77 +3997,81 @@ structure Temporal_Api_Namespace_V1_NamespaceInfo_Capabilities where
   standaloneActivityOperatorCommands : Bool
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_NamespaceInfo_Limits where
+structure NamespaceInfo.Limits where
   blobSizeLimitError : Int
   memoSizeLimitError : Int
   workflowTaskCompletionSizeLimitError : Int
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_NamespaceInfo where
+structure NamespaceInfo where
   name : String
-  state : Temporal_Api_Enums_V1_NamespaceState
+  state : Temporal.Api.Enums.V1.NamespaceState
   description : String
   ownerEmail : String
   data : List (String × String)
   id : String
-  capabilities : Option Temporal_Api_Namespace_V1_NamespaceInfo_Capabilities
-  limits : Option Temporal_Api_Namespace_V1_NamespaceInfo_Limits
+  capabilities : Option NamespaceInfo.Capabilities
+  limits : Option NamespaceInfo.Limits
   supportsSchedules : Bool
   deriving Repr
 
-structure Temporal_Api_Namespace_V1_UpdateNamespaceInfo where
+structure UpdateNamespaceInfo where
   description : String
   ownerEmail : String
   data : List (String × String)
-  state : Temporal_Api_Enums_V1_NamespaceState
+  state : Temporal.Api.Enums.V1.NamespaceState
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_CancelOperationRequest where
+end Temporal.Api.Namespace.V1
+
+namespace Temporal.Api.Nexus.V1
+
+structure CancelOperationRequest where
   service : String
   operation : String
   operationId : String
   operationToken : String
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_CancelOperationResponse where
+structure CancelOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_EndpointTarget_External where
+structure EndpointTarget.External where
   url : String
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_EndpointTarget_Worker where
+structure EndpointTarget.Worker where
   namespaceValue : String
   taskQueue : String
   deriving Repr
 
-inductive Temporal_Api_Nexus_V1_EndpointTarget_Variant where
+inductive EndpointTarget.Variant where
   | notSet
-  | worker (value : Temporal_Api_Nexus_V1_EndpointTarget_Worker)
-  | external (value : Temporal_Api_Nexus_V1_EndpointTarget_External)
+  | worker (value : EndpointTarget.Worker)
+  | external (value : EndpointTarget.External)
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_EndpointTarget where
-  variant : Temporal_Api_Nexus_V1_EndpointTarget_Variant
+structure EndpointTarget where
+  variant : EndpointTarget.Variant
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_EndpointSpec where
+structure EndpointSpec where
   name : String
-  description : Option Temporal_Api_Common_V1_Payload
-  target : Option Temporal_Api_Nexus_V1_EndpointTarget
+  description : Option Temporal.Api.Common.V1.Payload
+  target : Option EndpointTarget
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_Endpoint where
+structure Endpoint where
   version : Int
   id : String
-  spec : Option Temporal_Api_Nexus_V1_EndpointSpec
-  createdTime : Option Google_Protobuf_Timestamp
-  lastModifiedTime : Option Google_Protobuf_Timestamp
+  spec : Option EndpointSpec
+  createdTime : Option Google.Protobuf.Timestamp
+  lastModifiedTime : Option Google.Protobuf.Timestamp
   urlPrefix : String
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_Failure where
+structure Failure where
   message : String
   stackTrace : String
   metadata : List (String × String)
@@ -3851,196 +4079,216 @@ structure Temporal_Api_Nexus_V1_Failure where
   cause : Option Temporal.Proto.MessageRef
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_HandlerError where
+structure HandlerError where
   errorType : String
-  failure : Option Temporal_Api_Nexus_V1_Failure
-  retryBehavior : Temporal_Api_Enums_V1_NexusHandlerErrorRetryBehavior
+  failure : Option Failure
+  retryBehavior : Temporal.Api.Enums.V1.NexusHandlerErrorRetryBehavior
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_Link where
+structure Link where
   url : String
   type : String
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_NexusOperationExecutionCancellationInfo where
-  requestedTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Api_Enums_V1_NexusOperationCancellationState
+structure NexusOperationExecutionCancellationInfo where
+  requestedTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Api.Enums.V1.NexusOperationCancellationState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   blockedReason : String
   reason : String
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_NexusOperationExecutionInfo where
+structure NexusOperationExecutionInfo where
   operationId : String
   runId : String
   endpoint : String
   service : String
   operation : String
-  status : Temporal_Api_Enums_V1_NexusOperationExecutionStatus
-  state : Temporal_Api_Enums_V1_PendingNexusOperationState
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
+  status : Temporal.Api.Enums.V1.NexusOperationExecutionStatus
+  state : Temporal.Api.Enums.V1.PendingNexusOperationState
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
   attempt : Int
-  scheduleTime : Option Google_Protobuf_Timestamp
-  expirationTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
-  executionDuration : Option Google_Protobuf_Duration
-  cancellationInfo : Option Temporal_Api_Nexus_V1_NexusOperationExecutionCancellationInfo
+  scheduleTime : Option Google.Protobuf.Timestamp
+  expirationTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
+  executionDuration : Option Google.Protobuf.Duration
+  cancellationInfo : Option NexusOperationExecutionCancellationInfo
   blockedReason : String
   requestId : String
   operationToken : String
   stateTransitionCount : Int
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   nexusHeader : List (String × String)
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  links : List Temporal_Api_Common_V1_Link
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  links : List Temporal.Api.Common.V1.Link
   identity : String
   stateSizeBytes : Int
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_NexusOperationExecutionListInfo where
+structure NexusOperationExecutionListInfo where
   operationId : String
   runId : String
   endpoint : String
   service : String
   operation : String
-  scheduleTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Api_Enums_V1_NexusOperationExecutionStatus
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  scheduleTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  status : Temporal.Api.Enums.V1.NexusOperationExecutionStatus
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   stateTransitionCount : Int
-  executionDuration : Option Google_Protobuf_Duration
+  executionDuration : Option Google.Protobuf.Duration
   stateSizeBytes : Int
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_Request_Capabilities where
+structure Request.Capabilities where
   temporalFailureResponses : Bool
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_StartOperationRequest where
+structure StartOperationRequest where
   service : String
   operation : String
   requestId : String
   callback : String
-  payload : Option Temporal_Api_Common_V1_Payload
+  payload : Option Temporal.Api.Common.V1.Payload
   callbackHeader : List (String × String)
-  links : List Temporal_Api_Nexus_V1_Link
+  links : List Link
   deriving Repr
 
-inductive Temporal_Api_Nexus_V1_Request_Variant where
+inductive Request.Variant where
   | notSet
-  | startOperation (value : Temporal_Api_Nexus_V1_StartOperationRequest)
-  | cancelOperation (value : Temporal_Api_Nexus_V1_CancelOperationRequest)
+  | startOperation (value : StartOperationRequest)
+  | cancelOperation (value : CancelOperationRequest)
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_Request where
+structure Request where
   header : List (String × String)
-  scheduledTime : Option Google_Protobuf_Timestamp
-  capabilities : Option Temporal_Api_Nexus_V1_Request_Capabilities
+  scheduledTime : Option Google.Protobuf.Timestamp
+  capabilities : Option Request.Capabilities
   endpoint : String
-  variant : Temporal_Api_Nexus_V1_Request_Variant
+  variant : Request.Variant
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_StartOperationResponse_Async where
+structure StartOperationResponse.Async where
   operationId : String
-  links : List Temporal_Api_Nexus_V1_Link
+  links : List Link
   operationToken : String
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_StartOperationResponse_Sync where
-  payload : Option Temporal_Api_Common_V1_Payload
-  links : List Temporal_Api_Nexus_V1_Link
+structure StartOperationResponse.Sync where
+  payload : Option Temporal.Api.Common.V1.Payload
+  links : List Link
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_UnsuccessfulOperationError where
+structure UnsuccessfulOperationError where
   operationState : String
-  failure : Option Temporal_Api_Nexus_V1_Failure
+  failure : Option Failure
   deriving Repr
 
-inductive Temporal_Api_Nexus_V1_StartOperationResponse_Variant where
+inductive StartOperationResponse.Variant where
   | notSet
-  | syncSuccess (value : Temporal_Api_Nexus_V1_StartOperationResponse_Sync)
-  | asyncSuccess (value : Temporal_Api_Nexus_V1_StartOperationResponse_Async)
-  | operationError (value : Temporal_Api_Nexus_V1_UnsuccessfulOperationError)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | syncSuccess (value : StartOperationResponse.Sync)
+  | asyncSuccess (value : StartOperationResponse.Async)
+  | operationError (value : UnsuccessfulOperationError)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_StartOperationResponse where
-  variant : Temporal_Api_Nexus_V1_StartOperationResponse_Variant
+structure StartOperationResponse where
+  variant : StartOperationResponse.Variant
   deriving Repr
 
-inductive Temporal_Api_Nexus_V1_Response_Variant where
+inductive Response.Variant where
   | notSet
-  | startOperation (value : Temporal_Api_Nexus_V1_StartOperationResponse)
-  | cancelOperation (value : Temporal_Api_Nexus_V1_CancelOperationResponse)
+  | startOperation (value : StartOperationResponse)
+  | cancelOperation (value : CancelOperationResponse)
   deriving Repr
 
-structure Temporal_Api_Nexus_V1_Response where
-  variant : Temporal_Api_Nexus_V1_Response_Variant
+structure Response where
+  variant : Response.Variant
   deriving Repr
 
-structure Temporal_Api_Worker_V1_CancelActivityCommand where
+end Temporal.Api.Nexus.V1
+
+namespace Temporal.Api.Worker.V1
+
+structure CancelActivityCommand where
   taskToken : Temporal.Proto.Bytes
   deriving Repr
 
-inductive Temporal_Api_Worker_V1_WorkerCommand_Type where
+inductive WorkerCommand.Type where
   | notSet
-  | cancelActivity (value : Temporal_Api_Worker_V1_CancelActivityCommand)
+  | cancelActivity (value : CancelActivityCommand)
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerCommand where
-  type : Temporal_Api_Worker_V1_WorkerCommand_Type
+structure WorkerCommand where
+  type : WorkerCommand.Type
   deriving Repr
 
-structure Temporal_Api_Nexusservices_Workerservice_V1_ExecuteCommandsRequest where
-  commands : List Temporal_Api_Worker_V1_WorkerCommand
+end Temporal.Api.Worker.V1
+
+namespace Temporal.Api.Nexusservices.Workerservice.V1
+
+structure ExecuteCommandsRequest where
+  commands : List Temporal.Api.Worker.V1.WorkerCommand
   deriving Repr
 
-structure Temporal_Api_Worker_V1_CancelActivityResult where
+end Temporal.Api.Nexusservices.Workerservice.V1
+
+namespace Temporal.Api.Worker.V1
+
+structure CancelActivityResult where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Worker_V1_WorkerCommandResult_Type where
+inductive WorkerCommandResult.Type where
   | notSet
-  | cancelActivity (value : Temporal_Api_Worker_V1_CancelActivityResult)
+  | cancelActivity (value : CancelActivityResult)
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerCommandResult where
-  type : Temporal_Api_Worker_V1_WorkerCommandResult_Type
+structure WorkerCommandResult where
+  type : WorkerCommandResult.Type
   deriving Repr
 
-structure Temporal_Api_Nexusservices_Workerservice_V1_ExecuteCommandsResponse where
-  results : List Temporal_Api_Worker_V1_WorkerCommandResult
+end Temporal.Api.Worker.V1
+
+namespace Temporal.Api.Nexusservices.Workerservice.V1
+
+structure ExecuteCommandsResponse where
+  results : List Temporal.Api.Worker.V1.WorkerCommandResult
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_AddOrUpdateRemoteClusterRequest where
+end Temporal.Api.Nexusservices.Workerservice.V1
+
+namespace Temporal.Api.Operatorservice.V1
+
+structure AddOrUpdateRemoteClusterRequest where
   frontendAddress : String
   enableRemoteClusterConnection : Bool
   frontendHttpAddress : String
   enableReplication : Bool
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_AddOrUpdateRemoteClusterResponse where
+structure AddOrUpdateRemoteClusterResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_AddSearchAttributesRequest where
-  searchAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
+structure AddSearchAttributesRequest where
+  searchAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_AddSearchAttributesResponse where
+structure AddSearchAttributesResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ClusterMetadata where
+structure ClusterMetadata where
   clusterName : String
   clusterId : String
   address : String
@@ -4051,163 +4299,187 @@ structure Temporal_Api_Operatorservice_V1_ClusterMetadata where
   isReplicationEnabled : Bool
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_CreateNexusEndpointRequest where
-  spec : Option Temporal_Api_Nexus_V1_EndpointSpec
+structure CreateNexusEndpointRequest where
+  spec : Option Temporal.Api.Nexus.V1.EndpointSpec
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_CreateNexusEndpointResponse where
-  endpoint : Option Temporal_Api_Nexus_V1_Endpoint
+structure CreateNexusEndpointResponse where
+  endpoint : Option Temporal.Api.Nexus.V1.Endpoint
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_DeleteNamespaceRequest where
+structure DeleteNamespaceRequest where
   namespaceValue : String
   namespaceId : String
-  namespaceDeleteDelay : Option Google_Protobuf_Duration
+  namespaceDeleteDelay : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_DeleteNamespaceResponse where
+structure DeleteNamespaceResponse where
   deletedNamespace : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_DeleteNexusEndpointRequest where
+structure DeleteNexusEndpointRequest where
   id : String
   version : Int
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_DeleteNexusEndpointResponse where
+structure DeleteNexusEndpointResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_GetNexusEndpointRequest where
+structure GetNexusEndpointRequest where
   id : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_GetNexusEndpointResponse where
-  endpoint : Option Temporal_Api_Nexus_V1_Endpoint
+structure GetNexusEndpointResponse where
+  endpoint : Option Temporal.Api.Nexus.V1.Endpoint
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ListClustersRequest where
+structure ListClustersRequest where
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ListClustersResponse where
-  clusters : List Temporal_Api_Operatorservice_V1_ClusterMetadata
+structure ListClustersResponse where
+  clusters : List ClusterMetadata
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ListNexusEndpointsRequest where
+structure ListNexusEndpointsRequest where
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   name : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ListNexusEndpointsResponse where
+structure ListNexusEndpointsResponse where
   nextPageToken : Temporal.Proto.Bytes
-  endpoints : List Temporal_Api_Nexus_V1_Endpoint
+  endpoints : List Temporal.Api.Nexus.V1.Endpoint
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ListSearchAttributesRequest where
+structure ListSearchAttributesRequest where
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_ListSearchAttributesResponse where
-  customAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
-  systemAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
+structure ListSearchAttributesResponse where
+  customAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
+  systemAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
   storageSchema : List (String × String)
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_RemoveRemoteClusterRequest where
+structure RemoveRemoteClusterRequest where
   clusterName : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_RemoveRemoteClusterResponse where
+structure RemoveRemoteClusterResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_RemoveSearchAttributesRequest where
+structure RemoveSearchAttributesRequest where
   searchAttributes : List String
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_RemoveSearchAttributesResponse where
+structure RemoveSearchAttributesResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_UpdateNexusEndpointRequest where
+structure UpdateNexusEndpointRequest where
   id : String
   version : Int
-  spec : Option Temporal_Api_Nexus_V1_EndpointSpec
+  spec : Option Temporal.Api.Nexus.V1.EndpointSpec
   deriving Repr
 
-structure Temporal_Api_Operatorservice_V1_UpdateNexusEndpointResponse where
-  endpoint : Option Temporal_Api_Nexus_V1_Endpoint
+structure UpdateNexusEndpointResponse where
+  endpoint : Option Temporal.Api.Nexus.V1.Endpoint
   deriving Repr
 
-inductive Temporal_Api_Protocol_V1_Message_SequencingId where
+end Temporal.Api.Operatorservice.V1
+
+namespace Temporal.Api.Protocol.V1
+
+inductive Message.SequencingId where
   | notSet
   | eventId (value : Int)
   | commandIndex (value : Int)
   deriving Repr
 
-structure Temporal_Api_Protocol_V1_Message where
+structure Message where
   id : String
   protocolInstanceId : String
-  body : Option Google_Protobuf_Any
-  sequencingId : Temporal_Api_Protocol_V1_Message_SequencingId
+  body : Option Google.Protobuf.Any
+  sequencingId : Message.SequencingId
   deriving Repr
 
-structure Temporal_Api_Protometa_V1_RequestHeaderAnnotation where
+end Temporal.Api.Protocol.V1
+
+namespace Temporal.Api.Protometa.V1
+
+structure RequestHeaderAnnotation where
   header : String
   value : String
   deriving Repr
 
-structure Temporal_Api_Query_V1_QueryRejected where
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+end Temporal.Api.Protometa.V1
+
+namespace Temporal.Api.Query.V1
+
+structure QueryRejected where
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   deriving Repr
 
-structure Temporal_Api_Query_V1_WorkflowQuery where
+structure WorkflowQuery where
   queryType : String
-  queryArgs : Option Temporal_Api_Common_V1_Payloads
-  header : Option Temporal_Api_Common_V1_Header
+  queryArgs : Option Temporal.Api.Common.V1.Payloads
+  header : Option Temporal.Api.Common.V1.Header
   deriving Repr
 
-structure Temporal_Api_Query_V1_WorkflowQueryResult where
-  resultType : Temporal_Api_Enums_V1_QueryResultType
-  answer : Option Temporal_Api_Common_V1_Payloads
+structure WorkflowQueryResult where
+  resultType : Temporal.Api.Enums.V1.QueryResultType
+  answer : Option Temporal.Api.Common.V1.Payloads
   errorMessage : String
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Replication_V1_ClusterReplicationConfig where
+end Temporal.Api.Query.V1
+
+namespace Temporal.Api.Replication.V1
+
+structure ClusterReplicationConfig where
   clusterName : String
   deriving Repr
 
-structure Temporal_Api_Replication_V1_FailoverStatus where
-  failoverTime : Option Google_Protobuf_Timestamp
+structure FailoverStatus where
+  failoverTime : Option Google.Protobuf.Timestamp
   failoverVersion : Int
   deriving Repr
 
-structure Temporal_Api_Replication_V1_NamespaceReplicationConfig where
+structure NamespaceReplicationConfig where
   activeClusterName : String
-  clusters : List Temporal_Api_Replication_V1_ClusterReplicationConfig
-  state : Temporal_Api_Enums_V1_ReplicationState
+  clusters : List ClusterReplicationConfig
+  state : Temporal.Api.Enums.V1.ReplicationState
   deriving Repr
 
-structure Temporal_Api_Rules_V1_WorkflowRule where
-  createTime : Option Google_Protobuf_Timestamp
-  spec : Option Temporal_Api_Rules_V1_WorkflowRuleSpec
+end Temporal.Api.Replication.V1
+
+namespace Temporal.Api.Rules.V1
+
+structure WorkflowRule where
+  createTime : Option Google.Protobuf.Timestamp
+  spec : Option WorkflowRuleSpec
   createdByIdentity : String
   description : String
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_BackfillRequest where
-  startTime : Option Google_Protobuf_Timestamp
-  endTime : Option Google_Protobuf_Timestamp
-  overlapPolicy : Temporal_Api_Enums_V1_ScheduleOverlapPolicy
+end Temporal.Api.Rules.V1
+
+namespace Temporal.Api.Schedule.V1
+
+structure BackfillRequest where
+  startTime : Option Google.Protobuf.Timestamp
+  endTime : Option Google.Protobuf.Timestamp
+  overlapPolicy : Temporal.Api.Enums.V1.ScheduleOverlapPolicy
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_CalendarSpec where
+structure CalendarSpec where
   second : String
   minute : String
   hour : String
@@ -4218,143 +4490,155 @@ structure Temporal_Api_Schedule_V1_CalendarSpec where
   comment : String
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_IntervalSpec where
-  interval : Option Google_Protobuf_Duration
-  phase : Option Google_Protobuf_Duration
+structure IntervalSpec where
+  interval : Option Google.Protobuf.Duration
+  phase : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_Range where
+structure Range where
   start : Int
   endValue : Int
   step : Int
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_NewWorkflowExecutionInfo where
+end Temporal.Api.Schedule.V1
+
+namespace Temporal.Api.Workflow.V1
+
+structure NewWorkflowExecutionInfo where
   workflowId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
-  workflowIdReusePolicy : Temporal_Api_Enums_V1_WorkflowIdReusePolicy
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
+  workflowIdReusePolicy : Temporal.Api.Enums.V1.WorkflowIdReusePolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   cronSchedule : String
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  header : Option Temporal_Api_Common_V1_Header
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
-  priority : Option Temporal_Api_Common_V1_Priority
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  versioningOverride : Option VersioningOverride
+  priority : Option Temporal.Api.Common.V1.Priority
   deriving Repr
 
-inductive Temporal_Api_Schedule_V1_ScheduleAction_Action where
+end Temporal.Api.Workflow.V1
+
+namespace Temporal.Api.Schedule.V1
+
+inductive ScheduleAction.Action where
   | notSet
-  | startWorkflow (value : Temporal_Api_Workflow_V1_NewWorkflowExecutionInfo)
+  | startWorkflow (value : Temporal.Api.Workflow.V1.NewWorkflowExecutionInfo)
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleAction where
-  action : Temporal_Api_Schedule_V1_ScheduleAction_Action
+structure ScheduleAction where
+  action : ScheduleAction.Action
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_SchedulePolicies where
-  overlapPolicy : Temporal_Api_Enums_V1_ScheduleOverlapPolicy
-  catchupWindow : Option Google_Protobuf_Duration
+structure SchedulePolicies where
+  overlapPolicy : Temporal.Api.Enums.V1.ScheduleOverlapPolicy
+  catchupWindow : Option Google.Protobuf.Duration
   pauseOnFailure : Bool
   keepOriginalWorkflowId : Bool
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_StructuredCalendarSpec where
-  second : List Temporal_Api_Schedule_V1_Range
-  minute : List Temporal_Api_Schedule_V1_Range
-  hour : List Temporal_Api_Schedule_V1_Range
-  dayOfMonth : List Temporal_Api_Schedule_V1_Range
-  month : List Temporal_Api_Schedule_V1_Range
-  year : List Temporal_Api_Schedule_V1_Range
-  dayOfWeek : List Temporal_Api_Schedule_V1_Range
+structure StructuredCalendarSpec where
+  second : List Range
+  minute : List Range
+  hour : List Range
+  dayOfMonth : List Range
+  month : List Range
+  year : List Range
+  dayOfWeek : List Range
   comment : String
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleSpec where
-  structuredCalendar : List Temporal_Api_Schedule_V1_StructuredCalendarSpec
+structure ScheduleSpec where
+  structuredCalendar : List StructuredCalendarSpec
   cronString : List String
-  calendar : List Temporal_Api_Schedule_V1_CalendarSpec
-  interval : List Temporal_Api_Schedule_V1_IntervalSpec
-  excludeCalendar : List Temporal_Api_Schedule_V1_CalendarSpec
-  excludeStructuredCalendar : List Temporal_Api_Schedule_V1_StructuredCalendarSpec
-  startTime : Option Google_Protobuf_Timestamp
-  endTime : Option Google_Protobuf_Timestamp
-  jitter : Option Google_Protobuf_Duration
+  calendar : List CalendarSpec
+  interval : List IntervalSpec
+  excludeCalendar : List CalendarSpec
+  excludeStructuredCalendar : List StructuredCalendarSpec
+  startTime : Option Google.Protobuf.Timestamp
+  endTime : Option Google.Protobuf.Timestamp
+  jitter : Option Google.Protobuf.Duration
   timezoneName : String
   timezoneData : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleState where
+structure ScheduleState where
   notes : String
   paused : Bool
   limitedActions : Bool
   remainingActions : Int
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_Schedule where
-  spec : Option Temporal_Api_Schedule_V1_ScheduleSpec
-  action : Option Temporal_Api_Schedule_V1_ScheduleAction
-  policies : Option Temporal_Api_Schedule_V1_SchedulePolicies
-  state : Option Temporal_Api_Schedule_V1_ScheduleState
+structure Schedule where
+  spec : Option ScheduleSpec
+  action : Option ScheduleAction
+  policies : Option SchedulePolicies
+  state : Option ScheduleState
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleActionResult where
-  scheduleTime : Option Google_Protobuf_Timestamp
-  actualTime : Option Google_Protobuf_Timestamp
-  startWorkflowResult : Option Temporal_Api_Common_V1_WorkflowExecution
-  startWorkflowStatus : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+structure ScheduleActionResult where
+  scheduleTime : Option Google.Protobuf.Timestamp
+  actualTime : Option Google.Protobuf.Timestamp
+  startWorkflowResult : Option Temporal.Api.Common.V1.WorkflowExecution
+  startWorkflowStatus : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleInfo where
+structure ScheduleInfo where
   actionCount : Int
   missedCatchupWindow : Int
   overlapSkipped : Int
   bufferDropped : Int
   bufferSize : Int
-  runningWorkflows : List Temporal_Api_Common_V1_WorkflowExecution
-  recentActions : List Temporal_Api_Schedule_V1_ScheduleActionResult
-  futureActionTimes : List Google_Protobuf_Timestamp
-  createTime : Option Google_Protobuf_Timestamp
-  updateTime : Option Google_Protobuf_Timestamp
+  runningWorkflows : List Temporal.Api.Common.V1.WorkflowExecution
+  recentActions : List ScheduleActionResult
+  futureActionTimes : List Google.Protobuf.Timestamp
+  createTime : Option Google.Protobuf.Timestamp
+  updateTime : Option Google.Protobuf.Timestamp
   invalidScheduleError : String
   stateSizeBytes : Int
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleListInfo where
-  spec : Option Temporal_Api_Schedule_V1_ScheduleSpec
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+structure ScheduleListInfo where
+  spec : Option ScheduleSpec
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   notes : String
   paused : Bool
-  recentActions : List Temporal_Api_Schedule_V1_ScheduleActionResult
-  futureActionTimes : List Google_Protobuf_Timestamp
+  recentActions : List ScheduleActionResult
+  futureActionTimes : List Google.Protobuf.Timestamp
   stateSizeBytes : Int
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_ScheduleListEntry where
+structure ScheduleListEntry where
   scheduleId : String
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  info : Option Temporal_Api_Schedule_V1_ScheduleListInfo
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  info : Option ScheduleListInfo
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_TriggerImmediatelyRequest where
-  overlapPolicy : Temporal_Api_Enums_V1_ScheduleOverlapPolicy
-  scheduledTime : Option Google_Protobuf_Timestamp
+structure TriggerImmediatelyRequest where
+  overlapPolicy : Temporal.Api.Enums.V1.ScheduleOverlapPolicy
+  scheduledTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Schedule_V1_SchedulePatch where
-  triggerImmediately : Option Temporal_Api_Schedule_V1_TriggerImmediatelyRequest
-  backfillRequest : List Temporal_Api_Schedule_V1_BackfillRequest
+structure SchedulePatch where
+  triggerImmediately : Option TriggerImmediatelyRequest
+  backfillRequest : List BackfillRequest
   pause : String
   unpause : String
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_StackTraceFileLocation where
+end Temporal.Api.Schedule.V1
+
+namespace Temporal.Api.Sdk.V1
+
+structure StackTraceFileLocation where
   filePath : String
   line : Int
   column : Int
@@ -4362,315 +4646,331 @@ structure Temporal_Api_Sdk_V1_StackTraceFileLocation where
   internalCode : Bool
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_StackTrace where
-  locations : List Temporal_Api_Sdk_V1_StackTraceFileLocation
+structure StackTrace where
+  locations : List StackTraceFileLocation
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_StackTraceFileSlice where
+structure StackTraceFileSlice where
   lineOffset : Nat
   content : String
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_StackTraceSDKInfo where
+structure StackTraceSDKInfo where
   name : String
   version : String
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_EnhancedStackTrace where
-  sdk : Option Temporal_Api_Sdk_V1_StackTraceSDKInfo
-  sources : List (String × Temporal_Api_Sdk_V1_StackTraceFileSlice)
-  stacks : List Temporal_Api_Sdk_V1_StackTrace
+structure EnhancedStackTrace where
+  sdk : Option StackTraceSDKInfo
+  sources : List (String × StackTraceFileSlice)
+  stacks : List StackTrace
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_ExternalStorageReference where
+structure ExternalStorageReference where
   driverName : String
   claimData : List (String × String)
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkerConfig_AutoscalingPollerBehavior where
+structure WorkerConfig.AutoscalingPollerBehavior where
   minPollers : Int
   maxPollers : Int
   initialPollers : Int
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkerConfig_SimplePollerBehavior where
+structure WorkerConfig.SimplePollerBehavior where
   maxPollers : Int
   deriving Repr
 
-inductive Temporal_Api_Sdk_V1_WorkerConfig_PollerBehavior where
+inductive WorkerConfig.PollerBehavior where
   | notSet
-  | simplePollerBehavior (value : Temporal_Api_Sdk_V1_WorkerConfig_SimplePollerBehavior)
-  | autoscalingPollerBehavior (value : Temporal_Api_Sdk_V1_WorkerConfig_AutoscalingPollerBehavior)
+  | simplePollerBehavior (value : WorkerConfig.SimplePollerBehavior)
+  | autoscalingPollerBehavior (value : WorkerConfig.AutoscalingPollerBehavior)
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkerConfig where
+structure WorkerConfig where
   workflowCacheSize : Int
-  pollerBehavior : Temporal_Api_Sdk_V1_WorkerConfig_PollerBehavior
+  pollerBehavior : WorkerConfig.PollerBehavior
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkflowInteractionDefinition where
+structure WorkflowInteractionDefinition where
   name : String
   description : String
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkflowDefinition where
+structure WorkflowDefinition where
   type : String
-  queryDefinitions : List Temporal_Api_Sdk_V1_WorkflowInteractionDefinition
-  signalDefinitions : List Temporal_Api_Sdk_V1_WorkflowInteractionDefinition
-  updateDefinitions : List Temporal_Api_Sdk_V1_WorkflowInteractionDefinition
+  queryDefinitions : List WorkflowInteractionDefinition
+  signalDefinitions : List WorkflowInteractionDefinition
+  updateDefinitions : List WorkflowInteractionDefinition
   deriving Repr
 
-structure Temporal_Api_Sdk_V1_WorkflowMetadata where
-  definition : Option Temporal_Api_Sdk_V1_WorkflowDefinition
+structure WorkflowMetadata where
+  definition : Option WorkflowDefinition
   currentDetails : String
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_RampByPercentage where
+end Temporal.Api.Sdk.V1
+
+namespace Temporal.Api.Taskqueue.V1
+
+structure RampByPercentage where
   rampPercentage : Float
   deriving Repr
 
-inductive Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule_Ramp where
+inductive BuildIdAssignmentRule.Ramp where
   | notSet
-  | percentageRamp (value : Temporal_Api_Taskqueue_V1_RampByPercentage)
+  | percentageRamp (value : RampByPercentage)
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule where
+structure BuildIdAssignmentRule where
   targetBuildId : String
-  ramp : Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule_Ramp
+  ramp : BuildIdAssignmentRule.Ramp
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueReachability where
+structure TaskQueueReachability where
   taskQueue : String
-  reachability : List Temporal_Api_Enums_V1_TaskReachability
+  reachability : List Temporal.Api.Enums.V1.TaskReachability
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_BuildIdReachability where
+structure BuildIdReachability where
   buildId : String
-  taskQueueReachability : List Temporal_Api_Taskqueue_V1_TaskQueueReachability
+  taskQueueReachability : List TaskQueueReachability
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_CompatibleBuildIdRedirectRule where
+structure CompatibleBuildIdRedirectRule where
   sourceBuildId : String
   targetBuildId : String
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_CompatibleVersionSet where
+structure CompatibleVersionSet where
   buildIds : List String
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_ConfigMetadata where
+structure ConfigMetadata where
   reason : String
   updateIdentity : String
-  updateTime : Option Google_Protobuf_Timestamp
+  updateTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_PollerGroupInfo where
+structure PollerGroupInfo where
   id : String
   weight : Float
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_PollerGroupsInfo where
+structure PollerGroupsInfo where
   version : Int
-  pollerGroups : List Temporal_Api_Taskqueue_V1_PollerGroupInfo
+  pollerGroups : List PollerGroupInfo
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_PollerInfo where
-  lastAccessTime : Option Google_Protobuf_Timestamp
+structure PollerInfo where
+  lastAccessTime : Option Google.Protobuf.Timestamp
   identity : String
   ratePerSecond : Float
-  workerVersionCapabilities : Option Temporal_Api_Common_V1_WorkerVersionCapabilities
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  workerVersionCapabilities : Option Temporal.Api.Common.V1.WorkerVersionCapabilities
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_PollerScalingDecision where
+structure PollerScalingDecision where
   pollRequestDeltaSuggestion : Int
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_RateLimit where
+structure RateLimit where
   requestsPerSecond : Float
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_RateLimitConfig where
-  rateLimit : Option Temporal_Api_Taskqueue_V1_RateLimit
-  metadata : Option Temporal_Api_Taskqueue_V1_ConfigMetadata
+structure RateLimitConfig where
+  rateLimit : Option RateLimit
+  metadata : Option ConfigMetadata
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_StickyExecutionAttributes where
-  workerTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
+structure StickyExecutionAttributes where
+  workerTaskQueue : Option TaskQueue
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskIdBlock where
+structure TaskIdBlock where
   startId : Int
   endId : Int
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueConfig where
-  queueRateLimit : Option Temporal_Api_Taskqueue_V1_RateLimitConfig
-  fairnessKeysRateLimitDefault : Option Temporal_Api_Taskqueue_V1_RateLimitConfig
+structure TaskQueueConfig where
+  queueRateLimit : Option RateLimitConfig
+  fairnessKeysRateLimitDefault : Option RateLimitConfig
   fairnessWeightOverrides : List (String × Float)
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueMetadata where
-  maxTasksPerSecond : Option Google_Protobuf_DoubleValue
+structure TaskQueueMetadata where
+  maxTasksPerSecond : Option Google.Protobuf.DoubleValue
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueuePartitionMetadata where
+structure TaskQueuePartitionMetadata where
   key : String
   ownerHostName : String
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueStats where
+structure TaskQueueStats where
   approximateBacklogCount : Int
-  approximateBacklogAge : Option Google_Protobuf_Duration
+  approximateBacklogAge : Option Google.Protobuf.Duration
   tasksAddRate : Float
   tasksDispatchRate : Float
   rateLimitingActive : Bool
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueStatus where
+structure TaskQueueStatus where
   backlogCountHint : Int
   readLevel : Int
   ackLevel : Int
   ratePerSecond : Float
-  taskIdBlock : Option Temporal_Api_Taskqueue_V1_TaskIdBlock
+  taskIdBlock : Option TaskIdBlock
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueTypeInfo where
-  pollers : List Temporal_Api_Taskqueue_V1_PollerInfo
-  stats : Option Temporal_Api_Taskqueue_V1_TaskQueueStats
+structure TaskQueueTypeInfo where
+  pollers : List PollerInfo
+  stats : Option TaskQueueStats
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueVersionInfo where
-  typesInfo : List (Int × Temporal_Api_Taskqueue_V1_TaskQueueTypeInfo)
-  taskReachability : Temporal_Api_Enums_V1_BuildIdTaskReachability
+structure TaskQueueVersionInfo where
+  typesInfo : List (Int × TaskQueueTypeInfo)
+  taskReachability : Temporal.Api.Enums.V1.BuildIdTaskReachability
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueVersionSelection where
+structure TaskQueueVersionSelection where
   buildIds : List String
   unversioned : Bool
   allActive : Bool
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TaskQueueVersioningInfo where
-  currentDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure TaskQueueVersioningInfo where
+  currentDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   currentVersion : String
-  rampingDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  rampingDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   rampingVersion : String
   rampingVersionPercentage : Float
-  updateTime : Option Google_Protobuf_Timestamp
+  updateTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TimestampedBuildIdAssignmentRule where
-  rule : Option Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule
-  createTime : Option Google_Protobuf_Timestamp
+structure TimestampedBuildIdAssignmentRule where
+  rule : Option BuildIdAssignmentRule
+  createTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Taskqueue_V1_TimestampedCompatibleBuildIdRedirectRule where
-  rule : Option Temporal_Api_Taskqueue_V1_CompatibleBuildIdRedirectRule
-  createTime : Option Google_Protobuf_Timestamp
+structure TimestampedCompatibleBuildIdRedirectRule where
+  rule : Option CompatibleBuildIdRedirectRule
+  createTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Update_V1_Acceptance where
+end Temporal.Api.Taskqueue.V1
+
+namespace Temporal.Api.Update.V1
+
+structure Acceptance where
   acceptedRequestMessageId : String
   acceptedRequestSequencingEventId : Int
-  acceptedRequest : Option Temporal_Api_Update_V1_Request
+  acceptedRequest : Option Request
   deriving Repr
 
-structure Temporal_Api_Update_V1_Rejection where
+structure Rejection where
   rejectedRequestMessageId : String
   rejectedRequestSequencingEventId : Int
-  rejectedRequest : Option Temporal_Api_Update_V1_Request
-  failure : Option Temporal_Api_Failure_V1_Failure
+  rejectedRequest : Option Request
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Update_V1_Response where
-  metaValue : Option Temporal_Api_Update_V1_Meta
-  outcome : Option Temporal_Api_Update_V1_Outcome
+structure Response where
+  metaValue : Option Meta
+  outcome : Option Outcome
   deriving Repr
 
-structure Temporal_Api_Update_V1_UpdateRef where
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+structure UpdateRef where
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   updateId : String
   deriving Repr
 
-structure Temporal_Api_Update_V1_WaitPolicy where
-  lifecycleStage : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage
+structure WaitPolicy where
+  lifecycleStage : Temporal.Api.Enums.V1.UpdateWorkflowExecutionLifecycleStage
   deriving Repr
 
-structure Temporal_Api_Version_V1_Alert where
+end Temporal.Api.Update.V1
+
+namespace Temporal.Api.Version.V1
+
+structure Alert where
   message : String
-  severity : Temporal_Api_Enums_V1_Severity
+  severity : Temporal.Api.Enums.V1.Severity
   deriving Repr
 
-structure Temporal_Api_Version_V1_ReleaseInfo where
+structure ReleaseInfo where
   version : String
-  releaseTime : Option Google_Protobuf_Timestamp
+  releaseTime : Option Google.Protobuf.Timestamp
   notes : String
   deriving Repr
 
-structure Temporal_Api_Version_V1_VersionInfo where
-  current : Option Temporal_Api_Version_V1_ReleaseInfo
-  recommended : Option Temporal_Api_Version_V1_ReleaseInfo
+structure VersionInfo where
+  current : Option ReleaseInfo
+  recommended : Option ReleaseInfo
   instructions : String
-  alerts : List Temporal_Api_Version_V1_Alert
-  lastUpdateTime : Option Google_Protobuf_Timestamp
+  alerts : List Alert
+  lastUpdateTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment where
-  type : Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment_HostingEnvironmentType
+end Temporal.Api.Version.V1
+
+namespace Temporal.Api.Worker.V1
+
+structure EnvironmentInfo.HostingEnvironment where
+  type : EnvironmentInfo.HostingEnvironment.HostingEnvironmentType
   version : String
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform where
+structure EnvironmentInfo.LinuxPlatform where
   version : String
-  architecture : Temporal_Api_Worker_V1_EnvironmentInfo_Architecture
-  libc : Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform_Libc
+  architecture : EnvironmentInfo.Architecture
+  libc : EnvironmentInfo.LinuxPlatform.Libc
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_MacOSPlatform where
+structure EnvironmentInfo.MacOSPlatform where
   version : String
-  architecture : Temporal_Api_Worker_V1_EnvironmentInfo_Architecture
+  architecture : EnvironmentInfo.Architecture
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform where
+structure EnvironmentInfo.WindowsPlatform where
   version : String
-  architecture : Temporal_Api_Worker_V1_EnvironmentInfo_Architecture
-  crt : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform_Crt
+  architecture : EnvironmentInfo.Architecture
+  crt : EnvironmentInfo.WindowsPlatform.Crt
   deriving Repr
 
-inductive Temporal_Api_Worker_V1_EnvironmentInfo_Platform_Variant where
+inductive EnvironmentInfo.Platform.Variant where
   | notSet
-  | linux (value : Temporal_Api_Worker_V1_EnvironmentInfo_LinuxPlatform)
-  | macos (value : Temporal_Api_Worker_V1_EnvironmentInfo_MacOSPlatform)
-  | windows (value : Temporal_Api_Worker_V1_EnvironmentInfo_WindowsPlatform)
+  | linux (value : EnvironmentInfo.LinuxPlatform)
+  | macos (value : EnvironmentInfo.MacOSPlatform)
+  | windows (value : EnvironmentInfo.WindowsPlatform)
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_Platform where
-  variant : Temporal_Api_Worker_V1_EnvironmentInfo_Platform_Variant
+structure EnvironmentInfo.Platform where
+  variant : EnvironmentInfo.Platform.Variant
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo_Runtime where
-  type : Temporal_Api_Worker_V1_EnvironmentInfo_Runtime_RuntimeType
+structure EnvironmentInfo.Runtime where
+  type : EnvironmentInfo.Runtime.RuntimeType
   version : String
   deriving Repr
 
-structure Temporal_Api_Worker_V1_EnvironmentInfo where
-  runtimes : List Temporal_Api_Worker_V1_EnvironmentInfo_Runtime
-  hostingEnvironments : List Temporal_Api_Worker_V1_EnvironmentInfo_HostingEnvironment
-  platform : Option Temporal_Api_Worker_V1_EnvironmentInfo_Platform
+structure EnvironmentInfo where
+  runtimes : List EnvironmentInfo.Runtime
+  hostingEnvironments : List EnvironmentInfo.HostingEnvironment
+  platform : Option EnvironmentInfo.Platform
   deriving Repr
 
-structure Temporal_Api_Worker_V1_PluginInfo where
+structure PluginInfo where
   name : String
   version : String
   deriving Repr
 
-structure Temporal_Api_Worker_V1_StorageDriverInfo where
+structure StorageDriverInfo where
   type : String
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerHostInfo where
+structure WorkerHostInfo where
   hostName : String
   workerGroupingKey : String
   processId : String
@@ -4678,13 +4978,13 @@ structure Temporal_Api_Worker_V1_WorkerHostInfo where
   currentHostMemUsage : Float
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerPollerInfo where
+structure WorkerPollerInfo where
   currentPollers : Int
-  lastSuccessfulPollTime : Option Google_Protobuf_Timestamp
+  lastSuccessfulPollTime : Option Google.Protobuf.Timestamp
   isAutoscaling : Bool
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerSlotsInfo where
+structure WorkerSlotsInfo where
   currentAvailableSlots : Int
   currentUsedSlots : Int
   slotSupplierKind : String
@@ -4694,475 +4994,483 @@ structure Temporal_Api_Worker_V1_WorkerSlotsInfo where
   lastIntervalFailureTasks : Int
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerHeartbeat where
+structure WorkerHeartbeat where
   workerInstanceKey : String
   workerIdentity : String
-  hostInfo : Option Temporal_Api_Worker_V1_WorkerHostInfo
+  hostInfo : Option WorkerHostInfo
   taskQueue : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   sdkName : String
   sdkVersion : String
-  status : Temporal_Api_Enums_V1_WorkerStatus
-  startTime : Option Google_Protobuf_Timestamp
-  heartbeatTime : Option Google_Protobuf_Timestamp
-  elapsedSinceLastHeartbeat : Option Google_Protobuf_Duration
-  workflowTaskSlotsInfo : Option Temporal_Api_Worker_V1_WorkerSlotsInfo
-  activityTaskSlotsInfo : Option Temporal_Api_Worker_V1_WorkerSlotsInfo
-  nexusTaskSlotsInfo : Option Temporal_Api_Worker_V1_WorkerSlotsInfo
-  localActivitySlotsInfo : Option Temporal_Api_Worker_V1_WorkerSlotsInfo
-  workflowPollerInfo : Option Temporal_Api_Worker_V1_WorkerPollerInfo
-  workflowStickyPollerInfo : Option Temporal_Api_Worker_V1_WorkerPollerInfo
-  activityPollerInfo : Option Temporal_Api_Worker_V1_WorkerPollerInfo
-  nexusPollerInfo : Option Temporal_Api_Worker_V1_WorkerPollerInfo
+  status : Temporal.Api.Enums.V1.WorkerStatus
+  startTime : Option Google.Protobuf.Timestamp
+  heartbeatTime : Option Google.Protobuf.Timestamp
+  elapsedSinceLastHeartbeat : Option Google.Protobuf.Duration
+  workflowTaskSlotsInfo : Option WorkerSlotsInfo
+  activityTaskSlotsInfo : Option WorkerSlotsInfo
+  nexusTaskSlotsInfo : Option WorkerSlotsInfo
+  localActivitySlotsInfo : Option WorkerSlotsInfo
+  workflowPollerInfo : Option WorkerPollerInfo
+  workflowStickyPollerInfo : Option WorkerPollerInfo
+  activityPollerInfo : Option WorkerPollerInfo
+  nexusPollerInfo : Option WorkerPollerInfo
   totalStickyCacheHit : Int
   totalStickyCacheMiss : Int
   currentStickyCacheSize : Int
-  plugins : List Temporal_Api_Worker_V1_PluginInfo
-  drivers : List Temporal_Api_Worker_V1_StorageDriverInfo
-  environment : Option Temporal_Api_Worker_V1_EnvironmentInfo
+  plugins : List PluginInfo
+  drivers : List StorageDriverInfo
+  environment : Option EnvironmentInfo
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerInfo where
-  workerHeartbeat : Option Temporal_Api_Worker_V1_WorkerHeartbeat
+structure WorkerInfo where
+  workerHeartbeat : Option WorkerHeartbeat
   deriving Repr
 
-structure Temporal_Api_Worker_V1_WorkerListInfo where
+structure WorkerListInfo where
   workerInstanceKey : String
   workerIdentity : String
   taskQueue : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   sdkName : String
   sdkVersion : String
-  status : Temporal_Api_Enums_V1_WorkerStatus
-  startTime : Option Google_Protobuf_Timestamp
+  status : Temporal.Api.Enums.V1.WorkerStatus
+  startTime : Option Google.Protobuf.Timestamp
   hostName : String
   workerGroupingKey : String
   processId : String
-  plugins : List Temporal_Api_Worker_V1_PluginInfo
-  drivers : List Temporal_Api_Worker_V1_StorageDriverInfo
+  plugins : List PluginInfo
+  drivers : List StorageDriverInfo
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_CallbackInfo_UpdateWorkflowExecutionCompleted where
+end Temporal.Api.Worker.V1
+
+namespace Temporal.Api.Workflow.V1
+
+structure CallbackInfo.UpdateWorkflowExecutionCompleted where
   updateId : String
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_CallbackInfo_WorkflowClosed where
+structure CallbackInfo.WorkflowClosed where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Workflow_V1_CallbackInfo_Trigger_Variant where
+inductive CallbackInfo.Trigger.Variant where
   | notSet
-  | workflowClosed (value : Temporal_Api_Workflow_V1_CallbackInfo_WorkflowClosed)
-  | updateWorkflowExecutionCompleted (value : Temporal_Api_Workflow_V1_CallbackInfo_UpdateWorkflowExecutionCompleted)
+  | workflowClosed (value : CallbackInfo.WorkflowClosed)
+  | updateWorkflowExecutionCompleted (value : CallbackInfo.UpdateWorkflowExecutionCompleted)
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_CallbackInfo_Trigger where
-  variant : Temporal_Api_Workflow_V1_CallbackInfo_Trigger_Variant
+structure CallbackInfo.Trigger where
+  variant : CallbackInfo.Trigger.Variant
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_CallbackInfo where
-  callback : Option Temporal_Api_Common_V1_Callback
-  trigger : Option Temporal_Api_Workflow_V1_CallbackInfo_Trigger
-  registrationTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Api_Enums_V1_CallbackState
+structure CallbackInfo where
+  callback : Option Temporal.Api.Common.V1.Callback
+  trigger : Option CallbackInfo.Trigger
+  registrationTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Api.Enums.V1.CallbackState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   blockedReason : String
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_DeploymentTransition where
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
+structure DeploymentTransition where
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_DeploymentVersionTransition where
+structure DeploymentVersionTransition where
   version : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_NexusOperationCancellationInfo where
-  requestedTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Api_Enums_V1_NexusOperationCancellationState
+structure NexusOperationCancellationInfo where
+  requestedTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Api.Enums.V1.NexusOperationCancellationState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   blockedReason : String
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_OnConflictOptions where
+structure OnConflictOptions where
   attachRequestId : Bool
   attachCompletionCallbacks : Bool
   attachLinks : Bool
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo_Manual where
+structure PendingActivityInfo.PauseInfo.Manual where
   identity : String
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo_Rule where
+structure PendingActivityInfo.PauseInfo.Rule where
   ruleId : String
   identity : String
   reason : String
   deriving Repr
 
-inductive Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo_PausedBy where
+inductive PendingActivityInfo.PauseInfo.PausedBy where
   | notSet
-  | manual (value : Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo_Manual)
-  | rule (value : Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo_Rule)
+  | manual (value : PendingActivityInfo.PauseInfo.Manual)
+  | rule (value : PendingActivityInfo.PauseInfo.Rule)
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo where
-  pauseTime : Option Google_Protobuf_Timestamp
-  pausedBy : Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo_PausedBy
+structure PendingActivityInfo.PauseInfo where
+  pauseTime : Option Google.Protobuf.Timestamp
+  pausedBy : PendingActivityInfo.PauseInfo.PausedBy
   deriving Repr
 
-inductive Temporal_Api_Workflow_V1_PendingActivityInfo_AssignedBuildId where
+inductive PendingActivityInfo.AssignedBuildId where
   | notSet
-  | useWorkflowBuildId (value : Google_Protobuf_Empty)
+  | useWorkflowBuildId (value : Google.Protobuf.Empty)
   | lastIndependentlyAssignedBuildId (value : String)
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingActivityInfo where
+structure PendingActivityInfo where
   activityId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  state : Temporal_Api_Enums_V1_PendingActivityState
-  heartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  lastHeartbeatTime : Option Google_Protobuf_Timestamp
-  lastStartedTime : Option Google_Protobuf_Timestamp
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  state : Temporal.Api.Enums.V1.PendingActivityState
+  heartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  lastHeartbeatTime : Option Google.Protobuf.Timestamp
+  lastStartedTime : Option Google.Protobuf.Timestamp
   attempt : Int
   maximumAttempts : Int
-  scheduledTime : Option Google_Protobuf_Timestamp
-  expirationTime : Option Google_Protobuf_Timestamp
-  lastFailure : Option Temporal_Api_Failure_V1_Failure
+  scheduledTime : Option Google.Protobuf.Timestamp
+  expirationTime : Option Google.Protobuf.Timestamp
+  lastFailure : Option Temporal.Api.Failure.V1.Failure
   lastWorkerIdentity : String
-  lastWorkerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  currentRetryInterval : Option Google_Protobuf_Duration
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastWorkerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  currentRetryInterval : Option Google.Protobuf.Duration
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   paused : Bool
-  lastDeployment : Option Temporal_Api_Deployment_V1_Deployment
+  lastDeployment : Option Temporal.Api.Deployment.V1.Deployment
   lastWorkerDeploymentVersion : String
-  lastDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  priority : Option Temporal_Api_Common_V1_Priority
-  pauseInfo : Option Temporal_Api_Workflow_V1_PendingActivityInfo_PauseInfo
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
-  assignedBuildId : Temporal_Api_Workflow_V1_PendingActivityInfo_AssignedBuildId
+  lastDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  priority : Option Temporal.Api.Common.V1.Priority
+  pauseInfo : Option PendingActivityInfo.PauseInfo
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
+  assignedBuildId : PendingActivityInfo.AssignedBuildId
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingChildExecutionInfo where
+structure PendingChildExecutionInfo where
   workflowId : String
   runId : String
   workflowTypeName : String
   initiatedId : Int
-  parentClosePolicy : Temporal_Api_Enums_V1_ParentClosePolicy
+  parentClosePolicy : Temporal.Api.Enums.V1.ParentClosePolicy
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingNexusOperationInfo where
+structure PendingNexusOperationInfo where
   endpoint : String
   service : String
   operation : String
   operationId : String
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduledTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Api_Enums_V1_PendingNexusOperationState
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduledTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Api.Enums.V1.PendingNexusOperationState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
-  cancellationInfo : Option Temporal_Api_Workflow_V1_NexusOperationCancellationInfo
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
+  cancellationInfo : Option NexusOperationCancellationInfo
   scheduledEventId : Int
   blockedReason : String
   operationToken : String
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_PendingWorkflowTaskInfo where
-  state : Temporal_Api_Enums_V1_PendingWorkflowTaskState
-  scheduledTime : Option Google_Protobuf_Timestamp
-  originalScheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
+structure PendingWorkflowTaskInfo where
+  state : Temporal.Api.Enums.V1.PendingWorkflowTaskState
+  scheduledTime : Option Google.Protobuf.Timestamp
+  originalScheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
   attempt : Int
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_RequestIdInfo where
-  eventType : Temporal_Api_Enums_V1_EventType
+structure RequestIdInfo where
+  eventType : Temporal.Api.Enums.V1.EventType
   eventId : Int
   buffered : Bool
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_WorkflowExecutionConfig where
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  defaultWorkflowTaskTimeout : Option Google_Protobuf_Duration
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
+structure WorkflowExecutionConfig where
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  defaultWorkflowTaskTimeout : Option Google.Protobuf.Duration
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_WorkflowExecutionPauseInfo where
+structure WorkflowExecutionPauseInfo where
   identity : String
-  pausedTime : Option Google_Protobuf_Timestamp
+  pausedTime : Option Google.Protobuf.Timestamp
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_WorkflowExecutionExtendedInfo where
-  executionExpirationTime : Option Google_Protobuf_Timestamp
-  runExpirationTime : Option Google_Protobuf_Timestamp
+structure WorkflowExecutionExtendedInfo where
+  executionExpirationTime : Option Google.Protobuf.Timestamp
+  runExpirationTime : Option Google.Protobuf.Timestamp
   cancelRequested : Bool
-  lastResetTime : Option Google_Protobuf_Timestamp
-  originalStartTime : Option Google_Protobuf_Timestamp
+  lastResetTime : Option Google.Protobuf.Timestamp
+  originalStartTime : Option Google.Protobuf.Timestamp
   resetRunId : String
-  requestIdInfos : List (String × Temporal_Api_Workflow_V1_RequestIdInfo)
-  pauseInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionPauseInfo
-  timeSkippingInfo : Option Temporal_Api_Common_V1_TimeSkippingInfo
+  requestIdInfos : List (String × RequestIdInfo)
+  pauseInfo : Option WorkflowExecutionPauseInfo
+  timeSkippingInfo : Option Temporal.Api.Common.V1.TimeSkippingInfo
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_WorkflowExecutionVersioningInfo where
-  behavior : Temporal_Api_Enums_V1_VersioningBehavior
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
+structure WorkflowExecutionVersioningInfo where
+  behavior : Temporal.Api.Enums.V1.VersioningBehavior
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
   version : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
-  deploymentTransition : Option Temporal_Api_Workflow_V1_DeploymentTransition
-  versionTransition : Option Temporal_Api_Workflow_V1_DeploymentVersionTransition
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  versioningOverride : Option VersioningOverride
+  deploymentTransition : Option DeploymentTransition
+  versionTransition : Option DeploymentVersionTransition
   revisionNumber : Int
-  continueAsNewInitialVersioningBehavior : Temporal_Api_Enums_V1_ContinueAsNewVersioningBehavior
+  continueAsNewInitialVersioningBehavior : Temporal.Api.Enums.V1.ContinueAsNewVersioningBehavior
   deriving Repr
 
-structure Temporal_Api_Workflow_V1_WorkflowExecutionInfo where
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  type : Option Temporal_Api_Common_V1_WorkflowType
-  startTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+structure WorkflowExecutionInfo where
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  type : Option Temporal.Api.Common.V1.WorkflowType
+  startTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   historyLength : Int
   parentNamespaceId : String
-  parentExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  executionTime : Option Google_Protobuf_Timestamp
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  autoResetPoints : Option Temporal_Api_Workflow_V1_ResetPoints
+  parentExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  executionTime : Option Google.Protobuf.Timestamp
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  autoResetPoints : Option ResetPoints
   taskQueue : String
   stateTransitionCount : Int
   historySizeBytes : Int
-  mostRecentWorkerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  executionDuration : Option Google_Protobuf_Duration
-  rootExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  mostRecentWorkerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  executionDuration : Option Google.Protobuf.Duration
+  rootExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   assignedBuildId : String
   inheritedBuildId : String
   firstRunId : String
-  versioningInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionVersioningInfo
+  versioningInfo : Option WorkflowExecutionVersioningInfo
   workerDeploymentName : String
-  priority : Option Temporal_Api_Common_V1_Priority
+  priority : Option Temporal.Api.Common.V1.Priority
   externalPayloadSizeBytes : Int
   externalPayloadCount : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountActivityExecutionsRequest where
+end Temporal.Api.Workflow.V1
+
+namespace Temporal.Api.Workflowservice.V1
+
+structure CountActivityExecutionsRequest where
   namespaceValue : String
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountActivityExecutionsResponse_AggregationGroup where
-  groupValues : List Temporal_Api_Common_V1_Payload
+structure CountActivityExecutionsResponse.AggregationGroup where
+  groupValues : List Temporal.Api.Common.V1.Payload
   count : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountActivityExecutionsResponse where
+structure CountActivityExecutionsResponse where
   count : Int
-  groups : List Temporal_Api_Workflowservice_V1_CountActivityExecutionsResponse_AggregationGroup
+  groups : List CountActivityExecutionsResponse.AggregationGroup
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountNexusOperationExecutionsRequest where
+structure CountNexusOperationExecutionsRequest where
   namespaceValue : String
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountNexusOperationExecutionsResponse_AggregationGroup where
-  groupValues : List Temporal_Api_Common_V1_Payload
+structure CountNexusOperationExecutionsResponse.AggregationGroup where
+  groupValues : List Temporal.Api.Common.V1.Payload
   count : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountNexusOperationExecutionsResponse where
+structure CountNexusOperationExecutionsResponse where
   count : Int
-  groups : List Temporal_Api_Workflowservice_V1_CountNexusOperationExecutionsResponse_AggregationGroup
+  groups : List CountNexusOperationExecutionsResponse.AggregationGroup
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountSchedulesRequest where
+structure CountSchedulesRequest where
   namespaceValue : String
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountSchedulesResponse_AggregationGroup where
-  groupValues : List Temporal_Api_Common_V1_Payload
+structure CountSchedulesResponse.AggregationGroup where
+  groupValues : List Temporal.Api.Common.V1.Payload
   count : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountSchedulesResponse where
+structure CountSchedulesResponse where
   count : Int
-  groups : List Temporal_Api_Workflowservice_V1_CountSchedulesResponse_AggregationGroup
+  groups : List CountSchedulesResponse.AggregationGroup
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountWorkersRequest where
+structure CountWorkersRequest where
   namespaceValue : String
   query : String
   includeSystemWorkers : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountWorkersResponse where
+structure CountWorkersResponse where
   count : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountWorkflowExecutionsRequest where
+structure CountWorkflowExecutionsRequest where
   namespaceValue : String
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountWorkflowExecutionsResponse_AggregationGroup where
-  groupValues : List Temporal_Api_Common_V1_Payload
+structure CountWorkflowExecutionsResponse.AggregationGroup where
+  groupValues : List Temporal.Api.Common.V1.Payload
   count : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CountWorkflowExecutionsResponse where
+structure CountWorkflowExecutionsResponse where
   count : Int
-  groups : List Temporal_Api_Workflowservice_V1_CountWorkflowExecutionsResponse_AggregationGroup
+  groups : List CountWorkflowExecutionsResponse.AggregationGroup
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateScheduleRequest where
+structure CreateScheduleRequest where
   namespaceValue : String
   scheduleId : String
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
-  initialPatch : Option Temporal_Api_Schedule_V1_SchedulePatch
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
+  initialPatch : Option Temporal.Api.Schedule.V1.SchedulePatch
   identity : String
   requestId : String
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateScheduleResponse where
+structure CreateScheduleResponse where
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentRequest where
+structure CreateWorkerDeploymentRequest where
   namespaceValue : String
   deploymentName : String
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentResponse where
+structure CreateWorkerDeploymentResponse where
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentVersionRequest where
+structure CreateWorkerDeploymentVersionRequest where
   namespaceValue : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfig
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfig
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateWorkerDeploymentVersionResponse where
+structure CreateWorkerDeploymentVersionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateWorkflowRuleRequest where
+structure CreateWorkflowRuleRequest where
   namespaceValue : String
-  spec : Option Temporal_Api_Rules_V1_WorkflowRuleSpec
+  spec : Option Temporal.Api.Rules.V1.WorkflowRuleSpec
   forceScan : Bool
   requestId : String
   identity : String
   description : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_CreateWorkflowRuleResponse where
-  rule : Option Temporal_Api_Rules_V1_WorkflowRule
+structure CreateWorkflowRuleResponse where
+  rule : Option Temporal.Api.Rules.V1.WorkflowRule
   jobId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteActivityExecutionRequest where
+structure DeleteActivityExecutionRequest where
   namespaceValue : String
   activityId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteActivityExecutionResponse where
+structure DeleteActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteNexusOperationExecutionRequest where
+structure DeleteNexusOperationExecutionRequest where
   namespaceValue : String
   operationId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteNexusOperationExecutionResponse where
+structure DeleteNexusOperationExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteScheduleRequest where
+structure DeleteScheduleRequest where
   namespaceValue : String
   scheduleId : String
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteScheduleResponse where
+structure DeleteScheduleResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentRequest where
+structure DeleteWorkerDeploymentRequest where
   namespaceValue : String
   deploymentName : String
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentResponse where
+structure DeleteWorkerDeploymentResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentVersionRequest where
+structure DeleteWorkerDeploymentVersionRequest where
   namespaceValue : String
   version : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   skipDrainage : Bool
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkerDeploymentVersionResponse where
+structure DeleteWorkerDeploymentVersionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkflowExecutionRequest where
+structure DeleteWorkflowExecutionRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkflowExecutionResponse where
+structure DeleteWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkflowRuleRequest where
+structure DeleteWorkflowRuleRequest where
   namespaceValue : String
   ruleId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeleteWorkflowRuleResponse where
+structure DeleteWorkflowRuleResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeprecateNamespaceRequest where
+structure DeprecateNamespaceRequest where
   namespaceValue : String
   securityToken : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DeprecateNamespaceResponse where
+structure DeprecateNamespaceResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeActivityExecutionRequest where
+structure DescribeActivityExecutionRequest where
   namespaceValue : String
   activityId : String
   runId : String
@@ -5173,62 +5481,62 @@ structure Temporal_Api_Workflowservice_V1_DescribeActivityExecutionRequest where
   includeLastFailure : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeActivityExecutionResponse where
+structure DescribeActivityExecutionResponse where
   runId : String
-  info : Option Temporal_Api_Activity_V1_ActivityExecutionInfo
-  input : Option Temporal_Api_Common_V1_Payloads
-  outcome : Option Temporal_Api_Activity_V1_ActivityExecutionOutcome
+  info : Option Temporal.Api.Activity.V1.ActivityExecutionInfo
+  input : Option Temporal.Api.Common.V1.Payloads
+  outcome : Option Temporal.Api.Activity.V1.ActivityExecutionOutcome
   longPollToken : Temporal.Proto.Bytes
-  callbacks : List Temporal_Api_Activity_V1_CallbackInfo
+  callbacks : List Temporal.Api.Activity.V1.CallbackInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeBatchOperationRequest where
+structure DescribeBatchOperationRequest where
   namespaceValue : String
   jobId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeBatchOperationResponse where
-  operationType : Temporal_Api_Enums_V1_BatchOperationType
+structure DescribeBatchOperationResponse where
+  operationType : Temporal.Api.Enums.V1.BatchOperationType
   jobId : String
-  state : Temporal_Api_Enums_V1_BatchOperationState
-  startTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
+  state : Temporal.Api.Enums.V1.BatchOperationState
+  startTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
   totalOperationCount : Int
   completeOperationCount : Int
   failureOperationCount : Int
   identity : String
   reason : String
   query : String
-  executions : List Temporal_Api_Common_V1_Execution
+  executions : List Temporal.Api.Common.V1.Execution
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeDeploymentRequest where
+structure DescribeDeploymentRequest where
   namespaceValue : String
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeDeploymentResponse where
-  deploymentInfo : Option Temporal_Api_Deployment_V1_DeploymentInfo
+structure DescribeDeploymentResponse where
+  deploymentInfo : Option Temporal.Api.Deployment.V1.DeploymentInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeNamespaceRequest where
+structure DescribeNamespaceRequest where
   namespaceValue : String
   id : String
   weakConsistency : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeNamespaceResponse where
-  namespaceInfo : Option Temporal_Api_Namespace_V1_NamespaceInfo
-  config : Option Temporal_Api_Namespace_V1_NamespaceConfig
-  replicationConfig : Option Temporal_Api_Replication_V1_NamespaceReplicationConfig
+structure DescribeNamespaceResponse where
+  namespaceInfo : Option Temporal.Api.Namespace.V1.NamespaceInfo
+  config : Option Temporal.Api.Namespace.V1.NamespaceConfig
+  replicationConfig : Option Temporal.Api.Replication.V1.NamespaceReplicationConfig
   failoverVersion : Int
   isGlobalNamespace : Bool
-  failoverHistory : List Temporal_Api_Replication_V1_FailoverStatus
-  pollerGroupInfos : List Temporal_Api_Taskqueue_V1_PollerGroupInfo
-  pollerGroupsInfo : Option Temporal_Api_Taskqueue_V1_PollerGroupsInfo
+  failoverHistory : List Temporal.Api.Replication.V1.FailoverStatus
+  pollerGroupInfos : List Temporal.Api.Taskqueue.V1.PollerGroupInfo
+  pollerGroupsInfo : Option Temporal.Api.Taskqueue.V1.PollerGroupsInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionRequest where
+structure DescribeNexusOperationExecutionRequest where
   namespaceValue : String
   operationId : String
   runId : String
@@ -5237,255 +5545,255 @@ structure Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionRequest
   longPollToken : Temporal.Proto.Bytes
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionResponse_Outcome where
+inductive DescribeNexusOperationExecutionResponse.Outcome where
   | notSet
-  | result (value : Temporal_Api_Common_V1_Payload)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | result (value : Temporal.Api.Common.V1.Payload)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionResponse where
+structure DescribeNexusOperationExecutionResponse where
   runId : String
-  info : Option Temporal_Api_Nexus_V1_NexusOperationExecutionInfo
-  input : Option Temporal_Api_Common_V1_Payload
+  info : Option Temporal.Api.Nexus.V1.NexusOperationExecutionInfo
+  input : Option Temporal.Api.Common.V1.Payload
   longPollToken : Temporal.Proto.Bytes
-  outcome : Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionResponse_Outcome
+  outcome : DescribeNexusOperationExecutionResponse.Outcome
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeScheduleRequest where
+structure DescribeScheduleRequest where
   namespaceValue : String
   scheduleId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeScheduleResponse where
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
-  info : Option Temporal_Api_Schedule_V1_ScheduleInfo
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+structure DescribeScheduleResponse where
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
+  info : Option Temporal.Api.Schedule.V1.ScheduleInfo
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeTaskQueueRequest where
+structure DescribeTaskQueueRequest where
   namespaceValue : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   reportStats : Bool
   reportConfig : Bool
   includeTaskQueueStatus : Bool
-  apiMode : Temporal_Api_Enums_V1_DescribeTaskQueueMode
-  versions : Option Temporal_Api_Taskqueue_V1_TaskQueueVersionSelection
-  taskQueueTypes : List Temporal_Api_Enums_V1_TaskQueueType
+  apiMode : Temporal.Api.Enums.V1.DescribeTaskQueueMode
+  versions : Option Temporal.Api.Taskqueue.V1.TaskQueueVersionSelection
+  taskQueueTypes : List Temporal.Api.Enums.V1.TaskQueueType
   reportPollers : Bool
   reportTaskReachability : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeTaskQueueResponse_EffectiveRateLimit where
+structure DescribeTaskQueueResponse.EffectiveRateLimit where
   requestsPerSecond : Float
-  rateLimitSource : Temporal_Api_Enums_V1_RateLimitSource
+  rateLimitSource : Temporal.Api.Enums.V1.RateLimitSource
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeTaskQueueResponse where
-  pollers : List Temporal_Api_Taskqueue_V1_PollerInfo
-  stats : Option Temporal_Api_Taskqueue_V1_TaskQueueStats
-  statsByPriorityKey : List (Int × Temporal_Api_Taskqueue_V1_TaskQueueStats)
-  versioningInfo : Option Temporal_Api_Taskqueue_V1_TaskQueueVersioningInfo
-  config : Option Temporal_Api_Taskqueue_V1_TaskQueueConfig
-  effectiveRateLimit : Option Temporal_Api_Workflowservice_V1_DescribeTaskQueueResponse_EffectiveRateLimit
-  taskQueueStatus : Option Temporal_Api_Taskqueue_V1_TaskQueueStatus
-  versionsInfo : List (String × Temporal_Api_Taskqueue_V1_TaskQueueVersionInfo)
+structure DescribeTaskQueueResponse where
+  pollers : List Temporal.Api.Taskqueue.V1.PollerInfo
+  stats : Option Temporal.Api.Taskqueue.V1.TaskQueueStats
+  statsByPriorityKey : List (Int × Temporal.Api.Taskqueue.V1.TaskQueueStats)
+  versioningInfo : Option Temporal.Api.Taskqueue.V1.TaskQueueVersioningInfo
+  config : Option Temporal.Api.Taskqueue.V1.TaskQueueConfig
+  effectiveRateLimit : Option DescribeTaskQueueResponse.EffectiveRateLimit
+  taskQueueStatus : Option Temporal.Api.Taskqueue.V1.TaskQueueStatus
+  versionsInfo : List (String × Temporal.Api.Taskqueue.V1.TaskQueueVersionInfo)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentRequest where
+structure DescribeWorkerDeploymentRequest where
   namespaceValue : String
   deploymentName : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentResponse where
+structure DescribeWorkerDeploymentResponse where
   conflictToken : Temporal.Proto.Bytes
-  workerDeploymentInfo : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo
+  workerDeploymentInfo : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentVersionRequest where
+structure DescribeWorkerDeploymentVersionRequest where
   namespaceValue : String
   version : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   reportTaskQueueStats : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentVersionResponse_VersionTaskQueue where
+structure DescribeWorkerDeploymentVersionResponse.VersionTaskQueue where
   name : String
-  type : Temporal_Api_Enums_V1_TaskQueueType
-  stats : Option Temporal_Api_Taskqueue_V1_TaskQueueStats
-  statsByPriorityKey : List (Int × Temporal_Api_Taskqueue_V1_TaskQueueStats)
+  type : Temporal.Api.Enums.V1.TaskQueueType
+  stats : Option Temporal.Api.Taskqueue.V1.TaskQueueStats
+  statsByPriorityKey : List (Int × Temporal.Api.Taskqueue.V1.TaskQueueStats)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentVersionResponse where
-  workerDeploymentVersionInfo : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersionInfo
-  versionTaskQueues : List Temporal_Api_Workflowservice_V1_DescribeWorkerDeploymentVersionResponse_VersionTaskQueue
+structure DescribeWorkerDeploymentVersionResponse where
+  workerDeploymentVersionInfo : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersionInfo
+  versionTaskQueues : List DescribeWorkerDeploymentVersionResponse.VersionTaskQueue
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerRequest where
+structure DescribeWorkerRequest where
   namespaceValue : String
   workerInstanceKey : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkerResponse where
-  workerInfo : Option Temporal_Api_Worker_V1_WorkerInfo
+structure DescribeWorkerResponse where
+  workerInfo : Option Temporal.Api.Worker.V1.WorkerInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkflowExecutionRequest where
+structure DescribeWorkflowExecutionRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkflowExecutionResponse where
-  executionConfig : Option Temporal_Api_Workflow_V1_WorkflowExecutionConfig
-  workflowExecutionInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionInfo
-  pendingActivities : List Temporal_Api_Workflow_V1_PendingActivityInfo
-  pendingChildren : List Temporal_Api_Workflow_V1_PendingChildExecutionInfo
-  pendingWorkflowTask : Option Temporal_Api_Workflow_V1_PendingWorkflowTaskInfo
-  callbacks : List Temporal_Api_Workflow_V1_CallbackInfo
-  pendingNexusOperations : List Temporal_Api_Workflow_V1_PendingNexusOperationInfo
-  workflowExtendedInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionExtendedInfo
+structure DescribeWorkflowExecutionResponse where
+  executionConfig : Option Temporal.Api.Workflow.V1.WorkflowExecutionConfig
+  workflowExecutionInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionInfo
+  pendingActivities : List Temporal.Api.Workflow.V1.PendingActivityInfo
+  pendingChildren : List Temporal.Api.Workflow.V1.PendingChildExecutionInfo
+  pendingWorkflowTask : Option Temporal.Api.Workflow.V1.PendingWorkflowTaskInfo
+  callbacks : List Temporal.Api.Workflow.V1.CallbackInfo
+  pendingNexusOperations : List Temporal.Api.Workflow.V1.PendingNexusOperationInfo
+  workflowExtendedInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionExtendedInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkflowRuleRequest where
+structure DescribeWorkflowRuleRequest where
   namespaceValue : String
   ruleId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_DescribeWorkflowRuleResponse where
-  rule : Option Temporal_Api_Rules_V1_WorkflowRule
+structure DescribeWorkflowRuleResponse where
+  rule : Option Temporal.Api.Rules.V1.WorkflowRule
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartWorkflowExecutionRequest where
+structure StartWorkflowExecutionRequest where
   namespaceValue : String
   workflowId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
   identity : String
   requestId : String
-  workflowIdReusePolicy : Temporal_Api_Enums_V1_WorkflowIdReusePolicy
-  workflowIdConflictPolicy : Temporal_Api_Enums_V1_WorkflowIdConflictPolicy
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  workflowIdReusePolicy : Temporal.Api.Enums.V1.WorkflowIdReusePolicy
+  workflowIdConflictPolicy : Temporal.Api.Enums.V1.WorkflowIdConflictPolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   cronSchedule : String
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  header : Option Temporal_Api_Common_V1_Header
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
   requestEagerExecution : Bool
-  continuedFailure : Option Temporal_Api_Failure_V1_Failure
-  lastCompletionResult : Option Temporal_Api_Common_V1_Payloads
-  workflowStartDelay : Option Google_Protobuf_Duration
-  completionCallbacks : List Temporal_Api_Common_V1_Callback
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  links : List Temporal_Api_Common_V1_Link
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
-  onConflictOptions : Option Temporal_Api_Workflow_V1_OnConflictOptions
-  priority : Option Temporal_Api_Common_V1_Priority
-  eagerWorkerDeploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
-  timeSkippingConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
+  continuedFailure : Option Temporal.Api.Failure.V1.Failure
+  lastCompletionResult : Option Temporal.Api.Common.V1.Payloads
+  workflowStartDelay : Option Google.Protobuf.Duration
+  completionCallbacks : List Temporal.Api.Common.V1.Callback
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  links : List Temporal.Api.Common.V1.Link
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
+  onConflictOptions : Option Temporal.Api.Workflow.V1.OnConflictOptions
+  priority : Option Temporal.Api.Common.V1.Priority
+  eagerWorkerDeploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
+  timeSkippingConfig : Option Temporal.Api.Common.V1.TimeSkippingConfig
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionRequest where
+structure UpdateWorkflowExecutionRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   firstExecutionRunId : String
-  waitPolicy : Option Temporal_Api_Update_V1_WaitPolicy
-  request : Option Temporal_Api_Update_V1_Request
+  waitPolicy : Option Temporal.Api.Update.V1.WaitPolicy
+  request : Option Temporal.Api.Update.V1.Request
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_ExecuteMultiOperationRequest_Operation_Operation where
+inductive ExecuteMultiOperationRequest.Operation.Operation where
   | notSet
-  | startWorkflow (value : Temporal_Api_Workflowservice_V1_StartWorkflowExecutionRequest)
-  | updateWorkflow (value : Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionRequest)
+  | startWorkflow (value : StartWorkflowExecutionRequest)
+  | updateWorkflow (value : UpdateWorkflowExecutionRequest)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ExecuteMultiOperationRequest_Operation where
-  operation : Temporal_Api_Workflowservice_V1_ExecuteMultiOperationRequest_Operation_Operation
+structure ExecuteMultiOperationRequest.Operation where
+  operation : ExecuteMultiOperationRequest.Operation.Operation
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ExecuteMultiOperationRequest where
+structure ExecuteMultiOperationRequest where
   namespaceValue : String
-  operations : List Temporal_Api_Workflowservice_V1_ExecuteMultiOperationRequest_Operation
+  operations : List ExecuteMultiOperationRequest.Operation
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueResponse where
+structure PollWorkflowTaskQueueResponse where
   taskToken : Temporal.Proto.Bytes
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   previousStartedEventId : Int
   startedEventId : Int
   attempt : Int
   backlogCountHint : Int
-  history : Option Temporal_Api_History_V1_History
+  history : Option Temporal.Api.History.V1.History
   nextPageToken : Temporal.Proto.Bytes
-  query : Option Temporal_Api_Query_V1_WorkflowQuery
-  workflowExecutionTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  scheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
-  queries : List (String × Temporal_Api_Query_V1_WorkflowQuery)
-  messages : List Temporal_Api_Protocol_V1_Message
-  pollerScalingDecision : Option Temporal_Api_Taskqueue_V1_PollerScalingDecision
+  query : Option Temporal.Api.Query.V1.WorkflowQuery
+  workflowExecutionTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  scheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
+  queries : List (String × Temporal.Api.Query.V1.WorkflowQuery)
+  messages : List Temporal.Api.Protocol.V1.Message
+  pollerScalingDecision : Option Temporal.Api.Taskqueue.V1.PollerScalingDecision
   pollerGroupId : String
-  pollerGroupInfos : List Temporal_Api_Taskqueue_V1_PollerGroupInfo
-  pollerGroupsInfo : Option Temporal_Api_Taskqueue_V1_PollerGroupsInfo
+  pollerGroupInfos : List Temporal.Api.Taskqueue.V1.PollerGroupInfo
+  pollerGroupsInfo : Option Temporal.Api.Taskqueue.V1.PollerGroupsInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartWorkflowExecutionResponse where
+structure StartWorkflowExecutionResponse where
   runId : String
   firstExecutionRunId : String
   started : Bool
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
-  eagerWorkflowTask : Option Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueResponse
-  link : Option Temporal_Api_Common_V1_Link
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
+  eagerWorkflowTask : Option PollWorkflowTaskQueueResponse
+  link : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionResponse where
-  updateRef : Option Temporal_Api_Update_V1_UpdateRef
-  outcome : Option Temporal_Api_Update_V1_Outcome
-  stage : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage
-  link : Option Temporal_Api_Common_V1_Link
+structure UpdateWorkflowExecutionResponse where
+  updateRef : Option Temporal.Api.Update.V1.UpdateRef
+  outcome : Option Temporal.Api.Update.V1.Outcome
+  stage : Temporal.Api.Enums.V1.UpdateWorkflowExecutionLifecycleStage
+  link : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_ExecuteMultiOperationResponse_Response_Response where
+inductive ExecuteMultiOperationResponse.Response.Response where
   | notSet
-  | startWorkflow (value : Temporal_Api_Workflowservice_V1_StartWorkflowExecutionResponse)
-  | updateWorkflow (value : Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionResponse)
+  | startWorkflow (value : StartWorkflowExecutionResponse)
+  | updateWorkflow (value : UpdateWorkflowExecutionResponse)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ExecuteMultiOperationResponse_Response where
-  response : Temporal_Api_Workflowservice_V1_ExecuteMultiOperationResponse_Response_Response
+structure ExecuteMultiOperationResponse.Response where
+  response : ExecuteMultiOperationResponse.Response.Response
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ExecuteMultiOperationResponse where
-  responses : List Temporal_Api_Workflowservice_V1_ExecuteMultiOperationResponse_Response
+structure ExecuteMultiOperationResponse where
+  responses : List ExecuteMultiOperationResponse.Response
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_FetchWorkerConfigRequest where
+structure FetchWorkerConfigRequest where
   namespaceValue : String
   identity : String
   reason : String
-  selector : Option Temporal_Api_Common_V1_WorkerSelector
+  selector : Option Temporal.Api.Common.V1.WorkerSelector
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_FetchWorkerConfigResponse where
-  workerConfig : Option Temporal_Api_Sdk_V1_WorkerConfig
+structure FetchWorkerConfigResponse where
+  workerConfig : Option Temporal.Api.Sdk.V1.WorkerConfig
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetClusterInfoRequest where
+structure GetClusterInfoRequest where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetClusterInfoResponse where
+structure GetClusterInfoResponse where
   supportedClients : List (String × String)
   serverVersion : String
   clusterId : String
-  versionInfo : Option Temporal_Api_Version_V1_VersionInfo
+  versionInfo : Option Temporal.Api.Version.V1.VersionInfo
   clusterName : String
   historyShardCount : Int
   persistenceStore : String
@@ -5494,39 +5802,39 @@ structure Temporal_Api_Workflowservice_V1_GetClusterInfoResponse where
   failoverVersionIncrement : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetCurrentDeploymentRequest where
+structure GetCurrentDeploymentRequest where
   namespaceValue : String
   seriesName : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetCurrentDeploymentResponse where
-  currentDeploymentInfo : Option Temporal_Api_Deployment_V1_DeploymentInfo
+structure GetCurrentDeploymentResponse where
+  currentDeploymentInfo : Option Temporal.Api.Deployment.V1.DeploymentInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetDeploymentReachabilityRequest where
+structure GetDeploymentReachabilityRequest where
   namespaceValue : String
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetDeploymentReachabilityResponse where
-  deploymentInfo : Option Temporal_Api_Deployment_V1_DeploymentInfo
-  reachability : Temporal_Api_Enums_V1_DeploymentReachability
-  lastUpdateTime : Option Google_Protobuf_Timestamp
+structure GetDeploymentReachabilityResponse where
+  deploymentInfo : Option Temporal.Api.Deployment.V1.DeploymentInfo
+  reachability : Temporal.Api.Enums.V1.DeploymentReachability
+  lastUpdateTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetSearchAttributesRequest where
+structure GetSearchAttributesRequest where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetSearchAttributesResponse where
-  keys : List (String × Temporal_Api_Enums_V1_IndexedValueType)
+structure GetSearchAttributesResponse where
+  keys : List (String × Temporal.Api.Enums.V1.IndexedValueType)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetSystemInfoRequest where
+structure GetSystemInfoRequest where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetSystemInfoResponse_Capabilities where
+structure GetSystemInfoResponse.Capabilities where
   signalAndQueryHeader : Bool
   internalErrorDifferentiation : Bool
   activityFailureIncludeHeartbeat : Bool
@@ -5542,235 +5850,235 @@ structure Temporal_Api_Workflowservice_V1_GetSystemInfoResponse_Capabilities whe
   serverScaledProviderCloudRun : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetSystemInfoResponse where
+structure GetSystemInfoResponse where
   serverVersion : String
-  capabilities : Option Temporal_Api_Workflowservice_V1_GetSystemInfoResponse_Capabilities
+  capabilities : Option GetSystemInfoResponse.Capabilities
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkerBuildIdCompatibilityRequest where
+structure GetWorkerBuildIdCompatibilityRequest where
   namespaceValue : String
   taskQueue : String
   maxSets : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkerBuildIdCompatibilityResponse where
-  majorVersionSets : List Temporal_Api_Taskqueue_V1_CompatibleVersionSet
+structure GetWorkerBuildIdCompatibilityResponse where
+  majorVersionSets : List Temporal.Api.Taskqueue.V1.CompatibleVersionSet
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkerTaskReachabilityRequest where
+structure GetWorkerTaskReachabilityRequest where
   namespaceValue : String
   buildIds : List String
   taskQueues : List String
-  reachability : Temporal_Api_Enums_V1_TaskReachability
+  reachability : Temporal.Api.Enums.V1.TaskReachability
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkerTaskReachabilityResponse where
-  buildIdReachability : List Temporal_Api_Taskqueue_V1_BuildIdReachability
+structure GetWorkerTaskReachabilityResponse where
+  buildIdReachability : List Temporal.Api.Taskqueue.V1.BuildIdReachability
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkerVersioningRulesRequest where
+structure GetWorkerVersioningRulesRequest where
   namespaceValue : String
   taskQueue : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkerVersioningRulesResponse where
-  assignmentRules : List Temporal_Api_Taskqueue_V1_TimestampedBuildIdAssignmentRule
-  compatibleRedirectRules : List Temporal_Api_Taskqueue_V1_TimestampedCompatibleBuildIdRedirectRule
+structure GetWorkerVersioningRulesResponse where
+  assignmentRules : List Temporal.Api.Taskqueue.V1.TimestampedBuildIdAssignmentRule
+  compatibleRedirectRules : List Temporal.Api.Taskqueue.V1.TimestampedCompatibleBuildIdRedirectRule
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryRequest where
+structure GetWorkflowExecutionHistoryRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   maximumPageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   waitNewEvent : Bool
-  historyEventFilterType : Temporal_Api_Enums_V1_HistoryEventFilterType
+  historyEventFilterType : Temporal.Api.Enums.V1.HistoryEventFilterType
   skipArchival : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryResponse where
-  history : Option Temporal_Api_History_V1_History
-  rawHistory : List Temporal_Api_Common_V1_DataBlob
+structure GetWorkflowExecutionHistoryResponse where
+  history : Option Temporal.Api.History.V1.History
+  rawHistory : List Temporal.Api.Common.V1.DataBlob
   nextPageToken : Temporal.Proto.Bytes
   archived : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryReverseRequest where
+structure GetWorkflowExecutionHistoryReverseRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   maximumPageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryReverseResponse where
-  history : Option Temporal_Api_History_V1_History
+structure GetWorkflowExecutionHistoryReverseResponse where
+  history : Option Temporal.Api.History.V1.History
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListActivityExecutionsRequest where
+structure ListActivityExecutionsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListActivityExecutionsResponse where
-  executions : List Temporal_Api_Activity_V1_ActivityExecutionListInfo
+structure ListActivityExecutionsResponse where
+  executions : List Temporal.Api.Activity.V1.ActivityExecutionListInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListArchivedWorkflowExecutionsRequest where
+structure ListArchivedWorkflowExecutionsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListArchivedWorkflowExecutionsResponse where
-  executions : List Temporal_Api_Workflow_V1_WorkflowExecutionInfo
+structure ListArchivedWorkflowExecutionsResponse where
+  executions : List Temporal.Api.Workflow.V1.WorkflowExecutionInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListBatchOperationsRequest where
+structure ListBatchOperationsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListBatchOperationsResponse where
-  operationInfo : List Temporal_Api_Batch_V1_BatchOperationInfo
+structure ListBatchOperationsResponse where
+  operationInfo : List Temporal.Api.Batch.V1.BatchOperationInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_ListClosedWorkflowExecutionsRequest_Filters where
+inductive ListClosedWorkflowExecutionsRequest.Filters where
   | notSet
-  | executionFilter (value : Temporal_Api_Filter_V1_WorkflowExecutionFilter)
-  | typeFilter (value : Temporal_Api_Filter_V1_WorkflowTypeFilter)
-  | statusFilter (value : Temporal_Api_Filter_V1_StatusFilter)
+  | executionFilter (value : Temporal.Api.Filter.V1.WorkflowExecutionFilter)
+  | typeFilter (value : Temporal.Api.Filter.V1.WorkflowTypeFilter)
+  | statusFilter (value : Temporal.Api.Filter.V1.StatusFilter)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListClosedWorkflowExecutionsRequest where
+structure ListClosedWorkflowExecutionsRequest where
   namespaceValue : String
   maximumPageSize : Int
   nextPageToken : Temporal.Proto.Bytes
-  startTimeFilter : Option Temporal_Api_Filter_V1_StartTimeFilter
-  filters : Temporal_Api_Workflowservice_V1_ListClosedWorkflowExecutionsRequest_Filters
+  startTimeFilter : Option Temporal.Api.Filter.V1.StartTimeFilter
+  filters : ListClosedWorkflowExecutionsRequest.Filters
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListClosedWorkflowExecutionsResponse where
-  executions : List Temporal_Api_Workflow_V1_WorkflowExecutionInfo
+structure ListClosedWorkflowExecutionsResponse where
+  executions : List Temporal.Api.Workflow.V1.WorkflowExecutionInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListDeploymentsRequest where
+structure ListDeploymentsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   seriesName : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListDeploymentsResponse where
+structure ListDeploymentsResponse where
   nextPageToken : Temporal.Proto.Bytes
-  deployments : List Temporal_Api_Deployment_V1_DeploymentListInfo
+  deployments : List Temporal.Api.Deployment.V1.DeploymentListInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListNamespacesRequest where
+structure ListNamespacesRequest where
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
-  namespaceFilter : Option Temporal_Api_Namespace_V1_NamespaceFilter
+  namespaceFilter : Option Temporal.Api.Namespace.V1.NamespaceFilter
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListNamespacesResponse where
-  namespaces : List Temporal_Api_Workflowservice_V1_DescribeNamespaceResponse
+structure ListNamespacesResponse where
+  namespaces : List DescribeNamespaceResponse
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListNexusOperationExecutionsRequest where
+structure ListNexusOperationExecutionsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListNexusOperationExecutionsResponse where
-  operations : List Temporal_Api_Nexus_V1_NexusOperationExecutionListInfo
+structure ListNexusOperationExecutionsResponse where
+  operations : List Temporal.Api.Nexus.V1.NexusOperationExecutionListInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_ListOpenWorkflowExecutionsRequest_Filters where
+inductive ListOpenWorkflowExecutionsRequest.Filters where
   | notSet
-  | executionFilter (value : Temporal_Api_Filter_V1_WorkflowExecutionFilter)
-  | typeFilter (value : Temporal_Api_Filter_V1_WorkflowTypeFilter)
+  | executionFilter (value : Temporal.Api.Filter.V1.WorkflowExecutionFilter)
+  | typeFilter (value : Temporal.Api.Filter.V1.WorkflowTypeFilter)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListOpenWorkflowExecutionsRequest where
+structure ListOpenWorkflowExecutionsRequest where
   namespaceValue : String
   maximumPageSize : Int
   nextPageToken : Temporal.Proto.Bytes
-  startTimeFilter : Option Temporal_Api_Filter_V1_StartTimeFilter
-  filters : Temporal_Api_Workflowservice_V1_ListOpenWorkflowExecutionsRequest_Filters
+  startTimeFilter : Option Temporal.Api.Filter.V1.StartTimeFilter
+  filters : ListOpenWorkflowExecutionsRequest.Filters
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListOpenWorkflowExecutionsResponse where
-  executions : List Temporal_Api_Workflow_V1_WorkflowExecutionInfo
+structure ListOpenWorkflowExecutionsResponse where
+  executions : List Temporal.Api.Workflow.V1.WorkflowExecutionInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListScheduleMatchingTimesRequest where
+structure ListScheduleMatchingTimesRequest where
   namespaceValue : String
   scheduleId : String
-  startTime : Option Google_Protobuf_Timestamp
-  endTime : Option Google_Protobuf_Timestamp
+  startTime : Option Google.Protobuf.Timestamp
+  endTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListScheduleMatchingTimesResponse where
-  startTime : List Google_Protobuf_Timestamp
+structure ListScheduleMatchingTimesResponse where
+  startTime : List Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListSchedulesRequest where
+structure ListSchedulesRequest where
   namespaceValue : String
   maximumPageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListSchedulesResponse where
-  schedules : List Temporal_Api_Schedule_V1_ScheduleListEntry
+structure ListSchedulesResponse where
+  schedules : List Temporal.Api.Schedule.V1.ScheduleListEntry
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListTaskQueuePartitionsRequest where
+structure ListTaskQueuePartitionsRequest where
   namespaceValue : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListTaskQueuePartitionsResponse where
-  activityTaskQueuePartitions : List Temporal_Api_Taskqueue_V1_TaskQueuePartitionMetadata
-  workflowTaskQueuePartitions : List Temporal_Api_Taskqueue_V1_TaskQueuePartitionMetadata
+structure ListTaskQueuePartitionsResponse where
+  activityTaskQueuePartitions : List Temporal.Api.Taskqueue.V1.TaskQueuePartitionMetadata
+  workflowTaskQueuePartitions : List Temporal.Api.Taskqueue.V1.TaskQueuePartitionMetadata
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkerDeploymentsRequest where
+structure ListWorkerDeploymentsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkerDeploymentsResponse_WorkerDeploymentSummary where
+structure ListWorkerDeploymentsResponse.WorkerDeploymentSummary where
   name : String
-  createTime : Option Google_Protobuf_Timestamp
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  latestVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  currentVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  rampingVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
+  createTime : Option Google.Protobuf.Timestamp
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  latestVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  currentVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  rampingVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkerDeploymentsResponse where
+structure ListWorkerDeploymentsResponse where
   nextPageToken : Temporal.Proto.Bytes
-  workerDeployments : List Temporal_Api_Workflowservice_V1_ListWorkerDeploymentsResponse_WorkerDeploymentSummary
+  workerDeployments : List ListWorkerDeploymentsResponse.WorkerDeploymentSummary
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkersRequest where
+structure ListWorkersRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
@@ -5778,47 +6086,47 @@ structure Temporal_Api_Workflowservice_V1_ListWorkersRequest where
   includeSystemWorkers : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkersResponse where
-  workersInfo : List Temporal_Api_Worker_V1_WorkerInfo
-  workers : List Temporal_Api_Worker_V1_WorkerListInfo
+structure ListWorkersResponse where
+  workersInfo : List Temporal.Api.Worker.V1.WorkerInfo
+  workers : List Temporal.Api.Worker.V1.WorkerListInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkflowExecutionsRequest where
+structure ListWorkflowExecutionsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkflowExecutionsResponse where
-  executions : List Temporal_Api_Workflow_V1_WorkflowExecutionInfo
+structure ListWorkflowExecutionsResponse where
+  executions : List Temporal.Api.Workflow.V1.WorkflowExecutionInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkflowRulesRequest where
+structure ListWorkflowRulesRequest where
   namespaceValue : String
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ListWorkflowRulesResponse where
-  rules : List Temporal_Api_Rules_V1_WorkflowRule
+structure ListWorkflowRulesResponse where
+  rules : List Temporal.Api.Rules.V1.WorkflowRule
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PatchScheduleRequest where
+structure PatchScheduleRequest where
   namespaceValue : String
   scheduleId : String
-  patch : Option Temporal_Api_Schedule_V1_SchedulePatch
+  patch : Option Temporal.Api.Schedule.V1.SchedulePatch
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PatchScheduleResponse where
+structure PatchScheduleResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PauseActivityExecutionRequest where
+structure PauseActivityExecutionRequest where
   namespaceValue : String
   workflowId : String
   activityId : String
@@ -5829,30 +6137,30 @@ structure Temporal_Api_Workflowservice_V1_PauseActivityExecutionRequest where
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PauseActivityExecutionResponse where
+structure PauseActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_PauseActivityRequest_Activity where
+inductive PauseActivityRequest.Activity where
   | notSet
   | id (value : String)
   | type (value : String)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PauseActivityRequest where
+structure PauseActivityRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
   reason : String
   requestId : String
-  activity : Temporal_Api_Workflowservice_V1_PauseActivityRequest_Activity
+  activity : PauseActivityRequest.Activity
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PauseActivityResponse where
+structure PauseActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PauseWorkflowExecutionRequest where
+structure PauseWorkflowExecutionRequest where
   namespaceValue : String
   workflowId : String
   runId : String
@@ -5861,210 +6169,210 @@ structure Temporal_Api_Workflowservice_V1_PauseWorkflowExecutionRequest where
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PauseWorkflowExecutionResponse where
+structure PauseWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollActivityExecutionRequest where
+structure PollActivityExecutionRequest where
   namespaceValue : String
   activityId : String
   runId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollActivityExecutionResponse where
+structure PollActivityExecutionResponse where
   runId : String
-  outcome : Option Temporal_Api_Activity_V1_ActivityExecutionOutcome
+  outcome : Option Temporal.Api.Activity.V1.ActivityExecutionOutcome
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollActivityTaskQueueRequest where
+structure PollActivityTaskQueueRequest where
   namespaceValue : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   pollerGroupId : String
   identity : String
   workerInstanceKey : String
   workerControlTaskQueue : String
-  taskQueueMetadata : Option Temporal_Api_Taskqueue_V1_TaskQueueMetadata
-  workerVersionCapabilities : Option Temporal_Api_Common_V1_WorkerVersionCapabilities
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  taskQueueMetadata : Option Temporal.Api.Taskqueue.V1.TaskQueueMetadata
+  workerVersionCapabilities : Option Temporal.Api.Common.V1.WorkerVersionCapabilities
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollActivityTaskQueueResponse where
+structure PollActivityTaskQueueResponse where
   taskToken : Temporal.Proto.Bytes
   workflowNamespace : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  activityType : Option Temporal_Api_Common_V1_ActivityType
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  activityType : Option Temporal.Api.Common.V1.ActivityType
   activityId : String
-  header : Option Temporal_Api_Common_V1_Header
-  input : Option Temporal_Api_Common_V1_Payloads
-  heartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  scheduledTime : Option Google_Protobuf_Timestamp
-  currentAttemptScheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
+  header : Option Temporal.Api.Common.V1.Header
+  input : Option Temporal.Api.Common.V1.Payloads
+  heartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  scheduledTime : Option Google.Protobuf.Timestamp
+  currentAttemptScheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
   attempt : Int
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
-  pollerScalingDecision : Option Temporal_Api_Taskqueue_V1_PollerScalingDecision
-  priority : Option Temporal_Api_Common_V1_Priority
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
+  pollerScalingDecision : Option Temporal.Api.Taskqueue.V1.PollerScalingDecision
+  priority : Option Temporal.Api.Common.V1.Priority
   activityRunId : String
-  pollerGroupInfos : List Temporal_Api_Taskqueue_V1_PollerGroupInfo
-  pollerGroupsInfo : Option Temporal_Api_Taskqueue_V1_PollerGroupsInfo
+  pollerGroupInfos : List Temporal.Api.Taskqueue.V1.PollerGroupInfo
+  pollerGroupsInfo : Option Temporal.Api.Taskqueue.V1.PollerGroupsInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionRequest where
+structure PollNexusOperationExecutionRequest where
   namespaceValue : String
   operationId : String
   runId : String
-  waitStage : Temporal_Api_Enums_V1_NexusOperationWaitStage
+  waitStage : Temporal.Api.Enums.V1.NexusOperationWaitStage
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionResponse_Outcome where
+inductive PollNexusOperationExecutionResponse.Outcome where
   | notSet
-  | result (value : Temporal_Api_Common_V1_Payload)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | result (value : Temporal.Api.Common.V1.Payload)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionResponse where
+structure PollNexusOperationExecutionResponse where
   runId : String
-  waitStage : Temporal_Api_Enums_V1_NexusOperationWaitStage
+  waitStage : Temporal.Api.Enums.V1.NexusOperationWaitStage
   operationToken : String
-  outcome : Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionResponse_Outcome
+  outcome : PollNexusOperationExecutionResponse.Outcome
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollNexusTaskQueueRequest where
+structure PollNexusTaskQueueRequest where
   namespaceValue : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   pollerGroupId : String
   identity : String
   workerInstanceKey : String
-  workerVersionCapabilities : Option Temporal_Api_Common_V1_WorkerVersionCapabilities
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
-  workerHeartbeat : List Temporal_Api_Worker_V1_WorkerHeartbeat
+  workerVersionCapabilities : Option Temporal.Api.Common.V1.WorkerVersionCapabilities
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
+  workerHeartbeat : List Temporal.Api.Worker.V1.WorkerHeartbeat
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollNexusTaskQueueResponse where
+structure PollNexusTaskQueueResponse where
   taskToken : Temporal.Proto.Bytes
-  request : Option Temporal_Api_Nexus_V1_Request
-  pollerScalingDecision : Option Temporal_Api_Taskqueue_V1_PollerScalingDecision
+  request : Option Temporal.Api.Nexus.V1.Request
+  pollerScalingDecision : Option Temporal.Api.Taskqueue.V1.PollerScalingDecision
   pollerGroupId : String
-  pollerGroupInfos : List Temporal_Api_Taskqueue_V1_PollerGroupInfo
-  pollerGroupsInfo : Option Temporal_Api_Taskqueue_V1_PollerGroupsInfo
+  pollerGroupInfos : List Temporal.Api.Taskqueue.V1.PollerGroupInfo
+  pollerGroupsInfo : Option Temporal.Api.Taskqueue.V1.PollerGroupsInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollWorkflowExecutionTimeSkippingRequest where
+structure PollWorkflowExecutionTimeSkippingRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   fastForwardId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollWorkflowExecutionTimeSkippingResponse where
-  fastForwardPollingResult : Temporal_Api_Enums_V1_FastForwardPollingResult
+structure PollWorkflowExecutionTimeSkippingResponse where
+  fastForwardPollingResult : Temporal.Api.Enums.V1.FastForwardPollingResult
   failedReason : String
-  fastForwardInfo : Option Temporal_Api_Common_V1_TimeSkippingFastForwardInfo
+  fastForwardInfo : Option Temporal.Api.Common.V1.TimeSkippingFastForwardInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollWorkflowExecutionUpdateRequest where
+structure PollWorkflowExecutionUpdateRequest where
   namespaceValue : String
-  updateRef : Option Temporal_Api_Update_V1_UpdateRef
+  updateRef : Option Temporal.Api.Update.V1.UpdateRef
   identity : String
-  waitPolicy : Option Temporal_Api_Update_V1_WaitPolicy
+  waitPolicy : Option Temporal.Api.Update.V1.WaitPolicy
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollWorkflowExecutionUpdateResponse where
-  outcome : Option Temporal_Api_Update_V1_Outcome
-  stage : Temporal_Api_Enums_V1_UpdateWorkflowExecutionLifecycleStage
-  updateRef : Option Temporal_Api_Update_V1_UpdateRef
+structure PollWorkflowExecutionUpdateResponse where
+  outcome : Option Temporal.Api.Update.V1.Outcome
+  stage : Temporal.Api.Enums.V1.UpdateWorkflowExecutionLifecycleStage
+  updateRef : Option Temporal.Api.Update.V1.UpdateRef
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueRequest where
+structure PollWorkflowTaskQueueRequest where
   namespaceValue : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   pollerGroupId : String
   identity : String
   workerInstanceKey : String
   workerControlTaskQueue : String
   binaryChecksum : String
-  workerVersionCapabilities : Option Temporal_Api_Common_V1_WorkerVersionCapabilities
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  workerVersionCapabilities : Option Temporal.Api.Common.V1.WorkerVersionCapabilities
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_QueryWorkflowRequest where
+structure QueryWorkflowRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  query : Option Temporal_Api_Query_V1_WorkflowQuery
-  queryRejectCondition : Temporal_Api_Enums_V1_QueryRejectCondition
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  query : Option Temporal.Api.Query.V1.WorkflowQuery
+  queryRejectCondition : Temporal.Api.Enums.V1.QueryRejectCondition
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_QueryWorkflowResponse where
-  queryResult : Option Temporal_Api_Common_V1_Payloads
-  queryRejected : Option Temporal_Api_Query_V1_QueryRejected
-  link : Option Temporal_Api_Common_V1_Link
+structure QueryWorkflowResponse where
+  queryResult : Option Temporal.Api.Common.V1.Payloads
+  queryRejected : Option Temporal.Api.Query.V1.QueryRejected
+  link : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatByIdRequest where
+structure RecordActivityTaskHeartbeatByIdRequest where
   namespaceValue : String
   workflowId : String
   runId : String
   activityId : String
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatByIdResponse where
+structure RecordActivityTaskHeartbeatByIdResponse where
   cancelRequested : Bool
   activityPaused : Bool
   activityReset : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatRequest where
+structure RecordActivityTaskHeartbeatRequest where
   taskToken : Temporal.Proto.Bytes
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   namespaceValue : String
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatResponse where
+structure RecordActivityTaskHeartbeatResponse where
   cancelRequested : Bool
   activityPaused : Bool
   activityReset : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RecordWorkerHeartbeatRequest where
+structure RecordWorkerHeartbeatRequest where
   namespaceValue : String
   identity : String
-  workerHeartbeat : List Temporal_Api_Worker_V1_WorkerHeartbeat
+  workerHeartbeat : List Temporal.Api.Worker.V1.WorkerHeartbeat
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RecordWorkerHeartbeatResponse where
+structure RecordWorkerHeartbeatResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RegisterNamespaceRequest where
+structure RegisterNamespaceRequest where
   namespaceValue : String
   description : String
   ownerEmail : String
-  workflowExecutionRetentionPeriod : Option Google_Protobuf_Duration
-  clusters : List Temporal_Api_Replication_V1_ClusterReplicationConfig
+  workflowExecutionRetentionPeriod : Option Google.Protobuf.Duration
+  clusters : List Temporal.Api.Replication.V1.ClusterReplicationConfig
   activeClusterName : String
   data : List (String × String)
   securityToken : String
   isGlobalNamespace : Bool
-  historyArchivalState : Temporal_Api_Enums_V1_ArchivalState
+  historyArchivalState : Temporal.Api.Enums.V1.ArchivalState
   historyArchivalUri : String
-  visibilityArchivalState : Temporal_Api_Enums_V1_ArchivalState
+  visibilityArchivalState : Temporal.Api.Enums.V1.ArchivalState
   visibilityArchivalUri : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RegisterNamespaceResponse where
+structure RegisterNamespaceResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RequestCancelActivityExecutionRequest where
+structure RequestCancelActivityExecutionRequest where
   namespaceValue : String
   activityId : String
   runId : String
@@ -6073,11 +6381,11 @@ structure Temporal_Api_Workflowservice_V1_RequestCancelActivityExecutionRequest 
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RequestCancelActivityExecutionResponse where
+structure RequestCancelActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RequestCancelNexusOperationExecutionRequest where
+structure RequestCancelNexusOperationExecutionRequest where
   namespaceValue : String
   operationId : String
   runId : String
@@ -6086,297 +6394,297 @@ structure Temporal_Api_Workflowservice_V1_RequestCancelNexusOperationExecutionRe
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RequestCancelNexusOperationExecutionResponse where
+structure RequestCancelNexusOperationExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RequestCancelWorkflowExecutionRequest where
+structure RequestCancelWorkflowExecutionRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
   requestId : String
   firstExecutionRunId : String
   reason : String
-  links : List Temporal_Api_Common_V1_Link
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RequestCancelWorkflowExecutionResponse where
+structure RequestCancelWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetActivityExecutionRequest where
+structure ResetActivityExecutionRequest where
   namespaceValue : String
   workflowId : String
   activityId : String
   runId : String
   identity : String
   keepPaused : Bool
-  jitter : Option Google_Protobuf_Duration
+  jitter : Option Google.Protobuf.Duration
   restoreOriginalOptions : Bool
   resourceId : String
   requestId : String
   resetHeartbeat : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetActivityExecutionResponse where
+structure ResetActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_ResetActivityRequest_Activity where
+inductive ResetActivityRequest.Activity where
   | notSet
   | id (value : String)
   | type (value : String)
   | matchAll (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetActivityRequest where
+structure ResetActivityRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
   resetHeartbeat : Bool
   keepPaused : Bool
-  jitter : Option Google_Protobuf_Duration
+  jitter : Option Google.Protobuf.Duration
   restoreOriginalOptions : Bool
-  activity : Temporal_Api_Workflowservice_V1_ResetActivityRequest_Activity
+  activity : ResetActivityRequest.Activity
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetActivityResponse where
+structure ResetActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetStickyTaskQueueRequest where
+structure ResetStickyTaskQueueRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetStickyTaskQueueResponse where
+structure ResetStickyTaskQueueResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetWorkflowExecutionRequest where
+structure ResetWorkflowExecutionRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   reason : String
   workflowTaskFinishEventId : Int
   requestId : String
-  resetReapplyType : Temporal_Api_Enums_V1_ResetReapplyType
-  resetReapplyExcludeTypes : List Temporal_Api_Enums_V1_ResetReapplyExcludeType
-  postResetOperations : List Temporal_Api_Workflow_V1_PostResetOperation
+  resetReapplyType : Temporal.Api.Enums.V1.ResetReapplyType
+  resetReapplyExcludeTypes : List Temporal.Api.Enums.V1.ResetReapplyExcludeType
+  postResetOperations : List Temporal.Api.Workflow.V1.PostResetOperation
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ResetWorkflowExecutionResponse where
+structure ResetWorkflowExecutionResponse where
   runId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledByIdRequest where
+structure RespondActivityTaskCanceledByIdRequest where
   namespaceValue : String
   workflowId : String
   runId : String
   activityId : String
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledByIdResponse where
+structure RespondActivityTaskCanceledByIdResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledRequest where
+structure RespondActivityTaskCanceledRequest where
   taskToken : Temporal.Proto.Bytes
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   namespaceValue : String
   resourceId : String
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledResponse where
+structure RespondActivityTaskCanceledResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedByIdRequest where
+structure RespondActivityTaskCompletedByIdRequest where
   namespaceValue : String
   workflowId : String
   runId : String
   activityId : String
-  result : Option Temporal_Api_Common_V1_Payloads
+  result : Option Temporal.Api.Common.V1.Payloads
   identity : String
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedByIdResponse where
+structure RespondActivityTaskCompletedByIdResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedRequest where
+structure RespondActivityTaskCompletedRequest where
   taskToken : Temporal.Proto.Bytes
-  result : Option Temporal_Api_Common_V1_Payloads
+  result : Option Temporal.Api.Common.V1.Payloads
   identity : String
   namespaceValue : String
   resourceId : String
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedResponse where
+structure RespondActivityTaskCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedByIdRequest where
+structure RespondActivityTaskFailedByIdRequest where
   namespaceValue : String
   workflowId : String
   runId : String
   activityId : String
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   identity : String
-  lastHeartbeatDetails : Option Temporal_Api_Common_V1_Payloads
+  lastHeartbeatDetails : Option Temporal.Api.Common.V1.Payloads
   resourceId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedByIdResponse where
-  failures : List Temporal_Api_Failure_V1_Failure
+structure RespondActivityTaskFailedByIdResponse where
+  failures : List Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedRequest where
+structure RespondActivityTaskFailedRequest where
   taskToken : Temporal.Proto.Bytes
-  failure : Option Temporal_Api_Failure_V1_Failure
+  failure : Option Temporal.Api.Failure.V1.Failure
   identity : String
   namespaceValue : String
   resourceId : String
-  lastHeartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  lastHeartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedResponse where
-  failures : List Temporal_Api_Failure_V1_Failure
+structure RespondActivityTaskFailedResponse where
+  failures : List Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondNexusTaskCompletedRequest where
+structure RespondNexusTaskCompletedRequest where
   namespaceValue : String
   identity : String
   taskToken : Temporal.Proto.Bytes
-  response : Option Temporal_Api_Nexus_V1_Response
+  response : Option Temporal.Api.Nexus.V1.Response
   pollerGroupId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondNexusTaskCompletedResponse where
+structure RespondNexusTaskCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondNexusTaskFailedRequest where
+structure RespondNexusTaskFailedRequest where
   namespaceValue : String
   identity : String
   taskToken : Temporal.Proto.Bytes
-  error : Option Temporal_Api_Nexus_V1_HandlerError
-  failure : Option Temporal_Api_Failure_V1_Failure
+  error : Option Temporal.Api.Nexus.V1.HandlerError
+  failure : Option Temporal.Api.Failure.V1.Failure
   pollerGroupId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondNexusTaskFailedResponse where
+structure RespondNexusTaskFailedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondQueryTaskCompletedRequest where
+structure RespondQueryTaskCompletedRequest where
   taskToken : Temporal.Proto.Bytes
-  completedType : Temporal_Api_Enums_V1_QueryResultType
-  queryResult : Option Temporal_Api_Common_V1_Payloads
+  completedType : Temporal.Api.Enums.V1.QueryResultType
+  queryResult : Option Temporal.Api.Common.V1.Payloads
   errorMessage : String
   namespaceValue : String
-  failure : Option Temporal_Api_Failure_V1_Failure
-  cause : Temporal_Api_Enums_V1_WorkflowTaskFailedCause
+  failure : Option Temporal.Api.Failure.V1.Failure
+  cause : Temporal.Api.Enums.V1.WorkflowTaskFailedCause
   pollerGroupId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondQueryTaskCompletedResponse where
+structure RespondQueryTaskCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedRequest_Capabilities where
+structure RespondWorkflowTaskCompletedRequest.Capabilities where
   discardSpeculativeWorkflowTaskWithEvents : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedRequest where
+structure RespondWorkflowTaskCompletedRequest where
   taskToken : Temporal.Proto.Bytes
-  commands : List Temporal_Api_Command_V1_Command
+  commands : List Temporal.Api.Command.V1.Command
   identity : String
-  stickyAttributes : Option Temporal_Api_Taskqueue_V1_StickyExecutionAttributes
+  stickyAttributes : Option Temporal.Api.Taskqueue.V1.StickyExecutionAttributes
   returnNewWorkflowTask : Bool
   forceCreateNewWorkflowTask : Bool
   binaryChecksum : String
-  queryResults : List (String × Temporal_Api_Query_V1_WorkflowQueryResult)
+  queryResults : List (String × Temporal.Api.Query.V1.WorkflowQueryResult)
   namespaceValue : String
   resourceId : String
-  workerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  messages : List Temporal_Api_Protocol_V1_Message
-  sdkMetadata : Option Temporal_Api_Sdk_V1_WorkflowTaskCompletedMetadata
-  meteringMetadata : Option Temporal_Api_Common_V1_MeteringMetadata
-  capabilities : Option Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedRequest_Capabilities
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  versioningBehavior : Temporal_Api_Enums_V1_VersioningBehavior
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  workerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  messages : List Temporal.Api.Protocol.V1.Message
+  sdkMetadata : Option Temporal.Api.Sdk.V1.WorkflowTaskCompletedMetadata
+  meteringMetadata : Option Temporal.Api.Common.V1.MeteringMetadata
+  capabilities : Option RespondWorkflowTaskCompletedRequest.Capabilities
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  versioningBehavior : Temporal.Api.Enums.V1.VersioningBehavior
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   workerInstanceKey : String
   workerControlTaskQueue : String
   pageNumber : Int
   intermediatePage : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedResponse where
-  workflowTask : Option Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueResponse
-  activityTasks : List Temporal_Api_Workflowservice_V1_PollActivityTaskQueueResponse
+structure RespondWorkflowTaskCompletedResponse where
+  workflowTask : Option PollWorkflowTaskQueueResponse
+  activityTasks : List PollActivityTaskQueueResponse
   resetHistoryEventId : Int
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondWorkflowTaskFailedRequest where
+structure RespondWorkflowTaskFailedRequest where
   taskToken : Temporal.Proto.Bytes
-  cause : Temporal_Api_Enums_V1_WorkflowTaskFailedCause
-  failure : Option Temporal_Api_Failure_V1_Failure
+  cause : Temporal.Api.Enums.V1.WorkflowTaskFailedCause
+  failure : Option Temporal.Api.Failure.V1.Failure
   identity : String
   binaryChecksum : String
   namespaceValue : String
   resourceId : String
-  messages : List Temporal_Api_Protocol_V1_Message
-  workerVersion : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  deploymentOptions : Option Temporal_Api_Deployment_V1_WorkerDeploymentOptions
+  messages : List Temporal.Api.Protocol.V1.Message
+  workerVersion : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  deploymentOptions : Option Temporal.Api.Deployment.V1.WorkerDeploymentOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_RespondWorkflowTaskFailedResponse where
+structure RespondWorkflowTaskFailedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ScanWorkflowExecutionsRequest where
+structure ScanWorkflowExecutionsRequest where
   namespaceValue : String
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   query : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ScanWorkflowExecutionsResponse where
-  executions : List Temporal_Api_Workflow_V1_WorkflowExecutionInfo
+structure ScanWorkflowExecutionsResponse where
+  executions : List Temporal.Api.Workflow.V1.WorkflowExecutionInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetCurrentDeploymentRequest where
+structure SetCurrentDeploymentRequest where
   namespaceValue : String
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
   identity : String
-  updateMetadata : Option Temporal_Api_Deployment_V1_UpdateDeploymentMetadata
+  updateMetadata : Option Temporal.Api.Deployment.V1.UpdateDeploymentMetadata
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetCurrentDeploymentResponse where
-  currentDeploymentInfo : Option Temporal_Api_Deployment_V1_DeploymentInfo
-  previousDeploymentInfo : Option Temporal_Api_Deployment_V1_DeploymentInfo
+structure SetCurrentDeploymentResponse where
+  currentDeploymentInfo : Option Temporal.Api.Deployment.V1.DeploymentInfo
+  previousDeploymentInfo : Option Temporal.Api.Deployment.V1.DeploymentInfo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentCurrentVersionRequest where
+structure SetWorkerDeploymentCurrentVersionRequest where
   namespaceValue : String
   deploymentName : String
   version : String
@@ -6387,32 +6695,32 @@ structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentCurrentVersionReque
   allowNoPollers : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentCurrentVersionResponse where
+structure SetWorkerDeploymentCurrentVersionResponse where
   conflictToken : Temporal.Proto.Bytes
   previousVersion : String
-  previousDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  previousDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_SetWorkerDeploymentManagerRequest_NewManagerIdentity where
+inductive SetWorkerDeploymentManagerRequest.NewManagerIdentity where
   | notSet
   | managerIdentity (value : String)
   | self (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentManagerRequest where
+structure SetWorkerDeploymentManagerRequest where
   namespaceValue : String
   deploymentName : String
   conflictToken : Temporal.Proto.Bytes
   identity : String
-  newManagerIdentity : Temporal_Api_Workflowservice_V1_SetWorkerDeploymentManagerRequest_NewManagerIdentity
+  newManagerIdentity : SetWorkerDeploymentManagerRequest.NewManagerIdentity
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentManagerResponse where
+structure SetWorkerDeploymentManagerResponse where
   conflictToken : Temporal.Proto.Bytes
   previousManagerIdentity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentRampingVersionRequest where
+structure SetWorkerDeploymentRampingVersionRequest where
   namespaceValue : String
   deploymentName : String
   version : String
@@ -6424,143 +6732,143 @@ structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentRampingVersionReque
   allowNoPollers : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SetWorkerDeploymentRampingVersionResponse where
+structure SetWorkerDeploymentRampingVersionResponse where
   conflictToken : Temporal.Proto.Bytes
   previousVersion : String
-  previousDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  previousDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   previousPercentage : Float
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ShutdownWorkerRequest where
+structure ShutdownWorkerRequest where
   namespaceValue : String
   stickyTaskQueue : String
   identity : String
   reason : String
-  workerHeartbeat : Option Temporal_Api_Worker_V1_WorkerHeartbeat
+  workerHeartbeat : Option Temporal.Api.Worker.V1.WorkerHeartbeat
   workerInstanceKey : String
   taskQueue : String
-  taskQueueTypes : List Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueTypes : List Temporal.Api.Enums.V1.TaskQueueType
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ShutdownWorkerResponse where
+structure ShutdownWorkerResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SignalWithStartWorkflowExecutionRequest where
+structure SignalWithStartWorkflowExecutionRequest where
   namespaceValue : String
   workflowId : String
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  input : Option Temporal_Api_Common_V1_Payloads
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  workflowTaskTimeout : Option Google_Protobuf_Duration
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  input : Option Temporal.Api.Common.V1.Payloads
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
   identity : String
   requestId : String
-  workflowIdReusePolicy : Temporal_Api_Enums_V1_WorkflowIdReusePolicy
-  workflowIdConflictPolicy : Temporal_Api_Enums_V1_WorkflowIdConflictPolicy
+  workflowIdReusePolicy : Temporal.Api.Enums.V1.WorkflowIdReusePolicy
+  workflowIdConflictPolicy : Temporal.Api.Enums.V1.WorkflowIdConflictPolicy
   signalName : String
-  signalInput : Option Temporal_Api_Common_V1_Payloads
+  signalInput : Option Temporal.Api.Common.V1.Payloads
   control : String
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   cronSchedule : String
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  header : Option Temporal_Api_Common_V1_Header
-  workflowStartDelay : Option Google_Protobuf_Duration
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  links : List Temporal_Api_Common_V1_Link
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
-  priority : Option Temporal_Api_Common_V1_Priority
-  timeSkippingConfig : Option Temporal_Api_Common_V1_TimeSkippingConfig
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  workflowStartDelay : Option Google.Protobuf.Duration
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  links : List Temporal.Api.Common.V1.Link
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
+  priority : Option Temporal.Api.Common.V1.Priority
+  timeSkippingConfig : Option Temporal.Api.Common.V1.TimeSkippingConfig
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SignalWithStartWorkflowExecutionResponse where
+structure SignalWithStartWorkflowExecutionResponse where
   runId : String
   firstExecutionRunId : String
   started : Bool
-  signalLink : Option Temporal_Api_Common_V1_Link
+  signalLink : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SignalWorkflowExecutionRequest where
+structure SignalWorkflowExecutionRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   signalName : String
-  input : Option Temporal_Api_Common_V1_Payloads
+  input : Option Temporal.Api.Common.V1.Payloads
   identity : String
   requestId : String
   control : String
-  header : Option Temporal_Api_Common_V1_Header
-  links : List Temporal_Api_Common_V1_Link
+  header : Option Temporal.Api.Common.V1.Header
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_SignalWorkflowExecutionResponse where
-  link : Option Temporal_Api_Common_V1_Link
+structure SignalWorkflowExecutionResponse where
+  link : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartActivityExecutionRequest where
+structure StartActivityExecutionRequest where
   namespaceValue : String
   identity : String
   requestId : String
   activityId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
-  input : Option Temporal_Api_Common_V1_Payloads
-  idReusePolicy : Temporal_Api_Enums_V1_ActivityIdReusePolicy
-  idConflictPolicy : Temporal_Api_Enums_V1_ActivityIdConflictPolicy
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  header : Option Temporal_Api_Common_V1_Header
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
-  priority : Option Temporal_Api_Common_V1_Priority
-  completionCallbacks : List Temporal_Api_Common_V1_Callback
-  links : List Temporal_Api_Common_V1_Link
-  onConflictOptions : Option Temporal_Api_Common_V1_OnConflictOptions
-  startDelay : Option Google_Protobuf_Duration
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
+  input : Option Temporal.Api.Common.V1.Payloads
+  idReusePolicy : Temporal.Api.Enums.V1.ActivityIdReusePolicy
+  idConflictPolicy : Temporal.Api.Enums.V1.ActivityIdConflictPolicy
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  header : Option Temporal.Api.Common.V1.Header
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
+  priority : Option Temporal.Api.Common.V1.Priority
+  completionCallbacks : List Temporal.Api.Common.V1.Callback
+  links : List Temporal.Api.Common.V1.Link
+  onConflictOptions : Option Temporal.Api.Common.V1.OnConflictOptions
+  startDelay : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartActivityExecutionResponse where
+structure StartActivityExecutionResponse where
   runId : String
   started : Bool
-  link : Option Temporal_Api_Common_V1_Link
+  link : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_StartBatchOperationRequest_Operation where
+inductive StartBatchOperationRequest.Operation where
   | notSet
-  | terminationOperation (value : Temporal_Api_Batch_V1_BatchOperationTermination)
-  | signalOperation (value : Temporal_Api_Batch_V1_BatchOperationSignal)
-  | cancellationOperation (value : Temporal_Api_Batch_V1_BatchOperationCancellation)
-  | deletionOperation (value : Temporal_Api_Batch_V1_BatchOperationDeletion)
-  | resetOperation (value : Temporal_Api_Batch_V1_BatchOperationReset)
-  | updateWorkflowOptionsOperation (value : Temporal_Api_Batch_V1_BatchOperationUpdateWorkflowExecutionOptions)
-  | unpauseActivitiesOperation (value : Temporal_Api_Batch_V1_BatchOperationUnpauseActivities)
-  | resetActivitiesOperation (value : Temporal_Api_Batch_V1_BatchOperationResetActivities)
-  | updateActivityOptionsOperation (value : Temporal_Api_Batch_V1_BatchOperationUpdateActivityOptions)
-  | cancelActivitiesOperation (value : Temporal_Api_Batch_V1_BatchOperationCancelActivities)
-  | terminateActivitiesOperation (value : Temporal_Api_Batch_V1_BatchOperationTerminateActivities)
-  | deleteActivitiesOperation (value : Temporal_Api_Batch_V1_BatchOperationDeleteActivities)
+  | terminationOperation (value : Temporal.Api.Batch.V1.BatchOperationTermination)
+  | signalOperation (value : Temporal.Api.Batch.V1.BatchOperationSignal)
+  | cancellationOperation (value : Temporal.Api.Batch.V1.BatchOperationCancellation)
+  | deletionOperation (value : Temporal.Api.Batch.V1.BatchOperationDeletion)
+  | resetOperation (value : Temporal.Api.Batch.V1.BatchOperationReset)
+  | updateWorkflowOptionsOperation (value : Temporal.Api.Batch.V1.BatchOperationUpdateWorkflowExecutionOptions)
+  | unpauseActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationUnpauseActivities)
+  | resetActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationResetActivities)
+  | updateActivityOptionsOperation (value : Temporal.Api.Batch.V1.BatchOperationUpdateActivityOptions)
+  | cancelActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationCancelActivities)
+  | terminateActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationTerminateActivities)
+  | deleteActivitiesOperation (value : Temporal.Api.Batch.V1.BatchOperationDeleteActivities)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartBatchOperationRequest where
+structure StartBatchOperationRequest where
   namespaceValue : String
   visibilityQuery : String
   jobId : String
   reason : String
-  executions : List Temporal_Api_Common_V1_WorkflowExecution
-  targetExecutions : List Temporal_Api_Common_V1_Execution
+  executions : List Temporal.Api.Common.V1.WorkflowExecution
+  targetExecutions : List Temporal.Api.Common.V1.Execution
   maxOperationsPerSecond : Float
-  operation : Temporal_Api_Workflowservice_V1_StartBatchOperationRequest_Operation
+  operation : StartBatchOperationRequest.Operation
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartBatchOperationResponse where
+structure StartBatchOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionRequest where
+structure StartNexusOperationExecutionRequest where
   namespaceValue : String
   identity : String
   requestId : String
@@ -6568,34 +6876,34 @@ structure Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionRequest wh
   endpoint : String
   service : String
   operation : String
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  input : Option Temporal_Api_Common_V1_Payload
-  idReusePolicy : Temporal_Api_Enums_V1_NexusOperationIdReusePolicy
-  idConflictPolicy : Temporal_Api_Enums_V1_NexusOperationIdConflictPolicy
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  input : Option Temporal.Api.Common.V1.Payload
+  idReusePolicy : Temporal.Api.Enums.V1.NexusOperationIdReusePolicy
+  idConflictPolicy : Temporal.Api.Enums.V1.NexusOperationIdConflictPolicy
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   nexusHeader : List (String × String)
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionResponse where
+structure StartNexusOperationExecutionResponse where
   runId : String
   started : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StopBatchOperationRequest where
+structure StopBatchOperationRequest where
   namespaceValue : String
   jobId : String
   reason : String
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_StopBatchOperationResponse where
+structure StopBatchOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TerminateActivityExecutionRequest where
+structure TerminateActivityExecutionRequest where
   namespaceValue : String
   activityId : String
   runId : String
@@ -6604,11 +6912,11 @@ structure Temporal_Api_Workflowservice_V1_TerminateActivityExecutionRequest wher
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TerminateActivityExecutionResponse where
+structure TerminateActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TerminateNexusOperationExecutionRequest where
+structure TerminateNexusOperationExecutionRequest where
   namespaceValue : String
   operationId : String
   runId : String
@@ -6617,79 +6925,79 @@ structure Temporal_Api_Workflowservice_V1_TerminateNexusOperationExecutionReques
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TerminateNexusOperationExecutionResponse where
+structure TerminateNexusOperationExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TerminateWorkflowExecutionRequest where
+structure TerminateWorkflowExecutionRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   reason : String
-  details : Option Temporal_Api_Common_V1_Payloads
+  details : Option Temporal.Api.Common.V1.Payloads
   identity : String
   firstExecutionRunId : String
-  links : List Temporal_Api_Common_V1_Link
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TerminateWorkflowExecutionResponse where
+structure TerminateWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_TriggerWorkflowRuleRequest_Rule where
+inductive TriggerWorkflowRuleRequest.Rule where
   | notSet
   | id (value : String)
-  | spec (value : Temporal_Api_Rules_V1_WorkflowRuleSpec)
+  | spec (value : Temporal.Api.Rules.V1.WorkflowRuleSpec)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TriggerWorkflowRuleRequest where
+structure TriggerWorkflowRuleRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
-  rule : Temporal_Api_Workflowservice_V1_TriggerWorkflowRuleRequest_Rule
+  rule : TriggerWorkflowRuleRequest.Rule
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_TriggerWorkflowRuleResponse where
+structure TriggerWorkflowRuleResponse where
   applied : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UnpauseActivityExecutionRequest where
+structure UnpauseActivityExecutionRequest where
   namespaceValue : String
   workflowId : String
   activityId : String
   runId : String
   identity : String
   reason : String
-  jitter : Option Google_Protobuf_Duration
+  jitter : Option Google.Protobuf.Duration
   resourceId : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UnpauseActivityExecutionResponse where
+structure UnpauseActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_UnpauseActivityRequest_Activity where
+inductive UnpauseActivityRequest.Activity where
   | notSet
   | id (value : String)
   | type (value : String)
   | unpauseAll (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UnpauseActivityRequest where
+structure UnpauseActivityRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
   resetAttempts : Bool
   resetHeartbeat : Bool
-  jitter : Option Google_Protobuf_Duration
-  activity : Temporal_Api_Workflowservice_V1_UnpauseActivityRequest_Activity
+  jitter : Option Google.Protobuf.Duration
+  activity : UnpauseActivityRequest.Activity
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UnpauseActivityResponse where
+structure UnpauseActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UnpauseWorkflowExecutionRequest where
+structure UnpauseWorkflowExecutionRequest where
   namespaceValue : String
   workflowId : String
   runId : String
@@ -6698,391 +7006,411 @@ structure Temporal_Api_Workflowservice_V1_UnpauseWorkflowExecutionRequest where
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UnpauseWorkflowExecutionResponse where
+structure UnpauseWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateActivityExecutionOptionsRequest where
+structure UpdateActivityExecutionOptionsRequest where
   namespaceValue : String
   workflowId : String
   activityId : String
   runId : String
   identity : String
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
-  updateMask : Option Google_Protobuf_FieldMask
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
+  updateMask : Option Google.Protobuf.FieldMask
   restoreOriginal : Bool
   resourceId : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateActivityExecutionOptionsResponse where
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
+structure UpdateActivityExecutionOptionsResponse where
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_UpdateActivityOptionsRequest_Activity where
+inductive UpdateActivityOptionsRequest.Activity where
   | notSet
   | id (value : String)
   | type (value : String)
   | matchAll (value : Bool)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateActivityOptionsRequest where
+structure UpdateActivityOptionsRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   identity : String
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
-  updateMask : Option Google_Protobuf_FieldMask
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
+  updateMask : Option Google.Protobuf.FieldMask
   restoreOriginal : Bool
-  activity : Temporal_Api_Workflowservice_V1_UpdateActivityOptionsRequest_Activity
+  activity : UpdateActivityOptionsRequest.Activity
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateActivityOptionsResponse where
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
+structure UpdateActivityOptionsResponse where
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateNamespaceRequest where
+structure UpdateNamespaceRequest where
   namespaceValue : String
-  updateInfo : Option Temporal_Api_Namespace_V1_UpdateNamespaceInfo
-  config : Option Temporal_Api_Namespace_V1_NamespaceConfig
-  replicationConfig : Option Temporal_Api_Replication_V1_NamespaceReplicationConfig
+  updateInfo : Option Temporal.Api.Namespace.V1.UpdateNamespaceInfo
+  config : Option Temporal.Api.Namespace.V1.NamespaceConfig
+  replicationConfig : Option Temporal.Api.Replication.V1.NamespaceReplicationConfig
   securityToken : String
   deleteBadBinary : String
   promoteNamespace : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateNamespaceResponse where
-  namespaceInfo : Option Temporal_Api_Namespace_V1_NamespaceInfo
-  config : Option Temporal_Api_Namespace_V1_NamespaceConfig
-  replicationConfig : Option Temporal_Api_Replication_V1_NamespaceReplicationConfig
+structure UpdateNamespaceResponse where
+  namespaceInfo : Option Temporal.Api.Namespace.V1.NamespaceInfo
+  config : Option Temporal.Api.Namespace.V1.NamespaceConfig
+  replicationConfig : Option Temporal.Api.Replication.V1.NamespaceReplicationConfig
   failoverVersion : Int
   isGlobalNamespace : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateScheduleRequest where
+structure UpdateScheduleRequest where
   namespaceValue : String
   scheduleId : String
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
   conflictToken : Temporal.Proto.Bytes
   identity : String
   requestId : String
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  memo : Option Temporal_Api_Common_V1_Memo
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  memo : Option Temporal.Api.Common.V1.Memo
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateScheduleResponse where
+structure UpdateScheduleResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigRequest_RateLimitUpdate where
-  rateLimit : Option Temporal_Api_Taskqueue_V1_RateLimit
+structure UpdateTaskQueueConfigRequest.RateLimitUpdate where
+  rateLimit : Option Temporal.Api.Taskqueue.V1.RateLimit
   reason : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigRequest where
+structure UpdateTaskQueueConfigRequest where
   namespaceValue : String
   identity : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
-  updateQueueRateLimit : Option Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigRequest_RateLimitUpdate
-  updateFairnessKeyRateLimitDefault : Option Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigRequest_RateLimitUpdate
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
+  updateQueueRateLimit : Option UpdateTaskQueueConfigRequest.RateLimitUpdate
+  updateFairnessKeyRateLimitDefault : Option UpdateTaskQueueConfigRequest.RateLimitUpdate
   setFairnessWeightOverrides : List (String × Float)
   unsetFairnessWeightOverrides : List String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigResponse where
-  config : Option Temporal_Api_Taskqueue_V1_TaskQueueConfig
+structure UpdateTaskQueueConfigResponse where
+  config : Option Temporal.Api.Taskqueue.V1.TaskQueueConfig
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest_AddNewCompatibleVersion where
+structure UpdateWorkerBuildIdCompatibilityRequest.AddNewCompatibleVersion where
   newBuildId : String
   existingCompatibleBuildId : String
   makeSetDefault : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest_MergeSets where
+structure UpdateWorkerBuildIdCompatibilityRequest.MergeSets where
   primarySetBuildId : String
   secondarySetBuildId : String
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest_Operation where
+inductive UpdateWorkerBuildIdCompatibilityRequest.Operation where
   | notSet
   | addNewBuildIdInNewDefaultSet (value : String)
-  | addNewCompatibleBuildId (value : Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest_AddNewCompatibleVersion)
+  | addNewCompatibleBuildId (value : UpdateWorkerBuildIdCompatibilityRequest.AddNewCompatibleVersion)
   | promoteSetByBuildId (value : String)
   | promoteBuildIdWithinSet (value : String)
-  | mergeSets (value : Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest_MergeSets)
+  | mergeSets (value : UpdateWorkerBuildIdCompatibilityRequest.MergeSets)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest where
+structure UpdateWorkerBuildIdCompatibilityRequest where
   namespaceValue : String
   taskQueue : String
-  operation : Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest_Operation
+  operation : UpdateWorkerBuildIdCompatibilityRequest.Operation
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityResponse where
+structure UpdateWorkerBuildIdCompatibilityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerConfigRequest where
+structure UpdateWorkerConfigRequest where
   namespaceValue : String
   identity : String
   reason : String
-  workerConfig : Option Temporal_Api_Sdk_V1_WorkerConfig
-  updateMask : Option Google_Protobuf_FieldMask
-  selector : Option Temporal_Api_Common_V1_WorkerSelector
+  workerConfig : Option Temporal.Api.Sdk.V1.WorkerConfig
+  updateMask : Option Google.Protobuf.FieldMask
+  selector : Option Temporal.Api.Common.V1.WorkerSelector
   resourceId : String
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_UpdateWorkerConfigResponse_Response where
+inductive UpdateWorkerConfigResponse.Response where
   | notSet
-  | workerConfig (value : Temporal_Api_Sdk_V1_WorkerConfig)
+  | workerConfig (value : Temporal.Api.Sdk.V1.WorkerConfig)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerConfigResponse where
-  response : Temporal_Api_Workflowservice_V1_UpdateWorkerConfigResponse_Response
+structure UpdateWorkerConfigResponse where
+  response : UpdateWorkerConfigResponse.Response
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionComputeConfigRequest where
+structure UpdateWorkerDeploymentVersionComputeConfigRequest where
   namespaceValue : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  computeConfigScalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroupUpdate)
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  computeConfigScalingGroups : List (String × Temporal.Api.Compute.V1.ComputeConfigScalingGroupUpdate)
   removeComputeConfigScalingGroups : List String
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionComputeConfigResponse where
+structure UpdateWorkerDeploymentVersionComputeConfigResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionMetadataRequest where
+structure UpdateWorkerDeploymentVersionMetadataRequest where
   namespaceValue : String
   version : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  upsertEntries : List (String × Temporal_Api_Common_V1_Payload)
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  upsertEntries : List (String × Temporal.Api.Common.V1.Payload)
   removeEntries : List String
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerDeploymentVersionMetadataResponse where
-  metadata : Option Temporal_Api_Deployment_V1_VersionMetadata
+structure UpdateWorkerDeploymentVersionMetadataResponse where
+  metadata : Option Temporal.Api.Deployment.V1.VersionMetadata
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_AddCompatibleBuildIdRedirectRule where
-  rule : Option Temporal_Api_Taskqueue_V1_CompatibleBuildIdRedirectRule
+structure UpdateWorkerVersioningRulesRequest.AddCompatibleBuildIdRedirectRule where
+  rule : Option Temporal.Api.Taskqueue.V1.CompatibleBuildIdRedirectRule
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_CommitBuildId where
+structure UpdateWorkerVersioningRulesRequest.CommitBuildId where
   targetBuildId : String
   force : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_DeleteBuildIdAssignmentRule where
+structure UpdateWorkerVersioningRulesRequest.DeleteBuildIdAssignmentRule where
   ruleIndex : Int
   force : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_DeleteCompatibleBuildIdRedirectRule where
+structure UpdateWorkerVersioningRulesRequest.DeleteCompatibleBuildIdRedirectRule where
   sourceBuildId : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_InsertBuildIdAssignmentRule where
+structure UpdateWorkerVersioningRulesRequest.InsertBuildIdAssignmentRule where
   ruleIndex : Int
-  rule : Option Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule
+  rule : Option Temporal.Api.Taskqueue.V1.BuildIdAssignmentRule
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_ReplaceBuildIdAssignmentRule where
+structure UpdateWorkerVersioningRulesRequest.ReplaceBuildIdAssignmentRule where
   ruleIndex : Int
-  rule : Option Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule
+  rule : Option Temporal.Api.Taskqueue.V1.BuildIdAssignmentRule
   force : Bool
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_ReplaceCompatibleBuildIdRedirectRule where
-  rule : Option Temporal_Api_Taskqueue_V1_CompatibleBuildIdRedirectRule
+structure UpdateWorkerVersioningRulesRequest.ReplaceCompatibleBuildIdRedirectRule where
+  rule : Option Temporal.Api.Taskqueue.V1.CompatibleBuildIdRedirectRule
   deriving Repr
 
-inductive Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_Operation where
+inductive UpdateWorkerVersioningRulesRequest.Operation where
   | notSet
-  | insertAssignmentRule (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_InsertBuildIdAssignmentRule)
-  | replaceAssignmentRule (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_ReplaceBuildIdAssignmentRule)
-  | deleteAssignmentRule (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_DeleteBuildIdAssignmentRule)
-  | addCompatibleRedirectRule (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_AddCompatibleBuildIdRedirectRule)
-  | replaceCompatibleRedirectRule (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_ReplaceCompatibleBuildIdRedirectRule)
-  | deleteCompatibleRedirectRule (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_DeleteCompatibleBuildIdRedirectRule)
-  | commitBuildId (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_CommitBuildId)
+  | insertAssignmentRule (value : UpdateWorkerVersioningRulesRequest.InsertBuildIdAssignmentRule)
+  | replaceAssignmentRule (value : UpdateWorkerVersioningRulesRequest.ReplaceBuildIdAssignmentRule)
+  | deleteAssignmentRule (value : UpdateWorkerVersioningRulesRequest.DeleteBuildIdAssignmentRule)
+  | addCompatibleRedirectRule (value : UpdateWorkerVersioningRulesRequest.AddCompatibleBuildIdRedirectRule)
+  | replaceCompatibleRedirectRule (value : UpdateWorkerVersioningRulesRequest.ReplaceCompatibleBuildIdRedirectRule)
+  | deleteCompatibleRedirectRule (value : UpdateWorkerVersioningRulesRequest.DeleteCompatibleBuildIdRedirectRule)
+  | commitBuildId (value : UpdateWorkerVersioningRulesRequest.CommitBuildId)
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest where
+structure UpdateWorkerVersioningRulesRequest where
   namespaceValue : String
   taskQueue : String
   conflictToken : Temporal.Proto.Bytes
-  operation : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest_Operation
+  operation : UpdateWorkerVersioningRulesRequest.Operation
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesResponse where
-  assignmentRules : List Temporal_Api_Taskqueue_V1_TimestampedBuildIdAssignmentRule
-  compatibleRedirectRules : List Temporal_Api_Taskqueue_V1_TimestampedCompatibleBuildIdRedirectRule
+structure UpdateWorkerVersioningRulesResponse where
+  assignmentRules : List Temporal.Api.Taskqueue.V1.TimestampedBuildIdAssignmentRule
+  compatibleRedirectRules : List Temporal.Api.Taskqueue.V1.TimestampedCompatibleBuildIdRedirectRule
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionOptionsRequest where
+structure UpdateWorkflowExecutionOptionsRequest where
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowExecutionOptions : Option Temporal_Api_Workflow_V1_WorkflowExecutionOptions
-  updateMask : Option Google_Protobuf_FieldMask
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowExecutionOptions : Option Temporal.Api.Workflow.V1.WorkflowExecutionOptions
+  updateMask : Option Google.Protobuf.FieldMask
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionOptionsResponse where
-  workflowExecutionOptions : Option Temporal_Api_Workflow_V1_WorkflowExecutionOptions
-  updateTime : Option Google_Protobuf_Timestamp
+structure UpdateWorkflowExecutionOptionsResponse where
+  workflowExecutionOptions : Option Temporal.Api.Workflow.V1.WorkflowExecutionOptions
+  updateTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ValidateWorkerDeploymentVersionComputeConfigRequest where
+structure ValidateWorkerDeploymentVersionComputeConfigRequest where
   namespaceValue : String
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  computeConfigScalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroupUpdate)
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  computeConfigScalingGroups : List (String × Temporal.Api.Compute.V1.ComputeConfigScalingGroupUpdate)
   removeComputeConfigScalingGroups : List String
   identity : String
   deriving Repr
 
-structure Temporal_Api_Workflowservice_V1_ValidateWorkerDeploymentVersionComputeConfigResponse where
+structure ValidateWorkerDeploymentVersionComputeConfigResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddOrUpdateRemoteClusterRequest where
+end Temporal.Api.Workflowservice.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure AddOrUpdateRemoteClusterRequest where
   frontendAddress : String
   enableRemoteClusterConnection : Bool
   frontendHttpAddress : String
   enableReplication : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddOrUpdateRemoteClusterResponse where
+structure AddOrUpdateRemoteClusterResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddSearchAttributesRequest where
-  searchAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
+structure AddSearchAttributesRequest where
+  searchAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
   indexName : String
   skipSchemaUpdate : Bool
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddSearchAttributesResponse where
+structure AddSearchAttributesResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddTasksRequest_Task where
+structure AddTasksRequest.Task where
   categoryId : Int
-  blob : Option Temporal_Api_Common_V1_DataBlob
+  blob : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddTasksRequest where
+structure AddTasksRequest where
   shardId : Int
-  tasks : List Temporal_Server_Api_Adminservice_V1_AddTasksRequest_Task
+  tasks : List AddTasksRequest.Task
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_AddTasksResponse where
+structure AddTasksResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_BatchOperationRefreshTasks where
+structure BatchOperationRefreshTasks where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_CancelDLQJobRequest where
+structure CancelDLQJobRequest where
   jobToken : Temporal.Proto.Bytes
   reason : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_CancelDLQJobResponse where
+structure CancelDLQJobResponse where
   canceled : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_CloseShardRequest where
+structure CloseShardRequest where
   shardId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_CloseShardResponse where
+structure CloseShardResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DLQJobToken where
+structure DLQJobToken where
   workflowId : String
   runId : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DeepHealthCheckRequest where
+structure DeepHealthCheckRequest where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Health_V1_HealthCheck where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Health.V1
+
+structure HealthCheck where
   checkType : String
-  state : Temporal_Server_Api_Enums_V1_HealthState
+  state : Temporal.Server.Api.Enums.V1.HealthState
   value : Float
   threshold : Float
   message : String
   deriving Repr
 
-structure Temporal_Server_Api_Health_V1_HostHealthDetail where
+structure HostHealthDetail where
   address : String
-  state : Temporal_Server_Api_Enums_V1_HealthState
-  checks : List Temporal_Server_Api_Health_V1_HealthCheck
+  state : Temporal.Server.Api.Enums.V1.HealthState
+  checks : List HealthCheck
   deriving Repr
 
-structure Temporal_Server_Api_Health_V1_ServiceHealthDetail where
+structure ServiceHealthDetail where
   service : String
-  state : Temporal_Server_Api_Enums_V1_HealthState
-  hosts : List Temporal_Server_Api_Health_V1_HostHealthDetail
+  state : Temporal.Server.Api.Enums.V1.HealthState
+  hosts : List HostHealthDetail
   message : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DeepHealthCheckResponse where
-  state : Temporal_Server_Api_Enums_V1_HealthState
-  services : List Temporal_Server_Api_Health_V1_ServiceHealthDetail
+end Temporal.Server.Api.Health.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DeepHealthCheckResponse where
+  state : Temporal.Server.Api.Enums.V1.HealthState
+  services : List Temporal.Server.Api.Health.V1.ServiceHealthDetail
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DeleteWorkflowExecutionRequest where
+structure DeleteWorkflowExecutionRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   archetype : String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DeleteWorkflowExecutionResponse where
+structure DeleteWorkflowExecutionResponse where
   warnings : List String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeClusterRequest where
+structure DescribeClusterRequest where
   clusterName : String
   deriving Repr
 
-structure Temporal_Server_Api_Cluster_V1_HostInfo where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Cluster.V1
+
+structure HostInfo where
   identity : String
   deriving Repr
 
-structure Temporal_Server_Api_Cluster_V1_RingInfo where
+structure RingInfo where
   role : String
   memberCount : Int
-  members : List Temporal_Server_Api_Cluster_V1_HostInfo
+  members : List HostInfo
   deriving Repr
 
-structure Temporal_Server_Api_Cluster_V1_MembershipInfo where
-  currentHost : Option Temporal_Server_Api_Cluster_V1_HostInfo
+structure MembershipInfo where
+  currentHost : Option HostInfo
   reachableMembers : List String
-  rings : List Temporal_Server_Api_Cluster_V1_RingInfo
+  rings : List RingInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeClusterResponse where
+end Temporal.Server.Api.Cluster.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DescribeClusterResponse where
   supportedClients : List (String × String)
   serverVersion : String
-  membershipInfo : Option Temporal_Server_Api_Cluster_V1_MembershipInfo
+  membershipInfo : Option Temporal.Server.Api.Cluster.V1.MembershipInfo
   clusterId : String
   clusterName : String
   historyShardCount : Int
   persistenceStore : String
   visibilityStore : String
-  versionInfo : Option Temporal_Api_Version_V1_VersionInfo
+  versionInfo : Option Temporal.Api.Version.V1.VersionInfo
   failoverVersionIncrement : Int
   initialFailoverVersion : Int
   isGlobalNamespaceEnabled : Bool
@@ -7090,105 +7418,129 @@ structure Temporal_Server_Api_Adminservice_V1_DescribeClusterResponse where
   httpAddress : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeDLQJobRequest where
+structure DescribeDLQJobRequest where
   jobToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Common_V1_HistoryDLQKey where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Common.V1
+
+structure HistoryDLQKey where
   taskCategory : Int
   sourceCluster : String
   targetCluster : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeDLQJobResponse where
-  dlqKey : Option Temporal_Server_Api_Common_V1_HistoryDLQKey
-  operationType : Temporal_Server_Api_Enums_V1_DLQOperationType
-  operationState : Temporal_Server_Api_Enums_V1_DLQOperationState
-  startTime : Option Google_Protobuf_Timestamp
-  endTime : Option Google_Protobuf_Timestamp
+end Temporal.Server.Api.Common.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DescribeDLQJobResponse where
+  dlqKey : Option Temporal.Server.Api.Common.V1.HistoryDLQKey
+  operationType : Temporal.Server.Api.Enums.V1.DLQOperationType
+  operationState : Temporal.Server.Api.Enums.V1.DLQOperationState
+  startTime : Option Google.Protobuf.Timestamp
+  endTime : Option Google.Protobuf.Timestamp
   maxMessageId : Int
   lastProcessedMessageId : Int
   messagesProcessed : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeHistoryHostRequest where
+structure DescribeHistoryHostRequest where
   hostAddress : String
   shardId : Int
   namespaceValue : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Server_Api_Namespace_V1_NamespaceCacheInfo where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Namespace.V1
+
+structure NamespaceCacheInfo where
   itemsInCacheByIdCount : Int
   itemsInCacheByNameCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeHistoryHostResponse where
+end Temporal.Server.Api.Namespace.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DescribeHistoryHostResponse where
   shardsNumber : Int
   shardIds : List Int
-  namespaceCache : Option Temporal_Server_Api_Namespace_V1_NamespaceCacheInfo
+  namespaceCache : Option Temporal.Server.Api.Namespace.V1.NamespaceCacheInfo
   address : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeMutableStateRequest where
+structure DescribeMutableStateRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   skipForceReload : Bool
   archetype : String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Clock_V1_VectorClock where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Clock.V1
+
+structure VectorClock where
   shardId : Int
   clock : Int
   clusterId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ActivityInfo_PauseInfo_Manual where
+end Temporal.Server.Api.Clock.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure ActivityInfo.PauseInfo.Manual where
   identity : String
   reason : String
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_ActivityInfo_PauseInfo_PausedBy where
+inductive ActivityInfo.PauseInfo.PausedBy where
   | notSet
-  | manual (value : Temporal_Server_Api_Persistence_V1_ActivityInfo_PauseInfo_Manual)
+  | manual (value : ActivityInfo.PauseInfo.Manual)
   | ruleId (value : String)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ActivityInfo_PauseInfo where
-  pauseTime : Option Google_Protobuf_Timestamp
+structure ActivityInfo.PauseInfo where
+  pauseTime : Option Google.Protobuf.Timestamp
   requestId : String
-  pausedBy : Temporal_Server_Api_Persistence_V1_ActivityInfo_PauseInfo_PausedBy
+  pausedBy : ActivityInfo.PauseInfo.PausedBy
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ActivityInfo_UseWorkflowBuildIdInfo where
+structure ActivityInfo.UseWorkflowBuildIdInfo where
   lastUsedBuildId : String
   lastRedirectCounter : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_VersionedTransition where
+structure VersionedTransition where
   namespaceFailoverVersion : Int
   transitionCount : Int
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_ActivityInfo_BuildIdInfo where
+inductive ActivityInfo.BuildIdInfo where
   | notSet
-  | useWorkflowBuildIdInfo (value : Temporal_Server_Api_Persistence_V1_ActivityInfo_UseWorkflowBuildIdInfo)
+  | useWorkflowBuildIdInfo (value : ActivityInfo.UseWorkflowBuildIdInfo)
   | lastIndependentlyAssignedBuildId (value : String)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ActivityInfo where
+structure ActivityInfo where
   version : Int
   scheduledEventBatchId : Int
-  scheduledTime : Option Google_Protobuf_Timestamp
+  scheduledTime : Option Google.Protobuf.Timestamp
   startedEventId : Int
-  startedTime : Option Google_Protobuf_Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
   activityId : String
   requestId : String
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
   cancelRequested : Bool
   cancelRequestId : Int
   timerTaskStatus : Int
@@ -7196,99 +7548,99 @@ structure Temporal_Server_Api_Persistence_V1_ActivityInfo where
   taskQueue : String
   startedIdentity : String
   hasRetryPolicy : Bool
-  retryInitialInterval : Option Google_Protobuf_Duration
-  retryMaximumInterval : Option Google_Protobuf_Duration
+  retryInitialInterval : Option Google.Protobuf.Duration
+  retryMaximumInterval : Option Google.Protobuf.Duration
   retryMaximumAttempts : Int
-  retryExpirationTime : Option Google_Protobuf_Timestamp
+  retryExpirationTime : Option Google.Protobuf.Timestamp
   retryBackoffCoefficient : Float
   retryNonRetryableErrorTypes : List String
-  retryLastFailure : Option Temporal_Api_Failure_V1_Failure
+  retryLastFailure : Option Temporal.Api.Failure.V1.Failure
   retryLastWorkerIdentity : String
   scheduledEventId : Int
-  lastHeartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  lastHeartbeatUpdateTime : Option Google_Protobuf_Timestamp
+  lastHeartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  lastHeartbeatUpdateTime : Option Google.Protobuf.Timestamp
   useCompatibleVersion : Bool
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  lastWorkerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  firstScheduledTime : Option Google_Protobuf_Timestamp
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  lastWorkerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  lastUpdateVersionedTransition : Option VersionedTransition
+  firstScheduledTime : Option Google.Protobuf.Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
   stamp : Int
   paused : Bool
-  lastStartedDeployment : Option Temporal_Api_Deployment_V1_Deployment
+  lastStartedDeployment : Option Temporal.Api.Deployment.V1.Deployment
   lastWorkerDeploymentVersion : String
-  lastDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  priority : Option Temporal_Api_Common_V1_Priority
-  pauseInfo : Option Temporal_Server_Api_Persistence_V1_ActivityInfo_PauseInfo
+  lastDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  priority : Option Temporal.Api.Common.V1.Priority
+  pauseInfo : Option ActivityInfo.PauseInfo
   activityReset : Bool
   resetHeartbeats : Bool
   startVersion : Int
   workerControlTaskQueue : String
-  startedClock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  buildIdInfo : Temporal_Server_Api_Persistence_V1_ActivityInfo_BuildIdInfo
+  startedClock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  buildIdInfo : ActivityInfo.BuildIdInfo
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmCollectionAttributes where
+structure ChasmCollectionAttributes where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes_RequestMetadata where
-  links : List Temporal_Api_Common_V1_Link
+structure ChasmComponentAttributes.RequestMetadata where
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes_Task where
+structure ChasmComponentAttributes.Task where
   typeId : Nat
   destination : String
-  scheduledTime : Option Google_Protobuf_Timestamp
-  data : Option Temporal_Api_Common_V1_DataBlob
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  scheduledTime : Option Google.Protobuf.Timestamp
+  data : Option Temporal.Api.Common.V1.DataBlob
+  versionedTransition : Option VersionedTransition
   versionedTransitionOffset : Int
   physicalTaskStatus : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes where
+structure ChasmComponentAttributes where
   typeId : Nat
-  sideEffectTasks : List Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes_Task
-  pureTasks : List Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes_Task
+  sideEffectTasks : List ChasmComponentAttributes.Task
+  pureTasks : List ChasmComponentAttributes.Task
   detached : Bool
-  requests : List (String × Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes_RequestMetadata)
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
+  requests : List (String × ChasmComponentAttributes.RequestMetadata)
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmDataAttributes where
+structure ChasmDataAttributes where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmPointerAttributes where
+structure ChasmPointerAttributes where
   nodePath : List String
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_ChasmNodeMetadata_Attributes where
+inductive ChasmNodeMetadata.Attributes where
   | notSet
-  | componentAttributes (value : Temporal_Server_Api_Persistence_V1_ChasmComponentAttributes)
-  | dataAttributes (value : Temporal_Server_Api_Persistence_V1_ChasmDataAttributes)
-  | collectionAttributes (value : Temporal_Server_Api_Persistence_V1_ChasmCollectionAttributes)
-  | pointerAttributes (value : Temporal_Server_Api_Persistence_V1_ChasmPointerAttributes)
+  | componentAttributes (value : ChasmComponentAttributes)
+  | dataAttributes (value : ChasmDataAttributes)
+  | collectionAttributes (value : ChasmCollectionAttributes)
+  | pointerAttributes (value : ChasmPointerAttributes)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmNodeMetadata where
-  initialVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  attributes : Temporal_Server_Api_Persistence_V1_ChasmNodeMetadata_Attributes
+structure ChasmNodeMetadata where
+  initialVersionedTransition : Option VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
+  attributes : ChasmNodeMetadata.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmNode where
-  metadata : Option Temporal_Server_Api_Persistence_V1_ChasmNodeMetadata
-  data : Option Temporal_Api_Common_V1_DataBlob
+structure ChasmNode where
+  metadata : Option ChasmNodeMetadata
+  data : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_Checksum where
+structure Checksum where
   version : Int
-  flavor : Temporal_Server_Api_Enums_V1_ChecksumFlavor
+  flavor : Temporal.Server.Api.Enums.V1.ChecksumFlavor
   value : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChildExecutionInfo where
+structure ChildExecutionInfo where
   version : Int
   initiatedEventBatchId : Int
   startedEventId : Int
@@ -7297,103 +7649,119 @@ structure Temporal_Server_Api_Persistence_V1_ChildExecutionInfo where
   createRequestId : String
   namespaceValue : String
   workflowTypeName : String
-  parentClosePolicy : Temporal_Api_Enums_V1_ParentClosePolicy
+  parentClosePolicy : Temporal.Api.Enums.V1.ParentClosePolicy
   initiatedEventId : Int
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   namespaceId : String
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  priority : Option Temporal_Api_Common_V1_Priority
+  lastUpdateVersionedTransition : Option VersionedTransition
+  priority : Option Temporal.Api.Common.V1.Priority
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_RequestCancelInfo where
+structure RequestCancelInfo where
   version : Int
   initiatedEventBatchId : Int
   cancelRequestId : String
   initiatedEventId : Int
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_SignalInfo where
+structure SignalInfo where
   version : Int
   initiatedEventBatchId : Int
   requestId : String
   initiatedEventId : Int
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TimerInfo where
+structure TimerInfo where
   version : Int
   startedEventId : Int
-  expiryTime : Option Google_Protobuf_Timestamp
+  expiryTime : Option Google.Protobuf.Timestamp
   taskStatus : Int
   timerId : String
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_VersionHistoryItem where
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.History.V1
+
+structure VersionHistoryItem where
   eventId : Int
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_VersionHistory where
+structure VersionHistory where
   branchToken : Temporal.Proto.Bytes
-  items : List Temporal_Server_Api_History_V1_VersionHistoryItem
+  items : List VersionHistoryItem
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_VersionHistories where
+structure VersionHistories where
   currentVersionHistoryIndex : Int
-  histories : List Temporal_Server_Api_History_V1_VersionHistory
+  histories : List VersionHistory
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ExecutionStats where
+end Temporal.Server.Api.History.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure ExecutionStats where
   historySize : Int
   externalPayloadSize : Int
   externalPayloadCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_LastNotifiedTargetVersion where
-  deploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure LastNotifiedTargetVersion where
+  deploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   revisionNumber : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ResetChildInfo where
+structure ResetChildInfo where
   shouldTerminateAndStart : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineMap where
+structure StateMachineMap where
   machinesById : List (String × Temporal.Proto.MessageRef)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineKey where
+structure StateMachineNode where
+  data : Temporal.Proto.Bytes
+  children : List (String × Temporal.Proto.MessageRef)
+  initialVersionedTransition : Option VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
+  transitionCount : Int
+  deriving Repr
+
+structure StateMachineKey where
   type : String
   id : String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineRef where
-  path : List Temporal_Server_Api_Persistence_V1_StateMachineKey
-  mutableStateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  machineInitialVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  machineLastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+structure StateMachineRef where
+  path : List StateMachineKey
+  mutableStateVersionedTransition : Option VersionedTransition
+  machineInitialVersionedTransition : Option VersionedTransition
+  machineLastUpdateVersionedTransition : Option VersionedTransition
   machineTransitionCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineTaskInfo where
-  ref : Option Temporal_Server_Api_Persistence_V1_StateMachineRef
+structure StateMachineTaskInfo where
+  ref : Option StateMachineRef
   type : String
   data : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineTimerGroup where
-  infos : List Temporal_Server_Api_Persistence_V1_StateMachineTaskInfo
-  deadline : Option Google_Protobuf_Timestamp
+structure StateMachineTimerGroup where
+  infos : List StateMachineTaskInfo
+  deadline : Option Google.Protobuf.Timestamp
   scheduled : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachinePath where
-  path : List Temporal_Server_Api_Persistence_V1_StateMachineKey
+structure StateMachinePath where
+  path : List StateMachineKey
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_StateMachineTombstone_StateMachineKey where
+inductive StateMachineTombstone.StateMachineKey where
   | notSet
   | activityScheduledEventId (value : Int)
   | timerId (value : String)
@@ -7401,88 +7769,96 @@ inductive Temporal_Server_Api_Persistence_V1_StateMachineTombstone_StateMachineK
   | requestCancelInitiatedEventId (value : Int)
   | signalExternalInitiatedEventId (value : Int)
   | updateId (value : String)
-  | stateMachinePath (value : Temporal_Server_Api_Persistence_V1_StateMachinePath)
+  | stateMachinePath (value : StateMachinePath)
   | chasmNodePath (value : String)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineTombstone where
-  stateMachineKey : Temporal_Server_Api_Persistence_V1_StateMachineTombstone_StateMachineKey
+structure StateMachineTombstone where
+  stateMachineKey : StateMachineTombstone.StateMachineKey
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineTombstoneBatch where
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  stateMachineTombstones : List Temporal_Server_Api_Persistence_V1_StateMachineTombstone
+structure StateMachineTombstoneBatch where
+  versionedTransition : Option VersionedTransition
+  stateMachineTombstones : List StateMachineTombstone
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_FastForwardInfo where
-  targetTime : Option Google_Protobuf_Timestamp
+structure FastForwardInfo where
+  targetTime : Option Google.Protobuf.Timestamp
   hasReached : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TimeSkippingInfo where
-  config : Option Temporal_Api_Common_V1_TimeSkippingConfig
-  accumulatedSkippedDuration : Option Google_Protobuf_Duration
-  fastForwardInfo : Option Temporal_Server_Api_Persistence_V1_FastForwardInfo
-  fastForwardInfoLastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+structure TimeSkippingInfo where
+  config : Option Temporal.Api.Common.V1.TimeSkippingConfig
+  accumulatedSkippedDuration : Option Google.Protobuf.Duration
+  fastForwardInfo : Option FastForwardInfo
+  fastForwardInfoLastUpdateVersionedTransition : Option VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
   sessionSkipCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_UpdateAcceptanceInfo where
+structure UpdateAcceptanceInfo where
   eventId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_UpdateAdmissionInfo_HistoryPointer where
-  eventId : Int
-  eventBatchId : Int
-  deriving Repr
-
-inductive Temporal_Server_Api_Persistence_V1_UpdateAdmissionInfo_Location where
-  | notSet
-  | historyPointer (value : Temporal_Server_Api_Persistence_V1_UpdateAdmissionInfo_HistoryPointer)
-  deriving Repr
-
-structure Temporal_Server_Api_Persistence_V1_UpdateAdmissionInfo where
-  location : Temporal_Server_Api_Persistence_V1_UpdateAdmissionInfo_Location
-  deriving Repr
-
-structure Temporal_Server_Api_Persistence_V1_UpdateCompletionInfo where
+structure UpdateAdmissionInfo.HistoryPointer where
   eventId : Int
   eventBatchId : Int
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_UpdateInfo_Value where
+inductive UpdateAdmissionInfo.Location where
   | notSet
-  | acceptance (value : Temporal_Server_Api_Persistence_V1_UpdateAcceptanceInfo)
-  | completion (value : Temporal_Server_Api_Persistence_V1_UpdateCompletionInfo)
-  | admission (value : Temporal_Server_Api_Persistence_V1_UpdateAdmissionInfo)
+  | historyPointer (value : UpdateAdmissionInfo.HistoryPointer)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_UpdateInfo where
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  value : Temporal_Server_Api_Persistence_V1_UpdateInfo_Value
+structure UpdateAdmissionInfo where
+  location : UpdateAdmissionInfo.Location
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkflowPauseInfo where
-  pauseTime : Option Google_Protobuf_Timestamp
+structure UpdateCompletionInfo where
+  eventId : Int
+  eventBatchId : Int
+  deriving Repr
+
+inductive UpdateInfo.Value where
+  | notSet
+  | acceptance (value : UpdateAcceptanceInfo)
+  | completion (value : UpdateCompletionInfo)
+  | admission (value : UpdateAdmissionInfo)
+  deriving Repr
+
+structure UpdateInfo where
+  lastUpdateVersionedTransition : Option VersionedTransition
+  value : UpdateInfo.Value
+  deriving Repr
+
+structure WorkflowPauseInfo where
+  pauseTime : Option Google.Protobuf.Timestamp
   identity : String
   reason : String
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Workflow_V1_BaseExecutionInfo where
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Workflow.V1
+
+structure BaseExecutionInfo where
   runId : String
   lowestCommonAncestorEventId : Int
   lowestCommonAncestorEventVersion : Int
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo_LastWorkflowTaskFailure where
+end Temporal.Server.Api.Workflow.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+inductive WorkflowExecutionInfo.LastWorkflowTaskFailure where
   | notSet
-  | lastWorkflowTaskFailureCause (value : Temporal_Api_Enums_V1_WorkflowTaskFailedCause)
-  | lastWorkflowTaskTimedOutType (value : Temporal_Api_Enums_V1_TimeoutType)
+  | lastWorkflowTaskFailureCause (value : Temporal.Api.Enums.V1.WorkflowTaskFailedCause)
+  | lastWorkflowTaskTimedOutType (value : Temporal.Api.Enums.V1.TimeoutType)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo where
+structure WorkflowExecutionInfo where
   namespaceId : String
   workflowId : String
   parentNamespaceId : String
@@ -7492,26 +7868,26 @@ structure Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo where
   completionEventBatchId : Int
   taskQueue : String
   workflowTypeName : String
-  workflowExecutionTimeout : Option Google_Protobuf_Duration
-  workflowRunTimeout : Option Google_Protobuf_Duration
-  defaultWorkflowTaskTimeout : Option Google_Protobuf_Duration
+  workflowExecutionTimeout : Option Google.Protobuf.Duration
+  workflowRunTimeout : Option Google.Protobuf.Duration
+  defaultWorkflowTaskTimeout : Option Google.Protobuf.Duration
   lastRunningClock : Int
   lastFirstEventId : Int
   lastCompletedWorkflowTaskStartedEventId : Int
-  startTime : Option Google_Protobuf_Timestamp
-  lastUpdateTime : Option Google_Protobuf_Timestamp
+  startTime : Option Google.Protobuf.Timestamp
+  lastUpdateTime : Option Google.Protobuf.Timestamp
   workflowTaskVersion : Int
   workflowTaskScheduledEventId : Int
   workflowTaskStartedEventId : Int
-  workflowTaskTimeout : Option Google_Protobuf_Duration
+  workflowTaskTimeout : Option Google.Protobuf.Duration
   workflowTaskAttempt : Int
-  workflowTaskStartedTime : Option Google_Protobuf_Timestamp
-  workflowTaskScheduledTime : Option Google_Protobuf_Timestamp
-  workflowTaskOriginalScheduledTime : Option Google_Protobuf_Timestamp
+  workflowTaskStartedTime : Option Google.Protobuf.Timestamp
+  workflowTaskScheduledTime : Option Google.Protobuf.Timestamp
+  workflowTaskOriginalScheduledTime : Option Google.Protobuf.Timestamp
   workflowTaskRequestId : String
-  workflowTaskType : Temporal_Server_Api_Enums_V1_WorkflowTaskType
+  workflowTaskType : Temporal.Server.Api.Enums.V1.WorkflowTaskType
   workflowTaskSuggestContinueAsNew : Bool
-  workflowTaskSuggestContinueAsNewReasons : List Temporal_Api_Enums_V1_SuggestContinueAsNewReason
+  workflowTaskSuggestContinueAsNewReasons : List Temporal.Api.Enums.V1.SuggestContinueAsNewReason
   workflowTaskHistorySizeBytes : Int
   workflowTaskBuildId : String
   workflowTaskBuildIdRedirectCounter : Int
@@ -7520,13 +7896,13 @@ structure Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo where
   cancelRequested : Bool
   cancelRequestId : String
   stickyTaskQueue : String
-  stickyScheduleToStartTimeout : Option Google_Protobuf_Duration
+  stickyScheduleToStartTimeout : Option Google.Protobuf.Duration
   attempt : Int
-  retryInitialInterval : Option Google_Protobuf_Duration
-  retryMaximumInterval : Option Google_Protobuf_Duration
+  retryInitialInterval : Option Google.Protobuf.Duration
+  retryMaximumInterval : Option Google.Protobuf.Duration
   retryMaximumAttempts : Int
   retryBackoffCoefficient : Float
-  workflowExecutionExpirationTime : Option Google_Protobuf_Timestamp
+  workflowExecutionExpirationTime : Option Google.Protobuf.Timestamp
   retryNonRetryableErrorTypes : List String
   hasRetryPolicy : Bool
   cronSchedule : String
@@ -7537,119 +7913,135 @@ structure Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo where
   requestCancelExternalCount : Int
   signalExternalCount : Int
   updateCount : Int
-  autoResetPoints : Option Temporal_Api_Workflow_V1_ResetPoints
-  searchAttributes : List (String × Temporal_Api_Common_V1_Payload)
-  memo : List (String × Temporal_Api_Common_V1_Payload)
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  autoResetPoints : Option Temporal.Api.Workflow.V1.ResetPoints
+  searchAttributes : List (String × Temporal.Api.Common.V1.Payload)
+  memo : List (String × Temporal.Api.Common.V1.Payload)
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   firstExecutionRunId : String
-  executionStats : Option Temporal_Server_Api_Persistence_V1_ExecutionStats
-  workflowRunExpirationTime : Option Google_Protobuf_Timestamp
+  executionStats : Option ExecutionStats
+  workflowRunExpirationTime : Option Google.Protobuf.Timestamp
   lastFirstEventTxnId : Int
   stateTransitionCount : Int
-  executionTime : Option Google_Protobuf_Timestamp
+  executionTime : Option Google.Protobuf.Timestamp
   newExecutionRunId : String
-  parentClock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  parentClock : Option Temporal.Server.Api.Clock.V1.VectorClock
   parentInitiatedVersion : Int
   closeTransferTaskId : Int
   closeVisibilityTaskId : Int
-  closeTime : Option Google_Protobuf_Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
   relocatableAttributesRemoved : Bool
-  baseExecutionInfo : Option Temporal_Server_Api_Workflow_V1_BaseExecutionInfo
-  mostRecentWorkerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  baseExecutionInfo : Option Temporal.Server.Api.Workflow.V1.BaseExecutionInfo
+  mostRecentWorkerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
   assignedBuildId : String
   inheritedBuildId : String
   buildIdRedirectCounter : Int
-  updateInfos : List (String × Temporal_Server_Api_Persistence_V1_UpdateInfo)
-  transitionHistory : List Temporal_Server_Api_Persistence_V1_VersionedTransition
-  subStateMachinesByType : List (String × Temporal_Server_Api_Persistence_V1_StateMachineMap)
+  updateInfos : List (String × UpdateInfo)
+  transitionHistory : List VersionedTransition
+  subStateMachinesByType : List (String × StateMachineMap)
   workflowExecutionTimerTaskStatus : Int
   rootWorkflowId : String
   rootRunId : String
-  stateMachineTimers : List Temporal_Server_Api_Persistence_V1_StateMachineTimerGroup
+  stateMachineTimers : List StateMachineTimerGroup
   taskGenerationShardClockTimestamp : Int
-  workflowTaskLastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  visibilityLastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  signalRequestIdsLastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  subStateMachineTombstoneBatches : List Temporal_Server_Api_Persistence_V1_StateMachineTombstoneBatch
+  workflowTaskLastUpdateVersionedTransition : Option VersionedTransition
+  visibilityLastUpdateVersionedTransition : Option VersionedTransition
+  signalRequestIdsLastUpdateVersionedTransition : Option VersionedTransition
+  subStateMachineTombstoneBatches : List StateMachineTombstoneBatch
   workflowWasReset : Bool
   resetRunId : String
-  versioningInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionVersioningInfo
+  versioningInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionVersioningInfo
   originalExecutionRunId : String
-  previousTransitionHistory : List Temporal_Server_Api_Persistence_V1_VersionedTransition
-  lastTransitionHistoryBreakPoint : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  childrenInitializedPostResetPoint : List (String × Temporal_Server_Api_Persistence_V1_ResetChildInfo)
+  previousTransitionHistory : List VersionedTransition
+  lastTransitionHistoryBreakPoint : Option VersionedTransition
+  childrenInitializedPostResetPoint : List (String × ResetChildInfo)
   workerDeploymentName : String
-  priority : Option Temporal_Api_Common_V1_Priority
+  priority : Option Temporal.Api.Common.V1.Priority
   successorRunId : String
-  pauseInfo : Option Temporal_Server_Api_Persistence_V1_WorkflowPauseInfo
-  lastNotifiedTargetVersion : Option Temporal_Server_Api_Persistence_V1_LastNotifiedTargetVersion
-  declinedTargetVersionUpgrade : Option Temporal_Api_History_V1_DeclinedTargetVersionUpgrade
-  timeSkippingInfo : Option Temporal_Server_Api_Persistence_V1_TimeSkippingInfo
-  lastWorkflowTaskFailure : Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo_LastWorkflowTaskFailure
+  pauseInfo : Option WorkflowPauseInfo
+  lastNotifiedTargetVersion : Option LastNotifiedTargetVersion
+  declinedTargetVersionUpgrade : Option Temporal.Api.History.V1.DeclinedTargetVersionUpgrade
+  timeSkippingInfo : Option TimeSkippingInfo
+  lastWorkflowTaskFailure : WorkflowExecutionInfo.LastWorkflowTaskFailure
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_RequestIDInfo where
-  eventType : Temporal_Api_Enums_V1_EventType
+structure RequestIDInfo where
+  eventType : Temporal.Api.Enums.V1.EventType
   eventId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkflowExecutionState where
+structure WorkflowExecutionState where
   createRequestId : String
   runId : String
-  state : Temporal_Server_Api_Enums_V1_WorkflowExecutionState
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  startTime : Option Google_Protobuf_Timestamp
-  requestIds : List (String × Temporal_Server_Api_Persistence_V1_RequestIDInfo)
+  state : Temporal.Server.Api.Enums.V1.WorkflowExecutionState
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
+  lastUpdateVersionedTransition : Option VersionedTransition
+  startTime : Option Google.Protobuf.Timestamp
+  requestIds : List (String × RequestIDInfo)
   firstExecutionRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkflowMutableState where
-  activityInfos : List (Int × Temporal_Server_Api_Persistence_V1_ActivityInfo)
-  timerInfos : List (String × Temporal_Server_Api_Persistence_V1_TimerInfo)
-  childExecutionInfos : List (Int × Temporal_Server_Api_Persistence_V1_ChildExecutionInfo)
-  requestCancelInfos : List (Int × Temporal_Server_Api_Persistence_V1_RequestCancelInfo)
-  signalInfos : List (Int × Temporal_Server_Api_Persistence_V1_SignalInfo)
-  chasmNodes : List (String × Temporal_Server_Api_Persistence_V1_ChasmNode)
+structure WorkflowMutableState where
+  activityInfos : List (Int × ActivityInfo)
+  timerInfos : List (String × TimerInfo)
+  childExecutionInfos : List (Int × ChildExecutionInfo)
+  requestCancelInfos : List (Int × RequestCancelInfo)
+  signalInfos : List (Int × SignalInfo)
+  chasmNodes : List (String × ChasmNode)
   signalRequestedIds : List String
-  executionInfo : Option Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo
-  executionState : Option Temporal_Server_Api_Persistence_V1_WorkflowExecutionState
+  executionInfo : Option WorkflowExecutionInfo
+  executionState : Option WorkflowExecutionState
   nextEventId : Int
-  bufferedEvents : List Temporal_Api_History_V1_HistoryEvent
-  checksum : Option Temporal_Server_Api_Persistence_V1_Checksum
+  bufferedEvents : List Temporal.Api.History.V1.HistoryEvent
+  checksum : Option Checksum
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeMutableStateResponse where
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DescribeMutableStateResponse where
   shardId : String
   historyAddr : String
-  cacheMutableState : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
-  databaseMutableState : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
+  cacheMutableState : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
+  databaseMutableState : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_WorkerCommandsPartitionId where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+structure WorkerCommandsPartitionId where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition_PartitionId where
+inductive TaskQueuePartition.PartitionId where
   | notSet
   | normalPartitionId (value : Int)
   | stickyName (value : String)
-  | workerCommands (value : Temporal_Server_Api_Taskqueue_V1_WorkerCommandsPartitionId)
+  | workerCommands (value : WorkerCommandsPartitionId)
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition where
+structure TaskQueuePartition where
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
-  partitionId : Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition_PartitionId
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
+  partitionId : TaskQueuePartition.PartitionId
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeTaskQueuePartitionRequest where
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DescribeTaskQueuePartitionRequest where
   namespaceValue : String
-  taskQueuePartition : Option Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
-  buildIds : Option Temporal_Api_Taskqueue_V1_TaskQueueVersionSelection
+  taskQueuePartition : Option Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
+  buildIds : Option Temporal.Api.Taskqueue.V1.TaskQueueVersionSelection
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_PartitionScaleInfo where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+structure PartitionScaleInfo where
   read : Int
   write : Int
   backlogCounts : Temporal.Proto.Bytes
@@ -7657,65 +8049,69 @@ structure Temporal_Server_Api_Taskqueue_V1_PartitionScaleInfo where
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_FairLevel where
+structure FairLevel where
   taskPass : Int
   taskId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_InternalTaskQueueStatus where
+structure InternalTaskQueueStatus where
   readLevel : Int
-  fairReadLevel : Option Temporal_Server_Api_Taskqueue_V1_FairLevel
+  fairReadLevel : Option FairLevel
   ackLevel : Int
-  fairAckLevel : Option Temporal_Server_Api_Taskqueue_V1_FairLevel
-  taskIdBlock : Option Temporal_Api_Taskqueue_V1_TaskIdBlock
+  fairAckLevel : Option FairLevel
+  taskIdBlock : Option Temporal.Api.Taskqueue.V1.TaskIdBlock
   loadedTasks : Int
   approximateBacklogCount : Int
   maxReadLevel : Int
-  fairMaxReadLevel : Option Temporal_Server_Api_Taskqueue_V1_FairLevel
+  fairMaxReadLevel : Option FairLevel
   draining : Bool
   backlogDrained : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_PhysicalTaskQueueInfo where
-  pollers : List Temporal_Api_Taskqueue_V1_PollerInfo
-  internalTaskQueueStatus : List Temporal_Server_Api_Taskqueue_V1_InternalTaskQueueStatus
-  taskQueueStats : Option Temporal_Api_Taskqueue_V1_TaskQueueStats
-  taskQueueStatsByPriorityKey : List (Int × Temporal_Api_Taskqueue_V1_TaskQueueStats)
+structure PhysicalTaskQueueInfo where
+  pollers : List Temporal.Api.Taskqueue.V1.PollerInfo
+  internalTaskQueueStatus : List InternalTaskQueueStatus
+  taskQueueStats : Option Temporal.Api.Taskqueue.V1.TaskQueueStats
+  taskQueueStatsByPriorityKey : List (Int × Temporal.Api.Taskqueue.V1.TaskQueueStats)
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_TaskQueueVersionInfoInternal where
-  physicalTaskQueueInfo : Option Temporal_Server_Api_Taskqueue_V1_PhysicalTaskQueueInfo
+structure TaskQueueVersionInfoInternal where
+  physicalTaskQueueInfo : Option PhysicalTaskQueueInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_DescribeTaskQueuePartitionResponse where
-  versionsInfoInternal : List (String × Temporal_Server_Api_Taskqueue_V1_TaskQueueVersionInfoInternal)
-  scaleInfo : Option Temporal_Server_Api_Taskqueue_V1_PartitionScaleInfo
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure DescribeTaskQueuePartitionResponse where
+  versionsInfoInternal : List (String × Temporal.Server.Api.Taskqueue.V1.TaskQueueVersionInfoInternal)
+  scaleInfo : Option Temporal.Server.Api.Taskqueue.V1.PartitionScaleInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ForceUnloadTaskQueuePartitionRequest where
+structure ForceUnloadTaskQueuePartitionRequest where
   namespaceValue : String
-  taskQueuePartition : Option Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
+  taskQueuePartition : Option Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ForceUnloadTaskQueuePartitionResponse where
+structure ForceUnloadTaskQueuePartitionResponse where
   wasLoaded : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GenerateLastHistoryReplicationTasksRequest where
+structure GenerateLastHistoryReplicationTasksRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   targetClusters : List String
   archetype : String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GenerateLastHistoryReplicationTasksResponse where
+structure GenerateLastHistoryReplicationTasksResponse where
   stateTransitionCount : Int
   historyLength : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetDLQMessagesRequest where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+structure GetDLQMessagesRequest where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
   shardId : Int
   sourceCluster : String
   inclusiveEndMessageId : Int
@@ -7723,11 +8119,15 @@ structure Temporal_Server_Api_Adminservice_V1_GetDLQMessagesRequest where
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ReplicationTaskInfo where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure ReplicationTaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
   version : Int
   firstEventId : Int
   nextEventId : Int
@@ -7735,509 +8135,577 @@ structure Temporal_Server_Api_Persistence_V1_ReplicationTaskInfo where
   branchToken : Temporal.Proto.Bytes
   newRunBranchToken : Temporal.Proto.Bytes
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   newRunId : String
-  priority : Temporal_Server_Api_Enums_V1_TaskPriority
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  priority : Temporal.Server.Api.Enums.V1.TaskPriority
+  versionedTransition : Option VersionedTransition
   taskEquivalents : List Temporal.Proto.MessageRef
-  lastVersionHistoryItem : Option Temporal_Server_Api_History_V1_VersionHistoryItem
+  lastVersionHistoryItem : Option Temporal.Server.Api.History.V1.VersionHistoryItem
   isFirstTask : Bool
   targetClusters : List String
   isForceReplication : Bool
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_NewRunInfo where
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure NewRunInfo where
   runId : String
-  eventBatch : Option Temporal_Api_Common_V1_DataBlob
+  eventBatch : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_BackfillHistoryTaskAttributes where
+structure BackfillHistoryTaskAttributes where
   namespaceId : String
   workflowId : String
   runId : String
-  eventVersionHistory : List Temporal_Server_Api_History_V1_VersionHistoryItem
-  eventBatches : List Temporal_Api_Common_V1_DataBlob
-  newRunInfo : Option Temporal_Server_Api_Replication_V1_NewRunInfo
+  eventVersionHistory : List Temporal.Server.Api.History.V1.VersionHistoryItem
+  eventBatches : List Temporal.Api.Common.V1.DataBlob
+  newRunInfo : Option NewRunInfo
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_HistoryTaskAttributes where
+structure HistoryTaskAttributes where
   namespaceId : String
   workflowId : String
   runId : String
-  versionHistoryItems : List Temporal_Server_Api_History_V1_VersionHistoryItem
-  events : Option Temporal_Api_Common_V1_DataBlob
-  newRunEvents : Option Temporal_Api_Common_V1_DataBlob
-  baseExecutionInfo : Option Temporal_Server_Api_Workflow_V1_BaseExecutionInfo
+  versionHistoryItems : List Temporal.Server.Api.History.V1.VersionHistoryItem
+  events : Option Temporal.Api.Common.V1.DataBlob
+  newRunEvents : Option Temporal.Api.Common.V1.DataBlob
+  baseExecutionInfo : Option Temporal.Server.Api.Workflow.V1.BaseExecutionInfo
   newRunId : String
-  eventsBatches : List Temporal_Api_Common_V1_DataBlob
+  eventsBatches : List Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_NamespaceTaskAttributes where
-  namespaceOperation : Temporal_Server_Api_Enums_V1_NamespaceOperation
+structure NamespaceTaskAttributes where
+  namespaceOperation : Temporal.Server.Api.Enums.V1.NamespaceOperation
   id : String
-  info : Option Temporal_Api_Namespace_V1_NamespaceInfo
-  config : Option Temporal_Api_Namespace_V1_NamespaceConfig
-  replicationConfig : Option Temporal_Api_Replication_V1_NamespaceReplicationConfig
+  info : Option Temporal.Api.Namespace.V1.NamespaceInfo
+  config : Option Temporal.Api.Namespace.V1.NamespaceConfig
+  replicationConfig : Option Temporal.Api.Replication.V1.NamespaceReplicationConfig
   configVersion : Int
   failoverVersion : Int
-  failoverHistory : List Temporal_Api_Replication_V1_FailoverStatus
+  failoverHistory : List Temporal.Api.Replication.V1.FailoverStatus
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncActivityTaskAttributes where
+structure SyncActivityTaskAttributes where
   namespaceId : String
   workflowId : String
   runId : String
   version : Int
   scheduledEventId : Int
-  scheduledTime : Option Google_Protobuf_Timestamp
+  scheduledTime : Option Google.Protobuf.Timestamp
   startedEventId : Int
-  startedTime : Option Google_Protobuf_Timestamp
-  lastHeartbeatTime : Option Google_Protobuf_Timestamp
-  details : Option Temporal_Api_Common_V1_Payloads
+  startedTime : Option Google.Protobuf.Timestamp
+  lastHeartbeatTime : Option Google.Protobuf.Timestamp
+  details : Option Temporal.Api.Common.V1.Payloads
   attempt : Int
-  lastFailure : Option Temporal_Api_Failure_V1_Failure
+  lastFailure : Option Temporal.Api.Failure.V1.Failure
   lastWorkerIdentity : String
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
-  baseExecutionInfo : Option Temporal_Server_Api_Workflow_V1_BaseExecutionInfo
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
+  baseExecutionInfo : Option Temporal.Server.Api.Workflow.V1.BaseExecutionInfo
   lastStartedBuildId : String
   lastStartedRedirectCounter : Int
-  firstScheduledTime : Option Google_Protobuf_Timestamp
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
+  firstScheduledTime : Option Google.Protobuf.Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
   stamp : Int
   paused : Bool
-  retryInitialInterval : Option Google_Protobuf_Duration
-  retryMaximumInterval : Option Google_Protobuf_Duration
+  retryInitialInterval : Option Google.Protobuf.Duration
+  retryMaximumInterval : Option Google.Protobuf.Duration
   retryMaximumAttempts : Int
   retryBackoffCoefficient : Float
   startVersion : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_StateMachineNode where
-  data : Temporal.Proto.Bytes
-  children : List (String × Temporal.Proto.MessageRef)
-  initialVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  transitionCount : Int
-  deriving Repr
-
-structure Temporal_Server_Api_Replication_V1_SyncHSMAttributes where
+structure SyncHSMAttributes where
   namespaceId : String
   workflowId : String
   runId : String
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
-  stateMachineNode : Option Temporal_Server_Api_Persistence_V1_StateMachineNode
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
+  stateMachineNode : Option Temporal.Server.Api.Persistence.V1.StateMachineNode
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncShardStatusTaskAttributes where
+structure SyncShardStatusTaskAttributes where
   sourceCluster : String
   shardId : Int
-  statusTime : Option Google_Protobuf_Timestamp
+  statusTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkflowMutableStateMutation_StateMachineNodeMutation where
-  path : Option Temporal_Server_Api_Persistence_V1_StateMachinePath
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure WorkflowMutableStateMutation.StateMachineNodeMutation where
+  path : Option StateMachinePath
   data : Temporal.Proto.Bytes
-  initialVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  lastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  initialVersionedTransition : Option VersionedTransition
+  lastUpdateVersionedTransition : Option VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkflowMutableStateMutation where
-  updatedActivityInfos : List (Int × Temporal_Server_Api_Persistence_V1_ActivityInfo)
-  updatedTimerInfos : List (String × Temporal_Server_Api_Persistence_V1_TimerInfo)
-  updatedChildExecutionInfos : List (Int × Temporal_Server_Api_Persistence_V1_ChildExecutionInfo)
-  updatedRequestCancelInfos : List (Int × Temporal_Server_Api_Persistence_V1_RequestCancelInfo)
-  updatedSignalInfos : List (Int × Temporal_Server_Api_Persistence_V1_SignalInfo)
-  updatedUpdateInfos : List (String × Temporal_Server_Api_Persistence_V1_UpdateInfo)
-  updatedSubStateMachines : List Temporal_Server_Api_Persistence_V1_WorkflowMutableStateMutation_StateMachineNodeMutation
-  updatedChasmNodes : List (String × Temporal_Server_Api_Persistence_V1_ChasmNode)
+structure WorkflowMutableStateMutation where
+  updatedActivityInfos : List (Int × ActivityInfo)
+  updatedTimerInfos : List (String × TimerInfo)
+  updatedChildExecutionInfos : List (Int × ChildExecutionInfo)
+  updatedRequestCancelInfos : List (Int × RequestCancelInfo)
+  updatedSignalInfos : List (Int × SignalInfo)
+  updatedUpdateInfos : List (String × UpdateInfo)
+  updatedSubStateMachines : List WorkflowMutableStateMutation.StateMachineNodeMutation
+  updatedChasmNodes : List (String × ChasmNode)
   signalRequestedIds : List String
-  executionInfo : Option Temporal_Server_Api_Persistence_V1_WorkflowExecutionInfo
-  executionState : Option Temporal_Server_Api_Persistence_V1_WorkflowExecutionState
-  subStateMachineTombstoneBatches : List Temporal_Server_Api_Persistence_V1_StateMachineTombstoneBatch
+  executionInfo : Option WorkflowExecutionInfo
+  executionState : Option WorkflowExecutionState
+  subStateMachineTombstoneBatches : List StateMachineTombstoneBatch
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncWorkflowStateMutationAttributes where
-  exclusiveStartVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  stateMutation : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableStateMutation
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure SyncWorkflowStateMutationAttributes where
+  exclusiveStartVersionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
+  stateMutation : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableStateMutation
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncWorkflowStateSnapshotAttributes where
-  state : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
+structure SyncWorkflowStateSnapshotAttributes where
+  state : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
   deriving Repr
 
-inductive Temporal_Server_Api_Replication_V1_VersionedTransitionArtifact_StateAttributes where
+inductive VersionedTransitionArtifact.StateAttributes where
   | notSet
-  | syncWorkflowStateMutationAttributes (value : Temporal_Server_Api_Replication_V1_SyncWorkflowStateMutationAttributes)
-  | syncWorkflowStateSnapshotAttributes (value : Temporal_Server_Api_Replication_V1_SyncWorkflowStateSnapshotAttributes)
+  | syncWorkflowStateMutationAttributes (value : SyncWorkflowStateMutationAttributes)
+  | syncWorkflowStateSnapshotAttributes (value : SyncWorkflowStateSnapshotAttributes)
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_VersionedTransitionArtifact where
-  eventBatches : List Temporal_Api_Common_V1_DataBlob
-  newRunInfo : Option Temporal_Server_Api_Replication_V1_NewRunInfo
+structure VersionedTransitionArtifact where
+  eventBatches : List Temporal.Api.Common.V1.DataBlob
+  newRunInfo : Option NewRunInfo
   isFirstSync : Bool
   isCloseTransferTaskAcked : Bool
   isForceReplication : Bool
-  stateAttributes : Temporal_Server_Api_Replication_V1_VersionedTransitionArtifact_StateAttributes
+  stateAttributes : VersionedTransitionArtifact.StateAttributes
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncVersionedTransitionTaskAttributes where
-  versionedTransitionArtifact : Option Temporal_Server_Api_Replication_V1_VersionedTransitionArtifact
+structure SyncVersionedTransitionTaskAttributes where
+  versionedTransitionArtifact : Option VersionedTransitionArtifact
   namespaceId : String
   workflowId : String
   runId : String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncWorkflowStateTaskAttributes where
-  workflowState : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
+structure SyncWorkflowStateTaskAttributes where
+  workflowState : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
   isForceReplication : Bool
   isCloseTransferTaskAcked : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Clock_V1_HybridLogicalClock where
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Clock.V1
+
+structure HybridLogicalClock where
   wallClock : Int
   version : Int
   clusterId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion where
+end Temporal.Server.Api.Clock.V1
+
+namespace Temporal.Server.Api.Deployment.V1
+
+structure WorkerDeploymentVersion where
   deploymentName : String
   buildId : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DeploymentVersionData where
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
-  routingUpdateTime : Option Google_Protobuf_Timestamp
-  currentSinceTime : Option Google_Protobuf_Timestamp
-  rampingSinceTime : Option Google_Protobuf_Timestamp
+structure DeploymentVersionData where
+  version : Option WorkerDeploymentVersion
+  routingUpdateTime : Option Google.Protobuf.Timestamp
+  currentSinceTime : Option Google.Protobuf.Timestamp
+  rampingSinceTime : Option Google.Protobuf.Timestamp
   rampPercentage : Float
-  status : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
+  status : Temporal.Api.Enums.V1.WorkerDeploymentVersionStatus
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionData where
+structure WorkerDeploymentVersionData where
   revisionNumber : Int
-  updateTime : Option Google_Protobuf_Timestamp
+  updateTime : Option Google.Protobuf.Timestamp
   deleted : Bool
-  status : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
+  status : Temporal.Api.Enums.V1.WorkerDeploymentVersionStatus
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_WorkerDeploymentData where
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  versions : List (String × Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionData)
+end Temporal.Server.Api.Deployment.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure WorkerDeploymentData where
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  versions : List (String × Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersionData)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_DeploymentData where
-  versions : List Temporal_Server_Api_Deployment_V1_DeploymentVersionData
-  unversionedRampData : Option Temporal_Server_Api_Deployment_V1_DeploymentVersionData
-  deploymentsData : List (String × Temporal_Server_Api_Persistence_V1_WorkerDeploymentData)
+structure DeploymentData where
+  versions : List Temporal.Server.Api.Deployment.V1.DeploymentVersionData
+  unversionedRampData : Option Temporal.Server.Api.Deployment.V1.DeploymentVersionData
+  deploymentsData : List (String × WorkerDeploymentData)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TaskQueueTypeUserData where
-  deploymentData : Option Temporal_Server_Api_Persistence_V1_DeploymentData
-  config : Option Temporal_Api_Taskqueue_V1_TaskQueueConfig
-  fairnessState : Temporal_Server_Api_Enums_V1_FairnessState
+structure TaskQueueTypeUserData where
+  deploymentData : Option DeploymentData
+  config : Option Temporal.Api.Taskqueue.V1.TaskQueueConfig
+  fairnessState : Temporal.Server.Api.Enums.V1.FairnessState
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_AssignmentRule where
-  rule : Option Temporal_Api_Taskqueue_V1_BuildIdAssignmentRule
-  createTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
-  deleteTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
+structure AssignmentRule where
+  rule : Option Temporal.Api.Taskqueue.V1.BuildIdAssignmentRule
+  createTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
+  deleteTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_BuildId where
+structure BuildId where
   id : String
-  state : Temporal_Server_Api_Persistence_V1_BuildId_State
-  stateUpdateTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
-  becameDefaultTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
+  state : BuildId.State
+  stateUpdateTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
+  becameDefaultTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_CompatibleVersionSet where
+structure CompatibleVersionSet where
   setIds : List String
-  buildIds : List Temporal_Server_Api_Persistence_V1_BuildId
-  becameDefaultTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
+  buildIds : List BuildId
+  becameDefaultTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_RedirectRule where
-  rule : Option Temporal_Api_Taskqueue_V1_CompatibleBuildIdRedirectRule
-  createTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
-  deleteTimestamp : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
+structure RedirectRule where
+  rule : Option Temporal.Api.Taskqueue.V1.CompatibleBuildIdRedirectRule
+  createTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
+  deleteTimestamp : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_VersioningData where
-  versionSets : List Temporal_Server_Api_Persistence_V1_CompatibleVersionSet
-  assignmentRules : List Temporal_Server_Api_Persistence_V1_AssignmentRule
-  redirectRules : List Temporal_Server_Api_Persistence_V1_RedirectRule
+structure VersioningData where
+  versionSets : List CompatibleVersionSet
+  assignmentRules : List AssignmentRule
+  redirectRules : List RedirectRule
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TaskQueueUserData where
-  clock : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
-  versioningData : Option Temporal_Server_Api_Persistence_V1_VersioningData
-  perType : List (Int × Temporal_Server_Api_Persistence_V1_TaskQueueTypeUserData)
+structure TaskQueueUserData where
+  clock : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
+  versioningData : Option VersioningData
+  perType : List (Int × TaskQueueTypeUserData)
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_TaskQueueUserDataAttributes where
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure TaskQueueUserDataAttributes where
   namespaceId : String
   taskQueueName : String
-  userData : Option Temporal_Server_Api_Persistence_V1_TaskQueueUserData
+  userData : Option Temporal.Server.Api.Persistence.V1.TaskQueueUserData
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_VerifyVersionedTransitionTaskAttributes where
+structure VerifyVersionedTransitionTaskAttributes where
   namespaceId : String
   workflowId : String
   runId : String
   nextEventId : Int
-  eventVersionHistory : List Temporal_Server_Api_History_V1_VersionHistoryItem
+  eventVersionHistory : List Temporal.Server.Api.History.V1.VersionHistoryItem
   newRunId : String
   archetypeId : Nat
   deriving Repr
 
-inductive Temporal_Server_Api_Replication_V1_ReplicationTask_Attributes where
+inductive ReplicationTask.Attributes where
   | notSet
-  | namespaceTaskAttributes (value : Temporal_Server_Api_Replication_V1_NamespaceTaskAttributes)
-  | syncShardStatusTaskAttributes (value : Temporal_Server_Api_Replication_V1_SyncShardStatusTaskAttributes)
-  | syncActivityTaskAttributes (value : Temporal_Server_Api_Replication_V1_SyncActivityTaskAttributes)
-  | historyTaskAttributes (value : Temporal_Server_Api_Replication_V1_HistoryTaskAttributes)
-  | syncWorkflowStateTaskAttributes (value : Temporal_Server_Api_Replication_V1_SyncWorkflowStateTaskAttributes)
-  | taskQueueUserDataAttributes (value : Temporal_Server_Api_Replication_V1_TaskQueueUserDataAttributes)
-  | syncHsmAttributes (value : Temporal_Server_Api_Replication_V1_SyncHSMAttributes)
-  | backfillHistoryTaskAttributes (value : Temporal_Server_Api_Replication_V1_BackfillHistoryTaskAttributes)
-  | verifyVersionedTransitionTaskAttributes (value : Temporal_Server_Api_Replication_V1_VerifyVersionedTransitionTaskAttributes)
-  | syncVersionedTransitionTaskAttributes (value : Temporal_Server_Api_Replication_V1_SyncVersionedTransitionTaskAttributes)
+  | namespaceTaskAttributes (value : NamespaceTaskAttributes)
+  | syncShardStatusTaskAttributes (value : SyncShardStatusTaskAttributes)
+  | syncActivityTaskAttributes (value : SyncActivityTaskAttributes)
+  | historyTaskAttributes (value : HistoryTaskAttributes)
+  | syncWorkflowStateTaskAttributes (value : SyncWorkflowStateTaskAttributes)
+  | taskQueueUserDataAttributes (value : TaskQueueUserDataAttributes)
+  | syncHsmAttributes (value : SyncHSMAttributes)
+  | backfillHistoryTaskAttributes (value : BackfillHistoryTaskAttributes)
+  | verifyVersionedTransitionTaskAttributes (value : VerifyVersionedTransitionTaskAttributes)
+  | syncVersionedTransitionTaskAttributes (value : SyncVersionedTransitionTaskAttributes)
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_ReplicationTask where
-  taskType : Temporal_Server_Api_Enums_V1_ReplicationTaskType
+structure ReplicationTask where
+  taskType : Temporal.Server.Api.Enums.V1.ReplicationTaskType
   sourceTaskId : Int
-  data : Option Temporal_Api_Common_V1_DataBlob
-  visibilityTime : Option Google_Protobuf_Timestamp
-  priority : Temporal_Server_Api_Enums_V1_TaskPriority
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  rawTaskInfo : Option Temporal_Server_Api_Persistence_V1_ReplicationTaskInfo
-  attributes : Temporal_Server_Api_Replication_V1_ReplicationTask_Attributes
+  data : Option Temporal.Api.Common.V1.DataBlob
+  visibilityTime : Option Google.Protobuf.Timestamp
+  priority : Temporal.Server.Api.Enums.V1.TaskPriority
+  versionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
+  rawTaskInfo : Option Temporal.Server.Api.Persistence.V1.ReplicationTaskInfo
+  attributes : ReplicationTask.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_ReplicationTaskInfo where
+structure ReplicationTaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
   taskId : Int
   version : Int
   firstEventId : Int
   nextEventId : Int
   scheduledEventId : Int
-  priority : Temporal_Server_Api_Enums_V1_TaskPriority
+  priority : Temporal.Server.Api.Enums.V1.TaskPriority
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetDLQMessagesResponse where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
-  replicationTasks : List Temporal_Server_Api_Replication_V1_ReplicationTask
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure GetDLQMessagesResponse where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
+  replicationTasks : List Temporal.Server.Api.Replication.V1.ReplicationTask
   nextPageToken : Temporal.Proto.Bytes
-  replicationTasksInfo : List Temporal_Server_Api_Replication_V1_ReplicationTaskInfo
+  replicationTasksInfo : List Temporal.Server.Api.Replication.V1.ReplicationTaskInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetDLQReplicationMessagesRequest where
-  taskInfos : List Temporal_Server_Api_Replication_V1_ReplicationTaskInfo
+structure GetDLQReplicationMessagesRequest where
+  taskInfos : List Temporal.Server.Api.Replication.V1.ReplicationTaskInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetDLQReplicationMessagesResponse where
-  replicationTasks : List Temporal_Server_Api_Replication_V1_ReplicationTask
+structure GetDLQReplicationMessagesResponse where
+  replicationTasks : List Temporal.Server.Api.Replication.V1.ReplicationTask
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetDLQTasksRequest where
-  dlqKey : Option Temporal_Server_Api_Common_V1_HistoryDLQKey
+structure GetDLQTasksRequest where
+  dlqKey : Option Temporal.Server.Api.Common.V1.HistoryDLQKey
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Common_V1_HistoryDLQTaskMetadata where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Common.V1
+
+structure HistoryDLQTaskMetadata where
   messageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Common_V1_HistoryTask where
+structure HistoryTask where
   shardId : Int
-  blob : Option Temporal_Api_Common_V1_DataBlob
+  blob : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Common_V1_HistoryDLQTask where
-  metadata : Option Temporal_Server_Api_Common_V1_HistoryDLQTaskMetadata
-  payload : Option Temporal_Server_Api_Common_V1_HistoryTask
+structure HistoryDLQTask where
+  metadata : Option HistoryDLQTaskMetadata
+  payload : Option HistoryTask
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetDLQTasksResponse where
-  dlqTasks : List Temporal_Server_Api_Common_V1_HistoryDLQTask
+end Temporal.Server.Api.Common.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure GetDLQTasksResponse where
+  dlqTasks : List Temporal.Server.Api.Common.V1.HistoryDLQTask
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetNamespaceReplicationMessagesRequest where
+structure GetNamespaceReplicationMessagesRequest where
   lastRetrievedMessageId : Int
   lastProcessedMessageId : Int
   clusterName : String
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncShardStatus where
-  statusTime : Option Google_Protobuf_Timestamp
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure SyncShardStatus where
+  statusTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_ReplicationMessages where
-  replicationTasks : List Temporal_Server_Api_Replication_V1_ReplicationTask
+structure ReplicationMessages where
+  replicationTasks : List ReplicationTask
   lastRetrievedMessageId : Int
   hasMore : Bool
-  syncShardStatus : Option Temporal_Server_Api_Replication_V1_SyncShardStatus
+  syncShardStatus : Option SyncShardStatus
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetNamespaceReplicationMessagesResponse where
-  messages : Option Temporal_Server_Api_Replication_V1_ReplicationMessages
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure GetNamespaceReplicationMessagesResponse where
+  messages : Option Temporal.Server.Api.Replication.V1.ReplicationMessages
   deriving Repr
 
-inductive Temporal_Server_Api_Adminservice_V1_GetNamespaceRequest_Attributes where
+inductive GetNamespaceRequest.Attributes where
   | notSet
   | namespaceValue (value : String)
   | id (value : String)
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetNamespaceRequest where
-  attributes : Temporal_Server_Api_Adminservice_V1_GetNamespaceRequest_Attributes
+structure GetNamespaceRequest where
+  attributes : GetNamespaceRequest.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetNamespaceResponse where
-  info : Option Temporal_Api_Namespace_V1_NamespaceInfo
-  config : Option Temporal_Api_Namespace_V1_NamespaceConfig
-  replicationConfig : Option Temporal_Api_Replication_V1_NamespaceReplicationConfig
+structure GetNamespaceResponse where
+  info : Option Temporal.Api.Namespace.V1.NamespaceInfo
+  config : Option Temporal.Api.Namespace.V1.NamespaceConfig
+  replicationConfig : Option Temporal.Api.Replication.V1.NamespaceReplicationConfig
   configVersion : Int
   failoverVersion : Int
-  failoverHistory : List Temporal_Api_Replication_V1_FailoverStatus
+  failoverHistory : List Temporal.Api.Replication.V1.FailoverStatus
   isGlobalNamespace : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_ReplicationToken where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure ReplicationToken where
   shardId : Int
   lastRetrievedMessageId : Int
   lastProcessedMessageId : Int
-  lastProcessedVisibilityTime : Option Google_Protobuf_Timestamp
+  lastProcessedVisibilityTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetReplicationMessagesRequest where
-  tokens : List Temporal_Server_Api_Replication_V1_ReplicationToken
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure GetReplicationMessagesRequest where
+  tokens : List Temporal.Server.Api.Replication.V1.ReplicationToken
   clusterName : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetReplicationMessagesResponse where
-  shardMessages : List (Int × Temporal_Server_Api_Replication_V1_ReplicationMessages)
+structure GetReplicationMessagesResponse where
+  shardMessages : List (Int × Temporal.Server.Api.Replication.V1.ReplicationMessages)
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetSearchAttributesRequest where
+structure GetSearchAttributesRequest where
   indexName : String
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetSearchAttributesResponse where
-  customAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
-  systemAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
+structure GetSearchAttributesResponse where
+  customAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
+  systemAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
   mapping : List (String × String)
-  addWorkflowExecutionInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionInfo
+  addWorkflowExecutionInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetShardRequest where
+structure GetShardRequest where
   shardId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_DestinationPredicateAttributes where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure DestinationPredicateAttributes where
   destinations : List String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_EmptyPredicateAttributes where
+structure EmptyPredicateAttributes where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NamespaceIdPredicateAttributes where
+structure NamespaceIdPredicateAttributes where
   namespaceIds : List String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_OutboundTaskGroupPredicateAttributes where
+structure OutboundTaskGroupPredicateAttributes where
   groups : List String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_OutboundTaskPredicateAttributes_Group where
+structure OutboundTaskPredicateAttributes.Group where
   taskGroup : String
   namespaceId : String
   destination : String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_OutboundTaskPredicateAttributes where
-  groups : List Temporal_Server_Api_Persistence_V1_OutboundTaskPredicateAttributes_Group
+structure OutboundTaskPredicateAttributes where
+  groups : List OutboundTaskPredicateAttributes.Group
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TaskTypePredicateAttributes where
-  taskTypes : List Temporal_Server_Api_Enums_V1_TaskType
+structure TaskTypePredicateAttributes where
+  taskTypes : List Temporal.Server.Api.Enums.V1.TaskType
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_UniversalPredicateAttributes where
+structure UniversalPredicateAttributes where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_Predicate_Attributes where
+structure AndPredicateAttributes where
+  predicates : List Temporal.Proto.MessageRef
+  deriving Repr
+
+structure NotPredicateAttributes where
+  predicate : Option Temporal.Proto.MessageRef
+  deriving Repr
+
+structure OrPredicateAttributes where
+  predicates : List Temporal.Proto.MessageRef
+  deriving Repr
+
+inductive Predicate.Attributes where
   | notSet
-  | universalPredicateAttributes (value : Temporal_Server_Api_Persistence_V1_UniversalPredicateAttributes)
-  | emptyPredicateAttributes (value : Temporal_Server_Api_Persistence_V1_EmptyPredicateAttributes)
+  | universalPredicateAttributes (value : UniversalPredicateAttributes)
+  | emptyPredicateAttributes (value : EmptyPredicateAttributes)
   | andPredicateAttributes (value : Temporal.Proto.MessageRef)
   | orPredicateAttributes (value : Temporal.Proto.MessageRef)
   | notPredicateAttributes (value : Temporal.Proto.MessageRef)
-  | namespaceIdPredicateAttributes (value : Temporal_Server_Api_Persistence_V1_NamespaceIdPredicateAttributes)
-  | taskTypePredicateAttributes (value : Temporal_Server_Api_Persistence_V1_TaskTypePredicateAttributes)
-  | destinationPredicateAttributes (value : Temporal_Server_Api_Persistence_V1_DestinationPredicateAttributes)
-  | outboundTaskGroupPredicateAttributes (value : Temporal_Server_Api_Persistence_V1_OutboundTaskGroupPredicateAttributes)
-  | outboundTaskPredicateAttributes (value : Temporal_Server_Api_Persistence_V1_OutboundTaskPredicateAttributes)
+  | namespaceIdPredicateAttributes (value : NamespaceIdPredicateAttributes)
+  | taskTypePredicateAttributes (value : TaskTypePredicateAttributes)
+  | destinationPredicateAttributes (value : DestinationPredicateAttributes)
+  | outboundTaskGroupPredicateAttributes (value : OutboundTaskGroupPredicateAttributes)
+  | outboundTaskPredicateAttributes (value : OutboundTaskPredicateAttributes)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_Predicate where
-  predicateType : Temporal_Server_Api_Enums_V1_PredicateType
-  attributes : Temporal_Server_Api_Persistence_V1_Predicate_Attributes
+structure Predicate where
+  predicateType : Temporal.Server.Api.Enums.V1.PredicateType
+  attributes : Predicate.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TaskKey where
-  fireTime : Option Google_Protobuf_Timestamp
+structure TaskKey where
+  fireTime : Option Google.Protobuf.Timestamp
   taskId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_QueueSliceRange where
-  inclusiveMin : Option Temporal_Server_Api_Persistence_V1_TaskKey
-  exclusiveMax : Option Temporal_Server_Api_Persistence_V1_TaskKey
+structure QueueSliceRange where
+  inclusiveMin : Option TaskKey
+  exclusiveMax : Option TaskKey
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_QueueSliceScope where
-  range : Option Temporal_Server_Api_Persistence_V1_QueueSliceRange
-  predicate : Option Temporal_Server_Api_Persistence_V1_Predicate
+structure QueueSliceScope where
+  range : Option QueueSliceRange
+  predicate : Option Predicate
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_QueueReaderState where
-  scopes : List Temporal_Server_Api_Persistence_V1_QueueSliceScope
+structure QueueReaderState where
+  scopes : List QueueSliceScope
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_QueueState where
-  readerStates : List (Int × Temporal_Server_Api_Persistence_V1_QueueReaderState)
-  exclusiveReaderHighWatermark : Option Temporal_Server_Api_Persistence_V1_TaskKey
+structure QueueState where
+  readerStates : List (Int × QueueReaderState)
+  exclusiveReaderHighWatermark : Option TaskKey
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ShardInfo where
+structure ShardInfo where
   shardId : Int
   rangeId : Int
   owner : String
   stolenSinceRenew : Int
-  updateTime : Option Google_Protobuf_Timestamp
+  updateTime : Option Google.Protobuf.Timestamp
   replicationDlqAckLevel : List (String × Int)
-  queueStates : List (Int × Temporal_Server_Api_Persistence_V1_QueueState)
+  queueStates : List (Int × QueueState)
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetShardResponse where
-  shardInfo : Option Temporal_Server_Api_Persistence_V1_ShardInfo
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure GetShardResponse where
+  shardInfo : Option Temporal.Server.Api.Persistence.V1.ShardInfo
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetTaskQueueTasksRequest where
+structure GetTaskQueueTasksRequest where
   namespaceValue : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   minPass : Int
   minTaskId : Int
   maxTaskId : Int
@@ -8246,61 +8714,73 @@ structure Temporal_Server_Api_Adminservice_V1_GetTaskQueueTasksRequest where
   subqueue : Int
   deriving Repr
 
-inductive Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective_BuildId where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+inductive TaskVersionDirective.BuildId where
   | notSet
-  | useAssignmentRules (value : Google_Protobuf_Empty)
+  | useAssignmentRules (value : Google.Protobuf.Empty)
   | assignedBuildId (value : String)
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective where
-  behavior : Temporal_Api_Enums_V1_VersioningBehavior
-  deployment : Option Temporal_Api_Deployment_V1_Deployment
-  deploymentVersion : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
+structure TaskVersionDirective where
+  behavior : Temporal.Api.Enums.V1.VersioningBehavior
+  deployment : Option Temporal.Api.Deployment.V1.Deployment
+  deploymentVersion : Option Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersion
   revisionNumber : Int
   useRampingVersion : Bool
-  buildId : Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective_BuildId
+  buildId : TaskVersionDirective.BuildId
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TaskInfo where
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure TaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
   scheduledEventId : Int
-  createTime : Option Google_Protobuf_Timestamp
-  expiryTime : Option Google_Protobuf_Timestamp
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  versionDirective : Option Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective
+  createTime : Option Google.Protobuf.Timestamp
+  expiryTime : Option Google.Protobuf.Timestamp
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  versionDirective : Option Temporal.Server.Api.Taskqueue.V1.TaskVersionDirective
   stamp : Int
-  priority : Option Temporal_Api_Common_V1_Priority
+  priority : Option Temporal.Api.Common.V1.Priority
   componentRef : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_AllocatedTaskInfo where
-  data : Option Temporal_Server_Api_Persistence_V1_TaskInfo
+structure AllocatedTaskInfo where
+  data : Option TaskInfo
   taskPass : Int
   taskId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetTaskQueueTasksResponse where
-  tasks : List Temporal_Server_Api_Persistence_V1_AllocatedTaskInfo
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure GetTaskQueueTasksResponse where
+  tasks : List Temporal.Server.Api.Persistence.V1.AllocatedTaskInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetTaskQueueUserDataRequest where
+structure GetTaskQueueUserDataRequest where
   namespaceValue : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   partitionId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetTaskQueueUserDataResponse where
-  userData : Option Temporal_Server_Api_Persistence_V1_TaskQueueTypeUserData
+structure GetTaskQueueUserDataResponse where
+  userData : Option Temporal.Server.Api.Persistence.V1.TaskQueueTypeUserData
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryRequest where
+structure GetWorkflowExecutionRawHistoryRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   startEventId : Int
   startEventVersion : Int
   endEventId : Int
@@ -8309,16 +8789,16 @@ structure Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryRequ
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryResponse where
+structure GetWorkflowExecutionRawHistoryResponse where
   nextPageToken : Temporal.Proto.Bytes
-  historyBatches : List Temporal_Api_Common_V1_DataBlob
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
+  historyBatches : List Temporal.Api.Common.V1.DataBlob
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
   historyNodeIds : List Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryV2Request where
+structure GetWorkflowExecutionRawHistoryV2Request where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   startEventId : Int
   startEventVersion : Int
   endEventId : Int
@@ -8327,65 +8807,77 @@ structure Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryV2Re
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryV2Response where
+structure GetWorkflowExecutionRawHistoryV2Response where
   nextPageToken : Temporal.Proto.Bytes
-  historyBatches : List Temporal_Api_Common_V1_DataBlob
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
+  historyBatches : List Temporal.Api.Common.V1.DataBlob
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
   historyNodeIds : List Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ImportWorkflowExecutionRequest where
+structure ImportWorkflowExecutionRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  historyBatches : List Temporal_Api_Common_V1_DataBlob
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  historyBatches : List Temporal.Api.Common.V1.DataBlob
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
   token : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ImportWorkflowExecutionResponse where
+structure ImportWorkflowExecutionResponse where
   token : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListClusterMembersRequest where
-  lastHeartbeatWithin : Option Google_Protobuf_Duration
+structure ListClusterMembersRequest where
+  lastHeartbeatWithin : Option Google.Protobuf.Duration
   rpcAddress : String
   hostId : String
-  role : Temporal_Server_Api_Enums_V1_ClusterMemberRole
-  sessionStartedAfterTime : Option Google_Protobuf_Timestamp
+  role : Temporal.Server.Api.Enums.V1.ClusterMemberRole
+  sessionStartedAfterTime : Option Google.Protobuf.Timestamp
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Cluster_V1_ClusterMember where
-  role : Temporal_Server_Api_Enums_V1_ClusterMemberRole
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Cluster.V1
+
+structure ClusterMember where
+  role : Temporal.Server.Api.Enums.V1.ClusterMemberRole
   hostId : String
   rpcAddress : String
   rpcPort : Int
-  sessionStartTime : Option Google_Protobuf_Timestamp
-  lastHeartbitTime : Option Google_Protobuf_Timestamp
-  recordExpiryTime : Option Google_Protobuf_Timestamp
+  sessionStartTime : Option Google.Protobuf.Timestamp
+  lastHeartbitTime : Option Google.Protobuf.Timestamp
+  recordExpiryTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListClusterMembersResponse where
-  activeMembers : List Temporal_Server_Api_Cluster_V1_ClusterMember
+end Temporal.Server.Api.Cluster.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure ListClusterMembersResponse where
+  activeMembers : List Temporal.Server.Api.Cluster.V1.ClusterMember
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListClustersRequest where
+structure ListClustersRequest where
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_IndexSearchAttributes where
-  customSearchAttributes : List (String × Temporal_Api_Enums_V1_IndexedValueType)
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure IndexSearchAttributes where
+  customSearchAttributes : List (String × Temporal.Api.Enums.V1.IndexedValueType)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ClusterMetadata where
+structure ClusterMetadata where
   clusterName : String
   historyShardCount : Int
   clusterId : String
-  versionInfo : Option Temporal_Api_Version_V1_VersionInfo
-  indexSearchAttributes : List (String × Temporal_Server_Api_Persistence_V1_IndexSearchAttributes)
+  versionInfo : Option Temporal.Api.Version.V1.VersionInfo
+  indexSearchAttributes : List (String × IndexSearchAttributes)
   clusterAddress : String
   httpAddress : String
   failoverVersionIncrement : Int
@@ -8397,63 +8889,75 @@ structure Temporal_Server_Api_Persistence_V1_ClusterMetadata where
   isReplicationEnabled : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListClustersResponse where
-  clusters : List Temporal_Server_Api_Persistence_V1_ClusterMetadata
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure ListClustersResponse where
+  clusters : List Temporal.Server.Api.Persistence.V1.ClusterMetadata
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_TaskKey where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.History.V1
+
+structure TaskKey where
   taskId : Int
-  fireTime : Option Google_Protobuf_Timestamp
+  fireTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_TaskRange where
-  inclusiveMinTaskKey : Option Temporal_Server_Api_History_V1_TaskKey
-  exclusiveMaxTaskKey : Option Temporal_Server_Api_History_V1_TaskKey
+structure TaskRange where
+  inclusiveMinTaskKey : Option TaskKey
+  exclusiveMaxTaskKey : Option TaskKey
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListHistoryTasksRequest where
+end Temporal.Server.Api.History.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+structure ListHistoryTasksRequest where
   shardId : Int
   category : Int
-  taskRange : Option Temporal_Server_Api_History_V1_TaskRange
+  taskRange : Option Temporal.Server.Api.History.V1.TaskRange
   batchSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_Task where
+structure Task where
   namespaceId : String
   workflowId : String
   runId : String
   taskId : Int
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
-  fireTime : Option Google_Protobuf_Timestamp
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
+  fireTime : Option Google.Protobuf.Timestamp
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListHistoryTasksResponse where
-  tasks : List Temporal_Server_Api_Adminservice_V1_Task
+structure ListHistoryTasksResponse where
+  tasks : List Task
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListQueuesRequest where
+structure ListQueuesRequest where
   queueType : Int
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListQueuesResponse_QueueInfo where
+structure ListQueuesResponse.QueueInfo where
   queueName : String
   messageCount : Int
   lastMessageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ListQueuesResponse where
-  queues : List Temporal_Server_Api_Adminservice_V1_ListQueuesResponse_QueueInfo
+structure ListQueuesResponse where
+  queues : List ListQueuesResponse.QueueInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_MergeDLQMessagesRequest where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+structure MergeDLQMessagesRequest where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
   shardId : Int
   sourceCluster : String
   inclusiveEndMessageId : Int
@@ -8461,112 +8965,112 @@ structure Temporal_Server_Api_Adminservice_V1_MergeDLQMessagesRequest where
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_MergeDLQMessagesResponse where
+structure MergeDLQMessagesResponse where
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_MergeDLQTasksRequest where
-  dlqKey : Option Temporal_Server_Api_Common_V1_HistoryDLQKey
-  inclusiveMaxTaskMetadata : Option Temporal_Server_Api_Common_V1_HistoryDLQTaskMetadata
+structure MergeDLQTasksRequest where
+  dlqKey : Option Temporal.Server.Api.Common.V1.HistoryDLQKey
+  inclusiveMaxTaskMetadata : Option Temporal.Server.Api.Common.V1.HistoryDLQTaskMetadata
   batchSize : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_MergeDLQTasksResponse where
+structure MergeDLQTasksResponse where
   jobToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest where
+structure MigrateScheduleRequest where
   namespaceValue : String
   scheduleId : String
-  target : Temporal_Server_Api_Adminservice_V1_MigrateScheduleRequest_SchedulerTarget
+  target : MigrateScheduleRequest.SchedulerTarget
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_MigrateScheduleResponse where
+structure MigrateScheduleResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_PurgeDLQMessagesRequest where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+structure PurgeDLQMessagesRequest where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
   shardId : Int
   sourceCluster : String
   inclusiveEndMessageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_PurgeDLQMessagesResponse where
+structure PurgeDLQMessagesResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_PurgeDLQTasksRequest where
-  dlqKey : Option Temporal_Server_Api_Common_V1_HistoryDLQKey
-  inclusiveMaxTaskMetadata : Option Temporal_Server_Api_Common_V1_HistoryDLQTaskMetadata
+structure PurgeDLQTasksRequest where
+  dlqKey : Option Temporal.Server.Api.Common.V1.HistoryDLQKey
+  inclusiveMaxTaskMetadata : Option Temporal.Server.Api.Common.V1.HistoryDLQTaskMetadata
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_PurgeDLQTasksResponse where
+structure PurgeDLQTasksResponse where
   jobToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ReapplyEventsRequest where
+structure ReapplyEventsRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  events : Option Temporal_Api_Common_V1_DataBlob
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  events : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ReapplyEventsResponse where
+structure ReapplyEventsResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RebuildMutableStateRequest where
+structure RebuildMutableStateRequest where
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RebuildMutableStateResponse where
+structure RebuildMutableStateResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RefreshWorkflowTasksRequest where
+structure RefreshWorkflowTasksRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   archetype : String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RefreshWorkflowTasksResponse where
+structure RefreshWorkflowTasksResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RemoveRemoteClusterRequest where
+structure RemoveRemoteClusterRequest where
   clusterName : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RemoveRemoteClusterResponse where
+structure RemoveRemoteClusterResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RemoveSearchAttributesRequest where
+structure RemoveSearchAttributesRequest where
   searchAttributes : List String
   indexName : String
   namespaceValue : String
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RemoveSearchAttributesResponse where
+structure RemoveSearchAttributesResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RemoveTaskRequest where
+structure RemoveTaskRequest where
   shardId : Int
   category : Int
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_RemoveTaskResponse where
+structure RemoveTaskResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ResendReplicationTasksRequest where
+structure ResendReplicationTasksRequest where
   namespaceId : String
   workflowId : String
   runId : String
@@ -8577,81 +9081,101 @@ structure Temporal_Server_Api_Adminservice_V1_ResendReplicationTasksRequest wher
   endVersion : Int
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_ResendReplicationTasksResponse where
+structure ResendReplicationTasksResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Adminservice_V1_StartAdminBatchOperationRequest_Operation where
+inductive StartAdminBatchOperationRequest.Operation where
   | notSet
-  | refreshTasksOperation (value : Temporal_Server_Api_Adminservice_V1_BatchOperationRefreshTasks)
+  | refreshTasksOperation (value : BatchOperationRefreshTasks)
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_StartAdminBatchOperationRequest where
+structure StartAdminBatchOperationRequest where
   namespaceValue : String
   visibilityQuery : String
   jobId : String
   reason : String
-  executions : List Temporal_Api_Common_V1_WorkflowExecution
+  executions : List Temporal.Api.Common.V1.WorkflowExecution
   identity : String
-  operation : Temporal_Server_Api_Adminservice_V1_StartAdminBatchOperationRequest_Operation
+  operation : StartAdminBatchOperationRequest.Operation
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_StartAdminBatchOperationResponse where
+structure StartAdminBatchOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_ReplicationState where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure ReplicationState where
   inclusiveLowWatermark : Int
-  inclusiveLowWatermarkTime : Option Google_Protobuf_Timestamp
-  flowControlCommand : Temporal_Server_Api_Enums_V1_ReplicationFlowControlCommand
+  inclusiveLowWatermarkTime : Option Google.Protobuf.Timestamp
+  flowControlCommand : Temporal.Server.Api.Enums.V1.ReplicationFlowControlCommand
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_SyncReplicationState where
+structure SyncReplicationState where
   inclusiveLowWatermark : Int
-  inclusiveLowWatermarkTime : Option Google_Protobuf_Timestamp
-  highPriorityState : Option Temporal_Server_Api_Replication_V1_ReplicationState
-  lowPriorityState : Option Temporal_Server_Api_Replication_V1_ReplicationState
+  inclusiveLowWatermarkTime : Option Google.Protobuf.Timestamp
+  highPriorityState : Option ReplicationState
+  lowPriorityState : Option ReplicationState
   deriving Repr
 
-inductive Temporal_Server_Api_Adminservice_V1_StreamWorkflowReplicationMessagesRequest_Attributes where
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+inductive StreamWorkflowReplicationMessagesRequest.Attributes where
   | notSet
-  | syncReplicationState (value : Temporal_Server_Api_Replication_V1_SyncReplicationState)
+  | syncReplicationState (value : Temporal.Server.Api.Replication.V1.SyncReplicationState)
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_StreamWorkflowReplicationMessagesRequest where
-  attributes : Temporal_Server_Api_Adminservice_V1_StreamWorkflowReplicationMessagesRequest_Attributes
+structure StreamWorkflowReplicationMessagesRequest where
+  attributes : StreamWorkflowReplicationMessagesRequest.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_WorkflowReplicationMessages where
-  replicationTasks : List Temporal_Server_Api_Replication_V1_ReplicationTask
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure WorkflowReplicationMessages where
+  replicationTasks : List ReplicationTask
   exclusiveHighWatermark : Int
-  exclusiveHighWatermarkTime : Option Google_Protobuf_Timestamp
-  priority : Temporal_Server_Api_Enums_V1_TaskPriority
+  exclusiveHighWatermarkTime : Option Google.Protobuf.Timestamp
+  priority : Temporal.Server.Api.Enums.V1.TaskPriority
   deriving Repr
 
-inductive Temporal_Server_Api_Adminservice_V1_StreamWorkflowReplicationMessagesResponse_Attributes where
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Adminservice.V1
+
+inductive StreamWorkflowReplicationMessagesResponse.Attributes where
   | notSet
-  | messages (value : Temporal_Server_Api_Replication_V1_WorkflowReplicationMessages)
+  | messages (value : Temporal.Server.Api.Replication.V1.WorkflowReplicationMessages)
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_StreamWorkflowReplicationMessagesResponse where
-  attributes : Temporal_Server_Api_Adminservice_V1_StreamWorkflowReplicationMessagesResponse_Attributes
+structure StreamWorkflowReplicationMessagesResponse where
+  attributes : StreamWorkflowReplicationMessagesResponse.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_SyncWorkflowStateRequest where
+structure SyncWorkflowStateRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  versionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   targetClusterId : Int
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Adminservice_V1_SyncWorkflowStateResponse where
-  versionedTransitionArtifact : Option Temporal_Server_Api_Replication_V1_VersionedTransitionArtifact
+structure SyncWorkflowStateResponse where
+  versionedTransitionArtifact : Option Temporal.Server.Api.Replication.V1.VersionedTransitionArtifact
   deriving Repr
 
-structure Temporal_Server_Api_Archiver_V1_HistoryBlobHeader where
+end Temporal.Server.Api.Adminservice.V1
+
+namespace Temporal.Server.Api.Archiver.V1
+
+structure HistoryBlobHeader where
   namespaceValue : String
   namespaceId : String
   workflowId : String
@@ -8664,57 +9188,69 @@ structure Temporal_Server_Api_Archiver_V1_HistoryBlobHeader where
   eventCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Archiver_V1_HistoryBlob where
-  header : Option Temporal_Server_Api_Archiver_V1_HistoryBlobHeader
-  body : List Temporal_Api_History_V1_History
+structure HistoryBlob where
+  header : Option HistoryBlobHeader
+  body : List Temporal.Api.History.V1.History
   deriving Repr
 
-structure Temporal_Server_Api_Archiver_V1_VisibilityRecord where
+structure VisibilityRecord where
   namespaceId : String
   namespaceValue : String
   workflowId : String
   runId : String
   workflowTypeName : String
-  startTime : Option Google_Protobuf_Timestamp
-  executionTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+  startTime : Option Google.Protobuf.Timestamp
+  executionTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   historyLength : Int
-  memo : Option Temporal_Api_Common_V1_Memo
+  memo : Option Temporal.Api.Common.V1.Memo
   searchAttributes : List (String × String)
   historyArchivalUri : String
-  executionDuration : Option Google_Protobuf_Duration
+  executionDuration : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Server_Api_Batch_V1_BatchOperationInput where
+end Temporal.Server.Api.Archiver.V1
+
+namespace Temporal.Server.Api.Batch.V1
+
+structure BatchOperationInput where
   namespaceId : String
   concurrency : Int
   attemptsOnRetryableError : Int
-  activityHeartbeatTimeout : Option Google_Protobuf_Duration
+  activityHeartbeatTimeout : Option Google.Protobuf.Duration
   nonRetryableErrors : List String
-  batchType : Temporal_Api_Enums_V1_BatchOperationType
-  request : Option Temporal_Api_Workflowservice_V1_StartBatchOperationRequest
-  adminRequest : Option Temporal_Server_Api_Adminservice_V1_StartAdminBatchOperationRequest
+  batchType : Temporal.Api.Enums.V1.BatchOperationType
+  request : Option Temporal.Api.Workflowservice.V1.StartBatchOperationRequest
+  adminRequest : Option Temporal.Server.Api.Adminservice.V1.StartAdminBatchOperationRequest
   deriving Repr
 
-structure Temporal_Server_Api_Chasm_V1_VisibilityExecutionInfo where
+end Temporal.Server.Api.Batch.V1
+
+namespace Temporal.Server.Api.Chasm.V1
+
+structure VisibilityExecutionInfo where
   businessId : String
   runId : String
-  startTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
+  startTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
   historyLength : Int
   historySizeBytes : Int
   stateTransitionCount : Int
-  chasmSearchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  customSearchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
-  memo : Option Temporal_Api_Common_V1_Memo
-  chasmMemo : Option Temporal_Api_Common_V1_Payload
+  chasmSearchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  customSearchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
+  memo : Option Temporal.Api.Common.V1.Memo
+  chasmMemo : Option Temporal.Api.Common.V1.Payload
   deriving Repr
 
-structure Temporal_Server_Api_Checksum_V1_MutableStateChecksumPayload where
+end Temporal.Server.Api.Chasm.V1
+
+namespace Temporal.Server.Api.Checksum.V1
+
+structure MutableStateChecksumPayload where
   cancelRequested : Bool
-  state : Temporal_Server_Api_Enums_V1_WorkflowExecutionState
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+  state : Temporal.Server.Api.Enums.V1.WorkflowExecutionState
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   lastWriteVersion : Int
   lastWriteEventId : Int
   lastFirstEventId : Int
@@ -8737,40 +9273,44 @@ structure Temporal_Server_Api_Checksum_V1_MutableStateChecksumPayload where
   pendingChildInitiatedEventIds : List Int
   pendingChasmNodePaths : List String
   stickyTaskQueueName : String
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   deriving Repr
 
-structure Temporal_Server_Api_Cli_V1_SearchAttributes where
+end Temporal.Server.Api.Checksum.V1
+
+namespace Temporal.Server.Api.Cli.V1
+
+structure SearchAttributes where
   indexedFields : List (String × String)
   deriving Repr
 
-structure Temporal_Server_Api_Cli_V1_WorkflowExecutionInfo where
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  type : Option Temporal_Api_Common_V1_WorkflowType
-  startTime : Option Google_Protobuf_Timestamp
-  closeTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+structure WorkflowExecutionInfo where
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  type : Option Temporal.Api.Common.V1.WorkflowType
+  startTime : Option Google.Protobuf.Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   historyLength : Int
   parentNamespaceId : String
-  parentExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  executionTime : Option Google_Protobuf_Timestamp
-  memo : Option Temporal_Api_Common_V1_Memo
-  searchAttributes : Option Temporal_Server_Api_Cli_V1_SearchAttributes
-  autoResetPoints : Option Temporal_Api_Workflow_V1_ResetPoints
+  parentExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  executionTime : Option Google.Protobuf.Timestamp
+  memo : Option Temporal.Api.Common.V1.Memo
+  searchAttributes : Option SearchAttributes
+  autoResetPoints : Option Temporal.Api.Workflow.V1.ResetPoints
   stateTransitionCount : Int
   historySizeBytes : Int
-  mostRecentWorkerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  mostRecentWorkerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
   deriving Repr
 
-structure Temporal_Server_Api_Cli_V1_AddSearchAttributesResponse where
+structure AddSearchAttributesResponse where
   indexName : String
   customSearchAttributes : List (String × String)
   systemSearchAttributes : List (String × String)
   mapping : List (String × String)
-  addWorkflowExecutionInfo : Option Temporal_Server_Api_Cli_V1_WorkflowExecutionInfo
+  addWorkflowExecutionInfo : Option WorkflowExecutionInfo
   deriving Repr
 
-structure Temporal_Server_Api_Cli_V1_Failure where
+structure Failure where
   message : String
   source : String
   stackTrace : String
@@ -8778,85 +9318,97 @@ structure Temporal_Server_Api_Cli_V1_Failure where
   failureType : String
   deriving Repr
 
-structure Temporal_Server_Api_Cli_V1_PendingActivityInfo where
+structure PendingActivityInfo where
   activityId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  state : Temporal_Api_Enums_V1_PendingActivityState
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  state : Temporal.Api.Enums.V1.PendingActivityState
   heartbeatDetails : String
-  lastHeartbeatTime : Option Google_Protobuf_Timestamp
-  lastStartedTime : Option Google_Protobuf_Timestamp
+  lastHeartbeatTime : Option Google.Protobuf.Timestamp
+  lastStartedTime : Option Google.Protobuf.Timestamp
   attempt : Int
   maximumAttempts : Int
-  scheduledTime : Option Google_Protobuf_Timestamp
-  expirationTime : Option Google_Protobuf_Timestamp
-  lastFailure : Option Temporal_Server_Api_Cli_V1_Failure
+  scheduledTime : Option Google.Protobuf.Timestamp
+  expirationTime : Option Google.Protobuf.Timestamp
+  lastFailure : Option Failure
   lastWorkerIdentity : String
   deriving Repr
 
-structure Temporal_Server_Api_Cli_V1_DescribeWorkflowExecutionResponse where
-  executionConfig : Option Temporal_Api_Workflow_V1_WorkflowExecutionConfig
-  workflowExecutionInfo : Option Temporal_Server_Api_Cli_V1_WorkflowExecutionInfo
-  pendingActivities : List Temporal_Server_Api_Cli_V1_PendingActivityInfo
-  pendingChildren : List Temporal_Api_Workflow_V1_PendingChildExecutionInfo
-  pendingWorkflowTask : Option Temporal_Api_Workflow_V1_PendingWorkflowTaskInfo
+structure DescribeWorkflowExecutionResponse where
+  executionConfig : Option Temporal.Api.Workflow.V1.WorkflowExecutionConfig
+  workflowExecutionInfo : Option WorkflowExecutionInfo
+  pendingActivities : List PendingActivityInfo
+  pendingChildren : List Temporal.Api.Workflow.V1.PendingChildExecutionInfo
+  pendingWorkflowTask : Option Temporal.Api.Workflow.V1.PendingWorkflowTaskInfo
   deriving Repr
 
-structure Temporal_Server_Api_Common_V1_ApiCategoryOptions where
-  category : Temporal_Server_Api_Common_V1_ApiCategory
+end Temporal.Server.Api.Cli.V1
+
+namespace Temporal.Server.Api.Common.V1
+
+structure ApiCategoryOptions where
+  category : ApiCategory
   deriving Repr
 
-structure Temporal_Server_Api_Contextpropagation_V1_ContextMetadata where
+end Temporal.Server.Api.Common.V1
+
+namespace Temporal.Server.Api.Contextpropagation.V1
+
+structure ContextMetadata where
   entries : List (String × String)
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_AddVersionUpdateArgs where
+end Temporal.Server.Api.Contextpropagation.V1
+
+namespace Temporal.Server.Api.Deployment.V1
+
+structure AddVersionUpdateArgs where
   version : String
-  createTime : Option Google_Protobuf_Timestamp
+  createTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CheckTaskQueuesHavePollersActivityArgs_TaskQueueTypes where
-  types : List Temporal_Api_Enums_V1_TaskQueueType
+structure CheckTaskQueuesHavePollersActivityArgs.TaskQueueTypes where
+  types : List Temporal.Api.Enums.V1.TaskQueueType
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CheckTaskQueuesHavePollersActivityArgs where
-  taskQueuesAndTypes : List (String × Temporal_Server_Api_Deployment_V1_CheckTaskQueuesHavePollersActivityArgs_TaskQueueTypes)
-  workerDeploymentVersion : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
+structure CheckTaskQueuesHavePollersActivityArgs where
+  taskQueuesAndTypes : List (String × CheckTaskQueuesHavePollersActivityArgs.TaskQueueTypes)
+  workerDeploymentVersion : Option WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CheckWorkerDeploymentUserDataPropagationRequest where
+structure CheckWorkerDeploymentUserDataPropagationRequest where
   taskQueueMaxVersions : List (String × Int)
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CreateRequestIDQueryResponse where
+structure CreateRequestIDQueryResponse where
   requestId : String
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CreateWorkerDeploymentArgs where
+structure CreateWorkerDeploymentArgs where
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CreateWorkerDeploymentResponse where
+structure CreateWorkerDeploymentResponse where
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CreateWorkerDeploymentVersionArgs where
+structure CreateWorkerDeploymentVersionArgs where
   identity : String
   requestId : String
   version : String
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfig
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfig
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_CreateWorkerDeploymentVersionResponse where
+structure CreateWorkerDeploymentVersionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DeleteDeploymentArgs where
+structure DeleteDeploymentArgs where
   identity : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DeleteVersionActivityArgs where
+structure DeleteVersionActivityArgs where
   identity : String
   deploymentName : String
   version : String
@@ -8865,7 +9417,7 @@ structure Temporal_Server_Api_Deployment_V1_DeleteVersionActivityArgs where
   asyncPropagation : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DeleteVersionArgs where
+structure DeleteVersionArgs where
   identity : String
   version : String
   skipDrainage : Bool
@@ -8873,132 +9425,132 @@ structure Temporal_Server_Api_Deployment_V1_DeleteVersionArgs where
   asyncPropagation : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DeleteWorkerControllerInstanceInput where
-  version : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure DeleteWorkerControllerInstanceInput where
+  version : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   identity : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DemoteVersionSignalArgs where
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
+structure DemoteVersionSignalArgs where
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DescribeVersionFromWorkerDeploymentActivityArgs where
+structure DescribeVersionFromWorkerDeploymentActivityArgs where
   version : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_DescribeVersionFromWorkerDeploymentActivityResult where
-  taskQueueInfos : List Temporal_Api_Deployment_V1_WorkerDeploymentVersionInfo_VersionTaskQueueInfo
+structure DescribeVersionFromWorkerDeploymentActivityResult where
+  taskQueueInfos : List Temporal.Api.Deployment.V1.WorkerDeploymentVersionInfo.VersionTaskQueueInfo
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_PropagatingRevisions where
+structure PropagatingRevisions where
   revisionNumbers : List Int
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionSummary where
+structure WorkerDeploymentVersionSummary where
   version : String
-  createTime : Option Google_Protobuf_Timestamp
-  drainageStatus : Temporal_Api_Enums_V1_VersionDrainageStatus
-  drainageInfo : Option Temporal_Api_Deployment_V1_VersionDrainageInfo
-  routingUpdateTime : Option Google_Protobuf_Timestamp
-  currentSinceTime : Option Google_Protobuf_Timestamp
-  rampingSinceTime : Option Google_Protobuf_Timestamp
-  firstActivationTime : Option Google_Protobuf_Timestamp
-  lastCurrentTime : Option Google_Protobuf_Timestamp
-  lastDeactivationTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
+  createTime : Option Google.Protobuf.Timestamp
+  drainageStatus : Temporal.Api.Enums.V1.VersionDrainageStatus
+  drainageInfo : Option Temporal.Api.Deployment.V1.VersionDrainageInfo
+  routingUpdateTime : Option Google.Protobuf.Timestamp
+  currentSinceTime : Option Google.Protobuf.Timestamp
+  rampingSinceTime : Option Google.Protobuf.Timestamp
+  firstActivationTime : Option Google.Protobuf.Timestamp
+  lastCurrentTime : Option Google.Protobuf.Timestamp
+  lastDeactivationTime : Option Google.Protobuf.Timestamp
+  status : Temporal.Api.Enums.V1.WorkerDeploymentVersionStatus
   createRequestId : String
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfigSummary
-  computeStatus : Option Temporal_Api_Deployment_V1_ComputeStatus
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfigSummary
+  computeStatus : Option Temporal.Api.Deployment.V1.ComputeStatus
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentLocalState where
-  createTime : Option Google_Protobuf_Timestamp
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  versions : List (String × Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionSummary)
+structure WorkerDeploymentLocalState where
+  createTime : Option Google.Protobuf.Timestamp
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  versions : List (String × WorkerDeploymentVersionSummary)
   conflictToken : Temporal.Proto.Bytes
   lastModifierIdentity : String
   syncBatchSize : Int
   managerIdentity : String
-  propagatingRevisions : List (String × Temporal_Server_Api_Deployment_V1_PropagatingRevisions)
+  propagatingRevisions : List (String × PropagatingRevisions)
   createRequestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_ForceCANDeploymentSignalArgs where
-  overrideState : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentLocalState
+structure ForceCANDeploymentSignalArgs where
+  overrideState : Option WorkerDeploymentLocalState
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_TaskQueueVersionData where
+structure TaskQueueVersionData where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_VersionLocalState_TaskQueueFamilyData where
-  taskQueues : List (Int × Temporal_Server_Api_Deployment_V1_TaskQueueVersionData)
+structure VersionLocalState.TaskQueueFamilyData where
+  taskQueues : List (Int × TaskQueueVersionData)
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_VersionLocalState where
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
-  createTime : Option Google_Protobuf_Timestamp
-  routingUpdateTime : Option Google_Protobuf_Timestamp
-  currentSinceTime : Option Google_Protobuf_Timestamp
-  rampingSinceTime : Option Google_Protobuf_Timestamp
+structure VersionLocalState where
+  version : Option WorkerDeploymentVersion
+  createTime : Option Google.Protobuf.Timestamp
+  routingUpdateTime : Option Google.Protobuf.Timestamp
+  currentSinceTime : Option Google.Protobuf.Timestamp
+  rampingSinceTime : Option Google.Protobuf.Timestamp
   rampPercentage : Float
-  firstActivationTime : Option Google_Protobuf_Timestamp
-  lastCurrentTime : Option Google_Protobuf_Timestamp
-  lastDeactivationTime : Option Google_Protobuf_Timestamp
-  drainageInfo : Option Temporal_Api_Deployment_V1_VersionDrainageInfo
-  metadata : Option Temporal_Api_Deployment_V1_VersionMetadata
+  firstActivationTime : Option Google.Protobuf.Timestamp
+  lastCurrentTime : Option Google.Protobuf.Timestamp
+  lastDeactivationTime : Option Google.Protobuf.Timestamp
+  drainageInfo : Option Temporal.Api.Deployment.V1.VersionDrainageInfo
+  metadata : Option Temporal.Api.Deployment.V1.VersionMetadata
   startedDeploymentWorkflow : Bool
-  taskQueueFamilies : List (String × Temporal_Server_Api_Deployment_V1_VersionLocalState_TaskQueueFamilyData)
+  taskQueueFamilies : List (String × VersionLocalState.TaskQueueFamilyData)
   syncBatchSize : Int
-  status : Temporal_Api_Enums_V1_WorkerDeploymentVersionStatus
+  status : Temporal.Api.Enums.V1.WorkerDeploymentVersionStatus
   revisionNumber : Int
   lastModifierIdentity : String
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfigSummary
-  computeStatus : Option Temporal_Api_Deployment_V1_ComputeStatus
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfigSummary
+  computeStatus : Option Temporal.Api.Deployment.V1.ComputeStatus
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_ForceCANVersionSignalArgs where
-  overrideState : Option Temporal_Server_Api_Deployment_V1_VersionLocalState
+structure ForceCANVersionSignalArgs where
+  overrideState : Option VersionLocalState
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_IsVersionMissingTaskQueuesArgs where
+structure IsVersionMissingTaskQueuesArgs where
   prevCurrentVersion : String
   newCurrentVersion : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_IsVersionMissingTaskQueuesResult where
+structure IsVersionMissingTaskQueuesResult where
   isMissingTaskQueues : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_PropagationCompletionInfo where
+structure PropagationCompletionInfo where
   revisionNumber : Int
   buildId : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_QueryDescribeVersionResponse where
-  versionState : Option Temporal_Server_Api_Deployment_V1_VersionLocalState
+structure QueryDescribeVersionResponse where
+  versionState : Option VersionLocalState
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_QueryDescribeWorkerDeploymentResponse where
-  state : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentLocalState
+structure QueryDescribeWorkerDeploymentResponse where
+  state : Option WorkerDeploymentLocalState
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_RegisterWorkerInVersionArgs where
+structure RegisterWorkerInVersionArgs where
   taskQueueName : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   maxTaskQueues : Int
   version : String
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_RegisterWorkerInWorkerDeploymentArgs where
+structure RegisterWorkerInWorkerDeploymentArgs where
   taskQueueName : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   maxTaskQueues : Int
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
+  version : Option WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SetCurrentVersionArgs where
+structure SetCurrentVersionArgs where
   identity : String
   version : String
   ignoreMissingTaskQueues : Bool
@@ -9006,23 +9558,23 @@ structure Temporal_Server_Api_Deployment_V1_SetCurrentVersionArgs where
   allowNoPollers : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SetCurrentVersionResponse where
+structure SetCurrentVersionResponse where
   previousVersion : String
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SetManagerIdentityArgs where
+structure SetManagerIdentityArgs where
   identity : String
   managerIdentity : String
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SetManagerIdentityResponse where
+structure SetManagerIdentityResponse where
   previousManagerIdentity : String
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SetRampingVersionArgs where
+structure SetRampingVersionArgs where
   identity : String
   version : String
   percentage : Float
@@ -9031,170 +9583,174 @@ structure Temporal_Server_Api_Deployment_V1_SetRampingVersionArgs where
   allowNoPollers : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SetRampingVersionResponse where
+structure SetRampingVersionResponse where
   previousVersion : String
   previousPercentage : Float
   conflictToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_StartWorkerDeploymentRequest where
+structure StartWorkerDeploymentRequest where
   deploymentName : String
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_StartWorkerDeploymentVersionRequest where
+structure StartWorkerDeploymentVersionRequest where
   deploymentName : String
   buildId : String
   requestId : String
   identity : String
-  computeConfig : Option Temporal_Api_Compute_V1_ComputeConfigSummary
+  computeConfig : Option Temporal.Api.Compute.V1.ComputeConfigSummary
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncDeploymentVersionUserDataRequest_SyncUserData where
+structure SyncDeploymentVersionUserDataRequest.SyncUserData where
   name : String
-  types : List Temporal_Api_Enums_V1_TaskQueueType
-  data : Option Temporal_Server_Api_Deployment_V1_DeploymentVersionData
+  types : List Temporal.Api.Enums.V1.TaskQueueType
+  data : Option DeploymentVersionData
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncDeploymentVersionUserDataRequest where
+structure SyncDeploymentVersionUserDataRequest where
   deploymentName : String
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
-  sync : List Temporal_Server_Api_Deployment_V1_SyncDeploymentVersionUserDataRequest_SyncUserData
+  version : Option WorkerDeploymentVersion
+  sync : List SyncDeploymentVersionUserDataRequest.SyncUserData
   forgetVersion : Bool
-  updateRoutingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  upsertVersionData : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionData
+  updateRoutingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  upsertVersionData : Option WorkerDeploymentVersionData
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncDeploymentVersionUserDataResponse where
+structure SyncDeploymentVersionUserDataResponse where
   taskQueueMaxVersions : List (String × Int)
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncDrainageInfoSignalArgs where
-  drainageInfo : Option Temporal_Api_Deployment_V1_VersionDrainageInfo
+structure SyncDrainageInfoSignalArgs where
+  drainageInfo : Option Temporal.Api.Deployment.V1.VersionDrainageInfo
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncDrainageStatusSignalArgs where
+structure SyncDrainageStatusSignalArgs where
   version : String
-  drainageStatus : Temporal_Api_Enums_V1_VersionDrainageStatus
+  drainageStatus : Temporal.Api.Enums.V1.VersionDrainageStatus
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncVersionStateUpdateArgs where
-  routingUpdateTime : Option Google_Protobuf_Timestamp
-  currentSinceTime : Option Google_Protobuf_Timestamp
-  rampingSinceTime : Option Google_Protobuf_Timestamp
+structure SyncVersionStateUpdateArgs where
+  routingUpdateTime : Option Google.Protobuf.Timestamp
+  currentSinceTime : Option Google.Protobuf.Timestamp
+  rampingSinceTime : Option Google.Protobuf.Timestamp
   rampPercentage : Float
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncUnversionedRampActivityArgs where
+structure SyncUnversionedRampActivityArgs where
   currentVersion : String
-  updateArgs : Option Temporal_Server_Api_Deployment_V1_SyncVersionStateUpdateArgs
+  updateArgs : Option SyncVersionStateUpdateArgs
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncUnversionedRampActivityResponse where
+structure SyncUnversionedRampActivityResponse where
   taskQueueMaxVersions : List (String × Int)
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncVersionStateActivityArgs where
+structure SyncVersionStateActivityArgs where
   deploymentName : String
   version : String
-  updateArgs : Option Temporal_Server_Api_Deployment_V1_SyncVersionStateUpdateArgs
+  updateArgs : Option SyncVersionStateUpdateArgs
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncVersionStateActivityResult where
-  versionState : Option Temporal_Server_Api_Deployment_V1_VersionLocalState
-  summary : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionSummary
+structure SyncVersionStateActivityResult where
+  versionState : Option VersionLocalState
+  summary : Option WorkerDeploymentVersionSummary
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_SyncVersionStateResponse where
-  versionState : Option Temporal_Server_Api_Deployment_V1_VersionLocalState
-  summary : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionSummary
+structure SyncVersionStateResponse where
+  versionState : Option VersionLocalState
+  summary : Option WorkerDeploymentVersionSummary
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_UpdateComputeConfigArgs where
+structure UpdateComputeConfigArgs where
   identity : String
   requestId : String
-  upsertScalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroupUpdate)
+  upsertScalingGroups : List (String × Temporal.Api.Compute.V1.ComputeConfigScalingGroupUpdate)
   removeScalingGroups : List String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_UpdateComputeConfigResponse where
+structure UpdateComputeConfigResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_UpdateVersionMetadataArgs where
-  upsertEntries : List (String × Temporal_Api_Common_V1_Payload)
+structure UpdateVersionMetadataArgs where
+  upsertEntries : List (String × Temporal.Api.Common.V1.Payload)
   removeEntries : List String
   identity : String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_UpdateVersionMetadataResponse where
-  metadata : Option Temporal_Api_Deployment_V1_VersionMetadata
+structure UpdateVersionMetadataResponse where
+  metadata : Option Temporal.Api.Deployment.V1.VersionMetadata
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_UpdateWorkerControllerInstanceInput where
-  version : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+structure UpdateWorkerControllerInstanceInput where
+  version : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   identity : String
-  upsertScalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroupUpdate)
+  upsertScalingGroups : List (String × Temporal.Api.Compute.V1.ComputeConfigScalingGroupUpdate)
   removeScalingGroups : List String
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_ValidateWorkerControllerInstanceSpecInput where
-  scalingGroups : List (String × Temporal_Api_Compute_V1_ComputeConfigScalingGroup)
+structure ValidateWorkerControllerInstanceSpecInput where
+  scalingGroups : List (String × Temporal.Api.Compute.V1.ComputeConfigScalingGroup)
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentSummary where
+structure WorkerDeploymentSummary where
   name : String
-  createTime : Option Google_Protobuf_Timestamp
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  latestVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  currentVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  rampingVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
+  createTime : Option Google.Protobuf.Timestamp
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  latestVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  currentVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  rampingVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionWorkflowArgs where
+structure WorkerDeploymentVersionWorkflowArgs where
   namespaceName : String
   namespaceId : String
-  versionState : Option Temporal_Server_Api_Deployment_V1_VersionLocalState
+  versionState : Option VersionLocalState
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentWorkflowArgs where
+structure WorkerDeploymentWorkflowArgs where
   namespaceName : String
   namespaceId : String
   deploymentName : String
-  state : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentLocalState
+  state : Option WorkerDeploymentLocalState
   deriving Repr
 
-structure Temporal_Server_Api_Deployment_V1_WorkerDeploymentWorkflowMemo where
+structure WorkerDeploymentWorkflowMemo where
   deploymentName : String
-  createTime : Option Google_Protobuf_Timestamp
-  routingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  latestVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  currentVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
-  rampingVersionSummary : Option Temporal_Api_Deployment_V1_WorkerDeploymentInfo_WorkerDeploymentVersionSummary
+  createTime : Option Google.Protobuf.Timestamp
+  routingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  latestVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  currentVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
+  rampingVersionSummary : Option Temporal.Api.Deployment.V1.WorkerDeploymentInfo.WorkerDeploymentVersionSummary
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_ActivityStartDuringTransitionFailure where
+end Temporal.Server.Api.Deployment.V1
+
+namespace Temporal.Server.Api.Errordetails.V1
+
+structure ActivityStartDuringTransitionFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_CurrentBranchChangedFailure where
+structure CurrentBranchChangedFailure where
   currentBranchToken : Temporal.Proto.Bytes
   requestBranchToken : Temporal.Proto.Bytes
-  currentVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  requestVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  currentVersionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
+  requestVersionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_ObsoleteDispatchBuildIdFailure where
+structure ObsoleteDispatchBuildIdFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_ObsoleteMatchingTaskFailure where
+structure ObsoleteMatchingTaskFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_RetryReplicationFailure where
+structure RetryReplicationFailure where
   namespaceId : String
   workflowId : String
   runId : String
@@ -9204,350 +9760,374 @@ structure Temporal_Server_Api_Errordetails_V1_RetryReplicationFailure where
   endEventVersion : Int
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_ShardOwnershipLostFailure where
+structure ShardOwnershipLostFailure where
   ownerHost : String
   currentHost : String
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_StalePartitionCountsFailure where
+structure StalePartitionCountsFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_StickyWorkerUnavailableFailure where
+structure StickyWorkerUnavailableFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_SyncStateFailure where
+structure SyncStateFailure where
   namespaceId : String
   workflowId : String
   runId : String
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  versionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Errordetails_V1_TaskAlreadyStartedFailure where
+structure TaskAlreadyStartedFailure where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_StrippedHistoryEvent where
+end Temporal.Server.Api.Errordetails.V1
+
+namespace Temporal.Server.Api.History.V1
+
+structure StrippedHistoryEvent where
   eventId : Int
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_StrippedHistoryEvents where
-  events : List Temporal_Server_Api_History_V1_StrippedHistoryEvent
+structure StrippedHistoryEvents where
+  events : List StrippedHistoryEvent
   deriving Repr
 
-structure Temporal_Server_Api_History_V1_TransientWorkflowTaskInfo where
-  historySuffix : List Temporal_Api_History_V1_HistoryEvent
+structure TransientWorkflowTaskInfo where
+  historySuffix : List Temporal.Api.History.V1.HistoryEvent
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ActivitySyncInfo where
+end Temporal.Server.Api.History.V1
+
+namespace Temporal.Server.Api.Historyservice.V1
+
+structure ActivitySyncInfo where
   version : Int
   scheduledEventId : Int
-  scheduledTime : Option Google_Protobuf_Timestamp
+  scheduledTime : Option Google.Protobuf.Timestamp
   startedEventId : Int
-  startedTime : Option Google_Protobuf_Timestamp
-  lastHeartbeatTime : Option Google_Protobuf_Timestamp
-  details : Option Temporal_Api_Common_V1_Payloads
+  startedTime : Option Google.Protobuf.Timestamp
+  lastHeartbeatTime : Option Google.Protobuf.Timestamp
+  details : Option Temporal.Api.Common.V1.Payloads
   attempt : Int
-  lastFailure : Option Temporal_Api_Failure_V1_Failure
+  lastFailure : Option Temporal.Api.Failure.V1.Failure
   lastWorkerIdentity : String
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
   lastStartedBuildId : String
   lastStartedRedirectCounter : Int
-  firstScheduledTime : Option Google_Protobuf_Timestamp
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
+  firstScheduledTime : Option Google.Protobuf.Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
   stamp : Int
   paused : Bool
-  retryInitialInterval : Option Google_Protobuf_Duration
-  retryMaximumInterval : Option Google_Protobuf_Duration
+  retryInitialInterval : Option Google.Protobuf.Duration
+  retryMaximumInterval : Option Google.Protobuf.Duration
   retryMaximumAttempts : Int
   retryBackoffCoefficient : Float
   startVersion : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_AddTasksRequest_Task where
+structure AddTasksRequest.Task where
   categoryId : Int
-  blob : Option Temporal_Api_Common_V1_DataBlob
+  blob : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_AddTasksRequest where
+structure AddTasksRequest where
   shardId : Int
-  tasks : List Temporal_Server_Api_Historyservice_V1_AddTasksRequest_Task
+  tasks : List AddTasksRequest.Task
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_AddTasksResponse where
+structure AddTasksResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CancelNexusOperationRequest where
+structure CancelNexusOperationRequest where
   namespaceId : String
   shardId : Int
-  request : Option Temporal_Api_Nexus_V1_CancelOperationRequest
+  request : Option Temporal.Api.Nexus.V1.CancelOperationRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CancelNexusOperationResponse where
-  response : Option Temporal_Api_Nexus_V1_CancelOperationResponse
+structure CancelNexusOperationResponse where
+  response : Option Temporal.Api.Nexus.V1.CancelOperationResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CloseShardRequest where
+structure CloseShardRequest where
   shardId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CloseShardResponse where
+structure CloseShardResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_NexusOperationCompletion where
+end Temporal.Server.Api.Historyservice.V1
+
+namespace Temporal.Server.Api.Token.V1
+
+structure NexusOperationCompletion where
   namespaceId : String
   workflowId : String
   runId : String
-  ref : Option Temporal_Server_Api_Persistence_V1_StateMachineRef
+  ref : Option Temporal.Server.Api.Persistence.V1.StateMachineRef
   requestId : String
   componentRef : Temporal.Proto.Bytes
   deriving Repr
 
-inductive Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationChasmRequest_Outcome where
+end Temporal.Server.Api.Token.V1
+
+namespace Temporal.Server.Api.Historyservice.V1
+
+inductive CompleteNexusOperationChasmRequest.Outcome where
   | notSet
-  | success (value : Temporal_Api_Common_V1_Payload)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | success (value : Temporal.Api.Common.V1.Payload)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationChasmRequest where
-  completion : Option Temporal_Server_Api_Token_V1_NexusOperationCompletion
-  closeTime : Option Google_Protobuf_Timestamp
-  links : List Temporal_Api_Common_V1_Link
+structure CompleteNexusOperationChasmRequest where
+  completion : Option Temporal.Server.Api.Token.V1.NexusOperationCompletion
+  closeTime : Option Google.Protobuf.Timestamp
+  links : List Temporal.Api.Common.V1.Link
   operationToken : String
-  startTime : Option Google_Protobuf_Timestamp
-  outcome : Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationChasmRequest_Outcome
+  startTime : Option Google.Protobuf.Timestamp
+  outcome : CompleteNexusOperationChasmRequest.Outcome
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationChasmResponse where
+structure CompleteNexusOperationChasmResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationRequest_Outcome where
+inductive CompleteNexusOperationRequest.Outcome where
   | notSet
-  | success (value : Temporal_Api_Common_V1_Payload)
-  | failure (value : Temporal_Api_Nexus_V1_Failure)
+  | success (value : Temporal.Api.Common.V1.Payload)
+  | failure (value : Temporal.Api.Nexus.V1.Failure)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationRequest where
-  completion : Option Temporal_Server_Api_Token_V1_NexusOperationCompletion
+structure CompleteNexusOperationRequest where
+  completion : Option Temporal.Server.Api.Token.V1.NexusOperationCompletion
   state : String
   operationToken : String
-  startTime : Option Google_Protobuf_Timestamp
-  links : List Temporal_Api_Common_V1_Link
-  outcome : Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationRequest_Outcome
+  startTime : Option Google.Protobuf.Timestamp
+  links : List Temporal.Api.Common.V1.Link
+  outcome : CompleteNexusOperationRequest.Outcome
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_CompleteNexusOperationResponse where
+structure CompleteNexusOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeepHealthCheckRequest where
+structure DeepHealthCheckRequest where
   hostAddress : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeepHealthCheckResponse where
-  state : Temporal_Server_Api_Enums_V1_HealthState
-  checks : List Temporal_Server_Api_Health_V1_HealthCheck
+structure DeepHealthCheckResponse where
+  state : Temporal.Server.Api.Enums.V1.HealthState
+  checks : List Temporal.Server.Api.Health.V1.HealthCheck
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteDLQTasksRequest where
-  dlqKey : Option Temporal_Server_Api_Common_V1_HistoryDLQKey
-  inclusiveMaxTaskMetadata : Option Temporal_Server_Api_Common_V1_HistoryDLQTaskMetadata
+structure DeleteDLQTasksRequest where
+  dlqKey : Option Temporal.Server.Api.Common.V1.HistoryDLQKey
+  inclusiveMaxTaskMetadata : Option Temporal.Server.Api.Common.V1.HistoryDLQTaskMetadata
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteDLQTasksResponse where
+structure DeleteDLQTasksResponse where
   messagesDeleted : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteExecutionRequest where
+structure DeleteExecutionRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   archetypeId : Nat
   reason : String
   identity : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteExecutionResponse where
+structure DeleteExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteWorkflowExecutionRequest where
+structure DeleteWorkflowExecutionRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   closedWorkflowOnly : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteWorkflowExecutionResponse where
+structure DeleteWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteWorkflowVisibilityRecordRequest where
+structure DeleteWorkflowVisibilityRecordRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowStartTime : Option Google_Protobuf_Timestamp
-  workflowCloseTime : Option Google_Protobuf_Timestamp
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowStartTime : Option Google.Protobuf.Timestamp
+  workflowCloseTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DeleteWorkflowVisibilityRecordResponse where
+structure DeleteWorkflowVisibilityRecordResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DescribeHistoryHostRequest where
+structure DescribeHistoryHostRequest where
   hostAddress : String
   shardId : Int
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DescribeHistoryHostResponse where
+structure DescribeHistoryHostResponse where
   shardsNumber : Int
   shardIds : List Int
-  namespaceCache : Option Temporal_Server_Api_Namespace_V1_NamespaceCacheInfo
+  namespaceCache : Option Temporal.Server.Api.Namespace.V1.NamespaceCacheInfo
   address : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DescribeMutableStateRequest where
+structure DescribeMutableStateRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   skipForceReload : Bool
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DescribeMutableStateResponse where
-  cacheMutableState : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
-  databaseMutableState : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
+structure DescribeMutableStateResponse where
+  cacheMutableState : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
+  databaseMutableState : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DescribeWorkflowExecutionRequest where
+structure DescribeWorkflowExecutionRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_DescribeWorkflowExecutionRequest
+  request : Option Temporal.Api.Workflowservice.V1.DescribeWorkflowExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_DescribeWorkflowExecutionResponse where
-  executionConfig : Option Temporal_Api_Workflow_V1_WorkflowExecutionConfig
-  workflowExecutionInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionInfo
-  pendingActivities : List Temporal_Api_Workflow_V1_PendingActivityInfo
-  pendingChildren : List Temporal_Api_Workflow_V1_PendingChildExecutionInfo
-  pendingWorkflowTask : Option Temporal_Api_Workflow_V1_PendingWorkflowTaskInfo
-  callbacks : List Temporal_Api_Workflow_V1_CallbackInfo
-  pendingNexusOperations : List Temporal_Api_Workflow_V1_PendingNexusOperationInfo
-  workflowExtendedInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionExtendedInfo
+structure DescribeWorkflowExecutionResponse where
+  executionConfig : Option Temporal.Api.Workflow.V1.WorkflowExecutionConfig
+  workflowExecutionInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionInfo
+  pendingActivities : List Temporal.Api.Workflow.V1.PendingActivityInfo
+  pendingChildren : List Temporal.Api.Workflow.V1.PendingChildExecutionInfo
+  pendingWorkflowTask : Option Temporal.Api.Workflow.V1.PendingWorkflowTaskInfo
+  callbacks : List Temporal.Api.Workflow.V1.CallbackInfo
+  pendingNexusOperations : List Temporal.Api.Workflow.V1.PendingNexusOperationInfo
+  workflowExtendedInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionExtendedInfo
   deriving Repr
 
-structure Temporal_Server_Api_Workflow_V1_ParentExecutionInfo where
+end Temporal.Server.Api.Historyservice.V1
+
+namespace Temporal.Server.Api.Workflow.V1
+
+structure ParentExecutionInfo where
   namespaceId : String
   namespaceValue : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   initiatedId : Int
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   initiatedVersion : Int
   pinnedWorkerDeploymentVersion : String
   deriving Repr
 
-structure Temporal_Server_Api_Workflow_V1_RootExecutionInfo where
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+structure RootExecutionInfo where
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_StartWorkflowExecutionRequest where
+end Temporal.Server.Api.Workflow.V1
+
+namespace Temporal.Server.Api.Historyservice.V1
+
+structure StartWorkflowExecutionRequest where
   namespaceId : String
-  startRequest : Option Temporal_Api_Workflowservice_V1_StartWorkflowExecutionRequest
-  parentExecutionInfo : Option Temporal_Server_Api_Workflow_V1_ParentExecutionInfo
+  startRequest : Option Temporal.Api.Workflowservice.V1.StartWorkflowExecutionRequest
+  parentExecutionInfo : Option Temporal.Server.Api.Workflow.V1.ParentExecutionInfo
   attempt : Int
-  workflowExecutionExpirationTime : Option Google_Protobuf_Timestamp
-  continueAsNewInitiator : Temporal_Api_Enums_V1_ContinueAsNewInitiator
-  continuedFailure : Option Temporal_Api_Failure_V1_Failure
-  lastCompletionResult : Option Temporal_Api_Common_V1_Payloads
-  firstWorkflowTaskBackoff : Option Google_Protobuf_Duration
-  sourceVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
-  rootExecutionInfo : Option Temporal_Server_Api_Workflow_V1_RootExecutionInfo
+  workflowExecutionExpirationTime : Option Google.Protobuf.Timestamp
+  continueAsNewInitiator : Temporal.Api.Enums.V1.ContinueAsNewInitiator
+  continuedFailure : Option Temporal.Api.Failure.V1.Failure
+  lastCompletionResult : Option Temporal.Api.Common.V1.Payloads
+  firstWorkflowTaskBackoff : Option Google.Protobuf.Duration
+  sourceVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
+  rootExecutionInfo : Option Temporal.Server.Api.Workflow.V1.RootExecutionInfo
   inheritedBuildId : String
-  versioningOverride : Option Temporal_Api_Workflow_V1_VersioningOverride
+  versioningOverride : Option Temporal.Api.Workflow.V1.VersioningOverride
   childWorkflowOnly : Bool
-  inheritedPinnedVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
-  inheritedAutoUpgradeInfo : Option Temporal_Api_Deployment_V1_InheritedAutoUpgradeInfo
-  declinedTargetVersionUpgrade : Option Temporal_Api_History_V1_DeclinedTargetVersionUpgrade
-  timeSkippingStatePropagation : Option Temporal_Api_Common_V1_TimeSkippingStatePropagation
+  inheritedPinnedVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
+  inheritedAutoUpgradeInfo : Option Temporal.Api.Deployment.V1.InheritedAutoUpgradeInfo
+  declinedTargetVersionUpgrade : Option Temporal.Api.History.V1.DeclinedTargetVersionUpgrade
+  timeSkippingStatePropagation : Option Temporal.Api.Common.V1.TimeSkippingStatePropagation
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UpdateWorkflowExecutionRequest where
+structure UpdateWorkflowExecutionRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionRequest
+  request : Option Temporal.Api.Workflowservice.V1.UpdateWorkflowExecutionRequest
   deriving Repr
 
-inductive Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationRequest_Operation_Operation where
+inductive ExecuteMultiOperationRequest.Operation.Operation where
   | notSet
-  | startWorkflow (value : Temporal_Server_Api_Historyservice_V1_StartWorkflowExecutionRequest)
-  | updateWorkflow (value : Temporal_Server_Api_Historyservice_V1_UpdateWorkflowExecutionRequest)
+  | startWorkflow (value : StartWorkflowExecutionRequest)
+  | updateWorkflow (value : UpdateWorkflowExecutionRequest)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationRequest_Operation where
-  operation : Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationRequest_Operation_Operation
+structure ExecuteMultiOperationRequest.Operation where
+  operation : ExecuteMultiOperationRequest.Operation.Operation
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationRequest where
+structure ExecuteMultiOperationRequest where
   namespaceId : String
   workflowId : String
-  operations : List Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationRequest_Operation
+  operations : List ExecuteMultiOperationRequest.Operation
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_StartWorkflowExecutionResponse where
+structure StartWorkflowExecutionResponse where
   runId : String
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  eagerWorkflowTask : Option Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueResponse
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  eagerWorkflowTask : Option Temporal.Api.Workflowservice.V1.PollWorkflowTaskQueueResponse
   started : Bool
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
-  link : Option Temporal_Api_Common_V1_Link
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
+  link : Option Temporal.Api.Common.V1.Link
   firstExecutionRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UpdateWorkflowExecutionResponse where
-  response : Option Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionResponse
+structure UpdateWorkflowExecutionResponse where
+  response : Option Temporal.Api.Workflowservice.V1.UpdateWorkflowExecutionResponse
   deriving Repr
 
-inductive Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationResponse_Response_Response where
+inductive ExecuteMultiOperationResponse.Response.Response where
   | notSet
-  | startWorkflow (value : Temporal_Server_Api_Historyservice_V1_StartWorkflowExecutionResponse)
-  | updateWorkflow (value : Temporal_Server_Api_Historyservice_V1_UpdateWorkflowExecutionResponse)
+  | startWorkflow (value : StartWorkflowExecutionResponse)
+  | updateWorkflow (value : UpdateWorkflowExecutionResponse)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationResponse_Response where
-  response : Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationResponse_Response_Response
+structure ExecuteMultiOperationResponse.Response where
+  response : ExecuteMultiOperationResponse.Response.Response
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationResponse where
-  responses : List Temporal_Server_Api_Historyservice_V1_ExecuteMultiOperationResponse_Response
+structure ExecuteMultiOperationResponse where
+  responses : List ExecuteMultiOperationResponse.Response
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ForceDeleteWorkflowExecutionRequest where
+structure ForceDeleteWorkflowExecutionRequest where
   namespaceId : String
   archetypeId : Nat
-  request : Option Temporal_Server_Api_Adminservice_V1_DeleteWorkflowExecutionRequest
+  request : Option Temporal.Server.Api.Adminservice.V1.DeleteWorkflowExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ForceDeleteWorkflowExecutionResponse where
-  response : Option Temporal_Server_Api_Adminservice_V1_DeleteWorkflowExecutionResponse
+structure ForceDeleteWorkflowExecutionResponse where
+  response : Option Temporal.Server.Api.Adminservice.V1.DeleteWorkflowExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GenerateLastHistoryReplicationTasksRequest where
+structure GenerateLastHistoryReplicationTasksRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   targetClusters : List String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GenerateLastHistoryReplicationTasksResponse where
+structure GenerateLastHistoryReplicationTasksResponse where
   stateTransitionCount : Int
   historyLength : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetDLQMessagesRequest where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+structure GetDLQMessagesRequest where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
   shardId : Int
   sourceCluster : String
   inclusiveEndMessageId : Int
@@ -9555,227 +10135,227 @@ structure Temporal_Server_Api_Historyservice_V1_GetDLQMessagesRequest where
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetDLQMessagesResponse where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
-  replicationTasks : List Temporal_Server_Api_Replication_V1_ReplicationTask
+structure GetDLQMessagesResponse where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
+  replicationTasks : List Temporal.Server.Api.Replication.V1.ReplicationTask
   nextPageToken : Temporal.Proto.Bytes
-  replicationTasksInfo : List Temporal_Server_Api_Replication_V1_ReplicationTaskInfo
+  replicationTasksInfo : List Temporal.Server.Api.Replication.V1.ReplicationTaskInfo
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetDLQReplicationMessagesRequest where
-  taskInfos : List Temporal_Server_Api_Replication_V1_ReplicationTaskInfo
+structure GetDLQReplicationMessagesRequest where
+  taskInfos : List Temporal.Server.Api.Replication.V1.ReplicationTaskInfo
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetDLQReplicationMessagesResponse where
-  replicationTasks : List Temporal_Server_Api_Replication_V1_ReplicationTask
+structure GetDLQReplicationMessagesResponse where
+  replicationTasks : List Temporal.Server.Api.Replication.V1.ReplicationTask
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetDLQTasksRequest where
-  dlqKey : Option Temporal_Server_Api_Common_V1_HistoryDLQKey
+structure GetDLQTasksRequest where
+  dlqKey : Option Temporal.Server.Api.Common.V1.HistoryDLQKey
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetDLQTasksResponse where
-  dlqTasks : List Temporal_Server_Api_Common_V1_HistoryDLQTask
+structure GetDLQTasksResponse where
+  dlqTasks : List Temporal.Server.Api.Common.V1.HistoryDLQTask
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetMutableStateRequest where
+structure GetMutableStateRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   expectedNextEventId : Int
   currentBranchToken : Temporal.Proto.Bytes
-  versionHistoryItem : Option Temporal_Server_Api_History_V1_VersionHistoryItem
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  versionHistoryItem : Option Temporal.Server.Api.History.V1.VersionHistoryItem
+  versionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetMutableStateResponse where
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+structure GetMutableStateResponse where
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   nextEventId : Int
   previousStartedEventId : Int
   lastFirstEventId : Int
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  stickyTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  stickyTaskQueueScheduleToStartTimeout : Option Google_Protobuf_Duration
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  stickyTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  stickyTaskQueueScheduleToStartTimeout : Option Google.Protobuf.Duration
   currentBranchToken : Temporal.Proto.Bytes
-  workflowState : Temporal_Server_Api_Enums_V1_WorkflowExecutionState
-  workflowStatus : Temporal_Api_Enums_V1_WorkflowExecutionStatus
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  workflowState : Temporal.Server.Api.Enums.V1.WorkflowExecutionState
+  workflowStatus : Temporal.Api.Enums.V1.WorkflowExecutionStatus
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   isStickyTaskQueueEnabled : Bool
   lastFirstEventTxnId : Int
   firstExecutionRunId : String
-  mostRecentWorkerVersionStamp : Option Temporal_Api_Common_V1_WorkerVersionStamp
+  mostRecentWorkerVersionStamp : Option Temporal.Api.Common.V1.WorkerVersionStamp
   assignedBuildId : String
   inheritedBuildId : String
-  transitionHistory : List Temporal_Server_Api_Persistence_V1_VersionedTransition
-  versioningInfo : Option Temporal_Api_Workflow_V1_WorkflowExecutionVersioningInfo
-  transientOrSpeculativeTasks : Option Temporal_Server_Api_History_V1_TransientWorkflowTaskInfo
+  transitionHistory : List Temporal.Server.Api.Persistence.V1.VersionedTransition
+  versioningInfo : Option Temporal.Api.Workflow.V1.WorkflowExecutionVersioningInfo
+  transientOrSpeculativeTasks : Option Temporal.Server.Api.History.V1.TransientWorkflowTaskInfo
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetReplicationMessagesRequest where
-  tokens : List Temporal_Server_Api_Replication_V1_ReplicationToken
+structure GetReplicationMessagesRequest where
+  tokens : List Temporal.Server.Api.Replication.V1.ReplicationToken
   clusterName : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetReplicationMessagesResponse where
-  shardMessages : List (Int × Temporal_Server_Api_Replication_V1_ReplicationMessages)
+structure GetReplicationMessagesResponse where
+  shardMessages : List (Int × Temporal.Server.Api.Replication.V1.ReplicationMessages)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetReplicationStatusRequest where
+structure GetReplicationStatusRequest where
   remoteClusters : List String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_HandoverNamespaceInfo where
+structure HandoverNamespaceInfo where
   handoverReplicationTaskId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ShardReplicationStatusPerCluster where
+structure ShardReplicationStatusPerCluster where
   ackedTaskId : Int
-  ackedTaskVisibilityTime : Option Google_Protobuf_Timestamp
+  ackedTaskVisibilityTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ShardReplicationStatus where
+structure ShardReplicationStatus where
   shardId : Int
   maxReplicationTaskId : Int
-  shardLocalTime : Option Google_Protobuf_Timestamp
-  remoteClusters : List (String × Temporal_Server_Api_Historyservice_V1_ShardReplicationStatusPerCluster)
-  handoverNamespaces : List (String × Temporal_Server_Api_Historyservice_V1_HandoverNamespaceInfo)
-  maxReplicationTaskVisibilityTime : Option Google_Protobuf_Timestamp
+  shardLocalTime : Option Google.Protobuf.Timestamp
+  remoteClusters : List (String × ShardReplicationStatusPerCluster)
+  handoverNamespaces : List (String × HandoverNamespaceInfo)
+  maxReplicationTaskVisibilityTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetReplicationStatusResponse where
-  shards : List Temporal_Server_Api_Historyservice_V1_ShardReplicationStatus
+structure GetReplicationStatusResponse where
+  shards : List ShardReplicationStatus
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetShardRequest where
+structure GetShardRequest where
   shardId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetShardResponse where
-  shardInfo : Option Temporal_Server_Api_Persistence_V1_ShardInfo
+structure GetShardResponse where
+  shardInfo : Option Temporal.Server.Api.Persistence.V1.ShardInfo
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionHistoryRequest where
+structure GetWorkflowExecutionHistoryRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryRequest
+  request : Option Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionHistoryResponse where
-  response : Option Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryResponse
-  history : Option Temporal_Api_History_V1_History
+structure GetWorkflowExecutionHistoryResponse where
+  response : Option Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryResponse
+  history : Option Temporal.Api.History.V1.History
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionHistoryResponseWithRaw where
-  response : Option Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryResponse
+structure GetWorkflowExecutionHistoryResponseWithRaw where
+  response : Option Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryResponse
   history : List Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionHistoryReverseRequest where
+structure GetWorkflowExecutionHistoryReverseRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryReverseRequest
+  request : Option Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryReverseRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionHistoryReverseResponse where
-  response : Option Temporal_Api_Workflowservice_V1_GetWorkflowExecutionHistoryReverseResponse
+structure GetWorkflowExecutionHistoryReverseResponse where
+  response : Option Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryReverseResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionRawHistoryRequest where
+structure GetWorkflowExecutionRawHistoryRequest where
   namespaceId : String
-  request : Option Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryRequest
+  request : Option Temporal.Server.Api.Adminservice.V1.GetWorkflowExecutionRawHistoryRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionRawHistoryResponse where
-  response : Option Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryResponse
+structure GetWorkflowExecutionRawHistoryResponse where
+  response : Option Temporal.Server.Api.Adminservice.V1.GetWorkflowExecutionRawHistoryResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionRawHistoryV2Request where
+structure GetWorkflowExecutionRawHistoryV2Request where
   namespaceId : String
-  request : Option Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryV2Request
+  request : Option Temporal.Server.Api.Adminservice.V1.GetWorkflowExecutionRawHistoryV2Request
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_GetWorkflowExecutionRawHistoryV2Response where
-  response : Option Temporal_Server_Api_Adminservice_V1_GetWorkflowExecutionRawHistoryV2Response
+structure GetWorkflowExecutionRawHistoryV2Response where
+  response : Option Temporal.Server.Api.Adminservice.V1.GetWorkflowExecutionRawHistoryV2Response
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ImportWorkflowExecutionRequest where
+structure ImportWorkflowExecutionRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  historyBatches : List Temporal_Api_Common_V1_DataBlob
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  historyBatches : List Temporal.Api.Common.V1.DataBlob
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
   token : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ImportWorkflowExecutionResponse where
+structure ImportWorkflowExecutionResponse where
   token : Temporal.Proto.Bytes
   eventsApplied : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_InvokeStateMachineMethodRequest where
+structure InvokeStateMachineMethodRequest where
   namespaceId : String
   workflowId : String
   runId : String
-  ref : Option Temporal_Server_Api_Persistence_V1_StateMachineRef
+  ref : Option Temporal.Server.Api.Persistence.V1.StateMachineRef
   methodName : String
   input : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_InvokeStateMachineMethodResponse where
+structure InvokeStateMachineMethodResponse where
   output : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_IsActivityTaskValidRequest where
+structure IsActivityTaskValidRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   scheduledEventId : Int
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_IsActivityTaskValidResponse where
+structure IsActivityTaskValidResponse where
   isValid : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_IsWorkflowTaskValidRequest where
+structure IsWorkflowTaskValidRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   scheduledEventId : Int
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_IsWorkflowTaskValidResponse where
+structure IsWorkflowTaskValidResponse where
   isValid : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ListQueuesRequest where
+structure ListQueuesRequest where
   queueType : Int
   pageSize : Int
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ListQueuesResponse_QueueInfo where
+structure ListQueuesResponse.QueueInfo where
   queueName : String
   messageCount : Int
   lastMessageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ListQueuesResponse where
-  queues : List Temporal_Server_Api_Historyservice_V1_ListQueuesResponse_QueueInfo
+structure ListQueuesResponse where
+  queues : List ListQueuesResponse.QueueInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ListTasksRequest where
-  request : Option Temporal_Server_Api_Adminservice_V1_ListHistoryTasksRequest
+structure ListTasksRequest where
+  request : Option Temporal.Server.Api.Adminservice.V1.ListHistoryTasksRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ListTasksResponse where
-  response : Option Temporal_Server_Api_Adminservice_V1_ListHistoryTasksResponse
+structure ListTasksResponse where
+  response : Option Temporal.Server.Api.Adminservice.V1.ListHistoryTasksResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_MergeDLQMessagesRequest where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+structure MergeDLQMessagesRequest where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
   shardId : Int
   sourceCluster : String
   inclusiveEndMessageId : Int
@@ -9783,376 +10363,384 @@ structure Temporal_Server_Api_Historyservice_V1_MergeDLQMessagesRequest where
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_MergeDLQMessagesResponse where
+structure MergeDLQMessagesResponse where
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PauseActivityRequest where
+structure PauseActivityRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_PauseActivityRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.PauseActivityRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PauseActivityResponse where
+structure PauseActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PauseWorkflowExecutionRequest where
+structure PauseWorkflowExecutionRequest where
   namespaceId : String
-  pauseRequest : Option Temporal_Api_Workflowservice_V1_PauseWorkflowExecutionRequest
+  pauseRequest : Option Temporal.Api.Workflowservice.V1.PauseWorkflowExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PauseWorkflowExecutionResponse where
+structure PauseWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PollMutableStateRequest where
+structure PollMutableStateRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   expectedNextEventId : Int
   currentBranchToken : Temporal.Proto.Bytes
-  versionHistoryItem : Option Temporal_Server_Api_History_V1_VersionHistoryItem
+  versionHistoryItem : Option Temporal.Server.Api.History.V1.VersionHistoryItem
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PollMutableStateResponse where
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+structure PollMutableStateResponse where
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   nextEventId : Int
   previousStartedEventId : Int
   lastFirstEventId : Int
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  stickyTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  stickyTaskQueueScheduleToStartTimeout : Option Google_Protobuf_Duration
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  stickyTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  stickyTaskQueueScheduleToStartTimeout : Option Google.Protobuf.Duration
   currentBranchToken : Temporal.Proto.Bytes
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
-  workflowState : Temporal_Server_Api_Enums_V1_WorkflowExecutionState
-  workflowStatus : Temporal_Api_Enums_V1_WorkflowExecutionStatus
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
+  workflowState : Temporal.Server.Api.Enums.V1.WorkflowExecutionState
+  workflowStatus : Temporal.Api.Enums.V1.WorkflowExecutionStatus
   lastFirstEventTxnId : Int
   firstExecutionRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PollWorkflowExecutionTimeSkippingRequest where
+structure PollWorkflowExecutionTimeSkippingRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_PollWorkflowExecutionTimeSkippingRequest
+  request : Option Temporal.Api.Workflowservice.V1.PollWorkflowExecutionTimeSkippingRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PollWorkflowExecutionTimeSkippingResponse where
-  response : Option Temporal_Api_Workflowservice_V1_PollWorkflowExecutionTimeSkippingResponse
+structure PollWorkflowExecutionTimeSkippingResponse where
+  response : Option Temporal.Api.Workflowservice.V1.PollWorkflowExecutionTimeSkippingResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PollWorkflowExecutionUpdateRequest where
+structure PollWorkflowExecutionUpdateRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_PollWorkflowExecutionUpdateRequest
+  request : Option Temporal.Api.Workflowservice.V1.PollWorkflowExecutionUpdateRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PollWorkflowExecutionUpdateResponse where
-  response : Option Temporal_Api_Workflowservice_V1_PollWorkflowExecutionUpdateResponse
+structure PollWorkflowExecutionUpdateResponse where
+  response : Option Temporal.Api.Workflowservice.V1.PollWorkflowExecutionUpdateResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PurgeDLQMessagesRequest where
-  type : Temporal_Server_Api_Enums_V1_DeadLetterQueueType
+structure PurgeDLQMessagesRequest where
+  type : Temporal.Server.Api.Enums.V1.DeadLetterQueueType
   shardId : Int
   sourceCluster : String
   inclusiveEndMessageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_PurgeDLQMessagesResponse where
+structure PurgeDLQMessagesResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_QueryWorkflowRequest where
+structure QueryWorkflowRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_QueryWorkflowRequest
+  request : Option Temporal.Api.Workflowservice.V1.QueryWorkflowRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_QueryWorkflowResponse where
-  response : Option Temporal_Api_Workflowservice_V1_QueryWorkflowResponse
+structure QueryWorkflowResponse where
+  response : Option Temporal.Api.Workflowservice.V1.QueryWorkflowResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ReapplyEventsRequest where
+structure ReapplyEventsRequest where
   namespaceId : String
-  request : Option Temporal_Server_Api_Adminservice_V1_ReapplyEventsRequest
+  request : Option Temporal.Server.Api.Adminservice.V1.ReapplyEventsRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ReapplyEventsResponse where
+structure ReapplyEventsResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RebuildMutableStateRequest where
+structure RebuildMutableStateRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RebuildMutableStateResponse where
+structure RebuildMutableStateResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordActivityTaskHeartbeatRequest where
+structure RecordActivityTaskHeartbeatRequest where
   namespaceId : String
-  heartbeatRequest : Option Temporal_Api_Workflowservice_V1_RecordActivityTaskHeartbeatRequest
+  heartbeatRequest : Option Temporal.Api.Workflowservice.V1.RecordActivityTaskHeartbeatRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordActivityTaskHeartbeatResponse where
+structure RecordActivityTaskHeartbeatResponse where
   cancelRequested : Bool
   activityPaused : Bool
   activityReset : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_BuildIdRedirectInfo where
+end Temporal.Server.Api.Historyservice.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+structure BuildIdRedirectInfo where
   assignedBuildId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordActivityTaskStartedRequest where
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Historyservice.V1
+
+structure RecordActivityTaskStartedRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   scheduledEventId : Int
   requestId : String
-  pollRequest : Option Temporal_Api_Workflowservice_V1_PollActivityTaskQueueRequest
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  buildIdRedirectInfo : Option Temporal_Server_Api_Taskqueue_V1_BuildIdRedirectInfo
+  pollRequest : Option Temporal.Api.Workflowservice.V1.PollActivityTaskQueueRequest
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  buildIdRedirectInfo : Option Temporal.Server.Api.Taskqueue.V1.BuildIdRedirectInfo
   stamp : Int
-  scheduledDeployment : Option Temporal_Api_Deployment_V1_Deployment
-  versionDirective : Option Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective
+  scheduledDeployment : Option Temporal.Api.Deployment.V1.Deployment
+  versionDirective : Option Temporal.Server.Api.Taskqueue.V1.TaskVersionDirective
   taskDispatchRevisionNumber : Int
   componentRef : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordActivityTaskStartedResponse where
-  scheduledEvent : Option Temporal_Api_History_V1_HistoryEvent
-  startedTime : Option Google_Protobuf_Timestamp
+structure RecordActivityTaskStartedResponse where
+  scheduledEvent : Option Temporal.Api.History.V1.HistoryEvent
+  startedTime : Option Google.Protobuf.Timestamp
   attempt : Int
-  currentAttemptScheduledTime : Option Google_Protobuf_Timestamp
-  heartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  currentAttemptScheduledTime : Option Google.Protobuf.Timestamp
+  heartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   workflowNamespace : String
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   version : Int
-  priority : Option Temporal_Api_Common_V1_Priority
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  priority : Option Temporal.Api.Common.V1.Priority
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   startVersion : Int
   activityRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordChildExecutionCompletedRequest where
+structure RecordChildExecutionCompletedRequest where
   namespaceId : String
-  parentExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  parentExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   parentInitiatedId : Int
-  childExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  completionEvent : Option Temporal_Api_History_V1_HistoryEvent
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  childExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  completionEvent : Option Temporal.Api.History.V1.HistoryEvent
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   parentInitiatedVersion : Int
   childFirstExecutionRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordChildExecutionCompletedResponse where
+structure RecordChildExecutionCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordWorkflowTaskStartedRequest where
+structure RecordWorkflowTaskStartedRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   scheduledEventId : Int
   requestId : String
-  pollRequest : Option Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueRequest
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  buildIdRedirectInfo : Option Temporal_Server_Api_Taskqueue_V1_BuildIdRedirectInfo
-  scheduledDeployment : Option Temporal_Api_Deployment_V1_Deployment
-  versionDirective : Option Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective
+  pollRequest : Option Temporal.Api.Workflowservice.V1.PollWorkflowTaskQueueRequest
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  buildIdRedirectInfo : Option Temporal.Server.Api.Taskqueue.V1.BuildIdRedirectInfo
+  scheduledDeployment : Option Temporal.Api.Deployment.V1.Deployment
+  versionDirective : Option Temporal.Server.Api.Taskqueue.V1.TaskVersionDirective
   stamp : Int
   taskDispatchRevisionNumber : Int
-  targetDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  targetDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordWorkflowTaskStartedResponse where
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+structure RecordWorkflowTaskStartedResponse where
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   previousStartedEventId : Int
   scheduledEventId : Int
   startedEventId : Int
   nextEventId : Int
   attempt : Int
   stickyExecutionEnabled : Bool
-  transientWorkflowTask : Option Temporal_Server_Api_History_V1_TransientWorkflowTaskInfo
-  workflowExecutionTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  transientWorkflowTask : Option Temporal.Server.Api.History.V1.TransientWorkflowTaskInfo
+  workflowExecutionTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   branchToken : Temporal.Proto.Bytes
-  scheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
-  queries : List (String × Temporal_Api_Query_V1_WorkflowQuery)
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  messages : List Temporal_Api_Protocol_V1_Message
+  scheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
+  queries : List (String × Temporal.Api.Query.V1.WorkflowQuery)
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  messages : List Temporal.Api.Protocol.V1.Message
   version : Int
-  history : Option Temporal_Api_History_V1_History
+  history : Option Temporal.Api.History.V1.History
   nextPageToken : Temporal.Proto.Bytes
-  rawHistory : Option Temporal_Api_History_V1_History
+  rawHistory : Option Temporal.Api.History.V1.History
   rawHistoryBytes : List Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RecordWorkflowTaskStartedResponseWithRawHistory where
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+structure RecordWorkflowTaskStartedResponseWithRawHistory where
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   previousStartedEventId : Int
   scheduledEventId : Int
   startedEventId : Int
   nextEventId : Int
   attempt : Int
   stickyExecutionEnabled : Bool
-  transientWorkflowTask : Option Temporal_Server_Api_History_V1_TransientWorkflowTaskInfo
-  workflowExecutionTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  transientWorkflowTask : Option Temporal.Server.Api.History.V1.TransientWorkflowTaskInfo
+  workflowExecutionTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   branchToken : Temporal.Proto.Bytes
-  scheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
-  queries : List (String × Temporal_Api_Query_V1_WorkflowQuery)
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  messages : List Temporal_Api_Protocol_V1_Message
+  scheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
+  queries : List (String × Temporal.Api.Query.V1.WorkflowQuery)
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  messages : List Temporal.Api.Protocol.V1.Message
   version : Int
-  history : Option Temporal_Api_History_V1_History
+  history : Option Temporal.Api.History.V1.History
   nextPageToken : Temporal.Proto.Bytes
   rawHistory : List Temporal.Proto.Bytes
   rawHistoryBytes : List Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RefreshWorkflowTasksRequest where
+structure RefreshWorkflowTasksRequest where
   namespaceId : String
   archetypeId : Nat
-  request : Option Temporal_Server_Api_Adminservice_V1_RefreshWorkflowTasksRequest
+  request : Option Temporal.Server.Api.Adminservice.V1.RefreshWorkflowTasksRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RefreshWorkflowTasksResponse where
+structure RefreshWorkflowTasksResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RemoveSignalMutableStateRequest where
+structure RemoveSignalMutableStateRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RemoveSignalMutableStateResponse where
+structure RemoveSignalMutableStateResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RemoveTaskRequest where
+structure RemoveTaskRequest where
   shardId : Int
   category : Int
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RemoveTaskResponse where
+structure RemoveTaskResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ReplicateEventsV2Request where
+structure ReplicateEventsV2Request where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  versionHistoryItems : List Temporal_Server_Api_History_V1_VersionHistoryItem
-  events : Option Temporal_Api_Common_V1_DataBlob
-  newRunEvents : Option Temporal_Api_Common_V1_DataBlob
-  baseExecutionInfo : Option Temporal_Server_Api_Workflow_V1_BaseExecutionInfo
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  versionHistoryItems : List Temporal.Server.Api.History.V1.VersionHistoryItem
+  events : Option Temporal.Api.Common.V1.DataBlob
+  newRunEvents : Option Temporal.Api.Common.V1.DataBlob
+  baseExecutionInfo : Option Temporal.Server.Api.Workflow.V1.BaseExecutionInfo
   newRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ReplicateEventsV2Response where
+structure ReplicateEventsV2Response where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ReplicateWorkflowStateRequest where
-  workflowState : Option Temporal_Server_Api_Persistence_V1_WorkflowMutableState
+structure ReplicateWorkflowStateRequest where
+  workflowState : Option Temporal.Server.Api.Persistence.V1.WorkflowMutableState
   remoteCluster : String
   namespaceId : String
   isForceReplication : Bool
   isCloseTransferTaskAcked : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ReplicateWorkflowStateResponse where
+structure ReplicateWorkflowStateResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RequestCancelWorkflowExecutionRequest where
+structure RequestCancelWorkflowExecutionRequest where
   namespaceId : String
-  cancelRequest : Option Temporal_Api_Workflowservice_V1_RequestCancelWorkflowExecutionRequest
+  cancelRequest : Option Temporal.Api.Workflowservice.V1.RequestCancelWorkflowExecutionRequest
   externalInitiatedEventId : Int
-  externalWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  externalWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   childWorkflowOnly : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RequestCancelWorkflowExecutionResponse where
+structure RequestCancelWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ResetActivityRequest where
+structure ResetActivityRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_ResetActivityRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.ResetActivityRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ResetActivityResponse where
+structure ResetActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ResetStickyTaskQueueRequest where
+structure ResetStickyTaskQueueRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ResetStickyTaskQueueResponse where
+structure ResetStickyTaskQueueResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ResetWorkflowExecutionRequest where
+structure ResetWorkflowExecutionRequest where
   namespaceId : String
-  resetRequest : Option Temporal_Api_Workflowservice_V1_ResetWorkflowExecutionRequest
+  resetRequest : Option Temporal.Api.Workflowservice.V1.ResetWorkflowExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ResetWorkflowExecutionResponse where
+structure ResetWorkflowExecutionResponse where
   runId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondActivityTaskCanceledRequest where
+structure RespondActivityTaskCanceledRequest where
   namespaceId : String
-  cancelRequest : Option Temporal_Api_Workflowservice_V1_RespondActivityTaskCanceledRequest
+  cancelRequest : Option Temporal.Api.Workflowservice.V1.RespondActivityTaskCanceledRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondActivityTaskCanceledResponse where
+structure RespondActivityTaskCanceledResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondActivityTaskCompletedRequest where
+structure RespondActivityTaskCompletedRequest where
   namespaceId : String
-  completeRequest : Option Temporal_Api_Workflowservice_V1_RespondActivityTaskCompletedRequest
+  completeRequest : Option Temporal.Api.Workflowservice.V1.RespondActivityTaskCompletedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondActivityTaskCompletedResponse where
+structure RespondActivityTaskCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondActivityTaskFailedRequest where
+structure RespondActivityTaskFailedRequest where
   namespaceId : String
-  failedRequest : Option Temporal_Api_Workflowservice_V1_RespondActivityTaskFailedRequest
+  failedRequest : Option Temporal.Api.Workflowservice.V1.RespondActivityTaskFailedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondActivityTaskFailedResponse where
+structure RespondActivityTaskFailedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondWorkflowTaskCompletedRequest where
+structure RespondWorkflowTaskCompletedRequest where
   namespaceId : String
-  completeRequest : Option Temporal_Api_Workflowservice_V1_RespondWorkflowTaskCompletedRequest
+  completeRequest : Option Temporal.Api.Workflowservice.V1.RespondWorkflowTaskCompletedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondWorkflowTaskCompletedResponse where
-  startedResponse : Option Temporal_Server_Api_Historyservice_V1_RecordWorkflowTaskStartedResponse
-  activityTasks : List Temporal_Api_Workflowservice_V1_PollActivityTaskQueueResponse
+structure RespondWorkflowTaskCompletedResponse where
+  startedResponse : Option RecordWorkflowTaskStartedResponse
+  activityTasks : List Temporal.Api.Workflowservice.V1.PollActivityTaskQueueResponse
   resetHistoryEventId : Int
-  newWorkflowTask : Option Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueResponse
+  newWorkflowTask : Option Temporal.Api.Workflowservice.V1.PollWorkflowTaskQueueResponse
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondWorkflowTaskFailedRequest where
+structure RespondWorkflowTaskFailedRequest where
   namespaceId : String
-  failedRequest : Option Temporal_Api_Workflowservice_V1_RespondWorkflowTaskFailedRequest
+  failedRequest : Option Temporal.Api.Workflowservice.V1.RespondWorkflowTaskFailedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RespondWorkflowTaskFailedResponse where
+structure RespondWorkflowTaskFailedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_RoutingOptions where
+structure RoutingOptions where
   custom : Bool
   anyHost : Bool
   shardId : String
@@ -10163,1245 +10751,1277 @@ structure Temporal_Server_Api_Historyservice_V1_RoutingOptions where
   chasmComponentRef : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ScheduleWorkflowTaskRequest where
+structure ScheduleWorkflowTaskRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   isFirstWorkflowTask : Bool
-  childClock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  parentClock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  childClock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  parentClock : Option Temporal.Server.Api.Clock.V1.VectorClock
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_ScheduleWorkflowTaskResponse where
+structure ScheduleWorkflowTaskResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SignalWithStartWorkflowExecutionRequest where
+structure SignalWithStartWorkflowExecutionRequest where
   namespaceId : String
-  signalWithStartRequest : Option Temporal_Api_Workflowservice_V1_SignalWithStartWorkflowExecutionRequest
+  signalWithStartRequest : Option Temporal.Api.Workflowservice.V1.SignalWithStartWorkflowExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SignalWithStartWorkflowExecutionResponse where
+structure SignalWithStartWorkflowExecutionResponse where
   runId : String
   started : Bool
-  signalLink : Option Temporal_Api_Common_V1_Link
+  signalLink : Option Temporal.Api.Common.V1.Link
   firstExecutionRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SignalWorkflowExecutionRequest where
+structure SignalWorkflowExecutionRequest where
   namespaceId : String
-  signalRequest : Option Temporal_Api_Workflowservice_V1_SignalWorkflowExecutionRequest
-  externalWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  signalRequest : Option Temporal.Api.Workflowservice.V1.SignalWorkflowExecutionRequest
+  externalWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   childWorkflowOnly : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SignalWorkflowExecutionResponse where
-  link : Option Temporal_Api_Common_V1_Link
+structure SignalWorkflowExecutionResponse where
+  link : Option Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_StartNexusOperationRequest where
+structure StartNexusOperationRequest where
   namespaceId : String
   shardId : Int
-  request : Option Temporal_Api_Nexus_V1_StartOperationRequest
+  request : Option Temporal.Api.Nexus.V1.StartOperationRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_StartNexusOperationResponse where
-  response : Option Temporal_Api_Nexus_V1_StartOperationResponse
+structure StartNexusOperationResponse where
+  response : Option Temporal.Api.Nexus.V1.StartOperationResponse
   deriving Repr
 
-inductive Temporal_Server_Api_Historyservice_V1_StreamWorkflowReplicationMessagesRequest_Attributes where
+inductive StreamWorkflowReplicationMessagesRequest.Attributes where
   | notSet
-  | syncReplicationState (value : Temporal_Server_Api_Replication_V1_SyncReplicationState)
+  | syncReplicationState (value : Temporal.Server.Api.Replication.V1.SyncReplicationState)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_StreamWorkflowReplicationMessagesRequest where
-  attributes : Temporal_Server_Api_Historyservice_V1_StreamWorkflowReplicationMessagesRequest_Attributes
+structure StreamWorkflowReplicationMessagesRequest where
+  attributes : StreamWorkflowReplicationMessagesRequest.Attributes
   deriving Repr
 
-inductive Temporal_Server_Api_Historyservice_V1_StreamWorkflowReplicationMessagesResponse_Attributes where
+inductive StreamWorkflowReplicationMessagesResponse.Attributes where
   | notSet
-  | messages (value : Temporal_Server_Api_Replication_V1_WorkflowReplicationMessages)
+  | messages (value : Temporal.Server.Api.Replication.V1.WorkflowReplicationMessages)
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_StreamWorkflowReplicationMessagesResponse where
-  attributes : Temporal_Server_Api_Historyservice_V1_StreamWorkflowReplicationMessagesResponse_Attributes
+structure StreamWorkflowReplicationMessagesResponse where
+  attributes : StreamWorkflowReplicationMessagesResponse.Attributes
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncActivitiesRequest where
+structure SyncActivitiesRequest where
   namespaceId : String
   workflowId : String
   runId : String
-  activitiesInfo : List Temporal_Server_Api_Historyservice_V1_ActivitySyncInfo
+  activitiesInfo : List ActivitySyncInfo
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncActivityRequest where
+structure SyncActivityRequest where
   namespaceId : String
   workflowId : String
   runId : String
   version : Int
   scheduledEventId : Int
-  scheduledTime : Option Google_Protobuf_Timestamp
+  scheduledTime : Option Google.Protobuf.Timestamp
   startedEventId : Int
-  startedTime : Option Google_Protobuf_Timestamp
-  lastHeartbeatTime : Option Google_Protobuf_Timestamp
-  details : Option Temporal_Api_Common_V1_Payloads
+  startedTime : Option Google.Protobuf.Timestamp
+  lastHeartbeatTime : Option Google.Protobuf.Timestamp
+  details : Option Temporal.Api.Common.V1.Payloads
   attempt : Int
-  lastFailure : Option Temporal_Api_Failure_V1_Failure
+  lastFailure : Option Temporal.Api.Failure.V1.Failure
   lastWorkerIdentity : String
-  versionHistory : Option Temporal_Server_Api_History_V1_VersionHistory
-  baseExecutionInfo : Option Temporal_Server_Api_Workflow_V1_BaseExecutionInfo
+  versionHistory : Option Temporal.Server.Api.History.V1.VersionHistory
+  baseExecutionInfo : Option Temporal.Server.Api.Workflow.V1.BaseExecutionInfo
   lastStartedBuildId : String
   lastStartedRedirectCounter : Int
-  firstScheduledTime : Option Google_Protobuf_Timestamp
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
+  firstScheduledTime : Option Google.Protobuf.Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
   stamp : Int
   paused : Bool
-  retryInitialInterval : Option Google_Protobuf_Duration
-  retryMaximumInterval : Option Google_Protobuf_Duration
+  retryInitialInterval : Option Google.Protobuf.Duration
+  retryMaximumInterval : Option Google.Protobuf.Duration
   retryMaximumAttempts : Int
   retryBackoffCoefficient : Float
   startVersion : Int
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncActivityResponse where
+structure SyncActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncShardStatusRequest where
+structure SyncShardStatusRequest where
   sourceCluster : String
   shardId : Int
-  statusTime : Option Google_Protobuf_Timestamp
+  statusTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncShardStatusResponse where
+structure SyncShardStatusResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncWorkflowStateRequest where
+structure SyncWorkflowStateRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  versionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   targetClusterId : Int
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_SyncWorkflowStateResponse where
-  versionedTransitionArtifact : Option Temporal_Server_Api_Replication_V1_VersionedTransitionArtifact
+structure SyncWorkflowStateResponse where
+  versionedTransitionArtifact : Option Temporal.Server.Api.Replication.V1.VersionedTransitionArtifact
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_TerminateWorkflowExecutionRequest where
+structure TerminateWorkflowExecutionRequest where
   namespaceId : String
-  terminateRequest : Option Temporal_Api_Workflowservice_V1_TerminateWorkflowExecutionRequest
-  externalWorkflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  terminateRequest : Option Temporal.Api.Workflowservice.V1.TerminateWorkflowExecutionRequest
+  externalWorkflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   childWorkflowOnly : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_TerminateWorkflowExecutionResponse where
+structure TerminateWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UnpauseActivityRequest where
+structure UnpauseActivityRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_UnpauseActivityRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.UnpauseActivityRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UnpauseActivityResponse where
+structure UnpauseActivityResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UnpauseWorkflowExecutionRequest where
+structure UnpauseWorkflowExecutionRequest where
   namespaceId : String
-  unpauseRequest : Option Temporal_Api_Workflowservice_V1_UnpauseWorkflowExecutionRequest
+  unpauseRequest : Option Temporal.Api.Workflowservice.V1.UnpauseWorkflowExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UnpauseWorkflowExecutionResponse where
+structure UnpauseWorkflowExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UpdateActivityOptionsRequest where
+structure UpdateActivityOptionsRequest where
   namespaceId : String
-  updateRequest : Option Temporal_Api_Workflowservice_V1_UpdateActivityOptionsRequest
+  updateRequest : Option Temporal.Api.Workflowservice.V1.UpdateActivityOptionsRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UpdateActivityOptionsResponse where
-  activityOptions : Option Temporal_Api_Activity_V1_ActivityOptions
+structure UpdateActivityOptionsResponse where
+  activityOptions : Option Temporal.Api.Activity.V1.ActivityOptions
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UpdateWorkflowExecutionOptionsRequest where
+structure UpdateWorkflowExecutionOptionsRequest where
   namespaceId : String
-  updateRequest : Option Temporal_Api_Workflowservice_V1_UpdateWorkflowExecutionOptionsRequest
+  updateRequest : Option Temporal.Api.Workflowservice.V1.UpdateWorkflowExecutionOptionsRequest
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_UpdateWorkflowExecutionOptionsResponse where
-  workflowExecutionOptions : Option Temporal_Api_Workflow_V1_WorkflowExecutionOptions
-  updateTime : Option Google_Protobuf_Timestamp
+structure UpdateWorkflowExecutionOptionsResponse where
+  workflowExecutionOptions : Option Temporal.Api.Workflow.V1.WorkflowExecutionOptions
+  updateTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_VerifyChildExecutionCompletionRecordedRequest where
+structure VerifyChildExecutionCompletionRecordedRequest where
   namespaceId : String
-  parentExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  childExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  parentExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  childExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   parentInitiatedId : Int
   parentInitiatedVersion : Int
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   resendParent : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_VerifyChildExecutionCompletionRecordedResponse where
+structure VerifyChildExecutionCompletionRecordedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_VerifyFirstWorkflowTaskScheduledRequest where
+structure VerifyFirstWorkflowTaskScheduledRequest where
   namespaceId : String
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   deriving Repr
 
-structure Temporal_Server_Api_Historyservice_V1_VerifyFirstWorkflowTaskScheduledResponse where
+structure VerifyFirstWorkflowTaskScheduledResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_TaskForwardInfo where
+end Temporal.Server.Api.Historyservice.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+structure TaskForwardInfo where
   sourcePartition : String
-  taskSource : Temporal_Server_Api_Enums_V1_TaskSource
+  taskSource : Temporal.Server.Api.Enums.V1.TaskSource
   originPartition : String
-  createTime : Option Google_Protobuf_Timestamp
-  redirectInfo : Option Temporal_Server_Api_Taskqueue_V1_BuildIdRedirectInfo
+  createTime : Option Google.Protobuf.Timestamp
+  redirectInfo : Option BuildIdRedirectInfo
   dispatchBuildId : String
   dispatchVersionSet : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_AddActivityTaskRequest where
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Matchingservice.V1
+
+structure AddActivityTaskRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   scheduledEventId : Int
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  versionDirective : Option Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective
-  forwardInfo : Option Temporal_Server_Api_Taskqueue_V1_TaskForwardInfo
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  versionDirective : Option Temporal.Server.Api.Taskqueue.V1.TaskVersionDirective
+  forwardInfo : Option Temporal.Server.Api.Taskqueue.V1.TaskForwardInfo
   stamp : Int
-  priority : Option Temporal_Api_Common_V1_Priority
+  priority : Option Temporal.Api.Common.V1.Priority
   componentRef : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_AddActivityTaskResponse where
+structure AddActivityTaskResponse where
   assignedBuildId : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_AddWorkflowTaskRequest where
+structure AddWorkflowTaskRequest where
   namespaceId : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   scheduledEventId : Int
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
-  versionDirective : Option Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective
-  forwardInfo : Option Temporal_Server_Api_Taskqueue_V1_TaskForwardInfo
-  priority : Option Temporal_Api_Common_V1_Priority
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
+  versionDirective : Option Temporal.Server.Api.Taskqueue.V1.TaskVersionDirective
+  forwardInfo : Option Temporal.Server.Api.Taskqueue.V1.TaskForwardInfo
+  priority : Option Temporal.Api.Common.V1.Priority
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_AddWorkflowTaskResponse where
+structure AddWorkflowTaskResponse where
   assignedBuildId : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ApplyTaskQueueUserDataReplicationEventRequest where
+structure ApplyTaskQueueUserDataReplicationEventRequest where
   namespaceId : String
   taskQueue : String
-  userData : Option Temporal_Server_Api_Persistence_V1_TaskQueueUserData
+  userData : Option Temporal.Server.Api.Persistence.V1.TaskQueueUserData
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ApplyTaskQueueUserDataReplicationEventResponse where
+structure ApplyTaskQueueUserDataReplicationEventResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingPollRequest where
+structure CancelOutstandingPollRequest where
   namespaceId : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   pollerId : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingPollResponse where
+structure CancelOutstandingPollResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingWorkerPollsPartitionRequest_WorkerEntry where
+structure CancelOutstandingWorkerPollsPartitionRequest.WorkerEntry where
   workerInstanceKey : String
   workerIdentity : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingWorkerPollsPartitionRequest where
+structure CancelOutstandingWorkerPollsPartitionRequest where
   namespaceId : String
-  taskQueuePartition : Option Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
-  partitions : List Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
-  workers : List Temporal_Server_Api_Matchingservice_V1_CancelOutstandingWorkerPollsPartitionRequest_WorkerEntry
+  taskQueuePartition : Option Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
+  partitions : List Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
+  workers : List CancelOutstandingWorkerPollsPartitionRequest.WorkerEntry
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingWorkerPollsPartitionResponse where
+structure CancelOutstandingWorkerPollsPartitionResponse where
   cancelledCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingWorkerPollsRequest where
+structure CancelOutstandingWorkerPollsRequest where
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   workerInstanceKey : String
   workerIdentity : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CancelOutstandingWorkerPollsResponse where
+structure CancelOutstandingWorkerPollsResponse where
   cancelledCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CheckTaskQueueUserDataPropagationRequest where
+structure CheckTaskQueueUserDataPropagationRequest where
   namespaceId : String
   taskQueue : String
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CheckTaskQueueUserDataPropagationResponse where
+structure CheckTaskQueueUserDataPropagationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CheckTaskQueueVersionMembershipRequest where
+structure CheckTaskQueueVersionMembershipRequest where
   namespaceId : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
+  version : Option Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CheckTaskQueueVersionMembershipResponse where
+structure CheckTaskQueueVersionMembershipResponse where
   isMember : Bool
   shouldSkipReactivation : Bool
   revisionNumber : Int
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CountWorkersRequest where
+structure CountWorkersRequest where
   namespaceId : String
-  countRequest : Option Temporal_Api_Workflowservice_V1_CountWorkersRequest
+  countRequest : Option Temporal.Api.Workflowservice.V1.CountWorkersRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CountWorkersResponse where
+structure CountWorkersResponse where
   count : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusEndpointTarget_External where
+end Temporal.Server.Api.Matchingservice.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure NexusEndpointTarget.External where
   url : String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusEndpointTarget_Worker where
+structure NexusEndpointTarget.Worker where
   namespaceId : String
   taskQueue : String
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_NexusEndpointTarget_Variant where
+inductive NexusEndpointTarget.Variant where
   | notSet
-  | worker (value : Temporal_Server_Api_Persistence_V1_NexusEndpointTarget_Worker)
-  | external (value : Temporal_Server_Api_Persistence_V1_NexusEndpointTarget_External)
+  | worker (value : NexusEndpointTarget.Worker)
+  | external (value : NexusEndpointTarget.External)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusEndpointTarget where
-  variant : Temporal_Server_Api_Persistence_V1_NexusEndpointTarget_Variant
+structure NexusEndpointTarget where
+  variant : NexusEndpointTarget.Variant
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusEndpointSpec where
+structure NexusEndpointSpec where
   name : String
-  description : Option Temporal_Api_Common_V1_Payload
-  target : Option Temporal_Server_Api_Persistence_V1_NexusEndpointTarget
+  description : Option Temporal.Api.Common.V1.Payload
+  target : Option NexusEndpointTarget
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CreateNexusEndpointRequest where
-  spec : Option Temporal_Server_Api_Persistence_V1_NexusEndpointSpec
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Matchingservice.V1
+
+structure CreateNexusEndpointRequest where
+  spec : Option Temporal.Server.Api.Persistence.V1.NexusEndpointSpec
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusEndpoint where
-  clock : Option Temporal_Server_Api_Clock_V1_HybridLogicalClock
-  spec : Option Temporal_Server_Api_Persistence_V1_NexusEndpointSpec
-  createdTime : Option Google_Protobuf_Timestamp
+end Temporal.Server.Api.Matchingservice.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure NexusEndpoint where
+  clock : Option Temporal.Server.Api.Clock.V1.HybridLogicalClock
+  spec : Option NexusEndpointSpec
+  createdTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusEndpointEntry where
+structure NexusEndpointEntry where
   version : Int
   id : String
-  endpoint : Option Temporal_Server_Api_Persistence_V1_NexusEndpoint
+  endpoint : Option NexusEndpoint
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_CreateNexusEndpointResponse where
-  entry : Option Temporal_Server_Api_Persistence_V1_NexusEndpointEntry
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Matchingservice.V1
+
+structure CreateNexusEndpointResponse where
+  entry : Option Temporal.Server.Api.Persistence.V1.NexusEndpointEntry
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DeleteNexusEndpointRequest where
+structure DeleteNexusEndpointRequest where
   id : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DeleteNexusEndpointResponse where
+structure DeleteNexusEndpointResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeTaskQueuePartitionRequest where
+structure DescribeTaskQueuePartitionRequest where
   namespaceId : String
-  taskQueuePartition : Option Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
-  versions : Option Temporal_Api_Taskqueue_V1_TaskQueueVersionSelection
+  taskQueuePartition : Option Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
+  versions : Option Temporal.Api.Taskqueue.V1.TaskQueueVersionSelection
   reportStats : Bool
   reportPollers : Bool
   reportInternalTaskQueueStatus : Bool
   onlyIfLoaded : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeTaskQueuePartitionResponse where
-  versionsInfoInternal : List (String × Temporal_Server_Api_Taskqueue_V1_TaskQueueVersionInfoInternal)
-  scaleInfo : Option Temporal_Server_Api_Taskqueue_V1_PartitionScaleInfo
+structure DescribeTaskQueuePartitionResponse where
+  versionsInfoInternal : List (String × Temporal.Server.Api.Taskqueue.V1.TaskQueueVersionInfoInternal)
+  scaleInfo : Option Temporal.Server.Api.Taskqueue.V1.PartitionScaleInfo
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeTaskQueueRequest where
+structure DescribeTaskQueueRequest where
   namespaceId : String
-  descRequest : Option Temporal_Api_Workflowservice_V1_DescribeTaskQueueRequest
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
+  descRequest : Option Temporal.Api.Workflowservice.V1.DescribeTaskQueueRequest
+  version : Option Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersion
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeTaskQueueResponse where
-  descResponse : Option Temporal_Api_Workflowservice_V1_DescribeTaskQueueResponse
+structure DescribeTaskQueueResponse where
+  descResponse : Option Temporal.Api.Workflowservice.V1.DescribeTaskQueueResponse
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeVersionedTaskQueuesRequest_VersionTaskQueue where
+structure DescribeVersionedTaskQueuesRequest.VersionTaskQueue where
   name : String
-  type : Temporal_Api_Enums_V1_TaskQueueType
+  type : Temporal.Api.Enums.V1.TaskQueueType
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeVersionedTaskQueuesRequest where
+structure DescribeVersionedTaskQueuesRequest where
   namespaceId : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
-  versionTaskQueues : List Temporal_Server_Api_Matchingservice_V1_DescribeVersionedTaskQueuesRequest_VersionTaskQueue
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  version : Option Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersion
+  versionTaskQueues : List DescribeVersionedTaskQueuesRequest.VersionTaskQueue
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeVersionedTaskQueuesResponse_VersionTaskQueue where
+structure DescribeVersionedTaskQueuesResponse.VersionTaskQueue where
   name : String
-  type : Temporal_Api_Enums_V1_TaskQueueType
-  stats : Option Temporal_Api_Taskqueue_V1_TaskQueueStats
-  statsByPriorityKey : List (Int × Temporal_Api_Taskqueue_V1_TaskQueueStats)
+  type : Temporal.Api.Enums.V1.TaskQueueType
+  stats : Option Temporal.Api.Taskqueue.V1.TaskQueueStats
+  statsByPriorityKey : List (Int × Temporal.Api.Taskqueue.V1.TaskQueueStats)
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeVersionedTaskQueuesResponse where
-  versionTaskQueues : List Temporal_Server_Api_Matchingservice_V1_DescribeVersionedTaskQueuesResponse_VersionTaskQueue
+structure DescribeVersionedTaskQueuesResponse where
+  versionTaskQueues : List DescribeVersionedTaskQueuesResponse.VersionTaskQueue
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeWorkerRequest where
+structure DescribeWorkerRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_DescribeWorkerRequest
+  request : Option Temporal.Api.Workflowservice.V1.DescribeWorkerRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DescribeWorkerResponse where
-  workerInfo : Option Temporal_Api_Worker_V1_WorkerInfo
+structure DescribeWorkerResponse where
+  workerInfo : Option Temporal.Api.Worker.V1.WorkerInfo
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DispatchNexusTaskRequest where
+structure DispatchNexusTaskRequest where
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  request : Option Temporal_Api_Nexus_V1_Request
-  forwardInfo : Option Temporal_Server_Api_Taskqueue_V1_TaskForwardInfo
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  request : Option Temporal.Api.Nexus.V1.Request
+  forwardInfo : Option Temporal.Server.Api.Taskqueue.V1.TaskForwardInfo
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DispatchNexusTaskResponse_Timeout where
+structure DispatchNexusTaskResponse.Timeout where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Matchingservice_V1_DispatchNexusTaskResponse_Outcome where
+inductive DispatchNexusTaskResponse.Outcome where
   | notSet
-  | handlerError (value : Temporal_Api_Nexus_V1_HandlerError)
-  | response (value : Temporal_Api_Nexus_V1_Response)
-  | requestTimeout (value : Temporal_Server_Api_Matchingservice_V1_DispatchNexusTaskResponse_Timeout)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | handlerError (value : Temporal.Api.Nexus.V1.HandlerError)
+  | response (value : Temporal.Api.Nexus.V1.Response)
+  | requestTimeout (value : DispatchNexusTaskResponse.Timeout)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_DispatchNexusTaskResponse where
-  outcome : Temporal_Server_Api_Matchingservice_V1_DispatchNexusTaskResponse_Outcome
+structure DispatchNexusTaskResponse where
+  outcome : DispatchNexusTaskResponse.Outcome
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ForceLoadTaskQueuePartitionRequest where
+structure ForceLoadTaskQueuePartitionRequest where
   namespaceId : String
-  taskQueuePartition : Option Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
+  taskQueuePartition : Option Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ForceLoadTaskQueuePartitionResponse where
+structure ForceLoadTaskQueuePartitionResponse where
   wasUnloaded : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ForceUnloadTaskQueuePartitionRequest where
+structure ForceUnloadTaskQueuePartitionRequest where
   namespaceId : String
-  taskQueuePartition : Option Temporal_Server_Api_Taskqueue_V1_TaskQueuePartition
+  taskQueuePartition : Option Temporal.Server.Api.Taskqueue.V1.TaskQueuePartition
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ForceUnloadTaskQueuePartitionResponse where
+structure ForceUnloadTaskQueuePartitionResponse where
   wasLoaded : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ForceUnloadTaskQueueRequest where
+structure ForceUnloadTaskQueueRequest where
   namespaceId : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ForceUnloadTaskQueueResponse where
+structure ForceUnloadTaskQueueResponse where
   wasLoaded : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetBuildIdTaskQueueMappingRequest where
+structure GetBuildIdTaskQueueMappingRequest where
   namespaceId : String
   buildId : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetBuildIdTaskQueueMappingResponse where
+structure GetBuildIdTaskQueueMappingResponse where
   taskQueues : List String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetTaskQueueUserDataRequest where
+structure GetTaskQueueUserDataRequest where
   namespaceId : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
   lastKnownUserDataVersion : Int
   lastKnownEphemeralDataVersion : Int
   waitNewData : Bool
   onlyIfLoaded : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_VersionedTaskQueueUserData where
-  data : Option Temporal_Server_Api_Persistence_V1_TaskQueueUserData
+end Temporal.Server.Api.Matchingservice.V1
+
+namespace Temporal.Server.Api.Persistence.V1
+
+structure VersionedTaskQueueUserData where
+  data : Option TaskQueueUserData
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_EphemeralData_ByVersion where
-  version : Option Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+structure EphemeralData.ByVersion where
+  version : Option Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersion
   backlogPriorityLevels : Int
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_EphemeralData_ByPartition where
+structure EphemeralData.ByPartition where
   partition : Int
-  version : List Temporal_Server_Api_Taskqueue_V1_EphemeralData_ByVersion
+  version : List EphemeralData.ByVersion
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_EphemeralData where
-  partition : List Temporal_Server_Api_Taskqueue_V1_EphemeralData_ByPartition
-  scale : Option Temporal_Server_Api_Taskqueue_V1_PartitionScaleInfo
+structure EphemeralData where
+  partition : List EphemeralData.ByPartition
+  scale : Option PartitionScaleInfo
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_VersionedEphemeralData where
-  data : Option Temporal_Server_Api_Taskqueue_V1_EphemeralData
+structure VersionedEphemeralData where
+  data : Option EphemeralData
   version : Int
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetTaskQueueUserDataResponse where
-  userData : Option Temporal_Server_Api_Persistence_V1_VersionedTaskQueueUserData
-  ephemeralData : Option Temporal_Server_Api_Taskqueue_V1_VersionedEphemeralData
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Matchingservice.V1
+
+structure GetTaskQueueUserDataResponse where
+  userData : Option Temporal.Server.Api.Persistence.V1.VersionedTaskQueueUserData
+  ephemeralData : Option Temporal.Server.Api.Taskqueue.V1.VersionedEphemeralData
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetWorkerBuildIdCompatibilityRequest where
+structure GetWorkerBuildIdCompatibilityRequest where
   namespaceId : String
-  request : Option Temporal_Api_Workflowservice_V1_GetWorkerBuildIdCompatibilityRequest
+  request : Option Temporal.Api.Workflowservice.V1.GetWorkerBuildIdCompatibilityRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetWorkerBuildIdCompatibilityResponse where
-  response : Option Temporal_Api_Workflowservice_V1_GetWorkerBuildIdCompatibilityResponse
+structure GetWorkerBuildIdCompatibilityResponse where
+  response : Option Temporal.Api.Workflowservice.V1.GetWorkerBuildIdCompatibilityResponse
   deriving Repr
 
-inductive Temporal_Server_Api_Matchingservice_V1_GetWorkerVersioningRulesRequest_Command where
+inductive GetWorkerVersioningRulesRequest.Command where
   | notSet
-  | request (value : Temporal_Api_Workflowservice_V1_GetWorkerVersioningRulesRequest)
+  | request (value : Temporal.Api.Workflowservice.V1.GetWorkerVersioningRulesRequest)
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetWorkerVersioningRulesRequest where
+structure GetWorkerVersioningRulesRequest where
   namespaceId : String
   taskQueue : String
-  command : Temporal_Server_Api_Matchingservice_V1_GetWorkerVersioningRulesRequest_Command
+  command : GetWorkerVersioningRulesRequest.Command
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_GetWorkerVersioningRulesResponse where
-  response : Option Temporal_Api_Workflowservice_V1_GetWorkerVersioningRulesResponse
+structure GetWorkerVersioningRulesResponse where
+  response : Option Temporal.Api.Workflowservice.V1.GetWorkerVersioningRulesResponse
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ListNexusEndpointsRequest where
+structure ListNexusEndpointsRequest where
   nextPageToken : Temporal.Proto.Bytes
   pageSize : Int
   lastKnownTableVersion : Int
   wait : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ListNexusEndpointsResponse where
+structure ListNexusEndpointsResponse where
   nextPageToken : Temporal.Proto.Bytes
   tableVersion : Int
-  entries : List Temporal_Server_Api_Persistence_V1_NexusEndpointEntry
+  entries : List Temporal.Server.Api.Persistence.V1.NexusEndpointEntry
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ListTaskQueuePartitionsRequest where
+structure ListTaskQueuePartitionsRequest where
   namespaceValue : String
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ListTaskQueuePartitionsResponse where
-  activityTaskQueuePartitions : List Temporal_Api_Taskqueue_V1_TaskQueuePartitionMetadata
-  workflowTaskQueuePartitions : List Temporal_Api_Taskqueue_V1_TaskQueuePartitionMetadata
+structure ListTaskQueuePartitionsResponse where
+  activityTaskQueuePartitions : List Temporal.Api.Taskqueue.V1.TaskQueuePartitionMetadata
+  workflowTaskQueuePartitions : List Temporal.Api.Taskqueue.V1.TaskQueuePartitionMetadata
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ListWorkersRequest where
+structure ListWorkersRequest where
   namespaceId : String
-  listRequest : Option Temporal_Api_Workflowservice_V1_ListWorkersRequest
+  listRequest : Option Temporal.Api.Workflowservice.V1.ListWorkersRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ListWorkersResponse where
-  workersInfo : List Temporal_Api_Worker_V1_WorkerInfo
+structure ListWorkersResponse where
+  workersInfo : List Temporal.Api.Worker.V1.WorkerInfo
   nextPageToken : Temporal.Proto.Bytes
-  workers : List Temporal_Api_Worker_V1_WorkerListInfo
+  workers : List Temporal.Api.Worker.V1.WorkerListInfo
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollConditions where
+structure PollConditions where
   minPriority : Int
   noWait : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollActivityTaskQueueRequest where
+structure PollActivityTaskQueueRequest where
   namespaceId : String
   pollerId : String
-  pollRequest : Option Temporal_Api_Workflowservice_V1_PollActivityTaskQueueRequest
+  pollRequest : Option Temporal.Api.Workflowservice.V1.PollActivityTaskQueueRequest
   forwardedSource : String
-  conditions : Option Temporal_Server_Api_Matchingservice_V1_PollConditions
+  conditions : Option PollConditions
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollActivityTaskQueueResponse where
+structure PollActivityTaskQueueResponse where
   taskToken : Temporal.Proto.Bytes
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
   activityId : String
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  input : Option Temporal_Api_Common_V1_Payloads
-  scheduledTime : Option Google_Protobuf_Timestamp
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  startedTime : Option Google_Protobuf_Timestamp
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  input : Option Temporal.Api.Common.V1.Payloads
+  scheduledTime : Option Google.Protobuf.Timestamp
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  startedTime : Option Google.Protobuf.Timestamp
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
   attempt : Int
-  currentAttemptScheduledTime : Option Google_Protobuf_Timestamp
-  heartbeatDetails : Option Temporal_Api_Common_V1_Payloads
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  currentAttemptScheduledTime : Option Google.Protobuf.Timestamp
+  heartbeatDetails : Option Temporal.Api.Common.V1.Payloads
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   workflowNamespace : String
-  header : Option Temporal_Api_Common_V1_Header
-  pollerScalingDecision : Option Temporal_Api_Taskqueue_V1_PollerScalingDecision
-  priority : Option Temporal_Api_Common_V1_Priority
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
+  header : Option Temporal.Api.Common.V1.Header
+  pollerScalingDecision : Option Temporal.Api.Taskqueue.V1.PollerScalingDecision
+  priority : Option Temporal.Api.Common.V1.Priority
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
   activityRunId : String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollNexusTaskQueueRequest where
+structure PollNexusTaskQueueRequest where
   namespaceId : String
   pollerId : String
-  request : Option Temporal_Api_Workflowservice_V1_PollNexusTaskQueueRequest
+  request : Option Temporal.Api.Workflowservice.V1.PollNexusTaskQueueRequest
   forwardedSource : String
-  conditions : Option Temporal_Server_Api_Matchingservice_V1_PollConditions
+  conditions : Option PollConditions
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollNexusTaskQueueResponse where
-  response : Option Temporal_Api_Workflowservice_V1_PollNexusTaskQueueResponse
+structure PollNexusTaskQueueResponse where
+  response : Option Temporal.Api.Workflowservice.V1.PollNexusTaskQueueResponse
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollWorkflowTaskQueueRequest where
+structure PollWorkflowTaskQueueRequest where
   namespaceId : String
   pollerId : String
-  pollRequest : Option Temporal_Api_Workflowservice_V1_PollWorkflowTaskQueueRequest
+  pollRequest : Option Temporal.Api.Workflowservice.V1.PollWorkflowTaskQueueRequest
   forwardedSource : String
-  conditions : Option Temporal_Server_Api_Matchingservice_V1_PollConditions
+  conditions : Option PollConditions
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollWorkflowTaskQueueResponse where
+structure PollWorkflowTaskQueueResponse where
   taskToken : Temporal.Proto.Bytes
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   previousStartedEventId : Int
   startedEventId : Int
   attempt : Int
   nextEventId : Int
   backlogCountHint : Int
   stickyExecutionEnabled : Bool
-  query : Option Temporal_Api_Query_V1_WorkflowQuery
-  transientWorkflowTask : Option Temporal_Server_Api_History_V1_TransientWorkflowTaskInfo
-  workflowExecutionTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  query : Option Temporal.Api.Query.V1.WorkflowQuery
+  transientWorkflowTask : Option Temporal.Server.Api.History.V1.TransientWorkflowTaskInfo
+  workflowExecutionTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   branchToken : Temporal.Proto.Bytes
-  scheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
-  queries : List (String × Temporal_Api_Query_V1_WorkflowQuery)
-  messages : List Temporal_Api_Protocol_V1_Message
-  history : Option Temporal_Api_History_V1_History
+  scheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
+  queries : List (String × Temporal.Api.Query.V1.WorkflowQuery)
+  messages : List Temporal.Api.Protocol.V1.Message
+  history : Option Temporal.Api.History.V1.History
   nextPageToken : Temporal.Proto.Bytes
-  pollerScalingDecision : Option Temporal_Api_Taskqueue_V1_PollerScalingDecision
-  rawHistory : Option Temporal_Api_History_V1_History
+  pollerScalingDecision : Option Temporal.Api.Taskqueue.V1.PollerScalingDecision
+  rawHistory : Option Temporal.Api.History.V1.History
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_PollWorkflowTaskQueueResponseWithRawHistory where
+structure PollWorkflowTaskQueueResponseWithRawHistory where
   taskToken : Temporal.Proto.Bytes
-  workflowExecution : Option Temporal_Api_Common_V1_WorkflowExecution
-  workflowType : Option Temporal_Api_Common_V1_WorkflowType
+  workflowExecution : Option Temporal.Api.Common.V1.WorkflowExecution
+  workflowType : Option Temporal.Api.Common.V1.WorkflowType
   previousStartedEventId : Int
   startedEventId : Int
   attempt : Int
   nextEventId : Int
   backlogCountHint : Int
   stickyExecutionEnabled : Bool
-  query : Option Temporal_Api_Query_V1_WorkflowQuery
-  transientWorkflowTask : Option Temporal_Server_Api_History_V1_TransientWorkflowTaskInfo
-  workflowExecutionTaskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  query : Option Temporal.Api.Query.V1.WorkflowQuery
+  transientWorkflowTask : Option Temporal.Server.Api.History.V1.TransientWorkflowTaskInfo
+  workflowExecutionTaskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   branchToken : Temporal.Proto.Bytes
-  scheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
-  queries : List (String × Temporal_Api_Query_V1_WorkflowQuery)
-  messages : List Temporal_Api_Protocol_V1_Message
-  history : Option Temporal_Api_History_V1_History
+  scheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
+  queries : List (String × Temporal.Api.Query.V1.WorkflowQuery)
+  messages : List Temporal.Api.Protocol.V1.Message
+  history : Option Temporal.Api.History.V1.History
   nextPageToken : Temporal.Proto.Bytes
-  pollerScalingDecision : Option Temporal_Api_Taskqueue_V1_PollerScalingDecision
+  pollerScalingDecision : Option Temporal.Api.Taskqueue.V1.PollerScalingDecision
   rawHistory : List Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_QueryWorkflowRequest where
+structure QueryWorkflowRequest where
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  queryRequest : Option Temporal_Api_Workflowservice_V1_QueryWorkflowRequest
-  versionDirective : Option Temporal_Server_Api_Taskqueue_V1_TaskVersionDirective
-  forwardInfo : Option Temporal_Server_Api_Taskqueue_V1_TaskForwardInfo
-  priority : Option Temporal_Api_Common_V1_Priority
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  queryRequest : Option Temporal.Api.Workflowservice.V1.QueryWorkflowRequest
+  versionDirective : Option Temporal.Server.Api.Taskqueue.V1.TaskVersionDirective
+  forwardInfo : Option Temporal.Server.Api.Taskqueue.V1.TaskForwardInfo
+  priority : Option Temporal.Api.Common.V1.Priority
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_QueryWorkflowResponse where
-  queryResult : Option Temporal_Api_Common_V1_Payloads
-  queryRejected : Option Temporal_Api_Query_V1_QueryRejected
+structure QueryWorkflowResponse where
+  queryResult : Option Temporal.Api.Common.V1.Payloads
+  queryRejected : Option Temporal.Api.Query.V1.QueryRejected
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RecordWorkerHeartbeatRequest where
+structure RecordWorkerHeartbeatRequest where
   namespaceId : String
-  heartbeartRequest : Option Temporal_Api_Workflowservice_V1_RecordWorkerHeartbeatRequest
+  heartbeartRequest : Option Temporal.Api.Workflowservice.V1.RecordWorkerHeartbeatRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RecordWorkerHeartbeatResponse where
+structure RecordWorkerHeartbeatResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ReplicateTaskQueueUserDataRequest where
+structure ReplicateTaskQueueUserDataRequest where
   namespaceId : String
   taskQueue : String
-  userData : Option Temporal_Server_Api_Persistence_V1_TaskQueueUserData
+  userData : Option Temporal.Server.Api.Persistence.V1.TaskQueueUserData
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_ReplicateTaskQueueUserDataResponse where
+structure ReplicateTaskQueueUserDataResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RespondNexusTaskCompletedRequest where
+structure RespondNexusTaskCompletedRequest where
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   taskId : String
-  request : Option Temporal_Api_Workflowservice_V1_RespondNexusTaskCompletedRequest
+  request : Option Temporal.Api.Workflowservice.V1.RespondNexusTaskCompletedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RespondNexusTaskCompletedResponse where
+structure RespondNexusTaskCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RespondNexusTaskFailedRequest where
+structure RespondNexusTaskFailedRequest where
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   taskId : String
-  request : Option Temporal_Api_Workflowservice_V1_RespondNexusTaskFailedRequest
+  request : Option Temporal.Api.Workflowservice.V1.RespondNexusTaskFailedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RespondNexusTaskFailedResponse where
+structure RespondNexusTaskFailedResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RespondQueryTaskCompletedRequest where
+structure RespondQueryTaskCompletedRequest where
   namespaceId : String
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
   taskId : String
-  completedRequest : Option Temporal_Api_Workflowservice_V1_RespondQueryTaskCompletedRequest
+  completedRequest : Option Temporal.Api.Workflowservice.V1.RespondQueryTaskCompletedRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_RespondQueryTaskCompletedResponse where
+structure RespondQueryTaskCompletedResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Matchingservice_V1_SyncDeploymentUserDataRequest_Operation where
+inductive SyncDeploymentUserDataRequest.Operation where
   | notSet
-  | updateVersionData (value : Temporal_Server_Api_Deployment_V1_DeploymentVersionData)
-  | forgetVersion (value : Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersion)
+  | updateVersionData (value : Temporal.Server.Api.Deployment.V1.DeploymentVersionData)
+  | forgetVersion (value : Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersion)
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_SyncDeploymentUserDataRequest where
+structure SyncDeploymentUserDataRequest where
   namespaceId : String
   taskQueue : String
   deploymentName : String
-  taskQueueTypes : List Temporal_Api_Enums_V1_TaskQueueType
-  updateRoutingConfig : Option Temporal_Api_Deployment_V1_RoutingConfig
-  upsertVersionsData : List (String × Temporal_Server_Api_Deployment_V1_WorkerDeploymentVersionData)
+  taskQueueTypes : List Temporal.Api.Enums.V1.TaskQueueType
+  updateRoutingConfig : Option Temporal.Api.Deployment.V1.RoutingConfig
+  upsertVersionsData : List (String × Temporal.Server.Api.Deployment.V1.WorkerDeploymentVersionData)
   forgetVersions : List String
-  operation : Temporal_Server_Api_Matchingservice_V1_SyncDeploymentUserDataRequest_Operation
+  operation : SyncDeploymentUserDataRequest.Operation
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_SyncDeploymentUserDataResponse where
+structure SyncDeploymentUserDataResponse where
   version : Int
   routingConfigChanged : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateFairnessStateRequest where
+structure UpdateFairnessStateRequest where
   namespaceId : String
   taskQueue : String
-  taskQueueType : Temporal_Api_Enums_V1_TaskQueueType
-  fairnessState : Temporal_Server_Api_Enums_V1_FairnessState
+  taskQueueType : Temporal.Api.Enums.V1.TaskQueueType
+  fairnessState : Temporal.Server.Api.Enums.V1.FairnessState
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateFairnessStateResponse where
+structure UpdateFairnessStateResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateNexusEndpointRequest where
+structure UpdateNexusEndpointRequest where
   id : String
   version : Int
-  spec : Option Temporal_Server_Api_Persistence_V1_NexusEndpointSpec
+  spec : Option Temporal.Server.Api.Persistence.V1.NexusEndpointSpec
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateNexusEndpointResponse where
-  entry : Option Temporal_Server_Api_Persistence_V1_NexusEndpointEntry
+structure UpdateNexusEndpointResponse where
+  entry : Option Temporal.Server.Api.Persistence.V1.NexusEndpointEntry
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateTaskQueueConfigRequest where
+structure UpdateTaskQueueConfigRequest where
   namespaceId : String
-  updateTaskqueueConfig : Option Temporal_Api_Workflowservice_V1_UpdateTaskQueueConfigRequest
+  updateTaskqueueConfig : Option Temporal.Api.Workflowservice.V1.UpdateTaskQueueConfigRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateTaskQueueConfigResponse where
-  updatedTaskqueueConfig : Option Temporal_Api_Taskqueue_V1_TaskQueueConfig
+structure UpdateTaskQueueConfigResponse where
+  updatedTaskqueueConfig : Option Temporal.Api.Taskqueue.V1.TaskQueueConfig
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateTaskQueueUserDataRequest where
+structure UpdateTaskQueueUserDataRequest where
   namespaceId : String
   taskQueue : String
-  userData : Option Temporal_Server_Api_Persistence_V1_VersionedTaskQueueUserData
+  userData : Option Temporal.Server.Api.Persistence.V1.VersionedTaskQueueUserData
   buildIdsAdded : List String
   buildIdsRemoved : List String
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateTaskQueueUserDataResponse where
+structure UpdateTaskQueueUserDataResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest_ApplyPublicRequest where
-  request : Option Temporal_Api_Workflowservice_V1_UpdateWorkerBuildIdCompatibilityRequest
+structure UpdateWorkerBuildIdCompatibilityRequest.ApplyPublicRequest where
+  request : Option Temporal.Api.Workflowservice.V1.UpdateWorkerBuildIdCompatibilityRequest
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest_RemoveBuildIds where
+structure UpdateWorkerBuildIdCompatibilityRequest.RemoveBuildIds where
   knownUserDataVersion : Int
   buildIds : List String
   deriving Repr
 
-inductive Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest_Operation where
+inductive UpdateWorkerBuildIdCompatibilityRequest.Operation where
   | notSet
-  | applyPublicRequest (value : Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest_ApplyPublicRequest)
-  | removeBuildIds (value : Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest_RemoveBuildIds)
+  | applyPublicRequest (value : UpdateWorkerBuildIdCompatibilityRequest.ApplyPublicRequest)
+  | removeBuildIds (value : UpdateWorkerBuildIdCompatibilityRequest.RemoveBuildIds)
   | persistUnknownBuildId (value : String)
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest where
+structure UpdateWorkerBuildIdCompatibilityRequest where
   namespaceId : String
   taskQueue : String
-  operation : Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityRequest_Operation
+  operation : UpdateWorkerBuildIdCompatibilityRequest.Operation
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateWorkerBuildIdCompatibilityResponse where
+structure UpdateWorkerBuildIdCompatibilityResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Matchingservice_V1_UpdateWorkerVersioningRulesRequest_Command where
+inductive UpdateWorkerVersioningRulesRequest.Command where
   | notSet
-  | request (value : Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesRequest)
+  | request (value : Temporal.Api.Workflowservice.V1.UpdateWorkerVersioningRulesRequest)
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateWorkerVersioningRulesRequest where
+structure UpdateWorkerVersioningRulesRequest where
   namespaceId : String
   taskQueue : String
-  command : Temporal_Server_Api_Matchingservice_V1_UpdateWorkerVersioningRulesRequest_Command
+  command : UpdateWorkerVersioningRulesRequest.Command
   deriving Repr
 
-structure Temporal_Server_Api_Matchingservice_V1_UpdateWorkerVersioningRulesResponse where
-  response : Option Temporal_Api_Workflowservice_V1_UpdateWorkerVersioningRulesResponse
+structure UpdateWorkerVersioningRulesResponse where
+  response : Option Temporal.Api.Workflowservice.V1.UpdateWorkerVersioningRulesResponse
   deriving Repr
 
-structure Temporal_Server_Api_Metrics_V1_Baggage where
+end Temporal.Server.Api.Matchingservice.V1
+
+namespace Temporal.Server.Api.Metrics.V1
+
+structure Baggage where
   countersInt : List (String × Int)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_AndPredicateAttributes where
-  predicates : List Temporal.Proto.MessageRef
-  deriving Repr
+end Temporal.Server.Api.Metrics.V1
 
-structure Temporal_Server_Api_Persistence_V1_ArchivalTaskInfo where
+namespace Temporal.Server.Api.Persistence.V1
+
+structure ArchivalTaskInfo where
   taskId : Int
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
   version : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_Callback_HSM where
+structure Callback.Hsm where
   namespaceId : String
   workflowId : String
   runId : String
-  ref : Option Temporal_Server_Api_Persistence_V1_StateMachineRef
+  ref : Option StateMachineRef
   method : String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_Callback_Nexus where
+structure Callback.Nexus where
   url : String
   header : List (String × String)
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_Callback_Variant where
+inductive Callback.Variant where
   | notSet
-  | nexus (value : Temporal_Server_Api_Persistence_V1_Callback_Nexus)
-  | hsm (value : Temporal_Server_Api_Persistence_V1_Callback_HSM)
+  | nexus (value : Callback.Nexus)
+  | hsm (value : Callback.Hsm)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_Callback where
-  links : List Temporal_Api_Common_V1_Link
-  variant : Temporal_Server_Api_Persistence_V1_Callback_Variant
+structure Callback where
+  links : List Temporal.Api.Common.V1.Link
+  variant : Callback.Variant
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_CallbackInfo_WorkflowClosed where
+structure CallbackInfo.WorkflowClosed where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_CallbackInfo_Trigger_Variant where
+inductive CallbackInfo.Trigger.Variant where
   | notSet
-  | workflowClosed (value : Temporal_Server_Api_Persistence_V1_CallbackInfo_WorkflowClosed)
+  | workflowClosed (value : CallbackInfo.WorkflowClosed)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_CallbackInfo_Trigger where
-  variant : Temporal_Server_Api_Persistence_V1_CallbackInfo_Trigger_Variant
+structure CallbackInfo.Trigger where
+  variant : CallbackInfo.Trigger.Variant
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_CallbackInfo where
-  callback : Option Temporal_Server_Api_Persistence_V1_Callback
-  trigger : Option Temporal_Server_Api_Persistence_V1_CallbackInfo_Trigger
-  registrationTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Server_Api_Enums_V1_CallbackState
+structure CallbackInfo where
+  callback : Option Callback
+  trigger : Option CallbackInfo.Trigger
+  registrationTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Server.Api.Enums.V1.CallbackState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmComponentRef where
+structure ChasmComponentRef where
   namespaceId : String
   businessId : String
   runId : String
   archetypeId : Nat
-  executionVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  executionVersionedTransition : Option VersionedTransition
   componentPath : List String
-  componentInitialVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  componentInitialVersionedTransition : Option VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmNodeLocalState where
+structure ChasmNodeLocalState where
   sideEffectTaskStatuses : List Int
   pureTaskStatuses : List Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmLocalState where
-  nodes : List (String × Temporal_Server_Api_Persistence_V1_ChasmNodeLocalState)
+structure ChasmLocalState where
+  nodes : List (String × ChasmNodeLocalState)
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_ChasmNexusCompletion_Outcome where
+inductive ChasmNexusCompletion.Outcome where
   | notSet
-  | success (value : Temporal_Api_Common_V1_Payload)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | success (value : Temporal.Api.Common.V1.Payload)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmNexusCompletion where
-  closeTime : Option Google_Protobuf_Timestamp
+structure ChasmNexusCompletion where
+  closeTime : Option Google.Protobuf.Timestamp
   requestId : String
-  links : List Temporal_Api_Common_V1_Link
+  links : List Temporal.Api.Common.V1.Link
   operationToken : String
-  startTime : Option Google_Protobuf_Timestamp
-  outcome : Temporal_Server_Api_Persistence_V1_ChasmNexusCompletion_Outcome
+  startTime : Option Google.Protobuf.Timestamp
+  outcome : ChasmNexusCompletion.Outcome
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmTaskInfo where
-  componentInitialVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  componentLastUpdateVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+structure ChasmTaskInfo where
+  componentInitialVersionedTransition : Option VersionedTransition
+  componentLastUpdateVersionedTransition : Option VersionedTransition
   path : List String
   typeId : Nat
-  data : Option Temporal_Api_Common_V1_DataBlob
+  data : Option Temporal.Api.Common.V1.DataBlob
   archetypeId : Nat
-  taskVersionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  taskVersionedTransition : Option VersionedTransition
   taskVersionedTransitionOffset : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmVisibilityData where
+structure ChasmVisibilityData where
   transitionCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ChasmVisibilityTaskData where
+structure ChasmVisibilityTaskData where
   transitionCount : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_FailoverStatus where
-  failoverTime : Option Google_Protobuf_Timestamp
+structure FailoverStatus where
+  failoverTime : Option Google.Protobuf.Timestamp
   failoverVersion : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_FairnessKeyCount where
+structure FairnessKeyCount where
   key : String
   count : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_HSMCompletionCallbackArg where
+structure HSMCompletionCallbackArg where
   namespaceId : String
   workflowId : String
   runId : String
-  lastEvent : Option Temporal_Api_History_V1_HistoryEvent
+  lastEvent : Option Temporal.Api.History.V1.HistoryEvent
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_HistoryBranchRange where
+structure HistoryBranchRange where
   branchId : String
   beginNodeId : Int
   endNodeId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_HistoryBranch where
+structure HistoryBranch where
   treeId : String
   branchId : String
-  ancestors : List Temporal_Server_Api_Persistence_V1_HistoryBranchRange
+  ancestors : List HistoryBranchRange
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_HistoryTask where
+structure HistoryTask where
   shardId : Int
-  blob : Option Temporal_Api_Common_V1_DataBlob
+  blob : Option Temporal.Api.Common.V1.DataBlob
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_HistoryTreeInfo where
-  branchInfo : Option Temporal_Server_Api_Persistence_V1_HistoryBranch
-  forkTime : Option Google_Protobuf_Timestamp
+structure HistoryTreeInfo where
+  branchInfo : Option HistoryBranch
+  forkTime : Option Google.Protobuf.Timestamp
   info : String
   branchToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ListQueuesNextPageToken where
+structure ListQueuesNextPageToken where
   lastReadQueueNumber : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NamespaceConfig where
-  retention : Option Google_Protobuf_Duration
+structure NamespaceConfig where
+  retention : Option Google.Protobuf.Duration
   archivalBucket : String
-  badBinaries : Option Temporal_Api_Namespace_V1_BadBinaries
-  historyArchivalState : Temporal_Api_Enums_V1_ArchivalState
+  badBinaries : Option Temporal.Api.Namespace.V1.BadBinaries
+  historyArchivalState : Temporal.Api.Enums.V1.ArchivalState
   historyArchivalUri : String
-  visibilityArchivalState : Temporal_Api_Enums_V1_ArchivalState
+  visibilityArchivalState : Temporal.Api.Enums.V1.ArchivalState
   visibilityArchivalUri : String
   customSearchAttributeAliases : List (String × String)
-  workflowRules : List (String × Temporal_Api_Rules_V1_WorkflowRule)
+  workflowRules : List (String × Temporal.Api.Rules.V1.WorkflowRule)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NamespaceInfo where
+structure NamespaceInfo where
   id : String
-  state : Temporal_Api_Enums_V1_NamespaceState
+  state : Temporal.Api.Enums.V1.NamespaceState
   name : String
   description : String
   owner : String
   data : List (String × String)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NamespaceReplicationConfig where
+structure NamespaceReplicationConfig where
   activeClusterName : String
   clusters : List String
-  state : Temporal_Api_Enums_V1_ReplicationState
-  failoverHistory : List Temporal_Server_Api_Persistence_V1_FailoverStatus
+  state : Temporal.Api.Enums.V1.ReplicationState
+  failoverHistory : List FailoverStatus
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NamespaceDetail where
-  info : Option Temporal_Server_Api_Persistence_V1_NamespaceInfo
-  config : Option Temporal_Server_Api_Persistence_V1_NamespaceConfig
-  replicationConfig : Option Temporal_Server_Api_Persistence_V1_NamespaceReplicationConfig
+structure NamespaceDetail where
+  info : Option NamespaceInfo
+  config : Option NamespaceConfig
+  replicationConfig : Option NamespaceReplicationConfig
   configVersion : Int
   failoverNotificationVersion : Int
   failoverVersion : Int
-  failoverEndTime : Option Google_Protobuf_Timestamp
+  failoverEndTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusCancelationTaskInfo where
+structure NexusCancelationTaskInfo where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusInvocationTaskInfo where
+structure NexusInvocationTaskInfo where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusOperationCancellationInfo where
-  requestedTime : Option Google_Protobuf_Timestamp
-  state : Temporal_Api_Enums_V1_NexusOperationCancellationState
+structure NexusOperationCancellationInfo where
+  requestedTime : Option Google.Protobuf.Timestamp
+  state : Temporal.Api.Enums.V1.NexusOperationCancellationState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   requestedEventId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NexusOperationInfo where
+structure NexusOperationInfo where
   endpoint : String
   service : String
   operation : String
   scheduledEventToken : Temporal.Proto.Bytes
   operationToken : String
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduledTime : Option Google_Protobuf_Timestamp
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduledTime : Option Google.Protobuf.Timestamp
   requestId : String
-  state : Temporal_Server_Api_Enums_V1_NexusOperationState
+  state : Temporal.Server.Api.Enums.V1.NexusOperationState
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   endpointId : String
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  startedTime : Option Google_Protobuf_Timestamp
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  startedTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_NotPredicateAttributes where
-  predicate : Option Temporal.Proto.MessageRef
+structure WorkerCommandsTask where
+  commands : List Temporal.Api.Worker.V1.WorkerCommand
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_OrPredicateAttributes where
-  predicates : List Temporal.Proto.MessageRef
-  deriving Repr
-
-structure Temporal_Server_Api_Persistence_V1_WorkerCommandsTask where
-  commands : List Temporal_Api_Worker_V1_WorkerCommand
-  deriving Repr
-
-inductive Temporal_Server_Api_Persistence_V1_OutboundTaskInfo_TaskDetails where
+inductive OutboundTaskInfo.TaskDetails where
   | notSet
-  | stateMachineInfo (value : Temporal_Server_Api_Persistence_V1_StateMachineTaskInfo)
-  | chasmTaskInfo (value : Temporal_Server_Api_Persistence_V1_ChasmTaskInfo)
-  | workerCommandsTask (value : Temporal_Server_Api_Persistence_V1_WorkerCommandsTask)
+  | stateMachineInfo (value : StateMachineTaskInfo)
+  | chasmTaskInfo (value : ChasmTaskInfo)
+  | workerCommandsTask (value : WorkerCommandsTask)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_OutboundTaskInfo where
+structure OutboundTaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   destination : String
-  taskDetails : Temporal_Server_Api_Persistence_V1_OutboundTaskInfo_TaskDetails
+  taskDetails : OutboundTaskInfo.TaskDetails
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_PartitionScaleState where
+structure PartitionScaleState where
   target : Int
   maxTarget : Int
   targetVersion : Int
   backlogState : List Nat
   backlogCounts : Temporal.Proto.Bytes
   backlogCap : Int
-  privateScalerState : Option Google_Protobuf_Any
+  privateScalerState : Option Google.Protobuf.Any
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_QueuePartition where
+structure QueuePartition where
   minMessageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_Queue where
-  partitions : List (Int × Temporal_Server_Api_Persistence_V1_QueuePartition)
+structure Queue where
+  partitions : List (Int × QueuePartition)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_QueueMetadata where
+structure QueueMetadata where
   clusterAckLevels : List (String × Int)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_ReadQueueMessagesNextPageToken where
+structure ReadQueueMessagesNextPageToken where
   lastReadMessageId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_SimplePartitionScalerState where
+structure SimplePartitionScalerState where
   addTarget : Int
   backlogTarget : List Nat
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_SubqueueKey where
+structure SubqueueKey where
   priority : Int
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_SubqueueInfo where
-  key : Option Temporal_Server_Api_Persistence_V1_SubqueueKey
+structure SubqueueInfo where
+  key : Option SubqueueKey
   ackLevel : Int
-  fairAckLevel : Option Temporal_Server_Api_Taskqueue_V1_FairLevel
+  fairAckLevel : Option Temporal.Server.Api.Taskqueue.V1.FairLevel
   approximateBacklogCount : Int
-  fairMaxReadLevel : Option Temporal_Server_Api_Taskqueue_V1_FairLevel
-  topKFairnessCounts : List Temporal_Server_Api_Persistence_V1_FairnessKeyCount
+  fairMaxReadLevel : Option Temporal.Server.Api.Taskqueue.V1.FairLevel
+  topKFairnessCounts : List FairnessKeyCount
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TaskQueueInfo where
+structure TaskQueueInfo where
   namespaceId : String
   name : String
-  taskType : Temporal_Api_Enums_V1_TaskQueueType
-  kind : Temporal_Api_Enums_V1_TaskQueueKind
+  taskType : Temporal.Api.Enums.V1.TaskQueueType
+  kind : Temporal.Api.Enums.V1.TaskQueueKind
   ackLevel : Int
-  expiryTime : Option Google_Protobuf_Timestamp
-  lastUpdateTime : Option Google_Protobuf_Timestamp
+  expiryTime : Option Google.Protobuf.Timestamp
+  lastUpdateTime : Option Google.Protobuf.Timestamp
   approximateBacklogCount : Int
-  subqueues : List Temporal_Server_Api_Persistence_V1_SubqueueInfo
+  subqueues : List SubqueueInfo
   otherHasTasks : Bool
-  partitionScaleState : Option Temporal_Server_Api_Persistence_V1_PartitionScaleState
+  partitionScaleState : Option PartitionScaleState
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_TimerTaskInfo_TaskDetails where
+inductive TimerTaskInfo.TaskDetails where
   | notSet
-  | chasmTaskInfo (value : Temporal_Server_Api_Persistence_V1_ChasmTaskInfo)
+  | chasmTaskInfo (value : ChasmTaskInfo)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TimerTaskInfo where
+structure TimerTaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
-  timeoutType : Temporal_Api_Enums_V1_TimeoutType
-  workflowBackoffType : Temporal_Server_Api_Enums_V1_WorkflowBackoffType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
+  timeoutType : Temporal.Api.Enums.V1.TimeoutType
+  workflowBackoffType : Temporal.Server.Api.Enums.V1.WorkflowBackoffType
   version : Int
   scheduleAttempt : Int
   eventId : Int
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   branchToken : Temporal.Proto.Bytes
   alreadyArchived : Bool
   mutableStateTransitionCount : Int
   firstRunId : String
   stamp : Int
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
-  taskDetails : Temporal_Server_Api_Persistence_V1_TimerTaskInfo_TaskDetails
+  versionedTransition : Option VersionedTransition
+  taskDetails : TimerTaskInfo.TaskDetails
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TransferTaskInfo_CloseExecutionTaskDetails where
+structure TransferTaskInfo.CloseExecutionTaskDetails where
   canSkipVisibilityArchival : Bool
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_TransferTaskInfo_TaskDetails where
+inductive TransferTaskInfo.TaskDetails where
   | notSet
-  | closeExecutionTaskDetails (value : Temporal_Server_Api_Persistence_V1_TransferTaskInfo_CloseExecutionTaskDetails)
-  | chasmTaskInfo (value : Temporal_Server_Api_Persistence_V1_ChasmTaskInfo)
+  | closeExecutionTaskDetails (value : TransferTaskInfo.CloseExecutionTaskDetails)
+  | chasmTaskInfo (value : ChasmTaskInfo)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_TransferTaskInfo where
+structure TransferTaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
   targetNamespaceId : String
   targetWorkflowId : String
   targetRunId : String
@@ -11410,193 +12030,217 @@ structure Temporal_Server_Api_Persistence_V1_TransferTaskInfo where
   scheduledEventId : Int
   version : Int
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   deleteAfterClose : Bool
   stamp : Int
-  taskDetails : Temporal_Server_Api_Persistence_V1_TransferTaskInfo_TaskDetails
+  taskDetails : TransferTaskInfo.TaskDetails
   deriving Repr
 
-inductive Temporal_Server_Api_Persistence_V1_VisibilityTaskInfo_TaskDetails where
+inductive VisibilityTaskInfo.TaskDetails where
   | notSet
-  | chasmTaskInfo (value : Temporal_Server_Api_Persistence_V1_ChasmTaskInfo)
+  | chasmTaskInfo (value : ChasmTaskInfo)
   deriving Repr
 
-structure Temporal_Server_Api_Persistence_V1_VisibilityTaskInfo where
+structure VisibilityTaskInfo where
   namespaceId : String
   workflowId : String
   runId : String
-  taskType : Temporal_Server_Api_Enums_V1_TaskType
+  taskType : Temporal.Server.Api.Enums.V1.TaskType
   version : Int
   taskId : Int
-  visibilityTime : Option Google_Protobuf_Timestamp
+  visibilityTime : Option Google.Protobuf.Timestamp
   closeVisibilityTaskId : Int
-  closeTime : Option Google_Protobuf_Timestamp
-  startTime : Option Google_Protobuf_Timestamp
+  closeTime : Option Google.Protobuf.Timestamp
+  startTime : Option Google.Protobuf.Timestamp
   isRetentionDelete : Bool
-  taskDetails : Temporal_Server_Api_Persistence_V1_VisibilityTaskInfo_TaskDetails
+  taskDetails : VisibilityTaskInfo.TaskDetails
   deriving Repr
 
-structure Temporal_Server_Api_Replication_V1_MigrationExecutionInfo where
+end Temporal.Server.Api.Persistence.V1
+
+namespace Temporal.Server.Api.Replication.V1
+
+structure MigrationExecutionInfo where
   businessId : String
   runId : String
   archetypeId : Nat
   deriving Repr
 
-structure Temporal_Server_Api_Routing_V1_RoutingOptions where
+end Temporal.Server.Api.Replication.V1
+
+namespace Temporal.Server.Api.Routing.V1
+
+structure RoutingOptions where
   random : Bool
   namespaceId : String
   businessId : List String
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_CompletedResult where
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
-  closeTime : Option Google_Protobuf_Timestamp
+end Temporal.Server.Api.Routing.V1
+
+namespace Temporal.Server.Api.Schedule.V1
+
+structure CompletedResult where
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
+  closeTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_BufferedStart where
-  nominalTime : Option Google_Protobuf_Timestamp
-  actualTime : Option Google_Protobuf_Timestamp
-  desiredTime : Option Google_Protobuf_Timestamp
-  overlapPolicy : Temporal_Api_Enums_V1_ScheduleOverlapPolicy
+structure BufferedStart where
+  nominalTime : Option Google.Protobuf.Timestamp
+  actualTime : Option Google.Protobuf.Timestamp
+  desiredTime : Option Google.Protobuf.Timestamp
+  overlapPolicy : Temporal.Api.Enums.V1.ScheduleOverlapPolicy
   manual : Bool
   requestId : String
   attempt : Int
-  backoffTime : Option Google_Protobuf_Timestamp
+  backoffTime : Option Google.Protobuf.Timestamp
   workflowId : String
   runId : String
-  startTime : Option Google_Protobuf_Timestamp
-  completed : Option Temporal_Server_Api_Schedule_V1_CompletedResult
+  startTime : Option Google.Protobuf.Timestamp
+  completed : Option CompletedResult
   hasCallback : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_CancelWorkflowRequest where
+structure CancelWorkflowRequest where
   requestId : String
   identity : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   reason : String
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_DescribeResponse where
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
-  info : Option Temporal_Api_Schedule_V1_ScheduleInfo
+structure DescribeResponse where
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
+  info : Option Temporal.Api.Schedule.V1.ScheduleInfo
   conflictToken : Int
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_FullUpdateRequest where
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
+structure FullUpdateRequest where
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
   conflictToken : Int
-  searchAttributes : Option Temporal_Api_Common_V1_SearchAttributes
+  searchAttributes : Option Temporal.Api.Common.V1.SearchAttributes
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_InternalState where
+structure InternalState where
   namespaceValue : String
   namespaceId : String
   scheduleId : String
-  lastProcessedTime : Option Google_Protobuf_Timestamp
-  bufferedStarts : List Temporal_Server_Api_Schedule_V1_BufferedStart
-  ongoingBackfills : List Temporal_Api_Schedule_V1_BackfillRequest
-  lastCompletionResult : Option Temporal_Api_Common_V1_Payloads
-  continuedFailure : Option Temporal_Api_Failure_V1_Failure
+  lastProcessedTime : Option Google.Protobuf.Timestamp
+  bufferedStarts : List BufferedStart
+  ongoingBackfills : List Temporal.Api.Schedule.V1.BackfillRequest
+  lastCompletionResult : Option Temporal.Api.Common.V1.Payloads
+  continuedFailure : Option Temporal.Api.Failure.V1.Failure
   conflictToken : Int
   needRefresh : Bool
   pendingMigration : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_NextTimeCache where
+structure NextTimeCache where
   version : Int
-  startTime : Option Google_Protobuf_Timestamp
+  startTime : Option Google.Protobuf.Timestamp
   nextTimes : List Int
   nominalTimes : List Int
   completed : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_StartScheduleArgs where
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
-  info : Option Temporal_Api_Schedule_V1_ScheduleInfo
-  initialPatch : Option Temporal_Api_Schedule_V1_SchedulePatch
-  state : Option Temporal_Server_Api_Schedule_V1_InternalState
+structure StartScheduleArgs where
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
+  info : Option Temporal.Api.Schedule.V1.ScheduleInfo
+  initialPatch : Option Temporal.Api.Schedule.V1.SchedulePatch
+  state : Option InternalState
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_StartWorkflowRequest where
-  request : Option Temporal_Api_Workflowservice_V1_StartWorkflowExecutionRequest
+structure StartWorkflowRequest where
+  request : Option Temporal.Api.Workflowservice.V1.StartWorkflowExecutionRequest
   completedRateLimitSleep : Bool
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_StartWorkflowResponse where
+structure StartWorkflowResponse where
   runId : String
-  realStartTime : Option Google_Protobuf_Timestamp
+  realStartTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_TerminateWorkflowRequest where
+structure TerminateWorkflowRequest where
   requestId : String
   identity : String
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   reason : String
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_WatchWorkflowRequest where
-  execution : Option Temporal_Api_Common_V1_WorkflowExecution
+structure WatchWorkflowRequest where
+  execution : Option Temporal.Api.Common.V1.WorkflowExecution
   firstExecutionRunId : String
   longPoll : Bool
   deriving Repr
 
-inductive Temporal_Server_Api_Schedule_V1_WatchWorkflowResponse_ResultFailure where
+inductive WatchWorkflowResponse.ResultFailure where
   | notSet
-  | result (value : Temporal_Api_Common_V1_Payloads)
-  | failure (value : Temporal_Api_Failure_V1_Failure)
+  | result (value : Temporal.Api.Common.V1.Payloads)
+  | failure (value : Temporal.Api.Failure.V1.Failure)
   deriving Repr
 
-structure Temporal_Server_Api_Schedule_V1_WatchWorkflowResponse where
-  status : Temporal_Api_Enums_V1_WorkflowExecutionStatus
-  closeTime : Option Google_Protobuf_Timestamp
-  resultFailure : Temporal_Server_Api_Schedule_V1_WatchWorkflowResponse_ResultFailure
+structure WatchWorkflowResponse where
+  status : Temporal.Api.Enums.V1.WorkflowExecutionStatus
+  closeTime : Option Google.Protobuf.Timestamp
+  resultFailure : WatchWorkflowResponse.ResultFailure
   deriving Repr
 
-structure Temporal_Server_Api_Taskqueue_V1_ClientPartitionCounts where
+end Temporal.Server.Api.Schedule.V1
+
+namespace Temporal.Server.Api.Taskqueue.V1
+
+structure ClientPartitionCounts where
   read : Int
   write : Int
   backlogCount : Temporal.Proto.Bytes
   backlogCap : Int
   deriving Repr
 
-structure Temporal_Server_Api_Testservice_V1_SendHelloRequest where
+end Temporal.Server.Api.Taskqueue.V1
+
+namespace Temporal.Server.Api.Testservice.V1
+
+structure SendHelloRequest where
   name : String
   deriving Repr
 
-structure Temporal_Server_Api_Testservice_V1_SendHelloResponse where
+structure SendHelloResponse where
   message : String
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_HistoryContinuation where
+end Temporal.Server.Api.Testservice.V1
+
+namespace Temporal.Server.Api.Token.V1
+
+structure HistoryContinuation where
   runId : String
   firstEventId : Int
   nextEventId : Int
   isWorkflowRunning : Bool
   persistenceToken : Temporal.Proto.Bytes
   branchToken : Temporal.Proto.Bytes
-  versionHistoryItem : Option Temporal_Server_Api_History_V1_VersionHistoryItem
-  versionedTransition : Option Temporal_Server_Api_Persistence_V1_VersionedTransition
+  versionHistoryItem : Option Temporal.Server.Api.History.V1.VersionHistoryItem
+  versionedTransition : Option Temporal.Server.Api.Persistence.V1.VersionedTransition
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_HistoryEventRef where
+structure HistoryEventRef where
   eventId : Int
   eventBatchId : Int
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_NexusTask where
+structure NexusTask where
   namespaceId : String
   taskQueue : String
   taskId : String
-  taskQueueKind : Temporal_Api_Enums_V1_TaskQueueKind
+  taskQueueKind : Temporal.Api.Enums.V1.TaskQueueKind
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_QueryTask where
+structure QueryTask where
   namespaceId : String
   taskQueue : String
   taskId : String
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_RawHistoryContinuation where
+structure RawHistoryContinuation where
   namespaceId : String
   workflowId : String
   runId : String
@@ -11605,10 +12249,10 @@ structure Temporal_Server_Api_Token_V1_RawHistoryContinuation where
   endEventId : Int
   endEventVersion : Int
   persistenceToken : Temporal.Proto.Bytes
-  versionHistories : Option Temporal_Server_Api_History_V1_VersionHistories
+  versionHistories : Option Temporal.Server.Api.History.V1.VersionHistories
   deriving Repr
 
-structure Temporal_Server_Api_Token_V1_Task where
+structure Task where
   namespaceId : String
   workflowId : String
   runId : String
@@ -11617,33 +12261,37 @@ structure Temporal_Server_Api_Token_V1_Task where
   activityId : String
   workflowType : String
   activityType : String
-  clock : Option Temporal_Server_Api_Clock_V1_VectorClock
+  clock : Option Temporal.Server.Api.Clock.V1.VectorClock
   startedEventId : Int
   version : Int
-  startedTime : Option Google_Protobuf_Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
   startVersion : Int
   componentRef : Temporal.Proto.Bytes
   activityAttemptStamp : Int
   deriving Repr
 
-structure Temporal_Server_Api_Visibilityservice_V1_CountChasmExecutionsRequest where
+end Temporal.Server.Api.Token.V1
+
+namespace Temporal.Server.Api.Visibilityservice.V1
+
+structure CountChasmExecutionsRequest where
   archetypeId : Nat
   namespaceId : String
   namespaceValue : String
   query : String
   deriving Repr
 
-structure Temporal_Server_Api_Visibilityservice_V1_CountChasmExecutionsResponse_AggregationGroup where
-  groupValues : List Temporal_Api_Common_V1_Payload
+structure CountChasmExecutionsResponse.AggregationGroup where
+  groupValues : List Temporal.Api.Common.V1.Payload
   count : Int
   deriving Repr
 
-structure Temporal_Server_Api_Visibilityservice_V1_CountChasmExecutionsResponse where
+structure CountChasmExecutionsResponse where
   count : Int
-  groups : List Temporal_Server_Api_Visibilityservice_V1_CountChasmExecutionsResponse_AggregationGroup
+  groups : List CountChasmExecutionsResponse.AggregationGroup
   deriving Repr
 
-structure Temporal_Server_Api_Visibilityservice_V1_ListChasmExecutionsRequest where
+structure ListChasmExecutionsRequest where
   archetypeId : Nat
   namespaceId : String
   namespaceValue : String
@@ -11652,627 +12300,651 @@ structure Temporal_Server_Api_Visibilityservice_V1_ListChasmExecutionsRequest wh
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Api_Visibilityservice_V1_ListChasmExecutionsResponse where
-  executions : List Temporal_Server_Api_Chasm_V1_VisibilityExecutionInfo
+structure ListChasmExecutionsResponse where
+  executions : List Temporal.Server.Api.Chasm.V1.VisibilityExecutionInfo
   nextPageToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityAttemptState_LastFailureDetails where
-  time : Option Google_Protobuf_Timestamp
-  failure : Option Temporal_Api_Failure_V1_Failure
+end Temporal.Server.Api.Visibilityservice.V1
+
+namespace Temporal.Server.Chasm.Lib.Activity.Proto.V1
+
+structure ActivityAttemptState.LastFailureDetails where
+  time : Option Google.Protobuf.Timestamp
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityAttemptState where
+structure ActivityAttemptState where
   count : Int
-  currentRetryInterval : Option Google_Protobuf_Duration
-  startedTime : Option Google_Protobuf_Timestamp
-  completeTime : Option Google_Protobuf_Timestamp
-  lastFailureDetails : Option Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityAttemptState_LastFailureDetails
+  currentRetryInterval : Option Google.Protobuf.Duration
+  startedTime : Option Google.Protobuf.Timestamp
+  completeTime : Option Google.Protobuf.Timestamp
+  lastFailureDetails : Option ActivityAttemptState.LastFailureDetails
   stamp : Int
   startedStamp : Int
   lastWorkerIdentity : String
-  lastDeploymentVersion : Option Temporal_Api_Deployment_V1_WorkerDeploymentVersion
+  lastDeploymentVersion : Option Temporal.Api.Deployment.V1.WorkerDeploymentVersion
   startRequestId : String
   sdkName : String
   sdkVersion : String
-  dispatchTime : Option Google_Protobuf_Timestamp
-  currentRetryIntervalSource : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRetryIntervalSource
+  dispatchTime : Option Google.Protobuf.Timestamp
+  currentRetryIntervalSource : ActivityRetryIntervalSource
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityCancelState where
+structure ActivityCancelState where
   requestId : String
-  requestTime : Option Google_Protobuf_Timestamp
+  requestTime : Option Google.Protobuf.Timestamp
   identity : String
   reason : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityDispatchTask where
+structure ActivityDispatchTask where
   stamp : Int
-  dispatchReason : Temporal_Server_Chasm_Lib_Activity_Proto_V1_DispatchReason
-  startDelayBucket : Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartDelayBucket
+  dispatchReason : DispatchReason
+  startDelayBucket : StartDelayBucket
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityHeartbeatState where
-  details : Option Temporal_Api_Common_V1_Payloads
-  recordedTime : Option Google_Protobuf_Timestamp
+structure ActivityHeartbeatState where
+  details : Option Temporal.Api.Common.V1.Payloads
+  recordedTime : Option Google.Protobuf.Timestamp
   totalHeartbeatCount : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome_Failed where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure ActivityOutcome.Failed where
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome_Successful where
-  output : Option Temporal_Api_Common_V1_Payloads
+structure ActivityOutcome.Successful where
+  output : Option Temporal.Api.Common.V1.Payloads
   deriving Repr
 
-inductive Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome_Variant where
+inductive ActivityOutcome.Variant where
   | notSet
-  | successful (value : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome_Successful)
-  | failed (value : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome_Failed)
+  | successful (value : ActivityOutcome.Successful)
+  | failed (value : ActivityOutcome.Failed)
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome where
-  retryState : Temporal_Api_Enums_V1_RetryState
-  variant : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityOutcome_Variant
+structure ActivityOutcome where
+  retryState : Temporal.Api.Enums.V1.RetryState
+  variant : ActivityOutcome.Variant
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityPauseState where
-  pauseTime : Option Google_Protobuf_Timestamp
+structure ActivityPauseState where
+  pauseTime : Option Google.Protobuf.Timestamp
   identity : String
   reason : String
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityRequestData where
-  input : Option Temporal_Api_Common_V1_Payloads
-  header : Option Temporal_Api_Common_V1_Header
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
+structure ActivityRequestData where
+  input : Option Temporal.Api.Common.V1.Payloads
+  header : Option Temporal.Api.Common.V1.Header
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityTerminateState where
+structure ActivityTerminateState where
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityState where
-  activityType : Option Temporal_Api_Common_V1_ActivityType
-  taskQueue : Option Temporal_Api_Taskqueue_V1_TaskQueue
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  heartbeatTimeout : Option Google_Protobuf_Duration
-  retryPolicy : Option Temporal_Api_Common_V1_RetryPolicy
-  status : Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityExecutionStatus
-  scheduleTime : Option Google_Protobuf_Timestamp
-  priority : Option Temporal_Api_Common_V1_Priority
-  cancelState : Option Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityCancelState
-  terminateState : Option Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityTerminateState
-  startDelay : Option Google_Protobuf_Duration
-  originalOptions : Option Temporal_Api_Activity_V1_ActivityOptions
+structure ActivityState where
+  activityType : Option Temporal.Api.Common.V1.ActivityType
+  taskQueue : Option Temporal.Api.Taskqueue.V1.TaskQueue
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  heartbeatTimeout : Option Google.Protobuf.Duration
+  retryPolicy : Option Temporal.Api.Common.V1.RetryPolicy
+  status : ActivityExecutionStatus
+  scheduleTime : Option Google.Protobuf.Timestamp
+  priority : Option Temporal.Api.Common.V1.Priority
+  cancelState : Option ActivityCancelState
+  terminateState : Option ActivityTerminateState
+  startDelay : Option Google.Protobuf.Duration
+  originalOptions : Option Temporal.Api.Activity.V1.ActivityOptions
   scheduleToCloseStamp : Int
-  lastPauseState : Option Temporal_Server_Chasm_Lib_Activity_Proto_V1_ActivityPauseState
+  lastPauseState : Option ActivityPauseState
   resetShouldClearHeartbeat : Bool
   resetShouldPause : Bool
-  firstAttemptStartedTime : Option Google_Protobuf_Timestamp
+  firstAttemptStartedTime : Option Google.Protobuf.Timestamp
   resetRestoreOptions : Bool
   lastUnpauseRequestId : String
   lastResetRequestId : String
   lastUpdateOptionsRequestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_DeleteActivityExecutionRequest where
+structure DeleteActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_DeleteActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.DeleteActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_DeleteActivityExecutionResponse where
+structure DeleteActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_DescribeActivityExecutionRequest where
+structure DescribeActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_DescribeActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.DescribeActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_DescribeActivityExecutionResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_DescribeActivityExecutionResponse
+structure DescribeActivityExecutionResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.DescribeActivityExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_HeartbeatTimeoutTask where
+structure HeartbeatTimeoutTask where
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_PauseActivityExecutionRequest where
+structure PauseActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_PauseActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.PauseActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_PauseActivityExecutionResponse where
+structure PauseActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_PollActivityExecutionRequest where
+structure PollActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_PollActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.PollActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_PollActivityExecutionResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_PollActivityExecutionResponse
+structure PollActivityExecutionResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.PollActivityExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_RequestCancelActivityExecutionRequest where
+structure RequestCancelActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_RequestCancelActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.RequestCancelActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_RequestCancelActivityExecutionResponse where
+structure RequestCancelActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ResetActivityExecutionRequest where
+structure ResetActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_ResetActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.ResetActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ResetActivityExecutionResponse where
+structure ResetActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ScheduleToCloseTimeoutTask where
+structure ScheduleToCloseTimeoutTask where
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_ScheduleToStartTimeoutTask where
+structure ScheduleToStartTimeoutTask where
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartActivityExecutionRequest where
+structure StartActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_StartActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.StartActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartActivityExecutionResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_StartActivityExecutionResponse
+structure StartActivityExecutionResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.StartActivityExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_StartToCloseTimeoutTask where
+structure StartToCloseTimeoutTask where
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_TerminateActivityExecutionRequest where
+structure TerminateActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_TerminateActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.TerminateActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_TerminateActivityExecutionResponse where
+structure TerminateActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_UnpauseActivityExecutionRequest where
+structure UnpauseActivityExecutionRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_UnpauseActivityExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.UnpauseActivityExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_UnpauseActivityExecutionResponse where
+structure UnpauseActivityExecutionResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_UpdateActivityExecutionOptionsRequest where
+structure UpdateActivityExecutionOptionsRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_UpdateActivityExecutionOptionsRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.UpdateActivityExecutionOptionsRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Activity_Proto_V1_UpdateActivityExecutionOptionsResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_UpdateActivityExecutionOptionsResponse
+structure UpdateActivityExecutionOptionsResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.UpdateActivityExecutionOptionsResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_BackoffTask where
+end Temporal.Server.Chasm.Lib.Activity.Proto.V1
+
+namespace Temporal.Server.Chasm.Lib.Callbacks.Proto.V1
+
+structure BackoffTask where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_Callback_Nexus where
+structure Callback.Nexus where
   url : String
   header : List (String × String)
   deriving Repr
 
-inductive Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_Callback_Variant where
+inductive Callback.Variant where
   | notSet
-  | nexus (value : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_Callback_Nexus)
+  | nexus (value : Callback.Nexus)
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_Callback where
-  links : List Temporal_Api_Common_V1_Link
-  variant : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_Callback_Variant
+structure Callback where
+  links : List Temporal.Api.Common.V1.Link
+  variant : Callback.Variant
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackState where
-  callback : Option Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_Callback
-  registrationTime : Option Google_Protobuf_Timestamp
-  status : Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackStatus
+structure CallbackState where
+  callback : Option Callback
+  registrationTime : Option Google.Protobuf.Timestamp
+  status : CallbackStatus
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_CallbackState_WorkflowClosed where
+structure CallbackState.WorkflowClosed where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Callbacks_Proto_V1_InvocationTask where
+structure InvocationTask where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationBackoffTask where
+end Temporal.Server.Chasm.Lib.Callbacks.Proto.V1
+
+namespace Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1
+
+structure CancellationBackoffTask where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationState where
-  status : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationStatus
-  requestedTime : Option Google_Protobuf_Timestamp
+structure CancellationState where
+  status : CancellationStatus
+  requestedTime : Option Google.Protobuf.Timestamp
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
-  parentData : Option Google_Protobuf_Any
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
+  parentData : Option Google.Protobuf.Any
   requestId : String
   identity : String
   reason : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_CancellationTask where
+structure CancellationTask where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DeleteNexusOperationRequest where
+structure DeleteNexusOperationRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_DeleteNexusOperationExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.DeleteNexusOperationExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DeleteNexusOperationResponse where
+structure DeleteNexusOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DescribeNexusOperationRequest where
+structure DescribeNexusOperationRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.DescribeNexusOperationExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_DescribeNexusOperationResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_DescribeNexusOperationExecutionResponse
+structure DescribeNexusOperationResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.DescribeNexusOperationExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_InvocationBackoffTask where
+structure InvocationBackoffTask where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_InvocationTask where
+structure InvocationTask where
   attempt : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_NexusOperationTerminateState where
+structure NexusOperationTerminateState where
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome_Failed where
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure OperationOutcome.Failed where
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome_Successful where
-  result : Option Temporal_Api_Common_V1_Payload
+structure OperationOutcome.Successful where
+  result : Option Temporal.Api.Common.V1.Payload
   deriving Repr
 
-inductive Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome_Variant where
+inductive OperationOutcome.Variant where
   | notSet
-  | successful (value : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome_Successful)
-  | failed (value : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome_Failed)
+  | successful (value : OperationOutcome.Successful)
+  | failed (value : OperationOutcome.Failed)
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome where
-  variant : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationOutcome_Variant
+structure OperationOutcome where
+  variant : OperationOutcome.Variant
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationRequestData where
-  input : Option Temporal_Api_Common_V1_Payload
+structure OperationRequestData where
+  input : Option Temporal.Api.Common.V1.Payload
   nexusHeader : List (String × String)
-  userMetadata : Option Temporal_Api_Sdk_V1_UserMetadata
+  userMetadata : Option Temporal.Api.Sdk.V1.UserMetadata
   identity : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationState where
-  status : Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_OperationStatus
+structure OperationState where
+  status : OperationStatus
   endpointId : String
   endpoint : String
   service : String
   operation : String
-  scheduledTime : Option Google_Protobuf_Timestamp
-  startedTime : Option Google_Protobuf_Timestamp
-  closedTime : Option Google_Protobuf_Timestamp
-  scheduleToStartTimeout : Option Google_Protobuf_Duration
-  startToCloseTimeout : Option Google_Protobuf_Duration
-  scheduleToCloseTimeout : Option Google_Protobuf_Duration
+  scheduledTime : Option Google.Protobuf.Timestamp
+  startedTime : Option Google.Protobuf.Timestamp
+  closedTime : Option Google.Protobuf.Timestamp
+  scheduleToStartTimeout : Option Google.Protobuf.Duration
+  startToCloseTimeout : Option Google.Protobuf.Duration
+  scheduleToCloseTimeout : Option Google.Protobuf.Duration
   requestId : String
-  parentData : Option Google_Protobuf_Any
+  parentData : Option Google.Protobuf.Any
   attempt : Int
-  lastAttemptCompleteTime : Option Google_Protobuf_Timestamp
-  lastAttemptFailure : Option Temporal_Api_Failure_V1_Failure
-  nextAttemptScheduleTime : Option Google_Protobuf_Timestamp
+  lastAttemptCompleteTime : Option Google.Protobuf.Timestamp
+  lastAttemptFailure : Option Temporal.Api.Failure.V1.Failure
+  nextAttemptScheduleTime : Option Google.Protobuf.Timestamp
   operationToken : String
-  terminateState : Option Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_NexusOperationTerminateState
-  links : List Temporal_Api_Common_V1_Link
+  terminateState : Option NexusOperationTerminateState
+  links : List Temporal.Api.Common.V1.Link
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_PollNexusOperationRequest where
+structure PollNexusOperationRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.PollNexusOperationExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_PollNexusOperationResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_PollNexusOperationExecutionResponse
+structure PollNexusOperationResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.PollNexusOperationExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_RequestCancelNexusOperationRequest where
+structure RequestCancelNexusOperationRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_RequestCancelNexusOperationExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.RequestCancelNexusOperationExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_RequestCancelNexusOperationResponse where
+structure RequestCancelNexusOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_ScheduleToCloseTimeoutTask where
+structure ScheduleToCloseTimeoutTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_ScheduleToStartTimeoutTask where
+structure ScheduleToStartTimeoutTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_StartNexusOperationRequest where
+structure StartNexusOperationRequest where
   namespaceId : String
   endpointId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.StartNexusOperationExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_StartNexusOperationResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_StartNexusOperationExecutionResponse
+structure StartNexusOperationResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.StartNexusOperationExecutionResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_StartToCloseTimeoutTask where
+structure StartToCloseTimeoutTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_TerminateNexusOperationRequest where
+structure TerminateNexusOperationRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_TerminateNexusOperationExecutionRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.TerminateNexusOperationExecutionRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Nexusoperation_Proto_V1_TerminateNexusOperationResponse where
+structure TerminateNexusOperationResponse where
   unit : Unit := ()
   deriving Repr
 
-inductive Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_BackfillerState_Request where
+end Temporal.Server.Chasm.Lib.Nexusoperation.Proto.V1
+
+namespace Temporal.Server.Chasm.Lib.Scheduler.Proto.V1
+
+inductive BackfillerState.Request where
   | notSet
-  | backfillRequest (value : Temporal_Api_Schedule_V1_BackfillRequest)
-  | triggerRequest (value : Temporal_Api_Schedule_V1_TriggerImmediatelyRequest)
+  | backfillRequest (value : Temporal.Api.Schedule.V1.BackfillRequest)
+  | triggerRequest (value : Temporal.Api.Schedule.V1.TriggerImmediatelyRequest)
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_BackfillerState where
+structure BackfillerState where
   backfillId : String
-  lastProcessedTime : Option Google_Protobuf_Timestamp
+  lastProcessedTime : Option Google.Protobuf.Timestamp
   attempt : Int
   taskStamp : Int
-  request : Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_BackfillerState_Request
+  request : BackfillerState.Request
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_BackfillerTask where
+structure BackfillerTask where
   stamp : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_GeneratorState where
-  lastProcessedTime : Option Google_Protobuf_Timestamp
-  futureActionTimes : List Google_Protobuf_Timestamp
+structure GeneratorState where
+  lastProcessedTime : Option Google.Protobuf.Timestamp
+  futureActionTimes : List Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_InvokerState where
-  bufferedStarts : List Temporal_Server_Api_Schedule_V1_BufferedStart
-  cancelWorkflows : List Temporal_Api_Common_V1_WorkflowExecution
-  terminateWorkflows : List Temporal_Api_Common_V1_WorkflowExecution
-  lastProcessedTime : Option Google_Protobuf_Timestamp
+structure InvokerState where
+  bufferedStarts : List Temporal.Server.Api.Schedule.V1.BufferedStart
+  cancelWorkflows : List Temporal.Api.Common.V1.WorkflowExecution
+  terminateWorkflows : List Temporal.Api.Common.V1.WorkflowExecution
+  lastProcessedTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_LastCompletionResult where
-  success : Option Temporal_Api_Common_V1_Payload
-  failure : Option Temporal_Api_Failure_V1_Failure
+structure LastCompletionResult where
+  success : Option Temporal.Api.Common.V1.Payload
+  failure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_WorkflowMigrationState where
+structure WorkflowMigrationState where
   preMigrationPaused : Bool
   preMigrationNotes : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerState where
-  schedule : Option Temporal_Api_Schedule_V1_Schedule
-  info : Option Temporal_Api_Schedule_V1_ScheduleInfo
+structure SchedulerState where
+  schedule : Option Temporal.Api.Schedule.V1.Schedule
+  info : Option Temporal.Api.Schedule.V1.ScheduleInfo
   namespaceValue : String
   namespaceId : String
   scheduleId : String
   conflictToken : Int
   closed : Bool
   sentinel : Bool
-  workflowMigration : Option Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_WorkflowMigrationState
-  idleCloseTime : Option Google_Protobuf_Timestamp
+  workflowMigration : Option WorkflowMigrationState
+  idleCloseTime : Option Google.Protobuf.Timestamp
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerMigrationState where
-  schedulerState : Option Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerState
-  generatorState : Option Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_GeneratorState
-  invokerState : Option Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_InvokerState
-  backfillers : List (String × Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_BackfillerState)
-  lastCompletionResult : Option Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_LastCompletionResult
-  searchAttributes : List (String × Temporal_Api_Common_V1_Payload)
-  memo : List (String × Temporal_Api_Common_V1_Payload)
+structure SchedulerMigrationState where
+  schedulerState : Option SchedulerState
+  generatorState : Option GeneratorState
+  invokerState : Option InvokerState
+  backfillers : List (String × BackfillerState)
+  lastCompletionResult : Option LastCompletionResult
+  searchAttributes : List (String × Temporal.Api.Common.V1.Payload)
+  memo : List (String × Temporal.Api.Common.V1.Payload)
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateFromMigrationStateRequest where
+structure CreateFromMigrationStateRequest where
   namespaceId : String
-  state : Option Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerMigrationState
+  state : Option SchedulerMigrationState
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateFromMigrationStateResponse where
+structure CreateFromMigrationStateResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateScheduleRequest where
+structure CreateScheduleRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_CreateScheduleRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.CreateScheduleRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateScheduleResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_CreateScheduleResponse
+structure CreateScheduleResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.CreateScheduleResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateSentinelRequest where
+structure CreateSentinelRequest where
   namespaceId : String
   namespaceValue : String
   scheduleId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_CreateSentinelResponse where
+structure CreateSentinelResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DeleteScheduleRequest where
+structure DeleteScheduleRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_DeleteScheduleRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.DeleteScheduleRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DeleteScheduleResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_DeleteScheduleResponse
+structure DeleteScheduleResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.DeleteScheduleResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DescribeScheduleRequest where
+structure DescribeScheduleRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_DescribeScheduleRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.DescribeScheduleRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_DescribeScheduleResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_DescribeScheduleResponse
+structure DescribeScheduleResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.DescribeScheduleResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_Event where
-  time : Option Google_Protobuf_Timestamp
+structure Event where
+  time : Option Google.Protobuf.Timestamp
   message : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_EventLog where
-  events : List Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_Event
+structure EventLog where
+  events : List Event
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_GeneratorTask where
+structure GeneratorTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_InvokerExecuteTask where
+structure InvokerExecuteTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_InvokerProcessBufferTask where
+structure InvokerProcessBufferTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_ListScheduleMatchingTimesRequest where
+structure ListScheduleMatchingTimesRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_ListScheduleMatchingTimesRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.ListScheduleMatchingTimesRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_ListScheduleMatchingTimesResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_ListScheduleMatchingTimesResponse
+structure ListScheduleMatchingTimesResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.ListScheduleMatchingTimesResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_MigrateToWorkflowRequest where
+structure MigrateToWorkflowRequest where
   namespaceId : String
   scheduleId : String
   identity : String
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_MigrateToWorkflowResponse where
+structure MigrateToWorkflowResponse where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_PatchScheduleRequest where
+structure PatchScheduleRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_PatchScheduleRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.PatchScheduleRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_PatchScheduleResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_PatchScheduleResponse
+structure PatchScheduleResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.PatchScheduleResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerCallbacksTask where
+structure SchedulerCallbacksTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerIdleTask where
-  idleTimeTotal : Option Google_Protobuf_Duration
+structure SchedulerIdleTask where
+  idleTimeTotal : Option Google.Protobuf.Duration
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_SchedulerMigrateToWorkflowTask where
+structure SchedulerMigrateToWorkflowTask where
   unit : Unit := ()
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_UpdateScheduleRequest where
+structure UpdateScheduleRequest where
   namespaceId : String
-  frontendRequest : Option Temporal_Api_Workflowservice_V1_UpdateScheduleRequest
+  frontendRequest : Option Temporal.Api.Workflowservice.V1.UpdateScheduleRequest
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Scheduler_Proto_V1_UpdateScheduleResponse where
-  frontendResponse : Option Temporal_Api_Workflowservice_V1_UpdateScheduleResponse
+structure UpdateScheduleResponse where
+  frontendResponse : Option Temporal.Api.Workflowservice.V1.UpdateScheduleResponse
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestPayloadStore where
+end Temporal.Server.Chasm.Lib.Scheduler.Proto.V1
+
+namespace Temporal.Server.Chasm.Lib.Tests.Proto.V1
+
+structure TestPayloadStore where
   totalCount : Int
   totalSize : Int
-  expirationTimes : List (String × Google_Protobuf_Timestamp)
+  expirationTimes : List (String × Google.Protobuf.Timestamp)
   closed : Bool
   canceled : Bool
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestPayloadTTLPureTask where
+structure TestPayloadTTLPureTask where
   payloadKey : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestPayloadTTLSideEffectTask where
+structure TestPayloadTTLSideEffectTask where
   payloadKey : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestRequest where
+structure TestRequest where
   requestId : String
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Tests_Proto_V1_TestResponse where
+structure TestResponse where
   requestId : String
   hasEngineCtx : Bool
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Workflow_Proto_V1_IncomingSignalData where
+end Temporal.Server.Chasm.Lib.Tests.Proto.V1
+
+namespace Temporal.Server.Chasm.Lib.Workflow.Proto.V1
+
+structure IncomingSignalData where
   eventId : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Workflow_Proto_V1_NexusCancellationParentData where
+structure NexusCancellationParentData where
   requestedEventId : Int
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Workflow_Proto_V1_NexusOperationParentData where
+structure NexusOperationParentData where
   scheduledEventId : Int
   scheduledEventToken : Temporal.Proto.Bytes
   deriving Repr
 
-structure Temporal_Server_Chasm_Lib_Workflow_Proto_V1_UpdateState where
+structure UpdateState where
   updateId : String
-  rejectionFailure : Option Temporal_Api_Failure_V1_Failure
+  rejectionFailure : Option Temporal.Api.Failure.V1.Failure
   deriving Repr
 
-end Temporal.Proto.Generated
+end Temporal.Server.Chasm.Lib.Workflow.Proto.V1

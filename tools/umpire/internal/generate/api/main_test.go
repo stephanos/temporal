@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -51,6 +52,7 @@ func TestProjectionCoversMessagesOneofsMapsRecursionAndStreamingRPCs(t *testing.
 	require.Contains(t, grpc, "namespace Temporal.Api.Test.V1.TestService")
 	require.Contains(t, grpc, "def stream : Temporal.Proto.Method Request Response")
 	require.Contains(t, grpc, "clientStreaming := true, serverStreaming := true")
+	require.False(t, strings.HasSuffix(types, "\n\n"))
 }
 
 func TestDescriptorMergeIsDeterministicAndRejectsConflicts(t *testing.T) {
@@ -72,6 +74,11 @@ func TestDescriptorMergeIsDeterministicAndRejectsConflicts(t *testing.T) {
 	secondProjection, err := buildProjection(mergedSecond)
 	require.NoError(t, err)
 	require.Equal(t, firstProjection, secondProjection)
+	firstArtifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, firstProjection)
+	require.NoError(t, err)
+	secondArtifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, secondProjection)
+	require.NoError(t, err)
+	require.Equal(t, firstArtifacts, secondArtifacts)
 
 	conflicting := proto.Clone(set).(*descriptorpb.FileDescriptorSet)
 	conflicting.File[0].Package = proto.String("temporal.api.changed.v1")
@@ -124,9 +131,14 @@ func TestProjectionPreservesDescriptorMetadata(t *testing.T) {
 	require.Equal(t, true, enum["deprecated"])
 	enumValue := enum["values"].([]any)[0].(map[string]any)
 	require.Equal(t, "example.metadata.STATE_UNSPECIFIED", enumValue["fullName"])
+	require.Equal(t, "Example.Metadata.State.stateUnspecified", enumValue["leanName"])
 	require.Equal(t, true, enumValue["deprecated"])
 	services := document["services"].([]any)
-	require.Equal(t, true, services[0].(map[string]any)["deprecated"])
+	service := services[0].(map[string]any)
+	require.Equal(t, true, service["deprecated"])
+	require.Equal(t, "Example.Metadata.Request.name", fields[0].(map[string]any)["leanName"])
+	method := service["methods"].([]any)[0].(map[string]any)
+	require.Equal(t, "Example.Metadata.MetadataService.call", method["leanName"])
 
 	types := string(artifacts["Temporal/Generated/Types.lean"])
 	require.Contains(t, types, "name : String")
@@ -161,10 +173,20 @@ func TestGeneratedSchemaUsesArraysForCollections(t *testing.T) {
 	require.NoError(t, json.Unmarshal(artifacts[schemaPath], &document))
 	message := findSchemaMessage(t, document, "temporal.api.test.v1.Node")
 	require.Len(t, message.Oneofs, 1)
+	require.Equal(t, "Temporal.Api.Test.V1.Node.Choice.text", findSchemaField(t, message, "text").LeanName)
+	require.Equal(t, "Temporal.Api.Test.V1.Node.optionalNote", findSchemaField(t, message, "optional_note").LeanName)
 	require.Equal(t, []string{
 		"temporal.api.test.v1.Node.text",
 		"temporal.api.test.v1.Node.number",
 	}, message.Oneofs[0].FieldNames)
+}
+
+func TestGeneratedSchemaUsesArraysForEmptyCollections(t *testing.T) {
+	t.Parallel()
+
+	artifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection{})
+	require.NoError(t, err)
+	require.NotContains(t, string(artifacts[schemaPath]), ": null")
 }
 
 func TestPublishAndCheckArtifactsDetectDriftAndRemoveOnlyManagedStaleFiles(t *testing.T) {
@@ -250,6 +272,17 @@ func findSchemaMessage(t *testing.T, projection schemaProjection, fullName strin
 	}
 	require.FailNow(t, "schema message not found", fullName)
 	return schemaMessage{}
+}
+
+func findSchemaField(t *testing.T, message schemaMessage, name string) schemaField {
+	t.Helper()
+	for _, field := range message.Fields {
+		if field.Name == name {
+			return field
+		}
+	}
+	require.FailNow(t, "schema field not found", name)
+	return schemaField{}
 }
 
 func testDescriptorSet() *descriptorpb.FileDescriptorSet {
