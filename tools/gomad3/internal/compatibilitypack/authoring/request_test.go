@@ -36,7 +36,7 @@ func TestApprovalSHA256BindsCompleteReviewedRequest(t *testing.T) {
 		"platform":      func(request *Request) { request.Platforms[0] = "linux/amd64" },
 		"source": func(request *Request) {
 			request.Packages[0].Evidence.GoSources[0].SHA256 = "sha256:" + strings.Repeat("e", 64)
-			request.Packages[0].Evidence.SourceSetSHA256 = "sha256:d7284b6ed361460152190946e4b35247f1d0d6823c8f55bfdd40adc88d59ce4b"
+			request.Packages[0].Evidence.SourceSetSHA256 = "sha256:226df64c94c787464495fbef20913adac635ce6817e582562d1b9aa0c7e333f2"
 		},
 		"fact disposition": func(request *Request) { request.Packages[0].Facts[0].Disposition = DispositionDeny },
 	}
@@ -103,7 +103,7 @@ func validRequest() Request {
 			Facts:      []Fact{{Kind: FactCapability, Capability: "import:syscall", Disposition: DispositionAllow}},
 			Evidence: compatibility.PackRule{
 				ImportPath: "example.com/dependency/internal/runtime", Module: module,
-				SourceSetSHA256: "sha256:3b010f66c93c97f26f632675bca3d51939d7c5e559ee214a292eac38c744e496",
+				SourceSetSHA256: "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
 				GoSources:       []compatibility.PackSource{{Name: "runtime.go", SHA256: "sha256:" + strings.Repeat("4", 64)}},
 				ForeignSources:  []compatibility.PackForeignSource{}, Capabilities: []string{}, Linknames: []compatibility.PackLinkname{},
 			},
