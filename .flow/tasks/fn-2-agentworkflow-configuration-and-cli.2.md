@@ -42,9 +42,12 @@ Carry the admitted model mapping through the workflow engine and both provider a
 
 
 ## Done summary
-TBD
+Propagated deep-copied provider model mappings through admitted workflow checkpoints and every logical agent invocation, including plan review/revision, parallel reviews, repairs, and resume. Codex and Claude now apply whole-run CLI model precedence over stage models while omitting the argument when neither is configured; the engine now protects `.agentworkflow`.
 
+TDD evidence: focused tests first failed on missing admitted/invocation model fields, Codex resume model input, and the old `.spec` invariant, then passed after implementation. The tagged module suite, command build, import formatting, race tests, vet, and task-scoped 13-analyzer repository lint are green; the canonical branch-wide lint baseline remains the previously approved inherited exception.
+
+stage: impl-review - ran [2026-08-24T18:19:25Z..2026-08-24T18:25:54Z] | verdict: SHIP
 ## Evidence
-- Commits:
-- Tests:
+- Commits: dffe26ee2563d0567c029216f2fe411e7beb5716
+- Tests: cd tools/agentworkflow && GOWORK=off go test -count=1 -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow, cd tools/agentworkflow && GOWORK=off go test -race -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go vet -tags test_dep ./..., make fmt-imports (disposable case-sensitive clone; task files unchanged), GOLANGCI_LINT_BASE_REV=HEAD GOLANGCI_LINT_FIX=false make lint-code (disposable case-sensitive clone; all 13 configured linters, 0 issues)
 - PRs:
