@@ -47,8 +47,8 @@ durable scheduling, retries, timeouts, endpoint routing, task dispatch, callback
 integration, and standalone operation APIs. The official architecture document locates those pieces
 across the endpoint registry, outbound queue, Nexus operation/cancellation state machines,
 callbacks, frontend, matching, and history
-([`docs/architecture/nexus.md`](./docs/architecture/nexus.md#L98-L130),
-[operation and callback machinery](./docs/architecture/nexus.md#L234-L443)).
+([`docs/architecture/nexus.md`](../docs/architecture/nexus.md#L98-L130),
+[operation and callback machinery](../docs/architecture/nexus.md#L234-L443)).
 
 The formal boundary should be **Temporal's durable Nexus control-plane semantics**:
 
@@ -65,7 +65,7 @@ The formal boundary should be **Temporal's durable Nexus control-plane semantics
 
 The standalone API surface is not hypothetical: the CHASM service exposes start, describe, poll,
 request-cancel, terminate, and delete operations
-([service definition](./chasm/lib/nexusoperation/proto/v1/service.proto#L11-L40)). The model need not
+([service definition](../chasm/lib/nexusoperation/proto/v1/service.proto#L11-L40)). The model need not
 encode protobuf layouts, but it should include their observable state semantics if “all Temporal
 Nexus” is the claim.
 
@@ -76,7 +76,7 @@ Endpoint-registry serialization and replication also deserve their own subsystem
 core only needs a versioned `EndpointBinding` abstraction and resolution actions. Current Temporal
 documentation explicitly says registry replication is not implemented for multi-cluster use, so
 single-cluster endpoint consistency is an assumption unless a separate replication model is added
-([architecture](./docs/architecture/nexus.md#L100-L128)).
+([architecture](../docs/architecture/nexus.md#L100-L128)).
 
 This boundary follows the public lifecycle: synchronous operations complete during the start request;
 asynchronous operations record `Started` and finish through a completion callback; automatic retries
@@ -93,7 +93,7 @@ terminated/times out. Reset must not trigger the policy. Cancellation is detache
 after the operation/workflow closes, and system-initiated cancellation differs from explicit user
 cancellation around timeout clamping and lifetime. The source design also calls out retries,
 continue-as-new, a maximum of 2,000 pending operations, and the scheduled/start-ack race
-([`.vscode/autoclose.md`](./.vscode/autoclose.md#L55-L149)).
+([`.vscode/autoclose.md`](../.vscode/autoclose.md#L55-L149)).
 
 This is a strong model-checking candidate because it combines:
 
@@ -174,20 +174,20 @@ collapsing everything into `SCHEDULED` or `STARTED`.
 Umpire already has the correct high-level seam: a compiled `Protocol` projects into a live runtime
 declaration and into a finite `verify.Model` containing entity lifecycles, relations, actions,
 properties, targets, bounds, and refinements
-([protocol declaration](./tools/umpire2/internal/protocol/protocol.go),
-[verification projection](./tools/umpire2/internal/protocol/verification.go)). The model generator
+([protocol declaration](../tools/umpire2/internal/protocol/protocol.go),
+[verification projection](../tools/umpire2/internal/protocol/verification.go)). The model generator
 then emits TLA+, P, Ivy, and FizzBee from that common IR
-([`generateTarget`](./cmd/umpire-genmodels/main.go#L122-L215)), and CI installs pinned tools, checks
+([`generateTarget`](../cmd/umpire-genmodels/main.go#L122-L215)), and CI installs pinned tools, checks
 generated artifacts, runs seeded counterexample tests, and runs smoke/nightly verification
-([workflow](./.github/workflows/umpire-model-verification.yml#L38-L122)).
+([workflow](../.github/workflows/umpire-model-verification.yml#L38-L122)).
 
 The canonical interpreter can enumerate enabled transitions, apply nondeterministic branches,
 boundedly explore state space, and replay an abstract trace
-([interpreter](./common/testing/umpire/verify/interpreter.go#L162-L260)). Native formal-tool
+([interpreter](../common/testing/umpire/verify/interpreter.go#L162-L260)). Native formal-tool
 counterexamples are normalized by replaying them through that interpreter, preventing a backend trace
 from being accepted unless it denotes a unique canonical transition and really violates the named
 property
-([counterexample normalization](./common/testing/umpire/verify/counterexample.go#L21-L63)). These are
+([counterexample normalization](../common/testing/umpire/verify/counterexample.go#L21-L63)). These are
 excellent foundations for the proposed implementation bridge.
 
 ### Current Nexus coverage is useful but fragmented
@@ -196,11 +196,11 @@ The runtime `NexusOperation` entity already mirrors the main operation lifecycle
 backing-off, started, sync/async success, failure, cancellation, timeout, standalone termination, and
 synchronous rejection. It observes attempts, the three timeout details, cancel-request failures,
 handler Workflow references, and public execution/history snapshots
-([runtime model](./tools/umpire2/internal/model/nexus_operation.go#L20-L157),
-[fact application](./tools/umpire2/internal/model/nexus_operation.go#L181-L308)). Live actions can
+([runtime model](../tools/umpire2/internal/model/nexus_operation.go#L20-L157),
+[fact application](../tools/umpire2/internal/model/nexus_operation.go#L181-L308)). Live actions can
 exercise standalone/embedded schedule, retryable start failure, sync/async response, callback
 completion, timeout from scheduled/backoff, and standalone termination
-([actions](./tools/umpire2/internal/action/nexus_actions.go#L15-L162)). This is a substantial base, not
+([actions](../tools/umpire2/internal/action/nexus_actions.go#L15-L162)). This is a substantial base, not
 an empty model.
 
 Formal coverage is split across targets:
@@ -213,19 +213,19 @@ Formal coverage is split across targets:
 | `protocol-atomic` | Generic lifecycle algebra from the canonical `Protocol`. | Callback integration actions are deliberately checked in separate targets; it is not an end-to-end Nexus target. |
 
 The target list and manual family assembly are visible in
-[`verification_family.go`](./tools/umpire2/internal/protocol/verification_family.go#L60-L177). The
+[`verification_family.go`](../tools/umpire2/internal/protocol/verification_family.go#L60-L177). The
 callback integration already models reference, delivery, retry, acknowledgement, and lifetime as
 separate modules
-([`verification_callback.go`](./tools/umpire2/internal/protocol/verification_callback.go#L129-L221)).
+([`verification_callback.go`](../tools/umpire2/internal/protocol/verification_callback.go#L129-L221)).
 This is the pattern to extend.
 
 It is not yet a faithful callback-close model. `callback.delivery.enqueue` is guarded while the
 handler run is nonterminal, while handler-close actions require already-created deliveries to be
 acknowledged
-([actions](./tools/umpire2/internal/protocol/verification_callback.go#L65-L126)). The real Temporal
+([actions](../tools/umpire2/internal/protocol/verification_callback.go#L65-L126)). The real Temporal
 contract triggers callback delivery from handler Workflow close and retries until success, permanent
 failure, or retention expiry
-([architecture](./docs/architecture/nexus.md#L337-L369)). The composed Nexus family must correct that
+([architecture](../docs/architecture/nexus.md#L337-L369)). The composed Nexus family must correct that
 ordering rather than treating the current callback target as a finished reusable guarantee.
 
 Cancellation is a larger missing slice. Runtime Umpire counts cancel-request failures but has no
@@ -238,9 +238,9 @@ outcome
 
 The existing `feature-nexus` target nevertheless has a semantic mismatch for auto-close. Its
 workflow-close action is guarded so that every owned operation is already terminal
-([`verification_nexus.go`](./tools/umpire2/internal/protocol/verification_nexus.go#L64-L82)), and its
+([`verification_nexus.go`](../tools/umpire2/internal/protocol/verification_nexus.go#L64-L82)), and its
 closure property says that a terminal workflow implies a terminal owned operation
-([property](./tools/umpire2/internal/protocol/verification_nexus.go#L188-L201)). Auto-close permits
+([property](../tools/umpire2/internal/protocol/verification_nexus.go#L188-L201)). Auto-close permits
 workflow close while a detached cancellation remains live. That property needs to be decomposed into
 “the operation no longer belongs to the live caller” and “all required detached work remains valid,”
 not merely weakened ad hoc.
@@ -265,8 +265,8 @@ Use one family with narrow modules and explicit connector modules:
 The delivery and routing slices should refine Umpire's existing generic foundation rather than
 reimplement matching. It already models delivery tasks/attempts, route isolation, matching/history
 owner fencing, and backlog acknowledgement in separate targets
-([routing target](./tools/umpire2/internal/protocol/verification_delivery_routing.go#L32-L230),
-[backlog target](./tools/umpire2/internal/protocol/verification_delivery_backlog.go)). What is missing
+([routing target](../tools/umpire2/internal/protocol/verification_delivery_routing.go#L32-L230),
+[backlog target](../tools/umpire2/internal/protocol/verification_delivery_backlog.go)). What is missing
 is a Nexus connector saying which start/cancel/callback state creates which generic delivery
 obligation and how its response refines the feature state.
 
@@ -300,7 +300,7 @@ workflow, one or two operations, and one cancellation per operation. It should b
 the shared core, cancellation, timeout, caller-lifetime, and auto-close modules.
 
 The IR currently supports finite entity states and relations, not scalar fields or counters
-([IR](./common/testing/umpire/verify/model.go#L42-L205)). The first iteration can represent policy,
+([IR](../common/testing/umpire/verify/model.go#L42-L205)). The first iteration can represent policy,
 principal, timeout class, error class, and a coarse retry budget as small related entities. If the
 same pattern repeats, add finite typed attributes; flattening every value into operation lifecycle
 states creates a policy × timeout × retry × outcome product and obscures invariants.
@@ -365,12 +365,12 @@ implementation details to hide.
 Today, Umpire can express the safety properties and a bounded “at quiescence, nothing remains silently
 pending” approximation. It cannot express/check the actual temporal claim end-to-end. Although
 `PropertyKind` includes `ProgressProperty` and properties carry fairness names
-([IR](./common/testing/umpire/verify/model.go#L34-L40)), the toolchain explicitly marks every progress
+([IR](../common/testing/umpire/verify/model.go#L34-L40)), the toolchain explicitly marks every progress
 property unsupported for SANY, TLC, Apalache, Apalache proof mode, P/PEx, Ivy, and FizzBee
-([planner](./common/testing/umpire/verify/toolchain/internal/runner/toolchain.go#L113-L167)). The
+([planner](../common/testing/umpire/verify/toolchain/internal/runner/toolchain.go#L113-L167)). The
 canonical interpreter also evaluates only safety and quiescent properties; “quiescent” currently
 means no model action is enabled
-([interpreter](./common/testing/umpire/verify/interpreter.go#L263-L289)).
+([interpreter](../common/testing/umpire/verify/interpreter.go#L263-L289)).
 
 ### Composition and state-space strategy
 
@@ -403,10 +403,10 @@ isolation target.
 
 Umpire's family IR already has owned `Module`s, interfaces/obligations, refinement maps,
 `Composition`s, and bounded `VerificationTarget`s
-([family types](./common/testing/umpire/verify/family.go#L15-L105)). Projection unions selected module
+([family types](../common/testing/umpire/verify/family.go#L15-L105)). Projection unions selected module
 declarations, follows imported obligations, closes entity/relation/action dependencies, and rejects
 an undeclared omission that can affect retained state
-([projection](./common/testing/umpire/verify/project.go#L41-L180)). That is sufficient to build the
+([projection](../common/testing/umpire/verify/project.go#L41-L180)). That is sufficient to build the
 target hierarchy above today.
 
 However, a `Module` is currently a named list of declarations in one global model, and a
@@ -415,7 +415,7 @@ renaming, per-instance bound, or generated synchronizing action. Nexus needs the
 delivery shape for start, cancel, and callback, but copying it three times by hand invites drift.
 Similarly, the current family is assembled by manually appending every fragment's entities,
 relations, actions, properties, refinements, modules, compositions, and targets
-([assembly](./tools/umpire2/internal/protocol/verification_family.go#L78-L177)); the Nexus fragments do
+([assembly](../tools/umpire2/internal/protocol/verification_family.go#L78-L177)); the Nexus fragments do
 not yet expose Nexus-specific provider/consumer obligations.
 
 The incremental fix should be a Go-level deep module before a new modeling language: a
@@ -446,7 +446,7 @@ Other current gaps remain material:
 | **TLA+ with TLC/Apalache** | **Use first.** Umpire already generates it and pins the toolchain. TLA+ is explicitly designed for concurrent/distributed state machines, and TLC checks finite models; Apalache adds symbolic bounded checking. It naturally expresses nondeterminism, temporal properties, and fairness once Umpire's exporter/planner supports them. A successful bounded Apalache run is still only “no counterexample through the configured bound,” not an unbounded proof. See the official [TLA+ overview](https://lamport.azurewebsites.net/tla/tla.html) and [Apalache documentation](https://apalache-mc.org/docs/apalache/index.html). |
 | **P/PEx** | Strong second experiment because communicating machines and monitors match the feature. P now advertises **PObserve**, which feeds service logs through the same P monitors for runtime conformance ([official P semantics](https://p-org.github.io/P/advanced/psemantics/)). That is directly relevant to part B. However, Umpire currently generates P for model checking only; it does not emit a PObserve event adapter/monitor pipeline. Evaluate this as a narrow spike, not as an already-present bridge. |
 | **Ivy** | Useful independent safety backend and potentially attractive for inductive invariants/refinement. The current Umpire exporter intentionally supports inductive safety only and rejects quiescent properties. It does not solve cancel-delivery liveness. See [Ivy's official overview](https://microsoft.github.io/ivy/). |
-| **FizzBee** | Keep as translation diversity and an approachable visualization/debug backend. Current Umpire smoke depth is capped at five for FizzBee, so it should not be the sole basis for a retry/race claim ([bounds](./common/testing/umpire/verify/toolchain/internal/runner/toolchain.go#L328-L343)). |
+| **FizzBee** | Keep as translation diversity and an approachable visualization/debug backend. Current Umpire smoke depth is capped at five for FizzBee, so it should not be the sole basis for a retry/race claim ([bounds](../common/testing/umpire/verify/toolchain/internal/runner/toolchain.go#L328-L343)). |
 | **Dafny** | Not an existing Umpire backend. Dafny verifies programs written in Dafny against contracts, which does not verify the existing Temporal/CHASM Go implementation. It may later be useful for a small pure refinement-checker core if that core is authored in Dafny. See the official [Dafny reference](https://dafny.org/dafny/DafnyRef/DafnyRef). |
 | **Lean or Agda** | Both can encode the transition system and prove theorems, but neither is an Umpire extension today. Connecting either to this PR requires formalizing the model, the relevant Go/CHASM semantics, observations, and a refinement theorem. That is much larger than the feature and would introduce a second proof stack. Reserve one for a specific theorem that bounded checking cannot discharge, not as the first integration. See the official [Lean reference](https://lean-lang.org/doc/reference/latest/) and [Agda introduction](https://agda.readthedocs.io/en/latest/getting-started/what-is-agda.html). |
 
@@ -461,8 +461,8 @@ property review remain necessary.
 
 Umpire's live side ingests observed facts into its runtime, records fact/transition/relation coverage,
 evaluates runtime rules, and records execution action windows
-([evidence ingestion](./tools/umpire2/evidence_ingestor.go#L32-L91),
-[execution trace](./tools/umpire2/execution_trace.go#L54-L204)). Causal footprints can require or
+([evidence ingestion](../tools/umpire2/evidence_ingestor.go#L32-L91),
+[execution trace](../tools/umpire2/execution_trace.go#L54-L204)). Causal footprints can require or
 forbid facts around a live action. This is enough to build model-informed acceptance scenarios today:
 the same declaration can supply names, lifecycle edges, start/callback/cancel/close actions, and local
 assertions to both a verification target and the live driver. Existing live facts already observe
@@ -474,7 +474,7 @@ trace records action names, facts, relations, and lifecycle edges; it does not c
 model IDs and parameter bindings, nor does it normalize a runtime snapshot into `verify.ModelState`.
 `verify.Refinement` has fields for lifecycle/regression actions, required/forbidden observations, and
 stutter
-([IR](./common/testing/umpire/verify/model.go#L186-L205)), but today those fields are inventory and
+([IR](../common/testing/umpire/verify/model.go#L186-L205)), but today those fields are inventory and
 validation metadata. They are not consumed by a live conformance executor. Counterexample
 normalization handles formal-backend traces only.
 
@@ -484,16 +484,18 @@ The bridge should be one deep `ConformanceRunner` module with a deliberately sma
 
 ```go
 type ConformanceRunner interface {
-    Run(context.Context, Experiment) (ConformanceResult, error)
+    Run(context.Context, ExperimentSpec) (ExperimentRun, ConformanceResult, error)
 }
 ```
 
-`Experiment` is an immutable, protocol-compiled input containing the model identity, chosen abstract
-trace or target, evidence requirements, and bounds. Identity binding, snapshot encoding, refinement
-mapping, cutpoint selection, and successor checking belong behind this interface rather than becoming
-author-facing seams. The Temporal session belongs behind an adapter because a local functional-test
-cluster, CI cluster, and deployed cluster are genuinely different implementations of the same
-remote-owned boundary. This is consistent with the one-source design in
+`ExperimentSpec` is an immutable, protocol-compiled input containing the model identity, chosen
+abstract trace or target, evidence requirements, and bounds. Each invocation produces an
+environment-specific `ExperimentRun` in addition to the conformance result and retained evidence.
+Identity binding, snapshot encoding, refinement mapping, cutpoint selection, and successor checking
+belong behind this interface rather than becoming author-facing seams. The Temporal session belongs
+behind an adapter because a local functional-test cluster, CI cluster, and deployed cluster are
+genuinely different implementations of the same remote-owned boundary. This is consistent with the
+one-source design in
 [UMPIRE_STARLARK.md](./UMPIRE_STARLARK.md) and the runner direction in
 [UMPIRE_UX.md](./UMPIRE_UX.md).
 
@@ -591,7 +593,7 @@ conformance gate for auto-close, the draft implementation still needs:
 Umpire also lacks live realizers/fault controls for several relevant workflow close and timeout
 paths. The default protocol currently inventories workflow failure, cancellation, termination RPC,
 and server timeout as gaps, and inventories started schedule-to-close timeout as a Nexus gap
-([default protocol gaps](./tools/umpire2/internal/protocol/default.go)). Those gaps should remain
+([default protocol gaps](../tools/umpire2/internal/protocol/default.go)). Those gaps should remain
 explicit: a formal action without a realizer is model-only coverage, not implementation coverage.
 
 ## Recommended incremental path

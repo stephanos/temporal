@@ -589,4 +589,4 @@ developer can run again.
 For exact command behavior and limits, see the [Gomad v3 README](README.md).
 For the ownership boundaries and design rationale, see the
 [architecture document](ARCHITECTURE.md). The brief status of
-planned work lives in [GOMAD3_NEXT.md](../../GOMAD3_NEXT.md).
+planned work lives in [.plans/GOMAD3_NEXT.md](../../.plans/GOMAD3_NEXT.md).
