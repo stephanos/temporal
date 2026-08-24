@@ -45,9 +45,12 @@ Create the internal Cobra command tree for R3, R4, and R5, leaving `cmd/agentwor
 
 
 ## Done summary
-TBD
+Replaced the standalone Agentworkflow command's manual dispatcher with a fresh Cobra v1.10.2 tree under `internal/cli`, leaving `main.go` process-only. Compatibility coverage preserves every command, nested help, local and repeatable flags, positional objectives, stdout/stderr and JSON isolation, model override behavior, writer failures, and stable exit categories.
 
+TDD captured the expected legacy-dispatch RED before the Cobra implementation turned the focused and complete tagged suites GREEN. The command build, focused formatting/import checks, tagged vet/race suites, and task-scoped case-sensitive 13-analyzer lint all pass; the approved inherited branch-wide baseline exception remains unchanged.
+
+stage: impl-review - ran | verdict: SHIP | session: 01a0352e-3edc-7151-ba3c-dfaf13535508
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 753efe97a54b2ef4c297205a7f8ef9771108f09b
+- Tests: baseline: green (cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./...; cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow), RED: cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./cmd/agentworkflow -run TestCLI compatibility set - legacy dispatcher failed Cobra help, nested help, unknown-flag, and positional-arity expectations, GREEN: cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./internal/cli -run TestCLI compatibility set, cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow, cd tools/agentworkflow && GOWORK=off go vet -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go test -race -tags test_dep ./..., .bin/gci-v0.13.6 diff --skip-generated -s standard -s default <task Go files>, GOLANGCI_LINT_BASE_REV=6c907aaac45b9faa05eeadd55f4cc1c77c07abf2 GOLANGCI_LINT_FIX=false make LOCALBIN=/tmp/fn2-4-lint-tools lint-code (disposable case-sensitive clone at 753efe97a; 13 analyzers plus errortype vet, 0 issues), NO_RECEIPT: unittest gate receipt not warrantable because shared checkout has pre-existing config/development.yaml changes
 - PRs:
