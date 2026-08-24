@@ -13,8 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/agentworkflow"
 	projectconfig "go.temporal.io/server/tools/agentworkflow/internal/project"
+	"go.temporal.io/server/tools/agentworkflow/internal/recipe"
 	"gopkg.in/yaml.v3"
 )
 
@@ -91,10 +93,10 @@ func TestDefaultStoreHonorsExplicitAgentworkflowHome(t *testing.T) {
 func TestCLIEndToEndRunInspectDiffAndApply(t *testing.T) {
 	projectRoot := t.TempDir()
 	storeRoot := t.TempDir()
-	configPath := writeCLIConfig(t, projectRoot, true)
+	configPath := writeCLIConfig(t, projectRoot, true, "configured-model")
 	providerFlags := []string{
 		"--backend", "codex", "--backend-command", os.Args[0],
-		"--backend-arg=-test.run=TestCLIProvider", "--backend-arg=--", "--backend-arg=codex",
+		"--backend-arg=-test.run=TestCLIProvider", "--backend-arg=--", "--backend-arg=codex-model=configured-model",
 	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -135,7 +137,7 @@ func TestCLIEndToEndRunInspectDiffAndApply(t *testing.T) {
 
 func TestRunApplyRejectsDisabledAdmittedStageBeforeBackendProbe(t *testing.T) {
 	projectRoot := t.TempDir()
-	configPath := writeCLIConfig(t, projectRoot, false)
+	configPath := writeCLIConfig(t, projectRoot, false, "")
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	code := runCLI(context.Background(), []string{
@@ -173,6 +175,22 @@ func TestQualifiedBackendRejectsExecutableAndArgumentOverrides(t *testing.T) {
 	}
 }
 
+func TestResumeModelOverrideChangesBackendIdentity(t *testing.T) {
+	name, command, qualified := "codex", os.Args[0], false
+	arguments := stringList{"-test.run=TestCLIProvider", "--", "codex"}
+	oldModel, newModel := "old-model", "new-model"
+	oldBackend, err := makeBackend(&name, &command, &arguments, &oldModel, &qualified)
+	require.NoError(t, err)
+	newBackend, err := makeBackend(&name, &command, &arguments, &newModel, &qualified)
+	require.NoError(t, err)
+
+	oldInfo, err := oldBackend.Describe(context.Background())
+	require.NoError(t, err)
+	newInfo, err := newBackend.Describe(context.Background())
+	require.NoError(t, err)
+	require.NotEqual(t, oldInfo.ConfigurationDigest, newInfo.ConfigurationDigest)
+}
+
 //nolint:errcheck,revive // Writes and exits intentionally model a real provider subprocess.
 func TestCLIProvider(t *testing.T) {
 	separator := testArgumentIndex(os.Args, "--")
@@ -183,6 +201,11 @@ func TestCLIProvider(t *testing.T) {
 	if testHasArgument(arguments, "--version") {
 		fmt.Fprintln(os.Stdout, "codex-cli cli-test")
 		os.Exit(0)
+	}
+	expectedModel := strings.TrimPrefix(os.Args[separator+1], "codex-model=")
+	if expectedModel != os.Args[separator+1] && testArgumentValue(arguments, "--model") != expectedModel {
+		fmt.Fprintln(os.Stderr, "configured stage model was not forwarded")
+		os.Exit(23)
 	}
 	promptData, _ := io.ReadAll(os.Stdin)
 	prompt := string(promptData)
@@ -248,7 +271,7 @@ func cliStructuredOutput(prompt string) ([]byte, error) {
 	}
 }
 
-func writeCLIConfig(t *testing.T, root string, applyEnabled bool) string {
+func writeCLIConfig(t *testing.T, root string, applyEnabled bool, codexModel string) string {
 	t.Helper()
 	profile, err := projectconfig.Starter(root)
 	if err != nil {
@@ -262,8 +285,12 @@ func writeCLIConfig(t *testing.T, root string, applyEnabled bool) string {
 	}}
 	profile.Environment = projectconfig.Environment{Allow: []string{"PATH"}}
 	for index := range profile.Workflow.Stages {
-		if string(profile.Workflow.Stages[index].Kind) == string(agentworkflow.StageApply) {
-			profile.Workflow.Stages[index].Enabled = applyEnabled
+		stage := &profile.Workflow.Stages[index]
+		if string(stage.Kind) == string(agentworkflow.StageApply) {
+			stage.Enabled = applyEnabled
+		}
+		if codexModel != "" && stage.Kind != recipe.Check && stage.Kind != recipe.Apply {
+			stage.Models = recipe.Models{"codex": codexModel}
 		}
 	}
 	data, err := yaml.Marshal(profile)
