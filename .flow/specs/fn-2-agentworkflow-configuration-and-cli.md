@@ -75,7 +75,7 @@ output, and exit-code categories.
 cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./...
 cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow
 make fmt-imports
-make lint-code
+GOLANGCI_LINT_BASE_REV=<reviewed-base> GOLANGCI_LINT_FIX=false make lint-code
 ```
 
 ## Edge Cases & Constraints
@@ -96,6 +96,10 @@ make lint-code
 - Cobra parse/argument failures remain usage errors; semantic, backend, filesystem, capacity,
   cancellation, output-write, and workflow outcomes preserve current classifications.
 - Existing comments remain intact when code is changed or moved.
+- On this long-lived branch, the user-approved lint completion gate compares the complete configured
+  analyzer set against the reviewed implementation base on a case-sensitive filesystem. Findings
+  inherited from the stale canonical `main` comparison are recorded separately and are not fn-2
+  completion failures.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -106,7 +110,7 @@ make lint-code
 - **R4:** Cobra implements the complete existing command tree with compatible flags, positional arguments, help, stdout/stderr routing, JSON output, and exit-code categories. Errors: unknown commands/flags and invalid arguments return usage status without corrupting machine-readable stdout; writer failures return failure status.
 - **R5:** The engine, workflow contracts/results, backend interface, examples/tests, and backend test helper are importable only from inside the Agentworkflow module, with a thin executable entry point. Errors: the full module builds without stale imports or duplicate package surfaces.
 - **R6:** Current code, tests, and user documentation no longer detect, recommend, or describe the former JSON project configuration, and current paths/examples no longer use `.spec`; runtime JSON results, checkpoints, events, schemas, and `--json` output are unchanged. Errors: no legacy-specific fallback or diagnostic remains.
-- **R7:** Focused and complete module tests pass with `-tags test_dep`, the command builds, imports are formatted, and repository lint passes. Errors: no completion claim is made for any failing verification command.
+- **R7:** Focused and complete module tests pass with `-tags test_dep`, the command builds, imports are formatted, and the complete configured repository lint set passes against the reviewed fn-2 implementation base on a case-sensitive filesystem. Errors: no completion claim is made for a failing in-scope verification command; inherited findings from the stale canonical `main` comparison are recorded separately.
 
 ## Boundaries
 <!-- scope: business -->
@@ -155,4 +159,4 @@ engine, package, or CLI architecture.
 | R4 | Cobra CLI parity | fn-2-agentworkflow-configuration-and-cli.4 | — |
 | R5 | Internal-only Go implementation surface | fn-2-agentworkflow-configuration-and-cli.3, fn-2-agentworkflow-configuration-and-cli.4 | — |
 | R6 | Remove obsolete configuration references and update current docs | fn-2-agentworkflow-configuration-and-cli.1, fn-2-agentworkflow-configuration-and-cli.5 | — |
-| R7 | Complete verification | fn-2-agentworkflow-configuration-and-cli.5 | — |
+| R7 | Complete scoped verification | fn-2-agentworkflow-configuration-and-cli.5, fn-2-agentworkflow-configuration-and-cli.6, fn-2-agentworkflow-configuration-and-cli.7 | — |
