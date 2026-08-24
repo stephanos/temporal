@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "schema": "gomad3.live-capability-manifest/v2",
+  "symbol": "runtime.gomadCapabilities",
+  "guard_symbol": "runtime.gomadCapabilityGuard",
+  "guard_exemptions": [
+    "syscall.Clearenv",
+    "syscall.Environ",
+    "syscall.Errno.Error",
+    "syscall.Errno.Is",
+    "syscall.Errno.Temporary",
+    "syscall.Errno.Timeout",
+    "syscall.Getenv",
+    "syscall.Setenv",
+    "syscall.Unsetenv",
+    "syscall.Write"
+  ],
+  "header": {
+    "magic": "GOMADCAPABILITY\u0000",
+    "bytes": 112
+  },
+  "limits": {
+    "payload_bytes": 16777216,
+    "facts": 100000,
+    "string_bytes": 4096,
+    "owner_facts": 4096
+  },
+  "fact_kinds": [
+    "boundary",
+    "capability",
+    "foreign",
+    "guard",
+    "linkname"
+  ],
+  "dispositions": [
+    "denied",
+    "guarded",
+    "modeled",
+    "pack"
+  ],
+  "forbidden_imports": [
+    "os/exec",
+    "os/signal",
+    "os/user",
+    "plugin",
+    "runtime/cgo",
+    "syscall"
+  ],
+  "forbidden_prefixes": [
+    "golang.org/x/sys"
+  ]
+}
