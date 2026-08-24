@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/agentworkflow"
 	"go.temporal.io/server/tools/agentworkflow/backendtest"
 )
@@ -46,6 +47,33 @@ func TestClaudeAdapterUsesStructuredOutputAndExplicitResume(t *testing.T) {
 	}
 	if !sink.has(agentworkflow.EventInvocationCompleted) || !sink.has(agentworkflow.EventSessionIdentified) {
 		t.Fatalf("events = %#v", sink.events)
+	}
+}
+
+func TestClaudeModelArgumentPrecedence(t *testing.T) {
+	for _, test := range []struct {
+		name            string
+		configuredModel string
+		invocationModel string
+		wantModel       string
+	}{
+		{name: "CLI override", configuredModel: "cli-model", invocationModel: "stage-model", wantModel: "cli-model"},
+		{name: "stage model", invocationModel: "stage-model", wantModel: "stage-model"},
+		{name: "provider default"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			backend := &backend{config: Config{Command: []string{"claude"}, Model: test.configuredModel}}
+			invocation := testInvocation(t)
+			invocation.Model = test.invocationModel
+
+			arguments, err := backend.command(invocation)
+			require.NoError(t, err)
+			if test.wantModel == "" {
+				require.NotContains(t, arguments, "--model")
+				return
+			}
+			require.Equal(t, test.wantModel, argValue(arguments, "--model"))
+		})
 	}
 }
 

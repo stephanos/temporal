@@ -415,8 +415,8 @@ func normalizeProject(project Project) (Project, error) {
 		return Project{}, fmt.Errorf("source exclusions: %w", err)
 	}
 	for _, exclusion := range project.Source.Exclude {
-		if exclusion == "." || exclusion == ".spec" || strings.HasPrefix(exclusion, ".spec/") {
-			return Project{}, errors.New("source exclusions cannot exclude .spec or its contents")
+		if exclusion == "." || exclusion == ".agentworkflow" || strings.HasPrefix(exclusion, ".agentworkflow/") {
+			return Project{}, errors.New("source exclusions cannot exclude .agentworkflow or its contents")
 		}
 	}
 	project.Instructions, err = normalizeRelativePaths(project.Instructions)
@@ -429,7 +429,7 @@ func normalizeProject(project Project) (Project, error) {
 			return Project{}, errors.Join(fmt.Errorf("instruction file %q is not a regular file", instruction), statErr)
 		}
 	}
-	project.ForbiddenPaths = append(project.ForbiddenPaths, ".spec")
+	project.ForbiddenPaths = append(project.ForbiddenPaths, ".agentworkflow")
 	project.ForbiddenPaths = append(project.ForbiddenPaths, project.Instructions...)
 	project.ForbiddenPaths, err = normalizeRelativePaths(project.ForbiddenPaths)
 	if err != nil {

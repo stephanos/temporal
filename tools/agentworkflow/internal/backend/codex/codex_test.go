@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/agentworkflow"
 	"go.temporal.io/server/tools/agentworkflow/backendtest"
 )
@@ -45,6 +46,35 @@ func TestCodexAdapterUsesDedicatedOutputAndExplicitResume(t *testing.T) {
 	}
 	if !sink.has(agentworkflow.EventInvocationCompleted) || !sink.has(agentworkflow.EventSessionIdentified) {
 		t.Fatalf("events = %#v", sink.events)
+	}
+}
+
+func TestCodexModelArgumentPrecedence(t *testing.T) {
+	for _, test := range []struct {
+		name            string
+		configuredModel string
+		invocationModel string
+		wantModel       string
+	}{
+		{name: "CLI override", configuredModel: "cli-model", invocationModel: "stage-model", wantModel: "cli-model"},
+		{name: "stage model", invocationModel: "stage-model", wantModel: "stage-model"},
+		{name: "provider default"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			backend := &backend{config: Config{Model: test.configuredModel}}
+			invocation := agentworkflow.Invocation{Permission: agentworkflow.PermissionReadOnly, Model: test.invocationModel}
+
+			for _, arguments := range [][]string{
+				backend.commonArguments(invocation, "schema.json", "output.json"),
+				backend.resumeArguments(invocation, "schema.json", "output.json"),
+			} {
+				if test.wantModel == "" {
+					require.NotContains(t, arguments, "--model")
+					continue
+				}
+				require.Equal(t, test.wantModel, argValue(arguments, "--model"))
+			}
+		})
 	}
 }
 

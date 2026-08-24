@@ -184,7 +184,7 @@ func (engine *Engine) ensureDiscovery(ctx context.Context, run *store.Run, prepa
 	if err != nil {
 		return checkpoint.result(id, run.Directory(), OutcomeInfrastructureFailed, stage, err.Error()), true, err
 	}
-	brief, _, err := invokeTyped(ctx, engine, run, stage, prepared.Base, PermissionReadOnly, prompt, projectBriefSchema, "", false, validateProjectBrief)
+	brief, _, err := invokeTyped(ctx, engine, run, stage, workflowModel(checkpoint, StageDiscover), prepared.Base, PermissionReadOnly, prompt, projectBriefSchema, "", false, validateProjectBrief)
 	if err != nil {
 		result, resultErr := engine.agentFailureResult(id, run, checkpoint, stage, err)
 		return result, true, resultErr
@@ -218,7 +218,7 @@ func (engine *Engine) ensurePlan(ctx context.Context, run *store.Run, prepared w
 	if err != nil {
 		return checkpoint.result(id, run.Directory(), OutcomeInfrastructureFailed, stage, err.Error()), true, err
 	}
-	plan, _, err := invokeTyped(ctx, engine, run, stage, prepared.Base, PermissionReadOnly, prompt, planSchema, "", false, func(value planArtifact) error {
+	plan, _, err := invokeTyped(ctx, engine, run, stage, workflowModel(checkpoint, StagePlan), prepared.Base, PermissionReadOnly, prompt, planSchema, "", false, func(value planArtifact) error {
 		return validatePlan(value, len(checkpoint.Request.Task.SuccessCriteria))
 	})
 	if err != nil {
@@ -259,7 +259,7 @@ func (engine *Engine) ensureImplementation(ctx context.Context, run *store.Run, 
 		return checkpoint.result(id, run.Directory(), OutcomeInfrastructureFailed, stage, err.Error()), true, err
 	}
 	session, retain := mutationSession(checkpoint)
-	_, invocation, err := invokeTyped(ctx, engine, run, stage, prepared.Candidate, PermissionWorkspaceWrite, prompt, changeSummarySchema, session, retain, validateChangeSummary)
+	_, invocation, err := invokeTyped(ctx, engine, run, stage, workflowModel(checkpoint, StageImplement), prepared.Candidate, PermissionWorkspaceWrite, prompt, changeSummarySchema, session, retain, validateChangeSummary)
 	if err != nil {
 		result, resultErr := engine.agentFailureResult(id, run, checkpoint, stage, err)
 		return result, true, resultErr
@@ -470,7 +470,7 @@ func (engine *Engine) ensurePlanReviewStage(ctx context.Context, run *store.Run,
 	if err != nil {
 		return checkpoint.result(id, run.Directory(), OutcomeInfrastructureFailed, stage, err.Error()), true, err
 	}
-	review, _, err := invokeTyped(ctx, engine, run, stage, prepared.Base, PermissionReadOnly, prompt, planReviewSchema, "", false, validatePlanReview)
+	review, _, err := invokeTyped(ctx, engine, run, stage, workflowModel(checkpoint, StagePlan), prepared.Base, PermissionReadOnly, prompt, planReviewSchema, "", false, validatePlanReview)
 	if err != nil {
 		result, resultErr := engine.agentFailureResult(id, run, checkpoint, stage, err)
 		return result, true, resultErr
@@ -500,7 +500,7 @@ func (engine *Engine) ensurePlanRevision(ctx context.Context, run *store.Run, pr
 	if err != nil {
 		return checkpoint.result(id, run.Directory(), OutcomeInfrastructureFailed, stage, err.Error()), true, err
 	}
-	plan, _, err := invokeTyped(ctx, engine, run, stage, prepared.Base, PermissionReadOnly, prompt, planSchema, "", false, func(value planArtifact) error {
+	plan, _, err := invokeTyped(ctx, engine, run, stage, workflowModel(checkpoint, StagePlan), prepared.Base, PermissionReadOnly, prompt, planSchema, "", false, func(value planArtifact) error {
 		return validatePlan(value, len(checkpoint.Request.Task.SuccessCriteria))
 	})
 	if err != nil {
@@ -534,7 +534,7 @@ func (engine *Engine) repair(ctx context.Context, run *store.Run, prepared works
 		return checkpoint.result(id, run.Directory(), OutcomeInfrastructureFailed, stage, err.Error()), true, err
 	}
 	session, retain := mutationSession(checkpoint)
-	_, invocation, err := invokeTyped(ctx, engine, run, stage, prepared.Candidate, PermissionWorkspaceWrite, prompt, changeSummarySchema, session, retain, validateChangeSummary)
+	_, invocation, err := invokeTyped(ctx, engine, run, stage, workflowModel(checkpoint, StageRepair), prepared.Candidate, PermissionWorkspaceWrite, prompt, changeSummarySchema, session, retain, validateChangeSummary)
 	if err != nil {
 		result, resultErr := engine.agentFailureResult(id, run, checkpoint, stage, err)
 		return result, true, resultErr
@@ -637,7 +637,7 @@ func (engine *Engine) runReviews(ctx context.Context, run *store.Run, prepared w
 				outcomes <- reviewOutcome{index: index, err: err}
 				return
 			}
-			artifact, _, err := invokeTyped(ctx, engine, run, fmt.Sprintf("review-%d-%s", round, lens), reviewWorkspace, PermissionReadOnly, prompt, reviewSchema, "", false, func(value reviewArtifact) error {
+			artifact, _, err := invokeTyped(ctx, engine, run, fmt.Sprintf("review-%d-%s", round, lens), workflowModel(checkpoint, StageReview), reviewWorkspace, PermissionReadOnly, prompt, reviewSchema, "", false, func(value reviewArtifact) error {
 				return validateReview(value, lens, reviewWorkspace)
 			})
 			if err != nil {
@@ -785,7 +785,11 @@ func (sink *recordingSink) Emit(event Event) error {
 	return nil
 }
 
-func invokeTyped[T any](ctx context.Context, engine *Engine, run *store.Run, stage, workdir string, permission Permission, prompt string, schema json.RawMessage, session string, retain bool, validate func(T) error) (T, InvocationResult, error) {
+func workflowModel(checkpoint *checkpoint, kind StageKind) string {
+	return workflowStage(checkpoint.Request.Workflow, kind).Models[checkpoint.Backend.Name]
+}
+
+func invokeTyped[T any](ctx context.Context, engine *Engine, run *store.Run, stage, model, workdir string, permission Permission, prompt string, schema json.RawMessage, session string, retain bool, validate func(T) error) (T, InvocationResult, error) {
 	var zero T
 	if value, recovered, found, err := recoveredInvocation(run, stage, engine.limits.MaxOutputBytes, validate); found || err != nil {
 		return value, recovered, err
@@ -800,7 +804,7 @@ func invokeTyped[T any](ctx context.Context, engine *Engine, run *store.Run, sta
 	}
 	sink := &recordingSink{recorder: recorder}
 	result, invokeErr := engine.backend.Execute(ctx, Invocation{
-		ID: run.ID() + "/" + stage, Phase: stage, Workspace: workdir, Prompt: prompt,
+		ID: run.ID() + "/" + stage, Phase: stage, Model: model, Workspace: workdir, Prompt: prompt,
 		OutputSchema: schema, Permission: permission, Session: session, RetainSession: retain,
 		Timeout: engine.limits.InvocationTimeout, MaxOutputBytes: engine.limits.MaxOutputBytes, MaxEvents: engine.limits.MaxEvents,
 	}, sink)

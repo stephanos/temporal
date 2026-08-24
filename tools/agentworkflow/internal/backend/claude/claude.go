@@ -111,8 +111,8 @@ func (backend *backend) command(invocation agentworkflow.Invocation) ([]string, 
 		command = append(command, "--bare")
 	}
 	command = append(command, "-p", "--output-format", "json", "--json-schema", string(invocation.OutputSchema))
-	if backend.config.Model != "" {
-		command = append(command, "--model", backend.config.Model)
+	if model := backend.model(invocation); model != "" {
+		command = append(command, "--model", model)
 	}
 	if backend.config.MaxTurns > 0 {
 		command = append(command, "--max-turns", fmt.Sprintf("%d", backend.config.MaxTurns))
@@ -131,6 +131,13 @@ func (backend *backend) command(invocation agentworkflow.Invocation) ([]string, 
 		return nil, fmt.Errorf("Claude permission %q is invalid", invocation.Permission)
 	}
 	return command, nil
+}
+
+func (backend *backend) model(invocation agentworkflow.Invocation) string {
+	if backend.config.Model != "" {
+		return backend.config.Model
+	}
+	return invocation.Model
 }
 
 func claudeEnvironment() []string {

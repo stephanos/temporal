@@ -398,8 +398,15 @@ func requestFromConfig(config projectconfig.Resolved, objective string, criteria
 func workflowFromConfig(config projectconfig.Resolved) agentworkflow.Workflow {
 	workflow := agentworkflow.Workflow{Stages: make([]agentworkflow.WorkflowStage, len(config.Workflow.Stages))}
 	for index, stage := range config.Workflow.Stages {
+		var models agentworkflow.Models
+		if stage.Models != nil {
+			models = make(agentworkflow.Models, len(stage.Models))
+			for provider, model := range stage.Models {
+				models[provider] = model
+			}
+		}
 		workflow.Stages[index] = agentworkflow.WorkflowStage{
-			Kind: agentworkflow.StageKind(stage.Kind), Enabled: stage.Enabled, Prompt: stage.Prompt,
+			Kind: agentworkflow.StageKind(stage.Kind), Enabled: stage.Enabled, Models: models, Prompt: stage.Prompt,
 			ReviewPrompt: stage.ReviewPrompt, RevisionPrompt: stage.RevisionPrompt, Mode: stage.Mode,
 		}
 	}
