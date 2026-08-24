@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/log"
+	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/testing/parallelsuite"
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
 	"go.temporal.io/server/tools/umpire2"

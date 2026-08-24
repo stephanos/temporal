@@ -22,7 +22,6 @@ import (
 	"go.temporal.io/server/common/namespace"
 	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/nexus/nexusrpc"
-	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/common/testing/testhooks"
 	queueserrors "go.temporal.io/server/service/history/queues/errors"
 	"go.uber.org/fx"
@@ -45,11 +44,6 @@ type operationInvocationTaskHandlerOptions struct {
 
 	InvocationTaskHandlerOptions
 	CallbackTokenGenerator *commonnexus.CallbackTokenGenerator
-	ClientProvider         ClientProvider
-	EndpointRegistry       commonnexus.EndpointRegistry
-	HTTPTraceProvider      commonnexus.HTTPClientTraceProvider
-	HistoryClient          resource.HistoryClient
-	ChasmRegistry          *chasm.Registry
 	TestHooks              testhooks.TestHooks
 }
 
@@ -58,11 +52,6 @@ type operationInvocationTaskHandler struct {
 
 	nexusTaskHandlerBase
 	callbackTokenGenerator *commonnexus.CallbackTokenGenerator
-	clientProvider         ClientProvider
-	endpointRegistry       commonnexus.EndpointRegistry
-	httpTraceProvider      commonnexus.HTTPClientTraceProvider
-	historyClient          resource.HistoryClient
-	chasmRegistry          *chasm.Registry
 	testHooks              testhooks.TestHooks
 }
 
@@ -70,11 +59,6 @@ func newOperationInvocationTaskHandler(opts operationInvocationTaskHandlerOption
 	return &operationInvocationTaskHandler{
 		nexusTaskHandlerBase:   opts.toBase(),
 		callbackTokenGenerator: opts.CallbackTokenGenerator,
-		clientProvider:         opts.ClientProvider,
-		endpointRegistry:       opts.EndpointRegistry,
-		httpTraceProvider:      opts.HTTPTraceProvider,
-		historyClient:          opts.HistoryClient,
-		chasmRegistry:          opts.ChasmRegistry,
 		testHooks:              opts.TestHooks,
 	}
 }

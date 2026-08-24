@@ -297,7 +297,9 @@ func (r *workflowResetterImpl) ResetWorkflow(
 		),
 	)
 
-	currentWorkflow.GetContext().UpdateRegistry(ctx).Abort(update.AbortReasonWorkflowCompleted)
+	if !currentExecutionMissing {
+		currentWorkflow.GetContext().UpdateRegistry(ctx).Abort(update.AbortReasonWorkflowCompleted)
+	}
 
 	return nil
 }
@@ -553,7 +555,6 @@ func (r *workflowResetterImpl) replayResetWorkflow(
 		r.shardContext.GetLogger(),
 		r.shardContext.GetMetricsHandler(),
 		nil, // no pagination buffer limiter as it is a transient context
-		testhooks.TestHooks{},
 	)
 
 	resetMutableState, resetStats, err := r.stateRebuilder.Rebuild(
@@ -827,7 +828,8 @@ func (r *workflowResetterImpl) reapplyContinueAsNewWorkflowEvents(
 		if err != nil {
 			// A deleted run truncates the chain; other errors must fail the reset so a retry
 			// can reapply the full surviving chain, since reset is one-shot.
-			if _, ok := errors.AsType[*serviceerror.NotFound](err); ok {
+			var notFound *serviceerror.NotFound
+			if errors.As(err, &notFound) {
 				break
 			}
 			return "", err
