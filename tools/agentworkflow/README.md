@@ -55,25 +55,25 @@ Run this from the project you want an agent to change:
 agentworkflow init --project .
 ```
 
-This creates `.spec/agentworkflow.yaml`. Initialization only examines filenames and manifests; it
+This creates `.agentworkflow/config.yml`. Initialization only examines filenames and manifests; it
 does not execute project code or create placeholder task files.
 
-Every project uses `.spec` for human-written agent inputs:
+Every project uses `.agentworkflow` for tool-owned configuration and human-written agent inputs:
 
 ```text
-.spec/
-├── agentworkflow.yaml
+.agentworkflow/
+├── config.yml
 ├── instructions/
 │   └── architecture.md
 └── tasks/
     └── issue-123.md
 ```
 
-Only `agentworkflow.yaml` is created automatically. Add instruction and task Markdown when your
+Only `config.yml` is created automatically. Add instruction and task Markdown when your
 project needs them. Generated candidates, reports, checkpoints, and provider events remain in the
-external run store; they never enter `.spec`.
+external run store; they never enter `.agentworkflow`.
 
-Open `.spec/agentworkflow.yaml` before continuing. Check the detected commands, exclusions,
+Open `.agentworkflow/config.yml` before continuing. Check the detected commands, exclusions,
 protected paths, assurance policy, enabled stages, and stage prompts. Python and Node checks may be
 suggested as disabled when initialization cannot infer that running them is safe.
 
@@ -118,13 +118,13 @@ agentworkflow run \
   "Fix cancellation of an in-flight worker"
 ```
 
-For nontrivial work, keep the human-written task in `.spec/tasks`:
+For nontrivial work, keep the human-written task in `.agentworkflow/tasks`:
 
 ```sh
 agentworkflow run \
   --project . \
   --backend codex \
-  --task-file .spec/tasks/issue-123.md \
+  --task-file .agentworkflow/tasks/issue-123.md \
   --criterion "The requested behavior is covered by a regression test."
 ```
 
@@ -172,11 +172,11 @@ agentworkflow resume --backend codex <run-id>
 ```
 
 Use the same provider identity and store. The admitted YAML workflow is embedded in the checkpoint,
-so later edits to `.spec/agentworkflow.yaml` cannot alter the resumed run. Mutation resumes only
+so later edits to `.agentworkflow/config.yml` cannot alter the resumed run. Mutation resumes only
 with an explicit provider session identity; Agentworkflow never guesses a provider's last session
 or repeats a possibly partial write blindly.
 
-## Customize `.spec/agentworkflow.yaml`
+## Customize `.agentworkflow/config.yml`
 
 YAML is the only supported human configuration format. A compact project contract looks like this:
 
@@ -189,7 +189,7 @@ source:
 
 instructions:
   - AGENTS.md
-  - .spec/instructions/architecture.md
+  - .agentworkflow/instructions/architecture.md
 
 checks:
   - name: unit
@@ -239,6 +239,9 @@ workflow:
 
     - kind: implement
       enabled: true
+      models:
+        codex: gpt-5.3-codex
+        claude: opus
       prompt: |-
         Implement the accepted plan in the candidate workspace. Keep the diff focused.
 
@@ -272,7 +275,7 @@ targets:
         enabled: true
 ```
 
-The default file is `.spec/agentworkflow.yaml` beneath `--project`. `init`, `config explain`,
+The default file is `.agentworkflow/config.yml` beneath `--project`. `init`, `config explain`,
 `doctor`, and `run` accept `--config path/to/contract.yaml` for an unusual layout or hermetic test.
 That file must remain inside the project root and end in `.yaml` or `.yml`; it is protected from
 candidate mutation automatically.
@@ -305,6 +308,15 @@ discover → plan → implement → check → review → repair → apply
 You can edit prompts and set an explicit `enabled` value on every stage. You cannot add stage kinds,
 reorder them, create cycles, change permissions, replace output schemas, or make apply implicit.
 
+Agent-backed stages (`discover`, `plan`, `implement`, `review`, and `repair`) also accept a strict,
+optional `models` mapping. Its only keys are `codex` and `claude`, and each configured value must be
+a non-blank string. Unknown or duplicate keys and non-string, null, or blank values fail strict
+configuration validation. `check` and `apply` reject `models` because they do not invoke a provider.
+Agentworkflow does not look up a model catalog: it selects the entry matching `--backend` and passes
+that value to the provider. If that entry is omitted, the provider chooses its default. Plan review
+and revision use the `plan` model, every parallel review lens uses the `review` model, and all repair
+attempts use the `repair` model.
+
 Disabling a stage is intentionally fail-closed:
 
 | Disabled stage | Effect |
@@ -320,8 +332,9 @@ Disabling a stage is intentionally fail-closed:
 ### Add project instructions
 
 `instructions` names files whose content should enter discovery context. Every declared instruction
-is protected from candidate mutation. The entire `.spec` tree is always copied for agent reads and
-always protected for human ownership; it cannot be excluded or removed from `forbidden_paths`.
+is protected from candidate mutation. The entire `.agentworkflow` tree is always copied for agent
+reads and always protected for human ownership; it cannot be excluded or removed from
+`forbidden_paths`.
 
 ### Configure monorepo targets
 
@@ -354,35 +367,21 @@ agentworkflow run --project . --backend codex "Add bounded retries"
 agentworkflow run --project . --backend claude "Add bounded retries"
 ```
 
-Use `--model` for a model override, `--backend-command` for a wrapper or alternate executable, and
-repeat `--backend-arg` for its arguments. `--qualified` requests provider configuration isolation
-and therefore rejects executable and argument overrides. Provider subprocesses receive a minimal
-runtime-and-credential allowlist rather than the complete host environment; project checks receive
-only `environment.allow`.
+`--model` is a whole-run override and takes precedence over every stage's selected provider model.
+Use `--backend-command` for a wrapper or alternate executable, and repeat `--backend-arg` for its
+arguments. `--qualified` requests provider configuration isolation and therefore rejects executable
+and argument overrides. Provider subprocesses receive a minimal runtime-and-credential allowlist
+rather than the complete host environment; project checks receive only `environment.allow`.
 
-Bundled Codex and Claude adapters are private CLI implementation packages. External Go adapters use
-the intentionally small root seam:
+The admitted workflow, including stage models, is stored in the checkpoint. Resume therefore keeps
+the original stage choices even if `.agentworkflow/config.yml` changes. The whole-run `--model` is
+part of the backend identity; resuming with a different override is rejected before an invocation.
 
-```go
-type Backend interface {
-    Describe(context.Context) (BackendInfo, error)
-    Execute(context.Context, Invocation, EventSink) (InvocationResult, error)
-}
-```
+The supported product surface is the `agentworkflow` executable. The engine, workflow contracts,
+backend interface, provider adapters, examples, tests, and conformance helper are internal Go
+packages for this module, not supported extension APIs.
 
-Use the public `backendtest` conformance package with a deterministic fake executable before live
-qualification. Provider flags, protocols, session syntax, and subprocess behavior stay behind the
-adapter.
-
-## Migrate from the removed JSON configuration
-
-This is a breaking change. `.agentworkflow/project.json`, the `--profile` flag, and the
-`agentworkflow.project/v1` schema are not accepted.
-
-If a legacy file exists and `.spec/agentworkflow.yaml` does not, Agentworkflow names both paths and
-stops. Run `agentworkflow init --project .`, merge the old project settings into the generated YAML,
-review the newly explicit workflow prompts, then remove the old file. There is no implicit parser,
-converter, or precedence rule.
+## Machine-readable artifacts
 
 Run-store checkpoints, provider events, and structured CLI output remain JSON or JSONL because
 they are integrity-bound machine artifacts, not human project configuration.
@@ -415,6 +414,13 @@ CLI exit codes are stable:
 | `5` | Infrastructure failure or corrupt state |
 | `64` | Invalid command usage |
 
+The Cobra command tree exposes `init`, `doctor`, `run`, `resume`, `inspect`, `report`, `diff`,
+`apply`, and nested `config explain`. `agentworkflow help`, `agentworkflow --help`, and
+command-specific `--help` render the available commands and local flags. Unknown commands or flags
+and invalid arguments print usage to stderr and return `64`; operational failures retain the
+`agentworkflow:` prefix and their category above. Machine-readable output such as `run --json`,
+`report --json`, and `diff --json` remains on stdout without progress or usage text mixed into it.
+
 ## Troubleshooting
 
 `inconclusive`: run `config explain` and confirm that both `check` and `review` are enabled and at
@@ -439,9 +445,10 @@ Each run retains its normalized request and backend identity, immutable checkpoi
 bounded provider evidence, structured stage output, source and candidate identities, direct check
 results, review rounds, terminal result, candidate workspace, and any apply backup.
 
-Source snapshots exclude `.git`, the legacy `.agentworkflow` directory, and the run store when it
-is nested under the project. `.spec` remains in the snapshot. Escaping symlinks and special files
-are rejected. Read-only stages are hashed before and after every invocation.
+Source snapshots exclude `.git` and the run store when it is nested under the project.
+`.agentworkflow` remains readable in the snapshot but is always protected from candidate mutation.
+Escaping symlinks and special files are rejected. Read-only stages are hashed before and after every
+invocation.
 
 ## Develop and test
 
