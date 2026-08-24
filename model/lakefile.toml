@@ -1,8 +1,12 @@
 name = "temporal-model"
-defaultTargets = ["NexusAutoClose", "Temporal"]
+defaultTargets = ["NexusAutoClose", "Temporal", "ExperimentTests"]
 
 [[lean_lib]]
 name = "NexusAutoClose"
 
 [[lean_lib]]
 name = "Temporal"
+
+[[lean_lib]]
+name = "ExperimentTests"
+roots = ["Temporal.ExperimentTests"]
