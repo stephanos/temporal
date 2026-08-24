@@ -17,7 +17,7 @@ import (
 	"go.temporal.io/server/common/nexus/nexustest"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire3/execution/participant"
+	"go.temporal.io/server/tools/umpire3/execution/participant"
 )
 
 func TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram(t *testing.T) {

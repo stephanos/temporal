@@ -174,8 +174,8 @@ collapsing everything into `SCHEDULED` or `STARTED`.
 Umpire already has the correct high-level seam: a compiled `Protocol` projects into a live runtime
 declaration and into a finite `verify.Model` containing entity lifecycles, relations, actions,
 properties, targets, bounds, and refinements
-([protocol declaration](./tests/umpire2/internal/protocol/protocol.go),
-[verification projection](./tests/umpire2/internal/protocol/verification.go)). The model generator
+([protocol declaration](./tools/umpire2/internal/protocol/protocol.go),
+[verification projection](./tools/umpire2/internal/protocol/verification.go)). The model generator
 then emits TLA+, P, Ivy, and FizzBee from that common IR
 ([`generateTarget`](./cmd/umpire-genmodels/main.go#L122-L215)), and CI installs pinned tools, checks
 generated artifacts, runs seeded counterexample tests, and runs smoke/nightly verification
@@ -196,11 +196,11 @@ The runtime `NexusOperation` entity already mirrors the main operation lifecycle
 backing-off, started, sync/async success, failure, cancellation, timeout, standalone termination, and
 synchronous rejection. It observes attempts, the three timeout details, cancel-request failures,
 handler Workflow references, and public execution/history snapshots
-([runtime model](./tests/umpire2/internal/model/nexus_operation.go#L20-L157),
-[fact application](./tests/umpire2/internal/model/nexus_operation.go#L181-L308)). Live actions can
+([runtime model](./tools/umpire2/internal/model/nexus_operation.go#L20-L157),
+[fact application](./tools/umpire2/internal/model/nexus_operation.go#L181-L308)). Live actions can
 exercise standalone/embedded schedule, retryable start failure, sync/async response, callback
 completion, timeout from scheduled/backoff, and standalone termination
-([actions](./tests/umpire2/internal/action/nexus_actions.go#L15-L162)). This is a substantial base, not
+([actions](./tools/umpire2/internal/action/nexus_actions.go#L15-L162)). This is a substantial base, not
 an empty model.
 
 Formal coverage is split across targets:
@@ -213,16 +213,16 @@ Formal coverage is split across targets:
 | `protocol-atomic` | Generic lifecycle algebra from the canonical `Protocol`. | Callback integration actions are deliberately checked in separate targets; it is not an end-to-end Nexus target. |
 
 The target list and manual family assembly are visible in
-[`verification_family.go`](./tests/umpire2/internal/protocol/verification_family.go#L60-L177). The
+[`verification_family.go`](./tools/umpire2/internal/protocol/verification_family.go#L60-L177). The
 callback integration already models reference, delivery, retry, acknowledgement, and lifetime as
 separate modules
-([`verification_callback.go`](./tests/umpire2/internal/protocol/verification_callback.go#L129-L221)).
+([`verification_callback.go`](./tools/umpire2/internal/protocol/verification_callback.go#L129-L221)).
 This is the pattern to extend.
 
 It is not yet a faithful callback-close model. `callback.delivery.enqueue` is guarded while the
 handler run is nonterminal, while handler-close actions require already-created deliveries to be
 acknowledged
-([actions](./tests/umpire2/internal/protocol/verification_callback.go#L65-L126)). The real Temporal
+([actions](./tools/umpire2/internal/protocol/verification_callback.go#L65-L126)). The real Temporal
 contract triggers callback delivery from handler Workflow close and retries until success, permanent
 failure, or retention expiry
 ([architecture](./docs/architecture/nexus.md#L337-L369)). The composed Nexus family must correct that
@@ -238,9 +238,9 @@ outcome
 
 The existing `feature-nexus` target nevertheless has a semantic mismatch for auto-close. Its
 workflow-close action is guarded so that every owned operation is already terminal
-([`verification_nexus.go`](./tests/umpire2/internal/protocol/verification_nexus.go#L64-L82)), and its
+([`verification_nexus.go`](./tools/umpire2/internal/protocol/verification_nexus.go#L64-L82)), and its
 closure property says that a terminal workflow implies a terminal owned operation
-([property](./tests/umpire2/internal/protocol/verification_nexus.go#L188-L201)). Auto-close permits
+([property](./tools/umpire2/internal/protocol/verification_nexus.go#L188-L201)). Auto-close permits
 workflow close while a detached cancellation remains live. That property needs to be decomposed into
 “the operation no longer belongs to the live caller” and “all required detached work remains valid,”
 not merely weakened ad hoc.
@@ -265,8 +265,8 @@ Use one family with narrow modules and explicit connector modules:
 The delivery and routing slices should refine Umpire's existing generic foundation rather than
 reimplement matching. It already models delivery tasks/attempts, route isolation, matching/history
 owner fencing, and backlog acknowledgement in separate targets
-([routing target](./tests/umpire2/internal/protocol/verification_delivery_routing.go#L32-L230),
-[backlog target](./tests/umpire2/internal/protocol/verification_delivery_backlog.go)). What is missing
+([routing target](./tools/umpire2/internal/protocol/verification_delivery_routing.go#L32-L230),
+[backlog target](./tools/umpire2/internal/protocol/verification_delivery_backlog.go)). What is missing
 is a Nexus connector saying which start/cancel/callback state creates which generic delivery
 obligation and how its response refines the feature state.
 
@@ -415,7 +415,7 @@ renaming, per-instance bound, or generated synchronizing action. Nexus needs the
 delivery shape for start, cancel, and callback, but copying it three times by hand invites drift.
 Similarly, the current family is assembled by manually appending every fragment's entities,
 relations, actions, properties, refinements, modules, compositions, and targets
-([assembly](./tests/umpire2/internal/protocol/verification_family.go#L78-L177)); the Nexus fragments do
+([assembly](./tools/umpire2/internal/protocol/verification_family.go#L78-L177)); the Nexus fragments do
 not yet expose Nexus-specific provider/consumer obligations.
 
 The incremental fix should be a Go-level deep module before a new modeling language: a
@@ -461,8 +461,8 @@ property review remain necessary.
 
 Umpire's live side ingests observed facts into its runtime, records fact/transition/relation coverage,
 evaluates runtime rules, and records execution action windows
-([evidence ingestion](./tests/umpire2/evidence_ingestor.go#L32-L91),
-[execution trace](./tests/umpire2/execution_trace.go#L54-L204)). Causal footprints can require or
+([evidence ingestion](./tools/umpire2/evidence_ingestor.go#L32-L91),
+[execution trace](./tools/umpire2/execution_trace.go#L54-L204)). Causal footprints can require or
 forbid facts around a live action. This is enough to build model-informed acceptance scenarios today:
 the same declaration can supply names, lifecycle edges, start/callback/cancel/close actions, and local
 assertions to both a verification target and the live driver. Existing live facts already observe
@@ -591,7 +591,7 @@ conformance gate for auto-close, the draft implementation still needs:
 Umpire also lacks live realizers/fault controls for several relevant workflow close and timeout
 paths. The default protocol currently inventories workflow failure, cancellation, termination RPC,
 and server timeout as gaps, and inventories started schedule-to-close timeout as a Nexus gap
-([default protocol gaps](./tests/umpire2/internal/protocol/default.go)). Those gaps should remain
+([default protocol gaps](./tools/umpire2/internal/protocol/default.go)). Those gaps should remain
 explicit: a formal action without a realizer is model-only coverage, not implementation coverage.
 
 ## Recommended incremental path

@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"go.temporal.io/server/tests/umpire3/scenario"
-	umpire3nexus "go.temporal.io/server/tests/umpire3/scenario/nexus"
+	"go.temporal.io/server/tools/umpire3/scenario"
+	umpire3nexus "go.temporal.io/server/tools/umpire3/scenario/nexus"
 )
 
 func TestUmpire3SparseRegressionOrdinaryNexusCompletion(t *testing.T) {

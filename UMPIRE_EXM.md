@@ -141,9 +141,9 @@ and
 
 | Umpire mechanism | Closest paper technique | What exists now | Missing conformance step |
 | --- | --- | --- | --- |
-| Protocol lifecycle planning and sparse regression compilation | MBTCG | A validated protocol derives actions and lifecycle routes; sparse intent is completed into bounded executable paths ([protocol](tests/umpire2/internal/protocol/protocol.go), [compiler](common/testing/umpire/regress/compiler.go)) | Paths are not generated from the formal checker's reachable graph with model-derived expected outputs |
+| Protocol lifecycle planning and sparse regression compilation | MBTCG | A validated protocol derives actions and lifecycle routes; sparse intent is completed into bounded executable paths ([protocol](tools/umpire2/internal/protocol/protocol.go), [compiler](common/testing/umpire/regress/compiler.go)) | Paths are not generated from the formal checker's reachable graph with model-derived expected outputs |
 | Monitor, facts, relations, lifecycle transitions, and rules | MBTC | Runtime observations update a semantic model and properties are judged at checkpoints ([runtime](common/testing/umpire/runtime.go), [overview](UMPIRE.md#monitor-observe-and-evaluate)) | A live trace is not checked as a sequence of legal `verify.Model` transitions |
-| Normalized traces and causal footprints | MBTC infrastructure | Required/forbidden observation patterns and causality are checked inside action windows ([trace checker](common/testing/umpire/trace.go#L205-L278), [footprints](tests/umpire2/internal/protocol/causal_footprints.go)) | This checks trace shape, not abstract pre-state, enabled action, branch, and post-state |
+| Normalized traces and causal footprints | MBTC infrastructure | Required/forbidden observation patterns and causality are checked inside action windows ([trace checker](common/testing/umpire/trace.go#L205-L278), [footprints](tools/umpire2/internal/protocol/causal_footprints.go)) | This checks trace shape, not abstract pre-state, enabled action, branch, and post-state |
 | Formal model family and backends | Model exploration | One model family projects bounded modules/targets to TLA+, P, Ivy, and Fizz; CI checks generated artifacts and formal runs ([model family](common/testing/umpire/verify/family.go), [workflow](.github/workflows/umpire-model-verification.yml)) | A checked trace/counterexample cannot yet be executed against Temporal |
 | Canonical formal interpreter and counterexample normalization | A reusable bridge component | Backend traces are replayed through `verify.Interpreter` and rejected when ambiguous or invalid ([normalizer](common/testing/umpire/verify/counterexample.go)) | It currently normalizes formal-backend evidence, not independently observed Go execution |
 
@@ -155,7 +155,7 @@ already implements the paper's MBTC or MBTCG would overstate the code.
 EXM's multiple specifications do not require competing vocabularies. Umpire's
 [`ModelFamily`](common/testing/umpire/verify/family.go#L97-L105) already provides modules, interfaces,
 obligations, compositions, refinement maps, and bounded verification targets, while the compiled
-[`Protocol`](tests/umpire2/internal/protocol/protocol.go#L70-L82) owns the canonical runtime
+[`Protocol`](tools/umpire2/internal/protocol/protocol.go#L70-L82) owns the canonical runtime
 vocabulary. The right interpretation of “one semantic source” is one validated vocabulary and
 refinement graph with multiple purpose-built projections, not one monolithic model of all Temporal.
 
@@ -168,8 +168,8 @@ statements.
 
 The Realm success used one model-derived suite to keep independent implementations aligned. Umpire
 already exposes the same sparse regression through CHASM or HSM local presets via
-[`WithCHASM`](tests/umpire2/umpiretest/regression.go#L102-L115), and the compiled suite is retained in
-the runner result ([`RunRegression`](tests/umpire2/umpiretest/regression.go#L22-L72)).
+[`WithCHASM`](tools/umpire2/umpiretest/regression.go#L102-L115), and the compiled suite is retained in
+the runner result ([`RunRegression`](tools/umpire2/umpiretest/regression.go#L22-L72)).
 
 **Inference:** for plans restricted to capabilities shared by both profiles, compile once, run the
 same completed paths and model-derived expected deltas under HSM and CHASM, and compare semantic
@@ -184,13 +184,13 @@ become an untrusted second implementation. Two current Umpire details would recr
 
 1. [`Fact`](common/testing/umpire/entity.go#L62-L66) exposes only a name and target; it carries no
    source, source sequence, clock domain, or derivation metadata. Although `TraceEvent` supports
-   those fields, [`executionTrace.recordFacts`](tests/umpire2/execution_trace.go#L128-L204) labels
+   those fields, [`executionTrace.recordFacts`](tools/umpire2/execution_trace.go#L128-L204) labels
    every fact and every relation/lifecycle transition derived from it as `in-process`. This erases
    whether the evidence actually came from gRPC, history, telemetry, or a direct in-process signal,
    and makes evidence qualification stronger than the retained provenance justifies.
 2. [`Transition.Apply`](chasm/statemachine.go#L55-L113) deliberately emits `chasm.transition`
    telemetry even when source validation or the apply callback fails, attaching the error as an
-   attribute. [`ChasmTransition.ImportSpanEvent`](tests/umpire2/internal/fact/chasm_transition.go#L40-L52)
+   attribute. [`ChasmTransition.ImportSpanEvent`](tools/umpire2/internal/fact/chasm_transition.go#L40-L52)
    does not decode that error. It records source, destination, event, identity, and attempt, so an
    attempted transition can be interpreted as an applied transition. Even a successful `Apply`
    precedes transaction close/persistence, so it is not yet evidence of a committed transition.

@@ -7,7 +7,7 @@ and the separate verification-architecture plan. Completed milestones have been 
 contains only enduring architectural constraints, remaining work, and the evidence required to call
 Umpire3 complete against `UMPIRE_VISION.md`.
 
-The existing `tests/umpire3` tree is the implementation baseline. Its generated catalog, typed
+The existing `tools/umpire3` tree is the implementation baseline. Its generated catalog, typed
 authoring facade, protobuf projection, exact explorer, Lean temporal checking, native certificate
 producer, unified semantic traces, campaign/replay pipeline, isolated canary, primary-project Veil
 dependency and Lean source declarations, family-scoped checks, TLA quarantine guardrails,
@@ -62,7 +62,7 @@ and mechanically inspectable:
   paths through FFI, subprocesses, or generated executable logic.
 - Go owns bounded orchestration, Temporal API calls, evidence transport, cleanup, persistence, and
   process isolation. It does not restate a Temporal state machine or property rule.
-- `tests/umpire3/protocol` is a strict, versioned transport boundary. It may represent an explicit
+- `tools/umpire3/protocol` is a strict, versioned transport boundary. It may represent an explicit
   Lean-generated `ExecutableView`, `FirstOrderView`, `TemporalView`, certificate, trace, or evidence
   program. It is not an independently authored semantic IR, a backend-neutral compiler IR, or an API
   designed around hypothetical future model checkers.
@@ -420,22 +420,22 @@ Umpire3 is complete only when all statements below have direct, current evidence
 ## 10. Source anchors
 
 - Vision: `UMPIRE_VISION.md`.
-- Semantic kernel and registrations: `tests/umpire3/model/Umpire3`.
+- Semantic kernel and registrations: `tools/umpire3/model/Umpire3`.
 - Feature, system, refinement, observation, composition, and target models:
-  `tests/umpire3/model/Temporal`.
-- Generated transport and trust vocabulary: `tests/umpire3/protocol`.
-- Sparse authoring and model-aware compilation: `tests/umpire3/scenario` and
-  `tests/umpire3/umpire3test`.
-- Exact, temporal, native, and embedded Veil checking: `tests/umpire3/model`,
-  `tests/umpire3/explore`, and `tests/umpire3/model-checkers`.
-- Live facts and Temporal realization: `tests/umpire3/observation`,
-  `tests/umpire3/execution`, and `tests/umpire3/temporal`.
-- Campaign, replay, process isolation, and canary: `tests/umpire3/campaign`,
-  `tests/umpire3/replay`, `tests/umpire3/process`, and `tests/umpire3/canary`.
+  `tools/umpire3/model/Temporal`.
+- Generated transport and trust vocabulary: `tools/umpire3/protocol`.
+- Sparse authoring and model-aware compilation: `tools/umpire3/scenario` and
+  `tools/umpire3/umpire3test`.
+- Exact, temporal, native, and embedded Veil checking: `tools/umpire3/model`,
+  `tools/umpire3/explore`, and `tools/umpire3/model-checkers`.
+- Live facts and Temporal realization: `tools/umpire3/observation`,
+  `tools/umpire3/execution`, and `tools/umpire3/temporal`.
+- Campaign, replay, process isolation, and canary: `tools/umpire3/campaign`,
+  `tools/umpire3/replay`, `tools/umpire3/process`, and `tools/umpire3/canary`.
 - Root parity: `tests/umpire2_test.go`, `tests/umpire2_probe_test.go`,
   `tests/umpire2_regress_test.go`, `tests/umpire3_test.go`,
   `tests/umpire3_probe_test.go`, and `tests/umpire3_regress_test.go`.
-- Checked migration evidence: `tests/umpire3/migration/ledger.json`.
+- Checked migration evidence: `tools/umpire3/migration/ledger.json`.
 
 These sources are evidence and migration references. Except for ordinary Temporal infrastructure,
 they do not authorize Umpire3 to depend on earlier Umpire implementations.

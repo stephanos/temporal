@@ -48,7 +48,7 @@ import (
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/components/nexusoperations"
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 	"google.golang.org/grpc"
 )
 

@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/testing/parallelsuite"
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 )
 
 type TestEnvSuite struct {

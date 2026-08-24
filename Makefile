@@ -82,7 +82,7 @@ LEAN_LAKE := mise exec -- lake
 endif
 
 UMPIRE_GENMODELS := go run -tags test_dep ./cmd/umpire-genmodels
-UMPIRE3_ROOT := tests/umpire3
+UMPIRE3_ROOT := tools/umpire3
 UMPIRE3_MODEL_ROOT := $(UMPIRE3_ROOT)/model
 UMPIRE3_LEAN_VERSION := $(shell sed -e 's|leanprover/lean4:v||' $(UMPIRE3_MODEL_ROOT)/lean-toolchain)
 UMPIRE3_MANIFEST := $(UMPIRE3_ROOT)/testdata/generated/empty-manifest.json

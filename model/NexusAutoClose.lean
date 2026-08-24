@@ -170,7 +170,7 @@ Honesty about scope is part of the artifact:
 
 ## Canonical sources
 
-* Layer 1 mirrors `../../../umpire/temporal/tests/umpire2/internal/model/nexus_operation.go`
+* Layer 1 mirrors `../../../umpire/temporal/tools/umpire2/internal/model/nexus_operation.go`
   (`NewNexusOperation`).
 * Layers 2–4 model `../../spec.md`, whose runtime counterparts in this repo are
   `../chasm/lib/nexusoperation/cancellation.go` (the `auto_close` flag and the clamp),
