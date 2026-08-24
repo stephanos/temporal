@@ -19,9 +19,13 @@ structure FieldDescriptor where
   mapKeyType : String
   mapValueType : String
   presence : Bool
+  required : Bool
+  hasDefault : Bool
+  defaultValue : String
   oneofName : String
   repeated : Bool
   mapField : Bool
+  packed : Bool
   recursive : Bool
   deprecated : Bool
   deriving DecidableEq, Repr
@@ -29,12 +33,20 @@ structure FieldDescriptor where
 structure MessageDescriptor where
   fullName : String
   fields : List FieldDescriptor
+  deprecated : Bool
+  deriving DecidableEq, Repr
+
+structure EnumValueDescriptor where
+  name : String
+  number : Int
+  deprecated : Bool
   deriving DecidableEq, Repr
 
 structure EnumDescriptor where
   fullName : String
-  values : List (String × Int)
+  values : List EnumValueDescriptor
   allowAliases : Bool
+  deprecated : Bool
   deriving DecidableEq, Repr
 
 structure FileDescriptor where
@@ -42,6 +54,7 @@ structure FileDescriptor where
   packageName : String
   syntaxName : String
   dependencies : List String
+  services : List String
   deriving DecidableEq, Repr
 
 structure Method (Request Response : Type) where
@@ -63,6 +76,7 @@ structure MethodDescriptor where
 structure ServiceDescriptor where
   fullName : String
   methods : List MethodDescriptor
+  deprecated : Bool
   deriving DecidableEq, Repr
 
 end Temporal.Proto

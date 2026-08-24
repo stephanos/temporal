@@ -152,7 +152,17 @@ func checkArtifacts(outputRoot string, artifacts map[string][]byte) error {
 			drift = append(drift, path+" (stale)")
 		}
 	}
+	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(manifestPath)))
+	if err != nil {
+		return err
+	}
+	for _, file := range previous.GeneratedFiles {
+		if _, expected := artifacts[file.Path]; !expected {
+			drift = append(drift, file.Path+" (unexpected)")
+		}
+	}
 	if len(drift) != 0 {
+		slices.Sort(drift)
 		return fmt.Errorf("generated Temporal API model is stale; run make umpire-gen-api: %s", strings.Join(drift, ", "))
 	}
 	return nil
