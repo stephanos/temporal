@@ -1031,8 +1031,9 @@ umpire-check-regression:
 			exit 1; \
 		fi; \
 		test ! -s "$$temporary/negative.stdout"; \
-		grep -Fx '{"kind":"unknownPilot","subject":"missing-pilot","context":"pilot registry"}' \
-			"$$temporary/negative.stderr" > /dev/null
+		printf '%s\n' '{"kind":"unknownPilot","subject":"missing-pilot","context":"pilot registry"}' \
+			> "$$temporary/expected-negative.stderr"; \
+		cmp -s "$$temporary/expected-negative.stderr" "$$temporary/negative.stderr"
 
 umpire3-gen-migration:
 	@printf $(COLOR) "Generate Umpire3 root-test migration ledger..."
