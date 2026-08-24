@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/agentworkflow"
+	"go.temporal.io/server/tools/agentworkflow/internal/agentworkflow"
 	"go.temporal.io/server/tools/agentworkflow/internal/backend/claude"
 	"go.temporal.io/server/tools/agentworkflow/internal/backend/codex"
 	projectconfig "go.temporal.io/server/tools/agentworkflow/internal/project"
