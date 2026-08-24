@@ -17,8 +17,8 @@ func TestSimulationParityContractMatchesHarness(t *testing.T) {
 	contents, err := os.ReadFile(filepath.Join("..", "gomad3", "simulation", "parity", "manifest.json"))
 	require.NoError(t, err)
 	var manifest struct {
-		Schema        string            `json:"schema"`
-		HarnessSchema string            `json:"harness_schema"`
+		Schema        string           `json:"schema"`
+		HarnessSchema string           `json:"harness_schema"`
 		Limits        gomad3sim.Limits `json:"limits"`
 		Cases         []struct {
 			ID           string `json:"id"`
