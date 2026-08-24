@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-1-lean-regression-dsl-and-nexus",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-24T17:53:14.697016Z",
   "created_at": "2026-08-24T15:18:55.326309Z",
   "default_impl": null,
   "default_review": null,
@@ -378,6 +378,36 @@
       "task": "fn-1-lean-regression-dsl-and-nexus.3",
       "timestamp": "2026-08-24T17:45:24.175285Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7fa2a37eb4341609d4770e22fc6b743d729a3894fbe189ea8c4fc305aa7a3e7f",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1d127c6f3a95de254c22a77feb3b7b3e3fc425b7",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 272283,
+      "output_sha256": "cce815f3d77e626eaf87c1eb9d023c9da8360caa3311eb2e2e5dcb8825744769",
+      "reservation_id": "2b8fad51cc38417292f03d81c9dba587",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-24T17:53:14.684885Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -385,11 +415,12 @@
     "impl:fn-1-lean-regression-dsl-and-nexus.2": 1,
     "impl:fn-1-lean-regression-dsl-and-nexus.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-1-lean-regression-dsl-and-nexus.1": 0,
     "impl:fn-1-lean-regression-dsl-and-nexus.2": 0,
     "impl:fn-1-lean-regression-dsl-and-nexus.3": 0,
@@ -409,5 +440,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T17:45:24.177669Z"
+  "updated_at": "2026-08-24T17:53:14.699055Z"
 }
