@@ -10,7 +10,9 @@ import (
 
 func main() {
 	if err := api.Run(context.Background(), os.Args[1:], os.Stdout); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		if _, writeErr := fmt.Fprintln(os.Stderr, err); writeErr != nil {
+			os.Exit(1)
+		}
 		os.Exit(1)
 	}
 }

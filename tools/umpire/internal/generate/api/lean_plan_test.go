@@ -24,10 +24,10 @@ func TestLeanPlanAllocatesCollidingMembersFromStableProtobufIdentity(t *testing.
 			FieldNames: []string{"temporal.api.test.v1.Collision.not_set"},
 		}},
 	}}}
-	first, err := buildLeanPlan(document)
+	first, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 	slices.Reverse(document.Messages[0].Fields)
-	second, err := buildLeanPlan(document)
+	second, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 
 	for _, fullName := range []string{
@@ -58,10 +58,10 @@ func TestLeanPlanDisambiguatesPackageAndDeclarationCollisions(t *testing.T) {
 		{FullName: "temporal.api.test.v1.Outer.Foo_Bar", Name: "Foo_Bar", Package: "temporal.api.test.v1", Parent: "temporal.api.test.v1.Outer", Source: sourcePublic},
 		{FullName: "temporal.api.test.v1.Outer.FooBar", Name: "FooBar", Package: "temporal.api.test.v1", Parent: "temporal.api.test.v1.Outer", Source: sourcePublic},
 	}}
-	first, err := buildLeanPlan(document)
+	first, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 	slices.Reverse(document.Messages)
-	second, err := buildLeanPlan(document)
+	second, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 
 	identities := []string{
@@ -103,11 +103,11 @@ func TestLeanPlanDisambiguatesEnumValuesAndMethods(t *testing.T) {
 			},
 		}},
 	}
-	first, err := buildLeanPlan(document)
+	first, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 	slices.Reverse(document.Enums[0].Values)
 	slices.Reverse(document.Services[0].Methods)
-	second, err := buildLeanPlan(document)
+	second, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 
 	require.NotEqual(t, first.Enums[0].Values[0].Name, first.Enums[0].Values[1].Name)
@@ -134,7 +134,7 @@ func TestLeanPlanSeparatesPackageNamespacesFromDeclarationNamespaces(t *testing.
 		{FullName: "foo.Bar.Record", Name: "Record", Package: "foo", Parent: "foo.Bar", Source: sourceExternal},
 		{FullName: "foo.bar.Record", Name: "Record", Package: "foo.bar", Source: sourceExternal},
 	}}
-	plan, err := buildLeanPlan(document)
+	plan, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 
 	require.NotEqual(t, plan.names["foo.Bar.Record"], plan.names["foo.bar.Record"])
@@ -174,7 +174,7 @@ func TestLeanPlanPreservesNestedOwnershipAndQualifiesCrossPackageReferences(t *t
 			},
 		},
 	}
-	plan, err := buildLeanPlan(document)
+	plan, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 	require.Equal(t, "Temporal.Api.Test.V1.Outer.Inner", plan.names["temporal.api.test.v1.Outer.Inner"].String())
 	require.Equal(t, "Option Outer.Inner", renderLeanType(plan.fields["temporal.api.test.v1.Holder.local"].Type))
@@ -196,10 +196,10 @@ func TestLeanPlanUsesMessageReferencesOnlyWithinRecursiveComponents(t *testing.T
 		messageProjectionWithReference("B", "A"),
 		messageProjectionWithReference("C", "A"),
 	}}
-	plan, err := buildLeanPlan(document)
+	plan, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 	slices.Reverse(document.Messages)
-	permuted, err := buildLeanPlan(document)
+	permuted, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.NoError(t, err)
 
 	require.True(t, plan.fields["temporal.api.test.v1.A.value"].Recursive)
@@ -236,7 +236,7 @@ func TestLeanPlanRejectsUnknownNamedTypesWithFieldContext(t *testing.T) {
 		Oneofs: []oneofProjection{},
 	}}}
 
-	_, err := buildLeanPlan(document)
+	_, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.ErrorContains(t, err, "temporal.api.test.v1.Request.missing")
 	require.ErrorContains(t, err, "temporal.api.missing.v1.Unknown")
 }
@@ -253,7 +253,7 @@ func TestLeanPlanRejectsFieldsWhoseOneofIsMissing(t *testing.T) {
 		}},
 	}}}
 
-	_, err := buildLeanPlan(document)
+	_, err := buildLeanPlan(document, testGenerationConfig("Temporal"))
 	require.ErrorContains(t, err, "temporal.api.test.v1.Request.value")
 	require.ErrorContains(t, err, "choice")
 }
@@ -266,7 +266,8 @@ func TestLeanPlanValidationRejectsDeclarationsBeforeTheirDependencies(t *testing
 		messageProjectionWithReference("B", "A"),
 		messageProjectionWithReference("C", "A"),
 	}}
-	plan, err := buildLeanPlan(document)
+	configuration := testGenerationConfig("Temporal")
+	plan, err := buildLeanPlan(document, configuration)
 	require.NoError(t, err)
 	cIndex := slices.IndexFunc(plan.Messages, func(message leanMessagePlan) bool {
 		return message.Projection.Name == "C"
@@ -274,18 +275,19 @@ func TestLeanPlanValidationRejectsDeclarationsBeforeTheirDependencies(t *testing
 	require.NotEqual(t, -1, cIndex)
 	plan.Messages[0], plan.Messages[cIndex] = plan.Messages[cIndex], plan.Messages[0]
 
-	err = validateLeanPlan(document, plan)
+	err = validateLeanPlan(document, plan, configuration)
 	require.ErrorContains(t, err, "precedes dependency")
 }
 
 func TestLeanPlanValidationRejectsIncompleteModuleImports(t *testing.T) {
 	t.Parallel()
 
-	plan, err := buildLeanPlan(projection{})
+	configuration := testGenerationConfig("Temporal")
+	plan, err := buildLeanPlan(projection{}, configuration)
 	require.NoError(t, err)
 	plan.Sources[0].CatalogModule.Imports = nil
 
-	err = validateLeanPlan(projection{}, plan)
+	err = validateLeanPlan(projection{}, plan, configuration)
 	require.ErrorContains(t, err, "incomplete modules")
 }
 
@@ -295,11 +297,12 @@ func TestLeanPlanValidationRejectsIncompleteNamespaceOwnership(t *testing.T) {
 	document := projection{Messages: []messageProjection{{
 		FullName: "temporal.api.test.v1.Request", Name: "Request", Package: "temporal.api.test.v1", Source: sourcePublic,
 	}}}
-	plan, err := buildLeanPlan(document)
+	configuration := testGenerationConfig("Temporal")
+	plan, err := buildLeanPlan(document, configuration)
 	require.NoError(t, err)
 	plan.Namespaces = nil
 
-	err = validateLeanPlan(document, plan)
+	err = validateLeanPlan(document, plan, configuration)
 	require.ErrorContains(t, err, "namespace ownership")
 }
 
@@ -310,7 +313,8 @@ func TestLeanPlanValidationRejectsDuplicateSourceOwnership(t *testing.T) {
 		{FullName: "temporal.api.test.v1.Public", Name: "Public", Package: "temporal.api.test.v1", Source: sourcePublic},
 		{FullName: "temporal.server.api.test.v1.Internal", Name: "Internal", Package: "temporal.server.api.test.v1", Source: sourceInternal},
 	}}
-	plan, err := buildLeanPlan(document)
+	configuration := testGenerationConfig("Temporal")
+	plan, err := buildLeanPlan(document, configuration)
 	require.NoError(t, err)
 	public := slices.IndexFunc(plan.Sources, func(source leanSourcePlan) bool { return source.Source == sourcePublic })
 	internal := slices.IndexFunc(plan.Sources, func(source leanSourcePlan) bool { return source.Source == sourceInternal })
@@ -318,8 +322,46 @@ func TestLeanPlanValidationRejectsDuplicateSourceOwnership(t *testing.T) {
 	require.NotEqual(t, -1, internal)
 	plan.Sources[internal].Messages[0] = plan.Sources[public].Messages[0]
 
-	err = validateLeanPlan(document, plan)
+	err = validateLeanPlan(document, plan, configuration)
 	require.ErrorContains(t, err, "source partition")
+}
+
+func TestLeanPlanUsesConfiguredSupportRootAndEmitsEmptyGroups(t *testing.T) {
+	configuration := testGenerationConfig("Acme.Model")
+	configuration.Groups = []sourceGroup{"Empty", "External"}
+	document := projection{Messages: []messageProjection{{
+		FullName: "example.v1.Record", Name: "Record", Package: "example.v1", Source: "External",
+		Fields: []fieldProjection{{
+			FullName: "example.v1.Record.payload", Name: "payload", Number: 1, Kind: "bytes",
+		}},
+	}}}
+
+	plan, err := buildLeanPlan(document, configuration)
+	require.NoError(t, err)
+	require.Equal(t, "Acme/Model/Generated/Types.lean", plan.TypesModule.Path)
+	require.Equal(t, []string{"Acme.Model.Proto.Core"}, plan.TypesModule.Imports)
+	require.Equal(t, "Acme.Model.Proto.Bytes", renderLeanType(plan.fields["example.v1.Record.payload"].Type))
+	require.Len(t, plan.Sources, 2)
+	require.Empty(t, plan.Sources[0].Files)
+	require.Equal(t, sourceGroup("Empty"), plan.Sources[0].Source)
+}
+
+func TestLeanPlanRejectsDeclarationsCollidingWithGeneratedSupport(t *testing.T) {
+	configuration := testGenerationConfig("Acme.Model")
+	document := projection{Messages: []messageProjection{{
+		FullName: "acme.model.proto.Bytes", Name: "Bytes", Package: "acme.model.proto", Source: sourceExternal,
+	}}}
+
+	_, err := buildLeanPlan(document, configuration)
+	require.ErrorContains(t, err, `"acme.model.proto.Bytes"`)
+	require.ErrorContains(t, err, `generated support declaration "Acme.Model.Proto.Bytes"`)
+
+	document.Messages[0] = messageProjection{
+		FullName: "acme.model.proto.generated.catalog.PublicFiles", Name: "PublicFiles",
+		Package: "acme.model.proto.generated.catalog", Source: sourceExternal,
+	}
+	_, err = buildLeanPlan(document, configuration)
+	require.ErrorContains(t, err, `generated inventory declaration "Acme.Model.Proto.Generated.Catalog.PublicFiles"`)
 }
 
 func enumValueName(plan leanPlan, fullName string) string {
