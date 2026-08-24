@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/agentworkflow"
+	"go.temporal.io/server/tools/agentworkflow/internal/agentworkflow"
 	backendconfig "go.temporal.io/server/tools/agentworkflow/internal/backend/configuration"
 	"go.temporal.io/server/tools/agentworkflow/internal/process"
 )
