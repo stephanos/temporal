@@ -1,5 +1,8 @@
 # Agentworkflow YAML Workflows Design
 
+> Historical design: its configuration location was superseded by the
+> [Agentworkflow configuration and CLI design](2026-08-24-agentworkflow-configuration-cli-design.md).
+
 ## Goal
 
 Make each project own a readable, human-editable Agentworkflow contract under
