@@ -13,13 +13,13 @@ Complete the five follow-ups identified after the initial v2 parity cutover:
    Temporal protocol adapter for pairwise matrices; and
 5. add checked-in causal trace footprints and validator-backed error domains.
 
-V1 remains in `tests/umpire1` as an explicit compatibility implementation. This work neither
+V1 remains in `tools/umpire1` as an explicit compatibility implementation. This work neither
 deletes v1 nor requires v1 to adopt v2-only relations and observability.
 
 ## Scope
 
 The broad functional triage is deliberately limited to top-level tests whose names cover Umpire,
-Nexus, or Workflow behavior, plus `tests/testcore` and `tests/umpire2`. Unrelated functional,
+Nexus, or Workflow behavior, plus `tests/testcore` and `tools/umpire2`. Unrelated functional,
 replication, persistence, and repository-wide suites are outside this pass. Failures outside the
 selected scope are reported but do not expand implementation automatically.
 
@@ -31,7 +31,7 @@ introduced.
 
 Use observation-first vertical slices. Every sparse predicate is grounded in a canonical fact or
 relation that the monitor can also consume. Both action runtimes emit through one optional neutral
-observer contract. Temporal-specific adapters remain under `tests/umpire2`; reusable stores,
+observer contract. Temporal-specific adapters remain under `tools/umpire2`; reusable stores,
 recorders, matrix generation, refinement, and validation-domain machinery remain under
 `common/testing/umpire`.
 
@@ -151,7 +151,7 @@ IDs, timestamps, callback tokens, raw payloads, or generated entity IDs.
 The comparator selects the action window from action-start through action-finish/reconciliation,
 checks required facts/transitions/relations in order, permits explicitly allowed extras, and
 reports the first missing, forbidden, misordered, or causally disconnected observation. Protocol
-actions and sparse realizations keep their footprint catalogs in `tests/umpire2`, while comparison
+actions and sparse realizations keep their footprint catalogs in `tools/umpire2`, while comparison
 remains generic.
 
 Initial checked-in footprints cover ordinary completion, completion-before-start, cancellation
@@ -255,7 +255,7 @@ Functional verification is limited to:
 
 ```text
 go test -tags test_dep ./common/testing/umpire/...
-go test -tags test_dep ./tests/umpire2/...
+go test -tags test_dep ./tools/umpire2/...
 go test -tags test_dep ./tests/testcore/...
 go test -tags test_dep ./tests -run '^(TestUmpire|TestSparseRegression|TestNexus|Test.*Workflow)' -count=1
 ```

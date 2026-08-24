@@ -12,7 +12,7 @@ This review follows the developer-facing paths exercised by:
 - `tests/umpire_probe_test.go`
 - `tests/umpire_regress_test.go`
 
-It traces those calls into `common/testing/umpire`, `common/testing/umpire/regress`, `tests/probe`, and the `tests/umpire2` protocol, planner, action, and kitchensink packages.
+It traces those calls into `common/testing/umpire`, `common/testing/umpire/regress`, `tests/probe`, and the `tools/umpire2` protocol, planner, action, and kitchensink packages.
 
 ## Summary
 
@@ -30,7 +30,7 @@ There is also a kitchensink adapter for planned routes. Each interface is indivi
 The recommended direction is:
 
 - preserve the explicit, Temporal-independent core as the escape hatch;
-- make the compiled `tests/umpire2/protocol.Protocol` the single catalog behind every Temporal convenience interface;
+- make the compiled `tools/umpire2/protocol.Protocol` the single catalog behind every Temporal convenience interface;
 - add one author-facing Temporal test module that owns the common session, execution, observation, and cleanup policy while delegating to the existing planner, regression, and campaign modules;
 - make the sparse domain vocabulary the preferred 99% authoring interface;
 - retain custom environment, realizer, oracle, observer, fault, and profile seams for the remaining cases;
@@ -130,7 +130,7 @@ report := probe.Umpire(t).
 
 It successfully hides scenario isolation, fault arming, observation, target inspection, coverage recording, and reporting. The remaining problems are architectural:
 
-- `tests/probe` imports the compatibility `tests/umpire1/model` and `tests/umpire1/planner`, while its callers and monitors use `umpire2`.
+- `tests/probe` imports the compatibility `tools/umpire1/model` and `tools/umpire1/planner`, while its callers and monitors use `umpire2`.
 - `Reach` validates a route from one catalog, but `Execution` may drive an unrelated plan. Several test comments explicitly describe `Reach` as “plan validation only.”
 - `EnvFunc` returns `*testcore.TestEnv`, making the nominal facade inseparable from the local functional harness.
 - configuration errors call `Fatal` inside the builder, so there is no reusable error-returning core beneath the test affordance.
@@ -167,7 +167,7 @@ The flexible compiler and `Harness` interfaces should remain unchanged. A Tempor
 
 ### P0: Make the compiled protocol the only canonical Temporal catalog
 
-The codebase already has the right deep module: `tests/umpire2/protocol.Protocol` compiles entities, facts, actions, gaps, relations, regression vocabulary, footprints, coverage, and planning. The reviewed tests nevertheless use all of these sources:
+The codebase already has the right deep module: `tools/umpire2/protocol.Protocol` compiles entities, facts, actions, gaps, relations, regression vocabulary, footprints, coverage, and planning. The reviewed tests nevertheless use all of these sources:
 
 - `planner.DefaultModels()` for structural planning and lifecycle lookup;
 - `action.AutoCoverPlans()` for executable exploration;
@@ -216,7 +216,7 @@ The canonical protocol validates the structural target once. A plan-derived exec
 
 ### P0: Add a deep Temporal session and operation-specific runners
 
-Add a Temporal-specific authoring module—illustratively `tests/umpire2/umpiretest`—that owns the standard session policy:
+Add a Temporal-specific authoring module—illustratively `tools/umpire2/umpiretest`—that owns the standard session policy:
 
 - canonical protocol selection;
 - environment allocation and namespace isolation;
@@ -393,7 +393,7 @@ An “unbounded” choice must also be explicit where it can produce combinatori
 
 ### P2: Make Go documentation identify the supported authoring path
 
-Current package documentation still points from generic actions to `tests/umpire1`, while `UMPIRE.md` declares `umpire2` canonical. `tests/umpire2/planner` presents itself as the authoring surface even though `protocol.Protocol` now owns the canonical catalog, and `tests/probe` calls itself the single Umpire interface while describing itself as a prototype.
+Current package documentation still points from generic actions to `tools/umpire1`, while `UMPIRE.md` declares `umpire2` canonical. `tools/umpire2/planner` presents itself as the authoring surface even though `protocol.Protocol` now owns the canonical catalog, and `tests/probe` calls itself the single Umpire interface while describing itself as a prototype.
 
 Update package comments and examples as interfaces migrate. Mark compatibility surfaces explicitly and give developers one start-here example from the 99% facade, one customization example from the 90% runner, and one escape-hatch example from the core. Package discovery is part of the interface; contradictory Go documentation will keep callers on legacy seams even after better affordances exist.
 
@@ -409,13 +409,13 @@ common/testing/umpire/regress
 common/testing/umpire/campaign
   Bounded discovery, selection, omissions, minimization, replay, and promotion.
 
-tests/umpire2/protocol
+tools/umpire2/protocol
   The single compiled Temporal semantic catalog.
 
-tests/umpire2/action and tests/umpire2/regress/*
+tools/umpire2/action and tools/umpire2/regress/*
   Temporal adapters and typed domain vocabulary.
 
-tests/umpire2/umpiretest
+tools/umpire2/umpiretest
   Temporal sessions, local environment presets, action/regression/campaign adapters,
   judge and selectors, and thin testing.TB-aware 99% affordances.
 ```
