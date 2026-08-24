@@ -8,11 +8,11 @@ import (
 	"go.temporal.io/server/common/payloads"
 	umpirefw "go.temporal.io/server/common/testing/umpire"
 	coreregress "go.temporal.io/server/common/testing/umpire/regress"
-	regressactivity "go.temporal.io/server/tests/umpire2/regress/activity"
-	"go.temporal.io/server/tests/umpire2/regress/capability"
-	"go.temporal.io/server/tests/umpire2/regress/nexus"
-	"go.temporal.io/server/tests/umpire2/regress/workflow"
-	"go.temporal.io/server/tests/umpire2/umpiretest"
+	regressactivity "go.temporal.io/server/tools/umpire2/regress/activity"
+	"go.temporal.io/server/tools/umpire2/regress/capability"
+	"go.temporal.io/server/tools/umpire2/regress/nexus"
+	"go.temporal.io/server/tools/umpire2/regress/workflow"
+	"go.temporal.io/server/tools/umpire2/umpiretest"
 )
 
 func TestUmpire2SparseRegressionOrdinaryNexusCompletion(t *testing.T) {

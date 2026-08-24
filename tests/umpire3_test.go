@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/parallelsuite"
-	umpire3execution "go.temporal.io/server/tests/umpire3/execution"
-	"go.temporal.io/server/tests/umpire3/regression"
-	"go.temporal.io/server/tests/umpire3/scenario"
+	umpire3execution "go.temporal.io/server/tools/umpire3/execution"
+	"go.temporal.io/server/tools/umpire3/regression"
+	"go.temporal.io/server/tools/umpire3/scenario"
 )
 
 // Umpire3TestSuite is an end-to-end test of both halves of the umpire together:

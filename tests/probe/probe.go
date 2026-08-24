@@ -4,7 +4,7 @@
 // It closes the plan -> drive -> fault -> judge loop through the Planner, Driver,
 // Monitor, and gRPC fault seam. See UMPIRE.md.
 //
-// New behavioral tests should use tests/umpire2/umpiretest; this package remains for the
+// New behavioral tests should use tools/umpire2/umpiretest; this package remains for the
 // action-only probe characterization cases.
 //
 // Every execution (the baseline and each fault scenario) runs in its own fresh
@@ -26,7 +26,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	umpire "go.temporal.io/server/common/testing/umpire"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire2"
 )
 
 // defaultMaxFaults bounds how many observed calls become fault scenarios, so a

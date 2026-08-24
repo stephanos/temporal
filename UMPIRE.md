@@ -12,8 +12,8 @@ raw observations -> facts -> model state + relation state -> rules at checkpoint
 property result + observed evidence + environment profile -> qualified claim
 ```
 
-The canonical implementation is `tests/umpire2`. It is the default monitor used by `testcore`;
-`tests/umpire1` remains a compatibility implementation.
+The canonical implementation is `tools/umpire2`. It is the default monitor used by `testcore`;
+`tools/umpire1` remains a compatibility implementation.
 
 ## Start here
 
@@ -84,8 +84,8 @@ violations := runtime.Check(ctx, scope, true)
 
 ## Canonical protocol
 
-`tests/umpire2` exposes the immutable `Protocol`; its declaration compiler and concrete
-implementation live under `tests/umpire2/internal`. The declaration contains:
+`tools/umpire2` exposes the immutable `Protocol`; its declaration compiler and concrete
+implementation live under `tools/umpire2/internal`. The declaration contains:
 
 - normalized fact types and entity factories;
 - each entity's fact subscriptions and executable lifecycle;
@@ -108,7 +108,7 @@ The protocol has several derived views:
 
 ## Monitor: observe and evaluate
 
-`common/testing/umpire` is the Temporal-independent framework. `tests/umpire2` supplies the
+`common/testing/umpire` is the Temporal-independent framework. `tools/umpire2` supplies the
 Temporal facts, entities, relations, and rules.
 
 Every recognized observation becomes a `Fact` addressed by an `EntityPath`. The generic `Runtime`
@@ -211,7 +211,7 @@ realization and justified evidence, not its sparse IR.
 ## Coverage and exploration
 
 `Coverage` compares a declared catalog with observed facts, transitions, relations, and actions.
-`tests/umpire2.Protocol` derives these catalogs from the compiled protocol. `Coverage.Unmet()` is a
+`tools/umpire2.Protocol` derives these catalogs from the compiled protocol. `Coverage.Unmet()` is a
 planning and reporting signal; it does not assert that an observed behavior was correct.
 
 The framework also provides deterministic constrained pairwise generation. The Temporal matrix
@@ -287,16 +287,16 @@ generated smoke suite with `mise run umpire:verify-smoke`.
 | `common/testing/umpire/canary` | Guarded canary authority, budgets, audit, redaction, and cleanup |
 | `common/testing/umpire/verify` | Verification model, projection, interpreter, and normalized results |
 | `common/testing/umpire/verify/toolchain` | Generation and checking facade over internal formal backends |
-| `tests/umpire2` | Canonical Temporal Monitor, Protocol, planning, coverage, verification, and action facades |
-| `tests/umpire2/internal` | Concrete Temporal facts, models, rules, declarations, realizers, and regression harness |
-| `tests/umpire2/regress` | Typed Temporal authoring vocabulary |
-| `tests/umpire2/umpiretest` | Local presets plus plan, regression, judge, campaign, and canary authoring operations |
-| `tests/umpire2/testdata/genmodels` | Deterministically generated verification artifacts and manifest |
+| `tools/umpire2` | Canonical Temporal Monitor, Protocol, planning, coverage, verification, and action facades |
+| `tools/umpire2/internal` | Concrete Temporal facts, models, rules, declarations, realizers, and regression harness |
+| `tools/umpire2/regress` | Typed Temporal authoring vocabulary |
+| `tools/umpire2/umpiretest` | Local presets plus plan, regression, judge, campaign, and canary authoring operations |
+| `tools/umpire2/testdata/genmodels` | Deterministically generated verification artifacts and manifest |
 | `develop/umpire` and `mise.toml` | Checksum-verified local formal-tool installation and smoke task |
 
 The implementation and tests are authoritative for current vocabulary. The generated
-[`manifest.json`](./tests/umpire2/testdata/genmodels/manifest.json) inventories semantic targets and their
+[`manifest.json`](./tools/umpire2/testdata/genmodels/manifest.json) inventories semantic targets and their
 hashes; each target manifest, such as
-[`protocol-atomic/manifest.json`](./tests/umpire2/testdata/genmodels/protocol-atomic/manifest.json), is
+[`protocol-atomic/manifest.json`](./tools/umpire2/testdata/genmodels/protocol-atomic/manifest.json), is
 authoritative for that target's bounded formal verification scope. Planned work belongs in tracked
 issues rather than status sections in this document.

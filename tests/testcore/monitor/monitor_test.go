@@ -2,8 +2,8 @@ package monitor_test
 
 import (
 	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tests/umpire1"
-	"go.temporal.io/server/tests/umpire2"
+	"go.temporal.io/server/tools/umpire1"
+	"go.temporal.io/server/tools/umpire2"
 )
 
 var (
