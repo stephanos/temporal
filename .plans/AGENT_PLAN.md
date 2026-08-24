@@ -2,9 +2,52 @@
 
 **Plan date:** 2026-08-23
 
-**Status:** proposed implementation plan
+**Status:** first production slice implemented; extended qualification remains
 
 **Implementation baseline:** `tools/agentworkflow`
+
+### Implemented on 2026-08-23
+
+The first usable system now exists in `tools/agentworkflow`:
+
+- the root Go package exposes high-level run, resume, inspect, diff, and apply operations plus the
+  provider-neutral backend seam;
+- process, store, workspace, project, quality, and workflow policy are owned by deep internal
+  packages;
+- private Codex and Claude adapters implement their documented non-interactive structured-output
+  and explicit-session contracts behind the public backend seam;
+- `.spec/agentworkflow.yaml` is the only human configuration format and supports arbitrary
+  command-based checks, environment allowlists, protected paths, assurance policy, named monorepo
+  targets, and the guarded seven-stage workflow recipe;
+- source is copied into isolated base/candidate/reviewer workspaces; read-only phases are hashed
+  before and after invocation; qualified promotion is explicit, transactional, per-path
+  source-drift checked, and rollback-safe after post-write failures;
+- the canonical discovery, planning, optional high-assurance plan review/revision,
+  implementation, checks, parallel reviews, bounded repairs, and final-check workflow is durable;
+- immutable attempts retain bounded provider evidence and structured output with integrity digests;
+  interrupted attempts are finalized during recovery, completed crash-window output is consumed
+  without repeating mutation, and prototype v1 stage records remain inspectable read-only;
+- backend resume identity binds the resolved executable, version, model, arguments, qualified mode,
+  and capabilities; provider processes receive explicit minimal runtime/credential environments;
+- public results expose run identities and content digests rather than mutable store/workspace paths,
+  and retain an immutable confirmed/repaired/rejected/unresolved finding ledger;
+- the CLI implements `init`, `doctor`, `run`, `resume`, `inspect`, `report`, `diff`, `apply`, and
+  `config explain`;
+- deterministic tests cover the public engine, both real adapters with fake executables, the full
+  CLI journey, process limits/cancellation/environment isolation, transactional workspace
+  promotion/rollback and drift races, checks, strict YAML, every stage control, custom prompts,
+  v1/v2 store integrity, locking, crash recovery, resume, source drift, corruption, finding
+  dispositions, and review concurrency;
+  and
+- the suite is race-clean under `go test -race` and remains credential-free by default.
+
+The implementation deliberately reports unsupported or incomplete qualification rather than
+pretending the following later milestones are done: optimized Git worktree/dirty-overlay source
+strategies, exhaustive filesystem fault injection and subprocess kill-point matrices, automated
+retention/pruning, a versioned hidden-task quality corpus, live-provider qualification jobs, and
+Windows process/job-object support. Directory-copy mode already supports Git and non-Git projects
+without language-specific core behavior; the additional source modes are performance and fidelity
+extensions, not a requirement for the current portable command contract.
 
 ## 1. Executive decision
 
@@ -117,9 +160,9 @@ conformance tests, cross-platform CI, and a separate live-agent evaluation corpu
   implementations or required fault-injection seams.
 - Adding third-party dependencies without explicit approval and a demonstrated need.
 
-## 4. Current baseline
+## 4. Starting baseline (superseded)
 
-The existing `tools/agentworkflow` module provides a useful initial kernel:
+The prototype that preceded the implemented slice provided this initial kernel:
 
 - bounded subprocess execution with context timeout;
 - separate bounded stdout and stderr capture;
@@ -131,7 +174,8 @@ The existing `tools/agentworkflow` module provides a useful initial kernel:
 - parallel review invocation with declaration-order results; and
 - discovery of completed stage records.
 
-The current implementation is not yet a trustworthy general workflow engine:
+These were the prototype gaps that drove this plan; the implemented-slice summary above records
+which ones are now closed:
 
 - command construction is hard-coded to `codex exec --json --sandbox workspace-write`;
 - every stage, including reviews, receives write access;
@@ -176,7 +220,7 @@ publication, recovery, validation, and streaming reads. The engine does not coor
 
 ### 5.4 Validate before allocation
 
-Validate task, project profile, backend capabilities, workflow bounds, source strategy, check
+Validate task, project configuration, backend capabilities, workflow bounds, source strategy, check
 commands, and permissions before creating a candidate workspace or invoking an agent.
 
 ### 5.5 Minimal privilege by phase
@@ -266,15 +310,18 @@ type Config struct {
 }
 
 type Request struct {
-    Task    Task
-    Project Project
-    Policy  Policy
+    Task     Task
+    Project  Project
+    Policy   Policy
+    Workflow Workflow
 }
 
 func Open(Config) (*Engine, error)
 func (engine *Engine) Run(context.Context, Request) (Result, error)
 func (engine *Engine) Resume(context.Context, RunID) (Result, error)
 func (engine *Engine) Inspect(context.Context, RunID) (Status, error)
+func (engine *Engine) Diff(context.Context, RunID) ([]Change, error)
+func (engine *Engine) Apply(context.Context, RunID) error
 ```
 
 `Run` returns a structured result for every admitted run. A non-nil Go error means the request could
@@ -282,7 +329,7 @@ not be admitted or the workflow infrastructure failed in a way that prevents a c
 result. When execution began, the engine returns the fullest available partial `Result` and joins
 primary and cleanup errors where necessary.
 
-The public request types should contain policy, not internal machinery:
+The public request types contain policy and the guarded recipe, not scheduler or graph machinery:
 
 ```go
 type Task struct {
@@ -306,7 +353,15 @@ type Check struct {
     Timeout    time.Duration
     Required   bool
 }
+
+type Workflow struct {
+    Stages []WorkflowStage
+}
 ```
+
+`DefaultWorkflow` returns the canonical seven-stage recipe. Callers may edit prompts and enable
+controls, but admission rejects missing, invented, duplicated, or reordered stages and any implicit
+apply mode.
 
 Command values are argument arrays, not shell strings. A caller that genuinely needs a shell names
 the shell and its arguments explicitly. Relative directories resolve inside the candidate snapshot
@@ -416,9 +471,10 @@ helpers directly.
 
 ### 8.4 `internal/project`
 
-Owns project-profile decoding, manifest-only discovery, check normalization, path resolution,
-capability requirements, and unsupported explanations. It never executes build or test commands;
-quality owns execution.
+Owns strict YAML configuration decoding, the guarded workflow recipe, manifest-only discovery,
+check normalization, path resolution, capability requirements, and unsupported explanations. It
+always protects `.spec`, the selected configuration, and declared instruction files. It never
+executes build or test commands; quality owns execution.
 
 ### 8.5 `internal/quality`
 
@@ -445,7 +501,7 @@ Required identities include:
 - project contract;
 - source snapshot;
 - backend executable/version/capabilities;
-- resolved provider/model/profile configuration;
+- resolved provider/model and project configuration;
 - prompt template and rendered prompt;
 - output contract;
 - stage and attempt;
@@ -625,12 +681,13 @@ Every strategy returns a canonical source inventory and explicit omissions. Syml
 ignored files, large files, special files, nested repositories, and filesystem boundaries require
 declared handling. A path escaping the admitted source root fails before copying or execution.
 
-### 11.2 Project profile
+### 11.2 Project configuration
 
-The initial portable profile is a versioned JSON document and equivalent Go value. JSON keeps the
-nested module on the standard library and makes strict decoding straightforward.
+The portable human contract is the versioned YAML document `.spec/agentworkflow.yaml` and its
+equivalent resolved Go value. YAML is the only accepted human configuration format. Durable
+checkpoints, provider events, and structured results remain JSON or JSONL machine artifacts.
 
-The profile contains:
+The configuration contains:
 
 - source strategy and inclusion policy;
 - instruction files that must remain visible to the agent;
@@ -642,10 +699,17 @@ The profile contains:
 - generated-file policy;
 - expected artifacts;
 - cleanup command only when it is safe and explicitly required; and
-- promotion policy.
+- promotion policy; and
+- the exact ordered `discover`, `plan`, `implement`, `check`, `review`, `repair`, and `apply` recipe,
+  with editable prompts and explicit enable controls.
 
-Unknown fields fail strict decoding. The normalized profile and any automatically filled defaults
-are retained in the run identity.
+Unknown fields, duplicate keys, aliases, anchors, merge keys, custom tags, non-string keys, nulls,
+multiple documents, JSON syntax, invalid durations, and reordered or invented stages fail strict
+decoding. The normalized configuration and exact prompts are retained in the run identity.
+
+`.spec` is human-owned input: it stays in the source snapshot for agent reads and is always
+protected from candidate writes. The selected YAML file and every declared instruction file are
+also protected. Generated run output always remains in the external run store.
 
 ### 11.3 Discovery
 
@@ -992,12 +1056,15 @@ At 10x stages, reviewers, events, and source size:
 Add a thin CLI only after the public engine operations stabilize:
 
 ```text
-agentworkflow run --project <path> --task <file> --profile <file> --backend codex
+agentworkflow init --project <path> [--config <file.yaml>]
+agentworkflow config explain --project <path> [--config <file.yaml>]
+agentworkflow doctor --project <path> --backend codex
+agentworkflow run --project <path> --task-file <file> [--config <file.yaml>] --backend codex
 agentworkflow resume <run-id>
 agentworkflow inspect <run-id> [--json]
-agentworkflow recover <run-id>
 agentworkflow report <run-id> [--json]
-agentworkflow backend doctor <name>
+agentworkflow diff <run-id>
+agentworkflow apply <run-id>
 ```
 
 The CLI does not implement workflow policy, parse provider streams, inspect storage layout, or infer
@@ -1011,7 +1078,7 @@ when the CLI is introduced.
 
 ### 19.1 Preflight failures
 
-Invalid task, profile, paths, bounds, backend capabilities, source state, or check commands fail
+Invalid task, YAML configuration, paths, bounds, backend capabilities, source state, or check commands fail
 before candidate allocation. Errors identify the exact field and required capability.
 
 ### 19.2 Agent failures
@@ -1036,7 +1103,7 @@ output, not an empty finding set.
 
 ### 19.5 Source drift
 
-Unexpected change to the admitted base, project profile, backend identity, or required tool identity
+Unexpected change to the admitted base, project configuration, backend identity, or required tool identity
 stops promotion and resume. The engine may offer a new run; it must not silently rebase the old one.
 
 ### 19.6 Cleanup failures
@@ -1058,7 +1125,7 @@ Cover every finite contract and boundary:
 - empty, relative, root, symlinked, nonexistent, file, and valid workspace roots;
 - run, stage, attempt, backend, finding, and artifact identifiers;
 - zero, negative, exact-boundary, overflow, and conflicting limits;
-- strict request/profile/result decoding and unknown fields;
+- strict YAML configuration plus request/result decoding and unknown fields;
 - canonical encoding and domain-separated digest goldens;
 - every valid and invalid run/attempt state transition;
 - capability satisfaction and precise unsupported reasons;
@@ -1372,7 +1439,7 @@ passes the full deterministic conformance suite and a bounded live smoke run.
 
 **Work**
 
-- Implement strict project profiles and manifest-only discovery.
+- Implement strict YAML project configuration, guarded stage recipes, and manifest-only discovery.
 - Implement Git worktree, dirty overlay, bounded directory-copy, read-only in-place, and external
   source strategies in evidence-driven order.
 - Add candidate diffs, path policies, immutable review snapshots, promotion preflight, and bounded
@@ -1583,8 +1650,8 @@ evidence.
 
 ### Project support
 
-- Explicit project profiles can represent arbitrary command-based checks without language-specific
-  core changes.
+- Explicit YAML project configurations can represent arbitrary command-based checks without
+  language-specific core changes.
 - Git, dirty Git, non-Git, documentation, mixed-language, and generated-file fixtures pass.
 - Unknown capabilities fail before mutation with useful explanations.
 - The original workspace remains unchanged unless explicit qualified promotion succeeds.

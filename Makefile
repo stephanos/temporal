@@ -256,6 +256,19 @@ endef
 print-go-version:
 	@go version
 
+.PHONY: agentworkflow-test agentworkflow-race agentworkflow-vet agentworkflow-check
+
+agentworkflow-test:
+	@cd tools/agentworkflow && GOWORK=off go test -count=1 -tags test_dep ./...
+
+agentworkflow-race:
+	@cd tools/agentworkflow && GOWORK=off go test -count=1 -tags test_dep -race ./...
+
+agentworkflow-vet:
+	@cd tools/agentworkflow && GOWORK=off go vet -tags test_dep ./...
+
+agentworkflow-check: agentworkflow-test agentworkflow-race agentworkflow-vet
+
 .PHONY: gomad-prototype gomad-test gomad-formal gomad-formal-veil
 
 gomad-prototype: gomad-test gomad-formal
