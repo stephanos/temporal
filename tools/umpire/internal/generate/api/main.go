@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -16,114 +15,46 @@ import (
 	"go.temporal.io/server/tools/umpire/internal/artifactio"
 )
 
-type options struct {
-	Mode                    string
-	RepositoryRoot          string
-	PublicModule            string
-	PublicDescriptor        string
-	APIDependencyDescriptor string
-	InternalDescriptor      string
-	CHASMDescriptor         string
-	OutputRoot              string
-}
-
-func Run(ctx context.Context, arguments []string, stdout io.Writer) error {
-	if len(arguments) == 0 {
-		return errors.New("operation is required: generate, check, or inspect")
-	}
-	flags := flag.NewFlagSet("umpire-gen-api "+arguments[0], flag.ContinueOnError)
-	flags.SetOutput(io.Discard)
-	configuration := options{Mode: arguments[0]}
-	flags.StringVar(&configuration.RepositoryRoot, "repository-root", ".", "Temporal repository root")
-	flags.StringVar(&configuration.PublicModule, "public-module", "go.temporal.io/api", "public Temporal API Go module")
-	flags.StringVar(&configuration.PublicDescriptor, "public-descriptor", "", "prebuilt complete public descriptor set")
-	flags.StringVar(&configuration.APIDependencyDescriptor, "api-dependencies", "proto/api.binpb", "public and third-party dependency descriptor set")
-	flags.StringVar(&configuration.InternalDescriptor, "internal-descriptor", "proto/image.bin", "internal server descriptor set")
-	flags.StringVar(&configuration.CHASMDescriptor, "chasm-descriptor", "proto/chasm.bin", "CHASM descriptor set")
-	flags.StringVar(&configuration.OutputRoot, "output-root", "model", "Lean model source root")
-	if err := flags.Parse(arguments[1:]); err != nil {
-		return err
-	}
-	if flags.NArg() != 0 {
-		return errors.New("unexpected positional arguments")
-	}
-	switch configuration.Mode {
-	case "generate", "check", "inspect":
-	default:
-		return fmt.Errorf("unknown operation %q", configuration.Mode)
-	}
-	return run(ctx, configuration, stdout)
-}
-
-func run(ctx context.Context, configuration options, stdout io.Writer) error {
-	repositoryRoot, err := filepath.Abs(configuration.RepositoryRoot)
-	if err != nil {
-		return fmt.Errorf("resolve repository root: %w", err)
-	}
-	var public descriptorInput
-	var publicVersion string
-	if configuration.PublicDescriptor == "" {
-		public, publicVersion, err = exportPublicDescriptors(ctx, repositoryRoot, configuration.PublicModule)
-	} else {
-		public, err = descriptorFileInput("public", resolvePath(repositoryRoot, configuration.PublicDescriptor))
-		if err == nil {
-			public.Locator = filepath.ToSlash(configuration.PublicDescriptor)
-			version, versionErr := commandOutput(ctx, repositoryRoot, "go", "list", "-m", "-f", "{{.Version}}", configuration.PublicModule)
-			if versionErr != nil {
-				return fmt.Errorf("resolve public API module version: %w", versionErr)
-			}
-			publicVersion = strings.TrimSpace(version)
-		}
-	}
+func Run(_ context.Context, arguments []string, stdout io.Writer) error {
+	configuration, err := parseGenerationConfig(arguments)
 	if err != nil {
 		return err
 	}
-	inputs := []descriptorInput{public}
-	for _, input := range []struct {
-		name string
-		path string
-	}{
-		{name: "api-dependencies", path: configuration.APIDependencyDescriptor},
-		{name: "internal", path: configuration.InternalDescriptor},
-		{name: "chasm", path: configuration.CHASMDescriptor},
-	} {
-		if input.path == "" {
-			continue
-		}
-		descriptor, loadErr := descriptorFileInput(input.name, resolvePath(repositoryRoot, input.path))
+	return run(configuration, stdout)
+}
+
+func run(configuration generationConfig, stdout io.Writer) error {
+	inputs := make([]descriptorInput, 0, len(configuration.Descriptors))
+	for _, input := range configuration.Descriptors {
+		descriptor, loadErr := descriptorFileInput(input.Name, input.Path, input.Locator)
 		if loadErr != nil {
 			return loadErr
 		}
-		descriptor.Locator = filepath.ToSlash(input.path)
 		inputs = append(inputs, descriptor)
 	}
 	set, err := mergeDescriptorInputs(inputs)
 	if err != nil {
 		return err
 	}
-	projection, err := buildProjection(set)
+	projection, err := buildProjection(set, configuration.Classify)
 	if err != nil {
 		return err
 	}
-	artifacts, manifest, err := generateArtifacts(configuration.PublicModule, publicVersion, inputs, projection)
+	artifacts, manifest, err := generateArtifacts(configuration, inputs, projection)
 	if err != nil {
 		return err
 	}
-	if configuration.Mode == "inspect" {
+	if configuration.Operation == "inspect" {
 		return writeInspect(stdout, manifest)
 	}
-	outputRoot := resolvePath(repositoryRoot, configuration.OutputRoot)
-	if configuration.Mode == "check" {
-		return checkArtifacts(outputRoot, artifacts)
+	outputRoot, err := filepath.Abs(configuration.OutputRoot)
+	if err != nil {
+		return fmt.Errorf("resolve output root: %w", err)
 	}
-	return publishArtifacts(outputRoot, artifacts, manifest)
-}
-
-func resolvePath(repositoryRoot, path string) string {
-	if filepath.IsAbs(path) {
-		return path
+	if configuration.Operation == "check" {
+		return checkArtifacts(outputRoot, artifacts, configuration.Layout, configuration.Operation)
 	}
-	return filepath.Join(repositoryRoot, path)
+	return publishArtifacts(outputRoot, artifacts, configuration.Layout)
 }
 
 func writeInspect(stdout io.Writer, manifest generationManifest) error {
@@ -137,7 +68,7 @@ func writeInspect(stdout io.Writer, manifest generationManifest) error {
 	return nil
 }
 
-func checkArtifacts(outputRoot string, artifacts map[string][]byte) error {
+func checkArtifacts(outputRoot string, artifacts map[string][]byte, layout outputLayout, operation string) error {
 	var drift []string
 	for _, path := range sortedArtifactPaths(artifacts) {
 		current, err := os.ReadFile(filepath.Join(outputRoot, filepath.FromSlash(path)))
@@ -152,7 +83,7 @@ func checkArtifacts(outputRoot string, artifacts map[string][]byte) error {
 			drift = append(drift, path+" (stale)")
 		}
 	}
-	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(manifestPath)))
+	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(layout.ManifestPath)))
 	if err != nil {
 		return err
 	}
@@ -163,43 +94,56 @@ func checkArtifacts(outputRoot string, artifacts map[string][]byte) error {
 	}
 	if len(drift) != 0 {
 		slices.Sort(drift)
-		return fmt.Errorf("generated Temporal API model is stale; run make umpire-gen-api: %s", strings.Join(drift, ", "))
+		return fmt.Errorf("generated protobuf Lean model is stale after %s: %s", operation, strings.Join(drift, ", "))
 	}
 	return nil
 }
 
-func publishArtifacts(outputRoot string, artifacts map[string][]byte, manifest generationManifest) error {
-	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(manifestPath)))
+func publishArtifacts(
+	outputRoot string,
+	artifacts map[string][]byte,
+	layout outputLayout,
+) error {
+	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(layout.ManifestPath)))
 	if err != nil {
 		return err
 	}
-	for _, path := range sortedArtifactPaths(artifacts) {
-		if path == manifestPath {
+	paths := sortedArtifactPaths(artifacts)
+	current := make(map[string]bool, len(paths))
+	for _, path := range paths {
+		if err := validateManagedPath(layout, path); err != nil {
+			return err
+		}
+		current[path] = true
+	}
+	stale := make([]string, 0, len(previous.GeneratedFiles))
+	for _, file := range previous.GeneratedFiles {
+		if current[file.Path] {
 			continue
 		}
-		if err := validateManagedPath(path); err != nil {
-			return err
+		if err := validateManagedPath(layout, file.Path); err != nil {
+			return fmt.Errorf("refuse to remove stale artifact: %w", err)
+		}
+		stale = append(stale, file.Path)
+	}
+
+	for _, path := range paths {
+		if path == layout.ManifestPath {
+			continue
 		}
 		if err := artifactio.Publish(filepath.Join(outputRoot, filepath.FromSlash(path)), artifacts[path]); err != nil {
 			return fmt.Errorf("publish generated artifact %q: %w", path, err)
 		}
 	}
-	current := make(map[string]bool, len(manifest.GeneratedFiles))
-	for _, file := range manifest.GeneratedFiles {
-		current[file.Path] = true
-	}
-	for _, file := range previous.GeneratedFiles {
-		if current[file.Path] {
-			continue
-		}
-		if err := validateManagedPath(file.Path); err != nil {
-			return fmt.Errorf("refuse to remove stale artifact: %w", err)
-		}
-		if err := artifactio.Remove(filepath.Join(outputRoot, filepath.FromSlash(file.Path))); err != nil {
-			return fmt.Errorf("remove stale generated artifact %q: %w", file.Path, err)
+	for _, path := range stale {
+		if err := artifactio.Remove(filepath.Join(outputRoot, filepath.FromSlash(path))); err != nil {
+			return fmt.Errorf("remove stale generated artifact %q: %w", path, err)
 		}
 	}
-	if err := artifactio.Publish(filepath.Join(outputRoot, filepath.FromSlash(manifestPath)), artifacts[manifestPath]); err != nil {
+	if err := artifactio.Publish(
+		filepath.Join(outputRoot, filepath.FromSlash(layout.ManifestPath)),
+		artifacts[layout.ManifestPath],
+	); err != nil {
 		return fmt.Errorf("publish generation manifest: %w", err)
 	}
 	return nil
@@ -220,12 +164,12 @@ func loadPreviousManifest(path string) (generationManifest, error) {
 	return manifest, nil
 }
 
-func validateManagedPath(path string) error {
+func validateManagedPath(layout outputLayout, path string) error {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(path)))
 	if clean != path || filepath.IsAbs(path) || strings.HasPrefix(path, "../") {
 		return fmt.Errorf("generated artifact path %q is unsafe", path)
 	}
-	if path != "Temporal/Generated.lean" && !strings.HasPrefix(path, "Temporal/Generated/") {
+	if path != layout.CorePath && path != layout.UmbrellaPath && !strings.HasPrefix(path, layout.GeneratedPath+"/") {
 		return fmt.Errorf("generated artifact path %q is outside the managed tree", path)
 	}
 	return nil
