@@ -24,17 +24,18 @@ const (
 )
 
 type enumValueProjection struct {
-	Name   string `json:"name"`
-	Number int32  `json:"number"`
+	Name       string `json:"name"`
+	Number     int32  `json:"number"`
+	Deprecated bool   `json:"deprecated"`
 }
 
 type enumProjection struct {
-	FullName      string                `json:"fullName"`
-	LeanName      string                `json:"leanName"`
-	Source        sourceKind            `json:"source"`
-	Values        []enumValueProjection `json:"values"`
-	AllowAliases  bool                  `json:"allowAliases"`
-	IsPlaceholder bool                  `json:"isPlaceholder"`
+	FullName     string                `json:"fullName"`
+	LeanName     string                `json:"leanName"`
+	Source       sourceKind            `json:"source"`
+	Values       []enumValueProjection `json:"values"`
+	AllowAliases bool                  `json:"allowAliases"`
+	Deprecated   bool                  `json:"deprecated"`
 }
 
 type fieldProjection struct {
@@ -48,9 +49,13 @@ type fieldProjection struct {
 	MapKey     string `json:"mapKey,omitempty"`
 	MapValue   string `json:"mapValue,omitempty"`
 	Presence   bool   `json:"presence"`
+	Required   bool   `json:"required"`
+	HasDefault bool   `json:"hasDefault"`
+	Default    string `json:"defaultValue,omitempty"`
 	Oneof      string `json:"oneof,omitempty"`
 	Repeated   bool   `json:"repeated"`
 	Map        bool   `json:"map"`
+	Packed     bool   `json:"packed"`
 	Recursive  bool   `json:"recursive"`
 	Deprecated bool   `json:"deprecated"`
 }
@@ -62,12 +67,12 @@ type oneofProjection struct {
 }
 
 type messageProjection struct {
-	FullName string            `json:"fullName"`
-	LeanName string            `json:"leanName"`
-	Source   sourceKind        `json:"source"`
-	Fields   []fieldProjection `json:"fields"`
-	Oneofs   []oneofProjection `json:"oneofs"`
-	MapEntry bool              `json:"mapEntry"`
+	FullName   string            `json:"fullName"`
+	LeanName   string            `json:"leanName"`
+	Source     sourceKind        `json:"source"`
+	Fields     []fieldProjection `json:"fields"`
+	Oneofs     []oneofProjection `json:"oneofs"`
+	Deprecated bool              `json:"deprecated"`
 }
 
 type methodProjection struct {
@@ -84,10 +89,11 @@ type methodProjection struct {
 }
 
 type serviceProjection struct {
-	FullName string             `json:"fullName"`
-	LeanName string             `json:"leanName"`
-	Source   sourceKind         `json:"source"`
-	Methods  []methodProjection `json:"methods"`
+	FullName   string             `json:"fullName"`
+	LeanName   string             `json:"leanName"`
+	Source     sourceKind         `json:"source"`
+	Methods    []methodProjection `json:"methods"`
+	Deprecated bool               `json:"deprecated"`
 }
 
 type fileProjection struct {
@@ -162,7 +168,7 @@ func projectFiles(files []protoreflect.FileDescriptor) []fileProjection {
 	for _, file := range files {
 		item := fileProjection{
 			Path: file.Path(), Package: string(file.Package()), Syntax: file.Syntax().String(),
-			Source: classifySource(file.Path()),
+			Source: classifySource(file.Path()), Dependencies: []string{}, Services: []string{},
 		}
 		imports := file.Imports()
 		for index := 0; index < imports.Len(); index++ {
@@ -179,7 +185,7 @@ func projectFiles(files []protoreflect.FileDescriptor) []fileProjection {
 }
 
 func projectEnums(descriptors map[protoreflect.FullName]protoreflect.EnumDescriptor) []enumProjection {
-	var result []enumProjection
+	result := make([]enumProjection, 0, len(descriptors))
 	for _, name := range sortedNames(descriptors) {
 		descriptor := descriptors[name]
 		if parent, ok := descriptor.Parent().(protoreflect.MessageDescriptor); ok && parent.IsMapEntry() {
@@ -187,12 +193,16 @@ func projectEnums(descriptors map[protoreflect.FullName]protoreflect.EnumDescrip
 		}
 		item := enumProjection{
 			FullName: string(name), LeanName: leanTypeName(name), Source: classifySource(descriptor.ParentFile().Path()),
-			AllowAliases: descriptor.Options().(*descriptorpb.EnumOptions).GetAllowAlias(),
+			Values: []enumValueProjection{}, AllowAliases: descriptor.Options().(*descriptorpb.EnumOptions).GetAllowAlias(),
+			Deprecated: descriptor.Options().(*descriptorpb.EnumOptions).GetDeprecated(),
 		}
 		values := descriptor.Values()
 		for index := 0; index < values.Len(); index++ {
 			value := values.Get(index)
-			item.Values = append(item.Values, enumValueProjection{Name: string(value.Name()), Number: int32(value.Number())})
+			item.Values = append(item.Values, enumValueProjection{
+				Name: string(value.Name()), Number: int32(value.Number()),
+				Deprecated: value.Options().(*descriptorpb.EnumValueOptions).GetDeprecated(),
+			})
 		}
 		result = append(result, item)
 	}
@@ -208,6 +218,8 @@ func projectMessages(descriptors map[protoreflect.FullName]protoreflect.MessageD
 		}
 		message := messageProjection{
 			FullName: string(name), LeanName: leanTypeName(name), Source: classifySource(descriptor.ParentFile().Path()),
+			Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
+			Deprecated: descriptor.Options().(*descriptorpb.MessageOptions).GetDeprecated(),
 		}
 		oneofs := make(map[protoreflect.Name]*oneofProjection)
 		fields := descriptor.Fields()
@@ -219,7 +231,10 @@ func projectMessages(descriptors map[protoreflect.FullName]protoreflect.MessageD
 			if containing := fields.Get(index).ContainingOneof(); containing != nil && !containing.IsSynthetic() {
 				oneof := oneofs[containing.Name()]
 				if oneof == nil {
-					oneof = &oneofProjection{Name: string(containing.Name()), LeanName: leanTypeName(name) + "_" + upperIdentifier(string(containing.Name()))}
+					oneof = &oneofProjection{
+						Name: string(containing.Name()), LeanName: leanTypeName(name) + "_" + upperIdentifier(string(containing.Name())),
+						Fields: []fieldProjection{},
+					}
 					oneofs[containing.Name()] = oneof
 				}
 				oneof.Fields = append(oneof.Fields, field)
@@ -239,11 +254,12 @@ func projectMessages(descriptors map[protoreflect.FullName]protoreflect.MessageD
 }
 
 func projectServices(descriptors map[protoreflect.FullName]protoreflect.ServiceDescriptor) []serviceProjection {
-	var result []serviceProjection
+	result := make([]serviceProjection, 0, len(descriptors))
 	for _, name := range sortedNames(descriptors) {
 		descriptor := descriptors[name]
 		service := serviceProjection{
 			FullName: string(name), LeanName: leanTypeName(name), Source: classifySource(descriptor.ParentFile().Path()),
+			Methods: []methodProjection{}, Deprecated: descriptor.Options().(*descriptorpb.ServiceOptions).GetDeprecated(),
 		}
 		methods := descriptor.Methods()
 		usedMethodNames := make(map[string]int)
@@ -291,8 +307,13 @@ func projectField(
 	result := fieldProjection{
 		FullName: string(field.FullName()), Name: string(field.Name()), JSONName: field.JSONName(),
 		LeanName: lowerIdentifier(string(field.Name())), Number: int32(field.Number()), Kind: field.Kind().String(),
-		Presence: field.HasPresence(), Repeated: field.Cardinality() == protoreflect.Repeated, Map: field.IsMap(),
+		Presence: field.HasPresence(), Required: field.Cardinality() == protoreflect.Required,
+		HasDefault: field.HasDefault(), Repeated: field.Cardinality() == protoreflect.Repeated,
+		Map: field.IsMap(), Packed: field.IsPacked(),
 		Deprecated: field.Options().(*descriptorpb.FieldOptions).GetDeprecated(),
+	}
+	if result.HasDefault {
+		result.Default = protodesc.ToFieldDescriptorProto(field).GetDefaultValue()
 	}
 	if oneof := field.ContainingOneof(); oneof != nil && !oneof.IsSynthetic() {
 		result.Oneof = string(oneof.Name())
@@ -456,12 +477,21 @@ func identifierParts(value string) []string {
 }
 
 func uniqueName(name string, used map[string]int, discriminator int32) string {
-	if used[name] == 0 {
+	if _, exists := used[name]; !exists {
 		used[name] = 1
 		return name
 	}
-	used[name]++
-	return fmt.Sprintf("%s%d", name, discriminator)
+	discriminatorName := fmt.Sprint(discriminator)
+	if discriminator < 0 {
+		discriminatorName = fmt.Sprintf("Neg%d", -int64(discriminator))
+	}
+	base := name + discriminatorName
+	candidate := base
+	for suffix := 2; used[candidate] != 0; suffix++ {
+		candidate = fmt.Sprintf("%s_%d", base, suffix)
+	}
+	used[candidate] = 1
+	return candidate
 }
 
 var leanReserved = map[string]bool{

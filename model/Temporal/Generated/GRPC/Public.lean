@@ -297,7 +297,7 @@ def PublicServices : List Temporal.Proto.ServiceDescriptor := [
       { fullName := "temporal.api.operatorservice.v1.OperatorService.UpdateNexusEndpoint", inputType := "temporal.api.operatorservice.v1.UpdateNexusEndpointRequest", outputType := "temporal.api.operatorservice.v1.UpdateNexusEndpointResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.api.operatorservice.v1.OperatorService.DeleteNexusEndpoint", inputType := "temporal.api.operatorservice.v1.DeleteNexusEndpointRequest", outputType := "temporal.api.operatorservice.v1.DeleteNexusEndpointResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.api.operatorservice.v1.OperatorService.ListNexusEndpoints", inputType := "temporal.api.operatorservice.v1.ListNexusEndpointsRequest", outputType := "temporal.api.operatorservice.v1.ListNexusEndpointsResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
-    ] },
+    ], deprecated := false },
   { fullName := "temporal.api.workflowservice.v1.WorkflowService", methods := [
       { fullName := "temporal.api.workflowservice.v1.WorkflowService.RegisterNamespace", inputType := "temporal.api.workflowservice.v1.RegisterNamespaceRequest", outputType := "temporal.api.workflowservice.v1.RegisterNamespaceResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.api.workflowservice.v1.WorkflowService.DescribeNamespace", inputType := "temporal.api.workflowservice.v1.DescribeNamespaceRequest", outputType := "temporal.api.workflowservice.v1.DescribeNamespaceResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
@@ -422,7 +422,7 @@ def PublicServices : List Temporal.Proto.ServiceDescriptor := [
       { fullName := "temporal.api.workflowservice.v1.WorkflowService.TerminateNexusOperationExecution", inputType := "temporal.api.workflowservice.v1.TerminateNexusOperationExecutionRequest", outputType := "temporal.api.workflowservice.v1.TerminateNexusOperationExecutionResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.api.workflowservice.v1.WorkflowService.DeleteNexusOperationExecution", inputType := "temporal.api.workflowservice.v1.DeleteNexusOperationExecutionRequest", outputType := "temporal.api.workflowservice.v1.DeleteNexusOperationExecutionResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
       { fullName := "temporal.api.workflowservice.v1.WorkflowService.PollWorkflowExecutionTimeSkipping", inputType := "temporal.api.workflowservice.v1.PollWorkflowExecutionTimeSkippingRequest", outputType := "temporal.api.workflowservice.v1.PollWorkflowExecutionTimeSkippingResponse", clientStreaming := false, serverStreaming := false, deprecated := false },
-    ] },
+    ], deprecated := false },
 ]
 
 end Temporal.Proto.Generated.GRPC
