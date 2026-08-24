@@ -122,7 +122,7 @@ For every tier, record multiple seeds or choice prefixes, replay qualification, 
 Implementation uses a v2-only, exact-source policy and a governed
 discover/review/approve/generate/check/qualify workflow. Active migration
 requests and unapproved candidate reports live under
-`tools/gomadv3/target/internal/compatibility`; exact review digests, rather
+`tools/gomad3/target/internal/compatibility`; exact review digests, rather
 than boolean approval, gate publication. Registered adapter evidence replaces
 the former arbitrary-local-replacement representation. The backoff candidate
 was retired after the exact gRPC adapter removed its blockers and qualified

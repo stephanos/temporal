@@ -215,7 +215,7 @@ those seams should not leak into the Cluster interface.
 
 Temporal tests need a small package in the root module rather than an import of
 the nested Gomad tool module. The proposed placement is
-`tools/gomadv3sim`. It should have no third-party dependencies and expose only:
+`tools/gomad3sim`. It should have no third-party dependencies and expose only:
 
 - registration of a stable boot identity with a boot function;
 - construction of a cluster specification;
@@ -847,11 +847,11 @@ v2-derived behavioral parity manifest and two representative
 Temporal scenario prototypes. Use them to finalize the small application-facing
 harness, boot registry, cluster schemas, fidelity declarations, and limits.
 
-The canonical `gomadv3.simulation-parity/v1` manifest now maps thirteen
+The canonical `gomad3.simulation-parity/v1` manifest now maps thirteen
 v2-derived behaviors to named planned v3 cases, exact source tests, explicit
 replacement decisions, delivery stages, and backend/fidelity requirements.
-The root `tools/gomadv3sim` package defines the bounded
-`gomadv3.simulation-spec/v2` application contract, stable node/incarnation
+The root `tools/gomad3sim` package defines the bounded
+`gomad3.simulation-spec/v2` application contract, stable node/incarnation
 handles, fail-closed boot registration, and cluster lifecycle seam. Private
 contract tests originally expressed the required request/response and restart
 prototypes without a backend claim; SIM-1 below now executes those contracts.
@@ -873,7 +873,7 @@ registry, lifecycle state machine, node-aware transparent hooks, stale
 incarnation revocation, node-labelled output, and base cluster records. Start
 with no cross-node network or crash-persistent storage beyond minimal fixtures.
 
-The production `tools/gomadv3sim.Run` path now owns stable node configuration,
+The production `tools/gomad3sim.Run` path now owns stable node configuration,
 monotonic incarnations, concurrent boot execution, validate-before-commit
 lifecycle transitions, authenticated cluster replay plans, bounded canonical
 records, per-incarnation terminal results, and context-bounded teardown. The

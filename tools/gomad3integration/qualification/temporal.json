@@ -1,0 +1,289 @@
+{
+  "schema": "gomad3.qualification-set/v3",
+  "name": "temporal-representative",
+  "description": "Representative pure-Go Temporal package qualification",
+  "module": "go.temporal.io/server",
+  "seeds": [11, 17],
+  "repeat": 2,
+  "run_timeout": "2m",
+  "overall_timeout": "5m",
+  "terminate_grace": "2s",
+  "output_bytes": 8388608,
+  "world_transition_bytes": 67108864,
+  "suites": [
+    {
+      "id": "activity-batch-cancel-boundary",
+      "name": "Activity batch cancel boundary",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "activity batch cancellation exposes the current Temporal support boundary",
+      "package": "./tests",
+      "test": "TestActivityAPIBatchCancelClientTestSuite",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "clock-context-timeout",
+      "name": "Clock context timeout",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "context timeouts fire through the deterministic clock",
+      "package": "./common/clock",
+      "test": "TestContextWithTimeout_Fire",
+      "required_probes": ["stdlib.os.openfile"],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {"classification": "qualified"}
+    },
+    {
+      "id": "future-suite",
+      "name": "Future suite",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "future completion and observation preserve ordering",
+      "package": "./common/future",
+      "test": "TestFutureSuite",
+      "required_probes": ["stdlib.os.newfile"],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {"classification": "qualified"}
+    },
+    {
+      "id": "sqlite-persistence-boundary",
+      "name": "SQLite persistence boundary",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "SQLite queue persistence exposes the current Temporal support boundary",
+      "package": "./common/persistence/tests",
+      "test": "TestSQLiteQueuePersistence",
+      "read_only_mounts": [{"source": "./schema", "target": "/schema"}],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-backoff-overflow",
+      "name": "Temporal backoff overflow",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "backoff overflow remains bounded and deterministic",
+      "package": "./common/backoff",
+      "test": "TestExponentialBackoffOverflow",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "temporal-cache-concurrent",
+      "name": "Temporal cache concurrent access",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "concurrent cache operations preserve cache invariants",
+      "package": "./common/cache",
+      "test": "TestSimpleCacheConcurrentAccess",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "github.com/cespare/xxhash/v2",
+        "capability": "foreign:assembly:xxhash_arm64.s"
+      }
+    },
+    {
+      "id": "temporal-dither-pass",
+      "name": "Temporal matching dither pass",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "matching dither decisions preserve fairness bounds",
+      "package": "./service/matching",
+      "test": "TestDitherPass",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-map-concurrent",
+      "name": "Temporal map concurrent access",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "concurrent map operations preserve map state",
+      "package": "./common/collection",
+      "test": "TestMap_MultiThreaded",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {"classification": "qualified"}
+    },
+    {
+      "id": "temporal-poller-history",
+      "name": "Temporal poller history",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "poller history updates and expiry preserve matching invariants",
+      "package": "./service/matching",
+      "test": "TestPollerHistory",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-queue-key",
+      "name": "Temporal queue key determinism",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "queue-key encoding is deterministic",
+      "package": "./common/persistence",
+      "test": "TestQueueKey_Determinism",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "github.com/aws/aws-sdk-go-v2/credentials/processcreds",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-sqlite-schema-rewrite",
+      "name": "Temporal SQLite schema rewrite",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "schema rewriting preserves required varchar checks",
+      "package": "./common/persistence/sql/sqlplugin/sqlite",
+      "test": "TestRewriteSchemaStatements_EnforcesVarcharLengthChecks",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "github.com/aws/aws-sdk-go-v2/credentials/processcreds",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-transition-history",
+      "name": "Temporal transition history",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "transition-history updates preserve ordering",
+      "package": "./service/history/workflow",
+      "test": "TestUpdatedTranstionHistory",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-update-abort-matrix",
+      "name": "Temporal update abort matrix",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "update abort reasons agree with update states",
+      "package": "./service/history/workflow/update",
+      "test": "TestAbortReasonUpdateStateMatrix",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-version-set-merge",
+      "name": "Temporal version set merge",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "version-set merge preserves members and the maximum timestamp",
+      "package": "./service/matching",
+      "test": "TestSetMerge_AdditionalBuildIdAndGreaterUpdateTimestamp_MergesBuildIdsAndSetsMaxUpdateTimestamp",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "temporal-workflow-backoff",
+      "name": "Temporal workflow backoff",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "workflow retry intervals follow backoff policy",
+      "package": "./service/history/workflow",
+      "test": "Test_nextBackoffInterval",
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {
+        "classification": "unsupported_target",
+        "import_path": "cloud.google.com/go/auth/credentials/internal/externalaccount",
+        "capability": "import:os/exec"
+      }
+    },
+    {
+      "id": "timer-local-gate",
+      "name": "Timer local gate",
+      "tier": 2,
+      "capability_mode": "closure",
+      "invariant": "local timer gates preserve wake-up ordering",
+      "package": "./common/timer",
+      "test": "TestLocalTimerGateSuite",
+      "required_probes": ["stdlib.os.openfile"],
+      "choice_bytes": 8388608,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 134217728,
+      "expectation": {"classification": "qualified"}
+    }
+  ]
+}

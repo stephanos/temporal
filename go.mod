@@ -260,4 +260,4 @@ require (
 
 tool golang.org/x/perf/cmd/benchstat
 
-replace github.com/temporalio/gomad => ./tools/gomadv2
+replace github.com/temporalio/gomad => ./tools/gomad2

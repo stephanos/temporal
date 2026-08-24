@@ -55,8 +55,8 @@ testdata/
 /tools/umpire3/model/.lake/
 /tools/umpire3/model-checkers/lean-temporal/lean/.lake/
 /tools/common/formal/.lake/
-/tools/gomad4/formal/.lake/
-/tools/gomad4/formal/veil/.lake/
+/tools/gomad/formal/.lake/
+/tools/gomad/formal/veil/.lake/
 
 # direnv
 .envrc

@@ -1,7 +1,7 @@
 # Gomad v3: Executive State Assessment
 
 **Assessment date:** 2026-08-13
-**Scope:** Current working tree, `tools/gomadv3`, its Temporal integration, qualification manifests, CI workflow, and retained local qualification evidence.
+**Scope:** Current working tree, `tools/gomad3`, its Temporal integration, qualification manifests, CI workflow, and retained local qualification evidence.
 
 ## Executive assessment
 
@@ -227,8 +227,8 @@ The working tree already contained five uncommitted Gomad v3 source/test changes
 
 Primary references:
 
-- [Gomad v3 README](../tools/gomadv3/README.md)
-- [Architecture](../tools/gomadv3/ARCHITECTURE.md)
-- [Core qualification manifest](../tools/gomadv3/qualification/core.json)
-- [Temporal qualification manifest](../tools/gomadv3integration/qualification/temporal.json)
-- [Gomad v3 CI workflow](../.github/workflows/gomadv3.yml)
+- [Gomad v3 README](../tools/gomad3/README.md)
+- [Architecture](../tools/gomad3/ARCHITECTURE.md)
+- [Core qualification manifest](../tools/gomad3/qualification/core.json)
+- [Temporal qualification manifest](../tools/gomad3integration/qualification/temporal.json)
+- [Gomad v3 CI workflow](../.github/workflows/gomad3.yml)

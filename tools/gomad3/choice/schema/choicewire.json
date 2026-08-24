@@ -1,0 +1,55 @@
+{
+  "version": 2,
+  "profile": "gomad3-choice-trace/v2",
+  "trace": {
+    "magic": "GOMADCH\u0002",
+    "header_bytes": 64,
+    "record_bytes": 96
+  },
+  "tape": {
+    "magic": "GOMADTP\u0002",
+    "header_bytes": 264,
+    "record_bytes": 96,
+    "checksum_offset": 232
+  },
+  "terminal": {
+    "magic": "GOMADCT\u0002",
+    "states": {
+      "complete": 1,
+      "overflow": 2,
+      "diverged": 3
+    },
+    "frame_bytes": 312,
+    "checksum_offset": 280
+  },
+  "kinds": {
+    "runnable": 1,
+    "select_poll": 2,
+    "select_result": 3
+  },
+  "flags": {
+    "decision": 1,
+    "observation": 2,
+    "site_missing": 4,
+    "rank_override": 8
+  },
+  "modes": {
+    "seed": 0,
+    "record": 1,
+    "replay": 2,
+    "prefix": 3
+  },
+  "divergence_reasons": {
+    "kind": 1,
+    "site": 2,
+    "alternatives": 3,
+    "selected": 4,
+    "alternative_set": 5,
+    "tape_exhausted": 6,
+    "tape_unconsumed": 7,
+    "identity_missing": 8,
+    "identity_duplicate": 9,
+    "alternative_capacity": 10,
+    "observation": 11
+  }
+}

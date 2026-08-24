@@ -103,18 +103,18 @@ standard-library boundaries**.
 Gomad promises repeatability of runtime-controlled choices for an unchanged
 toolchain, target, architecture, deterministic inputs, and seed; it does not
 claim deterministic arbitrary host I/O
-([architecture](../tools/gomadv3/ARCHITECTURE.md#system-boundary)). Activation
+([architecture](../tools/gomad3/ARCHITECTURE.md#system-boundary)). Activation
 forces one P, disables asynchronous preemption and the system monitor, seeds
 runtime choices, and starts a virtual clock
-([activation](../tools/gomadv3/ARCHITECTURE.md#activation)). The runtime patch
+([activation](../tools/gomad3/ARCHITECTURE.md#activation)). The runtime patch
 implements seeded run-queue and `select` choices, deterministic runtime
 randomness, and `faketime`
-([patch](../tools/gomadv3/toolchain/runtime/go1.26.4.patch)).
+([patch](../tools/gomad3/toolchain/runtime/go1.26.4.patch)).
 
 Time advances to the earliest native timer only when no goroutine is runnable.
 A busy loop or unsupported blocking host I/O prevents logical advancement and
 is bounded by Runner's wall watchdog
-([quiescence](../tools/gomadv3/ARCHITECTURE.md#quiescence-and-native-timers)).
+([quiescence](../tools/gomad3/ARCHITECTURE.md#quiescence-and-native-timers)).
 This gives Gomad direct knowledge of goroutines, channels, `select`, and Go
 timers that a syscall tracer has to infer indirectly.
 
@@ -122,27 +122,27 @@ The compiler inserts typed prologues into reviewed `os` and `net` definitions.
 The current manifest inventories 129 entries: 62 modeled, 64 denied, and three
 delegated. Entries bind source declarations, operations, probes,
 hooks/dispositions, adapters, and fixtures
-([manifest](../tools/gomadv3/deterministicio/boundary/manifest.json)). Modeled
+([manifest](../tools/gomad3/deterministicio/boundary/manifest.json)). Modeled
 implementations provide process-local filesystem, loopback TCP, hostname, and
 entropy behavior; a pinned `modernc.org/libc` adapter maps selected calls into
 the same boundary
-([deterministic I/O](../tools/gomadv3/README.md#deterministic-io)).
+([deterministic I/O](../tools/gomad3/README.md#deterministic-io)).
 
 The limit is explicit: this is not an OS sandbox. Raw syscalls can bypass it,
 and DNS, non-loopback sockets, subprocesses, cgo, plugins, external linking,
 and unrecognized native I/O are unsupported
-([deterministic I/O](../tools/gomadv3/README.md#deterministic-io)).
+([deterministic I/O](../tools/gomad3/README.md#deterministic-io)).
 
 Runner already provides the control plane a lower backend needs: fresh process
 and directory per seed, an empty environment, process-group termination,
 bounded output, immutable identity, atomic artifacts, replay validation, World,
 and ordered campaign commits
-([Runner](../tools/gomadv3/ARCHITECTURE.md#runner-and-process-containment)).
+([Runner](../tools/gomad3/ARCHITECTURE.md#runner-and-process-containment)).
 
 The current descriptor and I/O manifest support only `darwin/arm64`
-([descriptor](../tools/gomadv3/toolchain/version/version.json)). Replay requires
+([descriptor](../tools/gomad3/toolchain/version/version.json)). Replay requires
 the artifact host and target platform to match the current process
-([replay check](../tools/gomadv3/runner/replay_operation.go)). Linux support is
+([replay check](../tools/gomad3/runner/replay_operation.go)). Linux support is
 therefore a new qualified platform bundle and artifact identity, not
 cross-platform replay of existing Darwin artifacts.
 

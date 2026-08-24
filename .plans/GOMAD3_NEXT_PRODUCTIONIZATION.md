@@ -129,7 +129,7 @@ mount inventory before execution, and remains resumable through batch-plan v5
 and batch v4. `merge` accepts only identical plan identities, rejects duplicate
 or missing ordinals unless partial output was requested, deduplicates retained
 evidence by content identity, enforces the plan's journal and artifact budgets,
-and publishes a new immutable `gomadv3.merged-batch/v1` without copying or
+and publishes a new immutable `gomad3.merged-batch/v1` without copying or
 mutating source evidence. Dynamic choice-frontier candidates are not a static
 partition: v1 rejects them until a round coordinator can distribute newly
 discovered prefixes without duplicate ownership.

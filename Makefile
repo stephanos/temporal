@@ -172,7 +172,7 @@ COMPILED_TEST_ARGS := -timeout=$(TEST_TIMEOUT) \
 ROOT := $(shell git rev-parse --show-toplevel)
 LOCALBIN := .bin
 STAMPDIR := .stamp
-GOMADV3_GO := $(ROOT)/tools/gomadv3/.toolchain/bin/go
+GOMAD3_GO := $(ROOT)/tools/gomad3/.toolchain/bin/go
 export PATH := $(ROOT)/$(LOCALBIN):$(PATH)
 GOINSTALL := GOBIN=$(ROOT)/$(LOCALBIN) go install
 
@@ -206,9 +206,9 @@ INTERNAL_BINPB := $(PROTO_ROOT)/image.bin
 CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
 PROTO_OUT := api
 
-ALL_SRC         := $(shell find . -path "./tools/gomadv3/.toolchain" -prune -o -name "*.go" -print)
+ALL_SRC         := $(shell find . -path "./tools/gomad3/.toolchain" -prune -o -name "*.go" -print)
 ALL_SRC         += go.mod
-ALL_SCRIPTS     := $(shell find . -path "./tools/gomadv3/.toolchain" -prune -o -name "*.sh" -print)
+ALL_SCRIPTS     := $(shell find . -path "./tools/gomad3/.toolchain" -prune -o -name "*.sh" -print)
 
 MAIN_BRANCH    := main
 
@@ -256,56 +256,56 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomad4-prototype gomad4-test gomad4-formal gomad4-formal-veil
+.PHONY: gomad-prototype gomad-test gomad-formal gomad-formal-veil
 
-gomad4-prototype: gomad4-test gomad4-formal
+gomad-prototype: gomad-test gomad-formal
 
-gomad4-test:
+gomad-test:
 	@cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./...
 	@cd tools/common/formal && GOWORK=off go test -tags test_dep ./...
-	@cd tools/gomad4 && GOWORK=off go test -tags test_dep ./...
+	@cd tools/gomad && GOWORK=off go test -tags test_dep ./...
 
-gomad4-formal:
+gomad-formal:
 	@cd tools/common/formal && $(LEAN_LAKE) build
-	@cd tools/gomad4/formal && $(LEAN_LAKE) build
+	@cd tools/gomad/formal && $(LEAN_LAKE) build
 
-gomad4-formal-veil:
-	@cd tools/gomad4/formal/veil && $(LEAN_LAKE) build
+gomad-formal-veil:
+	@cd tools/gomad/formal/veil && $(LEAN_LAKE) build
 
-.PHONY: gomadv3 gomadv3-go gomadv3-runner gomadv3-run gomadv3-test gomadv3-integration-test gomadv3-qualification
+.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification
 
-gomadv3: gomadv3-runner
+gomad3: gomad3-runner
 
-gomadv3-go:
-	@$(MAKE) -C tools/gomadv3 toolchain
+gomad3-go:
+	@$(MAKE) -C tools/gomad3 toolchain
 
-gomadv3-runner:
-	@$(MAKE) -C tools/gomadv3 runner
+gomad3-runner:
+	@$(MAKE) -C tools/gomad3 runner
 
-gomadv3-run:
-	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomadv3-run GOMADSEED=<uint64> GOMADV3_RUN=<package>" >&2; exit 1; }
-	@test -n "$(GOMADV3_RUN)" || { echo "GOMADV3_RUN is required: make gomadv3-run GOMADSEED=<uint64> GOMADV3_RUN=<package>" >&2; exit 1; }
-	@$(MAKE) gomadv3-go
-	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMADV3_GO) run -exec "$(ROOT)/tools/gomadv3/exec.sh" $(GOMADV3_RUN) $(GOMADV3_ARGS)
+gomad3-run:
+	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
+	@test -n "$(GOMAD3_RUN)" || { echo "GOMAD3_RUN is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
+	@$(MAKE) gomad3-go
+	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
+		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad3/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
 
-gomadv3-test:
-	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomadv3-test GOMADSEED=<uint64> GOMADV3_PACKAGES=<packages>" >&2; exit 1; }
-	@test -n "$(GOMADV3_PACKAGES)" || { echo "GOMADV3_PACKAGES is required: make gomadv3-test GOMADSEED=<uint64> GOMADV3_PACKAGES=<packages>" >&2; exit 1; }
-	@$(MAKE) gomadv3-go
-	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMADV3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMADV3_GO) test -exec "$(ROOT)/tools/gomadv3/exec.sh" -count=1 -tags test_dep $(GOMADV3_PACKAGES) $(GOMADV3_ARGS)
+gomad3-test:
+	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
+	@test -n "$(GOMAD3_PACKAGES)" || { echo "GOMAD3_PACKAGES is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
+	@$(MAKE) gomad3-go
+	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
+		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
 
-gomadv3-integration-test: gomadv3-runner
-	@go test -tags test_dep,gomadv3_integration -count=1 ./tools/gomadv3integration
+gomad3-integration-test: gomad3-runner
+	@go test -tags test_dep,gomad3_integration -count=1 ./tools/gomad3integration
 
-gomadv3-qualification: gomadv3-runner
-	@$(MAKE) -C tools/gomadv3 compatibility-pack-qualification
-	@$(MAKE) -C tools/gomadv3 qualification-set \
-		GOMADV3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomadv3integration/qualification/temporal.json" \
-		GOMADV3_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMADV3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomadv3/.toolchain/temporal-qualification" \
-		GOMADV3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomadv3/.toolchain/temporal-qualification-set.json"
+gomad3-qualification: gomad3-runner
+	@$(MAKE) -C tools/gomad3 compatibility-pack-qualification
+	@$(MAKE) -C tools/gomad3 qualification-set \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/temporal.json" \
+		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
+		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification" \
+		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification-set.json"
 
 clean-tools:
 	@printf $(COLOR) "Delete tools..."
@@ -1071,7 +1071,7 @@ umpire3-clean:
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
-	@UNGENERATED_FILES=$$(find . -path './tools/gomadv3/.toolchain' -prune -o -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
+	@UNGENERATED_FILES=$$(find . -path './tools/gomad3/.toolchain' -prune -o -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
 		$(GOIMPORTS) -w $$UNGENERATED_FILES
 
 lint: lint-code lint-actions lint-api lint-protos lint-yaml
@@ -1137,7 +1137,7 @@ fmt-gofix:
 
 fmt-imports: $(GCI) # Don't get confused, there is a single linter called gci, which is a part of the mega linter we use is called golangci-lint.
 	@printf $(COLOR) "Formatting imports..."
-	@find . -path './.gomad' -prune -o -path './tools/gomadv3/.toolchain' -prune -o -type f -name '*.go' -print0 | \
+	@find . -path './.gomad' -prune -o -path './tools/gomad3/.toolchain' -prune -o -type f -name '*.go' -print0 | \
 		xargs -0 $(GCI) write --skip-generated -s standard -s default
 
 parallelize-tests:

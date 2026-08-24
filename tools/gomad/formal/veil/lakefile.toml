@@ -1,0 +1,10 @@
+name = "gomadveil"
+defaultTargets = ["GomadVeil"]
+
+[[require]]
+name = "veil"
+git = "https://github.com/verse-lab/veil.git"
+rev = "2ccca695fe62d2e488da8725a747972c2f115a61"
+
+[[lean_lib]]
+name = "GomadVeil"
