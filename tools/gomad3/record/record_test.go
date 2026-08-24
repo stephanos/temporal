@@ -48,7 +48,7 @@ func TestParseSHA256RejectsNonCanonicalIdentity(t *testing.T) {
 }
 
 func TestDomainHashUsesNamedNULTerminatedDomain(t *testing.T) {
-	if got, want := DomainHash("gomad3-run-record-v1", []byte("payload")), SHA256("sha256:087406f9758d2fbb56f25c4a24ef6fbc9986ba6108814b05105ae598447940a5"); got != want {
+	if got, want := DomainHash("gomad3-run-record-v1", []byte("payload")), SHA256("sha256:be7a1dc3ea127fc15b340d7ee6f96cd2987729851d50c579cfde736b9aece3ed"); got != want {
 		t.Fatalf("DomainHash() = %q, want %q", got, want)
 	}
 }
@@ -57,7 +57,7 @@ func TestFinalizeManifestSeparatesRunAndFailureIdentity(t *testing.T) {
 	first, firstBytes := finalizedManifest(t, manifestFixture())
 	secondInput := manifestFixture()
 	secondInput.Seed = 99
-	secondInput.Environment[0].Value = "99"
+	secondInput.Environment[1].Value = "99"
 	second, _ := finalizedManifest(t, secondInput)
 	if first.RecordHash == second.RecordHash {
 		t.Fatal("record hash did not include seed")
@@ -434,7 +434,7 @@ func manifestFixture() ExecutionRecord {
 			Inventory:            `{"schema":"inventory/v1"}`,
 			InventorySHA256:      HashBytes([]byte(`{"schema":"inventory/v1"}`)),
 		},
-		Environment: []Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []Environment{{Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Limits: Limits{
 			ExecutionTimeoutNanos: Uint64String(30_000_000_000),
 			OverallTimeoutNanos:   Uint64String(600_000_000_000),

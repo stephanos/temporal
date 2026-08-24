@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"unicode"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -24,6 +23,7 @@ const (
 )
 
 type enumValueProjection struct {
+	FullName   string `json:"fullName"`
 	Name       string `json:"name"`
 	Number     int32  `json:"number"`
 	Deprecated bool   `json:"deprecated"`
@@ -31,7 +31,9 @@ type enumValueProjection struct {
 
 type enumProjection struct {
 	FullName     string                `json:"fullName"`
-	LeanName     string                `json:"leanName"`
+	Name         string                `json:"name"`
+	Package      string                `json:"package"`
+	Parent       string                `json:"parent,omitempty"`
 	Source       sourceKind            `json:"source"`
 	Values       []enumValueProjection `json:"values"`
 	AllowAliases bool                  `json:"allowAliases"`
@@ -42,7 +44,6 @@ type fieldProjection struct {
 	FullName   string `json:"fullName"`
 	Name       string `json:"name"`
 	JSONName   string `json:"jsonName"`
-	LeanName   string `json:"leanName"`
 	Number     int32  `json:"number"`
 	Kind       string `json:"kind"`
 	TypeName   string `json:"typeName,omitempty"`
@@ -56,19 +57,20 @@ type fieldProjection struct {
 	Repeated   bool   `json:"repeated"`
 	Map        bool   `json:"map"`
 	Packed     bool   `json:"packed"`
-	Recursive  bool   `json:"recursive"`
 	Deprecated bool   `json:"deprecated"`
 }
 
 type oneofProjection struct {
-	Name     string            `json:"name"`
-	LeanName string            `json:"leanName"`
-	Fields   []fieldProjection `json:"fields"`
+	FullName   string   `json:"fullName"`
+	Name       string   `json:"name"`
+	FieldNames []string `json:"fieldNames"`
 }
 
 type messageProjection struct {
 	FullName   string            `json:"fullName"`
-	LeanName   string            `json:"leanName"`
+	Name       string            `json:"name"`
+	Package    string            `json:"package"`
+	Parent     string            `json:"parent,omitempty"`
 	Source     sourceKind        `json:"source"`
 	Fields     []fieldProjection `json:"fields"`
 	Oneofs     []oneofProjection `json:"oneofs"`
@@ -78,11 +80,8 @@ type messageProjection struct {
 type methodProjection struct {
 	FullName        string `json:"fullName"`
 	Name            string `json:"name"`
-	LeanName        string `json:"leanName"`
 	InputType       string `json:"inputType"`
-	InputLeanType   string `json:"inputLeanType"`
 	OutputType      string `json:"outputType"`
-	OutputLeanType  string `json:"outputLeanType"`
 	ClientStreaming bool   `json:"clientStreaming"`
 	ServerStreaming bool   `json:"serverStreaming"`
 	Deprecated      bool   `json:"deprecated"`
@@ -90,7 +89,8 @@ type methodProjection struct {
 
 type serviceProjection struct {
 	FullName   string             `json:"fullName"`
-	LeanName   string             `json:"leanName"`
+	Name       string             `json:"name"`
+	Package    string             `json:"package"`
 	Source     sourceKind         `json:"source"`
 	Methods    []methodProjection `json:"methods"`
 	Deprecated bool               `json:"deprecated"`
@@ -192,7 +192,8 @@ func projectEnums(descriptors map[protoreflect.FullName]protoreflect.EnumDescrip
 			continue
 		}
 		item := enumProjection{
-			FullName: string(name), LeanName: leanTypeName(name), Source: classifySource(descriptor.ParentFile().Path()),
+			FullName: string(name), Name: string(descriptor.Name()), Package: string(descriptor.ParentFile().Package()),
+			Parent: descriptorParent(descriptor), Source: classifySource(descriptor.ParentFile().Path()),
 			Values: []enumValueProjection{}, AllowAliases: descriptor.Options().(*descriptorpb.EnumOptions).GetAllowAlias(),
 			Deprecated: descriptor.Options().(*descriptorpb.EnumOptions).GetDeprecated(),
 		}
@@ -200,7 +201,7 @@ func projectEnums(descriptors map[protoreflect.FullName]protoreflect.EnumDescrip
 		for index := 0; index < values.Len(); index++ {
 			value := values.Get(index)
 			item.Values = append(item.Values, enumValueProjection{
-				Name: string(value.Name()), Number: int32(value.Number()),
+				FullName: string(value.FullName()), Name: string(value.Name()), Number: int32(value.Number()),
 				Deprecated: value.Options().(*descriptorpb.EnumValueOptions).GetDeprecated(),
 			})
 		}
@@ -210,34 +211,32 @@ func projectEnums(descriptors map[protoreflect.FullName]protoreflect.EnumDescrip
 }
 
 func projectMessages(descriptors map[protoreflect.FullName]protoreflect.MessageDescriptor) []messageProjection {
-	projected := make(map[protoreflect.FullName]messageProjection, len(descriptors))
+	projected := make([]messageProjection, 0, len(descriptors))
 	for _, name := range sortedNames(descriptors) {
 		descriptor := descriptors[name]
 		if descriptor.IsMapEntry() {
 			continue
 		}
 		message := messageProjection{
-			FullName: string(name), LeanName: leanTypeName(name), Source: classifySource(descriptor.ParentFile().Path()),
+			FullName: string(name), Name: string(descriptor.Name()), Package: string(descriptor.ParentFile().Package()),
+			Parent: descriptorParent(descriptor), Source: classifySource(descriptor.ParentFile().Path()),
 			Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
 			Deprecated: descriptor.Options().(*descriptorpb.MessageOptions).GetDeprecated(),
 		}
 		oneofs := make(map[protoreflect.Name]*oneofProjection)
 		fields := descriptor.Fields()
-		usedFieldNames := make(map[string]int)
 		for index := 0; index < fields.Len(); index++ {
-			field := projectField(fields.Get(index), descriptor, descriptors)
-			field.LeanName = uniqueName(field.LeanName, usedFieldNames, field.Number)
+			field := projectField(fields.Get(index))
 			message.Fields = append(message.Fields, field)
 			if containing := fields.Get(index).ContainingOneof(); containing != nil && !containing.IsSynthetic() {
 				oneof := oneofs[containing.Name()]
 				if oneof == nil {
 					oneof = &oneofProjection{
-						Name: string(containing.Name()), LeanName: leanTypeName(name) + "_" + upperIdentifier(string(containing.Name())),
-						Fields: []fieldProjection{},
+						FullName: string(containing.FullName()), Name: string(containing.Name()), FieldNames: []string{},
 					}
 					oneofs[containing.Name()] = oneof
 				}
-				oneof.Fields = append(oneof.Fields, field)
+				oneof.FieldNames = append(oneof.FieldNames, field.FullName)
 			}
 		}
 		oneofNames := make([]string, 0, len(oneofs))
@@ -248,9 +247,9 @@ func projectMessages(descriptors map[protoreflect.FullName]protoreflect.MessageD
 		for _, oneofName := range oneofNames {
 			message.Oneofs = append(message.Oneofs, *oneofs[protoreflect.Name(oneofName)])
 		}
-		projected[name] = message
+		projected = append(projected, message)
 	}
-	return dependencyOrder(projected)
+	return projected
 }
 
 func projectServices(descriptors map[protoreflect.FullName]protoreflect.ServiceDescriptor) []serviceProjection {
@@ -258,18 +257,16 @@ func projectServices(descriptors map[protoreflect.FullName]protoreflect.ServiceD
 	for _, name := range sortedNames(descriptors) {
 		descriptor := descriptors[name]
 		service := serviceProjection{
-			FullName: string(name), LeanName: leanTypeName(name), Source: classifySource(descriptor.ParentFile().Path()),
+			FullName: string(name), Name: string(descriptor.Name()), Package: string(descriptor.ParentFile().Package()),
+			Source:  classifySource(descriptor.ParentFile().Path()),
 			Methods: []methodProjection{}, Deprecated: descriptor.Options().(*descriptorpb.ServiceOptions).GetDeprecated(),
 		}
 		methods := descriptor.Methods()
-		usedMethodNames := make(map[string]int)
 		for index := 0; index < methods.Len(); index++ {
 			method := methods.Get(index)
-			leanName := uniqueName(lowerIdentifier(string(method.Name())), usedMethodNames, int32(index+1))
 			service.Methods = append(service.Methods, methodProjection{
-				FullName: string(method.FullName()), Name: string(method.Name()), LeanName: leanName,
-				InputType: string(method.Input().FullName()), InputLeanType: leanTypeName(method.Input().FullName()),
-				OutputType: string(method.Output().FullName()), OutputLeanType: leanTypeName(method.Output().FullName()),
+				FullName: string(method.FullName()), Name: string(method.Name()),
+				InputType: string(method.Input().FullName()), OutputType: string(method.Output().FullName()),
 				ClientStreaming: method.IsStreamingClient(), ServerStreaming: method.IsStreamingServer(),
 				Deprecated: method.Options().(*descriptorpb.MethodOptions).GetDeprecated(),
 			})
@@ -299,14 +296,10 @@ func collectEnums(descriptors protoreflect.EnumDescriptors, enums map[protorefle
 	}
 }
 
-func projectField(
-	field protoreflect.FieldDescriptor,
-	containing protoreflect.MessageDescriptor,
-	messages map[protoreflect.FullName]protoreflect.MessageDescriptor,
-) fieldProjection {
+func projectField(field protoreflect.FieldDescriptor) fieldProjection {
 	result := fieldProjection{
 		FullName: string(field.FullName()), Name: string(field.Name()), JSONName: field.JSONName(),
-		LeanName: lowerIdentifier(string(field.Name())), Number: int32(field.Number()), Kind: field.Kind().String(),
+		Number: int32(field.Number()), Kind: field.Kind().String(),
 		Presence: field.HasPresence(), Required: field.Cardinality() == protoreflect.Required,
 		HasDefault: field.HasDefault(), Repeated: field.Cardinality() == protoreflect.Repeated,
 		Map: field.IsMap(), Packed: field.IsPacked(),
@@ -322,15 +315,13 @@ func projectField(
 		result.Repeated = false
 		result.MapKey = descriptorTypeName(field.MapKey())
 		result.MapValue = descriptorTypeName(field.MapValue())
-		if value := field.MapValue().Message(); value != nil {
-			result.TypeName = string(value.FullName())
-			result.Recursive = reaches(value.FullName(), containing.FullName(), messages, make(map[protoreflect.FullName]bool))
+		if value := field.MapValue(); value.Message() != nil || value.Enum() != nil {
+			result.TypeName = descriptorTypeName(value)
 		}
 		return result
 	}
 	if message := field.Message(); message != nil {
 		result.TypeName = string(message.FullName())
-		result.Recursive = reaches(message.FullName(), containing.FullName(), messages, make(map[protoreflect.FullName]bool))
 	} else if enum := field.Enum(); enum != nil {
 		result.TypeName = string(enum.FullName())
 	}
@@ -347,71 +338,6 @@ func descriptorTypeName(field protoreflect.FieldDescriptor) string {
 	return field.Kind().String()
 }
 
-func reaches(
-	from protoreflect.FullName,
-	target protoreflect.FullName,
-	messages map[protoreflect.FullName]protoreflect.MessageDescriptor,
-	visited map[protoreflect.FullName]bool,
-) bool {
-	if from == target {
-		return true
-	}
-	if visited[from] {
-		return false
-	}
-	visited[from] = true
-	descriptor := messages[from]
-	if descriptor == nil {
-		return false
-	}
-	fields := descriptor.Fields()
-	for index := 0; index < fields.Len(); index++ {
-		field := fields.Get(index)
-		var next protoreflect.MessageDescriptor
-		if field.IsMap() {
-			next = field.MapValue().Message()
-		} else {
-			next = field.Message()
-		}
-		if next != nil && reaches(next.FullName(), target, messages, visited) {
-			return true
-		}
-	}
-	return false
-}
-
-func dependencyOrder(messages map[protoreflect.FullName]messageProjection) []messageProjection {
-	visited := make(map[protoreflect.FullName]bool, len(messages))
-	result := make([]messageProjection, 0, len(messages))
-	var visit func(protoreflect.FullName)
-	visit = func(name protoreflect.FullName) {
-		if visited[name] {
-			return
-		}
-		visited[name] = true
-		message := messages[name]
-		var dependencies []protoreflect.FullName
-		for _, field := range message.Fields {
-			if field.TypeName == "" || field.Recursive {
-				continue
-			}
-			dependency := protoreflect.FullName(field.TypeName)
-			if _, ok := messages[dependency]; ok {
-				dependencies = append(dependencies, dependency)
-			}
-		}
-		slices.Sort(dependencies)
-		for _, dependency := range dependencies {
-			visit(dependency)
-		}
-		result = append(result, message)
-	}
-	for _, name := range sortedNames(messages) {
-		visit(name)
-	}
-	return result
-}
-
 func sortedNames[T any](values map[protoreflect.FullName]T) []protoreflect.FullName {
 	result := make([]protoreflect.FullName, 0, len(values))
 	for name := range values {
@@ -419,6 +345,13 @@ func sortedNames[T any](values map[protoreflect.FullName]T) []protoreflect.FullN
 	}
 	slices.Sort(result)
 	return result
+}
+
+func descriptorParent(descriptor protoreflect.Descriptor) string {
+	if parent, ok := descriptor.Parent().(protoreflect.MessageDescriptor); ok {
+		return string(parent.FullName())
+	}
+	return ""
 }
 
 func classifySource(path string) sourceKind {
@@ -432,75 +365,4 @@ func classifySource(path string) sourceKind {
 	default:
 		return sourceExternal
 	}
-}
-
-func leanTypeName(name protoreflect.FullName) string {
-	parts := strings.Split(string(name), ".")
-	for index, part := range parts {
-		parts[index] = upperIdentifier(part)
-	}
-	return strings.Join(parts, "_")
-}
-
-func upperIdentifier(value string) string {
-	parts := identifierParts(value)
-	var result strings.Builder
-	for _, part := range parts {
-		characters := []rune(part)
-		if len(characters) == 0 {
-			continue
-		}
-		result.WriteRune(unicode.ToUpper(characters[0]))
-		result.WriteString(string(characters[1:]))
-	}
-	if result.Len() == 0 {
-		return "Unnamed"
-	}
-	return result.String()
-}
-
-func lowerIdentifier(value string) string {
-	name := upperIdentifier(value)
-	characters := []rune(name)
-	characters[0] = unicode.ToLower(characters[0])
-	name = string(characters)
-	if leanReserved[name] {
-		return name + "Value"
-	}
-	return name
-}
-
-func identifierParts(value string) []string {
-	return strings.FieldsFunc(value, func(character rune) bool {
-		return !unicode.IsLetter(character) && !unicode.IsNumber(character)
-	})
-}
-
-func uniqueName(name string, used map[string]int, discriminator int32) string {
-	if _, exists := used[name]; !exists {
-		used[name] = 1
-		return name
-	}
-	discriminatorName := fmt.Sprint(discriminator)
-	if discriminator < 0 {
-		discriminatorName = fmt.Sprintf("Neg%d", -int64(discriminator))
-	}
-	base := name + discriminatorName
-	candidate := base
-	for suffix := 2; used[candidate] != 0; suffix++ {
-		candidate = fmt.Sprintf("%s_%d", base, suffix)
-	}
-	used[candidate] = 1
-	return candidate
-}
-
-var leanReserved = map[string]bool{
-	"abbrev": true, "attribute": true, "axiom": true, "by": true, "class": true, "def": true,
-	"deriving": true, "do": true, "elab": true, "else": true, "end": true, "example": true,
-	"export": true, "extends": true, "for": true, "fun": true, "if": true, "import": true,
-	"in": true, "include": true, "inductive": true, "infix": true, "infixl": true, "infixr": true,
-	"instance": true, "let": true, "macro": true, "match": true, "meta": true, "mutual": true,
-	"namespace": true, "omit": true, "opaque": true, "open": true, "partial": true, "postfix": true,
-	"prefix": true, "private": true, "protected": true, "scoped": true, "structure": true,
-	"syntax": true, "theorem": true, "universe": true, "variable": true, "where": true, "with": true,
 }

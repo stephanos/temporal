@@ -27,17 +27,30 @@ func TestProjectionCoversMessagesOneofsMapsRecursionAndStreamingRPCs(t *testing.
 
 	node := findMessage(t, projection, "temporal.api.test.v1.Node")
 	require.Len(t, node.Oneofs, 1)
-	require.True(t, findField(t, node, "next").Recursive)
 	require.True(t, findField(t, node, "attributes").Map)
 	require.Equal(t, "choice", findField(t, node, "text").Oneof)
+	require.Empty(t, findField(t, node, "optional_note").Oneof)
+	require.True(t, findField(t, node, "optional_note").Presence)
+	plan, err := buildLeanPlan(projection)
+	require.NoError(t, err)
+	require.True(t, plan.fields["temporal.api.test.v1.Node.next"].Recursive)
 
 	artifacts, manifest, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection)
 	require.NoError(t, err)
+	require.Equal(t, "umpire/temporal-api/v3", manifest.FormatVersion)
 	require.Equal(t, 2, manifest.Services)
 	require.Equal(t, 3, manifest.Methods)
-	require.Contains(t, string(artifacts["Temporal/Generated/Types.lean"]), "Temporal.Proto.MessageRef")
-	require.Contains(t, string(artifacts["Temporal/Generated/Types.lean"]), "inductive Temporal_Api_Test_V1_Node_Choice")
-	require.Contains(t, string(artifacts["Temporal/Generated/GRPC/Public.lean"]), "clientStreaming := true, serverStreaming := true")
+	types := string(artifacts["Temporal/Generated/Types.lean"])
+	require.Contains(t, types, "namespace Temporal.Api.Test.V1")
+	require.Contains(t, types, "def stateReady : State")
+	require.Contains(t, types, "inductive Node.Choice")
+	require.Contains(t, types, "next : Option Temporal.Proto.MessageRef")
+	require.Contains(t, types, "optionalNote : Option String")
+	require.NotContains(t, types, "Temporal_Api_Test_V1_Node")
+	grpc := string(artifacts["Temporal/Generated/GRPC/Public.lean"])
+	require.Contains(t, grpc, "namespace Temporal.Api.Test.V1.TestService")
+	require.Contains(t, grpc, "def stream : Temporal.Proto.Method Request Response")
+	require.Contains(t, grpc, "clientStreaming := true, serverStreaming := true")
 }
 
 func TestDescriptorMergeIsDeterministicAndRejectsConflicts(t *testing.T) {
@@ -109,7 +122,9 @@ func TestProjectionPreservesDescriptorMetadata(t *testing.T) {
 	enums := document["enums"].([]any)
 	enum := enums[0].(map[string]any)
 	require.Equal(t, true, enum["deprecated"])
-	require.Equal(t, true, enum["values"].([]any)[0].(map[string]any)["deprecated"])
+	enumValue := enum["values"].([]any)[0].(map[string]any)
+	require.Equal(t, "example.metadata.STATE_UNSPECIFIED", enumValue["fullName"])
+	require.Equal(t, true, enumValue["deprecated"])
 	services := document["services"].([]any)
 	require.Equal(t, true, services[0].(map[string]any)["deprecated"])
 
@@ -141,36 +156,15 @@ func TestGeneratedSchemaUsesArraysForCollections(t *testing.T) {
 	artifacts, _, err := generateArtifacts("go.temporal.io/api", "v1.2.3", nil, projection)
 	require.NoError(t, err)
 	require.NotContains(t, string(artifacts[schemaPath]), ": null")
-}
 
-func TestUniqueNameDoesNotReuseAnEmittedIdentifier(t *testing.T) {
-	t.Parallel()
-
-	used := make(map[string]int)
-	require.Equal(t, "field", uniqueName("field", used, 1))
-	require.Equal(t, "field2", uniqueName("field2", used, 2))
-	require.NotEqual(t, "field2", uniqueName("field", used, 2))
-	require.NotContains(t, uniqueName("field", used, -1), "-")
-}
-
-func TestRenderedOneofsCannotCollideWithLeanDefaultsOrFields(t *testing.T) {
-	t.Parallel()
-
-	document := projection{Messages: []messageProjection{{
-		LeanName: "Example",
-		Fields: []fieldProjection{
-			{LeanName: "choice", Kind: "string"},
-			{LeanName: "notSet", Number: 2, Kind: "string", Oneof: "choice"},
-		},
-		Oneofs: []oneofProjection{{
-			Name: "choice", LeanName: "Example_Choice",
-			Fields: []fieldProjection{{LeanName: "notSet", Number: 2, Kind: "string", Oneof: "choice"}},
-		}},
-	}}}
-
-	generated := string(renderTypes(document))
-	require.Contains(t, generated, "| notSet2 (value : String)")
-	require.Contains(t, generated, "choice1 : Example_Choice")
+	var document schemaProjection
+	require.NoError(t, json.Unmarshal(artifacts[schemaPath], &document))
+	message := findSchemaMessage(t, document, "temporal.api.test.v1.Node")
+	require.Len(t, message.Oneofs, 1)
+	require.Equal(t, []string{
+		"temporal.api.test.v1.Node.text",
+		"temporal.api.test.v1.Node.number",
+	}, message.Oneofs[0].FieldNames)
 }
 
 func TestPublishAndCheckArtifactsDetectDriftAndRemoveOnlyManagedStaleFiles(t *testing.T) {
@@ -247,6 +241,17 @@ func findField(t *testing.T, message messageProjection, name string) fieldProjec
 	return fieldProjection{}
 }
 
+func findSchemaMessage(t *testing.T, projection schemaProjection, fullName string) schemaMessage {
+	t.Helper()
+	for _, message := range projection.Messages {
+		if message.FullName == fullName {
+			return message
+		}
+	}
+	require.FailNow(t, "schema message not found", fullName)
+	return schemaMessage{}
+}
+
 func testDescriptorSet() *descriptorpb.FileDescriptorSet {
 	publicPath := "temporal/api/test/v1/test.proto"
 	publicPackage := "temporal.api.test.v1"
@@ -260,7 +265,10 @@ func testDescriptorSet() *descriptorpb.FileDescriptorSet {
 		},
 	}
 	node := &descriptorpb.DescriptorProto{
-		Name: proto.String("Node"), OneofDecl: []*descriptorpb.OneofDescriptorProto{{Name: proto.String("choice")}},
+		Name: proto.String("Node"), OneofDecl: []*descriptorpb.OneofDescriptorProto{
+			{Name: proto.String("choice")},
+			{Name: proto.String("_optional_note")},
+		},
 		NestedType: []*descriptorpb.DescriptorProto{mapEntry},
 		Field: []*descriptorpb.FieldDescriptorProto{
 			{Name: proto.String("name"), JsonName: proto.String("name"), Number: proto.Int32(1), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()},
@@ -269,6 +277,7 @@ func testDescriptorSet() *descriptorpb.FileDescriptorSet {
 			{Name: proto.String("attributes"), JsonName: proto.String("attributes"), Number: proto.Int32(4), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(), TypeName: proto.String(".temporal.api.test.v1.Node.AttributesEntry")},
 			{Name: proto.String("text"), JsonName: proto.String("text"), Number: proto.Int32(5), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), OneofIndex: proto.Int32(0)},
 			{Name: proto.String("number"), JsonName: proto.String("number"), Number: proto.Int32(6), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(), OneofIndex: proto.Int32(0)},
+			{Name: proto.String("optional_note"), JsonName: proto.String("optionalNote"), Number: proto.Int32(7), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), OneofIndex: proto.Int32(1), Proto3Optional: proto.Bool(true)},
 		},
 	}
 	public := &descriptorpb.FileDescriptorProto{

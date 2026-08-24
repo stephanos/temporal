@@ -48,7 +48,7 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 	if !result.Match || result.Divergence != "" || executor.calls != 1 {
 		t.Fatalf("replay result = %#v, calls = %d", result, executor.calls)
 	}
-	if executor.request.Command == filepath.Join(movedPath, "target") || filepath.Base(executor.request.Command) != "target" || filepath.Dir(executor.request.Command) != executor.request.Dir || executor.request.Env[0] != "GOMADSEED=7" || executor.request.Env[1] != "GOMAD3_IO_PROFILE=gomad3-deterministic/v1" || executor.request.Env[2] != "TZ=UTC" {
+	if executor.request.Command == filepath.Join(movedPath, "target") || filepath.Base(executor.request.Command) != "target" || filepath.Dir(executor.request.Command) != executor.request.Dir || executor.request.Env[0] != "GOMAD3_IO_PROFILE=gomad3-deterministic/v1" || executor.request.Env[1] != "GOMADSEED=7" || executor.request.Env[2] != "TZ=UTC" {
 		t.Fatalf("replay request = %#v", executor.request)
 	}
 }
@@ -358,7 +358,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command:           targetPath, Argv0: argv[0], Args: argv[1:], Dir: t.TempDir(),
-		Env:              []string{"GOMADSEED=7", "GOMAD3_IO_PROFILE=" + profile.Name(), "TZ=UTC"},
+		Env:              []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
