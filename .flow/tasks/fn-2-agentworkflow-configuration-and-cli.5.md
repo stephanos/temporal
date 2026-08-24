@@ -39,6 +39,29 @@ Update current product documentation and perform the final cleanup/verification 
 - [ ] R6 current documentation and reference cleanup is complete.
 - [ ] R7 verification evidence is recorded.
 
+## Verification record
+
+Fresh verification completed at 2026-08-24T19:32:53Z against task code commit
+`cb732439615db48b4ad27ffd642aef6606e96706`:
+
+- `cd tools/agentworkflow && GOWORK=off go test -count=1 -tags test_dep ./...` — pass.
+- `cd tools/agentworkflow && GOWORK=off go build -o /tmp/agentworkflow-fn2-task5 ./cmd/agentworkflow` — pass.
+- `cd tools/agentworkflow && GOWORK=off go vet -tags test_dep ./...` — pass.
+- `cd tools/agentworkflow && GOWORK=off go test -count=1 -race -tags test_dep ./...` — pass.
+- `gofmt -d` over every Agentworkflow Go file and
+  `.bin/gci-v0.13.6 diff --skip-generated -s standard -s default tools/agentworkflow` — no diff.
+- `git diff --check` plus active code/current-document scans for obsolete `.spec`, former project
+  configuration, public root API, and backend test-helper promises — pass; retained runtime
+  JSON/JSONL/`--json` references remain present.
+- `GOLANGCI_LINT_BASE_REV=36797c82174dacce262e12a38f49e9c758272a75 GOLANGCI_LINT_FIX=false make LOCALBIN=/tmp/fn2-5-lint.VBkjDB/tools lint-code`
+  in a disposable case-sensitive clone at the task commit — all 13 configured analyzers ran with
+  zero issues. The first attempt exhausted generated Go cache space; after clearing only generated
+  build/analysis caches, the identical command passed.
+
+The user-approved inherited exception remains unchanged: default `make lint-code` compares this
+branch with a six-month-old `main` baseline and reports 1,811 unrelated findings, so the task-scoped
+full analyzer result is the completion gate.
+
 
 ## Done summary
 TBD

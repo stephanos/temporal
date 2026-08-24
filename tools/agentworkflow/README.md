@@ -417,9 +417,9 @@ CLI exit codes are stable:
 The Cobra command tree exposes `init`, `doctor`, `run`, `resume`, `inspect`, `report`, `diff`,
 `apply`, and nested `config explain`. `agentworkflow help`, `agentworkflow --help`, and
 command-specific `--help` render the available commands and local flags. Unknown commands or flags
-and invalid arguments print usage to stderr and return `64`; operational failures retain the
-`agentworkflow:` prefix and their category above. Machine-readable output such as `run --json`,
-`report --json`, and `diff --json` remains on stdout without progress or usage text mixed into it.
+and invalid arguments print usage to stderr and return `64`; operational diagnostics stay on stderr
+and retain their category above. Machine-readable output such as `run --json`, `report --json`, and
+`diff --json` remains on stdout without progress or usage text mixed into it.
 
 ## Troubleshooting
 
