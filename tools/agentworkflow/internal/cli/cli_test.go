@@ -78,6 +78,7 @@ func TestCLIHelpAliasesExposeCommandTree(t *testing.T) {
 	}{
 		{name: "help command", arguments: []string{"help"}, contains: []string{"Usage:", "init", "doctor", "run", "resume", "inspect", "report", "diff", "apply", "config"}},
 		{name: "short help flag", arguments: []string{"-h"}, contains: []string{"Usage:"}},
+		{name: "legacy long help flag", arguments: []string{"-help"}, contains: []string{"Usage:"}},
 		{name: "long help flag", arguments: []string{"--help"}, contains: []string{"Usage:"}},
 		{name: "command help flag", arguments: []string{"run", "--help"}, contains: []string{"Usage:", "--criterion", "--backend-arg", "--model"}},
 		{name: "nested help command", arguments: []string{"help", "config", "explain"}, contains: []string{"Usage:", "agentworkflow config explain", "--project", "--config", "--target"}},
@@ -98,6 +99,158 @@ func TestCLIHelpAliasesExposeCommandTree(t *testing.T) {
 	}
 }
 
+func TestCLIAcceptsLegacySingleDashLongFlags(t *testing.T) {
+	projectRoot := t.TempDir()
+	configPath := writeCLIConfig(t, projectRoot, true, "")
+	initRoot := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(initRoot, "go.mod"), []byte("module example.com/init\n"), 0o600))
+	storeRoot := t.TempDir()
+	cases := []struct {
+		name           string
+		arguments      []string
+		wantCode       int
+		stdoutContains string
+		stderrContains string
+	}{
+		{
+			name: "init local flags",
+			arguments: []string{
+				"init", "-project=" + initRoot, "-config", ".agentworkflow/custom.yml",
+			},
+			wantCode:       exitOK,
+			stdoutContains: "wrote",
+		},
+		{
+			name: "doctor local and common flags",
+			arguments: []string{
+				"doctor", "-project", projectRoot, "-config=" + configPath, "-target=",
+				"-qualified", "-backend-command=wrapper",
+			},
+			wantCode:       exitUnsupported,
+			stderrContains: "--qualified cannot be combined",
+		},
+		{
+			name: "run local and common flags",
+			arguments: []string{
+				"run", "-project", projectRoot, "-config=" + configPath, "-target=",
+				"-task", "objective", "-task-file=task.txt", "-assurance=fast", "-apply",
+				"-json=false", "-criterion=done", "-store=" + storeRoot, "-backend=codex",
+				"-backend-command=wrapper", "-backend-arg=value", "-model=test-model", "-qualified",
+			},
+			wantCode:       exitUsage,
+			stderrContains: "--task and --task-file are mutually exclusive",
+		},
+		{
+			name: "resume flags",
+			arguments: []string{
+				"resume", "-json=false", "-store=" + storeRoot, "-qualified", "-backend-command=wrapper", "run-id",
+			},
+			wantCode:       exitUnsupported,
+			stderrContains: "--qualified cannot be combined",
+		},
+		{
+			name: "inspect flags",
+			arguments: []string{
+				"inspect", "-json=false", "-store=" + storeRoot, "-qualified", "-backend-command=wrapper", "run-id",
+			},
+			wantCode:       exitUnsupported,
+			stderrContains: "--qualified cannot be combined",
+		},
+		{
+			name: "report flags",
+			arguments: []string{
+				"report", "-json=true", "-store=" + storeRoot, "-qualified", "-backend-command=wrapper", "run-id",
+			},
+			wantCode:       exitUnsupported,
+			stderrContains: "--qualified cannot be combined",
+		},
+		{
+			name: "diff flags",
+			arguments: []string{
+				"diff", "-json", "-store=" + storeRoot, "-qualified", "-backend-command=wrapper", "run-id",
+			},
+			wantCode:       exitUnsupported,
+			stderrContains: "--qualified cannot be combined",
+		},
+		{
+			name: "apply flags",
+			arguments: []string{
+				"apply", "-store=" + storeRoot, "-qualified", "-backend-command=wrapper", "run-id",
+			},
+			wantCode:       exitUnsupported,
+			stderrContains: "--qualified cannot be combined",
+		},
+		{
+			name: "nested config flags",
+			arguments: []string{
+				"config", "explain", "-project=" + projectRoot, "-config", configPath, "-target=",
+			},
+			wantCode:       exitOK,
+			stdoutContains: "schema: agentworkflow.resolved-config/v1",
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+
+			code := Run(context.Background(), testCase.arguments, &stdout, &stderr)
+
+			require.Equal(t, testCase.wantCode, code, "stdout=%q stderr=%q", stdout.String(), stderr.String())
+			if testCase.stdoutContains == "" {
+				require.Empty(t, stdout.String())
+			} else {
+				require.Contains(t, stdout.String(), testCase.stdoutContains)
+			}
+			if testCase.stderrContains == "" {
+				require.Empty(t, stderr.String())
+			} else {
+				require.Contains(t, stderr.String(), testCase.stderrContains)
+			}
+		})
+	}
+}
+
+func TestCLILegacyFlagNormalizationPreservesValuesAndSeparator(t *testing.T) {
+	cases := []struct {
+		name      string
+		arguments []string
+		wantCode  int
+		contains  string
+	}{
+		{
+			name:      "legacy flag value begins with dash",
+			arguments: []string{"run", "-task", "-project", "-task-file=task.txt"},
+			wantCode:  exitUsage,
+			contains:  "--task and --task-file are mutually exclusive",
+		},
+		{
+			name:      "double dash flag value begins with dash",
+			arguments: []string{"run", "--task", "-project", "--task-file=task.txt"},
+			wantCode:  exitUsage,
+			contains:  "--task and --task-file are mutually exclusive",
+		},
+		{
+			name:      "separator retains positional single dash value",
+			arguments: []string{"run", "--", "-task"},
+			wantCode:  exitFailure,
+			contains:  ".agentworkflow/config.yml",
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+
+			code := Run(context.Background(), testCase.arguments, &stdout, &stderr)
+
+			require.Equal(t, testCase.wantCode, code, "stdout=%q stderr=%q", stdout.String(), stderr.String())
+			require.Empty(t, stdout.String())
+			require.Contains(t, stderr.String(), testCase.contains)
+		})
+	}
+}
+
 func TestCLIUsageErrorsStayOnStderr(t *testing.T) {
 	projectRoot := t.TempDir()
 	cases := []struct {
@@ -108,6 +261,7 @@ func TestCLIUsageErrorsStayOnStderr(t *testing.T) {
 		{name: "missing command", contains: "Usage:"},
 		{name: "unknown command", arguments: []string{"unknown"}, contains: "unknown command"},
 		{name: "unknown flag", arguments: []string{"resume", "--unknown"}, contains: "unknown flag"},
+		{name: "unknown legacy long flag", arguments: []string{"resume", "-unknown"}, contains: "unknown"},
 		{name: "missing positional", arguments: []string{"resume"}, contains: "accepts 1 arg(s)"},
 		{name: "extra positional", arguments: []string{"init", "--project", projectRoot, "extra"}, contains: "accepts 0 arg(s)"},
 	}
