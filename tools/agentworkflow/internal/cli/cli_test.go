@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ func TestInitAndConfigExplainUserFlow(t *testing.T) {
 	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	if code := runCLI(context.Background(), []string{"init", "--project", root}, &stdout, &stderr); code != exitOK {
+	if code := Run(context.Background(), []string{"init", "--project", root}, &stdout, &stderr); code != exitOK {
 		t.Fatalf("init exit = %d, stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
 	config := filepath.Join(root, ".agentworkflow", "config.yml")
@@ -36,13 +36,13 @@ func TestInitAndConfigExplainUserFlow(t *testing.T) {
 	}
 	stdout.Reset()
 	stderr.Reset()
-	if code := runCLI(context.Background(), []string{"config", "explain", "--project", root}, &stdout, &stderr); code != exitOK {
+	if code := Run(context.Background(), []string{"config", "explain", "--project", root}, &stdout, &stderr); code != exitOK {
 		t.Fatalf("explain exit = %d, stderr=%q", code, stderr.String())
 	}
 	if !strings.Contains(stdout.String(), "schema: agentworkflow.resolved-config/v1") || !strings.Contains(stdout.String(), "name: test") || strings.HasPrefix(strings.TrimSpace(stdout.String()), "{") {
 		t.Fatalf("resolved configuration = %s", stdout.String())
 	}
-	if code := runCLI(context.Background(), []string{"init", "--project", root}, &stdout, &stderr); code != exitFailure {
+	if code := Run(context.Background(), []string{"init", "--project", root}, &stdout, &stderr); code != exitFailure {
 		t.Fatalf("second init exit = %d, want failure", code)
 	}
 }
@@ -50,10 +50,10 @@ func TestInitAndConfigExplainUserFlow(t *testing.T) {
 func TestCLIUsageAndStableOutcomeCategories(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	if code := runCLI(context.Background(), nil, &stdout, &stderr); code != exitUsage {
+	if code := Run(context.Background(), nil, &stdout, &stderr); code != exitUsage {
 		t.Fatalf("empty CLI exit = %d", code)
 	}
-	if code := runCLI(context.Background(), []string{"unknown"}, &stdout, &stderr); code != exitUsage {
+	if code := Run(context.Background(), []string{"unknown"}, &stdout, &stderr); code != exitUsage {
 		t.Fatalf("unknown CLI exit = %d", code)
 	}
 	cases := map[agentworkflow.Outcome]int{
@@ -70,10 +70,71 @@ func TestCLIUsageAndStableOutcomeCategories(t *testing.T) {
 	}
 }
 
-func TestCLIClassifiesOutputFailure(t *testing.T) {
-	if code := runCLI(context.Background(), []string{"help"}, failingWriter{}, io.Discard); code != exitFailure {
-		t.Fatalf("output failure exit = %d, want %d", code, exitFailure)
+func TestCLIHelpAliasesExposeCommandTree(t *testing.T) {
+	cases := []struct {
+		name      string
+		arguments []string
+		contains  []string
+	}{
+		{name: "help command", arguments: []string{"help"}, contains: []string{"Usage:", "init", "doctor", "run", "resume", "inspect", "report", "diff", "apply", "config"}},
+		{name: "short help flag", arguments: []string{"-h"}, contains: []string{"Usage:"}},
+		{name: "long help flag", arguments: []string{"--help"}, contains: []string{"Usage:"}},
+		{name: "command help flag", arguments: []string{"run", "--help"}, contains: []string{"Usage:", "--criterion", "--backend-arg", "--model"}},
+		{name: "nested help command", arguments: []string{"help", "config", "explain"}, contains: []string{"Usage:", "agentworkflow config explain", "--project", "--config", "--target"}},
 	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+
+			code := Run(context.Background(), testCase.arguments, &stdout, &stderr)
+
+			require.Equal(t, exitOK, code)
+			require.Empty(t, stderr.String())
+			for _, expected := range testCase.contains {
+				require.Contains(t, stdout.String(), expected)
+			}
+		})
+	}
+}
+
+func TestCLIUsageErrorsStayOnStderr(t *testing.T) {
+	projectRoot := t.TempDir()
+	cases := []struct {
+		name      string
+		arguments []string
+		contains  string
+	}{
+		{name: "missing command", contains: "Usage:"},
+		{name: "unknown command", arguments: []string{"unknown"}, contains: "unknown command"},
+		{name: "unknown flag", arguments: []string{"resume", "--unknown"}, contains: "unknown flag"},
+		{name: "missing positional", arguments: []string{"resume"}, contains: "accepts 1 arg(s)"},
+		{name: "extra positional", arguments: []string{"init", "--project", projectRoot, "extra"}, contains: "accepts 0 arg(s)"},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+
+			code := Run(context.Background(), testCase.arguments, &stdout, &stderr)
+
+			require.Equal(t, exitUsage, code)
+			require.Empty(t, stdout.String())
+			require.Contains(t, stderr.String(), testCase.contains)
+			require.Contains(t, stderr.String(), "Usage:")
+		})
+	}
+}
+
+func TestCLIClassifiesOutputFailure(t *testing.T) {
+	t.Run("stdout", func(t *testing.T) {
+		code := Run(context.Background(), []string{"help"}, failingWriter{}, io.Discard)
+		require.Equal(t, exitFailure, code)
+	})
+	t.Run("stderr", func(t *testing.T) {
+		code := Run(context.Background(), []string{"unknown"}, io.Discard, failingWriter{})
+		require.Equal(t, exitFailure, code)
+	})
 }
 
 type failingWriter struct{}
@@ -96,21 +157,23 @@ func TestCLIEndToEndRunInspectDiffAndApply(t *testing.T) {
 	configPath := writeCLIConfig(t, projectRoot, true, "configured-model")
 	providerFlags := []string{
 		"--backend", "codex", "--backend-command", os.Args[0],
-		"--backend-arg=-test.run=TestCLIProvider", "--backend-arg=--", "--backend-arg=codex-model=configured-model",
+		"--backend-arg=-test.run=TestCLIProvider", "--backend-arg=--", "--backend-arg=codex-model=override-model",
 	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	doctorArgs := append([]string{"doctor", "--project", projectRoot, "--config", configPath}, providerFlags...)
-	if code := runCLI(context.Background(), doctorArgs, &stdout, &stderr); code != exitOK {
+	if code := Run(context.Background(), doctorArgs, &stdout, &stderr); code != exitOK {
 		t.Fatalf("doctor exit=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
 	stdout.Reset()
 	stderr.Reset()
-	runArgs := []string{"run", "--project", projectRoot, "--config", configPath, "--store", storeRoot, "--task", "write result.txt", "--json"}
+	runArgs := []string{"run", "--project", projectRoot, "--config", configPath, "--store", storeRoot, "--json", "--model", "override-model"}
 	runArgs = append(runArgs, providerFlags...)
-	if code := runCLI(context.Background(), runArgs, &stdout, &stderr); code != exitOK {
+	runArgs = append(runArgs, "write", "result.txt")
+	if code := Run(context.Background(), runArgs, &stdout, &stderr); code != exitOK {
 		t.Fatalf("run exit=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
+	require.Empty(t, stderr.String())
 	var result agentworkflow.Result
 	if err := json.Unmarshal(stdout.Bytes(), &result); err != nil {
 		t.Fatal(err)
@@ -119,15 +182,15 @@ func TestCLIEndToEndRunInspectDiffAndApply(t *testing.T) {
 		t.Fatalf("result = %#v", result)
 	}
 	stdout.Reset()
-	if code := runCLI(context.Background(), []string{"inspect", "--store", storeRoot, "--json", string(result.RunID)}, &stdout, &stderr); code != exitOK {
+	if code := Run(context.Background(), []string{"inspect", "--store", storeRoot, "--json", string(result.RunID)}, &stdout, &stderr); code != exitOK {
 		t.Fatalf("inspect exit=%d stderr=%q", code, stderr.String())
 	}
 	stdout.Reset()
-	if code := runCLI(context.Background(), []string{"diff", "--store", storeRoot, string(result.RunID)}, &stdout, &stderr); code != exitOK || !strings.Contains(stdout.String(), "A  result.txt") {
+	if code := Run(context.Background(), []string{"diff", "--store", storeRoot, string(result.RunID)}, &stdout, &stderr); code != exitOK || !strings.Contains(stdout.String(), "A  result.txt") {
 		t.Fatalf("diff exit=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
 	stdout.Reset()
-	if code := runCLI(context.Background(), []string{"apply", "--store", storeRoot, string(result.RunID)}, &stdout, &stderr); code != exitOK {
+	if code := Run(context.Background(), []string{"apply", "--store", storeRoot, string(result.RunID)}, &stdout, &stderr); code != exitOK {
 		t.Fatalf("apply exit=%d stderr=%q", code, stderr.String())
 	}
 	if data, err := os.ReadFile(filepath.Join(projectRoot, "result.txt")); err != nil || string(data) != "good" {
@@ -140,7 +203,7 @@ func TestRunApplyRejectsDisabledAdmittedStageBeforeBackendProbe(t *testing.T) {
 	configPath := writeCLIConfig(t, projectRoot, false, "")
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	code := runCLI(context.Background(), []string{
+	code := Run(context.Background(), []string{
 		"run", "--project", projectRoot, "--config", configPath, "--task", "write result.txt", "--apply",
 		"--backend", "codex", "--backend-command", "missing-agentworkflow-provider",
 	}, &stdout, &stderr)
@@ -153,7 +216,7 @@ func TestDoctorReportsMissingConfigurationBeforeBackendProbe(t *testing.T) {
 	projectRoot := t.TempDir()
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	code := runCLI(context.Background(), []string{
+	code := Run(context.Background(), []string{
 		"doctor", "--project", projectRoot, "--backend-command", "missing-agentworkflow-provider",
 	}, &stdout, &stderr)
 	if code != exitFailure || !strings.Contains(stderr.String(), ".agentworkflow/config.yml") || strings.Contains(stderr.String(), "missing-agentworkflow-provider") {
