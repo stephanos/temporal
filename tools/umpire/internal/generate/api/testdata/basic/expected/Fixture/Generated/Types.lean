@@ -4,20 +4,32 @@ import Fixture.Proto.Core
 
 set_option maxRecDepth 100000
 
-namespace Fixture.Public.V1
+namespace Fixture.Messaging.Public.V1
 
-structure Model.Nested.State where
+structure Message.Nested.State where
   number : Int
   deriving DecidableEq, Repr
 
-namespace Model.Nested.State
-def stateUnspecified : Model.Nested.State := { number := 0 }
-def stateReady : Model.Nested.State := { number := 1 }
-end Model.Nested.State
+namespace Message.Nested.State
+def stateUnspecified : Message.Nested.State := { number := 0 }
+def stateReady : Message.Nested.State := { number := 1 }
+end Message.Nested.State
 
-end Fixture.Public.V1
+structure Message.Nested where
+  state : Message.Nested.State
+  deriving Repr
 
-namespace Fixture.Legacy.V1
+end Fixture.Messaging.Public.V1
+
+namespace Fixture.Messaging.Shared.V1
+
+structure Shared where
+  id : String
+  deriving Repr
+
+end Fixture.Messaging.Shared.V1
+
+namespace Fixture.Protobuf.Compat.V1
 
 structure LegacyOptions where
   name : String
@@ -25,49 +37,33 @@ structure LegacyOptions where
   samples : List Int
   deriving Repr
 
-end Fixture.Legacy.V1
+end Fixture.Protobuf.Compat.V1
 
-namespace Fixture.Public.V1
+namespace Fixture.Messaging.Public.V1
 
-structure Model.Nested where
-  state : Model.Nested.State
-  deriving Repr
-
-end Fixture.Public.V1
-
-namespace Fixture.Shared.V1
-
-structure Shared where
-  id : String
-  deriving Repr
-
-end Fixture.Shared.V1
-
-namespace Fixture.Public.V1
-
-inductive Model.Choice where
+inductive Message.Choice where
   | notSet
   | text (value : String)
   | number (value : Int)
   deriving Repr
 
-structure Model where
-  shared : Option Fixture.Shared.V1.Shared
-  attributes : List (String × Fixture.Shared.V1.Shared)
+structure Message where
+  shared : Option Fixture.Messaging.Shared.V1.Shared
+  attributes : List (String × Fixture.Messaging.Shared.V1.Shared)
   note : Option String
   payload : Fixture.Proto.Bytes
-  nested : Option Model.Nested
-  legacy : Option Fixture.Legacy.V1.LegacyOptions
-  choice : Model.Choice
+  nested : Option Message.Nested
+  legacy : Option Fixture.Protobuf.Compat.V1.LegacyOptions
+  choice : Message.Choice
   deriving Repr
 
 structure Reply where
-  shared : Option Fixture.Shared.V1.Shared
+  shared : Option Fixture.Messaging.Shared.V1.Shared
   deriving Repr
 
-end Fixture.Public.V1
+end Fixture.Messaging.Public.V1
 
-namespace Fixture.Shared.V1
+namespace Fixture.Messaging.Shared.V1
 
 structure Left where
   right : Option Fixture.Proto.MessageRef
@@ -77,4 +73,4 @@ structure Right where
   left : Option Fixture.Proto.MessageRef
   deriving Repr
 
-end Fixture.Shared.V1
+end Fixture.Messaging.Shared.V1

@@ -17,7 +17,7 @@ import (
 
 func TestProjectionCoversMessagesOneofsMapsRecursionAndStreamingRPCs(t *testing.T) {
 	t.Parallel()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
 	require.Len(t, projection.Services, 1)
 	require.Equal(t, sourceInternal, projection.Services[0].Source)
@@ -26,30 +26,30 @@ func TestProjectionCoversMessagesOneofsMapsRecursionAndStreamingRPCs(t *testing.
 	require.True(t, projection.Services[0].Methods[3].ClientStreaming)
 	require.True(t, projection.Services[0].Methods[3].ServerStreaming)
 
-	model := findMessage(t, projection, "fixture.public.v1.Model")
+	model := findMessage(t, projection, "fixture.messaging.public.v1.Message")
 	require.Len(t, model.Oneofs, 1)
 	require.True(t, findField(t, model, "attributes").Map)
 	require.Equal(t, "choice", findField(t, model, "text").Oneof)
 	require.Empty(t, findField(t, model, "note").Oneof)
 	require.True(t, findField(t, model, "note").Presence)
-	plan, err := buildLeanPlan(projection, temporalTestConfiguration)
+	plan, err := buildLeanPlan(projection, fixtureTestConfiguration)
 	require.NoError(t, err)
-	require.True(t, plan.fields["fixture.shared.v1.Left.right"].Recursive)
+	require.True(t, plan.fields["fixture.messaging.shared.v1.Left.right"].Recursive)
 
-	artifacts, manifest, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, manifest, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
 	require.Equal(t, "umpire/protobuf-lean/v1", manifest.FormatVersion)
 	require.Equal(t, 1, manifest.Services)
 	require.Equal(t, 4, manifest.Methods)
-	types := string(artifacts[temporalTestConfiguration.Layout.TypesPath])
-	require.Contains(t, types, "namespace Fixture.Public.V1")
-	require.Contains(t, types, "def stateReady : Model.Nested.State")
-	require.Contains(t, types, "inductive Model.Choice")
-	require.Contains(t, types, "right : Option Temporal.Proto.MessageRef")
+	types := string(artifacts[fixtureTestConfiguration.Layout.TypesPath])
+	require.Contains(t, types, "namespace Fixture.Messaging.Public.V1")
+	require.Contains(t, types, "def stateReady : Message.Nested.State")
+	require.Contains(t, types, "inductive Message.Choice")
+	require.Contains(t, types, "right : Option Fixture.Proto.MessageRef")
 	require.Contains(t, types, "note : Option String")
-	grpc := string(artifacts["Temporal/Generated/GRPC/Internal.lean"])
-	require.Contains(t, grpc, "namespace Fixture.Internal.V1.FixtureService")
-	require.Contains(t, grpc, "def chat : Temporal.Proto.Method Fixture.Public.V1.Model Fixture.Public.V1.Reply")
+	grpc := string(artifacts[testGRPCPath(fixtureTestConfiguration, sourceInternal)])
+	require.Contains(t, grpc, "namespace Fixture.Messaging.Internal.V1.MessagingService")
+	require.Contains(t, grpc, "def chat : Fixture.Proto.Method Fixture.Messaging.Public.V1.Message Fixture.Messaging.Public.V1.Reply")
 	require.Contains(t, grpc, "clientStreaming := true, serverStreaming := true")
 	require.False(t, strings.HasSuffix(types, "\n\n"))
 }
@@ -67,14 +67,14 @@ func TestDescriptorMergeIsDeterministicAndRejectsConflicts(t *testing.T) {
 	require.NoError(t, err)
 	mergedSecond, err := mergeDescriptorInputs([]descriptorInput{mustDescriptorInput(t, "second", "second", second)})
 	require.NoError(t, err)
-	firstProjection, err := buildProjection(mergedFirst, temporalTestConfiguration.Classify)
+	firstProjection, err := buildProjection(mergedFirst, fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	secondProjection, err := buildProjection(mergedSecond, temporalTestConfiguration.Classify)
+	secondProjection, err := buildProjection(mergedSecond, fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
 	require.Equal(t, firstProjection, secondProjection)
-	firstArtifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, firstProjection)
+	firstArtifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, firstProjection)
 	require.NoError(t, err)
-	secondArtifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, secondProjection)
+	secondArtifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, secondProjection)
 	require.NoError(t, err)
 	require.Equal(t, firstArtifacts, secondArtifacts)
 
@@ -106,69 +106,70 @@ func TestDescriptorInputDigestIgnoresFileOrder(t *testing.T) {
 
 func TestProjectionPreservesDescriptorMetadata(t *testing.T) {
 	t.Parallel()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	artifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
 
 	var document map[string]any
-	require.NoError(t, json.Unmarshal(artifacts[temporalTestConfiguration.Layout.SchemaPath], &document))
-	message := findJSONByFullName(t, document["messages"].([]any), "fixture.legacy.v1.LegacyOptions")
+	require.NoError(t, json.Unmarshal(artifacts[fixtureTestConfiguration.Layout.SchemaPath], &document))
+	message := findJSONByFullName(t, document["messages"].([]any), "fixture.protobuf.compat.v1.LegacyOptions")
 	fields := message["fields"].([]any)
 	require.Equal(t, true, fields[0].(map[string]any)["required"])
 	require.Equal(t, true, fields[1].(map[string]any)["hasDefault"])
 	require.Equal(t, "7", fields[1].(map[string]any)["defaultValue"])
 	require.Equal(t, true, fields[2].(map[string]any)["packed"])
-	enum := findJSONByFullName(t, document["enums"].([]any), "fixture.public.v1.Model.Nested.State")
+	enum := findJSONByFullName(t, document["enums"].([]any), "fixture.messaging.public.v1.Message.Nested.State")
 	enumValue := enum["values"].([]any)[1].(map[string]any)
-	require.Equal(t, "fixture.public.v1.Model.Nested.STATE_READY", enumValue["fullName"])
-	require.Equal(t, "Fixture.Public.V1.Model.Nested.State.stateReady", enumValue["leanName"])
+	require.Equal(t, "fixture.messaging.public.v1.Message.Nested.STATE_READY", enumValue["fullName"])
+	require.Equal(t, "Fixture.Messaging.Public.V1.Message.Nested.State.stateReady", enumValue["leanName"])
 	require.Equal(t, true, enumValue["deprecated"])
 	service := document["services"].([]any)[0].(map[string]any)
-	require.Equal(t, "Fixture.Legacy.V1.LegacyOptions.name", fields[0].(map[string]any)["leanName"])
+	require.Equal(t, "Fixture.Protobuf.Compat.V1.LegacyOptions.name", fields[0].(map[string]any)["leanName"])
 	method := service["methods"].([]any)[3].(map[string]any)
-	require.Equal(t, "Fixture.Internal.V1.FixtureService.chat", method["leanName"])
+	require.Equal(t, "Fixture.Messaging.Internal.V1.MessagingService.chat", method["leanName"])
 	require.Equal(t, true, method["deprecated"])
 
-	types := string(artifacts[temporalTestConfiguration.Layout.TypesPath])
+	types := string(artifacts[fixtureTestConfiguration.Layout.TypesPath])
 	require.Contains(t, types, "name : String")
-	require.Contains(t, string(artifacts["Temporal/Generated/Catalog/External.lean"]), "path := \"legacy/v1/options.proto\"")
+	require.Contains(t, string(artifacts[testCatalogPath(fixtureTestConfiguration, sourceExternal)]), "path := \"compat/protobuf/v1/options.proto\"")
 }
 
 func TestGeneratedArtifactsEmitEmptySourceServiceModules(t *testing.T) {
 	t.Parallel()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	artifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
-	require.Contains(t, artifacts, "Temporal/Generated/GRPC/External.lean")
-	require.Contains(t, string(artifacts["Temporal/Generated.lean"]), "import Temporal.Generated.GRPC.External")
-	require.NotContains(t, string(artifacts["Temporal/Generated/GRPC/External.lean"]), "FixtureService")
-	require.Contains(t, string(artifacts["Temporal/Generated/GRPC/Internal.lean"]), "fixture.internal.v1.FixtureService.Chat")
+	externalGRPC := testGRPCPath(fixtureTestConfiguration, sourceExternal)
+	require.Contains(t, artifacts, externalGRPC)
+	require.Contains(t, string(artifacts[fixtureTestConfiguration.Layout.UmbrellaPath]), "import "+leanModuleName(externalGRPC))
+	require.NotContains(t, string(artifacts[externalGRPC]), "MessagingService")
+	require.Contains(t, string(artifacts[testGRPCPath(fixtureTestConfiguration, sourceInternal)]), "fixture.messaging.internal.v1.MessagingService.Chat")
 }
 
 func TestGeneratedSchemaUsesArraysForCollections(t *testing.T) {
 	t.Parallel()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	artifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
-	require.NotContains(t, string(artifacts[temporalTestConfiguration.Layout.SchemaPath]), ": null")
+	require.NotContains(t, string(artifacts[fixtureTestConfiguration.Layout.SchemaPath]), ": null")
 
 	var document schemaProjection
-	require.NoError(t, json.Unmarshal(artifacts[temporalTestConfiguration.Layout.SchemaPath], &document))
-	message := findSchemaMessage(t, document, "fixture.public.v1.Model")
+	require.NoError(t, json.Unmarshal(artifacts[fixtureTestConfiguration.Layout.SchemaPath], &document))
+	message := findSchemaMessage(t, document, "fixture.messaging.public.v1.Message")
 	require.Len(t, message.Oneofs, 1)
-	require.Equal(t, "Fixture.Public.V1.Model.Choice.text", findSchemaField(t, message, "text").LeanName)
-	require.Equal(t, "Fixture.Public.V1.Model.note", findSchemaField(t, message, "note").LeanName)
-	require.Equal(t, []string{"fixture.public.v1.Model.text", "fixture.public.v1.Model.number"}, message.Oneofs[0].FieldNames)
+	require.Equal(t, "Fixture.Messaging.Public.V1.Message.Choice.text", findSchemaField(t, message, "text").LeanName)
+	require.Equal(t, "Fixture.Messaging.Public.V1.Message.note", findSchemaField(t, message, "note").LeanName)
+	require.Equal(t, []string{"fixture.messaging.public.v1.Message.text", "fixture.messaging.public.v1.Message.number"}, message.Oneofs[0].FieldNames)
 }
 
 func TestGeneratedSchemaUsesArraysForEmptyCollections(t *testing.T) {
 	t.Parallel()
-	artifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, projection{})
+	artifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, projection{})
 	require.NoError(t, err)
-	require.NotContains(t, string(artifacts[temporalTestConfiguration.Layout.SchemaPath]), ": null")
+	require.NotContains(t, string(artifacts[fixtureTestConfiguration.Layout.SchemaPath]), ": null")
 }
 
 func TestGeneratedManifestUsesArraysForEmptyCollections(t *testing.T) {
@@ -186,51 +187,51 @@ func TestGeneratedManifestUsesArraysForEmptyCollections(t *testing.T) {
 func TestPublishAndCheckArtifactsDetectDriftAndRemoveOnlyManagedStaleFiles(t *testing.T) {
 	t.Parallel()
 	outputRoot := t.TempDir()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	artifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
-	require.NoError(t, publishArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout))
-	require.NoError(t, checkArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout, "check"))
+	require.NoError(t, publishArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout))
+	require.NoError(t, checkArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout, "check"))
 
-	typesPath := filepath.Join(outputRoot, "Temporal", "Generated", "Types.lean")
+	typesPath := filepath.Join(outputRoot, filepath.FromSlash(fixtureTestConfiguration.Layout.TypesPath))
 	require.NoError(t, os.WriteFile(typesPath, []byte("stale"), 0o600))
-	require.ErrorContains(t, checkArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout, "check"), "Types.lean (stale)")
-	require.NoError(t, publishArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout))
-	require.NoError(t, checkArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout, "check"))
-	require.Error(t, validateManagedPath(temporalTestConfiguration.Layout, "../authored.lean"))
-	require.Error(t, validateManagedPath(temporalTestConfiguration.Layout, "Other/Generated/stale.lean"))
+	require.ErrorContains(t, checkArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout, "check"), "Types.lean (stale)")
+	require.NoError(t, publishArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout))
+	require.NoError(t, checkArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout, "check"))
+	require.Error(t, validateManagedPath(fixtureTestConfiguration.Layout, "../authored.lean"))
+	require.Error(t, validateManagedPath(fixtureTestConfiguration.Layout, "Other/Generated/stale.lean"))
 }
 
 func TestCheckArtifactsDetectsFilesRemovedFromTheGenerator(t *testing.T) {
 	t.Parallel()
 	outputRoot := t.TempDir()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	artifacts, _, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, _, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
-	require.NoError(t, publishArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout))
+	require.NoError(t, publishArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout))
 	withoutExternalGRPC := make(map[string][]byte, len(artifacts)-1)
 	for path, encoded := range artifacts {
-		if path != "Temporal/Generated/GRPC/External.lean" {
+		if path != testGRPCPath(fixtureTestConfiguration, sourceExternal) {
 			withoutExternalGRPC[path] = encoded
 		}
 	}
-	require.ErrorContains(t, checkArtifacts(outputRoot, withoutExternalGRPC, temporalTestConfiguration.Layout, "check"), "GRPC/External.lean (unexpected)")
+	require.ErrorContains(t, checkArtifacts(outputRoot, withoutExternalGRPC, fixtureTestConfiguration.Layout, "check"), "GRPC/External.lean (unexpected)")
 }
 
 func TestPublishValidatesEveryManagedPathBeforeMutation(t *testing.T) {
 	outputRoot := t.TempDir()
-	projection, err := buildProjection(basicDescriptorSet(t), temporalTestConfiguration.Classify)
+	projection, err := buildProjection(basicDescriptorSet(t), fixtureTestConfiguration.Classify)
 	require.NoError(t, err)
-	artifacts, manifest, err := generateArtifacts(temporalTestConfiguration, nil, projection)
+	artifacts, manifest, err := generateArtifacts(fixtureTestConfiguration, nil, projection)
 	require.NoError(t, err)
-	require.NoError(t, publishArtifacts(outputRoot, artifacts, temporalTestConfiguration.Layout))
+	require.NoError(t, publishArtifacts(outputRoot, artifacts, fixtureTestConfiguration.Layout))
 
-	typesPath := filepath.Join(outputRoot, filepath.FromSlash(temporalTestConfiguration.Layout.TypesPath))
+	typesPath := filepath.Join(outputRoot, filepath.FromSlash(fixtureTestConfiguration.Layout.TypesPath))
 	originalTypes, err := os.ReadFile(typesPath)
 	require.NoError(t, err)
-	safeStale := "Temporal/Generated/Stale.lean"
+	safeStale := fixtureTestConfiguration.Layout.GeneratedPath + "/Stale.lean"
 	safeStalePath := filepath.Join(outputRoot, filepath.FromSlash(safeStale))
 	require.NoError(t, os.WriteFile(safeStalePath, []byte("stale"), 0o600))
 	previous := manifest
@@ -241,7 +242,7 @@ func TestPublishValidatesEveryManagedPathBeforeMutation(t *testing.T) {
 	encodedPrevious, err := canonicalIndentedJSON(previous)
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(
-		filepath.Join(outputRoot, filepath.FromSlash(temporalTestConfiguration.Layout.ManifestPath)),
+		filepath.Join(outputRoot, filepath.FromSlash(fixtureTestConfiguration.Layout.ManifestPath)),
 		encodedPrevious,
 		0o600,
 	))
@@ -250,9 +251,9 @@ func TestPublishValidatesEveryManagedPathBeforeMutation(t *testing.T) {
 	for path, encoded := range artifacts {
 		changed[path] = slices.Clone(encoded)
 	}
-	changed[temporalTestConfiguration.Layout.TypesPath] = []byte("mutated")
+	changed[fixtureTestConfiguration.Layout.TypesPath] = []byte("mutated")
 	require.ErrorContains(t,
-		publishArtifacts(outputRoot, changed, temporalTestConfiguration.Layout),
+		publishArtifacts(outputRoot, changed, fixtureTestConfiguration.Layout),
 		"refuse to remove stale artifact",
 	)
 	currentTypes, err := os.ReadFile(typesPath)
