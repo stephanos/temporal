@@ -242,12 +242,12 @@ example : [
   ] = [
     some (.duplicateOrdering, "advance->observe"),
     some (.selfOrdering, "advance->advance"),
-    some (.cyclicOrdering, "ordering")
+    some (.cyclicOrdering, "advance")
   ] := by
   native_decide
 
 example : errorKindAndSubject (compile prefixedCycleTarget prefixedCycleOrdering) =
-    some (.cyclicOrdering, "ordering") := by
+    some (.cyclicOrdering, "beta") := by
   native_decide
 
 example : [
