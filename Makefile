@@ -222,7 +222,7 @@ CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
 UMPIRE_API_FIXTURE_ROOT := tools/umpire/internal/generate/api/testdata/basic
 UMPIRE_API_FIXTURE_INPUT := $(UMPIRE_API_FIXTURE_ROOT)/input
 UMPIRE_API_FIXTURE_DESCRIPTOR := $(UMPIRE_API_FIXTURE_ROOT)/input.pb
-UMPIRE_API_FIXTURE_PROTOS := legacy/v1/options.proto shared/v1/types.proto public/v1/model.proto internal/v1/service.proto
+UMPIRE_API_FIXTURE_PROTOS := compat/protobuf/v1/options.proto shared/messaging/v1/types.proto public/messaging/v1/message.proto internal/messaging/v1/messaging_service.proto
 PROTO_OUT := api
 
 ALL_SRC         := $(shell find . -path "./tools/gomad3/.toolchain" -prune -o -name "*.go" -print)

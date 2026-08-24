@@ -7,27 +7,27 @@ set_option maxRecDepth 100000
 namespace Fixture.Proto.Generated.Catalog
 
 def ExternalFiles : List Fixture.Proto.FileDescriptor := [
-  { path := "legacy/v1/options.proto", packageName := "fixture.legacy.v1", syntaxName := "proto2", dependencies := [], services := [] },
-  { path := "shared/v1/types.proto", packageName := "fixture.shared.v1", syntaxName := "proto3", dependencies := [], services := [] },
+  { path := "compat/protobuf/v1/options.proto", packageName := "fixture.protobuf.compat.v1", syntaxName := "proto2", dependencies := [], services := [] },
+  { path := "shared/messaging/v1/types.proto", packageName := "fixture.messaging.shared.v1", syntaxName := "proto3", dependencies := [], services := [] },
 ]
 
 def ExternalEnums : List Fixture.Proto.EnumDescriptor := [
 ]
 
 def ExternalMessages : List Fixture.Proto.MessageDescriptor := [
-  { fullName := "fixture.legacy.v1.LegacyOptions", fields := [
-      { fullName := "fixture.legacy.v1.LegacyOptions.name", jsonName := "name", number := 1, kind := "string", typeName := "", mapKeyType := "", mapValueType := "", presence := true, required := true, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := false, deprecated := false },
-      { fullName := "fixture.legacy.v1.LegacyOptions.count", jsonName := "count", number := 2, kind := "int32", typeName := "", mapKeyType := "", mapValueType := "", presence := true, required := false, hasDefault := true, defaultValue := "7", oneofName := "", repeated := false, mapField := false, packed := false, recursive := false, deprecated := false },
-      { fullName := "fixture.legacy.v1.LegacyOptions.samples", jsonName := "samples", number := 3, kind := "int32", typeName := "", mapKeyType := "", mapValueType := "", presence := false, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := true, mapField := false, packed := true, recursive := false, deprecated := false },
+  { fullName := "fixture.messaging.shared.v1.Shared", fields := [
+      { fullName := "fixture.messaging.shared.v1.Shared.id", jsonName := "id", number := 1, kind := "string", typeName := "", mapKeyType := "", mapValueType := "", presence := false, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := false, deprecated := false },
     ], deprecated := false },
-  { fullName := "fixture.shared.v1.Shared", fields := [
-      { fullName := "fixture.shared.v1.Shared.id", jsonName := "id", number := 1, kind := "string", typeName := "", mapKeyType := "", mapValueType := "", presence := false, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := false, deprecated := false },
+  { fullName := "fixture.protobuf.compat.v1.LegacyOptions", fields := [
+      { fullName := "fixture.protobuf.compat.v1.LegacyOptions.name", jsonName := "name", number := 1, kind := "string", typeName := "", mapKeyType := "", mapValueType := "", presence := true, required := true, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := false, deprecated := false },
+      { fullName := "fixture.protobuf.compat.v1.LegacyOptions.count", jsonName := "count", number := 2, kind := "int32", typeName := "", mapKeyType := "", mapValueType := "", presence := true, required := false, hasDefault := true, defaultValue := "7", oneofName := "", repeated := false, mapField := false, packed := false, recursive := false, deprecated := false },
+      { fullName := "fixture.protobuf.compat.v1.LegacyOptions.samples", jsonName := "samples", number := 3, kind := "int32", typeName := "", mapKeyType := "", mapValueType := "", presence := false, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := true, mapField := false, packed := true, recursive := false, deprecated := false },
     ], deprecated := false },
-  { fullName := "fixture.shared.v1.Left", fields := [
-      { fullName := "fixture.shared.v1.Left.right", jsonName := "right", number := 1, kind := "message", typeName := "fixture.shared.v1.Right", mapKeyType := "", mapValueType := "", presence := true, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := true, deprecated := false },
+  { fullName := "fixture.messaging.shared.v1.Left", fields := [
+      { fullName := "fixture.messaging.shared.v1.Left.right", jsonName := "right", number := 1, kind := "message", typeName := "fixture.messaging.shared.v1.Right", mapKeyType := "", mapValueType := "", presence := true, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := true, deprecated := false },
     ], deprecated := false },
-  { fullName := "fixture.shared.v1.Right", fields := [
-      { fullName := "fixture.shared.v1.Right.left", jsonName := "left", number := 1, kind := "message", typeName := "fixture.shared.v1.Left", mapKeyType := "", mapValueType := "", presence := true, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := true, deprecated := false },
+  { fullName := "fixture.messaging.shared.v1.Right", fields := [
+      { fullName := "fixture.messaging.shared.v1.Right.left", jsonName := "left", number := 1, kind := "message", typeName := "fixture.messaging.shared.v1.Left", mapKeyType := "", mapValueType := "", presence := true, required := false, hasDefault := false, defaultValue := "", oneofName := "", repeated := false, mapField := false, packed := false, recursive := true, deprecated := false },
     ], deprecated := false },
 ]
 

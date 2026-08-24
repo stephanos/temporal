@@ -1,12 +1,12 @@
 {
   "formatVersion": "umpire/protobuf-lean/v1",
   "leanRoot": "Fixture",
-  "descriptorDigest": "sha256:6abf310bf1827423d92634927c97d24253e1c1640def3ff9d4047969025f14e6",
+  "descriptorDigest": "sha256:b5f5a3e2c01324841544df881c83b3f9d5a754857b1bf687dd34d6d110339c22",
   "inputs": [
     {
       "name": "fixture",
       "locator": "testdata/basic/input.pb",
-      "digest": "sha256:6abf310bf1827423d92634927c97d24253e1c1640def3ff9d4047969025f14e6"
+      "digest": "sha256:b5f5a3e2c01324841544df881c83b3f9d5a754857b1bf687dd34d6d110339c22"
     }
   ],
   "sourceGroups": [
@@ -37,15 +37,15 @@
     },
     {
       "path": "Fixture/Generated/Catalog/External.lean",
-      "digest": "sha256:6ac6ea0c07d229caae61cd49390e0b760a3486e31d113cc42b6aea8b71c525cf"
+      "digest": "sha256:41372591acdfda2b4fa938935092d8fb53ec6fda9cb2f732d3b1cc3627bc75e4"
     },
     {
       "path": "Fixture/Generated/Catalog/Internal.lean",
-      "digest": "sha256:e57341b026fb6c021b75a9c08b31ae395085b7a5da8f55c1cf29a8574c20acf0"
+      "digest": "sha256:fd936b3949b26256968fcd9acf50352e09c4bd32dc4f7f1e0f185ab7f881379e"
     },
     {
       "path": "Fixture/Generated/Catalog/Public.lean",
-      "digest": "sha256:b3f8d04f234ad5897d406454a860fadbc33ea9c5c09c893a9bb418699d0941d2"
+      "digest": "sha256:ff3b2b348859e738b552e6615c0709f2e25021f76b43db8add736b3eb2a8f60c"
     },
     {
       "path": "Fixture/Generated/GRPC/External.lean",
@@ -53,7 +53,7 @@
     },
     {
       "path": "Fixture/Generated/GRPC/Internal.lean",
-      "digest": "sha256:54d59006d784fa0539c70db266a53dc22a8ac9eea317963ae724415d79f46042"
+      "digest": "sha256:ecdb229dd3ba2620d52c862f7a9d56cd17778185ce482892cc43986f9187b28d"
     },
     {
       "path": "Fixture/Generated/GRPC/Public.lean",
@@ -61,14 +61,14 @@
     },
     {
       "path": "Fixture/Generated/Types.lean",
-      "digest": "sha256:5b3210f5a862c2c93888a0e774d6807145c520b7fef3b331b742211b72fc4727"
+      "digest": "sha256:6ee998c804d05b978fd46ebc48ebc629a350ae288069b585528813bb35e3da4c"
     },
     {
       "path": "Fixture/Generated/manifest.json"
     },
     {
       "path": "Fixture/Generated/schema.json",
-      "digest": "sha256:6983a4e3d173deebeae54dc773812e980efc092742fba5e8878291bd5f8c32f5"
+      "digest": "sha256:04a7377d025a7183846bba0670d32ff2ffeaabb7da4a02e99a1d4c080c4a5943"
     },
     {
       "path": "Fixture/Proto/Core.lean",

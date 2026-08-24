@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package fixture.messaging.internal.v1;
+
+import "public/messaging/v1/message.proto";
+
+service MessagingService {
+  rpc Unary(fixture.messaging.public.v1.Message) returns (fixture.messaging.public.v1.Reply);
+  rpc Upload(stream fixture.messaging.public.v1.Message) returns (fixture.messaging.public.v1.Reply);
+  rpc Download(fixture.messaging.public.v1.Message) returns (stream fixture.messaging.public.v1.Reply);
+  rpc Chat(stream fixture.messaging.public.v1.Message) returns (stream fixture.messaging.public.v1.Reply) {
+    option deprecated = true;
+  }
+}

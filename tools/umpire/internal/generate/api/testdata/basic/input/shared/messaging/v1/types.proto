@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package fixture.shared.v1;
+package fixture.messaging.shared.v1;
 
 message Shared {
   string id = 1;
