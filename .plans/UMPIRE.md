@@ -295,8 +295,8 @@ generated smoke suite with `mise run umpire:verify-smoke`.
 | `develop/umpire` and `mise.toml` | Checksum-verified local formal-tool installation and smoke task |
 
 The implementation and tests are authoritative for current vocabulary. The generated
-[`manifest.json`](./tools/umpire2/testdata/genmodels/manifest.json) inventories semantic targets and their
+[`manifest.json`](../tools/umpire2/testdata/genmodels/manifest.json) inventories semantic targets and their
 hashes; each target manifest, such as
-[`protocol-atomic/manifest.json`](./tools/umpire2/testdata/genmodels/protocol-atomic/manifest.json), is
+[`protocol-atomic/manifest.json`](../tools/umpire2/testdata/genmodels/protocol-atomic/manifest.json), is
 authoritative for that target's bounded formal verification scope. Planned work belongs in tracked
 issues rather than status sections in this document.

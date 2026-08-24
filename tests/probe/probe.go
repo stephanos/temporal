@@ -2,7 +2,7 @@
 // reach, drive to it, break the underlying calls, and judge the result with the
 // existing safety/liveness rulebook — with no hand-written faults or assertions.
 // It closes the plan -> drive -> fault -> judge loop through the Planner, Driver,
-// Monitor, and gRPC fault seam. See UMPIRE.md.
+// Monitor, and gRPC fault seam. See .plans/UMPIRE.md.
 //
 // New behavioral tests should use tools/umpire2/umpiretest; this package remains for the
 // action-only probe characterization cases.

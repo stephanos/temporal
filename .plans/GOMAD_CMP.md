@@ -19,7 +19,7 @@ V1 rewrites dependencies and redirects language and library operations into
 `SIMAPI` and `SIMLIB`. Its large package-skip matrix illustrates the fundamental
 maintenance problem: type mismatches or unsupported syntax are handled through
 increasingly specific exceptions in
-[`tools/gomadv1/transformer/transform.go`](tools/gomadv1/transformer/transform.go).
+[`tools/gomadv1/transformer/transform.go`](../tools/gomadv1/transformer/transform.go).
 
 Its capabilities include seeded cooperative scheduling, channels and `select`,
 virtual time, maps, synchronization, fake HTTP/gRPC/network components, and
@@ -38,7 +38,7 @@ V1 is the hardest implementation to trust and maintain.
 
 V2 has the clearest simulator architecture: a custom deterministic runtime,
 standard-library hooks, and a simulated Linux OS, as described in
-[`tools/gomadv2/docs/design.md`](tools/gomadv2/docs/design.md). It translates
+[`tools/gomadv2/docs/design.md`](../tools/gomadv2/docs/design.md). It translates
 goroutines, channels, maps, globals, and synchronization, while its OS models
 TCP, filesystems, `fsync` and crash behavior, and separate simulated machines.
 
@@ -62,7 +62,7 @@ capability-to-complexity ratio.
 V3 patches a pinned Go runtime and compiler instead of translating application
 source. It uses the real runtime scheduler and timer heaps, one P, virtual time,
 and fresh processes per seed. The supported execution contract is documented in
-[`tools/gomadv3/README.md`](tools/gomadv3/README.md).
+[`tools/gomadv3/README.md`](../tools/gomadv3/README.md).
 
 Its strongest capabilities are operational:
 

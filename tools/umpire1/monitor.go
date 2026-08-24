@@ -35,7 +35,7 @@ type Monitor struct {
 	// nsIDByName resolves a namespace name (all a frontend request carries) to the id the model
 	// scopes entities by. A synchronous rejection produces no telemetry, so its fact must be
 	// namespace-id-rooted from the request alone; the driver seeds this map (it knows both) before
-	// driving. See SetNamespaceID and UMPIRE.md.
+	// driving. See SetNamespaceID and .plans/UMPIRE.md.
 	nsMu       sync.RWMutex
 	nsIDByName map[string]string
 }

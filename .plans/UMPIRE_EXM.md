@@ -25,8 +25,8 @@ conformance loop**: formal reachable-state traces do not become completed live r
 live implementation traces are not replayed step-by-step through `verify.Interpreter`. The existing
 causal-footprint checks validate required observation shapes, not full model legality
 ([Umpire assurance boundary](UMPIRE.md#assurance-boundaries),
-[`TraceRefinement`](common/testing/umpire/trace.go#L174-L206),
-[`NormalizeCounterexample`](common/testing/umpire/verify/counterexample.go#L19-L58)).
+[`TraceRefinement`](../common/testing/umpire/trace.go#L174-L206),
+[`NormalizeCounterexample`](../common/testing/umpire/verify/counterexample.go#L19-L58)).
 
 The highest-value next increment is therefore:
 
@@ -141,11 +141,11 @@ and
 
 | Umpire mechanism | Closest paper technique | What exists now | Missing conformance step |
 | --- | --- | --- | --- |
-| Protocol lifecycle planning and sparse regression compilation | MBTCG | A validated protocol derives actions and lifecycle routes; sparse intent is completed into bounded executable paths ([protocol](tools/umpire2/internal/protocol/protocol.go), [compiler](common/testing/umpire/regress/compiler.go)) | Paths are not generated from the formal checker's reachable graph with model-derived expected outputs |
-| Monitor, facts, relations, lifecycle transitions, and rules | MBTC | Runtime observations update a semantic model and properties are judged at checkpoints ([runtime](common/testing/umpire/runtime.go), [overview](UMPIRE.md#monitor-observe-and-evaluate)) | A live trace is not checked as a sequence of legal `verify.Model` transitions |
-| Normalized traces and causal footprints | MBTC infrastructure | Required/forbidden observation patterns and causality are checked inside action windows ([trace checker](common/testing/umpire/trace.go#L205-L278), [footprints](tools/umpire2/internal/protocol/causal_footprints.go)) | This checks trace shape, not abstract pre-state, enabled action, branch, and post-state |
-| Formal model family and backends | Model exploration | One model family projects bounded modules/targets to TLA+, P, Ivy, and Fizz; CI checks generated artifacts and formal runs ([model family](common/testing/umpire/verify/family.go), [workflow](.github/workflows/umpire-model-verification.yml)) | A checked trace/counterexample cannot yet be executed against Temporal |
-| Canonical formal interpreter and counterexample normalization | A reusable bridge component | Backend traces are replayed through `verify.Interpreter` and rejected when ambiguous or invalid ([normalizer](common/testing/umpire/verify/counterexample.go)) | It currently normalizes formal-backend evidence, not independently observed Go execution |
+| Protocol lifecycle planning and sparse regression compilation | MBTCG | A validated protocol derives actions and lifecycle routes; sparse intent is completed into bounded executable paths ([protocol](../tools/umpire2/internal/protocol/protocol.go), [compiler](../common/testing/umpire/regress/compiler.go)) | Paths are not generated from the formal checker's reachable graph with model-derived expected outputs |
+| Monitor, facts, relations, lifecycle transitions, and rules | MBTC | Runtime observations update a semantic model and properties are judged at checkpoints ([runtime](../common/testing/umpire/runtime.go), [overview](UMPIRE.md#monitor-observe-and-evaluate)) | A live trace is not checked as a sequence of legal `verify.Model` transitions |
+| Normalized traces and causal footprints | MBTC infrastructure | Required/forbidden observation patterns and causality are checked inside action windows ([trace checker](../common/testing/umpire/trace.go#L205-L278), [footprints](../tools/umpire2/internal/protocol/causal_footprints.go)) | This checks trace shape, not abstract pre-state, enabled action, branch, and post-state |
+| Formal model family and backends | Model exploration | One model family projects bounded modules/targets to TLA+, P, Ivy, and Fizz; CI checks generated artifacts and formal runs ([model family](../common/testing/umpire/verify/family.go), [workflow](../.github/workflows/umpire-model-verification.yml)) | A checked trace/counterexample cannot yet be executed against Temporal |
+| Canonical formal interpreter and counterexample normalization | A reusable bridge component | Backend traces are replayed through `verify.Interpreter` and rejected when ambiguous or invalid ([normalizer](../common/testing/umpire/verify/counterexample.go)) | It currently normalizes formal-backend evidence, not independently observed Go execution |
 
 Calling Umpire a hybrid is therefore accurate at the architecture level, but claiming that it
 already implements the paper's MBTC or MBTCG would overstate the code.
@@ -153,9 +153,9 @@ already implements the paper's MBTC or MBTCG would overstate the code.
 ### Multiple aspect models fit “one semantic source”
 
 EXM's multiple specifications do not require competing vocabularies. Umpire's
-[`ModelFamily`](common/testing/umpire/verify/family.go#L97-L105) already provides modules, interfaces,
+[`ModelFamily`](../common/testing/umpire/verify/family.go#L97-L105) already provides modules, interfaces,
 obligations, compositions, refinement maps, and bounded verification targets, while the compiled
-[`Protocol`](tools/umpire2/internal/protocol/protocol.go#L70-L82) owns the canonical runtime
+[`Protocol`](../tools/umpire2/internal/protocol/protocol.go#L70-L82) owns the canonical runtime
 vocabulary. The right interpretation of “one semantic source” is one validated vocabulary and
 refinement graph with multiple purpose-built projections, not one monolithic model of all Temporal.
 
@@ -168,8 +168,8 @@ statements.
 
 The Realm success used one model-derived suite to keep independent implementations aligned. Umpire
 already exposes the same sparse regression through CHASM or HSM local presets via
-[`WithCHASM`](tools/umpire2/umpiretest/regression.go#L102-L115), and the compiled suite is retained in
-the runner result ([`RunRegression`](tools/umpire2/umpiretest/regression.go#L22-L72)).
+[`WithCHASM`](../tools/umpire2/umpiretest/regression.go#L102-L115), and the compiled suite is retained in
+the runner result ([`RunRegression`](../tools/umpire2/umpiretest/regression.go#L22-L72)).
 
 **Inference:** for plans restricted to capabilities shared by both profiles, compile once, run the
 same completed paths and model-derived expected deltas under HSM and CHASM, and compare semantic
@@ -182,15 +182,15 @@ while preserving each implementation's internal mechanics.
 The paper's failed trace checker demonstrates how a seemingly mechanical reconstruction layer can
 become an untrusted second implementation. Two current Umpire details would recreate that risk:
 
-1. [`Fact`](common/testing/umpire/entity.go#L62-L66) exposes only a name and target; it carries no
+1. [`Fact`](../common/testing/umpire/entity.go#L62-L66) exposes only a name and target; it carries no
    source, source sequence, clock domain, or derivation metadata. Although `TraceEvent` supports
-   those fields, [`executionTrace.recordFacts`](tools/umpire2/execution_trace.go#L128-L204) labels
+   those fields, [`executionTrace.recordFacts`](../tools/umpire2/execution_trace.go#L128-L204) labels
    every fact and every relation/lifecycle transition derived from it as `in-process`. This erases
    whether the evidence actually came from gRPC, history, telemetry, or a direct in-process signal,
    and makes evidence qualification stronger than the retained provenance justifies.
-2. [`Transition.Apply`](chasm/statemachine.go#L55-L113) deliberately emits `chasm.transition`
+2. [`Transition.Apply`](../chasm/statemachine.go#L55-L113) deliberately emits `chasm.transition`
    telemetry even when source validation or the apply callback fails, attaching the error as an
-   attribute. [`ChasmTransition.ImportSpanEvent`](tools/umpire2/internal/fact/chasm_transition.go#L40-L52)
+   attribute. [`ChasmTransition.ImportSpanEvent`](../tools/umpire2/internal/fact/chasm_transition.go#L40-L52)
    does not decode that error. It records source, destination, event, identity, and attempt, so an
    attempted transition can be interpreted as an applied transition. Even a successful `Apply`
    precedes transaction close/persistence, so it is not yet evidence of a committed transition.
@@ -200,7 +200,7 @@ raw observation -> fact -> relation/transition -> trace, and CHASM must distingu
 `attempted`, `applied`, `committed`, and `aborted` cutpoints. A failed or merely applied transition
 must never advance the conformance state as if it committed. Black-box profiles that cannot observe
 the cutpoint should return `unsupported` or `inconclusive`, consistent with the existing
-[`EnvironmentProfile`](common/testing/umpire/environment_profile.go), rather than infer success.
+[`EnvironmentProfile`](../common/testing/umpire/environment_profile.go), rather than infer success.
 
 ## What Umpire should adopt
 
@@ -268,8 +268,8 @@ stronger than merely comparing HSM with CHASM: two implementations can agree on 
 
 Regenerate and run the corpus in the same PR as model or implementation changes. Embed the model
 hash in every case and fail CI on stale artifacts, building on the current generated-model check
-([generator command](cmd/umpire-genmodels/main.go),
-[CI check](.github/workflows/umpire-model-verification.yml#L100-L106)).
+([generator command](../cmd/umpire-genmodels/main.go),
+[CI check](../.github/workflows/umpire-model-verification.yml#L100-L106)).
 
 ### 5. Measure oracle strength and marginal cost
 
@@ -293,8 +293,8 @@ Umpire should not copy these parts of the MongoDB experiment:
 - **No global timestamp order or logging sleeps.** The paper's nodes ran on one machine and slept
   until a millisecond timestamp changed. Umpire correctly prefers causal references or comparable
   source sequences and treats clocks as explicit domains
-  ([trace ordering](common/testing/umpire/trace.go#L249-L278),
-  [environment ordering guarantees](common/testing/umpire/environment_profile.go#L18-L49)).
+  ([trace ordering](../common/testing/umpire/trace.go#L249-L278),
+  [environment ordering guarantees](../common/testing/umpire/environment_profile.go#L18-L49)).
 - **No whole-process consistent snapshots as the first target.** Observability can alter locks and
   timing. Capture semantic events at commit/transaction seams, then derive only declared abstract
   state.
@@ -306,14 +306,14 @@ Umpire should not copy these parts of the MongoDB experiment:
 - **No claim that coverage proves conformance.** The paper's 100% branch result was bounded and
   survived the risk of a model and implementation sharing a bug. Umpire's own coverage contract
   correctly treats coverage as exercised obligations, not correctness
-  ([`Coverage`](common/testing/umpire/coverage.go), [assurance boundary](UMPIRE.md#assurance-boundaries)).
+  ([`Coverage`](../common/testing/umpire/coverage.go), [assurance boundary](UMPIRE.md#assurance-boundaries)).
 - **No expectation that every specification becomes cheap after infrastructure work.** Observation
   and refinement mappings are model-specific. Require demonstrated marginal-cost reduction before
   broad rollout.
 - **No whole-server exhaustive live execution.** Exhaust the abstract state space where feasible;
   use constrained pairwise selection, risk/novelty prioritization, and hard live budgets elsewhere
-  ([pairwise generator](common/testing/umpire/matrix.go),
-  [campaign selection](common/testing/umpire/campaign/selection.go)).
+  ([pairwise generator](../common/testing/umpire/matrix.go),
+  [campaign selection](../common/testing/umpire/campaign/selection.go)).
 
 ## Recommended experiments
 

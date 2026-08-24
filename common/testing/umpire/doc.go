@@ -1,7 +1,7 @@
 // Package umpire is a generic, Temporal-agnostic framework for model-based testing. It plans and
 // realizes semantic actions, observes a running system as facts, builds an executable model, and
 // evaluates that model with rules. The canonical Temporal protocol lives in tools/umpire2. See the
-// repository-root UMPIRE.md for the system architecture.
+// repository-root .plans/UMPIRE.md for the system architecture.
 //
 // # Model
 //
