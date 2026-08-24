@@ -53,7 +53,7 @@ func TestWriteStarterNeverOverwritesProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(root, ".spec", "agentworkflow.yaml")
+	want := filepath.Join(root, ".agentworkflow", "config.yml")
 	if path != want {
 		t.Fatalf("starter path = %q, want %q", path, want)
 	}
@@ -72,17 +72,25 @@ func TestWriteStarterNeverOverwritesProfile(t *testing.T) {
 	if _, err := Load("", root, ""); err != nil {
 		t.Fatalf("load generated starter: %v", err)
 	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if _, err := WriteStarter(root, ""); err == nil {
 		t.Fatal("existing profile was overwritten")
 	}
-	if _, err := os.Stat(path); err != nil {
+	after, err := os.ReadFile(path)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if string(after) != string(before) {
+		t.Fatalf("existing profile changed:\n%s", after)
 	}
 }
 
 func TestLoadStrictlyResolvesTargetAndDisabledChecks(t *testing.T) {
 	root := t.TempDir()
-	path := filepath.Join(root, ".spec", "custom.yaml")
+	path := filepath.Join(root, ".agentworkflow", "custom.yaml")
 	writeProjectFile(t, path, validConfigYAML(`
 checks:
   - name: disabled
@@ -128,7 +136,7 @@ func TestLoadRejectsUnknownFieldsAndOversizedProfiles(t *testing.T) {
 
 func TestLoadAcceptsFlowCollectionsAndMultilinePrompts(t *testing.T) {
 	root := t.TempDir()
-	path := filepath.Join(root, ".spec", "agentworkflow.yaml")
+	path := filepath.Join(root, ".agentworkflow", "config.yml")
 	configuration := strings.Replace(validConfigYAML("checks: []"), "prompt: discover prompt", `prompt: |-
         Read the manifests first.
         Do not modify files.`, 1)
@@ -145,7 +153,6 @@ func TestLoadAcceptsFlowCollectionsAndMultilinePrompts(t *testing.T) {
 func TestLoadRejectsUnsafeOrAmbiguousYAML(t *testing.T) {
 	base := validConfigYAML("checks: []")
 	cases := map[string]string{
-		"JSON syntax":        `{"schema":"agentworkflow.config/v1"}`,
 		"unknown field":      base + "unknown: true\n",
 		"duplicate key":      base + "schema: agentworkflow.config/v1\n",
 		"anchor":             strings.Replace(base, "prompt: discover prompt", "prompt: &shared discover prompt", 1),
@@ -163,6 +170,26 @@ func TestLoadRejectsUnsafeOrAmbiguousYAML(t *testing.T) {
 			writeProjectFile(t, path, configuration)
 			if _, err := Load(path, root, ""); err == nil {
 				t.Fatalf("unsafe configuration was accepted:\n%s", configuration)
+			}
+		})
+	}
+}
+
+func TestLoadRejectsInvalidModelMappings(t *testing.T) {
+	base := validConfigYAML("checks: []")
+	cases := map[string]string{
+		"unknown provider": strings.Replace(base, "      prompt: discover prompt", "      models: {openai: gpt-5.3-codex}\n      prompt: discover prompt", 1),
+		"non-string model": strings.Replace(base, "      prompt: discover prompt", "      models: {codex: 53}\n      prompt: discover prompt", 1),
+		"null model":       strings.Replace(base, "      prompt: discover prompt", "      models: {codex: null}\n      prompt: discover prompt", 1),
+		"duplicate model":  strings.Replace(base, "      prompt: discover prompt", "      models: {codex: one, codex: two}\n      prompt: discover prompt", 1),
+	}
+	for name, configuration := range cases {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			path := filepath.Join(root, ".agentworkflow", "config.yml")
+			writeProjectFile(t, path, configuration)
+			if _, err := Load("", root, ""); err == nil {
+				t.Fatalf("invalid models were accepted:\n%s", configuration)
 			}
 		})
 	}
@@ -211,14 +238,14 @@ func TestLoadRequiresCanonicalExplicitWorkflow(t *testing.T) {
 	}
 }
 
-func TestLoadProtectsHumanInputsAndRejectsExcludedSpec(t *testing.T) {
+func TestLoadProtectsAgentworkflowInputsAndRejectsTheirExclusion(t *testing.T) {
 	root := t.TempDir()
-	writeProjectFile(t, filepath.Join(root, ".spec", "instructions", "architecture.md"), "architecture")
-	path := filepath.Join(root, ".spec", "custom.yml")
+	writeProjectFile(t, filepath.Join(root, ".agentworkflow", "instructions", "architecture.md"), "architecture")
+	path := filepath.Join(root, ".agentworkflow", "custom.yml")
 	configuration := strings.Replace(
 		validConfigYAML("checks: []"),
 		"instructions: []",
-		"instructions: [.spec/instructions/architecture.md]",
+		"instructions: [.agentworkflow/instructions/architecture.md]",
 		1,
 	)
 	writeProjectFile(t, path, configuration)
@@ -226,41 +253,43 @@ func TestLoadProtectsHumanInputsAndRejectsExcludedSpec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, protected := range []string{".spec", ".spec/custom.yml", ".spec/instructions/architecture.md"} {
+	for _, protected := range []string{".agentworkflow", ".agentworkflow/custom.yml", ".agentworkflow/instructions/architecture.md"} {
 		if !slicesContains(resolved.ForbiddenPaths, protected) {
 			t.Fatalf("forbidden paths %v do not protect %q", resolved.ForbiddenPaths, protected)
 		}
 	}
 
-	excluded := strings.Replace(configuration, "source:\n  mode: directory-copy", "source:\n  mode: directory-copy\n  exclude: [.spec]", 1)
-	writeProjectFile(t, path, excluded)
-	if _, err := Load(path, root, ""); err == nil {
-		t.Fatal("excluding .spec was accepted")
+	for _, exclusion := range []string{".agentworkflow", ".agentworkflow/tasks"} {
+		t.Run("exclude "+exclusion, func(t *testing.T) {
+			excluded := strings.Replace(configuration, "source:\n  mode: directory-copy", "source:\n  mode: directory-copy\n  exclude: ["+exclusion+"]", 1)
+			writeProjectFile(t, path, excluded)
+			if _, err := Load(path, root, ""); err == nil {
+				t.Fatalf("excluding %s was accepted", exclusion)
+			}
+		})
 	}
 
-	escaped := strings.Replace(configuration, "instructions: [.spec/instructions/architecture.md]", "instructions: [../outside.md]", 1)
+	escaped := strings.Replace(configuration, "instructions: [.agentworkflow/instructions/architecture.md]", "instructions: [../outside.md]", 1)
 	writeProjectFile(t, path, escaped)
 	if _, err := Load(path, root, ""); err == nil {
 		t.Fatal("escaping instruction path was accepted")
 	}
 }
 
-func TestLoadRequiresYAMLInsideProjectAndReportsLegacyConfiguration(t *testing.T) {
+func TestLoadRequiresYAMLInsideProject(t *testing.T) {
 	root := t.TempDir()
 	outside := filepath.Join(t.TempDir(), "agentworkflow.yaml")
 	writeProjectFile(t, outside, validConfigYAML("checks: []"))
 	if _, err := Load(outside, root, ""); err == nil {
 		t.Fatal("configuration outside project was accepted")
 	}
-	jsonPath := filepath.Join(root, "agentworkflow.json")
-	writeProjectFile(t, jsonPath, `{}`)
-	if _, err := Load(jsonPath, root, ""); err == nil {
-		t.Fatal("JSON extension was accepted")
+	nonYAMLPath := filepath.Join(root, "agentworkflow.toml")
+	writeProjectFile(t, nonYAMLPath, "schema = 'agentworkflow.config/v1'")
+	if _, err := Load(nonYAMLPath, root, ""); err == nil {
+		t.Fatal("non-YAML extension was accepted")
 	}
-	legacy := filepath.Join(root, ".agentworkflow", "project.json")
-	writeProjectFile(t, legacy, `{}`)
-	if _, err := Load("", root, ""); err == nil || !strings.Contains(err.Error(), "legacy JSON configuration") || !strings.Contains(err.Error(), ".spec") {
-		t.Fatalf("legacy error = %v", err)
+	if _, err := Load("", root, ""); err == nil || !strings.Contains(err.Error(), ".agentworkflow/config.yml") {
+		t.Fatalf("missing configuration error = %v", err)
 	}
 }
 
@@ -268,8 +297,8 @@ func TestConfigurationAndInstructionSymlinksCannotEscapeProject(t *testing.T) {
 	t.Run("load configuration", func(t *testing.T) {
 		root := t.TempDir()
 		outside := t.TempDir()
-		writeProjectFile(t, filepath.Join(outside, "agentworkflow.yaml"), validConfigYAML("checks: []"))
-		if err := os.Symlink(outside, filepath.Join(root, ".spec")); err != nil {
+		writeProjectFile(t, filepath.Join(outside, "config.yml"), validConfigYAML("checks: []"))
+		if err := os.Symlink(outside, filepath.Join(root, ".agentworkflow")); err != nil {
 			t.Skipf("create symlink: %v", err)
 		}
 		if _, err := Load("", root, ""); err == nil {
@@ -280,13 +309,13 @@ func TestConfigurationAndInstructionSymlinksCannotEscapeProject(t *testing.T) {
 	t.Run("write starter", func(t *testing.T) {
 		root := t.TempDir()
 		outside := t.TempDir()
-		if err := os.Symlink(outside, filepath.Join(root, ".spec")); err != nil {
+		if err := os.Symlink(outside, filepath.Join(root, ".agentworkflow")); err != nil {
 			t.Skipf("create symlink: %v", err)
 		}
 		if _, err := WriteStarter(root, ""); err == nil {
 			t.Fatal("starter followed a configuration directory symlink outside the project")
 		}
-		if _, err := os.Stat(filepath.Join(outside, "agentworkflow.yaml")); !errors.Is(err, os.ErrNotExist) {
+		if _, err := os.Stat(filepath.Join(outside, "config.yml")); !errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("starter wrote outside the project: %v", err)
 		}
 	})
@@ -310,13 +339,13 @@ func TestConfigurationAndInstructionSymlinksCannotEscapeProject(t *testing.T) {
 func TestLoadValidatesTheCompleteConfiguration(t *testing.T) {
 	base := validConfigYAML("checks: []")
 	cases := map[string]string{
-		"source mode":           strings.Replace(base, "mode: directory-copy", "mode: git", 1),
-		"nested spec exclusion": strings.Replace(base, "mode: directory-copy", "mode: directory-copy\n  exclude: [.spec/tasks]", 1),
-		"missing instruction":   strings.Replace(base, "instructions: []", "instructions: [.spec/missing.md]", 1),
-		"invalid environment":   strings.Replace(base, "allow: [PATH]", "allow: [PATH, BAD=VALUE]", 1),
-		"invalid assurance":     strings.Replace(base, "assurance: standard", "assurance: heroic", 1),
-		"invalid severity":      strings.Replace(base, "blocking_severity: medium", "blocking_severity: urgent", 1),
-		"invalid reviewer":      strings.Replace(base, "blocking_severity: medium", "blocking_severity: medium\n  reviewers: [bad/reviewer]", 1),
+		"source mode":             strings.Replace(base, "mode: directory-copy", "mode: git", 1),
+		"nested config exclusion": strings.Replace(base, "mode: directory-copy", "mode: directory-copy\n  exclude: [.agentworkflow/tasks]", 1),
+		"missing instruction":     strings.Replace(base, "instructions: []", "instructions: [.agentworkflow/missing.md]", 1),
+		"invalid environment":     strings.Replace(base, "allow: [PATH]", "allow: [PATH, BAD=VALUE]", 1),
+		"invalid assurance":       strings.Replace(base, "assurance: standard", "assurance: heroic", 1),
+		"invalid severity":        strings.Replace(base, "blocking_severity: medium", "blocking_severity: urgent", 1),
+		"invalid reviewer":        strings.Replace(base, "blocking_severity: medium", "blocking_severity: medium\n  reviewers: [bad/reviewer]", 1),
 		"duplicate checks": strings.Replace(base, "checks: []", `checks:
   - name: test
     command: [go, test]
@@ -341,18 +370,26 @@ func TestLoadValidatesTheCompleteConfiguration(t *testing.T) {
 	}
 
 	root := t.TempDir()
-	if _, err := Load("", root, ""); err == nil || !strings.Contains(err.Error(), "agentworkflow init") {
+	if _, err := Load("", root, ""); err == nil || !strings.Contains(err.Error(), "agentworkflow init") || !strings.Contains(err.Error(), ".agentworkflow/config.yml") {
 		t.Fatalf("missing configuration error = %v", err)
 	}
 }
 
 func TestExplainEmitsResolvedYAMLWorkflow(t *testing.T) {
 	root := t.TempDir()
-	path := filepath.Join(root, ".spec", "agentworkflow.yaml")
-	writeProjectFile(t, path, validConfigYAML("checks: []"))
+	path := filepath.Join(root, ".agentworkflow", "config.yml")
+	configuration := strings.Replace(validConfigYAML("checks: []"), "      prompt: plan prompt", `      models:
+        codex: gpt-5.3-codex
+        claude: opus
+      prompt: plan prompt`, 1)
+	writeProjectFile(t, path, configuration)
 	resolved, err := Load("", root, "")
 	if err != nil {
 		t.Fatal(err)
+	}
+	models := resolved.Workflow.Stage(recipe.Plan).Models
+	if models["codex"] != "gpt-5.3-codex" || models["claude"] != "opus" {
+		t.Fatalf("plan models = %#v", models)
 	}
 	data, err := Explain(resolved)
 	if err != nil {
@@ -360,6 +397,9 @@ func TestExplainEmitsResolvedYAMLWorkflow(t *testing.T) {
 	}
 	if strings.HasPrefix(strings.TrimSpace(string(data)), "{") || !strings.Contains(string(data), "schema: agentworkflow.resolved-config/v1") || !strings.Contains(string(data), "kind: discover") {
 		t.Fatalf("explanation is not resolved YAML:\n%s", data)
+	}
+	if strings.Count(string(data), "models:") != 1 || !strings.Contains(string(data), "codex: gpt-5.3-codex") || !strings.Contains(string(data), "claude: opus") {
+		t.Fatalf("explanation did not preserve only configured models:\n%s", data)
 	}
 }
 
@@ -423,7 +463,7 @@ checks:
 
 func TestLoadPreservesExplicitEmptyEnvironmentAndZeroRepairBudget(t *testing.T) {
 	root := t.TempDir()
-	path := filepath.Join(root, ".spec", "agentworkflow.yaml")
+	path := filepath.Join(root, ".agentworkflow", "config.yml")
 	configuration := strings.Replace(validConfigYAML("checks: []"), "allow: [PATH]", "allow: []", 1)
 	configuration = strings.Replace(configuration, "max_repairs: 1", "max_repairs: 0", 1)
 	writeProjectFile(t, path, configuration)

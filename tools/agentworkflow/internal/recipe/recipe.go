@@ -24,9 +24,12 @@ type Workflow struct {
 	Stages []Stage `json:"stages" yaml:"stages"`
 }
 
+type Models map[string]string
+
 type Stage struct {
 	Kind           Kind   `json:"kind" yaml:"kind"`
 	Enabled        bool   `json:"enabled" yaml:"enabled"`
+	Models         Models `json:"models,omitempty" yaml:"models,omitempty"`
 	Prompt         string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
 	ReviewPrompt   string `json:"review_prompt,omitempty" yaml:"review_prompt,omitempty"`
 	RevisionPrompt string `json:"revision_prompt,omitempty" yaml:"revision_prompt,omitempty"`
@@ -60,6 +63,12 @@ func Normalize(workflow Workflow) (Workflow, error) {
 	result := Workflow{Stages: append([]Stage(nil), workflow.Stages...)}
 	for index := range result.Stages {
 		stage := &result.Stages[index]
+		if stage.Models != nil {
+			stage.Models = make(Models, len(stage.Models))
+			for provider, model := range workflow.Stages[index].Models {
+				stage.Models[provider] = model
+			}
+		}
 		if stage.Kind != order[index] {
 			return Workflow{}, fmt.Errorf("workflow stage %d must be %q, got %q", index+1, order[index], stage.Kind)
 		}
@@ -89,6 +98,9 @@ func validateStage(stage Stage) error {
 	revisionPrompt := strings.TrimSpace(stage.RevisionPrompt)
 	switch stage.Kind {
 	case Discover, Implement, Review, Repair:
+		if err := validateModels(stage.Models); err != nil {
+			return err
+		}
 		if stage.Enabled && prompt == "" {
 			return errors.New("prompt is required when enabled")
 		}
@@ -96,6 +108,9 @@ func validateStage(stage Stage) error {
 			return errors.New("contains fields that are not valid for this stage kind")
 		}
 	case Plan:
+		if err := validateModels(stage.Models); err != nil {
+			return err
+		}
 		if stage.Enabled && (prompt == "" || reviewPrompt == "" || revisionPrompt == "") {
 			return errors.New("prompt, review_prompt, and revision_prompt are required when enabled")
 		}
@@ -103,10 +118,16 @@ func validateStage(stage Stage) error {
 			return errors.New("mode is not valid for this stage kind")
 		}
 	case Check:
+		if stage.Models != nil {
+			return errors.New("models are not valid for check")
+		}
 		if prompt != "" || reviewPrompt != "" || revisionPrompt != "" || stage.Mode != "" {
 			return errors.New("prompt fields and mode are not valid for check")
 		}
 	case Apply:
+		if stage.Models != nil {
+			return errors.New("models are not valid for apply")
+		}
 		if prompt != "" || reviewPrompt != "" || revisionPrompt != "" {
 			return errors.New("prompt fields are not valid for apply")
 		}
@@ -115,6 +136,20 @@ func validateStage(stage Stage) error {
 		}
 	default:
 		return fmt.Errorf("kind %q is not supported", stage.Kind)
+	}
+	return nil
+}
+
+func validateModels(models Models) error {
+	for provider, model := range models {
+		switch provider {
+		case "codex", "claude":
+		default:
+			return fmt.Errorf("model provider %q is not supported", provider)
+		}
+		if strings.TrimSpace(model) == "" {
+			return fmt.Errorf("model for provider %q cannot be blank", provider)
+		}
 	}
 	return nil
 }
