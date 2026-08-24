@@ -3,7 +3,9 @@ package api
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 	"unicode"
@@ -31,11 +33,12 @@ type leanType struct {
 }
 
 type leanFieldPlan struct {
-	Projection fieldProjection
-	Name       string
-	Type       leanType
-	BaseType   leanType
-	Recursive  bool
+	Projection    fieldProjection
+	Name          string
+	QualifiedName leanName
+	Type          leanType
+	BaseType      leanType
+	Recursive     bool
 }
 
 type leanStructureFieldPlan struct {
@@ -44,8 +47,9 @@ type leanStructureFieldPlan struct {
 }
 
 type leanEnumValuePlan struct {
-	Projection enumValueProjection
-	Name       string
+	Projection    enumValueProjection
+	Name          string
+	QualifiedName leanName
 }
 
 type leanEnumPlan struct {
@@ -79,10 +83,11 @@ type leanMessagePlan struct {
 }
 
 type leanMethodPlan struct {
-	Projection methodProjection
-	Name       string
-	InputType  leanType
-	OutputType leanType
+	Projection    methodProjection
+	Name          string
+	QualifiedName leanName
+	InputType     leanType
+	OutputType    leanType
 }
 
 type leanServicePlan struct {
@@ -123,7 +128,6 @@ type leanPlan struct {
 	names       map[string]leanName
 	fields      map[string]leanFieldPlan
 	oneofs      map[string]leanOneofPlan
-	methods     map[string]leanMethodPlan
 	services    map[string]leanServicePlan
 }
 
@@ -135,20 +139,52 @@ type nameRequest struct {
 }
 
 type declarationInfo struct {
-	identity string
-	parent   string
-	package_ string
-	base     string
+	identity    string
+	parent      string
+	packageName string
+	base        string
 }
 
-var sourceModuleSpecs = []struct {
-	source sourceKind
-	name   string
-}{
-	{source: sourcePublic, name: "Public"},
-	{source: sourceInternal, name: "Internal"},
-	{source: sourceCHASM, name: "CHASM"},
-	{source: sourceExternal, name: "External"},
+type sourceModuleSpec struct {
+	source        sourceKind
+	name          string
+	catalogModule leanModulePlan
+	grpcModule    leanModulePlan
+}
+
+var typesModuleSpec = leanModulePlan{
+	Path:    "Temporal/Generated/Types.lean",
+	Imports: []string{"Temporal.Proto.Core"},
+}
+
+var sourceModuleSpecs = []sourceModuleSpec{
+	newSourceModuleSpec(sourcePublic, "Public"),
+	newSourceModuleSpec(sourceInternal, "Internal"),
+	newSourceModuleSpec(sourceCHASM, "CHASM"),
+	newSourceModuleSpec(sourceExternal, "External"),
+}
+
+func newSourceModuleSpec(source sourceKind, name string) sourceModuleSpec {
+	return sourceModuleSpec{
+		source: source,
+		name:   name,
+		catalogModule: leanModulePlan{
+			Path:    "Temporal/Generated/Catalog/" + name + ".lean",
+			Imports: []string{"Temporal.Proto.Core"},
+		},
+		grpcModule: leanModulePlan{
+			Path:    "Temporal/Generated/GRPC/" + name + ".lean",
+			Imports: []string{"Temporal.Proto.Core", "Temporal.Generated.Types"},
+		},
+	}
+}
+
+func cloneLeanModulePlan(module leanModulePlan) leanModulePlan {
+	return leanModulePlan{Path: module.Path, Imports: slices.Clone(module.Imports)}
+}
+
+func equalLeanModulePlan(left, right leanModulePlan) bool {
+	return left.Path == right.Path && slices.Equal(left.Imports, right.Imports)
 }
 
 func buildLeanPlan(projection projection) (leanPlan, error) {
@@ -164,12 +200,12 @@ func buildLeanPlan(projection projection) (leanPlan, error) {
 	if err != nil {
 		return leanPlan{}, err
 	}
+	declarationPackages := buildLeanDeclarationPackages(projection)
 	plan := leanPlan{
-		TypesModule: leanModulePlan{Path: "Temporal/Generated/Types.lean", Imports: []string{"Temporal.Proto.Core"}},
+		TypesModule: cloneLeanModulePlan(typesModuleSpec),
 		names:       declarationNames,
 		fields:      make(map[string]leanFieldPlan),
 		oneofs:      make(map[string]leanOneofPlan),
-		methods:     make(map[string]leanMethodPlan),
 		services:    make(map[string]leanServicePlan),
 	}
 	for _, enum := range projection.Enums {
@@ -185,7 +221,13 @@ func buildLeanPlan(projection projection) (leanPlan, error) {
 	}
 	for _, fullName := range graph.order {
 		message := messageByName[fullName]
-		planned, planErr := planMessage(message, packageNames[message.Package], declarationNames, graph)
+		planned, planErr := planMessage(
+			message,
+			packageNames[message.Package],
+			declarationNames,
+			declarationPackages,
+			graph,
+		)
 		if planErr != nil {
 			return leanPlan{}, planErr
 		}
@@ -198,14 +240,11 @@ func buildLeanPlan(projection projection) (leanPlan, error) {
 		}
 	}
 	for _, service := range projection.Services {
-		planned, planErr := planService(service, packageNames[service.Package], declarationNames)
+		planned, planErr := planService(service, packageNames[service.Package], declarationNames, declarationPackages)
 		if planErr != nil {
 			return leanPlan{}, planErr
 		}
 		plan.services[service.FullName] = planned
-		for _, method := range planned.Methods {
-			plan.methods[method.Projection.FullName] = method
-		}
 	}
 	plan.Namespaces = buildLeanNamespacePlans(plan.Enums, plan.Messages)
 	plan.Sources = buildLeanSourcePlans(projection, plan)
@@ -213,6 +252,17 @@ func buildLeanPlan(projection projection) (leanPlan, error) {
 		return leanPlan{}, err
 	}
 	return plan, nil
+}
+
+func buildLeanDeclarationPackages(projection projection) map[string]string {
+	result := make(map[string]string, len(projection.Enums)+len(projection.Messages))
+	for _, enum := range projection.Enums {
+		result[enum.FullName] = enum.Package
+	}
+	for _, message := range projection.Messages {
+		result[message.FullName] = message.Package
+	}
+	return result
 }
 
 func buildLeanNamespacePlans(enums []leanEnumPlan, messages []leanMessagePlan) []leanNamespacePlan {
@@ -249,7 +299,7 @@ func buildLeanPackageNames(projection projection) (map[string]leanName, error) {
 	seen := make(map[string]bool)
 	for packageName := range packages {
 		if packageName == "" {
-			return nil, fmt.Errorf("build Lean package names: empty protobuf package")
+			return nil, errors.New("build Lean package names: empty protobuf package")
 		}
 		parts := strings.Split(packageName, ".")
 		for index, part := range parts {
@@ -293,27 +343,44 @@ func buildLeanPackageNames(projection projection) (map[string]leanName, error) {
 }
 
 func buildLeanDeclarationNames(projection projection, packageNames map[string]leanName) (map[string]leanName, error) {
+	declarations := collectLeanDeclarations(projection)
+	requestsByScope, err := groupLeanDeclarationRequests(declarations)
+	if err != nil {
+		return nil, err
+	}
+	localNames, err := allocateScopedLeanNames(requestsByScope, leanPackageReservations(packageNames))
+	if err != nil {
+		return nil, err
+	}
+	return qualifyLeanDeclarationNames(declarations, packageNames, localNames)
+}
+
+func collectLeanDeclarations(projection projection) []declarationInfo {
 	var declarations []declarationInfo
 	for _, enum := range projection.Enums {
 		declarations = append(declarations, declarationInfo{
-			identity: enum.FullName, parent: enum.Parent, package_: enum.Package, base: upperIdentifier(enum.Name),
+			identity: enum.FullName, parent: enum.Parent, packageName: enum.Package, base: upperIdentifier(enum.Name),
 		})
 	}
 	for _, message := range projection.Messages {
 		declarations = append(declarations, declarationInfo{
-			identity: message.FullName, parent: message.Parent, package_: message.Package, base: upperIdentifier(message.Name),
+			identity: message.FullName, parent: message.Parent, packageName: message.Package, base: upperIdentifier(message.Name),
 		})
 		for _, oneof := range message.Oneofs {
 			declarations = append(declarations, declarationInfo{
-				identity: oneof.FullName, parent: message.FullName, package_: message.Package, base: upperIdentifier(oneof.Name),
+				identity: oneof.FullName, parent: message.FullName, packageName: message.Package, base: upperIdentifier(oneof.Name),
 			})
 		}
 	}
 	for _, service := range projection.Services {
 		declarations = append(declarations, declarationInfo{
-			identity: service.FullName, package_: service.Package, base: upperIdentifier(service.Name),
+			identity: service.FullName, packageName: service.Package, base: upperIdentifier(service.Name),
 		})
 	}
+	return declarations
+}
+
+func groupLeanDeclarationRequests(declarations []declarationInfo) (map[string][]nameRequest, error) {
 	requestsByScope := make(map[string][]nameRequest)
 	seen := make(map[string]bool, len(declarations))
 	for _, declaration := range declarations {
@@ -324,7 +391,7 @@ func buildLeanDeclarationNames(projection projection, packageNames map[string]le
 			return nil, fmt.Errorf("build Lean declaration names: duplicate protobuf identity %q", declaration.identity)
 		}
 		seen[declaration.identity] = true
-		scope := "package:" + declaration.package_
+		scope := "package:" + declaration.packageName
 		if declaration.parent != "" {
 			scope = "declaration:" + declaration.parent
 		}
@@ -333,14 +400,33 @@ func buildLeanDeclarationNames(projection projection, packageNames map[string]le
 			base:     declaration.base,
 		})
 	}
-	localNames := make(map[string]string, len(declarations))
+	return requestsByScope, nil
+}
+
+func leanPackageReservations(packageNames map[string]leanName) map[string][]string {
+	reservedByScope := make(map[string][]string)
+	for packageIdentity, name := range packageNames {
+		parts := strings.Split(packageIdentity, ".")
+		for index, segment := range name {
+			parent := strings.Join(parts[:index], ".")
+			reservedByScope["package:"+parent] = append(reservedByScope["package:"+parent], segment)
+		}
+	}
+	return reservedByScope
+}
+
+func allocateScopedLeanNames(
+	requestsByScope map[string][]nameRequest,
+	reservedByScope map[string][]string,
+) (map[string]string, error) {
+	localNames := make(map[string]string)
 	scopes := make([]string, 0, len(requestsByScope))
 	for scope := range requestsByScope {
 		scopes = append(scopes, scope)
 	}
 	slices.Sort(scopes)
 	for _, scope := range scopes {
-		allocated, err := allocateNames(requestsByScope[scope], nil)
+		allocated, err := allocateNames(requestsByScope[scope], reservedByScope[scope])
 		if err != nil {
 			return nil, fmt.Errorf("build Lean declaration scope %q: %w", scope, err)
 		}
@@ -348,7 +434,14 @@ func buildLeanDeclarationNames(projection projection, packageNames map[string]le
 			localNames[identity] = name
 		}
 	}
+	return localNames, nil
+}
 
+func qualifyLeanDeclarationNames(
+	declarations []declarationInfo,
+	packageNames map[string]leanName,
+	localNames map[string]string,
+) (map[string]leanName, error) {
 	result := make(map[string]leanName, len(declarations))
 	remaining := slices.Clone(declarations)
 	for len(remaining) != 0 {
@@ -356,9 +449,9 @@ func buildLeanDeclarationNames(projection projection, packageNames map[string]le
 		progress := false
 		for _, declaration := range remaining {
 			if declaration.parent == "" {
-				packageName, exists := packageNames[declaration.package_]
+				packageName, exists := packageNames[declaration.packageName]
 				if !exists {
-					return nil, fmt.Errorf("build Lean declaration %q: unknown package %q", declaration.identity, declaration.package_)
+					return nil, fmt.Errorf("build Lean declaration %q: unknown package %q", declaration.identity, declaration.packageName)
 				}
 				result[declaration.identity] = appendLeanName(packageName, localNames[declaration.identity])
 				progress = true
@@ -399,17 +492,26 @@ func planEnum(projection enumProjection, packageName, name leanName) (leanEnumPl
 	result := leanEnumPlan{Projection: projection, Name: name, Namespace: packageName, RelativeName: relativeName}
 	for _, value := range projection.Values {
 		result.Values = append(result.Values, leanEnumValuePlan{
-			Projection: value,
-			Name:       allocated[value.FullName],
+			Projection:    value,
+			Name:          allocated[value.FullName],
+			QualifiedName: appendLeanName(name, allocated[value.FullName]),
 		})
 	}
 	return result, nil
+}
+
+type leanMessageMemberNames struct {
+	fields       map[string]fieldProjection
+	structure    map[string]string
+	constructors map[string]string
+	owners       map[string]leanName
 }
 
 func planMessage(
 	projection messageProjection,
 	packageName leanName,
 	declarationNames map[string]leanName,
+	declarationPackages map[string]string,
 	graph messageGraph,
 ) (leanMessagePlan, error) {
 	name := declarationNames[projection.FullName]
@@ -417,13 +519,42 @@ func planMessage(
 	if err != nil {
 		return leanMessagePlan{}, fmt.Errorf("plan message %q: %w", projection.FullName, err)
 	}
-	fieldByName := make(map[string]fieldProjection, len(projection.Fields))
+	members, err := planMessageMemberNames(projection, declarationNames)
+	if err != nil {
+		return leanMessagePlan{}, err
+	}
+	result := leanMessagePlan{Projection: projection, Name: name, Namespace: packageName, RelativeName: relativeName}
+	fields, err := appendLeanMessageFields(
+		&result,
+		members,
+		packageName,
+		declarationNames,
+		declarationPackages,
+		graph,
+	)
+	if err != nil {
+		return leanMessagePlan{}, err
+	}
+	if err := appendLeanMessageOneofs(&result, members, fields, packageName, declarationNames); err != nil {
+		return leanMessagePlan{}, err
+	}
+	return result, nil
+}
+
+func planMessageMemberNames(
+	projection messageProjection,
+	declarationNames map[string]leanName,
+) (leanMessageMemberNames, error) {
+	result := leanMessageMemberNames{
+		fields: make(map[string]fieldProjection, len(projection.Fields)),
+		owners: make(map[string]leanName, len(projection.Fields)),
+	}
 	requests := make([]nameRequest, 0, len(projection.Fields)+len(projection.Oneofs))
 	for _, field := range projection.Fields {
-		if fieldByName[field.FullName].FullName != "" {
-			return leanMessagePlan{}, fmt.Errorf("plan message %q: duplicate field %q", projection.FullName, field.FullName)
+		if result.fields[field.FullName].FullName != "" {
+			return leanMessageMemberNames{}, fmt.Errorf("plan message %q: duplicate field %q", projection.FullName, field.FullName)
 		}
-		fieldByName[field.FullName] = field
+		result.fields[field.FullName] = field
 		if field.Oneof == "" {
 			requests = append(requests, nameRequest{
 				identity: field.FullName, base: lowerIdentifier(field.Name), number: field.Number, hasNumber: true,
@@ -432,21 +563,38 @@ func planMessage(
 	}
 	for _, oneof := range projection.Oneofs {
 		requests = append(requests, nameRequest{identity: oneof.FullName, base: lowerIdentifier(oneof.Name)})
+		owner := declarationNames[oneof.FullName]
+		for _, fieldName := range oneof.FieldNames {
+			result.owners[fieldName] = owner
+		}
 	}
 	structureNames, err := allocateNames(requests, nil)
 	if err != nil {
-		return leanMessagePlan{}, fmt.Errorf("plan message %q fields: %w", projection.FullName, err)
+		return leanMessageMemberNames{}, fmt.Errorf("plan message %q fields: %w", projection.FullName, err)
 	}
-	constructorNames := make(map[string]string)
-	for _, oneof := range projection.Oneofs {
+	constructorNames, err := planOneofConstructorNames(projection.Oneofs, result.fields)
+	if err != nil {
+		return leanMessageMemberNames{}, err
+	}
+	result.structure = structureNames
+	result.constructors = constructorNames
+	return result, nil
+}
+
+func planOneofConstructorNames(
+	oneofs []oneofProjection,
+	fields map[string]fieldProjection,
+) (map[string]string, error) {
+	result := make(map[string]string)
+	for _, oneof := range oneofs {
 		constructors := make([]nameRequest, 0, len(oneof.FieldNames))
 		for _, fieldName := range oneof.FieldNames {
-			field, exists := fieldByName[fieldName]
+			field, exists := fields[fieldName]
 			if !exists {
-				return leanMessagePlan{}, fmt.Errorf("plan oneof %q: unknown field %q", oneof.FullName, fieldName)
+				return nil, fmt.Errorf("plan oneof %q: unknown field %q", oneof.FullName, fieldName)
 			}
 			if field.Oneof != oneof.Name {
-				return leanMessagePlan{}, fmt.Errorf("plan oneof %q: field %q belongs to %q", oneof.FullName, fieldName, field.Oneof)
+				return nil, fmt.Errorf("plan oneof %q: field %q belongs to %q", oneof.FullName, fieldName, field.Oneof)
 			}
 			constructors = append(constructors, nameRequest{
 				identity: field.FullName, base: lowerIdentifier(field.Name), number: field.Number, hasNumber: true,
@@ -454,27 +602,57 @@ func planMessage(
 		}
 		allocated, allocateErr := allocateNames(constructors, []string{"notSet"})
 		if allocateErr != nil {
-			return leanMessagePlan{}, fmt.Errorf("plan oneof %q constructors: %w", oneof.FullName, allocateErr)
+			return nil, fmt.Errorf("plan oneof %q constructors: %w", oneof.FullName, allocateErr)
 		}
 		for fieldName, constructorName := range allocated {
-			constructorNames[fieldName] = constructorName
+			result[fieldName] = constructorName
 		}
 	}
+	return result, nil
+}
 
-	result := leanMessagePlan{Projection: projection, Name: name, Namespace: packageName, RelativeName: relativeName}
+func appendLeanMessageFields(
+	result *leanMessagePlan,
+	members leanMessageMemberNames,
+	packageName leanName,
+	declarationNames map[string]leanName,
+	declarationPackages map[string]string,
+	graph messageGraph,
+) (map[string]leanFieldPlan, error) {
+	projection := result.Projection
 	fields := make(map[string]leanFieldPlan, len(projection.Fields))
 	for _, field := range projection.Fields {
-		baseType, recursive, typeErr := leanFieldBaseType(projection, field, packageName, declarationNames, graph)
+		baseType, recursive, typeErr := leanFieldBaseType(
+			projection,
+			field,
+			packageName,
+			declarationNames,
+			declarationPackages,
+			graph,
+		)
 		if typeErr != nil {
-			return leanMessagePlan{}, typeErr
+			return nil, typeErr
 		}
 		fieldType := wrapLeanFieldType(field, baseType)
-		fieldName := structureNames[field.FullName]
+		fieldName := members.structure[field.FullName]
 		if field.Oneof != "" {
-			fieldName = constructorNames[field.FullName]
+			var exists bool
+			fieldName, exists = members.constructors[field.FullName]
+			if !exists {
+				return nil, fmt.Errorf(
+					"plan field %q: unresolved oneof %q",
+					field.FullName,
+					field.Oneof,
+				)
+			}
+		}
+		owner := result.Name
+		if oneofOwner, exists := members.owners[field.FullName]; exists {
+			owner = oneofOwner
 		}
 		planned := leanFieldPlan{
-			Projection: field, Name: fieldName, Type: fieldType, BaseType: baseType, Recursive: recursive,
+			Projection: field, Name: fieldName, QualifiedName: appendLeanName(owner, fieldName),
+			Type: fieldType, BaseType: baseType, Recursive: recursive,
 		}
 		fields[field.FullName] = planned
 		result.Fields = append(result.Fields, planned)
@@ -482,15 +660,25 @@ func planMessage(
 			result.StructureFields = append(result.StructureFields, leanStructureFieldPlan{Name: fieldName, Type: fieldType})
 		}
 	}
-	for _, oneof := range projection.Oneofs {
+	return fields, nil
+}
+
+func appendLeanMessageOneofs(
+	result *leanMessagePlan,
+	members leanMessageMemberNames,
+	fields map[string]leanFieldPlan,
+	packageName leanName,
+	declarationNames map[string]leanName,
+) error {
+	for _, oneof := range result.Projection.Oneofs {
 		oneofName := declarationNames[oneof.FullName]
 		oneofRelativeName, relativeErr := relativeLeanName(oneofName, packageName)
 		if relativeErr != nil {
-			return leanMessagePlan{}, fmt.Errorf("plan oneof %q: %w", oneof.FullName, relativeErr)
+			return fmt.Errorf("plan oneof %q: %w", oneof.FullName, relativeErr)
 		}
 		planned := leanOneofPlan{
 			Projection: oneof, Name: oneofName, RelativeName: oneofRelativeName,
-			SlotName: structureNames[oneof.FullName],
+			SlotName: members.structure[oneof.FullName],
 		}
 		for _, fieldName := range oneof.FieldNames {
 			planned.Constructors = append(planned.Constructors, leanOneofConstructorPlan{Field: fields[fieldName]})
@@ -501,13 +689,14 @@ func planMessage(
 			Type: namedLeanType(oneofRelativeName),
 		})
 	}
-	return result, nil
+	return nil
 }
 
 func planService(
 	projection serviceProjection,
 	packageName leanName,
 	declarationNames map[string]leanName,
+	declarationPackages map[string]string,
 ) (leanServicePlan, error) {
 	name := declarationNames[projection.FullName]
 	requests := make([]nameRequest, 0, len(projection.Methods))
@@ -520,16 +709,30 @@ func planService(
 	}
 	result := leanServicePlan{Projection: projection, Name: name, Namespace: packageName}
 	for _, method := range projection.Methods {
-		inputType, typeErr := leanNamedReference(method.InputType, projection.Package, packageName, declarationNames)
+		inputType, typeErr := leanNamedReference(
+			method.InputType,
+			projection.Package,
+			packageName,
+			declarationNames,
+			declarationPackages,
+		)
 		if typeErr != nil {
 			return leanServicePlan{}, fmt.Errorf("plan method %q input: %w", method.FullName, typeErr)
 		}
-		outputType, typeErr := leanNamedReference(method.OutputType, projection.Package, packageName, declarationNames)
+		outputType, typeErr := leanNamedReference(
+			method.OutputType,
+			projection.Package,
+			packageName,
+			declarationNames,
+			declarationPackages,
+		)
 		if typeErr != nil {
 			return leanServicePlan{}, fmt.Errorf("plan method %q output: %w", method.FullName, typeErr)
 		}
 		result.Methods = append(result.Methods, leanMethodPlan{
-			Projection: method, Name: methodNames[method.FullName], InputType: inputType, OutputType: outputType,
+			Projection: method, Name: methodNames[method.FullName],
+			QualifiedName: appendLeanName(name, methodNames[method.FullName]),
+			InputType:     inputType, OutputType: outputType,
 		})
 	}
 	return result, nil
@@ -540,6 +743,7 @@ func leanFieldBaseType(
 	field fieldProjection,
 	packageName leanName,
 	declarationNames map[string]leanName,
+	declarationPackages map[string]string,
 	graph messageGraph,
 ) (leanType, bool, error) {
 	if field.Map {
@@ -550,7 +754,13 @@ func leanFieldBaseType(
 		var value leanType
 		recursive := false
 		if field.TypeName != "" {
-			value, err = leanNamedReference(field.TypeName, message.Package, packageName, declarationNames)
+			value, err = leanNamedReference(
+				field.TypeName,
+				message.Package,
+				packageName,
+				declarationNames,
+				declarationPackages,
+			)
 			recursive = graph.recursive(message.FullName, field.TypeName)
 			if recursive {
 				value = namedLeanType("Temporal.Proto.MessageRef")
@@ -566,7 +776,13 @@ func leanFieldBaseType(
 		}}}, recursive, nil
 	}
 	if field.TypeName != "" {
-		result, err := leanNamedReference(field.TypeName, message.Package, packageName, declarationNames)
+		result, err := leanNamedReference(
+			field.TypeName,
+			message.Package,
+			packageName,
+			declarationNames,
+			declarationPackages,
+		)
 		if err != nil {
 			return leanType{}, false, fmt.Errorf("plan field %q: %w", field.FullName, err)
 		}
@@ -601,12 +817,17 @@ func leanNamedReference(
 	currentPackage string,
 	packageName leanName,
 	declarationNames map[string]leanName,
+	declarationPackages map[string]string,
 ) (leanType, error) {
 	name, exists := declarationNames[fullName]
 	if !exists {
 		return leanType{}, fmt.Errorf("unknown protobuf type %q", fullName)
 	}
-	if fullName == currentPackage || strings.HasPrefix(fullName, currentPackage+".") {
+	targetPackage, exists := declarationPackages[fullName]
+	if !exists {
+		return leanType{}, fmt.Errorf("protobuf declaration %q is not a message or enum", fullName)
+	}
+	if targetPackage == currentPackage {
 		relative, err := relativeLeanName(name, packageName)
 		if err != nil {
 			return leanType{}, err
@@ -643,16 +864,10 @@ func buildLeanSourcePlans(projection projection, plan leanPlan) []leanSourcePlan
 	result := make([]leanSourcePlan, 0, len(sourceModuleSpecs))
 	for _, spec := range sourceModuleSpecs {
 		source := leanSourcePlan{
-			Source: spec.source,
-			Name:   spec.name,
-			CatalogModule: leanModulePlan{
-				Path:    "Temporal/Generated/Catalog/" + spec.name + ".lean",
-				Imports: []string{"Temporal.Proto.Core"},
-			},
-			GRPCModule: leanModulePlan{
-				Path:    "Temporal/Generated/GRPC/" + spec.name + ".lean",
-				Imports: []string{"Temporal.Proto.Core", "Temporal.Generated.Types"},
-			},
+			Source:        spec.source,
+			Name:          spec.name,
+			CatalogModule: cloneLeanModulePlan(spec.catalogModule),
+			GRPCModule:    cloneLeanModulePlan(spec.grpcModule),
 		}
 		for _, file := range projection.Files {
 			if file.Source == spec.source {
@@ -680,11 +895,34 @@ func buildLeanSourcePlans(projection projection, plan leanPlan) []leanSourcePlan
 }
 
 func validateLeanPlan(projection projection, plan leanPlan) error {
-	if len(plan.Enums) != len(projection.Enums) || len(plan.Messages) != len(projection.Messages) {
-		return fmt.Errorf("validate Lean plan: declaration count mismatch")
+	if len(plan.Enums) != len(projection.Enums) || len(plan.Messages) != len(projection.Messages) ||
+		len(plan.services) != len(projection.Services) {
+		return errors.New("validate Lean plan: declaration count mismatch")
 	}
-	seenNames := make(map[string]string, len(plan.names))
-	for fullName, name := range plan.names {
+	if !equalLeanModulePlan(plan.TypesModule, typesModuleSpec) {
+		return errors.New("validate Lean plan: types module is incomplete")
+	}
+	if err := validateLeanNames(plan.names); err != nil {
+		return err
+	}
+	if err := validateLeanMessages(plan.Messages); err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(plan.Namespaces, buildLeanNamespacePlans(plan.Enums, plan.Messages)) {
+		return errors.New("validate Lean plan: namespace ownership mismatch")
+	}
+	if err := validateLeanEnums(plan.Enums); err != nil {
+		return err
+	}
+	if err := validateLeanServices(plan.services); err != nil {
+		return err
+	}
+	return validateLeanSourceModules(projection, plan)
+}
+
+func validateLeanNames(names map[string]leanName) error {
+	seenNames := make(map[string]string, len(names))
+	for fullName, name := range names {
 		if name.String() == "" {
 			return fmt.Errorf("validate Lean plan: %q has empty Lean name", fullName)
 		}
@@ -693,122 +931,225 @@ func validateLeanPlan(projection projection, plan leanPlan) error {
 		}
 		seenNames[name.String()] = fullName
 	}
-	messageOrder := make(map[string]int, len(plan.Messages))
-	for index, message := range plan.Messages {
-		messageOrder[message.Projection.FullName] = index
-	}
-	for index, message := range plan.Messages {
-		seenFields := make(map[string]bool, len(message.StructureFields))
-		for _, field := range message.StructureFields {
-			if field.Name == "" || seenFields[field.Name] {
-				return fmt.Errorf("validate Lean plan: message %q has invalid field %q", message.Projection.FullName, field.Name)
-			}
-			seenFields[field.Name] = true
-			if err := validateLeanType(field.Type); err != nil {
-				return fmt.Errorf("validate Lean plan: message %q field %q: %w", message.Projection.FullName, field.Name, err)
-			}
-		}
-		for _, field := range message.Fields {
-			if dependency, known := messageOrder[field.Projection.TypeName]; known && !field.Recursive && dependency >= index {
-				return fmt.Errorf("validate Lean plan: message %q precedes dependency %q", message.Projection.FullName, field.Projection.TypeName)
-			}
-		}
-	}
-	files := 0
-	enums := 0
-	messages := 0
-	services := 0
-	for _, source := range plan.Sources {
-		files += len(source.Files)
-		enums += len(source.Enums)
-		messages += len(source.Messages)
-		services += len(source.Services)
-		if source.CatalogModule.Path == "" || source.GRPCModule.Path == "" || len(source.GRPCModule.Imports) != 2 {
-			return fmt.Errorf("validate Lean plan: source %q has incomplete modules", source.Source)
-		}
-	}
-	if files != len(projection.Files) || enums != len(projection.Enums) || messages != len(projection.Messages) || services != len(projection.Services) {
-		return fmt.Errorf("validate Lean plan: source partition count mismatch")
-	}
 	return nil
 }
 
-func validateLeanType(value leanType) error {
-	switch value.Kind {
-	case leanTypeNamed:
-		if value.Name == "" || len(value.Arguments) != 0 {
-			return fmt.Errorf("invalid named type")
-		}
-	case leanTypeOption, leanTypeList:
-		if len(value.Arguments) != 1 {
-			return fmt.Errorf("type constructor requires one argument")
-		}
-	case leanTypeProduct:
-		if len(value.Arguments) != 2 {
-			return fmt.Errorf("product type requires two arguments")
-		}
-	default:
-		return fmt.Errorf("unknown type constructor %d", value.Kind)
+func validateLeanMessages(messages []leanMessagePlan) error {
+	messageOrder := make(map[string]int, len(messages))
+	for index, message := range messages {
+		messageOrder[message.Projection.FullName] = index
 	}
-	for _, argument := range value.Arguments {
-		if err := validateLeanType(argument); err != nil {
+	for index, message := range messages {
+		if err := validateLeanMessage(message, index, messageOrder); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func allocateNames(requests []nameRequest, reserved []string) (map[string]string, error) {
-	result := make(map[string]string, len(requests))
-	if len(requests) == 0 {
-		return result, nil
+func validateLeanMessage(message leanMessagePlan, index int, messageOrder map[string]int) error {
+	seenFields := make(map[string]bool, len(message.StructureFields))
+	for _, field := range message.StructureFields {
+		if field.Name == "" || seenFields[field.Name] {
+			return fmt.Errorf("validate Lean plan: message %q has invalid field %q", message.Projection.FullName, field.Name)
+		}
+		seenFields[field.Name] = true
+		if err := validateLeanType(field.Type); err != nil {
+			return fmt.Errorf("validate Lean plan: message %q field %q: %w", message.Projection.FullName, field.Name, err)
+		}
 	}
-	groups := make(map[string][]nameRequest)
-	original := make(map[string]bool, len(requests)+len(reserved))
+	for _, field := range message.Fields {
+		if field.QualifiedName.String() == "" {
+			return fmt.Errorf("validate Lean plan: field %q has empty qualified name", field.Projection.FullName)
+		}
+		if err := validateLeanType(field.Type); err != nil {
+			return fmt.Errorf("validate Lean plan: field %q: %w", field.Projection.FullName, err)
+		}
+		if err := validateLeanType(field.BaseType); err != nil {
+			return fmt.Errorf("validate Lean plan: field %q base type: %w", field.Projection.FullName, err)
+		}
+		if dependency, known := messageOrder[field.Projection.TypeName]; known && !field.Recursive && dependency >= index {
+			return fmt.Errorf("validate Lean plan: message %q precedes dependency %q", message.Projection.FullName, field.Projection.TypeName)
+		}
+	}
+	return nil
+}
+
+func validateLeanEnums(enums []leanEnumPlan) error {
+	for _, enum := range enums {
+		for _, value := range enum.Values {
+			if value.QualifiedName.String() == "" {
+				return fmt.Errorf("validate Lean plan: enum value %q has empty qualified name", value.Projection.FullName)
+			}
+		}
+	}
+	return nil
+}
+
+func validateLeanServices(services map[string]leanServicePlan) error {
+	for _, service := range services {
+		for _, method := range service.Methods {
+			if method.QualifiedName.String() == "" {
+				return fmt.Errorf("validate Lean plan: method %q has empty qualified name", method.Projection.FullName)
+			}
+			if err := validateLeanType(method.InputType); err != nil {
+				return fmt.Errorf("validate Lean plan: method %q input: %w", method.Projection.FullName, err)
+			}
+			if err := validateLeanType(method.OutputType); err != nil {
+				return fmt.Errorf("validate Lean plan: method %q output: %w", method.Projection.FullName, err)
+			}
+		}
+	}
+	return nil
+}
+
+func validateLeanSourceModules(projection projection, plan leanPlan) error {
+	if len(plan.Sources) != len(sourceModuleSpecs) {
+		return errors.New("validate Lean plan: source partition count mismatch")
+	}
+	for index, source := range plan.Sources {
+		spec := sourceModuleSpecs[index]
+		if source.Source != spec.source || source.Name != spec.name {
+			return fmt.Errorf("validate Lean plan: source partition %d does not match registry", index)
+		}
+		if !equalLeanModulePlan(source.CatalogModule, spec.catalogModule) ||
+			!equalLeanModulePlan(source.GRPCModule, spec.grpcModule) {
+			return fmt.Errorf("validate Lean plan: source %q has incomplete modules", source.Source)
+		}
+	}
+	if !reflect.DeepEqual(plan.Sources, buildLeanSourcePlans(projection, plan)) {
+		return errors.New("validate Lean plan: source partition ownership mismatch")
+	}
+	return nil
+}
+
+func validateLeanType(value leanType) error {
+	_, err := renderValidatedLeanType(value)
+	return err
+}
+
+func renderLeanType(value leanType) string {
+	rendered, _ := renderValidatedLeanType(value)
+	return rendered
+}
+
+func renderValidatedLeanType(value leanType) (string, error) {
+	switch value.Kind {
+	case leanTypeNamed:
+		if value.Name == "" || len(value.Arguments) != 0 {
+			return "", errors.New("invalid named type")
+		}
+		return value.Name, nil
+	case leanTypeOption, leanTypeList:
+		if value.Name != "" || len(value.Arguments) != 1 {
+			return "", errors.New("type constructor requires one argument")
+		}
+		argument, err := renderValidatedLeanType(value.Arguments[0])
+		if err != nil {
+			return "", err
+		}
+		if value.Arguments[0].Kind != leanTypeNamed {
+			argument = "(" + argument + ")"
+		}
+		constructor := "Option "
+		if value.Kind == leanTypeList {
+			constructor = "List "
+		}
+		return constructor + argument, nil
+	case leanTypeProduct:
+		if value.Name != "" || len(value.Arguments) != 2 {
+			return "", errors.New("product type requires two arguments")
+		}
+		left, err := renderValidatedLeanType(value.Arguments[0])
+		if err != nil {
+			return "", err
+		}
+		right, err := renderValidatedLeanType(value.Arguments[1])
+		if err != nil {
+			return "", err
+		}
+		return left + " × " + right, nil
+	default:
+		return "", fmt.Errorf("unknown type constructor %d", value.Kind)
+	}
+}
+
+func allocateNames(requests []nameRequest, reserved []string) (map[string]string, error) {
+	allocator, err := newNameAllocator(requests, reserved)
+	if err != nil {
+		return nil, err
+	}
+	unresolved := allocator.allocateUniqueBases()
+	remaining := allocator.allocateUniqueNumbers(unresolved)
+	if err := allocator.allocateDigests(remaining); err != nil {
+		return nil, err
+	}
+	return allocator.result, nil
+}
+
+type nameAllocator struct {
+	result   map[string]string
+	groups   map[string][]nameRequest
+	original map[string]bool
+	used     map[string]bool
+}
+
+func newNameAllocator(requests []nameRequest, reserved []string) (nameAllocator, error) {
+	result := nameAllocator{
+		result:   make(map[string]string, len(requests)),
+		groups:   make(map[string][]nameRequest),
+		original: make(map[string]bool, len(requests)+len(reserved)),
+		used:     make(map[string]bool, len(requests)+len(reserved)),
+	}
 	identities := make(map[string]bool, len(requests))
 	for _, name := range reserved {
-		original[name] = true
+		result.original[name] = true
+		result.used[name] = true
 	}
 	for _, request := range requests {
 		if request.identity == "" || request.base == "" {
-			return nil, fmt.Errorf("name identity and base are required")
+			return nameAllocator{}, errors.New("name identity and base are required")
 		}
 		if identities[request.identity] {
-			return nil, fmt.Errorf("duplicate name identity %q", request.identity)
+			return nameAllocator{}, fmt.Errorf("duplicate name identity %q", request.identity)
 		}
 		identities[request.identity] = true
-		groups[request.base] = append(groups[request.base], request)
-		original[request.base] = true
+		result.groups[request.base] = append(result.groups[request.base], request)
+		result.original[request.base] = true
 	}
-	used := make(map[string]bool, len(original)+len(requests))
-	for _, name := range reserved {
-		used[name] = true
-	}
+	return result, nil
+}
+
+func (a *nameAllocator) allocateUniqueBases() []nameRequest {
 	var unresolved []nameRequest
-	bases := make([]string, 0, len(groups))
-	for base := range groups {
+	bases := make([]string, 0, len(a.groups))
+	for base := range a.groups {
 		bases = append(bases, base)
 	}
 	slices.Sort(bases)
 	for _, base := range bases {
-		group := groups[base]
+		group := a.groups[base]
 		slices.SortFunc(group, func(left, right nameRequest) int {
-			return compareStrings(left.identity, right.identity)
+			return strings.Compare(left.identity, right.identity)
 		})
-		if len(group) == 1 && !used[base] {
-			result[group[0].identity] = base
-			used[base] = true
+		if len(group) == 1 && !a.used[base] {
+			a.result[group[0].identity] = base
+			a.used[base] = true
 			continue
 		}
 		unresolved = append(unresolved, group...)
 	}
+	return unresolved
+}
+
+func (a *nameAllocator) allocateUniqueNumbers(unresolved []nameRequest) []nameRequest {
 	proposals := make(map[string][]nameRequest)
 	for _, request := range unresolved {
 		if !request.hasNumber {
 			continue
 		}
 		candidate := request.base + leanNumberSuffix(request.number)
-		if !original[candidate] && !used[candidate] {
+		if !a.original[candidate] && !a.used[candidate] {
 			proposals[candidate] = append(proposals[candidate], request)
 		}
 	}
@@ -819,14 +1160,18 @@ func allocateNames(requests []nameRequest, reserved []string) (map[string]string
 			candidate = request.base + leanNumberSuffix(request.number)
 		}
 		if candidate != "" && len(proposals[candidate]) == 1 {
-			result[request.identity] = candidate
-			used[candidate] = true
+			a.result[request.identity] = candidate
+			a.used[candidate] = true
 			continue
 		}
 		remaining = append(remaining, request)
 	}
+	return remaining
+}
+
+func (a *nameAllocator) allocateDigests(remaining []nameRequest) error {
 	slices.SortFunc(remaining, func(left, right nameRequest) int {
-		return compareStrings(left.identity, right.identity)
+		return strings.Compare(left.identity, right.identity)
 	})
 	for _, request := range remaining {
 		digest := sha256.Sum256([]byte(request.identity))
@@ -834,18 +1179,18 @@ func allocateNames(requests []nameRequest, reserved []string) (map[string]string
 		allocated := false
 		for length := 8; length <= len(hexDigest); length += 2 {
 			candidate := request.base + "_" + hexDigest[:length]
-			if !original[candidate] && !used[candidate] {
-				result[request.identity] = candidate
-				used[candidate] = true
+			if !a.original[candidate] && !a.used[candidate] {
+				a.result[request.identity] = candidate
+				a.used[candidate] = true
 				allocated = true
 				break
 			}
 		}
 		if !allocated {
-			return nil, fmt.Errorf("cannot disambiguate name %q", request.identity)
+			return fmt.Errorf("cannot disambiguate name %q", request.identity)
 		}
 	}
-	return result, nil
+	return nil
 }
 
 func leanNumberSuffix(value int32) string {
