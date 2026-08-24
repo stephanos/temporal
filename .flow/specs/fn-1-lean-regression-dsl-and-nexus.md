@@ -142,8 +142,7 @@ flowchart LR
 ## Quick commands
 
 ```bash
-make -C model check
-make -C model check-regression
+make umpire-check-regression
 ```
 
 ## Acceptance Criteria
@@ -172,9 +171,9 @@ make -C model check-regression
   fixtures cover malformed declarations, unresolved semantic names, impossible action intent,
   ordering cycles, and invalid bounds. Errors: fixture failures identify the rejected declaration
   or contract rather than silently omitting it.
-- **R6:** The slice builds and checks through model-local Lean verification surfaces without
-  requiring a new execution runtime or parsing root build machinery. Errors: Lean elaboration or
-  focused regression-check failure makes verification fail. [paraphrase]
+- **R6:** The slice builds and checks through an explicit top-level regression target without a new
+  execution runtime. Errors: Lean elaboration or focused regression-check failure makes
+  verification fail. [paraphrase]
 - **R7:** The implementation has no dependency on and performs no reuse of Umpire3 code, generated
   artifacts, schemas, semantic declarations, tests, or runtime behavior. Umpire3 is not used as a
   behavioral oracle or implementation reference. Errors: any detected Umpire3 dependency or reuse
@@ -239,5 +238,5 @@ Nexus pilot in task `.2`.
 | R3 | One environment-independent inspectable ExperimentSpec | `.1`, `.2` | — |
 | R4 | Deterministic output and model identity drift | `.1`, `.2` | — |
 | R5 | Positive and negative compiler fixtures | `.1`, `.2`, `.3` | — |
-| R6 | Model-local Lean verification surfaces | `.2`, `.3` | — |
+| R6 | Top-level Lean regression verification target | `.2`, `.3` | — |
 | R7 | Complete exclusion of Umpire3 | `.1`, `.2`, `.3` | — |
