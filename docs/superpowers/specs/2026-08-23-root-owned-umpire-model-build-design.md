@@ -1,25 +1,30 @@
 # Root-owned Umpire model build
 
+## Status
+
+Superseded in place by the generation-only three-module API contract.
+
 ## Goal
 
-Keep `make umpire-check-api` as the sole Make shortcut for checking the generated Temporal API model and building its Lean project. Remove the redundant `model/Makefile`.
+Keep the repository root `Makefile` as the sole Make interface for generating the Temporal Lean
+API model. Keep compilation as a direct Lake command so generation and verification remain
+separate, explicit operations.
 
 ## Design
 
-The root `Makefile` will continue to generate and check the Umpire API artifacts. Its `umpire-check-api` target will then change directory to `model/` and run `mise exec -- lake build` directly.
-
-The `model/` directory remains a normal Lake project. Its `lean-toolchain`, `lakefile.toml`, and Mise tool pin continue to define the Lean build; it no longer exposes a second Make interface.
-
-## Error handling
-
-The root recipe will preserve the existing failure behavior: a failed generated-artifact check or Lean build returns a nonzero status and fails `make umpire-check-api`.
+The root recipe acquires all required descriptor sets and invokes `umpire-gen-api` once. The
+generator validates and replaces its exact API module boundary. The `model/` directory remains a
+normal Lake project whose `lean-toolchain`, `lakefile.toml`, and Mise pin define compilation.
 
 ## Verification
 
-- Run `make umpire-check-api`.
-- Confirm no repository file references `model/Makefile` or invokes `make -C model` for this model.
-- Confirm `model/Makefile` is absent.
+Run these commands from the repository root:
 
-## Scope
+```sh
+make umpire-gen-api
+go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
+cd model && mise exec -- lake build
+```
 
-This change does not alter generated artifacts, Lean declarations, generator behavior, Umpire3 model build wiring, or other Make targets.
+No model-local Makefile, generated-artifact comparison subcommand, or additional drift wrapper is
+part of the current contract.
