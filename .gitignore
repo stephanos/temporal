@@ -15,6 +15,10 @@ testdata/
 !/tools/umpire2/testdata/
 !/tools/umpire2/testdata/genmodels/
 !/tools/umpire2/testdata/genmodels/**
+!/tools/umpire/testdata/
+!/tools/umpire/testdata/**
+!/tools/umpire/**/testdata/
+!/tools/umpire/**/testdata/**
 !/tools/umpire3/testdata/
 !/tools/umpire3/testdata/**
 !/tools/umpire3/**/testdata/

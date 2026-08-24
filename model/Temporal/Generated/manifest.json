@@ -1,16 +1,15 @@
 {
-  "formatVersion": "umpire/temporal-api/v3",
-  "publicModule": "go.temporal.io/api",
-  "publicVersion": "v1.63.5",
+  "formatVersion": "umpire/protobuf-lean/v1",
+  "leanRoot": "Temporal",
   "descriptorDigest": "sha256:4d6e5e4cb1af1caea4daf800bcf1a1a212e33e0a16d2e617202cfc292861a3cf",
   "inputs": [
     {
-      "name": "public",
-      "locator": "go.temporal.io/api@v1.63.5",
-      "digest": "sha256:8acf9d76b88d619057b3593f0cc0992b7341bdce41a4c57ace616bb1dd378d91"
+      "name": "chasm",
+      "locator": "proto/chasm.bin",
+      "digest": "sha256:ecd534343b002cfe4c15782e42c9d3891b1256dcbb4d58d013e8fbc4be20843e"
     },
     {
-      "name": "api-dependencies",
+      "name": "dependencies",
       "locator": "proto/api.binpb",
       "digest": "sha256:2a11593f19bdd22a221c0d7408a3ceec1bd8f32488429f68cfde8da82e2b4871"
     },
@@ -20,11 +19,32 @@
       "digest": "sha256:68ded0b3765c0b4c7f1e6defbd83fcdaa9f28ddaab729a76ac1081a98323dfb8"
     },
     {
-      "name": "chasm",
-      "locator": "proto/chasm.bin",
-      "digest": "sha256:ecd534343b002cfe4c15782e42c9d3891b1256dcbb4d58d013e8fbc4be20843e"
+      "name": "public",
+      "locator": "proto/umpire-public.binpb",
+      "digest": "sha256:8acf9d76b88d619057b3593f0cc0992b7341bdce41a4c57ace616bb1dd378d91"
     }
   ],
+  "sourceGroups": [
+    "CHASM",
+    "External",
+    "Internal",
+    "Public"
+  ],
+  "sourceRules": [
+    {
+      "group": "Internal",
+      "prefix": "temporal/server/api/"
+    },
+    {
+      "group": "Public",
+      "prefix": "temporal/api/"
+    },
+    {
+      "group": "CHASM",
+      "prefix": "chasm/lib/"
+    }
+  ],
+  "defaultSource": "External",
   "files": 140,
   "messages": 1490,
   "enums": 120,
@@ -33,7 +53,7 @@
   "generatedFiles": [
     {
       "path": "Temporal/Generated.lean",
-      "digest": "sha256:a9fdaecfdfeec42c388540e00b2ae3838787d445c2bda6d09ecaa004d7fa26ed"
+      "digest": "sha256:ddde4789f11dfcd16b379be995bc79e6ceb3a008137fa878f658ea83289abf51"
     },
     {
       "path": "Temporal/Generated/Catalog/CHASM.lean",
@@ -76,7 +96,11 @@
     },
     {
       "path": "Temporal/Generated/schema.json",
-      "digest": "sha256:e8dc45a32b1e53dc908668021d11939cb8769c8e3e255a9baee5fcb264cfd17f"
+      "digest": "sha256:dcf6f5a92519ac07f83ac2bc464f8cbb48e9ae4b4c883381b79c93ec60ad490d"
+    },
+    {
+      "path": "Temporal/Proto/Core.lean",
+      "digest": "sha256:8e396dbd2a4d41bb7bdbddb52ef7fe0232929c990720ffb2f6642ce2d503b8df"
     }
   ]
 }

@@ -118,6 +118,20 @@ UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal/generated/tes
 UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
+UMPIRE_EXPORT_GO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-go-descriptors
+UMPIRE_REGRESSION_ID := nexus-caller-closure-upgrade
+UMPIRE_REGRESSION_INSPECTOR := temporal-experiment-inspect
+UMPIRE_GEN_API_ARGS = \
+	--descriptor public=$(UMPIRE_PUBLIC_BINPB) \
+	--descriptor dependencies=$(API_BINPB) \
+	--descriptor internal=$(INTERNAL_BINPB) \
+	--descriptor chasm=$(CHASM_BINPB) \
+	--source Public=temporal/api/ \
+	--source Internal=temporal/server/api/ \
+	--source CHASM=chasm/lib/ \
+	--default-source External \
+	--lean-root Temporal \
+	--output-root model
 UMPIRE3_API_DESCRIPTOR := $(UMPIRE3_MODEL_ROOT)/Temporal/API/Generated/descriptor-manifest.json
 UMPIRE3_PROTOCOL_DESCRIPTOR := $(UMPIRE3_ROOT)/protocol/internal/generated/testdata/generated/descriptor-manifest.json
 UMPIRE3_MIGRATION_LEDGER := $(UMPIRE3_ROOT)/assurance/migration/testdata/generated/ledger.json
@@ -200,10 +214,15 @@ CHASM_PROTO_FILES = $(shell find ./chasm/lib -name "*.proto")
 PROTO_DIRS = $(sort $(dir $(PROTO_FILES)))
 PROTOC ?= protoc
 API_BINPB := $(PROTO_ROOT)/api.binpb
+UMPIRE_PUBLIC_BINPB := $(PROTO_ROOT)/umpire-public.binpb
 # Note: If you change the value of INTERNAL_BINPB, you'll have to add logic to
 # develop/buf-breaking.sh to handle the old and new values at once.
 INTERNAL_BINPB := $(PROTO_ROOT)/image.bin
 CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
+UMPIRE_API_FIXTURE_ROOT := tools/umpire/internal/generate/api/testdata/basic
+UMPIRE_API_FIXTURE_INPUT := $(UMPIRE_API_FIXTURE_ROOT)/input
+UMPIRE_API_FIXTURE_DESCRIPTOR := $(UMPIRE_API_FIXTURE_ROOT)/input.pb
+UMPIRE_API_FIXTURE_PROTOS := legacy/v1/options.proto shared/v1/types.proto public/v1/model.proto internal/v1/service.proto
 PROTO_OUT := api
 
 ALL_SRC         := $(shell find . -path "./tools/gomad3/.toolchain" -prune -o -name "*.go" -print)
@@ -475,6 +494,13 @@ endef
 $(API_BINPB): go.mod go.sum $(PROTO_FILES)
 	@printf $(COLOR) "Generating proto dependencies image..."
 	@./cmd/tools/getproto/run.sh --out $@
+
+$(UMPIRE_PUBLIC_BINPB): go.mod go.sum
+	@printf $(COLOR) "Generating registered public protobuf descriptors..."
+	@$(UMPIRE_EXPORT_GO_DESCRIPTORS_COMMAND) \
+		--package-pattern go.temporal.io/api/... \
+		--file-prefix temporal/api/ \
+		--output $@
 
 $(INTERNAL_BINPB): $(API_BINPB) $(PROTO_FILES)
 	@printf $(COLOR) "Generate proto image..."
@@ -960,15 +986,53 @@ umpire3-check-api:
 	@cmp $(UMPIRE3_API_DESCRIPTOR) $(UMPIRE3_PROTOCOL_DESCRIPTOR)
 
 umpire-gen-api: PROTOC = mise exec -- protoc
-umpire-gen-api: $(INTERNAL_BINPB) $(CHASM_BINPB)
+umpire-gen-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
 	@printf $(COLOR) "Generate complete Temporal API Lean catalog..."
-	@$(UMPIRE_GEN_API_COMMAND) generate -output-root model
+	@$(UMPIRE_GEN_API_COMMAND) generate $(UMPIRE_GEN_API_ARGS)
 
 umpire-check-api: PROTOC = mise exec -- protoc
-umpire-check-api: $(INTERNAL_BINPB) $(CHASM_BINPB)
+umpire-check-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
 	@printf $(COLOR) "Check complete Temporal API Lean catalog..."
-	@$(UMPIRE_GEN_API_COMMAND) check -output-root model
-	@$(MAKE) -C model check
+	@$(UMPIRE_GEN_API_COMMAND) check $(UMPIRE_GEN_API_ARGS)
+	@cd model && $(LEAN_LAKE) build
+
+$(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMPIRE_API_FIXTURE_PROTOS))
+	@mise exec -- protoc \
+		--proto_path=$(UMPIRE_API_FIXTURE_INPUT) \
+		--include_imports \
+		--descriptor_set_out=$@ \
+		$(UMPIRE_API_FIXTURE_PROTOS)
+
+umpire-gen-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
+	@go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api -run '^TestBasicFixture$$' -rewrite
+
+umpire-check-api-fixture:
+	@set -eu; temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT; \
+		mise exec -- protoc \
+			--proto_path=$(UMPIRE_API_FIXTURE_INPUT) \
+			--include_imports \
+			--descriptor_set_out="$$temporary" \
+			$(UMPIRE_API_FIXTURE_PROTOS); \
+		cmp $(UMPIRE_API_FIXTURE_DESCRIPTOR) "$$temporary"
+	@go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api -run '^TestBasicFixture$$'
+
+umpire-check-regression:
+	@cd model && $(LEAN_LAKE) build ExperimentTests $(UMPIRE_REGRESSION_INSPECTOR)
+	@set -eu; temporary=$$(mktemp -d); \
+		trap 'rm -rf "$$temporary"' EXIT; \
+		cd model; \
+		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_REGRESSION_ID) > "$$temporary/first.json"; \
+		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_REGRESSION_ID) > "$$temporary/second.json"; \
+		cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
+		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) missing-pilot \
+			> "$$temporary/negative.stdout" 2> "$$temporary/negative.stderr"; then \
+			echo "expected the inspector to reject an unknown pilot" >&2; \
+			exit 1; \
+		fi; \
+		test ! -s "$$temporary/negative.stdout"; \
+		grep -Fx '{"kind":"unknownPilot","subject":"missing-pilot","context":"pilot registry"}' \
+			"$$temporary/negative.stderr" > /dev/null
 
 umpire3-gen-migration:
 	@printf $(COLOR) "Generate Umpire3 root-test migration ledger..."
@@ -1078,7 +1142,7 @@ umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
 
-.PHONY: umpire-gen-api umpire-check-api
+.PHONY: umpire-gen-api umpire-check-api umpire-gen-api-fixture umpire-check-api-fixture umpire-check-regression
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 
