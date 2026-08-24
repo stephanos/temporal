@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package fixture.internal.v1;
+
+import "public/v1/model.proto";
+
+service FixtureService {
+  rpc Unary(fixture.public.v1.Model) returns (fixture.public.v1.Reply);
+  rpc Upload(stream fixture.public.v1.Model) returns (fixture.public.v1.Reply);
+  rpc Download(fixture.public.v1.Model) returns (stream fixture.public.v1.Reply);
+  rpc Chat(stream fixture.public.v1.Model) returns (stream fixture.public.v1.Reply) {
+    option deprecated = true;
+  }
+}

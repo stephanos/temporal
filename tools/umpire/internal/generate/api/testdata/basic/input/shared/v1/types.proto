@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package fixture.shared.v1;
+
+message Shared {
+  string id = 1;
+}
+
+message Left {
+  Right right = 1;
+}
+
+message Right {
+  Left left = 1;
+}

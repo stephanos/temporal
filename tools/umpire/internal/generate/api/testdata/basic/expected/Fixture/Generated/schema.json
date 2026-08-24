@@ -1,0 +1,491 @@
+{
+  "descriptorDigest": "sha256:6abf310bf1827423d92634927c97d24253e1c1640def3ff9d4047969025f14e6",
+  "files": [
+    {
+      "path": "internal/v1/service.proto",
+      "package": "fixture.internal.v1",
+      "syntax": "proto3",
+      "source": "Internal",
+      "dependencies": [
+        "public/v1/model.proto"
+      ],
+      "services": [
+        "fixture.internal.v1.FixtureService"
+      ]
+    },
+    {
+      "path": "legacy/v1/options.proto",
+      "package": "fixture.legacy.v1",
+      "syntax": "proto2",
+      "source": "External",
+      "dependencies": [],
+      "services": []
+    },
+    {
+      "path": "public/v1/model.proto",
+      "package": "fixture.public.v1",
+      "syntax": "proto3",
+      "source": "Public",
+      "dependencies": [
+        "legacy/v1/options.proto",
+        "shared/v1/types.proto"
+      ],
+      "services": []
+    },
+    {
+      "path": "shared/v1/types.proto",
+      "package": "fixture.shared.v1",
+      "syntax": "proto3",
+      "source": "External",
+      "dependencies": [],
+      "services": []
+    }
+  ],
+  "enums": [
+    {
+      "fullName": "fixture.public.v1.Model.Nested.State",
+      "name": "State",
+      "package": "fixture.public.v1",
+      "parent": "fixture.public.v1.Model.Nested",
+      "source": "Public",
+      "allowAliases": false,
+      "deprecated": false,
+      "leanName": "Fixture.Public.V1.Model.Nested.State",
+      "values": [
+        {
+          "fullName": "fixture.public.v1.Model.Nested.STATE_UNSPECIFIED",
+          "name": "STATE_UNSPECIFIED",
+          "number": 0,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.Nested.State.stateUnspecified"
+        },
+        {
+          "fullName": "fixture.public.v1.Model.Nested.STATE_READY",
+          "name": "STATE_READY",
+          "number": 1,
+          "deprecated": true,
+          "leanName": "Fixture.Public.V1.Model.Nested.State.stateReady"
+        }
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "fullName": "fixture.legacy.v1.LegacyOptions",
+      "name": "LegacyOptions",
+      "package": "fixture.legacy.v1",
+      "source": "External",
+      "deprecated": false,
+      "leanName": "Fixture.Legacy.V1.LegacyOptions",
+      "fields": [
+        {
+          "fullName": "fixture.legacy.v1.LegacyOptions.name",
+          "name": "name",
+          "jsonName": "name",
+          "number": 1,
+          "kind": "string",
+          "presence": true,
+          "required": true,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Legacy.V1.LegacyOptions.name",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.legacy.v1.LegacyOptions.count",
+          "name": "count",
+          "jsonName": "count",
+          "number": 2,
+          "kind": "int32",
+          "presence": true,
+          "required": false,
+          "hasDefault": true,
+          "defaultValue": "7",
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Legacy.V1.LegacyOptions.count",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.legacy.v1.LegacyOptions.samples",
+          "name": "samples",
+          "jsonName": "samples",
+          "number": 3,
+          "kind": "int32",
+          "presence": false,
+          "required": false,
+          "hasDefault": false,
+          "repeated": true,
+          "map": false,
+          "packed": true,
+          "deprecated": false,
+          "leanName": "Fixture.Legacy.V1.LegacyOptions.samples",
+          "recursive": false
+        }
+      ],
+      "oneofs": []
+    },
+    {
+      "fullName": "fixture.public.v1.Model",
+      "name": "Model",
+      "package": "fixture.public.v1",
+      "source": "Public",
+      "deprecated": false,
+      "leanName": "Fixture.Public.V1.Model",
+      "fields": [
+        {
+          "fullName": "fixture.public.v1.Model.shared",
+          "name": "shared",
+          "jsonName": "shared",
+          "number": 1,
+          "kind": "message",
+          "typeName": "fixture.shared.v1.Shared",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.shared",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.attributes",
+          "name": "attributes",
+          "jsonName": "attributes",
+          "number": 2,
+          "kind": "message",
+          "typeName": "fixture.shared.v1.Shared",
+          "mapKey": "string",
+          "mapValue": "fixture.shared.v1.Shared",
+          "presence": false,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": true,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.attributes",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.text",
+          "name": "text",
+          "jsonName": "text",
+          "number": 3,
+          "kind": "string",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "oneof": "choice",
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.Choice.text",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.number",
+          "name": "number",
+          "jsonName": "number",
+          "number": 4,
+          "kind": "int64",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "oneof": "choice",
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.Choice.number",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.note",
+          "name": "note",
+          "jsonName": "note",
+          "number": 5,
+          "kind": "string",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.note",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.payload",
+          "name": "payload",
+          "jsonName": "payload",
+          "number": 6,
+          "kind": "bytes",
+          "presence": false,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.payload",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.nested",
+          "name": "nested",
+          "jsonName": "nested",
+          "number": 7,
+          "kind": "message",
+          "typeName": "fixture.public.v1.Model.Nested",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.nested",
+          "recursive": false
+        },
+        {
+          "fullName": "fixture.public.v1.Model.legacy",
+          "name": "legacy",
+          "jsonName": "legacy",
+          "number": 8,
+          "kind": "message",
+          "typeName": "fixture.legacy.v1.LegacyOptions",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.legacy",
+          "recursive": false
+        }
+      ],
+      "oneofs": [
+        {
+          "fullName": "fixture.public.v1.Model.choice",
+          "name": "choice",
+          "fieldNames": [
+            "fixture.public.v1.Model.text",
+            "fixture.public.v1.Model.number"
+          ],
+          "leanName": "Fixture.Public.V1.Model.Choice"
+        }
+      ]
+    },
+    {
+      "fullName": "fixture.public.v1.Model.Nested",
+      "name": "Nested",
+      "package": "fixture.public.v1",
+      "parent": "fixture.public.v1.Model",
+      "source": "Public",
+      "deprecated": false,
+      "leanName": "Fixture.Public.V1.Model.Nested",
+      "fields": [
+        {
+          "fullName": "fixture.public.v1.Model.Nested.state",
+          "name": "state",
+          "jsonName": "state",
+          "number": 1,
+          "kind": "enum",
+          "typeName": "fixture.public.v1.Model.Nested.State",
+          "presence": false,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Model.Nested.state",
+          "recursive": false
+        }
+      ],
+      "oneofs": []
+    },
+    {
+      "fullName": "fixture.public.v1.Reply",
+      "name": "Reply",
+      "package": "fixture.public.v1",
+      "source": "Public",
+      "deprecated": false,
+      "leanName": "Fixture.Public.V1.Reply",
+      "fields": [
+        {
+          "fullName": "fixture.public.v1.Reply.shared",
+          "name": "shared",
+          "jsonName": "shared",
+          "number": 1,
+          "kind": "message",
+          "typeName": "fixture.shared.v1.Shared",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Public.V1.Reply.shared",
+          "recursive": false
+        }
+      ],
+      "oneofs": []
+    },
+    {
+      "fullName": "fixture.shared.v1.Left",
+      "name": "Left",
+      "package": "fixture.shared.v1",
+      "source": "External",
+      "deprecated": false,
+      "leanName": "Fixture.Shared.V1.Left",
+      "fields": [
+        {
+          "fullName": "fixture.shared.v1.Left.right",
+          "name": "right",
+          "jsonName": "right",
+          "number": 1,
+          "kind": "message",
+          "typeName": "fixture.shared.v1.Right",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Shared.V1.Left.right",
+          "recursive": true
+        }
+      ],
+      "oneofs": []
+    },
+    {
+      "fullName": "fixture.shared.v1.Right",
+      "name": "Right",
+      "package": "fixture.shared.v1",
+      "source": "External",
+      "deprecated": false,
+      "leanName": "Fixture.Shared.V1.Right",
+      "fields": [
+        {
+          "fullName": "fixture.shared.v1.Right.left",
+          "name": "left",
+          "jsonName": "left",
+          "number": 1,
+          "kind": "message",
+          "typeName": "fixture.shared.v1.Left",
+          "presence": true,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Shared.V1.Right.left",
+          "recursive": true
+        }
+      ],
+      "oneofs": []
+    },
+    {
+      "fullName": "fixture.shared.v1.Shared",
+      "name": "Shared",
+      "package": "fixture.shared.v1",
+      "source": "External",
+      "deprecated": false,
+      "leanName": "Fixture.Shared.V1.Shared",
+      "fields": [
+        {
+          "fullName": "fixture.shared.v1.Shared.id",
+          "name": "id",
+          "jsonName": "id",
+          "number": 1,
+          "kind": "string",
+          "presence": false,
+          "required": false,
+          "hasDefault": false,
+          "repeated": false,
+          "map": false,
+          "packed": false,
+          "deprecated": false,
+          "leanName": "Fixture.Shared.V1.Shared.id",
+          "recursive": false
+        }
+      ],
+      "oneofs": []
+    }
+  ],
+  "services": [
+    {
+      "fullName": "fixture.internal.v1.FixtureService",
+      "name": "FixtureService",
+      "package": "fixture.internal.v1",
+      "source": "Internal",
+      "deprecated": false,
+      "leanName": "Fixture.Internal.V1.FixtureService",
+      "methods": [
+        {
+          "fullName": "fixture.internal.v1.FixtureService.Unary",
+          "name": "Unary",
+          "inputType": "fixture.public.v1.Model",
+          "outputType": "fixture.public.v1.Reply",
+          "clientStreaming": false,
+          "serverStreaming": false,
+          "deprecated": false,
+          "leanName": "Fixture.Internal.V1.FixtureService.unary",
+          "inputLeanType": "Fixture.Public.V1.Model",
+          "outputLeanType": "Fixture.Public.V1.Reply"
+        },
+        {
+          "fullName": "fixture.internal.v1.FixtureService.Upload",
+          "name": "Upload",
+          "inputType": "fixture.public.v1.Model",
+          "outputType": "fixture.public.v1.Reply",
+          "clientStreaming": true,
+          "serverStreaming": false,
+          "deprecated": false,
+          "leanName": "Fixture.Internal.V1.FixtureService.upload",
+          "inputLeanType": "Fixture.Public.V1.Model",
+          "outputLeanType": "Fixture.Public.V1.Reply"
+        },
+        {
+          "fullName": "fixture.internal.v1.FixtureService.Download",
+          "name": "Download",
+          "inputType": "fixture.public.v1.Model",
+          "outputType": "fixture.public.v1.Reply",
+          "clientStreaming": false,
+          "serverStreaming": true,
+          "deprecated": false,
+          "leanName": "Fixture.Internal.V1.FixtureService.download",
+          "inputLeanType": "Fixture.Public.V1.Model",
+          "outputLeanType": "Fixture.Public.V1.Reply"
+        },
+        {
+          "fullName": "fixture.internal.v1.FixtureService.Chat",
+          "name": "Chat",
+          "inputType": "fixture.public.v1.Model",
+          "outputType": "fixture.public.v1.Reply",
+          "clientStreaming": true,
+          "serverStreaming": true,
+          "deprecated": true,
+          "leanName": "Fixture.Internal.V1.FixtureService.chat",
+          "inputLeanType": "Fixture.Public.V1.Model",
+          "outputLeanType": "Fixture.Public.V1.Reply"
+        }
+      ]
+    }
+  ]
+}
