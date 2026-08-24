@@ -96,7 +96,7 @@ func TestPublishCanKeyCorpusCasesByRecordIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	input.Record.Seed = 8
-	input.Record.Environment[0].Value = "8"
+	input.Record.Environment[1].Value = "8"
 	second, err := store.PublishArtifact(input)
 	if err != nil {
 		t.Fatal(err)
@@ -240,7 +240,7 @@ func artifactInput(t *testing.T) Publication {
 			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 		},
 		IOProfile:   record.IOProfile{Name: "gomad3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}"))},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64,
 		},
