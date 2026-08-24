@@ -64,9 +64,12 @@ full analyzer result is the completion gate.
 
 
 ## Done summary
-TBD
+Updated current Agentworkflow documentation for `.agentworkflow/config.yml`, strict per-stage Codex/Claude models, whole-run override and resume behavior, Cobra semantics, and the internal-only executable surface. Removed obsolete current migration/API promises, repaired implementation links, and retained accurate runtime JSON/JSONL documentation.
 
+Fresh tagged module tests, build, vet, race, formatting/import, reference, and task-scoped 13-analyzer lint gates pass at the final task head. The approved inherited branch-wide lint baseline exception remains unchanged.
+
+stage: impl-review - ran | verdict: SHIP | session: 01a03538-d9c7-7d11-8d80-c039d1339671
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cb732439615db48b4ad27ffd642aef6606e96706, c3c31b8e868d8328a30b2b2cdac52d8101bea1d1
+- Tests: baseline: green (cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./...; cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow; focused gci diff), cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./internal/cli ./internal/project ./internal/agentworkflow, cd tools/agentworkflow && GOWORK=off go test -count=1 -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go build -o /tmp/agentworkflow-fn2-task5-verify ./cmd/agentworkflow, cd tools/agentworkflow && GOWORK=off go vet -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go test -count=1 -race -tags test_dep ./..., find tools/agentworkflow -type f -name '*.go' -print0 | xargs -0 gofmt -d, .bin/gci-v0.13.6 diff --skip-generated -s standard -s default tools/agentworkflow, git diff --check plus active-code/current-doc obsolete-reference and implementation-link scans, GOLANGCI_LINT_BASE_REV=36797c82174dacce262e12a38f49e9c758272a75 GOLANGCI_LINT_FIX=false make LOCALBIN=/tmp/fn2-5-lint.VBkjDB/tools lint-code (disposable case-sensitive clone at c3c31b8e868d8328a30b2b2cdac52d8101bea1d1; 13 analyzers; 0 issues), INHERITED_RED: default make lint-code reports 1811 unrelated findings against the user-approved six-month-old main baseline, NO_RECEIPT: gate classification was forced full by unrelated user-owned .plans files; all full task gates were rerun at final HEAD
 - PRs:
