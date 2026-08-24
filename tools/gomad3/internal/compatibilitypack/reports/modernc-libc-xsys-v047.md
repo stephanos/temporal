@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047
 
-Review SHA-256: `sha256:61e276af508e47ce8d66395da5b904a82efc69da632adaebd8e79758325e72c4`
+Review SHA-256: `sha256:d781d2a5797ab09fe920c3a417b297e9568fb5b38f1e21011fd98b676bf5588b`
 
 Owner: `temporal-server`
 
@@ -26,12 +26,12 @@ Workload: `sqlite-transaction`
 
 - `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
-  - profile `gomad3-deterministic/v1` / `sha256:58970d7ccf32d15852d74fe4d187f5ee30a14995eef39c637706890d7585e708`
+  - profile `gomad3-deterministic/v1` / `sha256:9002aafa8c005a7bee7f80c4b7dde11f0967803b81f43efb919de7250f303c22`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:6a2ed9798fa07019c328f0247548082ef51b21aad8829c5600168aac4f683429` → `sha256:8579228404e49a9df26f1a5f735cd530e17f6264ed1c231bf15051d20b2cc76c`
   - prepared source set `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
 - `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
-  - profile `gomad3-deterministic/v1` / `sha256:58970d7ccf32d15852d74fe4d187f5ee30a14995eef39c637706890d7585e708`
+  - profile `gomad3-deterministic/v1` / `sha256:9002aafa8c005a7bee7f80c4b7dde11f0967803b81f43efb919de7250f303c22`
   - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
   - source inventories `sha256:4d829c24cc1718026fee9455b47449cfa15d8e241bbbfd9da6136435fd81881f` → `sha256:720c0239c80b4f8bcbebe1cd887451b8e58554f857d09f3f9b9dff939ce3f24e`
   - prepared source set `sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36`
@@ -42,7 +42,7 @@ Workload: `sqlite-transaction`
 
 Module: `github.com/mattn/go-isatty@v0.0.20` (`h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=`), replacement `none`
 
-Source set: `sha256:a5f81d700b1f9b93da0a2fe3637cac475f972d057b015ea7e6dc76fef7d4b309`
+Source set: `sha256:14ddce13a7648dbac3bdbfd72449cbda6a22a4bbd343b2d94dba46f8c7b418b2`
 
 Go sources:
 
@@ -57,7 +57,7 @@ Requested facts:
 
 Module: `github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec` (`h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=`), replacement `none`
 
-Source set: `sha256:2cc15ec5f7b5999948c5666e836b72903a01c6943e132b45a5775e0b0f86c0fd`
+Source set: `sha256:60700dfdb108b1900cde07a08b8af03f9a7562a0633267d75946a2129b8ea85c`
 
 Go sources:
 
@@ -82,7 +82,7 @@ Requested facts:
 
 Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 
-Source set: `sha256:3a848e68c862f9d4b55329cf0debcfc8b29c865612b4e1ce9aa5164514347753`
+Source set: `sha256:ad888b33278a421fd2ee7592a057aa350997e935dfecb68659d665a747dc4042`
 
 Go sources:
 
@@ -147,7 +147,7 @@ Requested facts:
 
 Module: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
 
-Source set: `sha256:8e1663c90aa178a706929ae94f248051781e4278ca83991d9a5fc6fe05321833`
+Source set: `sha256:dbc9274f36d400770accf2c50e07721857767590af8ae6b1837f7603e1cd4495`
 
 Go sources:
 
@@ -211,7 +211,7 @@ Requested facts:
 
 Module: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
 
-Source set: `sha256:f58c119822204a56f5dee48029c1c6ac2888a22ca062f7ea078000248194ce36`
+Source set: `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
 
 Go sources:
 
@@ -234,7 +234,7 @@ Requested facts:
 
 Module: `modernc.org/sqlite@v1.51.0` (`h1:aH/MMSoayAIhozZ7uJbVTT9QO/VhzBf0J9tymmmuC/U=`), replacement `none`
 
-Source set: `sha256:29f4683488f42fb072ac4c34dfd633fdd76e178205564c6b128e1bff038d67b1`
+Source set: `sha256:a1025b9b4c8e13e79221d7986f206afeae7571cae7b50214e8265f23b4296c44`
 
 Go sources:
 

@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-functional-compute-darwin-arm64
 
-Review SHA-256: `sha256:02de41d59b69070b4be0030c7cdd132280ecc2832d492bee75a8023268a84815`
+Review SHA-256: `sha256:d538b6e575396682ae49ce282f3f8b7f1dd66307689a08a65cd3e94a989c2c7d`
 
 Owner: `temporal-server`
 
@@ -33,7 +33,7 @@ Workload: `frontend-system-info`
 
 Module: `github.com/cespare/xxhash/v2@v2.3.0` (`h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=`), replacement `none`
 
-Source set: `sha256:16884aeccbafc942c58cf1cfae6ce796ffc210f4cbd8a679243bb7da05e000e0`
+Source set: `sha256:fc3bd5228b22ed05e600a4de2056878168a180da6623928ea78f223cb4362a24`
 
 Go sources:
 
@@ -53,7 +53,7 @@ Requested facts:
 
 Module: `github.com/golang/snappy@v1.0.0` (`h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=`), replacement `none`
 
-Source set: `sha256:26e5bf1a63d834390db92e6cfc6760c4eed832097386ce4c5fd101fbe070c031`
+Source set: `sha256:3716aebb36ee0441fa3bab0df46acc97de21286408cb82c37b2834e3b18cc960`
 
 Go sources:
 
@@ -77,7 +77,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:816382ab980b5f8264b4a1c06aa96e75a00854c5698d94852991098f16094f86`
+Source set: `sha256:1f6070c77411301c65b0f94fed9a587db3fbda368fc6c7d00e672700e98892b4`
 
 Go sources:
 
@@ -97,7 +97,7 @@ Requested facts:
 
 Module: `golang.org/x/crypto@v0.54.0` (`h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw=`), replacement `none`
 
-Source set: `sha256:246ec5fac15e3d199bb0ec684eb0586d4a19fec0d2a5a95035f7702f1ce2af71`
+Source set: `sha256:20b66754cb0493b6f50a8a02c3a357169c51c2c1ac92eab58d1ba5fff6a11e8b`
 
 Go sources:
 

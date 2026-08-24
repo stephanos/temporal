@@ -31,7 +31,7 @@ const validPackV2 = `{
       "sum": "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
       "replacement": {"kind": "none"}
     },
-    "source_set_sha256": "sha256:3b010f66c93c97f26f632675bca3d51939d7c5e559ee214a292eac38c744e496",
+    "source_set_sha256": "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
     "go_sources": [{"name": "runtime.go", "sha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}],
     "foreign_sources": [],
     "capabilities": ["import:syscall"],
@@ -53,7 +53,7 @@ func TestDecodePackV2RejectsWeakOrNonCanonicalPolicy(t *testing.T) {
 		"local replacement":    strings.Replace(validPackV2, `"kind": "none"`, `"kind": "local"`, 1),
 		"missing sum":          strings.Replace(validPackV2, `"sum": "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",`, `"sum": "",`, 1),
 		"duplicate capability": strings.Replace(validPackV2, `"capabilities": ["import:syscall"]`, `"capabilities": ["import:syscall", "import:syscall"]`, 1),
-		"source-set mismatch":  strings.Replace(validPackV2, "sha256:3b010f66c93c97f26f632675bca3d51939d7c5e559ee214a292eac38c744e496", "sha256:3333333333333333333333333333333333333333333333333333333333333333", 1),
+		"source-set mismatch":  strings.Replace(validPackV2, "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859", "sha256:3333333333333333333333333333333333333333333333333333333333333333", 1),
 		"unknown field":        strings.Replace(validPackV2, `"id": "example-pack",`, `"id": "example-pack", "unknown": true,`, 1),
 		"trailing data":        validPackV2 + `{}`,
 	}
@@ -74,7 +74,7 @@ func TestSelectValidatedPackRequiresCompleteSourceInventory(t *testing.T) {
 	pkg := Package{
 		ImportPath:      "example.com/dependency/internal/runtime",
 		Module:          Module{Path: "example.com/dependency", Version: "v1.2.3", Sum: "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
-		SourceSetSHA256: "sha256:3b010f66c93c97f26f632675bca3d51939d7c5e559ee214a292eac38c744e496",
+		SourceSetSHA256: "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
 		GoSources:       []Source{{Name: "runtime.go", SHA256: "sha256:4444444444444444444444444444444444444444444444444444444444444444"}},
 		ForeignSources:  []ForeignSource{},
 	}

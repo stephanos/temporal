@@ -35,7 +35,7 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	environment := []string{"GOMADSEED=7", "GOMAD3_IO_PROFILE=" + profile.Name(), "TZ=UTC"}
+	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 	observed, err := execution.Run(context.Background(), execution.Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
@@ -65,7 +65,7 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
 			Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 		},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			ExecutionTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
@@ -120,7 +120,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 		Toolchain: prepared.RecordToolchain(), Target: prepared.RecordTarget(),
 		IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), OutputBytes: 64, WorldTransitionBytes: 64},
 		World:       worldRecord, Outcome: record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{
@@ -183,7 +183,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	}
 	mappings := []readonlymount.Mapping{{Source: source, Target: "/mounted"}}
 	limits := readonlymount.DefaultLimits()
-	environment := []string{"GOMADSEED=7", "GOMAD3_IO_PROFILE=" + profile.Name(), "TZ=UTC"}
+	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 	observed, err := execution.Run(context.Background(), execution.Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment,
@@ -218,7 +218,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 			Transcript:     &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 			ReadOnlyMounts: pointerToReadOnlyMounts(replayRecordedCapturedInputs(mountArtifact.Manifest)),
 		},
-		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			ExecutionTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
