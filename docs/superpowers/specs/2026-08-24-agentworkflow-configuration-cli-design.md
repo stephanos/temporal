@@ -1,5 +1,8 @@
 # Agentworkflow Configuration and CLI Design
 
+> Implemented. The current user-facing contract is documented in the
+> [Agentworkflow README](../../../tools/agentworkflow/README.md).
+
 ## Goal
 
 Make Agentworkflow own a single YAML configuration at `.agentworkflow/config.yml`, support a
