@@ -231,7 +231,6 @@ func newTemporal(t *testing.T, params *temporalParams) *temporalImpl {
 	impl.clients = newClients(
 		impl.logger,
 		impl.hostsByProtocolByService[grpcProtocol],
-		&impl.frontendMembershipAddress,
 		impl.tlsConfigProvider,
 		impl.GetMetricsHandler(),
 		impl.dcClient,

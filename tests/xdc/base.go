@@ -144,11 +144,8 @@ func (s *xdcBaseSuite) setupSuite(opts ...testcore.TestClusterOption) {
 			Persistence:               persistenceDefaults,
 			DynamicConfigOverrides:    s.dynamicConfigOverrides,
 			DCRedirectionPolicy:       params.DCRedirectionPolicy,
-			EnableArchival:            params.EnableArchival,
-			AdditionalServerOptions:   params.AdditionalServerOptions,
 			EnableMetricsCapture:      true,
 			EnableHistoryTaskRecorder: params.EnableHistoryTaskRecorder,
-			EnableReplicationRecorder: params.EnableReplicationRecorder,
 		}
 		clusterConfig.Persistence.DBName += "_" + clusterName
 		clusterConfigs[clusterIndex] = clusterConfig

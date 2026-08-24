@@ -26,6 +26,7 @@ import (
 	"go.temporal.io/server/common/headers"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/namespace"
+	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/rpc/faultinjection"
 	"go.temporal.io/server/common/testing/taskpoller"
 	"go.temporal.io/server/common/testing/testcontext"
@@ -90,6 +91,7 @@ type TestOption func(*testOptions)
 
 type testOptions struct {
 	dedicatedCluster         bool
+	needWorkerService        bool
 	dedicatedReason          string
 	disableTestloggerFailure bool
 	dynamicConfigSettings    []dynamicConfigOverride
@@ -159,7 +161,7 @@ func WithTestVars(fn func(*testvars.TestVars) *testvars.TestVars) TestOption {
 func WithWorkerService(reason string) TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, withWorkerService(true))
+		o.needWorkerService = true
 		o.dedicatedReason = "worker service required: " + reason
 	}
 }
@@ -180,6 +182,17 @@ func WithPersistenceFaultInjection(cfg *config.FaultInjection) TestOption {
 		o.dedicatedCluster = true
 		o.clusterOptions = append(o.clusterOptions, WithFaultInjectionConfig(cfg))
 		o.dedicatedReason = "fault injection config used"
+	}
+}
+
+// WithInMemorySQLitePersistence gives the test a dedicated cluster backed by process-local SQLite.
+func WithInMemorySQLitePersistence() TestOption {
+	return func(o *testOptions) {
+		o.dedicatedCluster = true
+		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
+			params.Persistence = *persistencetests.GetSQLiteMemoryTestClusterOption()
+		})
+		o.dedicatedReason = "in-memory SQLite persistence required"
 	}
 }
 
@@ -281,7 +294,13 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	}
 
 	// Obtain the test cluster from the router.
-	base := testClusterRouter.get(t, options.dedicatedCluster, startupConfig, options.clusterOptions)
+	base := getTestClusterRouter().get(t, clusterRequest{
+		dedicated:         options.dedicatedCluster,
+		needWorkerService: options.needWorkerService,
+		dedicatedReason:   options.dedicatedReason,
+		dynamicConfig:     startupConfig,
+		clusterOpts:       options.clusterOptions,
+	})
 	cluster := base.GetTestCluster()
 
 	// Create a dedicated namespace for the test to help with test isolation.
@@ -382,7 +401,7 @@ func (e *TestEnv) InjectHook(hook testhooks.Hook) (cleanup func()) {
 	case testhooks.ScopeNamespace:
 		scope = e.nsID
 	case testhooks.ScopeGlobal:
-		if e.isShared && !testClusterRouter.hasSuiteScoped(e.t) {
+		if e.isShared && !getTestClusterRouter().hasSuiteScoped(e.t) {
 			e.t.Fatal("InjectHook: global hooks require a dedicated cluster; use testcore.WithDedicatedCluster()")
 		}
 		e.dedicatedGuard.record("global hook injected")

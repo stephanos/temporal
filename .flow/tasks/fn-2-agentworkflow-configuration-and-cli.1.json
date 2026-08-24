@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-08-24T15:28:43.985912Z",
+  "depends_on": [
+    "fn-2-agentworkflow-configuration-and-cli.6"
+  ],
+  "id": "fn-2-agentworkflow-configuration-and-cli.1",
+  "priority": null,
+  "spec": "fn-2-agentworkflow-configuration-and-cli",
+  "spec_path": ".flow/tasks/fn-2-agentworkflow-configuration-and-cli.1.md",
+  "status": "todo",
+  "title": "Move the YAML contract to .agentworkflow and add stage models",
+  "updated_at": "2026-08-24T15:56:13.144591Z"
+}

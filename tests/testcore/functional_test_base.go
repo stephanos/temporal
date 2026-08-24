@@ -110,6 +110,7 @@ type (
 		Logger                          log.Logger
 		SharedCluster                   bool
 		EnableHistoryTaskRecorder       bool
+		Persistence                     persistencetests.TestBaseOptions
 		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
 		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
 		AdditionalInterceptors          []grpc.UnaryServerInterceptor
@@ -308,7 +309,7 @@ func (s *FunctionalTestBase) TearDownSuite() {
 
 func (s *FunctionalTestBase) SetupSuiteWithCluster(options ...TestClusterOption) {
 	// Reserve a slot from the dedicated test cluster pool.
-	testClusterRouter.dedicated.reserveSlot(s.T())
+	getTestClusterRouter().dedicated.reserveSlot(s.T())
 	s.setupCluster(options...)
 }
 
@@ -362,6 +363,7 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 		EnableArchival:                  params.ArchivalEnabled,
 		EnableMTLS:                      params.EnableMTLS,
 		EnableHistoryTaskRecorder:       params.EnableHistoryTaskRecorder,
+		Persistence:                     params.Persistence,
 		CustomHistoryArchiverFactory:    params.CustomHistoryArchiverFactory,
 		CustomVisibilityArchiverFactory: params.CustomVisibilityArchiverFactory,
 		AdditionalInterceptors:          additionalInterceptors,

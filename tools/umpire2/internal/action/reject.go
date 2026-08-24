@@ -15,7 +15,6 @@ import (
 
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	chasmnexus "go.temporal.io/server/chasm/lib/nexusoperation"
 	"go.temporal.io/server/common/links"
 	"go.temporal.io/server/common/payload"
 	"go.temporal.io/server/common/payloads"
@@ -210,9 +209,6 @@ func startValidatorRegistry(msg protoreflect.ProtoMessage) (*umpire.ValidatorReg
 					}
 					if input == nil {
 						return "payload:nil", nil
-					}
-					if err := chasmnexus.ValidatePayloadSize(input, 2*1024*1024); err != nil {
-						return "", err
 					}
 					var decoded any
 					if err := payload.Decode(input, &decoded); err != nil {

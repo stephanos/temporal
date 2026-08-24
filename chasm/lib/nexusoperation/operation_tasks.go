@@ -22,7 +22,6 @@ import (
 	"go.temporal.io/server/common/namespace"
 	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/nexus/nexusrpc"
-	"go.temporal.io/server/common/resource"
 	"go.temporal.io/server/common/testing/testhooks"
 	queueserrors "go.temporal.io/server/service/history/queues/errors"
 	"go.uber.org/fx"
@@ -43,47 +42,23 @@ type operationTaskHandlerOptions struct {
 type operationInvocationTaskHandlerOptions struct {
 	fx.In
 
-	Config                 *Config
-	NamespaceRegistry      namespace.Registry
-	MetricsHandler         metrics.Handler
-	Logger                 log.Logger
+	InvocationTaskHandlerOptions
 	CallbackTokenGenerator *commonnexus.CallbackTokenGenerator
-	ClientProvider         ClientProvider
-	EndpointRegistry       commonnexus.EndpointRegistry
-	HTTPTraceProvider      commonnexus.HTTPClientTraceProvider
-	HistoryClient          resource.HistoryClient
-	ChasmRegistry          *chasm.Registry
 	TestHooks              testhooks.TestHooks
 }
 
 type operationInvocationTaskHandler struct {
 	chasm.SideEffectTaskHandlerBase[*nexusoperationpb.InvocationTask]
 
-	config                 *Config
-	namespaceRegistry      namespace.Registry
-	metricsHandler         metrics.Handler
-	logger                 log.Logger
+	nexusTaskHandlerBase
 	callbackTokenGenerator *commonnexus.CallbackTokenGenerator
-	clientProvider         ClientProvider
-	endpointRegistry       commonnexus.EndpointRegistry
-	httpTraceProvider      commonnexus.HTTPClientTraceProvider
-	historyClient          resource.HistoryClient
-	chasmRegistry          *chasm.Registry
 	testHooks              testhooks.TestHooks
 }
 
 func newOperationInvocationTaskHandler(opts operationInvocationTaskHandlerOptions) *operationInvocationTaskHandler {
 	return &operationInvocationTaskHandler{
-		config:                 opts.Config,
-		namespaceRegistry:      opts.NamespaceRegistry,
-		metricsHandler:         opts.MetricsHandler,
-		logger:                 opts.Logger,
+		nexusTaskHandlerBase:   opts.toBase(),
 		callbackTokenGenerator: opts.CallbackTokenGenerator,
-		clientProvider:         opts.ClientProvider,
-		endpointRegistry:       opts.EndpointRegistry,
-		httpTraceProvider:      opts.HTTPTraceProvider,
-		historyClient:          opts.HistoryClient,
-		chasmRegistry:          opts.ChasmRegistry,
 		testHooks:              opts.TestHooks,
 	}
 }
@@ -91,7 +66,7 @@ func newOperationInvocationTaskHandler(opts operationInvocationTaskHandlerOption
 func (h *operationInvocationTaskHandler) Validate(
 	_ chasm.Context,
 	op *Operation,
-	_ chasm.TaskAttributes,
+	_ chasm.TaskInvocation,
 	task *nexusoperationpb.InvocationTask,
 ) (bool, error) {
 	isValid := op.Status == nexusoperationpb.OPERATION_STATUS_SCHEDULED && op.GetAttempt() == task.GetAttempt()
@@ -375,7 +350,7 @@ func newOperationBackoffTaskHandler(opts operationTaskHandlerOptions) *operation
 func (h *operationBackoffTaskHandler) Validate(
 	ctx chasm.Context,
 	op *Operation,
-	attrs chasm.TaskAttributes,
+	attrs chasm.TaskInvocation,
 	task *nexusoperationpb.InvocationBackoffTask,
 ) (bool, error) {
 	return op.Status == nexusoperationpb.OPERATION_STATUS_BACKING_OFF && op.GetAttempt() == task.GetAttempt(), nil
@@ -423,7 +398,7 @@ func newOperationScheduleToStartTimeoutTaskHandler(opts operationTaskHandlerOpti
 func (h *operationScheduleToStartTimeoutTaskHandler) Validate(
 	ctx chasm.Context,
 	op *Operation,
-	attrs chasm.TaskAttributes,
+	attrs chasm.TaskInvocation,
 	task *nexusoperationpb.ScheduleToStartTimeoutTask,
 ) (bool, error) {
 	return TransitionStarted.Possible(op), nil
@@ -464,7 +439,7 @@ func newOperationStartToCloseTimeoutTaskHandler(opts operationTaskHandlerOptions
 func (h *operationStartToCloseTimeoutTaskHandler) Validate(
 	ctx chasm.Context,
 	op *Operation,
-	attrs chasm.TaskAttributes,
+	attrs chasm.TaskInvocation,
 	task *nexusoperationpb.StartToCloseTimeoutTask,
 ) (bool, error) {
 	return op.Status == nexusoperationpb.OPERATION_STATUS_STARTED, nil
@@ -505,7 +480,7 @@ func newOperationScheduleToCloseTimeoutTaskHandler(opts operationTaskHandlerOpti
 func (h *operationScheduleToCloseTimeoutTaskHandler) Validate(
 	ctx chasm.Context,
 	op *Operation,
-	attrs chasm.TaskAttributes,
+	attrs chasm.TaskInvocation,
 	task *nexusoperationpb.ScheduleToCloseTimeoutTask,
 ) (bool, error) {
 	return TransitionTimedOut.Possible(op), nil
