@@ -47,9 +47,10 @@ Build the closed pure-Lean compiler foundation for R1-R5 and R7. This is the ear
 - [ ] New compiler/test/build files contain no Umpire3 import, reference, copied contract, or dependency.
 
 ## Done summary
-TBD
+Defined the pure Lean regression DSL, deterministic compiler, semantic identity, and canonical JSON contract, with setup-dependent action projection and bounded linear ordering validation. Focused fixtures cover the complete synthetic artifact plus missing/duplicate identities, empty expectations, typed unresolved references, target mismatch, unmapped/impossible actions, duplicate/self/cyclic ordering, invalid/exceeded bounds, incidental-order equivalence, dense acyclic ordering, and independent outcome/property identity drift; baseline was green for both task-scoped commands.
 
+stage: impl-review - ran [2026-08-24T16:16:08Z..2026-08-24T16:24:48Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5d821ccaee6ca3f138c7d439f6df346704a1c09d, 803e3859e4deb60334c492446d1223ae679b9c9e
+- Tests: make -C model check, make umpire-check-api
 - PRs:
