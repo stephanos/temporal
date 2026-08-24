@@ -66,7 +66,7 @@ func Reopen(source, runDirectory, digest string, options Options) (Prepared, err
 	if err != nil {
 		return Prepared{}, err
 	}
-	options.Exclude = append(options.Exclude, ".git", ".agentworkflow")
+	options.Exclude = append(options.Exclude, ".git")
 	if relative, relErr := filepath.Rel(sourceRoot, runRoot); relErr == nil && containedRelative(relative) && relative != "." {
 		options.Exclude = append(options.Exclude, filepath.ToSlash(relative))
 	}
@@ -109,7 +109,7 @@ func Prepare(ctx context.Context, source, runDirectory string, options Options) 
 	if err != nil {
 		return Prepared{}, err
 	}
-	options.Exclude = append(options.Exclude, ".git", ".agentworkflow")
+	options.Exclude = append(options.Exclude, ".git")
 	if relative, relErr := filepath.Rel(sourceRoot, runRoot); relErr == nil && containedRelative(relative) && relative != "." {
 		options.Exclude = append(options.Exclude, filepath.ToSlash(relative))
 	}
@@ -152,7 +152,7 @@ func Snapshot(ctx context.Context, root string, options Options) (string, error)
 	if err != nil {
 		return "", err
 	}
-	options.Exclude = compactStrings(append(options.Exclude, ".git", ".agentworkflow"))
+	options.Exclude = compactStrings(append(options.Exclude, ".git"))
 	result, err := scan(ctx, root, options)
 	if err != nil {
 		return "", err

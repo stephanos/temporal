@@ -76,7 +76,7 @@ func (discovery *discoverer) visit(path string, item fs.DirEntry, walkErr error)
 		return err
 	}
 	if item.IsDir() {
-		if relative == ".git" || relative == ".agentworkflow" {
+		if relative == ".git" {
 			return filepath.SkipDir
 		}
 		return nil
