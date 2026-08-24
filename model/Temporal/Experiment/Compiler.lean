@@ -119,6 +119,7 @@ private def edgeLe (left right : PrecedenceEdge) : Bool :=
 private structure OrderingGraph where
   indegree : Std.HashMap ActionId Nat
   outgoing : Std.HashMap ActionId (List ActionId)
+  incoming : Std.HashMap ActionId (List ActionId)
 
 private def buildOrderingGraph
     (actions : List ActionId)
@@ -126,20 +127,22 @@ private def buildOrderingGraph
   ordering.foldl (init := {
     indegree := actions.foldl (init := {}) fun degrees action => degrees.insert action 0
     outgoing := {}
+    incoming := {}
   }) fun graph edge => {
     indegree := graph.indegree.modify edge.after (fun count => count + 1)
     outgoing := graph.outgoing.insert edge.before (edge.after :: graph.outgoing.getD edge.before [])
+    incoming := graph.incoming.insert edge.after (edge.before :: graph.incoming.getD edge.after [])
   }
 
 private def countTopologically
     (outgoing : Std.HashMap ActionId (List ActionId))
     (indegree : Std.HashMap ActionId Nat)
     (pending : List ActionId)
-    (count : Nat) : Nat → Nat
-  | 0 => count
+    (count : Nat) : Nat → Nat × Std.HashMap ActionId Nat
+  | 0 => (count, indegree)
   | fuel + 1 =>
       match pending with
-      | [] => count
+      | [] => (count, indegree)
       | current :: rest =>
           let (indegree, pending) := (outgoing.getD current []).foldl (init := (indegree, rest))
             fun (degrees, pending) next =>
@@ -149,10 +152,36 @@ private def countTopologically
               (degrees, pending)
           countTopologically outgoing indegree pending (count + 1) fuel
 
-private def hasOrderingCycle (actions : List ActionId) (ordering : List PrecedenceEdge) : Bool :=
+private def followResidualPredecessors
+    (incoming : Std.HashMap ActionId (List ActionId))
+    (indegree : Std.HashMap ActionId Nat)
+    (current : ActionId)
+    (visited : List ActionId) : Nat → Option ActionId
+  | 0 => none
+  | fuel + 1 =>
+      if visited.contains current then
+        some current
+      else
+        let predecessors := (incoming.getD current []).filter
+          (fun predecessor => decide (indegree.getD predecessor 0 > 0))
+        match predecessors.mergeSort actionLe with
+        | predecessor :: _ =>
+            followResidualPredecessors incoming indegree predecessor (current :: visited) fuel
+        | [] => none
+
+private def orderingCycleWitness?
+    (actions : List ActionId)
+    (ordering : List PrecedenceEdge) : Option ActionId :=
   let graph := buildOrderingGraph actions ordering
   let pending := actions.filter (fun action => graph.indegree.getD action 0 == 0)
-  countTopologically graph.outgoing graph.indegree pending 0 actions.length < actions.length
+  let (count, indegree) :=
+    countTopologically graph.outgoing graph.indegree pending 0 actions.length
+  if count == actions.length then
+    none
+  else
+    match actions.find? (fun action => indegree.getD action 0 > 0) with
+    | some start => followResidualPredecessors graph.incoming indegree start [] (actions.length + 1)
+    | none => none
 
 private def validateOrdering
     (actions : List ActionId)
@@ -169,10 +198,9 @@ private def validateOrdering
       throw (compileError .unresolvedAction edge.before.value "ordering")
     if !actions.contains edge.after then
       throw (compileError .unresolvedAction edge.after.value "ordering")
-  if hasOrderingCycle actions canonical then
-    throw (compileError .cyclicOrdering "ordering" "ordering")
-  else
-    pure canonical
+  match orderingCycleWitness? actions canonical with
+  | some witness => throw (compileError .cyclicOrdering witness.value "ordering")
+  | none => pure canonical
 
 def compile (target : ModelTarget) (regression : Regression) : Except CompileError ExperimentSpec := do
   validateIdentities target regression
