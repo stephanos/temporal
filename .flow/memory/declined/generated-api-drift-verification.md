@@ -1,0 +1,9 @@
+# Generated API drift verification
+
+Do not add generated Lean API drift verification or GitHub Actions coverage in the current simplification.
+
+The generator is intentionally generation-only for now. Its focused and golden tests remain, while a repository or CI drift gate is deferred until there is a demonstrated need.
+
+## Prior requests
+
+- 2026-08-24 — While simplifying the Lean API generator, explicitly excluded drift verification and all CI workflow work.
