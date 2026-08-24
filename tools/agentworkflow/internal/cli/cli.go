@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.temporal.io/server/tools/agentworkflow/internal/agentworkflow"
 	"go.temporal.io/server/tools/agentworkflow/internal/backend/claude"
 	"go.temporal.io/server/tools/agentworkflow/internal/backend/codex"
@@ -32,7 +33,7 @@ func Run(ctx context.Context, arguments []string, stdout, stderr io.Writer) int 
 	checkedStderr := &checkedWriter{target: stderr}
 	application := application{stdout: checkedStdout, stderr: checkedStderr}
 	root := application.rootCommand()
-	root.SetArgs(arguments)
+	root.SetArgs(normalizeLegacyFlags(root, arguments))
 	code := exitOK
 	executed, err := root.ExecuteContextC(ctx)
 	if err != nil {
@@ -45,6 +46,60 @@ func Run(ctx context.Context, arguments []string, stdout, stderr io.Writer) int 
 		return exitFailure
 	}
 	return code
+}
+
+func normalizeLegacyFlags(root *cobra.Command, arguments []string) []string {
+	valueFlags := map[string]bool{"help": false}
+	var collectFlags func(*cobra.Command)
+	collectFlags = func(command *cobra.Command) {
+		visit := func(flag *pflag.Flag) {
+			valueFlags[flag.Name] = valueFlags[flag.Name] || flag.NoOptDefVal == ""
+		}
+		command.LocalNonPersistentFlags().VisitAll(visit)
+		command.PersistentFlags().VisitAll(visit)
+		for _, child := range command.Commands() {
+			collectFlags(child)
+		}
+	}
+	collectFlags(root)
+
+	normalized := append([]string(nil), arguments...)
+	consumeValue := false
+	for index, argument := range normalized {
+		if consumeValue {
+			consumeValue = false
+			continue
+		}
+		if argument == "--" {
+			break
+		}
+		name, hasValue, doubleDash := flagArgument(argument)
+		takesValue, known := valueFlags[name]
+		if !known {
+			continue
+		}
+		if !doubleDash {
+			normalized[index] = "--" + argument[1:]
+		}
+		consumeValue = takesValue && !hasValue
+	}
+	return normalized
+}
+
+func flagArgument(argument string) (name string, hasValue bool, doubleDash bool) {
+	if len(argument) < 3 || argument[0] != '-' {
+		return "", false, false
+	}
+	doubleDash = argument[1] == '-'
+	start := 1
+	if doubleDash {
+		start = 2
+	}
+	if start == len(argument) {
+		return "", false, doubleDash
+	}
+	name, _, hasValue = strings.Cut(argument[start:], "=")
+	return name, hasValue, doubleDash
 }
 
 type application struct {
