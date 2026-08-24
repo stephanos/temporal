@@ -108,27 +108,17 @@ type leanNamespacePlan struct {
 	Messages []leanMessagePlan
 }
 
-type leanSourcePlan struct {
-	Source        sourceGroup
-	Name          string
-	CatalogModule leanModulePlan
-	GRPCModule    leanModulePlan
-	Files         []fileProjection
-	Enums         []leanEnumPlan
-	Messages      []leanMessagePlan
-	Services      []leanServicePlan
-}
-
 type leanPlan struct {
+	ProtoModule leanModulePlan
 	TypesModule leanModulePlan
+	APIModule   leanModulePlan
 	Namespaces  []leanNamespacePlan
 	Enums       []leanEnumPlan
 	Messages    []leanMessagePlan
-	Sources     []leanSourcePlan
+	Services    []leanServicePlan
 	names       map[string]leanName
 	fields      map[string]leanFieldPlan
 	oneofs      map[string]leanOneofPlan
-	services    map[string]leanServicePlan
 }
 
 type nameRequest struct {
@@ -145,38 +135,18 @@ type declarationInfo struct {
 	base        string
 }
 
-type sourceModuleSpec struct {
-	source        sourceGroup
-	name          string
-	catalogModule leanModulePlan
-	grpcModule    leanModulePlan
+func protoModuleSpec(layout outputLayout) leanModulePlan {
+	return leanModulePlan{Path: layout.ProtoPath, Imports: []string{}}
 }
 
 func typesModuleSpec(layout outputLayout) leanModulePlan {
-	return leanModulePlan{Path: layout.TypesPath, Imports: []string{layout.RootModule + ".Proto.Core"}}
+	return leanModulePlan{Path: layout.TypesPath, Imports: []string{layout.RootModule + ".API.Proto"}}
 }
 
-func sourceModuleSpecs(layout outputLayout, groups []sourceGroup) []sourceModuleSpec {
-	result := make([]sourceModuleSpec, 0, len(groups))
-	for _, group := range groups {
-		result = append(result, newSourceModuleSpec(layout, group))
-	}
-	return result
-}
-
-func newSourceModuleSpec(layout outputLayout, source sourceGroup) sourceModuleSpec {
-	name := string(source)
-	return sourceModuleSpec{
-		source: source,
-		name:   name,
-		catalogModule: leanModulePlan{
-			Path:    layout.GeneratedPath + "/Catalog/" + name + ".lean",
-			Imports: []string{layout.RootModule + ".Proto.Core"},
-		},
-		grpcModule: leanModulePlan{
-			Path:    layout.GeneratedPath + "/GRPC/" + name + ".lean",
-			Imports: []string{layout.RootModule + ".Proto.Core", layout.RootModule + ".Generated.Types"},
-		},
+func apiModuleSpec(layout outputLayout) leanModulePlan {
+	return leanModulePlan{
+		Path:    layout.APIPath,
+		Imports: []string{layout.RootModule + ".API.Proto", layout.RootModule + ".API.Types"},
 	}
 }
 
@@ -206,11 +176,12 @@ func buildLeanPlan(projection projection, configuration generationConfig) (leanP
 	}
 	declarationPackages := buildLeanDeclarationPackages(projection)
 	plan := leanPlan{
+		ProtoModule: cloneLeanModulePlan(protoModuleSpec(configuration.Layout)),
 		TypesModule: cloneLeanModulePlan(typesModuleSpec(configuration.Layout)),
+		APIModule:   cloneLeanModulePlan(apiModuleSpec(configuration.Layout)),
 		names:       declarationNames,
 		fields:      make(map[string]leanFieldPlan),
 		oneofs:      make(map[string]leanOneofPlan),
-		services:    make(map[string]leanServicePlan),
 	}
 	for _, enum := range projection.Enums {
 		planned, planErr := planEnum(enum, packageNames[enum.Package], declarationNames[enum.FullName])
@@ -231,7 +202,7 @@ func buildLeanPlan(projection projection, configuration generationConfig) (leanP
 			declarationNames,
 			declarationPackages,
 			graph,
-			configuration.Layout.RootModule+".Proto",
+			configuration.Layout.RootModule+".API.Proto",
 		)
 		if planErr != nil {
 			return leanPlan{}, planErr
@@ -249,10 +220,9 @@ func buildLeanPlan(projection projection, configuration generationConfig) (leanP
 		if planErr != nil {
 			return leanPlan{}, planErr
 		}
-		plan.services[service.FullName] = planned
+		plan.Services = append(plan.Services, planned)
 	}
 	plan.Namespaces = buildLeanNamespacePlans(plan.Enums, plan.Messages)
-	plan.Sources = buildLeanSourcePlans(projection, plan, configuration)
 	if err := validateLeanPlan(projection, plan, configuration); err != nil {
 		return leanPlan{}, err
 	}
@@ -263,20 +233,10 @@ func validateGeneratedDeclarationCollisions(
 	declarationNames map[string]leanName,
 	configuration generationConfig,
 ) error {
-	supportNamespace := configuration.Layout.RootModule + ".Proto."
+	supportNamespace := configuration.Layout.RootModule + ".API.Proto."
 	reserved := make(map[string]string)
-	for _, name := range []string{
-		"Bytes", "MessageRef", "FieldDescriptor", "MessageDescriptor", "EnumValueDescriptor",
-		"EnumDescriptor", "FileDescriptor", "Method", "MethodDescriptor", "ServiceDescriptor",
-	} {
+	for _, name := range []string{"Bytes", "MessageRef", "Method"} {
 		reserved[supportNamespace+name] = "support"
-	}
-	for _, group := range configuration.Groups {
-		catalog := supportNamespace + "Generated.Catalog." + string(group)
-		reserved[catalog+"Files"] = "inventory"
-		reserved[catalog+"Enums"] = "inventory"
-		reserved[catalog+"Messages"] = "inventory"
-		reserved[supportNamespace+"Generated.GRPC."+string(group)+"Services"] = "inventory"
 	}
 	for identity, name := range declarationNames {
 		kind, collision := reserved[name.String()]
@@ -901,48 +861,19 @@ func namedLeanType(name string) leanType {
 	return leanType{Kind: leanTypeNamed, Name: name}
 }
 
-func buildLeanSourcePlans(projection projection, plan leanPlan, configuration generationConfig) []leanSourcePlan {
-	specs := sourceModuleSpecs(configuration.Layout, configuration.Groups)
-	result := make([]leanSourcePlan, 0, len(specs))
-	for _, spec := range specs {
-		source := leanSourcePlan{
-			Source:        spec.source,
-			Name:          spec.name,
-			CatalogModule: cloneLeanModulePlan(spec.catalogModule),
-			GRPCModule:    cloneLeanModulePlan(spec.grpcModule),
-		}
-		for _, file := range projection.Files {
-			if file.Source == spec.source {
-				source.Files = append(source.Files, file)
-			}
-		}
-		for _, enum := range plan.Enums {
-			if enum.Projection.Source == spec.source {
-				source.Enums = append(source.Enums, enum)
-			}
-		}
-		for _, message := range plan.Messages {
-			if message.Projection.Source == spec.source {
-				source.Messages = append(source.Messages, message)
-			}
-		}
-		for _, service := range projection.Services {
-			if service.Source == spec.source {
-				source.Services = append(source.Services, plan.services[service.FullName])
-			}
-		}
-		result = append(result, source)
-	}
-	return result
-}
-
 func validateLeanPlan(projection projection, plan leanPlan, configuration generationConfig) error {
 	if len(plan.Enums) != len(projection.Enums) || len(plan.Messages) != len(projection.Messages) ||
-		len(plan.services) != len(projection.Services) {
+		len(plan.Services) != len(projection.Services) {
 		return errors.New("validate Lean plan: declaration count mismatch")
 	}
+	if !equalLeanModulePlan(plan.ProtoModule, protoModuleSpec(configuration.Layout)) {
+		return errors.New("validate Lean plan: Proto module is incomplete")
+	}
 	if !equalLeanModulePlan(plan.TypesModule, typesModuleSpec(configuration.Layout)) {
-		return errors.New("validate Lean plan: types module is incomplete")
+		return errors.New("validate Lean plan: Types module is incomplete")
+	}
+	if !equalLeanModulePlan(plan.APIModule, apiModuleSpec(configuration.Layout)) {
+		return errors.New("validate Lean plan: API module is incomplete")
 	}
 	if err := validateLeanNames(plan.names); err != nil {
 		return err
@@ -956,10 +887,15 @@ func validateLeanPlan(projection projection, plan leanPlan, configuration genera
 	if err := validateLeanEnums(plan.Enums); err != nil {
 		return err
 	}
-	if err := validateLeanServices(plan.services); err != nil {
+	if err := validateLeanServices(plan.Services); err != nil {
 		return err
 	}
-	return validateLeanSourceModules(projection, plan, configuration)
+	for index, service := range projection.Services {
+		if plan.Services[index].Projection.FullName != service.FullName {
+			return errors.New("validate Lean plan: service order mismatch")
+		}
+	}
+	return nil
 }
 
 func validateLeanNames(names map[string]leanName) error {
@@ -1028,7 +964,7 @@ func validateLeanEnums(enums []leanEnumPlan) error {
 	return nil
 }
 
-func validateLeanServices(services map[string]leanServicePlan) error {
+func validateLeanServices(services []leanServicePlan) error {
 	for _, service := range services {
 		for _, method := range service.Methods {
 			if method.QualifiedName.String() == "" {
@@ -1041,27 +977,6 @@ func validateLeanServices(services map[string]leanServicePlan) error {
 				return fmt.Errorf("validate Lean plan: method %q output: %w", method.Projection.FullName, err)
 			}
 		}
-	}
-	return nil
-}
-
-func validateLeanSourceModules(projection projection, plan leanPlan, configuration generationConfig) error {
-	specs := sourceModuleSpecs(configuration.Layout, configuration.Groups)
-	if len(plan.Sources) != len(specs) {
-		return errors.New("validate Lean plan: source partition count mismatch")
-	}
-	for index, source := range plan.Sources {
-		spec := specs[index]
-		if source.Source != spec.source || source.Name != spec.name {
-			return fmt.Errorf("validate Lean plan: source partition %d does not match registry", index)
-		}
-		if !equalLeanModulePlan(source.CatalogModule, spec.catalogModule) ||
-			!equalLeanModulePlan(source.GRPCModule, spec.grpcModule) {
-			return fmt.Errorf("validate Lean plan: source %q has incomplete modules", source.Source)
-		}
-	}
-	if !reflect.DeepEqual(plan.Sources, buildLeanSourcePlans(projection, plan, configuration)) {
-		return errors.New("validate Lean plan: source partition ownership mismatch")
 	}
 	return nil
 }

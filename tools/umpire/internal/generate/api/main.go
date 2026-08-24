@@ -1,12 +1,8 @@
 package api
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -15,20 +11,20 @@ import (
 	"go.temporal.io/server/tools/umpire/internal/artifactio"
 )
 
-func Run(_ context.Context, arguments []string, stdout io.Writer) error {
+func Run(arguments []string) error {
 	configuration, err := parseGenerationConfig(arguments)
 	if err != nil {
 		return err
 	}
-	return run(configuration, stdout)
+	return run(configuration)
 }
 
-func run(configuration generationConfig, stdout io.Writer) error {
+func run(configuration generationConfig) error {
 	inputs := make([]descriptorInput, 0, len(configuration.Descriptors))
 	for _, input := range configuration.Descriptors {
-		descriptor, loadErr := descriptorFileInput(input.Name, input.Path, input.Locator)
-		if loadErr != nil {
-			return loadErr
+		descriptor, err := descriptorFileInput(input.Path, input.Locator)
+		if err != nil {
+			return err
 		}
 		inputs = append(inputs, descriptor)
 	}
@@ -36,143 +32,227 @@ func run(configuration generationConfig, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	projection, err := buildProjection(set, configuration.Classify)
+	projection, err := buildProjection(set)
 	if err != nil {
 		return err
 	}
-	artifacts, manifest, err := generateArtifacts(configuration, inputs, projection)
+	artifacts, err := generateArtifacts(configuration, projection)
 	if err != nil {
 		return err
-	}
-	if configuration.Operation == "inspect" {
-		return writeInspect(stdout, manifest)
 	}
 	outputRoot, err := filepath.Abs(configuration.OutputRoot)
 	if err != nil {
 		return fmt.Errorf("resolve output root: %w", err)
 	}
-	if configuration.Operation == "check" {
-		return checkArtifacts(outputRoot, artifacts, configuration.Layout, configuration.Operation)
-	}
-	return publishArtifacts(outputRoot, artifacts, configuration.Layout)
+	return publishArtifacts(outputRoot, configuration.Layout, artifacts)
 }
 
-func writeInspect(stdout io.Writer, manifest generationManifest) error {
-	encoded, err := canonicalIndentedJSON(manifest)
-	if err != nil {
-		return err
-	}
-	if _, err := stdout.Write(encoded); err != nil {
-		return fmt.Errorf("write descriptor inventory: %w", err)
-	}
-	return nil
+func publishArtifacts(outputRoot string, layout outputLayout, artifacts map[string][]byte) error {
+	return publishArtifactsWith(outputRoot, layout, artifacts, artifactio.Publish)
 }
 
-func checkArtifacts(outputRoot string, artifacts map[string][]byte, layout outputLayout, operation string) error {
-	var drift []string
-	for _, path := range sortedArtifactPaths(artifacts) {
-		current, err := os.ReadFile(filepath.Join(outputRoot, filepath.FromSlash(path)))
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				drift = append(drift, path+" (missing)")
-				continue
-			}
-			return fmt.Errorf("read generated artifact %q: %w", path, err)
-		}
-		if !bytes.Equal(current, artifacts[path]) {
-			drift = append(drift, path+" (stale)")
-		}
-	}
-	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(layout.ManifestPath)))
-	if err != nil {
-		return err
-	}
-	for _, file := range previous.GeneratedFiles {
-		if _, expected := artifacts[file.Path]; !expected {
-			drift = append(drift, file.Path+" (unexpected)")
-		}
-	}
-	if len(drift) != 0 {
-		slices.Sort(drift)
-		return fmt.Errorf("generated protobuf Lean model is stale after %s: %s", operation, strings.Join(drift, ", "))
-	}
-	return nil
-}
-
-func publishArtifacts(
+func publishArtifactsWith(
 	outputRoot string,
-	artifacts map[string][]byte,
 	layout outputLayout,
+	artifacts map[string][]byte,
+	publish func(string, []byte) error,
 ) error {
-	previous, err := loadPreviousManifest(filepath.Join(outputRoot, filepath.FromSlash(layout.ManifestPath)))
+	if err := validateArtifactMap(layout, artifacts); err != nil {
+		return err
+	}
+	paths, err := resolvePublicationPaths(outputRoot, layout)
 	if err != nil {
 		return err
 	}
-	paths := sortedArtifactPaths(artifacts)
-	current := make(map[string]bool, len(paths))
-	for _, path := range paths {
-		if err := validateManagedPath(layout, path); err != nil {
+	for _, owned := range []struct {
+		relative string
+		absolute string
+	}{
+		{relative: layout.APIPath, absolute: paths.api},
+		{relative: layout.APIDirectory, absolute: paths.apiDirectory},
+	} {
+		if err := os.RemoveAll(owned.absolute); err != nil {
+			return fmt.Errorf("remove owned output %q: %w", owned.relative, err)
+		}
+	}
+	for _, artifact := range []struct {
+		relative string
+		absolute string
+	}{
+		{relative: layout.ProtoPath, absolute: paths.proto},
+		{relative: layout.TypesPath, absolute: paths.types},
+		{relative: layout.APIPath, absolute: paths.api},
+	} {
+		if err := publish(artifact.absolute, artifacts[artifact.relative]); err != nil {
+			return fmt.Errorf("publish generated artifact %q: %w", artifact.relative, err)
+		}
+	}
+	return nil
+}
+
+func validateArtifactMap(layout outputLayout, artifacts map[string][]byte) error {
+	if layout != newOutputLayout(layout.RootModule) {
+		return errors.New("generated output layout is inconsistent with the Lean root")
+	}
+	expected := []string{layout.APIPath, layout.ProtoPath, layout.TypesPath}
+	if len(artifacts) != len(expected) {
+		return errors.New("generated artifact map must contain exactly the three managed artifacts")
+	}
+	for _, path := range expected {
+		if err := validateArtifactPath(path); err != nil {
 			return err
 		}
-		current[path] = true
-	}
-	stale := make([]string, 0, len(previous.GeneratedFiles))
-	for _, file := range previous.GeneratedFiles {
-		if current[file.Path] {
-			continue
+		if _, exists := artifacts[path]; !exists {
+			return fmt.Errorf("generated artifact map must contain exactly the three managed artifacts: missing %q", path)
 		}
-		if err := validateManagedPath(layout, file.Path); err != nil {
-			return fmt.Errorf("refuse to remove stale artifact: %w", err)
-		}
-		stale = append(stale, file.Path)
-	}
-
-	for _, path := range paths {
-		if path == layout.ManifestPath {
-			continue
-		}
-		if err := artifactio.Publish(filepath.Join(outputRoot, filepath.FromSlash(path)), artifacts[path]); err != nil {
-			return fmt.Errorf("publish generated artifact %q: %w", path, err)
-		}
-	}
-	for _, path := range stale {
-		if err := artifactio.Remove(filepath.Join(outputRoot, filepath.FromSlash(path))); err != nil {
-			return fmt.Errorf("remove stale generated artifact %q: %w", path, err)
-		}
-	}
-	if err := artifactio.Publish(
-		filepath.Join(outputRoot, filepath.FromSlash(layout.ManifestPath)),
-		artifacts[layout.ManifestPath],
-	); err != nil {
-		return fmt.Errorf("publish generation manifest: %w", err)
 	}
 	return nil
 }
 
-func loadPreviousManifest(path string) (generationManifest, error) {
-	encoded, err := os.ReadFile(path)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return generationManifest{}, nil
-		}
-		return generationManifest{}, fmt.Errorf("read previous generation manifest: %w", err)
-	}
-	var manifest generationManifest
-	if err := json.Unmarshal(encoded, &manifest); err != nil {
-		return generationManifest{}, fmt.Errorf("decode previous generation manifest: %w", err)
-	}
-	return manifest, nil
-}
-
-func validateManagedPath(layout outputLayout, path string) error {
+func validateArtifactPath(path string) error {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(path)))
-	if clean != path || filepath.IsAbs(path) || strings.HasPrefix(path, "../") {
+	if path == "" || clean != path || filepath.IsAbs(filepath.FromSlash(path)) || path == ".." || strings.HasPrefix(path, "../") {
 		return fmt.Errorf("generated artifact path %q is unsafe", path)
 	}
-	if path != layout.CorePath && path != layout.UmbrellaPath && !strings.HasPrefix(path, layout.GeneratedPath+"/") {
-		return fmt.Errorf("generated artifact path %q is outside the managed tree", path)
+	return nil
+}
+
+type publicationPaths struct {
+	api          string
+	apiDirectory string
+	proto        string
+	types        string
+}
+
+func resolvePublicationPaths(outputRoot string, layout outputLayout) (publicationPaths, error) {
+	if outputRoot == "" {
+		return publicationPaths{}, errors.New("output root is required")
+	}
+	absoluteRoot, err := filepath.Abs(outputRoot)
+	if err != nil {
+		return publicationPaths{}, fmt.Errorf("resolve output root: %w", err)
+	}
+	if err := validateDirectoryIfPresent(absoluteRoot, "output root"); err != nil {
+		return publicationPaths{}, err
+	}
+	resolvedRoot, err := resolveWithMissing(absoluteRoot)
+	if err != nil {
+		return publicationPaths{}, fmt.Errorf("resolve output root %q: %w", outputRoot, err)
+	}
+	moduleDirectory, err := joinInside(absoluteRoot, filepath.Dir(filepath.FromSlash(layout.APIDirectory)))
+	if err != nil {
+		return publicationPaths{}, err
+	}
+	if err := validateDirectoryChain(absoluteRoot, moduleDirectory); err != nil {
+		return publicationPaths{}, err
+	}
+	resolvedModuleDirectory, err := resolveWithMissing(moduleDirectory)
+	if err != nil {
+		return publicationPaths{}, fmt.Errorf("resolve managed module directory %q: %w", moduleDirectory, err)
+	}
+	if !pathWithin(resolvedRoot, resolvedModuleDirectory) {
+		return publicationPaths{}, fmt.Errorf(
+			"managed module directory %q resolves outside output root %q",
+			moduleDirectory, absoluteRoot,
+		)
+	}
+
+	api, err := joinInside(absoluteRoot, filepath.FromSlash(layout.APIPath))
+	if err != nil {
+		return publicationPaths{}, err
+	}
+	apiDirectory, err := joinInside(absoluteRoot, filepath.FromSlash(layout.APIDirectory))
+	if err != nil {
+		return publicationPaths{}, err
+	}
+	proto, err := joinInside(absoluteRoot, filepath.FromSlash(layout.ProtoPath))
+	if err != nil {
+		return publicationPaths{}, err
+	}
+	types, err := joinInside(absoluteRoot, filepath.FromSlash(layout.TypesPath))
+	if err != nil {
+		return publicationPaths{}, err
+	}
+	return publicationPaths{api: api, apiDirectory: apiDirectory, proto: proto, types: types}, nil
+}
+
+func validateDirectoryIfPresent(path, description string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("read %s metadata %q: %w", description, path, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("%s %q is not a directory", description, path)
 	}
 	return nil
+}
+
+func validateDirectoryChain(root, target string) error {
+	relative, err := filepath.Rel(root, target)
+	if err != nil || relative == ".." || filepath.IsAbs(relative) || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("managed module directory %q is outside output root %q", target, root)
+	}
+	current := root
+	for _, part := range strings.Split(relative, string(filepath.Separator)) {
+		if part == "." || part == "" {
+			continue
+		}
+		current = filepath.Join(current, part)
+		info, statErr := os.Stat(current)
+		if errors.Is(statErr, os.ErrNotExist) {
+			return nil
+		}
+		if statErr != nil {
+			return fmt.Errorf("read managed module directory metadata %q: %w", current, statErr)
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("managed module directory %q is not a directory", current)
+		}
+	}
+	return nil
+}
+
+func resolveWithMissing(path string) (string, error) {
+	current := filepath.Clean(path)
+	var missing []string
+	for {
+		_, err := os.Lstat(current)
+		if err == nil {
+			resolved, resolveErr := filepath.EvalSymlinks(current)
+			if resolveErr != nil {
+				return "", resolveErr
+			}
+			for index := len(missing) - 1; index >= 0; index-- {
+				resolved = filepath.Join(resolved, missing[index])
+			}
+			return filepath.Clean(resolved), nil
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			return "", err
+		}
+		parent := filepath.Dir(current)
+		if parent == current {
+			return "", err
+		}
+		missing = append(missing, filepath.Base(current))
+		current = parent
+	}
+}
+
+func joinInside(root, relative string) (string, error) {
+	target := filepath.Join(root, relative)
+	if !pathWithin(root, target) {
+		return "", fmt.Errorf("generated target %q is outside output root %q", target, root)
+	}
+	return target, nil
+}
+
+func pathWithin(root, target string) bool {
+	relative, err := filepath.Rel(root, target)
+	return err == nil && relative != ".." && !filepath.IsAbs(relative) && !strings.HasPrefix(relative, ".."+string(filepath.Separator))
 }
 
 func sortedArtifactPaths(artifacts map[string][]byte) []string {

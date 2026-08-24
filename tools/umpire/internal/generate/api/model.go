@@ -1,132 +1,102 @@
 package api
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"slices"
 	"strings"
 
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 type enumValueProjection struct {
-	FullName   string `json:"fullName"`
-	Name       string `json:"name"`
-	Number     int32  `json:"number"`
-	Deprecated bool   `json:"deprecated"`
+	FullName   string
+	Name       string
+	Number     int32
+	Deprecated bool
 }
 
 type enumProjection struct {
-	FullName     string                `json:"fullName"`
-	Name         string                `json:"name"`
-	Package      string                `json:"package"`
-	Parent       string                `json:"parent,omitempty"`
-	Source       sourceGroup           `json:"source"`
-	Values       []enumValueProjection `json:"values"`
-	AllowAliases bool                  `json:"allowAliases"`
-	Deprecated   bool                  `json:"deprecated"`
+	FullName     string
+	Name         string
+	Package      string
+	Parent       string
+	Values       []enumValueProjection
+	AllowAliases bool
+	Deprecated   bool
 }
 
 type fieldProjection struct {
-	FullName   string `json:"fullName"`
-	Name       string `json:"name"`
-	JSONName   string `json:"jsonName"`
-	Number     int32  `json:"number"`
-	Kind       string `json:"kind"`
-	TypeName   string `json:"typeName,omitempty"`
-	MapKey     string `json:"mapKey,omitempty"`
-	MapValue   string `json:"mapValue,omitempty"`
-	Presence   bool   `json:"presence"`
-	Required   bool   `json:"required"`
-	HasDefault bool   `json:"hasDefault"`
-	Default    string `json:"defaultValue,omitempty"`
-	Oneof      string `json:"oneof,omitempty"`
-	Repeated   bool   `json:"repeated"`
-	Map        bool   `json:"map"`
-	Packed     bool   `json:"packed"`
-	Deprecated bool   `json:"deprecated"`
+	FullName   string
+	Name       string
+	JSONName   string
+	Number     int32
+	Kind       string
+	TypeName   string
+	MapKey     string
+	MapValue   string
+	Presence   bool
+	Required   bool
+	HasDefault bool
+	Default    string
+	Oneof      string
+	Repeated   bool
+	Map        bool
+	Packed     bool
+	Deprecated bool
 }
 
 type oneofProjection struct {
-	FullName   string   `json:"fullName"`
-	Name       string   `json:"name"`
-	FieldNames []string `json:"fieldNames"`
+	FullName   string
+	Name       string
+	FieldNames []string
 }
 
 type messageProjection struct {
-	FullName   string            `json:"fullName"`
-	Name       string            `json:"name"`
-	Package    string            `json:"package"`
-	Parent     string            `json:"parent,omitempty"`
-	Source     sourceGroup       `json:"source"`
-	Fields     []fieldProjection `json:"fields"`
-	Oneofs     []oneofProjection `json:"oneofs"`
-	Deprecated bool              `json:"deprecated"`
+	FullName   string
+	Name       string
+	Package    string
+	Parent     string
+	Fields     []fieldProjection
+	Oneofs     []oneofProjection
+	Deprecated bool
 }
 
 type methodProjection struct {
-	FullName        string `json:"fullName"`
-	Name            string `json:"name"`
-	InputType       string `json:"inputType"`
-	OutputType      string `json:"outputType"`
-	ClientStreaming bool   `json:"clientStreaming"`
-	ServerStreaming bool   `json:"serverStreaming"`
-	Deprecated      bool   `json:"deprecated"`
+	FullName        string
+	Name            string
+	InputType       string
+	OutputType      string
+	ClientStreaming bool
+	ServerStreaming bool
+	Deprecated      bool
 }
 
 type serviceProjection struct {
-	FullName   string             `json:"fullName"`
-	Name       string             `json:"name"`
-	Package    string             `json:"package"`
-	Source     sourceGroup        `json:"source"`
-	Methods    []methodProjection `json:"methods"`
-	Deprecated bool               `json:"deprecated"`
-}
-
-type fileProjection struct {
-	Path         string      `json:"path"`
-	Package      string      `json:"package"`
-	Syntax       string      `json:"syntax"`
-	Source       sourceGroup `json:"source"`
-	Dependencies []string    `json:"dependencies"`
-	Services     []string    `json:"services"`
+	FullName   string
+	Name       string
+	Package    string
+	Methods    []methodProjection
+	Deprecated bool
 }
 
 type projection struct {
-	DescriptorDigest string              `json:"descriptorDigest"`
-	Files            []fileProjection    `json:"files"`
-	Enums            []enumProjection    `json:"enums"`
-	Messages         []messageProjection `json:"messages"`
-	Services         []serviceProjection `json:"services"`
+	Enums    []enumProjection
+	Messages []messageProjection
+	Services []serviceProjection
 }
 
-func buildProjection(set *descriptorpb.FileDescriptorSet, classify func(string) sourceGroup) (projection, error) {
-	files, messageDescriptors, enumDescriptors, serviceDescriptors, err := indexDescriptors(set)
+func buildProjection(set *descriptorpb.FileDescriptorSet) (projection, error) {
+	_, messageDescriptors, enumDescriptors, serviceDescriptors, err := indexDescriptors(set)
 	if err != nil {
 		return projection{}, err
 	}
-	if classify == nil {
-		return projection{}, fmt.Errorf("source classifier is required")
-	}
-	ownership := make(map[string]sourceGroup, len(files))
-	for _, file := range files {
-		ownership[file.Path()] = classify(file.Path())
-	}
-	result := projection{
-		Files: projectFiles(files, ownership), Enums: projectEnums(enumDescriptors, ownership),
-		Messages: projectMessages(messageDescriptors, ownership), Services: projectServices(serviceDescriptors, ownership),
-	}
-	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(set)
-	if err != nil {
-		return projection{}, fmt.Errorf("marshal normalized descriptors: %w", err)
-	}
-	digest := sha256.Sum256(encoded)
-	result.DescriptorDigest = "sha256:" + hex.EncodeToString(digest[:])
-	return result, nil
+	return projection{
+		Enums:    projectEnums(enumDescriptors),
+		Messages: projectMessages(messageDescriptors),
+		Services: projectServices(serviceDescriptors),
+	}, nil
 }
 
 func indexDescriptors(set *descriptorpb.FileDescriptorSet) (
@@ -161,30 +131,8 @@ func indexDescriptors(set *descriptorpb.FileDescriptorSet) (
 	return files, messageDescriptors, enumDescriptors, serviceDescriptors, nil
 }
 
-func projectFiles(files []protoreflect.FileDescriptor, ownership map[string]sourceGroup) []fileProjection {
-	result := make([]fileProjection, 0, len(files))
-	for _, file := range files {
-		item := fileProjection{
-			Path: file.Path(), Package: string(file.Package()), Syntax: file.Syntax().String(),
-			Source: ownership[file.Path()], Dependencies: []string{}, Services: []string{},
-		}
-		imports := file.Imports()
-		for index := 0; index < imports.Len(); index++ {
-			item.Dependencies = append(item.Dependencies, imports.Get(index).Path())
-		}
-		slices.Sort(item.Dependencies)
-		services := file.Services()
-		for index := 0; index < services.Len(); index++ {
-			item.Services = append(item.Services, string(services.Get(index).FullName()))
-		}
-		result = append(result, item)
-	}
-	return result
-}
-
 func projectEnums(
 	descriptors map[protoreflect.FullName]protoreflect.EnumDescriptor,
-	ownership map[string]sourceGroup,
 ) []enumProjection {
 	result := make([]enumProjection, 0, len(descriptors))
 	for _, name := range sortedNames(descriptors) {
@@ -194,7 +142,7 @@ func projectEnums(
 		}
 		item := enumProjection{
 			FullName: string(name), Name: string(descriptor.Name()), Package: string(descriptor.ParentFile().Package()),
-			Parent: descriptorParent(descriptor), Source: ownership[descriptor.ParentFile().Path()],
+			Parent: descriptorParent(descriptor),
 			Values: []enumValueProjection{}, AllowAliases: descriptor.Options().(*descriptorpb.EnumOptions).GetAllowAlias(),
 			Deprecated: descriptor.Options().(*descriptorpb.EnumOptions).GetDeprecated(),
 		}
@@ -213,7 +161,6 @@ func projectEnums(
 
 func projectMessages(
 	descriptors map[protoreflect.FullName]protoreflect.MessageDescriptor,
-	ownership map[string]sourceGroup,
 ) []messageProjection {
 	projected := make([]messageProjection, 0, len(descriptors))
 	for _, name := range sortedNames(descriptors) {
@@ -223,7 +170,7 @@ func projectMessages(
 		}
 		message := messageProjection{
 			FullName: string(name), Name: string(descriptor.Name()), Package: string(descriptor.ParentFile().Package()),
-			Parent: descriptorParent(descriptor), Source: ownership[descriptor.ParentFile().Path()],
+			Parent: descriptorParent(descriptor),
 			Fields: []fieldProjection{}, Oneofs: []oneofProjection{},
 			Deprecated: descriptor.Options().(*descriptorpb.MessageOptions).GetDeprecated(),
 		}
@@ -258,14 +205,12 @@ func projectMessages(
 
 func projectServices(
 	descriptors map[protoreflect.FullName]protoreflect.ServiceDescriptor,
-	ownership map[string]sourceGroup,
 ) []serviceProjection {
 	result := make([]serviceProjection, 0, len(descriptors))
 	for _, name := range sortedNames(descriptors) {
 		descriptor := descriptors[name]
 		service := serviceProjection{
 			FullName: string(name), Name: string(descriptor.Name()), Package: string(descriptor.ParentFile().Package()),
-			Source:  ownership[descriptor.ParentFile().Path()],
 			Methods: []methodProjection{}, Deprecated: descriptor.Options().(*descriptorpb.ServiceOptions).GetDeprecated(),
 		}
 		methods := descriptor.Methods()

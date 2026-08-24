@@ -1,9 +1,7 @@
 package api
 
 import (
-	"context"
 	"flag"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,15 +14,11 @@ var rewriteFixture = flag.Bool("rewrite", false, "rewrite generator golden files
 func TestBasicFixture(t *testing.T) {
 	outputRoot := t.TempDir()
 	arguments := []string{
-		"generate",
-		"--descriptor", "fixture=testdata/basic/input.pb",
-		"--source", "Public=public/",
-		"--source", "Internal=internal/",
-		"--default-source", "External",
+		"--descriptor", "testdata/basic/input.pb",
 		"--lean-root", "Fixture",
 		"--output-root", outputRoot,
 	}
-	require.NoError(t, Run(context.Background(), arguments, io.Discard))
+	require.NoError(t, Run(arguments))
 
 	actual := readTree(t, outputRoot)
 	expectedRoot := filepath.Join("testdata", "basic", "expected")
