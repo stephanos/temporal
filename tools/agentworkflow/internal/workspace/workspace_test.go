@@ -53,6 +53,33 @@ func TestPrepareDiffAndApplyPreserveOriginalUntilPromotion(t *testing.T) {
 	}
 }
 
+func TestPrepareCopiesAgentworkflowAndProtectionRejectsMutation(t *testing.T) {
+	source := t.TempDir()
+	writeFile(t, filepath.Join(source, ".agentworkflow", "config.yml"), "schema: agentworkflow.config/v1\n")
+	writeFile(t, filepath.Join(source, ".agentworkflow", "instructions", "architecture.md"), "architecture")
+	prepared, err := Prepare(context.Background(), source, t.TempDir(), Options{MaxBytes: 1 << 20, MaxFiles: 100})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for path, want := range map[string]string{
+		".agentworkflow/config.yml":                   "schema: agentworkflow.config/v1\n",
+		".agentworkflow/instructions/architecture.md": "architecture",
+	} {
+		data, err := os.ReadFile(filepath.Join(prepared.Candidate, filepath.FromSlash(path)))
+		if err != nil || string(data) != want {
+			t.Fatalf("copied %s = %q, %v", path, data, err)
+		}
+	}
+	writeFile(t, filepath.Join(prepared.Candidate, ".agentworkflow", "instructions", "architecture.md"), "changed")
+	changes, _, err := Diff(context.Background(), prepared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateChanges(changes, []string{".agentworkflow"}); err == nil {
+		t.Fatal("agentworkflow mutation was accepted")
+	}
+}
+
 func TestApplyHandlesDirectoryToFileReplacement(t *testing.T) {
 	source := t.TempDir()
 	writeFile(t, filepath.Join(source, "swap", "child.txt"), "child")
@@ -284,7 +311,7 @@ func TestSnapshotExactDetectsControlDirectoryMutation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, filepath.Join(root, ".agentworkflow", "intrusion"), "bad")
+	writeFile(t, filepath.Join(root, ".git", "intrusion"), "bad")
 	filteredAfter, err := Snapshot(context.Background(), root, options)
 	if err != nil {
 		t.Fatal(err)
