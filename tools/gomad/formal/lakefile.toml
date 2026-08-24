@@ -1,0 +1,12 @@
+name = "gomad"
+defaultTargets = ["Gomad", "GomadTests"]
+
+[[lean_lib]]
+name = "SharedModel"
+srcDir = "../../common/formal/lean"
+
+[[lean_lib]]
+name = "Gomad"
+
+[[lean_lib]]
+name = "GomadTests"

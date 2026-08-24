@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "go_version": "go1.26.4",
+  "tests": [
+    {
+      "case": "invocation-function",
+      "package": "gomad3.test/intercept",
+      "symbol": "Function",
+      "hook": "gomadInterceptFunction"
+    },
+    {
+      "case": "invocation-notify",
+      "package": "gomad3.test/intercept",
+      "symbol": "Notify",
+      "hook": "gomadInterceptNotify"
+    },
+    {
+      "case": "invocation-method",
+      "package": "gomad3.test/intercept",
+      "receiver": {
+        "name": "Value",
+        "pointer": true
+      },
+      "symbol": "Add",
+      "hook": "gomadInterceptValueAdd"
+    },
+    {
+      "case": "missing_target",
+      "package": "gomad3.test/interceptfail/missing_target",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception target is missing: Target"
+    },
+    {
+      "case": "missing_hook",
+      "package": "gomad3.test/interceptfail/missing_hook",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception hook is missing: Hook"
+    },
+    {
+      "case": "bad_parameter",
+      "package": "gomad3.test/interceptfail/bad_parameter",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception signature mismatch for Target: hook parameter 1"
+    },
+    {
+      "case": "bad_result",
+      "package": "gomad3.test/interceptfail/bad_result",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception signature mismatch for Target: hook result 1"
+    },
+    {
+      "case": "bad_handled",
+      "package": "gomad3.test/interceptfail/bad_handled",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception signature mismatch for Target: hook final result must be bool"
+    },
+    {
+      "case": "duplicate_target",
+      "package": "gomad3.test/interceptfail/duplicate_target",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception target is duplicated in manifest: Target and Target"
+    },
+    {
+      "case": "duplicate_target",
+      "package": "gomad3.test/interceptfail/duplicate_target",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception target is duplicated in manifest: Target and Target"
+    },
+    {
+      "case": "bodyless_target",
+      "package": "gomad3.test/interceptfail/bodyless_target",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "missing function body"
+    },
+    {
+      "case": "variadic",
+      "package": "gomad3.test/interceptfail/variadic",
+      "symbol": "Target",
+      "hook": "Hook",
+      "diagnostic": "gomad interception signature mismatch for Target: hook variadic form does not match target"
+    },
+    {
+      "case": "body_mismatch",
+      "package": "gomad3.test/interceptfail/body_mismatch",
+      "symbol": "Target",
+      "hook": "Hook",
+      "declaration_sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "diagnostic": "gomad interception declaration fingerprint mismatch for Target"
+    }
+  ]
+}
