@@ -101,7 +101,7 @@ func (backend *backend) Execute(ctx context.Context, invocation agentworkflow.In
 		command = append(command, "-")
 	} else {
 		command = append(command, "exec", "resume")
-		command = append(command, backend.resumeArguments(schemaPath, outputPath)...)
+		command = append(command, backend.resumeArguments(invocation, schemaPath, outputPath)...)
 		command = append(command, invocation.Session, "-")
 	}
 	result, processErr := (process.Runner{}).Run(ctx, process.Request{
@@ -165,21 +165,28 @@ func (backend *backend) commonArguments(invocation agentworkflow.Invocation, sch
 	if backend.config.Qualified {
 		arguments = append(arguments, "--ignore-user-config", "--ignore-rules", "--strict-config")
 	}
-	if backend.config.Model != "" {
-		arguments = append(arguments, "--model", backend.config.Model)
+	if model := backend.model(invocation); model != "" {
+		arguments = append(arguments, "--model", model)
 	}
 	return append(arguments, "--output-schema", schemaPath, "--output-last-message", outputPath)
 }
 
-func (backend *backend) resumeArguments(schemaPath, outputPath string) []string {
+func (backend *backend) resumeArguments(invocation agentworkflow.Invocation, schemaPath, outputPath string) []string {
 	arguments := []string{"--json", "--skip-git-repo-check"}
 	if backend.config.Qualified {
 		arguments = append(arguments, "--ignore-user-config", "--ignore-rules", "--strict-config")
 	}
-	if backend.config.Model != "" {
-		arguments = append(arguments, "--model", backend.config.Model)
+	if model := backend.model(invocation); model != "" {
+		arguments = append(arguments, "--model", model)
 	}
 	return append(arguments, "--output-schema", schemaPath, "--output-last-message", outputPath)
+}
+
+func (backend *backend) model(invocation agentworkflow.Invocation) string {
+	if backend.config.Model != "" {
+		return backend.config.Model
+	}
+	return invocation.Model
 }
 
 type parsedEvents struct {

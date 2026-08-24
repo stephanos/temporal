@@ -50,6 +50,7 @@ const (
 type Invocation struct {
 	ID             string
 	Phase          string
+	Model          string
 	Workspace      string
 	Prompt         string
 	OutputSchema   json.RawMessage
