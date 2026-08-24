@@ -39,7 +39,7 @@ Bind the compiler contract from task `.1` to the existing standalone Nexus calle
 
 ### Task-scoped verification
 - The baseline and completion command for this task is `make -C model check`, plus the focused Lean inspector executable/tests added here.
-- `make -C model check-regression` is a final spec Quick command whose model-local target is created by task `.3`; its absence is expected until that task and must not block `.2`.
+- `make umpire-check-regression` is a final spec Quick command whose top-level target is created by task `.3`; its absence is expected until that task and must not block `.2`.
 
 ## Acceptance
 - [ ] The checked regression selects the caller-closure clash setup, force-close attempt, upgrade projection, finite declaration bounds, and both existing honored-delivery and cancellation-uniqueness expectations.
