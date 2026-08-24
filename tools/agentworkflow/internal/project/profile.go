@@ -113,12 +113,8 @@ func Load(path, root, target string) (Resolved, error) {
 	}
 	data, err := readConfig(path)
 	if err != nil {
-		legacy := filepath.Join(root, ".agentworkflow", "project.json")
-		if errors.Is(err, os.ErrNotExist) && fileExists(legacy) {
-			return Resolved{}, fmt.Errorf("legacy JSON configuration %s found; run agentworkflow init to create %s, merge your settings, then remove the legacy file", legacy, filepath.Join(root, ".spec", "agentworkflow.yaml"))
-		}
 		if errors.Is(err, os.ErrNotExist) {
-			return Resolved{}, fmt.Errorf("%w; run agentworkflow init --project %s to create .spec/agentworkflow.yaml", err, root)
+			return Resolved{}, fmt.Errorf("%w; run agentworkflow init --project %s to create .agentworkflow/config.yml", err, root)
 		}
 		return Resolved{}, err
 	}
@@ -164,7 +160,7 @@ func Load(path, root, target string) (Resolved, error) {
 	if err != nil {
 		return Resolved{}, err
 	}
-	resolved.ForbiddenPaths = compact(append(resolved.ForbiddenPaths, ".spec", relativeToRoot(root, path)))
+	resolved.ForbiddenPaths = compact(append(resolved.ForbiddenPaths, ".agentworkflow", relativeToRoot(root, path)))
 	resolved.ForbiddenPaths = compact(append(resolved.ForbiddenPaths, resolved.Instructions...))
 	checks := resolved.Checks[:0]
 	for _, check := range resolved.Checks {
@@ -325,9 +321,6 @@ func decodeConfig(data []byte, target *Profile) error {
 	if len(trimmed) == 0 {
 		return errors.New("configuration is empty")
 	}
-	if trimmed[0] == '{' || trimmed[0] == '[' {
-		return errors.New("JSON configuration is unsupported; use YAML")
-	}
 	var document yaml.Node
 	decoder := yaml.NewDecoder(bytes.NewReader(data))
 	if err := decoder.Decode(&document); err != nil {
@@ -368,6 +361,19 @@ func requireExplicitWorkflow(document *yaml.Node) error {
 		}
 		if mappingValue(stage, "enabled") == nil {
 			return fmt.Errorf("configuration.workflow.stages[%d].enabled is required", index)
+		}
+		models := mappingValue(stage, "models")
+		if models == nil {
+			continue
+		}
+		if models.Kind != yaml.MappingNode {
+			return fmt.Errorf("configuration.workflow.stages[%d].models must be a mapping", index)
+		}
+		for modelIndex := 1; modelIndex < len(models.Content); modelIndex += 2 {
+			model := models.Content[modelIndex]
+			if model.Kind != yaml.ScalarNode || model.Tag != "!!str" {
+				return fmt.Errorf("configuration.workflow.stages[%d].models values must be strings", index)
+			}
 		}
 	}
 	return nil
@@ -476,8 +482,8 @@ func validateSourceAndPaths(profile *Profile, root string) error {
 		return err
 	}
 	for _, exclusion := range exclusions {
-		if exclusion == "." || exclusion == ".spec" || strings.HasPrefix(exclusion, ".spec/") {
-			return errors.New("source.exclude cannot exclude .spec or its contents")
+		if exclusion == "." || exclusion == ".agentworkflow" || strings.HasPrefix(exclusion, ".agentworkflow/") {
+			return errors.New("source.exclude cannot exclude .agentworkflow or its contents")
 		}
 	}
 	profile.Source.Exclude = exclusions
@@ -639,7 +645,7 @@ func normalizePaths(kind string, values []string) ([]string, error) {
 
 func configPath(path, root string) (string, error) {
 	if path == "" {
-		path = filepath.Join(root, ".spec", "agentworkflow.yaml")
+		path = filepath.Join(root, ".agentworkflow", "config.yml")
 	} else if !filepath.IsAbs(path) {
 		path = filepath.Join(root, path)
 	}
