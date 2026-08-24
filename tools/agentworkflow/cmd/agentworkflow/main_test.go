@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/agentworkflow"
+	"go.temporal.io/server/tools/agentworkflow/internal/agentworkflow"
 	projectconfig "go.temporal.io/server/tools/agentworkflow/internal/project"
 	"go.temporal.io/server/tools/agentworkflow/internal/recipe"
 	"gopkg.in/yaml.v3"

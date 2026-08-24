@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/agentworkflow"
-	"go.temporal.io/server/tools/agentworkflow/backendtest"
+	"go.temporal.io/server/tools/agentworkflow/internal/agentworkflow"
+	"go.temporal.io/server/tools/agentworkflow/internal/backendtest"
 )
 
 func TestCodexAdapterConformance(t *testing.T) {
