@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-1-lean-regression-dsl-and-nexus",
   "impl_review_rounds": {
-    "fn-1-lean-regression-dsl-and-nexus.1": 1
+    "fn-1-lean-regression-dsl-and-nexus.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -205,9 +205,62 @@
       "timestamp": "2026-08-24T16:20:55.060648Z",
       "tool_calls": 15,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "443646edf1485b819538112da3d3e01dfd3aec1d9545105ff334b39181ae8e42",
+      "backend": "codex",
+      "base_sha": "4503e12b97feb0183cd03056a9df7a1bf1436439",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-700a6262a69e8fbc2265dd41171a3581",
+            "classification": "introduced",
+            "findingId": "finding-700a6262a69e8fbc2265dd41171a3581",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-418eb6767d468645bb93984ae139d028",
+            "classification": "introduced",
+            "findingId": "finding-418eb6767d468645bb93984ae139d028",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "803e3859e4deb60334c492446d1223ae679b9c9e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1152,
+      "output_sha256": "62599444047e474089816199f1ec4a6f0a715e93883f34fd27525086d9a9fbbb",
+      "reservation_id": "0372d416c48e43d498be9abf360cde14",
+      "round_consumed": true,
+      "scope": "impl:fn-1-lean-regression-dsl-and-nexus.1",
+      "superseded_by": null,
+      "task": "fn-1-lean-regression-dsl-and-nexus.1",
+      "timestamp": "2026-08-24T16:24:48.543689Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-1-lean-regression-dsl-and-nexus.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -231,5 +284,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T16:20:55.064962Z"
+  "updated_at": "2026-08-24T16:24:48.546235Z"
 }
