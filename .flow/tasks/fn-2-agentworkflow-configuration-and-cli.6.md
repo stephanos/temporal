@@ -21,9 +21,12 @@ Remove the tooling blocker before Agentworkflow implementation by advancing the 
 - [ ] XDC tests no longer configure absent cluster fields/options and type-check with the retained API.
 - [ ] Task-scoped `make lint-code` completes with all configured linters and zero findings on a case-sensitive source filesystem; inherited default-baseline findings are documented separately.
 ## Done summary
-TBD
+Pinned golangci-lint v2.13.1 for Go 1.27 and restored the branch-intended Nexus, queue-error, payload, workflow-resetter, test-cluster, matching, and XDC compatibility lost across merges. Focused tests and task-scoped full-analyzer lint pass with zero findings on a case-sensitive source copy.
 
+Inherited baseline: default `make lint-code` reports 1,811 pre-existing findings because the configured `main` baseline is six months and 1,384 commits behind this branch; the user explicitly approved task-scoped full-analyzer lint as this task's gate.
+
+stage: impl-review - skipped(policy: conductor-authorized finalize preserving existing user implementation commit)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3abf20e5d1e47808df013b0318bbf4661abee76a
+- Tests: cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow, make fmt-imports, go test -tags 'disable_grpc_modules,test_dep' ./chasm/lib/nexusoperation ./service/history/queues/errors, go test -tags 'disable_grpc_modules,test_dep' ./tools/umpire2/internal/action, go test -tags 'disable_grpc_modules,test_dep' ./service/history/ndc -run '^TestWorkflowResetterSuite/(TestCherryPickChasmEvent|TestReapplyEventsHSMToChasmFallback|TestReapplyEventsHSMNotFoundDoesNotConsultChasm|TestCherryPickHSMEvent)$' -count=1, go test -tags 'disable_grpc_modules,test_dep' ./service/matching -run '^(TestAutoEnableV2ConfigChange|TestAutoEnableV2ConfigChange_NoUnloadWhenEffectiveConfigUnchanged)$' -count=1, go test -tags 'disable_grpc_modules,test_dep' ./tests/testcore -run '^(TestWithInMemorySQLitePersistence|TestClusterPool_)' -count=1, go test -tags 'disable_grpc_modules,test_dep' ./tests/xdc -run '^$', GOLANGCI_LINT_BASE_REV=HEAD GOLANGCI_LINT_FIX=false make LOCALBIN=<host-built-tools> lint-code (case-sensitive clone; 13 analyzers; 0 issues), BASELINE_RED: make GOLANGCI_LINT_FIX=false lint-code - golangci-lint v2.12.2 buildir panic on Go 1.27 generic methods, INHERITED_RED: make lint-code - 1811 pre-existing branch-wide findings against stale main baseline 6875191ef
 - PRs:
