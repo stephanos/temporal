@@ -18,7 +18,7 @@ import (
 // workflow. The mapping below is the single source of truth — a WorkerCommand action's name
 // maps to the kitchensink action a worker issues for it — and the worker program is derived
 // from it. ValidateKitchensinkMappings checks the mapping is exhaustive before any test runs,
-// so a new WorkerCommand action can't be silently undrivable. See UMPIRE.md.
+// so a new WorkerCommand action can't be silently undrivable. See .plans/UMPIRE.md.
 
 const ksWorkflowType = "kitchenSink" // the registered name of ksworker.KitchenSinkWorkflow
 

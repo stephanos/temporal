@@ -255,4 +255,4 @@ without pretending those environments offer identical control or evidence.
   contracts still need specialized tests when they sit below the Umpire protocol abstraction.
 
 For detailed architecture and implementation boundaries, see
-[`UMPIRE.md`](../../../UMPIRE.md).
+[`.plans/UMPIRE.md`](../../../.plans/UMPIRE.md).

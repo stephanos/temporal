@@ -117,6 +117,7 @@ UMPIRE3_NEXUS_EXACT_MUTATION_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal
 UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal/generated/testdata/generated/update-proof-manifest.json
 UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
+UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 UMPIRE3_API_DESCRIPTOR := $(UMPIRE3_MODEL_ROOT)/Temporal/API/Generated/descriptor-manifest.json
 UMPIRE3_PROTOCOL_DESCRIPTOR := $(UMPIRE3_ROOT)/protocol/internal/generated/testdata/generated/descriptor-manifest.json
 UMPIRE3_MIGRATION_LEDGER := $(UMPIRE3_ROOT)/assurance/migration/testdata/generated/ledger.json
@@ -197,6 +198,7 @@ PROTO_ROOT := proto
 PROTO_FILES = $(shell find ./$(PROTO_ROOT)/internal -name "*.proto")
 CHASM_PROTO_FILES = $(shell find ./chasm/lib -name "*.proto")
 PROTO_DIRS = $(sort $(dir $(PROTO_FILES)))
+PROTOC ?= protoc
 API_BINPB := $(PROTO_ROOT)/api.binpb
 # Note: If you change the value of INTERNAL_BINPB, you'll have to add logic to
 # develop/buf-breaking.sh to handle the old and new values at once.
@@ -463,11 +465,11 @@ $(API_BINPB): go.mod go.sum $(PROTO_FILES)
 
 $(INTERNAL_BINPB): $(API_BINPB) $(PROTO_FILES)
 	@printf $(COLOR) "Generate proto image..."
-	@protoc --descriptor_set_in=$(API_BINPB) -I=$(PROTO_ROOT)/internal $(PROTO_FILES) -o $@
+	@$(PROTOC) --descriptor_set_in=$(API_BINPB) -I=$(PROTO_ROOT)/internal $(PROTO_FILES) -o $@
 
 $(CHASM_BINPB): $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_PROTO_FILES)
 	@printf $(COLOR) "Generate CHASM proto image..."
-	@protoc --descriptor_set_in=$(API_BINPB):$(INTERNAL_BINPB) -I=. $(CHASM_PROTO_FILES) -o $@
+	@$(PROTOC) --descriptor_set_in=$(API_BINPB):$(INTERNAL_BINPB) -I=. $(CHASM_PROTO_FILES) -o $@
 
 protoc: $(PROTOGEN) $(MOCKGEN) $(GOIMPORTS) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(PROTOC_GEN_GO_HELPERS) $(API_BINPB) $(LOCALBIN)/protoc-gen-go-chasm
 	@go run ./cmd/tools/protogen \
@@ -944,6 +946,17 @@ umpire3-check-api:
 	@$(UMPIRE3_API_COMMAND) -mode check
 	@cmp $(UMPIRE3_API_DESCRIPTOR) $(UMPIRE3_PROTOCOL_DESCRIPTOR)
 
+umpire-gen-api: PROTOC = mise exec -- protoc
+umpire-gen-api: $(INTERNAL_BINPB) $(CHASM_BINPB)
+	@printf $(COLOR) "Generate complete Temporal API Lean catalog..."
+	@$(UMPIRE_GEN_API_COMMAND) generate -output-root model
+
+umpire-check-api: PROTOC = mise exec -- protoc
+umpire-check-api: $(INTERNAL_BINPB) $(CHASM_BINPB)
+	@printf $(COLOR) "Check complete Temporal API Lean catalog..."
+	@$(UMPIRE_GEN_API_COMMAND) check -output-root model
+	@$(MAKE) -C model check
+
 umpire3-gen-migration:
 	@printf $(COLOR) "Generate Umpire3 root-test migration ledger..."
 	@$(UMPIRE3_MIGRATION_COMMAND) -output $(UMPIRE3_MIGRATION_LEDGER)
@@ -1051,6 +1064,8 @@ umpire3-root:
 umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
+
+.PHONY: umpire-gen-api umpire-check-api
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 

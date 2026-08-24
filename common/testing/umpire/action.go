@@ -12,7 +12,7 @@ import (
 // (possibly on several entities). A planner assembles actions into sequences that cover the
 // edge set; the generic Drive runtime here executes a sequence. This file is domain-agnostic —
 // the concrete Temporal actions and their realizers live behind tools/umpire2. See
-// UMPIRE.md.
+// .plans/UMPIRE.md.
 
 // Kind is how an action is physically realized against a live environment. It also fixes the
 // action's temporal mode: proactive kinds are fired at a point (once preconditions hold);
@@ -37,7 +37,7 @@ type Ref struct {
 	// LinkedFrom, when set, names the Var of this entity's predecessor. The entity is bound by
 	// *observation* — to whatever the LineageOracle reports as that predecessor's successor
 	// (continue-as-new / reset / retry) — rather than to a driver-supplied id, because a
-	// server-minted successor RunID cannot be known in advance. See UMPIRE.md.
+	// server-minted successor RunID cannot be known in advance. See .plans/UMPIRE.md.
 	LinkedFrom string
 }
 
@@ -77,7 +77,7 @@ type Action struct {
 	// Footprint is not reconciled.
 	Footprint []string
 	// Reject, when non-nil, declares this action is expected to be rejected synchronously rather
-	// than produce its Effects — an invalid input (malformed / unknown / stale; see UMPIRE.md).
+	// than produce its Effects — an invalid input (malformed / unknown / stale; see .plans/UMPIRE.md).
 	// Drive treats a Fire error on such an action as the expected outcome (recorded via RejectSink,
 	// not a drive failure); the domain side judges the captured error against the rejection
 	// contract, since that judgment needs transport knowledge this package deliberately lacks.
@@ -307,7 +307,7 @@ func proactive(k Kind) bool {
 // LineageOracle optionally reports the successor an entity produced (the run created from it via
 // continue-as-new / reset / retry), so Drive can bind a LinkedFrom ref by observation rather than a
 // server-minted id the driver could not know in advance. Implemented Temporal-side over the run
-// graph (see UMPIRE.md).
+// graph (see .plans/UMPIRE.md).
 type LineageOracle interface {
 	Successor(t EntityType, predecessorID string) (string, bool)
 }

@@ -227,8 +227,8 @@ The working tree already contained five uncommitted Gomad v3 source/test changes
 
 Primary references:
 
-- [Gomad v3 README](tools/gomadv3/README.md)
-- [Architecture](tools/gomadv3/ARCHITECTURE.md)
-- [Core qualification manifest](tools/gomadv3/qualification/core.json)
-- [Temporal qualification manifest](tools/gomadv3integration/qualification/temporal.json)
-- [Gomad v3 CI workflow](.github/workflows/gomadv3.yml)
+- [Gomad v3 README](../tools/gomadv3/README.md)
+- [Architecture](../tools/gomadv3/ARCHITECTURE.md)
+- [Core qualification manifest](../tools/gomadv3/qualification/core.json)
+- [Temporal qualification manifest](../tools/gomadv3integration/qualification/temporal.json)
+- [Gomad v3 CI workflow](../.github/workflows/gomadv3.yml)
