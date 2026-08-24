@@ -44,6 +44,7 @@ Moved the Agentworkflow engine, workflow contracts/results, tests, examples, and
 The complete tagged module tests, command build, focused formatting/import checks, tagged vet and race suites, and the task-scoped 13-analyzer lint pass. The canonical branch-wide formatter/lint comparison remains the explicitly approved inherited baseline exception.
 
 stage: impl-review - ran | verdict: SHIP | session: 01a03516-77b5-79a0-a383-4bd290323e0d
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: b743906171cba9b3344b1c4e23d2fc4e35ca8b4e
 - Tests: baseline: green (cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./...), structural RED: root package externally importable and internal package directories absent, structural GREEN: no root Go surface or stale imports; external import rejected with use of internal package not allowed, cd tools/agentworkflow && GOWORK=off go test -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go build ./cmd/agentworkflow, make fmt-imports (Agentworkflow paths clean; inherited unrelated formatter diff approved), cd tools/agentworkflow && GOWORK=off go vet -tags test_dep ./..., cd tools/agentworkflow && GOWORK=off go test -race -tags test_dep ./..., GOLANGCI_LINT_BASE_REV=74f03cc8eee8b8d25f1507fa9e65a8c97398f82e GOLANGCI_LINT_FIX=false make lint-code (13 analyzers, 0 issues, disposable case-sensitive clone), NO_RECEIPT: unittest gate receipt not warrantable because shared checkout has pre-existing config/development.yaml changes

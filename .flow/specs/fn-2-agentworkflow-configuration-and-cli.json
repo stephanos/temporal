@@ -1,11 +1,254 @@
 {
   "branch_name": "fn-2-agentworkflow-configuration-and-cli",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-08-24T15:28:43.737135Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-2-agentworkflow-configuration-and-cli",
+  "impl_review_rounds": {
+    "fn-2-agentworkflow-configuration-and-cli.1": 1,
+    "fn-2-agentworkflow-configuration-and-cli.2": 0,
+    "fn-2-agentworkflow-configuration-and-cli.3": 0,
+    "fn-2-agentworkflow-configuration-and-cli.4": 0,
+    "fn-2-agentworkflow-configuration-and-cli.5": 0,
+    "fn-2-agentworkflow-configuration-and-cli.7": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "0a78b7863a3db4d113d712f8a01c9bfb1fb9d7d3b628d6d5b429f5f7a72305f3",
+      "backend": "codex",
+      "base_sha": "d3e7ca8f7fc253e98f7d0ed46b7080f81aab7dbb",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dffe26ee2563d0567c029216f2fe411e7beb5716",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 309567,
+      "output_sha256": "52c24b428a06e89e7b76d5692509cef36056c44ddb7119304214b6425a7c8c3b",
+      "reservation_id": "630361d64fc14167b9e05c0dddf29809",
+      "round_consumed": true,
+      "scope": "impl:fn-2-agentworkflow-configuration-and-cli.2",
+      "superseded_by": null,
+      "task": "fn-2-agentworkflow-configuration-and-cli.2",
+      "timestamp": "2026-08-24T18:25:54.209740Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ffee7f00565e29539d9a8f7614f1c6e7e097dc9dc14cdb5b5e69b73613d3c3c4",
+      "backend": "codex",
+      "base_sha": "74f03cc8eee8b8d25f1507fa9e65a8c97398f82e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b743906171cba9b3344b1c4e23d2fc4e35ca8b4e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 76432,
+      "output_sha256": "9d7a1e4ea6235b52b1db4666e55342cee45482c2aa5c791cc2d809585a7f6c46",
+      "reservation_id": "f1b8e7bdc4bb48febc3060827884dc90",
+      "round_consumed": true,
+      "scope": "impl:fn-2-agentworkflow-configuration-and-cli.3",
+      "superseded_by": null,
+      "task": "fn-2-agentworkflow-configuration-and-cli.3",
+      "timestamp": "2026-08-24T18:46:28.258536Z",
+      "tool_calls": 7,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "868c5e74deb682db3bfb51b8c49d60b05af8a1bdd23dbbaf712e42bcaae7957d",
+      "backend": "codex",
+      "base_sha": "6c907aaac45b9faa05eeadd55f4cc1c77c07abf2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "753efe97a54b2ef4c297205a7f8ef9771108f09b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 170208,
+      "output_sha256": "35115a6a91f61f41197ea10a11aa6e42d0220a1a5534a19da937d9d81d94e221",
+      "reservation_id": "41cbb35df57041dcbabb8bac2eecc0a7",
+      "round_consumed": true,
+      "scope": "impl:fn-2-agentworkflow-configuration-and-cli.4",
+      "superseded_by": null,
+      "task": "fn-2-agentworkflow-configuration-and-cli.4",
+      "timestamp": "2026-08-24T19:13:02.179862Z",
+      "tool_calls": 11,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cb83ccf3e5ee8fc3d1538fdc48e5daa01c664f0669cbceb7fa0852381c292126",
+      "backend": "codex",
+      "base_sha": "36797c82174dacce262e12a38f49e9c758272a75",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-330b1eed0aa7717abe9573cd9e15867e",
+            "classification": "introduced",
+            "findingId": "finding-330b1eed0aa7717abe9573cd9e15867e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3d85294de9f9c31649f63160c42aaffd",
+            "classification": "introduced",
+            "findingId": "finding-3d85294de9f9c31649f63160c42aaffd",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cb732439615db48b4ad27ffd642aef6606e96706",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 386785,
+      "output_sha256": "bebaad0384648260448fc558bea7708d09f0aafa760c920cf54ccf77628e5db6",
+      "reservation_id": "e0a35aedb10c4c0199f1c2a8d9741217",
+      "round_consumed": true,
+      "scope": "impl:fn-2-agentworkflow-configuration-and-cli.5",
+      "superseded_by": null,
+      "task": "fn-2-agentworkflow-configuration-and-cli.5",
+      "timestamp": "2026-08-24T19:26:20.974107Z",
+      "tool_calls": 37,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bbe0e31affc2f95df3f9e57af3b96ffd978d7d4ff77f8d993f778cd534f11522",
+      "backend": "codex",
+      "base_sha": "36797c82174dacce262e12a38f49e9c758272a75",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-330b1eed0aa7717abe9573cd9e15867e",
+            "classification": "introduced",
+            "findingId": "finding-330b1eed0aa7717abe9573cd9e15867e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3d85294de9f9c31649f63160c42aaffd",
+            "classification": "introduced",
+            "findingId": "finding-3d85294de9f9c31649f63160c42aaffd",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c3c31b8e868d8328a30b2b2cdac52d8101bea1d1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 538,
+      "output_sha256": "086cfc72a67cbb1fd0bd91186df9a91892fa28d35de4973d32d1669e4526d455",
+      "reservation_id": "9db049b6dbce4796af64f5de8f1d4a3a",
+      "round_consumed": true,
+      "scope": "impl:fn-2-agentworkflow-configuration-and-cli.5",
+      "superseded_by": null,
+      "task": "fn-2-agentworkflow-configuration-and-cli.5",
+      "timestamp": "2026-08-24T19:34:09.134704Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-2-agentworkflow-configuration-and-cli.2": 1,
+    "impl:fn-2-agentworkflow-configuration-and-cli.3": 1,
+    "impl:fn-2-agentworkflow-configuration-and-cli.4": 1,
+    "impl:fn-2-agentworkflow-configuration-and-cli.5": 1
+  },
+  "review_pending_rounds": {
+    "impl:fn-2-agentworkflow-configuration-and-cli.1": 1,
+    "impl:fn-2-agentworkflow-configuration-and-cli.7": 1
+  },
+  "review_reservations": {
+    "0ac4d3d38585441db8d830db910e2520": {
+      "artifact_sha256": "dbdded8bca5247c9d341d980f4424a0e57ab0f732b55ea07de6ea69dbb6025b6",
+      "counter_scope": "impl:fn-2-agentworkflow-configuration-and-cli.1",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "impl"
+    },
+    "36280342ec424c51a476f5f59fadbc6b": {
+      "artifact_sha256": "1fdc58f6b7c927f6a578a8d6fee6de350c81740f5f8407c9292361d6a7ee9a23",
+      "counter_scope": "impl:fn-2-agentworkflow-configuration-and-cli.7",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
+  "review_transport_failures": {
+    "impl:fn-2-agentworkflow-configuration-and-cli.2": 0,
+    "impl:fn-2-agentworkflow-configuration-and-cli.3": 0,
+    "impl:fn-2-agentworkflow-configuration-and-cli.4": 0,
+    "impl:fn-2-agentworkflow-configuration-and-cli.5": 0
+  },
   "spec_path": ".flow/specs/fn-2-agentworkflow-configuration-and-cli.md",
   "status": "open",
   "title": "Agentworkflow configuration and CLI",
@@ -20,5 +263,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T15:28:43.742706Z"
+  "updated_at": "2026-08-24T20:05:25.179056Z"
 }
