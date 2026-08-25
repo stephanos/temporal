@@ -37,9 +37,12 @@ Semantic identity excludes provenance while canonical artifact JSON records it. 
 - [ ] No runtime execution or observation/evidence type enters either module.
 - [ ] `make umpire-check-regression` remains green.
 ## Done summary
-TBD
+Moved canonical portable artifacts and the deterministic planning engine downstream of Umpire.Query without semantic redesign, preserving artifact identity/provenance behavior and every existing comment. Kept planning outcomes distinct, sealed finalization/result construction, and added narrow-import negative compile coverage for both private authorities.
 
+baseline: green via receipt
+GATE_SKIPPED:smoke:green-receipt 3dd8d585 - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-25T19:43:42Z..2026-08-25T19:46:57Z] (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5f57472352fb21311c6eb9824df94d9bf8515bc8
+- Tests: GATE_SKIPPED:smoke:green-receipt 3dd8d585 - baseline reused from prior post-gate pass, mise exec -- lake build UmpireTests, make umpire-check-regression
 - PRs:
