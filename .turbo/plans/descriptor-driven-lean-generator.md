@@ -34,8 +34,8 @@ inputs and complete goldens, and keep Temporal-specific composition in the root 
 
 ### Reusable Utilities
 
-- `tools/umpire/internal/artifactio/artifact.go:10` — `Publish` — atomically writes an artifact through a protected temporary file, syncs it, and renames it into place.
-- `tools/umpire/internal/artifactio/artifact.go:42` — `Remove` — idempotently removes a generated artifact and syncs its containing directory.
+- `tools/common/artifactio/artifact.go:10` — `Publish` — atomically writes an artifact through a protected temporary file, syncs it, and renames it into place.
+- `tools/common/artifactio/artifact.go:42` — `Remove` — idempotently removes a generated artifact and syncs its containing directory.
 - `tools/umpire/internal/generate/api/descriptors.go:28` — `descriptorFileInput` — reads a serialized descriptor set and attaches input identity and digest metadata.
 - `tools/umpire/internal/generate/api/descriptors.go:39` — `newDescriptorInput` — computes a file-order-independent digest through deterministic protobuf serialization.
 - `tools/umpire/internal/generate/api/descriptors.go:56` — `mergeDescriptorInputs` — deduplicates identical protobuf files, rejects conflicting definitions at the same path, and returns a path-sorted descriptor set.
@@ -155,10 +155,9 @@ Blend the existing generator’s deep whole-model pipeline, deterministic planni
      leaving the output tree untouched.
 
 5. **Extract registered Go descriptor acquisition into a companion command**
-   - Add a thin entry point at
-     `tools/umpire/cmd/umpire-export-go-descriptors/main.go` and an internal implementation at
-     `tools/umpire/internal/export/godescriptors/run.go`, following the existing context/arguments/
-     output error boundary used by `umpire-gen-api`.
+   - Add a thin entry point at `cmd/tools/genleanmodeldescriptors/main.go` and a common
+     implementation at `tools/common/godescriptors/run.go`, following the existing
+     context/arguments/output error boundary used by `umpire-gen-api`.
    - Parse repeatable `--package-pattern` and `--file-prefix` flags plus required `--output`; reject
      empty lists, unexpected positional arguments, and invalid output paths before invoking Go.
    - Adapt the removed temporary-helper logic to run `go list` for all patterns, deterministically
@@ -171,9 +170,9 @@ Blend the existing generator’s deep whole-model pipeline, deterministic planni
    - Publish `--output` with `artifactio.Publish` and return contextual package-pattern, `go list`,
      helper-build, empty-selection, and write errors.
    - Add `run_test.go` plus a small importable registered-descriptor package beneath
-     `tools/umpire/testdata/godescriptors/` to cover repeated pattern/prefix parsing, package
-     deduplication, prefix selection, transitive imports, no matches, deterministic file order/
-     bytes, and command failure diagnostics without network access.
+     `tools/common/godescriptors/testdata/godescriptors/` to cover repeated pattern/prefix parsing,
+     package deduplication, prefix selection, transitive imports, no matches, deterministic file
+     order/bytes, and command failure diagnostics without network access.
 
 6. **Replace programmatic integration descriptors with readable proto and golden fixtures**
    - Create `tools/umpire/internal/generate/api/testdata/basic/input/` with the approved
@@ -196,7 +195,7 @@ Blend the existing generator’s deep whole-model pipeline, deterministic planni
      duplicated builders from `main_test.go` once the fixture pins the same behavior.
 
 7. **Wire generic descriptor acquisition and generation through the root Makefile**
-   - Add `UMPIRE_EXPORT_GO_DESCRIPTORS_COMMAND` and `UMPIRE_PUBLIC_BINPB` variables alongside
+   - Add `GEN_LEAN_MODEL_DESCRIPTORS_COMMAND` and `UMPIRE_PUBLIC_BINPB` variables alongside
      `UMPIRE_GEN_API_COMMAND` and the existing protobuf descriptor variables in `Makefile`.
    - Add a file target for `proto/umpire-public.binpb`, dependent on `go.mod` and `go.sum`, that runs
      the exporter with `go.temporal.io/api/...` and `temporal/api/`. Keep `API_BINPB`,
@@ -298,7 +297,7 @@ generated model; and no stale or unmanaged file is removed.
   and manifest schema to generalize.
 - `tools/umpire/internal/generate/api/main_test.go` — Programmatic descriptor fixture and lifecycle
   coverage to migrate without losing invariants.
-- `tools/umpire/internal/artifactio/artifact.go` — Atomic publish/remove primitives shared by the
+- `tools/common/artifactio/artifact.go` — Atomic publish/remove primitives shared by the
   generator and exporter.
 - `cmd/tools/getproto/main.go` — Existing dependency-descriptor lifecycle that the new public
   exporter must coexist with rather than replace.

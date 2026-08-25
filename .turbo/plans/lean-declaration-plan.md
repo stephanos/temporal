@@ -50,7 +50,7 @@ No new third-party dependency is needed. Continue to use `protoreflect`/`protode
 - `tools/umpire/internal/generate/api/model.go:445` — `upperIdentifier`, `lowerIdentifier`, and `identifierParts` — Hold the current Lean identifier normalization and reserved-word policy.
 - `tools/umpire/internal/generate/api/render.go:316` — `canonicalIndentedJSON` — Produces the canonical indented JSON representation used by schema, manifest, and inspect output.
 - `tools/umpire/internal/generate/api/main.go:234` — `sortedArtifactPaths` — Canonicalizes artifact traversal independently of Go map iteration.
-- `tools/umpire/internal/artifactio/artifact.go:10` — `artifactio.Publish` / `Remove` — Provide atomic publication and managed stale-file removal without coupling those concerns to projection or Lean rendering.
+- `tools/common/artifactio/artifact.go:10` — `artifactio.Publish` / `Remove` — Provide atomic publication and managed stale-file removal without coupling those concerns to projection or Lean rendering.
 - `google.golang.org/protobuf/reflect/protoreflect` and `protodesc` — Already supply descriptor identity, parent/package relationships, kinds, cardinality, map-entry semantics, oneof semantics, and resolved type references used throughout `model.go`.
 - No reusable SCC implementation was found in the repository. Existing graph handling is task-specific DFS, such as `tools/umpire/internal/generate/api/model.go:350`, `tools/umpire3/internal/generate/api/projection.go:299`, and cycle rejection in `tools/umpire3/protocol/catalog/catalog.go:403`; Gonum appears only transitively and has no repository usage for this purpose.
 
@@ -184,7 +184,7 @@ Run all checks from the repository root after implementation:
 - `tools/umpire/internal/generate/api/main.go` — `Run` boundary and descriptor → projection → artifact → inspect/check/publish pipeline that must remain the only exported interface.
 - `tools/umpire/internal/generate/api/main_test.go` — Existing synthetic descriptor, determinism, schema, collision, and generated-tree lifecycle coverage to evolve around the declaration-plan seam.
 - `tools/umpire/internal/generate/api/descriptors.go` — Descriptor-set merge and normalization boundary that remains outside this refactor.
-- `tools/umpire/internal/artifactio/artifact.go` — Existing atomic publish and managed-file removal behavior that remains outside the plan.
+- `tools/common/artifactio/artifact.go` — Existing atomic publish and managed-file removal behavior that remains outside the plan.
 - `tools/umpire2/internal/protocol/protocol.go` — Repository pattern for hiding a compiled, immutable representation behind a narrow interface.
 - `tools/umpire2/internal/protocol/compile.go` — Repository pattern for resolving and validating relationships before consumers can use compiled data.
 - `common/testing/umpire/verify/toolchain/internal/tla/generate.go` — Repository pattern for target-specific validation/canonicalization before direct rendering.

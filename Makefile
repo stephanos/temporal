@@ -118,7 +118,7 @@ UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal/generated/tes
 UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
-UMPIRE_EXPORT_GO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-go-descriptors
+GEN_LEAN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleanmodeldescriptors
 UMPIRE_REGRESSION_ID := nexus-caller-closure-upgrade
 UMPIRE_REGRESSION_INSPECTOR := temporal-experiment-inspect
 UMPIRE_GEN_API_ARGS = \
@@ -493,7 +493,7 @@ $(API_BINPB): go.mod go.sum $(PROTO_FILES)
 
 $(UMPIRE_PUBLIC_BINPB): go.mod go.sum
 	@printf $(COLOR) "Generating registered public protobuf descriptors..."
-	@$(UMPIRE_EXPORT_GO_DESCRIPTORS_COMMAND) \
+	@$(GEN_LEAN_MODEL_DESCRIPTORS_COMMAND) \
 		--package-pattern go.temporal.io/api/... \
 		--file-prefix temporal/api/ \
 		--output $@

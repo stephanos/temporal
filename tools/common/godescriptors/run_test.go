@@ -2,6 +2,7 @@ package godescriptors
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,7 +12,10 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-const fixturePackage = "go.temporal.io/server/tools/umpire/testdata/godescriptors"
+const (
+	fixturePackage       = "go.temporal.io/server/tools/common/godescriptors/testdata/godescriptors"
+	brokenFixturePackage = "go.temporal.io/server/tools/common/godescriptors/testdata/godescriptorsbroken"
+)
 
 func TestRunExportsMatchingDescriptorsAndTransitiveImportsDeterministically(t *testing.T) {
 	firstPath := filepath.Join(t.TempDir(), "first.pb")
@@ -49,8 +53,6 @@ func TestRunValidatesFlagsAndReportsEmptySelections(t *testing.T) {
 		"prefixes":   {removePair(valid, "--file-prefix"), "at least one --file-prefix"},
 		"output":     {removePair(valid, "--output"), "--output is required"},
 		"positional": {append(valid, "extra"), "unexpected positional"},
-		"no match":   {replacePair(valid, "--file-prefix", "missing/"), "no registered protobuf descriptors matched"},
-		"go list":    {replacePair(valid, "--package-pattern", "./definitely-missing-package"), "go list package pattern"},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -59,12 +61,82 @@ func TestRunValidatesFlagsAndReportsEmptySelections(t *testing.T) {
 	}
 }
 
+func TestRunFailuresDoNotReplaceExistingOutput(t *testing.T) {
+	tests := map[string]struct {
+		arguments func(string) []string
+		context   func() context.Context
+		contains  string
+	}{
+		"package list": {
+			arguments: func(output string) []string {
+				return validArguments("./definitely-missing-package", "fixture/public/", output)
+			},
+			contains: "go list package pattern",
+		},
+		"empty selection": {
+			arguments: func(output string) []string {
+				return validArguments(fixturePackage, "missing/", output)
+			},
+			contains: "no registered protobuf descriptors matched",
+		},
+		"cancellation": {
+			arguments: func(output string) []string {
+				return validArguments(fixturePackage, "fixture/public/", output)
+			},
+			context:  canceledContext,
+			contains: "go list package pattern",
+		},
+		"descriptor helper": {
+			arguments: func(output string) []string {
+				return validArguments(brokenFixturePackage, "fixture/broken/", output)
+			},
+			contains: "run descriptor helper",
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			output := filepath.Join(t.TempDir(), "output.pb")
+			existing := []byte("existing descriptor set")
+			require.NoError(t, os.WriteFile(output, existing, 0o600))
+			ctx := context.Background()
+			if test.context != nil {
+				ctx = test.context()
+			}
+			err := Run(ctx, test.arguments(output))
+			require.ErrorContains(t, err, test.contains)
+			actual, readErr := os.ReadFile(output)
+			require.NoError(t, readErr)
+			require.Equal(t, existing, actual)
+		})
+	}
+}
+
+func TestExportDescriptorsJoinsCleanupError(t *testing.T) {
+	cleanupErr := errors.New("controlled cleanup failure")
+	original := removeDescriptorHelper
+	removeDescriptorHelper = func(path string) error {
+		require.NoError(t, os.RemoveAll(path))
+		return cleanupErr
+	}
+	t.Cleanup(func() {
+		removeDescriptorHelper = original
+	})
+
+	_, err := exportDescriptors(
+		context.Background(),
+		[]string{brokenFixturePackage},
+		[]string{"fixture/broken/"},
+	)
+	require.ErrorContains(t, err, "run descriptor helper")
+	require.ErrorIs(t, err, cleanupErr)
+}
+
 func TestListDescriptorPackagesFiltersCompatibilityCopiesByProtobufPrefix(t *testing.T) {
 	packages, err := listDescriptorPackages(
 		context.Background(),
 		[]string{
 			fixturePackage,
-			"go.temporal.io/server/tools/umpire/testdata/godescriptorscompat",
+			"go.temporal.io/server/tools/common/godescriptors/testdata/godescriptorscompat",
 		},
 		[]string{"fixture/public/"},
 	)
@@ -101,13 +173,16 @@ func removePair(arguments []string, name string) []string {
 	return result
 }
 
-func replacePair(arguments []string, name, value string) []string {
-	result := append([]string(nil), arguments...)
-	for index := range result {
-		if result[index] == name {
-			result[index+1] = value
-			return result
-		}
+func validArguments(packagePattern, filePrefix, output string) []string {
+	return []string{
+		"--package-pattern", packagePattern,
+		"--file-prefix", filePrefix,
+		"--output", output,
 	}
-	return result
+}
+
+func canceledContext() context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	return ctx
 }

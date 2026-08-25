@@ -74,9 +74,9 @@ same three-file contract applies to any valid `--lean-root`, not only `Temporal`
 
 ### Reusable Utilities
 
-- `tools/umpire/internal/artifactio/artifact.go:10` — `Publish` atomically replaces one artifact
+- `tools/common/artifactio/artifact.go:10` — `Publish` atomically replaces one artifact
   through a same-directory temporary file and preserves the existing generated-file mode.
-- `tools/umpire/internal/artifactio/artifact.go:42` — `Remove` idempotently removes the standalone
+- `tools/common/artifactio/artifact.go:42` — `Remove` idempotently removes the standalone
   generated `API.lean` artifact and syncs its parent directory.
 - `tools/umpire/internal/generate/api/main.go:178` — `sortedArtifactPaths` can remain useful for
   validation and tests even though publication uses explicit dependency order.
