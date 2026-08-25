@@ -10,7 +10,9 @@
     "fn-3-umpire-semantic-authoring-and-planning"
   ],
   "id": "fn-8-umpire-temporal-dynamic-config",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-8-umpire-temporal-dynamic-config.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -75,15 +77,47 @@
       "task": null,
       "timestamp": "2026-08-25T05:39:51.714606Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d79dae0ed732e5f4768eb4d6dba88415eddb1d57a345e51ffd9aaa8aaba458a3",
+      "backend": "codex",
+      "base_sha": "e5131ca0704abeb5c47e045ab4c2bca9e31cb220",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8b5b98a9a8dafcbb9b135a54bbf4ce0a5a39681c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 739736,
+      "output_sha256": "0a609dcc7abc010137247132c913778d5e94c2968e7a867a3d1e7d9200bf5467",
+      "reservation_id": "ec1b3ec3f8184c07b7008a243dc25ed9",
+      "round_consumed": true,
+      "scope": "impl:fn-8-umpire-temporal-dynamic-config.1",
+      "superseded_by": null,
+      "task": "fn-8-umpire-temporal-dynamic-config.1",
+      "timestamp": "2026-08-25T14:55:55.525641Z",
+      "tool_calls": 32,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-8-umpire-temporal-dynamic-config.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-8-umpire-temporal-dynamic-config.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-8-umpire-temporal-dynamic-config.md",
@@ -100,5 +134,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T05:42:00.790312Z"
+  "updated_at": "2026-08-25T14:55:55.538711Z"
 }
