@@ -47,6 +47,7 @@ baseline: green via receipts
 GATE_SKIPPED:unittest:green-receipt 782e8618 - baseline reused from prior post-gate pass
 GATE_SKIPPED:smoke:green-receipt 782e8618 - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-25T05:20:03Z..2026-08-25T05:23:59Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 50f0ee4ace9c6884bfe36ebd58a3068348369fb9
 - Tests: GATE_SKIPPED:unittest:green-receipt 782e8618 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 782e8618 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build ExperimentTests, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
