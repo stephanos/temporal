@@ -45,9 +45,12 @@ make fmt-imports
 - [ ] Missing metadata, empty registry, post-query registration, and normalized-key collisions fail without returning partial state.
 - [ ] Generated constructor output is regenerated from the authoritative template and focused tests pass.
 ## Done summary
-TBD
+Added constructor-time setting metadata and deterministic, deeply copied registry snapshots with normalized keys, codec/type identity, and concrete, constrained, or opaque defaults. Updated the authoritative generator driver/template and regenerated all constructor families while preserving existing behavior and comments.
 
+Baseline: green (`go test -count=1 -tags test_dep ./common/dynamicconfig`; `make fmt-imports`). R1/R3 error coverage: `TestRegisteredSettingMetadataRejectsIncompleteRegistry`, `TestRegisteredSettingMetadataFreezesRegistry`, and `TestRegisteredSettingMetadataRejectsNormalizedKeyCollision`; immutability and constructor-family coverage live in the remaining focused metadata tests.
+
+stage: impl-review - ran [2026-08-25T14:49:47Z..2026-08-25T14:56:02Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8b5b98a9a8dafcbb9b135a54bbf4ce0a5a39681c
+- Tests: go test -count=1 -tags test_dep ./common/dynamicconfig, make fmt-imports
 - PRs:
