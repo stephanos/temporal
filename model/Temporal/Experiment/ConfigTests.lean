@@ -119,29 +119,18 @@ example :
 
 def duplicateOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.duplicate-override" "payments"
-  let override : ConfigOverride := {
-    key := use.key
-    constraints := namespaceContext "payments"
-    value := .int 20
-  }
+  let override ← checkConfigOverride use (namespaceContext "payments") (.int 20)
   resolveConfigView [override, override] [.of use]
 
 def illegalOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.illegal-override" "payments"
-  let override : ConfigOverride := {
-    key := use.key
-    constraints := { emptyConstraints with destination := some "callback-api" }
-    value := .int 20
-  }
+  let override ← checkConfigOverride use
+    { emptyConstraints with destination := some "callback-api" } (.int 20)
   resolveConfigView [override] [.of use]
 
 def schemaMismatchOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.schema-mismatch-override" "payments"
-  let override : ConfigOverride := {
-    key := use.key
-    constraints := namespaceContext "payments"
-    value := .bool true
-  }
+  let override ← checkConfigOverride use (namespaceContext "payments") (.bool true)
   resolveConfigView [override] [.of use]
 
 def duplicateUseResult : Except ConfigError ConfigView := do
@@ -181,16 +170,10 @@ def addressRulesValue (rules : List CanonicalValue) : CanonicalValue :=
 
 def malformedUnselectedAddressOverrideResult : Except ConfigError ConfigView := do
   let use ← callbackAllowedAddressesUse "payments"
-  let selected : ConfigOverride := {
-    key := use.key
-    constraints := namespaceContext "payments"
-    value := addressRulesValue [addressRuleValue "api.example.com" false]
-  }
-  let malformed : ConfigOverride := {
-    key := use.key
-    constraints := emptyConstraints
-    value := addressRulesValue [addressRuleValue "" false]
-  }
+  let selected ← checkConfigOverride use (namespaceContext "payments")
+    (addressRulesValue [addressRuleValue "api.example.com" false])
+  let malformed ← checkConfigOverride use emptyConstraints
+    (addressRulesValue [addressRuleValue "" false])
   resolveConfigView [selected, malformed] [.of use]
 
 example : errorKindOf malformedUnselectedAddressOverrideResult =
@@ -199,16 +182,8 @@ example : errorKindOf malformedUnselectedAddressOverrideResult =
 def sameKeyView (reverseInput : Bool) : Except ConfigError ConfigView := do
   let first ← checkedMaxUse "test.config.consumer-a" "alpha"
   let second ← checkedMaxUse "test.config.consumer-b" "beta"
-  let firstOverride : ConfigOverride := {
-    key := first.key
-    constraints := namespaceContext "alpha"
-    value := .int 11
-  }
-  let secondOverride : ConfigOverride := {
-    key := second.key
-    constraints := namespaceContext "beta"
-    value := .int 22
-  }
+  let firstOverride ← checkConfigOverride first (namespaceContext "alpha") (.int 11)
+  let secondOverride ← checkConfigOverride second (namespaceContext "beta") (.int 22)
   if reverseInput then
     resolveConfigView [secondOverride, firstOverride] [.of second, .of first]
   else
@@ -247,11 +222,8 @@ def immutableViewReads : Except ConfigError (Int × Int × Int) := do
   let use ← checkedMaxUse "test.config.immutable" "payments"
   let view ← resolveConfigView [] [.of use]
   let before ← view.read use
-  let changed ← resolveConfigView [{
-    key := use.key
-    constraints := namespaceContext "payments"
-    value := .int 10
-  }] [.of use]
+  let override ← checkConfigOverride use (namespaceContext "payments") (.int 10)
+  let changed ← resolveConfigView [override] [.of use]
   let changedValue ← changed.read use
   let after ← view.read use
   pure (before, changedValue, after)
@@ -286,11 +258,8 @@ example : representativeMetadataComplete = true := by native_decide
 
 def constrainedDefaultInterleaving : Except ConfigError (Int × ResolutionSource) := do
   let use ← matchingUpdateAckIntervalUse "fixture-namespace" "temporal-sys-per-ns-tq" 1
-  let namespaceOverride : ConfigOverride := {
-    key := use.key
-    constraints := namespaceContext "fixture-namespace"
-    value := .duration 120000000000
-  }
+  let namespaceOverride ← checkConfigOverride use
+    (namespaceContext "fixture-namespace") (.duration 120000000000)
   let view ← resolveConfigView [namespaceOverride] [.of use]
   let value ← view.read use
   match view.provenance with
@@ -481,19 +450,16 @@ def callbackConsumerView
   let maximumUse ← callbackMaxPerExecutionUse "payments"
   let addressesUse ← callbackAllowedAddressesUse "payments"
   let timeoutUse ← callbackRequestTimeoutUse "payments" "callback-api"
+  let enableOverride ← checkConfigOverride enableUse
+    (namespaceContext "payments") (.bool enabled)
+  let maximumOverride ← checkConfigOverride maximumUse
+    (namespaceContext "payments") (.int maximum)
+  let addressesOverride ← checkConfigOverride addressesUse
+    (namespaceContext "payments") callbackConsumerRulesValue
+  let timeoutOverride ← checkConfigOverride timeoutUse
+    (destinationContext "payments" "callback-api") (.duration timeoutNanoseconds)
   resolveConfigView
-    [{ key := enableUse.key
-       constraints := namespaceContext "payments"
-       value := .bool enabled },
-     { key := maximumUse.key
-       constraints := namespaceContext "payments"
-       value := .int maximum },
-     { key := addressesUse.key
-       constraints := namespaceContext "payments"
-       value := callbackConsumerRulesValue },
-     { key := timeoutUse.key
-       constraints := destinationContext "payments" "callback-api"
-       value := .duration timeoutNanoseconds }]
+    [enableOverride, maximumOverride, addressesOverride, timeoutOverride]
     [.of enableUse, .of maximumUse, .of addressesUse, .of timeoutUse]
 
 def callbackConsumerConfig
