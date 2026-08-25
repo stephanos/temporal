@@ -42,6 +42,7 @@ Move the bounded caller-closure target, scenario, real Workflow/Nexus compositio
 Moved the checked caller-closure scenario and its real Workflow/Nexus coverage into `Temporal.Feature.Nexus`, retaining the former module as an import-only bridge. Preserved declaration identities, semantic digests, planner output, stable `NexusAutoClose` Config serialization, and the canonical artifact except for truthful source provenance.
 
 stage: impl-review - ran [2026-08-25T23:11:53Z..2026-08-25T23:14:25Z] | SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: b89e1e2ea7c7e2d7351eeee0032abbc7d358f2de
 - Tests: baseline: green (make umpire-check-regression), mise exec -- lake build Temporal.Feature.Nexus.CallerClosureTests TemporalUmpireTests, cmp /tmp/fn10-task4-actual.json model/Temporal/Umpire/testdata/nexus-caller-closure-experiment-spec.json, make umpire-check-regression
