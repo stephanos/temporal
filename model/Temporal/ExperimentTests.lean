@@ -5,6 +5,7 @@ import Temporal.Experiment.PropertyTests
 import Temporal.Experiment.BehaviorTests
 import Temporal.Experiment.QueryTests
 import Temporal.Experiment.PlannerTests
+import Temporal.Experiment.ConfigTests
 import Temporal.Experiment.SwitchScenario
 
 namespace Temporal.ExperimentTests
