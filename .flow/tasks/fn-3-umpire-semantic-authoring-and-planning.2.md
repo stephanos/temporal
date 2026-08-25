@@ -47,6 +47,7 @@ baseline: red (cd model && mise exec -- lake env lean Temporal/Experiment/Proper
 GATE_SKIPPED:unittest:green-receipt d01538a7 - baseline reused from prior post-gate pass
 GATE_SKIPPED:smoke:green-receipt d01538a7 - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-25T02:17:34Z..2026-08-25T02:26:51Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 9b7c9e5f9ed4d232687565a1b5e62811ac2c40e5, a75dd2d1d8204a827a3231f616420d302c18ce95
 - Tests: baseline: red (cd model && mise exec -- lake env lean Temporal/Experiment/PropertyTests.lean failed pre-edit because the task-created test module did not yet exist), GATE_SKIPPED:unittest:green-receipt d01538a7 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt d01538a7 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build Temporal.Experiment.Property, cd model && mise exec -- lake env lean Temporal/Experiment/PropertyTests.lean, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
