@@ -1,7 +1,8 @@
 import Temporal
 import Temporal.Umpire.ConfigTests
 import Temporal.Umpire.Inspect
-import UmpireTests
+import Umpire.Examples.Switch
+import Umpire.Property
 
 namespace Temporal.UmpireTests
 
@@ -16,10 +17,70 @@ def declarationErrorOf
   | .error error => some error
   | .ok _ => none
 
+def uniquenessSource : SemanticSource := {
+  path := "TemporalUmpireTests.lean"
+  line := 1
+  column := 1
+  provenance := "lean-test"
+}
+
+def uniquenessCapability : DeclarationId :=
+  DeclarationId.of "regression.capability.uniqueness"
+
+def pendingCancelCount : DeclarationId :=
+  DeclarationId.of "regression.state.pending-cancel-count"
+
+def uniquenessMetadata (id : DeclarationId) (kind : DeclarationKind) : DeclarationMetadata := {
+  id
+  kind
+  source := uniquenessSource
+  contractDigest := id.value ++ "/v1"
+}
+
+def uniquenessContext : PropertyCheckContext := {
+  declarations := [
+    uniquenessMetadata uniquenessCapability .capability,
+    uniquenessMetadata pendingCancelCount .state
+  ]
+  providers := [{
+    id := uniquenessCapability
+    version := 1
+    semanticDigest := "regression-uniqueness/v1"
+  }]
+  meanings := [(uniquenessCapability, {
+    declaration := pendingCancelCount
+    kind := .state
+    semanticDigest := "regression-pending-cancel-count/v1"
+  })]
+}
+
+def uniquenessProperty : PropertyDeclaration := {
+  id := DeclarationId.of "regression.property.cancel-is-unique"
+  source := uniquenessSource
+  requires := [uniquenessCapability]
+  clauses := [.stateInvariant
+    (DeclarationId.of "regression.property.cancel-is-unique.clause")
+    {
+      field := .state
+      reference := pendingCancelCount
+      constraint := .naturalAtMost 1
+    }]
+}
+
+def semanticValue (identity : DeclarationId) (value : String) : SemanticValue := {
+  identity
+  value
+}
+
+def evaluateUniqueness
+    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
+    Option PropertyEvaluation :=
+  (checkProperty uniquenessContext (.portable uniquenessProperty)).toOption.map fun property =>
+    evaluateProperty property trace
+
 def nexusUniquenessTrace
     (config : Config) : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
-  initialState := _root_.Umpire.PropertyTests.value
-    _root_.Umpire.PropertyTests.pendingCount (toString config.cancels.length)
+  initialState := semanticValue pendingCancelCount (toString config.cancels.length)
   steps := []
 }
 
@@ -27,9 +88,7 @@ example : AtMostOneEvent (autoClose .upgrade wClash) :=
   upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade)
 
 example :
-    (_root_.Umpire.PropertyTests.evaluationOf
-      _root_.Umpire.PropertyTests.uniquenessProperty
-      (nexusUniquenessTrace (autoClose .upgrade wClash))).map
+    (evaluateUniqueness (nexusUniquenessTrace (autoClose .upgrade wClash))).map
         PropertyEvaluation.satisfied = some true := by
   native_decide
 
@@ -37,9 +96,7 @@ example : ¬AtMostOneEvent (autoClose .duplicate wClash) := by
   simp [AtMostOneEvent, autoClose, applyResolution, wClash]
 
 example :
-    (_root_.Umpire.PropertyTests.evaluationOf
-      _root_.Umpire.PropertyTests.uniquenessProperty
-      (nexusUniquenessTrace (autoClose .duplicate wClash))).map
+    (evaluateUniqueness (nexusUniquenessTrace (autoClose .duplicate wClash))).map
         PropertyEvaluation.satisfied = some false := by
   native_decide
 
