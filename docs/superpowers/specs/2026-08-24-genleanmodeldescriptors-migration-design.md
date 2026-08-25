@@ -8,13 +8,13 @@ behavior while removing Umpire-specific ownership from the command implementatio
 
 ## Architecture
 
-`cmd/tools/genleanmodeldescriptors` is one `main` package. `main.go` passes the process context and
-arguments to the package-local `Run` implementation and reports failures using the new command name.
+`cmd/tools/genleanmodeldescriptors` is one `main` package. `main.go` contains the process adapter and
+the package-local `Run` implementation, reporting failures using the new command name.
 
 The implementation moves from `tools/umpire/internal` into the command package and two focused
 helper packages:
 
-- `cmd/tools/genleanmodeldescriptors/run.go` owns argument parsing, package discovery, temporary
+- `cmd/tools/genleanmodeldescriptors/main.go` owns argument parsing, package discovery, temporary
   helper generation, descriptor selection, deterministic serialization, and orchestration.
 - `tools/common/artifactio` owns atomic artifact publication and removal. The Lean descriptor tool
   and the existing Umpire API generator both use it.
