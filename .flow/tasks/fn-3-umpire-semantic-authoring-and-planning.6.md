@@ -42,9 +42,15 @@ cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect
 - [ ] Inspector success is canonical and repeatable, while unknown scenario and invalid composition paths emit one stable diagnostic and no artifact JSON.
 - [ ] The focused Lean build passes and the R8 dependency/import/reference audit is clean.
 ## Done summary
-TBD
+Replaced callback-based experiment authoring with proof-backed semantic declarations for targets, properties, behaviors, queries, planning, and canonical artifacts. The Nexus caller-closure integration now proves an explicit owner-to-operation relation, reconciles conflicting internal claims into one public meaning, and exposes deterministic inspector output through the canonical query identity.
 
+baseline: green via receipts
+GATE_SKIPPED:unittest:green-receipt 101d2400 - baseline reused from prior post-gate pass
+GATE_SKIPPED:smoke:green-receipt 101d2400 - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-25T04:46:15Z..2026-08-25T05:03:55Z]
+
+Memory capture was attempted after the non-trivial review fix and failed non-blockingly because the memory store is uninitialized; it was not initialized.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d3e4b8d7db8f6a6d2cae19416c1bb959df776391, 62e8b514208c4a0a61a52628f0b07a5ebd14d6ba, cdc37b93cd75a922698f7019bab3f34d0ed203f5, 782e861820f1a44474cd4055001239b5b4c267f7
+- Tests: GATE_SKIPPED:unittest:green-receipt 101d2400 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 101d2400 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build Temporal.Experiment.NexusCallerClosure, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
 - PRs:
