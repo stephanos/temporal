@@ -18,8 +18,13 @@ def targetId := id "workflow-nexus.target.caller-closure"
 def kernelId := id "workflow-nexus.kernel.caller-closure"
 def workflowCapabilityId := id "workflow.capability.lifecycle"
 def cancellationCapabilityId := id "nexus.capability.cancellation"
+def ownershipCapabilityId := id "workflow-nexus.capability.ownership"
+def ownershipClaimCapabilityId := id "workflow-nexus.capability.ownership-claim-internal"
 def workflowProviderId := id "workflow.provider.lifecycle"
 def cancellationProviderId := id "nexus.provider.cancellation"
+def workflowOwnershipClaimProviderId := id "workflow.provider.ownership-claim"
+def cancellationOwnershipClaimProviderId := id "nexus.provider.ownership-claim"
+def ownershipProviderId := id "workflow-nexus.provider.ownership"
 def ownershipConnectorId := id "workflow-nexus.connector.ownership"
 def lifecycleLawId := id "workflow.law.caller-closure"
 def cancellationLawId := id "nexus.law.cancellation-honored"
@@ -29,6 +34,7 @@ def forceCloseActionId := id "workflow.action.force-close"
 def upgradedOutcomeId := id "nexus.outcome.cancellation-upgraded"
 def deliveredObservationId := id "nexus.observation.cancellation-delivered"
 def cancellationCountObservationId := id "nexus.observation.pending-cancellation-count"
+def ownershipClaimId := id "workflow-nexus.observation.ownership-claim"
 def ownershipRelationId := id "workflow-nexus.relation.owns-operation"
 def operationRoleId := id "workflow-nexus.role.operation"
 def callerClosurePropertyId := id "workflow-nexus.property.caller-closure"
@@ -55,8 +61,34 @@ def ownershipLaw : LawRequirement := {
   semanticDigest := "workflow-nexus-ownership-law/v1"
 }
 
+def OwnershipReconciled : Prop :=
+  Reachable .upgrade wClash ∧
+    wClash.callerOpen = true ∧ (autoClose .upgrade wClash).callerOpen = false
+
 def LawStatement (lawId : DeclarationId) : Prop :=
-  lawId = lifecycleLaw.id ∨ lawId = cancellationLaw.id ∨ lawId = ownershipLaw.id
+  if lawId = lifecycleLaw.id then
+    Reachable .upgrade wClash
+  else if lawId = cancellationLaw.id then
+    Honored (autoClose .upgrade wClash)
+  else if lawId = ownershipLaw.id then
+    OwnershipReconciled
+  else
+    False
+
+theorem ownershipReconciledProof : OwnershipReconciled := by
+  exact ⟨wClash_reachable .upgrade, rfl, rfl⟩
+
+theorem lifecycleLawProof : LawStatement lifecycleLaw.id := by
+  simpa [LawStatement, lifecycleLaw, lifecycleLawId, id, DeclarationId.of] using
+    wClash_reachable .upgrade
+
+theorem cancellationLawProof : LawStatement cancellationLaw.id := by
+  simpa [LawStatement, lifecycleLaw, cancellationLaw, lifecycleLawId, cancellationLawId, id,
+    DeclarationId.of] using upgrade_honors_delivery wClash
+
+theorem ownershipLawProof : LawStatement ownershipLaw.id := by
+  simpa [LawStatement, lifecycleLaw, cancellationLaw, ownershipLaw, lifecycleLawId,
+    cancellationLawId, ownershipLawId, id, DeclarationId.of] using ownershipReconciledProof
 
 private def witness
     (requirement : LawRequirement)
@@ -109,7 +141,7 @@ def cancellationCountObservation : SemanticValue := {
 
 def ownershipObservation : SemanticValue := {
   identity := ownershipRelationId
-  value := "caller-closed-operation-owned"
+  value := toString closedConfig.callerOpen
 }
 
 def clashSetup : List RoleBinding := [{ role := operationRoleId, value := clashState }]
@@ -127,7 +159,7 @@ def authoritativeStep
     (state action : SemanticValue)
     (result : TransitionResult SemanticValue SemanticValue SemanticValue) : Prop :=
   state = clashState ∧ action = forceCloseAction ∧ result = forceCloseResult ∧
-    Honored closedConfig ∧ AtMostOneEvent closedConfig
+    Honored closedConfig ∧ AtMostOneEvent closedConfig ∧ OwnershipReconciled
 
 def transitionKernel : TransitionKernel
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
@@ -159,11 +191,12 @@ def transitionKernel : TransitionKernel
       subst result
       exact ⟨selected.1, selected.2, rfl,
         upgrade_honors_delivery wClash,
-        upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade)⟩
+        upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade),
+        ownershipReconciledProof⟩
     · simp [selected] at member
   stepComplete := by
     intro state action result admitted
-    rcases admitted with ⟨rfl, rfl, rfl, _, _⟩
+    rcases admitted with ⟨rfl, rfl, rfl, _, _, _⟩
     simp
 }
 
@@ -177,11 +210,9 @@ def workflowProvider : CapabilityProvider LawStatement := {
   }
   meanings := [
     { declaration := configStateId, kind := .state,
-      semanticDigest := "workflow-config-state/v1" },
-    { declaration := ownershipRelationId, kind := .observation,
-      semanticDigest := "workflow-operation-ownership/v1" }
+      semanticDigest := "workflow-config-state/v1" }
   ]
-  lawWitnesses := [witness lifecycleLaw (by exact .inl rfl)]
+  lawWitnesses := [witness lifecycleLaw lifecycleLawProof]
 }
 
 def cancellationProvider : CapabilityProvider LawStatement := {
@@ -200,11 +231,57 @@ def cancellationProvider : CapabilityProvider LawStatement := {
     { declaration := deliveredObservationId, kind := .observation,
       semanticDigest := "nexus-cancellation-delivery-observation/v1" },
     { declaration := cancellationCountObservationId, kind := .observation,
-      semanticDigest := "nexus-cancellation-count-observation/v1" },
-    { declaration := ownershipRelationId, kind := .observation,
-      semanticDigest := "nexus-operation-ownership/v1" }
+      semanticDigest := "nexus-cancellation-count-observation/v1" }
   ]
-  lawWitnesses := [witness cancellationLaw (by exact .inr (.inl rfl))]
+  lawWitnesses := [witness cancellationLaw cancellationLawProof]
+}
+
+def workflowOwnershipClaimProvider : CapabilityProvider LawStatement := {
+  id := workflowOwnershipClaimProviderId
+  source
+  contract := {
+    id := ownershipClaimCapabilityId
+    semanticDigest := "workflow-nexus-ownership-claim-internal/v1"
+    requiredLaws := [lifecycleLaw]
+  }
+  meanings := [{
+    declaration := ownershipClaimId
+    kind := .observation
+    semanticDigest := "workflow-operation-ownership-claim/v1"
+  }]
+  lawWitnesses := [witness lifecycleLaw lifecycleLawProof]
+}
+
+def cancellationOwnershipClaimProvider : CapabilityProvider LawStatement := {
+  id := cancellationOwnershipClaimProviderId
+  source
+  contract := {
+    id := ownershipClaimCapabilityId
+    semanticDigest := "workflow-nexus-ownership-claim-internal/v1"
+    requiredLaws := [cancellationLaw]
+  }
+  meanings := [{
+    declaration := ownershipClaimId
+    kind := .observation
+    semanticDigest := "nexus-operation-ownership-claim/v1"
+  }]
+  lawWitnesses := [witness cancellationLaw cancellationLawProof]
+}
+
+def ownershipProvider : CapabilityProvider LawStatement := {
+  id := ownershipProviderId
+  source
+  contract := {
+    id := ownershipCapabilityId
+    semanticDigest := "workflow-nexus-ownership/v1"
+    requiredLaws := [ownershipLaw]
+  }
+  meanings := [{
+    declaration := ownershipRelationId
+    kind := .observation
+    semanticDigest := "workflow-nexus-operation-ownership/v1"
+  }]
+  lawWitnesses := [witness ownershipLaw ownershipLawProof]
 }
 
 def ownershipConnector : CapabilityConnector LawStatement := {
@@ -212,13 +289,13 @@ def ownershipConnector : CapabilityConnector LawStatement := {
   source
   semanticDigest := "workflow-nexus-ownership-connector/v1"
   reconciliations := [{
-    declaration := ownershipRelationId
+    declaration := ownershipClaimId
     kind := .observation
-    providers := [workflowProviderId, cancellationProviderId]
-    semanticDigest := "workflow-nexus-operation-ownership/v1"
+    providers := [workflowOwnershipClaimProviderId, cancellationOwnershipClaimProviderId]
+    semanticDigest := "workflow-nexus-operation-ownership-claim/v1"
   }]
   requiredLaws := [ownershipLaw]
-  lawWitnesses := [witness ownershipLaw (by exact .inr (.inr rfl))]
+  lawWitnesses := [witness ownershipLaw ownershipLawProof]
 }
 
 def declarations : List DeclarationMetadata := [
@@ -226,8 +303,14 @@ def declarations : List DeclarationMetadata := [
   metadata kernelId .kernel "workflow-nexus-caller-closure-kernel/v1",
   metadata workflowCapabilityId .capability "workflow-lifecycle/v1",
   metadata cancellationCapabilityId .capability "nexus-cancellation/v1",
+  metadata ownershipCapabilityId .capability "workflow-nexus-ownership/v1",
+  metadata ownershipClaimCapabilityId .capability
+    "workflow-nexus-ownership-claim-internal/v1",
   metadata workflowProviderId .provider "workflow-lifecycle-provider/v1",
   metadata cancellationProviderId .provider "nexus-cancellation-provider/v1",
+  metadata workflowOwnershipClaimProviderId .provider "workflow-ownership-claim-provider/v1",
+  metadata cancellationOwnershipClaimProviderId .provider "nexus-ownership-claim-provider/v1",
+  metadata ownershipProviderId .provider "workflow-nexus-ownership-provider/v1",
   metadata ownershipConnectorId .connector "workflow-nexus-ownership-connector/v1",
   metadata lifecycleLawId .law lifecycleLaw.semanticDigest,
   metadata cancellationLawId .law cancellationLaw.semanticDigest,
@@ -237,6 +320,7 @@ def declarations : List DeclarationMetadata := [
   metadata upgradedOutcomeId .outcome "nexus-upgraded-cancellation-outcome/v1",
   metadata deliveredObservationId .observation "nexus-cancellation-delivery-observation/v1",
   metadata cancellationCountObservationId .observation "nexus-cancellation-count-observation/v1",
+  metadata ownershipClaimId .observation "workflow-nexus-operation-ownership-claim/v1",
   metadata ownershipRelationId .observation "workflow-nexus-operation-ownership/v1"
 ]
 
@@ -245,8 +329,18 @@ def targetDeclaration : TargetDeclaration LawStatement
   id := targetId
   source
   declarations
-  requiredCapabilities := [workflowCapabilityId, cancellationCapabilityId]
-  providers := [workflowProvider, cancellationProvider]
+  requiredCapabilities := [
+    workflowCapabilityId,
+    cancellationCapabilityId,
+    ownershipCapabilityId
+  ]
+  providers := [
+    workflowProvider,
+    cancellationProvider,
+    workflowOwnershipClaimProvider,
+    cancellationOwnershipClaimProvider,
+    ownershipProvider
+  ]
   connectors := [ownershipConnector]
   resolvedSetups := [clashSetup]
   kernel := .checked transitionKernel
@@ -286,12 +380,13 @@ theorem target_force_close_is_authoritative :
   change authoritativeStep clashState forceCloseAction forceCloseResult
   exact ⟨rfl, rfl, rfl,
     upgrade_honors_delivery wClash,
-    upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade)⟩
+    upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade),
+    ownershipReconciledProof⟩
 
 def propertyDeclaration : PropertyDeclaration := {
   id := callerClosurePropertyId
   source
-  requires := [workflowCapabilityId, cancellationCapabilityId]
+  requires := [workflowCapabilityId, cancellationCapabilityId, ownershipCapabilityId]
   clauses := [
     .transitionContract (id "workflow-nexus.property.clause.delivery")
       { field := .selectedAction, reference := forceCloseActionId,
