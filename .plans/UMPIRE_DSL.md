@@ -1092,3 +1092,167 @@ The package extraction should land before Observation, discovery, or promotion w
 declarations to the old namespace. It moves and separates the implemented surface without
 redesigning `SemanticValue`, adding new DSL semantics, or scaffolding future empty packages.
 Generalizing the value representation remains a separate design decision.
+
+## 22. Temporal semantic placement and domain purity
+
+This section records the accepted Temporal-side placement as of 2026-08-25. It strengthens the
+package split in section 21: dependency isolation alone is insufficient if reusable Umpire tests or
+fixtures still embed Temporal product vocabulary.
+
+### 22.1 Umpire is domain-neutral in production and tests
+
+`model/Umpire/**` owns only reusable semantic vocabulary, authoring languages, planning, artifacts,
+domain-neutral examples, and synthetic tests. It does not contain Temporal feature identities,
+namespaces, source markers, fixtures, or terminology. This applies equally to production modules,
+test modules, import guards, examples, and documentation colocated with the library.
+
+Core connector tests use explicitly synthetic providers, capabilities, relations, and targets.
+Property and Behavior tests use synthetic states, actions, outcomes, observations, and bounds.
+Actual Workflow and Nexus composition coverage belongs to the Temporal feature package. The generic
+switch remains under `Umpire.Examples` because it is deliberately domain-neutral.
+
+The stable regression command enforces both forms of isolation:
+
+- no `Umpire.*` module imports `Temporal.*` or another Temporal-owned module; and
+- no file under `model/Umpire/**` contains Temporal-owned namespace, source, or semantic-identity
+  prefixes such as `nexus.*`, `workflow.*`, or `workflow-nexus.*`.
+
+The second check is intentionally narrower than banning ordinary words such as “temporal,” which
+also have legitimate domain-neutral meanings in a property language.
+
+### 22.2 Temporal modules are classified by semantic altitude
+
+The `Feature` and `System` directories classify semantic models, not every Temporal file:
+
+- `Temporal.Feature.*` owns product-visible behavioral meaning, abstract state machines,
+  capabilities, properties, behaviors, and checked feature targets;
+- `Temporal.System.*` owns concrete Temporal mechanisms, configuration interpretation, routing and
+  delivery models, raw evidence mappings, execution adapters, and later refinement adapters; and
+- `Temporal.Tool.*` owns model inspection and other developer tooling.
+
+Generated representation catalogs remain at `Temporal.API.*` and generated configuration catalogs
+remain at `Temporal.DynamicConfig.*`. They are mechanical inputs used by feature and system models,
+not themselves feature or system semantics.
+
+The accepted physical layout for the implemented slice is:
+
+```text
+Temporal/
+  API.lean
+  API/
+    Proto.lean
+    Types.lean
+  DynamicConfig.lean
+  DynamicConfig/
+    Types.lean
+    Settings.lean
+  Feature/
+    Nexus/
+      AutoClose.lean
+      CallerClosure.lean
+      CallerClosureTests.lean
+  System/
+    Configuration.lean
+    Configuration/
+      Core.lean
+      Tests.lean
+    Callback/
+      Configuration.lean
+      ConfigurationTests.lean
+    Matching/
+      Configuration.lean
+  Tool/
+    Inspect.lean
+    InspectTests.lean
+```
+
+The corresponding public namespaces are `Temporal.Feature.Nexus.AutoClose`,
+`Temporal.Feature.Nexus.CallerClosure`, `Temporal.System.Configuration`,
+`Temporal.System.Callback.Configuration`, `Temporal.System.Matching.Configuration`, and
+`Temporal.Tool.Inspect`. A module's use of reusable `Umpire.*` interfaces is an implementation
+dependency and does not appear as an extra level in its Temporal domain identity.
+
+`model/TemporalModelTests.lean` remains a small Lake target root that imports the colocated Feature,
+System, and Tool test modules; it owns no tests directly.
+
+### 22.3 Configuration is split at real semantic seams
+
+The existing combined configuration module is not moved intact. Its responsibilities separate as
+follows:
+
+1. `Temporal.System.Configuration` owns typed uses, classification types and checking, immutable
+   `ConfigView`s, validation, override checking, deterministic resolution, provenance, and fixture
+   conformance.
+2. `Temporal.System.Callback.Configuration` owns callback-specific interpretations, address policy,
+   route selection, admission, dispatch, and the captured callback configuration projection.
+3. `Temporal.System.Matching.Configuration` owns matching-specific setting classifications,
+   interpretations, contexts, and uses.
+
+The generic configuration module accepts domain-owned classifications and interpretations; it does
+not import callback or matching modules. Callback and Matching depend on Configuration in one
+direction. Their tests move with the module that owns the behavior instead of remaining in one large
+mixed test file.
+
+The callback slice is a system model because its current trace distinguishes concrete HSM and CHASM
+routing. A future product-visible callback contract belongs under `Temporal.Feature.Callback`, with
+an explicit refinement relating the concrete system route to that contract. The move does not
+invent that future model prematurely.
+
+### 22.4 Feature, system, and tool dependency direction
+
+The allowed direction is:
+
+```text
+Temporal.API -----------------------+
+Temporal.DynamicConfig ------------+--> Temporal.System.Configuration
+                                              |
+                                   +----------+----------+
+                                   |                     |
+                                   v                     v
+                     Temporal.System.Callback  Temporal.System.Matching
+
+Umpire.* ---------------------------> Temporal.Feature.Nexus
+Umpire.Examples.Switch -------------> Temporal.Tool.Inspect
+Temporal.Feature.Nexus -------------> Temporal.Tool.Inspect
+```
+
+Feature models do not import concrete System configuration, evidence, or execution mechanisms.
+System modules do not redefine feature properties. Where implementation conformance is added later,
+an explicit refinement module imports the relevant Feature and System interfaces and owns the
+mapping. Tooling may import both sides but owns no behavioral meaning.
+
+### 22.5 Clean cutover
+
+The implemented Temporal model moves without compatibility aliases or re-export facades. The root
+auto-close model moves under `Temporal.Feature.Nexus.AutoClose`; the caller-closure target and
+scenario move under `Temporal.Feature.Nexus.CallerClosure`; and the inspector moves under
+`Temporal.Tool.Inspect`. The old Temporal Umpire directory and namespace disappear completely.
+
+Internal Lake targets are renamed from the Umpire-qualified Temporal names to `TemporalModelTests`
+and `temporal-model-inspect`. `make umpire-check-regression` remains the stable user and automation
+entry point. Only the repository's top-level Makefile changes; no model-local Makefile is added or
+extended.
+
+Truthful source provenance changes to the new feature, system, and tool paths. Golden artifacts may
+change only in those declared source locations; declaration identities, semantic digests, format
+versions, planner order, validation behavior, and portable fields remain unchanged. Synthetic
+Umpire test identities may change because they are test fixtures rather than public domain
+declarations.
+
+### 22.6 Verification
+
+The migration is complete only when:
+
+- the old Temporal Umpire directory, namespace, imports, Lake targets, and executable target are
+  absent from live sources and current model documentation;
+- a source scan finds no Temporal-owned namespace, source, or semantic-identity prefixes under
+  `model/Umpire/**`;
+- narrow Umpire import tests still prove the DSL dependency graph without loading Temporal;
+- synthetic Umpire connector tests retain every positive, negative, deterministic, law-witness,
+  connector, and digest assertion while using domain-neutral fixtures;
+- Temporal feature tests retain the real Workflow/Nexus composition and property coverage;
+- Configuration, Callback, and Matching tests build through their new ownership modules;
+- the renamed Temporal model suite and inspector build, both registered scenarios remain
+  inspectable, and unknown-scenario diagnostics remain canonical;
+- checked-in inspector fixtures differ only in approved truthful source paths; and
+- `make umpire-check-regression` passes from the repository root.
