@@ -1,5 +1,6 @@
 import Temporal
-import Temporal.Umpire.ConfigTests
+import Temporal.System.Callback.ConfigurationTests
+import Temporal.System.Configuration.Tests
 import Temporal.Umpire.Inspect
 import Umpire.Examples.Switch
 import Umpire.Property
