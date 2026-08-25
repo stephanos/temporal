@@ -41,6 +41,7 @@ Promoted the two-state switch into `Umpire.Examples.Switch` using only the publi
 baseline: green via receipt
 GATE_SKIPPED:smoke:green-receipt 5f574723 - baseline reused from prior post-gate pass
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: dd7313030891c80140087251c0333dc4469e3a77
 - Tests: GATE_SKIPPED:smoke:green-receipt 5f574723 - baseline reused from prior post-gate pass, mise exec -- lake build UmpireTests, source scan: no Temporal or Nexus imports under model/Umpire/Examples, Lean canonical old/new artifact equivalence proof with only source-path substitution, make umpire-check-regression

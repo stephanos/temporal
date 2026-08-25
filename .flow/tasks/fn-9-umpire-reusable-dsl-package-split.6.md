@@ -47,6 +47,7 @@ Moved the Nexus caller-closure scenario, inspector, and integration assertions i
 baseline: green via receipt
 GATE_SKIPPED:smoke:green-receipt dd731303 - baseline reused from prior post-gate pass
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: fb591d408089d1ed75152d67ad8c3fceab8417c4
 - Tests: GATE_SKIPPED:smoke:green-receipt dd731303 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build TemporalUmpireTests temporal-umpire-inspect, new temporal-umpire-inspect Nexus/switch outputs cmp byte-for-byte with target-state fixtures; unknown scenario exits 1 with canonical diagnostic, make umpire-check-regression
