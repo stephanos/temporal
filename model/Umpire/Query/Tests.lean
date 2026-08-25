@@ -14,7 +14,7 @@ error: Unknown identifier `Umpire.finalizePlanning`
 def id (value : String) : DeclarationId := DeclarationId.of value
 
 def source : SemanticSource := {
-  path := "Umpire/QueryTests.lean"
+  path := "Umpire/Query/Tests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
