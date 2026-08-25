@@ -46,9 +46,12 @@ go test -count=1 -tags test_dep ./common/dynamicconfig
 - [ ] Go-computed fixtures cover all eight policies, exact unset dimensions, fallback/specific matching, and constrained-default interleaving.
 
 ## Done summary
-TBD
+Implemented typed production registration discovery, module-local runtime registry initialization, closed canonical catalog projection, and real Go resolution fixtures for all eight precedence policies. The review fix makes fixture results identify and validate the selected source and exact constraint, including negative coverage for incorrect and ambiguous selections.
 
+Focused generator/common tests, the combined Go gate, model build, and task-scoped lint pass. The parent integration target remains absent as it was at baseline and belongs to fn-8.4; canonical `make lint-code` remains inherited-red with 1848 branch-wide findings while the changed package reports zero issues.
+
+stage: impl-review - ran [2026-08-25T15:32:54Z..2026-08-25T15:45:11Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f27dc41ae3a0438aca150c3b5836e5f704cf0982, 765d139f80ddc19a484e2465e10529bddb20115f
+- Tests: go test -count=1 -tags test_dep ./cmd/tools/genleandynamicconfig, go test -count=1 -tags test_dep ./common/dynamicconfig, go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, cd model && mise exec -- lake build, .bin/golangci-lint-v2.13.1 run --verbose --build-tags disable_grpc_modules,test_dep --timeout 10m --fix=false --config=.github/.golangci.yml ./cmd/tools/genleandynamicconfig/..., baseline: red (go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig failed pre-edit because the generator package did not exist), baseline: red (make umpire-gen-dynamic-config failed pre-edit because the integration target belongs to fn-8.4 and does not exist yet), baseline: green (cd model && mise exec -- lake build), baseline: red (make lint-code failed pre-edit due exhausted temporary storage); inherited post-verify red (1848 branch-wide findings); task-scoped lint passed
 - PRs:
