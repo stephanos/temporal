@@ -45,6 +45,7 @@ Moved the inspector implementation and its behavioral coverage into `Temporal.To
 baseline: green via handoff (green verified at 0c87730a by fn-10-temporal-semantic-model-layout-and.5)
 GATE_SKIPPED:smoke:green-receipt 0c87730a - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-25T23:36:11Z..2026-08-25T23:40:12Z] | SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5708253f1785c3fc3fd0b36475011c24c28f714b
 - Tests: GATE_SKIPPED:smoke:green-receipt 0c87730a - baseline reused from prior post-gate pass, mise exec -- lake build Temporal.Tool.InspectTests, mise exec -- lake build TemporalUmpireTests temporal-umpire-inspect, mise exec -- lake env lean TemporalModelTests.lean, make umpire-check-regression
