@@ -5,3 +5,5 @@ import Umpire.PropertyImportTests
 import Umpire.BehaviorImportTests
 import Umpire.SearchImportTests
 import Umpire.QueryTests
+import Umpire.PlanningTests
+import Umpire.PlanningVisibilityTests
