@@ -18,6 +18,7 @@ type (
 		def         T                    // default value
 		convert     func(any) (T, error) // converter function
 		description string               // documentation
+		metadata    *SettingMetadata
 	}
 
 	constrainedDefaultSetting[T any, P any] struct {
@@ -25,6 +26,7 @@ type (
 		cdef        []TypedConstrainedValue[T] // default values
 		convert     func(any) (T, error)       // converter function
 		description string                     // documentation
+		metadata    *SettingMetadata
 	}
 
 	// GenericSetting is an interface that all instances of Setting implement (by generated
@@ -36,6 +38,7 @@ type (
 		Validate(v any) error
 
 		// for internal use:
+		registrationMetadata() *SettingMetadata
 		dispatchUpdate(*Collection, any, []ConstrainedValue)
 	}
 
