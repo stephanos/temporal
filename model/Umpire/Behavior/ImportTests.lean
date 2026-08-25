@@ -1,5 +1,7 @@
 import Umpire.Behavior
 
+/-! Narrow-import regression for the `Umpire.Behavior` public facade. -/
+
 namespace Umpire.BehaviorImportTests
 
 #check Umpire.BehaviorDeclaration

@@ -1,5 +1,7 @@
 import Umpire.Planning
 
+/-! Visibility regression for the `Umpire.Planning` public facade. -/
+
 namespace Umpire.PlanningVisibilityTests
 
 /-! Importing Planning does not expose its private completion finalizer. -/

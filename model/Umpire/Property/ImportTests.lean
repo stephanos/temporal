@@ -1,5 +1,7 @@
 import Umpire.Property
 
+/-! Narrow-import regression for the `Umpire.Property` public facade. -/
+
 namespace Umpire.PropertyImportTests
 
 #check Umpire.PropertyDeclaration

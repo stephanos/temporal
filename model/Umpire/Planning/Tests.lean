@@ -7,7 +7,7 @@ open Umpire
 def id (value : String) : DeclarationId := DeclarationId.of value
 
 def source : SemanticSource := {
-  path := "Umpire/PlanningTests.lean"
+  path := "Umpire/Planning/Tests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
