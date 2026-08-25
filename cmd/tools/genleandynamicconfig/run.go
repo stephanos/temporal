@@ -22,7 +22,7 @@ const registryHelperArgument = "--internal-registry-helper"
 
 type helperCommand func(context.Context, string, ...string) ([]byte, []byte, error)
 
-var productionFixtureGenerator func() ([]ResolutionFixture, error)
+var productionFixtureGenerator func([]ProjectedSetting) ([]ResolutionFixture, error)
 
 func run(ctx context.Context, moduleRoot string) (Catalog, error) {
 	sites, err := discoverRegistrationSites(ctx, moduleRoot)
@@ -141,7 +141,7 @@ func registryHelperSource(packages []string) ([]byte, error) {
 )
 
 func init() {
-	productionFixtureGenerator = func() ([]ResolutionFixture, error) {
+	productionFixtureGenerator = func(catalogSettings []ProjectedSetting) ([]ResolutionFixture, error) {
 		return computeProductionFixtures(productionSettings{
 			Global:        dynamicconfig.AdminEnableListHistoryTasks,
 			Namespace:     callbackconfig.MaxPerExecution,
@@ -151,7 +151,7 @@ func init() {
 			TaskType:      dynamicconfig.StandbyTaskMissingEventsResendDelay,
 			Destination:   callbackconfig.RequestTimeout,
 			ChasmTaskType: dynamicconfig.ChasmStandbyTaskDiscardDelay,
-		})
+		}, catalogSettings)
 	}
 }
 `)
@@ -190,7 +190,7 @@ func writeRegistryCatalog(writer io.Writer) error {
 	if productionFixtureGenerator == nil {
 		return errors.New("helper fixtures: production fixture generator is not initialized")
 	}
-	fixtures, err := productionFixtureGenerator()
+	fixtures, err := productionFixtureGenerator(catalog.Settings)
 	if err != nil {
 		return fmt.Errorf("helper fixtures: %w", err)
 	}

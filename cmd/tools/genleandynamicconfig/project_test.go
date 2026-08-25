@@ -337,6 +337,69 @@ func TestRegistryHelperCleansSourceOnEveryPath(t *testing.T) {
 	}
 }
 
+func TestFixtureSelectionRejectsIncorrectSourceAndConstraint(t *testing.T) {
+	namespaceName := "fixture-namespace"
+	global := ExactConstraints{}
+	namespaceOnly := ExactConstraints{Namespace: &namespaceName}
+	defaultValue := boolValue(true)
+	setting := ProjectedSetting{
+		Key: "fixture.key",
+		Default: ProjectedDefault{
+			Kind:  DefaultConcrete,
+			Value: &defaultValue,
+		},
+	}
+	fixture := newFixture(
+		"selection",
+		PolicyNamespace,
+		setting.Key,
+		namespaceOnly,
+		[]FixtureOverride{{Constraints: global, Value: boolValue(false)}},
+		SourceOverride,
+		global,
+		boolValue(false),
+	)
+
+	t.Run("source", func(t *testing.T) {
+		fixture := fixture
+		fixture.SelectedSource = SourceSimpleDefault
+		err := validateFixtureSelection(fixture, boolValue(false), setting)
+		require.ErrorContains(t, err, "selected source")
+	})
+
+	t.Run("constraint", func(t *testing.T) {
+		fixture := fixture
+		fixture.SelectedConstraint = namespaceOnly
+		err := validateFixtureSelection(fixture, boolValue(false), setting)
+		require.ErrorContains(t, err, "selected constraint")
+	})
+}
+
+func TestFixtureSelectionRejectsIndistinguishableCandidates(t *testing.T) {
+	global := ExactConstraints{}
+	defaultValue := boolValue(true)
+	setting := ProjectedSetting{
+		Key: "fixture.key",
+		Default: ProjectedDefault{
+			Kind:  DefaultConcrete,
+			Value: &defaultValue,
+		},
+	}
+	fixture := newFixture(
+		"ambiguous",
+		PolicyGlobal,
+		setting.Key,
+		global,
+		[]FixtureOverride{{Constraints: global, Value: boolValue(true)}},
+		SourceOverride,
+		global,
+		boolValue(true),
+	)
+
+	err := validateFixtureSelection(fixture, boolValue(true), setting)
+	require.ErrorContains(t, err, "indistinguishable candidates")
+}
+
 func TestProductionFixturesCoverEveryPolicyAndResolutionBoundary(t *testing.T) {
 	catalog := Catalog{Fixtures: productionFixtureShape()}
 	require.NoError(t, validateFixtures(catalog.Fixtures))
