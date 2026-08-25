@@ -5,7 +5,8 @@
     "fn-3-umpire-semantic-authoring-and-planning",
     "fn-4-umpire-observation-and-semantic-verdicts",
     "fn-8-umpire-temporal-dynamic-config",
-    "fn-9-umpire-reusable-dsl-package-split"
+    "fn-9-umpire-reusable-dsl-package-split",
+    "fn-10-temporal-semantic-model-layout-and"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact",
   "next_task": 1,
@@ -25,5 +26,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T15:34:07.642334Z"
+  "updated_at": "2026-08-25T21:59:28.045028Z"
 }
