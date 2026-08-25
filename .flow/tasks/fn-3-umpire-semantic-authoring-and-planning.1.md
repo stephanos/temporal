@@ -47,9 +47,10 @@ cd model && mise exec -- lake env lean Temporal/Experiment/SemanticsTests.lean
 - [ ] Minimal Workflow/Nexus-shaped and independent switch-shaped target kernels compile against the same semantic interface.
 - [ ] The focused Lean test command passes and the R8 exclusion audit is clean.
 ## Done summary
-TBD
+Added the shared Lean semantic foundation: stable vocabulary and typed bounds, proposition-bound capability laws, sound-and-complete target kernels, deterministic provider/connector composition, structured diagnostics, canonical metadata/digests, and pure semantic traces. Focused tests cover Workflow/Nexus-shaped and switch-shaped targets, every R1 composition error, ordering invariance, digest sensitivity, and R8 isolation; Codex review reached SHIP after all findings were fixed.
 
+stage: impl-review - ran [2026-08-25T01:41:26Z..2026-08-25T01:46:53Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 320ebd4eec8aeaa39e8cb6abb7e9c7a8197de55a, d01538a712994292406d702e6979da16579f085b
+- Tests: cd model && mise exec -- lake env lean Temporal/Experiment/SemanticsTests.lean, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
 - PRs:
