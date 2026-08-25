@@ -67,8 +67,8 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
     }
 
 def productionRegistry : ScenarioRegistry := [{
-  id := NexusCallerClosure.exactActionQueryId.value
-  result := .ok NexusCallerClosure.compiledArtifact
+  id := Temporal.Feature.Nexus.CallerClosure.exactActionQueryId.value
+  result := .ok Temporal.Feature.Nexus.CallerClosure.compiledArtifact
 }, {
   id := _root_.Umpire.Examples.Switch.exactActionQueryId.value
   result := .ok _root_.Umpire.Examples.Switch.compiledArtifact
