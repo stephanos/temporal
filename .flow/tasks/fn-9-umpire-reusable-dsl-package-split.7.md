@@ -50,6 +50,7 @@ baseline: green via receipt
 GATE_SKIPPED:smoke:green-receipt fb591d40 - baseline reused from prior post-gate pass
 GATE_SKIPPED:smoke:green-receipt 5b2b48e2 - verify reused from review-fix post-gate pass
 stage: impl-review - ran [2026-08-25T20:21:50Z..2026-08-25T20:30:03Z] (NEEDS_WORK -> SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 8f3dcecea91fe210912f7425a805ea5f418bee3c, 5b2b48e2ab4831e29dd3c3dc0f97cddff17b7deb
 - Tests: GATE_SKIPPED:smoke:green-receipt fb591d40 - baseline reused from prior post-gate pass, make umpire-check-regression, cd model && mise exec -- lake build TemporalUmpireTests, scoped live-source scan: no obsolete Temporal.Experiment interface and no Umpire import of Temporal or Nexus, byte-for-byte inspector comparison: both target-state fixtures plus deterministic reruns; unknown scenario exits non-zero with canonical diagnostic, dynamic-config preservation diff: only imports and namespaces changed while all comments and tests moved intact, git diff --check 20e17303275a3761acd571cad34678f80b2c6f7c..HEAD, GATE_SKIPPED:smoke:green-receipt 5b2b48e2 - verify reused from review-fix post-gate pass

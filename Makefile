@@ -1029,7 +1029,7 @@ umpire-check-regression:
 			test "$$scan_status" -eq 1; \
 		fi; \
 		umpire_sources=$$(find model/Umpire -type f -name '*.lean' -print); \
-		if grep -nE '^import (Temporal|Nexus)' $$umpire_sources; then \
+		if grep -nE '^[[:space:]]*import[[:space:]]+(Temporal|Nexus)([.[:space:]]|$$)' $$umpire_sources; then \
 			echo "found forbidden Umpire dependency on Temporal or Nexus" >&2; \
 			exit 1; \
 		else \

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-9-umpire-reusable-dsl-package-split",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-25T20:36:28.300102Z",
   "created_at": "2026-08-25T15:08:18.467383Z",
   "default_impl": null,
   "default_review": null,
@@ -427,6 +427,36 @@
       "task": "fn-9-umpire-reusable-dsl-package-split.7",
       "timestamp": "2026-08-25T20:30:03.400623Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eca71a51bff4dc8306ef04cfb8ede9467c1fc20d390761df8d23366872a8172f",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7f7a65d19b84cc541b20aa3d2b7b3069e3ccdf8b",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 975743,
+      "output_sha256": "00d5aee5030211825aa1082a2cea41dd51671ffd03f9b80d96f2d7b6f37d0385",
+      "reservation_id": "d54e6fadff8e4955b42733204ff4c8d1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T20:36:28.268956Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -438,11 +468,12 @@
     "impl:fn-9-umpire-reusable-dsl-package-split.6": 1,
     "impl:fn-9-umpire-reusable-dsl-package-split.7": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-9-umpire-reusable-dsl-package-split.1": 0,
     "impl:fn-9-umpire-reusable-dsl-package-split.2": 0,
     "impl:fn-9-umpire-reusable-dsl-package-split.3": 0,
@@ -466,5 +497,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T20:30:03.442047Z"
+  "updated_at": "2026-08-25T20:36:28.311962Z"
 }
