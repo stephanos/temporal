@@ -33,14 +33,18 @@ Generation is deterministic and silent on success. Each run validates all three 
 their output paths before mutation, then replaces the owned API outputs while preserving adjacent
 authored modules.
 
-## Bounded regression experiment
+## Semantic authoring and planning
 
-The Lean-first declaration for the bounded Nexus caller-closure pilot is
-`Temporal/Experiment/NexusCallerClosure.lean`. It names the regression's resources, requested
-action attempts, ordering, expected properties, and finite declaration bounds. The selected
-`ModelTarget` in the same module resolves the setup and projects each requested action through the
-Lean-owned model semantics; requesting an action does not itself establish a successful semantic
-transition.
+Model scenarios use three concise forms. A `Property` describes portable meaning over a
+capability-limited semantic trace. A `Behavior` constrains setup, controllable actions, ordering,
+and exactness while leaving outcomes to the target model. A `Query` combines checked properties
+and behavior with explicit bounds and a deterministic planning policy.
+
+`Temporal/Experiment/NexusCallerClosure.lean` applies that flow to Workflow–Nexus caller closure.
+`Temporal/Experiment/SwitchScenario.lean` uses the same public interfaces for an independent
+two-state switch, including exploratory, exact-action, and exact-trace authoring. The resulting
+`DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe selected requests,
+model-owned outcomes, and semantic observations, but do not claim that runtime execution occurred.
 
 From the Temporal repository root, run the focused regression check:
 
@@ -48,25 +52,23 @@ From the Temporal repository root, run the focused regression check:
 make umpire-check-regression
 ```
 
-The focused check builds the pure compiler, pilot, compile-time positive and negative fixtures,
-and inspector. It also checks that repeated inspection is byte-for-byte deterministic and that a
-rejected pilot emits one structured diagnostic with no JSON on standard output. It does not
-require a running Temporal server.
+The focused check builds the semantic languages, both scenarios, aggregate positive and negative
+fixtures, and inspector. It checks that repeated inspection is byte-for-byte deterministic and
+that a rejected scenario emits one structured diagnostic with no artifact JSON on standard
+output. It does not require or contact a running Temporal server.
 
-Inspect the checked pilot directly with:
+Inspect either checked scenario directly with:
 
 ```sh
 cd model
-mise exec -- lake exe temporal-experiment-inspect nexus-caller-closure-upgrade
+mise exec -- lake exe temporal-experiment-inspect workflow-nexus.query.exact-action-caller-closure
+mise exec -- lake exe temporal-experiment-inspect switch.query.exact-action
 ```
 
-On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. Its
-stable contract contains the format version, regression and target identities, derived model
-identity, declared resources and resolved setup, requested action attempts and projected model
-outcomes, ordering, expected properties and their observation contracts, declaration bounds,
-omissions, and provenance. The compiler and inspector do not write an artifact file or contact a
-runtime.
+On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The
+compiler and inspector do not write an artifact file, start a live server, execute a workflow, or
+collect evidence. Runtime driving, evidence qualification, and promotion are separate work.
 
 Generated API declarations remain structural inputs only. Behavioral meaning, including whether
-a requested attempt is applicable and which transition outcome it produces, remains owned by the
+a selected action is applicable and which transition outcomes are possible, remains owned by the
 authored Lean model.
