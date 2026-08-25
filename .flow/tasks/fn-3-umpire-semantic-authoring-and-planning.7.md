@@ -41,9 +41,13 @@ make umpire-check-regression
 - [ ] `model/README.md` explains the concise Property/Behavior/Query flow, no-live-server boundary, and focused command; all model build wiring remains in the top-level Makefile.
 - [ ] `make umpire-check-regression` passes; no generated API drift or CI workflow change is present; the R8 exclusion audit is clean.
 ## Done summary
-TBD
+Added a finite two-state switch scenario that composes a proved kernel, capability-limited Property, exploratory and exact Behavior, Query, planner, `DrivePlan`, and `ExperimentSpec` through unchanged public interfaces. The aggregate suite and root inspector check now cover both scenarios, exact-action outcome variation, exact-trace selection, deterministic negative diagnostics, and the documented no-live-server boundary; the scoped R8 and legacy-surface audit was clean.
 
+baseline: green via receipts
+GATE_SKIPPED:unittest:green-receipt 782e8618 - baseline reused from prior post-gate pass
+GATE_SKIPPED:smoke:green-receipt 782e8618 - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-25T05:20:03Z..2026-08-25T05:23:59Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 50f0ee4ace9c6884bfe36ebd58a3068348369fb9
+- Tests: GATE_SKIPPED:unittest:green-receipt 782e8618 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 782e8618 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build ExperimentTests, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
 - PRs:
