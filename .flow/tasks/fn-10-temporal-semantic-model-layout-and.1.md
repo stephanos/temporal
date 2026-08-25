@@ -42,6 +42,7 @@ Extract the shared configuration checker/resolver and matching-owned interpretat
 Extracted the shared configuration checker/resolver into a deep Temporal.System.Configuration core plus facade and moved Matching-owned classifications, interpretations, contexts, and typed uses into Temporal.System.Matching.Configuration. Callback declarations remain explicitly staged in the former combined module for task 2, with existing configuration coverage and comments preserved; baseline and final regression checks were green.
 
 stage: impl-review - ran [2026-08-25T22:29:47Z..2026-08-25T22:33:05Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: c16ee07873693ccb8699f53190ea179a9288aec4
 - Tests: baseline: green (make umpire-check-regression), cd model && mise exec -- lake build Temporal.System.Configuration Temporal.System.Matching.Configuration Temporal.Umpire.Config TemporalUmpireTests, make umpire-check-regression
