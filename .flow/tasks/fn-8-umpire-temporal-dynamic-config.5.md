@@ -47,9 +47,14 @@ cd model && mise exec -- lake build
 - [ ] Typed reads require the originating checked use and support the same key in multiple contexts/consumers without collision.
 - [ ] Every valid generated Go fixture and all Lean-specific negative/order/opaque-default cases pass through the focused test root.
 ## Done summary
-TBD
+Implemented the handwritten Lean dynamic-config boundary for R5-R7: classified typed uses for six representative settings, deterministic resolution across all eight precedence policies, immutable use-keyed typed views with sealed raw values and complete provenance, callback address-rule decoding/validation, explicit opaque-default replacement validation, and verification of all 13 retained Go fixtures plus catalog identity. Focused negative coverage exercises unknown/unclassified/malformed uses, schema/default drift, exact-context and duplicate failures, opaque replacement failures, callback URL failures including malformed IP literals, immutable/originating-use reads, precedence interleaving, and fixture mismatch.
 
+Verification passed `go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig`, `make umpire-gen-dynamic-config`, `cd model && mise exec -- lake build ExperimentTests`, and `cd model && mise exec -- lake build`. `make lint-code` remains inherited red at the identical baseline of 1828 pre-existing Go findings; its automatic formatting changes were restored and this task has no Go diff. Memory capture was attempted after the non-trivial review fix but the repository memory store is not initialized.
+
+GATE_SKIPPED:unittest:green-receipt 98ab54e9 - baseline reused from prior post-gate pass
+
+stage: impl-review - ran [2026-08-25T17:30:44Z..2026-08-25T18:01:32Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2eb68a401955dca0f0b5c972f9962db60ce5d5cd, 41eea9db96b24cea5642ed42fe208fea30f3008b, 0598db66f7d78053cbedb82df0417533f2a4745c
+- Tests: GATE_SKIPPED:unittest:green-receipt 98ab54e9 - baseline reused from prior post-gate pass, go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, make umpire-gen-dynamic-config, cd model && mise exec -- lake build ExperimentTests, cd model && mise exec -- lake build, make lint-code (inherited baseline red: 1828 pre-existing Go findings; no Go changes)
 - PRs:
