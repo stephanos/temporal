@@ -520,14 +520,14 @@ private def planningMetadata
 
 inductive PlanningTermination where
   | found (trace : BehaviorTrace) (reason : SelectionReason)
-  | complete
+  | complete (behaviorAdmitted : Bool)
   | budgetExhausted
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
 /-- The sole public result finalizer enforces the query's claim strength. A backend completion
-signal establishes completeness only for a finite exhaustive query, and an empty behavior always
-wins over every attempted terminal claim. -/
+signal establishes completeness only for a finite exhaustive query that admitted at least one
+behavior trace, and an empty behavior always wins over every attempted terminal claim. -/
 def finalizePlanning
     (query : CheckedQuery LawStatement)
     (explored : ExploredCounts)
@@ -540,7 +540,8 @@ def finalizePlanning
       | .found trace reason => (.found trace reason, false)
       | .budgetExhausted => (.budgetExhausted, false)
       | .invalid error => (.invalid error, false)
-      | .complete =>
+      | .complete false => (.unsatisfiable, false)
+      | .complete true =>
           if query.policy.strategy != .exhaustive || query.completeness.isNone then
             (.budgetExhausted, false)
           else

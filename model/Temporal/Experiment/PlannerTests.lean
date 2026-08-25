@@ -299,6 +299,20 @@ example :
       some (1, [request]) := by
   native_decide
 
+def targetRelativeEmptyBehavior : CheckedBehavior := {
+  behavior with
+  actionsExactly := some [request, request]
+  semanticDigest := "behavior/target-relative-empty-v1"
+}
+
+/-! Exhaustive completion with no Behavior-admitted target trace is unsatisfiable, not proof. -/
+example :
+    let planned := run 0 (.verify property) .exhaustive 10 17 true targetRelativeEmptyBehavior
+    (planned.result.outcome.name, planned.result.isVerified,
+      planned.result.metadata.completeness.established) =
+      ("unsatisfiable", false, false) := by
+  native_decide
+
 /-! Independent planning and rendering of semantically identical checked inputs is byte-identical. -/
 example :
     witnessSpec.map canonicalExperimentSpecJson =

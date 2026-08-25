@@ -336,6 +336,7 @@ private def planLoop
     (backend : PlannerBackend Unit PurePlannerState BehaviorTrace)
     (state : PurePlannerState)
     (remaining : Nat)
+    (behaviorAdmitted : Bool)
     (explored : ExploredCounts)
     (instrumentation : PlannerInstrumentation) : PlannerRun :=
   match remaining with
@@ -345,7 +346,7 @@ private def planLoop
       | .complete =>
           finish query explored
             { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
-            .complete
+            (.complete behaviorAdmitted)
       | .yield candidate next =>
           let explored := noteCandidate candidate explored
           let instrumentation := notePull candidate next instrumentation
@@ -355,9 +356,9 @@ private def planLoop
             | some reason =>
                 finish query explored instrumentation (.found candidate reason)
             | none =>
-                planLoop query backend next remaining explored instrumentation
+                planLoop query backend next remaining true explored instrumentation
           else
-            planLoop query backend next remaining explored instrumentation
+            planLoop query backend next remaining behaviorAdmitted explored instrumentation
 termination_by remaining
 
 /-- Plan a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
@@ -365,9 +366,9 @@ def plan
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target) : PlannerRun :=
   if query.behavior.isUnsatisfiable then
-    finish query {} {} .complete
+    finish query {} {} (.complete false)
   else
     let backend := purePlannerBackend query kernel
-    planLoop query backend (backend.start ()) query.bounds.search.value {} {}
+    planLoop query backend (backend.start ()) query.bounds.search.value false {} {}
 
 end Temporal.Experiment
