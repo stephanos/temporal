@@ -4,3 +4,4 @@ import Umpire.BehaviorTests
 import Umpire.PropertyImportTests
 import Umpire.BehaviorImportTests
 import Umpire.SearchImportTests
+import Umpire.QueryTests
