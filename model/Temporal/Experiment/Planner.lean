@@ -77,6 +77,38 @@ structure PlannerInstrumentation where
   stepKernelPulls : Nat := 0
   deriving BEq, DecidableEq, Repr
 
+inductive PlanningOutcome where
+  | found (trace : BehaviorTrace) (reason : SelectionReason)
+  | verified
+  | noSuchTraceWithinCompleteBounds
+  | budgetExhausted
+  | unsatisfiable
+  | invalid (error : QueryError)
+  deriving BEq, DecidableEq, Repr
+
+def PlanningOutcome.name : PlanningOutcome → String
+  | .found _ _ => "found"
+  | .verified => "verified-within-bounds"
+  | .noSuchTraceWithinCompleteBounds => "no-such-trace-within-complete-bounds"
+  | .budgetExhausted => "budget-exhausted"
+  | .unsatisfiable => "unsatisfiable"
+  | .invalid _ => "invalid"
+
+structure PlanningResult where
+  private mk ::
+  outcome : PlanningOutcome
+  metadata : PlanningMetadata
+  deriving BEq, DecidableEq, Repr
+
+namespace PlanningResult
+
+def isVerified (result : PlanningResult) : Bool :=
+  match result.outcome with
+  | .verified => result.metadata.completeness.established
+  | _ => false
+
+end PlanningResult
+
 structure PlannerRun where
   result : PlanningResult
   artifact : Option ExperimentSpec
@@ -84,6 +116,59 @@ structure PlannerRun where
   deriving BEq, DecidableEq, Repr
 
 private instance : Inhabited (PlannerPull State Candidate) := ⟨.complete⟩
+
+private def evidenceDigests (query : CheckedQuery LawStatement) : List String :=
+  match query.completeness with
+  | none => []
+  | some evidence => [
+      evidence.roleDomainDigest,
+      evidence.actionDomainDigest
+    ]
+
+private def planningMetadata
+    (query : CheckedQuery LawStatement)
+    (explored : ExploredCounts)
+    (established : Bool) : PlanningMetadata := {
+  explored
+  completeness := {
+    established
+    bounds := query.bounds
+    finiteEvidenceDigests := evidenceDigests query
+  }
+}
+
+private inductive PlanningTermination where
+  | found (trace : BehaviorTrace) (reason : SelectionReason)
+  | complete (behaviorAdmitted : Bool)
+  | budgetExhausted
+  | invalid (error : QueryError)
+  deriving BEq, DecidableEq, Repr
+
+/-- The planner-private result finalizer enforces the query's claim strength. A backend completion
+signal establishes completeness only for a finite exhaustive query that admitted at least one
+behavior trace, and an empty behavior always wins over every attempted terminal claim. -/
+private def finalizePlanning
+    (query : CheckedQuery LawStatement)
+    (explored : ExploredCounts)
+    (termination : PlanningTermination) : PlanningResult :=
+  let (outcome, established) :=
+    if query.behavior.isUnsatisfiable then
+      (PlanningOutcome.unsatisfiable, false)
+    else
+      match termination with
+      | .found trace reason => (.found trace reason, false)
+      | .budgetExhausted => (.budgetExhausted, false)
+      | .invalid error => (.invalid error, false)
+      | .complete false => (.unsatisfiable, false)
+      | .complete true =>
+          if query.policy.strategy != .exhaustive || query.completeness.isNone then
+            (.budgetExhausted, false)
+          else
+            match query.claim with
+            | .verifiedWithinBounds => (.verified, true)
+            | .satisfyingWitness | .violatingCounterexample | .boundedSelection =>
+                (.noSuchTraceWithinCompleteBounds, true)
+  PlanningResult.mk outcome (planningMetadata query explored established)
 
 private def valueLe (left right : SemanticValue) : Bool :=
   decide (semanticValueOrderKey left ≤ semanticValueOrderKey right)

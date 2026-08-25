@@ -4,6 +4,13 @@ namespace Temporal.Experiment.QueryTests
 
 open Temporal.Experiment
 
+/-! A backend completion signal cannot manufacture proof through the public Query surface. -/
+/--
+error: Unknown identifier `Temporal.Experiment.finalizePlanning`
+-/
+#guard_msgs (error, substring := true) in
+#check Temporal.Experiment.finalizePlanning
+
 def id (value : String) : DeclarationId := DeclarationId.of value
 
 def source : SemanticSource := {
@@ -244,71 +251,6 @@ example : [
   ].all (fun form =>
     errorKindOf (checkQuery noFiniteDomains (declaration form exhaustivePolicy)) ==
       some .missingFiniteCompleteness) := by
-  native_decide
-
-def unsatisfiableBehavior : CheckedBehavior := {
-  checkedBehavior with
-  spaceStatus := .unsatisfiable
-  semanticDigest := "behavior/unsatisfiable-v1"
-}
-
-def checkedUnsatisfiable : Option (CheckedQuery (fun _ => True)) :=
-  (checkQuery context
-    (declaration (.witness checkedProperty) searchPolicy unsatisfiableBehavior)).toOption
-
-def explored : ExploredCounts := {
-  setups := 2
-  traces := 7
-  transitions := 11
-  propertyEvaluations := 7
-}
-
-/-! Empty behavior is unsatisfiable, while an incomplete search is budget exhaustion; neither
-can be observed as verification. -/
-example :
-    (checkedUnsatisfiable.map (fun query => finalizePlanning query explored (.complete false))).map
-        (fun result => (result.outcome.name, result.isVerified)) =
-      some ("unsatisfiable", false) := by
-  native_decide
-
-def checkedWitness : Option (CheckedQuery (fun _ => True)) :=
-  (checkQuery context (declaration (.witness checkedProperty))).toOption
-
-example : checkedWitness.map (fun query =>
-    let result := finalizePlanning query explored .budgetExhausted
-    (result.outcome.name, result.isVerified, result.metadata.completeness.established,
-      result.metadata.explored.traces)) =
-      some ("budget-exhausted", false, false, 7) := by
-  native_decide
-
-def checkedExhaustiveWitness : Option (CheckedQuery (fun _ => True)) :=
-  (checkQuery exhaustiveContext
-    (declaration (.witness checkedProperty) exhaustivePolicy)).toOption
-
-/-! Complete absence and exhausted effort remain distinct while retaining counts and bounds. -/
-example : checkedExhaustiveWitness.map (fun query =>
-    let absent := finalizePlanning query explored (.complete true)
-    let exhausted := finalizePlanning query explored .budgetExhausted
-    (absent.outcome.name, absent.metadata.completeness.established,
-      absent.metadata.explored.traces, absent.metadata.completeness.bounds,
-      exhausted.outcome.name, exhausted.metadata.completeness.established)) =
-      some ("no-such-trace-within-complete-bounds", true, 7, bounds,
-        "budget-exhausted", false) := by
-  native_decide
-
-/-! A backend completion signal cannot manufacture proof from a non-exhaustive or empty space. -/
-example :
-    let nonExhaustive := checkedWitness.map fun query =>
-      let result := finalizePlanning query explored (.complete true)
-      (result.outcome.name, result.isVerified)
-    let emptyVerification :=
-      (checkQuery exhaustiveContext
-        (declaration (.verify checkedProperty) exhaustivePolicy unsatisfiableBehavior)).toOption.map
-          fun query =>
-            let result := finalizePlanning query explored (.complete false)
-            (result.outcome.name, result.isVerified)
-    (nonExhaustive, emptyVerification) =
-      (some ("budget-exhausted", false), some ("unsatisfiable", false)) := by
   native_decide
 
 def canonicalOf
