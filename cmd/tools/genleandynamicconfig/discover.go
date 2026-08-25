@@ -80,17 +80,17 @@ func packageLoadError(loadedPackage *packages.Package, moduleRoot string) error 
 	if !loadedPackage.IllTyped && len(loadedPackage.Errors) == 0 {
 		return nil
 	}
-	errors := slices.Clone(loadedPackage.Errors)
-	slices.SortFunc(errors, func(left, right packages.Error) int {
+	loadErrors := slices.Clone(loadedPackage.Errors)
+	slices.SortFunc(loadErrors, func(left, right packages.Error) int {
 		if order := strings.Compare(left.Pos, right.Pos); order != 0 {
 			return order
 		}
 		return strings.Compare(left.Msg, right.Msg)
 	})
-	if len(errors) == 0 {
+	if len(loadErrors) == 0 {
 		return fmt.Errorf("discovery package %q: package is ill typed", loadedPackage.PkgPath)
 	}
-	first := errors[0]
+	first := loadErrors[0]
 	position := normalizePosition(first.Pos, moduleRoot)
 	if position == "" {
 		return fmt.Errorf("discovery package %q: %s", loadedPackage.PkgPath, first.Msg)
