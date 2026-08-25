@@ -41,9 +41,10 @@ Move callback-owned classifications, interpretations, contexts, typed uses, rout
 - [ ] The mixed legacy test module is removed.
 
 ## Done summary
-TBD
+Extracted all callback-owned configuration, address, routing, projection, admission, and dispatch semantics into `Temporal.System.Callback.Configuration`, leaving `Temporal.Umpire.Config` as an import-only transition root. Split the former mixed tests into shared/matching and Callback owners while preserving all 30 assertions, checked error outcomes, deterministic fixture identities, and existing explanatory comments; the baseline and final `make umpire-check-regression` gates were green.
 
+stage: impl-review - ran
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8b4a744d362833444a9367f6b76fbcc528e24237
+- Tests: mise exec -- lake build Temporal.System.Configuration.Tests Temporal.System.Callback.ConfigurationTests Temporal.Umpire.Config TemporalUmpireTests, make umpire-check-regression
 - PRs:
