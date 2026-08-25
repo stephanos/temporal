@@ -7,3 +7,4 @@ import Umpire.SearchImportTests
 import Umpire.QueryTests
 import Umpire.PlanningTests
 import Umpire.PlanningVisibilityTests
+import Umpire.Examples.SwitchTests
