@@ -132,16 +132,19 @@ private def metadata
   contractDigest
 }
 
+private def configRepr (config : Config) : String :=
+  (reprStr config).replace "Temporal.Feature.Nexus.AutoClose" "NexusAutoClose"
+
 def clashState : SemanticValue := {
   identity := configStateId
-  value := reprStr wClash
+  value := configRepr wClash
 }
 
 def closedConfig : Config := autoClose .upgrade wClash
 
 def closedState : SemanticValue := {
   identity := configStateId
-  value := reprStr closedConfig
+  value := configRepr closedConfig
 }
 
 def forceCloseAction : SemanticValue := {
