@@ -84,6 +84,12 @@ example : target.kernel.initialStates clashSetup = [clashState] := by
 example : target.kernel.steps clashState forceCloseAction = [forceCloseResult] := by
   native_decide
 
+example : CallerOwnsOperation wClash closedConfig := by
+  exact clashOwnershipProof
+
+example : ownershipObservation.value = "true" := by
+  native_decide
+
 example : completeness.roleAssignments = [clashSetup] ∧
     completeness.actions = [forceCloseAction] := by
   native_decide

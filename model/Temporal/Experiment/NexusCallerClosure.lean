@@ -61,9 +61,33 @@ def ownershipLaw : LawRequirement := {
   semanticDigest := "workflow-nexus-ownership-law/v1"
 }
 
+def CallerOwnsOperation (caller operation : Config) : Prop :=
+  caller.callerOpen = true ∧
+    operation.callerOpen = false ∧
+    operation.op = caller.op ∧ operation.policy = caller.policy
+
+instance (caller operation : Config) : Decidable (CallerOwnsOperation caller operation) := by
+  unfold CallerOwnsOperation
+  infer_instance
+
+theorem autoClosePreservesCallerOwnership
+    (resolution : Resolution)
+    (caller : Config)
+    (callerOpen : caller.callerOpen = true)
+    (requestCancel : caller.policy = .requestCancel)
+    (operationStarted : caller.op = .started) :
+    CallerOwnsOperation caller (autoClose resolution caller) := by
+  exact ⟨callerOpen,
+    by simp [autoClose_of_guard requestCancel operationStarted],
+    autoClose_op resolution caller,
+    autoClose_policy resolution caller⟩
+
+theorem clashOwnershipProof : CallerOwnsOperation wClash (autoClose .upgrade wClash) := by
+  exact autoClosePreservesCallerOwnership .upgrade wClash rfl rfl rfl
+
 def OwnershipReconciled : Prop :=
   Reachable .upgrade wClash ∧
-    wClash.callerOpen = true ∧ (autoClose .upgrade wClash).callerOpen = false
+    CallerOwnsOperation wClash (autoClose .upgrade wClash)
 
 def LawStatement (lawId : DeclarationId) : Prop :=
   if lawId = lifecycleLaw.id then
@@ -76,7 +100,7 @@ def LawStatement (lawId : DeclarationId) : Prop :=
     False
 
 theorem ownershipReconciledProof : OwnershipReconciled := by
-  exact ⟨wClash_reachable .upgrade, rfl, rfl⟩
+  exact ⟨wClash_reachable .upgrade, clashOwnershipProof⟩
 
 theorem lifecycleLawProof : LawStatement lifecycleLaw.id := by
   simpa [LawStatement, lifecycleLaw, lifecycleLawId, id, DeclarationId.of] using
@@ -141,7 +165,7 @@ def cancellationCountObservation : SemanticValue := {
 
 def ownershipObservation : SemanticValue := {
   identity := ownershipRelationId
-  value := toString closedConfig.callerOpen
+  value := toString (decide (CallerOwnsOperation wClash closedConfig))
 }
 
 def clashSetup : List RoleBinding := [{ role := operationRoleId, value := clashState }]
@@ -402,7 +426,7 @@ def propertyDeclaration : PropertyDeclaration := {
       { field := .selectedAction, reference := forceCloseActionId,
         constraint := .equals forceCloseAction.value }
       { field := .observation, reference := ownershipRelationId,
-        constraint := .equals ownershipObservation.value }
+        constraint := .equals "true" }
   ]
   documentation := "A force-closed caller retains one owned, deliverable Nexus cancellation."
 }
