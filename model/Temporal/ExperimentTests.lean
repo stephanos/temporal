@@ -66,11 +66,16 @@ example : (composeTarget reorderedTargetDeclaration).toOption.map CheckedTarget.
   native_decide
 
 example : callerClosureProperty.requires =
-    [cancellationCapabilityId, workflowCapabilityId] := by
+    [cancellationCapabilityId, ownershipCapabilityId, workflowCapabilityId] := by
   native_decide
 
 example : target.requiredCapabilities =
-    [cancellationCapabilityId, workflowCapabilityId] := by
+    [cancellationCapabilityId, ownershipCapabilityId, workflowCapabilityId] := by
+  native_decide
+
+example : (callerClosureProperty.access.meanings.filter fun meaning =>
+    meaning.declaration == ownershipRelationId).map MeaningProvision.semanticDigest =
+      ["workflow-nexus-operation-ownership/v1"] := by
   native_decide
 
 example : target.kernel.initialStates clashSetup = [clashState] := by
@@ -90,10 +95,10 @@ example : target.kernel.authoritativeStep clashState forceCloseAction forceClose
   exact target_force_close_is_authoritative
 
 example : missingConnectorError.kind = .conflictingProviders ∧
-    missingConnectorError.declarationId = ownershipRelationId ∧
+    missingConnectorError.declarationId = ownershipClaimId ∧
     missingConnectorError.sourcePath = source.path ∧
     missingConnectorError.relatedIdentities =
-      [cancellationProviderId, workflowProviderId] := by
+      [cancellationOwnershipClaimProviderId, workflowOwnershipClaimProviderId] := by
   native_decide
 
 example : missingLawError.kind = .missingLaw ∧
