@@ -33,6 +33,35 @@ Generation is deterministic and silent on success. Each run validates all three 
 their output paths before mutation, then replaces the owned API outputs while preserving adjacent
 authored modules.
 
+## Dynamic configuration catalog
+
+`umpire-gen-dynamic-config` constructs a generation-time snapshot of Temporal's initialized
+production registry and projects its structural metadata behind the `Temporal.DynamicConfig`
+module boundary. The generator exclusively owns `Temporal/DynamicConfig.lean` and the complete
+`Temporal/DynamicConfig/` directory:
+
+- `DynamicConfig/Types.lean` defines the structural schemas for keys, value codecs, precedence,
+  defaults, constraints, and generation fixtures.
+- `DynamicConfig/Settings.lean` contains the complete ordered setting catalog and its canonical
+  generation identity.
+- `DynamicConfig.lean` is the public facade that imports both generated child modules.
+
+These declarations record generation-time registry structure. They do not parse deployment YAML,
+read live server configuration, or execute Go converters in Lean. Handwritten Lean outside the
+owned boundary is responsible for classifications, typed interpretations, consumer-specific
+meaning, and any explicit replacement for an opaque generated default.
+
+From the repository root, regenerate and verify the catalog with:
+
+```sh
+make umpire-gen-dynamic-config
+go test -count=1 -tags test_dep ./cmd/tools/genleandynamicconfig
+cd model && mise exec -- lake build
+```
+
+For an unchanged initialized registry, repeated generation produces byte-identical modules. Each
+run elaborates all three candidate modules before replacing the retained generated output.
+
 ## Semantic authoring and planning
 
 Model scenarios use three concise forms. A `Property` describes portable meaning over a
