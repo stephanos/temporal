@@ -33,10 +33,14 @@ def connectorLaw : LawRequirement := {
   semanticDigest := "connector-sound/v1"
 }
 
-def witness (requirement : LawRequirement) : LawWitness := {
+def TestLawStatement (lawId : DeclarationId) : Prop :=
+  lawId = providerLaw.id ∨ lawId = connectorLaw.id
+
+def witness
+    (requirement : LawRequirement)
+    (proof : TestLawStatement requirement.id) : LawWitness TestLawStatement := {
   requirement
-  statement := True
-  proof := True.intro
+  proof
 }
 
 def transition (state action : Bool) : TransitionResult Bool Bool Bool := {
@@ -61,7 +65,7 @@ def workflowKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   stepComplete := by simp_all
 }
 
-def workflowProvider : CapabilityProvider := {
+def workflowProvider : CapabilityProvider TestLawStatement := {
   id := id "workflow.provider.lifecycle"
   source := source "WorkflowSemantic.lean"
   contract := {
@@ -74,10 +78,10 @@ def workflowProvider : CapabilityProvider := {
     kind := .relation
     semanticDigest := "workflow-ownership/v1"
   }]
-  lawWitnesses := [witness providerLaw]
+  lawWitnesses := [witness providerLaw (by exact .inl rfl)]
 }
 
-def nexusProvider : CapabilityProvider := {
+def nexusProvider : CapabilityProvider TestLawStatement := {
   id := id "nexus.provider.cancellation"
   source := source "NexusSemantic.lean"
   contract := {
@@ -90,10 +94,10 @@ def nexusProvider : CapabilityProvider := {
     kind := .relation
     semanticDigest := "nexus-ownership/v1"
   }]
-  lawWitnesses := [witness providerLaw]
+  lawWitnesses := [witness providerLaw (by exact .inl rfl)]
 }
 
-def ownershipConnector : CapabilityConnector := {
+def ownershipConnector : CapabilityConnector TestLawStatement := {
   id := id "workflow-nexus.connector.ownership"
   source := source "WorkflowNexusSemantic.lean"
   semanticDigest := "workflow-nexus-ownership/v1"
@@ -104,7 +108,7 @@ def ownershipConnector : CapabilityConnector := {
     semanticDigest := "workflow-nexus-ownership/reconciled-v1"
   }]
   requiredLaws := [connectorLaw]
-  lawWitnesses := [witness connectorLaw]
+  lawWitnesses := [witness connectorLaw (by exact .inr rfl)]
 }
 
 def workflowDeclarations : List DeclarationMetadata := [
@@ -114,15 +118,15 @@ def workflowDeclarations : List DeclarationMetadata := [
   metadata "nexus.capability.cancellation" .capability,
   metadata "workflow.provider.lifecycle" .provider,
   metadata "nexus.provider.cancellation" .provider,
-  metadata "umpire.law.provider-sound" .law,
-  metadata "umpire.law.connector-sound" .law,
+  metadata "umpire.law.provider-sound" .law providerLaw.semanticDigest,
+  metadata "umpire.law.connector-sound" .law connectorLaw.semanticDigest,
   metadata "workflow-nexus.connector.ownership" .connector,
   metadata "workflow-nexus.relation.owns-operation" .relation,
   metadata "nexus.action.request-cancel" .action,
   metadata "nexus.observation.cancel-delivered" .observation
 ]
 
-def workflowTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def workflowTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   id := id "workflow-nexus.target.caller-closure"
   source := source "WorkflowNexusSemantic.lean"
   declarations := workflowDeclarations
@@ -148,7 +152,7 @@ def switchKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   }
 }
 
-def switchProvider : CapabilityProvider := {
+def switchProvider : CapabilityProvider TestLawStatement := {
   id := id "switch.provider.toggle"
   source := source "SwitchSemantic.lean"
   contract := {
@@ -161,10 +165,10 @@ def switchProvider : CapabilityProvider := {
     kind := .action
     semanticDigest := "switch-action/v1"
   }]
-  lawWitnesses := [witness providerLaw]
+  lawWitnesses := [witness providerLaw (by exact .inl rfl)]
 }
 
-def switchTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def switchTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   id := id "switch.target.two-state"
   source := source "SwitchSemantic.lean"
   declarations := [
@@ -173,7 +177,7 @@ def switchTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
     metadata "switch.capability.toggle" .capability,
     metadata "switch.provider.toggle" .provider,
     metadata "switch.action.toggle" .action,
-    metadata "umpire.law.provider-sound" .law
+    metadata "umpire.law.provider-sound" .law providerLaw.semanticDigest
   ]
   requiredCapabilities := [id "switch.capability.toggle"]
   providers := [switchProvider]
@@ -192,7 +196,7 @@ def errorOf {Target : Type}
   | .error error => some error
   | .ok _ => none
 
-def emptyIdentityTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def emptyIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   declarations := metadata "" .action :: workflowDeclarations
 }
@@ -206,7 +210,7 @@ example : (errorOf (composeTarget emptyIdentityTarget)) = some {
   } := by
   native_decide
 
-def duplicateIdentityTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def duplicateIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   declarations := metadata "workflow-nexus.target.caller-closure" .target :: workflowDeclarations
 }
@@ -215,7 +219,7 @@ example : (errorOf (composeTarget duplicateIdentityTarget)).map DeclarationError
     some .duplicateIdentity := by
   native_decide
 
-def unknownIdentityTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def unknownIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   requiredCapabilities := [id "missing.capability.value"]
 }
@@ -229,7 +233,7 @@ example : (errorOf (composeTarget unknownIdentityTarget)) = some {
   } := by
   native_decide
 
-def wrongKindTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def wrongKindTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   requiredCapabilities := [id "nexus.action.request-cancel"]
 }
@@ -237,18 +241,31 @@ def wrongKindTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
 example : (errorOf (composeTarget wrongKindTarget)).map DeclarationError.kind = some .wrongKind := by
   native_decide
 
-def missingLawProvider : CapabilityProvider := {
+def missingLawProvider : CapabilityProvider TestLawStatement := {
   workflowProvider with lawWitnesses := []
 }
 
-def missingLawTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def missingLawTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with providers := [missingLawProvider, nexusProvider]
 }
 
 example : (errorOf (composeTarget missingLawTarget)).map DeclarationError.kind = some .missingLaw := by
   native_decide
 
-def missingProviderTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def staleWitnessProvider : CapabilityProvider TestLawStatement := {
+  workflowProvider with
+  contract := { workflowProvider.contract with requiredLaws := [] }
+}
+
+def staleWitnessTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  workflowTarget with providers := [staleWitnessProvider, nexusProvider]
+}
+
+example : (errorOf (composeTarget staleWitnessTarget)).map DeclarationError.kind =
+    some .unexpectedLaw := by
+  native_decide
+
+def missingProviderTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with providers := [workflowProvider]
 }
 
@@ -256,7 +273,7 @@ example : (errorOf (composeTarget missingProviderTarget)).map DeclarationError.k
     some .missingProvider := by
   native_decide
 
-def conflictingTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def conflictingTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with connectors := []
 }
 
@@ -264,13 +281,13 @@ example : (errorOf (composeTarget conflictingTarget)).map DeclarationError.kind 
     some .conflictingProviders := by
   native_decide
 
-def secondOwnershipConnector : CapabilityConnector := {
+def secondOwnershipConnector : CapabilityConnector TestLawStatement := {
   ownershipConnector with
   id := id "workflow-nexus.connector.alternate-ownership"
   source := source "AlternateWorkflowNexusSemantic.lean"
 }
 
-def ambiguousConnectorTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def ambiguousConnectorTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   declarations := metadata "workflow-nexus.connector.alternate-ownership" .connector :: workflowDeclarations
   connectors := [secondOwnershipConnector, ownershipConnector]
@@ -280,7 +297,35 @@ example : (errorOf (composeTarget ambiguousConnectorTarget)).map DeclarationErro
     some .ambiguousConnector := by
   native_decide
 
-def compatibleNexusProvider : CapabilityProvider := {
+def inactiveProviderConnector : CapabilityConnector TestLawStatement := {
+  ownershipConnector with
+  id := id "workflow-nexus.connector.inactive-provider"
+  reconciliations := [{
+    declaration := id "workflow-nexus.relation.owns-operation"
+    kind := .relation
+    providers := [workflowProvider.id, id "workflow.provider.inactive"]
+    semanticDigest := "inactive-provider/reconciled-v1"
+  }]
+}
+
+def inactiveProviderTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  workflowTarget with
+  declarations := [
+    metadata "workflow-nexus.connector.inactive-provider" .connector,
+    metadata "workflow.provider.inactive" .provider
+  ] ++ workflowDeclarations
+  connectors := [inactiveProviderConnector]
+}
+
+example : (errorOf (composeTarget inactiveProviderTarget)).map DeclarationError.kind =
+    some .missingProvider := by
+  native_decide
+
+example : [id ".", id ".action", id "action.", id "workflow..action"].all
+    (fun identity => !identity.isNamespaced) = true := by
+  native_decide
+
+def compatibleNexusProvider : CapabilityProvider TestLawStatement := {
   nexusProvider with
   meanings := [{
     declaration := id "workflow-nexus.relation.owns-operation"
@@ -289,7 +334,7 @@ def compatibleNexusProvider : CapabilityProvider := {
   }]
 }
 
-def compatibleTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def compatibleTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   providers := [workflowProvider, compatibleNexusProvider]
   connectors := []
@@ -298,7 +343,7 @@ def compatibleTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
 example : (composeTarget compatibleTarget).isOk = true := by
   native_decide
 
-def incompleteKernelTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def incompleteKernelTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   kernel := .incomplete workflowKernel.metadata [
     id "umpire.kernel-proof.initial-complete",
@@ -333,7 +378,7 @@ example (result : TransitionResult Bool Bool Bool)
     workflowKernel.authoritativeStep false true result :=
   workflowKernel.stepSound false true result member
 
-def reorderedWorkflowTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def reorderedWorkflowTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   declarations := workflowTarget.declarations.reverse
   requiredCapabilities := workflowTarget.requiredCapabilities.reverse
@@ -349,7 +394,7 @@ example : (composeTarget reorderedWorkflowTarget).toOption.map CheckedTarget.sem
     (composeTarget workflowTarget).toOption.map CheckedTarget.semanticDigest := by
   native_decide
 
-def reorderedConflictTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def reorderedConflictTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   conflictingTarget with
   declarations := conflictingTarget.declarations.reverse
   providers := conflictingTarget.providers.reverse
@@ -359,7 +404,7 @@ example : (errorOf (composeTarget reorderedConflictTarget)).map canonicalDeclara
     (errorOf (composeTarget conflictingTarget)).map canonicalDeclarationErrorJson := by
   native_decide
 
-def changedIdentityTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def changedIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   id := id "workflow-nexus.target.caller-closure-v2"
   declarations := metadata "workflow-nexus.target.caller-closure-v2" .target ::
@@ -370,12 +415,12 @@ example : (composeTarget changedIdentityTarget).toOption.map CheckedTarget.seman
     (composeTarget workflowTarget).toOption.map CheckedTarget.semanticDigest := by
   native_decide
 
-def changedContractProvider : CapabilityProvider := {
+def changedContractProvider : CapabilityProvider TestLawStatement := {
   workflowProvider with
   contract := { workflowProvider.contract with semanticDigest := "workflow-lifecycle/v2" }
 }
 
-def changedContractTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def changedContractTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with providers := [changedContractProvider, nexusProvider]
 }
 
@@ -383,11 +428,11 @@ example : (composeTarget changedContractTarget).toOption.map CheckedTarget.seman
     (composeTarget workflowTarget).toOption.map CheckedTarget.semanticDigest := by
   native_decide
 
-def changedConnector : CapabilityConnector := {
+def changedConnector : CapabilityConnector TestLawStatement := {
   ownershipConnector with semanticDigest := "workflow-nexus-ownership/v2"
 }
 
-def changedConnectorTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def changedConnectorTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with connectors := [changedConnector]
 }
 
@@ -400,7 +445,7 @@ def changedKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   metadata := { workflowKernel.metadata with contractDigest := "workflow-nexus-kernel/v2" }
 }
 
-def changedKernelTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def changedKernelTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with kernel := .checked changedKernel
 }
 
@@ -412,21 +457,53 @@ def changedLaw : LawRequirement := {
   providerLaw with semanticDigest := "provider-sound/v2"
 }
 
-def changedLawProvider : CapabilityProvider := {
+def changedLawProvider : CapabilityProvider TestLawStatement := {
   workflowProvider with
   contract := { workflowProvider.contract with requiredLaws := [changedLaw] }
-  lawWitnesses := [witness changedLaw]
+  lawWitnesses := [witness changedLaw (by exact .inl rfl)]
 }
 
-def changedLawTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
-  workflowTarget with providers := [changedLawProvider, nexusProvider]
+def changedLawNexusProvider : CapabilityProvider TestLawStatement := {
+  nexusProvider with
+  contract := { nexusProvider.contract with requiredLaws := [changedLaw] }
+  lawWitnesses := [witness changedLaw (by exact .inl rfl)]
+}
+
+def changedLawTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  workflowTarget with
+  declarations := workflowDeclarations.map fun declaration =>
+    if declaration.id == providerLaw.id then
+      { declaration with contractDigest := changedLaw.semanticDigest }
+    else
+      declaration
+  providers := [changedLawProvider, changedLawNexusProvider]
 }
 
 example : (composeTarget changedLawTarget).toOption.map CheckedTarget.semanticDigest ≠
     (composeTarget workflowTarget).toOption.map CheckedTarget.semanticDigest := by
   native_decide
 
-def documentedTarget : TargetDeclaration Unit Bool Bool Bool Bool := {
+def lawlessWorkflowProvider : CapabilityProvider TestLawStatement := {
+  workflowProvider with
+  contract := { workflowProvider.contract with requiredLaws := [] }
+  lawWitnesses := []
+}
+
+def lawlessNexusProvider : CapabilityProvider TestLawStatement := {
+  nexusProvider with
+  contract := { nexusProvider.contract with requiredLaws := [] }
+  lawWitnesses := []
+}
+
+def lawlessTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  workflowTarget with providers := [lawlessWorkflowProvider, lawlessNexusProvider]
+}
+
+example : (composeTarget lawlessTarget).toOption.map CheckedTarget.semanticDigest ≠
+    (composeTarget workflowTarget).toOption.map CheckedTarget.semanticDigest := by
+  native_decide
+
+def documentedTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   workflowTarget with
   declarations := workflowDeclarations.map fun declaration =>
     if declaration.id == workflowTarget.id then
