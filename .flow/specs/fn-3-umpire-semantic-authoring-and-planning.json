@@ -395,7 +395,7 @@
       "failure_class": null,
       "finalized": {
         "digest": "complete",
-        "receipt": "pending",
+        "receipt": "complete",
         "status": "not_applicable"
       },
       "findings_digest": {
@@ -483,5 +483,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T03:14:44.642513Z"
+  "updated_at": "2026-08-25T03:19:59.153170Z"
 }
