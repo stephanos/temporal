@@ -4,7 +4,7 @@ import Umpire.Planning
 namespace Temporal.Umpire.NexusCallerClosure
 
 open _root_.Umpire
-open NexusAutoClose
+open Temporal.Feature.Nexus.AutoClose
 
 private def id (value : String) : DeclarationId := DeclarationId.of value
 
