@@ -1,1 +1,6 @@
 import Umpire.CoreTests
+import Umpire.PropertyTests
+import Umpire.BehaviorTests
+import Umpire.PropertyImportTests
+import Umpire.BehaviorImportTests
+import Umpire.SearchImportTests
