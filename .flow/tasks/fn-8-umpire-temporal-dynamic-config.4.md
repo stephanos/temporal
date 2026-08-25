@@ -46,9 +46,16 @@ cd model && mise exec -- lake build
 - [ ] No `umpire-check-dynamic-config`, generated-drift command/prose, CI workflow, or unrelated operational-document change is introduced.
 
 ## Done summary
-TBD
+Retained the complete generated DynamicConfig facade, types, and 685-setting catalog; added generation-only Make integration, the public Temporal import, and model ownership/verification documentation. Task Quick commands passed, the parent Go suite passed, and repeated generation was byte-identical.
 
+baseline: red (`make umpire-gen-dynamic-config` failed pre-edit because this task adds the target; `make lint-code` failed pre-edit when shared `/tmp` was full)
+GATE_SKIPPED:unittest:green-receipt 754664ee - baseline reused from prior post-gate pass
+GATE_SKIPPED:smoke:green-receipt 754664ee - baseline reused from prior post-gate pass
+
+Canonical `make lint-code` remains inherited-red with 1828 branch-wide findings in pre-existing Go files; its auto-fix rewrites were reverted, and this task changes no Go source.
+
+stage: impl-review - ran [2026-08-25T17:01:59Z..2026-08-25T17:04:17Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 98ab54e9ab526012d550a1f0166aa01bc18985ea
+- Tests: baseline: red (make umpire-gen-dynamic-config failed pre-edit: target absent), baseline: red (make lint-code failed pre-edit: shared /tmp exhausted), GATE_SKIPPED:unittest:green-receipt 754664ee - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 754664ee - baseline reused from prior post-gate pass, make umpire-gen-dynamic-config, make umpire-gen-dynamic-config (second run byte-identical), go test -count=1 -tags test_dep ./cmd/tools/genleandynamicconfig, go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, cd model && mise exec -- lake build, git diff --check c8a2b643cce1f575fad748f8cbea93eaa616c168..HEAD, make lint-code (inherited-red: 1828 branch-wide findings in pre-existing Go files)
 - PRs:
