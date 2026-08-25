@@ -250,6 +250,17 @@ example : [
   ] := by
   native_decide
 
+/-! Complete absence and exhausted effort remain distinct while retaining counts and bounds. -/
+example :
+    let complete := run 0 (.counterexample property) .exhaustive
+    let exhausted := run 64 (.counterexample property) .shortest 1 17 false
+    (complete.result.outcome.name, complete.result.metadata.completeness.established,
+      complete.result.metadata.completeness.bounds,
+      exhausted.result.outcome.name, exhausted.result.metadata.completeness.established) =
+      ("no-such-trace-within-complete-bounds", true, bounds,
+        "budget-exhausted", false) := by
+  native_decide
+
 def witnessSpec (seed : Nat := 17) : Option ExperimentSpec :=
   (run 2 (.witness property) .shortest 10 seed false).artifact
 
@@ -311,6 +322,22 @@ example :
     (planned.result.outcome.name, planned.result.isVerified,
       planned.result.metadata.completeness.established) =
       ("unsatisfiable", false, false) := by
+  native_decide
+
+def staticallyUnsatisfiableBehavior : CheckedBehavior := {
+  behavior with
+  spaceStatus := .unsatisfiable
+  semanticDigest := "behavior/statically-unsatisfiable-v1"
+}
+
+/-! Empty behavior is unsatisfiable, while an incomplete search is budget exhaustion; neither
+can be observed as verification. -/
+example :
+    let empty := run 0 (.verify property) .exhaustive 10 17 true staticallyUnsatisfiableBehavior
+    let exhausted := run 64 (.counterexample property) .shortest 1 17 false
+    (empty.result.outcome.name, empty.result.isVerified,
+      exhausted.result.outcome.name, exhausted.result.isVerified) =
+      ("unsatisfiable", false, "budget-exhausted", false) := by
   native_decide
 
 /-! Independent planning and rendering of semantically identical checked inputs is byte-identical. -/
