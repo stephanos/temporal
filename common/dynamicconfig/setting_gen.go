@@ -26,11 +26,11 @@ type GlobalBoolSetting = GlobalTypedSetting[bool]
 type GlobalBoolConstrainedDefaultSetting = GlobalTypedConstrainedDefaultSetting[bool]
 
 func NewGlobalBoolSetting(key string, def bool, description string) GlobalBoolSetting {
-	return NewGlobalTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newGlobalTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewGlobalBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) GlobalBoolConstrainedDefaultSetting {
-	return NewGlobalTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newGlobalTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFn = TypedPropertyFn[bool]
@@ -43,11 +43,11 @@ type NamespaceBoolSetting = NamespaceTypedSetting[bool]
 type NamespaceBoolConstrainedDefaultSetting = NamespaceTypedConstrainedDefaultSetting[bool]
 
 func NewNamespaceBoolSetting(key string, def bool, description string) NamespaceBoolSetting {
-	return NewNamespaceTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newNamespaceTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewNamespaceBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) NamespaceBoolConstrainedDefaultSetting {
-	return NewNamespaceTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newNamespaceTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithNamespaceFilter = TypedPropertyFnWithNamespaceFilter[bool]
@@ -60,11 +60,11 @@ type NamespaceIDBoolSetting = NamespaceIDTypedSetting[bool]
 type NamespaceIDBoolConstrainedDefaultSetting = NamespaceIDTypedConstrainedDefaultSetting[bool]
 
 func NewNamespaceIDBoolSetting(key string, def bool, description string) NamespaceIDBoolSetting {
-	return NewNamespaceIDTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newNamespaceIDTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewNamespaceIDBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) NamespaceIDBoolConstrainedDefaultSetting {
-	return NewNamespaceIDTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newNamespaceIDTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithNamespaceIDFilter = TypedPropertyFnWithNamespaceIDFilter[bool]
@@ -77,11 +77,11 @@ type TaskQueueBoolSetting = TaskQueueTypedSetting[bool]
 type TaskQueueBoolConstrainedDefaultSetting = TaskQueueTypedConstrainedDefaultSetting[bool]
 
 func NewTaskQueueBoolSetting(key string, def bool, description string) TaskQueueBoolSetting {
-	return NewTaskQueueTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newTaskQueueTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewTaskQueueBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) TaskQueueBoolConstrainedDefaultSetting {
-	return NewTaskQueueTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newTaskQueueTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithTaskQueueFilter = TypedPropertyFnWithTaskQueueFilter[bool]
@@ -94,11 +94,11 @@ type ShardIDBoolSetting = ShardIDTypedSetting[bool]
 type ShardIDBoolConstrainedDefaultSetting = ShardIDTypedConstrainedDefaultSetting[bool]
 
 func NewShardIDBoolSetting(key string, def bool, description string) ShardIDBoolSetting {
-	return NewShardIDTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newShardIDTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewShardIDBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) ShardIDBoolConstrainedDefaultSetting {
-	return NewShardIDTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newShardIDTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithShardIDFilter = TypedPropertyFnWithShardIDFilter[bool]
@@ -111,11 +111,11 @@ type TaskTypeBoolSetting = TaskTypeTypedSetting[bool]
 type TaskTypeBoolConstrainedDefaultSetting = TaskTypeTypedConstrainedDefaultSetting[bool]
 
 func NewTaskTypeBoolSetting(key string, def bool, description string) TaskTypeBoolSetting {
-	return NewTaskTypeTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newTaskTypeTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewTaskTypeBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) TaskTypeBoolConstrainedDefaultSetting {
-	return NewTaskTypeTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newTaskTypeTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithTaskTypeFilter = TypedPropertyFnWithTaskTypeFilter[bool]
@@ -128,11 +128,11 @@ type DestinationBoolSetting = DestinationTypedSetting[bool]
 type DestinationBoolConstrainedDefaultSetting = DestinationTypedConstrainedDefaultSetting[bool]
 
 func NewDestinationBoolSetting(key string, def bool, description string) DestinationBoolSetting {
-	return NewDestinationTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newDestinationTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewDestinationBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) DestinationBoolConstrainedDefaultSetting {
-	return NewDestinationTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newDestinationTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithDestinationFilter = TypedPropertyFnWithDestinationFilter[bool]
@@ -145,11 +145,11 @@ type ChasmTaskTypeBoolSetting = ChasmTaskTypeTypedSetting[bool]
 type ChasmTaskTypeBoolConstrainedDefaultSetting = ChasmTaskTypeTypedConstrainedDefaultSetting[bool]
 
 func NewChasmTaskTypeBoolSetting(key string, def bool, description string) ChasmTaskTypeBoolSetting {
-	return NewChasmTaskTypeTypedSettingWithConverter[bool](key, convertBool, def, description)
+	return newChasmTaskTypeTypedSettingWithConverter[bool](key, convertBool, def, description, SettingCodecBool)
 }
 
 func NewChasmTaskTypeBoolSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[bool], description string) ChasmTaskTypeBoolConstrainedDefaultSetting {
-	return NewChasmTaskTypeTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description)
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault[bool](key, convertBool, cdef, description, SettingCodecBool)
 }
 
 type BoolPropertyFnWithChasmTaskTypeFilter = TypedPropertyFnWithChasmTaskTypeFilter[bool]
@@ -162,11 +162,11 @@ type GlobalIntSetting = GlobalTypedSetting[int]
 type GlobalIntConstrainedDefaultSetting = GlobalTypedConstrainedDefaultSetting[int]
 
 func NewGlobalIntSetting(key string, def int, description string) GlobalIntSetting {
-	return NewGlobalTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newGlobalTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewGlobalIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) GlobalIntConstrainedDefaultSetting {
-	return NewGlobalTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newGlobalTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFn = TypedPropertyFn[int]
@@ -179,11 +179,11 @@ type NamespaceIntSetting = NamespaceTypedSetting[int]
 type NamespaceIntConstrainedDefaultSetting = NamespaceTypedConstrainedDefaultSetting[int]
 
 func NewNamespaceIntSetting(key string, def int, description string) NamespaceIntSetting {
-	return NewNamespaceTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newNamespaceTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewNamespaceIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) NamespaceIntConstrainedDefaultSetting {
-	return NewNamespaceTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newNamespaceTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithNamespaceFilter = TypedPropertyFnWithNamespaceFilter[int]
@@ -196,11 +196,11 @@ type NamespaceIDIntSetting = NamespaceIDTypedSetting[int]
 type NamespaceIDIntConstrainedDefaultSetting = NamespaceIDTypedConstrainedDefaultSetting[int]
 
 func NewNamespaceIDIntSetting(key string, def int, description string) NamespaceIDIntSetting {
-	return NewNamespaceIDTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newNamespaceIDTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewNamespaceIDIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) NamespaceIDIntConstrainedDefaultSetting {
-	return NewNamespaceIDTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newNamespaceIDTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithNamespaceIDFilter = TypedPropertyFnWithNamespaceIDFilter[int]
@@ -213,11 +213,11 @@ type TaskQueueIntSetting = TaskQueueTypedSetting[int]
 type TaskQueueIntConstrainedDefaultSetting = TaskQueueTypedConstrainedDefaultSetting[int]
 
 func NewTaskQueueIntSetting(key string, def int, description string) TaskQueueIntSetting {
-	return NewTaskQueueTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newTaskQueueTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewTaskQueueIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) TaskQueueIntConstrainedDefaultSetting {
-	return NewTaskQueueTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newTaskQueueTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithTaskQueueFilter = TypedPropertyFnWithTaskQueueFilter[int]
@@ -230,11 +230,11 @@ type ShardIDIntSetting = ShardIDTypedSetting[int]
 type ShardIDIntConstrainedDefaultSetting = ShardIDTypedConstrainedDefaultSetting[int]
 
 func NewShardIDIntSetting(key string, def int, description string) ShardIDIntSetting {
-	return NewShardIDTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newShardIDTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewShardIDIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) ShardIDIntConstrainedDefaultSetting {
-	return NewShardIDTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newShardIDTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithShardIDFilter = TypedPropertyFnWithShardIDFilter[int]
@@ -247,11 +247,11 @@ type TaskTypeIntSetting = TaskTypeTypedSetting[int]
 type TaskTypeIntConstrainedDefaultSetting = TaskTypeTypedConstrainedDefaultSetting[int]
 
 func NewTaskTypeIntSetting(key string, def int, description string) TaskTypeIntSetting {
-	return NewTaskTypeTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newTaskTypeTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewTaskTypeIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) TaskTypeIntConstrainedDefaultSetting {
-	return NewTaskTypeTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newTaskTypeTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithTaskTypeFilter = TypedPropertyFnWithTaskTypeFilter[int]
@@ -264,11 +264,11 @@ type DestinationIntSetting = DestinationTypedSetting[int]
 type DestinationIntConstrainedDefaultSetting = DestinationTypedConstrainedDefaultSetting[int]
 
 func NewDestinationIntSetting(key string, def int, description string) DestinationIntSetting {
-	return NewDestinationTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newDestinationTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewDestinationIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) DestinationIntConstrainedDefaultSetting {
-	return NewDestinationTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newDestinationTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithDestinationFilter = TypedPropertyFnWithDestinationFilter[int]
@@ -281,11 +281,11 @@ type ChasmTaskTypeIntSetting = ChasmTaskTypeTypedSetting[int]
 type ChasmTaskTypeIntConstrainedDefaultSetting = ChasmTaskTypeTypedConstrainedDefaultSetting[int]
 
 func NewChasmTaskTypeIntSetting(key string, def int, description string) ChasmTaskTypeIntSetting {
-	return NewChasmTaskTypeTypedSettingWithConverter[int](key, convertInt, def, description)
+	return newChasmTaskTypeTypedSettingWithConverter[int](key, convertInt, def, description, SettingCodecInt)
 }
 
 func NewChasmTaskTypeIntSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[int], description string) ChasmTaskTypeIntConstrainedDefaultSetting {
-	return NewChasmTaskTypeTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description)
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault[int](key, convertInt, cdef, description, SettingCodecInt)
 }
 
 type IntPropertyFnWithChasmTaskTypeFilter = TypedPropertyFnWithChasmTaskTypeFilter[int]
@@ -298,11 +298,11 @@ type GlobalFloatSetting = GlobalTypedSetting[float64]
 type GlobalFloatConstrainedDefaultSetting = GlobalTypedConstrainedDefaultSetting[float64]
 
 func NewGlobalFloatSetting(key string, def float64, description string) GlobalFloatSetting {
-	return NewGlobalTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newGlobalTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewGlobalFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) GlobalFloatConstrainedDefaultSetting {
-	return NewGlobalTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newGlobalTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFn = TypedPropertyFn[float64]
@@ -315,11 +315,11 @@ type NamespaceFloatSetting = NamespaceTypedSetting[float64]
 type NamespaceFloatConstrainedDefaultSetting = NamespaceTypedConstrainedDefaultSetting[float64]
 
 func NewNamespaceFloatSetting(key string, def float64, description string) NamespaceFloatSetting {
-	return NewNamespaceTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newNamespaceTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewNamespaceFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) NamespaceFloatConstrainedDefaultSetting {
-	return NewNamespaceTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newNamespaceTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithNamespaceFilter = TypedPropertyFnWithNamespaceFilter[float64]
@@ -332,11 +332,11 @@ type NamespaceIDFloatSetting = NamespaceIDTypedSetting[float64]
 type NamespaceIDFloatConstrainedDefaultSetting = NamespaceIDTypedConstrainedDefaultSetting[float64]
 
 func NewNamespaceIDFloatSetting(key string, def float64, description string) NamespaceIDFloatSetting {
-	return NewNamespaceIDTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newNamespaceIDTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewNamespaceIDFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) NamespaceIDFloatConstrainedDefaultSetting {
-	return NewNamespaceIDTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newNamespaceIDTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithNamespaceIDFilter = TypedPropertyFnWithNamespaceIDFilter[float64]
@@ -349,11 +349,11 @@ type TaskQueueFloatSetting = TaskQueueTypedSetting[float64]
 type TaskQueueFloatConstrainedDefaultSetting = TaskQueueTypedConstrainedDefaultSetting[float64]
 
 func NewTaskQueueFloatSetting(key string, def float64, description string) TaskQueueFloatSetting {
-	return NewTaskQueueTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newTaskQueueTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewTaskQueueFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) TaskQueueFloatConstrainedDefaultSetting {
-	return NewTaskQueueTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newTaskQueueTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithTaskQueueFilter = TypedPropertyFnWithTaskQueueFilter[float64]
@@ -366,11 +366,11 @@ type ShardIDFloatSetting = ShardIDTypedSetting[float64]
 type ShardIDFloatConstrainedDefaultSetting = ShardIDTypedConstrainedDefaultSetting[float64]
 
 func NewShardIDFloatSetting(key string, def float64, description string) ShardIDFloatSetting {
-	return NewShardIDTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newShardIDTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewShardIDFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) ShardIDFloatConstrainedDefaultSetting {
-	return NewShardIDTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newShardIDTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithShardIDFilter = TypedPropertyFnWithShardIDFilter[float64]
@@ -383,11 +383,11 @@ type TaskTypeFloatSetting = TaskTypeTypedSetting[float64]
 type TaskTypeFloatConstrainedDefaultSetting = TaskTypeTypedConstrainedDefaultSetting[float64]
 
 func NewTaskTypeFloatSetting(key string, def float64, description string) TaskTypeFloatSetting {
-	return NewTaskTypeTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newTaskTypeTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewTaskTypeFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) TaskTypeFloatConstrainedDefaultSetting {
-	return NewTaskTypeTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newTaskTypeTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithTaskTypeFilter = TypedPropertyFnWithTaskTypeFilter[float64]
@@ -400,11 +400,11 @@ type DestinationFloatSetting = DestinationTypedSetting[float64]
 type DestinationFloatConstrainedDefaultSetting = DestinationTypedConstrainedDefaultSetting[float64]
 
 func NewDestinationFloatSetting(key string, def float64, description string) DestinationFloatSetting {
-	return NewDestinationTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newDestinationTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewDestinationFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) DestinationFloatConstrainedDefaultSetting {
-	return NewDestinationTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newDestinationTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithDestinationFilter = TypedPropertyFnWithDestinationFilter[float64]
@@ -417,11 +417,11 @@ type ChasmTaskTypeFloatSetting = ChasmTaskTypeTypedSetting[float64]
 type ChasmTaskTypeFloatConstrainedDefaultSetting = ChasmTaskTypeTypedConstrainedDefaultSetting[float64]
 
 func NewChasmTaskTypeFloatSetting(key string, def float64, description string) ChasmTaskTypeFloatSetting {
-	return NewChasmTaskTypeTypedSettingWithConverter[float64](key, convertFloat, def, description)
+	return newChasmTaskTypeTypedSettingWithConverter[float64](key, convertFloat, def, description, SettingCodecFloat)
 }
 
 func NewChasmTaskTypeFloatSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[float64], description string) ChasmTaskTypeFloatConstrainedDefaultSetting {
-	return NewChasmTaskTypeTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description)
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault[float64](key, convertFloat, cdef, description, SettingCodecFloat)
 }
 
 type FloatPropertyFnWithChasmTaskTypeFilter = TypedPropertyFnWithChasmTaskTypeFilter[float64]
@@ -434,11 +434,11 @@ type GlobalStringSetting = GlobalTypedSetting[string]
 type GlobalStringConstrainedDefaultSetting = GlobalTypedConstrainedDefaultSetting[string]
 
 func NewGlobalStringSetting(key string, def string, description string) GlobalStringSetting {
-	return NewGlobalTypedSettingWithConverter[string](key, convertString, def, description)
+	return newGlobalTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewGlobalStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) GlobalStringConstrainedDefaultSetting {
-	return NewGlobalTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newGlobalTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFn = TypedPropertyFn[string]
@@ -451,11 +451,11 @@ type NamespaceStringSetting = NamespaceTypedSetting[string]
 type NamespaceStringConstrainedDefaultSetting = NamespaceTypedConstrainedDefaultSetting[string]
 
 func NewNamespaceStringSetting(key string, def string, description string) NamespaceStringSetting {
-	return NewNamespaceTypedSettingWithConverter[string](key, convertString, def, description)
+	return newNamespaceTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewNamespaceStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) NamespaceStringConstrainedDefaultSetting {
-	return NewNamespaceTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newNamespaceTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithNamespaceFilter = TypedPropertyFnWithNamespaceFilter[string]
@@ -468,11 +468,11 @@ type NamespaceIDStringSetting = NamespaceIDTypedSetting[string]
 type NamespaceIDStringConstrainedDefaultSetting = NamespaceIDTypedConstrainedDefaultSetting[string]
 
 func NewNamespaceIDStringSetting(key string, def string, description string) NamespaceIDStringSetting {
-	return NewNamespaceIDTypedSettingWithConverter[string](key, convertString, def, description)
+	return newNamespaceIDTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewNamespaceIDStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) NamespaceIDStringConstrainedDefaultSetting {
-	return NewNamespaceIDTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newNamespaceIDTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithNamespaceIDFilter = TypedPropertyFnWithNamespaceIDFilter[string]
@@ -485,11 +485,11 @@ type TaskQueueStringSetting = TaskQueueTypedSetting[string]
 type TaskQueueStringConstrainedDefaultSetting = TaskQueueTypedConstrainedDefaultSetting[string]
 
 func NewTaskQueueStringSetting(key string, def string, description string) TaskQueueStringSetting {
-	return NewTaskQueueTypedSettingWithConverter[string](key, convertString, def, description)
+	return newTaskQueueTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewTaskQueueStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) TaskQueueStringConstrainedDefaultSetting {
-	return NewTaskQueueTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newTaskQueueTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithTaskQueueFilter = TypedPropertyFnWithTaskQueueFilter[string]
@@ -502,11 +502,11 @@ type ShardIDStringSetting = ShardIDTypedSetting[string]
 type ShardIDStringConstrainedDefaultSetting = ShardIDTypedConstrainedDefaultSetting[string]
 
 func NewShardIDStringSetting(key string, def string, description string) ShardIDStringSetting {
-	return NewShardIDTypedSettingWithConverter[string](key, convertString, def, description)
+	return newShardIDTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewShardIDStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) ShardIDStringConstrainedDefaultSetting {
-	return NewShardIDTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newShardIDTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithShardIDFilter = TypedPropertyFnWithShardIDFilter[string]
@@ -519,11 +519,11 @@ type TaskTypeStringSetting = TaskTypeTypedSetting[string]
 type TaskTypeStringConstrainedDefaultSetting = TaskTypeTypedConstrainedDefaultSetting[string]
 
 func NewTaskTypeStringSetting(key string, def string, description string) TaskTypeStringSetting {
-	return NewTaskTypeTypedSettingWithConverter[string](key, convertString, def, description)
+	return newTaskTypeTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewTaskTypeStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) TaskTypeStringConstrainedDefaultSetting {
-	return NewTaskTypeTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newTaskTypeTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithTaskTypeFilter = TypedPropertyFnWithTaskTypeFilter[string]
@@ -536,11 +536,11 @@ type DestinationStringSetting = DestinationTypedSetting[string]
 type DestinationStringConstrainedDefaultSetting = DestinationTypedConstrainedDefaultSetting[string]
 
 func NewDestinationStringSetting(key string, def string, description string) DestinationStringSetting {
-	return NewDestinationTypedSettingWithConverter[string](key, convertString, def, description)
+	return newDestinationTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewDestinationStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) DestinationStringConstrainedDefaultSetting {
-	return NewDestinationTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newDestinationTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithDestinationFilter = TypedPropertyFnWithDestinationFilter[string]
@@ -553,11 +553,11 @@ type ChasmTaskTypeStringSetting = ChasmTaskTypeTypedSetting[string]
 type ChasmTaskTypeStringConstrainedDefaultSetting = ChasmTaskTypeTypedConstrainedDefaultSetting[string]
 
 func NewChasmTaskTypeStringSetting(key string, def string, description string) ChasmTaskTypeStringSetting {
-	return NewChasmTaskTypeTypedSettingWithConverter[string](key, convertString, def, description)
+	return newChasmTaskTypeTypedSettingWithConverter[string](key, convertString, def, description, SettingCodecString)
 }
 
 func NewChasmTaskTypeStringSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[string], description string) ChasmTaskTypeStringConstrainedDefaultSetting {
-	return NewChasmTaskTypeTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description)
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault[string](key, convertString, cdef, description, SettingCodecString)
 }
 
 type StringPropertyFnWithChasmTaskTypeFilter = TypedPropertyFnWithChasmTaskTypeFilter[string]
@@ -570,11 +570,11 @@ type GlobalDurationSetting = GlobalTypedSetting[time.Duration]
 type GlobalDurationConstrainedDefaultSetting = GlobalTypedConstrainedDefaultSetting[time.Duration]
 
 func NewGlobalDurationSetting(key string, def time.Duration, description string) GlobalDurationSetting {
-	return NewGlobalTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newGlobalTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewGlobalDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) GlobalDurationConstrainedDefaultSetting {
-	return NewGlobalTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newGlobalTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFn = TypedPropertyFn[time.Duration]
@@ -587,11 +587,11 @@ type NamespaceDurationSetting = NamespaceTypedSetting[time.Duration]
 type NamespaceDurationConstrainedDefaultSetting = NamespaceTypedConstrainedDefaultSetting[time.Duration]
 
 func NewNamespaceDurationSetting(key string, def time.Duration, description string) NamespaceDurationSetting {
-	return NewNamespaceTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newNamespaceTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewNamespaceDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) NamespaceDurationConstrainedDefaultSetting {
-	return NewNamespaceTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newNamespaceTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithNamespaceFilter = TypedPropertyFnWithNamespaceFilter[time.Duration]
@@ -604,11 +604,11 @@ type NamespaceIDDurationSetting = NamespaceIDTypedSetting[time.Duration]
 type NamespaceIDDurationConstrainedDefaultSetting = NamespaceIDTypedConstrainedDefaultSetting[time.Duration]
 
 func NewNamespaceIDDurationSetting(key string, def time.Duration, description string) NamespaceIDDurationSetting {
-	return NewNamespaceIDTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newNamespaceIDTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewNamespaceIDDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) NamespaceIDDurationConstrainedDefaultSetting {
-	return NewNamespaceIDTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newNamespaceIDTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithNamespaceIDFilter = TypedPropertyFnWithNamespaceIDFilter[time.Duration]
@@ -621,11 +621,11 @@ type TaskQueueDurationSetting = TaskQueueTypedSetting[time.Duration]
 type TaskQueueDurationConstrainedDefaultSetting = TaskQueueTypedConstrainedDefaultSetting[time.Duration]
 
 func NewTaskQueueDurationSetting(key string, def time.Duration, description string) TaskQueueDurationSetting {
-	return NewTaskQueueTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newTaskQueueTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewTaskQueueDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) TaskQueueDurationConstrainedDefaultSetting {
-	return NewTaskQueueTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newTaskQueueTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithTaskQueueFilter = TypedPropertyFnWithTaskQueueFilter[time.Duration]
@@ -638,11 +638,11 @@ type ShardIDDurationSetting = ShardIDTypedSetting[time.Duration]
 type ShardIDDurationConstrainedDefaultSetting = ShardIDTypedConstrainedDefaultSetting[time.Duration]
 
 func NewShardIDDurationSetting(key string, def time.Duration, description string) ShardIDDurationSetting {
-	return NewShardIDTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newShardIDTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewShardIDDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) ShardIDDurationConstrainedDefaultSetting {
-	return NewShardIDTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newShardIDTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithShardIDFilter = TypedPropertyFnWithShardIDFilter[time.Duration]
@@ -655,11 +655,11 @@ type TaskTypeDurationSetting = TaskTypeTypedSetting[time.Duration]
 type TaskTypeDurationConstrainedDefaultSetting = TaskTypeTypedConstrainedDefaultSetting[time.Duration]
 
 func NewTaskTypeDurationSetting(key string, def time.Duration, description string) TaskTypeDurationSetting {
-	return NewTaskTypeTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newTaskTypeTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewTaskTypeDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) TaskTypeDurationConstrainedDefaultSetting {
-	return NewTaskTypeTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newTaskTypeTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithTaskTypeFilter = TypedPropertyFnWithTaskTypeFilter[time.Duration]
@@ -672,11 +672,11 @@ type DestinationDurationSetting = DestinationTypedSetting[time.Duration]
 type DestinationDurationConstrainedDefaultSetting = DestinationTypedConstrainedDefaultSetting[time.Duration]
 
 func NewDestinationDurationSetting(key string, def time.Duration, description string) DestinationDurationSetting {
-	return NewDestinationTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newDestinationTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewDestinationDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) DestinationDurationConstrainedDefaultSetting {
-	return NewDestinationTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newDestinationTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithDestinationFilter = TypedPropertyFnWithDestinationFilter[time.Duration]
@@ -689,11 +689,11 @@ type ChasmTaskTypeDurationSetting = ChasmTaskTypeTypedSetting[time.Duration]
 type ChasmTaskTypeDurationConstrainedDefaultSetting = ChasmTaskTypeTypedConstrainedDefaultSetting[time.Duration]
 
 func NewChasmTaskTypeDurationSetting(key string, def time.Duration, description string) ChasmTaskTypeDurationSetting {
-	return NewChasmTaskTypeTypedSettingWithConverter[time.Duration](key, convertDuration, def, description)
+	return newChasmTaskTypeTypedSettingWithConverter[time.Duration](key, convertDuration, def, description, SettingCodecDuration)
 }
 
 func NewChasmTaskTypeDurationSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[time.Duration], description string) ChasmTaskTypeDurationConstrainedDefaultSetting {
-	return NewChasmTaskTypeTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description)
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault[time.Duration](key, convertDuration, cdef, description, SettingCodecDuration)
 }
 
 type DurationPropertyFnWithChasmTaskTypeFilter = TypedPropertyFnWithChasmTaskTypeFilter[time.Duration]
@@ -706,11 +706,11 @@ type GlobalMapSetting = GlobalTypedSetting[map[string]any]
 type GlobalMapConstrainedDefaultSetting = GlobalTypedConstrainedDefaultSetting[map[string]any]
 
 func NewGlobalMapSetting(key string, def map[string]any, description string) GlobalMapSetting {
-	return NewGlobalTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newGlobalTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewGlobalMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) GlobalMapConstrainedDefaultSetting {
-	return NewGlobalTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newGlobalTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFn = TypedPropertyFn[map[string]any]
@@ -723,11 +723,11 @@ type NamespaceMapSetting = NamespaceTypedSetting[map[string]any]
 type NamespaceMapConstrainedDefaultSetting = NamespaceTypedConstrainedDefaultSetting[map[string]any]
 
 func NewNamespaceMapSetting(key string, def map[string]any, description string) NamespaceMapSetting {
-	return NewNamespaceTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newNamespaceTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewNamespaceMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) NamespaceMapConstrainedDefaultSetting {
-	return NewNamespaceTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newNamespaceTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithNamespaceFilter = TypedPropertyFnWithNamespaceFilter[map[string]any]
@@ -740,11 +740,11 @@ type NamespaceIDMapSetting = NamespaceIDTypedSetting[map[string]any]
 type NamespaceIDMapConstrainedDefaultSetting = NamespaceIDTypedConstrainedDefaultSetting[map[string]any]
 
 func NewNamespaceIDMapSetting(key string, def map[string]any, description string) NamespaceIDMapSetting {
-	return NewNamespaceIDTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newNamespaceIDTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewNamespaceIDMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) NamespaceIDMapConstrainedDefaultSetting {
-	return NewNamespaceIDTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newNamespaceIDTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithNamespaceIDFilter = TypedPropertyFnWithNamespaceIDFilter[map[string]any]
@@ -757,11 +757,11 @@ type TaskQueueMapSetting = TaskQueueTypedSetting[map[string]any]
 type TaskQueueMapConstrainedDefaultSetting = TaskQueueTypedConstrainedDefaultSetting[map[string]any]
 
 func NewTaskQueueMapSetting(key string, def map[string]any, description string) TaskQueueMapSetting {
-	return NewTaskQueueTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newTaskQueueTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewTaskQueueMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) TaskQueueMapConstrainedDefaultSetting {
-	return NewTaskQueueTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newTaskQueueTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithTaskQueueFilter = TypedPropertyFnWithTaskQueueFilter[map[string]any]
@@ -774,11 +774,11 @@ type ShardIDMapSetting = ShardIDTypedSetting[map[string]any]
 type ShardIDMapConstrainedDefaultSetting = ShardIDTypedConstrainedDefaultSetting[map[string]any]
 
 func NewShardIDMapSetting(key string, def map[string]any, description string) ShardIDMapSetting {
-	return NewShardIDTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newShardIDTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewShardIDMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) ShardIDMapConstrainedDefaultSetting {
-	return NewShardIDTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newShardIDTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithShardIDFilter = TypedPropertyFnWithShardIDFilter[map[string]any]
@@ -791,11 +791,11 @@ type TaskTypeMapSetting = TaskTypeTypedSetting[map[string]any]
 type TaskTypeMapConstrainedDefaultSetting = TaskTypeTypedConstrainedDefaultSetting[map[string]any]
 
 func NewTaskTypeMapSetting(key string, def map[string]any, description string) TaskTypeMapSetting {
-	return NewTaskTypeTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newTaskTypeTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewTaskTypeMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) TaskTypeMapConstrainedDefaultSetting {
-	return NewTaskTypeTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newTaskTypeTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithTaskTypeFilter = TypedPropertyFnWithTaskTypeFilter[map[string]any]
@@ -808,11 +808,11 @@ type DestinationMapSetting = DestinationTypedSetting[map[string]any]
 type DestinationMapConstrainedDefaultSetting = DestinationTypedConstrainedDefaultSetting[map[string]any]
 
 func NewDestinationMapSetting(key string, def map[string]any, description string) DestinationMapSetting {
-	return NewDestinationTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newDestinationTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewDestinationMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) DestinationMapConstrainedDefaultSetting {
-	return NewDestinationTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newDestinationTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithDestinationFilter = TypedPropertyFnWithDestinationFilter[map[string]any]
@@ -825,11 +825,11 @@ type ChasmTaskTypeMapSetting = ChasmTaskTypeTypedSetting[map[string]any]
 type ChasmTaskTypeMapConstrainedDefaultSetting = ChasmTaskTypeTypedConstrainedDefaultSetting[map[string]any]
 
 func NewChasmTaskTypeMapSetting(key string, def map[string]any, description string) ChasmTaskTypeMapSetting {
-	return NewChasmTaskTypeTypedSettingWithConverter[map[string]any](key, convertMap, def, description)
+	return newChasmTaskTypeTypedSettingWithConverter[map[string]any](key, convertMap, def, description, SettingCodecMap)
 }
 
 func NewChasmTaskTypeMapSettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[map[string]any], description string) ChasmTaskTypeMapConstrainedDefaultSetting {
-	return NewChasmTaskTypeTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description)
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault[map[string]any](key, convertMap, cdef, description, SettingCodecMap)
 }
 
 type MapPropertyFnWithChasmTaskTypeFilter = TypedPropertyFnWithChasmTaskTypeFilter[map[string]any]
@@ -850,11 +850,13 @@ func NewGlobalTypedSetting[T any](key string, def T, description string) GlobalT
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := GlobalTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceGlobal, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -862,11 +864,17 @@ func NewGlobalTypedSetting[T any](key string, def T, description string) GlobalT
 
 // NewGlobalTypedSettingWithConverter creates a setting with a custom converter function.
 func NewGlobalTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) GlobalTypedSetting[T] {
+	return newGlobalTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newGlobalTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) GlobalTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := GlobalTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceGlobal, codec, def),
 	}
 	register(s)
 	return s
@@ -874,11 +882,17 @@ func NewGlobalTypedSettingWithConverter[T any](key string, convert func(any) (T,
 
 // NewGlobalTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewGlobalTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) GlobalTypedConstrainedDefaultSetting[T] {
+	return newGlobalTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newGlobalTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) GlobalTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := GlobalTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceGlobal, codec, cdef),
 	}
 	register(s)
 	return s
@@ -886,6 +900,7 @@ func NewGlobalTypedSettingWithConstrainedDefault[T any](key string, convert func
 
 func (s GlobalTypedSetting[T]) Key() Key               { return s.key }
 func (s GlobalTypedSetting[T]) Precedence() Precedence { return PrecedenceGlobal }
+func (s GlobalTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s GlobalTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -893,6 +908,9 @@ func (s GlobalTypedSetting[T]) Validate(v any) error {
 
 func (s GlobalTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s GlobalTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceGlobal }
+func (s GlobalTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s GlobalTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -986,11 +1004,13 @@ func NewNamespaceTypedSetting[T any](key string, def T, description string) Name
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := NamespaceTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceNamespace, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -998,11 +1018,17 @@ func NewNamespaceTypedSetting[T any](key string, def T, description string) Name
 
 // NewNamespaceTypedSettingWithConverter creates a setting with a custom converter function.
 func NewNamespaceTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) NamespaceTypedSetting[T] {
+	return newNamespaceTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newNamespaceTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) NamespaceTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := NamespaceTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceNamespace, codec, def),
 	}
 	register(s)
 	return s
@@ -1010,11 +1036,17 @@ func NewNamespaceTypedSettingWithConverter[T any](key string, convert func(any) 
 
 // NewNamespaceTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewNamespaceTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) NamespaceTypedConstrainedDefaultSetting[T] {
+	return newNamespaceTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newNamespaceTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) NamespaceTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := NamespaceTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceNamespace, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1022,6 +1054,7 @@ func NewNamespaceTypedSettingWithConstrainedDefault[T any](key string, convert f
 
 func (s NamespaceTypedSetting[T]) Key() Key               { return s.key }
 func (s NamespaceTypedSetting[T]) Precedence() Precedence { return PrecedenceNamespace }
+func (s NamespaceTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s NamespaceTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1029,6 +1062,9 @@ func (s NamespaceTypedSetting[T]) Validate(v any) error {
 
 func (s NamespaceTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s NamespaceTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceNamespace }
+func (s NamespaceTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s NamespaceTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1122,11 +1158,13 @@ func NewNamespaceIDTypedSetting[T any](key string, def T, description string) Na
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := NamespaceIDTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceNamespaceID, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -1134,11 +1172,17 @@ func NewNamespaceIDTypedSetting[T any](key string, def T, description string) Na
 
 // NewNamespaceIDTypedSettingWithConverter creates a setting with a custom converter function.
 func NewNamespaceIDTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) NamespaceIDTypedSetting[T] {
+	return newNamespaceIDTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newNamespaceIDTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) NamespaceIDTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := NamespaceIDTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceNamespaceID, codec, def),
 	}
 	register(s)
 	return s
@@ -1146,11 +1190,17 @@ func NewNamespaceIDTypedSettingWithConverter[T any](key string, convert func(any
 
 // NewNamespaceIDTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewNamespaceIDTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) NamespaceIDTypedConstrainedDefaultSetting[T] {
+	return newNamespaceIDTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newNamespaceIDTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) NamespaceIDTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := NamespaceIDTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceNamespaceID, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1158,6 +1208,7 @@ func NewNamespaceIDTypedSettingWithConstrainedDefault[T any](key string, convert
 
 func (s NamespaceIDTypedSetting[T]) Key() Key               { return s.key }
 func (s NamespaceIDTypedSetting[T]) Precedence() Precedence { return PrecedenceNamespaceID }
+func (s NamespaceIDTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s NamespaceIDTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1165,6 +1216,9 @@ func (s NamespaceIDTypedSetting[T]) Validate(v any) error {
 
 func (s NamespaceIDTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s NamespaceIDTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceNamespaceID }
+func (s NamespaceIDTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s NamespaceIDTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1258,11 +1312,13 @@ func NewTaskQueueTypedSetting[T any](key string, def T, description string) Task
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := TaskQueueTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceTaskQueue, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -1270,11 +1326,17 @@ func NewTaskQueueTypedSetting[T any](key string, def T, description string) Task
 
 // NewTaskQueueTypedSettingWithConverter creates a setting with a custom converter function.
 func NewTaskQueueTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) TaskQueueTypedSetting[T] {
+	return newTaskQueueTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newTaskQueueTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) TaskQueueTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := TaskQueueTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceTaskQueue, codec, def),
 	}
 	register(s)
 	return s
@@ -1282,11 +1344,17 @@ func NewTaskQueueTypedSettingWithConverter[T any](key string, convert func(any) 
 
 // NewTaskQueueTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewTaskQueueTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) TaskQueueTypedConstrainedDefaultSetting[T] {
+	return newTaskQueueTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newTaskQueueTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) TaskQueueTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := TaskQueueTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceTaskQueue, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1294,6 +1362,7 @@ func NewTaskQueueTypedSettingWithConstrainedDefault[T any](key string, convert f
 
 func (s TaskQueueTypedSetting[T]) Key() Key               { return s.key }
 func (s TaskQueueTypedSetting[T]) Precedence() Precedence { return PrecedenceTaskQueue }
+func (s TaskQueueTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s TaskQueueTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1301,6 +1370,9 @@ func (s TaskQueueTypedSetting[T]) Validate(v any) error {
 
 func (s TaskQueueTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s TaskQueueTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceTaskQueue }
+func (s TaskQueueTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s TaskQueueTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1418,11 +1490,13 @@ func NewShardIDTypedSetting[T any](key string, def T, description string) ShardI
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := ShardIDTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceShardID, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -1430,11 +1504,17 @@ func NewShardIDTypedSetting[T any](key string, def T, description string) ShardI
 
 // NewShardIDTypedSettingWithConverter creates a setting with a custom converter function.
 func NewShardIDTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) ShardIDTypedSetting[T] {
+	return newShardIDTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newShardIDTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) ShardIDTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := ShardIDTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceShardID, codec, def),
 	}
 	register(s)
 	return s
@@ -1442,11 +1522,17 @@ func NewShardIDTypedSettingWithConverter[T any](key string, convert func(any) (T
 
 // NewShardIDTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewShardIDTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) ShardIDTypedConstrainedDefaultSetting[T] {
+	return newShardIDTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newShardIDTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) ShardIDTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := ShardIDTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceShardID, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1454,6 +1540,7 @@ func NewShardIDTypedSettingWithConstrainedDefault[T any](key string, convert fun
 
 func (s ShardIDTypedSetting[T]) Key() Key               { return s.key }
 func (s ShardIDTypedSetting[T]) Precedence() Precedence { return PrecedenceShardID }
+func (s ShardIDTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s ShardIDTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1461,6 +1548,9 @@ func (s ShardIDTypedSetting[T]) Validate(v any) error {
 
 func (s ShardIDTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s ShardIDTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceShardID }
+func (s ShardIDTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s ShardIDTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1554,11 +1644,13 @@ func NewTaskTypeTypedSetting[T any](key string, def T, description string) TaskT
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := TaskTypeTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceTaskType, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -1566,11 +1658,17 @@ func NewTaskTypeTypedSetting[T any](key string, def T, description string) TaskT
 
 // NewTaskTypeTypedSettingWithConverter creates a setting with a custom converter function.
 func NewTaskTypeTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) TaskTypeTypedSetting[T] {
+	return newTaskTypeTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newTaskTypeTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) TaskTypeTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := TaskTypeTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceTaskType, codec, def),
 	}
 	register(s)
 	return s
@@ -1578,11 +1676,17 @@ func NewTaskTypeTypedSettingWithConverter[T any](key string, convert func(any) (
 
 // NewTaskTypeTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewTaskTypeTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) TaskTypeTypedConstrainedDefaultSetting[T] {
+	return newTaskTypeTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newTaskTypeTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) TaskTypeTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := TaskTypeTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceTaskType, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1590,6 +1694,7 @@ func NewTaskTypeTypedSettingWithConstrainedDefault[T any](key string, convert fu
 
 func (s TaskTypeTypedSetting[T]) Key() Key               { return s.key }
 func (s TaskTypeTypedSetting[T]) Precedence() Precedence { return PrecedenceTaskType }
+func (s TaskTypeTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s TaskTypeTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1597,6 +1702,9 @@ func (s TaskTypeTypedSetting[T]) Validate(v any) error {
 
 func (s TaskTypeTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s TaskTypeTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceTaskType }
+func (s TaskTypeTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s TaskTypeTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1690,11 +1798,13 @@ func NewDestinationTypedSetting[T any](key string, def T, description string) De
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := DestinationTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceDestination, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -1702,11 +1812,17 @@ func NewDestinationTypedSetting[T any](key string, def T, description string) De
 
 // NewDestinationTypedSettingWithConverter creates a setting with a custom converter function.
 func NewDestinationTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) DestinationTypedSetting[T] {
+	return newDestinationTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newDestinationTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) DestinationTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := DestinationTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceDestination, codec, def),
 	}
 	register(s)
 	return s
@@ -1714,11 +1830,17 @@ func NewDestinationTypedSettingWithConverter[T any](key string, convert func(any
 
 // NewDestinationTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewDestinationTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) DestinationTypedConstrainedDefaultSetting[T] {
+	return newDestinationTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newDestinationTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) DestinationTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := DestinationTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceDestination, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1726,6 +1848,7 @@ func NewDestinationTypedSettingWithConstrainedDefault[T any](key string, convert
 
 func (s DestinationTypedSetting[T]) Key() Key               { return s.key }
 func (s DestinationTypedSetting[T]) Precedence() Precedence { return PrecedenceDestination }
+func (s DestinationTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s DestinationTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1733,6 +1856,9 @@ func (s DestinationTypedSetting[T]) Validate(v any) error {
 
 func (s DestinationTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s DestinationTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceDestination }
+func (s DestinationTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s DestinationTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1846,11 +1972,13 @@ func NewChasmTaskTypeTypedSetting[T any](key string, def T, description string) 
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := ChasmTaskTypeTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceChasmTaskType, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -1858,11 +1986,17 @@ func NewChasmTaskTypeTypedSetting[T any](key string, def T, description string) 
 
 // NewChasmTaskTypeTypedSettingWithConverter creates a setting with a custom converter function.
 func NewChasmTaskTypeTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) ChasmTaskTypeTypedSetting[T] {
+	return newChasmTaskTypeTypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func newChasmTaskTypeTypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) ChasmTaskTypeTypedSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := ChasmTaskTypeTypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, PrecedenceChasmTaskType, codec, def),
 	}
 	register(s)
 	return s
@@ -1870,11 +2004,17 @@ func NewChasmTaskTypeTypedSettingWithConverter[T any](key string, convert func(a
 
 // NewChasmTaskTypeTypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func NewChasmTaskTypeTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) ChasmTaskTypeTypedConstrainedDefaultSetting[T] {
+	return newChasmTaskTypeTypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func newChasmTaskTypeTypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) ChasmTaskTypeTypedConstrainedDefaultSetting[T] {
+	normalizedKey := MakeKey(key)
 	s := ChasmTaskTypeTypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, PrecedenceChasmTaskType, codec, cdef),
 	}
 	register(s)
 	return s
@@ -1882,6 +2022,7 @@ func NewChasmTaskTypeTypedSettingWithConstrainedDefault[T any](key string, conve
 
 func (s ChasmTaskTypeTypedSetting[T]) Key() Key               { return s.key }
 func (s ChasmTaskTypeTypedSetting[T]) Precedence() Precedence { return PrecedenceChasmTaskType }
+func (s ChasmTaskTypeTypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s ChasmTaskTypeTypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -1889,6 +2030,9 @@ func (s ChasmTaskTypeTypedSetting[T]) Validate(v any) error {
 
 func (s ChasmTaskTypeTypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s ChasmTaskTypeTypedConstrainedDefaultSetting[T]) Precedence() Precedence { return PrecedenceChasmTaskType }
+func (s ChasmTaskTypeTypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s ChasmTaskTypeTypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
