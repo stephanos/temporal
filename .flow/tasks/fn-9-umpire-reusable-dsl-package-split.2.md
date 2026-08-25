@@ -39,9 +39,12 @@ Move only data-only Search contracts here. Planner pull/backend protocol belongs
 - [ ] `make umpire-check-regression` remains green.
 
 ## Done summary
-TBD
+Moved the independent Property and Behavior DSLs and their full positive, negative, canonical, and unsatisfiability suites onto `Umpire.Core`, preserving comments and structured error semantics. Added the data-only Search contract plus narrow-import compiler guards for the sibling module seams.
 
+GATE_SKIPPED:smoke:green-receipt b7283ffc - baseline reused from prior post-gate pass
+
+stage: impl-review - ran (SHIP; completed 2026-08-25T19:23:06.856965Z)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 774f1c3d32d0b5950a6cd403f39fc5340c407620
+- Tests: GATE_SKIPPED:smoke:green-receipt b7283ffc - baseline reused from prior post-gate pass, cd model && mise exec -- lake build UmpireTests, make umpire-check-regression
 - PRs:
