@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-9-umpire-reusable-dsl-package-split",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-9-umpire-reusable-dsl-package-split.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -150,15 +152,47 @@
       "task": null,
       "timestamp": "2026-08-25T15:46:02.324105Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4d52577327fef0f9056610b9e997db73ea777e5f9f12784ecd06d19c072e9436",
+      "backend": "codex",
+      "base_sha": "702f305a207d53b1d6991283a0f1906e9d9a8b72",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b7283ffcb3d73ba262f4bae296b0ad07cd05c16b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 188205,
+      "output_sha256": "6d5c76b6177653ec296d59c7bd0c8c1522d6c14e61970c81c70d7dac84c7b88c",
+      "reservation_id": "67c90f2f237841cbacfe22aa6761a36e",
+      "round_consumed": true,
+      "scope": "impl:fn-9-umpire-reusable-dsl-package-split.1",
+      "superseded_by": null,
+      "task": "fn-9-umpire-reusable-dsl-package-split.1",
+      "timestamp": "2026-08-25T19:12:18.586514Z",
+      "tool_calls": 14,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-9-umpire-reusable-dsl-package-split.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-9-umpire-reusable-dsl-package-split.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-9-umpire-reusable-dsl-package-split.md",
@@ -175,5 +209,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T15:46:02.353905Z"
+  "updated_at": "2026-08-25T19:12:18.596526Z"
 }

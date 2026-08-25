@@ -37,9 +37,10 @@ The intermediate stage is additive so `make umpire-check-regression` remains gre
 - [ ] `make umpire-check-regression` remains green through the additive stage.
 
 ## Done summary
-TBD
+Added the single Umpire Lake library seam, moved the reusable Core declarations under `Umpire.*`, and ported the full deterministic Core suite under `UmpireTests` while preserving comments and the additive legacy targets. Baseline was green; the focused Umpire build, forbidden-import scan, and stable regression gate all pass.
 
+stage: impl-review - ran (SHIP; completed 2026-08-25T19:12:18.581566Z)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b7283ffcb3d73ba262f4bae296b0ad07cd05c16b
+- Tests: cd model && mise exec -- lake build Umpire UmpireTests, ! rg -n '^import .*(Temporal|Nexus)' model/Umpire.lean model/UmpireTests.lean model/Umpire/Core.lean model/Umpire/CoreTests.lean, make umpire-check-regression
 - PRs:
