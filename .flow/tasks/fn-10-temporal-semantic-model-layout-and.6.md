@@ -40,9 +40,12 @@ Move registry/CLI behavior into `Temporal.Tool.Inspect`, colocate its tests, and
 - [ ] Temporary old roots contain no semantic declarations.
 
 ## Done summary
-TBD
+Moved the inspector implementation and its behavioral coverage into `Temporal.Tool`, including valid, failed, unknown, and invalid-arity contracts for both unchanged production scenario identities. Added the import-only `TemporalModelTests` aggregate while leaving declaration-free old test and executable roots as temporary task-7 build bridges.
 
+baseline: green via handoff (green verified at 0c87730a by fn-10-temporal-semantic-model-layout-and.5)
+GATE_SKIPPED:smoke:green-receipt 0c87730a - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-25T23:36:11Z..2026-08-25T23:40:12Z] | SHIP
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5708253f1785c3fc3fd0b36475011c24c28f714b
+- Tests: GATE_SKIPPED:smoke:green-receipt 0c87730a - baseline reused from prior post-gate pass, mise exec -- lake build Temporal.Tool.InspectTests, mise exec -- lake build TemporalUmpireTests temporal-umpire-inspect, mise exec -- lake env lean TemporalModelTests.lean, make umpire-check-regression
 - PRs:
