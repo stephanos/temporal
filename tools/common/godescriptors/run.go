@@ -15,9 +15,11 @@ import (
 	"strconv"
 	"strings"
 
-	"go.temporal.io/server/tools/umpire/internal/artifactio"
-	"go.temporal.io/server/tools/umpire/internal/protofile"
+	"go.temporal.io/server/tools/common/artifactio"
+	"go.temporal.io/server/tools/common/protofile"
 )
+
+var removeDescriptorHelper = os.RemoveAll
 
 type repeatedStrings []string
 
@@ -37,7 +39,7 @@ func (values *repeatedStrings) Set(value string) error {
 func Run(ctx context.Context, arguments []string) error {
 	var patterns repeatedStrings
 	var rawPrefixes repeatedStrings
-	flags := flag.NewFlagSet("umpire-export-go-descriptors", flag.ContinueOnError)
+	flags := flag.NewFlagSet("genleanmodeldescriptors", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.Var(&patterns, "package-pattern", "Go package pattern containing registered descriptors (repeatable)")
 	flags.Var(&rawPrefixes, "file-prefix", "protobuf file prefix to export (repeatable)")
@@ -147,12 +149,12 @@ func packageContainsPrefix(directory, files string, prefixes []string) (bool, er
 }
 
 func exportDescriptors(ctx context.Context, packages, prefixes []string) (encoded []byte, resultErr error) {
-	temporaryRoot, err := os.MkdirTemp("", "umpire-export-go-descriptors-*")
+	temporaryRoot, err := os.MkdirTemp("", "genleanmodeldescriptors-*")
 	if err != nil {
 		return nil, fmt.Errorf("create descriptor helper: %w", err)
 	}
 	defer func() {
-		if err := os.RemoveAll(temporaryRoot); err != nil {
+		if err := removeDescriptorHelper(temporaryRoot); err != nil {
 			resultErr = errors.Join(resultErr, fmt.Errorf("remove descriptor helper: %w", err))
 		}
 	}()

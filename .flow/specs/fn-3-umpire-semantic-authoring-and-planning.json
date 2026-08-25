@@ -1,11 +1,96 @@
 {
   "branch_name": "fn-3-umpire-semantic-authoring-and-planning",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-08-24T22:43:58.039353Z",
-  "depends_on_epics": [],
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-1-lean-regression-dsl-and-nexus"
+  ],
   "id": "fn-3-umpire-semantic-authoring-and-planning",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-25T00:29:59.878122Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "d2707d0dc5407ff60fcaceb400cac75bdf4dd409767ad75d51ecbd763ddf430d",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "912b2f6c1733a257e59c24de554218b6e6fbad91",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 244179,
+      "output_sha256": "13275fca33e7cf00ef1451144674dbb2fe612c5429347af17619d1ccfac80637",
+      "reservation_id": "3c03735c26444b828001914809b67b44",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T00:27:02.450583Z",
+      "tool_calls": 9,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5187209169ece3fdc6bbdfc70849b8e2a9cbf94ca2e8ab367e74d8f341eca231",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "912b2f6c1733a257e59c24de554218b6e6fbad91",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "e22828c580cc4488829af65b96bf2a55",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T00:29:59.867409Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-3-umpire-semantic-authoring-and-planning.md",
   "status": "open",
   "title": "Umpire semantic authoring and planning core",
@@ -20,5 +105,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T22:43:58.044536Z"
+  "updated_at": "2026-08-25T00:29:59.880170Z"
 }

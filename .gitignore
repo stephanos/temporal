@@ -23,6 +23,8 @@ testdata/
 !/tools/umpire3/testdata/**
 !/tools/umpire3/**/testdata/
 !/tools/umpire3/**/testdata/**
+!/tools/common/godescriptors/testdata/
+!/tools/common/godescriptors/testdata/**
 
 *.out
 *.test
