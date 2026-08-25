@@ -44,6 +44,7 @@ cd model && mise exec -- lake env lean Temporal/Experiment/BehaviorTests.lean
 Implemented the checked Behavior constraint algebra with symbolic setup, action and occurrence constraints, partial ordering, sequence and adjacency, distinct exact-action and exact-trace semantics, structured diagnostics, empty-space classification, and deterministic canonical projection. Review fixes added transitive setup contradiction detection, symmetric setup canonicalization, and a deterministic named-occurrence authoring bound that fails closed before exponential state exploration; focused and full gates pass and Codex reached SHIP.
 
 stage: impl-review - ran [2026-08-25T02:46:57Z..2026-08-25T03:21:14Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: bf0a4ca863aadfe7821cbe47fcb095363be19821, b903fb09b821eab31d3eb8e956cf781163f5abf3, 989b2f3091b33f0d06acae9dcffadbdfec55706f, 1ba27c826ec1912bd3c4ca2f33f47189804aad8e, 5e9d7d65ac8c59cf645bfaae4156f060baa6ed4a
 - Tests: cd model && mise exec -- lake build Temporal.Experiment.Behavior, cd model && mise exec -- lake env lean Temporal/Experiment/BehaviorTests.lean, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
