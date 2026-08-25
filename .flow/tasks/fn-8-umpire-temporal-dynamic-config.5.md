@@ -54,6 +54,7 @@ Verification passed `go test -count=1 -tags test_dep ./common/dynamicconfig ./cm
 GATE_SKIPPED:unittest:green-receipt 98ab54e9 - baseline reused from prior post-gate pass
 
 stage: impl-review - ran [2026-08-25T17:30:44Z..2026-08-25T18:01:32Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 2eb68a401955dca0f0b5c972f9962db60ce5d5cd, 41eea9db96b24cea5642ed42fe208fea30f3008b, 0598db66f7d78053cbedb82df0417533f2a4745c
 - Tests: GATE_SKIPPED:unittest:green-receipt 98ab54e9 - baseline reused from prior post-gate pass, go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, make umpire-gen-dynamic-config, cd model && mise exec -- lake build ExperimentTests, cd model && mise exec -- lake build, make lint-code (inherited baseline red: 1828 pre-existing Go findings; no Go changes)
