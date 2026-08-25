@@ -1,4 +1,5 @@
 import Temporal
+import Temporal.Umpire.ConfigTests
 import Temporal.Umpire.Inspect
 import UmpireTests
 

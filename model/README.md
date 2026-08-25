@@ -49,7 +49,9 @@ module boundary. The generator exclusively owns `Temporal/DynamicConfig.lean` an
 These declarations record generation-time registry structure. They do not parse deployment YAML,
 read live server configuration, or execute Go converters in Lean. Handwritten Lean outside the
 owned boundary is responsible for classifications, typed interpretations, consumer-specific
-meaning, and any explicit replacement for an opaque generated default.
+meaning, and any explicit replacement for an opaque generated default. Those handwritten semantics
+live in `Temporal/Umpire/Config.lean`, with focused coverage in
+`Temporal/Umpire/ConfigTests.lean`.
 
 From the repository root, regenerate and verify the catalog with:
 
