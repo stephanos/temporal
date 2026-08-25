@@ -50,9 +50,14 @@ make lint-code
 - [ ] No live server, callback execution, YAML parser, environment preset, public config CLI, drift-check target, or CI workflow is added.
 - [ ] Focused Go tests, generation, full Lean build, formatting, and linting pass with existing comments preserved.
 ## Done summary
-TBD
+Implemented the pure callback-admission consumer for R8 over a private projection of exactly four typed values from an immutable `ConfigView`. The model captures legacy-HSM versus CHASM routing, admits count equality and rejects only overflow, applies exact special-URL and whole-host address rules, rejects request/address failures before dispatch, models zero additions as a no-op, and enforces positive/equal/greater/non-positive timeout boundaries while paired snapshots prove route, admission, dispatch, and within-trace immutability.
 
+Focused coverage exercises zero additions below and above the maximum, count equality/overflow, the two exact Temporal URLs plus path/query/fragment variants, wildcard and insecure HTTP exactness, unknown/missing/unmatched/insecure addresses, missing destination, malformed canonical rules, timeout boundaries, paired outcomes, and CHASM-route capture after a disabled snapshot exists. Verification passed `go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig`, `make umpire-gen-dynamic-config`, `cd model && mise exec -- lake build Temporal.Experiment.ConfigTests`, `cd model && mise exec -- lake build ExperimentTests`, `cd model && mise exec -- lake build`, and `make fmt-imports`; `make lint-code` remains inherited red at the identical pre-edit and terminal count of 1828 pre-existing Go findings, its formatting side effects were restored, and the task has no Go diff. Memory capture was attempted after the review fix but the repository memory store is not initialized.
+
+baseline: red (`make lint-code` failed pre-edit with 1828 inherited pre-existing findings; all other Quick commands green)
+
+stage: impl-review - ran [2026-08-25T18:24:27Z..2026-08-25T18:31:01Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c248289b106103ba6c1d558aef7825d9e304a80f, c208294d0c61e539cab573a3f9bcae0e8aa1a8d8
+- Tests: go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, make umpire-gen-dynamic-config, cd model && mise exec -- lake build Temporal.Experiment.ConfigTests, cd model && mise exec -- lake build ExperimentTests, cd model && mise exec -- lake build, make fmt-imports, make lint-code (inherited baseline and terminal red: identical 1828 pre-existing Go findings; no task Go diff)
 - PRs:
