@@ -483,11 +483,9 @@ def countDeficitDeclaration : BehaviorDeclaration := {
   broadDeclaration with requiredOccurrences := manyCancelOccurrences
 }
 
-def fourteenCancelTrace : BehaviorTrace :=
-  traceWith operationA (List.replicate 14 (cancelStep accepted))
-
-/-- Per-action deficits reject before named-occurrence state exploration. -/
-example : !checkedAdmits countDeficitDeclaration fourteenCancelTrace := by
+/-- The checked authoring bound fails closed before occurrence-state exploration can explode. -/
+example : actualErrorKind (checkBehavior context countDeficitDeclaration) =
+    some .occurrenceLimitExceeded := by
   native_decide
 
 end Temporal.Experiment.BehaviorTests
