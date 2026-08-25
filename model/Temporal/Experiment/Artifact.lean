@@ -15,6 +15,13 @@ structure ObservationCheckpoint where
   observations : List SemanticValue
   deriving BEq, DecidableEq, Repr
 
+structure PlannedOccurrence where
+  identity : DeclarationId
+  action : DeclarationId
+  position : Nat
+  authoredIdentity : Option DeclarationId
+  deriving BEq, DecidableEq, Repr
+
 structure PortableProperty where
   identity : DeclarationId
   semanticDigest : String
@@ -48,7 +55,7 @@ structure DrivePlan where
   requestedActions : List SemanticValue
   modelOutcomes : List SemanticValue
   resultingStates : List SemanticValue
-  linearExtension : List DeclarationId
+  linearExtension : List PlannedOccurrence
   selectedChoices : List SemanticValue
   selectedVariants : List SemanticValue
   requestedFaults : List SemanticValue
@@ -159,6 +166,13 @@ private def checkpointJson (checkpoint : ObservationCheckpoint) : String :=
   "{\"transition\":" ++ toString checkpoint.transition ++
     ",\"observations\":" ++ array (checkpoint.observations.map valueJson) ++ "}"
 
+private def plannedOccurrenceJson (occurrence : PlannedOccurrence) : String :=
+  "{\"identity\":" ++ quote occurrence.identity.value ++
+    ",\"action\":" ++ quote occurrence.action.value ++
+    ",\"position\":" ++ toString occurrence.position ++
+    ",\"authoredIdentity\":" ++
+      (occurrence.authoredIdentity.map (quote ∘ DeclarationId.value) |>.getD "null") ++ "}"
+
 private def sourceJson (source : SemanticSource) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
@@ -193,8 +207,7 @@ private def drivePlanSemanticJson (plan : DrivePlan) : String :=
     ",\"requestedActions\":" ++ array (plan.requestedActions.map valueJson) ++
     ",\"modelOutcomes\":" ++ array (plan.modelOutcomes.map valueJson) ++
     ",\"resultingStates\":" ++ array (plan.resultingStates.map valueJson) ++
-    ",\"linearExtension\":" ++
-      array (plan.linearExtension.map (quote ∘ DeclarationId.value)) ++
+    ",\"linearExtension\":" ++ array (plan.linearExtension.map plannedOccurrenceJson) ++
     ",\"selectedChoices\":" ++ array (plan.selectedChoices.map valueJson) ++
     ",\"selectedVariants\":" ++ array (plan.selectedVariants.map valueJson) ++
     ",\"requestedFaults\":" ++ array (plan.requestedFaults.map valueJson) ++
@@ -238,20 +251,37 @@ private def occurrenceReady
     edge.after != occurrence.id ||
       !(remaining.any fun candidate => candidate.id == edge.before)
 
-private def assignLinearExtension
+private def assignOccurrenceSlots
     (ordering : List OccurrenceOrder) :
-    List DeclarationId → List NamedOccurrence → Option (List DeclarationId)
+    List DeclarationId → List NamedOccurrence → Option (List (Option NamedOccurrence))
   | [], remaining => if remaining.isEmpty then some [] else none
   | action :: actions, remaining =>
       let assignable := remaining.filter fun candidate =>
         candidate.action == action && occurrenceReady ordering remaining candidate
-      let rec firstComplete : List NamedOccurrence → Option (List DeclarationId)
-        | [] => assignLinearExtension ordering actions remaining
+      let rec firstComplete : List NamedOccurrence → Option (List (Option NamedOccurrence))
+        | [] =>
+            match assignOccurrenceSlots ordering actions remaining with
+            | some assigned => some (none :: assigned)
+            | none => none
         | candidate :: rest =>
-            match assignLinearExtension ordering actions (remaining.erase candidate) with
-            | some assigned => some (candidate.id :: assigned)
+            match assignOccurrenceSlots ordering actions (remaining.erase candidate) with
+            | some assigned => some (some candidate :: assigned)
             | none => firstComplete rest
       firstComplete (assignable.mergeSort occurrenceLe)
+
+private def plannedOccurrence
+    (behavior : CheckedBehavior)
+    (index : Nat)
+    (action : SemanticValue)
+    (authored : Option NamedOccurrence) : PlannedOccurrence :=
+  let identity := authored.map NamedOccurrence.id |>.getD
+    (DeclarationId.of (behavior.id.value ++ ".selected-occurrence-" ++ toString (index + 1)))
+  {
+    identity
+    action := action.identity
+    position := index + 1
+    authoredIdentity := authored.map NamedOccurrence.id
+  }
 
 private def propertyReference (property : CheckedProperty) : PortableProperty := {
   identity := property.id
@@ -287,8 +317,11 @@ def artifactOfSelection
   let actions := trace.trace.steps.map fun step => step.selectedAction
   let outcomes := trace.trace.steps.map fun step => step.modelOutcome
   let states := trace.trace.steps.map fun step => step.resultingState
-  let extension := assignLinearExtension query.behavior.ordering
-    (actions.map SemanticValue.identity) query.behavior.requiredOccurrences |>.getD []
+  let slots := assignOccurrenceSlots query.behavior.ordering
+    (actions.map SemanticValue.identity) query.behavior.requiredOccurrences |>.getD
+      (actions.map fun _ => none)
+  let extension := actions.zip slots |>.zipIdx |>.map fun ((action, authored), index) =>
+    plannedOccurrence query.behavior index action authored
   let checkpoints := trace.trace.steps.zipIdx.map fun (step, index) => {
     transition := index + 1
     observations := step.observations

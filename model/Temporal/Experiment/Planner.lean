@@ -2,11 +2,58 @@ import Temporal.Experiment.Artifact
 
 namespace Temporal.Experiment
 
-/-! Incremental, deterministic enumeration through a checked target's semantic kernel. -/
+/-! Incremental, deterministic enumeration through a checked target's semantic relation. -/
+
+def semanticValueOrderKey (value : SemanticValue) : String :=
+  value.identity.value ++ "\u001f" ++ value.value
+
+def transitionResultOrderKey
+    (result : TransitionResult SemanticValue SemanticValue SemanticValue) : String :=
+  semanticValueOrderKey result.modelOutcome ++ "\u001e" ++
+    semanticValueOrderKey result.resultingState ++ "\u001e" ++
+    String.intercalate "\u001d" (result.observations.map semanticValueOrderKey)
+
+/--
+The planner-specific kernel view is indexed rather than List-valued. Its proof fields tie every
+incremental value to the selected target relation, establish completeness independently of Query's
+claim-bearing evidence, and require canonical identity order for unseeded traversal.
+-/
+structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
+  actionLimit : Nat
+  actionAt : Nat → Option SemanticValue
+  initialLimit : List RoleBinding → Nat
+  initialAt : List RoleBinding → Nat → Option SemanticValue
+  stepLimit : SemanticValue → SemanticValue → Nat
+  stepAt : SemanticValue → SemanticValue → Nat →
+    Option (TransitionResult SemanticValue SemanticValue SemanticValue)
+  actionSound : ∀ index action, index < actionLimit → actionAt index = some action →
+    ∃ state result, target.kernel.authoritativeStep state action result
+  actionComplete : ∀ state action result,
+    target.kernel.authoritativeStep state action result →
+      ∃ index, index < actionLimit ∧ actionAt index = some action
+  initialSound : ∀ setup index state, index < initialLimit setup →
+    initialAt setup index = some state → target.kernel.authoritativeInitial setup state
+  initialComplete : ∀ setup state, target.kernel.authoritativeInitial setup state →
+    ∃ index, index < initialLimit setup ∧ initialAt setup index = some state
+  stepSound : ∀ state action index result, index < stepLimit state action →
+    stepAt state action index = some result →
+      target.kernel.authoritativeStep state action result
+  stepComplete : ∀ state action result, target.kernel.authoritativeStep state action result →
+    ∃ index, index < stepLimit state action ∧ stepAt state action index = some result
+  actionOrdered : ∀ first second left right, first < second →
+    actionAt first = some left → actionAt second = some right →
+      semanticValueOrderKey left ≤ semanticValueOrderKey right
+  initialOrdered : ∀ setup first second left right, first < second →
+    initialAt setup first = some left → initialAt setup second = some right →
+      semanticValueOrderKey left ≤ semanticValueOrderKey right
+  stepOrdered : ∀ state action first second left right, first < second →
+    stepAt state action first = some left → stepAt state action second = some right →
+      transitionResultOrderKey left ≤ transitionResultOrderKey right
 
 structure PlannerCursor where
   trace : BehaviorTrace
   nextAction : Nat := 0
+  currentAction : Option SemanticValue := none
   nextOutcome : Nat := 0
   deriving BEq, DecidableEq, Repr
 
@@ -15,6 +62,9 @@ structure PurePlannerState where
   setupIndex : Nat := 0
   initialIndex : Nat := 0
   activePath : List PlannerCursor := []
+  actionDomainPulls : Nat := 0
+  initialKernelPulls : Nat := 0
+  stepKernelPulls : Nat := 0
   deriving BEq, DecidableEq, Repr
 
 structure PlannerInstrumentation where
@@ -22,6 +72,9 @@ structure PlannerInstrumentation where
   generatedCandidates : Nat := 0
   retainedPendingCandidates : Nat := 0
   peakActiveFrontierDepth : Nat := 0
+  actionDomainPulls : Nat := 0
+  initialKernelPulls : Nat := 0
+  stepKernelPulls : Nat := 0
   deriving BEq, DecidableEq, Repr
 
 structure PlannerRun where
@@ -32,12 +85,8 @@ structure PlannerRun where
 
 private instance : Inhabited (PlannerPull State Candidate) := ⟨.complete⟩
 
-private def idLe (left right : DeclarationId) : Bool :=
-  decide (left.value ≤ right.value)
-
 private def valueLe (left right : SemanticValue) : Bool :=
-  decide (left.identity.value < right.identity.value) ||
-    (left.identity == right.identity && decide (left.value ≤ right.value))
+  decide (semanticValueOrderKey left ≤ semanticValueOrderKey right)
 
 private def bindingLe (left right : RoleBinding) : Bool :=
   decide (left.role.value < right.role.value) ||
@@ -48,8 +97,7 @@ private def canonicalSetup (setup : List RoleBinding) : List RoleBinding :=
 
 private def setupKey (setup : List RoleBinding) : String :=
   String.intercalate "\u001f" ((canonicalSetup setup).map fun binding =>
-    binding.role.value ++ "\u001e" ++ binding.value.identity.value ++ "\u001e" ++
-      binding.value.value)
+    binding.role.value ++ "\u001e" ++ semanticValueOrderKey binding.value)
 
 private def setupLe (left right : List RoleBinding) : Bool :=
   decide (setupKey left ≤ setupKey right)
@@ -75,16 +123,13 @@ private def candidateSetups (query : CheckedQuery LawStatement) : List (List Rol
     | none => query.target.resolvedSetups
   applySeed query (setups.mergeSort setupLe |>.eraseDups)
 
-private def exactTraceActions (behavior : CheckedBehavior) : List SemanticValue :=
-  match behavior.traceExactly with
-  | none => []
-  | some exact => exact.trace.steps.map fun step => step.selectedAction
-
-private def candidateActions (query : CheckedQuery LawStatement) : List SemanticValue :=
-  let actions := match query.completeness with
-    | some evidence => evidence.actions
-    | none => exactTraceActions query.behavior
-  applySeed query (actions.mergeSort valueLe |>.eraseDups)
+private def seededIndex
+    (query : CheckedQuery LawStatement)
+    (limit logicalIndex : Nat) : Nat :=
+  if query.policy.strategy == .coverageGuided && limit > 0 then
+    (logicalIndex + query.policy.seed % limit) % limit
+  else
+    logicalIndex
 
 private def maximumDepth (query : CheckedQuery LawStatement) : Nat :=
   Nat.min query.bounds.behavior.transitions.value query.bounds.behavior.selectedActions.value
@@ -116,38 +161,49 @@ private def currentState (candidate : BehaviorTrace) : SemanticValue :=
 
 private partial def nextRoot?
     (query : CheckedQuery LawStatement)
+    (kernel : IncrementalPlannerKernel query.target)
     (state : PurePlannerState) : Option (BehaviorTrace × PurePlannerState) :=
   match (candidateSetups query)[state.setupIndex]? with
   | none => none
   | some setup =>
-      match (query.target.kernel.initialStates setup)[state.initialIndex]? with
-      | some initial =>
-          some (rootTrace setup initial, { state with initialIndex := state.initialIndex + 1 })
-      | none =>
-          nextRoot? query {
-            state with
-            setupIndex := state.setupIndex + 1
-            initialIndex := 0
-          }
+      let limit := kernel.initialLimit setup
+      if state.initialIndex < limit then
+        let index := seededIndex query limit state.initialIndex
+        let next := {
+          state with
+          initialIndex := state.initialIndex + 1
+          initialKernelPulls := state.initialKernelPulls + 1
+        }
+        match kernel.initialAt setup index with
+        | some initial => some (rootTrace setup initial, next)
+        | none => nextRoot? query kernel next
+      else
+        nextRoot? query kernel {
+          state with
+          setupIndex := state.setupIndex + 1
+          initialIndex := 0
+        }
 
 /--
 Enumerate one trace at a time. The state retains cursor indexes for the active path, never a queue
-of produced candidates or the unconsumed tail of a kernel result list.
+of produced candidates or an unconsumed collection of kernel results.
 -/
 private partial def pullCandidate
     (query : CheckedQuery LawStatement)
+    (kernel : IncrementalPlannerKernel query.target)
     (state : PurePlannerState) : PlannerPull PurePlannerState BehaviorTrace :=
   match state.activePath with
   | [] =>
-      match nextRoot? query state with
+      match nextRoot? query kernel state with
       | some (root, next) =>
           if state.targetDepth == 0 then
             .yield root next
           else
-            pullCandidate query { next with activePath := [{ trace := root }] }
+            pullCandidate query kernel { next with activePath := [{ trace := root }] }
       | none =>
           if state.targetDepth < maximumDepth query then
-            pullCandidate query {
+            pullCandidate query kernel {
+              state with
               targetDepth := state.targetDepth + 1
               setupIndex := 0
               initialIndex := 0
@@ -156,30 +212,58 @@ private partial def pullCandidate
           else
             .complete
   | cursor :: parents =>
-      match (candidateActions query)[cursor.nextAction]? with
-      | none => pullCandidate query { state with activePath := parents }
+      match cursor.currentAction with
+      | none =>
+          if cursor.nextAction < kernel.actionLimit then
+            let index := seededIndex query kernel.actionLimit cursor.nextAction
+            let advanced := { cursor with nextAction := cursor.nextAction + 1 }
+            let next := {
+              state with
+              activePath := advanced :: parents
+              actionDomainPulls := state.actionDomainPulls + 1
+            }
+            match kernel.actionAt index with
+            | none => pullCandidate query kernel next
+            | some action =>
+                pullCandidate query kernel {
+                  next with
+                  activePath := { advanced with currentAction := some action } :: parents
+                }
+          else
+            pullCandidate query kernel { state with activePath := parents }
       | some action =>
-          let results := query.target.kernel.steps (currentState cursor.trace) action
-          match results[cursor.nextOutcome]? with
-          | none =>
-              let advanced := { cursor with
-                nextAction := cursor.nextAction + 1
-                nextOutcome := 0
-              }
-              pullCandidate query { state with activePath := advanced :: parents }
-          | some result =>
-              let advanced := { cursor with nextOutcome := cursor.nextOutcome + 1 }
-              let child := appendStep cursor.trace action result
-              let next := { state with activePath := advanced :: parents }
-              if child.trace.steps.length == state.targetDepth then
-                .yield child next
-              else
-                pullCandidate query { next with activePath := { trace := child } :: next.activePath }
+          let semanticState := currentState cursor.trace
+          let limit := kernel.stepLimit semanticState action
+          if cursor.nextOutcome < limit then
+            let index := seededIndex query limit cursor.nextOutcome
+            let advanced := { cursor with nextOutcome := cursor.nextOutcome + 1 }
+            let next := {
+              state with
+              activePath := advanced :: parents
+              stepKernelPulls := state.stepKernelPulls + 1
+            }
+            match kernel.stepAt semanticState action index with
+            | none => pullCandidate query kernel next
+            | some result =>
+                let child := appendStep cursor.trace action result
+                if child.trace.steps.length == state.targetDepth then
+                  .yield child next
+                else
+                  pullCandidate query kernel {
+                    next with activePath := { trace := child } :: next.activePath
+                  }
+          else
+            pullCandidate query kernel {
+              state with
+              activePath := { cursor with currentAction := none, nextOutcome := 0 } :: parents
+            }
 
-def purePlannerBackend (LawStatement : DeclarationId → Prop) :
-    PlannerBackend (CheckedQuery LawStatement) PurePlannerState BehaviorTrace := {
+def purePlannerBackend
+    (query : CheckedQuery LawStatement)
+    (kernel : IncrementalPlannerKernel query.target) :
+    PlannerBackend Unit PurePlannerState BehaviorTrace := {
   start := fun _ => {}
-  pull := pullCandidate
+  pull := fun _ => pullCandidate query kernel
 }
 
 private def evaluatesToSelection
@@ -223,6 +307,7 @@ private def notePropertyEvaluations
 
 private def notePull
     (candidate : BehaviorTrace)
+    (next : PurePlannerState)
     (instrumentation : PlannerInstrumentation) : PlannerInstrumentation := {
   instrumentation with
   backendPulls := instrumentation.backendPulls + 1
@@ -230,6 +315,9 @@ private def notePull
   retainedPendingCandidates := 0
   peakActiveFrontierDepth := Nat.max instrumentation.peakActiveFrontierDepth
     (candidate.trace.steps.length + 1)
+  actionDomainPulls := next.actionDomainPulls
+  initialKernelPulls := next.initialKernelPulls
+  stepKernelPulls := next.stepKernelPulls
 }
 
 private def finish
@@ -245,6 +333,7 @@ private def finish
 
 private def planLoop
     (query : CheckedQuery LawStatement)
+    (backend : PlannerBackend Unit PurePlannerState BehaviorTrace)
     (state : PurePlannerState)
     (remaining : Nat)
     (explored : ExploredCounts)
@@ -252,31 +341,33 @@ private def planLoop
   match remaining with
   | 0 => finish query explored instrumentation .budgetExhausted
   | remaining + 1 =>
-    match (purePlannerBackend LawStatement).pull query state with
-    | .complete =>
-        finish query explored
-          { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
-          .complete
-    | .yield candidate next =>
-        let explored := noteCandidate candidate explored
-        let instrumentation := notePull candidate instrumentation
-        if query.behavior.admits candidate then
-          let explored := notePropertyEvaluations query explored
-          match evaluatesToSelection query candidate with
-          | some reason =>
-              finish query explored instrumentation (.found candidate reason)
-          | none =>
-              planLoop query next remaining explored instrumentation
-        else
-          planLoop query next remaining explored instrumentation
+      match backend.pull () state with
+      | .complete =>
+          finish query explored
+            { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
+            .complete
+      | .yield candidate next =>
+          let explored := noteCandidate candidate explored
+          let instrumentation := notePull candidate next instrumentation
+          if query.behavior.admits candidate then
+            let explored := notePropertyEvaluations query explored
+            match evaluatesToSelection query candidate with
+            | some reason =>
+                finish query explored instrumentation (.found candidate reason)
+            | none =>
+                planLoop query backend next remaining explored instrumentation
+          else
+            planLoop query backend next remaining explored instrumentation
 termination_by remaining
 
 /-- Plan a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
-def plan (query : CheckedQuery LawStatement) : PlannerRun :=
+def plan
+    (query : CheckedQuery LawStatement)
+    (kernel : IncrementalPlannerKernel query.target) : PlannerRun :=
   if query.behavior.isUnsatisfiable then
     finish query {} {} .complete
   else
-    let backend := purePlannerBackend LawStatement
-    planLoop query (backend.start query) query.bounds.search.value {} {}
+    let backend := purePlannerBackend query kernel
+    planLoop query backend (backend.start ()) query.bounds.search.value {} {}
 
 end Temporal.Experiment
