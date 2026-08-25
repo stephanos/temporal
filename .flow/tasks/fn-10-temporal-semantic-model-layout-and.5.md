@@ -38,9 +38,10 @@ Rewrite the reusable Core, Property, and Behavior test fixtures so they exercise
 - [ ] UmpireTests builds independently of Temporal.
 
 ## Done summary
-TBD
+Replaced product-owned identities and sources in the reusable Core, Property, and Behavior fixtures with domain-neutral `test.*`/`Test/*` vocabulary while preserving comments and every assertion category. `UmpireTests` and the full regression command pass; baseline: green via handoff (verified at `b89e1e2e` by task 4).
 
+stage: impl-review - ran [2026-08-25T23:24:52Z..2026-08-25T23:26:45Z] | SHIP
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0c87730a90413a60b6636ca1d15cb4304ce4a9ab
+- Tests: baseline: green via handoff (verified at b89e1e2e by fn-10-temporal-semantic-model-layout-and.4), cd model && mise exec -- lake build UmpireTests, make umpire-check-regression
 - PRs:
