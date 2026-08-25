@@ -1,0 +1,165 @@
+{
+  "branch_name": "fn-7-migrate-lean-model-descriptor-generator",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-24T22:52:50.644263Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-6-plan-simplify-lean-api-generator-output"
+  ],
+  "id": "fn-7-migrate-lean-model-descriptor-generator",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-24T22:59:37.903571Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a04f39a6ccb64375bae2b31686e632b962cb91650d4d48d6bc82672e6cc25176",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-adec3f01ac1fb06f12fabc74e56c106f",
+            "classification": "introduced",
+            "findingId": "finding-adec3f01ac1fb06f12fabc74e56c106f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6df756ad66456a657d86d380b037d8c7",
+            "classification": "introduced",
+            "findingId": "finding-6df756ad66456a657d86d380b037d8c7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-acad05426ccb93818d5684be8fda9900",
+            "classification": "introduced",
+            "findingId": "finding-acad05426ccb93818d5684be8fda9900",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0d170b2bb39b824c6d9cdc489be3bfdeca1d7fdd",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 108043,
+      "output_sha256": "1da340b76bc6a2402fbff17c1d6fd98ff7b81cc507c028618e24afc73b6c3760",
+      "reservation_id": "d36b99220c1b447ea94574c5d533718d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-24T22:56:29.208106Z",
+      "tool_calls": 6,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8c183457684f254a64ad4ec055a1526e483eb6ab1c1ca7ec4324bebf0d799c26",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-adec3f01ac1fb06f12fabc74e56c106f",
+            "classification": "introduced",
+            "findingId": "finding-adec3f01ac1fb06f12fabc74e56c106f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6df756ad66456a657d86d380b037d8c7",
+            "classification": "introduced",
+            "findingId": "finding-6df756ad66456a657d86d380b037d8c7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-acad05426ccb93818d5684be8fda9900",
+            "classification": "introduced",
+            "findingId": "finding-acad05426ccb93818d5684be8fda9900",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0d170b2bb39b824c6d9cdc489be3bfdeca1d7fdd",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 254,
+      "output_sha256": "1f00633ca2615e1c0a130cc71d9f1c560bf6a10a70dc1358603d4eb41b8b2d24",
+      "reservation_id": "75bea0412d9b4f91968bf42df13afb61",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-24T22:59:37.894916Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-7-migrate-lean-model-descriptor-generator.md",
+  "status": "open",
+  "title": "Migrate Lean model descriptor generator",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-24T23:00:31.058589Z"
+}
