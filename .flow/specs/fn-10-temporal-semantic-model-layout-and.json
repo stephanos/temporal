@@ -1,0 +1,197 @@
+{
+  "branch_name": "fn-10-temporal-semantic-model-layout-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-25T21:58:55.546569Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-10-temporal-semantic-model-layout-and",
+  "impl_review_rounds": {
+    "fn-10-temporal-semantic-model-layout-and.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-25T22:06:45.943761Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "73d1c70c5628026802afd6e55743425b39d4afcb425b82cdcab9bf76ca0e96e1",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-075c9e42f9d8d7b2c9019a0b516b4cb0",
+            "classification": "introduced",
+            "findingId": "finding-075c9e42f9d8d7b2c9019a0b516b4cb0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-822b1576a917557e7345b6357a1cd5a9",
+            "classification": "introduced",
+            "findingId": "finding-822b1576a917557e7345b6357a1cd5a9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8533a20d0cba8aadc04a9e9d3d1d6ac3",
+            "classification": "introduced",
+            "findingId": "finding-8533a20d0cba8aadc04a9e9d3d1d6ac3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e68791af4b3a76d067a53861b1a5873f82115949",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 260902,
+      "output_sha256": "a8705e7b0534a7e0e7819cdbc595fd5b6e3b236b5b290efd65bbcc4ee9f3fc2e",
+      "reservation_id": "4f8a71caf48d44afaeffd1e77c33b628",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T22:04:33.038253Z",
+      "tool_calls": 12,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c41fef6b9e89395bc7409a3998eeb39f2698c0115ee64273ba3f358db5f7dcc8",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-075c9e42f9d8d7b2c9019a0b516b4cb0",
+            "classification": "introduced",
+            "findingId": "finding-075c9e42f9d8d7b2c9019a0b516b4cb0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-822b1576a917557e7345b6357a1cd5a9",
+            "classification": "introduced",
+            "findingId": "finding-822b1576a917557e7345b6357a1cd5a9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8533a20d0cba8aadc04a9e9d3d1d6ac3",
+            "classification": "introduced",
+            "findingId": "finding-8533a20d0cba8aadc04a9e9d3d1d6ac3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e68791af4b3a76d067a53861b1a5873f82115949",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "c223e95c84754bc4826017571175d1a1",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T22:06:45.939384Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cc7d21a16ec34f7a4d37d6c24f6d2fa09aff4e8ecad4544c86bc24328ea133b3",
+      "backend": "codex",
+      "base_sha": "e68791af4b3a76d067a53861b1a5873f82115949",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c16ee07873693ccb8699f53190ea179a9288aec4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 308930,
+      "output_sha256": "407018d0b92b7c2ad6742d55b4a20cb03f9471da00ac47a75070fd97358cddfe",
+      "reservation_id": "033d34f5bb0c4f71b4c5c2cbcd11167a",
+      "round_consumed": true,
+      "scope": "impl:fn-10-temporal-semantic-model-layout-and.1",
+      "superseded_by": null,
+      "task": "fn-10-temporal-semantic-model-layout-and.1",
+      "timestamp": "2026-08-25T22:32:52.248377Z",
+      "tool_calls": 27,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-10-temporal-semantic-model-layout-and.1": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-10-temporal-semantic-model-layout-and.1": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-10-temporal-semantic-model-layout-and.md",
+  "status": "open",
+  "title": "Temporal semantic model layout and Umpire purity",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-25T22:32:52.256343Z"
+}
