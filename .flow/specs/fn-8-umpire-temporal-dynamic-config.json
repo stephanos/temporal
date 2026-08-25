@@ -11,7 +11,8 @@
   ],
   "id": "fn-8-umpire-temporal-dynamic-config",
   "impl_review_rounds": {
-    "fn-8-umpire-temporal-dynamic-config.1": 0
+    "fn-8-umpire-temporal-dynamic-config.1": 0,
+    "fn-8-umpire-temporal-dynamic-config.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -107,10 +108,100 @@
       "timestamp": "2026-08-25T14:55:55.525641Z",
       "tool_calls": 32,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "17e827f7d8bb35aba6c87c96b10e3674a50de96f5686ff5c20ec28b634015553",
+      "backend": "codex",
+      "base_sha": "407814f26fc80baaa3ce620381976b98fe8326fd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7fcc00a3e5efc990a79a9783b1cee6f9",
+            "classification": "introduced",
+            "findingId": "finding-7fcc00a3e5efc990a79a9783b1cee6f9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f27dc41ae3a0438aca150c3b5836e5f704cf0982",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 420600,
+      "output_sha256": "0491b7d217581ac1281069b75c64145c2c3d639df1c1833ea5409fdbd06d7f54",
+      "reservation_id": "ce15798237394b2ab9c2a07a65de16b5",
+      "round_consumed": true,
+      "scope": "impl:fn-8-umpire-temporal-dynamic-config.2",
+      "superseded_by": null,
+      "task": "fn-8-umpire-temporal-dynamic-config.2",
+      "timestamp": "2026-08-25T15:39:45.534553Z",
+      "tool_calls": 39,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "340264faeae185ddb4499ae0a18c4c7dc9470075b600f16368e7192b655e4b55",
+      "backend": "codex",
+      "base_sha": "407814f26fc80baaa3ce620381976b98fe8326fd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7fcc00a3e5efc990a79a9783b1cee6f9",
+            "classification": "introduced",
+            "findingId": "finding-7fcc00a3e5efc990a79a9783b1cee6f9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "765d139f80ddc19a484e2465e10529bddb20115f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 859,
+      "output_sha256": "0d2877b74ec732b4408a43b4bada599ce83fa676e34a4bbc9fc7e45eaaa148b1",
+      "reservation_id": "8867e96dcc6344bb9d847cc982e5df49",
+      "round_consumed": true,
+      "scope": "impl:fn-8-umpire-temporal-dynamic-config.2",
+      "superseded_by": null,
+      "task": "fn-8-umpire-temporal-dynamic-config.2",
+      "timestamp": "2026-08-25T15:45:11.571082Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-8-umpire-temporal-dynamic-config.1": 1,
+    "impl:fn-8-umpire-temporal-dynamic-config.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -118,6 +209,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-8-umpire-temporal-dynamic-config.1": 0,
+    "impl:fn-8-umpire-temporal-dynamic-config.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-8-umpire-temporal-dynamic-config.md",
@@ -134,5 +226,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T14:55:55.538711Z"
+  "updated_at": "2026-08-25T15:45:11.574202Z"
 }
