@@ -42,9 +42,12 @@ All scenario/query identifiers and inspector JSON semantics remain stable. The o
 - [ ] New and old targets coexist and build until the final cutover.
 - [ ] `make umpire-check-regression` remains green.
 ## Done summary
-TBD
+Moved the Nexus caller-closure scenario, inspector, and integration assertions into Temporal.Umpire ownership while retaining the old targets for cutover. Added target-state fixtures derived by exactly the two approved source-path substitutions; the new inspector matches both byte-for-byte and preserves unknown-scenario behavior.
 
+baseline: green via receipt
+GATE_SKIPPED:smoke:green-receipt dd731303 - baseline reused from prior post-gate pass
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fb591d408089d1ed75152d67ad8c3fceab8417c4
+- Tests: GATE_SKIPPED:smoke:green-receipt dd731303 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build TemporalUmpireTests temporal-umpire-inspect, new temporal-umpire-inspect Nexus/switch outputs cmp byte-for-byte with target-state fixtures; unknown scenario exits 1 with canonical diagnostic, make umpire-check-regression
 - PRs:
