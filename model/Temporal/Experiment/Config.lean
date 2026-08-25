@@ -172,11 +172,32 @@ def key : AnyConfigUse → String
 
 end AnyConfigUse
 
-structure ConfigOverride where
+private structure ConfigOverridePayload where
   key : String
   constraints : ExactConstraints
   value : CanonicalValue
   deriving BEq, DecidableEq, Repr
+
+/-- A checked canonical override whose key and decoder stay bound to one typed use. -/
+structure ConfigOverride where
+  private mk ::
+  private payload : ConfigOverridePayload
+  deriving BEq, DecidableEq, Repr
+
+private def ConfigOverride.key (override : ConfigOverride) : String :=
+  override.payload.key
+
+private def ConfigOverride.constraints (override : ConfigOverride) : ExactConstraints :=
+  override.payload.constraints
+
+private def ConfigOverride.value (override : ConfigOverride) : CanonicalValue :=
+  override.payload.value
+
+private def rawConfigOverride
+    (key : String)
+    (constraints : ExactConstraints)
+    (value : CanonicalValue) : ConfigOverride :=
+  .mk { key, constraints, value }
 
 inductive ResolutionSource where
   | override
@@ -505,6 +526,20 @@ def checkConfigUse
   validateOpaqueReplacement use.id use.setting use.interpretation
   pure use
 
+/-- Bind a canonical override to a checked typed use before it can enter resolution. -/
+def checkConfigOverride
+    (use : ConfigUse α)
+    (constraints : ExactConstraints)
+    (value : CanonicalValue) : Except ConfigError ConfigOverride := do
+  if !legalConstraints use.setting.policy constraints then
+    throw (configError .illegalConstraints use.id use.setting.key (reprStr constraints))
+  if !canonicalMatchesSchema value use.setting.schema then
+    throw (configError .schemaMismatch use.id use.setting.key (reprStr value))
+  match use.interpretation.decode value with
+  | .error message =>
+      throw (configError .interpretationFailure use.id use.setting.key message)
+  | .ok _ => pure (rawConfigOverride use.setting.key constraints value)
+
 private def firstDuplicateOverride : List ConfigOverride → Option ConfigOverride
   | [] => none
   | first :: rest =>
@@ -798,11 +833,8 @@ def checkResolutionFixture (fixture : ResolutionFixture) : Except ConfigError Un
     | some setting => pure setting
   if setting.policy != fixture.policy then
     throw (configError .fixtureMismatch useId fixture.settingKey (reprStr fixture.policy))
-  let overrides := fixture.overrides.map fun override => {
-    key := fixture.settingKey
-    constraints := override.constraints
-    value := override.value
-  }
+  let overrides := fixture.overrides.map fun override =>
+    rawConfigOverride fixture.settingKey override.constraints override.value
   validateOverrides Temporal.DynamicConfig.Settings.all overrides
   let resolution ← resolveCanonical useId setting (α := Unit) none fixture.context overrides
   if resolution.value != fixture.result || resolution.source != fixtureSource fixture.selectedSource ||
