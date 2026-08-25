@@ -17,6 +17,7 @@ inductive BehaviorErrorKind where
   | duplicateOrdering
   | selfOrdering
   | cyclicOrdering
+  | occurrenceLimitExceeded
   | incompleteExactTrace
   deriving BEq, DecidableEq, Ord, Repr
 
@@ -33,6 +34,7 @@ def BehaviorErrorKind.name : BehaviorErrorKind → String
   | .duplicateOrdering => "duplicate-ordering"
   | .selfOrdering => "self-ordering"
   | .cyclicOrdering => "cyclic-ordering"
+  | .occurrenceLimitExceeded => "occurrence-limit-exceeded"
   | .incompleteExactTrace => "incomplete-exact-trace"
 
 structure BehaviorError where
@@ -217,6 +219,8 @@ private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
 
 private def canonicalIdLists (lists : List (List DeclarationId)) : List (List DeclarationId) :=
   lists.mergeSort idListLe |>.eraseDups
+
+private def maxRequiredOccurrences : Nat := 12
 
 private def operandSortKey : SetupOperand → String
   | .role id => "role:" ++ quote id.value
@@ -754,6 +758,10 @@ def checkBehavior
   let allowed := canonicalIds declaration.allowedActions
   let forbidden := canonicalIds declaration.forbiddenActions
   let required := declaration.requiredOccurrences.mergeSort occurrenceLe
+  if required.length > maxRequiredOccurrences then
+    throw (behaviorError .occurrenceLimitExceeded declaration.id declaration.source
+      (toString required.length ++ " > " ++ toString maxRequiredOccurrences)
+      (required.map NamedOccurrence.id))
   let bounds := declaration.occurrenceBounds.mergeSort boundLe
   for action in allowed ++ forbidden ++ required.map NamedOccurrence.action ++
       bounds.map OccurrenceBound.action do
