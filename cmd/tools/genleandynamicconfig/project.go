@@ -116,6 +116,12 @@ type (
 		Result             CanonicalValue    `json:"result"`
 	}
 
+	fixtureCandidate struct {
+		Source      FixtureSource
+		Constraints ExactConstraints
+		Value       CanonicalValue
+	}
+
 	productionSettings struct {
 		Global        dynamicconfig.GlobalBoolSetting
 		Namespace     dynamicconfig.NamespaceIntSetting
@@ -906,7 +912,7 @@ func productionFixtureShape() []ResolutionFixture {
 		newFixture("global-simple-default", PolicyGlobal, "admin.enablelisthistorytasks",
 			global, nil, SourceSimpleDefault, global, boolValue(true)),
 		newFixture("global-specific", PolicyGlobal, "admin.enablelisthistorytasks",
-			global, []FixtureOverride{{Constraints: global, Value: boolValue(true)}}, SourceOverride, global, boolValue(true)),
+			global, []FixtureOverride{{Constraints: global, Value: boolValue(false)}}, SourceOverride, global, boolValue(false)),
 		newFixture("namespace-id-specific", PolicyNamespaceID, "history.skipreapplicationbynamespaceid",
 			ExactConstraints{NamespaceID: &namespaceID},
 			[]FixtureOverride{{Constraints: ExactConstraints{NamespaceID: &namespaceID}, Value: boolValue(true)}},
@@ -941,10 +947,18 @@ func productionFixtureShape() []ResolutionFixture {
 	return fixtures
 }
 
-func computeProductionFixtures(settings productionSettings) ([]ResolutionFixture, error) {
+func computeProductionFixtures(settings productionSettings, catalogSettings []ProjectedSetting) ([]ResolutionFixture, error) {
 	fixtures := productionFixtureShape()
+	settingByKey := make(map[string]ProjectedSetting, len(catalogSettings))
+	for _, setting := range catalogSettings {
+		settingByKey[setting.Key] = setting
+	}
 	for index := range fixtures {
 		fixture := &fixtures[index]
+		projectedSetting, exists := settingByKey[fixture.SettingKey]
+		if !exists {
+			return nil, fmt.Errorf("fixture %q setting %q is absent from the projected catalog", fixture.Name, fixture.SettingKey)
+		}
 		values := make([]dynamicconfig.ConstrainedValue, len(fixture.Overrides))
 		for overrideIndex, override := range fixture.Overrides {
 			value, err := fixtureNativeValue(override.Value)
@@ -976,6 +990,9 @@ func computeProductionFixtures(settings productionSettings) ([]ResolutionFixture
 		if err != nil {
 			return nil, fmt.Errorf("fixture %q result: %w", fixture.Name, err)
 		}
+		if err := validateFixtureSelection(*fixture, canonical, projectedSetting); err != nil {
+			return nil, err
+		}
 		if !reflect.DeepEqual(canonical, fixture.Result) {
 			return nil, fmt.Errorf(
 				"fixture %q result mismatch: expected %+v, got %+v",
@@ -987,6 +1004,87 @@ func computeProductionFixtures(settings productionSettings) ([]ResolutionFixture
 		fixture.Result = canonical
 	}
 	return fixtures, nil
+}
+
+func validateFixtureSelection(
+	fixture ResolutionFixture,
+	observed CanonicalValue,
+	setting ProjectedSetting,
+) error {
+	if setting.Key != fixture.SettingKey {
+		return fmt.Errorf(
+			"fixture %q setting key %q does not match projected setting %q",
+			fixture.Name,
+			fixture.SettingKey,
+			setting.Key,
+		)
+	}
+	candidates := fixtureSelectionCandidates(fixture, setting)
+	matches := make([]fixtureCandidate, 0, 1)
+	for _, candidate := range candidates {
+		if reflect.DeepEqual(candidate.Value, observed) {
+			matches = append(matches, candidate)
+		}
+	}
+	if len(matches) == 0 {
+		return fmt.Errorf("fixture %q result does not identify any override or default candidate", fixture.Name)
+	}
+	if len(matches) > 1 {
+		return fmt.Errorf("fixture %q has %d indistinguishable candidates for result %+v", fixture.Name, len(matches), observed)
+	}
+	selected := matches[0]
+	if fixture.SelectedSource != selected.Source {
+		return fmt.Errorf(
+			"fixture %q selected source mismatch: expected %q, observed %q",
+			fixture.Name,
+			fixture.SelectedSource,
+			selected.Source,
+		)
+	}
+	if !reflect.DeepEqual(fixture.SelectedConstraint, selected.Constraints) {
+		return fmt.Errorf(
+			"fixture %q selected constraint mismatch: expected %s, observed %s",
+			fixture.Name,
+			constraintDisplay(fixture.SelectedConstraint),
+			constraintDisplay(selected.Constraints),
+		)
+	}
+	return nil
+}
+
+func fixtureSelectionCandidates(fixture ResolutionFixture, setting ProjectedSetting) []fixtureCandidate {
+	candidates := make([]fixtureCandidate, 0, len(fixture.Overrides)+len(setting.Default.Constrained)+1)
+	for _, override := range fixture.Overrides {
+		candidates = append(candidates, fixtureCandidate{
+			Source:      SourceOverride,
+			Constraints: override.Constraints,
+			Value:       override.Value,
+		})
+	}
+	switch setting.Default.Kind {
+	case DefaultConcrete:
+		if setting.Default.Value != nil {
+			candidates = append(candidates, fixtureCandidate{
+				Source: SourceSimpleDefault,
+				Value:  *setting.Default.Value,
+			})
+		}
+	case DefaultConstrained:
+		for _, constrained := range setting.Default.Constrained {
+			if constrained.Opaque != nil {
+				continue
+			}
+			candidates = append(candidates, fixtureCandidate{
+				Source:      SourceConstrainedDefault,
+				Constraints: constrained.Constraints,
+				Value:       constrained.Value,
+			})
+		}
+	case DefaultOpaque:
+	default:
+		return nil
+	}
+	return candidates
 }
 
 func resolveProductionFixture(
