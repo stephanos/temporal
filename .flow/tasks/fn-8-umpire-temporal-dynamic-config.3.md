@@ -51,6 +51,7 @@ Rendered the canonical projection as exactly three deterministic Lean modules an
 Verification passed: `go test -count=1 -tags test_dep ./tools/common/artifactio ./cmd/tools/genleandynamicconfig`; `go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig`; `cd model && mise exec -- lake build`; and changed-package golangci-lint with zero issues. The parent `make umpire-gen-dynamic-config` target remains intentionally absent until dependent task fn-8-umpire-temporal-dynamic-config.4, and canonical `make lint-code` remains inherited-red with 1848 branch-wide findings while the changed packages are clean. Memory capture was skipped after `flowctl memory add` reported that memory is not initialized.
 
 stage: impl-review - ran [2026-08-25T16:23:16Z..2026-08-25T16:47:22Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: eb527cf8f8855df18e9ec6c99b1e1b008053ad87, 754664eeb1f6a8c1323afc35a0476659984cd851
 - Tests: baseline: green (go test -count=1 -tags test_dep ./tools/common/artifactio ./cmd/tools/genleandynamicconfig), go test -count=1 -tags test_dep ./tools/common/artifactio ./cmd/tools/genleandynamicconfig, go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, cd model && mise exec -- lake build, .bin/golangci-lint-v2.13.1 run --verbose --build-tags disable_grpc_modules,test_dep --timeout 10m --fix=false --config=.github/.golangci.yml ./cmd/tools/genleandynamicconfig/... ./tools/common/artifactio/...
