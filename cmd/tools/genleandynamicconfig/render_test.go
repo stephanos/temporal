@@ -82,6 +82,37 @@ func TestRenderCatalogRejectsInvalidLeanEncodings(t *testing.T) {
 	}
 }
 
+func TestRenderedCatalogElaboratesSignedLiteralBoundaries(t *testing.T) {
+	catalog := renderFixtureCatalog()
+	minimumConstraint := int32(-1 << 31)
+	catalog.Settings[0].Default.Value.Fields[1].Value.Scalar = "-9223372036854775808"
+	catalog.Fixtures[0].Context.ShardID = &minimumConstraint
+	catalog.Fixtures[0].SelectedConstraint.ShardID = &minimumConstraint
+	catalog.Fixtures[0].Overrides[1].Constraints.ShardID = &minimumConstraint
+	catalog.Fixtures[0].Result = CanonicalValue{Kind: ValueDuration, Scalar: "-1"}
+
+	artifacts, err := renderCatalog(catalog)
+	require.NoError(t, err)
+	settings := string(artifacts[dynamicConfigSettingsPath])
+	require.Contains(t, settings, ".int (-9223372036854775808)")
+	require.Contains(t, settings, ".duration (-1)")
+	require.Contains(t, settings, "some (-2147483648)")
+	requireArtifactsLeanElaborate(t, artifacts)
+}
+
+func TestRenderedCatalogElaboratesLeanEscapedStrings(t *testing.T) {
+	catalog := renderFixtureCatalog()
+	catalog.Settings[0].Description = "controls:\a\b\f\v emoji:😀"
+	catalog.Settings[0].Default.Value.Fields[0].Value.Scalar = "quoted \" slash \\ newline\n"
+
+	artifacts, err := renderCatalog(catalog)
+	require.NoError(t, err)
+	settings := string(artifacts[dynamicConfigSettingsPath])
+	require.Contains(t, settings, `controls:\u0007\u0008\u000c\u000b emoji:😀`)
+	require.Contains(t, settings, `quoted \" slash \\ newline\n`)
+	requireArtifactsLeanElaborate(t, artifacts)
+}
+
 func TestRenderedProductionCatalogIsStableAndLeanElaborates(t *testing.T) {
 	moduleRoot, err := findModuleRoot()
 	require.NoError(t, err)
@@ -93,6 +124,18 @@ func TestRenderedProductionCatalogIsStableAndLeanElaborates(t *testing.T) {
 	repeated, err := renderCatalog(catalog)
 	require.NoError(t, err)
 	require.Equal(t, artifacts, repeated)
+	requireArtifactsLeanElaborateAtRoot(t, moduleRoot, artifacts)
+}
+
+func requireArtifactsLeanElaborate(t *testing.T, artifacts map[string][]byte) {
+	t.Helper()
+	moduleRoot, err := findModuleRoot()
+	require.NoError(t, err)
+	requireArtifactsLeanElaborateAtRoot(t, moduleRoot, artifacts)
+}
+
+func requireArtifactsLeanElaborateAtRoot(t *testing.T, moduleRoot string, artifacts map[string][]byte) {
+	t.Helper()
 	candidateRoot := t.TempDir()
 	for path, encoded := range artifacts {
 		absolute := filepath.Join(candidateRoot, filepath.FromSlash(path))
