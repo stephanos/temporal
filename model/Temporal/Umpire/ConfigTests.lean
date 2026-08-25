@@ -4,6 +4,8 @@ namespace Temporal.Umpire.ConfigTests
 
 open _root_.Umpire
 open Temporal.DynamicConfig
+open Temporal.System.Configuration
+open Temporal.System.Matching.Configuration
 open Temporal.Umpire.Config
 
 def errorKindOf (result : Except ConfigError α) : Option ConfigErrorKind :=
@@ -27,7 +29,7 @@ def checkedMaxUse (useId namespaceName : String) : Except ConfigError (ConfigUse
   checkConfigUse authoredClassifications
     (maxRequest useId namespaceName)
 
-example : authoredClassifications.length = 6 := by native_decide
+example : authoredClassifications.length + matchingClassifications.length = 6 := by native_decide
 
 def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
   checkConfigUse authoredClassifications {
