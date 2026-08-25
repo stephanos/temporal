@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import Temporal.Experiment.NexusCallerClosure
+import Temporal.Experiment.SwitchScenario
 
 namespace Temporal.Experiment
 
@@ -66,6 +67,9 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
 def productionRegistry : ScenarioRegistry := [{
   id := NexusCallerClosure.exactActionQueryId.value
   result := .ok NexusCallerClosure.compiledArtifact
+}, {
+  id := SwitchScenario.exactActionQueryId.value
+  result := .ok SwitchScenario.compiledArtifact
 }]
 
 def runCli (args : List String) : InspectorResult := runInspector productionRegistry args

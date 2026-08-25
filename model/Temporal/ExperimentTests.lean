@@ -5,6 +5,7 @@ import Temporal.Experiment.PropertyTests
 import Temporal.Experiment.BehaviorTests
 import Temporal.Experiment.QueryTests
 import Temporal.Experiment.PlannerTests
+import Temporal.Experiment.SwitchScenario
 
 namespace Temporal.ExperimentTests
 
@@ -151,6 +152,45 @@ example : compiledArtifact.plan.requestedActions = [forceCloseAction] ∧
     compiledArtifact.plan.resultingStates = [closedState] := by
   native_decide
 
+example : (composeTarget SwitchScenario.targetDeclaration).isOk = true := by
+  native_decide
+
+example : SwitchScenario.target.kernel.initialStates SwitchScenario.switchSetup =
+    [SwitchScenario.offState] ∧
+    SwitchScenario.target.kernel.steps SwitchScenario.offState SwitchScenario.flipAction =
+      [SwitchScenario.appliedResult, SwitchScenario.deferredResult] := by
+  native_decide
+
+example : SwitchScenario.target.requiredCapabilities = [SwitchScenario.switchCapabilityId] ∧
+    SwitchScenario.flipProperty.requires = [SwitchScenario.switchCapabilityId] ∧
+    SwitchScenario.exploratoryBehavior.requires = [SwitchScenario.switchCapabilityId] ∧
+    SwitchScenario.exactActionQuery.targetComposition =
+      [SwitchScenario.switchCapabilityId, SwitchScenario.switchProviderId] := by
+  native_decide
+
+example : SwitchScenario.exactActionBehavior.admits SwitchScenario.appliedTrace &&
+    SwitchScenario.exactActionBehavior.admits SwitchScenario.deferredTrace := by
+  native_decide
+
+example : SwitchScenario.exactTraceBehavior.admits SwitchScenario.appliedTrace &&
+    !SwitchScenario.exactTraceBehavior.admits SwitchScenario.deferredTrace := by
+  native_decide
+
+example : [
+    SwitchScenario.exploratoryRun.result.outcome.name,
+    SwitchScenario.exactActionRun.result.outcome.name,
+    SwitchScenario.exactTraceRun.result.outcome.name
+  ] = ["found", "found", "found"] := by
+  native_decide
+
+example : SwitchScenario.compiledArtifact.plan.requestedActions =
+      [SwitchScenario.flipAction] ∧
+    SwitchScenario.compiledArtifact.plan.modelOutcomes = [SwitchScenario.appliedOutcome] ∧
+    SwitchScenario.compiledArtifact.plan.resultingStates = [SwitchScenario.onState] ∧
+    SwitchScenario.compiledArtifact.properties.map PortableProperty.identity =
+      [SwitchScenario.flipPropertyId] := by
+  native_decide
+
 def expectedStdout : String := canonicalExperimentSpecJson compiledArtifact ++ "\n"
 
 example : runCli [exactActionQueryId.value] = {
@@ -164,6 +204,22 @@ def repeatedOutput : List String :=
   (List.range 2).map fun _ => (runCli [exactActionQueryId.value]).stdout
 
 example : repeatedOutput = List.replicate 2 expectedStdout := by
+  native_decide
+
+def expectedSwitchStdout : String :=
+  canonicalExperimentSpecJson SwitchScenario.compiledArtifact ++ "\n"
+
+def repeatedSwitchOutput : List String :=
+  (List.range 2).map fun _ => (runCli [SwitchScenario.exactActionQueryId.value]).stdout
+
+example : runCli [SwitchScenario.exactActionQueryId.value] = {
+    status := 0
+    stdout := expectedSwitchStdout
+    stderr := ""
+  } := by
+  native_decide
+
+example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
   native_decide
 
 example : runCli ["missing-scenario"] = {
