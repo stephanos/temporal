@@ -106,18 +106,33 @@ structure PlannerPolicy where
   tieBreak : TieBreakPolicy
   deriving BEq, DecidableEq, Ord, Repr
 
-/-- A finite list is evidence only when it is tied soundly and completely to an authoritative
-domain predicate. -/
-structure FiniteDomainWitness (α : Type) where
-  values : List α
-  authoritative : α → Prop
-  sound : ∀ value, value ∈ values → authoritative value
-  complete : ∀ value, authoritative value → value ∈ values
-  semanticDigest : String
+structure FiniteCompletenessMetadata where
+  roleDomainDigest : String
+  actionDomainDigest : String
+  deriving BEq, DecidableEq, Repr
 
-structure FiniteCompletenessEvidence where
-  roleAssignments : FiniteDomainWitness (List RoleBinding)
-  actions : FiniteDomainWitness SemanticValue
+/-- Exhaustive evidence is propositionally tied to the selected target's setup enumeration and
+authoritative step relation; it cannot certify an unrelated author-supplied predicate. -/
+structure FiniteCompletenessEvidence
+    (LawStatement : DeclarationId → Prop)
+    (target : QueryTarget LawStatement) where
+  roleAssignments : List (List RoleBinding)
+  actions : List SemanticValue
+  roleDomainDigest : String
+  actionDomainDigest : String
+  roleSound : ∀ setup, setup ∈ roleAssignments → setup ∈ target.resolvedSetups
+  roleComplete : ∀ setup, setup ∈ target.resolvedSetups → setup ∈ roleAssignments
+  actionSound : ∀ action, action ∈ actions →
+    ∃ state result, target.kernel.authoritativeStep state action result
+  actionComplete : ∀ state action result,
+    target.kernel.authoritativeStep state action result → action ∈ actions
+
+def FiniteCompletenessEvidence.metadata
+    (evidence : FiniteCompletenessEvidence LawStatement target) :
+    FiniteCompletenessMetadata := {
+  roleDomainDigest := evidence.roleDomainDigest
+  actionDomainDigest := evidence.actionDomainDigest
+}
 
 inductive CompletenessRequirement where
   | roleDomain
@@ -136,8 +151,12 @@ def CompletenessRequirement.name : CompletenessRequirement → String
 
 /-- An incomplete target remains representable at the Query boundary only so checking can reject
 it before any backend is initialized. -/
+structure CheckedQueryTarget (LawStatement : DeclarationId → Prop) where
+  target : QueryTarget LawStatement
+  completeness : Option (FiniteCompletenessEvidence LawStatement target) := none
+
 inductive QueryTargetAvailability (LawStatement : DeclarationId → Prop) where
-  | checked (target : QueryTarget LawStatement)
+  | checked (target : CheckedQueryTarget LawStatement)
   | incomplete
       (targetId : DeclarationId)
       (source : SemanticSource)
@@ -145,7 +164,6 @@ inductive QueryTargetAvailability (LawStatement : DeclarationId → Prop) where
 
 structure QueryCheckContext (LawStatement : DeclarationId → Prop) where
   target : QueryTargetAvailability LawStatement
-  completeness : Option FiniteCompletenessEvidence := none
 
 structure QueryDeclaration where
   id : DeclarationId
@@ -206,7 +224,7 @@ structure CheckedQuery (LawStatement : DeclarationId → Prop) where
   bounds : QueryBounds
   policy : PlannerPolicy
   targetComposition : List DeclarationId
-  completeness : Option FiniteCompletenessEvidence
+  completeness : Option FiniteCompletenessMetadata
   documentation : String
   canonicalMetadata : String
   semanticDigest : String
@@ -349,12 +367,12 @@ private def policyJson (policy : PlannerPolicy) : String :=
     ",\"seed\":" ++ toString policy.seed ++
     ",\"tieBreak\":" ++ quote policy.tieBreak.name ++ "}"
 
-private def completenessJson (evidence : Option FiniteCompletenessEvidence) : String :=
+private def completenessJson (evidence : Option FiniteCompletenessMetadata) : String :=
   match evidence with
   | none => "null"
   | some evidence =>
-      "{\"roleDomainDigest\":" ++ quote evidence.roleAssignments.semanticDigest ++
-        ",\"actionDomainDigest\":" ++ quote evidence.actions.semanticDigest ++ "}"
+      "{\"roleDomainDigest\":" ++ quote evidence.roleDomainDigest ++
+        ",\"actionDomainDigest\":" ++ quote evidence.actionDomainDigest ++ "}"
 
 private def querySemanticJson
     (id : DeclarationId)
@@ -365,7 +383,7 @@ private def querySemanticJson
     (composition : List DeclarationId)
     (bounds : QueryBounds)
     (policy : PlannerPolicy)
-    (completeness : Option FiniteCompletenessEvidence) : String :=
+    (completeness : Option FiniteCompletenessMetadata) : String :=
   let properties := form.properties.mergeSort propertyLe
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
@@ -404,12 +422,13 @@ def checkQuery
     (context : QueryCheckContext LawStatement)
     (declaration : QueryDeclaration) : Except QueryError (CheckedQuery LawStatement) := do
   validateIdentity declaration
-  let target ← match context.target with
+  let checkedTarget ← match context.target with
     | .checked target => pure target
     | .incomplete targetId _ missing =>
         throw (queryError .missingFiniteCompleteness declaration
           (String.intercalate "," (missing.map CompletenessRequirement.name))
           (targetId :: requirementIds missing))
+  let target := checkedTarget.target
   if declaration.target != target.id then
     throw (queryError .targetMismatch declaration
       (declaration.target.value ++ " != " ++ target.id.value)
@@ -418,15 +437,13 @@ def checkQuery
   validateStrategy declaration
   validateProperties declaration target
   validateExactTrace declaration target
-  match declaration.form with
-  | .verify _ =>
-      if context.completeness.isNone then
-        throw (queryError .missingFiniteCompleteness declaration "finite role/action domains"
-          [target.id, target.kernel.metadata.id])
-  | _ => pure ()
+  if declaration.policy.strategy == .exhaustive && checkedTarget.completeness.isNone then
+    throw (queryError .missingFiniteCompleteness declaration "finite role/action domains"
+      [target.id, target.kernel.metadata.id])
+  let completeness := checkedTarget.completeness.map FiniteCompletenessEvidence.metadata
   let composition := targetComposition target
   let semantic := querySemanticJson declaration.id declaration.version declaration.form
-    declaration.behavior target composition declaration.bounds declaration.policy context.completeness
+    declaration.behavior target composition declaration.bounds declaration.policy completeness
   pure {
     id := declaration.id
     source := declaration.source
@@ -439,7 +456,7 @@ def checkQuery
     bounds := declaration.bounds
     policy := declaration.policy
     targetComposition := composition
-    completeness := context.completeness
+    completeness
     documentation := declaration.documentation
     canonicalMetadata := semantic
     semanticDigest := semanticDigestOf semantic
@@ -487,6 +504,7 @@ def PlanningOutcome.name : PlanningOutcome → String
   | .invalid _ => "invalid"
 
 structure PlanningResult where
+  private mk ::
   outcome : PlanningOutcome
   metadata : PlanningMetadata
   deriving BEq, DecidableEq, Repr
@@ -495,8 +513,8 @@ private def evidenceDigests (query : CheckedQuery LawStatement) : List String :=
   match query.completeness with
   | none => []
   | some evidence => [
-      evidence.roleAssignments.semanticDigest,
-      evidence.actions.semanticDigest
+      evidence.roleDomainDigest,
+      evidence.actionDomainDigest
     ]
 
 private def planningMetadata
@@ -511,52 +529,39 @@ private def planningMetadata
   }
 }
 
+inductive PlanningTermination where
+  | found (trace : BehaviorTrace) (reason : SelectionReason)
+  | complete
+  | budgetExhausted
+  | invalid (error : QueryError)
+  deriving BEq, DecidableEq, Repr
+
+/-- The sole public result finalizer enforces the query's claim strength. A backend completion
+signal establishes completeness only for a finite exhaustive query, and an empty behavior always
+wins over every attempted terminal claim. -/
+def finalizePlanning
+    (query : CheckedQuery LawStatement)
+    (explored : ExploredCounts)
+    (termination : PlanningTermination) : PlanningResult :=
+  let (outcome, established) :=
+    if query.behavior.isUnsatisfiable then
+      (PlanningOutcome.unsatisfiable, false)
+    else
+      match termination with
+      | .found trace reason => (.found trace reason, false)
+      | .budgetExhausted => (.budgetExhausted, false)
+      | .invalid error => (.invalid error, false)
+      | .complete =>
+          if query.policy.strategy != .exhaustive || query.completeness.isNone then
+            (.budgetExhausted, false)
+          else
+            match query.claim with
+            | .verifiedWithinBounds => (.verified, true)
+            | .satisfyingWitness | .violatingCounterexample | .boundedSelection =>
+                (.noSuchTraceWithinCompleteBounds, true)
+  PlanningResult.mk outcome (planningMetadata query explored established)
+
 namespace PlanningResult
-
-def found
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts)
-    (trace : BehaviorTrace)
-    (reason : SelectionReason) : PlanningResult := {
-  outcome := .found trace reason
-  metadata := planningMetadata query explored false
-}
-
-def verified
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts) : PlanningResult := {
-  outcome := .verified
-  metadata := planningMetadata query explored true
-}
-
-def completeAbsence
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts) : PlanningResult := {
-  outcome := .noSuchTraceWithinCompleteBounds
-  metadata := planningMetadata query explored true
-}
-
-def exhausted
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts) : PlanningResult := {
-  outcome := .budgetExhausted
-  metadata := planningMetadata query explored false
-}
-
-def unsatisfiable
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts) : PlanningResult := {
-  outcome := .unsatisfiable
-  metadata := planningMetadata query explored false
-}
-
-def invalid
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts)
-    (error : QueryError) : PlanningResult := {
-  outcome := .invalid error
-  metadata := planningMetadata query explored false
-}
 
 def isVerified (result : PlanningResult) : Bool :=
   match result.outcome with
@@ -564,14 +569,6 @@ def isVerified (result : PlanningResult) : Bool :=
   | _ => false
 
 end PlanningResult
-
-def CheckedQuery.preflightResult?
-    (query : CheckedQuery LawStatement)
-    (explored : ExploredCounts := {}) : Option PlanningResult :=
-  if query.behavior.isUnsatisfiable then
-    some (PlanningResult.unsatisfiable query explored)
-  else
-    none
 
 /-- A backend exposes a single candidate and continuation per pull; Query owns policy and result
 semantics, while implementations own only incremental enumeration state. -/
