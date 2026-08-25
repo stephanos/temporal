@@ -44,6 +44,7 @@ Moved the independent Property and Behavior DSLs and their full positive, negati
 GATE_SKIPPED:smoke:green-receipt b7283ffc - baseline reused from prior post-gate pass
 
 stage: impl-review - ran (SHIP; completed 2026-08-25T19:23:06.856965Z)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 774f1c3d32d0b5950a6cd403f39fc5340c407620
 - Tests: GATE_SKIPPED:smoke:green-receipt b7283ffc - baseline reused from prior post-gate pass, cd model && mise exec -- lake build UmpireTests, make umpire-check-regression
