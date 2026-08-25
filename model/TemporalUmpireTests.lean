@@ -10,7 +10,7 @@ namespace Temporal.UmpireTests
 open _root_.Umpire
 open Temporal.Umpire
 open Temporal.Umpire.NexusCallerClosure
-open NexusAutoClose
+open Temporal.Feature.Nexus.AutoClose
 
 def declarationErrorOf
     (result : Except DeclarationError α) : Option DeclarationError :=
