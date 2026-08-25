@@ -50,6 +50,7 @@ Added constructor-time setting metadata and deterministic, deeply copied registr
 Baseline: green (`go test -count=1 -tags test_dep ./common/dynamicconfig`; `make fmt-imports`). R1/R3 error coverage: `TestRegisteredSettingMetadataRejectsIncompleteRegistry`, `TestRegisteredSettingMetadataFreezesRegistry`, and `TestRegisteredSettingMetadataRejectsNormalizedKeyCollision`; immutability and constructor-family coverage live in the remaining focused metadata tests.
 
 stage: impl-review - ran [2026-08-25T14:49:47Z..2026-08-25T14:56:02Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 8b5b98a9a8dafcbb9b135a54bbf4ce0a5a39681c
 - Tests: go test -count=1 -tags test_dep ./common/dynamicconfig, make fmt-imports
