@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/umpire/internal/artifactio"
+	"go.temporal.io/server/tools/common/artifactio"
 )
 
 func Run(arguments []string) error {
