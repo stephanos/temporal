@@ -228,6 +228,13 @@ example : errorKindOf (checkQuery noFiniteDomains
       some .missingFiniteCompleteness := by
   native_decide
 
+/-! The checked planner input retains the exact certified domains, not only their digests. -/
+example : ((checkQuery exhaustiveContext
+    (declaration (.verify checkedProperty) exhaustivePolicy)).toOption.bind fun query =>
+      query.completeness.map fun evidence =>
+        (evidence.roleAssignments.length, evidence.actions.length)) = some (1, 1) := by
+  native_decide
+
 /-! Completeness follows the exhaustive strategy, not a particular query form. -/
 example : [
     QueryForm.verify checkedProperty,
