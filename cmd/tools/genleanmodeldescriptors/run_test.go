@@ -1,4 +1,4 @@
-package godescriptors
+package main
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	fixturePackage       = "go.temporal.io/server/tools/common/godescriptors/testdata/godescriptors"
-	brokenFixturePackage = "go.temporal.io/server/tools/common/godescriptors/testdata/godescriptorsbroken"
+	fixturePackage       = "go.temporal.io/server/cmd/tools/genleanmodeldescriptors/testdata/godescriptors"
+	brokenFixturePackage = "go.temporal.io/server/cmd/tools/genleanmodeldescriptors/testdata/godescriptorsbroken"
 )
 
 func TestRunExportsMatchingDescriptorsAndTransitiveImportsDeterministically(t *testing.T) {
@@ -136,7 +136,7 @@ func TestListDescriptorPackagesFiltersCompatibilityCopiesByProtobufPrefix(t *tes
 		context.Background(),
 		[]string{
 			fixturePackage,
-			"go.temporal.io/server/tools/common/godescriptors/testdata/godescriptorscompat",
+			"go.temporal.io/server/cmd/tools/genleanmodeldescriptors/testdata/godescriptorscompat",
 		},
 		[]string{"fixture/public/"},
 	)

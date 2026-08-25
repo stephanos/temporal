@@ -23,8 +23,8 @@ testdata/
 !/tools/umpire3/testdata/**
 !/tools/umpire3/**/testdata/
 !/tools/umpire3/**/testdata/**
-!/tools/common/godescriptors/testdata/
-!/tools/common/godescriptors/testdata/**
+!/cmd/tools/genleanmodeldescriptors/testdata/
+!/cmd/tools/genleanmodeldescriptors/testdata/**
 
 *.out
 *.test
