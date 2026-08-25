@@ -20,19 +20,19 @@ def metadata (value : String) (kind : DeclarationKind) : DeclarationMetadata := 
   contractDigest := value ++ "/v1"
 }
 
-def cancellationCapability := id "nexus.capability.cancellation"
-def operationState := id "nexus.state.operation-id"
-def phaseState := id "nexus.state.phase"
-def requestCancel := id "nexus.action.request-cancel"
-def callerClose := id "workflow.action.caller-close"
-def tick := id "nexus.action.tick"
-def retry := id "nexus.action.retry"
-def abort := id "nexus.action.abort"
-def noop := id "nexus.action.noop"
-def accepted := id "nexus.outcome.accepted"
-def rejected := id "nexus.outcome.rejected"
-def cancelRequested := id "nexus.observation.cancel-requested"
-def callerClosed := id "workflow.observation.caller-closed"
+def cancellationCapability := id "test.capability.cancellation"
+def operationState := id "test.state.resource-id"
+def phaseState := id "test.state.phase"
+def requestCancel := id "test.action.request-cancel"
+def callerClose := id "test.action.close"
+def tick := id "test.action.tick"
+def retry := id "test.action.retry"
+def abort := id "test.action.abort"
+def noop := id "test.action.noop"
+def accepted := id "test.outcome.accepted"
+def rejected := id "test.outcome.rejected"
+def cancelRequested := id "test.observation.cancel-requested"
+def callerClosed := id "test.observation.closed"
 
 def context : BehaviorCheckContext := {
   declarations := [
@@ -53,12 +53,12 @@ def context : BehaviorCheckContext := {
 }
 
 def operationRole : ResourceRole := {
-  id := id "scenario.role.operation"
+  id := id "test.role.resource"
   valueKind := .state
 }
 
 def peerRole : ResourceRole := {
-  id := id "scenario.role.peer-operation"
+  id := id "test.role.peer-resource"
   valueKind := .state
 }
 
@@ -114,22 +114,22 @@ def repeatedCancelTrace : BehaviorTrace :=
 def otherSetupTrace : BehaviorTrace := traceWith operationB [cancelStep accepted, closeStep]
 
 def cancelOccurrence : NamedOccurrence := {
-  id := id "scenario.occurrence.cancel"
+  id := id "test.occurrence.cancel"
   action := requestCancel
 }
 
 def closeOccurrence : NamedOccurrence := {
-  id := id "scenario.occurrence.close"
+  id := id "test.occurrence.close"
   action := callerClose
 }
 
 def tickOccurrence : NamedOccurrence := {
-  id := id "scenario.occurrence.tick"
+  id := id "test.occurrence.tick"
   action := tick
 }
 
 def setupEqualsA : SetupConstraint := {
-  id := id "scenario.setup.operation-a"
+  id := id "test.setup.resource-a"
   relation := .equal
   left := .role operationRole.id
   right := .value operationA
@@ -147,7 +147,7 @@ def exactWitness : AuthoredExactTrace := {
 }
 
 def constrainedDeclaration : BehaviorDeclaration := {
-  id := id "scenario.behavior.caller-closure"
+  id := id "test.behavior.constrained"
   source
   requires := [cancellationCapability]
   roles := [operationRole]
@@ -225,9 +225,9 @@ def cyclicDeclaration : BehaviorDeclaration := {
 def invalidBindingDeclaration : BehaviorDeclaration := {
   constrainedDeclaration with
   setup := [{
-    id := id "scenario.setup.missing-role"
+    id := id "test.setup.missing-role"
     relation := .equal
-    left := .role (id "scenario.role.missing")
+    left := .role (id "test.role.missing")
     right := .value operationA
   }]
 }
@@ -280,7 +280,7 @@ example : canonicalError cyclicDeclaration = canonicalError {
 def unsatisfiableDeclaration : BehaviorDeclaration := {
   constrainedDeclaration with
   setup := [{
-    id := id "scenario.setup.impossible"
+    id := id "test.setup.impossible"
     relation := .different
     left := .role operationRole.id
     right := .role operationRole.id
@@ -298,7 +298,7 @@ def pairedSetupConflict : BehaviorDeclaration := {
   setup := [
     setupEqualsA,
     {
-      id := id "scenario.setup.operation-not-a"
+      id := id "test.setup.resource-not-a"
       relation := .different
       left := .role operationRole.id
       right := .value operationA
@@ -311,7 +311,7 @@ example : (checkBehavior context pairedSetupConflict).toOption.map
   native_decide
 
 def exactSequenceConflict : BehaviorDeclaration := {
-  id := id "scenario.behavior.exact-sequence-conflict"
+  id := id "test.behavior.exact-sequence-conflict"
   source
   roles := [operationRole]
   actionsExactly := some [requestCancel]
@@ -348,14 +348,14 @@ example : [
   native_decide
 
 def canonicalDeclaration : BehaviorDeclaration := {
-  id := id "scenario.behavior.canonical"
+  id := id "test.behavior.canonical"
   source
   requires := [cancellationCapability]
   roles := [operationRole, peerRole]
   setup := [
     setupEqualsA,
     {
-      id := id "scenario.setup.peer-differs"
+      id := id "test.setup.peer-differs"
       relation := .different
       left := .role peerRole.id
       right := .value operationA
@@ -450,7 +450,7 @@ example : [
   native_decide
 
 def broadDeclaration : BehaviorDeclaration := {
-  id := id "scenario.behavior.broad"
+  id := id "test.behavior.broad"
   source
   roles := [operationRole]
 }
@@ -499,7 +499,7 @@ example : narrowedDeclarations.all fun pair => declarationNarrows pair.1 pair.2 
 
 def manyCancelOccurrences : List NamedOccurrence :=
   (List.range 15).map fun index => {
-    id := id ("scenario.occurrence.cancel-" ++ toString index)
+    id := id ("test.occurrence.cancel-" ++ toString index)
     action := requestCancel
   }
 
