@@ -121,8 +121,7 @@ structure ConfigUseRequest (α : Type) where
   changeEffect : ChangeEffect
   interpretation : Option (ConfigInterpretation α)
 
-structure ConfigUse (α : Type) where
-  private mk ::
+private structure ConfigUsePayload (α : Type) where
   id : DeclarationId
   setting : Setting
   classification : SettingClassification
@@ -130,6 +129,35 @@ structure ConfigUse (α : Type) where
   context : ExactConstraints
   samplingPoint : SamplingPoint
   changeEffect : ChangeEffect
+
+/-- A validated typed use whose construction and decoder remain sealed in this module. -/
+structure ConfigUse (α : Type) where
+  private mk ::
+  private payload : ConfigUsePayload α
+
+def ConfigUse.id (use : ConfigUse α) : DeclarationId :=
+  use.payload.id
+
+def ConfigUse.key (use : ConfigUse α) : String :=
+  use.payload.setting.key
+
+private def ConfigUse.setting (use : ConfigUse α) : Setting :=
+  use.payload.setting
+
+private def ConfigUse.classification (use : ConfigUse α) : SettingClassification :=
+  use.payload.classification
+
+private def ConfigUse.interpretation (use : ConfigUse α) : ConfigInterpretation α :=
+  use.payload.interpretation
+
+def ConfigUse.context (use : ConfigUse α) : ExactConstraints :=
+  use.payload.context
+
+def ConfigUse.samplingPoint (use : ConfigUse α) : SamplingPoint :=
+  use.payload.samplingPoint
+
+def ConfigUse.changeEffect (use : ConfigUse α) : ChangeEffect :=
+  use.payload.changeEffect
 
 inductive AnyConfigUse where
   | of {α : Type} (use : ConfigUse α)
@@ -140,7 +168,7 @@ def id : AnyConfigUse → DeclarationId
   | .of use => use.id
 
 def key : AnyConfigUse → String
-  | .of use => use.setting.key
+  | .of use => use.key
 
 end AnyConfigUse
 
@@ -176,17 +204,21 @@ private structure StoredEntry where
   canonicalValue : CanonicalValue
   deriving BEq, DecidableEq, Repr
 
-/-- An immutable, use-keyed snapshot resolved before model execution. -/
-structure ConfigView where
-  private mk ::
+private structure ConfigViewPayload where
   resolvedEntries : List StoredEntry
   deriving BEq, DecidableEq, Repr
 
+/-- An immutable, use-keyed snapshot resolved before model execution. -/
+structure ConfigView where
+  private mk ::
+  private payload : ConfigViewPayload
+  deriving BEq, DecidableEq
+
 def ConfigView.provenance (view : ConfigView) : List ResolvedEntry :=
-  view.resolvedEntries.map StoredEntry.provenance
+  view.payload.resolvedEntries.map StoredEntry.provenance
 
 def ConfigView.entryCount (view : ConfigView) : Nat :=
-  view.resolvedEntries.length
+  view.payload.resolvedEntries.length
 
 def emptyConstraints : ExactConstraints := {
   namespaceName := none
@@ -403,7 +435,7 @@ private def checkConfigUseInCatalog
     throw (configError .incompatibleInterpretation request.id request.key
       (interpretation.expectedSettingIdentity ++ " != " ++ setting.identity))
   requireContext request.id setting request.context
-  pure {
+  pure (.mk {
     id := request.id
     setting
     classification
@@ -411,7 +443,7 @@ private def checkConfigUseInCatalog
     context := request.context
     samplingPoint := request.samplingPoint
     changeEffect := request.changeEffect
-  }
+  })
 
 private def canonicalMatchesSchema (value : CanonicalValue) (schema : ValueSchema) : Bool :=
   match value, schema with
@@ -722,7 +754,7 @@ private def resolveConfigViewInCatalog
   validateCheckedUses catalog sortedUses
   let canonicalOverrides := overrides.mergeSort overrideLe
   validateOverrides catalog canonicalOverrides
-  pure { resolvedEntries := (← resolveUses canonicalOverrides sortedUses) }
+  pure (.mk { resolvedEntries := (← resolveUses canonicalOverrides sortedUses) })
 
 def resolveConfigView
     (overrides : List ConfigOverride)
@@ -730,7 +762,7 @@ def resolveConfigView
   resolveConfigViewInCatalog Temporal.DynamicConfig.Settings.all overrides uses
 
 def ConfigView.read (view : ConfigView) (use : ConfigUse α) : Except ConfigError α := do
-  let stored ← match view.resolvedEntries.find? fun entry => entry.provenance.useId == use.id with
+  let stored ← match view.payload.resolvedEntries.find? fun entry => entry.provenance.useId == use.id with
     | none => throw (configError .unknownUse use.id use.setting.key use.id.value)
     | some entry => pure entry
   let entry := stored.provenance
@@ -904,14 +936,63 @@ private def lastString : List String → String
 private def validPort (characters : List Char) : Bool :=
   characters.all fun character => "0123456789".toList.contains character
 
+private def validIPv4Octet (octet : String) : Bool :=
+  octet != "" && (octet.length == 1 || octet.toList.head? != some '0') &&
+    match octet.toNat? with
+    | some value => decide (value ≤ 255)
+    | none => false
+
+private def validIPv4Address (address : String) : Bool :=
+  match address.splitOn "." with
+  | [first, second, third, fourth] =>
+      [first, second, third, fourth].all validIPv4Octet
+  | _ => false
+
+private def validIPv6Group (group : String) : Bool :=
+  group.length > 0 && group.length ≤ 4 && group.toList.all isHexCharacter
+
+private def ipv6Units : List String → Option Nat
+  | [] => some 0
+  | [last] =>
+      if last.toList.contains '.' then
+        if validIPv4Address last then some 2 else none
+      else if validIPv6Group last then some 1 else none
+  | group :: rest =>
+      if validIPv6Group group then
+        (ipv6Units rest).map Nat.succ
+      else
+        none
+
+private def ipv6Side (side : String) : Option Nat :=
+  if side == "" then some 0 else ipv6Units (side.splitOn ":")
+
+private def validIPv6Zone (zone : String) : Bool :=
+  zone != "" && zone.toList.all fun character =>
+    character.isAlphanum || ['.', '_', '-'].contains character
+
+private def validIPv6Address (literal : String) : Bool :=
+  let address? := match literal.splitOn "%25" with
+    | [address] => some address
+    | [address, zone] => if validIPv6Zone zone then some address else none
+    | _ => none
+  match address? with
+  | none => false
+  | some address =>
+      if address.toList.contains '%' then false else
+      match address.splitOn "::" with
+      | [whole] => ipv6Side whole == some 8
+      | [left, right] =>
+          match ipv6Side left, ipv6Side right with
+          | some leftUnits, some rightUnits => leftUnits + rightUnits < 8
+          | _, _ => false
+      | _ => false
+
 private def validBracketHostPort (hostPort : String) : Bool :=
   match hostPort.toList with
   | '[' :: rest =>
       match (String.ofList rest).splitOn "]" with
       | [inside, suffix] =>
-          inside != "" && inside.toList.contains ':' &&
-            inside.toList.all (fun character =>
-              character.isAlphanum || [':', '.', '%', '-', '_'].contains character) &&
+          validIPv6Address inside &&
             match suffix.toList with
             | [] => true
             | ':' :: port => validPort port
