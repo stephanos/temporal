@@ -119,7 +119,7 @@ UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 GEN_LEAN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleanmodeldescriptors
-UMPIRE_REGRESSION_ID := nexus-caller-closure-upgrade
+UMPIRE_REGRESSION_ID := workflow-nexus.query.exact-action-caller-closure
 UMPIRE_REGRESSION_INSPECTOR := temporal-experiment-inspect
 UMPIRE_GEN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
@@ -1004,13 +1004,13 @@ umpire-check-regression:
 		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_REGRESSION_ID) > "$$temporary/first.json"; \
 		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_REGRESSION_ID) > "$$temporary/second.json"; \
 		cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
-		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) missing-pilot \
+		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) missing-scenario \
 			> "$$temporary/negative.stdout" 2> "$$temporary/negative.stderr"; then \
-			echo "expected the inspector to reject an unknown pilot" >&2; \
+			echo "expected the inspector to reject an unknown scenario" >&2; \
 			exit 1; \
 		fi; \
 		test ! -s "$$temporary/negative.stdout"; \
-		printf '%s\n' '{"kind":"unknownPilot","subject":"missing-pilot","context":"pilot registry"}' \
+		printf '%s\n' '{"kind":"unknown-scenario","subject":"missing-scenario","context":"scenario registry"}' \
 			> "$$temporary/expected-negative.stderr"; \
 		cmp -s "$$temporary/expected-negative.stderr" "$$temporary/negative.stderr"
 
