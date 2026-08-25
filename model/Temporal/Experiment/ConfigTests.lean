@@ -23,13 +23,13 @@ def maxRequest
 }
 
 def checkedMaxUse (useId namespaceName : String) : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications
+  checkConfigUse authoredClassifications
     (maxRequest useId namespaceName)
 
 example : authoredClassifications.length = 6 := by native_decide
 
 def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications {
+  checkConfigUse authoredClassifications {
     id := DeclarationId.of "test.config.unknown"
     key := "does.not.exist"
     context := emptyConstraints
@@ -39,7 +39,7 @@ def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
   }
 
 def unclassifiedUseResult : Except ConfigError (ConfigUse Unit) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications {
+  checkConfigUse authoredClassifications {
     id := DeclarationId.of "test.config.unclassified"
     key := "admin.enablelisthistorytasks"
     context := emptyConstraints
@@ -54,45 +54,45 @@ def emptyClassificationResult : Except ConfigError (ConfigUse Int) :=
     settingIdentity := Temporal.DynamicConfig.Settings.callback_maxperexecution.identity
     impacts := []
   }
-  checkConfigUse Temporal.DynamicConfig.Settings.all [classification]
+  checkConfigUse [classification]
     (maxRequest "test.config.empty-classification" "payments")
 
 def missingInterpretationResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications
+  checkConfigUse authoredClassifications
     (maxRequest "test.config.missing-interpretation" "payments" none)
 
 def incompatibleInterpretationResult : Except ConfigError (ConfigUse Int) :=
   let interpretation := { callbackMaxPerExecutionInterpretation with key := "other.key" }
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications
+  checkConfigUse authoredClassifications
     (maxRequest "test.config.incompatible-interpretation" "payments" (some interpretation))
 
 def schemaDriftResult : Except ConfigError (ConfigUse Int) :=
   let interpretation := {
     callbackMaxPerExecutionInterpretation with expectedSchema := .bool "bool" false
   }
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications
+  checkConfigUse authoredClassifications
     (maxRequest "test.config.schema-drift" "payments" (some interpretation))
 
 def defaultDriftResult : Except ConfigError (ConfigUse Int) :=
   let interpretation := {
     callbackMaxPerExecutionInterpretation with expectedDefault := .concrete (.int 1999)
   }
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications
+  checkConfigUse authoredClassifications
     (maxRequest "test.config.default-drift" "payments" (some interpretation))
 
 def missingContextResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications {
+  checkConfigUse authoredClassifications {
     maxRequest "test.config.missing-context" "payments" with context := emptyConstraints
   }
 
 def illegalContextResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications {
+  checkConfigUse authoredClassifications {
     maxRequest "test.config.illegal-context" "payments" with
       context := { namespaceContext "payments" with destination := some "callback-api" }
   }
 
 def malformedUseResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications
+  checkConfigUse authoredClassifications
     (maxRequest "not-namespaced" "payments")
 
 example :
@@ -124,7 +124,7 @@ def duplicateOverrideResult : Except ConfigError ConfigView := do
     constraints := namespaceContext "payments"
     value := .int 20
   }
-  resolveConfigView Temporal.DynamicConfig.Settings.all [override, override] [.of use]
+  resolveConfigView [override, override] [.of use]
 
 def illegalOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.illegal-override" "payments"
@@ -133,7 +133,7 @@ def illegalOverrideResult : Except ConfigError ConfigView := do
     constraints := { emptyConstraints with destination := some "callback-api" }
     value := .int 20
   }
-  resolveConfigView Temporal.DynamicConfig.Settings.all [override] [.of use]
+  resolveConfigView [override] [.of use]
 
 def schemaMismatchOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.schema-mismatch-override" "payments"
@@ -142,11 +142,11 @@ def schemaMismatchOverrideResult : Except ConfigError ConfigView := do
     constraints := namespaceContext "payments"
     value := .bool true
   }
-  resolveConfigView Temporal.DynamicConfig.Settings.all [override] [.of use]
+  resolveConfigView [override] [.of use]
 
 def duplicateUseResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.duplicate-use" "payments"
-  resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of use, .of use]
+  resolveConfigView [] [.of use, .of use]
 
 example :
     [errorKindOf duplicateOverrideResult,
@@ -191,7 +191,7 @@ def malformedUnselectedAddressOverrideResult : Except ConfigError ConfigView := 
     constraints := emptyConstraints
     value := addressRulesValue [addressRuleValue "" false]
   }
-  resolveConfigView Temporal.DynamicConfig.Settings.all [selected, malformed] [.of use]
+  resolveConfigView [selected, malformed] [.of use]
 
 example : errorKindOf malformedUnselectedAddressOverrideResult =
     some .interpretationFailure := by native_decide
@@ -210,11 +210,9 @@ def sameKeyView (reverseInput : Bool) : Except ConfigError ConfigView := do
     value := .int 22
   }
   if reverseInput then
-    resolveConfigView Temporal.DynamicConfig.Settings.all
-      [secondOverride, firstOverride] [.of second, .of first]
+    resolveConfigView [secondOverride, firstOverride] [.of second, .of first]
   else
-    resolveConfigView Temporal.DynamicConfig.Settings.all
-      [firstOverride, secondOverride] [.of first, .of second]
+    resolveConfigView [firstOverride, secondOverride] [.of first, .of second]
 
 def sameKeyTypedReads : Except ConfigError (Int × Int) := do
   let view ← sameKeyView false
@@ -239,24 +237,28 @@ example : sameKeyTypedReadsMatch = true := by native_decide
 def originatingUseReadResult : Except ConfigError Int := do
   let original ← checkedMaxUse "test.config.originating-use" "alpha"
   let otherContext ← checkedMaxUse "test.config.originating-use" "beta"
-  let view ← resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of original]
+  let view ← resolveConfigView [] [.of original]
   view.read otherContext
 
 example : errorKindOf originatingUseReadResult = some .incompatibleInterpretation := by
   native_decide
 
-def immutableViewReads : Except ConfigError (Int × Option ConfigErrorKind × Int) := do
+def immutableViewReads : Except ConfigError (Int × Int × Int) := do
   let use ← checkedMaxUse "test.config.immutable" "payments"
-  let view ← resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of use]
+  let view ← resolveConfigView [] [.of use]
   let before ← view.read use
-  let changed : ConfigView := { view with entries := [] }
-  let changedKind := errorKindOf (changed.read use)
+  let changed ← resolveConfigView [{
+    key := use.setting.key
+    constraints := namespaceContext "payments"
+    value := .int 10
+  }] [.of use]
+  let changedValue ← changed.read use
   let after ← view.read use
-  pure (before, changedKind, after)
+  pure (before, changedValue, after)
 
 def immutableViewReadsMatch : Bool :=
   match immutableViewReads with
-  | .ok (2000, some .unknownUse, 2000) => true
+  | .ok (2000, 10, 2000) => true
   | _ => false
 
 example : immutableViewReadsMatch = true := by native_decide
@@ -268,14 +270,14 @@ def representativeView : Except ConfigError ConfigView := do
   let timeout ← callbackRequestTimeoutUse "payments" "callback-api"
   let updateAck ← matchingUpdateAckIntervalUse "payments" "normal-queue" 1
   let buckets ← matchingWorkerRegistryNumBucketsUse
-  resolveConfigView Temporal.DynamicConfig.Settings.all []
+  resolveConfigView []
     [.of enable, .of maximum, .of addresses, .of timeout, .of updateAck, .of buckets]
 
 def representativeMetadataComplete : Bool :=
   match representativeView with
   | .error _ => false
   | .ok view =>
-      view.entries.length == 6 && view.entries.all fun entry =>
+      view.entryCount == 6 && view.provenance.all fun entry =>
         entry.catalogDigest == Temporal.DynamicConfig.Settings.catalogIdentity &&
           entry.settingDigest != "" && entry.interpretationDigest != "" && entry.key != "" &&
           entry.useId.value != ""
@@ -289,9 +291,9 @@ def constrainedDefaultInterleaving : Except ConfigError (Int × ResolutionSource
     constraints := namespaceContext "fixture-namespace"
     value := .duration 120000000000
   }
-  let view ← resolveConfigView Temporal.DynamicConfig.Settings.all [namespaceOverride] [.of use]
+  let view ← resolveConfigView [namespaceOverride] [.of use]
   let value ← view.read use
-  match view.entries with
+  match view.provenance with
   | [entry] => pure (value, entry.source)
   | _ => throw {
       kind := .fixtureMismatch
@@ -311,6 +313,9 @@ example : constrainedDefaultInterleavingMatches = true := by native_decide
 example : Temporal.DynamicConfig.Settings.fixtures.length = 13 := by native_decide
 
 example : errorKindOf checkAllResolutionFixtures = none := by native_decide
+
+example : errorKindOf (checkFixtureCatalogIdentity "sha256:stale") =
+    some .fixtureMismatch := by native_decide
 
 def mismatchedFixtureResult : Except ConfigError Unit :=
   match Temporal.DynamicConfig.Settings.fixtures with
@@ -343,7 +348,7 @@ def opaqueInterpretation
 
 def checkedOpaqueUse
     (replacement : Option OpaqueDefaultReplacement) : Except ConfigError (ConfigUse CanonicalValue) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all [opaqueClassification] {
+  checkConfigUse [opaqueClassification] {
     id := DeclarationId.of "test.config.opaque-default"
     key := opaqueClassification.key
     context := emptyConstraints
@@ -354,7 +359,7 @@ def checkedOpaqueUse
 
 def selectedOpaqueDefaultResult : Except ConfigError ConfigView := do
   let use ← checkedOpaqueUse none
-  resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of use]
+  resolveConfigView [] [.of use]
 
 def replacedOpaqueDefaultResult : Except ConfigError CanonicalValue := do
   let replacement : OpaqueDefaultReplacement := {
@@ -362,7 +367,7 @@ def replacedOpaqueDefaultResult : Except ConfigError CanonicalValue := do
     value := .object .nil
   }
   let use ← checkedOpaqueUse (some replacement)
-  let view ← resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of use]
+  let view ← resolveConfigView [] [.of use]
   view.read use
 
 def staleOpaqueReplacementResult : Except ConfigError ConfigView := do
@@ -371,7 +376,7 @@ def staleOpaqueReplacementResult : Except ConfigError ConfigView := do
     value := .object .nil
   }
   let use ← checkedOpaqueUse (some replacement)
-  resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of use]
+  resolveConfigView [] [.of use]
 
 def malformedOpaqueReplacementResult : Except ConfigError ConfigView := do
   let replacement : OpaqueDefaultReplacement := {
@@ -379,7 +384,7 @@ def malformedOpaqueReplacementResult : Except ConfigError ConfigView := do
     value := .int 1
   }
   let use ← checkedOpaqueUse (some replacement)
-  resolveConfigView Temporal.DynamicConfig.Settings.all [] [.of use]
+  resolveConfigView [] [.of use]
 
 example : errorKindOf selectedOpaqueDefaultResult = some .opaqueDefaultSelected := by native_decide
 
@@ -414,7 +419,10 @@ example :
      callbackValidationKind "http://api.a.example.com",
      callbackValidationKind "http://hooks.insecure.test:80/path",
      callbackValidationKind "ftp://api.a.example.com",
-     callbackValidationKind "https:///missing-host"] =
+     callbackValidationKind "https:///missing-host",
+     callbackValidationKind "https://user:secret@api.a.b.example.com/path",
+     callbackValidationKind "https://api.a.example.com:invalid",
+     callbackValidationKind "https://api.%zz.example.com"] =
     [none,
      none,
      some .unknownScheme,
@@ -422,7 +430,10 @@ example :
      some .insecureConnection,
      none,
      some .unknownScheme,
-     some .missingHost] := by native_decide
+     some .missingHost,
+     none,
+     some .malformedAddress,
+     some .malformedAddress] := by native_decide
 
 def secureRuleWins : CallbackAddressRules := {
   rules := [

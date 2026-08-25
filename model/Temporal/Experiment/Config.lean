@@ -122,6 +122,7 @@ structure ConfigUseRequest (α : Type) where
   interpretation : Option (ConfigInterpretation α)
 
 structure ConfigUse (α : Type) where
+  private mk ::
   id : DeclarationId
   setting : Setting
   classification : SettingClassification
@@ -157,9 +158,9 @@ inductive ResolutionSource where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure ResolvedEntry where
+  private mk ::
   useId : DeclarationId
   key : String
-  canonicalValue : CanonicalValue
   source : ResolutionSource
   matchedConstraints : ExactConstraints
   context : ExactConstraints
@@ -170,10 +171,22 @@ structure ResolvedEntry where
   changeEffect : ChangeEffect
   deriving BEq, DecidableEq, Repr
 
+private structure StoredEntry where
+  provenance : ResolvedEntry
+  canonicalValue : CanonicalValue
+  deriving BEq, DecidableEq, Repr
+
 /-- An immutable, use-keyed snapshot resolved before model execution. -/
 structure ConfigView where
-  entries : List ResolvedEntry
+  private mk ::
+  resolvedEntries : List StoredEntry
   deriving BEq, DecidableEq, Repr
+
+def ConfigView.provenance (view : ConfigView) : List ResolvedEntry :=
+  view.resolvedEntries.map StoredEntry.provenance
+
+def ConfigView.entryCount (view : ConfigView) : Nat :=
+  view.resolvedEntries.length
 
 def emptyConstraints : ExactConstraints := {
   namespaceName := none
@@ -360,7 +373,7 @@ private def validateClassifications
           throw (configError .emptyClassification
             (DeclarationId.of "umpire.config.classifications") classification.key "[]")
 
-def checkConfigUse
+private def checkConfigUseInCatalog
     (catalog : List Setting)
     (classifications : List SettingClassification)
     (request : ConfigUseRequest α) : Except ConfigError (ConfigUse α) := do
@@ -426,6 +439,39 @@ private def canonicalMatchesSchema (value : CanonicalValue) (schema : ValueSchem
   | _, .dynamicValue _ _ => true
   | _, .reference _ _ => true
   | _, _ => false
+
+private def opaqueDefaultMetadata : SettingDefault → List OpaqueDefault
+  | .opaque metadata => [metadata]
+  | .constrained defaults => defaults.filterMap fun candidate =>
+      match candidate.value with
+      | .opaque metadata => some metadata
+      | .concrete _ => none
+  | .concrete _ => []
+
+private def validateOpaqueReplacement
+    (useId : DeclarationId)
+    (setting : Setting)
+    (interpretation : ConfigInterpretation α) : Except ConfigError Unit := do
+  match interpretation.opaqueReplacement with
+  | none => pure ()
+  | some replacement =>
+      let importedMetadata := opaqueDefaultMetadata setting.defaultValue
+      if importedMetadata == [] ||
+          !(importedMetadata.all fun metadata => metadata == replacement.expected) then
+        throw (configError .defaultDrift useId setting.key (reprStr importedMetadata))
+      if !canonicalMatchesSchema replacement.value setting.schema then
+        throw (configError .schemaMismatch useId setting.key (reprStr replacement.value))
+      match interpretation.decode replacement.value with
+      | .ok _ => pure ()
+      | .error message =>
+          throw (configError .interpretationFailure useId setting.key message)
+
+def checkConfigUse
+    (classifications : List SettingClassification)
+    (request : ConfigUseRequest α) : Except ConfigError (ConfigUse α) := do
+  let use ← checkConfigUseInCatalog Temporal.DynamicConfig.Settings.all classifications request
+  validateOpaqueReplacement use.id use.setting use.interpretation
+  pure use
 
 private def firstDuplicateOverride : List ConfigOverride → Option ConfigOverride
   | [] => none
@@ -598,7 +644,7 @@ private def validateOverrideInterpretations
 
 private def resolveUse
     (overrides : List ConfigOverride)
-    (use : ConfigUse α) : Except ConfigError ResolvedEntry := do
+    (use : ConfigUse α) : Except ConfigError StoredEntry := do
   validateOverrideInterpretations use overrides
   let resolution ← resolveCanonical use.id use.setting (some use.interpretation) use.context overrides
   if !canonicalMatchesSchema resolution.value use.setting.schema then
@@ -607,17 +653,19 @@ private def resolveUse
   | .error message =>
       throw (configError .interpretationFailure use.id use.setting.key message)
   | .ok _ => pure {
-      useId := use.id
-      key := use.setting.key
+      provenance := {
+        useId := use.id
+        key := use.setting.key
+        source := resolution.source
+        matchedConstraints := resolution.matchedConstraints
+        context := use.context
+        catalogDigest := Temporal.DynamicConfig.Settings.catalogIdentity
+        settingDigest := use.setting.identity
+        interpretationDigest := use.interpretation.semanticDigest
+        samplingPoint := use.samplingPoint
+        changeEffect := use.changeEffect
+      }
       canonicalValue := resolution.value
-      source := resolution.source
-      matchedConstraints := resolution.matchedConstraints
-      context := use.context
-      catalogDigest := Temporal.DynamicConfig.Settings.catalogIdentity
-      settingDigest := use.setting.identity
-      interpretationDigest := use.interpretation.semanticDigest
-      samplingPoint := use.samplingPoint
-      changeEffect := use.changeEffect
     }
 
 private def firstDuplicateUse : List AnyConfigUse → Option AnyConfigUse
@@ -644,6 +692,7 @@ private def validateCheckedUse
       use.interpretation.expectedDefault != setting.defaultValue ||
       use.interpretation.semanticDigest == "" then
     throw (configError .incompatibleInterpretation use.id setting.key setting.identity)
+  validateOpaqueReplacement use.id setting use.interpretation
   requireContext use.id setting use.context
 
 private def validateCheckedUses
@@ -655,13 +704,13 @@ private def validateCheckedUses
 
 private def resolveUses
     (overrides : List ConfigOverride) :
-    List AnyConfigUse → Except ConfigError (List ResolvedEntry)
+    List AnyConfigUse → Except ConfigError (List StoredEntry)
   | [] => pure []
   | .of use :: rest => do
       let entry ← resolveUse overrides use
       return entry :: (← resolveUses overrides rest)
 
-def resolveConfigView
+private def resolveConfigViewInCatalog
     (catalog : List Setting)
     (overrides : List ConfigOverride)
     (uses : List AnyConfigUse) : Except ConfigError ConfigView := do
@@ -673,21 +722,35 @@ def resolveConfigView
   validateCheckedUses catalog sortedUses
   let canonicalOverrides := overrides.mergeSort overrideLe
   validateOverrides catalog canonicalOverrides
-  pure { entries := (← resolveUses canonicalOverrides sortedUses) }
+  pure { resolvedEntries := (← resolveUses canonicalOverrides sortedUses) }
+
+def resolveConfigView
+    (overrides : List ConfigOverride)
+    (uses : List AnyConfigUse) : Except ConfigError ConfigView :=
+  resolveConfigViewInCatalog Temporal.DynamicConfig.Settings.all overrides uses
 
 def ConfigView.read (view : ConfigView) (use : ConfigUse α) : Except ConfigError α := do
-  let entry ← match view.entries.find? fun entry => entry.useId == use.id with
+  let stored ← match view.resolvedEntries.find? fun entry => entry.provenance.useId == use.id with
     | none => throw (configError .unknownUse use.id use.setting.key use.id.value)
     | some entry => pure entry
+  let entry := stored.provenance
   if entry.key != use.setting.key || entry.settingDigest != use.setting.identity ||
       entry.interpretationDigest != use.interpretation.semanticDigest ||
       entry.context != use.context || entry.samplingPoint != use.samplingPoint ||
       entry.changeEffect != use.changeEffect ||
       entry.catalogDigest != Temporal.DynamicConfig.Settings.catalogIdentity then
     throw (configError .incompatibleInterpretation use.id use.setting.key (reprStr entry))
-  match use.interpretation.decode entry.canonicalValue with
+  match use.interpretation.decode stored.canonicalValue with
   | .ok value => pure value
   | .error message => throw (configError .interpretationFailure use.id use.setting.key message)
+
+def expectedFixtureCatalogIdentity : String :=
+  "sha256:22be68647d91a7249ac5fab0ef87a9e77cbcc391df54076dabdbfe9070f9832f"
+
+def checkFixtureCatalogIdentity (expected : String) : Except ConfigError Unit := do
+  if expected != Temporal.DynamicConfig.Settings.catalogIdentity then
+    throw (configError .fixtureMismatch (DeclarationId.of "umpire.config.fixture.catalog")
+      "<catalog>" (expected ++ " != " ++ Temporal.DynamicConfig.Settings.catalogIdentity))
 
 private def fixtureSource : FixtureSource → ResolutionSource
   | .override => .override
@@ -696,6 +759,7 @@ private def fixtureSource : FixtureSource → ResolutionSource
 
 /-- Verify one retained Go-computed resolver fixture without creating a model-facing string lookup. -/
 def checkResolutionFixture (fixture : ResolutionFixture) : Except ConfigError Unit := do
+  checkFixtureCatalogIdentity expectedFixtureCatalogIdentity
   let useId := DeclarationId.of ("umpire.config.fixture." ++ fixture.name)
   let setting ← match findSetting? Temporal.DynamicConfig.Settings.all fixture.settingKey with
     | none => throw (configError .unknownKey useId fixture.settingKey fixture.settingKey)
@@ -793,6 +857,7 @@ def decodeCallbackAddressRules : CanonicalValue → Except String CallbackAddres
 inductive CallbackAddressErrorKind where
   | unknownScheme
   | missingHost
+  | malformedAddress
   | unmatchedAddress
   | insecureConnection
   deriving BEq, DecidableEq, Ord, Repr
@@ -818,16 +883,70 @@ private def wildcardMatchFuel : Nat → List Char → List Char → Bool
 def wholeHostWildcardMatch (pattern host : String) : Bool :=
   wildcardMatchFuel (pattern.length + host.length + 1) pattern.toList host.toList
 
+private def isHexCharacter (character : Char) : Bool :=
+  "0123456789abcdefABCDEF".toList.contains character
+
+private def validPercentEscapes : List Char → Bool
+  | [] => true
+  | '%' :: first :: second :: rest =>
+      isHexCharacter first && isHexCharacter second && validPercentEscapes rest
+  | '%' :: _ => false
+  | _ :: rest => validPercentEscapes rest
+
+private def isForbiddenAuthorityCharacter (character : Char) : Bool :=
+  [' ', '\t', '\n', '\r', '\\'].contains character
+
+private def lastString : List String → String
+  | [] => ""
+  | [value] => value
+  | _ :: rest => lastString rest
+
+private def validPort (characters : List Char) : Bool :=
+  characters.all fun character => "0123456789".toList.contains character
+
+private def validBracketHostPort (hostPort : String) : Bool :=
+  match hostPort.toList with
+  | '[' :: rest =>
+      match (String.ofList rest).splitOn "]" with
+      | [inside, suffix] =>
+          inside != "" && inside.toList.contains ':' &&
+            inside.toList.all (fun character =>
+              character.isAlphanum || [':', '.', '%', '-', '_'].contains character) &&
+            match suffix.toList with
+            | [] => true
+            | ':' :: port => validPort port
+            | _ => false
+      | _ => false
+  | _ => false
+
+private def validHostPort (hostPort : String) : Bool :=
+  if hostPort == "" || hostPort.toList.any isForbiddenAuthorityCharacter then
+    false
+  else if hostPort.toList.head? == some '[' then
+    validBracketHostPort hostPort
+  else if hostPort.toList.any fun character => character == '[' || character == ']' || character == '%' then
+    false
+  else
+    match hostPort.splitOn ":" with
+    | [host] => host != ""
+    | [host, port] => host != "" && validPort port.toList
+    | _ => false
+
 private def urlHost? (rawAddress : String) : Except CallbackAddressError (String × String) := do
   match rawAddress.splitOn "://" with
   | [scheme, remainder] =>
       if scheme != "http" && scheme != "https" then
         throw { kind := .unknownScheme, address := rawAddress, matchedPattern := none }
-      let host := String.ofList (remainder.toList.takeWhile fun character =>
+      if !validPercentEscapes rawAddress.toList then
+        throw { kind := .malformedAddress, address := rawAddress, matchedPattern := none }
+      let authority := String.ofList (remainder.toList.takeWhile fun character =>
         character != '/' && character != '?' && character != '#')
-      if host == "" then
+      let hostPort := lastString (authority.splitOn "@")
+      if hostPort == "" then
         throw { kind := .missingHost, address := rawAddress, matchedPattern := none }
-      pure (scheme, host)
+      if !validHostPort hostPort then
+        throw { kind := .malformedAddress, address := rawAddress, matchedPattern := none }
+      pure (scheme, hostPort)
   | _ => throw { kind := .unknownScheme, address := rawAddress, matchedPattern := none }
 
 def CallbackAddressRules.validate
@@ -943,7 +1062,7 @@ def taskQueueContext
 
 private def checkedAuthoredUse
     (request : ConfigUseRequest α) : Except ConfigError (ConfigUse α) :=
-  checkConfigUse Temporal.DynamicConfig.Settings.all authoredClassifications request
+  checkConfigUse authoredClassifications request
 
 def historyEnableChasmCallbacksUse (namespaceName : String) : Except ConfigError (ConfigUse Bool) :=
   checkedAuthoredUse {
