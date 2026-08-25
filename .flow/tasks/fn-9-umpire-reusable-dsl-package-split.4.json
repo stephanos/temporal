@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T15:34:07.864579Z",
+  "depends_on": [
+    "fn-9-umpire-reusable-dsl-package-split.3"
+  ],
+  "id": "fn-9-umpire-reusable-dsl-package-split.4",
+  "priority": null,
+  "spec": "fn-9-umpire-reusable-dsl-package-split",
+  "spec_path": ".flow/tasks/fn-9-umpire-reusable-dsl-package-split.4.md",
+  "status": "todo",
+  "title": "Move Artifact and seal the Planning engine",
+  "updated_at": "2026-08-25T15:45:12.266669Z"
+}

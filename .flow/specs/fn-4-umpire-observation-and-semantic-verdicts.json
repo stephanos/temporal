@@ -2,7 +2,8 @@
   "branch_name": "fn-4-umpire-observation-and-semantic-verdicts",
   "created_at": "2026-08-24T22:43:58.330813Z",
   "depends_on_epics": [
-    "fn-3-umpire-semantic-authoring-and-planning"
+    "fn-3-umpire-semantic-authoring-and-planning",
+    "fn-9-umpire-reusable-dsl-package-split"
   ],
   "id": "fn-4-umpire-observation-and-semantic-verdicts",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T22:43:58.871167Z"
+  "updated_at": "2026-08-25T15:34:07.415517Z"
 }

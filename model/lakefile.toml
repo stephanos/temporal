@@ -1,11 +1,18 @@
 name = "temporal-model"
-defaultTargets = ["NexusAutoClose", "Temporal", "ExperimentTests", "temporal-experiment-inspect"]
+defaultTargets = ["NexusAutoClose", "Temporal", "Umpire", "UmpireTests", "ExperimentTests", "temporal-experiment-inspect"]
 
 [[lean_lib]]
 name = "NexusAutoClose"
 
 [[lean_lib]]
 name = "Temporal"
+
+[[lean_lib]]
+name = "Umpire"
+
+[[lean_lib]]
+name = "UmpireTests"
+roots = ["UmpireTests"]
 
 [[lean_lib]]
 name = "ExperimentTests"

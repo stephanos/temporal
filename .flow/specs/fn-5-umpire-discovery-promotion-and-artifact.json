@@ -4,7 +4,8 @@
   "depends_on_epics": [
     "fn-3-umpire-semantic-authoring-and-planning",
     "fn-4-umpire-observation-and-semantic-verdicts",
-    "fn-8-umpire-temporal-dynamic-config"
+    "fn-8-umpire-temporal-dynamic-config",
+    "fn-9-umpire-reusable-dsl-package-split"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact",
   "next_task": 1,
@@ -24,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T05:38:59.560479Z"
+  "updated_at": "2026-08-25T15:34:07.642334Z"
 }
