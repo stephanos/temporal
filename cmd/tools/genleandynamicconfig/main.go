@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -18,16 +20,18 @@ func main() {
 }
 
 func mainError() error {
-	if len(os.Args) == 2 && os.Args[1] == registryHelperArgument {
+	args := os.Args[1:]
+	if len(args) == 1 && args[0] == registryHelperArgument {
 		if err := writeRegistryCatalog(os.Stdout); err != nil {
 			return fmt.Errorf("helper: %w", err)
 		}
 		return nil
 	}
-	if len(os.Args) != 1 {
-		return errors.New("unexpected arguments")
-	}
 	moduleRoot, err := findModuleRoot()
+	if err != nil {
+		return err
+	}
+	outputRoot, err := parseOutputRoot(args, moduleRoot)
 	if err != nil {
 		return err
 	}
@@ -40,10 +44,28 @@ func mainError() error {
 	if err != nil {
 		return fmt.Errorf("render catalog: %w", err)
 	}
-	outputRoot := filepath.Join(moduleRoot, "model")
 	return publishCatalog(outputRoot, artifacts, func(candidateRoot string) error {
 		return validateLeanCandidate(ctx, moduleRoot, candidateRoot)
 	})
+}
+
+func parseOutputRoot(args []string, moduleRoot string) (string, error) {
+	flags := flag.NewFlagSet("genleandynamicconfig", flag.ContinueOnError)
+	flags.SetOutput(io.Discard)
+	outputRoot := flags.String("output-root", "", "root directory for generated Lean modules")
+	if err := flags.Parse(args); err != nil {
+		return "", fmt.Errorf("parse arguments: %w", err)
+	}
+	if flags.NArg() != 0 {
+		return "", errors.New("unexpected arguments")
+	}
+	if *outputRoot == "" {
+		return "", errors.New("--output-root is required")
+	}
+	if filepath.IsAbs(*outputRoot) {
+		return filepath.Clean(*outputRoot), nil
+	}
+	return filepath.Join(moduleRoot, filepath.Clean(*outputRoot)), nil
 }
 
 func findModuleRoot() (string, error) {

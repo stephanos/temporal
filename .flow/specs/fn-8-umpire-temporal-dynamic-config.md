@@ -252,9 +252,10 @@ one unit; runtime dynamic-config behavior and existing settings remain unchanged
   error or outcome without YAML, live server, restart, or mid-trace mutation behavior.
 - **R9:** The repository exposes generation-only build integration, imports the public structural
   catalog and focused experiment tests from the model roots, and documents generated-versus-authored
-  ownership plus focused verification commands. Errors: generated outputs or imports that fail Go
-  tests, generation, Lean build, formatting, or linting block completion; no separate runtime error
-  surface exists beyond R1-R8.
+  ownership plus focused verification commands. Errors introduced by this work in Go tests,
+  generation, Lean build, formatting, or linting block completion; inherited repository lint debt
+  must be re-run, recorded, and shown unchanged, with every changed package or file clean. No
+  separate runtime error surface exists beyond R1-R8.
 
 ## Boundaries
 <!-- scope: business -->

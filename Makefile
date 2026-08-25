@@ -989,7 +989,7 @@ umpire-gen-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BI
 
 umpire-gen-dynamic-config:
 	@printf $(COLOR) "Generate Temporal dynamic configuration Lean modules..."
-	@$(UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND)
+	@$(UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND) --output-root model
 
 $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMPIRE_API_FIXTURE_PROTOS))
 	@mise exec -- protoc \
