@@ -105,9 +105,9 @@ from the owned directory.
 
 ## Temporal repository integration
 
-The root `Makefile` acquires the public, dependency, internal, and CHASM descriptor sets and passes
-their paths directly to one generator invocation. The generator remains unaware of Temporal
-package policy.
+The root `Makefile` acquires the public descriptor set with `cmd/tools/genleanmodeldescriptors`,
+acquires the dependency, internal, and CHASM descriptor sets, and passes their paths directly to
+one generator invocation. The generator remains unaware of Temporal package policy.
 
 The local verification sequence is:
 

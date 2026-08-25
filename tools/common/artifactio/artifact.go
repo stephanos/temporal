@@ -15,7 +15,7 @@ func Publish(path string, encoded []byte) error {
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		return fmt.Errorf("create artifact directory: %w", err)
 	}
-	temporary, err := os.CreateTemp(directory, ".umpire-artifact-*")
+	temporary, err := os.CreateTemp(directory, ".temporal-artifact-*")
 	if err != nil {
 		return fmt.Errorf("create temporary artifact: %w", err)
 	}
