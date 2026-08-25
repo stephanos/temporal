@@ -49,9 +49,10 @@ module boundary. The generator exclusively owns `Temporal/DynamicConfig.lean` an
 These declarations record generation-time registry structure. They do not parse deployment YAML,
 read live server configuration, or execute Go converters in Lean. Handwritten Lean outside the
 owned boundary is responsible for classifications, typed interpretations, consumer-specific
-meaning, and any explicit replacement for an opaque generated default. Those handwritten semantics
-live in `Temporal/Umpire/Config.lean`, with focused coverage in
-`Temporal/Umpire/ConfigTests.lean`.
+meaning, and any explicit replacement for an opaque generated default. Shared interpretation and
+validation live under `Temporal/System/Configuration/`; Callback- and Matching-specific semantics
+live under `Temporal/System/Callback/` and `Temporal/System/Matching/`, with focused tests assembled
+by `TemporalModelTests`.
 
 From the repository root, regenerate and verify the catalog with:
 
@@ -72,8 +73,9 @@ and exactness while leaving outcomes to the target model. A `Query` combines che
 and behavior with explicit bounds and a deterministic planning policy.
 
 Reusable declarations and the domain-neutral switch example live under `Umpire/`, with the switch
-scenario at `Umpire/Examples/Switch.lean`. `Temporal/Umpire/NexusCallerClosure.lean` owns the
-Workflow–Nexus caller-closure adapter, and `Temporal/Umpire/Inspect.lean` registers both scenarios.
+scenario at `Umpire/Examples/Switch.lean`. `Temporal/Feature/Nexus/` owns auto-close and the
+Workflow–Nexus caller-closure scenario, `Temporal/System/` owns configuration mechanisms, and
+`Temporal/Tool/Inspect.lean` registers the Feature scenario alongside the reusable switch example.
 The resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe
 selected requests, model-owned outcomes, and semantic observations, but do not claim that runtime
 execution occurred.
@@ -84,18 +86,19 @@ From the Temporal repository root, run the focused regression check:
 make umpire-check-regression
 ```
 
-The focused check builds `UmpireTests`, `TemporalUmpireTests`, and `temporal-umpire-inspect`. It
-rejects obsolete imports and reverse Umpire-to-Temporal/Nexus dependencies, compares repeated
-inspection with both checked-in target-state fixtures byte-for-byte, and verifies that an unknown
-scenario emits one structured diagnostic with no artifact JSON on standard output. It does not
-require or contact a running Temporal server.
+The focused check builds `Temporal`, `UmpireTests`, `TemporalModelTests`, and
+`temporal-model-inspect`. It rejects obsolete interfaces, reusable Umpire domain leaks, and invalid
+Feature/System import directions; compares repeated inspection with both checked-in target-state
+fixtures byte-for-byte; and verifies that unknown or invalid inspector requests emit one structured
+diagnostic with no artifact JSON on standard output. It does not require or contact a running
+Temporal server.
 
 Inspect either checked scenario directly with:
 
 ```sh
 cd model
-mise exec -- lake exe temporal-umpire-inspect workflow-nexus.query.exact-action-caller-closure
-mise exec -- lake exe temporal-umpire-inspect switch.query.exact-action
+mise exec -- lake exe temporal-model-inspect workflow-nexus.query.exact-action-caller-closure
+mise exec -- lake exe temporal-model-inspect switch.query.exact-action
 ```
 
 On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The
