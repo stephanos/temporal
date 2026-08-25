@@ -31,10 +31,19 @@ func mainError() error {
 	if err != nil {
 		return err
 	}
-	if _, err := run(context.Background(), moduleRoot); err != nil {
+	ctx := context.Background()
+	catalog, err := run(ctx, moduleRoot)
+	if err != nil {
 		return err
 	}
-	return nil
+	artifacts, err := renderCatalog(catalog)
+	if err != nil {
+		return fmt.Errorf("render catalog: %w", err)
+	}
+	outputRoot := filepath.Join(moduleRoot, "model")
+	return publishCatalog(outputRoot, artifacts, func(candidateRoot string) error {
+		return validateLeanCandidate(ctx, moduleRoot, candidateRoot)
+	})
 }
 
 func findModuleRoot() (string, error) {
