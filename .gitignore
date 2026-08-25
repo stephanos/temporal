@@ -25,6 +25,8 @@ testdata/
 !/tools/umpire3/**/testdata/**
 !/cmd/tools/genleanmodeldescriptors/testdata/
 !/cmd/tools/genleanmodeldescriptors/testdata/**
+!/cmd/tools/genleandynamicconfig/testdata/
+!/cmd/tools/genleandynamicconfig/testdata/**
 
 *.out
 *.test
