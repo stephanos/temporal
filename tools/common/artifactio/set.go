@@ -35,6 +35,7 @@ func (set Set) Publish(
 type (
 	publishHooks struct {
 		beforeInstall func(index int, root string) error
+		beforeCleanup func(transactionRoot string) error
 	}
 	publicationManifest struct {
 		Roots []publicationRoot `json:"roots"`
@@ -46,6 +47,9 @@ type (
 	publicationRoot struct {
 		Path    string `json:"path"`
 		Existed bool   `json:"existed"`
+	}
+	publicationState struct {
+		Committed bool `json:"committed"`
 	}
 )
 
@@ -173,6 +177,17 @@ func writePublicationManifest(transactionRoot string, manifest publicationManife
 	return nil
 }
 
+func writePublicationState(transactionRoot string, state publicationState) error {
+	encodedState, err := json.Marshal(state)
+	if err != nil {
+		return fmt.Errorf("encode publication state: %w", err)
+	}
+	if err := Publish(filepath.Join(transactionRoot, "state.json"), encodedState); err != nil {
+		return fmt.Errorf("write publication state: %w", err)
+	}
+	return nil
+}
+
 func installCandidate(
 	root string,
 	transactionRoot string,
@@ -194,13 +209,33 @@ func installCandidate(
 			return rollbackHandledFailure(root, transactionRoot, identity, roots, err)
 		}
 	}
-	if err := os.RemoveAll(transactionRoot); err != nil {
+	if err := writePublicationState(transactionRoot, publicationState{Committed: true}); err != nil {
+		return rollbackHandledFailure(root, transactionRoot, identity, roots, fmt.Errorf("commit publication: %w", err))
+	}
+	if hooks.beforeCleanup != nil {
+		if err := hooks.beforeCleanup(transactionRoot); err != nil {
+			return fmt.Errorf("clean publication transaction: %w", err)
+		}
+	}
+	if err := cleanupCommittedTransaction(root, transactionRoot); err != nil {
 		return fmt.Errorf("clean publication transaction: %w", err)
 	}
-	if err := syncDirectory(root); err != nil {
-		return fmt.Errorf("sync publication root: %w", err)
-	}
 	return nil
+}
+
+func cleanupCommittedTransaction(root string, transactionRoot string) error {
+	for _, name := range []string{"backup", "stage", "manifest.json"} {
+		if err := os.RemoveAll(filepath.Join(transactionRoot, name)); err != nil {
+			return err
+		}
+	}
+	if err := syncDirectory(transactionRoot); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(transactionRoot); err != nil {
+		return err
+	}
+	return syncDirectory(root)
 }
 
 func installManagedRoot(
@@ -511,6 +546,16 @@ func recoverTransaction(root string, transactionRoot string, identity string, ro
 	if !exists {
 		return os.RemoveAll(transactionRoot)
 	}
+	state, committed, err := readPublicationState(transactionRoot)
+	if err != nil {
+		return err
+	}
+	if committed {
+		if !state.Committed {
+			return errors.New("publication state is not committed")
+		}
+		return cleanupCommittedTransaction(root, transactionRoot)
+	}
 	if err := restoreManagedRoots(root, filepath.Join(transactionRoot, "backup"), manifest); err != nil {
 		return err
 	}
@@ -543,6 +588,21 @@ func readPublicationManifest(
 		return publicationManifest{}, false, errors.New("recovery marker does not match managed roots")
 	}
 	return manifest, true, nil
+}
+
+func readPublicationState(transactionRoot string) (publicationState, bool, error) {
+	encoded, err := os.ReadFile(filepath.Join(transactionRoot, "state.json"))
+	if errors.Is(err, os.ErrNotExist) {
+		return publicationState{}, false, nil
+	}
+	if err != nil {
+		return publicationState{}, false, err
+	}
+	var state publicationState
+	if err := json.Unmarshal(encoded, &state); err != nil {
+		return publicationState{}, false, fmt.Errorf("decode publication state: %w", err)
+	}
+	return state, true, nil
 }
 
 func restoreManagedRoots(root string, backupRoot string, manifest publicationManifest) error {
