@@ -6,9 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-1-lean-regression-dsl-and-nexus"
-  ],
+  "depends_on_epics": [],
   "id": "fn-3-umpire-semantic-authoring-and-planning",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -105,5 +103,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T00:29:59.880170Z"
+  "updated_at": "2026-08-25T01:20:02.100109Z"
 }
