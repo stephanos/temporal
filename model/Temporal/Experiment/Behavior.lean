@@ -529,11 +529,77 @@ private def checkExactTrace
 private def countAction (action : DeclarationId) (actions : List DeclarationId) : Nat :=
   (actions.filter fun candidate => candidate == action).length
 
+private def occurrenceListKey (occurrences : List NamedOccurrence) : String :=
+  idListKey (occurrences.map NamedOccurrence.id)
+
+private def occurrenceListLe
+    (left right : List NamedOccurrence) : Bool :=
+  decide (occurrenceListKey left ≤ occurrenceListKey right)
+
+private def occurrenceIsReady
+    (ordering : List OccurrenceOrder)
+    (remaining : List NamedOccurrence)
+    (occurrence : NamedOccurrence) : Bool :=
+  ordering.all fun edge =>
+    edge.after != occurrence.id ||
+      !(remaining.any fun candidate => candidate.id == edge.before)
+
+private def advanceOccurrenceStates
+    (ordering : List OccurrenceOrder)
+    (action : DeclarationId)
+    (states : List (List NamedOccurrence)) : List (List NamedOccurrence) :=
+  states.flatMap (fun remaining =>
+    let assignable := remaining.filter fun occurrence =>
+      occurrence.action == action && occurrenceIsReady ordering remaining occurrence
+    remaining :: assignable.map (fun occurrence => remaining.erase occurrence))
+  |>.mergeSort occurrenceListLe
+  |>.eraseDups
+
+/--
+Track canonical remaining-occurrence sets across the schedule. Deduplication makes equivalent
+assignment permutations one state, avoiding factorial backtracking for repeated action labels.
+-/
+private def hasOccurrenceAssignment
+    (schedule : List DeclarationId)
+    (ordering : List OccurrenceOrder)
+    (occurrences : List NamedOccurrence) : Bool :=
+  let countsSufficient := occurrences.all fun occurrence =>
+    countAction occurrence.action schedule ≥
+      (occurrences.filter fun candidate => candidate.action == occurrence.action).length
+  if !countsSufficient then
+    false
+  else
+    let initial := occurrences.mergeSort occurrenceLe
+    let states := schedule.foldl (init := [initial]) fun states action =>
+      advanceOccurrenceStates ordering action states
+    states.any List.isEmpty
+
+private def isSubsequence : List DeclarationId → List DeclarationId → Bool
+  | [], _ => true
+  | _, [] => false
+  | expected :: rest, actual :: remaining =>
+      if expected == actual then
+        isSubsequence rest remaining
+      else
+        isSubsequence (expected :: rest) remaining
+
+private def isPrefix : List DeclarationId → List DeclarationId → Bool
+  | [], _ => true
+  | _, [] => false
+  | expected :: rest, actual :: remaining =>
+      expected == actual && isPrefix rest remaining
+
+private def containsAdjacent (expected : List DeclarationId) : List DeclarationId → Bool
+  | [] => expected == []
+  | actual@(_ :: remaining) => isPrefix expected actual || containsAdjacent expected remaining
+
 private def validateActionConstraints
     (owner : BehaviorDeclaration)
     (allowed forbidden : List DeclarationId)
     (required : List NamedOccurrence)
     (bounds : List OccurrenceBound)
+    (ordering : List OccurrenceOrder)
+    (sequences adjacencies : List (List DeclarationId))
     (exactSchedule : Option (List DeclarationId)) : Except BehaviorError Unit := do
   for occurrence in required do
     if forbidden.contains occurrence.action then
@@ -584,6 +650,17 @@ private def validateActionConstraints
         if count < bound.minimum || bound.maximum.any fun maximum => count > maximum then
           throw (behaviorError .contradictoryOccurrenceBounds owner.id owner.source
             bound.action.value [bound.action])
+      if !hasOccurrenceAssignment actions ordering required then
+        throw (behaviorError .contradictoryConstraint owner.id owner.source
+          "exact schedule violates occurrence ordering" (required.map NamedOccurrence.id))
+      for sequence in sequences do
+        if !isSubsequence sequence actions then
+          throw (behaviorError .contradictoryConstraint owner.id owner.source
+            ("exact schedule omits sequence: " ++ idListKey sequence) sequence)
+      for adjacency in adjacencies do
+        if !containsAdjacent adjacency actions then
+          throw (behaviorError .contradictoryConstraint owner.id owner.source
+            ("exact schedule omits adjacency: " ++ idListKey adjacency) adjacency)
 
 private def operandJson : SetupOperand → String
   | .role id => "{\"role\":" ++ quote id.value ++ "}"
@@ -779,7 +856,10 @@ def checkBehavior
   let exactSchedule := declaration.actionsExactly <|>
     exactTrace.map fun trace => trace.trace.steps.map
       (fun step => step.selectedAction.identity)
-  validateActionConstraints declaration allowed forbidden required bounds exactSchedule
+  let sequences := canonicalIdLists declaration.sequences
+  let adjacencies := canonicalIdLists declaration.adjacencies
+  validateActionConstraints declaration allowed forbidden required bounds ordering sequences
+    adjacencies exactSchedule
   match declaration.actionsExactly, exactTrace with
   | some actions, some trace =>
       let traceActions := trace.trace.steps.map fun step => step.selectedAction.identity
@@ -787,8 +867,6 @@ def checkBehavior
         throw (behaviorError .contradictoryConstraint declaration.id declaration.source
           "actionsExactly != traceExactly actions" actions)
   | _, _ => pure ()
-  let sequences := canonicalIdLists declaration.sequences
-  let adjacencies := canonicalIdLists declaration.adjacencies
   let status := if setupUnsatisfiable setup then
     .unsatisfiable
   else
@@ -840,70 +918,6 @@ private def setupIsComplete (roles : List ResourceRole) (bindings : List RoleBin
   bindings.length == roles.length &&
     roles.all (fun role => countAction role.id (bindings.map RoleBinding.role) == 1) &&
     bindings.all (fun binding => roles.any fun role => role.id == binding.role)
-
-private def occurrenceListKey (occurrences : List NamedOccurrence) : String :=
-  idListKey (occurrences.map NamedOccurrence.id)
-
-private def occurrenceListLe
-    (left right : List NamedOccurrence) : Bool :=
-  decide (occurrenceListKey left ≤ occurrenceListKey right)
-
-private def occurrenceIsReady
-    (ordering : List OccurrenceOrder)
-    (remaining : List NamedOccurrence)
-    (occurrence : NamedOccurrence) : Bool :=
-  ordering.all fun edge =>
-    edge.after != occurrence.id ||
-      !(remaining.any fun candidate => candidate.id == edge.before)
-
-private def advanceOccurrenceStates
-    (ordering : List OccurrenceOrder)
-    (action : DeclarationId)
-    (states : List (List NamedOccurrence)) : List (List NamedOccurrence) :=
-  states.flatMap (fun remaining =>
-    let assignable := remaining.filter fun occurrence =>
-      occurrence.action == action && occurrenceIsReady ordering remaining occurrence
-    remaining :: assignable.map (fun occurrence => remaining.erase occurrence))
-  |>.mergeSort occurrenceListLe
-  |>.eraseDups
-
-/--
-Track canonical remaining-occurrence sets across the schedule. Deduplication makes equivalent
-assignment permutations one state, avoiding factorial backtracking for repeated action labels.
--/
-private def hasOccurrenceAssignment
-    (schedule : List DeclarationId)
-    (ordering : List OccurrenceOrder)
-    (occurrences : List NamedOccurrence) : Bool :=
-  let countsSufficient := occurrences.all fun occurrence =>
-    countAction occurrence.action schedule ≥
-      (occurrences.filter fun candidate => candidate.action == occurrence.action).length
-  if !countsSufficient then
-    false
-  else
-    let initial := occurrences.mergeSort occurrenceLe
-    let states := schedule.foldl (init := [initial]) fun states action =>
-      advanceOccurrenceStates ordering action states
-    states.any List.isEmpty
-
-private def isSubsequence : List DeclarationId → List DeclarationId → Bool
-  | [], _ => true
-  | _, [] => false
-  | expected :: rest, actual :: remaining =>
-      if expected == actual then
-        isSubsequence rest remaining
-      else
-        isSubsequence (expected :: rest) remaining
-
-private def isPrefix : List DeclarationId → List DeclarationId → Bool
-  | [], _ => true
-  | _, [] => false
-  | expected :: rest, actual :: remaining =>
-      expected == actual && isPrefix rest remaining
-
-private def containsAdjacent (expected : List DeclarationId) : List DeclarationId → Bool
-  | [] => expected == []
-  | actual@(_ :: remaining) => isPrefix expected actual || containsAdjacent expected remaining
 
 private def traceActions (trace : BehaviorTrace) : List DeclarationId :=
   trace.trace.steps.map fun step => step.selectedAction.identity
