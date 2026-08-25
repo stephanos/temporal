@@ -42,6 +42,7 @@ Moved canonical portable artifacts and the deterministic planning engine downstr
 baseline: green via receipt
 GATE_SKIPPED:smoke:green-receipt 3dd8d585 - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-25T19:43:42Z..2026-08-25T19:46:57Z] (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5f57472352fb21311c6eb9824df94d9bf8515bc8
 - Tests: GATE_SKIPPED:smoke:green-receipt 3dd8d585 - baseline reused from prior post-gate pass, mise exec -- lake build UmpireTests, make umpire-check-regression
