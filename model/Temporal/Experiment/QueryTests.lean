@@ -44,17 +44,16 @@ def kernel : TransitionKernel
     contractDigest := "query-kernel/v1"
     source
   }
-  initialStates := fun candidate => if candidate == setup then [initial] else []
-  authoritativeInitial := fun candidate state =>
-    state ∈ (if candidate == setup then [initial] else [])
-  initialSound := by intros; assumption
-  initialComplete := by intros; assumption
+  initialStates := fun candidate => if candidate = setup then [initial] else []
+  authoritativeInitial := fun candidate state => candidate = setup ∧ state = initial
+  initialSound := by intros; split at * <;> simp_all
+  initialComplete := by intros; simp_all
   steps := fun state action =>
-    if state == initial && action == requestValue then [transition] else []
+    if state = initial ∧ action = requestValue then [transition] else []
   authoritativeStep := fun state action result =>
-    result ∈ (if state == initial && action == requestValue then [transition] else [])
-  stepSound := by intros; assumption
-  stepComplete := by intros; assumption
+    state = initial ∧ action = requestValue ∧ result = transition
+  stepSound := by intros; split at * <;> simp_all
+  stepComplete := by intros; simp_all
 }
 
 def target : QueryTarget (fun _ => True) := {
@@ -117,25 +116,21 @@ def checkedBehavior : CheckedBehavior := {
   semanticDigest := "behavior/v1"
 }
 
-def roleDomain : FiniteDomainWitness (List RoleBinding) := {
-  values := [setup]
-  authoritative := fun candidate => candidate = setup
-  sound := by simp_all
-  complete := by simp_all
-  semanticDigest := "role-domain/v1"
-}
-
-def actionDomain : FiniteDomainWitness SemanticValue := {
-  values := [requestValue]
-  authoritative := fun candidate => candidate = requestValue
-  sound := by simp_all
-  complete := by simp_all
-  semanticDigest := "action-domain/v1"
-}
-
-def completeness : FiniteCompletenessEvidence := {
-  roleAssignments := roleDomain
-  actions := actionDomain
+def completeness : FiniteCompletenessEvidence (fun _ => True) target := {
+  roleAssignments := [setup]
+  actions := [requestValue]
+  roleDomainDigest := "role-domain/v1"
+  actionDomainDigest := "action-domain/v1"
+  roleSound := by simp [target]
+  roleComplete := by simp [target]
+  actionSound := by
+    intro action member
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+    subst action
+    exact ⟨initial, transition, rfl, rfl, rfl⟩
+  actionComplete := by
+    intro state action result admitted
+    simp [admitted.2.1]
 }
 
 def bounds : QueryBounds := {
@@ -159,8 +154,11 @@ def searchPolicy : PlannerPolicy := {
 }
 
 def context : QueryCheckContext (fun _ => True) := {
-  target := .checked target
-  completeness := some completeness
+  target := .checked { target, completeness := none }
+}
+
+def exhaustiveContext : QueryCheckContext (fun _ => True) := {
+  target := .checked { target, completeness := some completeness }
 }
 
 def declaration
@@ -184,7 +182,8 @@ def summaryOf
 
 /-! Every public form fixes its quantifier and claim before planning. -/
 example : [
-    summaryOf (checkQuery context (declaration (.verify checkedProperty) exhaustivePolicy)),
+    summaryOf (checkQuery exhaustiveContext
+      (declaration (.verify checkedProperty) exhaustivePolicy)),
     summaryOf (checkQuery context (declaration (.witness checkedProperty))),
     summaryOf (checkQuery context (declaration (.counterexample checkedProperty))),
     summaryOf (checkQuery context (declaration (.select [checkedProperty])))
@@ -205,7 +204,6 @@ def errorKindOf
 def incompleteContext (missing : CompletenessRequirement) :
     QueryCheckContext (fun _ => True) := {
   target := .incomplete target.id source [missing]
-  completeness := none
 }
 
 /-! Exhaustive mode fails closed for every missing finite or kernel-completeness obligation. -/
@@ -222,13 +220,23 @@ example : [
   native_decide
 
 def noFiniteDomains : QueryCheckContext (fun _ => True) := {
-  target := .checked target
-  completeness := none
+  target := .checked { target, completeness := none }
 }
 
 example : errorKindOf (checkQuery noFiniteDomains
     (declaration (.verify checkedProperty) exhaustivePolicy)) =
       some .missingFiniteCompleteness := by
+  native_decide
+
+/-! Completeness follows the exhaustive strategy, not a particular query form. -/
+example : [
+    QueryForm.verify checkedProperty,
+    .witness checkedProperty,
+    .counterexample checkedProperty,
+    .select [checkedProperty]
+  ].all (fun form =>
+    errorKindOf (checkQuery noFiniteDomains (declaration form exhaustivePolicy)) ==
+      some .missingFiniteCompleteness) := by
   native_decide
 
 def unsatisfiableBehavior : CheckedBehavior := {
@@ -251,7 +259,7 @@ def explored : ExploredCounts := {
 /-! Empty behavior is unsatisfiable, while an incomplete search is budget exhaustion; neither
 can be observed as verification. -/
 example :
-    (checkedUnsatisfiable.bind (CheckedQuery.preflightResult? · explored)).map
+    (checkedUnsatisfiable.map (fun query => finalizePlanning query explored .complete)).map
         (fun result => (result.outcome.name, result.isVerified)) =
       some ("unsatisfiable", false) := by
   native_decide
@@ -260,21 +268,40 @@ def checkedWitness : Option (CheckedQuery (fun _ => True)) :=
   (checkQuery context (declaration (.witness checkedProperty))).toOption
 
 example : checkedWitness.map (fun query =>
-    let result := PlanningResult.exhausted query explored
+    let result := finalizePlanning query explored .budgetExhausted
     (result.outcome.name, result.isVerified, result.metadata.completeness.established,
       result.metadata.explored.traces)) =
       some ("budget-exhausted", false, false, 7) := by
   native_decide
 
+def checkedExhaustiveWitness : Option (CheckedQuery (fun _ => True)) :=
+  (checkQuery exhaustiveContext
+    (declaration (.witness checkedProperty) exhaustivePolicy)).toOption
+
 /-! Complete absence and exhausted effort remain distinct while retaining counts and bounds. -/
-example : checkedWitness.map (fun query =>
-    let absent := PlanningResult.completeAbsence query explored
-    let exhausted := PlanningResult.exhausted query explored
+example : checkedExhaustiveWitness.map (fun query =>
+    let absent := finalizePlanning query explored .complete
+    let exhausted := finalizePlanning query explored .budgetExhausted
     (absent.outcome.name, absent.metadata.completeness.established,
       absent.metadata.explored.traces, absent.metadata.completeness.bounds,
       exhausted.outcome.name, exhausted.metadata.completeness.established)) =
       some ("no-such-trace-within-complete-bounds", true, 7, bounds,
         "budget-exhausted", false) := by
+  native_decide
+
+/-! A backend completion signal cannot manufacture proof from a non-exhaustive or empty space. -/
+example :
+    let nonExhaustive := checkedWitness.map fun query =>
+      let result := finalizePlanning query explored .complete
+      (result.outcome.name, result.isVerified)
+    let emptyVerification :=
+      (checkQuery exhaustiveContext
+        (declaration (.verify checkedProperty) exhaustivePolicy unsatisfiableBehavior)).toOption.map
+          fun query =>
+            let result := finalizePlanning query explored .complete
+            (result.outcome.name, result.isVerified)
+    (nonExhaustive, emptyVerification) =
+      (some ("budget-exhausted", false), some ("unsatisfiable", false)) := by
   native_decide
 
 def canonicalOf
@@ -292,7 +319,7 @@ def reorderedTarget : QueryTarget (fun _ => True) := {
 }
 
 def incidentalContext : QueryCheckContext (fun _ => True) := {
-  context with target := .checked reorderedTarget
+  target := .checked { target := reorderedTarget, completeness := none }
 }
 
 def incidentalDeclaration : QueryDeclaration := {
@@ -316,7 +343,7 @@ def changedTarget
 }
 
 def contextFor (candidate : QueryTarget (fun _ => True)) : QueryCheckContext (fun _ => True) := {
-  context with target := .checked candidate
+  target := .checked { target := candidate, completeness := none }
 }
 
 def changedProperty : CheckedProperty := {
