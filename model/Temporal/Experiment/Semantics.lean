@@ -13,8 +13,15 @@ namespace DeclarationId
 
 def of (value : String) : DeclarationId := ⟨value⟩
 
+private def isIdentifierCharacter (character : Char) : Bool :=
+  character.isAlphanum || character == '-' || character == '_'
+
+private def isNamespaceSegment (segment : String) : Bool :=
+  segment != "" && segment.toList.all isIdentifierCharacter
+
 def isNamespaced (id : DeclarationId) : Bool :=
-  id.value != "" && id.value.contains '.'
+  let segments := id.value.splitOn "."
+  segments.length > 1 && segments.all isNamespaceSegment
 
 end DeclarationId
 
@@ -138,11 +145,10 @@ structure LawRequirement where
   semanticDigest : String
   deriving BEq, DecidableEq, Ord, Repr
 
-/-- A law witness retains portable identity while its Lean theorem remains a checked proof field. -/
-structure LawWitness where
+/-- A law witness retains portable identity while proving the target's authoritative proposition. -/
+structure LawWitness (LawStatement : DeclarationId → Prop) where
   requirement : LawRequirement
-  statement : Prop
-  proof : statement
+  proof : LawStatement requirement.id
 
 structure CapabilityContract where
   id : DeclarationId
@@ -157,12 +163,12 @@ structure MeaningProvision where
   semanticDigest : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityProvider where
+structure CapabilityProvider (LawStatement : DeclarationId → Prop) where
   id : DeclarationId
   source : SemanticSource
   contract : CapabilityContract
   meanings : List MeaningProvision
-  lawWitnesses : List LawWitness
+  lawWitnesses : List (LawWitness LawStatement)
 
 structure Reconciliation where
   declaration : DeclarationId
@@ -171,14 +177,14 @@ structure Reconciliation where
   semanticDigest : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityConnector where
+structure CapabilityConnector (LawStatement : DeclarationId → Prop) where
   id : DeclarationId
   source : SemanticSource
   version : Nat := 1
   semanticDigest : String
   reconciliations : List Reconciliation
   requiredLaws : List LawRequirement
-  lawWitnesses : List LawWitness
+  lawWitnesses : List (LawWitness LawStatement)
 
 inductive DeclarationErrorKind where
   | emptyIdentity
@@ -187,6 +193,8 @@ inductive DeclarationErrorKind where
   | unknownIdentity
   | wrongKind
   | missingLaw
+  | unexpectedLaw
+  | lawContractMismatch
   | missingProvider
   | conflictingProviders
   | ambiguousConnector
@@ -200,6 +208,8 @@ def DeclarationErrorKind.name : DeclarationErrorKind → String
   | .unknownIdentity => "unknown-identity"
   | .wrongKind => "wrong-kind"
   | .missingLaw => "missing-law"
+  | .unexpectedLaw => "unexpected-law"
+  | .lawContractMismatch => "law-contract-mismatch"
   | .missingProvider => "missing-provider"
   | .conflictingProviders => "conflicting-providers"
   | .ambiguousConnector => "ambiguous-connector"
@@ -213,23 +223,27 @@ structure DeclarationError where
   relatedIdentities : List DeclarationId
   deriving BEq, DecidableEq, Repr
 
-structure TargetDeclaration (Setup State Action Outcome Observation : Type) where
+structure TargetDeclaration
+    (LawStatement : DeclarationId → Prop)
+    (Setup State Action Outcome Observation : Type) where
   id : DeclarationId
   source : SemanticSource
   declarations : List DeclarationMetadata
   requiredCapabilities : List DeclarationId
-  providers : List CapabilityProvider
-  connectors : List CapabilityConnector
+  providers : List (CapabilityProvider LawStatement)
+  connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
   kernel : KernelAvailability Setup State Action Outcome Observation
 
-structure CheckedTarget (Setup State Action Outcome Observation : Type) where
+structure CheckedTarget
+    (LawStatement : DeclarationId → Prop)
+    (Setup State Action Outcome Observation : Type) where
   id : DeclarationId
   source : SemanticSource
   declarations : List DeclarationMetadata
   requiredCapabilities : List DeclarationId
-  providers : List CapabilityProvider
-  connectors : List CapabilityConnector
+  providers : List (CapabilityProvider LawStatement)
+  connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
   kernel : TransitionKernel Setup State Action Outcome Observation
   canonicalMetadata : String
@@ -256,10 +270,10 @@ private def declarationLe (left right : DeclarationMetadata) : Bool :=
     (left.id == right.id && decide (left.kind.name < right.kind.name)) ||
     (left.id == right.id && left.kind == right.kind && sourceLe left.source right.source)
 
-private def providerLe (left right : CapabilityProvider) : Bool :=
+private def providerLe (left right : CapabilityProvider LawStatement) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def connectorLe (left right : CapabilityConnector) : Bool :=
+private def connectorLe (left right : CapabilityConnector LawStatement) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
 private def meaningLe (left right : MeaningProvision) : Bool :=
@@ -306,8 +320,8 @@ def canonicalDeclarationMetadataJson (declaration : DeclarationMetadata) : Strin
     ",\"source\":" ++ sourceJson declaration.source ++
     ",\"documentation\":" ++ quote declaration.documentation ++ "}"
 
-private def providerSemanticJson (provider : CapabilityProvider) : String :=
-  let laws := provider.lawWitnesses.map (fun witness => witness.requirement) |>.mergeSort lawLe
+private def providerSemanticJson (provider : CapabilityProvider LawStatement) : String :=
+  let laws := provider.contract.requiredLaws.mergeSort lawLe
   "{\"id\":" ++ quote provider.id.value ++
     ",\"capabilityId\":" ++ quote provider.contract.id.value ++
     ",\"capabilityVersion\":" ++ toString provider.contract.version ++
@@ -315,7 +329,7 @@ private def providerSemanticJson (provider : CapabilityProvider) : String :=
     ",\"meanings\":" ++ array (provider.meanings.mergeSort meaningLe |>.map meaningJson) ++
     ",\"laws\":" ++ array (laws.map lawJson) ++ "}"
 
-def canonicalCapabilityProviderJson (provider : CapabilityProvider) : String :=
+def canonicalCapabilityProviderJson (provider : CapabilityProvider LawStatement) : String :=
   withoutClosingBrace (providerSemanticJson provider) ++
     ",\"source\":" ++ sourceJson provider.source ++ "}"
 
@@ -325,8 +339,8 @@ private def reconciliationJson (reconciliation : Reconciliation) : String :=
     ",\"providers\":" ++ array (canonicalIds reconciliation.providers |>.map (quote ∘ DeclarationId.value)) ++
     ",\"semanticDigest\":" ++ quote reconciliation.semanticDigest ++ "}"
 
-private def connectorSemanticJson (connector : CapabilityConnector) : String :=
-  let laws := connector.lawWitnesses.map (fun witness => witness.requirement) |>.mergeSort lawLe
+private def connectorSemanticJson (connector : CapabilityConnector LawStatement) : String :=
+  let laws := connector.requiredLaws.mergeSort lawLe
   "{\"id\":" ++ quote connector.id.value ++
     ",\"version\":" ++ toString connector.version ++
     ",\"semanticDigest\":" ++ quote connector.semanticDigest ++
@@ -334,7 +348,7 @@ private def connectorSemanticJson (connector : CapabilityConnector) : String :=
       array (connector.reconciliations.mergeSort reconciliationLe |>.map reconciliationJson) ++
     ",\"laws\":" ++ array (laws.map lawJson) ++ "}"
 
-def canonicalCapabilityConnectorJson (connector : CapabilityConnector) : String :=
+def canonicalCapabilityConnectorJson (connector : CapabilityConnector LawStatement) : String :=
   withoutClosingBrace (connectorSemanticJson connector) ++
     ",\"source\":" ++ sourceJson connector.source ++ "}"
 
@@ -359,8 +373,8 @@ private def targetSemanticJson
     (id : DeclarationId)
     (declarations : List DeclarationMetadata)
     (requiredCapabilities : List DeclarationId)
-    (providers : List CapabilityProvider)
-    (connectors : List CapabilityConnector)
+    (providers : List (CapabilityProvider LawStatement))
+    (connectors : List (CapabilityConnector LawStatement))
     (kernel : KernelMetadata) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"declarations\":" ++
@@ -378,7 +392,7 @@ def canonicalTypedBoundJson (bound : TypedBound) : String :=
   "{\"value\":" ++ toString bound.value ++ ",\"unit\":" ++ quote bound.unit.name ++ "}"
 
 private def targetMetadataJson
-    (target : TargetDeclaration Setup State Action Outcome Observation)
+    (target : TargetDeclaration LawStatement Setup State Action Outcome Observation)
     (kernel : KernelMetadata) : String :=
   "{\"semantic\":" ++ targetSemanticJson target.id target.declarations
       target.requiredCapabilities target.providers target.connectors kernel ++
@@ -450,7 +464,7 @@ private def requireDeclaration
           [id])
 
 private def validateDeclarations
-    (target : TargetDeclaration Setup State Action Outcome Observation) :
+    (target : TargetDeclaration LawStatement Setup State Action Outcome Observation) :
     Except DeclarationError (List DeclarationMetadata) := do
   let declarations := target.declarations.mergeSort declarationLe
   for declaration in declarations do
@@ -465,20 +479,33 @@ private def validateLawWitnesses
     (owner : DeclarationId)
     (source : SemanticSource)
     (requirements : List LawRequirement)
-    (witnesses : List LawWitness) : Except DeclarationError Unit := do
+    (witnesses : List (LawWitness LawStatement)) : Except DeclarationError Unit := do
   requireUniqueIds owner source (requirements.map LawRequirement.id)
   requireUniqueIds owner source (witnesses.map (fun witness => witness.requirement.id))
   for requirement in requirements.mergeSort lawLe do
     requireDeclaration declarations owner source requirement.id .law
+    match declarations.find? (fun declaration => declaration.id == requirement.id) with
+    | some declaration =>
+        if declaration.contractDigest != requirement.semanticDigest then
+          throw (error .lawContractMismatch owner source
+            (requirement.id.value ++ ": expected " ++ declaration.contractDigest ++
+              ", found " ++ requirement.semanticDigest)
+            [requirement.id])
+    | none => pure ()
     match witnesses.find? (fun witness => witness.requirement == requirement) with
     | none => throw (error .missingLaw owner source requirement.id.value [requirement.id])
     | some _ => pure ()
   for witness in witnesses do
     requireDeclaration declarations owner source witness.requirement.id .law
+    match requirements.find? (fun requirement => requirement == witness.requirement) with
+    | none =>
+        throw (error .unexpectedLaw owner source witness.requirement.id.value
+          [witness.requirement.id])
+    | some _ => pure ()
 
 private def validateProvider
     (declarations : List DeclarationMetadata)
-    (provider : CapabilityProvider) : Except DeclarationError Unit := do
+    (provider : CapabilityProvider LawStatement) : Except DeclarationError Unit := do
   requireDeclaration declarations provider.id provider.source provider.id .provider
   requireDeclaration declarations provider.id provider.source provider.contract.id .capability
   validateLawWitnesses declarations provider.id provider.source
@@ -489,7 +516,8 @@ private def validateProvider
 
 private def validateConnector
     (declarations : List DeclarationMetadata)
-    (connector : CapabilityConnector) : Except DeclarationError Unit := do
+    (activeProviders : List DeclarationId)
+    (connector : CapabilityConnector LawStatement) : Except DeclarationError Unit := do
   requireDeclaration declarations connector.id connector.source connector.id .connector
   validateLawWitnesses declarations connector.id connector.source
     connector.requiredLaws connector.lawWitnesses
@@ -501,6 +529,8 @@ private def validateConnector
     requireUniqueIds connector.id connector.source reconciliation.providers
     for provider in reconciliation.providers.mergeSort idLe do
       requireDeclaration declarations connector.id connector.source provider .provider
+      if !activeProviders.contains provider then
+        throw (error .missingProvider connector.id connector.source provider.value [provider])
 
 private structure MeaningOwner where
   provider : DeclarationId
@@ -511,7 +541,7 @@ private def distinctStrings (items : List String) : List String :=
   items.mergeSort |>.eraseDups
 
 private def connectorMatches
-    (connector : CapabilityConnector)
+    (connector : CapabilityConnector LawStatement)
     (declaration : DeclarationId)
     (providers : List DeclarationId) : Bool :=
   connector.reconciliations.any fun reconciliation =>
@@ -519,8 +549,8 @@ private def connectorMatches
       canonicalIds reconciliation.providers == canonicalIds providers
 
 private def validateConflicts
-    (providers : List CapabilityProvider)
-    (connectors : List CapabilityConnector) : Except DeclarationError Unit := do
+    (providers : List (CapabilityProvider LawStatement))
+    (connectors : List (CapabilityConnector LawStatement)) : Except DeclarationError Unit := do
   let owners := providers.flatMap fun provider =>
     provider.meanings.map fun meaning => { provider := provider.id, meaning, source := provider.source }
   let declarations := canonicalIds (owners.map fun owner => owner.meaning.declaration)
@@ -543,16 +573,16 @@ private def validateConflicts
             (connector.id :: rest.map CapabilityConnector.id))
 
 private def validateCapabilities
-    (target : TargetDeclaration Setup State Action Outcome Observation)
+    (target : TargetDeclaration LawStatement Setup State Action Outcome Observation)
     (declarations : List DeclarationMetadata)
-    (providers : List CapabilityProvider)
-    (connectors : List CapabilityConnector) : Except DeclarationError Unit := do
+    (providers : List (CapabilityProvider LawStatement))
+    (connectors : List (CapabilityConnector LawStatement)) : Except DeclarationError Unit := do
   requireUniqueIds target.id target.source (providers.map CapabilityProvider.id)
   requireUniqueIds target.id target.source (connectors.map CapabilityConnector.id)
   for provider in providers do
     validateProvider declarations provider
   for connector in connectors do
-    validateConnector declarations connector
+    validateConnector declarations (providers.map CapabilityProvider.id) connector
   requireUniqueIds target.id target.source target.requiredCapabilities
   for capability in canonicalIds target.requiredCapabilities do
     requireDeclaration declarations target.id target.source capability .capability
@@ -562,8 +592,8 @@ private def validateCapabilities
 
 /-- Check and canonicalize one target composition without relying on declaration or instance order. -/
 def composeTarget
-    (target : TargetDeclaration Setup State Action Outcome Observation) :
-    Except DeclarationError (CheckedTarget Setup State Action Outcome Observation) := do
+    (target : TargetDeclaration LawStatement Setup State Action Outcome Observation) :
+    Except DeclarationError (CheckedTarget LawStatement Setup State Action Outcome Observation) := do
   let declarations ← validateDeclarations target
   requireDeclaration declarations target.id target.source target.id .target
   let providers := target.providers.mergeSort providerLe
@@ -591,7 +621,7 @@ def composeTarget
   }
 
 def canonicalCheckedTargetJson
-    (target : CheckedTarget Setup State Action Outcome Observation) : String :=
+    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) : String :=
   target.canonicalMetadata
 
 end Temporal.Experiment
