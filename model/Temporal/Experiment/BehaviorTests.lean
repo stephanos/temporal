@@ -318,9 +318,33 @@ def exactSequenceConflict : BehaviorDeclaration := {
   sequences := [[callerClose]]
 }
 
-/-- Non-proved spaces stay unclassified until bounded planning, never falsely satisfiable. -/
-example : (checkBehavior context exactSequenceConflict).toOption.map
-    CheckedBehavior.spaceStatus = some .unclassified := by
+def exactAdjacencyConflict : BehaviorDeclaration := {
+  exactSequenceConflict with
+  sequences := []
+  adjacencies := [[requestCancel, callerClose]]
+}
+
+def exactOrderingConflict : BehaviorDeclaration := {
+  exactSequenceConflict with
+  requiredOccurrences := [cancelOccurrence, closeOccurrence]
+  ordering := [{ before := cancelOccurrence.id, after := closeOccurrence.id }]
+  actionsExactly := some [callerClose, requestCancel]
+  sequences := []
+}
+
+def exactTraceSequenceConflict : BehaviorDeclaration := {
+  constrainedDeclaration with
+  traceExactly := some exactWitness
+  sequences := [[callerClose, requestCancel]]
+}
+
+/-! Mechanically contradictory exact schedules and traces fail during Behavior checking. -/
+example : [
+    actualErrorKind (checkBehavior context exactSequenceConflict),
+    actualErrorKind (checkBehavior context exactAdjacencyConflict),
+    actualErrorKind (checkBehavior context exactOrderingConflict),
+    actualErrorKind (checkBehavior context exactTraceSequenceConflict)
+  ] = List.replicate 4 (some .contradictoryConstraint) := by
   native_decide
 
 def canonicalDeclaration : BehaviorDeclaration := {

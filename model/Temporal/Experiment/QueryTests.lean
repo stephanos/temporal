@@ -266,7 +266,7 @@ def explored : ExploredCounts := {
 /-! Empty behavior is unsatisfiable, while an incomplete search is budget exhaustion; neither
 can be observed as verification. -/
 example :
-    (checkedUnsatisfiable.map (fun query => finalizePlanning query explored .complete)).map
+    (checkedUnsatisfiable.map (fun query => finalizePlanning query explored (.complete false))).map
         (fun result => (result.outcome.name, result.isVerified)) =
       some ("unsatisfiable", false) := by
   native_decide
@@ -287,7 +287,7 @@ def checkedExhaustiveWitness : Option (CheckedQuery (fun _ => True)) :=
 
 /-! Complete absence and exhausted effort remain distinct while retaining counts and bounds. -/
 example : checkedExhaustiveWitness.map (fun query =>
-    let absent := finalizePlanning query explored .complete
+    let absent := finalizePlanning query explored (.complete true)
     let exhausted := finalizePlanning query explored .budgetExhausted
     (absent.outcome.name, absent.metadata.completeness.established,
       absent.metadata.explored.traces, absent.metadata.completeness.bounds,
@@ -299,13 +299,13 @@ example : checkedExhaustiveWitness.map (fun query =>
 /-! A backend completion signal cannot manufacture proof from a non-exhaustive or empty space. -/
 example :
     let nonExhaustive := checkedWitness.map fun query =>
-      let result := finalizePlanning query explored .complete
+      let result := finalizePlanning query explored (.complete true)
       (result.outcome.name, result.isVerified)
     let emptyVerification :=
       (checkQuery exhaustiveContext
         (declaration (.verify checkedProperty) exhaustivePolicy unsatisfiableBehavior)).toOption.map
           fun query =>
-            let result := finalizePlanning query explored .complete
+            let result := finalizePlanning query explored (.complete false)
             (result.outcome.name, result.isVerified)
     (nonExhaustive, emptyVerification) =
       (some ("budget-exhausted", false), some ("unsatisfiable", false)) := by
