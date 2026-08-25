@@ -293,6 +293,36 @@ example : (checkBehavior context unsatisfiableDeclaration).toOption.map
 
 example : !checkedAdmits unsatisfiableDeclaration acceptedTrace := by native_decide
 
+def pairedSetupConflict : BehaviorDeclaration := {
+  constrainedDeclaration with
+  setup := [
+    setupEqualsA,
+    {
+      id := id "scenario.setup.operation-not-a"
+      relation := .different
+      left := .role operationRole.id
+      right := .value operationA
+    }
+  ]
+}
+
+example : (checkBehavior context pairedSetupConflict).toOption.map
+    CheckedBehavior.isUnsatisfiable = some true := by
+  native_decide
+
+def exactSequenceConflict : BehaviorDeclaration := {
+  id := id "scenario.behavior.exact-sequence-conflict"
+  source
+  roles := [operationRole]
+  actionsExactly := some [requestCancel]
+  sequences := [[callerClose]]
+}
+
+/-- Non-proved spaces stay unclassified until bounded planning, never falsely satisfiable. -/
+example : (checkBehavior context exactSequenceConflict).toOption.map
+    CheckedBehavior.spaceStatus = some .unclassified := by
+  native_decide
+
 def canonicalDeclaration : BehaviorDeclaration := {
   id := id "scenario.behavior.canonical"
   source
@@ -344,6 +374,14 @@ def digestOf (declaration : BehaviorDeclaration) : Option String :=
 
 example : canonicalOf canonicalDeclaration = canonicalOf canonicalDeclaration := by native_decide
 example : canonicalOf canonicalDeclaration = canonicalOf reorderedCanonicalDeclaration := by
+  native_decide
+
+def reversedSetupOperands : BehaviorDeclaration := {
+  constrainedDeclaration with
+  setup := [{ setupEqualsA with left := setupEqualsA.right, right := setupEqualsA.left }]
+}
+
+example : canonicalOf constrainedDeclaration = canonicalOf reversedSetupOperands := by
   native_decide
 
 def setupMutation : BehaviorDeclaration := {
@@ -433,6 +471,23 @@ def narrowedDeclarations : List (BehaviorDeclaration × BehaviorDeclaration) := 
 
 /-- Every supported constraint preserves or narrows membership over the bounded fixture universe. -/
 example : narrowedDeclarations.all fun pair => declarationNarrows pair.1 pair.2 := by
+  native_decide
+
+def manyCancelOccurrences : List NamedOccurrence :=
+  (List.range 15).map fun index => {
+    id := id ("scenario.occurrence.cancel-" ++ toString index)
+    action := requestCancel
+  }
+
+def countDeficitDeclaration : BehaviorDeclaration := {
+  broadDeclaration with requiredOccurrences := manyCancelOccurrences
+}
+
+def fourteenCancelTrace : BehaviorTrace :=
+  traceWith operationA (List.replicate 14 (cancelStep accepted))
+
+/-- Per-action deficits reject before named-occurrence state exploration. -/
+example : !checkedAdmits countDeficitDeclaration fourteenCancelTrace := by
   native_decide
 
 end Temporal.Experiment.BehaviorTests

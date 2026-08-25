@@ -149,12 +149,12 @@ structure BehaviorCheckContext where
   deriving BEq, DecidableEq, Repr
 
 inductive BehaviorSpaceStatus where
-  | satisfiable
+  | unclassified
   | unsatisfiable
   deriving BEq, DecidableEq, Ord, Repr
 
 def BehaviorSpaceStatus.name : BehaviorSpaceStatus → String
-  | .satisfiable => "satisfiable"
+  | .unclassified => "unclassified"
   | .unsatisfiable => "unsatisfiable"
 
 structure CheckedBehavior where
@@ -217,6 +217,17 @@ private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
 
 private def canonicalIdLists (lists : List (List DeclarationId)) : List (List DeclarationId) :=
   lists.mergeSort idListLe |>.eraseDups
+
+private def operandSortKey : SetupOperand → String
+  | .role id => "role:" ++ quote id.value
+  | .value value =>
+      "value:" ++ quote value.identity.value ++ ":" ++ quote value.value
+
+private def canonicalSetupConstraint (constraint : SetupConstraint) : SetupConstraint :=
+  if operandSortKey constraint.left ≤ operandSortKey constraint.right then
+    constraint
+  else
+    { constraint with left := constraint.right, right := constraint.left }
 
 private def sourcePath (source : SemanticSource) : String :=
   if source.path == "" then "<unknown>" else source.path
@@ -622,12 +633,52 @@ private def behaviorTraceJson (trace : BehaviorTrace) : String :=
 private def actionListJson (actions : List DeclarationId) : String :=
   array (actions.map (quote ∘ DeclarationId.value))
 
-private def setupDirectlyUnsatisfiable (constraints : List SetupConstraint) : Bool :=
-  constraints.any fun constraint =>
-    match constraint.relation, constraint.left, constraint.right with
-    | .different, left, right => left == right
-    | .equal, .value left, .value right => left != right
-    | _, _, _ => false
+private def equalNeighbors
+    (constraints : List SetupConstraint)
+    (operand : SetupOperand) : List SetupOperand :=
+  constraints.flatMap fun constraint =>
+    if constraint.relation != .equal then
+      []
+    else if constraint.left == operand then
+      [constraint.right]
+    else if constraint.right == operand then
+      [constraint.left]
+    else
+      []
+
+private def setupOperands (constraints : List SetupConstraint) : List SetupOperand :=
+  constraints.flatMap (fun constraint => [constraint.left, constraint.right]) |>.eraseDups
+
+private def operandsConnected
+    (constraints : List SetupConstraint)
+    (left right : SetupOperand) : Bool :=
+  let rec visit (pending visited : List SetupOperand) : Nat → Bool
+    | 0 => false
+    | fuel + 1 =>
+        match pending with
+        | [] => false
+        | current :: rest =>
+            if current == right then
+              true
+            else if visited.contains current then
+              visit rest visited fuel
+            else
+              visit (rest ++ equalNeighbors constraints current) (current :: visited) fuel
+  let operandCount := setupOperands constraints |>.length
+  visit [left] [] ((operandCount + 1) * (constraints.length + 1))
+
+private def setupUnsatisfiable (constraints : List SetupConstraint) : Bool :=
+  let unequalConflict := constraints.any fun constraint =>
+    constraint.relation == .different &&
+      operandsConnected constraints constraint.left constraint.right
+  let literalOperands := (setupOperands constraints).filterMap fun operand =>
+    match operand with
+    | .value value => some (operand, value)
+    | .role _ => none
+  let literalConflict := literalOperands.any fun left =>
+    literalOperands.any fun right =>
+      left.2 != right.2 && operandsConnected constraints left.1 right.1
+  unequalConflict || literalConflict
 
 private def behaviorSemanticJson
     (id : DeclarationId)
@@ -697,7 +748,7 @@ def checkBehavior
   let roles := declaration.roles.mergeSort roleLe
   for role in roles do
     requireIdentity declaration.id declaration.source role.id
-  let setup := declaration.setup.mergeSort constraintLe
+  let setup := declaration.setup.map canonicalSetupConstraint |>.mergeSort constraintLe
   for constraint in setup do
     validateSetupConstraint context declaration roles constraint
   let allowed := canonicalIds declaration.allowedActions
@@ -730,10 +781,10 @@ def checkBehavior
   | _, _ => pure ()
   let sequences := canonicalIdLists declaration.sequences
   let adjacencies := canonicalIdLists declaration.adjacencies
-  let status := if setupDirectlyUnsatisfiable setup then
+  let status := if setupUnsatisfiable setup then
     .unsatisfiable
   else
-    .satisfiable
+    .unclassified
   let semantic := behaviorSemanticJson declaration.id declaration.version declaration.requires
     roles setup allowed required forbidden bounds ordering sequences adjacencies
     declaration.actionsExactly exactTrace status
@@ -782,30 +833,50 @@ private def setupIsComplete (roles : List ResourceRole) (bindings : List RoleBin
     roles.all (fun role => countAction role.id (bindings.map RoleBinding.role) == 1) &&
     bindings.all (fun binding => roles.any fun role => role.id == binding.role)
 
-private def positionOf
-    (id : DeclarationId)
-    (positions : List (DeclarationId × Nat)) : Option Nat :=
-  (positions.find? fun entry => entry.1 == id).map Prod.snd
+private def occurrenceListKey (occurrences : List NamedOccurrence) : String :=
+  idListKey (occurrences.map NamedOccurrence.id)
 
-private def orderingHolds
+private def occurrenceListLe
+    (left right : List NamedOccurrence) : Bool :=
+  decide (occurrenceListKey left ≤ occurrenceListKey right)
+
+private def occurrenceIsReady
     (ordering : List OccurrenceOrder)
-    (positions : List (DeclarationId × Nat)) : Bool :=
+    (remaining : List NamedOccurrence)
+    (occurrence : NamedOccurrence) : Bool :=
   ordering.all fun edge =>
-    match positionOf edge.before positions, positionOf edge.after positions with
-    | some before, some after => before < after
-    | _, _ => false
+    edge.after != occurrence.id ||
+      !(remaining.any fun candidate => candidate.id == edge.before)
 
+private def advanceOccurrenceStates
+    (ordering : List OccurrenceOrder)
+    (action : DeclarationId)
+    (states : List (List NamedOccurrence)) : List (List NamedOccurrence) :=
+  states.flatMap (fun remaining =>
+    let assignable := remaining.filter fun occurrence =>
+      occurrence.action == action && occurrenceIsReady ordering remaining occurrence
+    remaining :: assignable.map (fun occurrence => remaining.erase occurrence))
+  |>.mergeSort occurrenceListLe
+  |>.eraseDups
+
+/--
+Track canonical remaining-occurrence sets across the schedule. Deduplication makes equivalent
+assignment permutations one state, avoiding factorial backtracking for repeated action labels.
+-/
 private def hasOccurrenceAssignment
     (schedule : List DeclarationId)
     (ordering : List OccurrenceOrder)
-    (used : List Nat)
-    (positions : List (DeclarationId × Nat)) : List NamedOccurrence → Bool
-  | [] => orderingHolds ordering positions
-  | occurrence :: rest =>
-      (List.range schedule.length).any fun position =>
-        !used.contains position && schedule[position]? == some occurrence.action &&
-          hasOccurrenceAssignment schedule ordering (position :: used)
-            ((occurrence.id, position) :: positions) rest
+    (occurrences : List NamedOccurrence) : Bool :=
+  let countsSufficient := occurrences.all fun occurrence =>
+    countAction occurrence.action schedule ≥
+      (occurrences.filter fun candidate => candidate.action == occurrence.action).length
+  if !countsSufficient then
+    false
+  else
+    let initial := occurrences.mergeSort occurrenceLe
+    let states := schedule.foldl (init := [initial]) fun states action =>
+      advanceOccurrenceStates ordering action states
+    states.any List.isEmpty
 
 private def isSubsequence : List DeclarationId → List DeclarationId → Bool
   | [], _ => true
@@ -846,7 +917,7 @@ def CheckedBehavior.admits (behavior : CheckedBehavior) (candidate : BehaviorTra
       behavior.occurrenceBounds.all (fun bound =>
         let count := countAction bound.action actions
         count ≥ bound.minimum && bound.maximum.all fun maximum => count ≤ maximum) &&
-      hasOccurrenceAssignment actions behavior.ordering [] [] behavior.requiredOccurrences &&
+      hasOccurrenceAssignment actions behavior.ordering behavior.requiredOccurrences &&
       behavior.sequences.all (fun sequence => isSubsequence sequence actions) &&
       behavior.adjacencies.all (fun adjacency => containsAdjacent adjacency actions) &&
       behavior.actionsExactly.all (fun exact => actions == exact) &&
