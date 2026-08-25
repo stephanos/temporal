@@ -3,12 +3,19 @@ import Temporal.Experiment.NexusCallerClosure
 
 namespace Temporal.Experiment
 
-structure Pilot where
-  id : String
-  target : ModelTarget
-  regression : Regression
+inductive InspectionFailure where
+  | declaration (error : DeclarationError)
+  | property (error : PropertyError)
+  | behavior (error : BehaviorError)
+  | query (error : QueryError)
+  | planning (subject : String)
+  deriving BEq, DecidableEq, Repr
 
-abbrev PilotRegistry := List Pilot
+structure Scenario where
+  id : String
+  result : Except InspectionFailure ExperimentSpec
+
+abbrev ScenarioRegistry := List Scenario
 
 structure InspectorResult where
   status : Nat
@@ -23,45 +30,42 @@ private def diagnostic (kind subject context : String) : String :=
     ",\"subject\":" ++ quote subject ++
     ",\"context\":" ++ quote context ++ "}\n"
 
-private def compileErrorKindName : CompileErrorKind → String
-  | .missingIdentity => "missingIdentity"
-  | .duplicateIdentity => "duplicateIdentity"
-  | .emptyExpectations => "emptyExpectations"
-  | .unresolvedResource => "unresolvedResource"
-  | .unresolvedAction => "unresolvedAction"
-  | .unresolvedProperty => "unresolvedProperty"
-  | .targetMismatch => "targetMismatch"
-  | .unmappedAction => "unmappedAction"
-  | .impossibleAction => "impossibleAction"
-  | .duplicateOrdering => "duplicateOrdering"
-  | .selfOrdering => "selfOrdering"
-  | .cyclicOrdering => "cyclicOrdering"
-  | .invalidBound => "invalidBound"
-  | .boundExceeded => "boundExceeded"
+private def failureJson : InspectionFailure → String
+  | .declaration error => canonicalDeclarationErrorJson error ++ "\n"
+  | .property error => canonicalPropertyErrorJson error ++ "\n"
+  | .behavior error => canonicalBehaviorErrorJson error ++ "\n"
+  | .query error => canonicalQueryErrorJson error ++ "\n"
+  | .planning subject => diagnostic "planning-failure" subject "no portable artifact"
 
-private def failed (kind subject context : String) : InspectorResult :=
-  { status := 1, stdout := "", stderr := diagnostic kind subject context }
+private def failed (failure : InspectionFailure) : InspectorResult :=
+  { status := 1, stdout := "", stderr := failureJson failure }
 
-def runInspector (registry : PilotRegistry) (args : List String) : InspectorResult :=
+def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorResult :=
   match args with
   | [requested] =>
-      match registry.find? (fun pilot => pilot.id == requested) with
-      | none => failed "unknownPilot" requested "pilot registry"
-      | some pilot =>
-          if pilot.regression.target != pilot.target.id then
-            failed "incompatibleTarget" pilot.regression.target.value pilot.target.id.value
-          else
-            match compile pilot.target pilot.regression with
-            | .error error =>
-                failed "compileFailure" error.subject
-                  (compileErrorKindName error.kind ++ ":" ++ error.context)
-            | .ok spec => { status := 0, stdout := canonicalJson spec ++ "\n", stderr := "" }
-  | _ => failed "invalidArguments" "inspect" "expected exactly one pilot identity"
+      match registry.find? (fun scenario => scenario.id == requested) with
+      | none => {
+          status := 1
+          stdout := ""
+          stderr := diagnostic "unknown-scenario" requested "scenario registry"
+        }
+      | some scenario =>
+          match scenario.result with
+          | .error failure => failed failure
+          | .ok spec => {
+              status := 0
+              stdout := canonicalExperimentSpecJson spec ++ "\n"
+              stderr := ""
+            }
+  | _ => {
+      status := 1
+      stdout := ""
+      stderr := diagnostic "invalid-arguments" "inspect" "expected exactly one scenario identity"
+    }
 
-def productionRegistry : PilotRegistry := [{
-  id := NexusCallerClosure.regressionId.value
-  target := NexusCallerClosure.target
-  regression := NexusCallerClosure.regression
+def productionRegistry : ScenarioRegistry := [{
+  id := NexusCallerClosure.exactActionQueryId.value
+  result := .ok NexusCallerClosure.compiledArtifact
 }]
 
 def runCli (args : List String) : InspectorResult := runInspector productionRegistry args

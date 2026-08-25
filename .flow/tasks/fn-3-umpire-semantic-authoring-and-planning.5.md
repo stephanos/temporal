@@ -47,6 +47,7 @@ baseline: green via receipts
 GATE_SKIPPED:unittest:green-receipt de6f802e - baseline reused from prior post-gate pass
 GATE_SKIPPED:smoke:green-receipt de6f802e - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-25T04:17:44Z..2026-08-25T04:29:34Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 
 Memory capture was attempted after the non-trivial review fix and failed non-blockingly because the memory store is uninitialized; it was not initialized.
 ## Evidence
