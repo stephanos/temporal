@@ -41,9 +41,15 @@ cd model && mise exec -- lake env lean Temporal/Experiment/PlannerTests.lean
 - [ ] An instrumented high-branching kernel consumed through a bounded prefix proves that unrequested candidates are neither generated nor retained and that budget exhaustion does not materialize the remaining space.
 - [ ] No runtime, reader/migration, promotion, or evidence qualification behavior is introduced; the focused Lean test command passes and the R8 exclusion audit is clean.
 ## Done summary
-TBD
+Implemented deterministic pure planning over a proof-linked incremental kernel, with exact Query result semantics, bounded-frontier instrumentation, canonical ordering obligations, and total selected-action occurrence records. Added portable canonical `DrivePlan` and replacement `ExperimentSpec` artifacts covering expanded bounds, identities, provenance, requirements, checkpoints, selection reasons, and explicit omissions; focused tests cover all Query modes, non-exhaustive action sourcing, exhaustive/budget separation, identity stability, and high-branching laziness.
 
+baseline: green via receipts
+GATE_SKIPPED:unittest:green-receipt de6f802e - baseline reused from prior post-gate pass
+GATE_SKIPPED:smoke:green-receipt de6f802e - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-25T04:17:44Z..2026-08-25T04:29:34Z]
+
+Memory capture was attempted after the non-trivial review fix and failed non-blockingly because the memory store is uninitialized; it was not initialized.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 56209b88cf61b242b313519c4d54cd0842ee056d, 101d2400f83561c04fb8b7e358fd8e81b701f099
+- Tests: GATE_SKIPPED:unittest:green-receipt de6f802e - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt de6f802e - baseline reused from prior post-gate pass, cd model && mise exec -- lake env lean Temporal/Experiment/PlannerTests.lean, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
 - PRs:
