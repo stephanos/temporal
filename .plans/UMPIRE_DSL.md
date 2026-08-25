@@ -921,21 +921,19 @@ do not extend the namespace being removed.
 
 ## Resolved via Codebase
 
-- `Temporal.Experiment.Semantics` owns both the reusable semantic trace/kernel vocabulary and checked
-  target composition; neither concern depends on Temporal server behavior.
-- `Temporal.Experiment.Property` and `Temporal.Experiment.Behavior` are already sibling modules that
-  depend only on `Semantics`, while `Temporal.Experiment.Query` is the first module that imports both.
-- `Temporal.Experiment.Query` also contains search policy and planner protocol types. Those are
-  mechanisms shared by query authoring, planning, and artifacts rather than part of the Query DSL.
-- `Temporal.Experiment.Artifact` depends on Query and defines the portable `DrivePlan` and
-  `ExperimentSpec`; `Temporal.Experiment.Planner` consumes checked queries and produces those
-  artifacts.
-- `Temporal.Experiment.DSL`, `Temporal.Experiment.Compiler`, and `Temporal.Experiment.Json` are now
-  import-only pass-through modules. They provide no deep interface and need not survive extraction.
-- `Temporal.Experiment.SwitchScenario` is a domain-neutral reuse example, while
-  `Temporal.Experiment.NexusCallerClosure` imports the Temporal-specific `NexusAutoClose` model.
-- Regression verification is already wired through the repository's top-level Makefile
-  (`Makefile:999`); new model generation and checks follow that same location rule.
+- `Umpire.Core` owns the reusable semantic trace/kernel vocabulary and checked target composition.
+- `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Search` are independent siblings over Core;
+  `Umpire.Query` is the first module that combines the three concerns.
+- `Umpire.Artifact` owns the portable `DrivePlan` and `ExperimentSpec`, while `Umpire.Planning`
+  consumes checked queries and produces those artifacts with private completion authority.
+- `Umpire.Examples.Switch` is the domain-neutral reuse example. The Nexus caller-closure adapter and
+  shared inspector live at `Temporal.Umpire.NexusCallerClosure` and `Temporal.Umpire.Inspect`.
+- `UmpireTests`, `TemporalUmpireTests`, and `temporal-umpire-inspect` are the only focused Lake
+  regression targets. The repository's top-level Makefile remains the stable verification surface.
+- The checked-in target-state fixtures retain the pre-move inspector bytes except for exactly two
+  source-path substitutions: `Temporal/Experiment/SwitchScenario.lean` to
+  `Umpire/Examples/Switch.lean`, and `Temporal/Experiment/NexusCallerClosure.lean` to
+  `Temporal/Umpire/NexusCallerClosure.lean`. No other pre/post migration delta was accepted.
 
 ## 21. Lean package and namespace architecture
 
