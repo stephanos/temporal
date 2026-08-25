@@ -10,7 +10,7 @@
   "id": "fn-3-umpire-semantic-authoring-and-planning",
   "impl_review_rounds": {
     "fn-3-umpire-semantic-authoring-and-planning.1": 0,
-    "fn-3-umpire-semantic-authoring-and-planning.2": 1
+    "fn-3-umpire-semantic-authoring-and-planning.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -271,10 +271,63 @@
       "timestamp": "2026-08-25T02:17:34.034818Z",
       "tool_calls": 27,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "71c1f43c729eba6ae0fe10349c37b0cd5fb234c8ba56c24406cc4aa3ea3210f1",
+      "backend": "codex",
+      "base_sha": "9ccd3faff0478afa33ce8f652e05d93bd03f8b02",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a088ddb77f57e35b035883e03b20627b",
+            "classification": "introduced",
+            "findingId": "finding-a088ddb77f57e35b035883e03b20627b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-40a80c075258e7c7460abd0648a649db",
+            "classification": "introduced",
+            "findingId": "finding-40a80c075258e7c7460abd0648a649db",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a75dd2d1d8204a827a3231f616420d302c18ce95",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1240,
+      "output_sha256": "e03309dabe056eacfd52f9ff5adb16b0a0d171ed491e338fcfd54079706398db",
+      "reservation_id": "459802841e3c494b84cc73d01ea283fc",
+      "round_consumed": true,
+      "scope": "impl:fn-3-umpire-semantic-authoring-and-planning.2",
+      "superseded_by": null,
+      "task": "fn-3-umpire-semantic-authoring-and-planning.2",
+      "timestamp": "2026-08-25T02:26:51.387257Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-3-umpire-semantic-authoring-and-planning.1": 1,
+    "impl:fn-3-umpire-semantic-authoring-and-planning.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -299,5 +352,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T02:17:34.046382Z"
+  "updated_at": "2026-08-25T02:26:51.392553Z"
 }

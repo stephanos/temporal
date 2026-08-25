@@ -41,9 +41,13 @@ cd model && mise exec -- lake env lean Temporal/Experiment/PropertyTests.lean
 - [ ] Repeated Property projection is byte-identical, canonicalizes collection order, and changes for each meaning-bearing constructor, reference, or bound mutation.
 - [ ] The focused Lean test command passes and the R8 exclusion audit is clean.
 ## Done summary
-TBD
+Implemented inspectable portable Property declarations, capability-scoped trace evaluation, typed and named bounds, independent finite denotations with structural agreement proofs, model-only clause results, and deterministic canonical projections. Focused fixtures cover the authoritative cancellation uniqueness result, every portable clause kind, capability isolation, structured authoring failures, digest sensitivity, and fail-closed logical-time evaluation; Codex review reached SHIP after both findings were fixed.
 
+baseline: red (cd model && mise exec -- lake env lean Temporal/Experiment/PropertyTests.lean failed pre-edit because the task-created test module did not yet exist)
+GATE_SKIPPED:unittest:green-receipt d01538a7 - baseline reused from prior post-gate pass
+GATE_SKIPPED:smoke:green-receipt d01538a7 - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-25T02:17:34Z..2026-08-25T02:26:51Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9b7c9e5f9ed4d232687565a1b5e62811ac2c40e5, a75dd2d1d8204a827a3231f616420d302c18ce95
+- Tests: baseline: red (cd model && mise exec -- lake env lean Temporal/Experiment/PropertyTests.lean failed pre-edit because the task-created test module did not yet exist), GATE_SKIPPED:unittest:green-receipt d01538a7 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt d01538a7 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build Temporal.Experiment.Property, cd model && mise exec -- lake env lean Temporal/Experiment/PropertyTests.lean, cd model && mise exec -- lake build ExperimentTests temporal-experiment-inspect, make umpire-check-regression
 - PRs:
