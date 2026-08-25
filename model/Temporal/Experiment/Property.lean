@@ -93,6 +93,51 @@ theorem PropertyPattern.evaluate_agrees
     pattern.evaluate value = true ↔ pattern.denote value := by
   simp [PropertyPattern.evaluate, PropertyPattern.denote, ValueConstraint.evaluate_agrees]
 
+private def allHolds {α : Type} : List α → (α → Prop) → Prop
+  | [], _ => True
+  | item :: rest, predicate => predicate item ∧ allHolds rest predicate
+
+private def anyHolds {α : Type} : List α → (α → Prop) → Prop
+  | [], _ => False
+  | item :: rest, predicate => predicate item ∨ anyHolds rest predicate
+
+private theorem allHolds_agrees
+    (items : List α)
+    (evaluate : α → Bool)
+    (denote : α → Prop)
+    (agreement : ∀ item, evaluate item = true ↔ denote item) :
+    items.all evaluate = true ↔ allHolds items denote := by
+  induction items with
+  | nil => simp [allHolds]
+  | cons item rest inductionHypothesis =>
+      simp [allHolds, agreement item, inductionHypothesis]
+
+private theorem anyHolds_agrees
+    (items : List α)
+    (evaluate : α → Bool)
+    (denote : α → Prop)
+    (agreement : ∀ item, evaluate item = true ↔ denote item) :
+    items.any evaluate = true ↔ anyHolds items denote := by
+  induction items with
+  | nil => simp [anyHolds]
+  | cons item rest inductionHypothesis =>
+      simp [anyHolds, agreement item, inductionHypothesis]
+
+private theorem booleanImplication_agrees
+    (left right : Bool)
+    (antecedent consequent : Prop)
+    (leftAgreement : left = true ↔ antecedent)
+    (rightAgreement : right = true ↔ consequent) :
+    (!left || right) = true ↔ (antecedent → consequent) := by
+  cases left <;> cases right <;> simp_all
+
+private theorem booleanNot_agrees
+    (value : Bool)
+    (proposition : Prop)
+    (agreement : value = true ↔ proposition) :
+    (!value) = true ↔ ¬proposition := by
+  cases value <;> simp_all
+
 structure PropertyBoundProfile where
   id : DeclarationId
   source : SemanticSource
@@ -655,7 +700,11 @@ private def logicalTimeOf
   | none => none
   | some id =>
       match observations.find? fun observation => observation.identity == id with
-      | some observation => observation.value.toNat?
+      | some observation =>
+          match observation.value.toNat? with
+          | some current =>
+              if previous.any fun prior => current < prior then none else some current
+          | none => none
       | none => previous
 
 private def buildTraceSteps
@@ -780,11 +829,19 @@ private def positionOf
   | .observationPositions => some occurrence.observationPosition
   | .logicalTime => occurrence.logicalTime
 
-private def positions
+private def collectPositions : List (Option Nat) → Option (List Nat)
+  | [] => some []
+  | none :: _ => none
+  | some position :: rest =>
+      (collectPositions rest).map fun positions => position :: positions
+
+/-- Preserve the distinction between no matching occurrences and matching occurrences whose
+requested coordinate is missing. In particular, logical-time evaluation must fail closed. -/
+private def checkedPositions
     (pattern : PropertyPattern)
     (unit : BoundUnit)
-    (view : PropertyTraceView) : List Nat :=
-  (occurrences pattern view).filterMap (positionOf unit)
+    (view : PropertyTraceView) : Option (List Nat) :=
+  collectPositions ((occurrences pattern view).map (positionOf unit))
 
 private def valuesAtField
     (field : PropertyTraceField)
@@ -801,15 +858,31 @@ private def valuesAtField
     | .observation | .relation => step.observations
   initial ++ fromSteps
 
+private def valuesInStep
+    (field : PropertyTraceField)
+    (step : PropertyTraceStep) : List SemanticValue :=
+  match field with
+  | .state | .resultingState => step.resultingState.toList
+  | .priorState => step.priorState.toList
+  | .selectedAction => step.selectedAction.toList
+  | .modelOutcome => step.modelOutcome.toList
+  | .observation | .relation => step.observations
+
 private def patternHoldsInStep
     (pattern : PropertyPattern)
     (step : PropertyTraceStep) : Bool :=
-  match pattern.field with
-  | .state | .resultingState => step.resultingState.any pattern.evaluate
-  | .priorState => step.priorState.any pattern.evaluate
-  | .selectedAction => step.selectedAction.any pattern.evaluate
-  | .modelOutcome => step.modelOutcome.any pattern.evaluate
-  | .observation | .relation => step.observations.any pattern.evaluate
+  (valuesInStep pattern.field step).any pattern.evaluate
+
+private def patternDenotesInStep
+    (pattern : PropertyPattern)
+    (step : PropertyTraceStep) : Prop :=
+  anyHolds (valuesInStep pattern.field step) pattern.denote
+
+private theorem patternHoldsInStep_agrees
+    (pattern : PropertyPattern)
+    (step : PropertyTraceStep) :
+    patternHoldsInStep pattern step = true ↔ patternDenotesInStep pattern step :=
+  anyHolds_agrees _ _ _ pattern.evaluate_agrees
 
 private def evaluateStateInvariant
     (pattern : PropertyPattern)
@@ -817,54 +890,228 @@ private def evaluateStateInvariant
   let matching := (valuesAtField .state view).filter fun value => value.identity == pattern.reference
   !matching.isEmpty && matching.all fun value => pattern.constraint.evaluate value.value
 
+private def stateInvariantDenotes
+    (pattern : PropertyPattern)
+    (view : PropertyTraceView) : Prop :=
+  let matching := (valuesAtField .state view).filter fun value => value.identity == pattern.reference
+  matching ≠ [] ∧ allHolds matching fun value => pattern.constraint.denote value.value
+
+private theorem evaluateStateInvariant_agrees
+    (pattern : PropertyPattern)
+    (view : PropertyTraceView) :
+    evaluateStateInvariant pattern view = true ↔ stateInvariantDenotes pattern view := by
+  let matching := (valuesAtField .state view).filter fun value =>
+    value.identity == pattern.reference
+  have constraintsAgree :
+      matching.all (fun value => pattern.constraint.evaluate value.value) = true ↔
+        allHolds matching (fun value => pattern.constraint.denote value.value) :=
+    allHolds_agrees _ _ _ fun value => pattern.constraint.evaluate_agrees value.value
+  change (!matching.isEmpty && matching.all
+    (fun value => pattern.constraint.evaluate value.value)) = true ↔
+      matching ≠ [] ∧ allHolds matching (fun value => pattern.constraint.denote value.value)
+  simp [constraintsAgree]
+
 private def evaluateTransitionContract
     (precondition postcondition : PropertyPattern)
     (view : PropertyTraceView) : Bool :=
   view.steps.all fun step =>
     !patternHoldsInStep precondition step || patternHoldsInStep postcondition step
 
+private def transitionContractDenotes
+    (precondition postcondition : PropertyPattern)
+    (view : PropertyTraceView) : Prop :=
+  allHolds view.steps fun step =>
+    patternDenotesInStep precondition step → patternDenotesInStep postcondition step
+
+private theorem evaluateTransitionContract_agrees
+    (precondition postcondition : PropertyPattern)
+    (view : PropertyTraceView) :
+    evaluateTransitionContract precondition postcondition view = true ↔
+      transitionContractDenotes precondition postcondition view :=
+  allHolds_agrees _ _ _ fun step =>
+    booleanImplication_agrees _ _ _ _
+      (patternHoldsInStep_agrees precondition step)
+      (patternHoldsInStep_agrees postcondition step)
+
 private def evaluateIdentityRelation
     (relation : PropertyPattern)
     (view : PropertyTraceView) : Bool :=
-  !(occurrences relation view).isEmpty
+  (valuesAtField relation.field view).any relation.evaluate
+
+private def identityRelationDenotes
+    (relation : PropertyPattern)
+    (view : PropertyTraceView) : Prop :=
+  anyHolds (valuesAtField relation.field view) relation.denote
+
+private theorem evaluateIdentityRelation_agrees
+    (relation : PropertyPattern)
+    (view : PropertyTraceView) :
+    evaluateIdentityRelation relation view = true ↔ identityRelationDenotes relation view :=
+  anyHolds_agrees _ _ _ relation.evaluate_agrees
 
 private def evaluateOrdered
     (before after : PropertyPattern)
     (unit : BoundUnit)
     (view : PropertyTraceView) : Bool :=
-  (positions before unit view).any fun first =>
-    (positions after unit view).any fun second => first < second
+  match checkedPositions before unit view, checkedPositions after unit view with
+  | some beforePositions, some afterPositions =>
+      beforePositions.any fun first => afterPositions.any fun second => first < second
+  | _, _ => false
+
+private def orderedDenotes
+    (before after : PropertyPattern)
+    (unit : BoundUnit)
+    (view : PropertyTraceView) : Prop :=
+  match checkedPositions before unit view, checkedPositions after unit view with
+  | some beforePositions, some afterPositions =>
+      anyHolds beforePositions fun first => anyHolds afterPositions fun second => first < second
+  | _, _ => False
+
+private theorem evaluateOrdered_agrees
+    (before after : PropertyPattern)
+    (unit : BoundUnit)
+    (view : PropertyTraceView) :
+    evaluateOrdered before after unit view = true ↔ orderedDenotes before after unit view := by
+  cases beforeResult : checkedPositions before unit view with
+  | none => simp [evaluateOrdered, orderedDenotes, beforeResult]
+  | some beforePositions =>
+      cases afterResult : checkedPositions after unit view with
+      | none => simp [evaluateOrdered, orderedDenotes, beforeResult, afterResult]
+      | some afterPositions =>
+          have afterAgreement (first : Nat) :
+              afterPositions.any (fun second => first < second) = true ↔
+                anyHolds afterPositions (fun second => first < second) :=
+            anyHolds_agrees _ _ _ fun second => by simp
+          have beforeAgreement :
+              beforePositions.any (fun first =>
+                afterPositions.any fun second => first < second) = true ↔
+                anyHolds beforePositions (fun first =>
+                  anyHolds afterPositions fun second => first < second) :=
+            anyHolds_agrees _ _ _ afterAgreement
+          simpa [evaluateOrdered, orderedDenotes, beforeResult, afterResult] using beforeAgreement
 
 private def evaluateEventuallyWithin
     (trigger response : PropertyPattern)
     (bound : TypedBound)
     (view : PropertyTraceView) : Bool :=
-  (positions trigger bound.unit view).all fun first =>
-    (positions response bound.unit view).any fun second =>
-      first ≤ second && second - first ≤ bound.value
+  match checkedPositions trigger bound.unit view, checkedPositions response bound.unit view with
+  | some triggerPositions, some responsePositions =>
+      triggerPositions.all fun first =>
+        responsePositions.any fun second => first ≤ second && second - first ≤ bound.value
+  | _, _ => false
+
+private def eventuallyWithinDenotes
+    (trigger response : PropertyPattern)
+    (bound : TypedBound)
+    (view : PropertyTraceView) : Prop :=
+  match checkedPositions trigger bound.unit view, checkedPositions response bound.unit view with
+  | some triggerPositions, some responsePositions =>
+      allHolds triggerPositions fun first =>
+        anyHolds responsePositions fun second =>
+          first ≤ second ∧ second - first ≤ bound.value
+  | _, _ => False
+
+private theorem evaluateEventuallyWithin_agrees
+    (trigger response : PropertyPattern)
+    (bound : TypedBound)
+    (view : PropertyTraceView) :
+    evaluateEventuallyWithin trigger response bound view = true ↔
+      eventuallyWithinDenotes trigger response bound view := by
+  cases triggerResult : checkedPositions trigger bound.unit view with
+  | none => simp [evaluateEventuallyWithin, eventuallyWithinDenotes, triggerResult]
+  | some triggerPositions =>
+      cases responseResult : checkedPositions response bound.unit view with
+      | none =>
+          simp [evaluateEventuallyWithin, eventuallyWithinDenotes, triggerResult, responseResult]
+      | some responsePositions =>
+          have responseAgreement (first : Nat) :
+              responsePositions.any (fun second =>
+                first ≤ second && second - first ≤ bound.value) = true ↔
+                anyHolds responsePositions (fun second =>
+                  first ≤ second ∧ second - first ≤ bound.value) :=
+            anyHolds_agrees _ _ _ fun second => by simp
+          have triggerAgreement :
+              triggerPositions.all (fun first =>
+                responsePositions.any fun second =>
+                  first ≤ second && second - first ≤ bound.value) = true ↔
+                allHolds triggerPositions (fun first =>
+                  anyHolds responsePositions fun second =>
+                    first ≤ second ∧ second - first ≤ bound.value) :=
+            allHolds_agrees _ _ _ responseAgreement
+          simpa [evaluateEventuallyWithin, eventuallyWithinDenotes,
+            triggerResult, responseResult] using triggerAgreement
 
 private def evaluateQuiescentWithin
     (trigger forbidden : PropertyPattern)
     (bound : TypedBound)
     (view : PropertyTraceView) : Bool :=
-  (positions trigger bound.unit view).all fun first =>
-    !(positions forbidden bound.unit view).any fun second =>
-      first ≤ second && second - first ≤ bound.value
+  match checkedPositions trigger bound.unit view, checkedPositions forbidden bound.unit view with
+  | some triggerPositions, some forbiddenPositions =>
+      triggerPositions.all fun first =>
+        !(forbiddenPositions.any fun second => first ≤ second && second - first ≤ bound.value)
+  | _, _ => false
+
+private def quiescentWithinDenotes
+    (trigger forbidden : PropertyPattern)
+    (bound : TypedBound)
+    (view : PropertyTraceView) : Prop :=
+  match checkedPositions trigger bound.unit view, checkedPositions forbidden bound.unit view with
+  | some triggerPositions, some forbiddenPositions =>
+      allHolds triggerPositions fun first =>
+        ¬anyHolds forbiddenPositions fun second =>
+          first ≤ second ∧ second - first ≤ bound.value
+  | _, _ => False
+
+private theorem evaluateQuiescentWithin_agrees
+    (trigger forbidden : PropertyPattern)
+    (bound : TypedBound)
+    (view : PropertyTraceView) :
+    evaluateQuiescentWithin trigger forbidden bound view = true ↔
+      quiescentWithinDenotes trigger forbidden bound view := by
+  cases triggerResult : checkedPositions trigger bound.unit view with
+  | none => simp [evaluateQuiescentWithin, quiescentWithinDenotes, triggerResult]
+  | some triggerPositions =>
+      cases forbiddenResult : checkedPositions forbidden bound.unit view with
+      | none =>
+          simp [evaluateQuiescentWithin, quiescentWithinDenotes, triggerResult, forbiddenResult]
+      | some forbiddenPositions =>
+          have forbiddenAgreement (first : Nat) :
+              forbiddenPositions.any (fun second =>
+                first ≤ second && second - first ≤ bound.value) = true ↔
+                anyHolds forbiddenPositions (fun second =>
+                  first ≤ second ∧ second - first ≤ bound.value) :=
+            anyHolds_agrees _ _ _ fun second => by simp
+          have absenceAgreement (first : Nat) :
+              Bool.not (forbiddenPositions.any fun second =>
+                first ≤ second && second - first ≤ bound.value) = true ↔
+                ¬anyHolds forbiddenPositions (fun second =>
+                  first ≤ second ∧ second - first ≤ bound.value) :=
+            booleanNot_agrees _ _ (forbiddenAgreement first)
+          have triggerAgreement :
+              triggerPositions.all (fun first =>
+                !(forbiddenPositions.any fun second =>
+                  first ≤ second && second - first ≤ bound.value)) = true ↔
+                allHolds triggerPositions (fun first =>
+                  ¬anyHolds forbiddenPositions fun second =>
+                    first ≤ second ∧ second - first ≤ bound.value) :=
+            allHolds_agrees _ _ _ absenceAgreement
+          simpa [evaluateQuiescentWithin, quiescentWithinDenotes,
+            triggerResult, forbiddenResult] using triggerAgreement
 
 def ResolvedPropertyClause.denote
     (clause : ResolvedPropertyClause)
     (view : PropertyTraceView) : Prop :=
   match clause with
-  | .stateInvariant _ state => evaluateStateInvariant state view = true
+  | .stateInvariant _ state => stateInvariantDenotes state view
   | .transitionContract _ precondition postcondition =>
-      evaluateTransitionContract precondition postcondition view = true
-  | .identityRelation _ relation => evaluateIdentityRelation relation view = true
-  | .inputOutput _ input output => evaluateTransitionContract input output view = true
-  | .ordered _ before after unit => evaluateOrdered before after unit view = true
+      transitionContractDenotes precondition postcondition view
+  | .identityRelation _ relation => identityRelationDenotes relation view
+  | .inputOutput _ input output => transitionContractDenotes input output view
+  | .ordered _ before after unit => orderedDenotes before after unit view
   | .eventuallyWithin _ trigger response bound =>
-      evaluateEventuallyWithin trigger response bound view = true
+      eventuallyWithinDenotes trigger response bound view
   | .quiescentWithin _ trigger forbidden bound =>
-      evaluateQuiescentWithin trigger forbidden bound view = true
+      quiescentWithinDenotes trigger forbidden bound view
 
 def evaluatePropertyClause
     (clause : ResolvedPropertyClause)
@@ -886,7 +1133,15 @@ theorem evaluatePropertyClause_agrees
     (clause : ResolvedPropertyClause)
     (view : PropertyTraceView) :
     evaluatePropertyClause clause view = true ↔ clause.denote view := by
-  induction clause <;> rfl
+  induction clause <;>
+    simp only [evaluatePropertyClause, ResolvedPropertyClause.denote] <;>
+    first
+    | exact evaluateStateInvariant_agrees _ _
+    | exact evaluateTransitionContract_agrees _ _ _
+    | exact evaluateIdentityRelation_agrees _ _
+    | exact evaluateOrdered_agrees _ _ _ _
+    | exact evaluateEventuallyWithin_agrees _ _ _ _
+    | exact evaluateQuiescentWithin_agrees _ _ _ _
 
 structure PropertyTraceSpan where
   firstTransition : Nat
