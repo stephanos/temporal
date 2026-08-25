@@ -1034,7 +1034,7 @@ umpire-check-regression:
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		if git grep -nE '^[[:space:]]*(import|namespace)[[:space:]]+(Temporal|Nexus)([.]|[[:space:]]|$$)|(^|[^[:alnum:]_-])(nexus|workflow|workflow-nexus)[.]' -- \
+		if git grep -nE '^[[:space:]]*(import|namespace)[[:space:]]+(Temporal|Nexus)([.]|[[:space:]]|$$)|(^|[^[:alnum:]_-])(Temporal|Nexus)([.]|/)|(^|[^[:alnum:]_-])(nexus|workflow|workflow-nexus)[.]' -- \
 			model/Umpire model/Umpire.lean model/UmpireTests.lean; then \
 			echo "found Temporal-owned dependency, namespace, or semantic prefix in reusable Umpire artifacts" >&2; \
 			exit 1; \
