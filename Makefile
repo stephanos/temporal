@@ -1035,7 +1035,25 @@ umpire-check-regression:
 		else \
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
-		fi
+		fi; \
+		for package in Property Behavior Query; do \
+			test -f "model/Umpire/$$package/Language.lean" || { \
+				echo "missing physical Umpire $$package package" >&2; \
+				exit 1; \
+			}; \
+			grep -qx "import Umpire.$$package.Language" "model/Umpire/$$package.lean" || { \
+				echo "Umpire $$package facade does not expose its package" >&2; \
+				exit 1; \
+			}; \
+		done; \
+		test -f model/Umpire/Planning/Engine.lean || { \
+			echo "missing physical Umpire Planning package" >&2; \
+			exit 1; \
+		}; \
+		grep -qx 'import Umpire.Planning.Engine' model/Umpire/Planning.lean || { \
+			echo "Umpire Planning facade does not expose its package" >&2; \
+			exit 1; \
+		}
 	@cd model && $(LEAN_LAKE) build UmpireTests TemporalUmpireTests $(UMPIRE_REGRESSION_INSPECTOR)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
