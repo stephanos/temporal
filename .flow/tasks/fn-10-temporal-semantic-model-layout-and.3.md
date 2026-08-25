@@ -39,6 +39,7 @@ Relocate the auto-close semantic model into `Temporal.Feature.Nexus.AutoClose` a
 Relocated the Nexus AutoClose model to `Temporal.Feature.Nexus.AutoClose`, retained an import-only `NexusAutoClose` transition root, and preserved its checked semantics, proofs, examples, and tutorial comments. Rebased moved source references and stabilized caller-closure Config serialization so deterministic artifacts and semantic digests remain unchanged; the baseline handoff and final regression gate were green.
 
 stage: impl-review - ran [2026-08-25T22:52:34Z..2026-08-25T23:01:43Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 8475d9a4be9b9b0cb91d72e5f256506c601ff711, 3a7063f8d66e789f9aa0f6b2423b754f8a41577a, eb893b1003493e13b224b7238e7878504921f79a
 - Tests: baseline: green via handoff (green (verified at 8b4a744d by fn-10-temporal-semantic-model-layout-and.2)), GATE_SKIPPED:smoke:green-receipt 8b4a744d - baseline reused from prior post-gate pass, mise exec -- lake build NexusAutoClose Temporal.Umpire.NexusCallerClosure TemporalUmpireTests, mise exec -- lake build NexusAutoClose Temporal.Umpire.NexusCallerClosure TemporalUmpireTests temporal-umpire-inspect, make umpire-check-regression
