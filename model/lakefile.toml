@@ -1,8 +1,5 @@
 name = "temporal-model"
-defaultTargets = ["NexusAutoClose", "Temporal", "Umpire", "UmpireTests", "TemporalUmpireTests", "temporal-umpire-inspect"]
-
-[[lean_lib]]
-name = "NexusAutoClose"
+defaultTargets = ["Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "temporal-model-inspect"]
 
 [[lean_lib]]
 name = "Temporal"
@@ -15,9 +12,9 @@ name = "UmpireTests"
 roots = ["UmpireTests"]
 
 [[lean_lib]]
-name = "TemporalUmpireTests"
-roots = ["TemporalUmpireTests"]
+name = "TemporalModelTests"
+roots = ["TemporalModelTests"]
 
 [[lean_exe]]
-name = "temporal-umpire-inspect"
-root = "Temporal.Umpire.Inspect"
+name = "temporal-model-inspect"
+root = "Temporal.Tool.Inspect"

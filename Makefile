@@ -120,9 +120,9 @@ UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleandynamicconfig
 GEN_LEAN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleanmodeldescriptors
-UMPIRE_REGRESSION_INSPECTOR := temporal-umpire-inspect
+UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
 UMPIRE_REGRESSION_FIXTURES := \
-	workflow-nexus.query.exact-action-caller-closure:Temporal/Umpire/testdata/nexus-caller-closure-experiment-spec.json \
+	workflow-nexus.query.exact-action-caller-closure:Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json \
 	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
@@ -1005,32 +1005,64 @@ umpire-gen-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
 
 umpire-check-regression:
 	@set -eu; \
-		old_namespace='Temporal''[.]Experiment'; \
-		old_path='Temporal/''Experiment'; \
-		old_targets='Experiment''Tests|temporal-experiment''-inspect'; \
-		old_tree=model/Temporal/''Experiment; \
-		test ! -e "$$old_tree"; \
-		test ! -e "$${old_tree}Tests.lean"; \
-		live_sources=$$(find model/Umpire model/Temporal/Umpire -type f -name '*.lean' -print); \
+		old_namespace='Temporal''[.](Experiment|Umpire)'; \
+		old_path='Temporal/''(Experiment|Umpire)'; \
+		old_targets='Experiment''Tests|temporal-experiment''-inspect|Temporal''UmpireTests|temporal-umpire''-inspect|Nexus''AutoClose'; \
+		old_experiment_tree=model/Temporal/''Experiment; \
+		old_umpire_tree=model/Temporal/''Umpire; \
+		old_temporal_tests=model/Temporal''UmpireTests.lean; \
+		old_auto_close_root=model/Nexus''AutoClose.lean; \
+		test ! -e "$$old_experiment_tree"; \
+		test ! -e "$${old_experiment_tree}Tests.lean"; \
+		test ! -e "$$old_umpire_tree"; \
+		test ! -e "$$old_temporal_tests"; \
+		test ! -e "$$old_auto_close_root"; \
+		live_sources=$$(find model/Umpire model/Temporal -type f -name '*.lean' -print); \
 		test -n "$$live_sources"; \
 		if grep -nE "$$old_namespace|$$old_path" $$live_sources \
-			model/Umpire.lean model/UmpireTests.lean model/Temporal.lean model/TemporalUmpireTests.lean; then \
-			echo "found obsolete Temporal experiment interface in live Lean sources" >&2; \
+			model/Umpire.lean model/UmpireTests.lean model/Temporal.lean model/TemporalModelTests.lean; then \
+			echo "found obsolete Temporal interface in live Lean sources" >&2; \
 			exit 1; \
 		else \
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
 		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lakefile.toml model/README.md; then \
-			echo "found obsolete Temporal experiment interface in live build or model documentation" >&2; \
+			echo "found obsolete Temporal interface in live build or model documentation" >&2; \
 			exit 1; \
 		else \
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		umpire_sources=$$(find model/Umpire -type f -name '*.lean' -print); \
-		if grep -nE '^[[:space:]]*import[[:space:]]+(Temporal|Nexus)([.[:space:]]|$$)' $$umpire_sources; then \
-			echo "found forbidden Umpire dependency on Temporal or Nexus" >&2; \
+		if git grep -nE '^[[:space:]]*(import|namespace)[[:space:]]+(Temporal|Nexus)([.]|[[:space:]]|$$)|(^|[^[:alnum:]_-])(nexus|workflow|workflow-nexus)[.]' -- \
+			model/Umpire model/Umpire.lean model/UmpireTests.lean; then \
+			echo "found Temporal-owned dependency, namespace, or semantic prefix in reusable Umpire artifacts" >&2; \
+			exit 1; \
+		else \
+			scan_status=$$?; \
+			test "$$scan_status" -eq 1; \
+		fi; \
+		feature_sources=$$(find model/Temporal/Feature -type f -name '*.lean' -print); \
+		system_sources=$$(find model/Temporal/System -type f -name '*.lean' -print); \
+		configuration_sources="model/Temporal/System/Configuration.lean $$(find model/Temporal/System/Configuration -type f -name '*.lean' ! -name '*Tests.lean' -print)"; \
+		test -n "$$feature_sources"; \
+		test -n "$$system_sources"; \
+		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]System([.]|[[:space:]]|$$)' $$feature_sources; then \
+			echo "found forbidden Feature dependency on System" >&2; \
+			exit 1; \
+		else \
+			scan_status=$$?; \
+			test "$$scan_status" -eq 1; \
+		fi; \
+		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]Feature([.]|[[:space:]]|$$)' $$system_sources; then \
+			echo "found forbidden System dependency on Feature" >&2; \
+			exit 1; \
+		else \
+			scan_status=$$?; \
+			test "$$scan_status" -eq 1; \
+		fi; \
+		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]System[.](Callback|Matching)([.]|[[:space:]]|$$)' $$configuration_sources; then \
+			echo "found forbidden shared Configuration dependency on Callback or Matching" >&2; \
 			exit 1; \
 		else \
 			scan_status=$$?; \
@@ -1054,7 +1086,7 @@ umpire-check-regression:
 			echo "Umpire Planning facade does not expose its package" >&2; \
 			exit 1; \
 		}
-	@cd model && $(LEAN_LAKE) build UmpireTests TemporalUmpireTests $(UMPIRE_REGRESSION_INSPECTOR)
+	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests $(UMPIRE_REGRESSION_INSPECTOR)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \
@@ -1074,7 +1106,16 @@ umpire-check-regression:
 		test ! -s "$$temporary/negative.stdout"; \
 		printf '%s\n' '{"kind":"unknown-scenario","subject":"missing-scenario","context":"scenario registry"}' \
 			> "$$temporary/expected-negative.stderr"; \
-		cmp -s "$$temporary/expected-negative.stderr" "$$temporary/negative.stderr"
+		cmp -s "$$temporary/expected-negative.stderr" "$$temporary/negative.stderr"; \
+		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) \
+			> "$$temporary/invalid.stdout" 2> "$$temporary/invalid.stderr"; then \
+			echo "expected the inspector to reject invalid arguments" >&2; \
+			exit 1; \
+		fi; \
+		test ! -s "$$temporary/invalid.stdout"; \
+		printf '%s\n' '{"kind":"invalid-arguments","subject":"inspect","context":"expected exactly one scenario identity"}' \
+			> "$$temporary/expected-invalid.stderr"; \
+		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
 umpire3-gen-migration:
 	@printf $(COLOR) "Generate Umpire3 root-test migration ledger..."
