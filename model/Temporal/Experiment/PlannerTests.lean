@@ -26,20 +26,20 @@ def value (identity : DeclarationId) (payload : String) : SemanticValue := {
 }
 
 def initial := value phase "initial"
-def completed (index : Nat) := value phase ("completed-" ++ toString index)
+def completed := value phase "completed"
 def requestValue := value request "request"
-def acceptedValue (index : Nat) := value accepted ("accepted-" ++ toString index)
-def observedValue (index : Nat) := value observed ("accepted-" ++ toString index)
+def acceptedValue := value accepted "accepted"
+def observedValue := value observed "accepted"
 def setup : List RoleBinding := [{ role, value := value phase "operation-a" }]
 
-def transition (index : Nat) : TransitionResult SemanticValue SemanticValue SemanticValue := {
-  modelOutcome := acceptedValue index
-  resultingState := completed index
-  observations := [observedValue index]
+def transition (_index : Nat) : TransitionResult SemanticValue SemanticValue SemanticValue := {
+  modelOutcome := acceptedValue
+  resultingState := completed
+  observations := [observedValue]
 }
 
 def transitions (width : Nat) : List (TransitionResult SemanticValue SemanticValue SemanticValue) :=
-  transition 0 :: (List.range width).map fun index => transition (index + 1)
+  (List.range (width + 1)).map transition
 
 def kernel (width : Nat) : TransitionKernel
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
@@ -49,16 +49,22 @@ def kernel (width : Nat) : TransitionKernel
     source
   }
   initialStates := fun candidate => if candidate = setup then [initial] else []
-  authoritativeInitial := fun candidate state =>
-    state ∈ (if candidate = setup then [initial] else [])
-  initialSound := by intros; assumption
-  initialComplete := by intros; assumption
+  authoritativeInitial := fun candidate state => candidate = setup ∧ state = initial
+  initialSound := by intros; split at * <;> simp_all
+  initialComplete := by intros; simp_all
   steps := fun state action =>
     if state = initial ∧ action = requestValue then transitions width else []
   authoritativeStep := fun state action result =>
-    result ∈ (if state = initial ∧ action = requestValue then transitions width else [])
-  stepSound := by intros; assumption
-  stepComplete := by intros; assumption
+    state = initial ∧ action = requestValue ∧ result = transition 0
+  stepSound := by
+    intro state action result member
+    split at member <;> simp_all [transitions, transition]
+  stepComplete := by
+    intro state action result admitted
+    rcases admitted with ⟨rfl, rfl, rfl⟩
+    rw [if_pos ⟨rfl, rfl⟩]
+    apply List.mem_map.mpr
+    exact ⟨0, by simp, rfl⟩
 }
 
 def target (width : Nat) : QueryTarget (fun _ => True) := {
@@ -119,18 +125,10 @@ def completeness (width : Nat) : FiniteCompletenessEvidence (fun _ => True) (tar
     intro action member
     simp only [List.mem_cons, List.not_mem_nil, or_false] at member
     subst action
-    exact ⟨initial, transition 0, by
-      change transition 0 ∈
-        (if initial = initial ∧ requestValue = requestValue then transitions width else [])
-      simp [transitions]
-    ⟩
+    exact ⟨initial, transition 0, rfl, rfl, rfl⟩
   actionComplete := by
     intro state action result admitted
-    change result ∈
-      (if state = initial ∧ action = requestValue then transitions width else []) at admitted
-    by_cases matched : state = initial ∧ action = requestValue
-    · simp [matched.2]
-    · simp [matched] at admitted
+    simp [admitted.2.1]
 }
 
 def bounds (budget : Nat := 10) : QueryBounds := {
@@ -147,80 +145,134 @@ def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy := {
   tieBreak := .semanticIdentity
 }
 
-def declaration
+def checkedQuery
+    (width : Nat)
     (form : QueryForm)
     (strategy : SearchStrategy)
     (budget : Nat := 10)
-    (seed : Nat := 17) : QueryDeclaration := {
+    (seed : Nat := 17)
+    (withCompleteness : Bool := true)
+    (selectedBehavior : CheckedBehavior := behavior) : CheckedQuery (fun _ => True) := {
   id := id "planner.query.fixture"
   source
-  target := (target 2).id
+  version := 1
   form
-  behavior
+  quantifier := form.quantifier
+  claim := form.claim
+  behavior := selectedBehavior
+  target := target width
   bounds := bounds budget
   policy := policy strategy seed
+  targetComposition := []
+  completeness := if withCompleteness then some (completeness width) else none
   documentation := "query documentation"
+  canonicalMetadata := "query-metadata"
+  semanticDigest := "query/v1:" ++ strategy.name ++ ":" ++ toString seed ++ ":" ++
+    selectedBehavior.semanticDigest
 }
 
-def checkedQuery?
+def incrementalKernel (width : Nat) : IncrementalPlannerKernel (target width) := {
+  actionLimit := 1
+  actionAt := fun index => if index = 0 then some requestValue else none
+  initialLimit := fun candidate => if candidate = setup then 1 else 0
+  initialAt := fun candidate index =>
+    if candidate = setup ∧ index = 0 then some initial else none
+  stepLimit := fun state action =>
+    if state = initial ∧ action = requestValue then width + 1 else 0
+  stepAt := fun state action index =>
+    if state = initial ∧ action = requestValue ∧ index < width + 1 then
+      some (transition index)
+    else
+      none
+  actionSound := by
+    intro index action inBounds emitted
+    simp only [Nat.lt_one_iff] at inBounds
+    subst index
+    simp at emitted
+    subst action
+    exact ⟨initial, transition 0, rfl, rfl, rfl⟩
+  actionComplete := by
+    intro state action result admitted
+    exact ⟨0, by simp, by simp [admitted.2.1]⟩
+  initialSound := by
+    intro candidate index state inBounds emitted
+    change candidate = setup ∧ state = initial
+    by_cases selected : candidate = setup ∧ index = 0
+    · simp [selected] at emitted
+      exact ⟨selected.1, emitted.symm⟩
+    · simp [selected] at emitted
+  initialComplete := by
+    intro candidate state admitted
+    exact ⟨0, by simp [admitted.1], by simp [admitted.1, admitted.2]⟩
+  stepSound := by
+    intro state action index result inBounds emitted
+    change state = initial ∧ action = requestValue ∧ result = transition 0
+    by_cases selected : state = initial ∧ action = requestValue ∧ index < width + 1
+    · simp [selected] at emitted
+      exact ⟨selected.1, selected.2.1, by simpa [transition] using emitted.symm⟩
+    · simp [selected] at emitted
+  stepComplete := by
+    intro state action result admitted
+    exact ⟨0, by simp [admitted.1, admitted.2.1], by simp [admitted.1, admitted.2]⟩
+  actionOrdered := by intros; simp_all [semanticValueOrderKey]
+  initialOrdered := by intros; simp_all [semanticValueOrderKey]
+  stepOrdered := by intros; simp_all [transitionResultOrderKey, transition]
+}
+
+def run
     (width : Nat)
     (form : QueryForm)
     (strategy : SearchStrategy)
     (budget : Nat := 10)
-    (seed : Nat := 17) : Option (CheckedQuery (fun _ => True)) :=
-  let context : QueryCheckContext (fun _ => True) := {
-    target := .checked { target := target width, completeness := some (completeness width) }
-  }
-  (checkQuery context (declaration form strategy budget seed)).toOption
+    (seed : Nat := 17)
+    (withCompleteness : Bool := true)
+    (selectedBehavior : CheckedBehavior := behavior) : PlannerRun :=
+  plan (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
+    (incrementalKernel width)
 
-def run?
-    (width : Nat)
+def outcomeName
     (form : QueryForm)
     (strategy : SearchStrategy)
-    (budget : Nat := 10)
-    (seed : Nat := 17) : Option PlannerRun :=
-  (checkedQuery? width form strategy budget seed).map plan
-
-def outcomeName?
-    (form : QueryForm)
-    (strategy : SearchStrategy) : Option String :=
-  (run? 2 form strategy).map fun run => run.result.outcome.name
+    (withCompleteness : Bool := true) : String :=
+  (run 2 form strategy 10 17 withCompleteness).result.outcome.name
 
 /-! Each Query form preserves its exact result semantics over the same deterministic kernel. -/
 example : [
-    outcomeName? (.verify property) .exhaustive,
-    outcomeName? (.witness property) .shortest,
-    outcomeName? (.counterexample property) .exhaustive,
-    outcomeName? (.select [property]) .breadthFirst
+    outcomeName (.verify property) .exhaustive,
+    outcomeName (.witness property) .shortest false,
+    outcomeName (.counterexample property) .exhaustive,
+    outcomeName (.select [property]) .breadthFirst false
   ] = [
-    some "verified-within-bounds",
-    some "found",
-    some "no-such-trace-within-complete-bounds",
-    some "found"
+    "verified-within-bounds",
+    "found",
+    "no-such-trace-within-complete-bounds",
+    "found"
   ] := by
   native_decide
 
-def witnessSpec? (seed : Nat := 17) : Option ExperimentSpec :=
-  (run? 2 (.witness property) .shortest 10 seed).bind PlannerRun.artifact
+def witnessSpec (seed : Nat := 17) : Option ExperimentSpec :=
+  (run 2 (.witness property) .shortest 10 seed false).artifact
 
-def incidentalWitnessSpec? : Option ExperimentSpec :=
-  (checkedQuery? 2 (.witness property) .shortest).bind fun query =>
-    let incidental : CheckedQuery (fun _ => True) := {
-      query with
-      documentation := "changed query documentation"
-      behavior := { query.behavior with documentation := "changed behavior documentation" }
-      form := .witness { property with documentation := "changed property documentation" }
-    }
-    (plan incidental).artifact
+def incidentalWitnessSpec : Option ExperimentSpec :=
+  let query := checkedQuery 2 (.witness property) .shortest 10 17 false
+  let incidental : CheckedQuery (fun _ => True) := {
+    query with
+    documentation := "changed query documentation"
+    behavior := { query.behavior with documentation := "changed behavior documentation" }
+    form := .witness { property with documentation := "changed property documentation" }
+  }
+  (plan incidental (incrementalKernel 2)).artifact
 
 def selectedArtifactIsInspectable : Bool :=
-  match witnessSpec? with
+  match witnessSpec with
   | none => false
   | some spec =>
       spec.plan.initialState == initial &&
       spec.plan.requestedActions == [requestValue] &&
-      spec.plan.modelOutcomes == [acceptedValue 0] &&
-      spec.plan.linearExtension == [occurrence] &&
+      spec.plan.modelOutcomes == [acceptedValue] &&
+      spec.plan.linearExtension.map PlannedOccurrence.identity == [occurrence] &&
+      spec.plan.linearExtension.map PlannedOccurrence.action == [request] &&
+      spec.plan.linearExtension.length == spec.plan.requestedActions.length &&
       spec.plan.bindings == setup &&
       spec.plan.symbolicRoles == [] &&
       spec.plan.expandedBounds == bounds &&
@@ -233,30 +285,46 @@ def selectedArtifactIsInspectable : Bool :=
 example : selectedArtifactIsInspectable := by
   native_decide
 
+def optionalBehavior : CheckedBehavior := {
+  behavior with
+  requiredOccurrences := []
+  semanticDigest := "behavior/optional-v1"
+}
+
+/-! The linear extension contains every selected action, including optional occurrences. -/
+example :
+    ((run 2 (.select [property]) .shortest 10 17 false optionalBehavior).artifact.map fun spec =>
+      (spec.plan.linearExtension.length,
+        spec.plan.linearExtension.map PlannedOccurrence.action)) =
+      some (1, [request]) := by
+  native_decide
+
 /-! Independent planning and rendering of semantically identical checked inputs is byte-identical. -/
 example :
-    witnessSpec?.map canonicalExperimentSpecJson =
-      incidentalWitnessSpec?.map canonicalExperimentSpecJson := by
+    witnessSpec.map canonicalExperimentSpecJson =
+      incidentalWitnessSpec.map canonicalExperimentSpecJson := by
   native_decide
 
 /-! A meaning-bearing Query input is part of the artifact semantic identity. -/
 example :
-    witnessSpec?.map ExperimentSpec.semanticIdentity !=
-      (witnessSpec? 18).map ExperimentSpec.semanticIdentity := by
+    witnessSpec.map ExperimentSpec.semanticIdentity !=
+      (witnessSpec 18).map ExperimentSpec.semanticIdentity := by
   native_decide
 
 /-!
 The cursor instrumentation catches eager full-space production: a two-candidate budget over a
-high-branching step generates the root and one child, retains no pending candidates, and cannot
-upgrade the exhausted prefix into completeness.
+high-branching step pulls the root and one child, retains no pending candidates, and cannot
+materialize siblings or upgrade the exhausted prefix into completeness.
 -/
-example : ((run? 64 (.counterexample property) .shortest 2).map fun run =>
-    (run.result.outcome.name, run.result.metadata.completeness.established,
-      run.instrumentation.generatedCandidates,
-      run.instrumentation.retainedPendingCandidates,
-      run.instrumentation.peakActiveFrontierDepth,
-      run.result.metadata.explored.transitions)) =
-    some ("budget-exhausted", false, 2, 0, 2, 1) := by
+example :
+    let planned := run 64 (.counterexample property) .shortest 2 17 false
+    (planned.result.outcome.name, planned.result.metadata.completeness.established,
+      planned.instrumentation.generatedCandidates,
+      planned.instrumentation.retainedPendingCandidates,
+      planned.instrumentation.peakActiveFrontierDepth,
+      planned.instrumentation.stepKernelPulls,
+      planned.result.metadata.explored.transitions) =
+    ("budget-exhausted", false, 2, 0, 2, 1, 1) := by
   native_decide
 
 end Temporal.Experiment.PlannerTests
