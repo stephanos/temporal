@@ -37,9 +37,12 @@ Query must combine only checked siblings; it must not regain planner result cons
 - [ ] `make umpire-check-regression` remains green.
 
 ## Done summary
-TBD
+Moved Query authoring, completeness, validation, and canonicalization onto `Umpire.Query` as the first layer combining checked Property, Behavior, and Search products, without copying Search definitions or exposing planner mechanics/finalization. Ported the Query suite to `Umpire.QueryTests`, retaining completeness and exact-trace outcomes and adding focused invalid-bound, unsupported-strategy, canonical-ordering, and `Umpire.finalizePlanning` absence guards.
 
+baseline: green via receipt
+GATE_SKIPPED:smoke:green-receipt 774f1c3d - baseline reused from prior post-gate pass
+stage: impl-review - ran (SHIP; completed 2026-08-25T19:35:49.168715Z)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3dd8d585b0e4c8d3b20d40b654a6ac80c20399f8
+- Tests: GATE_SKIPPED:smoke:green-receipt 774f1c3d - baseline reused from prior post-gate pass, mise exec -- lake build UmpireTests, make umpire-check-regression
 - PRs:
