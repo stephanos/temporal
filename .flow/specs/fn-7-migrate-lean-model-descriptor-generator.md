@@ -5,7 +5,7 @@
 ## Overview
 
 Move the descriptor-set acquisition command into Temporal's standard generator-tool surface under
-the approved `genleanmodeldescriptors` name. Extract its reusable implementation and the artifact helper shared with Lean API generation and the protobuf-path helper into deep, independently tested common-tool modules.
+the approved `genleanmodeldescriptors` name. Co-locate its descriptor implementation with the command while extracting the artifact helper shared with Lean API generation and the protobuf-path helper into deep, independently tested common-tool modules.
 
 ## Goal & Context
 <!-- scope: business -->
@@ -18,7 +18,7 @@ documentation remains.
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-The command remains a thin process adapter over a common descriptor-generation module. That module
+The command package keeps a thin process adapter beside the descriptor-generation module. The latter
 continues to discover registered Go protobuf packages, generate and execute a temporary helper,
 collect matching descriptors and transitive imports, serialize deterministically, and publish the
 result atomically.
@@ -32,7 +32,7 @@ the artifact module without duplicating its durable filesystem behavior.
 
 - The command is named `genleanmodeldescriptors` and retains repeatable `--package-pattern` and
   `--file-prefix` flags plus required `--output`.
-- The descriptor module retains `Run(context.Context, []string) error`.
+- The command package retains `Run(context.Context, []string) error`.
 - Atomic publication retains same-directory temporary files, durable sync, `0700` directory
   creation, `0600` temporary files, idempotent removal, and the existing wrapped errors.
 - Prefix normalization retains whitespace and separator normalization, trailing-slash semantics,
@@ -56,7 +56,7 @@ comments are preserved during every move.
 ## Quick commands
 
 ```bash
-go test -count=1 -tags test_dep ./tools/common/artifactio ./tools/common/protofile ./tools/common/godescriptors ./tools/umpire/internal/generate/api ./cmd/tools/genleanmodeldescriptors
+go test -count=1 -tags test_dep ./tools/common/artifactio ./tools/common/protofile ./tools/umpire/internal/generate/api ./cmd/tools/genleanmodeldescriptors
 go build -tags test_dep ./cmd/tools/genleanmodeldescriptors
 make lint-code
 ```
@@ -68,8 +68,8 @@ make lint-code
   location, with the existing flags and descriptor artifact unchanged, and the former entrypoint is
   removed without a compatibility wrapper. Errors: missing or invalid flags, unexpected positional
   arguments, and direct invocation failures remain non-zero and use the new command prefix.
-- **R2:** Descriptor generation, atomic artifact I/O, and protobuf-prefix normalization live in
-  focused common-tool modules, and the Lean API generator consumes the shared artifact module. Errors: old duplicate packages are absent; invalid artifact paths and unsafe prefixes
+- **R2:** Descriptor generation lives in the command package, while atomic artifact I/O and protobuf-prefix
+  normalization live in focused common-tool modules and the Lean API generator consumes the shared artifact module. Errors: old duplicate packages are absent; invalid artifact paths and unsafe prefixes
   retain their existing rejection behavior.
 - **R3:** Generated descriptor sets remain byte-deterministic, include matching files and transitive
   imports, and publish atomically with existing permissions, cleanup, and error semantics. Errors:
@@ -95,8 +95,8 @@ make lint-code
 ## Decision Context
 <!-- scope: both — conditionally substructured -->
 
-Common modules preserve the existing deep `Run` boundary and avoid copying security-relevant prefix
-validation or durable artifact publication into a shallow command package. `genleanmodeldescriptors`
+The command package preserves the deep `Run` boundary, while common helper modules avoid copying
+security-relevant prefix validation or durable artifact publication back into Umpire ownership. `genleanmodeldescriptors`
 is intentionally longer than `genmodeldescriptors` to distinguish this protobuf input stage from the
 existing model generators. The migration waits for the active Lean API output simplification because
 both changes touch its imports, root generation wiring, and current design documentation. A wrapper
@@ -119,8 +119,7 @@ the common-module boundary before migrating the descriptor command in task 2.
 
 | Req | Description | Task(s) | Gap justification |
 |-----|-------------|---------|-------------------|
-| R1 | Hard-cutover command and build integration | fn-7-migrate-lean-model-descriptor-generator.2 | — |
-| R2 | Common deep modules and shared consumers | fn-7-migrate-lean-model-descriptor-generator.1, fn-7-migrate-lean-model-descriptor-generator.2 | — |
+| R1 | Hard-cutover command and build integration | fn-7-migrate-lean-model-descriptor-generator.2, fn-7-migrate-lean-model-descriptor-generator.3 | — |
+| R2 | Command-owned descriptor module and common shared helpers | fn-7-migrate-lean-model-descriptor-generator.1, fn-7-migrate-lean-model-descriptor-generator.2, fn-7-migrate-lean-model-descriptor-generator.3 | — |
 | R3 | Deterministic and failure-safe behavior parity | fn-7-migrate-lean-model-descriptor-generator.1, fn-7-migrate-lean-model-descriptor-generator.2 | — |
-| R4 | Comment preservation and stale-reference cleanup | fn-7-migrate-lean-model-descriptor-generator.2 | — |
-
+| R4 | Comment preservation and stale-reference cleanup | fn-7-migrate-lean-model-descriptor-generator.2, fn-7-migrate-lean-model-descriptor-generator.3 | — |

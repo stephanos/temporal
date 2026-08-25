@@ -1,4 +1,4 @@
-package godescriptors
+package main
 
 import (
 	"bytes"

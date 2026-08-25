@@ -155,9 +155,9 @@ Blend the existing generator’s deep whole-model pipeline, deterministic planni
      leaving the output tree untouched.
 
 5. **Extract registered Go descriptor acquisition into a companion command**
-   - Add a thin entry point at `cmd/tools/genleanmodeldescriptors/main.go` and a common
-     implementation at `tools/common/godescriptors/run.go`, following the existing
-     context/arguments/output error boundary used by `umpire-gen-api`.
+   - Add a command package at `cmd/tools/genleanmodeldescriptors`, with `main.go` as the process
+     adapter and `run.go` following the existing context/arguments/output error boundary used by
+     `umpire-gen-api`.
    - Parse repeatable `--package-pattern` and `--file-prefix` flags plus required `--output`; reject
      empty lists, unexpected positional arguments, and invalid output paths before invoking Go.
    - Adapt the removed temporary-helper logic to run `go list` for all patterns, deterministically
@@ -170,7 +170,7 @@ Blend the existing generator’s deep whole-model pipeline, deterministic planni
    - Publish `--output` with `artifactio.Publish` and return contextual package-pattern, `go list`,
      helper-build, empty-selection, and write errors.
    - Add `run_test.go` plus a small importable registered-descriptor package beneath
-     `tools/common/godescriptors/testdata/godescriptors/` to cover repeated pattern/prefix parsing,
+     `cmd/tools/genleanmodeldescriptors/testdata/godescriptors/` to cover repeated pattern/prefix parsing,
      package deduplication, prefix selection, transitive imports, no matches, deterministic file
      order/bytes, and command failure diagnostics without network access.
 
