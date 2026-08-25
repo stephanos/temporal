@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T15:34:07.864403Z",
+  "depends_on": [
+    "fn-9-umpire-reusable-dsl-package-split.1"
+  ],
+  "id": "fn-9-umpire-reusable-dsl-package-split.2",
+  "priority": null,
+  "spec": "fn-9-umpire-reusable-dsl-package-split",
+  "spec_path": ".flow/tasks/fn-9-umpire-reusable-dsl-package-split.2.md",
+  "status": "todo",
+  "title": "Split Property Behavior and Search modules",
+  "updated_at": "2026-08-25T15:34:07.864403Z"
+}
