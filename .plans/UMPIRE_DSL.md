@@ -956,6 +956,38 @@ Public declarations remain concise under the root `Umpire` namespace, such as
 `Umpire.PropertyDeclaration` and `Umpire.CheckedBehavior`. The module owns the interface without
 forcing every public type into a second namespace such as `Umpire.Property.Declaration`.
 
+The module split is physical as well as logical. Each substantial language owns a directory behind
+its stable public facade:
+
+```text
+Umpire/
+  Property.lean              # imports Umpire.Property.Language
+  Property/
+    Language.lean
+    Tests.lean
+    ImportTests.lean
+  Behavior.lean              # imports Umpire.Behavior.Language
+  Behavior/
+    Language.lean
+    Tests.lean
+    ImportTests.lean
+  Query.lean                 # imports Umpire.Query.Language
+  Query/
+    Language.lean
+    Tests.lean
+  Planning.lean              # imports Umpire.Planning.Engine
+  Planning/
+    Engine.lean
+    Tests.lean
+    VisibilityTests.lean
+```
+
+The facade is the external seam: callers continue to write `import Umpire.Property`, for example,
+and do not need to know how that language is arranged internally. Core, Search, and Artifact remain
+shared support modules outside a DSL directory until they acquire multiple cohesive internals. This
+keeps the packages vertical; there is no cross-language `Syntax`, `Validation`, or `Evaluation`
+directory.
+
 The old `Temporal.Experiment.*` namespace and module tree are removed in the same change. No aliases,
 re-exporting compatibility facade, or second authoring path remains.
 
