@@ -212,6 +212,46 @@ func TestSetPublishRecoversInterruptedInstallation(t *testing.T) {
 	requireFixtureTree(t, root, "new")
 }
 
+func TestSetPublishRecoversInterruptedCleanup(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		removeBackup string
+	}{
+		{name: "before cleanup"},
+		{name: "after partial backup cleanup", removeBackup: "Temporal/DynamicConfig.lean"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			set := fixtureSet()
+			writeFixtureTree(t, root, "old")
+
+			err := publishSetWithHooks(set, root, fixtureSetArtifacts("new"), nil, publishHooks{
+				beforeCleanup: func(transactionRoot string) error {
+					state, exists, stateErr := readPublicationState(transactionRoot)
+					require.NoError(t, stateErr)
+					require.True(t, exists)
+					require.True(t, state.Committed)
+					if tt.removeBackup != "" {
+						relative := filepath.FromSlash("backup/" + tt.removeBackup)
+						require.NoError(t, os.RemoveAll(filepath.Join(transactionRoot, relative)))
+					}
+					return errSimulatedInterruption
+				},
+			})
+			require.ErrorIs(t, err, errSimulatedInterruption)
+			requireFixtureTree(t, root, "new")
+
+			err = set.Publish(root, fixtureSetArtifacts("later"), func(string) error {
+				return errors.New("stop after recovery")
+			})
+			require.ErrorContains(t, err, "stop after recovery")
+			requireFixtureTree(t, root, "new")
+		})
+	}
+}
+
 func fixtureSet() Set {
 	return Set{
 		Roots: []string{

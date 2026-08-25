@@ -512,10 +512,11 @@ func renderCanonicalValue(value CanonicalValue) (string, error) {
 		parsed, _ := strconv.ParseBool(value.Scalar)
 		return fmt.Sprintf(".bool %t", parsed), nil
 	case ValueInt:
-		if _, err := strconv.ParseInt(value.Scalar, 10, 64); err != nil {
+		parsed, err := strconv.ParseInt(value.Scalar, 10, 64)
+		if err != nil {
 			return "", fmt.Errorf("invalid int %q", value.Scalar)
 		}
-		return ".int " + value.Scalar, nil
+		return ".int " + leanSignedLiteral(strconv.FormatInt(parsed, 10)), nil
 	case ValueUint:
 		if _, err := strconv.ParseUint(value.Scalar, 10, 64); err != nil {
 			return "", fmt.Errorf("invalid uint %q", value.Scalar)
@@ -529,10 +530,11 @@ func renderCanonicalValue(value CanonicalValue) (string, error) {
 	case ValueString:
 		return ".string " + leanString(value.Scalar), nil
 	case ValueDuration:
-		if _, err := strconv.ParseInt(value.Scalar, 10, 64); err != nil {
+		parsed, err := strconv.ParseInt(value.Scalar, 10, 64)
+		if err != nil {
 			return "", fmt.Errorf("invalid duration %q", value.Scalar)
 		}
-		return ".duration " + value.Scalar, nil
+		return ".duration " + leanSignedLiteral(strconv.FormatInt(parsed, 10)), nil
 	case ValueList:
 		return renderCanonicalList(value.Items)
 	case ValueObject:
@@ -607,7 +609,7 @@ func renderOptionalInt(value *int32) string {
 	if value == nil {
 		return "none"
 	}
-	return fmt.Sprintf("some %d", *value)
+	return "some " + leanSignedLiteral(strconv.FormatInt(int64(*value), 10))
 }
 
 func renderFixtureSource(source FixtureSource) (string, error) {
@@ -653,7 +655,38 @@ func settingIdentifier(key string) (string, error) {
 }
 
 func leanString(value string) string {
-	return strconv.Quote(value)
+	var rendered strings.Builder
+	rendered.Grow(len(value) + 2)
+	rendered.WriteByte('"')
+	for _, character := range value {
+		switch character {
+		case '"':
+			rendered.WriteString(`\"`)
+		case '\\':
+			rendered.WriteString(`\\`)
+		case '\n':
+			rendered.WriteString(`\n`)
+		case '\r':
+			rendered.WriteString(`\r`)
+		case '\t':
+			rendered.WriteString(`\t`)
+		default:
+			if character < 0x20 || character == 0x7f {
+				fmt.Fprintf(&rendered, `\u%04x`, character)
+			} else {
+				rendered.WriteRune(character)
+			}
+		}
+	}
+	rendered.WriteByte('"')
+	return rendered.String()
+}
+
+func leanSignedLiteral(value string) string {
+	if strings.HasPrefix(value, "-") {
+		return "(" + value + ")"
+	}
+	return value
 }
 
 func writeDynamicConfigHeader(generated *strings.Builder) {
