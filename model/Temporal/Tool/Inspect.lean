@@ -76,13 +76,13 @@ def productionRegistry : ScenarioRegistry := [{
 
 def runCli (args : List String) : InspectorResult := runInspector productionRegistry args
 
+end Temporal.Tool.Inspect
+
 def main (args : List String) : IO UInt32 := do
-  let result := runCli args
+  let result := Temporal.Tool.Inspect.runCli args
   IO.print result.stdout
   IO.eprint result.stderr
   if result.status == 0 then
     pure 0
   else
     pure 1
-
-end Temporal.Tool.Inspect
