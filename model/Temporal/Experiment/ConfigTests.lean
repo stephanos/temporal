@@ -120,7 +120,7 @@ example :
 def duplicateOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.duplicate-override" "payments"
   let override : ConfigOverride := {
-    key := use.setting.key
+    key := use.key
     constraints := namespaceContext "payments"
     value := .int 20
   }
@@ -129,7 +129,7 @@ def duplicateOverrideResult : Except ConfigError ConfigView := do
 def illegalOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.illegal-override" "payments"
   let override : ConfigOverride := {
-    key := use.setting.key
+    key := use.key
     constraints := { emptyConstraints with destination := some "callback-api" }
     value := .int 20
   }
@@ -138,7 +138,7 @@ def illegalOverrideResult : Except ConfigError ConfigView := do
 def schemaMismatchOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.schema-mismatch-override" "payments"
   let override : ConfigOverride := {
-    key := use.setting.key
+    key := use.key
     constraints := namespaceContext "payments"
     value := .bool true
   }
@@ -182,12 +182,12 @@ def addressRulesValue (rules : List CanonicalValue) : CanonicalValue :=
 def malformedUnselectedAddressOverrideResult : Except ConfigError ConfigView := do
   let use ← callbackAllowedAddressesUse "payments"
   let selected : ConfigOverride := {
-    key := use.setting.key
+    key := use.key
     constraints := namespaceContext "payments"
     value := addressRulesValue [addressRuleValue "api.example.com" false]
   }
   let malformed : ConfigOverride := {
-    key := use.setting.key
+    key := use.key
     constraints := emptyConstraints
     value := addressRulesValue [addressRuleValue "" false]
   }
@@ -200,12 +200,12 @@ def sameKeyView (reverseInput : Bool) : Except ConfigError ConfigView := do
   let first ← checkedMaxUse "test.config.consumer-a" "alpha"
   let second ← checkedMaxUse "test.config.consumer-b" "beta"
   let firstOverride : ConfigOverride := {
-    key := first.setting.key
+    key := first.key
     constraints := namespaceContext "alpha"
     value := .int 11
   }
   let secondOverride : ConfigOverride := {
-    key := second.setting.key
+    key := second.key
     constraints := namespaceContext "beta"
     value := .int 22
   }
@@ -248,7 +248,7 @@ def immutableViewReads : Except ConfigError (Int × Int × Int) := do
   let view ← resolveConfigView [] [.of use]
   let before ← view.read use
   let changed ← resolveConfigView [{
-    key := use.setting.key
+    key := use.key
     constraints := namespaceContext "payments"
     value := .int 10
   }] [.of use]
@@ -287,7 +287,7 @@ example : representativeMetadataComplete = true := by native_decide
 def constrainedDefaultInterleaving : Except ConfigError (Int × ResolutionSource) := do
   let use ← matchingUpdateAckIntervalUse "fixture-namespace" "temporal-sys-per-ns-tq" 1
   let namespaceOverride : ConfigOverride := {
-    key := use.setting.key
+    key := use.key
     constraints := namespaceContext "fixture-namespace"
     value := .duration 120000000000
   }
@@ -298,7 +298,7 @@ def constrainedDefaultInterleaving : Except ConfigError (Int × ResolutionSource
   | _ => throw {
       kind := .fixtureMismatch
       useId := use.id
-      key := use.setting.key
+      key := use.key
       offendingValue := "unexpected entry count"
       relatedIdentities := []
     }
@@ -422,7 +422,9 @@ example :
      callbackValidationKind "https:///missing-host",
      callbackValidationKind "https://user:secret@api.a.b.example.com/path",
      callbackValidationKind "https://api.a.example.com:invalid",
-     callbackValidationKind "https://api.%zz.example.com"] =
+     callbackValidationKind "https://api.%zz.example.com",
+     callbackValidationKind "https://[2001:db8::1]/path",
+     callbackValidationKind "https://[not:ipv6]"] =
     [none,
      none,
      some .unknownScheme,
@@ -433,6 +435,8 @@ example :
      some .missingHost,
      none,
      some .malformedAddress,
+     some .malformedAddress,
+     none,
      some .malformedAddress] := by native_decide
 
 def secureRuleWins : CallbackAddressRules := {
