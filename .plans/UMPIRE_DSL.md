@@ -901,6 +901,10 @@ Together they must demonstrate the complete offline semantic loop without a live
 No individual spec may weaken the shared purity, qualification, determinism, identity, or
 provenance rules to make its local implementation easier.
 
+The package extraction accepted in section 21 is a focused prerequisite follow-up to `fn-3`. Before
+work begins on `fn-4` or `fn-5`, their task graphs must depend on that extraction so new declarations
+do not extend the namespace being removed.
+
 ## Resolved via Project Docs
 
 - The existing regression slice already targets Lean/Umpire tool developers, adds no Temporal
@@ -917,17 +921,144 @@ provenance rules to make its local implementation easier.
 
 ## Resolved via Codebase
 
-- The implemented slice currently combines resources, action attempts, ordering, expected
-  properties, and declaration bounds in `Regression`
-  (`model/Temporal/Experiment/DSL.lean:40`).
-- `ModelTarget` currently carries resource bindings, function-valued action projections, property
-  observation contracts, and provenance (`model/Temporal/Experiment/DSL.lean:83`), which explains
-  why the new portable languages must replace rather than serialize that authoring structure.
-- The existing pure seam is `compile : ModelTarget → Regression → Except CompileError
-  ExperimentSpec` (`model/Temporal/Experiment/Compiler.lean:205`), and `ExperimentSpec` already
-  records version, identity, setup, actions, outcomes, properties, bounds, omissions, and provenance
-  (`model/Temporal/Experiment/DSL.lean:101`).
-- The bounded Nexus pilot already compiles one declaration through that seam
-  (`model/Temporal/Experiment/NexusCallerClosure.lean:61`).
+- `Temporal.Experiment.Semantics` owns both the reusable semantic trace/kernel vocabulary and checked
+  target composition; neither concern depends on Temporal server behavior.
+- `Temporal.Experiment.Property` and `Temporal.Experiment.Behavior` are already sibling modules that
+  depend only on `Semantics`, while `Temporal.Experiment.Query` is the first module that imports both.
+- `Temporal.Experiment.Query` also contains search policy and planner protocol types. Those are
+  mechanisms shared by query authoring, planning, and artifacts rather than part of the Query DSL.
+- `Temporal.Experiment.Artifact` depends on Query and defines the portable `DrivePlan` and
+  `ExperimentSpec`; `Temporal.Experiment.Planner` consumes checked queries and produces those
+  artifacts.
+- `Temporal.Experiment.DSL`, `Temporal.Experiment.Compiler`, and `Temporal.Experiment.Json` are now
+  import-only pass-through modules. They provide no deep interface and need not survive extraction.
+- `Temporal.Experiment.SwitchScenario` is a domain-neutral reuse example, while
+  `Temporal.Experiment.NexusCallerClosure` imports the Temporal-specific `NexusAutoClose` model.
 - Regression verification is already wired through the repository's top-level Makefile
-  (`Makefile:1020`); new model generation and checks follow that same location rule.
+  (`Makefile:999`); new model generation and checks follow that same location rule.
+
+## 21. Lean package and namespace architecture
+
+This section records the accepted package split as of 2026-08-25. It refines code ownership without
+changing the language semantics defined above.
+
+### 21.1 One Umpire library with independently importable modules
+
+Reusable authoring and planning abstractions live in one Lake library named `Umpire`. The library
+uses vertical modules for each DSL rather than horizontal syntax, validation, evaluation, and
+serialization layers. Ordinary authors import only the language they need:
+
+```lean
+import Umpire.Property
+import Umpire.Behavior
+import Umpire.Query
+```
+
+Public declarations remain concise under the root `Umpire` namespace, such as
+`Umpire.PropertyDeclaration` and `Umpire.CheckedBehavior`. The module owns the interface without
+forcing every public type into a second namespace such as `Umpire.Property.Declaration`.
+
+The old `Temporal.Experiment.*` namespace and module tree are removed in the same change. No aliases,
+re-exporting compatibility facade, or second authoring path remains.
+
+### 21.2 Module dependency direction
+
+The public modules form this acyclic dependency order:
+
+1. `Umpire.Core` owns declaration identity, vocabulary metadata, semantic values and traces,
+   transition kernels, capability composition, and checked targets.
+2. `Umpire.Property` depends only on Core and owns property declarations, checking, denotation,
+   evaluation, diagnostics, and canonical representation.
+3. `Umpire.Behavior` depends only on Core and owns setup, action, ordering, occurrence, exact-action,
+   and exact-trace constraints together with checking, diagnostics, and canonical representation.
+4. `Umpire.Search` depends only on Core and owns shared bounds, strategies, budgets, tie breaking,
+   policies, and deterministic selection metadata. These are planning concerns used by Query rather
+   than a fourth authoring DSL.
+5. `Umpire.Query` depends on Property, Behavior, and Search. It is the first layer allowed to combine
+   checked properties with a checked behavior.
+6. `Umpire.Artifact` depends on Query and owns the portable `DrivePlan` and `ExperimentSpec` data and
+   their canonical representations.
+7. `Umpire.Planning` depends on Query and Artifact and owns planner kernels, enumeration, private
+   termination authority, planning outcomes, and results.
+
+Small canonical JSON and ordering primitives that genuinely repeat may live in
+`Umpire.Internal.Canonical`. This is an internal seam, not another authoring interface. Each DSL
+continues to own the canonical meaning and structured errors of its declarations.
+
+`Umpire` never imports `Temporal`, Nexus, or a runtime/evidence implementation. The one-way
+dependency is enforceable at the Lean module graph: Temporal may import Umpire; Umpire may not import
+Temporal.
+
+### 21.3 Domain and example placement
+
+The two existing scenarios separate according to their real dependencies:
+
+- the domain-neutral switch reuse proof moves to `Umpire.Examples.Switch`;
+- the Nexus caller-closure model and proofs move to `Temporal.Umpire.NexusCallerClosure`; and
+- the Temporal scenario registry and inspector move to `Temporal.Umpire.Inspect`.
+
+Future Temporal history, event, cluster, and in-process evidence mappings and execution adapters stay
+under `Temporal.Umpire.*`. Other domains may supply their own adapters without changing the Umpire
+library.
+
+### 21.4 Authoring and execution data flow
+
+A domain adapter declares vocabulary, laws, checked target composition, and a transition kernel
+through Core. Property and Behavior check independently. Query combines their checked products with
+bounded search intent. Planning consumes the checked query and kernel and emits an inspectable
+`ExperimentSpec`. A later runtime may consume that artifact, but runtime types and evidence never
+flow back into Property, Behavior, Query, or Planning.
+
+The Observation language remains a separate future vertical module. `Umpire.Observation` will own
+domain-independent interpretation and qualification concepts; `Temporal.Umpire.Observation.*` will
+own Temporal evidence mappings. Property must never import Observation. A later `Umpire.Verdict`
+module may combine a pure property with a qualified semantic trace. This extraction does not create
+an empty Observation module before that interface exists.
+
+### 21.5 Clean migration and failure semantics
+
+The extraction is atomic and behavior-preserving. It updates every repository consumer while
+preserving declaration identities, format versions, semantic digests, validation order,
+deterministic planner ordering, structured error kinds, and the distinction among invalid,
+unsatisfiable, budget-exhausted, and verified results.
+
+Planner completion and finalization remain private to `Umpire.Planning`; moving declarations must
+not let callers manufacture a verified result. Each DSL retains its own `Except` error family rather
+than introducing a generic package-migration error.
+
+Provenance source paths change to their truthful new locations. Canonical artifact bytes may change
+where provenance records a moved path, but semantic identities and digests must not change merely
+because a file moved. Stale `Temporal.Experiment` imports fail at compile time instead of resolving
+through compatibility aliases.
+
+The repository's top-level Makefile remains the only Makefile changed for model build or regression
+commands. No model-local Makefile is added or extended.
+
+### 21.6 Verification
+
+Tests follow the new ownership:
+
+- Umpire tests cover Core, Property, Behavior, Query, Artifact, Planning, and the generic switch
+  example;
+- Temporal Umpire tests cover Nexus target composition, scenario authoring, and inspector output;
+- compile-time import tests prove that Property and Behavior do not expose one another or Query,
+  while Query deliberately imports both;
+- an import-graph check proves that no `Umpire.*` module imports `Temporal.*` or Nexus;
+- existing positive and negative declaration tests move without weaker assertions;
+- planner tests retain the external-forgery guard and all termination distinctions;
+- golden comparisons preserve identities, digests, ordering, and artifact fields while allowing
+  only truthful provenance-path changes;
+- both the generic switch scenario and the Temporal Nexus scenario compile and plan through the same
+  public Umpire interfaces; and
+- a stale-import scan requires `Temporal.Experiment` to disappear from Lean sources and model
+  documentation.
+
+`make umpire-check-regression` remains the stable user command. Its recipe changes only in the
+repository's top-level Makefile to build the renamed Lean targets and Temporal Umpire inspector.
+
+### 21.7 Delivery order
+
+The package extraction should land before Observation, discovery, or promotion work adds more
+declarations to the old namespace. It moves and separates the implemented surface without
+redesigning `SemanticValue`, adding new DSL semantics, or scaffolding future empty packages.
+Generalizing the value representation remains a separate design decision.
