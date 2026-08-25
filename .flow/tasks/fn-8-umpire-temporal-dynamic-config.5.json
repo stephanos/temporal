@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T05:28:24.997880Z",
+  "depends_on": [
+    "fn-8-umpire-temporal-dynamic-config.4"
+  ],
+  "id": "fn-8-umpire-temporal-dynamic-config.5",
+  "priority": null,
+  "spec": "fn-8-umpire-temporal-dynamic-config",
+  "spec_path": ".flow/tasks/fn-8-umpire-temporal-dynamic-config.5.md",
+  "status": "todo",
+  "title": "Implement typed ConfigView authoring and resolution",
+  "updated_at": "2026-08-25T05:38:58.872179Z"
+}

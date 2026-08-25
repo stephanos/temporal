@@ -1,0 +1,104 @@
+{
+  "branch_name": "fn-8-umpire-temporal-dynamic-config",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-25T05:28:16.261045Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-3-umpire-semantic-authoring-and-planning"
+  ],
+  "id": "fn-8-umpire-temporal-dynamic-config",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-25T05:42:00.789879Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "0322d63649d653c9e3af0aad753c7a37d5463a764e6765f58dba4e61d28efc15",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a43b2d98f4d51ff4dc9558d7543bf079",
+            "classification": "introduced",
+            "findingId": "finding-a43b2d98f4d51ff4dc9558d7543bf079",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fd6c65b4a826e50e0020634b352ef630",
+            "classification": "introduced",
+            "findingId": "finding-fd6c65b4a826e50e0020634b352ef630",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-42d815d987c9ab06372b26e75d60097a",
+            "classification": "introduced",
+            "findingId": "finding-42d815d987c9ab06372b26e75d60097a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fe5e246e73b41e2babf38c3e2eb37ea561bae390",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 224,
+      "output_sha256": "66c5252059864307acec044335812120ce8e79119e25f4dd2ff979df3215fde4",
+      "reservation_id": "470b3bdf9eea45c38c0b8bef7fc3f578",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T05:39:51.714606Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-8-umpire-temporal-dynamic-config.md",
+  "status": "open",
+  "title": "Umpire Temporal dynamic config",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-25T05:42:00.790312Z"
+}

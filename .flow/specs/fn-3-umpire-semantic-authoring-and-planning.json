@@ -1157,7 +1157,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-3-umpire-semantic-authoring-and-planning.md",
-  "status": "open",
+  "status": "done",
   "title": "Umpire semantic authoring and planning core",
   "tracker": {
     "baseHashFlow": null,
@@ -1170,5 +1170,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T05:41:47.938570Z"
+  "updated_at": "2026-08-25T14:35:22.151684Z"
 }
