@@ -106,11 +106,6 @@ structure PlannerPolicy where
   tieBreak : TieBreakPolicy
   deriving BEq, DecidableEq, Ord, Repr
 
-structure FiniteCompletenessMetadata where
-  roleDomainDigest : String
-  actionDomainDigest : String
-  deriving BEq, DecidableEq, Repr
-
 /-- Exhaustive evidence is propositionally tied to the selected target's setup enumeration and
 authoritative step relation; it cannot certify an unrelated author-supplied predicate. -/
 structure FiniteCompletenessEvidence
@@ -126,13 +121,6 @@ structure FiniteCompletenessEvidence
     ∃ state result, target.kernel.authoritativeStep state action result
   actionComplete : ∀ state action result,
     target.kernel.authoritativeStep state action result → action ∈ actions
-
-def FiniteCompletenessEvidence.metadata
-    (evidence : FiniteCompletenessEvidence LawStatement target) :
-    FiniteCompletenessMetadata := {
-  roleDomainDigest := evidence.roleDomainDigest
-  actionDomainDigest := evidence.actionDomainDigest
-}
 
 inductive CompletenessRequirement where
   | roleDomain
@@ -224,7 +212,7 @@ structure CheckedQuery (LawStatement : DeclarationId → Prop) where
   bounds : QueryBounds
   policy : PlannerPolicy
   targetComposition : List DeclarationId
-  completeness : Option FiniteCompletenessMetadata
+  completeness : Option (FiniteCompletenessEvidence LawStatement target)
   documentation : String
   canonicalMetadata : String
   semanticDigest : String
@@ -367,7 +355,8 @@ private def policyJson (policy : PlannerPolicy) : String :=
     ",\"seed\":" ++ toString policy.seed ++
     ",\"tieBreak\":" ++ quote policy.tieBreak.name ++ "}"
 
-private def completenessJson (evidence : Option FiniteCompletenessMetadata) : String :=
+private def completenessJson
+    (evidence : Option (FiniteCompletenessEvidence LawStatement target)) : String :=
   match evidence with
   | none => "null"
   | some evidence =>
@@ -383,7 +372,7 @@ private def querySemanticJson
     (composition : List DeclarationId)
     (bounds : QueryBounds)
     (policy : PlannerPolicy)
-    (completeness : Option FiniteCompletenessMetadata) : String :=
+    (completeness : Option (FiniteCompletenessEvidence LawStatement target)) : String :=
   let properties := form.properties.mergeSort propertyLe
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
@@ -440,7 +429,7 @@ def checkQuery
   if declaration.policy.strategy == .exhaustive && checkedTarget.completeness.isNone then
     throw (queryError .missingFiniteCompleteness declaration "finite role/action domains"
       [target.id, target.kernel.metadata.id])
-  let completeness := checkedTarget.completeness.map FiniteCompletenessEvidence.metadata
+  let completeness := checkedTarget.completeness
   let composition := targetComposition target
   let semantic := querySemanticJson declaration.id declaration.version declaration.form
     declaration.behavior target composition declaration.bounds declaration.policy completeness
