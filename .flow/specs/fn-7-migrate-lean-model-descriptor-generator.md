@@ -5,8 +5,7 @@
 ## Overview
 
 Move the descriptor-set acquisition command into Temporal's standard generator-tool surface under
-the approved `genleanmodeldescriptors` name. Extract its reusable implementation and the two helper
-packages shared with Lean API generation into deep, independently tested common-tool modules.
+the approved `genleanmodeldescriptors` name. Extract its reusable implementation and the artifact helper shared with Lean API generation and the protobuf-path helper into deep, independently tested common-tool modules.
 
 ## Goal & Context
 <!-- scope: business -->
@@ -25,8 +24,8 @@ collect matching descriptors and transitive imports, serialize deterministically
 result atomically.
 
 Atomic artifact publication and protobuf-prefix normalization become separate common-tool modules.
-The Lean descriptor command and the Umpire Lean API generator share those modules without
-duplicating their validation or filesystem behavior.
+The Lean descriptor command consumes both common modules. The Umpire Lean API generator shares
+the artifact module without duplicating its durable filesystem behavior.
 
 ## API Contracts
 <!-- scope: technical -->
@@ -70,8 +69,7 @@ make lint-code
   removed without a compatibility wrapper. Errors: missing or invalid flags, unexpected positional
   arguments, and direct invocation failures remain non-zero and use the new command prefix.
 - **R2:** Descriptor generation, atomic artifact I/O, and protobuf-prefix normalization live in
-  focused common-tool modules, and the Lean API generator consumes the shared artifact and prefix
-  modules. Errors: old duplicate packages are absent; invalid artifact paths and unsafe prefixes
+  focused common-tool modules, and the Lean API generator consumes the shared artifact module. Errors: old duplicate packages are absent; invalid artifact paths and unsafe prefixes
   retain their existing rejection behavior.
 - **R3:** Generated descriptor sets remain byte-deterministic, include matching files and transitive
   imports, and publish atomically with existing permissions, cleanup, and error semantics. Errors:
@@ -107,8 +105,8 @@ verification was rejected as previously declined scope.
 
 ## Early proof point
 
-Task fn-7-migrate-lean-model-descriptor-generator.1 proves that the shared artifact and prefix
-modules preserve their contracts while the Lean API generator consumes them. If it fails, reconsider
+Task fn-7-migrate-lean-model-descriptor-generator.1 proves that the common artifact and prefix
+modules preserve their contracts while the Lean API generator consumes the shared artifact module. If it fails, reconsider
 the common-module boundary before migrating the descriptor command in task 2.
 
 ## References
@@ -125,3 +123,4 @@ the common-module boundary before migrating the descriptor command in task 2.
 | R2 | Common deep modules and shared consumers | fn-7-migrate-lean-model-descriptor-generator.1, fn-7-migrate-lean-model-descriptor-generator.2 | — |
 | R3 | Deterministic and failure-safe behavior parity | fn-7-migrate-lean-model-descriptor-generator.1, fn-7-migrate-lean-model-descriptor-generator.2 | — |
 | R4 | Comment preservation and stale-reference cleanup | fn-7-migrate-lean-model-descriptor-generator.2 | — |
+
