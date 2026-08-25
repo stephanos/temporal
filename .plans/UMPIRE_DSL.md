@@ -1,6 +1,18 @@
 # Umpire semantic authoring languages
 
-Status: approved design direction; not an implementation plan.
+Status: interview-refined design contract; implementation is split across three Flow specs.
+
+Implementation allocation:
+
+- `fn-3-umpire-semantic-authoring-and-planning`: shared vocabulary, capabilities, Property,
+  Behavior, Query, bounded planning, `DrivePlan`, and `ExperimentSpec`;
+- `fn-4-umpire-observation-and-semantic-verdicts`: evidence interpretation, qualified traces,
+  derivations, and property verdicts; depends on `fn-3`; and
+- `fn-5-umpire-discovery-promotion-and-artifact`: glossary, promotion, and artifact evolution;
+  depends on `fn-3` and `fn-4`.
+
+This file is the shared architectural contract. Testable implementation requirements live in the
+three specs and are not duplicated here.
 
 ## 1. Purpose
 
@@ -15,6 +27,11 @@ The current Lean regression slice proves that a pure compiler can produce a dete
 inspectable `ExperimentSpec`. It also exposes an authoring problem: `Regression` and `ModelTarget`
 mix behavior, properties, model bindings, and inspection concerns. This design separates those
 concerns while retaining a single Lean-owned semantic authority.
+
+The first audience is Umpire and Lean model engineers. The concepts should remain teachable to
+Temporal feature engineers, but the first release is not an application-developer testing DSL.
+Syntax is experimental; the four language responsibilities and stable semantic identities are the
+compatibility boundary.
 
 The desired user experience is:
 
@@ -43,6 +60,10 @@ what must hold    what may happen      what to solve or run
                  property results
 ```
 
+The first release stops before the runtime box: synthetic evidence exercises interpretation and
+property checking offline. Live execution later plugs into the same generated artifact and
+observation boundary.
+
 ## 2. Design basis
 
 This design synthesizes the following existing documents:
@@ -69,7 +90,8 @@ source, or behavioral oracle for this design.
 3. They share one typed semantic vocabulary but do not share responsibilities.
 4. Properties are pure and reusable across model compositions.
 5. Properties declare required capabilities rather than belonging nominally to one domain.
-6. Behavior is a constrained semantic trace space. An exact behavior is the singleton case.
+6. Behavior is a constrained semantic trace space. `actionsExactly` fixes controllable action
+   order; `traceExactly` is the singleton case.
 7. There is no separate author-facing Drive DSL. A concrete `DrivePlan` is a generated artifact.
 8. Query syntax makes existential, universal, exploratory, and execution claims explicit.
 9. Raw evidence is interpreted separately into qualified semantic traces before properties run.
@@ -77,6 +99,18 @@ source, or behavioral oracle for this design.
 11. All search and execution is explicitly bounded. Unbounded temporal claims are outside the
     initial language.
 12. Public vocabulary has stable namespaced identities and generates `model/GLOSSARY.md`.
+13. Portable declarations are typed, inspectable data with a Lean denotation. Opaque Lean escape
+    hatches cannot participate in planning, persisted artifacts, or promotion.
+14. Capability records are the artifact-level contract. Lean type classes may provide authoring
+    convenience, but requirements remain explicit after elaboration.
+15. Property, Behavior, Query, and Observation lower to separate typed internal forms. They share
+    vocabulary and semantic types, not one universal instruction tree.
+16. Exploratory behavior is the default. Exact controllable actions and an exact complete semantic
+    trace are distinct restrictions.
+17. The existing combined `Regression` structures are replaced cleanly when the new languages land;
+    they do not remain as a second public authoring path.
+18. The first trusted planner is a deterministic, lazy, bounded Lean enumerator behind a replaceable
+    planner interface.
 
 ## 4. Goals
 
@@ -90,6 +124,11 @@ source, or behavioral oracle for this design.
 - Produce deterministic, inspectable artifacts suitable for replay, minimization, promotion, and
   generated developer views.
 - Make authoring vocabulary searchable and explainable.
+- Let representative examples read primarily as domain intent: capability requirements, bounds,
+  and qualification stay visible, while compiler plumbing and artifact fields remain hidden.
+- Make artifacts equally useful to human reviewers and deterministic automation.
+- Demonstrate reuse by authoring a second small scenario without changing the public language or
+  compiler concepts.
 
 ## 5. Non-goals
 
@@ -102,6 +141,9 @@ source, or behavioral oracle for this design.
 - Replacing specialized unit, race, persistence, schema, authorization, performance, or exact
   handler tests.
 - Implementing a live runtime as part of the first language slice.
+- A general Temporal application-testing language for SDK or workflow authors.
+- A compatibility facade that permanently exposes both `Regression` and the new languages.
+- An upstream Temporal compatibility commitment for the experimental syntax.
 
 ## 6. Shared semantic vocabulary
 
@@ -117,6 +159,10 @@ The catalog is vocabulary, not an authoring language. Mechanical Protobuf declar
 configuration catalogs may supply structure, but they do not acquire behavioral meaning until an
 authored semantic declaration interprets them.
 
+The four languages use separate typed internal forms. They may reuse small common semantic types
+such as identities, finite values, expressions, and trace positions, but there is no universal AST
+whose variants mix authoring, planning, execution, and evidence responsibilities.
+
 Every public entry has a stable namespaced identity and a kind. For example:
 
 ```text
@@ -129,13 +175,19 @@ nexus.property.cancelIsUnique
 
 Wrong-kind references fail compilation even if their textual names happen to match.
 
+Every capability also has a stable identity, versioned contract, and checked laws. A persisted
+declaration records the capabilities it consumes; it never relies on reconstructing Lean instance
+search. Documentation text and source ordering do not change semantic identity, while a change to a
+consumed capability contract does.
+
 ## 7. Capability-scoped composition
 
 A property or behavior does not belong nominally to a single domain such as `Nexus`. Instead, it
 declares the semantic capabilities it requires. A model target or composition provides those
 capabilities.
 
-An internal Lean signature may use type classes or another checked interface representation:
+The artifact-level representation is a capability record. Lean type classes may elaborate concise
+authoring syntax into that explicit record:
 
 ```lean
 def cancelIsUnique
@@ -167,6 +219,14 @@ A query selects a checked composition such as `WorkflowNexus`. Compilation fails
 target cannot provide every required capability or connector relation. This supports cross-domain
 properties without permitting arbitrary access to unrelated model internals.
 
+Evaluation exposes a capability-limited view of the semantic trace. The full trace may exist inside
+the planner or checker, but a property cannot inspect vocabulary outside its declared requirements.
+Post-hoc validation of unrestricted access is not sufficient.
+
+If two composed capabilities provide competing meanings for one identity or relationship,
+composition fails unless an explicit connector selects or reconciles them. Neither declaration
+order nor type-class search order chooses silently.
+
 Cross-domain composition must exist in the semantic model before authoring. A property cannot invent
 a runtime `Combine` operation or an unproved relationship between two domains.
 
@@ -186,6 +246,14 @@ Initial property kinds are:
 - finite trace ordering properties; and
 - bounded progress or quiescence properties.
 
+A portable property is a typed data declaration, not an opaque Lean function. Lean defines its
+denotation over a semantic trace and an executable evaluator that produces a structured verdict.
+The evaluator must be shown to agree with the denotation for the supported portable core.
+
+The common semantic trace contains an initial semantic state followed by typed steps. Each step
+retains the selected semantic action, model-owned outcome, resulting state, and emitted semantic
+observations. A property receives only the view admitted by its capability requirements.
+
 Example:
 
 ```lean
@@ -201,8 +269,10 @@ property honoredDelivery where
   eventuallyWithin cancelBudget cancelDelivered
 ```
 
-`eventuallyWithin` is a finite semantic bound, not an unbounded liveness claim and not a wall-clock
-sleep. The property result records the exact bound under which it was evaluated.
+`eventuallyWithin` is a finite semantic bound, not an unbounded liveness claim and not an implicit
+wall-clock sleep. Every bound has a declared unit, such as semantic transitions, selected actions,
+observation positions, or model-defined logical time. A named budget resolves to a typed finite
+value; mixing units fails checking. The property result records the expanded value and unit.
 
 ### 8.2 Purity rules
 
@@ -215,6 +285,13 @@ reference:
 - mutable planner or coverage state; or
 - opaque callbacks.
 
+An expert-only opaque Lean predicate may exist below the portable language, but it cannot be
+planned, serialized, promoted, used from another language, or presented as part of the portable DSL.
+
+Property evaluation does not return a bare Boolean. A structured verdict identifies the responsible
+property clause, relevant trace span, evaluated bound, semantic provenance, and any observation
+derivations used to qualify the trace.
+
 Human statements, documentation, generated tests, and support views are projections of the checked
 property declaration, not independently authored semantics.
 
@@ -224,6 +301,11 @@ property declaration, not independently authored semantics.
 
 The Behavior DSL defines a set of admissible semantic traces. It says what may, must, or must not
 happen; it does not say whether those traces are correct.
+
+Exploration is the ordinary authoring mode. A behavior declares typed symbolic resource roles and
+semantic setup constraints; the query and selected target bind those roles to concrete values or
+search for bindings. This keeps behavior declarations reusable instead of baking one fixture into
+each declaration.
 
 It owns:
 
@@ -269,19 +351,31 @@ The surface must distinguish similar-looking constraints precisely:
   actions may interleave;
 - `adjacent [a, b]`: require the named semantic occurrences with no semantic action between them;
   and
-- `exactly [a, b, c]`: admit only that total semantic action sequence.
+- `actionsExactly [a, b, c]`: admit only that total sequence of controllable semantic actions while
+  still allowing model-owned outcomes to vary; and
+- `traceExactly witness`: admit one fully selected semantic trace, including its setup, choices,
+  actions, outcomes, states, and observations.
 
 Ordering is over semantic actions, not implementation events. Exact semantic order does not promise
 exact network, scheduler, storage, or goroutine order.
 
-### 9.3 Exact behavior is not a separate DSL
+Ordering constraints form a directed acyclic graph. Incomparable occurrences express semantic
+concurrency. For each generated `DrivePlan`, the planner selects and records one deterministic
+linear extension. Runtime-level concurrency remains outside the semantic ordering claim.
 
-Mathematically, an exploratory behavior denotes a set of traces and an exact behavior denotes a set
-containing one trace. Tightening a behavior adds constraints and can only remove traces.
+### 9.3 Exact restrictions are not a separate DSL
+
+Mathematically, an exploratory behavior denotes a set of traces. `actionsExactly` narrows the
+controllable action schedule but may still denote several traces when the model owns choices or
+outcomes. `traceExactly` denotes a singleton. Tightening either form adds constraints and can only
+remove traces.
 
 ```lean
 behavior callerClosureRegression :=
-  callerClosure |> exactly [requestCancel, callerClose]
+  callerClosure |> actionsExactly [requestCancel, callerClose]
+
+behavior promotedCallerClosureRegression :=
+  callerClosure |> traceExactly selectedWitness
 ```
 
 This supports a continuous workflow:
@@ -293,7 +387,9 @@ broad behavior space
     -> exact or tightly constrained pinned regression
 ```
 
-There is no translation into a second Drive language during promotion.
+There is no translation into a second Drive language during promotion. Promotion retains the exact
+trace together with its properties, target composition, expanded bounds, source query, semantic
+digests, selection reason, and provenance.
 
 ### 9.4 Faults
 
@@ -309,6 +405,10 @@ misdirected realization is execution divergence.
 The Query DSL connects a behavior, one or more properties, a compatible model target, and a search or
 execution mode. It makes the quantifier and claim strength explicit.
 
+Property-led and behavior-led questions are equally first-class. A user may ask the planner to find
+paths that satisfy or challenge a property, or select paths from a behavior and check chosen
+properties. The planner never infers the quantifier from an ambiguous bag of ingredients.
+
 ### 10.2 Model-only queries
 
 Universal bounded verification:
@@ -321,7 +421,10 @@ verify cancelIsUnique
 ```
 
 This checks every admissible trace inside complete finite bounds. It returns either
-`verifiedWithinBounds` or a counterexample. A complete mode fails rather than truncating.
+`verifiedWithinBounds` or a counterexample. Exhaustive mode is available only when every relevant
+type is finitely enumerable and the planner can publish complete bounds and explored counts. It
+fails rather than truncating. An empty behavior returns `unsatisfiable`; it does not verify every
+property by vacuity unless a future query form opts into that claim explicitly.
 
 Existential witness search:
 
@@ -364,17 +467,24 @@ sufficiently observed.
 An exact regression uses the same query language:
 
 ```lean
-run (callerClosure |> exactly [requestCancel, callerClose])
+run (callerClosure |> actionsExactly [requestCancel, callerClose])
   on WorkflowNexus
   checking [cancelIsUnique, honoredDelivery]
   using local
 ```
 
+Every selected experiment retains separate planning, execution, observation, and per-property
+results. A strict query summary cannot report success when any required trace diverged or any
+required property is `unknown`, `conflict`, or `unsupported`. Supported property results remain
+visible even when another property cannot be evaluated.
+
 ### 10.4 Strategy and bounds
 
-Strategies include shortest, exhaustive, pairwise, t-wise, seeded random, transition coverage,
-relation coverage, outcome coverage, and coverage-guided selection. Strategy and budget are query
-policy, not behavior or property semantics.
+The first backend is a deterministic, lazy, bounded Lean enumerator supporting the strategies needed
+by the first slice. Later strategies may include pairwise, t-wise, seeded random, transition
+coverage, relation coverage, outcome coverage, and coverage-guided selection. Strategy and budget
+are query policy, not behavior or property semantics, and later backends must implement the same
+result contract.
 
 Phase-specific bounds remain distinct:
 
@@ -386,6 +496,11 @@ Phase-specific bounds remain distinct:
 
 There is no universal `Bounds` value that silently mixes these meanings.
 
+Named typed profiles may provide concise defaults for these phases. A checked query and every
+persisted artifact expand each value and unit. Query identity covers resolved declaration
+identities, consumed semantic digests, expanded bounds, strategy, seed, and target composition;
+incidental source ordering and documentation text do not affect it.
+
 ## 11. Generated DrivePlan and ExperimentSpec
 
 The runtime executes a generated concrete artifact rather than evaluating behavior constraints
@@ -393,7 +508,8 @@ directly.
 
 A `DrivePlan` records:
 
-- the selected semantic action occurrences and total semantic order;
+- the selected semantic action occurrences and deterministic linear extension of their partial
+  order;
 - grounded and still-symbolic resources and identity bindings;
 - selected choices, variants, and requested faults;
 - required drive capabilities and semantic preconditions;
@@ -409,6 +525,10 @@ observation requirements, format version, semantic identity, and provenance.
 The `DrivePlan` is inspectable and replayable but is not normally authored. Low-level framework
 tests may construct it directly as an escape hatch; such tests are below the ordinary DSL and must
 declare that their plan was not produced from a checked behavior.
+
+Human readability and stable machine consumption have equal priority. A `DrivePlan` records what
+the runtime should attempt; it never upgrades that request into evidence that an action, fault, or
+model outcome occurred.
 
 ## 12. Observation DSL
 
@@ -441,6 +561,10 @@ interpret Nexus.cancelDelivered from TemporalHistory where
 Another mapping may establish the same observation from trusted in-process events. Both must produce
 the same semantic meaning.
 
+Authors define small typed mapping rules. The compiler combines them into one checked interpretation
+plan for an evidence profile. Overlapping rules, incompatible bindings, wrong-kind output, and
+ordering conflicts fail before evidence is processed; first-match order is never semantic.
+
 ### 12.2 Mapping contract
 
 Each mapping declares:
@@ -454,6 +578,10 @@ Each mapping declares:
 - semantic observations it may establish; and
 - mapping version and provenance.
 
+For every evidence field, the mapping also declares whether interpretation retains, redacts, hashes,
+or rejects the value. A portable semantic trace contains only approved normalized data. Raw evidence
+is a separately controlled artifact and is not copied wholesale into an `ExperimentSpec` or result.
+
 ### 12.3 Interpretation pipeline
 
 ```text
@@ -466,9 +594,19 @@ raw evidence
   -> evaluate pure properties
 ```
 
+The interpreter produces a qualified wrapper around the pure `SemanticTrace`. Qualification records
+source closure, gap analysis, completeness, mapping identity, provenance, and derivations. A property
+still receives only its capability-limited semantic view; the evaluator gates the call before the
+property runs.
+
+Every established observation carries a compact derivation linking the mapping version, matched
+evidence identities, bindings, ordering facts, and closure evidence. Property verdicts reference the
+derivations they consume.
+
 If available evidence is compatible with multiple semantic traces, the initial design returns
-`unknown`. Evaluating a property over all compatible traces is a possible later optimization, not an
-initial correctness shortcut.
+`unknown` together with the alternatives and missing discriminator. Evaluating a property over all
+compatible traces is a possible later feature with explicit quantifier semantics, not an initial
+correctness shortcut. Incompatible established facts return `conflict` instead.
 
 ## 13. Results and failure semantics
 
@@ -482,6 +620,9 @@ Planning, execution, observation, and property checking return separate result f
 - `budgetExhausted`: incomplete search stopped without a result;
 - `unsatisfiable`: behavior constraints admit no trace; and
 - `invalid`: vocabulary, capabilities, types, or bounds are malformed.
+
+`unsatisfiable` remains distinct from universal verification so an empty behavior cannot silently
+prove every property.
 
 ### 13.2 Execution results
 
@@ -501,6 +642,11 @@ not occur.
 - `conflict`: evidence sources establish incompatible semantic facts; and
 - `unsupported`: no selected mapping or evidence profile can establish required vocabulary.
 
+Properties are evaluated independently when their required observations are available. Supported
+verdicts remain visible if another property is `unknown` or `unsupported`; the aggregate query result
+is nevertheless incomplete. Results are a matrix indexed by selected experiment and property, with
+phase outcomes retained rather than collapsed into one Boolean.
+
 `realized` never implies `satisfied`. `budgetExhausted` never implies verified. Missing evidence never
 implies absence.
 
@@ -511,10 +657,15 @@ targets, and malformed mappings fail before environment allocation. Infrastructu
 partial plan, run, evidence, and cleanup artifacts already produced; they do not become semantic
 verdicts.
 
+Every authoring diagnostic has a stable kind, declaration identity, source path, offending value,
+and related identities. Human explanations are renderings of that structured value rather than an
+API contract encoded only in prose.
+
 ## 14. Vocabulary glossary and index
 
 Lean declarations are authoritative. `model/GLOSSARY.md` is a deterministic, checked-in human view
-generated from public vocabulary metadata.
+generated from public vocabulary metadata. The repository's top-level Makefile owns regeneration
+and freshness checks; no model-local Makefile is introduced or extended for this work.
 
 Example declaration metadata:
 
@@ -556,6 +707,10 @@ The same catalog may emit a machine-readable index for IDEs, generated documenta
 and compatibility checks. Generated Markdown and machine views are projections, not semantic
 authority.
 
+Generation fails on duplicate or wrong-kind identities, broken references, alias cycles, missing
+deprecation replacements, stale checked-in output, internal inconsistency, or nondeterministic
+ordering.
+
 ## 15. Determinism, identity, and evolution
 
 Every public declaration and persisted artifact has:
@@ -571,6 +726,11 @@ Renames require an explicit alias or deprecation record. A semantic change chang
 semantic digest. Proof-only or documentation-only changes may preserve it when the consumed contract
 is unchanged.
 
+Artifact readers reject unknown major format versions and accept only explicitly compatible minor
+additions. When old data requires transformation, a deterministic named migration records the source
+and destination versions. Readers never ignore meaning-bearing fields or infer a new meaning for an
+old field.
+
 Portable behavior and property declarations use serializable combinators. Opaque Lean or Go
 callbacks may exist as framework escape hatches, but they cannot participate in deterministic
 planning, minimization, portable artifact generation, or cross-language reuse unless replaced by a
@@ -583,12 +743,15 @@ stable declared semantic operation.
 Small synthetic model families verify that:
 
 - capability requirements accept valid compositions and reject missing interfaces;
+- conflicting capability providers are rejected unless an explicit connector reconciles them;
 - cross-domain properties use only their declared capabilities;
 - unknown and wrong-kind vocabulary fails;
 - behavior constraints reject cycles, impossible bounds, and unsatisfiable combinations;
-- `exactly [a, b]` denotes one semantic trace;
+- `actionsExactly [a, b]` fixes the controllable action schedule without fixing model outcomes;
+- `traceExactly witness` denotes one complete semantic trace;
 - adding a constraint can only narrow a behavior space;
 - complete search never truncates silently;
+- an unsatisfiable behavior does not report universal verification;
 - budgeted selection is deterministic for a fixed strategy and seed;
 - witnesses and counterexamples replay through canonical semantics; and
 - a promoted witness remains a member of its source behavior space.
@@ -600,6 +763,7 @@ Fixture-only tests verify:
 - different evidence profiles produce equivalent semantic observations when they describe the same
   behavior;
 - source closure, sequence gaps, ambiguity, duplicate evidence, and conflicts fail closed;
+- every established observation retains an auditable derivation;
 - unrelated evidence cannot discharge a causally scoped obligation;
 - requested, attempted, applied, committed, and aborted operations remain distinct;
 - sensitive fields are rejected or redacted according to mapping policy; and
@@ -608,13 +772,17 @@ Fixture-only tests verify:
 Observation mappings receive independent mutations so a property and its adapter do not silently
 share the same mistake.
 
+Portable property evaluators additionally have agreement tests or proofs connecting executable
+verdicts to their Lean denotation. Negative declaration fixtures, deterministic golden artifacts,
+and replay tests exercise boundaries without using one layer as another layer's oracle.
+
 ### 16.3 End-to-end and mutation tests
 
 The first end-to-end slice uses one capability-scoped Nexus property, one exploratory caller-closure
-behavior, one witness or counterexample query, and the same behavior restricted to one exact
-regression. It checks deterministic planning, `ExperimentSpec` generation, synthetic evidence
-interpretation, property evaluation, promotion, and glossary generation without requiring a live
-Temporal environment.
+behavior, one witness or counterexample query, the same behavior restricted to one exact action
+schedule, and one promoted exact trace. It checks deterministic planning, `ExperimentSpec`
+generation, synthetic evidence interpretation, property evaluation, promotion, and glossary
+generation without requiring a live Temporal environment.
 
 Model, property, planner, observation, and later implementation mutations must each make the
 appropriate layer fail for the intended reason. Branch or case coverage remains diagnostic evidence,
@@ -631,15 +799,20 @@ nondeterministic ordering fail verification.
 The language design is broader than the first implementation. The first slice should prove the
 boundaries with minimal surface:
 
-1. a small public vocabulary and generated glossary;
-2. capability interfaces sufficient for Nexus cancellation and caller lifetime;
-3. state, transition, relation, and finite-trace property combinators;
-4. behavior setup, allow/require/forbid, named ordering, occurrence bounds, and `exactly`;
+1. a small public vocabulary, explicit capability records, and generated glossary;
+2. capability interfaces sufficient for Nexus cancellation, caller lifetime, and one checked
+   Workflow–Nexus connector property, including missing-connector rejection;
+3. portable state, transition, relation, and finite-trace property combinators with typed bounds,
+   Lean denotation, executable evaluator, and structured verdicts;
+4. symbolic behavior setup, allow/require/forbid, named partial ordering, occurrence bounds,
+   `actionsExactly`, and `traceExactly`;
 5. model-only `verify`, `find witness`, and `find counterexample` queries, plus compilation of one
-   exact execution query without runtime realization;
-6. deterministic planner output and `ExperimentSpec` compilation;
-7. one synthetic observation source and one evidence mapping fixture; and
-8. promotion of a selected trace to an exact pinned regression.
+   exact-action execution query without runtime realization;
+6. a deterministic lazy Lean planner, `DrivePlan`, and `ExperimentSpec` compilation;
+7. one synthetic observation source, composable evidence mapping fixture, qualified trace, and
+   auditable observation derivations;
+8. promotion of a selected trace to a complete exact pinned regression; and
+9. one second small scenario authored without changing the public language or compiler concepts.
 
 Pairwise, t-wise, coverage-guided search, live runtime execution, multiple evidence profiles,
 minimization, generated Go wrappers, and remote qualification should follow only after this slice
@@ -659,8 +832,10 @@ The existing types are useful compiler substrate but not the final authoring sur
   and
 - the bounded Nexus pilot becomes one exact query derived from a broader behavior space.
 
-Migration should preserve the existing compiler tests while introducing the new languages on small
-synthetic models. The old raw structures may remain internal constructors until all callers move.
+Replacement preserves the useful compiler invariants and tests while introducing the new languages
+on small synthetic models. When the new languages land, the old `Regression`,
+`ExpectedProperties`, and callback-bearing `ModelTarget` authoring structures are removed rather
+than retained as a compatibility facade or second public path.
 
 ## 19. Alternatives considered
 
@@ -695,19 +870,64 @@ An exploratory facade and an exact facade may be added later as syntax sugar if 
 justifies them. Both must lower to the same Behavior constraint algebra and must not introduce new
 semantics.
 
-## 20. Acceptance criteria for the design
+### One meaning of exact
 
-An implementation conforms to this design when:
+Using one `exactly` operator for both a controllable action order and a complete semantic execution
+looks concise but hides whether model outcomes may vary. Rejected in favor of distinct
+`actionsExactly` and `traceExactly` restrictions in the same Behavior language.
 
-- a property can be reused across compatible model compositions;
-- a cross-domain property fails at compile time when a connector capability is absent;
-- one Behavior definition supports broad exploration and exact restriction;
-- exact behavior compiles to one semantic action trace without claiming an exact implementation
-  schedule;
-- queries distinguish universal verification, witness search, counterexample search, and execution;
-- incomplete search and incomplete evidence cannot report success;
-- runtime evidence reaches properties only through declared observation mappings;
-- a selected exploratory trace can be promoted without translation into a second authoring DSL;
-- public vocabulary is discoverable through a deterministic generated `model/GLOSSARY.md`;
-- every persisted semantic artifact is versioned, deterministic, bounded, and provenance-rich; and
-- the first bounded slice can be developed and tested without a live Temporal environment.
+### Unrestricted property functions
+
+Raw Lean predicates maximize expressiveness but cannot be inspected, planned, serialized, promoted,
+or checked for undeclared capability access. Rejected for the portable core. An explicitly
+non-portable expert escape hatch remains below the ordinary DSL.
+
+## 20. Implementation allocation
+
+The interview split implementation requirements into three Flow specs instead of duplicating a
+large acceptance list in this shared design:
+
+1. `fn-3-umpire-semantic-authoring-and-planning` owns vocabulary, capabilities, Property, Behavior,
+   Query, bounded planning, `DrivePlan`, `ExperimentSpec`, clean replacement of `Regression`, the
+   first cross-domain scenario, and the second-scenario reuse proof.
+2. `fn-4-umpire-observation-and-semantic-verdicts` owns the Observation language, qualified traces,
+   composable mapping plans, field disposition, derivations, ambiguity, independent property
+   verdicts, and strict summaries. It depends on `fn-3`.
+3. `fn-5-umpire-discovery-promotion-and-artifact` owns the checked-in glossary, discovery commands,
+   complete regression promotion, artifact compatibility, and named migrations. It depends on
+   `fn-3` and `fn-4`.
+
+Together they must demonstrate the complete offline semantic loop without a live Temporal server.
+No individual spec may weaken the shared purity, qualification, determinism, identity, or
+provenance rules to make its local implementation easier.
+
+## Resolved via Project Docs
+
+- The existing regression slice already targets Lean/Umpire tool developers, adds no Temporal
+  server behavior, and compiles an environment-independent artifact without starting Temporal
+  (`.flow/specs/fn-1-lean-regression-dsl-and-nexus.md:13`).
+- The completed slice intentionally established only the authoring/compiler seam before broader
+  exploration, execution, and evidence work
+  (`.flow/specs/fn-1-lean-regression-dsl-and-nexus.md:23`).
+- Nexus operations are cross-boundary, potentially asynchronous operations with status, result,
+  callback, and cancellation behavior (`docs/architecture/nexus.md:3`), while cancellation delivery
+  is durably retried until success, permanent failure, or timeout (`docs/architecture/nexus.md:310`).
+- This repository is the Temporal server; ordinary Workflow, Activity, and Worker authoring belongs
+  in supported SDK languages rather than this model DSL (`README.md:64`).
+
+## Resolved via Codebase
+
+- The implemented slice currently combines resources, action attempts, ordering, expected
+  properties, and declaration bounds in `Regression`
+  (`model/Temporal/Experiment/DSL.lean:40`).
+- `ModelTarget` currently carries resource bindings, function-valued action projections, property
+  observation contracts, and provenance (`model/Temporal/Experiment/DSL.lean:83`), which explains
+  why the new portable languages must replace rather than serialize that authoring structure.
+- The existing pure seam is `compile : ModelTarget → Regression → Except CompileError
+  ExperimentSpec` (`model/Temporal/Experiment/Compiler.lean:205`), and `ExperimentSpec` already
+  records version, identity, setup, actions, outcomes, properties, bounds, omissions, and provenance
+  (`model/Temporal/Experiment/DSL.lean:101`).
+- The bounded Nexus pilot already compiles one declaration through that seam
+  (`model/Temporal/Experiment/NexusCallerClosure.lean:61`).
+- Regression verification is already wired through the repository's top-level Makefile
+  (`Makefile:1020`); new model generation and checks follow that same location rule.
