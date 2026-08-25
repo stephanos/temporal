@@ -1,10 +1,8 @@
-import NexusAutoClose
 import Umpire.Property
 
 namespace Umpire.PropertyTests
 
 open Umpire
-open NexusAutoClose
 
 def id (value : String) : DeclarationId := DeclarationId.of value
 
@@ -191,12 +189,6 @@ def uniquenessProperty : PropertyDeclaration := {
   clauses := [cancelIsUnique]
 }
 
-def uniquenessTrace
-    (config : Config) : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
-  initialState := value pendingCount (toString config.cancels.length)
-  steps := []
-}
-
 def evaluationOf
     (declaration : PropertyDeclaration)
     (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
@@ -217,22 +209,6 @@ example : (evaluationOf portableProperty positiveTrace).map PropertyEvaluation.s
   native_decide
 
 example : (evaluationOf portableProperty negativeTrace).map PropertyEvaluation.satisfied = some false := by
-  native_decide
-
-example : AtMostOneEvent (autoClose .upgrade wClash) :=
-  upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade)
-
-example :
-    (evaluationOf uniquenessProperty (uniquenessTrace (autoClose .upgrade wClash))).map
-      PropertyEvaluation.satisfied = some true := by
-  native_decide
-
-example : ¬AtMostOneEvent (autoClose .duplicate wClash) := by
-  simp [AtMostOneEvent, autoClose, applyResolution, wClash]
-
-example :
-    (evaluationOf uniquenessProperty (uniquenessTrace (autoClose .duplicate wClash))).map
-      PropertyEvaluation.satisfied = some false := by
   native_decide
 
 def samePositionBoundary : PropertyDeclaration := {

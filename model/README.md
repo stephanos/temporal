@@ -69,11 +69,12 @@ capability-limited semantic trace. A `Behavior` constrains setup, controllable a
 and exactness while leaving outcomes to the target model. A `Query` combines checked properties
 and behavior with explicit bounds and a deterministic planning policy.
 
-`Temporal/Experiment/NexusCallerClosure.lean` applies that flow to Workflow–Nexus caller closure.
-`Temporal/Experiment/SwitchScenario.lean` uses the same public interfaces for an independent
-two-state switch, including exploratory, exact-action, and exact-trace authoring. The resulting
-`DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe selected requests,
-model-owned outcomes, and semantic observations, but do not claim that runtime execution occurred.
+Reusable declarations and the domain-neutral switch example live under `Umpire/`, with the switch
+scenario at `Umpire/Examples/Switch.lean`. `Temporal/Umpire/NexusCallerClosure.lean` owns the
+Workflow–Nexus caller-closure adapter, and `Temporal/Umpire/Inspect.lean` registers both scenarios.
+The resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe
+selected requests, model-owned outcomes, and semantic observations, but do not claim that runtime
+execution occurred.
 
 From the Temporal repository root, run the focused regression check:
 
@@ -81,17 +82,18 @@ From the Temporal repository root, run the focused regression check:
 make umpire-check-regression
 ```
 
-The focused check builds the semantic languages, both scenarios, aggregate positive and negative
-fixtures, and inspector. It checks that repeated inspection is byte-for-byte deterministic and
-that a rejected scenario emits one structured diagnostic with no artifact JSON on standard
-output. It does not require or contact a running Temporal server.
+The focused check builds `UmpireTests`, `TemporalUmpireTests`, and `temporal-umpire-inspect`. It
+rejects obsolete imports and reverse Umpire-to-Temporal/Nexus dependencies, compares repeated
+inspection with both checked-in target-state fixtures byte-for-byte, and verifies that an unknown
+scenario emits one structured diagnostic with no artifact JSON on standard output. It does not
+require or contact a running Temporal server.
 
 Inspect either checked scenario directly with:
 
 ```sh
 cd model
-mise exec -- lake exe temporal-experiment-inspect workflow-nexus.query.exact-action-caller-closure
-mise exec -- lake exe temporal-experiment-inspect switch.query.exact-action
+mise exec -- lake exe temporal-umpire-inspect workflow-nexus.query.exact-action-caller-closure
+mise exec -- lake exe temporal-umpire-inspect switch.query.exact-action
 ```
 
 On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The

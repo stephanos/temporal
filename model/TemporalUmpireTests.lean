@@ -15,6 +15,33 @@ def declarationErrorOf
   | .error error => some error
   | .ok _ => none
 
+def nexusUniquenessTrace
+    (config : Config) : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+  initialState := _root_.Umpire.PropertyTests.value
+    _root_.Umpire.PropertyTests.pendingCount (toString config.cancels.length)
+  steps := []
+}
+
+example : AtMostOneEvent (autoClose .upgrade wClash) :=
+  upgrade_preserves_uniqueness wClash (wClash_reachable .upgrade)
+
+example :
+    (_root_.Umpire.PropertyTests.evaluationOf
+      _root_.Umpire.PropertyTests.uniquenessProperty
+      (nexusUniquenessTrace (autoClose .upgrade wClash))).map
+        PropertyEvaluation.satisfied = some true := by
+  native_decide
+
+example : ¬AtMostOneEvent (autoClose .duplicate wClash) := by
+  simp [AtMostOneEvent, autoClose, applyResolution, wClash]
+
+example :
+    (_root_.Umpire.PropertyTests.evaluationOf
+      _root_.Umpire.PropertyTests.uniquenessProperty
+      (nexusUniquenessTrace (autoClose .duplicate wClash))).map
+        PropertyEvaluation.satisfied = some false := by
+  native_decide
+
 def targetWithoutConnector : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   targetDeclaration with connectors := []
