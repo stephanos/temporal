@@ -525,6 +525,23 @@ def callbackCountBoundariesMatch : Bool :=
 
 example : callbackCountBoundariesMatch = true := by native_decide
 
+def zeroCallbackRequests : Except ConfigError
+    (List (Option CallbackRoute × CallbackAdmission × CallbackDispatch)) := do
+  let config ← callbackConsumerConfig true 2 10
+  let belowLimit := runCallbackTrace config (callbackRequest 1 0 "ftp://invalid" 20)
+  let aboveLimit := runCallbackTrace config (callbackRequest 3 0 "ftp://invalid" 20)
+  pure [
+    (belowLimit.route, belowLimit.admission, belowLimit.dispatch),
+    (aboveLimit.route, aboveLimit.admission, aboveLimit.dispatch)]
+
+def zeroCallbackRequestsMatch : Bool :=
+  match zeroCallbackRequests with
+  | .ok [(none, .notRequested, .notDispatched),
+         (none, .notRequested, .notDispatched)] => true
+  | _ => false
+
+example : zeroCallbackRequestsMatch = true := by native_decide
+
 def callbackAddressAdmissions : Except ConfigError (List CallbackAdmission) := do
   let config ← callbackConsumerConfig true 10 10
   let request := callbackRequest 0 1 "" 1
@@ -582,8 +599,8 @@ def callbackTimeoutBoundariesMatch : Bool :=
 example : callbackTimeoutBoundariesMatch = true := by native_decide
 
 def callbackSnapshotPairs : Except ConfigError
-    ((CallbackRoute × CallbackAdmission × CallbackDispatch) ×
-     (CallbackRoute × CallbackAdmission × CallbackDispatch) ×
+    ((Option CallbackRoute × CallbackAdmission × CallbackDispatch) ×
+     (Option CallbackRoute × CallbackAdmission × CallbackDispatch) ×
      (CallbackDispatch × CallbackDispatch) × Bool) := do
   let chasm ← callbackConsumerConfig true 1 5
   let legacy ← callbackConsumerConfig false 2 10
@@ -601,8 +618,8 @@ def callbackSnapshotPairs : Except ConfigError
 
 def callbackSnapshotPairsMatch : Bool :=
   match callbackSnapshotPairs with
-  | .ok ((.legacyHsm, .admitted, .succeeded),
-      (.chasm, .rejectedOverflow, .notDispatched),
+  | .ok ((some .legacyHsm, .admitted, .succeeded),
+      (some .chasm, .rejectedOverflow, .notDispatched),
       (.succeeded, .timedOut), true) => true
   | _ => false
 

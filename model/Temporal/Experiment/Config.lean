@@ -1215,6 +1215,7 @@ inductive CallbackRoute where
   deriving BEq, DecidableEq, Repr
 
 inductive CallbackAdmission where
+  | notRequested
   | admitted
   | rejectedOverflow
   | rejectedAddress (kind : CallbackAddressErrorKind)
@@ -1247,7 +1248,7 @@ structure CallbackDomainConfig where
   deriving BEq, DecidableEq, Repr
 
 structure CallbackTrace where
-  route : CallbackRoute
+  route : Option CallbackRoute
   admission : CallbackAdmission
   dispatch : CallbackDispatch
   deriving BEq, DecidableEq, Repr
@@ -1277,24 +1278,27 @@ def projectCallbackDomainConfig
 def runCallbackTrace
     (config : CallbackDomainConfig)
     (request : CallbackRequest) : CallbackTrace :=
-  let route := config.payload.route
-  match config.payload.addressRules.validate request.address with
-  | .error error => {
-      route
-      admission := .rejectedAddress error.kind
-      dispatch := .notDispatched
-    }
-  | .ok _ =>
-      if Int.ofNat (request.existingCallbacks + request.newCallbacks) >
-          config.payload.maximumCallbacks then
-        { route, admission := .rejectedOverflow, dispatch := .notDispatched }
-      else
-        let dispatch :=
-          if config.payload.timeoutNanoseconds <= 0 ||
-              request.elapsedNanoseconds >= config.payload.timeoutNanoseconds then
-            .timedOut
-          else
-            .succeeded
-        { route, admission := .admitted, dispatch }
+  if request.newCallbacks == 0 then
+    { route := none, admission := .notRequested, dispatch := .notDispatched }
+  else
+    let route := some config.payload.route
+    match config.payload.addressRules.validate request.address with
+    | .error error => {
+        route
+        admission := .rejectedAddress error.kind
+        dispatch := .notDispatched
+      }
+    | .ok _ =>
+        if Int.ofNat (request.existingCallbacks + request.newCallbacks) >
+            config.payload.maximumCallbacks then
+          { route, admission := .rejectedOverflow, dispatch := .notDispatched }
+        else
+          let dispatch :=
+            if config.payload.timeoutNanoseconds <= 0 ||
+                request.elapsedNanoseconds >= config.payload.timeoutNanoseconds then
+              .timedOut
+            else
+              .succeeded
+          { route, admission := .admitted, dispatch }
 
 end Temporal.Experiment.Config
