@@ -120,8 +120,10 @@ UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleandynamicconfig
 GEN_LEAN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleanmodeldescriptors
-UMPIRE_REGRESSION_IDS := workflow-nexus.query.exact-action-caller-closure switch.query.exact-action
-UMPIRE_REGRESSION_INSPECTOR := temporal-experiment-inspect
+UMPIRE_REGRESSION_INSPECTOR := temporal-umpire-inspect
+UMPIRE_REGRESSION_FIXTURES := \
+	workflow-nexus.query.exact-action-caller-closure:Temporal/Umpire/testdata/nexus-caller-closure-experiment-spec.json \
+	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
 	--descriptor $(API_BINPB) \
@@ -1002,14 +1004,49 @@ umpire-gen-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
 	@go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api -run '^TestBasicFixture$$' -rewrite
 
 umpire-check-regression:
-	@cd model && $(LEAN_LAKE) build ExperimentTests $(UMPIRE_REGRESSION_INSPECTOR)
+	@set -eu; \
+		old_namespace='Temporal''[.]Experiment'; \
+		old_path='Temporal/''Experiment'; \
+		old_targets='Experiment''Tests|temporal-experiment''-inspect'; \
+		old_tree=model/Temporal/''Experiment; \
+		test ! -e "$$old_tree"; \
+		test ! -e "$${old_tree}Tests.lean"; \
+		live_sources=$$(find model/Umpire model/Temporal/Umpire -type f -name '*.lean' -print); \
+		test -n "$$live_sources"; \
+		if grep -nE "$$old_namespace|$$old_path" $$live_sources \
+			model/Umpire.lean model/UmpireTests.lean model/Temporal.lean model/TemporalUmpireTests.lean; then \
+			echo "found obsolete Temporal experiment interface in live Lean sources" >&2; \
+			exit 1; \
+		else \
+			scan_status=$$?; \
+			test "$$scan_status" -eq 1; \
+		fi; \
+		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lakefile.toml model/README.md; then \
+			echo "found obsolete Temporal experiment interface in live build or model documentation" >&2; \
+			exit 1; \
+		else \
+			scan_status=$$?; \
+			test "$$scan_status" -eq 1; \
+		fi; \
+		umpire_sources=$$(find model/Umpire -type f -name '*.lean' -print); \
+		if grep -nE '^import (Temporal|Nexus)' $$umpire_sources; then \
+			echo "found forbidden Umpire dependency on Temporal or Nexus" >&2; \
+			exit 1; \
+		else \
+			scan_status=$$?; \
+			test "$$scan_status" -eq 1; \
+		fi
+	@cd model && $(LEAN_LAKE) build UmpireTests TemporalUmpireTests $(UMPIRE_REGRESSION_INSPECTOR)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \
-		for scenario in $(UMPIRE_REGRESSION_IDS); do \
+		for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
+			scenario=$${scenario_fixture%%:*}; \
+			fixture=$${scenario_fixture#*:}; \
 			$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$temporary/first.json"; \
 			$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$temporary/second.json"; \
 			cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
+			cmp -s "$$fixture" "$$temporary/first.json"; \
 		done; \
 		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) missing-scenario \
 			> "$$temporary/negative.stdout" 2> "$$temporary/negative.stderr"; then \
