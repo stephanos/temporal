@@ -119,7 +119,7 @@ UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 GEN_LEAN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleanmodeldescriptors
-UMPIRE_REGRESSION_ID := workflow-nexus.query.exact-action-caller-closure
+UMPIRE_REGRESSION_IDS := workflow-nexus.query.exact-action-caller-closure switch.query.exact-action
 UMPIRE_REGRESSION_INSPECTOR := temporal-experiment-inspect
 UMPIRE_GEN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
@@ -1001,9 +1001,11 @@ umpire-check-regression:
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_REGRESSION_ID) > "$$temporary/first.json"; \
-		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_REGRESSION_ID) > "$$temporary/second.json"; \
-		cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
+		for scenario in $(UMPIRE_REGRESSION_IDS); do \
+			$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$temporary/first.json"; \
+			$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$temporary/second.json"; \
+			cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
+		done; \
 		if $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) missing-scenario \
 			> "$$temporary/negative.stdout" 2> "$$temporary/negative.stderr"; then \
 			echo "expected the inspector to reject an unknown scenario" >&2; \
