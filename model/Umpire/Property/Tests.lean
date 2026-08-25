@@ -20,19 +20,19 @@ def metadata (value : String) (kind : DeclarationKind) : DeclarationMetadata := 
   contractDigest := value ++ "/v1"
 }
 
-def cancellationCapability : DeclarationId := id "nexus.capability.cancellation"
-def hiddenCapability : DeclarationId := id "storage.capability.internal"
+def cancellationCapability : DeclarationId := id "test.capability.cancellation"
+def hiddenCapability : DeclarationId := id "test.capability.hidden"
 
-def pendingCount : DeclarationId := id "nexus.state.pending-cancel-count"
-def cancellationPhase : DeclarationId := id "nexus.state.cancellation-phase"
-def requestCancel : DeclarationId := id "nexus.action.request-cancel"
-def tick : DeclarationId := id "nexus.action.tick"
-def deliveredOutcome : DeclarationId := id "nexus.outcome.cancel-delivered"
-def cancelRequested : DeclarationId := id "nexus.observation.cancel-requested"
-def cancelDelivered : DeclarationId := id "nexus.observation.cancel-delivered"
-def logicalTime : DeclarationId := id "nexus.observation.logical-time"
-def ownsOperation : DeclarationId := id "workflow-nexus.relation.owns-operation"
-def hiddenObservation : DeclarationId := id "storage.observation.record-written"
+def pendingCount : DeclarationId := id "test.state.pending-count"
+def cancellationPhase : DeclarationId := id "test.state.cancellation-phase"
+def requestCancel : DeclarationId := id "test.action.request-cancel"
+def tick : DeclarationId := id "test.action.tick"
+def deliveredOutcome : DeclarationId := id "test.outcome.cancel-delivered"
+def cancelRequested : DeclarationId := id "test.observation.cancel-requested"
+def cancelDelivered : DeclarationId := id "test.observation.cancel-delivered"
+def logicalTime : DeclarationId := id "test.observation.logical-time"
+def ownsOperation : DeclarationId := id "test.relation.owns-resource"
+def hiddenObservation : DeclarationId := id "test.observation.hidden-record"
 
 def declarations : List DeclarationMetadata := [
   metadata cancellationCapability.value .capability,
@@ -70,7 +70,7 @@ def cancellationMeanings : List MeaningProvision := [
 ]
 
 def cancelBudget : PropertyBoundProfile := {
-  id := id "nexus.bound.cancel-budget"
+  id := id "test.bound.cancel-budget"
   source
   bound := { value := 2, unit := .observationPositions }
 }
@@ -78,8 +78,8 @@ def cancelBudget : PropertyBoundProfile := {
 def context : PropertyCheckContext := {
   declarations
   providers := [
-    { id := cancellationCapability, version := 1, semanticDigest := "nexus-cancellation/v1" },
-    { id := hiddenCapability, version := 1, semanticDigest := "storage-internal/v1" }
+    { id := cancellationCapability, version := 1, semanticDigest := "test-cancellation/v1" },
+    { id := hiddenCapability, version := 1, semanticDigest := "test-hidden/v1" }
   ]
   meanings :=
     cancellationMeanings.map (fun item => (cancellationCapability, item)) ++
@@ -97,43 +97,43 @@ def pattern
 }
 
 def cancelIsUnique : PropertyClause :=
-  .stateInvariant (id "nexus.property.cancel-is-unique")
+  .stateInvariant (id "test.property.cancel-is-unique")
     (pattern .state pendingCount (.naturalAtMost 1))
 
 def deliveryContract : PropertyClause :=
-  .transitionContract (id "nexus.property.delivery-contract")
+  .transitionContract (id "test.property.delivery-contract")
     (pattern .selectedAction requestCancel)
     (pattern .modelOutcome deliveredOutcome (.equals "delivered"))
 
 def ownershipIsPresent : PropertyClause :=
-  .identityRelation (id "workflow-nexus.property.ownership")
-    (pattern .relation ownsOperation (.equals "caller:operation"))
+  .identityRelation (id "test.property.ownership")
+    (pattern .relation ownsOperation (.equals "subject:resource"))
 
 def requestHasObservation : PropertyClause :=
-  .inputOutput (id "nexus.property.request-has-observation")
+  .inputOutput (id "test.property.request-has-observation")
     (pattern .selectedAction requestCancel)
     (pattern .observation cancelRequested)
 
 def requestPrecedesDelivery : PropertyClause :=
-  .ordered (id "nexus.property.request-precedes-delivery")
+  .ordered (id "test.property.request-precedes-delivery")
     (pattern .observation cancelRequested)
     (pattern .observation cancelDelivered)
     .observationPositions
 
 def honoredDelivery : PropertyClause :=
-  .eventuallyWithin (id "nexus.property.honored-delivery")
+  .eventuallyWithin (id "test.property.honored-delivery")
     (pattern .observation cancelRequested)
     (pattern .observation cancelDelivered)
     (.named cancelBudget.id .observationPositions)
 
 def deliveryIsQuiescent : PropertyClause :=
-  .quiescentWithin (id "nexus.property.delivery-is-quiescent")
+  .quiescentWithin (id "test.property.delivery-is-quiescent")
     (pattern .observation cancelDelivered)
     (pattern .observation cancelRequested)
     (.exact { value := 0, unit := .observationPositions })
 
 def portableProperty : PropertyDeclaration := {
-  id := id "nexus.property.caller-close-cancellation"
+  id := id "test.property.cancellation-contract"
   source
   requires := [cancellationCapability]
   clauses := [
@@ -164,7 +164,7 @@ def positiveTrace : SemanticTrace SemanticValue SemanticValue SemanticValue Sema
       resultingState := value pendingCount "1"
       observations := [
         value cancelRequested "request-1",
-        value ownsOperation "caller:operation",
+        value ownsOperation "subject:resource",
         value hiddenObservation "private-record"
       ]
     },
@@ -185,7 +185,7 @@ def negativeTrace : SemanticTrace SemanticValue SemanticValue SemanticValue Sema
 
 def uniquenessProperty : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.uniqueness-only"
+  id := id "test.property.uniqueness-only"
   clauses := [cancelIsUnique]
 }
 
@@ -213,9 +213,9 @@ example : (evaluationOf portableProperty negativeTrace).map PropertyEvaluation.s
 
 def samePositionBoundary : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.same-position-boundary"
+  id := id "test.property.same-position-boundary"
   clauses := [
-    .eventuallyWithin (id "nexus.property.same-position-boundary.clause")
+    .eventuallyWithin (id "test.property.same-position-boundary.clause")
       (pattern .observation cancelDelivered)
       (pattern .observation cancelDelivered)
       (.exact { value := 0, unit := .observationPositions })
@@ -236,9 +236,9 @@ example (clause : ResolvedPropertyClause) :
 
 def hiddenReference : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.hidden-reference"
+  id := id "test.property.hidden-reference"
   clauses := [
-    .identityRelation (id "nexus.property.hidden-reference.clause")
+    .identityRelation (id "test.property.hidden-reference.clause")
       (pattern .observation hiddenObservation)
   ]
 }
@@ -269,9 +269,9 @@ example : evaluationOf portableProperty positiveTrace = evaluationOf portablePro
 
 def mixedUnitProperty : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.mixed-unit"
+  id := id "test.property.mixed-unit"
   clauses := [
-    .eventuallyWithin (id "nexus.property.mixed-unit.clause")
+    .eventuallyWithin (id "test.property.mixed-unit.clause")
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
       (.named cancelBudget.id .selectedActions)
@@ -284,9 +284,9 @@ example :
 
 def missingLogicalTimeProperty : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.missing-logical-time"
+  id := id "test.property.missing-logical-time"
   clauses := [
-    .eventuallyWithin (id "nexus.property.missing-logical-time.clause")
+    .eventuallyWithin (id "test.property.missing-logical-time.clause")
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
       (.exact { value := 1, unit := .logicalTime })
@@ -300,10 +300,10 @@ example :
 
 def logicalEventuallyProperty : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.logical-eventually"
+  id := id "test.property.logical-eventually"
   logicalTimeSource := some logicalTime
   clauses := [
-    .eventuallyWithin (id "nexus.property.logical-eventually.clause")
+    .eventuallyWithin (id "test.property.logical-eventually.clause")
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
       (.exact { value := 1, unit := .logicalTime })
@@ -312,10 +312,10 @@ def logicalEventuallyProperty : PropertyDeclaration := {
 
 def logicalQuiescentProperty : PropertyDeclaration := {
   portableProperty with
-  id := id "nexus.property.logical-quiescent"
+  id := id "test.property.logical-quiescent"
   logicalTimeSource := some logicalTime
   clauses := [
-    .quiescentWithin (id "nexus.property.logical-quiescent.clause")
+    .quiescentWithin (id "test.property.logical-quiescent.clause")
       (pattern .observation cancelDelivered)
       (pattern .observation cancelRequested)
       (.exact { value := 0, unit := .logicalTime })
@@ -371,7 +371,7 @@ example :
 
 example :
     errorKindOf (checkProperty context
-      (.opaque (id "nexus.property.expert-only") source)) = some .opaqueDeclaration := by
+      (.opaque (id "test.property.expert-only") source)) = some .opaqueDeclaration := by
   native_decide
 
 def reorderedContext : PropertyCheckContext := {
