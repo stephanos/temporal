@@ -1209,4 +1209,92 @@ def matchingWorkerRegistryNumBucketsUse : Except ConfigError (ConfigUse Int) :=
     interpretation := some matchingWorkerRegistryNumBucketsInterpretation
   }
 
+inductive CallbackRoute where
+  | legacyHsm
+  | chasm
+  deriving BEq, DecidableEq, Repr
+
+inductive CallbackAdmission where
+  | admitted
+  | rejectedOverflow
+  | rejectedAddress (kind : CallbackAddressErrorKind)
+  deriving BEq, DecidableEq, Repr
+
+inductive CallbackDispatch where
+  | notDispatched
+  | succeeded
+  | timedOut
+  deriving BEq, DecidableEq, Repr
+
+structure CallbackRequest where
+  existingCallbacks : Nat
+  newCallbacks : Nat
+  address : String
+  elapsedNanoseconds : Int
+  deriving BEq, DecidableEq, Repr
+
+private structure CallbackDomainConfigPayload where
+  route : CallbackRoute
+  maximumCallbacks : Int
+  addressRules : CallbackAddressRules
+  timeoutNanoseconds : Int
+  deriving BEq, DecidableEq, Repr
+
+/-- The four callback settings projected once from one validated immutable view. -/
+structure CallbackDomainConfig where
+  private mk ::
+  private payload : CallbackDomainConfigPayload
+  deriving BEq, DecidableEq, Repr
+
+structure CallbackTrace where
+  route : CallbackRoute
+  admission : CallbackAdmission
+  dispatch : CallbackDispatch
+  deriving BEq, DecidableEq, Repr
+
+def projectCallbackDomainConfig
+    (view : ConfigView)
+    (namespaceName destination : String) : Except ConfigError CallbackDomainConfig := do
+  if destination == "" then
+    throw (configError .missingContext (DeclarationId.of "temporal.callback.snapshot")
+      callbackRequestTimeoutInterpretation.key "destination")
+  let enableUse ← historyEnableChasmCallbacksUse namespaceName
+  let maximumUse ← callbackMaxPerExecutionUse namespaceName
+  let addressesUse ← callbackAllowedAddressesUse namespaceName
+  let timeoutUse ← callbackRequestTimeoutUse namespaceName destination
+  let enabled ← view.read enableUse
+  let maximumCallbacks ← view.read maximumUse
+  let addressRules ← view.read addressesUse
+  let timeoutNanoseconds ← view.read timeoutUse
+  pure (.mk {
+    route := if enabled then .chasm else .legacyHsm
+    maximumCallbacks
+    addressRules
+    timeoutNanoseconds
+  })
+
+/-- Evaluate callback admission and dispatch against only the captured callback projection. -/
+def runCallbackTrace
+    (config : CallbackDomainConfig)
+    (request : CallbackRequest) : CallbackTrace :=
+  let route := config.payload.route
+  match config.payload.addressRules.validate request.address with
+  | .error error => {
+      route
+      admission := .rejectedAddress error.kind
+      dispatch := .notDispatched
+    }
+  | .ok _ =>
+      if Int.ofNat (request.existingCallbacks + request.newCallbacks) >
+          config.payload.maximumCallbacks then
+        { route, admission := .rejectedOverflow, dispatch := .notDispatched }
+      else
+        let dispatch :=
+          if config.payload.timeoutNanoseconds <= 0 ||
+              request.elapsedNanoseconds >= config.payload.timeoutNanoseconds then
+            .timedOut
+          else
+            .succeeded
+        { route, admission := .admitted, dispatch }
+
 end Temporal.Experiment.Config
