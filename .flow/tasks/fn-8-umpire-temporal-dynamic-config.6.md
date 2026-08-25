@@ -57,6 +57,7 @@ Focused coverage exercises zero additions below and above the maximum, count equ
 baseline: red (`make lint-code` failed pre-edit with 1828 inherited pre-existing findings; all other Quick commands green)
 
 stage: impl-review - ran [2026-08-25T18:24:27Z..2026-08-25T18:31:01Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: c248289b106103ba6c1d558aef7825d9e304a80f, c208294d0c61e539cab573a3f9bcae0e8aa1a8d8
 - Tests: go test -count=1 -tags test_dep ./common/dynamicconfig ./cmd/tools/genleandynamicconfig, make umpire-gen-dynamic-config, cd model && mise exec -- lake build Temporal.Experiment.ConfigTests, cd model && mise exec -- lake build ExperimentTests, cd model && mise exec -- lake build, make fmt-imports, make lint-code (inherited baseline and terminal red: identical 1828 pre-existing Go findings; no task Go diff)
