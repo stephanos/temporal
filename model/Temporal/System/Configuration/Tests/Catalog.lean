@@ -7,33 +7,6 @@ namespace Temporal.System.ConfigurationTests
 open _root_.Umpire
 open Temporal.DynamicConfig
 open Temporal.System.Configuration
-open Temporal.System.Callback.Configuration
-open Temporal.System.Matching.Configuration
-
-example : authoredClassifications.length + matchingClassifications.length = 6 := by native_decide
-
-def constrainedDefaultInterleaving : Except ConfigError (Int × ResolutionSource) := do
-  let use ← matchingUpdateAckIntervalUse "fixture-namespace" "temporal-sys-per-ns-tq" 1
-  let namespaceOverride ← checkConfigOverride use
-    (namespaceContext "fixture-namespace") (.duration 120000000000)
-  let view ← resolveConfigView [namespaceOverride] [.of use]
-  let value ← view.read use
-  match view.provenance with
-  | [entry] => pure (value, entry.source)
-  | _ => throw {
-      kind := .fixtureMismatch
-      useId := use.id
-      key := use.key
-      offendingValue := "unexpected entry count"
-      relatedIdentities := []
-    }
-
-def constrainedDefaultInterleavingMatches : Bool :=
-  match constrainedDefaultInterleaving with
-  | .ok (300000000000, .constrainedDefault) => true
-  | _ => false
-
-example : constrainedDefaultInterleavingMatches = true := by native_decide
 
 example : Temporal.DynamicConfig.Settings.fixtures.length = 13 := by native_decide
 

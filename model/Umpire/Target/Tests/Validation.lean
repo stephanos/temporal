@@ -1,8 +1,8 @@
-import Umpire.CoreTests.Fixtures
+import Umpire.Target.Tests.Fixtures
 
 /-! Declaration, capability, provider, connector, and law validation checks. -/
 
-namespace Umpire.CoreTests
+namespace Umpire.TargetTests
 
 open Umpire
 
@@ -14,7 +14,7 @@ def emptyIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool
 example : (errorOf (composeTarget emptyIdentityTarget)) = some {
     kind := .emptyIdentity
     declarationId := id "umpire.declaration.anonymous"
-    sourcePath := "Umpire/CoreTests.lean"
+    sourcePath := "Umpire/TargetTests.lean"
     offendingValue := "<empty>"
     relatedIdentities := [id ""]
   } := by
@@ -149,4 +149,4 @@ def compatibleTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bo
 example : (composeTarget compatibleTarget).isOk = true := by
   native_decide
 
-end Umpire.CoreTests
+end Umpire.TargetTests

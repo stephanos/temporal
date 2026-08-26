@@ -1,5 +1,4 @@
 import Umpire.Observation
-import Umpire.Observation.Qualification
 
 /-! Shared profile, mapping, and target vocabulary for Observation compilation tests. -/
 
