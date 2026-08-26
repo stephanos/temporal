@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T15:14:13.875800Z",
+  "depends_on": [
+    "fn-28-authorized-remote-staging-black-box.10"
+  ],
+  "id": "fn-28-authorized-remote-staging-black-box.11",
+  "priority": null,
+  "spec": "fn-28-authorized-remote-staging-black-box",
+  "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.11.md",
+  "status": "todo",
+  "title": "Publish the operator runbook and synchronize the component roadmap",
+  "updated_at": "2026-08-26T15:14:13.875800Z"
+}
