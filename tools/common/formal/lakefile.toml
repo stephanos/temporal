@@ -1,6 +1,0 @@
-name = "sharedformal"
-defaultTargets = ["SharedModel"]
-
-[[lean_lib]]
-name = "SharedModel"
-srcDir = "lean"

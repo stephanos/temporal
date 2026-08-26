@@ -51,7 +51,7 @@ func (values *descriptorValues) Set(value string) error {
 
 func parseGenerationConfig(arguments []string) (generationConfig, error) {
 	var descriptors descriptorValues
-	flags := flag.NewFlagSet("umpire-gen-api", flag.ContinueOnError)
+	flags := flag.NewFlagSet("umpire-gen-lean-api", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.Var(&descriptors, "descriptor", "descriptor set path (repeatable)")
 	leanRoot := flags.String("lean-root", "", "root Lean module")

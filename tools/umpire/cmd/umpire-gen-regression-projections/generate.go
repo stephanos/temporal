@@ -48,7 +48,7 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 		RepositoryRoot: ".",
 		OutputRoot:     ".",
 	}
-	flags := flag.NewFlagSet("umpire-gen-regressions", flag.ContinueOnError)
+	flags := flag.NewFlagSet("umpire-gen-regression-projections", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.StringVar(
 		&configuration.RepositoryRoot,

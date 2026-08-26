@@ -1,5 +1,8 @@
 name = "temporal-model"
-defaultTargets = ["Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "temporal-model-inspect"]
+defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "temporal-model-inspect"]
+
+[[lean_lib]]
+name = "Shared"
 
 [[lean_lib]]
 name = "Temporal"
