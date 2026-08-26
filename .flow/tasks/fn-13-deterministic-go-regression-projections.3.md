@@ -40,9 +40,12 @@ The shared set publisher already owns path safety, locking, atomic install, roll
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression` passes.
 
 ## Done summary
-TBD
+Composed the fixed regression inspector, strict live-versus-fixture projection cross-check, deterministic rendering, and exact two-file transactional publication behind a repository generator command. Added injected coverage for inspector contradictions, every stale displayed field, unsafe roots and paths, incomplete render sets, concurrent publication, deterministic repetition, and preservation of prior outputs.
 
+baseline: green (go test -count=1 -tags test_dep ./tools/umpire/... passed pre-edit; make umpire-check-regression reused receipt 959674ea)
+GATE_SKIPPED:unittest:green-receipt 959674ea - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-26T05:16:13Z..2026-08-26T05:19:19Z] (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e1a635b275b58da766f4023f48cadda6543dacc5
+- Tests: GATE_SKIPPED:unittest:green-receipt 959674ea - baseline reused from prior post-gate pass, go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression, mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regressions --repository-root . --output-root /tmp/tmp.3AOEqWP7jQ, go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-regression
 - PRs:
