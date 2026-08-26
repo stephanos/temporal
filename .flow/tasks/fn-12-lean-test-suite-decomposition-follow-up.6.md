@@ -36,9 +36,17 @@ The 30-assertion legacy inventory is now 19 shared plus 11 Callback-owned assert
 - [ ] Generated API/dynamic-config modules, production configuration behavior, public APIs, dependencies, build targets, documentation, commits, and worktrees remain unchanged.
 
 ## Done summary
-TBD
+Split the 375-line shared Temporal configuration suite behind an import-only facade into Validation, Resolution, and Catalog concerns, with only shared checked-use/result helpers in Fixtures. The 19 shared assertions and every original declaration/string are preserved exactly once; the 249-line, 11-assertion Callback suite remains byte-for-byte unchanged at SHA-256 `f960a90afad07c34c3d549dfd76ad631f3e35d8b474db5be33d9797295801f68`.
 
+Declaration-level evidence map:
+- `Fixtures`: `errorKindOf`, `maxRequest`, `checkedMaxUse`.
+- `Validation`: `unknownUseResult`, `unclassifiedUseResult`, `emptyClassificationResult`, `missingInterpretationResult`, `incompatibleInterpretationResult`, `schemaDriftResult`, `defaultDriftResult`, `missingContextResult`, `illegalContextResult`, `malformedUseResult`, `duplicateOverrideResult`, `illegalOverrideResult`, `schemaMismatchOverrideResult`, `duplicateUseResult`, `duplicateConstrainedDefaultSetting`, `valuesOfList`, `addressRuleValue`, `addressRulesValue`, and `malformedUnselectedAddressOverrideResult`; four assertions cover checked-use failures, override failures, duplicate constrained defaults, and malformed unselected address interpretation.
+- `Resolution`: `sameKeyView`, `sameKeyTypedReads`, `sameKeyViewsEqual`, `sameKeyTypedReadsMatch`, `originatingUseReadResult`, `immutableViewReads`, `immutableViewReadsMatch`, `representativeView`, and `representativeMetadataComplete`; five assertions cover deterministic ordering, typed reads, originating-context isolation, immutable views, and mixed Callback/Matching metadata.
+- `Catalog`: `constrainedDefaultInterleaving`, `constrainedDefaultInterleavingMatches`, `mismatchedFixtureResult`, `opaqueMetadata`, `opaqueClassification`, `opaqueInterpretation`, `checkedOpaqueUse`, `selectedOpaqueDefaultResult`, `replacedOpaqueDefaultResult`, `staleOpaqueReplacementResult`, `malformedOpaqueReplacementResult`, and `replacedOpaqueDefaultMatches`; ten assertions cover classification count, constrained defaults, fixture count/conformance/drift, and opaque-default selection/replacement/drift/schema behavior.
+- The original shared source contained zero explanatory comments. Sorted quoted-string and named-declaration inventories match the pre-task source exactly; each new file adds only its required module comment.
+
+stage: impl-review - ran [2026-08-26T03:45:47Z..2026-08-26T03:49:08Z] (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bc7a52ac9c54279757fac8c53d508a4cf6e0255a
+- Tests: GATE_SKIPPED:build:green-receipt 2a7de6d1 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt 2a7de6d1 - baseline reused from prior post-gate pass, git diff --check, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Fixtures.lean, cd model && mise exec -- lake build Temporal.System.Configuration.Tests.Fixtures, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Validation.lean, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Resolution.lean, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Catalog.lean, cd model && mise exec -- lake build TemporalModelTests, Configuration assertion/comment/declaration/semantic-string and import-boundary inventory checks, Callback/ConfigurationTests.lean SHA-256 and 11-assertion byte-identity checks, (cd model && mise exec -- lake build UmpireTests TemporalModelTests), make umpire-check-regression, git diff --check 905fe8d18a69292393c090f9759c3b688aeba4c0..HEAD
 - PRs:
