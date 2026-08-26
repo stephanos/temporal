@@ -596,7 +596,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-12-lean-test-suite-decomposition-follow-up.md",
-  "status": "open",
+  "status": "done",
   "title": "Lean Test Suite Decomposition Follow-up",
   "tracker": {
     "baseHashFlow": null,
@@ -609,5 +609,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T04:17:29.473957Z"
+  "updated_at": "2026-08-26T05:54:02.354551Z"
 }
