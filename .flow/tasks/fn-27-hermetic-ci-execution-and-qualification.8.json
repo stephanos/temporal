@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T15:00:00Z",
+  "depends_on": [
+    "fn-27-hermetic-ci-execution-and-qualification.4"
+  ],
+  "id": "fn-27-hermetic-ci-execution-and-qualification.8",
+  "priority": null,
+  "spec": "fn-27-hermetic-ci-execution-and-qualification",
+  "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.8.md",
+  "status": "todo",
+  "title": "Add ArtifactSet v3 and the CI publication closure",
+  "updated_at": "2026-08-26T14:30:25.841597Z"
+}

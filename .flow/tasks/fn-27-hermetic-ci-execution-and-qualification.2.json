@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T14:12:52.326012Z",
+  "depends_on": [
+    "fn-27-hermetic-ci-execution-and-qualification.1"
+  ],
+  "id": "fn-27-hermetic-ci-execution-and-qualification.2",
+  "priority": null,
+  "spec": "fn-27-hermetic-ci-execution-and-qualification",
+  "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.2.md",
+  "status": "todo",
+  "title": "Bind and execute the disposable CI runtime profile",
+  "updated_at": "2026-08-26T14:30:24.737543Z"
+}

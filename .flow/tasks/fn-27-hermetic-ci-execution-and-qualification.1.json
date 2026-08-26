@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T14:12:52.326012Z",
+  "depends_on": [],
+  "id": "fn-27-hermetic-ci-execution-and-qualification.1",
+  "priority": null,
+  "spec": "fn-27-hermetic-ci-execution-and-qualification",
+  "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.1.md",
+  "status": "todo",
+  "title": "Define QualificationProfile v2 and the exact CI policy",
+  "updated_at": "2026-08-26T14:12:52.326012Z"
+}
