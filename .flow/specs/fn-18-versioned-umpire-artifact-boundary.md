@@ -1,6 +1,6 @@
 # Versioned Umpire artifact boundary
 
-> HTML render lens: local file `.flow/artifacts/fn-18-versioned-umpire-artifact-boundary/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-18-versioned-umpire-artifact-boundary/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -296,5 +296,3 @@ An empty production migration registry is more honest than inventing a predecess
 | R10 | Explicit canonical JSON profile | `.1`–`.3` | — |
 | R11 | Replay, verification, and qualification envelopes | `.6`–`.8` | — |
 | R12 | Inert Go artifact transport | `.2`–`.11` | — |
-
-

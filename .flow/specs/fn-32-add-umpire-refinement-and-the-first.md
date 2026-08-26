@@ -1,5 +1,7 @@
 # Add Umpire Refinement and the first Temporal Feature/System correspondence
 
+> HTML render lens (local): open `.flow/artifacts/fn-32-add-umpire-refinement-and-the-first/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Overview
 
 Add one reusable `Umpire.Refinement` deep module and prove it with the first independently authored Temporal Feature/System correspondence. A checked refinement relates System implementation meaning to Feature product meaning without letting either side import or redefine the other. It becomes the required seam between System-owned observation qualification and Feature-owned Property evaluation in later conformance work.
@@ -137,5 +139,3 @@ Refinement is its own deep module because correspondence checking, canonical ide
 | R4 | First isolated Temporal correspondence | `.3`, `.4` | — |
 | R5 | Layer-specific mutation assurance | `.4`, `.5` | — |
 | R6 | Facades, imports, docs, compatibility | `.1`–`.5` | — |
-
-

@@ -1,6 +1,6 @@
 # Authorized remote staging black-box execution and qualification
 
-> HTML render lens: local file `.flow/artifacts/fn-28-authorized-remote-staging-black-box/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-28-authorized-remote-staging-black-box/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -362,5 +362,3 @@ reconsider the protected-environment adapter before implementing lease or execut
 | R8 | End-to-end controller and closed run/reconcile command | `.8`, `.9`, `.10` | — |
 | R9 | Protected workflow, verification, and operator docs | `.9`, `.10`, `.11` | — |
 | R10 | Named operational owner and complete shared ExperimentSpec | `.1`–`.11` | — |
-
-
