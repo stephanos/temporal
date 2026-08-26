@@ -13,38 +13,52 @@ normative.
 
 ## Purpose and scope
 
-- **SCP-01 — Focused reuse.** Umpire interfaces MUST be driven by modeling, regression, exploration,
-  conformance, and verification problems demonstrated by Temporal, while the reusable Umpire
-  library remains domain-neutral.
-- **SCP-02 — One model language.** All semantic model code MUST be written in Lean and live under
+- **SCP-01 — Temporal-driven scope.** Umpire MUST solve modeling, regression, exploration,
+  conformance, and verification problems demonstrated by Temporal rather than hypothetical users.
+- **SCP-02 — Domain-neutral core.** The reusable Umpire library MUST remain free of Temporal
+  vocabulary, dependencies, and fixtures.
+- **SCP-03 — One model language.** All semantic model code MUST be written in Lean and live under
   `model/`.
+- **SCP-04 — Focused complement.** Umpire SHOULD complement, rather than replace, specialized unit,
+  race, persistence, schema, authorization, performance, and handler tests.
 
 ## Semantic authority
 
-- **SEM-01 — Lean authority.** Canonical Lean Feature and System declarations MUST be the sole
+- **SEM-01 — Lean authority.** Lean model MUST be the sole
   authority for behavioral meaning; generated artifacts, Go code, runtimes, evidence mappings, and
   checker adapters MUST NOT redefine it.
-- **SEM-02 — Structural inputs.** Generated API and dynamic-configuration declarations MUST remain
+- **SEM-02 — Canonical declarations.** Canonical Feature and System declarations MUST own Temporal
+  meaning; generated artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT
+  redefine it.
+- **SEM-03 — Structural inputs.** Generated API and dynamic-configuration declarations MUST remain
   structural inputs until handwritten Lean declarations assign semantic meaning.
-- **SEM-03 — Separate languages.** Property, Behavior, Query, and Observation MUST remain distinct
+- **SEM-04 — Separate languages.** Property, Behavior, Query, and Observation MUST remain distinct
   typed languages with distinct responsibilities.
-- **SEM-04 — Pure properties.** Properties MUST be pure, portable, capability-scoped claims over
+- **SEM-05 — Pure properties.** Properties MUST be pure, portable, capability-scoped claims over
   semantic traces and MUST NOT depend on implementation evidence sources.
-- **SEM-05 — Declarative behavior.** Behavior MUST constrain admissible semantic trace spaces, with
-  authors requesting actions and target semantics determining outcomes and resulting states.
-- **SEM-06 — Explicit refinement.** Feature product meaning and System implementation meaning MUST
+- **SEM-06 — Declarative behavior.** Behavior MUST constrain admissible semantic trace spaces; it
+  MUST NOT become a procedural RPC or runtime script.
+- **SEM-07 — Target-owned outcomes.** Authors MUST request actions, while target semantics determines
+  their outcomes and resulting states.
+- **SEM-08 — Explicit refinement.** Feature product meaning and System implementation meaning MUST
   meet through an explicit refinement, never through declaration order or implicit selection.
 
 ## Model architecture
 
-- **MOD-01 — Dependency direction.** `Umpire.*` MUST NOT import `Temporal.*` or contain
-  Temporal-owned vocabulary or fixtures.
-- **MOD-02 — Import isolation.** `Temporal.Feature.*` MUST NOT import `Temporal.System.*`,
-  `Temporal.Verify.*`, or Veil; ordinary Umpire and Temporal facades MUST exclude expert verification
-  modules.
-- **MOD-03 — Deep component seams.** Components MUST hide substantial behavior behind small,
-  cohesive interfaces, have narrow responsibilities, and communicate through explicit contracts
-  rather than internal representations.
+- **MOD-01 — Dependency direction.** `Umpire.*` MUST NOT import `Temporal.*`.
+- **MOD-02 — Semantic altitude.** `Temporal.Feature` MUST own product-visible meaning, while
+  `Temporal.System` MUST own implementation mechanisms, configuration interpretation, evidence
+  mappings, and execution semantics.
+- **MOD-03 — Feature isolation.** `Temporal.Feature.*` MUST NOT import `Temporal.System.*`,
+  `Temporal.Verify.*`, or Veil.
+- **MOD-04 — Refinement leaves.** Feature and System modules MUST remain independently understandable
+  and testable; only focused refinement leaves MAY compose them.
+- **MOD-05 — Verification isolation.** Ordinary Umpire and Temporal facades, tools, tests, and builds
+  MUST exclude expert verification modules and Veil.
+- **MOD-06 — Deep modules.** Umpire modules SHOULD hide substantial checking, planning, artifact,
+  observation, and verification machinery behind small, cohesive interfaces.
+- **MOD-07 — Component seams.** Components MUST have narrow responsibilities and communicate through
+  explicit contracts rather than each other's internal representations.
 
 ## Authoring
 
@@ -55,9 +69,10 @@ normative.
   outcomes, relations, bounds, faults, capabilities, omissions, and unsupported cases explicit.
 - **AUT-03 — Checked declarations.** Public declarations MUST be checked before planning or execution,
   and failures SHOULD produce precise source-located diagnostics.
-- **AUT-04 — Inspectable declarations.** Anything used for portable planning, artifacts, promotion,
-  or cross-language execution MUST be inspectable data with a stable, namespaced, kind-checked
-  identity and a Lean denotation, not an opaque callback.
+- **AUT-04 — Stable identities.** Every public semantic declaration MUST have a stable, namespaced,
+  kind-checked identity that is independent of source ordering and documentation.
+- **AUT-05 — Portable data.** Anything used for portable planning, artifacts, promotion, or
+  cross-language execution MUST be inspectable data with a Lean denotation, not an opaque callback.
 
 ## Planning and bounds
 
@@ -65,10 +80,12 @@ normative.
   have explicit typed bounds.
 - **PLN-02 — Deterministic selection.** Identical declarations, semantic inputs, bounds, strategy,
   and seed MUST produce identical selected plans and semantic identities.
-- **PLN-03 — Honest search.** Complete search MUST fail rather than truncate, budget exhaustion MUST
-  remain distinct from absence, and an empty behavior MUST report `unsatisfiable` rather than
-  success by vacuity.
-- **PLN-04 — Generated intent.** A DrivePlan MUST be generated execution intent, not an authoring
+- **PLN-03 — Honest completeness.** A complete search MUST fail rather than silently truncate.
+- **PLN-04 — Honest exhaustion.** Budget exhaustion MUST remain distinct from proof that no trace or
+  counterexample exists.
+- **PLN-05 — Honest satisfiability.** An empty behavior MUST report `unsatisfiable`, never success by
+  vacuity.
+- **PLN-06 — Generated intent.** A DrivePlan MUST be generated execution intent, not an authoring
   language or evidence that execution occurred.
 
 ## Artifacts
@@ -84,6 +101,9 @@ normative.
   unknown fields; semantic changes to old data require named deterministic migrations.
 - **ART-05 — Same experiment.** Local, CI, staging, black-box, and canary execution MUST consume the
   same semantic ExperimentSpec rather than environment-specific copies of its meaning.
+- **ART-06 — Complete traces.** An executable trace MUST include its semantic setup, participant
+  programs, runtime-resolved symbolic references, actions, faults, ordering, observations,
+  termination, and cleanup obligations.
 
 ## Execution and evidence
 
