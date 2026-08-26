@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T14:55:23.883786Z",
+  "depends_on": [
+    "fn-28-authorized-remote-staging-black-box.1"
+  ],
+  "id": "fn-28-authorized-remote-staging-black-box.2",
+  "priority": null,
+  "spec": "fn-28-authorized-remote-staging-black-box",
+  "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.2.md",
+  "status": "todo",
+  "title": "Bind the remote RuntimeConfiguration and public evidence mapping",
+  "updated_at": "2026-08-26T14:55:23.883786Z"
+}
