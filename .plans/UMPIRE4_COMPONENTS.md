@@ -58,6 +58,7 @@ make its component built.
 | C7 local semantic conformance | `fn-20-local-execution-semantic-conformance` | Reviewed: Ship; seven tasks ready | One exact four-member local run set passes through a private bounded Go-to-Lean checker bridge, the existing pure Observation/Property authorities, independent operational/qualification/semantic statuses, fail-closed evidence mutations, and an admitted/published six-member SemanticEvidence/Result set. Replay, promotion, formal checking, and non-local/release qualification remain separate. |
 | C4/C6/C7/C9 deterministic Nexus negative control | `fn-21-nexus-duplicate-observation-control` | Reviewed: Ship; seven tasks ready | One exact request-only duplicate-delivery fault lowers to a second closed local program/configuration, drives one normal requested/completed cancellation lifecycle, records mechanical callback count one plus one labeled synthetic contribution, and lets the existing conformance authority report a qualified uniqueness-only violation. Generic fault infrastructure, a new artifact family, replay, promotion, and non-local qualification remain separate. |
 | C10 deterministic replay, minimization, and reviewed promotion | `fn-22-deterministic-replay-semantic` | Reviewed: Ship; eight tasks ready | The exact fn-21 six-member violation set is admitted, reproduced twice, compared by a closed normalized violation signature, reduced only through checked action/order/fault edits, explained by a non-destructive evidence core, and bound to one statically elaborated fn-5 proposal candidate. One bounded local command emits an exact report/progress contract and review-only Lean source; no new persisted artifact family, dynamic campaign surface, automatic regression installation, or non-local qualification is introduced. |
+| C11 Veil compatibility and adoption gate | `fn-23-veil-toolchain-compatibility-and` | Reviewed: Ship; six tasks ready | Two exact pinned Veil candidates are evaluated under Lean 4.33.1 only through an opt-in Linux/aarch64 diagnostic with frozen Git/npm/solver/Lean/Zig/Node/runtime closures, no-network execution, honest solver trust, candidate-scoped measurements, and one canonical adopt/defer/inconclusive receipt. No Veil dependency, semantic claim, default build integration, generated source, or production surface is introduced. |
 
 Bottom line: the component decomposition still holds, but the current implementation is not an
 end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact inspection.
@@ -471,7 +472,7 @@ Lean-native checking is the default. Counterexamples must replay through canonic
 before promotion. Although the chat describes pluggable backends, the active roadmap requires Veil
 to remain a Lean library and embedded DSL, not a second semantic authority or generated target.
 
-The approved current-model Veil direction is detailed in [UMPIRE_VEIL.md](UMPIRE_VEIL.md). Veil is
+The approved current-model Veil direction is detailed in [UMPIRE4_DSL.md](UMPIRE4_DSL.md#optional-veil-checking). Veil is
 optional per model family and property. Its handwritten declarations live beside the owning family
 in the primary Lake project, behind a focused import and test aggregate. A Lean-owned binding must
 relate initial states, actions, transitions, and the checked property to an explicit canonical
