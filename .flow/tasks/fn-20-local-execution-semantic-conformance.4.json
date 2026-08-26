@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T10:50:29.253900Z",
+  "depends_on": [
+    "fn-20-local-execution-semantic-conformance.3",
+    "fn-20-local-execution-semantic-conformance.2"
+  ],
+  "id": "fn-20-local-execution-semantic-conformance.4",
+  "priority": null,
+  "spec": "fn-20-local-execution-semantic-conformance",
+  "spec_path": ".flow/tasks/fn-20-local-execution-semantic-conformance.4.md",
+  "status": "todo",
+  "title": "Construct admitted SemanticEvidence and Result sets",
+  "updated_at": "2026-08-26T11:02:07.534232Z"
+}
