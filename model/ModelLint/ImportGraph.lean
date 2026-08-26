@@ -48,6 +48,7 @@ structure Classifier where
 
 /-- Explicit module classes and exact reviewed exceptions for import-boundary checking. -/
 structure Policy where
+  firstPartyRoots : Array Lean.Name
   classifiers : Array Classifier
   refinementConsumers : Array Lean.Name
   verifyConsumers : Array Lean.Name
@@ -97,10 +98,20 @@ def Policy.classify? (policy : Policy) (name : Lean.Name) : Option ModuleClass :
 
 /-- Whether a qualified module name belongs to the first-party policy. -/
 def Policy.isFirstParty (policy : Policy) (name : Lean.Name) : Bool :=
-  (policy.classify? name).isSome
+  policy.firstPartyRoots.any (matchesPrefix · name)
 
 /-- The closed import-boundary policy for the current and planned model module roots. -/
 def defaultPolicy : Policy := {
+  firstPartyRoots := #[
+    `ModelLint,
+    `Shared,
+    `Temporal,
+    `TemporalModelTests,
+    `TemporalVeilTests,
+    `TemporalVerify,
+    `Umpire,
+    `UmpireTests
+  ],
   classifiers := #[
     { modulePrefix := `ModelLint, moduleClass := .lintInfrastructure },
     { modulePrefix := `Shared, moduleClass := .shared },

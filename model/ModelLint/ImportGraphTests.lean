@@ -34,15 +34,38 @@ private structure ForbiddenCase where
   rule : Rule
 
 private def forbiddenCases : Array ForbiddenCase := #[
-  { label := "Shared", source := `Shared.Root, destination := `Umpire.Core,
+  { label := "Shared to Umpire", source := `Shared.Root, destination := `Umpire.Core,
     rule := .sharedIndependence },
-  { label := "Umpire", source := `Umpire.Root, destination := `Temporal.Feature.Root,
+  { label := "Shared to Temporal", source := `Shared.Root, destination := `Temporal.Feature.Root,
+    rule := .sharedIndependence },
+  { label := "Umpire to Temporal", source := `Umpire.Root, destination := `Temporal.Feature.Root,
     rule := .umpireIndependence },
-  { label := "Feature", source := `Temporal.Feature.Root, destination := `Temporal.System.Root,
+  { label := "Feature to System", source := `Temporal.Feature.Root,
+    destination := `Temporal.System.Root,
     rule := .featureIsolation },
-  { label := "System", source := `Temporal.System.Root, destination := `Temporal.Feature.Root,
+  { label := "Feature to Verify", source := `Temporal.Feature.Root,
+    destination := `Temporal.Verify.Root,
+    rule := .featureIsolation },
+  { label := "Feature to Veil", source := `Temporal.Feature.Root,
+    destination := `Umpire.Verify.Veil.Core,
+    rule := .featureIsolation },
+  { label := "System to Feature", source := `Temporal.System.Root,
+    destination := `Temporal.Feature.Root,
     rule := .systemIsolation },
-  { label := "Verify", source := `Temporal.Root, destination := `Umpire.Verify.Veil.Core,
+  { label := "Umpire to Veil", source := `Umpire.Root,
+    destination := `Umpire.Verify.Veil.Core,
+    rule := .verificationIsolation },
+  { label := "System to Verify", source := `Temporal.System.Root,
+    destination := `Temporal.Verify.Root,
+    rule := .verificationIsolation },
+  { label := "Temporal to Verify", source := `Temporal.Root,
+    destination := `Temporal.Verify.Root,
+    rule := .verificationIsolation },
+  { label := "model tests to Verify", source := `TemporalModelTests,
+    destination := `Temporal.Verify.Root,
+    rule := .verificationIsolation },
+  { label := "tool to Verify", source := `Temporal.Tool.Inspect,
+    destination := `Temporal.Verify.Root,
     rule := .verificationIsolation }
 ]
 
@@ -132,6 +155,10 @@ private def testInventoryFailures : IO Unit := do
     (reconcile defaultPolicy #[sourceRecord `Temporal.Root]
       #[moduleRecord `Temporal.Root #[`Temporal.Future]])
     #[.unknownFirstPartyImport `Temporal.Root `Temporal.Future]
+  requireEqual "unknown near-miss aggregate import"
+    (reconcile defaultPolicy #[sourceRecord `Temporal.Root]
+      #[moduleRecord `Temporal.Root #[`TemporalVerify.Extra]])
+    #[.unknownFirstPartyImport `Temporal.Root `TemporalVerify.Extra]
 
 private def testExternalLeaves : IO Unit := do
   let sources := #[sourceRecord `Shared.Root]

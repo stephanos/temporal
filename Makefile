@@ -1068,25 +1068,7 @@ umpire-check-regression: umpire-check-regression-projections
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		feature_sources=$$(find model/Temporal/Feature -type f -name '*.lean' -print); \
-		system_sources=$$(find model/Temporal/System -type f -name '*.lean' -print); \
 		configuration_sources="model/Temporal/System/Configuration.lean $$(find model/Temporal/System/Configuration -type f -name '*.lean' ! -name '*Tests.lean' -print)"; \
-		test -n "$$feature_sources"; \
-		test -n "$$system_sources"; \
-		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]System([.]|[[:space:]]|$$)' $$feature_sources; then \
-			echo "found forbidden Feature dependency on System" >&2; \
-			exit 1; \
-		else \
-			scan_status=$$?; \
-			test "$$scan_status" -eq 1; \
-		fi; \
-		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]Feature([.]|[[:space:]]|$$)' $$system_sources; then \
-			echo "found forbidden System dependency on Feature" >&2; \
-			exit 1; \
-		else \
-			scan_status=$$?; \
-			test "$$scan_status" -eq 1; \
-		fi; \
 		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]System[.](Callback|Matching)([.]|[[:space:]]|$$)' $$configuration_sources; then \
 			echo "found forbidden shared Configuration dependency on Callback or Matching" >&2; \
 			exit 1; \
@@ -1275,6 +1257,15 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 .PHONY: lint-model
 lint-model:
 	@printf $(COLOR) "Linting Lean model..."
+	@cd model && $(LEAN_LAKE) build modelLintTests modelLint
+	@cd model && $(LEAN_LAKE) exe modelLintTests
+	@diagnostics=$$(mktemp); \
+		trap 'rm -f "$$diagnostics"' EXIT; \
+		status=0; \
+		cd model && $(LEAN_LAKE) exe modelLintTests --controlled-violation 2>"$$diagnostics" || status=$$?; \
+		test "$$status" -eq 1; \
+		expected='[model-import-graph/shared-independence] forbidden qualified import path: Shared.Root -> ModelLint.Bridge -> Umpire.Core'; \
+		test "$$(cat "$$diagnostics")" = "$$expected"
 	@cd model && $(LEAN_LAKE) --wfail lint --lint-only=.all,.extra,-.missingDocs
 
 lint-yaml: $(YAMLFMT)
