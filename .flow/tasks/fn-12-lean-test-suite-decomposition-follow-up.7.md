@@ -43,9 +43,10 @@ All six fresh suite workers must have completed serially before this task. The c
 - [ ] No production/public behavior, generated API or dynamic-config file, Lake/Make/CI wiring, documentation, dependency, commit, or worktree change is present.
 
 ## Done summary
-TBD
+Audited the six decomposed Lean suites against the closed fn-10 baseline and found no integration correction necessary: facades, concern imports, declarations, comments, semantic strings, approved removals, stable aggregates, and read-only visibility/configuration guards all reconcile. Every split leaf and facade elaborates directly, and the terminal aggregate build, Umpire regression, structural/domain scans, and whitespace checks pass.
 
+stage: impl-review - ran [2026-08-26T03:56:46Z..2026-08-26T04:04:39Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 31c773f8dc2a1d67419c06fabbfb7d252dd02187
+- Tests: GATE_SKIPPED:build:green-receipt bc7a52ac - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt bc7a52ac - baseline reused from prior post-gate pass, git diff --check (baseline), structural/inventory audit: direct facade coverage, no child facade imports, suite-local fixtures, Query public visibility, byte-stable Planning visibility and Callback configuration, exact declarations/comments/semantic strings, approved removals, uniquenessProperty, rg --no-ignore whitespace/domain guards, (cd model && for each of the 36 split leaves/facades; do mise exec -- lake env lean <module>; done), (cd model && mise exec -- lake build UmpireTests TemporalModelTests), make umpire-check-regression, git diff --check
 - PRs:
