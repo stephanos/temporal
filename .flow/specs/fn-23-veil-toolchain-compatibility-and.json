@@ -1,0 +1,300 @@
+{
+  "branch_name": "fn-23-veil-toolchain-compatibility-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-26T12:18:58.357769Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-23-veil-toolchain-compatibility-and",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-26T12:47:51.193537Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "b3cbeb1a9c0da9489a9f2dac379fbb986287d97dc3646277df93332435ad01ed",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5cb3e69ae663a6d7aaa2d920330dae09",
+            "classification": "introduced",
+            "findingId": "finding-5cb3e69ae663a6d7aaa2d920330dae09",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-79d819495cc2065af8ccac77fed16107",
+            "classification": "introduced",
+            "findingId": "finding-79d819495cc2065af8ccac77fed16107",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c420a853c1cf977330d020ff17d67a5c",
+            "classification": "introduced",
+            "findingId": "finding-c420a853c1cf977330d020ff17d67a5c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8290f26bbb046d63b1cafe553297c76d",
+            "classification": "introduced",
+            "findingId": "finding-8290f26bbb046d63b1cafe553297c76d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c443dd94c818ed4d7bd2de1ce4a9f1a1",
+            "classification": "introduced",
+            "findingId": "finding-c443dd94c818ed4d7bd2de1ce4a9f1a1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2a8f99370ea56eb53cdc871842254130",
+            "classification": "introduced",
+            "findingId": "finding-2a8f99370ea56eb53cdc871842254130",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8cc98a9e9413573a91290ad3695aa2b2",
+            "classification": "introduced",
+            "findingId": "finding-8cc98a9e9413573a91290ad3695aa2b2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a51123f9c9208316e857967b8267583c0f3d6a2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 379840,
+      "output_sha256": "d81e9eb845bc6596437c32fa75e67cca616b49a42e7a6b97bc5dbb5bd4c69f09",
+      "reservation_id": "32fb6f611b6745d7bb08bceca982b5c1",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T12:33:50.501287Z",
+      "tool_calls": 16,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3e97180bba45678c3b469af229fdc924db3b7da52b518e53e028ae265261d41a",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5cb3e69ae663a6d7aaa2d920330dae09",
+            "classification": "introduced",
+            "findingId": "finding-5cb3e69ae663a6d7aaa2d920330dae09",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-79d819495cc2065af8ccac77fed16107",
+            "classification": "introduced",
+            "findingId": "finding-79d819495cc2065af8ccac77fed16107",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c420a853c1cf977330d020ff17d67a5c",
+            "classification": "introduced",
+            "findingId": "finding-c420a853c1cf977330d020ff17d67a5c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8290f26bbb046d63b1cafe553297c76d",
+            "classification": "introduced",
+            "findingId": "finding-8290f26bbb046d63b1cafe553297c76d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c443dd94c818ed4d7bd2de1ce4a9f1a1",
+            "classification": "introduced",
+            "findingId": "finding-c443dd94c818ed4d7bd2de1ce4a9f1a1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d41e736a38d58293895edb9828ebd858",
+            "classification": "introduced",
+            "findingId": "finding-d41e736a38d58293895edb9828ebd858",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2a8f99370ea56eb53cdc871842254130",
+            "classification": "introduced",
+            "findingId": "finding-2a8f99370ea56eb53cdc871842254130",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8cc98a9e9413573a91290ad3695aa2b2",
+            "classification": "introduced",
+            "findingId": "finding-8cc98a9e9413573a91290ad3695aa2b2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a51123f9c9208316e857967b8267583c0f3d6a2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1416,
+      "output_sha256": "492d181d5102b5224b3b4b7f610756253af34c08e3a1447a709e4126c72b4374",
+      "reservation_id": "62d4d50002c7448abb288531389b3a44",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T12:41:08.486360Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "fc6e5c66c62b62524accd1c30e902acf12d9d910f712cf3b22c337984276c6c4",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a51123f9c9208316e857967b8267583c0f3d6a2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1214,
+      "output_sha256": "cad2d85011bed3fa901825f5cd494be0a322a61917250e183af65bcfc743ab2e",
+      "reservation_id": "ad96f3d2de934138a147d8220eae9b59",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T12:45:29.235526Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "41575e2154215938e4ad7e32a11c3c8f1913518c8b61572ef3774517dbd15740",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a51123f9c9208316e857967b8267583c0f3d6a2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "557785c6dda74c04b465e3b526b2dd6f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T12:47:51.191693Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-23-veil-toolchain-compatibility-and.md",
+  "status": "open",
+  "title": "Veil toolchain compatibility and adoption gate",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-26T12:50:11.555871Z"
+}
