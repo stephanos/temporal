@@ -15,37 +15,39 @@ def source : SemanticSource := {
   provenance := "lean-model"
 }
 
-def targetId := id "workflow-nexus.target.caller-closure"
-def kernelId := id "workflow-nexus.kernel.caller-closure"
-def workflowCapabilityId := id "workflow.capability.lifecycle"
-def cancellationCapabilityId := id "nexus.capability.cancellation"
-def ownershipCapabilityId := id "workflow-nexus.capability.ownership"
-def ownershipClaimCapabilityId := id "workflow-nexus.capability.ownership-claim-internal"
-def workflowProviderId := id "workflow.provider.lifecycle"
-def cancellationProviderId := id "nexus.provider.cancellation"
-def workflowOwnershipClaimProviderId := id "workflow.provider.ownership-claim"
-def cancellationOwnershipClaimProviderId := id "nexus.provider.ownership-claim"
-def ownershipProviderId := id "workflow-nexus.provider.ownership"
-def ownershipConnectorId := id "workflow-nexus.connector.ownership"
-def lifecycleLawId := id "workflow.law.caller-closure"
-def cancellationLawId := id "nexus.law.cancellation-honored"
-def ownershipLawId := id "workflow-nexus.law.ownership-reconciled"
-def configStateId := id "workflow-nexus.state.config"
-def forceCloseActionId := id "workflow.action.force-close"
-def upgradedOutcomeId := id "nexus.outcome.cancellation-upgraded"
-def deliveredObservationId := id "nexus.observation.cancellation-delivered"
-def cancellationCountObservationId := id "nexus.observation.pending-cancellation-count"
-def ownershipClaimId := id "workflow-nexus.observation.ownership-claim"
-def ownershipRelationId := id "workflow-nexus.relation.owns-operation"
-def operationRoleId := id "workflow-nexus.role.operation"
-def callerClosurePropertyId := id "workflow-nexus.property.caller-closure"
-def exploratoryBehaviorId := id "workflow-nexus.behavior.exploratory"
-def exactActionBehaviorId := id "workflow-nexus.behavior.exact-action"
-def exactTraceBehaviorId := id "workflow-nexus.behavior.exact-trace"
-def verifyQueryId := id "workflow-nexus.query.verify-caller-closure"
-def exploratoryQueryId := id "workflow-nexus.query.explore-caller-closure"
-def exactActionQueryId := id "workflow-nexus.query.exact-action-caller-closure"
-def exactTraceQueryId := id "workflow-nexus.query.model-only-caller-closure"
+def targetId : DeclarationId := id "workflow-nexus.target.caller-closure"
+def kernelId : DeclarationId := id "workflow-nexus.kernel.caller-closure"
+def workflowCapabilityId : DeclarationId := id "workflow.capability.lifecycle"
+def cancellationCapabilityId : DeclarationId := id "nexus.capability.cancellation"
+def ownershipCapabilityId : DeclarationId := id "workflow-nexus.capability.ownership"
+def ownershipClaimCapabilityId : DeclarationId :=
+  id "workflow-nexus.capability.ownership-claim-internal"
+def workflowProviderId : DeclarationId := id "workflow.provider.lifecycle"
+def cancellationProviderId : DeclarationId := id "nexus.provider.cancellation"
+def workflowOwnershipClaimProviderId : DeclarationId := id "workflow.provider.ownership-claim"
+def cancellationOwnershipClaimProviderId : DeclarationId := id "nexus.provider.ownership-claim"
+def ownershipProviderId : DeclarationId := id "workflow-nexus.provider.ownership"
+def ownershipConnectorId : DeclarationId := id "workflow-nexus.connector.ownership"
+def lifecycleLawId : DeclarationId := id "workflow.law.caller-closure"
+def cancellationLawId : DeclarationId := id "nexus.law.cancellation-honored"
+def ownershipLawId : DeclarationId := id "workflow-nexus.law.ownership-reconciled"
+def configStateId : DeclarationId := id "workflow-nexus.state.config"
+def forceCloseActionId : DeclarationId := id "workflow.action.force-close"
+def upgradedOutcomeId : DeclarationId := id "nexus.outcome.cancellation-upgraded"
+def deliveredObservationId : DeclarationId := id "nexus.observation.cancellation-delivered"
+def cancellationCountObservationId : DeclarationId :=
+  id "nexus.observation.pending-cancellation-count"
+def ownershipClaimId : DeclarationId := id "workflow-nexus.observation.ownership-claim"
+def ownershipRelationId : DeclarationId := id "workflow-nexus.relation.owns-operation"
+def operationRoleId : DeclarationId := id "workflow-nexus.role.operation"
+def callerClosurePropertyId : DeclarationId := id "workflow-nexus.property.caller-closure"
+def exploratoryBehaviorId : DeclarationId := id "workflow-nexus.behavior.exploratory"
+def exactActionBehaviorId : DeclarationId := id "workflow-nexus.behavior.exact-action"
+def exactTraceBehaviorId : DeclarationId := id "workflow-nexus.behavior.exact-trace"
+def verifyQueryId : DeclarationId := id "workflow-nexus.query.verify-caller-closure"
+def exploratoryQueryId : DeclarationId := id "workflow-nexus.query.explore-caller-closure"
+def exactActionQueryId : DeclarationId := id "workflow-nexus.query.exact-action-caller-closure"
+def exactTraceQueryId : DeclarationId := id "workflow-nexus.query.model-only-caller-closure"
 
 def lifecycleLaw : LawRequirement := {
   id := lifecycleLawId
@@ -401,7 +403,8 @@ def targetDeclaration : TargetDeclaration LawStatement
   kernel := .checked transitionKernel
 }
 
-def targetResult := composeTarget targetDeclaration
+def targetResult : Except DeclarationError (QueryTarget LawStatement) :=
+  composeTarget targetDeclaration
 
 private theorem targetResult_isSome : targetResult.toOption.isSome = true := by
   native_decide
@@ -529,9 +532,12 @@ def checkBehaviorDeclaration
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
   checkBehavior { declarations := target.declarations } declaration
 
-def exploratoryBehaviorResult := checkBehaviorDeclaration exploratoryBehaviorDeclaration
-def exactActionBehaviorResult := checkBehaviorDeclaration exactActionBehaviorDeclaration
-def exactTraceBehaviorResult := checkBehaviorDeclaration exactTraceBehaviorDeclaration
+def exploratoryBehaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration exploratoryBehaviorDeclaration
+def exactActionBehaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration exactActionBehaviorDeclaration
+def exactTraceBehaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration exactTraceBehaviorDeclaration
 
 private theorem exploratoryBehaviorResult_isSome :
     exploratoryBehaviorResult.toOption.isSome = true := by native_decide
@@ -607,20 +613,20 @@ private def queryDeclaration
   policy
 }
 
-def verifyQueryResult := checkQuery queryContext
-  (queryDeclaration verifyQueryId (.verify callerClosureProperty)
+def verifyQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext (queryDeclaration verifyQueryId (.verify callerClosureProperty)
     exactActionBehavior exhaustivePolicy)
 
-def exploratoryQueryResult := checkQuery queryContext
-  (queryDeclaration exploratoryQueryId (.select [callerClosureProperty])
+def exploratoryQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext (queryDeclaration exploratoryQueryId (.select [callerClosureProperty])
     exploratoryBehavior shortestPolicy)
 
-def exactActionQueryResult := checkQuery queryContext
-  (queryDeclaration exactActionQueryId (.witness callerClosureProperty)
+def exactActionQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext (queryDeclaration exactActionQueryId (.witness callerClosureProperty)
     exactActionBehavior shortestPolicy)
 
-def exactTraceQueryResult := checkQuery queryContext
-  (queryDeclaration exactTraceQueryId (.witness callerClosureProperty)
+def exactTraceQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext (queryDeclaration exactTraceQueryId (.witness callerClosureProperty)
     exactTraceBehavior shortestPolicy)
 
 private theorem verifyQueryResult_isSome : verifyQueryResult.toOption.isSome = true := by native_decide
@@ -649,16 +655,16 @@ private def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuer
   semanticDigest := checked.semanticDigest
 }
 
-def verifyQuery := materializeQuery
+def verifyQuery : CheckedQuery LawStatement := materializeQuery
   (verifyQueryResult.toOption.get verifyQueryResult_isSome)
 
-def exploratoryQuery := materializeQuery
+def exploratoryQuery : CheckedQuery LawStatement := materializeQuery
   (exploratoryQueryResult.toOption.get exploratoryQueryResult_isSome)
 
-def exactActionQuery := materializeQuery
+def exactActionQuery : CheckedQuery LawStatement := materializeQuery
   (exactActionQueryResult.toOption.get exactActionQueryResult_isSome)
 
-def exactTraceQuery := materializeQuery
+def exactTraceQuery : CheckedQuery LawStatement := materializeQuery
   (exactTraceQueryResult.toOption.get exactTraceQueryResult_isSome)
 
 def incrementalKernel : IncrementalPlannerKernel target :=

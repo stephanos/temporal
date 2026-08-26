@@ -14,17 +14,17 @@ def source : SemanticSource := {
   provenance := "lean-model"
 }
 
-def targetId := id "temporal.nexus.basic-lifecycle.target"
-def kernelId := id "temporal.nexus.basic-lifecycle.kernel"
-def lifecycleCapabilityId := id "temporal.nexus.basic-lifecycle.capability"
-def lifecycleProviderId := id "temporal.nexus.basic-lifecycle.provider"
-def lifecycleLawId := id "temporal.nexus.basic-lifecycle.law.authoritative-step"
-def operationStateId := id "temporal.nexus.basic-lifecycle.state.operation"
-def startActionId := id "temporal.nexus.basic-lifecycle.action.start"
-def reportSuccessActionId := id "temporal.nexus.basic-lifecycle.action.succeed"
-def transitionOutcomeId := id "temporal.nexus.basic-lifecycle.outcome.transition"
-def lifecycleObservationId := id "temporal.nexus.basic-lifecycle.observation.state"
-def operationRoleId := id "temporal.nexus.basic-lifecycle.role.operation"
+def targetId : DeclarationId := id "temporal.nexus.basic-lifecycle.target"
+def kernelId : DeclarationId := id "temporal.nexus.basic-lifecycle.kernel"
+def lifecycleCapabilityId : DeclarationId := id "temporal.nexus.basic-lifecycle.capability"
+def lifecycleProviderId : DeclarationId := id "temporal.nexus.basic-lifecycle.provider"
+def lifecycleLawId : DeclarationId := id "temporal.nexus.basic-lifecycle.law.authoritative-step"
+def operationStateId : DeclarationId := id "temporal.nexus.basic-lifecycle.state.operation"
+def startActionId : DeclarationId := id "temporal.nexus.basic-lifecycle.action.start"
+def reportSuccessActionId : DeclarationId := id "temporal.nexus.basic-lifecycle.action.succeed"
+def transitionOutcomeId : DeclarationId := id "temporal.nexus.basic-lifecycle.outcome.transition"
+def lifecycleObservationId : DeclarationId := id "temporal.nexus.basic-lifecycle.observation.state"
+def operationRoleId : DeclarationId := id "temporal.nexus.basic-lifecycle.role.operation"
 
 /-- The provider law ties the teaching surface to the authoritative Nexus lifecycle. -/
 def LawStatement (lawId : DeclarationId) : Prop :=
@@ -260,7 +260,8 @@ def targetDeclaration : TargetDeclaration LawStatement
 }
 
 /-- Checked composition remains public so callers can inspect its typed declaration error. -/
-def targetResult := composeTarget targetDeclaration
+def targetResult : Except DeclarationError (QueryTarget LawStatement) :=
+  composeTarget targetDeclaration
 
 private theorem targetResult_isSome : targetResult.toOption.isSome = true := by
   native_decide
@@ -352,7 +353,7 @@ def incrementalKernel : IncrementalPlannerKernel target :=
   .ofFinite completeness {
     action := by
       simp [completeness, actionDomain]
-      native_decide
+      decide
     initial := by
       intro setup
       simp [target, transitionKernel, initialStates]
