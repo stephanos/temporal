@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T16:17:07.132238Z",
+  "depends_on": [
+    "fn-30-release-evidence-graph-and-manual.1",
+    "fn-30-release-evidence-graph-and-manual.2",
+    "fn-30-release-evidence-graph-and-manual.4"
+  ],
+  "id": "fn-30-release-evidence-graph-and-manual.5",
+  "priority": null,
+  "spec": "fn-30-release-evidence-graph-and-manual",
+  "spec_path": ".flow/tasks/fn-30-release-evidence-graph-and-manual.5.md",
+  "status": "todo",
+  "title": "Implement two-role authorization, veto, and revocation",
+  "updated_at": "2026-08-26T16:34:09.161223Z"
+}
