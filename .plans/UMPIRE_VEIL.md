@@ -1,8 +1,9 @@
 # Veil in the current Umpire model
 
-Status: exploratory architecture note, 2026-08-25. This document records the intended role and
+Status: approved architectural direction, 2026-08-25. This document records the intended role and
 initial adoption shape for Veil. It is deliberately not an implementation specification; exact
-interfaces, module names, task boundaries, and delivery sequencing remain to be refined.
+interfaces, module names, task boundaries, and delivery sequencing remain to be refined in a
+separate plan.
 
 ## 1. Summary
 
