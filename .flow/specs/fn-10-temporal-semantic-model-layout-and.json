@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-10-temporal-semantic-model-layout-and",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-26T00:08:45.611429Z",
   "created_at": "2026-08-25T21:58:55.546569Z",
   "default_impl": null,
   "default_review": null,
@@ -520,6 +520,36 @@
       "task": "fn-10-temporal-semantic-model-layout-and.7",
       "timestamp": "2026-08-25T23:59:35.532874Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "93b9733ea393d31be03d5e97bb525485f02dbedbcce5eafa652938f0fec37b8d",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "456d17a61cb17b86020b1fe680af83daac06de57",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 459881,
+      "output_sha256": "bdd4ca488a9c20aab59d9cdcc7e3c0a759333406a27e79be8bcf91d23c24eb00",
+      "reservation_id": "e8e91ff0078a478fbdbb7c315cff7273",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T00:08:45.595592Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -531,11 +561,12 @@
     "impl:fn-10-temporal-semantic-model-layout-and.6": 1,
     "impl:fn-10-temporal-semantic-model-layout-and.7": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-10-temporal-semantic-model-layout-and.1": 0,
     "impl:fn-10-temporal-semantic-model-layout-and.2": 0,
     "impl:fn-10-temporal-semantic-model-layout-and.3": 0,
@@ -559,5 +590,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T23:59:35.537577Z"
+  "updated_at": "2026-08-26T00:08:45.616444Z"
 }
