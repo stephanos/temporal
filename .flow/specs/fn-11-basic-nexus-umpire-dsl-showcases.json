@@ -306,7 +306,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-11-basic-nexus-umpire-dsl-showcases.md",
-  "status": "open",
+  "status": "done",
   "title": "Basic Nexus Umpire DSL Showcases",
   "tracker": {
     "baseHashFlow": null,
@@ -319,5 +319,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T02:05:55.644286Z"
+  "updated_at": "2026-08-26T05:53:51.586748Z"
 }
