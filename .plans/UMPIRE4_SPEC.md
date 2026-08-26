@@ -29,11 +29,11 @@ normative.
 - **SEM-01 — Lean authority.** The Lean model MUST be the sole authority for behavioral meaning;
   generated artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT redefine
   it.
-- **SEM-02 — Canonical declarations.** Canonical Feature and System declarations MUST be the only
+- **SEM-02 — Canonical declarations.** Canonical `Feature/` and `System/` declarations MUST be the only
   sources of Temporal behavioral meaning within the Lean model.
-- **SEM-03 — Structural inputs.** Generated API and dynamic-configuration declarations MUST remain
+- **SEM-03 — Structural inputs.** Generated model code, like API and dynamic-configuration declarations, MUST remain
   structural inputs until handwritten Lean declarations assign semantic meaning.
-- **SEM-04 — Separate languages.** Property, Behavior, Query, and Observation MUST remain distinct
+- **SEM-04 — Separate languages.** Property, Behavior, Query, and Observation and other Lean DSLs MUST remain distinct
   typed languages with distinct responsibilities.
 - **SEM-05 — Pure properties.** Properties MUST be pure, portable, capability-scoped claims over
   semantic traces and MUST NOT depend on implementation evidence sources.
