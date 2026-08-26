@@ -4,6 +4,12 @@ satisfies: [R9]
 # fn-29-bounded-production-canary-execution-and.13 Publish the canary runbook and synchronize the component roadmap
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Finish R9 by documenting the implemented protected production-canary boundary and updating C12 only to the truth proved by Task `.12`.
 
 **Size:** S
@@ -33,7 +39,6 @@ Do not edit `.plans/UMPIRE4_VISION.md`. Do not change generated regression docum
 - [ ] Docs distinguish accepted/rejected/incomplete/tooling outcomes, trust/authenticity limitations, and every observability/release omission.
 - [ ] Roadmap/docs claim no more than implemented/tested scope and keep trusted-channel release aggregation separate.
 - [ ] Links resolve, VISION remains untouched, and unrelated docs/comments are preserved.
-
 ## Acceptance
 - [ ] R9 operator documentation and roadmap synchronization are evidence-backed.
 - [ ] Documentation link and scoped wording checks pass.

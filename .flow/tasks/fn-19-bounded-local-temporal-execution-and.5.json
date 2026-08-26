@@ -11,6 +11,6 @@
   "spec": "fn-19-bounded-local-temporal-execution-and",
   "spec_path": ".flow/tasks/fn-19-bounded-local-temporal-execution-and.5.md",
   "status": "todo",
-  "title": "Compose the exact Nexus caller-closure RuntimeConfiguration",
-  "updated_at": "2026-08-26T10:25:02.461351Z"
+  "title": "Compose Nexus System execution programs and configuration",
+  "updated_at": "2026-08-26T20:41:59.261578Z"
 }

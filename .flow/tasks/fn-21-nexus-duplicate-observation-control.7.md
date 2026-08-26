@@ -1,9 +1,15 @@
 ---
 satisfies: [R2, R5, R7]
 ---
-# fn-21-nexus-duplicate-observation-control.7 Compile the fault-specific observation mapping
+# fn-21-nexus-duplicate-observation-control.7 Compile the fault-specific System observation and Feature refinement
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Compile a `Temporal.System.Nexus` observation mapping and its explicit checked correspondence to the Feature target through `Temporal.System.Nexus.Refinement`. Do not place fault-specific execution or evidence mapping under Feature.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Compile the exact fault-specific Temporal evidence profile/program/mapping before RuntimeConfiguration composition for R2/R5/R7. Reuse the baseline caller-closure declarations and unchanged reusable Observation checker/evaluator.
 
 **Size:** M
@@ -31,7 +37,6 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 - [ ] Baseline mapping and pure Property/evaluator definitions remain unchanged.
 - [ ] Every invalid schema/reference/disposition/count-relation mutation fails compilation at its owning checked boundary.
 - [ ] Focused and aggregate Lean tests pass with no Temporal vocabulary entering reusable Umpire modules.
-
 ## Acceptance
 - [ ] R2 receives final checked mapping/profile references before RuntimeConfiguration binding.
 - [ ] R5 exact semantic derivation contract is compiled independently of live execution.

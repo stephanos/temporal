@@ -1,9 +1,15 @@
 ---
 satisfies: [R4, R5, R6]
 ---
-# fn-20-local-execution-semantic-conformance.1 Compose qualification and verdicts behind one reusable Lean check API
+# fn-20-local-execution-semantic-conformance.1 Compose Observation refinement and verdicts behind one Lean check API
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+The reusable Lean check API must implement the full altitude chain: checked System Observation mapping -> qualified System trace -> checked Refinement -> Feature trace -> unchanged Feature Property evaluation. Observation, Refinement, and Property outcomes and derivations remain independently represented.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Add the small domain-neutral semantic-check deep module consumed by the private checker (R4/R5/R6). It composes fn-4 qualification and verdict APIs without adding Temporal, transport, or plan-identity meaning.
 
 **Size:** M

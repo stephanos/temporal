@@ -535,3 +535,6 @@ qualification or manual authorization.
 | R7 | Deep controller and closed commands | `.4`, `.5`, `.6`, `.7` | — |
 | R8 | Producer hooks and protected workflow | `.3`, `.6`, `.7` | — |
 | R9 | Layered verification and operator documentation | `.7` | — |
+| R10 | External release-policy ownership | `.1`–`.7` | — |
+
+

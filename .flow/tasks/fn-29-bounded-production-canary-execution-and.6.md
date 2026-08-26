@@ -4,6 +4,12 @@ satisfies: [R7]
 # fn-29-bounded-production-canary-execution-and.6 Add canary provenance and QualificationReceipt v4 codecs
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R7's secret-free production-canary provenance and v4 receipt family without changing earlier readers.
 
 **Size:** M
@@ -35,7 +41,6 @@ No raw endpoint, namespace, task queue, credential, workflow actor, payload, cus
 - [ ] Every secret, crossed/stale binding, status/reason, release-eligibility, projection, and N+1 mutation rejects.
 - [ ] V1-v3 fixtures/readers remain byte-identical and reject v4.
 - [ ] Tests and docs never claim that schema-valid receipt bytes alone authenticate the producing workflow or target.
-
 ## Acceptance
 - [ ] R7 canary provenance/receipt schemas, identities, limits, decisions, and strict codecs are complete.
 - [ ] Cross-language equality and exhaustive version/status/secret matrices pass.

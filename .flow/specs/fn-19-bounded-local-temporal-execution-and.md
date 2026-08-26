@@ -194,3 +194,7 @@ The runtime does not promise crash-resumable remote cleanup. The single in-proce
 | R5 | Nexus SDK participant | `.5`, `.6`, `.7` | — |
 | R6 | Raw evidence/output set | `.3`, `.6`, `.7` | — |
 | R7 | Oracles, live command, docs/boundaries | `.1`–`.9` | — |
+| R8 | Complete ExperimentSpec through generated Go tests | `.1`–`.8` | — |
+| R9 | System-owned programs and execution configuration | `.1`, `.5`, `.6`, `.8` | — |
+
+

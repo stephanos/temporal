@@ -5,6 +5,24 @@ import (
 	"strings"
 )
 
+const (
+	apiFacadeModuleDoc = "/-!\n" +
+		"Generated gRPC method descriptors projected from the source Protobuf API.\n\n" +
+		"Each service namespace contains explicitly typed method descriptor values. These declarations describe\n" +
+		"transport structure only; handwritten model modules assign behavioral meaning.\n" +
+		"-/"
+	apiProtoModuleDoc = "/-!\n" +
+		"Common structural types used by the generated Temporal API projection.\n\n" +
+		"`Bytes` and `MessageRef` retain opaque descriptor data, while `Method` records the request,\n" +
+		"response, streaming, and deprecation shape of one gRPC method.\n" +
+		"-/"
+	apiTypesModuleDoc = "/-!\n" +
+		"Generated Lean representations of source Protobuf messages, enumerations, and oneofs.\n\n" +
+		"The declarations preserve descriptor structure for handwritten consumers. Recursive Protobuf\n" +
+		"references remain explicit through `MessageRef` and carry no behavioral meaning.\n" +
+		"-/"
+)
+
 func generateArtifacts(configuration generationConfig, projection projection) (map[string][]byte, error) {
 	plan, err := buildLeanPlan(projection, configuration)
 	if err != nil {
@@ -24,7 +42,8 @@ func generateArtifacts(configuration generationConfig, projection projection) (m
 func renderProto(layout outputLayout) []byte {
 	var generated strings.Builder
 	writeGeneratedHeader(&generated)
-	generated.WriteString("\nset_option linter.missingDocs false\n")
+	writeModuleDoc(&generated, apiProtoModuleDoc)
+	generated.WriteString("set_option linter.missingDocs false\n")
 	fmt.Fprintf(&generated, "\nnamespace %s.API.Proto\n\n", layout.RootModule)
 	generated.WriteString(`structure Bytes where
   digest : String
@@ -50,7 +69,7 @@ structure Method (Request Response : Type) where
 
 func renderTypes(plan leanPlan) []byte {
 	var generated strings.Builder
-	writeModuleHeader(&generated, plan.TypesModule)
+	writeModuleHeader(&generated, plan.TypesModule, apiTypesModuleDoc)
 	generated.WriteString("set_option linter.extra.dupNamespace false\n\n")
 	for _, namespace := range plan.Namespaces {
 		fmt.Fprintf(&generated, "namespace %s\n\n", namespace.Name.String())
@@ -88,7 +107,7 @@ func renderTypes(plan leanPlan) []byte {
 
 func renderAPI(plan leanPlan, layout outputLayout) []byte {
 	var generated strings.Builder
-	writeModuleHeader(&generated, plan.APIModule)
+	writeModuleHeader(&generated, plan.APIModule, apiFacadeModuleDoc)
 	for _, service := range plan.Services {
 		fmt.Fprintf(&generated, "namespace %s\n", service.Name.String())
 		for _, method := range service.Methods {
@@ -108,11 +127,16 @@ func writeGeneratedHeader(generated *strings.Builder) {
 	generated.WriteString("-- This is a structural descriptor projection, not behavioral semantics.\n")
 }
 
-func writeModuleHeader(generated *strings.Builder, module leanModulePlan) {
+func writeModuleHeader(generated *strings.Builder, module leanModulePlan, moduleDoc string) {
 	writeGeneratedHeader(generated)
 	for _, imported := range module.Imports {
 		fmt.Fprintf(generated, "import %s\n", imported)
 	}
-	generated.WriteString("\nset_option linter.missingDocs false\n")
+	writeModuleDoc(generated, moduleDoc)
+	generated.WriteString("set_option linter.missingDocs false\n")
 	generated.WriteString("set_option maxRecDepth 100000\n\n")
+}
+
+func writeModuleDoc(generated *strings.Builder, moduleDoc string) {
+	fmt.Fprintf(generated, "\n%s\n\n", moduleDoc)
 }

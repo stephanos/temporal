@@ -2,6 +2,14 @@
 -- This is a structural registry projection, not handwritten product semantics.
 import Temporal.DynamicConfig.Types
 
+/-!
+Generated Temporal dynamic-configuration registry data.
+
+Individual definitions retain structural setting metadata. `all` exposes the complete catalog,
+`catalogIdentity` binds it to its source projection, and `fixtures` records cross-language
+resolution cases.
+-/
+
 set_option linter.missingDocs false
 set_option maxRecDepth 100000
 

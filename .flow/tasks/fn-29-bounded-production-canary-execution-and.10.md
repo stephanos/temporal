@@ -4,6 +4,12 @@ satisfies: [R3, R4, R5, R6, R8, R9]
 # fn-29-bounded-production-canary-execution-and.10 Build the controlled public-boundary end-to-end harness
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Prove R3-R6/R8/R9's composed production protocol through one bounded synthetic mTLS/public-gRPC harness before running exhaustive adversarial matrices.
 
 **Size:** M
@@ -33,7 +39,6 @@ This task proves one composed protocol path and a small terminal partition only.
 - [ ] Success, pre-dispatch failure, post-dispatch incomplete, and semantic rejection preserve exact stage/status/publication facts.
 - [ ] Lease policies, discovered-run-ID ambiguity resolution, redelivery idempotency, v2-persisted cleanup reserve, and exact non-panicking worker options work end to end with zero activity polling/responses.
 - [ ] Synthetic accepted-path bytes are confined to the ephemeral refusing sink and no test claims self-authentication or retains a production destination.
-
 ## Acceptance
 - [ ] R3-R6/R8/R9 bounded public-boundary integration proof is complete.
 - [ ] Focused harness and command integration tests pass within one implementation iteration.

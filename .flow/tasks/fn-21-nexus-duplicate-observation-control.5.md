@@ -1,9 +1,15 @@
 ---
 satisfies: [R5, R6, R7]
 ---
-# fn-21-nexus-duplicate-observation-control.5 Interpret the negative control through the existing semantic authority
+# fn-21-nexus-duplicate-observation-control.5 Interpret the negative control through Observation refinement and Property
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Interpret the duplicate-observation control only through the existing System Observation -> checked Refinement -> Feature Property chain. Preserve operational, realization, observation, refinement, and property outcomes independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Exercise Task `.7`'s already-checked fault-specific mapping through the existing fn-20 conformance authority for R5/R6/R7. Keep reusable qualification, the Property evaluator/declaration, and Go controller semantics unchanged.
 
 **Size:** M

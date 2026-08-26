@@ -2,3 +2,10 @@
 -- This is a structural registry projection, not handwritten product semantics.
 import Temporal.DynamicConfig.Settings
 import Temporal.DynamicConfig.Types
+
+/-!
+Public facade for the generated Temporal dynamic-configuration structural catalog.
+
+It re-exports the catalog vocabulary and setting registry. Handwritten product interpretation
+lives in `Temporal.System.Configuration` and its owner modules.
+-/

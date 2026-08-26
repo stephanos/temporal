@@ -4,6 +4,12 @@ satisfies: [R1, R4, R7]
 # fn-19-bounded-local-temporal-execution-and.1 Define the model-owned ephemeral local execution profile
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All model-owned execution profiles, participant programs, configuration interpretation, and evidence-source contracts live under `Temporal.System`. This task must keep Feature imports absent and state whether each adapter uses the in-memory Temporal test suite or a developer-server lifecycle, including cleanup and evidence limitations.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Prepare R1/R4/R7's Lean-owned portable profile values without putting authority material into artifacts.
 
 **Size:** M
@@ -27,7 +33,6 @@ Prepare R1/R4/R7's Lean-owned portable profile values without putting authority 
 - [ ] Altered profile fields, capability union, time/attempt/record/byte totals, or authority-like data reject before a checked value exists.
 - [ ] The module imports no Nexus feature and defines no runtime IO.
 - [ ] `Temporal.System` and aggregate test imports expose/check the profile without importing a feature adapter.
-
 ## Acceptance
 - [ ] R1/R4 portable local profile values are exact and authority-free.
 - [ ] Focused Lean profile tests and `TemporalModelTests` pass.
