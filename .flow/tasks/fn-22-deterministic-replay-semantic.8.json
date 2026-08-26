@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T11:52:41Z",
+  "depends_on": [
+    "fn-22-deterministic-replay-semantic.7"
+  ],
+  "id": "fn-22-deterministic-replay-semantic.8",
+  "priority": null,
+  "spec": "fn-22-deterministic-replay-semantic",
+  "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.8.md",
+  "status": "todo",
+  "title": "Close replay matrices, documentation, and component status",
+  "updated_at": "2026-08-26T11:52:41Z"
+}
