@@ -91,6 +91,6 @@ memory capture: skipped because flowctl reported `Memory not initialized`.
 
 stage: impl-review - ran [2026-08-26T22:33:21.920681Z..2026-08-26T22:53:14.716689Z]
 ## Evidence
-- Commits: 2c0694a47a4ce02190549e2bec3bcb5859cf3f25, 0e58ee367c965ebbd0a78b05d0ccacf3da51c357, 81127d3dae54d6e1c001d5f679c364e773b814a4, f37b365b64b25f0dcd2a4cf9f17dc55c63b3ecaa
+- Commits: 2c0694a47e0ac3b5e9e3cb4434ab9561171c18d1, 0e58ee367c965ebbd0a78b05d0ccacf3da51c357, 81127d3dae54d6e1c001d5f679c364e773b814a4, f37b365b64b25f0dcd2a4cf9f17dc55c63b3ecaa
 - Tests: cd model && mise exec -- lake build modelLintTests modelLint (pass), make lint-model (pass), make lint (inherited/tooling red after preceding stages passed: protoc missing from PATH at lint-protos)
 - PRs:
