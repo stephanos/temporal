@@ -1,5 +1,5 @@
 ---
-status: draft
+status: done
 ---
 
 # Plan: Shared Lean Library Migration
