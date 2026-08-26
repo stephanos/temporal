@@ -96,6 +96,48 @@ func TestProjectionRejectsInvalidExperimentMetadata(t *testing.T) {
 	}
 }
 
+func TestProjectionRejectsContradictoryJSONObjectKeys(t *testing.T) {
+	modelRoot := t.TempDir()
+	writeLeanSource(t, modelRoot, "One.lean")
+	valid := string(syntheticExperiment(t, syntheticOptions{}))
+	cases := []struct {
+		name    string
+		encoded string
+		want    string
+	}{
+		{
+			name:    "duplicate top-level field",
+			encoded: strings.Replace(valid, `"formatVersion":`, `"formatVersion":"ignored","formatVersion":`, 1),
+			want:    `duplicate JSON object key "formatVersion"`,
+		},
+		{
+			name:    "case-variant top-level field",
+			encoded: strings.Replace(valid, `"formatVersion"`, `"FormatVersion"`, 1),
+			want:    `JSON object key "FormatVersion" must be spelled "formatVersion"`,
+		},
+		{
+			name:    "duplicate nested field",
+			encoded: strings.Replace(valid, `"queryIdentity":`, `"queryIdentity":"ignored","queryIdentity":`, 1),
+			want:    `duplicate JSON object key "queryIdentity"`,
+		},
+		{
+			name:    "case-variant nested field",
+			encoded: strings.Replace(valid, `"queryIdentity"`, `"QueryIdentity"`, 1),
+			want:    `JSON object key "QueryIdentity" must be spelled "queryIdentity"`,
+		},
+	}
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := extractProjection(
+				syntheticEntry(callerClosureIdentity),
+				[]byte(test.encoded),
+				modelRoot,
+			)
+			require.ErrorContains(t, err, test.want)
+		})
+	}
+}
+
 func TestProjectionRejectsProvenanceSymlinkEscapeAndWrongKind(t *testing.T) {
 	modelRoot := t.TempDir()
 	outsideRoot := t.TempDir()
