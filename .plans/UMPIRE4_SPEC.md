@@ -92,8 +92,9 @@ namespaces, and types are always referenced by fully qualified names in backtick
   property, omission, and cleanup outcomes. A result is not synonymous with any one phase outcome.
 - **Run.** One environment-specific execution of one `Umpire.ExperimentSpec`, retaining all action
   and fault attempts, receipts, evidence, failures, and cleanup outcomes.
-- **Scenario.** A named space of possible semantic traces defined by `Umpire.Behavior` and,
-  optionally, `Umpire.Space`. A scenario does not select a concrete trace.
+- **Scenario.** A named space of possible semantic traces. Its `Umpire.Behavior` constrains
+  admissible traces, while model-owned variation and fault declarations may parameterize the space.
+  A scenario does not select a concrete trace.
 - **Semantic digest.** A deterministic digest of meaning-bearing canonical content, used to detect
   semantic change or stale composition. It is distinct from source location, documentation, and an
   artifact format version.
@@ -103,19 +104,20 @@ namespaces, and types are always referenced by fully qualified names in backtick
   raw evidence by `Umpire.Observation`. It is not a raw log, span, RPC, record, or receipt.
 - **Semantic trace.** A pure initial state and ordered sequence of selected actions, model outcomes,
   resulting states, and semantic observations. Runtime evidence and qualification are absent.
-- **Structural input.** Generated mechanical information, such as API or dynamic-configuration
-  declarations, that has no behavioral meaning until a canonical declaration interprets it.
+- **Structural input.** Generated mechanical information, such as `Temporal.API` or
+  `Temporal.DynamicConfig` declarations, that has no behavioral meaning until a canonical
+  declaration interprets it.
 - **`Temporal.Feature`.** The Temporal namespace that owns product-visible states, actions,
-  outcomes, relations, properties, and scenarios whose meaning survives an implementation rewrite.
+  outcomes, relations, and `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` declarations
+  whose meaning survives an implementation rewrite.
 - **`Temporal.System`.** The Temporal namespace that owns implementation mechanisms, configuration
-  interpretation, evidence mappings, execution semantics, and refinements.
-- **Test.** One concrete deterministic semantic trace selected from a scenario, compiled with its
-  `Umpire.Property` declarations and bounds into a `Umpire.ExperimentSpec`.
+  interpretation, `Umpire.Observation` declarations, execution semantics, and refinements.
+- **Test.** One concrete deterministic semantic trace selected by a `Umpire.Query` from a scenario
+  and compiled with its `Umpire.Property` declarations and bounds into a
+  `Umpire.ExperimentSpec`.
 - **Trust class.** The kind of assurance supporting a claim, such as kernel proof, reconstructed
   proof, trusted solver, bounded search, testing, or concrete replay. Different trust classes are
   not interchangeable.
-- **Unsatisfiable.** A checked `Umpire.Behavior` whose constraints admit no semantic trace. It is an
-  explicit failure outcome, not success by vacuity.
 - **`Umpire`.** The domain-neutral Lean library and namespace that owns reusable semantic authoring,
   checking, planning, artifact, observation, refinement, and verification machinery.
 - **`Umpire.Behavior`.** The typed language that constrains admissible semantic trace spaces without
@@ -134,8 +136,8 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **`Umpire.Query`.** The typed language that combines checked `Umpire.Behavior` and
   `Umpire.Property` declarations, a compatible `Umpire.CheckedTarget`, a claim, bounds, and planning
   policy into a bounded question.
-- **`Umpire.Space`.** The typed language for finite variation axes, choices, requested fault intents,
-  and semantic coverage goals applied to scenarios.
+- **Unsatisfiable.** A checked `Umpire.Behavior` whose constraints admit no semantic trace. It is an
+  explicit failure outcome, not success by vacuity.
 
 ## Semantic authority
 
@@ -144,9 +146,8 @@ namespaces, and types are always referenced by fully qualified names in backtick
   it.
 - **SEM-02 — Canonical declarations.** Canonical `Temporal.Feature` and `Temporal.System`
   declarations MUST be the only sources of Temporal behavioral meaning within the Lean model.
-- **SEM-03 — Structural inputs.** Generated model code, like API and dynamic-configuration
-  declarations, MUST remain structural inputs until handwritten Lean declarations assign semantic
-  meaning.
+- **SEM-03 — Structural inputs.** Generated `Temporal.API` and `Temporal.DynamicConfig` declarations
+  MUST remain structural inputs until handwritten Lean declarations assign semantic meaning.
 - **SEM-04 — Separate languages.** `Umpire.Property`, `Umpire.Behavior`, `Umpire.Query`,
   `Umpire.Observation`, and other Lean DSLs MUST remain distinct typed languages with distinct
   responsibilities.
@@ -260,9 +261,9 @@ namespaces, and types are always referenced by fully qualified names in backtick
 
 - **EXP-01 — Shared semantics.** Regression execution, model checking, exploration, fuzzing, replay,
   and canary selection MUST reuse the same model declarations and `Umpire.Property` declarations.
-- **EXP-02 — Model-owned `Umpire.Space`.** The model MUST own `Umpire.Space` declarations, mutation
-  operators, semantic coverage, candidate scoring, and selection policy; orchestration MAY execute
-  and persist the resulting batches.
+- **EXP-02 — Model-owned exploration.** The model MUST own exploration spaces, mutation operators,
+  semantic coverage, candidate scoring, and selection policy; orchestration MAY execute and persist
+  the resulting batches.
 - **EXP-03 — Honest fuzzing.** Time- or budget-bounded runtime fuzzing MUST NOT claim exhaustive
   coverage or completeness.
 - **EXP-04 — Pinned regressions.** Known regressions MUST run independently of exploratory budgets.
