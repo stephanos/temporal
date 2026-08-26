@@ -2,6 +2,16 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-22-deterministic-replay-semantic/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+This spec names three replay classes and never treats them as interchangeable:
+
+- **canonical semantic replay** re-evaluates a trace/counterexample through the exact checked Target, Behavior, Refinement, and Property declarations and is mandatory for a semantic violation or promotion;
+- **concrete experiment rerun** re-executes the complete ExperimentSpec through the runner and conformance path to establish reproducibility in an environment; and
+- **Temporal SDK history replay** checks workflow-code compatibility against a captured Temporal history and is diagnostic evidence only.
+
+The reproducible reduction state is persisted as the fn-18 replay-bundle artifact with the original immutable evidence, exact semantic/operational reproduction tuple, tried candidates, remaining bounds, and omissions. Minimization operates on checked semantic candidates and a qualified witness; it never minimizes logs in place or reruns live side effects implicitly.
+
 ## Overview
 
 Compose the current artifact, checked-authoring, local-execution, semantic-conformance, and exact-promotion boundaries into one bounded C10 path. The path consumes the admitted six-member qualified violation produced by the deterministic Nexus negative control, independently reproduces the same violation, removes semantic coordinates in a fixed order while the same violation remains reproducible, identifies the minimal diagnostic evidence core without modifying retained RawEvidence, and emits one sealed Lean regression proposal for review.
@@ -115,6 +125,8 @@ make umpire-check-regression
 - **R6:** The exact fn-21 negative control reproducibly yields its uniqueness-only ViolationSignature; removing the requested duplicate-observation fault yields the existing qualified satisfied control and is rejected, the sole required action cannot be removed, and the final result is deterministic minimized or irreducible within twelve executions and 25 minutes.
 - **R7:** Only a reproducible complete reduction whose candidate matches the statically registered exact fn-21 candidate may invoke the fixed verified `temporal-model-promote` sibling by its one closed candidate identity. The registry binding reconstructs the original checked expected count-one `PlannerRun.found` lineage and fixed fresh IDs; fn-5's canonical envelope and unchanged sealed, elaborated `CompiledPromotionSource` are strictly validated and cross-bound to runtime/reduction lineage outside that reusable type. The observed count-two trace is never promoted and no runtime registry/source/fixture/catalog edit is possible.
 - **R8:** The library, one CLI/root Make target, exact terminal report identity/status contract, bounded sanitized progress stream, fake-controller matrices, focused live proof, aggregate tests, and developer/component documentation make replay, minimization, evidence core, and review-only promotion inspectable. No new persisted artifact family, second semantic authority, generic campaign/reducer plugin surface, remote/CI/release qualification, model-local Makefile, or prohibited legacy dependency/use is introduced.
+- **R9:** Canonical semantic replay, concrete ExperimentSpec rerun, and Temporal SDK history replay have distinct inputs, outcomes, receipts, trust classes, and command/report vocabulary. Only a qualified violation reproduced by concrete rerun and matched by canonical semantic replay may feed semantic minimization or fn-5 promotion; SDK history replay is compatibility evidence only. Errors: incomplete/encrypted/incompatible history, concrete rerun divergence, stale Target/Behavior/Refinement/Property digest, replay disagreement, or missing cleanup remains an honest non-success and cannot support promotion.
+- **R10:** A strict replay-bundle artifact retains the original immutable spec/run/evidence/result chain, complete reproduction tuple, semantic witness and derivations, checked reduction candidates, tried/untried order, bounds, provenance, and omissions. This supersedes the no-persisted-replay-family portion of R8. Errors: rewriting raw evidence, minimizing raw logs as semantic input, dropping failed candidates, implicit live execution, or resuming from crossed/tampered state fails admission.
 
 ## Early proof point
 

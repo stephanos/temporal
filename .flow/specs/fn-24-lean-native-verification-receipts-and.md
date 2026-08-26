@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-24-lean-native-verification-receipts-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+The reusable module is `Umpire.Verify.Native`, not a generic `Umpire.Formal` authoring surface. Temporal declares model-owned verification profiles containing exact per-commit, nightly, and named checks with bounds, assumptions, trust, omissions, and semantic bindings. The thin public command is `umpire-check-model`; the per-commit profile is default, and `list`/`explain` expose profiles and named checks without letting the CLI assemble or broaden them.
+
+Canonical counterexample replay includes the referenced checked Target, Behavior, Refinement where applicable, and Property. Verification receipts use fn-18's versioned artifact envelope and keep kernel proof, reconstructed proof, trusted solver, bounded search, testing, and concrete replay as distinct trust classes.
+
 ## Overview
 
 Add the reusable C11 formal-checking seam that the current model lacks: a checked Lean-native Query can produce a canonical, provenance-rich verification receipt, and any selected violating trace must independently replay through the target's authoritative transition kernel and pure Property evaluator before the receipt may claim `violated`. The first public target is the existing Temporal Workflow–Nexus caller-closure target. Its normal verify Query produces a bounded establishment receipt; a family-owned nearby Property negative control produces a real canonical counterexample for replay tests without changing the production target.
@@ -136,6 +142,8 @@ make umpire-check-regression
 - **R4:** The existing caller-closure verify Query emits one exact established-within-bounds native receipt; one family-owned test-only at-most-zero negative control over the unchanged target emits a planner candidate, matched canonical replay, and exact violated receipt. Errors: production Property/target drift, negative-control catalog/CLI exposure, second kernel/evaluator, or different public interfaces fail the family proof.
 - **R5:** `temporal-model-verify` and the root-only `make umpire-verify TARGET=...` implement the exact target registry, stdout/stderr/status schema, deterministic canonical bytes, and no-write opt-in UX. Errors: optional arguments/overrides, unknown target ambiguity, partial/multiple output, path/log leakage, target graph contamination, repository write, or semantic logic in the tool layer fails verification.
 - **R6:** Focused canonical fixtures, outcome/replay/mutation/anti-forgery matrices, aggregate Lean builds, import-direction guards, before/after ExperimentSpec fixture checks, developer/architecture/component documentation, and default-regression checks prove the seam is reusable and isolated. Errors: Temporal/Nexus vocabulary under `model/Umpire`, ExperimentSpec/schema/fixture drift, hand-edited fn-5 glossary/catalog projections, generated source, Veil/dependency/runtime/promotion/release coupling, prohibited legacy dependency/use, or missing C11 roadmap status blocks completion.
+- **R7:** `Umpire.Verify.Native` and Temporal-owned checked profiles expose exact per-commit, nightly, and named verification checks with bounds, assumptions, omissions, provenance, semantic identities, and distinct trust classes. Errors: a caller/CLI-assembled check list, broadened profile bound, target/property/refinement mismatch, collapsed trust class, or an unprofiled receipt cannot establish or violate a claim.
+- **R8:** `umpire-check-model`, `umpire-check-model --profile nightly`, `--check <name>`, `list`, and `explain <name>` are the sole public verification surface; this supersedes `temporal-model-verify` and target-selected command wording in R5. Errors: unknown profile/check, incompatible flag combination, CLI-invented semantics, noncanonical receipt, or a command claiming universal model correctness fails closed with no receipt.
 
 ## Early proof point
 

@@ -12,7 +12,9 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
-    "fn-21-nexus-duplicate-observation-control"
+    "fn-21-nexus-duplicate-observation-control",
+    "fn-17-bounded-semantic-exploration-and",
+    "fn-32-add-umpire-refinement-and-the-first"
   ],
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
@@ -268,5 +270,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T12:12:26.110608Z"
+  "updated_at": "2026-08-26T20:31:06.514160Z"
 }

@@ -2,6 +2,10 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-28-authorized-remote-staging-black-box/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+Remote staging is authorized only when a named Temporal operational owner supplies the closed profile, protected workflow/environment, credentials, leases, cleanup/recovery policy, and retained-artifact channel. It consumes the same complete ExperimentSpec and shared runner/conformance/qualification contracts as local and CI; no staging-specific semantic copy or fn-14 pilot gate exists.
+
 ## Overview
 
 Add the first authorized non-loopback C12 profile for the current semantic model. The profile runs
@@ -326,6 +330,7 @@ classes are different.
   progress/always-run reconciliation, uploaded recovery record, secret-bearing artifact/log,
   default/deploy/release coupling, synthetic staging claim, changed generated regression,
   model-local Make change, or missing abort/escalation/retention guidance fails completion.
+- **R10:** A named operational owner and protected authority boundary own staging endpoints, credentials, namespaces, leases, recovery, cleanup, rate/concurrency limits, and retained artifacts, while Umpire supplies only stable artifacts, runner, conformance, and qualification interfaces. The exact complete ExperimentSpec remains byte-identical across environments and fn-14 is not a gate. Errors: ambient/unnamed authority, staging semantic copies, Umpire-owned credentials/policy, changed semantic digest, or missing owner/cleanup/recovery closure prevents execution and qualification.
 
 ## Early proof point
 

@@ -2,6 +2,10 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-25-optional-callerclosure-veil-binding-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+Generic opt-in invocation, result admission, trust, and binding support live under `Umpire.Verify.Veil`; the family-specific first-order view, handwritten declaration, correspondence, and checked binding live under `Temporal.Verify.Nexus.CallerClosure`. `Umpire.lean` remains unaware because it does not import the focused Verify subtree—not because reusable Umpire verification machinery is forbidden from depending on Veil behind an explicit import. The only aggregate is `TemporalVerify.lean`; ordinary Temporal facades, tests, tools, artifacts, and runtime paths remain isolated.
+
 ## Overview
 
 Consume the completed fn-23 compatibility decision and take exactly one of two honest branches. If
@@ -311,6 +315,7 @@ make umpire-check-regression
   receipt/error/status behavior; defer mode exposes none. Both modes preserve ordinary builds, native
   verification, regression fixtures, import direction, comments, generated projections, and runtime/
   production isolation, and update the C11 roadmap with the exact outcome.
+- **R7:** Adopt mode places generic optional mechanics only under `Umpire.Verify.Veil`, family correspondence only under `Temporal.Verify.Nexus.CallerClosure`, and the opt-in aggregate only in `TemporalVerify.lean`; defer mode creates none of them. Errors: Veil in `Umpire.lean`, `Temporal.lean`, ordinary model tests/tools, ExperimentSpec/runtime paths, or a family-specific view under reusable Umpire fails isolation.
 
 ## Early proof point
 

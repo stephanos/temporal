@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T20:22:42.258878Z",
+  "depends_on": [
+    "fn-31-deepen-umpire-target-and-simplify.3",
+    "fn-31-deepen-umpire-target-and-simplify.4"
+  ],
+  "id": "fn-31-deepen-umpire-target-and-simplify.5",
+  "priority": null,
+  "spec": "fn-31-deepen-umpire-target-and-simplify",
+  "spec_path": ".flow/tasks/fn-31-deepen-umpire-target-and-simplify.5.md",
+  "status": "todo",
+  "title": "Enforce Target architecture and authoring documentation",
+  "updated_at": "2026-08-26T20:22:42.258878Z"
+}

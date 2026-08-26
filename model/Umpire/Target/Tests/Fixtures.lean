@@ -60,11 +60,11 @@ def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   initialStates := fun _ => [false]
   authoritativeInitial := fun _ state => state = false
   initialSound := by simp
-  initialComplete := by simp_all
+  initialComplete := by simp
   steps := fun state action => [transition state action]
   authoritativeStep := fun state action result => result = transition state action
   stepSound := by simp
-  stepComplete := by simp_all
+  stepComplete := by simp
 }
 
 def primaryProvider : CapabilityProvider TestLawStatement := {

@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-17-bounded-semantic-exploration-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+The Lean-owned module exposes the serializable campaign protocol `initialize`, `nextBatch`, and `observe`. It owns semantic candidate identity, selection, mutation meaning, coverage, priorities, corpus decisions, and opaque resumable state. A separate Go `campaign` module under `tools/umpire` owns leases, parallel execution through the shared runner/conformance path, checkpoint publication, time budgets, duplicate-result handling, and crash-safe resume without interpreting semantic coverage.
+
+The user-facing command is `umpire-fuzz` with coherent `list` and `explain` surfaces plus environment, time, parallelism, state, and seed controls that only tighten model-declared bounds. The existing `temporal-model-explore` command contract is retired. Exhaustive model-only checks stay under `umpire-check-model`; runtime fuzzing never claims completeness.
+
 ## Overview
 
 Add one pure reusable `Umpire.Exploration` layer that consumes fn-16's checked finite experiment spaces and atomically compiled candidate universe, then selects useful `ExperimentSpec`s with exhaustive, pairwise, t-wise, seeded-random, or genuinely coverage-guided strategies. It maintains immutable semantic coverage state, supports compatible in-memory resume, honors proof-carrying coverage symmetry, selects pinned regressions outside the exploration budget, and emits an inspectable semantic coverage report.
@@ -119,6 +125,9 @@ make umpire-build-model
 - **R6:** Immutable state/report values support monotonic compatible in-memory resume with a nondecreasing recorded selection ceiling. Fresh and resumed runs at the same larger ceiling are byte-identical; stale/tampered/incompatible state fails. Termination distinguishes goals satisfied, interactions satisfied, universe exhausted, and budget exhausted without overclaiming verification or reachability. [paraphrase]
 - **R7:** Valid pinned regressions are selected and credited before exploration, stay in a separate result partition, consume no exploration budget, and win semantic-identity overlap. Invalid pinned inputs fail the run; no second regression registry or promotion path is created. [user]
 - **R8:** Synthetic fixtures and the exact Temporal Nexus fault-matrix example prove deterministic selection, semantic reports, root command ergonomics, and vertical package purity. No runtime, evidence, conformance, fault realization, persisted reader/migration, replay/minimization/promotion, Go facade, model-local Makefile, or Umpire3 use is introduced. [user]
+- **R9:** Lean Exploration provides versioned `initialize`, `nextBatch`, and `observe` operations whose canonical state binds the ordered candidate universe, strategy/version, bounds, seed, model/checker identities, selected/leased identities, coverage, priorities, corpus, omissions, and exhaustion status. Errors: stale or crossed state, incompatible strategy/model/bounds, lease duplication, unknown result identity, non-monotone update, or incomplete reproduction tuple fails without silently resetting a campaign.
+- **R10:** A separate Go campaign coordinator leases and executes batches through the shared runner/conformance interfaces, persists opaque state and artifacts atomically, and resumes after worker/process failure without reproducing selection, mutation, scoring, or coverage meaning. Errors: duplicate active lease, expired/stale result, partial checkpoint publication, lost cleanup/result, worker cancellation, or time-budget exhaustion retains an honest resumable outcome and never claims semantic completeness.
+- **R11:** `umpire-fuzz` is the sole runtime-exploration command and exposes exact list/explain/run semantics while only selecting or tightening model-declared bounds. This criterion supersedes the `temporal-model-explore` command and the no-runtime portion of R8. Errors: broadened bounds, CLI-authored behavior/mutation/coverage, a runtime completeness claim, ambient adapter/authority selection, or conflating time exhaustion with absence fails completion.
 
 ## Early proof point
 <!-- scope: technical -->

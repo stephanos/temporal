@@ -40,7 +40,8 @@ example : incrementalKernel.initialAt scheduledSetup 0 = some scheduledState ∧
     incrementalKernel.stepAt startedState startAction 0 = none := by
   native_decide
 
-def missingProviderDeclaration := {
+def missingProviderDeclaration : TargetDeclaration LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   targetDeclaration with providers := []
 }
 
@@ -54,7 +55,7 @@ example : compositionErrorKind (composeTarget missingProviderDeclaration) =
     some .missingProvider := by
   native_decide
 
-def conflictingProviderId := DeclarationId.of
+def conflictingProviderId : DeclarationId := DeclarationId.of
   "temporal.nexus.basic-lifecycle.provider.conflicting"
 
 def conflictingProvider : CapabilityProvider LawStatement := {
@@ -76,7 +77,8 @@ def conflictingProviderMetadata : DeclarationMetadata := {
   contractDigest := "temporal-nexus-basic-lifecycle-provider/conflicting"
 }
 
-def conflictingProviderDeclaration := {
+def conflictingProviderDeclaration : TargetDeclaration LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   targetDeclaration with
   declarations := conflictingProviderMetadata :: targetDeclaration.declarations
   providers := [lifecycleProvider, conflictingProvider]

@@ -6,7 +6,10 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-31-deepen-umpire-target-and-simplify",
+    "fn-32-add-umpire-refinement-and-the-first"
+  ],
   "id": "fn-24-lean-native-verification-receipts-and",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -192,5 +195,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T13:13:18.396993Z"
+  "updated_at": "2026-08-26T20:31:06.965889Z"
 }

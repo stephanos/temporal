@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-27-hermetic-ci-execution-and-qualification/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+CI runs the same complete ExperimentSpec through generated Go tests and the shared runner/conformance/qualification interfaces; only operational bindings and the CI profile differ. CI never receives an environment-specific copy of semantic meaning and does not depend on the retired fn-14 pilot.
+
+The CI profile also runs the model-declared per-commit `umpire-check-model` profile and binds its admitted verification receipt when required by qualification policy. CI orchestration selects a profile; it does not enumerate or reconstruct individual semantic checks.
+
 ## Overview
 
 Add the second current-model C12 profile: execute the same checked caller-closure `ExperimentSpec`
@@ -396,6 +402,8 @@ make umpire-check-regression
   the CI-only claim. Errors: nondeterminism, wrong-boundary diagnosis, shared implementation/oracle
   logic, changed generated projection, local schema regression, remote/canary/release claim, missing
   limitation, or lost existing comment fails completion.
+- **R9:** CI consumes the byte-identical complete ExperimentSpec through generated Go tests and the shared runner/conformance path; only operational bindings and profile evidence differ from local execution. Errors: CI-specific semantic copies, a second run command/evaluator, regenerated meaning in Go/workflow YAML, or changed ExperimentSpec digest cannot qualify.
+- **R10:** The CI profile invokes the model-declared per-commit `umpire-check-model` profile and binds its admitted verification receipt or an explicit policy-approved omission; fn-14 evidence is neither required nor accepted. Errors: workflow-assembled check lists, missing/stale profile digest, trust-class collapse, or treating an absent receipt as established verification fails qualification.
 
 ## Early proof point
 

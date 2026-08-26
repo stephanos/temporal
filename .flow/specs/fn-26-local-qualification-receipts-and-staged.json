@@ -7,7 +7,6 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-14-milestone-a-pilot-baseline-and-lean",
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance"
@@ -313,5 +312,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T14:00:06.854537Z"
+  "updated_at": "2026-08-26T20:31:07.413690Z"
 }

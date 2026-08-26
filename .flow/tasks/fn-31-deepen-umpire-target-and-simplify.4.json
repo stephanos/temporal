@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T20:22:42.258787Z",
+  "depends_on": [
+    "fn-31-deepen-umpire-target-and-simplify.2",
+    "fn-31-deepen-umpire-target-and-simplify.3"
+  ],
+  "id": "fn-31-deepen-umpire-target-and-simplify.4",
+  "priority": null,
+  "spec": "fn-31-deepen-umpire-target-and-simplify",
+  "spec_path": ".flow/tasks/fn-31-deepen-umpire-target-and-simplify.4.md",
+  "status": "todo",
+  "title": "Migrate the current Temporal Nexus target families",
+  "updated_at": "2026-08-26T20:22:42.258787Z"
+}

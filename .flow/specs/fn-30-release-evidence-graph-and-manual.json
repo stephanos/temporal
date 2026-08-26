@@ -7,7 +7,6 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-14-milestone-a-pilot-baseline-and-lean",
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-26-local-qualification-receipts-and-staged",
     "fn-27-hermetic-ci-execution-and-qualification",
@@ -236,5 +235,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T16:35:16.127845Z"
+  "updated_at": "2026-08-26T20:31:08.544148Z"
 }

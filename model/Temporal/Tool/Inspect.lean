@@ -18,7 +18,7 @@ structure Scenario where
   id : String
   result : Except InspectionFailure ExperimentSpec
 
-abbrev ScenarioRegistry := List Scenario
+abbrev ScenarioRegistry : Type := List Scenario
 
 structure InspectorResult where
   status : Nat

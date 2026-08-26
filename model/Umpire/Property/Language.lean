@@ -1140,15 +1140,21 @@ theorem evaluatePropertyClause_agrees
     (clause : ResolvedPropertyClause)
     (view : PropertyTraceView) :
     evaluatePropertyClause clause view = true ↔ clause.denote view := by
-  induction clause <;>
-    simp only [evaluatePropertyClause, ResolvedPropertyClause.denote] <;>
-    first
-    | exact evaluateStateInvariant_agrees _ _
-    | exact evaluateTransitionContract_agrees _ _ _
-    | exact evaluateIdentityRelation_agrees _ _
-    | exact evaluateOrdered_agrees _ _ _ _
-    | exact evaluateEventuallyWithin_agrees _ _ _ _
-    | exact evaluateQuiescentWithin_agrees _ _ _ _
+  cases clause with
+  | stateInvariant _ state =>
+      exact evaluateStateInvariant_agrees state view
+  | transitionContract _ precondition postcondition =>
+      exact evaluateTransitionContract_agrees precondition postcondition view
+  | identityRelation _ relation =>
+      exact evaluateIdentityRelation_agrees relation view
+  | inputOutput _ input output =>
+      exact evaluateTransitionContract_agrees input output view
+  | ordered _ before after unit =>
+      exact evaluateOrdered_agrees before after unit view
+  | eventuallyWithin _ trigger response bound =>
+      exact evaluateEventuallyWithin_agrees trigger response bound view
+  | quiescentWithin _ trigger forbidden bound =>
+      exact evaluateQuiescentWithin_agrees trigger forbidden bound view
 
 structure PropertyTraceSpan where
   firstTransition : Nat

@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-16-authored-variation-spaces-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+`Umpire.Space` follows the deep `Umpire.Target` authoring boundary. It produces checked variation/fault/coverage data and deterministic selected semantic intent; it does not freeze the current partial `umpire-experiment/v1` as the final executable format. The current v1 bytes remain compatibility fixtures while `Umpire.Artifact` owns compilation of selected intent into the complete executable `ExperimentSpec` required by fn-18.
+
+The public generation handoff is `umpire-gen-tests`: a named regression, test set, or model-selected batch becomes canonical artifacts. Space itself exposes no competing public command and no runtime semantics.
+
 ## Overview
 
 Add one reusable `Umpire.Space` composition layer for finite variation axes, named choices, requested fault intents, and explicit semantic coverage goals. A checked space lowers one canonical assignment or its complete bounded Cartesian product through the existing Behavior and Query checkers and the existing target-owned planner, producing ordinary `umpire-experiment/v1` values with the already-reserved choice, variant, and fault fields populated.
@@ -123,6 +129,7 @@ make umpire-check-regression
 - **R6:** Artifact v1 keeps its exact existing wire fields and formats while populating choices, role variants, requested faults, and fault capabilities from checked intent. Ordinary planning remains byte-identical with empty reserved arrays, and every intended artifact identity is recomputed canonically. [paraphrase]
 - **R7:** A reusable synthetic two-by-two proof and the exact named `temporal.nexus.basic-lifecycle.space.fault-matrix` declaration produce exactly four ordered specs without authoring an outcome. The Temporal space uses the named two-action Behavior/Query, two exact request-only fault axes, two named start/success occurrences, and four exact coverage goals above. Reordering inputs cannot change metadata or artifact bytes. [user]
 - **R8:** The public package, tests, architecture, model walkthrough, and roadmap preserve vertical package boundaries and existing comments. No runtime, evidence, conformance, persisted reader/migration, coverage scoring/state/report, replay, promotion, Go facade, API/config catalog, separate glossary, model-local Makefile, or Umpire3 use is introduced. [user]
+- **R9:** Space lowering returns checked selected intent that the Artifact module can compile into a complete executable ExperimentSpec, and named batch generation is exposed through `umpire-gen-tests` rather than a Space-specific command. This criterion supersedes any final-format reading of R6: existing v1 bytes remain compatibility fixtures, not a promise that an incomplete executable schema is permanent. Errors: Space emitting a final persisted schema independently, omitting participant/setup/ordering/termination/cleanup handoff data required downstream, broadening model bounds, or adding a second generation command fails completion.
 
 ## Early proof point
 <!-- scope: both -->

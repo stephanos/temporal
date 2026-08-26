@@ -57,7 +57,7 @@ structure PlannerPolicy where
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Query planning consumes the target-owned semantic kernel directly. -/
-abbrev QueryTarget (LawStatement : DeclarationId → Prop) :=
+abbrev QueryTarget (LawStatement : DeclarationId → Prop) : Type :=
   CheckedTarget LawStatement (List RoleBinding)
     SemanticValue SemanticValue SemanticValue SemanticValue
 
