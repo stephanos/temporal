@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T16:17:07.132238Z",
+  "depends_on": [
+    "fn-30-release-evidence-graph-and-manual.3",
+    "fn-30-release-evidence-graph-and-manual.4",
+    "fn-30-release-evidence-graph-and-manual.5"
+  ],
+  "id": "fn-30-release-evidence-graph-and-manual.6",
+  "priority": null,
+  "spec": "fn-30-release-evidence-graph-and-manual",
+  "spec_path": ".flow/tasks/fn-30-release-evidence-graph-and-manual.6.md",
+  "status": "todo",
+  "title": "Wire protected manual authorization workflow and root UX",
+  "updated_at": "2026-08-26T16:34:09.429205Z"
+}
