@@ -4,42 +4,33 @@ satisfies: [R8]
 # fn-17-bounded-semantic-exploration-and.7 Publish Exploration facades and protocol documentation
 
 ## Description
-### Umpire4 reconciliation (normative)
-
-Publish only the `Umpire.Exploration` and Temporal semantic facades plus protocol/coverage documentation. Remove the legacy `umpire-explore` and `temporal-model-explore` surfaces; command ergonomics, durable resume, and runtime claims belong to fn-33.
-
-The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
-
-Complete R8 with root-only command wiring, public facades, user documentation, and precise C8 status updates.
+Publish only the `Umpire.Exploration` and Temporal semantic facades plus protocol/coverage documentation. Command ergonomics, durable resume, and runtime claims belong to fn-33.
 
 **Size:** M
-**Files:** `model/Umpire.lean`, `model/Temporal.lean`, `Makefile`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
-**Touches:** [model/Umpire.lean, model/Temporal.lean, Makefile, model/README.md, model/Umpire/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
+**Files:** `model/Umpire.lean`, `model/Temporal.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `.plans/UMPIRE4_SPEC_COMPS.md`
+**Touches:** [model/Umpire.lean, model/Temporal.lean, model/README.md, model/Umpire/ARCHITECTURE.md, .plans/UMPIRE4_SPEC_COMPS.md]
 
 ### Approach
-- Export the vertical Exploration facade and exact Temporal adapter without flattening implementation modules.
-- Add only the root `umpire-explore` Make target with required SPACE/STRATEGY/BUDGET and optional STRENGTH/SEED forwarding.
-- Document the checked-space-to-selected-spec/report user path, strategy/budget grammar, semantic-versus-case coverage, pinned precedence, pure model-only scope, and fresh versus persisted resume boundary.
-- Update C8 implementation status only for delivered algorithms/state/report/command; keep Milestone C live replay/minimization/promotion incomplete.
+- Export the vertical Exploration facade and exact Temporal adapters without flattening implementation modules.
+- Document the checked-source-to-selected-spec/report API path, strategy/budget grammar, semantic-versus-case coverage, pinned precedence, exact-certificate boundary, pure protocol equations, and in-memory resume compatibility.
+- State explicitly that closed v1 has no mutation language, adaptive corpus, priority feedback, persisted reader, or command surface.
+- Update implementation status only for delivered algorithms/state/report/protocol; keep runtime campaign, replay, minimization, promotion, and qualification milestones separate.
 - Coordinate fn-5's generated glossary terms without adding a separate glossary or list/explain implementation.
+- Preserve existing comments and point command users to fn-33's eventual `umpire-fuzz` surface rather than creating `temporal-model-explore` or `umpire-explore`.
 
 ### Investigation targets
 **Required** (read before coding):
-- `Makefile:988-1032,1254` — root-only model targets and phony registration
 - `model/README.md:130-165` — current model use walkthrough
 - `model/Umpire/ARCHITECTURE.md:145-235` — Query/search/planning/artifact documentation
-- `.plans/UMPIRE4_COMPONENTS.md:23-54,362-390,641-660` — status and milestone boundaries
+- `.plans/UMPIRE4_SPEC_COMPS.md` — current component and milestone ownership
 - `model/Umpire.lean`, `model/Temporal.lean` — public facade pattern after fn-16
 
-### Acceptance
-- [ ] Root and direct executable produce identical bytes/status for the unpinned coverage-guided Nexus fault-matrix invocation; pinned precedence remains covered by the pure engine suite because the command accepts no pinned input.
-- [ ] Missing/invalid Make variables fail concisely before Lake execution.
-- [ ] Documentation never calls model coverage execution evidence or Milestone C complete.
-- [ ] No model-local Makefile, extra glossary, persisted reader, CI file, or Umpire3 reference/use is added.
 ## Acceptance
-- [ ] Public facades, root command, docs, and roadmap satisfy R8.
-- [ ] All focused suites plus `UmpireTests`, `TemporalModelTests`, and root smoke command pass.
-- [ ] Existing comments are preserved.
+- [ ] Public facades expose the pure checked source, selection, report, and protocol APIs without internal-module leakage.
+- [ ] Documentation distinguishes model coverage from execution evidence, selection termination from protocol drainage, and in-memory state from fn-33 durable campaign checkpoints.
+- [ ] Documentation states the exact-certificate trust boundary and that projection fixture equality remains fn-5's separate check.
+- [ ] No Makefile, executable, model-local Makefile, extra glossary, persisted reader, CI file, or Umpire3 reference/use is added.
+- [ ] Focused suites plus `UmpireTests` and `TemporalModelTests` pass with existing comments preserved.
 
 ## Done summary
 TBD
