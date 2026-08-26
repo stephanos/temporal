@@ -1,0 +1,260 @@
+# Umpire public API
+
+Umpire is the reusable, Temporal-independent library for composing finite semantic targets,
+checking portable properties and behaviors, planning bounded queries, and producing portable model
+artifacts. For the cross-library map, see the [model architecture](../ARCHITECTURE.md).
+
+## Imports and modules
+
+Most consumers should import the umbrella facade:
+
+```lean
+import Umpire
+```
+
+Focused imports are available when a consumer needs a smaller surface:
+
+| Import | Public responsibility |
+| --- | --- |
+| `Umpire.Core` | Semantic vocabulary, capabilities, laws, kernels, and target composition. |
+| `Umpire.Property` | Portable property authoring, checking, and evaluation. |
+| `Umpire.Behavior` | Setup and trace-shape constraints. |
+| `Umpire.Search` | Bounds, search strategies, policies, and planning metadata. |
+| `Umpire.Query` | Checked combinations of targets, properties, behaviors, bounds, and policies. |
+| `Umpire.Artifact` | Portable drive plans and experiment specifications. |
+| `Umpire.Planning` | Deterministic incremental planning over checked queries. |
+
+`Umpire.Property.Language`, `Umpire.Behavior.Language`, `Umpire.Query.Language`, and
+`Umpire.Planning.Engine` implement their public facades and should not normally be imported
+directly.
+
+## API lifecycle
+
+The public API deliberately separates authoring from checked values:
+
+```text
+TargetDeclaration ── composeTarget ──▶ CheckedTarget
+PropertyDeclaration ─ checkProperty ─▶ CheckedProperty
+BehaviorDeclaration ─ checkBehavior ─▶ CheckedBehavior
+QueryDeclaration ───── checkQuery ────▶ CheckedQuery
+CheckedQuery + IncrementalPlannerKernel ─ plan ─▶ PlannerRun ─▶ ExperimentSpec?
+```
+
+The checked types freeze canonical metadata and semantic digests. Planning accepts checked values
+rather than raw author input.
+
+## Core target API
+
+`Umpire.Core` defines the vocabulary shared by every other module.
+
+Important value types:
+
+- `DeclarationId` identifies semantic declarations. Public identities are expected to be
+  namespaced; construct them with `DeclarationId.of`.
+- `DeclarationMetadata` describes a state, action, outcome, observation, relation, capability,
+  provider, law, connector, target, or kernel.
+- `SemanticValue` pairs a declaration identity with a canonical string value.
+- `SemanticTrace` and `SemanticTraceStep` represent pure model traces.
+- `TransitionResult` represents one model-owned transition result.
+- `TypedBound` associates a bound with an explicit `BoundUnit`.
+
+Target composition uses:
+
+- `TransitionKernel` — finite initial-state and transition enumerators accompanied by soundness and
+  completeness proofs.
+- `CapabilityProvider` — meanings and law witnesses supplied by one capability.
+- `CapabilityConnector` — explicit reconciliation of meanings supplied by multiple providers.
+- `TargetDeclaration` — authored target composition.
+- `CheckedTarget` — validated and canonicalized target.
+
+The primary entry point is:
+
+```lean
+composeTarget :
+  TargetDeclaration LawStatement Setup State Action Outcome Observation →
+  Except DeclarationError
+    (CheckedTarget LawStatement Setup State Action Outcome Observation)
+```
+
+`canonicalCheckedTargetJson` returns the checked target's canonical projection.
+
+## Property API
+
+`Umpire.Property` describes portable claims over capability-limited semantic traces.
+
+The main authoring types are:
+
+- `PropertyPattern`
+- `ValueConstraint`
+- `PropertyBound`
+- `PropertyClause`
+- `PropertyDeclaration`
+- `PropertyCheckContext`
+
+`PropertyClause` supports state invariants, transition contracts, identity relations,
+input/output relationships, ordering, bounded eventuality, and bounded quiescence.
+
+Main entry points:
+
+```lean
+PropertyCheckContext.ofTarget
+checkProperty
+evaluateProperty
+```
+
+`checkProperty` returns either `PropertyError` or `CheckedProperty`. `evaluateProperty` reduces an
+unrestricted semantic trace to the checked property's admitted capability view before evaluating
+its clauses.
+
+## Behavior API
+
+`Umpire.Behavior` constrains setup and trace shape without assigning target outcomes.
+
+Important types:
+
+- `ResourceRole`, `RoleBinding`
+- `SetupConstraint`
+- `NamedOccurrence`, `OccurrenceBound`, `OccurrenceOrder`
+- `AuthoredExactTrace`
+- `BehaviorDeclaration`
+- `CheckedBehavior`
+- `BehaviorTrace`
+
+Convenience constructors include:
+
+```lean
+OccurrenceBound.exactly
+OccurrenceBound.atLeast
+OccurrenceBound.atMost
+```
+
+The main entry point is:
+
+```lean
+checkBehavior :
+  BehaviorCheckContext →
+  BehaviorDeclaration →
+  Except BehaviorError CheckedBehavior
+```
+
+Checking validates identities and references, canonicalizes constraints, rejects contradictions,
+and records whether the described behavior space is statically unsatisfiable. It does not select a
+target or enumerate a trace.
+
+## Query and search API
+
+`Umpire.Query` combines a checked target, checked properties, checked behavior, finite bounds, and
+deterministic planning policy.
+
+Important types:
+
+- `QueryTarget`
+- `QueryForm`
+- `QueryDeclaration`
+- `CheckedQuery`
+- `FiniteCompletenessEvidence`
+- `QueryCheckContext`
+- `QueryBounds`
+- `PlannerPolicy`
+- `SearchStrategy`
+
+`QueryForm` determines the meaning of the result:
+
+- `verify` searches for bounded universal verification.
+- `witness` searches for a satisfying trace.
+- `counterexample` searches for a violating trace.
+- `select` performs bounded exploratory selection.
+
+The checked entry point is:
+
+```lean
+checkQuery :
+  QueryCheckContext LawStatement →
+  QueryDeclaration →
+  Except QueryError (CheckedQuery LawStatement)
+```
+
+Exhaustive queries require `FiniteCompletenessEvidence`; the query checker rejects them before
+planning when that evidence is absent. `QueryBounds` keeps behavior-space bounds separate from the
+planner's candidate-evaluation budget.
+
+## Planning API
+
+`Umpire.Planning` performs deterministic, incremental enumeration of a checked target.
+
+The principal types are:
+
+- `IncrementalPlannerKernel`
+- `PlanningOutcome`
+- `PlanningResult`
+- `PlannerRun`
+- `PlannerInstrumentation`
+
+The main entry point is:
+
+```lean
+plan :
+  (query : CheckedQuery LawStatement) →
+  IncrementalPlannerKernel query.target →
+  PlannerRun
+```
+
+`IncrementalPlannerKernel` exposes indexed action, initial-state, and transition enumeration. Its
+proof fields establish soundness, completeness, and canonical ordering relative to the selected
+target.
+
+`PlanningOutcome` distinguishes a selected trace, bounded verification, complete absence of a
+matching trace, budget exhaustion, unsatisfiable behavior, and an invalid query. `PlannerRun`
+contains the outcome, optional artifact, and instrumentation.
+
+## Artifact API
+
+`Umpire.Artifact` defines portable, environment-independent products of pure model planning.
+
+- `DrivePlan` records bindings, requested actions, model-owned outcomes, resulting states,
+  checkpoints, bounds, selection reason, and provenance.
+- `ExperimentSpec` is the portable envelope consumed by later execution, checking, replay, and
+  generation work.
+- `artifactOfSelection` constructs an `ExperimentSpec` from a checked query and a selected,
+  kernel-produced `BehaviorTrace`.
+
+Canonical serialization entry points include:
+
+```lean
+canonicalCheckedTargetJson
+canonicalPropertyJson
+canonicalBehaviorJson
+canonicalQueryJson
+canonicalDrivePlanJson
+canonicalExperimentSpecJson
+```
+
+Canonical error projections are available as `canonicalDeclarationErrorJson`,
+`canonicalPropertyErrorJson`, `canonicalBehaviorErrorJson`, and `canonicalQueryErrorJson`.
+
+Artifacts do not claim that a runtime action occurred or that execution evidence was collected.
+
+## Reference example
+
+[`Umpire.Examples.Switch`](Examples/Switch.lean) is the smallest complete example. Read its public
+declarations in lifecycle order:
+
+1. `transitionKernel`
+2. `targetDeclaration`, `targetResult`, and `target`
+3. `propertyDeclaration` and `flipProperty`
+4. the behavior declarations and checked behaviors
+5. the query declarations and checked queries
+6. `incrementalKernel` and the planner runs
+7. `compiledArtifact`
+
+The example exposes exploratory, exact-action, and exact-trace variants without depending on
+Temporal-specific modules.
+
+## API invariants
+
+- Authored declarations remain distinguishable from checked values.
+- Invalid inputs cross public boundaries as typed `Except` errors.
+- Semantic identities derive from canonical projections, not source declaration order.
+- Transition outcomes belong to the target model, not to behavior declarations.
+- Planning is pure and performs no runtime execution, evidence collection, or promotion.
+- Reusable Umpire modules must not depend on Temporal-specific modules.
