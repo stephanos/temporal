@@ -75,20 +75,22 @@ model/
 └── TemporalVerify.lean           # opt-in expert verification aggregate
 ```
 
-The exact internal filenames may evolve. The following import rules are architectural invariants:
+The exact internal filenames may evolve. Normative ownership of import boundaries remains in
+MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11. The import-graph phase of `make lint-model` is
+their single enforcement mechanism: it checks transitive reachability over the complete first-party
+module inventory rather than scanning import text.
 
-- `Umpire.*` MUST NOT import `Temporal.*`.
-- `Umpire.lean` MUST NOT import `Umpire.Verify.Veil`; Veil is available only through focused,
-  opt-in imports.
-- `Temporal.Feature.*` MUST NOT import `Temporal.System.*`, `Temporal.Verify.*`, or Veil.
-- Base `Temporal.System.*` mechanism modules MUST NOT be required by Feature modules.
-- A `Temporal.System.<Family>.Refinement` leaf MAY import the relevant Feature and System modules.
-- `Temporal.Verify.*` MAY import the owning Feature or System model, generic Umpire verification
-  machinery, and Veil.
-- `Temporal.lean`, ordinary `Temporal.Tool` modules, and the normal Temporal model test aggregate
-  MUST NOT import `Temporal.Verify` or Veil.
-- Dedicated verification commands and tests MUST enter through an opt-in aggregate such as
-  `TemporalVerify.lean`.
+The current qualified policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
+`Umpire.*` independent of `Temporal.*`. It isolates `Temporal.Feature.*` from
+`Temporal.System.*`, `Temporal.Verify.*`, and `Umpire.Verify.Veil`, with the exact verification-test
+exception `Temporal.Feature.Nexus.CallerClosure.VeilTests`. In the reverse direction, only the exact
+reviewed refinement consumer `Temporal.System.Nexus.Refinement` composes `Temporal.System.*` with
+`Temporal.Feature.*`; refinement-shaped names receive no exception.
+
+Ordinary aggregates, tools, and tests remain isolated from `Temporal.Verify.*` and
+`Umpire.Verify.Veil`. The complete opt-in consumer set is `TemporalVerify`, `TemporalVeilTests`,
+`Temporal.Tool.VerifyVeil`, and `Temporal.Feature.Nexus.CallerClosure.VeilTests`; it is an exact
+set, not a wildcard convention (MOD-05).
 
 Physical placement under `Temporal/Verify/` keeps expert bindings discoverable beside their owning
 Temporal families. Import isolation, not physical distance, protects the ordinary authoring path.
@@ -437,7 +439,9 @@ The target architecture is realized when:
    interface or making Veil a second semantic authority.
 7. Every accepted checker counterexample replays through canonical semantics, and every receipt
    exposes bounds, trust, provenance, and omissions.
-8. Import-direction and domain-purity checks enforce these seams mechanically.
+8. `make lint-model` enforces the import seams owned by MOD-01, MOD-03, MOD-05, MOD-09, and MOD-10
+   over the complete first-party module graph; semantic altitude, module depth, and isolated
+   testability remain design-review judgments.
 9. Authoring, planning, execution, evidence, property, and verification failures remain explicit and
    fail closed.
 
