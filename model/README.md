@@ -67,18 +67,46 @@ run elaborates all three candidate modules before replacing the retained generat
 
 ## Semantic authoring and planning
 
-Model scenarios use three concise forms. A `Property` describes portable meaning over a
-capability-limited semantic trace. A `Behavior` constrains setup, controllable actions, ordering,
-and exactness while leaving outcomes to the target model. A `Query` combines checked properties
-and behavior with explicit bounds and a deterministic planning policy.
+Model scenarios use three separate but composable forms:
 
-Reusable declarations and the domain-neutral switch example live under `Umpire/`, with the switch
-scenario at `Umpire/Examples/Switch.lean`. `Temporal/Feature/Nexus/` owns auto-close and the
-Workflow–Nexus caller-closure scenario, `Temporal/System/` owns configuration mechanisms, and
-`Temporal/Tool/Inspect.lean` registers the Feature scenario alongside the reusable switch example.
-The resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe
-selected requests, model-owned outcomes, and semantic observations, but do not claim that runtime
-execution occurred.
+- A `Property` describes portable meaning over a capability-limited semantic trace: what must hold,
+  independently of how a trace is found.
+- A `Behavior` constrains setup and controllable actions, including ordering and exactness: what the
+  planner may drive. Outcomes and observations remain owned by the target model.
+- A `Query` combines checked properties and behavior with explicit bounds and a deterministic
+  planning policy: what bounded search should find or verify.
+
+Learn these forms in increasing order of domain and composition complexity:
+
+1. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral example
+   of the complete authored → checked → planned → artifact lifecycle.
+2. [`BasicLifecycle`](Temporal/Feature/Nexus/Examples/BasicLifecycle.lean) adapts the authoritative
+   Nexus lifecycle into one small Temporal-owned target with one capability and one provider.
+3. [`BasicOperations`](Temporal/Feature/Nexus/Examples/BasicOperations.lean) adds two one-action
+   walkthroughs over that shared target: asynchronously starting a scheduled operation, then
+   reporting successful completion for a started operation. Each walkthrough exposes its authored
+   and checked Property, exact-action Behavior, checked Query, and deterministic planner result.
+4. [`CallerClosure`](Temporal/Feature/Nexus/CallerClosure.lean) is the advanced integration
+   reference for Workflow–Nexus ownership, connector composition, cancellation, and multiple query
+   modes. It is not the starting point for learning the DSLs.
+
+`Temporal/Feature/` owns product-visible behavior, `Temporal/System/` owns configuration and other
+mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The basic Nexus examples
+compile directly and deliberately are not registered with the inspector. The resulting `DrivePlan`
+and `ExperimentSpec` values are pure model artifacts: they describe selected requests,
+model-owned outcomes, and semantic observations. The examples do not start a Temporal server or
+execute Nexus operations.
+
+Build each stage through the final module and target names:
+
+```sh
+cd model
+mise exec -- lake build Umpire.Examples.Switch
+mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicLifecycleTests
+mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicOperationsTests
+mise exec -- lake build Temporal.Feature.Nexus.CallerClosureTests
+mise exec -- lake build Temporal TemporalModelTests temporal-model-inspect
+```
 
 From the Temporal repository root, run the focused regression check:
 
