@@ -73,8 +73,7 @@ flowchart LR
 ## Quick commands
 
 ```bash
-go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression ./tools/umpire/regression
-make umpire-check-regression-projections
+go test -count=1 -tags test_dep ./tools/umpire/...
 make umpire-check-regression
 ```
 
