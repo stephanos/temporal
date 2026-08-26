@@ -49,9 +49,12 @@ Expose the new examples through the final Temporal build/test surfaces, reconcil
 - [ ] R5's unchanged advanced/reusable contracts are verified by the full regression.
 - [ ] Existing comments in touched files are preserved.
 ## Done summary
-TBD
+Published the basic Nexus learning path through the final Temporal production/test aggregates and reconciled the live model documentation with the Feature/System/Tool layout. The guide now progresses from Switch through the shared Nexus lifecycle and two basic operations to caller-closure as the advanced integration reference.
 
+baseline: green via handoff (verified at 27f5b3e60 by fn-11-basic-nexus-umpire-dsl-showcases.2; HEAD moved afterward only through that task's plan-sync receipt)
+GATE_SKIPPED:unittest:green-receipt 5e9f94a2 - baseline reused from prior post-gate pass
+stage: impl-review - ran (codex; SHIP at 2026-08-26T01:56:34Z)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 18cf9ba2a3676e7c5a7d65db694be7383000a768
+- Tests: baseline: green via handoff (verified at 27f5b3e60 by fn-11-basic-nexus-umpire-dsl-showcases.2; HEAD moved afterward only through that task's plan-sync receipt), GATE_SKIPPED:unittest:green-receipt 5e9f94a2 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build Umpire.Examples.Switch Temporal.Feature.Nexus.Examples.BasicLifecycleTests Temporal.Feature.Nexus.Examples.BasicOperationsTests Temporal.Feature.Nexus.CallerClosureTests Temporal TemporalModelTests temporal-model-inspect, stale-name and four-file boundary checks, cd model && mise exec -- lake build TemporalModelTests, make umpire-check-regression
 - PRs:
