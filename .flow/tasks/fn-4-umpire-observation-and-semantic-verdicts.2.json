@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T06:12:41.830404Z",
+  "depends_on": [
+    "fn-4-umpire-observation-and-semantic-verdicts.1"
+  ],
+  "id": "fn-4-umpire-observation-and-semantic-verdicts.2",
+  "priority": null,
+  "spec": "fn-4-umpire-observation-and-semantic-verdicts",
+  "spec_path": ".flow/tasks/fn-4-umpire-observation-and-semantic-verdicts.2.md",
+  "status": "todo",
+  "title": "Qualify synthetic evidence with derivations and dispositions",
+  "updated_at": "2026-08-26T06:25:05.894191Z"
+}

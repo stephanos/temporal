@@ -1,6 +1,6 @@
 # Umpire components and delivery status
 
-Status: reconciled 2026-08-25 against the current `model/` tree, its generators, and the existing Go
+Status: reconciled 2026-08-26 against the current `model/` tree, its generators, and the existing Go
 Umpire implementations. The component boundaries were originally extracted from the
 [Inspect Umpire Branch](https://chatgpt.com/share/6a8b71cb-74e4-83e8-947a-c2f6d595fefc)
 design conversation. This remains an architectural inventory, not an approved implementation plan.
@@ -39,6 +39,15 @@ implementation was found.
 | B: check real Temporal | Not integrated | No current-artifact decoder, local driver binding, live evidence interpreter, or qualified result path exists. |
 | C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
 | D: reuse the investment | Separately advanced | Formal, optional Veil, and qualification machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 qualification work remain open. |
+
+### Active Flow delivery plans
+
+Planning status is tracked separately from implementation status above. A reviewed plan does not
+make its component built.
+
+| Slice | Flow spec | Plan status | Bounded ownership |
+| --- | --- | --- | --- |
+| C7 offline observation | `fn-4-umpire-observation-and-semantic-verdicts` | Reviewed: Ship; six tasks ready | Closed reusable mapping expressions, bounded synthetic evidence qualification, coordinate-complete derivations, unchanged pure Property evaluation, and one Temporal-owned synthetic profile. Live collection and conformance remain separate. |
 
 Bottom line: the component decomposition still holds, but the current implementation is not an
 end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact inspection.
@@ -315,11 +324,18 @@ needed initially.
 **Responsibility:** interpret raw implementation facts through Lean-owned observation programs and
 compare them with the `ExperimentSpec` requirements and realized `ExperimentRun`.
 
-**Status: existing baselines, not integrated with the current model.** Generic facts, lifecycle and
+**Status: existing baselines, not integrated with the current model; the offline semantic boundary
+has a reviewed implementation plan.** Generic facts, lifecycle and
 relation state, evidence profiles, qualified claims, and fail-closed handling exist under
 `common/testing/umpire`; Umpire3 also has Lean-owned observation programs and a live conformance
 path. The current `model/` exports property observation requirements, but does not export an
 observation program or consume facts to produce a result.
+
+`fn-4-umpire-observation-and-semantic-verdicts` now plans the independently implementable offline
+slice: a reusable checked Observation mapping language, bounded synthetic evidence qualification,
+coordinate-keyed derivations, semantic verdicts through the unchanged Property evaluator, and one
+synthetic Temporal profile. It deliberately does not collect live evidence or claim live
+conformance; those remain downstream work.
 
 ```text
 ExperimentSpec + ExperimentRun + raw evidence -> semantic evidence -> qualified Result

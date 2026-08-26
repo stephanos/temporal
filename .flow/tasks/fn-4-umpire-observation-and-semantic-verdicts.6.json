@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T06:12:41.830826Z",
+  "depends_on": [
+    "fn-4-umpire-observation-and-semantic-verdicts.4",
+    "fn-4-umpire-observation-and-semantic-verdicts.5"
+  ],
+  "id": "fn-4-umpire-observation-and-semantic-verdicts.6",
+  "priority": null,
+  "spec": "fn-4-umpire-observation-and-semantic-verdicts",
+  "spec_path": ".flow/tasks/fn-4-umpire-observation-and-semantic-verdicts.6.md",
+  "status": "todo",
+  "title": "Document the offline Observation API and live-runtime handoff",
+  "updated_at": "2026-08-26T06:12:41.830826Z"
+}
