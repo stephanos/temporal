@@ -219,7 +219,7 @@ UMPIRE_PUBLIC_BINPB := $(PROTO_ROOT)/umpire-public.binpb
 # develop/buf-breaking.sh to handle the old and new values at once.
 INTERNAL_BINPB := $(PROTO_ROOT)/image.bin
 CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
-UMPIRE_API_FIXTURE_ROOT := tools/umpire/internal/generate/api/testdata/basic
+UMPIRE_API_FIXTURE_ROOT := tools/umpire/cmd/umpire-gen-api/testdata/basic
 UMPIRE_API_FIXTURE_INPUT := $(UMPIRE_API_FIXTURE_ROOT)/input
 UMPIRE_API_FIXTURE_DESCRIPTOR := $(UMPIRE_API_FIXTURE_ROOT)/input.pb
 UMPIRE_API_FIXTURE_PROTOS := compat/protobuf/v1/options.proto shared/messaging/v1/types.proto public/messaging/v1/message.proto internal/messaging/v1/messaging_service.proto
@@ -1010,7 +1010,7 @@ $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMP
 		$(UMPIRE_API_FIXTURE_PROTOS)
 
 umpire-gen-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
-	@go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api -run '^TestBasicFixture$$' -rewrite
+	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api -run '^TestBasicFixture$$' -rewrite
 
 umpire-gen-regression-projections:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
@@ -1027,7 +1027,7 @@ umpire-check-regression-projections:
 		diff -u model/Temporal/Tool/Generated/Regressions.md \
 			"$$temporary/model/Temporal/Tool/Generated/Regressions.md"
 	@go test -count=1 -tags test_dep \
-		./tools/umpire/internal/generate/regression ./tools/umpire/regression
+		./tools/umpire/cmd/umpire-gen-regressions ./tools/umpire/regression
 
 umpire-check-regression: umpire-check-regression-projections
 	@set -eu; \
