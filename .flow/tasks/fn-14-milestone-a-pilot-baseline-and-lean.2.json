@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T07:29:19.472051Z",
+  "depends_on": [
+    "fn-14-milestone-a-pilot-baseline-and-lean.1"
+  ],
+  "id": "fn-14-milestone-a-pilot-baseline-and-lean.2",
+  "priority": null,
+  "spec": "fn-14-milestone-a-pilot-baseline-and-lean",
+  "spec_path": ".flow/tasks/fn-14-milestone-a-pilot-baseline-and-lean.2.md",
+  "status": "todo",
+  "title": "Measure isolated mutations, coverage, and feedback cost",
+  "updated_at": "2026-08-26T07:31:07.955125Z"
+}
