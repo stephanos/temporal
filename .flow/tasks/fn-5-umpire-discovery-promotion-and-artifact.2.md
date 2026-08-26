@@ -4,7 +4,7 @@ satisfies: [R1, R3, R6, R7]
 # fn-5-umpire-discovery-promotion-and-artifact.2 Assemble the Temporal production catalog and catalog executable
 
 ## Description
-Compose current reusable, Switch, and Nexus metadata into one checked production registry, bind stable projection metadata, and expose the pure catalog executable required by downstream generation for R1/R3/R6/R7.
+Compose current reusable, Switch, and Nexus metadata into one checked production registry, bind stable projection metadata, and expose the pure catalog query and full-export executable required by downstream generation for R1/R3/R6/R7.
 
 **Size:** M
 **Files:** `model/Temporal/Tool/Catalog.lean`, `model/Temporal/Tool/CatalogFixtures.lean`, `model/Temporal/Tool/CatalogCli.lean`, `model/Temporal/Tool/CatalogTests.lean`, `model/Temporal/Tool/CatalogCliTests.lean`, `model/Temporal/Tool/Inspect.lean`, `model/TemporalModelTests.lean`, `model/lakefile.toml`
@@ -18,19 +18,24 @@ Compose current reusable, Switch, and Nexus metadata into one checked production
 - Include internal semantic rows in the checked graph with `internal` disposition. Exclude nested roles, setup constraints, occurrences, Property clause IDs, authored/`Except` intermediates, PlannerRun/artifact outputs, proof-only definitions, test fixtures, and wrong-trace examples because they are not first-class checked declaration metadata.
 - Mark the current Switch exact-action and Nexus caller-closure scenarios as the initial `stableRegression` set.
 - Define a separately checked Temporal `CatalogProjectionBinding` registry keyed by stable entry identity. Each binding owns the canonical inspector selector, repository-relative fixture path, and per-entry projection key; its binding identity is projected to JSON but does not affect reusable catalog semantic identity. Aggregate output paths remain one set-level generator concern.
-- Implement pure deterministic `listCatalog` and `explainCatalog` results plus the effect-thin `temporal-model-catalog list|explain|check` executable while preserving the existing inspector's exact single-scenario behavior.
+- Implement pure deterministic `listCatalog`, `explainCatalog`, and `exportCatalog` results plus the effect-thin `temporal-model-catalog list|explain|check|export` executable while preserving the existing inspector's exact single-scenario behavior.
+- Make `export` the only complete generator transport: emit exactly one `umpire-semantic-catalog-export/v1` envelope containing catalog identity, every checked row including `internal`, and every stable projection binding in canonical order. Accept no selector, filtering, pagination, or presentation flags; use status 0 with one compact JSON document plus LF and empty stderr, or status 1 with empty stdout and one structured error plus LF.
 - Keep Temporal vocabulary in this owner layer, not under `model/Umpire`.
+
+### Key context
+
+- The parent spec is blocked on all of fn-15 and fn-16. Their generic catalog-query core, checked space metadata, Temporal seed, facades, integration, and documentation therefore land before any fn-5 task; local task edges only order work within fn-5.
 
 ### Investigation targets
 
 **Required:**
 - `model/Temporal/Tool/Inspect.lean:1-77` — current closed scenario registry and error shell.
-- `model/Temporal/Tool/Catalog/Core.lean` — fn-15-owned generic query and response mechanics; consume without adding semantic vocabulary to the core.
+- `.flow/tasks/fn-15-standalone-api-and-config-input-catalogs.1.md` — dependency-owned generic query and response contract.
 - `model/lakefile.toml:1-20` — existing executable registration.
 - `model/Umpire/Examples/Switch.lean:307-611` — reusable scenario metadata.
 - `model/Temporal/Feature/Nexus/Examples/BasicLifecycle.lean:234-245` — ten public checked declaration identities.
 - `model/Temporal/Feature/Nexus/Examples/BasicOperations.lean:45-292` — two public Property/Behavior/Query roots.
-- `model/Temporal/Feature/Nexus/Examples/VariationSpace.lean` — fn-16-owned exact BasicLifecycle space metadata seed.
+- `.flow/tasks/fn-16-authored-variation-spaces-and.5.md` — dependency-owned exact BasicLifecycle space seed and fixture contract.
 - `model/Temporal/Feature/Nexus/CallerClosure.lean:510-658` — production checked Behavior/Query and artifact.
 - `model/Temporal/Feature/Nexus/CallerClosureTests.lean:71-97` — independent semantic checks.
 - `model/TemporalModelTests.lean:1-10` — aggregate registration.
@@ -46,8 +51,9 @@ Compose current reusable, Switch, and Nexus metadata into one checked production
 - [ ] The initial stable set contains exactly Switch exact-action and Nexus caller-closure entries in canonical order.
 - [ ] Every stable entry has exactly one validated projection binding with a safe fixture path and unique projection key, and binding identity changes do not alter catalog semantic identity.
 - [ ] List/explain results are byte-stable under registry ordering changes.
-- [ ] Semantic list/explain/check consume the fn-15 generic core and remain a distinct adapter/executable from API/config input catalogs.
-- [ ] List/explain/check have canonical stdout/stderr/exit behavior; internal, unknown, ambiguous, and deprecated selectors return exact structured results without semantic redirection.
+- [ ] Semantic list/explain/check/export consume the fn-15 generic core and remain a distinct adapter/executable from API/config input catalogs.
+- [ ] Export emits exactly one complete versioned snapshot with catalog identity, all canonical rows including `internal`, and every stable binding; it accepts no selector/filter/page/presentation options.
+- [ ] List/explain/check/export have canonical stdout/stderr/exit behavior; invalid catalog, unsupported command/arguments, serialization failure, internal, unknown, ambiguous, and deprecated selectors return exact structured results without semantic redirection or partial stdout.
 - [ ] The existing inspector scenarios and canonical outputs remain unchanged.
 - [ ] No Temporal identity or import enters `model/Umpire`.
 
