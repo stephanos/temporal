@@ -149,11 +149,63 @@ structure ObservationCheckContext where
   profiles : List EvidenceProfileDeclaration
   deriving BEq, DecidableEq, Repr
 
+/-- One provider-qualified meaning used while resolving a checked target's connector semantics. -/
+private structure ProvidedObservationMeaning where
+  provider : DeclarationId
+  meaning : MeaningProvision
+
+private def providedMeaningLe
+    (left right : ProvidedObservationMeaning) : Bool :=
+  decide (left.meaning.declaration.value < right.meaning.declaration.value) ||
+    (left.meaning.declaration == right.meaning.declaration &&
+      decide (left.meaning.kind.name < right.meaning.kind.name)) ||
+    (left.meaning.declaration == right.meaning.declaration &&
+      left.meaning.kind == right.meaning.kind && decide (left.provider.value ≤ right.provider.value))
+
+private def meaningKeyLe
+    (left right : DeclarationId × DeclarationKind) : Bool :=
+  decide (left.1.value < right.1.value) ||
+    (left.1 == right.1 && decide (left.2.name ≤ right.2.name))
+
+private def canonicalProviderIds (ids : List DeclarationId) : List DeclarationId :=
+  ids.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
+
+private def resolvedTargetMeanings
+    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
+    List MeaningProvision :=
+  let provided := target.providers.flatMap fun provider =>
+    provider.meanings.map fun meaning => { provider := provider.id, meaning }
+  let canonicalProvided := provided.mergeSort providedMeaningLe
+  let keys := canonicalProvided.map (fun item => (item.meaning.declaration, item.meaning.kind))
+    |>.mergeSort meaningKeyLe |>.eraseDups
+  let reconciliations := target.connectors.flatMap CapabilityConnector.reconciliations
+  keys.flatMap fun key =>
+    let candidates := canonicalProvided.filter fun item =>
+      item.meaning.declaration == key.1 && item.meaning.kind == key.2
+    match candidates with
+    | [] => []
+    | first :: _ =>
+        if candidates.all fun item =>
+            item.meaning.semanticDigest == first.meaning.semanticDigest then
+          [first.meaning]
+        else
+          let providers := canonicalProviderIds (candidates.map ProvidedObservationMeaning.provider)
+          match reconciliations.find? fun reconciliation =>
+              reconciliation.declaration == key.1 && reconciliation.kind == key.2 &&
+                canonicalProviderIds reconciliation.providers == providers with
+          | some reconciliation => [{
+              declaration := reconciliation.declaration
+              kind := reconciliation.kind
+              semanticDigest := reconciliation.semanticDigest
+            }]
+          | none => []
+
+/-- Build an Observation context from the declarations and resolved meanings of a checked target. -/
 def ObservationCheckContext.ofTarget
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
     (profiles : List EvidenceProfileDeclaration) : ObservationCheckContext := {
   declarations := target.declarations
-  meanings := target.providers.flatMap CapabilityProvider.meanings
+  meanings := resolvedTargetMeanings target
   profiles
 }
 
@@ -241,11 +293,80 @@ def InformationFlowLabel.name : InformationFlowLabel → String
   | .contributionMarker => "contribution-marker"
   | .digestToken => "digest-token"
 
-structure CheckedObservationExpression where
-  valueType : ObservationValueType
-  informationFlow : InformationFlowLabel
-  canonicalIdentity : String
+def InformationFlowLabel.join
+    (left right : InformationFlowLabel) : InformationFlowLabel :=
+  match left, right with
+  | .literal, other | other, .literal => other
+  | .retained, .retained => .retained
+  | .contributionMarker, .contributionMarker => .contributionMarker
+  | .digestToken, .digestToken => .digestToken
+  | .hashed leftPolicy, .hashed rightPolicy =>
+      if leftPolicy == rightPolicy then .hashed leftPolicy else .redacted
+  | _, _ => .redacted
+
+/-- Fixed total normalization operations admitted into checked expressions. -/
+inductive CheckedObservationNormalizer where
+  | textTrimV1
+  | textLowercaseV1
+  | naturalRenderV1
+  deriving BEq, DecidableEq, Ord, Repr
+
+def CheckedObservationNormalizer.name : CheckedObservationNormalizer → String
+  | .textTrimV1 => "text.trim"
+  | .textLowercaseV1 => "text.lowercase"
+  | .naturalRenderV1 => "natural.render"
+
+def CheckedObservationNormalizer.version (_ : CheckedObservationNormalizer) : Nat := 1
+
+def CheckedObservationNormalizer.inputType :
+    CheckedObservationNormalizer → ObservationValueType
+  | .textTrimV1 | .textLowercaseV1 => .text
+  | .naturalRenderV1 => .natural
+
+def CheckedObservationNormalizer.outputType :
+    CheckedObservationNormalizer → ObservationValueType
+  | .textTrimV1 | .textLowercaseV1 | .naturalRenderV1 => .text
+
+/-- Resolved typed AST retained by a checked plan for later pure qualification. -/
+inductive CheckedObservationExpression where
+  | text (value : String)
+  | natural (value : Nat)
+  | boolean (value : Bool)
+  | field (reference : EvidenceFieldReference) (valueType : ObservationValueType)
+      (disposition : FieldDisposition)
+  | binding (id : DeclarationId) (valueType : ObservationValueType)
+      (informationFlow : InformationFlowLabel)
+  | normalize (operator : CheckedObservationNormalizer)
+      (operand : CheckedObservationExpression)
+  | present (operand : CheckedObservationExpression)
+  | equals (left right : CheckedObservationExpression)
+  | and (left right : CheckedObservationExpression)
+  | or (left right : CheckedObservationExpression)
+  | not (operand : CheckedObservationExpression)
+  | contributionMarker (operand : CheckedObservationExpression)
+  | digestToken (policy : DigestPolicyDeclaration) (operand : CheckedObservationExpression)
   deriving BEq, DecidableEq, Repr
+
+def CheckedObservationExpression.valueType :
+    CheckedObservationExpression → ObservationValueType
+  | .text _ | .contributionMarker _ | .digestToken _ _ => .text
+  | .natural _ => .natural
+  | .boolean _ | .present _ | .equals _ _ | .and _ _ | .or _ _ | .not _ => .boolean
+  | .field _ valueType _ | .binding _ valueType _ => valueType
+  | .normalize operator _ => operator.outputType
+
+def CheckedObservationExpression.informationFlow :
+    CheckedObservationExpression → InformationFlowLabel
+  | .text _ | .natural _ | .boolean _ => .literal
+  | .field _ _ .retain => .retained
+  | .field _ _ .redact | .field _ _ .reject => .redacted
+  | .field _ _ (.hash policy) => .hashed policy
+  | .binding _ _ informationFlow => informationFlow
+  | .normalize _ operand | .present operand | .not operand => operand.informationFlow
+  | .equals left right | .and left right | .or left right =>
+      InformationFlowLabel.join left.informationFlow right.informationFlow
+  | .contributionMarker _ => .contributionMarker
+  | .digestToken _ _ => .digestToken
 
 structure CheckedObservationBinding where
   id : DeclarationId
@@ -398,6 +519,58 @@ private def policyJson (policy : DigestPolicyDeclaration) : String :=
   "{\"id\":" ++ quote policy.id.value ++
     ",\"name\":" ++ quote policy.name ++
     ",\"version\":" ++ toString policy.version ++ "}"
+
+def CheckedObservationExpression.canonicalIdentity :
+    CheckedObservationExpression → String
+  | .text value => "{\"literal\":\"text\",\"value\":" ++ quote value ++ "}"
+  | .natural value => "{\"literal\":\"natural\",\"value\":" ++ toString value ++ "}"
+  | .boolean value => "{\"literal\":\"boolean\",\"value\":" ++ toString value ++ "}"
+  | .field reference _ disposition =>
+      let policy := match disposition with
+        | .hash policy => policy.map (quote ∘ DeclarationId.value) |>.getD "null"
+        | _ => "null"
+      "{\"field\":" ++ fieldReferenceJson reference ++
+        ",\"disposition\":" ++ quote disposition.name ++
+        ",\"policy\":" ++ policy ++ "}"
+  | .binding id _ _ => "{\"binding\":" ++ quote id.value ++ "}"
+  | .normalize operator operand =>
+      "{\"operator\":" ++ quote operator.name ++
+        ",\"version\":" ++ toString operator.version ++
+        ",\"operand\":" ++ operand.canonicalIdentity ++ "}"
+  | .present operand =>
+      "{\"operator\":\"present\",\"operand\":" ++ operand.canonicalIdentity ++ "}"
+  | .equals left right =>
+      let leftIdentity := left.canonicalIdentity
+      let rightIdentity := right.canonicalIdentity
+      let operands := if decide (rightIdentity < leftIdentity) then
+        [rightIdentity, leftIdentity]
+      else
+        [leftIdentity, rightIdentity]
+      "{\"operator\":\"equals\",\"operands\":" ++ array operands ++ "}"
+  | .and left right =>
+      let leftIdentity := left.canonicalIdentity
+      let rightIdentity := right.canonicalIdentity
+      let operands := if decide (rightIdentity < leftIdentity) then
+        [rightIdentity, leftIdentity]
+      else
+        [leftIdentity, rightIdentity]
+      "{\"operator\":\"and\",\"operands\":" ++ array operands ++ "}"
+  | .or left right =>
+      let leftIdentity := left.canonicalIdentity
+      let rightIdentity := right.canonicalIdentity
+      let operands := if decide (rightIdentity < leftIdentity) then
+        [rightIdentity, leftIdentity]
+      else
+        [leftIdentity, rightIdentity]
+      "{\"operator\":\"or\",\"operands\":" ++ array operands ++ "}"
+  | .not operand =>
+      "{\"operator\":\"not\",\"operand\":" ++ operand.canonicalIdentity ++ "}"
+  | .contributionMarker operand =>
+      "{\"operator\":\"contribution-marker\",\"operand\":" ++
+        operand.canonicalIdentity ++ "}"
+  | .digestToken policy operand =>
+      "{\"operator\":\"digest-token\",\"policy\":" ++ policyJson policy ++
+        ",\"operand\":" ++ operand.canonicalIdentity ++ "}"
 
 private def flowJson (flow : InformationFlowLabel) : String :=
   match flow with
@@ -609,135 +782,87 @@ private def validateDispositions
     | _ => throw (error .duplicateDisposition declaration reference.field.value
         [reference.kind, reference.field])
 
-private def joinFlow
-    (left right : InformationFlowLabel) : InformationFlowLabel :=
-  match left, right with
-  | .literal, other | other, .literal => other
-  | .retained, .retained => .retained
-  | .contributionMarker, .contributionMarker => .contributionMarker
-  | .digestToken, .digestToken => .digestToken
-  | .hashed leftPolicy, .hashed rightPolicy =>
-      if leftPolicy == rightPolicy then .hashed leftPolicy else .redacted
-  | _, _ => .redacted
-
 private def allowsClearOutput : InformationFlowLabel → Bool
   | .literal | .retained | .contributionMarker | .digestToken => true
   | _ => false
-
-private def expression
-    (valueType : ObservationValueType)
-    (informationFlow : InformationFlowLabel)
-    (canonicalIdentity : String) : CheckedObservationExpression := {
-  valueType
-  informationFlow
-  canonicalIdentity
-}
-
-private def checkedPairJson
-    (operator : String)
-    (left right : CheckedObservationExpression)
-    (commutative : Bool) : String :=
-  let operands := if commutative && decide (right.canonicalIdentity < left.canonicalIdentity) then
-    [right.canonicalIdentity, left.canonicalIdentity]
-  else
-    [left.canonicalIdentity, right.canonicalIdentity]
-  "{\"operator\":" ++ quote operator ++ ",\"operands\":" ++ array operands ++ "}"
 
 private def checkExpression
     (declaration : ObservationMappingDeclaration)
     (profile : EvidenceProfileDeclaration)
     (bindings : List CheckedObservationBinding) :
     ObservationExpression → Except ObservationError CheckedObservationExpression
-  | .text value => pure (expression .text .literal
-      ("{\"literal\":\"text\",\"value\":" ++ quote value ++ "}"))
-  | .natural value => pure (expression .natural .literal
-      ("{\"literal\":\"natural\",\"value\":" ++ toString value ++ "}"))
-  | .boolean value => pure (expression .boolean .literal
-      ("{\"literal\":\"boolean\",\"value\":" ++ toString value ++ "}"))
+  | .text value => pure (.text value)
+  | .natural value => pure (.natural value)
+  | .boolean value => pure (.boolean value)
   | .field reference => do
       let field ← evidenceField declaration profile reference
       match dispositionFor declaration.dispositions reference with
       | none => throw (error .missingDisposition declaration reference.field.value
           [reference.kind, reference.field])
-      | some .retain => pure (expression field.valueType .retained
-          ("{\"field\":" ++ fieldReferenceJson reference ++ "}"))
-      | some .redact => pure (expression field.valueType .redacted
-          ("{\"field\":" ++ fieldReferenceJson reference ++ "}"))
-      | some (.hash policy) => pure (expression field.valueType (.hashed policy)
-          ("{\"field\":" ++ fieldReferenceJson reference ++ "}"))
+      | some .retain => pure (.field reference field.valueType .retain)
+      | some .redact => pure (.field reference field.valueType .redact)
+      | some (.hash policy) => pure (.field reference field.valueType (.hash policy))
       | some .reject => throw (error .rejectedInputRead declaration reference.field.value
           [reference.kind, reference.field])
   | .binding id =>
       match bindings.find? fun binding => binding.id == id with
-      | some binding => pure (expression binding.valueType binding.expression.informationFlow
-          ("{\"binding\":" ++ quote id.value ++ "}"))
+      | some binding => pure (.binding id binding.valueType binding.expression.informationFlow)
       | none => throw (error .incompatibleBinding declaration id.value [id])
   | .normalize operator operand => do
       let checked ← checkExpression declaration profile bindings operand
-      let expectedInput ← match operator.name with
-        | "text.trim" | "text.lowercase" => pure .text
-        | "natural.render" => pure .natural
+      let checkedOperator ← match operator.name with
+        | "text.trim" => pure CheckedObservationNormalizer.textTrimV1
+        | "text.lowercase" => pure CheckedObservationNormalizer.textLowercaseV1
+        | "natural.render" => pure CheckedObservationNormalizer.naturalRenderV1
         | _ => throw (error .unknownOperator declaration operator.name)
       if operator.version != 1 then
         throw (error .unknownOperatorVersion declaration
           (operator.name ++ "/v" ++ toString operator.version))
-      if checked.valueType != expectedInput then
+      if checked.valueType != checkedOperator.inputType then
         throw (error .typeMismatch declaration
-          (operator.name ++ ": expected " ++ expectedInput.name ++
+          (operator.name ++ ": expected " ++ checkedOperator.inputType.name ++
             ", found " ++ checked.valueType.name))
-      let resultType := if operator.name == "natural.render" then .text else expectedInput
-      pure (expression resultType checked.informationFlow
-        ("{\"operator\":" ++ quote operator.name ++
-          ",\"version\":" ++ toString operator.version ++
-          ",\"operand\":" ++ checked.canonicalIdentity ++ "}"))
+      pure (.normalize checkedOperator checked)
   | .present operand => do
       let checked ← checkExpression declaration profile bindings operand
-      pure (expression .boolean checked.informationFlow
-        ("{\"operator\":\"present\",\"operand\":" ++ checked.canonicalIdentity ++ "}"))
+      pure (.present checked)
   | .equals left right => do
       let checkedLeft ← checkExpression declaration profile bindings left
       let checkedRight ← checkExpression declaration profile bindings right
       if checkedLeft.valueType != checkedRight.valueType then
         throw (error .typeMismatch declaration
           ("equals: " ++ checkedLeft.valueType.name ++ " != " ++ checkedRight.valueType.name))
-      pure (expression .boolean (joinFlow checkedLeft.informationFlow checkedRight.informationFlow)
-        (checkedPairJson "equals" checkedLeft checkedRight true))
+      pure (.equals checkedLeft checkedRight)
   | .and left right => do
       let checkedLeft ← checkExpression declaration profile bindings left
       let checkedRight ← checkExpression declaration profile bindings right
       if checkedLeft.valueType != .boolean || checkedRight.valueType != .boolean then
         throw (error .typeMismatch declaration "and: expected boolean operands")
-      pure (expression .boolean (joinFlow checkedLeft.informationFlow checkedRight.informationFlow)
-        (checkedPairJson "and" checkedLeft checkedRight true))
+      pure (.and checkedLeft checkedRight)
   | .or left right => do
       let checkedLeft ← checkExpression declaration profile bindings left
       let checkedRight ← checkExpression declaration profile bindings right
       if checkedLeft.valueType != .boolean || checkedRight.valueType != .boolean then
         throw (error .typeMismatch declaration "or: expected boolean operands")
-      pure (expression .boolean (joinFlow checkedLeft.informationFlow checkedRight.informationFlow)
-        (checkedPairJson "or" checkedLeft checkedRight true))
+      pure (.or checkedLeft checkedRight)
   | .not operand => do
       let checked ← checkExpression declaration profile bindings operand
       if checked.valueType != .boolean then
         throw (error .typeMismatch declaration "not: expected boolean operand")
-      pure (expression .boolean checked.informationFlow
-        ("{\"operator\":\"not\",\"operand\":" ++ checked.canonicalIdentity ++ "}"))
+      pure (.not checked)
   | .contributionMarker operand => do
       let checked ← checkExpression declaration profile bindings operand
       if checked.informationFlow != .redacted then
         throw (error .typeMismatch declaration "contribution-marker: expected redacted input")
-      pure (expression .text .contributionMarker
-        ("{\"operator\":\"contribution-marker\",\"operand\":" ++
-          checked.canonicalIdentity ++ "}"))
+      pure (.contributionMarker checked)
   | .digestToken policy operand => do
-      if !policyExists declaration.digestPolicies policy then
-        throw (error .missingDigestPolicy declaration policy.value [policy])
+      let checkedPolicy ← match declaration.digestPolicies.find? fun item => item.id == policy with
+        | some checkedPolicy => pure checkedPolicy
+        | none => throw (error .missingDigestPolicy declaration policy.value [policy])
       let checked ← checkExpression declaration profile bindings operand
       if checked.informationFlow != .hashed (some policy) then
         throw (error .missingDigestPolicy declaration policy.value [policy])
-      pure (expression .text .digestToken
-        ("{\"operator\":\"digest-token\",\"policy\":" ++ quote policy.value ++
-          ",\"operand\":" ++ checked.canonicalIdentity ++ "}"))
+      pure (.digestToken checkedPolicy checked)
 
 private def checkAuthoredExpression
     (declaration : ObservationMappingDeclaration)
