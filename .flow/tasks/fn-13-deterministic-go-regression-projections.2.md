@@ -38,9 +38,12 @@ Artifact provenance is model-root-relative, while the fixture is repository-rela
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/regression` passes.
 
 ## Done summary
-TBD
+Added an isolated fixture-backed Go verifier that checks the complete generated projection reference, recomputes the semantic fingerprint, and enforces repository/model-root path containment without runtime, evidence, conformance, generator-internal, or Umpire3 dependencies. Added table-driven coverage for every projected field, strict fixture failures, working-directory independence, and unsafe fixture/source paths.
 
+baseline: green (focused Go gate reused receipt 1b77b3c9; make umpire-check-regression passed pre-edit)
+GATE_SKIPPED:unittest:green-receipt 1b77b3c9 - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-26T05:02:19Z..2026-08-26T05:05:28Z] (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 959674eaf7eeef3c6243c250693e9ff22f51e017
+- Tests: GATE_SKIPPED:unittest:green-receipt 1b77b3c9 - baseline reused from prior post-gate pass, go test -count=1 -tags test_dep ./tools/umpire/regression, go test -race -count=1 -tags test_dep ./tools/umpire/regression, go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-regression
 - PRs:
