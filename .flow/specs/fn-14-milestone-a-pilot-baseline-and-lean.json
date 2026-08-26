@@ -1,0 +1,168 @@
+{
+  "branch_name": "fn-14-milestone-a-pilot-baseline-and-usability-decision",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-26T07:29:09.816468Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-5-umpire-discovery-promotion-and-artifact",
+    "fn-11-basic-nexus-umpire-dsl-showcases",
+    "fn-13-deterministic-go-regression-projections",
+    "fn-2-agentworkflow-configuration-and-cli"
+  ],
+  "id": "fn-14-milestone-a-pilot-baseline-and-lean",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-26T07:44:13.968429Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "0a4bf739c67f08a7240f085c624c2c5562cb89bb0c8653975b70fd8ed5d15d06",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-72bf4c36c1ccbaf22f9a0a8c8542fa72",
+            "classification": "introduced",
+            "findingId": "finding-72bf4c36c1ccbaf22f9a0a8c8542fa72",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-784e8caf100afc6e6e86e791e3b25bfb",
+            "classification": "introduced",
+            "findingId": "finding-784e8caf100afc6e6e86e791e3b25bfb",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-16f75585035277c2ed90894f0c666c0a",
+            "classification": "introduced",
+            "findingId": "finding-16f75585035277c2ed90894f0c666c0a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8abc7221104c53cf6aea117523180897178edf15",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 935043,
+      "output_sha256": "0dadf35458e260071e2736bb224523cff1b8880c65cc29abf2f4c33467b78b40",
+      "reservation_id": "146ad93657f14a15b332312f6afaa2bc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T07:38:10.701210Z",
+      "tool_calls": 16,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "379e11b06f175d174bde1f105ba14b7e09f7d71f76a570d08e8ae7dbe1b25754",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-72bf4c36c1ccbaf22f9a0a8c8542fa72",
+            "classification": "introduced",
+            "findingId": "finding-72bf4c36c1ccbaf22f9a0a8c8542fa72",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-784e8caf100afc6e6e86e791e3b25bfb",
+            "classification": "introduced",
+            "findingId": "finding-784e8caf100afc6e6e86e791e3b25bfb",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-16f75585035277c2ed90894f0c666c0a",
+            "classification": "introduced",
+            "findingId": "finding-16f75585035277c2ed90894f0c666c0a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8abc7221104c53cf6aea117523180897178edf15",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 133,
+      "output_sha256": "9193e636c3f2662b38ea4dfd1a80c586ee8aa3a9c68d41f650447be91bb131d8",
+      "reservation_id": "89dc3b0a8c2f42df9a1d7b4ab68e2bee",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T07:44:13.965845Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md",
+  "status": "open",
+  "title": "Milestone A pilot baseline and Lean-first usability decision",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-26T07:44:47.183964Z"
+}
