@@ -1,9 +1,15 @@
 ---
 satisfies: [R1, R5, R7]
 ---
-# fn-19-bounded-local-temporal-execution-and.5 Compose the exact Nexus caller-closure RuntimeConfiguration
+# fn-19-bounded-local-temporal-execution-and.5 Compose Nexus System execution programs and configuration
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Move all Nexus execution/program/configuration ownership and public facades from `Temporal.Feature` to `Temporal.System`. Feature retains product-visible semantics only. Compose the complete current `ExperimentSpec`; do not reconstruct participant programs or other omitted meaning from legacy v1.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Complete R1/R5's model-owned Nexus-specific binding and canonical two-member input set for the one live program.
 
 **Size:** M
@@ -29,7 +35,6 @@ Complete R1/R5's model-owned Nexus-specific binding and canonical two-member inp
 - [ ] Program/config identities change on every meaning-bearing mutation and remain insensitive only to declared provenance exclusions.
 - [ ] Any unsupported fault, extra participant/action/target, or semantic-reference drift rejects before Go execution.
 - [ ] Public Temporal facades and focused Lean tests pass.
-
 ## Acceptance
 - [ ] R1/R5 exact Nexus configuration/program binding is model-owned and inspectable.
 - [ ] Cross-language fixture bytes pass fn-18 strict set admission.

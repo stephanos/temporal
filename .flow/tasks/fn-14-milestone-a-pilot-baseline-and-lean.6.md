@@ -4,6 +4,12 @@ satisfies: [R1, R2, R3, R4, R5, R6, R7]
 # fn-14-milestone-a-pilot-baseline-and-lean.6 Execute and retain the Milestone A pilot decision
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task is retained only as historical Milestone A research design. The spec is superseded as an Umpire4 roadmap gate: do not implement it, do not use Agentworkflow evidence or `LEAN_FIRST_GO` for runtime/qualification admission, and do not add it as a dependency. Current Target, Refinement, artifact, runner, conformance, verification, and qualification specs proceed independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Run the frozen protocol once, retain the full v1 evidence bundle and narrative report, and reconcile roadmap status for R1-R7.
 
 **Size:** M
@@ -29,7 +35,6 @@ Run the frozen protocol once, retain the full v1 evidence bundle and narrative r
 ### Quick commands
 
 `make umpire-pilot-run && make umpire-pilot-verify EVIDENCE=docs/research/umpire-milestone-a-pilot-evidence/v1 && make umpire-check-regression`
-
 ## Acceptance
 - [ ] The retained v1 bundle contains exactly the frozen manifests, twelve mutation results, coverage/timing records, three logical trial slots plus every retained attempt/retry, strict Agentworkflow exports, canonical patches where available, rubric evidence, and one recomputable decision; any conclusive outcome requires all three slots to be valid, while exhausted infrastructure evidence recomputes to `INCONCLUSIVE`.
 - [ ] Every digest validates and two provider-free runs agree on normalized non-duration inputs.

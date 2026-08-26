@@ -147,3 +147,6 @@ The command accepts only the original four-member run set. Rechecking a derived 
 | R6 | Determinism, bounds, cancellation, idempotence | `.1`, `.3`, `.4`, `.5`, `.6` | — |
 | R7 | Exact CLI/root UX and publication | `.6`, `.7` | — |
 | R8 | Independent assurance, live proof, and docs | `.5`, `.7` | — |
+| R9 | System Observation to checked Refinement to Feature Property | `.1`, `.2`, `.4`, `.5`, `.7` | — |
+
+

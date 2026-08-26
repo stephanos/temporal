@@ -4,6 +4,12 @@ satisfies: [R2, R4, R5, R7]
 # fn-14-milestone-a-pilot-baseline-and-lean.4 Build and test the fresh Agentworkflow authoring proxy
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task is retained only as historical Milestone A research design. The spec is superseded as an Umpire4 roadmap gate: do not implement it, do not use Agentworkflow evidence or `LEAN_FIRST_GO` for runtime/qualification admission, and do not add it as a dependency. Current Target, Refinement, artifact, runner, conformance, verification, and qualification specs proceed independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Define the fresh-session harness and closed usability evaluator for R2/R4/R5/R7 without running the three retained provider trials or applying candidates.
 
 **Size:** M
@@ -30,7 +36,6 @@ Define the fresh-session harness and closed usability evaluator for R2/R4/R5/R7 
 ### Quick command
 
 `go test -count=1 -tags test_dep ./tools/umpire/pilot/usability/...`
-
 ## Acceptance
 
 - [ ] Synthetic valid/corrupt evidence exports normalize and score deterministically without any provider trial.

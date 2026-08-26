@@ -4,6 +4,12 @@ satisfies: [R2, R3, R4, R5, R6, R7]
 # fn-14-milestone-a-pilot-baseline-and-lean.5 Compose the strict evidence bundle and pilot decision commands
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task is retained only as historical Milestone A research design. The spec is superseded as an Umpire4 roadmap gate: do not implement it, do not use Agentworkflow evidence or `LEAN_FIRST_GO` for runtime/qualification admission, and do not add it as a dependency. Current Target, Refinement, artifact, runner, conformance, verification, and qualification specs proceed independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Compose provider-free and Agentworkflow evidence into one strict recomputable receipt and observable root command surface for R2-R7.
 
 **Size:** M
@@ -30,7 +36,6 @@ Compose provider-free and Agentworkflow evidence into one strict recomputable re
 ### Quick commands
 
 `go test -count=1 -tags test_dep ./tools/umpire/pilot/... && make umpire-pilot-check`
-
 ## Acceptance
 
 - [ ] Strict read/write round trips preserve the exact canonical bundle and reject every schema/path/hash/member-set corruption class.

@@ -4,6 +4,12 @@ satisfies: [R4, R5, R7]
 # fn-14-milestone-a-pilot-baseline-and-lean.3 Export integrity-verified Agentworkflow evidence
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task is retained only as historical Milestone A research design. The spec is superseded as an Umpire4 roadmap gate: do not implement it, do not use Agentworkflow evidence or `LEAN_FIRST_GO` for runtime/qualification admission, and do not add it as a dependency. Current Target, Refinement, artifact, runner, conformance, verification, and qualification specs proceed independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Add the generic read-only Agentworkflow evidence export required to prove trial events and exact candidate patches for R4/R5/R7.
 
 **Size:** M
@@ -30,7 +36,6 @@ Add the generic read-only Agentworkflow evidence export required to prove trial 
 ### Quick command
 
 `cd tools/agentworkflow && GOWORK=off go test -count=1 -tags test_dep ./internal/...`
-
 ## Acceptance
 
 - [ ] A valid retained run exports exact request/config/backend/result identities, every attempt manifest/event, and canonical patch bytes with stable digests.

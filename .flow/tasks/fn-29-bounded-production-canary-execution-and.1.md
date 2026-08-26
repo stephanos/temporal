@@ -4,6 +4,12 @@ satisfies: [R1]
 # fn-29-bounded-production-canary-execution-and.1 Define QualificationProfile v4 and the exact production-canary policy
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R1's domain-neutral v4 qualification vocabulary and the single Temporal-owned production-canary policy without broadening v1-v3.
 
 **Size:** M
@@ -32,7 +38,6 @@ A canary environment class is reusable vocabulary; the named Temporal profile an
 - [ ] Every unknown, duplicate, contradictory, broadened, secret-bearing, or N+1 mutation rejects.
 - [ ] V1-v3 fixtures and exports remain byte-identical and reject v4.
 - [ ] Focused Lean purity, canonicalization, identity, and mutation tests pass with comments preserved.
-
 ## Acceptance
 - [ ] R1 profile vocabulary, exact policy, versioning, limits, and purity boundary are complete.
 - [ ] Focused reusable and Temporal Lean suites pass.

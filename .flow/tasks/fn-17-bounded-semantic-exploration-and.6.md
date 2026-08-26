@@ -1,9 +1,15 @@
 ---
 satisfies: [R3, R4, R6, R7, R8]
 ---
-# fn-17-bounded-semantic-exploration-and.6 Prove the Nexus fault-matrix exploration and command contract
+# fn-17-bounded-semantic-exploration-and.6 Prove Nexus fault-matrix exploration and the pure protocol
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task proves the pure Lean `initialize` / `nextBatch` / `observe` protocol and the Nexus semantic fixture only. It must not add `temporal-model-explore`, Make command wiring, runtime I/O, leasing, persistence, or `umpire-fuzz`; fn-33 owns the downstream Go campaign and CLI.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Apply the reusable engine to fn-16's exact Temporal space and expose R3/R4/R6/R7/R8 through one effect-thin model command.
 
 **Size:** M
@@ -30,7 +36,6 @@ Apply the reusable engine to fn-16's exact Temporal space and expose R3/R4/R6/R7
 - [ ] Invalid space/strategy/budget/strength/seed paths return status 1, empty stdout, and one canonical stderr document.
 - [ ] Direct command output is byte-identical across repeated runs and equivalent authoring order.
 - [ ] Reusable modules contain no Temporal or Nexus identity/string/import.
-
 ## Acceptance
 - [ ] The Temporal example and command prove R3/R4/R6/R7/R8.
 - [ ] `TemporalModelTests` and `temporal-model-explore` build.

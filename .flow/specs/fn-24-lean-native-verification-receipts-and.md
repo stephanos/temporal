@@ -183,3 +183,7 @@ The negative control mutates only a test-owned Property expectation over the unc
 | R4 | Caller-closure positive and negative paths | `.4`, `.6` | — |
 | R5 | Opt-in command and root Make UX | `.5`, `.6` | — |
 | R6 | Mutation, isolation, docs, and roadmap proof | `.1`–`.6` | — |
+| R7 | Umpire.Verify.Native ownership | `.1`–`.6` | — |
+| R8 | umpire-check-model profiles, list, and explain | `.4`, `.5`, `.6` | — |
+
+

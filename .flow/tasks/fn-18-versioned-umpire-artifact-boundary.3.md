@@ -1,9 +1,15 @@
 ---
 satisfies: [R1, R2, R8]
 ---
-# fn-18-versioned-umpire-artifact-boundary.3 Prove exact DrivePlan and ExperimentSpec v1 compatibility
+# fn-18-versioned-umpire-artifact-boundary.3 Prove legacy v1 compatibility and the complete current schema
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Treat `umpire-experiment/v1` as a strict legacy compatibility input and prove the complete current schema separately. The current schema uses an explicit Umpire canonical JSON profile; protobuf deterministic serialization or ProtoJSON must not define portable identity.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement the R2/R1 compatibility proof gate: one strict Go decoder/encoder and invariant checker for the existing Lean wire contract.
 
 **Size:** M
@@ -29,7 +35,6 @@ Implement the R2/R1 compatibility proof gate: one strict Go decoder/encoder and 
 - [ ] Every independent mutation fails with the intended structured classification.
 - [ ] The 1-MiB boundary accepts N and rejects N+1 without truncation.
 - [ ] Tasks `.4`–`.8` remain blocked until this proof passes.
-
 ## Acceptance
 - [ ] The early compatibility proof implements R1/R2 with no permissive path.
 - [ ] Existing v1 remains unchanged and non-empty intent is fully validated.
