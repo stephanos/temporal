@@ -1703,8 +1703,8 @@ evidence.
 - Current tests: `tools/agentworkflow/agentworkflow_test.go`.
 - Nested module: `tools/agentworkflow/go.mod`.
 - Repository test hook and Gomad prototype target: `Makefile` (`gomad-test`).
-- Evidence, trust, observation, and result vocabulary precedent: `.plans/UMPIRE_LEAN.md`.
-- Developer-facing deep-facade precedent: `.plans/UMPIRE_UX.md`.
+- Evidence, trust, observation, and result vocabulary precedent: `.plans/UMPIRE3.md`.
+- Developer-facing deep-facade precedent: `.plans/UMPIRE.md`.
 - Durable store, bounded journal, recovery, and identity precedent:
   `.plans/GOMAD3_NEXT_PRODUCTIONIZATION.md`.
 - Fail-closed compatibility and capability-reporting precedent:

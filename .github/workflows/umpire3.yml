@@ -4,7 +4,7 @@ on:
     paths:
       - ".github/workflows/umpire3.yml"
       - "tools/umpire3/**"
-      - "UMPIRE_LEAN.md"
+      - ".plans/UMPIRE3.md"
       - "Makefile"
   push:
     branches:
