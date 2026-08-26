@@ -48,6 +48,7 @@ make its component built.
 | Slice | Flow spec | Plan status | Bounded ownership |
 | --- | --- | --- | --- |
 | C7 offline observation | `fn-4-umpire-observation-and-semantic-verdicts` | Reviewed: Ship; six tasks ready | Closed reusable mapping expressions, bounded synthetic evidence qualification, coordinate-complete derivations, unchanged pure Property evaluation, and one Temporal-owned synthetic profile. Live collection and conformance remain separate. |
+| C3/C5 catalog and exact promotion | `fn-5-umpire-discovery-promotion-and-artifact` | Reviewed: Ship; seven tasks ready | Checked eight-query semantic catalog closure, generated glossary/index and list/explain UX, lineage-linked exact in-memory promotion with compiled Temporal source bindings, and a two-regression thin projection set. Persisted readers/migrations remain wholly owned by fn-18; live replay/minimization remain separate. |
 
 Bottom line: the component decomposition still holds, but the current implementation is not an
 end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact inspection.
@@ -289,9 +290,10 @@ and observation-requirement identities, and semantic fingerprint without copying
 procedure.
 
 This remains a projection-only pilot: it neither executes Temporal nor supplies execution evidence
-or conformance. The manifest is closed to one stable regression. A broader persisted catalog,
-list/explain interface, discovery and ephemeral selection, and promotion into additional reviewed
-regressions remain future work.
+or conformance. The manifest is closed to one stable regression. The reviewed
+`fn-5-umpire-discovery-promotion-and-artifact` plan owns the broader checked catalog, list/explain,
+exact in-memory promotion, and two-regression projection slice, but none of that plan is implemented
+yet. Persisted readers and migrations remain a separate fn-18 boundary.
 
 ### C6. Execution runtime
 
@@ -557,10 +559,10 @@ C1/C2 generated structure
         -> C6-C12 baselines in other Umpire trees
 ```
 
-C5 is independently missing. The most important architectural gap is not another model-side
-declaration: it is a versioned adapter that can decode and validate `umpire-experiment/v1` without
-restating its Lean-owned semantics, then return run/evidence/result artifacts bound to the same
-semantic identities.
+C5's broader catalog and exact-promotion slice now has a reviewed Flow plan, while its implementation
+remains open. The most important runtime architectural gap is still a versioned adapter that can
+decode and validate `umpire-experiment/v1` without restating its Lean-owned semantics, then return
+run/evidence/result artifacts bound to the same semantic identities.
 
 ## 5. Delivery milestones
 

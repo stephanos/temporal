@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T06:38:47.000092Z",
+  "depends_on": [
+    "fn-5-umpire-discovery-promotion-and-artifact.1"
+  ],
+  "id": "fn-5-umpire-discovery-promotion-and-artifact.4",
+  "priority": null,
+  "spec": "fn-5-umpire-discovery-promotion-and-artifact",
+  "spec_path": ".flow/tasks/fn-5-umpire-discovery-promotion-and-artifact.4.md",
+  "status": "todo",
+  "title": "Compile exact in-memory promotion proposals",
+  "updated_at": "2026-08-26T07:13:30.273897Z"
+}
