@@ -67,9 +67,18 @@ matrix is proven. Keep each rule in one owning section and avoid creating a seco
 - [ ] Rule IDs, fully qualified vocabulary, comments, and command ownership remain consistent.
 
 ## Done summary
-TBD
+Separated the normative import-boundary rules from module-design judgments, assigned new stable MOD IDs to Shared/System/lint coverage, and aligned every supporting model document with the exact implemented policy and command ownership. Fully qualified references, exact exception identities, and the single normative authority remain consistent; the configured Codex review returned SHIP with zero findings.
 
+baseline: green (`cd model && mise exec -- lake build modelLintTests modelLint`; `make lint-model`); inherited/tooling red (`make lint` failed pre-edit because `/home/agent/.cache/go-build` is a broken cross-workspace symlink)
+
+verify: green (documentation consistency/reference checks; `cd model && mise exec -- lake build modelLintTests modelLint`; `make lint-model`); inherited/tooling red (`make lint` failed at the same broken Go-cache symlink before evaluating task changes; log: `.flow/tmp/fn34-task2-verify-make-lint.log`)
+
+review: SHIP with zero introduced or pre-existing findings; R5 met and exact documentation policy matched `ModelLint.ImportGraph.defaultPolicy`.
+
+memory capture: skipped because the review was clean on its first pass.
+
+stage: impl-review - ran
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f4b3fb225e0dc5ecd9ea277967a77edb321e4336
+- Tests: documentation consistency/reference checks (pass: unique MOD-01 through MOD-11 ownership, exact policy identities, non-normative supporting additions, git diff --check), cd model && mise exec -- lake build modelLintTests modelLint (pass), make lint-model (pass), make lint (inherited/tooling red: broken /home/agent/.cache/go-build cross-workspace symlink)
 - PRs:
