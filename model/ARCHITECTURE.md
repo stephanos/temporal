@@ -92,11 +92,18 @@ Umpire.Examples.Switch ────────────────┴──
                                   temporal-model-inspect
 ```
 
-`Shared` does not depend on Umpire or Temporal, and `Umpire` does not depend on Temporal.
-Temporal-specific semantics are adapters built on top of the reusable Umpire APIs. Feature does
-not import System, System does not import Feature, and the shared System Configuration facade does
-not import its Callback or Matching consumers. Tool may compose Feature models with reusable
-examples for inspection.
+`make lint-model` checks the complete first-party module graph transitively. It keeps `Shared.*`
+independent of `Umpire.*` and `Temporal.*`, keeps `Umpire.*` independent of `Temporal.*`, isolates
+`Temporal.Feature.*` from `Temporal.System.*`, and protects the opt-in `Temporal.Verify.*` and
+`Umpire.Verify.Veil` seams. The only cross-layer refinement consumer is the exact
+`Temporal.System.Nexus.Refinement` module; verification consumers use the exact allowlist owned by
+MOD-05. The normative import rules are MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11.
+Semantic ownership, deep interfaces, and independent testability remain design rules rather than
+graph-linter claims.
+
+The shared `Temporal.System.Configuration` facade also does not import its
+`Temporal.System.Callback.Configuration` or `Temporal.System.Matching.Configuration` consumers.
+`Temporal.Tool.*` may compose feature models with reusable examples for inspection.
 
 ## Modeling lifecycle
 
@@ -194,8 +201,9 @@ walkthroughs are compile-checked examples rather than registered scenarios. Succ
 emits one canonical JSON `ExperimentSpec`. Unknown scenarios and invalid argument counts retain
 their structured non-zero diagnostics and emit no artifact JSON on standard output.
 
-From the repository root, `make umpire-check-regression` builds all final targets, enforces reusable
-domain purity and Feature/System import directions, compares deterministic artifacts with the
+From the repository root, `make lint-model` owns the transitive Lean import boundaries described
+above. `make umpire-check-regression` builds all final targets, enforces reusable domain purity and
+the `Temporal.System.Configuration` consumer direction, compares deterministic artifacts with the
 canonical fixtures, and checks inspector diagnostics. `make umpire-inspect SCENARIO=<identity>`
 invokes the final executable without exposing its Lake target name to callers.
 

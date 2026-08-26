@@ -173,24 +173,47 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **SEM-09 — Bounded progress.** Progress claims in `Umpire.Property` MUST use an explicit bound and
   declared semantic unit; finite execution MUST NOT claim unbounded liveness.
 
-## Model architecture
+## Enforced module boundaries
 
-- **MOD-01 — Dependency direction.** `Umpire.*` MUST NOT import `Temporal.*`.
+- **MOD-01 — `Umpire` independence.** Every first-party `Umpire.*` module MUST NOT import, directly
+  or transitively, any `Temporal.*` module.
+- **MOD-03 — `Temporal.Feature` isolation.** Every `Temporal.Feature.*` module MUST NOT import,
+  directly or transitively, any `Temporal.System.*`, `Temporal.Verify.*`, or
+  `Umpire.Verify.Veil` module. Only an identity explicitly listed by MOD-05 MAY cross the
+  verification boundary; that exception does not permit a `Temporal.System.*` import.
+- **MOD-05 — Verification isolation.** Unless its qualified identity is in the closed opt-in
+  consumer set below, the `Umpire` and `Temporal` facades, every first-party `Umpire.*` module
+  other than a `Umpire.Verify.Veil` implementation module, every first-party `Temporal.*` module
+  other than a `Temporal.Verify.*` implementation module, and the `UmpireTests` and
+  `TemporalModelTests` roots and descendants MUST NOT import, directly or transitively,
+  `Temporal.Verify.*` or `Umpire.Verify.Veil` modules. The opt-in consumer set is exactly
+  `TemporalVerify`, `TemporalVeilTests`,
+  `Temporal.Tool.VerifyVeil`, and `Temporal.Feature.Nexus.CallerClosure.VeilTests`; no prefix,
+  suffix, tool, aggregate, or test wildcard creates another exception.
+- **MOD-09 — `Shared` independence.** Every first-party `Shared.*` module MUST NOT import, directly
+  or transitively, any `Umpire.*` or `Temporal.*` module.
+- **MOD-10 — `Temporal.System` isolation.** Every `Temporal.System.*` module MUST NOT import,
+  directly or transitively, any `Temporal.Feature.*` module except the exact reviewed refinement
+  consumer `Temporal.System.Nexus.Refinement`; no refinement name pattern creates an exception.
+- **MOD-11 — Complete import-boundary lint.** `make lint-model` MUST check MOD-01, MOD-03, MOD-05,
+  MOD-09, and MOD-10 by transitive reachability over the complete first-party Lean module inventory.
+  Missing, duplicate, uncovered, or unclassified first-party modules and unavailable authoritative
+  import metadata MUST fail the lint rather than weaken the boundary policy.
+
+## Module design
+
 - **MOD-02 — Semantic altitude.** `Temporal.Feature` MUST own product-visible meaning, while
   `Temporal.System` MUST own implementation mechanisms, configuration interpretation, evidence
   mappings, and execution semantics.
-- **MOD-03 — `Temporal.Feature` isolation.** `Temporal.Feature.*` MUST NOT import `Temporal.System.*`,
-  `Temporal.Verify.*`, or `Umpire.Verify.Veil`.
-- **MOD-04 — Refinement leaves.** `Temporal.Feature` and `Temporal.System` modules MUST remain
-  independently understandable and testable; only focused refinement leaves MAY compose them.
-- **MOD-05 — Verification isolation.** Ordinary `Umpire` and `Temporal` facades, tools, tests, and
-  builds MUST exclude `Temporal.Verify` and `Umpire.Verify.Veil`.
-- **MOD-06 — Deep modules.** `Umpire` modules SHOULD hide substantial checking, planning, artifact,
+- **MOD-04 — Refinement leaves.** `Temporal.Feature.*` and `Temporal.System.*` modules MUST remain
+  independently understandable and testable; only focused refinement leaves MAY relate their
+  meanings, with import composition governed by MOD-10.
+- **MOD-06 — Deep modules.** `Umpire.*` modules SHOULD hide substantial checking, planning, artifact,
   observation, and verification machinery behind small, cohesive interfaces.
 - **MOD-07 — Component seams.** Components MUST have narrow responsibilities and communicate through
   explicit contracts rather than each other's internal representations.
 - **MOD-08 — Isolated testability.** Each component MUST be testable with fixtures or domain-neutral
-  examples without requiring the complete Umpire pipeline or a running Temporal cluster.
+  examples without requiring the complete `Umpire` pipeline or a running Temporal cluster.
 
 ## Authoring
 

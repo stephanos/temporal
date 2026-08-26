@@ -808,22 +808,27 @@ credential, recovery, or release concepts.
 
 ## 11. Dependency rules
 
-```text
-Shared       imports neither Umpire nor Temporal
-Umpire       never imports Temporal
-Feature      never imports System or Verify
-System base  never imports Feature
-Refinement   may import its owning Feature and System modules
-Tool         composes modules but owns no semantic authority
-Verify       is opt-in and excluded from ordinary aggregates
-Umpire Go    never imports tools/canary
-Canary       may import stable Umpire Go modules
-Commands     remain thin adapters
-```
+The normative Lean import rules are owned by MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11;
+this component view applies those IDs without defining a second policy. `make lint-model` checks
+their direct and transitive reachability constraints over the complete first-party module graph.
 
-Generated API and configuration modules are never edited by hand. Feature and base System remain
-independently understandable and testable. Ordinary `Temporal`, its tests, and ordinary developer
-tools do not import `Temporal.Verify` or Veil.
+- `Shared.*` remains independent of `Umpire.*` and `Temporal.*` (MOD-09).
+- `Umpire.*` remains independent of `Temporal.*` (MOD-01).
+- `Temporal.Feature.*` remains isolated from `Temporal.System.*`, `Temporal.Verify.*`, and
+  `Umpire.Verify.Veil` (MOD-03).
+- `Temporal.System.*` remains isolated from `Temporal.Feature.*` except for the exact
+  `Temporal.System.Nexus.Refinement` consumer (MOD-10).
+- `Temporal.Verify.*` and `Umpire.Verify.Veil` remain opt-in. Their exact aggregate, tool, and test
+  consumers are `TemporalVerify`, `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
+  `Temporal.Feature.Nexus.CallerClosure.VeilTests` (MOD-05).
+- `Temporal.Tool.*` composes modules but owns no semantic authority.
+- Umpire Go packages never import `tools/canary`; Canary may import stable Umpire Go packages.
+- Commands remain thin adapters.
+
+Generated `Temporal.API.*` and `Temporal.DynamicConfig.*` modules are never edited by hand.
+`Temporal.Feature.*` and base `Temporal.System.*` modules remain independently understandable and
+testable under MOD-04. Verification isolation is enforced by the exact MOD-05 policy above rather
+than a broad module-name exception.
 
 Old Umpire implementations remain reference material until functionality is deliberately moved
 behind the new interfaces. There is no wholesale package migration and no compatibility facade by
@@ -865,7 +870,8 @@ Tests use the same interfaces as callers.
   inputs.
 - Test execution cancellation, source closure, evidence bounds, cleanup, and crash recovery.
 - Test adapters against shared interface conformance suites.
-- Enforce import direction, domain purity, generated ownership, and optional Verify isolation.
+- Run `make lint-model` for the MOD-01, MOD-03, MOD-05, MOD-09, and MOD-10 import boundaries; keep
+  domain-purity and generated-ownership checks in their existing focused gates.
 - Test counterexamples through canonical replay before accepting violation or promotion.
 - Test canary approval, authorization, isolation, fencing, killability, recovery, cleanup, redaction,
   and audit independently of Umpire semantic tests.
