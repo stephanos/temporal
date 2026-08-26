@@ -113,7 +113,7 @@ The local verification sequence is:
 
 ```sh
 make umpire-gen-api-fixture
-go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 make umpire-gen-api
 cd model && mise exec -- lake build
 make umpire-check-regression
