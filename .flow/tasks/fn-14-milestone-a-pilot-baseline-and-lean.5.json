@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T07:29:19.472342Z",
+  "depends_on": [
+    "fn-14-milestone-a-pilot-baseline-and-lean.4"
+  ],
+  "id": "fn-14-milestone-a-pilot-baseline-and-lean.5",
+  "priority": null,
+  "spec": "fn-14-milestone-a-pilot-baseline-and-lean",
+  "spec_path": ".flow/tasks/fn-14-milestone-a-pilot-baseline-and-lean.5.md",
+  "status": "todo",
+  "title": "Compose the strict evidence bundle and pilot decision commands",
+  "updated_at": "2026-08-26T07:41:48.620292Z"
+}
