@@ -11,24 +11,24 @@ def source : SemanticSource := {
   provenance := "lean-model"
 }
 
-def targetId := id "switch.target.two-state"
-def kernelId := id "switch.kernel.two-state"
-def switchCapabilityId := id "switch.capability.state"
-def switchProviderId := id "switch.provider.state"
-def flipLawId := id "switch.law.flip-preserves-domain"
-def powerStateId := id "switch.state.power"
-def flipActionId := id "switch.action.flip"
-def appliedOutcomeId := id "switch.outcome.applied"
-def deferredOutcomeId := id "switch.outcome.deferred"
-def powerObservationId := id "switch.observation.power"
-def switchRoleId := id "switch.role.subject"
-def flipPropertyId := id "switch.property.flip-turns-on"
-def exploratoryBehaviorId := id "switch.behavior.exploratory"
-def exactActionBehaviorId := id "switch.behavior.exact-action"
-def exactTraceBehaviorId := id "switch.behavior.exact-trace"
-def exploratoryQueryId := id "switch.query.explore"
-def exactActionQueryId := id "switch.query.exact-action"
-def exactTraceQueryId := id "switch.query.exact-trace"
+def targetId : DeclarationId := id "switch.target.two-state"
+def kernelId : DeclarationId := id "switch.kernel.two-state"
+def switchCapabilityId : DeclarationId := id "switch.capability.state"
+def switchProviderId : DeclarationId := id "switch.provider.state"
+def flipLawId : DeclarationId := id "switch.law.flip-preserves-domain"
+def powerStateId : DeclarationId := id "switch.state.power"
+def flipActionId : DeclarationId := id "switch.action.flip"
+def appliedOutcomeId : DeclarationId := id "switch.outcome.applied"
+def deferredOutcomeId : DeclarationId := id "switch.outcome.deferred"
+def powerObservationId : DeclarationId := id "switch.observation.power"
+def switchRoleId : DeclarationId := id "switch.role.subject"
+def flipPropertyId : DeclarationId := id "switch.property.flip-turns-on"
+def exploratoryBehaviorId : DeclarationId := id "switch.behavior.exploratory"
+def exactActionBehaviorId : DeclarationId := id "switch.behavior.exact-action"
+def exactTraceBehaviorId : DeclarationId := id "switch.behavior.exact-trace"
+def exploratoryQueryId : DeclarationId := id "switch.query.explore"
+def exactActionQueryId : DeclarationId := id "switch.query.exact-action"
+def exactTraceQueryId : DeclarationId := id "switch.query.exact-trace"
 
 inductive Position where
   | off
@@ -69,10 +69,10 @@ def powerOffObservation : SemanticValue := { identity := powerObservationId, val
 def powerOnObservation : SemanticValue := { identity := powerObservationId, value := "on" }
 
 theorem offState_ne_onState : offState ≠ onState := by
-  native_decide
+  decide
 
 theorem onState_ne_offState : onState ≠ offState := by
-  native_decide
+  decide
 
 def switchSetup : List RoleBinding := [{ role := switchRoleId, value := offState }]
 
@@ -102,12 +102,12 @@ def deferredFromOnResult : TransitionResult SemanticValue SemanticValue Semantic
 
 theorem appliedResult_ordered :
     transitionResultOrderKey appliedResult ≤ transitionResultOrderKey deferredResult := by
-  native_decide
+  decide
 
 theorem appliedFromOnResult_ordered :
     transitionResultOrderKey appliedFromOnResult ≤
       transitionResultOrderKey deferredFromOnResult := by
-  native_decide
+  decide
 
 def initialStates (setup : List RoleBinding) : List SemanticValue :=
   if setup = switchSetup then [offState] else []
@@ -246,7 +246,8 @@ def targetDeclaration : TargetDeclaration LawStatement
   kernel := .checked transitionKernel
 }
 
-def targetResult := composeTarget targetDeclaration
+def targetResult : Except DeclarationError (QueryTarget LawStatement) :=
+  composeTarget targetDeclaration
 
 private theorem targetResult_isSome : targetResult.toOption.isSome = true := by
   native_decide
@@ -354,9 +355,12 @@ private def checkBehaviorDeclaration
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
   checkBehavior { declarations := target.declarations } declaration
 
-def exploratoryBehaviorResult := checkBehaviorDeclaration exploratoryBehaviorDeclaration
-def exactActionBehaviorResult := checkBehaviorDeclaration exactActionBehaviorDeclaration
-def exactTraceBehaviorResult := checkBehaviorDeclaration exactTraceBehaviorDeclaration
+def exploratoryBehaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration exploratoryBehaviorDeclaration
+def exactActionBehaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration exactActionBehaviorDeclaration
+def exactTraceBehaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration exactTraceBehaviorDeclaration
 
 private theorem exploratoryBehaviorResult_isSome :
     exploratoryBehaviorResult.toOption.isSome = true := by native_decide
@@ -451,14 +455,17 @@ private def queryDeclaration
   policy := shortestPolicy
 }
 
-def exploratoryQueryResult := checkQuery queryContext
-  (queryDeclaration exploratoryQueryId (.select [flipProperty]) exploratoryBehavior)
+def exploratoryQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext
+    (queryDeclaration exploratoryQueryId (.select [flipProperty]) exploratoryBehavior)
 
-def exactActionQueryResult := checkQuery queryContext
-  (queryDeclaration exactActionQueryId (.witness flipProperty) exactActionBehavior)
+def exactActionQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext
+    (queryDeclaration exactActionQueryId (.witness flipProperty) exactActionBehavior)
 
-def exactTraceQueryResult := checkQuery queryContext
-  (queryDeclaration exactTraceQueryId (.witness flipProperty) exactTraceBehavior)
+def exactTraceQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext
+    (queryDeclaration exactTraceQueryId (.witness flipProperty) exactTraceBehavior)
 
 private theorem exploratoryQueryResult_isSome :
     exploratoryQueryResult.toOption.isSome = true := by native_decide
@@ -487,13 +494,13 @@ private def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuer
   semanticDigest := checked.semanticDigest
 }
 
-def exploratoryQuery := materializeQuery
+def exploratoryQuery : CheckedQuery LawStatement := materializeQuery
   (exploratoryQueryResult.toOption.get exploratoryQueryResult_isSome)
 
-def exactActionQuery := materializeQuery
+def exactActionQuery : CheckedQuery LawStatement := materializeQuery
   (exactActionQueryResult.toOption.get exactActionQueryResult_isSome)
 
-def exactTraceQuery := materializeQuery
+def exactTraceQuery : CheckedQuery LawStatement := materializeQuery
   (exactTraceQueryResult.toOption.get exactTraceQueryResult_isSome)
 
 theorem stepResults_length_le_two (state action : SemanticValue) :

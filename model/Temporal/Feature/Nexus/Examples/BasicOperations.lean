@@ -44,11 +44,11 @@ private def queryDeclaration
 
 namespace AsyncStart
 
-def propertyId := id "temporal.nexus.basic-lifecycle.property.async-start"
-def behaviorId := id "temporal.nexus.basic-lifecycle.behavior.async-start"
-def queryId := id "temporal.nexus.basic-lifecycle.query.async-start"
-def setupConstraintId := id "temporal.nexus.basic-lifecycle.setup.scheduled"
-def occurrenceId := id "temporal.nexus.basic-lifecycle.occurrence.start"
+def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.async-start"
+def behaviorId : DeclarationId := id "temporal.nexus.basic-lifecycle.behavior.async-start"
+def queryId : DeclarationId := id "temporal.nexus.basic-lifecycle.query.async-start"
+def setupConstraintId : DeclarationId := id "temporal.nexus.basic-lifecycle.setup.scheduled"
+def occurrenceId : DeclarationId := id "temporal.nexus.basic-lifecycle.occurrence.start"
 
 def propertyDeclaration : PropertyDeclaration := {
   id := propertyId
@@ -167,11 +167,11 @@ end AsyncStart
 
 namespace SuccessfulCompletion
 
-def propertyId := id "temporal.nexus.basic-lifecycle.property.successful-completion"
-def behaviorId := id "temporal.nexus.basic-lifecycle.behavior.successful-completion"
-def queryId := id "temporal.nexus.basic-lifecycle.query.successful-completion"
-def setupConstraintId := id "temporal.nexus.basic-lifecycle.setup.started"
-def occurrenceId := id "temporal.nexus.basic-lifecycle.occurrence.succeed"
+def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.successful-completion"
+def behaviorId : DeclarationId := id "temporal.nexus.basic-lifecycle.behavior.successful-completion"
+def queryId : DeclarationId := id "temporal.nexus.basic-lifecycle.query.successful-completion"
+def setupConstraintId : DeclarationId := id "temporal.nexus.basic-lifecycle.setup.started"
+def occurrenceId : DeclarationId := id "temporal.nexus.basic-lifecycle.occurrence.succeed"
 
 def propertyDeclaration : PropertyDeclaration := {
   id := propertyId
