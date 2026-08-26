@@ -43,6 +43,7 @@ Added an isolated fixture-backed Go verifier that checks the complete generated 
 baseline: green (focused Go gate reused receipt 1b77b3c9; make umpire-check-regression passed pre-edit)
 GATE_SKIPPED:unittest:green-receipt 1b77b3c9 - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-26T05:02:19Z..2026-08-26T05:05:28Z] (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 959674eaf7eeef3c6243c250693e9ff22f51e017
 - Tests: GATE_SKIPPED:unittest:green-receipt 1b77b3c9 - baseline reused from prior post-gate pass, go test -count=1 -tags test_dep ./tools/umpire/regression, go test -race -count=1 -tags test_dep ./tools/umpire/regression, go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-regression
