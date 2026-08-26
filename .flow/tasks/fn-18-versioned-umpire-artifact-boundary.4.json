@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T09:47:24.751540Z",
+  "depends_on": [
+    "fn-18-versioned-umpire-artifact-boundary.3"
+  ],
+  "id": "fn-18-versioned-umpire-artifact-boundary.4",
+  "priority": null,
+  "spec": "fn-18-versioned-umpire-artifact-boundary",
+  "spec_path": ".flow/tasks/fn-18-versioned-umpire-artifact-boundary.4.md",
+  "status": "todo",
+  "title": "Define runtime configuration and experiment-run transports",
+  "updated_at": "2026-08-26T09:47:24.751540Z"
+}
