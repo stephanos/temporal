@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T06:38:47.000159Z",
+  "depends_on": [
+    "fn-5-umpire-discovery-promotion-and-artifact.2",
+    "fn-5-umpire-discovery-promotion-and-artifact.4"
+  ],
+  "id": "fn-5-umpire-discovery-promotion-and-artifact.5",
+  "priority": null,
+  "spec": "fn-5-umpire-discovery-promotion-and-artifact",
+  "spec_path": ".flow/tasks/fn-5-umpire-discovery-promotion-and-artifact.5.md",
+  "status": "todo",
+  "title": "Bind and expose Temporal promotion proposals",
+  "updated_at": "2026-08-26T07:13:30.485307Z"
+}
