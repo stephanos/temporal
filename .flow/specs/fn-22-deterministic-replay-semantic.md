@@ -1,6 +1,6 @@
 # Deterministic replay, semantic minimization, and reviewed promotion
 
-> HTML render lens: local file `.flow/artifacts/fn-22-deterministic-replay-semantic/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-22-deterministic-replay-semantic/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -175,5 +175,3 @@ One command matches the user's end-to-end intent and keeps the library decomposi
 | R8 | CLI, Make, tests, docs, and boundaries | `.7`, `.8` | — |
 | R9 | Three distinct replay classes | `.1`, `.2`, `.4`, `.6`, `.7` | — |
 | R10 | Persisted replay-bundle closure | `.1`, `.4`, `.8` | — |
-
-

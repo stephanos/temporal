@@ -1,6 +1,6 @@
 # Veil toolchain compatibility and adoption gate
 
-> HTML render lens: local file `.flow/artifacts/fn-23-veil-toolchain-compatibility-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-23-veil-toolchain-compatibility-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -144,5 +144,3 @@ A disposable overlay lets the exact current primary project and handwritten sour
 | R6 | Canonical receipt/status/root UX | `.5`, `.6` | — |
 | R7 | Integration guards and documentation | `.2`, `.6` | — |
 | R8 | Verify.Veil toolchain and import isolation | `.1`–`.6` | — |
-
-
