@@ -78,6 +78,8 @@ review: SHIP with zero introduced or pre-existing findings; R5 met and exact doc
 memory capture: skipped because the review was clean on its first pass.
 
 stage: impl-review - ran
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: f4b3fb225e0dc5ecd9ea277967a77edb321e4336
 - Tests: documentation consistency/reference checks (pass: unique MOD-01 through MOD-11 ownership, exact policy identities, non-normative supporting additions, git diff --check), cd model && mise exec -- lake build modelLintTests modelLint (pass), make lint-model (pass), make lint (inherited/tooling red: broken /home/agent/.cache/go-build cross-workspace symlink)
