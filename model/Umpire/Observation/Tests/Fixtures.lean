@@ -1,4 +1,5 @@
 import Umpire.Observation
+import Umpire.Observation.Qualification
 
 /-! Shared profile, mapping, and target vocabulary for Observation compilation tests. -/
 
@@ -33,6 +34,11 @@ def operationState : DeclarationId := id "test.state.operation"
 def contributionObservation : DeclarationId := id "test.observation.contribution"
 def digestObservation : DeclarationId := id "test.observation.digest"
 def unauthorizedObservation : DeclarationId := id "test.observation.unauthorized"
+
+def completedState : DeclarationId := id "test.state.completed"
+def startAction : DeclarationId := id "test.action.start"
+def successOutcome : DeclarationId := id "test.outcome.success"
+def roleField : DeclarationId := id "test.evidence.field.role"
 
 def evidenceProfile : EvidenceProfileDeclaration := {
   id := profileId
@@ -139,5 +145,160 @@ def planIdentityOf
     (checkContext : ObservationCheckContext)
     (declaration : ObservationMappingDeclaration) : Option String :=
   (checkObservation checkContext declaration).toOption.map CheckedObservationPlan.semanticDigest
+
+/-! Independently authored qualification fixture; it does not derive its expected trace from rules. -/
+
+def stepCondition : ObservationExpressionAuthoring :=
+  .portable (.equals (field roleField) (.text "step"))
+
+def qualificationDeclaration : ObservationMappingDeclaration := {
+  baseDeclaration with
+  id := id "test.mapping.qualification"
+  rules := [
+    { initialRule with condition := some (.portable
+        (.equals (field roleField) (.text "initial"))) },
+    {
+      id := id "test.rule.step-action"
+      output := startAction
+      outputKind := .action
+      value := .portable (.text "start")
+      condition := some stepCondition
+    },
+    {
+      id := id "test.rule.step-outcome"
+      output := successOutcome
+      outputKind := .outcome
+      value := .portable (.text "ok")
+      condition := some stepCondition
+    },
+    {
+      id := id "test.rule.step-state"
+      output := completedState
+      outputKind := .state
+      value := .portable (.text "done")
+      condition := some stepCondition
+    },
+    { contributionRule with condition := some stepCondition },
+    { digestRule with condition := some stepCondition }
+  ]
+  ordering := [
+    { before := initialRule.id, after := id "test.rule.step-action" },
+    { before := id "test.rule.step-action", after := id "test.rule.step-outcome" },
+    { before := id "test.rule.step-outcome", after := id "test.rule.step-state" },
+    { before := id "test.rule.step-state", after := contributionRule.id },
+    { before := contributionRule.id, after := digestRule.id }
+  ]
+  dispositions := baseDeclaration.dispositions ++ [
+    { field := { kind := eventKind, field := roleField }, disposition := .retain }
+  ]
+  evidenceBound := { value := 3, unit := .evidenceRecords }
+}
+
+def qualificationContext : ObservationCheckContext := {
+  context with
+  declarations := context.declarations ++ [
+    metadata completedState.value .state,
+    metadata startAction.value .action,
+    metadata successOutcome.value .outcome
+  ]
+  meanings := context.meanings ++ [
+    { declaration := completedState, kind := .state,
+      semanticDigest := completedState.value ++ "/meaning-v1" },
+    { declaration := startAction, kind := .action,
+      semanticDigest := startAction.value ++ "/meaning-v1" },
+    { declaration := successOutcome, kind := .outcome,
+      semanticDigest := successOutcome.value ++ "/meaning-v1" }
+  ]
+  profiles := [{ evidenceProfile with kinds := [{
+    id := eventKind
+    fields := evidenceProfile.kinds.flatMap EvidenceKindDeclaration.fields ++ [
+      { id := roleField, valueType := .text }
+    ]
+  }] }]
+}
+
+def qualifyFixture (bundle : EvidenceBundle) : QualificationResult :=
+  match checkObservation qualificationContext qualificationDeclaration with
+  | .ok plan => qualifyEvidence plan bundle
+  | .error _ => .unknown {
+      kind := .zeroUsableInterpretations
+      planId := qualificationDeclaration.id
+    }
+
+def initialEvidenceId : DeclarationId := id "test.evidence.record.initial"
+def stepEvidenceId : DeclarationId := id "test.evidence.record.step-1"
+def secondStepEvidenceId : DeclarationId := id "test.evidence.record.step-2"
+
+def textField
+    (fieldId : DeclarationId)
+    (value : String)
+    (digestPolicy : Option DeclarationId := none) : EvidenceFieldValue := {
+  field := fieldId
+  value := .text value
+  digestPolicy
+}
+
+def initialEvidence : SyntheticEvidenceRecord := {
+  id := initialEvidenceId
+  profile := profileId
+  profileVersion := 1
+  kind := eventKind
+  sequence := 1
+  fields := [
+    textField roleField "initial",
+    textField nameField "  ready  "
+  ]
+}
+
+def stepEvidence : SyntheticEvidenceRecord := {
+  id := stepEvidenceId
+  profile := profileId
+  profileVersion := 1
+  kind := eventKind
+  sequence := 2
+  causalParents := [initialEvidenceId]
+  fields := [
+    textField roleField "step",
+    textField secretField "forbidden-secret",
+    textField hashedField "forbidden-hash-material" (some digestPolicyId)
+  ]
+}
+
+def completeEvidence : EvidenceBundle := {
+  profile := profileId
+  profileVersion := 1
+  records := [stepEvidence, initialEvidence]
+  closures := [{ kind := eventKind, lastSequence := 2 }]
+}
+
+def expectedTrace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+  initialState := { identity := operationState, value := "ready" }
+  steps := [{
+    selectedAction := { identity := startAction, value := "start" }
+    modelOutcome := { identity := successOutcome, value := "ok" }
+    resultingState := { identity := completedState, value := "done" }
+    observations := [
+      { identity := contributionObservation, value := "contributed" },
+      { identity := digestObservation,
+        value := "synthetic.digest/v1:forbidden-hash-material" }
+    ]
+  }]
+}
+
+def resultKindOf (result : QualificationResult) : Option QualificationFailureKind :=
+  result.diagnostic?.map QualificationDiagnostic.kind
+
+def resultStatusOf (result : QualificationResult) : QualificationStatus := result.status
+
+def qualifiedOf (result : QualificationResult) : Option QualifiedTrace :=
+  match result with
+  | .qualified trace => some trace
+  | _ => none
+
+def diagnosticKindOf
+    (result : Except QualificationDiagnostic Unit) : Option QualificationFailureKind :=
+  match result with
+  | .ok _ => none
+  | .error diagnostic => some diagnostic.kind
 
 end Umpire.ObservationTests

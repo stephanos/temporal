@@ -11,6 +11,8 @@ normative.
 - **GOV-02 — Human deviation.** A human MUST approve any change that violates a rule or deliberately
   plans to violate one.
 
+############ TODO review ############
+
 ## Purpose and scope
 
 - **SCP-01 — Temporal-driven scope.** Umpire MUST solve modeling, regression, exploration,
