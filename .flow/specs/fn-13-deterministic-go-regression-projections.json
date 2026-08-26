@@ -12,7 +12,7 @@
   ],
   "id": "fn-13-deterministic-go-regression-projections",
   "impl_review_rounds": {
-    "fn-13-deterministic-go-regression-projections.1": 1
+    "fn-13-deterministic-go-regression-projections.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -208,9 +208,138 @@
       "timestamp": "2026-08-26T04:46:33.840185Z",
       "tool_calls": 12,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bce28179f68401353f7b1b9be2a44013c60fe361bb8bf30f39f86eed7e60299d",
+      "backend": "codex",
+      "base_sha": "90cf9fe8769c03a22965cdacc92777b59da3faa0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-26ced81ee86c3123620224446297370f",
+            "classification": "introduced",
+            "findingId": "finding-26ced81ee86c3123620224446297370f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-59744bb8d7f2407c1051e4ae3aea163f",
+            "classification": "introduced",
+            "findingId": "finding-59744bb8d7f2407c1051e4ae3aea163f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c41e2235e29239efc18d8da1071f8e91",
+            "classification": "introduced",
+            "findingId": "finding-c41e2235e29239efc18d8da1071f8e91",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1b77b3c9d19265508479673b2dfc4d9b4b4e08d9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1616,
+      "output_sha256": "2c2f3b08b52c99d220d59fe5499ca49c5aa97c40e30e9723cd0b5bf7ea1f111b",
+      "reservation_id": "d080afd8c3d2491ebab083551c7ab4fb",
+      "round_consumed": true,
+      "scope": "impl:fn-13-deterministic-go-regression-projections.1",
+      "superseded_by": null,
+      "task": "fn-13-deterministic-go-regression-projections.1",
+      "timestamp": "2026-08-26T04:49:42.840495Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7ae1a8abb8333ff7f6b652ca2a24f1f11655529f850b04b008f8c149c9ade9e1",
+      "backend": "codex",
+      "base_sha": "303375f053e8131a277fa28294734d87b18919b4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-26ced81ee86c3123620224446297370f",
+            "classification": "introduced",
+            "findingId": "finding-26ced81ee86c3123620224446297370f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "withdrawn"
+          },
+          {
+            "chainRoot": "finding-59744bb8d7f2407c1051e4ae3aea163f",
+            "classification": "introduced",
+            "findingId": "finding-59744bb8d7f2407c1051e4ae3aea163f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c41e2235e29239efc18d8da1071f8e91",
+            "classification": "introduced",
+            "findingId": "finding-c41e2235e29239efc18d8da1071f8e91",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-be6779cfc19cc5b3b51b4da2bfd03afa",
+            "classification": "pre_existing",
+            "findingId": "finding-be6779cfc19cc5b3b51b4da2bfd03afa",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1b77b3c9d19265508479673b2dfc4d9b4b4e08d9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1253,
+      "output_sha256": "ac05d0b5394e8645972fc06a427e6d9c1050c37c55cb6a54337112d7cfb07b5a",
+      "reservation_id": "3b3c4f3d33a34ecbae11b0e482153344",
+      "round_consumed": true,
+      "scope": "impl:fn-13-deterministic-go-regression-projections.1",
+      "superseded_by": null,
+      "task": "fn-13-deterministic-go-regression-projections.1",
+      "timestamp": "2026-08-26T04:51:11.618497Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-13-deterministic-go-regression-projections.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -234,5 +363,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T04:46:33.848993Z"
+  "updated_at": "2026-08-26T04:51:11.624982Z"
 }
