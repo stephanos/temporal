@@ -279,7 +279,7 @@ def expectedTrace : SemanticTrace SemanticValue SemanticValue SemanticValue Sema
     observations := [
       { identity := contributionObservation, value := "contributed" },
       { identity := digestObservation,
-        value := "synthetic.digest/v1:forbidden-hash-material" }
+        value := "synthetic.digest/v1:3006720707513255331" }
     ]
   }]
 }
