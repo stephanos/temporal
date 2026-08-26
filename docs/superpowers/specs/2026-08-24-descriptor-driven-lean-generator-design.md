@@ -105,7 +105,8 @@ from the owned directory.
 
 ## Temporal repository integration
 
-The root `Makefile` acquires the public descriptor set with `cmd/tools/genleanmodeldescriptors`,
+The root `Makefile` acquires the public descriptor set with
+`tools/umpire/cmd/umpire-gen-model-descriptors`,
 acquires the dependency, internal, and CHASM descriptor sets, and passes their paths directly to
 one generator invocation. The generator remains unaware of Temporal package policy.
 

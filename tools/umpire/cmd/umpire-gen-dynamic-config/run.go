@@ -30,7 +30,7 @@ func run(ctx context.Context, moduleRoot string) (Catalog, error) {
 		return Catalog{}, err
 	}
 	packages := registrationPackages(sites)
-	helperDirectory := filepath.Join(moduleRoot, "cmd", "tools", "genleandynamicconfig")
+	helperDirectory := filepath.Join(moduleRoot, "tools", "umpire", "cmd", "umpire-gen-dynamic-config")
 	catalog, err := runRegistryHelper(ctx, moduleRoot, helperDirectory, packages, executeHelper)
 	if err != nil {
 		return Catalog{}, err
@@ -61,7 +61,7 @@ func runRegistryHelper(
 	if err != nil {
 		return Catalog{}, err
 	}
-	helper, err := os.CreateTemp(helperDirectory, "zz_genleandynamicconfig_helper_*.go")
+	helper, err := os.CreateTemp(helperDirectory, "zz_umpire_gen_dynamic_config_helper_*.go")
 	if err != nil {
 		return Catalog{}, fmt.Errorf("helper create in %q: %w", helperDirectory, err)
 	}
@@ -94,7 +94,7 @@ func runRegistryHelper(
 		moduleRoot,
 		"run",
 		"-tags=test_dep",
-		"./cmd/tools/genleandynamicconfig",
+		"./tools/umpire/cmd/umpire-gen-dynamic-config",
 		registryHelperArgument,
 	)
 	if err != nil {

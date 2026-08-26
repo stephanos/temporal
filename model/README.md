@@ -58,7 +58,7 @@ From the repository root, regenerate and verify the catalog with:
 
 ```sh
 make umpire-gen-dynamic-config
-go test -count=1 -tags test_dep ./cmd/tools/genleandynamicconfig
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-dynamic-config
 make umpire-build-model
 ```
 
