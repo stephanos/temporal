@@ -59,34 +59,38 @@ def taskQueueContext
       taskQueueName := some taskQueueName
       taskQueueType := some taskQueueType }
 
-def matchingUpdateAckIntervalDefinitionResult := checkConfigUseDefinition {
-  id := DeclarationId.of "temporal.matching.update-ack-interval"
-  classification := matchingUpdateAckIntervalClassification
-  contextPolicy := .taskQueue
-  samplingPoint := .task
-  changeEffect := .nextRead
-  interpretation := matchingUpdateAckIntervalInterpretation
-}
+def matchingUpdateAckIntervalDefinitionResult :
+    Except ConfigError (CheckedConfigUseDefinition Int) :=
+  checkConfigUseDefinition {
+    id := DeclarationId.of "temporal.matching.update-ack-interval"
+    classification := matchingUpdateAckIntervalClassification
+    contextPolicy := .taskQueue
+    samplingPoint := .task
+    changeEffect := .nextRead
+    interpretation := matchingUpdateAckIntervalInterpretation
+  }
 
-def matchingWorkerRegistryNumBucketsDefinitionResult := checkConfigUseDefinition {
-  id := DeclarationId.of "temporal.matching.worker-registry-num-buckets"
-  classification := matchingWorkerRegistryNumBucketsClassification
-  contextPolicy := .global
-  samplingPoint := .processStartup
-  changeEffect := .restartRequired
-  interpretation := matchingWorkerRegistryNumBucketsInterpretation
-}
+def matchingWorkerRegistryNumBucketsDefinitionResult :
+    Except ConfigError (CheckedConfigUseDefinition Int) :=
+  checkConfigUseDefinition {
+    id := DeclarationId.of "temporal.matching.worker-registry-num-buckets"
+    classification := matchingWorkerRegistryNumBucketsClassification
+    contextPolicy := .global
+    samplingPoint := .processStartup
+    changeEffect := .restartRequired
+    interpretation := matchingWorkerRegistryNumBucketsInterpretation
+  }
 
 private theorem matchingUpdateAckIntervalDefinitionResult_isSome :
     matchingUpdateAckIntervalDefinitionResult.toOption.isSome = true := by native_decide
 private theorem matchingWorkerRegistryNumBucketsDefinitionResult_isSome :
     matchingWorkerRegistryNumBucketsDefinitionResult.toOption.isSome = true := by native_decide
 
-def matchingUpdateAckIntervalDefinition :=
+def matchingUpdateAckIntervalDefinition : CheckedConfigUseDefinition Int :=
   matchingUpdateAckIntervalDefinitionResult.toOption.get
     matchingUpdateAckIntervalDefinitionResult_isSome
 
-def matchingWorkerRegistryNumBucketsDefinition :=
+def matchingWorkerRegistryNumBucketsDefinition : CheckedConfigUseDefinition Int :=
   matchingWorkerRegistryNumBucketsDefinitionResult.toOption.get
     matchingWorkerRegistryNumBucketsDefinitionResult_isSome
 
