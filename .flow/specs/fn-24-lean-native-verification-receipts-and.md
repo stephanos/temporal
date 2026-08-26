@@ -1,6 +1,6 @@
 # Lean-native verification receipts and canonical replay
 
-> HTML render lens: local file `.flow/artifacts/fn-24-lean-native-verification-receipts-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-24-lean-native-verification-receipts-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -185,5 +185,3 @@ The negative control mutates only a test-owned Property expectation over the unc
 | R6 | Mutation, isolation, docs, and roadmap proof | `.1`–`.6` | — |
 | R7 | Umpire.Verify.Native ownership | `.1`–`.6` | — |
 | R8 | umpire-check-model profiles, list, and explain | `.4`, `.5`, `.6` | — |
-
-

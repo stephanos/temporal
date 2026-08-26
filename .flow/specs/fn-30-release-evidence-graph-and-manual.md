@@ -1,6 +1,6 @@
 # Release evidence graph and manual authorization
 
-> HTML render lens: local file `.flow/artifacts/fn-30-release-evidence-graph-and-manual/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-30-release-evidence-graph-and-manual/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -536,5 +536,3 @@ qualification or manual authorization.
 | R8 | Producer hooks and protected workflow | `.3`, `.6`, `.7` | — |
 | R9 | Layered verification and operator documentation | `.7` | — |
 | R10 | External release-policy ownership | `.1`–`.7` | — |
-
-

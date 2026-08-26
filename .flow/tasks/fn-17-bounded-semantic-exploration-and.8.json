@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T21:41:00.617548Z",
+  "depends_on": [
+    "fn-17-bounded-semantic-exploration-and.5"
+  ],
+  "id": "fn-17-bounded-semantic-exploration-and.8",
+  "priority": null,
+  "spec": "fn-17-bounded-semantic-exploration-and",
+  "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.8.md",
+  "status": "todo",
+  "title": "Admit proof-bearing exact artifacts and deterministic protocol batches",
+  "updated_at": "2026-08-26T21:52:12.054373Z"
+}

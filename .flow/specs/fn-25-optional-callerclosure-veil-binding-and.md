@@ -1,6 +1,6 @@
 # Optional CallerClosure Veil binding and canonical replay
 
-> HTML render lens: local file `.flow/artifacts/fn-25-optional-callerclosure-veil-binding-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-25-optional-callerclosure-veil-binding-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -382,5 +382,3 @@ can never establish a claim. The native fn-24 path remains the stable C11 baseli
 | R5 | Typed counterexample lowering and canonical replay | `.4`, `.5` | — |
 | R6 | Focused UX, isolation, verification, and roadmap outcome | `.5`, `.6` | — |
 | R7 | Verify.Veil, Temporal.Verify, and opt-in aggregate | `.2`–`.6` | — |
-
-

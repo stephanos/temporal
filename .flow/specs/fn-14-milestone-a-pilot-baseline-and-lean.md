@@ -1,6 +1,6 @@
 # Milestone A pilot baseline and Lean-first usability decision
 
-> HTML render lens: local file `.flow/artifacts/fn-14-milestone-a-pilot-baseline-and-lean/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-14-milestone-a-pilot-baseline-and-lean/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -144,5 +144,3 @@ A narrative-only assessment was rejected because it cannot prove thresholds were
 | R5 | Strict reproducible evidence bundle | `.2`, `.3`, `.4`, `.5`, `.6` | — |
 | R6 | Closed decision and downstream authorization | `.5`, `.6` | — |
 | R7 | Boundary and documentation enforcement | `.1`–`.6` | — |
-
-

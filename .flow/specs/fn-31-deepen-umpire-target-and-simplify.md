@@ -1,5 +1,7 @@
 # Deepen Umpire Target and simplify Temporal target authoring
 
+> HTML render lens (local): open `.flow/artifacts/fn-31-deepen-umpire-target-and-simplify/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Overview
 
 Turn `Umpire.Target` into the deep checked composition module required by the revised Umpire4 architecture. Preserve existing target semantics and canonical artifacts while moving routine provider, connector, identity, stable provenance, digest, and checked-result extraction plumbing behind a cohesive public authoring interface. Adapt the downstream Query and Planning seams so ordinary authors derive query completeness and planner kernels from checked values without reversing the dependency direction. Migrate the domain-neutral Switch example and the existing Temporal Nexus families through that interface before adding further authoring languages.
@@ -118,7 +120,3 @@ This work preserves semantic behavior and narrows the interface before reorganiz
 | R4 | Diagnostics and expert seam | `.2`, `.5` | — |
 | R5 | Semantic and artifact compatibility | `.1`, `.3`, `.4`, `.6`, `.7` | — |
 | R6 | Purity, imports, mutation, docs | `.1`–`.6` | — |
-
-
-
-

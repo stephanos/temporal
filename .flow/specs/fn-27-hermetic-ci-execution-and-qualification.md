@@ -1,6 +1,6 @@
 # Hermetic CI execution and qualification
 
-> HTML render lens: local file `.flow/artifacts/fn-27-hermetic-ci-execution-and-qualification/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-27-hermetic-ci-execution-and-qualification/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -435,5 +435,3 @@ surfaces.
 | R8 | Independent verification and scoped documentation | `.7`, `.9` | — |
 | R9 | Complete ExperimentSpec through generated CI tests | `.2`, `.3`, `.5`, `.7` | — |
 | R10 | Per-commit native model verification without pilot gate | `.5`, `.6`, `.9` | — |
-
-

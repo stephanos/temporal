@@ -1,6 +1,6 @@
 # Authored variation spaces and deterministic batch compilation
 
-> HTML render lens: local file `.flow/artifacts/fn-16-authored-variation-spaces-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-16-authored-variation-spaces-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -182,5 +182,3 @@ Fixed small limits favor complete deterministic validation over an open generato
 | R7 | Synthetic and Temporal examples | `.5`, `.6` | — |
 | R8 | Verification, docs, boundaries | `.1`–`.6` | — |
 | R9 | Checked intent and complete-artifact handoff | `.1`, `.2`, `.4`, `.6` | — |
-
-

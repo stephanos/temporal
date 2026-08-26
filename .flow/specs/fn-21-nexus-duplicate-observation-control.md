@@ -1,6 +1,6 @@
 # Deterministic Nexus fault negative control
 
-> HTML render lens: local file `.flow/artifacts/fn-21-nexus-duplicate-observation-control/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-21-nexus-duplicate-observation-control/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -152,5 +152,3 @@ A second exact program/configuration pair preserves the existing normal fixture 
 | R6 | Paired live control, identity, status, and publication proof | `.5`, `.6` | — |
 | R7 | Existing UX, documentation, boundaries, and aggregate verification | `.1`–`.7` | — |
 | R8 | System-owned negative control and checked refinement | `.1`, `.2`, `.5`, `.7` | — |
-
-

@@ -1,6 +1,6 @@
 # Umpire discovery promotion and artifact evolution
 
-> HTML render lens: local file `.flow/artifacts/fn-5-umpire-discovery-promotion-and-artifact/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-5-umpire-discovery-promotion-and-artifact/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -142,5 +142,3 @@ Promotion returns inert checked values and lineage rather than editing files. Th
 | R6 | Catalog-selected stable regression projections | `.2`, `.6`, `.7` | — |
 | R7 | Semantic and package boundaries | `.1`–`.7` | — |
 | R8 | Revised catalog and runtime-promotion boundary | `.1`–`.7` | — |
-
-

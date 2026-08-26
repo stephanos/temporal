@@ -8,7 +8,7 @@ Run one bounded local campaign, close adversarial matrices, and document R3/R5/R
 
 ### Review reconciliation (normative)
 
-The live proof runs only `temporal.nexus.caller-closure.runtime-smoke` from Task `.6`: one exact already-supported caller-closure ExperimentSpec, ephemeral-local RuntimeConfiguration, exhaustive budget one, seed zero, no faults/pins, parallelism one, and a campaign deadline within the checked 1-second-to-5-minute range. Fake campaigns own the parallelism and pinned-regression proof.
+The live proof selects the existing fn-5 catalog subject `workflow-nexus.query.exact-action-caller-closure`, joined to Task `.6`'s runnable binding. Its internal fn-17 exact source is `temporal.nexus.caller-closure.runtime-smoke`: one byte-/identity-preserved caller-closure ExperimentSpec, ephemeral-local RuntimeConfiguration, exhaustive budget one, seed zero, no faults/pins, parallelism one, and a campaign deadline within the checked 1-second-to-5-minute range. Fake campaigns own the parallelism and pinned-regression proof.
 
 **Size:** M
 **Files:** `tools/umpire/campaign/**`, `tools/umpire/cmd/umpire-fuzz/**`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `docs/development/**`
@@ -24,11 +24,6 @@ The live proof runs only `temporal.nexus.caller-closure.runtime-smoke` from Task
 - `model/README.md` — model workflow documentation
 - `model/Umpire/ARCHITECTURE.md` — semantic module contracts
 - `docs/development/testing.md` — developer testing entry point
-
-### Acceptance
-- [ ] The exact one-point caller-closure campaign resumes to byte-identical non-duration state and admitted results through the existing runner/conformance adapters.
-- [ ] Fake campaign matrices prove pinned regressions stay independent of exploration budget and never claim the one-point live run proves parallelism.
-- [ ] Docs state exact commands, bounds, failures, ownership, and non-claims.
 ## Acceptance
 - [ ] R3/R5/R6 end-to-end and mutation checks pass.
 - [ ] Focused Go/Lean tests and aggregate regression gates pass.

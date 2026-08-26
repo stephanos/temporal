@@ -1,6 +1,6 @@
 # Bounded local Temporal execution and SDK participant
 
-> HTML render lens: local file `.flow/artifacts/fn-19-bounded-local-temporal-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-19-bounded-local-temporal-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -196,5 +196,3 @@ The runtime does not promise crash-resumable remote cleanup. The single in-proce
 | R7 | Oracles, live command, docs/boundaries | `.1`–`.9` | — |
 | R8 | Complete ExperimentSpec through generated Go tests | `.1`–`.8` | — |
 | R9 | System-owned programs and execution configuration | `.1`, `.5`, `.6`, `.8` | — |
-
-

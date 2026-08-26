@@ -1,6 +1,6 @@
 # Bounded production canary execution and qualification
 
-> HTML render lens: local file `.flow/artifacts/fn-29-bounded-production-canary-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-29-bounded-production-canary-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -415,5 +415,3 @@ participant.
 | R8 | Deep controller and closed command/workflow | `.8`, `.9`, `.10`, `.11` | — |
 | R9 | Protected proof surface and operator documentation | `.9`, `.10`, `.11`, `.12`, `.13` | — |
 | R10 | Standalone tools/canary ownership | `.1`–`.13` | — |
-
-

@@ -1,6 +1,6 @@
 # Local execution semantic conformance
 
-> HTML render lens: local file `.flow/artifacts/fn-20-local-execution-semantic-conformance/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-20-local-execution-semantic-conformance/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -148,5 +148,3 @@ The command accepts only the original four-member run set. Rechecking a derived 
 | R7 | Exact CLI/root UX and publication | `.6`, `.7` | — |
 | R8 | Independent assurance, live proof, and docs | `.5`, `.7` | — |
 | R9 | System Observation to checked Refinement to Feature Property | `.1`, `.2`, `.4`, `.5`, `.7` | — |
-
-

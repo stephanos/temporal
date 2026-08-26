@@ -1,6 +1,6 @@
 # Local qualification receipts and staged profile contract
 
-> HTML render lens: local file `.flow/artifacts/fn-26-local-qualification-receipts-and-staged/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-26-local-qualification-receipts-and-staged/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
@@ -394,5 +394,3 @@ identity chain this component exists to preserve.
 | R7 | Scoped docs and staged boundaries | `.6` | — |
 | R8 | Qualification independent of the obsolete pilot | `.1`–`.6` | — |
 | R9 | Typed qualification receipt envelope | `.3`, `.4`, `.6` | — |
-
-
