@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-23-veil-toolchain-compatibility-and",
-    "fn-24-lean-native-verification-receipts-and"
+    "fn-24-lean-native-verification-receipts-and",
+    "fn-34-enforce-lean-model-boundaries-with"
   ],
   "id": "fn-25-optional-callerclosure-veil-binding-and",
   "impl_review_rounds": {},
@@ -311,5 +312,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T20:30:33.891208Z"
+  "updated_at": "2026-08-26T20:44:23.819424Z"
 }

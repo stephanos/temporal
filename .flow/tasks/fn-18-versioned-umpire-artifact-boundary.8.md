@@ -4,6 +4,12 @@ satisfies: [R3, R4, R5, R7, R8]
 # fn-18-versioned-umpire-artifact-boundary.8 Admit complete artifact sets with exact closure
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Complete-set closure includes the complete current `ExperimentSpec`, `ParticipantProgram`, and the reserved replay, verification, and qualification receipt envelopes when present. Legacy v1 may enter only through strict compatibility admission or a named complete migration; set admission never infers missing executable meaning.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R7's exact manifest and cross-document closure as one inert admitted-set boundary, separate from migration and filesystem publication.
 
 **Size:** M
@@ -28,7 +34,6 @@ Implement R7's exact manifest and cross-document closure as one inert admitted-s
 - [ ] Every required artifact relationship and embedded semantic reference is closed exactly once.
 - [ ] Query, Property, Observation-program, and mapping are never treated as standalone artifact families.
 - [ ] Set validation is inert, bounded, fetch-free, and independent of publication.
-
 ## Acceptance
 - [ ] R7 set admission and R3–R5 cross-artifact closure are implemented.
 - [ ] Full-chain positive and negative set suites pass.

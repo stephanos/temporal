@@ -361,3 +361,6 @@ reconsider the protected-environment adapter before implementing lease or execut
 | R7 | Remote provenance, receipt v3, and ArtifactSet v4 | `.6`, `.7`, `.8`, `.10` | — |
 | R8 | End-to-end controller and closed run/reconcile command | `.8`, `.9`, `.10` | — |
 | R9 | Protected workflow, verification, and operator docs | `.9`, `.10`, `.11` | — |
+| R10 | Named operational owner and complete shared ExperimentSpec | `.1`–`.11` | — |
+
+

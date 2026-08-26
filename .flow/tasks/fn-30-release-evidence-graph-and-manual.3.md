@@ -4,6 +4,12 @@ satisfies: [R2, R3, R8]
 # fn-30-release-evidence-graph-and-manual.3 Bind retained environment evidence to one release candidate
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Add the four source adapters and CI/staging/canary retention hooks that supply checked objects to the signed seven-slot evidence index for R2, R3, and R8. Preserve every source byte and require externally signed build/deployment authority records rather than inferring candidate occupancy.
 
 **Size:** M

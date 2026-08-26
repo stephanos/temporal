@@ -4,6 +4,12 @@ satisfies: [R1, R2, R7]
 # fn-14-milestone-a-pilot-baseline-and-lean.1 Freeze the pilot inventory, protocol, and exercise
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task is retained only as historical Milestone A research design. The spec is superseded as an Umpire4 roadmap gate: do not implement it, do not use Agentworkflow evidence or `LEAN_FIRST_GO` for runtime/qualification admission, and do not add it as a dependency. Current Target, Refinement, artifact, runner, conformance, verification, and qualification specs proceed independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Create the exact versioned pilot contracts and immutable pre-measurement inputs for R1/R2/R7.
 
 **Size:** M
@@ -26,7 +32,6 @@ Create the exact versioned pilot contracts and immutable pre-measurement inputs 
 
 ### Quick command
 `go test -count=1 -tags test_dep ./tools/umpire/pilot -run 'TestContract|TestFrozenInputs'`
-
 ## Acceptance
 - [ ] Exactly eight distinct source-backed defects and twelve mutations across all five families validate with the required per-family and defect-link counts.
 - [ ] Coverage inventory, commands, denominators, timing samples, thresholds, decision precedence, prompt, allowlist, rubric, and retry rules are exact and digest-bound.

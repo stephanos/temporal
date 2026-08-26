@@ -21,6 +21,9 @@ func TestBasicFixture(t *testing.T) {
 	require.NoError(t, Run(arguments))
 
 	actual := readTree(t, outputRoot)
+	for _, path := range []string{"Fixture/API.lean", "Fixture/API/Proto.lean", "Fixture/API/Types.lean"} {
+		require.Contains(t, string(actual[path]), "/-!")
+	}
 	expectedRoot := filepath.Join("testdata", "basic", "expected")
 	if *rewriteFixture {
 		require.NoError(t, os.RemoveAll(expectedRoot))

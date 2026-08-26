@@ -6,12 +6,16 @@ satisfies: [R5, R6]
 ## Description
 Close R5/R6 with import guards, aggregate tests, and authoring/conformance documentation.
 
+### Review reconciliation (normative)
+
+Extend fn-34's explicit import policy with exactly one composed-test class/root, `Temporal.RefinementTests.Nexus`, allowed to reach both the Feature family and `Temporal.System.Nexus.Refinement`. Do not classify it as base System, do not use a prefix/suffix wildcard, and add near-miss tests proving sibling System and test modules remain rejected.
+
 **Size:** S
-**Files:** `model/UmpireTests.lean`, `model/TemporalModelTests.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`
-**Touches:** [model/UmpireTests.lean, model/TemporalModelTests.lean, model/README.md, model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md]
+**Files:** `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/UmpireTests.lean`, `model/TemporalModelTests.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`
+**Touches:** [model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, model/UmpireTests.lean, model/TemporalModelTests.lean, model/README.md, model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md]
 
 ### Approach
-- Mechanically enforce the Feature/System/refinement import graph.
+- Mechanically enforce the Feature/System/refinement import graph, the single production refinement leaf, and the single exact non-base-System test root.
 - Document semantic altitude, authored-to-checked lifecycle, derivations, and separate failures after interfaces stabilize.
 - Include the first teaching progression from Feature through System refinement.
 
@@ -23,10 +27,9 @@ Close R5/R6 with import guards, aggregate tests, and authoring/conformance docum
 - `model/Umpire/ARCHITECTURE.md` — current deep-module contracts
 
 ### Acceptance
-- [ ] Import guards prove only the focused refinement leaf composes Feature and System.
+- [ ] `ModelLint.ImportGraph` classifies exactly `Temporal.RefinementTests.Nexus` as the composed-test root; import guards prove only it and the focused production leaf reach both sides, while sibling and prefix/suffix near misses fail.
 - [ ] Aggregate tests and regression fixtures pass.
 - [ ] Documentation distinguishes Observation, Refinement, and Property outcomes.
-
 ## Acceptance
 - [ ] R5 mutation isolation and R6 facade/import checks pass.
 - [ ] Documentation reflects implemented contracts and preserves comments.

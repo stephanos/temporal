@@ -11,6 +11,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.2.md",
   "status": "todo",
-  "title": "Bind and execute the disposable CI runtime profile",
-  "updated_at": "2026-08-26T14:30:24.737543Z"
+  "title": "Bind generated Go tests to the disposable CI runtime profile",
+  "updated_at": "2026-08-26T20:42:14.200227Z"
 }

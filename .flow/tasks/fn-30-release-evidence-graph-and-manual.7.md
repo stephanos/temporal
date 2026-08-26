@@ -4,6 +4,12 @@ satisfies: [R1, R2, R3, R4, R5, R6, R7, R8, R9]
 # fn-30-release-evidence-graph-and-manual.7 Prove release qualification and authorization end to end
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Complete R1-R9 with one controlled end-to-end proof, adversarial matrices, compatibility/aggregate gates, and operator-facing documentation. Tests exercise fixed external-attestation fixtures and protected signer seams without minting a retained production authorization.
 
 **Size:** M

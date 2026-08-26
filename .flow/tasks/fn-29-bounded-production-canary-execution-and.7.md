@@ -4,6 +4,12 @@ satisfies: [R7]
 # fn-29-bounded-production-canary-execution-and.7 Add ArtifactSet v5 and the canary publication closure
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Complete R7 by adding the exact seven-member production-canary qualification closure over Task `.6`'s v4 receipt.
 
 **Size:** M
@@ -29,7 +35,6 @@ Complete R7 by adding the exact seven-member production-canary qualification clo
 - [ ] Six source members and all prior set fixtures/readers remain unchanged.
 - [ ] Missing/extra/duplicate/crossed/stale/version/relation/release-eligibility/secret mutations reject.
 - [ ] Atomic/idempotent/conflict-safe publication and root-revalidation matrices pass.
-
 ## Acceptance
 - [ ] R7 ArtifactSet v5 and immutable production-canary publication closure are complete.
 - [ ] Cross-language set/version/relation/publication suites pass.

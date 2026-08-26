@@ -1,9 +1,15 @@
 ---
 satisfies: [R2, R3, R4]
 ---
-# fn-20-local-execution-semantic-conformance.2 Build the exact Temporal Nexus semantic checker
+# fn-20-local-execution-semantic-conformance.2 Build the exact Temporal Nexus refinement checker
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+The Temporal checker composes `Temporal.System.Nexus.Observation` with `Temporal.System.Nexus.Refinement`; it must never map raw evidence directly to Feature facts. Unknown, unsupported, unqualified, or failed refinement remains distinct from a Property result.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement the fixed Lean side of the private checker bridge and the sole live-evidence adapter (R2/R3/R4/R5), using Task `.1` as the semantic entry point.
 
 **Size:** M

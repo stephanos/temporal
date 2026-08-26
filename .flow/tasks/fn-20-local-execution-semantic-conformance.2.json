@@ -11,6 +11,6 @@
   "spec": "fn-20-local-execution-semantic-conformance",
   "spec_path": ".flow/tasks/fn-20-local-execution-semantic-conformance.2.md",
   "status": "todo",
-  "title": "Build the exact Temporal Nexus semantic checker",
-  "updated_at": "2026-08-26T11:02:06.905979Z"
+  "title": "Build the exact Temporal Nexus refinement checker",
+  "updated_at": "2026-08-26T20:42:01.427573Z"
 }
