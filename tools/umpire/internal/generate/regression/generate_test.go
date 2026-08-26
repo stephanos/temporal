@@ -112,7 +112,7 @@ func TestRunGenerationRejectsInspectorFailuresAndOutputContradictions(t *testing
 		"structured diagnostic": {
 			output: inspectorOutput{Stderr: []byte(`{"kind":"unknown-scenario","subject":"fixed"}`)},
 			err:    errors.New("exit status 1"),
-			want:   `{"kind":"unknown-scenario","subject":"fixed"}`,
+			want:   "stderr present",
 		},
 		"failed with stdout": {
 			output: inspectorOutput{Stdout: []byte("large-semantic-artifact"), Stderr: []byte("diagnostic")},
@@ -158,6 +158,40 @@ func TestRunGenerationRejectsInspectorFailuresAndOutputContradictions(t *testing
 			require.NotContains(t, err.Error(), "large-semantic-artifact")
 			require.EqualValues(t, 1, inspections.Load())
 			require.False(t, published)
+		})
+	}
+}
+
+func TestRequireInspectorArtifactDoesNotExposeStderr(t *testing.T) {
+	semanticArtifact := []byte(`{"format":"umpire-experiment/v1","semanticIdentity":"do-not-expose-semantic-identity"}`)
+	tests := map[string]struct {
+		output     inspectorOutput
+		inspectErr error
+	}{
+		"failed with stdout": {
+			output:     inspectorOutput{Stdout: []byte(`{"artifact":true}`), Stderr: semanticArtifact},
+			inspectErr: errors.New("exit status 1"),
+		},
+		"failed without stdout": {
+			output:     inspectorOutput{Stderr: semanticArtifact},
+			inspectErr: errors.New("exit status 1"),
+		},
+		"succeeded without stdout": {
+			output: inspectorOutput{Stderr: semanticArtifact},
+		},
+		"succeeded with stdout": {
+			output: inspectorOutput{Stdout: []byte(`{"artifact":true}`), Stderr: semanticArtifact},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := requireInspectorArtifact("stable-identity", test.output, test.inspectErr)
+
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "stable-identity")
+			require.NotContains(t, err.Error(), string(semanticArtifact))
+			require.NotContains(t, err.Error(), "do-not-expose-semantic-identity")
 		})
 	}
 }
