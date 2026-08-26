@@ -4,6 +4,19 @@ Umpire is model-based acceptance testing for Temporal. It drives a running serve
 observations into a typed model, and evaluates that model against shared properties. Tests describe
 semantic behavior instead of duplicating setup, polling, and assertions.
 
+## Scope and related documents
+
+This document describes the implemented Go framework whose canonical Temporal integration is
+`tools/umpire2`. It is not the authority for the independent Lean model under `model/` or for
+Umpire3.
+
+| Document | Scope |
+| --- | --- |
+| [`UMPIRE_VISION.md`](UMPIRE_VISION.md) | Product vision shared by all Umpire efforts |
+| This document | Implemented Umpire2 runtime, protocol, authoring, and assurance contracts |
+| [`UMPIRE_DSL.md`](UMPIRE_DSL.md) | Domain-neutral semantic languages and the current `model/` pipeline |
+| [`UMPIRE3.md`](UMPIRE3.md) | Independent Umpire3 architecture, trust model, and remaining roadmap |
+
 ```text
 test intent -> sparse regression plan -> compiled suite -> completed path -> actions -> Temporal
                                                                                 |
@@ -12,8 +25,8 @@ raw observations -> facts -> model state + relation state -> rules at checkpoint
 property result + observed evidence + environment profile -> qualified claim
 ```
 
-The canonical implementation is `tools/umpire2`. It is the default monitor used by `testcore`;
-`tools/umpire1` remains a compatibility implementation.
+Within the Go runtime described here, `tools/umpire2` is canonical. It is the default monitor used
+by `testcore`; `tools/umpire1` remains a compatibility implementation.
 
 ## Start here
 
