@@ -7,7 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-18-versioned-umpire-artifact-boundary"
+    "fn-18-versioned-umpire-artifact-boundary",
+    "fn-31-deepen-umpire-target-and-simplify",
+    "fn-32-add-umpire-refinement-and-the-first"
   ],
   "id": "fn-19-bounded-local-temporal-execution-and",
   "impl_review_rounds": {},
@@ -193,5 +195,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T10:36:08.819845Z"
+  "updated_at": "2026-08-26T20:31:05.605876Z"
 }

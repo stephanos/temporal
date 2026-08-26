@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-30-release-evidence-graph-and-manual/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+Release evidence evaluation and manual authorization are downstream deployment-owner concerns, not reusable Umpire modules or commands. This spec is re-scoped to a release-policy component under the standalone canary/release ownership boundary (or an existing external release platform) that consumes signed retained qualification/canary evidence. `tools/umpire` contributes only generic admitted receipts and has no release candidate, signer, role approval, revocation, deployment attestation, workflow, or authorization type.
+
+The standalone canary producer supplies retained evidence through its trusted channel; the release owner supplies build/deployment attestations and human-role authority. No import or control edge points back from Umpire into canary/release systems, and no release decision can reinterpret semantic evidence.
+
 ## Overview
 
 Add the first current-model release-evidence graph and manual authorization boundary. The graph
@@ -499,6 +505,7 @@ rollback integration to a separately reviewed successor.
   cross-language/version/secret/capability tests, aggregate gates, and operator docs prove the exact
   quorum, candidate execution binding, trusted channel, two-role veto/approval, immutable histories,
   and non-deployment boundary without minting a retained production authorization in tests.
+- **R10:** Release graph, candidate, signing, role decision, revocation, workflow, and manual authorization code lives entirely under the independently owned canary/release or external release boundary and consumes signed retained Umpire/canary receipts through stable interfaces. This supersedes any reusable-Umpire ownership in R1–R9. Errors: release vocabulary in `model/Umpire` or `tools/umpire`, an Umpire release command/workflow/signer, reinterpretation of semantic results, unsigned canary evidence, or a control/import edge from Umpire into deployment authority fails completion.
 
 ## Early proof point
 

@@ -15,23 +15,23 @@ def source : SemanticSource := {
   provenance := "lean-test"
 }
 
-def phase := id "planner.state.phase"
-def request := id "planner.action.request"
-def accepted := id "planner.outcome.accepted"
-def observed := id "planner.observation.accepted"
-def role := id "planner.role.operation"
-def occurrence := id "planner.occurrence.request"
+def phase : DeclarationId := id "planner.state.phase"
+def request : DeclarationId := id "planner.action.request"
+def accepted : DeclarationId := id "planner.outcome.accepted"
+def observed : DeclarationId := id "planner.observation.accepted"
+def role : DeclarationId := id "planner.role.operation"
+def occurrence : DeclarationId := id "planner.occurrence.request"
 
 def value (identity : DeclarationId) (payload : String) : SemanticValue := {
   identity
   value := payload
 }
 
-def initial := value phase "initial"
-def completed := value phase "completed"
-def requestValue := value request "request"
-def acceptedValue := value accepted "accepted"
-def observedValue := value observed "accepted"
+def initial : SemanticValue := value phase "initial"
+def completed : SemanticValue := value phase "completed"
+def requestValue : SemanticValue := value request "request"
+def acceptedValue : SemanticValue := value accepted "accepted"
+def observedValue : SemanticValue := value observed "accepted"
 def setup : List RoleBinding := [{ role, value := value phase "operation-a" }]
 
 def transition (_index : Nat) : TransitionResult SemanticValue SemanticValue SemanticValue := {
@@ -52,15 +52,30 @@ def kernel (width : Nat) : TransitionKernel
   }
   initialStates := fun candidate => if candidate = setup then [initial] else []
   authoritativeInitial := fun candidate state => candidate = setup ∧ state = initial
-  initialSound := by intros; split at * <;> simp_all
-  initialComplete := by intros; simp_all
+  initialSound := by
+    intro candidate state member
+    by_cases selected : candidate = setup
+    · rw [if_pos selected] at member
+      exact ⟨selected, List.mem_singleton.mp member⟩
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
+  initialComplete := by
+    intro candidate state admitted
+    rcases admitted with ⟨rfl, rfl⟩
+    simp
   steps := fun state action =>
     if state = initial ∧ action = requestValue then transitions width else []
   authoritativeStep := fun state action result =>
     state = initial ∧ action = requestValue ∧ result = transition 0
   stepSound := by
     intro state action result member
-    split at member <;> simp_all [transitions, transition]
+    by_cases selected : state = initial ∧ action = requestValue
+    · rw [if_pos selected] at member
+      simp only [transitions] at member
+      obtain ⟨index, _, rfl⟩ := List.mem_map.mp member
+      exact ⟨selected.1, selected.2, rfl⟩
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
   stepComplete := by
     intro state action result admitted
     rcases admitted with ⟨rfl, rfl, rfl⟩

@@ -505,10 +505,16 @@ def exactTraceQuery : CheckedQuery LawStatement := materializeQuery
 
 theorem stepResults_length_le_two (state action : SemanticValue) :
     (stepResults state action).length ≤ 2 := by
-  by_cases action = flipAction <;>
-    by_cases state = offState <;>
-    by_cases state = onState <;>
-    simp_all [stepResults]
+  by_cases selectedAction : action = flipAction
+  · subst action
+    by_cases selectedOff : state = offState
+    · subst state
+      simp [stepResults]
+    · by_cases selectedOn : state = onState
+      · subst state
+        simp [stepResults, selectedOff]
+      · simp [stepResults, selectedOff, selectedOn]
+  · simp [stepResults, selectedAction]
 
 def incrementalKernel : IncrementalPlannerKernel target :=
   .ofFinite completeness {

@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-18-versioned-umpire-artifact-boundary/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+The current `umpire-experiment/v1` remains a strictly readable compatibility input for existing model fixtures, but it is not the final executable contract. Current writers emit a new complete ExperimentSpec version that contains the selected semantic setup, participant programs, typed late-bound references, actions, fault activation points, ordering/concurrency/causality, observation requirements, property-derived expectation program, termination/convergence, phase bounds, omissions, and cleanup obligations. Readers never infer missing executable meaning from v1; migration is available only when a named transformation has every required semantic input.
+
+The artifact family also reserves strict envelopes for `ParticipantProgram`, replay bundles, verification receipts, and qualification receipts so downstream modules populate one transport authority rather than minting per-feature readers. Each receipt remains a separately typed claim with subject digests, issuer/adapter identity and version, invocation/profile, bounds, trust, outcome, provenance, and omissions.
+
 ## Overview
 
 Create one strict versioned persistence boundary for current Umpire artifacts. Lean remains authoritative for semantic structures and canonical projections; one deep Go package, `tools/umpire/artifact`, performs bounded byte admission, exact version dispatch, structural and cross-document validation, deterministic named migrations, and atomic complete-set publication.
@@ -229,6 +235,10 @@ make umpire-check-regression
 - **R6:** Named migrations are current-version-only writers, deterministic one-way exact routes, strict before/after every step, and complete-set-only. The production registry is honestly empty until a predecessor exists; private fixtures prove the engine without inventing a product version. [paraphrase]
 - **R7:** Exact `umpire-artifact-set/v1` relationship validation and immutable atomic publication reject unsafe paths/files, partial/mixed/stale sets, concurrent conflicts, and interrupted installation while preserving prior complete sets. Identical republish is idempotent and read-after-write is strictly revalidated. [paraphrase]
 - **R8:** Cross-language golden/mutation fixtures, fuzz tests, exact CLI/root commands, public facades, architecture docs, and roadmap status prove a transport-only boundary. No runtime driving, evidence collection/interpretation, coverage scoring, replay/minimization/promotion, qualification, CI/release claim, model-local Makefile, or Umpire3 use is introduced. [user]
+- **R9:** A new current ExperimentSpec version is the complete environment-independent executable intent: setup, participant programs, typed symbolic references, actions, fault activation, ordering/concurrency/causality, observation and expectation requirements, convergence/termination, phase bounds, omissions, and cleanup. Existing v1 remains strict compatibility input only. Errors: inferring absent v1 meaning, environment-specific semantic copies, missing executable closure, stale program/reference digest, or a migration that invents semantic content rejects before execution.
+- **R10:** The canonical JSON profile fixes field order, I-JSON-compatible number/string rules, Unicode and timestamp policy, array/set ordering, duplicate-key rejection before object decoding, and byte/hash treatment; cross-language golden and fuzz fixtures prove one representation. Errors: NaN/infinity, ambiguous integer/timestamp spelling, duplicate or case-colliding key, noncanonical escaping/order, or encoder-version drift rejects rather than normalizes.
+- **R11:** Strict artifact envelopes include ParticipantProgram, replay bundle, verification receipt, and qualification receipt families with complete-set relationships while their owning semantic modules remain the only producers of meaning. Errors: a downstream private reader, unsigned operational receipt represented as authenticated trust, missing subject/profile/trust/omission binding, or rewriting prior receipt bytes fails admission.
+- **R12:** Artifact admission and publication remain inert transport: all semantic identities and digests originate in Lean-owned modules, and Go validates closure without running target, observation, refinement, property, exploration, replay, verification, or qualification semantics. Errors: transport repair, best-effort unknown-field handling, or semantic reinterpretation in Go fails completion.
 
 ## Early proof point
 <!-- scope: technical -->

@@ -11,7 +11,8 @@
     "fn-4-umpire-observation-and-semantic-verdicts",
     "fn-9-umpire-reusable-dsl-package-split",
     "fn-16-authored-variation-spaces-and",
-    "fn-17-bounded-semantic-exploration-and"
+    "fn-31-deepen-umpire-target-and-simplify",
+    "fn-32-add-umpire-refinement-and-the-first"
   ],
   "id": "fn-18-versioned-umpire-artifact-boundary",
   "impl_review_rounds": {},
@@ -285,5 +286,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T10:10:21.659473Z"
+  "updated_at": "2026-08-26T20:31:33.902868Z"
 }

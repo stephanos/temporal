@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-20-local-execution-semantic-conformance/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+The semantic checker follows the mandatory altitude chain: raw evidence is interpreted by a checked `Temporal.System.Nexus.Observation` mapping into a qualified System trace; a checked `Temporal.System.Nexus.Refinement` then derives the canonical Feature trace; only that Feature trace reaches the unchanged Feature Property evaluator. Observation, Refinement, and Property outcomes and derivations remain separate in SemanticEvidence and Result.
+
+The Go controller stays transport-only. It may invoke the fixed Lean checker and validate returned artifact closure, but it cannot map System evidence directly to Feature facts or reproduce refinement/property semantics.
+
 ## Overview
 
 Complete the first current-model semantic loop without re-executing Temporal. The command consumes exactly one fn-19-admitted four-member local set, projects its already-bounded Run and RawEvidence through a closed Go-to-Lean checker bridge, applies fn-4's checked Observation mapping and unchanged pure Property evaluator, and publishes one fn-18-admitted six-member set containing SemanticEvidence and Result.
@@ -93,6 +99,7 @@ make umpire-check-regression
 - **R6:** Checking is deterministic, bounded, offline, and retry-safe: the same input/checker yields byte-identical derived members; exactly-at-limit evidence is handled normally; limit-plus-one follows the specified tooling or qualification boundary; and identical publication returns the same revalidated immutable destination. Errors: checker cancellation, parent cancellation, publication interruption/conflict, or output-root failure exposes no partial visible set and never mutates the input.
 - **R7:** The exact direct CLI and root Make target implement the frozen summary/error schemas and statuses 0/1/2, with the CLI as the sole production publisher. Errors: missing/extra/malformed arguments fail before checking; semantic non-success publishes and returns 2; pre-publication tooling failure returns 1 with authoritative booleans; reporting failure after publication returns 1 with the complete destination identity; unavailable stderr never changes the exit status.
 - **R8:** Independent corruption, ambiguity, contradiction, disposition, bound, status, protocol, and binding fixtures plus one bounded fn-19→fn-20 local Nexus run prove fail-closed conformance and documentation states the exact command and limits. Errors: a mutation surviving, a wrong-boundary diagnosis, shared implementation/oracle logic, non-deterministic output, unclosed source/cleanup omitted from the Result, or any claim of replay, promotion, remote/CI/canary/release qualification fails verification.
+- **R9:** Conformance is exactly `RawEvidence → checked System Observation → qualified System trace → checked Refinement → Feature trace → unchanged Feature Property`, and SemanticEvidence/Result retain both observation and refinement identities, digests, omissions, outcomes, and coordinate derivations. Errors: missing/stale refinement, direct evidence-to-Feature mapping, unmapped System coordinate, refinement conflict/unsupported/unknown, or any Go-side semantic translation prevents Feature evaluation and cannot become a Property violation or success.
 
 ## Early proof point
 <!-- scope: technical -->

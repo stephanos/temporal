@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-29-bounded-production-canary-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+This is a standalone `tools/canary` deep module and executable, not an Umpire environment adapter or command. Canary consumes stable Umpire ArtifactSet, runner, participant, conformance, and qualification interfaces; Umpire never imports canary and contains no canary-specific profile, approval, credential, lease, fencing, recovery, rollout, or release-policy types.
+
+`tools/canary` owns signed approval, production authorization, trusted artifact acquisition, isolation, controller and killable workers, leases/fencing/recovery, cleanup, rate/concurrency/blast-radius controls, audit, and the canary workflow/command. The same complete ExperimentSpec remains semantic authority. Fn-14 and CI qualification are not prerequisites; remote-staging patterns may be reused only through reviewed stable interfaces.
+
 ## Overview
 
 Add one production-control-plane C12 profile for the current semantic model. The profile runs the
@@ -376,6 +382,7 @@ receipt, even a green production canary, cannot authorize a release by itself.
   cannot publish or retain an accepted production-canary claim; receipts are explicitly not
   self-authenticating, and authorized production requires both the external trusted-ref rule and the
   trusted retained-artifact channel.
+- **R10:** All canary-specific code, types, commands, workflows, approval/authorization, credentials, leases/fencing/recovery, rollout, audit, and safety policy live under the independently owned `tools/canary` boundary, which only consumes stable Umpire interfaces. This supersedes any `tools/umpire` or Umpire-profile ownership implied by R1–R8. Errors: Umpire importing canary, canary policy/credentials in Umpire artifacts or qualification types, a canary-specific Umpire command, fn-14/CI gating, or a non-killable/unrecoverable worker fails completion.
 
 ## Early proof point
 
