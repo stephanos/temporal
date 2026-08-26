@@ -39,9 +39,12 @@ The visibility leaf must directly import only `Umpire.Query`; avoiding a fixture
 - [ ] No production query behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
 
 ## Done summary
-TBD
+Split the Query regression suite behind an import-only facade while preserving all 10 assertions, the public visibility guard, 47 definitions, nine existing explanatory comments, and the full semantic-string multiset. The facade maps visibility to `Visibility`; shared declarations (`id`, `source`, `phase`, `request`, `accepted`, `observed`, `role`, `value`, `initial`, `completed`, `requestValue`, `acceptedValue`, `observedValue`, `setup`, `transition`, `kernel`, `target`, `checkedProperty`, `checkedBehavior`, `completeness`, `bounds`, `exhaustivePolicy`, `searchPolicy`, `context`, `exhaustiveContext`, `declaration`, `errorKindOf`) to `Fixtures`; `summaryOf` plus the form assertion to `Forms`; `incompleteContext`, `noFiniteDomains`, and four assertions to `Completeness`; `invalidBounds`, `exactTrace`, `invalidExactBehavior`, and two assertions to `Validation`; and the canonical/digest helpers and semantic variants plus three assertions to `Identity`.
 
+`Visibility` directly imports only `Umpire.Query`; each other concern imports `Fixtures`, which itself imports only `Umpire.Query`, so no child imports the test facade. All six leaves elaborate directly, `UmpireTests` and both full model aggregates build, the root Umpire regression passes, and structural/inventory/diff checks are green.
+
+stage: impl-review - ran [2026-08-26T03:30:10Z..2026-08-26T03:33:00Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2a7de6d1062e2b07585ec7834bd8c0878b853373
+- Tests: GATE_SKIPPED:build:green-receipt edf87325 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt edf87325 - baseline reused from prior post-gate pass, git diff --check, cd model && mise exec -- lake env lean Umpire/Query/Tests/Fixtures.lean, cd model && mise exec -- lake build Umpire.Query.Tests.Fixtures, cd model && mise exec -- lake env lean Umpire/Query/Tests/Visibility.lean, cd model && mise exec -- lake env lean Umpire/Query/Tests/Forms.lean, cd model && mise exec -- lake env lean Umpire/Query/Tests/Completeness.lean, cd model && mise exec -- lake env lean Umpire/Query/Tests/Validation.lean, cd model && mise exec -- lake env lean Umpire/Query/Tests/Identity.lean, cd model && mise exec -- lake build UmpireTests, Query assertion/comment/definition/semantic-string and import-boundary inventory checks, (cd model && mise exec -- lake build UmpireTests TemporalModelTests), make umpire-check-regression, git diff --check 0bb0781011268c5abf3b2679852f5baae5af60da..HEAD
 - PRs:
