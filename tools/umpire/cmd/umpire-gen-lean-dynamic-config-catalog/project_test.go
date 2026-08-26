@@ -318,7 +318,7 @@ func TestRegistryHelperCleansSourceOnEveryPath(t *testing.T) {
 				require.Equal(t, []string{
 					"run",
 					"-tags=test_dep",
-					"./tools/umpire/cmd/umpire-gen-dynamic-config",
+					"./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog",
 					registryHelperArgument,
 				}, arguments)
 				return test.stdout, test.stderr, test.runErr
@@ -337,7 +337,7 @@ func TestRegistryHelperCleansSourceOnEveryPath(t *testing.T) {
 				require.ErrorContains(t, err, test.contains)
 				require.Equal(t, Catalog{}, catalog)
 			}
-			matches, globErr := filepath.Glob(filepath.Join(helperDirectory, "zz_umpire_gen_dynamic_config_helper_*.go"))
+			matches, globErr := filepath.Glob(filepath.Join(helperDirectory, "zz_umpire_gen_lean_dynamic_config_catalog_helper_*.go"))
 			require.NoError(t, globErr)
 			require.Empty(t, matches)
 		})

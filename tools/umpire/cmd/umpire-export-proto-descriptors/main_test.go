@@ -17,12 +17,12 @@ import (
 )
 
 const (
-	fixturePackage       = "go.temporal.io/server/tools/umpire/cmd/umpire-gen-model-descriptors/testdata/godescriptors"
-	brokenFixturePackage = "go.temporal.io/server/tools/umpire/cmd/umpire-gen-model-descriptors/testdata/godescriptorsbroken"
+	fixturePackage       = "go.temporal.io/server/tools/umpire/cmd/umpire-export-proto-descriptors/testdata/godescriptors"
+	brokenFixturePackage = "go.temporal.io/server/tools/umpire/cmd/umpire-export-proto-descriptors/testdata/godescriptorsbroken"
 )
 
 func TestCommandReportsUsageErrors(t *testing.T) {
-	binaryName := "umpire-gen-model-descriptors"
+	binaryName := "umpire-export-proto-descriptors"
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"
 	}
@@ -56,7 +56,7 @@ func TestCommandReportsUsageErrors(t *testing.T) {
 			var exitErr *exec.ExitError
 			require.ErrorAs(t, err, &exitErr)
 			require.NotZero(t, exitErr.ExitCode())
-			require.True(t, strings.HasPrefix(stderr.String(), "umpire-gen-model-descriptors: "), stderr.String())
+			require.True(t, strings.HasPrefix(stderr.String(), "umpire-export-proto-descriptors: "), stderr.String())
 			require.Contains(t, stderr.String(), test.contains)
 		})
 	}
@@ -181,7 +181,7 @@ func TestListDescriptorPackagesFiltersCompatibilityCopiesByProtobufPrefix(t *tes
 		context.Background(),
 		[]string{
 			fixturePackage,
-			"go.temporal.io/server/tools/umpire/cmd/umpire-gen-model-descriptors/testdata/godescriptorscompat",
+			"go.temporal.io/server/tools/umpire/cmd/umpire-export-proto-descriptors/testdata/godescriptorscompat",
 		},
 		[]string{"fixture/public/"},
 	)

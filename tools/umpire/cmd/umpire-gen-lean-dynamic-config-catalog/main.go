@@ -12,7 +12,7 @@ import (
 
 func main() {
 	if err := mainError(); err != nil {
-		if _, writeErr := fmt.Fprintf(os.Stderr, "umpire-gen-dynamic-config: %v\n", err); writeErr != nil {
+		if _, writeErr := fmt.Fprintf(os.Stderr, "umpire-gen-lean-dynamic-config-catalog: %v\n", err); writeErr != nil {
 			os.Exit(1)
 		}
 		os.Exit(1)
@@ -50,7 +50,7 @@ func mainError() error {
 }
 
 func parseOutputRoot(args []string, moduleRoot string) (string, error) {
-	flags := flag.NewFlagSet("umpire-gen-dynamic-config", flag.ContinueOnError)
+	flags := flag.NewFlagSet("umpire-gen-lean-dynamic-config-catalog", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	outputRoot := flags.String("output-root", "", "root directory for generated Lean modules")
 	if err := flags.Parse(args); err != nil {

@@ -1,8 +1,9 @@
 # Temporal Lean model architecture
 
-This directory contains the reusable Umpire modeling library, generated structural projections of
-Temporal APIs and dynamic configuration, and handwritten Temporal-specific semantic models. This
-document is the high-level map. The reusable package document describes its public API in detail:
+This directory contains the neutral Shared formal primitives, the reusable Umpire modeling
+library, generated structural projections of Temporal APIs and dynamic configuration, and
+handwritten Temporal-specific semantic models. This document is the high-level map. The reusable
+package document describes the Umpire public API in detail:
 
 - [Umpire public API](Umpire/ARCHITECTURE.md)
 
@@ -10,10 +11,11 @@ For generation ownership, build commands, and regression checks, see [README.md]
 
 ## Libraries and imports
 
-The model defines two production Lean libraries:
+The model defines three production Lean libraries:
 
 | Import | Purpose |
 | --- | --- |
+| `Shared` | Neutral transition-system and trace-replay primitives for independent Lean models. |
 | `Umpire` | Reusable, Temporal-independent semantic modeling and finite planning APIs. |
 | `Temporal` | Generated Temporal schemas plus handwritten Temporal-specific interpretations and scenarios. |
 
@@ -22,6 +24,14 @@ Most consumers should start with an umbrella import:
 ```lean
 import Umpire
 import Temporal
+```
+
+Models that need only the neutral transition or replay vocabulary can import `Shared` or its
+focused modules without depending on Umpire or Temporal:
+
+```lean
+import Shared.Transition
+import Shared.TraceReplay
 ```
 
 Use focused imports when a consumer needs a smaller surface. The package-level documents identify
@@ -47,6 +57,10 @@ The import-only `TemporalModelTests` library is the Temporal test root. The
 ## Dependency map
 
 ```text
+Shared
+├── Shared.Transition
+└── Shared.TraceReplay
+
 Umpire.Core
 ├── Umpire.Property
 ├── Umpire.Behavior
@@ -82,10 +96,11 @@ Umpire.Examples.Switch ────────────────┴──
                                   temporal-model-inspect
 ```
 
-`Umpire` does not depend on Temporal. Temporal-specific semantics are adapters built on top of the
-reusable Umpire APIs. Feature does not import System, System does not import Feature, and the shared
-System Configuration facade does not import its Callback or Matching consumers. Tool may compose
-Feature models with reusable examples for inspection.
+`Shared` does not depend on Umpire or Temporal, and `Umpire` does not depend on Temporal.
+Temporal-specific semantics are adapters built on top of the reusable Umpire APIs. Feature does
+not import System, System does not import Feature, and the shared System Configuration facade does
+not import its Callback or Matching consumers. Tool may compose Feature models with reusable
+examples for inspection.
 
 ## Modeling lifecycle
 
@@ -146,6 +161,7 @@ observations.
 
 ## Package boundaries
 
+- `Shared` owns domain-neutral transition systems, finite runs, observations, and trace replay.
 - `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, and
   portable artifacts.
 - `Temporal.Feature` owns product meaning and target compositions.
@@ -169,6 +185,7 @@ importing reusable Umpire test internals. Compile the final public and test root
 
 ```sh
 cd model
+mise exec -- lake build Shared
 mise exec -- lake build Temporal
 mise exec -- lake build TemporalModelTests
 mise exec -- lake build temporal-model-inspect

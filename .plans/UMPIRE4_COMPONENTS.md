@@ -158,7 +158,7 @@ reader/migration/runtime boundary must preserve it.
 **Responsibility:** mechanically project Temporal API structure from descriptor sets without
 inventing product meaning.
 
-**Status: implemented projection, incomplete component surface.** `umpire-gen-api` merges the
+**Status: implemented projection, incomplete component surface.** `umpire-gen-lean-api` merges the
 public, server API, internal, and CHASM descriptor sets and deterministically owns
 `model/Temporal/API.lean` plus the complete `model/Temporal/API/` directory. It generates typed
 messages, enums, maps, `oneof`s, presence, recursion links, and service methods, with Go fixture and
@@ -172,8 +172,8 @@ descriptor set -> generated Lean wire declarations + API catalog + drift report
 Current interface:
 
 ```text
-make umpire-gen-api
-go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
+make umpire-gen-lean-api
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
 make umpire-build-model
 ```
 
@@ -189,8 +189,9 @@ contract.
 
 **Responsibility:** generate typed configuration knowledge without deciding product semantics.
 
-**Status: implemented catalog and selected semantic use.** `umpire-gen-dynamic-config` discovers
-registration sites, snapshots the initialized production registry, and deterministically owns
+**Status: implemented catalog and selected semantic use.**
+`umpire-gen-lean-dynamic-config-catalog` discovers registration sites, snapshots the initialized
+production registry, and deterministically owns
 `model/Temporal/DynamicConfig.lean` plus the complete `model/Temporal/DynamicConfig/` directory.
 The generated catalog includes normalized keys, schemas/codecs, defaults, precedence policies,
 constraints, fixtures, and a catalog identity. `model/Temporal/System/Configuration/` implements
@@ -204,8 +205,8 @@ Temporal dynamic-config declarations -> generated ConfigKey declarations + confi
 Current interface:
 
 ```text
-make umpire-gen-dynamic-config
-go test -count=1 -tags test_dep ./cmd/tools/genleandynamicconfig
+make umpire-gen-lean-dynamic-config-catalog
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
 make umpire-build-model
 ```
 

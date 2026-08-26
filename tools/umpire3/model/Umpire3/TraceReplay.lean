@@ -1,6 +1,6 @@
 import Umpire3.Execution
 import Umpire3.FiniteView
-import SharedModel.TraceReplay
+import Shared.TraceReplay
 
 namespace Umpire3
 
@@ -9,12 +9,12 @@ namespace TraceReplay
 def followNamed {model : Behavior World} {world : World}
     (view : FiniteView model world) :
     List (model.State world) → List String → List (model.State world) :=
-  SharedModel.TraceReplay.followNamed view.successors view.actionName
+  Shared.TraceReplay.followNamed view.successors view.actionName
 
 def check {model : Behavior World} {world : World}
     (view : FiniteView model world) (property : model.State world → Bool)
     (identifiers : List String) : Bool :=
-  SharedModel.TraceReplay.check view.successors view.actionName view.initials property identifiers
+  Shared.TraceReplay.check view.successors view.actionName view.initials property identifiers
 
 theorem followNamed_sound {model : Behavior World} {world : World}
     (view : FiniteView model world) {states : List (model.State world)}
@@ -46,7 +46,7 @@ theorem checked {model : Behavior World} {world : World}
     (view : FiniteView model world) (property : model.State world → Bool)
     (identifiers : List String) (accepted : check view property identifiers = true) :
     ∃ state, model.Reachable world state ∧ property state = false := by
-  simp only [check, SharedModel.TraceReplay.check, List.any_eq_true,
+  simp only [check, Shared.TraceReplay.check, List.any_eq_true,
     Bool.not_eq_true'] at accepted
   rcases accepted with ⟨state, member, violated⟩
   rcases followNamed_sound view member with ⟨initial, actions, initialMember, run⟩

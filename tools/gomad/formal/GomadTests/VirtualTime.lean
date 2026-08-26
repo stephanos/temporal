@@ -1,5 +1,5 @@
 import Gomad.VirtualTime
-import SharedModel.TraceReplay
+import Shared.TraceReplay
 
 namespace Gomad.Tests.VirtualTime
 
@@ -37,7 +37,7 @@ example :
   decide
 
 example :
-    SharedModel.TraceReplay.followNamed successors actionName [State.empty 0]
+    Shared.TraceReplay.followNamed successors actionName [State.empty 0]
       ["schedule-timer-a", "schedule-timer-b", "set-worker-runnable",
         "clear-worker-runnable", "advance-time", "fire-timer-a", "cancel-timer-b"] =
       [equalDeadlineFinal] := by

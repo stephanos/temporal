@@ -10,8 +10,8 @@ rev = "300c305e945750ab3fb62de4a79c23161b24da39"
 name = "Umpire3"
 
 [[lean_lib]]
-name = "SharedModel"
-srcDir = "../../../tools/common/formal/lean"
+name = "Shared"
+srcDir = "../../../model"
 
 [[lean_lib]]
 name = "Umpire3Tests"

@@ -12,7 +12,7 @@ separate, explicit operations.
 
 ## Design
 
-The root recipe acquires all required descriptor sets and invokes `umpire-gen-api` once. The
+The root recipe acquires all required descriptor sets and invokes `umpire-gen-lean-api` once. The
 generator validates and replaces its exact API module boundary. The `model/` directory remains a
 normal Lake project whose `lean-toolchain`, `lakefile.toml`, and Mise pin define compilation.
 
@@ -21,8 +21,8 @@ normal Lake project whose `lean-toolchain`, `lakefile.toml`, and Mise pin define
 Run these commands from the repository root:
 
 ```sh
-make umpire-gen-api
-go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api
+make umpire-gen-lean-api
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
 cd model && mise exec -- lake build
 ```
 

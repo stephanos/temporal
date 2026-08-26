@@ -117,15 +117,15 @@ UMPIRE3_NEXUS_EXACT_MUTATION_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal
 UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal/generated/testdata/generated/update-proof-manifest.json
 UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
-UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
-UMPIRE_GEN_REGRESSION_PROJECTIONS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regressions
-UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-dynamic-config
-UMPIRE_GEN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-model-descriptors
+UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
+UMPIRE_GEN_REGRESSION_PROJECTIONS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regression-projections
+UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
+UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
 UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
 UMPIRE_REGRESSION_FIXTURES := \
 	workflow-nexus.query.exact-action-caller-closure:Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json \
 	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
-UMPIRE_GEN_API_ARGS = \
+UMPIRE_GEN_LEAN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
 	--descriptor $(API_BINPB) \
 	--descriptor $(INTERNAL_BINPB) \
@@ -219,7 +219,7 @@ UMPIRE_PUBLIC_BINPB := $(PROTO_ROOT)/umpire-public.binpb
 # develop/buf-breaking.sh to handle the old and new values at once.
 INTERNAL_BINPB := $(PROTO_ROOT)/image.bin
 CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
-UMPIRE_API_FIXTURE_ROOT := tools/umpire/cmd/umpire-gen-api/testdata/basic
+UMPIRE_API_FIXTURE_ROOT := tools/umpire/cmd/umpire-gen-lean-api/testdata/basic
 UMPIRE_API_FIXTURE_INPUT := $(UMPIRE_API_FIXTURE_ROOT)/input
 UMPIRE_API_FIXTURE_DESCRIPTOR := $(UMPIRE_API_FIXTURE_ROOT)/input.pb
 UMPIRE_API_FIXTURE_PROTOS := compat/protobuf/v1/options.proto shared/messaging/v1/types.proto public/messaging/v1/message.proto internal/messaging/v1/messaging_service.proto
@@ -298,7 +298,7 @@ gomad-test:
 	@cd tools/gomad && GOWORK=off go test -tags test_dep ./...
 
 gomad-formal:
-	@cd tools/common/formal && $(LEAN_LAKE) build
+	@cd model && $(LEAN_LAKE) build Shared
 	@cd tools/gomad/formal && $(LEAN_LAKE) build
 
 gomad-formal-veil:
@@ -497,7 +497,7 @@ $(API_BINPB): go.mod go.sum $(PROTO_FILES)
 
 $(UMPIRE_PUBLIC_BINPB): go.mod go.sum
 	@printf $(COLOR) "Generating registered public protobuf descriptors..."
-	@$(UMPIRE_GEN_MODEL_DESCRIPTORS_COMMAND) \
+	@$(UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND) \
 		--package-pattern go.temporal.io/api/... \
 		--file-prefix temporal/api/ \
 		--output $@
@@ -993,14 +993,14 @@ umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$(SCENARIO)"
 
-umpire-gen-api: PROTOC = mise exec -- protoc
-umpire-gen-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
+umpire-gen-lean-api: PROTOC = mise exec -- protoc
+umpire-gen-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
 	@printf $(COLOR) "Generate Temporal API Lean modules..."
-	@$(UMPIRE_GEN_API_COMMAND) $(UMPIRE_GEN_API_ARGS)
+	@$(UMPIRE_GEN_LEAN_API_COMMAND) $(UMPIRE_GEN_LEAN_API_ARGS)
 
-umpire-gen-dynamic-config:
+umpire-gen-lean-dynamic-config-catalog:
 	@printf $(COLOR) "Generate Temporal dynamic configuration Lean modules..."
-	@$(UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND) --output-root model
+	@$(UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND) --output-root model
 
 $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMPIRE_API_FIXTURE_PROTOS))
 	@mise exec -- protoc \
@@ -1009,8 +1009,8 @@ $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMP
 		--descriptor_set_out=$@ \
 		$(UMPIRE_API_FIXTURE_PROTOS)
 
-umpire-gen-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
-	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api -run '^TestBasicFixture$$' -rewrite
+umpire-gen-lean-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
+	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api -run '^TestBasicFixture$$' -rewrite
 
 umpire-gen-regression-projections:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
@@ -1027,7 +1027,7 @@ umpire-check-regression-projections:
 		diff -u model/Temporal/Tool/Generated/Regressions.md \
 			"$$temporary/model/Temporal/Tool/Generated/Regressions.md"
 	@go test -count=1 -tags test_dep \
-		./tools/umpire/cmd/umpire-gen-regressions ./tools/umpire/regression
+		./tools/umpire/cmd/umpire-gen-regression-projections ./tools/umpire/regression
 
 umpire-check-regression: umpire-check-regression-projections
 	@set -eu; \
@@ -1251,7 +1251,7 @@ umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
 
-.PHONY: umpire-build-model umpire-inspect umpire-gen-api umpire-gen-api-fixture umpire-gen-dynamic-config umpire-gen-regression-projections umpire-check-regression-projections umpire-check-regression
+.PHONY: umpire-build-model umpire-inspect umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-regression-projections umpire-check-regression-projections umpire-check-regression
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 
