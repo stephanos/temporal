@@ -3,6 +3,11 @@
 Status: architecture contract for the domain-neutral Lean library under `model/Umpire` and its
 Temporal adapters under `model/Temporal`.
 
+The module seams, author roles, import rules, and optional-verification placement are governed by
+[`UMPIRE4_SPEC_MODEL_ARCH.md`](UMPIRE4_SPEC_MODEL_ARCH.md). This document owns the semantic
+languages and their denotations. Where the documents overlap, the model-architecture spec controls
+source placement and import isolation.
+
 This document does not describe the Go Umpire2 runtime or the independent Umpire3 implementation.
 See [`UMPIRE.md`](UMPIRE.md) and [`UMPIRE3.md`](UMPIRE3.md) for those systems. Shared product goals
 remain in [`UMPIRE_VISION.md`](UMPIRE_VISION.md).
@@ -68,6 +73,14 @@ separate integration work and must preserve the same semantic identities.
   invent an unproved `Combine` operation.
 - Property, Behavior, and Query are the only public semantic authoring path. Obsolete combined
   regression structures and compatibility facades must not remain as a second interface.
+- Umpire remains Temporal-agnostic while its interfaces are selected and deepened around problems
+  demonstrated by Temporal.
+- `Temporal.Feature` owns product meaning and `Temporal.System` owns implementation meaning. Both
+  are ordinary authoring surfaces; mixed claims meet through an explicit refinement.
+- Ordinary Temporal authors state domain meaning, bounds, and evidence requirements without
+  assembling Umpire proof, checking, canonicalization, or planner plumbing.
+- Veil is available only through focused generic support and expert adapters under
+  `Temporal.Verify`; ordinary Umpire and Temporal facades never expose it.
 - Umpire3 is neither a dependency nor a semantic oracle for this model.
 
 ## Shared vocabulary and composition
@@ -347,6 +360,7 @@ completion authority. Callers cannot manufacture a verified result.
 Public facade modules such as `Umpire.Property` hide cohesive implementation directories. The
 generic switch example lives under `Umpire.Examples`. No production or test file under
 `model/Umpire` may contain Temporal-owned vocabulary, identities, fixtures, or imports.
+The ordinary `Umpire` aggregate does not import optional `Umpire.Verify.Veil` machinery.
 
 Temporal modules are classified by semantic altitude:
 
@@ -354,14 +368,30 @@ Temporal modules are classified by semantic altitude:
 - `Temporal.Feature` owns product-visible behavior and checked feature targets;
 - `Temporal.System` owns concrete mechanisms, configuration interpretation, evidence mappings,
   execution adapters, and refinement adapters;
-- `Temporal.Tool` owns inspection and developer tooling without behavioral authority.
+- `Temporal.Tool` owns ordinary inspection and developer tooling without behavioral authority; and
+- `Temporal.Verify` owns expert-only checker views, Veil declarations, checked bindings,
+  correspondence proofs, and verification entry points.
 
-Feature models do not import concrete System mechanisms. System modules do not redefine feature
-properties. A refinement module imports the relevant interfaces and owns their mapping. Tooling may
-import both sides.
+Feature and System describe semantic altitude, not author expertise. Regular Temporal engineers may
+author both through the same approachable Umpire interfaces. Feature models do not import concrete
+System mechanisms, and base System mechanisms do not redefine Feature properties. A
+`Temporal.System.<Family>.Refinement` leaf imports the relevant Feature and System interfaces and
+owns their mapping. Ordinary tooling may import both sides but never imports `Temporal.Verify`.
+
+The classification test is whether a claim survives a complete rewrite of Temporal internals while
+externally observable behavior remains the same. Such claims belong in Feature. Concrete handlers,
+tasks, persistence, configuration resolution, evidence sources, and other implementation choices
+belong in System. Mixed concerns split into a Feature property, System mechanism, explicit
+refinement, and observation mapping.
 
 Configuration follows the same seam: generic typed resolution and provenance live under
 `Temporal.System.Configuration`; Callback and Matching own their domain-specific interpretations.
+Feature may expose an abstract semantic configuration choice only when it changes product-visible
+meaning; a refinement maps the resolved System value to that choice.
+
+`Temporal.lean`, ordinary Temporal model tests, and ordinary developer tools exclude
+`Temporal.Verify`. Optional family verification enters through a dedicated aggregate such as
+`TemporalVerify.lean` and a focused build/test command.
 The repository root `Makefile` remains the public build and verification surface.
 
 ## Optional Veil checking
@@ -370,15 +400,22 @@ Veil is an optional Lean-native capability for selected model families whose ind
 interference reasoning, symbolic search, or SMT-assisted proof provide value beyond finite planning.
 It does not replace Property, Behavior, Query, Planning, Observation, Artifact, or canonical replay.
 
-A Veil-owning family keeps together:
+A Veil-owning family logically owns:
 
-1. its canonical target, properties, and semantic identities;
-2. a handwritten Veil declaration in the primary Lake project; and
-3. a checked binding between Veil states, actions, transitions, properties, and the canonical model.
+1. its canonical target, properties, and semantic identities under the ordinary Feature or System
+   model;
+2. a handwritten Veil declaration under `Temporal.Verify.<Family>` in the primary Lake project; and
+3. a checked binding under the same expert adapter between Veil states, actions, transitions,
+   properties, and the canonical model.
+
+Generic optional Veil machinery lives under `Umpire.Verify.Veil` and contains no Temporal
+vocabulary. Family-specific views, declarations, mappings, and correspondence proofs live under
+`Temporal.Verify`, not under `Umpire`, `Temporal.Feature`, or base `Temporal.System` modules.
 
 Umpire never generates Veil source from Go, JSON, templates, or `ExperimentSpec`. Lean
 metaprogramming may remove local boilerplate, but authored declarations remain inspectable and
-source-bound. Ordinary Umpire imports must remain usable without Veil.
+source-bound. Ordinary Umpire and Temporal imports must remain usable without importing or
+compiling Veil modules.
 
 The binding records canonical and Veil source identities and digests, state/action mappings, the
 claimed relation, assumptions, bounds, exclusions, unsupported vocabulary, and trust mode. Partial
@@ -392,7 +429,9 @@ digests, and replay disagreement never become success.
 Every Veil counterexample must replay through the canonical Umpire transition kernel before it can
 support a semantic violation or promoted regression. Verification receipts reference rather than
 duplicate `ExperimentSpec` and remain offline build/test artifacts; Veil never enters production
-request paths or server binaries.
+request paths or server binaries. The normal model build and regression gate do not compile or run
+`Temporal.Verify`; a separate focused verification gate owns Veil's toolchain, cost, and retained
+trust evidence.
 
 ## Verification contract
 
@@ -406,12 +445,16 @@ Focused checks must cover:
 - evidence closure, gaps, ambiguity, conflict, causality, field disposition, and derivations;
 - independent model, mapping, property, and implementation mutations;
 - package import direction and absence of Temporal vocabulary under `model/Umpire`;
-- direct elaboration and source-binding of optional Veil declarations;
+- absence of Veil imports from the ordinary `Umpire` and `Temporal` aggregates, Feature, base
+  System, and ordinary Tool modules;
+- direct elaboration and source-binding of optional declarations under `Temporal.Verify`;
+- checked correspondence between each checker view and its canonical Feature or System model;
 - stale Veil binding rejection, honest trust classes, and canonical counterexample replay; and
 - both the domain-neutral switch and Temporal Nexus scenario through the same public interfaces.
 
-Use `make umpire-check-regression` as the stable repository command. Current source and generated
-fixtures, not status prose in this document, determine implementation truth.
+Use `make umpire-check-regression` as the stable ordinary repository command; it excludes optional
+Veil adapters. A separate focused command owns `Temporal.Verify` when a family adopts Veil. Current
+source and generated fixtures, not status prose in this document, determine implementation truth.
 
 ## Non-goals
 
@@ -424,4 +467,8 @@ fixtures, not status prose in this document, determine implementation truth.
 - Hiding bounds, truncation, unsupported vocabulary, evidence gaps, or cleanup failure.
 - Replacing specialized unit, race, persistence, schema, authorization, performance, or handler
   tests.
+- Putting Temporal-specific checker views or Veil bindings under `Umpire`.
+- Treating Feature as the approachable layer and System as an expert-only layer.
+- Importing Veil from `Temporal.Feature`, base `Temporal.System`, ordinary `Temporal.Tool`, or the
+  ordinary `Temporal` aggregate.
 - Making Veil mandatory, generating Veil source, or importing Umpire3 semantics.
