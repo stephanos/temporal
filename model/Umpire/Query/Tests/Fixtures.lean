@@ -15,22 +15,22 @@ def source : SemanticSource := {
   provenance := "lean-test"
 }
 
-def phase := id "query.state.phase"
-def request := id "query.action.request"
-def accepted := id "query.outcome.accepted"
-def observed := id "query.observation.accepted"
-def role := id "query.role.operation"
+def phase : DeclarationId := id "query.state.phase"
+def request : DeclarationId := id "query.action.request"
+def accepted : DeclarationId := id "query.outcome.accepted"
+def observed : DeclarationId := id "query.observation.accepted"
+def role : DeclarationId := id "query.role.operation"
 
 def value (identity : DeclarationId) (payload : String) : SemanticValue := {
   identity
   value := payload
 }
 
-def initial := value phase "initial"
-def completed := value phase "completed"
-def requestValue := value request "request"
-def acceptedValue := value accepted "accepted"
-def observedValue := value observed "accepted"
+def initial : SemanticValue := value phase "initial"
+def completed : SemanticValue := value phase "completed"
+def requestValue : SemanticValue := value request "request"
+def acceptedValue : SemanticValue := value accepted "accepted"
+def observedValue : SemanticValue := value observed "accepted"
 def setup : List RoleBinding := [{ role, value := value phase "operation-a" }]
 
 def transition : TransitionResult SemanticValue SemanticValue SemanticValue := {
@@ -48,14 +48,32 @@ def kernel : TransitionKernel
   }
   initialStates := fun candidate => if candidate = setup then [initial] else []
   authoritativeInitial := fun candidate state => candidate = setup ∧ state = initial
-  initialSound := by intros; split at * <;> simp_all
-  initialComplete := by intros; simp_all
+  initialSound := by
+    intro candidate state member
+    by_cases selected : candidate = setup
+    · rw [if_pos selected] at member
+      exact ⟨selected, List.mem_singleton.mp member⟩
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
+  initialComplete := by
+    intro candidate state admitted
+    rcases admitted with ⟨rfl, rfl⟩
+    simp
   steps := fun state action =>
     if state = initial ∧ action = requestValue then [transition] else []
   authoritativeStep := fun state action result =>
     state = initial ∧ action = requestValue ∧ result = transition
-  stepSound := by intros; split at * <;> simp_all
-  stepComplete := by intros; simp_all
+  stepSound := by
+    intro state action result member
+    by_cases selected : state = initial ∧ action = requestValue
+    · rw [if_pos selected] at member
+      exact ⟨selected.1, selected.2, List.mem_singleton.mp member⟩
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
+  stepComplete := by
+    intro state action result admitted
+    rcases admitted with ⟨rfl, rfl, rfl⟩
+    simp
 }
 
 def target : QueryTarget (fun _ => True) := {

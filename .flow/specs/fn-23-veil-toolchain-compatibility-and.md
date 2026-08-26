@@ -2,6 +2,10 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-23-veil-toolchain-compatibility-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+Compatibility evidence must also prove the intended import boundary: generic optional Veil mechanics can later live only under focused `Umpire.Verify.Veil` imports; Temporal family bindings can later live only under `Temporal.Verify`; and `Umpire.lean`, `Temporal.lean`, ordinary tools/tests, runtime artifacts, and production binaries remain free of Veil. A future opt-in aggregate such as `TemporalVerify.lean` is the only ordinary entry point authorized by an adopt decision.
+
 ## Overview
 
 Resolve the first mandatory C11 question without contaminating the primary model: can an unchanged pinned Veil revision and its exact dependency/tool chain build and run a handwritten probe under this repository's Lean 4.33.1 toolchain, behind an opt-in boundary, with acceptable deterministic cost and honest solver trust? The gate evaluates two closed upstream revisions in an isolated temporary copy and emits one canonical decision receipt. It does not add Veil to `model/lakefile.toml`, `lake-manifest.json`, default targets, regression checks, production code, or semantic claims.
@@ -99,6 +103,7 @@ make umpire-check-regression
 - **R5:** Candidate-scoped cold, warm, three focused checks, descendant resources, and stream sizes are measured against the exact fixed thresholds; the exact precedence returns `adopt-optional`, `defer-incompatible`, or `inconclusive`. Errors: missing/applicability-ambiguous measurement, N+1 resource/cost, first-compatible priority drift, nondeterministic decision, or adoption without all gates fails closed.
 - **R6:** One normative canonical bounded receipt/error/progress/status contract and opt-in root command make the compatibility decision inspectable and repeatable while host/raw metrics remain outside receipt identity. Errors: byte/identity ambiguity, path/log leakage, invalid stdout/stderr split, event overflow, existing target invocation, repository mutation, or implicit network/fetch from ordinary builds fails verification.
 - **R7:** Focused fake-process/acquisition/sandbox/clock matrices, at least one status-0 or status-2 opt-in real run on the supported reference host, before/after model checks, developer documentation, and C11 roadmap status prove the gate resolves its decision without changing semantic or production surfaces. A status-1 real run is retained as error evidence but cannot complete the task. Errors: Veil in committed Lake/default/regression/CI/runtime paths, generated source, new semantic claim, prohibited legacy dependency/use, or missing explicit decision evidence blocks completion.
+- **R8:** The gate records and tests the future import contract: only focused `Umpire.Verify.Veil`, `Temporal.Verify`, and `TemporalVerify.lean` paths may consume an adopted dependency; ordinary Umpire/Temporal facades, model tests, tools, artifacts, and runtime/production paths remain clean. Errors: a compatibility probe requiring ordinary aggregates, default targets, production binaries, or a second Lake project cannot produce `adopt-optional`.
 
 ## Early proof point
 

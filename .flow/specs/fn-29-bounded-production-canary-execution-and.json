@@ -7,12 +7,10 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-14-milestone-a-pilot-baseline-and-lean",
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
     "fn-26-local-qualification-receipts-and-staged",
-    "fn-27-hermetic-ci-execution-and-qualification",
     "fn-28-authorized-remote-staging-black-box"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
@@ -164,5 +162,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T15:57:16.026403Z"
+  "updated_at": "2026-08-26T20:31:08.320737Z"
 }
