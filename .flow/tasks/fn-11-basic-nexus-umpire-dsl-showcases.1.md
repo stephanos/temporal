@@ -48,6 +48,7 @@ Create the shared Temporal Feature adapter that lets the two walkthroughs use on
 Added the Temporal-owned basic Nexus lifecycle target, deriving its exposed transitions from `AutoClose.step` and encapsulating checked composition, finite completeness, deterministic bounds/policy, and the incremental planner kernel. Added focused coverage for the two teaching transitions, unsupported pairs, exact target cardinality, deterministic enumeration, and typed missing/conflicting-provider failures.
 
 stage: impl-review - ran (codex; SHIP at 2026-08-26T01:30:19Z)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 4306c21056921b86ec2ed63b0be4fbd122997b25, 3bf844a6f5a6852e315bb106c44bd0abf999ec8e
 - Tests: baseline: green (cd model && mise exec -- lake build TemporalModelTests), baseline: green (make umpire-check-regression), cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicLifecycle, cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicLifecycleTests, cd model && mise exec -- lake build TemporalModelTests, make umpire-check-regression
