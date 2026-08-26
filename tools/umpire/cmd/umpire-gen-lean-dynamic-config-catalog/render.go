@@ -72,6 +72,8 @@ func renderDynamicConfigTypes() []byte {
 	var generated strings.Builder
 	writeDynamicConfigHeader(&generated)
 	generated.WriteString(`
+set_option linter.missingDocs false
+
 namespace Temporal.DynamicConfig
 
 inductive PrecedencePolicy where
@@ -230,6 +232,7 @@ func renderDynamicConfigSettings(
 	var generated strings.Builder
 	writeDynamicConfigHeader(&generated)
 	generated.WriteString("import Temporal.DynamicConfig.Types\n\n")
+	generated.WriteString("set_option linter.missingDocs false\n")
 	generated.WriteString("set_option maxRecDepth 100000\n\n")
 	generated.WriteString("namespace Temporal.DynamicConfig.Settings\n\n")
 	for _, setting := range settings {
