@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-6-plan-simplify-lean-api-generator-output",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-26T07:52:28.490781Z",
   "created_at": "2026-08-24T22:47:09.786074Z",
   "default_impl": null,
   "default_review": null,
@@ -45,18 +45,50 @@
       "timestamp": "2026-08-24T23:16:05.664989Z",
       "tool_calls": 57,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a05ff789c22cc9f22b22e53f0aaa49791eba0a1ddf637157d2de0afce2cb8d44",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3982e3bbc1c5789882e1531107b957055b04ac95",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 430123,
+      "output_sha256": "0a722bb1c0868fb7bf35271b1062bdf83c42b9460dbb6f9c7f4470be95dc2292",
+      "reservation_id": "27bea432a29d40e591918af3c4c176d4",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T07:52:28.482014Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-6-plan-simplify-lean-api-generator-output.1": 1
+    "impl:fn-6-plan-simplify-lean-api-generator-output.1": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-6-plan-simplify-lean-api-generator-output.1": 0
   },
   "spec_path": ".flow/specs/fn-6-plan-simplify-lean-api-generator-output.md",
-  "status": "open",
+  "status": "done",
   "title": "Plan: Simplify Lean API Generator Output",
   "tracker": {
     "baseHashFlow": null,
@@ -69,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T23:16:05.678333Z"
+  "updated_at": "2026-08-26T07:52:41.751365Z"
 }
