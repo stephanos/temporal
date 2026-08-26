@@ -1,4 +1,4 @@
-package regression
+package main
 
 import (
 	"encoding/json"
@@ -400,7 +400,7 @@ func testRepositoryRoot(t *testing.T) string {
 	t.Helper()
 	_, filename, _, ok := runtime.Caller(0)
 	require.True(t, ok)
-	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "..", "..", ".."))
+	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "..", ".."))
 }
 
 func writeLeanSource(t *testing.T, root, relative string) {
