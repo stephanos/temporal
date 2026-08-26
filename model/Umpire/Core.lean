@@ -73,6 +73,7 @@ inductive BoundUnit where
   | selectedActions
   | observationPositions
   | logicalTime
+  | evidenceRecords
   deriving BEq, DecidableEq, Ord, Repr
 
 def BoundUnit.name : BoundUnit → String
@@ -80,6 +81,7 @@ def BoundUnit.name : BoundUnit → String
   | .selectedActions => "selected-actions"
   | .observationPositions => "observation-positions"
   | .logicalTime => "logical-time"
+  | .evidenceRecords => "evidence-records"
 
 structure TypedBound where
   value : Nat

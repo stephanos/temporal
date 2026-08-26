@@ -8,3 +8,4 @@ import Umpire.Query.Tests
 import Umpire.Planning.Tests
 import Umpire.Planning.VisibilityTests
 import Umpire.Examples.SwitchTests
+import Umpire.Observation.Tests
