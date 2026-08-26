@@ -17,6 +17,19 @@ import (
 
 const supportedExperimentFormat = "umpire-experiment/v1"
 
+var canonicalProjectedJSONKeys = map[string]string{
+	"formatversion":           "formatVersion",
+	"plan":                    "plan",
+	"queryidentity":           "queryIdentity",
+	"properties":              "properties",
+	"identity":                "identity",
+	"observationrequirements": "observationRequirements",
+	"semanticidentity":        "semanticIdentity",
+	"provenance":              "provenance",
+	"sources":                 "sources",
+	"path":                    "path",
+}
+
 type sourceProjection struct {
 	CanonicalPath  string
 	RepositoryPath string
@@ -121,19 +134,94 @@ func decodeExperiment(encoded []byte) (experimentEnvelope, error) {
 	if len(bytes.TrimSpace(encoded)) == 0 {
 		return experimentEnvelope{}, errors.New("canonical ExperimentSpec JSON is empty")
 	}
-	decoder := json.NewDecoder(bytes.NewReader(encoded))
-	var document experimentEnvelope
-	if err := decoder.Decode(&document); err != nil {
+	if err := validateCanonicalJSON(encoded); err != nil {
 		return experimentEnvelope{}, fmt.Errorf("decode canonical ExperimentSpec JSON: %w", err)
 	}
-	var trailing json.RawMessage
-	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
-		if err == nil {
-			return experimentEnvelope{}, errors.New("decode canonical ExperimentSpec JSON: trailing JSON value")
-		}
-		return experimentEnvelope{}, fmt.Errorf("decode canonical ExperimentSpec JSON trailer: %w", err)
+	var document experimentEnvelope
+	if err := json.Unmarshal(encoded, &document); err != nil {
+		return experimentEnvelope{}, fmt.Errorf("decode canonical ExperimentSpec JSON: %w", err)
 	}
 	return document, nil
+}
+
+func validateCanonicalJSON(encoded []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.UseNumber()
+	first, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if err := validateJSONValue(decoder, first); err != nil {
+		return err
+	}
+	if _, err := decoder.Token(); err == nil {
+		return errors.New("trailing JSON value")
+	} else if !errors.Is(err, io.EOF) {
+		return err
+	}
+	return nil
+}
+
+func validateJSONValue(decoder *json.Decoder, token json.Token) error {
+	delimiter, structured := token.(json.Delim)
+	if !structured {
+		return nil
+	}
+	switch delimiter {
+	case '{':
+		seen := make(map[string]struct{})
+		for decoder.More() {
+			keyToken, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			key, ok := keyToken.(string)
+			if !ok {
+				return fmt.Errorf("JSON object key has type %T", keyToken)
+			}
+			if _, duplicate := seen[key]; duplicate {
+				return fmt.Errorf("duplicate JSON object key %q", key)
+			}
+			seen[key] = struct{}{}
+			if canonical, projected := canonicalProjectedJSONKeys[strings.ToLower(key)]; projected && key != canonical {
+				return fmt.Errorf("JSON object key %q must be spelled %q", key, canonical)
+			}
+			value, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			if err := validateJSONValue(decoder, value); err != nil {
+				return err
+			}
+		}
+		closing, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if closing != json.Delim('}') {
+			return fmt.Errorf("unexpected JSON object delimiter %q", closing)
+		}
+	case '[':
+		for decoder.More() {
+			value, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			if err := validateJSONValue(decoder, value); err != nil {
+				return err
+			}
+		}
+		closing, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if closing != json.Delim(']') {
+			return fmt.Errorf("unexpected JSON array delimiter %q", closing)
+		}
+	default:
+		return fmt.Errorf("unexpected JSON delimiter %q", delimiter)
+	}
+	return nil
 }
 
 func propertyIdentities(properties []experimentProperty) []string {

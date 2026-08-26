@@ -11,7 +11,9 @@
     "fn-10-temporal-semantic-model-layout-and"
   ],
   "id": "fn-13-deterministic-go-regression-projections",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-13-deterministic-go-regression-projections.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -153,6 +155,59 @@
       "task": null,
       "timestamp": "2026-08-26T01:08:21.889530Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b69560f4ff698fe26e1950524b174c2d344523cca8d591b6e331cbecdcc7e15a",
+      "backend": "codex",
+      "base_sha": "90cf9fe8769c03a22965cdacc92777b59da3faa0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-26ced81ee86c3123620224446297370f",
+            "classification": "introduced",
+            "findingId": "finding-26ced81ee86c3123620224446297370f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-59744bb8d7f2407c1051e4ae3aea163f",
+            "classification": "introduced",
+            "findingId": "finding-59744bb8d7f2407c1051e4ae3aea163f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5855302276987e48790b70abea837b24568dbf5e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 456902,
+      "output_sha256": "289d5cbe434136f212ee397a01e404e438ab048feb1c9925b8cc8ff480c3c64c",
+      "reservation_id": "7fcd8d984e0f417ea7ac872348b1986c",
+      "round_consumed": true,
+      "scope": "impl:fn-13-deterministic-go-regression-projections.1",
+      "superseded_by": null,
+      "task": "fn-13-deterministic-go-regression-projections.1",
+      "timestamp": "2026-08-26T04:46:33.840185Z",
+      "tool_calls": 12,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -162,6 +217,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-13-deterministic-go-regression-projections.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-13-deterministic-go-regression-projections.md",
@@ -178,5 +234,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T01:08:21.893098Z"
+  "updated_at": "2026-08-26T04:46:33.848993Z"
 }
