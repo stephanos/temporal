@@ -1,0 +1,133 @@
+{
+  "branch_name": "fn-11-basic-nexus-umpire-dsl-showcases",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-25T22:16:56.966763Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-10-temporal-semantic-model-layout-and"
+  ],
+  "id": "fn-11-basic-nexus-umpire-dsl-showcases",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-25T22:24:13.748185Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "1fb8f10b9d1a06fa7ced8a60f3886dfabb4184d065ef8368ac219724aa59828f",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-54fe989e58a8363a4c89673560de61ba",
+            "classification": "introduced",
+            "findingId": "finding-54fe989e58a8363a4c89673560de61ba",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e68791af4b3a76d067a53861b1a5873f82115949",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 342243,
+      "output_sha256": "ebfda1c02acdc8ce52e2e0a6a9de3cbd800570ba5661395932ef60fa8b488563",
+      "reservation_id": "578318c58c264f2f8e5eb097b56f38de",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T22:22:24.648184Z",
+      "tool_calls": 10,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d4f93976133f118e7893ef853bdb37e9dbeec30d0ebee5dcb9a66255710accfd",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-54fe989e58a8363a4c89673560de61ba",
+            "classification": "introduced",
+            "findingId": "finding-54fe989e58a8363a4c89673560de61ba",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e68791af4b3a76d067a53861b1a5873f82115949",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 316,
+      "output_sha256": "ad7fc43c6976e578fed88e167c2dfbb69e8f307ad2a2a4d28bc1ca9b2c0dd669",
+      "reservation_id": "0db49e8c616c47e8bc6ad4ab45576432",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-25T22:24:13.700353Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-11-basic-nexus-umpire-dsl-showcases.md",
+  "status": "open",
+  "title": "Basic Nexus Umpire DSL Showcases",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-25T22:24:13.753215Z"
+}

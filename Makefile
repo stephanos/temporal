@@ -984,6 +984,14 @@ umpire3-check-api:
 	@$(UMPIRE3_API_COMMAND) -mode check
 	@cmp $(UMPIRE3_API_DESCRIPTOR) $(UMPIRE3_PROTOCOL_DESCRIPTOR)
 
+umpire-build-model:
+	@printf $(COLOR) "Build Temporal Umpire Lean model..."
+	@cd model && $(LEAN_LAKE) build
+
+umpire-inspect:
+	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
+	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$(SCENARIO)"
+
 umpire-gen-api: PROTOC = mise exec -- protoc
 umpire-gen-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
 	@printf $(COLOR) "Generate Temporal API Lean modules..."
@@ -1225,7 +1233,7 @@ umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
 
-.PHONY: umpire-gen-api umpire-gen-api-fixture umpire-gen-dynamic-config umpire-check-regression
+.PHONY: umpire-build-model umpire-inspect umpire-gen-api umpire-gen-api-fixture umpire-gen-dynamic-config umpire-check-regression
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 

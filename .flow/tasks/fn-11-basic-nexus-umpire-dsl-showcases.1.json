@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T22:17:06.576724Z",
+  "depends_on": [],
+  "id": "fn-11-basic-nexus-umpire-dsl-showcases.1",
+  "priority": null,
+  "spec": "fn-11-basic-nexus-umpire-dsl-showcases",
+  "spec_path": ".flow/tasks/fn-11-basic-nexus-umpire-dsl-showcases.1.md",
+  "status": "todo",
+  "title": "Build the basic Nexus lifecycle teaching target",
+  "updated_at": "2026-08-25T22:17:06.576724Z"
+}
