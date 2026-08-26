@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T12:22:50Z",
+  "depends_on": [
+    "fn-23-veil-toolchain-compatibility-and.3"
+  ],
+  "id": "fn-23-veil-toolchain-compatibility-and.4",
+  "priority": null,
+  "spec": "fn-23-veil-toolchain-compatibility-and",
+  "spec_path": ".flow/tasks/fn-23-veil-toolchain-compatibility-and.4.md",
+  "status": "todo",
+  "title": "Measure costs and derive the closed adoption decision",
+  "updated_at": "2026-08-26T12:22:50Z"
+}
