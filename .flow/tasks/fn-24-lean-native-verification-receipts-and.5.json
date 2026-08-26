@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T13:10:00Z",
+  "depends_on": [
+    "fn-24-lean-native-verification-receipts-and.4"
+  ],
+  "id": "fn-24-lean-native-verification-receipts-and.5",
+  "priority": null,
+  "spec": "fn-24-lean-native-verification-receipts-and",
+  "spec_path": ".flow/tasks/fn-24-lean-native-verification-receipts-and.5.md",
+  "status": "todo",
+  "title": "Expose the opt-in Temporal verification command",
+  "updated_at": "2026-08-26T13:10:00Z"
+}
