@@ -427,7 +427,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-1-lean-regression-dsl-and-nexus.md",
-  "status": "open",
+  "status": "done",
   "title": "Lean regression DSL and Nexus ExperimentSpec",
   "tracker": {
     "baseHashFlow": null,
@@ -440,5 +440,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-24T17:53:14.699055Z"
+  "updated_at": "2026-08-26T04:30:38.607398Z"
 }
