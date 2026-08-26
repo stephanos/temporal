@@ -68,18 +68,47 @@ private partial def scanSourceDirectory
         }
   pure (sources, visited)
 
+private def sameCaseFoldedSource (left right : SourceRecord) : IO Bool := do
+  let leftPath := FilePath.mk left.path
+  let rightPath := FilePath.mk right.path
+  let leftMetadata ← leftPath.symlinkMetadata
+  let rightMetadata ← rightPath.symlinkMetadata
+  if leftMetadata.type != .file || rightMetadata.type != .file ||
+      leftMetadata.byteSize != rightMetadata.byteSize ||
+      leftMetadata.modified != rightMetadata.modified ||
+      leftMetadata.numLinks != rightMetadata.numLinks then
+    return false
+  return (← IO.FS.readBinFile leftPath) == (← IO.FS.readBinFile rightPath)
+
+private def collapseFilesystemCaseAliases (sources : Array SourceRecord) : IO (Array SourceRecord) := do
+  let mut canonical := #[]
+  for source in sources do
+    let alias? := sources.find? fun candidate =>
+      candidate.path != source.path && candidate.path.toLower == source.path.toLower &&
+        (defaultPolicy.classify? candidate.module).isSome &&
+        (defaultPolicy.classify? source.module).isNone
+    if let some alias := alias? then
+      -- Case-insensitive mounts can enumerate one physical source under both requested spellings.
+      unless ← sameCaseFoldedSource source alias do
+        canonical := canonical.push source
+    else
+      canonical := canonical.push source
+  pure canonical
+
 private def inventorySources : IO (Array SourceRecord) := do
   let root ← realPathNormalized (← IO.currentDir)
   unless (← (root / "lakefile.toml").pathExists) do
     throw <| IO.userError s!"canonical model root has no lakefile.toml: {root}"
   let (sources, _) ← scanSourceDirectory root root #[]
+  let sources ← collapseFilesystemCaseAliases sources
   pure <| sources.qsort fun left right => left.module.toString < right.module.toString
 
 private def buildOwnedSources (sources : Array SourceRecord) : IO Unit := do
+  -- The running executable already proves `ModelLint` current; Lake refreshes every other root.
   let ordinaryModules := sources.filterMap fun source =>
     if source.module == `ModelLint || source.module == `ModelLint.ImportGraphTests then none
     else some s!"+{source.module}"
-  let args := #["build", "modelLint", "modelLintTests"] ++ ordinaryModules
+  let args := #["build", "modelLintTests"] ++ ordinaryModules
   let child ← IO.Process.spawn {
     cmd := (← IO.getEnv "LAKE").getD "lake"
     args
@@ -89,26 +118,20 @@ private def buildOwnedSources (sources : Array SourceRecord) : IO Unit := do
   if exitCode != 0 then
     throw <| IO.userError "Lake failed to make every owned model source current"
 
-private unsafe def loadModuleRecords (sources : Array SourceRecord) : IO (Array ModuleRecord) := do
+private unsafe def loadModuleRecords
+    (sources : Array SourceRecord) : IO (Array ModuleRecord × Array CompactedRegion) := do
   initSearchPath (← findSysroot)
-  Lean.enableInitializersExecution
-  let modules := sources.map (·.module)
-  let env ← importModules modules {} (trustLevel := 1024) (loadExts := true)
-  let mut metadataByName : Std.HashMap Name ModuleData := {}
-  for i in [0:env.header.moduleNames.size] do
-    let name := env.header.moduleNames[i]!
-    if metadataByName.contains name then
-      throw <| IO.userError s!"duplicate loaded module metadata: {name}"
-    metadataByName := metadataByName.insert name env.header.moduleData[i]!
   let mut records := #[]
+  let mut regions := #[]
   for source in sources do
-    let some metadata := metadataByName[source.module]?
-      | throw <| IO.userError s!"missing loaded metadata for {source.module} ({source.path})"
+    let olean ← findOLean source.module
+    let (metadata, region) ← readModuleData olean
+    regions := regions.push region
     records := records.push {
       name := source.module
       imports := metadata.imports.map (·.module)
     }
-  pure records
+  pure (records, regions)
 
 private def captureStep (category : String) (action : IO α) : IO (Except String α) := do
   try
@@ -125,13 +148,14 @@ private unsafe def lintImportGraph : IO Bool := do
     | .ok _ =>
       match ← captureStep "metadata" (loadModuleRecords sources) with
       | .error error => IO.eprintln error; pure false
-      | .ok modules =>
+      | .ok (modules, regions) =>
         let inventoryIssues := reconcile defaultPolicy sources modules
         for issue in inventoryIssues do
           IO.eprintln issue.render
         let violations := check defaultPolicy modules
         for violation in violations do
           IO.eprintln violation.render
+        let _loadedRegionCount := regions.size
         if inventoryIssues.isEmpty && violations.isEmpty then
           IO.println "-- Model import-graph linting passed."
           pure true
