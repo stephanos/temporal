@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T12:22:50Z",
+  "depends_on": [
+    "fn-23-veil-toolchain-compatibility-and.5"
+  ],
+  "id": "fn-23-veil-toolchain-compatibility-and.6",
+  "priority": null,
+  "spec": "fn-23-veil-toolchain-compatibility-and",
+  "spec_path": ".flow/tasks/fn-23-veil-toolchain-compatibility-and.6.md",
+  "status": "todo",
+  "title": "Prove model isolation and document the C11 gate",
+  "updated_at": "2026-08-26T12:22:50Z"
+}
