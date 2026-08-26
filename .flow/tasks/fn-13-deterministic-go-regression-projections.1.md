@@ -40,9 +40,10 @@ Build the pure C5 projection core for R1, R2, R3, R4, and R6. This task owns the
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression` passes.
 
 ## Done summary
-TBD
+Implemented the closed mechanical regression manifest, strict canonical ExperimentSpec projection with contained provenance and semantic fingerprinting, and deterministic formatted Go/Markdown renderers with focused malformed, collision, consistency, and production-fixture coverage. The evidence range retains concurrent user-owned commits 303375f05 and ae46cdeea; the SHIP review used task-only base 303375f05, and automatic memory capture was skipped because Flow memory is not initialized.
 
+stage: impl-review - ran [2026-08-26T04:46:33Z..2026-08-26T04:51:11Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 303375f053e8131a277fa28294734d87b18919b4, 5855302276987e48790b70abea837b24568dbf5e, ae46cdeeade2645e6a4eaa16905a8ee621376424, 1b77b3c9d19265508479673b2dfc4d9b4b4e08d9
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression, go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-regression, git diff --check
 - PRs:
