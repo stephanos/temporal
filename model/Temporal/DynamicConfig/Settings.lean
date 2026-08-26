@@ -2,6 +2,7 @@
 -- This is a structural registry projection, not handwritten product semantics.
 import Temporal.DynamicConfig.Types
 
+set_option linter.missingDocs false
 set_option maxRecDepth 100000
 
 namespace Temporal.DynamicConfig.Settings

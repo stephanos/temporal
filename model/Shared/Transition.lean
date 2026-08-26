@@ -1,10 +1,10 @@
 namespace Shared
 
-universe u v
+universe u
 
 structure TransitionSystem where
   State : Type u
-  Action : Type v
+  Action : Type u
   Initial : State → Prop
   Step : State → Action → State → Prop
 

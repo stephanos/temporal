@@ -3,6 +3,7 @@
 import Temporal.API.Proto
 import Temporal.API.Types
 
+set_option linter.missingDocs false
 set_option maxRecDepth 100000
 
 namespace Temporal.Api.Operatorservice.V1.OperatorService

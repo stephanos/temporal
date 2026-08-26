@@ -15,7 +15,8 @@ example : (qualifiedOf completeQualification).map QualifiedTrace.trace = some ex
 
 /-- The exact evidence-record limit follows ordinary qualification. -/
 example : (qualifiedOf (qualifyFixture {
-    completeEvidence with records := completeEvidence.records ++ [{
+    completeEvidence with
+    records := completeEvidence.records ++ [{
       stepEvidence with
       id := secondStepEvidenceId
       sequence := 3
@@ -58,13 +59,22 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
-    completeEvidence with records := [stepEvidence]
+    completeEvidence with
+    records := [{
+      initialEvidence with fields := [
+        textField roleField "other",
+        textField nameField "ready"
+      ]
+    }]
+    closures := [{ kind := eventKind, lastSequence := 1 }]
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture { completeEvidence with closures := [] }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
-    completeEvidence with records := [initialEvidence, { stepEvidence with sequence := 3 }]
+    completeEvidence with
+    records := [initialEvidence, { stepEvidence with sequence := 3 }]
+    closures := [{ kind := eventKind, lastSequence := 3 }]
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
@@ -89,7 +99,9 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
-    completeEvidence with records := [initialEvidence, { stepEvidence with sequence := 1 }]
+    completeEvidence with
+    records := [initialEvidence, { stepEvidence with sequence := 1 }]
+    closures := [{ kind := eventKind, lastSequence := 1 }]
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
@@ -125,7 +137,7 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
   (result.status, resultKindOf result),
   let result := qualifyFixture {
     completeEvidence with records := [initialEvidence, {
-      stepEvidence with causalParents := [id "test.evidence.record.step-3"]
+      stepEvidence with causalParents := [stepEvidenceId]
     }]
   }
   (result.status, resultKindOf result),
