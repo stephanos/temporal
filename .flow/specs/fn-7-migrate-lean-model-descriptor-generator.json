@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-7-migrate-lean-model-descriptor-generator",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-08-26T07:57:44.031786Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-26T08:00:58.936743Z",
   "created_at": "2026-08-24T22:52:50.644263Z",
   "default_impl": null,
   "default_review": null,
@@ -12,7 +12,7 @@
     "fn-7-migrate-lean-model-descriptor-generator.1": 1
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-24T22:59:37.903571Z",
   "review_attempts": [
@@ -196,11 +196,46 @@
       "timestamp": "2026-08-26T07:57:44.023997Z",
       "tool_calls": 16,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "e49d187331c3dd19ea5b0bc8d26e104bef732ba2dc2e72004bc04963cdfd327b",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d9e12651989986b1dbe04920a1dacee4134244b4",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2423,
+      "output_sha256": "1d44b44ea63d3693a9b400daaad068ec2f9ed4b7e06e0ce6ebbbe01c565fb564",
+      "reservation_id": "25e944a43b774c458d86b0dc5602f024",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T08:00:58.932667Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -210,7 +245,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-7-migrate-lean-model-descriptor-generator.md",
-  "status": "open",
+  "status": "done",
   "title": "Migrate Lean model descriptor generator",
   "tracker": {
     "baseHashFlow": null,
@@ -223,5 +258,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T07:57:44.033600Z"
+  "updated_at": "2026-08-26T08:01:04.891464Z"
 }
