@@ -10,7 +10,9 @@
     "fn-10-temporal-semantic-model-layout-and"
   ],
   "id": "fn-11-basic-nexus-umpire-dsl-showcases",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-11-basic-nexus-umpire-dsl-showcases.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -104,15 +106,47 @@
       "task": null,
       "timestamp": "2026-08-25T22:24:13.700353Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bdb3fc082b325388c23ec0232d52d58789fa4c101d674e314f783e6f1851b19b",
+      "backend": "codex",
+      "base_sha": "344d8ce2a9d2bf8794201b95215c585120ac655f",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4306c21056921b86ec2ed63b0be4fbd122997b25",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 255566,
+      "output_sha256": "52c3ed25c74ef2dfa4cc2f76467bbd678d90373eb76004a91a6df61e34fc9538",
+      "reservation_id": "1764e27ebeef475f8eb26afedd955423",
+      "round_consumed": true,
+      "scope": "impl:fn-11-basic-nexus-umpire-dsl-showcases.1",
+      "superseded_by": null,
+      "task": "fn-11-basic-nexus-umpire-dsl-showcases.1",
+      "timestamp": "2026-08-26T01:30:19.843880Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-11-basic-nexus-umpire-dsl-showcases.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-11-basic-nexus-umpire-dsl-showcases.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-11-basic-nexus-umpire-dsl-showcases.md",
@@ -129,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-25T22:24:13.753215Z"
+  "updated_at": "2026-08-26T01:30:19.856069Z"
 }
