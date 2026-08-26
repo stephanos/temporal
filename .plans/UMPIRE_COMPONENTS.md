@@ -11,6 +11,42 @@ pipeline. Functionality in `common/testing/umpire`, `tools/umpire2`, or `tools/u
 as an existing baseline, but is not considered integrated until it consumes the current
 `umpire-experiment/v1` artifact and preserves its semantic identities.
 
+## TL;DR
+
+Status terms: **built** means implemented in the current `model/` pipeline; **partial** means only
+part of the component contract is built; **separate** means a working implementation exists in
+another Umpire tree but does not consume current-model artifacts; **missing** means no corresponding
+implementation was found.
+
+| Component | Status | Summary |
+| --- | --- | --- |
+| C1 API importer | Partial | Deterministic full-descriptor Lean projection is built. A standalone catalog, complete field dispositions, drift report, explain surface, and shared bounded-selection policy are missing. |
+| C2 config importer | Partial | The initialized production registry, typed generated settings, identities, and Go-produced resolution fixtures are built. Product classifications currently cover selected Callback and Matching uses; no standalone explain/check surface exists. |
+| C3 Lean authoring DSL | Partial | Checked targets, properties, behaviors, queries, exact traces, ordering, bounds, and model-only examples are built. Variation axes, authored faults, coverage goals, a persisted registry, and list/explain UX are missing. |
+| C4 ExperimentSpec compiler | Partial | Pure planning emits one canonical `umpire-experiment/v1` for a selected trace, and the inspector exposes two scenarios. Batch compilation, persisted JSON decoding/validation, migrations, explicit runtime config, and runtime consumption are missing. |
+| C5 Go/docs generator | Missing | No thin `_test.go` wrapper or scenario-documentation generator exists for current Lean regressions. |
+| C6 execution runtime | Separate | Go runtimes drive Temporal and retain cleanup/run data, but none decodes or executes `umpire-experiment/v1`. |
+| C7 evidence/conformance | Partial + separate | Current Lean checks properties over model traces and exports observation requirements. Go/Umpire3 evidence systems exist separately; no current-model observation program or live qualified result exists. |
+| C8 exploration | Partial | Deterministic finite exhaustive/shortest-style planning is built. The named coverage-guided policy only seed-rotates enumeration; it does not consume coverage state. Broader campaign exploration exists separately. |
+| C9 SDK participant | Separate | Umpire3 has participant protocols and a Temporal SDK adapter; the current model emits no participant program or binding. |
+| C10 replay/promote | Separate | Go campaign pipelines minimize, replay, and propose regressions, but cannot read the current artifact or generate a Lean regression from it. |
+| C11 formal checks | Partial + separate | Current Lean provides proofs, finite completeness, bounded verification, and model counterexample search. Umpire3 has mature receipts and optional family-scoped Veil support; the current model has neither an explicit first-order checker view nor a Veil binding. |
+| C12 qualification | Separate | Environment, canary, and release-qualification foundations exist in Go/Umpire3. No local, CI, remote, or canary qualification path accepts the current artifact. |
+
+| Milestone | Status | Summary |
+| --- | --- | --- |
+| A: describe real tests | In progress | The model-only C1-C4 slice and shared basic Nexus teaching target work; the two walkthroughs, combinatorial authoring, C5 generation, and usability evidence remain. |
+| B: check real Temporal | Not integrated | No current-artifact decoder, local driver binding, live evidence interpreter, or qualified result path exists. |
+| C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
+| D: reuse the investment | Separately advanced | Formal, optional Veil, and qualification machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 qualification work remain open. |
+
+Bottom line: the component decomposition still holds, but the current implementation is not an
+end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact inspection.
+The next runtime seam is a strict decoder/validator and local execution adapter for
+`umpire-experiment/v1`. Veil belongs at a different seam inside C11: an optional, family-owned
+Lean checker target bound by proof to an explicit canonical view, never a generated backend or a
+second semantic authority.
+
 ## 1. Organizing principle
 
 Umpire should be a collection of independently useful tools connected by explicit, versioned
@@ -81,6 +117,7 @@ These artifacts are the seams between components:
 | Semantic evidence | Lean-defined interpretation of raw facts | Implemented in Umpire3's model/runtime path and partially mirrored by generic Go interpretation; not generated from the current `model/` declarations. |
 | Result | Qualified established, violated, unknown, conflict, or unsupported claims | Qualified result models exist in the Go Umpire baselines; no current-model conformance result is produced. |
 | Replay bundle | ExperimentSpec, ExperimentRun, evidence, result, bounds, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v1`. |
+| Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
 | Verification receipt | Checker target, bounds, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlannerRun` results, not a verification receipt. |
 
 Every persisted artifact should carry a format version. Semantic artifacts should additionally carry
@@ -114,12 +151,13 @@ go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
 make umpire-build-model
 ```
 
-The importer owns messages, fields, enums, presence, `oneof`s, maps, nested types, supported
-well-known types, RPC shape, and annotations. Semantic identity, ordering, completion, and absence
-remain handwritten Lean interpretations. The current `model/` generator imports all declarations
-in its supplied descriptor sets. `UMPIRE_LEAN.md` separately requires bounded selected wire surfaces
-for Umpire3, so selection policy is still an explicit convergence decision rather than a settled
-shared contract.
+The importer owns messages, fields, enums, presence, `oneof`s, maps, nested types, digest-and-size
+byte values, depth-bounded recursive references, supported well-known types, RPC shape, streaming,
+and method deprecation. Semantic identity, ordering, completion, and absence remain handwritten
+Lean interpretations. The current `model/` generator imports all declarations in its supplied
+descriptor sets. `UMPIRE_LEAN.md` separately requires bounded selected wire surfaces for Umpire3,
+so selection policy is still an explicit convergence decision rather than a settled shared
+contract.
 
 ### C2. Dynamic-config importer
 
@@ -295,12 +333,14 @@ interpretation without a running server.
 and budget.
 
 **Status: finite model planning implemented; broader exploration is partial.** The current Lean
-planner supports exhaustive, breadth-first, shortest, and coverage-guided policies with separate
-behavior and candidate-evaluation bounds, deterministic tie-breaking, completeness evidence, and
-instrumentation. The Go campaign baseline separately supports bounded matrix/lifecycle selection,
-sampling, semantic coverage, and pinned regressions. These paths do not yet share the current
-`ExperimentSpec`, and pairwise, t-wise, seeded-random, symmetry-reduced, and campaign-wide coverage
-selection are not all implemented in the current Lean planner.
+planner supports exhaustive, breadth-first, and shortest policies with separate behavior and
+candidate-evaluation bounds, deterministic tie-breaking, completeness evidence, and
+instrumentation. Its policy vocabulary also names `coverage-guided`, but that branch currently
+uses the seed only to rotate canonical setup, action, and outcome enumeration; it has no coverage
+state, scoring, or coverage report. The Go campaign baseline separately supports bounded
+matrix/lifecycle selection, sampling, semantic coverage, and pinned regressions. These paths do
+not yet share the current `ExperimentSpec`, and pairwise, t-wise, seeded-random, symmetry-reduced,
+and campaign-wide coverage selection are not all implemented in the current Lean planner.
 
 ```text
 scenario space + strategy + bounds + coverage state -> selected ExperimentSpecs + coverage report
@@ -392,6 +432,22 @@ umpire verify <target>
 Lean-native checking is the default. Counterexamples must replay through canonical Lean semantics
 before promotion. Although the chat describes pluggable backends, the active roadmap requires Veil
 to remain a Lean library and embedded DSL, not a second semantic authority or generated target.
+
+The approved current-model Veil direction is detailed in [UMPIRE_VEIL.md](UMPIRE_VEIL.md). Veil is
+optional per model family and property. Its handwritten declarations live beside the owning family
+in the primary Lake project, behind a focused import and test aggregate. A Lean-owned binding must
+relate initial states, actions, transitions, and the checked property to an explicit canonical
+first-order view. Go may isolate the checker and transport strict, digest-bound artifacts; it must
+not generate Veil source or interpret Veil semantics. Results preserve testing, trusted-SMT,
+reconstructed-proof, and kernel trust as different claim classes. Every counterexample must replay
+through the canonical Umpire transition kernel before it can support violation or promotion.
+
+The first adoption gate is toolchain compatibility: the current model uses Lean 4.33.1 while the
+existing Umpire3 Veil project uses Lean 4.28.0. After a pinned Veil revision builds behind an
+optional import, one Nexus family may add a meaningful binding, nearby semantic mutation, strict
+receipt, and canonical replay. Veil does not enter `ExperimentSpec`, runtime execution, production
+binaries, or the default regression gate until its deterministic build and developer-cost budgets
+are accepted.
 
 ### C12. Deployment and qualification
 
@@ -502,6 +558,7 @@ Current evidence:
 - a generated full Temporal Protobuf structural projection;
 - a generated full initialized dynamic-config catalog with cross-language resolution fixtures;
 - a reusable Temporal-independent DSL tested with a synthetic Switch target;
+- a shared basic Nexus lifecycle teaching target with checked composition and finite planning;
 - a Workflow-Nexus caller-closure model with target-owned cancellation, output, and ownership
   observations; and
 - deterministic `umpire-experiment/v1` inspection, golden fixtures, structured diagnostics, and a
@@ -597,6 +654,8 @@ Exit evidence:
 - every claim exposes checker trust, bounds, omissions, environment, and evidence profile;
 - remote results remain bound to the same semantic hashes as local results;
 - counterexamples replay through canonical Lean and, where applicable, real execution; and
+- every Veil-owning family has a source-bound canonical-view relation, mutation evidence, explicit
+  trust and axiom inventory, and a canonical replay gate;
 - operational authority, cleanup, and blast-radius controls are explicit.
 
 Additional current-model formal integration, production-canary binding, and deterministic Go
@@ -634,9 +693,13 @@ These remain architectural possibilities, not prerequisites for the current-mode
 - production canary binding for `umpire-experiment/v1`;
 - generalized remote qualification for the current model;
 - additional current-model formal checker integrations not required by the pilot;
+- Veil adoption beyond one compatibility spike and one meaningful family binding;
 - exhaustive internal tracepoints;
 - deterministic Go scheduler control or full DST; and
 - low-level lock and scheduler modeling in feature semantics.
+
+Generated Veil source, a second Lake project, a checker-neutral semantic IR, blanket Veil adoption,
+and Veil in production runtime paths are rejected designs, not deferred work.
 
 The detailed rationale and the other two design conversations are synthesized in
 [UMPIRE_CHATS.md](UMPIRE_CHATS.md).
