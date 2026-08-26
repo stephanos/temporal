@@ -6,7 +6,7 @@ Implemented on 2026-08-24.
 
 ## Context
 
-`umpire-gen-api` is a general descriptor-set-to-Lean generator. Repository-specific descriptor
+`umpire-gen-lean-api` is a general descriptor-set-to-Lean generator. Repository-specific descriptor
 acquisition remains in the root `Makefile`; the generator owns only structural protobuf and RPC
 projection. Authored Lean modules retain behavioral meaning.
 
@@ -20,7 +20,7 @@ consumer and are not part of the current design.
 A Temporal invocation has this shape:
 
 ```sh
-umpire-gen-api \
+umpire-gen-lean-api \
   --descriptor proto/umpire-public.binpb \
   --descriptor proto/api.binpb \
   --descriptor proto/image.bin \
@@ -106,16 +106,16 @@ from the owned directory.
 ## Temporal repository integration
 
 The root `Makefile` acquires the public descriptor set with
-`tools/umpire/cmd/umpire-gen-model-descriptors`,
+`tools/umpire/cmd/umpire-export-proto-descriptors`,
 acquires the dependency, internal, and CHASM descriptor sets, and passes their paths directly to
 one generator invocation. The generator remains unaware of Temporal package policy.
 
 The local verification sequence is:
 
 ```sh
-make umpire-gen-api-fixture
-go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api
-make umpire-gen-api
+make umpire-gen-lean-api-fixture
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
+make umpire-gen-lean-api
 cd model && mise exec -- lake build
 make umpire-check-regression
 ```

@@ -1,4 +1,4 @@
-namespace SharedModel.TraceReplay
+namespace Shared.TraceReplay
 
 def followNamed {State Action : Type}
     (successors : State → List (Action × State)) (actionName : Action → String) :
@@ -16,4 +16,4 @@ def check {State Action : Type}
     (initials : List State) (property : State → Bool) (identifiers : List String) : Bool :=
   (followNamed successors actionName initials identifiers).any fun state => !property state
 
-end SharedModel.TraceReplay
+end Shared.TraceReplay

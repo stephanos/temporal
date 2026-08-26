@@ -1,6 +1,6 @@
 # Temporal Lean model
 
-Lean owns behavioral meaning in this directory. `umpire-gen-api` consumes serialized protobuf
+Lean owns behavioral meaning in this directory. `umpire-gen-lean-api` consumes serialized protobuf
 descriptor sets and projects their protobuf and gRPC structure behind the stable `Temporal.API`
 module boundary. Generated declarations do not assign product semantics to fields or RPCs.
 
@@ -24,8 +24,8 @@ The repository root `Makefile` is the only Make interface for this model. After 
 internal, or CHASM APIs, regenerate the descriptor-backed modules and verify them locally:
 
 ```sh
-make umpire-gen-api
-go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api
+make umpire-gen-lean-api
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
 make umpire-build-model
 ```
 
@@ -35,7 +35,7 @@ authored modules.
 
 ## Dynamic configuration catalog
 
-`umpire-gen-dynamic-config` constructs a generation-time snapshot of Temporal's initialized
+`umpire-gen-lean-dynamic-config-catalog` constructs a generation-time snapshot of Temporal's initialized
 production registry and projects its structural metadata behind the `Temporal.DynamicConfig`
 module boundary. The generator exclusively owns `Temporal/DynamicConfig.lean` and the complete
 `Temporal/DynamicConfig/` directory:
@@ -57,8 +57,8 @@ by `TemporalModelTests`.
 From the repository root, regenerate and verify the catalog with:
 
 ```sh
-make umpire-gen-dynamic-config
-go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-dynamic-config
+make umpire-gen-lean-dynamic-config-catalog
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
 make umpire-build-model
 ```
 
