@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T11:38:27.704694Z",
+  "depends_on": [
+    "fn-21-nexus-duplicate-observation-control.1"
+  ],
+  "id": "fn-21-nexus-duplicate-observation-control.7",
+  "priority": null,
+  "spec": "fn-21-nexus-duplicate-observation-control",
+  "spec_path": ".flow/tasks/fn-21-nexus-duplicate-observation-control.7.md",
+  "status": "todo",
+  "title": "Compile the fault-specific observation mapping",
+  "updated_at": "2026-08-26T11:38:27.704694Z"
+}
