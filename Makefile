@@ -1266,7 +1266,8 @@ lint-model:
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/shared-independence] forbidden qualified import path: Shared.Root -> ModelLint.Bridge -> Umpire.Core'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
-	@cd model && $(LEAN_LAKE) --wfail lint --lint-only=.all,.extra,-.missingDocs
+	@cd model && $(LEAN_LAKE) exe modelLint
+	@cd model && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
 
 lint-yaml: $(YAMLFMT)
 	@printf $(COLOR) "Checking YAML formatting..."
