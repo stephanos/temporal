@@ -1,4 +1,4 @@
-import SharedModel.Transition
+import Shared.Transition
 
 namespace Gomad.VirtualTime
 
@@ -157,7 +157,7 @@ def step (state : State) (action : Action) : StepResult :=
               { kind := .fireTimer, timerId := some id, timerBefore := some .ready,
                 timerAfter := some .fired }
 
-def transitionSystem : SharedModel.TransitionSystem where
+def transitionSystem : Shared.TransitionSystem where
   State := State
   Action := Action
   Initial := fun state => state = State.empty 0

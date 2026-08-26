@@ -38,7 +38,7 @@ func (values *repeatedStrings) Set(value string) error {
 
 func main() {
 	if err := Run(context.Background(), os.Args[1:]); err != nil {
-		if _, writeErr := fmt.Fprintf(os.Stderr, "umpire-gen-model-descriptors: %v\n", err); writeErr != nil {
+		if _, writeErr := fmt.Fprintf(os.Stderr, "umpire-export-proto-descriptors: %v\n", err); writeErr != nil {
 			os.Exit(1)
 		}
 		os.Exit(1)
@@ -48,7 +48,7 @@ func main() {
 func Run(ctx context.Context, arguments []string) error {
 	var patterns repeatedStrings
 	var rawPrefixes repeatedStrings
-	flags := flag.NewFlagSet("umpire-gen-model-descriptors", flag.ContinueOnError)
+	flags := flag.NewFlagSet("umpire-export-proto-descriptors", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.Var(&patterns, "package-pattern", "Go package pattern containing registered descriptors (repeatable)")
 	flags.Var(&rawPrefixes, "file-prefix", "protobuf file prefix to export (repeatable)")
@@ -158,7 +158,7 @@ func packageContainsPrefix(directory, files string, prefixes []string) (bool, er
 }
 
 func exportDescriptors(ctx context.Context, packages, prefixes []string) (encoded []byte, resultErr error) {
-	temporaryRoot, err := os.MkdirTemp("", "umpire-gen-model-descriptors-*")
+	temporaryRoot, err := os.MkdirTemp("", "umpire-export-proto-descriptors-*")
 	if err != nil {
 		return nil, fmt.Errorf("create descriptor helper: %w", err)
 	}

@@ -1,4 +1,4 @@
-namespace SharedModel
+namespace Shared
 
 universe u v
 
@@ -69,4 +69,4 @@ structure Observation (Action Delta : Type) where
 structure TraceStep (Action Delta : Type) extends Observation Action Delta where
   ordinal : Nat
 
-end SharedModel
+end Shared
