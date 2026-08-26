@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T10:33:26.813011Z",
+  "depends_on": [
+    "fn-19-bounded-local-temporal-execution-and.3"
+  ],
+  "id": "fn-19-bounded-local-temporal-execution-and.9",
+  "priority": null,
+  "spec": "fn-19-bounded-local-temporal-execution-and",
+  "spec_path": ".flow/tasks/fn-19-bounded-local-temporal-execution-and.9.md",
+  "status": "todo",
+  "title": "Add a production-safe bounded temporaltest lifecycle API",
+  "updated_at": "2026-08-26T10:33:26.813011Z"
+}
