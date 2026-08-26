@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-3-umpire-semantic-authoring-and-planning",
     "fn-9-umpire-reusable-dsl-package-split",
-    "fn-10-temporal-semantic-model-layout-and"
+    "fn-10-temporal-semantic-model-layout-and",
+    "fn-31-deepen-umpire-target-and-simplify"
   ],
   "id": "fn-16-authored-variation-spaces-and",
   "impl_review_rounds": {},
@@ -139,5 +140,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T09:06:16.489440Z"
+  "updated_at": "2026-08-26T20:31:04.026931Z"
 }

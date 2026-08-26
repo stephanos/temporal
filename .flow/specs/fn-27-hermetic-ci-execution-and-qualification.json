@@ -7,11 +7,11 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-14-milestone-a-pilot-baseline-and-lean",
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
-    "fn-26-local-qualification-receipts-and-staged"
+    "fn-26-local-qualification-receipts-and-staged",
+    "fn-24-lean-native-verification-receipts-and"
   ],
   "id": "fn-27-hermetic-ci-execution-and-qualification",
   "impl_review_rounds": {},
@@ -283,5 +283,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T14:34:01.282620Z"
+  "updated_at": "2026-08-26T20:31:07.641808Z"
 }

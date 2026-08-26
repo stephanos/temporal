@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-26-local-qualification-receipts-and-staged/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+Qualification consumes admitted Result and optional admitted verification evidence; it does not depend on the retired Agentworkflow pilot and acquires no execution or environment authority. A local profile may explicitly record verification evidence as absent. Later CI and remote profiles reuse the same generic contract without changing semantic meaning.
+
+The qualification receipt uses fn-18's single artifact/receipt boundary and exposes environment, evidence profile, bounds, trust, omissions, authority status, cleanup outcome, semantic digests, and each independent phase status. No new artifact-set reader or publisher is created here.
+
 ## Overview
 
 Add the first current-model C12 seam without acquiring new authority: admit the exact immutable
@@ -315,6 +321,8 @@ make umpire-check-regression
 - **R7:** Documentation and the component roadmap describe the result as one environment-scoped local
   qualification, reserve CI/remote/canary/release to reviewed follow-ups, preserve existing comments
   and generated projections, and make no universal correctness, deployment, or release claim.
+- **R8:** Qualification admits an exact Result plus optional verification receipts and evaluates one named profile without reading or requiring fn-14 pilot evidence, executing an environment, or acquiring authority. This supersedes R3 and the pilot-gated portion of R4. Errors: caller-declared pilot/authorization, execution side effects, semantic reevaluation, missing required profile evidence, or treating an explicit verification omission as proof yields no accepted claim.
+- **R9:** QualificationReceipt is produced through the fn-18 receipt/artifact envelope and exposes environment, evidence profile, bounds, trust, omissions, authority, cleanup, semantic digests, and independent execution/observation/refinement/property/verification statuses. Errors: a private reader/publisher, collapsed status, inferred trust, or receipt mutation without a new version fails completion.
 
 ## Early proof point
 

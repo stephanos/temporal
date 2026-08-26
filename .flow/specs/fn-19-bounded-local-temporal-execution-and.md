@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-19-bounded-local-temporal-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+The reusable Go package is `tools/umpire/runner`, with a separate `participant` protocol and adapters under `tools/umpire/adapter`. All model-owned execution profiles, participant programs, configuration interpretation, and evidence-source contracts live under `Temporal.System`; `Temporal.Feature` retains only product-visible meaning. The runner consumes fn-18's complete current ExperimentSpec and operational bindings without reconstructing missing semantic intent.
+
+There is no installed public `umpire-local-run` command. Generated ordinary Go tests call the reusable runner directly for local/CI execution and retain normal `go test` discovery, filtering, breakpoints, and failure reporting. A focused internal integration harness may prove the adapter contract, but it is not a second user-facing run-tests surface.
+
 ## Overview
 
 Deliver the first current-model execution slice: consume one fn-18-admitted `ExperimentSpec` plus portable `RuntimeConfiguration`, realize the exact Nexus caller-closure action in an isolated ephemeral Temporal server through one Go SDK participant, and publish an `ExperimentRun` plus bounded `RawEvidence` without interpreting that evidence or evaluating a Property.
@@ -133,6 +139,8 @@ make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-in
 - **R5:** One exact Nexus SDK participant prepares the caller/operation, realizes only the planned force-close occurrence once, observes terminal history/cancellation receipt, proves resource isolation, and cleans every handle. Unsupported target/action/occurrence/fault/protocol/capability/program inputs fail before server startup; operational receipts never become model outcomes or semantic verdicts. [paraphrase]
 - **R6:** Four bounded sources preserve gapless source order, causal/reference closure, terminal history, control and cleanup receipts, explicit partial/failed gaps, allowlisted dispositions, N+1 capacity evidence, and exact fn-18 bindings. The admitted published set contains only ExperimentSpec, RuntimeConfiguration, ExperimentRun, and RawEvidence and no SemanticEvidence/Result. [paraphrase]
 - **R7:** Independent fake-adapter phase/failure oracles, field/reference/capacity mutations, one bounded live caller-closure run, exact CLI/root status contracts, public docs, and roadmap status prove the local operational slice. No remote/CI/canary execution, fault injection, semantic interpretation, conformance, replay/minimization/promotion, qualification, model-local Makefile, or prohibited legacy dependency is introduced. [user]
+- **R8:** The runner consumes one complete current ExperimentSpec and exposes a reusable library used by deterministic generated Go tests; no public local-run/run-tests command or root wrapper is installed. This supersedes the command portion of R7. Errors: reconstructing setup/program/order/observation/termination/cleanup intent in Go, accepting an incomplete legacy spec for execution, bypassing generated-test digest binding, or introducing a second CLI execution surface fails completion.
+- **R9:** Temporal execution profiles, participant programs, configuration meaning, evidence-source contracts, and adapter bindings are owned by `Temporal.System`, while Feature remains product-only and the reusable runner/participant packages remain domain-neutral. Errors: a Feature import of System, a runtime program under Feature, Temporal/Nexus vocabulary in runner/participant, or an adapter claiming a model outcome or Property result fails completion.
 
 ## Early proof point
 <!-- scope: technical -->

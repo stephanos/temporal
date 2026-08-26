@@ -22,19 +22,19 @@ def metadata (value : String) (kind : DeclarationKind) : DeclarationMetadata := 
   contractDigest := value ++ "/v1"
 }
 
-def cancellationCapability := id "test.capability.cancellation"
-def operationState := id "test.state.resource-id"
-def phaseState := id "test.state.phase"
-def requestCancel := id "test.action.request-cancel"
-def callerClose := id "test.action.close"
-def tick := id "test.action.tick"
-def retry := id "test.action.retry"
-def abort := id "test.action.abort"
-def noop := id "test.action.noop"
-def accepted := id "test.outcome.accepted"
-def rejected := id "test.outcome.rejected"
-def cancelRequested := id "test.observation.cancel-requested"
-def callerClosed := id "test.observation.closed"
+def cancellationCapability : DeclarationId := id "test.capability.cancellation"
+def operationState : DeclarationId := id "test.state.resource-id"
+def phaseState : DeclarationId := id "test.state.phase"
+def requestCancel : DeclarationId := id "test.action.request-cancel"
+def callerClose : DeclarationId := id "test.action.close"
+def tick : DeclarationId := id "test.action.tick"
+def retry : DeclarationId := id "test.action.retry"
+def abort : DeclarationId := id "test.action.abort"
+def noop : DeclarationId := id "test.action.noop"
+def accepted : DeclarationId := id "test.outcome.accepted"
+def rejected : DeclarationId := id "test.outcome.rejected"
+def cancelRequested : DeclarationId := id "test.observation.cancel-requested"
+def callerClosed : DeclarationId := id "test.observation.closed"
 
 def context : BehaviorCheckContext := {
   declarations := [
