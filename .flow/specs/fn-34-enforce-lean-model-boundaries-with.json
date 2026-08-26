@@ -13,7 +13,7 @@
     "fn-34-enforce-lean-model-boundaries-with.2": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T20:58:30.987821Z",
   "review_attempts": [
@@ -432,8 +432,18 @@
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "39504a780dae4952acab7de257e7fecb": {
+      "artifact_sha256": "89abc7d98175025f178cd51febd98a94ca6834e8431490c78a2555e50c0a6e0b",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "completion"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-34-enforce-lean-model-boundaries-with.1": 0,
     "impl:fn-34-enforce-lean-model-boundaries-with.2": 0,
@@ -453,5 +463,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T23:26:36.595949Z"
+  "updated_at": "2026-08-26T23:31:29.594225Z"
 }
