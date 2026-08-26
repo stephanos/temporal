@@ -1,0 +1,409 @@
+// Package regression verifies checked-in projections of Lean-owned Umpire regressions.
+// It validates projection metadata only; it does not execute Temporal or interpret evidence.
+package regression
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+const supportedFormatVersion = "umpire-experiment/v1"
+
+var canonicalProjectionKeys = map[string]string{
+	"formatversion":           "formatVersion",
+	"identity":                "identity",
+	"observationrequirements": "observationRequirements",
+	"path":                    "path",
+	"plan":                    "plan",
+	"properties":              "properties",
+	"provenance":              "provenance",
+	"queryidentity":           "queryIdentity",
+	"semanticidentity":        "semanticIdentity",
+	"sources":                 "sources",
+}
+
+// Reference is the complete metadata carried by a generated Go projection.
+// Source paths are canonical and relative to the repository's model directory;
+// FixturePath is relative to the repository root.
+type Reference struct {
+	FormatVersion           string
+	Identity                string
+	FixturePath             string
+	Sources                 []string
+	Properties              []string
+	ObservationRequirements []string
+	SemanticFingerprint     string
+}
+
+// RequireProjection verifies that reference still describes its checked-in
+// canonical fixture. It deliberately performs no runtime execution or semantic
+// interpretation.
+func RequireProjection(t testing.TB, reference Reference) {
+	t.Helper()
+
+	repositoryRoot, err := sourceRepositoryRoot()
+	require.NoError(t, err, "resolve repository root for projection %q", reference.Identity)
+	actual, err := loadProjection(repositoryRoot, reference)
+	require.NoError(t, err, "verify projection %q", reference.Identity)
+	require.Equal(t, reference, actual, "projection %q differs from its canonical fixture", reference.Identity)
+}
+
+type fixtureEnvelope struct {
+	FormatVersion           string            `json:"formatVersion"`
+	Plan                    fixturePlan       `json:"plan"`
+	Properties              []fixtureProperty `json:"properties"`
+	ObservationRequirements []string          `json:"observationRequirements"`
+	SemanticIdentity        string            `json:"semanticIdentity"`
+	Provenance              fixtureProvenance `json:"provenance"`
+}
+
+type fixturePlan struct {
+	QueryIdentity string `json:"queryIdentity"`
+}
+
+type fixtureProperty struct {
+	Identity string `json:"identity"`
+}
+
+type fixtureProvenance struct {
+	Sources []fixtureSource `json:"sources"`
+}
+
+type fixtureSource struct {
+	Path string `json:"path"`
+}
+
+func sourceRepositoryRoot() (string, error) {
+	_, sourceFile, _, ok := runtime.Caller(0)
+	if !ok || sourceFile == "" {
+		return "", errors.New("locate projection verifier source")
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(sourceFile), "..", "..", "..")), nil
+}
+
+func loadProjection(repositoryRoot string, reference Reference) (Reference, error) {
+	resolvedRepositoryRoot, err := resolveDirectory(repositoryRoot, "repository root")
+	if err != nil {
+		return Reference{}, err
+	}
+	if err := validateReference(resolvedRepositoryRoot, reference); err != nil {
+		return Reference{}, err
+	}
+
+	fixturePath, err := resolveRegularFile(
+		resolvedRepositoryRoot,
+		reference.FixturePath,
+		"fixture",
+	)
+	if err != nil {
+		return Reference{}, err
+	}
+	encoded, err := os.ReadFile(fixturePath)
+	if err != nil {
+		return Reference{}, fmt.Errorf("read fixture %q: %w", reference.FixturePath, err)
+	}
+	document, err := decodeFixture(encoded)
+	if err != nil {
+		return Reference{}, fmt.Errorf("decode fixture %q: %w", reference.FixturePath, err)
+	}
+	if document.FormatVersion != supportedFormatVersion {
+		return Reference{}, fmt.Errorf(
+			"fixture %q has unsupported format %q",
+			reference.FixturePath,
+			document.FormatVersion,
+		)
+	}
+	if strings.TrimSpace(document.Plan.QueryIdentity) == "" {
+		return Reference{}, fmt.Errorf("fixture %q has empty query identity", reference.FixturePath)
+	}
+	if strings.TrimSpace(document.SemanticIdentity) == "" {
+		return Reference{}, fmt.Errorf("fixture %q has empty semantic identity", reference.FixturePath)
+	}
+
+	sources := make([]string, 0, len(document.Provenance.Sources))
+	for _, source := range document.Provenance.Sources {
+		sources = append(sources, source.Path)
+	}
+	modelRoot, err := resolveDirectory(filepath.Join(resolvedRepositoryRoot, "model"), "model root")
+	if err != nil {
+		return Reference{}, err
+	}
+	if err := validateSources(modelRoot, sources); err != nil {
+		return Reference{}, fmt.Errorf("fixture %q provenance: %w", reference.FixturePath, err)
+	}
+
+	properties := make([]string, 0, len(document.Properties))
+	for _, property := range document.Properties {
+		properties = append(properties, property.Identity)
+	}
+	if err := validateIdentities("property", properties); err != nil {
+		return Reference{}, fmt.Errorf("fixture %q: %w", reference.FixturePath, err)
+	}
+	if err := validateIdentities("observation requirement", document.ObservationRequirements); err != nil {
+		return Reference{}, fmt.Errorf("fixture %q: %w", reference.FixturePath, err)
+	}
+
+	digest := sha256.Sum256([]byte(document.SemanticIdentity))
+	return Reference{
+		FormatVersion:           document.FormatVersion,
+		Identity:                document.Plan.QueryIdentity,
+		FixturePath:             reference.FixturePath,
+		Sources:                 sources,
+		Properties:              properties,
+		ObservationRequirements: document.ObservationRequirements,
+		SemanticFingerprint:     "sha256:" + hex.EncodeToString(digest[:]),
+	}, nil
+}
+
+func validateReference(repositoryRoot string, reference Reference) error {
+	if reference.FormatVersion != supportedFormatVersion {
+		return fmt.Errorf("reference has unsupported format %q", reference.FormatVersion)
+	}
+	if strings.TrimSpace(reference.Identity) == "" {
+		return errors.New("reference identity is empty")
+	}
+	if err := validateRelativePath(reference.FixturePath); err != nil {
+		return fmt.Errorf("fixture path %q is unsafe: %w", reference.FixturePath, err)
+	}
+	modelRoot, err := resolveDirectory(filepath.Join(repositoryRoot, "model"), "model root")
+	if err != nil {
+		return err
+	}
+	if err := validateSources(modelRoot, reference.Sources); err != nil {
+		return fmt.Errorf("reference provenance: %w", err)
+	}
+	if err := validateIdentities("property", reference.Properties); err != nil {
+		return fmt.Errorf("reference: %w", err)
+	}
+	if err := validateIdentities("observation requirement", reference.ObservationRequirements); err != nil {
+		return fmt.Errorf("reference: %w", err)
+	}
+	if !validFingerprint(reference.SemanticFingerprint) {
+		return fmt.Errorf("reference semantic fingerprint %q is invalid", reference.SemanticFingerprint)
+	}
+	return nil
+}
+
+func decodeFixture(encoded []byte) (fixtureEnvelope, error) {
+	if len(bytes.TrimSpace(encoded)) == 0 {
+		return fixtureEnvelope{}, errors.New("fixture is empty")
+	}
+	if err := validateFixtureJSON(encoded); err != nil {
+		return fixtureEnvelope{}, err
+	}
+	var document fixtureEnvelope
+	if err := json.Unmarshal(encoded, &document); err != nil {
+		return fixtureEnvelope{}, err
+	}
+	return document, nil
+}
+
+func validateFixtureJSON(encoded []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.UseNumber()
+	first, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if err := validateJSONValue(decoder, first); err != nil {
+		return err
+	}
+	if _, err := decoder.Token(); err == nil {
+		return errors.New("trailing JSON value")
+	} else if !errors.Is(err, io.EOF) {
+		return err
+	}
+	return nil
+}
+
+func validateJSONValue(decoder *json.Decoder, token json.Token) error {
+	delimiter, structured := token.(json.Delim)
+	if !structured {
+		return nil
+	}
+	switch delimiter {
+	case '{':
+		seen := make(map[string]struct{})
+		for decoder.More() {
+			keyToken, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			key, ok := keyToken.(string)
+			if !ok {
+				return fmt.Errorf("JSON object key has type %T", keyToken)
+			}
+			if _, duplicate := seen[key]; duplicate {
+				return fmt.Errorf("duplicate JSON object key %q", key)
+			}
+			seen[key] = struct{}{}
+			if canonical, projected := canonicalProjectionKeys[strings.ToLower(key)]; projected && key != canonical {
+				return fmt.Errorf("JSON object key %q must be spelled %q", key, canonical)
+			}
+			value, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			if err := validateJSONValue(decoder, value); err != nil {
+				return err
+			}
+		}
+		closing, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if closing != json.Delim('}') {
+			return fmt.Errorf("unexpected JSON object delimiter %q", closing)
+		}
+	case '[':
+		for decoder.More() {
+			value, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			if err := validateJSONValue(decoder, value); err != nil {
+				return err
+			}
+		}
+		closing, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if closing != json.Delim(']') {
+			return fmt.Errorf("unexpected JSON array delimiter %q", closing)
+		}
+	default:
+		return fmt.Errorf("unexpected JSON delimiter %q", delimiter)
+	}
+	return nil
+}
+
+func validateSources(modelRoot string, sources []string) error {
+	if len(sources) == 0 {
+		return errors.New("at least one Lean source is required")
+	}
+	if !slices.IsSorted(sources) {
+		return errors.New("Lean sources are not in canonical order")
+	}
+	for index, source := range sources {
+		if index > 0 && source == sources[index-1] {
+			return fmt.Errorf("duplicate Lean source %q", source)
+		}
+		if !strings.HasSuffix(source, ".lean") {
+			return fmt.Errorf("source %q is not a Lean file", source)
+		}
+		if _, err := resolveRegularFile(modelRoot, source, "Lean source"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateIdentities(kind string, identities []string) error {
+	if len(identities) == 0 {
+		return fmt.Errorf("at least one %s identity is required", kind)
+	}
+	if !slices.IsSorted(identities) {
+		return fmt.Errorf("%s identities are not in canonical order", kind)
+	}
+	for index, identity := range identities {
+		if strings.TrimSpace(identity) == "" {
+			return fmt.Errorf("%s identity is empty", kind)
+		}
+		if index > 0 && identity == identities[index-1] {
+			return fmt.Errorf("duplicate %s identity %q", kind, identity)
+		}
+	}
+	return nil
+}
+
+func validFingerprint(value string) bool {
+	const prefix = "sha256:"
+	if len(value) != len(prefix)+sha256.Size*2 || !strings.HasPrefix(value, prefix) {
+		return false
+	}
+	for _, character := range value[len(prefix):] {
+		if !('0' <= character && character <= '9') && !('a' <= character && character <= 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+func resolveDirectory(value, label string) (string, error) {
+	absolute, err := filepath.Abs(value)
+	if err != nil {
+		return "", fmt.Errorf("resolve %s %q: %w", label, value, err)
+	}
+	resolved, err := filepath.EvalSymlinks(absolute)
+	if err != nil {
+		return "", fmt.Errorf("resolve %s %q: %w", label, value, err)
+	}
+	info, err := os.Stat(resolved)
+	if err != nil {
+		return "", fmt.Errorf("read %s %q: %w", label, value, err)
+	}
+	if !info.IsDir() {
+		return "", fmt.Errorf("%s %q is not a directory", label, value)
+	}
+	return resolved, nil
+}
+
+func resolveRegularFile(root, relative, label string) (string, error) {
+	if err := validateRelativePath(relative); err != nil {
+		return "", fmt.Errorf("%s path %q is unsafe: %w", label, relative, err)
+	}
+	target := filepath.Join(root, filepath.FromSlash(relative))
+	resolved, err := filepath.EvalSymlinks(target)
+	if err != nil {
+		return "", fmt.Errorf("resolve %s %q: %w", label, relative, err)
+	}
+	if !pathWithin(root, resolved) {
+		return "", fmt.Errorf("%s %q resolves outside its root", label, relative)
+	}
+	info, err := os.Stat(resolved)
+	if err != nil {
+		return "", fmt.Errorf("read %s %q: %w", label, relative, err)
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("%s %q is not a regular file", label, relative)
+	}
+	return resolved, nil
+}
+
+func validateRelativePath(value string) error {
+	if value == "" {
+		return errors.New("path is empty")
+	}
+	if strings.Contains(value, "\\") {
+		return errors.New("path must use forward slashes")
+	}
+	if path.IsAbs(value) || filepath.IsAbs(value) || filepath.VolumeName(value) != "" {
+		return errors.New("path is absolute")
+	}
+	cleaned := path.Clean(value)
+	if cleaned == "." || cleaned != value || cleaned == ".." || strings.HasPrefix(cleaned, "../") {
+		return errors.New("path is not a clean contained relative path")
+	}
+	return nil
+}
+
+func pathWithin(root, target string) bool {
+	relative, err := filepath.Rel(root, target)
+	return err == nil && relative != ".." && !filepath.IsAbs(relative) &&
+		!strings.HasPrefix(relative, ".."+string(filepath.Separator))
+}
