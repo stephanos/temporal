@@ -45,6 +45,7 @@ Composed the fixed regression inspector, strict live-versus-fixture projection c
 baseline: green (go test -count=1 -tags test_dep ./tools/umpire/... passed pre-edit; make umpire-check-regression reused receipt 959674ea)
 GATE_SKIPPED:unittest:green-receipt 959674ea - baseline reused from prior post-gate pass
 stage: impl-review - ran [2026-08-26T05:16:13Z..2026-08-26T05:19:19Z] (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: e1a635b275b58da766f4023f48cadda6543dacc5
 - Tests: GATE_SKIPPED:unittest:green-receipt 959674ea - baseline reused from prior post-gate pass, go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression, mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regressions --repository-root . --output-root /tmp/tmp.3AOEqWP7jQ, go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-regression
