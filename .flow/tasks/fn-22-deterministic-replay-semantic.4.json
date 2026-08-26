@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T11:52:41Z",
+  "depends_on": [
+    "fn-22-deterministic-replay-semantic.2",
+    "fn-22-deterministic-replay-semantic.3"
+  ],
+  "id": "fn-22-deterministic-replay-semantic.4",
+  "priority": null,
+  "spec": "fn-22-deterministic-replay-semantic",
+  "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.4.md",
+  "status": "todo",
+  "title": "Run deterministic semantic and evidence minimization",
+  "updated_at": "2026-08-26T11:52:41Z"
+}
