@@ -10,23 +10,33 @@ proof techniques, and abstractions; explain unfamiliar concepts at module and AP
 
 Before editing:
 
-1. Read `lean-toolchain`, the Lake configuration, the relevant imports, and nearby source files.
-2. Determine whether the code follows Lean Std, mathlib, or a project-specific style.
-3. Identify the repository's build, test, formatting, and lint commands.
-4. Search the project and its dependencies for existing definitions, theorems, instances, and
+1. Locate the affected Lake workspace and read its `lean-toolchain`, Lake configuration, relevant
+   imports, and nearby source files. A repository may contain multiple workspaces with different
+   toolchains and dependencies.
+2. Classify each target as authored or generated. Honor ownership markers, generated-file headers,
+   and project documentation. For generated Lean, change the owning generator or input, regenerate
+   the complete owned surface, and run its staleness and downstream checks.
+3. Determine whether the code follows Lean Std, mathlib, or a project-specific style, and identify
+   the intended public API from its documented facades and module boundaries.
+4. Identify the affected workspace's build, test, formatting, and lint commands, plus any
+   repository-level generation or regression gate that covers the changed surface.
+5. Search the project and its dependencies for existing definitions, theorems, instances, and
    notation that cover the requested behavior.
 
 The local project is the source of truth. Mirror its naming, namespaces, imports, formatting, and
 proof style when they differ from these general guidelines. Do not change the Lean version or add a
 broad import merely to make one proof easier.
 
-This step is complete when the relevant project profile, reusable API, and verification commands
-are known.
+This step is complete when file ownership, the affected workspace, its available libraries and
+tactics, the reusable API, and the applicable verification gates are known.
 
 ## 2. Design declarations as interfaces
 
 Treat a theorem statement or definition signature as an API. Prefer a clear, reusable statement
 even when a more awkward statement would make its first proof shorter.
+
+In this guide, *public* means part of an intentional exported API identified by the project's
+facades and documentation, not every declaration that happens to lack the `private` modifier.
 
 - Give public declaration arguments and return values explicit types.
 - Put operations and theorems in the namespace of their principal type. This makes names
@@ -77,12 +87,17 @@ Expose the proof's main argument and let automation handle routine leaves.
 - Prefer semantic library lemmas over unfolding definitions or relying on incidental definitional
   equality.
 - Use `simpa using ...` when the remaining difference is routine normalization.
-- Keep domain-specific automation when it communicates the method clearly. Tactics such as `simp`,
-  `ring`, `omega`, `linarith`, and `norm_num` are often more informative than their low-level proof
-  expansions.
+- Keep domain-specific automation when the active imports provide it and it communicates the method
+  clearly. Tactics such as `simp`, `ring`, `omega`, `linarith`, and `norm_num` can be more
+  informative than their low-level proof expansions, but some are ecosystem-specific. Verify the
+  narrow import that provides a tactic; do not broaden imports or add a dependency solely to gain
+  access to it.
 - Use search commands and tactics such as `#check`, `#print`, `exact?`, `apply?`, `simp?`, and
-  `aesop?` during exploration when they are available. Replace exploratory commands with the
-  resulting stable proof or an intentional final automation call.
+  `aesop?` during exploration when the active imports provide them. Replace exploratory commands
+  with the resulting stable proof or an intentional final automation call.
+- Preserve command-based checks such as `#check`, `#guard`, and `#guard_msgs` when elaboration,
+  diagnostics, imports, or visibility are the behavior intentionally tested by a dedicated test
+  module.
 - In `simp`, name the definitions or nonstandard lemmas that explain the important reduction. Keep
   a clear terminal `simp` instead of replacing it with a generated wall of default `simp only`
   lemmas.
@@ -117,7 +132,7 @@ Give a substantial module a `/-! ... -/` docstring that explains:
 
 ### Declaration documentation
 
-- Give public definitions and major theorems `/-- ... -/` docstrings.
+- Give new or materially changed public definitions and major theorems `/-- ... -/` docstrings.
 - State a theorem's mathematical meaning in plain English.
 - Explain the concept represented by a definition, its important edge cases, and its observable
   behavior.
@@ -133,8 +148,9 @@ Give a substantial module a `/-! ... -/` docstring that explains:
 - Keep comments close to the code they explain.
 - Prefer a short explanation of why a step exists over a paraphrase of its Lean syntax.
 
-Documentation is complete when a reader can identify the module's purpose and understand each
-public declaration's meaning before reading its implementation or proof.
+Documentation is complete when a reader can identify the module's purpose and understand the
+meaning of each new or materially changed public declaration before reading its implementation or
+proof. Do not expand a focused change into documentation work on unrelated declarations.
 
 ## 5. Control scope and assumptions
 
@@ -144,26 +160,50 @@ public declaration's meaning before reading its implementation or proof.
   locally when possible, and document a surprising nonconstructive dependency.
 - Use type classes for coherent, reusable structure rather than as shortcuts for passing arbitrary
   local data.
-- Finished code contains no `sorry`, `admit`, accidental axioms, or unsound escape hatches. Add an
-  `axiom` only when an explicit specification calls for a new assumption.
-- Resolve warnings and linter findings or document the specific reason an exception is necessary.
+- Resolve warnings and linter findings introduced by the change or emitted by its required checks,
+  or document the specific reason an exception is necessary. Report unrelated pre-existing
+  findings without expanding the task to fix them.
 - Check that elaboration did not add stronger hypotheses, unwanted type-class requirements, or an
   unnecessary nonconstructive dependency.
 
-This step is complete when the declaration's assumptions are deliberate, visible in its interface,
-and no wider in scope than necessary.
+### Proof trust
+
+Choose proof techniques according to the declaration's assurance boundary:
+
+- Kernel-checked proof terms are the default for reusable and load-bearing theorems unless the
+  local project documents another trust policy.
+- `native_decide` relies on compiler evaluation and adds an axiom dependency: some toolchains use
+  `Lean.ofReduceBool`, while newer ones create an auditable axiom for each invocation. Use it only
+  where the local trust policy permits it, commonly in tests or private computation witnesses.
+  Trace whether a private witness feeds a public or load-bearing value; the witness's visibility
+  does not contain its trust dependency. A successful build does not give such a proof the same
+  assurance as a kernel-checked proof term.
+- Finished code contains no `sorry` or `admit`. Add an `axiom` only when an explicit specification
+  calls for that assumption and requires it to be disclosed.
+
+Audit changed trust-bearing declarations with the project's checker or
+`#print axioms Fully.Qualified.name`. Establish the approved baseline from local documentation and
+tests. Treat `sorryAx`, native-decision axioms such as generated `native_decide` axioms or
+`Lean.ofReduceBool`, and custom axioms outside that baseline as failures unless the specification
+explicitly requires and documents them. Standard axioms are not automatically failures; their
+acceptability depends on the declared project boundary.
+
+This step is complete when the declaration's assumptions and trust dependencies are deliberate,
+audited, visible at the relevant boundary, and no wider in scope than necessary.
 
 ## 6. Verify with Lean
 
 1. Compile the smallest affected target after each logical change.
 2. Run the focused tests or checked examples for the changed behavior.
-3. Run the repository's normal build, test, formatting, and lint commands before finishing.
-4. Inspect warnings, unused imports, unexpected axioms, and unexpectedly slow elaboration.
+3. Run the affected Lake workspace's normal build, test, formatting, and lint commands. Run a
+   repository-level generation, regression, or integration gate when project documentation
+   identifies it as covering the changed surface.
+4. Inspect warnings, unused imports, axiom-audit results, and unexpectedly slow elaboration.
 5. Re-read the theorem statements and public APIs independently of their proofs to catch accidental
    changes in meaning or generality.
 
 Never infer validity from visual inspection alone. Work is complete only after Lean checks every
-changed declaration and the repository's required verification passes.
+changed declaration and every applicable required verification gate passes.
 
 ## Reader's key to common Lean syntax
 
@@ -196,6 +236,7 @@ human contributor's own words.
 - [Lean documentation style](https://github.com/leanprover/lean4/blob/master/doc/style.md)
 - [Lean tactic proofs](https://lean-lang.org/theorem_proving_in_lean4/Tactics/)
 - [Lean simplifier and simp sets](https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-sets/)
+- [Lean axioms and `native_decide`](https://lean-lang.org/doc/reference/latest/Axioms/)
 - [Mathlib style guide](https://leanprover-community.github.io/contribute/style.html)
 - [Mathlib naming conventions](https://leanprover-community.github.io/contribute/naming.html)
 - [Mathlib contribution and AI policy](https://leanprover-community.github.io/contribute/index.html#use-of-ai)
