@@ -25,7 +25,7 @@ internal, or CHASM APIs, regenerate the descriptor-backed modules and verify the
 
 ```sh
 make umpire-gen-api
-go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 make umpire-build-model
 ```
 

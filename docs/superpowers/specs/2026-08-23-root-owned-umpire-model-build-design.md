@@ -22,7 +22,7 @@ Run these commands from the repository root:
 
 ```sh
 make umpire-gen-api
-go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
+go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 cd model && mise exec -- lake build
 ```
 
