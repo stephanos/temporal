@@ -37,6 +37,23 @@ example :
       some .missingLogicalTimeSource := by
   native_decide
 
+def evidenceRecordBoundProperty : PropertyDeclaration := {
+  portableProperty with
+  id := id "test.property.evidence-record-bound"
+  clauses := [
+    .eventuallyWithin (id "test.property.evidence-record-bound.clause")
+      (pattern .observation cancelRequested)
+      (pattern .observation cancelDelivered)
+      (.exact { value := 1, unit := .evidenceRecords })
+  ]
+}
+
+/-- Evidence volume is an Observation boundary, never a semantic Property position. -/
+example :
+    errorKindOf (checkProperty context (.portable evidenceRecordBoundProperty)) =
+      some .unitMismatch := by
+  native_decide
+
 example :
     errorKindOf (checkProperty context
       (.opaque (id "test.property.expert-only") source)) = some .opaqueDeclaration := by
