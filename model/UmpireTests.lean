@@ -1,11 +1,14 @@
+import Umpire.ImportTests
+import Umpire.Target.ImportTests
 import Umpire.CoreTests
+import Umpire.TargetTests
 import Umpire.Property.Tests
 import Umpire.Behavior.Tests
 import Umpire.Property.ImportTests
 import Umpire.Behavior.ImportTests
-import Umpire.SearchImportTests
 import Umpire.Query.Tests
 import Umpire.Planning.Tests
 import Umpire.Planning.VisibilityTests
 import Umpire.Examples.SwitchTests
 import Umpire.Observation.Tests
+import Umpire.Observation.ImportTests

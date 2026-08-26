@@ -16,15 +16,17 @@ Focused imports are available when a consumer needs a smaller surface:
 
 | Import | Public responsibility |
 | --- | --- |
-| `Umpire.Core` | Semantic vocabulary, capabilities, laws, kernels, and target composition. |
+| `Umpire.Core` | Semantic vocabulary, capabilities, laws, and finite kernels. |
+| `Umpire.Target` | Target authoring, checked composition, and canonical target projections. |
 | `Umpire.Property` | Portable property authoring, checking, and evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape constraints. |
-| `Umpire.Search` | Bounds, search strategies, policies, and planning metadata. |
 | `Umpire.Query` | Checked combinations of targets, properties, behaviors, bounds, and policies. |
 | `Umpire.Artifact` | Portable drive plans and experiment specifications. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
+| `Umpire.Observation` | Checked evidence mappings, qualification, derivations, and dispositions. |
 
-`Umpire.Property.Language`, `Umpire.Behavior.Language`, `Umpire.Query.Language`, and
+`Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
+`Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Qualification`, and
 `Umpire.Planning.Engine` implement their public facades and should not normally be imported
 directly.
 
@@ -43,9 +45,10 @@ CheckedQuery + IncrementalPlannerKernel ─ plan ─▶ PlannerRun ─▶ Experi
 The checked types freeze canonical metadata and semantic digests. Planning accepts checked values
 rather than raw author input.
 
-## Core target API
+## Core and Target APIs
 
-`Umpire.Core` defines the vocabulary shared by every other module.
+`Umpire.Core` defines the vocabulary shared by every other module. `Umpire.Target` owns target
+authoring, validation, canonicalization, and checked composition.
 
 Important value types:
 
@@ -141,6 +144,17 @@ Checking validates identities and references, canonicalizes constraints, rejects
 and records whether the described behavior space is statically unsatisfiable. It does not select a
 target or enumerate a trace.
 
+`CheckedBehavior.assignOccurrences` canonically attributes selected action positions to authored
+required occurrences. Behavior admission and Artifact linear extensions cross this same seam.
+
+## Observation API
+
+`Umpire.Observation` describes, checks, and applies bounded mappings from typed synthetic evidence
+to qualified semantic traces. Mapping declarations compile to `CheckedObservationPlan` values;
+`qualifyEvidence` either returns a complete qualified result with derivations and dispositions or a
+closed failure status without exposing a partial trace. Observation does not collect live evidence,
+start Temporal, or redefine Property meaning.
+
 ## Query and search API
 
 `Umpire.Query` combines a checked target, checked properties, checked behavior, finite bounds, and
@@ -185,6 +199,7 @@ planner's candidate-evaluation budget.
 The principal types are:
 
 - `IncrementalPlannerKernel`
+- `FiniteKernelOrder`
 - `PlanningOutcome`
 - `PlanningResult`
 - `PlannerRun`
@@ -198,6 +213,10 @@ plan :
   IncrementalPlannerKernel query.target →
   PlannerRun
 ```
+
+`IncrementalPlannerKernel.ofFinite` derives indexed enumeration, bounds, soundness, and
+completeness from a target's existing finite lists plus its finite action evidence. Model adapters
+provide only canonical-order proofs.
 
 `IncrementalPlannerKernel` exposes indexed action, initial-state, and transition enumeration. Its
 proof fields establish soundness, completeness, and canonical ordering relative to the selected

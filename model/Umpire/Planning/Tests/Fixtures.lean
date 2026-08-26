@@ -1,4 +1,4 @@
-import Umpire.Planning.Engine
+import Umpire.Planning
 
 /-! Shared deterministic model, checked query, incremental kernel, and runner fixtures. -/
 
@@ -173,53 +173,23 @@ def checkedQuery
     selectedBehavior.semanticDigest
 }
 
-def incrementalKernel (width : Nat) : IncrementalPlannerKernel (target width) := {
-  actionLimit := 1
-  actionAt := fun index => if index = 0 then some requestValue else none
-  initialLimit := fun candidate => if candidate = setup then 1 else 0
-  initialAt := fun candidate index =>
-    if candidate = setup ∧ index = 0 then some initial else none
-  stepLimit := fun state action =>
-    if state = initial ∧ action = requestValue then width + 1 else 0
-  stepAt := fun state action index =>
-    if state = initial ∧ action = requestValue ∧ index < width + 1 then
-      some (transition index)
-    else
-      none
-  actionSound := by
-    intro index action inBounds emitted
-    simp only [Nat.lt_one_iff] at inBounds
-    subst index
-    simp at emitted
-    subst action
-    exact ⟨initial, transition 0, rfl, rfl, rfl⟩
-  actionComplete := by
-    intro state action result admitted
-    exact ⟨0, by simp, by simp [admitted.2.1]⟩
-  initialSound := by
-    intro candidate index state inBounds emitted
-    change candidate = setup ∧ state = initial
-    by_cases selected : candidate = setup ∧ index = 0
-    · simp [selected] at emitted
-      exact ⟨selected.1, emitted.symm⟩
-    · simp [selected] at emitted
-  initialComplete := by
-    intro candidate state admitted
-    exact ⟨0, by simp [admitted.1], by simp [admitted.1, admitted.2]⟩
-  stepSound := by
-    intro state action index result inBounds emitted
-    change state = initial ∧ action = requestValue ∧ result = transition 0
-    by_cases selected : state = initial ∧ action = requestValue ∧ index < width + 1
-    · simp [selected] at emitted
-      exact ⟨selected.1, selected.2.1, by simpa [transition] using emitted.symm⟩
-    · simp [selected] at emitted
-  stepComplete := by
-    intro state action result admitted
-    exact ⟨0, by simp [admitted.1, admitted.2.1], by simp [admitted.1, admitted.2]⟩
-  actionOrdered := by intros; simp_all [semanticValueOrderKey]
-  initialOrdered := by intros; simp_all [semanticValueOrderKey]
-  stepOrdered := by intros; simp_all [transitionResultOrderKey, transition]
-}
+def incrementalKernel (width : Nat) : IncrementalPlannerKernel (target width) :=
+  .ofFinite (completeness width) {
+    action := by
+      simp [completeness]
+    initial := by
+      intro candidate
+      simp only [target, kernel]
+      split <;> simp
+    step := by
+      intro state action
+      simp only [target, kernel]
+      split
+      · rw [List.pairwise_iff_getElem]
+        intro first second firstBound secondBound earlier
+        simp [transitions, transition]
+      · simp
+  }
 
 def run
     (width : Nat)

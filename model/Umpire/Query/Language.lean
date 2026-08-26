@@ -1,12 +1,60 @@
 import Umpire.Property
 import Umpire.Behavior
-import Umpire.Search
 
 /-! Implementation behind the `Umpire.Query` public facade. -/
 
 namespace Umpire
 
 /-! Explicit model-only query and finite-planning contracts. -/
+
+inductive SearchStrategy where
+  | exhaustive
+  | breadthFirst
+  | shortest
+  | coverageGuided
+  deriving BEq, DecidableEq, Ord, Repr
+
+def SearchStrategy.name : SearchStrategy → String
+  | .exhaustive => "exhaustive"
+  | .breadthFirst => "breadth-first"
+  | .shortest => "shortest"
+  | .coverageGuided => "coverage-guided"
+
+inductive TieBreakPolicy where
+  | semanticIdentity
+  deriving BEq, DecidableEq, Ord, Repr
+
+def TieBreakPolicy.name : TieBreakPolicy → String
+  | .semanticIdentity => "semantic-identity"
+
+inductive SearchBudgetUnit where
+  | candidateEvaluations
+  deriving BEq, DecidableEq, Ord, Repr
+
+def SearchBudgetUnit.name : SearchBudgetUnit → String
+  | .candidateEvaluations => "candidate-evaluations"
+
+structure SearchBudget where
+  value : Nat
+  unit : SearchBudgetUnit
+  deriving BEq, DecidableEq, Ord, Repr
+
+/-- Behavior-space bounds stay separate from the planner's effort budget. -/
+structure BehaviorPhaseBounds where
+  transitions : TypedBound
+  selectedActions : TypedBound
+  deriving BEq, DecidableEq, Ord, Repr
+
+structure QueryBounds where
+  behavior : BehaviorPhaseBounds
+  search : SearchBudget
+  deriving BEq, DecidableEq, Ord, Repr
+
+structure PlannerPolicy where
+  strategy : SearchStrategy
+  seed : Nat
+  tieBreak : TieBreakPolicy
+  deriving BEq, DecidableEq, Ord, Repr
 
 /-- Query planning consumes the target-owned semantic kernel directly. -/
 abbrev QueryTarget (LawStatement : DeclarationId → Prop) :=

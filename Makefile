@@ -1094,7 +1094,7 @@ umpire-check-regression: umpire-check-regression-projections
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		for package in Property Behavior Query; do \
+		for package in Target Property Behavior Query; do \
 			test -f "model/Umpire/$$package/Language.lean" || { \
 				echo "missing physical Umpire $$package package" >&2; \
 				exit 1; \

@@ -61,19 +61,15 @@ Shared
 ├── Shared.Transition
 └── Shared.TraceReplay
 
-Umpire.Core
-├── Umpire.Property
-├── Umpire.Behavior
-└── Umpire.Search
-        │
-        ▼
-   Umpire.Query
-        │
-        ▼
-  Umpire.Artifact
-        │
-        ▼
-  Umpire.Planning
+Umpire.Core ── Umpire.Target ─┬── Umpire.Property ─┐
+                              └── Umpire.Observation│
+Umpire.Core ───── Umpire.Behavior ─────────────────┼── Umpire.Query
+                                                    │        │
+                                                    │        ▼
+                                                    └─ Umpire.Artifact
+                                                             │
+                                                             ▼
+                                                       Umpire.Planning
 
 Temporal.API ─────────────────────────┐
 Temporal.DynamicConfig ───────────────┤
@@ -171,7 +167,8 @@ observations.
   production aggregate.
 - `Temporal.API` and `Temporal.DynamicConfig` remain generated structural inputs outside the
   Feature/System semantic layers.
-- `Umpire.Property.Language`, `Umpire.Behavior.Language`, `Umpire.Query.Language`, and
+- `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
+  `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Qualification`, and
   `Umpire.Planning.Engine` implement public facades and should not normally be imported directly.
 
 Artifacts are pure model products. They do not claim that Temporal was started, actions were

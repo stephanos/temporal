@@ -1,8 +1,8 @@
-import Umpire.CoreTests.Fixtures
+import Umpire.Target.Tests.Fixtures
 
 /-! Canonical ordering, digest sensitivity, documentation, and serializer checks. -/
 
-namespace Umpire.CoreTests
+namespace Umpire.TargetTests
 
 open Umpire
 
@@ -156,4 +156,4 @@ example : canonicalCapabilityConnectorJson ownershipConnector =
     canonicalCapabilityConnectorJson ownershipConnector := by
   rfl
 
-end Umpire.CoreTests
+end Umpire.TargetTests

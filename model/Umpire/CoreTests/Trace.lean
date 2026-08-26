@@ -1,10 +1,12 @@
-import Umpire.CoreTests.Fixtures
+import Umpire.Core
 
 /-! Exact semantic-trace representation checks. -/
 
 namespace Umpire.CoreTests
 
 open Umpire
+
+def id (value : String) : DeclarationId := DeclarationId.of value
 
 def exactTrace : SemanticTrace Bool Bool Bool SemanticValue := {
   initialState := false

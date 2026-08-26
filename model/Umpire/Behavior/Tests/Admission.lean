@@ -12,6 +12,15 @@ example : !checkedAdmits constrainedDeclaration reversedTrace := by native_decid
 example : !checkedAdmits constrainedDeclaration repeatedCancelTrace := by native_decide
 example : !checkedAdmits constrainedDeclaration otherSetupTrace := by native_decide
 
+example : (checkBehavior context constrainedDeclaration).toOption.bind (fun behavior =>
+    behavior.assignOccurrences [requestCancel, callerClose]) =
+    some [some cancelOccurrence, some closeOccurrence] := by
+  native_decide
+
+example : (checkBehavior context constrainedDeclaration).toOption.bind (fun behavior =>
+    behavior.assignOccurrences [callerClose, requestCancel]) = none := by
+  native_decide
+
 def adjacentDeclaration : BehaviorDeclaration := {
   constrainedDeclaration with adjacencies := [[requestCancel, callerClose]]
 }

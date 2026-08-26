@@ -1,8 +1,8 @@
-import Umpire.CoreTests.Fixtures
+import Umpire.Target.Tests.Fixtures
 
 /-! Successful baseline and alternate-model composition checks. -/
 
-namespace Umpire.CoreTests
+namespace Umpire.TargetTests
 
 open Umpire
 
@@ -56,4 +56,4 @@ def switchTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool :
 example : (composeTarget switchTarget).isOk = true := by
   native_decide
 
-end Umpire.CoreTests
+end Umpire.TargetTests

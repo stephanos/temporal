@@ -496,14 +496,6 @@ def exactActionQuery := materializeQuery
 def exactTraceQuery := materializeQuery
   (exactTraceQueryResult.toOption.get exactTraceQueryResult_isSome)
 
-def incrementalStepLimit (state action : SemanticValue) : Nat :=
-  (stepResults state action).length
-
-def incrementalStepAt
-    (state action : SemanticValue)
-    (index : Nat) : Option (TransitionResult SemanticValue SemanticValue SemanticValue) :=
-  (stepResults state action)[index]?
-
 theorem stepResults_length_le_two (state action : SemanticValue) :
     (stepResults state action).length ≤ 2 := by
   by_cases action = flipAction <;>
@@ -511,78 +503,28 @@ theorem stepResults_length_le_two (state action : SemanticValue) :
     by_cases state = onState <;>
     simp_all [stepResults]
 
-def incrementalKernel : IncrementalPlannerKernel target := {
-  actionLimit := 1
-  actionAt := fun index => if index = 0 then some flipAction else none
-  initialLimit := fun setup => if setup = switchSetup then 1 else 0
-  initialAt := fun setup index =>
-    if setup = switchSetup ∧ index = 0 then some offState else none
-  stepLimit := incrementalStepLimit
-  stepAt := incrementalStepAt
-  actionSound := by
-    intro index action inBounds emitted
-    simp only [Nat.lt_one_iff] at inBounds
-    subst index
-    simp at emitted
-    subst action
-    exact ⟨offState, appliedResult, target_off_flip_applied_authoritative⟩
-  actionComplete := by
-    intro state action result admitted
-    have selected := (target_step state action result admitted).1
-    exact ⟨0, by simp, by simp [selected]⟩
-  initialSound := by
-    intro setup index state _ emitted
-    by_cases selected : setup = switchSetup ∧ index = 0
-    · simp [selected] at emitted
-      subst state
-      change authoritativeInitial setup offState
-      exact ⟨selected.1, rfl⟩
-    · simp [selected] at emitted
-  initialComplete := by
-    intro setup state admitted
-    have selected := target_initial setup state admitted
-    exact ⟨0, by simp [selected.1], by simp [selected.1, selected.2]⟩
-  stepSound := by
-    intro state action index result _ emitted
-    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
-    apply stepResults_sound
-    rw [List.mem_iff_getElem]
-    exact ⟨index, inBounds, selected⟩
-  stepComplete := by
-    intro state action result admitted
-    have member := stepResults_complete state action result admitted
-    rw [List.mem_iff_getElem] at member
-    rcases member with ⟨index, inBounds, selected⟩
-    exact ⟨index, by simpa [incrementalStepLimit],
-      List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
-  actionOrdered := by intros; simp_all [semanticValueOrderKey]
-  initialOrdered := by intros; simp_all [semanticValueOrderKey]
-  stepOrdered := by
-    intro state action first second left right earlier emittedLeft emittedRight
-    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
-    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
-    have lengthBound := stepResults_length_le_two state action
-    have firstZero : first = 0 := by omega
-    have secondOne : second = 1 := by omega
-    subst first
-    subst second
-    by_cases selectedAction : action = flipAction
-    · subst action
-      by_cases selectedOff : state = offState
-      · subst state
-        simp [stepResults] at selectedLeft selectedRight
-        subst left
-        subst right
-        exact appliedResult_ordered
-      · by_cases selectedOn : state = onState
+def incrementalKernel : IncrementalPlannerKernel target :=
+  .ofFinite completeness {
+    action := by
+      simp [completeness]
+    initial := by
+      intro setup
+      simp only [target, transitionKernel, initialStates]
+      split <;> simp
+    step := by
+      intro state action
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
         · subst state
-          simp [stepResults, onState_ne_offState] at selectedLeft selectedRight
-          subst left
-          subst right
-          exact appliedFromOnResult_ordered
-        · simp [stepResults, selectedOff, selectedOn] at firstBound
-    · simp [stepResults, selectedAction] at firstBound
-}
+          simpa [target, transitionKernel, stepResults] using appliedResult_ordered
+        · by_cases selectedOn : state = onState
+          · subst state
+            simpa [target, transitionKernel, stepResults, onState_ne_offState] using
+              appliedFromOnResult_ordered
+          · simp [target, transitionKernel, stepResults, selectedOff, selectedOn]
+      · simp [target, transitionKernel, stepResults, selectedAction]
+  }
 
 theorem exploratoryQuery_target : exploratoryQuery.target = target := by rfl
 theorem exactActionQuery_target : exactActionQuery.target = target := by rfl

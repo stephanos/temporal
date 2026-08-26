@@ -1,5 +1,5 @@
 import Lean.Data.Json
-import Umpire.Query
+import Umpire.Planning.Types
 
 namespace Umpire
 
@@ -240,35 +240,6 @@ def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
     ",\"semanticIdentity\":" ++ quote spec.semanticIdentity ++
     ",\"provenance\":" ++ provenanceJson spec.provenance ++ "}"
 
-private def occurrenceLe (left right : NamedOccurrence) : Bool :=
-  decide (left.id.value ≤ right.id.value)
-
-private def occurrenceReady
-    (ordering : List OccurrenceOrder)
-    (remaining : List NamedOccurrence)
-    (occurrence : NamedOccurrence) : Bool :=
-  ordering.all fun edge =>
-    edge.after != occurrence.id ||
-      !(remaining.any fun candidate => candidate.id == edge.before)
-
-private def assignOccurrenceSlots
-    (ordering : List OccurrenceOrder) :
-    List DeclarationId → List NamedOccurrence → Option (List (Option NamedOccurrence))
-  | [], remaining => if remaining.isEmpty then some [] else none
-  | action :: actions, remaining =>
-      let assignable := remaining.filter fun candidate =>
-        candidate.action == action && occurrenceReady ordering remaining candidate
-      let rec firstComplete : List NamedOccurrence → Option (List (Option NamedOccurrence))
-        | [] =>
-            match assignOccurrenceSlots ordering actions remaining with
-            | some assigned => some (none :: assigned)
-            | none => none
-        | candidate :: rest =>
-            match assignOccurrenceSlots ordering actions (remaining.erase candidate) with
-            | some assigned => some (some candidate :: assigned)
-            | none => firstComplete rest
-      firstComplete (assignable.mergeSort occurrenceLe)
-
 private def plannedOccurrence
     (behavior : CheckedBehavior)
     (index : Nat)
@@ -317,8 +288,7 @@ def artifactOfSelection
   let actions := trace.trace.steps.map fun step => step.selectedAction
   let outcomes := trace.trace.steps.map fun step => step.modelOutcome
   let states := trace.trace.steps.map fun step => step.resultingState
-  let slots := assignOccurrenceSlots query.behavior.ordering
-    (actions.map SemanticValue.identity) query.behavior.requiredOccurrences |>.getD
+  let slots := query.behavior.assignOccurrences (actions.map SemanticValue.identity) |>.getD
       (actions.map fun _ => none)
   let extension := actions.zip slots |>.zipIdx |>.map fun ((action, authored), index) =>
     plannedOccurrence query.behavior index action authored

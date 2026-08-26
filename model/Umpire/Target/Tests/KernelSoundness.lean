@@ -1,8 +1,8 @@
-import Umpire.CoreTests.Fixtures
+import Umpire.Target.Tests.Fixtures
 
 /-! Incomplete-kernel rejection and checked-kernel proof obligations. -/
 
-namespace Umpire.CoreTests
+namespace Umpire.TargetTests
 
 open Umpire
 
@@ -17,7 +17,7 @@ def incompleteKernelTarget : TargetDeclaration TestLawStatement Unit Bool Bool B
 example : (errorOf (composeTarget incompleteKernelTarget)) = some {
     kind := .incompleteKernel
     declarationId := testTarget.id
-    sourcePath := "Umpire/CoreTests.lean"
+    sourcePath := "Umpire/TargetTests.lean"
     offendingValue := testKernel.metadata.id.value
     relatedIdentities := [
       id "umpire.kernel-proof.initial-complete",
@@ -41,4 +41,4 @@ example (result : TransitionResult Bool Bool Bool)
     testKernel.authoritativeStep false true result :=
   testKernel.stepSound false true result member
 
-end Umpire.CoreTests
+end Umpire.TargetTests
