@@ -1,5 +1,5 @@
 import Temporal.System.Callback.Configuration
-import Temporal.System.Configuration.Tests
+import Temporal.System.Configuration.Tests.Fixtures
 
 namespace Temporal.System.Callback.ConfigurationTests
 
@@ -79,6 +79,28 @@ example :
      wholeHostWildcardMatch "api.*.example.com" "api.a.b.example.com"] =
     [true, false, true] := by native_decide
 
+def valuesOfList : List CanonicalValue → CanonicalValues
+  | [] => .nil
+  | value :: rest => .cons value (valuesOfList rest)
+
+def addressRuleValue (pattern : String) (allowInsecure : Bool) : CanonicalValue :=
+  .object (.cons "Pattern" (.string pattern)
+    (.cons "AllowInsecure" (.bool allowInsecure) .nil))
+
+def addressRulesValue (rules : List CanonicalValue) : CanonicalValue :=
+  .object (.cons "Rules" (.list (valuesOfList rules)) .nil)
+
+def malformedUnselectedAddressOverrideResult : Except ConfigError ConfigView := do
+  let use ← callbackAllowedAddressesUse "payments"
+  let selected ← checkConfigOverride use (namespaceContext "payments")
+    (addressRulesValue [addressRuleValue "api.example.com" false])
+  let malformed ← checkConfigOverride use emptyConstraints
+    (addressRulesValue [addressRuleValue "" false])
+  resolveConfigView [selected, malformed] [.of use]
+
+example : errorKindOf malformedUnselectedAddressOverrideResult =
+    some .interpretationFailure := by native_decide
+
 def callbackConsumerRulesValue : CanonicalValue :=
   addressRulesValue [
     addressRuleValue "api.*.example.com" false,
@@ -87,6 +109,7 @@ def callbackConsumerRulesValue : CanonicalValue :=
 def callbackConsumerView
     (enabled : Bool)
     (maximum timeoutNanoseconds : Int) : Except ConfigError ConfigView := do
+  let plan : CallbackConfigPlan := { namespaceName := "payments", destination := "callback-api" }
   let enableUse ← historyEnableChasmCallbacksUse "payments"
   let maximumUse ← callbackMaxPerExecutionUse "payments"
   let addressesUse ← callbackAllowedAddressesUse "payments"
@@ -99,15 +122,13 @@ def callbackConsumerView
     (namespaceContext "payments") callbackConsumerRulesValue
   let timeoutOverride ← checkConfigOverride timeoutUse
     (destinationContext "payments" "callback-api") (.duration timeoutNanoseconds)
-  resolveConfigView
-    [enableOverride, maximumOverride, addressesOverride, timeoutOverride]
-    [.of enableUse, .of maximumUse, .of addressesUse, .of timeoutUse]
+  plan.resolve [enableOverride, maximumOverride, addressesOverride, timeoutOverride]
 
 def callbackConsumerConfig
     (enabled : Bool)
     (maximum timeoutNanoseconds : Int) : Except ConfigError CallbackDomainConfig := do
   let view ← callbackConsumerView enabled maximum timeoutNanoseconds
-  projectCallbackDomainConfig view "payments" "callback-api"
+  ({ namespaceName := "payments", destination := "callback-api" } : CallbackConfigPlan).project view
 
 def callbackRequest
     (existingCallbacks newCallbacks : Nat)

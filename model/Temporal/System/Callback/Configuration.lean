@@ -255,19 +255,36 @@ def CallbackAddressRules.validate
             validateRules rest
     validateRules rules.rules
 
-def authoredClassifications : List SettingClassification :=
-  [{ key := "history.enablechasmcallbacks"
-     settingIdentity := "sha256:415f169bb77c82582f2d8f5049648b5b079f4f1047a2f109d4ed9b14037d9c8c"
-     impacts := [.feature, .externallyVisibleSemantics] },
-   { key := "callback.maxperexecution"
-     settingIdentity := "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
-     impacts := [.validation] },
-   { key := "callback.request.timeout"
-     settingIdentity := "sha256:cd2c7d65a4f41e7edcfa548d7433aeb7cd5a414c6a3258d361676cd3ada8fda9"
-     impacts := [.timing] },
-   { key := "callback.allowedaddresses"
-     settingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
-     impacts := [.validation, .externallyVisibleSemantics] }]
+def historyEnableChasmCallbacksClassification : SettingClassification := {
+  key := "history.enablechasmcallbacks"
+  settingIdentity := "sha256:415f169bb77c82582f2d8f5049648b5b079f4f1047a2f109d4ed9b14037d9c8c"
+  impacts := [.feature, .externallyVisibleSemantics]
+}
+
+def callbackMaxPerExecutionClassification : SettingClassification := {
+  key := "callback.maxperexecution"
+  settingIdentity := "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
+  impacts := [.validation]
+}
+
+def callbackRequestTimeoutClassification : SettingClassification := {
+  key := "callback.request.timeout"
+  settingIdentity := "sha256:cd2c7d65a4f41e7edcfa548d7433aeb7cd5a414c6a3258d361676cd3ada8fda9"
+  impacts := [.timing]
+}
+
+def callbackAllowedAddressesClassification : SettingClassification := {
+  key := "callback.allowedaddresses"
+  settingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
+  impacts := [.validation, .externallyVisibleSemantics]
+}
+
+def authoredClassifications : List SettingClassification := [
+  historyEnableChasmCallbacksClassification,
+  callbackMaxPerExecutionClassification,
+  callbackRequestTimeoutClassification,
+  callbackAllowedAddressesClassification
+]
 
 def historyEnableChasmCallbacksInterpretation : ConfigInterpretation Bool := {
   key := "history.enablechasmcallbacks"
@@ -311,51 +328,113 @@ def namespaceContext (namespaceName : String) : ExactConstraints :=
 def destinationContext (namespaceName destination : String) : ExactConstraints :=
   { emptyConstraints with namespaceName := some namespaceName, destination := some destination }
 
-private def checkedAuthoredUse
-    (request : ConfigUseRequest α) : Except ConfigError (ConfigUse α) :=
-  checkConfigUse authoredClassifications request
+def historyEnableChasmCallbacksDefinitionResult := checkConfigUseDefinition {
+  id := DeclarationId.of "temporal.callback.enable-chasm"
+  classification := historyEnableChasmCallbacksClassification
+  contextPolicy := .namespace
+  samplingPoint := .entityCreation
+  changeEffect := .newEntitiesOnly
+  interpretation := historyEnableChasmCallbacksInterpretation
+}
+
+def callbackMaxPerExecutionDefinitionResult := checkConfigUseDefinition {
+  id := DeclarationId.of "temporal.callback.max-per-execution"
+  classification := callbackMaxPerExecutionClassification
+  contextPolicy := .namespace
+  samplingPoint := .request
+  changeEffect := .nextRead
+  interpretation := callbackMaxPerExecutionInterpretation
+}
+
+def callbackAllowedAddressesDefinitionResult := checkConfigUseDefinition {
+  id := DeclarationId.of "temporal.callback.allowed-addresses"
+  classification := callbackAllowedAddressesClassification
+  contextPolicy := .namespace
+  samplingPoint := .request
+  changeEffect := .nextRead
+  interpretation := callbackAllowedAddressesInterpretation
+}
+
+def callbackRequestTimeoutDefinitionResult := checkConfigUseDefinition {
+  id := DeclarationId.of "temporal.callback.request-timeout"
+  classification := callbackRequestTimeoutClassification
+  contextPolicy := .destination
+  samplingPoint := .task
+  changeEffect := .nextRead
+  interpretation := callbackRequestTimeoutInterpretation
+}
+
+private theorem historyEnableChasmCallbacksDefinitionResult_isSome :
+    historyEnableChasmCallbacksDefinitionResult.toOption.isSome = true := by native_decide
+private theorem callbackMaxPerExecutionDefinitionResult_isSome :
+    callbackMaxPerExecutionDefinitionResult.toOption.isSome = true := by native_decide
+private theorem callbackAllowedAddressesDefinitionResult_isSome :
+    callbackAllowedAddressesDefinitionResult.toOption.isSome = true := by native_decide
+private theorem callbackRequestTimeoutDefinitionResult_isSome :
+    callbackRequestTimeoutDefinitionResult.toOption.isSome = true := by native_decide
+
+def historyEnableChasmCallbacksDefinition :=
+  historyEnableChasmCallbacksDefinitionResult.toOption.get
+    historyEnableChasmCallbacksDefinitionResult_isSome
+
+def callbackMaxPerExecutionDefinition :=
+  callbackMaxPerExecutionDefinitionResult.toOption.get
+    callbackMaxPerExecutionDefinitionResult_isSome
+
+def callbackAllowedAddressesDefinition :=
+  callbackAllowedAddressesDefinitionResult.toOption.get
+    callbackAllowedAddressesDefinitionResult_isSome
+
+def callbackRequestTimeoutDefinition :=
+  callbackRequestTimeoutDefinitionResult.toOption.get
+    callbackRequestTimeoutDefinitionResult_isSome
+
+def callbackUseDefinitions : List AnyCheckedConfigUseDefinition := [
+  .of historyEnableChasmCallbacksDefinition,
+  .of callbackMaxPerExecutionDefinition,
+  .of callbackAllowedAddressesDefinition,
+  .of callbackRequestTimeoutDefinition
+]
+
+structure CallbackConfigPlan where
+  namespaceName : String
+  destination : String
 
 def historyEnableChasmCallbacksUse (namespaceName : String) : Except ConfigError (ConfigUse Bool) :=
-  checkedAuthoredUse {
-    id := DeclarationId.of "temporal.callback.enable-chasm"
-    key := historyEnableChasmCallbacksInterpretation.key
-    context := namespaceContext namespaceName
-    samplingPoint := .entityCreation
-    changeEffect := .newEntitiesOnly
-    interpretation := some historyEnableChasmCallbacksInterpretation
-  }
+  historyEnableChasmCallbacksDefinition.instantiate (namespaceContext namespaceName)
 
 def callbackMaxPerExecutionUse (namespaceName : String) : Except ConfigError (ConfigUse Int) :=
-  checkedAuthoredUse {
-    id := DeclarationId.of "temporal.callback.max-per-execution"
-    key := callbackMaxPerExecutionInterpretation.key
-    context := namespaceContext namespaceName
-    samplingPoint := .request
-    changeEffect := .nextRead
-    interpretation := some callbackMaxPerExecutionInterpretation
-  }
+  callbackMaxPerExecutionDefinition.instantiate (namespaceContext namespaceName)
 
 def callbackAllowedAddressesUse
     (namespaceName : String) : Except ConfigError (ConfigUse CallbackAddressRules) :=
-  checkedAuthoredUse {
-    id := DeclarationId.of "temporal.callback.allowed-addresses"
-    key := callbackAllowedAddressesInterpretation.key
-    context := namespaceContext namespaceName
-    samplingPoint := .request
-    changeEffect := .nextRead
-    interpretation := some callbackAllowedAddressesInterpretation
-  }
+  callbackAllowedAddressesDefinition.instantiate (namespaceContext namespaceName)
 
 def callbackRequestTimeoutUse
     (namespaceName destination : String) : Except ConfigError (ConfigUse Int) :=
-  checkedAuthoredUse {
-    id := DeclarationId.of "temporal.callback.request-timeout"
-    key := callbackRequestTimeoutInterpretation.key
-    context := destinationContext namespaceName destination
-    samplingPoint := .task
-    changeEffect := .nextRead
-    interpretation := some callbackRequestTimeoutInterpretation
-  }
+  callbackRequestTimeoutDefinition.instantiate (destinationContext namespaceName destination)
+
+def CallbackConfigPlan.uses
+    (plan : CallbackConfigPlan) : Except ConfigError (List AnyConfigUse) := do
+  let enableUse ← (historyEnableChasmCallbacksUse plan.namespaceName).map AnyConfigUse.of
+  let maximumUse ← (callbackMaxPerExecutionUse plan.namespaceName).map AnyConfigUse.of
+  let addressesUse ← (callbackAllowedAddressesUse plan.namespaceName).map AnyConfigUse.of
+  let timeoutUse ←
+    (callbackRequestTimeoutUse plan.namespaceName plan.destination).map AnyConfigUse.of
+  pure [
+    enableUse,
+    maximumUse,
+    addressesUse,
+    timeoutUse
+  ]
+
+def CallbackConfigPlan.resolve
+    (plan : CallbackConfigPlan)
+    (overrides : List ConfigOverride) : Except ConfigError ConfigView :=
+  match plan.uses with
+  | .error error => .error error
+  | .ok uses => resolveConfigView overrides uses
+
 inductive CallbackRoute where
   | legacyHsm
   | chasm
@@ -400,10 +479,10 @@ structure CallbackTrace where
   dispatch : CallbackDispatch
   deriving BEq, DecidableEq, Repr
 
-def projectCallbackDomainConfig
-    (view : ConfigView)
-    (namespaceName destination : String) : Except ConfigError CallbackDomainConfig := do
-  if destination == "" then
+def CallbackConfigPlan.project
+    (plan : CallbackConfigPlan)
+    (view : ConfigView) : Except ConfigError CallbackDomainConfig := do
+  if plan.destination == "" then
     throw {
       kind := .missingContext
       useId := DeclarationId.of "temporal.callback.snapshot"
@@ -411,10 +490,10 @@ def projectCallbackDomainConfig
       offendingValue := "destination"
       relatedIdentities := []
     }
-  let enableUse ← historyEnableChasmCallbacksUse namespaceName
-  let maximumUse ← callbackMaxPerExecutionUse namespaceName
-  let addressesUse ← callbackAllowedAddressesUse namespaceName
-  let timeoutUse ← callbackRequestTimeoutUse namespaceName destination
+  let enableUse ← historyEnableChasmCallbacksUse plan.namespaceName
+  let maximumUse ← callbackMaxPerExecutionUse plan.namespaceName
+  let addressesUse ← callbackAllowedAddressesUse plan.namespaceName
+  let timeoutUse ← callbackRequestTimeoutUse plan.namespaceName plan.destination
   let enabled ← view.read enableUse
   let maximumCallbacks ← view.read maximumUse
   let addressRules ← view.read addressesUse
@@ -425,6 +504,11 @@ def projectCallbackDomainConfig
     addressRules
     timeoutNanoseconds
   })
+
+def projectCallbackDomainConfig
+    (view : ConfigView)
+    (namespaceName destination : String) : Except ConfigError CallbackDomainConfig :=
+  ({ namespaceName, destination } : CallbackConfigPlan).project view
 
 /-- Evaluate callback admission and dispatch against only the captured callback projection. -/
 def runCallbackTrace

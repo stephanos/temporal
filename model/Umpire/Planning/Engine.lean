@@ -17,12 +17,12 @@ def transitionResultOrderKey
 
 /-- A backend exposes a single candidate and continuation per pull; Query owns policy and result
 semantics, while implementations own only incremental enumeration state. -/
-inductive PlannerPull (State Candidate : Type) where
+private inductive PlannerPull (State Candidate : Type) where
   | yield (candidate : Candidate) (nextState : State)
   | complete
   deriving BEq, DecidableEq, Repr
 
-structure PlannerBackend (Input State Candidate : Type) where
+private structure PlannerBackend (Input State Candidate : Type) where
   start : Input → State
   pull : Input → State → PlannerPull State Candidate
 
@@ -63,14 +63,94 @@ structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
     stepAt state action first = some left → stepAt state action second = some right →
       transitionResultOrderKey left ≤ transitionResultOrderKey right
 
-structure PlannerCursor where
+/-- Canonical ordering obligations for the finite lists already owned by a checked target. -/
+structure FiniteKernelOrder
+    (target : QueryTarget LawStatement)
+    (evidence : FiniteCompletenessEvidence LawStatement target) where
+  action : evidence.actions.Pairwise fun left right =>
+    semanticValueOrderKey left ≤ semanticValueOrderKey right
+  initial : ∀ setup, (target.kernel.initialStates setup).Pairwise fun left right =>
+    semanticValueOrderKey left ≤ semanticValueOrderKey right
+  step : ∀ state action, (target.kernel.steps state action).Pairwise fun left right =>
+    transitionResultOrderKey left ≤ transitionResultOrderKey right
+
+/-- Derive indexed planning from the target's sound and complete finite list interface. -/
+def IncrementalPlannerKernel.ofFinite
+    (evidence : FiniteCompletenessEvidence LawStatement target)
+    (order : FiniteKernelOrder target evidence) : IncrementalPlannerKernel target := {
+  actionLimit := evidence.actions.length
+  actionAt := fun index => evidence.actions[index]?
+  initialLimit := fun setup => (target.kernel.initialStates setup).length
+  initialAt := fun setup index => (target.kernel.initialStates setup)[index]?
+  stepLimit := fun state action => (target.kernel.steps state action).length
+  stepAt := fun state action index => (target.kernel.steps state action)[index]?
+  actionSound := by
+    intro index action _ emitted
+    apply evidence.actionSound action
+    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
+    rw [List.mem_iff_getElem]
+    exact ⟨index, inBounds, selected⟩
+  actionComplete := by
+    intro state action result admitted
+    have member := evidence.actionComplete state action result admitted
+    rw [List.mem_iff_getElem] at member
+    rcases member with ⟨index, inBounds, selected⟩
+    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
+  initialSound := by
+    intro setup index state _ emitted
+    apply target.kernel.initialSound
+    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
+    rw [List.mem_iff_getElem]
+    exact ⟨index, inBounds, selected⟩
+  initialComplete := by
+    intro setup state admitted
+    have member := target.kernel.initialComplete setup state admitted
+    rw [List.mem_iff_getElem] at member
+    rcases member with ⟨index, inBounds, selected⟩
+    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
+  stepSound := by
+    intro state action index result _ emitted
+    apply target.kernel.stepSound
+    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
+    rw [List.mem_iff_getElem]
+    exact ⟨index, inBounds, selected⟩
+  stepComplete := by
+    intro state action result admitted
+    have member := target.kernel.stepComplete state action result admitted
+    rw [List.mem_iff_getElem] at member
+    rcases member with ⟨index, inBounds, selected⟩
+    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
+  actionOrdered := by
+    intro first second left right earlier emittedLeft emittedRight
+    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
+    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
+    have ordered := List.pairwise_iff_getElem.mp order.action
+      first second firstBound secondBound earlier
+    simpa [selectedLeft, selectedRight] using ordered
+  initialOrdered := by
+    intro setup first second left right earlier emittedLeft emittedRight
+    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
+    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
+    have ordered := List.pairwise_iff_getElem.mp (order.initial setup)
+      first second firstBound secondBound earlier
+    simpa [selectedLeft, selectedRight] using ordered
+  stepOrdered := by
+    intro state action first second left right earlier emittedLeft emittedRight
+    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
+    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
+    have ordered := List.pairwise_iff_getElem.mp (order.step state action)
+      first second firstBound secondBound earlier
+    simpa [selectedLeft, selectedRight] using ordered
+}
+
+private structure PlannerCursor where
   trace : BehaviorTrace
   nextAction : Nat := 0
   currentAction : Option SemanticValue := none
   nextOutcome : Nat := 0
   deriving BEq, DecidableEq, Repr
 
-structure PurePlannerState where
+private structure PurePlannerState where
   targetDepth : Nat := 0
   setupIndex : Nat := 0
   initialIndex : Nat := 0
@@ -356,7 +436,7 @@ private partial def pullCandidate
               activePath := { cursor with currentAction := none, nextOutcome := 0 } :: parents
             }
 
-def purePlannerBackend
+private def purePlannerBackend
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target) :
     PlannerBackend Unit PurePlannerState BehaviorTrace := {

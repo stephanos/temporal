@@ -122,6 +122,15 @@ structure ConfigUseRequest (α : Type) where
   changeEffect : ChangeEffect
   interpretation : Option (ConfigInterpretation α)
 
+/-- Owner-authored meaning for one generated setting, independent of a concrete lookup context. -/
+structure ConfigUseDefinition (α : Type) where
+  id : DeclarationId
+  classification : SettingClassification
+  contextPolicy : PrecedencePolicy
+  samplingPoint : SamplingPoint
+  changeEffect : ChangeEffect
+  interpretation : ConfigInterpretation α
+
 private structure ConfigUsePayload (α : Type) where
   id : DeclarationId
   setting : Setting
@@ -159,6 +168,54 @@ def ConfigUse.samplingPoint (use : ConfigUse α) : SamplingPoint :=
 
 def ConfigUse.changeEffect (use : ConfigUse α) : ChangeEffect :=
   use.payload.changeEffect
+
+private structure CheckedConfigUseDefinitionPayload (α : Type) where
+  template : ConfigUse α
+  contextPolicy : PrecedencePolicy
+
+/-- A checked owner definition that can instantiate typed uses without repeating owner metadata. -/
+structure CheckedConfigUseDefinition (α : Type) where
+  private mk ::
+  private payload : CheckedConfigUseDefinitionPayload α
+
+structure ConfigUseDefinitionMetadata where
+  id : DeclarationId
+  key : String
+  settingIdentity : String
+  impacts : List ImpactClass
+  contextPolicy : PrecedencePolicy
+  samplingPoint : SamplingPoint
+  changeEffect : ChangeEffect
+  interpretationDigest : String
+  deriving BEq, DecidableEq, Repr
+
+def CheckedConfigUseDefinition.metadata
+    (definition : CheckedConfigUseDefinition α) : ConfigUseDefinitionMetadata := {
+  id := definition.payload.template.id
+  key := definition.payload.template.key
+  settingIdentity := definition.payload.template.setting.identity
+  impacts := definition.payload.template.classification.impacts
+  contextPolicy := definition.payload.contextPolicy
+  samplingPoint := definition.payload.template.samplingPoint
+  changeEffect := definition.payload.template.changeEffect
+  interpretationDigest := definition.payload.template.interpretation.semanticDigest
+}
+
+inductive AnyCheckedConfigUseDefinition where
+  | of {α : Type} (definition : CheckedConfigUseDefinition α)
+
+namespace AnyCheckedConfigUseDefinition
+
+def metadata : AnyCheckedConfigUseDefinition → ConfigUseDefinitionMetadata
+  | .of definition => definition.metadata
+
+def id (definition : AnyCheckedConfigUseDefinition) : DeclarationId :=
+  definition.metadata.id
+
+def key (definition : AnyCheckedConfigUseDefinition) : String :=
+  definition.metadata.key
+
+end AnyCheckedConfigUseDefinition
 
 inductive AnyConfigUse where
   | of {α : Type} (use : ConfigUse α)
@@ -401,6 +458,21 @@ private def firstDuplicateString : List String → Option String
       if first == second then some first else firstDuplicateString (second :: rest)
   | _ => none
 
+def validateConfigUseDefinitions
+    (definitions : List AnyCheckedConfigUseDefinition) : Except ConfigError Unit := do
+  let metadata := definitions.map AnyCheckedConfigUseDefinition.metadata
+  let ids := metadata.map (fun definition => definition.id.value) |>.mergeSort stringLe
+  match firstDuplicateString ids with
+  | some duplicate =>
+      throw (configError .duplicateUse (DeclarationId.of duplicate) "" duplicate)
+  | none => pure ()
+  let keys := metadata.map ConfigUseDefinitionMetadata.key |>.mergeSort stringLe
+  match firstDuplicateString keys with
+  | some duplicate =>
+      throw (configError .duplicateUse (DeclarationId.of "umpire.config.definitions")
+        duplicate duplicate)
+  | none => pure ()
+
 private def validateClassifications
     (catalog : List Setting)
     (classifications : List SettingClassification) : Except ConfigError Unit := do
@@ -526,6 +598,52 @@ def checkConfigUse
   let use ← checkConfigUseInCatalog Temporal.DynamicConfig.Settings.all classifications request
   validateOpaqueReplacement use.id use.setting use.interpretation
   pure use
+
+private def definitionContext : PrecedencePolicy → ExactConstraints
+  | .global => emptyConstraints
+  | .namespace => { emptyConstraints with namespaceName := some "definition" }
+  | .namespaceId => { emptyConstraints with namespaceId := some "definition" }
+  | .taskQueue => {
+      emptyConstraints with
+      namespaceName := some "definition"
+      taskQueueName := some "definition"
+      taskQueueType := some 0
+    }
+  | .shardId => { emptyConstraints with shardId := some 0 }
+  | .taskType => { emptyConstraints with taskType := some 0 }
+  | .destination => {
+      emptyConstraints with
+      namespaceName := some "definition"
+      destination := some "definition"
+    }
+  | .chasmTaskType => { emptyConstraints with chasmTaskType := some "definition" }
+
+/-- Check owner metadata once before any concrete context is instantiated. -/
+def checkConfigUseDefinition
+    (definition : ConfigUseDefinition α) : Except ConfigError (CheckedConfigUseDefinition α) := do
+  let setting ← match findSetting? Temporal.DynamicConfig.Settings.all definition.classification.key with
+    | none => throw (configError .unknownKey definition.id definition.classification.key
+        definition.classification.key)
+    | some setting => pure setting
+  if definition.contextPolicy != setting.policy then
+    throw (configError .incompatibleInterpretation definition.id definition.classification.key
+      (reprStr definition.contextPolicy ++ " != " ++ reprStr setting.policy))
+  let template ← checkConfigUse [definition.classification] {
+    id := definition.id
+    key := definition.classification.key
+    context := definitionContext definition.contextPolicy
+    samplingPoint := definition.samplingPoint
+    changeEffect := definition.changeEffect
+    interpretation := some definition.interpretation
+  }
+  pure (.mk { template, contextPolicy := definition.contextPolicy })
+
+def CheckedConfigUseDefinition.instantiate
+    (definition : CheckedConfigUseDefinition α)
+    (context : ExactConstraints) : Except ConfigError (ConfigUse α) := do
+  let template := definition.payload.template
+  requireContext template.id template.setting context
+  pure (.mk { template.payload with context })
 
 /-- Bind a canonical override to a checked typed use before it can enter resolution. -/
 def checkConfigOverride

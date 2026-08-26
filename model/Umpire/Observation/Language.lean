@@ -1,4 +1,4 @@
-import Umpire.Core
+import Umpire.Target
 
 /-!
 The Observation language describes, validates, and canonicalizes inert mappings from typed evidence

@@ -1,5 +1,5 @@
 import Umpire.Observation.Tests.Fixtures
-import Umpire.CoreTests.Fixtures
+import Umpire.Target.Tests.Fixtures
 
 /-! Deterministic checked-plan identity and exact structural compilation failures. -/
 
@@ -47,7 +47,7 @@ example : checkedNormalizedNameIsTyped = some true := by
   native_decide
 
 def connectedContext : Option ObservationCheckContext :=
-  (composeTarget Umpire.CoreTests.testTarget).toOption.map fun target =>
+  (composeTarget Umpire.TargetTests.testTarget).toOption.map fun target =>
     ObservationCheckContext.ofTarget target [evidenceProfile]
 
 def reconciledMapping : ObservationMappingDeclaration := {

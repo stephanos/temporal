@@ -7,10 +7,9 @@ namespace Temporal.System.ConfigurationTests
 open _root_.Umpire
 open Temporal.DynamicConfig
 open Temporal.System.Configuration
-open Temporal.System.Callback.Configuration
 
 def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
-  checkConfigUse authoredClassifications {
+  checkConfigUse [maxClassification] {
     id := DeclarationId.of "test.config.unknown"
     key := "does.not.exist"
     context := emptyConstraints
@@ -20,7 +19,7 @@ def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
   }
 
 def unclassifiedUseResult : Except ConfigError (ConfigUse Unit) :=
-  checkConfigUse authoredClassifications {
+  checkConfigUse [maxClassification] {
     id := DeclarationId.of "test.config.unclassified"
     key := "admin.enablelisthistorytasks"
     context := emptyConstraints
@@ -39,41 +38,41 @@ def emptyClassificationResult : Except ConfigError (ConfigUse Int) :=
     (maxRequest "test.config.empty-classification" "payments")
 
 def missingInterpretationResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse authoredClassifications
+  checkConfigUse [maxClassification]
     (maxRequest "test.config.missing-interpretation" "payments" none)
 
 def incompatibleInterpretationResult : Except ConfigError (ConfigUse Int) :=
-  let interpretation := { callbackMaxPerExecutionInterpretation with key := "other.key" }
-  checkConfigUse authoredClassifications
+  let interpretation := { maxInterpretation with key := "other.key" }
+  checkConfigUse [maxClassification]
     (maxRequest "test.config.incompatible-interpretation" "payments" (some interpretation))
 
 def schemaDriftResult : Except ConfigError (ConfigUse Int) :=
   let interpretation := {
-    callbackMaxPerExecutionInterpretation with expectedSchema := .bool "bool" false
+    maxInterpretation with expectedSchema := .bool "bool" false
   }
-  checkConfigUse authoredClassifications
+  checkConfigUse [maxClassification]
     (maxRequest "test.config.schema-drift" "payments" (some interpretation))
 
 def defaultDriftResult : Except ConfigError (ConfigUse Int) :=
   let interpretation := {
-    callbackMaxPerExecutionInterpretation with expectedDefault := .concrete (.int 1999)
+    maxInterpretation with expectedDefault := .concrete (.int 1999)
   }
-  checkConfigUse authoredClassifications
+  checkConfigUse [maxClassification]
     (maxRequest "test.config.default-drift" "payments" (some interpretation))
 
 def missingContextResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse authoredClassifications {
+  checkConfigUse [maxClassification] {
     maxRequest "test.config.missing-context" "payments" with context := emptyConstraints
   }
 
 def illegalContextResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse authoredClassifications {
+  checkConfigUse [maxClassification] {
     maxRequest "test.config.illegal-context" "payments" with
-      context := { namespaceContext "payments" with destination := some "callback-api" }
+      context := { maxNamespaceContext "payments" with destination := some "callback-api" }
   }
 
 def malformedUseResult : Except ConfigError (ConfigUse Int) :=
-  checkConfigUse authoredClassifications
+  checkConfigUse [maxClassification]
     (maxRequest "not-namespaced" "payments")
 
 example :
@@ -100,7 +99,7 @@ example :
 
 def duplicateOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.duplicate-override" "payments"
-  let override ← checkConfigOverride use (namespaceContext "payments") (.int 20)
+  let override ← checkConfigOverride use (maxNamespaceContext "payments") (.int 20)
   resolveConfigView [override, override] [.of use]
 
 def illegalOverrideResult : Except ConfigError ConfigView := do
@@ -111,7 +110,7 @@ def illegalOverrideResult : Except ConfigError ConfigView := do
 
 def schemaMismatchOverrideResult : Except ConfigError ConfigView := do
   let use ← checkedMaxUse "test.config.schema-mismatch-override" "payments"
-  let override ← checkConfigOverride use (namespaceContext "payments") (.bool true)
+  let override ← checkConfigOverride use (maxNamespaceContext "payments") (.bool true)
   resolveConfigView [override] [.of use]
 
 def duplicateUseResult : Except ConfigError ConfigView := do
@@ -137,27 +136,5 @@ def duplicateConstrainedDefaultSetting : Setting := {
 
 example : errorKindOf (validateSettingStructure duplicateConstrainedDefaultSetting) =
     some .duplicateConstraints := by native_decide
-
-def valuesOfList : List CanonicalValue → CanonicalValues
-  | [] => .nil
-  | value :: rest => .cons value (valuesOfList rest)
-
-def addressRuleValue (pattern : String) (allowInsecure : Bool) : CanonicalValue :=
-  .object (.cons "Pattern" (.string pattern)
-    (.cons "AllowInsecure" (.bool allowInsecure) .nil))
-
-def addressRulesValue (rules : List CanonicalValue) : CanonicalValue :=
-  .object (.cons "Rules" (.list (valuesOfList rules)) .nil)
-
-def malformedUnselectedAddressOverrideResult : Except ConfigError ConfigView := do
-  let use ← callbackAllowedAddressesUse "payments"
-  let selected ← checkConfigOverride use (namespaceContext "payments")
-    (addressRulesValue [addressRuleValue "api.example.com" false])
-  let malformed ← checkConfigOverride use emptyConstraints
-    (addressRulesValue [addressRuleValue "" false])
-  resolveConfigView [selected, malformed] [.of use]
-
-example : errorKindOf malformedUnselectedAddressOverrideResult =
-    some .interpretationFailure := by native_decide
 
 end Temporal.System.ConfigurationTests
