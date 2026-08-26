@@ -16,6 +16,10 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 - Validate the complete graph before constructing `CheckedCatalog`; do not copy clauses, traces, kernels, or planner logic.
 - Make authoring-order permutations canonical and keep constructors for checked values private.
 
+### Key context
+
+- The parent spec is blocked on all of fn-16, so this task is not dispatchable before `CheckedSpaceMetadata` and its public facade land. Consume that dependency-owned contract; do not recreate it here.
+
 ### Investigation targets
 
 **Required:**
@@ -23,7 +27,7 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 - `model/Umpire/Core.lean:189-224` — structured error conventions.
 - `model/Umpire/Core.lean:430-464` — identity and kind validation.
 - `model/Umpire/Property/Language.lean:192-270` — authored-to-checked lifecycle.
-- `model/Umpire/Space/Metadata.lean` — fn-16-owned checked metadata projection; consume without copying compiler logic.
+- `.flow/tasks/fn-16-authored-variation-spaces-and.3.md` — dependency-owned checked metadata handoff this task consumes after fn-16 completes.
 - `model/Umpire/ARCHITECTURE.md:31-44` — package lifecycle boundary.
 
 ### Quick command
