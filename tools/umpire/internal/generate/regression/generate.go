@@ -206,51 +206,51 @@ func inspectExperiment(modelRoot, identity string) (inspectorOutput, error) {
 
 func requireInspectorArtifact(identity string, output inspectorOutput, inspectErr error) ([]byte, error) {
 	stdoutPresent := len(bytes.TrimSpace(output.Stdout)) != 0
-	stderr := strings.TrimSpace(string(output.Stderr))
+	stderr := bytes.TrimSpace(output.Stderr)
 	if inspectErr != nil {
 		if stdoutPresent {
 			return nil, fmt.Errorf(
 				"inspect regression projection %q: inspector failed while also producing stdout; diagnostic: %s: %w",
 				identity,
-				diagnosticOrNone(stderr),
+				diagnosticSummary(stderr),
 				inspectErr,
 			)
 		}
-		if stderr != "" {
+		if len(stderr) != 0 {
 			return nil, fmt.Errorf(
 				"inspect regression projection %q: inspector diagnostic: %s: %w",
 				identity,
-				stderr,
+				diagnosticSummary(stderr),
 				inspectErr,
 			)
 		}
 		return nil, fmt.Errorf("inspect regression projection %q: inspector failed: %w", identity, inspectErr)
 	}
 	if !stdoutPresent {
-		if stderr != "" {
+		if len(stderr) != 0 {
 			return nil, fmt.Errorf(
 				"inspect regression projection %q: inspector succeeded without an artifact and wrote diagnostic: %s",
 				identity,
-				stderr,
+				diagnosticSummary(stderr),
 			)
 		}
 		return nil, fmt.Errorf("inspect regression projection %q: inspector produced an empty artifact", identity)
 	}
-	if stderr != "" {
+	if len(stderr) != 0 {
 		return nil, fmt.Errorf(
 			"inspect regression projection %q: inspector succeeded with contradictory stderr: %s",
 			identity,
-			stderr,
+			diagnosticSummary(stderr),
 		)
 	}
 	return output.Stdout, nil
 }
 
-func diagnosticOrNone(diagnostic string) string {
-	if diagnostic == "" {
+func diagnosticSummary(diagnostic []byte) string {
+	if len(diagnostic) == 0 {
 		return "(none)"
 	}
-	return diagnostic
+	return fmt.Sprintf("stderr present (%d bytes)", len(diagnostic))
 }
 
 func resolveRepositoryRoot(root string) (string, error) {
