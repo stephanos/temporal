@@ -13,7 +13,7 @@
   ],
   "id": "fn-4-umpire-observation-and-semantic-verdicts",
   "impl_review_rounds": {
-    "fn-4-umpire-observation-and-semantic-verdicts.1": 1
+    "fn-4-umpire-observation-and-semantic-verdicts.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -194,9 +194,62 @@
       "timestamp": "2026-08-26T17:18:13.515732Z",
       "tool_calls": 24,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b946f7dac01864452852d6608b455c320f6cae0665a679b8d1f4a8ca89a10111",
+      "backend": "codex",
+      "base_sha": "b19e3ebf14de74989b0ed818538db1df2bf423a5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-708de77b2b2171af70c010a7c3f277c5",
+            "classification": "introduced",
+            "findingId": "finding-708de77b2b2171af70c010a7c3f277c5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fe5e4e9a8802b46eaa8ac62eb560ca69",
+            "classification": "introduced",
+            "findingId": "finding-fe5e4e9a8802b46eaa8ac62eb560ca69",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dbbcd249c8e86e5ac4b690429bf3d98c5a0a3bfd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1042,
+      "output_sha256": "76e1d06bec117bb722621d675f765a7ccb29650013b0fa607831e68fdfa3f308",
+      "reservation_id": "c52920a03ff9433b88759eb8d4c466fc",
+      "round_consumed": true,
+      "scope": "impl:fn-4-umpire-observation-and-semantic-verdicts.1",
+      "superseded_by": null,
+      "task": "fn-4-umpire-observation-and-semantic-verdicts.1",
+      "timestamp": "2026-08-26T17:24:10.652058Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-4-umpire-observation-and-semantic-verdicts.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -220,5 +273,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T17:18:13.536464Z"
+  "updated_at": "2026-08-26T17:24:10.656334Z"
 }

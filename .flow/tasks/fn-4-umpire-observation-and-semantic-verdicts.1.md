@@ -37,9 +37,12 @@ Create the reusable Observation declaration and checked-plan boundary for R1/R5.
 - [ ] `cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation` passes.
 
 ## Done summary
-TBD
+Implemented the Temporal-independent typed Observation mapping DSL, canonical checked plans with resolved typed expressions and connector-reconciled meanings, positive evidence-record bounds, dispositions, and deterministic R1/R5 compile errors. The task and aggregate Lean targets plus the repository regression gate pass; the final Make gate used an isolated `GOCACHE` because the inherited global cache symlink was broken.
 
+baseline: red (new and later-task Observation targets absent pre-edit); `make umpire-check-regression` green pre-edit
+
+stage: impl-review - ran [2026-08-26T17:14:37Z..2026-08-26T17:24:10Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 50a5f3c7183ea40495b34c2af4d4990731fbef5e, dbbcd249c8e86e5ac4b690429bf3d98c5a0a3bfd
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, cd model && mise exec -- lake build Umpire.Property.Tests.Validation, cd model && mise exec -- lake build Umpire, cd model && mise exec -- lake build UmpireTests, make umpire-check-regression, baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation failed pre-edit: task target absent), baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests failed pre-edit: task aggregate absent), baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: later-task target absent), baseline: green (make umpire-check-regression)
 - PRs:
