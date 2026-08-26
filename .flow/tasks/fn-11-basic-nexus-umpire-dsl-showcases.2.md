@@ -45,9 +45,10 @@ Author the two small Nexus walkthroughs over task 1's shared target: asynchronou
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-TBD
+Added two independently readable Nexus lifecycle walkthroughs over the shared checked target. Each exposes authored and checked Property, exact-action Behavior, checked Query, and deterministic planning stages with focused positive/negative checks and target-owned result evidence.
 
+stage: impl-review - ran [2026-08-26T01:45:29Z..2026-08-26T01:46:49Z] (codex; SHIP after correcting the diff base for a concurrent documentation commit)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 347f344f309b78a3d9826cc819948e7d5c20fad5, 5e9f94a27e7ec5273ea5d20cfe3a760440ee3492
+- Tests: BASELINE: green via handoff (verified at 7dfde8263 by fn-11-basic-nexus-umpire-dsl-showcases.1; HEAD moved afterward through its plan-sync receipt and a concurrent documentation commit), BASELINE: make umpire-check-regression, cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicOperationsTests, cd model && mise exec -- lake build TemporalModelTests, make umpire-check-regression
 - PRs:
