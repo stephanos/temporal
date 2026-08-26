@@ -29,14 +29,14 @@ Split Query tests into visibility, forms, completeness, validation, and identity
 - `model/UmpireTests.lean:1-10` — unchanged aggregate entry point.
 
 ## Key context
-The visibility leaf must directly import only `Umpire.Query`; avoiding a fixtures import alone is insufficient if another internal test import exposes hidden declarations. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, do not commit, and do not use a worktree.
+The visibility leaf must directly import only `Umpire.Query`; avoiding a fixtures import alone is insufficient if another internal test import exposes hidden declarations. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, make only task-scoped flow-next commits, and do not use a worktree.
 
 ## Acceptance
 - [ ] `Query/Tests.lean` is import-only and directly imports `Visibility`, `Forms`, `Completeness`, `Validation`, and `Identity`; no fixtures or concern module imports the facade.
 - [ ] The evidence map accounts for all ten Query assertions, the public visibility guard, existing comments, canonical projections, semantic identities, and fixture strings exactly once; every new file has a short module comment.
 - [ ] `Query/Tests/Visibility.lean` has one direct import of only the public `Umpire.Query` facade and no fixtures or internal test imports.
 - [ ] `Fixtures` and every concern module pass direct Lean elaboration, then `cd model && mise exec -- lake build UmpireTests` passes.
-- [ ] No production query behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
+- [ ] No production query behavior, public API, dependency, build target, documentation, generated file, unrelated commit, or worktree changes; only task-scoped worker and lifecycle commits are allowed.
 
 ## Done summary
 Split the Query regression suite behind an import-only facade while preserving all 10 assertions, the public visibility guard, 47 definitions, nine existing explanatory comments, and the full semantic-string multiset. The facade maps visibility to `Visibility`; shared declarations (`id`, `source`, `phase`, `request`, `accepted`, `observed`, `role`, `value`, `initial`, `completed`, `requestValue`, `acceptedValue`, `observedValue`, `setup`, `transition`, `kernel`, `target`, `checkedProperty`, `checkedBehavior`, `completeness`, `bounds`, `exhaustivePolicy`, `searchPolicy`, `context`, `exhaustiveContext`, `declaration`, `errorKindOf`) to `Fixtures`; `summaryOf` plus the form assertion to `Forms`; `incompleteContext`, `noFiniteDomains`, and four assertions to `Completeness`; `invalidBounds`, `exactTrace`, `invalidExactBehavior`, and two assertions to `Validation`; and the canonical/digest helpers and semantic variants plus three assertions to `Identity`.

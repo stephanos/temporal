@@ -26,14 +26,14 @@ Split Planning tests into outcomes, artifacts, and enumeration concerns over sha
 - `docs/superpowers/specs/2026-08-25-lean-test-suite-structure-design.md:112-130` — approved Planning layout.
 
 ## Key context
-The visibility suite must continue importing only the public `Umpire.Planning` facade and must not gain access to internal fixtures. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, do not commit, and do not use a worktree.
+The visibility suite must continue importing only the public `Umpire.Planning` facade and must not gain access to internal fixtures. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, make only task-scoped flow-next commits, and do not use a worktree.
 
 ## Acceptance
 - [ ] `Planning/Tests.lean` is import-only and directly imports `Outcomes`, `Artifacts`, and `Enumeration`; no fixtures or concern module imports the facade.
 - [ ] The evidence map accounts for all ten Planning assertions, comments, artifact bytes, semantic identities, and fixture strings exactly once; every new file has a short module comment.
 - [ ] `Planning/VisibilityTests.lean` remains byte-for-byte unchanged, separate, importing only `Umpire.Planning`, with both visibility guards intact.
 - [ ] `Fixtures` and every concern module pass direct Lean elaboration, then `cd model && mise exec -- lake build UmpireTests` passes.
-- [ ] No production planning behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
+- [ ] No production planning behavior, public API, dependency, build target, documentation, generated file, unrelated commit, or worktree changes; only task-scoped worker and lifecycle commits are allowed.
 
 ## Done summary
 Split the reusable Planning regression suite behind its stable import-only facade into shared fixtures plus Outcomes, Artifacts, and Enumeration concerns. The declaration map at `.flow/tmp/fn12-4-planning-declaration-map.md` accounts for all ten assertions and comments, preserves semantic strings, and records the byte-identical separate visibility guards.

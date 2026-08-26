@@ -28,14 +28,14 @@ Split Property tests into evaluation, validation, logical-time, and canonicaliza
 - `model/Umpire/Property/Tests.lean:229-234` — direct theorem proof and attached comment.
 
 ## Key context
-The focused uniqueness assertion must demonstrate failure by checking `uniquenessProperty`, not merely mention or reuse its fixture. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, do not commit, and do not use a worktree.
+The focused uniqueness assertion must demonstrate failure by checking `uniquenessProperty`, not merely mention or reuse its fixture. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, make only task-scoped flow-next commits, and do not use a worktree.
 
 ## Acceptance
 - [ ] `Property/Tests.lean` is import-only and directly imports `Evaluation`, `Validation`, `LogicalTime`, and `Canonicalization`; no fixtures or concern module imports the facade.
 - [ ] The evidence map accounts for 25 originals: the negative uniqueness assertion now evaluates `uniquenessProperty`, the reflexive self-comparison alone is removed, and 24 meaningful assertions remain exactly once.
 - [ ] Existing explanatory comments, including the direct theorem proof comment, remain verbatim and attached; all other semantic source strings are unchanged and every new file has a short module comment.
 - [ ] `Fixtures` and every concern module pass direct Lean elaboration, then `cd model && mise exec -- lake build UmpireTests` passes.
-- [ ] No production property behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
+- [ ] No production property behavior, public API, dependency, build target, documentation, generated file, unrelated commit, or worktree changes; only task-scoped worker and lifecycle commits are allowed.
 
 ## Done summary
 Split the reusable Property regression suite behind its stable import-only facade into shared fixtures plus Evaluation, Validation, LogicalTime, and Canonicalization concerns. The declaration map at `.flow/tmp/fn12-3-property-declaration-map.md` accounts for all 25 originals: 24 assertions remain exactly once, the reflexive comparison alone is removed, the negative case evaluates `uniquenessProperty`, and the theorem comment plus semantic strings remain unchanged.
