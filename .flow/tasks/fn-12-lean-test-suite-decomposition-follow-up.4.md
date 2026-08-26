@@ -36,9 +36,10 @@ The visibility suite must continue importing only the public `Umpire.Planning` f
 - [ ] No production planning behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
 
 ## Done summary
-TBD
+Split the reusable Planning regression suite behind its stable import-only facade into shared fixtures plus Outcomes, Artifacts, and Enumeration concerns. The declaration map at `.flow/tmp/fn12-4-planning-declaration-map.md` accounts for all ten assertions and comments, preserves semantic strings, and records the byte-identical separate visibility guards.
 
+stage: impl-review - ran (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: edf87325ba74b272d4b7c7dec063c98d42ca0bde
+- Tests: GATE_SKIPPED:build:green-receipt 84754567 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt 84754567 - baseline reused from prior post-gate pass, git diff --check, cd model && mise exec -- lake env lean Umpire/Planning/Tests/Fixtures.lean, cd model && mise exec -- lake build Umpire.Planning.Tests.Fixtures, cd model && mise exec -- lake env lean Umpire/Planning/Tests/Outcomes.lean, cd model && mise exec -- lake env lean Umpire/Planning/Tests/Artifacts.lean, cd model && mise exec -- lake env lean Umpire/Planning/Tests/Enumeration.lean, cd model && mise exec -- lake build UmpireTests, Planning assertion/comment/definition/semantic-string and import-boundary inventory checks, Planning/VisibilityTests.lean byte-identity and visibility-guard preservation checks, (cd model && mise exec -- lake build UmpireTests TemporalModelTests), make umpire-check-regression, git diff --check 66c266a3e38ed59424268fea18fa71ca51d9dd07..HEAD
 - PRs:
