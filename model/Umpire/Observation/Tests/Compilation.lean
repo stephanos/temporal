@@ -1,4 +1,5 @@
 import Umpire.Observation.Tests.Fixtures
+import Umpire.CoreTests.Fixtures
 
 /-! Deterministic checked-plan identity and exact structural compilation failures. -/
 
@@ -31,6 +32,47 @@ example : planIdentityOf context baseDeclaration = planIdentityOf context reorde
 example : planIdentityOf context baseDeclaration != planIdentityOf context {
     baseDeclaration with evidenceBound := { value := 11, unit := .evidenceRecords }
   } := by
+  native_decide
+
+def checkedNormalizedNameIsTyped : Option Bool := do
+  let plan ← (checkObservation context baseDeclaration).toOption
+  let binding ← plan.bindings.find? fun binding => binding.id == normalizedName.id
+  match binding.expression with
+  | .normalize .textTrimV1 (.field reference .text .retain) =>
+      pure (reference == { kind := eventKind, field := nameField })
+  | _ => pure false
+
+/-- Qualification can consume the checked expression tree without parsing its canonical identity. -/
+example : checkedNormalizedNameIsTyped = some true := by
+  native_decide
+
+def connectedContext : Option ObservationCheckContext :=
+  (composeTarget Umpire.CoreTests.testTarget).toOption.map fun target =>
+    ObservationCheckContext.ofTarget target [evidenceProfile]
+
+def reconciledMapping : ObservationMappingDeclaration := {
+  baseDeclaration with
+  id := id "test.mapping.reconciled"
+  digestPolicies := []
+  bindings := []
+  rules := [{
+    id := id "test.rule.reconciled"
+    output := id "test.relation.shared"
+    outputKind := .relation
+    value := .portable (.text "shared")
+  }]
+  ordering := []
+  dispositions := []
+}
+
+def reconciledMeaningDigest : Option String := do
+  let checkContext ← connectedContext
+  let plan ← (checkObservation checkContext reconciledMapping).toOption
+  let rule ← plan.rules.find? fun rule => rule.id == id "test.rule.reconciled"
+  pure rule.meaning.semanticDigest
+
+/-- Connected target meanings compile under the connector's reconciled semantic identity. -/
+example : reconciledMeaningDigest = some "test-shared-connector/reconciled-v1" := by
   native_decide
 
 /-- Every consumed field has one checked disposition in the canonical plan. -/
