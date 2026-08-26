@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T09:21:49.875490Z",
+  "depends_on": [
+    "fn-17-bounded-semantic-exploration-and.5"
+  ],
+  "id": "fn-17-bounded-semantic-exploration-and.6",
+  "priority": null,
+  "spec": "fn-17-bounded-semantic-exploration-and",
+  "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.6.md",
+  "status": "todo",
+  "title": "Prove the Nexus fault-matrix exploration and command contract",
+  "updated_at": "2026-08-26T09:21:49.875490Z"
+}
