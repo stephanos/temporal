@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T11:40:00Z",
+  "depends_on": [
+    "fn-21-nexus-duplicate-observation-control.1",
+    "fn-21-nexus-duplicate-observation-control.7"
+  ],
+  "id": "fn-21-nexus-duplicate-observation-control.2",
+  "priority": null,
+  "spec": "fn-21-nexus-duplicate-observation-control",
+  "spec_path": ".flow/tasks/fn-21-nexus-duplicate-observation-control.2.md",
+  "status": "todo",
+  "title": "Bind the closed faulted runtime configuration and input set",
+  "updated_at": "2026-08-26T11:39:58.859240Z"
+}
