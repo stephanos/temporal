@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T10:04:57.722615Z",
+  "depends_on": [
+    "fn-18-versioned-umpire-artifact-boundary.8",
+    "fn-18-versioned-umpire-artifact-boundary.9"
+  ],
+  "id": "fn-18-versioned-umpire-artifact-boundary.10",
+  "priority": null,
+  "spec": "fn-18-versioned-umpire-artifact-boundary",
+  "spec_path": ".flow/tasks/fn-18-versioned-umpire-artifact-boundary.10.md",
+  "status": "todo",
+  "title": "Atomically publish and recover immutable artifact sets",
+  "updated_at": "2026-08-26T10:04:57.722615Z"
+}
