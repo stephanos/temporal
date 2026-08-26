@@ -12,7 +12,7 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 
 ### Approach
 
-- Define catalog entries, aliases, deprecations, references, dispositions, checked graph identity, exact lookup, and structured errors over existing checked metadata.
+- Define catalog entries, aliases, deprecations, references, dispositions, checked graph identity, exact lookup, and structured errors over existing checked declaration metadata plus fn-16's `CheckedSpaceMetadata` projection.
 - Validate the complete graph before constructing `CheckedCatalog`; do not copy clauses, traces, kernels, or planner logic.
 - Make authoring-order permutations canonical and keep constructors for checked values private.
 
@@ -23,6 +23,7 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 - `model/Umpire/Core.lean:189-224` — structured error conventions.
 - `model/Umpire/Core.lean:430-464` — identity and kind validation.
 - `model/Umpire/Property/Language.lean:192-270` — authored-to-checked lifecycle.
+- `model/Umpire/Space/Metadata.lean` — fn-16-owned checked metadata projection; consume without copying compiler logic.
 - `model/Umpire/ARCHITECTURE.md:31-44` — package lifecycle boundary.
 
 ### Quick command
