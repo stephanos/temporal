@@ -31,7 +31,7 @@ Integrate the six suite-local splits and verify the complete closed-fn-10 invent
 - `.flow/specs/fn-11-basic-nexus-umpire-dsl-showcases.md` — coordination scope if fn-11 has changed the Temporal aggregate.
 
 ## Key context
-All six fresh suite workers must have completed serially before this task. The coordinator may fix aggregate reachability or another narrow integration defect, but a suite-local assertion or partition defect returns to that suite task. Do not commit and do not use a worktree.
+All six fresh suite workers must have completed serially before this task. The coordinator may fix aggregate reachability or another narrow integration defect, but a suite-local assertion or partition defect returns to that suite task. Make only task-scoped flow-next commits and do not use a worktree.
 
 ## Acceptance
 - [ ] fn-10 is closed, its spec dependency remains recorded, and the final inventory accounts for six split roots plus the below-threshold owner-specific Temporal suites without modifying fn-10.
@@ -40,7 +40,7 @@ All six fresh suite workers must have completed serially before this task. The c
 - [ ] Stable aggregates retain unrelated changes and reach every fn-12 facade; any aggregate edit is limited to a demonstrated missing import and no suite-local defect is silently rewritten here.
 - [ ] `rg --no-ignore --glob '*.lean'` reports no trailing whitespace across all six split trees and no forbidden Temporal/Nexus imports, namespaces, or semantic prefixes across the five reusable Umpire test trees, including untracked new leaves.
 - [ ] `(cd model && mise exec -- lake build UmpireTests TemporalModelTests)`, `make umpire-check-regression`, and `git diff --check` all pass.
-- [ ] No production/public behavior, generated API or dynamic-config file, Lake/Make/CI wiring, documentation, dependency, commit, or worktree change is present.
+- [ ] No production/public behavior, generated API or dynamic-config file, Lake/Make/CI wiring, documentation, dependency, unrelated commit, or worktree change is present; only task-scoped worker and lifecycle commits are allowed.
 
 ## Done summary
 Audited the six decomposed Lean suites against the closed fn-10 baseline and found no integration correction necessary: facades, concern imports, declarations, comments, semantic strings, approved removals, stable aggregates, and read-only visibility/configuration guards all reconcile. Every split leaf and facade elaborates directly, and the terminal aggregate build, Umpire regression, structural/domain scans, and whitespace checks pass.
