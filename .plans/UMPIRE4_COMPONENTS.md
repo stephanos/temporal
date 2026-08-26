@@ -35,7 +35,7 @@ implementation was found.
 
 | Milestone | Status | Summary |
 | --- | --- | --- |
-| A: describe real tests | In progress | The model-only C1-C4 slice and shared basic Nexus teaching target work; the two walkthroughs, combinatorial authoring, C5 generation, and usability evidence remain. |
+| A: describe real tests | In progress | The model-only C1-C4 slice, shared basic Nexus teaching target, and one-regression C5 projection pilot work; the two walkthroughs, combinatorial authoring, broader projection catalog and promotion, and usability evidence remain. |
 | B: check real Temporal | Not integrated | No current-artifact decoder, local driver binding, live evidence interpreter, or qualified result path exists. |
 | C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
 | D: reuse the investment | Separately advanced | Formal, optional Veil, and qualification machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 qualification work remain open. |
@@ -552,8 +552,9 @@ semantic identities.
 
 Components: C1-C5, limited to the API/config/model material needed by the pilot.
 
-**Status: in progress.** C1-C4 have a usable model-only vertical slice. C5 is not implemented, and
-the implemented DSL does not yet cover combinatorial axes or authored faults.
+**Status: in progress.** C1-C4 have a usable model-only vertical slice, and C5 has a checked-in
+one-regression projection pilot. The implemented DSL does not yet cover combinatorial axes or
+authored faults, and broader projection catalog and promotion work remains.
 
 Deliverable:
 
