@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"go.temporal.io/server/tools/common/artifactio"
 )
 
