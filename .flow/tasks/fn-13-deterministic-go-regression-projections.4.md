@@ -42,9 +42,12 @@ A checked-in generated Go source must use the exact standard generated marker. `
 - [ ] Focused Go tests and `make umpire-check-regression` pass with `-tags test_dep` where required.
 
 ## Done summary
-TBD
+Published the stable caller-closure regression as one transactionally generated Go/Markdown projection pair, added focused generation and clean-check targets to the root Makefile and stable regression gate, and documented ownership, provenance, fingerprinting, and the projection-only boundary. Reconciled C5 in the live renamed `.plans/UMPIRE4_COMPONENTS.md` roadmap without recreating its obsolete predecessor.
 
+baseline: green (`go test -count=1 -tags test_dep ./tools/umpire/...` passed pre-edit; `make umpire-check-regression` reused receipt e1a635b2)
+GATE_SKIPPED:unittest:green-receipt e1a635b2 - baseline reused from prior post-gate pass
+stage: impl-review - ran [2026-08-26T05:28:28Z..2026-08-26T05:31:45Z] (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 222a9447c7af154630ff98a58f2b2c927e241f0d
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-regression-projections, make umpire-check-regression, make umpire-gen-regression-projections (silent success; repeated generation byte-identical), GATE_SKIPPED:unittest:green-receipt e1a635b2 - baseline reused from prior post-gate pass
 - PRs:
